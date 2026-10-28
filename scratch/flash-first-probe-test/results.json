@@ -1,0 +1,39 @@
+{
+  "rom_sha256": "afc1cc8b693f2b68d23ca203aa4d4eb4266baad4ab718f013a33b915d39574ef",
+  "note": "Firmware routine and synthetic IDs; no hardware or bank-layout validation",
+  "results": [
+    {
+      "cs1": [
+        "0x1",
+        "0x227e"
+      ],
+      "cs2": [
+        "0x1",
+        "0x227e"
+      ],
+      "probe_result": 0
+    },
+    {
+      "cs1": [
+        "0x1",
+        "0x257e"
+      ],
+      "cs2": [
+        "0x1",
+        "0x227e"
+      ],
+      "probe_result": 2
+    },
+    {
+      "cs1": [
+        "0x1",
+        "0x22d1"
+      ],
+      "cs2": [
+        "0x1",
+        "0x227e"
+      ],
+      "probe_result": 1
+    }
+  ]
+}

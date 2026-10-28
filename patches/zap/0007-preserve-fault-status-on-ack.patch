@@ -1,0 +1,12 @@
+--- a/src/rtl/zap_dcache_fsm.sv
++++ b/src/rtl/zap_dcache_fsm.sv
+@@ -565,7 +565,8 @@
+                         state_nxt[IDLE]        = 1'd1;
+ 
+                         o_err      = i_wb_err;
+-                        o_fsr[3:0] = TERMINAL_EXCEPTION;
++                        // An acknowledged transfer must not overwrite CP15 fault state.
++                        if (i_wb_err) o_fsr[3:0] = TERMINAL_EXCEPTION;
+ 
+                         `zap_kill_access;
+                 end

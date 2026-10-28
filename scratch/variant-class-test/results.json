@@ -1,0 +1,70 @@
+{
+  "note": "Synthetic RAM and stop-before-side-effects; real firmware instructions, no board emulation.",
+  "rom_sha256": "afc1cc8b693f2b68d23ca203aa4d4eb4266baad4ab718f013a33b915d39574ef",
+  "results": [
+    {
+      "classes": [
+        0,
+        4,
+        0
+      ],
+      "outcome": "variant_fault_19"
+    },
+    {
+      "classes": [
+        0,
+        0,
+        0
+      ],
+      "outcome": "table_accepted"
+    },
+    {
+      "classes": [
+        4,
+        4,
+        4
+      ],
+      "outcome": "table_accepted"
+    },
+    {
+      "classes": [
+        0,
+        0,
+        4
+      ],
+      "outcome": "table_accepted"
+    },
+    {
+      "classes": [
+        4,
+        0,
+        4
+      ],
+      "outcome": "variant_fault_19"
+    },
+    {
+      "classes": [
+        4,
+        4,
+        0
+      ],
+      "outcome": "table_accepted"
+    },
+    {
+      "classes": [
+        0,
+        4,
+        4
+      ],
+      "outcome": "variant_fault_19"
+    },
+    {
+      "classes": [
+        4,
+        0,
+        0
+      ],
+      "outcome": "variant_fault_19"
+    }
+  ]
+}

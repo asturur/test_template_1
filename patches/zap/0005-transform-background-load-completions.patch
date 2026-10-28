@@ -1,0 +1,135 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -158,7 +158,8 @@
+ input   logic [31:0]                     i_dc_reg_dat, // Register data.
+ input   logic [63:0]                     i_dc_lock,    // Register that is locked.
+ output  logic [63:0]                     o_dc_reg_idx, // Register index.
+-output  logic [5:0]                      o_dc_reg_idx_bin // Binary index.
++output  logic [5:0]                      o_dc_reg_idx_bin, // Binary index.
++output  logic [5:0]                      o_dc_load_info // Load format and original byte offset.
+ 
+ );
+ 
+@@ -574,6 +575,11 @@
+ end
+ 
+ assign o_dc_reg_idx_bin = postalu_mem_srcdest_index_ff;
++// The nonblocking D-cache completion bypasses the ordinary memory-stage
++// narrowing/sign extension. Preserve the original load format with the miss.
++assign o_dc_load_info = {postalu_sbyte_ff, postalu_ubyte_ff,
++                         postalu_shalf_ff, postalu_uhalf_ff,
++                         postalu_address_ff[1:0]};
+ 
+ localparam [31:0] MIN_SAT = {1'd1, {31{1'd0}}}; // Smallest -ve value.
+ localparam [31:0] MAX_SAT = {1'd0, {31{1'd1}}}; // Largest +ve value.
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -194,6 +194,7 @@
+ logic            d_wb_err;
+ logic [63:0]     dc_rreg_idx, dc_wreg_idx;
+ logic [5:0]      dc_rreg_idx_bin;
++logic [5:0]      dc_load_info;
+ logic [63:0]     dc_lock;
+ logic [31:0]     dc_reg_data;
+ logic            icache_err2, dcache_err2;
+@@ -311,6 +312,7 @@
+ .o_cpsr                 (cpu_cpsr[ZAP_CPSR_MODE:0]),
+ .o_dc_reg_idx           (dc_rreg_idx),
+ .o_dc_reg_idx_bin       (dc_rreg_idx_bin),
++.o_dc_load_info         (dc_load_info),
+ 
+ .i_dc_reg_idx           (!ONLY_CORE ? dc_wreg_idx : '0),
+ .i_dc_lock              (!ONLY_CORE ? dc_lock : '0),
+@@ -558,6 +560,7 @@
+ .i_dat                  (cpu_dc_dat),
+ .i_reg_idx              (dc_rreg_idx),
+ .i_reg_idx_bin          (dc_rreg_idx_bin),
++.i_load_info            (dc_load_info),
+ 
+ .o_dat                  (dc_data),
+ .o_ack                  (data_ack),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -70,6 +70,7 @@
+ output  logic            o_err2,
+ input   logic [63:0]     i_reg_idx,
+ input   logic [5:0]      i_reg_idx_bin,
++input   logic [5:0]      i_load_info,
+ output  logic [63:0]     o_lock,
+ output  logic [31:0]     o_reg_dat,
+ output  logic [63:0]     o_reg_idx,
+@@ -157,6 +158,7 @@
+         .i_din                  (i_dat),
+         .o_idle                 (idle),
+         .i_ben                  (i_ben),
++        .i_load_info            (i_load_info),
+         .o_dat                  (o_dat),
+         .o_ack                  (o_ack),
+         .o_err                  (o_err),
+--- a/src/rtl/zap_dcache_fsm.sv
++++ b/src/rtl/zap_dcache_fsm.sv
+@@ -47,6 +47,7 @@
+ input   logic    [3:0]             i_ben,
+ input   logic    [63:0]            i_reg_idx,
+ input   logic    [5:0]             i_reg_idx_bin,
++input   logic    [5:0]             i_load_info,
+ output  logic     [63:0]           o_lock,
+ output  logic [31:0]               o_reg_dat,
+ output  logic [63:0]               o_reg_idx,
+@@ -166,6 +167,7 @@
+ logic  [`ZAP_CACHE_TAG_WDT-1:0]           cache_tag; // Tag
+ logic    [31:0]                           phy_addr;
+ logic    [63:0]                           reg_idx;
++logic    [5:0]                            load_info;
+ logic    [63:0]                           lock_nxt, lock_ff;
+ 
+ logic                                     unused;
+@@ -216,6 +218,7 @@
+                 cache_tag       <= i_cache_tag;
+                 phy_addr        <= i_phy_addr;
+                 reg_idx         <= i_reg_idx;
++                load_info       <= i_load_info;
+         end
+ end
+ 
+@@ -690,8 +693,9 @@
+                 if ( !wr )
+                 begin
+                         // Write to register file
+-                        o_reg_dat = adapt_cache_data(address[$clog2(CACHE_LINE)-1:2],
+-                                                     cache_line);
++                        o_reg_dat = finish_background_load(
++                                        adapt_cache_data(address[$clog2(CACHE_LINE)-1:2], cache_line),
++                                        load_info);
+                         o_reg_idx = reg_idx;
+                 end
+                 else // Update cache line.
+@@ -854,6 +858,28 @@
+ 
+ endfunction : clean_single_d
+ 
++// Match the ordinary memory-stage load transform when a cache miss completes
++// through the asynchronous register port. The captured controls belong to the
++// missed load, not to a later hit-under-miss request.
++function automatic [31:0] finish_background_load(input [31:0] data, input [5:0] info);
++    logic [31:0] shifted;
++    logic [15:0] halfword;
++    begin
++        shifted = data >> (8 * info[1:0]);
++        halfword = info[1] ? data[31:16] : data[15:0];
++        if (info[4]) finish_background_load = {24'd0, shifted[7:0]};
++        else if (info[5]) finish_background_load = {{24{shifted[7]}}, shifted[7:0]};
++        else if (info[3]) finish_background_load = {{16{halfword[15]}}, halfword};
++        else if (info[2]) finish_background_load = {16'd0, halfword};
++        else case (info[1:0])
++            2'd0: finish_background_load = data;
++            2'd1: finish_background_load = {data[7:0], data[31:8]};
++            2'd2: finish_background_load = {data[15:0], data[31:16]};
++            2'd3: finish_background_load = {data[23:0], data[31:24]};
++        endcase
++    end
++endfunction
++
+ endmodule : zap_dcache_fsm
+ 
+ // ----------------------------------------------------------------------------
