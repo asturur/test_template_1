@@ -92,8 +92,7 @@ incorrectly compared against itself; independent comparison verified 238 rows
 against the preceding run, and the wrapper has been fixed. Investigate the
 expected writer and timer/IRQ semantics before declaring a real hang. This
 is in the synthetic flash-class path and must not be reported as authentic
-boot. Full comparison with all-hypothetical 0x257e IDs is still running as
-session 97399; see the following section.
+boot. Full comparison with all-hypothetical 0x257e IDs completed; see the following section.
 
 ## Fixed-cache all-0x257e flash hypothesis
 
@@ -105,13 +104,13 @@ schematic labels AM29N643 chips and a candidate Am29BDS643G datasheet lists
 different IDs, so this is not verified hardware.
 
 A separate full V15 run with the same hypothetical IDs and explicit GPIO/PUP
-assumptions is active as session 97399, via
+assumptions completed at cycle 725,805,161 on unmodeled write 0x0c120074, via
 `scratch/flash-all-257e-probe/run-long.py`. It reuses the short-test simulator
 only after verifying the binary and source hashes, caps its log, and writes to
 `build/sim/runs/boot-v15-all-257e/`; on completion a screen capture is attempted
 at `build/sim/screens/boot-v15-all-257e/`. It has no RAM-class intervention.
 This is a diagnostic comparison, not a claim about physical chips or boot.
-Check process/result before duplicating.
+Inspect the saved result before duplicating.
 
 ## All-equal flash-ID short diagnostic
 
