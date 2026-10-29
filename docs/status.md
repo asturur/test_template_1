@@ -1,5 +1,32 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 Frontier settled: pure kernel idle - no user thread becomes ready after the EStart launch (update made with Claude)
+
+Extended trace past the launch (frontier3, 1112.5M-1114M): the system settles
+into a PURE KERNEL idle - only ekern functions, woken every ~404K cycles by the
+timer-tick IRQ (vector 0x18 at 1113732286; tick period 0x632ea), running the
+null thread. NO user thread runs: LoaderThread (0x503d3539) and EStart
+(0x503ee860) have ZERO hits across 1.5e9 cycles. So after StartupThread's init
+completes and it launches EStart (User::StartThread + UserSvr::BlockThreads),
+every user thread is blocked/suspended and none becomes READY - EStart is
+created but never scheduled, and the LoaderThread never wakes to load it. The
+scheduler ticks but has no ready user thread to run.
+
+ngvm (oracle) does this correctly: its LoaderThread runs, loads EStart, EStart
+runs and EXITS cleanly (it is the transient launcher), then ~12 servers start
+(EwSrv window server, ViewServer, AppArc, EtelServer, Watcher...) -> UI/logo.
+So the LLE gap is ONE kernel step: making the newly-launched EStart (and/or the
+LoaderThread) READY so the scheduler runs it. This is EKA1 thread-resume/
+scheduler behavior; the LLE kernel is unsymbolized (no ekern.idt), so pin it by
+cross-referencing ngvm's thread-resume path and/or finding the missing kernel
+event (a resume/IDFC the real kernel needs). That is the next and possibly
+last major gap before the user-side cascade to the logo.
+
+Progress recap: LLE went 767.8M (blank-C: crash) -> 1.11e9 (EStart launch) via
+the ngvm 4 MiB formatted C: image; tooling = ngvm oracle, IDT symbols,
+cdrive-image, symtrace. mount-c760 is the resume base (checkpoint-at from a
+restore does not write - minor; resume+trace from mount-c760 works).
+
 ## 2026-10-29 Frontier pinned: EStart is LAUNCHED but never scheduled (update made with Claude)
 
 Deep-dived the ~1.11e9 block with IDT symbols. Sequence: StartupThread's init
