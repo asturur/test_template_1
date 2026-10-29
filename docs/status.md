@@ -1,5 +1,31 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 fresh correct-path snapshot mount-c768; F32 idle wait is next (update made with Claude)
+
+Consolidation after a long advancing session. Fresh pinned snapshot
+mount-c768 written from reset on the current UEM path (cycle 768M, after F32's
+C: filesystem batch, just before the re-idle); validated by the inspector
+(L1 table + anchor resolve). Stale pre-UEM checkpoints c1300/c1307900000
+RETIRED (wrong shorter-epbus path); pinned set is now mount-c760 + mount-c768
+(see build/sim/checkpoints/README.txt). run-resume.py auto-latest now globs
+mount-c*. build/sim trimmed 1.4G->88M (traces regenerable; results/provenance
+and checkpoints kept).
+
+The 767.8M re-idle: F32 is Thumb-compiled; the last executed frames are EFile
+media-readiness logic (0x503cfa10: [req+0x18] null -> returns -18 KErrNotReady)
+and ELocal. System reached the 1.32e9 budget with no crash and no wake for
+550M cycles => event-blocked on a non-timer signal, same pattern that the UEM
+IRQ resolved one layer up. EStart (first user process, 0x503ee860) has NOT
+executed yet in any trace.
+
+NEXT (precise): from mount-c768, Thumb-RE the blocked F32 thread's wait —
+whether it is (a) a driver waiting on another hardware completion to model
+(most likely, given the pattern), or (b) F32 legitimately idle awaiting an
+EStart request, meaning the block is upstream in loader/EStart creation.
+Decide by checking, from the c768 RAM image, whether a loader/EStart thread
+exists and what it waits on (inspector + the DThread vtable), then model the
+event or unblock EStart creation. Iterate via run-resume (minutes/attempt).
+
 ## 2026-10-29 epbus clock-block + C: word reads: F32 exercises C: filesystem, re-idles ~767.8M (update made with Claude)
 
 Two model additions cleared the epbus/LFFS frontiers in single rebuilds:

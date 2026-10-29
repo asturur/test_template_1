@@ -15,7 +15,7 @@ rtl=root/'scratch/boot-v15-quiet-zap/src/rtl';board=root/'scratch/boot-v15-nospr
 rom=root/'build/firmware/nem4-factory/digest-probe-core-nosstub/SYM.ROM';extension=root/'build/firmware/nem4-factory/extension.bin'
 inputs=[*sorted(rtl.glob('*.sv')),*sorted(rtl.glob('*.svh')),root/'rtl/ngage_cpu.sv',root/'scratch/checkpoint-probe/ngage_cpu_sim.sv',board/'main.cpp',board/'boot_profile.cpp',board/'boot_profile.h',rom,extension,Path(__file__).resolve()]
 ckdir=root/'build/sim/checkpoints'
-cks=sorted(ckdir.glob('boot-v15-c*.cpu'),key=lambda p:int(p.stem.split('-c')[1]))
+cks=sorted(ckdir.glob('mount-c*.cpu'),key=lambda p:int(p.stem.split('-c')[1]))
 if not cks:raise SystemExit('No checkpoint found; run run-checkpoint.py first')
 latest=cks[-1].with_suffix('')
 inputs+=[latest.with_suffix('.cpu'),latest.with_suffix('.host')]
