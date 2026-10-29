@@ -12,16 +12,17 @@ addresses). Findings on checkpoint c1307900000: kernel object names are not
 ASCII-in-RAM on this build (only string: "INFO Server"), so identification
 goes by stacks/vtables; 16 stack-like pages found and module-mapped.
 
-ANSWER to "who is blocked": PA 0xafe4000 holds a kernel stack with
-ELocal -> medint -> medmmc frames (0x503fef88/0x503fd854/0x503fefc8 +
-ekern wait calls) — the F32 local-media mount thread entered medmmc.pdd
-(D: = MMC card) and parked. medmmc code had never appeared in any trace
-window; it runs only on this blocked thread. Reading: after C: mounted,
-the mount sequence proceeds to D: and waits for the MMC socket power-up —
-the SECOND epbus power instance (pin pair 0x150206/0x150208; we only ever
-completed the first instance's UEM event). PA 0xafe2000 is the epbus object
-heap (vtables 0x50339c08/0x50339d5c etc., the three 'instance' objects the
-earlier scan found at 0x804067xx/0x804068xx/0x804069xx).
+CORRECTION (same day): the code-pointer-dense pages are the KERNEL HEAP,
+not stacks — the 'return addresses' at 0x503fefxx/0x503fd854 disassemble as
+medmmc import-table/vtable DATA. So the right reading of PA 0xafe4000 is
+that medint/medmmc/ramdrive/ELocal driver OBJECTS exist (media drivers
+instantiated, including medmmc's), and of 0xafe2000 that the three epbus
+instance objects (vtables 0x50339c08/0x50339d5c/...) live at
+0x804067xx/0x804068xx/0x804069xx. Which thread is blocked on what is NOT
+yet proven; stack discovery needs SVC-frame signatures, not raw density.
+In flight: from-reset run-mount-window.py (win-trace 761.0M-761.45M, the
+span right after the C: mount where the mount thread last ran) to catch the
+park in the instruction stream directly.
 
 NEXT: RE medmmc's wait entry (around 0x503fef88/0x503fd854) to identify the
 exact completion it needs (second UEM interrupt client? card-detect GPIO?
