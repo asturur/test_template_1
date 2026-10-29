@@ -1,5 +1,24 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 New frontier: the LOADER is loading EStart (blocked mid-load ~1.11e9) (update made with Claude)
+
+Symbolized the ~1.11e9 block (IDT names): the last F32 work is mount-control
+(efile CMountCB/CFormatCB::CheckMount), and crucially the LOADER is active -
+euser!TLoaderInfo runs at 1.1116e9/1.1121e9 and ROM-tail reads (process image
+bytes, 0x04730xxx) run to 1.1115e9. So EFile::LoaderThread is mid-load of a
+process (EStart, from ROM) and blocks before completing it; EStart code
+(0x503ee860) NEVER executes. The block is the EStart LAUNCH - the loader waits
+on an async op (WaitForAnyRequest) during the load. This is the gap between
+F32-up and the user UI, the same spot that matters for the logo.
+
+Progress this session is enormous: LLE went from crashing at 767.8M (blank-C:
+KErrCorrupt) to loading EStart at 1.11e9 (+343M), via the ngvm-produced 4 MiB
+formatted C: image. Checkpoint mount-c1111 being written for fast iteration on
+this frontier. NEXT: pin the loader's exact wait (resume mount-c1111, trace the
+TLoaderInfo load path, find the async completion it needs - a drive read DFC,
+a memory op, or an IPC), model it, and EStart should launch -> window server ->
+LCD -> logo. Validate against ngvm (which loads EStart and reaches both logos).
+
 ## 2026-10-29 LLE boots +343M past the C: crash to a new F32/LFFS frontier ~1.11e9 (update made with Claude)
 
 With the 4 MiB formatted C: image the LLE runs from the old 767.8M crash to
