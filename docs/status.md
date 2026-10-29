@@ -1,5 +1,35 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 *** MILESTONE: HLE reference boots OUR firmware to NOKIA + N-GAGE logos; formatted C: extracted *** (update made with Claude)
+
+Built and ran the Pocket core's ngvm (Unicorn ARMv4T HLE: NGVM C kernel +
+our user firmware) on OUR SYM.ROM:
+  python3 ~/develop/n-gage/tools/ngvm/ngvm.py --rom /tmp/ngage_sym.rom
+    --kernel ~/develop/n-gage/build/kernel/kernel.elf --save <c.img>
+    --seconds 12 [--frames-to DIR --frame-every 60]
+Result: FULL boot. Dozens of servers up (EwSrv/EikSrvs window server, AppArc,
+SystemAgent, Phone, C32 comms, Starter, FbServ, EFile...), and the captured
+frames show the authentic NOKIA logo (~5 s) then the N-GAGE logo (~11 s) -
+saved build/sim/screens/ngvm-milestone/{nokia-logo-5s,ngage-logo-11s}.png.
+So OUR firmware + ROM are correct and boot to the logos; the block was never
+the firmware.
+
+KEY for the LLE: ngvm presents C: as FORMATTABLE flat memory, so the firmware
+FORMATS the empty C: itself (3124 writes) and ngvm saved the resulting VALID
+formatted LFFS (1 MiB, every 64 KiB block word[1]=0x503B3B60 LFFS_MAGIC) ->
+build/firmware/thc/cdrive-formatted-1mib.img. This is exactly what our LLE
+needs: our LLE crashes because its C: is blank/unformatted and (unlike ngvm)
+not auto-formatted. Prebuilt tools now available: ngvm (bootable HLE
+reference), romsyms+IDTs (names), the formatted C: image.
+
+NEXT (LLE boot past the C: crash): either (a) pre-fill the LLE cdrive_ overlay
+with a formatted LFFS image - but size must match what our medint reports to
+LFFS (the LLE scan expected 0x400000=4 MiB; ngvm's image is 1 MiB, so rebuild
+ngvm with NGVM_SAVE_SIZE=4 MiB, or match the LLE flash size to the image), or
+(b) make the LLE C: FORMATTABLE like ngvm so the real firmware formats it
+(exercises our flash program/erase model) - the more authentic fix. Validate
+the LLE boot against ngvm's logo frames.
+
 ## 2026-10-29 ROOT CAUSE CONFIRMED: blank C: scans as invalid LFFS -> KErrCorrupt -> crash; C: must be pre-formatted (update made with Claude)
 
 Decoded the exact failing check (trace decode, IDT-independent): ELocal's LFFS
