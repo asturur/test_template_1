@@ -1,5 +1,33 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 ROOT CAUSE of the user-side block: missing ISI/Phonet baseband responder (update made with Claude)
+
+Traced StartupThread's full exec set across the mount (reqtrace 764-767.82M):
+WaitForAnyRequest(162), heap, trap, locked inc/dec, plus RFs::Connect
+(RSessionBase::Attach 0xbf to the file server - normal), TFindLogicalChannel
+(0xb7), UserHal::DriveInfo (0x83), CServer/RServer (0x2e). No flash/MMC/timer
+wait, no C: content dependency. Then the Pocket core docs/hardware.md S8 named
+it exactly: the firmware boot (Starter) opens channels to NOSDRIVER (the
+baseband) and sends ISI/Phonet messages - energy management (resource 0x17:
+charger msg 0x08->0x09 subblock 0x13 "not connected", battery 0x0A->0x0B
+subblock 0x16 "full 7 bars"), phone identity/IMEI (0x1B), SIM/IMSI (0x09) -
+and WAITS for replies. The Pocket core implements NOSDRIVER as an ISI/Phonet
+ROUTER (sw/kernel/chan.c) answering these; the fallback for everything else is
+"open and never complete, or complete with KErrNotSupported." Our synthetic
+NOS stub provides only the entry code and does NOT route ISI, so StartupThread's
+CActiveScheduler waits forever for a baseband reply. "Without the charger's
+reply, Xanadu Next exits at start" - the charger/battery replies are needed
+early.
+
+So the real frontier is a minimal ISI/Phonet baseband responder (like Pocket's
+chan.c) at our LLE hardware level: find how the firmware's NOSDRIVER exchanges
+ISI messages with the baseband (shared memory + interrupt), and answer the
+energy-management set (+ KErrNotSupported / never-complete for the rest). The
+real THC NOS image is the authentic alternative but needs its import table
+fixed; the minimal responder is the faster path and matches what the working
+Pocket core does. NEXT: read chan.c's ISI router for the exact message/subblock
+layouts and the hardware mailbox, then model the responder.
+
 ## 2026-10-29 COURSE CORRECTION: C: content NOT needed; block is medint async mount completion (update made with Claude)
 
 The user supplied the real C: as a FILE TREE (firmware/disk_dump/C, 120 files,
