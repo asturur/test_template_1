@@ -19,7 +19,7 @@ struct BootBusRequest {
 // a verified UPP_WD2 model. Unknown addresses and unwritten latch bits stop.
 class BootProfile {
 public:
-    BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks = false, bool lcd_probe = false, const std::vector<uint8_t>& rom_tail = {}, bool boot_io_probe = false, const std::map<unsigned, unsigned>& adc_inputs = {}, uint64_t timer_irq_delay = 0, int uem_power_status = -1, int uem_status36 = -1, int uem_status35 = -1, int extra_cbus_write = -1, int extra_cbus_write2 = -1, bool allow_uif_8000 = false, bool allow_icu25 = false, bool gpio210_low_zero = false, bool gpio21a_zero = false, bool gpio216_zero = false, bool uif102_write = false, bool cbus82_readback = false, int cbus80_input = -1, bool cbus8d_zero = false, bool icu46_write = false, bool pupf00a_zero = false, bool sysc0c14_zero = false, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs = {}, bool gpio214_low_zero = false, bool pupf004_low_zero = false, bool gpio206_extra_write = false, bool sysc74_write3 = false, bool gpio24_28_write1 = false, bool timer_compare_probe = false, bool sysc50_44_probe = false, bool icu1c8_probe = false, bool timer_periodic = false, bool block14d_probe = false, bool debug59_sink = false, const std::map<int,int>& cbus_inputs = {}, bool nos_entry_stub = false, bool keypad_gpio = false, bool icu_banks = false, bool timer_units = false, bool cdrive_flash = false, bool unit60_irq3 = false, const std::vector<uint8_t>& nos_image = {}, bool uem_irq_source1 = false);
+    BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks = false, bool lcd_probe = false, const std::vector<uint8_t>& rom_tail = {}, bool boot_io_probe = false, const std::map<unsigned, unsigned>& adc_inputs = {}, uint64_t timer_irq_delay = 0, int uem_power_status = -1, int uem_status36 = -1, int uem_status35 = -1, int extra_cbus_write = -1, int extra_cbus_write2 = -1, bool allow_uif_8000 = false, bool allow_icu25 = false, bool gpio210_low_zero = false, bool gpio21a_zero = false, bool gpio216_zero = false, bool uif102_write = false, bool cbus82_readback = false, int cbus80_input = -1, bool cbus8d_zero = false, bool icu46_write = false, bool pupf00a_zero = false, bool sysc0c14_zero = false, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs = {}, bool gpio214_low_zero = false, bool pupf004_low_zero = false, bool gpio206_extra_write = false, bool sysc74_write3 = false, bool gpio24_28_write1 = false, bool timer_compare_probe = false, bool sysc50_44_probe = false, bool icu1c8_probe = false, bool timer_periodic = false, bool block14d_probe = false, bool debug59_sink = false, const std::map<int,int>& cbus_inputs = {}, bool nos_entry_stub = false, bool keypad_gpio = false, bool icu_banks = false, bool timer_units = false, bool cdrive_flash = false, bool unit60_irq3 = false, const std::vector<uint8_t>& nos_image = {}, bool uem_irq_source1 = false, bool epbus_clkblk = false);
     static std::map<unsigned, unsigned> parse_adc_inputs(const std::string& options);
     bool access(const BootBusRequest& request, uint32_t& data, std::string& device);
     void tick();
@@ -123,6 +123,13 @@ private:
     // checkpoint state; checkpoints must not straddle a pending UEM IRQ.
     bool uem_irq_source1_ = false, uem_irq_pending_ = false;
     uint64_t uem_irqs_ = 0;
+    // epbus clock/power sub-block 0x0c120600..0x0c1206ff: epbus sweeps it
+    // during peripheral init (writes 0x280 to +0x14, touches +0x04/+0x10/
+    // +0x18/+0x24...). Modeled as RW word latches, reset 0 (unwritten reads 0).
+    // Register semantics unknown; this unblocks the sweep. Opt-in. Serialized
+    // in checkpoint v4.
+    bool epbus_clkblk_ = false;
+    std::map<uint32_t,uint32_t> epbus_clk_regs_;
     // Timer unit 1 (0x0c120a20): epbus settle-delay timer raising ICU source 1
     // (observed 1.30796e9: control 0x0a24=1, compare 0x0a30=0x7fffffff parked
     // then 0x6590, ICU 0x108=2 re-enable). Counts CPU cycles up to the compare

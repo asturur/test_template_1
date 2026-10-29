@@ -498,6 +498,8 @@ int main() {
         check(cwrh(0x02400aa8,0xaa)&&cwr(0x02400554,0x55)&&cwrh(0x02400aa8,0x80)&&cwrh(0x02400aa8,0xaa)&&cwr(0x02400554,0x55)&&cwr(0x02401000,0x30),"C: sector erase command");
         check(crd(0x02401000)&&(cv&0xffff)==0x0008,"C: erase poll returns DQ3=1,DQ7=0");
         check(crd(0x02401000)&&(cv&0xffff)==0xffff,"C: erase completes to 0xFF");
+        check(cd.access({0x02401000,0,15,false},cv,cdev)&&cv==0xffffffff&&cdev=="cdrive_flash","C: array word read of erased cells is 0xFFFFFFFF");
+        check(cwrh(0x02400aa8,0xaa)&&cwr(0x02400554,0x55)&&cwrh(0x02400aa8,0xa0)&&cwr(0x02401000,0x1234)&&cd.access({0x02401000,0,15,false},cv,cdev)&&(cv&0xffff)==0x1234,"C: array word read returns a freshly programmed low cell");
         std::cout<<"PASS C: drive flash boundaries\n";
         BootProfile u60(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,true,{{0x24,0}},true,true,true,true,true,true);
         uint32_t ud=0; std::string udev;
@@ -525,7 +527,7 @@ int main() {
         check(u60.access({0x0c12020c,0x10,15,true},ud,udev)&&u60.access({0x0c12020c,0,15,false},ud,udev)&&ud==0x10,"mask bank1 independent");
         std::cout<<"PASS unit 0x60 IRQ-source-3 hypothesis\n";
         std::vector<uint8_t> img(0x100); for(size_t i=0;i<img.size();++i) img[i]=uint8_t(i);
-        BootProfile ni(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,false,{{0x24,0}},false,true,true,true,true,true,img,true);
+        BootProfile ni(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,false,{{0x24,0}},false,true,true,true,true,true,img,true,true);
         uint32_t nd=0; std::string ndev;
         check(!(ni.access({0x0009d280,0,15,false},nd,ndev)&&ndev=="nos_image_thc"),"NOS image inactive before the kernel tick arms (digest sees raw bytes)");
         check(ni.access({0x0c120a04,2,15,true},nd,ndev)&&ni.access({0x0c120a18,0x0115b5c0,15,true},nd,ndev),"arm the boot one-shot");
@@ -563,6 +565,12 @@ int main() {
         for(int i=0;i<200;++i) ni.tick();
         check(!ni.uem_irq(),"unit1: stopped timer does not fire");
         std::cout<<"PASS unit-1 settle timer source-1\n";
+        check(ni.access({0x0c120614,0x280,15,true},nd,ndev)&&ndev=="assumed_epbus_clk","epbus clk-block write latches");
+        check(ni.access({0x0c120614,0,15,false},nd,ndev)&&nd==0x280,"epbus clk-block reads back");
+        check(ni.access({0x0c120610,0,15,false},nd,ndev)&&nd==0&&ndev=="assumed_epbus_clk","epbus clk-block unwritten reads 0");
+        check(ni.access({0x0c1206fc,0x1234,15,true},nd,ndev)&&ni.access({0x0c1206fc,0,15,false},nd,ndev)&&nd==0x1234,"epbus clk-block covers whole 0x1206xx");
+        check(!ni.access({0x0c120700,0,15,false},nd,ndev)||ndev!="assumed_epbus_clk","block ends at 0x1206ff");
+        std::cout<<"PASS epbus clock-block latches\n";
         // Board checkpoint v2 roundtrip: mutate state across the newer device
         // models, save, load into a fresh identically-configured board, and
         // check the observable state survived.

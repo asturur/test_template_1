@@ -1,5 +1,24 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 epbus clock-block + C: word reads: F32 exercises C: filesystem, re-idles ~767.8M (update made with Claude)
+
+Two model additions cleared the epbus/LFFS frontiers in single rebuilds:
+(1) opt-in `epbus-clkblk` serves 0x0c120600..0x0c1206ff as RW word latches
+(epbus swept 0x604/0x610/0x614=0x280/0x618/0x624 during peripheral init);
+(2) C: flash array now serves word reads (select 0xf -> two cells, array-read
+mode only; commands/status stay halfword) — LFFS reads its mounted volume as
+words. Result: boot advanced to the 1.32e9 budget with NO crash; medint
+(783), EFile (1503), ELocal (248) transitions show F32 did a full batch of C:
+filesystem work (last C: read 0x024f003c at 767.1M), then the boot thread
+re-idled at ~767.8M (last real frames: EFile 0x503cfa30/0x503d91d6, ELocal
+0x5038925c, then pure tick to 1.32e9). Same event-blocked pattern as before,
+now one mount deeper. Checkpoint v4 serializes the clock block.
+
+NEXT: write a fresh correct-path checkpoint near 767.8M (the stale pre-UEM
+c1300/c1307900000 are retired) and run inspect_checkpoint on it to name the
+newly-blocked thread and its wait object, then model that event. Iterate via
+run-resume from the fresh checkpoint.
+
 ## 2026-10-29 UEM IRQ unlocked more epbus init; checkpoints re-based on mount-c760 (update made with Claude)
 
 Full-boot module-trace from reset shows the span is dominated by healthy

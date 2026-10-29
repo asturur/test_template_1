@@ -81,7 +81,7 @@ uint32_t BootProfile::word(size_t offset) const {
            uint32_t(rom_[offset+2]) << 16 | uint32_t(rom_[offset+3]) << 24;
 }
 
-BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks, bool lcd_probe, const std::vector<uint8_t>& rom_tail, bool boot_io_probe, const std::map<unsigned, unsigned>& adc_inputs, uint64_t timer_irq_delay, int uem_power_status, int uem_status36, int uem_status35, int extra_cbus_write, int extra_cbus_write2, bool allow_uif_8000, bool allow_icu25, bool gpio210_low_zero, bool gpio21a_zero, bool gpio216_zero, bool uif102_write, bool cbus82_readback, int cbus80_input, bool cbus8d_zero, bool icu46_write, bool pupf00a_zero, bool sysc0c14_zero, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs, bool gpio214_low_zero, bool pupf004_low_zero, bool gpio206_extra_write, bool sysc74_write3, bool gpio24_28_write1, bool timer_compare_probe, bool sysc50_44_probe, bool icu1c8_probe, bool timer_periodic, bool block14d_probe, bool debug59_sink, const std::map<int,int>& cbus_inputs, bool nos_entry_stub, bool keypad_gpio, bool icu_banks, bool timer_units, bool cdrive_flash, bool unit60_irq3, const std::vector<uint8_t>& nos_image, bool uem_irq_source1)
+BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks, bool lcd_probe, const std::vector<uint8_t>& rom_tail, bool boot_io_probe, const std::map<unsigned, unsigned>& adc_inputs, uint64_t timer_irq_delay, int uem_power_status, int uem_status36, int uem_status35, int extra_cbus_write, int extra_cbus_write2, bool allow_uif_8000, bool allow_icu25, bool gpio210_low_zero, bool gpio21a_zero, bool gpio216_zero, bool uif102_write, bool cbus82_readback, int cbus80_input, bool cbus8d_zero, bool icu46_write, bool pupf00a_zero, bool sysc0c14_zero, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs, bool gpio214_low_zero, bool pupf004_low_zero, bool gpio206_extra_write, bool sysc74_write3, bool gpio24_28_write1, bool timer_compare_probe, bool sysc50_44_probe, bool icu1c8_probe, bool timer_periodic, bool block14d_probe, bool debug59_sink, const std::map<int,int>& cbus_inputs, bool nos_entry_stub, bool keypad_gpio, bool icu_banks, bool timer_units, bool cdrive_flash, bool unit60_irq3, const std::vector<uint8_t>& nos_image, bool uem_irq_source1, bool epbus_clkblk)
     : rom_(rom), rom_bytes_(rom_bytes), rom_tail_(rom_tail), kind_(kind), ideal_clocks_(ideal_clocks), lcd_probe_(lcd_probe), boot_io_probe_(boot_io_probe), adc_inputs_(adc_inputs), timer_irq_delay_(timer_irq_delay) {
     allow_uif_8000_ = allow_uif_8000; allow_icu25_ = allow_icu25; gpio210_low_zero_ = gpio210_low_zero; gpio21a_zero_ = gpio21a_zero; gpio216_zero_ = gpio216_zero; gpio214_low_zero_ = gpio214_low_zero; pupf004_low_zero_ = pupf004_low_zero; gpio206_extra_write_ = gpio206_extra_write; sysc74_write3_ = sysc74_write3; gpio24_28_write1_ = gpio24_28_write1; timer_compare_probe_ = timer_compare_probe; sysc50_44_probe_ = sysc50_44_probe; icu1c8_probe_ = icu1c8_probe; uif102_write_ = uif102_write; cbus82_readback_ = cbus82_readback; cbus80_input_ = cbus80_input; cbus8d_zero_ = cbus8d_zero; icu46_write_ = icu46_write; pupf00a_zero_ = pupf00a_zero; sysc0c14_zero_ = sysc0c14_zero; timer_periodic_ = timer_periodic; block14d_probe_ = block14d_probe; debug59_sink_ = debug59_sink; cbus_inputs_ = cbus_inputs; nos_entry_stub_ = nos_entry_stub; keypad_gpio_ = keypad_gpio;
     if (nos_entry_stub_) {
@@ -92,7 +92,7 @@ BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, cons
         power_model_[5] = 0x5149e000u + 0x10;   // queue head prev -> &head
         power_model_[6] = 4;                      // iOffset
         power_model_init_ = true;
-    } icu_banks_ = icu_banks; timer_units_ = timer_units; cdrive_flash_ = cdrive_flash; unit60_irq3_ = unit60_irq3; uem_irq_source1_ = uem_irq_source1;
+    } icu_banks_ = icu_banks; timer_units_ = timer_units; cdrive_flash_ = cdrive_flash; unit60_irq3_ = unit60_irq3; uem_irq_source1_ = uem_irq_source1; epbus_clkblk_ = epbus_clkblk;
     nos_image_ = nos_image;
     if (!nos_image_.empty() && nos_entry_stub_)
         throw std::runtime_error("nos-image replaces the synthetic NOS entry stub; enable only one");
@@ -238,6 +238,18 @@ void BootProfile::cdrive_sector(uint32_t off, uint32_t& base, uint32_t& end) con
 // RAM overlay (0xFF = erased). Models only what medint.pdd exercises.
 bool BootProfile::cdrive_access(const BootBusRequest& request, uint32_t& data, std::string& device) {
     if (cdrive_.empty()) cdrive_.assign(0x400000, 0xff);
+    // Array word read (select 0xf): the x16 flash is mapped so a 32-bit read
+    // returns two adjacent cells. Only valid in array-read mode (no pending
+    // command/autoselect/erase, which are halfword-protocol); LFFS reads the
+    // volume this way once mounted.
+    if (!request.write && request.select == 15 &&
+        !cdrive_autoselect_ && cdrive_unlock_ == 0 &&
+        !(cdrive_erase_end_ > cdrive_erase_base_)) {
+        const uint32_t off = request.address - 0x02400000;
+        data = uint32_t(cdrive_[off]) | uint32_t(cdrive_[off+1]) << 8 |
+               uint32_t(cdrive_[off+2]) << 16 | uint32_t(cdrive_[off+3]) << 24;
+        device = "cdrive_flash"; return true;
+    }
     if (request.select != 3 && request.select != 12) {
         reason_ = "C: flash access width outside the halfword protocol"; return false;
     }
@@ -574,6 +586,14 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (request.write) { if (address & 4) mask |= request.data; else mask &= ~request.data; }
         data = mask;
         device = "assumed_icu_mask"; return true;
+    }
+    // epbus clock/power sub-block: RW word latches, reset 0. Opt-in.
+    if (epbus_clkblk_ && request.select == 15 &&
+        address >= 0x0c120600 && address < 0x0c120700) {
+        uint32_t& reg = epbus_clk_regs_[address];
+        if (request.write) reg = request.data;
+        data = reg;
+        device = "assumed_epbus_clk"; return true;
     }
     // Firmware IRQ path at 0x2f44 writes this exact halfword after UEM reads.
     // Its peripheral semantics remain unknown; no readback is invented.
@@ -995,6 +1015,7 @@ void BootProfile::report(std::ostream& output) const {
            << ",\"uem_irq_source1_assumed\":" << (uem_irq_source1_ ? "true" : "false")
            << ",\"uem_irqs\":" << uem_irqs_
            << ",\"unit1_irqs\":" << unit1_irqs_
+           << ",\"epbus_clk_regs\":" << epbus_clk_regs_.size()
            << ",\"uem_irq_pending\":" << (uem_irq_pending_ ? "true" : "false")
            << ",\"unit60_irq3_assumed\":" << (unit60_irq3_ ? "true" : "false")
            << ",\"unit60_irqs\":" << unit60_irqs_
@@ -1085,7 +1106,7 @@ template<class T> void state_read(std::istream& in, T& v) { in.read(reinterpret_
 }
 void BootProfile::save_state(std::ostream& out) const {
     // v2: full device-model state. Maps are written as count + (key,value).
-    const uint32_t version = 0x4e470003; state_write(out, version);
+    const uint32_t version = 0x4e470004; state_write(out, version);
     state_write(out, rom_tail_reads_); state_write(out, cbus_stage_); state_write(out, cbus_transactions_);
     state_write(out, cbus_config_); state_write(out, cbus_command_); state_write(out, uem_adc_channel_);
     state_write(out, adc_result_reads_); state_write(out, timer_remaining_); state_write(out, timer_elapsed_);
@@ -1118,10 +1139,11 @@ void BootProfile::save_state(std::ostream& out) const {
     // v3: ICU source-1 / settle-timer state
     state_write(out, uem_irq_pending_); state_write(out, uem_irqs_);
     state_write(out, unit1_running_); state_write(out, unit1_elapsed_); state_write(out, unit1_compare_); state_write(out, unit1_irqs_);
+    n=epbus_clk_regs_.size(); state_write(out,n); for (const auto& item:epbus_clk_regs_) {state_write(out,item.first);state_write(out,item.second);}
     if (!out) throw std::runtime_error("failed to save board checkpoint");
 }
 void BootProfile::load_state(std::istream& in) {
-    uint32_t version=0; state_read(in,version); if (version != 0x4e470002 && version != 0x4e470003) throw std::runtime_error("board checkpoint version mismatch");
+    uint32_t version=0; state_read(in,version); if (version < 0x4e470002 || version > 0x4e470004) throw std::runtime_error("board checkpoint version mismatch");
     state_read(in,rom_tail_reads_); state_read(in,cbus_stage_); state_read(in,cbus_transactions_);
     state_read(in,cbus_config_); state_read(in,cbus_command_); state_read(in,uem_adc_channel_);
     state_read(in,adc_result_reads_); state_read(in,timer_remaining_); state_read(in,timer_elapsed_);
@@ -1164,6 +1186,10 @@ void BootProfile::load_state(std::istream& in) {
     if (version >= 0x4e470003) {
         state_read(in,uem_irq_pending_); state_read(in,uem_irqs_);
         state_read(in,unit1_running_); state_read(in,unit1_elapsed_); state_read(in,unit1_compare_); state_read(in,unit1_irqs_);
+    }
+    if (version >= 0x4e470004) {
+        state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint epbus-clk entries"); epbus_clk_regs_.clear();
+        for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);epbus_clk_regs_[k]=v;}
     }
     if (!in) throw std::runtime_error("truncated board checkpoint");
 }
