@@ -51,7 +51,7 @@ int run(int argc, char** argv) {
         throw std::runtime_error("ROM must contain 1 byte to 64 MiB");
     const size_t rom_bytes = rom.size();
     const std::string profile_name = argc >= 9 ? argv[8] : "none";
-    bool ideal_clocks = false, lcd_probe = false, compact_trace = false, boot_io_probe = false, allow_uif_8000 = false, allow_icu25 = false, gpio210_low_zero = false, gpio21a_zero = false, gpio216_zero = false, gpio214_low_zero = false, pupf004_low_zero = false, gpio206_extra_write = false, sysc74_write3 = false, gpio24_28_write1 = false, timer_compare_probe = false, sysc50_44_probe = false, icu1c8_probe = false, timer_periodic = false, block14d_probe = false, debug59_sink = false, nos_entry_stub = false, keypad_gpio = false, icu_banks = false, timer_units = false, cdrive_flash = false, unit60_irq3 = false, uem_irq_source1 = false, uif102_write = false, cbus82_readback = false, cbus8d_zero = false, icu46_write = false, pupf00a_zero = false, sysc0c14_zero = false;
+    bool ideal_clocks = false, lcd_probe = false, compact_trace = false, boot_io_probe = false, allow_uif_8000 = false, allow_icu25 = false, gpio210_low_zero = false, gpio21a_zero = false, gpio216_zero = false, gpio214_low_zero = false, pupf004_low_zero = false, gpio206_extra_write = false, sysc74_write3 = false, gpio24_28_write1 = false, timer_compare_probe = false, sysc50_44_probe = false, icu1c8_probe = false, timer_periodic = false, block14d_probe = false, debug59_sink = false, nos_entry_stub = false, keypad_gpio = false, icu_banks = false, timer_units = false, cdrive_flash = false, unit60_irq3 = false, uem_irq_source1 = false, module_trace = false, uif102_write = false, cbus82_readback = false, cbus8d_zero = false, icu46_write = false, pupf00a_zero = false, sysc0c14_zero = false;
     std::vector<uint8_t> rom_tail, nos_image;
     std::map<unsigned,unsigned> adc_inputs;
     std::map<uint32_t,std::pair<uint32_t,uint8_t>> probe_regs;
@@ -86,6 +86,7 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]) == "cdrive-flash") cdrive_flash = true;
         else if (std::string(argv[i]) == "timer-unit60-irq3") unit60_irq3 = true;
         else if (std::string(argv[i]) == "uem-irq-source1") uem_irq_source1 = true;
+        else if (std::string(argv[i]) == "module-trace") module_trace = true;
         else if (std::string(argv[i]) == "uif102-write") uif102_write = true;
         else if (std::string(argv[i]) == "cbus82-readback") cbus82_readback = true;
         else if (std::string(argv[i]) == "cbus8d-zero") cbus8d_zero = true;
@@ -384,6 +385,36 @@ int run(int argc, char** argv) {
         if (board) board->tick();
         if (cpu->o_trace_valid) {
             const std::string trace = trace_text(cpu->o_trace);
+            // module-trace: one log line per transition between ROM binaries
+            // (offsets from the ROM file table; build-specific, experimental).
+            if (module_trace && cpu->o_trace_uop_last && trace.size() > 8) {
+                static const struct { uint32_t base; const char* name; } mod_tab[] = {
+                    {0x320f9c,"ekern"},{0x348750,"ecust"},{0x34ab20,"ecomm"},{0x34d340,"ramdrive"},
+                    {0x34de20,"rtc"},{0x3504a0,"nosstarter"},{0x3505a0,"pnmsg"},{0x350ac0,"isimsg"},
+                    {0x36b480,"phonet"},{0x36ce90,"mid36c"},{0x381d30,"cbus"},{0x383e80,"helper"},
+                    {0x384990,"medint"},{0x388330,"ELocal"},{0x3971e0,"ELocl"},{0x397d20,"EUser"},
+                    {0x3cc5d0,"Hal"},{0x3cdb60,"EFile"},{0x3ddad0,"EFSrv"},{0x3e40c0,"ERam"},
+                    {0x3ed5b0,"EKTran"},{0x3ee860,"EStart"},{0x3efad0,"EDISP"},{0x3f0a50,"btldd"},
+                    {0x3f3110,"sit"},{0x3f37c0,"audio"},{0x3f3de0,"epbus"},{0x3fd7f0,"medmmc"},
+                    {0x3feff0,"lesterdrv"},{0x3ff710,"GD1DRV"},{0x4001e0,"lcd.ldd"},{0x406c90,"LCDDEV"},
+                    {0x407270,"scdv"},{0x4184d0,"product_info"},{0x418dd0,"ekeyb"},{0x41b1e0,"end"}};
+                static int last_mod = -2;
+                uint32_t pc = 0;
+                if (sscanf(trace.c_str(), "%x", &pc) == 1) {
+                    int m = -1;
+                    if (pc >= 0x5149d000 && pc <= 0x5149e100) m = 100;       // nos window
+                    else if (pc >= 0x50320f9c && pc < 0x5041b1e0) {
+                        for (unsigned k = 0; k < sizeof(mod_tab)/sizeof(*mod_tab); ++k)
+                            if (pc - 0x50000000 >= mod_tab[k].base) m = k; else break;
+                    }
+                    if (m != last_mod && m >= 0) {
+                        instruction_log << std::dec << cycle << "\tMOD\t"
+                            << (m == 100 ? "nos-window" : mod_tab[m].name)
+                            << "\t" << std::hex << pc << std::dec << '\n';
+                        last_mod = m;
+                    } else if (m >= 0) last_mod = m;
+                }
+            }
             const bool instruction_abort = trace.find("<IABT>") != std::string::npos;
             if (cpu->o_trace_uop_last || instruction_abort) {
                 last_trace = trace;

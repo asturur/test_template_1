@@ -1,5 +1,25 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 mount window traced: medmmc is a clean no-card no-op; module-trace tool (update made with Claude)
+
+run-mount-window.py (from reset, win-trace 761.0M-761.45M) shows the span
+after the C: mount: EFile/EFSrv work steadily, medmmc runs ONCE at
+761.403M-761.411M purely in software (PDD factory create via ordinal lookup
+0x50330960 -> entry 0x503feb44, 0x20-byte alloc, constructor 0x503fd858;
+ZERO hardware accesses), then F32 continues (EFile/EFSrv active to the
+window edge at 761.45M). USER INPUT (2026-10-29): the MMC card is optional
+on real hardware — boot without a card is authentic; full MMC/D: support
+is a later feature, not a logo-path requirement. So the no-card path is
+correct and D: is NOT the blocker; the park happens somewhere in the
+untraced 761.45M-1.31e9 span.
+
+New instrument for exactly that: `module-trace` option in main.cpp logs one
+line per PC transition between ROM binaries (tiny output over any span);
+run-modtrace.py resumes the pinned mount-c760 snapshot and produces the
+complete module timeline 760M-1.32e9. Pinned snapshot mount-c760.{cpu,host}
+written by run-c760.py (excluded from rolling prune); run-resume-760.py
+replays the mount span with optional win-trace in ~1 minute.
+
 ## 2026-10-29 checkpoint inspector built: blocked thread is the F32 mount in medmmc (update made with Claude)
 
 New tool `scratch/tools/inspect_checkpoint.py` (offline, no simulation):
