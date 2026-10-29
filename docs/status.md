@@ -1,5 +1,29 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 *** LLE PAST THE C: CRASH: 4 MiB formatted LFFS image mounts *** (update made with Claude)
+
+Got a VALID 4 MiB formatted LFFS image by temporarily enlarging ngvm's C:
+(NGVM_SAVE_BASE 0x01C00000 / SIZE 0x400000 in ~/develop/n-gage sw/include/
+ngvm_hw.h, rebuild kernel, run ngvm --save, revert) -> build/firmware/thc/
+cdrive-formatted-4mib.img (64/64 blocks have LFFS_MAGIC 0x503B3B60). The LLE
+model now loads it via opt-in cdrive-image= (boot_profile: image loaded in ctor
+AND re-applied after load_state so it survives checkpoint restore - a 1 MiB
+image failed because our LLE volume is 4 MiB; size MUST match medint's reported
+size). Resume from mount-c760 with the 4 MiB image: StartupThread SURVIVES the
+mount (cdrive_writes=0 = mount succeeded on the valid volume), boot runs PAST
+the old 767.8M KErrCorrupt death, actively reading C: at 769.99M. The C: crash
+is SOLVED for the LLE.
+
+Mechanism: our LLE firmware's LFFS, unlike ngvm's formattable HLE drive, does
+NOT auto-format a blank C: - it needs a pre-formatted volume. ngvm (fast HLE)
+produces one by letting the firmware format its formattable drive; we feed that
+formatted image to the LLE. run-resume-760.py / run-stub.py now carry
+cdrive-image=.../cdrive-formatted-4mib.img.
+
+NEXT: run the LLE long (2-3e9) to see how far it boots now (EStart, window
+server, the LCD path -> Nokia/N-Gage logo in screen.png). Validate against the
+ngvm reference frames (build/sim/screens/ngvm-milestone/).
+
 ## 2026-10-29 *** MILESTONE: HLE reference boots OUR firmware to NOKIA + N-GAGE logos; formatted C: extracted *** (update made with Claude)
 
 Built and ran the Pocket core's ngvm (Unicorn ARMv4T HLE: NGVM C kernel +

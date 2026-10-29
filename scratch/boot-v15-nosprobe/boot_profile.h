@@ -19,7 +19,7 @@ struct BootBusRequest {
 // a verified UPP_WD2 model. Unknown addresses and unwritten latch bits stop.
 class BootProfile {
 public:
-    BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks = false, bool lcd_probe = false, const std::vector<uint8_t>& rom_tail = {}, bool boot_io_probe = false, const std::map<unsigned, unsigned>& adc_inputs = {}, uint64_t timer_irq_delay = 0, int uem_power_status = -1, int uem_status36 = -1, int uem_status35 = -1, int extra_cbus_write = -1, int extra_cbus_write2 = -1, bool allow_uif_8000 = false, bool allow_icu25 = false, bool gpio210_low_zero = false, bool gpio21a_zero = false, bool gpio216_zero = false, bool uif102_write = false, bool cbus82_readback = false, int cbus80_input = -1, bool cbus8d_zero = false, bool icu46_write = false, bool pupf00a_zero = false, bool sysc0c14_zero = false, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs = {}, bool gpio214_low_zero = false, bool pupf004_low_zero = false, bool gpio206_extra_write = false, bool sysc74_write3 = false, bool gpio24_28_write1 = false, bool timer_compare_probe = false, bool sysc50_44_probe = false, bool icu1c8_probe = false, bool timer_periodic = false, bool block14d_probe = false, bool debug59_sink = false, const std::map<int,int>& cbus_inputs = {}, bool nos_entry_stub = false, bool keypad_gpio = false, bool icu_banks = false, bool timer_units = false, bool cdrive_flash = false, bool unit60_irq3 = false, const std::vector<uint8_t>& nos_image = {}, bool uem_irq_source1 = false, bool epbus_clkblk = false);
+    BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks = false, bool lcd_probe = false, const std::vector<uint8_t>& rom_tail = {}, bool boot_io_probe = false, const std::map<unsigned, unsigned>& adc_inputs = {}, uint64_t timer_irq_delay = 0, int uem_power_status = -1, int uem_status36 = -1, int uem_status35 = -1, int extra_cbus_write = -1, int extra_cbus_write2 = -1, bool allow_uif_8000 = false, bool allow_icu25 = false, bool gpio210_low_zero = false, bool gpio21a_zero = false, bool gpio216_zero = false, bool uif102_write = false, bool cbus82_readback = false, int cbus80_input = -1, bool cbus8d_zero = false, bool icu46_write = false, bool pupf00a_zero = false, bool sysc0c14_zero = false, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs = {}, bool gpio214_low_zero = false, bool pupf004_low_zero = false, bool gpio206_extra_write = false, bool sysc74_write3 = false, bool gpio24_28_write1 = false, bool timer_compare_probe = false, bool sysc50_44_probe = false, bool icu1c8_probe = false, bool timer_periodic = false, bool block14d_probe = false, bool debug59_sink = false, const std::map<int,int>& cbus_inputs = {}, bool nos_entry_stub = false, bool keypad_gpio = false, bool icu_banks = false, bool timer_units = false, bool cdrive_flash = false, bool unit60_irq3 = false, const std::vector<uint8_t>& nos_image = {}, bool uem_irq_source1 = false, bool epbus_clkblk = false, const std::vector<uint8_t>& cdrive_image = {});
     static std::map<unsigned, unsigned> parse_adc_inputs(const std::string& options);
     bool access(const BootBusRequest& request, uint32_t& data, std::string& device);
     void tick();
@@ -148,6 +148,11 @@ private:
     // only what medint.pdd/LFFS exercises so C: mounts and formats.
     bool cdrive_flash_ = false;
     std::vector<uint8_t> cdrive_;            // 4 MiB overlay, 0xFF = erased
+    // Pre-formatted C: LFFS image (from ngvm HLE: build/firmware/thc/
+    // cdrive-formatted-1mib.img). Loaded into the overlay at construction so
+    // the real firmware's LFFS mount finds a valid volume instead of scanning
+    // blank flash to KErrCorrupt. Opt-in cdrive-image=.
+    std::vector<uint8_t> cdrive_image_;
     unsigned cdrive_unlock_ = 0;             // AMD unlock cycle counter
     bool cdrive_autoselect_ = false, cdrive_program_ = false, cdrive_erase_armed_ = false;
     uint32_t cdrive_erase_base_ = 0, cdrive_erase_end_ = 0; unsigned cdrive_erase_reads_ = 0;
