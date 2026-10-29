@@ -1,5 +1,23 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 KErrCorrupt likely a C: flash geometry/size mismatch (update made with Claude)
+
+The erased C: mount returns KErrCorrupt without attempting format (208 pre-
+crash C: reads all 0xFFFFFFFF; cdrive_writes=0). On the working Pocket core
+the same real LFFS formats an erased C: on first mount. Difference must be the
+flash geometry/caps medint derives from our flash model. Mismatches found:
+- SIZE: our cdrive overlay = 4 MiB (0x02400000-0x027fffff); THC live map shows
+  real C: = 6 MiB (0x02400000-0x029fffff); device ID 0x257e implies an AM29x643
+  = 64 Mbit = 8 MiB part. So our size is likely wrong, and medint's caps
+  (iSize/iEraseBlockSize) may not match what the ROM-built LFFS expects.
+- GEOMETRY: our model has 16 KiB boot sectors at each 2 MiB die top
+  (cdrive_sector); Pocket uses uniform 64 KiB. Non-uniform geometry can break
+  LFFS structural math -> corrupt.
+Diagnostic in flight: resume mount-c760, window-trace 760-764.2M with the
+IDT symbols to catch the TBusLocalDrive::Caps query and the exact size/erase/
+mediaatt medint reports, then correct the C: flash model (size + uniform
+geometry + formattable) so LFFS formats-on-mount instead of KErrCorrupt.
+
 ## 2026-10-29 REFRAME: boot does not hang - StartupThread CRASHES on C: mount KErrCorrupt (update made with Claude)
 
 Symbolized the block with the user-supplied IDA IDTs (firmware/IDA IDTs 1st
