@@ -1,5 +1,38 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 ROOT CAUSE CONFIRMED: blank C: scans as invalid LFFS -> KErrCorrupt -> crash; C: must be pre-formatted (update made with Claude)
+
+Decoded the exact failing check (trace decode, IDT-independent): ELocal's LFFS
+mount runs a scan loop (0x5038fb80..0x5038fbd4) over the whole volume in 64 KiB
+(erase-block) steps, R5 summing to the total size [R7+4]=0x00400000 (4 MiB);
+it validates each block into R0, every block reads invalid on the erased flash
+(R0==0), the scan reaches the end having found NO valid block, and returns
+MOV R0,#20 / RSB R0,R0,#0 = -20 = KErrCorrupt. StartupThread then
+User::LeaveIfError -> User::Leave -> RThread::Kill (dies). So the firmware does
+NOT auto-format a blank volume - a real N-Gage C: is PRE-FORMATTED at the
+factory. Our erased (all-0xFF) C: is an invalid LFFS -> crash.
+
+RECONCILIATION (I flip-flopped earlier; this is the evidence-backed answer):
+the user's C: content IS needed to boot - not as files the startup reads, but
+because C: must be a VALID FORMATTED LFFS volume. The Pocket core's "erased C:
+boots" note does not hold for THIS firmware build (our firmware crashes on a
+blank C:, proven by the scan-loop decode). The user's C: dump
+(firmware/disk_dump/C) is a real phone's formatted C: contents.
+
+FIX PATHS: (fast) a RAW C: flash/partition image (the actual flash dump) drops
+straight into the cdrive_ overlay via an opt-in cdrive-image= and boots; (slow)
+build an LFFS on-media image from the extracted file tree, which needs the
+LFFS format (block header with LFFS_MAGIC 0x503B3B60 at word[1] per Pocket
+drive.c, plus the log/free structures the scan validates - the per-block
+validator is a helper not yet fully RE'd). Minimal empty-but-formatted LFFS is
+also possible once the block header is pinned. Secondary hypothesis to keep:
+mediaatt FORMATTABLE (0x04) in the drive caps medint reports - if unset, F32
+would not auto-format; Pocket sets it.
+
+Tooling ready: build/ngage-defs (IDT ordinal names), symtrace.py. NEXT: obtain
+a raw C: image if one exists (instant), else RE the LFFS block header to build
+a valid image from the dump.
+
 ## 2026-10-29 KErrCorrupt likely a C: flash geometry/size mismatch (update made with Claude)
 
 The erased C: mount returns KErrCorrupt without attempting format (208 pre-
