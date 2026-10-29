@@ -1,5 +1,32 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 COURSE CORRECTION: C: content NOT needed; block is medint async mount completion (update made with Claude)
+
+The user supplied the real C: as a FILE TREE (firmware/disk_dump/C, 120 files,
+1.7MB; also Z: 1566 files, D: empty) - no raw flash image. Before building an
+LFFS on-media image (a big sub-project), the Pocket core (~/develop/n-gage
+sw/kernel/drive.c) settled it: on that working HLE core C: starts ERASED (0xFF)
+and "LFFS formats on the first mount" - it boots to the N-Gage with an EMPTY
+C: and never populates it (LFFS_MAGIC 0x503B3B60 is written only when there's
+a save to restore). So missing C: content is NOT the blocker; our empty C: is
+authentic. Keep the disk_dump for later (game saves in C:\System\Apps), but
+do NOT build an LFFS image to boot.
+
+Real block: drive.c's drive_executor shows the local-media executor calls -
+sub 0x38 connect, sub 0x3B MOUNT (completes a TRequestStatus via
+request_complete), sub 0x3E MediaChangeNotify (stays pending forever by
+design; not the block). On our LLE sim the REAL medint.pdd runs the mount and
+must complete that TRequestStatus via a flash-hardware DFC/interrupt we don't
+generate - so StartupThread's CActiveScheduler waits on a mount/media
+TRequestStatus that never completes. This is a "model the completion event"
+problem (like the UEM IRQ that unblocked epbus), NOT a content problem.
+
+NEXT: find medint's async completion path - what flash-controller event
+completes the mount request (the program-ISR unit 0x60 / IRQ source 3 is one
+candidate; a flash read/ready DFC is another). Trace medint during the mount
+(the medint 0x50386628 loop seen in smtrace) to see which status register it
+polls / which interrupt it expects, then fire that completion and resume.
+
 ## 2026-10-29 StartupThread is a CActiveScheduler waiting on an async request; C: content is the next lever (update made with Claude)
 
 Decoded StartupThread's final sequence before the block (idle2 trace): it
