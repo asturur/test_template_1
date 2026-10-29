@@ -1,5 +1,27 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 StartupThread is a CActiveScheduler waiting on an async request; C: content is the next lever (update made with Claude)
+
+Decoded StartupThread's final sequence before the block (idle2 trace): it
+constructs active objects (0x50389xxx/0x50394xxx), dispatches through a global
+callback (0x503957ac: LDR R3,[global]; BX R3), and enters EUser 0x503b7fb8 ->
+exec 0x4d WaitForAnyRequest — i.e. a CActiveScheduler::Start wait loop. The
+busy stretch before it (ELocal 0x5038b714 <-> EUser 0x503a6abc, ~675 iters)
+is a Mem::Fill zeroing a large buffer (legit work), NOT a hardware poll. No C:
+write (cdrive_writes=0), no flash/MMC hardware wait. So the F32 startup's
+active scheduler is blocked waiting for an async request completion that never
+arrives; EStart is not launched because the startup hasn't passed this wait.
+
+Most promising next experiment: populate C: with real content. On N-Gage the
+file-server startup reads system startup data from C:; our C: is an empty
+(all-0xFF) LFFS, so first-boot/startup may wait on resources that a populated
+C: provides. User offered the real C: content twice. Plan: add an opt-in
+`cdrive-image=<raw LFFS partition image>` that pre-fills the cdrive_ overlay
+(digest-neutral; C: is not in the boot digest), then resume from mount-c760
+and see whether the startup's active scheduler completes and launches EStart.
+If a populated C: does not unblock it, fall back to deeper RE of the pending
+request (identify the active object and its async call).
+
 ## 2026-10-29 MILESTONE: boot reaches EKA1 user-side startup; StartupThread blocked mid-state-machine (update made with Claude)
 
 Deep checkpoint+trace analysis of the 767.8M re-idle (tools: inspect_checkpoint
