@@ -1,5 +1,24 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 LLE boots +343M past the C: crash to a new F32/LFFS frontier ~1.11e9 (update made with Claude)
+
+With the 4 MiB formatted C: image the LLE runs from the old 767.8M crash to
+~1,112,551,000 (+345M cycles). Module presence 760M-1.12e9: heavy medint
+(299K insns, the flash-driver data loop 0x50386628.. hit 29867x) and ELocal
+(121K, LFFS), plus EFile/EFSrv/EUser - i.e. the file server exercising the now-
+valid C: volume. C: read activity runs to 1.108e9; last distinctive op a WRITE
+0x0c120c14 at 1.1123e9; then the EUser(0x5039cb1c)<->ekern(0x503288d4) idle
+loop. So a thread blocked AGAIN, still in the F32/LFFS phase - EStart and the
+window server have NOT launched yet. Same discovery pattern as the earlier
+frontiers, one big stage deeper. cdrive_writes=0 (the mount succeeded on the
+valid volume; the firmware has not written C: yet).
+
+The C: unblock is confirmed solid (ngvm HLE reference + 4 MiB formatted image).
+NEXT: symbolize the ~1.11e9 block (what StartupThread/F32 waits on now - likely
+the next LFFS/F32 step or the EStart launch), write a checkpoint near 1.11e9
+for fast iteration, and continue. Cross-check against ngvm (which boots fully)
+for what should happen next.
+
 ## 2026-10-29 *** LLE PAST THE C: CRASH: 4 MiB formatted LFFS image mounts *** (update made with Claude)
 
 Got a VALID 4 MiB formatted LFFS image by temporarily enlarging ngvm's C:
