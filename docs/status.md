@@ -1,5 +1,35 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 MILESTONE: boot reaches EKA1 user-side startup; StartupThread blocked mid-state-machine (update made with Claude)
+
+Deep checkpoint+trace analysis of the 767.8M re-idle (tools: inspect_checkpoint
+on mount-c768, idle-window trace idle2 from mount-c760). The boot is NOT stuck
+on a device register — it reached the user-side startup:
+- F32 (file server) is fully up: live DThread objects named Main, Loader,
+  Supervisor, StartupThread, Startup exist in the kernel heap (found by RAM
+  name-scan; StartupThread DThread at PA 0xafdf764, vtable 0x503a20e0, owns an
+  RHeap). C: (LFFS) mounted EMPTY — ELocal did a full linear mount-scan of the
+  erased volume (0x02400000+, all 0xFFFFFFFF, to ~offset 0xf0000) and finished.
+- EStart was NEVER launched as a process ("EStart" in RAM is only the ROM
+  file-table directory entry at 0xa0886b4 / 0x50317466, not a DProcess).
+- The blocked actor is StartupThread: EFile.exe creates it (name literal
+  0x503dc664, ENTRY 0x503d5290) and it runs a multi-step startup state machine
+  (sequence of panic-guarded init calls, panic fn 0x503d8c14, codes 7/8/9/e/f).
+  It is blocked in WaitForAnyRequest (exec 0x4d, confirmed via SWI 0xef00004d /
+  exec-table 0x503ac664) after an ELocal/C: operation; an EFile op at 0x503cfa10
+  returned KErrNotReady (-18, [req+0x18] null path) just before the block
+  (767800239). All idle-window execs are benign (WaitForAnyRequest, heap, trap,
+  locked inc/dec) — no device/semaphore wait pending.
+
+Reframed problem: no longer device-register modeling. StartupThread's state
+machine is waiting for an async request to complete that never does. Candidates:
+(a) a driver request needing an interrupt/DFC completion we don't fire (like the
+UEM IRQ that unblocked epbus one layer up); (b) a drive-readiness retry (the
+KErrNotReady). NEXT: trace StartupThread's state machine (0x503d5290+) from
+mount-c760 across 766.5M-767.82M to pinpoint the exact blocking request and
+which drive/driver it targets; then model that completion. Fresh pinned
+snapshots mount-c760/mount-c768 are the iteration base.
+
 ## 2026-10-29 fresh correct-path snapshot mount-c768; F32 idle wait is next (update made with Claude)
 
 Consolidation after a long advancing session. Fresh pinned snapshot
