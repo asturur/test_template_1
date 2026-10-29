@@ -1,5 +1,23 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 UEM IRQ unlocked more epbus init; checkpoints re-based on mount-c760 (update made with Claude)
+
+Full-boot module-trace from reset shows the span is dominated by healthy
+EUser/ekern/EFile/EFSrv file-server work (F32 running), with lcd.ldd and
+nosstarter now appearing (1 and 4 transitions) — forward progress, not a
+stall. The from-reset run stops at a NEW frontier: epbus WRITE 0x280 to
+0x0c120614 at 764,607,560 (same 0x1206xx block as 0x604/0x618/0x624; added
+as a probe). KEY: this is not a regression though 764.6M < the old 1.31e9
+frontier — the older runs reached 1.31e9 by a SHORTER epbus path because the
+first power instance never completed; now that uem-irq-source1 delivers that
+completion, epbus proceeds further and needs 0x614. Consequence: the c1300
+and c1307900000 checkpoints are from the PRE-UEM path and are now stale; the
+freshly written pinned mount-c760 (from reset with the current binary) is the
+canonical current-path snapshot. probe-register args do NOT enter the
+checkpoint signature, so adding probes keeps mount-c760 resumable.
+In flight: run-modtrace resumes mount-c760 with 0x614 probed to get the real
+current-path timeline past this point.
+
 ## 2026-10-29 mount window traced: medmmc is a clean no-card no-op; module-trace tool (update made with Claude)
 
 run-mount-window.py (from reset, win-trace 761.0M-761.45M) shows the span
