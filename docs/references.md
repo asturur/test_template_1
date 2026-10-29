@@ -136,3 +136,49 @@ Its real-device `projects/uem_dump/uem_dump.c` and simulated
 register pair. The exact NEM-4 sequence, BSI/channel-6 interpretation, limits and
 source links are recorded in [uem-control-bus.md](uem-control-bus.md). This does
 not transfer TriX's ASIC11/TIKU memory map or analog defaults to NEM-4.
+
+## Analogue Pocket N-Gage core (update made with Claude, 2026-10-28)
+
+`~/develop/n-gage` (github.com/plasticbugs/n-gage) is a working Analogue
+Pocket core that runs the firmware's user side on a custom minimal ARM machine
+and a C kernel replacing EKA1 — an HLE design, not a board replica, and it
+contains no firmware or NOS content. Useful as reference only:
+`docs/hardware.md` §8 lists exactly what the Symbian user side needs from the
+phone (ISI/Phonet message layouts, System Agent states, Starter behavior) and
+predicts post-NOS boot frontiers; `docs/eka1_exec.md` documents EKA1 exec
+semantics; `tools/ngvm/` has a Python reference machine and ROM
+parsing/symbol tools; `artifacts/boot/` holds the target Nokia splash (~6 s)
+and N-Gage logo (~30 s) screens; `rtl/arm_*.sv` is a compact Unicorn-lockstep-
+verified ARMv4T CPU whose MMU is too minimal for the authentic EKA1 kernel.
+
+## THC N-Gage ROM dump + live memory map (update made with Claude, 2026-10-29)
+
+`firmware/THC N-Gage ROM Dump/` (user-supplied, THC 2004-2006, untrusted data):
+
+- `ngage-rom-0x50000000.dmp` (0x1370000 bytes): the ROM VA window captured on
+  a RUNNING phone, SAME firmware build as our reconstruction (file table and
+  all binaries byte-identical from 0x317000 up; medint.pdd 0x384990, EFile
+  0x3cdb60). Differences vs `build/firmware/nem4-factory/digest-probe-core-
+  nosstub/SYM.ROM`: header metadata words at 0x84 (iTime 0x56F2F400) and 0xA8
+  (iCheckSum 0x4B0A78B0) — real values for two synthesized fields; 251 bytes
+  at 0x8f05; 0xa000..0x317000 (3.2 MiB) where ours carries raw scrambled
+  flash and the live view shows plaintext; and a real 1.7 MiB tail past our
+  0x11c0000 end where we use a synthetic extension. Per docs/discord.md the
+  post-boot view must NOT be used as digest-time MD5 input (+5 MiB remap
+  happens after the digest), so it cannot simply replace SYM.ROM.
+- `ngage-gsmstuff-0x5149D280.dll` (0x2796e0 bytes): contents of the raw-flash
+  window VA 0x5149d280 = PA 0x9d280 on the running phone — the REAL NOS/GSM
+  module (E32-style header, base 0x5149d280) that the synthetic nos-entry-stub
+  currently fakes with MOV R0,#0;BX LR. It does not equal our static dump's
+  bytes at PA 0x9d280 (2% agreement), consistent with descrambling/remapping.
+- `ngage-virt-phys-map.txt`: live VA->PA page table. CONFIRMS the sim's
+  address assumptions against real hardware: 0x58000000->0x0c000000 and
+  0x58100000->0x0c100000 I/O, 0x59000000->0x0de00000 (debug59 sink),
+  0x51400000->0x00000000 raw CS0 window (so 0x5149d280 -> PA 0x9d280),
+  0x59200000..0x597fffff -> 0x02400000..0x029fffff internal user flash —
+  note 6 MiB, mapped twice (cached/uncached), vs the 4 MiB cdrive-flash
+  model; 0x59e00000->0x08000000 boot latch, 0x59e01000->0x0c120000 medint's
+  own timer/ICU page mapping.
+- `docs/discord.md`: RE notes from a helper (startup descriptor tables 0x638/
+  0x744/0x830, reset trampoline 0x320->0x3FC->0x0F78, NOR probe/classifier
+  structure, the +5 MiB post-boot remap warning, LCD S1D15G00-like init).

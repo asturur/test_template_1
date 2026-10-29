@@ -1,5 +1,888 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 unit-1 = ekeyb scan timer; system idles event-blocked; next: thread-state inspector (update made with Claude)
+
+The unit-1 run (boot-v15-unit1, 3e9 budget, rolling checkpoint written at
+1.3079e9 — checkpoints now c1300 + c1307900000) resolved the chain: timer
+unit 1 is ekeyb's KEYPAD SCAN timer (5,561 expiries at ~3 ms cadence; each
+scan: read 0x15020c=0x9090 / 0x150208-upper=0 (no keys), drive rows 0x1f/0x3f
+via 0x150400-block, touch 0x14f018/0x120c14, re-arm). The post-wake activity
+previously attributed to epbus was ekeyb powering up (keypad page writes
+0x150100=0xc/0xee). The scanner and tick run healthily for 16+ simulated
+seconds; the only ms-timer live is the scan period (diag2 window: countdown
+3->0). No EStart/ELocal/medmmc code observed in any captured window; no new
+debug59 output after "TRtcQueue::Add: 2". Conclusion: the boot-progress
+thread is EVENT-blocked (not timed) on a signal the board never delivers,
+and guess-and-rerun has hit diminishing returns.
+
+NEXT (planned): build an offline EKA1 thread-state inspector that parses the
+checkpoint .host RAM image (16 MB SDRAM at offset per save_host layout in
+scratch/boot-v15-nosprobe/main.cpp) and walks the kernel thread list to name
+each thread and its wait object (anchors from disassembly around the known
+scheduler globals 0x80006xxx; ~/develop/n-gage docs/eka1_exec.md and
+tools/ngvm symbol tooling as reference). That converts "who is blocked on
+what" from guesswork into a lookup, using checkpoints as free RAM dumps.
+
+## 2026-10-29 UEM IRQ WOKE EPBUS; next: unit-1 settle timer; rolling checkpoints (update made with Claude)
+
+The uem-irq-source1 hypothesis run (boot-v15-uemirq, resumed from c1300)
+WORKED: the injected source-1 IRQ after the UEM 0x30=0x40 write was dispatched
+(0x114 read 2 at 1,307,939,636), the cbus ISR ran and the chain continued —
+UEM power-status 0x13f read, new GPIO-block writes 0x0c150100=0xc/0xee
+(accepted by the keypad-GPIO latch model), UEM 0x35/0x36 reads, ack 0x10c=2.
+epbus's wait completed. The thread then programs TIMER UNIT 1 as a settle
+delay: repeated control 0x0a24 stop/start, compare 0x0a30=0x7fffffff parked,
+status 0x0a28 ack, ICU 0x108=2 re-enable, compare rewritten 0x6590 — i.e.
+ICU source 1 is (also) unit 1's expiry line; the UEM-write trigger and the
+unit-1 expiry share one pending bit in the model. Unit-1 model added (counts
+CPU cycles to the compare latch; scale unverified; board tests cover it).
+
+Infrastructure (user policy, saved to memory): default budgets are now 3e9
+cycles everywhere (don't kill an unblocked run); run-resume.py auto-restores
+from the LATEST build/sim/checkpoints/boot-v15-c*.{cpu,host}, takes
+[budget] [name] [ckpt_at] and with ckpt_at writes a rolling checkpoint near
+the frontier, then prunes to the newest 2 checkpoints. Board checkpoint
+format v3 (0x4e470003) appends source-1/unit-1 state; v2 files still load
+(fields default). main.cpp now allows restore+checkpoint in one run.
+In flight: resume with unit-1 live, rolling checkpoint at 1.3079e9
+(boot-v15-unit1, budget 3e9).
+
+## 2026-10-29 epbus wait decoded: UEM interrupt client; source-1 model in test (update made with Claude)
+
+RE of the park point: epbus does NOT wait on a GPIO edge — it registers with
+cbus.dll's UEM-interrupt dispatcher (bind call 0x503f5ba8/0x503f5bf4 →
+cbus.dll 0x503820c4 with r1=type 1, r2=client id 0xb, r3=bit 8). The client
+table at 0x50383574 (20-byte rows) maps id 0xb → {type 1, group 2, bit 3};
+ids 0x9..0x11 are the group-2 UEM interrupt clients with consecutive bits.
+Around the bind, epbus writes 8 to 0x0c120c0c/0x0c120c10 and halfword 1 to
+GPIO bytes 0x150206/0x150208 (pin arming for both instances, pools
+0x503f5bc8-0x503f5c1c). Driver-init ICU enable 0x0c120108=2 (source 1) at
+729.6M is the candidate UEM IRQ line; the tick-queue insert at 0x50343374
+confirmed the thread sleeps on an event, not a timeout.
+
+Model (opt-in `uem-irq-source1`, run scripts updated, assumption recorded):
+kernel-phase CBUS write to UEM reg 0x30 (the epbus power-up tail 0x2b=0x81,
+0x30=0x40) sets ICU source 1 pending; 0x0c120114 reads 2; bank0 +0x0c bit-1
+write acks. Pending state is transient (not checkpoint state — c1300 precedes
+any UEM write, so resumes are safe). Plan: resume-iterate (boot-v15-uemirq);
+when the cbus ISR runs it will READ the UEM interrupt-status register over
+CBUS — whichever register it reads, supply bit 3 (client 0xb) there next
+iteration. If the ISR instead reads an unexpected ICU current value, source 1
+is wrong — check bank2 candidates (the 0x12018c=0x800 clear at 729.6M).
+
+C: drive status (user asked): the kernel never formatted or wrote C: — LFFS
+mounted the erased volume read-only (cdrive_writes=0, cdrive_erases=0 in
+every run; the unit-0x60 program ISR has never fired). The user HAS a real C:
+content dump; when boot reaches file-server reads from C:, check its format
+(raw LFFS partition image vs file tree) and add an opt-in `cdrive-image=`
+overlay (digest-neutral; C: is not hashed by the boot digest).
+
+## 2026-10-29 checkpoint/resume proven; frontier: epbus power-up completion event (update made with Claude)
+
+Checkpoint at cycle 1.3e9 written (build/sim/checkpoints/boot-v15-c1300.{cpu
+53 KB, host 25 MB}) by run-checkpoint.py, which from reset also advanced the
+frontier past 0x0c120624 to 0x0c120618 (both now probe registers; epbus walks
+its 0x0c1206xx block: 0x604 W, 0x624 R, 0x618 R). load_state now MERGES probe
+values so a resume can add newly probed registers (the standard iteration).
+First resume runs validated: run-resume.py restores at 1.3e9 and a windowed
+run-diag.py (restore + 15k-cycle win-trace) answered a who-writes-what
+question in ~2 minutes end-to-end. Resume runs cannot capture screens (LCD
+init precedes the checkpoint; known cosmetic limitation).
+
+Current frontier (from the diag window, boot-v15-diag): after 0x618 the chain
+continues — CBUS writes UEM 0x2b=0x81 then 0x30=0x40 (cbus.dll 0x503833a4 on
+behalf of epbus), GPIO-block write 0x0c150208=1 just before (likely arming a
+power-good pin interrupt), probe 0x0c120c10=8 — then the epbus thread inserts
+itself into a wait queue (TDblQue insert 0x503bb818 via EUser 0x503bbb5c; the
+PSU vtable path at 0x503fbf68 was NOT taken) and the scheduler parks the
+system: 4.6 simulated seconds of pure tick+idle to the 2.5e9 budget, no
+timeout path fired, no new TRtcQueue entries. Reading: DPBusSocket-style
+power-up wait whose completion on hardware is an interrupt (UEM power-good
+or the GPIO pin enabled via 0x150208). NEXT: RE who signals that wait object
+(find the TDblQue remove/signal call sites in epbus and the ISR behind them,
+starting from the 0x150208 enable), then model the completion event behind an
+opt-in flag and iterate via run-resume (minutes per attempt).
+
+## 2026-10-29 1e9 was the wall: 2.5e9 run reaches 1.31e9; checkpoint/resume v2 (update made with Claude)
+
+The 2.5e9-cycle run (boot-v15-long) CONFIRMED the 2-second-timer analysis: the
+sleeping thread woke past the old budget and boot continued to 1,307,930,588
+cycles (+546M past every previous run; 1,433 ticks = 5.6 s simulated). All
+earlier "idle forever" results at exactly 1e9 were budget artifacts. New
+frontier: epbus (0x503f41b8 path) writes 0x0c120604=0 then READS 0x0c120624 —
+added probe-register=0x0c120624:0:15 (reset 0 hypothesis) to all run scripts.
+
+Simulation economics (user asked): Verilator --threads is 11x SLOWER here (60M
+cycles: 55 s single vs 626 s with 6 threads) — never thread this model. The
+fix is checkpoint/resume: board checkpoint format v2 (0x4e470002) now
+serializes ALL device-model state (probe regs, periodic timer, ICU banks +
+Interrupt-API masks, timer units + unit60, keypad, block14d, C: overlay + FSM,
+power model, stub/image counters, debug59 buffer) and the post-UIF guard is
+gone; roundtrip covered in the board tests (25 sections). New scripts:
+`run-checkpoint.py` = full 2.5e9 run writing
+build/sim/checkpoints/boot-v15-c1300.{cpu,host} at cycle 1.3e9 (in flight);
+`run-resume.py [budget] [name]` resumes there, so frontier iterations cost
+minutes instead of ~40 (the ~30-sims/day ceiling is gone). Resumed results
+carry checkpoint_restored=true and never count as from-reset evidence.
+
+## 2026-10-29 stub pread zero-length bug was the real 0x47f0 frontier; NOS scout ran real code (update made with Claude)
+
+CORRECTION to the previous two entries: the 0x0c0047f0/0x0c0047f4 scratch
+writes are the kernel EXCEPTION path, not a Variant table — the strlen loop
+before them walks the string "Exception" in ABT mode, and 0x50324240 is the
+fault-dump/reboot handoff ({3 words to scratch 0x47f0/f4/f8 from the
+superpage block at VA 0x40000400, halfword 0x1a to 0x0c00428e, 0x200 to SYSC
+0x0c120004, doorbell halfword 4 to 0x0c150000, then a parked self-branch}).
+Root cause found in the trace: a kernel query (0x50331a84) called the
+synthetic stub's pread (0x5149d078) with byte length 0 and a non-writable r3;
+the stub's "default to 4 bytes" path STRB'd into it and data-aborted at
+0x5149d09c. Fixed in scratch/nos-stub-blob/nos_stub.S: zero length now writes
+nothing (iface_vt pinned at VA 0x5149d0c0 with .org; blob regenerated, still
+648 bytes; toolchain arm-none-eabi on host). The scratch-window growth to
+0xac stays (harmless, covers the real fault path if it ever runs).
+
+Follow-up: the first rerun with the edited blob FAILED the boot digest (halt
+0x50003290) — SYM.ROM embeds the blob and power-model words at 0x9d000/0x9e000
+and the derived digest hashes them, so overlay edits change digest input.
+Fixed like the nos-image window: both synthetic windows now gate on the kernel
+tick (periodic_period_); the digest hashes the ROM-embedded (old) bytes, the
+kernel phase gets the edited blob. Any future blob edit stays digest-neutral.
+
+Gated/fixed run result: TIMEOUT at 1e9 with a clean system — no crash, the
+pread abort is gone. The windowed diagnostic (run-park-window.py, trace
+761.29M-761.6M, output boot-v15-park-window) decoded the "idle": a kernel
+boot waiter (0x50331a50) loops forever — each iteration calls the Variant
+interface getter pread(iface, id=13, dest=NULL, len=0) and then tests a
+kernel global ([pool 0x50331bb4] = 0x806028fc, dereferenced) against zero,
+yielding via 0x50323c74 and retrying. The kernel is waiting for interface
+id 13 to be REGISTERED (our stub registers only #3 via exec slot +0x128 and
+#6 via +0xfc). Stub updated: nos_init now also registers iface 13 through
+exec slot +0xfc before the #3 registration; ret0/pread moved after the
+pinned vtable to fit (new VAs ret0 0x5149d184, pread 0x5149d18c; iface_vt
+still 0x5149d0c0, iface 0x5149d180, blob still 648 bytes; digest-neutral via
+the kernel-tick gate). Hypothesis: the poll's global is the iface-13 table
+slot the registration exec writes.
+
+REFRAME after the iface-13 run (still timeout at 1e9): 0x50331a50 is the
+kernel IDLE THREAD, not a boot waiter — it polls pread(13) every iteration
+and the global only selects the timed-idle branch (fn ptr [0x80006c1c],
+time-adjust 0x503459e8, tick accumulator [0x80000488]). The iface-13
+registration is kept (it matches what the idle loop expects to exist). The
+REAL last actor: a user-side thread does 64-bit time math (EUser 0x503a3ad4),
+blocks, and the scheduler (0x50327f48) finds an empty ready list. Combined
+with the last debug line "TRtcQueue::Add: 2" this reads as a 2-SECOND timer
+sleep. Arithmetic: tick reload 0x632ea = 406,250 cycles, 256 ticks/s (CPU
+~104 MHz), so +2 s with up-to-1 s second-boundary slack lands at ~0.97-1.07e9
+cycles — AT THE EDGE of the 1e9 budget. Decisive test in flight: run-long.py
+(2.5e9 cycles, output boot-v15-long). If the thread wakes, the system was
+never stuck and long budgets are the new normal for late boot.
+
+Simulation speed (user asked): Verilator --threads 6 benchmarked 11x SLOWER
+than single-threaded on this design (60M cycles: 55 s vs 626 s) — do not use
+model threading; the design is too small to partition. Docker VM already has
+all 14 host CPUs. Practical speedups: parallel independent runs (one core
+each), and checkpoint restores for late-boot iteration (main.cpp already
+supports checkpoint_at/restore; mark results checkpoint_restored=true, keep
+authentic-path claims to full runs).
+
+NOS scout result: with the kernel-tick gate the digest PASSED and nosstarter
+EXECUTED the real THC NOS entry at 729,412,537 (B 0x514a6b48, stack setup,
+R0=0x40 call). It died at an import thunk (0x516c7010): the pool slot at
+0x516c7018 reads 0 — the THC gsm image's import table is UNFIXED (zero
+slots), so the real module needs an E32 import fixup pass against the
+same-build ROM's export tables before it can run further. Parked: the
+~/develop/n-gage tools/ngvm ROM/symbol tools are the suggested starting
+point. The synthetic-stub path remains the mainline toward the logo.
+
+## 2026-10-29 digest/nosstarter timing corrected; scratch window grown (update made with Claude)
+
+Second NOS scout halted identically — the one-shot gate was wrong because the
+boot MD5 runs AFTER the one-shot: the bus trace's code/data column settles the
+real timeline (compact trace does not log flash reads, which misled the first
+diagnosis). Measured in the stub run: digest sweeps PA 0x9d000+ as DATA reads
+at ~139.26M-139.4M; the kernel tick arms at ~452M; nosstarter EXECUTES the
+entry (CODE fetches at 0x9d280/0x9d284) at 729,412,514. The image-run digest
+computes until ~683.49M then enters the 0x50003290 halt (BNE at 0x500032e8).
+nos-image gate changed to periodic_period_ != 0 (kernel tick armed).
+
+C: chain advanced to 761,316,873 — nosstarter ran, and the kernel Variant
+registration (0x50324248, pool 0x5032429c) stores the interface pointer
+0x5149d09c at scratch 0x0c0047f0, one word past the modeled window: scratch
+grown 0x9c -> 0xac bytes (0x0c004748..0x0c0047f3; gap bytes still stop on
+unwritten reads; old board-checkpoint binary layout changed, prior checkpoints
+already deleted in cleanup). Board tests pass (scratch end boundary moved to
+0x47f4). Both runs relaunched.
+
+## 2026-10-29 NOS scout diagnosed (digest reads raw bytes); epbus 0x120604 probe (update made with Claude)
+
+First NOS-image scout halted at 0x50003290 (masked-IRQ dead loop) at ~137.85M
+cycles: the 695,376 image reads were the boot-time MD5 digest sweeping PA
+0x9d280+ — serving the live-dump bytes there changed the digest input and
+validation halted right after the boot one-shot IRQ handler (UEM 0x35/0x36
+reads + 0x150100=0x8000). This is the docs/discord.md descrambler warning in
+board form: at digest time the raw window must present RAW flash bytes. Fix:
+the nos-image window now activates only after the boot one-shot has fired
+(timer_irq_cycle_ set, ~137.849M) — measured ordering: digest reads end
+≤137.85M, nosstarter's entry call at 139.26M (synthetic-stub run evidence).
+Descrambler-enable timing is a hypothesis.
+
+C: chain meanwhile advanced to 761,291,676: epbus (delay loop 0x503f51b0,
+after clock writes 0x120014=0x580/0x120018=0x200) writes 0x40 to NEW register
+0x0c120604 — added as probe-register=0x0c120604:0:15 to both run scripts (no
+code change). Board tests 24 sections pass; both runs relaunched.
+
+## 2026-10-29 C: mounts without format; frontier moved to epbus; NOS scout queued (update made with Claude)
+
+unit60 iteration 2 (control-register arming + ICU 0x10c acknowledge): the
+first iteration's interrupt storm (738k dispatcher acks of source 3; "any
+nonzero unit write arms" fired during medint setup while the unit was stopped)
+is fixed — arming now follows a nonzero +0x04 control write (medint's setup
+uses the kernel stop-and-settle helper 0x50324960: +0x04=0 five times,
+compare 0x186 at +0x18, counter reset +0x10=0) and ICU 0x10c bit-3 writes
+acknowledge pending. Result: medint init completes WITHOUT the program ISR
+(unit60_irqs=0, cdrive 0 programs/0 erases — LFFS mounted the erased volume
+as-is; formatting/writes will engage the ISR later), boot advanced to
+761,278,878 (+218k past the pre-C: frontier), kernel debug prints
+"TRtcQueue::Add: 2". New stop: epbus.dll init (0x503f5bbc) writing halfword 1
+to GPIO byte 0x0c150206 — accepted into the gpio206-extra-write set (ekeyb
+0x0006, epbus 0x0001). Board tests 24 sections pass.
+
+In flight: (1) rerun of the authentic C: chain with the epbus value accepted;
+(2) first NOS scout run (`run-nos-image.py`, output boot-v15-nos-image) with
+the REAL THC NOS/GSM image served at PA 0x9d280+ via the new opt-in
+`nos-image=` option replacing the synthetic stub (mutually exclusive;
+writes into the window stop the run). Expect the scout to stop at the first
+baseband/DSP access — that address is the deliverable.
+
+## 2026-10-29 THC real-device dump verifies sim addresses; real NOS image recovered (update made with Claude)
+
+User-supplied `firmware/THC N-Gage ROM Dump/` (see docs/references.md for the
+full inventory) — same firmware build as our reconstruction (binaries byte-
+identical from 0x317000). Verified against the live phone's page table: I/O
+0x58000000->0x0c000000, debug sink 0x59000000->0x0de00000, raw CS0 window
+0x51400000->0x0 (so the NOS entry PA 0x9d280 assumption holds), C: internal
+flash 0x59200000..0x597fffff->0x02400000..0x029fffff — NOTE 6 MiB mapped
+(cached+uncached aliases at 0x598xxxxx), vs the 4 MiB cdrive-flash model; if
+LFFS walks past 0x027fffff the model must grow. Real header metadata recovered
+(iTime 0x56F2F400 at 0x84, iCheckSum 0x4B0A78B0 at 0xA8) for two synthesized
+fields; THC's ROM view must NOT be reused as digest-time MD5 input (+5 MiB
+post-boot remap, per docs/discord.md). The gsmstuff dump is a 0x60-byte
+TRomImageHeader copy + the REAL NOS/GSM module payload for PA 0x9d280+
+(entry B-instruction at PA 0x9d284 confirmed); extracted to
+`build/firmware/thc/nos-image.bin` (0x279680 bytes, sha256 72787f4aed7c48e6…).
+Planned opt-in `nos-image=<path>` board option replacing the synthetic
+nos-entry-stub for an authentic-NOS scouting run (edit deferred until the
+in-flight unit60 rerun lands — run-stub.py hash-checks its sources).
+
+## 2026-10-29 ICU mask banks + unit-0x60 IRQ-3 model implemented, run in flight (update made with Claude)
+
+Kernel disassembly resolved the 0x0c1201cc blocker: InterruptEnable
+(0x503248f0) / InterruptDisable (0x503248a4) are a three-bank Interrupt API
+mask file — banks at 0x0c1201c0/0x200/0x240 for sources 0-31/32-63/64-95,
++0x0c enable-set, +0x08 enable-clear (pools 0x1201cc/0x12020c/0x12024c and
+0x1201c8/0x120208/0x120248). The blocked write was InterruptEnable(3) = 1<<3
+→ 0x1cc, and the known early 0x1c8=0x08000000 exact sink re-reads as
+InterruptDisable(27), not a FIQ enable (prior note revised). medint's setup
+(0x503872dc..): enable source 3, exec(unit 0x60, 0x186) (reload hypothesis),
+two zero writes, then unit reg +0xc=0 via kernel helper 0x503249a8 (unit base
+= 0x0c120a00 + unit id; the I/O write primitive 0x503245bc stores via VA
+0x58000000 + offset). Import stubs resolve through a load-time table, so the
+remaining register roles are left to dynamic discovery.
+
+Model added in `scratch/boot-v15-nosprobe` (opt-in `timer-unit60-irq3`): the
+six mask registers latch and read back; a nonzero unit-0x60 (0x0c120a60..7f)
+register write while mask bank0 bit3 is set raises IRQ source 3 after an
+ASSUMED fixed 20000-cycle delay; ICU current 0x0c120114 then reads 4
+(source+1); any unit-0x60 write acknowledges; unit status +0x08 reads 1 while
+pending. Delay and start/ack register roles are hypotheses, not silicon.
+Board tests extended (all 23 sections pass); full from-reset run with the new
+flag is in flight. Expected outcomes: medint's program ISR runs and LFFS
+format proceeds (next frontier appears), or the ISR's real ack/status
+accesses stop the run and refine the hypothesis.
+
+## 2026-10-29 cdrive-flash run: LFFS format DOES need the program ISR (update made with Claude)
+
+The first cdrive-flash run (started 09:49) was killed by a host power cut
+~2.5 min in; rerun completed cleanly, no state lost. RESULT: unmapped_access at
+761,118,521 cycles (+57,919 past the prior medint block at 761,060,602), blocked
+on a WRITE of 0x8 to ICU 0x0c1201cc. The C: flash model was accepted end-to-end:
+308 accesses at 0x024xxxxx — LFFS scanned the erased array (scattered reads, all
+0xFF = unformatted volume), then medint began format work (autoselect 0x90 with
+protect-verify reads 0, reset 0xf0, sector ops). It then configured hw timer
+unit 0x60 (write 0x0c120a6c=0) and tried to enable an interrupt by writing 0x8
+(bit 3 = IRQ source 3) to 0x0c1201cc — the exact multi-halfword-program
+dependency predicted in the RE note below. So the open question is answered:
+LFFS format does engage the program-ISR path; an empty C: cannot mount without
+it. 0x0c1201cc is 4 above the known FIQ enable-set sink 0x0c1201c8, value bit 3
+— plausibly IRQ enable-set for source 3, unverified. Screen still the white
+clear. Next: RE-confirm 0x0c1201cc's role, then model it plus timer unit 0x60
+raising IRQ source 3 so medint's program ISR can run, and rerun.
+
+## 2026-10-29 C: drive (LFFS) flash model + parallel Thumb-decoder audit (update made with Claude)
+
+C: drive modeled: `scratch/boot-v15-nosprobe` option `cdrive-flash` adds a 4 MiB
+RAM-overlay AMD x16 flash at PA 0x02400000 (LFFS volume; medint.pdd checks no
+IDs/CFI, only sector-protect==0). Minimal command FSM: reset 0xf0/0xff, blind
+0x60 sector lock, autoselect (protect-verify reads 0, IDs don't-care), single-
+halfword program into the overlay, sector erase with DQ poll (first poll returns
+0x0008 = DQ7=0/DQ3=1, then the sector reads back 0xFF), 0xb0 suspend finishes
+instantly; sector map = two 2 MiB dies, 64 KiB sectors + 4x16 KiB boot sectors
+per die top. Reads serve the 0xFF-initialised overlay. Board tests cover
+reset/lock/autoselect/program/erase (note: byte 0xaaa arrives as a high-halfword
+store, select 12 at word 0xaa8 — same convention as the code flash). Known next
+dependency (from the RE): multi-halfword program needs hw timer "unit 0x60"
+(0x0c120a60) raising IRQ source 3; single-halfword + erase work without it, so
+run first and see whether LFFS format needs the program ISR.
+
+Thumb-decoder audit RESULT (clean): a full capstone-differential sweep of all 18
+Thumb formats + SWI/BX/BLX/BKPT in zap_mode16_decoder.sv found NO siblings — the
+format-11 SP-relative U-bit bug (patch 0008) is the only decode error. Every
+positive-offset load/store (formats 6,9,10,13, both register-offset forms) emits
+U=1 correctly; PUSH/POP and LDMIA/STMIA P/U/W directions, halfword SH/imm split,
+branch sign-extension/scaling, and the BL half-pair join (−1 PC compensation,
+LR|1 interworking) all verified. Harness: `scratch/thumb-decoder-audit/audit.py`
+(bit-exact Python port + capstone ground truth), output audit-output.txt.
+Minor non-functional deviations noted, none affecting compiler-generated code:
+(D1) 0xDExx (cond=1110) decodes as unconditional branch instead of the ARMv4T
+UNDEFINED trap — revisit only if a UDF-based mechanism surfaces; (Q2) BKPT drops
+its immediate; (Q3) MOV/MVN set Rn=Rd instead of SBZ (harmless, mode32 ignores
+Rn); (Q4) ADD Rd,SP force32-aligns the SP operand. Belt-and-braces items for a
+future Verilator decode-differential: BL half-pair across pipeline stalls, and
+bit-0 handling on PC writes for POP{PC}/MOV PC,LR (writeback path, not the
+decoder). Note the vendored third_party/zap line 483 is still unpatched by
+design (patch 0008 applies it in the maintained build; the experimental sim uses
+the directly-fixed scratch/boot-v15-quiet-zap copy). Next CPU-correctness step
+when useful: execution lockstep vs Unicorn (the ~/develop/n-gage Pocket core has
+a full harness); the ARM920T TRM is the semantics reference per flagged case,
+not a cover-to-cover read.
+
+## 2026-10-29 CPU fix validated: +31M cycles, EFile runs F32, reaches C: drive mount (update made with Claude)
+
+The Thumb SP-relative U-bit fix is validated: a full from-reset run advanced from
+the old panic (729,986,403) by +31M cycles to 761,060,602 — EFile cleared the
+KERN-EXEC 0, ran into real F32 init, and the boot now reaches the internal-media
+/ C: drive mount: medint.pdd (VA 0x50384990) issues AMD flash commands to the
+internal user flash at physical 0x02400000 (CS1 upper half) — reset 0xf0 then
+0x60, which our flash command FSM doesn't model (it only knows the three
+identified chips' identify/CFI/burst sequences). 86 ticks; still the white clear.
+NOTE the zap pristine constraint is LIFTED (user, 2026-10-29): edit the CPU
+freely; patches/zap/0008 kept only because the build's upstream-comparison uses
+pristine zap as baseline. The Thumb fix is also live in the sim RTL copy
+scratch/boot-v15-quiet-zap.
+
+This is the "mount C: via medint.pdd" obstacle predicted from the 6600 analysis.
+The C: region is internal user flash we have no content for; the plan is to model
+CS1-upper (0x02400000..0x027fffff) as an erased AMD flash (array reads 0xFF so C:
+is unformatted/empty) and accept medint's command set (reset/autoselect/CFI/
+sector-lock/erase/program, program+erase sinking to a RAM overlay) so F32 mounts
+an empty C: and proceeds — the splash lives on Z: (ROM) and does not need C:
+content. A focused RE of medint's exact command set is in progress.
+
+## 2026-10-29 ROOT CAUSE: ZAP Thumb SP-relative LDR/STR decoder bug (real CPU fix) (update made with Claude)
+
+The EFile block is a genuine CPU RTL bug, NOT a synthetic-stub gap. ZAP's Thumb
+decoder mis-decodes format 11 (LDR/STR Rd,[SP,#imm8*4]) with the ARM U bit = 0
+(subtract) instead of 1 (add): `zap_mode16_decoder.sv` T_SP_REL_LDR_STR emits
+`{3'b010, P=1, U=1'd0, B=0, W=0, L=bit11, ...}`. The two correct siblings in the
+same file use U=1'd1 — T_PC_REL_LOAD (format 6) and T_LDR_STR_5BIT_OFF (format
+9). Thumb SP-relative transfers are always positive-offset, so `str r1,[sp,#4]`
+wrongly computed SP-4. EFile's E32Main (0x503d5838) did `str KCurrentThreadHandle
+,[sp,#4]` then read the handle back from the correct SP+4 (still stale =
+0x503cdbc5, EFile's own entry); exec 55 (ThreadSetPriority) got that bad handle,
+DObjectIx::At returned NULL, and the kernel panicked the EFile thread with
+KERN-EXEC 0 (EBadHandle) and killed it — after which only the idle thread runs.
+F32 init 0x503d5554 (LoaderThread/ESTART) was never reached; "LoaderThread
+created" in the prior note is wrong. Boot survived 730M cycles because the only
+earlier Thumb SP-relative store used imm=0 (U irrelevant); EFile's E32Main is
+the first nonzero-offset SP store.
+
+Fix (verified by source + trace): set U=1 in T_SP_REL_LDR_STR. Production patch
+`patches/zap/0008-thumb-sp-relative-ldr-str-add-offset.patch` added
+(third_party/zap kept pristine); the sim RTL copy
+`scratch/boot-v15-quiet-zap/src/rtl/zap_mode16_decoder.sv` is fixed and a
+full from-reset validation run is in progress. This corrects ALL Thumb nonzero
+SP-relative loads/stores — a broad correctness fix the real user side (all
+Thumb: EFile, EStart, apps) depends on. Expected: EFile proceeds past 0x503d5862
+into real F32 init. The synthetic power model / MMC questions only become
+relevant after that. This should also be added to the maintained sim RTL and
+validated with the ZAP Thumb benches (a `str/ldr [sp,#4]` round-trip).
+
+## 2026-10-29 CORRECTION: EFile (file server) DID start and run; blocks in F32 init (update made with Claude)
+
+The "EFile never started" reading below was a trace-window artifact. A windowed
+trace (`win-trace=LO:HI` added to main.cpp; run `run-efile-window.py`, output
+`build/sim/runs/boot-v15-efile-window/`, preserved as efile-window.tsv /
+cp15-window.tsv) shows EFile.exe WAS created, resumed, and executed F32 init for
+~23k cycles (cycles 730,502,230..730,525,057; its data region VA 0x80100000 is
+page-mapped and still live at run end; two context switches into its process
+domain, DACR 0x55555717, bracketed by the moving-model TLB/cache flush). It ran
+its main 0x503d5838 (past the "FileServer" find-server gate 0x503d57e4, into
+F32 init 0x503d5554 which creates LoaderThread), then blocked in the kernel
+reschedule (WaitForAnyRequest, 0x50329cc8/0x5032a5a8) and never ran again — nor
+did any EFile-process thread (LoaderThread) for the remaining ~270M cycles; the
+idle thread spins. So the boot is NOT stuck at a kernel hand-off: EFile is
+blocked on a request/event that is never completed, or waiting on LoaderThread
+which never runs. Leading suspects (per investigation): the synthetic power
+model's no-op vtable swallowing a request completion F32 waits on, a
+LoaderThread scheduling issue, or local-media (medint.pdd/MMC) init waiting on a
+media-ready event the board latch model never fires. A focused decode of the
+exact blocking exec is in progress. This is tractable (not the 6600's hard
+wall) and remains an authentic-boot inflection worth user input on HLE depth.
+
+## 2026-10-29 (superseded by the correction above) EKA1 kernel idle; EFile not yet started
+
+With the Variant interface param-read slots (+0x48/+0x50) upgraded from ret0 to
+zero-fill (so product_info's identity method gets an in-range value instead of
+uninitialized heap, clearing its reason-3 Kern::Fault), the authentic from-reset
+V15 run NO LONGER FAULTS: it runs the full 1,000,000,000-cycle cap with 675
+periodic ticks and no new unmodeled register. Preserved:
+`build/sim/runs/boot-v15-kernel-idle-milestone/`.
+
+This is the deepest milestone to date — the real NEM-4 EKA1 kernel boots from
+reset through digest, VARIANT, scheduler, synthetic NOS (interfaces + power
+model), product_info, full pin config (GPIO/PUP/ICU/timers), driver init (real
+power handlers register) to the kernel IDLE state. The retirement tail is ~98%
+the D-cache clean/invalidate loop at 0x50328408..0x50328414 (the idle thread
+spinning, woken only by timer ticks). HOWEVER the first user process, EFile.exe
+(the file server), never runs (grep of the trace: 0 hits on its entry
+0x503cdb60), so the user-side boot chain EFile→EStart→EwSrv→Starter→SplashScreen
+has not begun and the LCD is still the white clear (18353 words, 75 headers).
+
+This is the same frontier the Nokia 6600 recompiler documented as unsolved
+natively: "after Init2/Init3 the kernel idles by design; the kernel alone never
+creates the first user process — the hand-off starts EFile." The open question
+is whether EFile is (a) never created (a kernel boot step that spawns it did not
+run or needs state a stub left out), (b) created but blocked on a resource our
+model doesn't provide, or (c) started but needs far more than 1e9 cycles. A
+focused investigation of the EKA1 kernel→EFile hand-off is in progress. This is
+a real inflection worth the user's input on how far to push synthetic HLE vs.
+awaiting real NOS content; flagged rather than burning many more blind
+iterations. All board models and tests remain green; the NOS content gap is
+unchanged.
+
+## 2026-10-29 power model installed; kernel boot-complete; into next init phase (update made with Claude)
+
+The null singleton at 0x80006bc4 was identified as the EKA1 kernel POWER MODEL,
+installed only by ekern export ordinal 394 (0x5033c8f8) — which no ROM code
+calls, so on real hardware the NOS/baseband installs it during nosstarter.
+Our no-op stub skipped it. Fix: the synthetic NOS stub now installs a minimal
+power model. `scratch/nos-stub-blob/nos_stub.S` calls ordinal 394 with a
+board-backed RW object in the NOS window (PA 0x9e000 / VA 0x5149e000,
+supervisor-RW mapped): vptr → the all-ret0 vtable, an empty self-linked
+power-handler queue (+0x10/+0x14 → &self), iOffset 4, status 0. The object is
+served RW by the board (`synthetic_nos_power_model`); the kernel writes its
+fields and later drivers add handlers via ordinal 5. The digest-probe now
+overlays the blob AND the power-object initial image. Board tests cover the
+window; all pass.
+
+Result: the boot vcall at 0x5033183c ran the no-op, the kernel-server boot
+phase completed (boot-complete magic 0x55555517 written) and the boot jumped
+~280,000 cycles to 729,884,779 — the largest single advance since the tick.
+New frontier is the system-control block (0x0c120c18), modelled with the same
+zero-reset RW latch treatment (block 0x0c120c00..0x0c120c20 added to the
+board register-latch model). 10 periodic ticks now. Still the white clear;
+chasing toward the server/UI startup where SplashScreen blits the logo.
+
+## 2026-10-29 device-init tail walked; stop at uninitialized kernel singleton (update made with Claude)
+
+After the synthetic NOS registration (below), the boot streamed through the
+whole device-init tail with bounded, opt-in peripheral models added to
+`scratch/boot-v15-nosprobe`:
+- `keypad-gpio`: board GPIO/PUP pin-config as zero-reset RW latches over the
+  whole UIF/GPIO page (0x0c150000..0x0c1504ff) and PUP page
+  (0x0c14f000..0x0c14f0ff), plus a widen rule so a GPIO register latched at one
+  width serves other widths with new bytes reading zero (idle input). Specific
+  handlers (CBUS, UIF-protocol, ADC, timer) keep precedence by running earlier.
+- `icu-banks`: IRQ-ICU enable-set/clear/pending banks (0,1,2); pending reads 0.
+- `timer-units`: timer units 1..4 as RW latches (status reads not-expired).
+- ICU enable writes to 0x0c120108/0x10c that are not the timer-0 values now
+  defer to the ICU bank model (so enabling IrqTimer1 = value 2 is accepted).
+All board tests pass (incl. new per-feature boundary tests); defaults unchanged.
+
+The boot reached cycle 729,606,213 and faulted on a virtual call
+`ldr pc,[r3,#0xc]` at VA 0x5033183c: the function loads a singleton pointer
+from global [VA 0x80006bc4], takes its vtable and calls method +0xc. The
+singleton at 0x80006bc4 is never initialized (no write in the captured memory
+tail), so the vtable fetch/dispatch aborts; the fault handler records PC
+0x5033183c and fault code 0x10000000. This is a kernel singleton left null by
+incomplete init — not a missing MMIO register. Next: disassemble the owning
+function and identify what populates [0x80006bc4] and whether a stub (NOS, a
+driver modelled only as latches) prevented it; it may need another synthetic
+interface registration or a fuller driver model. The NOS/baseband content gap
+is unchanged. No pixels yet; LCD still the white clear.
+
+## 2026-10-29 synthetic NOS registration clears product_info; into ekeyb keypad (update made with Claude)
+
+Disassembly (recorded in the investigation) showed product_info faults only
+because the real NOS, during its entry call, registers "interface #3/#6" with
+the kernel Variant singleton ([0x8000038c]); it is NOT an ISI round-trip, and
+product_info tolerates garbage parameter values gracefully. The no-op stub was
+therefore upgraded to a minimal synthetic registration routine
+(`scratch/nos-stub-blob/nos_stub.S`, built with arm-none-eabi, embedded as
+`scratch/boot-v15-nosprobe/nos_stub_blob.h`): entry at VA 0x5149d284
+trampolines into a routine that reads the Variant pointer, calls
+RegisterInterface(variant,3,iface) and (…,6,…) and the readiness setter, with
+an all-`MOV R0,#0; BX LR` interface vtable so every method returns without
+writing. Served read-only for both code and data over PA 0x0009d000..0x0009d288
+(VA 0x5149d000; the kernel maps VA 0x51400000→PA 0x0 per the dumped L1 in
+`boot-v15-nosprobe/l1-final.tsv`). Because that window lies inside the core
+digest range, the digest-probe was recomputed over the image AS SERVED
+(factory + stub overlay): `build/firmware/nem4-factory/digest-probe-core-nosstub/`.
+NOT authentic — placeholder for the hardware-descrambled baseband, swappable.
+
+Result (`build/sim/runs/boot-v15-nos-stub/`): the digest passes, nosstarter's
+call returns, product_info and the kernel interface-waiter are satisfied
+(nos_stub_fetches 300 = kernel actively reading the registered objects), and
+the boot advances past product_info/ekeyb-registration to cycle 729,585,848,
+where ekeyb (the keypad driver, VA 0x5041a4xx) configures the keypad GPIO block:
+halfword registers phys 0x0c150400/0402/0404/0408 via the 0x58000000-window
+writer at 0x503245bc/0x50324608. Modeled with an opt-in `keypad-gpio` probe:
+zero-reset RW halfword/word latches over 0x0c150400..0x0c15040f (config writes
+read back; input reads are zero = idle, no keys) — a standard GPIO-bank model.
+Rerunning with it; next frontier expected further into device init
+(display/MMC/window-server), per the EFile→EStart→EwSrv→Starter→SplashScreen
+chain. No pixels yet; LCD still the white clear.
+
+## 2026-10-29 NOS entry stub passes nosstarter; new frontier product_info/ISI (update made with Claude)
+
+Since the authentic NOS/baseband bytes exist in no available file, an explicit
+opt-in SYNTHETIC stub was added (`scratch/boot-v15-nosprobe`, option
+`nos-entry-stub`): code fetches at PA 0x0009d280..0x9d29f (the NOS entry line,
+reached via the kernel's VA 0x51400000 raw-flash window — confirmed mapped:
+L1[0x514..0x518]=0x00000..0x40000|0x43e, PA 0x02400000+, dumped in
+`build/sim/runs/boot-v15-nosprobe/l1-final.tsv`) return `MOV R0,#0; BX LR`.
+Data reads and writes are never served by the stub; board tests cover the
+boundaries. This is NOT an authentic boot component — it is a placeholder for
+unavailable hardware-descrambled baseband code, swappable for real NOS content.
+
+Result (`build/sim/runs/boot-v15-nos-stub/`): nosstarter's call returns cleanly
+and the kernel CONTINUES into the extension-init loop (0x50331680 walking the
+kernel-extension directory: rtc, nosstarter, pnmsg, isimsg, phonet, cbus,
+helper.ldd, medint.pdd, ELocal.fsy, EUser, Hal, EFile, EFSrv, EStart, EDISP,
+btldd...). ~6,500 cycles later it faults with a kernel panic naming
+product_info.DLL (diagnostic write 0x0c0047f0='prod', the fault path prints the
+ROM banner "product_info.DLL V 4.03 26-11 NEM-4 (c) NMP. N-Gage"). No bus
+access precedes the fault — it is a CPU/RAM panic during ISI/baseband extension
+init, the expected consequence of a no-op NOS (the Pocket HLE core answers ISI
+queries via a fake NOSDRIVER; see `docs/references.md` and
+[[ngage-pocket-core-reference]]). The next frontier is therefore the ISI/Phonet
+extension init path, not a new MMIO register. Investigate what pnmsg/isimsg/
+phonet/product_info init require from the NOS (likely ISI message round-trips
+the stub must answer, per the Pocket core's documented energy-mgmt/identity
+replies) before extending the stub into a minimal ISI responder. This is the
+first point where the missing baseband's behavior — not just its bytes —
+matters.
+
+## 2026-10-29 scramble closed: CMT-side hardware descramble; boot remap found (update made with Claude)
+
+Cipher analysis (consolidated in `scratch/nem440-flash-extract/out/cipher-analysis.json`)
+closed the encrypted-region question. The container's algorithm blob is a flash
+program/erase driver + field-service loader (strings dev_flash.c, loc_task.c,
+FLL_01_43_00; the only crypto inside is the Bluetooth SAFER+ suite, uncalled on
+the write path) — it programs payloads verbatim. The opaque region is CS0 phys
+0xA000..0x2B3000, scrambled for the DCT4 cellular-MCU (CMT) fetch path and
+descrambled by UPP hardware on that side; the scramble is stateless, word-local
+and position-keyed, and provably not any byte/word XOR, additive keystream,
+GF(2)-affine map, or phosher/DCT4Crypter-style construction (2 MiB of exact
+known plaintext exists because factory phys 0x50A000..0x700000 is the
+plaintext twin of 0xA000..0x200000). Phys 0x200000..0x2B3000 (0xB3000 bytes)
+has no plaintext twin and is unrecoverable from files. Public knowledge agrees
+(DCT4Crypter/phosher cover classic DCT4 only; WD2/Symbian variant undocumented).
+
+Newly discovered boot behavior that resolves the dump "artifacts": boot code at
+phys 0x33E4..0x34C8 patches the page tables, adding +0x500000 to the physical
+base of every page in [0xA000, 0x317000) — the ARM920 reads the plaintext twin
+at 0x50A000+, the PPM bank, and the 8-MiB chip mirror, exactly reproducing the
+phone dump's layout. The Symbian side never reads the scrambled window. The
+supplied dump is therefore a faithful post-remap view, and identity-mapping the
+dump in the simulator has been accidentally correct. Plaintext Nokia ENOS
+CMT_SW Thumb code begins at phys 0x2B3000 (source paths at 0x2c7e3c).
+
+The main digest stays unmatched and is provably unmatchable from the
+containers: even the real phone's own content hashes to 1784c17a..., not the
+embedded 2c09c86f... (90+ layouts tried, including the exact boot-remap view).
+The expected value most plausibly covers golden pre-personalization content
+(the 56-byte per-device hole sits inside the digest window via the 0x300000
+mirror; EEPROM-emulation sectors at 0x7F0000/0x7FC000 mutate at runtime). The
+digest-probe accommodation therefore stands, now with a precise justification.
+
+The .326 extension at phys 0x4730000 (VA 0x51230000) begins with a valid
+scanner-compatible EKA1 extension header: next-base 0x51230000, size 0x140000,
+root list 0x51230080, version/time words matching the core's — and its content
+digest passes. v4.17 extraction lives in `out-v417/` (extract_tolerant.py; the
+original parser lost sync once on a checksum coincidence). Next: assemble the
+factory-faithful flash image set (factory bytes, erased-FF gaps, real .326
+extension in place of the synthetic reconstruction), regenerate the digest
+probe over it, and run V15 from reset. The nosstarter NOS-image gap (CS1 upper
+half / third CNT container) remains the open content question.
+
+Done: `scratch/authentic-flash-image/assemble.py` builds
+`build/firmware/nem4-factory/{core.bin,extension.bin,manifest.json}` (VA-linear
+factory content, MCU+PPM flash-order overlay, per-device hole and unwritten
+flash erased 0xFF) — the .326 extension descriptor verifies over the assembly
+(0b1173ee..., PASS). `digest-probe-core/SYM.ROM` replaces only the 16-byte core
+expected-digest field (new computed value ac2ac9c5...; manifest records
+before/after). The V15 from-reset run on the factory inputs completed at cycle 729,407,390 on
+the identical nosstarter frontier (diagnostic write 0x0c0047f0=0x5149d290):
+the extension scanner handled the erased head, the firmware's own extension
+digest check passed on authentic content, both digest gates cleared with only
+the 16-byte core accommodation, 8 periodic ticks and the RTC/debug-console
+sequence ran as before. Output `build/sim/runs/boot-v15-factory/`; screen is
+the assumed white clear. This is the cleanest validated configuration to date;
+`boot-v15-factory` supersedes `boot-v15-periodic` (dump-input lineage).
+
+The sole remaining blocker to further boot progress is CONTENT, not modeling:
+the extension head (VA 0x511c0000..0x5123e338, retail CNT container) and the
+NOS image (CS1 upper half, PA 0x02400000+0x400000). Next development session:
+obtain a NEM-4 CNT container or a hardware CS1 chip read; alternatively
+investigate the QD images' equivalent modules (read-only, for identification
+not substitution) to name the component that installs the 0x514xxxxx mapping.
+
+## 2026-10-28 factory flash files extracted and validated (update made with Claude)
+
+`scratch/nem440-flash-extract/` now holds a checksum-validated parser for the
+Nokia "WD2 BT2" containers (record grammar documented in extract.py: data
+records [0x14][phys addr:4 BE][ck1][len:3 BE][ck2][payload], both files parse
+end-to-end with zero residue) and extracted images under out/ with full
+per-record JSON maps. nem440.3c1 programs CS0 0x0..0x6FFFFF, CS1
+0x2000000..0x23FFFFF, CS2 0x4000000..0x46B4FFF plus an embedded 0x2dd94-byte
+flash algorithm blob; nem440.326 (PPM) programs the updated ROM header words,
+CS0 0x700000..0x76BFFF and CS2 0x4730000..0x47FFFFF.
+
+Verified: the .326 extension digest descriptor (VA 0x51230000..0x5136BFFF,
+MD5 0b1173ee849db3045a8a0b78507bd96b) matches the extracted content exactly —
+the factory extension is authentic, bit-validated, and supersedes the
+synthetic reconstruction. The factory core matches the dump byte-exactly over
+phys 0x317000..0x11B5000 (14.5 MiB); the dump's lower window is proven
+artifact (2 MiB self-duplication, another build's PPM content, duplicated
+header) — the dump fails its own digest for that reason. The main digest
+(2c09c86f...) remains unreproducible because phys 0xA000..~0x2F0000 (~2.9 MiB)
+in the factory file is ENCRYPTED (8.0 bits/byte, referenced by no ROMFS entry
+or E32 header); its plaintext exists in no available file. That blob's size is
+close to the expected NOS image (~3 MiB at CS1 0x2400000+, which neither file
+programs), and the containers ship a flash algorithm that runs on the phone
+during flashing — a plausible decrypt-and-place agent. Cipher analysis is in
+progress. The ROOT dump's first ~0xC0000 bytes match neither factory file:
+retail phones carried a third container (CNT/content pack) for the extension
+head (VA 0x511C0000..0x5123E338). Unwritten factory gaps (erased 0xFF on a
+fresh phone): phys 0x46B5000..0x472FFFF and the PPM-bank tail above 0x76C000.
+Bank tables in factory and dump are identical (an earlier divergence note was
+wrong). BOOT-101F8C19.dmp equals phys 0x321000 (kernel code start).
+
+A second complete build arrived: `firmware/NEM-4 v4.17 EN/` (nem441.7d1 MCU +
+nem441.738 PPM, extracted from the V4.17 RAR-SFX updater; source link in the
+archive: gem-flash.com). The MCU file is byte-identical in size and format to
+v4.03's; the encrypted CS0 region differs between builds in 320/371 records
+(build-varying code — consistent with the NOS image), giving the cipher
+analysis a second ciphertext at identical addresses.
+
+Next: verify the .326 extension begins with a scanner-compatible image header
+at phys 0x4730000, assemble an authentic flash-content set for the board model
+(factory bytes, erased-FF gaps, no synthetic tail), identify the cipher of the
+encrypted region via the flash-algorithm disassembly, and ask the user for
+possible additional factory containers (CNT/content pack; ISA/NOS flash file)
+from the same source.
+
+## 2026-10-28 authentic run validated; frontier identified as the NOS entry; factory flash files arrived (update made with Claude)
+
+The authentic from-reset run (`scratch/boot-v15-periodic/run.py`: V15 cache CPU,
+all-0x257e flash, no RAM intervention, periodic tick, all current probes)
+completed at cycle 728,190,258 on the identical frontier as the fast chain: the
+kernel crash write 0x0c0047f0=0x5149d288 after calling VA 0x5149d284. It passed
+VARIANT authentically, delivered 8 periodic ticks, completed the RTC read-out
+and printed the same "TRtcQueue::Add: 2" debug line. Outputs
+`build/sim/runs/boot-v15-periodic/`; screen remains the assumed white clear.
+
+Instruction-level disassembly identified the frontier precisely: nosstarter.ext
+(148 bytes at file 0x3504a0, entry 0x50350504) copies 0x5790 bytes of
+initialized data from VA 0x51711138 to 0x80006ef0 (EUser Mem::Copy), zeroes
+0xc27a8 bytes of BSS at 0x8000c680, and calls VA 0x5149d284 with r0=-1 — the
+entry point of the separately linked NOS/baseband (ISA cellular) program that
+lives in flash OUTSIDE the Symbian logical ROM. The core ROM references exactly
+two addresses above the ROM window: 0x5149d284 and 0x51711138 (both nosstarter
+literals; all other 0x51400000+ word hits are data noise/0x51EB851F constants).
+All three firmware variants contain the same stub with per-build addresses
+(RH-29: 0x5149e4c4/0x5170b054; RH-4: 0x5149f934/0x517050c4). The superpage
+carries a type-3 bank window {PA 0x02400000, size 0x600000} (CS1 upper half) —
+the evidence-consistent home of the NOS image, probably mapped at VA
+0x51400000; kernel-side confirmation of the mapping code is in progress. The
+NOS content exists in NO supplied dump (the in-phone dumper faulted at
+0x51370000; signature/literal-density searches across all dumps are negative).
+Do not stub the call: the goal is an authentic boot.
+
+Kernel-side mapping disassembly settled the window question: bootstrap routine
+0x1ff8 maps the type-3 banks unconditionally, pre-MMU, with a running VA cursor
+from 0x58000000 — the NOS window PA 0x02400000 (+0x600000 declared) lands at
+VA 0x59200000 (uncached, L1 entries 0x02400432..) and again at VA 0x59800000
+(cached, 0x0240043a..), supervisor-only AP=01 (which is why the on-phone
+user-mode dumper could never read it). No code in any supplied image writes an
+L1 entry for VA 0x514xxxxx — ekern never walks bank types, and the exception
+dispatcher reached the fatal mailbox path, so no runtime abort-fixup handler
+was registered either. The variant ecust.dll geometry method (file 0x349c98,
+the ROM's only 0x59200000 literal) reports the NOS/baseband flash as PA
+0x02400000 size 0x400000 for our flash classes. Conclusion: the agent that
+creates the real phone's 0x514xxxxx linear mapping (or abort fixup) must live
+in the unrecovered extension head VA 0x511c0000..0x5123e338 — synthesized as
+directories+FF in our reconstruction. The content gap is therefore twofold:
+the real extension head AND the NOS image at PA 0x02400000..0x027fffff. Do
+not hand-add a 0x514xxxxx mapping; without real NOS bytes it only moves the
+frontier to an unbacked fetch at PA 0x0249d284.
+
+The user supplied Nokia factory flash-programming files
+`firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1` (MCU, 18,777,938 bytes) and
+`nem440.326` (PPM, 1,361,703 bytes), dated 27-11-2003 — DCT4 "WD2 BT2 /
+STARSHIP & BT ALGORITHM" containers. Initial analysis: the core ROM image is
+embedded from .3c1 offset 0x2defc with periodic block framing (~0x500 bytes
+per MiB, grammar not yet derived) and differs from the dump in content
+(header checksums at image +0x84/+0xa8, the bank-table region, and the digest
+descriptor region ~0x8d06 where the factory bytes carry the expected MD5
+2c09c86f... — the factory image may pass the digest check the dumps fail).
+Container reverse-engineering and full extraction are in progress in
+`scratch/nem440-flash-extract/`; if the files program CS1 0x02400000+ the
+missing NOS image is recovered and the digest-probe input modification can be
+retired. A Nokia 6600 factory file (`firmware/NHL-10 v.05.53 6600.rar`) is
+also available for format cross-reference.
+
+## 2026-10-28 kernel runs to the extension-VA frontier (update made with Claude)
+
+With the tick, block-0x14d probe, debug sink, and explicit kernel-phase CBUS
+inputs (new repeatable `cbus-input=REG=VALUE`, supplied zero for registers
+0x20–0x34; observed reads so far 0x24, 0x31, 0x33, 0x21 — the RTC path), the
+continuation `build/sim/runs/boot-variant-periodic-timer/` processes four
+periodic ticks, completes the kernel RTC read-out and the "TRtcQueue::Add"
+debug line, and runs to cycle 453,235,865. It then stops on the diagnostic
+mailbox write 0x0c0047f0=0x5149d288 from the kernel crash path: the nosstarter
+region code at VA 0x5035053c performs `MOV PC, R4` with R4=0x5149d284 (a core-
+ROM literal at file offset 0x350548), and that VA takes an MMU translation
+abort — no bus access is attempted, so the kernel simply never mapped it.
+VA 0x5149d284 lies ~700 KiB beyond the reconstructed extension's end
+(0x513f0000) and beyond bank table 0x830's 19.94 MiB span; this is the
+predicted missing-ROM-content frontier (flash-layout.md's CS2 0x046c001c
+question). Research is in progress to reconcile the extension descriptors,
+the CS2 physical mapping, and whether any supplied dump contains the content.
+Do not paper over this with a stub: the call is the NOS/baseband starter path
+and the goal is an authentic boot.
+
+The authentic from-reset run (`scratch/boot-v15-periodic/run.py`, V15 cache
+CPU, all-0x257e flash, no RAM intervention, all current probes) was launched
+and is expected to reach this same frontier in a few hours; output
+`build/sim/runs/boot-v15-periodic/`, screen capture attempted on completion.
+
+## 2026-10-28 periodic tick delivered; kernel debug console found (update made with Claude)
+
+The corrected periodic-tick model (scratch/variant-periodic-timer, option
+`timer-periodic`) now matches the kernel disassembly: the kernel reload write
+0x632ea with control 2 arms a free-running tick; the stale early-boot enable is
+treated as cleared until the kernel's own enable-set 0x0c120108=1; any status
+write to 0x0c120a08 acknowledges; ICU current 0x0c120114 reads 1 (IrqTimer0)
+while pending and 0 after acknowledgement; secondary banks 0x0c120154/0x194
+read 0; the dispatcher-exit entropy read of 0x0c120a10 returns the compare
+latch. The continuation `build/sim/runs/boot-variant-periodic-timer/` matched
+all 241 predecessor bus rows, delivered the tick at cycle ~452,656,800, and the
+authentic kernel IRQ path executed exactly as disassembled: vector 0x18 →
+0x50327698 → dispatcher 0x5032287c → ICU current=1 → tick ISR 0x503225b0 →
+status ack 0x0c120a08=0 → drain reads → wait flag 0x8000000c set → idle loop
+woke. Full IRQ-path disassembly notes (dispatch table [0x800066e0] index
+IRQ+0x5c, ID map "IrqTimer0"=0x5d, FIQ-ICU at 0x0c1201c0 — the 0x0c1201c8
+write enables FiqAPIIOAbort and is unrelated to the tick) are recorded in
+[uem-control-bus.md](uem-control-bus.md). The timer tick unit (one CPU cycle)
+remains an unverified assumption.
+
+After the tick, kernel routine 0x5032430c initialized an unidentified UPP
+block (0x0c15053c=0xffff, 0x0c15053a=0x4c, 0x0c14d000=2/0x300, 0x0c14d004=
+0x205, 0x0c14d008=0, reads of 0x0c14d00c/0x10), modeled by the explicit
+zero-reset `block14d-probe`. The kernel then began writing characters through
+routine 0x503243a8 (CR/LF handling, gated on a debug-enable flag) to a
+byte-addressed window at VA 0x59000000 = physical 0x0de00000: the write-only
+`debug59-sink` captured genuine Symbian kernel trace text, starting with
+0xc0 then "TRtcQueue::Add: ". The device identity (debug console buffer) is
+unverified; bytes are retained in the result JSON as `debug59_text`.
+
+`scratch/boot-v15-periodic/` is the authentic-path configuration: V15
+cache-enabled CPU, all-0x257e flash (no RAM intervention, counterfactual code
+removed), the periodic tick and both new probes; its `sync-from-chain.py`
+reapplies the deltas after chain updates, and `run.py` performs the from-reset
+1e9-cycle run with capped logs and a screen-capture attempt. Board tests for
+both directories pass. Launch the long run once the fast chain stops
+discovering new registers at this cadence.
+
+## 2026-10-28 flash identity resolved by disassembly (update made with Claude)
+
+Full disassembly of the firmware's flash probes settles the VARIANT question.
+The first probe (file offsets 0x95c–0xb34, chooser 0xb38) identifies only CS1
+(and Intel-on-CS2): AMD mfr 0x0001 with first ID word 0x257e or 0x267e →
+result 2 → bank table 0x830 (16 MiB RAM); 0x22d1 → table 0x744; nothing →
+fallback 0x638 (8 MiB). 0x227e matches nothing there. The classifier at 0x5cc0
+(helpers 0x598c/0x5a34/0x5ad8, pools listed in flash-layout.md) maps
+0x257e/0x2502/0x2500 with handshake bit0=0 (0x42) → class 4, and
+0x227e/0x2202/0x2200 with bit0=1 (0x43) → class 0. The config routine 0x5d74
+gives classes 0/4/5/6 the same timing word 0x10202132, and class 2
+(0x227e + 0x42) hangs on CS0/CS1. The validator at 0x34933c only requires the
+middle chip's class to repeat an already-seen family (hence 0,4,0 faults and
+homogeneous sets pass); classes 0/4/5 select the same AMD burst driver.
+
+Therefore all three chips reporting 0x0001/0x257e/0x2502/0x2500 with handshake
+0x0042 is the unique self-consistent configuration: table 0x830 (16 MiB SDRAM,
+matching the NEM-4 schematic), classes 4,4,4, validator accepted, no RAM
+intervention. Public Am29BDS643G parts return 0x227e/0x43 (datasheet in
+`scratch/research/schematics/am29bds643g.txt`, autoselect table + note 10:
+0x43 = handshaking enabled), and no public AMD part returns 0x257e — the
+schematic's AM29N643GT70MVAI has no public datasheet and is evidently a
+Nokia-custom part the firmware was built for. Unverified remainder: the real
+chip's autoselect words (inference from firmware expectations), burst/CFI
+protocol details, dump-tail coverage of table 0x830's 19.94 MiB spans versus
+the 17.75 MiB image, and chip-select assignment. The flash-class RAM
+counterfactual is fully explained and permanently retired. The authentic
+configuration equals the existing `flash-all-257e-probe` model; the completed
+`boot-v15-all-257e` run (cycle 725,805,161, past VARIANT, stopped at the
+0x0c120074 frontier) is the from-reset baseline to extend.
+
+## 2026-10-28 periodic timer: kernel IRQ dispatch reached (update made with Claude)
+
+Goal restated by the user: an authentic boot to the Nokia logo — the firmware
+must execute its real path. The flash-class RAM counterfactual is therefore not
+an acceptable final path; it remains only a discovery tool on the fast
+cache-off checkpoint chain. The authentic target configuration is the V15
+cache-enabled CPU with defensible flash IDs, run from reset.
+
+`scratch/variant-periodic-timer/` adds the explicit opt-in `timer-periodic`
+hypothesis modeled on the Nokia 6600 recompiler `nk_bus_tick`: the observed ICU
+`0x0c1201c8=0x08000000` write arms a periodic IRQ with the latched compare
+period `0x632ea` (406,250 cycles); expiry presents timer status bit 0 at
+`0x0c120a08`, and the observed write-1 acknowledgement clears it. Board tests
+cover arming order (requires SYSC74 and the compare write), early-fire, ack,
+re-fire, and constructor rejection; defaults are unchanged and
+`test_default` passes. The timer tick unit (one CPU cycle) is an unverified
+assumption.
+
+The checkpoint continuation `build/sim/runs/boot-variant-periodic-timer/`
+matched all 241 predecessor bus rows, took the periodic IRQ at cycle
+~452,847,900 (one IRQ delivered), and executed authentic firmware IRQ entry:
+vector 0x18 → handler 0x50327698 (SUB LR,LR,4; stack setup; a zero check at
+0x80005e78) → dispatch at 0x5032287c, which loads literal 0x58120114 and reads
+physical `0x0c120114` — the UPP ICU current-IRQ register predicted by the 6600
+model. The run stops there: the register value (the IRQ number the kernel
+dispatches on) is unknown. Disassembly of the dispatch table is in progress to
+determine which value routes to the tick handler (0x503225b0..0x50322610) that
+sets the kernel wait flag 0x8000000c. Do not guess this value; a wrong number
+dispatches to the wrong kernel handler.
+
+Separately verified by firmware/bitmap analysis: the first drawn logo on this
+platform is Symbian `SplashScreen.exe` blitting `SPLASHSCREEN.MBM` (ROM-format
+MBM at SYM.ROM offset 0x9718d0; bitmap 0 is 176×208 8bpp EByteRLE, ~1,463
+non-white pixels — the embossed NOKIA logo; a 20-frame 176×208 12bpp startup
+animation lives at offset 0xbc3140). The boot chain to it is
+EFile→EStart→EwSrv(+scdv/lcd.ldd/FbServ)→Starter→SplashScreen, all XIP from the
+mapped ROM; no extension-image bitmaps are involved. Success signature in a
+trace: ROM reads near offset 0x97191c followed by non-uniform LCD data words.
+Expected later obstacles (from the 6600 bring-up): a second timer/IRQ source,
+Init3 HAL/UEM requests, C:-drive mount through medint.pdd (flash write/erase),
+and Starter's baseband/NOS synchronization.
+
+The earlier `boot-variant-wait-trace` result was reproduced bit-identically
+before new work (all six output files; log differed only in one interleaved
+startup line).
+
 ## Cache-off GPIO continuation and V15 run
 
 The verified cache-disabled checkpoint continuation with opt-in

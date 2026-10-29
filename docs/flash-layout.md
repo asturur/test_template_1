@@ -217,3 +217,47 @@ keep the original dump unchanged, and compare progress on both CPUs if implement
 such an experiment. The implemented extension instead combines known ROOT
 payload with explicitly synthesized metadata and bounded erased padding; it does
 not replace the entire retail tail with erased flash.
+
+## 2026-10-28 probe/classifier/validator disassembly (update made with Claude)
+
+Capstone disassembly of `build/firmware/digest-probes/both/SYM.ROM` (VA
+0x50000000 = offset 0) resolves the ID question raised above. Evidence offsets:
+
+First probe 0x95c–0xb34, literal pools 0xbc8–0xbf0, table chooser 0xb38–0xb5c.
+It identifies CS1 only (plus one Intel check on CS2): Intel 0x0089/0x8872 →
+result 1; AMD 0x0001 with ID word1 0x22d1 → 1, 0x257e → 2, 0x267e → 2
+(0x227e matches nothing); ST 0x0020/0x00a4 → 1; Intel-on-CS2 0x0089/0x8874
+→ 2; else 0. Result 0 → bank table 0x638, 1 → 0x744, 2 → 0x830.
+
+Second probe loop 0x5cc0 (identify stubs copied from ROM 0x5880/0x58f4 to RAM
+scratch 0x0c004748/0x0c0047b4 by 0x57f0) reads AMD autoselect words at byte
+offsets +0x00 mfr, +0x02 word1, +0x1c word2, +0x1e word3, +0x06 handshake —
+the Am29BDS643G autoselect layout (00h/01h/0Eh/0Fh/03h). Class map (routines
+0x598c Intel, 0x5a34/0x5ad8 AMD, 0x5c5c ST, 0x5c94 Samsung): Intel 0x8874→8,
+0x8876→9, 0x8872→0xa; AMD 0x227e family with handshake bit0=1 (0x43)→0,
+bit0=0 (0x42)→2; 0x247e family, handshake bit5→0xf; 0x257e family with
+bit0=0→4 (bit0=1→0x10 unknown); 0x267e family with bit0=0→5; 0x22d1→6;
+ST 0xa4→0xb, 0xa5→0xc; Samsung 0x22f0→0xe; unknown→0x10 (hang via
+0x0c0047fd bit3 for CS0/CS1, tolerated on CS2).
+
+Config routine 0x5d74 (jump table 0x5db4, writes 0x08000010+4*chip): classes
+0/4/5/6 → 0x10202132; 8 → 0x30203122; 9 → 0x20202112; 0xb → 0x20202132;
+0xe/0xf → 0x10202122; classes 1,2,3,7,0xa,0xc,0xd,>0xf hang on CS0/CS1.
+Note class 2 = public BDS643 IDs with handshaking disabled is not bootable.
+
+Validator 0x34933c: a middle entry introducing an unseen class faults VARIANT
+19 (compare at 0x3494f0, branch 0x349658); repeated families are accepted; the
+last entry's unseen class falls back to generic drivers. Classes 0/4/5 select
+the same AMD burst driver pair 0x50349ea0/0x50349ed0 (pool 0x349570).
+
+Conclusion: all three chips at 0x0001/0x257e/0x2502/0x2500 with handshake
+0x0042 is the unique configuration that selects table 0x830 (16 MiB SDRAM per
+schematic), classifies 4,4,4 and passes validation — consistent with the
+AM29N643GT70MVAI being a Nokia-custom AMD part (no public datasheet; public
+BDS643 parts answer 0x227e/0x43; no public AMD part answers 0x257e). 0x267e
+would be behaviorally identical everywhere observed; 0x257e is kept to match
+existing runs. Unverified: real autoselect words of the N-part, its burst/CFI
+protocol details, dump-tail coverage of table 0x830's spans, and chip-select
+assignment. Datasheet text: `scratch/research/schematics/am29bds643g.txt`;
+AMD app note 25538 (three-byte IDs) confirms word-mode IDs carry 0x22 in the
+upper byte for all public parts.
