@@ -1,5 +1,26 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 Frontier pinned: EStart is LAUNCHED but never scheduled (update made with Claude)
+
+Deep-dived the ~1.11e9 block with IDT symbols. Sequence: StartupThread's init
+state machine (efile!ord3, 0x503d5290) COMPLETES successfully (returns R0=0 at
+0x503d54fe, sets its done-flag), then StartupThread calls euser!User::StartThread
++ euser!UserSvr::BlockThreads - the EKA1 thread-launch of the next process
+(EStart). The kernel does the creation work (CObjectCon/CObjectIx::At container
+mgmt, CBitMapAllocator page alloc - normal, not an infinite spin; IsFree hit
+only 10x on page 0x8a). But EStart's code (0x503ee860) NEVER executes and the
+LoaderThread (entry 0x503d3539) never runs in-window: EStart is created and
+never scheduled. So the frontier is now the EStart thread start/schedule, not
+the C: mount (solved) or the state machine (done).
+
+The remaining question is why the newly-started EStart thread doesn't get
+scheduled (a kernel scheduler/thread-control step needing a modeled event, or
+BlockThreads not followed by the unblock). The LLE runs the real EKA1 kernel
+(unsymbolized - no ekern.idt); ngvm (HLE kernel) schedules EStart fine and
+reaches both logos, so it is the comparison oracle. NEXT: cross-check the
+StartThread/reschedule path against ngvm, or model the missing kernel event,
+to get EStart running -> window server -> LCD -> logo in the LLE screen.png.
+
 ## 2026-10-29 New frontier: the LOADER is loading EStart (blocked mid-load ~1.11e9) (update made with Claude)
 
 Symbolized the ~1.11e9 block (IDT names): the last F32 work is mount-control
