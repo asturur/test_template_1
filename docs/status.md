@@ -1,5 +1,36 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 REFRAME: boot does not hang - StartupThread CRASHES on C: mount KErrCorrupt (update made with Claude)
+
+Symbolized the block with the user-supplied IDA IDTs (firmware/IDA IDTs 1st
+Edition/*.idt, ordinal->name; converted to build/ngage-defs/*.def for romsyms).
+Alignment VERIFIED against the independent exec table (euser ord630 =
+User::Leave <-> exec 0x73 = User::Leave; ord627 LeaveIfError, 621 RThread::Kill,
+1208/1209 WaitForAnyRequest all coherent). The 767.8M "idle" is NOT a wait:
+the sequence is elocal LFFS mount -> returns KErrCorrupt (-20, raw value, IDT-
+independent) -> User::LeaveIfError -> User::Leave -> CCleanup::PopAndDestroyAll
+-> RThread::Kill. StartupThread LEAVED on the corrupt C: and KILLED ITSELF; the
+later WaitForAnyRequest loop is just the null/idle thread. So the thread that
+would launch ESTART is DEAD - every earlier "waiting on X" analysis was the
+aftermath, not the cause.
+
+Root cause: our empty/erased C: (all 0xFF) makes the real LFFS mount return
+KErrCorrupt (origin in ELocal LFFS code ~0x5038fbd4, elocal!<code>+0x7840).
+cdrive_writes=0/cdrive_erases=0 => the mount scan rejected the volume as
+corrupt BEFORE formatting. On the working Pocket core (drive.c) an erased C:
+is fine because "LFFS formats on the first mount". Ours returns corrupt
+instead of formatting. FIX options: (a) make format-on-mount work (find why
+the erased-flash mount scan concludes corrupt - likely flash geometry/CFI or
+a read value our model gets wrong - and fix the C: flash model); (b) pre-fill
+C: with a minimal VALID formatted LFFS image (LFFS_MAGIC 0x503B3B60 per
+Pocket + minimal log), far smaller than the 1.7MB file tree. The user's C:
+file tree is NOT needed to boot (Pocket proves erased boots) but a VALID
+empty LFFS is. NEXT: read Pocket drive.c format handling + find the exact
+corrupt check.
+
+Tooling: build/ngage-defs (IDT-derived ordinal names), scratch/tools/
+symtrace.py --defs build/ngage-defs names any trace line.
+
 ## 2026-10-29 SYMBOLIZATION unblock: block = StartupThread User::WaitForRequest; SDK defs incoming (update made with Claude)
 
 The Pocket core's tools/ngvm/romsyms.py symbolizes OUR SYM.ROM to
