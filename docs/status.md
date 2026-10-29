@@ -1,5 +1,35 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 checkpoint inspector built: blocked thread is the F32 mount in medmmc (update made with Claude)
+
+New tool `scratch/tools/inspect_checkpoint.py` (offline, no simulation):
+parses a .host checkpoint, locates the 16 MB SDRAM image (verified by finding
+the kernel L1 page table via the 0x58000000->0x0c000000 I/O section
+signature; L1 at PA 0xa074000 in c1307900000), walks sections + coarse L2 so
+kernel VAs resolve, and supports --dump VA hexdumps plus vtable-clustered
+object scans and stack discovery (RAM pages dense with ROM return
+addresses). Findings on checkpoint c1307900000: kernel object names are not
+ASCII-in-RAM on this build (only string: "INFO Server"), so identification
+goes by stacks/vtables; 16 stack-like pages found and module-mapped.
+
+ANSWER to "who is blocked": PA 0xafe4000 holds a kernel stack with
+ELocal -> medint -> medmmc frames (0x503fef88/0x503fd854/0x503fefc8 +
+ekern wait calls) — the F32 local-media mount thread entered medmmc.pdd
+(D: = MMC card) and parked. medmmc code had never appeared in any trace
+window; it runs only on this blocked thread. Reading: after C: mounted,
+the mount sequence proceeds to D: and waits for the MMC socket power-up —
+the SECOND epbus power instance (pin pair 0x150206/0x150208; we only ever
+completed the first instance's UEM event). PA 0xafe2000 is the epbus object
+heap (vtables 0x50339c08/0x50339d5c etc., the three 'instance' objects the
+earlier scan found at 0x804067xx/0x804068xx/0x804069xx).
+
+NEXT: RE medmmc's wait entry (around 0x503fef88/0x503fd854) to identify the
+exact completion it needs (second UEM interrupt client? card-detect GPIO?
+MMC controller registers — none modeled yet at any address), then model the
+minimal "no card present" or "card ready" answer so the mount completes or
+fails cleanly and boot proceeds to EStart. Iterate with run-resume from
+c1307900000.
+
 ## 2026-10-29 unit-1 = ekeyb scan timer; system idles event-blocked; next: thread-state inspector (update made with Claude)
 
 The unit-1 run (boot-v15-unit1, 3e9 budget, rolling checkpoint written at
