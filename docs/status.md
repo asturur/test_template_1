@@ -1,5 +1,31 @@
 # Development checkpoint and resume guide
 
+## 2026-10-29 SYMBOLIZATION unblock: block = StartupThread User::WaitForRequest; SDK defs incoming (update made with Claude)
+
+The Pocket core's tools/ngvm/romsyms.py symbolizes OUR SYM.ROM to
+library!ordinal(+off) directly from the ROM export tables (works without the
+SDK). New helper scratch/tools/symtrace.py annotates any sim trace with it.
+Key corrections this gave:
+- efile and elocal are the SAME thread (ELOCAL.FSY runs in the file-server
+  process), so the elocal WaitForAnyRequest IS StartupThread blocking, not a
+  separate idle FS thread. Earlier "it's a normal media-change idle" was the
+  wrong read.
+- The block is euser!ord621 = User::WaitForRequest(TRequestStatus&) (reads
+  [R0]=status, waits via exec 0x4d) - StartupThread waits on ONE SPECIFIC
+  async request from its LFFS-mount/startup path that never completes.
+- StartupThread = efile!ord3 (entry 0x503d5290), a startup state machine of
+  panic-guarded steps (efile!ord4 helpers). Last ops before the block:
+  efile!ord20+0x744 (media-readiness 0x503cfa30), efile!ord16, efile!ord4,
+  then elocal -> User::WaitForRequest.
+
+USER is getting a Series 60 1st Ed SDK. romsyms needs its per-library ordinal
+.def files (euser.def/efile.def/elocal.def/... lines "Name @ ord NONAME") at
+NGAGE_DEFS. With them every trace line gets a real name and the exact pending
+request/completer is pinned in minutes. Ordinals to resolve first: euser 621
+(block), 627/630 (request issue around the 767799317 exec), 863/823/360/121/
+178; efile ord3/4/16/20; elocal ord1. If the SDK ships only .lib import
+libraries, extract ordinal->name from those (petran/def dump) into NGAGE_DEFS.
+
 ## 2026-10-29 ROOT CAUSE of the user-side block: missing ISI/Phonet baseband responder (update made with Claude)
 
 Traced StartupThread's full exec set across the mount (reqtrace 764-767.82M):
