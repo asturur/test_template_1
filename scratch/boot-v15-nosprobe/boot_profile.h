@@ -23,9 +23,13 @@ public:
     static std::map<unsigned, unsigned> parse_adc_inputs(const std::string& options);
     bool access(const BootBusRequest& request, uint32_t& data, std::string& device);
     void tick();
-    bool unit60_irq() const { return unit60_pending_ && (icu_mask2_[0] >> 3 & 1); }
+    // Unit-0x60 compare match delivers FIQ, not IRQ (medint FIQ pump
+    // 0x503851bc installed at [0x800004e4]; vector VA 0x1c reads it). Gated
+    // by the FIQ-ICU bank-0 enable bit 3 (enable-set 0x0c1201c8, pump reads
+    // pending 0x0c1201d0 and expects bit 3).
+    bool unit60_fiq() const { return unit60_pending_ && (icu_mask2_[0] >> 3 & 1); }
     bool uem_irq() const { return uem_irq_pending_ && (icu_enable_[0] >> 1 & 1); }
-    bool timer_irq() const { return (timer_irq_pending_ && timer_irq_enabled_) || unit60_irq() || uem_irq(); }
+    bool timer_irq() const { return (timer_irq_pending_ && timer_irq_enabled_) || uem_irq(); }
     bool has_scheduled_interrupt() const { return timer_irq_delay_ && (timer_remaining_ || timer_irq_pending_ || periodic_remaining_ || unit60_remaining_ || unit60_pending_ || uem_irq_pending_ || unit1_running_); }
     void report(std::ostream& output) const;
     void save_state(std::ostream& out) const;

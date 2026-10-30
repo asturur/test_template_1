@@ -1,5 +1,74 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 C: WRITE COMPLETION SOLVED: it is a FIQ flash pump; board now models the unit-0x60 FIQ (update made with Claude)
+
+The "nothing ever completes the C: write" wall is closed. The completion is
+delivered by FIQ, which the board never asserted (main.cpp pinned i_fiq=0).
+Full chain, all from disassembly + the idle-c1517 live heap:
+
+- The FIQ vector (VA 0x1c, kernel vector page PA 0x321000, live phone maps
+  VA 0 -> PA 0x321000) loads the handler pair at kernel globals 0x800004e4
+  (PC) / 0x800004e8 (banked ip) and jumps; default tail 0x50327a28.
+- At the blocked checkpoint [0x800004e4] = 0x503851bc = medint's hand-written
+  FIQ flash pump (runs entirely in FIQ-banked r8-ip; pump object also in
+  [0x80006ee0], holds the AMD unlock VAs 0x59800aaa/0x554 at +0x10/+0x14 and
+  medint's I/O page VA 0x59e011c0 = PA 0x0c1201c0 at +0x30).
+- medint's write path (0x50386500): program first halfword via PDD vcall,
+  then arm hw timer unit 0x60: +0x04 ctrl = 2 (run), +0x08 counter = 0,
+  +0x10 compare = 0x186, and finally ENABLE FIQ-ICU bank0 bit 3 (tail call
+  0x50324898(3) -> 0x0c1201c8 |= 8). +0x08=enable-SET, +0x0c=enable-CLEAR -
+  the previous model had this polarity INVERTED (that is why the old
+  unit60-as-IRQ experiments never fired when gated).
+- Each compare match -> FIQ -> one pump step (0x503851bc): read pending
+  0x0c1201d0, test bit 3; write counter 0x0c120a68 = 0 (clears the match =
+  re-arm); DQ7/DQ5 poll the last programmed halfword; program the next one
+  (AA/55/A0 at 0x59800aaa/0x554); return from FIQ. Instant-complete flash in
+  the board model means one halfword per FIQ.
+- Buffer done (0x50385294): enqueue the completion DFC (node pumpobj+0x1c,
+  fn +0x24 = 0x5038693c) on kernel list 0x80006bb8 via 0x503451f4, stop the
+  timer (0x120a64=0), mask FIQ (0x1201cc=8). The scheduler (0x50327f48)
+  pops that list every yield - the blocked idle loop yields constantly - and
+  calls the DFC in mode 0x1b, which runs medint's completion
+  (0x50387200-0x50387304: PDD vcalls, re-init compare regs) ->
+  DMediaDriver::Complete -> RequestComplete -> ELOCAL's RSemaphore::Wait is
+  signaled and the boot resumes.
+- Why the first 277 writes "completed": they were absorbed by LFFS's log
+  buffering; this one is the first wait on the pump semaphore.
+- Second IRQ dispatcher mapped along the way (0x503229a0, reachable from the
+  IRQ vector chain): reads status 0x0c120050 (tst #7, write-back ack; bit 1
+  -> fast DFC [0x8000001c]), then FIQ-ICU currents 0x1201d4/0x120214/
+  0x120254 (+0x14 of each bank; value = source+1; bank0 current 4 = the
+  FIQ-owned timer bit, special-cased as cascade-check). Handler table
+  0x80000b64 (bound [0x800066e4]=0xba) is indexed v-1 / v+0x1f / v+0x3f by
+  this dispatcher and 0x5c+v by the family-A one (0x5032287c, currents
+  0x120114/0x154/0x194, enables 0x120108/0x148/0x188). Full live handler
+  census at idle-c1517: family-A srcs 0x5d tick (en=1), 0x5e (en=0), 0x63
+  (en=0), 0x72/0x74/0x75 epbus (en=0), 0x76 cbus (en=1, clients keypad+rtc
+  only), 0x8b cbus class-3 (en=1, zero clients); family-B: none - unit 0x60
+  is FIQ-only.
+
+Board model changes (board-only; Verilated RTL unchanged, so existing
+checkpoints remain loadable): unit60 compare-match now raises FIQ (new
+unit60_fiq(), main.cpp drives i_fiq; removed from timer_irq() and from the
+0x120114 IRQ current), FIQ-ICU banks 0x1201c0/0x200/0x240 with +0x08 set /
++0x0c clear (polarity fixed) and new +0x10 pending / +0x14 current reads,
+counter write re-arms while ctrl==2 (the pump's per-step re-arm), arm delay
+2000 cycles (compare 0x186 prescale unknown; pump is event-driven so any
+delay is functionally correct). 28 board-test sections pass. NOTE: idle-c1517
+restores a polarity-poisoned mask (enable recorded as clear), so FIQ-era
+resumes must start from fresh-c1250 or earlier; fresh-c1250 predates medint
+(only the harmless boot-time bit-27 FiqAPIIOAbort write differs).
+
+Also this session: the THC "real NOS" question re-settled - the NOS plaintext
+for PA 0x9d280+ exists ONLY in the gsmstuff dump (build/firmware/thc/
+nos-image.bin); the ROM-dump low window is the +5MiB remap (VA 0x5000a000-
+0x50317000 -> PA +0x500000, confirmed byte-identical against SYM.ROM), NOT a
+descramble, and the NOS IAT pages (PA 0x6e030-0x725c0) exist in no file as
+plaintext (SYM.ROM there is scrambled flash, entropy 7.9; scrambling resists
+XOR/bijection/affine models - plain 0x0000 maps to 26763 distinct scrambled
+words, so it is keyed on address in a non-affine way). The import-fixup route
+for the real NOS stays parked; the synthetic stub remains the mainline.
+
 ## 2026-10-30 ROOT CAUSE FIXED: CTR assoc=0 made EKA1's clean-cache loop endless (update made with Claude)
 
 The post-EStart "idle" was the Supervisor stuck in EKA1's clean-D-cache-by-

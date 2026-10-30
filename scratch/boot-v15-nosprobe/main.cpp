@@ -265,6 +265,7 @@ int run(int argc, char** argv) {
     for (; cycle < limit && !context->gotFinish(); ++cycle) {
         cpu->i_clk = 0;
         cpu->i_irq = board && board->timer_irq();
+        cpu->i_fiq = board && board->unit60_fiq();
         cpu->i_wb_ack = 0;
         cpu->i_wb_err = 0;
         cpu->eval();
@@ -431,8 +432,8 @@ int run(int argc, char** argv) {
                     retirement_tail.emplace_back(cycle,trace);
                     if (retirement_tail.size() > 8192) retirement_tail.pop_front();
                 }
-                // A scheduled IRQ can wake a loop only if IRQ is unmasked.
-                // No FIQ source is modeled.
+                // A scheduled interrupt can wake a loop only if the matching
+                // mask bit is clear (IRQ bit 7; the unit-0x60 FIQ bit 6).
                 const bool self_loop = trace.find("BAL -2>") != std::string::npos && trace.size() >= 8;
                 if (board && self_loop) {
                     const std::string pc = trace.substr(0,8);
@@ -440,7 +441,7 @@ int run(int argc, char** argv) {
                     self_loop_pc = pc;
                     const auto cpsr = std::stoul(trace.substr(trace.size()-8),nullptr,16);
                     const bool masked = (cpsr & 0xc0) == 0xc0;
-                    const bool irq_deliverable = !(cpsr & 0x80) && board->has_scheduled_interrupt();
+                    const bool irq_deliverable = (!(cpsr & 0x80) || !(cpsr & 0x40)) && board->has_scheduled_interrupt();
                     if (self_loop_count >= 32 && !irq_deliverable) {
                         status = masked ? "firmware_loop" : "quiescent_loop";
                         blocked_address = std::stoul(pc,nullptr,16);

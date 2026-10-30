@@ -9,6 +9,11 @@
 namespace {
 constexpr uint32_t code_scratch_base = 0x0c004748;
 constexpr uint32_t probe_base = 0x02000000;
+// Cycles from unit-0x60 arm (or counter re-arm) to compare match. The real
+// compare is 0x186 ticks of an unknown prescale; the FIQ pump is purely
+// event-driven, so any delay is functionally correct. Chosen small to keep
+// multi-word flash writes fast in simulation.
+constexpr uint64_t kUnit60Delay = 2000;
 uint32_t byte_mask(uint8_t select) {
     uint32_t mask = 0;
     for (unsigned i = 0; i < 4; ++i)
@@ -519,16 +524,17 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         const bool unit1 = uem_irq_source1_ && address >= 0x0c120a20 && address < 0x0c120a40;
         if (request.write) {
             timer_unit_regs_[address] = request.data;
-            // Flash-program timer hypothesis, revised after the 2026-10-29
-            // storm run: +0x04 is the control register (medint's setup uses
-            // the kernel stop-and-settle helper 0x50324960 to write it to 0
-            // five times; +0x18 took compare 0x186, +0x10 counter reset).
-            // A nonzero control write starts the unit and raises IRQ source 3
-            // after a fixed assumed delay; control 0 stops it. Any unit write
-            // acknowledges a pending IRQ. Delay and exact roles unverified.
+            // Unit-0x60 flash-pump timer (medint disassembly 0x503865b0 arm,
+            // FIQ pump 0x503851bc step): +0x04 control (2 = run, written via
+            // kernel helper 0x50324958), +0x08 counter (the pump writes 0
+            // here each FIQ step to clear the match and re-arm), +0x10
+            // compare (0x186). Compare match = pending level until a counter
+            // or control write. The real prescale is unknown; a fixed delay
+            // stands in for counting to 0x186.
             if (unit60) {
                 unit60_pending_ = false;
-                if (slot == 0x04) unit60_remaining_ = request.data ? 20000 : 0;
+                if (slot == 0x04) unit60_remaining_ = request.data == 2 ? kUnit60Delay : 0;
+                if (slot == 0x08 && timer_unit_regs_[0x0c120a64] == 2) unit60_remaining_ = kUnit60Delay;
             }
             if (unit1) {
                 if (slot == 0x04) { unit1_running_ = request.data != 0; unit1_elapsed_ = 0; }
@@ -547,7 +553,6 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (address == 0x0c120114) {
             if (timer_irq_pending_ && timer_irq_enabled_) data = 1;       // source 0 + 1
             else if (uem_irq()) data = 2;                                 // source 1 + 1
-            else if (unit60_irq()) data = 4;                              // source 3 + 1
         }
         device = "assumed_icu_current"; return true;
     }
@@ -564,9 +569,9 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 if (request.write) {
                     icu_enable_[bank] &= ~request.data;
                     // The dispatcher acknowledges a taken source by writing
-                    // 1<<source here (timer handler writes 1, the unit-0x60
-                    // path writes 8); clear the matching pending state.
-                    if (unit60_irq3_ && bank == 0 && (request.data >> 3 & 1)) unit60_pending_ = false;
+                    // 1<<source here (timer handler writes 1); clear the
+                    // matching pending state. Unit 0x60 is a FIQ source and
+                    // never appears in these IRQ banks.
                     if (uem_irq_source1_ && bank == 0 && (request.data >> 1 & 1)) uem_irq_pending_ = false;
                 }
                 data = icu_enable_[bank];
@@ -576,18 +581,25 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             device = "assumed_icu_bank"; return true;
         }
     }
-    // Kernel Interrupt API mask banks (InterruptEnable disasm 0x503248f0,
-    // InterruptDisable 0x503248a4; three banks of 32 sources at 0x0c1201c0/
-    // 0x200/0x240, +0x0c enable-set, +0x08 enable-clear). Readback serves the
-    // latched mask (unverified). Under this reading the earlier exact 0x1c8
-    // sink (icu1c8-probe) was InterruptDisable(27). Opt-in.
+    // FIQ-ICU banks (kernel enable ordinal 0x50324898 writes 1<<src to
+    // +0x08 at 0x0c1201c8/0x208/0x248; disable ordinal 0x503248f0 writes
+    // +0x0c; the medint FIQ pump 0x503851bc reads pending at +0x10 and tests
+    // bit 3, and the IRQ-side dispatcher 0x503229a0 reads current at +0x14,
+    // value = source+1). So +0x08 is enable-SET and +0x0c enable-CLEAR —
+    // the earlier model had the polarity inverted, which kept the unit-0x60
+    // source gated off. The boot-time 0x1201c8=0x08000000 write (bit 27,
+    // FiqAPIIOAbort) now latches into the mask; no bit-27 source is modeled.
     if (unit60_irq3_ && request.select == 15 &&
-        (address == 0x0c1201c8 || address == 0x0c1201cc ||
-         address == 0x0c120208 || address == 0x0c12020c ||
-         address == 0x0c120248 || address == 0x0c12024c)) {
-        uint32_t& mask = icu_mask2_[(address - 0x0c1201c0) / 0x40];
-        if (request.write) { if (address & 4) mask |= request.data; else mask &= ~request.data; }
-        data = mask;
+        address >= 0x0c1201c0 && address < 0x0c120260 &&
+        ((address & 0x3f) == 0x08 || (address & 0x3f) == 0x0c ||
+         (address & 0x3f) == 0x10 || (address & 0x3f) == 0x14)) {
+        const unsigned bank = (address - 0x0c1201c0) / 0x40, slot = address & 0x3f;
+        uint32_t& mask = icu_mask2_[bank];
+        const uint32_t pending = bank == 0 && unit60_pending_ ? 8u : 0u;
+        if (slot == 0x08) { if (request.write) mask |= request.data; data = mask; }
+        else if (slot == 0x0c) { if (request.write) mask &= ~request.data; data = mask; }
+        else if (slot == 0x10) data = pending;                  // raw pending bits
+        else data = pending ? 4 : 0;                            // current = source + 1
         device = "assumed_icu_mask"; return true;
     }
     // epbus clock/power sub-block: RW word latches, reset 0. Opt-in.
