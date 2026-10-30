@@ -16,7 +16,46 @@ geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
 The only CTR read in the whole boot is the fatal one at cycle 1112551742,
 so the timeline up to there is unchanged.
 
-## 2026-10-30 NEXT FRONTIER: EStart runs then blocks in its process-launch loop (update made with Claude)
+## 2026-10-30 DEEP FRONTIER (fully characterized): kernel boot-waiter spins on NOS Variant iface #13 readiness (update made with Claude)
+
+After the CTR + C:-byte-read fixes the boot runs to a kernel busy-wait that
+never completes; at 3.5e9 cycles (idle-c3500 checkpoint) still only 3
+processes (EKern/EFile/EStart), no window server, no logo. Mechanism, fully
+disassembled:
+
+- The hot loop (6.5M transitions in a 6M-cycle window at 2.84e9) is ekern
+  ord252 at 0x50331a50-0x50331bd4 <-> the synthetic NOS stub at VA
+  0x5149d18c. Each iteration: re-load the Variant singleton ([0x8000038c]),
+  call its iface #13 method (r1=0xd, vtable+0x48 -> stub 0x5149d18c, a
+  zero-fill-and-return-0), then check kernel global *(0x800004ac); if 0,
+  BL 0x50323c74 (yield/reschedule) and B 0x50331a60 (loop). Cooperative
+  busy-wait - that is why ReclaimThread also runs and the box looks "idle".
+- Global 0x800004ac stays 0 at 1.25e9 AND 3.5e9. It is written only by ekern
+  ord374 (trivial setter at 0x503452d8: STR r0,[0x800004ac]; BX LR), which
+  is reached via a function pointer (no BL callers in ROM) - i.e. the real
+  NOS/variant init calls it to publish readiness. The synthetic NOS stub
+  (scratch/boot-v15-nosprobe/nos_stub_blob.h, 648B at PA 0x9d000) REGISTERS
+  ifaces #3/#6/#13 with the Variant (calls vtable+0xfc three times, each with
+  iface vtable 0x5149d180) but never drives the readiness, so ord374 is never
+  called and the waiter never exits.
+- The waiter's non-zero path (0x50331a98+) passes *(0x800004ac) to
+  0x503222e0 as a meaningful pointer/handle, so a blind fake value risks a
+  kernel fault; the correct value is whatever ord374 would publish.
+
+This is the project's long-flagged "synthetic NOS is not authentic baseband"
+wall, now reached at a concrete, named kernel waiter. Candidate approaches
+(next session): (1) extend the NOS stub's registration code to call ord374
+with a valid readiness object after registering iface #13 - needs the right
+object/value, which means RE'ing what ord252's non-zero path consumes;
+(2) model the NOS/variant readiness event at the board/channel boundary
+(ngvm answers the analogous NOSDRIVER ISI energy-mgmt exchange in
+sw/kernel/chan.c - charger 0x17/0x08, battery 0x17/0x0A, identity 0x1B -
+which its notes say gate the first screens); (3) obtain real descrambled NOS
+plaintext (exists in no available file). Resume base: build/sim/checkpoints/
+idle-c3500 (post-fix model). ekern.def names ord252/ord374 as internal
+(not SDK exports), so those names are positional, not from the import lib.
+
+## 2026-10-30 NEXT FRONTIER: EStart runs then blocks in its process-launch loop (superseded by the NOS-waiter entry above) (update made with Claude)
 
 After the CTR fix + C: byte-read fix, EStart EXECUTES (estartwin: first PC
 0x503ee8c0 @1112783076, 26 module transitions through 0x503eec28 @1126179781)
