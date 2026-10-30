@@ -199,6 +199,10 @@ BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, cons
     for (uint32_t address : {0x08000000u,0x08000004u,0x08000008u,
                              0x08000010u,0x08000014u,0x08000018u})
         latches_.emplace(address, Latch{});
+    // Boot-latch register 0x40: read (never written first) by a kernel
+    // hw-info query after nosdriver init (latch-read ordinal 0x50324e1c,
+    // observed cycle 3.431e9). Zero reset is a hypothesis.
+    latches_.emplace(0x08000040, Latch{0, 0xffffffff, 15});
     latches_[0x0c150004].allowed = 3;
     // Word writes in ROM 0x37a8 and 0x36dc; status is a separate opt-in
     // experiment because no UPP_WD2 programming manual has been located.
