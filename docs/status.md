@@ -1,5 +1,42 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 POST-STORM FRONTIER: nosdriver statically imports two REAL NOS body functions; image+stub now coexist (update made with Claude)
+
+The storm run (resume idle-c2600, budget 4.5e9) got past the stamping and at
+3,290,217,010 nosdriver.ldd (ROM 0x11b4040-0x11c0000) called through its IAT
+into the NOS module body: thunk 0x511b4458 -> [IAT 0x511b4030] = 0x514a13cc
+(NOS+0x414c), r1=13 - and ABORTED (FSR 0xd section permission) because only
+the 648-byte synthetic blob is served there; the run then died at the kernel
+fault-dump's second scratch word 0x0c0047f4 (previously unmodeled - window
+now grown to cover 0x47f0/f4/f8 as latches, checkpoint v5 + v4-compat).
+
+Full enumeration of ROM-wide word references into the NOS VA range (noise
+from JPEG/resource bytes filtered by alignment and module type): exactly TWO
+real static imports, both nosdriver's: [0x511b4028]=NOS+0x37d0 and
+[0x511b4030]=NOS+0x414c. nosstarter's [0x50350548]=entry+4 was already
+handled by the stub. The NOS export directory word 0x514a13cc also sits at
+ROM 0x503168dc (plaintext tail region).
+
+Disassembly of the real targets (gsmstuff plaintext):
+- NOS+0x37d0 register_handler(ptr, id): id<=0x19 stores ptr into kernel-RAM
+  table [0x8000c724 + id*4]; >0x19 panics via a broken import thunk. Sibling
+  +0x3808 get_handler(id) reads it back.
+- NOS+0x414c ctor(obj, id): sets obj vtable 0x5171103c (const, in-image),
+  id==0xfe takes an alloc path through two broken thunks; any other id (13
+  observed) calls only NOS-internal helpers 0x514a0ed0/0x514a1034 which
+  write kernel-RAM byte tables 0x8000ca64/0x8000ca30 (panic thunk only on
+  id>0x19). So the REAL code paths nosdriver exercises are self-contained.
+
+Model change: nos-image now coexists with nos-entry-stub - the stub keeps
+its proven boot-time windows (blob [0x9d000,0x9d288) incl. the nosstarter
+entry B at 0x9d284, power model at 0x9e000) and the real THC image serves
+the body [0x9d288, 0x316900). Both run scripts pass nos-image. The known
+risk going deeper into real NOS code: 49 import thunks whose IAT slots live
+in scrambled flash (PA 0x6e030-0x725c0, no plaintext anywhere) and NOS
+data/bss literals into the below-image pages - each future stop names the
+one slot to resolve by RE (board can serve synthesized IAT words at exact
+addresses). Run in flight: nosbody1 from idle-c2600, budget 4.5e9.
+
 ## 2026-10-30 RESTORE BUG: load_state re-applied the pristine C: image over restored stamps (update made with Claude)
 
 Resuming mid-storm from idle-c2600 exposed it: load_state re-applied
