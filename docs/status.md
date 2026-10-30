@@ -1,5 +1,52 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 LOGO GATE IDENTIFIED: the baseband ISI/Phonet modem conversation (ngvm oracle) (update made with Claude)
+
+ngvm (HLE oracle) boots our EXACT SYM.ROM fully: its process log shows
+SelfTestServer -> ... -> AudioServer -> AppRun -> Sysamob -> MSexe ->
+Loadersrv -> SplashScreen (draws the Nokia logo, "lcd: 3 updates") -> exits
+clean. So the splash is drawn by a SplashScreen process that Starter launches.
+
+The gate is the **baseband modem conversation**, documented authoritatively in
+ngvm's sw/kernel/chan.c (NOSDRIVER section, ~line 307): the firmware sends
+ISI/Phonet messages to the cellular modem via nosdriver.ldd and waits for
+replies. THERE IS NO MODEM. ngvm answers them:
+  - most services -> COMMON_MESSAGE / service-not-identified (clients take
+    their error path instead of waiting forever);
+  - energy management (resource 0x17, via Nokia.dsy -> System Agent charger
+    0x100052C9 / battery 0x100052D3): 0x08 answered by 0x09 subblock 0x13
+    (charger state), 0x0A by 0x0B subblock 0x16 (battery bars). "Without the
+    charger's, Xanadu Next exits at start and System Rush stops after its
+    first screens" - i.e. the energy-management reply is a hard gate for the
+    boot UI;
+  - phone identity 0x1B/IMEI and SIM 0x09/IMSI: made-up test-equipment values.
+
+In OUR LLE the real nosdriver.ldd + the real 2.5 MB NOS/GSM module run, but
+the RF/DSP baseband they sit on cannot exist in emulation, so the ISI query
+never gets a reply and Starter never launches SplashScreen. This is the
+long-flagged baseband/custom-hardware wall, now pinned to a named, documented
+protocol with exact reply layouts in chan.c.
+
+### The fork to the logo (decision needed)
+A. **Model the modem mailbox at the board level** - find nosdriver.ldd's
+   hardware ISI transport (the register/shared-memory + interrupt it uses to
+   reach the baseband) and inject the chan.c replies there. Legitimate
+   hardware model of the modem interface; the reply CONTENT (charger
+   connected, no SIM, test IMEI) is the only synthesised part, which is
+   honest for a phone with no modem/SIM. Requires locating the transport.
+B. **Inject at the nosdriver channel level** - the ISI conversation is
+   software (firmware <-> nosdriver.ldd <-> NOS module), mostly above the
+   hardware the board sees, so this is the "LLE fix that smells of HLE" the
+   user ranked last: intercept nosdriver's channel control-4/request-0 like
+   ngvm does.
+
+Open sub-question blocking A: does the real NOS module, handling an
+energy-management ISI query, hit a modellable hardware access, or spin in
+software waiting for a baseband processor? (Needs a trace of the System-Agent
+query path; the system is already idle at the checkpoints, so the query may
+have erred or not yet been sent.) ngvm's chan.c is the exact reply spec for
+either path. Reference target: the ngvm Nokia-logo frame.
+
 ## 2026-10-30 MILESTONE: full splash server stack is UP (window server + Fontbitmapserver); frontier = Starter blocked, no frame drawn (update made with Claude)
 
 Thread/process census of idle-c4400 (resume to idle, 5.5e9, stuck 2.1e9
