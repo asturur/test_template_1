@@ -1,5 +1,23 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 STORM GONE: stamped image boots clean; LCD display-on at 2.155e9 from reset (update made with Claude)
+
+boot-v15-freshstamp (from reset, cdrive-stamped-4mib.img, 2.5e9 budget):
+185 C: flash programs TOTAL (vs 83K across the storm runs), confined to
+1.944-1.962e9 - the storm was one-time first-boot work and is now baked
+into the harvested image. The run reached the identical LCD frontier
+(162 headers, init + display-on signature) at ~2.155e9, 1.32e9 cycles
+earlier than the old-image path, then idles to the budget. New canonical
+from-reset base: fresh-c1600 (stamped-image lineage, checkpoint v5).
+fresh-c1250 (half-formatted-image lineage) deleted. Boot-to-display-on is
+now ~21 simulated seconds (real phone ~6 s to logo; the remaining gap is
+the idle-wait frontier plus early-boot timing, not flash churn).
+
+Frontier: after display-on nothing pushes a frame; the system idles in the
+null thread. nosbody6 (in flight) writes idle-c4400 at the idle for
+thread-state forensics to name the waiter (expected: the FBSERV/EDISP
+splash chain waiting on a server or an event the board does not deliver).
+
 ## 2026-10-30 LCD REACHED; stamped C: harvested as the canonical image; sim folder cleaned (update made with Claude)
 
 The boot reached lcd.ldd at 3,475,322,608: the display transport is live
