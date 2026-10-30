@@ -16,7 +16,33 @@ geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
 The only CTR read in the whole boot is the fatal one at cycle 1112551742,
 so the timeline up to there is unchanged.
 
-## 2026-10-30 DEEP FRONTIER (fully characterized): kernel boot-waiter spins on NOS Variant iface #13 readiness (update made with Claude)
+## 2026-10-30 CORRECTION: ord252 is the NULL-thread IDLE loop, not a boot waiter; 0x800004ac is an idle CALLBACK pointer (update made with Claude)
+
+Experiments falsified the "NOS readiness waiter" theory below. Three from-reset
+probes that set *(0x800004ac) from a patched NOS stub all crashed the kernel:
+the fault PC 0x50331b78 is the return of `MOV LR,PC; MOV PC,r3` at 0x50331b70
+- the kernel CALLS *(0x800004ac) as a FUNCTION POINTER (fake value 1 = jump to
+address 1 = prefetch abort -> kernel crash-dump handler ekern!ord470+0x298,
+which records super-page fault state to debug registers 0x0c0047f0/f4/f8 then
+self-loops - that is the 0x0c0047f4 "unmapped" stop). And the loop at
+0x50331a60-0x50331bb0 ALWAYS branches back: it never exits. Reading EKA1
+semantics: ord252 is the NULL/idle thread loop - each iteration invokes the
+Variant's Idle method (vtable+0x48 with r1=0xd) and then any registered IDLE
+CALLBACK in 0x800004ac. The "infinite spin" is NORMAL IDLING. The synthetic
+NOS stub patch was reverted (pristine blob restored, rebuilt).
+
+So the real frontier is back to: WHY does EStart's F32 request at ~1126.2M
+never complete? EStart's last act (estartwin trace) is BL 0x503ef4d0 (an
+efsrv import thunk) at 1126179781 after large C: reads; from then on the
+system idles with EStart blocked (state 2), FileSrv parked in its CServer
+loop, LoaderThread parked. A full-instruction window 1125M-1132M
+(boot-v15-estartfinal, from fresh-c1250) is in flight to capture the exact
+request and the file server's handling of it. The crash-dump debug registers
+0x0c0047f0-f8 are a diagnostic gift: any future kernel fault writes the fault
+state there (worth modeling as a latch to capture panics instead of stopping
+on unmapped access).
+
+## 2026-10-30 DEEP FRONTIER (fully characterized): kernel boot-waiter spins on NOS Variant iface #13 readiness (SUPERSEDED by the correction above - the "waiter" is the idle loop) (update made with Claude)
 
 After the CTR + C:-byte-read fixes the boot runs to a kernel busy-wait that
 never completes; at 3.5e9 cycles (idle-c3500 checkpoint) still only 3
