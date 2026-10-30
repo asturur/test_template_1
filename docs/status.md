@@ -2793,3 +2793,22 @@ timer and what epbus status the ISR reads (disassemble epbus!ord31 ISR + the
 epbus obj 0x80405d8c). The whole earlier "unit-60 -> source 3" hypothesis
 (provenance flash-program-timer) is WRONG; this epbus-interrupt path is the real
 one. Resume base idle-c1517.
+
+## 2026-10-30 Interrupt dispatch fully mapped; my tick (0x5d) works, UEM/unit-60 land on disabled/no-handler sources (update made with Claude)
+
+Dispatcher detail (0x5032e730): handlers are a CHAIN; a source's ISR runs only
+if handler_obj[+4]==1 (enabled) and is called as PC=[[obj+0x10]+8]. ISR funcs:
+cbus src 0x76 -> 0x50382498 (reads CBUS status); epbus src 0x74 -> 0x503f566c
+(epbus!ord56+0x164c). My board's ICU current (0x0c120114) mapping vs the
+0x5c-offset source index:
+  tick ICU=1 -> src 0x5d (ENABLED at block, WORKS - that is why the tick fires)
+  UEM  ICU=2 -> src 0x5e (DISABLED at block, obj[+4]=0 - UEM IRQ never handled)
+  unit60 ICU=4 -> src 0x60 (NO handler, table[0x60]=garbage)
+At idle-c1517 only src 0x5d (tick) and 0x76 (cbus) are enabled. So the flash-
+write completion interrupt is on a source that is enabled only WHILE the write
+is in flight; by the block it is disabled again. NEXT: trace medint's interrupt-
+enable during the write (ord418/416/421 calls at 1517595874+) to read the exact
+source number it binds/enables for the flash completion, then raise THAT source
+(ICU = src-0x5c) from the board after the flash-program command, with the epbus/
+cbus status its ISR reads. This replaces the wrong unit-60/source-3 model.
+
