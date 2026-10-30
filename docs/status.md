@@ -1,5 +1,43 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 COMPLETE LOGO CHAIN TRACED: it bottoms out at the System Agent's modem query (user was right) (update made with Claude)
+
+Full dependency chain from the logo down, all verified from idle-c4400
+saved-thread forensics + disassembly:
+
+  logo
+   <- SplashScreen.exe (never launched; draws the logo)
+   <- Starter.exe launches the app chain (SelfTestServer..SplashScreen)
+   <- Starter's DSClient SendReceive to DosServer completes
+   <- DosServer (loads Nokia.dsy per DosServer.ini = "Nokia.dsy")
+   <- Nokia.dsy (the System Agent plugin) completes its async
+      RSessionBase::SendReceive (opcode 1) to a phone/telephony server
+   <- that server's reply
+   <- (ultimately) the MODEM provides the phone/charger/battery state.
+
+Both StarterServer (thread 0x8040d210) and DosServer (0x8040dad4) are blocked
+in User::WaitForRequest (EUser 0x503b2470), saved-PC confirmed. Nokia.dsy's
+last act before DosServer blocked (cycle 3,506,796,079): SendReceive (EUser
+0x503b2254) then WaitForRequest on a status at user 0x401e28. nosdriver did
+NOT run after 3.447e9, so the query is parked above the ISI hardware (at the
+telephony/phone-server level), waiting for a reply that only the modem can
+ultimately source.
+
+So the earlier "modem is a red herring for the logo" was WRONG. The modem IS
+the root gate - reached via System Agent (Nokia.dsy) <- DosServer <- Starter,
+not via a direct nosdriver call. ngvm reaches the logo because its kernel +
+servers complete these requests instantly AND its chan.c answers the modem
+ISI (charger 0x08->0x09, battery 0x0A->0x0B, identity, service-not-
+identified). The USER'S INSTINCT - "emulate a modem that answers, software now,
+verilog later" - is correct and is the fix.
+
+NEXT: identify the exact server Nokia.dsy's opcode-1 SendReceive targets
+(session at its object +0x1c; likely ETel/RMobilePhone or a Nokia phone
+server) and build a responder that supplies the phone/charger/battery state
+per ngvm chan.c, at the right layer (phone-server IPC, or trace the request
+down to the ISI transport and answer there). That unblocks Nokia.dsy ->
+DosServer -> Starter -> the app chain -> SplashScreen -> logo.
+
 ## 2026-10-30 CORRECTION: the logo gate is NOT the modem - it is the Starter app-chain launch (Starter <-> FbServ/WServ) (update made with Claude)
 
 The modem/ISI theory is WRONG for the LOGO. ngvm's chan.c charger/battery
