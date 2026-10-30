@@ -40,7 +40,15 @@ nos_init:
     ldr   pc, [r5, #0xfc]
     ldr   r5, [r4]
     mov   r0, r4
-    mov   r1, #3
+    @ vtable+0x128 is the ecust Variant's startup-state SETTER (str r1,[this,
+    @ #0x90]); it is NOT an iface-registration call. The old value 3 set bit 0,
+    @ which drives HelperDrv request 1 (software startup reason, via helper.ldd
+    @ 0x503841f8 -> ecust getter vtable+0x12c = *(this+0x90)) down the
+    @ baseband-query path (iface #3 pread id 12) that no synthetic NOS can
+    @ complete -> Nokia.dsy/DosServer/Starter hang, no splash. 0 leaves bit 0
+    @ clear, so helper.ldd completes request 1 with 100 (normal startup reason,
+    @ == ngvm sw_reason): the honest answer for a phone with no baseband.
+    mov   r1, #0
     mov   lr, pc
     ldr   pc, [r5, #0x128]
 2:
