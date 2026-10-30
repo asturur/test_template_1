@@ -2881,3 +2881,25 @@ find how ecust/the custom bus signals program-done and model that event, or (b)
 the real NOS/baseband plaintext (exists in no available file). The boot reached
 an authentic LFFS bootdata write at ~1.52e9 - ~+750M cycles past the session-
 start crash; this is the deepest, most precisely-characterized frontier.
+
+## 2026-10-30 EXHAUSTIVE: no interrupt/DFC/poll completes the C: write; unit-60 timer has no handler - custom auto-completion (update made with Claude)
+
+Final checkpoints (right at the timer arm 1517596100, mid-program 1517596800,
+mid-write 1517587001): the ONLY enabled interrupt handlers throughout are src
+0x5d (tick, services unit 0 only) and src 0x76 (cbus, floods with no
+RequestComplete). The firmware NEVER registers a handler for unit-60s source
+(0x60) and never reads the unit-60 timer (0x0c120a60) after arming it - so the
+0x0c120a60 timer is neither polled nor interrupt-handled. medint writes the NOR
+data, arms this timer, and returns without completing; nothing (no IRQ, no DFC,
+no poll, no RequestComplete) ever completes the file-server drive-write request
+(status 0x80601a6c). The keypad reads 0 (no activity resetting any inactivity
+timer). So the NOR-program completion is a CUSTOM HARDWARE auto-completion
+(ecust/0x08000014 power-gating + the 0x0c120a60 program-timer + the baseband-
+shared bus) that signals program-done through a path this board does not model
+and the synthetic NOS cannot provide. This is the definitive wall, fully
+localized. Passing it needs either (a) reverse-engineering the exact ecust/
+custom-flash-controller program-done signal and modeling it (the 0x0c120a60
+timer behaviour and what consumes it is the key unknown), or (b) real NOS/
+baseband plaintext (in no available file). All interrupt-source and DFC
+hypotheses are now empirically eliminated. Boot reached authentic LFFS bootdata
+writes at ~1.52e9, ~+750M cycles past the session-start crash.
