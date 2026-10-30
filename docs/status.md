@@ -1,5 +1,33 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 MILESTONE: full splash server stack is UP (window server + Fontbitmapserver); frontier = Starter blocked, no frame drawn (update made with Claude)
+
+Thread/process census of idle-c4400 (resume to idle, 5.5e9, stuck 2.1e9
+cycles with no progress). SEVEN processes now live (was 3 at the C: wall):
+EKern, EFile, SharedDataServer, EwSrv (the WINDOW SERVER), FbServ
+(Fontbitmapserver), Starter, DosServer - exactly the ngvm-oracle chain that
+precedes the splash. Threads: Supervisor, NULL (current = idle), EFile Main
++ LoaderThread + ReclaimThread, SharedDataServer, EwSrv Main (WAITING on
+0x804093d8), Fontbitmapserver, StarterServer (WAITING on 0x80406ffc),
+DosServer. Names are 16-bit Unicode in the DObject (HBufC at obj+0x10).
+
+No framebuffer exists yet: scan_framebuffer.py (new tool; the panel is 16bpp
+0x0RGB per n-gage/docs/hardware.md, so a real frame has every high byte's
+top nibble clear across the whole 71.5 KiB) finds only all-black/noise - the
+splash was never composed. So the block is BEFORE the first draw: EwSrv and
+StarterServer are both parked on wait objects while the NULL thread idles.
+Last kernel debug print is still 'TRtcQueue::Add: 2'.
+
+FRONTIER (next): identify what StarterServer waits on (obj 0x80406ffc, user-
+side vtable 0x50558575 owned by EFile) and what EwSrv Main waits on
+(0x804093d8) - the N-Gage Starter is the splash driver; per the project
+memory it historically gates on a baseband/phone (ISI/Phonet energy-mgmt)
+reply. Now the REAL NOS runs, so the question is whether Starter waits on a
+NOS/phone-app event the board still doesn't deliver, or simply on an app/DLL
+load. Compare against ngvm (which completes Starter and reaches the logo).
+New tools: scan_framebuffer.py, extract_cdrive.py. idle-c4400 kept as the
+forensics base.
+
 ## 2026-10-30 STORM GONE: stamped image boots clean; LCD display-on at 2.155e9 from reset (update made with Claude)
 
 boot-v15-freshstamp (from reset, cdrive-stamped-4mib.img, 2.5e9 budget):
