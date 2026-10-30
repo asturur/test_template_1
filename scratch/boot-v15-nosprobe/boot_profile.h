@@ -189,7 +189,11 @@ private:
     // stubs here; the kernel Variant registration later stores the interface
     // pointer at 0x0c0047f0 (routine 0x50324248, pool 0x5032429c). Reads of
     // never-written bytes still stop the run.
-    std::array<uint8_t, 0xac> code_scratch_{}, code_scratch_written_{};
+    // 0x0c004748..0x0c0047fc: covers the kernel fault-dump handoff's three
+    // scratch words 0x47f0/f4/f8 (0x50324240) so a panic is captured as
+    // latched state instead of killing the run at the second word. Ends at
+    // 0x47fc, which the separate cold-boot flag model owns.
+    std::array<uint8_t, 0xb4> code_scratch_{}, code_scratch_written_{};
     std::map<uint32_t, Latch> latches_;
     struct ProbeReg { uint32_t initial, current; uint8_t select; };
     std::map<uint32_t, ProbeReg> probe_regs_;

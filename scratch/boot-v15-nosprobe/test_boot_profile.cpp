@@ -40,7 +40,8 @@ int main() {
             check(write(0x0c0047e0,0xaabbccdd),"last boot-copied scratch word");
             check(write(0x0c0047f0,0x5149d09c)&&read(0x0c0047f0)&&data==0x5149d09c,"variant interface pointer scratch word");
             check(!read(0x0c0047ec),"gap scratch bytes remain unwritten");
-            check(!write(0x0c0047f4,0),"scratch end boundary");
+            check(write(0x0c0047f4,0xd)&&write(0x0c0047f8,0x503be148),"fault-dump scratch words accepted (panic capture)");
+            check(!write(0x0c0047fc,0),"scratch end boundary (cold-boot flags own 0x47fc)");
             check(!write(0x0c004744,0),"scratch start boundary");
             check(!read(0x50000000),"virtual ROM alias must not bypass MMU");
             check(!read(0x80000000),"virtual RAM alias must not bypass MMU");
@@ -546,10 +547,21 @@ int main() {
         check(ni.access({0x0009d280,0,15,false},nd,ndev)&&ndev=="nos_image_thc"&&nd==0x03020100,"NOS image word served at base");
         check(ni.access({0x0009d37c,0,15,false},nd,ndev)&&nd==0xfffefdfc,"NOS image last word served");
         check(!ni.access({0x0009d280,1,15,true},nd,ndev),"NOS image window rejects writes");
-        bool both_rejected=false;
-        try { BootProfile bad(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,false,{{0x24,0}},true,true,true,true,true,true,img); }
-        catch(const std::exception&) { both_rejected=true; }
-        check(both_rejected,"nos-image and nos-entry-stub are mutually exclusive");
+        // Stub + image coexistence: the stub owns its blob window (entry B at
+        // 0x9d284) and the power model at 0x9e000; the image serves the body
+        // from 0x9d288 (nosdriver's static imports land there).
+        {
+            std::vector<uint8_t> big(0x1000); for(size_t i=0;i<big.size();++i) big[i]=uint8_t(i^0x5a);
+            BootProfile both(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,false,{{0x24,0}},true,true,true,true,true,true,big,true,true);
+            uint32_t bd=0; std::string bdev;
+            check(both.access({0x0c120a04,2,15,true},bd,bdev)&&both.access({0x0c120a18,0x0115b5c0,15,true},bd,bdev),"both: arm the boot one-shot");
+            for(int i=0;i<6;++i) both.tick();
+            check(both.access({0x0c120a18,0x632ea,15,true},bd,bdev),"both: arm kernel tick");
+            check(both.access({0x0009d284,0,15,false},bd,bdev)&&bdev=="synthetic_nos_entry_stub","both: stub owns the entry at 0x9d284");
+            check(both.access({0x0009d288,0,15,false},bd,bdev)&&bdev=="nos_image_thc","both: image serves the body from 0x9d288");
+            check(both.access({0x0009e000,0,15,false},bd,bdev)&&bdev=="synthetic_nos_power_model","both: stub owns the power model at 0x9e000");
+            check(both.access({0x0009e040,0,15,false},bd,bdev)&&bdev=="nos_image_thc","both: image resumes past the power model");
+        }
         std::cout<<"PASS real NOS image window boundaries\n";
         // UEM IRQ source-1 hypothesis: kernel-phase CBUS write to UEM 0x30
         // raises ICU source 1; current reads 2; bank0 +0x0c bit 1 acks.

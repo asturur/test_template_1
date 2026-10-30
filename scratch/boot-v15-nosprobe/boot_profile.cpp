@@ -104,8 +104,12 @@ BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, cons
     cdrive_image_ = cdrive_image;
     if (!cdrive_image_.empty()) { cdrive_.assign(0x400000, 0xff); size_t n = cdrive_image_.size() < cdrive_.size() ? cdrive_image_.size() : cdrive_.size(); for (size_t i=0;i<n;++i) cdrive_[i]=cdrive_image_[i]; }
     nos_image_ = nos_image;
-    if (!nos_image_.empty() && nos_entry_stub_)
-        throw std::runtime_error("nos-image replaces the synthetic NOS entry stub; enable only one");
+    // nos-image + nos-entry-stub now COEXIST (2026-10-30): the stub keeps the
+    // boot-time windows it has proven (blob [0x9d000,0x9d288) incl. the entry
+    // B at 0x9d284, power model at 0x9e000), and the real THC NOS image
+    // serves the module body past the blob — nosdriver.ldd statically imports
+    // two NOS body functions (IAT [0x511b4028]=NOS+0x37d0 register_handler,
+    // [0x511b4030]=NOS+0x414c ctor) that only real code can provide.
     if (!nos_image_.empty() && !timer_periodic_)
         throw std::runtime_error("nos-image requires the periodic timer experiment");
     if (sysc0c14_zero_ && !pupf00a_zero_) throw std::runtime_error("system control probe requires PUP probe");
@@ -848,8 +852,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // 2026-10-29); nosstarter EXECUTES the entry (code fetches) at ~729M,
     // after the kernel tick arming at ~452M. Descrambler-enable timing is a
     // hypothesis, not verified hardware.
-    if (!nos_image_.empty() && periodic_period_ && address >= 0x0009d280 &&
-        address + 4 <= 0x0009d280 + nos_image_.size()) {
+    // With the synthetic stub also enabled, the stub keeps its proven blob
+    // window [0x9d000,0x9d288) (incl. the nosstarter entry B at 0x9d284) and
+    // the image serves only the module body past it; without the stub the
+    // image serves from its true base 0x9d280.
+    if (!nos_image_.empty() && periodic_period_ &&
+        address >= (nos_entry_stub_ ? 0x0009d288u : 0x0009d280u) &&
+        address + 4 <= 0x0009d280 + nos_image_.size() &&
+        !(nos_entry_stub_ && address + 4 > kNosPowerBase &&
+          address < kNosPowerBase + sizeof(power_model_))) {
         if (request.write) { reason_ = "write into the NOS image window"; return false; }
         const uint32_t off = address - 0x0009d280;
         data = uint32_t(nos_image_[off]) | uint32_t(nos_image_[off+1]) << 8 |
@@ -1143,7 +1154,7 @@ template<class T> void state_read(std::istream& in, T& v) { in.read(reinterpret_
 }
 void BootProfile::save_state(std::ostream& out) const {
     // v2: full device-model state. Maps are written as count + (key,value).
-    const uint32_t version = 0x4e470004; state_write(out, version);
+    const uint32_t version = 0x4e470005; state_write(out, version);
     state_write(out, rom_tail_reads_); state_write(out, cbus_stage_); state_write(out, cbus_transactions_);
     state_write(out, cbus_config_); state_write(out, cbus_command_); state_write(out, uem_adc_channel_);
     state_write(out, adc_result_reads_); state_write(out, timer_remaining_); state_write(out, timer_elapsed_);
@@ -1180,14 +1191,22 @@ void BootProfile::save_state(std::ostream& out) const {
     if (!out) throw std::runtime_error("failed to save board checkpoint");
 }
 void BootProfile::load_state(std::istream& in) {
-    uint32_t version=0; state_read(in,version); if (version < 0x4e470002 || version > 0x4e470004) throw std::runtime_error("board checkpoint version mismatch");
+    uint32_t version=0; state_read(in,version); if (version < 0x4e470002 || version > 0x4e470005) throw std::runtime_error("board checkpoint version mismatch");
     state_read(in,rom_tail_reads_); state_read(in,cbus_stage_); state_read(in,cbus_transactions_);
     state_read(in,cbus_config_); state_read(in,cbus_command_); state_read(in,uem_adc_channel_);
     state_read(in,adc_result_reads_); state_read(in,timer_remaining_); state_read(in,timer_elapsed_);
     state_read(in,timer_irq_cycle_); state_read(in,timer_started_); state_read(in,timer_irq_enabled_); state_read(in,timer_irq_pending_);
     state_read(in,lcd_header_); state_read(in,lcd_control_); state_read(in,lcd_header_written_); state_read(in,lcd_control_written_);
     state_read(in,lcd_headers_); state_read(in,lcd_data_words_); state_read(in,lcd_status_reads_);
-    state_read(in,flash_); state_read(in,code_scratch_); state_read(in,code_scratch_written_);
+    state_read(in,flash_);
+    // v4 and earlier saved 0xac-byte scratch arrays (window ended at 0x47f4,
+    // which truncated kernel fault dumps); v5 saves the grown 0xb8 arrays.
+    if (version >= 0x4e470005) { state_read(in,code_scratch_); state_read(in,code_scratch_written_); }
+    else {
+        code_scratch_.fill(0); code_scratch_written_.fill(0);
+        in.read(reinterpret_cast<char*>(code_scratch_.data()),0xac);
+        in.read(reinterpret_cast<char*>(code_scratch_written_.data()),0xac);
+    }
     uint64_t n=0; state_read(in,n); if (n!=ram_.size()) throw std::runtime_error("checkpoint RAM size mismatch"); in.read(reinterpret_cast<char*>(ram_.data()),n);
     state_read(in,n); if(n>1024) throw std::runtime_error("invalid checkpoint CBUS entries"); cbus_written_.clear();
     for(uint64_t i=0;i<n;++i){uint16_t k,v;state_read(in,k);state_read(in,v);cbus_written_[k]=v;}
