@@ -599,6 +599,19 @@ int main() {
             check(b.access({0x0c1201c8,0,15,false},d,dev)&&d==0x8,"ckpt: mask restored");
             check(b.access({0x0c150404,0,3,false},d,dev)&&(d&0xffff)==0x1f00,"ckpt: keypad restored");
             check(b.access({0x02400000,0,3,false},d,dev)&&(d&0xffff)==0xffff,"ckpt: C: overlay restored erased");
+            // With a configured cdrive image, the restored overlay must keep
+            // programmed cells, NOT revert to the image (LFFS stamps blocks
+            // in place; reverting diverges flash from LFFS's RAM state).
+            std::vector<uint8_t> cimg(0x40, 0x11);
+            auto mkci=[&]{ return BootProfile(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,true,{{0x24,0}},false,true,true,true,true,true,{},true,true,cimg); };
+            BootProfile ca=mkci();
+            check(ca.access({0x02400010,0,3,false},d,dev)&&(d&0xffff)==0x1111,"ckpt: image seeds overlay at construction");
+            auto cw=[&](uint32_t adr,uint32_t v,uint8_t sel){ return ca.access({adr,v|v<<16,sel,true},d,dev); };
+            check(cw(0x02400aa8,0xaa,0xc)&&cw(0x02400554,0x55,3)&&cw(0x02400aa8,0xa0,0xc)&&cw(0x02400010,0x1010,3),"ckpt: program over the image");
+            std::stringstream snap2; ca.save_state(snap2);
+            BootProfile cb=mkci();
+            cb.load_state(snap2);
+            check(cb.access({0x02400010,0,3,false},d,dev)&&(d&0xffff)==0x1010,"ckpt: programmed cell survives restore with image configured");
             std::cout<<"PASS board checkpoint v2 roundtrip\n";
         }
         const auto analog_inputs = BootProfile::parse_adc_inputs("6=0x200,12=800");

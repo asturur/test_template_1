@@ -1211,8 +1211,12 @@ void BootProfile::load_state(std::istream& in) {
     state_read(in,icu_mask2_);
     state_read(in,unit60_remaining_); state_read(in,unit60_irqs_); state_read(in,unit60_pending_);
     state_read(in,n); if(n && n!=4u<<20) throw std::runtime_error("invalid checkpoint C: overlay size");
+    // The saved overlay IS the flash content (LFFS stamps blocks in place);
+    // the cdrive image seeds the array at construction only. Re-applying it
+    // here wiped restored stamps and diverged flash from LFFS's RAM state
+    // (bug found 2026-10-30 resuming mid-storm from idle-c2600). Current
+    // checkpoints already embed the image in their saved overlay.
     cdrive_.resize(n); if(n) in.read(reinterpret_cast<char*>(cdrive_.data()),n);
-    if (!cdrive_image_.empty()) { cdrive_.assign(0x400000, 0xff); size_t m = cdrive_image_.size() < cdrive_.size() ? cdrive_image_.size() : cdrive_.size(); for (size_t i=0;i<m;++i) cdrive_[i]=cdrive_image_[i]; }
     state_read(in,cdrive_unlock_); state_read(in,cdrive_autoselect_); state_read(in,cdrive_program_);
     state_read(in,cdrive_erase_armed_); state_read(in,cdrive_erase_base_); state_read(in,cdrive_erase_end_);
     state_read(in,cdrive_erase_reads_); state_read(in,cdrive_writes_); state_read(in,cdrive_erases_);

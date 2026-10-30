@@ -1,5 +1,19 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 RESTORE BUG: load_state re-applied the pristine C: image over restored stamps (update made with Claude)
+
+Resuming mid-storm from idle-c2600 exposed it: load_state re-applied
+cdrive_image_ over the restored overlay, so every resume silently reverted
+the flash to the pristine image while LFFS's RAM state believed its stamps
+existed (state divergence; the first corrupted run was killed before any
+conclusions were drawn from it). The re-apply dated from when C: was
+read-only pre-checkpoint, where it was a harmless no-op. Fix: the saved
+overlay IS the flash content; the image seeds the array at construction
+only. All current checkpoints (fresh-c1120/c1250, idle-c2600) embed the
+image in their saved overlay, so nothing is lost. Earlier runs are
+unaffected (fresh-c1250 predates the first C: write). New board test:
+programmed cell survives restore with an image configured (29 sections).
+
 ## 2026-10-30 FIQ PUMP VERIFIED IN-SIM: the 1.5176e9 wall is GONE; boot alive through 2.5e9 in an LFFS stamping storm (update made with Claude)
 
 Three staged runs from fresh-c1250 after the FIQ model landed:
