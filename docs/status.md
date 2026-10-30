@@ -2666,3 +2666,29 @@ completion DFC that a synchronous board flash never signals. The 0x400f0001
 handle and function 23 are the exact keys. Resume bases: fresh-c1120,
 fresh-c1250, idle-c1517. Populated image: build/firmware/thc/
 cdrive-populated-4mib.img (works as a C: image, just doesn't change this).
+
+## 2026-10-30 ngvm LEAD: LLE file server never completes EStart's func-23; ngvm does, then reaches Fontbitmapserver (the splash path) (update made with Claude)
+
+ngvm (oracle, trace 0x2) shows EStart's SendReceive at the SAME PC 0x503b76b0
+talking to **Fontbitmapserver** (FBSERV, the font/bitmap graphics server that
+renders the splash/logo). So in ngvm EStart gets PAST the file-server func-23
+request and reaches the graphics server. In the LLE, EStart blocks ON the
+file-server func-23 send (handle 0x400f0001) and never reaches FBSERV - which
+is why no window/graphics server ever starts and there is no logo.
+
+So the frontier is: the LLE's file server leaves EStart's async F32 func-23
+request pending forever, whereas ngvm's completes it. The file server IS
+running (FileServer object cluster at 0x804036xx). The missing piece is the
+file-server-side completion of this one async op - most likely the local-
+media (ELOCAL/medint) async completion DFC that a synchronous board flash
+never signals. Confirmed NOT: flash device timing, unit-60 IRQ, NOS, C:
+content. The concrete next step is to identify F32 func 23 (not in the public
+SDK; needs the internal EKA1 TFsMessage enum or disassembly of the file
+server's dispatch) and model/trigger the completion the file server waits on.
+Getting past it should let EStart reach FBSERV -> window server -> splash.
+
+SESSION NET: 2 real fixes (CTR cache-type register patch 0009; C: any-width
+array reads) took the boot from the 767.8M C: crash to an authentic EStart
+running LFFS/RAM-drive init and blocking on one file-server async request at
+1.5176e9 (~+750M cycles). Frontier pinned to the exact exec; 3 hypotheses
+falsified; ngvm oracle lead identifies the next server (FBSERV).
