@@ -1,5 +1,46 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 THE EXACT LOGO GATE: one flag (ecust+0x90) drives helper.ldd's startup-reason request into a dead NOS path (update made with Claude)
+
+Traced the complete chain to a SINGLE decision point (all from the
+starterwin trace + idle-c4400 forensics + disassembly):
+
+  logo <- SplashScreen <- Starter <- DosServer <- Nokia.dsy (System Agent)
+       <- Nokia.dsy opens "HelperDrv" (helper.ldd) and sends REQUEST 1
+          ("the software startup reason, returned as the completion code")
+       <- helper.ldd request-1 handler (ROM 0x503841f8):
+            r0 = ecust.vtable+0x12c()  = *(ecustobj+0x90)   [getter 0x50349da4]
+            TST r0,#1 (0x50384214, e3100001)
+              bit0 CLEAR -> complete request 1 with 0x64=100  [0x50384278-84]  *** the exit we want
+              bit0 SET   -> get NOS iface id=3 (= our synth stub 0x5149d180),
+                            call its pread(id=12) (0x5149d18c), RETURN without
+                            completing -> waits on the baseband forever.
+       <- ecustobj+0x90 (VA 0x80404110) = 0x00000003 in our LLE -> bit0 SET
+          -> the dead NOS path. ecust init sets +0x90=0 (0x5034881c); something
+          later sets it to 3.
+
+So the logo is gated on ONE flag with a KNOWN-GOOD completion value (100,
+matching ngvm's helper_request sw_reason). This is exactly ngvm's HelperDrv
+(sw/kernel/chan.c helper_request fn 1 -> request_complete(st, sw_reason)):
+on a phone the baseband answers request 1; our synthetic NOS never does.
+
+helper.ldd has NO hardware I/O - it is pure software that delegates the
+startup reason to ecust (vtable+0x12c = *(ecustobj+0x90)) and, when that
+flag's bit0 is set, to the NOS/Variant interface. ecustobj (0x80404080,
+vtable 0x5034a970) is the N-Gage custom-kernel-extension Variant singleton.
+
+TWO FIX PATHS (next):
+  A. AUTHENTIC (user's "modem that answers"): make the NOS/Variant interface
+     answer helper.ldd's pread(id=12) and complete its pending request with
+     the startup reason - the real baseband behavior ngvm stubs. Needs the
+     NOS async-completion contract (the synth stub is our code: scratch/
+     nos-stub-blob/nos_stub.S).
+  B. BOARD/STATE: find what sets ecustobj+0x90 to 3 (setter 0x50349d8c via
+     vtable slot +0x128; not called from within ecust, so set by the boot
+     flow / a condition) and provide the hardware/state that leaves bit0
+     clear, so helper.ldd completes request 1 with 100 directly.
+Either unblocks Nokia.dsy -> DosServer -> Starter -> SplashScreen -> logo.
+
 ## 2026-10-30 COMPLETE LOGO CHAIN TRACED: it bottoms out at the System Agent's modem query (user was right) (update made with Claude)
 
 Full dependency chain from the logo down, all verified from idle-c4400
