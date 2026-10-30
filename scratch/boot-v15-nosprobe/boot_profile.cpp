@@ -453,7 +453,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             const uint32_t mode = request.data & 0xffff0000;
             if (request.data != 0x4f300000 && request.data != 0x49200000 &&
                 request.data != 0x09200000 && mode != 0x09240000 && mode != 0x89240000 &&
-                mode != 0x02140000 && request.data != 0x07800000) {
+                mode != 0x02140000 && request.data != 0x07800000 && mode != 0x07840000) {
                 reason_ = "unmodeled LCD transfer header"; return false;
             }
             lcd_header_ = request.data; lcd_header_written_ = true; ++lcd_headers_;
@@ -469,6 +469,13 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         }
         if (address == 0x0c121208 && request.write && lcd_header_written_) {
             ++lcd_data_words_; return true;
+        }
+        // 0x0784 is a display READBACK header (lcd.ldd 0x50400978: command
+        // 0x66 then two data-register reads; the checked byte must be
+        // <= 0x7f). No panel is modeled, so reads return 0 (check passes).
+        if (address == 0x0c121208 && !request.write && lcd_header_written_ &&
+            (lcd_header_ & 0xffff0000) == 0x07840000) {
+            data = 0; ++lcd_status_reads_; return true;
         }
         reason_ = "unmodeled LCD transport read or transfer state"; return false;
     }

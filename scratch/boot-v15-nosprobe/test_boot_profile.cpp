@@ -145,7 +145,9 @@ int main() {
         check(!lcd_access(0x0c121200,0,15,false),"unmodeled header status must stop");
         check(!lcd_access(0x0c121208,0,3,true),"unobserved LCD transfer width must stop");
         check(!lcd_access(0x0c12120c,0,15,false),"neighboring LCD address remains unknown");
-        std::cout<<"PASS explicit LCD probe boundaries\n";
+                check(lcd_access(0x0c121200,0x07840000,15,true),"LCD readback header accepted");
+        check(lcd_access(0x0c121208,0,15,false)&&clock_data==0,"LCD readback data reads 0");
+std::cout<<"PASS explicit LCD probe boundaries\n";
         BootProfile io_probe(rom,rom.size(),"amd16",true,true,{},true);
         auto io_access=[&](uint32_t a,uint32_t v,uint8_t select,bool write){
             return io_probe.access({a,v,select,write},clock_data,clock_device);

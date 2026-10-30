@@ -1,5 +1,34 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 LCD REACHED; stamped C: harvested as the canonical image; sim folder cleaned (update made with Claude)
+
+The boot reached lcd.ldd at 3,475,322,608: the display transport is live
+(headers 0x09200000/0x49200000 with command bytes 0x65/0x66). New header
+0x0784xxxx decoded from lcd.ldd 0x50400978: a 2-byte display READBACK after
+command 0x66 (two reads of data register 0x58121208, checked byte must be
+<= 0x7f) - modeled (reads return 0). Earlier same run: kernel hw-info query
+reads boot-latch 0x08000040 (zero-reset latch added; load_state now keeps
+constructor-seeded latches missing from a snapshot, mirroring the probe
+merge - previously they vanished on resume).
+
+Flash nailed per the user's ask: the post-storm C: overlay was HARVESTED
+from idle-c3400.host (scratch/tools/extract_cdrive.py; the u64-0x400000
+marker candidate whose 64KiB blocks carry LFFS magic 0x503b3b60 at +4) into
+build/firmware/thc/cdrive-stamped-4mib.img - both run scripts now use it.
+Note the OLD image already had 64/64 block headers, so the 1.9e9-cycle storm
+was NOT virgin-block stamping: it changed 58,494 bytes across the volume
+(write amplification / LFFS GC / first-boot data). Whether it recurs with
+the harvested image is being answered empirically by a from-reset run
+(boot-v15-freshstamp, budget 2.5e9, writes fresh-c1600): if the storm is
+gone, boot-to-frontier drops ~1.9e9 cycles; if it recurs, the flash model
+has a real defect to chase (the user flags 4e9 cycles with no logo as wrong
+- a real phone boots to logo in ~6s = 0.6e9 cycles, so the storm is the
+main authenticity gap).
+
+Cleanup: build/sim/runs 4.6G -> 10M (all run dirs removed except nosbody4
+evidence + the two in-flight); checkpoints trimmed to fresh-c1250 (from-reset
+base) + idle-c3400 (post-storm frontier base).
+
 ## 2026-10-30 POST-STORM FRONTIER: nosdriver statically imports two REAL NOS body functions; image+stub now coexist (update made with Claude)
 
 The storm run (resume idle-c2600, budget 4.5e9) got past the stamping and at
