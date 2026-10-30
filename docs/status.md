@@ -2692,3 +2692,42 @@ array reads) took the boot from the 767.8M C: crash to an authentic EStart
 running LFFS/RAM-drive init and blocking on one file-server async request at
 1.5176e9 (~+750M cycles). Frontier pinned to the exact exec; 3 hypotheses
 falsified; ngvm oracle lead identifies the next server (FBSERV).
+
+## 2026-10-30 ROOT CAUSE REVERSED FROM THE WAITING THREAD: EStart blocks on HelperDrv (helper.ldd) startup-reason request (update made with Claude)
+
+Fully reversed the block from EStart (the waiting thread) down to the driver.
+EStart's final wait is User::WaitForRequest(status 0x00501e90) on an async
+request it issued at cycle 1515094: exec 0xc000bf (SendReceive) handle
+0x400d0001, function R1=0xffffffff (-1 = the EConnect/session-connect
+message). That handle resolves to kernel object 0x804092c0 (owned by EStart
+DProcess 0x80409614, EStart-Main 0x8040983c) whose +0x34 field names
+**"HelperDrv"** - the N-Gage helper.ldd device driver. The connect IS accepted
+(the server's CServer::RunL runs CSharableSession::CreateL), so the session is
+created; EStart then has an outstanding request to HelperDrv that never
+completes.
+
+ngvm (oracle) models HelperDrv explicitly (sw/kernel/chan.c:37-70):
+  control 0 = HARDWARE startup reason (0 ordinary power-on);
+  request 1 = SOFTWARE startup reason, returned as the completion code;
+  control 6 = set the software reason for next boot.
+  Factory-fresh = 105 ('i', deep restore): EStart formats C: when LFFS won't
+  mount, Starter runs first-boot restore, then sets 100. ngvm's helper_request
+  does request_complete(st, sw_reason) IMMEDIATELY.
+So EStart queries HelperDrv for the startup reason and that value DRIVES the
+boot path (first-boot vs normal). The LLE runs the real helper.ldd (ROM
+0x50383e80; request-1 handler 0x503842e0 -> C++ virtual dispatch vtable+0x130)
+and it NEVER completes the request. helper.ldd does NOT read board MMIO in the
+window (checked) - it reads from memory / a kernel object, so the completion
+is a kernel/driver-level event, not a board register.
+
+This is the authentic N-Gage DEVICE-DRIVER layer. ngvm's chan.c models the
+exact drivers EStart depends on: HelperDrv (startup reason), NOSDRIVER (modem
+ISI; a request "waits until cancelled" = EStart's SIM-language query of a
+modem that doesn't answer in time), LesterDrv/adspctrl (audio DSP). The LLE
+runs the real drivers but they wait on hardware/kernel events the board/
+synthetic-NOS never provides. THE FIX PATH: model these driver completions the
+way ngvm's chan.c does - starting with HelperDrv request 1 returning a startup
+reason (105 first-boot), then NOSDRIVER's request-cancel behaviour. This is
+the first time the block is traced to a NAMED, ngvm-MODELLED driver with a
+known expected completion - the clearest actionable path of the session.
+Resume base idle-c1517 (at the block). cdrive-populated-4mib.img available.
