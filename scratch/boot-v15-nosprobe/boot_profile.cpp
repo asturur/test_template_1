@@ -1227,8 +1227,13 @@ void BootProfile::load_state(std::istream& in) {
     uint64_t n=0; state_read(in,n); if (n!=ram_.size()) throw std::runtime_error("checkpoint RAM size mismatch"); in.read(reinterpret_cast<char*>(ram_.data()),n);
     state_read(in,n); if(n>1024) throw std::runtime_error("invalid checkpoint CBUS entries"); cbus_written_.clear();
     for(uint64_t i=0;i<n;++i){uint16_t k,v;state_read(in,k);state_read(in,v);cbus_written_[k]=v;}
+    // Like the probe merge below: latches the CONSTRUCTOR seeds that are
+    // missing from the snapshot keep their fresh defaults, so a resume can
+    // carry a newly modeled latch register (e.g. boot-latch 0x40).
+    const auto seeded_latches = latches_;
     state_read(in,n); if(n>8192) throw std::runtime_error("invalid checkpoint latch entries"); latches_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k;Latch v;state_read(in,k);state_read(in,v);latches_[k]=v;}
+    for (const auto& kv : seeded_latches) latches_.emplace(kv.first, kv.second);
     state_read(in,uif_written_); state_read(in,icu25_written_); state_read(in,sysc74_written_);
     state_read(in,pupf004_low_value_);
     state_read(in,periodic_period_); state_read(in,periodic_remaining_); state_read(in,periodic_irqs_);

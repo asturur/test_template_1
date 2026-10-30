@@ -631,6 +631,7 @@ int main() {
             BootProfile cb=mkci();
             cb.load_state(snap2);
             check(cb.access({0x02400010,0,3,false},d,dev)&&(d&0xffff)==0x1010,"ckpt: programmed cell survives restore with image configured");
+            check(cb.access({0x08000040,0,15,false},d,dev)&&d==0&&dev=="observed_boot_latch","ckpt: constructor-seeded latch survives restore");
             std::cout<<"PASS board checkpoint v2 roundtrip\n";
         }
         const auto analog_inputs = BootProfile::parse_adc_inputs("6=0x200,12=800");
