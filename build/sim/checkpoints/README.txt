@@ -1,7 +1,7 @@
-Checkpoints (2026-10-29): correct UEM-path pinned snapshots only.
-  mount-c760  - cycle 760M, pre-C:-mount window
-  mount-c768  - cycle 768M, after F32 exercises C:, just before the re-idle
-The pre-UEM c1300/c1307900000 snapshots were retired: they were captured
-before uem-irq-source1 existed, so they followed the SHORTER epbus path that
-never completed the first power instance (diverges from the current model by
-~764.6M). Resume with run-resume-760.py / run-resume.py (auto-latest).
+Simulator snapshots (VerilatedSave .cpu + board .host).
+A snapshot binds to the EXACT Verilated model that wrote it: after any RTL
+change + rebuild, old snapshots are unusable and must be regenerated from
+reset (scratch/boot-v15-nosprobe/run-fresh.py [budget] [name] [win] [ckpt_at]
+writes fresh-c<N>). Resume with run-resume-from.py [budget] [name] [win]
+[ckpt_at] [snapshot-name]. 2026-10-30: pre-CTR-fix snapshots (mount-c760/768,
+idle-c1130) deleted - they bound to the pre-patch-0009 model.

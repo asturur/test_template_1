@@ -1,5 +1,31 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 ROOT CAUSE FIXED: CTR assoc=0 made EKA1's clean-cache loop endless (update made with Claude)
+
+The post-EStart "idle" was the Supervisor stuck in EKA1's clean-D-cache-by-
+index loop (0x50328408, MCR p15,0,R1,c7,c14,2). ZAP's cache type register
+(0x03142142) reported assoc=0 (direct-mapped), so the loop's way increment
+(1 ROR assoc) was literally +1 and its ADDS/BCC carry exit needed 2^32
+iterations (~1.7e14 cycles; trace: outer counter at 0x17 after 18M idle
+cycles; a 2.5e9 run confirmed true deadlock). All the while EStart-Main sat
+READY in the queue (prio 350, FileSrv 760, resched flag set) - see the
+correction entry below. Fix (patch 0009, commit 0164a87): report the real
+ARM920T CTR 0x0D172172 (assoc=6, ctype=6) in zap_cp15_cb.sv; ZAP executes
+any index clean/inv as a whole-cache op, so only the software-visible
+geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
+The only CTR read in the whole boot is the fatal one at cycle 1112551742,
+so the timeline up to there is unchanged.
+
+IN FLIGHT (2026-10-30 ~01:40): (1) boot-v15-ctrfix - from-reset, budget 3e9,
+checkpoint fresh-c1250 at 1.25e9, screen capture at end (run-fresh.py);
+(2) boot-v15-estartwin - from-reset, budget 1.15e9, module-trace + full
+window 1112.5M-1115M across the expected clean-loop exit -> reschedule ->
+EStart first instructions (run-fresh-mt.py). Old checkpoints deleted (bound
+to the pre-fix Verilated model). ekern.def (244 names, from the SDK WINS
+import library, UNVERIFIED wins-vs-marm ordinal parity) added to
+build/ngage-defs. SDK extracted at build/sdk-extract (Binaries armi/thumb
+libs kept; regenerable: unshield x firmware/nS60_sdk_v1_2/data1.cab).
+
 ## 2026-10-30 CORRECTION + real frontier: EStart process+main-thread ARE created and RESUMED; the main thread never becomes READY (update made with Claude)
 
 Checkpoint forensics (idle-c1130.host, cycle 1.13e9) OVERTURN the prior
