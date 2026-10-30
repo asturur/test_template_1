@@ -1,7 +1,8 @@
 ; ekern ordinal->name map parsed from the Series60 1.2 SDK WINS import
-; library (Binaries/wins/udeb/ekern.lib). UNVERIFIED for ARM: EPOC froze
-; wins and marm export ordinals in separate frozen .def files and they can
-; differ. Treat names as hints until cross-checked. (made with Claude 2026-10-30)
+; library (Binaries/wins/udeb/ekern.lib). Spot-verified against ARM ROM code
+; 2026-10-30: ord222 Plat::TickCount (64-bit LDM/STM counter read), sibling
+; pairs ord198/199 DProcess/DThread::SetPriority and ord216/217 SystemTime*
+; have matching entry shapes at the ROM export addresses. (made with Claude)
 EXPORTS
 	E32KernelDispatchAddress @ 1 NONAME
 	E32Initialise @ 2 NONAME
