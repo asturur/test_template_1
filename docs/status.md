@@ -16,6 +16,27 @@ geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
 The only CTR read in the whole boot is the fatal one at cycle 1112551742,
 so the timeline up to there is unchanged.
 
+## 2026-10-30 NEXT FRONTIER: EStart runs then blocks in its process-launch loop (update made with Claude)
+
+After the CTR fix + C: byte-read fix, EStart EXECUTES (estartwin: first PC
+0x503ee8c0 @1112783076, 26 module transitions through 0x503eec28 @1126179781)
+and then BLOCKS. idle-c2200 checkpoint (cycle 2.2e9): still only 3 processes
+(EKern/EFile/EStart) - EStart never spawns the window server. EStart-Main
+NThread state byte went 4 (ready, @1.25e9) -> 2 (blocked/waiting, @2.2e9);
+its saved-SP is 0 and its stack+code chunks (0x804099c8 home=0x00502000,
+0x8040977c home=0) live in LOW process-relative VAs, so the kernel-home
+checkpoint reader can't walk EStart's user stack. EStart's blocking site is
+its startup loop at 0x503eec08-0x503eec3e: iterates a list (r7 += 0x10),
+calls 0x503ef4c4 / 0x503ef4d0 / 0x503ef4dc per entry - this is EStart reading
+its boot config and launching the next servers; it blocks in one of those
+calls (likely a Rendezvous/logon on a child it launches, or an RProcess
+create that needs a loader step). NEXT: trace EStart's process space across
+0x503ef4c4-4dc (need an FCSE/PID-relative reader, or just a full-instruction
+window 1126.0M-1130M filtered to EStart+loader+new-process execs); cross-ref
+ngvm, whose EStart launches ~12 servers cleanly to the logos. The LLE is now
+~1.0e9 cycles past where it stood at session start (767.8M crash -> EStart
+executing + blocking deep in its launcher).
+
 VERIFIED (2026-10-30 ~02:05): post-fix run boot-v15-ctrfix reached 1.5176e9
 (267M past the old frontier). estartwin window trace shows EStart EXECUTING
 from cycle 1112783076 (first PC 0x503ee8c0, 26 module transitions). At the
