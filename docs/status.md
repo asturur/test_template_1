@@ -2761,3 +2761,35 @@ ELOCAL async-completion for EStart's CAsyncNotifier request - needs tracing the
 real CAsyncNotifier/ELOCAL C++ dispatch to the DFC/event it awaits, then
 providing it. Resume base idle-c1517 (at the block); fresh-c1250 (EStart
 ready). This is the precise, named frontier; the completion is the one unknown.
+
+## 2026-10-30 ROOT CAUSE: flash-write completion is an EPBUS interrupt; my unit-60 fires on source 0x60 which has NO handler (update made with Claude)
+
+Drilled the real mechanism. EStart blocks INSIDE RFs::SetEntry (func-23, the
+bootdata write): after euser!TBusLocalDrive::Write, the FILE SERVER itself does
+User::WaitForRequest (exec 0x4d) - the drive write is ASYNC and the file server
+waits for medint's completion that never fires. So SetEntry never completes and
+EStart (blocked inside SetEntry) never returns.
+
+The completion is INTERRUPT-driven. Disassembled the ISR dispatcher (0x5032287c):
+source index = ICU_bank0_current + 0x5c (bank1 +0x7c, bank2 +0x9c). The
+registered interrupt handlers (table at 0x80000b64, from idle-c1517) are:
+  src 0x5d/0x5e/0x63 -> ekern; src 0x72/0x74/0x75 -> **epbus!ord31** (shared obj
+  0x80405d8c); src 0x76 -> cbus. medint has NO handler of its own - the flash
+  (C:) is an EPBUS peripheral, and the write completion is an epbus interrupt.
+My "flash timer unit-60" model raises ICU bank0 = 4 -> source 0x5c+4 = 0x60,
+which has NO handler (table[0x60] = garbage 0x0000e007). That is why the unit-60
+experiment fired+acked but never completed the request. The firmware, during the
+write, only writes 0x0c120a64=2 / 0x0c120a70=0x186 / 0x0c120a68=0 (the flash-
+program command to the epbus-managed timer) and then WAITS for the epbus IRQ -
+no ICU enable, no status poll.
+
+THE FIX (LLE): model the flash-program completion as an EPBUS interrupt. When
+the firmware writes the program command to 0x0c120a64, after the program delay
+raise the correct epbus source (0x72/0x74/0x75 = ICU bank0 0x16/0x18/0x19) and
+provide the 0x0c120a60/epbus status the epbus ISR (epbus!ord31) reads, so the
+ISR -> DFC -> medint completion -> file server wakes -> SetEntry completes ->
+EStart returns and proceeds. NEXT: identify which of 0x72/0x74/0x75 is the flash
+timer and what epbus status the ISR reads (disassemble epbus!ord31 ISR + the
+epbus obj 0x80405d8c). The whole earlier "unit-60 -> source 3" hypothesis
+(provenance flash-program-timer) is WRONG; this epbus-interrupt path is the real
+one. Resume base idle-c1517.
