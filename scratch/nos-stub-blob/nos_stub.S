@@ -41,16 +41,13 @@ nos_init:
     ldr   r5, [r4]
     mov   r0, r4
     @ vtable+0x128 is the ecust Variant's startup-state SETTER (str r1,[this,
-    @ #0x90]); it is NOT an iface-registration call. The two low bits matter:
-    @   bit 1 = NOS ready (ecust spin-waits for it: 0x50348a58 tst r0,#2; beq);
-    @   bit 0 = "query the baseband for the software startup reason" (helper.ldd
-    @           0x503841f8: getter vtable+0x12c = *(this+0x90); tst r0,#1; bit0
-    @           set -> iface #3 pread id 12, which no synthetic NOS completes).
-    @ The old value 3 set BOTH: ecust was happy (bit 1) but helper hung (bit 0).
-    @ 0 fixed helper but hung ecust's spin (bit 1 clear). 2 = bit 1 set (ecust
-    @ ready), bit 0 clear: helper completes request 1 with 100 (normal startup
-    @ reason == ngvm sw_reason), the honest answer for a phone with no baseband.
-    mov   r1, #2
+    @ #0x90]). 3 is the only VALID "ready" state (bit1 = NOS ready, bit0 =
+    @ baseband present): bit1 alone (2) makes the Variant PANIC (VARIANT
+    @ 0x1000c), bit0 alone / neither (0) hangs ecust's spin (0x50348a58 tst
+    @ r0,#2). So we keep 3 and instead ANSWER helper.ldd's startup-reason query
+    @ (request 1 -> iface #3 pread id 12) in pread below: that is the authentic
+    @ "the modem answers" path (and the shape that becomes a modem in HDL).
+    mov   r1, #3
     mov   lr, pc
     ldr   pc, [r5, #0x128]
 2:
@@ -84,6 +81,15 @@ ret0:
 @ length 0 with a non-writable r3 during epbus-phase queries; storing there
 @ data-aborted the boot, observed 2026-10-29 at 0x5149d09c).
 pread:
+    @ id 12 (0xc) = HelperDrv request 1's "software startup reason" query
+    @ (helper.ldd 0x5038425c mov r1,#0xc). helper's async path returns this
+    @ pread's result as its DoRequest result, so the kernel completes the
+    @ client (Nokia.dsy/System Agent) request with it: answer 100 (0x64), the
+    @ normal startup reason == ngvm sw_reason. A real baseband answers the same
+    @ way; this is the one modem reply the boot splash needs.
+    cmp   r1, #0xc
+    moveq r0, #0x64
+    bxeq  lr
     ldr   r2, [sp, #4]         @ byte length (caller stack arg)
     cmp   r2, #0x40
     movhi r2, #4               @ sanity cap -> default 4 bytes
