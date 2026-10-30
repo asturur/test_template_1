@@ -1,5 +1,41 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 CORRECTION: the logo gate is NOT the modem - it is the Starter app-chain launch (Starter <-> FbServ/WServ) (update made with Claude)
+
+The modem/ISI theory is WRONG for the LOGO. ngvm's chan.c charger/battery
+replies gate GAMES ("Xanadu Next exits at start"), not the boot splash. In
+ngvm's first 6 s the only NOSDRIVER traffic is EStart probing it once; the
+energy-management conversation happens later. So the modem is a red herring
+for the logo.
+
+What actually draws the logo (ngvm process order after EStart exits clean):
+SelfTestServer -> DBRECOVERY -> AudioServer -> AppRun -> **SplashScreen**
+(draws the Nokia then N-Gage logo, "lcd: 3 updates") -> Sysamob -> MSexe.
+
+Our LLE reaches the BASE server stack (EwSrv window server, FbServ
+Fontbitmapserver, SharedDataServer, DosServer) + Starter.exe runs - but NONE
+of the Starter-launched chain executes: SelfTestServer/SplashScreen/AppRun/
+Sysamob have **0 instructions**, never created as processes. All their
+binaries AND the 3 fonts (Ceurope/CalcEur/Browsereur.gdr) are present in our
+ROM (same file table as the THC dump), so nothing is missing.
+
+Pinned gate (ngvm --trace 4 vs our idle-c4400): ngvm's StarterServer connects
+to Fontbitmapserver (fn -1) and Windowserver (fn -1) and both COMPLETE
+instantly (ngvm's servers are HLE stubs that accept immediately). Our LLE runs
+the REAL FbServ/WServ; StarterServer blocks (its thread 0x8040d210 holds an
+FbsCli.dll object at +0x44; EwSrv-Main holds a Hal.dll object). Starter.exe
+ran until ~3.493e9 then stopped; the window server finished init and entered
+WaitForAnyRequest (user mode) correctly. So the block is a real-Symbian
+server-session completion that ngvm's stubs sidestep - StarterServer's
+Font/Bitmap-server (or window-server) session/request does not complete.
+
+NEXT: find StarterServer's exact block - the server request it waits on and
+why the real FbServ/WServ does not complete it (connect accept vs a specific
+font/screen request). Compare the real FbServ/WServ RunL path against what
+StarterServer sends (ngvm shows FbServ fn 0 args 0x10005 and WServ connect).
+The logo is one real-server IPC completion away, not a modem.
+Target frames: build/sim/screens/ngvm-logo-target/{nokia,ngage}-logo.png.
+
 ## 2026-10-30 LOGO GATE IDENTIFIED: the baseband ISI/Phonet modem conversation (ngvm oracle) (update made with Claude)
 
 ngvm (HLE oracle) boots our EXACT SYM.ROM fully: its process log shows
