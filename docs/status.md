@@ -2812,3 +2812,19 @@ source number it binds/enables for the flash completion, then raise THAT source
 (ICU = src-0x5c) from the board after the flash-program command, with the epbus/
 cbus status its ISR reads. This replaces the wrong unit-60/source-3 model.
 
+
+## 2026-10-30 Only sources 0x5d (tick) and 0x76 (cbus) are EVER enabled; flash completion must be the CBUS/UEM interrupt (update made with Claude)
+
+Checkpointed mid-flash-program (1517596800) and mid-write: the ONLY enabled
+interrupt handlers (obj[+4]=1) throughout are src 0x5d (tick, ICU=1) and src
+0x76 (cbus/UEM ISR 0x50382498, ICU=0x1a). The epbus srcs 0x72/0x74/0x75 and
+UEM src 0x5e are never enabled. The tick (0x5d) fires regularly but its ISR
+only touches unit 0 (0x0c120a08/a10), not unit-60, so it does not complete the
+drive write. Therefore the deferred drive-write completion is the CBUS/UEM
+interrupt (src 0x76): the N-Gage NOR flash program is gated on a UEM/CBUS
+power/ready event, and the cbus ISR completes medint. medint makes NO Kern::Add
+(DFC) and NO RequestComplete in the write path - it is purely interrupt-driven.
+My UEM IRQ model fires src 0x5e (ICU=2, DISABLED) - wrong; the real one is src
+0x76 (ICU=0x1a). TESTING: flash completion -> ICU=0x1a (src 0x76 cbus); run
+boot-v15-cbustest from fresh-c1250. If the cbus ISR needs CBUS status, the sim
+error names it (discovery loop).
