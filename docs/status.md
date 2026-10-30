@@ -1,6 +1,42 @@
 # Development checkpoint and resume guide
 
-## 2026-10-29 Frontier settled: pure kernel idle - no user thread becomes ready after the EStart launch (update made with Claude)
+## 2026-10-30 CORRECTION + real frontier: EStart process+main-thread ARE created and RESUMED; the main thread never becomes READY (update made with Claude)
+
+Checkpoint forensics (idle-c1130.host, cycle 1.13e9) OVERTURN the prior
+"Resume never reached / LoaderThread never wakes" diagnosis below. Evidence:
+
+- 7 real DThreads exist at idle (vtable 0x50347598): Supervisor, NULL,
+  Main(FileSrv 0x804070bc), LoaderThread (0x804075dc), StartupThread
+  (0x8040798c), ReclaimThread (0x80409238), and a SECOND "Main" at 0x8040983c.
+  That second "Main" is EStart's main thread (every process main thread is
+  named "Main"; ngvm shows it as "EStart:Main"). So the loader DID create
+  EStart's process + main thread. Thread container array at VA 0x80405200.
+- Full-instruction trace (frontier2) shows StartupThread run euser!RProcess::
+  Create (returns OK at 1112396138 -> valid handle, no panic) then euser!
+  RProcess::Resume at 1112396484 (SWI exec 0x1D). The kernel resume handler
+  runs real scheduler code (ekern ord150/ord327 reschedule, CObjectIx::At,
+  TDblQueBase::IsEmpty). So Create AND Resume both happen.
+- Yet EStart user code (0x503ee8xx, XIP in ROM) is NEVER fetched, and at idle
+  the current thread (kernel global 0x800003d0) = NULL (0x80406c48). So EStart's
+  main thread is resumed but never scheduled. StartupThread even CONTINUES after
+  the resume (would not, if a higher-prio EStart had been made ready+preempted).
+
+So the real gap: RProcess::Resume does not make EStart's main thread READY.
+Checkpoint field anomalies on EStart-Main (0x8040983c) vs healthy FileSrv-Main
+(0x804070bc): +0x20 = 0x80000000 (vs 0x8000000c), stack/addr +0x30/0x34 =
+0x00502000 (vs kernel-region 0x80602000), +0x38 = 0 (vs 0x80601ccc). EStart's
+DProcess (0x80409614) has +0x20 = 0 where FileSrv's DProcess (0x80406eb8) has
+0x100000bb (likely a code-seg/chunk pointer) - EStart's process load looks
+incomplete. Working hypothesis: EStart-Main is left SUSPENDED (count not 0) or
+WAITING on code-seg load completion that never fires, so Resume (clears suspend
+only) doesn't ready it. EKA1 DThread field offsets are not from the SDK (public
+headers omit the private layout); offsets above are empirical, not gospel.
+NEXT: trace the loader's EStart process/chunk/main-thread CREATION window
+(Loader active 1112244857-1112285321, inside frontier2) to find the incomplete
+step; or decode the suspend-count/wait-state field. Tools: inspect_checkpoint.py
+(now reads idle-c1130), run-resume-ckpt.py (resume+checkpoint), ngvm oracle.
+
+## 2026-10-29 Frontier settled: pure kernel idle - no user thread becomes ready after the EStart launch (update made with Claude) [SUPERSEDED by the 2026-10-30 correction above: EStart IS created+resumed]
 
 Extended trace past the launch (frontier3, 1112.5M-1114M): the system settles
 into a PURE KERNEL idle - only ekern functions, woken every ~404K cycles by the

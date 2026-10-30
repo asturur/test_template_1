@@ -1,0 +1,35 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -201,7 +201,13 @@
+ 
+ assign xCACHE_TYPE_WORD[0][2]    = ONLY_CORE ? 1'd1 : 1'd0;
+ 
+-assign xCACHE_TYPE_WORD[0][5:3]  = '0;
++// Report ARM920T 64-way associativity. The physical cache stays direct
++// mapped: every index/way clean-or-invalidate op already falls through to
++// a whole-cache operation, so only the loop arithmetic software derives
++// from this field matters. EKA1's clean-by-index loop computes its way
++// increment as (1 ROR assoc) and exits on carry; assoc = 0 makes that
++// increment 1 and the loop effectively endless (2^32 iterations).
++assign xCACHE_TYPE_WORD[0][5:3]  = 3'd6;
+ 
+ always_comb
+ begin
+@@ -230,7 +236,7 @@
+ 
+ assign xCACHE_TYPE_WORD[1][2]    = ONLY_CORE ? 1'd1 : 1'd0;
+ 
+-assign xCACHE_TYPE_WORD[1][5:3]  = '0;
++assign xCACHE_TYPE_WORD[1][5:3]  = 3'd6; // See the icache note: ARM920T 64-way report.
+ 
+ always_comb
+ begin
+@@ -259,7 +265,7 @@
+ // Build the CACHE_TYPE word.
+ assign CACHE_TYPE_WORD[23:0]     = xCACHE_TYPE_WORD;
+ assign CACHE_TYPE_WORD[24]       = 1'd1;     // S = 1, split cache.
+-assign CACHE_TYPE_WORD[31:25]    = 7'h1;     // Block replacement policy = 0x1.
++assign CACHE_TYPE_WORD[31:25]    = 7'b0000110; // ctype 6: write-back, c7 clean ops (ARM920T).
+ 
+ // ---------------------------------------------
+ // Sequential Logic
