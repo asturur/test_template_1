@@ -561,6 +561,13 @@ int main() {
             check(both.access({0x0009d288,0,15,false},bd,bdev)&&bdev=="nos_image_thc","both: image serves the body from 0x9d288");
             check(both.access({0x0009e000,0,15,false},bd,bdev)&&bdev=="synthetic_nos_power_model","both: stub owns the power model at 0x9e000");
             check(both.access({0x0009e040,0,15,false},bd,bdev)&&bdev=="nos_image_thc","both: image resumes past the power model");
+            BootProfile iat(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,false,{{0x24,0}},true,true,true,true,true,true,big,true,true,{},{{0x71c38,0x503a2f64}});
+            check(!(iat.access({0x00071c38,0,15,false},bd,bdev)&&bdev=="synthesized_nos_iat"),"iat: inactive before the kernel tick");
+            check(iat.access({0x0c120a04,2,15,true},bd,bdev)&&iat.access({0x0c120a18,0x0115b5c0,15,true},bd,bdev),"iat: one-shot");
+            for(int i=0;i<6;++i) iat.tick();
+            check(iat.access({0x0c120a18,0x632ea,15,true},bd,bdev),"iat: kernel tick");
+            check(iat.access({0x00071c38,0,15,false},bd,bdev)&&bd==0x503a2f64&&bdev=="synthesized_nos_iat","iat: resolved slot served");
+            check(!(iat.access({0x00071c3c,0,15,false},bd,bdev)&&bdev=="synthesized_nos_iat"),"iat: neighbors untouched");
         }
         std::cout<<"PASS real NOS image window boundaries\n";
         // UEM IRQ source-1 hypothesis: kernel-phase CBUS write to UEM 0x30

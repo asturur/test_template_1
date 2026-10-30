@@ -89,7 +89,7 @@ uint32_t BootProfile::word(size_t offset) const {
            uint32_t(rom_[offset+2]) << 16 | uint32_t(rom_[offset+3]) << 24;
 }
 
-BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks, bool lcd_probe, const std::vector<uint8_t>& rom_tail, bool boot_io_probe, const std::map<unsigned, unsigned>& adc_inputs, uint64_t timer_irq_delay, int uem_power_status, int uem_status36, int uem_status35, int extra_cbus_write, int extra_cbus_write2, bool allow_uif_8000, bool allow_icu25, bool gpio210_low_zero, bool gpio21a_zero, bool gpio216_zero, bool uif102_write, bool cbus82_readback, int cbus80_input, bool cbus8d_zero, bool icu46_write, bool pupf00a_zero, bool sysc0c14_zero, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs, bool gpio214_low_zero, bool pupf004_low_zero, bool gpio206_extra_write, bool sysc74_write3, bool gpio24_28_write1, bool timer_compare_probe, bool sysc50_44_probe, bool icu1c8_probe, bool timer_periodic, bool block14d_probe, bool debug59_sink, const std::map<int,int>& cbus_inputs, bool nos_entry_stub, bool keypad_gpio, bool icu_banks, bool timer_units, bool cdrive_flash, bool unit60_irq3, const std::vector<uint8_t>& nos_image, bool uem_irq_source1, bool epbus_clkblk, const std::vector<uint8_t>& cdrive_image)
+BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks, bool lcd_probe, const std::vector<uint8_t>& rom_tail, bool boot_io_probe, const std::map<unsigned, unsigned>& adc_inputs, uint64_t timer_irq_delay, int uem_power_status, int uem_status36, int uem_status35, int extra_cbus_write, int extra_cbus_write2, bool allow_uif_8000, bool allow_icu25, bool gpio210_low_zero, bool gpio21a_zero, bool gpio216_zero, bool uif102_write, bool cbus82_readback, int cbus80_input, bool cbus8d_zero, bool icu46_write, bool pupf00a_zero, bool sysc0c14_zero, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs, bool gpio214_low_zero, bool pupf004_low_zero, bool gpio206_extra_write, bool sysc74_write3, bool gpio24_28_write1, bool timer_compare_probe, bool sysc50_44_probe, bool icu1c8_probe, bool timer_periodic, bool block14d_probe, bool debug59_sink, const std::map<int,int>& cbus_inputs, bool nos_entry_stub, bool keypad_gpio, bool icu_banks, bool timer_units, bool cdrive_flash, bool unit60_irq3, const std::vector<uint8_t>& nos_image, bool uem_irq_source1, bool epbus_clkblk, const std::vector<uint8_t>& cdrive_image, const std::map<uint32_t,uint32_t>& nos_iat)
     : rom_(rom), rom_bytes_(rom_bytes), rom_tail_(rom_tail), kind_(kind), ideal_clocks_(ideal_clocks), lcd_probe_(lcd_probe), boot_io_probe_(boot_io_probe), adc_inputs_(adc_inputs), timer_irq_delay_(timer_irq_delay) {
     allow_uif_8000_ = allow_uif_8000; allow_icu25_ = allow_icu25; gpio210_low_zero_ = gpio210_low_zero; gpio21a_zero_ = gpio21a_zero; gpio216_zero_ = gpio216_zero; gpio214_low_zero_ = gpio214_low_zero; pupf004_low_zero_ = pupf004_low_zero; gpio206_extra_write_ = gpio206_extra_write; sysc74_write3_ = sysc74_write3; gpio24_28_write1_ = gpio24_28_write1; timer_compare_probe_ = timer_compare_probe; sysc50_44_probe_ = sysc50_44_probe; icu1c8_probe_ = icu1c8_probe; uif102_write_ = uif102_write; cbus82_readback_ = cbus82_readback; cbus80_input_ = cbus80_input; cbus8d_zero_ = cbus8d_zero; icu46_write_ = icu46_write; pupf00a_zero_ = pupf00a_zero; sysc0c14_zero_ = sysc0c14_zero; timer_periodic_ = timer_periodic; block14d_probe_ = block14d_probe; debug59_sink_ = debug59_sink; cbus_inputs_ = cbus_inputs; nos_entry_stub_ = nos_entry_stub; keypad_gpio_ = keypad_gpio;
     if (nos_entry_stub_) {
@@ -101,7 +101,7 @@ BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, cons
         power_model_[6] = 4;                      // iOffset
         power_model_init_ = true;
     } icu_banks_ = icu_banks; timer_units_ = timer_units; cdrive_flash_ = cdrive_flash; unit60_irq3_ = unit60_irq3; uem_irq_source1_ = uem_irq_source1; epbus_clkblk_ = epbus_clkblk;
-    cdrive_image_ = cdrive_image;
+    cdrive_image_ = cdrive_image; nos_iat_ = nos_iat;
     if (!cdrive_image_.empty()) { cdrive_.assign(0x400000, 0xff); size_t n = cdrive_image_.size() < cdrive_.size() ? cdrive_image_.size() : cdrive_.size(); for (size_t i=0;i<n;++i) cdrive_[i]=cdrive_image_[i]; }
     nos_image_ = nos_image;
     // nos-image + nos-entry-stub now COEXIST (2026-10-30): the stub keeps the
@@ -852,6 +852,19 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // 2026-10-29); nosstarter EXECUTES the entry (code fetches) at ~729M,
     // after the kernel tick arming at ~452M. Descrambler-enable timing is a
     // hypothesis, not verified hardware.
+    // Synthesized NOS IAT words: the NOS module's import slots live in
+    // scrambled flash (PA 0x6e030-0x725c0; plaintext exists in no available
+    // file), so each entry is ONE slot resolved by reverse-engineering its
+    // call site against the same-build kernel/euser exports (resolutions
+    // documented in docs/status.md). Kernel-tick gated like the image window
+    // (the boot digest must hash the raw scrambled bytes).
+    if (!nos_iat_.empty() && periodic_period_ && !request.write) {
+        auto iat = nos_iat_.find(address & ~3u);
+        if (iat != nos_iat_.end()) {
+            data = iat->second & byte_mask(request.select);
+            device = "synthesized_nos_iat"; return true;
+        }
+    }
     // With the synthetic stub also enabled, the stub keeps its proven blob
     // window [0x9d000,0x9d288) (incl. the nosstarter entry B at 0x9d284) and
     // the image serves only the module body past it; without the stub the
