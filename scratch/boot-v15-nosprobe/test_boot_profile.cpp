@@ -517,14 +517,14 @@ int main() {
         for(int i=0;i<30000;++i) u60.tick();
         check(!u60.unit60_fiq(),"no FIQ while control is stopped");
         check(u60.access({0x0c120a64,2,15,true},ud,udev),"unit 0x60 control run (2) arms");
-        for(int i=0;i<1999;++i) u60.tick();
+        for(int i=0;i<127;++i) u60.tick();
         check(!u60.unit60_fiq(),"FIQ not raised before the assumed delay");
         u60.tick();
         check(u60.unit60_fiq()&&!u60.timer_irq(),"compare match raises FIQ, not IRQ");
         check(u60.access({0x0c1201d0,0,15,false},ud,udev)&&ud==0x8,"pending register reads bit 3 (pump entry 0x503851cc)");
         check(u60.access({0x0c1201d4,0,15,false},ud,udev)&&ud==4,"current register reads source+1 = 4");
         check(u60.access({0x0c120a68,0,15,true},ud,udev)&&!u60.unit60_fiq(),"counter rewrite clears the match (pump re-arm)");
-        for(int i=0;i<2000;++i) u60.tick();
+        for(int i=0;i<128;++i) u60.tick();
         check(u60.unit60_fiq(),"re-armed counter raises again");
         check(u60.access({0x0c120a64,0,15,true},ud,udev)&&!u60.unit60_fiq(),"control stop clears the match");
         check(u60.access({0x0c1201cc,0x8,15,true},ud,udev)&&u60.access({0x0c1201c8,0,15,false},ud,udev)&&ud==0,"enable-clear (+0x0c) disables source 3");
@@ -588,7 +588,7 @@ int main() {
             BootProfile a=mk(); uint32_t d=0; std::string dev;
             check(a.access({0x0c1201c8,0x8,15,true},d,dev),"ckpt: mask set");
             check(a.access({0x0c120a64,2,15,true},d,dev),"ckpt: unit60 arm");
-            for(int i=0;i<2000;++i) a.tick();
+            for(int i=0;i<128;++i) a.tick();
             check(a.unit60_fiq(),"ckpt: unit60 pending before save");
             check(a.access({0x02400000,0xf0,3,true},d,dev)&&dev=="cdrive_flash","ckpt: touch C: overlay");
             check(a.access({0x0c150404,0x1f00,3,true},d,dev),"ckpt: keypad write");

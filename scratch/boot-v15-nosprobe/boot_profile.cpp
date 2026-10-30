@@ -11,9 +11,12 @@ constexpr uint32_t code_scratch_base = 0x0c004748;
 constexpr uint32_t probe_base = 0x02000000;
 // Cycles from unit-0x60 arm (or counter re-arm) to compare match. The real
 // compare is 0x186 ticks of an unknown prescale; the FIQ pump is purely
-// event-driven, so any delay is functionally correct. Chosen small to keep
-// multi-word flash writes fast in simulation.
-constexpr uint64_t kUnit60Delay = 2000;
+// event-driven, so any delay is functionally correct. Chosen small because
+// LFFS's first-boot block stamping programs tens of thousands of halfwords,
+// each paying this delay (2.5e9-budget run measured ~2800 cycles/halfword at
+// delay 2000, storm unfinished; 128 keeps the pump past medint's arm
+// sequence while making the storm ~5x faster).
+constexpr uint64_t kUnit60Delay = 128;
 uint32_t byte_mask(uint8_t select) {
     uint32_t mask = 0;
     for (unsigned i = 0; i < 4; ++i)

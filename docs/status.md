@@ -1,5 +1,42 @@
 # Development checkpoint and resume guide
 
+## 2026-10-30 FIQ PUMP VERIFIED IN-SIM: the 1.5176e9 wall is GONE; boot alive through 2.5e9 in an LFFS stamping storm (update made with Claude)
+
+Three staged runs from fresh-c1250 after the FIQ model landed:
+1. First run: the FIQ was taken (CPSR mode 0xd1), the pump ran its banked-
+   register fast path exactly as disassembled (pending read 0x1201d0=8,
+   counter re-arm, DQ7 poll of the programmed halfword, buffer-done path,
+   DFC enqueued on 0x80006bb8, timer stopped). New stop +4.7K cycles later:
+   the FIQ dispatcher tail (0x5032299c) reads fast-status 0x0c120050
+   (tst #7; bit1 = fast-DFC kick; the DFC-drain check follows). Modeled:
+   reads 0, ack writes accepted (assumed_fiq_status).
+2. Second run: +34K cycles - the DFC drained, RequestComplete fired, the
+   semaphore signaled, LFFS read back its block headers (the programmed cell
+   now reads 0x81bc after a second overprogram pass - correct NOR AND
+   semantics) and the kernel did page-table work. New stop: LFFS issues a
+   BARE WORD write (select 0xf, value 6, 0x02400540) in read mode. On AMD
+   NOR a word write is never a command cycle and is ignored - modeled that
+   way (mid-protocol word writes still stop the run).
+3. Full-budget run (2.5e9): TIMEOUT WITH THE BOOT ALIVE - flash activity to
+   cycle 2,499,984,258. The wall at 1,517,595,533 is gone (+982M cycles).
+   The boot is inside a one-time LFFS block-stamping/GC storm: 26,977
+   program sequences marching monotonically through the volume (0x2421xxxx
+   -> 0x25e17b4 ~= 2 MiB of 4 MiB by budget end) plus constant block-0
+   metadata updates; zero erases; instruction tail is pure
+   elocal/medint/ecust/ekern churn (no EStart yet - it is serialized behind
+   this storm, which started as the completion of the blocking bootdata
+   write). Likely cause: the 4 MiB C: image is ngvm's 1 MiB formatted volume
+   padded with erased space, and LFFS claims/stamps the virgin blocks on
+   first write.
+
+Cost analysis: each halfword program paid ~2800 cycles, dominated by the
+arbitrary kUnit60Delay=2000 (the real compare 0x186 prescale is unknown and
+the pump is purely event-driven, so the delay is a free parameter).
+Lowered to 128 (~5x storm speedup; still past medint's arm sequence).
+Next run: 3.2e9 budget from fresh-c1250, checkpoint idle-c2600 at 2.6e9 -
+expect the storm to finish by ~1.9e9 and EStart to continue; watch for
+FBSERV/EDISP/lcd (the splash chain) after SetEntry completes.
+
 ## 2026-10-30 C: WRITE COMPLETION SOLVED: it is a FIQ flash pump; board now models the unit-0x60 FIQ (update made with Claude)
 
 The "nothing ever completes the C: write" wall is closed. The completion is
