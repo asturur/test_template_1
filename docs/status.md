@@ -16,7 +16,43 @@ geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
 The only CTR read in the whole boot is the fatal one at cycle 1112551742,
 so the timeline up to there is unchanged.
 
-## 2026-10-30 TRUE FRONTIER: EStart mounts a filesystem, reads it fully, then blocks at ~1.5176e9 (update made with Claude)
+## 2026-10-30 FRONTIER PINNED TO THE INSTRUCTION: ELOCAL blocks on a media semaphore after its final C: write (update made with Claude)
+
+The mountend window (from fresh-c1250, full instructions 1250M-1521M) traces
+the exact stall. Sequence at the end:
+- 1470.8M-1517.6M: 278 TBusLocalDrive::Write to C: (LFFS), interleaved with a
+  44.4M-cycle burst of ERam (RAM-drive, eram!<code> 65K hits) + ekern memory
+  ops - EStart/F32 populating the RAM drive, normal boot work.
+- 1517585350 & 1517597929: final two C: writes (LFFS log). The last flash
+  program sequence (unlock AA/55, program A0, data 0xffbc -> 0x024214dc) is
+  well-formed and the model serves it.
+- 1517597929 euser!TBusLocalDrive::Write -> 1517603140 RSessionBase::Attach ->
+  1517607076 elocal!ord1+0x2a62 -> 1517607575 euser!RSemaphore::Wait (exec
+  0x2a, handle in FileSrv heap 0x8060315c) -> from 1517610529 on, PERMANENT
+  idle (ekern ord252 null-loop <-> nosdriver!ord1+0x2e8e90 forever).
+
+So the precise block: ELOCAL (the C:/LFFS local-media FSY), after its final
+flash write, calls RSemaphore::Wait on a media/DFC completion semaphore that
+is never signaled. 277 earlier writes completed fine, so the signal path
+normally works - something about this final write (or the state after the
+RAM-drive burst) leaves the completion unsignaled. The real medint.pdd
+delivers flash-write completion via a DFC/interrupt; the board model's C:
+flash is synchronous (no completion event), so whatever async path this last
+write takes waits forever. nosdriver!ord1 is the REAL nosdriver.ldd running
+as the idle callback (not the synthetic stub) - unrelated to the block, just
+the idle tick.
+
+NEXT (board-model work, in scope - not baseband): find what signals the
+media-write-completion semaphore on the 277 good writes vs this one; likely
+the model must raise a flash-program-busy-then-done status or a medint DFC
+so the async write path completes. Tools: mountend window has the full trace;
+compare a completing write (~1473M) against the stuck one (~1517.6M) at exec
+level. Resume base fresh-c1120 (before EStart) or fresh-c1250 (EStart ready).
+This is the deepest, most precisely-located frontier reached: an authentic
+Symbian boot writing LFFS to C: and populating the RAM drive, ~750M cycles
+past the session-start C: crash.
+
+## 2026-10-30 TRUE FRONTIER: EStart mounts a filesystem, reads it fully, then blocks at ~1.5176e9 (superseded: pinned to the ELOCAL semaphore wait above) (update made with Claude)
 
 Tracing the estartfinal window (from-reset, 1125M-1134M) showed EStart's last
 code (PC 0x503eec28, cycle 1126179781) calls efsrv!RFs::MountFileSystem ->
