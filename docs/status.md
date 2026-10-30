@@ -2605,3 +2605,64 @@ A useful next experiment is an opt-in periodic timer modeled on `scratch/referen
 The continuation alters the firmware-generated flash-class RAM table and makes other explicit peripheral assumptions, so success would not constitute a verified boot. `scratch/variant-icu1c8/verify-prefixes.py` independently checked the saved traces after fixing a self-comparison mistake in wrapper scripts. The all-`0x257e` V15 flash-ID experiment in `scratch/flash-all-257e-probe/run-long.py` was launched separately, without the RAM-table override; its IDs are hypothetical. Check its process and `build/sim/runs/boot-v15-all-257e/` before restarting. Keep output compact.
 
 The all-`0x257e` V15 long run finished at cycle 725,805,161 on the unmodeled write to `0x0c120074`, after passing the prior VARIANT panic. It uses hypothetical flash IDs, so it is a diagnostic result, not a validated hardware configuration. Its screen capture is an assumed white clear, not a Nokia logo.
+
+## 2026-10-30 LIKELY ROOT CAUSE: empty C: forces first-boot init, which blocks; EStart reads bootdata files (update made with Claude)
+
+Disassembled EStart's startup loop (0x503ee900-0x503eeb20). It: RProcess::
+SetSystem, reads a config via efsrv!RFile::Read (0x503eea3e), HAL::Get(37)/
+(68) + HAL::Set (0x503eea60-0x503eeb4), User::LoadLogicalDevice (0x503eeacc),
+and extensive drive/dir scanning (RFs::DriveList, RDir::Open, RFs::Mount/
+NotifyChange). The HAL::Get(37/68) match C:\system\bootdata\HALData.dat
+(persisted HAL attributes). Our C: image is FORMATTED BUT EMPTY (all reads
+0xffffffff), so EStart runs FIRST-BOOT initialization every time - that is
+what the LFFS writes at 1.5176e9 are (creating HALData.dat/CommonData/etc.) -
+and the first-boot path is where EStart blocks in User::WaitForRequest on a
+client-server reply that never comes. A factory device has these files, so
+it SKIPS first-boot.
+
+The user provided the real C: tree (firmware/disk_dump/C): system/bootdata/
+{FirstBoot.dat,HALData.dat,CommonData.D00,LocaleData.D01}, system/Shareddata/
+*.ini, System.ini - exactly what EStart reads. ngvm's own boot CREATES these
+(its --save C: image has HALData/CommonData/System.ini/bootdata/Shareddata,
+29% full, valid LFFS). Built a POPULATED 4 MiB LFFS image by enlarging ngvm's
+C: to 4 MiB (ngvm_hw.h NGVM_SAVE_BASE 0x01C00000/SIZE 0x00400000, rebuild,
+boot 14s, save, REVERT) -> build/firmware/thc/cdrive-populated-4mib.img
+(64/64 LFFS blocks, HALData/CommonData/System.ini present). Testing it in the
+LLE (run-fresh-pop.py -> boot-v15-populated): if EStart finds the bootdata it
+should skip first-boot and proceed toward the server chain / logo. RISK: the
+LLE's real ELOCAL.FSY must read ngvm's HLE-written file layout (the empty
+format mounts fine; file structures unverified). FirstBoot.dat was not in the
+ngvm image - may need adding, or the LLE creates it. Hypotheses falsified
+first: NOS iface-13 readiness (= idle loop), unit-60 flash IRQ (delivers but
+no effect). Resume bases: fresh-c1120, fresh-c1250, idle-c1517.
+
+## 2026-10-30 FRONTIER PINNED TO THE EXEC (populated-C: falsified): EStart's async F32 func 23 never completes (update made with Claude)
+
+The populated-C: image (real bootdata: HALData/CommonData/System.ini) was
+tested from reset: it MOUNTS fine (past 767M) and the LLE does 3x the C:
+reads (424715 vs 134256) - EStart reads the real files - but blocks at the
+EXACT same cycle 1517595533 and idles to 2.5e9. So the empty-C:/first-boot
+hypothesis is FALSIFIED: the block is content-independent and fully
+deterministic.
+
+Decoded EStart's blocking execs (mountend window, EStart stack 0x00501):
+EStart parses a text config (exec 0x4f unicode-classify x151), then issues
+ONE async client-server send - exec 0xc000bf (RSessionBase::Send) at cycle
+1516656954 with session handle R0=0x400f0001, IPC function R1=0x17 (23),
+args 0x00501ea8, status 0x00501e90 - then exec 0x4d (WaitForAnyRequest) and
+blocks forever. At the block (idle-c1517) the only running servers are
+FileServer (x7 refs) and Loader (x4); the handle 0x400f0001 resolves into the
+file-server object cluster (0x804036xx-0x80403cxx all named "FileServer").
+So EStart sends F32 function 23 to the file server, which is running but
+NEVER completes/replies to the request.
+
+This is a file-server-side async completion that never fires (the drive
+thread / local-media op doesn't finish). It is NOT: the flash device (writes
+complete, no post-write poll), unit-60 IRQ (delivers, no effect), NOS
+readiness (idle loop), or C: content (populated = same block). NEXT: identify
+F32 function 23 (needs the EKA1 TFsMessage enum) and why the file server
+leaves it pending - likely the local-media (medint) async write/format
+completion DFC that a synchronous board flash never signals. The 0x400f0001
+handle and function 23 are the exact keys. Resume bases: fresh-c1120,
+fresh-c1250, idle-c1517. Populated image: build/firmware/thc/
+cdrive-populated-4mib.img (works as a C: image, just doesn't change this).
