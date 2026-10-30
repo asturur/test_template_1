@@ -2731,3 +2731,33 @@ reason (105 first-boot), then NOSDRIVER's request-cancel behaviour. This is
 the first time the block is traced to a NAMED, ngvm-MODELLED driver with a
 known expected completion - the clearest actionable path of the session.
 Resume base idle-c1517 (at the block). cdrive-populated-4mib.img available.
+
+## 2026-10-30 Block fully traced to EStart's async function-2 to a file-server CAsyncNotifier; ngvm's EStart exits cleanly (update made with Claude)
+
+Full reverse from the waiting thread, with handles/functions decoded:
+- 1515094 SendReceive handle 0x400d0001 function -1 (connect) -> ACCEPTED
+  (server CServer::RunL + CSharableSession::CreateL create the session).
+- 1515132 SendReceive handle 0x400d0001 function 2 (async, status reused
+  0x00501e90) -> routed to a file-server-hosted server: CServer::RunL ->
+  efile CMountCB::SetDiskSpaceChange -> euser CAsyncNotifier::Notify. The
+  server HOLDS this request (async notification) and never completes it.
+- 1516657 SendReceive handle 0x400f0001 function 23 (the C: LFFS write) ->
+  SYNCHRONOUS, completes at 1517603 (write done, file server returns to
+  WaitForAnyRequest).
+- EStart's final exec 0x4d WaitForAnyRequest (1517603360) then blocks: its
+  only outstanding, never-completing request is the function-2 CAsyncNotifier.
+
+ngvm (same EStart.exe) shows EStart EXITS cleanly (type 0 reason 0) - so the
+function-2 request COMPLETES in ngvm's HLE F32 but not against the LLE's real
+F32/ELOCAL. ngvm's drive.c completes C: writes synchronously (program() then
+request_complete) and keeps media-change notifications "pending" (never fire
+for C:). So the LLE gap is one real-F32 async notification/completion that
+ngvm's HLE does implicitly. The medint pre-write-return call ekern!ord495+0x218
+(0x5033a1dc) is a C++ virtual dispatch (LDR PC,[r12,#0x28]); unit-60 IRQ was
+tested as the completion and ruled out (fires+acks, no effect). Ruled out:
+flash device, unit-60, NOS readiness, C: content, RTC/timeout (no RTC reads at
+the block; 5e9-cycle run byte-identical). THE LLE FIX is the specific F32/
+ELOCAL async-completion for EStart's CAsyncNotifier request - needs tracing the
+real CAsyncNotifier/ELOCAL C++ dispatch to the DFC/event it awaits, then
+providing it. Resume base idle-c1517 (at the block); fresh-c1250 (EStart
+ready). This is the precise, named frontier; the completion is the one unknown.
