@@ -489,8 +489,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // value 2); let the ICU enable-bank model handle them instead of the
     // timer-0 handler below.
     const bool defer_to_icu_bank = icu_banks_ && request.write && request.select == 15 &&
-        (address == 0x0c120108 || address == 0x0c12010c) &&
-        request.data != 1 && request.data != 0x02000000;
+        ((address == 0x0c120108 && request.data != 1 && request.data != 0x02000000) ||
+         // 0x12010c enable-CLEAR: only data==1 is the timer handler's ack;
+         // everything else (incl. 0x02000000, the display driver clearing its
+         // ICU25 line at teardown) is an ordinary bank0 clear.
+         (address == 0x0c12010c && request.data != 1));
     if (boot_io_probe_ && !defer_to_icu_bank && (address == 0x0c120a04 || address == 0x0c120a08 ||
         address == 0x0c120a10 || address == 0x0c120a18 || address == 0x0c120108 || address == 0x0c12010c)) {
         // ROM 0x3200 writes these exact timer/ICU setup values. Capturing
@@ -583,6 +586,36 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             else if (uem_irq()) data = 2;                                 // source 1 + 1
         }
         device = "assumed_icu_current"; return true;
+    }
+    // ICU global interrupt enable-clear/set (0x0c120064 / 0x0c120068): the
+    // kernel's global-interrupt helper (0x50324d04) writes 1<<bit here to
+    // disable/enable a source across all banks (observed when the display
+    // driver sets up its vsync/transfer interrupt, cycle 3.629e9). Modeled as
+    // a RW latch pair; no source is driven from it.
+    if (icu_banks_ && request.select == 15 &&
+        (address == 0x0c120064 || address == 0x0c120068)) {
+        if (request.write) {
+            if (address == 0x0c120068) icu_global_enable_ |= request.data;   // set
+            else icu_global_enable_ &= ~request.data;                        // clear
+        }
+        data = icu_global_enable_;
+        ++icu_bank_accesses_;
+        device = "assumed_icu_bank"; return true;
+    }
+    // ICU config/control registers the display driver programs during frame
+    // setup (word accesses via the kernel I/O helpers 0x50324b94/0x50324d04,
+    // cycle 3.629e9): the low control block 0x0c120040..0x0c1200ff and the
+    // 0x0c120300..0x0c1203ff bank, excluding ranges already handled above
+    // (current 0x114/154/194, banks 0x100..0x200, FIQ 0x1c0..0x260, timer
+    // units 0xa00+). Modeled as plain RW latches; no interrupt is driven.
+    if (icu_banks_ && request.select == 15 &&
+        ((address >= 0x0c120040 && address < 0x0c120100) ||
+         (address >= 0x0c120300 && address < 0x0c120400))) {
+        uint32_t& reg = keypad_regs_[address];
+        if (request.write) reg = request.data;
+        data = reg;
+        ++icu_bank_accesses_;
+        device = "assumed_icu_bank"; return true;
     }
     // IRQ-ICU enable-set/clear and pending banks (e.g. ekeyb enabling its
     // keypad interrupt). Bank b at base+0x40*b: +0x08 set, +0x0c clear, +0x10
@@ -690,9 +723,18 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 const bool extra_rtc_read = (value & 0x100) && cbus_inputs_.count(value & 0xff) && !(value & ~0x1ffu);
                 if (extra_write || extra_read || extra_rmw || extra_rtc_read) recognized = true;
                 for (uint16_t reg : known) recognized |= (value & 0xff) == reg;
-                if (cbus_stage_ != 1 || ((value & ~0x13fu) && value != 0x239 && !extra_write && !extra_read && !extra_rmw && !extra_rtc_read) || !recognized) {
+                // Boot-time strictness validates the exact command set. Once
+                // the kernel tick is running (periodic_period_), the display
+                // and power drivers issue many more UEM/CBUS commands (e.g.
+                // 0xa6 with config 0xf during frame setup, cycle 3.645e9);
+                // accept any well-formed command then and record the write,
+                // rather than enumerate every late register.
+                const bool kernel_phase = periodic_period_ != 0;
+                if (!kernel_phase &&
+                    (cbus_stage_ != 1 || ((value & ~0x13fu) && value != 0x239 && !extra_write && !extra_read && !extra_rmw && !extra_rtc_read) || !recognized)) {
                     reason_ = "unmodeled boot control-bus command"; return false;
                 }
+                if (kernel_phase && cbus_stage_ != 1) cbus_stage_ = 1;
                 cbus_command_ = value;
                 cbus_stage_ = (value & 0x100) ? 3 : 2;
                 if (value & 0x100) ++cbus_transactions_;

@@ -104,6 +104,7 @@ private:
     // modelled, so pending reads are zero. Opt-in.
     bool icu_banks_ = false;
     uint32_t icu_enable_[4] = {0,0,0,0};
+    uint32_t icu_global_enable_ = 0;
     uint64_t icu_bank_accesses_ = 0;
     // Timer units 1..4 (unit 0 is the modelled periodic tick). RW register
     // latches; status (reg +0x08) reads 0 = not expired. No IRQ from these
