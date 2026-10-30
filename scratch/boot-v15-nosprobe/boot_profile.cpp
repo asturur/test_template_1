@@ -258,6 +258,16 @@ bool BootProfile::cdrive_access(const BootBusRequest& request, uint32_t& data, s
                uint32_t(cdrive_[off+2]) << 16 | uint32_t(cdrive_[off+3]) << 24;
         device = "cdrive_flash"; return true;
     }
+    // Bare word-width array write (LFFS, 1.51763e9: word 6 to 0x02400540 in
+    // read mode): AMD command cycles are halfword, so a word write is never
+    // a command; the chip ignores it and the array is unchanged (programming
+    // physically requires the unlock+A0 sequence). Accepted and ignored only
+    // in plain read mode; mid-protocol word writes still stop the run.
+    if (request.write && request.select == 15 &&
+        !cdrive_program_ && cdrive_unlock_ == 0 && !cdrive_autoselect_ &&
+        !cdrive_erase_armed_ && !(cdrive_erase_end_ > cdrive_erase_base_)) {
+        device = "cdrive_flash"; return true;
+    }
     if (request.select != 3 && request.select != 12) {
         reason_ = "C: flash access width outside the halfword protocol"; return false;
     }
@@ -580,6 +590,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             ++icu_bank_accesses_;
             device = "assumed_icu_bank"; return true;
         }
+    }
+    // FIQ fast-status register (FIQ dispatcher 0x5032299c: reads it, tst #7;
+    // bit 1 enqueues the fast DFC [0x8000001c]; a nonzero read is acked by
+    // writing the value back). No fast source is modeled, so reads return 0
+    // (sending the dispatcher to the FIQ-ICU current scan and the DFC-drain
+    // check) and ack writes are accepted. Opt-in with the FIQ pump model.
+    if (unit60_irq3_ && request.select == 15 && address == 0x0c120050) {
+        data = 0;
+        device = "assumed_fiq_status"; return true;
     }
     // FIQ-ICU banks (kernel enable ordinal 0x50324898 writes 1<<src to
     // +0x08 at 0x0c1201c8/0x208/0x248; disable ordinal 0x503248f0 writes

@@ -503,6 +503,10 @@ int main() {
         check(cd.access({0x02401000,0,2,false},cv,cdev)&&((cv>>8)&0xff)==0x12&&cdev=="cdrive_flash","C: array byte read serves byte lane 1 (seen at 1.5176e9)");
         check(cwrh(0x02400aa8,0xaa)&&cd.access({0x02400aa8,0,2,false},cv,cdev)==false,"C: byte read refused mid-command-sequence");
         check(cwrh(0x02400aa8,0xf0)||true,"C: reset after refusal");
+        check(cd.access({0x02400540,6,15,true},cv,cdev)&&cdev=="cdrive_flash","C: bare word array write ignored (never a command cycle)");
+        check(cd.access({0x02400540,0,15,false},cv,cdev)&&cv!=6,"C: array unchanged by the ignored write");
+        check(cwrh(0x02400aa8,0xaa)&&cd.access({0x02400554,0x55005500,15,true},cv,cdev)==false,"C: word write refused mid-unlock");
+        check(cwrh(0x02400aa8,0xf0)||true,"C: reset after mid-unlock refusal");
         std::cout<<"PASS C: drive flash boundaries\n";
         BootProfile u60(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,true,{{0x24,0}},true,true,true,true,true,true);
         uint32_t ud=0; std::string udev;
@@ -528,6 +532,8 @@ int main() {
         for(int i=0;i<30000;++i) u60.tick();
         check(!u60.unit60_fiq(),"no FIQ delivery while source 3 is masked");
         check(u60.access({0x0c120208,0x10,15,true},ud,udev)&&u60.access({0x0c120208,0,15,false},ud,udev)&&ud==0x10,"mask bank1 independent");
+        check(u60.access({0x0c120050,0,15,false},ud,udev)&&ud==0&&udev=="assumed_fiq_status","FIQ fast-status reads 0");
+        check(u60.access({0x0c120050,2,15,true},ud,udev)&&udev=="assumed_fiq_status","FIQ fast-status ack write accepted");
         std::cout<<"PASS unit 0x60 FIQ pump timer\n";
         std::vector<uint8_t> img(0x100); for(size_t i=0;i<img.size();++i) img[i]=uint8_t(i);
         BootProfile ni(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,false,{{0x24,0}},false,true,true,true,true,true,img,true,true);
