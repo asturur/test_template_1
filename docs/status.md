@@ -2846,3 +2846,38 @@ bus) that the synthetic NOS cannot provide - the long-flagged synthetic-NOS
 wall, now localized to the LFFS metadata write completion. Next: ecust MMIO
 reads during the write (wrong read -> medint skips completion?). Clean model
 restored (unit-60 reverted to src-3/masked).
+
+## 2026-10-30 COMPLETE driver-interaction understanding: the C: write completion mechanism (update made with Claude)
+
+Full driver stack for the blocking bootdata write (RFs::SetEntry), reversed:
+  EStart RFs::SetEntry (async) -> file server CServer::RunL
+   -> ELOCAL.FSY (C: LFFS): computes block/offset (elocal!ord1, _udivsi3),
+      calls euser!TBusLocalDrive::Write (ASYNC, status 0x80601a6c on the file
+      server stack)
+   -> medint (NOR flash local-media PDD): writes the AA/55/A0 program + data
+      (0xffbc -> 0x024214dc, served), arms the 0x0c120a60 'unit-60' timer
+      (control=2, compare=0x186), coordinates with:
+       * ecust (N-Gage custom kernel extension, 0x50348750): read-modify-write
+         of power/clock-gating bits in the boot latch 0x08000014 (0x200000 set,
+         0x20000 toggled) - gating the flash/baseband shared bus
+       * nosdriver (baseband) - one call; TInactivityLink::Start
+   -> medint RETURNS without completing, runs 0x afterwards. The async
+      completion (program-done) never fires.
+
+The F32 request (status 0x80601a6c) is never RequestComplete'd by ANYTHING -
+confirmed: 0 RequestComplete, 0 Kern::Add(DFC) in the write path, and every
+interrupt source ruled out empirically (cbus 0x76 floods with no complete; tick
+0x5d services unit 0 only; epbus 0x72/74/75 disabled; unit-60 src 0x60 no
+handler). ngvm sidesteps this entirely: its HLE drive.c rw() completes C: writes
+SYNCHRONOUSLY (program(); request_complete()).
+
+CONCLUSION: the LLE's authentic medint NOR-program completion is an async event
+delivered through the ecust/baseband-shared-bus custom hardware. The synthetic
+NOS (zeros) and the unmodeled custom-bus/program-done event mean nothing signals
+the completion, so the write request hangs, SetEntry never returns, and EStart
+blocks forever at cycle 1517595533. This is the synthetic-NOS / custom-hardware
+wall, now localized to the exact instruction. To pass it in the LLE either (a)
+find how ecust/the custom bus signals program-done and model that event, or (b)
+the real NOS/baseband plaintext (exists in no available file). The boot reached
+an authentic LFFS bootdata write at ~1.52e9 - ~+750M cycles past the session-
+start crash; this is the deepest, most precisely-characterized frontier.
