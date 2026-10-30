@@ -16,7 +16,22 @@ geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
 The only CTR read in the whole boot is the fatal one at cycle 1112551742,
 so the timeline up to there is unchanged.
 
-IN FLIGHT (2026-10-30 ~01:40): (1) boot-v15-ctrfix - from-reset, budget 3e9,
+VERIFIED (2026-10-30 ~02:05): post-fix run boot-v15-ctrfix reached 1.5176e9
+(267M past the old frontier). estartwin window trace shows EStart EXECUTING
+from cycle 1112783076 (first PC 0x503ee8c0, 26 module transitions). At the
+1.25e9 checkpoint (fresh-c1250): current thread = FileSrv Main running,
+StartupThread exited+reaped, EStart-Main READY prio 350 - matches the ngvm
+oracle. ctrfix then stopped on a NEW frontier: byte read (byte-enable 0x2)
+of C: flash at PA 0x024214dc refused by the halfword-only model. Fixed in
+boot_profile.cpp (array-mode reads of any width serve the aligned word;
+writes keep the halfword command protocol; tests added). Resume boot-v15-
+postbyte (fresh-c1250 -> 3e9, checkpoint at 2.2e9) is in flight.
+TODO (queued to avoid touching inputs mid-run): load_state() re-applies the
+pristine cdrive-image over the RESTORED overlay - harmless while
+cdrive_writes=0 (true through 1.5176e9) but will corrupt post-first-write
+checkpoints; apply image only when the checkpoint overlay is empty.
+
+IN FLIGHT (2026-10-30 ~01:40, superseded by the entry above): (1) boot-v15-ctrfix - from-reset, budget 3e9,
 checkpoint fresh-c1250 at 1.25e9, screen capture at end (run-fresh.py);
 (2) boot-v15-estartwin - from-reset, budget 1.15e9, module-trace + full
 window 1112.5M-1115M across the expected clean-loop exit -> reschedule ->

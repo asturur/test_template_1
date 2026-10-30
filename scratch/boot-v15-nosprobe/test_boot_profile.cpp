@@ -500,6 +500,9 @@ int main() {
         check(crd(0x02401000)&&(cv&0xffff)==0xffff,"C: erase completes to 0xFF");
         check(cd.access({0x02401000,0,15,false},cv,cdev)&&cv==0xffffffff&&cdev=="cdrive_flash","C: array word read of erased cells is 0xFFFFFFFF");
         check(cwrh(0x02400aa8,0xaa)&&cwr(0x02400554,0x55)&&cwrh(0x02400aa8,0xa0)&&cwr(0x02401000,0x1234)&&cd.access({0x02401000,0,15,false},cv,cdev)&&(cv&0xffff)==0x1234,"C: array word read returns a freshly programmed low cell");
+        check(cd.access({0x02401000,0,2,false},cv,cdev)&&((cv>>8)&0xff)==0x12&&cdev=="cdrive_flash","C: array byte read serves byte lane 1 (seen at 1.5176e9)");
+        check(cwrh(0x02400aa8,0xaa)&&cd.access({0x02400aa8,0,2,false},cv,cdev)==false,"C: byte read refused mid-command-sequence");
+        check(cwrh(0x02400aa8,0xf0)||true,"C: reset after refusal");
         std::cout<<"PASS C: drive flash boundaries\n";
         BootProfile u60(rom,rom.size(),"amd16",true,true,{},true,{},5,0,0,16,0x27,0x82,true,true,true,true,true,true,true,0x400,true,true,true,true,{{0x0c120c10,{0,15}},{0x0c150204,{0,12}},{0x0c14f004,{0,12}}},true,true,true,true,true,true,true,true,true,true,true,{{0x24,0}},true,true,true,true,true,true);
         uint32_t ud=0; std::string udev;

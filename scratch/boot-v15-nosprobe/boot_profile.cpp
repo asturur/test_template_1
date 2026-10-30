@@ -240,14 +240,15 @@ void BootProfile::cdrive_sector(uint32_t off, uint32_t& base, uint32_t& end) con
 // RAM overlay (0xFF = erased). Models only what medint.pdd exercises.
 bool BootProfile::cdrive_access(const BootBusRequest& request, uint32_t& data, std::string& device) {
     if (cdrive_.empty()) cdrive_.assign(0x400000, 0xff);
-    // Array word read (select 0xf): the x16 flash is mapped so a 32-bit read
-    // returns two adjacent cells. Only valid in array-read mode (no pending
-    // command/autoselect/erase, which are halfword-protocol); LFFS reads the
-    // volume this way once mounted.
-    if (!request.write && request.select == 15 &&
+    // Array read (any byte select): the x16 flash is mapped so the aligned
+    // 32-bit word carries two adjacent cells and the bus byte lanes pick out
+    // halfword or byte reads (LFFS whole-word volume reads, and byte reads
+    // of file data, observed at 1.5176e9). Only valid in array-read mode (no
+    // pending command/autoselect/erase, which are halfword-protocol).
+    if (!request.write &&
         !cdrive_autoselect_ && cdrive_unlock_ == 0 &&
         !(cdrive_erase_end_ > cdrive_erase_base_)) {
-        const uint32_t off = request.address - 0x02400000;
+        const uint32_t off = (request.address & ~3u) - 0x02400000;
         data = uint32_t(cdrive_[off]) | uint32_t(cdrive_[off+1]) << 8 |
                uint32_t(cdrive_[off+2]) << 16 | uint32_t(cdrive_[off+3]) << 24;
         device = "cdrive_flash"; return true;
