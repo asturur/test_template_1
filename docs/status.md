@@ -16,6 +16,30 @@ geometry changed; the loop now terminates after 8 sets x 64 ways = 512 MCRs.
 The only CTR read in the whole boot is the fatal one at cycle 1112551742,
 so the timeline up to there is unchanged.
 
+## 2026-10-30 TRUE FRONTIER: EStart mounts a filesystem, reads it fully, then blocks at ~1.5176e9 (update made with Claude)
+
+Tracing the estartfinal window (from-reset, 1125M-1134M) showed EStart's last
+code (PC 0x503eec28, cycle 1126179781) calls efsrv!RFs::MountFileSystem ->
+RSessionBase::SendReceive to the file server, which runs CServer::RunL /
+CFileSystem::SetLibrary / CMountCB and then does sustained medint +
+TBusLocalDrive::Read - EStart is MOUNTING a second filesystem and reading it.
+The longboot run (resumed, C:-byte-read fix active) confirms: C: flash is
+accessed with ADVANCING addresses (134256 distinct) up to cycle 1517595533,
+including the byte-read at 0x024214dc (be=0x2) which the fix serves correctly,
+followed by a fresh command sequence (0x02400aa8<-0xaa). Then C: access STOPS
+at 1517595533 and the system goes PURELY IDLE for the next 3.48e9 cycles
+(timer/NOS-stub/keypad polling only, no C:, no 4th process) to the 5e9 budget.
+
+So the real block is at ~1.5176e9, AFTER the mount+read: EStart issues one
+last C: command then blocks, and no window server is ever launched. This is
+well past every prior frontier. A windowed instruction run (boot-v15-mountend,
+1515M-1521M from fresh-c1250) is in flight to capture the exact failing F32
+operation at that point. NOTE the prior "idle at 2.2e9/3.5e9" checkpoints
+(idle-c2200/c3500) and the whole "NOS waiter" investigation were looking at
+this same post-mount idle from the wrong angle - ord252 idling is the SYMPTOM;
+the cause is the F32/medint operation that completes its read then never
+advances EStart. fresh-c1120 and fresh-c1250 are the clean resume bases.
+
 ## 2026-10-30 CORRECTION: ord252 is the NULL-thread IDLE loop, not a boot waiter; 0x800004ac is an idle CALLBACK pointer (update made with Claude)
 
 Experiments falsified the "NOS readiness waiter" theory below. Three from-reset
