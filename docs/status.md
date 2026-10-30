@@ -2828,3 +2828,21 @@ My UEM IRQ model fires src 0x5e (ICU=2, DISABLED) - wrong; the real one is src
 0x76 (ICU=0x1a). TESTING: flash completion -> ICU=0x1a (src 0x76 cbus); run
 boot-v15-cbustest from fresh-c1250. If the cbus ISR needs CBUS status, the sim
 error names it (discovery loop).
+
+## 2026-10-30 Flash-completion is an async event medint never signals; src 0x76 ruled out; write goes via ecust (update made with Claude)
+
+Ruled out the cbus source empirically: unit-60 -> ICU=0x1a (src 0x76) made the
+cbus ISR run 738x (flooding, since it acks via CBUS not the unit path) but ZERO
+RequestComplete - the cbus ISR does not complete the drive request. So the flash
+completion is NOT cbus, NOT the tick (unit 0 only), NOT epbus (disabled), NOT
+unit-60/src-3 (no handler). medint writes the NOR data (0xffbc -> 0x024214dc)
+then RETURNS WITHOUT completing and runs 0 times after - it set up an async
+completion that never fires. ngvm completes C: writes SYNCHRONOUSLY (rw() ->
+program() -> request_complete); the LLE real medint is async and waits for a
+hardware program-done event. The write path runs ecust (N-Gage custom kernel
+extension, 0x50348750) + one nosdriver call + TInactivityLink::Start. So the
+completion likely depends on ecust/custom-hardware (the flash+baseband shared
+bus) that the synthetic NOS cannot provide - the long-flagged synthetic-NOS
+wall, now localized to the LFFS metadata write completion. Next: ecust MMIO
+reads during the write (wrong read -> medint skips completion?). Clean model
+restored (unit-60 reverted to src-3/masked).
