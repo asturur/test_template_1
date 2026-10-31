@@ -9,6 +9,7 @@
 #include <cerrno>
 #include <cstring>
 #include <deque>
+#include <set>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
@@ -59,6 +60,7 @@ int run(int argc, char** argv) {
     std::map<uint32_t,std::pair<uint32_t,uint8_t>> probe_regs;
     std::map<int,int> cbus_inputs;
     uint64_t timer_irq_delay = 0, checkpoint_at = 0, checkpoint_every = 0, win_lo = 0, win_hi = 0;
+    std::set<uint32_t> pc_log;   // pc-log=0xADDR: always log retirements at these PCs
     std::string checkpoint_path, restore_path;
     int uem_power_status = -1, uem_status36 = -1, uem_status35 = -1, extra_cbus_write = -1, extra_cbus_write2 = -1, cbus80_input = -1;
     for (int i = 9; i < argc; ++i) {
@@ -99,6 +101,7 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]) == "+ngage-compact-trace") compact_trace = true;
         else if (std::string(argv[i]).rfind("checkpoint-at=", 0) == 0) checkpoint_at = std::stoull(std::string(argv[i]).substr(14));
         else if (std::string(argv[i]).rfind("checkpoint-every=", 0) == 0) checkpoint_every = std::stoull(std::string(argv[i]).substr(17));
+        else if (std::string(argv[i]).rfind("pc-log=", 0) == 0) pc_log.insert(uint32_t(std::stoul(std::string(argv[i]).substr(7), nullptr, 0)));
         else if (std::string(argv[i]).rfind("win-trace=", 0) == 0) {
             const std::string v = std::string(argv[i]).substr(10); const size_t c = v.find(':');
             win_lo = std::stoull(v.substr(0,c)); win_hi = std::stoull(v.substr(c+1));
@@ -517,7 +520,8 @@ int run(int argc, char** argv) {
             uint32_t retire_pc = 0;
             const bool vector_hit = cpu->o_trace_uop_last &&
                 sscanf(trace.c_str(), "%x", &retire_pc) == 1 &&
-                retire_pc < 0x20 && retire_pc != 0x8 && retire_pc != 0x18 && retire_pc != 0x1c;
+                ((retire_pc < 0x20 && retire_pc != 0x8 && retire_pc != 0x18 && retire_pc != 0x1c) ||
+                 pc_log.count(retire_pc));
             if (cpu->o_trace_uop_last || instruction_abort) {
                 last_trace = trace;
                 if (!compact_trace || instruction_abort || vector_hit) instruction_log << std::dec << cycle << '\t' << trace << '\n';
