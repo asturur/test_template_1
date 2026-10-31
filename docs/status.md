@@ -1,5 +1,7 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 *** FLASH SCRAMBLER SOLVED - STOCK DIGEST 2c09c86f REPRODUCED (authenticity closed) *** see docs/firmware-integrity.md top. 16 GF(2) descramble formulas (build/firmware/thc/scrambler-model.json), each exact on 1.09M pairs; MD5 of the descrambled digest window == stock expected (independently verified). Authentic ROM now passes the native self-check without digest replacement; the 21%% gaps are decrypted. NEXT: assemble the fully-authentic descrambled ROM (the standard user-buildable boot ROM) and drop the NOS stub.
+
 ## 2026-10-31 CORRECTION + true root cause: the comms DB IS in ROM; an empty C: file shadows it (update made with Claude)
 
 CORRECTION to the two entries below (the "reconstruction dropped the comms
