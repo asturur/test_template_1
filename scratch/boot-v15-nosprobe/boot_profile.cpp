@@ -1137,7 +1137,18 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             else if (pa >= 0x02000000u && pa < 0x02400000u) off = uint64_t(pa) - 0x02000000u + 0x00700000u; // CS1
             else if (pa >= 0x04000000u && pa < 0x04800000u) off = uint64_t(pa) - 0x04000000u + 0x00b00000u; // CS2
             else { reason_ = "physical address not in the THC-dump bank map"; return false; }
-            if (off + 4 > rom_bytes_) { reason_ = "THC-dump has no bytes for this physical bank"; return false; }
+            if (off + 4 > rom_bytes_) {
+                // The 20.3MB dump is truncated relative to full flash: it covers
+                // the CS0-PPM bank only to physical ~0x770000. Reads above that
+                // land in the PPM-bank tail (physical 0x76c000..0x7f0000), which
+                // is erased/pristine flash (cipher-analysis.json) - the factory
+                // path served 0xFF here too. Serve erased 0xFF; anything else
+                // out of range is a real gap.
+                if (pa >= 0x0076c000u && pa < 0x007f0000u) {
+                    device = "thc_dump_ppm_tail_erased"; data = 0xffffffffu; return true;
+                }
+                reason_ = "THC-dump has no bytes for this physical bank"; return false;
+            }
             device = "thc_dump_flash_array";
             for (unsigned i = 0; i < 4; ++i) data |= uint32_t(rom_[off+i]) << (8*i);
             return true;
