@@ -1119,6 +1119,30 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         }
         break;
     }
+    // THC-dump mode: rom_ is the real phone's VA-0x50000000 snapshot, not a
+    // physical-flash image. Serve physical flash-bank reads by translating the
+    // physical address to the dump's VA offset via the verified bank map
+    // (scratch/nem440-flash-extract/verify.py): CS0 identity, CS1 at +0x700000,
+    // CS2 at +0xb00000, CS0-PPM bank at +0x1300000. The scrambled window's
+    // physical reads land on the dump's post-remap content (the descrambled
+    // twin) - acceptable, and the point of using the real dump.
+    if (rom_va_dump_) {
+        for (const Bank& bank : banks_) {
+            if (address < bank.address || uint64_t(address - bank.address) + 4 > bank.size) continue;
+            if (request.write) { reason_ = "unmodeled write to a ROM bank"; return false; }
+            uint64_t off;
+            const uint32_t pa = address;
+            if (pa < 0x00700000u)                         off = pa;                               // CS0
+            else if (pa >= 0x00700000u && pa < 0x007f0000u) off = uint64_t(pa) - 0x00700000u + 0x01300000u; // CS0 PPM bank
+            else if (pa >= 0x02000000u && pa < 0x02400000u) off = uint64_t(pa) - 0x02000000u + 0x00700000u; // CS1
+            else if (pa >= 0x04000000u && pa < 0x04800000u) off = uint64_t(pa) - 0x04000000u + 0x00b00000u; // CS2
+            else { reason_ = "physical address not in the THC-dump bank map"; return false; }
+            if (off + 4 > rom_bytes_) { reason_ = "THC-dump has no bytes for this physical bank"; return false; }
+            device = "thc_dump_flash_array";
+            for (unsigned i = 0; i < 4; ++i) data |= uint32_t(rom_[off+i]) << (8*i);
+            return true;
+        }
+    }
     for (const Bank& bank : banks_) {
         if (address >= bank.address && uint64_t(address - bank.address) + 4 <= bank.size) {
             device = "physical_flash_array";
