@@ -31,8 +31,16 @@ CORRECTIONS from the same researcher (2026-10-31), accepted:
     candidate layouts show the digest is unmatched so far, not impossible.
     The factory file's own record addresses (not dump aliases) are the
     sound basis for reconstructing the verifier's view; the parallel
-    investigation (docs/digest-authenticity-investigation.md) proceeds on
-    that basis.
+    investigation proceeded on that basis (findings in the untracked
+    claudia-handoff/NGAGE_MISTER_FINDINGS.md; scripts in
+    scratch/digest-authenticity/). OUTCOME: the IAT "plaintext in the
+    scrambled window" was a DUPLICATE copy record-addressed to CS0
+    0x3c86f0+ (inside XIP), not a descramble; 21 candidate assemblies all
+    fail the stock digest; no plaintext source exists anywhere in the
+    package for 584,944 bytes of the window ([0xa000,0x6e030) and
+    [0x725c0,0x9d280)). The remaining paths are a pre-remap device capture
+    or the read-side/programming transform - the same frontier as the
+    external researcher's handoff. authenticity_verified stays false.
 
 Checkpoint: [status.md](status.md). Verified read-only, 2026-10-27.
 
