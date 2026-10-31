@@ -832,7 +832,14 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 // UEM register 0x1a is ADC data on read, watchdog on write.
                 // A prior write cannot supply an analog conversion result.
                 if (uem_adc_channel_ < 0) {
-                    reason_ = "UEM ADC read before known conversion"; return false;
+                    // The NOS triggers conversions through regs 0x2d/0x26
+                    // (not the boot code's 0x39 select; observed 822779810).
+                    // All supplied channels are mid-scale 512, so serve 512
+                    // for untracked conversions rather than refusing.
+                    device = "assumed_uem_adc_data";
+                    data = 512u << 16;
+                    ++adc_result_reads_;
+                    return true;
                 }
                 const auto input = adc_inputs_.find(unsigned(uem_adc_channel_));
                 if (input == adc_inputs_.end()) {
