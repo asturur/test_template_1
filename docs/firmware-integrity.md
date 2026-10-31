@@ -19,6 +19,21 @@ digest experiments: see the integrity-hunt notes below and
 `scratch/nem440-flash-extract/`). Every run manifest records
 `authenticity_verified: false` for this reason.
 
+CORRECTIONS from the same researcher (2026-10-31), accepted:
+ 1. The status.md claim that "the 56-byte per-device hole sits inside the
+    digest window via the 0x300000 mirror" is UNSOUND: the mirror was
+    inferred from POST-REMAP phone-dump aliases (dump 0x300000..0x309fff ==
+    dump 0x0..0x9fff), but the digest runs BEFORE the remap, and the stock
+    factory MCU holds real, fully-supplied, distinct data at phys 0x300000+
+    (0x30012C included). A later remapping cannot establish what the
+    earlier verifier reads.
+ 2. "Provably unmatchable from the containers" is RETRACTED: ~90 failed
+    candidate layouts show the digest is unmatched so far, not impossible.
+    The factory file's own record addresses (not dump aliases) are the
+    sound basis for reconstructing the verifier's view; the parallel
+    investigation (docs/digest-authenticity-investigation.md) proceeds on
+    that basis.
+
 Checkpoint: [status.md](status.md). Verified read-only, 2026-10-27.
 
 The current stop is a firmware integrity rejection, not another unknown register.
