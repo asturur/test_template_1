@@ -1,5 +1,36 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 CORRECTION + true root cause: the comms DB IS in ROM; an empty C: file shadows it (update made with Claude)
+
+CORRECTION to the two entries below (the "reconstruction dropped the comms
+DB" / "adopt THC verbatim" thread): I had searched only the CORE SYM.ROM.
+The populated comms database IS present in our ROM - in extension.bin at
+0x1876d0 (= PPM flash bank, physical ~0x743c40; VA 0x50243c40 via the +0x500000
+remap), and in every real nem440.3xx PPM record. So the reconstruction did
+NOT drop it. The THC-dump-verbatim swap also cannot work: the dump is the
+CPU's post-remap VA SNAPSHOT, not a physical flash image, so the board's
+physical-bank reads (PPM 0x700000+) have no source and it stops at PA
+0x77001c (boot-v15-thcv2, cycle 113.8M). Keep the factory core+extension ROM.
+
+TRUE ROOT CAUSE of the empty comms DB: our C: image (cdrive-stamped-4mib.img)
+carries an empty 32-byte C:\System\Data\Cdbv2.dat (LFFS entry file offset
+115464, size field 0x20) that SHADOWS the populated z:\System\Data\cdbv2.dat
+in ROM. Symbian DBMS opens the C: copy if present, so phonetsy reads the
+empty database -> null row deref -> the 3.17e9 data abort. The empty C: file
+was created during the sim boot that we harvested the stamped image from
+(first-boot provisioning created it empty - why it didn't populate from the
+ROM default is the open "format/init" question: likely the CommsDat default-
+copy needs state the dead modem would provide, or ran before the ROM default
+was readable).
+
+SURGICAL FIX (no THC dump, no cipher): make DBMS use the ROM's populated
+default - either (a) remove/invalidate the empty C: Cdbv2.dat LFFS entry so
+DBMS falls back to z:\...\cdbv2.dat, or (b) write the populated DB into the
+C: entry. Both are LFFS edits on cdrive-stamped-4mib.img (log block +
+LFFS_MAGIC 0x503B3B60 checksums); then from-reset. This is the likely
+stable-UI unlock and needs no scrambler/modem work.
+
+
 ## 2026-10-31 THE COMMS-DB FIX INGREDIENT FOUND: populated cdbv2.dat exists in the firmware dumps (update made with Claude)
 
 The EtelServer data-abort (phonetsy->commdb->edbms, root-caused above) needs
