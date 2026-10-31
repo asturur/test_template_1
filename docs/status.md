@@ -1,5 +1,18 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (night 5) MILESTONE: authentic run crossed 1.2e9 cycles (update made with Claude)
+
+boot-v15-auth7 passed 1.2 BILLION cycles with no stop since 822.8M - a
+clean 370M+ stretch after the ADC-fallback fix. The NOS phone stack is up
+(MTC startup traces clean, PMM records written and verified, FBUS/MBUS
+initialized, periodic ticks + timer-unit polling pattern 0x0c120a24 at
+~40% of bus traffic = settling toward idle/scheduler cadence). Rolling
+checkpoints banked through roll-auth7-r1100; run budget 3.3e9 continues
+toward the app-side boot (stub lineage previously reached EtelServer at
+3.165e9). Watch item: if 0x0c120a24 polling share asymptotes to 100%, the
+NOS idle path is waiting on a timer-unit-1 interrupt the model does not
+raise - pin that bit next.
+
 ## 2026-10-31 (night 4) PMM write chain complete: program-data decode fix; frontier 821M+ (update made with Claude)
 
 The PMM write failure ("PMM Write failed" + hw_reset_generate, NOS reset
