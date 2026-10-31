@@ -582,7 +582,7 @@ int run(int argc, char** argv) {
             std::ofstream host(stem+".host",std::ios::binary); if(!host)throw std::runtime_error("checkpoint host unavailable"); save_host(host);
             std::cout << "CHECKPOINT " << stem << " cycle " << cycle << std::endl;
             rolling_checkpoints.push_back(stem);
-            if (rolling_checkpoints.size() > 10) {
+            if (rolling_checkpoints.size() > 30) {
                 std::remove((rolling_checkpoints.front()+".cpu").c_str());
                 std::remove((rolling_checkpoints.front()+".host").c_str());
                 rolling_checkpoints.pop_front();
