@@ -584,6 +584,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (address == 0x0c120114) {
             if (timer_irq_pending_ && timer_irq_enabled_) data = 1;       // source 0 + 1
             else if (uem_irq()) data = 2;                                 // source 1 + 1
+            else if (dma_irq()) data = 8;                                 // source 7 + 1 (LCD DMA done)
         }
         device = "assumed_icu_current"; return true;
     }
@@ -618,6 +619,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (request.write) reg = request.data;
         data = reg;
         ++icu_bank_accesses_;
+        // LCD DMA channel inside this bank (0x0c120340 block; display driver
+        // frame setup observed at 2.3002e9 2026-10-31): 0x354 source PA
+        // (SDRAM), 0x360 destination (0x10121208 = LCD data port through the
+        // DMA bus window), 0x36c word count - 1 (0x477f = one 176x208 frame),
+        // and 0x348 = 2 starts the transfer. The engine copies the frame and
+        // raises IRQ source 7 (driver pre-enables bank-0 bit 7 via 0x108).
+        // Burst/width registers 0x350/0x358/0x35c/0x364/0x368 are latched
+        // but not interpreted. Transfer is instantaneous (ideal clocks).
+        if (address == 0x0c120348 && request.write && request.data == 2) run_lcd_dma();
         device = "assumed_icu_bank"; return true;
     }
     // IRQ-ICU enable-set/clear and pending banks (e.g. ekeyb enabling its
@@ -637,10 +647,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                     // matching pending state. Unit 0x60 is a FIQ source and
                     // never appears in these IRQ banks.
                     if (uem_irq_source1_ && bank == 0 && (request.data >> 1 & 1)) uem_irq_pending_ = false;
+                    // LCD DMA done ack (source 7)
+                    if (bank == 0 && (request.data >> 7 & 1)) dma_done_pending_ = false;
                 }
                 data = icu_enable_[bank];
             }
-            else data = 0;
+            else data = bank == 0 && dma_done_pending_ ? 0x80u : 0;   // +0x10 pending
             ++icu_bank_accesses_;
             device = "assumed_icu_bank"; return true;
         }
@@ -1225,9 +1237,54 @@ namespace {
 template<class T> void state_write(std::ostream& out, const T& v) { out.write(reinterpret_cast<const char*>(&v), sizeof(v)); }
 template<class T> void state_read(std::istream& in, T& v) { in.read(reinterpret_cast<char*>(&v), sizeof(v)); }
 }
+void BootProfile::run_lcd_dma() {
+    // Perform the armed transfer: 0x354 source PA, 0x360 destination,
+    // 0x36c = words-1. Only the observed shape (SDRAM -> LCD data port) is
+    // modeled; anything else stops the run so the new use is seen, not
+    // silently mis-served.
+    const uint32_t src = keypad_regs_[0x0c120354];
+    const uint32_t dst = keypad_regs_[0x0c120360];
+    const uint32_t count = keypad_regs_[0x0c12036c] + 1;
+    // The destination is the LCD data port through the DMA bus window:
+    // 0x10000000 + (PA - 0x0c000000) (observed 0x10121208); a plain PA is
+    // accepted too.
+    if (!(dst == 0x10121208 || dst == 0x0c121208) || count > 0x40000 ||
+        src < 0x0a000000 || uint64_t(src - 0x0a000000) + 4ull*count > ram_.size()) {
+        reason_ = "unmodeled DMA channel programming"; return;
+    }
+    std::vector<uint32_t> words(count);
+    for (uint32_t i = 0; i < count; ++i) {
+        const size_t off = (src - 0x0a000000) + 4ull*i;
+        words[i] = uint32_t(ram_[off]) | uint32_t(ram_[off+1])<<8 |
+                   uint32_t(ram_[off+2])<<16 | uint32_t(ram_[off+3])<<24;
+    }
+    lcd_data_words_ += count;
+    if (lcd_dma_frames_.size() < 64)
+        lcd_dma_frames_.emplace_back(lcd_header_, std::move(words));
+    ++lcd_dma_transfers_;
+    dma_done_pending_ = true;
+}
+
+void BootProfile::dump_lcd_dma(std::ostream& out) const {
+    // bus.tsv-compatible rows (header write then data words per transfer),
+    // so render_lcd_frame.py reads this file unchanged. Cycle is a synthetic
+    // sequence number; the real arm cycles are in bus.tsv's 0x348 writes.
+    out << "cycle\toperation\taddress\tbyte_enable\tdata\tchannel\tdevice\n";
+    uint64_t seq = 1;
+    for (const auto& frame : lcd_dma_frames_) {
+        out << std::dec << seq++ << "\tWRITE\t0x0c121200\t0xf\t0x"
+            << std::hex << std::setw(8) << std::setfill('0') << frame.first
+            << "\tdata\tlcd_probe_transport\n";
+        for (uint32_t w : frame.second)
+            out << std::dec << seq++ << "\tWRITE\t0x0c121208\t0xf\t0x"
+                << std::hex << std::setw(8) << std::setfill('0') << w
+                << "\tdata\tlcd_probe_transport\n";
+    }
+}
+
 void BootProfile::save_state(std::ostream& out) const {
     // v2: full device-model state. Maps are written as count + (key,value).
-    const uint32_t version = 0x4e470005; state_write(out, version);
+    const uint32_t version = 0x4e470006; state_write(out, version);
     state_write(out, rom_tail_reads_); state_write(out, cbus_stage_); state_write(out, cbus_transactions_);
     state_write(out, cbus_config_); state_write(out, cbus_command_); state_write(out, uem_adc_channel_);
     state_write(out, adc_result_reads_); state_write(out, timer_remaining_); state_write(out, timer_elapsed_);
@@ -1261,10 +1318,13 @@ void BootProfile::save_state(std::ostream& out) const {
     state_write(out, uem_irq_pending_); state_write(out, uem_irqs_);
     state_write(out, unit1_running_); state_write(out, unit1_elapsed_); state_write(out, unit1_compare_); state_write(out, unit1_irqs_);
     n=epbus_clk_regs_.size(); state_write(out,n); for (const auto& item:epbus_clk_regs_) {state_write(out,item.first);state_write(out,item.second);}
+    // v6: LCD DMA engine state (captured frames are evidence, not firmware-
+    // visible state, and are NOT checkpointed; a resume re-captures).
+    state_write(out, dma_done_pending_); state_write(out, lcd_dma_transfers_);
     if (!out) throw std::runtime_error("failed to save board checkpoint");
 }
 void BootProfile::load_state(std::istream& in) {
-    uint32_t version=0; state_read(in,version); if (version < 0x4e470002 || version > 0x4e470005) throw std::runtime_error("board checkpoint version mismatch");
+    uint32_t version=0; state_read(in,version); if (version < 0x4e470002 || version > 0x4e470006) throw std::runtime_error("board checkpoint version mismatch");
     state_read(in,rom_tail_reads_); state_read(in,cbus_stage_); state_read(in,cbus_transactions_);
     state_read(in,cbus_config_); state_read(in,cbus_command_); state_read(in,uem_adc_channel_);
     state_read(in,adc_result_reads_); state_read(in,timer_remaining_); state_read(in,timer_elapsed_);
@@ -1329,6 +1389,15 @@ void BootProfile::load_state(std::istream& in) {
     if (version >= 0x4e470004) {
         state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint epbus-clk entries"); epbus_clk_regs_.clear();
         for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);epbus_clk_regs_[k]=v;}
+    }
+    if (version >= 0x4e470006) { state_read(in,dma_done_pending_); state_read(in,lcd_dma_transfers_); }
+    else { dma_done_pending_ = false; lcd_dma_transfers_ = 0; }
+    // Pre-v6 checkpoints predate the DMA engine: a transfer armed before the
+    // save (0x348 latched 2) was never served, and the driver is still
+    // blocked on it. Serve it now so the resume delivers the done IRQ.
+    if (version < 0x4e470006 && !lcd_dma_transfers_ && !dma_done_pending_) {
+        auto it = keypad_regs_.find(0x0c120348);
+        if (it != keypad_regs_.end() && it->second == 2) run_lcd_dma();
     }
     if (!in) throw std::runtime_error("truncated board checkpoint");
 }

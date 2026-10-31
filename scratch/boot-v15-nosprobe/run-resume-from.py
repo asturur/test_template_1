@@ -44,3 +44,6 @@ x=json.loads((out/'result.json').read_text());print('RESULT',x['status'],x['cycl
 screen=root/('build/sim/screens/boot-v15-'+NAME)
 capture=subprocess.run([sys.executable,'sim/capture_lcd_screen.py',str(out/'bus.tsv'),'--output',str(screen)],capture_output=True,text=True)
 print((capture.stdout if capture.returncode==0 else 'SCREEN NOT CAPTURED: '+capture.stderr).strip(),flush=True)
+for src in ('bus.tsv','lcd-dma.tsv'):
+ frames=subprocess.run([sys.executable,'scratch/tools/render_lcd_frame.py',str(out/src),str(screen)+'-frames'],capture_output=True,text=True)
+ print(src+': '+(frames.stdout or frames.stderr).strip(),flush=True)

@@ -508,6 +508,7 @@ int run(int argc, char** argv) {
     for (const std::string& line : memory_tail) memory_tail_log << line << '\n';
     {
         const std::string dir = (slash == std::string::npos ? "" : bus_path.substr(0,slash+1));
+        if (board) { std::ofstream dma(dir + "lcd-dma.tsv"); board->dump_lcd_dma(dma); }
         std::ofstream l1w(dir + "l1-writes.tsv"), l1f(dir + "l1-final.tsv");
         l1w << "cycle\taddress\tcovered_va\tentry\n";
         for (const std::string& line : l1_log) l1w << line << '\n';

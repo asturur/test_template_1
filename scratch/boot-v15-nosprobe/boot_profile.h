@@ -29,9 +29,15 @@ public:
     // pending 0x0c1201d0 and expects bit 3).
     bool unit60_fiq() const { return unit60_pending_ && (icu_mask2_[0] >> 3 & 1); }
     bool uem_irq() const { return uem_irq_pending_ && (icu_enable_[0] >> 1 & 1); }
-    bool timer_irq() const { return (timer_irq_pending_ && timer_irq_enabled_) || uem_irq(); }
+    // LCD DMA done (channel 0x0c120340; display driver enables IRQ bank-0
+    // bit 7 before starting a frame transfer, observed 2.3002e9 2026-10-31).
+    bool dma_irq() const { return dma_done_pending_ && (icu_enable_[0] >> 7 & 1); }
+    bool timer_irq() const { return (timer_irq_pending_ && timer_irq_enabled_) || uem_irq() || dma_irq(); }
     bool has_scheduled_interrupt() const { return timer_irq_delay_ && (timer_remaining_ || timer_irq_pending_ || periodic_remaining_ || unit60_remaining_ || unit60_pending_ || uem_irq_pending_ || unit1_running_); }
     void report(std::ostream& output) const;
+    // Writes DMA-transferred LCD frames in bus.tsv row format so
+    // render_lcd_frame.py reads the file unchanged.
+    void dump_lcd_dma(std::ostream& out) const;
     void save_state(std::ostream& out) const;
     void load_state(std::istream& in);
     const std::string& reason() const { return reason_; }
@@ -128,6 +134,12 @@ private:
     // checkpoint state; checkpoints must not straddle a pending UEM IRQ.
     bool uem_irq_source1_ = false, uem_irq_pending_ = false;
     uint64_t uem_irqs_ = 0;
+    // LCD DMA channel (0x0c120340 block): registers live in keypad_regs_
+    // (the generic 0x0c120300 latch bank); this is the transfer/IRQ state.
+    bool dma_done_pending_ = false;
+    uint64_t lcd_dma_transfers_ = 0;
+    std::vector<std::pair<uint32_t,std::vector<uint32_t>>> lcd_dma_frames_;  // (header at arm, words)
+    void run_lcd_dma();
     // epbus clock/power sub-block 0x0c120600..0x0c1206ff: epbus sweeps it
     // during peripheral init (writes 0x280 to +0x14, touches +0x04/+0x10/
     // +0x18/+0x24...). Modeled as RW word latches, reset 0 (unwritten reads 0).
