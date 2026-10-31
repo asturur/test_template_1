@@ -1,5 +1,27 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (night 3) FBUS/MBUS bring-up chain cleared via live NOS asserts; frontier 875M+ (update made with Claude)
+
+The captured NOS trace port now pays off: instead of inferring stops, the
+firmware PRINTS its own asserts and we fix exactly what it names.
+ - FBUS (Fbus_drv.c:502 "fbus_reg_tmp & HW_FBUS_TX_BUFF_EMPTY"): TX status
+   halfword is 0x0c150504; the gate needs (value & 0x1C0) == 0x1C0
+   (0x515bb720) and the flag reader also reports 0x10. Modeled drained
+   (|= 0x1D0 on read).
+ - System type (Hw_mbus.c:742 "Illegal system type"): getter 0x514c1604
+   reads GPIO strap halfword 0x0c150002 (bits 0x40/0x20/0x10/0x08 -> types
+   1..4; 5/6 via comm-RAM state byte), else ROM header [0x176] bit15, else
+   0 -> assert. NEM-4-straps-GSM hypothesis: reads of 0x0c150000 OR in bit
+   22 (type 1). Note the OR-in must live on the latches_ read path.
+ - MBUS command strobes 0x0c15021c (writers 0x515b9dxx strobe
+   0x8000/0x1000/0x800/0x10/0x8; poll 0x515ba000 waits for self-clear):
+   reads of the low halfword return 0; config half 0x21e stays a latch.
+ - New blocks gated: 0x0c100000 64KB (scattered regs incl. 0x3e8/0x1f4),
+   0x0d space minus trace sinks, 0x0c150800 FBUS/port block.
+Frontier: past 875M before the MBUS-strobe fix restart; the mbus/fbus
+drivers now initialize. PMM-based "Trace Activation Control Data not
+found" fallback is benign (erased PMM).
+
 ## 2026-10-31 (night 2) PMM flash writes, UEM scan, 0x0d peripherals: frontier 816.6M (update made with Claude)
 
 The NOS startup proceeded through its persistence + peripheral init:
