@@ -920,6 +920,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
          // halfword 0x2000 at boot-v15-auth7 730117115). Same zero-reset
          // latch hypothesis; block width unknown, 0x20 bytes allowed.
          (address >= 0x0c148000 && address < 0x0c148020) ||
+         // Sibling peripheral-unit blocks the NOS init touches after
+         // 0x148000 (literal sweep: 0x58142000-0c, 0x5814a000, 0x5814b000-4,
+         // 0x5814c000; first write observed 0x0c142000 at 800000406).
+         // Plain zero-reset latches; lock-bit semantics only added where a
+         // poll is observed.
+         (address >= 0x0c142000 && address < 0x0c142020) ||
+         (address >= 0x0c14a000 && address < 0x0c14a020) ||
+         (address >= 0x0c14b000 && address < 0x0c14b020) ||
+         (address >= 0x0c14c000 && address < 0x0c14c020) ||
          (address >= 0x0c150000 && address < 0x0c150600))) {
         if (request.select != 3 && request.select != 12 && request.select != 15) {
             reason_ = "unobserved keypad GPIO access width"; return false;
@@ -944,6 +953,13 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             data = (data & 0xffffu) | (uint32_t((cycles_ / 3174) & 0xffff) << 16);
         if (address == 0x0c150114 && !request.write && !(reg & 0xffffu) && (mask & 0xffffu))
             data = (data & ~0xffffu) | 0x0080u;
+        // 0x0c148000 clock-unit lock bit: after the NOS writes its config
+        // (0x2000 then 0x2490) it polls halfword bit 0 for lock (checker
+        // 0x515b7ef0: ldrh; ands #1; a zero latch spun 99.9% of the bus
+        // from 760M, boot-v15-auth7). Ideal-clock hypothesis like the PLL
+        // 0x0c149000 |1 model: the unit locks instantly.
+        if (address == 0x0c148000 && !request.write)
+            data |= 0x1u & mask;
         // euart1 TX status (PA 0x0c150514): the NOS's baseband-UART send
         // loop polls bit 2 (euart1 0x510e8a14 tst #4) for "TX idle" and a
         // zero latch spins it forever (boot-v15-stall1, 5.9e9). The modeled

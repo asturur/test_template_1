@@ -1,5 +1,20 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (later) NOS init frontier: 730M -> 800M+; clock-unit lock bits; sibling blocks (update made with Claude)
+
+With the calibration fix the authentic run marched 730.1M -> 829M+. New
+devices gated as hit:
+ - 0x0c148000 clock unit: NOS writes config 0x2000 then 0x2490 via
+   0x515b7e88 (validates targets {0x149000, 0x148000, 0x14a000}), then
+   polls halfword bit 0 for LOCK (checker 0x515b7ef0 ldrh/ands#1); zero
+   latch spun 99.9% of the bus from 760M. Model: reads return value|1
+   (ideal lock, like the PLL 0x0c149000 |1).
+ - Sibling unit blocks pre-gated as plain zero-reset latches after the
+   0x0c142000 write at 800.0M: 0x142000/0x14a000/0x14b000/0x14c000 (+0x20
+   each). Lock-bit reads only added where a poll is observed.
+Iteration now restores roll-auth7-r800 (new rolling checkpoints resumed
+once the run passed 800M); idle-c730 remains for the calibration window.
+
 ## 2026-10-31 Authentic path: NOS init marched to 730.1M; halt = USER-EXEC 3 panic (div/0 in delay calibration), counter modeled (update made with Claude)
 
 After the bit-25 clock fix the NOS hardware-init burst ran 729.42M->730.12M:
