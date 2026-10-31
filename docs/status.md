@@ -1,5 +1,28 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 ~08:30 HDL MIGRATION STARTED (user direction): rtl/ngage_board.v device 1 validated in lockstep; boot frontier = SysAp crash loop (update made with Claude)
+
+HDL (docs/hdl-migration.md is the plan): rtl/ngage_board.v on ZAP's
+wishbone claims migrated devices; unclaimed falls to the C++ model, which
+also shadows claimed accesses (divergence stops the run). Two binaries:
+build.py (C++-only, fast iteration, checkpoints untouched) and
+scratch/hdl-board/build-hdl.py (obj-boot-v15-hdl, hdl-* checkpoints;
+runner scratch/hdl-board/run-hdl-fresh.py). Savestates free via --savable.
+Device 1 = LCD transport: boot-v15-hdlab1 A/B, 36768 claims, ZERO
+divergence, identical white-clear capture. boot-v15-hdlogo (2.5e9, through
+the Nokia-logo DMA) validating at session close.
+
+BOOT FRONTIER (boot-v15-boot1, 9e9-12e9): the system is in an APP-CRASH
+LOOP - composite final screen (build/sim/screens/boot-v15-boot1-composite/)
+shows the N-GAGE splash + "App. closed" + "System error" dialogs with OK.
+SysAp dies repeatedly, almost certainly missing the System Agent charger/
+battery states that Nokia.dsy derives from NOS energy-management ISI
+answers (resource 0x17: 0x08->0x09 subblock 0x13 charger, 0x0A->0x0B
+subblock 0x16 battery bars; exact byte layouts in ngvm sw/kernel/chan.c).
+NEXT: the modem RX side - euart1 receive path (RX FIFO + RX interrupt in
+the board/stub) answering energy-management queries, then SysAp should
+survive and the boot proceed toward Startup/idle UI.
+
 ## 2026-10-31 ~06:30 *** MILESTONE 2: THE N-GAGE SPLASH RENDERS *** (update made with Claude)
 
 boot-v15-modem2 frame05 (archived in build/sim/screens/milestone-nokia-logo/):
