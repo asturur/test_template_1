@@ -1126,20 +1126,33 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // CS2 at +0xb00000, CS0-PPM bank at +0x1300000. The scrambled window's
     // physical reads land on the dump's post-remap content (the descrambled
     // twin) - acceptable, and the point of using the real dump.
-    if (rom_va_dump_ && !phys2dump_.empty()) {
+    if (rom_va_dump_) {
         for (const Bank& bank : banks_) {
             if (address < bank.address || uint64_t(address - bank.address) + 4 > bank.size) continue;
             if (request.write) { reason_ = "unmodeled write to a ROM bank"; return false; }
-            // Authoritative per-page translation from the real phone's captured
-            // VA->phys map (firmware/THC N-Gage ROM Dump/ngage-virt-phys-map.txt,
-            // inverted to phys-page -> dump VA offset). A physical page the real
-            // phone did not map is erased flash -> 0xFF. This is faithful to the
-            // real device per-page (incl. the +0x500000 remap), not hand-picked
-            // bank ranges.
-            auto it = phys2dump_.find(address >> 12);
-            if (it == phys2dump_.end()) { device = "thc_dump_erased"; data = 0xffffffffu; return true; }
-            const uint64_t off = uint64_t(it->second) + (address & 0xfff);
-            if (off + 4 > rom_bytes_) { device = "thc_dump_erased"; data = 0xffffffffu; return true; }
+            // Physical-CHIP -> dump-content map (scratch/nem440-flash-extract/
+            // verify.py): CS0 identity, CS1 at +0x700000, CS2 at +0xb00000, CS0
+            // PPM bank at +0x1300000. NOTE: this is the physical chip->dump
+            // relationship, NOT the captured MMU VA->phys map (ngage-virt-phys-
+            // map.txt) - that one is the steady-state MMU view and gives 0xFF
+            // for raw physical pages, which breaks reset-time physical reads
+            // (boot-v15-thcv5 died at cycle 2166). Physical reads hit the chips
+            // directly, so the chip layout is the correct source.
+            const uint32_t pa = address;
+            uint64_t off;
+            if (pa < 0x00700000u)                           off = pa;                                  // CS0
+            else if (pa >= 0x00700000u && pa < 0x007f0000u) off = uint64_t(pa) - 0x00700000u + 0x01300000u; // CS0 PPM bank
+            else if (pa >= 0x02000000u && pa < 0x02400000u) off = uint64_t(pa) - 0x02000000u + 0x00700000u; // CS1
+            else if (pa >= 0x04000000u && pa < 0x04800000u) off = uint64_t(pa) - 0x04000000u + 0x00b00000u; // CS2
+            else { reason_ = "physical address not in the THC-dump bank map"; return false; }
+            if (off + 4 > rom_bytes_) {
+                // PPM-bank tail (physical ~0x76c000..0x7f0000) is erased/pristine
+                // flash beyond the 20.3MB dump; the factory path served 0xFF too.
+                if (pa >= 0x0076c000u && pa < 0x007f0000u) {
+                    device = "thc_dump_ppm_tail_erased"; data = 0xffffffffu; return true;
+                }
+                reason_ = "THC-dump has no bytes for this physical bank"; return false;
+            }
             device = "thc_dump_flash_array";
             for (unsigned i = 0; i < 4; ++i) data |= uint32_t(rom_[off+i]) << (8*i);
             return true;
