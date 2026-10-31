@@ -609,7 +609,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // (current 0x114/154/194, banks 0x100..0x200, FIQ 0x1c0..0x260, timer
     // units 0xa00+). Modeled as plain RW latches; no interrupt is driven.
     if (icu_banks_ && request.select == 15 &&
-        ((address >= 0x0c120040 && address < 0x0c120100) ||
+        // 0x0c120074 is the SYSC74 register with its own handler (it sets
+        // sysc74_written_, which gates the timer compare); never steal it.
+        address != 0x0c120074 &&
+        ((address >= 0x0c120040 && address < 0x0c120100 && periodic_period_ != 0) ||
          (address >= 0x0c120300 && address < 0x0c120400))) {
         uint32_t& reg = keypad_regs_[address];
         if (request.write) reg = request.data;
@@ -881,10 +884,14 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // reads are zero (idle, no keys). Addresses already modelled elsewhere
     // (the specific latches_ entries and the 0x0c150010 UIF write, both handled
     // earlier) are left to those handlers. Opt-in standard GPIO-bank model.
+    // 0x0c150540..0x0c1505ff joined 2026-10-31: euart1 (NOS serial link,
+    // reached once ecust+0x90=3 from boot) pin-muxes via halfword 0x0c15056a
+    // (ekern VA-translation helper 0x50324608, offset literal 0x0015056a);
+    // same zero-reset latch hypothesis, function unverified.
     if (keypad_gpio_ && !latches_.count(address) && !probe_regs_.count(address) &&
         ((address >= 0x0c120c00 && address < 0x0c120c20) ||
          (address >= 0x0c14f000 && address < 0x0c14f100) ||
-         (address >= 0x0c150000 && address < 0x0c150500))) {
+         (address >= 0x0c150000 && address < 0x0c150600))) {
         if (request.select != 3 && request.select != 12 && request.select != 15) {
             reason_ = "unobserved keypad GPIO access width"; return false;
         }
