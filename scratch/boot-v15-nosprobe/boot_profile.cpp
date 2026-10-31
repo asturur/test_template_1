@@ -66,6 +66,15 @@ void BootProfile::tick() {
         uem_irq_pending_ = true;            // shared ICU source-1 pending
         ++unit1_irqs_;
     }
+    // UEM RTC 1Hz tick (2026-11-01): the NOS keeps UEM interrupt-status
+    // bit 4 unmasked (mask write 0xffef at 729.45M) and its RtcQueue needs
+    // 1Hz service; without it the kernel faults "RTC:" 0x10006 at 2.382e9
+    // (~23 modeled seconds; K::Fault via 0x50350284, cat str 0x503503a8).
+    // Raise ICU source 1 once per modeled second (104 MHz hypothesis);
+    // status reg 0x35 already reads 0x10 = bit 4. cycles_ is unserialized,
+    // so restores only shift the tick phase.
+    if (uem_irq_source1_ && timer_periodic_ && cycles_ % 104000000u == 0)
+        uem_irq_pending_ = true;
     if (!timer_irq_delay_) return;
     ++timer_elapsed_;
     if (timer_remaining_ && --timer_remaining_ == 0) {
