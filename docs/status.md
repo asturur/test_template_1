@@ -13,6 +13,11 @@ boot-v15-cts2 (to 10e9) in flight at session close - composite its
 updates with scratch/tools/composite_lcd_updates.py to see how far the
 shell gets. The EtelServer KERN-EXEC loop (below) was diagnosed on the
 NO-handshake lineage and may not recur with the modem present.
+BASELINE FACT (boot-v15-etelhunt module timeline): EtelServer executed
+ZERO instructions in 5.9-7e9 although its "App. closed" note shows at
+6.8e9 - it is killed at process-creation (loader/kernel), not by its own
+code; the note is queued by the undertaker. If it still dies in the
+handshake lineage, autopsy the LOADER path, not phonetsy.
 
 ## 2026-10-31 CONTINUATION GUIDE (final AI session; written with Claude)
 
