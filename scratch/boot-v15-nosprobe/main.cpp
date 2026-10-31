@@ -81,6 +81,7 @@ int run(int argc, char** argv) {
     std::vector<uint8_t> rom_tail, nos_image, cdrive_image, nos_iat_region;
     std::map<uint32_t,uint32_t> nos_iat;
     std::map<unsigned,unsigned> adc_inputs, adc_extra;
+    int uem_power_extra = -1;  // post-signature override, see uem-adc-extra
     std::map<uint32_t,std::pair<uint32_t,uint8_t>> probe_regs;
     std::map<int,int> cbus_inputs;
     uint64_t timer_irq_delay = 0, checkpoint_at = 0, checkpoint_every = 0, win_lo = 0, win_hi = 0;
@@ -201,6 +202,12 @@ int run(int argc, char** argv) {
         } else if (std::string(argv[i]).rfind("uem-adc=", 0) == 0) {
             if (!adc_inputs.empty()) throw std::runtime_error("duplicate ADC input option");
             adc_inputs = BootProfile::parse_adc_inputs(std::string(argv[i]).substr(8));
+        } else if (std::string(argv[i]).rfind("uem-power-status-extra=", 0) == 0) {
+            // Power-on-reason override merged AFTER the checkpoint signature
+            // (environment, not machine state): UEM reg 0x3f value. Bit 0 =
+            // power key held (hypothesis); with 0 the NOS powers itself off
+            // at ~2.38e9 (observed deliberate shutdown, no panic dump).
+            uem_power_extra = int(number(std::string(argv[i]).substr(23)));
         } else if (std::string(argv[i]).rfind("uem-adc-extra=", 0) == 0) {
             // Extra analog inputs merged AFTER the checkpoint signature is
             // computed: ADC values are environment (battery temp/size/...),
@@ -240,7 +247,8 @@ int run(int argc, char** argv) {
     std::unique_ptr<BootProfile> board;
     std::map<unsigned,unsigned> adc_all = adc_inputs;
     for (const auto& e : adc_extra) adc_all[e.first] = e.second;  // signature never sees these
-    if (profile_name != "none") board = std::make_unique<BootProfile>(rom, rom_bytes, profile_name, ideal_clocks, lcd_probe, rom_tail, boot_io_probe, adc_all, timer_irq_delay, uem_power_status, uem_status36, uem_status35, extra_cbus_write, extra_cbus_write2, allow_uif_8000, allow_icu25, gpio210_low_zero, gpio21a_zero, gpio216_zero, uif102_write, cbus82_readback, cbus80_input, cbus8d_zero, icu46_write, pupf00a_zero, sysc0c14_zero, probe_regs, gpio214_low_zero, pupf004_low_zero, gpio206_extra_write, sysc74_write3, gpio24_28_write1, timer_compare_probe, sysc50_44_probe, icu1c8_probe, timer_periodic, block14d_probe, debug59_sink, cbus_inputs, nos_entry_stub, keypad_gpio, icu_banks, timer_units, cdrive_flash, unit60_irq3, nos_image, uem_irq_source1, epbus_clkblk, cdrive_image, nos_iat, nos_periph4000);
+    const int uem_power_eff = uem_power_extra >= 0 ? uem_power_extra : uem_power_status;
+    if (profile_name != "none") board = std::make_unique<BootProfile>(rom, rom_bytes, profile_name, ideal_clocks, lcd_probe, rom_tail, boot_io_probe, adc_all, timer_irq_delay, uem_power_eff, uem_status36, uem_status35, extra_cbus_write, extra_cbus_write2, allow_uif_8000, allow_icu25, gpio210_low_zero, gpio21a_zero, gpio216_zero, uif102_write, cbus82_readback, cbus80_input, cbus8d_zero, icu46_write, pupf00a_zero, sysc0c14_zero, probe_regs, gpio214_low_zero, pupf004_low_zero, gpio206_extra_write, sysc74_write3, gpio24_28_write1, timer_compare_probe, sysc50_44_probe, icu1c8_probe, timer_periodic, block14d_probe, debug59_sink, cbus_inputs, nos_entry_stub, keypad_gpio, icu_banks, timer_units, cdrive_flash, unit60_irq3, nos_image, uem_irq_source1, epbus_clkblk, cdrive_image, nos_iat, nos_periph4000);
     if (board && !nos_iat_region.empty()) board->set_nos_iat_region(std::move(nos_iat_region));
     if (board && watch_word >= 0) board->set_watch_word(uint32_t(watch_word));
     if (board && rom_va_dump) board->set_rom_va_dump();
