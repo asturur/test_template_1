@@ -1,5 +1,35 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 THE COMMS-DB FIX INGREDIENT FOUND: populated cdbv2.dat exists in the firmware dumps (update made with Claude)
+
+The EtelServer data-abort (phonetsy->commdb->edbms, root-caused above) needs
+a POPULATED comms database. It exists - NOT in the ROM CPU-view dump (that
+only has the path string z:\System\Data\DefaultCdbv2.dat and the copier
+code; the actual file is absent, as ngvm also found), but in the firmware
+Z:/disk dumps:
+  - firmware/Nokia N-Gage/Data/drives/z/NEM-4/System/Data/cdbv2.dat  (7,925 B, NEM-4 - USE THIS)
+  - firmware/Nokia N-Gage/Data/drives/z/RH-29/System/Data/cdbv2.dat  (7,925 B)
+  - firmware/disk_dump/Z/System/Data/cdbv2.dat                        (9,066 B)
+Our C: image (cdrive-stamped-4mib.img) has only an EMPTY 32-byte Cdbv2.dat
+(LFFS entry at file offset 115464; size field 0x20) that our own first boot
+created because the copier found no DefaultCdbv2.dat source.
+
+THE FIX (authentic, matches how a real phone provisions it): get the
+populated cdbv2.dat onto C: before phonetsy reads it (~3.17e9). Two blockers
+to clear together: (1) no DefaultCdbv2.dat in ROM to copy from; (2) an empty
+Cdbv2.dat already on C: makes the copier SKIP. So either:
+  A. Inject the NEM-4 cdbv2.dat directly as C:\System\Data\Cdbv2.dat in the
+     LFFS image (grow the 32-byte entry to 7,925 B - needs an LFFS writer:
+     log block + per-block LFFS_MAGIC 0x503B3B60 checksums, see
+     scratch/tools/extract_cdrive.py for the format), then from-reset; OR
+  B. Add it to the ROMFS as z:\System\Data\DefaultCdbv2.dat AND start from
+     a C: WITHOUT Cdbv2.dat so the firmware's own copier populates it
+     authentically (ROMFS insertion + removing the empty C: file + new digest
+     + from-reset).
+Path A is fewer moving parts. Either invalidates checkpoints (from-reset).
+This is the concrete next step to the stable main screen.
+
+
 ## 2026-10-31 ROOT CAUSE of the EtelServer crash: empty comms database (phonetsy->commdb->edbms data abort) (update made with Claude)
 
 The "App. closed: EtelServer / System error" loop traced to its exact origin
