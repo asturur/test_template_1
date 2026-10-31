@@ -1,5 +1,23 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 ROOT CAUSE of the EtelServer crash: empty comms database (phonetsy->commdb->edbms data abort) (update made with Claude)
+
+The "App. closed: EtelServer / System error" loop traced to its exact origin
+(boot-v15-deathrun, full instruments from reset): a DATA ABORT at cycle
+3,165,666,171 (3.17e9 - BILLIONS of cycles before the dialog; the UI draws
+the note only once it can). Chain, romsyms-named: phonetsy!ord1+0x1d708 ->
+commdb!ord52 -> edbms!ord179 (DBMS server) -> load abort. ETel's PhoneTSY
+plugin queries the comms database for a modem/connection record. EXACTLY
+ngvm's launch.c note: Cdbv2.dat (C:\System\Data) is EMPTY because the modem
+never populates it -> deref of a row that does not exist -> fault. ngvm adds
+one modem (the phone's data port) to the empty table as the fix. NEXT, the
+real stable-UI gate: a populated Cdbv2.dat (>=1 modem record) on C:, or the
+modem path that fills it - C:-content/modem work, not a hardware register.
+Resume base roll-deathrun-r3100 (checkpoint retention now 30). Instruments
+that found it (KEEP): always-on exception-vector retirement logging,
+watch-word=, pc-log=.
+
+
 ## 2026-10-31 RETRACTION + vector logging (update made with Claude)
 
 The "status pane breakthrough" below-mentioned handshake mirror at
