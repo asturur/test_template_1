@@ -1,5 +1,58 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 CONTINUATION GUIDE (final AI session; written with Claude)
+
+State: both boot logos render (pixel-matched to ngvm); boot reaches real UI
+and loops on EtelServer KERN-EXEC panics (~every 3.8e9 cycles: splash ->
+"App. closed: EtelServer" -> System error -> re-splash). HDL migration live
+with 2 devices lockstep-validated.
+
+THE WORKFLOW (all commands from repo root; sims in jotego/simulator:arm64):
+ - C++ fast lineage: python3 scratch/boot-v15-nosprobe/build.py (rebuild);
+   run-roll.py BUDGET NAME RESTORE (resume w/ rolling checkpoints roll-NAME-r*,
+   keep 10); run-fresh.py BUDGET NAME '' 0 (from reset). Board unit tests:
+   cd scratch/boot-v15-nosprobe && c++ -std=c++17 -O1 -o /tmp/t \
+   test_boot_profile.cpp boot_profile.cpp && /tmp/t   (28 PASS expected).
+ - HDL lineage: python3 scratch/hdl-board/build-hdl.py; run-hdl-fresh.py.
+   Any read divergence or ownership mismatch vs the C++ oracle stops the
+   run with status hdl_divergence and the exact access in bus.tsv.
+ - Autopsy toolkit (minutes each): resume near the point with win-trace
+   (run-resume-from.py BUDGET NAME LO:HI 0 CHECKPOINT), symbolize with
+   scratch/tools/symtrace.py --mods; kernel-heap UTF-16 name diff across
+   roll checkpoints finds where progress stops; stack-scan clusters +
+   romsyms name blocked calls; scratch/tools/inspect_checkpoint.py for
+   thread objects; render frames with scratch/tools/render_lcd_frame.py
+   (NOTE: skips updates < 9152 words; composite script pattern in
+   build/sim/screens/boot-v15-modem2-composite + the git log).
+
+NEXT BOOT TASK (in flight at session end): EtelServer KERN-EXEC autopsy.
+roll-crashhunt-r* checkpoints approach the next death (~10.6e9 in the
+modem2 lineage). Procedure: resume the nearest checkpoint with a narrow
+win-trace just before the death, find the faulting PC/access in the tail
+of instructions.tsv, then fix the root (likely a modem-dependent value:
+phonetsy/NOS). After EtelServer survives, expect the energy-management ISI
+need (SysAp charger/battery): the authoritative spec for every ISI answer
+is ~/develop/n-gage/sw/kernel/chan.c (NOSDRIVER + energy + IMEI/IMSI + DSP).
+
+MODEM (user mandate: software modem now, HDL modem later): euart1 is the
+NOS-to-baseband UART. Known: status 0x0c150514 bit2=TX idle (board serves
+it set); register tokens listed via the euart1 literal pool (see git log
+8be6055 analysis); RX machinery = interrupt object via ekern ord30 bind /
+ord112 enable (source number not yet identified). TX bytes do NOT stream
+through the GPIO latch window - the send path was not observed writing a
+data FIFO; find it before building RX (suspect another DMA channel or the
+0x0c14f008 block).
+
+HDL NEXT: device 3 = timers/ICU banks (interrupt heartbeat; ngage_board
+grows irq/fiq outputs that main.cpp ORs into i_irq/i_fiq). Then CBUS/UEM.
+Then flash. SDRAM+LCD-DMA last, then the MiSTer top (Template.sv + sys/).
+
+STANDARD ROM: firmware/MCU/extracted/products/NEM-4/nem440.3c1 (KEEP
+AS-IS) + the DCT4 de-framing (10-byte headers, stride 0x200a, 0x2000
+data/record; builder evidence in git log 9479b59) is the path to a
+user-buildable boot ROM; the IAT plaintext already ships as
+build/firmware/thc/nos-iat-region-0x6e030.bin.
+
 ## 2026-10-31 ~08:30 HDL MIGRATION STARTED (user direction): rtl/ngage_board.v device 1 validated in lockstep; boot frontier = SysAp crash loop (update made with Claude)
 
 HDL (docs/hdl-migration.md is the plan): rtl/ngage_board.v on ZAP's
