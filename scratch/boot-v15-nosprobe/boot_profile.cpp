@@ -1088,6 +1088,13 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     }
     if (address >= ram_base_ && uint64_t(address - ram_base_) + 4 <= ram_.size()) {
         device = "physical_ram";
+        // Diagnostic word watch (watch-word= option): a full-word RAM write
+        // of the watched value is tagged so it appears in compact bus logs.
+        // Used to catch the kernel copying a panic category ("KERN-EXEC"
+        // first word 0x0045004b) into a fresh heap record, which no PC- or
+        // vector-level instrument sees (2026-10-31 EtelServer hunt).
+        if (watch_word_set_ && request.write && request.select == 15 && request.data == watch_word_)
+            device = "watched_word_write";
         const size_t offset = address - ram_base_;
         for (unsigned i = 0; i < 4; ++i) {
             if (request.write && (request.select & (1u << i)))

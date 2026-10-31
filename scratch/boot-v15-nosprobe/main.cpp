@@ -61,6 +61,7 @@ int run(int argc, char** argv) {
     std::map<int,int> cbus_inputs;
     uint64_t timer_irq_delay = 0, checkpoint_at = 0, checkpoint_every = 0, win_lo = 0, win_hi = 0;
     std::set<uint32_t> pc_log;   // pc-log=0xADDR: always log retirements at these PCs
+    int64_t watch_word = -1;     // watch-word=0xVAL: tag full-word RAM writes of VAL
     std::string checkpoint_path, restore_path;
     int uem_power_status = -1, uem_status36 = -1, uem_status35 = -1, extra_cbus_write = -1, extra_cbus_write2 = -1, cbus80_input = -1;
     for (int i = 9; i < argc; ++i) {
@@ -102,6 +103,7 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]).rfind("checkpoint-at=", 0) == 0) checkpoint_at = std::stoull(std::string(argv[i]).substr(14));
         else if (std::string(argv[i]).rfind("checkpoint-every=", 0) == 0) checkpoint_every = std::stoull(std::string(argv[i]).substr(17));
         else if (std::string(argv[i]).rfind("pc-log=", 0) == 0) pc_log.insert(uint32_t(std::stoul(std::string(argv[i]).substr(7), nullptr, 0)));
+        else if (std::string(argv[i]).rfind("watch-word=", 0) == 0) watch_word = int64_t(std::stoul(std::string(argv[i]).substr(11), nullptr, 0));
         else if (std::string(argv[i]).rfind("win-trace=", 0) == 0) {
             const std::string v = std::string(argv[i]).substr(10); const size_t c = v.find(':');
             win_lo = std::stoull(v.substr(0,c)); win_hi = std::stoull(v.substr(c+1));
@@ -195,6 +197,7 @@ int run(int argc, char** argv) {
     std::unique_ptr<BootProfile> board;
     if (profile_name != "none") board = std::make_unique<BootProfile>(rom, rom_bytes, profile_name, ideal_clocks, lcd_probe, rom_tail, boot_io_probe, adc_inputs, timer_irq_delay, uem_power_status, uem_status36, uem_status35, extra_cbus_write, extra_cbus_write2, allow_uif_8000, allow_icu25, gpio210_low_zero, gpio21a_zero, gpio216_zero, uif102_write, cbus82_readback, cbus80_input, cbus8d_zero, icu46_write, pupf00a_zero, sysc0c14_zero, probe_regs, gpio214_low_zero, pupf004_low_zero, gpio206_extra_write, sysc74_write3, gpio24_28_write1, timer_compare_probe, sysc50_44_probe, icu1c8_probe, timer_periodic, block14d_probe, debug59_sink, cbus_inputs, nos_entry_stub, keypad_gpio, icu_banks, timer_units, cdrive_flash, unit60_irq3, nos_image, uem_irq_source1, epbus_clkblk, cdrive_image, nos_iat);
     if (board && !nos_iat_region.empty()) board->set_nos_iat_region(std::move(nos_iat_region));
+    if (board && watch_word >= 0) board->set_watch_word(uint32_t(watch_word));
     rom.resize(std::max<size_t>(65536, (rom.size() + 63) & ~size_t(63)), 0);
     std::vector<uint8_t> ram(4 * 1024 * 1024, 0);
     std::array<uint32_t, 16> mailbox{};
@@ -425,7 +428,7 @@ int run(int argc, char** argv) {
             }
             if (!compact_trace || bus_fault || device == "flash_command" || device == "flash_identify" ||
                 device == "observed_boot_latch" || device == "ideal_clock_status" ||
-                device == "ideal_pll_status" || device == "lcd_probe_transport" || device == "reconstructed_flash_tail" || device == "ideal_boot_cbus_status" || device == "boot_cbus_latched_data" || device == "assumed_uem_adc_data" || device == "assumed_icu1c8_write" || device == "assumed_sysc50_44_write" || device == "assumed_gpio24_28_write1" || device == "assumed_sysc74_write3" || device == "assumed_register_probe" || device == "assumed_cbus82_readback" || device == "assumed_cbus80_input" || device == "assumed_cbus_input" || device == "assumed_cbus8d_read" || device == "assumed_uem_power_status" || device == "assumed_uem_status36" || device == "assumed_uem_status35" || device == "assumed_timer_status" || device == "assumed_icu_current" || device == "assumed_block14d_probe" || device == "assumed_debug59_write" || device == "assumed_debug59_control" || device == "synthetic_nos_entry_stub" || device == "synthetic_nos_power_model" || device == "assumed_keypad_gpio" || device == "assumed_icu_bank" || device == "assumed_timer_unit" || device == "cdrive_flash" || device == "assumed_irq_halfword_write" || device == "assumed_uif_8000_write" || device == "assumed_uif_0010_write" || device == "assumed_icu46_write" || device == "timer_setup_write")
+                device == "ideal_pll_status" || device == "lcd_probe_transport" || device == "reconstructed_flash_tail" || device == "ideal_boot_cbus_status" || device == "boot_cbus_latched_data" || device == "assumed_uem_adc_data" || device == "assumed_icu1c8_write" || device == "assumed_sysc50_44_write" || device == "assumed_gpio24_28_write1" || device == "assumed_sysc74_write3" || device == "assumed_register_probe" || device == "assumed_cbus82_readback" || device == "assumed_cbus80_input" || device == "assumed_cbus_input" || device == "assumed_cbus8d_read" || device == "assumed_uem_power_status" || device == "assumed_uem_status36" || device == "assumed_uem_status35" || device == "assumed_timer_status" || device == "assumed_icu_current" || device == "assumed_block14d_probe" || device == "assumed_debug59_write" || device == "assumed_debug59_control" || device == "synthetic_nos_entry_stub" || device == "synthetic_nos_power_model" || device == "assumed_keypad_gpio" || device == "assumed_icu_bank" || device == "assumed_timer_unit" || device == "cdrive_flash" || device == "assumed_irq_halfword_write" || device == "assumed_uif_8000_write" || device == "assumed_uif_0010_write" || device == "assumed_icu46_write" || device == "timer_setup_write" || device == "watched_word_write")
             bus_log << std::dec << cycle << '\t' << (bus_fault ? "FETCH_ERROR" : request.write ? "WRITE" : "READ")
                     << "\t0x" << std::hex << std::setw(8) << std::setfill('0') << request.address
                     << "\t0x" << unsigned(request.select) << "\t0x"
