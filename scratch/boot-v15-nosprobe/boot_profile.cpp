@@ -917,6 +917,14 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // modem UART always drains: bit 2 reads set. Hypothesis from the
         // polling disassembly; the real bit meaning is unverified.
         if (address == 0x0c150514 && !request.write) data |= 0x4u & mask;
+        // Modem handshake sense (PA 0x0c150208): polled every ~1.2M cycles
+        // reading the upper halfword (always 0 = modem absent); the NOS
+        // never queues a TX frame. EXPERIMENT (2026-10-31): the modeled
+        // modem mirrors the host's own handshake bit (lower-half write
+        // 0x1000 observed) back on the sense half, as a wired-ready line.
+        // Unverified hardware; remove if it regresses.
+        if (address == 0x0c150208 && !request.write)
+            data |= ((reg & 0xffffu) << 16) & mask;
         device = "assumed_keypad_gpio"; return true;
     }
     // REAL NOS/GSM module payload (THC live-device dump, docs/references.md),
