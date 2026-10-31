@@ -1,5 +1,24 @@
 # Embedded core digest mismatch
 
+## 2026-10-31 standing disclosure (external researcher confirmed; note written with Claude)
+
+Every booting image in this project (the `digest-probe*` variants under
+`build/firmware/nem4-factory/`) REPLACES the core's embedded expected MD5 so
+the firmware self-check passes: original `2c09c86ff047484fdcc0e226f49c44a9`
+is rewritten to the digest of the image as the board serves it
+(`ac2ac9c5f124474da267441833e63c61` for the plain factory assembly;
+`bc60db40d0c9ca752721b76cf30b07a1` with the synthetic NOS stub overlaid).
+The Nokia/N-Gage logo milestones therefore do NOT demonstrate that the
+original integrity check verifies authentic content - they demonstrate the
+boot path beyond it. An independent researcher computed the same
+`ac2ac9c5...` from their raw MCU image, confirming our factory assembly is
+byte-identical to theirs AND that neither it nor the THC dump
+(`1784c17a...`) matches the original embedded value. What input the real
+check hashes to `2c09c86f...` is an open question (candidate hypotheses and
+digest experiments: see the integrity-hunt notes below and
+`scratch/nem440-flash-extract/`). Every run manifest records
+`authenticity_verified: false` for this reason.
+
 Checkpoint: [status.md](status.md). Verified read-only, 2026-10-27.
 
 The current stop is a firmware integrity rejection, not another unknown register.
