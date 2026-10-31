@@ -1,5 +1,19 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (night 4) PMM write chain complete: program-data decode fix; frontier 821M+ (update made with Claude)
+
+The PMM write failure ("PMM Write failed" + hw_reset_generate, NOS reset
+park 0x514c11ae) had two model bugs, both pinned from the bus evidence:
+ 1. After a 0x60 lock-op the driver READS the sector lock status (one
+    read, then 0xF0): reads in lock-op mode now return 0x0001=protected.
+ 2. CRITICAL ordering bug: program DATA halfwords can hold command-looking
+    values - the driver programs 0x0060 at 0x7f003e; v1 decoded it as a
+    lock-op command and the verify read mismatched. Data cycles
+    (AMD unlock==6, Intel program-pending) now decode BEFORE any command
+    value matching in flash_command.
+Also: 0x0c100000 64KB block gated; latch family accepts byte lanes.
+Frontier: past 821M and cruising; next rolling checkpoint r900.
+
 ## 2026-10-31 (night 3) FBUS/MBUS bring-up chain cleared via live NOS asserts; frontier 875M+ (update made with Claude)
 
 The captured NOS trace port now pays off: instead of inferring stops, the
