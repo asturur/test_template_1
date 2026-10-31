@@ -1,5 +1,108 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (overnight autonomous session) VALUE-3 LINEAGE: four fixes deep, LCD DMA engine modeled, authentic NOS IAT recovered from the user's Nokia data package (update made with Claude)
+
+LINEAGE: from reset with ecust+0x90=3 (stub sets it at 729M). This is the
+authentic path and it boots DIFFERENTLY from the patched-checkpoint lineage:
+NOS dispatch and euart1 run, display driver uses DMA, SplashScreen loads.
+
+Fix chain this session (each found by rolling-checkpoint autopsy in minutes):
+ 1. helper request 1 completed by pread2 (chan,1,100) - splash gate.
+ 2. ZAP mode16 decoder: wrong-path literal-pool fetch no longer $fatal
+    (decodes to UND; apmime 0x47ec literal). RTL change.
+ 3. NOS IAT slot 0x71214 broken (scrambled flash) -> crash at 2.9559e9;
+    AUTHENTIC value 0x503a26f4 (euser!ord855) recovered from firmware/MCU.
+ 4. euart1 pin-mux 0x0c15056a -> GPIO bank probe window grown to 0x600.
+ 5. LCD DMA ENGINE (the display frontier): driver arms 0x0c120340 block
+    (src 0x354=SDRAM frame, dst 0x360=0x10121208 = LCD data port via DMA
+    window 0x10000000+(PA-0x0c000000), count 0x36c=words-1, start 0x348=2,
+    done IRQ source 7, enable bank-0 bit7 via 0x108, current 0x114 reads 8,
+    ack bank-0 +0x0c bit7, pending +0x10 reads 0x80). Without it the white
+    clear stalled forever after its header (2.3002e9). Board checkpoint v6;
+    pre-v6 resumes with an armed transfer serve it at load. Frames are
+    captured to lcd-dma.tsv (bus.tsv format) and rendered by the runners.
+
+AUTHENTIC IAT (ends the per-slot RE loop): firmware/MCU is Nokia's NEM-4
+4.03 flashing data package; nem440.3c1 (DCT4 file: 10-byte record headers,
+stride 0x200a, 0x2000 data/record) holds the THC-scrambled IAT region in
+plaintext. De-framed copy: firmware/MCU/nos-iat-region-0x6e030.bin (+ copy in
+build/firmware/thc/). Anchor proof: slot 0x71c38 reads exactly the
+independently-RE'd 0x503a2f64. Every future broken NOS import: read the
+value from this file, add nos-iat=0xPA=0xVAL. NOTE: .3c1's NOS BODY at
+0x9d288 DIFFERS from the THC dump (unresolved; THC body is what boots).
+firmware/MCU/extracted/products/NEM-4/ nem440.* are KEEP-AS-IS (user).
+
+INFRA: rolling checkpoints now use PER-RUN stems (roll-<name>-r<M>) after
+logo7/logo8 deleted logo6's saves (keep-10 crossed runs). Sim logs keep
+head+tail (fatal lines survive warning floods).
+
+## 2026-10-31 DEEPEST BOOT YET: Starter/wserv/fbserv/ewsrv up, LCD driver init at 4.02e9; blocker = helper request 1 never COMPLETED; fix = pread(id 12) calls the kernel completion itself (update made with Claude)
+
+Status of the gate chain after the value-3 + pread-100 run (boot-v15-logo3r,
+resume of fresh-c2600-v3 = fresh-c2600 with ecust+0x90 patched 0->3):
+
+  WORKED: ecust spin passes, helper loads, DosServer + SharedDataServer +
+  Starter.exe + Windowserver + FbServ + EwSrv + Lcd.LDD + NOSDRIVER.LDD all
+  born by 4.3e9 (kernel-heap name diff r4000->r4300). Lcd.LDD pushes real
+  LCD command traffic at 4.02e9. Deepest LLE boot so far.
+
+  STALLED at 4.3e9 (r4300==r4600==r4900 heap, only idle/tick/ekeyb runs in a
+  6M traced window): NO SplashScreen, no frame.
+
+  AUTOPSY (roll-r4900 stack walks, romsyms-symbolized):
+   - Starter blocked: sysutil!ord4 -> dsclient!ord20 (DosServer client
+     SendReceive) -> User::WaitForRequest. Waiting on DosServer's answer.
+   - DosServer/Nokia.dsy blocked: nokia+0x1842 builds TVersion(1,0,1), opens
+     "HelperDrv" (TLitC at 0x50fcb078), fires ASYNC request 1 with
+     TRequestStatus=KRequestPending on its stack, then User::WaitForRequest
+     forever. So returning 100 from pread does NOT complete the client's
+     request - the LDD framework ignores helper's Request() return value.
+   - helper.ldd async path disasm (0x50384240-70): pread(iface, 12,
+     chan+0x44, chan+0x54), then plain return; the SYNC path completes via
+     0x50384828(chan, 1, 100) -> ekern 0x50334fcc (thread=[chan+0x14],
+     status slot = chan + 4*reqno + 0x18). The NOS must do the same.
+
+  FIX (committed): stub pread id 12 now calls 0x50384828(r2-0x44, 1, 100)
+  itself (guard: only when r3==r2+0x10, helper's exact register shape, so
+  ecust's own pread users stay on the zero-fill path), returns KErrNone.
+  Run boot-v15-logo4 (resume roll-r4000 -> 5.2e9) is validating.
+
+  ALSO RULED OUT this session: nosdriver.ldd never calls its two NOS imports
+  (0x514a0a50/0x514a13cc, PA 0xa0a50/0xa13cc in the THC nos-image window) -
+  zero accesses in the whole run, so no ISI traffic is pending at this stage.
+  ngvm's chan.c NOSDRIVER model (ISI COMMON_MESSAGE 0xF0 / NOT_IDENTIFIED
+  0x01 default reply, energy 0x17 -> SysAgent charger/battery) is the spec
+  for the NEXT stage, after the splash.
+
+INFRA (new, keep using):
+ - ROLLING CHECKPOINTS: sim option checkpoint-every=N (+checkpoint=stem)
+   writes stem-r<Mcycle> every N cycles, keeps the last 10 (main.cpp).
+   run-roll.py [budget] [name] [restore] resumes WITH rolling checkpoints to
+   build/sim/checkpoints/roll-r*; it also renders any drawn frame via
+   scratch/tools/render_lcd_frame.py. Iterations are minutes, not 80-minute
+   from-resets: resume the newest roll-r* before the point of interest.
+ - CHECKPOINT PATCHING: use inspect_checkpoint.py's va_off (MMU page walk)
+   NOT the identity VA-0x80000000 guess (ecust+0x90 is SDRAM off 0xfe0110,
+   file off = sdram_start + va_off). fresh-c2600-v3 = patched valid state 3.
+ - CACHE GOTCHAS for blob changes on resume: new stub CODE only takes
+   effect on an I-cache refill. The idle hook polls pread(iface13, id 13)
+   keeping its lines hot, but EKA1 address-space switches flush the ARM920T
+   VIVT caches, so first-time callers (Nokia.dsy) DO fetch fresh code
+   (observed: single refill at 4.0557e9). Stub WRITES to the 0x9e000 board
+   window go through the D-cache and may never reach the board - do not use
+   board-window writes from stub code as a live log.
+   HARD RULE (boot-v15-logo4 crashed at 4.03e9 proving it): NEVER change
+   blob bytes at addresses the checkpoint already executed - partial line
+   eviction mixes blob generations inside one function (old first line fell
+   into the relocated completion code with garbage registers -> STM-R15
+   crash flood, exit 1, no result.json). Put new behavior at virgin
+   addresses and reach it by flipping a DATA word (vtable slot), keeping
+   every previously-executed byte identical (verify with a byte-diff against
+   the blob the checkpoint was built with - git show <commit>:...bin).
+ - Verifying in-flight runs: kernel-heap UTF-16 name scan + diff across
+   roll-r* checkpoints shows exactly when boot progress stops; stack-scan
+   for ROM return addrs per 2KB cluster + romsyms names the blocked calls.
+
 ## 2026-10-30 THE EXACT LOGO GATE: one flag (ecust+0x90) drives helper.ldd's startup-reason request into a dead NOS path (update made with Claude)
 
 Traced the complete chain to a SINGLE decision point (all from the
