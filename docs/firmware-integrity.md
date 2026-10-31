@@ -1,5 +1,34 @@
 # Embedded core digest mismatch
 
+## 2026-10-31 FLASH-TRANSFORM ANSWER (second investigation; note written with Claude)
+
+Full write-up: claudia-handoff/flashing_how.md (untracked research package);
+scripts scratch/flash-transform/. Headline conclusions, each hash-verified:
+ 1. THE FLASH STORES THE SERVICE PAYLOAD VERBATIM. Chip-mirror proof: the
+    live dump's pre-remap window equals the service file's raw scrambled
+    bytes exactly (53,248/53,248 at [0xa000,0x17000)), and ~14.9 MiB of the
+    image is byte-identical service-vs-chip. The WD2/Starship flash writer
+    and the UFS host traffic both write payloads verbatim. So the
+    service->flash step has NO transform: an FPGA "flash the service
+    package" option that writes record payloads at their record addresses
+    reproduces authentic on-chip content TODAY.
+ 2. The scramble is a READ-SIDE descrambler on the cellular-MCU fetch path
+    only; Symbian never reads that window (the boot remap shadows it).
+    Running the NOS from flash needs that descrambler model (unsolved), or
+    the current workaround (THC plaintext NOS + authentic IAT region).
+ 3. The "+8/+96 shifts" were reference-file bookkeeping, not flash framing.
+ 4. Cipher status: the old "+0x500000 twin" known-plaintext basis was BOGUS
+    (same PA through two VA windows), so prior affine/XOR rejections are
+    void; a fresh battery on the genuine in-package IAT pair re-rejects
+    byte substitution, repeating XOR, GF(2)-affine, and position
+    permutations at all tested block sizes. Address-keyed value cipher,
+    key not recovered. Known-plaintext coverage: 79% of the window.
+ 5. Stock boot-MD5 2c09c86f... remains unreproduced (raw ac2ac9c5, dump
+    window e8f426c4); consistent with the verifier hashing the DESCRAMBLED
+    read-side view, whose plaintext is unavailable for 21% of the window.
+
+
+
 ## 2026-10-31 standing disclosure (external researcher confirmed; note written with Claude)
 
 Every booting image in this project (the `digest-probe*` variants under
