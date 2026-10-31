@@ -1688,9 +1688,9 @@ void BootProfile::load_state(std::istream& in) {
     // resume can carry a newly probed register (the usual iteration step).
     state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint probe entries");
     for(uint64_t i=0;i<n;++i){uint32_t k;ProbeReg v;state_read(in,k);state_read(in,v);auto it=probe_regs_.find(k);if(it!=probe_regs_.end())it->second=v;}
-    state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint block14d entries"); block14d_.clear();
+    state_read(in,n); if(n>262144) throw std::runtime_error("invalid checkpoint block14d entries"); block14d_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);block14d_[k]=v;}
-    state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint keypad entries"); keypad_regs_.clear();
+    state_read(in,n); if(n>262144) throw std::runtime_error("invalid checkpoint keypad entries"); keypad_regs_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);keypad_regs_[k]=v;}
     state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint timer-unit entries"); timer_unit_regs_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);timer_unit_regs_[k]=v;}
