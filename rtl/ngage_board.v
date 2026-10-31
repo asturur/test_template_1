@@ -26,6 +26,7 @@ module ngage_board(
     // configuration (from the harness command line)
     input  wire        cfg_lcd,     // lcd-probe option
     input  wire        cfg_keypad,  // keypad-gpio option
+    input  wire        cfg_clocks,  // ideal-clocks option
     // service
     output reg         claim,
     output reg  [31:0] dout,
@@ -55,6 +56,20 @@ wire [31:0] wmask = { {8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}} };
 integer gi;
 initial for (gi = 0; gi < 128; gi = gi + 1) gpio[gi] = 32'd0;
 
+/*  Device 3 (2026-10-31): the ideal-clock block - control 0x0c120004,
+    command 0x0c120008, PLL 0x0c149000 (RW word latches with written-byte
+    tracking) and the status read 0x0c120020. Status truth table is the
+    validated C++ handler: control 12 -> bit 26; control 0x27 + command 1 ->
+    bit 27; control 3 + PLL 0x2210 -> bit 27; control 0x20/0x40 -> bit 25
+    (the NOS wait loop 0x514a5b88 TST #0x02000000, pinned 2026-10-31 after
+    bit 27 spun 1.6e9 cycles). PLL reads require value 0x2210 and return
+    value|1. Anything else is unmodeled and stops the run. */
+wire clk_hit = cfg_clocks && (a == 32'h0c12_0004 || a == 32'h0c12_0008 ||
+                              a == 32'h0c12_0020 || a == 32'h0c14_9000);
+
+reg [31:0] ctlv, cmdv, pllv;       // latch values
+reg [ 3:0] ctlw, cmdw, pllw;       // written-byte masks
+
 // LCD transport state (was lcd_control_/lcd_header_ in boot_profile.cpp)
 reg        ctl_written, hdr_written;
 reg [31:0] ctl, hdr;
@@ -67,10 +82,36 @@ wire hdr_ok = din == 32'h4f30_0000 || din == 32'h4920_0000 ||
               din == 32'h0780_0000 || din[31:16] == 16'h0784;
 
 always @(*) begin
-    claim     = (lcd_hit || gpio_hit) && cyc && stb;
+    claim     = (lcd_hit || gpio_hit || clk_hit) && cyc && stb;
     dout      = 32'd0;
     unmodeled = 1'b0;
-    if (gpio_hit && cyc && stb) begin
+    if (clk_hit && cyc && stb) begin
+        if (a == 32'h0c12_0020) begin
+            if (we || ctlw != 4'hf) unmodeled = 1'b1;  // status is read-only,
+            else case (ctlv)                           // needs full control
+                32'd12:   dout = 32'h0400_0000;
+                32'h27:   if (cmdw == 4'hf && cmdv == 32'd1) dout = 32'h0800_0000;
+                          else unmodeled = 1'b1;
+                32'd3:    if (pllw == 4'hf && pllv == 32'h2210) dout = 32'h0800_0000;
+                          else unmodeled = 1'b1;
+                32'h20, 32'h40: dout = 32'h0200_0000;
+                default:  unmodeled = 1'b1;
+            endcase
+        end else begin
+            if (sel & ~4'hf) unmodeled = 1'b1;
+            else if (!we) begin
+                case (a)
+                    32'h0c12_0004: begin dout = ctlv; if ((ctlw & sel) != sel) unmodeled = 1'b1; end
+                    32'h0c12_0008: begin dout = cmdv; if ((cmdw & sel) != sel) unmodeled = 1'b1; end
+                    default: begin
+                        dout = pllv;
+                        if ((pllw & sel) != sel || pllv != 32'h2210) unmodeled = 1'b1;
+                        else dout = pllv | 32'd1;      // ideal_pll_status
+                    end
+                endcase
+            end
+        end
+    end else if (gpio_hit && cyc && stb) begin
         if (sel != 4'h3 && sel != 4'hc && sel != 4'hf) unmodeled = 1'b1;
         else begin
             dout = gpio[gidx] & wmask;
@@ -105,6 +146,14 @@ always @(posedge clk) begin
         hdr_written <= 1'b0;
         ctl         <= 32'd0;
         hdr         <= 32'd0;
+        ctlv <= 32'd0; cmdv <= 32'd0; pllv <= 32'd0;
+        ctlw <= 4'd0;  cmdw <= 4'd0;  pllw <= 4'd0;
+    end else if (clk_hit && commit && we && !unmodeled) begin
+        case (a)
+            32'h0c12_0004: begin ctlv <= (ctlv & ~wmask) | (din & wmask); ctlw <= ctlw | sel; end
+            32'h0c12_0008: begin cmdv <= (cmdv & ~wmask) | (din & wmask); cmdw <= cmdw | sel; end
+            default:       begin pllv <= (pllv & ~wmask) | (din & wmask); pllw <= pllw | sel; end
+        endcase
     end else if (gpio_hit && commit && we && !unmodeled) begin
         gpio[gidx] <= (gpio[gidx] & ~wmask) | (din & wmask);
     end else if (claim && commit && we && !unmodeled) begin

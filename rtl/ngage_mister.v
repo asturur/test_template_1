@@ -79,7 +79,7 @@ ngage_board board (
     .rst(reset), .clk(clk_sys),
     .cyc(wb_cyc), .stb(wb_stb), .adr(wb_adr), .we(wb_we),
     .din(wb_dat_o), .sel(wb_sel), .commit(wb_ack),
-    .cfg_lcd(1'b1), .cfg_keypad(1'b1),
+    .cfg_lcd(1'b1), .cfg_keypad(1'b1), .cfg_clocks(1'b1),
     .claim(brd_claim), .dout(brd_dout), .unmodeled(brd_unmodeled)
 );
 
