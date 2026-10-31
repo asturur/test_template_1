@@ -17,12 +17,24 @@ scripts scratch/flash-transform/. Headline conclusions, each hash-verified:
     Running the NOS from flash needs that descrambler model (unsolved), or
     the current workaround (THC plaintext NOS + authentic IAT region).
  3. The "+8/+96 shifts" were reference-file bookkeeping, not flash framing.
- 4. Cipher status: the old "+0x500000 twin" known-plaintext basis was BOGUS
-    (same PA through two VA windows), so prior affine/XOR rejections are
-    void; a fresh battery on the genuine in-package IAT pair re-rejects
-    byte substitution, repeating XOR, GF(2)-affine, and position
-    permutations at all tested block sizes. Address-keyed value cipher,
-    key not recovered. Known-plaintext coverage: 79% of the window.
+ 4. Cipher status after cryptanalysis round 2 (full write-up: section 8 of
+    the untracked claudia-handoff/flashing_how.md; scripts
+    scratch/flash-cipher/): PARTIAL BREAK.
+    - ADDITIVITY PROVEN: ct = pt XOR f(absolute PA); modular add/sub
+      combining refuted (carry argument over 1,093,312 halfwords).
+    - FIRST KEY BIT SOLVED in closed form: keystream halfword bit 11 =
+      1 ^ x7 ^ x8 ^ x11 ^ x14 ^ x19 (mask 0x84980, x = absolute CS0 PA);
+      100.0000% on the 2.1MB training pair AND 100.0000% on the fully
+      out-of-sample IAT pair where true plaintext is provable. Lanes 11
+      and 27 identical.
+    - LFSR families refuted everywhere else (BM = n/2 at every
+      granularity); the other 15 lanes resist affine AND quadratic
+      address models - shape suggests a halfword-wide address-mixing
+      generator with one affine tap (repeat-delta fingerprint recorded
+      for the next attacker).
+    - A few hundred bytes of live raw-vs-descrambled capture (or any
+      second same-PA image) would break per-address unfalsifiability for
+      all 16 lanes at once - same capture ask as the 21% gap.
  5. Stock boot-MD5 2c09c86f... remains unreproduced (raw ac2ac9c5, dump
     window e8f426c4); consistent with the verifier hashing the DESCRAMBLED
     read-side view, whose plaintext is unavailable for 21% of the window.
