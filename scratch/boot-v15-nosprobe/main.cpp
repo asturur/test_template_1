@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <cstdio>
 #include <cerrno>
 #include <cstring>
 #include <deque>
@@ -57,7 +58,7 @@ int run(int argc, char** argv) {
     std::map<unsigned,unsigned> adc_inputs;
     std::map<uint32_t,std::pair<uint32_t,uint8_t>> probe_regs;
     std::map<int,int> cbus_inputs;
-    uint64_t timer_irq_delay = 0, checkpoint_at = 0, win_lo = 0, win_hi = 0;
+    uint64_t timer_irq_delay = 0, checkpoint_at = 0, checkpoint_every = 0, win_lo = 0, win_hi = 0;
     std::string checkpoint_path, restore_path;
     int uem_power_status = -1, uem_status36 = -1, uem_status35 = -1, extra_cbus_write = -1, extra_cbus_write2 = -1, cbus80_input = -1;
     for (int i = 9; i < argc; ++i) {
@@ -97,6 +98,7 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]) == "sysc0c14-zero") sysc0c14_zero = true;
         else if (std::string(argv[i]) == "+ngage-compact-trace") compact_trace = true;
         else if (std::string(argv[i]).rfind("checkpoint-at=", 0) == 0) checkpoint_at = std::stoull(std::string(argv[i]).substr(14));
+        else if (std::string(argv[i]).rfind("checkpoint-every=", 0) == 0) checkpoint_every = std::stoull(std::string(argv[i]).substr(17));
         else if (std::string(argv[i]).rfind("win-trace=", 0) == 0) {
             const std::string v = std::string(argv[i]).substr(10); const size_t c = v.find(':');
             win_lo = std::stoull(v.substr(0,c)); win_hi = std::stoull(v.substr(c+1));
@@ -234,7 +236,8 @@ int run(int argc, char** argv) {
     std::deque<std::pair<uint64_t,std::string>> retirement_tail;
     std::deque<std::string> memory_tail, branch_tail;
     std::deque<std::string> l1_log;
-    if ((checkpoint_at && checkpoint_path.empty()) || (!checkpoint_at && !checkpoint_path.empty())) throw std::runtime_error("invalid checkpoint options");
+    if (((checkpoint_at || checkpoint_every) && checkpoint_path.empty()) || (!checkpoint_at && !checkpoint_every && !checkpoint_path.empty())) throw std::runtime_error("invalid checkpoint options");
+    std::deque<std::string> rolling_checkpoints;  // rotating every-N snapshots, keep last 10
     uint64_t checkpoint_signature=1469598103934665603ull;
     auto sig_byte=[&](uint8_t x){checkpoint_signature=(checkpoint_signature ^ x)*1099511628211ull;};
     for (size_t i=0;i<rom_bytes;++i) sig_byte(rom[i]);
@@ -481,6 +484,18 @@ int run(int argc, char** argv) {
             VerilatedSave out; out.open((checkpoint_path+".cpu").c_str()); out << context.get() << *cpu; out.close();
             std::ofstream host(checkpoint_path+".host",std::ios::binary); if(!host)throw std::runtime_error("checkpoint host unavailable"); save_host(host);
             std::cout << "CHECKPOINT " << checkpoint_path << " cycle " << cycle << std::endl;
+        }
+        if (checkpoint_every && cycle && cycle % checkpoint_every == 0 && cycle != checkpoint_at) {
+            const std::string stem = checkpoint_path + "-r" + std::to_string(cycle / 1000000);
+            VerilatedSave out; out.open((stem+".cpu").c_str()); out << context.get() << *cpu; out.close();
+            std::ofstream host(stem+".host",std::ios::binary); if(!host)throw std::runtime_error("checkpoint host unavailable"); save_host(host);
+            std::cout << "CHECKPOINT " << stem << " cycle " << cycle << std::endl;
+            rolling_checkpoints.push_back(stem);
+            if (rolling_checkpoints.size() > 10) {
+                std::remove((rolling_checkpoints.front()+".cpu").c_str());
+                std::remove((rolling_checkpoints.front()+".host").c_str());
+                rolling_checkpoints.pop_front();
+            }
         }
         if (complete) {
             status = mailbox[0] == success ? "pass" : "diagnostic_failure";

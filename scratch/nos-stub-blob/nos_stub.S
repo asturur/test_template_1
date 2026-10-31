@@ -82,14 +82,32 @@ ret0:
 @ data-aborted the boot, observed 2026-10-29 at 0x5149d09c).
 pread:
     @ id 12 (0xc) = HelperDrv request 1's "software startup reason" query
-    @ (helper.ldd 0x5038425c mov r1,#0xc). helper's async path returns this
-    @ pread's result as its DoRequest result, so the kernel completes the
-    @ client (Nokia.dsy/System Agent) request with it: answer 100 (0x64), the
-    @ normal startup reason == ngvm sw_reason. A real baseband answers the same
-    @ way; this is the one modem reply the boot splash needs.
+    @ (helper.ldd 0x5038425c mov r1,#0xc, r2=channel+0x44, r3=channel+0x54).
+    @ Returning the reason as pread's value does NOT complete the client's
+    @ TRequestStatus (proven: Nokia.dsy blocked forever in WaitForRequest at
+    @ nokia+0x1842, roll-r4900 autopsy 2026-10-31): the async path expects
+    @ the NOS to complete the request, as helper's own sync path does at
+    @ 0x50384278 (complete(channel, 1, 100) via thunk 0x50384828 -> ekern
+    @ 0x50334fcc). So answer like the NOS: complete request 1 with 100 (the
+    @ normal startup reason == ngvm sw_reason), then return KErrNone. The
+    @ r3==r2+0x10 check keeps other id-12 callers (ecust reuses this vtable
+    @ slot with its own buffers) on the plain zero-fill path.
     cmp   r1, #0xc
-    moveq r0, #0x64
-    bxeq  lr
+    bne   pr_fill
+    add   ip, r2, #0x10
+    cmp   ip, r3
+    bne   pr_fill
+    stmfd sp!, {lr}
+    sub   r0, r2, #0x44        @ the helper channel
+    mov   r1, #1               @ request number 1
+    mov   r2, #0x64            @ software startup reason 100
+    ldr   ip, =0x50384828      @ helper's RequestComplete thunk
+    mov   lr, pc
+    mov   pc, ip
+    ldmfd sp!, {lr}
+    mov   r0, #0
+    bx    lr
+pr_fill:
     ldr   r2, [sp, #4]         @ byte length (caller stack arg)
     cmp   r2, #0x40
     movhi r2, #4               @ sanity cap -> default 4 bytes
@@ -101,4 +119,4 @@ pr_loop:
     strb  r1, [r3, r2]
     b     pr_loop
     .ltorg
-    .space 0x3c, 0
+    .space 0x8, 0
