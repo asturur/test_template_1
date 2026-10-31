@@ -1,5 +1,23 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (night 2) PMM flash writes, UEM scan, 0x0d peripherals: frontier 816.6M (update made with Claude)
+
+The NOS startup proceeded through its persistence + peripheral init:
+ - PMM flash writes MODELED (both command styles in the Nokia flash HAL):
+   Intel CUI (0x40 program -> status-register reads 0x80-ready, 0x50
+   clear, 0x60/0xD0/0x01 lock ops) and AMD (AA/55 unlock decoding A10:0 -
+   the NOS writes the 0xaaa/0x1554 long form - then 0xA0 program).
+   Programmed halfwords live in the serialized block14d_ map as an
+   overlay; array reads serve the overlay first so the driver's verify
+   readback passes. Top 64KB of CS0 (0x7f0000+) = the PMM/security
+   sector, absent from dump and bank table: factory-fresh erased (0xFF).
+ - UEM register scan primed (0x40-0x9f zero cbus-inputs; config 0x01).
+ - 0x0d space (0x0d000000-0x0dffffff) gated as zero-reset latches except
+   the debug/trace sinks; observed windows 0x0d000000/0x0d010000/
+   0x0d6d0000. NOS trace text continues to be captured (debug59_text).
+Frontier: 816.6M and advancing. All fixes still replay from
+roll-auth7-r800 in ~1 min; goal for tonight is 1.2e9+.
+
 ## 2026-10-31 (night) NOS startup running: live MTC traces captured; ASIC-ROM service wall stubbed (update made with Claude)
 
 Authentic frontier at 800.76M and advancing. Since the clock-unit locks:
