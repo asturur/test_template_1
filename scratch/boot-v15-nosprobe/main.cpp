@@ -63,6 +63,7 @@ int run(int argc, char** argv) {
     std::set<uint32_t> pc_log;   // pc-log=0xADDR: always log retirements at these PCs
     int64_t watch_word = -1;     // watch-word=0xVAL: tag full-word RAM writes of VAL
     bool rom_va_dump = false;    // rom-va-dump: rom_ is the real-phone VA snapshot (THC dump)
+    std::map<uint32_t,uint32_t> rom_va_map;  // rom-va-map: phys page -> dump offset (real captured map)
     std::string checkpoint_path, restore_path;
     int uem_power_status = -1, uem_status36 = -1, uem_status35 = -1, extra_cbus_write = -1, extra_cbus_write2 = -1, cbus80_input = -1;
     for (int i = 9; i < argc; ++i) {
@@ -106,6 +107,13 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]).rfind("pc-log=", 0) == 0) pc_log.insert(uint32_t(std::stoul(std::string(argv[i]).substr(7), nullptr, 0)));
         else if (std::string(argv[i]).rfind("watch-word=", 0) == 0) watch_word = int64_t(std::stoul(std::string(argv[i]).substr(11), nullptr, 0));
         else if (std::string(argv[i]) == "rom-va-dump") rom_va_dump = true;
+        else if (std::string(argv[i]).rfind("rom-va-map=", 0) == 0) {
+            std::ifstream f(std::string(argv[i]).substr(11), std::ios::binary);
+            if (!f) throw std::runtime_error("cannot open rom-va-map");
+            uint32_t page, off;
+            while (f.read(reinterpret_cast<char*>(&page),4) && f.read(reinterpret_cast<char*>(&off),4)) rom_va_map[page]=off;
+            if (rom_va_map.empty()) throw std::runtime_error("empty rom-va-map");
+        }
         else if (std::string(argv[i]).rfind("win-trace=", 0) == 0) {
             const std::string v = std::string(argv[i]).substr(10); const size_t c = v.find(':');
             win_lo = std::stoull(v.substr(0,c)); win_hi = std::stoull(v.substr(c+1));
@@ -201,6 +209,7 @@ int run(int argc, char** argv) {
     if (board && !nos_iat_region.empty()) board->set_nos_iat_region(std::move(nos_iat_region));
     if (board && watch_word >= 0) board->set_watch_word(uint32_t(watch_word));
     if (board && rom_va_dump) board->set_rom_va_dump();
+    if (board && !rom_va_map.empty()) board->set_phys2dump(std::move(rom_va_map));
     rom.resize(std::max<size_t>(65536, (rom.size() + 63) & ~size_t(63)), 0);
     std::vector<uint8_t> ram(4 * 1024 * 1024, 0);
     std::array<uint32_t, 16> mailbox{};

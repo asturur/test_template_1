@@ -41,6 +41,7 @@ public:
     void set_nos_iat_region(std::vector<uint8_t> v) { nos_iat_region_ = std::move(v); }
     void set_watch_word(uint32_t v) { watch_word_ = v; watch_word_set_ = true; }
     void set_rom_va_dump() { rom_va_dump_ = true; }
+    void set_phys2dump(std::map<uint32_t,uint32_t> m) { phys2dump_ = std::move(m); }
     void save_state(std::ostream& out) const;
     void load_state(std::istream& in);
     const std::string& reason() const { return reason_; }
@@ -142,6 +143,7 @@ private:
     bool dma_done_pending_ = false;
     bool watch_word_set_ = false; uint32_t watch_word_ = 0;
     bool rom_va_dump_ = false;   // rom_ is the real-phone VA snapshot (THC dump)
+    std::map<uint32_t,uint32_t> phys2dump_;  // phys page -> dump VA offset (real captured map)
     uint64_t lcd_dma_transfers_ = 0;
     std::vector<std::pair<uint32_t,std::vector<uint32_t>>> lcd_dma_frames_;  // (header at arm, words)
     void run_lcd_dma();
