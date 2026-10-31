@@ -929,6 +929,17 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
          (address >= 0x0c14a000 && address < 0x0c14a020) ||
          (address >= 0x0c14b000 && address < 0x0c14b020) ||
          (address >= 0x0c14c000 && address < 0x0c14c020) ||
+         // Upload RAMs: NOS init 0x514c1c30 copies halfword tables from
+         // VA 0x5140a000 = PA 0xa000 (START of the scrambled window, read
+         // through the descrambler) into 0x0c06ff00.. and 0x0c030100..
+         // Parsed: count1=0xfe (<=0xff guard), count2=0x2000, and more
+         // contiguous sections follow (ASCII version strings visible in
+         // the stream) - a DSP program image. 64KB window; every written
+         // byte stays in bus.tsv as evidence.
+         // Plus clock reg 0x0c120034 (word 0xf written at 0x514c1d38).
+         (address >= 0x0c06ff00 && address < 0x0c070000) ||
+         (address >= 0x0c030000 && address < 0x0c040000) ||
+         address == 0x0c120034 ||
          (address >= 0x0c150000 && address < 0x0c150600))) {
         if (request.select != 3 && request.select != 12 && request.select != 15) {
             reason_ = "unobserved keypad GPIO access width"; return false;
