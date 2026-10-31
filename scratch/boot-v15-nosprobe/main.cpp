@@ -207,7 +207,7 @@ int run(int argc, char** argv) {
             // (environment, not machine state): UEM reg 0x3f value. Bit 0 =
             // power key held (hypothesis); with 0 the NOS powers itself off
             // at ~2.38e9 (observed deliberate shutdown, no panic dump).
-            uem_power_extra = int(number(std::string(argv[i]).substr(23)));
+            uem_power_extra = int(std::stoul(std::string(argv[i]).substr(23), nullptr, 0));
         } else if (std::string(argv[i]).rfind("uem-adc-extra=", 0) == 0) {
             // Extra analog inputs merged AFTER the checkpoint signature is
             // computed: ADC values are environment (battery temp/size/...),
