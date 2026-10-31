@@ -976,6 +976,9 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
          (address >= 0x0c06ff00 && address < 0x0c070000) ||
          (address >= 0x0c030000 && address < 0x0c040000) ||
          address == 0x0c120034 ||
+         // 0x0c150800-0x0c1508ff: second UART-ish port block (NOS literals
+         // 0x58150800..0x58150814; first write observed 817240746).
+         (address >= 0x0c150800 && address < 0x0c150900) ||
          (address >= 0x0c150000 && address < 0x0c150600))) {
         if (request.select != 3 && request.select != 12 && request.select != 15) {
             reason_ = "unobserved keypad GPIO access width"; return false;
@@ -1107,11 +1110,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // Kernel character-output device (VA 0x59000000, routine 0x503243a8).
     // Write-only: bytes are retained as evidence, nothing is invented for
     // reads, and no side effects are modeled. Device identity unverified.
-    // 0x0d000000-0x0d01ffff: NOS peripheral windows in the 0x0d space
-    // (first writes: halfword 0 to 0x0d010000 at 801842110, then
-    // 0x0d000000 at 801842184). Zero-reset RW latches in the serialized
-    // block14d_ map, 128KB window.
-    if (debug59_sink_ && address >= 0x0d000000 && address < 0x0d020000) {
+    // 0x0d space: NOS peripheral windows at scattered 0x0dXX0000 bases
+    // (observed 0x0d010000, 0x0d000000, 0x0d6d0000 at 801.8-816.6M).
+    // Zero-reset RW latches in the serialized block14d_ map for the whole
+    // space EXCEPT the established debug/trace sinks, which keep their
+    // text-capture handlers below.
+    if (debug59_sink_ && address >= 0x0d000000 && address < 0x0e000000 &&
+        !(address >= 0x0de00000 && address < 0x0de01000) &&
+        !(address >= 0x0def0000 && address < 0x0def1000) &&
+        !(address >= 0x0dfd0000 && address < 0x0dfd0010)) {
         device = "assumed_nos_periph4000";
         uint32_t& reg0d = block14d_[address & ~3u];
         const uint32_t mask0d = byte_mask(request.select);
@@ -1201,7 +1208,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // 0x503f5bbc writes halfword 1 to byte 0x0c150206 during init);
         // 0x0200 observed from the NOS hardware-init burst right after its
         // clock bring-up (boot-v15-auth7 cycle 729428678, 2026-10-31).
-        if (!icu46_write_ || !cbus_written_.count(0x8d) || !request.write || ((request.data & 0xffff0000) != 0x01800000 && !(gpio206_extra_write_ && ((request.data & 0xffff0000) == 0x00060000 || (request.data & 0xffff0000) == 0x00010000 || (request.data & 0xffff0000) == 0x02000000)))) {
+        // 2026-10-31 night: the NOS keeps writing new values here (0x0200
+        // at 729.4M, 0x0004 at 816.98M, ...) - this is a general pin-config
+        // halfword, not a fixed-value latch. Accept any value once the
+        // boot-phase gates passed; every write stays in bus.tsv.
+        if (!icu46_write_ || !cbus_written_.count(0x8d) || !request.write) {
             reason_ = "unobserved GPIO upper halfword access"; return false;
         }
         device = "assumed_register_probe"; data = 0; return true;
