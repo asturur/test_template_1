@@ -1,5 +1,22 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 (post-midnight) Power-off root-caused: no power-on reason; key-held run in flight (update made with Claude)
+
+auth7's long cruise ended at 2.382e9 in the DELIBERATE shutdown path
+(state 0x1a -> 0x0c00428e, clock 0x200, GPIO 0x150000=4, park; NO panic
+dump, trace text clean): UEM reg 0x3f (power-on reason) = 0 means no
+power key / charger / alarm, so the phone correctly turns itself off
+after its startup window - real-phone behavior with nobody holding the
+button. Fix: new post-signature option uem-power-status-extra=1 (power
+key held, bit-0 hypothesis) in main.cpp + runner; reg 0x3f is read at
+817-823M (after roll-auth7-r800), so the relaunch resumes from r800 with
+the key held (replay to the old park point ~40 min). If the bit-0 guess
+is wrong the shutdown recurs at ~2.38e9 - try other low bits of 0x3f.
+A first relaunch failed with 'unknown board option' because main.cpp
+didn't compile (out-of-scope lambda) and build.py does NOT fail the
+pipeline on a verilator error - CHECK the binary mtime when an option
+mysteriously 'does not exist'. Fixed with std::stoul; run relaunched.
+
 ## 2026-10-31 (midnight handoff) auth7 at 1.75e9 and cruising; how to continue (update made with Claude)
 
 boot-v15-auth7 (authentic path, restore roll-auth7-r800, budget 3.3e9) is
