@@ -1257,6 +1257,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             reason_ = "unknown register reset value"; return false;
         }
         data = reg.value;
+        // System-type strap (see keypad-section comment): GPIO 0x0c150002
+        // bit 0x40 reads set - this word lives in latches_, so the OR-in
+        // happens here on the latch read path.
+        if (keypad_gpio_ && address == 0x0c150000 && !request.write)
+            data |= 0x00400000u;
         if (ideal_clocks_ && address == 0x0c149000 && !request.write) {
             if (reg.value != 0x2210) {
                 reason_ = "unmodeled PLL control/status combination"; return false;
