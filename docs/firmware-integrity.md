@@ -1,5 +1,54 @@
 # Embedded core digest mismatch
 
+## HOW TO REPRODUCE THE STOCK DIGEST (authentic verification, no digest replacement)
+
+The firmware's boot self-check is **plain MD5** over the CPU's virtual view of
+`VA 0x50009000..0x511B4FFF` (descriptor at core file `0x8f18`: start VA, end VA
+inclusive, then the 16 expected bytes at `0x8f20`; length = end-start+1 =
+18,530,304). It compares 16 bytes; mismatch dead-stops at `0x3290`. The only
+reason raw inputs never matched is that the CS0 window `[0xa000,0x2b3000)` is
+stored **scrambled on flash** but the CPU reads it through a hardware
+descrambler — MD5 hashes the **descrambled** bytes.
+
+Recipe (one command, verified `MATCH: True`):
+
+```sh
+python3 -I scratch/flash-cipher-r4/reproduce_stock_digest.py
+#   -> computed MD5 = 2c09c86ff047484fdcc0e226f49c44a9  == stock, MATCH: True
+```
+
+What it does, step by step (so it can be reimplemented, e.g. in the FPGA core):
+1. **Assemble the service files VA-linear.** From the Nokia package extract
+   `scratch/nem440-flash-extract/out/` (built by `extract.py` from
+   `firmware/MCU/.../nem440.3c1` + `.326`): CS0 `phys 0..0x700000` at VA
+   offset 0, CS1 at `+0x700000`, CS2 at `+0xb00000`, CS0-PPM at `+0x1300000`;
+   per-device hole `0x12C..0x163` and unwritten flash = `0xFF`. (Prebuilt:
+   `scratch/nem440-flash-extract/out/nem440-3c1-linear.bin`.)
+2. **Descramble the read-side window `[0xa000,0x2b3000)` in place.** For each
+   16-bit halfword at even byte address `pa`, with ciphertext
+   `C = img[pa] | img[pa+1]<<8` and `A = pa` (absolute byte physical address),
+   compute plaintext bit `i` by the GF(2) formula for lane `i`:
+   `P_i = const_i ^ parity(C & cmask_i) ^ parity(A & amask_i) ^ Σ (A_j & A_k)`
+   over that lane's quadratic products. The 16 formulas are in
+   `build/firmware/thc/scrambler-model.json` (also `scratch/flash-cipher-r4/
+   model.json`); human-readable examples:
+   - `P0  = C0 ^ C8 ^ A1 ^ A8 ^ A17 ^ (A4&A10) ^ (A8&A17)`
+   - `P9  = C9 ^ C13 ^ A1 ^ A4 ^ A15 ^ A19 ^ (A4&A15) ^ (A8&A16)`
+   - `P10 = C10 ^ C0 ^ A7 ^ A9 ^ A13 ^ (A5&A11) ^ (A7&A13)`
+   - `P11 = 1 ^ A7 ^ A8 ^ A11 ^ A14 ^ A19`  (the one ciphertext-free lane)
+   Each lane: its own `C_i`, at most one cross `C` bit, a few linear `A` bits,
+   and ≤2 quadratic `A·A` products. The matrix `P = M·C ^ g(A)` is invertible,
+   so the forward scrambler is `C = M⁻¹·(P ^ g(A))` (what a flasher/write path
+   would apply).
+3. **MD5 the digest range** `img[0x9000:0x11b5000]` and compare to the stock
+   descriptor value `2c09c86ff047484fdcc0e226f49c44a9`. Match.
+
+This is the authentic-ROM recipe: assemble from the obtainable service files,
+descramble the window, and the firmware's own self-check passes natively —
+the `digest-probe` field-rewrite is no longer required (it stays only as a
+faster build shortcut). Full derivation, held-out validation, the gap decrypt,
+and limits: `claudia-handoff/flashing_how.md` section 10.
+
 ## 2026-10-31 *** SOLVED: the stock digest 2c09c86f IS reproduced; read-side scrambler fully reversed *** (update made with Claude)
 
 The authenticity question raised by the external researcher is CLOSED. The
