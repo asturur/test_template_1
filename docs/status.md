@@ -1,5 +1,32 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (night) NOS startup running: live MTC traces captured; ASIC-ROM service wall stubbed (update made with Claude)
+
+Authentic frontier at 800.76M and advancing. Since the clock-unit locks:
+ - DSP program upload accepted (0x0c06ff00 254B + 0x0c030100 8KB+ more
+   sections; table at VA 0x5140a000 = PA 0xa000 INSIDE the scrambled
+   window, parsed through the solved cipher).
+ - UEM ADC scan: channels 0-13 supplied at mid-scale 512 via new
+   'uem-adc-extra' option (merged AFTER the checkpoint signature so adding
+   environmental inputs never invalidates checkpoints; main.cpp).
+ - NOS trace port found at 0x0def0000 (debug space): ASCII at any width.
+   CAPTURED LIVE: "RtcQueue::Add: 2", "MTC:SU:main()" - the NOS startup
+   task (MTC = mobile terminal controller) is running and tracing.
+ - UEM regs 0x3b-0x3e primed as cbus-inputs (RTC/calibration reads).
+ - HARD WALL HIT AND MODELED: the NOS calls into an ASIC-resident ROM at
+   PA 0x0c000000 (entries 0x58000001+offset, table 0x516cd980+0xc; call
+   site 0x514befd2 -> dispatcher 0x515305b8 BX R12) - no dump of this
+   mask ROM exists in the project. Observed call passes comm-RAM buffers
+   (in 0x0c004400 len 0x28 = 40 bytes of 0xFF blank personalization, out
+   0x0c004428 len 0x20); wrapper discards the return value. STUB: the
+   page reads as Thumb BX LR everywhere (assumed_asic_rom_stub). If later
+   boot checks the 0x20-byte output, this hypothesis is the first suspect.
+
+Also tonight: SIM server fully reversed by subagent (docs/modem-model.md
+3.4 rewritten: Srvsim, status convention 01/24/FA/FB/FC at body[3],
+IMSI EF form; 0x091D at 0x5153fad4 was a debug line number, not a key)
+and folded into the C+HDL modem; cross-check 2022 vectors byte-exact.
+
 ## 2026-10-31 (later) NOS init frontier: 730M -> 800M+; clock-unit lock bits; sibling blocks (update made with Claude)
 
 With the calibration fix the authentic run marched 730.1M -> 829M+. New

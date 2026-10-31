@@ -1071,6 +1071,17 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // Kernel character-output device (VA 0x59000000, routine 0x503243a8).
     // Write-only: bytes are retained as evidence, nothing is invented for
     // reads, and no side effects are modeled. Device identity unverified.
+    // 0x0def0000: NOS-side trace window in the debug space. Writes carry
+    // ASCII text at any width (observed: byte 0xc3 framing, then word
+    // "MTC:" at boot-v15-auth7 800742521). Write-only sink; all enabled
+    // bytes are captured in bus order.
+    if (debug59_sink_ && request.write && address >= 0x0def0000 && address < 0x0def1000) {
+        ++debug59_writes_;
+        for (unsigned i = 0; i < 4; ++i)
+            if ((request.select & (1u << i)) && debug59_bytes_.size() < 65536)
+                debug59_bytes_.push_back(char((request.data >> (8 * i)) & 0xff));
+        device = "assumed_debug59_write"; return true;
+    }
     if (debug59_sink_ && request.write && ((address >= 0x0de00000 && address < 0x0de01000) ||
         (address >= 0x0dfd0000 && address < 0x0dfd0010))) {
         const uint8_t select = request.select;
@@ -1085,6 +1096,21 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (debug59_bytes_.size() < 65536)
             debug59_bytes_.push_back(control ? '\n' : char((request.data >> (8 * byte)) & 0xff));
         device = control ? "assumed_debug59_control" : "assumed_debug59_write"; return true;
+    }
+    // ASIC-resident ROM services at PA 0x0c000000 (no dump available): the
+    // NOS calls entry points 0x58000001+offset (halfword offset table
+    // 0x516cd980+0xc: 0x3de/0xcf4/0xf28/0x260/...; call site 0x514befd2,
+    // dispatcher 0x515305b8 BX R12) passing comm-RAM buffers. Observed
+    // call (boot-v15-jumptrace 800760646): in = 0x0c004400 len 0x28 all
+    // 0xFF (blank personalization), out = 0x0c004428 len 0x20; the return
+    // value is discarded by the wrapper (0x514befe8 overwrites r0).
+    // EXPLICIT STUB HYPOTHESIS: every halfword in the page reads 0x4770
+    // (Thumb BX LR) - any entry returns immediately, outputs stay zero.
+    if (nos_periph4000_ && address >= 0x0c000000 && address < 0x0c001000) {
+        if (request.write) { reason_ = "write into ASIC-ROM stub page"; return false; }
+        device = "assumed_asic_rom_stub";
+        data = 0x47704770u;
+        return true;
     }
     // NOS-side peripheral block 0x0c004000-0x0c004fff (observed first touch
     // boot-v15-auth7 cycle 730120842: halfword 0x001a to 0x0c00428c during
