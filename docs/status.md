@@ -1,5 +1,16 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 ~04:40 *** MILESTONE: NOKIA LOGO ON SCREEN — PIXEL-IDENTICAL TO THE NGVM ORACLE *** (update made with Claude)
+
+Commit 51f5499; artifacts build/sim/screens/milestone-nokia-logo/ and
+screen.png; captured from boot-v15-dma2 (resume of roll-r3300 with the LCD
+DMA engine modeled). The firmware had composed the splash in SDRAM at
+0x0a000020 on its own — real NEM-4 4.03 Symbian code on the ZAP ARM920T
+RTL end to end; the single missing piece was the DMA transfer to the panel.
+Validation from-reset with the complete fix set: boot-v15-logo9 (running at
+session close). NEXT TARGET: the N-Gage logo (ngvm shows it ~11 phone-
+seconds, i.e. past ~5e9 of our cycles), then sustained boot toward the UI.
+
 ## 2026-10-31 (overnight autonomous session) VALUE-3 LINEAGE: four fixes deep, LCD DMA engine modeled, authentic NOS IAT recovered from the user's Nokia data package (update made with Claude)
 
 LINEAGE: from reset with ecust+0x90=3 (stub sets it at 729M). This is the
