@@ -1021,6 +1021,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // Fbus_drv.c:502 otherwise) and the flag reader 0x515bb6bc also
         // reports bit 0x10. Modeled always drained: bits 0x1D0 set.
         if (address == 0x0c150504 && !request.write) data |= 0x1d0u & mask;
+        // MBUS command strobe halfword 0x0c15021c: writers strobe bits
+        // (0x8000/0x1000/0x800/0x10/0x8 at 0x515b9dxx) and the poll loop
+        // 0x515ba000 waits for them to SELF-CLEAR. Reads of the low
+        // halfword return 0 (strobe consumed instantly); the config
+        // halfword 0x21e keeps latch semantics.
+        if (address == 0x0c15021c && !request.write) data &= ~0xffffu;
         // System-type strap on GPIO halfword 0x0c150002 (word bit 22): the
         // getter 0x514c1604 maps bit 0x40 -> type 1 (GSM); with no strap it
         // falls to ROM header [0x176] bit15 (0 in this dump) and returns 0,
