@@ -430,6 +430,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             data = 0x08000000;
         else if (control.value == 3 && latches_.at(0x0c149000).written == 0xffffffffu &&
                  latches_.at(0x0c149000).value == 0x2210) data = 0x08000000;
+        // Authentic path (real descrambled NOS, 2026-10-31): the NOS brings up
+        // a clock by writing control 0x40 then 0x20 to 0x0c120004 and polling
+        // 0x0c120020 for lock. Model the controller as locked/ready (bit 27),
+        // like the other bring-up combinations. Hypothesis (clock HW not from a
+        // phone); the stub lineage never reached this write (boot-v15-auth3).
+        else if (control.value == 0x20 || control.value == 0x40) data = 0x08000000;
         else { reason_ = "unmodeled clock control/status combination"; return false; }
         return true;
     }
