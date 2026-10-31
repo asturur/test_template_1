@@ -1,5 +1,20 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 Clock bring-up poll pinned: NOS waits for STATUS BIT 29, not 27 (update made with Claude)
+
+boot-v15-auth6 spun 729.4M->2.3e9 cycles polling 0x0c120020 while the model
+answered 0x08000000 (bit 27). Instruction-window trace from roll-auth6-r800
+(boot-v15-clockloop, win-trace) pinned the wait loop: 0x514a5b80 loads the
+register offset, kernel helper 0x503245b4 reads VA 0x58120020, then
+0x514a5b88 TST R0,#0x20000000 / BEQ - the loop waits for BIT 29. During the
+spin only the periodic tick ran (all other threads blocked on this), so the
+wedge was deterministic. Model fixed (boot_profile.cpp): control 0x20/0x40
+-> status 0x28000000 (bit 29 observed + bit 27 retained for the 0x40 phase
+that already proceeded on bit-27 answers). auth6 stopped (provably stuck);
+boot-v15-auth7 relaunched from roll-auth3-r700 to 3.3e9 with the fix.
+LESSON: a single-address bus tail (>95% one register) is the wedge
+signature; check it before assuming progress on long runs.
+
 ## 2026-10-31 MODEM BUILT in C + HDL, byte-exact cross-check PASSES (update made with Claude)
 
 The ISI/Phonet modem responder now exists in both forms, transport-agnostic

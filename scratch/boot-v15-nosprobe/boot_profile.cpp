@@ -432,10 +432,14 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                  latches_.at(0x0c149000).value == 0x2210) data = 0x08000000;
         // Authentic path (real descrambled NOS, 2026-10-31): the NOS brings up
         // a clock by writing control 0x40 then 0x20 to 0x0c120004 and polling
-        // 0x0c120020 for lock. Model the controller as locked/ready (bit 27),
-        // like the other bring-up combinations. Hypothesis (clock HW not from a
-        // phone); the stub lineage never reached this write (boot-v15-auth3).
-        else if (control.value == 0x20 || control.value == 0x40) data = 0x08000000;
+        // 0x0c120020. OBSERVED (boot-v15-clockloop instruction trace from
+        // roll-auth6-r800): the wait loop 0x514a5b80..8c reads via kernel
+        // helper 0x503245b4 and does TST R0,#0x20000000 / BEQ - it waits for
+        // BIT 29, not the bit-27 "ready" of the other combinations (bit 27
+        // alone spun 729.4M->2.3e9 in boot-v15-auth6). Return both bits: 29
+        // for the observed wait, 27 kept for the earlier family hypothesis
+        // (the 0x40 phase proceeded within ~84 cycles on bit 27 answers).
+        else if (control.value == 0x20 || control.value == 0x40) data = 0x28000000;
         else { reason_ = "unmodeled clock control/status combination"; return false; }
         return true;
     }
