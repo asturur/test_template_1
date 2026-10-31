@@ -1,5 +1,20 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 ~06:30 *** MILESTONE 2: THE N-GAGE SPLASH RENDERS *** (update made with Claude)
+
+boot-v15-modem2 frame05 (archived in build/sim/screens/milestone-nokia-logo/):
+the N-GAGE wordmark, matching the ngvm target, in wserv's partial-frame DMA
+updates. The post-Nokia stall was euart1's baseband-UART send loop polling
+TX-idle (0x0c150514 bit 2) against a zero latch — the first piece of the
+software modem (TX always drains) unblocked 57 screen updates in 5.9e9-9e9
+and the boot continues past both logos. Diagnosis pattern that found it in
+minutes: traced resume at the stall + symtrace module histogram (euart1
++0x630/+0x640 hot loop) + the register token literal pool.
+NEXT: sustained boot toward Startup/SysAp UI (boot-v15-boot1, 12e9); the
+modem RX side (ISI answers per ngvm chan.c) when something waits on a reply.
+NOTE render_lcd_frame.py skips partial updates < 9152 words (min-size
+filter): lower it or composite updates to see small dirty regions.
+
 ## 2026-10-31 ~04:40 *** MILESTONE: NOKIA LOGO ON SCREEN — PIXEL-IDENTICAL TO THE NGVM ORACLE *** (update made with Claude)
 
 Commit 51f5499; artifacts build/sim/screens/milestone-nokia-logo/ and
