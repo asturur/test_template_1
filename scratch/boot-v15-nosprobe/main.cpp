@@ -510,9 +510,17 @@ int run(int argc, char** argv) {
                 }
             }
             const bool instruction_abort = trace.find("<IABT>") != std::string::npos;
+            // Exception-vector retirements (0x4 undef, 0xc prefetch abort,
+            // 0x10 data abort) are always logged: an MMU translation fault
+            // never reaches the bus, and these rows are the only cheap
+            // whole-run record of user-thread aborts (KERN-EXEC hunts).
+            uint32_t retire_pc = 0;
+            const bool vector_hit = cpu->o_trace_uop_last &&
+                sscanf(trace.c_str(), "%x", &retire_pc) == 1 &&
+                retire_pc < 0x20 && retire_pc != 0x8 && retire_pc != 0x18 && retire_pc != 0x1c;
             if (cpu->o_trace_uop_last || instruction_abort) {
                 last_trace = trace;
-                if (!compact_trace || instruction_abort) instruction_log << std::dec << cycle << '\t' << trace << '\n';
+                if (!compact_trace || instruction_abort || vector_hit) instruction_log << std::dec << cycle << '\t' << trace << '\n';
                 else if (win_lo && cycle >= win_lo && cycle <= win_hi) instruction_log << std::dec << cycle << '\t' << trace << '\n';
                 retired += bool(cpu->o_trace_uop_last);
                 if (mmu_seen) {

@@ -1,23 +1,17 @@
 # Development checkpoint and resume guide
 
-## 2026-10-31 BREAKTHROUGH: the S60 STATUS PANE renders once the modem
-handshake line answers (update made with Claude)
+## 2026-10-31 RETRACTION + vector logging (update made with Claude)
 
-GPIO 0x0c150208: the host writes its handshake bit (0x1000) on the lower
-halfword and polls the UPPER halfword every ~1.2M cycles for the modem's
-side; zero = modem absent, and the NOS never transmits. Mirroring the
-host's own bit back (wired-ready experiment, boot_profile.cpp) makes the
-boot draw the Series 60 STATUS PANE with the signal indicator
-(boot-v15-cts1 frame01) where the splash/error loop used to be. Deep run
-boot-v15-cts2 (to 10e9) in flight at session close - composite its
-updates with scratch/tools/composite_lcd_updates.py to see how far the
-shell gets. The EtelServer KERN-EXEC loop (below) was diagnosed on the
-NO-handshake lineage and may not recur with the modem present.
-BASELINE FACT (boot-v15-etelhunt module timeline): EtelServer executed
-ZERO instructions in 5.9-7e9 although its "App. closed" note shows at
-6.8e9 - it is killed at process-creation (loader/kernel), not by its own
-code; the note is queued by the undertaker. If it still dies in the
-handshake lineage, autopsy the LOADER path, not phonetsy.
+The "status pane breakthrough" below-mentioned handshake mirror at
+0x0c150208 changed NOTHING: screen-update timelines of boot-v15-cts2 and
+the baseline are cycle-identical; the mirror was removed. The status pane
+render is real firmware output but exists in BOTH lineages (it was simply
+never rendered standalone before). EtelServer death remains the frontier:
+it executes zero instructions and leaves no bus-visible fault, so it dies
+on an MMU translation fault at creation. main.cpp now ALWAYS logs
+retirements at exception vectors 0x4/0xc/0x10 even in compact traces -
+rerun any window and the abort cycle appears directly; from the abort the
+faulting VA and the loader state are one short trace away.
 
 ## 2026-10-31 CONTINUATION GUIDE (final AI session; written with Claude)
 
