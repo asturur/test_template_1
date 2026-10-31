@@ -1317,6 +1317,16 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             data = 0x00800080u & byte_mask(request.select);
             return true;
         }
+        // After a 0x60 lock-op setup the PMM driver READS the sector lock
+        // status (observed 0x60 -> read,read -> 0xF0 at 818481834; erased
+        // 0xFFFF made it print "PMM Write failed" + hw_reset_generate).
+        // Hypothesis: reads in lock-op mode return 0x0001 = protected.
+        if (auto st = block14d_.find(0xff000000u | flash.base);
+            st != block14d_.end() && (st->second & 4u)) {
+            device = "flash_pmm_status";
+            data = 0x00010001u & byte_mask(request.select);
+            return true;
+        }
         if (flash.identify) {
             device = "flash_identify";
             return flash_identify(flash, request, data);
