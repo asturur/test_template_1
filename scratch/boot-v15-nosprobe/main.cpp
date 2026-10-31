@@ -1,5 +1,6 @@
 #include "Vngage_cpu_sim.h"
 #include "boot_profile.h"
+#include "descramble_model.h"
 #include <verilated.h>
 #include <verilated_save.h>
 #include <algorithm>
@@ -52,6 +53,29 @@ int run(int argc, char** argv) {
     if (rom.empty() || rom.size() > 64 * 1024 * 1024)
         throw std::runtime_error("ROM must contain 1 byte to 64 MiB");
     const size_t rom_bytes = rom.size();
+    // Flash read-side descrambler (authentic path): the disk ROM is the ORIGINAL
+    // scrambled service file; the CPU reads the window [0xa000,0x2b3000)
+    // descrambled, so apply the solved 16-bit GF(2) formulas here before the
+    // board serves it. Equivalent to an inline read-path descrambler (the HDL
+    // core does it per-read); makes the firmware's own MD5 self-check pass
+    // natively (no digest rewrite) and serves the real NOS (no stub).
+    for (int i = 9; i < argc; ++i) if (std::string(argv[i]) == "descramble-window") {
+        const uint32_t lo = 0xa000, hi = 0x2b3000;
+        if (rom.size() >= hi) for (uint32_t pa = lo; pa < hi; pa += 2) {
+            const uint32_t C = rom[pa] | (rom[pa+1] << 8), A = pa;
+            uint32_t P = 0;
+            for (int b = 0; b < 16; ++b) {
+                const DescrBit& d = kDescr[b];
+                unsigned v = d.cst;
+                for (uint32_t m = d.cmask & C; m; m &= m-1) v ^= 1;
+                for (uint32_t m = d.amask & A; m; m &= m-1) v ^= 1;
+                if (d.p0j >= 0) v ^= ((A>>d.p0j)&1) & ((A>>d.p0k)&1);
+                if (d.p1j >= 0) v ^= ((A>>d.p1j)&1) & ((A>>d.p1k)&1);
+                P |= (v & 1) << b;
+            }
+            rom[pa] = P & 0xff; rom[pa+1] = (P >> 8) & 0xff;
+        }
+    }
     const std::string profile_name = argc >= 9 ? argv[8] : "none";
     bool ideal_clocks = false, lcd_probe = false, compact_trace = false, boot_io_probe = false, allow_uif_8000 = false, allow_icu25 = false, gpio210_low_zero = false, gpio21a_zero = false, gpio216_zero = false, gpio214_low_zero = false, pupf004_low_zero = false, gpio206_extra_write = false, sysc74_write3 = false, gpio24_28_write1 = false, timer_compare_probe = false, sysc50_44_probe = false, icu1c8_probe = false, timer_periodic = false, block14d_probe = false, debug59_sink = false, nos_entry_stub = false, keypad_gpio = false, icu_banks = false, timer_units = false, cdrive_flash = false, unit60_irq3 = false, uem_irq_source1 = false, module_trace = false, epbus_clkblk = false, uif102_write = false, cbus82_readback = false, cbus8d_zero = false, icu46_write = false, pupf00a_zero = false, sysc0c14_zero = false;
     std::vector<uint8_t> rom_tail, nos_image, cdrive_image, nos_iat_region;
