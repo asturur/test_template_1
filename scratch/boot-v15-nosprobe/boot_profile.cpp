@@ -89,9 +89,9 @@ uint32_t BootProfile::word(size_t offset) const {
            uint32_t(rom_[offset+2]) << 16 | uint32_t(rom_[offset+3]) << 24;
 }
 
-BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks, bool lcd_probe, const std::vector<uint8_t>& rom_tail, bool boot_io_probe, const std::map<unsigned, unsigned>& adc_inputs, uint64_t timer_irq_delay, int uem_power_status, int uem_status36, int uem_status35, int extra_cbus_write, int extra_cbus_write2, bool allow_uif_8000, bool allow_icu25, bool gpio210_low_zero, bool gpio21a_zero, bool gpio216_zero, bool uif102_write, bool cbus82_readback, int cbus80_input, bool cbus8d_zero, bool icu46_write, bool pupf00a_zero, bool sysc0c14_zero, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs, bool gpio214_low_zero, bool pupf004_low_zero, bool gpio206_extra_write, bool sysc74_write3, bool gpio24_28_write1, bool timer_compare_probe, bool sysc50_44_probe, bool icu1c8_probe, bool timer_periodic, bool block14d_probe, bool debug59_sink, const std::map<int,int>& cbus_inputs, bool nos_entry_stub, bool keypad_gpio, bool icu_banks, bool timer_units, bool cdrive_flash, bool unit60_irq3, const std::vector<uint8_t>& nos_image, bool uem_irq_source1, bool epbus_clkblk, const std::vector<uint8_t>& cdrive_image, const std::map<uint32_t,uint32_t>& nos_iat)
+BootProfile::BootProfile(const std::vector<uint8_t>& rom, size_t rom_bytes, const std::string& kind, bool ideal_clocks, bool lcd_probe, const std::vector<uint8_t>& rom_tail, bool boot_io_probe, const std::map<unsigned, unsigned>& adc_inputs, uint64_t timer_irq_delay, int uem_power_status, int uem_status36, int uem_status35, int extra_cbus_write, int extra_cbus_write2, bool allow_uif_8000, bool allow_icu25, bool gpio210_low_zero, bool gpio21a_zero, bool gpio216_zero, bool uif102_write, bool cbus82_readback, int cbus80_input, bool cbus8d_zero, bool icu46_write, bool pupf00a_zero, bool sysc0c14_zero, const std::map<uint32_t,std::pair<uint32_t,uint8_t>>& probe_regs, bool gpio214_low_zero, bool pupf004_low_zero, bool gpio206_extra_write, bool sysc74_write3, bool gpio24_28_write1, bool timer_compare_probe, bool sysc50_44_probe, bool icu1c8_probe, bool timer_periodic, bool block14d_probe, bool debug59_sink, const std::map<int,int>& cbus_inputs, bool nos_entry_stub, bool keypad_gpio, bool icu_banks, bool timer_units, bool cdrive_flash, bool unit60_irq3, const std::vector<uint8_t>& nos_image, bool uem_irq_source1, bool epbus_clkblk, const std::vector<uint8_t>& cdrive_image, const std::map<uint32_t,uint32_t>& nos_iat, bool nos_periph4000)
     : rom_(rom), rom_bytes_(rom_bytes), rom_tail_(rom_tail), kind_(kind), ideal_clocks_(ideal_clocks), lcd_probe_(lcd_probe), boot_io_probe_(boot_io_probe), adc_inputs_(adc_inputs), timer_irq_delay_(timer_irq_delay) {
-    allow_uif_8000_ = allow_uif_8000; allow_icu25_ = allow_icu25; gpio210_low_zero_ = gpio210_low_zero; gpio21a_zero_ = gpio21a_zero; gpio216_zero_ = gpio216_zero; gpio214_low_zero_ = gpio214_low_zero; pupf004_low_zero_ = pupf004_low_zero; gpio206_extra_write_ = gpio206_extra_write; sysc74_write3_ = sysc74_write3; gpio24_28_write1_ = gpio24_28_write1; timer_compare_probe_ = timer_compare_probe; sysc50_44_probe_ = sysc50_44_probe; icu1c8_probe_ = icu1c8_probe; uif102_write_ = uif102_write; cbus82_readback_ = cbus82_readback; cbus80_input_ = cbus80_input; cbus8d_zero_ = cbus8d_zero; icu46_write_ = icu46_write; pupf00a_zero_ = pupf00a_zero; sysc0c14_zero_ = sysc0c14_zero; timer_periodic_ = timer_periodic; block14d_probe_ = block14d_probe; debug59_sink_ = debug59_sink; cbus_inputs_ = cbus_inputs; nos_entry_stub_ = nos_entry_stub; keypad_gpio_ = keypad_gpio;
+    allow_uif_8000_ = allow_uif_8000; allow_icu25_ = allow_icu25; gpio210_low_zero_ = gpio210_low_zero; gpio21a_zero_ = gpio21a_zero; gpio216_zero_ = gpio216_zero; gpio214_low_zero_ = gpio214_low_zero; pupf004_low_zero_ = pupf004_low_zero; gpio206_extra_write_ = gpio206_extra_write; sysc74_write3_ = sysc74_write3; gpio24_28_write1_ = gpio24_28_write1; timer_compare_probe_ = timer_compare_probe; sysc50_44_probe_ = sysc50_44_probe; icu1c8_probe_ = icu1c8_probe; uif102_write_ = uif102_write; cbus82_readback_ = cbus82_readback; cbus80_input_ = cbus80_input; cbus8d_zero_ = cbus8d_zero; icu46_write_ = icu46_write; pupf00a_zero_ = pupf00a_zero; sysc0c14_zero_ = sysc0c14_zero; timer_periodic_ = timer_periodic; block14d_probe_ = block14d_probe; nos_periph4000_ = nos_periph4000; debug59_sink_ = debug59_sink; cbus_inputs_ = cbus_inputs; nos_entry_stub_ = nos_entry_stub; keypad_gpio_ = keypad_gpio;
     if (nos_entry_stub_) {
         // off0 vptr -> all-ret0 vtable; off0x10/0x14 empty self-linked queue
         // head (&object+0x10); off0x18 queue iOffset = 4; everything else zero.
@@ -554,11 +554,13 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         latches_[address] = {request.data, 0xffffffff, 15};
         return true;
     }
-    // Timer units 1..4 (0x0c120a20..0x0c120a9f): RW register latches; the
+    // Timer units 1..5 (0x0c120a20..0x0c120abf): RW register latches; the
     // status byte (+0x08) reads 0 (not expired). Unit 0 keeps its periodic-tick
     // model (handled above). No IRQ is generated from these units. Opt-in.
+    // Unit 5 (0xaa0..0xabf) observed 2026-10-31: the NOS writes +0x04 = 1
+    // right after its clock bring-up (boot-v15-auth7 cycle 729423744).
     if (timer_units_ && request.select == 15 &&
-        address >= 0x0c120a20 && address < 0x0c120aa0) {
+        address >= 0x0c120a20 && address < 0x0c120ac0) {
         const uint32_t slot = (address - 0x0c120a00) & 0x1f;
         const bool unit60 = unit60_irq3_ && address >= 0x0c120a60 && address < 0x0c120a80;
         const bool unit1 = uem_irq_source1_ && address >= 0x0c120a20 && address < 0x0c120a40;
@@ -1035,6 +1037,23 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             debug59_bytes_.push_back(control ? '\n' : char((request.data >> (8 * byte)) & 0xff));
         device = control ? "assumed_debug59_control" : "assumed_debug59_write"; return true;
     }
+    // NOS-side peripheral block 0x0c004000-0x0c004fff (observed first touch
+    // boot-v15-auth7 cycle 730120842: halfword 0x001a to 0x0c00428c during
+    // the NOS hardware-init burst). The NOS references dozens of registers
+    // here (0x4000-0x4060, 0x4080, 0x40c0, 0x4180, 0x4200-0x4298: literal
+    // sweep of nos-image.bin; users include the UEM/energy code 0x515c1xxx
+    // and the startup manager 0x51506xxx). Explicit zero-reset RW-latch
+    // hypothesis like block14d; every access still lands in bus.tsv as
+    // evidence. Registers share block14d_ storage (address-keyed) so the
+    // savestate layout is unchanged.
+    if (nos_periph4000_ && address >= 0x0c004000 && address < 0x0c005000) {
+        device = "assumed_nos_periph4000";
+        uint32_t& reg = block14d_[address & ~3u];
+        const uint32_t mask = byte_mask(request.select);
+        if (request.write) reg = (reg & ~mask) | (request.data & mask);
+        data = reg & mask;
+        return true;
+    }
     // Unidentified UPP block initialized by kernel routine 0x5032430c after
     // the first tick. Explicit zero-reset read/write probe; no side effects
     // are modeled and the device function remains unverified.
@@ -1056,8 +1075,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     auto probe = probe_regs_.find(address);
     if (probe != probe_regs_.end() && address == 0x0c150204 && probe->second.select == 12 && request.select == 12) {
         // gpio206-extra-write values: ekeyb 0x0006 and epbus 0x0001 (routine
-        // 0x503f5bbc writes halfword 1 to byte 0x0c150206 during init).
-        if (!icu46_write_ || !cbus_written_.count(0x8d) || !request.write || ((request.data & 0xffff0000) != 0x01800000 && !(gpio206_extra_write_ && ((request.data & 0xffff0000) == 0x00060000 || (request.data & 0xffff0000) == 0x00010000)))) {
+        // 0x503f5bbc writes halfword 1 to byte 0x0c150206 during init);
+        // 0x0200 observed from the NOS hardware-init burst right after its
+        // clock bring-up (boot-v15-auth7 cycle 729428678, 2026-10-31).
+        if (!icu46_write_ || !cbus_written_.count(0x8d) || !request.write || ((request.data & 0xffff0000) != 0x01800000 && !(gpio206_extra_write_ && ((request.data & 0xffff0000) == 0x00060000 || (request.data & 0xffff0000) == 0x00010000 || (request.data & 0xffff0000) == 0x02000000)))) {
             reason_ = "unobserved GPIO upper halfword access"; return false;
         }
         device = "assumed_register_probe"; data = 0; return true;
