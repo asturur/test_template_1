@@ -32,16 +32,20 @@ module ngage_modem(
     input  wire [ 7:0] bat_bars,     // sb 0x16 data1 (data0 is the cst 7)
     input  wire [15:0] bat_mv,       // sb 0x17 u16be
     input  wire [15:0] bat_aux,      // sb 0x18 u16be
-    input  wire        sim_reg       // SIM server registered yet?
+    input  wire        sim_reg,      // SIM server Phonet name registered?
+    input  wire [ 7:0] sim_state,    // Srvsim state byte (8=serving, 6=no card)
+    input  wire        imsi_valid,   // IMSI cache valid
+    input  wire [95:0] imsi_ef       // GSM 11.11 EF(IMSI): len 8 + 8 BCD + 3 pad
 );
 
 // reply kinds (classify below)
 localparam [2:0] K_NONE  = 3'd0,  // silence
-                 K_SHORT = 3'd1,  // 4-byte body {utid, rid, st, 0}
-                 K_CERR  = 3'd2,  // 8-byte 0xF0 body {utid,F0,code,mid,tail,0,0,0}
+                 K_B4    = 3'd1,  // 4-byte body {utid, rid, b2, b3}
+                 K_B8    = 3'd2,  // 8-byte body {utid, rid, b2, b3, b4, b5, 0, 0}
                  K_IMEI  = 3'd3,  // 24-byte phone-info serial reply
                  K_CHG   = 3'd4,  // charger 0x09 + subblocks by flags[1:0]
-                 K_BAT   = 3'd5;  // battery 0x0B + subblocks by flags[4:0]
+                 K_BAT   = 3'd5,  // battery 0x0B + subblocks by flags[4:0]
+                 K_SIM16 = 3'd6;  // SIM IMSI read: {utid,1E,2D,st, 12 bytes}
 
 localparam [2:0] S_RX  = 3'd0, S_CLS = 3'd1, S_HDR = 3'd2,
                  S_BODY= 3'd3, S_SB  = 3'd4, S_LEN = 3'd5, S_TX = 3'd6;
@@ -57,7 +61,7 @@ reg [7:0] q_rxdev, q_txdev, q_res, q_rxobj, q_txobj, q_utid, q_mid, q_flags;
 
 // classification result
 reg [2:0] kind;
-reg [7:0] rid, rstat, code, tail;  // reply id/status, 0xF0 code + 5th byte
+reg [7:0] rid, b2v, b3v, b4v, b5v; // generic body bytes 9..13
 reg [4:0] sbmask;                  // subblocks to emit (flags, validated)
 reg [5:0] wr;                      // build/write pointer
 reg [2:0] sb_bit;                  // current subblock bit 0..4
@@ -112,7 +116,7 @@ always @(posedge clk or posedge rst) begin
         st <= S_RX; rxn <= 6'd0; hdr_ok <= 1'b0; total <= 7'd0;
         tx_v <= 1'b0; tx_d <= 8'd0; wr <= 6'd0; txn <= 6'd0;
         kind <= K_NONE; sb_bit <= 3'd0; sb_oct <= 2'd0; sbmask <= 5'd0;
-        rid <= 8'd0; rstat <= 8'd0; code <= 8'd0; tail <= 8'd0;
+        rid <= 8'd0; b2v <= 8'd0; b3v <= 8'd0; b4v <= 8'd0; b5v <= 8'd0;
         q_rxdev <= 8'd0; q_txdev <= 8'd0; q_res <= 8'd0; q_rxobj <= 8'd0;
         q_txobj <= 8'd0; q_utid <= 8'd0; q_mid <= 8'd0; q_flags <= 8'd0;
     end else case (st)
@@ -157,48 +161,64 @@ always @(posedge clk or posedge rst) begin
     // ---- classify (ngm_handle dispatch) ------------------------------
     S_CLS: begin
         wr <= 6'd0; sb_bit <= 3'd0; sb_oct <= 2'd0;
-        st <= S_HDR; kind <= K_CERR; code <= 8'h14; tail <= 8'h01; // router err
+        // default: router error {utid,F0,14,mid,01,0,0,0} (0x51530fa0)
+        st <= S_HDR; kind <= K_B8;
+        rid <= 8'hf0; b2v <= 8'h14; b3v <= q_mid; b4v <= 8'h01; b5v <= 8'd0;
         if (total < 7'd10 || (q_rxdev & 8'hfc) != own_dev) begin
             st <= S_RX; kind <= K_NONE;             // silence
         end else case (q_res)
         8'h17: // energy server 0x515937ac
             if (q_mid == 8'h08) begin
                 if (q_flags == 8'd0 || (q_flags & 8'hfc) != 8'd0) begin
-                    kind <= K_SHORT; rid <= 8'h09; rstat <= 8'h02; // 0x51594c00
+                    kind <= K_B4; rid <= 8'h09; b2v <= 8'h02; b3v <= 8'd0;
                 end else begin
-                    kind <= K_CHG; rid <= 8'h09; rstat <= 8'h01;
+                    kind <= K_CHG; rid <= 8'h09;
                     sbmask <= {3'b000, q_flags[1:0]};
                 end
             end else if (q_mid == 8'h0a) begin
                 if (q_flags == 8'd0 || (q_flags & 8'he0) != 8'd0) begin
-                    kind <= K_SHORT; rid <= 8'h0b; rstat <= 8'h02;
+                    kind <= K_B4; rid <= 8'h0b; b2v <= 8'h02; b3v <= 8'd0;
                 end else begin
-                    kind <= K_BAT; rid <= 8'h0b; rstat <= 8'h01;
+                    kind <= K_BAT; rid <= 8'h0b;
                     sbmask <= q_flags[4:0];
                 end
             end else if (e_known(q_mid)) begin      // empty-OK 0x51594bdc
-                kind <= K_SHORT; rid <= q_mid + 8'd1; rstat <= 8'h01;
+                kind <= K_B4; rid <= q_mid + 8'd1; b2v <= 8'h01; b3v <= 8'd0;
             end else begin                          // 0x51594c44
-                kind <= K_CERR; code <= 8'h01; tail <= 8'h00;
+                rid <= 8'hf0; b2v <= 8'h01; b3v <= q_mid; b4v <= 8'd0;
             end
         8'h1b: // phone info 0x51591bd0
             if (q_mid == 8'h00 && q_flags == 8'h41)
                 kind <= K_IMEI;
             else begin
-                kind <= K_CERR; code <= 8'h01; tail <= 8'h00;
+                rid <= 8'hf0; b2v <= 8'h01; b3v <= q_mid; b4v <= 8'd0;
             end
         8'h1c: // accessory (body inferred)
             if (q_mid == 8'h10 || q_mid == 8'h12) begin
-                kind <= K_SHORT; rid <= q_mid + 8'd1; rstat <= 8'h01;
+                kind <= K_B4; rid <= q_mid + 8'd1; b2v <= 8'h01; b3v <= 8'd0;
             end else begin
-                kind <= K_CERR; code <= 8'h01; tail <= 8'h00;
+                rid <= 8'hf0; b2v <= 8'h01; b3v <= q_mid; b4v <= 8'd0;
             end
-        8'h09: // SIM: unroutable until it registers (0x515305c4)
+        8'h09: // SIM: Srvsim OO server (docs/modem-model.md 3.4). Status
+               // convention body[3]: 01 OK, 24 no-data, FA not-supported,
+               // FB starting/PIN, FC not serving. Unroutable until the
+               // name registers (0x515305c4).
             if (sim_reg) begin
-                if (q_mid == 8'h1d) begin   // resp 0x1E body unknown: fail
-                    kind <= K_SHORT; rid <= 8'h1e; rstat <= 8'h02;
-                end else begin
-                    kind <= K_CERR; code <= 8'h01; tail <= 8'h00;
+                if (q_mid == 8'h1d) begin
+                    if (q_flags != 8'h2d) begin     // only svc 0x2D exists
+                        kind <= K_B4; rid <= 8'h1e; b2v <= q_flags; b3v <= 8'hfa;
+                    end else if (sim_state == 8'd8) begin
+                        kind <= K_SIM16;            // 0x516601a8 / 0x515fc724
+                    end else begin                  // 0x3114 / 0x3111
+                        kind <= K_B8; rid <= 8'h1e; b2v <= 8'h2d;
+                        b3v <= (sim_state == 8'd1 || sim_state == 8'd3) ? 8'hfb : 8'hfc;
+                        b4v <= sim_state; b5v <= 8'h01;
+                    end
+                end else if (q_mid == 8'h64) begin  // 0x65 INFERRED bytes
+                    kind <= K_B8; rid <= 8'h65; b2v <= q_flags; b3v <= 8'hfc;
+                    b4v <= 8'd0; b5v <= 8'd0;
+                end else begin // outside the service table: 0xFA, rid req+1
+                    kind <= K_B4; rid <= q_mid + 8'd1; b2v <= q_flags; b3v <= 8'hfa;
                 end
             end
             // else keep the router-error default
@@ -226,25 +246,38 @@ always @(posedge clk or posedge rst) begin
     S_BODY: begin
         wr <= wr + 6'd1;
         case (kind)
-        K_SHORT: begin   // {utid, rid, st, 0}
+        K_B4: begin      // {utid, rid, b2, b3}
             case (wr)
                 6'd8:  buf_[wr] <= q_utid;
                 6'd9:  buf_[wr] <= rid;
-                6'd10: buf_[wr] <= rstat;
-                default: buf_[wr] <= 8'h00;
+                6'd10: buf_[wr] <= b2v;
+                default: buf_[wr] <= b3v;
             endcase
             if (wr == 6'd11) st <= S_LEN;
         end
-        K_CERR: begin    // {utid, F0, code, mid, tail, 0, 0, 0}
+        K_B8: begin      // {utid, rid, b2, b3, b4, b5, 0, 0}
             case (wr)
                 6'd8:  buf_[wr] <= q_utid;
-                6'd9:  buf_[wr] <= 8'hf0;
-                6'd10: buf_[wr] <= code;
-                6'd11: buf_[wr] <= q_mid;
-                6'd12: buf_[wr] <= tail;
+                6'd9:  buf_[wr] <= rid;
+                6'd10: buf_[wr] <= b2v;
+                6'd11: buf_[wr] <= b3v;
+                6'd12: buf_[wr] <= b4v;
+                6'd13: buf_[wr] <= b5v;
                 default: buf_[wr] <= 8'h00;
             endcase
             if (wr == 6'd15) st <= S_LEN;
+        end
+        K_SIM16: begin   // {utid, 1E, 2D, 01+EF(IMSI) | 24+FFx12}
+            case (wr)
+                6'd8:  buf_[wr] <= q_utid;
+                6'd9:  buf_[wr] <= 8'h1e;
+                6'd10: buf_[wr] <= 8'h2d;
+                6'd11: buf_[wr] <= imsi_valid ? 8'h01 : 8'h24;
+                default: // bytes 12..23 <- EF(IMSI) [95:88] first, or 0xFF
+                    buf_[wr] <= imsi_valid ?
+                        imsi_ef[{4'd11 - (wr[3:0] - 4'd12), 3'b000} +: 8] : 8'hff;
+            endcase
+            if (wr == 6'd23) st <= S_LEN;
         end
         K_IMEI: begin    // {utid,01,00,01, 41,14,00,10, imei[16]} (0x5164bc80)
             case (wr)
@@ -261,11 +294,11 @@ always @(posedge clk or posedge rst) begin
             endcase
             if (wr == 6'd31) st <= S_LEN;
         end
-        default: begin   // K_CHG / K_BAT: {utid, rid, 01, popcount}
+        default: begin   // K_CHG / K_BAT: {utid, rid, 01 (energy OK), popcount}
             case (wr)
                 6'd8:  buf_[wr] <= q_utid;
                 6'd9:  buf_[wr] <= rid;
-                6'd10: buf_[wr] <= rstat;
+                6'd10: buf_[wr] <= 8'h01;
                 default: buf_[wr] <= {5'd0, popc5(sbmask)};
             endcase
             if (wr == 6'd11) st <= S_SB;

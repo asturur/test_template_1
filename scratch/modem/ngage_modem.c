@@ -24,6 +24,9 @@ void ngm_init(ngm_state *s)
     s->batt_mv        = 0x0fa0; /* 4000: plausible, not boot-gating */
     s->batt_aux       = 0;
     s->sim_registered = 0;      /* SIM server registers late (runtime, 0x515305c4) */
+    s->sim_state      = 6;      /* cardless boot: failed init (inferred) */
+    s->imsi_valid     = 0;
+    memset(s->imsi_ef, 0, sizeof s->imsi_ef);
     memcpy(s->imei, "004400012345678", 16);
 }
 
@@ -223,25 +226,61 @@ static unsigned acc_dispatch(const uint8_t *req, uint8_t *r)
     return reply_not_identified(req, r);
 }
 
-/* ---- SIM server, resource 0x09 (section 3.4, partial) ------------------- */
+/* ---- SIM server, resource 0x09 (section 3.4, fully reversed) ------------ */
+/* Srvsim OO server. Status convention is SIM-SPECIFIC, at body[3]:
+   0x01 OK, 0x24 data-not-available, 0xFA not-supported, 0xFB starting or
+   PIN-wait, 0xFC not serving (status map 0x516fa9a8). Response id comes
+   from the service table 0x516e02a8 (0x1D -> 0x1E via 0x5159aff4), not
+   req+1. Builders alloc via 0x514b9a44 without clearing: unwritten tail
+   bytes modeled as 0. */
 
-static unsigned sim_dispatch(const ngm_state *s, const uint8_t *req, uint8_t *r)
+static unsigned sim_dispatch(const ngm_state *s, const uint8_t *req,
+                             uint8_t svc, uint8_t *r)
 {
     if (!s->sim_registered)
         return reply_not_reachable(req, r);    /* registers at runtime */
+    uint8_t *b;
     if (req[9] == 0x1d) {
-        /* read SIM data (svc byte req[10], 0x2D = IMSI). Resp 0x1E body is
-           NOT yet extracted from the SIM task; send status-fail-shaped
-           {utid, 0x1E, 0x02, 0} so clients see "no SIM" rather than a
-           fabricated IMSI. */
-        uint8_t *b = beg(req, r);
-        b[0] = req[8];
-        b[1] = 0x1e;
-        b[2] = 0x02;
-        b[3] = 0x00;
-        return fin(r, b + 4);
+        if (svc != 0x2d) {
+            /* only the 0x2D row exists for 0x1D: 4-byte 0xFA (0x3110) */
+            b = beg(req, r);
+            b[0] = req[8]; b[1] = 0x1e; b[2] = svc; b[3] = 0xfa;
+            return fin(r, b + 4);
+        }
+        if (s->sim_state == 8) {
+            b = beg(req, r);
+            b[0] = req[8]; b[1] = 0x1e; b[2] = 0x2d;
+            if (s->imsi_valid) {   /* SimImsi 0x3310 builder 0x516601a8 */
+                b[3] = 0x01;
+                memcpy(b + 4, s->imsi_ef, 12);
+            } else {               /* 0x515fc724: 12 bytes of 0xFF, 0x24 */
+                b[3] = 0x24;
+                memset(b + 4, 0xff, 12);
+            }
+            return fin(r, b + 16);
+        }
+        /* not serving: fallback 0x3114; states 1/3 answer 0xFB (0x3111).
+           resp[4] = server state byte, resp[5] = 0x01. */
+        b = beg(req, r);
+        b[0] = req[8]; b[1] = 0x1e; b[2] = 0x2d;
+        b[3] = (s->sim_state == 1 || s->sim_state == 3) ? 0xfb : 0xfc;
+        b[4] = s->sim_state; b[5] = 0x01; b[6] = 0; b[7] = 0;
+        return fin(r, b + 8);
     }
-    return reply_not_identified(req, r);
+    if (req[9] == 0x64) {
+        /* startup manager's 0x0965: {utid, 0x65, svc, status, 4 data}.
+           Async on real hw (0x51662130); not-serving status with zero
+           data INFERRED for the cardless model. */
+        b = beg(req, r);
+        b[0] = req[8]; b[1] = 0x65; b[2] = svc; b[3] = 0xfc;
+        b[4] = b[5] = b[6] = b[7] = 0;
+        return fin(r, b + 8);
+    }
+    /* ids outside the service table: 4-byte 0xFA form; resp id req+1
+       INFERRED (the table supplies ids for known rows only). */
+    b = beg(req, r);
+    b[0] = req[8]; b[1] = (uint8_t)(req[9] + 1); b[2] = svc; b[3] = 0xfa;
+    return fin(r, b + 4);
 }
 
 /* ---- top-level router (section 2) --------------------------------------- */
@@ -263,7 +302,7 @@ unsigned ngm_handle(const ngm_state *s, const uint8_t *req, unsigned req_len,
     case NGM_RES_ENERGY:     return energy_dispatch(s, req, b2, resp);
     case NGM_RES_PHONE_INFO: return info_dispatch(s, req, b2, resp);
     case NGM_RES_ACCESSORY:  return acc_dispatch(req, resp);
-    case NGM_RES_SIM:        return sim_dispatch(s, req, resp);
+    case NGM_RES_SIM:        return sim_dispatch(s, req, b2, resp);
     default:                 return reply_not_reachable(req, resp);
     }
     }

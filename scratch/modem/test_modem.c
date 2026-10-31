@@ -134,6 +134,77 @@ int main(void)
         expect("SIM unregistered -> not reachable", resp, rl, want, sizeof want);
     }
 
+    /* 7b. SIM registered, cardless (state 6): 0x1D/0x2D -> not-serving
+           {utid, 0x1E, 0x2D, 0xFC, state, 0x01, 0, 0}  (method 0x3114) */
+    {
+        s.sim_registered = 1;   /* state stays 6 from ngm_init */
+        const uint8_t body[] = { 0xe2, 0x1d, 0x2d };
+        n = mkreq(req, 0x09, 0x25, body, sizeof body);
+        rl = ngm_handle(&s, req, n, resp);
+        const uint8_t want[] = { 0x00, 0x6c, 0x00, 0x09, 0x0a, 0x00, 0x01, 0x25,
+                                 0xe2, 0x1e, 0x2d, 0xfc, 0x06, 0x01, 0x00, 0x00 };
+        expect("SIM cardless -> 0xFC not serving", resp, rl, want, sizeof want);
+    }
+
+    /* 7c. SIM starting (state 1) -> 0xFB (method 0x3111) */
+    {
+        s.sim_state = 1;
+        const uint8_t body[] = { 0xe3, 0x1d, 0x2d };
+        n = mkreq(req, 0x09, 0x25, body, sizeof body);
+        rl = ngm_handle(&s, req, n, resp);
+        const uint8_t want[] = { 0x00, 0x6c, 0x00, 0x09, 0x0a, 0x00, 0x01, 0x25,
+                                 0xe3, 0x1e, 0x2d, 0xfb, 0x01, 0x01, 0x00, 0x00 };
+        expect("SIM starting -> 0xFB", resp, rl, want, sizeof want);
+    }
+
+    /* 7d. SIM serving + IMSI cached: 16-byte body (builder 0x516601a8) */
+    {
+        s.sim_state = 8; s.imsi_valid = 1;
+        memcpy(s.imsi_ef, "\x08\x29\x40\x02\x31\x57\x16\x92\x80\x00\x00\x00", 12);
+        const uint8_t body[] = { 0xe4, 0x1d, 0x2d };
+        n = mkreq(req, 0x09, 0x25, body, sizeof body);
+        rl = ngm_handle(&s, req, n, resp);
+        uint8_t want[24] = { 0x00, 0x6c, 0x00, 0x09, 0x12, 0x00, 0x01, 0x25,
+                             0xe4, 0x1e, 0x2d, 0x01 };
+        memcpy(want + 12, s.imsi_ef, 12);
+        expect("SIM serving -> IMSI OK", resp, rl, want, sizeof want);
+    }
+
+    /* 7e. serving, cache invalid -> 0x24 + 12x 0xFF (0x515fc724) */
+    {
+        s.imsi_valid = 0;
+        const uint8_t body[] = { 0xe5, 0x1d, 0x2d };
+        n = mkreq(req, 0x09, 0x25, body, sizeof body);
+        rl = ngm_handle(&s, req, n, resp);
+        uint8_t want[24] = { 0x00, 0x6c, 0x00, 0x09, 0x12, 0x00, 0x01, 0x25,
+                             0xe5, 0x1e, 0x2d, 0x24 };
+        memset(want + 12, 0xff, 12);
+        expect("SIM cache invalid -> 0x24", resp, rl, want, sizeof want);
+    }
+
+    /* 7f. unknown service under 0x1D -> 4-byte 0xFA (method 0x3110) */
+    {
+        const uint8_t body[] = { 0xe6, 0x1d, 0x55 };
+        n = mkreq(req, 0x09, 0x25, body, sizeof body);
+        rl = ngm_handle(&s, req, n, resp);
+        const uint8_t want[] = { 0x00, 0x6c, 0x00, 0x09, 0x06, 0x00, 0x01, 0x25,
+                                 0xe6, 0x1e, 0x55, 0xfa };
+        expect("SIM svc!=0x2D -> 0xFA", resp, rl, want, sizeof want);
+    }
+
+    /* 7g. req 0x64 -> 0x65 not-serving (INFERRED bytes) */
+    {
+        s.sim_state = 6;
+        const uint8_t body[] = { 0xe7, 0x64, 0x2d };
+        n = mkreq(req, 0x09, 0x25, body, sizeof body);
+        rl = ngm_handle(&s, req, n, resp);
+        const uint8_t want[] = { 0x00, 0x6c, 0x00, 0x09, 0x0a, 0x00, 0x01, 0x25,
+                                 0xe7, 0x65, 0x2d, 0xfc, 0x00, 0x00, 0x00, 0x00 };
+        expect("SIM 0x64 -> 0x65 not serving", resp, rl, want, sizeof want);
+        s.sim_registered = 0;   /* restore for later tests */
+        s.sim_state = 6;
+    }
+
     /* 8. unknown resource 0x55 -> same router error shape */
     {
         const uint8_t body[] = { 0xe2, 0x07 };

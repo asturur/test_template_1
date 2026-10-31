@@ -389,18 +389,147 @@ at 0x51504188 and its own task main at 0x51504380 (ring receive via
 0x516c756c, internal ids 0xC0..0x1BC handled at 0x5152b0a4). This confirms
 request/response id pairing (req, req+1) across resources 0x17/0x1b/0x1c.
 
-### 3.4 SIM server (resource 0x09) — partial
+### 3.4 SIM server (resource 0x09) — reversed (IMSI path byte-exact)
 
-Not in the static name table: the SIM server registers its Phonet name at
-runtime (name-service resource 0x10, handler 0x515305c4, add = msg 0x10). Its
-code region is 0x5153xxxx–0x51540xxx: the key `(0x09<<8)|0x1D` (read SIM data /
-IMSI) is consumed around 0x5153fad4; the task's retry logic (0x514d8750 area,
-a different task that *sends* SIM requests) tracks pending ids
-{0x05, 0x10, 0x1A, 0x1D, 0x1E, 0x20, 0x22, 0x2D, 0x37, 0x50, 0x61, 0x6A} —
-so 0x1D (req) and 0x1E (resp) and service type 0x2D are real protocol values,
-as ngvm assumed. **Exact IMSI response bytes not yet extracted from the SIM
-server code** (it round-trips through the physical SIM card reader state
-machine; the response is built asynchronously).
+Correction to the earlier note: the "key 0x091D consumed around 0x5153fad4"
+was a false lead — the word 0x091D at 0x5153fad4 is a literal-pool **line
+number** (2333) for the debug allocator 0x516c74ec(size, file, line) (ldr r2
+at 0x5153fa94; the paired file string 0x516da110 is `Comp_manager_pi.mod.c`).
+The real SIM server is Nokia's DCT4 `SIM_SERVER_DCT4/Srvsim_*.c` (source-path
+strings 0x516fadd4 `Srvsim_serv.c`, 0x516fc0ec `Srvsim_read.c`, 0x516e111c
+`Srvsim.c`, …), object-oriented: objects carry chained method tables
+`{u16 method_id, 0, fn}` looked up by 0x514bdca8 and invoked through the
+`bx ip` veneers 0x514bddf8/0x514bde34/0x514bde6c/0x514bde9c/0x514bdec8.
+
+**Server object and ISI dispatch (all read from code):**
+
+- The "SIM_Server" class descriptor is at 0x516e0fe4 {parent 0x516cc258
+  (generic Conn class, send method 0xc008 = 0x514b9588), method table
+  0x516e0dc4 (67 entries), name 0x516e0ff8 "SIM_Server"}. The singleton
+  instance is RAM **0x800ca784** (constructor 0x5159b150, reached as class
+  method 0x3100; creator helper 0x5159b574). Instance fields: **+8 = server
+  state byte** (constructor writes 1), +0x10 = default method for non-ready
+  requests, +0x18 → ISI service table, +0x1c → internal-event table.
+- **ISI service table 0x516e02a8** (ROM, 12-byte rows
+  `{u8 req_id, u8 svc_type, u8 resp_id, 0, u16 method, 0, u32 obj}`,
+  0-terminated before 0x516e09b8): maps (message id, service-type byte
+  body[2]) → handler method on a service object. The IMSI row at 0x516e04ac:
+  **req 0x1D svc 0x2D → resp 0x1E, method 0x3310, obj 0x800ca7a4** (class
+  "SimImsi", desc 0x516fb51c, table 0x516fb4f4: 0x3310→0x516601a8,
+  0x3311→0x516601fc, 0x3312→0x51660240). Msg 0x1D has **only** the 0x2D row.
+  Response-id pairing is per this table (0x1D→0x1E etc.), looked up by
+  0x5159aff4 (first row whose req_id matches; default = request id itself) —
+  NOT computed as req+1, though every table pair happens to be req+1.
+- **Receive method 0xc009 = 0x5159b604**: for resources 0x09 and 0x5A it
+  calls the gate 0x5159b050(server, body, &method, key) and invokes the
+  resulting method. **Gate 0x5159b050**: if state [srv+8] == 8 ("serving"),
+  walk the service table on (body[1], body[2]); no row → method **0x3110**
+  on 0x800ca7fc. If state != 8, only msg ids {0x01, 0x07, 0x09, 0x3D, 0xC6,
+  0x1F, 0xDE}, res 0x5A, 0xBA with svc 0x64/0x65, 0xC0 svc 0, and 0xF0 svc 2
+  still reach the table; everything else (incl. 0x1D) gets the method stored
+  at [srv+0x10] (set per state transition), falling back to **0x3111** in
+  states 1/3 and **0x3114** otherwise (0x5159b0ba-0x5159b0d6).
+
+**Fallback responders (Srvsim_rmque.c region; shared header writer
+0x5165eb44(req, resp, id): resp[0]=req[0] utid, resp[1]=id, resp[2]=req[2]
+svc echo; sender 0x5165eb50 sets body length (frame u16@4 = len+2 via
+0x514b9b3c) and sends via the Conn 0xc008 = 0x514b9588, which swaps the
+stored request addresses and stamps resource 0x09):**
+
+- 0x3110 = 0x5165ec88 — unknown (id,svc) on serving server, 4-byte body:
+  **`{utid, resp_id(req), svc, 0xFA}`**.
+- 0x3111 = 0x5165ecd0 — "still starting / PIN pending" (states 1/3), 8-byte
+  body: **`{utid, resp_id(req), svc, 0xFB, state([0x800ca78c]), 0x01, x, x}`**
+  (bytes 6-7 are never written by the builder — the 0x514b9a44 alloc does not
+  clear the body; a model should emit 0).
+- 0x3114 = 0x5165ed24 — "not serving" (all other non-8 states), 8-byte body:
+  **`{utid, resp_id(req), svc, 0xFC, state, 0x01, x, x}`**.
+- SIM_IND broadcast (msg 0xEF, consumed by clients keyed 0x09EF): builders
+  0x5165ed78 / 0x51661924, 8-byte body
+  `{0x00, 0xEF, a, b, state([0x800ca78c]), 0x01, x, x}`.
+
+**IMSI read (req body `{utid, 0x1D, 0x2D}`; client request layout
+cross-checked at 0x515b2dd4: alloc 4, writes 3 bytes, sends with resource 9
+via 0x514ba3f0): handler = SimImsi method 0x3310 = 0x516601a8** — answered
+synchronously from a cache, no round-trip to the card at request time:
+
+- alloc 16 (0x514b9a44), header `{utid, 0x1E, 0x2D(echo)}` (0x5165eb44),
+  then **0x515fc724(resp+4)** fills the 12-byte payload and returns a raw
+  status: if the valid flag (bit7 of RAM byte 0x800cdd2c+0x322) is set, it
+  copies **12 bytes from the IMSI cache 0x800ce080** and returns 1; else it
+  fills the 12 bytes with **0xFF** and returns 0.
+- resp[3] = raw status, then remapped in place via the **status map
+  0x5165ea98 / table 0x516fa9a8** (8-byte rows {raw, ctx, isi_status, ret,
+  aux}; terminator raw 0xFF → isi 0xFF): with ctx 4, **raw 1 → 0x01 (OK)**
+  (row 0x516facc8), **raw 0 → 0x24** (row 0x516facd0). Sent with body length
+  16 (0x516601e2).
+- Cache contents: the writer at 0x51507eb0 memcpy's a length-prefixed blob to
+  0x800ce080 after asserting blob[0] ≤ 8 (0x51507ea0-0x51507eaa), i.e. the
+  raw GSM 11.11 EF(IMSI) content `{len=8, 8 bytes swapped-BCD IMSI}` plus
+  pad to 12. The cache lives inside the Cs_net.c context (name/address
+  registry 0x516ed75c pairs 0x800cdd2c/0x800ce080 with Cs_net.c asserts).
+
+So the IMSI responses on the wire (ISI body from the utid):
+
+- **IMSI OK**: 16 bytes `{utid, 0x1E, 0x2D, 0x01, 0x08, bcd[8], pad[3]}` —
+  body[4] = EF(IMSI) length byte (8), body[5..12] = swapped-BCD digits
+  (first byte = parity nibble | digit1), body[13..15] = cache tail.
+- **Serving but IMSI never read** (e.g. cache invalid): 16 bytes
+  `{utid, 0x1E, 0x2D, 0x24, 0xFF ×12}`.
+- **Server not serving** (the no-SIM boot case): 8 bytes
+  `{utid, 0x1E, 0x2D, 0xFC, state, 0x01, 0, 0}` (or status 0xFB with state
+  1/3 during early init / PIN wait).
+
+**Client cross-check (byte-level, read from the security/simlock consumer):**
+the key-switch at 0x515b29xx (keys 0x08xx, 0x090A/0x0906/0x0904/0x0908/
+0x093C/0x091E/0x09EF, 0x3001) routes 0x091E → 0x515b2db0, which reads
+**body[3] == 1** as OK, then `memcpy(ctx+0xF, body+5, body[4])` — status at
+[3], length at [4], data at [5..], exactly matching the server builder. On
+any other status it skips the copy and **continues** (sends the next request
+0x3B/0xFA at 0x515b2dc8-0x515b2de0), so a failed IMSI read does not stall
+this client.
+
+**Server state machine (what "no SIM" produces).** Internal events from the
+SIM subsystem (`SIM_SUBSYSTEM/Sim*.c`, internal msg ids 0x7xx/0x12xx; e.g.
+SimRead parks work to subsystem task 0x1D with internal id 0x126A at
+0x51664ad0) reach the server via its internal-event table **0x516e09c8**
+(`{u16 id, 0, u32 method, u32 obj}`) and the transition table **0x516e1334**
+(20-byte rows `{u32 event, u8 param, u8 cur(9=any), u8 new_state, _, ind_fn,
+u32 not_ready_method, u8 ret}`, matcher 0x5159bf3c, applier 0x5159bfb0 which
+writes [srv+8] = new_state and [srv+0x10] = not_ready_method at 0x5159c01c-
+0x5159c028). Key rows: event 0x70d **param 1 → state 8** (serving), **param
+0 → state 6** (init failed); param 0x72 → state 3 (PIN wait, method 0x3111);
+param 0x68 → state 4; param 0x74 / event 0x70e → state 5; params 0x69/0x6A/
+0x75/0xC5/0xC6/0x73 → state 6; param 0x67 → state 7; event 0x710 param 0x7C
+and events 0x708/0x70c params 0x64/0x66/0x70/0xA4/0xA5 → state 8; card
+removal/power-off rows → state 0x0A. States 2,4,5,6,7,0x0A all set method
+0x3114 (status 0xFC). **Inferred (not byte-verified which raw param a
+cardless boot emits):** with no SIM the init-complete event cannot carry the
+success codes, so the server settles in a non-8 state (6 via the param-0
+"init failed" row, or 5 via the disconnect rows) and every 0x1D request is
+answered with the 0xFC form above; the state byte in resp[4] is 5 or 6. A
+faithful no-SIM model should emit
+`{utid, 0x1E, 0x2D, 0xFC, 0x06, 0x01, 0, 0}`.
+
+Status-byte convention (all read from code): the status is **body[3]**;
+**0x01 = OK**; **0x24** = data not available (also the ctx-4/5 "getter
+returned 0" code); **0xFA** = message/service not supported (unknown id/svc);
+**0xFB** = server starting or PIN pending (states 1/3); **0xFC** = not
+serving; the full raw→ISI map (raw 0x64→0x01, 0x72→0x02, 0x73→0x03,
+0x67→0x04, 0x68→0x05, 0x74→0x06, 0x75/0xC5/0xC6→0x07, 0xA3→0x08, 0xA4→0x09,
+0xA5→0x0A, 0x01/0x77→0x0B, 0x00/0x76/0x78→0x0C, …, default 0xF9/0xFF) is the
+table at 0x516fa9a8. The energy-server convention (1=OK/2=fail) does NOT
+apply to resource 0x09.
+
+**Other msg 0x1D service types:** none exist in the service table — on a
+serving server any svc ≠ 0x2D under msg 0x1D returns the 4-byte 0xFA form
+with resp id 0x1E. Boot-adjacent siblings read from the same table: req 0x3B
+svc 0xFA → resp 0x3C = `{utid, 0x3C, 0xFA, [0x800ca784+9]}` (method 0x3311 =
+0x516601fc; the length field is set to 16 while only 4 bytes are written —
+firmware quirk, bytes 4..15 are heap residue); req 0x64 (svc 0xFA/0x61/0x62)
+→ resp 0x65 is answered asynchronously via internal id 0x127A, body
+`{utid, 0x65, svc, status, 4 data bytes}` (0x51662130/0x51662170 — the
+startup manager's 0x0965 key, §3.3).
 
 ### 3.5 Phone-info server (resource 0x1B, INFO) — IMEI response read
 
@@ -461,7 +590,7 @@ with code but not byte-verified.
 | energy 0x17 | 0x08 flags(≤3) | `{utid, 0x09, 0x01, n}` + bit0 `{0x13,4,chg_status,0}` + bit1 `{0x14,4,chg_raw,0}`; bad flags → `{utid,0x09,0x02,0}` | 0x5159446c, 0x51594c7c, 0x515c1dc0 | read |
 | energy 0x17 | 0x0A flags(≤0x1F) | `{utid, 0x0B, 0x01, n}` + bit0 `{0x15,4,batt_status,0}` + bit1 `{0x16,4,7,bars}` + bit2 `{0x17,4,u16be}` + bit3 `{0x18,4,u16be}` + bit4 `{0x25,4,0xFF,0xFF}` | 0x515944ec | read |
 | energy 0x17 | 0x00,0x02,0x04,0x06,0x0C,0x0F,0x11,0x13,0x15,0x17,0x19,0x1B,0x1D,0x1F,0x22,0x24,0x26,0xE0,0xE2,0xE4 | resp id = req+1, status 1/2, handlers listed in §3.1 | 0x515937ac table | read (ids), bodies not walked |
-| SIM 0x09 | 0x1D (svc 0x2D) | resp id 0x1E; exact body not yet extracted | 0x5153fad4, 0x514d8750 | partial |
+| SIM 0x09 | 0x1D (svc 0x2D = IMSI) | serving+cached: `{utid, 0x1E, 0x2D, 0x01, 0x08, bcd[8], pad[3]}` (16B); serving, no IMSI: `{utid, 0x1E, 0x2D, 0x24, 0xFF×12}`; **no SIM / not serving: `{utid, 0x1E, 0x2D, 0xFC, state(6), 0x01, 0, 0}` (8B)**; starting/PIN: status 0xFB; unknown (id,svc): `{utid, resp_id, svc, 0xFA}` (4B) | 0x516601a8, 0x515fc724, 0x5165ec88/ecd0/ed24, table 0x516e02a8, gate 0x5159b050 | read (no-SIM landing state 5-vs-6 inferred) |
 | phone info 0x1B | 0x00, target 0x41 | `{utid, 0x01, 0x00(ok), 1}` + sb `{0x41, 0x14, 0x00, 0x10, 16-char IMEI}`; other targets 0x42..0x5A via table 0x5164bc14 | 0x51591bd0, 0x5164bbd8, 0x5164bc80 | read |
 | accessory 0x1C | 0x10, 0x12 | resp ids 0x11/0x13? (mgr consumes 0x1C11/0x1C12); body unverified | 0x515953c4 | partial |
 | tones 0x1F | — | served by MCU task 0x22 (obj 0x2F), NOT the DSP | 0x516f49e0 | read (routing) |
@@ -502,16 +631,20 @@ with code but not byte-verified.
    serial-number subblock `{0x41, 20, 0, 16, 16 chars}` matches ngvm exactly
    (0x5164bc80); only the digits are device-specific (ngvm's made-up IMEI is
    fine). Note the INFO status byte here is **0 = OK** (piece[2]=0), where
-   ngvm sends r[10]=0 too — agreement. The SIM IMSI (0x1E) body remains
-   unverified.
+   ngvm sends r[10]=0 too — agreement. The SIM IMSI (0x1E) body is now read
+   (§3.4): `{utid, 0x1E, 0x2D, status, len, bcd…}` with status 0x01 = OK —
+   ngvm's ofono-style guess of the field order (svc echo at [2], status at
+   [3], length byte at [4], raw EF(IMSI) bytes after) is confirmed, but the
+   SIM status codes (0x01/0x24/0xFA/0xFB/0xFC) are their own convention.
 8. **Tones (0x1F)** are handled on the MCU (task 0x22), and PCM (0xE8) goes to
    the DSP device 0x7C — consistent with ngvm's modelling split.
 
 ## 6. Open questions
 
-- SIM server response construction (0x1E body, IMSI encoding) — requires
-  walking the SIM task state machine in 0x5153xxxx–0x51540xxx (async via the
-  physical SIM interface). ngvm's ofono-style layout is unconfirmed.
+- SIM server: resolved in §3.4 (0x1E body, IMSI encoding, no-SIM path).
+  Remaining SIM opens: which raw subsystem code a cardless boot feeds the
+  0x70d init event (decides landing state 5 vs 6 — response shape identical),
+  and the meaning of server byte [0x800ca784+9] (sent in the 0x3C response).
 - Phone-info: remaining target types (0x42..0x5A) and version/product-info
   responses (keys 0x1B07/0x1B15, handlers 0x5164bafc/0x5164b8d4) not walked.
 - Accessory server response bodies (keys 0x1C10/0x1C12 handlers at
@@ -540,7 +673,8 @@ with code but not byte-verified.
 
 ### Next steps (suggested order)
 
-1. Walk the SIM server task to extract the 0x1E (read-IMSI) response bytes.
+1. ~~Walk the SIM server task to extract the 0x1E (read-IMSI) response
+   bytes.~~ Done — §3.4.
 2. Locate the phone-info server via its PMM (res 0x32) reads; extract the
    serial-number response (sb 0x41) layout.
 3. Confirm isimsg.dll's length-field handling (one targeted disasm).

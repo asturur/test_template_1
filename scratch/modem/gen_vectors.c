@@ -7,13 +7,28 @@
 #include "ngage_modem.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 static ngm_state s;
+static unsigned cur_cfg;
+
+/* SIM configs the TB mirrors on the DUT ports:
+   0: unregistered; 1: registered, state 6 (cardless); 2: serving + IMSI */
+static const uint8_t kImsi[12] = {8,0x29,0x40,0x02,0x31,0x57,0x16,0x92,0x80,0,0,0};
+static void set_cfg(unsigned c)
+{
+    cur_cfg = c;
+    s.sim_registered = c > 0;
+    s.sim_state = c == 2 ? 8 : 6;
+    s.imsi_valid = c == 2;
+    memcpy(s.imsi_ef, kImsi, 12);
+}
 
 static void emit(const uint8_t *req, unsigned n)
 {
     uint8_t resp[NGM_MAX_FRAME];
     unsigned rl = ngm_handle(&s, req, n, resp), i;
+    printf("%02x\n", cur_cfg);
     printf("%02x\n", n);
     for (i = 0; i < n; i++) printf("%02x\n", req[i]);
     printf("%02x\n", rl);
@@ -38,6 +53,7 @@ int main(void)
 
     ngm_init(&s);
     srand(12345);
+    set_cfg(0);
 
     /* directed: the test_modem.c set */
     { const uint8_t b[] = {0xa1,0x08,0x01}; emit(f, mk(f,0,0x17,b,3)); }
@@ -52,8 +68,18 @@ int main(void)
     { const uint8_t b[] = {0xf1,0x10};      emit(f, mk(f,0,0x1c,b,2)); }
     { const uint8_t b[] = {0xf2,0x08,0x01}; emit(f, mk(f,0x6c,0x17,b,3)); } /* silence */
 
-    /* random sweep */
+    /* directed SIM forms under each config */
+    for (t = 1; t <= 2; t++) {
+        set_cfg(t);
+        { const uint8_t b[] = {0xd0,0x1d,0x2d}; emit(f, mk(f,0,0x09,b,3)); }
+        { const uint8_t b[] = {0xd1,0x1d,0x55}; emit(f, mk(f,0,0x09,b,3)); }
+        { const uint8_t b[] = {0xd2,0x64,0x2d}; emit(f, mk(f,0,0x09,b,3)); }
+        { const uint8_t b[] = {0xd3,0x33,0x11}; emit(f, mk(f,0,0x09,b,3)); }
+    }
+
+    /* random sweep over all three configs */
     for (t = 0; t < 2000; t++) {
+        set_cfg(t % 3);
         static const uint8_t resv[] = {0x09,0x17,0x17,0x17,0x1b,0x1c,0x10,0x3e};
         uint8_t res = resv[rand() & 7];
         unsigned blen = 2 + (rand() % 20);

@@ -13,6 +13,10 @@ reg  [7:0] rx_d;
 wire       tx_v, busy;
 wire [7:0] tx_d;
 
+reg       sim_reg_r;
+reg [7:0] sim_state_r;
+reg       imsi_valid_r;
+
 ngage_modem dut(
     .rst(rst), .clk(clk),
     .rx_v(rx_v), .rx_d(rx_d),
@@ -22,8 +26,15 @@ ngage_modem dut(
     .chg_status(8'd1), .chg_raw(8'd0),
     .bat_status(8'd1), .bat_bars(8'd7),
     .bat_mv(16'h0fa0), .bat_aux(16'd0),
-    .sim_reg(1'b0)
+    .sim_reg(sim_reg_r), .sim_state(sim_state_r), .imsi_valid(imsi_valid_r),
+    .imsi_ef(96'h08294002_31571692_80000000)
 );
+
+task set_cfg(input [7:0] c); begin
+    sim_reg_r    = c > 0;
+    sim_state_r  = c == 2 ? 8'd8 : 8'd6;
+    imsi_valid_r = c == 2;
+end endtask
 
 always #5 clk = ~clk;
 
@@ -39,12 +50,14 @@ task step; begin @(posedge clk); #1; end endtask
 initial begin
     $readmemh("vectors.hex", vec);
     clk = 0; rst = 1; rx_v = 0; rx_d = 0; tx_ready = 0;
+    sim_reg_r = 0; sim_state_r = 8'd6; imsi_valid_r = 0;
     vp = 0; nvec = 0; fails = 0;
     repeat (4) step;
     rst = 0;
     repeat (2) step;
 
     while (vec[vp] !== 8'hff && vec[vp] !== 8'hxx) begin
+        set_cfg(vec[vp]); vp = vp + 1;
         req_len = vec[vp]; vp = vp + 1;
         for (i = 0; i < req_len; i = i + 1) begin
             rxbuf[i] = vec[vp]; vp = vp + 1;

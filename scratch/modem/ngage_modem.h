@@ -38,6 +38,12 @@ typedef struct {
     uint16_t batt_mv;       /* sb 0x17 u16be                               */
     uint16_t batt_aux;      /* sb 0x18 u16be                               */
     uint8_t sim_registered; /* 0: SIM object unroutable -> router 0xF0 0x14 */
+    /* SIM server (Srvsim OO server, docs/modem-model.md 3.4): state byte
+       [obj+8]; 8 = serving. Cardless boot lands in 6 (failed init,
+       inferred); 1 = starting, 3 = PIN-wait -> status 0xFB. */
+    uint8_t sim_state;
+    uint8_t imsi_valid;     /* IMSI cache valid (bit7 of 0x800cdd2c+0x322) */
+    uint8_t imsi_ef[12];    /* raw GSM 11.11 EF(IMSI): len 8, 8 BCD, 3 pad */
 } ngm_state;
 
 /* Fill s with the boot defaults (charger absent, battery full, IMEI zeros) */
