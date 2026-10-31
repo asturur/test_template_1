@@ -341,20 +341,55 @@ bool BootProfile::flash_command(Flash& flash, const BootBusRequest& request) {
     const unsigned shift = request.select == 12 ? 16 : 0;
     const uint32_t address = (request.address & ~3u) + shift / 8 - flash.base;
     const uint16_t value = (request.data >> shift) & 0xffff;
+    // NOS PMM driver (0x5167edxx..0x5167f0xx, Intel CUI on this array):
+    // 0x40 program setup -> data cycle; status-register reads until bit 7;
+    // 0x50 clear status; 0x60 lock-op setup then 0x01 set / 0xD0 clear;
+    // 0xFF/0xF0 back to array. State + programmed halfwords live in
+    // block14d_ (serialized map) so the Flash struct layout is unchanged:
+    // state word key 0xff000000|base (bit0 SR-mode, bit1 program-pending,
+    // bit2 lock-op), overlay key 0x80000000|halfword-address.
+    uint32_t& pmm = block14d_[0xff000000u | flash.base];
     if (value == 0xff || value == 0xf0) {
-        flash.identify = false; flash.unlock = 0; return true;
+        flash.identify = false; flash.unlock = 0; pmm = 0; return true;
     }
+    if (pmm & 2u) {              // program data cycle: halfword at 'address'
+        uint32_t& cell = block14d_[0x80000000u | (flash.base + (address & ~1u))];
+        const bool had = (cell >> 16) == 1;
+        cell = 0x00010000u | (had ? (cell & value & 0xffffu) : value);
+        pmm = (pmm & ~2u) | 1u;  // status-register mode until 0xFF/0xF0/0x50
+        return true;
+    }
+    if (value == 0x40) { pmm |= 2u; return true; }
+    if (value == 0x50) { pmm &= ~1u; return true; }
+    if (value == 0x60) { pmm |= 4u; return true; }
+    if ((pmm & 4u) && (value == 0x01 || value == 0xd0)) { pmm &= ~4u; return true; }
     if (flash.intel) {
         if (value == 0x90) { flash.identify = true; return true; }
     } else {
-        if (address == 0xaaa && value == 0xaa) {
+        // Unlock-cycle addresses decode A10:0 only (boot code writes the
+        // short 0xaaa/0x554 form, the NOS PMM driver 0xaaa/0x1554 - both
+        // are the same A10:0 pattern; observed boot-v15-auth7 800966412).
+        if ((address & 0x7ff) == 0x2aa && value == 0xaa) {
             flash.unlock = 1; return true;
         }
-        if (flash.unlock == 1 && address == 0x554 && value == 0x55) {
+        if (flash.unlock == 1 && (address & 0x7ff) == 0x554 && value == 0x55) {
             flash.unlock = 2; return true;
         }
-        if (flash.unlock == 2 && address == 0xaaa && value == 0x90) {
+        if (flash.unlock == 2 && (address & 0x7ff) == 0x2aa && value == 0x90) {
             flash.identify = true; flash.unlock = 0; return true;
+        }
+        // AMD program: AA/55/A0 then the data halfword at the target
+        // address (NOS PMM driver, boot-v15-auth7 800966453). Programmed
+        // cells live in the block14d_ overlay; reads serve the overlay at
+        // once, which also satisfies the driver's verify poll.
+        if (flash.unlock == 2 && (address & 0x7ff) == 0x2aa && value == 0xa0) {
+            flash.unlock = 6; return true;
+        }
+        if (flash.unlock == 6) {
+            uint32_t& cell = block14d_[0x80000000u | (flash.base + (address & ~1u))];
+            const bool had = (cell >> 16) == 1;
+            cell = 0x00010000u | (had ? (cell & value & 0xffffu) : value);
+            flash.unlock = 0; return true;
         }
         // AMD datasheet Table 8/10: C0 after two unlock cycles latches
         // burst mode/wait states from address A16..A12, not array data.
@@ -431,15 +466,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             data = 0x08000000;
         else if (control.value == 3 && latches_.at(0x0c149000).written == 0xffffffffu &&
                  latches_.at(0x0c149000).value == 0x2210) data = 0x08000000;
-        // Authentic path (real descrambled NOS, 2026-10-31): the NOS clock
-        // bring-up 0x514a5b60 writes control 0x40 then 0x20 to 0x0c120004
-        // (straight-line, no poll between) and then polls 0x0c120020 in the
-        // loop 0x514a5b80..8c: TST R0,#0x02000000 / BEQ - it waits for BIT
-        // 25 (raw word e3100402; bit 27 alone spun 729.4M->2.3e9 in
-        // boot-v15-auth6). This is the ONLY 0x00120020 literal user in the
-        // NOS image; after the poll it writes control 0x10 and command
-        // 0x8000 with no further status read.
-        else if (control.value == 0x20 || control.value == 0x40) data = 0x02000000;
+        // Authentic path (real descrambled NOS, 2026-10-31): two observed
+        // waits under control 0x40-then-0x20:
+        //  - NOS bring-up 0x514a5b60, loop 0x514a5b80..8c TST #0x02000000
+        //    (bit 25; raw word e3100402);
+        //  - second bring-up 0x514c138c (boot-v15-clockloop2, 800.85M),
+        //    loop 0x514c13ac..b2 ANDs #0x04000000 (bit 26; movs #0x80,
+        //    lsls #19) and spun 38.8M cycles on bit 25 alone.
+        // Model both locks set; each loop tests only its own bit.
+        else if (control.value == 0x20 || control.value == 0x40) data = 0x06000000;
         else { reason_ = "unmodeled clock control/status combination"; return false; }
         return true;
     }
@@ -732,7 +767,8 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         const uint16_t value = request.data >> (request.select == 12 ? 16 : 0);
         if (request.write) {
             if (address == 0x0c150420 && request.select == 3) {
-                if (value != 0x10 && value != 8 && value != 7 && value != 0xf && value != 0x8f) {
+                // 0x01 observed from the NOS UEM client (boot-v15-auth7 801406480)
+                if (value != 0x10 && value != 8 && value != 7 && value != 0xf && value != 0x8f && value != 0x01) {
                     reason_ = "unmodeled boot control-bus configuration"; return false;
                 }
                 cbus_config_ = value; cbus_stage_ = 1;
@@ -1071,6 +1107,18 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // Kernel character-output device (VA 0x59000000, routine 0x503243a8).
     // Write-only: bytes are retained as evidence, nothing is invented for
     // reads, and no side effects are modeled. Device identity unverified.
+    // 0x0d000000-0x0d01ffff: NOS peripheral windows in the 0x0d space
+    // (first writes: halfword 0 to 0x0d010000 at 801842110, then
+    // 0x0d000000 at 801842184). Zero-reset RW latches in the serialized
+    // block14d_ map, 128KB window.
+    if (debug59_sink_ && address >= 0x0d000000 && address < 0x0d020000) {
+        device = "assumed_nos_periph4000";
+        uint32_t& reg0d = block14d_[address & ~3u];
+        const uint32_t mask0d = byte_mask(request.select);
+        if (request.write) reg0d = (reg0d & ~mask0d) | (request.data & mask0d);
+        data = reg0d & mask0d;
+        return true;
+    }
     // 0x0def0000: NOS-side trace window in the debug space. Writes carry
     // ASCII text at any width (observed: byte 0xc3 framing, then word
     // "MTC:" at boot-v15-auth7 800742521). Write-only sink; all enabled
@@ -1218,9 +1266,39 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             device = "flash_command";
             return flash_command(flash, request);
         }
+        // PMM program status: after a program data cycle reads return the
+        // Intel status register (ready, no errors) until 0xFF/0xF0/0x50.
+        if (auto st = block14d_.find(0xff000000u | flash.base);
+            st != block14d_.end() && (st->second & 1u)) {
+            device = "flash_pmm_status";
+            data = 0x00800080u & byte_mask(request.select);
+            return true;
+        }
         if (flash.identify) {
             device = "flash_identify";
             return flash_identify(flash, request, data);
+        }
+        // Programmed-overlay readback (PMM verify does ldrh of what it
+        // wrote). Serve only if every requested halfword is in the
+        // overlay; untouched flash falls through to the dump banks.
+        {
+            const uint32_t w = address & ~3u;
+            auto lo = block14d_.find(0x80000000u | w);
+            auto hi = block14d_.find(0x80000000u | (w + 2));
+            const bool need_lo = request.select & 0x3, need_hi = request.select & 0xc;
+            const bool have_lo = lo != block14d_.end() && (lo->second >> 16) == 1;
+            const bool have_hi = hi != block14d_.end() && (hi->second >> 16) == 1;
+            if ((need_lo && have_lo && (!need_hi || have_hi)) ||
+                (need_hi && have_hi && (!need_lo || have_lo))) {
+                device = "flash_pmm_overlay";
+                data = (have_lo ? (lo->second & 0xffffu) : 0u) |
+                       (have_hi ? (hi->second & 0xffffu) << 16 : 0u);
+                return true;
+            }
+            if ((need_lo && have_lo) != (need_hi && have_hi) && need_lo && need_hi) {
+                reason_ = "flash read mixes programmed overlay and array halfwords";
+                return false;
+            }
         }
         break;
     }
@@ -1247,6 +1325,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             uint64_t off;
             if (pa < 0x00700000u)                           off = pa;                                  // CS0
             else if (pa >= 0x00700000u && pa < 0x007f0000u) off = uint64_t(pa) - 0x00700000u + 0x01300000u; // CS0 PPM bank
+            else if (pa >= 0x007f0000u && pa < 0x00800000u) {
+                // Top 64KB of CS0 = the NOS PMM/security sector, not part of
+                // the 20.3MB dump. Factory-fresh hypothesis: erased flash;
+                // halfwords the NOS programs are served by the overlay above.
+                device = "pmm_sector_erased"; data = 0xffffffffu; return true;
+            }
             else if (pa >= 0x02000000u && pa < 0x02400000u) off = uint64_t(pa) - 0x02000000u + 0x00700000u; // CS1
             else if (pa >= 0x04000000u && pa < 0x04800000u) off = uint64_t(pa) - 0x04000000u + 0x00b00000u; // CS2
             else { reason_ = "physical address not in the THC-dump bank map"; return false; }
@@ -1279,6 +1363,13 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 data |= uint32_t(offset+i < rom_bytes_ ? rom_[offset+i] : rom_tail_[offset+i-rom_bytes_]) << (8*i);
             return true;
         }
+    }
+    // Top 64KB of CS0 (0x7f0000..0x7fffff) = the NOS PMM/security sector,
+    // outside the firmware bank table and the dump. Factory-fresh
+    // hypothesis: erased flash; programmed halfwords are served by the
+    // overlay in the flash dispatch above.
+    if (!request.write && address >= 0x007f0000u && address < 0x00800000u) {
+        device = "pmm_sector_erased"; data = 0xffffffffu; return true;
     }
     reason_ = "unmapped physical address";
     return false;
