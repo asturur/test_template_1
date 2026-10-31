@@ -53,7 +53,7 @@ int run(int argc, char** argv) {
     const size_t rom_bytes = rom.size();
     const std::string profile_name = argc >= 9 ? argv[8] : "none";
     bool ideal_clocks = false, lcd_probe = false, compact_trace = false, boot_io_probe = false, allow_uif_8000 = false, allow_icu25 = false, gpio210_low_zero = false, gpio21a_zero = false, gpio216_zero = false, gpio214_low_zero = false, pupf004_low_zero = false, gpio206_extra_write = false, sysc74_write3 = false, gpio24_28_write1 = false, timer_compare_probe = false, sysc50_44_probe = false, icu1c8_probe = false, timer_periodic = false, block14d_probe = false, debug59_sink = false, nos_entry_stub = false, keypad_gpio = false, icu_banks = false, timer_units = false, cdrive_flash = false, unit60_irq3 = false, uem_irq_source1 = false, module_trace = false, epbus_clkblk = false, uif102_write = false, cbus82_readback = false, cbus8d_zero = false, icu46_write = false, pupf00a_zero = false, sysc0c14_zero = false;
-    std::vector<uint8_t> rom_tail, nos_image, cdrive_image;
+    std::vector<uint8_t> rom_tail, nos_image, cdrive_image, nos_iat_region;
     std::map<uint32_t,uint32_t> nos_iat;
     std::map<unsigned,unsigned> adc_inputs;
     std::map<uint32_t,std::pair<uint32_t,uint8_t>> probe_regs;
@@ -165,6 +165,11 @@ int run(int argc, char** argv) {
             if (!img) throw std::runtime_error("cannot open C: image");
             cdrive_image.assign(std::istreambuf_iterator<char>(img), {});
             if (cdrive_image.empty()) throw std::runtime_error("C: image is empty");
+        } else if (std::string(argv[i]).rfind("nos-iat-region=", 0) == 0) {
+            std::ifstream f(std::string(argv[i]).substr(15), std::ios::binary);
+            if (!f) throw std::runtime_error("cannot open NOS IAT region file");
+            nos_iat_region.assign(std::istreambuf_iterator<char>(f), {});
+            if (nos_iat_region.size() != 0x725c0 - 0x6e030) throw std::runtime_error("NOS IAT region size mismatch");
         } else if (std::string(argv[i]).rfind("nos-iat=", 0) == 0) {
             const std::string spec = std::string(argv[i]).substr(8);
             const auto eq = spec.find('=');
@@ -186,6 +191,7 @@ int run(int argc, char** argv) {
     }
     std::unique_ptr<BootProfile> board;
     if (profile_name != "none") board = std::make_unique<BootProfile>(rom, rom_bytes, profile_name, ideal_clocks, lcd_probe, rom_tail, boot_io_probe, adc_inputs, timer_irq_delay, uem_power_status, uem_status36, uem_status35, extra_cbus_write, extra_cbus_write2, allow_uif_8000, allow_icu25, gpio210_low_zero, gpio21a_zero, gpio216_zero, uif102_write, cbus82_readback, cbus80_input, cbus8d_zero, icu46_write, pupf00a_zero, sysc0c14_zero, probe_regs, gpio214_low_zero, pupf004_low_zero, gpio206_extra_write, sysc74_write3, gpio24_28_write1, timer_compare_probe, sysc50_44_probe, icu1c8_probe, timer_periodic, block14d_probe, debug59_sink, cbus_inputs, nos_entry_stub, keypad_gpio, icu_banks, timer_units, cdrive_flash, unit60_irq3, nos_image, uem_irq_source1, epbus_clkblk, cdrive_image, nos_iat);
+    if (board && !nos_iat_region.empty()) board->set_nos_iat_region(std::move(nos_iat_region));
     rom.resize(std::max<size_t>(65536, (rom.size() + 63) & ~size_t(63)), 0);
     std::vector<uint8_t> ram(4 * 1024 * 1024, 0);
     std::array<uint32_t, 16> mailbox{};

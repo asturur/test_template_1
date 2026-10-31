@@ -937,6 +937,21 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             device = "synthesized_nos_iat"; return true;
         }
     }
+    // AUTHENTIC NOS import region [0x6e030,0x725c0): plaintext recovered from
+    // the user's Nokia NEM-4 4.03 data package (firmware/MCU nem440.3c1,
+    // de-framed to nos-iat-region-0x6e030.bin; anchor slot 0x71c38 matches
+    // the independently reverse-engineered 0x503a2f64). Serves ROM-build-
+    // resolved import tables the THC dump holds only scrambled. Same kernel-
+    // tick gating as the image window (the boot digest hashes raw flash).
+    // Explicit nos-iat= words above take precedence for A/B comparisons.
+    if (!nos_iat_region_.empty() && periodic_period_ && !request.write &&
+        address >= 0x0006e030 && uint64_t(address) + 4 <= 0x0006e030 + nos_iat_region_.size()) {
+        const size_t off = address - 0x0006e030;
+        data = (uint32_t(nos_iat_region_[off]) | uint32_t(nos_iat_region_[off+1]) << 8 |
+                uint32_t(nos_iat_region_[off+2]) << 16 | uint32_t(nos_iat_region_[off+3]) << 24) &
+               byte_mask(request.select);
+        device = "authentic_nos_iat_region"; return true;
+    }
     // With the synthetic stub also enabled, the stub keeps its proven blob
     // window [0x9d000,0x9d288) (incl. the nosstarter entry B at 0x9d284) and
     // the image serves only the module body past it; without the stub the

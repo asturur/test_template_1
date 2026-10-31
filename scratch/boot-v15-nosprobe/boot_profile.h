@@ -38,6 +38,7 @@ public:
     // Writes DMA-transferred LCD frames in bus.tsv row format so
     // render_lcd_frame.py reads the file unchanged.
     void dump_lcd_dma(std::ostream& out) const;
+    void set_nos_iat_region(std::vector<uint8_t> v) { nos_iat_region_ = std::move(v); }
     void save_state(std::ostream& out) const;
     void load_state(std::istream& in);
     const std::string& reason() const { return reason_; }
@@ -208,6 +209,9 @@ private:
     // 0x47fc, which the separate cold-boot flag model owns.
     std::array<uint8_t, 0xb4> code_scratch_{}, code_scratch_written_{};
     std::map<uint32_t,uint32_t> nos_iat_;
+    // Plaintext import region [0x6e030,0x725c0) from the Nokia data package;
+    // set directly after construction (no constructor-signature churn).
+    std::vector<uint8_t> nos_iat_region_;
     std::map<uint32_t, Latch> latches_;
     struct ProbeReg { uint32_t initial, current; uint8_t select; };
     std::map<uint32_t, ProbeReg> probe_regs_;
