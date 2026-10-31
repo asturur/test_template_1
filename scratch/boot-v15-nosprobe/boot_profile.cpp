@@ -430,16 +430,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             data = 0x08000000;
         else if (control.value == 3 && latches_.at(0x0c149000).written == 0xffffffffu &&
                  latches_.at(0x0c149000).value == 0x2210) data = 0x08000000;
-        // Authentic path (real descrambled NOS, 2026-10-31): the NOS brings up
-        // a clock by writing control 0x40 then 0x20 to 0x0c120004 and polling
-        // 0x0c120020. OBSERVED (boot-v15-clockloop instruction trace from
-        // roll-auth6-r800): the wait loop 0x514a5b80..8c reads via kernel
-        // helper 0x503245b4 and does TST R0,#0x20000000 / BEQ - it waits for
-        // BIT 29, not the bit-27 "ready" of the other combinations (bit 27
-        // alone spun 729.4M->2.3e9 in boot-v15-auth6). Return both bits: 29
-        // for the observed wait, 27 kept for the earlier family hypothesis
-        // (the 0x40 phase proceeded within ~84 cycles on bit 27 answers).
-        else if (control.value == 0x20 || control.value == 0x40) data = 0x28000000;
+        // Authentic path (real descrambled NOS, 2026-10-31): the NOS clock
+        // bring-up 0x514a5b60 writes control 0x40 then 0x20 to 0x0c120004
+        // (straight-line, no poll between) and then polls 0x0c120020 in the
+        // loop 0x514a5b80..8c: TST R0,#0x02000000 / BEQ - it waits for BIT
+        // 25 (raw word e3100402; bit 27 alone spun 729.4M->2.3e9 in
+        // boot-v15-auth6). This is the ONLY 0x00120020 literal user in the
+        // NOS image; after the poll it writes control 0x10 and command
+        // 0x8000 with no further status read.
+        else if (control.value == 0x20 || control.value == 0x40) data = 0x02000000;
         else { reason_ = "unmodeled clock control/status combination"; return false; }
         return true;
     }

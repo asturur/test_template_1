@@ -4,14 +4,20 @@
 
 boot-v15-auth6 spun 729.4M->2.3e9 cycles polling 0x0c120020 while the model
 answered 0x08000000 (bit 27). Instruction-window trace from roll-auth6-r800
-(boot-v15-clockloop, win-trace) pinned the wait loop: 0x514a5b80 loads the
-register offset, kernel helper 0x503245b4 reads VA 0x58120020, then
-0x514a5b88 TST R0,#0x20000000 / BEQ - the loop waits for BIT 29. During the
-spin only the periodic tick ran (all other threads blocked on this), so the
-wedge was deterministic. Model fixed (boot_profile.cpp): control 0x20/0x40
--> status 0x28000000 (bit 29 observed + bit 27 retained for the 0x40 phase
-that already proceeded on bit-27 answers). auth6 stopped (provably stuck);
-boot-v15-auth7 relaunched from roll-auth3-r700 to 3.3e9 with the fix.
+(boot-v15-clockloop, win-trace) pinned the wait loop 0x514a5b80..8c; raw
+word e3100402 = TST R0,#0x02000000 - the loop waits for BIT 25. (First
+read of the sim trace's "2 ROR 4" as bit 29 was WRONG - that prints the
+rotate FIELD, the rotation is 2*4=8; capstone + hand decode agree: bit 25.)
+During the spin only the periodic tick ran (all other threads blocked), so
+the wedge was deterministic. NOS bring-up sequence (nos-image.bin @VA
+0x5149D280, fn 0x514a5b60): write control 0x40 then 0x20 (no poll between),
+poll status for bit 25, then write control 0x10 and command 0x8000 - and
+this is the ONLY 0x00120020 literal user in the NOS, no further status
+reads. Model fixed: control 0x20/0x40 -> status 0x02000000. auth6 stopped
+(provably stuck); boot-v15-auth7 relaunched from roll-auth3-r700 with the
+fix. Also fixed: the nosprobe binary must be rebuilt with
+scratch/boot-v15-nosprobe/build.py (NOT boot-v15-periodic/build.py, which
+builds a different obj dir - the first auth7 ran stale and re-spun).
 LESSON: a single-address bus tail (>95% one register) is the wedge
 signature; check it before assuming progress on long runs.
 
