@@ -911,6 +911,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         uint32_t& reg = keypad_regs_[address];
         if (request.write) reg = (reg & ~mask) | (request.data & mask);
         data = reg & mask;
+        // euart1 TX status (PA 0x0c150514): the NOS's baseband-UART send
+        // loop polls bit 2 (euart1 0x510e8a14 tst #4) for "TX idle" and a
+        // zero latch spins it forever (boot-v15-stall1, 5.9e9). The modeled
+        // modem UART always drains: bit 2 reads set. Hypothesis from the
+        // polling disassembly; the real bit meaning is unverified.
+        if (address == 0x0c150514 && !request.write) data |= 0x4u & mask;
         device = "assumed_keypad_gpio"; return true;
     }
     // REAL NOS/GSM module payload (THC live-device dump, docs/references.md),
