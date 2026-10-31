@@ -1,5 +1,22 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~01:00 Shutdown root cause: RTC: 0x10006 kernel fault - UEM 1Hz tick was missing; fix in flight (update made with Claude)
+
+The 2.382e9 "power-off" was neither power-reason nor timeout: instruction
+trace from roll-auth7-r2300 shows K::Fault(category "RTC:" at ROM
+0x503503a8, reason 0x10006) via kernel 0x50349da4 -> 0x5034fbf4 ->
+0x50350380 -> 0x50350284. The RtcQueue (MTC trace "RtcQueue::Add") never
+receives its 1Hz RTC tick: the NOS unmasks ONLY bit 4 in the UEM
+interrupt mask (writes 0xffef to reg 0x36 at 729.45M) = the RTC second
+interrupt, and our model never raised it. Fix: tick() raises ICU source 1
+every 104M cycles (1Hz at 104MHz hypothesis); UEM status reg 0x35 already
+returns 0x10 (bit 4). uem-power-status-extra=1 proved ineffectual for
+this fault (identical shutdown cycle either way) but stays as plausible
+environment. Run relaunched from roll-auth7-r800 (~40 min replay to the
+old fault point). Checkpoint-loader note: entry caps raised to 262144
+(the widened latch maps outgrew 4096 and r2300 restore failed with
+'invalid checkpoint keypad entries' until raised).
+
 ## 2026-11-01 (post-midnight) Power-off root-caused: no power-on reason; key-held run in flight (update made with Claude)
 
 auth7's long cruise ended at 2.382e9 in the DELIBERATE shutdown path
