@@ -25,6 +25,7 @@ module ngage_board(
     input  wire        commit,      // harness acknowledges this cycle
     // configuration (from the harness command line)
     input  wire        cfg_lcd,     // lcd-probe option
+    input  wire        cfg_keypad,  // keypad-gpio option
     // service
     output reg         claim,
     output reg  [31:0] dout,
@@ -35,6 +36,24 @@ wire [31:0] a = {adr[31:2], 2'b00};
 wire        lcd_hit = cfg_lcd && (a == 32'h0c12_1200 ||
                                   a == 32'h0c12_1204 ||
                                   a == 32'h0c12_1208);
+
+/*  Device 2 (2026-10-31): GPIO/keypad pin-config latches, the clean
+    subranges of the C++ keypad bank 0x0c150400..0x0c1505ff. Zero-reset RW
+    latches; input reads are zero (idle, no keys); halfword/word widths
+    only. Left with the C++ model: 0x420/0x424 (CBUS status) and
+    0x538/0x53c (block probe), which its earlier handlers own. The euart1
+    TX-idle quirk comes along: status 0x0c150514 reads bit 2 set (the
+    modeled modem UART always drains). */
+wire gpio_hit = cfg_keypad && a[31:12] == 20'h0c150 &&
+                ((a[11:0] >= 12'h400 && a[11:0] < 12'h420) ||
+                 (a[11:0] >= 12'h428 && a[11:0] < 12'h538) ||
+                 (a[11:0] >= 12'h540 && a[11:0] < 12'h600));
+
+reg  [31:0] gpio [0:127];                     // word latches for 0x400..0x5ff
+wire [ 6:0] gidx = a[8:2];
+wire [31:0] wmask = { {8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}} };
+integer gi;
+initial for (gi = 0; gi < 128; gi = gi + 1) gpio[gi] = 32'd0;
 
 // LCD transport state (was lcd_control_/lcd_header_ in boot_profile.cpp)
 reg        ctl_written, hdr_written;
@@ -48,10 +67,16 @@ wire hdr_ok = din == 32'h4f30_0000 || din == 32'h4920_0000 ||
               din == 32'h0780_0000 || din[31:16] == 16'h0784;
 
 always @(*) begin
-    claim     = lcd_hit && cyc && stb;
+    claim     = (lcd_hit || gpio_hit) && cyc && stb;
     dout      = 32'd0;
     unmodeled = 1'b0;
-    if (claim) begin
+    if (gpio_hit && cyc && stb) begin
+        if (sel != 4'h3 && sel != 4'hc && sel != 4'hf) unmodeled = 1'b1;
+        else begin
+            dout = gpio[gidx] & wmask;
+            if (a == 32'h0c15_0514 && !we) dout = dout | (32'h4 & wmask);
+        end
+    end else if (claim) begin
         if (sel != 4'hf) unmodeled = 1'b1;                 // observed width only
         else if (a == 32'h0c12_1204 && we) begin
             if (din != 32'd1 && din != 32'd2) unmodeled = 1'b1;
@@ -80,6 +105,8 @@ always @(posedge clk) begin
         hdr_written <= 1'b0;
         ctl         <= 32'd0;
         hdr         <= 32'd0;
+    end else if (gpio_hit && commit && we && !unmodeled) begin
+        gpio[gidx] <= (gpio[gidx] & ~wmask) | (din & wmask);
     end else if (claim && commit && we && !unmodeled) begin
         if (a == 32'h0c12_1204) begin
             ctl         <= din;

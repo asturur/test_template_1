@@ -227,6 +227,7 @@ int run(int argc, char** argv) {
 #ifdef NGAGE_HDL_BOARD
     cpu->i_bus_commit = 0;
     cpu->i_cfg_lcd = lcd_probe;
+    cpu->i_cfg_keypad = keypad_gpio;
 #endif
     for (unsigned n = 0; n < 20; ++n) {
         cpu->i_clk = 0; cpu->eval(); context->timeInc(1);
@@ -362,11 +363,22 @@ int run(int argc, char** argv) {
                         break;
                     }
                     ++hdl_claims;
-                } else if (device == "lcd_probe_transport") {
-                    status = "hdl_divergence";
-                    blocked_address = request.address;
-                    blocked_reason = "C++ oracle served an address the HDL board owns but did not claim";
-                    break;
+                } else {
+                    // Mirror of the HDL claim map: anything here must have
+                    // been claimed, or the two models disagree on ownership.
+                    const uint32_t off12 = address & 0xfff;
+                    const bool hdl_owned =
+                        device == "lcd_probe_transport" ||
+                        (device == "assumed_keypad_gpio" && (address >> 12) == 0x0c150 &&
+                         ((off12 >= 0x400 && off12 < 0x420) ||
+                          (off12 >= 0x428 && off12 < 0x538) ||
+                          (off12 >= 0x540 && off12 < 0x600)));
+                    if (hdl_owned) {
+                        status = "hdl_divergence";
+                        blocked_address = request.address;
+                        blocked_reason = "C++ oracle served an address the HDL board owns but did not claim";
+                        break;
+                    }
                 }
 #endif
             } else if (uint64_t(address) + 4 <= rom.size()) {

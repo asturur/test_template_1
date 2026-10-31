@@ -4,6 +4,7 @@ module ngage_cpu_sim (
     // HDL board (devices migrated from the C++ model; see rtl/ngage_board.v)
     input  logic          i_bus_commit,
     input  logic          i_cfg_lcd,
+    input  logic          i_cfg_keypad,
     output logic          o_board_claim,
     output logic [31:0]   o_board_dout,
     output logic          o_board_unmodeled,
@@ -76,7 +77,7 @@ module ngage_cpu_sim (
         .rst(i_reset), .clk(i_clk),
         .cyc(o_wb_cyc), .stb(o_wb_stb), .adr(o_wb_adr), .we(o_wb_we),
         .din(o_wb_dat), .sel(o_wb_sel), .commit(i_bus_commit),
-        .cfg_lcd(i_cfg_lcd),
+        .cfg_lcd(i_cfg_lcd), .cfg_keypad(i_cfg_keypad),
         .claim(o_board_claim), .dout(o_board_dout), .unmodeled(o_board_unmodeled)
     );
 endmodule
