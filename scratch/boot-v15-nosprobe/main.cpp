@@ -224,6 +224,10 @@ int run(int argc, char** argv) {
     cpu->i_wb_ack = 0;
     cpu->i_wb_err = 0;
     cpu->i_wb_dat = 0;
+#ifdef NGAGE_HDL_BOARD
+    cpu->i_bus_commit = 0;
+    cpu->i_cfg_lcd = lcd_probe;
+#endif
     for (unsigned n = 0; n < 20; ++n) {
         cpu->i_clk = 0; cpu->eval(); context->timeInc(1);
         cpu->i_clk = 1; cpu->eval(); context->timeInc(1);
@@ -236,6 +240,9 @@ int run(int argc, char** argv) {
     std::string status = "timeout", last_trace, blocked_reason;
     uint32_t blocked_address = 0;
     uint64_t fetch_faults = 0;
+#ifdef NGAGE_HDL_BOARD
+    uint64_t hdl_claims = 0;
+#endif
     bool mmu_seen = false;
     unsigned self_loop_count = 0;
     std::string self_loop_pc;
@@ -285,6 +292,9 @@ int run(int argc, char** argv) {
         cpu->i_fiq = board && board->unit60_fiq();
         cpu->i_wb_ack = 0;
         cpu->i_wb_err = 0;
+#ifdef NGAGE_HDL_BOARD
+        cpu->i_bus_commit = 0;   // one-shot: high only across the serving posedge
+#endif
         cpu->eval();
         const bool active = cpu->o_wb_cyc && cpu->o_wb_stb;
         if (pending && (!active || cpu->o_wb_adr != request.address ||
@@ -305,6 +315,22 @@ int run(int argc, char** argv) {
             uint8_t* memory = nullptr;
             bool readonly = false, bus_fault = false;
             std::string device;
+#ifdef NGAGE_HDL_BOARD
+            // HDL board first; the C++ model still runs below as a lockstep
+            // shadow oracle and any divergence stops the run (hdl-migration.md).
+            const bool hdl_claim = cpu->o_board_claim;
+            const bool hdl_unmodeled = cpu->o_board_unmodeled;
+            const uint32_t hdl_data = cpu->o_board_dout;
+            if (hdl_claim && hdl_unmodeled) {
+                status = "unmapped_access";
+                blocked_address = request.address;
+                blocked_reason = "HDL board: claimed but unmodeled access";
+                bus_log << std::dec << cycle << "\tHDL_UNMODELED\t0x" << std::hex
+                        << request.address << "\t0x" << unsigned(request.select)
+                        << "\t0x" << request.data << "\tdata\thdl_board\n";
+                break;
+            }
+#endif
             if (board) {
                 if (!board->access({request.address, request.data, request.select, request.write, request.code}, data, device)) {
                     if (request.code && !request.write) {
@@ -321,6 +347,28 @@ int run(int argc, char** argv) {
                         break;
                     }
                 }
+#ifdef NGAGE_HDL_BOARD
+                // Lockstep shadow compare: the C++ oracle served above; the
+                // HDL board must have claimed the same addresses and, for
+                // reads, produced the same data.
+                if (hdl_claim) {
+                    if (!request.write && !bus_fault && data != hdl_data) {
+                        status = "hdl_divergence";
+                        blocked_address = request.address;
+                        blocked_reason = "HDL read data differs from C++ oracle";
+                        bus_log << std::dec << cycle << "\tHDL_DIVERGENCE\t0x" << std::hex
+                                << request.address << "\t0x" << unsigned(request.select)
+                                << "\t0x" << hdl_data << "\tvs_0x" << data << "\thdl_board\n";
+                        break;
+                    }
+                    ++hdl_claims;
+                } else if (device == "lcd_probe_transport") {
+                    status = "hdl_divergence";
+                    blocked_address = request.address;
+                    blocked_reason = "C++ oracle served an address the HDL board owns but did not claim";
+                    break;
+                }
+#endif
             } else if (uint64_t(address) + 4 <= rom.size()) {
                 memory = rom.data() + address; readonly = true; device = "diagnostic_rom";
             } else if (address >= rom_alias && uint64_t(address - rom_alias) + 4 <= rom.size()) {
@@ -388,6 +436,10 @@ int run(int argc, char** argv) {
             cpu->i_wb_dat = bus_fault ? 0 : data;
             cpu->i_wb_ack = !bus_fault;
             cpu->i_wb_err = bus_fault;
+#ifdef NGAGE_HDL_BOARD
+            if (hdl_claim && !request.write) cpu->i_wb_dat = hdl_data;
+            cpu->i_bus_commit = !bus_fault;   // HDL board registers commit with this ack
+#endif
             fetch_faults += bus_fault;
             pending = false;
             ++transactions;
@@ -535,6 +587,9 @@ int run(int argc, char** argv) {
            << "  \"rom_bytes\": " << rom_bytes << ",\n"
            << "  \"blocked_address\": " << blocked_address << ",\n"
            << "  \"fetch_bus_faults\": " << fetch_faults << ",\n"
+#ifdef NGAGE_HDL_BOARD
+           << "  \"hdl_board_claims\": " << hdl_claims << ",\n"
+#endif
            << "  \"completion\": " << mailbox[0] << ",\n  \"mailbox\": [";
     for (size_t i = 0; i < mailbox.size(); ++i)
         result << (i ? ", " : "") << mailbox[i];
