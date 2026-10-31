@@ -1,5 +1,30 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 AUTHENTIC PATH validated through early boot: original ROM + inline descrambler, NO stub/rewrite (update made with Claude)
+
+User's architecture (no patches; original scrambled service files as ROM +
+inline read-side descrambler; real NOS; build the modem/NOS responder in C
+then HDL) is now implemented and VALIDATED through early boot (boot-v15-auth2):
+ - ROM = build/firmware/nem4-factory/core.bin, the ORIGINAL scrambled service
+   assembly with the STOCK digest 2c09c86f (no rewrite).
+ - main.cpp applies the 16 solved descramble formulas (descramble_model.h) to
+   the window [0xa000,0x2b3000) before the board serves it (option
+   'descramble-window'); equivalent to an inline read-path descrambler - the
+   HDL core does it per-read. Disk ROM stays the original file.
+ - Stub layers DROPPED: no nos-entry-stub, no nos-image, no nos-iat-region.
+ - Result at 113.8M cycles: 0 unmapped/unmodeled, 0 synthetic_nos reads, LCD
+   clear rendered (36768 rows) => the firmware's OWN MD5 self-check PASSED
+   NATIVELY on the descrambled window (the LCD clear is after the digest). The
+   real descrambled NOS is what's served. Authentic verification, live.
+ - Runner: scratch/boot-v15-nosprobe/run-authentic.py (from reset, rolling
+   checkpoints roll-authN-r*). This change is early-boot, so it needs its own
+   from-reset lineage (a stub-lineage restore would be inconsistent).
+ - NEXT: boot-v15-auth2 to 1.5e9 tests the REAL NOS execution (~729M); then
+   build the C modem/NOS ISI responder from docs/modem-model.md (real handler
+   bytes: energy 0x17, SIM 0x09, phone-info 0x1B; with the ngvm corrections
+   - LE length field, battery subblock {0x16,4,7,bars}, router 0xF0 0x14).
+
+
 ## 2026-10-31 EtelServer crash: C:-image byte-patch is INEFFECTIVE; fault pinned; fix is the modem not C: (update made with Claude)
 
 Tested factory ROM + C: image with Cdbv2.dat renamed (cdrive-nocdbv2.img,
