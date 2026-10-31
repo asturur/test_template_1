@@ -1,5 +1,42 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 Authentic path: NOS init marched to 730.1M; halt = USER-EXEC 3 panic (div/0 in delay calibration), counter modeled (update made with Claude)
+
+After the bit-25 clock fix the NOS hardware-init burst ran 729.42M->730.12M:
+GPIO pin-mux writes (new upper-halfword value 0x0200 on 0x0c150206 gated),
+timer unit 5 (0x0c120aa4 +0x04=1), UEM over app CBUS (reg 0x36 mask writes
+0xffef/0xffff, reg 0x35 status read -> 0x0010), and a new block 0x0c004xxx -
+dozens of registers used by UEM/energy code 0x515c1xxx and startup manager
+0x51506xxx; 0x428c holds a 0..6 state machine driving GPIO 0x0c150002 bits
+(RF/power state). It is likely a small shared RAM; modeled as explicit
+zero-reset RW latches (nos-periph-4000, stored in block14d_ map so the
+savestate layout is unchanged).
+
+The run then parked at kernel 0x50324294 (self-branch, IRQ+FIQ masked).
+Instruction-window trace (boot-v15-poweroff) decoded it: NOT a power-off
+decision - the kernel halt fn 0x50324240 dumps panic category "USER-EXE"
+(USER-EXEC truncated to 8) + reason 3 into comm RAM 0x0c0047f0/f4/f8, sets
+state 0x1a at 0x0c00428e, clock control 0x200, GPIO 0x150000=4, then parks.
+Root cause chain: NOS delay-loop calibration 0x514c19fc (Thumb) reads
+halfword [0x0c150114] as a tick window and free-running counter
+[0x0c150112], busy-counts iterations until the counter advances window/2
+ticks, then computes iterations*64 / elapsed via division thunk 0x516c7594
+(-> euser 0x503a2fdc). Our model returned ZERO for both -> 0/0 -> euser
+raises exec 47 K::Fault("USER-EXEC",3) -> system halt. Setup fn 0x514adce4
+(writes 0x9f to 0x114, reads 0x116, writes 0x80 to 0x0c150012) had not run
+yet, so the real chip must expose a nonzero reset window there.
+
+Model fix: 0x0c150112 counts one tick per 3174 CPU cycles (32.768 kHz at
+104 MHz - hypothesis); 0x0c150114 reads 0x0080 until written. The computed
+calibration factor is a rate RATIO (independent of window size), so the
+window choice only affects boot time. Board clock cycles_ is deliberately
+NOT serialized (deltas only) to keep old checkpoints loadable.
+
+Iteration logistics: all fixes land in 729.4-730.1M, reached by replaying
+roll-auth3-r700 (+30M cycles, 1-2 min). This run also pins checkpoint
+idle-c730 at 730.1M just before the calibration for seconds-fast iteration;
+rolling roll-auth7-r800+ resume once the run passes 800M.
+
 ## 2026-10-31 Clock bring-up poll pinned: NOS waits for STATUS BIT 29, not 27 (update made with Claude)
 
 boot-v15-auth6 spun 729.4M->2.3e9 cycles polling 0x0c120020 while the model

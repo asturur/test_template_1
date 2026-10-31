@@ -162,6 +162,10 @@ private:
     // Serialized in board checkpoint v3.
     bool unit1_running_ = false;
     uint64_t unit1_elapsed_ = 0, unit1_compare_ = 0, unit1_irqs_ = 0;
+    // Free-running model clock for the 0x0c150112 counter. NOT serialized:
+    // the counter is read as deltas only, so restore offset is harmless and
+    // old checkpoints stay loadable.
+    uint64_t cycles_ = 0;
     bool unit60_irq3_ = false;
     uint32_t icu_mask2_[3] = {0,0,0};
     uint64_t unit60_remaining_ = 0, unit60_irqs_ = 0;

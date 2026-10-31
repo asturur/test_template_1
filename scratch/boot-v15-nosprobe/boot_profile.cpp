@@ -54,6 +54,7 @@ std::map<unsigned, unsigned> BootProfile::parse_adc_inputs(const std::string& op
 }
 
 void BootProfile::tick() {
+    ++cycles_;
     // Unit 0x60 countdown is independent of the boot one-shot timer model so
     // the hypothesis is testable without a timer-irq-delay configuration.
     if (unit60_remaining_ && --unit60_remaining_ == 0) {
@@ -914,6 +915,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     if (keypad_gpio_ && !latches_.count(address) && !probe_regs_.count(address) &&
         ((address >= 0x0c120c00 && address < 0x0c120c20) ||
          (address >= 0x0c14f000 && address < 0x0c14f100) ||
+         // 0x0c148000: NOS init writes a board-keyed halfword here (table
+         // walker 0x514c1e10 -> 0x515b7e88(0x58148000,b1,b2); observed
+         // halfword 0x2000 at boot-v15-auth7 730117115). Same zero-reset
+         // latch hypothesis; block width unknown, 0x20 bytes allowed.
+         (address >= 0x0c148000 && address < 0x0c148020) ||
          (address >= 0x0c150000 && address < 0x0c150600))) {
         if (request.select != 3 && request.select != 12 && request.select != 15) {
             reason_ = "unobserved keypad GPIO access width"; return false;
@@ -922,6 +928,22 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         uint32_t& reg = keypad_regs_[address];
         if (request.write) reg = (reg & ~mask) | (request.data & mask);
         data = reg & mask;
+        // Free-running counter at 0x0c150112 (halfword, bits 31:16 of word
+        // 0x0c150110) and its window constant at 0x0c150114. OBSERVED
+        // (boot-v15-poweroff instruction trace): the NOS delay calibration
+        // 0x514c19fc reads [0x114] as a tick target and busy-counts
+        // iterations until [0x112] advances by target/2, then divides
+        // iterations*64 by elapsed ticks (thunk 0x516c7594). Zero latches
+        // made that 0/0 -> euser division panic USER-EXEC 3 -> system halt
+        // at 730.12M. Model: 0x112 counts one tick per 3174 CPU cycles
+        // (32.768 kHz at 104 MHz, hypothesis) and 0x114 reads 0x0080 until
+        // the NOS writes it (setup 0x514adce4 writes 0x9f). The computed
+        // factor is a rate RATIO, so the window size choice only affects
+        // boot time, not the calibration result.
+        if (address == 0x0c150110 && !request.write)
+            data = (data & 0xffffu) | (uint32_t((cycles_ / 3174) & 0xffff) << 16);
+        if (address == 0x0c150114 && !request.write && !(reg & 0xffffu) && (mask & 0xffffu))
+            data = (data & ~0xffffu) | 0x0080u;
         // euart1 TX status (PA 0x0c150514): the NOS's baseband-UART send
         // loop polls bit 2 (euart1 0x510e8a14 tst #4) for "TX idle" and a
         // zero latch spins it forever (boot-v15-stall1, 5.9e9). The modeled
