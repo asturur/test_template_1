@@ -1021,6 +1021,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // Fbus_drv.c:502 otherwise) and the flag reader 0x515bb6bc also
         // reports bit 0x10. Modeled always drained: bits 0x1D0 set.
         if (address == 0x0c150504 && !request.write) data |= 0x1d0u & mask;
+        // System-type strap on GPIO halfword 0x0c150002 (word bit 22): the
+        // getter 0x514c1604 maps bit 0x40 -> type 1 (GSM); with no strap it
+        // falls to ROM header [0x176] bit15 (0 in this dump) and returns 0,
+        // which hw_mbus_bitrate_set asserts on (Hw_mbus.c:742). Hypothesis:
+        // NEM-4 straps GSM; reads see bit 0x40 set, writes still latch.
+        if (address == 0x0c150000 && !request.write) data |= 0x00400000u & mask;
         // FBUS UART status halfword 0x0c15056a: the FBUS driver asserts
         // (value & 6) == 6 before TX ("/FBUS/Fbus_drv.c line 502,
         // fbus_reg_tmp & HW_FBUS_TX_BUFF_EMPTY"; checker 0x515bb5f0,
