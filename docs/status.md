@@ -1,5 +1,26 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 (midnight handoff) auth7 at 1.75e9 and cruising; how to continue (update made with Claude)
+
+boot-v15-auth7 (authentic path, restore roll-auth7-r800, budget 3.3e9) is
+at 1.75e9 cycles, clean since 822.8M. The run may outlive this session:
+ - If it STOPPED: read build/sim/runs/boot-v15-auth7/result.json
+   (blocked_address/reason + debug59_text carries the NOS's own assert
+   text) and bus.tsv tail; fix the named device in
+   scratch/boot-v15-nosprobe/boot_profile.cpp (patterns for every device
+   family are in tonight's commits); rebuild with
+   scratch/boot-v15-nosprobe/build.py (NOT boot-v15-periodic's); resume
+   from the NEWEST build/sim/checkpoints/roll-auth7-rN with
+   run-authentic-resume.py 3300000000 auth7 '' 0 roll-auth7-rN.
+ - If it reached 3.3e9: raise the budget and resume from the last
+   checkpoint; next milestone zone is the app-side telephony/EtelServer
+   region (stub lineage hit the empty-commsdb crash at 3.165e9; on this
+   authentic path the real NOS servers are up, so provisioning may now
+   proceed - watch debug59_text).
+ - Wedge detection: single bus address >95% of a 50k tail = spin; pin the
+   poll mask via a win-trace run (see tonight's clockloop2/fbus2 recipes).
+The target "frontier 1.2e9 by return" was met at ~23:10.
+
 ## 2026-10-31 (night 5) MILESTONE: authentic run crossed 1.2e9 cycles (update made with Claude)
 
 boot-v15-auth7 passed 1.2 BILLION cycles with no stop since 822.8M - a
