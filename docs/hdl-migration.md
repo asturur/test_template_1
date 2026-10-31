@@ -63,6 +63,14 @@ work. The C++ .host file keeps serving the not-yet-migrated devices. Rules:
     is only instrumentation and the board model is the verification oracle.
  7. MiSTer top: wire ngage_board + ZAP + SDRAM + LCD framebuffer scaler
     into Template.sv/sys (video out from the DMA'd frames, keypad from HPS).
+ 8. FLASH OPTION (proven feasible 2026-10-31, docs/firmware-integrity.md):
+    the flash stores the Nokia service payload VERBATIM, so "flash the
+    service package" = parse nem440 records ([0x14][addr:4 BE][ck1]
+    [len:3 BE][ck2]+payload) and write payloads at record addresses (HPS
+    side), 0xFF elsewhere; per-device hole = 56 B at [0x12c,0x163). This
+    reproduces authentic on-chip content. Only NOS-from-flash execution
+    additionally needs the unsolved read-side descrambler (until then:
+    THC plaintext NOS + authentic IAT region, as in the sim).
 
 ## Validation per device
 
