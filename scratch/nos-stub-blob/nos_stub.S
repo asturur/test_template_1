@@ -59,7 +59,7 @@ iface_vt:
     .rept 18
     .word ret0
     .endr
-    .word pread               @ +0x48 read parameter
+    .word pread2              @ +0x48 read parameter (completing variant)
     .word ret0                @ +0x4c
     .word pread               @ +0x50 read parameter (id 0x1ff etc.)
     .rept 27
@@ -81,33 +81,15 @@ ret0:
 @ length 0 with a non-writable r3 during epbus-phase queries; storing there
 @ data-aborted the boot, observed 2026-10-29 at 0x5149d09c).
 pread:
-    @ id 12 (0xc) = HelperDrv request 1's "software startup reason" query
-    @ (helper.ldd 0x5038425c mov r1,#0xc, r2=channel+0x44, r3=channel+0x54).
-    @ Returning the reason as pread's value does NOT complete the client's
-    @ TRequestStatus (proven: Nokia.dsy blocked forever in WaitForRequest at
-    @ nokia+0x1842, roll-r4900 autopsy 2026-10-31): the async path expects
-    @ the NOS to complete the request, as helper's own sync path does at
-    @ 0x50384278 (complete(channel, 1, 100) via thunk 0x50384828 -> ekern
-    @ 0x50334fcc). So answer like the NOS: complete request 1 with 100 (the
-    @ normal startup reason == ngvm sw_reason), then return KErrNone. The
-    @ r3==r2+0x10 check keeps other id-12 callers (ecust reuses this vtable
-    @ slot with its own buffers) on the plain zero-fill path.
+    @ CACHE-COHERENCE RULE (learned the hard way, boot-v15-logo4 crash): on a
+    @ resume the idle loop keeps these lines hot in the VIVT I-cache, so the
+    @ bytes at ALREADY-EXECUTED addresses must stay IDENTICAL to the blob the
+    @ checkpoint was made with (5f9e8c7). New behavior goes to the virgin
+    @ line at 0x200 (pread2) and is reached by flipping the +0x48 VTABLE
+    @ word (data), so either generation of cached code stays self-coherent.
     cmp   r1, #0xc
-    bne   pr_fill
-    add   ip, r2, #0x10
-    cmp   ip, r3
-    bne   pr_fill
-    stmfd sp!, {lr}
-    sub   r0, r2, #0x44        @ the helper channel
-    mov   r1, #1               @ request number 1
-    mov   r2, #0x64            @ software startup reason 100
-    ldr   ip, =0x50384828      @ helper's RequestComplete thunk
-    mov   lr, pc
-    mov   pc, ip
-    ldmfd sp!, {lr}
-    mov   r0, #0
-    bx    lr
-pr_fill:
+    moveq r0, #0x64
+    bxeq  lr
     ldr   r2, [sp, #4]         @ byte length (caller stack arg)
     cmp   r2, #0x40
     movhi r2, #4               @ sanity cap -> default 4 bytes
@@ -118,5 +100,45 @@ pr_loop:
     bxmi  lr
     strb  r1, [r3, r2]
     b     pr_loop
+    .ltorg
+
+    .org  0x200             @ VIRGIN line: never executed before this blob
+pread2:
+    @ id 12 (0xc) = HelperDrv request 1, the software startup reason
+    @ (helper.ldd 0x5038425c: r1=0xc, r2=channel+0x44, r3=channel+0x54).
+    @ Returning the reason as pread's value does NOT complete the client's
+    @ TRequestStatus (proven: Nokia.dsy blocked forever in WaitForRequest at
+    @ nokia+0x1842, roll-r4900 autopsy 2026-10-31): the async path expects
+    @ the NOS to complete the request, as helper's own sync path does at
+    @ 0x50384278. So answer like the NOS: complete request 1 with 100 (the
+    @ normal startup reason == ngvm sw_reason) via helper's RequestComplete
+    @ thunk, then return KErrNone. The r3==r2+0x10 check keeps other id-12
+    @ callers (ecust reuses this slot with its own buffers) on the fill path.
+    cmp   r1, #0xc
+    bne   p2_fill
+    add   ip, r2, #0x10
+    cmp   ip, r3
+    bne   p2_fill
+    stmfd sp!, {lr}
+    sub   r0, r2, #0x44        @ the helper channel
+    mov   r1, #1               @ request number 1
+    mov   r2, #0x64            @ software startup reason 100
+    ldr   ip, =0x50384828      @ helper's RequestComplete thunk -> ekern
+    mov   lr, pc
+    mov   pc, ip
+    ldmfd sp!, {lr}
+    mov   r0, #0
+    bx    lr
+p2_fill:                       @ self-contained copy: never jump into old code
+    ldr   r2, [sp, #4]
+    cmp   r2, #0x40
+    movhi r2, #4
+    mov   r1, #0
+p2_loop:
+    subs  r2, r2, #1
+    movmi r0, #0
+    bxmi  lr
+    strb  r1, [r3, r2]
+    b     p2_loop
     .ltorg
     .space 0x8, 0
