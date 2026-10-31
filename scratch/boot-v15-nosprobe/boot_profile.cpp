@@ -1016,6 +1016,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // modem UART always drains: bit 2 reads set. Hypothesis from the
         // polling disassembly; the real bit meaning is unverified.
         if (address == 0x0c150514 && !request.write) data |= 0x4u & mask;
+        // FBUS UART status halfword 0x0c15056a: the FBUS driver asserts
+        // (value & 6) == 6 before TX ("/FBUS/Fbus_drv.c line 502,
+        // fbus_reg_tmp & HW_FBUS_TX_BUFF_EMPTY"; checker 0x515bb5f0,
+        // boot-v15-fbustest). Modeled TX always drained: bits 1+2 set.
+        if (address == 0x0c150568 && !request.write) data |= 0x60000u & mask;
         // (A 2026-10-31 experiment mirrored the host handshake bit on the
         // 0x0c150208 sense half; screen timelines proved it changed NOTHING
         // (boot-v15-cts2 == baseline cycle for cycle), so it was removed:
