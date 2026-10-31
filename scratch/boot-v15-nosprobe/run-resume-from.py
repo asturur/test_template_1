@@ -27,15 +27,17 @@ cmd=['docker','run','--rm','--network','none','--platform','linux/arm64','-v',st
 print('Authentic-path V15 firmware run started',flush=True)
 with (out/'simulator.log').open('wb') as f:
  p=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
- saved=omitted=0
+ head=b'';tail=b'';omitted=0
  while True:
   chunk=p.stdout.read(65536)
   if not chunk: break
-  keep=min(len(chunk),max(0,1048576-saved))
-  if keep: f.write(chunk[:keep]);saved+=keep
-  omitted+=len(chunk)-keep
+  if len(head)<524288: head+=chunk
+  else:
+   tail+=chunk
+   if len(tail)>524288: omitted+=len(tail)-524288;tail=tail[-524288:]
  rc=p.wait()
- f.write(f'\n[Log limited to 1048576 bytes; omitted {omitted} bytes.]\n'.encode())
+ f.write(head)
+ if tail: f.write(f'\n[... {omitted} bytes omitted ...]\n'.encode());f.write(tail)
 if not (out/'result.json').stat().st_size:raise SystemExit(f'No result, simulator exit {rc}; inspect simulator.log')
 if any(sha(root/p)!=h for p,h in inputs_hash.items()) or sha(binary)!=scenario['binary_sha256']:raise SystemExit('Inputs changed while simulation ran; do not use result')
 x=json.loads((out/'result.json').read_text());print('RESULT',x['status'],x['cycles'],hex(x['blocked_address']),x.get('blocked_reason',''),flush=True)
