@@ -50,10 +50,23 @@ work. The C++ .host file keeps serving the not-yet-migrated devices. Rules:
 ## Migration order (self-contained first; SDRAM/DMA last together)
 
  1. LCD transport regs 0x0c121200/204/208 (status 0x40000000 read, header/
-    control/data latches). Last hop of the logo. <- STARTING HERE
+    control/data latches). Last hop of the logo. DONE (lockstep-validated).
  2. GPIO/keypad/system-control latch banks (0x0c14f0xx, 0x0c1500xx-0x5ff,
     0x0c120c0x) incl. the 0x0c150514 TX-idle bit 2 quirk. Needs the C++
     exclusion list (latches_/probe_regs_ overrides) resolved statically.
+    PARTIAL: rtl/ngage_board.v device 2 covers 0x0c150400-0x5ff (minus
+    0x420/424 CBUS and 0x538/53c). NOT yet in HDL (C++ only, added
+    2026-10-31 night on the authentic path): 0x0c150504 FBUS drained
+    bits 0x1D0, 0x0c150568 bits 1+2, 0x0c15021c MBUS self-clearing strobe,
+    0x0c150000 GSM strap bit 22, 0x0c150110/0x114 free-running counter +
+    window, 0x0c148000 lock bit 0, and the new latch blocks (0x0c100000,
+    0x0c142000/14a/14b/14c, 0x0c150800, 0x0d space, upload RAMs
+    0x0c030000/0x0c06ff00). See status.md handoff for the list.
+ 2b. Ideal-clock block DONE in HDL (device 3, 2026-10-31): control
+    0x0c120004 / command 0x0c120008 / PLL 0x0c149000 latches + status
+    0x0c120020 truth table incl. the NOS lock bits 25 (0x514a5b88) and 26
+    (0x514c13ac): both C++ and HDL return 0x06000000 for control
+    0x20/0x40. Lint-clean (iverilog) but NOT lockstep-validated yet.
  3. Timer units + periodic tick + ICU current/enable banks + FIQ banks
     (the interrupt heartbeat; ngage_board grows irq/fiq outputs).
  4. CBUS/UEM engine (command/response state machine).
@@ -68,9 +81,18 @@ work. The C++ .host file keeps serving the not-yet-migrated devices. Rules:
     service package" = parse nem440 records ([0x14][addr:4 BE][ck1]
     [len:3 BE][ck2]+payload) and write payloads at record addresses (HPS
     side), 0xFF elsewhere; per-device hole = 56 B at [0x12c,0x163). This
-    reproduces authentic on-chip content. Only NOS-from-flash execution
-    additionally needs the unsolved read-side descrambler (until then:
-    THC plaintext NOS + authentic IAT region, as in the sim).
+    reproduces authentic on-chip content. The read-side descrambler is
+    SOLVED (16 GF(2) formulas, docs/firmware-integrity.md; sim option
+    descramble-window): the HDL core applies them per read on
+    [0xa000,0x2b3000) - no plaintext NOS image or IAT region needed.
+
+## Modem (separate module, 2026-10-31)
+
+rtl/ngage_modem.v is the ISI/Phonet responder (energy, phone-info, SIM,
+accessory, router errors), byte-exact against scratch/modem/ngage_modem.c
+over 2022 vectors (scratch/modem/tb_modem.v). NOT wired into ngage_board
+yet: the ISI transport hookup (which bus/registers carry frames between
+the app side and the NOS servers) is still unidentified.
 
 ## Validation per device
 

@@ -1,8 +1,9 @@
 # N-Gage project documentation
 
-**Resume with [status.md](status.md).** It records completed work, exact measured
-stopping points, assumptions, missing hardware, next steps and when to rerun checks.
-Checkpoint verified 2026-10-27 against the saved local simulation reports.
+**Resume with [status.md](status.md) - start at its "HANDOFF / START HERE"
+block (2026-11-01).** It records completed work, exact measured stopping points,
+assumptions, missing hardware, next steps and when to rerun checks; the dated
+entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
@@ -21,6 +22,8 @@ Checkpoint verified 2026-10-27 against the saved local simulation reports.
 | [boot-model.md](boot-model.md) | Physical map, flash/register experiments, strict limits and assumptions |
 | [software-reference.md](software-reference.md) | EKA2L1 findings, executable software comparison and LCD trace |
 | [references.md](references.md) | Pinned sources, physical versus virtual maps and dump provenance |
+| [modem-model.md](modem-model.md) | Reversed ISI/Phonet protocol and NOS servers (energy, phone-info, SIM); spec for scratch/modem + rtl/ngage_modem.v |
+| [hdl-migration.md](hdl-migration.md) | C++ board model -> rtl/ngage_board.v plan, migrated devices, what is still C++-only |
 
 ARM reference manuals are local PDFs in this folder. Reference checkouts and
 supporting research are retained under project `scratch/`; generated traces and

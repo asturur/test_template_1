@@ -60,9 +60,9 @@ initial for (gi = 0; gi < 128; gi = gi + 1) gpio[gi] = 32'd0;
     command 0x0c120008, PLL 0x0c149000 (RW word latches with written-byte
     tracking) and the status read 0x0c120020. Status truth table is the
     validated C++ handler: control 12 -> bit 26; control 0x27 + command 1 ->
-    bit 27; control 3 + PLL 0x2210 -> bit 27; control 0x20/0x40 -> bit 25
-    (the NOS wait loop 0x514a5b88 TST #0x02000000, pinned 2026-10-31 after
-    bit 27 spun 1.6e9 cycles). PLL reads require value 0x2210 and return
+    bit 27; control 3 + PLL 0x2210 -> bit 27; control 0x20/0x40 -> bits 25
+    and 26 (NOS wait loops 0x514a5b88 TST #0x02000000 and 0x514c13ac AND
+    #0x04000000, both pinned 2026-10-31). PLL reads require value 0x2210 and return
     value|1. Anything else is unmodeled and stops the run. */
 wire clk_hit = cfg_clocks && (a == 32'h0c12_0004 || a == 32'h0c12_0008 ||
                               a == 32'h0c12_0020 || a == 32'h0c14_9000);
@@ -94,7 +94,7 @@ always @(*) begin
                           else unmodeled = 1'b1;
                 32'd3:    if (pllw == 4'hf && pllv == 32'h2210) dout = 32'h0800_0000;
                           else unmodeled = 1'b1;
-                32'h20, 32'h40: dout = 32'h0200_0000;
+                32'h20, 32'h40: dout = 32'h0600_0000;  // lock bits 25+26
                 default:  unmodeled = 1'b1;
             endcase
         end else begin

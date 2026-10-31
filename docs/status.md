@@ -1,6 +1,124 @@
 # Development checkpoint and resume guide
 
-## 2026-11-01 ~01:00 Shutdown root cause: RTC: 0x10006 kernel fault - UEM 1Hz tick was missing; fix in flight (update made with Claude)
+## >>> HANDOFF / START HERE (2026-11-01, written with Claude) <<<
+
+Read this block first; the dated entries below are the evidence log
+(newest first). Three entries below were corrected in place: the
+"power-on reason" theory is SUPERSEDED (wrong), the 1Hz RTC tick did NOT
+fix the fault, and the old "bit 29" title was a misread (it is bit 25).
+
+### Two boot lineages - know which one you are looking at
+
+1. STUB lineage (older, 2026-10-30/31): plaintext NOS image + synthetic NOS
+   entry stub + rewritten digest. Reached the NOKIA LOGO (~3.3e9, resume of
+   roll-r3300, pixel-identical to the ngvm oracle) and the N-GAGE SPLASH
+   (5.9e9-9e9), then the EtelServer/commsdb crash at 3.165e9 on some
+   variants. Artifacts: build/sim/screens/milestone-nokia-logo/.
+2. AUTHENTIC lineage (current, user's direction "no patches"): the ORIGINAL
+   scrambled service ROM build/firmware/nem4-factory/core.bin (+
+   extension.bin) with the solved inline descrambler (option
+   descramble-window), stock MD5 2c09c86f passes natively, REAL NOS runs.
+   No stub, no nos-image, no digest rewrite.
+   LOGO STATUS: NOT YET on this lineage. It shows the early LCD clear
+   (~114M); the logo point (~3.3e9 on the stub lineage) lies beyond the
+   current blocker.
+
+### Current frontier and blocker (authentic lineage)
+
+Run boot-v15-auth7 (restore roll-auth7-r800, budget 3.3e9) halts
+DETERMINISTICALLY at cycle 2,382,059,099: kernel park 0x50324294 after
+K::Fault(category "RTC:" = ROM string 0x503503a8, reason 0x10006), path
+kernel 0x50349da4 -> 0x5034fbf4 -> 0x50350380 -> 0x50350284 -> 0x50333e70
+(found with the instruction-window trace boot-v15-shutdowntrace from
+roll-auth7-r2300). The shutdown writes 0x1a to 0x0c00428e, 0x200 to clock
+control, 4 to GPIO 0x0c150000, then parks. The NOS trace text up to it is
+clean (no assert printed).
+TRIED, NO EFFECT (same fault, +/-5 cycles):
+ - power-on reason UEM reg 0x3f = 1 (option uem-power-status-extra=1);
+ - 1Hz tick raising ICU source 1 every 104M cycles (tick() in
+   boot_profile.cpp; ICU current 0x114 read source-1 = 2 5,118 times, so
+   source-1 IRQs are taken). Both remain in the model as harmless
+   environment hypotheses; revert the tick if it confuses later work.
+NEXT HYPOTHESES (in order):
+ a. UEM RTC TIME REGISTERS ARE FROZEN: cbus-input=0x20..0x34=0 primes the
+    UEM RTC/alarm block to constant 0. A clock that never advances is the
+    most likely way to trip an "RTC:" consistency check ~23 modeled
+    seconds in. Model the UEM RTC seconds/minutes/hours registers as
+    counting (cycles_/104e6) instead of constant inputs; find which regs
+    the RTC driver reads (grep bus.tsv for CBUS commands 0x2x near
+    RtcQueue activity).
+ b. Find the faulting THREAD: walk back from 0x50349da4 in the
+    shutdowntrace (re-create it: run-authentic-resume.py 2382059200
+    shutdowntrace 2382040000:2382059200 0 roll-auth7-r2300) to the first
+    user-side frame; grep euser/ekern for the "RTC:" category users.
+ c. Timer unit 1: 0x0c120a24 (control) is read 51,180 times (always 1) and
+    the counter 0x0c120a28 is NEVER read - the NOS may expect a different
+    unit for its RTC base.
+
+### How to run (authentic lineage)
+
+- Build: python3 scratch/boot-v15-nosprobe/build.py  (NOT
+  scratch/boot-v15-periodic/build.py - different obj dir). WARNING: it
+  does NOT fail on a C++ compile error; if an option is reported "unknown
+  board option", the binary is stale -> check
+  build/sim/obj-boot-v15-nosprobe/Vngage_cpu_sim mtime vs the sources.
+- Resume: python3 scratch/boot-v15-nosprobe/run-authentic-resume.py
+  BUDGET NAME [LO:HI instruction window] 0 CHECKPOINT
+  e.g. 3300000000 auth7 '' 0 roll-auth7-r2300. Rolling checkpoints every
+  100M: build/sim/checkpoints/roll-auth7-r800 ... r2300 (+ idle-c730 just
+  before the 730M delay calibration, roll-auth3-r700 base).
+- Result: build/sim/runs/boot-v15-NAME/result.json - status, cycles,
+  blocked_address/reason, and debug59_text = the NOS's OWN trace/assert
+  text captured from its trace port 0x0def0000 (it prints file/line/
+  expression of failed asserts - read it first).
+- Wedge detection: one bus address >95% of a 50k-row bus.tsv tail = spin.
+  bus.tsv compact trace does NOT log RAM writes; judge progress by cycle.
+- Checkpoint signature covers ROM, profile and core options; add
+  ENVIRONMENT inputs via the post-signature options uem-adc-extra= and
+  uem-power-status-extra= so existing checkpoints stay loadable. New
+  latch blocks share the serialized block14d_/keypad maps (caps 262144).
+- When editing boot_profile.cpp with scripted replace, ASSERT the anchor
+  exists (a silent no-op replace cost three runs tonight).
+
+### What the model contains on the authentic path (all evidence-pinned)
+
+Clock status bits 25+26; delay-calibration counter 0x0c150112/0x114
+(fixed the USER-EXEC 3 div/0 panic at 730M); clock-unit lock 0x0c148000
+bit0; DSP program upload RAMs 0x0c030000 (64KB) and 0x0c06ff00 (table at
+VA 0x5140a000 = PA 0xa000, inside the scrambled window); PMM flash on CS0
+top 64KB 0x7f0000 (Intel 0x40/SR/0x50/0x60 + AMD AA/55/A0, overlay in
+block14d_, data cycles decoded BEFORE command values, lock reads 0x0001,
+erased sector); FBUS TX status 0x0c150504 |= 0x1D0 and 0x0c150568 bits
+1+2; MBUS strobe 0x0c15021c self-clears; GSM strap 0x0c150002 bit 0x40;
+UEM ADC channels 0-13 = 512 + untracked conversions serve 512; UEM regs
+0x3b-0x3e and 0x40-0x9f as zero inputs; ASIC mask-ROM page PA
+0x0c000000 = BX LR stub (return provably discarded at 0x514befe8); latch
+blocks 0x0c004000, 0x0c100000, 0x0c142000/14a/14b/14c, 0x0c150800,
+0x0d000000-0x0dffffff (minus trace sinks). Details in the dated entries.
+
+### Modem and HDL
+
+- Modem: scratch/modem/ngage_modem.{c,h} + rtl/ngage_modem.v, byte-exact
+  over 2022 cross-check vectors (scratch/modem/tb_modem.v, iverilog).
+  Energy, phone-info IMEI, accessory (inferred), router errors, and the
+  SIM server (fully reversed: docs/modem-model.md 3.4). NOT integrated:
+  the ISI transport between the app side and the NOS servers is still
+  unidentified.
+- HDL board (rtl/ngage_board.v): device 1 LCD transport (validated),
+  device 2 GPIO 0x0c150400-0x5ff, device 3 ideal-clock block (bits 25+26,
+  lint-clean, not lockstep-validated). Everything added to the C++ model
+  tonight is NOT yet in HDL - list in docs/hdl-migration.md.
+
+### Repo state
+
+All work committed and pushed to origin/master. Deliberately NOT
+committed: .claude/ (local session tooling) and the modified
+firmware/MCU/nos-iat-region-0x6e030.bin (firmware/ is git-ignored Nokia
+material; the commit attempt was also refused by the session's
+permission policy - owner's call).
+
+
+## 2026-11-01 ~01:00 Shutdown = RTC: 0x10006 kernel fault (CONFIRMED); the 1Hz-tick fix FAILED - see HANDOFF above (update made with Claude)
 
 The 2.382e9 "power-off" was neither power-reason nor timeout: instruction
 trace from roll-auth7-r2300 shows K::Fault(category "RTC:" at ROM
@@ -17,7 +135,7 @@ old fault point). Checkpoint-loader note: entry caps raised to 262144
 (the widened latch maps outgrew 4096 and r2300 restore failed with
 'invalid checkpoint keypad entries' until raised).
 
-## 2026-11-01 (post-midnight) Power-off root-caused: no power-on reason; key-held run in flight (update made with Claude)
+## 2026-11-01 (post-midnight) [SUPERSEDED - WRONG DIAGNOSIS] power-on-reason theory; the real cause is the RTC: fault below/above (update made with Claude)
 
 auth7's long cruise ended at 2.382e9 in the DELIBERATE shutdown path
 (state 0x1a -> 0x0c00428e, clock 0x200, GPIO 0x150000=4, park; NO panic
@@ -201,7 +319,7 @@ roll-auth3-r700 (+30M cycles, 1-2 min). This run also pins checkpoint
 idle-c730 at 730.1M just before the calibration for seconds-fast iteration;
 rolling roll-auth7-r800+ resume once the run passes 800M.
 
-## 2026-10-31 Clock bring-up poll pinned: NOS waits for STATUS BIT 29, not 27 (update made with Claude)
+## 2026-10-31 Clock bring-up poll pinned: NOS waits for STATUS BIT 25 (title once said 29 - wrong; body is correct) (update made with Claude)
 
 boot-v15-auth6 spun 729.4M->2.3e9 cycles polling 0x0c120020 while the model
 answered 0x08000000 (bit 27). Instruction-window trace from roll-auth6-r800
