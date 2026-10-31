@@ -1016,6 +1016,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // modem UART always drains: bit 2 reads set. Hypothesis from the
         // polling disassembly; the real bit meaning is unverified.
         if (address == 0x0c150514 && !request.write) data |= 0x4u & mask;
+        // FBUS UART status halfword 0x0c150504 (low half): the TX path
+        // requires (value & 0x1C0) == 0x1C0 (0x515bb720; assert
+        // Fbus_drv.c:502 otherwise) and the flag reader 0x515bb6bc also
+        // reports bit 0x10. Modeled always drained: bits 0x1D0 set.
+        if (address == 0x0c150504 && !request.write) data |= 0x1d0u & mask;
         // FBUS UART status halfword 0x0c15056a: the FBUS driver asserts
         // (value & 6) == 6 before TX ("/FBUS/Fbus_drv.c line 502,
         // fbus_reg_tmp & HW_FBUS_TX_BUFF_EMPTY"; checker 0x515bb5f0,
