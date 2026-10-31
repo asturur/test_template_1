@@ -80,9 +80,10 @@ also shadows claimed accesses (divergence stops the run). Two binaries:
 build.py (C++-only, fast iteration, checkpoints untouched) and
 scratch/hdl-board/build-hdl.py (obj-boot-v15-hdl, hdl-* checkpoints;
 runner scratch/hdl-board/run-hdl-fresh.py). Savestates free via --savable.
-Device 1 = LCD transport: boot-v15-hdlab1 A/B, 36768 claims, ZERO
-divergence, identical white-clear capture. boot-v15-hdlogo (2.5e9, through
-the Nokia-logo DMA) validating at session close.
+Device 1 = LCD transport + device 2 = GPIO banks: boot-v15-hdlfull ran
+from reset to 6.2e9 (both logos, dialogs, euart1 era) with 184297 HDL
+claims and ZERO divergences against the C++ oracle. The HDL board is
+validated on the entire visual boot.
 
 BOOT FRONTIER (boot-v15-boot1, 9e9-12e9): the system is in an APP-CRASH
 LOOP - composite final screen (build/sim/screens/boot-v15-boot1-composite/)
