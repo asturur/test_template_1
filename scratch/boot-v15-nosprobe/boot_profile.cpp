@@ -349,15 +349,25 @@ bool BootProfile::flash_command(Flash& flash, const BootBusRequest& request) {
     // state word key 0xff000000|base (bit0 SR-mode, bit1 program-pending,
     // bit2 lock-op), overlay key 0x80000000|halfword-address.
     uint32_t& pmm = block14d_[0xff000000u | flash.base];
-    if (value == 0xff || value == 0xf0) {
-        flash.identify = false; flash.unlock = 0; pmm = 0; return true;
+    // DATA cycles take priority over any command-value decoding: a program
+    // data halfword may hold command-looking values (observed: the PMM
+    // driver programs 0x0060 at 0x7f003e; v1 of this model misread it as a
+    // lock-op and the driver's verify failed -> "PMM Write failed").
+    if (flash.unlock == 6) {     // AMD program data cycle
+        uint32_t& cell = block14d_[0x80000000u | (flash.base + (address & ~1u))];
+        const bool had = (cell >> 16) == 1;
+        cell = 0x00010000u | (had ? (cell & value & 0xffffu) : value);
+        flash.unlock = 0; return true;
     }
-    if (pmm & 2u) {              // program data cycle: halfword at 'address'
+    if (pmm & 2u) {              // Intel program data cycle
         uint32_t& cell = block14d_[0x80000000u | (flash.base + (address & ~1u))];
         const bool had = (cell >> 16) == 1;
         cell = 0x00010000u | (had ? (cell & value & 0xffffu) : value);
         pmm = (pmm & ~2u) | 1u;  // status-register mode until 0xFF/0xF0/0x50
         return true;
+    }
+    if (value == 0xff || value == 0xf0) {
+        flash.identify = false; flash.unlock = 0; pmm = 0; return true;
     }
     if (value == 0x40) { pmm |= 2u; return true; }
     if (value == 0x50) { pmm &= ~1u; return true; }
@@ -379,17 +389,10 @@ bool BootProfile::flash_command(Flash& flash, const BootBusRequest& request) {
             flash.identify = true; flash.unlock = 0; return true;
         }
         // AMD program: AA/55/A0 then the data halfword at the target
-        // address (NOS PMM driver, boot-v15-auth7 800966453). Programmed
-        // cells live in the block14d_ overlay; reads serve the overlay at
-        // once, which also satisfies the driver's verify poll.
+        // address (NOS PMM driver, boot-v15-auth7 800966453). The data
+        // cycle itself is handled at the top of this function.
         if (flash.unlock == 2 && (address & 0x7ff) == 0x2aa && value == 0xa0) {
             flash.unlock = 6; return true;
-        }
-        if (flash.unlock == 6) {
-            uint32_t& cell = block14d_[0x80000000u | (flash.base + (address & ~1u))];
-            const bool had = (cell >> 16) == 1;
-            cell = 0x00010000u | (had ? (cell & value & 0xffffu) : value);
-            flash.unlock = 0; return true;
         }
         // AMD datasheet Table 8/10: C0 after two unlock cycles latches
         // burst mode/wait states from address A16..A12, not array data.
