@@ -984,7 +984,8 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
          // literal sweep; first write 0 to 0x0c1003e8 at 817409089).
          (address >= 0x0c100000 && address < 0x0c110000) ||
          (address >= 0x0c150000 && address < 0x0c150600))) {
-        if (request.select != 3 && request.select != 12 && request.select != 15) {
+        if (request.select != 3 && request.select != 12 && request.select != 15 &&
+            request.select != 1 && request.select != 2 && request.select != 4 && request.select != 8) {
             reason_ = "unobserved keypad GPIO access width"; return false;
         }
         const uint32_t mask = byte_mask(request.select);
