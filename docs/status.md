@@ -1,5 +1,22 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 EtelServer crash: C:-image byte-patch is INEFFECTIVE; fault pinned; fix is the modem not C: (update made with Claude)
+
+Tested factory ROM + C: image with Cdbv2.dat renamed (cdrive-nocdbv2.img,
+boot-v15-nocdbv2): the data abort recurs at the EXACT same cycle 3,165,666,171,
+bit-for-bit - the C: byte-edit had ZERO behavioral effect. LESSON: naive
+byte-patching of the LFFS image does NOT surface to the mounted filesystem
+(LFFS reconstructs names/structure from log records); C: changes need real
+LFFS tooling, not image edits. Fault pinned: edbms (DBMS server) ldr r4,[r0]
+at 0x5045094a with a bad r0 = query into an empty-SCHEMA comms DB (no tables ->
+null row deref). So a renamed/empty DB can't fix it; it needs a properly
+populated Cdbv2.dat (modem/IAP/WAP tables). On real hardware those tables are
+provisioned as telephony comes up (needs the modem). CONCLUSION: the stable-UI
+fix is the MODEM (ISI provisioning), reversed in docs/modem-model.md, OR a
+valid populated Cdbv2.dat built with real LFFS tooling - NOT C: image
+byte-patching. Resume base roll-nocdbv2-r3100 (fault at 3.1656e9).
+
+
 ## 2026-10-31 *** FLASH SCRAMBLER SOLVED - STOCK DIGEST 2c09c86f REPRODUCED (authenticity closed) *** see docs/firmware-integrity.md top. 16 GF(2) descramble formulas (build/firmware/thc/scrambler-model.json), each exact on 1.09M pairs; MD5 of the descrambled digest window == stock expected (independently verified). Authentic ROM now passes the native self-check without digest replacement; the 21%% gaps are decrypted. NEXT: assemble the fully-authentic descrambled ROM (the standard user-buildable boot ROM) and drop the NOS stub.
 
 ## 2026-10-31 CORRECTION + true root cause: the comms DB IS in ROM; an empty C: file shadows it (update made with Claude)
