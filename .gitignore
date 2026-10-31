@@ -46,3 +46,4 @@ c5_pin_model_dump.txt
 
 # Local firmware dumps and extracted phone data
 /firmware/
+claudia-handoff/
