@@ -495,10 +495,16 @@ int run(int argc, char** argv) {
                         for (unsigned k = 0; k < sizeof(mod_tab)/sizeof(*mod_tab); ++k)
                             if (pc - 0x50000000 >= mod_tab[k].base) m = k; else break;
                     }
+                    // user-side ROM binaries (servers, TSYs, apps): bucket by
+                    // 64KB so their execution windows appear in the timeline
+                    // (names via romsyms offline).
+                    else if (pc >= 0x5041b1e0 && pc < 0x51500000) m = 200 + int((pc - 0x50400000) >> 16);
                     if (m != last_mod && m >= 0) {
-                        instruction_log << std::dec << cycle << "\tMOD\t"
-                            << (m == 100 ? "nos-window" : mod_tab[m].name)
-                            << "\t" << std::hex << pc << std::dec << '\n';
+                        instruction_log << std::dec << cycle << "\tMOD\t";
+                        if (m == 100) instruction_log << "nos-window";
+                        else if (m >= 200) instruction_log << "user+" << std::hex << ((m - 200) << 16) << std::dec;
+                        else instruction_log << mod_tab[m].name;
+                        instruction_log << "\t" << std::hex << pc << std::dec << '\n';
                         last_mod = m;
                     } else if (m >= 0) last_mod = m;
                 }
