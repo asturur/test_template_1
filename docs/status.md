@@ -1,5 +1,36 @@
 # Development checkpoint and resume guide
 
+## 2026-10-31 MODEM BUILT in C + HDL, byte-exact cross-check PASSES (update made with Claude)
+
+The ISI/Phonet modem responder now exists in both forms, transport-agnostic
+(frame in -> frame out), with every reply byte sourced from the real NOS
+disassembly (docs/modem-model.md):
+ - C: scratch/modem/ngage_modem.{c,h} + unit tests test_modem.c (12 directed
+   tests, all pass). Handles energy 0x17 (charger 0x08->0x09, battery
+   0x0A->0x0B with all 5 subblocks, empty-OK for the other table ids,
+   per-server 0xF0 0x01), phone-info 0x1B (IMEI sb {0x41,20,0,16,16ch},
+   status 0=OK), accessory 0x1C (inferred), SIM 0x09 (unregistered ->
+   router 0xF0 0x14; registered 0x1D -> 0x1E status-fail until the real
+   body is extracted), router error 0xF0 0x14 16-byte frame, LE length.
+ - HDL: rtl/ngage_modem.v (Verilog-2001, byte-stream rx/tx with handshake,
+   same dispatch; config ports for charger/battery/IMEI/sim_reg state).
+ - Cross-check: scratch/modem/gen_vectors.c runs 2014 directed+random
+   frames through the C model; scratch/modem/tb_modem.v (iverilog) drives
+   the RTL with random rx gaps + tx backpressure: ALL VECTORS BYTE-EXACT.
+   The fuzz caught a real C bug (read of absent flags byte req[10] in
+   10-byte frames) - fixed: absent body[2] models as 0.
+ - NOT yet integrated: the integration point (how the real NOS exchanges
+   ISI frames with the app side - mailbox/queue addresses) must come from
+   the authentic run (auth6) evidence; do not guess registers.
+ - Rebuild/run: cc -o test_modem ngage_modem.c test_modem.c && ./test_modem;
+   cc -o gen_vectors ngage_modem.c gen_vectors.c && ./gen_vectors >
+   vectors.hex && iverilog -g2001 -o tb tb_modem.v ../../rtl/ngage_modem.v
+   && vvp tb   (in scratch/modem/).
+
+Meanwhile boot-v15-auth6 (authentic path, resumed from roll-auth3-r700 with
+the clock-ready model 0x20/0x40 -> 0x08000000) is clean at 2.27e9 of 3.3e9,
+rolling checkpoints roll-auth6-r* every 100M (keep 30).
+
 ## 2026-10-31 AUTHENTIC PATH validated through early boot: original ROM + inline descrambler, NO stub/rewrite (update made with Claude)
 
 User's architecture (no patches; original scrambled service files as ROM +
