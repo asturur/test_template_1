@@ -1,0 +1,510 @@
+{
+ "0": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 7,
+  "terms": [
+   "C0",
+   "C8",
+   "A1",
+   "A8",
+   "A17",
+   "A4*A10",
+   "A8*A17"
+  ],
+  "const": 0,
+  "cmask": 257,
+  "amask": 131330,
+  "prods": [
+   [
+    "AA",
+    4,
+    10
+   ],
+   [
+    "AA",
+    8,
+    17
+   ]
+  ],
+  "formula": "P0 = C0 ^ C8 ^ A1 ^ A8 ^ A17 ^ A4*A10 ^ A8*A17"
+ },
+ "1": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 4,
+  "terms": [
+   "C1",
+   "C9",
+   "A3*A13",
+   "A9*A17"
+  ],
+  "const": 0,
+  "cmask": 514,
+  "amask": 0,
+  "prods": [
+   [
+    "AA",
+    3,
+    13
+   ],
+   [
+    "AA",
+    9,
+    17
+   ]
+  ],
+  "formula": "P1 = C1 ^ C9 ^ A3*A13 ^ A9*A17"
+ },
+ "2": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 10,
+  "terms": [
+   "C2",
+   "C6",
+   "A3",
+   "A5",
+   "A9",
+   "A10",
+   "A13",
+   "A20",
+   "A9*A10",
+   "A5*A13"
+  ],
+  "const": 0,
+  "cmask": 68,
+  "amask": 1058344,
+  "prods": [
+   [
+    "AA",
+    9,
+    10
+   ],
+   [
+    "AA",
+    5,
+    13
+   ]
+  ],
+  "formula": "P2 = C2 ^ C6 ^ A3 ^ A5 ^ A9 ^ A10 ^ A13 ^ A20 ^ A9*A10 ^ A5*A13"
+ },
+ "3": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 7,
+  "terms": [
+   "1",
+   "C3",
+   "C8",
+   "A3",
+   "A18",
+   "A11*A12",
+   "A5*A14"
+  ],
+  "const": 1,
+  "cmask": 264,
+  "amask": 262152,
+  "prods": [
+   [
+    "AA",
+    11,
+    12
+   ],
+   [
+    "AA",
+    5,
+    14
+   ]
+  ],
+  "formula": "P3 = 1 ^ C3 ^ C8 ^ A3 ^ A18 ^ A11*A12 ^ A5*A14"
+ },
+ "4": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 9,
+  "terms": [
+   "C1",
+   "C4",
+   "A2",
+   "A7",
+   "A10",
+   "A11",
+   "A14",
+   "A7*A11",
+   "A10*A14"
+  ],
+  "const": 0,
+  "cmask": 18,
+  "amask": 19588,
+  "prods": [
+   [
+    "AA",
+    7,
+    11
+   ],
+   [
+    "AA",
+    10,
+    14
+   ]
+  ],
+  "formula": "P4 = C1 ^ C4 ^ A2 ^ A7 ^ A10 ^ A11 ^ A14 ^ A7*A11 ^ A10*A14"
+ },
+ "5": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 10,
+  "terms": [
+   "1",
+   "C5",
+   "C15",
+   "A3",
+   "A7",
+   "A8",
+   "A18",
+   "A21",
+   "A3*A8",
+   "A7*A18"
+  ],
+  "const": 1,
+  "cmask": 32800,
+  "amask": 2359688,
+  "prods": [
+   [
+    "AA",
+    3,
+    8
+   ],
+   [
+    "AA",
+    7,
+    18
+   ]
+  ],
+  "formula": "P5 = 1 ^ C5 ^ C15 ^ A3 ^ A7 ^ A8 ^ A18 ^ A21 ^ A3*A8 ^ A7*A18"
+ },
+ "6": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 9,
+  "terms": [
+   "1",
+   "C6",
+   "C11",
+   "A1",
+   "A6",
+   "A12",
+   "A18",
+   "A6*A12",
+   "A4*A15"
+  ],
+  "const": 1,
+  "cmask": 2112,
+  "amask": 266306,
+  "prods": [
+   [
+    "AA",
+    6,
+    12
+   ],
+   [
+    "AA",
+    4,
+    15
+   ]
+  ],
+  "formula": "P6 = 1 ^ C6 ^ C11 ^ A1 ^ A6 ^ A12 ^ A18 ^ A6*A12 ^ A4*A15"
+ },
+ "7": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 8,
+  "terms": [
+   "1",
+   "C5",
+   "C7",
+   "A1",
+   "A11",
+   "A16",
+   "A2*A5",
+   "A11*A16"
+  ],
+  "const": 1,
+  "cmask": 160,
+  "amask": 67586,
+  "prods": [
+   [
+    "AA",
+    2,
+    5
+   ],
+   [
+    "AA",
+    11,
+    16
+   ]
+  ],
+  "formula": "P7 = 1 ^ C5 ^ C7 ^ A1 ^ A11 ^ A16 ^ A2*A5 ^ A11*A16"
+ },
+ "8": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 9,
+  "terms": [
+   "1",
+   "C6",
+   "C8",
+   "A2",
+   "A9",
+   "A13",
+   "A21",
+   "A9*A13",
+   "A7*A16"
+  ],
+  "const": 1,
+  "cmask": 320,
+  "amask": 2105860,
+  "prods": [
+   [
+    "AA",
+    9,
+    13
+   ],
+   [
+    "AA",
+    7,
+    16
+   ]
+  ],
+  "formula": "P8 = 1 ^ C6 ^ C8 ^ A2 ^ A9 ^ A13 ^ A21 ^ A9*A13 ^ A7*A16"
+ },
+ "9": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 8,
+  "terms": [
+   "C9",
+   "C13",
+   "A1",
+   "A4",
+   "A15",
+   "A19",
+   "A4*A15",
+   "A8*A16"
+  ],
+  "const": 0,
+  "cmask": 8704,
+  "amask": 557074,
+  "prods": [
+   [
+    "AA",
+    4,
+    15
+   ],
+   [
+    "AA",
+    8,
+    16
+   ]
+  ],
+  "formula": "P9 = C9 ^ C13 ^ A1 ^ A4 ^ A15 ^ A19 ^ A4*A15 ^ A8*A16"
+ },
+ "10": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 7,
+  "terms": [
+   "C0",
+   "C10",
+   "A7",
+   "A9",
+   "A13",
+   "A5*A11",
+   "A7*A13"
+  ],
+  "const": 0,
+  "cmask": 1025,
+  "amask": 8832,
+  "prods": [
+   [
+    "AA",
+    5,
+    11
+   ],
+   [
+    "AA",
+    7,
+    13
+   ]
+  ],
+  "formula": "P10 = C0 ^ C10 ^ A7 ^ A9 ^ A13 ^ A5*A11 ^ A7*A13"
+ },
+ "11": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 7,
+  "terms": [
+   "1",
+   "C11",
+   "A7",
+   "A8",
+   "A11",
+   "A14",
+   "A19"
+  ],
+  "const": 1,
+  "cmask": 2048,
+  "amask": 543104,
+  "prods": [],
+  "formula": "P11 = 1 ^ C11 ^ A7 ^ A8 ^ A11 ^ A14 ^ A19"
+ },
+ "12": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 9,
+  "terms": [
+   "1",
+   "C12",
+   "C14",
+   "A1",
+   "A5",
+   "A8",
+   "A15",
+   "A3*A6",
+   "A8*A15"
+  ],
+  "const": 1,
+  "cmask": 20480,
+  "amask": 33058,
+  "prods": [
+   [
+    "AA",
+    3,
+    6
+   ],
+   [
+    "AA",
+    8,
+    15
+   ]
+  ],
+  "formula": "P12 = 1 ^ C12 ^ C14 ^ A1 ^ A5 ^ A8 ^ A15 ^ A3*A6 ^ A8*A15"
+ },
+ "13": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 6,
+  "terms": [
+   "1",
+   "C2",
+   "C13",
+   "A2",
+   "A12",
+   "A6*A11"
+  ],
+  "const": 1,
+  "cmask": 8196,
+  "amask": 4100,
+  "prods": [
+   [
+    "AA",
+    6,
+    11
+   ]
+  ],
+  "formula": "P13 = 1 ^ C2 ^ C13 ^ A2 ^ A12 ^ A6*A11"
+ },
+ "14": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 6,
+  "terms": [
+   "C10",
+   "C14",
+   "A1",
+   "A2",
+   "A4*A15",
+   "A6*A16"
+  ],
+  "const": 0,
+  "cmask": 17408,
+  "amask": 6,
+  "prods": [
+   [
+    "AA",
+    4,
+    15
+   ],
+   [
+    "AA",
+    6,
+    16
+   ]
+  ],
+  "formula": "P14 = C10 ^ C14 ^ A1 ^ A2 ^ A4*A15 ^ A6*A16"
+ },
+ "15": {
+  "space": "BASE",
+  "solved": true,
+  "bad_on_A": 0,
+  "n_A": 1093312,
+  "nterms": 8,
+  "terms": [
+   "C3",
+   "C15",
+   "A2",
+   "A6",
+   "A10",
+   "A20",
+   "A6*A10",
+   "A12*A17"
+  ],
+  "const": 0,
+  "cmask": 32776,
+  "amask": 1049668,
+  "prods": [
+   [
+    "AA",
+    6,
+    10
+   ],
+   [
+    "AA",
+    12,
+    17
+   ]
+  ],
+  "formula": "P15 = C3 ^ C15 ^ A2 ^ A6 ^ A10 ^ A20 ^ A6*A10 ^ A12*A17"
+ }
+}

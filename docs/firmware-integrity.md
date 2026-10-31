@@ -1,5 +1,45 @@
 # Embedded core digest mismatch
 
+## 2026-10-31 *** SOLVED: the stock digest 2c09c86f IS reproduced; read-side scrambler fully reversed *** (update made with Claude)
+
+The authenticity question raised by the external researcher is CLOSED. The
+NEM-4 flash read-side scrambler is fully reverse-engineered: 16 per-halfword
+GF(2) formulas P_i = C_i XOR C_{j(i)} XOR (linear address) XOR (<=2 quadratic
+address products), A = absolute byte physical address. Each bit is exact
+(100.0000%) on all 1,093,312 known-plaintext halfwords, and - the proof -
+descrambling the whole scrambled window [0xa000,0x2b3000) and hashing the
+core digest range VA 0x50009000..0x511B4FFF gives MD5
+2c09c86ff047484fdcc0e226f49c44a9, EXACTLY the stock embedded expected value
+(independently recomputed). MD5 cannot match by chance, so every formula is
+verified at every address, including the (A19,A20,A21)=0 regime the training
+data never visited.
+
+CONSEQUENCES:
+ - The reported Nokia/N-Gage boot NO LONGER depends on replacing the expected
+   digest: an authentic ROM can be assembled from the Nokia service files
+   (nem440.3c1/.326), the scrambled window descrambled in place, and the
+   firmware's own MD5 self-check passes NATIVELY. The digest-probe images are
+   superseded for authenticity (they remain only as a faster build shortcut).
+ - The previously "unreachable" 21% of the window ([0xa000,0x6e030) and
+   [0x725c0,0x9d280), 584,944 bytes) is now DECRYPTED from ciphertext+address
+   alone (entropy ~8.0 -> ~6.1-6.5; plausible Thumb code + VA pointer tables).
+   The real baseband/NOS content is recovered. No live descrambled capture is
+   needed after all.
+ - Supersedes every earlier "provably unmatchable / cipher gated / gsmstuff
+   can't reach the gaps" conclusion in this file and in flashing_how.md
+   sections 8/9. The gaps were reachable because descrambling needs only the
+   ciphertext (which we have for the gaps) plus the address.
+
+Artifacts: the 16 formulas in build/firmware/thc/scrambler-model.json (also
+scratch/flash-cipher-r4/model.json); full derivation, address convention,
+held-out validation, gap decrypt and the digest recipe in the untracked
+claudia-handoff/flashing_how.md section 10; scripts scratch/flash-cipher-r4/.
+The researcher's two anchor formulas (bits 9 and 10) were reproduced
+symbol-for-symbol by the independent solve.
+
+---
+
+
 ## 2026-10-31 FLASH-TRANSFORM ANSWER (second investigation; note written with Claude)
 
 Full write-up: claudia-handoff/flashing_how.md (untracked research package);
