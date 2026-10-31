@@ -979,6 +979,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
          // 0x0c150800-0x0c1508ff: second UART-ish port block (NOS literals
          // 0x58150800..0x58150814; first write observed 817240746).
          (address >= 0x0c150800 && address < 0x0c150900) ||
+         // 0x0c100000-0x0c10ffff: NOS peripheral block (scattered regs
+         // 0x0/0x1f4/0x3e8-0x3f4/0x418/0x42a/0x43e/0x650/0xfe0 in the
+         // literal sweep; first write 0 to 0x0c1003e8 at 817409089).
+         (address >= 0x0c100000 && address < 0x0c110000) ||
          (address >= 0x0c150000 && address < 0x0c150600))) {
         if (request.select != 3 && request.select != 12 && request.select != 15) {
             reason_ = "unobserved keypad GPIO access width"; return false;
