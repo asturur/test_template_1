@@ -1,0 +1,12 @@
+{
+ "format": "thc-verbatim-digest-probe-v1",
+ "authenticity_verified": false,
+ "note": "The real-phone THC ROM dump (ngage-rom-0x50000000.dmp) adopted VERBATIM as the ROM, with ONLY the 16-byte core expected-digest field recomputed over the dump's own content so the self-check passes (same disclosed digest-probe approach). Chosen over the reconstructed factory assembly because the dump contains real content our reconstruction dropped (e.g. the populated comms DB cdbv2.dat at file 0x243c40, absent from SYM.ROM). NOS window (VA 0x5149D280+) is beyond this 20.3MB dump and still needs the separate gsmstuff NOS machinery.",
+ "core_digest": {
+  "before": "2c09c86ff047484fdcc0e226f49c44a9",
+  "after": "e8f426c4cd9349ef3101a805ae8d67d1",
+  "virtual_start": "0x50009000",
+  "virtual_end_inclusive": "0x511b4fff"
+ },
+ "source_sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5"
+}
