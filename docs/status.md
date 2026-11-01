@@ -1,5 +1,31 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~05:30 *** RTC FAULT BROKEN — auth16 ran 3.3e9 cycles clean *** (update made with Claude)
+
+boot-v15-auth16 (device ID fix + FBUS sync echo + UART RX IRQ source 4)
+ran the full 3.3e9 budget with STATUS: TIMEOUT (no crash, no fault, no
+unmapped access). The RTC: 0x10006 fault at 2.382e9 is GONE.
+Three fixes combined:
+ 1. Factory device-ID table at PA 0x13a (non-blank → ANOTHER_ID_OK path
+    → 0x514c6800(1) sets the ID-ready flag)
+ 2. FBUS sync echo (0x55 TX bytes echoed back to RX immediately)
+ 3. UART RX interrupt on ICU source 4 (the NOS FBUS driver is
+    interrupt-driven; without it, echoed bytes sat unread)
+
+HOWEVER: no LCD DMA transfers = no logo yet. The trace shows
+ANOTHER_ID_OK → ANOTHER_ID_PMM_EMPTY but never reaches "NORMAL" or any
+display activity. The UART RX interrupt is in a LIVELOCK (33% of all bus
+traffic = ICU current reads): the ISR fires, checks status, doesn't find
+valid RX data (our status bit 0 doesn't match what it expects), returns,
+interrupt re-fires. This eats a third of the CPU and likely prevents the
+MTC state machine from advancing.
+NEXT: trace the FBUS UART ISR to find the correct RX-data-available
+status bit, and make the interrupt clear when the ISR drains the data.
+Then the NOS should advance through MTC:SU:NORMAL → server chain → logo.
+
+Quartus build 4: reduced ZAP caches 16KB→1KB, BTB 512→64 (was 4x too
+large for Cyclone V). Build in progress.
+
 ## 2026-11-01 ~03:30 RTC: fault is a startup TIMEOUT, not modem-dependent (update made with Claude)
 
 auth14 (FBUS sync echo + modem integration) hit the same RTC: fault at
