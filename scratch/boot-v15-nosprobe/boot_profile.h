@@ -7,6 +7,7 @@
 #include <istream>
 #include <string>
 #include <vector>
+#include "../../scratch/modem/ngage_modem.h"
 
 struct BootBusRequest {
     uint32_t address, data;
@@ -166,6 +167,12 @@ private:
     // the counter is read as deltas only, so restore offset is harmless and
     // old checkpoints stay loadable.
     uint64_t cycles_ = 0;
+    // ISI/Phonet modem (euart1 integration)
+    ngm_state modem_state_;
+    std::vector<uint8_t> modem_tx_buf_;   // accumulates TX bytes from euart1
+    std::vector<uint8_t> modem_rx_buf_;   // response bytes to inject via euart1 RX
+    unsigned modem_rx_pos_ = 0;
+    uint64_t modem_frames_handled_ = 0;
     bool unit60_irq3_ = false;
     uint32_t icu_mask2_[3] = {0,0,0};
     uint64_t unit60_remaining_ = 0, unit60_irqs_ = 0;
