@@ -1964,7 +1964,11 @@ void BootProfile::save_state(std::ostream& out) const {
     state_write(out, periodic_period_); state_write(out, periodic_remaining_); state_write(out, periodic_irqs_);
     n=probe_regs_.size(); state_write(out,n); for (const auto& item:probe_regs_) {state_write(out,item.first);state_write(out,item.second);}
     n=block14d_.size(); state_write(out,n); for (const auto& item:block14d_) {state_write(out,item.first);state_write(out,item.second);}
-    n=keypad_regs_.size(); state_write(out,n); for (const auto& item:keypad_regs_) {state_write(out,item.first);state_write(out,item.second);}
+    // Board cycle counter (NOS time base) carried in two reserved keypad_regs_
+    // keys so resumes keep NOS time continuous; checkpoint layout unchanged.
+    auto regs = keypad_regs_;
+    regs[0x0ffffff8] = uint32_t(cycles_); regs[0x0ffffffc] = uint32_t(cycles_ >> 32);
+    n=regs.size(); state_write(out,n); for (const auto& item:regs) {state_write(out,item.first);state_write(out,item.second);}
     n=timer_unit_regs_.size(); state_write(out,n); for (const auto& item:timer_unit_regs_) {state_write(out,item.first);state_write(out,item.second);}
     state_write(out, icu_enable_); state_write(out, icu_bank_accesses_);
     state_write(out, icu_mask2_);
@@ -2025,6 +2029,10 @@ void BootProfile::load_state(std::istream& in) {
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);block14d_[k]=v;}
     state_read(in,n); if(n>262144) throw std::runtime_error("invalid checkpoint keypad entries"); keypad_regs_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);keypad_regs_[k]=v;}
+    if (auto lo = keypad_regs_.find(0x0ffffff8), hi = keypad_regs_.find(0x0ffffffc); lo != keypad_regs_.end() && hi != keypad_regs_.end()) {
+        cycles_ = uint64_t(lo->second) | (uint64_t(hi->second) << 32);
+        keypad_regs_.erase(lo); keypad_regs_.erase(0x0ffffffc);
+    }
     state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint timer-unit entries"); timer_unit_regs_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);timer_unit_regs_[k]=v;}
     state_read(in,icu_enable_); state_read(in,icu_bank_accesses_);
