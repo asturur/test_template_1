@@ -1,5 +1,25 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~03:30 RTC: fault is a startup TIMEOUT, not modem-dependent (update made with Claude)
+
+auth14 (FBUS sync echo + modem integration) hit the same RTC: fault at
+2,382,059,104 — zero Phonet frames exchanged, zero UART data register
+(0x0c150500) accesses. The FBUS sync echo is correct but irrelevant:
+the NOS never reaches the FBUS data-transfer phase within 23 modeled
+seconds. The trace shows: MTC:SU:main() → ANOTHER_ID_DEF → RtcQueue
+→ fault. "ANOTHER_ID_DEF" (string 0x516cf633) is a device-ID fallback
+in the MTC startup — likely the ASIC ROM stub (PA 0x0c000000, returns
+BX LR for every entry) returning 0 instead of a device identifier that
+the startup task expects. The real ASIC ROM returns a product/hardware
+ID that MTC:SU uses to select the device configuration; our BX-LR stub
+makes it fall to ANOTHER_ID_DEF and the startup stalls.
+NEXT: trace the MTC:SU:ANOTHER_ID_DEF path to find which ASIC ROM call
+returns the device ID, and what value it should return for NEM-4.
+
+Quartus build: passed elaboration (ZAP enum + SDRAM state + RAM init
+all fixed); build 3 in fitting/timing. MiSTer core structure complete
+(DDR3 flash + SDRAM phone RAM + descrambler + board + modem + PLL 104MHz).
+
 ## >>> HANDOFF / START HERE (2026-11-01, written with Claude) <<<
 
 Read this block first; the dated entries below are the evidence log
