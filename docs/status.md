@@ -1,5 +1,22 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~21:00 ROOT OF BOTH STALLS: MTC never reaches state 0x0c (update made with Claude)
+
+Chain (PROVEN, sim + disassembly): Symbian user side never starts because a
+thread busy-waits at ecust 0x50348a48-5c for ecust flag (0x80404110) bit 1
+(same bit whose absence caused the RTC: fault). The NOS entry 0x5149d284
+DOES return (750.0M, Sonnet re-check). Bit 1 is set by NOS setter
+0x514a4a88(1,1) from EKIF handler 0x51668a40, called by
+EKIFTask_RecvMessage on MTC_STATE_INFO_IND (0x5159ef98) when the new MTC
+state byte [msg+3] == 0x0c. In run boot-v15-mtcst (resume r700 -> 1.2e9)
+MTC's state-change routine 0x514c5b68 runs ONCE (747.76M, state byte
+0x8001095a=3) and no MTC_STATE_INFO_IND ever reaches EKIF: the MTC
+startup-group activation for the next state never completes (some NOS
+server never answers COMMGR_GROUP_ACTIVATE). The midnight-alarm EKIF path
+is not the intended source of bit 1. NEXT: log COMMGR group members and
+their activate responses (0x515bfb00/0x515bfbf4/0x515bffa4) to name the
+server that never answers; suspect DSP-dependent servers (no DSP model).
+
 ## 2026-11-01 ~19:30 SELF-TESTS PASS; boot idles in Symbian kernel init (update made with Claude)
 
 NOS startup self-tests (ST_UPP_REGISTER_VER, ST_UEM_CBUS_IF, ST_EAR_DATA_LOOP,
