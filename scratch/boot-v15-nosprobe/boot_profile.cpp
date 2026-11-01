@@ -1021,6 +1021,37 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // reached once ecust+0x90=3 from boot) pin-muxes via halfword 0x0c15056a
     // (ekern VA-translation helper 0x50324608, offset literal 0x0015056a);
     // same zero-reset latch hypothesis, function unverified.
+    // Stored GPIO word (latch or keypad register), 0 if never written.
+    auto gpio_word = [&](uint32_t a) -> uint32_t {
+        if (auto p = probe_regs_.find(a); p != probe_regs_.end()) return p->second.current;
+        if (auto l = latches_.find(a); l != latches_.end()) return l->second.value;
+        if (auto k = keypad_regs_.find(a); k != keypad_regs_.end()) return k->second;
+        return 0;
+    };
+    auto uem_reg = [&](unsigned r) -> uint32_t {
+        auto c = cbus_written_.find(r);
+        return c == cbus_written_.end() ? 0 : c->second;
+    };
+    // HYPOTHESIS (self-test GPIO loopbacks, NOS EAR/TX IDP/SIM CLK-IO): the
+    // board loops driven GPIO outputs back to input pins when the matching
+    // UEM routing bits are set. Driven level = last set-register bit not
+    // cleared since (set/clear writes cancel each other in the stored words,
+    // see the keypad write path below).
+    auto gpio_loopback = [&](uint32_t addr, uint32_t d) -> uint32_t {
+        const uint32_t drvA = gpio_word(0x0c150200) >> 16;
+        const uint32_t drvB = gpio_word(0x0c150204) >> 16;
+        if (addr == 0x0c150208) {
+            uint32_t h = d >> 16;
+            h &= ~0xau;
+            if (uem_reg(0x2a) & 8) h |= (drvA & 1) << 1;
+            if (uem_reg(0x3b) & 0x400) h |= ((drvA >> 2) & 1) << 3;
+            return (d & 0xffffu) | (h << 16);
+        }
+        uint32_t l = d & 0xffffu;
+        l &= ~0x2u;
+        if ((uem_reg(0x2c) & 0x20) && ((drvB >> 2) & 1)) l |= (drvB & 1) << 1;
+        return (d & 0xffff0000u) | l;
+    };
     if (keypad_gpio_ && !latches_.count(address) && !probe_regs_.count(address) &&
         ((address >= 0x0c120c00 && address < 0x0c120c20) ||
          (address >= 0x0c14f000 && address < 0x0c14f100) ||
@@ -1063,8 +1094,37 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         }
         const uint32_t mask = byte_mask(request.select);
         uint32_t& reg = keypad_regs_[address];
-        if (request.write) reg = (reg & ~mask) | (request.data & mask);
+        if (request.write) {
+            const uint32_t prev = reg;
+            reg = (reg & ~mask) | (request.data & mask);
+            if ((address == 0x0c150200 || address == 0x0c150204) && (mask & 0xffff0000u)) reg |= prev & 0xffff0000u;
+        }
         data = reg & mask;
+        // HYPOTHESIS (self-test GPIO loopbacks): a set write cancels the same
+        // bits in the clear register and vice versa, so the set register holds
+        // the driven level. Port A set 0x202 / clear 0x204; port B set 0x206 /
+        // clear 0x208 (low half).
+        if (request.write) {
+            auto cancel = [&](uint32_t a, uint32_t bits) {
+                auto k = keypad_regs_.find(a);
+                if (k != keypad_regs_.end() && !latches_.count(a)) k->second &= ~bits;
+            };
+            if (address == 0x0c150200 && (mask & 0xffff0000u)) cancel(0x0c150204, (reg >> 16) & 0xffffu);
+            if (address == 0x0c150204 && (mask & 0xffffu)) cancel(0x0c150200, (reg & 0xffffu) << 16);
+            if (address == 0x0c150204 && (mask & 0xffff0000u)) cancel(0x0c150208, (reg >> 16) & 0xffffu);
+            if (address == 0x0c150208 && (mask & 0xffffu)) cancel(0x0c150204, (reg & 0xffffu) << 16);
+            if (address == 0x0c150208 && (mask & 0xffffu))
+                if (auto pr = probe_regs_.find(0x0c150204); pr != probe_regs_.end()) pr->second.current &= ~((request.data & 0xffffu) << 16);
+        }
+        if ((address == 0x0c150208 || address == 0x0c15020c) && !request.write)
+            data = gpio_loopback(address, data) & mask;
+        // HYPOTHESIS (self-test UPP_REGISTER_VER, NOS 0x5814b000): halfword
+        // version bits[7:4] == 8.
+        if (address == 0x0c14b000 && !request.write) data |= 0x80u & mask;
+        // HYPOTHESIS (self-test MBUS loop, NOS 0x5815021e): bit6 follows the
+        // written bit7 of the config halfword.
+        if (address == 0x0c15021c && !request.write && (reg & 0x00800000u))
+            data |= 0x00400000u & mask;
         // Free-running counter at 0x0c150112 (halfword, bits 31:16 of word
         // 0x0c150110) and its window constant at 0x0c150114. OBSERVED
         // (boot-v15-poweroff instruction trace): the NOS delay calibration
@@ -1397,6 +1457,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (!icu46_write_ || !cbus_written_.count(0x8d) || !request.write) {
             reason_ = "unobserved GPIO upper halfword access"; return false;
         }
+        // Port B set register (0x206): accumulate the driven level and cancel the
+        // same bits in the clear register 0x208 (self-test GPIO loopbacks).
+        probe->second.current |= request.data & 0xffff0000u;
+        if (auto l = latches_.find(0x0c150208); l != latches_.end()) l->second.value &= ~((request.data >> 16) & 0xffffu);
         device = "assumed_register_probe"; data = 0; return true;
     }
     if (probe != probe_regs_.end() && address != 0x0c150204) {
@@ -1405,7 +1469,17 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             reason_ = "explicit register probe state or width mismatch"; return false;
         }
         device = "assumed_register_probe";
-        if (request.write) probe->second.current = request.data;
+        if (request.write) {
+            const uint32_t pmask = byte_mask(request.select), prev = probe->second.current;
+            probe->second.current = (prev & ~pmask) | (request.data & pmask);
+            // GPIO set/clear semantics for the self-test loopbacks (see latch path).
+            if (address == 0x0c150204 && (pmask & 0xffff0000u)) {
+                probe->second.current |= prev & 0xffff0000u;
+                if (auto l = latches_.find(0x0c150208); l != latches_.end()) l->second.value &= ~((request.data >> 16) & 0xffffu);
+            }
+            if (address == 0x0c150204 && (pmask & 0xffffu))
+                if (auto l = latches_.find(0x0c150200); l != latches_.end()) l->second.value &= ~((request.data & 0xffffu) << 16);
+        }
         data = probe->second.current & byte_mask(request.select); return true;
     }
     auto latch = latches_.find(address);
@@ -1417,12 +1491,32 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         }
         const uint32_t mask = byte_mask(request.select);
         if (request.write) {
+            const uint32_t prev = reg.value;
             reg.value = (reg.value & ~mask) | (request.data & mask);
+            // Set registers accumulate (write-1-to-set): keep previously set bits.
+            if ((address == 0x0c150200 || address == 0x0c150204) && (mask & 0xffff0000u))
+                reg.value |= prev & 0xffff0000u;
             reg.written |= mask;
+            // HYPOTHESIS (self-test GPIO loopbacks): set/clear writes cancel each
+            // other here too (port A set 0x202 / clear 0x204, port B 0x206 / 0x208),
+            // so the set register holds the driven level.
+            auto cancel = [&](uint32_t a, uint32_t bits) {
+                auto l = latches_.find(a);
+                if (l != latches_.end()) l->second.value &= ~bits;
+                else if (auto k = keypad_regs_.find(a); k != keypad_regs_.end()) k->second &= ~bits;
+            };
+            const uint32_t w = request.data & mask;
+            if (address == 0x0c150200 && (mask & 0xffff0000u)) cancel(0x0c150204, (w >> 16) & 0xffffu);
+            if (address == 0x0c150204 && (mask & 0xffffu)) cancel(0x0c150200, (w & 0xffffu) << 16);
+            if (address == 0x0c150204 && (mask & 0xffff0000u)) cancel(0x0c150208, (w >> 16) & 0xffffu);
+            if (address == 0x0c150208 && (mask & 0xffffu)) cancel(0x0c150204, (w & 0xffffu) << 16);
+            if (address == 0x0c150208 && (mask & 0xffffu))
+                if (auto pr = probe_regs_.find(0x0c150204); pr != probe_regs_.end()) pr->second.current &= ~((w & 0xffffu) << 16);
         } else if ((reg.written & mask) != mask) {
             reason_ = "unknown register reset value"; return false;
         }
         data = reg.value;
+        if (address == 0x0c15020c && !request.write) data = gpio_loopback(address, data);
         // System-type strap (see keypad-section comment): GPIO 0x0c150002
         // bit 0x40 reads set - this word lives in latches_, so the OR-in
         // happens here on the latch read path.
