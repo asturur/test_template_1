@@ -1266,6 +1266,34 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             debug59_bytes_.push_back(control ? '\n' : char((request.data >> (8 * byte)) & 0xff));
         device = control ? "assumed_debug59_control" : "assumed_debug59_write"; return true;
     }
+    // Factory device-ID table at PA 0x13a (20 halfwords, read by MTC:SU
+    // via 0x515b6a44). All-0xFFFF = unprogrammed, returns 1 = "blank"
+    // → DEF path → calls 0x514c10b4(0) instead of 0x514c6800(1) →
+    // startup flag never set → RTC timeout at 2.382e9. Fix: overlay
+    // with a plausible NEM-4 device type code so the reader returns 0
+    // (OK path → 0x514c6800(1) → startup proceeds).
+    if (!request.write && address >= 0x13a && address < 0x13a + 40) {
+        // NEM-4 product type table: first halfword is the type code
+        // (0x0601 = NEM-4 hypothesis), rest are configuration bytes.
+        static const uint8_t device_id[40] = {
+            0x01, 0x06,  // type code 0x0601
+            0x00, 0x04,  // hw version
+            0x03, 0x04,  // sw version compat
+            0x00, 0x00,  0x00, 0x00,  0x00, 0x00,
+            0x00, 0x00,  0x00, 0x00,  0x00, 0x00,
+            0x00, 0x00,  0x00, 0x00,  0x00, 0x00,
+            0x00, 0x00,  0x00, 0x00,  0x00, 0x00,
+            0x00, 0x00,  0x00, 0x00,  0x00, 0x00,
+            0x00, 0x00,  0x00, 0x00,
+        };
+        const size_t off = address - 0x13a;
+        data = 0;
+        for (unsigned i = 0; i < 4; ++i)
+            if (request.select & (1u << i))
+                data |= uint32_t(device_id[off + i]) << (8 * i);
+        device = "factory_device_id";
+        return true;
+    }
     // ASIC-resident ROM services at PA 0x0c000000 (no dump available): the
     // NOS calls entry points 0x58000001+offset (halfword offset table
     // 0x516cd980+0xc: 0x3de/0xcf4/0xf28/0x260/...; call site 0x514befd2,
