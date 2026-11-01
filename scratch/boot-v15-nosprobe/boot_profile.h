@@ -150,7 +150,7 @@ private:
     // checkpoint state; checkpoints must not straddle a pending UEM IRQ.
     bool uem_irq_source1_ = false, uem_irq_pending_ = false;
     uint32_t nos_irq_enable_ = 0;      // cache of keypad_regs_[0x0c150010] >> 16
-    uint32_t nos_upp_status_ = 0;      // cache of keypad_regs_[0x0c150100] & 0x680 (serialized there)
+    uint32_t nos_upp_status_ = 0;      // cache of keypad_regs_[0x0c150100] & 0x1680 (serialized there)
     void nos_upp_set(uint32_t bits) { keypad_regs_[0x0c150100] |= bits; nos_upp_status_ |= bits; }
     uint64_t uem_irqs_ = 0;
     // LCD DMA channel (0x0c120340 block): registers live in keypad_regs_

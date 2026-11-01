@@ -1163,11 +1163,21 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 if (mask & 0xffffu) en &= ~(request.data & 0xffffu);
                 reg = (reg & 0xffffu) | (en << 16);
                 nos_irq_enable_ = en & 0xffffu;
+                // HYPOTHESIS (ENOS function-queue software interrupt, NOS 0x514a2724/0x514a2608,
+                // Hw_irq id 0x403 = LUT[3] mask 0x1000): the enqueue writes 0x1000 to 0x012 and the
+                // ISR writes 0x1000 to 0x010 (never acks 0x100), so the bit is a software
+                // interrupt: 0x012 write raises it, 0x010 write drops it. Without it the queue
+                // (33 slots) is never drained and Enos_int.cpp:760 asserts.
+                if ((mask & 0xffff0000u) && ((request.data >> 16) & 0x1000u)) nos_upp_set(0x1000u);
+                if ((mask & 0xffffu) && (request.data & 0x1000u)) {
+                    keypad_regs_[0x0c150100] &= ~0x1000u;
+                    nos_upp_status_ &= ~0x1000u;
+                }
             }
             // HYPOTHESIS (NOS OS timer): bit 7 of 0x0c150100 is write-1-to-clear status.
             if (address == 0x0c150100 && (mask & 0xffffu)) {
-                reg = (reg & ~0x680u) | (prev & 0x680u & ~request.data);   // 0x80/0x200/0x400 write-1-to-clear
-                nos_upp_status_ = reg & 0x680u;
+                reg = (reg & ~0x1680u) | (prev & 0x1680u & ~request.data);   // 0x80/0x200/0x400/0x1000 write-1-to-clear
+                nos_upp_status_ = reg & 0x1680u;
             }
             // Compare already equal to the counter at programming time: match now.
             if (address == 0x0c150118 && timer_periodic_ && (mask & 0xffffu) &&
@@ -2018,7 +2028,7 @@ void BootProfile::load_state(std::istream& in) {
     state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint timer-unit entries"); timer_unit_regs_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);timer_unit_regs_[k]=v;}
     state_read(in,icu_enable_); state_read(in,icu_bank_accesses_);
-    nos_upp_status_ = keypad_regs_.count(0x0c150100) ? keypad_regs_[0x0c150100] & 0x680u : 0;
+    nos_upp_status_ = keypad_regs_.count(0x0c150100) ? keypad_regs_[0x0c150100] & 0x1680u : 0;
     nos_irq_enable_ = keypad_regs_.count(0x0c150010) ? (keypad_regs_[0x0c150010] >> 16) & 0xffffu : 0;
     state_read(in,icu_mask2_);
     state_read(in,unit60_remaining_); state_read(in,unit60_irqs_); state_read(in,unit60_pending_);
