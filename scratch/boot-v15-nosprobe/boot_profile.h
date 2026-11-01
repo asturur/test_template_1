@@ -33,7 +33,12 @@ public:
     // LCD DMA done (channel 0x0c120340; display driver enables IRQ bank-0
     // bit 7 before starting a frame transfer, observed 2.3002e9 2026-10-31).
     bool dma_irq() const { return dma_done_pending_ && (icu_enable_[0] >> 7 & 1); }
-    bool timer_irq() const { return (timer_irq_pending_ && timer_irq_enabled_) || uem_irq() || dma_irq(); }
+    // HYPOTHESIS (NOS OS timer, NOS 0x514ae1f4/0x514ae058; DSP MDI stub, NOS 0x515bf21c):
+    // modelled UPP id-register status bits (0x80 timer compare, 0x200 MDI D2M data,
+    // 0x400 MDI M2D consumed) of 0x0c150100, gated by the 0x012 enable-set mask and
+    // routed to IRQ-ICU bank-0 source 25.
+    bool nos_timer_irq() const { return (nos_upp_status_ & nos_irq_enable_) && (icu_enable_[0] >> 25 & 1); }
+    bool timer_irq() const { return (timer_irq_pending_ && timer_irq_enabled_) || uem_irq() || dma_irq() || nos_timer_irq(); }
     bool has_scheduled_interrupt() const { return timer_irq_delay_ && (timer_remaining_ || timer_irq_pending_ || periodic_remaining_ || unit60_remaining_ || unit60_pending_ || uem_irq_pending_ || unit1_running_); }
     void report(std::ostream& output) const;
     // Writes DMA-transferred LCD frames in bus.tsv row format so
@@ -144,6 +149,9 @@ private:
     // Trigger register and source number are hypotheses. Transient: NOT board-
     // checkpoint state; checkpoints must not straddle a pending UEM IRQ.
     bool uem_irq_source1_ = false, uem_irq_pending_ = false;
+    uint32_t nos_irq_enable_ = 0;      // cache of keypad_regs_[0x0c150010] >> 16
+    uint32_t nos_upp_status_ = 0;      // cache of keypad_regs_[0x0c150100] & 0x680 (serialized there)
+    void nos_upp_set(uint32_t bits) { keypad_regs_[0x0c150100] |= bits; nos_upp_status_ |= bits; }
     uint64_t uem_irqs_ = 0;
     // LCD DMA channel (0x0c120340 block): registers live in keypad_regs_
     // (the generic 0x0c120300 latch bank); this is the transfer/IRQ state.

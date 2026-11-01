@@ -54,6 +54,13 @@ std::map<unsigned, unsigned> BootProfile::parse_adc_inputs(const std::string& op
     return result;
 }
 
+// HYPOTHESIS (NOS OS timer, NOS 0x514ae058): the 0x0c150116 compare counter ticks at
+// 1 kHz (104,000 cycles at 104 MHz). At 3174 cycles/tick (32.768 kHz) the NOS CM timers
+// (e.g. ADSP proxy 2-tick poll 0x515a0864) refired every ~11 ticks and the NOS starved
+// the lowest-priority NULL thread (0x80408b40, entry 0x50331a2c), so ekern never reached
+// ecust's 0x50348a3c.
+static constexpr uint64_t kNosTick = 104000;
+
 void BootProfile::tick() {
     ++cycles_;
     // Unit 0x60 countdown is independent of the boot one-shot timer model so
@@ -88,6 +95,43 @@ void BootProfile::tick() {
     // so restores only shift the tick phase.
     if (uem_irq_source1_ && timer_periodic_ && cycles_ % 104000000u == 0)
         uem_irq_pending_ = true;
+    // HYPOTHESIS (NOS OS timer, NOS 0x514ae058 programs [0x0c150118] = [0x0c150116]
+    // + timeout; ISR 0x514ae1f4 acks by writing 0x80 to 0x0c150100): the 16-bit
+    // 32.768 kHz counter (0x0c150112 / 0x0c150116) matching the compare sets
+    // id-register bit 7. State lives in keypad_regs_ (serialized).
+    if (timer_periodic_ && cycles_ % kNosTick == 0) {
+        auto cmp = keypad_regs_.find(0x0c150118);
+        if (cmp != keypad_regs_.end() && uint16_t(cycles_ / kNosTick) == uint16_t(cmp->second))
+            nos_upp_set(0x80u);
+        // HYPOTHESIS (DSP MDI stub, NOS Hw_mdi 0x515bf34c / Mdi_t 0x514c49c0): ADSP =
+        // PN device 0x7C. After the NOS starts the DSP (0x0c14b004 = 0x0500) and has
+        // initialised the MDI pointers (APIRAM 0x0c1003e8..ee), the DSP announces itself
+        // with one D2M frame {media, rx 0x00, tx 0x7C, res 0xD0, len BE 1, sub 4} at
+        // 0x0c1001f4 (4 halfwords), dsp_in = 4, id bit 0x400 (Hw_irq id 0x405 = LUT[5]; RX task 0x514c4970 acks/enables apidef+0x4c). State in keypad_regs_
+        // reserved keys 0x0ffffff0 (start tick+1) / 0x0ffffff4 (sent).
+        auto dsp = keypad_regs_.find(0x0c14b004);
+        if (dsp != keypad_regs_.end() && (dsp->second & 0xffffu) == 0x0500u && keypad_regs_.count(0x0c1003e8) &&
+            keypad_regs_.count(0x0c1003ec) && !keypad_regs_.count(0x0ffffff4)) {
+            const uint32_t now = uint32_t(cycles_ / kNosTick);
+            uint32_t& start = keypad_regs_[0x0ffffff0];
+            if (start == 0 || start > now + 1) start = now + 1;
+            else if (now >= start - 1 + 20) {   // ~20 ms
+                keypad_regs_[0x0c1001f4] = 0x7cd00000u;   // halfwords are big-endian (NOS 0x515bf7d8 byte-swaps)
+                keypad_regs_[0x0c1001f8] = 0x04000001u;
+                uint32_t& in = keypad_regs_[0x0c1003ec];
+                in = (in & 0xffff0000u) | 4u;
+                keypad_regs_[0x0ffffff4] = 1;
+                nos_upp_set(0x400u);
+            }
+        }
+        // HYPOTHESIS (DSP MDI stub, NOS 0x514c4868 TX): the DSP consumes M2D frames at once
+        // (dsp_out 0x0c1003ea := mcu_in 0x0c1003e8) and raises id bit 0x200 (id 0x406, ISR 0x515bf21c).
+        auto m2d = keypad_regs_.find(0x0c1003e8);
+        if (m2d != keypad_regs_.end() && (m2d->second & 0xffffu) != (m2d->second >> 16)) {
+            m2d->second = (m2d->second & 0xffffu) | (m2d->second << 16);
+            nos_upp_set(0x200u);
+        }
+    }
     if (!timer_irq_delay_) return;
     ++timer_elapsed_;
     if (timer_remaining_ && --timer_remaining_ == 0) {
@@ -598,7 +642,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             (address == 0x0c12010c && !handler_write)) {
             reason_ = "unobserved timer/interrupt setup width or value"; return false;
         }
-        if (icu25_write) icu25_written_ = true;
+        if (icu25_write) {
+            icu25_written_ = true;
+            icu_enable_[0] |= 0x02000000u;   // HYPOTHESIS (NOS OS timer): source 25 = UPP interrupt line
+        }
         if (timer_irq_delay_) {
             if (address == 0x0c120a04 && request.data == 2) timer_started_ = true;
             if (address == 0x0c120a18 && timer_started_ && request.data == 0x0115b5c0) timer_remaining_ = timer_irq_delay_;
@@ -660,6 +707,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             if (timer_irq_pending_ && timer_irq_enabled_) data = 1;       // source 0 + 1
             else if (uem_irq()) data = 2;                                 // source 1 + 1
             else if (dma_irq()) data = 8;                                 // source 7 + 1 (LCD DMA done)
+            else if (nos_timer_irq()) data = 26;                          // source 25 + 1 (NOS OS timer, HYPOTHESIS)
         }
         device = "assumed_icu_current"; return true;
     }
@@ -712,6 +760,15 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     if (icu_banks_ && request.select == 15 && address >= 0x0c120100 && address < 0x0c120200) {
         const uint32_t off = address - 0x0c120100;
         const unsigned bank = off / 0x40, slot = off % 0x40;
+        // HYPOTHESIS (NOS 0x5167fb64, another bank-1 user): per-bank config registers
+        // +0x00/+0x04 are zero-reset RW latches (read-modify-write only, no IRQ effect).
+        if (bank <= 2 && (slot == 0x00 || slot == 0x04)) {
+            uint32_t& reg = keypad_regs_[address];
+            if (request.write) reg = request.data;
+            data = reg;
+            ++icu_bank_accesses_;
+            device = "assumed_icu_bank"; return true;
+        }
         if (bank <= 2 && (slot == 0x08 || slot == 0x0c || slot == 0x10)) {
             if (slot == 0x08) { if (request.write) icu_enable_[bank] |= request.data; data = icu_enable_[bank]; }
             else if (slot == 0x0c) {
@@ -1097,6 +1154,26 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (request.write) {
             const uint32_t prev = reg;
             reg = (reg & ~mask) | (request.data & mask);
+            // HYPOTHESIS (NOS Hw_irq LUT 0x516cddf8, entries {id 0x...100, 0x...010,
+            // 0x...012, mask}; writes 0x012 <- bit then 0x010 <- bit observed in
+            // boot): 0x012 enable-SET, 0x010 enable-CLEAR (write-1), read via 0x012.
+            if (address == 0x0c150010) {
+                uint32_t en = prev >> 16;
+                if (mask & 0xffff0000u) en |= request.data >> 16;
+                if (mask & 0xffffu) en &= ~(request.data & 0xffffu);
+                reg = (reg & 0xffffu) | (en << 16);
+                nos_irq_enable_ = en & 0xffffu;
+            }
+            // HYPOTHESIS (NOS OS timer): bit 7 of 0x0c150100 is write-1-to-clear status.
+            if (address == 0x0c150100 && (mask & 0xffffu)) {
+                reg = (reg & ~0x680u) | (prev & 0x680u & ~request.data);   // 0x80/0x200/0x400 write-1-to-clear
+                nos_upp_status_ = reg & 0x680u;
+            }
+            // Compare already equal to the counter at programming time: match now.
+            if (address == 0x0c150118 && timer_periodic_ && (mask & 0xffffu) &&
+                uint16_t(cycles_ / kNosTick) == uint16_t(reg)) {
+                nos_upp_set(0x80u);
+            }
             if ((address == 0x0c150200 || address == 0x0c150204) && (mask & 0xffff0000u)) reg |= prev & 0xffff0000u;
         }
         data = reg & mask;
@@ -1141,6 +1218,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             data = (data & 0xffffu) | (uint32_t((cycles_ / 3174) & 0xffff) << 16);
         if (address == 0x0c150114 && !request.write && !(reg & 0xffffu) && (mask & 0xffffu))
             data = (data & ~0xffffu) | 0x0080u;
+        // HYPOTHESIS (NOS OS timer, NOS 0x514ae990/0x514ae058): halfword 0x0c150116
+        // is the same 32.768 kHz counter as 0x0c150112 (NOS pairs the two reads);
+        // it read 0 before, freezing NOS time.
+        if (address == 0x0c150114 && !request.write && (mask & 0xffff0000u))
+            data = (data & ~0xffff0000u) | ((uint32_t((cycles_ / kNosTick) & 0xffff) << 16) & mask);
         // 0x0c148000 clock-unit lock bit: after the NOS writes its config
         // (0x2000 then 0x2490) it polls halfword bit 0 for lock (checker
         // 0x515b7ef0: ldrh; ands #1; a zero latch spun 99.9% of the bus
@@ -1936,6 +2018,8 @@ void BootProfile::load_state(std::istream& in) {
     state_read(in,n); if(n>4096) throw std::runtime_error("invalid checkpoint timer-unit entries"); timer_unit_regs_.clear();
     for(uint64_t i=0;i<n;++i){uint32_t k,v;state_read(in,k);state_read(in,v);timer_unit_regs_[k]=v;}
     state_read(in,icu_enable_); state_read(in,icu_bank_accesses_);
+    nos_upp_status_ = keypad_regs_.count(0x0c150100) ? keypad_regs_[0x0c150100] & 0x680u : 0;
+    nos_irq_enable_ = keypad_regs_.count(0x0c150010) ? (keypad_regs_[0x0c150010] >> 16) & 0xffffu : 0;
     state_read(in,icu_mask2_);
     state_read(in,unit60_remaining_); state_read(in,unit60_irqs_); state_read(in,unit60_pending_);
     state_read(in,n); if(n && n!=4u<<20) throw std::runtime_error("invalid checkpoint C: overlay size");
