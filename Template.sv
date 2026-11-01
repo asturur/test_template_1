@@ -148,34 +148,147 @@ wire [15:0] save_din = 16'hFFFF;  // TODO: DDR3 readback
 
 ///////////////////////   SDRAM   ////////////////////////////////
 
-// SDRAM active during run; directly driven by the core at 104 MHz.
-// Phone RAM = 16MB at PA 0x0a000000.
-// The −90° phase-shifted clock goes to the SDRAM chip.
+// SDRAM: phone RAM 16MB at PA 0x0a000000, split across BA0 (low 8MB)
+// and BA1 (high 8MB). AW=22 matches DE10 SDRAM geometry (8MB/bank).
+// 104 MHz system clock, phase-shifted copy to SDRAM chip pin.
 assign SDRAM_CLK = clk_sdram;
-assign SDRAM_CKE = 1'b1;
 
-// TODO: SDRAM controller instantiation here.
-// Candidates: jtframe_sdram, or a simple single-port controller.
-// The N-Gage needs only one master (CPU) for the phone's 16MB RAM.
-// No video refresh from SDRAM (framebuffer is in BRAM).
+// CPU → SDRAM address/data decode
+// ngage_mister outputs: sdram_addr[24:0], sdram_din[31:0], sdram_be[3:0],
+//                       sdram_we, sdram_req
+// Phone PA bit 23 (= sdram_addr[23]) selects BA0 vs BA1.
+wire [24:0] cpu_sdram_addr;
+wire [31:0] cpu_sdram_din;
+wire [3:0]  cpu_sdram_be;
+wire        cpu_sdram_we;
+wire        cpu_sdram_req;
 
-// Directly connect SDRAM pins to the controller (stub for now)
-wire [31:0] sdram_dout;
-wire        sdram_ack;
+// 32-bit CPU word → two 16-bit SDRAM halfword accesses.
+// Phase: 0 = low halfword, 1 = high halfword.
+reg         sdram_phase;
+reg         sdram_pending;
+reg  [31:0] sdram_rdata;       // assembled 32-bit read result
+wire        sdram_init;
 
-// Stub: SDRAM not yet connected — directly drives 'Z
-assign SDRAM_DQ   = 16'hZZZZ;
-assign SDRAM_A    = 13'd0;
-assign SDRAM_BA   = 2'd0;
-assign SDRAM_DQML = 1'b1;
-assign SDRAM_DQMH = 1'b1;
-assign SDRAM_nWE  = 1'b1;
-assign SDRAM_nCAS = 1'b1;
-assign SDRAM_nRAS = 1'b1;
-assign SDRAM_nCS  = 1'b1;
+// Bank select from address bit 23
+wire        ba_sel = cpu_sdram_addr[23];
 
-assign sdram_dout = 32'd0;
-assign sdram_ack  = 1'b0;
+// Halfword address within the 8MB bank (AW=22 = 4M halfwords)
+wire [21:0] sdram_haddr = {cpu_sdram_addr[22:2], sdram_phase};
+
+// Write data: select low or high halfword
+wire [15:0] sdram_wdata = sdram_phase ? cpu_sdram_din[31:16] : cpu_sdram_din[15:0];
+
+// Write mask (active low for SDRAM): derive from byte enables
+wire [1:0]  sdram_dsn = sdram_phase ?
+    {~cpu_sdram_be[3], ~cpu_sdram_be[2]} :
+    {~cpu_sdram_be[1], ~cpu_sdram_be[0]};
+
+// SDRAM controller read/write strobes
+wire [3:0] sdram_rd_banks = sdram_pending && !cpu_sdram_we ?
+    (ba_sel ? 4'b0010 : 4'b0001) : 4'b0000;
+wire [3:0] sdram_wr_banks = sdram_pending && cpu_sdram_we ?
+    (ba_sel ? 4'b0010 : 4'b0001) : 4'b0000;
+
+wire [3:0]  sdram_ack_banks;
+wire [3:0]  sdram_rdy_banks;
+wire [15:0] sdram_dout_16;
+
+// 32-bit ack to the core: both halfwords done
+wire sdram_ack  = sdram_phase && (sdram_ack_banks[0] || sdram_ack_banks[1]);
+wire [31:0] sdram_dout = {sdram_dout_16, sdram_rdata[15:0]};
+
+always @(posedge clk_sys) begin
+    if (reset || sdram_init) begin
+        sdram_phase   <= 0;
+        sdram_pending <= 0;
+        sdram_rdata   <= 32'd0;
+    end else begin
+        if (cpu_sdram_req && !sdram_pending) begin
+            sdram_pending <= 1;
+            sdram_phase   <= 0;
+        end
+        if (sdram_pending && (sdram_ack_banks[0] || sdram_ack_banks[1])) begin
+            if (!sdram_phase) begin
+                sdram_rdata[15:0] <= sdram_dout_16;
+                sdram_phase <= 1;
+            end else begin
+                sdram_pending <= 0;
+                sdram_phase   <= 0;
+            end
+        end
+    end
+end
+
+jtframe_sdram64 #(
+    .AW       (22),
+    .HF       (1),        // 104 MHz > 66 MHz → HF mode
+    .BA0_LEN  (16),       // 16-bit single reads
+    .BA1_LEN  (16),
+    .BA2_LEN  (16),
+    .BA3_LEN  (16),
+    .BA0_WEN  (1),        // phone RAM is read+write
+    .BA1_WEN  (1),
+    .BA2_WEN  (0),
+    .BA3_WEN  (0)
+) sdram_ctrl (
+    .rst        (reset),
+    .clk        (clk_sys),
+    .init       (sdram_init),
+
+    // BA0: phone RAM low 8MB
+    .ba0_addr   (sdram_haddr),
+    .ba0_din    (sdram_wdata),
+    .ba0_dsn    (sdram_dsn),
+
+    // BA1: phone RAM high 8MB
+    .ba1_addr   (sdram_haddr),
+    .ba1_din    (sdram_wdata),
+    .ba1_dsn    (sdram_dsn),
+
+    // BA2/BA3: unused
+    .ba2_addr   (22'd0),
+    .ba2_din    (16'd0),
+    .ba2_dsn    (2'b11),
+    .ba3_addr   (22'd0),
+    .ba3_din    (16'd0),
+    .ba3_dsn    (2'b11),
+
+    .rd         (sdram_rd_banks),
+    .wr         (sdram_wr_banks),
+    .rfsh       (1'b0),
+
+    .ack        (sdram_ack_banks),
+    .dst        (),
+    .dok        (),
+    .rdy        (sdram_rdy_banks),
+    .dout       (sdram_dout_16),
+
+    // programming port (unused — ROM goes via DDR3)
+    .prog_en    (1'b0),
+    .prog_addr  (22'd0),
+    .prog_rd    (1'b0),
+    .prog_wr    (1'b0),
+    .prog_din   (16'd0),
+    .prog_dsn   (2'b11),
+    .prog_ba    (2'd0),
+    .prog_dst   (),
+    .prog_dok   (),
+    .prog_rdy   (),
+    .prog_ack   (),
+
+    // SDRAM chip pins
+    .sdram_dq   (SDRAM_DQ),
+    .sdram_a    (SDRAM_A),
+    .sdram_dqml (SDRAM_DQML),
+    .sdram_dqmh (SDRAM_DQMH),
+    .sdram_ba   (SDRAM_BA),
+    .sdram_nwe  (SDRAM_nWE),
+    .sdram_ncas (SDRAM_nCAS),
+    .sdram_nras (SDRAM_nRAS),
+    .sdram_ncs  (SDRAM_nCS),
+    .sdram_cke  (SDRAM_CKE)
+);
 
 ///////////////////////   DDR3 (ROM flash)   /////////////////////
 
@@ -251,12 +364,12 @@ ngage_mister core (
 	.reset         (reset),
 
 	// SDRAM (phone RAM)
-	.sdram_addr    (/* TODO: wire to SDRAM controller */),
-	.sdram_din     (),
+	.sdram_addr    (cpu_sdram_addr),
+	.sdram_din     (cpu_sdram_din),
 	.sdram_dout    (sdram_dout),
-	.sdram_be      (),
-	.sdram_we      (),
-	.sdram_req     (),
+	.sdram_be      (cpu_sdram_be),
+	.sdram_we      (cpu_sdram_we),
+	.sdram_req     (cpu_sdram_req),
 	.sdram_ack     (sdram_ack),
 
 	// DDR3 (flash reads)
