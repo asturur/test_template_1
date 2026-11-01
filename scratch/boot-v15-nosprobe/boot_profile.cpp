@@ -67,16 +67,18 @@ void BootProfile::tick() {
         uem_irq_pending_ = true;            // shared ICU source-1 pending
         ++unit1_irqs_;
     }
-    // RTC server state patch (2026-11-01): the RTC server object field at
-    // RAM offset 0x404110 ([obj+0x90], obj=[0x80404080]) stays at 1
-    // (initialized) because the RTC activation path isn't modeled. The
-    // periodic check at 0x5034f6d0 requires bit 1 (running) and
-    // K::Fault("RTC:", 6) fires at 2.382e9 without it. The value arrives
-    // via D-cache writeback (bulk cache-line flush, not a targeted bus
-    // write), so per-address bus intercepts miss it. Fix: check every
-    // cycle and patch 1→3 when it appears. Cost: one byte read per cycle.
-    if (ram_.size() > 0x404111 && ram_[0x404110] == 1)
-        ram_[0x404110] = 3;
+    // RTC alarm countdown (HYPOTHESIS, see the CBUS write path): key 0x137 in
+    // cbus_written_ counts 65536-cycle units after the driver unmasks status
+    // bit 3; a running RTC matches its alarm shortly after. On expiry: status
+    // bit 3 + UEM interrupt (ICU source 1).
+    if ((cycles_ & 0xffff) == 0) {
+        auto t = cbus_written_.find(0x137);
+        if (t != cbus_written_.end() && --t->second == 0) {
+            cbus_written_.erase(t);
+            cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) | 8);
+            if (uem_irq_source1_) { uem_irq_pending_ = true; ++uem_irqs_; }
+        }
+    }
     // UEM RTC 1Hz tick (2026-11-01): the NOS keeps UEM interrupt-status
     // bit 4 unmasked (mask write 0xffef at 729.45M) and its RtcQueue needs
     // 1Hz service; without it the kernel faults "RTC:" 0x10006 at 2.382e9
@@ -847,6 +849,13 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                     // Bit 3 is NOT latched at power-on: a latched alarm makes ecust report an
                     // ALARM wake (reason 1) and the NOS powers off again (boot-v15-auth22).
                     if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) & ~value);
+                    // Power key released once the boot ROM has done its check and
+                    // written the mask (HYPOTHESIS, see the 0x35 read path).
+                    if (reg == 0x36 && cbus_config_ == 0xf) cbus_written_[0x235] = 1;
+                    // Start the alarm countdown (~8M cycles) when bit 3 is first unmasked.
+                    if (reg == 0x36 && !(value & 8) && !cbus_written_.count(0x137) && !cbus_written_.count(0x236)) {
+                        cbus_written_[0x137] = 122; cbus_written_[0x236] = 1;
+                    }
                     if (reg == 0x36 && cbus_written_.count(0x124) && !(value & 8)) {
                         cbus_written_.erase(0x124);
                         cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) | 8);
@@ -901,7 +910,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 if (uem_status35_ < 0) { reason_ = "UEM 0x35 status is not supplied"; return false; }
                 device = "assumed_uem_status35";
                 const auto rtc = cbus_written_.find(0x135);
-                data = uint32_t(uem_status35_ | (rtc != cbus_written_.end() ? rtc->second : 0)) << 16; return true;
+                // HYPOTHESIS: bit 4 is the live power-key level (boot ROM 0x50002f50
+                // requires it to stay powered); released after the boot ROM writes
+                // the mask (key 0x235), so ecust's startup-reason read (0x50349998)
+                // must not see it as a charger (reason 4 = CHARGING -> power off).
+                const uint32_t base = cbus_written_.count(0x235) ? (uem_status35_ & ~0x10) : uem_status35_;
+                data = uint32_t(base | (rtc != cbus_written_.end() ? rtc->second : 0)) << 16; return true;
             }
             if ((cbus_command_ & 0xff) == 0x36 && uem_status36_ >= 0 && !cbus_written_.count(0x36)) {
                 device = "assumed_uem_status36"; data = uint32_t(uem_status36_) << 16; return true;
@@ -1432,25 +1446,11 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (watch_word_set_ && request.write && request.select == 15 && request.data == watch_word_)
             device = "watched_word_write";
         const size_t offset = address - ram_base_;
-        // RTC server state patch (2026-11-01): intercept the bus write that
-        // sets field +0x90 of the RTC server object to 1. The field is at
-        // RAM offset 0x404110; at checkpoint r2300 it's still 0 (server not
-        // yet constructed), and the write of 1 happens during runtime
-        // (2300→2382M). Patch: any write that puts exactly 1 in the low
-        // byte at this offset gets changed to 3 (add bit 1 = running).
         for (unsigned i = 0; i < 4; ++i) {
             if (request.write && (request.select & (1u << i)))
                 ram_[offset+i] = (request.data >> (8*i)) & 255;
             data |= uint32_t(ram_[offset+i]) << (8*i);
         }
-        // RTC server state patch (2026-11-01): the periodic check at
-        // 0x5034f6d0 reads [obj+0x90] via 0x50349da4 (LDR R0,[R0,#0x90])
-        // and requires bit 1 (running). The field at RAM offset 0x404110
-        // stays at 1 (initialized only) because the RTC activation path
-        // isn't modeled. The value is set via D-cache writeback (no bus
-        // write to intercept). Fix: force bit 1 on READ of this field.
-        if (offset == 0x404110 && !request.write)
-            data |= 2;   // add bit 1 = running
         return true;
     }
     // Internal user flash (C: drive, LFFS) at PA 0x02400000..0x027fffff. Handled
@@ -1876,17 +1876,4 @@ void BootProfile::load_state(std::istream& in) {
         if (it != keypad_regs_.end() && it->second == 2) run_lcd_dma();
     }
     if (!in) throw std::runtime_error("truncated board checkpoint");
-    // RTC server state patch (2026-11-01): the restored RAM already has the
-    // field set to 1. Patch it to 3 (add bit 1 = running) so the periodic
-    // check at 0x5034f6d0 passes. Safe: the field is written once during
-    // init and never changes afterward; restoring from any checkpoint that
-    // contains it needs this.
-    // RTC server state preload (2026-11-01): set the field to 3 (running)
-    // at load time BEFORE the D-cache warms up. At r800 the field is still
-    // 0; a preloaded 3 means when the init code tries to write 1 via cache,
-    // the cache sees 3 on first fill and the writeback of 1 lands on a tick
-    // that patches it back to 3. The field is only ever read by the check
-    // function, which expects bit 1 set.
-    if (ram_.size() > 0x404111)
-        ram_[0x404110] = 3;
 }

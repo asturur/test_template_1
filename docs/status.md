@@ -1,5 +1,20 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~14:30 REMOVED three RAM patches; alarm countdown + power-key level (update made with Claude)
+
+boot_profile.cpp contained three "RTC server state patch" hacks (from commit
+2e577a3, the modem-integration commit): tick() rewrote RAM byte 0x404110
+1->3 every cycle, the RAM read path ORed bit 1 into any read of offset
+0x404110, and checkpoint load wrote 3 there. They aimed at the ecust flag
+word but used the WRONG offset (the flag is VA 0x80404110 = SDRAM 0xfe0110),
+so they never fixed the RTC fault and could corrupt whatever lives at SDRAM
+0x404110. All removed (no firmware/RAM patching). Runs before this point
+that relied on them are suspect (auth16/17/18-era). Model additions
+(hypotheses): RTC alarm fires ~8M cycles after the driver first unmasks
+status bit 3 (countdown in cbus_written_ key 0x137, tick()); UEM status bit
+4 = live power-key level, reads set until the boot ROM writes mask 0x36
+(key 0x235). Run boot-v15-auth26 (from reset, 2.6e9) tests the combination.
+
 ## 2026-11-01 ~13:30 Startup-reason chain; PMM seeding; cold-boot model (update made with Claude)
 
 Findings since the ~11:00 entry (all static RE + pc-log/bus correlation):
