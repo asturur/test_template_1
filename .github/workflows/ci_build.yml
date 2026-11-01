@@ -36,8 +36,11 @@ jobs:
       - name: Print errors on failure
         if: failure()
         run: |
-          echo "::group::Quartus errors"
-          grep -hE "Error|Critical Warning" quartus_build.log output_files/*.rpt 2>/dev/null | head -200 || true
+          echo "::group::Quartus errors and critical warnings"
+          grep -hE "Error|Critical Warning" quartus_build.log output_files/*.rpt 2>/dev/null | head -500 || true
+          echo "::endgroup::"
+          echo "::group::Full build log (last 300 lines)"
+          tail -300 quartus_build.log 2>/dev/null || true
           echo "::endgroup::"
 
       # Always keep the logs/reports (success: timing/fit review; failure: debug).
