@@ -227,6 +227,7 @@ jtframe_sdram64 #(
     .BA1_LEN  (16),
     .BA2_LEN  (16),
     .BA3_LEN  (16),
+    .PROG_LEN (16),       // must match BA_LEN to avoid state vector overflow
     .BA0_WEN  (1),        // phone RAM is read+write
     .BA1_WEN  (1),
     .BA2_WEN  (0),
