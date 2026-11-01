@@ -75,6 +75,8 @@ output logic                             o_data_wb_we,
 output logic                             o_data_wb_cyc,
 output logic                             o_data_wb_stb,
 output logic[31:0]                       o_data_wb_adr,
+output logic                             o_data_alignment_fault,
+output logic[31:0]                       o_data_alignment_far,
 input logic                              i_data_wb_ack,
 input logic                              i_data_wb_err,
 input logic  [31:0]                      i_data_wb_dat,
@@ -156,7 +158,8 @@ input   logic [63:0]                     i_dc_reg_idx, // Register to load to.
 input   logic [31:0]                     i_dc_reg_dat, // Register data.
 input   logic [63:0]                     i_dc_lock,    // Register that is locked.
 output  logic [63:0]                     o_dc_reg_idx, // Register index.
-output  logic [5:0]                      o_dc_reg_idx_bin // Binary index.
+output  logic [5:0]                      o_dc_reg_idx_bin, // Binary index.
+output  logic [5:0]                      o_dc_load_info // Load format and original byte offset.
 
 );
 
@@ -500,10 +503,26 @@ logic [64*8-1:0]                 rb_decompile;
 
 logic [(8*8)-1:0] CPU_MODE;
 logic unused;
+logic alignment_en, alignment_check;
+
+// Use the full modified virtual address before the bus drops its low bits.
+// Byte accesses never fault; halfwords require bit 0 clear, words bits 1:0.
+function automatic logic data_misaligned(input logic [31:0] address,
+        input logic ubyte, sbyte, uhalf, shalf);
+    return (uhalf || shalf) ? address[0] :
+           !(ubyte || sbyte) && (|address[1:0]);
+endfunction
 assign unused = |{rb_decompile, CPU_MODE, alu_cpsr_nxt[31:30], alu_cpsr_nxt[28:0],
                  predecode_inst[39:36], postalu_mem_translate_ff,
                  i_dc_reg_idx[63:PHY_REGS]};
 
+assign o_data_alignment_fault = alignment_en && o_data_wb_stb && o_data_wb_cyc &&
+    data_misaligned(postalu_address_ff, postalu_ubyte_ff, postalu_sbyte_ff,
+                    postalu_uhalf_ff, postalu_shalf_ff);
+assign o_data_alignment_far = postalu_address_ff;
+assign alignment_check = alignment_en &&
+    data_misaligned(postalu1_address_ff, postalu1_ubyte_ff, postalu1_sbyte_ff,
+                    postalu1_uhalf_ff, postalu1_shalf_ff);
 assign o_cpsr                   = alu_flags_ff[ZAP_CPSR_MODE:0];
 assign o_data_wb_adr            = {postalu_address_ff[31:2], 2'd0};
 assign o_data_wb_adr_nxt        = {alu_address_ff[31:2], 2'd0};
@@ -533,12 +552,20 @@ assign pipeline_is_not_empty    = predecode_val                      ||
 
 assign o_mem_translate = postalu1_mem_translate_ff;
 
+// With the instruction cache disabled, a redirected fetch must wait for
+// older stores to reach memory. Flash-ID/reset routines execute from RAM
+// and return into flash immediately after a reset store. The deeper pipeline
+// otherwise permits that return fetch to overtake the final store.
 assign code_stall = fifo_full |
+                   (!o_icache_en && (
+                     (postalu0_data_wb_cyc && postalu0_data_wb_stb && postalu0_data_wb_we) |
+                     (postalu1_data_wb_cyc && postalu1_data_wb_stb && postalu1_data_wb_we) |
+                     (o_data_wb_cyc && o_data_wb_stb && o_data_wb_we))) |
                    (o_instr_wb_stb & o_instr_wb_cyc & ~i_instr_wb_ack);
 
 assign o_data_wb_adr_check =  {postalu1_address_ff[31:2], 2'd0};
-assign o_data_wb_we_check  =   postalu1_data_wb_we && postalu1_data_wb_cyc;
-assign o_data_wb_re_check  =  !postalu1_data_wb_we && postalu1_data_wb_cyc;
+assign o_data_wb_we_check  =   postalu1_data_wb_we && postalu1_data_wb_cyc && !alignment_check;
+assign o_data_wb_re_check  =  !postalu1_data_wb_we && postalu1_data_wb_cyc && !alignment_check;
 assign o_code_stall        =   code_stall;
 
 always_comb
@@ -548,6 +575,11 @@ begin
 end
 
 assign o_dc_reg_idx_bin = postalu_mem_srcdest_index_ff;
+// The nonblocking D-cache completion bypasses the ordinary memory-stage
+// narrowing/sign extension. Preserve the original load format with the miss.
+assign o_dc_load_info = {postalu_sbyte_ff, postalu_ubyte_ff,
+                         postalu_shalf_ff, postalu_uhalf_ff,
+                         postalu_address_ff[1:0]};
 
 localparam [31:0] MIN_SAT = {1'd1, {31{1'd0}}}; // Smallest -ve value.
 localparam [31:0] MAX_SAT = {1'd0, {31{1'd1}}}; // Largest +ve value.
@@ -1591,6 +1623,7 @@ zap_cp15_cb #(
         .o_dac                  (o_dac),
         .o_baddr                (o_baddr),
         .o_mmu_en               (o_mmu_en),
+        .o_alignment_en         (alignment_en),
         .o_sr                   (o_sr),
         .o_pid                  (o_pid),
         .o_l4_enable            (l4_enable),

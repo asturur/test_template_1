@@ -53,6 +53,10 @@ input   logic    [31:0]  i_address,
 // Address of RAM read.
 input   logic    [31:0]  i_address_nxt,
 
+// Alignment faults are generated before address alignment/translation.
+input logic i_alignment_fault,
+input logic [31:0] i_alignment_far,
+
 // Other control signals from/to processor.
 input   logic            i_rd,
 input   logic            i_wr,
@@ -66,6 +70,7 @@ output  logic [31:0]     o_far,
 output  logic            o_err2,
 input   logic [63:0]     i_reg_idx,
 input   logic [5:0]      i_reg_idx_bin,
+input   logic [5:0]      i_load_info,
 output  logic [63:0]     o_lock,
 output  logic [31:0]     o_reg_dat,
 output  logic [63:0]     o_reg_idx,
@@ -141,16 +146,95 @@ assign wb_cti[2] = CTI_EOB;
 // wb_err[1] is unused.
 assign unused = |{wb_err[1]};
 
+// Experimental: retain translation for an outstanding stalled CPU request.
+logic pending_translation, pending_request, tlb_walk_pending, background_refill;
+logic lookup_resync, pending_recovery;
+logic [31:0] pending_data_assert, pending_dac_assert, pending_baddr_assert;
+logic [3:0] pending_ben_assert;
+logic [5:0] pending_load_assert, pending_index_bin_assert;
+logic [63:0] pending_index_assert;
+logic [1:0] pending_sr_assert;
+logic pending_mmu_assert;
+logic [$clog2(CACHE_SIZE/CACHE_LINE)-1:0] checked_cache_index;
+logic [31:0] checked_va, checked_lookup, checked_dac, checked_baddr;
+logic checked_rd, checked_wr, checked_mmu;
+logic [ZAP_CPSR_MODE:0] checked_cpsr;
+logic [1:0] checked_sr;
+logic checked_request, checked_request_prev;
+always_ff @(posedge i_clk) begin
+    if (i_reset) checked_request_prev <= 1'b0;
+    else checked_request_prev <= checked_request && pending_request && !o_ack;
+end
+assign checked_request = checked_va == i_address && checked_lookup == i_address && checked_rd == i_rd && checked_wr == i_wr &&
+ checked_mmu == i_mmu_en && checked_cpsr == i_cpsr && checked_sr == i_sr &&
+ checked_dac == i_dac_reg && checked_baddr == i_baddr &&
+ checked_cache_index == i_address[`ZAP_VA__CACHE_INDEX];
+logic [31:0] pending_va_assert;
+logic pending_rd_assert, pending_wr_assert;
+logic [ZAP_CPSR_MODE:0] pending_cpsr_assert;
+logic [31:0] pending_pa, pending_far;
+logic [7:0] pending_fsr;
+logic pending_fault, pending_cacheable;
+always_ff @(posedge i_clk) begin
+    if (i_reset || !(i_rd || i_wr) || o_ack) begin
+        pending_translation <= 1'b0; pending_request <= 1'b0;
+    end else if (pending_request || background_refill || lookup_resync) begin
+        if (!pending_request) begin
+            pending_va_assert <= i_address;
+            pending_rd_assert <= i_rd;
+            pending_wr_assert <= i_wr;
+            pending_cpsr_assert <= i_cpsr;
+            pending_data_assert <= i_dat; pending_ben_assert <= i_ben;
+            pending_load_assert <= i_load_info; pending_index_assert <= i_reg_idx;
+            pending_index_bin_assert <= i_reg_idx_bin; pending_sr_assert <= i_sr;
+            pending_dac_assert <= i_dac_reg; pending_baddr_assert <= i_baddr;
+            pending_mmu_assert <= i_mmu_en;
+        end else begin
+            assert(i_address == pending_va_assert && i_rd == pending_rd_assert &&
+                   i_wr == pending_wr_assert && i_cpsr == pending_cpsr_assert &&
+                   (!i_wr || (i_dat == pending_data_assert && i_ben == pending_ben_assert)) &&
+                   (!i_rd || (i_load_info == pending_load_assert && i_reg_idx == pending_index_assert &&
+                              i_reg_idx_bin == pending_index_bin_assert && i_ben == pending_ben_assert)) &&
+                   i_sr == pending_sr_assert && i_dac_reg == pending_dac_assert &&
+                   i_baddr == pending_baddr_assert && i_mmu_en == pending_mmu_assert)
+                else $fatal(1, "pending translation context changed without cancellation");
+        end
+        pending_request <= 1'b1;
+        if (!pending_translation && checked_request && checked_request_prev && idle && !tlb_busy && !tlb_walk_pending) begin
+            pending_translation <= 1'b1;
+            pending_pa <= tlb_phy_addr; pending_far <= tlb_far; pending_fsr <= tlb_fsr;
+            pending_fault <= tlb_fault; pending_cacheable <= tlb_cacheable;
+        end
+    end
+end
+
+always_ff @(posedge i_clk) begin
+    if (i_reset) begin lookup_resync <= 1'b0; pending_recovery <= 1'b0; end
+    else begin
+        if (pending_request && o_ack) begin
+            lookup_resync <= 1'b1;
+            pending_recovery <= 1'b0;
+        end else if (!pending_request && lookup_resync && (i_rd || i_wr) && !o_ack)
+            pending_recovery <= 1'b1;
+        else if (pending_request && !(i_rd || i_wr)) begin
+            lookup_resync <= 1'b0; pending_recovery <= 1'b0;
+        end
+    end
+end
+
 // Basic cache FSM - serves as manager 0.
 zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE)) u_zap_cache_fsm (
         .i_clk                  (i_clk),
         .i_reset                (i_reset),
         .i_address              (i_address),
+        .i_alignment_fault      (i_alignment_fault),
+        .i_alignment_far        (i_alignment_far),
         .i_rd                   (i_rd),
         .i_wr                   (i_wr),
         .i_din                  (i_dat),
         .o_idle                 (idle),
         .i_ben                  (i_ben),
+        .i_load_info            (i_load_info),
         .o_dat                  (o_dat),
         .o_ack                  (o_ack),
         .o_err                  (o_err),
@@ -174,12 +258,14 @@ zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE
         .i_cache_clean_done     (tr_cache_clean_done),
         .o_cache_inv_req        (cf_cache_inv_req),
         .i_cache_inv_done       (tr_cache_inv_done),
-        .i_phy_addr             (tlb_phy_addr),
-        .i_fsr                  (tlb_fsr),
-        .i_far                  (tlb_far),
-        .i_fault                (tlb_fault),
-        .i_cacheable            (tlb_cacheable),
-        .i_busy                 (tlb_busy),
+        .i_phy_addr             (pending_translation ? pending_pa : tlb_phy_addr),
+        .i_fsr                  (pending_translation ? pending_fsr : tlb_fsr),
+        .i_far                  (pending_translation ? pending_far : tlb_far),
+        .i_fault                (pending_translation ? pending_fault : tlb_fault),
+        .i_cacheable            (pending_translation ? pending_cacheable : tlb_cacheable),
+        .i_busy                 (pending_translation ? 1'b0 : tlb_busy),
+        .i_translation_wait     ((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
+        .o_background_refill    (background_refill),
         .o_err2                 (o_err2),
         .o_address              (cache_address),
         .o_wb_cyc_nxt           (wb_cyc[0]),
@@ -215,7 +301,8 @@ zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE
 zap_cache_tag_ram #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cache_tag_ram     (
         .i_clk                  (i_clk),
         .i_reset                (i_reset),
-        .i_address_nxt          (i_address_nxt),
+        .i_address_nxt          (pending_request ? i_address : i_address_nxt),
+        .o_checked_index        (checked_cache_index),
         .i_address              (cache_address),
         .i_hold                 (hold || i_stall),
         .i_cache_en             (i_cache_en),
@@ -265,11 +352,11 @@ u_zap_tlb (
         .i_clk          (i_clk),
         .i_reset        (i_reset),
         .i_address      (i_address),
-        .i_address_nxt  (i_address_nxt),
-        .i_address_check(i_address_check),
+        .i_address_nxt  (pending_request ? i_address : i_address_nxt),
+        .i_address_check(pending_request ? i_address : i_address_check),
         .i_idle         (idle),
-        .i_wr_check     (i_wr_check),
-        .i_rd_check     (i_rd_check),
+        .i_wr_check     (pending_request ? i_wr : i_wr_check),
+        .i_rd_check     (pending_request ? i_rd : i_rd_check),
         .i_hold         (hold || i_stall),
         .i_cpsr         (i_cpsr),
         .i_sr           (i_sr),
@@ -283,6 +370,10 @@ u_zap_tlb (
         .o_fault        (tlb_fault),
         .o_cacheable    (tlb_cacheable),
         .o_busy         (tlb_busy),
+        .o_walk_pending (tlb_walk_pending),
+        .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
+        .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
+        .o_checked_dac (checked_dac), .o_checked_baddr (checked_baddr),
         .o_wb_stb_nxt   (wb_stb[2]),
         .o_wb_cyc_nxt   (wb_cyc[2]),
         .o_wb_adr_nxt   (wb_adr[2]),

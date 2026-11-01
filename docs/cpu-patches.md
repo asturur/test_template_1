@@ -2,10 +2,25 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
-The project retains the pinned ZAP source unchanged in `third_party/zap/` and
-applies ordered patches from `patches/zap/` to a generated build copy. Every run
-checks the upstream hashes and records the selected variant and patch hashes.
-`rtl/ngage_cpu.sv` is the shared RTL integration boundary used by simulation.
+`third_party/zap/` is the ONLY ZAP copy in the project: pinned upstream
+krevanth/ZAP `fc7bd75` plus the ordered series in `patches/zap/`. The Verilator
+boot simulations (`scratch/*/build.py`) and the Quartus build (`files.qip`) both
+compile it. `patches/zap/verify.sh` rebuilds upstream (from repo commit
+`5342c3f`, hashes in `UPSTREAM.json`) + the series and checks byte identity;
+run it after any edit to `third_party/zap` and add a numbered patch for the edit.
+Pristine upstream is extracted on demand (`sim/run.py` puts it in
+`build/zap-upstream/` for `make sim-upstream`/`sim-unmodified`).
+`rtl/ngage_cpu.sv` is the shared RTL integration boundary.
+
+History (2026-11-01): before this, `third_party/zap` held upstream + Quartus
+fixes only, while every simulation used an untracked scratch copy
+(`scratch/boot-v15-quiet-zap`) carrying 0001-0009 plus three unrecorded changes,
+so the FPGA build was not the CPU the boot evidence came from. The unrecorded
+changes were extracted as 0010-0012 (upstream + 0001-0012 reproduced that copy
+byte-for-byte), then 0013/0014 were added. A from-reset authentic run to 150M
+cycles was cycle-identical between the old scratch copy and the consolidated
+tree (same bus/instruction traces, 41,013,833 transactions); checkpoints made
+with the old copy may not restore (Verilator state layout differs).
 
 ## Translated accesses when caches are disabled
 
@@ -93,7 +108,6 @@ it returned `0x80ff7f01` for an unsigned byte expected to be `0x01`, with both
 immediate and delayed memory. The fixed diagnostic checks misses and hits across
 all byte lanes, signed/unsigned halfwords, unaligned-word rotation with A clear,
 and the real adjacent-LDRB/ORR dependency pattern. It is part of `make sim-compat`.
-The vendor snapshot stays unchanged; these edits are applied to a build copy.
 The configured little-endian path is the tested scope.
 
 ## Qualifying branch state on a BTB tag miss
@@ -107,6 +121,61 @@ through a cached return into its literal pool and requested `0x0c120100`.
 Nokia payload. With the fix, immediate and delayed cases reach their intended
 terminal write. See [branch-prediction.md](branch-prediction.md) for exact evidence,
 failed cold reproducers, measured cycles, and the six-patch verification.
+
+## Patches 0007-0009
+
+0007 sets the terminal-exception FSR only when the Wishbone transfer actually
+errored, so an acknowledged transfer no longer overwrites CP15 fault state.
+0008 fixes the Thumb format-11 SP-relative LDR/STR offset sign (upstream
+subtracted). 0009 makes the CP15 cache type register report ARM920T
+associativity (64-way) and ctype 6: EKA1's clean-by-index loop derives its way
+increment from the assoc field, and upstream's 0 made it run 2^32 iterations
+(commit 0164a87). The physical caches stay direct mapped.
+
+## 0010: retain D-cache translation across a background refill
+
+Recovered from the `scratch/ldm-*` experiment chain (identity-v6..v15,
+tlb-handshake v1-v4) that fixed LDM/cached-load corruption during boot. While a
+CPU request is stalled behind a background line refill, the D-cache keeps the
+TLB result it already obtained (`pending_translation`) instead of re-looking up
+with a pipeline address that has moved on; the refill FSM holds the micro-op
+(no ack/err2) on a background miss, forwards the completed line to a waiting
+load or store in the same line, and commits the refill on the release edge.
+`zap_tlb`/`zap_cache_tag_ram` export the checked lookup context used to decide
+when the retained translation is valid. The simulation-only `assert`/`$fatal`
+checks that the pending request context never changes are ignored by synthesis.
+This is the CPU every boot milestone since 2026-10-28 ran on, but it has no
+standalone reproducer yet (unlike 0005/0006).
+
+## 0011: Thumb hi-register op with SBZ bits traps as UND
+
+`decode_alu_hi()` reached `$fatal` for op=11 halfwords that are neither BX nor
+BLX. Wrong-path fetches of literal-pool data after an unconditional branch
+decode such halfwords without executing them (apmime 0x50603bc8, word
+0x506047ec, 2026-10-31). They now decode to the UND trap. Also rewords the 0008
+comment.
+
+## 0012: silence simulation info floods
+
+Comments out the UNPREDICTABLE PC-as-shift-operand `$info` in `zap_decode`
+(N-Gage frame-drawing code hits it in hot loops; 186MB of log) and empties
+three section-descriptor `$info` messages in `zap_tlb_fsm`. No datapath change.
+
+## 0013: Quartus 17.0.2 compatibility
+
+Formerly repo commits 446a44a/7fd435b. No logic change: typed localparams/struct
+typedefs moved out of parameter lists (BTB, CP15), `foreach`/`inside` replaced,
+explicit `generate` regions, sized enum literals, simulation-only assertion
+blocks guarded with `SYNTHESIS`.
+
+## 0014: byte-lane cache data RAM
+
+`zap_ram_simple_ben` (cache data RAM, 256 bits wide with 32 byte enables) is
+stored as one 8-bit memory per lane. Quartus 17 did not infer block RAM from
+the looped byte-enable slice and built each 16KB cache from ~135K registers
+(CI run 41263284904: the CPU alone was 122,721 ALUTs / 275,049 registers).
+Behavior is identical: 400,000 random cycles including same-address
+write/read collisions matched the original module on both outputs.
 
 ## Verification and limits
 

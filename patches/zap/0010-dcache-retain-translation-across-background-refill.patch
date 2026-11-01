@@ -1,0 +1,311 @@
+--- a/src/rtl/zap_cache_tag_ram.sv
++++ b/src/rtl/zap_cache_tag_ram.sv
+@@ -36,6 +36,7 @@
+ input   logic                            i_clk,
+ input   logic                            i_reset,
+ input   logic    [31:0]                  i_address_nxt,
++output logic [$clog2(CACHE_SIZE/CACHE_LINE)-1:0] o_checked_index,
+ input   logic    [31:0]                  i_address,
+ input   logic                            i_hold,
+ input   logic                            i_cache_en,
+@@ -264,6 +265,8 @@
+ 
+ // ----------------------------------------------------------------------------
+ 
++assign o_checked_index = tag_ram_rd_addr_del2;
++
+ assign tag_ram_rd_addr = state_ff == IDLE ?
+                          i_address_nxt [`ZAP_VA__CACHE_INDEX] :
+                          tag_ram_rd_addr_ff;
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -146,6 +146,82 @@
+ // wb_err[1] is unused.
+ assign unused = |{wb_err[1]};
+ 
++// Experimental: retain translation for an outstanding stalled CPU request.
++logic pending_translation, pending_request, tlb_walk_pending, background_refill;
++logic lookup_resync, pending_recovery;
++logic [31:0] pending_data_assert, pending_dac_assert, pending_baddr_assert;
++logic [3:0] pending_ben_assert;
++logic [5:0] pending_load_assert, pending_index_bin_assert;
++logic [63:0] pending_index_assert;
++logic [1:0] pending_sr_assert;
++logic pending_mmu_assert;
++logic [$clog2(CACHE_SIZE/CACHE_LINE)-1:0] checked_cache_index;
++logic [31:0] checked_va, checked_lookup, checked_dac, checked_baddr;
++logic checked_rd, checked_wr, checked_mmu;
++logic [ZAP_CPSR_MODE:0] checked_cpsr;
++logic [1:0] checked_sr;
++logic checked_request, checked_request_prev;
++always_ff @(posedge i_clk) begin
++    if (i_reset) checked_request_prev <= 1'b0;
++    else checked_request_prev <= checked_request && pending_request && !o_ack;
++end
++assign checked_request = checked_va == i_address && checked_lookup == i_address && checked_rd == i_rd && checked_wr == i_wr &&
++ checked_mmu == i_mmu_en && checked_cpsr == i_cpsr && checked_sr == i_sr &&
++ checked_dac == i_dac_reg && checked_baddr == i_baddr &&
++ checked_cache_index == i_address[`ZAP_VA__CACHE_INDEX];
++logic [31:0] pending_va_assert;
++logic pending_rd_assert, pending_wr_assert;
++logic [ZAP_CPSR_MODE:0] pending_cpsr_assert;
++logic [31:0] pending_pa, pending_far;
++logic [7:0] pending_fsr;
++logic pending_fault, pending_cacheable;
++always_ff @(posedge i_clk) begin
++    if (i_reset || !(i_rd || i_wr) || o_ack) begin
++        pending_translation <= 1'b0; pending_request <= 1'b0;
++    end else if (pending_request || background_refill || lookup_resync) begin
++        if (!pending_request) begin
++            pending_va_assert <= i_address;
++            pending_rd_assert <= i_rd;
++            pending_wr_assert <= i_wr;
++            pending_cpsr_assert <= i_cpsr;
++            pending_data_assert <= i_dat; pending_ben_assert <= i_ben;
++            pending_load_assert <= i_load_info; pending_index_assert <= i_reg_idx;
++            pending_index_bin_assert <= i_reg_idx_bin; pending_sr_assert <= i_sr;
++            pending_dac_assert <= i_dac_reg; pending_baddr_assert <= i_baddr;
++            pending_mmu_assert <= i_mmu_en;
++        end else begin
++            assert(i_address == pending_va_assert && i_rd == pending_rd_assert &&
++                   i_wr == pending_wr_assert && i_cpsr == pending_cpsr_assert &&
++                   (!i_wr || (i_dat == pending_data_assert && i_ben == pending_ben_assert)) &&
++                   (!i_rd || (i_load_info == pending_load_assert && i_reg_idx == pending_index_assert &&
++                              i_reg_idx_bin == pending_index_bin_assert && i_ben == pending_ben_assert)) &&
++                   i_sr == pending_sr_assert && i_dac_reg == pending_dac_assert &&
++                   i_baddr == pending_baddr_assert && i_mmu_en == pending_mmu_assert)
++                else $fatal(1, "pending translation context changed without cancellation");
++        end
++        pending_request <= 1'b1;
++        if (!pending_translation && checked_request && checked_request_prev && idle && !tlb_busy && !tlb_walk_pending) begin
++            pending_translation <= 1'b1;
++            pending_pa <= tlb_phy_addr; pending_far <= tlb_far; pending_fsr <= tlb_fsr;
++            pending_fault <= tlb_fault; pending_cacheable <= tlb_cacheable;
++        end
++    end
++end
++
++always_ff @(posedge i_clk) begin
++    if (i_reset) begin lookup_resync <= 1'b0; pending_recovery <= 1'b0; end
++    else begin
++        if (pending_request && o_ack) begin
++            lookup_resync <= 1'b1;
++            pending_recovery <= 1'b0;
++        end else if (!pending_request && lookup_resync && (i_rd || i_wr) && !o_ack)
++            pending_recovery <= 1'b1;
++        else if (pending_request && !(i_rd || i_wr)) begin
++            lookup_resync <= 1'b0; pending_recovery <= 1'b0;
++        end
++    end
++end
++
+ // Basic cache FSM - serves as manager 0.
+ zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE)) u_zap_cache_fsm (
+         .i_clk                  (i_clk),
+@@ -182,12 +258,14 @@
+         .i_cache_clean_done     (tr_cache_clean_done),
+         .o_cache_inv_req        (cf_cache_inv_req),
+         .i_cache_inv_done       (tr_cache_inv_done),
+-        .i_phy_addr             (tlb_phy_addr),
+-        .i_fsr                  (tlb_fsr),
+-        .i_far                  (tlb_far),
+-        .i_fault                (tlb_fault),
+-        .i_cacheable            (tlb_cacheable),
+-        .i_busy                 (tlb_busy),
++        .i_phy_addr             (pending_translation ? pending_pa : tlb_phy_addr),
++        .i_fsr                  (pending_translation ? pending_fsr : tlb_fsr),
++        .i_far                  (pending_translation ? pending_far : tlb_far),
++        .i_fault                (pending_translation ? pending_fault : tlb_fault),
++        .i_cacheable            (pending_translation ? pending_cacheable : tlb_cacheable),
++        .i_busy                 (pending_translation ? 1'b0 : tlb_busy),
++        .i_translation_wait     ((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
++        .o_background_refill    (background_refill),
+         .o_err2                 (o_err2),
+         .o_address              (cache_address),
+         .o_wb_cyc_nxt           (wb_cyc[0]),
+@@ -223,7 +301,8 @@
+ zap_cache_tag_ram #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cache_tag_ram     (
+         .i_clk                  (i_clk),
+         .i_reset                (i_reset),
+-        .i_address_nxt          (i_address_nxt),
++        .i_address_nxt          (pending_request ? i_address : i_address_nxt),
++        .o_checked_index        (checked_cache_index),
+         .i_address              (cache_address),
+         .i_hold                 (hold || i_stall),
+         .i_cache_en             (i_cache_en),
+@@ -273,11 +352,11 @@
+         .i_clk          (i_clk),
+         .i_reset        (i_reset),
+         .i_address      (i_address),
+-        .i_address_nxt  (i_address_nxt),
+-        .i_address_check(i_address_check),
++        .i_address_nxt  (pending_request ? i_address : i_address_nxt),
++        .i_address_check(pending_request ? i_address : i_address_check),
+         .i_idle         (idle),
+-        .i_wr_check     (i_wr_check),
+-        .i_rd_check     (i_rd_check),
++        .i_wr_check     (pending_request ? i_wr : i_wr_check),
++        .i_rd_check     (pending_request ? i_rd : i_rd_check),
+         .i_hold         (hold || i_stall),
+         .i_cpsr         (i_cpsr),
+         .i_sr           (i_sr),
+@@ -291,6 +370,10 @@
+         .o_fault        (tlb_fault),
+         .o_cacheable    (tlb_cacheable),
+         .o_busy         (tlb_busy),
++        .o_walk_pending (tlb_walk_pending),
++        .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
++        .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
++        .o_checked_dac (checked_dac), .o_checked_baddr (checked_baddr),
+         .o_wb_stb_nxt   (wb_stb[2]),
+         .o_wb_cyc_nxt   (wb_cyc[2]),
+         .o_wb_adr_nxt   (wb_adr[2]),
+--- a/src/rtl/zap_dcache_fsm.sv
++++ b/src/rtl/zap_dcache_fsm.sv
+@@ -99,6 +99,8 @@
+ input   logic                      i_fault,
+ input   logic                      i_cacheable,
+ input   logic                      i_busy,
++input   logic                      i_translation_wait,
++output  logic                      o_background_refill,
+ output  logic                      o_hold,
+ 
+ // Cache state
+@@ -272,6 +274,8 @@
+                 buf_ff[i] <= buf_nxt[i];
+         end
+ end
++
++assign o_background_refill = state_ff[CLEAN_SINGLE] || state_ff[FETCH_SINGLE] || state_ff[UNLOCK_REG];
+ 
+ // Idle indication
+ always_ff @ ( posedge i_clk )
+@@ -389,6 +393,11 @@
+                         o_fsr = 8'h01;
+                         o_far = i_alignment_far;
+                 end
++                else if ( i_translation_wait )
++                begin
++                        o_err2 = 1'd0;
++                        o_ack = 1'd0;
++                end
+                 else if ( i_fault )
+                 begin
+                         // MMU access fault.
+@@ -578,8 +587,9 @@
+ 
+                 if(!rhit && !whit)
+                 begin
+-                        o_ack  = 1'd1;
+-                        o_err2 = i_rd || i_wr ? 1'd1 : 1'd0;
++                        // Keep the current micro-op pending during a background miss.
++                        o_ack  = 1'd0;
++                        o_err2 = 1'd0;
+                 end
+ 
+                 // Generate address
+@@ -622,8 +632,9 @@
+ 
+                 if(!rhit && !whit)
+                 begin
+-                        o_ack  = 1'd1;
+-                        o_err2 = i_rd || i_wr ? 1'd1 : 1'd0;
++                        // Keep the current micro-op pending during a background miss.
++                        o_ack  = 1'd0;
++                        o_err2 = 1'd0;
+                 end
+ 
+                 // Generate address
+@@ -687,8 +698,9 @@
+ 
+                 if(!rhit && !whit)
+                 begin
+-                        o_ack  = 1'd1;
+-                        o_err2 = i_rd || i_wr ? 1'd1 : 1'd0;
++                        // Keep the current micro-op pending during a background miss.
++                        o_ack  = 1'd0;
++                        o_err2 = 1'd0;
+                 end
+ 
+                 if ( !wr )
+@@ -699,10 +711,8 @@
+                                         load_info);
+                         o_reg_idx = reg_idx;
+                 end
+-                else // Update cache line.
++                else // Update the completed store, independently of the current request.
+                 begin
+-                        o_ack        = 1'd1;
+-
+                         o_cache_line =
+                         {(CACHE_LINE/4){din}};
+ 
+@@ -718,6 +728,31 @@
+                         o_address                        = address;
+                 end
+ 
++                // Forward completed line to a waiting request in the same line.
++                if (i_rd && !i_busy && !i_fault && !i_alignment_fault && !i_translation_wait &&
++                    i_address[31:$clog2(CACHE_LINE)] == address[31:$clog2(CACHE_LINE)]) begin
++                    o_ack = 1'b1;
++                    o_dat = adapt_cache_data(i_address[$clog2(CACHE_LINE)-1:2], cache_line);
++                end
++                // Commit the refill on the release edge as well: RAM write enables
++                // are gated by the pipeline stall on the original fill edge.
++                o_cache_line = cache_line;
++                o_cache_line_ben = {CACHE_LINE{1'b1}};
++                o_cache_tag_wr_en = 1'b1;
++                o_cache_tag[`ZAP_CACHE_TAG__TAG] = address[`ZAP_VA__CACHE_TAG];
++                o_cache_tag[`ZAP_CACHE_TAG__PA] = phy_addr[31:$clog2(CACHE_LINE)];
++                o_cache_tag_dirty = wr;
++                // The missed store was already acknowledged in IDLE. Do not
++                // accidentally acknowledge a different pending store in UNLOCK.
++                if (i_wr) o_ack = 1'b0;
++                if (i_wr && !i_busy && !i_fault && !i_alignment_fault && !i_translation_wait &&
++                    i_address[31:$clog2(CACHE_LINE)] == address[31:$clog2(CACHE_LINE)]) begin
++                    o_ack = 1'b1;
++                    o_cache_tag_dirty = 1'b1;
++                    for (int b=0; b<4; b++)
++                        if (i_ben[b]) o_cache_line[8*(4*i_address[$clog2(CACHE_LINE)-1:2]+b)+:8] = i_din[8*b+:8];
++                end
++
+                 //
+                 // Unlock the register on load. Clear the bit. Invert reg
+                 // idx and AND. Removes bits that were marked as 1 in reg_idx.
+--- a/src/rtl/zap_tlb.sv
++++ b/src/rtl/zap_tlb.sv
+@@ -62,6 +62,12 @@
+ output  logic            o_fault,
+ output  logic            o_cacheable,
+ output  logic            o_busy,
++output  logic            o_walk_pending,
++output  logic [31:0] o_checked_va, o_checked_lookup,
++output  logic o_checked_rd, o_checked_wr, o_checked_mmu,
++output  logic [CPSR_MODE:0] o_checked_cpsr,
++output  logic [1:0] o_checked_sr,
++output  logic [31:0] o_checked_dac, o_checked_baddr,
+ input   logic            i_idle,
+ 
+ // Wishbone memory interface - Needs to go through some OR gates.
+@@ -354,6 +360,21 @@
+ 
+ );
+ 
++assign o_walk_pending = walk;
++assign o_checked_va = far;
++logic [31:0] lookup_addr_st1, lookup_addr_st2;
++always_ff @(posedge i_clk) begin
++ if (i_reset) begin lookup_addr_st1 <= 0; lookup_addr_st2 <= 0; o_checked_lookup <= 0; end
++ else if (!i_hold) begin
++  lookup_addr_st1 <= i_address_nxt; lookup_addr_st2 <= lookup_addr_st1;
++  o_checked_lookup <= lookup_addr_st2;
++ end
++end
++always_ff @(posedge i_clk) if (!i_hold) begin
++ o_checked_rd <= i_rd_check; o_checked_wr <= i_wr_check; o_checked_mmu <= i_mmu_en;
++ o_checked_cpsr <= i_cpsr; o_checked_sr <= i_sr; o_checked_dac <= i_dac_reg; o_checked_baddr <= i_baddr;
++end
++
+ // ----------------------------------------------------------------------------
+ 
+ zap_tlb_fsm #(

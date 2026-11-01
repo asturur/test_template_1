@@ -202,7 +202,11 @@ begin
         end
         else if ( !i_stall )
         begin
-                o_branch_state <= mem_rd_data.state;
+                // State is meaningful only for a valid matching entry. A
+                // collision's taken state must not claim a redirect occurred:
+                // downstream PC writes can otherwise trust stale prediction
+                // metadata and fall through instead of changing the PC.
+                o_branch_state <= (mem_rd_tag_match && bp_dav) ? mem_rd_data.state : SNT;
 
                 //
                 // If the tag matches and prediction is taken, resync

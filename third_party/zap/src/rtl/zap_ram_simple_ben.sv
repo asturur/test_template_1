@@ -69,7 +69,6 @@ end
 // Note that the sel_* signals are bytewise, simply because writes can only
 // target a byte.
 
-logic [WIDTH-1:0] mem [DEPTH-1:0];
 logic [WIDTH-1:0]         mem_data_st1, mem_data_st2;
 logic [WIDTH-1:0]         buffer_st1, buffer_st2, buffer_st2_x;
 logic [WIDTH/8-1:0][1:0]  sel_st1;
@@ -81,31 +80,22 @@ logic [$clog2(DEPTH)-1:0] rd_addr_st1, rd_addr_st2;
 // ----------------------------------------------------------------------------
 
 // Write logic.
-always_ff @ (posedge i_clk)
-begin
-        if ( i_clken )
+// One 8-bit memory per byte lane: Quartus 17 does not infer block RAM for a
+// wide array written through a looped byte-enable slice (it fell back to
+// registers), but it reliably infers plain simple-dual-port lanes.
+for (genvar g = 0; g < WIDTH/8; g++)
+begin : g_lane
+        logic [7:0] lane [DEPTH-1:0];
+
+        always_ff @ (posedge i_clk)
         begin
-                for(int i=0;i<WIDTH/8;i++)
+                if ( i_clken )
                 begin
-                        if ( i_wr_en[i] )
-                        begin
-                                mem [ i_wr_addr ][ i*8 +: 8 ] <=
-                                i_wr_data [i*8 +: 8];
-                        end
+                        if ( i_wr_en[g] )
+                                lane [ i_wr_addr ] <= i_wr_data [g*8 +: 8];
+
+                        mem_data_st1 [g*8 +: 8] <= lane [ i_rd_addr ];
                 end
-        end
-end
-
-// ----------------------------------------------------------------------------
-// Stage 1
-// ----------------------------------------------------------------------------
-
-// RAM Read logic.
-always_ff @ (posedge i_clk)
-begin
-        if ( i_clken )
-        begin
-                mem_data_st1 <= mem [ i_rd_addr ];
         end
 end
 

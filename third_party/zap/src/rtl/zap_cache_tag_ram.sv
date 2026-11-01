@@ -36,6 +36,7 @@ parameter logic [31:0] CACHE_LINE = 32'd8
 input   logic                            i_clk,
 input   logic                            i_reset,
 input   logic    [31:0]                  i_address_nxt,
+output logic [$clog2(CACHE_SIZE/CACHE_LINE)-1:0] o_checked_index,
 input   logic    [31:0]                  i_address,
 input   logic                            i_hold,
 input   logic                            i_cache_en,
@@ -263,6 +264,8 @@ begin
 end
 
 // ----------------------------------------------------------------------------
+
+assign o_checked_index = tag_ram_rd_addr_del2;
 
 assign tag_ram_rd_addr = state_ff == IDLE ?
                          i_address_nxt [`ZAP_VA__CACHE_INDEX] :

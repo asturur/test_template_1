@@ -4,7 +4,7 @@ wakes the sleeping boot thread just past the old 1e9 budget."""
 import hashlib,json,subprocess,sys
 from pathlib import Path
 root=Path.cwd();out=root/'build/sim/runs/boot-v15-long';out.mkdir(parents=True,exist_ok=True)
-rtl=root/'scratch/boot-v15-quiet-zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-nosprobe';binary=obj/'Vngage_cpu_sim'
+rtl=root/'third_party/zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-nosprobe';binary=obj/'Vngage_cpu_sim'
 rom=root/'build/firmware/nem4-factory/digest-probe-core-nosstub/SYM.ROM';extension=root/'build/firmware/nem4-factory/extension.bin'
 inputs=[*sorted(rtl.glob('*.sv')),*sorted(rtl.glob('*.svh')),root/'rtl/ngage_cpu.sv',root/'scratch/checkpoint-probe/ngage_cpu_sim.sv',board/'main.cpp',board/'boot_profile.cpp',board/'boot_profile.h',rom,extension,Path(__file__).resolve()]
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();inputs_hash={str(p.relative_to(root)):sha(p) for p in inputs}

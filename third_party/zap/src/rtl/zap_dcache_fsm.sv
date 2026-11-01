@@ -47,6 +47,7 @@ input   logic    [31:0]            i_din,
 input   logic    [3:0]             i_ben,
 input   logic    [63:0]            i_reg_idx,
 input   logic    [5:0]             i_reg_idx_bin,
+input   logic    [5:0]             i_load_info,
 output  logic     [63:0]           o_lock,
 output  logic [31:0]               o_reg_dat,
 output  logic [63:0]               o_reg_idx,
@@ -56,6 +57,10 @@ output  logic                      o_err,
 output  logic     [7:0]            o_fsr,
 output  logic     [31:0]           o_far,
 output  logic                      o_err2,
+
+// Alignment faults are generated before address alignment/translation.
+input logic i_alignment_fault,
+input logic [31:0] i_alignment_far,
 
 // From/To CP15 unit
 input   logic                      i_cache_en,
@@ -94,6 +99,8 @@ input   logic    [31:0]            i_far,
 input   logic                      i_fault,
 input   logic                      i_cacheable,
 input   logic                      i_busy,
+input   logic                      i_translation_wait,
+output  logic                      o_background_refill,
 output  logic                      o_hold,
 
 // Cache state
@@ -162,6 +169,7 @@ logic    [CACHE_LINE*8-1:0]               cache_line;
 logic  [`ZAP_CACHE_TAG_WDT-1:0]           cache_tag; // Tag
 logic    [31:0]                           phy_addr;
 logic    [63:0]                           reg_idx;
+logic    [5:0]                            load_info;
 logic    [63:0]                           lock_nxt, lock_ff;
 
 logic                                     unused;
@@ -212,6 +220,7 @@ begin
                 cache_tag       <= i_cache_tag;
                 phy_addr        <= i_phy_addr;
                 reg_idx         <= i_reg_idx;
+                load_info       <= i_load_info;
         end
 end
 
@@ -265,6 +274,8 @@ begin
                 buf_ff[i] <= buf_nxt[i];
         end
 end
+
+assign o_background_refill = state_ff[CLEAN_SINGLE] || state_ff[FETCH_SINGLE] || state_ff[UNLOCK_REG];
 
 // Idle indication
 always_ff @ ( posedge i_clk )
@@ -373,6 +384,20 @@ begin:next_state_logic
                 begin
                         o_ack = 1'd1;
                 end
+                else if ( i_alignment_fault )
+                begin
+                        // ARM920T: alignment has priority over translation,
+                        // domain and permission faults, with or without MMU.
+                        o_err = 1'd1;
+                        o_ack = 1'd1;
+                        o_fsr = 8'h01;
+                        o_far = i_alignment_far;
+                end
+                else if ( i_translation_wait )
+                begin
+                        o_err2 = 1'd0;
+                        o_ack = 1'd0;
+                end
                 else if ( i_fault )
                 begin
                         // MMU access fault.
@@ -399,7 +424,7 @@ begin:next_state_logic
                                 o_ack           = 1'd0; // Wait...
                                 o_wb_stb_nxt    = 1'd1;
                                 o_wb_cyc_nxt    = 1'd1;
-                                o_wb_adr_nxt    = i_address;
+                                o_wb_adr_nxt    = i_phy_addr;
                                 o_wb_wen_nxt    = i_wr;
                                 o_wb_cti_nxt    = CTI_EOB;
                                 o_wb_dat_nxt    = i_din;
@@ -549,7 +574,8 @@ begin:next_state_logic
                         state_nxt[IDLE]        = 1'd1;
 
                         o_err      = i_wb_err;
-                        o_fsr[3:0] = TERMINAL_EXCEPTION;
+                        // An acknowledged transfer must not overwrite CP15 fault state.
+                        if (i_wb_err) o_fsr[3:0] = TERMINAL_EXCEPTION;
 
                         `zap_kill_access;
                 end
@@ -561,8 +587,9 @@ begin:next_state_logic
 
                 if(!rhit && !whit)
                 begin
-                        o_ack  = 1'd1;
-                        o_err2 = i_rd || i_wr ? 1'd1 : 1'd0;
+                        // Keep the current micro-op pending during a background miss.
+                        o_ack  = 1'd0;
+                        o_err2 = 1'd0;
                 end
 
                 // Generate address
@@ -605,8 +632,9 @@ begin:next_state_logic
 
                 if(!rhit && !whit)
                 begin
-                        o_ack  = 1'd1;
-                        o_err2 = i_rd || i_wr ? 1'd1 : 1'd0;
+                        // Keep the current micro-op pending during a background miss.
+                        o_ack  = 1'd0;
+                        o_err2 = 1'd0;
                 end
 
                 // Generate address
@@ -670,21 +698,21 @@ begin:next_state_logic
 
                 if(!rhit && !whit)
                 begin
-                        o_ack  = 1'd1;
-                        o_err2 = i_rd || i_wr ? 1'd1 : 1'd0;
+                        // Keep the current micro-op pending during a background miss.
+                        o_ack  = 1'd0;
+                        o_err2 = 1'd0;
                 end
 
                 if ( !wr )
                 begin
                         // Write to register file
-                        o_reg_dat = adapt_cache_data(address[$clog2(CACHE_LINE)-1:2],
-                                                     cache_line);
+                        o_reg_dat = finish_background_load(
+                                        adapt_cache_data(address[$clog2(CACHE_LINE)-1:2], cache_line),
+                                        load_info);
                         o_reg_idx = reg_idx;
                 end
-                else // Update cache line.
+                else // Update the completed store, independently of the current request.
                 begin
-                        o_ack        = 1'd1;
-
                         o_cache_line =
                         {(CACHE_LINE/4){din}};
 
@@ -698,6 +726,31 @@ begin:next_state_logic
                         o_cache_tag_dirty                = 1'd1;
                         o_cache_tag[`ZAP_CACHE_TAG__PA]  = phy_addr[31 : $clog2(CACHE_LINE)];
                         o_address                        = address;
+                end
+
+                // Forward completed line to a waiting request in the same line.
+                if (i_rd && !i_busy && !i_fault && !i_alignment_fault && !i_translation_wait &&
+                    i_address[31:$clog2(CACHE_LINE)] == address[31:$clog2(CACHE_LINE)]) begin
+                    o_ack = 1'b1;
+                    o_dat = adapt_cache_data(i_address[$clog2(CACHE_LINE)-1:2], cache_line);
+                end
+                // Commit the refill on the release edge as well: RAM write enables
+                // are gated by the pipeline stall on the original fill edge.
+                o_cache_line = cache_line;
+                o_cache_line_ben = {CACHE_LINE{1'b1}};
+                o_cache_tag_wr_en = 1'b1;
+                o_cache_tag[`ZAP_CACHE_TAG__TAG] = address[`ZAP_VA__CACHE_TAG];
+                o_cache_tag[`ZAP_CACHE_TAG__PA] = phy_addr[31:$clog2(CACHE_LINE)];
+                o_cache_tag_dirty = wr;
+                // The missed store was already acknowledged in IDLE. Do not
+                // accidentally acknowledge a different pending store in UNLOCK.
+                if (i_wr) o_ack = 1'b0;
+                if (i_wr && !i_busy && !i_fault && !i_alignment_fault && !i_translation_wait &&
+                    i_address[31:$clog2(CACHE_LINE)] == address[31:$clog2(CACHE_LINE)]) begin
+                    o_ack = 1'b1;
+                    o_cache_tag_dirty = 1'b1;
+                    for (int b=0; b<4; b++)
+                        if (i_ben[b]) o_cache_line[8*(4*i_address[$clog2(CACHE_LINE)-1:2]+b)+:8] = i_din[8*b+:8];
                 end
 
                 //
@@ -840,6 +893,28 @@ function automatic [31:0] clean_single_d (
         {dummy, clean_single_d} = cl >> shamt; // Select specific 32-bit.
 
 endfunction : clean_single_d
+
+// Match the ordinary memory-stage load transform when a cache miss completes
+// through the asynchronous register port. The captured controls belong to the
+// missed load, not to a later hit-under-miss request.
+function automatic [31:0] finish_background_load(input [31:0] data, input [5:0] info);
+    logic [31:0] shifted;
+    logic [15:0] halfword;
+    begin
+        shifted = data >> (8 * info[1:0]);
+        halfword = info[1] ? data[31:16] : data[15:0];
+        if (info[4]) finish_background_load = {24'd0, shifted[7:0]};
+        else if (info[5]) finish_background_load = {{24{shifted[7]}}, shifted[7:0]};
+        else if (info[3]) finish_background_load = {{16{halfword[15]}}, halfword};
+        else if (info[2]) finish_background_load = {16'd0, halfword};
+        else case (info[1:0])
+            2'd0: finish_background_load = data;
+            2'd1: finish_background_load = {data[7:0], data[31:8]};
+            2'd2: finish_background_load = {data[15:0], data[31:16]};
+            2'd3: finish_background_load = {data[23:0], data[31:24]};
+        endcase
+    end
+endfunction
 
 endmodule : zap_dcache_fsm
 

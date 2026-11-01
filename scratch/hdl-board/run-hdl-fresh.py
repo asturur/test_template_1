@@ -9,7 +9,7 @@ WIN=sys.argv[3] if len(sys.argv)>3 else ''
 CKPT_AT=int(sys.argv[4]) if len(sys.argv)>4 else 0
 from pathlib import Path
 root=Path.cwd();out=root/('build/sim/runs/boot-v15-'+NAME);out.mkdir(parents=True,exist_ok=True)
-rtl=root/'scratch/boot-v15-quiet-zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-hdl';binary=obj/'Vngage_cpu_sim'
+rtl=root/'third_party/zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-hdl';binary=obj/'Vngage_cpu_sim'
 rom=root/'build/firmware/nem4-factory/digest-probe-core-nosstub/SYM.ROM';extension=root/'build/firmware/nem4-factory/extension.bin'
 inputs=[*sorted(rtl.glob('*.sv')),*sorted(rtl.glob('*.svh')),root/'rtl/ngage_cpu.sv',root/'scratch/hdl-board/ngage_cpu_sim.sv',root/'rtl/ngage_board.v',board/'main.cpp',board/'boot_profile.cpp',board/'boot_profile.h',rom,extension,root/'build/firmware/thc/cdrive-stamped-4mib.img',root/'build/firmware/thc/nos-image.bin',root/'build/firmware/thc/nos-iat-region-0x6e030.bin',Path(__file__).resolve()]
 ckdir=root/'build/sim/checkpoints'

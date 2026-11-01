@@ -104,8 +104,9 @@ module zap_cp15_cb
         // Base address of page table.
         output logic      [31:0]                  o_baddr,
 
-        // MMU enable.
+        // MMU enable and ARM920T data-alignment checking.
         output logic                              o_mmu_en,
+        output logic                              o_alignment_en,
 
         // SR register.
         output logic      [1:0]                   o_sr,
@@ -200,7 +201,13 @@ assign xCACHE_TYPE_WORD[0][1:0]  = CODE_CACHE_LINE == 16 ? 2'd1 :
 
 assign xCACHE_TYPE_WORD[0][2]    = ONLY_CORE ? 1'd1 : 1'd0;
 
-assign xCACHE_TYPE_WORD[0][5:3]  = '0;
+// Report ARM920T 64-way associativity. The physical cache stays direct
+// mapped: every index/way clean-or-invalidate op already falls through to
+// a whole-cache operation, so only the loop arithmetic software derives
+// from this field matters. EKA1's clean-by-index loop computes its way
+// increment as (1 ROR assoc) and exits on carry; assoc = 0 makes that
+// increment 1 and the loop effectively endless (2^32 iterations).
+assign xCACHE_TYPE_WORD[0][5:3]  = 3'd6;
 
 always_comb
 begin
@@ -229,7 +236,7 @@ assign xCACHE_TYPE_WORD[1][1:0]  = DATA_CACHE_LINE == 16 ? 2'd1 :
 
 assign xCACHE_TYPE_WORD[1][2]    = ONLY_CORE ? 1'd1 : 1'd0;
 
-assign xCACHE_TYPE_WORD[1][5:3]  = '0;
+assign xCACHE_TYPE_WORD[1][5:3]  = 3'd6; // See the icache note: ARM920T 64-way report.
 
 always_comb
 begin
@@ -258,7 +265,7 @@ assign xCACHE_TYPE_WORD[1][11:9] = '0;
 // Build the CACHE_TYPE word.
 assign CACHE_TYPE_WORD[23:0]     = xCACHE_TYPE_WORD;
 assign CACHE_TYPE_WORD[24]       = 1'd1;     // S = 1, split cache.
-assign CACHE_TYPE_WORD[31:25]    = 7'h1;     // Block replacement policy = 0x1.
+assign CACHE_TYPE_WORD[31:25]    = 7'b0000110; // ctype 6: write-back, c7 clean ops (ARM920T).
 
 // ---------------------------------------------
 // Sequential Logic
@@ -272,6 +279,7 @@ begin
                 o_dcache_en <= 1'd0;
                 o_icache_en <= 1'd0;
                 o_mmu_en    <= 1'd0;
+                o_alignment_en <= 1'd0;
                 o_pid       <= 8'd0;
                 o_l4_enable <= CP15_L4_DEFAULT;
         end
@@ -280,6 +288,7 @@ begin
                 o_dcache_en <= r[1][2];              // Data cache enable.
                 o_icache_en <= r[1][12];             // Instruction cache enable.
                 o_mmu_en    <= r[1][0];              // MMU enable.
+                o_alignment_en <= r[1][1];          // Alignment fault enable.
                 o_pid       <= {1'd0, r[13][31:25]}; // PID register.
                 o_l4_enable <= r[1][14];             // 1 for v4T compatibility.
         end
@@ -614,7 +623,6 @@ begin
                 r[0][19:16] <= 4'h5;
                 r[0][23:20] <= 4'd0;
                 r[0][31:24] <= 8'd0;
-                r[1][1]     <= 1'd0;
                 r[1][7]     <= BE_32_ENABLE ? 1'd1 : 1'd0;
                 r[1][6:3]   <= 4'b1111;
                 r[1][11]    <= 1'd1;

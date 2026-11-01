@@ -606,12 +606,20 @@ zap_btb #(.BP_ENTRIES(BP_ENTRIES)) u_zap_btb (
                 o_trace_valid    <= trace_valid_nxt;
         end
 
+        logic ngage_quiet_trace;
+`ifdef NGAGE_RUNTIME_TRACE
+        // Only testbenches that initialize Verilated command arguments enable
+        // runtime plusargs. Original upstream benches keep their default print.
+        initial ngage_quiet_trace = $test$plusargs("ngage-compact-trace");
+`else
+        initial ngage_quiet_trace = 1'b0;
+`endif
         initial trace_prev       = "";
 
         // Display message
         always @ ( negedge i_clk ) // Assertion.
         begin
-            if ( o_trace_valid )
+            if ( o_trace_valid && !ngage_quiet_trace )
             begin
                 if ( o_trace != trace_prev )
                 begin

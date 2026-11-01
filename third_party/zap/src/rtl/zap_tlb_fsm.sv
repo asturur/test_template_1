@@ -410,13 +410,13 @@ begin
     if ( state_ff[FETCH_L1_DESC] )
     begin
         assert(o_setlb_wdata[19:12] == '0 || i_reset)
-        else $info("Error: Section page table format incorrect. Ignoring bits 15:12.");
+        else begin end // suppress repetitive informational messages in firmware replay
 
         assert(o_setlb_wdata[9] == '0 || i_reset)
-        else $info("Error: Section page table format incorrect. Ignoring bit 9.");
+        else begin end // suppress repetitive informational messages in firmware replay
 
         assert(o_setlb_wdata[4] == '0 || i_reset)
-        else $info("Error: Section page table format incorrect. Ignoring bit 4.");
+        else begin end // suppress repetitive informational messages in firmware replay
     end
 
     if(o_lptlb_wen)

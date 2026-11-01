@@ -540,11 +540,15 @@ begin
                             o_shift_source[32]      = INDEX_EN;
                             o_shift_operation       = {1'd0, instruction[6:5]};
 
-                            assert(o_shift_length != 'd15) else
-                            $info("Warning: Using PC here as a source to specify shift length is UNPREDICTABLE.");
-
-                            assert(o_shift_source != 'd15) else
-                            $info("Warning: Using PC here as a source to specify shift source is UNPREDICTABLE.");
+                            // PC-as-shift is UNPREDICTABLE per the ARM ARM but
+                            // the N-Gage graphics/frame-draw code uses it in hot
+                            // loops; the $info asserts flooded the log (186MB)
+                            // and stalled the run. Silenced (cosmetic only; the
+                            // shift datapath is unchanged).
+                            // assert(o_shift_length != 'd15) else
+                            // $info("Warning: Using PC here as a source to specify shift length is UNPREDICTABLE.");
+                            // assert(o_shift_source != 'd15) else
+                            // $info("Warning: Using PC here as a source to specify shift source is UNPREDICTABLE.");
                         end
                         default:
                         begin

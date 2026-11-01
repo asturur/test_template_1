@@ -1,5 +1,37 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~09:30 FPGA FIT ROOT CAUSES + ONE CANONICAL ZAP (update made with Claude)
+
+Quartus "232144 combinational nodes, device has 83820" was NOT the ARM being
+too big. Per-entity map reports (CI runs 41263284904 / 41271094458, copies in
+scratch/quartus-fit/):
+ - ngage_board: 191-195K ALUTs + 524,702 registers. Its 64KB GPIO latch array
+   was read combinationally, so it became flip-flops plus a huge read mux.
+   Fixed: the three latch arrays use rtl/ngage_bram_be.v (registered read,
+   byte-lane M10K); the board gains a `ready` output (one wait state on
+   RAM-backed reads), wired to wb_ack in rtl/ngage_mister.v and to the HDL
+   sim harness (main.cpp board_wait). The GPIO claim now excludes the CBUS
+   pair 0x0c150420/424 (stateful, C++-only; the 11-01 range widening had
+   swallowed it).
+ - ZAP 16KB caches: data RAM (256-bit, 32 byte enables) not inferred ->
+   ~270K registers. Fixed by patch 0014 (per-byte-lane RAMs, proven
+   equivalent). The cache/BTB shrink commits cd93a00/9d1e0aa are REVERTED:
+   rtl/ngage_cpu.sv is back to 16KB/16KB, default BTB.
+ - Expected after both fixes: well under the 41.9K ALMs; NOT yet confirmed by
+   a Quartus run (next CI build is the check).
+ZAP consolidation: Quartus compiled pristine third_party/zap (+compat) while
+all simulations used the untracked scratch/boot-v15-quiet-zap (0001-0009 +
+three unrecorded changes). Now third_party/zap = upstream + patches/zap
+0001-0014 is the only copy (patches/zap/verify.sh checks it); all scratch
+build/run scripts point at it; the scratch copy is deleted. Details and
+per-patch notes: docs/cpu-patches.md. A 150M from-reset authentic run was
+cycle-identical old vs new CPU, but restoring OLD checkpoints into the new
+binary may fail (Verilator layout) - expect to start from reset.
+CAVEAT on auth17 (below/after auth16): it ran on the shrunken 1KB-cache CPU
+(binary 05:47 after cd93a00), so its 2.366e9 shutdown park (same 0x1a /
+0x200 / GPIO 4 signature as the RTC: fault) cannot be attributed to the UART
+IRQ removal alone. Rerun with the restored CPU before drawing conclusions.
+
 ## 2026-11-01 ~05:30 *** RTC FAULT BROKEN — auth16 ran 3.3e9 cycles clean *** (update made with Claude)
 
 boot-v15-auth16 (device ID fix + FBUS sync echo + UART RX IRQ source 4)

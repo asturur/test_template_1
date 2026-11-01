@@ -62,6 +62,12 @@ output  logic    [31:0]  o_far,
 output  logic            o_fault,
 output  logic            o_cacheable,
 output  logic            o_busy,
+output  logic            o_walk_pending,
+output  logic [31:0] o_checked_va, o_checked_lookup,
+output  logic o_checked_rd, o_checked_wr, o_checked_mmu,
+output  logic [CPSR_MODE:0] o_checked_cpsr,
+output  logic [1:0] o_checked_sr,
+output  logic [31:0] o_checked_dac, o_checked_baddr,
 input   logic            i_idle,
 
 // Wishbone memory interface - Needs to go through some OR gates.
@@ -354,6 +360,21 @@ u_zap_tlb_check (
 .o_phy_addr     (phy_addr)
 
 );
+
+assign o_walk_pending = walk;
+assign o_checked_va = far;
+logic [31:0] lookup_addr_st1, lookup_addr_st2;
+always_ff @(posedge i_clk) begin
+ if (i_reset) begin lookup_addr_st1 <= 0; lookup_addr_st2 <= 0; o_checked_lookup <= 0; end
+ else if (!i_hold) begin
+  lookup_addr_st1 <= i_address_nxt; lookup_addr_st2 <= lookup_addr_st1;
+  o_checked_lookup <= lookup_addr_st2;
+ end
+end
+always_ff @(posedge i_clk) if (!i_hold) begin
+ o_checked_rd <= i_rd_check; o_checked_wr <= i_wr_check; o_checked_mmu <= i_mmu_en;
+ o_checked_cpsr <= i_cpsr; o_checked_sr <= i_sr; o_checked_dac <= i_dac_reg; o_checked_baddr <= i_baddr;
+end
 
 // ----------------------------------------------------------------------------
 

@@ -22,10 +22,9 @@ module ngage_cpu (
     zap_top #(
         .CP15_L4_DEFAULT(1'b1),
         .ONLY_CORE(1'b0),
-        .BP_ENTRIES(32'd8),       // BTB entries (absolute minimum; Cyclone V limit)
         .RESET_VECTOR(32'h00000000),
-        .DATA_CACHE_SIZE(256),    // 256B (minimum; Cyclone V limit — 220K LUTs at 1KB)
-        .CODE_CACHE_SIZE(256),    // 256B (minimum)
+        .DATA_CACHE_SIZE(16384),
+        .CODE_CACHE_SIZE(16384),
         .DATA_CACHE_LINE(32),
         .CODE_CACHE_LINE(32)
     ) u_zap (

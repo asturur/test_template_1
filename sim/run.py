@@ -55,9 +55,10 @@ def environment():
         if shutil.which(tool) is None:
             raise RuntimeError(f"required tool not found: {tool}")
     metadata = json.loads((VENDOR / "UPSTREAM.json").read_text())
+    upstream = pristine_zap()
     for name, expected in metadata["files"].items():
-        if digest(VENDOR / name) != expected:
-            raise RuntimeError(f"vendored source differs from pinned upstream: {name}")
+        if digest(upstream / name) != expected:
+            raise RuntimeError(f"reconstructed upstream differs from the pin: {name}")
     result = subprocess.run(["docker", "image", "inspect", IMAGE, "--format", "{{.Id}}"],
                             capture_output=True, text=True, check=False)
     if result.returncode:
@@ -66,14 +67,29 @@ def environment():
             "simulator_image_id": result.stdout.strip(), "vendor_verified": True}
 
 
+# third_party/zap is the patched CPU (upstream + patches/zap, checked by
+# patches/zap/verify.sh). Pristine upstream exists only in git history
+# (commit 5342c3f) and is extracted on demand for unmodified comparisons.
+PRISTINE_COMMIT = "5342c3f"
+
+
+def pristine_zap():
+    target = BUILD / "zap-upstream"
+    if not (target / "UPSTREAM.json").exists():
+        shutil.rmtree(target, ignore_errors=True)
+        target.mkdir(parents=True)
+        archive = subprocess.run(["git", "-C", ROOT, "archive", PRISTINE_COMMIT, "third_party/zap"],
+                                 capture_output=True, check=True).stdout
+        subprocess.run(["tar", "-x", "--strip-components=2", "-C", target], input=archive, check=True)
+    return target
+
+
 def prepare_zap(info, variant, destination=None):
     patches = sorted((ROOT / "patches" / "zap").glob("*.patch")) if variant == "ngage" else []
-    selected = destination or (BUILD / "zap-ngage" if patches else VENDOR)
-    if selected != VENDOR:
-        shutil.copytree(VENDOR, selected, dirs_exist_ok=True)
-        for patch in patches:
-            execute(["patch", "--batch", "--fuzz=0", "-p1", "-d", selected, "-i", patch],
-                    BUILD / f"cpu-{patch.stem}.log")
+    selected = VENDOR if variant == "ngage" else pristine_zap()
+    if destination is not None:
+        shutil.copytree(selected, destination, dirs_exist_ok=True)
+        selected = destination
     info["zap_variant"] = variant
     info["zap_patches"] = [{"path": str(p.relative_to(ROOT)), "sha256": digest(p)} for p in patches]
     return selected, patches

@@ -62,7 +62,7 @@ ngage_cpu cpu (
 );
 
 // --- board devices ------------------------------------------------------
-wire        brd_claim, brd_unmodeled;
+wire        brd_claim, brd_ready, brd_unmodeled;
 wire [31:0] brd_dout;
 
 ngage_board board (
@@ -70,7 +70,7 @@ ngage_board board (
     .cyc(wb_cyc), .stb(wb_stb), .adr(wb_adr), .we(wb_we),
     .din(wb_dat_o), .sel(wb_sel), .commit(wb_ack),
     .cfg_lcd(1'b1), .cfg_keypad(1'b1), .cfg_clocks(1'b1),
-    .claim(brd_claim), .dout(brd_dout), .unmodeled(brd_unmodeled)
+    .claim(brd_claim), .ready(brd_ready), .dout(brd_dout), .unmodeled(brd_unmodeled)
 );
 
 // --- physical address decode --------------------------------------------
@@ -134,11 +134,12 @@ assign ddram_wr   = 1'b0;                              // ROM is read-only from 
 assign ddram_din  = 32'd0;
 assign ddram_be   = wb_sel;
 
-// Acknowledge: board is combinational (1 cycle), memory waits for ready
+// Acknowledge: board when ready (block-RAM reads take one wait state),
+// memory waits for its controller
 wire mem_ack = ram_hit   ? sdram_ack :
                flash_hit ? ddram_dout_ready : 1'b0;
 
-assign wb_ack   = brd_claim ? (wb_cyc && wb_stb) : mem_ack;
+assign wb_ack   = brd_claim ? brd_ready : mem_ack;
 assign wb_dat_i = brd_claim ? brd_dout :
                   flash_hit ? flash_data :
                               sdram_dout;

@@ -12,7 +12,7 @@ WIN=''
 CKPT_AT=0
 from pathlib import Path
 root=Path.cwd();out=root/('build/sim/runs/boot-v15-'+NAME);out.mkdir(parents=True,exist_ok=True)
-rtl=root/'scratch/boot-v15-quiet-zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-nosprobe';binary=obj/'Vngage_cpu_sim'
+rtl=root/'third_party/zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-nosprobe';binary=obj/'Vngage_cpu_sim'
 rom=root/'build/firmware/nem4-factory/digest-probe-core-nosstub/SYM.ROM';extension=root/'build/firmware/nem4-factory/extension.bin'
 inputs=[*sorted(rtl.glob('*.sv')),*sorted(rtl.glob('*.svh')),root/'rtl/ngage_cpu.sv',root/'scratch/checkpoint-probe/ngage_cpu_sim.sv',board/'main.cpp',board/'boot_profile.cpp',board/'boot_profile.h',rom,extension,root/'build/firmware/thc/cdrive-stamped-4mib.img',root/'build/firmware/thc/nos-image.bin',root/'build/firmware/thc/nos-iat-region-0x6e030.bin',Path(__file__).resolve()]
 ckdir=root/'build/sim/checkpoints'

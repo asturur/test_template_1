@@ -349,10 +349,16 @@ begin
                                 2'd2: o_instruction[31:0] = {AL, 2'b00, 1'b0, MOV, 1'b0, rd, rd, 8'd0, rs}; // MOV Rd, Rs
                                 default:
                                 begin
-                                        o_instruction = 'X;
-
-                                        assert(1'd0) else
-                                        $fatal(2, "Unexpected case way in decode_alu_hi().");
+                                        // op=11 that matched neither T_BX nor T_BLX2
+                                        // (BX/BLX with SBZ bits set). Take the UND
+                                        // trap if genuinely executed. $fatal here
+                                        // killed the sim on WRONG-PATH fetches of
+                                        // literal-pool data after an unconditional
+                                        // branch (apmime 0x50603bc8 word 0x506047ec,
+                                        // low half 0x47ec, 2026-10-31) - the pipeline
+                                        // decodes such halfwords but never runs them.
+                                        o_instruction = '0;
+                                        o_und         = 1;
                                 end
                                 endcase
                         end
@@ -480,7 +486,12 @@ begin
                             base    = ARCH_SP;
                             imm    = {2'd0, i_instruction[7:0], 2'd0};
 
-                            o_instruction[34:0] = {3'd0, AL, 3'b010, 1'd1, 1'd0, 1'd0, 1'd0, i_instruction[11],
+                            // Thumb format 11 (LDR/STR Rd,[SP,#imm8*4]) uses a
+                            // POSITIVE offset, so U must be 1 (add). The upstream
+                            // ZAP decoder had U=0 (subtract), making nonzero
+                            // SP-relative accesses hit SP-imm and corrupt the
+                            // stack. Fixed to match the format-6/9 siblings.
+                            o_instruction[34:0] = {3'd0, AL, 3'b010, 1'd1, 1'd1, 1'd0, 1'd0, i_instruction[11],
                             base, srcdest, imm};
                         end
 

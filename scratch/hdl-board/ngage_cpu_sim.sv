@@ -6,6 +6,7 @@ module ngage_cpu_sim (
     input  logic          i_cfg_lcd,
     input  logic          i_cfg_keypad,
     output logic          o_board_claim,
+    output logic          o_board_ready,
     output logic [31:0]   o_board_dout,
     output logic          o_board_unmodeled,
     input  logic          i_clk,
@@ -78,6 +79,6 @@ module ngage_cpu_sim (
         .cyc(o_wb_cyc), .stb(o_wb_stb), .adr(o_wb_adr), .we(o_wb_we),
         .din(o_wb_dat), .sel(o_wb_sel), .commit(i_bus_commit),
         .cfg_lcd(i_cfg_lcd), .cfg_keypad(i_cfg_keypad),
-        .claim(o_board_claim), .dout(o_board_dout), .unmodeled(o_board_unmodeled)
+        .claim(o_board_claim), .ready(o_board_ready), .dout(o_board_dout), .unmodeled(o_board_unmodeled)
     );
 endmodule

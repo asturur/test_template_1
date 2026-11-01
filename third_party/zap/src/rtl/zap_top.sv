@@ -154,6 +154,8 @@ logic [2:0]      wb_cti;
 logic            wb_ack;
 logic            wb_err;
 logic            cpu_mmu_en;
+logic            cpu_alignment_fault;
+logic [31:0]     cpu_alignment_far;
 logic [ZAP_CPSR_MODE:0] cpu_cpsr;
 logic            cpu_mem_translate;
 logic [31:0]     cpu_daddr, cpu_daddr_nxt, cpu_daddr_check;
@@ -192,6 +194,7 @@ logic            d_wb_ack;
 logic            d_wb_err;
 logic [63:0]     dc_rreg_idx, dc_wreg_idx;
 logic [5:0]      dc_rreg_idx_bin;
+logic [5:0]      dc_load_info;
 logic [63:0]     dc_lock;
 logic [31:0]     dc_reg_data;
 logic            icache_err2, dcache_err2;
@@ -261,6 +264,8 @@ zap_core #(
 // Data related.
 .o_data_wb_we           (cpu_dc_we),
 .o_data_wb_adr          (cpu_daddr),
+.o_data_alignment_fault (cpu_alignment_fault),
+.o_data_alignment_far   (cpu_alignment_far),
 .o_data_wb_sel          (cpu_dc_sel),
 .o_data_wb_dat          (cpu_dc_dat),
 /* verilator lint_off PINCONNECTEMPTY */
@@ -307,6 +312,7 @@ zap_core #(
 .o_cpsr                 (cpu_cpsr[ZAP_CPSR_MODE:0]),
 .o_dc_reg_idx           (dc_rreg_idx),
 .o_dc_reg_idx_bin       (dc_rreg_idx_bin),
+.o_dc_load_info         (dc_load_info),
 
 .i_dc_reg_idx           (!ONLY_CORE ? dc_wreg_idx : '0),
 .i_dc_lock              (!ONLY_CORE ? dc_lock : '0),
@@ -543,6 +549,8 @@ u_data_cache (
 .i_stall                (1'd0), // For timing.
 .i_reset                (s_reset),
 .i_address              (cpu_daddr      ),
+.i_alignment_fault      (cpu_alignment_fault),
+.i_alignment_far        (cpu_alignment_far),
 .i_address_nxt          (cpu_daddr_nxt  ),
 .i_address_check        (cpu_daddr_check),
 .i_wr_check             (cpu_dwe_check),
@@ -553,6 +561,7 @@ u_data_cache (
 .i_dat                  (cpu_dc_dat),
 .i_reg_idx              (dc_rreg_idx),
 .i_reg_idx_bin          (dc_rreg_idx_bin),
+.i_load_info            (dc_load_info),
 
 .o_dat                  (dc_data),
 .o_ack                  (data_ack),

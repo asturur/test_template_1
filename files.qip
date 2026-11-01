@@ -10,6 +10,7 @@ set_global_assignment -name QIP_FILE rtl/pll.qip
 # N-Gage core modules
 set_global_assignment -name VERILOG_FILE rtl/ngage_mister.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_bram_be.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_descramble.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_modem.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cpu.sv

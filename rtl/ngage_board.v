@@ -28,6 +28,13 @@
     Device 6 (2026-11-01): free-running counter 0x0c150112 + window 0x0c150114.
 
     All byte/halfword/word widths accepted (the NOS uses all three).
+
+    The latch arrays (devices 2, 4, 5) live in block RAM with a registered
+    read: a read of one of them asserts `ready` on the second cycle of the
+    request (the address is held stable until the ack). Register-backed
+    devices and all writes are ready immediately. An earlier version read
+    the arrays combinationally, which forced Quartus to build the 64KB GPIO
+    array out of ~525K registers and did not fit the Cyclone V.
 */
 
 module ngage_board(
@@ -47,6 +54,7 @@ module ngage_board(
     input  wire        cfg_clocks,  // ideal-clocks option
     // service
     output reg         claim,
+    output wire        ready,       // dout valid / access may be acknowledged
     output reg  [31:0] dout,
     output reg         unmodeled
 );
@@ -73,7 +81,9 @@ wire hdr_ok = din == 32'h4f30_0000 || din == 32'h4920_0000 ||
 wire gpio_hit = cfg_keypad && (
     // original GPIO banks
     (a[31:12] == 20'h0c150 && (
-        (a[11:0] < 12'h600) ||          // 0x0c150000-0x05ff
+        // 0x0c150000-0x05ff minus 0x420/0x424: the UEM control bus (CBUS)
+        // is a stateful device still served by the C++ model only.
+        (a[11:0] < 12'h600 && a[11:3] != 9'h084) ||
         (a[11:0] >= 12'h800 && a[11:0] < 12'h900)  // FBUS port 0x800-0x8ff
     )) ||
     // ICU-adjacent
@@ -95,17 +105,10 @@ wire gpio_hit = cfg_keypad && (
     a == 32'h0c12_0034
 );
 
-// GPIO storage: block-RAM-friendly 16K-word array, word-addressed.
-// Address mapping: the combinational index select maps each range into
-// a 16-bit array index. Ranges that don't overlap share index space.
-// We use the low 16 bits of the physical address as the index since
-// no two gated ranges share the same low-16 value.
-// GPIO latch storage: synthesis infers block RAM; reset via the
-// registered always block (reads return 0 until written, matching
-// zero-reset latch semantics). No initial loop needed.
-(* ramstyle = "no_rw_check" *)
-reg  [31:0] gpr [0:16383];   // 64KB, covers all widths
+// GPIO storage: 16K words indexed by the low 16 address bits (no two gated
+// ranges share a low-16 value). Zero until written (zero-reset latches).
 wire [13:0] gidx = a[15:2];
+wire [31:0] gpr_q;
 
 // ---- device 3: ideal-clock block -------------------------------------------
 wire clk_hit = cfg_clocks && (a == 32'h0c12_0004 || a == 32'h0c12_0008 ||
@@ -120,15 +123,46 @@ wire nos4k_hit = cfg_keypad && (
     (a[31:12] == 20'h0c000)        // ASIC ROM stub page (reads only)
 );
 
-(* ramstyle = "no_rw_check" *)
-reg [31:0] nos4k [0:1023];         // 4KB for 0x0c004xxx
+wire [31:0] nos4k_q;               // 4KB for 0x0c004xxx
 
 // ---- device 5: 0x0d space (peripherals + trace sink) -----------------------
 wire d_space_hit = cfg_keypad && (a[31:24] == 8'h0d);
 
-(* ramstyle = "no_rw_check" *)
-reg [31:0] d_regs [0:1023];        // sampled subset (not full 16MB)
+wire [31:0] d_q;                   // sampled subset (not full 16MB)
 wire [9:0] d_idx = a[11:2];        // per-64KB-block window
+
+// ---- block-RAM latch arrays ------------------------------------------------
+wire req      = cyc && stb;
+wire wr_ok    = commit && we && !unmodeled;
+wire nos4k_ram = nos4k_hit && a[31:12] == 20'h0c004;
+
+ngage_bram_be #(.AW(14)) gpr_ram (
+    .clk(clk), .raddr(gidx), .rdata(gpr_q),
+    .waddr(gidx), .we((gpio_hit && wr_ok) ? sel : 4'd0), .wdata(din));
+
+ngage_bram_be #(.AW(10)) nos4k_ram_i (
+    .clk(clk), .raddr(a[11:2]), .rdata(nos4k_q),
+    .waddr(a[11:2]), .we((nos4k_ram && wr_ok) ? sel : 4'd0), .wdata(din));
+
+ngage_bram_be #(.AW(10)) d_ram (
+    .clk(clk), .raddr(d_idx), .rdata(d_q),
+    .waddr(d_idx), .we((d_space_hit && wr_ok) ? sel : 4'd0), .wdata(din));
+
+// A RAM-backed read is ready once the RAM has sampled this request's
+// address on a previous edge; cleared on every ack so the next request
+// (even to the same address, e.g. after a write) re-reads.
+reg        rd_vld;
+reg [31:0] rd_adr;
+wire ram_read = !we && (gpio_hit || nos4k_ram || d_space_hit);
+assign ready  = !ram_read || (rd_vld && rd_adr == a);
+
+always @(posedge clk) begin
+    if (rst || commit || !req) rd_vld <= 1'b0;
+    else begin
+        rd_vld <= 1'b1;
+        rd_adr <= a;
+    end
+end
 
 // ---- device 6: free-running counter ----------------------------------------
 reg [31:0] fcnt;                    // ticks once per 3174 clocks (32.768kHz@104MHz)
@@ -146,11 +180,11 @@ always @(*) begin
             if (we) unmodeled = 1'b1;
             else dout = 32'h4770_4770;
         end else begin
-            dout = nos4k[a[11:2]] & wmask;
+            dout = nos4k_q & wmask;
             if (we) ; // commit handles write
         end
     end else if (d_space_hit && cyc && stb) begin
-        dout = d_regs[d_idx] & wmask;
+        dout = d_q & wmask;
     end else if (clk_hit && cyc && stb) begin
         if (a == 32'h0c12_0020) begin
             if (we || ctlw != 4'hf) unmodeled = 1'b1;
@@ -175,7 +209,7 @@ always @(*) begin
             endcase
         end
     end else if (gpio_hit && cyc && stb) begin
-        dout = gpr[gidx] & wmask;
+        dout = gpr_q & wmask;
         // ---- quirk bits on reads ----
         // euart1 TX idle (0x0c150514 bit 2)
         if (a == 32'h0c15_0514 && !we) dout = dout | (32'h4 & wmask);
@@ -192,7 +226,7 @@ always @(*) begin
         // free-running counter 0x0c150110 upper halfword = counter
         if (a == 32'h0c15_0110 && !we) dout = (dout & 32'h0000_ffff) | {fcnt[15:0], 16'd0};
         // window constant 0x0c150114: reads 0x0080 if never written
-        if (a == 32'h0c15_0114 && !we && (gpr[gidx] & 16'hffff) == 16'd0)
+        if (a == 32'h0c15_0114 && !we && gpr_q[15:0] == 16'd0)
             dout = (dout & 32'hffff_0000) | 16'h0080;
     end else if (lcd_hit && cyc && stb) begin
         if (sel != 4'hf) unmodeled = 1'b1;
@@ -233,12 +267,6 @@ always @(posedge clk) begin
         end else
             fcnt_div <= fcnt_div + 12'd1;
 
-        if (nos4k_hit && commit && we && !unmodeled && a[31:12] == 20'h0c004)
-            nos4k[a[11:2]] <= (nos4k[a[11:2]] & ~wmask) | (din & wmask);
-
-        if (d_space_hit && commit && we && !unmodeled)
-            d_regs[d_idx] <= (d_regs[d_idx] & ~wmask) | (din & wmask);
-
         if (clk_hit && commit && we && !unmodeled) begin
             case (a)
                 32'h0c12_0004: begin ctlv <= (ctlv & ~wmask) | (din & wmask); ctlw <= ctlw | sel; end
@@ -246,9 +274,6 @@ always @(posedge clk) begin
                 default:       begin pllv <= (pllv & ~wmask) | (din & wmask); pllw <= pllw | sel; end
             endcase
         end
-
-        if (gpio_hit && commit && we && !unmodeled)
-            gpr[gidx] <= (gpr[gidx] & ~wmask) | (din & wmask);
 
         if (lcd_hit && commit && we && !unmodeled) begin
             if (a == 32'h0c12_1204) begin

@@ -371,7 +371,12 @@ int run(int argc, char** argv) {
             wait = latency ? transactions % (latency + 1) : 0;
             pending = true;
         }
-        if (pending && wait == 0) {
+        bool board_wait = false;
+#ifdef NGAGE_HDL_BOARD
+        // Block-RAM-backed board reads need one extra cycle before dout is valid.
+        board_wait = pending && wait == 0 && cpu->o_board_claim && !cpu->o_board_ready;
+#endif
+        if (pending && wait == 0 && !board_wait) {
             const uint32_t address = request.address & ~uint32_t(3);
             uint32_t data = 0;
             uint8_t* memory = nullptr;
@@ -414,7 +419,10 @@ int run(int argc, char** argv) {
                 // HDL board must have claimed the same addresses and, for
                 // reads, produced the same data.
                 if (hdl_claim) {
-                    if (!request.write && !bus_fault && data != hdl_data) {
+                    const uint32_t lanes = (request.select & 1 ? 0xffu : 0) | (request.select & 2 ? 0xff00u : 0) |
+                                         (request.select & 4 ? 0xff0000u : 0) | (request.select & 8 ? 0xff000000u : 0);
+                    // Unselected byte lanes are don't-care on the bus.
+                    if (!request.write && !bus_fault && ((data ^ hdl_data) & lanes)) {
                         status = "hdl_divergence";
                         blocked_address = request.address;
                         blocked_reason = "HDL read data differs from C++ oracle";
@@ -516,7 +524,7 @@ int run(int argc, char** argv) {
             fetch_faults += bus_fault;
             pending = false;
             ++transactions;
-        } else if (pending) --wait;
+        } else if (pending && !board_wait) --wait;
         cpu->eval();
         if (mmu_seen && cpu->o_branch_valid) {
             std::ostringstream line;
