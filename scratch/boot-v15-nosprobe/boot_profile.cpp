@@ -844,11 +844,12 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 {
                     const unsigned reg = cbus_command_ & 0xff;
                     if (reg == 0x24 && cbus_config_ == 7) cbus_written_[0x124] = 1;
-                    // Bit 3 is latched from power-on (time == alarm == 0) until acked.
-                    if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 8) & ~value);
+                    // Bit 3 is NOT latched at power-on: a latched alarm makes ecust report an
+                    // ALARM wake (reason 1) and the NOS powers off again (boot-v15-auth22).
+                    if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) & ~value);
                     if (reg == 0x36 && cbus_written_.count(0x124) && !(value & 8)) {
                         cbus_written_.erase(0x124);
-                        cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 8) | 8);
+                        cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) | 8);
                         if (uem_irq_source1_) { uem_irq_pending_ = true; ++uem_irqs_; }
                     }
                 }
@@ -900,7 +901,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 if (uem_status35_ < 0) { reason_ = "UEM 0x35 status is not supplied"; return false; }
                 device = "assumed_uem_status35";
                 const auto rtc = cbus_written_.find(0x135);
-                data = uint32_t(uem_status35_ | (rtc != cbus_written_.end() ? rtc->second : 8)) << 16; return true;
+                data = uint32_t(uem_status35_ | (rtc != cbus_written_.end() ? rtc->second : 0)) << 16; return true;
             }
             if ((cbus_command_ & 0xff) == 0x36 && uem_status36_ >= 0 && !cbus_written_.count(0x36)) {
                 device = "assumed_uem_status36"; data = uint32_t(uem_status36_) << 16; return true;
@@ -909,10 +910,6 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             // (ecust 0x5034f374), which writes (NOS UEM init writes 0x32=0x20)
             // do not change; the counter is frozen at its cbus-input value.
             const bool rtc_counter = cbus_config_ == 7 && (cbus_command_ & 0xff) >= 0x31 && (cbus_command_ & 0xff) <= 0x33;
-            // Day counter (config 7 reg 0x21, read by 0x5034f374 after h/m/s): an
-            // all-zero RTC is TTime(0), which the driver treats as "no alarm"
-            // (0x5034e1b4 -> state 9). Hypothesis: RTC preset to day 1, 00:00:00.
-            if (cbus_config_ == 7 && (cbus_command_ & 0xff) == 0x21) { device = "assumed_rtc_counter"; data = 1u << 16; return true; }
             if (auto input = cbus_inputs_.find(cbus_command_ & 0xff); input != cbus_inputs_.end() && (rtc_counter || !cbus_written_.count(cbus_command_ & 0xff))) {
                 device = "assumed_cbus_input"; data = uint32_t(input->second) << 16; return true;
             }
@@ -1539,6 +1536,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 // Top 64KB of CS0 = the NOS PMM/security sector, not part of
                 // the 20.3MB dump. Factory-fresh hypothesis: erased flash;
                 // halfwords the NOS programs are served by the overlay above.
+                if (pmm_image_.size() == 0x10000) { device = "pmm_seed_image"; data = pmm_word(pa & ~3u); return true; }
                 device = "pmm_sector_erased"; data = 0xffffffffu; return true;
             }
             else if (pa >= 0x02000000u && pa < 0x02400000u) off = uint64_t(pa) - 0x02000000u + 0x00700000u; // CS1
@@ -1579,6 +1577,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
     // hypothesis: erased flash; programmed halfwords are served by the
     // overlay in the flash dispatch above.
     if (!request.write && address >= 0x007f0000u && address < 0x00800000u) {
+        if (pmm_image_.size() == 0x10000) { device = "pmm_seed_image"; data = pmm_word(address & ~3u); return true; }
         device = "pmm_sector_erased"; data = 0xffffffffu; return true;
     }
     reason_ = "unmapped physical address";

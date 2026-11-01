@@ -41,6 +41,11 @@ public:
     void dump_lcd_dma(std::ostream& out) const;
     void set_nos_iat_region(std::vector<uint8_t> v) { nos_iat_region_ = std::move(v); }
     void set_watch_word(uint32_t v) { watch_word_ = v; watch_word_set_ = true; }
+    // Seeded PMM sector image (CS0 0x7f0000-0x7fffff, 64KB). Input like the ROM,
+    // not serialized; NOS-programmed halfwords still come from the overlay.
+    void set_pmm_image(std::vector<uint8_t> v) { pmm_image_ = std::move(v); }
+    std::vector<uint8_t> pmm_image_;
+    uint32_t pmm_word(uint32_t pa) const { const size_t o = pa - 0x007f0000u; return pmm_image_[o] | pmm_image_[o+1] << 8 | pmm_image_[o+2] << 16 | uint32_t(pmm_image_[o+3]) << 24; }
     void set_rom_va_dump() { rom_va_dump_ = true; }
     void set_phys2dump(std::map<uint32_t,uint32_t> m) { phys2dump_ = std::move(m); }
     void save_state(std::ostream& out) const;

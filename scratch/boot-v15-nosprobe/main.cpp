@@ -86,6 +86,8 @@ int run(int argc, char** argv) {
     std::map<int,int> cbus_inputs;
     uint64_t timer_irq_delay = 0, checkpoint_at = 0, checkpoint_every = 0, win_lo = 0, win_hi = 0;
     std::set<uint32_t> pc_log;   // pc-log=0xADDR: always log retirements at these PCs
+    std::string pmm_image_path;   // pmm-image=FILE: seeded 64KB PMM sector
+    int64_t watch_addr = -1;     // watch-addr=PA: log every bus write to this word
     int64_t watch_word = -1;     // watch-word=0xVAL: tag full-word RAM writes of VAL
     bool rom_va_dump = false;    // rom-va-dump: rom_ is the real-phone VA snapshot (THC dump)
     std::map<uint32_t,uint32_t> rom_va_map;  // rom-va-map: phys page -> dump offset (real captured map)
@@ -131,6 +133,8 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]).rfind("checkpoint-at=", 0) == 0) checkpoint_at = std::stoull(std::string(argv[i]).substr(14));
         else if (std::string(argv[i]).rfind("checkpoint-every=", 0) == 0) checkpoint_every = std::stoull(std::string(argv[i]).substr(17));
         else if (std::string(argv[i]).rfind("pc-log=", 0) == 0) pc_log.insert(uint32_t(std::stoul(std::string(argv[i]).substr(7), nullptr, 0)));
+        else if (std::string(argv[i]).rfind("pmm-image=", 0) == 0) pmm_image_path = std::string(argv[i]).substr(10);
+        else if (std::string(argv[i]).rfind("watch-addr=", 0) == 0) watch_addr = int64_t(std::stoul(std::string(argv[i]).substr(11), nullptr, 0));
         else if (std::string(argv[i]).rfind("watch-word=", 0) == 0) watch_word = int64_t(std::stoul(std::string(argv[i]).substr(11), nullptr, 0));
         else if (std::string(argv[i]) == "rom-va-dump") rom_va_dump = true;
         else if (std::string(argv[i]) == "descramble-window") {}  // handled before board construction (ROM descramble)
@@ -251,6 +255,12 @@ int run(int argc, char** argv) {
     if (profile_name != "none") board = std::make_unique<BootProfile>(rom, rom_bytes, profile_name, ideal_clocks, lcd_probe, rom_tail, boot_io_probe, adc_all, timer_irq_delay, uem_power_eff, uem_status36, uem_status35, extra_cbus_write, extra_cbus_write2, allow_uif_8000, allow_icu25, gpio210_low_zero, gpio21a_zero, gpio216_zero, uif102_write, cbus82_readback, cbus80_input, cbus8d_zero, icu46_write, pupf00a_zero, sysc0c14_zero, probe_regs, gpio214_low_zero, pupf004_low_zero, gpio206_extra_write, sysc74_write3, gpio24_28_write1, timer_compare_probe, sysc50_44_probe, icu1c8_probe, timer_periodic, block14d_probe, debug59_sink, cbus_inputs, nos_entry_stub, keypad_gpio, icu_banks, timer_units, cdrive_flash, unit60_irq3, nos_image, uem_irq_source1, epbus_clkblk, cdrive_image, nos_iat, nos_periph4000);
     if (board && !nos_iat_region.empty()) board->set_nos_iat_region(std::move(nos_iat_region));
     if (board && watch_word >= 0) board->set_watch_word(uint32_t(watch_word));
+    if (board && !pmm_image_path.empty()) {
+        std::ifstream f(pmm_image_path, std::ios::binary);
+        std::vector<uint8_t> img((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+        if (img.size() != 0x10000) throw std::runtime_error("pmm-image must be 65536 bytes");
+        board->set_pmm_image(std::move(img));
+    }
     if (board && rom_va_dump) board->set_rom_va_dump();
     if (board && !rom_va_map.empty()) board->set_phys2dump(std::move(rom_va_map));
     rom.resize(std::max<size_t>(65536, (rom.size() + 63) & ~size_t(63)), 0);
@@ -489,9 +499,11 @@ int run(int argc, char** argv) {
                     data |= uint32_t(memory[byte]) << (8 * byte);
                 }
             }
+            if (watch_addr >= 0 && request.write && address == uint32_t(watch_addr))
+                bus_log << std::dec << cycle << "\tWATCH_WRITE\t0x" << std::hex << request.address << "\t0x" << unsigned(request.select) << "\t0x" << request.data << "\tdata\twatch_addr\n";
             if (!compact_trace || bus_fault || device == "flash_command" || device == "flash_identify" ||
                 device == "observed_boot_latch" || device == "ideal_clock_status" ||
-                device == "ideal_pll_status" || device == "lcd_probe_transport" || device == "reconstructed_flash_tail" || device == "ideal_boot_cbus_status" || device == "boot_cbus_latched_data" || device == "assumed_uem_adc_data" || device == "assumed_icu1c8_write" || device == "assumed_sysc50_44_write" || device == "assumed_gpio24_28_write1" || device == "assumed_sysc74_write3" || device == "assumed_register_probe" || device == "assumed_cbus82_readback" || device == "assumed_cbus80_input" || device == "assumed_cbus_input" || device == "assumed_cbus8d_read" || device == "assumed_uem_power_status" || device == "assumed_uem_status36" || device == "assumed_uem_status35" || device == "assumed_timer_status" || device == "assumed_icu_current" || device == "assumed_block14d_probe" || device == "assumed_debug59_write" || device == "assumed_debug59_control" || device == "synthetic_nos_entry_stub" || device == "synthetic_nos_power_model" || device == "assumed_keypad_gpio" || device == "assumed_icu_bank" || device == "assumed_timer_unit" || device == "cdrive_flash" || device == "assumed_irq_halfword_write" || device == "assumed_uif_8000_write" || device == "assumed_uif_0010_write" || device == "assumed_icu46_write" || device == "timer_setup_write" || device == "watched_word_write" || device == "assumed_nos_periph4000" || device == "assumed_asic_rom_stub" || device == "factory_device_id" || device == "flash_pmm_status" || device == "flash_pmm_overlay" || device == "pmm_sector_erased" || device == "thc_dump_flash_array" || device == "thc_dump_ppm_tail_erased")
+                device == "ideal_pll_status" || device == "lcd_probe_transport" || device == "reconstructed_flash_tail" || device == "ideal_boot_cbus_status" || device == "boot_cbus_latched_data" || device == "assumed_uem_adc_data" || device == "assumed_icu1c8_write" || device == "assumed_sysc50_44_write" || device == "assumed_gpio24_28_write1" || device == "assumed_sysc74_write3" || device == "assumed_register_probe" || device == "assumed_cbus82_readback" || device == "assumed_cbus80_input" || device == "assumed_cbus_input" || device == "assumed_cbus8d_read" || device == "assumed_uem_power_status" || device == "assumed_uem_status36" || device == "assumed_uem_status35" || device == "assumed_timer_status" || device == "assumed_icu_current" || device == "assumed_block14d_probe" || device == "assumed_debug59_write" || device == "assumed_debug59_control" || device == "synthetic_nos_entry_stub" || device == "synthetic_nos_power_model" || device == "assumed_keypad_gpio" || device == "assumed_icu_bank" || device == "assumed_timer_unit" || device == "cdrive_flash" || device == "assumed_irq_halfword_write" || device == "assumed_uif_8000_write" || device == "assumed_uif_0010_write" || device == "assumed_icu46_write" || device == "timer_setup_write" || device == "watched_word_write" || device == "assumed_nos_periph4000" || device == "assumed_asic_rom_stub" || device == "factory_device_id" || device == "flash_pmm_status" || device == "flash_pmm_overlay" || device == "pmm_sector_erased" || device == "pmm_seed_image" || device == "thc_dump_flash_array" || device == "thc_dump_ppm_tail_erased")
             bus_log << std::dec << cycle << '\t' << (bus_fault ? "FETCH_ERROR" : request.write ? "WRITE" : "READ")
                     << "\t0x" << std::hex << std::setw(8) << std::setfill('0') << request.address
                     << "\t0x" << unsigned(request.select) << "\t0x"

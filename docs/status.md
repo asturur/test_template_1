@@ -1,5 +1,34 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~13:30 Startup-reason chain; PMM seeding; cold-boot model (update made with Claude)
+
+Findings since the ~11:00 entry (all static RE + pc-log/bus correlation):
+ - NVD records 0xd40000-2 empty -> Nvd_lib returns the firmware's own ROM
+   default (all zero). A used phone has them in PMM. NEW: option
+   pmm-image=FILE serves a 64KB PMM sector image (input, not serialized;
+   NOS-programmed halfwords still overlay). scratch/pmm/seed_pmm.py writes
+   records in the NOS PMM format (sector F0F0/PMMCAT headers, 12-byte record
+   headers, no checksum - decoded from format 0x514beb4c / scan 0x515c7a30);
+   the NOS parses them (appends its own record after them). Ordering found
+   by brute force: --values a,a,n (rec0=rec1=date, rec2=date+1 day) makes
+   ecust RTC op1 reach state 2 (0x5034e830, observed). Also needed:
+   cbus-input=0x24=1 (ecust RTC init 0x5034e0ec reads logical reg 4 = UEM
+   0x24; nonzero = "RTC set", sets driver [+0x3c]).
+ - A day-counter hack on config-7 reg 0x21 was WRONG (logical reg 1 = 0x21
+   is polled to 0 at init) and is removed.
+ - With the RTC fixed the NOS no longer faults but POWERS OFF (MTC_POWER_OFF
+   0x514c214c(1) -> 0x514c10b4). Cause: ecust startup reason
+   [ecustobj+0x14] (computed 0x503497dc/0x50349840): [+0x80] (copied from
+   bootstrap flag [0x4000101c], cleared on cold boot) -> 0 NORMAL; else
+   alarm object -> 1/2 ALARM; else UEM 0x35 bit 4 -> 4 CHARGING; else 9.
+   uem-status35=16 (old guess) => CHARGING => no charger => power off.
+   With uem-status35=0 and the alarm bit latched at power-on => ALARM wake =>
+   power off again (auth22). Model now: alarm status bit NOT latched at
+   power-on. Run boot-v15-auth23 (from reset, 2.4e9, seed aan, 0x24=1,
+   status35=0) tests the honest cold power-key boot.
+ - OPEN: a cold boot yields reason 9 (no path returns NORMAL unless
+   [0x4000101c]!=0); verify what the NOS does with 9 (raw >6 -> MTC FAILED).
+
 ## 2026-11-01 ~11:00 RTC chain decoded; blocker is now empty NVD records (update made with Claude)
 
 FPGA: CI 41289756644 FITS - 19,778/41,910 ALMs (47%), 186/553 RAM blocks,
