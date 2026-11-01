@@ -100,10 +100,12 @@ wire gpio_hit = cfg_keypad && (
 // a 16-bit array index. Ranges that don't overlap share index space.
 // We use the low 16 bits of the physical address as the index since
 // no two gated ranges share the same low-16 value.
+// GPIO latch storage: synthesis infers block RAM; reset via the
+// registered always block (reads return 0 until written, matching
+// zero-reset latch semantics). No initial loop needed.
+(* ramstyle = "no_rw_check" *)
 reg  [31:0] gpr [0:16383];   // 64KB, covers all widths
 wire [13:0] gidx = a[15:2];
-integer gi;
-initial for (gi = 0; gi < 16384; gi = gi + 1) gpr[gi] = 32'd0;
 
 // ---- device 3: ideal-clock block -------------------------------------------
 wire clk_hit = cfg_clocks && (a == 32'h0c12_0004 || a == 32'h0c12_0008 ||
@@ -118,16 +120,14 @@ wire nos4k_hit = cfg_keypad && (
     (a[31:12] == 20'h0c000)        // ASIC ROM stub page (reads only)
 );
 
+(* ramstyle = "no_rw_check" *)
 reg [31:0] nos4k [0:1023];         // 4KB for 0x0c004xxx
-integer n4i;
-initial for (n4i = 0; n4i < 1024; n4i = n4i + 1) nos4k[n4i] = 32'd0;
 
 // ---- device 5: 0x0d space (peripherals + trace sink) -----------------------
 wire d_space_hit = cfg_keypad && (a[31:24] == 8'h0d);
 
+(* ramstyle = "no_rw_check" *)
 reg [31:0] d_regs [0:1023];        // sampled subset (not full 16MB)
-integer di;
-initial for (di = 0; di < 1024; di = di + 1) d_regs[di] = 32'd0;
 wire [9:0] d_idx = a[11:2];        // per-64KB-block window
 
 // ---- device 6: free-running counter ----------------------------------------
