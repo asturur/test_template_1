@@ -49,6 +49,8 @@ localparam CONF_STR = {
 	"-;",
 	"F0,BIN,Load ROM (core.bin);",
 	"-;",
+	"RE,Save C: drive;",
+	"-;",
 	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
 	"v,0;",
@@ -93,7 +95,14 @@ hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
 	.ioctl_index(ioctl_index),
-	.ioctl_wait(ioctl_wait)
+	.ioctl_wait(ioctl_wait),
+
+	// C: drive save (upload DDR3 → SD card)
+	.ioctl_upload(ioctl_upload),
+	.ioctl_upload_req(save_cdrive_req),
+	.ioctl_upload_index(8'h80),          // index[7:6]=10 = boot2.rom (C:)
+	.ioctl_din(save_din),
+	.ioctl_rd(ioctl_rd)
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
@@ -112,6 +121,30 @@ pll pll
 );
 
 wire reset = RESET | status[0] | buttons[1] | ~pll_locked | ioctl_download;
+
+///////////////////////   C: DRIVE SAVE   ////////////////////////////
+
+// "Save C: drive" OSD button (status bit E = 14) triggers upload
+wire save_cdrive_btn = status[14];
+reg  save_cdrive_btn_d;
+reg  save_cdrive_req;
+wire ioctl_upload;
+wire ioctl_rd;
+
+always @(posedge clk_sys) begin
+	save_cdrive_btn_d <= save_cdrive_btn;
+	if (save_cdrive_btn && !save_cdrive_btn_d)
+		save_cdrive_req <= 1;
+	else if (ioctl_upload)
+		save_cdrive_req <= 0;
+end
+
+// During upload: read C: drive data from DDR3 and feed to ioctl_din
+// The HPS drives ioctl_rd pulses; we respond with ioctl_din from DDR3.
+// C: drive is at DDR3 word offset 0x500000 (0x1400000 >> 2), 4MB.
+// TODO: wire DDR3 read port for upload (needs arbitration with CPU reads).
+// For now: stub data.
+wire [15:0] save_din = 16'hFFFF;  // TODO: DDR3 readback
 
 ///////////////////////   SDRAM   ////////////////////////////////
 
