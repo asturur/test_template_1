@@ -1,18 +1,7 @@
 //============================================================================
 //
-//  This program is free software; you can redistribute it and/or modify it
-//  under the terms of the GNU General Public License as published by the Free
-//  Software Foundation; either version 2 of the License, or (at your option)
-//  any later version.
-//
-//  This program is distributed in the hope that it will be useful, but WITHOUT
-//  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-//  FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-//  more details.
-//
-//  You should have received a copy of the GNU General Public License along
-//  with this program; if not, write to the Free Software Foundation, Inc.,
-//  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+//  N-Gage MiSTer core — Template.sv (emu module)
+//  104 MHz CPU + SDRAM, DDR3 for ROM/flash, BRAM framebuffer
 //
 //============================================================================
 
@@ -27,8 +16,6 @@ assign ADC_BUS  = 'Z;
 assign USER_OUT = '1;
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
-assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
-assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
 
 assign VGA_SL = 0;
 assign VGA_F1 = 0;
@@ -54,42 +41,32 @@ wire [1:0] ar = status[122:121];
 assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
 assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
 
-`include "build_id.v" 
+`include "build_id.v"
 localparam CONF_STR = {
-	"Template;;",
+	"NGage;;",
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"O[2],TV Mode,NTSC,PAL;",
-	"O[4:3],Noise,White,Red,Green,Blue;",
 	"-;",
-	"P1,Test Page 1;",
-	"P1-;",
-	"P1-, -= Options in page 1 =-;",
-	"P1-;",
-	"P1O[5],Option 1-1,Off,On;",
-	"d0P1F1,BIN;",
-	"H0P1O[10],Option 1-2,Off,On;",
-	"-;",
-	"P2,Test Page 2;",
-	"P2-;",
-	"P2-, -= Options in page 2 =-;",
-	"P2-;",
-	"P2S0,DSK;",
-	"P2O[7:6],Option 2,1,2,3,4;",
-	"-;",
+	"F0,BIN,Load ROM (core.bin);",
 	"-;",
 	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
-	"v,0;", // [optional] config version 0-99. 
-	        // If CONF_STR options are changed in incompatible way, then change version number too,
-			  // so all options will get default values on first start.
-	"V,v",`BUILD_DATE 
+	"v,0;",
+	"V,v",`BUILD_DATE
 };
 
 wire forced_scandoubler;
 wire   [1:0] buttons;
 wire [127:0] status;
 wire  [10:0] ps2_key;
+wire  [15:0] joystick_0;
+
+// ioctl (HPS data loading: ROM, extension, C: image)
+wire        ioctl_download;
+wire        ioctl_wr;
+wire [24:0] ioctl_addr;
+wire [15:0] ioctl_dout;
+wire  [7:0] ioctl_index;
 
 hps_io #(.CONF_STR(CONF_STR)) hps_io
 (
@@ -102,72 +79,114 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 
 	.buttons(buttons),
 	.status(status),
-	.status_menumask({status[5]}),
-	
-	.ps2_key(ps2_key)
+	.status_menumask(0),
+
+	.ps2_key(ps2_key),
+	.joystick_0(joystick_0),
+
+	.ioctl_download(ioctl_download),
+	.ioctl_wr(ioctl_wr),
+	.ioctl_addr(ioctl_addr),
+	.ioctl_dout(ioctl_dout),
+	.ioctl_index(ioctl_index)
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
 
-wire clk_sys;
+wire clk_sys;          // 104 MHz — CPU, bus, board devices, SDRAM logic
+wire clk_sdram;        // 104 MHz −90° — SDRAM chip clock pin
+wire pll_locked;
+
 pll pll
 (
 	.refclk(CLK_50M),
 	.rst(0),
-	.outclk_0(clk_sys)
+	.outclk_0(clk_sys),
+	.outclk_1(clk_sdram),
+	.locked(pll_locked)
 );
 
-wire reset = RESET | status[0] | buttons[1];
+wire reset = RESET | status[0] | buttons[1] | ~pll_locked;
 
-wire [1:0] col = status[4:3];
+///////////////////////   SDRAM   ////////////////////////////////
 
-wire HBlank;
-wire HSync;
-wire VBlank;
-wire VSync;
-wire ce_pix;
-wire hvcnt_atzero;
-wire [7:0] video;
+// SDRAM active during run; directly driven by the core at 104 MHz.
+// Phone RAM = 16MB at PA 0x0a000000.
+// The −90° phase-shifted clock goes to the SDRAM chip.
+assign SDRAM_CLK = clk_sdram;
+assign SDRAM_CKE = 1'b1;
 
-// Leave H/V sync always on. This stabilizes the video output while the core
-// is in reset. This example releases the reset when H/V counters are at zero.
-reg reset_core = 1;
-always @(posedge clk_sys) begin
-	if(reset) reset_core <= 1;
-	else if(hvcnt_atzero) reset_core <= 0;
-end
+// TODO: SDRAM controller instantiation here.
+// Candidates: jtframe_sdram, or a simple single-port controller.
+// The N-Gage needs only one master (CPU) for the phone's 16MB RAM.
+// No video refresh from SDRAM (framebuffer is in BRAM).
 
-mycore mycore
-(
-	.clk(clk_sys),
-	.reset(reset_core),
+// Directly connect SDRAM pins to the controller (stub for now)
+wire [31:0] sdram_dout;
+wire        sdram_ack;
 
-	.pal(status[2]),
-	.scandouble(forced_scandoubler),
+// Stub: SDRAM not yet connected — directly drives 'Z
+assign SDRAM_DQ   = 16'hZZZZ;
+assign SDRAM_A    = 13'd0;
+assign SDRAM_BA   = 2'd0;
+assign SDRAM_DQML = 1'b1;
+assign SDRAM_DQMH = 1'b1;
+assign SDRAM_nWE  = 1'b1;
+assign SDRAM_nCAS = 1'b1;
+assign SDRAM_nRAS = 1'b1;
+assign SDRAM_nCS  = 1'b1;
 
-	.ce_pix(ce_pix),
-	.hvcnt_atzero(hvcnt_atzero),
+assign sdram_dout = 32'd0;
+assign sdram_ack  = 1'b0;
 
-	.HBlank(HBlank),
-	.HSync(HSync),
-	.VBlank(VBlank),
-	.VSync(VSync),
+///////////////////////   DDR3 (ROM flash)   /////////////////////
 
-	.video(video)
-);
+// DDR3 carries the ROM images (read-only from CPU; HPS writes via ioctl).
+// Layout: CS0 at 0, CS1 at 0x800000, CS2 at 0xC00000, C: at 0x1400000
+
+// During download: HPS writes to DDR3 via ioctl
+// During run: CPU reads flash through the core's PA decode
+
+assign DDRAM_CLK      = clk_sys;
+assign DDRAM_BURSTCNT = 8'd1;
+
+// TODO: arbitrate ioctl writes (download) vs CPU reads (run).
+// For now, stub — ROM loading path only.
+assign DDRAM_ADDR = ioctl_download ? {3'd0, ioctl_addr} : 28'd0;
+assign DDRAM_DIN  = {16'd0, ioctl_dout};
+assign DDRAM_BE   = ioctl_download ? 4'b0011 : 4'b0000;
+assign DDRAM_RD   = 1'b0;
+assign DDRAM_WE   = ioctl_download && ioctl_wr;
+
+///////////////////////   CORE   /////////////////////////////////
+
+// TODO: instantiate ngage_mister with:
+//   - clk_sys (104 MHz)
+//   - SDRAM port (phone RAM)
+//   - DDR3 port (flash reads, after ioctl arbitration)
+//   - video out
+//   - keys from joystick_0
+
+///////////////////////   VIDEO   ////////////////////////////////
+
+// 176×208 at ~60Hz, centered by the MiSTer scaler.
+// The framebuffer lives in BRAM inside ngage_board (filled by LCD DMA).
+// For now: blank output.
 
 assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL = ce_pix;
+assign CE_PIXEL  = 1'b0;
 
-assign VGA_DE = ~(HBlank | VBlank);
-assign VGA_HS = HSync;
-assign VGA_VS = VSync;
-assign VGA_G  = (!col || col == 2) ? video : 8'd0;
-assign VGA_R  = (!col || col == 1) ? video : 8'd0;
-assign VGA_B  = (!col || col == 3) ? video : 8'd0;
+assign VGA_DE = 1'b0;
+assign VGA_HS = 1'b0;
+assign VGA_VS = 1'b0;
+assign VGA_G  = 8'd0;
+assign VGA_R  = 8'd0;
+assign VGA_B  = 8'd0;
 
-reg  [26:0] act_cnt;
-always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1; 
-assign LED_USER    = act_cnt[26]  ? act_cnt[25:18]  > act_cnt[7:0]  : act_cnt[25:18]  <= act_cnt[7:0];
+///////////////////////   LED   //////////////////////////////////
+
+reg [26:0] act_cnt;
+always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
+assign LED_USER = act_cnt[26] ? act_cnt[25:18] > act_cnt[7:0] : act_cnt[25:18] <= act_cnt[7:0];
 
 endmodule
