@@ -1,5 +1,22 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~23:00 *** NOKIA LOGO ON THE AUTHENTIC PATH *** (update made with Claude)
+
+Original scrambled ROM + inline descrambler + real NOS, no stub/patches:
+run boot-v15-auth34 (resume roll-e3-r2400) DMA'd the Nokia logo frame
+(lcd-dma.tsv frame 0, 18304 words, 59 colours; copy in
+build/sim/screens/milestone-authentic-nokia-logo/). Fixes since ~21:00,
+all hypotheses in boot_profile.cpp: NOS timer IRQ (UPP id reg 0x0c150100
+bit 0x80, compare 0x0c150118 on 1 kHz counter 0x0c150116, ICU bank0 b25),
+DSP MDI handshake stub (D2M frame from PN dev 0x7C after DSP start ->
+MTC no reset, ecust flag -> 3 at 759M), 1 kHz NOS tick (32 kHz starved the
+kernel thread), UPP soft interrupt 0x1000 drains the ENOS func queue
+(Enos_int.cpp:760 assert). EFile/EStart start ~759M.
+NEW STOP: auth34 kernel park 0x50324294 at 3,700,148,646 right after
+repeated "BTLDD: CompleteWithError: 1 -33" / "[HCI] CHCTLCBusReceiver/
+Sender ERROR -33" (KErrTimedOut) - Bluetooth HCI over the control bus has
+no model. Checkpoints roll-auth34-r* up to r3600.
+
 ## 2026-11-01 ~21:00 ROOT OF BOTH STALLS: MTC never reaches state 0x0c (update made with Claude)
 
 Chain (PROVEN, sim + disassembly): Symbian user side never starts because a
