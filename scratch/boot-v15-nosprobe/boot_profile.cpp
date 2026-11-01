@@ -845,9 +845,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 // in the serialized map so checkpoint layout is unchanged.
                 {
                     const unsigned reg = cbus_command_ & 0xff;
-                    // Bit 3 is NOT latched at power-on: a latched alarm makes ecust report an
-                    // ALARM wake (reason 1) and the NOS powers off again (boot-v15-auth22).
-                    if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) & ~value);
+                    // Bit 3 latched from power-on (frozen RTC: time == alarm compare == 0). With
+                    // a power-key boot (UEM 0x3f bit 1 -> bootstrap 0x50003108 -> ecust
+                    // [+0x80]=1 -> reason NORMAL) this no longer reads as an ALARM wake.
+                    if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 8) & ~value);
                     // Power key released by the time the kernel RTC driver first
                     // unmasks alarm bit 3 (~727.4M; the boot ROM writes 0x36 before
                     // its own 0x35 power-key check, so any-0x36 was too early).
@@ -899,7 +900,10 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             }
             if ((cbus_command_ & 0xff) == 0x3f && timer_irq_delay_) {
                 if (uem_power_status_ < 0) { reason_ = "UEM power-key/charger status is not supplied"; return false; }
-                device = "assumed_uem_power_status"; data = uint32_t(uem_power_status_) << 16; return true;
+                device = "assumed_uem_power_status";
+                // Power key (bit 1) released with the status bit-4 key level (key 0x235):
+                // a key held forever reads as a long press -> MTC power-off.
+                data = uint32_t(cbus_written_.count(0x235) ? (uem_power_status_ & ~2) : uem_power_status_) << 16; return true;
             }
             if ((cbus_command_ & 0xff) == 0x35 && timer_irq_delay_) {
                 if (uem_status35_ < 0) { reason_ = "UEM 0x35 status is not supplied"; return false; }
@@ -910,7 +914,9 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 // the mask (key 0x235), so ecust's startup-reason read (0x50349998)
                 // must not see it as a charger (reason 4 = CHARGING -> power off).
                 const uint32_t base = cbus_written_.count(0x235) ? (uem_status35_ & ~0x10) : uem_status35_;
-                data = uint32_t(base | (rtc != cbus_written_.end() ? rtc->second : 0)) << 16; return true;
+                // Alarm match is a LEVEL while the frozen RTC equals the alarm compare (both
+                // 0): bit 3 reads set even after the boot code's 0x35=0x000f ack.
+                data = uint32_t(base | 8 | (rtc != cbus_written_.end() ? rtc->second : 8)) << 16; return true;
             }
             if ((cbus_command_ & 0xff) == 0x36 && uem_status36_ >= 0 && !cbus_written_.count(0x36)) {
                 device = "assumed_uem_status36"; data = uint32_t(uem_status36_) << 16; return true;
