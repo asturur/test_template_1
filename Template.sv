@@ -223,38 +223,78 @@ end
 
 assign ioctl_wait = dl_wr;   // backpressure while DDR3 write in flight
 
-// TODO: arbitrate download writes vs CPU reads during run.
+// DDR3 arbitration: download (ioctl) vs CPU flash reads.
 // During download the CPU is in reset so no conflict.
-assign DDRAM_ADDR = dl_addr;
+// During run: core drives DDR3 reads, ioctl is idle.
+wire [27:0] core_ddr_addr;
+wire        core_ddr_rd;
+wire [31:0] core_ddr_dout;
+wire        core_ddr_ready;
+
+assign DDRAM_ADDR = ioctl_download ? dl_addr : core_ddr_addr;
 assign DDRAM_DIN  = dl_data;
-assign DDRAM_BE   = 4'b1111;
-assign DDRAM_RD   = 1'b0;       // TODO: CPU flash reads
+assign DDRAM_BE   = ioctl_download ? 4'b1111 : 4'b1111;
+assign DDRAM_RD   = ioctl_download ? 1'b0    : core_ddr_rd;
 assign DDRAM_WE   = dl_wr;
+
+assign core_ddr_dout  = DDRAM_DOUT[31:0];   // low 32 bits of 64-bit DDR3 read
+assign core_ddr_ready = DDRAM_DOUT_READY;
 
 ///////////////////////   CORE   /////////////////////////////////
 
-// TODO: instantiate ngage_mister with:
-//   - clk_sys (104 MHz)
-//   - SDRAM port (phone RAM)
-//   - DDR3 port (flash reads, after ioctl arbitration)
-//   - video out
-//   - keys from joystick_0
+wire        core_ce_pix;
+wire        core_hsync, core_vsync, core_hblank, core_vblank;
+wire [11:0] core_rgb;
+
+ngage_mister core (
+	.clk_sys       (clk_sys),
+	.reset         (reset),
+
+	// SDRAM (phone RAM)
+	.sdram_addr    (/* TODO: wire to SDRAM controller */),
+	.sdram_din     (),
+	.sdram_dout    (sdram_dout),
+	.sdram_be      (),
+	.sdram_we      (),
+	.sdram_req     (),
+	.sdram_ack     (sdram_ack),
+
+	// DDR3 (flash reads)
+	.ddram_addr    (core_ddr_addr),
+	.ddram_rd      (core_ddr_rd),
+	.ddram_wr      (),
+	.ddram_din     (),
+	.ddram_be      (),
+	.ddram_dout    (core_ddr_dout),
+	.ddram_dout_ready(core_ddr_ready),
+
+	// video
+	.ce_pix        (core_ce_pix),
+	.hsync         (core_hsync),
+	.vsync         (core_vsync),
+	.hblank        (core_hblank),
+	.vblank        (core_vblank),
+	.rgb444        (core_rgb),
+
+	// keys
+	.keys          (joystick_0)
+);
 
 ///////////////////////   VIDEO   ////////////////////////////////
 
 // 176×208 at ~60Hz, centered by the MiSTer scaler.
 // The framebuffer lives in BRAM inside ngage_board (filled by LCD DMA).
-// For now: blank output.
 
 assign CLK_VIDEO = clk_sys;
-assign CE_PIXEL  = 1'b0;
+assign CE_PIXEL  = core_ce_pix;
 
-assign VGA_DE = 1'b0;
-assign VGA_HS = 1'b0;
-assign VGA_VS = 1'b0;
-assign VGA_G  = 8'd0;
-assign VGA_R  = 8'd0;
-assign VGA_B  = 8'd0;
+assign VGA_DE = ~(core_hblank | core_vblank);
+assign VGA_HS = core_hsync;
+assign VGA_VS = core_vsync;
+// RGB444 → RGB888: expand 4-bit nibbles to 8-bit ({n,n} = ×17)
+assign VGA_R  = {core_rgb[11:8], core_rgb[11:8]};
+assign VGA_G  = {core_rgb[ 7:4], core_rgb[ 7:4]};
+assign VGA_B  = {core_rgb[ 3:0], core_rgb[ 3:0]};
 
 ///////////////////////   LED   //////////////////////////////////
 
