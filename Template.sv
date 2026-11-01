@@ -61,14 +61,18 @@ wire [127:0] status;
 wire  [10:0] ps2_key;
 wire  [15:0] joystick_0;
 
-// ioctl (HPS data loading: ROM, extension, C: image)
+// ioctl (HPS data loading: boot ROMs from games/NGage/)
+// boot.rom  = core.bin (18.6MB, main firmware)  → ioctl_index[7:6]=00
+// boot1.rom = extension.bin (2.3MB)             → ioctl_index[7:6]=01
+// boot2.rom = cdrive image (4MB LFFS)           → ioctl_index[7:6]=10
 wire        ioctl_download;
 wire        ioctl_wr;
-wire [24:0] ioctl_addr;
+wire [26:0] ioctl_addr;
 wire [15:0] ioctl_dout;
 wire  [7:0] ioctl_index;
+wire        ioctl_wait;
 
-hps_io #(.CONF_STR(CONF_STR)) hps_io
+hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
@@ -88,7 +92,8 @@ hps_io #(.CONF_STR(CONF_STR)) hps_io
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
-	.ioctl_index(ioctl_index)
+	.ioctl_index(ioctl_index),
+	.ioctl_wait(ioctl_wait)
 );
 
 ///////////////////////   CLOCKS   ///////////////////////////////
@@ -106,7 +111,7 @@ pll pll
 	.locked(pll_locked)
 );
 
-wire reset = RESET | status[0] | buttons[1] | ~pll_locked;
+wire reset = RESET | status[0] | buttons[1] | ~pll_locked | ioctl_download;
 
 ///////////////////////   SDRAM   ////////////////////////////////
 
@@ -142,21 +147,56 @@ assign sdram_ack  = 1'b0;
 ///////////////////////   DDR3 (ROM flash)   /////////////////////
 
 // DDR3 carries the ROM images (read-only from CPU; HPS writes via ioctl).
-// Layout: CS0 at 0, CS1 at 0x800000, CS2 at 0xC00000, C: at 0x1400000
-
-// During download: HPS writes to DDR3 via ioctl
-// During run: CPU reads flash through the core's PA decode
+// Layout in DDR3 word address space:
+//   boot.rom  (index[7:6]=00) → offset 0x000000 (CS0 flash, 8MB)
+//   boot1.rom (index[7:6]=01) → offset 0x200000 (CS1/extension, 4MB)
+//   boot2.rom (index[7:6]=10) → offset 0x350000 (C: drive image, 4MB)
+// DDR3 word address = byte address >> 2 (32-bit words)
 
 assign DDRAM_CLK      = clk_sys;
 assign DDRAM_BURSTCNT = 8'd1;
 
-// TODO: arbitrate ioctl writes (download) vs CPU reads (run).
-// For now, stub — ROM loading path only.
-assign DDRAM_ADDR = ioctl_download ? {3'd0, ioctl_addr} : 28'd0;
-assign DDRAM_DIN  = {16'd0, ioctl_dout};
-assign DDRAM_BE   = ioctl_download ? 4'b0011 : 4'b0000;
-assign DDRAM_RD   = 1'b0;
-assign DDRAM_WE   = ioctl_download && ioctl_wr;
+// Boot ROM base offsets in DDR3 (word addresses)
+// CS0=0, CS1=0x800000>>2=0x200000, C:=0x1400000>>2=0x350000 (adjusted)
+reg [27:0] rom_base;
+always @(*) case (ioctl_index[7:6])
+	2'b00: rom_base = 28'h0000000;   // CS0 main firmware
+	2'b01: rom_base = 28'h0200000;   // CS1 extension
+	2'b10: rom_base = 28'h0500000;   // C: drive (0x1400000 >> 2)
+	2'b11: rom_base = 28'h0700000;   // spare
+endcase
+
+// PSX-style 16→32 bit word assembly: collect two ioctl_wr pulses
+wire rom_download = ioctl_download && (ioctl_index[5:0] == 6'd0);
+
+reg [27:0] dl_addr;
+reg [31:0] dl_data;
+reg        dl_wr;
+
+always @(posedge clk_sys) begin
+	dl_wr <= 0;
+	if (rom_download && ioctl_wr) begin
+		if (~ioctl_addr[1]) begin
+			// Low halfword: latch data and compute address
+			dl_data[15:0] <= ioctl_dout;
+			dl_addr       <= rom_base + ioctl_addr[26:2];
+		end else begin
+			// High halfword: complete the 32-bit word, trigger write
+			dl_data[31:16] <= ioctl_dout;
+			dl_wr          <= 1;
+		end
+	end
+end
+
+assign ioctl_wait = dl_wr;   // backpressure while DDR3 write in flight
+
+// TODO: arbitrate download writes vs CPU reads during run.
+// During download the CPU is in reset so no conflict.
+assign DDRAM_ADDR = dl_addr;
+assign DDRAM_DIN  = dl_data;
+assign DDRAM_BE   = 4'b1111;
+assign DDRAM_RD   = 1'b0;       // TODO: CPU flash reads
+assign DDRAM_WE   = dl_wr;
 
 ///////////////////////   CORE   /////////////////////////////////
 
