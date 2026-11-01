@@ -1,5 +1,39 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~11:00 RTC chain decoded; blocker is now empty NVD records (update made with Claude)
+
+FPGA: CI 41289756644 FITS - 19,778/41,910 ALMs (47%), 186/553 RAM blocks,
+full 16KB caches (zap_ram_lane8 per-lane M10K) and board in block RAM.
+
+Boot (auth19 lineage, from reset with rtl/arm CPU; checkpoints roll-auth19-r*;
+NOTE auth18 checkpoints are from an older CPU build and no longer restore):
+ - ecust flag word ecustobj+0x90 (VA 0x80404110) is set ONCE by the NOS at
+   ~751.8M via setStartupState 0x514a4a88(a,b): b!=0 -> 3, else a (=1). The
+   caller EKIFTask_Activate (~0x5159ebec, Ekif.c) passes b=0 on the
+   "EKIFTask_Activate: No midnight alarm" path, i.e. when ecust RTC op 1
+   (0x516c77b4 -> ... -> ecust 0x5034e444) returns 0.
+ - ecust RTC driver (object at 0x804056a4, state [+0xc]) register map, found
+   with pc-log + bus correlation (run boot-v15-rtcmap): driver logical
+   0x15/0x16 -> UEM 0x35 status / 0x36 mask (config 0xf); time read
+   0x5034f374 = config-7 regs 0x31 sec(&0x3f), 0x32 min(&0x3f), 0x33
+   hour(&0x1f), 0x21 day counter; alarm handler 0x5034e6c8 waits for UEM
+   status bit 3 (RTC alarm).
+ - MODELED (boot_profile.cpp, hypotheses, state kept in cbus_written_ keys
+   0x124/0x135 so checkpoint layout is unchanged): status bit 3 latched from
+   power-on until written to 0x35 (W1C), re-raised (+ICU source 1) when the
+   alarm compare 0x24 is programmed and bit 3 unmasked; config-7 0x31-0x33
+   read as a frozen RTC counter (writes like NOS init 0x32=0x20 don't alter
+   it); day counter 0x21 reads 1. Result: the 727M handler now runs and sets
+   driver state 1.
+ - REMAINING BLOCKER: op 1 still yields state 9 because its request time
+   (from NVD records 0xd40000/1/2 read by EKIF through Nvd_lib 0x5152ba5c) is
+   all-zero = TTime(0) -> 0x5034e138 treats it as "no alarm". Our PMM is
+   empty (ANOTHER_ID_PMM_EMPTY). NEXT: how NVD resolves records on an empty
+   PMM / what a real first boot writes there (subagent RE in progress), then
+   seed or model it and rerun from roll-auth19-r700 (changes act >=727M).
+ - Tools: scratch/rtc-fault/armdis.py (ROM ARM), nosdis.py (NOS Thumb with
+   literals). Resume runner now forwards extra options (pc-log=...).
+
 ## 2026-11-01 ~10:00 CORRECTION: RTC: fault NOT broken; root mechanism found (update made with Claude)
 
 auth15 (device-ID fix) still faulted at 2.382e9 right after "RtcQueue::Add: 4";

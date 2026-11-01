@@ -834,6 +834,24 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 // Bits 8/9 are transfer direction, not device/register bits.
                 // ROM 0x3138 starts a UEM ADC conversion with command 0x239.
                 cbus_written_[cbus_command_ & 0xff] = value;
+                // UEM RTC alarm HYPOTHESIS (2026-11-01, docs/status.md): the ecust
+                // RTC driver programs the alarm compare (config 7 reg 0x24), acks
+                // status 0x35 and unmasks status bit 3 in 0x36, then its handler
+                // (0x5034e6c8 tst #8) waits for the alarm IRQ. The RTC is frozen
+                // at 0 and the alarm compare is 0, so the alarm matches at once.
+                // Internal keys 0x124 (armed) / 0x135 (pending status bits) live
+                // in the serialized map so checkpoint layout is unchanged.
+                {
+                    const unsigned reg = cbus_command_ & 0xff;
+                    if (reg == 0x24 && cbus_config_ == 7) cbus_written_[0x124] = 1;
+                    // Bit 3 is latched from power-on (time == alarm == 0) until acked.
+                    if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 8) & ~value);
+                    if (reg == 0x36 && cbus_written_.count(0x124) && !(value & 8)) {
+                        cbus_written_.erase(0x124);
+                        cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 8) | 8);
+                        if (uem_irq_source1_) { uem_irq_pending_ = true; ++uem_irqs_; }
+                    }
+                }
                 // UEM IRQ hypothesis: the epbus power-up tail write (reg 0x30)
                 // raises the UEM interrupt line (ICU source 1). Kernel phase only.
                 if (uem_irq_source1_ && periodic_period_ && (cbus_command_ & 0xff) == 0x30) {
@@ -880,12 +898,22 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
             }
             if ((cbus_command_ & 0xff) == 0x35 && timer_irq_delay_) {
                 if (uem_status35_ < 0) { reason_ = "UEM 0x35 status is not supplied"; return false; }
-                device = "assumed_uem_status35"; data = uint32_t(uem_status35_) << 16; return true;
+                device = "assumed_uem_status35";
+                const auto rtc = cbus_written_.find(0x135);
+                data = uint32_t(uem_status35_ | (rtc != cbus_written_.end() ? rtc->second : 8)) << 16; return true;
             }
             if ((cbus_command_ & 0xff) == 0x36 && uem_status36_ >= 0 && !cbus_written_.count(0x36)) {
                 device = "assumed_uem_status36"; data = uint32_t(uem_status36_) << 16; return true;
             }
-            if (auto input = cbus_inputs_.find(cbus_command_ & 0xff); input != cbus_inputs_.end() && !cbus_written_.count(cbus_command_ & 0xff)) {
+            // RTC HYPOTHESIS: config-7 regs 0x31-0x33 read the RTC time counter
+            // (ecust 0x5034f374), which writes (NOS UEM init writes 0x32=0x20)
+            // do not change; the counter is frozen at its cbus-input value.
+            const bool rtc_counter = cbus_config_ == 7 && (cbus_command_ & 0xff) >= 0x31 && (cbus_command_ & 0xff) <= 0x33;
+            // Day counter (config 7 reg 0x21, read by 0x5034f374 after h/m/s): an
+            // all-zero RTC is TTime(0), which the driver treats as "no alarm"
+            // (0x5034e1b4 -> state 9). Hypothesis: RTC preset to day 1, 00:00:00.
+            if (cbus_config_ == 7 && (cbus_command_ & 0xff) == 0x21) { device = "assumed_rtc_counter"; data = 1u << 16; return true; }
+            if (auto input = cbus_inputs_.find(cbus_command_ & 0xff); input != cbus_inputs_.end() && (rtc_counter || !cbus_written_.count(cbus_command_ & 0xff))) {
                 device = "assumed_cbus_input"; data = uint32_t(input->second) << 16; return true;
             }
             if ((cbus_command_ & 0xff) == 0x80 && cbus80_input_ >= 0) {
