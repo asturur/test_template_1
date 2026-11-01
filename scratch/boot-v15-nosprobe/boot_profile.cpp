@@ -657,12 +657,6 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (address == 0x0c120114) {
             if (timer_irq_pending_ && timer_irq_enabled_) data = 1;       // source 0 + 1
             else if (uem_irq()) data = 2;                                 // source 1 + 1
-            // FBUS UART RX interrupt: ICU source 4 (DCT4 hypothesis).
-            // Raised when modem_rx_buf_ has data pending for the NOS to
-            // read. The FBUS driver's ISR reads bytes from 0x0c150500
-            // and clears the interrupt by draining the FIFO.
-            else if (!modem_rx_buf_.empty() && modem_rx_pos_ < modem_rx_buf_.size())
-                data = 5;                                                  // source 4 + 1
             else if (dma_irq()) data = 8;                                 // source 7 + 1 (LCD DMA done)
         }
         device = "assumed_icu_current"; return true;
