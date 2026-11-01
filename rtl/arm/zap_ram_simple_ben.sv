@@ -87,21 +87,15 @@ genvar g;
 generate
 for (g = 0; g < WIDTH/8; g = g + 1)
 begin : g_lane
-        logic [7:0] lane [DEPTH-1:0];
-        logic [7:0] lane_q;
-
-        always_ff @ (posedge i_clk)
-        begin
-                if ( i_clken )
-                begin
-                        if ( i_wr_en[g] )
-                                lane [ i_wr_addr ] <= i_wr_data [g*8 +: 8];
-
-                        lane_q <= lane [ i_rd_addr ];
-                end
-        end
-
-        assign mem_data_st1 [g*8 +: 8] = lane_q;
+        zap_ram_lane8 #(.DEPTH(DEPTH)) u_lane (
+                .i_clk  (i_clk),
+                .i_clken(i_clken),
+                .i_we   (i_wr_en[g]),
+                .i_waddr(i_wr_addr),
+                .i_wdata(i_wr_data[g*8 +: 8]),
+                .i_raddr(i_rd_addr),
+                .o_rdata(mem_data_st1[g*8 +: 8])
+        );
 end
 endgenerate
 
@@ -211,3 +205,33 @@ endmodule
 // ----------------------------------------------------------------------------
 // EOF
 // ----------------------------------------------------------------------------
+
+
+// One byte lane of zap_ram_simple_ben: simple dual-port RAM with a registered
+// read, in the plain style Quartus 17 reliably maps to M10K.
+module zap_ram_lane8 #(
+        parameter logic [31:0] DEPTH = 32'd32
+)
+(
+        input  logic                         i_clk,
+        input  logic                         i_clken,
+        input  logic                         i_we,
+        input  logic [$clog2(DEPTH)-1:0]     i_waddr,
+        input  logic [7:0]                   i_wdata,
+        input  logic [$clog2(DEPTH)-1:0]     i_raddr,
+        output logic [7:0]                   o_rdata
+);
+
+(* ramstyle = "M10K, no_rw_check" *) reg [7:0] mem [0:DEPTH-1];
+
+always @ (posedge i_clk)
+begin
+        if ( i_clken )
+        begin
+                if ( i_we )
+                        mem[i_waddr] <= i_wdata;
+                o_rdata <= mem[i_raddr];
+        end
+end
+
+endmodule : zap_ram_lane8

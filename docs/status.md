@@ -1,5 +1,20 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~10:00 CORRECTION: RTC: fault NOT broken; root mechanism found (update made with Claude)
+
+auth15 (device-ID fix) still faulted at 2.382e9 right after "RtcQueue::Add: 4";
+auth16 only avoided it because the source-4 IRQ livelock slowed it beyond its
+budget; auth17 faulted again (2.366e9). Mechanism (static disassembly, ROM VA
+= SYM.ROM offset + 0x50000000): ecust RTC op 0x5034f6d0 checks bit 1 of the
+ecust flag word (ecustobj+0x90, getter vtable+0x12c, test at 0x5034fbe0) and
+otherwise calls the "RTC:" fault helper 0x5034fc00 with reason 6 (= 0x10006).
+Flag value in roll-auth17-r2300 (SDRAM 0xfe0110) = 1: bit0 set, bit1 (RTC
+ready) clear. The stub lineage had 3 only because scratch/nos-stub-blob/
+nos_stub.S hardcoded setter(3) - the real NOS writes 1. NEXT: find the real
+NOS setter call (pc-log 0x50349d8c, run boot-v15-auth18) and the condition
+under which the NOS would set bit 1 (its RTC driver init), then model the
+missing hardware. Tool: scratch/rtc-fault/armdis.py VA LEN [thumb].
+
 ## 2026-11-01 ~09:30 FPGA FIT ROOT CAUSES + ONE CANONICAL ZAP (update made with Claude)
 
 Quartus "232144 combinational nodes, device has 83820" was NOT the ARM being
