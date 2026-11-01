@@ -1056,6 +1056,14 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         // queue the response for RX.
         if (address == 0x0c150500 && request.write) {
             uint8_t byte = (uint8_t)(request.data & 0xff);
+            // FBUS sync: the NOS sends 0x55 to establish the serial link.
+            // Echo it back immediately — once both sides exchange enough
+            // sync bytes, the NOS transitions to framed FBUS/Phonet mode
+            // and starts sending real ISI messages.
+            if (byte == 0x55) {
+                modem_rx_buf_.push_back(0x55);
+                return true;  // don't accumulate sync bytes as frame data
+            }
             modem_tx_buf_.push_back(byte);
             // Check if we have a complete Phonet frame
             if (modem_tx_buf_.size() >= 6) {
