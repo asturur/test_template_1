@@ -1,5 +1,33 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~19:30 SELF-TESTS PASS; boot idles in Symbian kernel init (update made with Claude)
+
+NOS startup self-tests (ST_UPP_REGISTER_VER, ST_UEM_CBUS_IF, ST_EAR_DATA_LOOP,
+ST_TX_IDP_LOOP, ST_SIM_CLK_LOOP, ST_SIM_IO_CTRL_LOOP, ST_MBUS_RX_TX_LOOP,
+ST_BACKUP_BATT; runner 0x5164a914, table 0x516f785c) all pass after the
+GPIO loopback/set-clear model (commit 383d915). Before that, a failing
+severity-0xc test set MTC startup state 0x800107e0 = 8 ("SELFTEST_FAIL:
+FATAL"), EKIF then aborted the startup group (reason 3) and MTC powered off
+at 754M. Power-key boot: UEM 0x3f bit 1 at reset -> bootstrap 0x50003108 ->
+ecust [+0x80]=1 -> startup reason NORMAL (uem-power-status-extra=2, bit 1
+released at the RTC driver unmask). RTC alarm status bit 3 = level (frozen
+RTC == alarm). Current inputs: pmm-image=pmm-aan.bin, cbus-input=0x24=1,
+uem-power-status-extra=2. Lineage auth31 (from reset) / auth32 (resume r700).
+
+auth32 ran 0.7e9 -> 4.0e9 with NO stop, no power-off, no RTC fault - but no
+LCD output. KEY FINDING: on the authentic lineage Symbian never got past
+kernel init: kernel memory at r1500/r2300/r3900 (and auth31 r2300) holds
+only EKern/Supervisor/KernelBeep/TheRamDriveChunk names - no EFile/EStart.
+The earlier "RTC fault" runs were kernel-side only too. At 3.9e9 the
+system is idle (timer tick -> NOS periodic handler + ecust+0x15f0, ekeyb
+polling). The stub lineage reached user side because its synthetic NOS
+answered immediately. NEXT: find what the kernel boot (supervisor/init)
+waits on before starting F32 - likely an ecust/Variant init step waiting
+for the real NOS (interfaces #3/#6 registration done at 0x9d000 by NOS?
+helper/nosdriver request completion?). Method: stack-scan saved thread
+contexts in r3900 for blocked kernel calls; compare with stub-lineage
+checkpoints that reached EStart.
+
 ## 2026-11-01 ~16:00 DECISION POINT: RTC alarm vs startup-reason ordering (update made with Claude)
 
 Model state (boot_profile.cpp, all hypotheses): seeded PMM (aan), 0x24=1,
