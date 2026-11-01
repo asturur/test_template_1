@@ -83,9 +83,12 @@ logic [$clog2(DEPTH)-1:0] rd_addr_st1, rd_addr_st2;
 // One 8-bit memory per byte lane: Quartus 17 does not infer block RAM for a
 // wide array written through a looped byte-enable slice (it fell back to
 // registers), but it reliably infers plain simple-dual-port lanes.
-for (genvar g = 0; g < WIDTH/8; g++)
+genvar g;
+generate
+for (g = 0; g < WIDTH/8; g = g + 1)
 begin : g_lane
         logic [7:0] lane [DEPTH-1:0];
+        logic [7:0] lane_q;
 
         always_ff @ (posedge i_clk)
         begin
@@ -94,10 +97,13 @@ begin : g_lane
                         if ( i_wr_en[g] )
                                 lane [ i_wr_addr ] <= i_wr_data [g*8 +: 8];
 
-                        mem_data_st1 [g*8 +: 8] <= lane [ i_rd_addr ];
+                        lane_q <= lane [ i_rd_addr ];
                 end
         end
+
+        assign mem_data_st1 [g*8 +: 8] = lane_q;
 end
+endgenerate
 
 // Hazard Detection Logic
 always_ff @ ( posedge i_clk ) if ( i_clken )
