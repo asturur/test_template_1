@@ -845,21 +845,16 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
                 // in the serialized map so checkpoint layout is unchanged.
                 {
                     const unsigned reg = cbus_command_ & 0xff;
-                    if (reg == 0x24 && cbus_config_ == 7) cbus_written_[0x124] = 1;
                     // Bit 3 is NOT latched at power-on: a latched alarm makes ecust report an
                     // ALARM wake (reason 1) and the NOS powers off again (boot-v15-auth22).
                     if (reg == 0x35) cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) & ~value);
-                    // Power key released once the boot ROM has done its check and
-                    // written the mask (HYPOTHESIS, see the 0x35 read path).
-                    if (reg == 0x36 && cbus_config_ == 0xf) cbus_written_[0x235] = 1;
+                    // Power key released by the time the kernel RTC driver first
+                    // unmasks alarm bit 3 (~727.4M; the boot ROM writes 0x36 before
+                    // its own 0x35 power-key check, so any-0x36 was too early).
+                    if (reg == 0x36 && cbus_config_ == 0xf && (value & 0xfff0) == 0xfff0 && !(value & 8)) cbus_written_[0x235] = 1;
                     // Start the alarm countdown (~8M cycles) when bit 3 is first unmasked.
-                    if (reg == 0x36 && !(value & 8) && !cbus_written_.count(0x137) && !cbus_written_.count(0x236)) {
+                    if (reg == 0x36 && cbus_config_ == 0xf && (value & 0xfff0) == 0xfff0 && !(value & 8) && !cbus_written_.count(0x137) && !cbus_written_.count(0x236)) {
                         cbus_written_[0x137] = 122; cbus_written_[0x236] = 1;
-                    }
-                    if (reg == 0x36 && cbus_written_.count(0x124) && !(value & 8)) {
-                        cbus_written_.erase(0x124);
-                        cbus_written_[0x135] = uint16_t((cbus_written_.count(0x135) ? cbus_written_[0x135] : 0) | 8);
-                        if (uem_irq_source1_) { uem_irq_pending_ = true; ++uem_irqs_; }
                     }
                 }
                 // UEM IRQ hypothesis: the epbus power-up tail write (reg 0x30)

@@ -1,5 +1,31 @@
 # Development checkpoint and resume guide
 
+## 2026-11-01 ~16:00 DECISION POINT: RTC alarm vs startup-reason ordering (update made with Claude)
+
+Model state (boot_profile.cpp, all hypotheses): seeded PMM (aan), 0x24=1,
+status bit 4 = power-key level released at the RTC driver's first bit-3
+unmask (mask 0xfff7, ~727.4M), RTC alarm bit 3 fires ~8M cycles after that
+unmask (no other alarm triggers; the 0x24-write trigger was removed).
+Result auth30: boot ROM passes, ecust reason 9 (no power-off), but RTC:
+fault at 2.311e9 again. Precise mechanism (pc-log, run boot-v15-irqen):
+ - ecust "alarm object" [ecust+8] IS the RTC driver; its +0xc
+   (0x5034e83c) returns driver state, and 0x50349840 reports state 1/2 as
+   startup reason ALARM -> NOS powers off (auth22/auth28).
+ - RTC driver state goes 9 -> 1 only in the alarm handler 0x5034e6a0, which
+   runs synchronously at init (727.43M, reads status) or inside EKIF op1's
+   0x5034e648 (751.5M); the driver's interrupt object (id 0x44, NOS
+   dispatcher vtable 0x517110c4) is only enabled at 0x5034e384 inside op1
+   (751.81M), so an alarm IRQ in between (taken 746.47M) is not dispatched.
+ - op1 needs state 1 BEFORE its e648 to reach 2 -> so the alarm must be
+   latched at init (727M) but ecust's reason query (729.45M) must not see
+   state 1. Contradiction in our timing; on hardware the NOS reason query
+   may precede the RTC driver init (ordering/timing difference).
+ Options: (A) find what really orders reason-vs-RTC-init (NOS 0x514a65e0
+ vs ecust RTC init) and whether timing/clock modelling flips it; (B) find
+ whether a real power-key boot gets [0x4000101c]!=0 (ecust [+0x80] ->
+ reason NORMAL regardless of alarm); (C) find what triggers RtcQueue::Add
+ 3/4/5 and whether it happens on a real cold boot.
+
 ## 2026-11-01 ~14:30 REMOVED three RAM patches; alarm countdown + power-key level (update made with Claude)
 
 boot_profile.cpp contained three "RTC server state patch" hacks (from commit
