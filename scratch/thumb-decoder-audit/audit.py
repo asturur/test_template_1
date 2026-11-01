@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Differential audit of third_party/zap/src/rtl/zap_mode16_decoder.sv.
+Differential audit of rtl/arm/zap_mode16_decoder.sv.
 
 Ports the RTL case statement to Python bit-for-bit, feeds representative
 16-bit Thumb opcodes through it, disassembles:

@@ -5,7 +5,7 @@ checkpoint lineage; the plain build.py binary stays the fast-iteration one."""
 import hashlib,json,subprocess,sys
 from pathlib import Path
 root=Path.cwd();out=root/'build/sim/runs/boot-v15-hdl-build';out.mkdir(parents=True,exist_ok=True)
-rtl=root/'third_party/zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-hdl';binary=obj/'Vngage_cpu_sim'
+rtl=root/'rtl/arm';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-hdl';binary=obj/'Vngage_cpu_sim'
 rom=root/'build/firmware/digest-probes/both/SYM.ROM';extension=root/'build/firmware/nem4-extension/extension.bin'
 inputs=[*sorted(rtl.glob('*.sv')),*sorted(rtl.glob('*.svh')),root/'rtl/ngage_cpu.sv',root/'scratch/hdl-board/ngage_cpu_sim.sv',root/'rtl/ngage_board.v',root/'rtl/ngage_bram_be.v',board/'main.cpp',board/'boot_profile.cpp',board/'boot_profile.h',rom,extension,Path(__file__).resolve()]
 sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();inputs_hash={str(p.relative_to(root)):sha(p) for p in inputs}

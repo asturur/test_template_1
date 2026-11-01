@@ -21,9 +21,10 @@ scratch/quartus-fit/):
    a Quartus run (next CI build is the check).
 ZAP consolidation: Quartus compiled pristine third_party/zap (+compat) while
 all simulations used the untracked scratch/boot-v15-quiet-zap (0001-0009 +
-three unrecorded changes). Now third_party/zap = upstream + patches/zap
-0001-0014 is the only copy (patches/zap/verify.sh checks it); all scratch
-build/run scripts point at it; the scratch copy is deleted. Details and
+three unrecorded changes). Now rtl/arm = upstream + patches/zap 0001-0014
+is the only copy (patches/zap/verify.sh downloads upstream to
+scratch/zap-upstream and checks it); files.qip, sim/run.py and all scratch
+build/run scripts compile rtl/arm; third_party/ and the scratch copies are gone. Details and
 per-patch notes: docs/cpu-patches.md. A 150M from-reset authentic run was
 cycle-identical old vs new CPU, but restoring OLD checkpoints into the new
 binary may fail (Verilator layout) - expect to start from reset.

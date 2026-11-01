@@ -17,7 +17,7 @@ from digest_probe import build as build_digest_probe
 
 ROOT = Path(__file__).resolve().parents[1]
 BUILD = ROOT / "build" / "sim"
-VENDOR = ROOT / "third_party" / "zap"
+ARM = ROOT / "rtl" / "arm"
 IMAGE = os.environ.get("SIM_IMAGE", "jotego/simulator:arm64")
 
 
@@ -54,50 +54,53 @@ def environment():
                  "arm-none-eabi-objdump"):
         if shutil.which(tool) is None:
             raise RuntimeError(f"required tool not found: {tool}")
-    metadata = json.loads((VENDOR / "UPSTREAM.json").read_text())
-    upstream = pristine_zap()
-    for name, expected in metadata["files"].items():
-        if digest(upstream / name) != expected:
-            raise RuntimeError(f"reconstructed upstream differs from the pin: {name}")
+    metadata = json.loads((ARM / "UPSTREAM.json").read_text())
     result = subprocess.run(["docker", "image", "inspect", IMAGE, "--format", "{{.Id}}"],
                             capture_output=True, text=True, check=False)
     if result.returncode:
         raise RuntimeError(f"simulator image unavailable: {IMAGE}; set SIM_IMAGE to a prepared image")
     return {"zap_commit": metadata["commit"], "simulator_image": IMAGE,
-            "simulator_image_id": result.stdout.strip(), "vendor_verified": True}
+            "simulator_image_id": result.stdout.strip(), "zap_rtl": "rtl/arm"}
 
 
-# third_party/zap is the patched CPU (upstream + patches/zap, checked by
-# patches/zap/verify.sh). Pristine upstream exists only in git history
-# (commit 5342c3f) and is extracted on demand for unmodified comparisons.
-PRISTINE_COMMIT = "5342c3f"
-
-
+# rtl/arm is the patched CPU (upstream + patches/zap, checked by
+# patches/zap/verify.sh). The original upstream is only downloaded, to
+# scratch/zap-upstream (shared with verify.sh), for the unmodified comparison
+# and for the upstream regression bench (Makefile, testbench, test programs).
 def pristine_zap():
-    target = BUILD / "zap-upstream"
-    if not (target / "UPSTREAM.json").exists():
+    metadata = json.loads((ARM / "UPSTREAM.json").read_text())
+    target = ROOT / "scratch" / "zap-upstream"
+    stamp = target / ".commit"
+    if not stamp.exists() or stamp.read_text().strip() != metadata["commit"]:
         shutil.rmtree(target, ignore_errors=True)
         target.mkdir(parents=True)
-        archive = subprocess.run(["git", "-C", ROOT, "archive", PRISTINE_COMMIT, "third_party/zap"],
-                                 capture_output=True, check=True).stdout
-        subprocess.run(["tar", "-x", "--strip-components=2", "-C", target], input=archive, check=True)
+        url = f"https://github.com/krevanth/ZAP/archive/{metadata['commit']}.tar.gz"
+        archive = subprocess.run(["curl", "-sfL", url], capture_output=True, check=True).stdout
+        subprocess.run(["tar", "-xz", "--strip-components=1", "-C", target], input=archive, check=True)
+        stamp.write_text(metadata["commit"] + "\n")
+    for name, expected in metadata["files"].items():
+        if digest(target / name) != expected:
+            raise RuntimeError(f"downloaded upstream differs from the pin: {name}")
     return target
 
 
 def prepare_zap(info, variant, destination=None):
+    """Return the CPU RTL directory, or with `destination` a full upstream-layout
+    tree (for the upstream bench) whose src/rtl is the selected variant."""
     patches = sorted((ROOT / "patches" / "zap").glob("*.patch")) if variant == "ngage" else []
-    selected = VENDOR if variant == "ngage" else pristine_zap()
-    if destination is not None:
-        shutil.copytree(selected, destination, dirs_exist_ok=True)
-        selected = destination
     info["zap_variant"] = variant
     info["zap_patches"] = [{"path": str(p.relative_to(ROOT)), "sha256": digest(p)} for p in patches]
-    return selected, patches
+    if destination is None:
+        return (ARM if variant == "ngage" else pristine_zap() / "src" / "rtl"), patches
+    shutil.copytree(pristine_zap(), destination, dirs_exist_ok=True)
+    if variant == "ngage":
+        for source in list(ARM.glob("*.sv")) + list(ARM.glob("*.svh")):
+            shutil.copy2(source, destination / "src" / "rtl" / source.name)
+    return destination, patches
 
 
 def build_simulator(info, variant):
-    selected, patches = prepare_zap(info, variant)
-    rtl = selected / "src" / "rtl"
+    rtl, patches = prepare_zap(info, variant)
     source = sorted(rtl.glob("*.sv"))
     inputs = source + sorted(rtl.glob("*.svh")) + patches + [
         ROOT / "rtl" / "ngage_cpu.sv", ROOT / "sim" / "ngage_cpu_sim.sv", ROOT / "sim" / "main.cpp",
@@ -210,8 +213,7 @@ def profile_unit_tests():
 
 
 def rtl_lint(info, variant):
-    selected, _ = prepare_zap(info, variant)
-    rtl = selected / "src" / "rtl"
+    rtl, _ = prepare_zap(info, variant)
     command = ["verilator", "--lint-only", "-DSYNTHESIS", "-Wno-fatal", "-Wno-lint",
                "--top-module", "ngage_cpu", "-I" + str(rtl.relative_to(ROOT)), "rtl/ngage_cpu.sv"]
     command += [str(p.relative_to(ROOT)) for p in sorted(rtl.glob("*.sv"))]

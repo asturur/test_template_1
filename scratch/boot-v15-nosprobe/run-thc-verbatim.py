@@ -10,7 +10,7 @@ CKPT_AT=int(sys.argv[4]) if len(sys.argv)>4 else 0
 EXTRA=[a for a in sys.argv[5:]]
 from pathlib import Path
 root=Path.cwd();out=root/('build/sim/runs/boot-v15-'+NAME);out.mkdir(parents=True,exist_ok=True)
-rtl=root/'third_party/zap/src/rtl';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-nosprobe';binary=obj/'Vngage_cpu_sim'
+rtl=root/'rtl/arm';board=root/'scratch/boot-v15-nosprobe';obj=root/'build/sim/obj-boot-v15-nosprobe';binary=obj/'Vngage_cpu_sim'
 rom=root/'build/firmware/thc-verbatim/SYM.ROM';extension=None
 inputs=[*sorted(rtl.glob('*.sv')),*sorted(rtl.glob('*.svh')),root/'rtl/ngage_cpu.sv',root/'scratch/checkpoint-probe/ngage_cpu_sim.sv',board/'main.cpp',board/'boot_profile.cpp',board/'boot_profile.h',rom,root/'build/firmware/thc/cdrive-stamped-4mib.img',root/'build/firmware/thc/nos-image.bin',root/'build/firmware/thc/nos-iat-region-0x6e030.bin',Path(__file__).resolve()]
 ckdir=root/'build/sim/checkpoints'

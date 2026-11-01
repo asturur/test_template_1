@@ -17,12 +17,12 @@ The stock MiSTer `sys/` files are unchanged.
 
 ## CPU source and integration boundary
 
-`third_party/zap/` retains unmodified [upstream ZAP](https://github.com/krevanth/ZAP)
-commit `fc7bd75f0e5049535f0774b3bd0ee20787f9a6fa`, its GPL-3.0-or-later license,
-and an `UPSTREAM.json` manifest of retained files and hashes.
-
-The default `ngage` variant applies `patches/zap/` to a generated build copy;
-`--cpu-variant upstream` provides the unmodified comparison. Patch provenance
+`rtl/arm/` is the CPU: [upstream ZAP](https://github.com/krevanth/ZAP) commit
+`fc7bd75f0e5049535f0774b3bd0ee20787f9a6fa` with `patches/zap/` applied, its
+GPL-3.0-or-later license, and an `UPSTREAM.json` pin (hashes of the pristine
+upstream files). Quartus and all simulators compile `rtl/arm/` directly. The
+original upstream is not kept in the repository; `patches/zap/verify.sh` and
+`--cpu-variant upstream` download it to `scratch/zap-upstream/` on demand. Patch provenance
 and the measured fixes are described in [cpu-patches.md](cpu-patches.md).
 
 `rtl/ngage_cpu.sv` exposes clock, reset, IRQ/FIQ, and a 32-bit little-endian

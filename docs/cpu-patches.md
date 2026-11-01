@@ -2,15 +2,15 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
-`third_party/zap/` is the ONLY ZAP copy in the project: pinned upstream
-krevanth/ZAP `fc7bd75` plus the ordered series in `patches/zap/`. The Verilator
-boot simulations (`scratch/*/build.py`) and the Quartus build (`files.qip`) both
-compile it. `patches/zap/verify.sh` rebuilds upstream (from repo commit
-`5342c3f`, hashes in `UPSTREAM.json`) + the series and checks byte identity;
-run it after any edit to `third_party/zap` and add a numbered patch for the edit.
-Pristine upstream is extracted on demand (`sim/run.py` puts it in
-`build/zap-upstream/` for `make sim-upstream`/`sim-unmodified`).
-`rtl/ngage_cpu.sv` is the shared RTL integration boundary.
+`rtl/arm/` is the ONLY ZAP copy in the project: pinned upstream krevanth/ZAP
+`fc7bd75` plus the ordered series in `patches/zap/`. The Verilator boot
+simulations (`scratch/*/build.py`, `sim/run.py`) and the Quartus build
+(`files.qip`) all compile it. Edit files there, record each edit as the next
+numbered upstream-relative patch, and run `patches/zap/verify.sh`: it downloads
+the original upstream to `scratch/zap-upstream/` (git-ignored, reference only),
+checks it against the hashes in `rtl/arm/UPSTREAM.json`, applies the series and
+requires a byte-identical match. `make sim-upstream`/`sim-unmodified` use the
+same download. `rtl/ngage_cpu.sv` is the shared RTL integration boundary.
 
 History (2026-11-01): before this, `third_party/zap` held upstream + Quartus
 fixes only, while every simulation used an untracked scratch copy
@@ -20,7 +20,9 @@ changes were extracted as 0010-0012 (upstream + 0001-0012 reproduced that copy
 byte-for-byte), then 0013/0014 were added. A from-reset authentic run to 150M
 cycles was cycle-identical between the old scratch copy and the consolidated
 tree (same bus/instruction traces, 41,013,833 transactions); checkpoints made
-with the old copy may not restore (Verilator state layout differs).
+with the old copy may not restore (Verilator state layout differs). The patched
+tree then moved from `third_party/zap/src/rtl` to `rtl/arm` and `third_party/`
+was removed (file contents unchanged).
 
 ## Translated accesses when caches are disabled
 
