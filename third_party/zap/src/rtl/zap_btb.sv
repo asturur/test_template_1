@@ -24,22 +24,7 @@ module zap_btb #(
         // Entries in the branch predictor RAM. Only half are available
         // in 32-bit state.
         //
-        parameter logic [31:0] BP_ENTRIES = 32'd1024,
-
-        // Tag width.
-        localparam [31:0] TAG_WDT = 32 - $clog2(BP_ENTRIES) - 1,
-
-        //
-        // Address breakup. We use direct mapped addressing. We have a
-        // 1-bit offset since address LSB = 0. Index is used to index
-        // into the SRAM and tag will be compared to check if it is
-        // the actual entry or not.
-        //
-        localparam type t_address = struct packed {
-        logic [TAG_WDT-1:0]            tag;
-        logic [$clog2(BP_ENTRIES)-1:0] index;
-        logic                          offset;
-        }
+        parameter logic [31:0] BP_ENTRIES = 32'd1024
 ) (
         // Clock and reset.
         input logic         i_clk,
@@ -61,21 +46,21 @@ module zap_btb #(
         input logic         i_fb_nok,
 
         // Branch source address.
-        input t_address     i_fb_branch_src_address,
+        input logic [31:0] i_fb_branch_src_address,
 
         // Branch predicted state. This should be changed.
         input logic [1:0]   i_fb_current_branch_state,
 
         // Branch target address. This is the correct destination address.
-        input t_address     i_fb_branch_dest_address,
+        input logic [31:0] i_fb_branch_dest_address,
 
         /////////////////////////
         // Live read path.
         /////////////////////////
 
         // Read addresses from SRAM.
-        input t_address     i_rd_addr,
-        input t_address     i_rd_addr_del,
+        input logic [31:0] i_rd_addr,
+        input logic [31:0] i_rd_addr_del,
 
         ////////////////////////
         // Control path
@@ -94,6 +79,15 @@ module zap_btb #(
 
 `include "zap_localparams.svh"
 `include "zap_functions.svh"
+
+// Quartus 17 compat: moved from parameter list to module body
+localparam [31:0] TAG_WDT = 32 - $clog2(BP_ENTRIES) - 1;
+
+typedef struct packed {
+        logic [TAG_WDT-1:0]            tag;
+        logic [$clog2(BP_ENTRIES)-1:0] index;
+        logic                          offset;
+} t_address;
 
 localparam [31:0] MAX_WDT = 32 + 2 + TAG_WDT;
 
@@ -125,12 +119,18 @@ assign mem_wr_en   = i_fb_ok | i_fb_nok;
 assign mem_rd_en = ~i_stall;
 
 // Memory addresses are driven by index.
-assign mem_wr_addr = i_fb_branch_src_address.index;
-assign mem_rd_addr = i_rd_addr.index;
+// Quartus 17 compat: interpret raw logic [31:0] ports through the struct
+t_address fb_src_addr, rd_addr_cast, rd_addr_del_cast;
+assign fb_src_addr      = i_fb_branch_src_address;
+assign rd_addr_cast     = i_rd_addr;
+assign rd_addr_del_cast = i_rd_addr_del;
+
+assign mem_wr_addr = fb_src_addr.index;
+assign mem_rd_addr = rd_addr_cast.index;
 
 // Memory write data. Compute the new state based on feedback.
 assign mem_wr_data.state   = compute(i_fb_current_branch_state,i_fb_nok);
-assign mem_wr_data.tag     = i_fb_branch_src_address.tag;
+assign mem_wr_data.tag     = fb_src_addr.tag;
 assign mem_wr_data.target  = i_fb_branch_dest_address;
 
 // BTB RAM.
@@ -158,7 +158,7 @@ begin
         end
         else
         begin
-                dav[i_fb_branch_src_address.index] <= mem_wr_en;
+                dav[fb_src_addr.index] <= mem_wr_en;
         end
 end
 
@@ -175,7 +175,7 @@ begin
         end
         else if ( mem_rd_en )
         begin
-                bp_dav <= dav[i_rd_addr.index];
+                bp_dav <= dav[rd_addr_cast.index];
         end
 end
 
@@ -186,7 +186,7 @@ logic mem_rd_tag_match;
 assign mem_rd_taken = (mem_rd_data.state == WT || mem_rd_data.state == ST);
 
 // Memory read address tag match with tag in memory read data.
-assign mem_rd_tag_match = i_rd_addr_del.tag == mem_rd_data.tag;
+assign mem_rd_tag_match = rd_addr_del_cast.tag == mem_rd_data.tag;
 
 //
 // Tag check and clear generation logic. Use RAM data. This is produced

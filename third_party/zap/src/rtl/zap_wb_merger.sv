@@ -171,6 +171,7 @@ assign o_d_wb_err = (state_ff == DATA) & i_wb_err;
 // WB output generation logic.
 /////////////////////////////////////
 
+generate  // Quartus 17 compat: explicit generate
 if ( !ONLY_CORE )
 begin: l_genblk1
 
@@ -247,6 +248,7 @@ begin: l_genblk2
 
 end: l_genblk2
 
+endgenerate
 endmodule : zap_wb_merger
 
 // ----------------------------------------------------------------------------

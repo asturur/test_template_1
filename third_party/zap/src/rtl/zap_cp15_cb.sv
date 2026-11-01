@@ -23,6 +23,17 @@
 // interface with this block.
 //
 
+// Quartus 17 compat: moved struct typedef out of parameter list
+typedef struct packed {
+        logic [11:0]  cp_rsvd_fld_1;          // 31:20 - 12 (32)
+        logic [3:0]  ZAP_CRN;                 // 19:16 - 4 (20)
+        logic [3:0]  cp_srvd_fld_0;           // 15:12 - 4 (16)
+        logic [3:0]  ZAP_CP_ID;               // 11:8 - 4 (12)
+        logic [2:0]  ZAP_OPCODE_2;            // 7:5 - 3 (8)
+        logic [0:0]  cp_rsvd_fld;             // 4   - 1 (5)
+        logic [3:0]  ZAP_CRM;                 // 3:0 - 4 (4)
+} t_cp_instruction;
+
 module zap_cp15_cb
 
 #(
@@ -34,18 +45,7 @@ module zap_cp15_cb
         parameter logic [31:0] CODE_CACHE_LINE   = 32'd64,
         parameter logic [31:0] DATA_CACHE_LINE   = 32'd64,
         parameter logic [31:0] CODE_CACHE_SIZE   = 32'd1024,
-        parameter logic [31:0] DATA_CACHE_SIZE   = 32'd1024,
-
-        localparam type t_cp_instruction =
-                        struct packed   {
-                        logic [11:0]  cp_rsvd_fld_1;          // 31:20 - 12 (32)
-                        logic [3:0]  ZAP_CRN;                 // 19:16 - 4 (20)
-                        logic [3:0]  cp_srvd_fld_0;           // 15:12 - 4 (16)
-                        logic [3:0]  ZAP_CP_ID;               // 11:8 - 4 (12)
-                        logic [2:0]  ZAP_OPCODE_2;            // 7:5 - 3 (8)
-                        logic [0:0]  cp_rsvd_fld;             // 4   - 1 (5)
-                        logic [3:0]  ZAP_CRM;                 // 3:0 - 4 (4)
-                        }
+        parameter logic [31:0] DATA_CACHE_SIZE   = 32'd1024
 )
 (
         // ----------------------------------------------------------------
@@ -598,7 +598,8 @@ begin
                         o_reg_wr_index <= 'x; //
                         o_reg_rd_index <= 'x; //
 
-                        foreach(r[i])
+                        // Quartus 17 compat: replaced foreach with for loop
+                        for (int i = 0; i < 14; i = i + 1)
                                 r[i] <= 'x;
                 end
 

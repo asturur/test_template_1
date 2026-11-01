@@ -202,7 +202,9 @@ function automatic  [5:0] translate (
                 end
         endcase
 
-        if ( cpu_mode inside {USR,SYS,FIQ,IRQ,SVC,UND,ABT} )
+        // Quartus 17 compat: replaced 'inside' + wrapped asserts
+`ifndef SYNTHESIS
+        if ( cpu_mode==USR || cpu_mode==SYS || cpu_mode==FIQ || cpu_mode==IRQ || cpu_mode==SVC || cpu_mode==UND || cpu_mode==ABT )
         begin
                 assert((index == ARCH_USR2_R8 && translate  == PHY_USR_R8) || index !=ARCH_USR2_R8 )
                 else $fatal(2, "USR loopback fail");
@@ -225,6 +227,7 @@ function automatic  [5:0] translate (
                 assert((index == ARCH_USR2_R14 && translate == PHY_USR_R14) || index !=ARCH_USR2_R14)
                 else $fatal(2, "USR loopback fail");
         end
+`endif
 endfunction
 
 

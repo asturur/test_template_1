@@ -112,6 +112,7 @@ function automatic [31:0] max ( input [31:0] a, b, c, d );
 endfunction
 
 // U0 generation.
+generate  // Quartus 17 compat: explicit generate
 if      ( 10+$clog2(FPAGE_TLB_ENTRIES) == 11 )
 begin: l_two_fp
         assign u0 = i_address_nxt[11];
@@ -415,6 +416,7 @@ zap_tlb_fsm #(
 
 // ----------------------------------------------------------------------------
 
+endgenerate
 endmodule : zap_tlb
 
 // ----------------------------------------------------------------------------

@@ -200,10 +200,10 @@ assign dnxt = (state_ff[FETCH_L2_DESC_0] | state_ff[FETCH_L1_DESC_0])
 ////////////////////////////
 
 // L1
-assign o_setlb_wen = state_ff[FETCH_L1_DESC] && (dff[`ZAP_DESC_ID] inside {SECTION_ID, 2'b00});
+assign o_setlb_wen = state_ff[FETCH_L1_DESC] && (dff[`ZAP_DESC_ID] == SECTION_ID || dff[`ZAP_DESC_ID] == 2'b00);
 
 // L2
-assign o_sptlb_wen = state_ff[FETCH_L2_DESC] && (dff[`ZAP_DESC_ID] inside {SPAGE_ID, 2'b00});
+assign o_sptlb_wen = state_ff[FETCH_L2_DESC] && (dff[`ZAP_DESC_ID] == SPAGE_ID || dff[`ZAP_DESC_ID] == 2'b00);
 assign o_lptlb_wen = state_ff[FETCH_L2_DESC] && (dff[`ZAP_DESC_ID] == LPAGE_ID);
 assign o_fptlb_wen = state_ff[FETCH_L2_DESC] && (dff[`ZAP_DESC_ID] == FPAGE_ID);
 
@@ -403,6 +403,8 @@ begin
         end
 end
 
+// Quartus 17 compat: assertions with 'inside' wrapped for synthesis
+`ifndef SYNTHESIS
 always @ (posedge i_clk) // Assertion
 begin
     if ( state_ff[FETCH_L1_DESC] )
@@ -429,16 +431,17 @@ begin
 
     if(o_setlb_wen)
     begin
-        assert(o_sptlb_wdata[1:0] inside {SPAGE_ID, 2'b00}) else
+        assert(o_sptlb_wdata[1:0] == SPAGE_ID || o_sptlb_wdata[1:0] == 2'b00) else
         $fatal(2, "SE TLB ID incorrect.");
     end
 
     if(o_sptlb_wen)
     begin
-        assert(o_sptlb_wdata[1:0] inside {SECTION_ID, 2'b00}) else
+        assert(o_sptlb_wdata[1:0] == SECTION_ID || o_sptlb_wdata[1:0] == 2'b00) else
         $fatal(2, "SP TLB ID incorrect.");
     end
 end
+`endif
 
 endmodule
 

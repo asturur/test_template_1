@@ -319,6 +319,7 @@ zap_core #(
 .i_dcache_err2          (!ONLY_CORE ? dcache_err2 : '0)
 );
 
+generate  // Quartus 17 compat: explicit generate
 if ( !ONLY_CORE )
 begin : l_tieoffs_full
          // Normal case - with cache and MMU.
@@ -681,6 +682,7 @@ assign wb_err   = i_wb_err;
 
 end : l_generate_with_cache_mmu
 
+endgenerate
 endmodule // zap_top.v
 
 ///////////////////////////////////////////////////////////////////////////////
