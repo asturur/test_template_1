@@ -1,18 +1,55 @@
 # Development checkpoint and resume guide
 
-## 2026-11-02 ~03:00 Clean from-reset run auth35: logo + full Symbian UI stack, no halt to 6e9 (update made with Claude)
+## 2026-11-02 handoff: AppArc rescans, cause unresolved
+
+Observed: auth35 ran from reset to 6e9 without a halt, with a Nokia logo
+DMA update around 2.77e9 and a blank update around 5.78e9. Its runner warned
+`Inputs changed while simulation ran; do not use result`: frames were rendered
+manually, but input provenance must be checked before treating this as a
+validated clean run. auth36 resumed `roll-auth35-r5900` to 12e9 without a
+halt or further LCD DMA updates. Neither the N-GAGE splash nor home screen
+has been demonstrated on this lineage. Names found in RAM alone do not prove
+that every named process is running.
+
+AppArc repeatedly enumerates `Z:\System\Apps`; observed starts at
+11,957,042,554, 12,118,600,200, 12,288,493,473 and 12,457,216,888 cycles.
+Trace at one boundary shows `RFs::NotifyChange` completion followed by
+`CApaFsMonitor::Start` and `CApaAppList::StartIdleUpdateL`. An ELOCAL
+`KErrCorrupt` (-20) leave occurred at 12,118,578,671, about 21,500 cycles
+before that notification, but causation, drive, operation and path are not
+established; 28 such leaves per 200M cycles are not one-to-one with scans.
+The earlier claim that the periodic timer alone drives rescans was corrected
+by the notification trace. No MMC/card-detect activity was observed at the
+investigated boundary; do not change that model on the earlier speculation.
+The claim that the UI waits on the scan is also not established.
+
+Next: inspect `idle-c12118` or a nearby available checkpoint and trace the
+ELOCAL leave to identify its request, drive, path and corruption check; then
+determine independently what completes `NotifyChange` and whether the two
+events are related. Fix only an evidenced board/model or content defect;
+do not patch firmware or guest RAM. Resume from a compatible checkpoint if
+the change permits, and composite any LCD updates. The last delegated
+investigation failed with HTTP 429 before producing a result. Local generated
+checkpoints, firmware inputs and run artifacts under `build/` and `scratch/`
+may not exist on another machine; verify their availability and provenance.
+The auth35/36 inputs included `pmm-image=/work/build/firmware/pmm-aan.bin`,
+`cbus-input=0x24=1` and `uem-power-status-extra=2`; these and the peripheral
+models are hypotheses, not independently verified phone behaviour. See
+`docs/README.md` and `docs/bringup.md` for evidence and simulation commands.
+
+## 2026-11-02 ~03:00 auth35 preliminary observation (superseded by handoff above)
 
 Board cycle counter (NOS time base) now saved in checkpoints (commit
 6e8c491; before, every resume restarted NOS time at 0 - the auth34 halt at
-3.7e9 reproduced only from r2400 and was a resume artefact). auth35 from
+3.7e9 reproduced only from r2400; a resume artefact is plausible, not proven). auth35 from
 reset with all fixes (pmm-image=pmm-aan.bin cbus-input=0x24=1
 uem-power-status-extra=2) ran 6e9 cycles with NO halt: Nokia logo DMA at
 2.77e9, full blank (wserv) frame at 5.78e9. Kernel memory at r5900 holds
-the whole S60 stack: Windowserver/EwSrv, FbServ, SplashScreen
+names associated with the S60 stack: Windowserver/EwSrv, FbServ, SplashScreen
 (S60SplashScreenGroup), SysAp, Startup, Phone/PhoneServer, Menu,
 SecurityNotifier, ViewServer, AppArc, DosServer, C32/ETel, Alarm/Calendar/
 Contacts servers, BTServer, AudioServer, ClockApp2. BT HCI over CBus keeps
-timing out (-33) - harmless so far. auth36 continues r5900 -> 12e9 (old
+timing out (-33); their ultimate effect is unknown. auth36 continued r5900 -> 12e9 (old
 patched lineage showed the N-GAGE splash 5.9e9-9e9). Checkpoints
 roll-auth35-r* are the consistent lineage to resume from.
 
