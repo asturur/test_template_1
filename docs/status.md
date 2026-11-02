@@ -1,5 +1,21 @@
 # Development checkpoint and resume guide
 
+## 2026-11-02 ~03:00 Clean from-reset run auth35: logo + full Symbian UI stack, no halt to 6e9 (update made with Claude)
+
+Board cycle counter (NOS time base) now saved in checkpoints (commit
+6e8c491; before, every resume restarted NOS time at 0 - the auth34 halt at
+3.7e9 reproduced only from r2400 and was a resume artefact). auth35 from
+reset with all fixes (pmm-image=pmm-aan.bin cbus-input=0x24=1
+uem-power-status-extra=2) ran 6e9 cycles with NO halt: Nokia logo DMA at
+2.77e9, full blank (wserv) frame at 5.78e9. Kernel memory at r5900 holds
+the whole S60 stack: Windowserver/EwSrv, FbServ, SplashScreen
+(S60SplashScreenGroup), SysAp, Startup, Phone/PhoneServer, Menu,
+SecurityNotifier, ViewServer, AppArc, DosServer, C32/ETel, Alarm/Calendar/
+Contacts servers, BTServer, AudioServer, ClockApp2. BT HCI over CBus keeps
+timing out (-33) - harmless so far. auth36 continues r5900 -> 12e9 (old
+patched lineage showed the N-GAGE splash 5.9e9-9e9). Checkpoints
+roll-auth35-r* are the consistent lineage to resume from.
+
 ## 2026-11-01 ~23:00 *** NOKIA LOGO ON THE AUTHENTIC PATH *** (update made with Claude)
 
 Original scrambled ROM + inline descrambler + real NOS, no stub/patches:
