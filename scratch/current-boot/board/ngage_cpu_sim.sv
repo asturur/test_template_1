@@ -2,6 +2,12 @@
 module ngage_cpu_sim (
     input  logic          i_clk,
     input  logic          i_reset,
+`ifdef NGAGE_HDL_BOARD
+    input wire i_board_cold_reset, i_bus_commit, i_cfg_lcd, i_cfg_keypad, i_cfg_clocks,
+    output wire o_board_claim, o_board_ready, o_board_unmodeled, o_board_init_done,
+    output wire o_board_irq, o_board_fiq,
+    output wire [31:0] o_board_dout,
+`endif
     input  logic          i_irq,
     input  logic          i_fiq,
     output logic          o_wb_cyc,
@@ -37,6 +43,15 @@ module ngage_cpu_sim (
         .wb_cycle_type(o_wb_cti), .wb_burst_type(),
         .wb_ack(i_wb_ack), .wb_read_data(i_wb_dat), .wb_error(i_wb_err)
     );
+`ifdef NGAGE_HDL_BOARD
+    ngage_board board(.clk(i_clk), .rst(i_reset), .init_rst(i_board_cold_reset),
+        .cyc(o_wb_cyc), .stb(o_wb_stb), .adr(o_wb_adr), .we(o_wb_we),
+        .din(o_wb_dat), .sel(o_wb_sel), .commit(i_bus_commit),
+        .cfg_lcd(i_cfg_lcd), .cfg_keypad(i_cfg_keypad), .cfg_clocks(i_cfg_clocks),
+        .claim(o_board_claim), .ready(o_board_ready), .dout(o_board_dout),
+        .unmodeled(o_board_unmodeled), .irq(o_board_irq), .fiq(o_board_fiq),
+        .init_done(o_board_init_done), .trace_valid(), .trace_addr(), .trace_data(), .trace_sel());
+`endif
     // Simulation-only observation of the decision before its active edge.
     assign o_branch_valid = cpu.u_zap.u_zap_core.u_zap_alu_main.branch_instruction &&
         cpu.u_zap.u_zap_core.u_zap_alu_main.o_dav_nxt &&

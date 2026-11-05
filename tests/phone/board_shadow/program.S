@@ -1,0 +1,48 @@
+.syntax unified
+.cpu arm920t
+.arm
+.global _start
+_start:
+ ldr r0,=0x0c150420
+ mov r1,#7
+ strh r1,[r0]
+ mov r1,#0x2a
+ strh r1,[r0,#2]
+ mov r1,#8
+ strh r1,[r0,#6]
+ mov r1,#7
+ strh r1,[r0]
+ ldr r1,=0x12a
+ strh r1,[r0,#2]
+ ldrh r2,[r0,#6]
+ cmp r2,#8
+ bne fail
+ ldr r0,=0x0c150420
+ mov r1,#7
+ strh r1,[r0]
+ mov r1,#0x3b
+ strh r1,[r0,#2]
+ mov r1,#0x400
+ strh r1,[r0,#6]
+ ldr r0,=0x0c150200
+ mov r1,#5
+ strh r1,[r0,#2]
+ ldr r0,=0x0c150208
+ ldr r2,[r0]
+ ldr r1,=0x000a0000
+ cmp r2,r1
+ bne fail
+ ldr r0,=0x0c150500
+ ldr r1,=0x12345678
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
+ ldr r0,=0x0c14b000
+ ldr r2,[r0]
+ tst r2,#0x80
+ beq fail
+.global good
+good: b good
+fail: b fail
+.ltorg

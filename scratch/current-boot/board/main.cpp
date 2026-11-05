@@ -302,11 +302,21 @@ int run(int argc, char** argv) {
     cpu->i_bus_commit = 0;
     cpu->i_cfg_lcd = lcd_probe;
     cpu->i_cfg_keypad = keypad_gpio;
+    cpu->i_cfg_clocks = ideal_clocks;
+    cpu->i_board_cold_reset = 1;
 #endif
     for (unsigned n = 0; n < 20; ++n) {
         cpu->i_clk = 0; cpu->eval(); context->timeInc(1);
         cpu->i_clk = 1; cpu->eval(); context->timeInc(1);
     }
+#ifdef NGAGE_HDL_BOARD
+    cpu->i_board_cold_reset = 0;
+    for (unsigned n = 0; n < 100000 && !cpu->o_board_init_done; ++n) {
+        cpu->i_clk = 0; cpu->eval(); context->timeInc(1);
+        cpu->i_clk = 1; cpu->eval(); context->timeInc(1);
+    }
+    if (!cpu->o_board_init_done) throw std::runtime_error("HDL board initialization timeout");
+#endif
     cpu->i_reset = 0;
     bool pending = false, complete = false, previous_cp15_done = false;
     Request request;
@@ -541,7 +551,7 @@ int run(int argc, char** argv) {
             cpu->i_wb_err = bus_fault;
 #ifdef NGAGE_HDL_BOARD
             if (hdl_claim && !request.write) cpu->i_wb_dat = hdl_data;
-            cpu->i_bus_commit = !bus_fault;   // HDL board registers commit with this ack
+            cpu->i_bus_commit = hdl_claim && !bus_fault;   // only the claimed HDL device commits
 #endif
             fetch_faults += bus_fault;
             pending = false;

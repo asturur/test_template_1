@@ -294,6 +294,8 @@ always @(*) begin
         if (a == 32'h0c15_021c && !we) dout = dout & 32'hffff_0000;
         // GSM system-type strap (0x0c150000 bit 22)
         if (a == 32'h0c15_0000 && !we) dout = dout | (32'h0040_0000 & wmask);
+        // Staged self-test hypothesis: UPP register-version bit.
+        if (a == 32'h0c14_b000 && !we) dout = dout | (32'h80 & wmask);
         // clock-unit 0x0c148000 lock bit 0
         if (a == 32'h0c14_8000 && !we) dout = dout | (32'h1 & wmask);
         // free-running counter 0x0c150110 upper halfword = counter
