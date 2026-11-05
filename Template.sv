@@ -127,8 +127,8 @@ wire transport_reset = ~pll_locked;
 wire phone_reset;
 ngage_reset_gate phone_reset_gate(.clk(clk_sys), .cold_reset(transport_reset),
  .reset_request(RESET | status[0] | buttons[1]), .block_reset(save_saving || save_busy), .phone_reset(phone_reset));
-wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !save_mounted | 1'b1;
-wire ioctl_upload, ioctl_rd;
+wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted | 1'b1;
+wire ioctl_upload, ioctl_rd, board_init_done;
 wire [0:0] img_mounted,sd_rd,sd_wr,sd_ack;
 wire img_readonly;wire [63:0] img_size;
 wire [31:0] sd_lba[1];wire [5:0] sd_blk_cnt[1];
@@ -351,6 +351,8 @@ wire [11:0] core_rgb;
 ngage_mister core (
 	.clk_sys       (clk_sys),
 	.reset         (reset),
+	.cold_reset    (transport_reset),
+	.board_init_done (board_init_done),
 	.bus_lock      (cpu_bus_lock),
 
 	// SDRAM (phone RAM)

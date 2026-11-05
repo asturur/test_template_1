@@ -14,6 +14,8 @@
 module ngage_mister (
     input  wire        clk_sys,      // CPU/bus clock domain
     input  wire        reset,
+    input  wire        cold_reset,
+    output wire        board_init_done,
     output wire        bus_lock,     // reserve shared memory for an atomic CPU swap
 
     // SDRAM port (phone RAM — active R/W, 16MB)
@@ -71,11 +73,11 @@ wire        brd_claim, brd_ready, brd_unmodeled;
 wire [31:0] brd_dout;
 
 ngage_board board (
-    .rst(reset), .clk(clk_sys),
+    .rst(reset), .init_rst(cold_reset), .clk(clk_sys),
     .cyc(wb_cyc), .stb(wb_stb), .adr(wb_adr), .we(wb_we),
     .din(wb_dat_o), .sel(wb_sel), .commit(wb_ack),
     .cfg_lcd(1'b1), .cfg_keypad(1'b1), .cfg_clocks(1'b1),
-    .claim(brd_claim), .ready(brd_ready), .dout(brd_dout), .unmodeled(brd_unmodeled)
+    .claim(brd_claim), .ready(brd_ready), .dout(brd_dout), .unmodeled(brd_unmodeled), .irq(irq_line), .fiq(fiq_line), .init_done(board_init_done)
 );
 
 // --- physical address decode --------------------------------------------
@@ -133,12 +135,18 @@ assign sdram_addr=wb_adr[24:0];assign sdram_din=wb_dat_o;assign sdram_be=wb_sel;
 assign sdram_we=ram_hit && wb_we && mem_req;assign sdram_req=ram_hit && mem_req;
 wire flash_error=(code_rsp && code_err) || (user_rsp && user_err);
 wire mem_ack=ram_hit ? sdram_ack : flash_hit ? (flash_response && !flash_error) : 1'b0;
-assign wb_ack=brd_claim ? brd_ready : mem_ack;
+// Register board/decode faults so Wishbone STB suppression on ERR cannot
+// form a combinational loop. No invalid access is acknowledged as success.
+reg invalid_response=0;
+always @(posedge clk_sys) begin
+ if(reset) invalid_response<=0;
+ else invalid_response<=!invalid_response && ((brd_claim && brd_ready && brd_unmodeled) ||
+                                              (mem_req && !ram_hit && !flash_hit));
+end
+assign wb_ack=brd_claim ? (brd_ready && !brd_unmodeled) : mem_ack;
 assign wb_dat_i=brd_claim ? brd_dout : flash_hit ? (user_rsp ? user_data : code_data) : sdram_dout;
-assign wb_err=!brd_claim && (flash_error || (mem_req && !ram_hit && !flash_hit));
+assign wb_err=invalid_response || flash_error;
 
-assign irq_line = 1'b0;   // TODO: from ngage_board once timers/ICU migrate
-assign fiq_line = 1'b0;
 
 // --- video (TODO: framebuffer BRAM filled by the LCD DMA device) ---------
 assign ce_pix = 1'b0;

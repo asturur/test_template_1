@@ -39,3 +39,5 @@ checks just to reconstruct already documented results.
 - [MiSTer SDRAM transport and verification](mister-sdram.md)
 
 - [MiSTer flash and working save](mister-flash-save.md)
+
+- [MiSTer board-device migration](mister-board-bringup.md)

@@ -1,3 +1,11 @@
+## 2026-11-05: MiSTer board milestone 4 in progress
+
+Ported and connected initial staged-model ICU, timers, NOS counter/interrupt registers, selected UEM/CBUS sequencing, boot latches and executable scratch. CPU IRQ/FIQ now come from the board. A small real ARM program receives and acknowledges both IRQ and FIQ and reaches a data-abort handler for an invalid board read. Corrected former low-address aliasing by splitting upload, NOS and GPIO banks and initializing them before CPU release; the 0x0d diagnostic store now has full-address tags and an explicit 64-entry limit. Trace writes produce testable events but have no hardware buffer/export yet.
+
+Focused RTL tests pass for the above, including reset/commit behavior, masking, FIQ source 3, timer wrap, CBUS RTC/ADC cases checked against both C++ boards, bank separation and trace widths. The current C++ model has two distinct NOS counter rates (3174 and 104000 clocks), which are now separate in RTL. Alarm and periodic UEM interrupt phases differ from the C++ model and remain unverified hypotheses. Top-level structural elaboration passes with HPS/PLL stubs. No full firmware run, synthesis or hardware test was performed; the MiSTer CPU remains held in reset.
+
+Milestone 4 is not finished: DSP/MDI shared RAM/ring and IRQ behavior, other stateful peripheral registers, GPIO/keypad quirks, DMA, SIM FIQ, complete event-by-event C++ parity, trace buffering/export, an HDL phone wrapper and resource/timing validation remain. See `docs/mister-board-bringup.md` for exact limitations and next steps.
+
 ## 2026-11-05: MiSTer flash and save implementation, simulated validation
 
 Connected C: and code/PMM flash state machines to the core's DDR transport, including two-lane array descrambling, per-chip/bank status, observed C: program/erase commands, and dirty-sector events. C: intentionally matches the software model's 0-to-1 program behavior; PMM uses bitwise AND with its seed, a documented discrepancy requiring further evidence. Code-flash program operations outside PMM return errors. Both C++ board references pass matching C: command cases; RTL flash tests, 1,548 descrambler vectors, and the stock MD5 through RTL pass.

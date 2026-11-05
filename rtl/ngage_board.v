@@ -39,6 +39,7 @@
 
 module ngage_board(
     input  wire        rst,
+    input  wire        init_rst,
     input  wire        clk,
     // CPU wishbone request (held stable while pending)
     input  wire        cyc,
@@ -56,11 +57,42 @@ module ngage_board(
     output reg         claim,
     output wire        ready,       // dout valid / access may be acknowledged
     output reg  [31:0] dout,
-    output reg         unmodeled
+    output reg         unmodeled,
+    output wire        irq,
+    output wire        fiq,
+    output reg         init_done,
+    output wire        trace_valid,
+    output wire [31:0] trace_addr,trace_data,
+    output wire [3:0]  trace_sel
 );
 
 wire [31:0] a = {adr[31:2], 2'b00};
 wire [31:0] wmask = { {8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}} };
+
+// Dedicated ownership for the modeled ICU and timer registers. Other
+// sources remain low until their actual device models are connected.
+wire icu_claim,icu_bad,timer_claim,timer_bad,nos_claim,nos_bad,nos_pending,cbus_claim,cbus_bad,cbus_irq,periodic_active,boot_claim,boot_bad,trace_claim,trace_bad;
+wire [31:0] icu_data,timer_data,nos_data,cbus_data,boot_data;
+wire [95:0] irq_clear;
+wire timer0_pending,unit1_pending,unit60_pending,timer0_rearm;
+wire [95:0] irq_sources={64'b0,6'b0,nos_pending,23'b0,(unit1_pending || cbus_irq),timer0_pending};
+wire [95:0] fiq_sources={64'b0,28'b0,unit60_pending,3'b0};
+ngage_icu icu(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.irq_pending(irq_sources),.fiq_pending(fiq_sources),
+ .claim(icu_claim),.bad(icu_bad),.dout(icu_data),.irq(irq),.fiq(fiq),.irq_clear(irq_clear),.timer0_rearm(timer0_rearm));
+ngage_timers timers(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.clear_unit1(irq_clear[1]),.claim(timer_claim),.bad(timer_bad),.dout(timer_data),
+ .timer0_pending(timer0_pending),.unit1_pending(unit1_pending),.unit60_pending(unit60_pending),.timer0_rearm(timer0_rearm),.periodic_active(periodic_active));
+ngage_nos_io nos_timer(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.claim(nos_claim),.bad(nos_bad),.dout(nos_data),.irq(nos_pending));
+ngage_cbus_uem cbus(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.kernel_periodic(periodic_active),.clear_irq(irq_clear[1]),
+ .claim(cbus_claim),.bad(cbus_bad),.dout(cbus_data),.irq_pending(cbus_irq));
+ngage_boot_regs boot_regs(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.claim(boot_claim),.bad(boot_bad),.dout(boot_data));
+ngage_trace_sink trace_sink(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.claim(trace_claim),.bad(trace_bad),
+ .trace_valid(trace_valid),.trace_addr(trace_addr),.trace_data(trace_data),.trace_sel(trace_sel));
 
 // ---- device 1: LCD transport ------------------------------------------------
 wire lcd_hit = cfg_lcd && (a == 32'h0c12_1200 ||
@@ -105,10 +137,26 @@ wire gpio_hit = cfg_keypad && (
     a == 32'h0c12_0034
 );
 
-// GPIO storage: 16K words indexed by the low 16 address bits (no two gated
-// ranges share a low-16 value). Zero until written (zero-reset latches).
-wire [13:0] gidx = a[15:2];
-wire [31:0] gpr_q;
+// Separate storage for each large address window: the old low-16-bit
+// index aliased upload RAM, NOS RAM and GPIO at the same offsets.
+wire upload_hit = a[31:16]==16'h0c03;
+wire nosmem_hit = a[31:16]==16'h0c10;
+wire gpio15_hit = a[31:12]==20'h0c150;
+wire aux_hit = gpio_hit && !upload_hit && !nosmem_hit && !gpio15_hit;
+wire [11:0] aux_index = a[31:16]==16'h0c14 ? {2'b00,a[15:12],a[7:2]} :
+                         a[31:16]==16'h0c12 ? (a[11:8]==4'hc ? {6'b010000,a[7:2]} : 12'h440) :
+                         {6'b100000,a[7:2]};
+wire [31:0] upload_q,nosmem_q,gpio15_q,aux_q;
+wire [31:0] gpr_q=upload_hit?upload_q:nosmem_hit?nosmem_q:gpio15_hit?gpio15_q:aux_q;
+reg [14:0] init_index=0;
+wire clearing=!init_done;
+always @(posedge clk) begin
+ if(init_rst)begin init_index<=0;init_done<=0;end
+ else if(!init_done)begin
+  if(init_index==15'd16383) init_done<=1;
+  else init_index<=init_index+1'b1;
+ end
+end
 
 // ---- device 3: ideal-clock block -------------------------------------------
 wire clk_hit = cfg_clocks && (a == 32'h0c12_0004 || a == 32'h0c12_0008 ||
@@ -128,33 +176,40 @@ wire [31:0] nos4k_q;               // 4KB for 0x0c004xxx
 // ---- device 5: 0x0d space (peripherals + trace sink) -----------------------
 wire d_space_hit = cfg_keypad && (a[31:24] == 8'h0d);
 
-wire [31:0] d_q;                   // sampled subset (not full 16MB)
-wire [9:0] d_idx = a[11:2];        // per-64KB-block window
+wire [31:0] d_q;
+wire d_full;
 
 // ---- block-RAM latch arrays ------------------------------------------------
 wire req      = cyc && stb;
 wire wr_ok    = commit && we && !unmodeled;
-wire nos4k_ram = nos4k_hit && a[31:12] == 20'h0c004;
+wire nos4k_ram = nos4k_hit && !boot_claim && a[31:12] == 20'h0c004;
 
-ngage_bram_be #(.AW(14)) gpr_ram (
-    .clk(clk), .raddr(gidx), .rdata(gpr_q),
-    .waddr(gidx), .we((gpio_hit && wr_ok) ? sel : 4'd0), .wdata(din));
-
+ngage_bram_be #(.AW(14)) upload_ram (
+ .clk(clk),.raddr(a[15:2]),.rdata(upload_q),.waddr(clearing?init_index[13:0]:a[15:2]),
+ .we(clearing?4'hf:((upload_hit && gpio_hit && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ngage_bram_be #(.AW(14)) nosmem_ram (
+ .clk(clk),.raddr(a[15:2]),.rdata(nosmem_q),.waddr(clearing?init_index[13:0]:a[15:2]),
+ .we(clearing?4'hf:((nosmem_hit && gpio_hit && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ngage_bram_be #(.AW(10)) gpio15_ram (
+ .clk(clk),.raddr(a[11:2]),.rdata(gpio15_q),.waddr(clearing?init_index[9:0]:a[11:2]),
+ .we(clearing?4'hf:((gpio15_hit && gpio_hit && !nos_claim && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ngage_bram_be #(.AW(12)) aux_ram (
+ .clk(clk),.raddr(aux_index),.rdata(aux_q),.waddr(clearing?init_index[11:0]:aux_index),
+ .we(clearing?4'hf:((aux_hit && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
 ngage_bram_be #(.AW(10)) nos4k_ram_i (
-    .clk(clk), .raddr(a[11:2]), .rdata(nos4k_q),
-    .waddr(a[11:2]), .we((nos4k_ram && wr_ok) ? sel : 4'd0), .wdata(din));
-
-ngage_bram_be #(.AW(10)) d_ram (
-    .clk(clk), .raddr(d_idx), .rdata(d_q),
-    .waddr(d_idx), .we((d_space_hit && wr_ok) ? sel : 4'd0), .wdata(din));
+ .clk(clk),.raddr(a[11:2]),.rdata(nos4k_q),.waddr(clearing?init_index[9:0]:a[11:2]),
+ .we(clearing?4'hf:((nos4k_ram && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ngage_sparse_regs #(.ENTRIES(64)) d_regs (
+ .clk(clk),.cold_reset(init_rst),.req(d_space_hit && req && !trace_claim),.commit(commit),
+ .we(we),.addr(a),.din(din),.sel(sel),.dout(d_q),.full(d_full));
 
 // A RAM-backed read is ready once the RAM has sampled this request's
 // address on a previous edge; cleared on every ack so the next request
 // (even to the same address, e.g. after a write) re-reads.
 reg        rd_vld;
 reg [31:0] rd_adr;
-wire ram_read = !we && (gpio_hit || nos4k_ram || d_space_hit);
-assign ready  = !ram_read || (rd_vld && rd_adr == a);
+wire ram_read = !we && ((gpio_hit && !nos_claim) || nos4k_ram);
+assign ready  = init_done && (!ram_read || (rd_vld && rd_adr == a));
 
 always @(posedge clk) begin
     if (rst || commit || !req) rd_vld <= 1'b0;
@@ -170,11 +225,17 @@ reg [11:0] fcnt_div;
 
 // ---- combinational output ---------------------------------------------------
 always @(*) begin
-    claim     = (lcd_hit || gpio_hit || clk_hit || nos4k_hit || d_space_hit) && cyc && stb;
+    claim     = icu_claim || timer_claim || nos_claim || cbus_claim || boot_claim || trace_claim || ((lcd_hit || gpio_hit || clk_hit || nos4k_hit || d_space_hit) && cyc && stb);
     dout      = 32'd0;
     unmodeled = 1'b0;
 
-    if (nos4k_hit && cyc && stb) begin
+    if (trace_claim) begin dout=0;unmodeled=trace_bad; end
+    else if (boot_claim) begin dout=boot_data;unmodeled=boot_bad; end
+    else if (icu_claim) begin dout=icu_data;unmodeled=icu_bad; end
+    else if (timer_claim) begin dout=timer_data;unmodeled=timer_bad; end
+    else if (nos_claim) begin dout=nos_data;unmodeled=nos_bad; end
+    else if (cbus_claim) begin dout=cbus_data;unmodeled=cbus_bad; end
+    else if (nos4k_hit && cyc && stb) begin
         if (a[31:12] == 20'h0c000) begin
             // ASIC ROM stub: reads return Thumb BX LR (0x4770)
             if (we) unmodeled = 1'b1;
@@ -185,6 +246,7 @@ always @(*) begin
         end
     end else if (d_space_hit && cyc && stb) begin
         dout = d_q & wmask;
+        unmodeled = d_full;
     end else if (clk_hit && cyc && stb) begin
         if (a == 32'h0c12_0020) begin
             if (we || ctlw != 4'hf) unmodeled = 1'b1;
