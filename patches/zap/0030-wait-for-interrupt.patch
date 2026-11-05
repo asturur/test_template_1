@@ -1,0 +1,88 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -143,6 +143,8 @@
+         output logic [5:0]                        o_icache_lock_base,
+         output logic                              o_drain_write_buffer,
+         input logic                               i_write_buffer_empty,
++        input logic                               i_irq,
++        input logic                               i_fiq,
+         output logic                              o_cache_op_single,
+         output logic                              o_cache_op_by_mva,
+         output logic [31:0]                       o_cache_op_address,
+@@ -168,6 +170,7 @@
+ 
+ logic [31:0] r [13:0];// Coprocessor registers. R7, R8 is write-only.
+ logic [3:0]    state; // State variable.
++logic          wait_for_interrupt;
+ 
+ // ---------------------------------------------
+ // Localparams
+@@ -189,6 +192,7 @@
+ localparam [3:0] LOCK_D_CACHE         = 12;
+ localparam [3:0] LOCK_I_CACHE         = 13;
+ localparam [3:0] DRAIN_WRITE_BUFFER    = 14;
++localparam [3:0] WAIT_FOR_INTERRUPT    = 15;
+ 
+ // Register numbers.
+ localparam [3:0] FSR_REG              = 5;
+@@ -205,6 +209,7 @@
+ localparam [6:0] CASE_CLFLUSH_ID_CACHE     = 7'b000_1111;
+ localparam [6:0] CASE_CLFLUSH_D_CACHE      = 7'b000_1110;
+ localparam [6:0] CASE_DRAIN_WRITE_BUFFER     = 7'b100_1010;
++localparam [6:0] CASE_WAIT_FOR_INTERRUPT     = 7'b100_0000;
+ localparam [6:0] CASE_FLUSH_ID_TLB         = 7'b00?_0111;
+ localparam [6:0] CASE_FLUSH_I_TLB          = 7'b00?_0101;
+ localparam [6:0] CASE_FLUSH_D_TLB          = 7'b00?_0110;
+@@ -329,6 +334,7 @@
+         begin
+                 state          <= IDLE;
+                 o_drain_write_buffer <= 1'b0;
++                wait_for_interrupt <= 1'b0;
+                 o_dcache_inv   <= 1'd0;
+                 o_dcache_lock_write <= 1'b0;
+                 o_dcache_lock_base <= 6'b0;
+@@ -508,8 +514,15 @@
+                                         o_cache_op_single <= 1'b1;o_cache_op_by_mva <= i_cp_word.ZAP_OPCODE_2 == 1;
+                                         o_dcache_clean <= 1'b1;state <= CLFLUSH_D_CACHE;
+                                 end
++                                CASE_WAIT_FOR_INTERRUPT:
++                                begin
++                                        wait_for_interrupt <= 1'b1;
++                                        o_drain_write_buffer <= 1'b1;
++                                        state <= DRAIN_WRITE_BUFFER;
++                                end
+                                 CASE_DRAIN_WRITE_BUFFER:
+                                 begin
++                                        wait_for_interrupt <= 1'b0;
+                                         // Draining waits for all buffered writes, and does
+                                         // not clean or invalidate the data cache.
+                                         o_drain_write_buffer <= 1'b1;
+@@ -573,8 +586,16 @@
+ 
+                 DRAIN_WRITE_BUFFER: begin
+                         o_drain_write_buffer <= 1'b1;
+-                        if (i_write_buffer_empty) begin o_drain_write_buffer <= 1'b0;state <= DONE;end
++                        if (i_write_buffer_empty) begin
++                                o_drain_write_buffer <= 1'b0;
++                                state <= wait_for_interrupt ? WAIT_FOR_INTERRUPT : DONE;
++                        end
+                 end
++                WAIT_FOR_INTERRUPT: begin
++                        // IRQ/FIQ wake the core, including when masked; normal
++                        // exception entry remains governed by the CPSR masks.
++                        if (i_irq || i_fiq) begin wait_for_interrupt <= 1'b0;state <= DONE;end
++                end
+                 LOCK_D_CACHE: begin
+                         o_dcache_lock_write <= 1'b1;
+                         if (i_dcache_lock_done) begin o_dcache_lock_write <= 1'b0;state <= DONE;end
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -1654,6 +1654,8 @@
+         .o_icache_lock_base      (o_icache_lock_base),
+         .o_drain_write_buffer     (o_drain_write_buffer),
+         .i_write_buffer_empty    (i_write_buffer_empty),
++        .i_irq                   (i_irq),
++        .i_fiq                   (i_fiq),
+         .o_cache_op_single       (o_cache_op_single),
+         .o_cache_op_by_mva       (o_cache_op_by_mva),
+         .o_cache_op_address      (o_cache_op_address),

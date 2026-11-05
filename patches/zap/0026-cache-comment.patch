@@ -1,0 +1,18 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -210,12 +210,9 @@
+ 
+ assign xCACHE_TYPE_WORD[0][2]    = ONLY_CORE ? 1'd1 : 1'd0;
+ 
+-// Report ARM920T 64-way associativity. The physical cache stays direct
+-// mapped: every index/way clean-or-invalidate op already falls through to
+-// a whole-cache operation, so only the loop arithmetic software derives
+-// from this field matters. EKA1's clean-by-index loop computes its way
+-// increment as (1 ROR assoc) and exits on carry; assoc = 0 makes that
+-// increment 1 and the loop effectively endless (2^32 iterations).
++// Report ARM920T 64-way associativity. The normal cache remains direct
++// mapped; the experimental associative cache is selected at build time.
++// EKA1 also uses this field to derive the increment in its maintenance loop.
+ assign xCACHE_TYPE_WORD[0][5:3]  = 3'd6;
+ 
+ always_comb

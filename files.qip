@@ -15,6 +15,20 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_descramble.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_modem.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cpu.sv
 
+# ARM920-shaped cache is the development default; FPGA fit/timing remain unverified.
+set_global_assignment -name VERILOG_MACRO "NGAGE_ASSOC_EXPERIMENT=1"
+# Associative cache RTL.
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb_bus_gate.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/write_buffer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_tags.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_lines.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_bank.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_transfer.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_refill.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_maintenance.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_access.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/zap_dcache_adapter.sv
+
 # ZAP ARM920T CPU: patched copy in rtl/arm (upstream + patches/zap, see rtl/arm/README.md)
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_top.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_core.sv

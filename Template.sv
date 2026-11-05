@@ -162,6 +162,9 @@ wire [31:0] cpu_sdram_din;
 wire [3:0]  cpu_sdram_be;
 wire        cpu_sdram_we;
 wire        cpu_sdram_req;
+// No competing phone-memory master is wired yet. Future DMA arbitration must
+// preserve the CPU bus reservation while this signal is asserted.
+wire        cpu_bus_lock;
 
 // 32-bit CPU word → two 16-bit SDRAM halfword accesses.
 // Phase: 0 = low halfword, 1 = high halfword.
@@ -363,6 +366,7 @@ wire [11:0] core_rgb;
 ngage_mister core (
 	.clk_sys       (clk_sys),
 	.reset         (reset),
+	.bus_lock      (cpu_bus_lock),
 
 	// SDRAM (phone RAM)
 	.sdram_addr    (cpu_sdram_addr),

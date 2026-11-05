@@ -58,8 +58,10 @@ input   logic            i_inv,
 // To cache FSM.
 output  logic    [31:0]  o_phy_addr,
 output  logic    [7:0]   o_fsr,
+output  logic    [7:0]   o_external_fsr,
 output  logic    [31:0]  o_far,
 output  logic            o_fault,
+output  logic            o_bufferable,
 output  logic            o_cacheable,
 output  logic            o_busy,
 output  logic            o_walk_pending,
@@ -102,7 +104,7 @@ logic                            fptlb_ren, fptlb_ren_pre, fptlb_wen;
 logic                            walk;
 logic [7:0]                      fsr;
 logic [31:0]                     far;
-logic                            cacheable;
+logic                            cacheable, bufferable;
 logic [31:0]                     phy_addr;
 logic [31:0]                     tlb_address;
 logic                            u0, u1, u2, u3, u4, u5;
@@ -354,9 +356,11 @@ u_zap_tlb_check (
 .i_fptlb_rdav   (fptlb_ren_pre),
 
 .o_walk         (walk),
+.o_external_fsr (o_external_fsr),
 .o_fsr          (fsr),
 .o_far          (far),
 .o_cacheable    (cacheable),
+.o_bufferable   (bufferable),
 .o_phy_addr     (phy_addr)
 
 );
@@ -393,6 +397,7 @@ zap_tlb_fsm #(
 .i_fsr          (fsr),
 .i_far          (far),
 .i_cacheable    (cacheable),
+.i_bufferable   (bufferable),
 .i_phy_addr     (phy_addr),
 
 .i_idle         (i_idle),
@@ -401,6 +406,7 @@ zap_tlb_fsm #(
 .o_fault        (o_fault),
 .o_phy_addr     (o_phy_addr),
 .o_cacheable    (o_cacheable),
+.o_bufferable   (o_bufferable),
 .o_busy         (o_busy),
 
 .o_setlb_wdata  (setlb_wdata),

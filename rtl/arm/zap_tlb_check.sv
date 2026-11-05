@@ -57,8 +57,10 @@ input logic [`ZAP_FPAGE_TLB_WDT-1:0]     i_fptlb_rdata,  // Fine page TLB read d
 input logic                              i_fptlb_rdav,   // Fine page TLB valid.
 
 output logic                            o_walk,         // Signal page walk.
+output logic [7:0]                      o_external_fsr, // domain and external-abort status for this translation
 output logic [7:0]                      o_fsr,          // FSR. 0 means all OK.
 output logic [31:0]                     o_far,          // Fault Address Register.
+output logic                            o_bufferable,
 output logic                            o_cacheable,    // Cacheble stats of the PTE.
 output logic [31:0]                     o_phy_addr      // Physical address.
 );
@@ -99,9 +101,11 @@ begin
 
                 // Default values. Taken for MMU disabled esp.
                 o_fsr       <= 0;        // No fault.
+                o_external_fsr <= 8'h08; // MMU disabled: domain unspecified
                 o_far       <= i_va;     // Fault address.
                 o_phy_addr  <= i_va;     // VA = PA
                 o_walk      <= 0;        // Walk disabled.
+                o_bufferable <= 0;
                 o_cacheable <= 0;        // Uncacheable.
 
 
@@ -116,6 +120,7 @@ begin
                         4'b0001:
                         begin
                                 // Entry found in small page TLB.
+                                o_external_fsr <= {i_sptlb_rdata[`ZAP_SPAGE_TLB__DAC_SEL],4'ha};
                                 o_fsr <= get_fsr_spage
                                 (
                                         i_va[`ZAP_VA__SPAGE_AP_SEL],
@@ -128,13 +133,14 @@ begin
                                 ) ;
 
                                 o_phy_addr <= {i_sptlb_rdata[`ZAP_SPAGE_TLB__BASE], i_va[11:0]};
-                                {dummy, o_cacheable} <= i_sptlb_rdata[`ZAP_SECTION_TLB__CB] >> 1;
+                                {o_cacheable, o_bufferable} <= i_sptlb_rdata[`ZAP_SPAGE_TLB__CB];
 
                         end
 
                         4'b0010:
                         begin
                                 // Entry found in large page TLB.
+                                o_external_fsr <= {i_lptlb_rdata[`ZAP_LPAGE_TLB__DAC_SEL],4'ha};
                                 o_fsr <= get_fsr_lpage
                                 (
                                         i_va[`ZAP_VA__LPAGE_AP_SEL],
@@ -147,12 +153,13 @@ begin
                                 ) ;
 
                                 o_phy_addr <= {i_lptlb_rdata[`ZAP_LPAGE_TLB__BASE], i_va[15:0]};
-                                {dummy, o_cacheable} <= i_lptlb_rdata[`ZAP_LPAGE_TLB__CB] >> 1;
+                                {o_cacheable, o_bufferable} <= i_lptlb_rdata[`ZAP_LPAGE_TLB__CB];
                         end
 
                         4'b0100:
                         begin
                                 // Entry found in section TLB.
+                                o_external_fsr <= {i_setlb_rdata[`ZAP_SECTION_TLB__DAC_SEL],4'h8};
                                 o_fsr <= get_fsr_section
                                 (
                                         i_cpsr[ZAP_CPSR_MODE:0] == USR,
@@ -164,12 +171,13 @@ begin
                                 ) ;
 
                                 o_phy_addr <= {i_setlb_rdata[`ZAP_SECTION_TLB__BASE], i_va[19:0]};
-                                {dummy, o_cacheable} <= i_setlb_rdata[`ZAP_SECTION_TLB__CB] >> 1;
+                                {o_cacheable, o_bufferable} <= i_setlb_rdata[`ZAP_SECTION_TLB__CB];
                         end
 
                         4'b1000:
                         begin
                                 // Entry found in fine page TLB.
+                                o_external_fsr <= {i_fptlb_rdata[`ZAP_FPAGE_TLB__DAC_SEL],4'ha};
                                 o_fsr <= get_fsr_fpage
                                 (
                                         i_cpsr[ZAP_CPSR_MODE:0] == USR,
@@ -181,7 +189,7 @@ begin
                                 );
 
                                 o_phy_addr <= {i_fptlb_rdata[`ZAP_FPAGE_TLB__BASE], i_va[9:0]};
-                                {dummy, o_cacheable} <= i_fptlb_rdata[`ZAP_FPAGE_TLB__CB] >> 1;
+                                {o_cacheable, o_bufferable} <= i_fptlb_rdata[`ZAP_FPAGE_TLB__CB];
                         end
 
                         4'b0000:
@@ -204,6 +212,7 @@ begin
                                 o_phy_addr  <= 'X;
                                 o_walk      <= 'X;
                                 o_far       <= 'X;
+                                o_bufferable <= 'X;
                                 o_cacheable <= 'X;
                         end
                         endcase

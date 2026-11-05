@@ -48,6 +48,8 @@ output logic            o_c_wb_ack,
 output logic            o_c_wb_err,
 
 // Wishbone bus 2
+input logic             i_d_wb_lock,
+output logic            o_wb_lock,
 input logic             i_d_wb_stb,
 input logic             i_d_wb_cyc,
 input logic             i_d_wb_wen,
@@ -92,6 +94,7 @@ enum logic {CODE = 1'd0, DATA = 1'd1, DEFAULT_XX = 'x} state_ff, state_nxt;
 // Alias
 logic switch;
 
+assign o_wb_lock = (state_ff == DATA) && i_d_wb_lock;
 assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
 
 always_comb
@@ -120,8 +123,9 @@ begin
 
         DATA:
         begin
+                if (i_d_wb_lock) state_nxt = DATA;
                 // Switch over if EOB and code STB exists.
-                if ( switch && i_c_wb_stb )
+                else if ( switch && i_c_wb_stb )
                 begin
                         state_nxt = CODE;
                 end

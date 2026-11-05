@@ -72,7 +72,8 @@ module zap_predecode_uop_sequencer
         output logic              o_fiq,
 
         // UOP last.
-        output logic              o_uop_last
+        output logic              o_uop_last,
+        output logic [1:0] o_swp_tag
 );
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -814,6 +815,10 @@ begin:next_state_logic_and_output_logic
         endcase
 end
 
+// Tags follow the two memory micro-ops belonging to an ARM SWP.
+assign o_swp_tag = !o_instruction_valid ? 2'd0 :
+                   (state_ff==IDLE && state_nxt==SWAP1) ? 2'd1 :
+                   state_ff==SWAP1 ? 2'd2 : 2'd0;
 // Debug only.
 assign o_uop_last = (((state_ff == IDLE) && (state_nxt == IDLE)) ||
                      ((state_ff != IDLE) && (state_nxt == IDLE))) &&

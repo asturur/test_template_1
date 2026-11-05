@@ -44,7 +44,9 @@ module zap_alu_main #(
 
         // Last uop indication interface.
         input logic                              i_uop_last,
+        input logic [1:0] i_swp_tag,
         output logic                             o_uop_last,
+        output logic [1:0] o_swp_tag,
 
         // ------------------------------------------------------------------
         // Clock and reset
@@ -523,6 +525,7 @@ begin
         begin
                 o_decompile_valid                <= 1'd0;
                 o_uop_last                       <= 1'd0;
+                o_swp_tag <= 0;
                 o_clear_from_alu                 <= 0;
                 o_dav_ff                         <= 0;
                 o_alt_dav_ff                     <= 0;
@@ -558,6 +561,7 @@ begin
                 // Clear but take CPSR from writeback.
                 o_decompile_valid                <= 1'd0;
                 o_uop_last                       <= 1'd0;
+                o_swp_tag <= 0;
                 o_clear_from_alu                 <= 0;
                 o_dav_ff                         <= 0;
                 o_alt_dav_ff                     <= 0;
@@ -593,6 +597,7 @@ begin
                 // Clear and preserve flags. Keep sleeping.
                 o_decompile_valid                <= 1'd0;
                 o_uop_last                       <= 1'd0;
+                o_swp_tag <= 0;
                 o_clear_from_alu                 <= 0;
                 o_dav_ff                         <= 0;
                 o_alt_dav_ff                     <= 0;
@@ -610,6 +615,7 @@ begin
                 // Clear and preserve flags. Wake up from sleep.
                 o_decompile_valid                <= 1'd0;
                 o_uop_last                       <= 1'd0;
+                o_swp_tag <= 0;
                 o_clear_from_alu                 <= 0;
                 o_dav_ff                         <= 0;
                 o_alt_dav_ff                     <= 0;
@@ -668,6 +674,7 @@ begin
                 o_decompile                     <= i_decompile;
                 o_decompile_valid               <= o_decompile_valid_nxt;
                 o_uop_last                      <= o_uop_last_nxt;
+                o_swp_tag <= (o_dav_nxt && is_cc_satisfied(i_condition_code_ff, flags_ff[31:28]) && !i_irq_ff && !i_fiq_ff && !i_abt_ff && !i_und_ff) ? i_swp_tag : 2'd0;
         end
 end
 

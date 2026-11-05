@@ -1,0 +1,33 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -332,8 +332,10 @@
+                 r[5]           <= 32'd0;
+                 r[6]           <= 32'd0;
+                 r[13]          <= 32'd0;
+-                r[0][15:4]     <= 12'hAAA;
+-                r[0][19:16]    <= 4'h5;
++                r[0][15:4]     <= CP15_L4_DEFAULT ? 12'h920 : 12'hAAA;
++                r[0][19:16]    <= CP15_L4_DEFAULT ? 4'h2 : 4'h5;
++                r[0][23:20]    <= CP15_L4_DEFAULT ? 4'h1 : 4'h0;
++                r[0][31:24]    <= CP15_L4_DEFAULT ? 8'h41 : 8'h00;
+                 r[1][7]        <= BE_32_ENABLE;
+                 r[1][6:3]      <= 4'b1111;
+                 r[1][11:10]    <= 2'b00; // ARM920 reserved: reads zero
+@@ -630,11 +632,13 @@
+                 // Constants Section
+                 // ======================================
+ 
++                // ARM920T ID fields; layout revision zero is a model choice,
++                // not a measured identification from the physical phone.
+                 r[0][3:0]   <= 4'd0;
+-                r[0][15:4]  <= 12'hAAA;
+-                r[0][19:16] <= 4'h5;
+-                r[0][23:20] <= 4'd0;
+-                r[0][31:24] <= 8'd0;
++                r[0][15:4]  <= CP15_L4_DEFAULT ? 12'h920 : 12'hAAA;
++                r[0][19:16] <= CP15_L4_DEFAULT ? 4'h2 : 4'h5;
++                r[0][23:20] <= CP15_L4_DEFAULT ? 4'h1 : 4'h0;
++                r[0][31:24] <= CP15_L4_DEFAULT ? 8'h41 : 8'h00;
+                 r[1][7]     <= BE_32_ENABLE ? 1'd1 : 1'd0;
+                 r[1][6:3]   <= 4'b1111;
+                 r[1][11:10] <= 2'b00; // ARM920 reserved: reads zero

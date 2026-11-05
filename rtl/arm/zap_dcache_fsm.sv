@@ -98,6 +98,7 @@ input   logic    [7:0]             i_fsr,
 input   logic    [31:0]            i_far,
 input   logic                      i_fault,
 input   logic                      i_cacheable,
+input   logic                      i_bufferable,
 input   logic                      i_busy,
 input   logic                      i_translation_wait,
 output  logic                      o_background_refill,
@@ -437,6 +438,49 @@ begin:next_state_logic
                                 begin
                                         o_wb_sel_nxt = i_ben;
                                 end
+                        end
+                        else if ( i_cacheable && !i_bufferable && i_wr )
+                        begin
+                                // ARM920 write-through: write hits update the resident line;
+                                // every store, including a miss, goes to the external bus.
+                                if (cache_cmp && i_cache_tag_valid) begin
+                                        whit = 1'b1;
+                                        o_cache_line = {(CACHE_LINE/4){i_din}};
+                                        o_cache_line_ben = ben_comp(i_address[$clog2(CACHE_LINE)-1:2], i_ben);
+                                        o_cache_tag_wr_en = 1'b1;
+                                        o_cache_tag[`ZAP_CACHE_TAG__TAG] = i_address[`ZAP_VA__CACHE_TAG];
+                                        o_cache_tag_dirty = cache_dirty;
+                                        o_cache_tag[`ZAP_CACHE_TAG__PA] = i_phy_addr[31:$clog2(CACHE_LINE)];
+                                        o_address = i_address;
+                                end
+                                state_nxt[IDLE] = 1'b0;
+                                state_nxt[UNCACHEABLE] = 1'b1;
+                                o_ack = 1'b0;
+                                // Capture translated request now; allow RAM hit update on this edge.
+                                o_hold = 1'b0;
+                                o_wb_stb_nxt = 1'b1;
+                                o_wb_cyc_nxt = 1'b1;
+                                o_wb_adr_nxt = i_phy_addr;
+                                o_wb_wen_nxt = 1'b1;
+                                o_wb_cti_nxt = CTI_EOB;
+                                o_wb_dat_nxt = i_din;
+                                o_wb_sel_nxt = BE_32_ENABLE ? be_sel_32(i_ben) : i_ben;
+                        end
+                        else if ( i_cacheable && i_wr && !(cache_cmp && i_cache_tag_valid) )
+                        begin
+                                // ARM920T allocates on read misses only. A write-back
+                                // store miss goes to memory (serialized in this core).
+                                o_hold = 1'b1;
+                                state_nxt[IDLE] = 1'b0;
+                                state_nxt[UNCACHEABLE] = 1'b1;
+                                o_ack = 1'b0;
+                                o_wb_stb_nxt = 1'b1;
+                                o_wb_cyc_nxt = 1'b1;
+                                o_wb_adr_nxt = i_phy_addr;
+                                o_wb_wen_nxt = 1'b1;
+                                o_wb_cti_nxt = CTI_EOB;
+                                o_wb_dat_nxt = i_din;
+                                o_wb_sel_nxt = BE_32_ENABLE ? be_sel_32(i_ben) : i_ben;
                         end
                         else if ( i_cacheable )
                         begin

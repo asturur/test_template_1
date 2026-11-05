@@ -36,7 +36,9 @@ module zap_shifter_main
         output  logic    [64*8-1:0]              o_decompile,
 
         input   logic                            i_uop_last,
+        input logic [1:0] i_swp_tag,
         output  logic                            o_uop_last,
+        output logic [1:0] o_swp_tag,
 
         // Clock and reset.
         input logic                               i_clk,
@@ -234,6 +236,7 @@ begin
                 o_swi_ff                          <= 0;
                 o_und_ff                          <= 0;
                 o_uop_last                        <= 0;
+                o_swp_tag <= 0;
 
                 o_destination_index_ff            <= 'x; //
                 o_alu_operation_ff                <= 'x; //
@@ -269,6 +272,7 @@ begin
                 o_swi_ff                          <= 0;
                 o_und_ff                          <= 0;
                 o_uop_last                        <= 0;
+                o_swp_tag <= 0;
 
                 o_destination_index_ff            <= 'x; //
                 o_alu_operation_ff                <= 'x; //
@@ -361,6 +365,7 @@ begin
            // For debug
            o_decompile                       <= i_decompile;
            o_uop_last                        <= i_uop_last;
+                o_swp_tag <= i_swp_tag;
    end
 end
 

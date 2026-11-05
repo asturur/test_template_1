@@ -1,0 +1,58 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -94,6 +94,8 @@
+ 
+ // Force user view.
+ output logic                             o_mem_translate,
++// Privilege of the data request in the post-ALU lookup stage.
++output logic [CPSR_MODE:0]               o_data_cpsr,
+ 
+ // --------------------------------------------------
+ // Interrupts. Active high.
+@@ -542,6 +544,9 @@
+     data_misaligned(postalu1_address_ff, postalu1_ubyte_ff, postalu1_sbyte_ff,
+                     postalu1_uhalf_ff, postalu1_shalf_ff);
+ assign o_cpsr                   = alu_flags_ff[ZAP_CPSR_MODE:0];
++// Exception return can update ALU flags while an older FIQ/IRQ store is
++// still approaching the data TLB. Keep its privilege with the lookup.
++assign o_data_cpsr              = postalu1_flags_ff[ZAP_CPSR_MODE:0];
+ assign o_data_swp_tag = postalu_swp_tag;
+ assign o_data_wb_adr            = {postalu_address_ff[31:2], 2'd0};
+ assign o_data_wb_adr_nxt        = {alu_address_ff[31:2], 2'd0};
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -157,7 +157,7 @@
+ logic            cpu_mmu_en;
+ logic            cpu_alignment_fault;
+ logic [31:0]     cpu_alignment_far;
+-logic [ZAP_CPSR_MODE:0] cpu_cpsr;
++logic [ZAP_CPSR_MODE:0] cpu_cpsr, cpu_data_cpsr;
+ logic            cpu_mem_translate;
+ logic [31:0]     cpu_daddr, cpu_daddr_nxt, cpu_daddr_check;
+ logic [31:0]     cpu_iaddr, cpu_iaddr_nxt, cpu_iaddr_check;
+@@ -303,6 +303,7 @@
+ .i_far                  (!ONLY_CORE ? dc_far : '0),
+ 
+ .o_mem_translate        (cpu_mem_translate),
++.o_data_cpsr            (cpu_data_cpsr),
+ .o_dac                  (cpu_dac_reg),
+ .o_baddr                (cpu_baddr),
+ .o_mmu_en               (cpu_mmu_en),
+@@ -618,7 +619,7 @@
+ .i_cache_op_address      (cpu_cache_op_address),
+ .i_cache_inv_req        (cpu_dc_inv),
+ .i_cache_clean_req      (cpu_dc_clean),
+-.i_cpsr                 (cpu_mem_translate ? USR : cpu_cpsr[ZAP_CPSR_MODE:0]),
++.i_cpsr                 (cpu_mem_translate ? USR : cpu_data_cpsr),
+ .i_sr                   (cpu_sr),
+ .i_baddr                (cpu_baddr),
+ .i_dac_reg              (cpu_dac_reg),
+@@ -698,7 +699,7 @@
+ .i_cache_clean_req (cpu_ic_clean),
+ .o_cache_inv_done  (ic_inv_done),
+ .o_cache_clean_done(ic_clean_done),
+-.i_cpsr            (cpu_mem_translate ? USR : cpu_cpsr[ZAP_CPSR_MODE:0]),
++.i_cpsr            (cpu_cpsr[ZAP_CPSR_MODE:0]),
+ .i_sr              (cpu_sr),
+ .i_baddr           (cpu_baddr),
+ .i_dac_reg         (cpu_dac_reg),

@@ -59,6 +59,7 @@ input   logic                    i_walk,
 input   logic    [7:0]           i_fsr,
 input   logic    [31:0]          i_far,
 input   logic                    i_cacheable,
+input   logic                    i_bufferable,
 input   logic    [31:0]          i_phy_addr,
 
 // ----------------------------------------------------------------------------
@@ -70,6 +71,7 @@ output  logic   [31:0]            o_far,
 output  logic                     o_fault,
 output  logic   [31:0]            o_phy_addr,
 output  logic                     o_cacheable,
+output  logic                     o_bufferable,
 output  logic                     o_busy,
 
 // ----------------------------------------------------------------------------
@@ -160,6 +162,7 @@ end : addr_del
 
 assign o_phy_addr = i_phy_addr;
 assign o_cacheable = i_cacheable;
+assign o_bufferable = i_bufferable;
 
 // Key conditions.
 assign walk        = state_ff[IDLE] & i_mmu_en & i_idle &  i_walk;

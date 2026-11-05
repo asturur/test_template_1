@@ -130,7 +130,7 @@ logic [`ZAP_CACHE_TAG_WDT-1:0]             w_dummy_1;
 
 assign cache_unused0 = |{i_address[31: $clog2(CACHE_LINE)+$clog2(CACHE_SIZE/CACHE_LINE)], i_address[$clog2(CACHE_LINE)-1:0]};
 assign cache_unused1 = |{i_address_nxt[31: $clog2(CACHE_LINE)+$clog2(CACHE_SIZE/CACHE_LINE)], i_address_nxt[$clog2(CACHE_LINE)-1:0]};
-assign        unused = |{dummy, line_dummy, i_wb_dat, cache_unused0, cache_unused1, w_dummy, w_dummy_1};
+assign        unused = |{dummy, line_dummy, i_wb_dat, i_cache_en, cache_unused0, cache_unused1, w_dummy, w_dummy_1};
 
 zap_ram_simple_ben #(.WIDTH(CACHE_LINE*8), .DEPTH(CACHE_SIZE/CACHE_LINE)) u_zap_ram_simple_data_ram (
         .i_clk(i_clk),
@@ -212,7 +212,7 @@ begin
                 cache_tag_valid_del <= tag_ram_rd_addr_del  == tag_ram_wr_addr && tag_ram_wr_en ? 1'd1 : cache_tag_valid;
                 cache_tag_valid     <= tag_ram_rd_addr      == tag_ram_wr_addr && tag_ram_wr_en ? 1'd1 : valid [ tag_ram_rd_addr ];
 
-                if ( tag_ram_clear || !i_cache_en )
+                if ( tag_ram_clear )
                 begin
                         valid <= '0;
                 end

@@ -55,6 +55,8 @@ module zap_predecode_coproc #(
 
         // Coprocessor done signal.
         input logic              i_copro_done,
+        input logic              i_wfi_irq,
+        input logic              i_wfi_fiq,
 
         // Interrupts output.
         output logic              o_irq,
@@ -215,6 +217,10 @@ begin
                 // the stall so that processor can continue.
                 if ( i_copro_done )
                 begin
+                        // A WFI wake interrupt must replace the following
+                        // instruction, rather than arrive one instruction late.
+                        o_irq = i_wfi_irq;
+                        o_fiq = i_wfi_fiq;
                         cp_dav_nxt              = 1'd0;
                         cp_word_nxt             = 32'd0;
                         state_nxt               = IDLE;

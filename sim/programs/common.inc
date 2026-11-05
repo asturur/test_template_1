@@ -29,9 +29,11 @@ prefetch_handler:
 reserved_handler:
     mov r0, #0xe5
     b finish
+.ifndef CUSTOM_IRQ
 irq_handler:
     mov r0, #0xe6
     b finish
+.endif
 fiq_handler:
     mov r0, #0xe7
     b finish

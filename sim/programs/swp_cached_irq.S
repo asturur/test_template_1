@@ -1,0 +1,94 @@
+.equ CUSTOM_IRQ, 1
+.include "sim/programs/common.inc"
+.equ TABLE, RAM + 0x4000
+reset_entry:
+    ldr sp, =RAM + 0x20000
+    ldr r4, =TABLE
+    mov r0, #0
+    mov r1, #4096
+1:  str r0, [r4], #4
+    subs r1, r1, #1
+    bne 1b
+    ldr r4, =TABLE
+    ldr r0, =0x00000c02
+    str r0, [r4]
+    ldr r0, =0x80000c02
+    str r0, [r4, #0x800]
+    add r5, r4, #0x1c00
+    str r0, [r5]              @ VA 70000000: uncached alias
+    ldr r0, =0x80000c0a
+    sub r5, r5, #0x400
+    str r0, [r5]              @ VA 60000000: C=1 B=0
+    ldr r0, =0x80000c0e
+    sub r5, r5, #0x800
+    str r0, [r5]              @ VA 40000000: C=1 B=1
+    ldr r0, =RAM + 0x10000
+    ldr r1, =0x80032ffa    @ small page C=1 B=0, full access
+    str r1, [r0]
+    orr r0, r0, #1
+    add r5, r4, #0x1400
+    str r0, [r5]              @ VA 50000000 through coarse table
+    ldr r0, =0xf0000c02
+    add r5, r4, #0x3c00
+    str r0, [r5]
+    mcr p15, 0, r4, c2, c0, 0
+    mov r0, #1
+    mcr p15, 0, r0, c3, c0, 0
+    mrc p15, 0, r0, c1, c0, 0
+    orr r0, r0, #5
+    mcr p15, 0, r0, c1, c0, 0
+    nop
+    nop
+    ldr r8, =0x40030100       @ write-back cached mapping
+    ldr r9, =0x70030100       @ uncached alias
+    ldr r2, [r8]              @ populate cache line
+    ldr r3, =0x11223344
+    mov r6, #0
+    mov r7, #0
+    mov r4, #0x5a
+    mrs r0, cpsr
+    bic r0, r0, #0x80
+    msr cpsr_c, r0
+    swp r4, r3, [r8]
+    mov r5, #200
+1:  cmp r6, #1
+    beq 2f
+    subs r5, r5, #1
+    bne 1b
+    b fail
+2:  cmp r7, #0
+    bne fail
+    cmp r4, #0
+    bne fail
+    ldr r2, [r8]
+    cmp r2, r3
+    bne fail
+    ldr r2, [r9]
+    cmp r2, #0                @ write-back remains dirty
+    bne fail
+    mcr p15,0,r8,c7,c10,1   @ clean line
+    mov r0, #0
+    mcr p15,0,r0,c7,c10,4   @ drain buffered clean
+    ldr r2, [r9]
+    cmp r2, r3
+    bne fail
+    b pass
+irq_handler:
+    ldr r2, [r8]
+    cmp r2, #0
+    bne 3f
+    @ IRQ before the SWP architecturally commits: old value and Rd unchanged.
+    cmp r4, #0x5a
+    movne r7, #1
+    b 4f
+3:  @ Alternatively IRQ follows the completed swap.
+    cmp r2, r3
+    movne r7, #2
+    cmp r4, #0
+    movne r7, #3
+4:  add r6, r6, #1
+    subs pc, lr, #4
+fail:
+    mov r0, #0xd8
+    b finish
+.ltorg

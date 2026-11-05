@@ -1,0 +1,160 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -141,6 +141,9 @@
+         output logic [5:0]                        o_dcache_lock_base,
+         output logic                              o_icache_lock_write,
+         output logic [5:0]                        o_icache_lock_base,
++        output logic                              o_cache_op_single,
++        output logic                              o_cache_op_by_mva,
++        output logic [31:0]                       o_cache_op_address,
+ 
+         // From MMU. Specify that cache invalidation is done.
+         input   logic                            i_dcache_inv_done,
+@@ -326,6 +329,9 @@
+                 o_dcache_lock_base <= 6'b0;
+                 o_icache_lock_write <= 1'b0;
+                 o_icache_lock_base <= 6'b0;
++                o_cache_op_single <= 1'b0;
++                o_cache_op_by_mva <= 1'b0;
++                o_cache_op_address <= 32'b0;
+                 o_icache_inv   <= 1'd0;
+                 o_dcache_clean <= 1'd0;
+                 o_icache_clean <= 1'd0;
+@@ -470,11 +476,31 @@
+                                 endcase
+                         end
+                         else if ( i_cp_word.ZAP_CRN == CACHE_REG )
+-                        // Cache control selected.
++                        // Cache control selected. Operation details stay
++                        // stable until the selected cache acknowledges.
+                         begin
++                                o_cache_op_single <= 1'b0;
++                                o_cache_op_by_mva <= 1'b0;
++                                o_cache_op_address <= i_reg_rd_data;
+                                 casez({i_cp_word.ZAP_OPCODE_2,
+                                        i_cp_word.ZAP_CRM})
+ 
++                                7'b001_0101: begin // Invalidate I line by MVA
++                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= 1'b1;
++                                        o_icache_inv <= 1'b1;state <= CLR_I_CACHE;
++                                end
++                                7'b001_0110: begin // Invalidate D line by MVA
++                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= 1'b1;
++                                        o_dcache_inv <= 1'b1;state <= CLR_D_CACHE;
++                                end
++                                7'b001_1010, 7'b010_1010: begin // Clean D by MVA/index
++                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= i_cp_word.ZAP_OPCODE_2 == 1;
++                                        o_dcache_clean <= 1'b1;state <= CLEAN_D_CACHE;
++                                end
++                                7'b001_1110, 7'b010_1110: begin // Clean+invalidate D by MVA/index
++                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= i_cp_word.ZAP_OPCODE_2 == 1;
++                                        o_dcache_clean <= 1'b1;state <= CLFLUSH_D_CACHE;
++                                end
+                                 CASE_DRAIN_WRITE_BUFFER:
+                                 begin
+                                         // Stores are acknowledged only after the bus completes;
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -148,6 +148,9 @@
+ output logic [5:0]                       o_dcache_lock_base,
+ output logic                             o_icache_lock_write,
+ output logic [5:0]                       o_icache_lock_base,
++output logic                             o_cache_op_single,
++output logic                             o_cache_op_by_mva,
++output logic [31:0]                      o_cache_op_address,
+ input   logic                            i_dcache_inv_done,
+ input   logic                            i_icache_inv_done,
+ input   logic                            i_dcache_clean_done,
+@@ -1645,6 +1648,9 @@
+         .o_dcache_lock_base      (o_dcache_lock_base),
+         .o_icache_lock_write     (o_icache_lock_write),
+         .o_icache_lock_base      (o_icache_lock_base),
++        .o_cache_op_single       (o_cache_op_single),
++        .o_cache_op_by_mva       (o_cache_op_by_mva),
++        .o_cache_op_address      (o_cache_op_address),
+         .i_dcache_inv_done      (i_dcache_inv_done),
+         .i_icache_inv_done      (i_icache_inv_done),
+         .i_dcache_clean_done    (i_dcache_clean_done),
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -203,6 +203,8 @@
+ logic [5:0]      cpu_dc_lock_base;
+ logic            cpu_ic_lock_write;
+ logic [5:0]      cpu_ic_lock_base;
++logic            cpu_cache_op_single,cpu_cache_op_by_mva;
++logic [31:0]     cpu_cache_op_address;
+ logic            cpu_dwe_check, cpu_dre_check;
+ logic            s_reset, s_fiq, s_irq;
+ logic            code_stall;
+@@ -311,6 +313,9 @@
+ .o_dcache_lock_base      (cpu_dc_lock_base),
+ .o_icache_lock_write     (cpu_ic_lock_write),
+ .o_icache_lock_base      (cpu_ic_lock_base),
++.o_cache_op_single       (cpu_cache_op_single),
++.o_cache_op_by_mva       (cpu_cache_op_by_mva),
++.o_cache_op_address      (cpu_cache_op_address),
+ .o_data_wb_adr_nxt      (cpu_daddr_nxt),
+ // Data addr nxt. Used to drive address of data tag RAM.
+ .o_data_wb_adr_check    (cpu_daddr_check),
+@@ -589,6 +594,9 @@
+ .i_cache_rr             (cpu_cache_rr),
+ .i_cache_lock_write      (cpu_dc_lock_write),
+ .i_cache_lock_base       (cpu_dc_lock_base),
++.i_cache_op_single       (cpu_cache_op_single),
++.i_cache_op_by_mva       (cpu_cache_op_by_mva),
++.i_cache_op_address      (cpu_cache_op_address),
+ .i_cache_inv_req        (cpu_dc_inv),
+ .i_cache_clean_req      (cpu_dc_clean),
+ .i_cpsr                 (cpu_mem_translate ? USR : cpu_cpsr[ZAP_CPSR_MODE:0]),
+@@ -660,6 +668,9 @@
+ .i_cache_rr        (cpu_cache_rr),
+ .i_cache_lock_write(cpu_ic_lock_write),
+ .i_cache_lock_base (cpu_ic_lock_base),
++.i_cache_op_single(cpu_cache_op_single),
++.i_cache_op_by_mva(cpu_cache_op_by_mva),
++.i_cache_op_address(cpu_cache_op_address),
+ .i_cache_inv_req   (cpu_ic_inv),
+ .i_cache_clean_req (cpu_ic_clean),
+ .o_cache_inv_done  (ic_inv_done),
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -69,6 +69,9 @@
+ input   logic            i_cache_rr,
+ input   logic            i_cache_lock_write,
+ input   logic [5:0]      i_cache_lock_base,
++input   logic            i_cache_op_single,
++input   logic            i_cache_op_by_mva,
++input   logic [31:0]     i_cache_op_address,
+ input   logic            i_cache_inv_req,
+ input   logic            i_cache_clean_req,
+ output logic             o_cache_inv_done,
+@@ -146,6 +149,7 @@
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+  .tlb_busy(tlb_busy),.translation_wait(1'b0),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),
++ .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+  .cacheable(tlb_cacheable),.bufferable(1'b1),
+  .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
+  .data(o_dat),.ack(o_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -81,6 +81,9 @@
+ input   logic            i_cache_rr,
+ input   logic            i_cache_lock_write,
+ input   logic [5:0]      i_cache_lock_base,
++input   logic            i_cache_op_single,
++input   logic            i_cache_op_by_mva,
++input   logic [31:0]     i_cache_op_address,
+ input   logic            i_cache_inv_req,
+ input   logic            i_cache_clean_req,
+ output logic             o_cache_inv_done,
+@@ -242,7 +245,8 @@
+  .fault(pending_translation ? pending_fault : tlb_fault),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
+  .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+  .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
+- .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
++ .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),
++ .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
+  .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),
+  .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
+  .data(o_dat),.ack(o_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),

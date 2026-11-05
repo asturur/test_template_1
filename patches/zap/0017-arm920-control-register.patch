@@ -1,0 +1,41 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -291,7 +291,10 @@
+                 o_mmu_en    <= r[1][0];              // MMU enable.
+                 o_alignment_en <= r[1][1];          // Alignment fault enable.
+                 o_pid       <= {1'd0, r[13][31:25]}; // PID register.
+-                o_l4_enable <= r[1][14];             // 1 for v4T compatibility.
++                // ARM920 bit 14 controls cache replacement, not ISA version.
++                // The N-Gage config fixes ARMv4T behavior; retain the legacy
++                // selectable mode only for non-ARM920 configurations.
++                o_l4_enable <= CP15_L4_DEFAULT ? 1'b1 : r[1][14];
+         end
+ end
+ 
+@@ -322,7 +325,7 @@
+                 o_reg_rd_index <= 0;
+                 r[0]           <= 0;
+                 r[1]           <= 0;
+-                r[1][14]       <= CP15_L4_DEFAULT;
++                r[1][14]       <= 1'b0; // ARM920 RR: random replacement at reset
+                 r[2]           <= 32'd0;
+                 r[3]           <= 32'd0;
+                 r[4]           <= 32'd0;
+@@ -333,7 +336,7 @@
+                 r[0][19:16]    <= 4'h5;
+                 r[1][7]        <= BE_32_ENABLE;
+                 r[1][6:3]      <= 4'b1111;
+-                r[1][11]       <= 1'd1;
++                r[1][11:10]    <= 2'b00; // ARM920 reserved: reads zero
+         end
+         else
+         begin
+@@ -634,7 +637,7 @@
+                 r[0][31:24] <= 8'd0;
+                 r[1][7]     <= BE_32_ENABLE ? 1'd1 : 1'd0;
+                 r[1][6:3]   <= 4'b1111;
+-                r[1][11]    <= 1'd1;
++                r[1][11:10] <= 2'b00; // ARM920 reserved: reads zero
+ 
+                 if ( ONLY_CORE )
+                 begin

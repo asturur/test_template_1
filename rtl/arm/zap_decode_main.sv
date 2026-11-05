@@ -39,7 +39,9 @@ module zap_decode_main #(
 (
         output logic  [64*8-1:0]                  o_decompile, // For debug purposes.
         input  logic                              i_uop_last,
+        input logic [1:0] i_swp_tag,
         output logic                              o_uop_last,
+        output logic [1:0] o_swp_tag,
 
         // -------------------
         // Inputs.
@@ -301,6 +303,7 @@ begin
                 o_und_ff                                <= 0;
                 o_taken_ff                              <= 0;
                 o_uop_last                              <= 0;
+                o_swp_tag <= 0;
         end
         else if ( i_clear_from_writeback || (i_clear_from_alu && !i_data_stall ) )
         begin
@@ -312,6 +315,7 @@ begin
                 o_und_ff                                <= 0;
                 o_taken_ff                              <= 0;
                 o_uop_last                              <= 0;
+                o_swp_tag <= 0;
                 o_destination_index_ff                  <= 'x;
                 o_alu_source_ff                         <= 'x;
                 o_alu_operation_ff                      <= 'x;
@@ -369,6 +373,7 @@ begin
                 o_ppc_ff                                <= i_ppc_ff;
                 o_decompile                             <= decompile_tmp;
                 o_uop_last                              <= i_uop_last;
+                o_swp_tag <= i_swp_tag;
         end
 end
 

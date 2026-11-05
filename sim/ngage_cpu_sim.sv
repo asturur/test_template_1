@@ -5,6 +5,7 @@ module ngage_cpu_sim (
     input  logic          i_irq,
     input  logic          i_fiq,
     output logic          o_wb_cyc,
+    output logic          o_wb_lock,
     output logic          o_wb_stb,
     output logic [31:0]   o_wb_adr,
     output logic          o_wb_we,
@@ -31,7 +32,7 @@ module ngage_cpu_sim (
 );
     ngage_cpu cpu (
         .clk(i_clk), .reset(i_reset), .irq(i_irq), .fiq(i_fiq),
-        .wb_cyc(o_wb_cyc), .wb_stb(o_wb_stb),
+        .wb_lock(o_wb_lock), .wb_cyc(o_wb_cyc), .wb_stb(o_wb_stb),
         .wb_address(o_wb_adr), .wb_write(o_wb_we),
         .wb_write_data(o_wb_dat), .wb_byte_enable(o_wb_sel),
         .wb_cycle_type(o_wb_cti), .wb_burst_type(),

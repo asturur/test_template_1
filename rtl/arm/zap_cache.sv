@@ -66,6 +66,16 @@ output  logic            o_err2,
 // MMU controls from/to processor.
 input   logic            i_mmu_en,
 input   logic            i_cache_en,
+input   logic            i_cache_rr,
+input   logic            i_write_buffer_empty,
+input   logic            i_cache_lock_write,
+input   logic [5:0]      i_cache_lock_base,
+output  logic            o_cache_lock_done,
+input   logic            i_cache_op_single,
+input   logic            i_cache_op_by_mva,
+input   logic [31:0]     i_cache_op_address,
+input   logic            i_cache_prefetch,
+output  logic            o_cache_prefetch_done,
 input   logic            i_cache_inv_req,
 input   logic            i_cache_clean_req,
 output logic             o_cache_inv_done,
@@ -106,7 +116,7 @@ logic [31:0]                     wb_dat [2:0];
 logic [31:0]                     wb_adr [2:0];
 logic [2:0]                      wb_cti [2:0];
 logic [31:0]                     tlb_phy_addr;
-logic [7:0]                      tlb_fsr;
+logic [7:0]                      tlb_fsr, tlb_external_fsr;
 logic [31:0]                     tlb_far;
 logic                            tlb_fault;
 logic                            tlb_cacheable;
@@ -134,6 +144,69 @@ assign wb_cti[2] = CTI_EOB;
 // wb_err[1] is unused.
 assign unused = |{wb_err[1]};
 
+`ifdef NGAGE_ASSOC_EXPERIMENT
+// Prefetch borrows the instruction TLB after any current fetch completes,
+// then restores the normal TLB lookup pipeline before releasing CP15.
+typedef enum logic [2:0] {P_IDLE,P_TRANSLATE,P_ISSUE,P_RESTORE,P_DONE,P_RESYNC} prefetch_state_t;
+prefetch_state_t prefetch_state;
+logic [2:0] prefetch_restore_count;
+logic [31:0] prefetch_checked_va,prefetch_checked_lookup;
+logic prefetch_checked_rd,prefetch_checked_wr,prefetch_checked_mmu;
+logic [CPSR_MODE:0] prefetch_checked_cpsr;
+logic [1:0] prefetch_checked_sr;
+logic [31:0] prefetch_checked_dac,prefetch_checked_baddr;
+logic adapter_ack,adapter_err,adapter_err2;
+wire prefetch_busy=prefetch_state!=P_IDLE;
+wire prefetch_address_selected=prefetch_state==P_TRANSLATE || prefetch_state==P_ISSUE;
+wire [31:0] tlb_address_input=prefetch_address_selected ? i_cache_op_address : i_address;
+wire [31:0] tlb_address_next=prefetch_address_selected ? i_cache_op_address : prefetch_state==P_RESYNC ? i_address : i_address_nxt;
+wire [31:0] tlb_address_check=prefetch_address_selected ? i_cache_op_address : prefetch_state==P_RESYNC ? i_address : i_address_check;
+wire tlb_hold_input=prefetch_busy ? (prefetch_state==P_ISSUE && hold) : (hold || i_stall);
+assign o_cache_prefetch_done=prefetch_state==P_DONE;
+assign o_ack=(prefetch_busy || i_cache_prefetch) ? 1'b0 : adapter_ack;
+assign o_err=(prefetch_busy || i_cache_prefetch) ? 1'b0 : adapter_err;
+assign o_err2=(prefetch_busy || i_cache_prefetch) ? 1'b0 : adapter_err2;
+always_ff @(posedge i_clk) begin
+ if(i_reset)begin prefetch_state<=P_IDLE;prefetch_restore_count<=0;end
+ else case(prefetch_state)
+  P_IDLE: if(i_cache_prefetch && idle)prefetch_state<=P_TRANSLATE;
+  P_TRANSLATE: if(prefetch_checked_va==i_cache_op_address && prefetch_checked_lookup==i_cache_op_address &&
+                  prefetch_checked_rd && !tlb_busy) begin
+    if(!i_mmu_en || !i_cache_en || !tlb_cacheable || tlb_fault)begin prefetch_restore_count<=0;prefetch_state<=P_RESTORE;end
+    else prefetch_state<=P_ISSUE;
+  end
+  P_ISSUE: if(adapter_ack && !adapter_err2)begin prefetch_restore_count<=0;prefetch_state<=P_RESTORE;end
+  P_RESTORE: if(!tlb_busy && prefetch_checked_va==i_address_check && prefetch_checked_lookup==i_address_nxt) begin
+    if(prefetch_restore_count==2)prefetch_state<=P_DONE;else prefetch_restore_count<=prefetch_restore_count+1'b1;
+   end else prefetch_restore_count<=0;
+  P_DONE: if(!i_cache_prefetch)begin prefetch_restore_count<=0;prefetch_state<=P_RESYNC;end
+  P_RESYNC: if(!tlb_busy && prefetch_checked_va==i_address && prefetch_checked_lookup==i_address && prefetch_checked_rd) begin
+    if(prefetch_restore_count==2)prefetch_state<=P_IDLE;else prefetch_restore_count<=prefetch_restore_count+1'b1;
+   end else prefetch_restore_count<=0;
+  default:prefetch_state<=P_IDLE;
+ endcase
+end
+assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
+assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+arm920_zap_dcache_adapter experimental_cache(
+ .clk(i_clk),.reset(i_reset),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
+ .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
+ .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+ .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+ .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+ .fast_enable(!prefetch_busy && !i_cache_prefetch),.fast_next_address(adapter_ack && i_rd ? i_address + 32'd4 : i_address),
+ .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+ .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+ .cacheable(tlb_cacheable),.bufferable(1'b1),
+ .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
+ .data(o_dat),.ack(adapter_ack),.err(adapter_err),.err2(adapter_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
+ .cache_inv_done(o_cache_inv_done),.cache_clean_done(o_cache_clean_done),
+ .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
+ .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
+ .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
+`else
+assign o_cache_lock_done=1'b1;
+assign o_cache_prefetch_done=1'b1;
 // Basic cache FSM - serves as manager 0.
 zap_cache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cache_fsm (
         .i_clk                  (i_clk),
@@ -242,6 +315,15 @@ zap_cache_tag_ram #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cach
         .i_wb_ack               (wb_ack[1])
 );
 
+`endif
+
+`ifdef NGAGE_ASSOC_EXPERIMENT
+logic tlb_raw_stb,tlb_raw_cyc;
+arm920_tlb_bus_gate tlb_bus_order(.clk(i_clk),.reset(i_reset),.write_buffer_empty(i_write_buffer_empty),
+ .in_cyc(tlb_raw_cyc),.in_stb(tlb_raw_stb),.out_cyc(wb_cyc[2]),.out_stb(wb_stb[2]),
+ .ack(wb_ack[2]),.err(wb_err[2]));
+`endif
+
 // ZAP TLB control module. Includes TLB RAM inside - manager 2.
 zap_tlb #(
         .LPAGE_TLB_ENTRIES      (LPAGE_TLB_ENTRIES),
@@ -253,13 +335,28 @@ zap_tlb #(
 u_zap_tlb (
         .i_clk          (i_clk),
         .i_reset        (i_reset),
+        `ifdef NGAGE_ASSOC_EXPERIMENT
+        .i_address      (tlb_address_input),
+        .i_address_nxt  (tlb_address_next),
+        .i_address_check(tlb_address_check),
+`else
         .i_address      (i_address),
         .i_address_nxt  (i_address_nxt),
         .i_address_check(i_address_check),
+`endif
         .i_idle         (idle),
         .i_wr_check     (i_wr_check),
+        `ifdef NGAGE_ASSOC_EXPERIMENT
+        .i_rd_check     (prefetch_address_selected || prefetch_state==P_RESYNC ? 1'b1 : i_rd_check),
+        .i_hold         (tlb_hold_input),
+        .o_checked_va(prefetch_checked_va),.o_checked_lookup(prefetch_checked_lookup),
+        .o_checked_rd(prefetch_checked_rd),.o_checked_wr(prefetch_checked_wr),.o_checked_mmu(prefetch_checked_mmu),
+        .o_checked_cpsr(prefetch_checked_cpsr),.o_checked_sr(prefetch_checked_sr),
+        .o_checked_dac(prefetch_checked_dac),.o_checked_baddr(prefetch_checked_baddr),
+`else
         .i_rd_check     (i_rd_check),
         .i_hold         (hold || i_stall),
+`endif
         .i_cpsr         (i_cpsr),
         .i_sr           (i_sr),
         .i_dac_reg      (i_dac_reg),
@@ -268,12 +365,18 @@ u_zap_tlb (
         .i_inv          (i_tlb_inv),
         .o_phy_addr     (tlb_phy_addr),
         .o_fsr          (tlb_fsr),
+        .o_external_fsr (tlb_external_fsr),
         .o_far          (tlb_far),
         .o_fault        (tlb_fault),
         .o_cacheable    (tlb_cacheable),
         .o_busy         (tlb_busy),
+        `ifdef NGAGE_ASSOC_EXPERIMENT
+        .o_wb_stb_nxt   (tlb_raw_stb),
+        .o_wb_cyc_nxt   (tlb_raw_cyc),
+`else
         .o_wb_stb_nxt   (wb_stb[2]),
         .o_wb_cyc_nxt   (wb_cyc[2]),
+`endif
         .o_wb_adr_nxt   (wb_adr[2]),
         .o_wb_wen_nxt   (wb_wen[2]),
         .o_wb_sel_nxt   (wb_sel[2]),

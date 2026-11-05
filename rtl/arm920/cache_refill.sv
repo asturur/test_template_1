@@ -1,0 +1,57 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Replacement coordinator for arm920_cache_bank + arm920_cache_transfer.
+// The caller must exclude all other bank operations until done.
+module arm920_cache_refill (
+ input logic clk,reset,start,
+ input logic [31:0] request_mva,request_physical,
+ output logic busy,done,error,
+ output logic [31:0] bank_mva,
+ input logic bank_hit,bank_victim_valid,
+ input logic [1:0] bank_victim_dirty,
+ input logic [31:0] bank_victim_physical,
+ input logic [255:0] bank_read_line,
+ output logic bank_read_victim,bank_refill,bank_writeback_done,
+ output logic [31:0] bank_refill_physical,
+ output logic [255:0] bank_refill_line,
+ input logic bank_refill_ready,
+ output logic bus_valid,bus_write,
+ output logic [31:0] bus_address,bus_wdata,
+ input logic bus_ack,bus_error,
+ input logic [31:0] bus_rdata
+);
+ typedef enum logic [2:0] {IDLE, SELECT_VICTIM, READ_VICTIM, START_TRANSFER, WAIT_TRANSFER, INSTALL} state_t;
+ state_t state;
+ logic [31:0] saved_pa;
+ logic transfer_start,transfer_busy,transfer_done,transfer_error;
+ logic [255:0] transfer_line;
+ assign busy=state!=IDLE;
+ assign bank_read_victim=(state==SELECT_VICTIM || state==READ_VICTIM || state==START_TRANSFER);
+ assign transfer_start=state==START_TRANSFER;
+ assign bank_refill=state==INSTALL;
+ assign bank_writeback_done=state==INSTALL;
+ assign bank_refill_physical=saved_pa;
+ assign bank_refill_line=transfer_line;
+ arm920_cache_transfer transfer(.clk(clk),.reset(reset),.start(transfer_start),
+  .victim_address(bank_victim_physical),.victim_dirty(bank_victim_valid ? bank_victim_dirty : 2'b0),
+  .victim_line(bank_read_line),.refill_address(saved_pa),.busy(transfer_busy),.done(transfer_done),
+  .error(transfer_error),.refill_line(transfer_line),.bus_valid(bus_valid),.bus_write(bus_write),
+  .bus_address(bus_address),.bus_wdata(bus_wdata),.bus_ack(bus_ack),.bus_error(bus_error),.bus_rdata(bus_rdata));
+ always_ff @(posedge clk) begin
+  if(reset) begin state<=IDLE;done<=0;error<=0;bank_mva<=0;saved_pa<=0;end
+  else begin
+   done<=0;error<=0;
+   case(state)
+    IDLE: if(start) begin bank_mva<=request_mva;saved_pa<=request_physical;state<=SELECT_VICTIM;end
+    SELECT_VICTIM: if(bank_hit) begin done<=1;state<=IDLE;end else state<=READ_VICTIM;
+    READ_VICTIM: state<=START_TRANSFER;
+    START_TRANSFER: state<=WAIT_TRANSFER;
+    WAIT_TRANSFER: if(transfer_done) begin
+     if(transfer_error) begin done<=1;error<=1;state<=IDLE;end
+     else state<=INSTALL;
+    end
+    INSTALL: if(bank_refill_ready) begin done<=1;state<=IDLE;end
+    default: state<=IDLE;
+   endcase
+  end
+ end
+endmodule

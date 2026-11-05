@@ -8,6 +8,7 @@ module ngage_cpu (
     input  logic        irq,
     input  logic        fiq,
     output logic        wb_cyc,
+    output logic        wb_lock,
     output logic        wb_stb,
     output logic [31:0] wb_address,
     output logic        wb_write,
@@ -30,7 +31,7 @@ module ngage_cpu (
     ) u_zap (
         .i_clk(clk), .i_reset(reset),
         .i_irq(irq), .i_fiq(fiq),
-        .o_wb_cyc(wb_cyc), .o_wb_stb(wb_stb),
+        .o_wb_lock(wb_lock), .o_wb_cyc(wb_cyc), .o_wb_stb(wb_stb),
         .o_wb_adr(wb_address), .o_wb_we(wb_write),
         .o_wb_dat(wb_write_data), .o_wb_sel(wb_byte_enable),
         .o_wb_cti(wb_cycle_type), .o_wb_bte(wb_burst_type),

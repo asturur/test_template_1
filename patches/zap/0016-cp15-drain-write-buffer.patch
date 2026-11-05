@@ -1,0 +1,27 @@
+diff --git a/src/rtl/zap_cp15_cb.sv b/src/rtl/zap_cp15_cb.sv
+index ac22da4..2a4ef3e 100644
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -189,6 +189,7 @@ localparam [6:0] CASE_CLEAN_ID_CACHE       = 7'b000_1011;
+ localparam [6:0] CASE_CLEAN_D_CACHE        = 7'b000_1010;
+ localparam [6:0] CASE_CLFLUSH_ID_CACHE     = 7'b000_1111;
+ localparam [6:0] CASE_CLFLUSH_D_CACHE      = 7'b000_1110;
++localparam [6:0] CASE_DRAIN_WRITE_BUFFER     = 7'b100_1010;
+ localparam [6:0] CASE_FLUSH_ID_TLB         = 7'b00?_0111;
+ localparam [6:0] CASE_FLUSH_I_TLB          = 7'b00?_0101;
+ localparam [6:0] CASE_FLUSH_D_TLB          = 7'b00?_0110;
+@@ -445,6 +446,14 @@ begin
+                                 casez({i_cp_word.ZAP_OPCODE_2,
+                                        i_cp_word.ZAP_CRM})
+ 
++                                CASE_DRAIN_WRITE_BUFFER:
++                                begin
++                                        // Stores are acknowledged only after the bus completes;
++                                        // this core has no asynchronous write buffer to drain.
++                                        // Draining must not clean or invalidate the data cache.
++                                        state <= DONE;
++                                end
++
+                                 CASE_FLUSH_ID_CACHE:
+                                 begin
+                                         // Invalidate ALL caches.

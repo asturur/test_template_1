@@ -118,6 +118,7 @@ parameter logic [31:0] CODE_CACHE_LINE          =  32'd64    // Ccahe line size 
         // ---------------------
 
         output  logic            o_wb_cyc,
+        output logic o_wb_lock,
         output  logic            o_wb_stb,
         output  logic  [31:0]    o_wb_adr,
         output  logic            o_wb_we,
@@ -156,7 +157,7 @@ logic            wb_err;
 logic            cpu_mmu_en;
 logic            cpu_alignment_fault;
 logic [31:0]     cpu_alignment_far;
-logic [ZAP_CPSR_MODE:0] cpu_cpsr;
+logic [ZAP_CPSR_MODE:0] cpu_cpsr, cpu_data_cpsr;
 logic            cpu_mem_translate;
 logic [31:0]     cpu_daddr, cpu_daddr_nxt, cpu_daddr_check;
 logic [31:0]     cpu_iaddr, cpu_iaddr_nxt, cpu_iaddr_check;
@@ -173,6 +174,8 @@ logic            data_ack, data_err, instr_ack, instr_err;
 logic [31:0]     ic_data, dc_data, cpu_dc_dat;
 logic            cpu_instr_stb;
 logic            cpu_dc_we, cpu_dc_stb;
+logic [1:0] cpu_dc_swp_tag;
+logic cpu_dc_swp_lock;
 logic [3:0]      cpu_dc_sel;
 logic            c_wb_stb;
 logic            c_wb_cyc;
@@ -198,6 +201,16 @@ logic [5:0]      dc_load_info;
 logic [63:0]     dc_lock;
 logic [31:0]     dc_reg_data;
 logic            icache_err2, dcache_err2;
+logic            cpu_cache_rr;
+logic            cpu_dc_lock_write;
+logic [5:0]      cpu_dc_lock_base;
+logic            cpu_ic_lock_write;
+logic            dc_lock_done,ic_lock_done;
+logic [5:0]      cpu_ic_lock_base;
+logic            cpu_cache_op_single,cpu_cache_op_by_mva;
+logic            cpu_drain_write_buffer,dc_write_buffer_empty;
+logic            cpu_icache_prefetch,icache_prefetch_done;
+logic [31:0]     cpu_cache_op_address;
 logic            cpu_dwe_check, cpu_dre_check;
 logic            s_reset, s_fiq, s_irq;
 logic            code_stall;
@@ -273,6 +286,7 @@ zap_core #(
 .o_pid                  (),
 /* verilator lint_on PINCONNECTEMPTY */
 .o_data_wb_stb          (cpu_dc_stb),
+.o_data_swp_tag         (cpu_dc_swp_tag),
 .i_data_wb_dat          (!ONLY_CORE ? dc_data :
                          BE_32_ENABLE ? be_32(i_wb_dat, o_wb_sel) : i_wb_dat),
                         // Swap data into CPU based on current o_wb_sel.
@@ -289,6 +303,7 @@ zap_core #(
 .i_far                  (!ONLY_CORE ? dc_far : '0),
 
 .o_mem_translate        (cpu_mem_translate),
+.o_data_cpsr            (cpu_data_cpsr),
 .o_dac                  (cpu_dac_reg),
 .o_baddr                (cpu_baddr),
 .o_mmu_en               (cpu_mmu_en),
@@ -301,6 +316,18 @@ zap_core #(
 .o_itlb_inv             (cpu_itlb_inv),
 .o_dcache_en            (cpu_dc_en),
 .o_icache_en            (cpu_ic_en),
+.o_cache_rr             (cpu_cache_rr),
+.o_dcache_lock_write     (cpu_dc_lock_write),
+.o_dcache_lock_base      (cpu_dc_lock_base),
+.o_icache_lock_write     (cpu_ic_lock_write),
+.o_icache_lock_base      (cpu_ic_lock_base),
+.o_icache_prefetch        (cpu_icache_prefetch),
+.i_icache_prefetch_done  (!ONLY_CORE ? icache_prefetch_done : 1'b1),
+.o_drain_write_buffer     (cpu_drain_write_buffer),
+.i_write_buffer_empty    (!ONLY_CORE ? dc_write_buffer_empty : 1'b1),
+.o_cache_op_single       (cpu_cache_op_single),
+.o_cache_op_by_mva       (cpu_cache_op_by_mva),
+.o_cache_op_address      (cpu_cache_op_address),
 .o_data_wb_adr_nxt      (cpu_daddr_nxt),
 // Data addr nxt. Used to drive address of data tag RAM.
 .o_data_wb_adr_check    (cpu_daddr_check),
@@ -317,6 +344,8 @@ zap_core #(
 .i_dc_reg_idx           (!ONLY_CORE ? dc_wreg_idx : '0),
 .i_dc_lock              (!ONLY_CORE ? dc_lock : '0),
 .i_dc_reg_dat           (!ONLY_CORE ? dc_reg_data : '0),
+.i_dcache_lock_done     (!ONLY_CORE ? dc_lock_done : 1'b1),
+.i_icache_lock_done     (!ONLY_CORE ? ic_lock_done : 1'b1),
 .i_dcache_inv_done      (!ONLY_CORE ? dc_inv_done : '0),
 .i_icache_inv_done      (!ONLY_CORE ? ic_inv_done : '0),
 .i_dcache_clean_done    (!ONLY_CORE ? dc_clean_done : '0),
@@ -462,6 +491,7 @@ begin : l_merger_for_core_with_cache_mmu
         .o_c_wb_ack(c_wb_ack ),
         .o_c_wb_err(c_wb_err ),
 
+        .i_d_wb_lock(cpu_dc_swp_lock), .o_wb_lock(o_wb_lock),
         .i_d_wb_stb(d_wb_stb ),
         .i_d_wb_cyc(d_wb_cyc ),
         .i_d_wb_wen(d_wb_wen ),
@@ -501,6 +531,7 @@ begin : l_merger_for_core_without_cache_mmu
         .o_c_wb_ack(instr_ack),
         .o_c_wb_err(instr_err),
 
+        .i_d_wb_lock(1'b0), .o_wb_lock(o_wb_lock),
         .i_d_wb_stb(cpu_dc_stb),
         .i_d_wb_cyc(cpu_dc_stb),
         .i_d_wb_wen(cpu_dc_we),
@@ -555,6 +586,8 @@ u_data_cache (
 .i_address_check        (cpu_daddr_check),
 .i_wr_check             (cpu_dwe_check),
 .i_rd_check             (cpu_dre_check),
+.i_swp_tag              (cpu_dc_swp_tag),
+.o_swp_bus_lock         (cpu_dc_swp_lock),
 .i_rd                   (!cpu_dc_we && cpu_dc_stb),
 .i_wr                   ( cpu_dc_we && cpu_dc_stb),
 .i_ben                  (cpu_dc_sel),
@@ -576,9 +609,17 @@ u_data_cache (
 
 .i_mmu_en               (cpu_mmu_en),
 .i_cache_en             (cpu_dc_en),
+.i_cache_rr             (cpu_cache_rr),
+.o_write_buffer_empty    (dc_write_buffer_empty),
+.i_cache_lock_write      (cpu_dc_lock_write),
+.i_cache_lock_base       (cpu_dc_lock_base),
+.o_cache_lock_done       (dc_lock_done),
+.i_cache_op_single       (cpu_cache_op_single),
+.i_cache_op_by_mva       (cpu_cache_op_by_mva),
+.i_cache_op_address      (cpu_cache_op_address),
 .i_cache_inv_req        (cpu_dc_inv),
 .i_cache_clean_req      (cpu_dc_clean),
-.i_cpsr                 (cpu_mem_translate ? USR : cpu_cpsr[ZAP_CPSR_MODE:0]),
+.i_cpsr                 (cpu_mem_translate ? USR : cpu_data_cpsr),
 .i_sr                   (cpu_sr),
 .i_baddr                (cpu_baddr),
 .i_dac_reg              (cpu_dac_reg),
@@ -644,11 +685,21 @@ u_code_cache (
 
 .i_mmu_en          (cpu_mmu_en),
 .i_cache_en        (cpu_ic_en),
+.i_cache_rr        (cpu_cache_rr),
+.i_write_buffer_empty(dc_write_buffer_empty),
+.i_cache_lock_write(cpu_ic_lock_write),
+.i_cache_lock_base (cpu_ic_lock_base),
+.o_cache_lock_done (ic_lock_done),
+.i_cache_op_single(cpu_cache_op_single),
+.i_cache_op_by_mva(cpu_cache_op_by_mva),
+.i_cache_op_address(cpu_cache_op_address),
+.i_cache_prefetch  (cpu_icache_prefetch),
+.o_cache_prefetch_done(icache_prefetch_done),
 .i_cache_inv_req   (cpu_ic_inv),
 .i_cache_clean_req (cpu_ic_clean),
 .o_cache_inv_done  (ic_inv_done),
 .o_cache_clean_done(ic_clean_done),
-.i_cpsr            (cpu_mem_translate ? USR : cpu_cpsr[ZAP_CPSR_MODE:0]),
+.i_cpsr            (cpu_cpsr[ZAP_CPSR_MODE:0]),
 .i_sr              (cpu_sr),
 .i_baddr           (cpu_baddr),
 .i_dac_reg         (cpu_dac_reg),

@@ -1,0 +1,60 @@
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -314,6 +314,13 @@
+         .i_wb_ack               (wb_ack[1])
+ );
+ 
++`endif
++
++`ifdef NGAGE_ASSOC_EXPERIMENT
++logic tlb_raw_stb,tlb_raw_cyc;
++arm920_tlb_bus_gate tlb_bus_order(.clk(i_clk),.reset(i_reset),.write_buffer_empty(i_write_buffer_empty),
++ .in_cyc(tlb_raw_cyc),.in_stb(tlb_raw_stb),.out_cyc(wb_cyc[2]),.out_stb(wb_stb[2]),
++ .ack(wb_ack[2]),.err(wb_err[2]));
+ `endif
+ 
+ // ZAP TLB control module. Includes TLB RAM inside - manager 2.
+@@ -362,8 +369,13 @@
+         .o_fault        (tlb_fault),
+         .o_cacheable    (tlb_cacheable),
+         .o_busy         (tlb_busy),
++        `ifdef NGAGE_ASSOC_EXPERIMENT
++        .o_wb_stb_nxt   (tlb_raw_stb),
++        .o_wb_cyc_nxt   (tlb_raw_cyc),
++`else
+         .o_wb_stb_nxt   (wb_stb[2]),
+         .o_wb_cyc_nxt   (wb_cyc[2]),
++`endif
+         .o_wb_adr_nxt   (wb_adr[2]),
+         .o_wb_wen_nxt   (wb_wen[2]),
+         .o_wb_sel_nxt   (wb_sel[2]),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -381,6 +381,13 @@
+         .i_wb_ack               (wb_ack[1])
+ );
+ 
++`endif
++
++`ifdef NGAGE_ASSOC_EXPERIMENT
++logic tlb_raw_stb,tlb_raw_cyc;
++arm920_tlb_bus_gate tlb_bus_order(.clk(i_clk),.reset(i_reset),.write_buffer_empty(o_write_buffer_empty),
++ .in_cyc(tlb_raw_cyc),.in_stb(tlb_raw_stb),.out_cyc(wb_cyc[2]),.out_stb(wb_stb[2]),
++ .ack(wb_ack[2]),.err(wb_err[2]));
+ `endif
+ 
+ // ZAP TLB control module. Includes TLB RAM inside - Manager 2.
+@@ -418,8 +425,13 @@
+         .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
+         .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
+         .o_checked_dac (checked_dac), .o_checked_baddr (checked_baddr),
++        `ifdef NGAGE_ASSOC_EXPERIMENT
++        .o_wb_stb_nxt   (tlb_raw_stb),
++        .o_wb_cyc_nxt   (tlb_raw_cyc),
++`else
+         .o_wb_stb_nxt   (wb_stb[2]),
+         .o_wb_cyc_nxt   (wb_cyc[2]),
++`endif
+         .o_wb_adr_nxt   (wb_adr[2]),
+         .o_wb_wen_nxt   (wb_wen[2]),
+         .o_wb_sel_nxt   (wb_sel[2]),

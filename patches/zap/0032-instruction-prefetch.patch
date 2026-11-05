@@ -1,0 +1,217 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -141,6 +141,8 @@
+         output logic [5:0]                        o_dcache_lock_base,
+         output logic                              o_icache_lock_write,
+         output logic [5:0]                        o_icache_lock_base,
++        output logic                              o_icache_prefetch,
++        input logic                               i_icache_prefetch_done,
+         output logic                              o_drain_write_buffer,
+         input logic                               i_write_buffer_empty,
+         input logic                               i_irq,
+@@ -171,7 +173,7 @@
+ // ---------------------------------------------
+ 
+ logic [31:0] r [13:0];// Coprocessor registers. R7, R8 is write-only.
+-logic [3:0]    state; // State variable.
++logic [4:0]    state; // State variable.
+ logic          wait_for_interrupt;
+ 
+ // ---------------------------------------------
+@@ -195,6 +197,7 @@
+ localparam [3:0] LOCK_I_CACHE         = 13;
+ localparam [3:0] DRAIN_WRITE_BUFFER    = 14;
+ localparam [3:0] WAIT_FOR_INTERRUPT    = 15;
++localparam [4:0] ICACHE_PREFETCH       = 16;
+ 
+ // Register numbers.
+ localparam [3:0] FSR_REG              = 5;
+@@ -336,6 +339,7 @@
+         begin
+                 state          <= IDLE;
+                 o_drain_write_buffer <= 1'b0;
++                o_icache_prefetch <= 1'b0;
+                 wait_for_interrupt <= 1'b0;
+                 o_wfi_irq <= 1'b0;
+                 o_wfi_fiq <= 1'b0;
+@@ -519,6 +523,10 @@
+                                 7'b001_1110, 7'b010_1110: begin // Clean+invalidate D by MVA/index
+                                         o_cache_op_single <= 1'b1;o_cache_op_by_mva <= i_cp_word.ZAP_OPCODE_2 == 1;
+                                         o_dcache_clean <= 1'b1;state <= CLFLUSH_D_CACHE;
++                                end
++                                7'b001_1101: begin // Prefetch I-cache line by MVA
++                                        o_icache_prefetch <= 1'b1;
++                                        state <= ICACHE_PREFETCH;
+                                 end
+                                 CASE_WAIT_FOR_INTERRUPT:
+                                 begin
+@@ -590,6 +598,10 @@
+                         end
+                 end
+ 
++                ICACHE_PREFETCH: begin
++                        o_icache_prefetch <= 1'b1;
++                        if (i_icache_prefetch_done) begin o_icache_prefetch <= 1'b0;state <= DONE;end
++                end
+                 DRAIN_WRITE_BUFFER: begin
+                         if (wait_for_interrupt) begin
+                                 if (i_irq) o_wfi_irq <= 1'b1;
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -148,6 +148,8 @@
+ output logic [5:0]                       o_dcache_lock_base,
+ output logic                             o_icache_lock_write,
+ output logic [5:0]                       o_icache_lock_base,
++output logic                             o_icache_prefetch,
++input logic                              i_icache_prefetch_done,
+ output logic                             o_drain_write_buffer,
+ input logic                              i_write_buffer_empty,
+ output logic                             o_cache_op_single,
+@@ -1655,6 +1657,8 @@
+         .o_dcache_lock_base      (o_dcache_lock_base),
+         .o_icache_lock_write     (o_icache_lock_write),
+         .o_icache_lock_base      (o_icache_lock_base),
++        .o_icache_prefetch        (o_icache_prefetch),
++        .i_icache_prefetch_done   (i_icache_prefetch_done),
+         .o_drain_write_buffer     (o_drain_write_buffer),
+         .i_write_buffer_empty    (i_write_buffer_empty),
+         .i_irq                   (i_irq),
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -206,6 +206,7 @@
+ logic [5:0]      cpu_ic_lock_base;
+ logic            cpu_cache_op_single,cpu_cache_op_by_mva;
+ logic            cpu_drain_write_buffer,dc_write_buffer_empty;
++logic            cpu_icache_prefetch,icache_prefetch_done;
+ logic [31:0]     cpu_cache_op_address;
+ logic            cpu_dwe_check, cpu_dre_check;
+ logic            s_reset, s_fiq, s_irq;
+@@ -315,6 +316,8 @@
+ .o_dcache_lock_base      (cpu_dc_lock_base),
+ .o_icache_lock_write     (cpu_ic_lock_write),
+ .o_icache_lock_base      (cpu_ic_lock_base),
++.o_icache_prefetch        (cpu_icache_prefetch),
++.i_icache_prefetch_done  (!ONLY_CORE ? icache_prefetch_done : 1'b1),
+ .o_drain_write_buffer     (cpu_drain_write_buffer),
+ .i_write_buffer_empty    (!ONLY_CORE ? dc_write_buffer_empty : 1'b1),
+ .o_cache_op_single       (cpu_cache_op_single),
+@@ -681,6 +684,8 @@
+ .i_cache_op_single(cpu_cache_op_single),
+ .i_cache_op_by_mva(cpu_cache_op_by_mva),
+ .i_cache_op_address(cpu_cache_op_address),
++.i_cache_prefetch  (cpu_icache_prefetch),
++.o_cache_prefetch_done(icache_prefetch_done),
+ .i_cache_inv_req   (cpu_ic_inv),
+ .i_cache_clean_req (cpu_ic_clean),
+ .o_cache_inv_done  (ic_inv_done),
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -74,6 +74,8 @@
+ input   logic            i_cache_op_single,
+ input   logic            i_cache_op_by_mva,
+ input   logic [31:0]     i_cache_op_address,
++input   logic            i_cache_prefetch,
++output  logic            o_cache_prefetch_done,
+ input   logic            i_cache_inv_req,
+ input   logic            i_cache_clean_req,
+ output logic             o_cache_inv_done,
+@@ -143,11 +145,52 @@
+ assign unused = |{wb_err[1]};
+ 
+ `ifdef NGAGE_ASSOC_EXPERIMENT
++// Prefetch borrows the instruction TLB after any current fetch completes,
++// then restores the normal TLB lookup pipeline before releasing CP15.
++typedef enum logic [2:0] {P_IDLE,P_TRANSLATE,P_ISSUE,P_RESTORE,P_DONE,P_RESYNC} prefetch_state_t;
++prefetch_state_t prefetch_state;
++logic [2:0] prefetch_restore_count;
++logic [31:0] prefetch_checked_va,prefetch_checked_lookup;
++logic prefetch_checked_rd,prefetch_checked_wr,prefetch_checked_mmu;
++logic [CPSR_MODE:0] prefetch_checked_cpsr;
++logic [1:0] prefetch_checked_sr;
++logic [31:0] prefetch_checked_dac,prefetch_checked_baddr;
++logic adapter_ack,adapter_err,adapter_err2;
++wire prefetch_busy=prefetch_state!=P_IDLE;
++wire prefetch_address_selected=prefetch_state==P_TRANSLATE || prefetch_state==P_ISSUE;
++wire [31:0] tlb_address_input=prefetch_address_selected ? i_cache_op_address : i_address;
++wire [31:0] tlb_address_next=prefetch_address_selected ? i_cache_op_address : prefetch_state==P_RESYNC ? i_address : i_address_nxt;
++wire [31:0] tlb_address_check=prefetch_address_selected ? i_cache_op_address : prefetch_state==P_RESYNC ? i_address : i_address_check;
++wire tlb_hold_input=prefetch_busy ? (prefetch_state==P_ISSUE && hold) : (hold || i_stall);
++assign o_cache_prefetch_done=prefetch_state==P_DONE;
++assign o_ack=(prefetch_busy || i_cache_prefetch) ? 1'b0 : adapter_ack;
++assign o_err=(prefetch_busy || i_cache_prefetch) ? 1'b0 : adapter_err;
++assign o_err2=(prefetch_busy || i_cache_prefetch) ? 1'b0 : adapter_err2;
++always_ff @(posedge i_clk) begin
++ if(i_reset)begin prefetch_state<=P_IDLE;prefetch_restore_count<=0;end
++ else case(prefetch_state)
++  P_IDLE: if(i_cache_prefetch && idle)prefetch_state<=P_TRANSLATE;
++  P_TRANSLATE: if(prefetch_checked_va==i_cache_op_address && prefetch_checked_lookup==i_cache_op_address &&
++                  prefetch_checked_rd && !tlb_busy) begin
++    if(!i_mmu_en || !i_cache_en || !tlb_cacheable || tlb_fault)begin prefetch_restore_count<=0;prefetch_state<=P_RESTORE;end
++    else prefetch_state<=P_ISSUE;
++  end
++  P_ISSUE: if(adapter_ack && !adapter_err2)begin prefetch_restore_count<=0;prefetch_state<=P_RESTORE;end
++  P_RESTORE: if(!tlb_busy && prefetch_checked_va==i_address_check && prefetch_checked_lookup==i_address_nxt) begin
++    if(prefetch_restore_count==2)prefetch_state<=P_DONE;else prefetch_restore_count<=prefetch_restore_count+1'b1;
++   end else prefetch_restore_count<=0;
++  P_DONE: if(!i_cache_prefetch)begin prefetch_restore_count<=0;prefetch_state<=P_RESYNC;end
++  P_RESYNC: if(!tlb_busy && prefetch_checked_va==i_address && prefetch_checked_lookup==i_address && prefetch_checked_rd) begin
++    if(prefetch_restore_count==2)prefetch_state<=P_IDLE;else prefetch_restore_count<=prefetch_restore_count+1'b1;
++   end else prefetch_restore_count<=0;
++  default:prefetch_state<=P_IDLE;
++ endcase
++end
+ assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
+ assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+ arm920_zap_dcache_adapter experimental_cache(
+- .clk(i_clk),.reset(i_reset),.address(i_address),.physical(tlb_phy_addr),
+- .din(i_dat),.far_in(tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
++ .clk(i_clk),.reset(i_reset),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
++ .din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+  .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+@@ -155,13 +198,14 @@
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+  .cacheable(tlb_cacheable),.bufferable(1'b1),
+  .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
+- .data(o_dat),.ack(o_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
++ .data(o_dat),.ack(adapter_ack),.err(adapter_err),.err2(adapter_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
+  .cache_inv_done(o_cache_inv_done),.cache_clean_done(o_cache_clean_done),
+  .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
+  .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
+  .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
+ `else
+ assign o_cache_lock_done=1'b1;
++assign o_cache_prefetch_done=1'b1;
+ // Basic cache FSM - serves as manager 0.
+ zap_cache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cache_fsm (
+         .i_clk                  (i_clk),
+@@ -283,13 +327,28 @@
+ u_zap_tlb (
+         .i_clk          (i_clk),
+         .i_reset        (i_reset),
++        `ifdef NGAGE_ASSOC_EXPERIMENT
++        .i_address      (tlb_address_input),
++        .i_address_nxt  (tlb_address_next),
++        .i_address_check(tlb_address_check),
++`else
+         .i_address      (i_address),
+         .i_address_nxt  (i_address_nxt),
+         .i_address_check(i_address_check),
++`endif
+         .i_idle         (idle),
+         .i_wr_check     (i_wr_check),
++        `ifdef NGAGE_ASSOC_EXPERIMENT
++        .i_rd_check     (prefetch_address_selected || prefetch_state==P_RESYNC ? 1'b1 : i_rd_check),
++        .i_hold         (tlb_hold_input),
++        .o_checked_va(prefetch_checked_va),.o_checked_lookup(prefetch_checked_lookup),
++        .o_checked_rd(prefetch_checked_rd),.o_checked_wr(prefetch_checked_wr),.o_checked_mmu(prefetch_checked_mmu),
++        .o_checked_cpsr(prefetch_checked_cpsr),.o_checked_sr(prefetch_checked_sr),
++        .o_checked_dac(prefetch_checked_dac),.o_checked_baddr(prefetch_checked_baddr),
++`else
+         .i_rd_check     (i_rd_check),
+         .i_hold         (hold || i_stall),
++`endif
+         .i_cpsr         (i_cpsr),
+         .i_sr           (i_sr),
+         .i_dac_reg      (i_dac_reg),

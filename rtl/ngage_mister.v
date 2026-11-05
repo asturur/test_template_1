@@ -14,6 +14,7 @@
 module ngage_mister (
     input  wire        clk_sys,      // CPU/bus clock domain
     input  wire        reset,
+    output wire        bus_lock,     // reserve shared memory for an atomic CPU swap
 
     // SDRAM port (phone RAM — active R/W, 16MB)
     output wire [24:0] sdram_addr,
@@ -54,7 +55,7 @@ wire        irq_line, fiq_line;
 
 ngage_cpu cpu (
     .clk(clk_sys), .reset(reset), .irq(irq_line), .fiq(fiq_line),
-    .wb_cyc(wb_cyc), .wb_stb(wb_stb),
+    .wb_lock(bus_lock), .wb_cyc(wb_cyc), .wb_stb(wb_stb),
     .wb_address(wb_adr), .wb_write(wb_we),
     .wb_write_data(wb_dat_o), .wb_byte_enable(wb_sel),
     .wb_cycle_type(), .wb_burst_type(),

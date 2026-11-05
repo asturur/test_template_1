@@ -1,0 +1,24 @@
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -188,7 +188,7 @@
+ always_ff @(posedge i_clk) begin
+     if (i_reset || !(i_rd || i_wr) || o_ack) begin
+         pending_translation <= 1'b0; pending_request <= 1'b0;
+-    end else if (pending_request || background_refill || lookup_resync) begin
++    end else if (pending_request || background_refill || lookup_resync || tlb_busy || tlb_walk_pending) begin
+         if (!pending_request) begin
+             pending_va_assert <= i_address;
+             pending_rd_assert <= i_rd;
+@@ -246,10 +246,10 @@
+  .clk(i_clk),.reset(i_reset),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
+  .swp_tag(i_swp_tag),.swp_bus_lock(o_swp_bus_lock),.din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
+- .fault(pending_translation ? pending_fault : tlb_fault),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
++ .fault(pending_translation ? pending_fault : (tlb_busy ? 1'b0 : tlb_fault)),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
+  .external_fsr(pending_translation ? pending_external_fsr : tlb_external_fsr),
+  .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+- .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
++ .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request) || (tlb_busy && !pending_translation)),
+  .external_permit(1'b1),.write_buffer_empty(o_write_buffer_empty),
+  .fast_enable(1'b0),.fast_next_address(32'b0),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),

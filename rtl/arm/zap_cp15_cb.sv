@@ -136,8 +136,26 @@ module zap_cp15_cb
         // Cache enable.
         output logic                              o_dcache_en,
         output logic                              o_icache_en,
+        output logic                              o_cache_rr,
+        output logic                              o_dcache_lock_write,
+        output logic [5:0]                        o_dcache_lock_base,
+        output logic                              o_icache_lock_write,
+        output logic [5:0]                        o_icache_lock_base,
+        output logic                              o_icache_prefetch,
+        input logic                               i_icache_prefetch_done,
+        output logic                              o_drain_write_buffer,
+        input logic                               i_write_buffer_empty,
+        input logic                               i_irq,
+        input logic                               i_fiq,
+        output logic                              o_wfi_irq,
+        output logic                              o_wfi_fiq,
+        output logic                              o_cache_op_single,
+        output logic                              o_cache_op_by_mva,
+        output logic [31:0]                       o_cache_op_address,
 
         // From MMU. Specify that cache invalidation is done.
+        input   logic                            i_dcache_lock_done,
+        input   logic                            i_icache_lock_done,
         input   logic                            i_dcache_inv_done,
         input   logic                            i_icache_inv_done,
 
@@ -155,7 +173,8 @@ module zap_cp15_cb
 // ---------------------------------------------
 
 logic [31:0] r [13:0];// Coprocessor registers. R7, R8 is write-only.
-logic [3:0]    state; // State variable.
+logic [4:0]    state; // State variable.
+logic          wait_for_interrupt;
 
 // ---------------------------------------------
 // Localparams
@@ -174,6 +193,11 @@ localparam [3:0] CLR_I_CACHE          = 8;
 localparam [3:0] CLEAN_D_CACHE        = 9;
 localparam [3:0] CLFLUSH_ID_CACHE     = 10;
 localparam [3:0] CLFLUSH_D_CACHE      = 11;
+localparam [3:0] LOCK_D_CACHE         = 12;
+localparam [3:0] LOCK_I_CACHE         = 13;
+localparam [3:0] DRAIN_WRITE_BUFFER    = 14;
+localparam [3:0] WAIT_FOR_INTERRUPT    = 15;
+localparam [4:0] ICACHE_PREFETCH       = 16;
 
 // Register numbers.
 localparam [3:0] FSR_REG              = 5;
@@ -189,6 +213,8 @@ localparam [6:0] CASE_CLEAN_ID_CACHE       = 7'b000_1011;
 localparam [6:0] CASE_CLEAN_D_CACHE        = 7'b000_1010;
 localparam [6:0] CASE_CLFLUSH_ID_CACHE     = 7'b000_1111;
 localparam [6:0] CASE_CLFLUSH_D_CACHE      = 7'b000_1110;
+localparam [6:0] CASE_DRAIN_WRITE_BUFFER     = 7'b100_1010;
+localparam [6:0] CASE_WAIT_FOR_INTERRUPT     = 7'b100_0000;
 localparam [6:0] CASE_FLUSH_ID_TLB         = 7'b00?_0111;
 localparam [6:0] CASE_FLUSH_I_TLB          = 7'b00?_0101;
 localparam [6:0] CASE_FLUSH_D_TLB          = 7'b00?_0110;
@@ -201,12 +227,9 @@ assign xCACHE_TYPE_WORD[0][1:0]  = CODE_CACHE_LINE == 16 ? 2'd1 :
 
 assign xCACHE_TYPE_WORD[0][2]    = ONLY_CORE ? 1'd1 : 1'd0;
 
-// Report ARM920T 64-way associativity. The physical cache stays direct
-// mapped: every index/way clean-or-invalidate op already falls through to
-// a whole-cache operation, so only the loop arithmetic software derives
-// from this field matters. EKA1's clean-by-index loop computes its way
-// increment as (1 ROR assoc) and exits on carry; assoc = 0 makes that
-// increment 1 and the loop effectively endless (2^32 iterations).
+// Report ARM920T 64-way associativity. The normal cache remains direct
+// mapped; the experimental associative cache is selected at build time.
+// EKA1 also uses this field to derive the increment in its maintenance loop.
 assign xCACHE_TYPE_WORD[0][5:3]  = 3'd6;
 
 always_comb
@@ -278,6 +301,7 @@ begin
         begin
                 o_dcache_en <= 1'd0;
                 o_icache_en <= 1'd0;
+                o_cache_rr <= 1'b0;
                 o_mmu_en    <= 1'd0;
                 o_alignment_en <= 1'd0;
                 o_pid       <= 8'd0;
@@ -286,11 +310,15 @@ begin
         else
         begin
                 o_dcache_en <= r[1][2];              // Data cache enable.
+                o_cache_rr <= r[1][14];
                 o_icache_en <= r[1][12];             // Instruction cache enable.
                 o_mmu_en    <= r[1][0];              // MMU enable.
                 o_alignment_en <= r[1][1];          // Alignment fault enable.
                 o_pid       <= {1'd0, r[13][31:25]}; // PID register.
-                o_l4_enable <= r[1][14];             // 1 for v4T compatibility.
+                // ARM920 bit 14 controls cache replacement, not ISA version.
+                // The N-Gage config fixes ARMv4T behavior; retain the legacy
+                // selectable mode only for non-ARM920 configurations.
+                o_l4_enable <= CP15_L4_DEFAULT ? 1'b1 : r[1][14];
         end
 end
 
@@ -302,13 +330,27 @@ begin
         o_sr        <= {r[1][8],r[1][9]};        // SR register.
 end
 
+
+
 // Core logic.
 always_ff @ ( posedge i_clk )
 begin
         if ( i_reset )
         begin
                 state          <= IDLE;
+                o_drain_write_buffer <= 1'b0;
+                o_icache_prefetch <= 1'b0;
+                wait_for_interrupt <= 1'b0;
+                o_wfi_irq <= 1'b0;
+                o_wfi_fiq <= 1'b0;
                 o_dcache_inv   <= 1'd0;
+                o_dcache_lock_write <= 1'b0;
+                o_dcache_lock_base <= 6'b0;
+                o_icache_lock_write <= 1'b0;
+                o_icache_lock_base <= 6'b0;
+                o_cache_op_single <= 1'b0;
+                o_cache_op_by_mva <= 1'b0;
+                o_cache_op_address <= 32'b0;
                 o_icache_inv   <= 1'd0;
                 o_dcache_clean <= 1'd0;
                 o_icache_clean <= 1'd0;
@@ -321,18 +363,20 @@ begin
                 o_reg_rd_index <= 0;
                 r[0]           <= 0;
                 r[1]           <= 0;
-                r[1][14]       <= CP15_L4_DEFAULT;
+                r[1][14]       <= 1'b0; // ARM920 RR: random replacement at reset
                 r[2]           <= 32'd0;
                 r[3]           <= 32'd0;
                 r[4]           <= 32'd0;
                 r[5]           <= 32'd0;
                 r[6]           <= 32'd0;
                 r[13]          <= 32'd0;
-                r[0][15:4]     <= 12'hAAA;
-                r[0][19:16]    <= 4'h5;
+                r[0][15:4]     <= CP15_L4_DEFAULT ? 12'h920 : 12'hAAA;
+                r[0][19:16]    <= CP15_L4_DEFAULT ? 4'h2 : 4'h5;
+                r[0][23:20]    <= CP15_L4_DEFAULT ? 4'h1 : 4'h0;
+                r[0][31:24]    <= CP15_L4_DEFAULT ? 8'h41 : 8'h00;
                 r[1][7]        <= BE_32_ENABLE;
                 r[1][6:3]      <= 4'b1111;
-                r[1][11]       <= 1'd1;
+                r[1][11:10]    <= 2'b00; // ARM920 reserved: reads zero
         end
         else
         begin
@@ -340,6 +384,8 @@ begin
                 // Default values section.
                 // ====================================
 
+                o_dcache_lock_write <= 1'b0;
+                o_icache_lock_write <= 1'b0;
                 o_itlb_inv      <= 1'd0;
                 o_dtlb_inv      <= 1'd0;
                 o_dcache_inv    <= 1'd0;
@@ -393,6 +439,8 @@ begin
 
                 TERM: // Wait state before going to IDLE.
                 begin
+                        o_wfi_irq <= 1'b0;
+                        o_wfi_fiq <= 1'b0;
                         state <= IDLE;
                 end
 
@@ -406,6 +454,17 @@ begin
                         state <= DONE;
 
                         r [ i_cp_word.ZAP_CRN ] <= i_reg_rd_data;
+                        if (CP15_L4_DEFAULT && i_cp_word.ZAP_CRN == 9 && i_cp_word.ZAP_CRM == 0) begin
+                                if (i_cp_word.ZAP_OPCODE_2 == 0) begin
+                                        o_dcache_lock_base <= i_reg_rd_data[31:26];
+                                        o_dcache_lock_write <= 1'b1;
+                                        state <= LOCK_D_CACHE;
+                                end else if (i_cp_word.ZAP_OPCODE_2 == 1) begin
+                                        o_icache_lock_base <= i_reg_rd_data[31:26];
+                                        o_icache_lock_write <= 1'b1;
+                                        state <= LOCK_I_CACHE;
+                                end
+                        end
 
                         if
                         (
@@ -440,10 +499,49 @@ begin
                                 endcase
                         end
                         else if ( i_cp_word.ZAP_CRN == CACHE_REG )
-                        // Cache control selected.
+                        // Cache control selected. Operation details stay
+                        // stable until the selected cache acknowledges.
                         begin
+                                o_cache_op_single <= 1'b0;
+                                o_cache_op_by_mva <= 1'b0;
+                                o_cache_op_address <= i_reg_rd_data;
                                 casez({i_cp_word.ZAP_OPCODE_2,
                                        i_cp_word.ZAP_CRM})
+
+                                7'b001_0101: begin // Invalidate I line by MVA
+                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= 1'b1;
+                                        o_icache_inv <= 1'b1;state <= CLR_I_CACHE;
+                                end
+                                7'b001_0110: begin // Invalidate D line by MVA
+                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= 1'b1;
+                                        o_dcache_inv <= 1'b1;state <= CLR_D_CACHE;
+                                end
+                                7'b001_1010, 7'b010_1010: begin // Clean D by MVA/index
+                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= i_cp_word.ZAP_OPCODE_2 == 1;
+                                        o_dcache_clean <= 1'b1;state <= CLEAN_D_CACHE;
+                                end
+                                7'b001_1110, 7'b010_1110: begin // Clean+invalidate D by MVA/index
+                                        o_cache_op_single <= 1'b1;o_cache_op_by_mva <= i_cp_word.ZAP_OPCODE_2 == 1;
+                                        o_dcache_clean <= 1'b1;state <= CLFLUSH_D_CACHE;
+                                end
+                                7'b001_1101: begin // Prefetch I-cache line by MVA
+                                        o_icache_prefetch <= 1'b1;
+                                        state <= ICACHE_PREFETCH;
+                                end
+                                CASE_WAIT_FOR_INTERRUPT:
+                                begin
+                                        wait_for_interrupt <= 1'b1;
+                                        o_drain_write_buffer <= 1'b1;
+                                        state <= DRAIN_WRITE_BUFFER;
+                                end
+                                CASE_DRAIN_WRITE_BUFFER:
+                                begin
+                                        wait_for_interrupt <= 1'b0;
+                                        // Draining waits for all buffered writes, and does
+                                        // not clean or invalidate the data cache.
+                                        o_drain_write_buffer <= 1'b1;
+                                        state <= DRAIN_WRITE_BUFFER;
+                                end
 
                                 CASE_FLUSH_ID_CACHE:
                                 begin
@@ -500,6 +598,38 @@ begin
                         end
                 end
 
+                ICACHE_PREFETCH: begin
+                        o_icache_prefetch <= 1'b1;
+                        if (i_icache_prefetch_done) begin o_icache_prefetch <= 1'b0;state <= DONE;end
+                end
+                DRAIN_WRITE_BUFFER: begin
+                        if (wait_for_interrupt) begin
+                                if (i_irq) o_wfi_irq <= 1'b1;
+                                if (i_fiq) o_wfi_fiq <= 1'b1;
+                        end
+                        o_drain_write_buffer <= 1'b1;
+                        if (i_write_buffer_empty) begin
+                                o_drain_write_buffer <= 1'b0;
+                                state <= wait_for_interrupt ? WAIT_FOR_INTERRUPT : DONE;
+                        end
+                end
+                WAIT_FOR_INTERRUPT: begin
+                        // IRQ/FIQ wake the core, including when masked; normal
+                        // exception entry remains governed by the CPSR masks.
+                        if (i_irq || i_fiq || o_wfi_irq || o_wfi_fiq) begin
+                                o_wfi_irq <= o_wfi_irq || i_irq;
+                                o_wfi_fiq <= o_wfi_fiq || i_fiq;
+                                wait_for_interrupt <= 1'b0;state <= DONE;
+                        end
+                end
+                LOCK_D_CACHE: begin
+                        o_dcache_lock_write <= 1'b1;
+                        if (i_dcache_lock_done) begin o_dcache_lock_write <= 1'b0;state <= DONE;end
+                end
+                LOCK_I_CACHE: begin
+                        o_icache_lock_write <= 1'b1;
+                        if (i_icache_lock_done) begin o_icache_lock_write <= 1'b0;state <= DONE;end
+                end
                 CLEAN_D_CACHE,
                 CLFLUSH_ID_CACHE,
                 CLFLUSH_D_CACHE:
@@ -570,7 +700,11 @@ begin
                                                 o_reg_en        <= 1'd1;
                                                 o_reg_wr_index  <= translate( {1'd0, i_cp_word[15:12]}, i_cpsr[ZAP_CPSR_MODE:0] );
                                                 o_reg_wr_data   <= i_cp_word[19:16] == 0 && i_cp_word.ZAP_OPCODE_2 == 1 ?
-                                                                   CACHE_TYPE_WORD : r[ i_cp_word[19:16] ];
+                                                                   CACHE_TYPE_WORD :
+                                                                   CP15_L4_DEFAULT && i_cp_word[19:16] == 9 && i_cp_word.ZAP_CRM == 0 && i_cp_word.ZAP_OPCODE_2 == 0 ?
+                                                                   {o_dcache_lock_base,26'b0} :
+                                                                   CP15_L4_DEFAULT && i_cp_word[19:16] == 9 && i_cp_word.ZAP_CRM == 0 && i_cp_word.ZAP_OPCODE_2 == 1 ?
+                                                                   {o_icache_lock_base,26'b0} : r[ i_cp_word[19:16] ];
                                                 state           <= DONE;
                                         end
                                         else // Store from CPU register.
@@ -618,14 +752,16 @@ begin
                 // Constants Section
                 // ======================================
 
+                // ARM920T ID fields; layout revision zero is a model choice,
+                // not a measured identification from the physical phone.
                 r[0][3:0]   <= 4'd0;
-                r[0][15:4]  <= 12'hAAA;
-                r[0][19:16] <= 4'h5;
-                r[0][23:20] <= 4'd0;
-                r[0][31:24] <= 8'd0;
+                r[0][15:4]  <= CP15_L4_DEFAULT ? 12'h920 : 12'hAAA;
+                r[0][19:16] <= CP15_L4_DEFAULT ? 4'h2 : 4'h5;
+                r[0][23:20] <= CP15_L4_DEFAULT ? 4'h1 : 4'h0;
+                r[0][31:24] <= CP15_L4_DEFAULT ? 8'h41 : 8'h00;
                 r[1][7]     <= BE_32_ENABLE ? 1'd1 : 1'd0;
                 r[1][6:3]   <= 4'b1111;
-                r[1][11]    <= 1'd1;
+                r[1][11:10] <= 2'b00; // ARM920 reserved: reads zero
 
                 if ( ONLY_CORE )
                 begin

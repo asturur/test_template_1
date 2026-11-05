@@ -40,6 +40,7 @@ module zap_postalu_main #(
         // -----------------------------------------------------------------
 
         input logic                              i_uop_last,
+        input logic [1:0] i_swp_tag,
         input logic [64*8-1:0]                   i_decompile,
         input logic                              i_decompile_valid,
         input logic [31:0]                       i_alu_result_ff,                       // ALU result flopped version.
@@ -71,6 +72,7 @@ module zap_postalu_main #(
         // -----------------------------------------------------------------
 
         output logic                              o_uop_last,
+        output logic [1:0] o_swp_tag,
         output logic      [64*8-1:0]              o_decompile,                   // Debugging output.
         output logic                              o_decompile_valid,             // Decompile EXCL valid.
         output logic [31:0]                       o_alu_result_ff,               // ALU result flopped version.
@@ -108,6 +110,7 @@ begin
                 o_dav_ff                         <= '0;
                 o_decompile_valid                <= '0;
                 o_uop_last                       <= '0;
+                o_swp_tag <= 0;
                 o_abt_ff                         <= '0;
                 o_irq_ff                         <= '0;
                 o_fiq_ff                         <= '0;
@@ -138,6 +141,7 @@ begin
                 o_dav_ff                         <= '0;
                 o_decompile_valid                <= '0;
                 o_uop_last                       <= '0;
+                o_swp_tag <= 0;
                 o_mem_load_ff                    <= '0;
                 o_dav_ff                         <= '0;
                 o_abt_ff                         <= '0;
@@ -176,6 +180,7 @@ begin
                         o_dav_ff                         <= '0;
                         o_decompile_valid                <= '0;
                         o_uop_last                       <= '0;
+                o_swp_tag <= 0;
                         o_abt_ff                         <= '0;
                         o_irq_ff                         <= '0;
                         o_fiq_ff                         <= '0;
@@ -207,6 +212,7 @@ begin
                         o_decompile                      <= i_decompile;
                         o_decompile_valid                <= i_decompile_valid;
                         o_uop_last                       <= i_uop_last;
+                o_swp_tag <= i_swp_tag;
                         o_alu_result_ff                  <= i_alu_result_ff;
                         o_dav_ff                         <= i_dav_ff;
                         o_flags_ff                       <= i_flags_ff;

@@ -1,0 +1,546 @@
+--- a/src/rtl/zap_alu_main.sv
++++ b/src/rtl/zap_alu_main.sv
+@@ -44,7 +44,9 @@
+ 
+         // Last uop indication interface.
+         input logic                              i_uop_last,
++        input logic [1:0] i_swp_tag,
+         output logic                             o_uop_last,
++        output logic [1:0] o_swp_tag,
+ 
+         // ------------------------------------------------------------------
+         // Clock and reset
+@@ -523,6 +525,7 @@
+         begin
+                 o_decompile_valid                <= 1'd0;
+                 o_uop_last                       <= 1'd0;
++                o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+                 o_alt_dav_ff                     <= 0;
+@@ -558,6 +561,7 @@
+                 // Clear but take CPSR from writeback.
+                 o_decompile_valid                <= 1'd0;
+                 o_uop_last                       <= 1'd0;
++                o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+                 o_alt_dav_ff                     <= 0;
+@@ -593,6 +597,7 @@
+                 // Clear and preserve flags. Keep sleeping.
+                 o_decompile_valid                <= 1'd0;
+                 o_uop_last                       <= 1'd0;
++                o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+                 o_alt_dav_ff                     <= 0;
+@@ -610,6 +615,7 @@
+                 // Clear and preserve flags. Wake up from sleep.
+                 o_decompile_valid                <= 1'd0;
+                 o_uop_last                       <= 1'd0;
++                o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+                 o_alt_dav_ff                     <= 0;
+@@ -668,6 +674,7 @@
+                 o_decompile                     <= i_decompile;
+                 o_decompile_valid               <= o_decompile_valid_nxt;
+                 o_uop_last                      <= o_uop_last_nxt;
++                o_swp_tag <= (o_dav_nxt && is_cc_satisfied(i_condition_code_ff, flags_ff[31:28]) && !i_irq_ff && !i_fiq_ff && !i_abt_ff && !i_und_ff) ? i_swp_tag : 2'd0;
+         end
+ end
+ 
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -190,7 +190,7 @@
+ assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+ arm920_zap_dcache_adapter experimental_cache(
+  .clk(i_clk),.reset(i_reset),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
+- .din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
++ .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+  .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -74,6 +74,7 @@
+ output logic                             o_data_wb_we,
+ output logic                             o_data_wb_cyc,
+ output logic                             o_data_wb_stb,
++output logic [1:0]                       o_data_swp_tag,
+ output logic[31:0]                       o_data_wb_adr,
+ output logic                             o_data_alignment_fault,
+ output logic[31:0]                       o_data_alignment_far,
+@@ -257,6 +258,8 @@
+ logic [31:0]                     predecode_ppc_ff;
+ logic                            predecode_clear_btb;
+ logic                            predecode_uop_last;
++logic [1:0] predecode_swp_tag,decode_swp_tag,issue_swp_tag,shifter_swp_tag;
++logic [1:0] alu_swp_tag,postalu0_swp_tag,postalu1_swp_tag,postalu_swp_tag;
+ logic                            predecode_switch;
+ 
+ // Decode
+@@ -539,6 +542,7 @@
+     data_misaligned(postalu1_address_ff, postalu1_ubyte_ff, postalu1_sbyte_ff,
+                     postalu1_uhalf_ff, postalu1_shalf_ff);
+ assign o_cpsr                   = alu_flags_ff[ZAP_CPSR_MODE:0];
++assign o_data_swp_tag = postalu_swp_tag;
+ assign o_data_wb_adr            = {postalu_address_ff[31:2], 2'd0};
+ assign o_data_wb_adr_nxt        = {alu_address_ff[31:2], 2'd0};
+ assign o_instr_wb_we            = 1'd0;
+@@ -806,7 +810,8 @@
+         .o_taken_ff                     (predecode_taken),
+         .o_ppc_ff                       (predecode_ppc_ff),
+ 
+-        .o_uop_last                     (predecode_uop_last)
++        .o_uop_last                     (predecode_uop_last),
++        .o_swp_tag(predecode_swp_tag)
+                                         // Asserted to indicate last instruction of sequence.
+ );
+ 
+@@ -824,6 +829,7 @@
+         .o_decompile                    (decode_decompile),
+         .i_uop_last                     (predecode_uop_last),
+         .o_uop_last                     (decode_uop_last),
++        .i_swp_tag(predecode_swp_tag), .o_swp_tag(decode_swp_tag),
+ 
+         // Input.
+         .i_clk                          (i_clk),
+@@ -896,6 +902,7 @@
+ (
+         .i_uop_last(decode_uop_last),
+         .o_uop_last(issue_uop_last),
++        .i_swp_tag(decode_swp_tag), .o_swp_tag(issue_swp_tag),
+ 
+         .i_decompile(decode_decompile),
+         .o_decompile(issue_decompile),
+@@ -1042,6 +1049,7 @@
+ (
+         .i_uop_last(issue_uop_last),
+         .o_uop_last(shifter_uop_last),
++        .i_swp_tag(issue_swp_tag), .o_swp_tag(shifter_swp_tag),
+ 
+         .i_decompile                    (issue_decompile),
+         .o_decompile                    (shifter_decompile),
+@@ -1155,6 +1163,7 @@
+ u_zap_alu_main
+ (
+          .i_uop_last                     (shifter_uop_last),
++        .i_swp_tag(shifter_swp_tag), .o_swp_tag(alu_swp_tag),
+          .i_clk                          (i_clk),
+          .i_reset                        (reset),
+          .i_decompile                    (shifter_decompile),
+@@ -1249,6 +1258,7 @@
+ 
+           .i_uop_last                      (alu_uop_last),
+           .o_uop_last                      (postalu0_uop_last),
++        .i_swp_tag(alu_swp_tag), .o_swp_tag(postalu0_swp_tag),
+ 
+          .i_decompile_valid                (alu_decompile_valid),
+          .i_decompile                      (alu_decompile),
+@@ -1322,6 +1332,7 @@
+ 
+          .i_uop_last                       (postalu0_uop_last),
+          .o_uop_last                       (postalu1_uop_last),
++        .i_swp_tag(postalu0_swp_tag), .o_swp_tag(postalu1_swp_tag),
+ 
+          .i_decompile                      (postalu0_decompile),
+          .i_decompile_valid                (postalu0_decompile_valid),
+@@ -1393,6 +1404,7 @@
+ 
+          .i_uop_last                        (postalu1_uop_last),
+          .o_uop_last                        (postalu_uop_last),
++        .i_swp_tag(postalu1_swp_tag), .o_swp_tag(postalu_swp_tag),
+ 
+          .i_decompile                      (postalu1_decompile),
+          .i_decompile_valid                (postalu1_decompile_valid),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -58,6 +58,8 @@
+ input logic [31:0] i_alignment_far,
+ 
+ // Other control signals from/to processor.
++input   logic [1:0]      i_swp_tag,
++output  logic            o_swp_bus_lock,
+ input   logic            i_rd,
+ input   logic            i_wr,
+ input   logic [3:0]      i_ben,
+@@ -242,7 +244,7 @@
+ assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+ arm920_zap_dcache_adapter experimental_cache(
+  .clk(i_clk),.reset(i_reset),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
+- .din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
++ .swp_tag(i_swp_tag),.swp_bus_lock(o_swp_bus_lock),.din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
+  .fault(pending_translation ? pending_fault : tlb_fault),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
+  .external_fsr(pending_translation ? pending_external_fsr : tlb_external_fsr),
+@@ -260,6 +262,7 @@
+  .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
+  .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
+ `else
++assign o_swp_bus_lock=1'b0;
+ assign o_cache_lock_done=1'b1;
+ assign o_write_buffer_empty=1'b1;
+ // Basic cache FSM - serves as manager 0.
+--- a/src/rtl/zap_decode_main.sv
++++ b/src/rtl/zap_decode_main.sv
+@@ -39,7 +39,9 @@
+ (
+         output logic  [64*8-1:0]                  o_decompile, // For debug purposes.
+         input  logic                              i_uop_last,
++        input logic [1:0] i_swp_tag,
+         output logic                              o_uop_last,
++        output logic [1:0] o_swp_tag,
+ 
+         // -------------------
+         // Inputs.
+@@ -301,6 +303,7 @@
+                 o_und_ff                                <= 0;
+                 o_taken_ff                              <= 0;
+                 o_uop_last                              <= 0;
++                o_swp_tag <= 0;
+         end
+         else if ( i_clear_from_writeback || (i_clear_from_alu && !i_data_stall ) )
+         begin
+@@ -312,6 +315,7 @@
+                 o_und_ff                                <= 0;
+                 o_taken_ff                              <= 0;
+                 o_uop_last                              <= 0;
++                o_swp_tag <= 0;
+                 o_destination_index_ff                  <= 'x;
+                 o_alu_source_ff                         <= 'x;
+                 o_alu_operation_ff                      <= 'x;
+@@ -369,6 +373,7 @@
+                 o_ppc_ff                                <= i_ppc_ff;
+                 o_decompile                             <= decompile_tmp;
+                 o_uop_last                              <= i_uop_last;
++                o_swp_tag <= i_swp_tag;
+         end
+ end
+ 
+--- a/src/rtl/zap_issue_main.sv
++++ b/src/rtl/zap_issue_main.sv
+@@ -46,7 +46,9 @@
+ 
+         // UOP
+         input   logic                            i_uop_last,
++        input logic [1:0] i_swp_tag,
+         output  logic                            o_uop_last,
++        output logic [1:0] o_swp_tag,
+ 
+         // MISC signals.
+ 
+@@ -267,7 +269,7 @@
+            o_mem_srcdest_value_nxt;
+ 
+ logic [32+32+1+2+64*8+1+4+$clog2(PHY_REGS)+33+$clog2(ALU_OPS)+33+$clog2(SHIFT_OPS)
+-+33+1+$clog2(PHY_REGS)+14+32-1:0] skid;
+++33+1+$clog2(PHY_REGS)+14+32+2-1:0] skid;
+ 
+ // Individual lock signals. These are ORed to get the final lock.
+ logic shift_lock;
+@@ -286,6 +288,7 @@
+ logic    [1:0]                     skid_taken_ff;
+ logic      [64*8-1:0]              skid_decompile;
+ logic                              skid_uop_last;
++logic [1:0] skid_swp_tag;
+ logic      [3:0]                   skid_condition_code_ff;
+ logic      [$clog2(PHY_REGS )-1:0] skid_destination_index_ff;
+ logic      [32:0]                  skid_alu_source_ff;
+@@ -331,6 +334,7 @@
+                 o_und_ff                          <= 0;
+                 o_flag_update_ff                  <= 0;
+                 o_stall_from_issue                <= 0;
++                o_swp_tag <= 0;
+ 
+                 o_destination_index_ff            <= 'x;
+                 o_alu_operation_ff                <= 'x;
+@@ -369,6 +373,7 @@
+                 o_und_ff             <= 0;
+                 o_flag_update_ff     <= 0;
+                 o_stall_from_issue   <= 0;
++                o_swp_tag <= 0;
+ 
+                 o_destination_index_ff            <= 'x;
+                 o_alu_operation_ff                <= 'x;
+@@ -433,6 +438,7 @@
+                 o_pc_ff                           <= skid_pc_ff;
+                 o_decompile                       <= skid_decompile;
+                 o_uop_last                        <= skid_uop_last;
++                o_swp_tag <= lock ? 2'd0 : skid_swp_tag;
+                 o_stall_from_issue                <= lock;
+         end
+ end
+@@ -449,6 +455,7 @@
+                         i_taken_ff,
+                         i_decompile,
+                         i_uop_last,
++                        i_swp_tag,
+                         i_condition_code_ff,
+                         i_destination_index_ff,
+                         i_alu_source_ff,
+@@ -632,6 +639,7 @@
+                  skid_taken_ff,
+                  skid_decompile,
+                  skid_uop_last,
++                 skid_swp_tag,
+                  skid_condition_code_ff,
+                  skid_destination_index_ff,
+                  skid_alu_source_ff,
+@@ -665,6 +673,7 @@
+                  skid_taken_ff,
+                  skid_decompile,
+                  skid_uop_last,
++                 skid_swp_tag,
+                  skid_condition_code_ff,
+                  skid_destination_index_ff,
+                  skid_alu_source_ff,
+@@ -695,6 +704,7 @@
+                  i_taken_ff,
+                  i_decompile,
+                  i_uop_last,
++                        i_swp_tag,
+                  i_condition_code_ff,
+                  i_destination_index_ff,
+                  i_alu_source_ff,
+--- a/src/rtl/zap_postalu_main.sv
++++ b/src/rtl/zap_postalu_main.sv
+@@ -40,6 +40,7 @@
+         // -----------------------------------------------------------------
+ 
+         input logic                              i_uop_last,
++        input logic [1:0] i_swp_tag,
+         input logic [64*8-1:0]                   i_decompile,
+         input logic                              i_decompile_valid,
+         input logic [31:0]                       i_alu_result_ff,                       // ALU result flopped version.
+@@ -71,6 +72,7 @@
+         // -----------------------------------------------------------------
+ 
+         output logic                              o_uop_last,
++        output logic [1:0] o_swp_tag,
+         output logic      [64*8-1:0]              o_decompile,                   // Debugging output.
+         output logic                              o_decompile_valid,             // Decompile EXCL valid.
+         output logic [31:0]                       o_alu_result_ff,               // ALU result flopped version.
+@@ -108,6 +110,7 @@
+                 o_dav_ff                         <= '0;
+                 o_decompile_valid                <= '0;
+                 o_uop_last                       <= '0;
++                o_swp_tag <= 0;
+                 o_abt_ff                         <= '0;
+                 o_irq_ff                         <= '0;
+                 o_fiq_ff                         <= '0;
+@@ -138,6 +141,7 @@
+                 o_dav_ff                         <= '0;
+                 o_decompile_valid                <= '0;
+                 o_uop_last                       <= '0;
++                o_swp_tag <= 0;
+                 o_mem_load_ff                    <= '0;
+                 o_dav_ff                         <= '0;
+                 o_abt_ff                         <= '0;
+@@ -176,6 +180,7 @@
+                         o_dav_ff                         <= '0;
+                         o_decompile_valid                <= '0;
+                         o_uop_last                       <= '0;
++                o_swp_tag <= 0;
+                         o_abt_ff                         <= '0;
+                         o_irq_ff                         <= '0;
+                         o_fiq_ff                         <= '0;
+@@ -207,6 +212,7 @@
+                         o_decompile                      <= i_decompile;
+                         o_decompile_valid                <= i_decompile_valid;
+                         o_uop_last                       <= i_uop_last;
++                o_swp_tag <= i_swp_tag;
+                         o_alu_result_ff                  <= i_alu_result_ff;
+                         o_dav_ff                         <= i_dav_ff;
+                         o_flags_ff                       <= i_flags_ff;
+--- a/src/rtl/zap_predecode_main.sv
++++ b/src/rtl/zap_predecode_main.sv
+@@ -31,6 +31,7 @@
+ 
+         // UOP
+         output logic                             o_uop_last,
++        output logic [1:0] o_swp_tag,
+ 
+         // L4
+         input   logic                            i_l4_enable,
+@@ -122,6 +123,7 @@
+ logic [39:0]                        o_instruction_nxt;
+ logic                               o_instruction_valid_nxt;
+ logic                               o_uop_last_nxt;
++logic [1:0] swp_tag_nxt;
+ logic                               mem_fetch_stall;
+ logic                               mode32_irq;
+ logic                               mode32_fiq;
+@@ -177,6 +179,7 @@
+                 o_instruction_ff       <= 0;
+                 o_instruction_valid_ff <= 0;
+                 o_uop_last             <= 0;
++                o_swp_tag <= 0;
+                 o_ppc_ff               <= 0;
+                 o_clear_from_decode    <= 0;
+                 o_pc_from_decode       <= 0;
+@@ -195,6 +198,7 @@
+                 o_taken_ff              <= 0;
+                 o_instruction_valid_ff  <= 0;
+                 o_uop_last              <= 0;
++                o_swp_tag <= 0;
+                 o_clear_from_decode     <= 0;
+                 o_force32align_ff       <= 0;
+                 o_switch_ff             <= 0;
+@@ -215,6 +219,7 @@
+                 o_instruction_ff       <= o_instruction_nxt;
+                 o_instruction_valid_ff <= o_instruction_valid_nxt;
+                 o_uop_last             <= o_uop_last_nxt;
++                o_swp_tag <= swp_tag_nxt;
+                 o_copro_dav_ff         <= copro_dav_nxt;
+                 o_copro_word_ff        <= copro_word_nxt;
+ 
+@@ -601,6 +606,7 @@
+         .o_align(align_nxt),
+         .o_switch(switch_nxt), // Provided when load to PC in LDM.
+         .o_uop_last(o_uop_last_nxt),
++        .o_swp_tag(swp_tag_nxt),
+         .o_stall_from_decode(mem_fetch_stall)
+ );
+ 
+--- a/src/rtl/zap_predecode_uop_sequencer.sv
++++ b/src/rtl/zap_predecode_uop_sequencer.sv
+@@ -72,7 +72,8 @@
+         output logic              o_fiq,
+ 
+         // UOP last.
+-        output logic              o_uop_last
++        output logic              o_uop_last,
++        output logic [1:0] o_swp_tag
+ );
+ 
+ ///////////////////////////////////////////////////////////////////////////////
+@@ -814,6 +815,10 @@
+         endcase
+ end
+ 
++// Tags follow the two memory micro-ops belonging to an ARM SWP.
++assign o_swp_tag = !o_instruction_valid ? 2'd0 :
++                   (state_ff==IDLE && state_nxt==SWAP1) ? 2'd1 :
++                   state_ff==SWAP1 ? 2'd2 : 2'd0;
+ // Debug only.
+ assign o_uop_last = (((state_ff == IDLE) && (state_nxt == IDLE)) ||
+                      ((state_ff != IDLE) && (state_nxt == IDLE))) &&
+--- a/src/rtl/zap_shifter_main.sv
++++ b/src/rtl/zap_shifter_main.sv
+@@ -36,7 +36,9 @@
+         output  logic    [64*8-1:0]              o_decompile,
+ 
+         input   logic                            i_uop_last,
++        input logic [1:0] i_swp_tag,
+         output  logic                            o_uop_last,
++        output logic [1:0] o_swp_tag,
+ 
+         // Clock and reset.
+         input logic                               i_clk,
+@@ -234,6 +236,7 @@
+                 o_swi_ff                          <= 0;
+                 o_und_ff                          <= 0;
+                 o_uop_last                        <= 0;
++                o_swp_tag <= 0;
+ 
+                 o_destination_index_ff            <= 'x; //
+                 o_alu_operation_ff                <= 'x; //
+@@ -269,6 +272,7 @@
+                 o_swi_ff                          <= 0;
+                 o_und_ff                          <= 0;
+                 o_uop_last                        <= 0;
++                o_swp_tag <= 0;
+ 
+                 o_destination_index_ff            <= 'x; //
+                 o_alu_operation_ff                <= 'x; //
+@@ -361,6 +365,7 @@
+            // For debug
+            o_decompile                       <= i_decompile;
+            o_uop_last                        <= i_uop_last;
++                o_swp_tag <= i_swp_tag;
+    end
+ end
+ 
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -118,6 +118,7 @@
+         // ---------------------
+ 
+         output  logic            o_wb_cyc,
++        output logic o_wb_lock,
+         output  logic            o_wb_stb,
+         output  logic  [31:0]    o_wb_adr,
+         output  logic            o_wb_we,
+@@ -173,6 +174,8 @@
+ logic [31:0]     ic_data, dc_data, cpu_dc_dat;
+ logic            cpu_instr_stb;
+ logic            cpu_dc_we, cpu_dc_stb;
++logic [1:0] cpu_dc_swp_tag;
++logic cpu_dc_swp_lock;
+ logic [3:0]      cpu_dc_sel;
+ logic            c_wb_stb;
+ logic            c_wb_cyc;
+@@ -283,6 +286,7 @@
+ .o_pid                  (),
+ /* verilator lint_on PINCONNECTEMPTY */
+ .o_data_wb_stb          (cpu_dc_stb),
++.o_data_swp_tag         (cpu_dc_swp_tag),
+ .i_data_wb_dat          (!ONLY_CORE ? dc_data :
+                          BE_32_ENABLE ? be_32(i_wb_dat, o_wb_sel) : i_wb_dat),
+                         // Swap data into CPU based on current o_wb_sel.
+@@ -486,6 +490,7 @@
+         .o_c_wb_ack(c_wb_ack ),
+         .o_c_wb_err(c_wb_err ),
+ 
++        .i_d_wb_lock(cpu_dc_swp_lock), .o_wb_lock(o_wb_lock),
+         .i_d_wb_stb(d_wb_stb ),
+         .i_d_wb_cyc(d_wb_cyc ),
+         .i_d_wb_wen(d_wb_wen ),
+@@ -525,6 +530,7 @@
+         .o_c_wb_ack(instr_ack),
+         .o_c_wb_err(instr_err),
+ 
++        .i_d_wb_lock(1'b0), .o_wb_lock(o_wb_lock),
+         .i_d_wb_stb(cpu_dc_stb),
+         .i_d_wb_cyc(cpu_dc_stb),
+         .i_d_wb_wen(cpu_dc_we),
+@@ -579,6 +585,8 @@
+ .i_address_check        (cpu_daddr_check),
+ .i_wr_check             (cpu_dwe_check),
+ .i_rd_check             (cpu_dre_check),
++.i_swp_tag              (cpu_dc_swp_tag),
++.o_swp_bus_lock         (cpu_dc_swp_lock),
+ .i_rd                   (!cpu_dc_we && cpu_dc_stb),
+ .i_wr                   ( cpu_dc_we && cpu_dc_stb),
+ .i_ben                  (cpu_dc_sel),
+--- a/src/rtl/zap_wb_merger.sv
++++ b/src/rtl/zap_wb_merger.sv
+@@ -48,6 +48,8 @@
+ output logic            o_c_wb_err,
+ 
+ // Wishbone bus 2
++input logic             i_d_wb_lock,
++output logic            o_wb_lock,
+ input logic             i_d_wb_stb,
+ input logic             i_d_wb_cyc,
+ input logic             i_d_wb_wen,
+@@ -92,6 +94,7 @@
+ // Alias
+ logic switch;
+ 
++assign o_wb_lock = (state_ff == DATA) && i_d_wb_lock;
+ assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
+ 
+ always_comb
+@@ -120,8 +123,9 @@
+ 
+         DATA:
+         begin
++                if (i_d_wb_lock) state_nxt = DATA;
+                 // Switch over if EOB and code STB exists.
+-                if ( switch && i_c_wb_stb )
++                else if ( switch && i_c_wb_stb )
+                 begin
+                         state_nxt = CODE;
+                 end

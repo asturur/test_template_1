@@ -102,12 +102,19 @@ def prepare_zap(info, variant, destination=None):
 def build_simulator(info, variant):
     rtl, patches = prepare_zap(info, variant)
     source = sorted(rtl.glob("*.sv"))
+    associative = variant == "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT", "1") == "1"
+    if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
+        raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
+    if associative:
+        source += sorted((ROOT / "rtl" / "arm920").glob("*.sv"))
+    info["associative_cache_experiment"] = associative
     inputs = source + sorted(rtl.glob("*.svh")) + patches + [
         ROOT / "rtl" / "ngage_cpu.sv", ROOT / "sim" / "ngage_cpu_sim.sv", ROOT / "sim" / "main.cpp",
         ROOT / "sim" / "boot_profile.cpp", ROOT / "sim" / "boot_profile.h", Path(__file__)]
     key = hashlib.sha256((info["simulator_image_id"] + "".join(digest(p) for p in inputs)).encode()).hexdigest()
-    stamp = BUILD / f"build-key-{variant}"
-    objdir = BUILD / f"obj-{variant}"
+    cache_variant = f"{variant}-assoc-experiment" if associative else variant
+    stamp = BUILD / f"build-key-{cache_variant}"
+    objdir = BUILD / f"obj-{cache_variant}"
     binary = objdir / "Vngage_cpu_sim"
     if not (binary.exists() and stamp.exists() and stamp.read_text() == key):
         print("Building the standalone ZAP simulator...", flush=True)
@@ -115,6 +122,8 @@ def build_simulator(info, variant):
                    "-Wno-fatal", "-Wno-lint", "--x-initial", "0", "--x-assign", "0",
                    "--top-module", "ngage_cpu_sim", "--Mdir", str(objdir.relative_to(ROOT)),
                    "-I" + str(rtl.relative_to(ROOT)), "rtl/ngage_cpu.sv", "sim/ngage_cpu_sim.sv"]
+        if associative:
+            command.append("-DNGAGE_ASSOC_EXPERIMENT")
         command += [str(p.relative_to(ROOT)) for p in source]
         command += ["/work/sim/main.cpp", "/work/sim/boot_profile.cpp"]
         execute(docker(command), BUILD / "build.log")
@@ -217,7 +226,14 @@ def rtl_lint(info, variant):
     command = ["verilator", "--lint-only", "-DSYNTHESIS", "-Wno-fatal", "-Wno-lint",
                "--top-module", "ngage_cpu", "-I" + str(rtl.relative_to(ROOT)), "rtl/ngage_cpu.sv"]
     command += [str(p.relative_to(ROOT)) for p in sorted(rtl.glob("*.sv"))]
-    execute(docker(command), BUILD / "rtl-synthesis-path-lint.log")
+    associative = variant == "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT", "1") == "1"
+    if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
+        raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
+    if associative:
+        command += ["-DNGAGE_ASSOC_EXPERIMENT"]
+        command += [str(p.relative_to(ROOT)) for p in sorted((ROOT / "rtl" / "arm920").glob("*.sv"))]
+    info["associative_cache_experiment"] = associative
+    execute(docker(command), BUILD / ("rtl-assoc-synthesis-path-lint.log" if associative else "rtl-synthesis-path-lint.log"))
     info.update(status="pass", method="verilator-lint-only", synthesis_macro=True, quartus_used=False)
     (BUILD / "rtl-lint-results.json").write_text(json.dumps(info, indent=2) + "\n")
     print("PASS shared RTL syntax with SYNTHESIS defined (ARM64 Verilator only)", flush=True)
@@ -362,7 +378,7 @@ def main():
     results = []
     diagnostics = ["smoke", "mmu_fcse", "prefetch_fault", "ldm_base_in_list", "ldm_base_mmu", "ldm_base_smallpage", "ldm_base_undmode", "ldm_cold_base_not_loaded", "ldm_cold_base_last", "ldm_fault_far", "ldm_fault_status_first", "ldm_fault_status_immediate", "ldm_fault_status_probe", "ldr_fault_status_probe", "ldm_fault_status_delay", "ldm_fault_status_load", "ldm_fault_status_load_far"]
     if args.cpu_variant == "ngage":
-        diagnostics += ["alignment_cases", "mmu_fetch", "cache_load_widths"]
+        diagnostics += ["alignment_cases", "mmu_fetch", "cache_load_widths", "cache_write_through", "cache_drain"]
     for name in diagnostics:
         rom = assemble(name)
         for latency in (0, 3):

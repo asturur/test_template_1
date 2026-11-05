@@ -42,7 +42,13 @@ c5_pin_model_dump.txt
 /build/
 
 # Persistent local experiments and reference checkouts
-/scratch/
+/scratch/*
+!/scratch/current-boot/
+!/scratch/simif-board/
+!/scratch/simif-investigation/
+/scratch/simif-board/__pycache__/
+/scratch/simif-investigation/__pycache__/
+/scratch/current-boot/__pycache__/
 
 # Local firmware dumps and extracted phone data
 /firmware/

@@ -1,0 +1,44 @@
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -222,6 +222,32 @@
+     end
+ end
+ 
++`ifdef NGAGE_ASSOC_EXPERIMENT
++// Experimental CPU integration: isolated behind a compile-time flag until
++// directed CPU, maintenance and bus tests all pass.
++assign checked_cache_index=checked_lookup[`ZAP_VA__CACHE_INDEX];
++assign background_refill=1'b0;
++assign o_lock='0;
++assign o_reg_dat='0;
++assign o_reg_idx='0;
++assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
++assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
++arm920_zap_dcache_adapter experimental_cache(
++ .clk(i_clk),.reset(i_reset),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
++ .din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
++ .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
++ .fault(pending_translation ? pending_fault : tlb_fault),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
++ .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
++ .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
++ .cache_enable(i_cache_en),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
++ .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),
++ .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
++ .data(o_dat),.ack(o_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
++ .cache_inv_done(o_cache_inv_done),.cache_clean_done(o_cache_clean_done),
++ .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
++ .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
++ .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
++`else
+ // Basic cache FSM - serves as manager 0.
+ zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE)) u_zap_cache_fsm (
+         .i_clk                  (i_clk),
+@@ -341,6 +367,8 @@
+         .i_wb_dat               (i_wb_dat),
+         .i_wb_ack               (wb_ack[1])
+ );
++
++`endif
+ 
+ // ZAP TLB control module. Includes TLB RAM inside - Manager 2.
+ zap_tlb #(

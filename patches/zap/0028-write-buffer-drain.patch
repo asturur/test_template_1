@@ -1,0 +1,152 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -141,6 +141,8 @@
+         output logic [5:0]                        o_dcache_lock_base,
+         output logic                              o_icache_lock_write,
+         output logic [5:0]                        o_icache_lock_base,
++        output logic                              o_drain_write_buffer,
++        input logic                               i_write_buffer_empty,
+         output logic                              o_cache_op_single,
+         output logic                              o_cache_op_by_mva,
+         output logic [31:0]                       o_cache_op_address,
+@@ -186,6 +188,7 @@
+ localparam [3:0] CLFLUSH_D_CACHE      = 11;
+ localparam [3:0] LOCK_D_CACHE         = 12;
+ localparam [3:0] LOCK_I_CACHE         = 13;
++localparam [3:0] DRAIN_WRITE_BUFFER    = 14;
+ 
+ // Register numbers.
+ localparam [3:0] FSR_REG              = 5;
+@@ -325,6 +328,7 @@
+         if ( i_reset )
+         begin
+                 state          <= IDLE;
++                o_drain_write_buffer <= 1'b0;
+                 o_dcache_inv   <= 1'd0;
+                 o_dcache_lock_write <= 1'b0;
+                 o_dcache_lock_base <= 6'b0;
+@@ -506,10 +510,10 @@
+                                 end
+                                 CASE_DRAIN_WRITE_BUFFER:
+                                 begin
+-                                        // Stores are acknowledged only after the bus completes;
+-                                        // this core has no asynchronous write buffer to drain.
+-                                        // Draining must not clean or invalidate the data cache.
+-                                        state <= DONE;
++                                        // Draining waits for all buffered writes, and does
++                                        // not clean or invalidate the data cache.
++                                        o_drain_write_buffer <= 1'b1;
++                                        state <= DRAIN_WRITE_BUFFER;
+                                 end
+ 
+                                 CASE_FLUSH_ID_CACHE:
+@@ -567,6 +571,10 @@
+                         end
+                 end
+ 
++                DRAIN_WRITE_BUFFER: begin
++                        o_drain_write_buffer <= 1'b1;
++                        if (i_write_buffer_empty) begin o_drain_write_buffer <= 1'b0;state <= DONE;end
++                end
+                 LOCK_D_CACHE: begin
+                         o_dcache_lock_write <= 1'b1;
+                         if (i_dcache_lock_done) begin o_dcache_lock_write <= 1'b0;state <= DONE;end
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -148,6 +148,8 @@
+ output logic [5:0]                       o_dcache_lock_base,
+ output logic                             o_icache_lock_write,
+ output logic [5:0]                       o_icache_lock_base,
++output logic                             o_drain_write_buffer,
++input logic                              i_write_buffer_empty,
+ output logic                             o_cache_op_single,
+ output logic                             o_cache_op_by_mva,
+ output logic [31:0]                      o_cache_op_address,
+@@ -1650,6 +1652,8 @@
+         .o_dcache_lock_base      (o_dcache_lock_base),
+         .o_icache_lock_write     (o_icache_lock_write),
+         .o_icache_lock_base      (o_icache_lock_base),
++        .o_drain_write_buffer     (o_drain_write_buffer),
++        .i_write_buffer_empty    (i_write_buffer_empty),
+         .o_cache_op_single       (o_cache_op_single),
+         .o_cache_op_by_mva       (o_cache_op_by_mva),
+         .o_cache_op_address      (o_cache_op_address),
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -205,6 +205,7 @@
+ logic            dc_lock_done,ic_lock_done;
+ logic [5:0]      cpu_ic_lock_base;
+ logic            cpu_cache_op_single,cpu_cache_op_by_mva;
++logic            cpu_drain_write_buffer,dc_write_buffer_empty;
+ logic [31:0]     cpu_cache_op_address;
+ logic            cpu_dwe_check, cpu_dre_check;
+ logic            s_reset, s_fiq, s_irq;
+@@ -314,6 +315,8 @@
+ .o_dcache_lock_base      (cpu_dc_lock_base),
+ .o_icache_lock_write     (cpu_ic_lock_write),
+ .o_icache_lock_base      (cpu_ic_lock_base),
++.o_drain_write_buffer     (cpu_drain_write_buffer),
++.i_write_buffer_empty    (!ONLY_CORE ? dc_write_buffer_empty : 1'b1),
+ .o_cache_op_single       (cpu_cache_op_single),
+ .o_cache_op_by_mva       (cpu_cache_op_by_mva),
+ .o_cache_op_address      (cpu_cache_op_address),
+@@ -595,6 +598,7 @@
+ .i_mmu_en               (cpu_mmu_en),
+ .i_cache_en             (cpu_dc_en),
+ .i_cache_rr             (cpu_cache_rr),
++.o_write_buffer_empty    (dc_write_buffer_empty),
+ .i_cache_lock_write      (cpu_dc_lock_write),
+ .i_cache_lock_base       (cpu_dc_lock_base),
+ .o_cache_lock_done       (dc_lock_done),
+@@ -670,6 +674,7 @@
+ .i_mmu_en          (cpu_mmu_en),
+ .i_cache_en        (cpu_ic_en),
+ .i_cache_rr        (cpu_cache_rr),
++.i_write_buffer_empty(dc_write_buffer_empty),
+ .i_cache_lock_write(cpu_ic_lock_write),
+ .i_cache_lock_base (cpu_ic_lock_base),
+ .o_cache_lock_done (ic_lock_done),
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -67,6 +67,7 @@
+ input   logic            i_mmu_en,
+ input   logic            i_cache_en,
+ input   logic            i_cache_rr,
++input   logic            i_write_buffer_empty,
+ input   logic            i_cache_lock_write,
+ input   logic [5:0]      i_cache_lock_base,
+ output  logic            o_cache_lock_done,
+@@ -149,6 +150,7 @@
+  .din(i_dat),.far_in(tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+  .tlb_busy(tlb_busy),.translation_wait(1'b0),
++ .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+  .cacheable(tlb_cacheable),.bufferable(1'b1),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -79,6 +79,7 @@
+ input   logic            i_mmu_en,
+ input   logic            i_cache_en,
+ input   logic            i_cache_rr,
++output  logic            o_write_buffer_empty,
+ input   logic            i_cache_lock_write,
+ input   logic [5:0]      i_cache_lock_base,
+ output  logic            o_cache_lock_done,
+@@ -246,6 +247,7 @@
+  .fault(pending_translation ? pending_fault : tlb_fault),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
+  .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+  .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
++ .external_permit(1'b1),.write_buffer_empty(o_write_buffer_empty),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
+  .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),
+@@ -257,6 +259,7 @@
+  .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
+ `else
+ assign o_cache_lock_done=1'b1;
++assign o_write_buffer_empty=1'b1;
+ // Basic cache FSM - serves as manager 0.
+ zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE)) u_zap_cache_fsm (
+         .i_clk                  (i_clk),

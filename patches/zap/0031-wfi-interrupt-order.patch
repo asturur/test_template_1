@@ -1,0 +1,171 @@
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -145,6 +145,8 @@
+         input logic                               i_write_buffer_empty,
+         input logic                               i_irq,
+         input logic                               i_fiq,
++        output logic                              o_wfi_irq,
++        output logic                              o_wfi_fiq,
+         output logic                              o_cache_op_single,
+         output logic                              o_cache_op_by_mva,
+         output logic [31:0]                       o_cache_op_address,
+@@ -335,6 +337,8 @@
+                 state          <= IDLE;
+                 o_drain_write_buffer <= 1'b0;
+                 wait_for_interrupt <= 1'b0;
++                o_wfi_irq <= 1'b0;
++                o_wfi_fiq <= 1'b0;
+                 o_dcache_inv   <= 1'd0;
+                 o_dcache_lock_write <= 1'b0;
+                 o_dcache_lock_base <= 6'b0;
+@@ -431,6 +435,8 @@
+ 
+                 TERM: // Wait state before going to IDLE.
+                 begin
++                        o_wfi_irq <= 1'b0;
++                        o_wfi_fiq <= 1'b0;
+                         state <= IDLE;
+                 end
+ 
+@@ -585,6 +591,10 @@
+                 end
+ 
+                 DRAIN_WRITE_BUFFER: begin
++                        if (wait_for_interrupt) begin
++                                if (i_irq) o_wfi_irq <= 1'b1;
++                                if (i_fiq) o_wfi_fiq <= 1'b1;
++                        end
+                         o_drain_write_buffer <= 1'b1;
+                         if (i_write_buffer_empty) begin
+                                 o_drain_write_buffer <= 1'b0;
+@@ -594,7 +604,11 @@
+                 WAIT_FOR_INTERRUPT: begin
+                         // IRQ/FIQ wake the core, including when masked; normal
+                         // exception entry remains governed by the CPSR masks.
+-                        if (i_irq || i_fiq) begin wait_for_interrupt <= 1'b0;state <= DONE;end
++                        if (i_irq || i_fiq || o_wfi_irq || o_wfi_fiq) begin
++                                o_wfi_irq <= o_wfi_irq || i_irq;
++                                o_wfi_fiq <= o_wfi_fiq || i_fiq;
++                                wait_for_interrupt <= 1'b0;state <= DONE;
++                        end
+                 end
+                 LOCK_D_CACHE: begin
+                         o_dcache_lock_write <= 1'b1;
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -185,6 +185,7 @@
+ localparam [31:0] FLAG_WDT  = 32;
+ 
+ // Low Bandwidth Coprocessor (COP) I/F to CP15 control block.
++logic                             wfi_irq, wfi_fiq;
+ logic                             copro_done;        // COP done.
+ logic                             copro_dav;         // COP command valid.
+ logic  [31:0]                     copro_word;        // COP command.
+@@ -775,6 +776,8 @@
+         .i_und                          (mode16_und),
+ 
+         .i_copro_done                   (copro_done),
++        .i_wfi_irq                      (wfi_irq && !alu_flags_ff[I]),
++        .i_wfi_fiq                      (wfi_fiq && !alu_flags_ff[F]),
+         .i_pipeline_dav                 (pipeline_is_not_empty),
+ 
+         // Output.
+@@ -1656,6 +1659,8 @@
+         .i_write_buffer_empty    (i_write_buffer_empty),
+         .i_irq                   (i_irq),
+         .i_fiq                   (i_fiq),
++        .o_wfi_irq               (wfi_irq),
++        .o_wfi_fiq               (wfi_fiq),
+         .o_cache_op_single       (o_cache_op_single),
+         .o_cache_op_by_mva       (o_cache_op_by_mva),
+         .o_cache_op_address      (o_cache_op_address),
+--- a/src/rtl/zap_predecode_main.sv
++++ b/src/rtl/zap_predecode_main.sv
+@@ -61,6 +61,8 @@
+ 
+         // Coprocessor done.
+         input   logic                            i_copro_done,
++        input   logic                            i_wfi_irq,
++        input   logic                            i_wfi_fiq,
+ 
+         // PC input.
+         input logic  [31:0]                      i_pc_ff,
+@@ -124,6 +126,9 @@
+ logic                               mode32_irq;
+ logic                               mode32_fiq;
+ logic                               irq_mask;
++logic                               wfi_irq_pending,wfi_fiq_pending;
++wire wfi_irq_next=wfi_irq_pending && !cp_stall && skid_instruction_valid;
++wire wfi_fiq_next=wfi_fiq_pending && !cp_stall && skid_instruction_valid;
+ logic                               fiq_mask;
+ logic [34:0]                        mode32_instruction;
+ logic                               mode32_instruction_valid;
+@@ -198,8 +203,8 @@
+         else if ( !stall )
+         begin
+                 // Do not pass IRQ and FIQ if mask is 1.
+-                o_irq_ff               <= skid_irq & irq_mask;
+-                o_fiq_ff               <= skid_fiq & fiq_mask;
++                o_irq_ff               <= (skid_irq | wfi_irq_next) & irq_mask;
++                o_fiq_ff               <= (skid_fiq | wfi_fiq_next) & fiq_mask;
+                 o_abt_ff               <= skid_abt;
+                 o_und_ff               <= skid_und && skid_instruction_valid;
+                 o_pc_plus_8_ff         <= skid_pc_plus_8_ff;
+@@ -341,6 +346,8 @@
+ 
+         // Coprocessor
+         .i_copro_done(i_copro_done),
++        .i_wfi_irq(i_wfi_irq),
++        .i_wfi_fiq(i_wfi_fiq),
+ 
+         // Output to next block.
+         .o_instruction(cp_instruction),
+@@ -356,10 +363,24 @@
+         .o_copro_word_nxt(copro_word_nxt)
+ );
+ 
++always_ff @(posedge i_clk) begin
++        if (i_reset || i_clear_from_writeback) begin
++                wfi_irq_pending <= 1'b0;
++                wfi_fiq_pending <= 1'b0;
++        end else begin
++                if (i_copro_done && i_wfi_irq) wfi_irq_pending <= 1'b1;
++                if (i_copro_done && i_wfi_fiq) wfi_fiq_pending <= 1'b1;
++                if (!stall && skid_instruction_valid && !cp_stall) begin
++                        if (wfi_irq_pending) wfi_irq_pending <= 1'b0;
++                        if (wfi_fiq_pending) wfi_fiq_pending <= 1'b0;
++                end
++        end
++end
++
+ assign mode32_instruction          = cp_instruction;
+ assign mode32_instruction_valid    = cp_instruction_valid;
+-assign mode32_irq                  = cp_irq;
+-assign mode32_fiq                  = cp_fiq;
++assign mode32_irq                  = cp_irq | wfi_irq_next;
++assign mode32_fiq                  = cp_fiq | wfi_fiq_next;
+ 
+ always_comb
+ begin:bprblk1
+--- a/src/rtl/zap_predecode_coproc.sv
++++ b/src/rtl/zap_predecode_coproc.sv
+@@ -55,6 +55,8 @@
+ 
+         // Coprocessor done signal.
+         input logic              i_copro_done,
++        input logic              i_wfi_irq,
++        input logic              i_wfi_fiq,
+ 
+         // Interrupts output.
+         output logic              o_irq,
+@@ -215,6 +217,10 @@
+                 // the stall so that processor can continue.
+                 if ( i_copro_done )
+                 begin
++                        // A WFI wake interrupt must replace the following
++                        // instruction, rather than arrive one instruction late.
++                        o_irq = i_wfi_irq;
++                        o_fiq = i_wfi_fiq;
+                         cp_dav_nxt              = 1'd0;
+                         cp_word_nxt             = 32'd0;
+                         state_nxt               = IDLE;

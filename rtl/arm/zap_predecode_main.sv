@@ -31,6 +31,7 @@ module zap_predecode_main #(
 
         // UOP
         output logic                             o_uop_last,
+        output logic [1:0] o_swp_tag,
 
         // L4
         input   logic                            i_l4_enable,
@@ -61,6 +62,8 @@ module zap_predecode_main #(
 
         // Coprocessor done.
         input   logic                            i_copro_done,
+        input   logic                            i_wfi_irq,
+        input   logic                            i_wfi_fiq,
 
         // PC input.
         input logic  [31:0]                      i_pc_ff,
@@ -120,10 +123,14 @@ logic [31:0]                        w_pc_from_decode;
 logic [39:0]                        o_instruction_nxt;
 logic                               o_instruction_valid_nxt;
 logic                               o_uop_last_nxt;
+logic [1:0] swp_tag_nxt;
 logic                               mem_fetch_stall;
 logic                               mode32_irq;
 logic                               mode32_fiq;
 logic                               irq_mask;
+logic                               wfi_irq_pending,wfi_fiq_pending;
+wire wfi_irq_next=wfi_irq_pending && !cp_stall && skid_instruction_valid;
+wire wfi_fiq_next=wfi_fiq_pending && !cp_stall && skid_instruction_valid;
 logic                               fiq_mask;
 logic [34:0]                        mode32_instruction;
 logic                               mode32_instruction_valid;
@@ -172,6 +179,7 @@ begin
                 o_instruction_ff       <= 0;
                 o_instruction_valid_ff <= 0;
                 o_uop_last             <= 0;
+                o_swp_tag <= 0;
                 o_ppc_ff               <= 0;
                 o_clear_from_decode    <= 0;
                 o_pc_from_decode       <= 0;
@@ -190,6 +198,7 @@ begin
                 o_taken_ff              <= 0;
                 o_instruction_valid_ff  <= 0;
                 o_uop_last              <= 0;
+                o_swp_tag <= 0;
                 o_clear_from_decode     <= 0;
                 o_force32align_ff       <= 0;
                 o_switch_ff             <= 0;
@@ -198,8 +207,8 @@ begin
         else if ( !stall )
         begin
                 // Do not pass IRQ and FIQ if mask is 1.
-                o_irq_ff               <= skid_irq & irq_mask;
-                o_fiq_ff               <= skid_fiq & fiq_mask;
+                o_irq_ff               <= (skid_irq | wfi_irq_next) & irq_mask;
+                o_fiq_ff               <= (skid_fiq | wfi_fiq_next) & fiq_mask;
                 o_abt_ff               <= skid_abt;
                 o_und_ff               <= skid_und && skid_instruction_valid;
                 o_pc_plus_8_ff         <= skid_pc_plus_8_ff;
@@ -210,6 +219,7 @@ begin
                 o_instruction_ff       <= o_instruction_nxt;
                 o_instruction_valid_ff <= o_instruction_valid_nxt;
                 o_uop_last             <= o_uop_last_nxt;
+                o_swp_tag <= swp_tag_nxt;
                 o_copro_dav_ff         <= copro_dav_nxt;
                 o_copro_word_ff        <= copro_word_nxt;
 
@@ -341,6 +351,8 @@ u_zap_decode_coproc
 
         // Coprocessor
         .i_copro_done(i_copro_done),
+        .i_wfi_irq(i_wfi_irq),
+        .i_wfi_fiq(i_wfi_fiq),
 
         // Output to next block.
         .o_instruction(cp_instruction),
@@ -356,10 +368,24 @@ u_zap_decode_coproc
         .o_copro_word_nxt(copro_word_nxt)
 );
 
+always_ff @(posedge i_clk) begin
+        if (i_reset || i_clear_from_writeback) begin
+                wfi_irq_pending <= 1'b0;
+                wfi_fiq_pending <= 1'b0;
+        end else begin
+                if (i_copro_done && i_wfi_irq) wfi_irq_pending <= 1'b1;
+                if (i_copro_done && i_wfi_fiq) wfi_fiq_pending <= 1'b1;
+                if (!stall && skid_instruction_valid && !cp_stall) begin
+                        if (wfi_irq_pending) wfi_irq_pending <= 1'b0;
+                        if (wfi_fiq_pending) wfi_fiq_pending <= 1'b0;
+                end
+        end
+end
+
 assign mode32_instruction          = cp_instruction;
 assign mode32_instruction_valid    = cp_instruction_valid;
-assign mode32_irq                  = cp_irq;
-assign mode32_fiq                  = cp_fiq;
+assign mode32_irq                  = cp_irq | wfi_irq_next;
+assign mode32_fiq                  = cp_fiq | wfi_fiq_next;
 
 always_comb
 begin:bprblk1
@@ -580,6 +606,7 @@ zap_predecode_uop_sequencer u_zap_uop_sequencer (
         .o_align(align_nxt),
         .o_switch(switch_nxt), // Provided when load to PC in LDM.
         .o_uop_last(o_uop_last_nxt),
+        .o_swp_tag(swp_tag_nxt),
         .o_stall_from_decode(mem_fetch_stall)
 );
 

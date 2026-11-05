@@ -1,0 +1,7 @@
+# N-Gage live control experiment
+
+Start `python3 scratch/live-controls/start.py NAME` from the project root; it resumes the saved 23B checkpoint and writes images under `build/sim/screens/boot-v15-NAME-live/`. In another terminal send `python3 scratch/live-controls/keys.py tap leftsoft` (default 8 seconds of host time). `press KEY`, `release KEY`, and `clear` allow held keys; `list` shows names. Only run one such simulation at a time: the input file is shared. The initial image is copied from the last frame before the checkpoint.
+
+Schematic A-13: rocker up GENIO1, right GENIO2, down GENIO10, OK GENIO11, left GENIO13; matrix COL0–5 GPIO8/9/10/11/16/30 and ROW0–5 GPIO12/13/14/15/17/18. Rows: 0 leftsoft/menu; 1 clear/radio; 2 rightsoft/star/hash/shift; 3 1/2/3/0; 4 4/5/6/send; 5 7/8/9/end. Music is GENIO28. Power PWRONX is not implemented. GPIO30 and GENIO28 inputs are hypotheses and not yet proven at the UI.
+
+The rocker input mapping reaches the firmware scan and down translates to logical 0x80000. Matrix scan voltages, pull-ups, GPIO30 and music mapping are experimental hypotheses, not hardware-verified; leftsoft reaches column and row reads but UI response is not yet confirmed. The simulated real-time rate is slower than 104 MHz; use holds of several seconds of wall time. `latest.png` and numbered frame files update only after modeled LCD DMA writes; no image update is guaranteed for a key press.

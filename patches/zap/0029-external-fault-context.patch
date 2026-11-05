@@ -1,0 +1,141 @@
+--- a/src/rtl/zap_tlb_check.sv
++++ b/src/rtl/zap_tlb_check.sv
+@@ -57,6 +57,7 @@
+ input logic                              i_fptlb_rdav,   // Fine page TLB valid.
+ 
+ output logic                            o_walk,         // Signal page walk.
++output logic [7:0]                      o_external_fsr, // domain and external-abort status for this translation
+ output logic [7:0]                      o_fsr,          // FSR. 0 means all OK.
+ output logic [31:0]                     o_far,          // Fault Address Register.
+ output logic                            o_bufferable,
+@@ -100,6 +101,7 @@
+ 
+                 // Default values. Taken for MMU disabled esp.
+                 o_fsr       <= 0;        // No fault.
++                o_external_fsr <= 8'h08; // MMU disabled: domain unspecified
+                 o_far       <= i_va;     // Fault address.
+                 o_phy_addr  <= i_va;     // VA = PA
+                 o_walk      <= 0;        // Walk disabled.
+@@ -118,6 +120,7 @@
+                         4'b0001:
+                         begin
+                                 // Entry found in small page TLB.
++                                o_external_fsr <= {i_sptlb_rdata[`ZAP_SPAGE_TLB__DAC_SEL],4'ha};
+                                 o_fsr <= get_fsr_spage
+                                 (
+                                         i_va[`ZAP_VA__SPAGE_AP_SEL],
+@@ -137,6 +140,7 @@
+                         4'b0010:
+                         begin
+                                 // Entry found in large page TLB.
++                                o_external_fsr <= {i_lptlb_rdata[`ZAP_LPAGE_TLB__DAC_SEL],4'ha};
+                                 o_fsr <= get_fsr_lpage
+                                 (
+                                         i_va[`ZAP_VA__LPAGE_AP_SEL],
+@@ -155,6 +159,7 @@
+                         4'b0100:
+                         begin
+                                 // Entry found in section TLB.
++                                o_external_fsr <= {i_setlb_rdata[`ZAP_SECTION_TLB__DAC_SEL],4'h8};
+                                 o_fsr <= get_fsr_section
+                                 (
+                                         i_cpsr[ZAP_CPSR_MODE:0] == USR,
+@@ -172,6 +177,7 @@
+                         4'b1000:
+                         begin
+                                 // Entry found in fine page TLB.
++                                o_external_fsr <= {i_fptlb_rdata[`ZAP_FPAGE_TLB__DAC_SEL],4'ha};
+                                 o_fsr <= get_fsr_fpage
+                                 (
+                                         i_cpsr[ZAP_CPSR_MODE:0] == USR,
+--- a/src/rtl/zap_tlb.sv
++++ b/src/rtl/zap_tlb.sv
+@@ -58,6 +58,7 @@
+ // To cache FSM.
+ output  logic    [31:0]  o_phy_addr,
+ output  logic    [7:0]   o_fsr,
++output  logic    [7:0]   o_external_fsr,
+ output  logic    [31:0]  o_far,
+ output  logic            o_fault,
+ output  logic            o_bufferable,
+@@ -355,6 +356,7 @@
+ .i_fptlb_rdav   (fptlb_ren_pre),
+ 
+ .o_walk         (walk),
++.o_external_fsr (o_external_fsr),
+ .o_fsr          (fsr),
+ .o_far          (far),
+ .o_cacheable    (cacheable),
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -114,7 +114,7 @@
+ logic [31:0]                     wb_adr [2:0];
+ logic [2:0]                      wb_cti [2:0];
+ logic [31:0]                     tlb_phy_addr;
+-logic [7:0]                      tlb_fsr;
++logic [7:0]                      tlb_fsr, tlb_external_fsr;
+ logic [31:0]                     tlb_far;
+ logic                            tlb_fault;
+ logic                            tlb_cacheable;
+@@ -149,7 +149,7 @@
+  .clk(i_clk),.reset(i_reset),.address(i_address),.physical(tlb_phy_addr),
+  .din(i_dat),.far_in(tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+- .tlb_busy(tlb_busy),.translation_wait(1'b0),
++ .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+@@ -298,6 +298,7 @@
+         .i_inv          (i_tlb_inv),
+         .o_phy_addr     (tlb_phy_addr),
+         .o_fsr          (tlb_fsr),
++        .o_external_fsr (tlb_external_fsr),
+         .o_far          (tlb_far),
+         .o_fault        (tlb_fault),
+         .o_cacheable    (tlb_cacheable),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -126,7 +126,7 @@
+ logic [31:0]                     wb_adr [2:0];
+ logic [2:0]                      wb_cti [2:0];
+ logic [31:0]                     tlb_phy_addr;
+-logic [7:0]                      tlb_fsr;
++logic [7:0]                      tlb_fsr, tlb_external_fsr;
+ logic [31:0]                     tlb_far;
+ logic                            tlb_fault;
+ logic                            tlb_cacheable, tlb_bufferable;
+@@ -181,7 +181,7 @@
+ logic pending_rd_assert, pending_wr_assert;
+ logic [ZAP_CPSR_MODE:0] pending_cpsr_assert;
+ logic [31:0] pending_pa, pending_far;
+-logic [7:0] pending_fsr;
++logic [7:0] pending_fsr, pending_external_fsr;
+ logic pending_fault, pending_cacheable, pending_bufferable;
+ always_ff @(posedge i_clk) begin
+     if (i_reset || !(i_rd || i_wr) || o_ack) begin
+@@ -210,7 +210,7 @@
+         pending_request <= 1'b1;
+         if (!pending_translation && checked_request && checked_request_prev && idle && !tlb_busy && !tlb_walk_pending) begin
+             pending_translation <= 1'b1;
+-            pending_pa <= tlb_phy_addr; pending_far <= tlb_far; pending_fsr <= tlb_fsr;
++            pending_pa <= tlb_phy_addr; pending_far <= tlb_far; pending_fsr <= tlb_fsr; pending_external_fsr <= tlb_external_fsr;
+             pending_fault <= tlb_fault; pending_cacheable <= tlb_cacheable; pending_bufferable <= tlb_bufferable;
+         end
+     end
+@@ -245,6 +245,7 @@
+  .din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
+  .fault(pending_translation ? pending_fault : tlb_fault),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
++ .external_fsr(pending_translation ? pending_external_fsr : tlb_external_fsr),
+  .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+  .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
+  .external_permit(1'b1),.write_buffer_empty(o_write_buffer_empty),
+@@ -407,6 +408,7 @@
+         .i_inv          (i_tlb_inv),
+         .o_phy_addr     (tlb_phy_addr),
+         .o_fsr          (tlb_fsr),
++        .o_external_fsr (tlb_external_fsr),
+         .o_far          (tlb_far),
+         .o_fault        (tlb_fault),
+         .o_cacheable    (tlb_cacheable),

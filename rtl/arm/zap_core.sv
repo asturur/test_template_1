@@ -74,6 +74,7 @@ input logic                              i_reset,
 output logic                             o_data_wb_we,
 output logic                             o_data_wb_cyc,
 output logic                             o_data_wb_stb,
+output logic [1:0]                       o_data_swp_tag,
 output logic[31:0]                       o_data_wb_adr,
 output logic                             o_data_alignment_fault,
 output logic[31:0]                       o_data_alignment_far,
@@ -93,6 +94,8 @@ output logic                             o_data_wb_re_check,
 
 // Force user view.
 output logic                             o_mem_translate,
+// Privilege of the data request in the post-ALU lookup stage.
+output logic [CPSR_MODE:0]               o_data_cpsr,
 
 // --------------------------------------------------
 // Interrupts. Active high.
@@ -143,6 +146,20 @@ output logic                             o_dtlb_inv,
 output logic                             o_itlb_inv,
 output logic                             o_dcache_en,
 output logic                             o_icache_en,
+output logic                             o_cache_rr,
+output logic                             o_dcache_lock_write,
+output logic [5:0]                       o_dcache_lock_base,
+output logic                             o_icache_lock_write,
+output logic [5:0]                       o_icache_lock_base,
+output logic                             o_icache_prefetch,
+input logic                              i_icache_prefetch_done,
+output logic                             o_drain_write_buffer,
+input logic                              i_write_buffer_empty,
+output logic                             o_cache_op_single,
+output logic                             o_cache_op_by_mva,
+output logic [31:0]                      o_cache_op_address,
+input   logic                            i_dcache_lock_done,
+input   logic                            i_icache_lock_done,
 input   logic                            i_dcache_inv_done,
 input   logic                            i_icache_inv_done,
 input   logic                            i_dcache_clean_done,
@@ -173,6 +190,7 @@ localparam [31:0] PHY_REGS  = TOTAL_PHY_REGS;
 localparam [31:0] FLAG_WDT  = 32;
 
 // Low Bandwidth Coprocessor (COP) I/F to CP15 control block.
+logic                             wfi_irq, wfi_fiq;
 logic                             copro_done;        // COP done.
 logic                             copro_dav;         // COP command valid.
 logic  [31:0]                     copro_word;        // COP command.
@@ -242,6 +260,8 @@ logic [1:0]                      predecode_taken;
 logic [31:0]                     predecode_ppc_ff;
 logic                            predecode_clear_btb;
 logic                            predecode_uop_last;
+logic [1:0] predecode_swp_tag,decode_swp_tag,issue_swp_tag,shifter_swp_tag;
+logic [1:0] alu_swp_tag,postalu0_swp_tag,postalu1_swp_tag,postalu_swp_tag;
 logic                            predecode_switch;
 
 // Decode
@@ -524,6 +544,10 @@ assign alignment_check = alignment_en &&
     data_misaligned(postalu1_address_ff, postalu1_ubyte_ff, postalu1_sbyte_ff,
                     postalu1_uhalf_ff, postalu1_shalf_ff);
 assign o_cpsr                   = alu_flags_ff[ZAP_CPSR_MODE:0];
+// Exception return can update ALU flags while an older FIQ/IRQ store is
+// still approaching the data TLB. Keep its privilege with the lookup.
+assign o_data_cpsr              = postalu1_flags_ff[ZAP_CPSR_MODE:0];
+assign o_data_swp_tag = postalu_swp_tag;
 assign o_data_wb_adr            = {postalu_address_ff[31:2], 2'd0};
 assign o_data_wb_adr_nxt        = {alu_address_ff[31:2], 2'd0};
 assign o_instr_wb_we            = 1'd0;
@@ -763,6 +787,8 @@ u_zap_predecode (
         .i_und                          (mode16_und),
 
         .i_copro_done                   (copro_done),
+        .i_wfi_irq                      (wfi_irq && !alu_flags_ff[I]),
+        .i_wfi_fiq                      (wfi_fiq && !alu_flags_ff[F]),
         .i_pipeline_dav                 (pipeline_is_not_empty),
 
         // Output.
@@ -789,7 +815,8 @@ u_zap_predecode (
         .o_taken_ff                     (predecode_taken),
         .o_ppc_ff                       (predecode_ppc_ff),
 
-        .o_uop_last                     (predecode_uop_last)
+        .o_uop_last                     (predecode_uop_last),
+        .o_swp_tag(predecode_swp_tag)
                                         // Asserted to indicate last instruction of sequence.
 );
 
@@ -807,6 +834,7 @@ u_zap_decode_main (
         .o_decompile                    (decode_decompile),
         .i_uop_last                     (predecode_uop_last),
         .o_uop_last                     (decode_uop_last),
+        .i_swp_tag(predecode_swp_tag), .o_swp_tag(decode_swp_tag),
 
         // Input.
         .i_clk                          (i_clk),
@@ -879,6 +907,7 @@ u_zap_issue_main
 (
         .i_uop_last(decode_uop_last),
         .o_uop_last(issue_uop_last),
+        .i_swp_tag(decode_swp_tag), .o_swp_tag(issue_swp_tag),
 
         .i_decompile(decode_decompile),
         .o_decompile(issue_decompile),
@@ -1025,6 +1054,7 @@ u_zap_shifter_main
 (
         .i_uop_last(issue_uop_last),
         .o_uop_last(shifter_uop_last),
+        .i_swp_tag(issue_swp_tag), .o_swp_tag(shifter_swp_tag),
 
         .i_decompile                    (issue_decompile),
         .o_decompile                    (shifter_decompile),
@@ -1138,6 +1168,7 @@ zap_alu_main #(
 u_zap_alu_main
 (
          .i_uop_last                     (shifter_uop_last),
+        .i_swp_tag(shifter_swp_tag), .o_swp_tag(alu_swp_tag),
          .i_clk                          (i_clk),
          .i_reset                        (reset),
          .i_decompile                    (shifter_decompile),
@@ -1232,6 +1263,7 @@ zap_postalu_main #(
 
           .i_uop_last                      (alu_uop_last),
           .o_uop_last                      (postalu0_uop_last),
+        .i_swp_tag(alu_swp_tag), .o_swp_tag(postalu0_swp_tag),
 
          .i_decompile_valid                (alu_decompile_valid),
          .i_decompile                      (alu_decompile),
@@ -1305,6 +1337,7 @@ zap_postalu_main #(
 
          .i_uop_last                       (postalu0_uop_last),
          .o_uop_last                       (postalu1_uop_last),
+        .i_swp_tag(postalu0_swp_tag), .o_swp_tag(postalu1_swp_tag),
 
          .i_decompile                      (postalu0_decompile),
          .i_decompile_valid                (postalu0_decompile_valid),
@@ -1376,6 +1409,7 @@ zap_postalu_main #(
 
          .i_uop_last                        (postalu1_uop_last),
          .o_uop_last                        (postalu_uop_last),
+        .i_swp_tag(postalu1_swp_tag), .o_swp_tag(postalu_swp_tag),
 
          .i_decompile                      (postalu1_decompile),
          .i_decompile_valid                (postalu1_decompile_valid),
@@ -1635,6 +1669,24 @@ zap_cp15_cb #(
         .o_itlb_inv             (o_itlb_inv),
         .o_dcache_en            (o_dcache_en),
         .o_icache_en            (o_icache_en),
+        .o_cache_rr             (o_cache_rr),
+        .o_dcache_lock_write     (o_dcache_lock_write),
+        .o_dcache_lock_base      (o_dcache_lock_base),
+        .o_icache_lock_write     (o_icache_lock_write),
+        .o_icache_lock_base      (o_icache_lock_base),
+        .o_icache_prefetch        (o_icache_prefetch),
+        .i_icache_prefetch_done   (i_icache_prefetch_done),
+        .o_drain_write_buffer     (o_drain_write_buffer),
+        .i_write_buffer_empty    (i_write_buffer_empty),
+        .i_irq                   (i_irq),
+        .i_fiq                   (i_fiq),
+        .o_wfi_irq               (wfi_irq),
+        .o_wfi_fiq               (wfi_fiq),
+        .o_cache_op_single       (o_cache_op_single),
+        .o_cache_op_by_mva       (o_cache_op_by_mva),
+        .o_cache_op_address      (o_cache_op_address),
+        .i_dcache_lock_done     (i_dcache_lock_done),
+        .i_icache_lock_done     (i_icache_lock_done),
         .i_dcache_inv_done      (i_dcache_inv_done),
         .i_icache_inv_done      (i_icache_inv_done),
         .i_dcache_clean_done    (i_dcache_clean_done),

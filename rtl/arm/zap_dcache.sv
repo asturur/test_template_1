@@ -58,6 +58,8 @@ input logic i_alignment_fault,
 input logic [31:0] i_alignment_far,
 
 // Other control signals from/to processor.
+input   logic [1:0]      i_swp_tag,
+output  logic            o_swp_bus_lock,
 input   logic            i_rd,
 input   logic            i_wr,
 input   logic [3:0]      i_ben,
@@ -78,6 +80,14 @@ output  logic [63:0]     o_reg_idx,
 // MMU controls from/to processor.
 input   logic            i_mmu_en,
 input   logic            i_cache_en,
+input   logic            i_cache_rr,
+output  logic            o_write_buffer_empty,
+input   logic            i_cache_lock_write,
+input   logic [5:0]      i_cache_lock_base,
+output  logic            o_cache_lock_done,
+input   logic            i_cache_op_single,
+input   logic            i_cache_op_by_mva,
+input   logic [31:0]     i_cache_op_address,
 input   logic            i_cache_inv_req,
 input   logic            i_cache_clean_req,
 output logic             o_cache_inv_done,
@@ -118,10 +128,10 @@ logic [31:0]                     wb_dat [2:0];
 logic [31:0]                     wb_adr [2:0];
 logic [2:0]                      wb_cti [2:0];
 logic [31:0]                     tlb_phy_addr;
-logic [7:0]                      tlb_fsr;
+logic [7:0]                      tlb_fsr, tlb_external_fsr;
 logic [31:0]                     tlb_far;
 logic                            tlb_fault;
-logic                            tlb_cacheable;
+logic                            tlb_cacheable, tlb_bufferable;
 logic                            tlb_busy;
 logic [CACHE_LINE*8-1:0]         tr_cache_line;
 logic [CACHE_LINE*8-1:0]         cf_cache_line;
@@ -173,12 +183,12 @@ logic [31:0] pending_va_assert;
 logic pending_rd_assert, pending_wr_assert;
 logic [ZAP_CPSR_MODE:0] pending_cpsr_assert;
 logic [31:0] pending_pa, pending_far;
-logic [7:0] pending_fsr;
-logic pending_fault, pending_cacheable;
+logic [7:0] pending_fsr, pending_external_fsr;
+logic pending_fault, pending_cacheable, pending_bufferable;
 always_ff @(posedge i_clk) begin
     if (i_reset || !(i_rd || i_wr) || o_ack) begin
         pending_translation <= 1'b0; pending_request <= 1'b0;
-    end else if (pending_request || background_refill || lookup_resync) begin
+    end else if (pending_request || background_refill || lookup_resync || tlb_busy || tlb_walk_pending) begin
         if (!pending_request) begin
             pending_va_assert <= i_address;
             pending_rd_assert <= i_rd;
@@ -202,8 +212,8 @@ always_ff @(posedge i_clk) begin
         pending_request <= 1'b1;
         if (!pending_translation && checked_request && checked_request_prev && idle && !tlb_busy && !tlb_walk_pending) begin
             pending_translation <= 1'b1;
-            pending_pa <= tlb_phy_addr; pending_far <= tlb_far; pending_fsr <= tlb_fsr;
-            pending_fault <= tlb_fault; pending_cacheable <= tlb_cacheable;
+            pending_pa <= tlb_phy_addr; pending_far <= tlb_far; pending_fsr <= tlb_fsr; pending_external_fsr <= tlb_external_fsr;
+            pending_fault <= tlb_fault; pending_cacheable <= tlb_cacheable; pending_bufferable <= tlb_bufferable;
         end
     end
 end
@@ -222,6 +232,39 @@ always_ff @(posedge i_clk) begin
     end
 end
 
+`ifdef NGAGE_ASSOC_EXPERIMENT
+// Experimental CPU integration: isolated behind a compile-time flag until
+// directed CPU, maintenance and bus tests all pass.
+assign checked_cache_index=checked_lookup[`ZAP_VA__CACHE_INDEX];
+assign background_refill=1'b0;
+assign o_lock='0;
+assign o_reg_dat='0;
+assign o_reg_idx='0;
+assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
+assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+arm920_zap_dcache_adapter experimental_cache(
+ .clk(i_clk),.reset(i_reset),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
+ .swp_tag(i_swp_tag),.swp_bus_lock(o_swp_bus_lock),.din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
+ .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
+ .fault(pending_translation ? pending_fault : (tlb_busy ? 1'b0 : tlb_fault)),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),
+ .external_fsr(pending_translation ? pending_external_fsr : tlb_external_fsr),
+ .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+ .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request) || (tlb_busy && !pending_translation)),
+ .external_permit(1'b1),.write_buffer_empty(o_write_buffer_empty),
+ .fast_enable(1'b0),.fast_next_address(32'b0),
+ .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+ .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
+ .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),
+ .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
+ .data(o_dat),.ack(o_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
+ .cache_inv_done(o_cache_inv_done),.cache_clean_done(o_cache_clean_done),
+ .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
+ .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
+ .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
+`else
+assign o_swp_bus_lock=1'b0;
+assign o_cache_lock_done=1'b1;
+assign o_write_buffer_empty=1'b1;
 // Basic cache FSM - serves as manager 0.
 zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE)) u_zap_cache_fsm (
         .i_clk                  (i_clk),
@@ -263,6 +306,7 @@ zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE
         .i_far                  (pending_translation ? pending_far : tlb_far),
         .i_fault                (pending_translation ? pending_fault : tlb_fault),
         .i_cacheable            (pending_translation ? pending_cacheable : tlb_cacheable),
+        .i_bufferable           (pending_translation ? pending_bufferable : tlb_bufferable),
         .i_busy                 (pending_translation ? 1'b0 : tlb_busy),
         .i_translation_wait     ((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
         .o_background_refill    (background_refill),
@@ -341,6 +385,15 @@ zap_cache_tag_ram #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cach
         .i_wb_ack               (wb_ack[1])
 );
 
+`endif
+
+`ifdef NGAGE_ASSOC_EXPERIMENT
+logic tlb_raw_stb,tlb_raw_cyc;
+arm920_tlb_bus_gate tlb_bus_order(.clk(i_clk),.reset(i_reset),.write_buffer_empty(o_write_buffer_empty),
+ .in_cyc(tlb_raw_cyc),.in_stb(tlb_raw_stb),.out_cyc(wb_cyc[2]),.out_stb(wb_stb[2]),
+ .ack(wb_ack[2]),.err(wb_err[2]));
+`endif
+
 // ZAP TLB control module. Includes TLB RAM inside - Manager 2.
 zap_tlb #(
         .LPAGE_TLB_ENTRIES      (LPAGE_TLB_ENTRIES),
@@ -366,16 +419,23 @@ u_zap_tlb (
         .i_inv          (i_tlb_inv),
         .o_phy_addr     (tlb_phy_addr),
         .o_fsr          (tlb_fsr),
+        .o_external_fsr (tlb_external_fsr),
         .o_far          (tlb_far),
         .o_fault        (tlb_fault),
         .o_cacheable    (tlb_cacheable),
+        .o_bufferable   (tlb_bufferable),
         .o_busy         (tlb_busy),
         .o_walk_pending (tlb_walk_pending),
         .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
         .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
         .o_checked_dac (checked_dac), .o_checked_baddr (checked_baddr),
+        `ifdef NGAGE_ASSOC_EXPERIMENT
+        .o_wb_stb_nxt   (tlb_raw_stb),
+        .o_wb_cyc_nxt   (tlb_raw_cyc),
+`else
         .o_wb_stb_nxt   (wb_stb[2]),
         .o_wb_cyc_nxt   (wb_cyc[2]),
+`endif
         .o_wb_adr_nxt   (wb_adr[2]),
         .o_wb_wen_nxt   (wb_wen[2]),
         .o_wb_sel_nxt   (wb_sel[2]),

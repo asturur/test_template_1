@@ -1,0 +1,20 @@
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -194,6 +194,7 @@
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+  .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
++ .fast_enable(!prefetch_busy && !i_cache_prefetch),.fast_next_address(adapter_ack && i_rd ? i_address + 32'd4 : i_address),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+  .cacheable(tlb_cacheable),.bufferable(1'b1),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -249,6 +249,7 @@
+  .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+  .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
+  .external_permit(1'b1),.write_buffer_empty(o_write_buffer_empty),
++ .fast_enable(1'b0),.fast_next_address(32'b0),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
+  .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),
