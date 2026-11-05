@@ -1,3 +1,7 @@
+## 2026-11-05: no-ATR boot hit the same ADSP assertion
+
+`simif-noatr-faulttrace` reproduced the 9,534,596,302-cycle halt from the no-ATR 9B checkpoint and preserved `idle-c9534.cpu` and `.host`. Its full trace identifies the same `St_product.c` line 0xdf2 ADSP self-test assertion as both present-card runs: dispatcher key 0x5902 arrives while the test expects message ID 0x8b, but the received ID is 0x02. This demonstrates that the diagnostic no-ATR boot can hit the same failure without synthetic ATR injection; it weakens a SIM-only explanation but does not prove the physical phone would behave similarly. Timing differs (9.535B no-ATR versus 7.226B and 7.843B present-card variants). Continue tracing the shared adspserver response path, BTTestServer message routing, and modeled timing; do not patch out the assertion or fabricate a self-test response.
+
 ## 2026-11-05: no-ATR boot stopped at 9.535B
 
 `simif-matched-noatr-12b` stopped at cycle 9,534,596,302 in the generic masked-interrupt kernel loop 0x50324294; it preserved 9B CPU/host and live capture at `build/sim/screens/boot-v15-simif-matched-noatr-12b-live/`. The stop address alone does not identify the underlying failure or show whether it matches the earlier ADSP assertion. `simif-noatr-faulttrace` is now replaying from the saved 9B pair with `simif-no-atr` explicitly reapplied, full instruction/bus tracing at 9.5339B–9.534597B, and a 9.534B CPU/host savepoint. Compare the actual assertion with the 7.226B present-card result; no-ATR remains a diagnostic model, not proof of physical no-card behavior.
