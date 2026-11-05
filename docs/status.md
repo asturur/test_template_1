@@ -1,3 +1,7 @@
+## 2026-11-05: loader and DDR adapter exercised together
+
+`tests/phone/mister_transport/integrated_tb.sv` connects the loader to the DDR adapter and a delayed fake 64-bit DDR memory. A small four-section bundle passes byte-for-byte readback at the four allocated base offsets under BUSY stalls; its malformed, short and duplicate-address cases also pass. This is a bounded unit test with 4-byte sections, not a real-size image readback or MiSTer/HPS test. Arbitration, top-level integration, full-image readback and the remaining milestone 0 reference fixtures are still outstanding. Run all focused transport tests in `jotego/simulator:arm64` using `tests/phone/mister_transport/run.sh`.
+
 ## 2026-11-05: MiSTer milestones 0–1 started; integration remains
 
 Added `tools/prepare_mister_images.py`: checks exact audited sizes and SHA-256 for core, extension and 11B C:, plus seeded PMM when requested; `diagnostic-erased-pmm` explicitly creates an FF PMM and `diagnostic-seeded-pmm` uses the separately audited seed. It creates a new provisional v1 bundle and JSON manifest without overwriting inputs. A full erased-profile output was read back and each section CRC32/SHA-256 verified; the temporary bundle was removed. `tests/phone/fixtures/` records 18 board/reference source hashes and named profiles. The existing independent stock digest script passed on the service-derived linear input; this does not yet verify FPGA read-side descrambling or the extension on HDL. Direct board transaction fixtures and complete resolved launch options remain to do.
