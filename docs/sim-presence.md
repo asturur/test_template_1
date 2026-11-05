@@ -1,3 +1,7 @@
+## EF 6FC6 interpretation
+
+The last file selected by the current synthetic-card initialization is 6FC6. [3GPP TS 51.011 v4.3.0 §10.3.42](https://www.etsi.org/deliver/etsi_ts/151000_151099/151011/04.03.00_60/ts_151011v040300p.pdf) identifies it as optional EF-OPL (operator PLMN list) and says it must be absent when EF-PNN is absent. The diagnostic card currently does not implement EF-PNN (6FC5), so its file-not-found response for 6FC6 is consistent with that condition. This does not prove the whole SIM service table or controller timing is correct, nor that the missing initialization completion is caused by EF-OPL. Preserve the standard's exact profile dependency if implementing these files later.
+
 ## Controlled comparison still needed
 
 The staged `scratch/simif-board/board/boot_profile.cpp` unconditionally injects the diagnostic card ATR after the first RX setup; it currently has no runtime card-present switch. Consequently the old `current-tlbhold` cardless checkpoint is a historical comparison, not a controlled test against the same board and build. Once active runs finish, add a tested runtime card-present option to the staged model, preserve checkpoint compatibility, and compare otherwise identical from-reset boots with live screens and matched probes. Do not change hashed sources during active replays.
