@@ -35,3 +35,5 @@ Record the exact firmware/profile, changed assumption, result path and next unkn
 Keep evidence, hypotheses and unimplemented ideas distinct. Preserve failed
 approaches that would otherwise be tempting to retry; do not rerun expensive
 checks just to reconstruct already documented results.
+
+- [MiSTer SDRAM transport and verification](mister-sdram.md)

@@ -18,6 +18,10 @@ if [ "${CPU_ASSOC_EXPERIMENT:-1}" = 1 ]; then
  extra_rtl="rtl/arm920/tlb_bus_gate.sv rtl/arm920/write_buffer.sv rtl/arm920/cache_tags.sv rtl/arm920/cache_lines.sv rtl/arm920/cache_bank.sv rtl/arm920/cache_transfer.sv rtl/arm920/cache_refill.sv rtl/arm920/cache_maintenance.sv rtl/arm920/cache_access.sv rtl/arm920/zap_dcache_adapter.sv"
  extra_define="-DNGAGE_ASSOC_EXPERIMENT"
 fi
+if [ "${CPU_SDRAM_PATH:-0}" = 1 ]; then
+ extra_rtl="$extra_rtl rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v"
+ extra_define="$extra_define -DNGAGE_SDRAM_PATH"
+fi
 docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint verilator jotego/simulator:arm64 \
  --binary --timing --assert $extra_define -DNGAGE_RUNTIME_TRACE -Wno-fatal -Wno-lint -Irtl/arm --top-module test --Mdir build/sim/unit-core \
  rtl/ngage_cpu.sv rtl/arm/*.sv $extra_rtl tests/cpu/core/test.sv > build/sim/unit-core/build.log 2>&1

@@ -120,7 +120,7 @@ pll pll
 // initialization are not yet safe to boot (milestone 2 and later).
 wire transport_reset = ~pll_locked;
 wire phone_reset = RESET | status[0] | buttons[1] | ~pll_locked;
-wire reset = phone_reset | !loader_valid | 1'b1;
+wire reset = phone_reset | !loader_valid | !sdram_scrub_done | 1'b1;
 wire ioctl_upload, ioctl_rd;
 
 ///////////////////////   SDRAM   ////////////////////////////////
@@ -143,62 +143,35 @@ wire        cpu_sdram_req;
 // preserve the CPU bus reservation while this signal is asserted.
 wire        cpu_bus_lock;
 
-// 32-bit CPU word → two 16-bit SDRAM halfword accesses.
-// Phase: 0 = low halfword, 1 = high halfword.
-reg         sdram_phase;
-reg         sdram_pending;
-reg  [31:0] sdram_rdata;       // assembled 32-bit read result
-wire        sdram_init;
-
-// Bank select from address bit 23
-wire        ba_sel = cpu_sdram_addr[23];
-
-// Halfword address within the 8MB bank (AW=22 = 4M halfwords)
-wire [21:0] sdram_haddr = {cpu_sdram_addr[22:2], sdram_phase};
-
-// Write data: select low or high halfword
-wire [15:0] sdram_wdata = sdram_phase ? cpu_sdram_din[31:16] : cpu_sdram_din[15:0];
-
-// Write mask (active low for SDRAM): derive from byte enables
-wire [1:0]  sdram_dsn = sdram_phase ?
-    {~cpu_sdram_be[3], ~cpu_sdram_be[2]} :
-    {~cpu_sdram_be[1], ~cpu_sdram_be[0]};
-
-// SDRAM controller read/write strobes
-wire [3:0] sdram_rd_banks = sdram_pending && !cpu_sdram_we ?
-    (ba_sel ? 4'b0010 : 4'b0001) : 4'b0000;
-wire [3:0] sdram_wr_banks = sdram_pending && cpu_sdram_we ?
-    (ba_sel ? 4'b0010 : 4'b0001) : 4'b0000;
-
-wire [3:0]  sdram_ack_banks;
-wire [3:0]  sdram_rdy_banks;
-wire [15:0] sdram_dout_16;
-
-// 32-bit ack to the core: both halfwords done
-wire sdram_ack  = sdram_phase && (sdram_ack_banks[0] || sdram_ack_banks[1]);
-wire [31:0] sdram_dout = {sdram_dout_16, sdram_rdata[15:0]};
-
-always @(posedge clk_sys) begin
-    if (reset || sdram_init) begin
-        sdram_phase   <= 0;
-        sdram_pending <= 0;
-        sdram_rdata   <= 32'd0;
-    end else begin
-        if (cpu_sdram_req && !sdram_pending) begin
-            sdram_pending <= 1;
-            sdram_phase   <= 0;
-        end
-        if (sdram_pending && (sdram_ack_banks[0] || sdram_ack_banks[1])) begin
-            if (!sdram_phase) begin
-                sdram_rdata[15:0] <= sdram_dout_16;
-                sdram_phase <= 1;
-            end else begin
-                sdram_pending <= 0;
-                sdram_phase   <= 0;
-            end
-        end
-    end
-end
+// The adapter owns an entire 32-bit access, including both halfwords.
+// Cold-start RAM scrub proceeds while the phone CPU remains held in reset.
+wire [21:0] sdram_haddr;
+wire [15:0] sdram_wdata, sdram_dout_16;
+wire [1:0] sdram_dsn;
+wire [3:0] sdram_rd_banks, sdram_wr_banks, sdram_ack_banks, sdram_rdy_banks;
+wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack;
+wire [31:0] sdram_dout;
+wire mem_req, mem_we, mem_ack;
+wire [24:0] mem_addr;
+wire [31:0] mem_wdata, mem_rdata;
+wire [3:0] mem_be;
+// LCD DMA has not been migrated yet; it must connect to the second port.
+ngage_sdram_arbiter ram_arbiter (
+ .clk(clk_sys), .reset(phone_reset), .cpu_lock(cpu_bus_lock),
+ .cpu_req(cpu_sdram_req), .cpu_we(cpu_sdram_we), .cpu_addr(cpu_sdram_addr),
+ .cpu_data(cpu_sdram_din), .cpu_be(cpu_sdram_be), .cpu_ack(sdram_ack), .cpu_rdata(sdram_dout),
+ .dma_req(1'b0), .dma_we(1'b0), .dma_addr(25'b0), .dma_data(32'b0), .dma_be(4'b0),
+ .dma_ack(), .dma_rdata(), .mem_req(mem_req), .mem_we(mem_we), .mem_addr(mem_addr),
+ .mem_data(mem_wdata), .mem_be(mem_be), .mem_ack(mem_ack), .mem_rdata(mem_rdata)
+);
+ngage_sdram_adapter phone_sdram (
+ .clk(clk_sys), .rst(transport_reset), .phone_reset(phone_reset), .init(sdram_init),
+ .req(mem_req), .we(mem_we), .addr(mem_addr),
+ .din(mem_wdata), .be(mem_be), .ack(mem_ack), .dout(mem_rdata),
+ .scrub_done(sdram_scrub_done), .ba_addr(sdram_haddr), .ba_din(sdram_wdata),
+ .ba_dsn(sdram_dsn), .rd(sdram_rd_banks), .wr(sdram_wr_banks),
+ .ba_ack(sdram_ack_banks), .ba_rdy(sdram_rdy_banks), .ba_dout(sdram_dout_16), .rfsh(sdram_rfsh)
+);
 
 jtframe_sdram64 #(
     .AW       (22),
@@ -213,7 +186,7 @@ jtframe_sdram64 #(
     .BA2_WEN  (0),
     .BA3_WEN  (0)
 ) sdram_ctrl (
-    .rst        (reset),
+    .rst        (transport_reset),
     .clk        (clk_sys),
     .init       (sdram_init),
 
@@ -237,7 +210,7 @@ jtframe_sdram64 #(
 
     .rd         (sdram_rd_banks),
     .wr         (sdram_wr_banks),
-    .rfsh       (1'b0),
+    .rfsh       (sdram_rfsh),
 
     .ack        (sdram_ack_banks),
     .dst        (),

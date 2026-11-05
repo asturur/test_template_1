@@ -28,14 +28,35 @@ module test;
   .wb_byte_enable(sel),.wb_lock(bus_lock),.wb_cycle_type(cti),.wb_burst_type(bte),
   .wb_ack(ack),.wb_error(bus_error),.wb_read_data(rdata));
  assign bus_error=cyc && stb && fault_addr!=0 && addr==fault_addr && (!fault_read_only || !we) && (!fault_write_only || we);
+`ifdef NGAGE_SDRAM_PATH
+ wire ram_access=addr>=32'h80000000 && addr<32'h80200000;
+ wire ram_ack, sreq, swe, sack, sd_done, rfsh, mr; wire [31:0] sdata, mwdata, mrdata; wire [24:0] sa; wire [3:0] sb;
+ wire [21:0] ba; wire [15:0] bd; wire [1:0] dsn; wire [3:0] rd,wr; reg [3:0] rr=0; reg [31:0] half_latched=0;
+ wire [3:0] take=(rd|wr) & {4{delay>=latency}};
+ ngage_sdram_arbiter arb(clk,reset,bus_lock,cyc && stb && ram_access && !bus_error,we,addr[24:0],wdata,sel,ram_ack,sdata,
+  1'b0,1'b0,25'b0,32'b0,4'b0,,,sreq,swe,sa,mwdata,sb,sack,mrdata);
+ ngage_sdram_adapter #(.RAM_BYTES(4)) mem(clk,reset,1'b0,1'b0,sreq,swe,sa,mwdata,sb,sack,mrdata,sd_done,
+  ba,bd,dsn,rd,wr,take,rr,ba[0] ? half_latched[31:16] : half_latched[15:0],rfsh);
+ always @(posedge clk) begin rr<=take; if(|take) half_latched<=ram[addr[20:2]]; end
+ assign ack=ram_access ? ram_ack : (cyc && stb && delay>=latency && !bus_error);
+`else
  assign ack=cyc && stb && delay>=latency && !bus_error;
+`endif
  always @* begin
   rdata=0;
   if(addr<32'h00010000) rdata=rom[addr[15:2]];
+`ifdef NGAGE_SDRAM_PATH
+  else if(ram_access) rdata=sdata;
+`else
   else if(addr>=32'h80000000 && addr<32'h80200000) rdata=ram[addr[20:2]];
+`endif
  end
  always @(posedge clk) begin
+`ifdef NGAGE_SDRAM_PATH
+  if(reset || !cyc || !stb || ack || |take) delay<=0;else delay<=delay+1;
+`else
   if(reset || !cyc || !stb || ack) delay<=0;else delay<=delay+1;
+`endif
   if(!reset) begin
    cycles<=cycles+1;
 `ifdef NGAGE_ASSOC_EXPERIMENT
