@@ -23,6 +23,7 @@ entries below the handoff are the evidence log, newest first.
 | [software-reference.md](software-reference.md) | EKA2L1 findings, executable software comparison and LCD trace |
 | [references.md](references.md) | Pinned sources, physical versus virtual maps and dump provenance |
 | [modem-model.md](modem-model.md) | Reversed ISI/Phonet protocol and NOS servers (energy, phone-info, SIM); spec for scratch/modem + rtl/ngage_modem.v |
+| [mister-implementation-plan.md](mister-implementation-plan.md) | Code-audited migration plan, image inventory, persistence, controls and hardware validation gates |
 | [hdl-migration.md](hdl-migration.md) | C++ board model -> rtl/ngage_board.v plan, migrated devices, what is still C++-only |
 
 ARM reference manuals are local PDFs in this folder. Reference checkouts and
