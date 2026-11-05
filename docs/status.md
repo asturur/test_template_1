@@ -1,3 +1,7 @@
+## 2026-11-05: early GSS activation probe completed
+
+`simif-gss-early` completed at 1B from the fresh present-card 176.8M checkpoint and preserved its 1B pair. It observed SIM event-0x1280 producer at 962,933,179 but no selected GSS c012 activation handler, GSS task-start batch, SMS task entry, ATKinf gate or SIM queue drain/pop from 176.8M–1B. The previously recorded 1B–4B GSS probes were also silent; this is selected-PC evidence only, not proof of why activation has not occurred. `simif-gss-lifecycle` now traces the GSS c004 initializer, c012 activation and generic lifecycle dispatch from preserved `idle-c939` to 1.2B with live capture, to determine whether GSS registers or receives group events; preserve its billion-cycle checkpoints. In parallel, the ADSP assertion has been confirmed in both diagnostic card-present and no-ATR lineages, so do not assume the SIM alone is the cause.
+
 ## 2026-11-05: tracing earlier GSS/SIM task startup
 
 `simif-gss-early` is replaying the validated fresh-card 176.8M CPU/host pair to 1B with selected PCs for GSS event 0xc012 handler, the GSS task-start batch, SMS task entry, ATKinf gate, SIM queue drain/pop and event 0x1280. Prior negative probes cover 1B–4B but not this earlier interval. The run preserves its 1B CPU/host pair and live captures under `build/sim/screens/boot-v15-simif-gss-early-live/`; do not modify its hashed inputs. Compare its actual hits and their ordering before attributing the pending SIM notification to an unstarted task.
