@@ -1,3 +1,9 @@
+## 2026-11-06: MiSTer milestone 4 continued — MDI and GPIO
+
+Ported staged MDI ring consumption and delayed announcement into Verilog-2001, connecting its events to NOS status and ICU routing without inventing a DSP response. Directed MDI tests pass, as do timing/status fixtures against both C++ board references. Ported staged GPIO set/clear and UEM-routed loopbacks; focused and integrated interrupt/GPIO tests pass. UEM alarm and 1 Hz counters now preserve the staged global-cycle phase rather than restarting when armed. Added a Verilog-2001 simulation bus adapter and a test for exclusive HDL ownership, invalid transactions and fallback. It is not yet connected to the C++ firmware harness.
+
+Milestone 4 remains incomplete: integrate the adapter and trace export; verify all reached devices, event ordering and stall behavior against C++, and finish missing ICU/DMA, keypad/serial and other stateful peripheral cases. MDI event pulse delivery may be one cycle later than the C++ model and requires explicit comparison. SIM FIQ and DMA depend on their actual modules. The MiSTer CPU is still held in reset; no firmware boot, FPGA synthesis or board test was performed. See `docs/mister-board-bringup.md`.
+
 ## 2026-11-05: MiSTer board milestone 4 in progress
 
 Ported and connected initial staged-model ICU, timers, NOS counter/interrupt registers, selected UEM/CBUS sequencing, boot latches and executable scratch. CPU IRQ/FIQ now come from the board. A small real ARM program receives and acknowledges both IRQ and FIQ and reaches a data-abort handler for an invalid board read. Corrected former low-address aliasing by splitting upload, NOS and GPIO banks and initializing them before CPU release; the 0x0d diagnostic store now has full-address tags and an explicit 64-entry limit. Trace writes produce testable events but have no hardware buffer/export yet.

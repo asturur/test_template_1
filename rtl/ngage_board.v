@@ -71,8 +71,10 @@ wire [31:0] wmask = { {8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}} };
 
 // Dedicated ownership for the modeled ICU and timer registers. Other
 // sources remain low until their actual device models are connected.
-wire icu_claim,icu_bad,timer_claim,timer_bad,nos_claim,nos_bad,nos_pending,cbus_claim,cbus_bad,cbus_irq,periodic_active,boot_claim,boot_bad,trace_claim,trace_bad;
-wire [31:0] icu_data,timer_data,nos_data,cbus_data,boot_data;
+wire icu_claim,icu_bad,timer_claim,timer_bad,nos_claim,nos_bad,nos_pending,cbus_claim,cbus_bad,cbus_irq,periodic_active,boot_claim,boot_bad,trace_claim,trace_bad,mdi_claim,mdi_bad,nos_tick,gpio_loop_claim,gpio_loop_bad;
+wire [31:0] icu_data,timer_data,nos_data,cbus_data,boot_data,mdi_data,gpio_loop_data;
+wire [15:0] route2a,route2c,route3b;
+wire [15:0] mdi_events;
 wire [95:0] irq_clear;
 wire timer0_pending,unit1_pending,unit60_pending,timer0_rearm;
 wire [95:0] irq_sources={64'b0,6'b0,nos_pending,23'b0,(unit1_pending || cbus_irq),timer0_pending};
@@ -84,12 +86,19 @@ ngage_timers timers(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(w
  .addr(a),.din(din),.sel(sel),.clear_unit1(irq_clear[1]),.claim(timer_claim),.bad(timer_bad),.dout(timer_data),
  .timer0_pending(timer0_pending),.unit1_pending(unit1_pending),.unit60_pending(unit60_pending),.timer0_rearm(timer0_rearm),.periodic_active(periodic_active));
 ngage_nos_io nos_timer(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
- .addr(a),.din(din),.sel(sel),.claim(nos_claim),.bad(nos_bad),.dout(nos_data),.irq(nos_pending));
+ .addr(a),.din(din),.sel(sel),.claim(nos_claim),.bad(nos_bad),.dout(nos_data),.irq(nos_pending),.event_bits(mdi_events),.nos_tick(nos_tick));
 ngage_cbus_uem cbus(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.kernel_periodic(periodic_active),.clear_irq(irq_clear[1]),
- .claim(cbus_claim),.bad(cbus_bad),.dout(cbus_data),.irq_pending(cbus_irq));
+ .claim(cbus_claim),.bad(cbus_bad),.dout(cbus_data),.irq_pending(cbus_irq),
+ .route2a(route2a),.route2c(route2c),.route3b(route3b));
+ngage_gpio_loopback gpio_loop(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
+ .addr(a),.din(din),.sel(sel),.route2a(route2a),.route2c(route2c),.route3b(route3b),
+ .claim(gpio_loop_claim),.bad(gpio_loop_bad),.dout(gpio_loop_data));
 ngage_boot_regs boot_regs(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.claim(boot_claim),.bad(boot_bad),.dout(boot_data));
+ngage_mdi_stub mdi(.clk(clk),.reset(rst),.tick(nos_tick),.periodic_active(1'b1),
+ .req(cyc && stb),.commit(commit),.we(we),.addr(a),.din(din),.sel(sel),
+ .claim(mdi_claim),.bad(mdi_bad),.dout(mdi_data),.irq_events(mdi_events));
 ngage_trace_sink trace_sink(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.claim(trace_claim),.bad(trace_bad),
  .trace_valid(trace_valid),.trace_addr(trace_addr),.trace_data(trace_data),.trace_sel(trace_sel));
@@ -189,13 +198,13 @@ ngage_bram_be #(.AW(14)) upload_ram (
  .we(clearing?4'hf:((upload_hit && gpio_hit && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
 ngage_bram_be #(.AW(14)) nosmem_ram (
  .clk(clk),.raddr(a[15:2]),.rdata(nosmem_q),.waddr(clearing?init_index[13:0]:a[15:2]),
- .we(clearing?4'hf:((nosmem_hit && gpio_hit && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ .we(clearing?4'hf:((nosmem_hit && gpio_hit && !mdi_claim && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
 ngage_bram_be #(.AW(10)) gpio15_ram (
  .clk(clk),.raddr(a[11:2]),.rdata(gpio15_q),.waddr(clearing?init_index[9:0]:a[11:2]),
- .we(clearing?4'hf:((gpio15_hit && gpio_hit && !nos_claim && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ .we(clearing?4'hf:((gpio15_hit && gpio_hit && !nos_claim && !gpio_loop_claim && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
 ngage_bram_be #(.AW(12)) aux_ram (
  .clk(clk),.raddr(aux_index),.rdata(aux_q),.waddr(clearing?init_index[11:0]:aux_index),
- .we(clearing?4'hf:((aux_hit && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
+ .we(clearing?4'hf:((aux_hit && !mdi_claim && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
 ngage_bram_be #(.AW(10)) nos4k_ram_i (
  .clk(clk),.raddr(a[11:2]),.rdata(nos4k_q),.waddr(clearing?init_index[9:0]:a[11:2]),
  .we(clearing?4'hf:((nos4k_ram && wr_ok)?sel:4'd0)),.wdata(clearing?32'b0:din));
@@ -208,7 +217,7 @@ ngage_sparse_regs #(.ENTRIES(64)) d_regs (
 // (even to the same address, e.g. after a write) re-reads.
 reg        rd_vld;
 reg [31:0] rd_adr;
-wire ram_read = !we && ((gpio_hit && !nos_claim) || nos4k_ram);
+wire ram_read = !we && ((gpio_hit && !nos_claim && !mdi_claim && !gpio_loop_claim) || nos4k_ram);
 assign ready  = init_done && (!ram_read || (rd_vld && rd_adr == a));
 
 always @(posedge clk) begin
@@ -225,11 +234,13 @@ reg [11:0] fcnt_div;
 
 // ---- combinational output ---------------------------------------------------
 always @(*) begin
-    claim     = icu_claim || timer_claim || nos_claim || cbus_claim || boot_claim || trace_claim || ((lcd_hit || gpio_hit || clk_hit || nos4k_hit || d_space_hit) && cyc && stb);
+    claim     = icu_claim || timer_claim || nos_claim || cbus_claim || boot_claim || trace_claim || mdi_claim || gpio_loop_claim || ((lcd_hit || gpio_hit || clk_hit || nos4k_hit || d_space_hit) && cyc && stb);
     dout      = 32'd0;
     unmodeled = 1'b0;
 
-    if (trace_claim) begin dout=0;unmodeled=trace_bad; end
+    if (gpio_loop_claim) begin dout=gpio_loop_data;unmodeled=gpio_loop_bad; end
+    else if (mdi_claim) begin dout=mdi_data;unmodeled=mdi_bad; end
+    else if (trace_claim) begin dout=0;unmodeled=trace_bad; end
     else if (boot_claim) begin dout=boot_data;unmodeled=boot_bad; end
     else if (icu_claim) begin dout=icu_data;unmodeled=icu_bad; end
     else if (timer_claim) begin dout=timer_data;unmodeled=timer_bad; end

@@ -17,7 +17,9 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_sparse_regs.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_icu.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_timers.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_nos_io.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_mdi_stub.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_cbus_uem.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_gpio_loopback.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_boot_regs.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_trace_sink.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_bram_be.v

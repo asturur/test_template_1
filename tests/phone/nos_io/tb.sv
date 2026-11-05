@@ -1,7 +1,7 @@
 module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,req=0,commit=0,we=0;reg [31:0] addr=0,din=0;reg [3:0] sel=15;
 wire claim,bad,irq;wire [31:0] dout;
-ngage_nos_io #(.TICK_DIV(2),.FAST_DIV(3)) dut(clk,reset,req,commit,we,addr,din,sel,claim,bad,dout,irq);
+ngage_nos_io #(.TICK_DIV(2),.FAST_DIV(3)) dut(clk,reset,req,commit,we,addr,din,sel,claim,bad,dout,irq,16'b0,);
 task tick;begin @(posedge clk);#1;end endtask
 task wr(input [31:0] a,input [31:0] d,input [3:0] b);begin @(negedge clk);req=1;we=1;commit=1;addr=a;din=d;sel=b;#1;if(!claim||bad)$fatal(1,"decode");tick();@(negedge clk);req=0;commit=0;end endtask
 initial begin

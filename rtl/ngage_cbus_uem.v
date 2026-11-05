@@ -1,18 +1,22 @@
 // Staged diagnostic UEM/CBUS model. RTC alarm, ADC and power values below
 // are software-model hypotheses, not verified Nokia silicon behavior.
-module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=7995392)(
+module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=7995392,ALARM_INTERVAL=65536)(
  input wire clk,input wire reset,input wire req,input wire commit,input wire we,
  input wire [31:0] addr,input wire [31:0] din,input wire [3:0] sel,
  input wire kernel_periodic,input wire clear_irq,
- output reg claim,output reg bad,output reg [31:0] dout,output reg irq_pending
+ output reg claim,output reg bad,output reg [31:0] dout,output reg irq_pending,
+ output wire [15:0] route2a,route2c,route3b
 );
  wire [31:0] a={addr[31:2],2'b00};
  reg [15:0] cfg,command,rtc_status;reg [1:0] stage;
  reg [15:0] values[0:255];reg [255:0] written;
  reg [3:0] adc_channel;reg adc_selected,key_released,alarm_started;
- integer sec_count,alarm_left;
+ integer sec_count,alarm_left,alarm_div;
  wire [15:0] value=sel==12?din[31:16]:din[15:0];
  wire [7:0] regno=command[7:0];
+ assign route2a=written[8'h2a]?values[8'h2a]:16'b0;
+ assign route2c=written[8'h2c]?values[8'h2c]:16'b0;
+ assign route3b=written[8'h3b]?values[8'h3b]:16'b0;
  function automatic is_input(input [7:0] r);
   begin is_input=(r>=8'h20 && r<=8'h34)||(r>=8'h3b && r<=8'h3e)||
                  (r>=8'h40 && r<=8'h7f)||r==8'h81||(r>=8'h83 && r<=8'h8c)||(r>=8'h8e && r<=8'h9f);end
@@ -57,13 +61,16 @@ module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=799
  always @(posedge clk)begin
   if(reset)begin
    cfg<=0;command<=0;stage<=0;written<=0;rtc_status<=8;adc_channel<=0;adc_selected<=0;
-   key_released<=0;alarm_started<=0;sec_count<=0;alarm_left<=0;irq_pending<=0;
+   key_released<=0;alarm_started<=0;sec_count<=0;alarm_left<=0;alarm_div<=0;irq_pending<=0;
   end else begin
    if(clear_irq)irq_pending<=0;
-   if(kernel_periodic)begin
-    if(sec_count==SECOND_TICKS-1)begin sec_count<=0;irq_pending<=1;end else sec_count<=sec_count+1;
-   end
-   if(alarm_left>0)begin alarm_left<=alarm_left-1;if(alarm_left==1)begin rtc_status[3]<=1;irq_pending<=1;end end
+   // The staged model's 1 Hz and alarm checks are aligned to the
+   // global board-cycle counter, even before kernel periodic arming.
+   if(sec_count==SECOND_TICKS-1)begin sec_count<=0;irq_pending<=1;end else sec_count<=sec_count+1;
+   if(alarm_div==ALARM_INTERVAL-1)begin
+    alarm_div<=0;
+    if(alarm_left>0)begin alarm_left<=alarm_left-1;if(alarm_left==1)begin rtc_status[3]<=1;irq_pending<=1;end end
+   end else alarm_div<=alarm_div+1;
    if(commit && claim && !bad && we)begin
     if(a==32'h0c150420 && sel==3)begin cfg<=value;stage<=1;end
     else if(a==32'h0c150420)begin command<=value;stage<=value[8]?3:2;end
@@ -72,7 +79,7 @@ module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=799
      if(regno==8'h35)rtc_status<=rtc_status & ~value;
      if(regno==8'h36 && cfg==15 && (value & 16'hfff0)==16'hfff0 && !value[3])begin
       key_released<=1;
-      if(!alarm_started)begin alarm_left<=ALARM_TICKS;alarm_started<=1;end
+      if(!alarm_started)begin alarm_left<=(ALARM_TICKS+ALARM_INTERVAL-1)/ALARM_INTERVAL;alarm_started<=1;end
      end
      if(regno==8'h30 && kernel_periodic)irq_pending<=1;
      if(regno==8'h39)begin adc_selected<=value[11];adc_channel<=value[15:12];end
