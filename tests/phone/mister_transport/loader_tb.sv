@@ -39,6 +39,8 @@ initial begin
  setup();words[64]=words[64]^1;start();for(i=0;i<72;i=i+1) send(i,2*i);finish_dl();if(valid || !failed) $fatal(1,"bad crc accepted");
  setup();start();for(i=0;i<10;i=i+1) send(i,2*i);send(10,18);finish_dl();if(valid || !failed) $fatal(1,"duplicate accepted");
  setup();words[18]=16'h1234;start();for(i=0;i<64;i=i+1) send(i,2*i);finish_dl();if(valid || !failed) $fatal(1,"bad offset accepted");
+ setup();start();for(i=0;i<72;i=i+1) send(i,2*i);send(71,144);finish_dl();if(valid || !failed) $fatal(1,"oversized bundle accepted");
+ setup();start();for(i=0;i<10;i=i+1) send(i,2*i);send(10,22);finish_dl();if(valid || !failed) $fatal(1,"address hole accepted");
  $display("PASS bundle loader");$finish;
 end
 endmodule

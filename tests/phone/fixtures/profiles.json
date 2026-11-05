@@ -4,10 +4,34 @@
   "firmware": "build/firmware/nem4-factory/{core,extension}.bin",
   "cdrive": "scratch/overnight/cdrive-11b.img",
   "profiles": {
-    "diagnostic-erased-pmm": {"board": "scratch/simif-board/board", "sim": "synthetic test card", "pmm": "erased 64 KiB; no pmm-image argument", "uem_power_status": 1},
-    "diagnostic-seeded-pmm": {"board": "scratch/simif-board/board", "sim": "synthetic test card", "pmm": "scratch/overnight/pmm-aan.bin; requires explicit pmm-image argument", "uem_power_status": 1},
-    "diagnostic-no-atr": {"board": "scratch/simif-board/board", "sim": "simif-no-atr", "pmm": "erased 64 KiB; no pmm-image argument", "uem_power_status": 1},
-    "baseline": {"board": "scratch/current-boot/board", "sim": "no staged test card", "pmm": "must be explicitly specified per run", "uem_power_status": "per run"}
+    "diagnostic-erased-pmm": {
+      "board": "scratch/simif-board/board",
+      "sim": "synthetic test card",
+      "pmm": "erased 64 KiB; no pmm-image argument",
+      "uem_power_status": "base 0; uem-power-status-extra=1 (runner default)"
+    },
+    "diagnostic-seeded-pmm": {
+      "board": "scratch/simif-board/board",
+      "sim": "synthetic test card",
+      "pmm": "scratch/overnight/pmm-aan.bin; requires explicit pmm-image argument",
+      "uem_power_status": "base 0; uem-power-status-extra=1 (runner default)"
+    },
+    "diagnostic-no-atr": {
+      "board": "scratch/simif-board/board",
+      "sim": "simif-no-atr",
+      "pmm": "erased 64 KiB; no pmm-image argument",
+      "uem_power_status": "base 0; uem-power-status-extra=1 (runner default)"
+    },
+    "baseline": {
+      "board": "scratch/current-boot/board",
+      "sim": "no staged test card",
+      "pmm": "must be explicitly specified per run",
+      "uem_power_status": "per run"
+    }
   },
-  "limitations": ["Synthetic SIM is not a verified physical card", "PMM is not serialized in host checkpoints", "Live keypad patch is separate: scratch/live-controls/boot_profile.cpp"]
+  "limitations": [
+    "Synthetic SIM is not a verified physical card",
+    "PMM is not serialized in host checkpoints",
+    "Live keypad patch is separate: scratch/live-controls/boot_profile.cpp"
+  ]
 }

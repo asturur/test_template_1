@@ -1,0 +1,14 @@
+ticks	op	address	write	mask	accepted	read	device	irq	fiq
+0	R	04000000	00000000	f	1	d00542c8	physical_flash_array	0	0
+0	W	007f0000	00600060	3	1	00000000	flash_command	0	0
+0	R	007f0000	00000000	3	1	00000001	flash_pmm_status	0	0
+0	W	007f0000	00f000f0	3	1	00000000	flash_command	0	0
+16	R	04000000	00000000	f	1	d00542c8	physical_flash_array	0	0
+16	W	0c120a04	00000002	f	1	00000000	timer_setup_write	0	0
+16	W	0c120a18	0115b5c0	f	1	00000000	timer_setup_write	0	0
+16	W	0c120108	00000001	f	1	00000000	timer_setup_write	0	0
+17	R	0c120108	00000000	f	0	00000000	timer_setup_write	0	0
+18	R	0c120108	00000000	f	0	00000000	timer_setup_write	0	0
+19	R	0c120108	00000000	f	0	00000000	timer_setup_write	1	0
+20	R	0c120108	00000000	f	0	00000000	timer_setup_write	1	0
+20	R	dead0000	00000000	f	0	00000000		1	0

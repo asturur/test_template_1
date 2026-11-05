@@ -26,7 +26,7 @@ module ngage_mister (
     input  wire        sdram_ack,
 
     // DDR3 port (ROM + C: drive — mostly read, HPS-loaded)
-    output wire [27:0] ddram_addr,
+    output wire [31:0] ddram_addr,
     output wire        ddram_rd,
     output wire        ddram_wr,
     output wire [31:0] ddram_din,
@@ -77,24 +77,15 @@ ngage_board board (
 // --- physical address decode --------------------------------------------
 wire [31:0] pa = {wb_adr[31:2], 2'b00};
 
-// Phone RAM: PA 0x0a000000..0x0bffffff (16MB) → SDRAM
-wire ram_hit  = (pa[31:24] == 8'h0a) || (pa[31:24] == 8'h0b);
-
-// CS0 flash: PA 0x00000000..0x007fffff (8MB) → DDR3 offset 0
-wire cs0_hit  = (pa[31:23] == 9'd0);
-
-// CS1 flash: PA 0x02000000..0x023fffff (4MB) → DDR3 offset 0x800000
-wire cs1_hit  = (pa[31:22] == 10'b00_0010_0000) && (pa[21:0] < 22'h3fffff);
-
-// CS2 flash: PA 0x04000000..0x047fffff (8MB) → DDR3 offset 0xC00000
-wire cs2_hit  = (pa[31:23] == 9'b0_0000_0100);
-
-wire flash_hit = cs0_hit || cs1_hit || cs2_hit;
-
-// DDR3 address translation
-wire [27:0] flash_ddr_addr = cs0_hit ? {5'd0, pa[22:0]} :
-                             cs1_hit ? {5'd0, 23'h800000 | pa[21:0]} :
-                                       {5'd0, 23'hC00000 | pa[22:0]};
+// Decode the same nonoverlapping banks as the software reference.
+wire ram_hit, rom_hit, cdrive_hit, pmm_hit;
+wire [24:0] rom_offset;
+ngage_rom_map phone_map(pa, rom_hit, rom_offset, ram_hit, cdrive_hit, pmm_hit);
+wire flash_hit = rom_hit || cdrive_hit || pmm_hit;
+wire cs0_hit = pa < 32'h00700000;
+wire [31:0] flash_ddr_addr = 32'h30000000 +
+    (rom_hit ? {7'd0,rom_offset} : cdrive_hit ? (32'h01400000 + pa - 32'h02400000) :
+                         (32'h01800000 + pa - 32'h007f0000));
 
 // --- flash descrambler --------------------------------------------------
 // Active only for CS0 reads in [0xa000, 0x2b3000)
@@ -144,7 +135,7 @@ assign wb_ack   = brd_claim ? brd_ready : mem_ack;
 assign wb_dat_i = brd_claim ? brd_dout :
                   flash_hit ? flash_data :
                               sdram_dout;
-assign wb_err   = mem_req && !ram_hit && !flash_hit && !brd_claim;
+assign wb_err   = mem_req && ((!ram_hit && !flash_hit) || (flash_hit && wb_we));
 
 assign irq_line = 1'b0;   // TODO: from ngage_board once timers/ICU migrate
 assign fiq_line = 1'b0;

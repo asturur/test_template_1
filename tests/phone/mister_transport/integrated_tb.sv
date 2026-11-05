@@ -14,7 +14,11 @@ task tick; begin @(posedge clk); #1; end endtask
 wire [28:0] ddr_addr; wire [63:0] ddr_din; wire [7:0] ddr_be; wire ddr_rd,ddr_we;
 wire [31:0] unused_read; reg [63:0] mem [0:3]; reg [63:0] fake_out=0; reg fake_ready=0; reg busy=0;
 integer cycles=0, k, slot;
-ngage_ddr_adapter adapter(clk,reset,mem_valid,ready,1'b1,ma,md,be,done,unused_read,
+wire av, ar, aw, rsp; wire [31:0] aa, ad, rv; wire [3:0] ab;
+ngage_ddr_arbiter arb(clk,reset,1'b0,mem_valid,ready,ma,md,be,done,
+ 1'b0,,1'b0,32'b0,32'b0,4'b0,,,
+ av,ar,aw,aa,ad,ab,rsp,rv);
+ngage_ddr_adapter adapter(clk,reset,av,ar,aw,aa,ad,ab,rsp,rv,
  ddr_addr,ddr_din,ddr_be,ddr_rd,ddr_we,busy,fake_out,fake_ready);
 always @(posedge clk) begin
  cycles<=cycles+1; busy<= (cycles%5 < 3);
@@ -56,6 +60,8 @@ initial begin
  setup();words[64]=words[64]^1;start();for(i=0;i<72;i=i+1) send(i,2*i);finish_dl();if(valid || !failed) $fatal(1,"bad crc accepted");
  setup();start();for(i=0;i<10;i=i+1) send(i,2*i);send(10,18);finish_dl();if(valid || !failed) $fatal(1,"duplicate accepted");
  setup();words[18]=16'h1234;start();for(i=0;i<64;i=i+1) send(i,2*i);finish_dl();if(valid || !failed) $fatal(1,"bad offset accepted");
+ setup();start();for(i=0;i<72;i=i+1) send(i,2*i);send(71,144);finish_dl();if(valid || !failed) $fatal(1,"oversized bundle accepted");
+ setup();start();for(i=0;i<10;i=i+1) send(i,2*i);send(10,22);finish_dl();if(valid || !failed) $fatal(1,"address hole accepted");
  $display("PASS integrated loader and fake DDR");$finish;
 end
 endmodule

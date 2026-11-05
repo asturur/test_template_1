@@ -47,9 +47,8 @@ localparam CONF_STR = {
 	"-;",
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"-;",
-	"F0,BIN,Load ROM (core.bin);",
+	"F0,NGB,Load firmware bundle;",
 	"-;",
-	"RE,Save C: drive;",
 	"-;",
 	"T[0],Reset;",
 	"R[0],Reset and close OSD;",
@@ -61,17 +60,14 @@ wire forced_scandoubler;
 wire   [1:0] buttons;
 wire [127:0] status;
 wire  [10:0] ps2_key;
-wire  [15:0] joystick_0;
+wire  [31:0] joystick_0;
 
-// ioctl (HPS data loading: boot ROMs from games/NGage/)
-// boot.rom  = core.bin (18.6MB, main firmware)  → ioctl_index[7:6]=00
-// boot1.rom = extension.bin (2.3MB)             → ioctl_index[7:6]=01
-// boot2.rom = cdrive image (4MB LFFS)           → ioctl_index[7:6]=10
+// One validated versioned bundle (core, extension, C: and PMM).
 wire        ioctl_download;
 wire        ioctl_wr;
 wire [26:0] ioctl_addr;
 wire [15:0] ioctl_dout;
-wire  [7:0] ioctl_index;
+wire [15:0] ioctl_index;
 wire        ioctl_wait;
 
 hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
@@ -99,9 +95,9 @@ hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
 
 	// C: drive save (upload DDR3 → SD card)
 	.ioctl_upload(ioctl_upload),
-	.ioctl_upload_req(save_cdrive_req),
-	.ioctl_upload_index(8'h80),          // index[7:6]=10 = boot2.rom (C:)
-	.ioctl_din(save_din),
+	.ioctl_upload_req(1'b0),
+	.ioctl_upload_index(8'h00),
+	.ioctl_din(16'hffff),
 	.ioctl_rd(ioctl_rd)
 );
 
@@ -120,31 +116,12 @@ pll pll
 	.locked(pll_locked)
 );
 
-wire reset = RESET | status[0] | buttons[1] | ~pll_locked | ioctl_download;
-
-///////////////////////   C: DRIVE SAVE   ////////////////////////////
-
-// "Save C: drive" OSD button (status bit E = 14) triggers upload
-wire save_cdrive_btn = status[14];
-reg  save_cdrive_btn_d;
-reg  save_cdrive_req;
-wire ioctl_upload;
-wire ioctl_rd;
-
-always @(posedge clk_sys) begin
-	save_cdrive_btn_d <= save_cdrive_btn;
-	if (save_cdrive_btn && !save_cdrive_btn_d)
-		save_cdrive_req <= 1;
-	else if (ioctl_upload)
-		save_cdrive_req <= 0;
-end
-
-// During upload: read C: drive data from DDR3 and feed to ioctl_din
-// The HPS drives ioctl_rd pulses; we respond with ioctl_din from DDR3.
-// C: drive is at DDR3 word offset 0x500000 (0x1400000 >> 2), 4MB.
-// TODO: wire DDR3 read port for upload (needs arbitration with CPU reads).
-// For now: stub data.
-wire [15:0] save_din = 16'hFFFF;  // TODO: DDR3 readback
+// Keep the phone CPU held during transport bring-up. SDRAM and board
+// initialization are not yet safe to boot (milestone 2 and later).
+wire transport_reset = ~pll_locked;
+wire phone_reset = RESET | status[0] | buttons[1] | ~pll_locked;
+wire reset = phone_reset | !loader_valid | 1'b1;
+wire ioctl_upload, ioctl_rd;
 
 ///////////////////////   SDRAM   ////////////////////////////////
 
@@ -294,68 +271,53 @@ jtframe_sdram64 #(
     .sdram_cke  (SDRAM_CKE)
 );
 
-///////////////////////   DDR3 (ROM flash)   /////////////////////
-
-// DDR3 carries the ROM images (read-only from CPU; HPS writes via ioctl).
-// Layout in DDR3 word address space:
-//   boot.rom  (index[7:6]=00) → offset 0x000000 (CS0 flash, 8MB)
-//   boot1.rom (index[7:6]=01) → offset 0x200000 (CS1/extension, 4MB)
-//   boot2.rom (index[7:6]=10) → offset 0x350000 (C: drive image, 4MB)
-// DDR3 word address = byte address >> 2 (32-bit words)
-
-assign DDRAM_CLK      = clk_sys;
+///////////////////////   DDR3 bundle transport   ////////////////
+// 0x30000000 is a candidate Main DDR reservation; hardware use is
+// prohibited until checked against the installed Main/Linux memory map.
+assign DDRAM_CLK = clk_sys;
 assign DDRAM_BURSTCNT = 8'd1;
-
-// Boot ROM base offsets in DDR3 (word addresses)
-// CS0=0, CS1=0x800000>>2=0x200000, C:=0x1400000>>2=0x350000 (adjusted)
-reg [27:0] rom_base;
-always @(*) case (ioctl_index[7:6])
-	2'b00: rom_base = 28'h0000000;   // CS0 main firmware
-	2'b01: rom_base = 28'h0200000;   // CS1 extension
-	2'b10: rom_base = 28'h0500000;   // C: drive (0x1400000 >> 2)
-	2'b11: rom_base = 28'h0700000;   // spare
-endcase
-
-// PSX-style 16→32 bit word assembly: collect two ioctl_wr pulses
-wire rom_download = ioctl_download && (ioctl_index[5:0] == 6'd0);
-
-reg [27:0] dl_addr;
-reg [31:0] dl_data;
-reg        dl_wr;
-
-always @(posedge clk_sys) begin
-	dl_wr <= 0;
-	if (rom_download && ioctl_wr) begin
-		if (~ioctl_addr[1]) begin
-			// Low halfword: latch data and compute address
-			dl_data[15:0] <= ioctl_dout;
-			dl_addr       <= rom_base + ioctl_addr[26:2];
-		end else begin
-			// High halfword: complete the 32-bit word, trigger write
-			dl_data[31:16] <= ioctl_dout;
-			dl_wr          <= 1;
-		end
-	end
-end
-
-assign ioctl_wait = dl_wr;   // backpressure while DDR3 write in flight
-
-// DDR3 arbitration: download (ioctl) vs CPU flash reads.
-// During download the CPU is in reset so no conflict.
-// During run: core drives DDR3 reads, ioctl is idle.
-wire [27:0] core_ddr_addr;
-wire        core_ddr_rd;
+wire loader_valid, loader_failed;
+wire load_req, load_ready, load_done;
+wire [31:0] load_addr, load_data;
+wire [3:0] load_be;
+wire bundle_download = ioctl_download && ioctl_index == 0;
+ngage_loader loader (
+ .clk(clk_sys), .reset(transport_reset), .download(bundle_download),
+ .wr(ioctl_wr), .addr(ioctl_addr), .data(ioctl_dout), .wait_req(ioctl_wait),
+ .valid(loader_valid), .failed(loader_failed),
+ .mem_valid(load_req), .mem_ready(load_ready), .mem_addr(load_addr),
+ .mem_data(load_data), .mem_be(load_be), .mem_done(load_done)
+);
+wire [31:0] core_ddr_addr;
+wire core_ddr_rd;
 wire [31:0] core_ddr_dout;
-wire        core_ddr_ready;
-
-assign DDRAM_ADDR = ioctl_download ? dl_addr : core_ddr_addr;
-assign DDRAM_DIN  = dl_data;
-assign DDRAM_BE   = ioctl_download ? 4'b1111 : 4'b1111;
-assign DDRAM_RD   = ioctl_download ? 1'b0    : core_ddr_rd;
-assign DDRAM_WE   = dl_wr;
-
-assign core_ddr_dout  = DDRAM_DOUT[31:0];   // low 32 bits of 64-bit DDR3 read
-assign core_ddr_ready = DDRAM_DOUT_READY;
+wire core_ddr_ready;
+wire arb_valid, arb_ready, arb_write, arb_rsp;
+wire [31:0] arb_addr, arb_data, arb_rdata;
+wire [3:0] arb_be;
+wire core_accept;
+reg core_inflight = 0;
+// The legacy core presents a level request; accept each request only once.
+always @(posedge clk_sys) begin
+ if (reset) core_inflight <= 0;
+ else if (!core_ddr_rd) core_inflight <= 0;
+ else if (core_accept) core_inflight <= 1;
+end
+ngage_ddr_arbiter ddr_arbiter (
+ .clk(clk_sys), .reset(transport_reset), .cpu_lock(cpu_bus_lock && !reset),
+ .l_valid(load_req), .l_ready(load_ready), .l_addr(load_addr), .l_data(load_data), .l_be(load_be), .l_done(load_done),
+ .c_valid(core_ddr_rd && !core_inflight && !reset), .c_ready(core_accept), .c_write(1'b0),
+ .c_addr(core_ddr_addr), .c_data(32'd0), .c_be(4'hf), .c_done(core_ddr_ready), .c_rdata(core_ddr_dout),
+ .req_valid(arb_valid), .req_ready(arb_ready), .req_write(arb_write),
+ .req_addr(arb_addr), .req_data(arb_data), .req_be(arb_be), .rsp_valid(arb_rsp), .rsp_data(arb_rdata)
+);
+ngage_ddr_adapter ddr_adapter (
+ .clk(clk_sys), .reset(transport_reset), .req_valid(arb_valid), .req_ready(arb_ready),
+ .req_write(arb_write), .req_addr(arb_addr), .req_wdata(arb_data), .req_be(arb_be),
+ .rsp_valid(arb_rsp), .rsp_data(arb_rdata), .ddr_addr(DDRAM_ADDR), .ddr_din(DDRAM_DIN),
+ .ddr_be(DDRAM_BE), .ddr_rd(DDRAM_RD), .ddr_we(DDRAM_WE), .ddr_busy(DDRAM_BUSY),
+ .ddr_dout(DDRAM_DOUT), .ddr_dout_ready(DDRAM_DOUT_READY)
+);
 
 ///////////////////////   CORE   /////////////////////////////////
 
@@ -395,7 +357,7 @@ ngage_mister core (
 	.rgb444        (core_rgb),
 
 	// keys
-	.keys          (joystick_0)
+	.keys          (joystick_0[15:0])
 );
 
 ///////////////////////   VIDEO   ////////////////////////////////
@@ -418,6 +380,6 @@ assign VGA_B  = {core_rgb[ 3:0], core_rgb[ 3:0]};
 
 reg [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-assign LED_USER = act_cnt[26] ? act_cnt[25:18] > act_cnt[7:0] : act_cnt[25:18] <= act_cnt[7:0];
+assign LED_USER = loader_failed ? act_cnt[24] : (bundle_download ? act_cnt[22] : loader_valid);
 
 endmodule

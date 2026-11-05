@@ -22,7 +22,7 @@ module ngage_loader #(
  integer j;
  function automatic [31:0] crc_byte(input [31:0] c, input [7:0] b);
    reg [31:0] x; integer i;
-   begin x=c ^ b; for(i=0;i<8;i=i+1) x=(x>>1) ^ (32'hedb88320 & {32{x[0]}}); crc_byte=x; end
+   begin x=c ^ {24'b0,b}; for(i=0;i<8;i=i+1) x=(x>>1) ^ (32'hedb88320 & {32{x[0]}}); crc_byte=x; end
  endfunction
  always @* begin
    case(section)
@@ -49,7 +49,7 @@ module ngage_loader #(
      if(mem_valid && mem_ready) issued<=1;
      if(pending && mem_done) begin pending<=0; issued<=0; end
      if(active && download && wr && !wait_req) begin
-       if(addr != position || addr[0] || failed) failed<=1;
+       if({5'b0,addr} != position || addr[0] || failed) failed<=1;
        else if(position < 128) begin
          h[position[6:1]]<=data;
          if(position==126) begin
