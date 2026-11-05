@@ -24,6 +24,8 @@ public:
     static std::map<unsigned, unsigned> parse_adc_inputs(const std::string& options);
     bool access(const BootBusRequest& request, uint32_t& data, std::string& device);
     void tick();
+    // Diagnostic comparison only: do not inject a synthetic card ATR.
+    void set_simif_no_atr(bool disabled) { simif_no_atr_ = disabled; }
     // Unit-0x60 compare match delivers FIQ, not IRQ (medint FIQ pump
     // 0x503851bc installed at [0x800004e4]; vector VA 0x1c reads it). Gated
     // by the FIQ-ICU bank-0 enable bit 3 (enable-set 0x0c1201c8, pump reads
@@ -59,6 +61,7 @@ public:
     void load_state(std::istream& in);
     const std::string& reason() const { return reason_; }
 private:
+    bool simif_no_atr_ = false; // runtime input, does not alter checkpoint format
     struct Bank { uint32_t address, size; size_t offset; };
     struct Latch { uint32_t value = 0, written = 0; uint8_t allowed = 15; };
     const std::vector<uint8_t>& rom_;

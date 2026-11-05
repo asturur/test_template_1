@@ -1084,7 +1084,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         if (request.select & 3) en &= ~(request.data & 0xffffu);
         if (request.select & 12) en |= (request.data >> 16) & 0xffffu;
     }
-    if (address == 0x0c150808 && request.write && (request.select & 3) &&
+    if (!simif_no_atr_ && address == 0x0c150808 && request.write && (request.select & 3) &&
         (request.data & 0xffffu) == 1 && !keypad_regs_[0x0ffffe0c]) {
         keypad_regs_[0x0ffffe0c] = 1; // inject once, after first RX setup
         keypad_regs_[0x0ffffe08] = 0x10;
@@ -1144,6 +1144,7 @@ bool BootProfile::access(const BootBusRequest& request, uint32_t& data, std::str
         save_card(card);
     }
     if (address == 0x0c15080c && !request.write && (request.select & 3)) {
+        if (simif_no_atr_) { data = 0; device = "probe_simif_no_atr"; return true; }
         auto &pos=keypad_regs_[0x0ffffe00];
         if (!keypad_regs_[0x0ffffe14]) data=pos++ == 0 ? 0x3b : 0;
         else {

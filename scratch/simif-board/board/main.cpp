@@ -77,6 +77,7 @@ int run(int argc, char** argv) {
         }
     }
     const std::string profile_name = argc >= 9 ? argv[8] : "none";
+    bool simif_no_atr = false;
     bool ideal_clocks = false, lcd_probe = false, compact_trace = false, boot_io_probe = false, allow_uif_8000 = false, allow_icu25 = false, gpio210_low_zero = false, gpio21a_zero = false, gpio216_zero = false, gpio214_low_zero = false, pupf004_low_zero = false, gpio206_extra_write = false, sysc74_write3 = false, gpio24_28_write1 = false, timer_compare_probe = false, sysc50_44_probe = false, icu1c8_probe = false, timer_periodic = false, block14d_probe = false, debug59_sink = false, nos_entry_stub = false, keypad_gpio = false, icu_banks = false, timer_units = false, cdrive_flash = false, unit60_irq3 = false, nos_periph4000 = false, uem_irq_source1 = false, module_trace = false, epbus_clkblk = false, uif102_write = false, cbus82_readback = false, cbus8d_zero = false, icu46_write = false, pupf00a_zero = false, sysc0c14_zero = false;
     std::vector<uint8_t> rom_tail, nos_image, cdrive_image, nos_iat_region;
     std::map<uint32_t,uint32_t> nos_iat;
@@ -115,6 +116,7 @@ int run(int argc, char** argv) {
         else if (std::string(argv[i]) == "nos-periph-4000") nos_periph4000 = true;
         else if (std::string(argv[i]) == "debug59-sink") debug59_sink = true;
         else if (std::string(argv[i]) == "nos-entry-stub") nos_entry_stub = true;
+        else if (std::string(argv[i]) == "simif-no-atr") simif_no_atr = true;
         else if (std::string(argv[i]) == "keypad-gpio") keypad_gpio = true;
         else if (std::string(argv[i]) == "icu-banks") icu_banks = true;
         else if (std::string(argv[i]) == "timer-units") timer_units = true;
@@ -253,6 +255,7 @@ int run(int argc, char** argv) {
     for (const auto& e : adc_extra) adc_all[e.first] = e.second;  // signature never sees these
     const int uem_power_eff = uem_power_extra >= 0 ? uem_power_extra : uem_power_status;
     if (profile_name != "none") board = std::make_unique<BootProfile>(rom, rom_bytes, profile_name, ideal_clocks, lcd_probe, rom_tail, boot_io_probe, adc_all, timer_irq_delay, uem_power_eff, uem_status36, uem_status35, extra_cbus_write, extra_cbus_write2, allow_uif_8000, allow_icu25, gpio210_low_zero, gpio21a_zero, gpio216_zero, uif102_write, cbus82_readback, cbus80_input, cbus8d_zero, icu46_write, pupf00a_zero, sysc0c14_zero, probe_regs, gpio214_low_zero, pupf004_low_zero, gpio206_extra_write, sysc74_write3, gpio24_28_write1, timer_compare_probe, sysc50_44_probe, icu1c8_probe, timer_periodic, block14d_probe, debug59_sink, cbus_inputs, nos_entry_stub, keypad_gpio, icu_banks, timer_units, cdrive_flash, unit60_irq3, nos_image, uem_irq_source1, epbus_clkblk, cdrive_image, nos_iat, nos_periph4000);
+    if (board) board->set_simif_no_atr(simif_no_atr);
     if (board && !nos_iat_region.empty()) board->set_nos_iat_region(std::move(nos_iat_region));
     if (board && watch_word >= 0) board->set_watch_word(uint32_t(watch_word));
     if (board && !pmm_image_path.empty()) {
