@@ -13,7 +13,7 @@ int main(){
  try{
  cfg(7);cmd(0x135);bus(false,0x0c150420,0,12);if(q!=0x05350000)throw std::runtime_error("status");bus(false,0x0c150424,0,12);if(q!=0x00180000)throw std::runtime_error("RTC status");
  cfg(7);cmd(0x39);payload(0x6800);cfg(7);cmd(0x13a);bus(false,0x0c150424,0,12);if(q!=0x02000000)throw std::runtime_error("ADC");
- 
+
  std::cout<<"PASS CBUS reference RTC and ADC\n";
  }catch(const std::exception&e){std::cerr<<e.what()<<"\n";return 1;}
 }
