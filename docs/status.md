@@ -1,3 +1,7 @@
+## 2026-11-05: tracing earlier GSS/SIM task startup
+
+`simif-gss-early` is replaying the validated fresh-card 176.8M CPU/host pair to 1B with selected PCs for GSS event 0xc012 handler, the GSS task-start batch, SMS task entry, ATKinf gate, SIM queue drain/pop and event 0x1280. Prior negative probes cover 1B–4B but not this earlier interval. The run preserves its 1B CPU/host pair and live captures under `build/sim/screens/boot-v15-simif-gss-early-live/`; do not modify its hashed inputs. Compare its actual hits and their ordering before attributing the pending SIM notification to an unstarted task.
+
 ## 2026-11-05: last synthetic SIM file is optional EF-OPL
 
 The [3GPP SIM-ME specification TS 51.011 v4.3.0 §10.3.42](https://www.etsi.org/deliver/etsi_ts/151000_151099/151011/04.03.00_60/ts_151011v040300p.pdf) identifies the synthetic card's last selected file 0x6fc6 as optional EF-OPL and requires its absence when EF-PNN is absent. The current synthetic profile also lacks EF-PNN (0x6fc5), so its file-not-found response is consistent with that particular standard condition. This does not validate the complete card/service-table profile or establish the cause of the pending SIM notification. See `docs/sim-presence.md`; continue investigating actual completion and the separate ADSP response path rather than returning generic success for optional files.
