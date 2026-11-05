@@ -9,11 +9,20 @@ set_global_assignment -name QIP_FILE rtl/pll.qip
 
 # N-Gage core modules
 set_global_assignment -name VERILOG_FILE rtl/ngage_mister.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_bram_be.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_descramble.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_flash_read_decode.v
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cflash.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_codeflash.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_dirty_tracker.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_sd_sector.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_sector_bridge.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_header.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_manager.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_modem.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cpu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_rom_map.sv

@@ -17,7 +17,7 @@ integer cycles=0, k, slot;
 wire av, ar, aw, rsp; wire [31:0] aa, ad, rv; wire [3:0] ab;
 ngage_ddr_arbiter arb(clk,reset,1'b0,mem_valid,ready,ma,md,be,done,
  1'b0,,1'b0,32'b0,32'b0,4'b0,,,
- av,ar,aw,aa,ad,ab,rsp,rv);
+ av,ar,aw,aa,ad,ab,rsp,rv,1'b1,);
 ngage_ddr_adapter adapter(clk,reset,av,ar,aw,aa,ad,ab,rsp,rv,
  ddr_addr,ddr_din,ddr_be,ddr_rd,ddr_we,busy,fake_out,fake_ready);
 always @(posedge clk) begin

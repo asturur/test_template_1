@@ -1,0 +1,45 @@
+`timescale 1ns/1ps
+module tb;
+reg clk=0;always #5 clk=~clk;reg reset=1,mount=0,dv=0,flush=0;reg [13:0] di=0;
+wire mounted,saving,saved,error,mv,mw;wire [31:0] ma,md,lba;wire [3:0] mb;reg m_done=0;reg [31:0] mr=0;
+wire rd,wr,ack;wire [12:0] ha;wire [15:0] hd;wire hwe;wire [15:0] hout;
+reg [31:0] ram[0:1064959];reg [15:0] disk[0:2130175];reg [15:0] header[0:255];
+reg [1:0] hs=0;reg hop_read=0;reg [8:0] idx=0;reg [31:0] held_lba=0;integer i;
+ngage_save_manager #(.SD_TIMEOUT(5000)) dut(clk,reset,mount,1'b0,64'd4260352,1'b1,2'd1,
+ 256'h24b589715a8ddf962b0d8974aec0651f1d3ab9a83888b524f481fff5cd2e8bbe,
+ 256'hf36c44302d1797f385c9f33f5c4f1e2b37247652ee21fc6408f00dc9390b6ecb,
+ dv,di,flush,mounted,saving,saved,error,,mv,1'b1,mw,ma,md,mb,m_done,mr,lba,rd,wr,ack,ha,hd,hwe,hout,1'b1);
+assign ack=hs==1;assign ha={4'b0,idx};assign hwe=hs==1 && hop_read;assign hd=disk[held_lba*256+idx];
+always @(posedge clk)begin
+ m_done<=0;
+ if(mv)begin
+  if(ma>=32'h31400000 && ma<32'h31800000)begin mr<=ram[(ma-32'h31400000)>>2];if(mw)ram[(ma-32'h31400000)>>2]<=md;end
+  else if(ma>=32'h31800000 && ma<32'h31810000)begin mr<=ram[1048576+((ma-32'h31800000)>>2)];if(mw)ram[1048576+((ma-32'h31800000)>>2)]<=md;end
+  else $fatal(1,"DDR address %h",ma);
+  m_done<=1;
+ end
+ case(hs)
+ 0:if(rd||wr)begin if(lba>8320)$fatal(1,"bad LBA");held_lba<=lba;hop_read<=rd;idx<=0;hs<=1;end
+ 1:begin if(!hop_read)disk[held_lba*256+idx]<=hout;if(idx==255)hs<=2;else idx<=idx+1'b1;end
+ 2:if(!rd && !wr)hs<=0;
+ endcase
+end
+task tick;begin @(posedge clk);#1;end endtask
+task mount_save;begin @(negedge clk);mount=1;tick();@(negedge clk);mount=0;wait(mounted||error);if(error)$fatal(1,"mount failed state=%d",dut.state);end endtask
+initial begin
+ $readmemh("build/sim/unit-save-manager/full_header.hex",header);
+ for(i=0;i<256;i=i+1)disk[i]=header[i];
+ for(i=0;i<2129920;i=i+1)disk[256+i]=(i ^ (i>>8) ^ 16'ha5c3);
+ for(i=0;i<1064960;i=i+1)ram[i]=0;
+ tick();reset=0;repeat(8330)tick();mount_save();
+ for(i=0;i<1064960;i=i+1)if(ram[i]!=={disk[257+i*2],disk[256+i*2]})$fatal(1,"initial restore word %d",i);
+ @(negedge clk);ram[1048575]=32'h01234567;di=8191;dv=1;tick();@(negedge clk);ram[1064959]=32'h89abcdef;di=8319;tick();@(negedge clk);dv=0;flush=1;tick();@(negedge clk);flush=0;
+ wait(saving);while(!saved && !error)tick();if(error||!saved)$fatal(1,"flush failed");
+ if(disk[256+2*1048575]!==16'h4567 || disk[256+2*1048575+1]!==16'h0123 || disk[256+2*1064959]!==16'hcdef || disk[256+2*1064959+1]!==16'h89ab)$fatal(1,"boundary sector save");
+ for(i=0;i<1064960;i=i+1)ram[i]=0;
+ mount_save();
+ for(i=0;i<1064960;i=i+1)if(ram[i]!=={disk[257+i*2],disk[256+i*2]})$fatal(1,"reload word %d",i);
+ $display("PASS full 4 MiB C: and 64 KiB PMM save/restore, last sectors and reload");$finish;
+end
+initial begin #2000000000;$fatal(1,"timeout state=%d cursor=%d",dut.state,dut.cursor);end
+endmodule

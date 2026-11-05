@@ -33,6 +33,10 @@ module ngage_mister (
     output wire [3:0]  ddram_be,
     input  wire [31:0] ddram_dout,
     input  wire        ddram_dout_ready,
+    input  wire        ddram_accept,
+    output wire        flash_dirty,
+    output wire [13:0] flash_dirty_sector,
+    output wire        flash_busy,
 
     // video out (toward sys video_mixer / scaler)
     output wire        ce_pix,
@@ -82,60 +86,56 @@ wire ram_hit, rom_hit, cdrive_hit, pmm_hit;
 wire [24:0] rom_offset;
 ngage_rom_map phone_map(pa, rom_hit, rom_offset, ram_hit, cdrive_hit, pmm_hit);
 wire flash_hit = rom_hit || cdrive_hit || pmm_hit;
-wire cs0_hit = pa < 32'h00700000;
-wire [31:0] flash_ddr_addr = 32'h30000000 +
-    (rom_hit ? {7'd0,rom_offset} : cdrive_hit ? (32'h01400000 + pa - 32'h02400000) :
-                         (32'h01800000 + pa - 32'h007f0000));
-
-// --- flash descrambler --------------------------------------------------
-// Active only for CS0 reads in [0xa000, 0x2b3000)
-wire in_scramble_window = cs0_hit && !wb_we &&
-                          (pa[22:0] >= 23'h00a000) &&
-                          (pa[22:0] <  23'h2b3000);
-
-wire [15:0] descr_plain;
-ngage_descramble descrambler (
-    .addr(pa[21:1]),
-    .cipher(wb_sel[1] ? ddram_dout[15:0] : ddram_dout[31:16]),
-    .plain(descr_plain)
-);
-
-// Descrambled data: replace the appropriate halfword
-wire [31:0] flash_data_raw = ddram_dout;
-wire [31:0] flash_data = in_scramble_window ?
-    // Both halfwords may need descrambling; apply to each independently
-    // The descrambler is instantiated once; for a full word read we'd need
-    // two instances or two cycles. For now: descramble the low halfword
-    // (most accesses are halfword or word-aligned pairs).
-    // TODO: dual-descrambler for full word reads
-    flash_data_raw : flash_data_raw;
-
-// --- bus return ---------------------------------------------------------
-// Priority: board devices > flash (DDR3) > RAM (SDRAM)
+// Flash request ownership is retained until the command or DDR operation
+// completes. The C: range has priority over the overlapping CS1 window.
 wire mem_req = wb_cyc && wb_stb && !brd_claim;
-
-assign sdram_addr = wb_adr[24:0];
-assign sdram_din  = wb_dat_o;
-assign sdram_be   = wb_sel;
-assign sdram_we   = ram_hit && wb_we && mem_req;
-assign sdram_req  = ram_hit && mem_req;
-
-assign ddram_addr = flash_ddr_addr;
-assign ddram_rd   = flash_hit && !wb_we && mem_req;
-assign ddram_wr   = 1'b0;                              // ROM is read-only from CPU
-assign ddram_din  = 32'd0;
-assign ddram_be   = wb_sel;
-
-// Acknowledge: board when ready (block-RAM reads take one wait state),
-// memory waits for its controller
-wire mem_ack = ram_hit   ? sdram_ack :
-               flash_hit ? ddram_dout_ready : 1'b0;
-
-assign wb_ack   = brd_claim ? brd_ready : mem_ack;
-assign wb_dat_i = brd_claim ? brd_dout :
-                  flash_hit ? flash_data :
-                              sdram_dout;
-assign wb_err   = mem_req && ((!ram_hit && !flash_hit) || (flash_hit && wb_we));
+reg flash_issued = 0;
+wire code_ready,code_rsp,code_err,cm_valid,cm_write,cm_ready,cm_done,code_dirty,code_pending;
+wire [31:0] code_data,cm_addr,cm_data;wire [3:0] cm_be;wire [13:0] code_dirty_sector;
+wire user_ready,user_rsp,user_err,um_valid,um_write,um_ready,um_done,user_dirty,user_pending;
+wire [31:0] user_data,um_addr,um_data;wire [3:0] um_be;wire [12:0] user_dirty_sector;
+wire flash_start = mem_req && flash_hit && !flash_issued;
+wire flash_response = code_rsp || user_rsp;
+always @(posedge clk_sys) begin
+ if(reset) flash_issued<=0;
+ else begin
+  if(flash_start && (cdrive_hit ? user_ready : code_ready)) flash_issued<=1;
+  if(flash_response) flash_issued<=0;
+ end
+end
+ngage_codeflash code_flash(
+ .clk(clk_sys),.reset(reset),.req_valid(flash_start && !cdrive_hit),.req_ready(code_ready),
+ .req_write(wb_we),.req_address(pa),.req_data(wb_dat_o),.req_be(wb_sel),
+ .rsp_valid(code_rsp),.rsp_error(code_err),.rsp_data(code_data),
+ .mem_valid(cm_valid),.mem_ready(cm_ready),.mem_write(cm_write),.mem_addr(cm_addr),.mem_data(cm_data),.mem_be(cm_be),
+ .mem_done(cm_done),.mem_rdata(ddram_dout),.dirty_valid(code_dirty),.dirty_sector(code_dirty_sector),.pending(code_pending)
+);
+ngage_cflash user_flash(
+ .clk(clk_sys),.reset(reset),.req_valid(flash_start && cdrive_hit),.req_ready(user_ready),
+ .req_write(wb_we),.req_offset(pa[21:0]),.req_data(wb_dat_o),.req_be(wb_sel),
+ .rsp_valid(user_rsp),.rsp_error(user_err),.rsp_data(user_data),
+ .mem_valid(um_valid),.mem_ready(um_ready),.mem_write(um_write),.mem_addr(um_addr),.mem_wdata(um_data),.mem_be(um_be),
+ .mem_done(um_done),.mem_rdata(ddram_dout),.dirty_valid(user_dirty),.dirty_sector(user_dirty_sector),.pending(user_pending)
+);
+reg mem_owner_user=0;
+always @(posedge clk_sys) if(ddram_accept && (cm_valid || um_valid)) mem_owner_user<=um_valid;
+assign cm_ready=ddram_accept && cm_valid; assign um_ready=ddram_accept && um_valid;
+assign cm_done=ddram_dout_ready && !mem_owner_user; assign um_done=ddram_dout_ready && mem_owner_user;
+assign ddram_addr=um_valid ? um_addr : cm_addr;
+assign ddram_din=um_valid ? um_data : cm_data;
+assign ddram_be=um_valid ? um_be : cm_be;
+assign ddram_wr=(um_valid && um_write) || (cm_valid && cm_write);
+assign ddram_rd=(um_valid && !um_write) || (cm_valid && !cm_write);
+assign flash_busy=flash_issued || code_pending || user_pending;
+assign flash_dirty=code_dirty || user_dirty;
+assign flash_dirty_sector=user_dirty ? {1'b0,user_dirty_sector} : code_dirty_sector;
+assign sdram_addr=wb_adr[24:0];assign sdram_din=wb_dat_o;assign sdram_be=wb_sel;
+assign sdram_we=ram_hit && wb_we && mem_req;assign sdram_req=ram_hit && mem_req;
+wire flash_error=(code_rsp && code_err) || (user_rsp && user_err);
+wire mem_ack=ram_hit ? sdram_ack : flash_hit ? (flash_response && !flash_error) : 1'b0;
+assign wb_ack=brd_claim ? brd_ready : mem_ack;
+assign wb_dat_i=brd_claim ? brd_dout : flash_hit ? (user_rsp ? user_data : code_data) : sdram_dout;
+assign wb_err=!brd_claim && (flash_error || (mem_req && !ram_hit && !flash_hit));
 
 assign irq_line = 1'b0;   // TODO: from ngage_board once timers/ICU migrate
 assign fiq_line = 1'b0;

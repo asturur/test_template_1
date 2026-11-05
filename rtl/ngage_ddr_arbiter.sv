@@ -9,13 +9,14 @@ module ngage_ddr_arbiter(
  output wire c_done, output wire [31:0] c_rdata,
  output wire req_valid, input wire req_ready, output wire req_write,
  output wire [31:0] req_addr, output wire [31:0] req_data, output wire [3:0] req_be,
- input wire rsp_valid, input wire [31:0] rsp_data
+ input wire rsp_valid, input wire [31:0] rsp_data,
+ input wire l_write, output wire [31:0] l_rdata
 );
  reg outstanding=0, owner=0, prefer_cpu=0;
  wire choose_cpu = c_valid && (cpu_lock || !l_valid || prefer_cpu);
  wire choose_loader = l_valid && !cpu_lock && !choose_cpu;
  assign req_valid = !outstanding && (choose_cpu || choose_loader);
- assign req_write = choose_cpu ? c_write : 1'b1;
+ assign req_write = choose_cpu ? c_write : l_write;
  assign req_addr = choose_cpu ? c_addr : l_addr;
  assign req_data = choose_cpu ? c_data : l_data;
  assign req_be = choose_cpu ? c_be : l_be;
@@ -24,6 +25,7 @@ module ngage_ddr_arbiter(
  assign c_done = outstanding && owner && rsp_valid;
  assign l_done = outstanding && !owner && rsp_valid;
  assign c_rdata = rsp_data;
+ assign l_rdata = rsp_data;
  always @(posedge clk) begin
   if (reset) begin outstanding<=0; owner<=0; prefer_cpu<=0; end
   else begin

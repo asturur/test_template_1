@@ -37,3 +37,5 @@ approaches that would otherwise be tempting to retry; do not rerun expensive
 checks just to reconstruct already documented results.
 
 - [MiSTer SDRAM transport and verification](mister-sdram.md)
+
+- [MiSTer flash and working save](mister-flash-save.md)

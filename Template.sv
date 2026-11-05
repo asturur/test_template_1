@@ -48,6 +48,8 @@ localparam CONF_STR = {
 	"O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"-;",
 	"F0,NGB,Load firmware bundle;",
+	"S0,NGA,Mount working save;",
+	"T[14],Flush working save;",
 	"-;",
 	"-;",
 	"T[0],Reset;",
@@ -92,6 +94,9 @@ hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
 	.ioctl_dout(ioctl_dout),
 	.ioctl_index(ioctl_index),
 	.ioctl_wait(ioctl_wait),
+ .img_mounted(img_mounted), .img_readonly(img_readonly), .img_size(img_size),
+ .sd_lba(sd_lba), .sd_blk_cnt(sd_blk_cnt), .sd_rd(sd_rd), .sd_wr(sd_wr), .sd_ack(sd_ack),
+ .sd_buff_addr(sd_buff_addr), .sd_buff_dout(sd_buff_dout), .sd_buff_din(sd_buff_din), .sd_buff_wr(sd_buff_wr),
 
 	// C: drive save (upload DDR3 → SD card)
 	.ioctl_upload(ioctl_upload),
@@ -119,9 +124,16 @@ pll pll
 // Keep the phone CPU held during transport bring-up. SDRAM and board
 // initialization are not yet safe to boot (milestone 2 and later).
 wire transport_reset = ~pll_locked;
-wire phone_reset = RESET | status[0] | buttons[1] | ~pll_locked;
-wire reset = phone_reset | !loader_valid | !sdram_scrub_done | 1'b1;
+wire phone_reset;
+ngage_reset_gate phone_reset_gate(.clk(clk_sys), .cold_reset(transport_reset),
+ .reset_request(RESET | status[0] | buttons[1]), .block_reset(save_saving || save_busy), .phone_reset(phone_reset));
+wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !save_mounted | 1'b1;
 wire ioctl_upload, ioctl_rd;
+wire [0:0] img_mounted,sd_rd,sd_wr,sd_ack;
+wire img_readonly;wire [63:0] img_size;
+wire [31:0] sd_lba[1];wire [5:0] sd_blk_cnt[1];
+wire [12:0] sd_buff_addr;wire [15:0] sd_buff_dout;wire [15:0] sd_buff_din[1];wire sd_buff_wr;
+assign sd_blk_cnt[0]=0;
 
 ///////////////////////   SDRAM   ////////////////////////////////
 
@@ -249,38 +261,58 @@ jtframe_sdram64 #(
 // prohibited until checked against the installed Main/Linux memory map.
 assign DDRAM_CLK = clk_sys;
 assign DDRAM_BURSTCNT = 8'd1;
-wire loader_valid, loader_failed;
+wire loader_valid, loader_failed, loader_known_firmware;
+wire [1:0] loader_profile;
 wire load_req, load_ready, load_done;
 wire [31:0] load_addr, load_data;
 wire [3:0] load_be;
-wire bundle_download = ioctl_download && ioctl_index == 0;
+wire save_mounted,save_saving,save_saved,save_error,save_busy;
+// Do not replace backing memory while a save is mounted or being processed.
+wire bundle_download = ioctl_download && ioctl_index == 0 && !save_mounted && !save_busy && !save_error;
+reg blocked_load=0;
+always @(posedge clk_sys) begin
+ if(transport_reset) blocked_load<=0;
+ else if(ioctl_download && ioctl_index==0 && !bundle_download) blocked_load<=1;
+ else if(bundle_download) blocked_load<=0;
+end
 ngage_loader loader (
  .clk(clk_sys), .reset(transport_reset), .download(bundle_download),
  .wr(ioctl_wr), .addr(ioctl_addr), .data(ioctl_dout), .wait_req(ioctl_wait),
  .valid(loader_valid), .failed(loader_failed),
  .mem_valid(load_req), .mem_ready(load_ready), .mem_addr(load_addr),
- .mem_data(load_data), .mem_be(load_be), .mem_done(load_done)
+ .mem_data(load_data), .mem_be(load_be), .mem_done(load_done),
+ .image_profile(loader_profile), .known_firmware(loader_known_firmware)
 );
 wire [31:0] core_ddr_addr;
-wire core_ddr_rd;
+wire core_ddr_rd, core_ddr_wr;
+wire [31:0] core_ddr_din;
+wire [3:0] core_ddr_be;
+wire flash_dirty,flash_busy;
+wire [13:0] flash_dirty_sector;
 wire [31:0] core_ddr_dout;
 wire core_ddr_ready;
 wire arb_valid, arb_ready, arb_write, arb_rsp;
 wire [31:0] arb_addr, arb_data, arb_rdata;
 wire [3:0] arb_be;
 wire core_accept;
-reg core_inflight = 0;
-// The legacy core presents a level request; accept each request only once.
-always @(posedge clk_sys) begin
- if (reset) core_inflight <= 0;
- else if (!core_ddr_rd) core_inflight <= 0;
- else if (core_accept) core_inflight <= 1;
-end
+// Flash modules retain a request until core_accept, and drain accepted
+// operations across phone reset. Do not gate their backing traffic on reset.
+// The first arbiter shares the loader and save engine; the second shares
+// their registered transaction stream with the phone while honoring SWP lock.
+wire save_mem_valid,save_mem_ready,save_mem_write,save_mem_done;
+wire [31:0] save_mem_addr,save_mem_data,save_mem_rdata;wire [3:0] save_mem_be;
+wire aux_valid,aux_ready,aux_write,aux_done;wire [31:0] aux_addr,aux_data,aux_rdata;wire [3:0] aux_be;
+ngage_ddr_arbiter auxiliary_arbiter (
+ .clk(clk_sys), .reset(transport_reset), .cpu_lock(1'b0),
+ .l_valid(load_req), .l_ready(load_ready), .l_addr(load_addr), .l_data(load_data), .l_be(load_be), .l_done(load_done), .l_write(1'b1), .l_rdata(),
+ .c_valid(save_mem_valid), .c_ready(save_mem_ready), .c_write(save_mem_write), .c_addr(save_mem_addr), .c_data(save_mem_data), .c_be(save_mem_be), .c_done(save_mem_done), .c_rdata(save_mem_rdata),
+ .req_valid(aux_valid), .req_ready(aux_ready), .req_write(aux_write), .req_addr(aux_addr), .req_data(aux_data), .req_be(aux_be), .rsp_valid(aux_done), .rsp_data(aux_rdata)
+);
 ngage_ddr_arbiter ddr_arbiter (
  .clk(clk_sys), .reset(transport_reset), .cpu_lock(cpu_bus_lock && !reset),
- .l_valid(load_req), .l_ready(load_ready), .l_addr(load_addr), .l_data(load_data), .l_be(load_be), .l_done(load_done),
- .c_valid(core_ddr_rd && !core_inflight && !reset), .c_ready(core_accept), .c_write(1'b0),
- .c_addr(core_ddr_addr), .c_data(32'd0), .c_be(4'hf), .c_done(core_ddr_ready), .c_rdata(core_ddr_dout),
+ .l_valid(aux_valid), .l_ready(aux_ready), .l_addr(aux_addr), .l_data(aux_data), .l_be(aux_be), .l_done(aux_done), .l_write(aux_write), .l_rdata(aux_rdata),
+ .c_valid(core_ddr_rd || core_ddr_wr), .c_ready(core_accept), .c_write(core_ddr_wr),
+ .c_addr(core_ddr_addr), .c_data(core_ddr_din), .c_be(core_ddr_be), .c_done(core_ddr_ready), .c_rdata(core_ddr_dout),
  .req_valid(arb_valid), .req_ready(arb_ready), .req_write(arb_write),
  .req_addr(arb_addr), .req_data(arb_data), .req_be(arb_be), .rsp_valid(arb_rsp), .rsp_data(arb_rdata)
 );
@@ -290,6 +322,24 @@ ngage_ddr_adapter ddr_adapter (
  .rsp_valid(arb_rsp), .rsp_data(arb_rdata), .ddr_addr(DDRAM_ADDR), .ddr_din(DDRAM_DIN),
  .ddr_be(DDRAM_BE), .ddr_rd(DDRAM_RD), .ddr_we(DDRAM_WE), .ddr_busy(DDRAM_BUSY),
  .ddr_dout(DDRAM_DOUT), .ddr_dout_ready(DDRAM_DOUT_READY)
+);
+
+// Only the audited stock core/extension are currently supported. The loader
+// verifies their CRCs; these SHA values bind the mounted save header to that
+// profile but are not computed in FPGA (CRC is not cryptographic identity).
+reg flush_prev=0;
+always @(posedge clk_sys) flush_prev<=status[14];
+ngage_save_manager saves (
+ .clk(clk_sys), .reset(transport_reset), .mount(img_mounted[0]), .readonly_image(img_readonly), .image_size(img_size),
+ .bundle_verified(loader_valid && loader_known_firmware && !ioctl_download), .profile(loader_profile),
+ .core_sha_le(256'h24b589715a8ddf962b0d8974aec0651f1d3ab9a83888b524f481fff5cd2e8bbe),
+ .extension_sha_le(256'hf36c44302d1797f385c9f33f5c4f1e2b37247652ee21fc6408f00dc9390b6ecb),
+ .dirty_valid(flash_dirty), .dirty_sector(flash_dirty_sector), .flush_start(status[14] && !flush_prev),
+ .mounted(save_mounted), .saving(save_saving), .saved(save_saved), .error(save_error), .busy(save_busy),
+ .mem_valid(save_mem_valid), .mem_ready(save_mem_ready), .mem_write(save_mem_write), .mem_addr(save_mem_addr),
+ .mem_data(save_mem_data), .mem_be(save_mem_be), .mem_done(save_mem_done), .mem_rdata(save_mem_rdata),
+ .sd_lba(sd_lba[0]), .sd_rd(sd_rd[0]), .sd_wr(sd_wr[0]), .sd_ack(sd_ack[0]),
+ .hps_addr(sd_buff_addr), .hps_dout(sd_buff_dout), .hps_we(sd_buff_wr), .hps_din(sd_buff_din[0]), .flash_quiescent(!flash_busy)
 );
 
 ///////////////////////   CORE   /////////////////////////////////
@@ -315,11 +365,15 @@ ngage_mister core (
 	// DDR3 (flash reads)
 	.ddram_addr    (core_ddr_addr),
 	.ddram_rd      (core_ddr_rd),
-	.ddram_wr      (),
-	.ddram_din     (),
-	.ddram_be      (),
+	.ddram_wr      (core_ddr_wr),
+	.ddram_din     (core_ddr_din),
+	.ddram_be      (core_ddr_be),
 	.ddram_dout    (core_ddr_dout),
 	.ddram_dout_ready(core_ddr_ready),
+	.ddram_accept (core_accept),
+	.flash_dirty (flash_dirty),
+	.flash_dirty_sector (flash_dirty_sector),
+	.flash_busy (flash_busy),
 
 	// video
 	.ce_pix        (core_ce_pix),
@@ -353,6 +407,6 @@ assign VGA_B  = {core_rgb[ 3:0], core_rgb[ 3:0]};
 
 reg [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-assign LED_USER = loader_failed ? act_cnt[24] : (bundle_download ? act_cnt[22] : loader_valid);
+assign LED_USER = (loader_failed || save_error || blocked_load) ? act_cnt[22] : (bundle_download || save_saving || save_busy) ? act_cnt[25] : (save_mounted && save_saved);
 
 endmodule

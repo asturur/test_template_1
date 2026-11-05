@@ -42,7 +42,7 @@ int main(int argc,char** argv) {
   } else { d.wr=0; if(pos==image.size() && started && !d.wait_req) {d.download=0; ended=true;} }
   tick();
  }
- if(!ended || !d.valid || d.failed || pos!=image.size()) throw std::runtime_error("loader rejected full image");
+ if(!ended || !d.valid || d.failed || !d.known_firmware || d.image_profile!=1 || pos!=image.size()) throw std::runtime_error("loader rejected full image");
  size_t src=128;
  // Issue CPU-side DDR reads for every word. The arbiter and adapter must return
  // exactly the bytes streamed in, including both halves of each 64-bit beat.

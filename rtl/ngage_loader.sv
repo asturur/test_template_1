@@ -9,7 +9,7 @@ module ngage_loader #(
  input wire download, input wire wr, input wire [26:0] addr, input wire [15:0] data,
  output wire wait_req, output reg valid=0, output reg failed=0,
  output wire mem_valid, input wire mem_ready, output wire [31:0] mem_addr,
- output wire [31:0] mem_data, output wire [3:0] mem_be, input wire mem_done);
+ output wire [31:0] mem_data, output wire [3:0] mem_be, input wire mem_done, output reg [1:0] image_profile=0, output reg known_firmware=0);
  reg prev=0, active=0, pending=0, issued=0;
  reg [31:0] position=0, section_pos=0, crc=32'hffffffff;
  reg [1:0] section=0;
@@ -41,10 +41,10 @@ module ngage_loader #(
  always @(posedge clk) begin
    prev <= download;
    if(reset) begin
-     active<=0; pending<=0; issued<=0; valid<=0; failed<=0; position<=0; prev<=0;
+     active<=0; pending<=0; issued<=0; valid<=0; failed<=0; position<=0; prev<=0; image_profile<=0;known_firmware<=0;
    end else begin
      if(download && !prev) begin
-       active<=1; valid<=0; failed<=pending; position<=0; section_pos<=0; section<=0; crc<=32'hffffffff;
+       active<=1; valid<=0; failed<=pending; position<=0; section_pos<=0; section<=0; crc<=32'hffffffff; image_profile<=0;known_firmware<=0;
      end
      if(mem_valid && mem_ready) issued<=1;
      if(pending && mem_done) begin pending<=0; issued<=0; end
@@ -64,6 +64,11 @@ module ngage_loader #(
                {h[31],h[30]}!=32'h1800000 || {h[33],h[32]}!=PMM_LEN || data!=0)
              failed<=1;
            for(j=36;j<63;j=j+1) if(h[j]!=0) failed<=1;
+           image_profile<=h[6][1:0];
+           // Only the audited stock inputs have a corresponding save profile.
+           // CRC verifies transfer integrity but is not a cryptographic hash.
+           known_firmware<=CORE_LEN==32'h11c0000 && EXT_LEN==32'h230000 &&
+               {h[17],h[16]}==32'h9bf61548 && {h[23],h[22]}==32'h354de3e8;
            expected_crc[0]<={h[17],h[16]}; expected_crc[1]<={h[23],h[22]};
            expected_crc[2]<={h[29],h[28]}; expected_crc[3]<={h[35],h[34]};
          end
