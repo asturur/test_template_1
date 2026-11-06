@@ -1,3 +1,7 @@
+## 2026-11-06: MDI stalled-read side effect
+
+A directed MDI test now verifies that a stalled, uncommitted pointer read does not mark the pointer initialized, while the accepted read does. This covers a read-side effect across bus stalls alongside the LCD transport stall fixture. The MDI test passes.
+
 ## 2026-11-06: LCD transport and retained-trace inventory
 
 A new Verilog-2001 LCD transport fixture compares accepted and rejected command sequences, status/readback data, header reset and stalled/uncommitted accesses against both C++ boards (`tests/phone/lcd_transport/run.sh`). Both pass. This validates the existing bus sink only; framebuffer, DMA and video are milestone 6 work and remain absent.

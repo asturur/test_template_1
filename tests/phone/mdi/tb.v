@@ -9,7 +9,13 @@ task wr;input [31:0] a,d;input [3:0] b;begin @(negedge clk);req=1;we=1;commit=1;
 task beat;begin @(negedge clk);slow_tick=1;tick();@(negedge clk);slow_tick=0;end endtask
 task rd;input [31:0] a,expected;begin @(negedge clk);req=1;we=0;addr=a;sel=15;#1;if(!claim||bad||dout!==expected)$fatal(1,"read %h got %h expected %h",a,dout,expected);@(negedge clk);req=0;end endtask
 initial begin
- tick();reset=0;wr('h0c14b004,'h500,15);wr('h0c1003e8,'h00000002,15);wr('h0c1003ec,0,15);
+ tick();reset=0;
+ // Stalled reads must not mark ring pointers as initialized.
+ @(negedge clk);req=1;we=0;commit=0;addr='h0c1003e8;sel=15;repeat(3)tick();
+ if(dut.pointers_seen)$fatal(1,"stalled read changed pointer state");
+ commit=1;tick();if(!dut.pointers_seen)$fatal(1,"committed read did not set pointer state");
+ @(negedge clk);req=0;commit=0;
+ wr('h0c14b004,'h500,15);wr('h0c1003e8,'h00000002,15);wr('h0c1003ec,0,15);
  beat();if(!sampled_events[9])$fatal(1,"M2D not consumed");rd('h0c1003e8,'h00020002);
  repeat(19)beat();if(sampled_events[10])$fatal(1,"early announcement");beat();if(!sampled_events[10])$fatal(1,"missing announcement");
  rd('h0c1001f4,'h7cd00000);rd('h0c1001f8,'h04000001);rd('h0c1003ec,4);beat();if(sampled_events[10])$fatal(1,"repeated announcement");
