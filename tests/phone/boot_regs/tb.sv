@@ -11,6 +11,9 @@ initial begin
  sel=15;#1;if(!bad)$fatal(1,"unwritten scratch upper half");
  we=1;din='h12345678;commit=1;tick();we=0;commit=0;#1;if(bad||dout!=='h12345678)$fatal(1,"scratch word");
  addr='h0c0047fc;#1;if(claim)$fatal(1,"scratch boundary");
+ addr='h0c120018;sel=15;we=0;#1;if(!claim||!bad)$fatal(1,"unwritten clock latch");
+ we=1;din='h76543210;commit=1;tick();we=0;commit=0;#1;if(bad||dout!=='h76543210)$fatal(1,"clock latch round trip");
+ addr='h0c120034;#1;if(!bad)$fatal(1,"clock latches alias");
  $display("PASS boot latches and executable scratch validity");$finish;
 end
 endmodule

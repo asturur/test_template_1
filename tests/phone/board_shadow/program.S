@@ -38,6 +38,18 @@ _start:
  ldr r2,[r0]
  cmp r1,r2
  bne fail
+ ldr r0,=0x0c120604
+ ldr r1,=0x13572468
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
+ ldr r0,=0x0c120354
+ ldr r1,=0x0a123456
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
  ldr r0,=0x0c14b000
  ldr r2,[r0]
  tst r2,#0x80

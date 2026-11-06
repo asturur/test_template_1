@@ -14,14 +14,23 @@ struct.pack_into('<IIII',b,0x838,0,4096,1,0)
 struct.pack_into('<IIII',b,0x848,0x0a000000,0x10000,2,0)
 open(p,'wb').write(b)
 PYROM
-# The CPU intentionally ends in a self-loop; timeout is not test success by itself.
-docker run --rm --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint /work/build/sim/obj-current-hdl-board/Vngage_cpu_sim jotego/simulator:arm64 /work/"$out"/program.bin 10000 3 /work/"$out"/trace.tsv /work/"$out"/bus.tsv /work/"$out"/cp15.tsv /work/"$out"/result.json amd16 ideal-clocks boot-io-probe keypad-gpio > "$out/run.log" 2>&1 || true
+# Test both comparison mode and exclusive HDL peripheral ownership.
 good=$(arm-none-eabi-nm "$out/program.elf" | awk '$3 == "good" {print $1}')
-python3 - "$out/result.json" "$good" <<'PY'
+for mode in shadow exclusive; do
+ option=""
+ if [ "$mode" = exclusive ]; then option=hdl-exclusive; fi
+ docker run --rm --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint /work/build/sim/obj-current-hdl-board/Vngage_cpu_sim jotego/simulator:arm64 /work/"$out"/program.bin 10000 3 /work/"$out"/"$mode"-trace.tsv /work/"$out"/"$mode"-bus.tsv /work/"$out"/"$mode"-cp15.tsv /work/"$out"/"$mode"-result.json amd16 ideal-clocks boot-io-probe keypad-gpio epbus-clkblk icu-banks $option > "$out/$mode-run.log" 2>&1 || true
+ python3 - "$out/$mode-result.json" "$good" "$mode" <<'PYTEST'
 import json,sys
-r=json.load(open(sys.argv[1]))
-assert r['status'] == 'firmware_loop',r
-assert r['hdl_board_claims'] == 14,r
-assert r['blocked_address'] == int(sys.argv[2],16),r
-print('PASS CPU/C++/HDL shadow bus transactions and stalled accesses')
-PY
+r=json.load(open(sys.argv[1])); mode=sys.argv[3]
+assert r['status'] == 'firmware_loop',r['status']
+assert r['hdl_board_claims'] == 18,r['hdl_board_claims']
+assert r['blocked_address'] == int(sys.argv[2],16),hex(r['blocked_address'])
+assert r['hdl_exclusive'] == (mode=='exclusive')
+if mode=='exclusive':
+ assert r['hdl_memory_fallbacks']>0
+ assert r['boot_profile']['ideal_boot_cbus_transactions']==0
+ assert r['boot_profile']['keypad_registers']==0
+print('PASS CPU board '+mode+' ownership and stalled transactions')
+PYTEST
+done

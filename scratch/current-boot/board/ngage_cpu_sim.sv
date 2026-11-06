@@ -5,7 +5,9 @@ module ngage_cpu_sim (
 `ifdef NGAGE_HDL_BOARD
     input wire i_board_cold_reset, i_bus_commit, i_cfg_lcd, i_cfg_keypad, i_cfg_clocks,
     output wire o_board_claim, o_board_ready, o_board_unmodeled, o_board_init_done,
-    output wire o_board_irq, o_board_fiq,
+    output wire o_board_irq, o_board_fiq, o_board_trace_valid,
+    output wire [31:0] o_board_trace_addr, o_board_trace_data,
+    output wire [3:0] o_board_trace_sel,
     output wire [31:0] o_board_dout,
 `endif
     input  logic          i_irq,
@@ -50,7 +52,8 @@ module ngage_cpu_sim (
         .cfg_lcd(i_cfg_lcd), .cfg_keypad(i_cfg_keypad), .cfg_clocks(i_cfg_clocks),
         .claim(o_board_claim), .ready(o_board_ready), .dout(o_board_dout),
         .unmodeled(o_board_unmodeled), .irq(o_board_irq), .fiq(o_board_fiq),
-        .init_done(o_board_init_done), .trace_valid(), .trace_addr(), .trace_data(), .trace_sel());
+        .init_done(o_board_init_done), .trace_valid(o_board_trace_valid),
+        .trace_addr(o_board_trace_addr), .trace_data(o_board_trace_data), .trace_sel(o_board_trace_sel));
 `endif
     // Simulation-only observation of the decision before its active edge.
     assign o_branch_valid = cpu.u_zap.u_zap_core.u_zap_alu_main.branch_instruction &&

@@ -77,6 +77,7 @@ int run(int argc, char** argv) {
         }
     }
     const std::string profile_name = argc >= 9 ? argv[8] : "none";
+    bool hdl_exclusive = false;
     bool ideal_clocks = false, lcd_probe = false, compact_trace = false, boot_io_probe = false, allow_uif_8000 = false, allow_icu25 = false, gpio210_low_zero = false, gpio21a_zero = false, gpio216_zero = false, gpio214_low_zero = false, pupf004_low_zero = false, gpio206_extra_write = false, sysc74_write3 = false, gpio24_28_write1 = false, timer_compare_probe = false, sysc50_44_probe = false, icu1c8_probe = false, timer_periodic = false, block14d_probe = false, debug59_sink = false, nos_entry_stub = false, keypad_gpio = false, icu_banks = false, timer_units = false, cdrive_flash = false, unit60_irq3 = false, nos_periph4000 = false, uem_irq_source1 = false, module_trace = false, epbus_clkblk = false, uif102_write = false, cbus82_readback = false, cbus8d_zero = false, icu46_write = false, pupf00a_zero = false, sysc0c14_zero = false;
     std::vector<uint8_t> rom_tail, nos_image, cdrive_image, nos_iat_region;
     std::map<uint32_t,uint32_t> nos_iat;
@@ -94,7 +95,14 @@ int run(int argc, char** argv) {
     std::string checkpoint_path, restore_path;
     int uem_power_status = -1, uem_status36 = -1, uem_status35 = -1, extra_cbus_write = -1, extra_cbus_write2 = -1, cbus80_input = -1;
     for (int i = 9; i < argc; ++i) {
-        if (std::string(argv[i]) == "ideal-clocks") ideal_clocks = true;
+        if (std::string(argv[i]) == "hdl-exclusive") {
+#ifdef NGAGE_HDL_BOARD
+            hdl_exclusive = true;
+#else
+            throw std::runtime_error("hdl-exclusive requires an HDL board build");
+#endif
+        }
+        else if (std::string(argv[i]) == "ideal-clocks") ideal_clocks = true;
         else if (std::string(argv[i]) == "lcd-probe") lcd_probe = true;
         else if (std::string(argv[i]) == "boot-io-probe") boot_io_probe = true;
         else if (std::string(argv[i]) == "uif-write-8000") allow_uif_8000 = true;
@@ -265,6 +273,7 @@ int run(int argc, char** argv) {
     if (board && !rom_va_map.empty()) board->set_phys2dump(std::move(rom_va_map));
     rom.resize(std::max<size_t>(65536, (rom.size() + 63) & ~size_t(63)), 0);
     std::vector<uint8_t> ram(4 * 1024 * 1024, 0);
+    if (hdl_exclusive && !board) throw std::runtime_error("hdl-exclusive requires a boot profile");
     std::array<uint32_t, 16> mailbox{};
     const uint64_t limit = std::stoull(argv[2]);
     const unsigned latency = std::stoul(argv[3]);
@@ -326,7 +335,12 @@ int run(int argc, char** argv) {
     uint32_t blocked_address = 0;
     uint64_t fetch_faults = 0;
 #ifdef NGAGE_HDL_BOARD
-    uint64_t hdl_claims = 0;
+    uint64_t hdl_claims = 0, hdl_memory_fallbacks = 0, hdl_trace_events = 0;
+    const std::string hdl_trace_path = (slash == std::string::npos ? "" : bus_path.substr(0, slash+1)) + "hdl-board-trace.tsv";
+    std::ofstream hdl_trace_log(hdl_trace_path);
+    if (!hdl_trace_log) throw std::runtime_error("cannot create HDL trace log");
+    hdl_trace_log << "cycle\taddress\tdata\tlanes\n";
+    std::map<std::string, uint64_t> hdl_fallback_devices;
 #endif
     bool mmu_seen = false;
     unsigned self_loop_count = 0;
@@ -342,7 +356,7 @@ int run(int argc, char** argv) {
     for (auto x:rom_tail) sig_byte(x);
     for (char x:profile_name) sig_byte(x);
     auto sig_raw=[&](const auto& v){const auto* p=reinterpret_cast<const uint8_t*>(&v);for(size_t i=0;i<sizeof(v);++i)sig_byte(p[i]);};
-    sig_raw(ideal_clocks);sig_raw(lcd_probe);sig_raw(boot_io_probe);sig_raw(timer_irq_delay);
+    if (hdl_exclusive) sig_raw(hdl_exclusive);sig_raw(ideal_clocks);sig_raw(lcd_probe);sig_raw(boot_io_probe);sig_raw(timer_irq_delay);
     sig_raw(uem_power_status);sig_raw(uem_status36);sig_raw(uem_status35);sig_raw(latency);
     for(const auto& e:adc_inputs){sig_raw(e.first);sig_raw(e.second);}
     auto save_host = [&](std::ostream& out) {
@@ -375,6 +389,9 @@ int run(int argc, char** argv) {
         cpu->i_clk = 0;
         cpu->i_irq = board && board->timer_irq();
         cpu->i_fiq = board && board->unit60_fiq();
+#ifdef NGAGE_HDL_BOARD
+        if (hdl_exclusive) { cpu->i_irq = cpu->o_board_irq; cpu->i_fiq = cpu->o_board_fiq; }
+#endif
         cpu->i_wb_ack = 0;
         cpu->i_wb_err = 0;
 #ifdef NGAGE_HDL_BOARD
@@ -411,7 +428,8 @@ int run(int argc, char** argv) {
             const bool hdl_claim = cpu->o_board_claim;
             const bool hdl_unmodeled = cpu->o_board_unmodeled;
             const uint32_t hdl_data = cpu->o_board_dout;
-            if (hdl_claim && hdl_unmodeled) {
+            const bool hdl_fetch_fault = hdl_claim && hdl_unmodeled && request.code && !request.write;
+            if (hdl_claim && hdl_unmodeled && !hdl_fetch_fault) {
                 status = "unmapped_access";
                 blocked_address = request.address;
                 blocked_reason = "HDL board: claimed but unmodeled access";
@@ -422,6 +440,22 @@ int run(int argc, char** argv) {
             }
 #endif
             if (board) {
+#ifdef NGAGE_HDL_BOARD
+                if (hdl_exclusive && hdl_claim) {
+                    data = hdl_data;
+                    bus_fault = hdl_fetch_fault;
+                    device = hdl_fetch_fault ? "hdl_fetch_fault" : "hdl_board";
+                    ++hdl_claims;
+                } else {
+                    // Only external memory may fall back. Refuse peripheral
+                    // fallback before it can mutate the software board.
+                    if (hdl_exclusive && ((address >= 0x0c000000u && address < 0x10000000u) || (address >= 0x08000000u && address < 0x0a000000u))) {
+                        status = "hdl_missing_device";
+                        blocked_address = request.address;
+                        blocked_reason = "peripheral is not claimed by HDL board";
+                        break;
+                    }
+#endif
                 if (!board->access({request.address, request.data, request.select, request.write, request.code}, data, device)) {
                     if (request.code && !request.write) {
                         bus_fault = true;
@@ -437,13 +471,32 @@ int run(int argc, char** argv) {
                         break;
                     }
                 }
+#ifdef NGAGE_HDL_BOARD
+                    if (hdl_exclusive) {
+                        const bool external_memory = device == "physical_ram" || device == "watched_word_write" ||
+                            device == "physical_flash_array" || device == "flash_command" || device == "flash_identify" ||
+                            device == "flash_pmm_status" || device == "flash_pmm_overlay" || device == "pmm_seed_image" ||
+                            device == "pmm_sector_erased" || device == "thc_dump_flash_array" ||
+                            device == "thc_dump_ppm_tail_erased" || device == "reconstructed_flash_tail" ||
+                            device == "cdrive_flash" || device == "factory_device_id" || device == "unknown_fetch";
+                        if (!external_memory) {
+                            status = "hdl_missing_device";
+                            blocked_address = request.address;
+                            blocked_reason = "unclaimed non-memory device: " + device;
+                            break;
+                        }
+                        ++hdl_memory_fallbacks;
+                        ++hdl_fallback_devices[device];
+                    }
+                }
+#endif
                 if (request.write && request.address == 0x0c120348 && request.data == 2)
                     board->dump_live_lcd(live_lcd, cycle);
 #ifdef NGAGE_HDL_BOARD
                 // Lockstep shadow compare: the C++ oracle served above; the
                 // HDL board must have claimed the same addresses and, for
                 // reads, produced the same data.
-                if (hdl_claim) {
+                if (!hdl_exclusive && hdl_claim) {
                     const uint32_t lanes = (request.select & 1 ? 0xffu : 0) | (request.select & 2 ? 0xff00u : 0) |
                                          (request.select & 4 ? 0xff0000u : 0) | (request.select & 8 ? 0xff000000u : 0);
                     // Unselected byte lanes are don't-care on the bus.
@@ -457,7 +510,7 @@ int run(int argc, char** argv) {
                         break;
                     }
                     ++hdl_claims;
-                } else {
+                } else if (!hdl_exclusive) {
                     // Mirror of the HDL claim map: anything here must have
                     // been claimed, or the two models disagree on ownership.
                     const uint32_t off12 = address & 0xfff;
@@ -572,6 +625,14 @@ int run(int argc, char** argv) {
         cpu->eval();
         context->timeInc(1);
         if (board) board->tick();
+#ifdef NGAGE_HDL_BOARD
+        if (cpu->o_board_trace_valid) {
+            if (hdl_trace_events < 4096)
+                hdl_trace_log << std::dec << cycle << "\t0x" << std::hex << cpu->o_board_trace_addr
+                              << "\t0x" << cpu->o_board_trace_data << "\t0x" << unsigned(cpu->o_board_trace_sel) << '\n';
+            ++hdl_trace_events;
+        }
+#endif
         if (cpu->o_trace_valid) {
             const std::string trace = trace_text(cpu->o_trace);
             // module-trace: one log line per transition between ROM binaries
@@ -641,7 +702,7 @@ int run(int argc, char** argv) {
                     const auto cpsr = std::stoul(trace.substr(trace.size()-8),nullptr,16);
                     const bool masked = (cpsr & 0xc0) == 0xc0;
                     const bool irq_deliverable = (!(cpsr & 0x80) || !(cpsr & 0x40)) && board->has_scheduled_interrupt();
-                    if (self_loop_count >= 32 && !irq_deliverable) {
+                    if (self_loop_count >= 32 && !irq_deliverable && (!hdl_exclusive || masked)) {
                         status = masked ? "firmware_loop" : "quiescent_loop";
                         blocked_address = std::stoul(pc,nullptr,16);
                         blocked_reason = masked ? "unconditional self-branch repeated with IRQ and FIQ masked" :
@@ -730,6 +791,13 @@ int run(int argc, char** argv) {
            << "  \"fetch_bus_faults\": " << fetch_faults << ",\n"
 #ifdef NGAGE_HDL_BOARD
            << "  \"hdl_board_claims\": " << hdl_claims << ",\n"
+           << "  \"hdl_trace_events\": " << hdl_trace_events << ",\n"
+           << "  \"hdl_trace_dropped\": " << (hdl_trace_events > 4096 ? hdl_trace_events - 4096 : 0) << ",\n"
+           << "  \"hdl_exclusive\": " << (hdl_exclusive ? "true" : "false") << ",\n"
+           << "  \"hdl_memory_fallbacks\": " << hdl_memory_fallbacks << ",\n"
+           << "  \"hdl_memory_fallback_devices\": {";
+    { bool first=true; for (const auto& entry : hdl_fallback_devices) { if (!first) result << ", "; first=false; result << '"' << entry.first << "\": " << entry.second; } }
+    result << "},\n"
 #endif
            << "  \"completion\": " << mailbox[0] << ",\n  \"mailbox\": [";
     for (size_t i = 0; i < mailbox.size(); ++i)

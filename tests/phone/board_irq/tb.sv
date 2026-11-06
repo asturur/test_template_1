@@ -21,6 +21,8 @@ endtask
 task read_eq(input [31:0] a,input [31:0] expected);begin @(negedge clk);cyc=1;stb=1;we=0;addr=a;#1;if(!claim||!ready||bad||dout!==expected)$fatal(1,"board read %h got %h",a,dout);@(negedge clk);cyc=0;stb=0;end endtask
 initial begin
  tick();reset=0;wait(init_done);tick();
+ wr('h0c120034,32'h12345678);read_eq('h0c120034,32'h12345678);
+ if(dut.aux_ram.lane[0].mem[12'h440]!==0)$fatal(1,"boot latch also wrote GPIO backing RAM");
  read_eq('h08000040,0);wr('h08000000,32'h76543210);read_eq('h08000000,32'h76543210);wr('h0c004748,32'h1234abcd);read_eq('h0c004748,32'h1234abcd);
  ram_read('h0c030220,0);ram_read('h0c100220,0);ram_read('h0c150220,0);ram_read('h0c14f010,0);
  wr('h0c030220,32'h11223344);wr('h0c100220,32'h55667788);wr('h0c150220,32'h99aabbcc);wr('h0c14f010,32'h12345678);

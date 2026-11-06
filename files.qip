@@ -15,6 +15,7 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sparse_regs.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_icu.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_icu_extra.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_timers.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_nos_io.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mdi_stub.v

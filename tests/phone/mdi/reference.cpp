@@ -16,6 +16,14 @@ int main(){
  for(unsigned i=0;i<104000;i++)b.tick();op(0x0c1001f4,0,false);if(out!=0x7cd00000)throw std::runtime_error("first frame");
  op(0x0c1001f8,0,false);if(out!=0x04000001)throw std::runtime_error("second frame");op(0x0c1003ec,0,false);if(out!=4)throw std::runtime_error("receive pointer");
  op(0x0c150100,0,false);if((out&0x600)!=0x600)throw std::runtime_error("announcement event");
+ op(0x0c1003e8,3,true);
+ for(unsigned i=0;i<103999;i++)b.tick();
+ if(!b.access({0x0c1003e8,0xbeef0000,12,true,false},out,dev))throw std::runtime_error(b.reason());
+ b.tick();op(0x0c1003e8,0,false);if(out!=0x00030003)throw std::runtime_error("same-edge CPU write before tick");
+ op(0x0c1003e8,5,true);
+ for(unsigned i=0;i<103999;i++)b.tick();
+ op(0x0c150100,0x200,true);b.tick();op(0x0c150100,0,false);
+ if(!(out&0x200))throw std::runtime_error("same-cycle tick must reassert after W1C");
  std::cout<<"PASS staged MDI reference timing and status\n";
  }catch(const std::exception&e){std::cerr<<e.what()<<"\n";return 1;}
 }
