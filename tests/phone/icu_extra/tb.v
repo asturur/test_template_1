@@ -10,6 +10,10 @@ module tb;
  initial begin
   repeat(2)@(negedge clk);reset=0;
   addr=32'h0c120040;req=1;#1;if(claim)$fatal(1,"low bank before timer");req=0;
+  addr=32'h0c14d000;req=1;#1;if(!claim||!bad)$fatal(1,"14d before system init");req=0;
+  write_word(32'h0c120074,3);write_word(32'h0c14d000,32'h01020304);read_word(32'h0c14d000,32'h01020304);
+  @(negedge clk);addr=32'h0c14d000;din=32'h0000aabb;sel=3;req=1;we=1;commit=1;#1;if(!claim||bad)$fatal(1,"14d halfword");
+  @(negedge clk);req=0;commit=0;sel=15;read_word(32'h0c14d000,32'h0102aabb);
   periodic=1;write_word(32'h0c120040,32'h11223344);write_word(32'h0c120340,32'h55667788);write_word(32'h0c120600,32'h99aabbcc);
   read_word(32'h0c120040,32'h11223344);read_word(32'h0c120340,32'h55667788);read_word(32'h0c120600,32'h99aabbcc);
   @(negedge clk);addr=32'h0c120348;din=2;req=1;we=1;commit=1;#1;if(!claim||!bad)$fatal(1,"DMA start must fail");

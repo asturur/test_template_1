@@ -43,9 +43,11 @@ module ngage_icu(
    end
   end
   if(claim && sel!=4'hf)bad=1;
+  irq_clear=0;
+  if(commit && claim && !bad && we && is_irq && slot==12)
+   irq_clear[bank*32+:32]=din;
  end
  always @(posedge clk)begin
-  irq_clear<=0;
   if(reset)begin global_enable<=0;for(i=0;i<3;i=i+1)begin irq_enable[i]<=0;fiq_enable[i]<=0;cfg0[i]<=0;cfg1[i]<=0;end end
   else begin
    if(timer0_rearm)irq_enable[0][0]<=0;
@@ -54,7 +56,7 @@ module ngage_icu(
    else if(is_irq)case(slot)
     0:cfg0[bank]<=din;4:cfg1[bank]<=din;
     8:irq_enable[bank]<=irq_enable[bank]|din;
-    12:begin irq_enable[bank]<=irq_enable[bank]&~din;irq_clear[bank*32+:32]<=din;end
+    12:irq_enable[bank]<=irq_enable[bank]&~din;
    endcase
    else if(is_fiq)case(slot)
     8:fiq_enable[bank]<=fiq_enable[bank]|din;

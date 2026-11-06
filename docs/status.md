@@ -1,3 +1,11 @@
+## 2026-11-06: cycle-by-cycle timer and UEM comparisons
+
+Added a compact event fixture generated independently by each C++ board. It compares boot and periodic timer IRQs, unit-1 IRQ, unit-60 FIQ, register data, rearming, pending-source masking, and acknowledgement coinciding with expiry across two full periodic intervals. Fixed one-cycle arming errors in all four timers, incorrect boot one-shot status, periodic rearm masking, and acknowledgement timing. Both references pass; these results establish parity for the tested model cases, not physical timer accuracy. Run `tests/phone/timer_conformance/run.sh` inside `jotego/simulator:arm64`.
+
+A separate Verilator/C++ comparison exercised the full 7,995,392-cycle UEM alarm, an alarm/acknowledgement collision and the 104,000,000-cycle UEM 1 Hz event against both C++ models; both pass (`tests/phone/cbus_timing/run.sh`). These are focused device tests, not full-phone boots. ARM tests also execute code from boot scratch and upload RAM, and call the Thumb ASIC ROM stub, in shadow and exclusive modes.
+
+Added the observed write-only `0x0c120074 = 3` system-control hypothesis and five `0x0c14d000..10` masked latches after that write. Unlike the C++ probe, RTL does not additionally enforce the C++ ICU/CBUS configuration prerequisites for the 0x74 write; its physical behavior remains unknown. LCD DMA start is still rejected and milestone 4 remains incomplete.
+
 ## 2026-11-06: NOS and diagnostic register comparisons
 
 Extended the integrated ARM/C++/HDL fixture to 24 transactions, including 0x0c004xxx NOS storage and two distinct 0x0d diagnostic addresses; shadow and exclusive runs pass and verify no aliasing. The adapter test now checks that upload RAM survives a phone reset and is cleared by a cold reset. Generic GPIO now rejects unsupported byte-enable combinations without modifying RAM, as the software model does. Dedicated tests and the rebuilt CPU-level comparisons pass. These changes do not implement the LCD DMA engine or establish full firmware-device parity.
