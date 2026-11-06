@@ -50,6 +50,26 @@ _start:
  ldr r2,[r0]
  cmp r1,r2
  bne fail
+ ldr r0,=0x0c004300
+ ldr r1,=0xaabbccdd
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
+ ldr r0,=0x0d000200
+ ldr r1,=0x11223344
+ str r1,[r0]
+ ldr r0,=0x0d010200
+ ldr r1,=0x55667788
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
+ ldr r0,=0x0d000200
+ ldr r1,=0x11223344
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
  ldr r0,=0x0c14b000
  ldr r2,[r0]
  tst r2,#0x80
@@ -57,4 +77,5 @@ _start:
 .global good
 good: b good
 fail: b fail
+.balign 512
 .ltorg

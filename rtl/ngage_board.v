@@ -286,6 +286,8 @@ always @(*) begin
             endcase
         end
     end else if (gpio_hit && cyc && stb) begin
+        if (!(sel==1 || sel==2 || sel==4 || sel==8 || sel==3 || sel==12 || sel==15))
+            unmodeled = 1'b1;
         dout = gpr_q & wmask;
         // ---- quirk bits on reads ----
         // euart1 TX idle (0x0c150514 bit 2)

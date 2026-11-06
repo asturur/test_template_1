@@ -15,6 +15,13 @@ module tb;
   if(!claim || fallback || ack || !err) $fatal(1,"claimed invalid transaction");
   cyc=1;stb=1;adr=32'h40000000;sel=15; #1;
   if(claim || !fallback || ack || err) $fatal(1,"fallback transaction");
-  $display("PASS board adapter exclusive ownership");$finish;
+  @(negedge clk);cyc=1;stb=1;we=1;adr=32'h0c030220;din=32'h12345678;sel=15;
+  #1;if(!ack) $fatal(1,"upload RAM write"); @(negedge clk);cyc=0;stb=0;
+  reset=1;@(negedge clk);reset=0;
+  cyc=1;stb=1;we=0;adr=32'h0c030220;wait(ack);#1;if(dout!==32'h12345678)$fatal(1,"warm reset lost RAM");
+  @(negedge clk);cyc=0;stb=0;reset=1;cold_reset=1;
+  @(negedge clk);cold_reset=0;wait(init_done);@(negedge clk);reset=0;
+  cyc=1;stb=1;we=0;adr=32'h0c030220;wait(ack);#1;if(dout!==0)$fatal(1,"cold reset did not clear RAM");
+  $display("PASS board adapter ownership and warm/cold RAM reset");$finish;
  end
 endmodule

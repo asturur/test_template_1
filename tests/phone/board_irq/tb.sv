@@ -47,6 +47,8 @@ initial begin
  halfwrite('h0c150420,7,3);halfwrite('h0c150420,'h3b,12);halfwrite('h0c150424,'h400,12);
  halfwrite('h0c150200,5,12);read_eq('h0c150208,32'h000a0000);
  halfwrite('h0c150204,1,3);read_eq('h0c150208,32'h00080000);
+ @(negedge clk);cyc=1;stb=1;we=1;addr='h0c150500;sel=5;din=32'hffffffff;commit=1;#1;if(!claim||!bad)$fatal(1,"invalid GPIO lanes accepted");tick();
+ @(negedge clk);cyc=0;stb=0;commit=0;sel=15;ram_read('h0c150500,0);
  @(negedge clk);cyc=1;stb=1;we=1;addr='h0c1201c8;sel=3;din=8;commit=0;#1;if(!claim||!bad)$fatal(1,"bad width not identified");
  $display("PASS board ICU/timer IRQ and FIQ routing");$finish;
 end

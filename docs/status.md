@@ -1,3 +1,7 @@
+## 2026-11-06: NOS and diagnostic register comparisons
+
+Extended the integrated ARM/C++/HDL fixture to 24 transactions, including 0x0c004xxx NOS storage and two distinct 0x0d diagnostic addresses; shadow and exclusive runs pass and verify no aliasing. The adapter test now checks that upload RAM survives a phone reset and is cleared by a cold reset. Generic GPIO now rejects unsupported byte-enable combinations without modifying RAM, as the software model does. Dedicated tests and the rebuilt CPU-level comparisons pass. These changes do not implement the LCD DMA engine or establish full firmware-device parity.
+
 ## 2026-11-06: HDL ownership, interrupt timing and bounded firmware comparison
 
 The HDL-board CPU simulator now accepts `hdl-exclusive`: claimed peripherals are accessed only in RTL and IRQ/FIQ come from RTL; unclaimed peripheral windows stop visibly instead of falling back. External flash/RAM remain in the C++ model and are counted by device in the JSON result, so this is not an all-HDL phone/memory validation. A separate shadow mode still compares C++ and RTL. Both modes pass an 18-transaction ARM fixture including CBUS, GPIO, epbus and DMA configuration latches under stalls. A second ARM program receives and acknowledges HDL IRQ and FIQ; negative tests confirm missing peripheral and unimplemented LCD DMA start stop. Trace writes are exported in `hdl-board-trace.tsv`, bounded to 4096 records with a dropped count in JSON. This export is simulation-only, not an HPS hardware buffer.
