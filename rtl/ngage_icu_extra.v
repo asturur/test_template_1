@@ -4,7 +4,7 @@
 module ngage_icu_extra(
  input wire clk, reset, req, commit, we, periodic_active,
  input wire [31:0] addr, din, input wire [3:0] sel,
- output reg claim, bad, output reg [31:0] dout
+ output reg claim, bad, output reg [31:0] dout, input wire cbus8d_written, output reg sysc74_seen
 );
  wire [31:0] a={addr[31:2],2'b00};
  wire low=periodic_active && a>=32'h0c120040 && a<32'h0c120100 &&
@@ -14,12 +14,11 @@ module ngage_icu_extra(
  wire probe14d=a>=32'h0c14d000 && a<=32'h0c14d010;
  wire epbus=a>=32'h0c120600 && a<32'h0c120700;
  reg [31:0] low_regs[0:47],dma_regs[0:63],epbus_regs[0:63],probe_regs[0:4];
- reg sysc74_seen;
  wire [31:0] mask={{8{sel[3]}},{8{sel[2]}},{8{sel[1]}},{8{sel[0]}}};
  integer i;
  always @* begin
   claim=req && (low || dma || epbus || sysc74 || probe14d);
-  bad=claim && ((sysc74 && (sel!=15 || !we || din!=3)) ||
+  bad=claim && ((sysc74 && (!cbus8d_written || sel!=15 || !we || din!=3)) ||
      (probe14d && !sysc74_seen) ||
      (!probe14d && !sysc74 && sel!=15) ||
      (dma && a==32'h0c120348 && we && din==2));

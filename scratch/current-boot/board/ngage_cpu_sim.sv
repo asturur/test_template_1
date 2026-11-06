@@ -49,7 +49,7 @@ module ngage_cpu_sim (
     ngage_board board(.clk(i_clk), .rst(i_reset), .init_rst(i_board_cold_reset),
         .cyc(o_wb_cyc), .stb(o_wb_stb), .adr(o_wb_adr), .we(o_wb_we),
         .din(o_wb_dat), .sel(o_wb_sel), .commit(i_bus_commit),
-        .cfg_lcd(i_cfg_lcd), .cfg_keypad(i_cfg_keypad), .cfg_clocks(i_cfg_clocks),
+        .cfg_lcd(i_cfg_lcd), .cfg_keypad(i_cfg_keypad), .cfg_clocks(i_cfg_clocks), .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),
         .claim(o_board_claim), .ready(o_board_ready), .dout(o_board_dout),
         .unmodeled(o_board_unmodeled), .irq(o_board_irq), .fiq(o_board_fiq),
         .init_done(o_board_init_done), .trace_valid(o_board_trace_valid),

@@ -76,7 +76,7 @@ ngage_board board (
     .rst(reset), .init_rst(cold_reset), .clk(clk_sys),
     .cyc(wb_cyc), .stb(wb_stb), .adr(wb_adr), .we(wb_we),
     .din(wb_dat_o), .sel(wb_sel), .commit(wb_ack),
-    .cfg_lcd(1'b1), .cfg_keypad(1'b1), .cfg_clocks(1'b1),
+    .cfg_lcd(1'b1), .cfg_keypad(1'b1), .cfg_clocks(1'b1), .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),
     .claim(brd_claim), .ready(brd_ready), .dout(brd_dout), .unmodeled(brd_unmodeled), .irq(irq_line), .fiq(fiq_line), .init_done(board_init_done)
 );
 

@@ -1,17 +1,18 @@
 `timescale 1ns/1ps
 module tb;
- reg clk=0,reset=1,req=0,commit=0,we=0,periodic=0;
+ reg clk=0,reset=1,req=0,commit=0,we=0,periodic=0,cbus8d_written=0;
  reg [31:0] addr=0,din=0;reg [3:0] sel=15;
  wire claim,bad;wire [31:0] dout;
  always #5 clk=~clk;
- ngage_icu_extra dut(clk,reset,req,commit,we,periodic,addr,din,sel,claim,bad,dout);
+ ngage_icu_extra dut(clk,reset,req,commit,we,periodic,addr,din,sel,claim,bad,dout,cbus8d_written,);
  task write_word;input [31:0] a,d;begin @(negedge clk);addr=a;din=d;req=1;we=1;commit=1;#1;if(!claim||bad)$fatal(1,"write %h",a);@(negedge clk);req=0;commit=0;end endtask
  task read_word;input [31:0] a,d;begin @(negedge clk);addr=a;req=1;we=0;#1;if(!claim||bad||dout!==d)$fatal(1,"read %h = %h",a,dout);req=0;end endtask
  initial begin
   repeat(2)@(negedge clk);reset=0;
   addr=32'h0c120040;req=1;#1;if(claim)$fatal(1,"low bank before timer");req=0;
   addr=32'h0c14d000;req=1;#1;if(!claim||!bad)$fatal(1,"14d before system init");req=0;
-  write_word(32'h0c120074,3);write_word(32'h0c14d000,32'h01020304);read_word(32'h0c14d000,32'h01020304);
+  addr=32'h0c120074;din=3;we=1;req=1;#1;if(!bad)$fatal(1,"system init before CBUS 8d");req=0;
+  cbus8d_written=1;write_word(32'h0c120074,3);write_word(32'h0c14d000,32'h01020304);read_word(32'h0c14d000,32'h01020304);
   @(negedge clk);addr=32'h0c14d000;din=32'h0000aabb;sel=3;req=1;we=1;commit=1;#1;if(!claim||bad)$fatal(1,"14d halfword");
   @(negedge clk);req=0;commit=0;sel=15;read_word(32'h0c14d000,32'h0102aabb);
   periodic=1;write_word(32'h0c120040,32'h11223344);write_word(32'h0c120340,32'h55667788);write_word(32'h0c120600,32'h99aabbcc);

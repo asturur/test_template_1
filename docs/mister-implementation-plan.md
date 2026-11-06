@@ -174,6 +174,8 @@ Done: software/RTL transactions agree on the chosen explicit semantics, CPU inst
 
 ### 4. Port heartbeat and boot-critical register behavior
 
+**Status:** Completed for the scoped board-model port and directed acceptance tests; see `docs/mister-board-bringup.md` for evidence and limits. SIM/card, LCD DMA/video/input, hardware diagnostics and full hardware-bound validation remain in milestones 5–7.
+
 Files: split/repair `rtl/ngage_board.v`; add `ngage_icu.v`, `ngage_timers.v`, `ngage_cbus_uem.v`, `ngage_nos_io.v`. Add to `files.qip` and an HDL simulation wrapper selecting one owner per device. Include boot latches/executable scratch, clock tables, CBUS ADC/power/RTC, epbus clock block, NOS timers/status, shared RAM/upload blocks and trace sinks from the inventory above.
 
 Unit60's real current-model destination is **FIQ bit3**, not the historical IRQ-source3 approach. IRQ source numbers observed include timer0 current=1, UEM/unit1=2, DMA=8, NOS=26 (zero-based mask bits 0/1/7/25). Verify priority and read/ack behavior directly against `access()`; do not confuse current-index-plus-one with bit index. FIQ bank set/clear differs from IRQ bank conventions. Tests must cover simultaneous pending sources, masked events becoming unmasked, write-one clear, byte enables, compare wrap and counter read aliases. Read-side effects commit exactly once, even with bus stalls.

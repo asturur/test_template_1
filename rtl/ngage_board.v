@@ -53,6 +53,8 @@ module ngage_board(
     input  wire        cfg_lcd,     // lcd-probe option
     input  wire        cfg_keypad,  // keypad-gpio option
     input  wire        cfg_clocks,  // ideal-clocks option
+    input  wire        dma_irq_pending, sim_fiq_pending,
+    output wire        dma_irq_clear,
     // service
     output reg         claim,
     output wire        ready,       // dout valid / access may be acknowledged
@@ -74,23 +76,25 @@ wire [31:0] wmask = { {8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}} };
 wire icu_claim,icu_bad,timer_claim,timer_bad,nos_claim,nos_bad,nos_pending,cbus_claim,cbus_bad,cbus_irq,periodic_active,boot_claim,boot_bad,trace_claim,trace_bad,mdi_claim,mdi_bad,nos_tick,gpio_loop_claim,gpio_loop_bad,extra_claim,extra_bad;
 wire [31:0] icu_data,timer_data,nos_data,cbus_data,boot_data,mdi_data,gpio_loop_data,extra_data;
 wire [15:0] route2a,route2c,route3b;
+wire cbus8d_written,sysc74_seen;
 wire [15:0] mdi_events;
 wire [95:0] irq_clear;
 wire timer0_pending,unit1_pending,unit60_pending,timer0_rearm;
-wire [95:0] irq_sources={64'b0,6'b0,nos_pending,23'b0,(unit1_pending || cbus_irq),timer0_pending};
-wire [95:0] fiq_sources={64'b0,28'b0,unit60_pending,3'b0};
+wire [95:0] irq_sources={64'b0,6'b0,nos_pending,17'b0,dma_irq_pending,5'b0,(unit1_pending || cbus_irq),timer0_pending};
+wire [95:0] fiq_sources={64'b0,5'b0,sim_fiq_pending,22'b0,unit60_pending,3'b0};
+assign dma_irq_clear=irq_clear[7];
 ngage_icu icu(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.irq_pending(irq_sources),.fiq_pending(fiq_sources),
  .claim(icu_claim),.bad(icu_bad),.dout(icu_data),.irq(irq),.fiq(fiq),.irq_clear(irq_clear),.timer0_rearm(timer0_rearm));
 ngage_timers timers(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.clear_unit1(irq_clear[1]),.claim(timer_claim),.bad(timer_bad),.dout(timer_data),
- .timer0_pending(timer0_pending),.unit1_pending(unit1_pending),.unit60_pending(unit60_pending),.timer0_rearm(timer0_rearm),.periodic_active(periodic_active));
+ .timer0_pending(timer0_pending),.unit1_pending(unit1_pending),.unit60_pending(unit60_pending),.timer0_rearm(timer0_rearm),.periodic_active(periodic_active),.sysc74_seen(sysc74_seen));
 ngage_nos_io nos_timer(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.claim(nos_claim),.bad(nos_bad),.dout(nos_data),.irq(nos_pending),.event_bits(mdi_events),.nos_tick(nos_tick));
 ngage_cbus_uem cbus(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.kernel_periodic(periodic_active),.clear_irq(irq_clear[1]),
  .claim(cbus_claim),.bad(cbus_bad),.dout(cbus_data),.irq_pending(cbus_irq),
- .route2a(route2a),.route2c(route2c),.route3b(route3b));
+ .route2a(route2a),.route2c(route2c),.route3b(route3b),.cbus8d_written(cbus8d_written));
 ngage_gpio_loopback gpio_loop(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.route2a(route2a),.route2c(route2c),.route3b(route3b),
  .claim(gpio_loop_claim),.bad(gpio_loop_bad),.dout(gpio_loop_data));
@@ -101,7 +105,7 @@ ngage_mdi_stub mdi(.clk(clk),.reset(rst),.tick(nos_tick),.periodic_active(1'b1),
  .claim(mdi_claim),.bad(mdi_bad),.dout(mdi_data),.irq_events(mdi_events));
 ngage_icu_extra extra_regs(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .periodic_active(periodic_active),.addr(a),.din(din),.sel(sel),
- .claim(extra_claim),.bad(extra_bad),.dout(extra_data));
+ .claim(extra_claim),.bad(extra_bad),.dout(extra_data),.cbus8d_written(cbus8d_written),.sysc74_seen(sysc74_seen));
 ngage_trace_sink trace_sink(.clk(clk),.reset(rst),.req(cyc && stb),.commit(commit),.we(we),
  .addr(a),.din(din),.sel(sel),.claim(trace_claim),.bad(trace_bad),
  .trace_valid(trace_valid),.trace_addr(trace_addr),.trace_data(trace_data),.trace_sel(trace_sel));

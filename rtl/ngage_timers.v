@@ -5,14 +5,14 @@ module ngage_timers #(parameter [31:0] BOOT_DELAY=32'd18200000, UNIT60_DELAY=32'
  input wire [31:0] addr,input wire [31:0] din,input wire [3:0] sel,
  input wire clear_unit1,output reg claim,output reg bad,output reg [31:0] dout,
  output reg timer0_pending,output reg unit1_pending,output reg unit60_pending,
- output wire timer0_rearm,output wire periodic_active
+ output wire timer0_rearm,output wire periodic_active,input wire sysc74_seen
 );
  wire [31:0] a={addr[31:2],2'b00};
  wire timer0=(a==32'h0c120a04 || a==32'h0c120a08 || a==32'h0c120a10 || a==32'h0c120a18);
  wire units=(a>=32'h0c120a20 && a<32'h0c120ac0);
  reg [31:0] unit_regs[0:39];reg [31:0] control0,compare0,reload0,status0;
  reg [31:0] boot_left,period,period_left,unit1_elapsed,unit1_compare,unit60_left;
- reg unit1_running,boot_started;integer index,slot,i;
+ reg unit1_running,boot_started,timer_fired,status_written,compare_written;integer index,slot,i;
  wire boot_arm=commit && claim && !bad && we && a==32'h0c120a18 &&
                boot_started && din==32'h0115b5c0;
  wire unit60_write=commit && claim && !bad && we && a>=32'h0c120a60 && a<32'h0c120a80;
@@ -29,6 +29,22 @@ module ngage_timers #(parameter [31:0] BOOT_DELAY=32'd18200000, UNIT60_DELAY=32'
                       din==32'h000632ea && control0==2;
  always @* begin
   claim=req && (timer0||units);bad=claim && sel!=15;dout=0;index=0;slot=0;
+  if(claim && timer0 && !bad)begin
+   if(we)case(a)
+    32'h0c120a04:if(din!=2 && !(timer_fired && din==0))bad=1;
+    32'h0c120a08:if(din!=0 && !(timer0_pending && din==1))bad=1;
+    32'h0c120a10:if(din!=32'h0115b5c0 && !(timer_fired && din==0) &&
+                        !(timer_fired && sysc74_seen && din==32'h000632ea))bad=1;
+    32'h0c120a18:if(din!=32'h0115b5c0 && !(timer_fired && din==0) &&
+                        !(timer_fired && control0==2 && din==32'h000632ea))bad=1;
+   endcase
+   else case(a)
+    32'h0c120a04:if(!timer_fired || control0!=2)bad=1;
+    32'h0c120a08:if(!timer_fired || !status_written)bad=1;
+    32'h0c120a10:if(!timer_fired || !compare_written)bad=1;
+    32'h0c120a18:bad=1;
+   endcase
+  end
   if(timer0)case(a)
    32'h0c120a04:dout=control0;32'h0c120a08:dout=status0;
    32'h0c120a10:dout=compare0;32'h0c120a18:dout=reload0;
@@ -43,6 +59,7 @@ module ngage_timers #(parameter [31:0] BOOT_DELAY=32'd18200000, UNIT60_DELAY=32'
  always @(posedge clk) begin
   if(reset)begin
    timer0_pending<=0;unit1_pending<=0;unit60_pending<=0;
+   timer_fired<=0;status_written<=0;compare_written<=0;
    control0<=0;compare0<=0;reload0<=0;status0<=0;
    boot_left<=0;period<=0;period_left<=0;unit1_elapsed<=0;unit1_compare<=0;unit60_left<=0;unit1_running<=0;boot_started<=0;
    for(i=0;i<40;i=i+1)unit_regs[i]<=0;
@@ -58,8 +75,8 @@ module ngage_timers #(parameter [31:0] BOOT_DELAY=32'd18200000, UNIT60_DELAY=32'
    if(commit && claim && !bad && we)begin
     if(timer0)case(a)
      32'h0c120a04:begin control0<=din;if(din==2)boot_started<=1;end
-     32'h0c120a08:begin status0<=din;timer0_pending<=0;end
-     32'h0c120a10:compare0<=din;
+     32'h0c120a08:begin status0<=din;timer0_pending<=0;status_written<=1;end
+     32'h0c120a10:begin compare0<=din;compare_written<=1;end
      32'h0c120a18:begin
       reload0<=din;
       if(boot_arm)boot_left<=BOOT_DELAY>0 ? BOOT_DELAY-1'b1 : 0;
@@ -82,6 +99,8 @@ module ngage_timers #(parameter [31:0] BOOT_DELAY=32'd18200000, UNIT60_DELAY=32'
    // C++ applies a CPU request before ticking the board. A newly armed
    // one-shot consumes its first count on that same edge, and an expiry
    // on an acknowledgement edge reasserts the interrupt.
+   if((boot_arm && BOOT_DELAY==1) || (!boot_arm && boot_left==1) ||
+      (period_left==1 && !timer0_rearm))timer_fired<=1;
    if(boot_arm && BOOT_DELAY==1)timer0_pending<=1;
    else if(!boot_arm && boot_left==1)timer0_pending<=1;
    if(period_left==1 && !timer0_rearm)begin timer0_pending<=1;status0<=1;end

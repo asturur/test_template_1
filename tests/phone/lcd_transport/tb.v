@@ -5,7 +5,7 @@ reg [31:0] addr=0,din=0;reg [3:0] sel=0;
 wire claim,ready,bad,irq,fiq,init;wire [31:0] dout;
 integer f,rc,line,write_flag,expected_ok;reg [31:0] expected_data;
 always #5 clk=~clk;
-ngage_board dut(.clk(clk),.rst(rst),.init_rst(cold),.cyc(cyc),.stb(stb),.we(we),.adr(addr),.din(din),.sel(sel),.commit(commit),.cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.irq(irq),.fiq(fiq),.init_done(init),.trace_valid(),.trace_addr(),.trace_data(),.trace_sel());
+ngage_board dut(.clk(clk),.rst(rst),.init_rst(cold),.cyc(cyc),.stb(stb),.we(we),.adr(addr),.din(din),.sel(sel),.commit(commit),.cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1), .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),.claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.irq(irq),.fiq(fiq),.init_done(init),.trace_valid(),.trace_addr(),.trace_data(),.trace_sel());
 initial begin
  f=$fopen("build/sim/unit-lcd-transport/reference.tsv","r");
  if(!f)begin $display("FAIL fixture missing");$finish;end

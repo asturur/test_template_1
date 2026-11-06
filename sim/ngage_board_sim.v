@@ -13,7 +13,7 @@ module ngage_board_sim(
  assign err = claim && ready && bad;
  ngage_board board(.clk(clk),.rst(reset),.init_rst(cold_reset),
   .cyc(cyc),.stb(stb),.we(we),.adr(adr),.din(din),.sel(sel),.commit(ack),
-  .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),
+  .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1), .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),
   .claim(claim),.ready(ready),.dout(dout),.unmodeled(bad),
   .irq(irq),.fiq(fiq),.init_done(init_done),.trace_valid(trace_valid),
   .trace_addr(trace_addr),.trace_data(trace_data),.trace_sel(trace_sel));

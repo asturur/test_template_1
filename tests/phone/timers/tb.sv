@@ -1,7 +1,7 @@
 module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,req=0,commit=0,we=0,clear1=0;reg [31:0] addr=0,din=0;reg [3:0] sel=15;
 wire claim,bad,p0,p1,p60,rearm;wire [31:0] dout;
-ngage_timers #(.BOOT_DELAY(5),.UNIT60_DELAY(8)) dut(clk,reset,req,commit,we,addr,din,sel,clear1,claim,bad,dout,p0,p1,p60,rearm,);
+ngage_timers #(.BOOT_DELAY(5),.UNIT60_DELAY(8)) dut(clk,reset,req,commit,we,addr,din,sel,clear1,claim,bad,dout,p0,p1,p60,rearm,,1'b0);
 task tick;begin @(posedge clk);#1;end endtask
 task wr(input [31:0] a,input [31:0] d);begin @(negedge clk);req=1;we=1;commit=1;addr=a;din=d;#1;if(!claim||bad)$fatal(1,"decode %h",a);tick();@(negedge clk);req=0;commit=0;end endtask
 initial begin

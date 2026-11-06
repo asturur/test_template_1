@@ -1,8 +1,11 @@
 module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,cyc=0,stb=0,we=0,commit=0;reg [31:0] addr=0,din=0;reg [3:0] sel=15;
+reg dma_pending=0,sim_pending=0,dma_clear_seen=0;wire dma_clear;
+always @(posedge clk) if(dma_clear)dma_clear_seen<=1;
 wire claim,ready,bad,irq,fiq,init_done;wire [31:0] dout;
 ngage_board dut(.clk(clk),.rst(reset),.init_rst(reset),.cyc(cyc),.stb(stb),.we(we),.commit(commit),.adr(addr),.din(din),.sel(sel),
- .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.irq(irq),.fiq(fiq),.init_done(init_done));
+ .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.dma_irq_pending(dma_pending),.sim_fiq_pending(sim_pending),.dma_irq_clear(dma_clear),.claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.irq(irq),.fiq(fiq),.init_done(init_done));
+defparam dut.timers.BOOT_DELAY=3;
 defparam dut.cbus.ALARM_TICKS=8;
 defparam dut.cbus.ALARM_INTERVAL=1;
 defparam dut.nos_timer.TICK_DIV=2;
@@ -29,6 +32,12 @@ initial begin
  ram_read('h0c030220,32'h11223344);ram_read('h0c100220,32'h55667788);ram_read('h0c150220,32'h99aabbcc);ram_read('h0c14f010,32'h12345678);
  wr('h0d000220,32'hcafe1122);wr('h0d010220,32'hbabe3344);
  read_eq('h0d000220,32'hcafe1122);read_eq('h0d010220,32'hbabe3344);
+ wr('h0c120108,32'h80);dma_pending=1;#1;if(!irq)$fatal(1,"DMA IRQ input");
+ read_eq('h0c120114,8);wr('h0c12010c,32'h80);dma_pending=0;
+ if(!dma_clear_seen||irq)$fatal(1,"DMA acknowledgement");
+ wr('h0c1201c8,32'h04000000);sim_pending=1;#1;if(!fiq)$fatal(1,"SIM FIQ input");
+ read_eq('h0c1201d0,32'h04000000);read_eq('h0c1201d4,27);
+ wr('h0c1201cc,32'h04000000);sim_pending=0;if(fiq)$fatal(1,"SIM FIQ mask");
  wr('h0c120108,2);wr('h0c120a30,4);wr('h0c120a24,1);repeat(5)tick();
  if(!irq || fiq)$fatal(1,"unit1 IRQ routing");read_eq('h0c120114,2);wr('h0c12010c,2);repeat(2)tick();if(irq)$fatal(1,"unit1 ack");
  wr('h0c1201c8,8);wr('h0c120a64,2);repeat(130)tick();if(!fiq||irq)$fatal(1,"unit60 FIQ routing");read_eq('h0c1201d0,8);read_eq('h0c1201d4,4);
@@ -39,7 +48,7 @@ initial begin
  if(!irq)$fatal(1,"CBUS alarm IRQ routing");read_eq('h0c120114,2);wr('h0c12010c,2);repeat(2)tick();if(irq)$fatal(1,"CBUS IRQ clear");
  wr('h0c1201cc,8);wr('h0c120108,32'h02000000);wr('h0c150010,32'h06000000);
  wr('h0c14b004,32'h00000500);wr('h0c1003e8,2);wr('h0c1003ec,0);
- wr('h0c120a04,2);wr('h0c120a18,32'h000632ea);repeat(20)tick();
+ wr('h0c120a04,2);wr('h0c120a18,32'h0115b5c0);repeat(5)tick();wr('h0c120a08,1);wr('h0c120a18,32'h000632ea);repeat(20)tick();
  read_eq('h0c1003e8,32'h00020002);read_eq('h0c1001f4,32'h7cd00000);read_eq('h0c1001f8,32'h04000001);
  if(!irq)$fatal(1,"MDI status did not reach ICU");read_eq('h0c120114,26);
  wr('h0c150100,32'h00000600);if(irq)$fatal(1,"MDI status clear");

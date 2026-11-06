@@ -4,7 +4,7 @@ reg clk=0,cold=1,reset=1;always #5 clk=~clk;
 wire cyc,stb,we,lock,ack,err;wire [31:0] addr,wdata,rdata;wire [3:0] sel;wire [2:0] ct;wire [1:0] bt;
 wire claim,ready,bad,irq,fiq,init_done;wire [31:0] board_data;reg [31:0] rom[0:1023];integer cycles=0;
 ngage_cpu cpu(.clk(clk),.reset(reset),.irq(irq),.fiq(fiq),.wb_lock(lock),.wb_cyc(cyc),.wb_stb(stb),.wb_address(addr),.wb_write(we),.wb_write_data(wdata),.wb_byte_enable(sel),.wb_cycle_type(ct),.wb_burst_type(bt),.wb_ack(ack),.wb_read_data(rdata),.wb_error(err));
-ngage_board board(.clk(clk),.rst(reset),.init_rst(cold),.cyc(cyc),.stb(stb),.adr(addr),.we(we),.din(wdata),.sel(sel),.commit(ack&&claim),.cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.claim(claim),.ready(ready),.dout(board_data),.unmodeled(bad),.irq(irq),.fiq(fiq),.init_done(init_done));
+ngage_board board(.clk(clk),.rst(reset),.init_rst(cold),.cyc(cyc),.stb(stb),.adr(addr),.we(we),.din(wdata),.sel(sel),.commit(ack&&claim),.cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1), .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),.claim(claim),.ready(ready),.dout(board_data),.unmodeled(bad),.irq(irq),.fiq(fiq),.init_done(init_done));
 assign ack=cyc && stb && (claim ? (ready && !bad) : 1'b1);
 reg invalid_response=0;
 always @(posedge clk)begin if(reset)invalid_response<=0;else invalid_response<=!invalid_response && cyc && stb && claim && ready && bad;end

@@ -1,0 +1,20 @@
+{
+  "scratch/current-boot/board/boot_profile.cpp": "cf305087ba7a93b780b5155bfe347977cfb28a4053f9cede407a1019d0c7aa8d",
+  "scratch/current-boot/board/boot_profile.h": "4c6daeb0fb63dac5d602e3a4edd6b9af029562a441b860ece418c143c5beb5f4",
+  "scratch/current-boot/board/descramble_model.h": "cccffa15bce10e9672b359497acdb7d1be10b976b37adde43ab660fa0085259c",
+  "scratch/current-boot/board/main.cpp": "b5d4efd7acee08355ef771ae055a792ed29275a0c404d40acd0dc7d5764be8d2",
+  "scratch/current-boot/board/ngage_cpu_sim.sv": "437480dc3aeebb6ad7bd85ce8601ed6a4920c8ecefdc03f94e28b6d69750ba5b",
+  "scratch/current-boot/board/nos_stub_blob.h": "959f4f1dbccfa949cb0d2666a0f7ecb481d3becde93923aa5b367cd3d26824ac",
+  "scratch/live-controls/boot_profile.cpp": "e4ba2ea5f145ebc85d9cc77ee16bfaf96508ee6cd1871294cd99bf8a2b6cbac5",
+  "scratch/live-controls/boot_profile.h": "34d3e6953abc85278dc91c61f3b0d4d18ade6519d01cbd538c172ffb8c10327b",
+  "scratch/simif-board/board/boot_profile.cpp": "67f459e88b6ff82ffa97e70a416d2f4b01299f6db4402b1a76594f88229908aa",
+  "scratch/simif-board/board/boot_profile.h": "c8a1e98752323282fa940332804dd1a766b5e29a8d27e266c64d3b5f5b56927b",
+  "scratch/simif-board/board/descramble_model.h": "cccffa15bce10e9672b359497acdb7d1be10b976b37adde43ab660fa0085259c",
+  "scratch/simif-board/board/main.cpp": "ddc8ae9dd40766781f0065fe80b0c36bb93d53e9189a0024e403bd9a9fa880c7",
+  "scratch/simif-board/board/ngage_cpu_sim.sv": "437480dc3aeebb6ad7bd85ce8601ed6a4920c8ecefdc03f94e28b6d69750ba5b",
+  "scratch/simif-board/board/nos_stub_blob.h": "959f4f1dbccfa949cb0d2666a0f7ecb481d3becde93923aa5b367cd3d26824ac",
+  "scratch/simif-board/board/simif_status.h": "52c451b1d90b45db095550b89bb508f7efd94728a6c630d1addaed78d0c47890",
+  "scratch/simif-board/build.py": "1da76b3deefb271717c0c63f418c441523365a89db73a226feca3bba6d9d4214",
+  "scratch/simif-board/run.py": "a742a955486f9b6dfc2da81758c35ff6a0c680705da4ff06272bef03afe46fa2",
+  "scratch/simif-investigation/test_card.h": "8f7436e42f713b98d87eedde222adb81db3632e7ffeee7dc6632be2c47afbc52"
+}

@@ -5,7 +5,8 @@ module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=799
  input wire [31:0] addr,input wire [31:0] din,input wire [3:0] sel,
  input wire kernel_periodic,input wire clear_irq,
  output reg claim,output reg bad,output reg [31:0] dout,output reg irq_pending,
- output wire [15:0] route2a,route2c,route3b
+ output wire [15:0] route2a,route2c,route3b,
+ output wire cbus8d_written
 );
  wire [31:0] a={addr[31:2],2'b00};
  reg [15:0] cfg,command,rtc_status;reg [1:0] stage;
@@ -14,6 +15,7 @@ module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=799
  integer sec_count,alarm_left,alarm_div;
  wire [15:0] value=sel==12?din[31:16]:din[15:0];
  wire [7:0] regno=command[7:0];
+ assign cbus8d_written=written[8'h8d];
  assign route2a=written[8'h2a]?values[8'h2a]:16'b0;
  assign route2c=written[8'h2c]?values[8'h2c]:16'b0;
  assign route3b=written[8'h3b]?values[8'h3b]:16'b0;
