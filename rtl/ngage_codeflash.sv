@@ -13,8 +13,11 @@ module ngage_codeflash #(
  localparam IDLE=0,ISSUE=1,WAIT_MEM=2;
  localparam READ_ARRAY=0,PROGRAM_READ=1,PROGRAM_WRITE=2;
  reg [1:0] state=IDLE,operation=READ_ARRAY;
- reg identify[0:2],sr_mode[0:2],intel_program[0:2],lock_mode[0:2];
- reg [1:0] unlock[0:2],lock_bank[0:2];
+ // Separate state owner for each logical die. Mapping logical selects to
+ // schematic references D310/D311/D313 still requires independent proof.
+ wire [2:0] identify,sr_mode,intel_program,lock_mode;
+ wire [1:0] unlock[0:2],lock_bank[0:2];
+ wire [7:0] die_state[0:2];reg [7:0] die_next;
  reg [1:0] chip=0; reg [31:0] saved_address=0,saved_data=0;reg [3:0] saved_be=0;
  wire [31:0] aligned={req_address[31:2],2'b00};
  wire [31:0] half_address=aligned+(req_be==12?2:0);
@@ -26,6 +29,15 @@ module ngage_codeflash #(
  wire pmm_hit=half_address>=32'h007f0000 && half_address<32'h00800000;
  wire rom_hit,ram_hit,cdrive_hit,pmm_map;
  wire [24:0] rom_offset;
+ wire die_update=req_valid && req_ready && req_write && chip_hit && !cdrive_hit && half_ok;
+ genvar die;
+ generate for(die=0;die<3;die=die+1)begin: nor_die
+  ngage_am29n643_state chip_state(.clk(clk),.reset(reset && state==IDLE),
+   .update(die_update && target==die),.next_state(die_next),.state(die_state[die]));
+  assign identify[die]=die_state[die][0];assign sr_mode[die]=die_state[die][1];
+  assign intel_program[die]=die_state[die][2];assign lock_mode[die]=die_state[die][3];
+  assign unlock[die]=die_state[die][5:4];assign lock_bank[die]=die_state[die][7:6];
+ end endgenerate
  ngage_rom_map mapper(aligned,rom_hit,rom_offset,ram_hit,cdrive_hit,pmm_map);
  wire [31:0] decoded;
  ngage_flash_read_decode dec(saved_address,mem_rdata,1'b1,1'b1,decoded);
@@ -41,15 +53,36 @@ module ngage_codeflash #(
    28:ident={1'b1,16'h2502};30:ident={1'b1,16'h2500};default:ident=0;
   endcase end
  endfunction
- reg [16:0] idlo,idhi;integer i;
+ reg [16:0] idlo,idhi;
  always @* begin
   idlo=ident(aligned-(target==0?0:target==1?32'h02000000:32'h04000000));
   idhi=ident(aligned+2-(target==0?0:target==1?32'h02000000:32'h04000000));
  end
+ // Decode only state transitions here; the selected die owns and resets
+ // its state independently. Memory data transactions remain shared.
+ always @* begin
+  die_next=die_state[target];
+  if(die_update)begin
+   if(unlock[target]==3 || intel_program[target])begin
+    die_next[5:4]=0;die_next[2]=0;
+    if(pmm_hit && intel_program[target])die_next[1]=1;
+   end else if(value==16'hff || value==16'hf0)begin
+    die_next[0]=0;die_next[1]=0;die_next[2]=0;die_next[3]=0;die_next[5:4]=0;
+   end else if(value==16'h40)die_next[2]=1;
+   else if(value==16'h50)die_next[1]=0;
+   else if(value==16'h60)begin die_next[3]=1;die_next[7:6]=chip_offset[22:21];end
+   else if(lock_mode[target] && (value==16'h01 || value==16'hd0))die_next[3]=0;
+   else if((chip_offset & 32'h7ff)==32'h2aa && value==16'haa)die_next[5:4]=1;
+   else if(unlock[target]==1 && (chip_offset & 32'h7ff)==32'h554 && value==16'h55)die_next[5:4]=2;
+   else if(unlock[target]==2 && (chip_offset & 32'h7ff)==32'h2aa && value==16'h90)begin die_next[0]=1;die_next[5:4]=0;end
+   else if(unlock[target]==2 && (chip_offset & 32'h7ff)==32'h2aa && value==16'ha0)die_next[5:4]=3;
+   else if(unlock[target]==2 && value==16'hc0 && ((chip_offset>>1)&32'hfff)==32'h555 && ((chip_offset>>13)&7)<=5)die_next[5:4]=0;
+  end
+ end
  always @(posedge clk) begin
   rsp_valid<=0;rsp_error<=0;dirty_valid<=0;
   if(reset && state==IDLE) begin
-   for(i=0;i<3;i=i+1) begin identify[i]<=0;sr_mode[i]<=0;intel_program[i]<=0;lock_mode[i]<=0;unlock[i]<=0;lock_bank[i]<=0;end
+   // Per-die modules reset their own state on this edge.
   end else case(state)
    IDLE:if(req_valid && req_ready) begin
     rsp_data<=0;chip<=target;
@@ -57,25 +90,23 @@ module ngage_codeflash #(
     else if(req_write && !half_ok) begin rsp_valid<=1;rsp_error<=1;end
     else if(req_write) begin
      if(unlock[target]==3 || intel_program[target]) begin
-      unlock[target]<=0;intel_program[target]<=0;
       if(!pmm_hit) begin rsp_valid<=1;rsp_error<=1;end
       else begin
        saved_address<=aligned;saved_data<=req_data;saved_be<=req_be;
        mem_addr<=BASE+32'h01800000+(aligned-32'h007f0000);mem_write<=0;mem_be<=15;
        operation<=PROGRAM_READ;state<=ISSUE;
-       if(intel_program[target]) sr_mode[target]<=1;
       end
      end else if(value==16'hff || value==16'hf0) begin
-      identify[target]<=0;unlock[target]<=0;sr_mode[target]<=0;intel_program[target]<=0;lock_mode[target]<=0;rsp_valid<=1;
-     end else if(value==16'h40) begin intel_program[target]<=1;rsp_valid<=1;end
-     else if(value==16'h50) begin sr_mode[target]<=0;rsp_valid<=1;end
-     else if(value==16'h60) begin lock_mode[target]<=1;lock_bank[target]<=chip_offset[22:21];rsp_valid<=1;end
-     else if(lock_mode[target] && (value==16'h01 || value==16'hd0)) begin lock_mode[target]<=0;rsp_valid<=1;end
-     else if((chip_offset & 32'h7ff)==32'h2aa && value==16'haa) begin unlock[target]<=1;rsp_valid<=1;end
-     else if(unlock[target]==1 && (chip_offset & 32'h7ff)==32'h554 && value==16'h55) begin unlock[target]<=2;rsp_valid<=1;end
-     else if(unlock[target]==2 && (chip_offset & 32'h7ff)==32'h2aa && value==16'h90) begin identify[target]<=1;unlock[target]<=0;rsp_valid<=1;end
-     else if(unlock[target]==2 && (chip_offset & 32'h7ff)==32'h2aa && value==16'ha0) begin unlock[target]<=3;rsp_valid<=1;end
-     else if(unlock[target]==2 && value==16'hc0 && ((chip_offset>>1)&32'hfff)==32'h555 && ((chip_offset>>13)&7)<=5) begin unlock[target]<=0;rsp_valid<=1;end
+      rsp_valid<=1;
+     end else if(value==16'h40) begin rsp_valid<=1;end
+     else if(value==16'h50) begin rsp_valid<=1;end
+     else if(value==16'h60) begin rsp_valid<=1;end
+     else if(lock_mode[target] && (value==16'h01 || value==16'hd0)) begin rsp_valid<=1;end
+     else if((chip_offset & 32'h7ff)==32'h2aa && value==16'haa) begin rsp_valid<=1;end
+     else if(unlock[target]==1 && (chip_offset & 32'h7ff)==32'h554 && value==16'h55) begin rsp_valid<=1;end
+     else if(unlock[target]==2 && (chip_offset & 32'h7ff)==32'h2aa && value==16'h90) begin rsp_valid<=1;end
+     else if(unlock[target]==2 && (chip_offset & 32'h7ff)==32'h2aa && value==16'ha0) begin rsp_valid<=1;end
+     else if(unlock[target]==2 && value==16'hc0 && ((chip_offset>>1)&32'hfff)==32'h555 && ((chip_offset>>13)&7)<=5) begin rsp_valid<=1;end
      else if((chip_offset==0 || chip_offset==32'haaaa) && value==16'h90 && unlock[target]==0) rsp_valid<=1;
      else begin rsp_valid<=1;rsp_error<=1;end
     end else if(sr_mode[target]) begin rsp_valid<=1;rsp_data<=32'h00800080 & mask32(req_be);end

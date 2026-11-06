@@ -11,12 +11,12 @@ module tb;
   repeat(2)@(negedge clk);cold=0;wait(init);@(negedge clk);rst=0;
   // Decoder audit only: exercise late-boot ICU address ownership. No
   // firmware execution or checkpoint is altered by this test setting.
-  force dut.timers.period=1;
+  force dut.upp.peripherals.timers.period=1;
   cyc=1;stb=1;
   while(!$feof(f))begin
    rc=$fscanf(f,"%h %s\n",addr,device);if(rc==2)begin #1;count=count+1;if(!claim)begin $display("MISSING %h %0s",addr,device);missing=missing+1;end end
   end
-  release dut.timers.period;
+  release dut.upp.peripherals.timers.period;
   if(missing!=0)begin $display("FAIL %0d missing of %0d",missing,count);$finish;end
   $display("PASS ownership of %0d retained-trace device/address pairs",count);$finish;
  end

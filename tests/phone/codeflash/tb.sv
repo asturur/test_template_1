@@ -47,6 +47,11 @@ initial begin
  cmd(32'h04000aaa,16'haa);cmd(32'h04000554,16'h55);cmd(32'h04000aaa,16'h90);
  xfer(0,32'h04000000,0,3,0);if(q!==1)$fatal(1,"chip2 identify");
  xfer(0,0,0,15,0);if(q!==32'h12345678)$fatal(1,"chip2 mode leaked");cmd(32'h04000000,16'hf0);
+ cmd(32'h02000aaa,16'haa);cmd(32'h02000554,16'h55);cmd(32'h02000aaa,16'h90);
+ xfer(0,32'h02000000,0,3,0);if(q!==1)$fatal(1,"chip1 identify");
+ xfer(0,0,0,15,0);if(q!==32'h12345678)$fatal(1,"chip1 mode leaked into chip0");
+ xfer(0,32'h04000000,0,15,0);if(q!==before2)$fatal(1,"chip1 mode leaked into chip2");
+ cmd(32'h02000000,16'hf0);
  cmd(32'h00000aaa,16'haa);cmd(32'h00000554,16'h55);cmd(32'h00000aaa,16'hc0);
  xfer(0,0,0,15,0);if(q!==32'h12345678)$fatal(1,"burst command changed array");
  xfer(1,32'h007f0000,0,15,1);xfer(0,32'h02400000,0,15,1);

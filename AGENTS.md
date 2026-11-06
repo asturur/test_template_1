@@ -13,3 +13,9 @@
 - Use the existing `jotego/simulator:arm64` image for simulation. Do not download Quartus. Keep logs and generated files small; old build objects can be rebuilt. Screen captures, when produced, live under `build/sim/screens/`.
 - Keep observed results, unverified board assumptions, and unimplemented experiments explicitly separate; a matching software/HDL trace does not verify the shared peripheral model against a phone.
 - Preserve every billion-cycle checkpoint permanently for long simulations; rolling retention must never delete those checkpoints. Keep the CPU and host files together and record any missing milestones.
+
+## Chip-oriented hardware organization
+
+- Give each relevant physical NEM-4 chip at least one distinct HDL module, organized using `docs/chip-inventory.md`. The phone board connects chip modules; a chip module may contain smaller functional blocks. Explicitly mark unimplemented components rather than inventing behavior.
+- Name and model inter-chip signals after the schematics when known. Mark transaction-level shortcuts, guessed directions, timings and missing pin behavior explicitly; do not invent physical behavior or silently connect experimental protocol stubs.
+- Keep new HDL Verilog-2001 compatible. Preserve existing behavior and run relevant chip, board and CPU integration tests when changing boundaries.

@@ -59,23 +59,17 @@ wire [3:0]  wb_sel;
 wire        wb_ack, wb_err;
 wire        irq_line, fiq_line;
 
-ngage_cpu cpu (
-    .clk(clk_sys), .reset(reset), .irq(irq_line), .fiq(fiq_line),
-    .wb_lock(bus_lock), .wb_cyc(wb_cyc), .wb_stb(wb_stb),
-    .wb_address(wb_adr), .wb_write(wb_we),
-    .wb_write_data(wb_dat_o), .wb_byte_enable(wb_sel),
-    .wb_cycle_type(), .wb_burst_type(),
-    .wb_ack(wb_ack), .wb_read_data(wb_dat_i), .wb_error(wb_err)
-);
-
 // --- board devices ------------------------------------------------------
 wire        brd_claim, brd_ready, brd_unmodeled;
 wire [31:0] brd_dout;
 
-ngage_board board (
+ngage_board #(.INTERNAL_CPU(1)) board (
     .rst(reset), .init_rst(cold_reset), .clk(clk_sys),
-    .cyc(wb_cyc), .stb(wb_stb), .adr(wb_adr), .we(wb_we),
-    .din(wb_dat_o), .sel(wb_sel), .commit(wb_ack),
+    .cyc(1'b0), .stb(1'b0), .adr(32'b0), .we(1'b0),
+    .din(32'b0), .sel(4'b0), .commit(1'b0),
+    .cpu_ack(wb_ack), .cpu_err(wb_err), .cpu_rdata(wb_dat_i), .cpu_lock(bus_lock),
+    .bus_cyc(wb_cyc), .bus_stb(wb_stb), .bus_adr(wb_adr), .bus_we(wb_we),
+    .bus_din(wb_dat_o), .bus_sel(wb_sel),
     .cfg_lcd(1'b1), .cfg_keypad(1'b1), .cfg_clocks(1'b1), .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),
     .claim(brd_claim), .ready(brd_ready), .dout(brd_dout), .unmodeled(brd_unmodeled), .irq(irq_line), .fiq(fiq_line), .init_done(board_init_done)
 );

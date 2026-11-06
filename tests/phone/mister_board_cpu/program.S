@@ -41,6 +41,33 @@ reset_entry:
  msr cpsr_c,r0
 2: cmp r6,#1
  bne 2b
+ // Reach the separate UEM and audio-DSP models through the UPP bus.
+ ldr r0,=0x0c150420
+ mov r1,#7
+ strh r1,[r0]
+ mov r1,#0x2a
+ strh r1,[r0,#2]
+ mov r1,#8
+ strh r1,[r0,#6]
+ mov r1,#7
+ strh r1,[r0]
+ ldr r1,=0x12a
+ strh r1,[r0,#2]
+ ldrh r2,[r0,#6]
+ cmp r2,#8
+ bne fail
+ ldr r0,=0x0c14b004
+ mov r1,#0x500
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
+ ldr r0,=0x0c1003e8
+ mov r1,#2
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
  // Execute a tiny routine from both modeled writable on-chip regions.
  ldr r0,=0x0c004748
  ldr r1,=0xe3a0302a

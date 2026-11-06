@@ -13,6 +13,12 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_upp.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_upp_peripherals.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_uem.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_adsp.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_lrb2.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_mjoelner.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sparse_regs.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_icu.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_icu_extra.v
@@ -27,6 +33,7 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_bram_be.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_descramble.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_flash_read_decode.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cflash.sv
+set_global_assignment -name VERILOG_FILE rtl/ngage_am29n643_state.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_codeflash.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_dirty_tracker.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_sd_sector.sv

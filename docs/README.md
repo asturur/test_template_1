@@ -41,3 +41,5 @@ checks just to reconstruct already documented results.
 - [MiSTer flash and working save](mister-flash-save.md)
 
 - [MiSTer board-device migration](mister-board-bringup.md)
+
+- [Chip inventory and interconnect status](chip-inventory.md): schematic-based NEM-4 component identities, current HDL boundaries and explicitly unmodeled pins.
