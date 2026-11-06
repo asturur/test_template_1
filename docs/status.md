@@ -1,3 +1,9 @@
+## 2026-11-06: LCD transport and retained-trace inventory
+
+A new Verilog-2001 LCD transport fixture compares accepted and rejected command sequences, status/readback data, header reset and stalled/uncommitted accesses against both C++ boards (`tests/phone/lcd_transport/run.sh`). Both pass. This validates the existing bus sink only; framebuffer, DMA and video are milestone 6 work and remain absent.
+
+The selected retained 2B–4B, 4B–8B, power-key and no-ATR bus traces contain six distinct observed generic 0x0d register words, below the HDL sparse store’s 64-entry limit. The traces do not establish a complete address set or eliminate overflow on other boots. No retained logs or checkpoints were removed.
+
 ## 2026-11-06: cycle-by-cycle timer and UEM comparisons
 
 Added a compact event fixture generated independently by each C++ board. It compares boot and periodic timer IRQs, unit-1 IRQ, unit-60 FIQ, register data, rearming, pending-source masking, and acknowledgement coinciding with expiry across two full periodic intervals. Fixed one-cycle arming errors in all four timers, incorrect boot one-shot status, periodic rearm masking, and acknowledgement timing. Both references pass; these results establish parity for the tested model cases, not physical timer accuracy. Run `tests/phone/timer_conformance/run.sh` inside `jotego/simulator:arm64`.
