@@ -1,3 +1,47 @@
+## 2026-11-07: fit68.32 MHz exposes structural cache/refill bottleneck; rewrite handoff
+
+Reviewed completed42411324930 /8395967. Fmax **68.32MHz** versus65.40;
+setup **-5.021ns** versus-5.378 (+.357ns), TNS **-56669.384ns** versus
+-54599.524 (3.79% worse magnitude). ALMs32,269 (+220), registers43,328 (+121),
+M10Ks456 unchanged. HDMI setup+.042ns. Still fails104MHz; Quartus compilation
+succeeds and timing gate fails. Reports, classification script and exact counts
+under `scratch/timing-closure/pass8-8395967/analysis/`.
+
+Shared error/ACK union is now **11/1000**, all bridge `master_read_data`.
+Diagnostic capture endpoints drop315 ->18 (+1 separate video path). No named
+`store_commit` routes remain in this top1000; the small edit did remove that
+chain, without solving the cache's overall same-cycle scheduling.
+
+**798 cache destinations**: data RAM183 (ICache47, DCache136), valid/dirty
+flags546 (dirty396+valid150), tag RAM16, controller53. Other groups: peripheral
+staging RAM97, sparse CAM7, bridge26, diagnostic observers18+video1, MMU/
+predecode21, memory merger11, instruction FIFO2, CP15/maintenance5, SDRAM
+arbiter12, LCD scanout2. All1000 are violated. Subset counts do not establish
+whole-design timing or compare identical paths across fits.
+
+Worst route is ICache tag M10K ->64-way match/selection -> bank `fill_commit`
+(fanout313) ->256-bit write-data selection -> line M10K data input. Data delay
+13.708ns,9 levels. `write_data` and `write_way` incorrectly depend on the late
+permission rather than the known operation type; their invalid-cycle values
+could be preselected independently. But changing those muxes alone just
+exposes the -4.903ns peripheral RAM and -4.827ns metadata paths. A controlled
+rewrite of the cache bank/controller transaction pipeline is recommended,
+not replacing the whole CPU or changing64-way ARM920 geometry.
+
+Proposed direction: explicit tag/metadata read, registered match/selection,
+and registered operation/commit records; choose payload early, publish data
+and metadata coherently. Maintain read/store/refill/maintenance hazards and
+fast-line streaming throughput. Metadata in BRAM or an early registered
+segment snapshot is a design option to investigate, not an implemented fix.
+Peripheral RAM has a separate broad ownership-decode bottleneck: address ->
+boot claim exclusions -> GPIO write -> BRAM WE; localize ownership by coarse
+address region later. Cache-only work cannot certify the complete core104MHz.
+
+User requested a new-cache handoff. Persistent brief:
+`scratch/handoff-cache-104mhz.md`. No HDL changes, commit, push or new build in
+this review. The prior explicit **no-build** preference remains in force;
+user triggers fits and supplies completed links. No104MHz claim without STA.
+
 ## 2026-11-07: remove redundant global-hit qualification from cache metadata stores
 
 Cache follow-up is separate from pushed diagnostic commit46a113c. Routed-path
