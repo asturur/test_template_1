@@ -29,20 +29,29 @@ module ngage_bram #(
     `define NGAGE_BRAM_PRIMITIVE
 `endif
 `ifdef NGAGE_BRAM_PRIMITIVE
+    // Quartus requires legal physical byte lanes even for whole-word writes.
+    // Pad arbitrary payload widths to eight bits; discard the padding on read.
+    // Whole-word enables drive wren; all native byte-enable pins stay asserted.
+    localparam integer RAM_BYTE_WIDTH = BYTES > 1 ? BYTE_WIDTH : 8;
+    localparam integer RAM_BYTES      = (DW + RAM_BYTE_WIDTH - 1) / RAM_BYTE_WIDTH;
+    localparam integer RAM_WIDTH      = RAM_BYTES * RAM_BYTE_WIDTH;
+    wire [RAM_WIDTH-1:0] ram_q_a, ram_q_b;
+    assign q_a = ram_q_a[DW-1:0];
+    assign q_b = ram_q_b[DW-1:0];
     altsyncram #(
         .operation_mode                    (READ_ONLY_B ? "DUAL_PORT" : "BIDIR_DUAL_PORT"),
         .intended_device_family            ("Cyclone V"),
         .ram_block_type                    ("M10K"),
         .lpm_type                          ("altsyncram"),
-        .width_a                           (DW),
-        .width_b                           (DW),
+        .width_a                           (RAM_WIDTH),
+        .width_b                           (RAM_WIDTH),
         .widthad_a                         (AW),
         .widthad_b                         (AW),
         .numwords_a                        (DEPTH),
         .numwords_b                        (DEPTH),
-        .width_byteena_a                   (BYTES),
-        .width_byteena_b                   (BYTES),
-        .byte_size                         (BYTES > 1 ? BYTE_WIDTH : 0),
+        .width_byteena_a                   (RAM_BYTES),
+        .width_byteena_b                   (RAM_BYTES),
+        .byte_size                         (RAM_BYTE_WIDTH),
         .address_reg_b                     ("CLOCK1"),
         .indata_reg_b                      ("CLOCK1"),
         .wrcontrol_wraddress_reg_b         ("CLOCK1"),
@@ -64,14 +73,14 @@ module ngage_bram #(
         .clock1        (clk),
         .address_a     (addr_a),
         .address_b     (addr_b),
-        .data_a        (data_a),
-        .data_b        (data_b),
+        .data_a        ({{(RAM_WIDTH - DW) {1'b0}}, data_a}),
+        .data_b        ({{(RAM_WIDTH - DW) {1'b0}}, data_b}),
         .wren_a        (|we_a),
         .wren_b        (|we_b),
-        .byteena_a     (we_a),
-        .byteena_b     (we_b),
-        .q_a           (q_a),
-        .q_b           (q_b),
+        .byteena_a     (BYTES > 1 ? we_a : {RAM_BYTES{1'b1}}),
+        .byteena_b     (BYTES > 1 ? we_b : {RAM_BYTES{1'b1}}),
+        .q_a           (ram_q_a),
+        .q_b           (ram_q_b),
         .aclr0         (1'b0),
         .aclr1         (1'b0),
         .addressstall_a(1'b0),

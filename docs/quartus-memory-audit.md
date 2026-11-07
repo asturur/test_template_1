@@ -198,3 +198,14 @@ use byte_size=0 (vendor default/automatic sizing, as in the wizard wrapper).
 Byte-enabled 32-bit cache/UPP RAM still uses byte_size=8 and four enables.
 The simulation model accepted the former invalid synthesis combination;
 primitive simulation is not a substitute for Quartus parameter checks.
+
+### Explicit native lanes supersede automatic sizing
+
+Run 42358035176 rejected the automatic byte_size=0 approach above: Quartus
+derived byte_size=16, outside its legal 5/8/9/10 sizes. The wrapper now uses
+explicit 8-bit lanes for whole-word RAM, padding arbitrary payload widths up
+to a byte boundary, tying native byte-enable pins high and gating writes with
+wren. Native enable count equals native width / byte size. Read outputs discard
+padding; byte-enabled 32-bit RAM is unchanged. This can increase physical block
+usage, particularly for the dirty bitmap; measure it in the next fitter report.
+The user monitors subsequent builds, so do not watch/poll without a new request.

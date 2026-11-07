@@ -1,3 +1,19 @@
+## 2026-11-07: native BRAM lanes corrected; user monitors builds
+
+Run 42358035176 (`87dea06`) rejected automatic byte_size=0: Quartus derived
+16-bit byte lanes, while its supported sizes are 5/8/9/10. This invalidates the
+previous default-sizing approach below. Whole-word memories now use explicit
+8-bit native lanes with constant asserted byte enables; scalar write enables
+control wren. Payload widths are padded internally (1->8, 27->32, 84->88), and
+padding is discarded on read. Logical interfaces, latency and behavioral model
+are unchanged. 32-bit/four-byte-enabled cache/UPP memories remain 32 bits.
+Physical RAM allocation can increase with padding and remains unverified.
+
+Behavioral and Intel-model width/byte/port tests pass; Intel-model cache access,
+writeback/maintenance and source preflight pass too. Commit/push and start a new build. User explicitly takes over monitoring:
+**do not poll/watch the replacement action.** Inspect only when requested.
+No fitter/timing result exists from these parameter-rejected builds.
+
 ## 2026-11-07: Quartus whole-word byte-enable parameter corrected
 
 Run 42357641897 (`a9aa052`) selects `altsyncram` correctly, then fails during
