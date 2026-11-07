@@ -25,6 +25,18 @@ module test;
  always #5 clk=~clk;
  wire [31:0] observed_pc,observed_cpsr,observed_instruction;
  wire observed_fetch;
+`ifdef NGAGE_TEST_BUS_BRIDGE
+ wire master_cyc,master_stb,master_we,master_code,master_ack,master_error;
+ wire [31:0] master_address,master_data,master_read_data;
+ wire [3:0] master_sel;
+ ngage_upp_bus_bridge bridge(
+  .clk(clk),.reset(reset),.master_cyc(master_cyc),.master_stb(master_stb),
+  .master_we(master_we),.master_code(master_code),.master_address(master_address),
+  .master_data(master_data),.master_sel(master_sel),.master_ack(master_ack),
+  .master_error(master_error),.master_read_data(master_read_data),
+  .bus_cyc(cyc),.bus_stb(stb),.bus_we(we),.bus_code(),.bus_address(addr),
+  .bus_data(wdata),.bus_sel(sel),.bus_ack(ack),.bus_error(bus_error),.bus_read_data(rdata));
+`endif
  always @(negedge clk)if(!reset)begin
   if(observed_pc!==dut.u_zap.u_zap_core.o_instr_wb_adr ||
      observed_cpsr!==dut.u_zap.u_zap_core.alu_flags_ff ||
@@ -33,9 +45,15 @@ module test;
  end
  ngage_cpu dut(.debug_pc(observed_pc),.debug_cpsr(observed_cpsr),
  .debug_instruction(observed_instruction),.debug_fetch(observed_fetch),.clk(clk),.reset(reset),.irq(irq),.fiq(fiq),
+  .wb_lock(bus_lock),.wb_cycle_type(cti),.wb_burst_type(bte),
+`ifdef NGAGE_TEST_BUS_BRIDGE
+  .wb_cyc(master_cyc),.wb_stb(master_stb),.wb_address(master_address),
+  .wb_write(master_we),.wb_write_data(master_data),.wb_byte_enable(master_sel),
+  .wb_code(master_code),.wb_ack(master_ack),.wb_error(master_error),.wb_read_data(master_read_data));
+`else
   .wb_cyc(cyc),.wb_stb(stb),.wb_address(addr),.wb_write(we),.wb_write_data(wdata),
-  .wb_byte_enable(sel),.wb_lock(bus_lock),.wb_cycle_type(cti),.wb_burst_type(bte),
-  .wb_ack(ack),.wb_error(bus_error),.wb_read_data(rdata));
+  .wb_byte_enable(sel),.wb_ack(ack),.wb_error(bus_error),.wb_read_data(rdata));
+`endif
  assign bus_error=cyc && stb && fault_addr!=0 && addr==fault_addr && (!fault_read_only || !we) && (!fault_write_only || we);
 `ifdef NGAGE_SDRAM_PATH
  wire ram_access=addr>=32'h80000000 && addr<32'h80200000;

@@ -22,6 +22,10 @@ if [ "${CPU_SDRAM_PATH:-0}" = 1 ]; then
  extra_rtl="$extra_rtl rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v"
  extra_define="$extra_define -DNGAGE_SDRAM_PATH"
 fi
+if [ "${CPU_BUS_BRIDGE:-0}" = 1 ]; then
+ extra_rtl="$extra_rtl rtl/ngage_upp.v"
+ extra_define="$extra_define -DNGAGE_TEST_BUS_BRIDGE"
+fi
 docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint verilator jotego/simulator:arm64 \
  --binary --timing --assert $extra_define -DNGAGE_RUNTIME_TRACE -Wno-fatal -Wno-lint -Irtl/arm --top-module test --Mdir build/sim/unit-core \
  rtl/ngage_cpu.sv rtl/arm/*.sv $extra_rtl tests/cpu/core/test.sv > build/sim/unit-core/build.log 2>&1

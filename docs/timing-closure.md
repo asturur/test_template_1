@@ -1,5 +1,86 @@
 # MiSTer timing closure
 
+## Third measured result; registered bus iteration (2026-11-07)
+
+Completed **42379146118 / cc89013** fits but fails setup. Reports:
+`scratch/timing-closure/pass3-cc89013/`. CAM change saves area but does not
+improve timing in this fit:
+
+| Metric | Before CAM 4040395 | After CAM cc89013 |
+| --- | ---: | ---: |
+| Core setup slack at 104 MHz | -9.582 ns | **-10.644 ns** |
+| Core slow-model Fmax | 52.09 MHz | **49.36 MHz** |
+| Core setup TNS | -117903.504 ns | **-123805.311 ns** |
+| ALMs | 33,857 | **33,589 (80%)** |
+| Registers | 45,783 | **45,643** |
+| M10Ks | 457 | **457 (83%)** |
+
+Setup regresses 1.062 ns / 2.73 MHz, while ALMs fall 268. Worst other reported
+metrics: hold +0.249, recovery +2.639, removal +1.088, pulse +0.961 ns. Keep
+the functional CAM simplification for the next structural experiment; do not
+claim it closed paths. The worst path starts in timer/peripheral logic and
+passes shared claim/ACK into SIM FIFO space/address logic (20.103 ns max data).
+
+Actual detailed-path coverage: **946/1,000** traverse shared fault/ACK;
+**912/1,000** continue through CPU/cache next-request combinational logic after
+that predicate. These 912 cross the response boundary being registered.
+**36** paths involve SIM FIFO and **727** traverse sparse lookup; these are
+traversal groups, not disjoint totals or promised timing passes. The worst
+shared ACK -> SIM FIFO path is not removed in full by a CPU response register.
+SIM multiwrite address/bypass logic is a clear follow-up after measuring this
+isolated change. No SIM protocol/queue change is mixed into this iteration.
+
+User authorized option 2 after measurement. `ngage_upp_bus_bridge`, a leaf
+module in the existing `rtl/ngage_upp.v`, is enabled in the internal-CPU branch.
+The external-master test interface retains its behavior. Existing QIP already
+includes this file; no new source dependency or Quartus source entry is needed.
+This is an explicitly transaction-level UPP integration boundary, not a claim
+about physical Nokia bus pins, clocks or wait-state configuration.
+
+One outstanding classic beat follows IDLE -> ACTIVE -> RESPONSE -> IDLE.
+Request address/data/mask/write/code are captured before downstream decode.
+Downstream ACK/error/data are captured before CPU completion. Downstream
+requests drop during RESPONSE, so side effects commit once on successful
+ACTIVE completion and cannot repeat while the CPU receives the delayed ACK.
+Error wins over simultaneous ACK/error. Reset masks/cancels request and response;
+CYC withdrawal cancels an unfinished request. Upstream response does not depend
+on CPU STB, avoiding ZAP's combinational STB suppression on ERR. The production
+master's contract remains holding CYC through completion except on shared reset;
+non-reset cancellation is not a target-controller flush/recovery protocol.
+SWP LOCK remains
+direct from the CPU and spans response/idle bubbles; it is not tied to ACTIVE.
+
+This adds external-access latency (two extra edge intervals for an isolated
+immediately acknowledged beat), affecting **memory misses/uncached traffic as
+well as MMIO**. Warm cached execution remains one ADD per clock in the measured
+CPU test. Timer/RTC/SDRAM clock rates, firmware and SDC exceptions are unchanged.
+A fresh simulator lineage is required; old frozen checkpoints are untouched.
+
+Validation: focused 200-beat bridge test checks zero/variable waits, captured
+fields/data/errors, back-to-back beats under continuous CYC, exact-once writes,
+CYC cancellation and reset during wait/response. CPU tests can exercise this
+same bridge with `CPU_BUS_BRIDGE=1` in `tests/cpu/core/sim.sh`; this is opt-in
+bench wiring and does not alter the standalone CPU module. Run
+`sh tests/phone/upp_bus_bridge/cpu.sh` for the focused CPU matrix and
+`sh tests/phone/upp_bus_bridge/run.sh` inside the simulator image for the bridge
+unit test.
+
+The bridge tests, warm timing, SWP/basic/cached/bufferable and DMA competition,
+IRQ/FIQ, read/write/IRQ aborts, cache refill/writeback interrupts, alignment,
+cache external abort and SDRAM-adapter SWP checks pass at memory delays 0/3.
+Integrated ARM board/SIMIF/LCD DMA/fault/IRQ/FIQ/SDRAM-wait checks and synthesis/
+structural lint pass. Fresh cold 5M smoke: modeled memory PC **00006164**, 328479
+bus transfers, 12 fetch faults, zero data faults; actual SDRAM-controller/Micron
+model PC **00006160**, 326761 transfers, 12 fetch faults, zero data faults.
+Both have no LCD yet. Different fixed-cycle PCs/counts reflect the changed
+latency; they are not an instruction-by-instruction equivalence claim.
+
+Logs: `scratch/timing-closure/pass4-bridge/`. Next compile must measure new
+slack/Fmax/resources and remaining path groups against **49.36 MHz / -10.644
+ns**. User monitors the build; do not poll it. Registering CPU responses is not
+physical timing closure until measured, and external SDRAM constraints still
+need their separate board-validation work.
+
 ## Third iteration: sparse CAM/full split (2026-11-07)
 
 User selected candidate 1, then one measurement build; candidate 2 (registered

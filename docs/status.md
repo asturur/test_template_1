@@ -1,3 +1,40 @@
+## 2026-11-07: CAM fit 49.36 MHz; registered UPP bus boundary
+
+Reviewed **42379146118 / cc89013**: core **49.36 MHz**, setup **-10.644 ns**,
+TNS -123805.311 ns. Previous 52.09 MHz / -9.582 ns, so timing worsened;
+area improved to **33,589 ALMs (80%)**, 45,643 registers, **457 M10Ks (83%)**.
+Reports `scratch/timing-closure/pass3-cc89013/`. CAM change retained for the
+next structural measurement. Actual path count: **912/1,000** traverse shared
+fault/ACK then CPU/cache next-request logic; **946** touch shared fault/ACK;
+**36** involve SIM FIFO, including the worst path. Groups overlap. The bridge
+cuts the 912 feedback structures; it does not promise 912 timing passes or
+remove the entire worst ACK -> SIM FIFO multiwrite path.
+
+User authorized option 2. Added transaction-level `ngage_upp_bus_bridge` leaf
+inside existing `rtl/ngage_upp.v`; internal CPU requests and responses cross
+registers. Captures one beat, holds fields through waits, commits downstream
+once on successful completion, latches read/error and returns completion to
+CPU with downstream request inactive. ERR wins; reset and CYC cancellation
+covered. LOCK stays directly CPU-driven across pipeline bubbles. External
+master test mode unchanged. Existing QIP includes the containing file.
+No CPU core, PLL, SDC, firmware, timer rate or SIM protocol change. External
+memory accesses as well as MMIO gain latency; fresh simulation lineage needed.
+
+Passes: 200-beat bridge wait/response/side-effect/cancel/reset tests; opt-in
+`CPU_BUS_BRIDGE=1` CPU warm ADD timing (one clock at delays0/3), SWP cached/
+uncached/bufferable/DMA/SDRAM, IRQ/FIQ, read/write/IRQ aborts, alignment, cache
+refill/writeback IRQ and external abort. Integrated ARM/SIMIF/LCD DMA/fault/
+IRQ/FIQ/SDRAM-wait board test, shared synthesis and top structural lint pass.
+Fresh cold 5M modeled-memory smoke PC **00006164**, 328479 transfers, 12
+speculative fetch faults, zero data faults; real-controller/Micron smoke PC
+**00006160**, 326761 transfers, 12 fetch faults, zero data faults. No LCD yet.
+PC/counts differ from the old fixed-cycle smoke due to latency; do not call
+this trace equivalence. Logs `scratch/timing-closure/pass4-bridge/`.
+
+Commit/push and launch one timing build. Compare against **49.36 MHz /
+-10.644 ns**, then inspect remaining SIM queue/response paths. User monitors;
+do not watch/poll. No additional timing cleanup mixed into this measurement.
+
 ## 2026-11-07: sparse CAM timing iteration selected
 
 User authorized **candidate 1 only**, commit/push and one build, then measure

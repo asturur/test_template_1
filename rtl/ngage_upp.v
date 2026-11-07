@@ -91,6 +91,10 @@ module ngage_upp #(
 );
     generate
         if (INTERNAL_CPU) begin : cpu_inside
+            wire master_cyc, master_stb, master_we, master_code;
+            wire master_ack, master_error;
+            wire [31:0] master_address, master_data, master_read_data;
+            wire [3:0] master_sel;
             ngage_cpu cpu (
                 .debug_pc         (debug_pc),
                 .debug_cpsr       (debug_cpsr),
@@ -101,20 +105,47 @@ module ngage_upp #(
                 .irq              (irq),
                 .fiq              (fiq),
                 .wb_lock          (cpu_lock),
-                .wb_cyc           (bus_cyc),
-                .wb_stb           (bus_stb),
-                .wb_code          (bus_code),
-                .wb_address       (bus_adr),
-                .wb_write         (bus_we),
-                .wb_write_data    (bus_din),
-                .wb_byte_enable   (bus_sel),
+                .wb_cyc           (master_cyc),
+                .wb_stb           (master_stb),
+                .wb_code          (master_code),
+                .wb_address       (master_address),
+                .wb_write         (master_we),
+                .wb_write_data    (master_data),
+                .wb_byte_enable   (master_sel),
                 .wb_cycle_type    (),
                 .wb_burst_type    (),
-                .wb_ack           (cpu_ack),
-                .wb_read_data     (cpu_rdata),
-                .wb_error         (cpu_err)
+                .wb_ack           (master_ack),
+                .wb_read_data     (master_read_data),
+                .wb_error         (master_error)
             );
-            assign bus_commit = cpu_ack;
+            // A transaction-level UPP boundary, not the physical phone bus.
+            // LOCK bypasses the beat pipeline and remains asserted through
+            // response/idle bubbles between the two halves of an atomic SWP.
+            ngage_upp_bus_bridge bridge (
+                .clk             (clk),
+                .reset           (rst),
+                .master_cyc      (master_cyc),
+                .master_stb      (master_stb),
+                .master_we       (master_we),
+                .master_code     (master_code),
+                .master_address  (master_address),
+                .master_data     (master_data),
+                .master_sel      (master_sel),
+                .master_ack      (master_ack),
+                .master_error    (master_error),
+                .master_read_data(master_read_data),
+                .bus_cyc         (bus_cyc),
+                .bus_stb         (bus_stb),
+                .bus_we          (bus_we),
+                .bus_code        (bus_code),
+                .bus_address     (bus_adr),
+                .bus_data        (bus_din),
+                .bus_sel         (bus_sel),
+                .bus_ack         (cpu_ack),
+                .bus_error       (cpu_err),
+                .bus_read_data   (cpu_rdata)
+            );
+            assign bus_commit = bus_cyc && bus_stb && cpu_ack && !cpu_err;
         end else begin : external_master
             assign debug_pc          = 0;
             assign debug_cpsr        = 0;
@@ -227,4 +258,80 @@ module ngage_upp #(
         .mdi_events       (mdi_events),
         .adsp_tick        (adsp_tick)
     );
+endmodule
+
+// One outstanding classic Wishbone beat. Both request fields and the returned
+// response cross registers: decode/ACK cannot feed the next CPU address in
+// the same cycle. Every external access adds request and response latency;
+// cached execution and the model's elapsed-time clocks are not slowed.
+module ngage_upp_bus_bridge (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        master_cyc,
+    input  wire        master_stb,
+    input  wire        master_we,
+    input  wire        master_code,
+    input  wire [31:0] master_address,
+    input  wire [31:0] master_data,
+    input  wire [ 3:0] master_sel,
+    output wire        master_ack,
+    output wire        master_error,
+    output reg  [31:0] master_read_data,
+    output wire        bus_cyc,
+    output wire        bus_stb,
+    output reg         bus_we,
+    output reg         bus_code,
+    output reg  [31:0] bus_address,
+    output reg  [31:0] bus_data,
+    output reg  [ 3:0] bus_sel,
+    input  wire        bus_ack,
+    input  wire        bus_error,
+    input  wire [31:0] bus_read_data
+);
+    localparam IDLE = 2'd0, ACTIVE = 2'd1, RESPONSE = 2'd2;
+    reg [1:0] state;
+    reg       response_error;
+    // CYC withdrawal cancels an unfinished beat. STB/fields are held from the
+    // captured request until termination. Upstream response must not depend
+    // on master STB: ZAP may suppress STB combinationally on an error.
+    assign bus_cyc      = !reset && state == ACTIVE && master_cyc;
+    assign bus_stb      = bus_cyc;
+    assign master_ack   = !reset && state == RESPONSE && !response_error;
+    assign master_error = !reset && state == RESPONSE && response_error;
+    always @(posedge clk) begin
+        if (reset) begin
+            state            <= IDLE;
+            response_error   <= 0;
+            master_read_data <= 0;
+            bus_we           <= 0;
+            bus_code         <= 0;
+            bus_address      <= 0;
+            bus_data         <= 0;
+            bus_sel          <= 0;
+        end else begin
+            case (state)
+                IDLE:
+                if (master_cyc && master_stb) begin
+                    bus_we      <= master_we;
+                    bus_code    <= master_code;
+                    bus_address <= master_address;
+                    bus_data    <= master_data;
+                    bus_sel     <= master_sel;
+                    state       <= ACTIVE;
+                end
+                ACTIVE: begin
+                    if (!master_cyc) state <= IDLE;
+                    else if (bus_ack || bus_error) begin
+                        master_read_data <= bus_read_data;
+                        response_error   <= bus_error;
+                        state            <= RESPONSE;
+                    end
+                end
+                // CPU consumes the response on this edge. Capture its next
+                // registered request on a later edge, never the completed one.
+                RESPONSE: state <= IDLE;
+                default:  state <= IDLE;
+            endcase
+        end
+    end
 endmodule
