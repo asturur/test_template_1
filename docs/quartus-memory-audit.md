@@ -189,3 +189,12 @@ as used by the Pocket reference) or `SYNTHESIS` (explicit vendor-model tests).
 The regression separately preprocesses the Quartus-native branch and rejects
 any behavioral-memory declaration. Vendor simulation success alone did not
 validate the original Quartus macro environment; do not repeat that assumption.
+
+### Whole-word enable configuration
+
+Run 42357641897 reached the primitive and rejected width_byteena=1 with
+explicit byte_size=8 on the 16-bit sector buffer. Single-enable memories now
+use byte_size=0 (vendor default/automatic sizing, as in the wizard wrapper).
+Byte-enabled 32-bit cache/UPP RAM still uses byte_size=8 and four enables.
+The simulation model accepted the former invalid synthesis combination;
+primitive simulation is not a substitute for Quartus parameter checks.

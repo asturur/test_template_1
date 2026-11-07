@@ -1,3 +1,19 @@
+## 2026-11-07: Quartus whole-word byte-enable parameter corrected
+
+Run 42357641897 (`a9aa052`) selects `altsyncram` correctly, then fails during
+primitive parameter checking: a 16-bit sector RAM has one whole-word enable,
+but the wrapper explicitly set byte_size=8, which requires two enables.
+Set byte_size=0 (Intel's automatic/default mode) for single-enable memories,
+matching the JTFRAME wizard pattern that omits byte_size for whole-word writes.
+Multi-lane cache/UPP RAM retains explicit 8-bit lanes/four enables. Widths
+1/16/24/27/84 keep their full-word interface without padding or storage changes.
+The reported clear-box error follows the rejected parameters; check the next
+Quartus run for any independent remaining issue. No new resource/fit result.
+
+The behavioral/vendor BRAM suite and source preflight pass. Commit/push and
+start another GitHub build. Earlier CPU/board behavior remains unchanged;
+only the primitive's whole-word byte-size parameter changes.
+
 ## 2026-11-07: Quartus RAM branch selection corrected
 
 GitHub run 42357152231 (`b4ec63a`) failed in synthesis with multiple constant

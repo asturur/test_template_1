@@ -42,7 +42,7 @@ module ngage_bram #(
         .numwords_b                        (DEPTH),
         .width_byteena_a                   (BYTES),
         .width_byteena_b                   (BYTES),
-        .byte_size                         (BYTES > 1 ? BYTE_WIDTH : 8),
+        .byte_size                         (BYTES > 1 ? BYTE_WIDTH : 0),
         .address_reg_b                     ("CLOCK1"),
         .indata_reg_b                      ("CLOCK1"),
         .wrcontrol_wraddress_reg_b         ("CLOCK1"),
