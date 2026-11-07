@@ -21,7 +21,14 @@ module ngage_bram #(
     output wire [   DW-1:0] q_a,
     output wire [   DW-1:0] q_b
 );
-`ifdef SYNTHESIS
+    // Quartus 17 defines ALTERA_RESERVED_QIS, not SYNTHESIS in this project.
+    // SYNTHESIS also selects the primitive for vendor-model simulation/lint.
+`ifdef ALTERA_RESERVED_QIS
+    `define NGAGE_BRAM_PRIMITIVE
+`elsif SYNTHESIS
+    `define NGAGE_BRAM_PRIMITIVE
+`endif
+`ifdef NGAGE_BRAM_PRIMITIVE
     altsyncram #(
         .operation_mode                    (READ_ONLY_B ? "DUAL_PORT" : "BIDIR_DUAL_PORT"),
         .intended_device_family            ("Cyclone V"),
@@ -104,4 +111,5 @@ module ngage_bram #(
     assign q_a = a_q;
     assign q_b = b_q;
 `endif
+    `undef NGAGE_BRAM_PRIMITIVE
 endmodule

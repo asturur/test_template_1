@@ -1,3 +1,21 @@
+## 2026-11-07: Quartus RAM branch selection corrected
+
+GitHub run 42357152231 (`b4ec63a`) failed in synthesis with multiple constant
+drivers on `ngage_bram.memory`; no new fitter/resource result exists. The
+wrapper incorrectly assumed this Quartus 17 project defined `SYNTHESIS`.
+Quartus selected the dual-writer behavioral simulator branch. Added explicit
+`ALTERA_RESERVED_QIS` selection using the native macro found in the JTFRAME
+Pocket reference. `SYNTHESIS` still selects the same primitive for vendor-model
+simulation/lint. The temporary wrapper macro is undefined at the end of the
+file; other RTL guards are unchanged.
+
+The BRAM regression passes preprocessing with **only** `ALTERA_RESERVED_QIS`,
+asserting that `altsyncram` is present and the behavioral array absent. Both
+behavioral and Intel primitive-model tests pass, as do source preflight and
+formatting. Commit/push and dispatch the replacement build. Original CPU/board tests
+below remain behaviorally applicable; this fix changes Quartus branch selection.
+Fit, M10K allocation and timing are still pending actual compilation.
+
 ## 2026-11-07: explicit M10K conversion verified locally; Quartus next
 
 At the user's direction replaced the large register arrays with explicit

@@ -179,3 +179,13 @@ new RAM summary, M10K allocation, ALMs, fit and 104 MHz timing. Logical bits and
 ALUT subtraction cannot predict physical packing; the many shallow parallel
 tag banks especially need a measured block count. No fit/resource saving is
 claimed until those reports exist.
+
+### Quartus 17 branch-selection correction
+
+Run 42357152231 failed before fitting: Quartus did not define `SYNTHESIS` and
+compiled the simulator array, reporting multiple constant drivers. The wrapper
+now selects its primitive for either `ALTERA_RESERVED_QIS` (Quartus native,
+as used by the Pocket reference) or `SYNTHESIS` (explicit vendor-model tests).
+The regression separately preprocesses the Quartus-native branch and rejects
+any behavioral-memory declaration. Vendor simulation success alone did not
+validate the original Quartus macro environment; do not repeat that assumption.
