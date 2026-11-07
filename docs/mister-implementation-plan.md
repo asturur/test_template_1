@@ -190,19 +190,128 @@ Done: `status_test.cpp`, `test_card_test.cpp`, `no_atr_board_test.cpp` vectors t
 
 ### 6. Deliver visible video and held/released controls
 
+Current checkpoint: the scoped experimental HDL and directed acceptance tests are implemented; see the newest `docs/status.md` entries. The unsupported LCD window framing is explicitly surfaced and logged, the USB keyboard disconnect has no event on the exposed PS/2 interface, and no physical hardware or navigable UI has been demonstrated. These limits carry forward to integrated firmware and board validation.
+
 Files: LCD/DMA/input modules described above; framebuffer RAM and scanout in `ngage_mister.v`, `Template.sv` video/OSD aspect/input mapping; directed fixtures in `tests/phone/lcd/` and new input tests.
 
 Bring up a test pattern and hardware diagnostics with CPU held first, then replay saved direct LCD writes and DMA line-band fixtures through real arbitration. Existing `tests/phone/lcd/test_direct.py` covers the host renderer, not HDL video. Add asymmetry/partial transfers, command order/display-on, invalid destination/count, DMA masked IRQ/ack, CPU/DMA contention and cache-clean visibility tests. Never write fake “booted” graphics over guest output.
 
 Done: output dimensions/timing are stable; RGB and exact framebuffer checksum match reference fixtures; incomplete frames are visibly marked; key matrix/rocker held/release tests pass. The overlay shows memory progress and first fault independent of LCD activity.
 
+### 6.5. Verify firmware-in-DDR and writable C:/PMM persistence
+
+**Added at the user's direction, 2026-11-06. Assignment for Terra:** finish milestone 6's current work, then execute this additional storage milestone. Complete phase A before milestone 7's build gate; complete phase B during milestone 9 after milestone 8 produces a verified hardware build. Track the phases separately so missing hardware does not block the simulation/build sequence, and do not mark this milestone fully complete until phase B passes.
+
+**Architecture decision:** immutable core/extension firmware continues to load through the checked NGB/ioctl loader into DDR. C: and PMM use a separate writable NGA image mounted through MiSTer's standard `S0` virtual block device. DDR can still cache the writable arrays for fast phone accesses. The phone continues to see the modeled NOR command interfaces and LFFS; host block I/O supplies persistence. Keep diagnostic export on separate `S1`. Do not replace firmware loading with on-demand block reads, introduce a guest FAT drive, or save through core-specific ioctl upload.
+
+Use [the MiSTer block-device guide](https://mister-devel.github.io/MkDocs_MiSTer/developer/hps_io/#virtual-hard-drives-and-block-devices) together with the checked-in `sys/hps_io.sv`; the local WIDE=1 interface transfers 256 16-bit words per 512-byte sector. Preserve the existing layout: header LBA0, C: LBA1–8192, PMM LBA8193–8320, total 4,260,352 bytes. Existing tools may retain C:/PMM seed sections inside the NGB for initial save creation; after a working save is mounted, its C:/PMM bytes are authoritative. Firmware reload and phone reset must never silently reinitialize a user's save from those seeds.
+
+**Phase A — finish implementation and prove the actual HPS interface in simulation:**
+
+1. Read `docs/mister-flash-save.md`, current reset/dirty checkpoint in `docs/status.md`, `tools/prepare_mister_{images,save}.py`, `Template.sv`, and `rtl/ngage_{loader,sd_sector,save_sector_bridge,save_manager,dirty_tracker}`. Reuse the implemented path and tests. Diagnose and fix mismatches; do not replace passing components merely to add a new milestone. Keep chip boundaries and make any new HDL Verilog-2001 compatible.
+2. Add a reproducible C:/PMM conformance suite, preferably `tests/phone/save_hps/run.sh`, using the actual local `hps_io` with the save manager, header checker, sector bridge and dirty tracker. Reuse the existing diagnostic HPS-bus driver, but drive both reads and writes and both mounted-device indices. A documented test-only PS/2 scope adaptation is acceptable; do not alter SD logic in the test copy. A replacement HPS stub alone is insufficient for this acceptance gate.
+3. Verify mount metadata capture, correct size/profile/header, read-only rejection, zero-size unmount, per-device request/ack routing, stable LBA/request until ack, complete buffer before write, buffer lifetime through ack deassertion, ordered read words and no per-word backpressure. Exercise delayed requests/ack, incomplete reads, timeout and medium replacement. Diagnostic S1 traffic must neither consume C: data nor overwrite its image.
+4. Through the actual NOR controllers and DDR adapter, mutate C: and PMM, flush, clear/reload the working DDR arrays and compare with the written disk bytes. Exercise first/last C: and PMM sectors, a program spanning a sector boundary through successive halfword operations, erase-induced dirtiness, simultaneous guest changes during snapshot/flush, and accepted operations across phone reset. Keep changed-during-save sectors dirty until the final pass commits. Use a small parameterized real-hps_io test for handshake coverage plus the existing full-size image test for size/address coverage; document the distinction.
+5. Verify immutable firmware DDR bytes and original host input hashes remain unchanged by guest writes, save, reset and remount. Verify restoring a mounted save wins over stale bundle seed data. Use erased PMM for initial C++ parity; keep the known seeded first-program discrepancy explicit and do not silently change NOR behavior to make this test pass.
+6. Keep the existing explicit **Flush working save** workflow, with Dirty/Saving/Saved/Error states the user can distinguish. Do not promise automatic write-through. Failed/uncertain I/O must not display Saved or discard dirty DDR data while the core remains configured. Document the recovery limits, including loss of unsaved contents on cold reset/reconfiguration. Background autosave and a power-loss journal are separate future features, not implied by this milestone.
+
+**Phase A done:** new actual-hps_io C:/PMM suite and relevant full-size bundle/save, NOR, reset/dirty, diagnostic multi-device and CPU/board regressions pass in `jotego/simulator:arm64`. Record exact commands, source/image hashes, file offsets and test artifacts under `build/sim/` or `scratch/`. A synthetic ARM mutation test is acceptable if firmware has not reached a writable UI; label it accurately. No long phone run is needed merely to verify storage transport. Preserve all original images, requested screenshots and every billion-cycle CPU/host pair.
+
+**Phase B — real MiSTer persistence acceptance, after the existing build/hardware gates:**
+
+Use disposable copies of the bundle and writable image. Record Main version, RBF/source hashes and before/after image hashes. Verify firmware DDR readback, mount/restore, then make a reversible guest C: change if the UI permits it; otherwise run an explicitly labeled storage diagnostic through the real phone NOR bus. Exercise both C: and PMM without claiming the diagnostic proves firmware UI behavior. Flush, wait for completion, reset, remount/reload and finally perform a controlled power cycle after a completed save. Compare affected sectors, unchanged neighboring sectors, immutable firmware and recovered guest data. Exercise read-only rejection and S1 diagnostic export without corrupting the save. HPS ack alone is not proof of media durability; record actual host/storage completion and the observed power-cycle result. Do not test unexpected power removal using valuable data, and do not claim atomic power-loss recovery without a journal.
+
+**Fully done:** phase A passes and real Main/storage restores the expected saved C:/PMM after the controlled power cycle, with original firmware/seed files untouched and clear user loading/saving instructions in `docs/mister-flash-save.md`. If hardware access or the build is unavailable, report “phase A complete; phase B pending” with the exact remaining gate. Do not count a modeled disk, diagnostic export alone, an old screenshot or the existing 20M-cycle startup comparison as hardware persistence evidence. Keep `docs/status.md` current as each phase advances.
+
 ### 7. Integrated short verification and build gate
+
+**Status, 2026-11-06:** Bounded integration and verification checks completed; see [milestone 7 verification](mister-milestone7.md) for the tested scope and outstanding hardware-gate risks. PLL/QIP reconciliation, exact framework elaboration, physical timing and synthesis remain milestone 8 work.
 
 Files: new HDL-board harness under `sim/`, focused runner under `tests/phone/`, separate `build/sim/obj-...` lineage. Use `jotego/simulator:arm64` (no new image/tool download). Run short standalone firmware routines/transaction replays and existing CPU tests before considering a fresh full boot. Programmed waits may differ from C++ zero-latency: compare device ordering, data, event time in logical ticks and causal IRQ acknowledgements; require cycle equality only when replay timing is deliberately identical.
 
 Do not connect a sparse old HDL wrapper and assume C++ fallback validates an all-HDL board. Produce a report of every reached device and which side owns it; hardware-bound profile must have no required C++ fallback. CPU/cache source and serializable model changes invalidate old Verilator .cpu restore compatibility. Keep paired .host/.cpu inputs immutable. Any later long run must preserve **every** billion-cycle checkpoint including the terminal boundary; old retention exceptions do not apply.
 
-Done: no unresolved unknown response on selected boot-critical fixtures; CPU tests pass under arbitration/waits; stock digest matches; images/save/video/input all tested; source list includes actual new modules; reset/CDC lint and memory inference review are ready. Only then schedule the first synthesis. A long firmware simulation is a separate explicit follow-up, not part of this investigation.
+Done: no unresolved unknown response on selected boot-critical fixtures; CPU tests pass under arbitration/waits; stock digest matches; images/save/video/input all tested; source list includes actual new modules; reset/CDC lint and memory inference review are ready. The bounded milestone 7 remains complete at its tested scope. The user-requested extended firmware-to-logo validation is now milestone 7.5 below; complete and assess that additional gate before the first full synthesis.
+
+### 7.5. Run the HDL phone to the Nokia logo and resolve reached LCD commands
+
+**2026-11-07 update:** reference-derived keypad drive banks, reverse scan, sixth-row drive and press/W1C/source-25 integration now have focused and board regressions. The fresh boot supplies a tested 125-write LCD fixture; full-panel window framing and unknown-command context are implemented, with stock `lcd.ldd` corroborating init counts/tables. Partial-window endpoints/wrap, init-register semantics and physical/UI validation remain open; see `lcd-command-evidence.md` and `live-controls.md`. These changes do not alter the frozen 12B run.
+
+**Progress, 2026-11-06:** clean normal-power-key HDL boot now reaches a firmware-generated Nokia logo at 2B cycles; framebuffer and scanout visually verified, strict restore through 2.001B preserves both images. See `docs/mister-milestone7.md` and `docs/status.md`. Logo subgoal achieved; remaining LCD protocol/window and keypad verification keeps the full milestone open. Unsupported-command diagnostic remains visible; physical hardware remains unverified.
+
+**Added at the user's direction, 2026-11-06 — next assignment for Terra.** Milestone 6's experimental display/input work, milestone 6.5A storage tests and milestone 7's bounded comparisons are now recorded as complete. Milestone 8 has only lint/build preparation, with Quartus unavailable. Preserve those results; perform this firmware-to-logo simulation and LCD investigation before treating the long-run/build validation gate as satisfied. Neither Quartus nor milestone 6.5B's real-board persistence test is a prerequisite for this Verilator work.
+
+**Goal:** provide one reproducible command that executes the actual hardware-bound HDL phone from reset, captures its real LCD/video output and continues far enough to reach a firmware-generated **Nokia logo**. Investigate and implement the LCD commands needed for correct reached behavior. The existing retained-frame logo replay and five-million-cycle smoke are useful regressions, not completion of this goal. A timeout, first clear, first DMA or arbitrary nonwhite frame is not proof of the Nokia logo.
+
+**Starting point and scope:** read `docs/mister-milestone7.md` and newest status first. Extend `tests/phone/hardware_boot/{run.sh,run-real-sdram.sh,compare-run.sh,tb.v}` rather than starting another disconnected phone model. Use the same maintained `ngage_mister`, CPU/cache, board/chip modules, flash, map, DMA/display and memory arbitration as synthesis. The actual SDRAM controller/model path already passes a 5M startup; retain it as the controller-conformance path. A faster backing-memory path is acceptable for iteration if identified explicitly and compared at checkpoints. No C++ phone-peripheral fallback. Host DDR/HPS/PLL/SDRAM behavioral models are platform substitutes and must be listed; this run does not claim that Linux/HPS or the complete vendor-IP `sys_top` has been simulated. Keep `Template.sv` loader/save/reset wiring verified by its separate integration tests.
+
+**A. Prepare a resumable, observable boot runner before extending the budget**
+
+1. Add a maintained runner (for example `tests/phone/hardware_boot/run-logo.sh`) with documented arguments for unique run name, cycle budget, present/no-ATR diagnostic profile, input/save paths and optional restore. Compile with the existing `jotego/simulator:arm64`, using a persistent driver/`--savable` as needed; the current `--binary` test's hard-coded 5M limit is not a long-run workflow. Avoid rebuilding unchanged HDL between budget extensions. Record the executable/source hashes, exact resolved options, actual memory latency/timebase, image hashes, initial PMM and simulated clock; benchmark simulation throughput before estimating wall time.
+2. Start the first comparison from reset with stock core/extension, a disposable copy of the existing C: image, **erased PMM** and a named no-ATR profile matching the current hardware harness. Add matched present-card comparison only when useful; never splice SIM settings into an already initialized checkpoint. Firmware remains loaded in DDR and C:/PMM use the agreed mounted-image/working-array architecture. If this phone-only harness preloads backing arrays rather than exercising HPS mounting, state that explicitly and bind them to the same image bytes; it does not replace milestone 6.5's persistence tests.
+3. Add save/restore for the entire consistent machine: CPU/cache, all device/timer/IRQ/FIFO state, mutable DDR C:/PMM, SDRAM, LCD command/window/cursor/framebuffer and pending bus ownership. Save driver state and input/hash metadata with the machine checkpoint, using permanent paired CPU/host files per project convention. Verify a short save/restore continuation against an uninterrupted run before relying on it. Changes to serialized HDL hierarchy require a new lineage; old research checkpoints cannot seed this core.
+4. Preserve every billion-cycle checkpoint pair permanently, including an exact terminal boundary, and take additional pre-fault/first-frame checkpoints where useful. Budget exhaustion must still save the last consistent state. Keep observations and run data in distinct `build/sim/runs/` and `build/sim/checkpoints/` paths; do not overwrite the 5M regressions, source images, retained screenshots or historical checkpoints. Use bounded progress logs, a small recent-MMIO ring and narrow trace windows rather than an unbounded instruction dump.
+5. Export frames from the **actual HDL LCD framebuffer** after completed direct/DMA updates and capture at least one frame through the actual scanout RGB/sync/pixel-enable path. Save PNGs under `build/sim/screens/<unique-run>/` with cycle, framebuffer checksum, validity/display-on state and unsupported-command diagnostics. Make phone-view selection explicit: the smoke harness currently selects diagnostic video, which must not be mistaken for guest display. Never load a reference PNG into the running guest display to obtain the target.
+
+**B. Investigate unknown LCD commands using reached N-Gage evidence**
+
+**Concrete reference assignment (2026-11-06, Terra or the active lead):** use
+`scratch/reference-nortido-ngage/` pinned to
+`1be08b9bcf951a4523085747572ea102b96de65b`, with
+`docs/nortido-hybrid-reference.md`. Keep our stock firmware bytes unmodified:
+do not use its generated base ROM, ROM overlays, patch list, monitor traps,
+replacement NOS/Bluetooth drivers, injected screen clears or PCM interception.
+The target is a fresh firmware-generated logo in the existing HDL phone using
+`jotego/simulator:arm64`; retain the actual-controller regression alongside the
+explicitly identified faster backing-memory run. Prioritize a measurable boot
+frontier and actual screenshot today; do not report runner preparation as logo
+completion or promise the deadline before measuring throughput/blockers.
+
+- **LCD fixture:** extract the retained transactions listed in the review
+  (`scratch/nortido-review/lcd-window-evidence.json`). Compare reference
+  `rtl/ngage_lcd.sv` and `hps/lib/ngl_lcd.c` with our transport. Verify the proposed
+  `start | (end << 20)` packing for `09240003`, panel-column offset 2, RGB444
+  pair lanes, and the additional zero word. Our observed row end is 208, its
+  helper uses 207: settle inclusive/exclusive/clipping from firmware before
+  implementing bounds. Test nonzero/odd starts and rectangle wrap; its RTL
+  ignores ends and odd starts, so copying that behavior is not completion.
+  Treat panel ID `48` and forced-ready readbacks as reference assumptions.
+- **Keypad fixture:** compare reference `rtl/ngage_keypad.sv` after translating
+  key names to our bit numbering. Investigate drive set bits in byte lane 2 and
+  clear bits in lane 3 at `0C150400/40C`, alternate line drive at `0C120C14`
+  bit 19, bidirectional contact scanning, and direct rocker GENIO mapping.
+  Verify press-edge status at `0C150100`, W1C and simultaneous-event priority;
+  test held/released/repressed keys and byte enables. Review routing to source
+  25 together with our existing NOS pending state; do not replace one with the
+  other. Preserve the existing chip boundaries and explicit physical-model
+  uncertainty. Keypad work must not postpone starting the long boot once a
+  resumable runner is ready; it can be verified independently of logo progress.
+- **Preserve startup self-tests:** the keypad's idle rocker level must not
+  overwrite UEM-routed GENIO1 low/high loopback values. Keep the new
+  `tests/phone/keypad/board_tb.v` regression passing: routed low/high, held
+  rocker grounding routed high, and idle after disconnect. Current fix passes
+  `route2a[3]` as staged `genio1_driven`; physical pin timing remains unverified.
+  Keep NOS IRQ generation limited to modeled event mask `3680`, excluding the
+  generic bit-15 initialization latch. Let firmware run the self-tests; never
+  write MTC/self-test success into guest state.
+- **Acceptance:** save source/fixture hashes, focused LCD/keypad test results,
+  boot frontier and fresh framebuffer/scanout PNGs. Keep unknown commands
+  visible and distinguish justified implementation from unresolved hypotheses.
+  Do not adopt the reference's SIM/ADSP substitutes to advance the boot.
+
+1. Extract the ordered LCD header/control/data command and parameter stream from retained N-Gage bus traces before spending another full boot on discovery. Read `docs/display-bringup.md`, `sim/analyze_lcd_trace.py`, current `rtl/ngage_lcd_display.v`/`ngage_lcd_dma.v`, and the firmware's actual startup LCD/lcd.ldd routines. Retain a compact fixture with bus addresses, byte enables, headers, payload words, transfer lengths, surrounding command boundaries and the firmware caller PC when available.
+2. Inspect the retained Nokia-family references, particularly `scratch/references/TriX/plugins/TriX_HWemu/` and `scratch/references/TriX/projects/shared/lcd/{lcd.c,pcf8833.c}`. TriX's shared routine uses 0x15/0x75/0x5c for column/row/memory operations on another Nokia display; its HWemu plugin is not established as a complete N-Gage panel model. Inspect any specifically identified Nokia hardware-emulator implementation if available, documenting exact revision/device and whether it models panel commands or merely substitutes a framebuffer. Do not copy the N-Gage HLE/Pocket framebuffer or 6600 behavior as proof of this panel protocol. Use official controller documentation if needed, recording part-identification uncertainty.
+3. Produce a reached-command table: opcode, transport header, parameter length/packing, observed payload, inferred effect, source and confidence. Specifically resolve the `0x09240003` parameter framing and distinguish the UPP transport word format from the bytes received by the panel. Verify byte/nibble order, window endpoints and whether bounds are inclusive; examine any reached color-format, orientation, inversion, display-on/off and address-increment commands. Family opcode similarity alone does not establish these semantics.
+4. Implement justified reached behavior inside the existing separate LCD-controller/display boundary, retaining UPP transport/DMA in UPP. Preserve chip-oriented hierarchy; new HDL must be Verilog-2001 compatible. Add fixtures for nonzero windows, partial bands in different orders, window wrap/endpoints, asymmetric colored corners, pixel packing and both direct/DMA paths. Define and test transfer bounds and command reset state. Continue logging unknown command+header+payload context visibly; do not silence warnings by treating unknown operations as successes or assigning invented parameter meanings.
+5. For unresolved commands, state what is missing and whether it prevents correct Nokia-logo rendering or concerns later display behavior. Keep trace-supported simulation hypotheses explicitly labeled. A logo using a provisional controller model is useful evidence under that model, not physical LCD verification. If a blocking parameter format remains unknown, report the exact frontier and evidence instead of marking this milestone complete.
+
+**C. Execute and diagnose the real firmware boot**
+
+Run progressively: reproduce the existing 5M startup, then advance to the first LCD command stream/complete clear, subsequent nonuniform updates and the Nokia logo. Choose each budget from observed progress and measured throughput; do not assume C++ cycle counts survive memory wait-state changes. Continue from validated compatible checkpoints as needed. The user's requested follow-up includes this firmware-to-logo run; do not stop after adding a configurable runner or replaying an old frame.
+
+Compare the new run's ordered device accesses, flash digest/identify, boot registers, MMU/cache setup, timer/IRQ/FIQ servicing, LCD commands and DMA against the selected C++ lineage. Match values/order and logical event causes; demand absolute cycle equality only for a deliberately identical timing model. At the first meaningful divergence, capture a short causal trace, identify and fix the actual defect, run relevant regressions and resume a compatible/reseeded lineage. Known speculative scratch fetch faults must remain distinguished from executed prefetch aborts/data faults. Do not bypass firmware delays, patch the digest/assertions, force startup/MTC/SIM success or invent ADSP replies. The present/no-ATR ADSP assertion may still recur; capture it accurately if it prevents the target.
+
+**Done:** the documented single command boots from reset (or a traceable checkpoint descended from that run), produces a new firmware-generated Nokia-logo PNG from actual HDL display state, and exports a consistent scanout frame. Deliver the run/provenance, cycle and PC milestones, checksums, relevant LCD command fixture/table, implemented behavior/tests, remaining unsupported commands and limitations in `docs/mister-milestone7.md` and `docs/display-bringup.md`; update `docs/status.md`. A reference image may be used for comparison only, with fresh output identified separately. All reached commands necessary for the claimed rendering have a documented/tested interpretation; any provisional assumptions remain prominent. If the logo has not been reached, report the precise failure/frontier and next diagnostic and leave milestone 7.5 open. Nokia-logo success is not Symbian UI, SIM/modem, physical LCD, timing closure or on-board persistence success.
 
 ### 8. First synthesis, timing and resource closure
 
@@ -213,6 +322,8 @@ Before a full compile, elaborate the exact `files.qip`, generated PLL and `sys/`
 Full compile acceptance: fits the actual device, no latches/multiple drivers/width truncations, no unconstrained paths, setup/hold closure at the chosen clock for all corners used, justified CDC exceptions, SDRAM I/O timing and refresh requirements met. The current Template.sdc contains only PLL derivation/uncertainty; complete external timing constraints rather than declaring timing closed from Fmax alone. If 104 MHz fails, reduce/decouple clocks with tested timer semantics, not cache removal or firmware hacks. Export .rbf only from a passing build.
 
 ### 9. First on-board run through interactive acceptance
+
+Complete milestone 6.5 phase B (C:/PMM persistence on actual Main/storage) as part of this hardware acceptance; a storage diagnostic can verify that phase even if the current firmware cannot yet reach a navigable UI.
 
 Needs: DE10-Nano MiSTer with verified external SDRAM capacity, SD card and installed Main supporting the selected virtual-disk protocol, HDMI/display, USB keyboard and controller; a deployment path and a log/readback route (SSH or local SD) must be established. Physical-phone captures/raw chip IDs are useful for authenticity questions but not prerequisites for reproducing the simulation profile. Hardware deployment authorization/access is a future execution step; this request authorizes planning only.
 

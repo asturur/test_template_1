@@ -1,5 +1,5 @@
 // Serialize complete 32-bit CPU and DMA requests. A CPU lock reserves memory
-// across the SWP read/write gap. The present top leaves DMA disconnected.
+// across the SWP read/write gap. The MiSTer top connects LCD DMA.
 module ngage_sdram_arbiter(
  input wire clk, input wire reset, input wire cpu_lock,
  input wire cpu_req, input wire cpu_we, input wire [24:0] cpu_addr,

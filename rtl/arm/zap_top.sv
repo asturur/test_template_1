@@ -118,6 +118,7 @@ parameter logic [31:0] CODE_CACHE_LINE          =  32'd64    // Ccahe line size 
         // ---------------------
 
         output  logic            o_wb_cyc,
+        output  logic            o_wb_code,
         output logic o_wb_lock,
         output  logic            o_wb_stb,
         output  logic  [31:0]    o_wb_adr,
@@ -502,6 +503,7 @@ begin : l_merger_for_core_with_cache_mmu
         .o_d_wb_ack(d_wb_ack ),
         .o_d_wb_err(d_wb_err ),
 
+        .o_wb_code (o_wb_code),
         .o_wb_cyc  (wb_cyc   ),
         .o_wb_stb  (wb_stb   ),
         .o_wb_wen  (wb_we    ),
@@ -545,6 +547,7 @@ begin : l_merger_for_core_without_cache_mmu
         .o_d_wb_ack(data_ack),
         .o_d_wb_err(data_err),
 
+        .o_wb_code (o_wb_code),
         .o_wb_cyc  (o_wb_cyc ),
         .o_wb_stb  (o_wb_stb ),
         .o_wb_wen  (o_wb_we  ),

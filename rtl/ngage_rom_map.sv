@@ -18,11 +18,11 @@ module ngage_rom_map (
         if (address < 32'h00700000)
             rom_offset = address[24:0];
         else if (address < 32'h007f0000)
-            rom_offset = 25'h1300000 + (address - 32'h00700000);
+            rom_offset = 25'h1300000 + (address[24:0] - 25'h0700000);
         else if (address >= 32'h02000000 && address < 32'h02400000)
-            rom_offset = 25'h0700000 + (address - 32'h02000000);
+            rom_offset = 25'h0700000 + address[24:0];
         else if (address >= 32'h04000000 && address < 32'h04800000)
-            rom_offset = 25'h0b00000 + (address - 32'h04000000);
+            rom_offset = 25'h0b00000 + address[24:0];
         else
             rom_hit = 1'b0;
     end

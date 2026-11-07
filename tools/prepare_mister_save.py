@@ -2,8 +2,8 @@
 """Create or inspect a provisional N-Gage MiSTer working save image.
 
 The image has a 512-byte header followed by raw C: (4 MiB) and PMM (64 KiB).
-It is separate from the immutable bundle. This tool does not implement or
-claim FPGA persistence; the on-board save controller is still under development.
+It is separate from the immutable bundle. HDL save/restore is simulation-tested;
+real MiSTer persistence and power-cycle recovery remain unverified.
 """
 import argparse
 import hashlib
@@ -65,6 +65,6 @@ def main():
             if args.bundle:
                 bp,parts=parse_bundle(args.bundle)
                 if (profile,core,ext)!=(bp,hashlib.sha256(parts[0]).digest(),hashlib.sha256(parts[1]).digest()):raise ValueError('save belongs to a different firmware/profile')
-            print(json.dumps({'format':'NGSAVE1 provisional','profile':profile,'bytes':len(data),'core_sha256':core.hex(),'extension_sha256':ext.hex(),'cdrive_sha256':hashlib.sha256(data[HEADER:HEADER+C_LEN]).hexdigest(),'pmm_sha256':hashlib.sha256(data[HEADER+C_LEN:]).hexdigest(),'fpga_persistence':'not yet implemented'},indent=2))
+            print(json.dumps({'format':'NGSAVE1 provisional','profile':profile,'bytes':len(data),'core_sha256':core.hex(),'extension_sha256':ext.hex(),'cdrive_sha256':hashlib.sha256(data[HEADER:HEADER+C_LEN]).hexdigest(),'pmm_sha256':hashlib.sha256(data[HEADER+C_LEN:]).hexdigest(),'fpga_persistence':'simulation-tested; hardware not verified'},indent=2))
     except (OSError,ValueError) as e:raise SystemExit(str(e))
 if __name__=='__main__':main()

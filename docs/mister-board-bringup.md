@@ -1,3 +1,5 @@
+> **Current checkpoint (2026-11-06):** This file retains historical port notes below; several statements about loader, flash, interrupts, SIMIF and DMA are superseded. Read [status.md](status.md) and [mister-review-2026-11-06.md](mister-review-2026-11-06.md) for current implementation, validation and open risks. CPU Hold remains the default, and no hardware boot is claimed.
+
 # MiSTer board-device migration checkpoint
 
 Milestone 4 is **complete for its scoped board-model port and directed acceptance tests**. The new devices are connected to `ngage_board`, whose IRQ/FIQ outputs reach the ARM; the MiSTer CPU still remains held in reset. The standalone ARM/board test runs a small program that configures a timer IRQ and FIQ, acknowledges both, and receives a data abort on an invalid boot-register read. Its bus error response replicates the registered top-level response, but it is not a complete `emu` firmware simulation.

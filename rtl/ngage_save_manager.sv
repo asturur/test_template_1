@@ -15,6 +15,9 @@ module ngage_save_manager #(
  output wire [31:0] sd_lba,output wire sd_rd,output wire sd_wr,input wire sd_ack,
  input wire [12:0] hps_addr,input wire [15:0] hps_dout,input wire hps_we,output wire [15:0] hps_din, input wire flash_quiescent);
  localparam IDLE=0,HEADER_START=1,HEADER_WAIT=2,CHECK_START=3,CHECK_WAIT=4,LOAD_START=5,LOAD_WAIT=6,FLUSH_WAIT=7,FAILED=8;
+ reg mount_prev=0;
+ wire mount_event=mount && !mount_prev;
+ always @(posedge clk)begin if(reset)mount_prev<=0;else mount_prev<=mount;end
  reg [3:0] state=IDLE;reg [13:0] cursor=0;reg was_flushing=0,flush_pending=0;
  wire h_ready,h_done,h_error,h_rd,h_wr;wire [31:0] h_lba;wire [15:0] h_din,h_local;
  wire [7:0] h_addr;wire check_busy,check_done,check_valid;
@@ -44,13 +47,13 @@ module ngage_save_manager #(
   .flush_start(flush_pending && flash_quiescent && mounted && state==IDLE),.flushing(tracker_flushing),.flush_error(tracker_error),.init_done(tracker_init),
   .sector_valid(tracker_valid),.sector_accept(accept_dirty),.sector_index(tracker_index),
   .sector_done(state==FLUSH_WAIT && b_done),.sector_ok(!b_error),
-  .abort_flush(mount && (state!=IDLE || (mounted && (!saved || dirty_valid || tracker_flushing || tracker_valid || flush_pending || !flash_quiescent))))
+  .abort_flush(mount_event && (state!=IDLE || (mounted && (!saved || dirty_valid || tracker_flushing || tracker_valid || flush_pending || !flash_quiescent))))
  );
  assign sd_lba=header_owner?h_lba:b_lba;
  // A mount event changes the backing medium immediately. Abort and report an
  // uncertain transfer rather than letting subsequent sectors hit a new image.
- assign sd_rd=(state==FAILED || mount) ? 1'b0 : (header_owner?h_rd:b_rd);
- assign sd_wr=(state==FAILED || mount) ? 1'b0 : (header_owner?h_wr:b_wr);assign hps_din=header_owner?h_din:b_din;
+ assign sd_rd=(state==FAILED || mount_event) ? 1'b0 : (header_owner?h_rd:b_rd);
+ assign sd_wr=(state==FAILED || mount_event) ? 1'b0 : (header_owner?h_wr:b_wr);assign hps_din=header_owner?h_din:b_din;
  assign saving=tracker_flushing || state==FLUSH_WAIT || flush_pending;
  assign busy=state!=IDLE && state!=FAILED;
  always @(posedge clk)begin
@@ -65,14 +68,15 @@ module ngage_save_manager #(
     else flush_pending<=1;
    end
    if(flush_start && mounted && state==IDLE) error<=0;
-   if(mount && state!=IDLE) begin mounted<=0;saved<=0;error<=1;state<=FAILED;end
+   if(mount_event && state!=IDLE) begin mounted<=0;saved<=0;error<=1;state<=FAILED;end
    else case(state)
     IDLE:begin
-     if(mount && mounted && (!saved || dirty_valid || tracker_flushing || tracker_valid || flush_pending || !flash_quiescent)) begin
+     if(mount_event && mounted && (!saved || dirty_valid || tracker_flushing || tracker_valid || flush_pending || !flash_quiescent)) begin
       mounted<=0;saved<=0;error<=1;state<=FAILED; // Media already changed; preserve RAM and stop.
-     end else if(mount)begin
+     end else if(mount_event)begin
       mounted<=0;saved<=0;error<=0;cursor<=0;
-      if(!tracker_init || !bundle_verified || readonly_image || image_size!=512+(C_SECTORS+PMM_SECTORS)*512)begin error<=1;state<=IDLE;end
+      if(image_size==0)begin state<=IDLE;end // Clean unmount; dirty removal is rejected above.
+      else if(!tracker_init || !bundle_verified || readonly_image || image_size!=512+(C_SECTORS+PMM_SECTORS)*512)begin error<=1;state<=IDLE;end
       else state<=HEADER_START;
      end else if(accept_dirty)state<=FLUSH_WAIT;
     end

@@ -2,7 +2,7 @@ module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,v=0,w=0;reg [31:0] a=0,d=0;reg [3:0] be=15;
 wire ready,rsp,err,mv,mw,dirty;wire [31:0] q,ma,md;wire [3:0] mb;wire [13:0] ds;
 reg done=0;reg [31:0] mr=0;reg [31:0] pmm[0:16383];integer marks=0;
-ngage_codeflash dut(clk,reset,v,ready,w,a,d,be,rsp,err,q,mv,1'b1,mw,ma,md,mb,done,mr,dirty,ds,);
+ngage_codeflash dut(clk,reset,1'b0,v,ready,w,a,d,be,rsp,err,q,mv,1'b1,mw,ma,md,mb,done,mr,dirty,ds,,);
 always @(posedge clk)begin
  done<=0;
  if(mv)begin
@@ -30,7 +30,11 @@ task cmd(input [31:0] address,input [15:0] value);begin xfer(1,address,value,add
 integer i;reg [31:0] before0,before2;
 initial begin
  for(i=0;i<16384;i=i+1)pmm[i]=32'hffffffff;
+ pmm[1]=32'hffff0000; // seeded PMM with cleared low-halfword bits
  tick();reset=0;tick();
+ cmd(32'h007f0004,16'h40);cmd(32'h007f0004,16'hffff);cmd(0,16'hf0);
+ xfer(0,32'h007f0004,0,15,0);if(q!==32'hffff0000)$fatal(1,"seeded PMM must retain cleared bits %h",q);
+ if(marks!=0)$fatal(1,"unchanged seeded PMM must not be marked dirty");
  xfer(0,32'h0027ee60,0,15,0);before0=q;xfer(0,32'h04000000,0,15,0);before2=q;
  cmd(32'h007f0000,16'h60);
  xfer(0,32'h0027ee60,0,15,0);if(q!==before0)$fatal(1,"status leaked across banks");
@@ -54,8 +58,18 @@ initial begin
  cmd(32'h02000000,16'hf0);
  cmd(32'h00000aaa,16'haa);cmd(32'h00000554,16'h55);cmd(32'h00000aaa,16'hc0);
  xfer(0,0,0,15,0);if(q!==32'h12345678)$fatal(1,"burst command changed array");
+ // Program requests outside the PMM window fail and cannot touch firmware.
+ xfer(0,32'h00001000,0,15,0);before0=q;cmd(32'h00001000,16'h40);xfer(1,32'h00001000,16'h0000,3,1);cmd(0,16'hf0);
+ xfer(0,32'h00001000,0,15,0);if(q!==before0)$fatal(1,"immutable firmware changed");
  xfer(1,32'h007f0000,0,15,1);xfer(0,32'h02400000,0,15,1);
- if(marks!=1)$fatal(1,"dirty count %d",marks);
+ // Reset after a PMM program has issued its backing write.
+ cmd(32'h007f0008,16'h40);
+ @(negedge clk);v=1;w=1;a=32'h007f0008;be=3;d=32'h00001234;tick();@(negedge clk);v=0;
+ wait(mv && mw);@(negedge clk);reset=1;
+ i=0;while(dut.state!=0 && i<1000)begin @(negedge clk);i=i+1;end
+ if(dut.state!=0 || pmm[2]!==32'hffff1234)$fatal(1,"reset lost PMM program");
+ reset=0;repeat(2)tick();
+ if(marks!=2)$fatal(1,"dirty count %d",marks);
  $display("PASS code-flash identification, bank scope, PMM program and NOR AND");$finish;
 end
 endmodule

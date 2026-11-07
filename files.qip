@@ -1,20 +1,37 @@
 # N-Gage MiSTer core — Quartus source file list
 
+# Header includes used by the patched ZAP sources.
+set_global_assignment -name SEARCH_PATH rtl/arm
+
 # Top-level
 set_global_assignment -name SYSTEMVERILOG_FILE Template.sv
 set_global_assignment -name SDC_FILE Template.sdc
 
-# PLL (104 MHz system + SDRAM clock)
+# PLL (104 MHz system; SDRAM pin clock is forwarded through DDIO)
 set_global_assignment -name QIP_FILE rtl/pll.qip
 
+# Request IO-cell placement for the falling-edge SDRAM input capture.
+# Actual placement and setup/hold closure must be checked in Fitter/TimeQuest.
+set_instance_assignment -name FAST_INPUT_REGISTER ON -to {SDRAM_DQ[*]}
+
 # N-Gage core modules
+set_global_assignment -name VERILOG_FILE rtl/ngage_bundle_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mister.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_display.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_dma.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_keypad.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_keys.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_diagnostics.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_diag_export.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_clock.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp_peripherals.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_simif.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_test_sim.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_uem.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_adsp.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lrb2.v

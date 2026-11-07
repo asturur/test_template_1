@@ -1,0 +1,128 @@
+#!/usr/bin/env python3
+"""Resumable actual-HDL phone boot with explicitly modeled backing memories."""
+import argparse, glob, gzip, hashlib, json, shutil, subprocess, struct, zlib
+from pathlib import Path
+ROOT=Path(__file__).resolve().parents[3]
+def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+def png(ppm, dest):
+    data=ppm.read_bytes(); head,wh,maxval,raw=data.split(b'\n',3);w,h=map(int,wh.split())
+    assert head==b'P6' and maxval==b'255' and len(raw)==w*h*3
+    def chunk(k,v):return struct.pack('>I',len(v))+k+v+struct.pack('>I',zlib.crc32(k+v)&0xffffffff)
+    scan=b''.join(b'\0'+raw[y*w*3:(y+1)*w*3] for y in range(h))
+    dest.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',w,h,8,2,0,0,0))+chunk(b'IDAT',zlib.compress(scan))+chunk(b'IEND',b''))
+def run_model(cmd,out):
+    # Preserve the entire console losslessly, with bounded live diagnostics.
+    head=bytearray();tail=bytearray();pending=b'';total=0;cap=256*1024
+    interesting=(b'PROGRESS ',b'REACHED ',b'CHECKPOINT ',b'BUS_FAULT ',b'LCD ',b'LCD_UNKNOWN ',b'ERROR ',b'FAIL ',b'PASS ',b'%Error',b'FATAL')
+    with gzip.open(out/'run.log.gz','wb',compresslevel=1) as archive,(out/'run.log').open('w+b') as live,(out/'progress.log').open('wb') as progress:
+        process=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        while chunk:=process.stdout.read1(65536):
+            archive.write(chunk);total+=len(chunk)
+            take=min(cap-len(head),len(chunk));head.extend(chunk[:take]);tail.extend(chunk[take:])
+            if len(tail)>cap:del tail[:-cap]
+            lines=(pending+chunk).split(b'\n');pending=lines.pop()
+            for line in lines:
+                if line.startswith(interesting):progress.write(line+b'\n')
+            progress.flush()
+            live.seek(0);live.write(head)
+            omitted=total-len(head)-len(tail)
+            if omitted:live.write(('\n[Live log omitted '+str(omitted)+' bytes; complete console in run.log.gz]\n').encode())
+            live.write(tail);live.truncate();live.flush()
+        if pending and pending.startswith(interesting):progress.write(pending+b'\n')
+        result=process.wait()
+        if result:raise subprocess.CalledProcessError(result,cmd)
+
+def main():
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--name',required=True);p.add_argument('--cycles',type=int,required=True)
+    p.add_argument('--use-saved-build',action='store_true',help='resume the exact checkpoint executable, ignoring current workspace HDL; never applies new fixes')
+    p.add_argument('--powerup',choices=('normal','alarm'),default='normal',help='reset cause; legacy checkpoints require alarm')
+    p.add_argument('--restore',type=Path);p.add_argument('--pretest-fixes-fork',action='store_true',help='reviewed pre-self-test fork for NOS IRQ mask, routed GENIO1 and observer upgrade');p.add_argument('--driver-upgrade',action='store_true',help='resume identical HDL/host state layout across the reviewed 64-bit observer counter upgrade');p.add_argument('--diagnostic-irq-fork',action='store_true',help='diagnostic-only fork across the reviewed NOS IRQ-mask fix, with identical serialized layout');p.add_argument('--build-only',action='store_true')
+    p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
+    a=p.parse_args();assert Path.cwd()==ROOT and 0<a.cycles<2**63 and '/' not in a.name and a.name not in ('.','..')
+    # Keep exactly the bounded harness's HDL sources; no software peripherals.
+    script=Path('tests/phone/hardware_boot/run.sh').read_text();source_text=script.split('--Mdir build/sim/unit-hardware-boot/obj ',1)[1].split(' > build/',1)[0]
+    sources=[f for token in source_text.split() for f in sorted(glob.glob(token))]
+    assert sources and 'tests/phone/hardware_boot/tb.v' in sources
+    cpp='tests/phone/hardware_boot/logo_main.cpp'
+    headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))
+    hashes={f:sha(f) for f in sources+headers+[cpp,__file__]}
+    saved=None
+    if a.use_saved_build:
+        if not a.restore or a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork:
+            raise ValueError('--use-saved-build requires --restore and forbids model upgrades')
+        saved=json.loads((a.restore.parent/'manifest.json').read_text())
+        hashes=saved['sources']
+    identity=hashlib.sha256(json.dumps({'sources':hashes,'powerup':a.powerup},sort_keys=True).encode()).hexdigest()
+    if saved is not None:identity=saved['source_identity']
+    build=Path('build/sim/logo-build')/identity[:16];build.mkdir(parents=True,exist_ok=True)
+    image='jotego/simulator:arm64';docker=['docker','run','--rm','--network','none','--platform','linux/arm64','-v',str(ROOT)+':/work','-w','/work','--entrypoint']
+    image_id=subprocess.check_output(['docker','image','inspect',image,'--format','{{.Id}}'],text=True).strip()
+    binary=build/'Vtb'
+    if saved is not None:
+        if not binary.is_file() or sha(binary)!=saved['binary_sha256'] or image_id!=saved['image']:
+            raise ValueError('saved executable/container missing or changed; cannot use frozen build')
+        if saved.get('powerup','alarm')!=a.powerup:
+            raise ValueError('reset cause differs; restart from reset')
+    if not binary.exists():
+        cmd=docker+['verilator',image,'--cc','--exe','--build','-j','4','--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_ASSOC_EXPERIMENT','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3']+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+sources+['/work/'+cpp]
+        with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
+    # Precompiled headers are large and unused once the executable exists.
+    for cache in build.glob('*.gch'):cache.unlink()
+    if a.build_only:print(binary);return
+    out=Path('build/sim/runs')/a.name;out.mkdir(parents=True,exist_ok=False)
+    inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
+    manifest={'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    if saved is not None:manifest['uses_saved_build']=True
+    if a.restore:
+        prior=json.loads((a.restore.parent/'manifest.json').read_text())
+        if prior.get('powerup','alarm')!=a.powerup:raise ValueError('reset cause differs; restart from reset')
+        for key in (('image','inputs') if (a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork) else ('binary_sha256','image','inputs')):
+            if prior[key]!=manifest[key]:raise ValueError('checkpoint lineage mismatch: '+key)
+        if not (a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork):
+            for name,digest in prior['sources'].items():
+                if not name.endswith('.py') and hashes.get(name)!=digest:
+                    raise ValueError('compiled source mismatch: '+name)
+        if a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork:
+            changed=[f for f,h in prior['sources'].items() if f.startswith('rtl/') and hashes.get(f)!=h]
+            if (a.diagnostic_irq_fork and (changed!=['rtl/ngage_nos_io.v'] or prior['sources'][cpp]!=hashes[cpp])) or (a.driver_upgrade and changed) or (a.pretest_fixes_fork and set(changed)!=set(['rtl/ngage_nos_io.v','rtl/ngage_keypad.v','rtl/ngage_upp_peripherals.v'])):
+                raise ValueError('unsupported state fork: HDL/driver changes exceed selected upgrade')
+            previous=Path('build/sim/logo-build')/prior['source_identity'][:16]
+            def schema(folder):
+                return {f.name:[line.strip() for line in f.read_text().splitlines() if 'os <<' in line or '__Vcheckval =' in line] for f in folder.glob('*.cpp') if '__Vserialize' in f.read_text()}
+            if schema(previous)!=schema(build):raise ValueError('serialized model layout changed; restart from reset')
+            if a.pretest_fixes_fork:manifest['diagnostic_fork']='Pre-self-test checkpoint: NOS IRQ-mask and UEM-routed GENIO1 fixes plus verified observer upgrade; MTC=0, CPSR IRQ/FIQ masked before fork. Not a cold final-model run.'
+            if a.diagnostic_irq_fork:manifest['diagnostic_fork']='NOS IRQ mask correction; interrupted prior hardware profile, not a clean final-model boot'
+            if a.driver_upgrade:manifest['driver_upgrade']='64-bit cycle observer; unchanged HDL serialization and Host layout, replay equality checked'
+            if prior.get('diagnostic_fork'):manifest['inherited_diagnostic_fork']=prior['diagnostic_fork']
+            if prior.get('inherited_diagnostic_fork'):manifest['inherited_diagnostic_fork']=prior['inherited_diagnostic_fork']
+            manifest['parent_source_identity']=prior['source_identity']
+        for suffix in ('.cpu','.host'):
+            if not Path(str(a.restore)+suffix).is_file() and not Path(str(a.restore)+suffix+'.gz').is_file():raise ValueError('missing checkpoint pair')
+    (out/'inputs').mkdir();shutil.copyfile(a.cdrive,out/'inputs/cdrive.img')
+    actual_restore=a.restore
+    staging=None
+    if a.restore and any(not Path(str(a.restore)+suffix).exists() for suffix in ('.cpu','.host')):
+        staging=out/'restore-input';staging.mkdir()
+        actual_restore=staging/a.restore.name
+        metadata=Path(str(a.restore)+'.archive.json')
+        expected=json.loads(metadata.read_text()) if metadata.exists() else {}
+        for suffix in ('.cpu','.host'):
+            original=Path(str(a.restore)+suffix);dest=Path(str(actual_restore)+suffix)
+            if original.exists():shutil.copyfile(original,dest)
+            else:
+                with gzip.open(str(original)+'.gz','rb') as src,dest.open('xb') as dst:shutil.copyfileobj(src,dst)
+            if suffix in expected and sha(dest)!=expected[suffix]['sha256']:raise ValueError('archived checkpoint hash mismatch')
+        manifest['restore_from_archive']=True
+    (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    cmd=docker+['/work/'+str(binary),image,str(a.cycles),str(out),str(actual_restore) if actual_restore else '-', '+ngage-compact-trace','+core='+str(a.core),'+extension='+str(a.extension),'+cdrive='+str(out/'inputs/cdrive.img')]
+    print('Running',out,flush=True)
+    try:
+        run_model(cmd,out)
+    finally:
+        if staging is not None:shutil.rmtree(staging)
+    screens=Path('build/sim/screens')/a.name;screens.mkdir(parents=True,exist_ok=False)
+    for label in ('framebuffer','scanout'):png(out/(label+'.ppm'),screens/(label+'.png'))
+    result=json.loads((out/'result.json').read_text());result['outputs']={str(f):sha(f) for f in [out/'framebuffer.bin',*screens.glob('*.png')]};(out/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+    for k,v in inputs.items():assert sha(v['path'])==v['sha256'],k+' input mutated'
+    print(json.dumps(result,indent=2))
+if __name__=='__main__':main()

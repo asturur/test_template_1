@@ -37,6 +37,56 @@ it, before the register-file read port changes.
 
 ## Running
 
+For milestone 7.5's resumable **actual HDL phone** run, from the project root:
+
+```sh
+python3 tests/phone/hardware_boot/run-logo.py --name my-logo-run --cycles 700000000
+# Continue only a checkpoint from the exact same executable/source/image lineage:
+python3 tests/phone/hardware_boot/run-logo.py --name my-logo-extension --cycles 1000000000 \
+  --restore build/sim/runs/my-logo-run/checkpoint-700000000
+```
+
+This runner builds/caches a `--savable` Verilator executable inside the existing
+`jotego/simulator:arm64` image. It extends the maintained hardware-boot testbench,
+with C++ driving clocks, backing-memory testbench arrays, observation and
+serialization; phone CPU/peripherals are HDL. The fast path currently uses
+100 MHz clocking and the bounded harness's modeled memory response delays,
+preloads the stock core/extension and a disposable C: copy, starts PMM erased,
+and selects phone video with no SIM/no ATR. It does not simulate HPS Linux,
+mount/flush, vendor PLL or physical SDRAM. Keep `run-real-sdram.sh` as the
+separate actual-controller conformance regression. This is a headless simulator
+using the Jotego toolchain image, not an interactive JTFRAME video window.
+
+Run names must be new. `--cycles` is a 64-bit absolute terminal cycle. The driver
+uses serialized 64-bit host ticks to extend the HDL observation counter across
+its 32-bit rollover; device counters retain their actual HDL widths. Manifests record source/executable,
+container and input hashes, profile and restore ancestry. CPU/host checkpoint
+pairs include the testbench memories and HDL display state; billion-cycle pairs
+are retained. Terminal framebuffer and sampled scanout PNGs are written under
+`build/sim/screens/<name>/`; `result.json` contains validity/display-on flags
+and hashes. A generated PNG does not by itself establish a logo or a valid frame.
+The five-million-cycle save/restore check matched an uninterrupted run byte for
+byte for both checkpoint files. The 64-bit driver upgrade also matches the old
+driver byte for byte after a 5M -> 6M continuation; a separate synthetic
+observer-counter fixture passed rollover and restore above 2^32 (not a firmware
+boot claim). `--driver-upgrade` permits this reviewed observer-only upgrade with
+unchanged HDL serialization; use normal strict restores once upgraded. Do not import historical C++-peripheral research
+checkpoints into this executable. See newest status for actual boot progress.
+
+Storage: old checkpoints may now be stored as paired `.cpu.gz`/`.host.gz`
+with `<prefix>.archive.json` hashes. Pass the original prefix to the RTL runner;
+it verifies and expands the pair into a temporary run directory, restores, then
+removes that temporary copy. A plain-versus-archived continuation produced
+byte-identical CPU and host states. Older C++ tools can first use
+`gzip -dk <prefix>.cpu.gz <prefix>.host.gz` (no overwrite).
+
+The runner retains a bounded live `run.log` and a small `progress.log`; complete
+console output is losslessly streamed to `run.log.gz`. Large compiler `.gch`
+caches are discarded after building. Cleanup inventories and archive hashes are
+under `scratch/cleanup-2026-11-06/` and `scratch/cleanup-deep-2026-11-06/`.
+The unused SDK extraction is archived as `build/sdk-extract.tar.gz`; restore it
+with `tar -xzf build/sdk-extract.tar.gz -C build` if a research tool needs it.
+
 Requirements: Python 3, Docker, Make, and host `arm-none-eabi-gcc`, `ld`, `objcopy`,
 and `objdump`. ARM diagnostics target `-mcpu=arm920t`. The simulator uses the
 already prepared `jotego/simulator:arm64` image with `--platform linux/arm64` and
@@ -153,3 +203,25 @@ The latest native reference can also execute after MMU enable with the separate
 adds `--uem-adc 6=512`. `branch-tail.tsv` records bounded simulation-only branch
 decisions for return/control-flow debugging. The cold-return failure and patch
 0006 are documented in [branch-prediction.md](branch-prediction.md).
+
+### Reset cause for logo runs
+
+`run-logo.py --powerup normal` (default) performs a power-key reset-profile boot. `--powerup alarm` selects the historical UEM 3F=1 profile. The power-key profile uses 3F=2, clearing bit 1 after the modeled key release; these are staged software-reference assumptions. The manifest records the profile and restore rejects a different reset cause, including diagnostic forks. Legacy checkpoint manifests imply alarm; source/build compatibility checks still apply. Never resume an alarm state as normal or patch the boot-reason RAM. The bounded historical comparison harness explicitly keeps its alarm profile.
+
+### Continuing a frozen build after workspace edits
+
+Edits to HDL do not change an already running executable. To resume the exact checkpoint model while the workspace has newer HDL, explicitly select the saved executable:
+
+```sh
+python3 tests/phone/hardware_boot/run-logo.py --name frozen-followup --cycles 13000000000 --powerup normal --use-saved-build --restore build/sim/runs/logo-normal-12000m/checkpoint-12000000000
+```
+
+Use only a checkpoint that actually exists. This option requires the cached executable and container to match their saved hashes, preserves the original compiled-source manifest, checks reset profile/inputs, and forbids model-upgrade flags. It never compiles current HDL or applies fixes. Default restore checks remain strict; use a separate cold boot to validate HDL changes. The original normal-logo compiled sources were also archived under `scratch/logo-bringup/frozen-normal-12b/`.
+
+### Bounded LCD diagnostics in new logo builds
+
+The HDL logo harness logs command/header/parameter writes after the initial clear, suppresses bulk `8924` pixel-port writes, and samples the first 32 `LCD_UNKNOWN` events with header/opcode/data/PC. `progress.log` retains those lines; the sticky unsupported flag and latest context remain in model state after console sampling stops. `tests/phone/lcd_display/startup_commands.hex` replays the first 125 address/data writes from the original normal cold boot. A static direct-write counter cannot establish absence of DMA updates: inspect a checkpoint's framebuffer or capture actual DMA events. A zero-cycle saved-build observation at 7B verified the long run was still at the Nokia logo.
+
+### Native scanout after the HDMI active-area correction
+
+New-build phone `scanout.png` is 176x208 and samples actual CE+DE-qualified video. The phone remains centered in a larger 400x262 timing raster, with black around it for analog output; those blanking intervals are excluded from the HDMI source image and PNG. Diagnostic mode remains 320x240. Older frozen-build screenshots retain their historical 320x240 bordered format. `tests/phone/lcd_display/run-native.sh` verifies coordinate patterns, DE/sync counts, analog black padding and an explicitly labeled display-only Nokia-frame replay.

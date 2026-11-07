@@ -62,6 +62,7 @@ output logic            o_d_wb_err,
 
 // Common bus
 output logic            o_wb_cyc,
+output logic            o_wb_code,
 output logic            o_wb_stb,
 output logic            o_wb_wen,
 output logic [3:0]      o_wb_sel,
@@ -94,6 +95,7 @@ enum logic {CODE = 1'd0, DATA = 1'd1, DEFAULT_XX = 'x} state_ff, state_nxt;
 // Alias
 logic switch;
 
+assign o_wb_code = (state_ff == CODE);
 assign o_wb_lock = (state_ff == DATA) && i_d_wb_lock;
 assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
 

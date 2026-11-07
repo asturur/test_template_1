@@ -4,14 +4,14 @@
 // first-program_pending 0->1 behavior), which is not a verified physical NOR model.
 module ngage_cflash #(
  parameter [31:0] BASE=32'h31400000
-)(input wire clk, input wire reset,
+)(input wire clk, input wire reset, input wire cold_reset,
  input wire req_valid, output wire req_ready, input wire req_write,
  input wire [21:0] req_offset, input wire [31:0] req_data, input wire [3:0] req_be,
  output reg rsp_valid, output reg rsp_error, output reg [31:0] rsp_data,
  output wire mem_valid, input wire mem_ready, output reg mem_write,
  output reg [31:0] mem_addr, output reg [31:0] mem_wdata, output reg [3:0] mem_be,
  input wire mem_done, input wire [31:0] mem_rdata,
- output reg dirty_valid, output reg [12:0] dirty_sector, output wire pending);
+ output reg dirty_valid, output reg [12:0] dirty_sector, output wire pending, output wire idle);
  localparam IDLE=0, ISSUE=1, WAIT_MEM=2;
  localparam OP_READ=0, OP_PROGRAM_READ=1, OP_PROGRAM_WRITE=2, OP_ERASE_READ=3, OP_ERASE_WRITE=4;
  reg [1:0] state=IDLE, unlock=0; reg [2:0] op=OP_READ;
@@ -25,6 +25,7 @@ module ngage_cflash #(
  wire [21:0] erase_sector_base = (half_off[20:16]==5'h1f) ?
     {half_off[21],5'h1f,half_off[15:14],14'b0} : {half_off[21:16],16'b0};
  wire [21:0] erase_sector_last = erase_sector_base + ((half_off[20:16]==5'h1f) ? 22'h003ffc : 22'h00fffc);
+ assign idle=(state==IDLE) && !erase_pending;
  assign pending=(state!=IDLE) || program_pending || erase_pending || erase_armed || unlock!=0;
  assign req_ready=(state==IDLE) && !reset;
  assign mem_valid=(state==ISSUE);
@@ -33,7 +34,8 @@ module ngage_cflash #(
  endfunction
  always @(posedge clk) begin
   rsp_valid<=0; rsp_error<=0; dirty_valid<=0;
-  if(reset && state==IDLE) begin
+  if(cold_reset) begin state<=IDLE;unlock<=0;autoselect<=0;program_pending<=0;erase_armed<=0;erase_pending<=0;erase_polled<=0;end
+  else if(reset && state==IDLE) begin
    if(erase_pending) begin
     erase_cursor<=erase_base;mem_addr<=BASE+{10'b0,erase_base};mem_wdata<=32'hffffffff;mem_be<=15;mem_write<=0;op<=OP_ERASE_READ;erase_result<=0;state<=ISSUE;
    end else begin

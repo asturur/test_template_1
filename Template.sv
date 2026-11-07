@@ -38,8 +38,8 @@ assign BUTTONS = 0;
 
 wire [1:0] ar = status[122:121];
 
-assign VIDEO_ARX = (!ar) ? 12'd4 : (ar - 1'd1);
-assign VIDEO_ARY = (!ar) ? 12'd3 : 12'd0;
+assign VIDEO_ARX = (ar == 2'b00) ? (status[17] ? 13'd11 : 13'd4) : ({11'b0, ar} - 13'd1);
+assign VIDEO_ARY = (ar == 2'b00) ? (status[17] ? 13'd13 : 13'd3) : 13'd0;
 
 `include "build_id.v"
 localparam CONF_STR = {
@@ -49,7 +49,12 @@ localparam CONF_STR = {
 	"-;",
 	"F0,NGB,Load firmware bundle;",
 	"S0,NGA,Mount working save;",
+	"S1,NGD,Mount diagnostic disk;",
 	"T[14],Flush working save;",
+	"O[15],Diagnostic SIM (reset required),No ATR,Test card;",
+	"O[16],CPU mode,Hold,Run;",
+	"O[17],Display,Diagnostic,Phone;",
+	"T[18],Export diagnostics;",
 	"-;",
 	"-;",
 	"T[0],Reset;",
@@ -72,7 +77,7 @@ wire [15:0] ioctl_dout;
 wire [15:0] ioctl_index;
 wire        ioctl_wait;
 
-hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
+hps_io #(.CONF_STR(CONF_STR), .WIDE(1), .VDNUM(2)) hps_io
 (
 	.clk_sys(clk_sys),
 	.HPS_BUS(HPS_BUS),
@@ -109,7 +114,6 @@ hps_io #(.CONF_STR(CONF_STR), .WIDE(1)) hps_io
 ///////////////////////   CLOCKS   ///////////////////////////////
 
 wire clk_sys;          // 104 MHz — CPU, bus, board devices, SDRAM logic
-wire clk_sdram;        // 104 MHz −90° — SDRAM chip clock pin
 wire pll_locked;
 
 pll pll
@@ -117,30 +121,32 @@ pll pll
 	.refclk(CLK_50M),
 	.rst(0),
 	.outclk_0(clk_sys),
-	.outclk_1(clk_sdram),
+	.outclk_1(),
 	.locked(pll_locked)
 );
 
-// Keep the phone CPU held during transport bring-up. SDRAM and board
-// initialization are not yet safe to boot (milestone 2 and later).
+// Default to CPU Hold; a deliberate OSD selection releases it only after
+// loader, save, SDRAM scrub and board initialization gates are satisfied.
 wire transport_reset = ~pll_locked;
 wire phone_reset;
 ngage_reset_gate phone_reset_gate(.clk(clk_sys), .cold_reset(transport_reset),
  .reset_request(RESET | status[0] | buttons[1]), .block_reset(save_saving || save_busy), .phone_reset(phone_reset));
-wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted | 1'b1;
+wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted | !status[16];
 wire ioctl_upload, ioctl_rd, board_init_done;
-wire [0:0] img_mounted,sd_rd,sd_wr,sd_ack;
+wire [1:0] img_mounted,sd_rd,sd_wr,sd_ack;
 wire img_readonly;wire [63:0] img_size;
-wire [31:0] sd_lba[1];wire [5:0] sd_blk_cnt[1];
-wire [12:0] sd_buff_addr;wire [15:0] sd_buff_dout;wire [15:0] sd_buff_din[1];wire sd_buff_wr;
-assign sd_blk_cnt[0]=0;
+wire [31:0] sd_lba[2];wire [5:0] sd_blk_cnt[2];
+wire [12:0] sd_buff_addr;wire [15:0] sd_buff_dout;wire [15:0] sd_buff_din[2];wire sd_buff_wr;
+assign sd_blk_cnt[0]=0;assign sd_blk_cnt[1]=0;
 
 ///////////////////////   SDRAM   ////////////////////////////////
 
 // SDRAM: phone RAM 16MB at PA 0x0a000000, split across BA0 (low 8MB)
 // and BA1 (high 8MB). AW=22 matches DE10 SDRAM geometry (8MB/bank).
-// 104 MHz system clock, phase-shifted copy to SDRAM chip pin.
-assign SDRAM_CLK = clk_sdram;
+// 104 MHz system clock, inverted DDIO output to SDRAM chip pin.
+// Forward the 104 MHz system clock through the output IO register. The
+// inverted pin clock is paired with falling-edge read capture in sdram_ctrl.
+ngage_sdram_clock sdram_clock(.clk(clk_sys), .sdram_clk(SDRAM_CLK));
 
 // CPU → SDRAM address/data decode
 // ngage_mister outputs: sdram_addr[24:0], sdram_din[31:0], sdram_be[3:0],
@@ -164,16 +170,17 @@ wire [3:0] sdram_rd_banks, sdram_wr_banks, sdram_ack_banks, sdram_rdy_banks;
 wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack;
 wire [31:0] sdram_dout;
 wire mem_req, mem_we, mem_ack;
+wire lcd_dma_req,lcd_dma_ack;wire [24:0] lcd_dma_addr;wire [31:0] lcd_dma_rdata;
 wire [24:0] mem_addr;
 wire [31:0] mem_wdata, mem_rdata;
 wire [3:0] mem_be;
-// LCD DMA has not been migrated yet; it must connect to the second port.
+// LCD DMA shares SDRAM with the CPU and respects atomic CPU locks.
 ngage_sdram_arbiter ram_arbiter (
  .clk(clk_sys), .reset(phone_reset), .cpu_lock(cpu_bus_lock),
  .cpu_req(cpu_sdram_req), .cpu_we(cpu_sdram_we), .cpu_addr(cpu_sdram_addr),
  .cpu_data(cpu_sdram_din), .cpu_be(cpu_sdram_be), .cpu_ack(sdram_ack), .cpu_rdata(sdram_dout),
- .dma_req(1'b0), .dma_we(1'b0), .dma_addr(25'b0), .dma_data(32'b0), .dma_be(4'b0),
- .dma_ack(), .dma_rdata(), .mem_req(mem_req), .mem_we(mem_we), .mem_addr(mem_addr),
+ .dma_req(lcd_dma_req), .dma_we(1'b0), .dma_addr(lcd_dma_addr), .dma_data(32'b0), .dma_be(4'hf),
+ .dma_ack(lcd_dma_ack), .dma_rdata(lcd_dma_rdata), .mem_req(mem_req), .mem_we(mem_we), .mem_addr(mem_addr),
  .mem_data(mem_wdata), .mem_be(mem_be), .mem_ack(mem_ack), .mem_rdata(mem_rdata)
 );
 ngage_sdram_adapter phone_sdram (
@@ -188,6 +195,7 @@ ngage_sdram_adapter phone_sdram (
 jtframe_sdram64 #(
     .AW       (22),
     .HF       (1),        // 104 MHz > 66 MHz → HF mode
+    .READ_CAPTURE_NEGEDGE(1), // paired with the inverted DDIO pin clock
     .BA0_LEN  (16),       // 16-bit single reads
     .BA1_LEN  (16),
     .BA2_LEN  (16),
@@ -268,13 +276,9 @@ wire [31:0] load_addr, load_data;
 wire [3:0] load_be;
 wire save_mounted,save_saving,save_saved,save_error,save_busy;
 // Do not replace backing memory while a save is mounted or being processed.
-wire bundle_download = ioctl_download && ioctl_index == 0 && !save_mounted && !save_busy && !save_error;
-reg blocked_load=0;
-always @(posedge clk_sys) begin
- if(transport_reset) blocked_load<=0;
- else if(ioctl_download && ioctl_index==0 && !bundle_download) blocked_load<=1;
- else if(bundle_download) blocked_load<=0;
-end
+wire bundle_download,blocked_load;
+ngage_bundle_gate bundle_gate(.clk(clk_sys),.reset(transport_reset),.request(ioctl_download && ioctl_index==0),
+ .save_mounted(save_mounted),.save_busy(save_busy),.save_error(save_error),.download(bundle_download),.blocked(blocked_load));
 ngage_loader loader (
  .clk(clk_sys), .reset(transport_reset), .download(bundle_download),
  .wr(ioctl_wr), .addr(ioctl_addr), .data(ioctl_dout), .wait_req(ioctl_wait),
@@ -348,7 +352,23 @@ wire        core_ce_pix;
 wire        core_hsync, core_vsync, core_hblank, core_vblank;
 wire [11:0] core_rgb;
 
+wire [26:0] phone_keys;wire [15:0] debug_read_data;wire debug_fault_seen;
+wire [10:0] debug_word;wire debug_freeze,debug_busy,debug_error,debug_mounted,lcd_unsupported;
+reg debug_trigger_prev=0;always @(posedge clk_sys)debug_trigger_prev<=status[18];
+ngage_diag_export debug_export(.clk(clk_sys),.reset(transport_reset),.mount(img_mounted[1]),.readonly_image(img_readonly),.image_size(img_size),
+ .start(status[18] && !debug_trigger_prev),.mounted(debug_mounted),.busy(debug_busy),.error(debug_error),.done(),.freeze_trace(debug_freeze),
+ .debug_word(debug_word),.debug_data(debug_read_data),.sd_lba(sd_lba[1]),.sd_rd(sd_rd[1]),.sd_wr(sd_wr[1]),.sd_ack(sd_ack[1]),
+ .hps_addr(sd_buff_addr),.hps_dout(sd_buff_dout),.hps_we(sd_buff_wr),.hps_din(sd_buff_din[1]));
+reg [1:0] osd_sync=0;
+always @(posedge clk_sys)osd_sync<={osd_sync[0],OSD_STATUS};
+ngage_keys key_input(.clk(clk_sys),.reset(transport_reset),.inhibit(osd_sync[1]),.ps2_key(ps2_key),.joystick(joystick_0),.keys(phone_keys));
 ngage_mister core (
+ .sim_present(status[15]),
+ .dma_sdram_req(lcd_dma_req),.dma_sdram_addr(lcd_dma_addr),.dma_sdram_ack(lcd_dma_ack),.dma_sdram_data(lcd_dma_rdata),
+ .diagnostic_video(!status[17]),
+ .save_state(save_error ? 3'd4 : save_saving ? 3'd2 : save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
+ .diagnostic_status({(debug_error || lcd_unsupported),debug_busy,debug_fault_seen,save_mounted,board_init_done,sdram_scrub_done,loader_valid,pll_locked}),
+ .debug_freeze_trace(debug_freeze),.debug_read_word(debug_word),.debug_read_data(debug_read_data),.debug_fault_seen(debug_fault_seen),.lcd_unsupported(lcd_unsupported),
 	.clk_sys       (clk_sys),
 	.reset         (reset),
 	.cold_reset    (transport_reset),
@@ -386,13 +406,13 @@ ngage_mister core (
 	.rgb444        (core_rgb),
 
 	// keys
-	.keys          (joystick_0[15:0])
+	.keys          (phone_keys)
 );
 
 ///////////////////////   VIDEO   ////////////////////////////////
 
-// 176×208 at ~60Hz, centered by the MiSTer scaler.
-// The framebuffer lives in BRAM inside ngage_board (filled by LCD DMA).
+// 320×240 diagnostic raster; 176×208 phone pixels are centered within it.
+// Display-controller framebuffer storage is inside the phone board.
 
 assign CLK_VIDEO = clk_sys;
 assign CE_PIXEL  = core_ce_pix;
@@ -409,6 +429,6 @@ assign VGA_B  = {core_rgb[ 3:0], core_rgb[ 3:0]};
 
 reg [26:0] act_cnt;
 always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-assign LED_USER = (loader_failed || save_error || blocked_load) ? act_cnt[22] : (bundle_download || save_saving || save_busy) ? act_cnt[25] : (save_mounted && save_saved);
+assign LED_USER = (loader_failed || save_error || blocked_load || debug_error) ? act_cnt[22] : (bundle_download || save_saving || save_busy || debug_busy) ? act_cnt[25] : (save_mounted && save_saved);
 
 endmodule

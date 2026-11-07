@@ -13,7 +13,11 @@ module ngage_nos_io #(parameter integer TICK_DIV=104000, FAST_DIV=3174)(
  reg [15:0] counter,fast_counter,enable_bits;reg compare_valid;integer divider,fast_divider;
  reg [31:0] next_enable,next_status,next_compare,status_after_bus;
  wire valid_sel=(sel==1 || sel==2 || sel==4 || sel==8 || sel==3 || sel==12 || sel==15);
- assign irq=|(status_reg[15:0] & enable_bits);
+ // Only the modeled event sources participate in this staged IRQ profile.
+ // Other status bits are generic latches, not generated pending events.
+ // In particular the firmware's 0x80008000 initialization must not create
+ // a permanent source-25 IRQ (the software model masks nos_upp_status_).
+ assign irq=|(status_reg[15:0] & enable_bits & 16'h3680);
  assign nos_tick=divider==TICK_DIV-1;
  wire compare_written=commit && claim && !bad && we && a==32'h0c150118 && |mask[15:0];
  wire [15:0] effective_compare=compare_written ? next_compare[15:0] : compare_reg[15:0];

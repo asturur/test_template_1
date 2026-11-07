@@ -1,12 +1,12 @@
 // Staged diagnostic UEM/CBUS model. RTC alarm, ADC and power values below
 // are software-model hypotheses, not verified Nokia silicon behavior.
-module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=7995392,ALARM_INTERVAL=65536)(
+module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=7995392,ALARM_INTERVAL=65536,POWER_KEY_ENABLE=0,POWERUP_STATUS=1)(
  input wire clk,input wire reset,input wire req,input wire commit,input wire we,
  input wire [31:0] addr,input wire [31:0] din,input wire [3:0] sel,
  input wire kernel_periodic,input wire clear_irq,
  output reg claim,output reg bad,output reg [31:0] dout,output reg irq_pending,
  output wire [15:0] route2a,route2c,route3b,
- output wire cbus8d_written
+ output wire cbus8d_written,input wire power_pressed
 );
  wire [31:0] a={addr[31:2],2'b00};
  reg [15:0] cfg,command,rtc_status;reg [1:0] stage;
@@ -47,8 +47,9 @@ module ngage_cbus_uem #(parameter integer SECOND_TICKS=104000000,ALARM_TICKS=799
     if(stage!=3)bad=1;else dout={command|16'h0400,16'b0};
    end else if(!we && a==32'h0c150424 && stage==3 && command[8])begin
     if(regno==8'h3a)begin if(adc_selected && adc_channel>13)bad=1;else read_value=512;end
-    else if(regno==8'h3f)read_value=1; // staged uem-power-status-extra
-    else if(regno==8'h35)read_value=(key_released?16'h0000:16'h0010) | 16'h0008 | rtc_status;
+    // Staged reset cause: bit 1 denotes power-key startup, cleared after release.
+    else if(regno==8'h3f)read_value=POWERUP_STATUS & (key_released ? 16'hfffd : 16'hffff);
+    else if(regno==8'h35)read_value=((key_released && !((POWER_KEY_ENABLE != 0) && power_pressed))?16'h0000:16'h0010) | 16'h0008 | rtc_status;
     else if(regno==8'h36 && !written[regno])read_value=0;
     else if(cfg==7 && regno>=8'h31 && regno<=8'h33)read_value=0;
     else if(is_input(regno) && !written[regno])read_value=0;

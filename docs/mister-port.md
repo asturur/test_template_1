@@ -1,3 +1,5 @@
+> **Current checkpoint (2026-11-06):** This file retains historical port notes below; several statements about loader, flash, interrupts, SIMIF and DMA are superseded. Read [status.md](status.md) and [mister-review-2026-11-06.md](mister-review-2026-11-06.md) for current implementation, validation and open risks. CPU Hold remains the default, and no hardware boot is claimed.
+
 # MiSTer port of the phone simulation
 
 See the [2026-11-05 implementation handoff](mister-implementation-plan.md) for the code-audited image/profile inventory, additional SDRAM/storage defects, persistence design and executable milestones. Its findings supersede conflicting historical architecture notes.
@@ -44,3 +46,19 @@ Keep `docs/status.md` and the topic notes current as each stage becomes real. Do
 ## Bundle transport connected (2026-11-05)
 
 `Template.sv` now selects a single NGB bundle and connects loader, registered-owner arbiter and 64-bit DDR adapter. CPU remains unconditionally in reset for later SDRAM/flash/board work. Byte-exact full-image simulated readback passes through both loader and CPU-side DDR requests. `0x30000000` remains an unverified DDR reservation; actual HPS, power-loss persistence and hardware use are not validated. See latest status for tests and commands.
+
+## Native HDMI image and centered analog raster (2026-11-07)
+
+Phone framebuffer and HDMI input active area are **176x208 pixels**, RGB444 in 16-bit pixel slots. Original aspect is **11:13**; diagnostic mode retains 320x240 and 4:3. The timing raster remains 400x262 pixel clocks, with phone pixels centered at x=72..247/y=16..223 and black elsewhere. H/V blanking/DE enclose only the phone rectangle; the HDMI scaler therefore sees 176x208, rather than a 320x240 image containing borders. Analog RGB/sync retains a centered image with surrounding black intervals. Actual CRT frequency/porch tolerance remains a board-test item; no analog timing compatibility is claimed from simulation.
+
+Reference: MiSTer-devel/Gameboy_MiSTer `f6796f3a021db61f804c3151678941ce4d74a3b9`, `rtl/lcd.v` keeps a larger timing raster and separate game/border blanking, with selectable analog width; `Gameboy.sv` uses native aspect. We adopted the separation of pixel rectangle and timing raster, not its Game Boy clock numbers or Super Game Boy border. The read-only checkout is under `scratch/reference-gameboy-mister/`.
+
+Phone mode now emits only guest pixels. Unknown/incomplete state remains available on the diagnostic page, export flags and command logs; no colored error stripe is drawn over the phone image. New logo-run scanout PNGs are 176x208, captured through CE and DE with coordinates normalized to the phone origin. The frozen old simulation and its bordered 320x240 captures remain unchanged.
+
+`sh tests/phone/lcd_display/run-native.sh` checks every active pixel in two coordinate-coded frames, exactly 36,608 DE pixels per raster, all sync pulse counts, native/diagnostic blanking and black analog padding. A separately labeled display-only replay of the observed Nokia framebuffer also matches every pixel and the original framebuffer PNG hash. It is not a new phone cold boot.
+
+## GitHub Quartus build source preflight
+
+The manual `CI Build` action is the supported Quartus 17.0.2 build environment; local Jotego tests do not produce an RBF. `tools/check_quartus_sources.tcl` evaluates the selected project/QIP graph, resolves quoted HDL includes and checks required paths and duplicate QIPs. It runs inside the existing Quartus action container before compilation; locally `tclsh tools/check_quartus_sources.tcl` checks 167 required source/constraint/script/header files and nine unique QIPs. Two absent optional HDMI/audio component-symbol files are not synthesis inputs.
+
+`files.qip` includes the ARM header search path and owns the core PLL inclusion once. `rtl/pll.qip` is a maintained source-only manifest, using the existing `pll.v`/`pll_0002.v` HDL rather than contradictory generated 20-MHz/one-output metadata. The HDL still specifies two 104-MHz outputs; only clock 0 is used, and SDRAM clock forwarding uses its existing DDIO path. No PLL ratios, SDRAM phase or controller behavior were changed by manifest cleanup. Real Quartus fit, inference, timing and SDRAM pin placement remain build/hardware gates.

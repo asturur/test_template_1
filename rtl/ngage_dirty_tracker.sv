@@ -13,7 +13,7 @@ module ngage_dirty_tracker #(
  reg [AW:0] cursor=0;reg active=0,again=0,rescan=0;
  reg [1:0] state=0;
  localparam CLEAR=0, IDLE=1, SCAN=2, WAIT=3;
- localparam [AW:0] NUM_SECTORS=SECTORS;
+ localparam [AW:0] NUM_SECTORS=SECTORS[AW:0];
  always @(posedge clk) begin
   if(cold_reset) begin state<=CLEAR;cursor<=0;init_done<=0;flushing<=0;flush_error<=0;sector_valid<=0;active<=0;again<=0;rescan<=0;end
   else if(abort_flush && state!=CLEAR) begin

@@ -68,6 +68,76 @@ reset_entry:
  ldr r2,[r0]
  cmp r1,r2
  bne fail
+ // Exercise the actual UPP SIMIF and separate diagnostic card on the CPU bus.
+ ldr r0,=0x0c150808
+ mov r1,#1
+ strh r1,[r0]
+ ldr r0,=0x0c150800
+ ldrh r2,[r0]
+ cmp r2,#16
+ bne fail
+ ldr r0,=0x0c15080c
+ ldrh r2,[r0]
+ cmp r2,#0x3b
+ bne fail
+ ldrh r2,[r0]
+ cmp r2,#0
+ bne fail
+ ldr r3,=0x0c150800
+ mov r1,#16
+ strh r1,[r3]
+ mov r1,#0xa0
+ strh r1,[r0]
+ mov r1,#0xa4
+ strh r1,[r0]
+ mov r1,#0
+ strh r1,[r0]
+ strh r1,[r0]
+ mov r1,#2
+ strh r1,[r0]
+ ldrh r2,[r3]
+ cmp r2,#8
+ bne fail
+ mov r1,#8
+ strh r1,[r3]
+ ldrh r2,[r0]
+ cmp r2,#0xa4
+ bne fail
+ mov r1,#0x3f
+ strh r1,[r0]
+ mov r1,#0
+ strh r1,[r0]
+ mov r1,#8
+ strh r1,[r3]
+ ldrh r2,[r0]
+ cmp r2,#0x9f
+ bne fail
+ ldrh r2,[r0]
+ cmp r2,#0x16
+ bne fail
+ // A real CPU-configured partial LCD DMA through the shared SDRAM arbiter.
+ ldr r0,=0x0a000020
+ ldr r1,=0x01230abc
+ str r1,[r0]
+ ldr r0,=0x0c120354
+ ldr r1,=0x0a000020
+ str r1,[r0]
+ ldr r0,=0x0c120360
+ ldr r1,=0x10121208
+ str r1,[r0]
+ ldr r0,=0x0c12036c
+ mov r1,#0
+ str r1,[r0]
+ ldr r0,=0x0c120348
+ mov r1,#2
+ str r1,[r0]
+ ldr r0,=0x0c120110
+4: ldr r1,[r0]
+ tst r1,#0x80
+ beq 4b
+ ldr r0,=0x0c12010c
+ mov r1,#0x80
+ str r1,[r0]
  // Execute a tiny routine from both modeled writable on-chip regions.
  ldr r0,=0x0c004748
  ldr r1,=0xe3a0302a

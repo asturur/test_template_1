@@ -2,8 +2,8 @@ module tb;
 reg clk=0;always #5 clk=~clk;
 reg reset=1,valid=0,write_op=0;reg [21:0] off=0;reg [31:0] data=0;reg [3:0] be=15;
 wire ready,rsp,err,mv,mw,dirty;wire [31:0] result,ma,md;wire [3:0] mb;wire [12:0] ds;
-reg done=0;reg [31:0] mr=0;reg [31:0] mem[0:1048575];integer writes=0,dirty_events=0;
-ngage_cflash dut(clk,reset,valid,ready,write_op,off,data,be,rsp,err,result,mv,1'b1,mw,ma,md,mb,done,mr,dirty,ds,);
+reg done=0;reg [31:0] mr=0;reg [31:0] mem[0:1048575];integer writes=0,dirty_events=0;reg sector0_seen=0,sector1_seen=0;
+ngage_cflash dut(clk,reset,1'b0,valid,ready,write_op,off,data,be,rsp,err,result,mv,1'b1,mw,ma,md,mb,done,mr,dirty,ds,,);
 always @(posedge clk) begin
  done<=0;
  if(mv) begin
@@ -18,7 +18,7 @@ always @(posedge clk) begin
   end
   done<=1;
  end
- if(dirty) dirty_events<=dirty_events+1;
+ if(dirty)begin dirty_events<=dirty_events+1;if(ds==0)sector0_seen<=1;if(ds==1)sector1_seen<=1;end
 end
 task tick;begin @(posedge clk);#1;end endtask
 task transaction(input bit w,input [21:0] a,input [15:0] v,input [3:0] mask,input bit expected_error);
@@ -37,6 +37,8 @@ initial begin
  tick();reset=0;tick();
  program_half(22'h100,16'h0060);transaction(0,22'h100,0,15,0);if(result!==32'hffff0060)$fatal(1,"program 60");
  program_half(22'h102,16'h00f0);transaction(0,22'h100,0,15,0);if(result!==32'h00f00060)$fatal(1,"program f0");
+ program_half(22'h1fe,16'habcd);program_half(22'h200,16'h1234);repeat(3)tick();
+ if(mem[22'h1fc>>2]!==32'habcdffff || mem[22'h200>>2]!==32'hffff1234 || !sector0_seen || !sector1_seen)$fatal(1,"cross-sector halfword program/dirty");
  program_half(22'h100,16'hffff);transaction(0,22'h100,0,15,0);if(result!==32'h00f0ffff)$fatal(1,"software first-program semantics");
  unlock();cmd(22'haaa,16'h90);transaction(0,0,0,3,0);if(result!==1)$fatal(1,"manufacturer");transaction(0,2,0,12,0);if(result!==32'h257e0000)$fatal(1,"device id");cmd(0,16'hf0);
  transaction(1,22'h000120,16'h1234,1,1);
@@ -52,6 +54,14 @@ initial begin
  i=0;while((dut.erase_pending || dut.state!=0) && i<100000) begin @(negedge clk);i=i+1;end
  if(dut.erase_pending || mem[22'h3fc000>>2]!==32'hffffffff) $fatal(1,"reset lost accepted erase");
  reset=0;tick();
+ // Reset while an accepted program is waiting for its backing write.
+ unlock();cmd(22'haaa,16'ha0);
+ @(negedge clk);valid=1;write_op=1;off=22'h300;be=3;data=32'h00001234;
+ tick();@(negedge clk);valid=0;
+ wait(mv && mw);@(negedge clk);reset=1;
+ i=0;while(dut.state!=0 && i<1000)begin @(negedge clk);i=i+1;end
+ if(dut.state!=0 || mem[22'h300>>2]!==32'hffff1234)$fatal(1,"reset lost accepted program");
+ reset=0;repeat(2)tick();
  if(writes<6 || dirty_events==0)$fatal(1,"missing committed writes");
  $display("PASS C: flash commands, program, 64K/16K erase and dirty events");$finish;
 end

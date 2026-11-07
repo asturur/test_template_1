@@ -9,7 +9,9 @@ entries below the handoff are the evidence log, newest first.
 | --- | --- |
 | [status.md](status.md) | Current development checkpoint and ordered resume work |
 | [TODO.md](TODO.md) | Assumptions and shortcuts to replace, with evidence and validation |
+| [lcd-command-evidence.md](lcd-command-evidence.md) | Fresh HDL LCD fixture, decoded window framing and unresolved initialization commands |
 | [display-bringup.md](display-bringup.md) | Firmware-driven LCD and startup display experiments |
+| [nortido-hybrid-reference.md](nortido-hybrid-reference.md) | Hybrid-core LCD/keypad/MMC leads, local trace cross-check and limits of patched guest behavior |
 | [bringup.md](bringup.md) | CPU integration boundary, simulation tools, diagnostics and output locations |
 | [cpu-patches.md](cpu-patches.md) | Why the ZAP patches exist and how they were checked |
 | [branch-prediction.md](branch-prediction.md) | BTB collision root cause, self-contained return reproducer and patch 0006 |
@@ -23,6 +25,8 @@ entries below the handoff are the evidence log, newest first.
 | [software-reference.md](software-reference.md) | EKA2L1 findings, executable software comparison and LCD trace |
 | [references.md](references.md) | Pinned sources, physical versus virtual maps and dump provenance |
 | [modem-model.md](modem-model.md) | Reversed ISI/Phonet protocol and NOS servers (energy, phone-info, SIM); spec for scratch/modem + rtl/ngage_modem.v |
+| [sdram-104mhz-ddio.md](sdram-104mhz-ddio.md) | 104 MHz DDIO clock/read-capture fix, timing-model evidence and remaining hardware gates |
+| [mister-review-2026-11-06.md](mister-review-2026-11-06.md) | Independent milestones 0–5 review, reproduced reset bug, validation and revised next steps |
 | [mister-implementation-plan.md](mister-implementation-plan.md) | Code-audited migration plan, image inventory, persistence, controls and hardware validation gates |
 | [hdl-migration.md](hdl-migration.md) | C++ board model -> rtl/ngage_board.v plan, migrated devices, what is still C++-only |
 

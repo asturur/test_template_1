@@ -1,3 +1,7 @@
+## 2026-11-06: diagnostic SIMIF HDL port
+
+The staged card/controller behavior now has a Verilog-2001 UPP SIMIF and a separate bounded synthetic card module on the board. MiSTer offers reset-sampled No ATR and Test card profiles. C++/HDL card and controller tests, FIQ routing, and a CPU-executed SELECT fixture pass; see `docs/status.md` for commands and limits. Two 20M-cycle from-reset C++/HDL shadow runs passed, but they did not reach SIM initialization. This does not establish a functioning SIM, cellular modem or physical serial timing.
+
 ## EF 6FC6 interpretation
 
 The last file selected by the current synthetic-card initialization is 6FC6. [3GPP TS 51.011 v4.3.0 §10.3.42](https://www.etsi.org/deliver/etsi_ts/151000_151099/151011/04.03.00_60/ts_151011v040300p.pdf) identifies it as optional EF-OPL (operator PLMN list) and says it must be absent when EF-PNN is absent. The diagnostic card currently does not implement EF-PNN (6FC5), so its file-not-found response for 6FC6 is consistent with that condition. This does not prove the whole SIM service table or controller timing is correct, nor that the missing initialization completion is caused by EF-OPL. Preserve the standard's exact profile dependency if implementing these files later.

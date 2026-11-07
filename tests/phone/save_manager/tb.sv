@@ -22,8 +22,8 @@ wire dbusy=(cycle%7)<3;
 ngage_ddr_arbiter aux(clk,reset,1'b0,1'b0,,32'b0,32'b0,4'b0,,mv,mem_ready,mw,ma,md,mb,mem_done,mr,av,ar,aw,aa,ad,ab,adone,ard,1'b1,);
 ngage_ddr_arbiter flash_arb(clk,reset,1'b0,fmv,fready,fma,fmd,fmb,fdone,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,xv,xr,xw,xa,xd,xb,xdone,xrd,fmw,fmr);
 ngage_ddr_arbiter outer(clk,reset,1'b0,av,ar,aa,ad,ab,adone,xv,xr,xw,xa,xd,xb,xdone,xrd,bv,br,bw,ba,bd,bb,bdone,brd,aw,ard);
-ngage_cflash flash(clk,reset,fv,fr,fw,fo,fd,fb,frsp,ferr,fq,fmv,fready,fmw,fma,fmd,fmb,fdone,fmr,fdirty,fsector,);
-ngage_codeflash pflash(clk,reset,pv,pr,pw,pa,pd,pb,prsp,perr,pq,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,pdirty,psector,);
+ngage_cflash flash(clk,reset,1'b0,fv,fr,fw,fo,fd,fb,frsp,ferr,fq,fmv,fready,fmw,fma,fmd,fmb,fdone,fmr,fdirty,fsector,,);
+ngage_codeflash pflash(clk,reset,1'b0,pv,pr,pw,pa,pd,pb,prsp,perr,pq,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,pdirty,psector,,);
 ngage_ddr_adapter adapter(clk,reset,bv,br,bw,ba,bd,bb,bdone,brd,da,din,dbe,dr,dw,dbusy,dout,dready);
 always @(posedge clk)begin
  cycle<=cycle+1;dready<=0;
@@ -77,6 +77,8 @@ initial begin
  if(error||!saved||disk[262]!==16'h1234||disk[263]!==16'hcafe || disk[512]!==16'h2000 || disk[513]!==0)$fatal(1,"flush failed e=%b saved=%b c=%h/%h p=%h/%h",error,saved,disk[262],disk[263],disk[512],disk[513]);
  for(i=0;i<256;i=i+1)ram[i]=0;
  pulse_mount();wait(mounted||error);if(error||ram[3]!==32'hcafe1234 || ram[128]!==32'h00002000)$fatal(1,"reload failed");
+ image_size=0;pulse_mount();if(mounted || error || saved)$fatal(1,"clean zero-size unmount");
+ image_size=1536;pulse_mount();wait(mounted||error);if(error)$fatal(1,"remount after unmount");
  disk[0]=disk[0]^1;ram[3]=32'hfeedface;pulse_mount();wait(error);if(mounted || ram[3]!==32'hfeedface)$fatal(1,"invalid header changed memory");
  // A media swap during an active SD write must never report a saved image.
  disk[0]=disk[0]^1;@(negedge clk);reset=1;tick();@(negedge clk);reset=0;repeat(5)tick();pulse_mount();wait(mounted||error);if(error)$fatal(1,"remount setup");

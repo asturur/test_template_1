@@ -3,13 +3,13 @@
 // the software overlay's first write to a seeded halfword and is documented.
 module ngage_codeflash #(
  parameter [31:0] BASE=32'h30000000
-)(input wire clk,input wire reset,input wire req_valid,output wire req_ready,
+)(input wire clk,input wire reset,input wire cold_reset,input wire req_valid,output wire req_ready,
  input wire req_write,input wire [31:0] req_address,input wire [31:0] req_data,input wire [3:0] req_be,
  output reg rsp_valid,output reg rsp_error,output reg [31:0] rsp_data,
  output wire mem_valid,input wire mem_ready,output reg mem_write,
  output reg [31:0] mem_addr,output reg [31:0] mem_data,output reg [3:0] mem_be,
  input wire mem_done,input wire [31:0] mem_rdata,
- output reg dirty_valid,output reg [13:0] dirty_sector,output wire pending);
+ output reg dirty_valid,output reg [13:0] dirty_sector,output wire pending,output wire idle);
  localparam IDLE=0,ISSUE=1,WAIT_MEM=2;
  localparam READ_ARRAY=0,PROGRAM_READ=1,PROGRAM_WRITE=2;
  reg [1:0] state=IDLE,operation=READ_ARRAY;
@@ -41,6 +41,7 @@ module ngage_codeflash #(
  ngage_rom_map mapper(aligned,rom_hit,rom_offset,ram_hit,cdrive_hit,pmm_map);
  wire [31:0] decoded;
  ngage_flash_read_decode dec(saved_address,mem_rdata,1'b1,1'b1,decoded);
+ assign idle=(state==IDLE);
  assign pending=(state!=IDLE) || intel_program[0] || intel_program[1] || intel_program[2] || unlock[0]!=0 || unlock[1]!=0 || unlock[2]!=0;
  assign req_ready=state==IDLE && !reset;
  assign mem_valid=state==ISSUE;
@@ -81,7 +82,8 @@ module ngage_codeflash #(
  end
  always @(posedge clk) begin
   rsp_valid<=0;rsp_error<=0;dirty_valid<=0;
-  if(reset && state==IDLE) begin
+  if(cold_reset) begin state<=IDLE;operation<=READ_ARRAY;end
+  else if(reset && state==IDLE) begin
    // Per-die modules reset their own state on this edge.
   end else case(state)
    IDLE:if(req_valid && req_ready) begin

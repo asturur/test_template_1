@@ -1,7 +1,18 @@
 `timescale 1ns/1ps
 module tb;
-reg clk=0, memclk=0; always #4.8075 clk=~clk;
-initial begin #7.211; forever #4.8075 memclk=~memclk; end
+parameter INVERTED_CLOCK=0, CAPTURE_NEGEDGE=0;
+parameter real CLOCK_PIN_DELAY=0.0;
+reg clk=0; always #4.8075 clk=~clk;
+wire memclk;
+generate if(INVERTED_CLOCK) begin : inverted_clock
+ wire pin_clock;
+ ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(pin_clock));
+ assign #(CLOCK_PIN_DELAY) memclk=pin_clock;
+end else begin : shifted_clock
+ reg pin_clock=0;
+ initial begin #7.211; forever #4.8075 pin_clock=~pin_clock; end
+ assign memclk=pin_clock;
+end endgenerate
 reg rst=1, phone_reset=1, req=0, we=0; reg [24:0] addr=0; reg [31:0] din=0; reg [3:0] be=0;
 wire ack, scrub_done, init; wire [31:0] dout; wire [21:0] ba_addr; wire [15:0] ba_din, ba_dout; wire [1:0] ba_dsn;
 wire [3:0] rd,wr,ba_ack,ba_rdy,ba_dst,ba_dok; wire rfsh; tri [15:0] dq; wire [12:0] a; wire [1:0] bank; wire dqml,dqmh,nwe,ncas,nras,ncs,cke;
@@ -10,7 +21,7 @@ reg dma_req=0, dma_we=0, cpu_lock=0; reg [24:0] dma_addr=0; reg [31:0] dma_data=
 ngage_sdram_arbiter arb(clk,phone_reset,cpu_lock,req,we,addr,din,be,ack,dout,
  dma_req,dma_we,dma_addr,dma_data,dma_be,dma_ack,dma_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata);
 ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_rdy,ba_dout,rfsh);
-jtframe_sdram64 #(.AW(22),.HF(1),.BA0_LEN(16),.BA1_LEN(16),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
+jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(16),.BA1_LEN(16),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
  .rst(rst),.clk(clk),.init(init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
  .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
  .ba0_dsn(ba_dsn),.ba1_dsn(ba_dsn),.ba2_dsn(2'b11),.ba3_dsn(2'b11),

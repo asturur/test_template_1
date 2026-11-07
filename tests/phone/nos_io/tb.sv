@@ -21,6 +21,16 @@ initial begin
  if(dut.fast_counter!==16'd2 || dut.counter!==16'd3)$fatal(1,"counter dividers conflated");
  @(negedge clk);req=1;we=0;sel=12;addr='h0c150110;#1;if(dout[31:16]!==dut.fast_counter)$fatal(1,"fast alias");
  addr='h0c150114;#1;if(dout[31:16]!==dut.counter)$fatal(1,"slow alias");
+ // Actual long-boot failure: the generic bit-15 latch is not a modeled
+ // interrupt event. It must read back without starving the CPU on IRQ 25.
+ reset=1;tick();reset=0;req=0;
+ wr('h0c150010,32'h80000000,12);
+ wr('h0c150100,32'h80008000,15);
+ if(irq || dut.status_reg[15]!==1'b1)$fatal(1,"generic status bit became pending IRQ");
+ wr('h0c150010,32'h00800000,12);
+ @(negedge clk);events=16'h80;tick();
+ @(negedge clk);events=0;#1;if(!irq)$fatal(1,"modeled timer IRQ masked");
+ wr('h0c150100,32'h80,3);if(irq)$fatal(1,"timer IRQ ack after generic latch");
  $display("PASS NOS counter wrap, compare, status and software IRQ");$finish;
 end
 endmodule

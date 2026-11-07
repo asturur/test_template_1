@@ -13,6 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check Quartus source manifest
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl
+
       # Quartus 17.0.2 (Cyclone V) in a container — same toolchain the .qsf
       # records (LAST_QUARTUS_VERSION "17.0.2"). Revision = Template (Template.qpf).
       # Tee the console so we keep the full log even when the compile fails;

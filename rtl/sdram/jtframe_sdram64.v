@@ -9,6 +9,10 @@ module jtframe_sdram64 #(
               HF=1,     // 1 for HF operation (idle cycles), 0 for LF operation
                         // HF operation starts at 66.6MHz (1/15ns)
               SHIFTED =0,
+              // 1 for an inverted SDRAM pin clock: capture DQ at the falling
+              // system edge, then align it to the registered dst/rdy outputs.
+              // Default preserves the original phase-shifted-clock interface.
+              READ_CAPTURE_NEGEDGE=0,
               BA0_LEN =64, // 1=16 bits, 2=32 bits, 4=64 bits
               BA1_LEN =64,
               BA2_LEN =64,
@@ -186,13 +190,28 @@ assign din = (bg[3] && BA3_WEN) ? ba3_din :
              (bg[2] && BA2_WEN) ? ba2_din :
              (bg[1] && BA1_WEN) ? ba1_din : ba0_din;
 
+// The input register's edge is part of the external SDRAM timing contract.
+// With a 180-degree forwarded clock, a rising system edge can miss the
+// entire single-word DQ-valid window. Keep the second (rising-edge) register
+// so the adapter still consumes data with the original registered rdy.
+wire [15:0] dq_sample;
+generate
+    if (READ_CAPTURE_NEGEDGE) begin : read_falling
+        reg [15:0] dq_in;
+        always @(negedge clk) dq_in <= sdram_dq;
+        assign dq_sample = dq_in;
+    end else begin : read_rising
+        assign dq_sample = sdram_dq;
+    end
+endgenerate
+
 always @(posedge clk) begin
     dst      <= ba_dst;
     rdy      <= ba_rdy;
     all_dbusy    <= |ba_dbusy;
     all_dbusy64  <= |ba_dbusy64;
     dok      <= ba_dok;
-    dout     <= sdram_dq;
+    dout     <= dq_sample;
     cmd      <= next_cmd;
 
     // prog signals

@@ -20,8 +20,8 @@ module ngage_sdram_adapter #(
  reg [1:0] gap=0;
  integer refresh_count=0;
  wire bank=address[23];
- wire selected_ack=ba_ack[bank];
- wire selected_rdy=ba_rdy[bank];
+ wire selected_ack=ba_ack[{1'b0,bank}];
+ wire selected_rdy=ba_rdy[{1'b0,bank}];
  assign ba_addr={address[22:2],high};
  assign ba_din=high ? data[31:16] : data[15:0];
  assign ba_dsn=high ? ~mask[3:2] : ~mask[1:0];

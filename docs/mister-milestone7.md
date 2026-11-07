@@ -1,0 +1,57 @@
+# Milestone 7: integrated verification and build gate
+
+## 2026-11-06 results
+
+The bounded actual-RTL boot harness is `tests/phone/hardware_boot/run.sh`. It uses the actual CPU, board, flash, DDR adapter and both arbiters, with test-only SDRAM and DDR backing storage. No C++ phone device is connected. In 5,000,000 cycles it acknowledged 377,752 CPU-bus accesses; the reached owners were flash (375152), boot registers (978), SDRAM (1602), clock registers (9), GPIO/register RAM (5), GPIO loopback (3), and LCD registers (3). The first reached address and access for each owner are in `build/sim/unit-hardware-boot/run.log`. It reported 18 instruction-fetch faults at the known boot scratch addresses, zero data faults and zero LCD pixel transfers. These facts do not establish a full boot or an LCD image. The owner report follows RTL decoder priority and fails if a successful access has no owner.
+
+`sh tests/phone/hardware_boot/run-real-sdram.sh` passes a five-million-cycle boot through the real SDRAM arbiter, adapter and jtframe controller, backed by the Micron SDRAM model and a DDR test memory. It reaches LCD registers without a C++ phone-device fallback: 375,773 acknowledged accesses, 18 expected instruction-fetch faults, no data faults and no LCD pixel transfers. It uses a shortened 32-byte scrub; the separate full-size scrub checks all 16 MiB. This is bounded firmware execution, not a complete boot or physical RAM timing signoff.
+
+The original Verilator run produced corrupted SDRAM data although the same directed test passed in Icarus. Signal traces and Verilator-generated C++ identified the issue in the test-only Micron model adaptation: assigning high impedance to slices of the `Dq_dqm` procedural temporary made Verilator treat its updates as separate resolved drivers, so the write used stale data. The generated Verilator-only model substitutes zero for masked read lanes, whose values are not valid data, disables the vendor X check unsupported by two-state simulation, and uses the controller's explicit split DQ interface. No production controller or original vendor reference was changed. With this correction, `sh tests/phone/sdram/run-verilator-reference.sh` passes the same controller/model test as Icarus, including all byte masks, banks, reset response handling, DMA locks and refresh. Hardware still needs four-state and physical timing validation.
+
+`sh tests/phone/hardware_boot/compare-run.sh` builds and runs a separate five-million-cycle staged C++/HDL shadow profile and the hardware-bound real-controller boot. It checks 1,016 board claims in the shadow run and compares all 102 board operations and expected fetch faults retained in the compact reference trace against hardware event order and selected data lanes. Those comprise 77 boot-latch operations, 18 known instruction-fetch faults, four clock/PLL accesses and three LCD transport operations. The 5M runs have different memory latencies, so cycle equality is not asserted. No interrupt was observed in these early events; `tests/phone/timer_conformance/run.sh` independently compares timer IRQ edges against each C++ profile at logical ticks, and the board IRQ and CPU integration tests cover IRQ/FIQ delivery. The staged profile uses the diagnostic-present SIM, the hardware boot uses no card; no SIM access is reached in this bounded interval. Present/no-ATR SIMIF behavior is separately compared with the staged reference by `tests/phone/simif_reference/run.sh`. These comparisons cover selected startup behavior, not the entire firmware or all hardware.
+
+The full `tests/cpu/run.sh` passed, including delayed-memory CPU cases and associative cache tests; the legacy direct-mapped associativity case is an explicit XFAIL. The integration tests passed for CPU/board, DDR transport and loader, SDRAM with actual controller and model, bundle gate, LCD display/DMA/transport, keypad, diagnostics, board ownership and system probes. Actual `hps_io` storage tests and diagnostic export passed inside `jotego/simulator:arm64`; the first host-side attempts failed because host Verilator was unavailable, not because a test assertion failed. `tests/phone/fixtures/run.sh` passed both reference transaction fixtures; `verify_digests.py` matched the stock MD5 `2c09c86ff047484fdcc0e226f49c44a9`. These focused fixtures do not yet compare the whole actual-controller boot against the staged software profile.
+
+## Build gate risks and next work
+
+- All 105 direct HDL/SDC/QIP entries in `files.qip` exist, and `sh tests/phone/mister_transport/lint-jotego.sh` passes the top-level stubbed structural check with warnings; the later width cleanup removed all seven truncation warnings. HPS and PLL are stubs, warnings are not fatal, and this is not exact top-level Quartus elaboration or CDC signoff.
+- The generated PLL Verilog declares two 104 MHz outputs, the second shifted -2404 ps. `rtl/pll.qip` metadata still describes one 20 MHz output, with the second at 0 MHz. Resolve using an installed compatible Quartus/IP flow before synthesis; do not claim the metadata is consistent or hand-edit generated PLL parameters without validation.
+- `Template.sdc` contains PLL derivation and uncertainty only. External SDRAM I/O timing, reset and clock-domain constraints require an actual timing/CDC review. HPS and DDR interfaces rely on framework contracts; asynchronous `OSD_STATUS` is synchronized in the top level. The stubbed elaboration cannot prove crossings safe.
+- Memory inference must be checked against synthesis reports, not assumed: `ngage_bram_be` uses byte-lane arrays with registered reads, the LCD framebuffer is 18,304 x 32 bits with one write port, and ARM caches/tags include arrays. Confirm M10K mapping, aggregate capacity, read-during-write behavior and reset effects in the actual device build.
+- Milestone 7 bounded integration checks are complete with the coverage and limitations above. Synthesis, exact PLL/QIP elaboration, timing/CDC signoff, FPGA deployment and any long boot remain separate later gates. Phase 6.5B persistence still needs actual MiSTer hardware.
+
+## Next: milestone 7.5 — firmware Nokia logo and LCD command investigation
+
+The user requested an actual extended HDL firmware run to the Nokia logo, plus investigation of unsupported LCD panel commands. Follow [milestone 7.5](mister-implementation-plan.md#75-run-the-hdl-phone-to-the-nokia-logo-and-resolve-reached-lcd-commands) after the completed bounded checks above and before full synthesis. Extend the existing real-controller/fast hardware-bound harness with configurable budgets, complete verified checkpoints and actual framebuffer/scanout PNG capture; investigate the N-Gage command stream and Nokia-family emulator/reference code, particularly unresolved 0x09240003 parameter framing. Execute the new boot and diagnose actual divergences; runner preparation or retained-frame replay alone does not complete the assignment. Keep both the 5M checks and all historical state/evidence intact. No Quartus or real-board storage access is required to start this task.
+
+## Milestone 7.5: resumable boot and first long-run defect
+
+Runner commands and platform substitutions are documented in [bringup.md](bringup.md#running). The active evidence is in newest [status.md](status.md). Five-million-cycle split/uninterrupted runs produced byte-identical CPU and host checkpoints. Permanent 1B/2B pairs and terminal pairs are retained; source archive and narrow reproducer/replay are under `scratch/logo-bringup/`.
+
+The first long boot exposed a migration-only source-25 interrupt storm: generic GPIO status bit 15 was included in HDL IRQ despite the staged software reference's `3680` event mask. The corrected expression and negative-control regression are in `rtl/ngage_nos_io.v` and `tests/phone/nos_io/tb.sv`. Board CPU and shadow/exclusive integration tests pass. No firmware was changed.
+
+`--diagnostic-irq-fork` is an explicit, restricted debugging option for this single correction. It checks unchanged driver/container/inputs, the only changed RTL file, and the entire generated serialization schema/check values. Its successful restore establishes state-format compatibility. It does not make the interrupted model history equivalent to a clean boot; retain that distinction in any resulting image/report. The default restore path remains strict.
+
+## 2026-11-06: stock-firmware Nokia logo reached in cold HDL boot
+
+**Observed success:** `logo-normal-2000m` completed from reset at 2,000,000,000 cycles, PC `514A112C`, in 1,945.12 seconds (~32.4 minutes). Fresh framebuffer and actual scanout both visibly show the blue **NOKIA** logo on white. This is executed stock firmware writing the modeled HDL display; no image was injected and no firmware/guest-RAM patches were used. The run has 36,689 LCD words, frame_complete=1, display_on=1, the same 18 known speculative fetch faults and **zero data faults**. Normal power-key reset profile, no SIM/ATR, erased PMM, existing C: source and modeled DDR/SDRAM backing are recorded in the run manifest. Original inputs passed the runner's post-run hash checks.
+
+PNG evidence: `build/sim/screens/logo-normal-2000m/framebuffer.png` and `scanout.png`. Framebuffer binary SHA-256 `aa346d99a4db8515e4e7500c93d58ea329dee8c94cea543a26efed120b979737`; PNG `b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab`. Permanent paired 1B and 2B checkpoints retained. Strict same-model restore to 2,001,000,000 cycles (`logo-normal-resume-2001m`) passes, zero new faults, byte-identical framebuffer and scanout hashes. Checkpoint/provenance hashes recorded in `scratch/logo-bringup/nokia-logo-evidence.json`.
+
+The logo objective is achieved under the staged model. **Milestone 7.5 remains open for LCD protocol/keypad work:** unsupported=1 persists and appears as the deliberate red top strip in scanout. Window endpoint/odd-start semantics and physical panel behavior are unverified; do not suppress diagnostics or claim full Symbian/board validation. Next: replay near display activity with bounded command diagnostics, resolve reached unsupported commands and window semantics against stock firmware and the pinned Nortido reference, then test keypad behavior. No long simulation is currently running; both runs completed successfully.
+
+Reproduce from reset (new run name required):
+
+```sh
+python3 tests/phone/hardware_boot/run-logo.py --name my-normal-logo --cycles 2000000000 --powerup normal
+```
+
+Resume the verified logo state:
+
+```sh
+python3 tests/phone/hardware_boot/run-logo.py --name my-logo-resume --cycles 2001000000 --powerup normal --restore build/sim/runs/logo-normal-2000m/checkpoint-2000000000
+```
+
+## 2026-11-07 keypad/LCD follow-up validation
+
+The separate `lcd-keypad-cold-500m` model passes a clean 500M-cycle boot with a complete initial white frame, zero data faults and all 125 startup LCD writes identical to the original cold-boot fixture. It includes the reference-derived bidirectional keypad/edge IRQ implementation and explicit full-window parameter framing. Focused protocol, shared-source board, CPU, DMA/arbitration and structural elaboration tests pass. This precedes NOS self-tests and splash rendering, so it does not extend the original Nokia-logo claim to the new model. The frozen old model continues toward 12B independently; its 7B checkpoint still shows the same Nokia logo. Full scope and limits are in `status.md`, `live-controls.md` and `lcd-command-evidence.md`.

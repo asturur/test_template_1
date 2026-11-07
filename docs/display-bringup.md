@@ -1,8 +1,24 @@
 # Firmware-driven display bring-up
 
+2026-11-07: [reached-command evidence and decoder limits](lcd-command-evidence.md) now records the fresh 125-write HDL fixture, stock `lcd.ldd` CA/CC table verification, explicit full-window parameter capture and unknown context. Partial-window rendering remains unsupported; the frozen long run is unaffected by this new build.
+
+## 2026-11-06: stock-firmware Nokia logo reached in cold HDL boot
+
+**Observed success:** `logo-normal-2000m` completed from reset at 2,000,000,000 cycles, PC `514A112C`, in 1,945.12 seconds (~32.4 minutes). Fresh framebuffer and actual scanout both visibly show the blue **NOKIA** logo on white. This is executed stock firmware writing the modeled HDL display; no image was injected and no firmware/guest-RAM patches were used. The run has 36,689 LCD words, frame_complete=1, display_on=1, the same 18 known speculative fetch faults and **zero data faults**. Normal power-key reset profile, no SIM/ATR, erased PMM, existing C: source and modeled DDR/SDRAM backing are recorded in the run manifest. Original inputs passed the runner's post-run hash checks.
+
+PNG evidence: `build/sim/screens/logo-normal-2000m/framebuffer.png` and `scanout.png`. Framebuffer binary SHA-256 `aa346d99a4db8515e4e7500c93d58ea329dee8c94cea543a26efed120b979737`; PNG `b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab`. Permanent paired 1B and 2B checkpoints retained. Strict same-model restore to 2,001,000,000 cycles (`logo-normal-resume-2001m`) passes, zero new faults, byte-identical framebuffer and scanout hashes. Checkpoint/provenance hashes recorded in `scratch/logo-bringup/nokia-logo-evidence.json`.
+
+The logo objective is achieved under the staged model. **Milestone 7.5 remains open for LCD protocol/keypad work:** unsupported=1 persists and appears as the deliberate red top strip in scanout. Window endpoint/odd-start semantics and physical panel behavior are unverified; do not suppress diagnostics or claim full Symbian/board validation. Next: replay near display activity with bounded command diagnostics, resolve reached unsupported commands and window semantics against stock firmware and the pinned Nortido reference, then test keypad behavior. No long simulation is currently running; both runs completed successfully.
+
+
+## 2026-11-06 reference update
+
+The [Nortido hybrid review](nortido-hybrid-reference.md#lcd-concrete-leads-for-milestone-75) supplies concrete `09240003` packing and column-offset leads. A retained local firmware trace matches `0B100002` for command `15`, but command `75` writes `0D000000` whereas its host clear helper uses `0CF00000`. Resolve endpoint and trailing-word semantics in milestone 7.5; its RTL ignores ends and odd starts, and its host-injected black frame is not guest rendering evidence.
+
+**Historical early-2026-11-06 follow-up (superseded by the result above):** the older frontiers below are historical. Experimental HDL LCD/DMA/framebuffer and scanout now exist, but the latest full-core firmware smoke is only 5M cycles with no pixels. The next task is [milestone 7.5: new firmware-to-Nokia-logo run and unknown LCD command investigation](mister-implementation-plan.md#75-run-the-hdl-phone-to-the-nokia-logo-and-resolve-reached-lcd-commands). Resolve reached command/parameter framing using N-Gage traces and named references; distinguish fresh HDL output from retained-frame replay.
+
 Goal: let original N-Gage firmware execute its startup path and write the LCD;
-do not substitute a host-rendered logo for a firmware-driven boot. The MiSTer
-video path and LCD controller behavior remain unimplemented.
+do not substitute a host-rendered logo for a firmware-driven boot. The historical sections below predate the experimental HDL LCD/video implementation.
 
 2026-10-28 checkpoint continuations after explicit GPIO/PUP hypotheses reached
 a `VARIANT` 0x00010013 diagnostic, not a logo. The only supported screen is
