@@ -1,3 +1,15 @@
+## 2026-11-07: diagnostic font single-port clock fix
+
+Run 42363543248 (`99c2aef`) failed in elaboration: Error 272006 says clock1
+is unused for the font's SINGLE_PORT altsyncram configuration. The ROM had
+clock1 tied low; removed that connection so only clock0 drives its registered
+read. Font image, M10K geometry, text/video latency, CPU taps and keys are
+unchanged. The clear-box error is reported after the invalid connection.
+No new resource/fit/timing or board-display result is available.
+
+Font/raster/monitor checks, formatting and source preflight pass. Commit,
+push and start the replacement action. User monitors it; do not watch/poll.
+
 ## 2026-11-07: live diagnostic text and named Nokia bindings
 
 Implemented the user's requested **live 320x240 diagnostic text page** in

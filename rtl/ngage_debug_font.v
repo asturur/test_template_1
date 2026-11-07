@@ -11,6 +11,7 @@ module ngage_debug_font (
     `define NGAGE_FONT_PRIMITIVE
 `endif
 `ifdef NGAGE_FONT_PRIMITIVE
+    // SINGLE_PORT has no clock1 consumer; leave it unconnected for Quartus.
     altsyncram #(
         .operation_mode        ("SINGLE_PORT"),
         .intended_device_family("Cyclone V"),
@@ -29,7 +30,6 @@ module ngage_debug_font (
         .power_up_uninitialized("FALSE")
     ) rom (
         .clock0        (clk),
-        .clock1        (1'b0),
         .clocken0      (1'b1),
         .clocken1      (1'b1),
         .clocken2      (1'b1),
