@@ -1,5 +1,81 @@
 # MiSTer timing closure
 
+## Seventh implementation: coherent diagnostic capture pipeline
+
+`ngage_debug_monitor` now samples an unconditional PC/instruction/bus payload
+record plus event/reset bits before counters and sticky history. ACK/error/
+fault qualifiers no longer directly enable the wide context registers.
+PC/address/read-or-write-data/flags/reason are all taken from the same sampled
+edge; back-to-back events cannot mix requests. Hold preserves an already
+sampled event; cold reset flushes pending history. `ngage_diagnostics` uses the
+same one-stage fault/payload discipline for independent first fetch/data faults.
+Trace-ring timing, readout latency, file format and text screen layout stay
+unchanged; history is visible one clock later. Live CPU response/error logic
+and peripheral behavior are untouched. No clock/timing exceptions added.
+
+Directed tests pass write/read payload alignment, different consecutive fault
+contexts, consecutive fetch/data kinds, sticky first event, warm Hold and cold
+flush. Diagnostic text/font/raster, ring export/decoded NGD and actual hps_io
+export pass. CPU integration including CAM overflow, rejected LCD header,
+SIM/DMA/IRQ/FIQ and sticky first fault passes. Fresh real-SDRAM cold5M boot:
+PC00006160,326761 transfers,12 known fetch faults, zero data faults. All963
+board-trace lines byte-identical (SHA256
+`07f2b1710e027039be4743eccc0226caa992935e13197026015aad15af51a398`).
+Top elaboration/format/source checks pass. No new cold-logo claim; old long
+checkpoints remain bound to their saved executable and are untouched.
+Evidence `scratch/timing-closure/pass7-diagnostic-pipeline/`.
+
+This is bring-up instrumentation, removable/disableable for a final core;
+real CPU abort/completion handling is separate and remains required. Commit
+and push diagnostic work first, **no Quartus build**, then address cache in a
+separate change. Baseline remains ef6511b/65.40MHz/-5.378ns until a future fit.
+
+## Sixth fit: 65.40 MHz, remaining shared routes are observers/responses
+
+Reviewed completed **42405201963 / ef6511b** (includes service loader9d87477
+and separate local-validation change). Core worst setup **-5.378ns**, slow
+Fmax **65.40MHz**, versus-6.633ns/61.55MHz: +1.255ns/+3.85MHz (+6.26%).
+Core TNS **-54599.524ns** versus-94439.842ns,42.19% smaller magnitude.
+ALMs32,049 (76%) versus32,507 (-458), registers43,207 versus43,949 (-742),
+M10Ks456 versus457 (-1). HDMI setup+.360ns; global hold+.250ns,
+recovery+3.373ns, removal+1.348ns and pulse+.961ns remain positive.
+Quartus compilation succeeds; timing gate fails. Still not104MHz closure.
+Because loader first enters this fit, do not attribute every placement/resource
+change exclusively to the local-validation source edit.
+
+Full-route audit of all1000 setup paths (-5.378..-4.226ns), same named-node
+method as preceding fit:
+
+| Route marker | Previous | Current |
+| --- | ---: | ---: |
+| Peripheral `unmodeled` | 991 | 347 |
+| Named `wb_ack` | 721 | 210 |
+| Either error/ACK marker (union) | 991 | 347 |
+| Sparse `d_regs` CAM logic | 801 | 0 |
+
+The210 ACK paths overlap the347 error paths; do not sum them. Remaining shared
+paths end **only** in debug monitor280, diagnostic export/capture35 and UPP
+bridge response32. **Zero exported shared paths feed peripheral writes**
+(LCD/framebuffer/DMA, timers, MDI, staging RAM). Route-name auditing is a
+repeatable subset measurement, not a proof about all fitted paths or semantic
+logic renamed by optimization.
+
+Worst path now: registered bridge address -> UEM CBUS selected-access bad
+checks -> peripheral `unmodeled` -> diagnostic fault qualifier ->
+`diagnostics.first_fetch_address` (10 levels,14.294ns data delay). This is a
+fault-context capture bottleneck, not a peripheral write enable. The original
+cross-device write fanout has been removed from this exported set.
+Remaining top1000: shared response/diagnostic347; cache metadata631
+(dirty534+valid97, worst-4.973ns); cache bank17 (-4.871); cache-access/merger3;
+instruction-cache/fetch2. Cache-family total651; fetch2; sum1000.
+
+Next candidates: pipeline coherent fault/transaction capture in diagnostics
+without changing screen contents, simplify selected response/error capture,
+and further shorten cache flag enables. Keep PC/address/data/reason from the
+same transaction when adding observer latency. No new RTL, commit, push or
+build started by this review. Reports and reproducible audit script/JSON:
+`scratch/timing-closure/pass6-ef6511b/analysis/`.
+
 ## Sixth implementation: local device access qualification
 
 Separate timing commit after loader9d87477. UPP now distributes `bus_access`

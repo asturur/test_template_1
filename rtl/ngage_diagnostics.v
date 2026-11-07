@@ -19,6 +19,17 @@ module ngage_diagnostics (
     output reg  [15:0] read_data,
     output reg         fault_seen = 0
 );
+    // Fault qualifier and payload cross the same edge, then update sticky
+    // history together. Trace timing and the one-clock readout are unchanged.
+    reg sampled_fault = 0, sampled_fetch = 0;
+    reg [31:0] sampled_address;
+    reg [ 2:0] sampled_reason;
+    always @(posedge clk) begin
+        sampled_fault   <= !cold_reset && fault;
+        sampled_fetch   <= fault_is_fetch;
+        sampled_address <= fault_address;
+        sampled_reason  <= fault_reason;
+    end
     reg  [31:0] first_fetch_address = 0;
     reg  [ 2:0] first_fetch_reason = 0;
     reg         fetch_seen = 0;
@@ -80,15 +91,15 @@ module ngage_diagnostics (
             dropped             <= 0;
         end else begin
             ticks <= ticks + 1'b1;
-            if (fault && fault_is_fetch && !fetch_seen) begin
+            if (sampled_fault && sampled_fetch && !fetch_seen) begin
                 fetch_seen          <= 1;
-                first_fetch_address <= fault_address;
-                first_fetch_reason  <= fault_reason;
+                first_fetch_address <= sampled_address;
+                first_fetch_reason  <= sampled_reason;
             end
-            if (fault && !fault_is_fetch && !fault_seen) begin
+            if (sampled_fault && !sampled_fetch && !fault_seen) begin
                 fault_seen    <= 1;
-                first_address <= fault_address;
-                first_reason  <= fault_reason;
+                first_address <= sampled_address;
+                first_reason  <= sampled_reason;
             end
             if ((trace_valid && freeze_trace) || trace_lost) begin
                 if (dropped == 16'hffff ||
