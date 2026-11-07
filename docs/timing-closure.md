@@ -1,5 +1,37 @@
 # MiSTer timing closure
 
+## Eighth implementation: cache store intent and per-way metadata validation
+
+Cache follow-up is separate from pushed diagnostic commit46a113c. Routed-path
+inspection of ef6511b found631 metadata endpoints (534 dirty/97 valid);492
+routes include named `store_commit` logic. Worst-4.973ns path is tag M10K ->
+global hit reduction -> bank store qualifier -> high-fanout dirty-flag enable.
+Evidence `scratch/timing-closure/pass8-cache-local-store/baseline-paths.json`.
+
+`cache_access` now sends a store request without a redundant live-hit term in
+the write-through path. `cache_bank` separates store intent from actual data
+write: encoded RAM writes still require global hit, while metadata receives
+intent and uses its existing per-way priority-selected tag match. Therefore
+miss stores neither allocate, dirty nor overwrite the encoded default way.
+Reset/refill/invalidate/lock suppression, dirty halves, duplicate-tag priority,
+writeback, memory primitives and request/response latency are unchanged. No
+new cache stage, extra hit cycle or timing exception. Refill miss validation
+is genuine cache behavior and remains; this edit does not promise all631
+metadata routes or all492 targeted routes now meet104MHz.
+
+Expanded bank test passes miss-store preservation of every one of64 ways and
+empty-mask suppression, alongside tags/dirty-halves/victim/lock tests. Actual
+CPU SIM/DMA/IRQ/FIQ/local-fault integration passes. Fresh real-SDRAM5M cold boot
+passes unchanged PC00006160,326761 transfers,12 known fetch faults and zero
+data faults; all963 board-trace lines match the pre-diagnostic baseline.
+Top elaboration and source preflight pass. Full CPU/cache suite with the UPP
+bridge enabled finishes **119 PASS +1 expected legacy direct-map XFAIL**. Warm
+ADD stays1 cycle at0/3 memory waits. Logs `scratch/timing-closure/pass8-cache-local-store/`.
+
+User requested **no FPGA build**. No Quartus dispatch or timing claim for these
+changes; next fitted baseline remains65.40MHz/-5.378ns until measured later.
+Do not restore long-run states into this changed executable.
+
 ## Seventh implementation: coherent diagnostic capture pipeline
 
 `ngage_debug_monitor` now samples an unconditional PC/instruction/bus payload

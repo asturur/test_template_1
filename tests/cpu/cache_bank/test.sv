@@ -20,6 +20,16 @@ module test;
    if(!ready || hit || need)$fatal(1,"unexpected blocked fill %0d",n);
    refill=1;tick();refill=0;tick();
   end
+  // A store request on a miss must neither dirty metadata nor write the
+  // encoded default way. Write-hit qualification is now local to the bank.
+  mva=64<<8;tick();store=1;mask=1;store_line={256{1'b1}};tick();store=0;mask=0;
+  for(n=0;n<64;n=n+1)begin
+   mva=n<<8;tick();tick();
+   if(!hit || dut.tags.hit_dirty!==0 || rline!=={8{32'h10000000+n}})$fatal(1,"miss store changed way %0d",n);
+  end
+  // An empty byte mask is not a dirtying operation, including a valid hit.
+  mva=0;tick();store=1;mask=0;tick();store=0;tick();
+  if(dut.tags.hit_dirty!==0)$fatal(1,"empty store dirtied a line");
   mva=0;tick();#1;if(!hit)$fatal(1,"first line missing");
   store=1;mask=1;store_line=0;store_line[7:0]=8'h7a;tick();store=0;mask=0;
   rv=0;tick();if(!rvalid || rline[7:0]!==8'h7a)$fatal(1,"hit data missing");

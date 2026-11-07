@@ -76,7 +76,7 @@ module arm920_cache_access (
     logic read_victim, fill, wb_done, refill_busy, refill_done, refill_error;
     logic refill_bus_valid, refill_bus_write;
     logic [31:0] refill_bus_address, refill_bus_data;
-    logic store_commit;
+    logic store_request;
     logic scan_read, scan_valid, scan_clean, scan_invalidate, maint_bus_valid;
     logic [5:0] scan_way;
     logic [2:0] scan_segment;
@@ -173,7 +173,10 @@ module arm920_cache_access (
     assign maint_ready = (state == IDLE) && write_buffer_empty && !invalidate_all && !lock_write;
     // Cached CPU hits can proceed while buffered writes drain; maintenance waits.
     assign req_ready = (state == IDLE) && !invalidate_all && !lock_write && !maint_valid;
-    assign store_commit=(state==STORE_HIT) || (state==BUFFER_STORE && buffer_ready && wr && enabled && cacheable && !bufferable && hit);
+    // Offer a cache-store request independently of the live global hit tree.
+    // Bank data writes and each metadata way apply their own hit validation.
+    // A write-through miss still queues its bus write without allocating.
+    assign store_request=(state==STORE_HIT) || (state==BUFFER_STORE && buffer_ready && wr && enabled && cacheable && !bufferable);
     assign store_mask = {28'b0, ben} << {mva[4:2], 2'b00};
     // Never switch an offered beat until it has completed. Between beats an
     // unrelated replacement read can precede queued writes; an overlapping line
@@ -213,7 +216,7 @@ module arm920_cache_access (
         .refill_physical     (fill_pa),
         .refill_line         (fill_line),
         .refill_ready        (refill_ready),
-        .store               (store_commit),
+        .store               (store_request),
         .store_dirty         (bufferable),
         .store_enable        (store_mask),
         .store_line          ({8{wdata}}),

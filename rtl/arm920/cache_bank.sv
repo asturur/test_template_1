@@ -45,11 +45,15 @@ module arm920_cache_bank (
     logic [ 31:0] write_enable;
     logic [255:0] write_data;
     logic [  5:0] write_way;
-    logic fill_commit, store_commit;
+    logic fill_commit, store_intent, store_commit;
     assign needs_writeback = victim_valid && (|victim_dirty);
     assign refill_ready=!reset && !invalidate_all && !lock_write && !hit && (!needs_writeback || writeback_done);
     assign fill_commit = refill && refill_ready;
-    assign store_commit = store && hit && !refill && !reset && !invalidate_all && !lock_write;
+    // The RAM address uses encoded hit_way, so its actual write still needs
+    // global hit. Metadata has fixed per-way matches and must not route that
+    // global reduction back through every dirty flag's write enable.
+    assign store_intent = store && !refill && !reset && !invalidate_all && !lock_write;
+    assign store_commit = store_intent && hit;
     assign write_enable = fill_commit ? 32'hffffffff : (store_commit ? store_enable : 32'b0);
     assign write_data = fill_commit ? refill_line : store_line;
     assign write_way = fill_commit ? victim_way : hit_way;
@@ -72,7 +76,7 @@ module arm920_cache_bank (
         .victim_physical_line(victim_physical_line),
         .fill                (fill_commit),
         .fill_physical       (refill_physical),
-        .write_hit           (store_commit && store_dirty && (|store_enable)),
+        .write_hit           (store_intent && store_dirty && (|store_enable)),
         .invalidate_line     (1'b0),
         .invalidate_all      (invalidate_all),
         .clean_hit           (1'b0),
