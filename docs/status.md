@@ -1,3 +1,45 @@
+## 2026-11-07: Nokia clock rates recovered; read-only firmware audit
+
+Downloaded original **NEM-4**, Issue 2 Sep 2004, service chapters 6 and 7 via
+Jabse's normal document viewer/download links. PDFs/text/checked page renders
+live in `scratch/timing-closure/clock-research/`. **Chapter 7 resolves the bus
+rates**: SDRAM **104 MHz**, main burst flash **104/3 MHz (~34.667 MHz)**, MMC
+**8.66 MHz**; MCU starts at **26 MHz**, ceiling 104 MHz; three independent
+DPLLs for MCU, internal DSP, accessory interfaces. Internal DSP ceiling 117 MHz
+is distinct from the separate ADSP/audio 12 MHz oscillator. This supersedes
+our earlier unknown-memory-clock statement. QD/RH-47's 40 MHz flash rate must
+not be copied onto NEM-4. Exact CBUS/DBUS/LCD/internal MMIO rates remain unknown.
+
+Visually inspected CBUS page 6-133: CH1 is enable, CH3 bit clock; CH3 is dense
+at 50 us/div. CH1's displayed frequency is not CBUS bit frequency. Do not
+infer a divider from that capture. Primary pages and findings are documented
+in `docs/phone-clocks.md`, with a concrete ordered clock/timebase/bridge plan.
+
+Added read-only `tools/probe_phone_clocks.py`, generating a tapped copy of the
+maintained 5M cold boot bench; it does not edit production HDL/firmware or load
+CPU checkpoints. Probe passes under jotego/simulator:arm64: PC 00006178,
+377714 accepted bus transfers, 18 known speculative fetch faults, zero data
+faults, no LCD. 20 observed CP15 control transitions use 00000078/0000127A/
+0000027A; bits31:30 remain **00** within this bounded run. Captured 54 accepted
+early clock/control writes including 0c120004=0c then =3, 0c120008=1,2,
+0c149000=2210, 0c120018=180f8000, 0c120014=08018000, 0c120038=0c,
+0c120034=8,3. Bit-field/divider meanings and physical clock modes are not proven.
+Source 4040395, hashes and full compact evidence are tracked in
+`docs/evidence/phone-clock-audit-2026-11-07.json`.
+
+Stock ROM routine VA50348e38 returns literal 15625; variant dispatch table
+contains its pointer at 5034a9cc. Kernel time arithmetic also uses 15625;
+reload 406250 is at 5032270c and 503227c8. Together with Nortido's 26 MHz
+timer model/64 Hz guest tick this strengthens a **26 MHz timer hypothesis**,
+but the ROM callback's precise identity and timer source remain to verify.
+Do not silently change all timer/RTC counters. Next identify tick/HAL callers,
+compare guest time and IRQ counts over one RTC second, then make a separately
+verified timer-enable experiment with fresh simulation lineage.
+
+This turn changes documentation/observation tooling only. No production RTL,
+firmware, PLL, SDC, timebase or timing exceptions changed. No CI build started
+or monitored; the existing timing iteration remains the user's build to watch.
+
 ## 2026-11-07: first timing result 50.92 MHz; boot-decode follow-up
 
 Completed **42372012944 / 2bcac9d**: core setup improves **-43.702 ->

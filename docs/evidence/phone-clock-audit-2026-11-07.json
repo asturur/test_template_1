@@ -1,0 +1,486 @@
+{
+  "source_revision": "4040395",
+  "rtl_aggregate_sha256": "7a9e576c35d5a118d03d3c26190749f186ae6afce080818b533b1f2ef6663e44",
+  "firmware_modified": false,
+  "simulation": "existing jotego/simulator:arm64; hardware_boot 5M cold smoke plus read-only clock taps; modeled backing memories; no phone timing proof",
+  "result": "PASS bounded hardware-bound boot cycles=5000000 bus=377714 errors=18 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006178",
+  "sha256": {
+    "07-nem-4-baseband.pdf": "15f80b3406b0a063ffe897a3b49f476dcc13f7112fe09668b4f0800869fbafaa",
+    "06-nem-4-troubleshooting.pdf": "f45cb9901717fc3ca27ddb3673f3da8e3c17a7ba5f1cbcd7ba9bae2a04fd90cf",
+    "core.bin": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "extension.bin": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "cdrive-11b.img": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  },
+  "cp15_controls": [
+    "00000078",
+    "0000027a",
+    "0000127a"
+  ],
+  "cp15_modes": [
+    "00"
+  ],
+  "cp15_transitions": [
+    {
+      "cycle": 0,
+      "fetch_pc": "00000000",
+      "control": "00000078",
+      "mode": "00"
+    },
+    {
+      "cycle": 182,
+      "fetch_pc": "00002e30",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 97205,
+      "fetch_pc": "00005998",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 97435,
+      "fetch_pc": "00005988",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 98221,
+      "fetch_pc": "00005958",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 98566,
+      "fetch_pc": "00005960",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 100251,
+      "fetch_pc": "00005998",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 100481,
+      "fetch_pc": "00005988",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 101267,
+      "fetch_pc": "00005958",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 101612,
+      "fetch_pc": "00005960",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 103297,
+      "fetch_pc": "00005998",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 103527,
+      "fetch_pc": "00005988",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 104313,
+      "fetch_pc": "00005958",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 104658,
+      "fetch_pc": "00005960",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 117185,
+      "fetch_pc": "000054cc",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 118510,
+      "fetch_pc": "000054dc",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 119353,
+      "fetch_pc": "000054cc",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 120678,
+      "fetch_pc": "000054dc",
+      "control": "0000127a",
+      "mode": "00"
+    },
+    {
+      "cycle": 121521,
+      "fetch_pc": "000054cc",
+      "control": "0000027a",
+      "mode": "00"
+    },
+    {
+      "cycle": 122846,
+      "fetch_pc": "000054dc",
+      "control": "0000127a",
+      "mode": "00"
+    }
+  ],
+  "clock_related_accepted_writes": [
+    {
+      "cycle": 406,
+      "addr": "08000000",
+      "sel": "f",
+      "data": "7037f800"
+    },
+    {
+      "cycle": 458,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b2950489"
+    },
+    {
+      "cycle": 502,
+      "addr": "08000008",
+      "sel": "f",
+      "data": "00000037"
+    },
+    {
+      "cycle": 555,
+      "addr": "08000010",
+      "sel": "f",
+      "data": "20202112"
+    },
+    {
+      "cycle": 607,
+      "addr": "08000014",
+      "sel": "f",
+      "data": "20202112"
+    },
+    {
+      "cycle": 659,
+      "addr": "08000018",
+      "sel": "f",
+      "data": "20202112"
+    },
+    {
+      "cycle": 106492,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b2950289"
+    },
+    {
+      "cycle": 106518,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b29502c9"
+    },
+    {
+      "cycle": 106563,
+      "addr": "0c120004",
+      "sel": "f",
+      "data": "0000000c"
+    },
+    {
+      "cycle": 106789,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b2950289"
+    },
+    {
+      "cycle": 106828,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b2950c89"
+    },
+    {
+      "cycle": 106983,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b2950289"
+    },
+    {
+      "cycle": 107009,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "b29502c9"
+    },
+    {
+      "cycle": 107055,
+      "addr": "08000000",
+      "sel": "f",
+      "data": "7037f800"
+    },
+    {
+      "cycle": 107087,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "00050245"
+    },
+    {
+      "cycle": 107131,
+      "addr": "08000008",
+      "sel": "f",
+      "data": "00000027"
+    },
+    {
+      "cycle": 107176,
+      "addr": "0c120008",
+      "sel": "f",
+      "data": "00000001"
+    },
+    {
+      "cycle": 107321,
+      "addr": "0c120008",
+      "sel": "f",
+      "data": "00000002"
+    },
+    {
+      "cycle": 107460,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "00050205"
+    },
+    {
+      "cycle": 107499,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "00050c05"
+    },
+    {
+      "cycle": 107654,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "00050205"
+    },
+    {
+      "cycle": 107680,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "00050245"
+    },
+    {
+      "cycle": 107713,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800649"
+    },
+    {
+      "cycle": 107757,
+      "addr": "08000008",
+      "sel": "f",
+      "data": "00000037"
+    },
+    {
+      "cycle": 107796,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800609"
+    },
+    {
+      "cycle": 107835,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800c09"
+    },
+    {
+      "cycle": 107972,
+      "addr": "0c120018",
+      "sel": "f",
+      "data": "180f8000"
+    },
+    {
+      "cycle": 108024,
+      "addr": "0c120014",
+      "sel": "f",
+      "data": "08018000"
+    },
+    {
+      "cycle": 108068,
+      "addr": "0c120038",
+      "sel": "f",
+      "data": "0000000c"
+    },
+    {
+      "cycle": 108113,
+      "addr": "0c120034",
+      "sel": "f",
+      "data": "00000008"
+    },
+    {
+      "cycle": 108139,
+      "addr": "0c120034",
+      "sel": "f",
+      "data": "00000003"
+    },
+    {
+      "cycle": 108740,
+      "addr": "08000018",
+      "sel": "f",
+      "data": "10202132"
+    },
+    {
+      "cycle": 109159,
+      "addr": "08000014",
+      "sel": "f",
+      "data": "10202132"
+    },
+    {
+      "cycle": 109578,
+      "addr": "08000010",
+      "sel": "f",
+      "data": "10202132"
+    },
+    {
+      "cycle": 109878,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800209"
+    },
+    {
+      "cycle": 109904,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800249"
+    },
+    {
+      "cycle": 109957,
+      "addr": "0c149000",
+      "sel": "f",
+      "data": "00002210"
+    },
+    {
+      "cycle": 110053,
+      "addr": "0c120004",
+      "sel": "f",
+      "data": "00000003"
+    },
+    {
+      "cycle": 110198,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800209"
+    },
+    {
+      "cycle": 110237,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800c09"
+    },
+    {
+      "cycle": 110392,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800209"
+    },
+    {
+      "cycle": 110418,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "ba800249"
+    },
+    {
+      "cycle": 110451,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "baaa07c9"
+    },
+    {
+      "cycle": 110489,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "baaa0789"
+    },
+    {
+      "cycle": 110528,
+      "addr": "08000004",
+      "sel": "f",
+      "data": "baaa0d89"
+    },
+    {
+      "cycle": 117074,
+      "addr": "08000010",
+      "sel": "f",
+      "data": "10202132"
+    },
+    {
+      "cycle": 118455,
+      "addr": "08000010",
+      "sel": "f",
+      "data": "10222132"
+    },
+    {
+      "cycle": 118529,
+      "addr": "08000010",
+      "sel": "f",
+      "data": "10222132"
+    },
+    {
+      "cycle": 119242,
+      "addr": "08000014",
+      "sel": "f",
+      "data": "10202132"
+    },
+    {
+      "cycle": 120623,
+      "addr": "08000014",
+      "sel": "f",
+      "data": "10222132"
+    },
+    {
+      "cycle": 120697,
+      "addr": "08000014",
+      "sel": "f",
+      "data": "10222132"
+    },
+    {
+      "cycle": 121410,
+      "addr": "08000018",
+      "sel": "f",
+      "data": "10202132"
+    },
+    {
+      "cycle": 122791,
+      "addr": "08000018",
+      "sel": "f",
+      "data": "10222132"
+    },
+    {
+      "cycle": 122865,
+      "addr": "08000018",
+      "sel": "f",
+      "data": "10222132"
+    }
+  ],
+  "rom_findings": [
+    {
+      "offset": "0x348e38",
+      "words": [
+        "e59f0000",
+        "e1a0f00e",
+        "00003d09"
+      ],
+      "interpretation": "ARM routine loads literal 15625 into r0 and returns; function identity not established"
+    },
+    {
+      "offset": "0x32270c",
+      "word": "000632ea",
+      "interpretation": "406250 timer reload literal; call at 0x3226f0 passes it to 0x3249d0"
+    }
+  ]
+}
