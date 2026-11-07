@@ -1,0 +1,51 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -59,6 +59,12 @@
+ output logic [1023:0]                    o_trace,
+ output logic                             o_trace_valid,
+ output logic                             o_trace_uop_last,
++
++// Read-only board diagnostics: fetch-stage VA and accepted fetch word.
++output wire [31:0] o_debug_pc,
++output wire [31:0] o_debug_cpsr,
++output wire [31:0] o_debug_instruction,
++output wire o_debug_fetch,
+ 
+ // ------------------------------------------------
+ // Clock and reset. Reset is synchronous.
+@@ -557,6 +563,10 @@
+ assign fiq                      = i_fiq;
+ 
+ assign data_stall   = o_data_wb_stb & o_data_wb_cyc & ~i_data_wb_ack;
++assign o_debug_pc = o_instr_wb_adr;
++assign o_debug_cpsr = alu_flags_ff;
++assign o_debug_instruction = i_instr_wb_dat;
++assign o_debug_fetch = instr_valid && !i_reset;
+ assign instr_valid  = o_instr_wb_stb & o_instr_wb_cyc & i_instr_wb_ack  & ~shelve;
+ 
+ //
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -101,6 +101,10 @@
+         // Clock and reset
+         // --------------------------------------
+ 
++        output wire [31:0] o_debug_pc,
++        output wire [31:0] o_debug_cpsr,
++        output wire [31:0] o_debug_instruction,
++        output wire o_debug_fetch,
+         input   logic            i_clk,
+         input   logic            i_reset,
+ 
+@@ -257,6 +261,11 @@
+ .o_trace_valid          (o_trace_valid),
+ .o_trace_uop_last       (o_trace_uop_last),
+ 
++// Read-only board diagnostics.
++.o_debug_pc(o_debug_pc),
++.o_debug_cpsr(o_debug_cpsr),
++.o_debug_instruction(o_debug_instruction),
++.o_debug_fetch(o_debug_fetch),
+ // Clock and reset.
+ .i_clk                  (i_clk),
+ .i_reset                (s_reset),

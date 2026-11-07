@@ -64,6 +64,16 @@ The current software model intentionally serves 4 MiB C: only. The firmware's ov
 
 ### Loading and persistence design
 
+**User requirement, 2026-11-07 (supersedes the bundle/NGA user workflow below):**
+The current RBF may be used for the first hardware smoke test, but users must
+load original Nokia service files independently of a standalone raw C: image.
+Use `boot.rom` / `boot1.rom` as loading names for unchanged MCU/PPM service
+containers, not for core/extension slices or user data. No C:/PMM bytes in the
+firmware files and no workstation repacking when a user changes C:. Implement
+milestone 7.6 before treating the storage/loading UI as accepted. The old
+four-section bundle and combined NGA remain diagnostic/legacy inputs only.
+
+
 Use an offline Python preparer under maintained `tools/` to accept the existing four files or checked NEM-4 .3c1/.326 containers. It must validate sizes, record hashes/profile/version and produce a versioned bundle (header + four sections with explicit lengths/destinations/checksums); preserve all originals. A single MiSTer OSD bundle selection avoids dependence on automatic boot-name ordering. Individual explicit load indices may remain a developer option; bind them to the same manifest. Do not parse Nokia service records inside FPGA logic.
 
 Implement a loader FSM with bounds checks, section coverage, checksums, `ioctl_wait`, a pending-write queue and explicit “loaded/failed” status. Reset remains asserted across gaps between downloads and until all four sections, DDR writes, SDRAM initialization/clear and board initialization complete. Resetting the phone must not clear the loader-valid flags or flash contents. An aborted/short/out-of-order/oversized load leaves the CPU held with an error. HPS download is privileged initialization; CPU access must go through flash command state. Check both 64-bit halves and a partial final word.
@@ -312,6 +322,57 @@ Run progressively: reproduce the existing 5M startup, then advance to the first 
 Compare the new run's ordered device accesses, flash digest/identify, boot registers, MMU/cache setup, timer/IRQ/FIQ servicing, LCD commands and DMA against the selected C++ lineage. Match values/order and logical event causes; demand absolute cycle equality only for a deliberately identical timing model. At the first meaningful divergence, capture a short causal trace, identify and fix the actual defect, run relevant regressions and resume a compatible/reseeded lineage. Known speculative scratch fetch faults must remain distinguished from executed prefetch aborts/data faults. Do not bypass firmware delays, patch the digest/assertions, force startup/MTC/SIM success or invent ADSP replies. The present/no-ATR ADSP assertion may still recur; capture it accurately if it prevents the target.
 
 **Done:** the documented single command boots from reset (or a traceable checkpoint descended from that run), produces a new firmware-generated Nokia-logo PNG from actual HDL display state, and exports a consistent scanout frame. Deliver the run/provenance, cycle and PC milestones, checksums, relevant LCD command fixture/table, implemented behavior/tests, remaining unsupported commands and limitations in `docs/mister-milestone7.md` and `docs/display-bringup.md`; update `docs/status.md`. A reference image may be used for comparison only, with fresh output identified separately. All reached commands necessary for the claimed rendering have a documented/tested interpretation; any provisional assumptions remain prominent. If the logo has not been reached, report the precise failure/frontier and next diagnostic and leave milestone 7.5 open. Nokia-logo success is not Symbian UI, SIM/modem, physical LCD, timing closure or on-board persistence success.
+
+### 7.6. Load original service firmware and independent raw user storage
+
+**Required after the first existing-RBF smoke test, before final on-board
+storage acceptance.** The old bundle workflow was a bring-up convenience and
+is not the accepted user interface. This requirement supersedes the earlier
+instruction to require an offline four-section bundle.
+
+- Firmware inputs are the original service containers: initially NEM-4
+  `nem440.3c1` (MCU) as `boot.rom` and `nem440.326` (PPM language/content) as
+  `boot1.rom`, byte-for-byte unchanged. Renaming alone does not decode them;
+  implement a tested service-file loader on the actual MiSTer loading path.
+  Do not merely rename the current assembled core/extension binaries or hide
+  a workstation conversion/repacking prerequisite behind those names.
+- Model the validated 0xA2/TLV/algorithm/data-record grammar from
+  `scratch/nem440-flash-extract/extract.py`. Verify record header and payload
+  checksums, lengths, complete EOF, allowed flash ranges and image pairing.
+  Bound all skips and writes; do not scan arbitrarily for an apparent 0x14
+  record marker in unknown data. Skip the host-flashing algorithm blob without
+  executing it. Initially accept the audited profile, reject others visibly.
+- Erase/initialize only firmware backing, apply MCU records then PPM overlays
+  using their physical addresses and the maintained backing map. Preserve the
+  documented personalization-hole assumption. Reproduce current raw assembled
+  bytes and stock digest before booting. Keep firmware scrambled in DDR:
+  `ngage_flash_read_decode` remains on normal code-flash array reads in
+  `[0x0000a000,0x002b3000)`, with independent halfword addresses. No plaintext
+  preconversion, digest patch, guest patch or removal of the descrambler.
+- Mount raw **4 MiB C:** as its own writable MiSTer block device, with file
+  offset zero mapping C: offset zero. No NGA header, embedded firmware hashes,
+  firmware seed or PMM tail in that file. Swapping/copying C: must not require
+  modifying/rebuilding/reloading firmware files. Firmware may remain loaded
+  while CPU Hold protects a controlled C: remount/restore.
+- Keep the writable **64 KiB PMM** separate from firmware and C:, using its
+  own persistence file/device. Explicitly initialize it once for a fresh phone
+  profile; never erase an existing PMM on ordinary firmware load. Nokia's
+  service **PPM** file is language/content firmware, distinct from **PMM**.
+  Allocate separate disk indices/ACK routing for C:, PMM and diagnostics.
+- Preserve ordered reset/restore gates, DDR working copies, dirty-sector
+  tracking, flush acknowledgement/error handling, media-change protection and
+  read-only rejection. Current timing and crash-recovery limitations remain;
+  do not silently replace a missing/invalid C: image with bundled user data.
+
+**Acceptance:** compare service-file loading against the audited assembler at
+all defined addresses/overlays/gaps and confirm the stock digest through the
+HDL descrambler. Exercise malformed/truncated containers, both load order and
+missing-file cases, stalled/final DDR writes and CPU reset gates. With actual
+`hps_io`, restore/modify/flush/remount two different raw C: files, verify first
+and last sectors and independent PMM, and keep firmware hashes unchanged. Test
+separate diagnostic export concurrently. Finally repeat on MiSTer with
+disposable copies. Preserve old simulator checkpoints on their frozen builds;
+new loader state requires a fresh lineage or a proven compatible transition.
 
 ### 8. First synthesis, timing and resource closure
 

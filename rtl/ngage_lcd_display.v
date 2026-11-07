@@ -27,7 +27,9 @@ module ngage_lcd_display (
     output reg         unsupported_valid = 0,
     output reg  [31:0] unsupported_data = 0,
     output reg  [31:0] unsupported_header = 0,
-    output reg  [ 7:0] unsupported_command = 0
+    output reg  [ 7:0] unsupported_command = 0,
+    output wire [ 8:0] raster_x,
+    output wire [ 8:0] raster_y
 );
     // Decoded UPP parameter framing. End coordinates are retained, not
     // invented: only the two observed full-panel row endpoints are accepted.
@@ -71,12 +73,14 @@ module ngage_lcd_display (
     wire [ 14:0] read_index = ({6'b0, py} * 15'd88) + {7'b0, px[8:1]};
     reg [8:0] scan_x = 0, scan_y = 0;
     reg [11:0] phone_rgb;
+    assign raster_x = scan_x;
+    assign raster_y = scan_y;
     // Native DE rectangle goes directly to MiSTer's scaler. Blanking is
     // outside the source picture, never black padding inside active video.
-    assign hblank = diagnostic ? scan_x >= 320 : !(scan_x >= 72 && scan_x < 248);
-    assign vblank = diagnostic ? scan_y >= 240 : !(scan_y >= 16 && scan_y < 224);
-    assign hsync  = !(scan_x >= 336 && scan_x < 368);
-    assign vsync  = !(scan_y >= 244 && scan_y < 247);
+    assign hblank   = diagnostic ? scan_x >= 320 : !(scan_x >= 72 && scan_x < 248);
+    assign vblank   = diagnostic ? scan_y >= 240 : !(scan_y >= 16 && scan_y < 224);
+    assign hsync    = !(scan_x >= 336 && scan_x < 368);
+    assign vsync    = !(scan_y >= 244 && scan_y < 247);
     // Pack only the two RGB444 pixels; unused bus bits need no storage.
     wire direct_pixel = write_valid && write_addr == 32'h0c121208 &&
                         header == 32'h8924d67f && memory_write;

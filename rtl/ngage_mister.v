@@ -23,7 +23,7 @@ module ngage_mister #(
     input  wire        dma_sdram_ack,
     input  wire [31:0] dma_sdram_data,
     input  wire        diagnostic_video,
-    input  wire [ 7:0] diagnostic_status,
+    input  wire [31:0] diagnostic_status,
     input  wire [ 2:0] save_state,
     input  wire        debug_freeze_trace,
     input  wire [10:0] debug_read_word,
@@ -97,6 +97,11 @@ module ngage_mister #(
     wire [31:0] board_trace_addr, board_trace_data;
     wire [3:0] board_trace_sel;
 
+    wire [31:0] cpu_pc, cpu_cpsr, cpu_instruction;
+    wire cpu_fetch;
+    wire raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank;
+    wire [11:0] raw_rgb;
+    wire [8:0] video_x, video_y;
     ngage_board #(
         .INTERNAL_CPU      (1),
         .SIMIF_ENABLE      (1),
@@ -105,8 +110,14 @@ module ngage_mister #(
         .LCD_DMA_ENABLE    (1),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
+        .debug_pc             (cpu_pc),
+        .debug_cpsr           (cpu_cpsr),
+        .debug_instruction    (cpu_instruction),
+        .debug_fetch          (cpu_fetch),
+        .video_x              (video_x),
+        .video_y              (video_y),
         .diagnostic_video     (diagnostic_video),
-        .diagnostic_status    (diagnostic_status),
+        .diagnostic_status    (diagnostic_status[7:0]),
         .save_state           (save_state),
         .dma_mem_req          (dma_sdram_req),
         .dma_mem_addr         (dma_sdram_addr),
@@ -122,12 +133,12 @@ module ngage_mister #(
         .lcd_unsupported      (lcd_unsupported),
         .lcd_unsupported_valid(lcd_unsupported_valid),
         .lcd_unsupported_data (lcd_unsupported_data),
-        .video_ce             (ce_pix),
-        .video_hsync          (hsync),
-        .video_vsync          (vsync),
-        .video_hblank         (hblank),
-        .video_vblank         (vblank),
-        .video_rgb            (rgb444),
+        .video_ce             (raw_ce),
+        .video_hsync          (raw_hsync),
+        .video_vsync          (raw_vsync),
+        .video_hblank         (raw_hblank),
+        .video_vblank         (raw_vblank),
+        .video_rgb            (raw_rgb),
         .keys                 (keys),
         .sim_present          (sim_present),
         .rst                  (core_reset),
@@ -296,24 +307,103 @@ module ngage_mister #(
     assign wb_err = !core_reset && (invalid_response || flash_error);
 
 
+    wire diagnostic_fault=!core_reset && ((dma_claim && dma_bad) ||
+        (!dma_claim && brd_claim && brd_ready && brd_unmodeled) ||
+        (mem_req && !ram_hit && !flash_hit) || flash_error);
+    wire [2:0] diagnostic_reason=flash_error ? 3'd3 :
+        (mem_req && !ram_hit && !flash_hit) ? 3'd2 : 3'd1;
+    wire [31:0] cpu_flags = {
+        23'b0,
+        flash_busy,
+        flash_hit,
+        ram_hit,
+        mem_req,
+        brd_ready,
+        brd_claim,
+        fiq_line,
+        irq_line,
+        core_reset
+    };
+    wire [31:0] bus_flags = {
+        21'b0, wb_sel, bus_lock, wb_err, wb_ack, wb_code, wb_we, wb_stb, wb_cyc
+    };
+    wire [31:0] fault_flags = {
+        15'b0,
+        1'b1,
+        1'b0,
+        diagnostic_reason,
+        2'b0,
+        flash_error,
+        mem_req,
+        flash_hit,
+        ram_hit,
+        brd_unmodeled,
+        brd_ready,
+        dma_claim,
+        brd_claim,
+        wb_code,
+        wb_we
+    };
+    wire [767:0] diagnostic_values;
+    ngage_debug_monitor monitor (
+        .clk           (clk_sys),
+        .cold_reset    (cold_reset),
+        .cpu_reset     (core_reset),
+        .pc            (cpu_pc),
+        .cpsr          (cpu_cpsr),
+        .instruction   (cpu_instruction),
+        .fetch         (cpu_fetch),
+        .bus_active    (wb_cyc && wb_stb),
+        .bus_ack       (wb_ack),
+        .bus_error     (wb_err),
+        .bus_address   (wb_adr),
+        .bus_write_data(wb_dat_o),
+        .bus_read_data (wb_dat_i),
+        .bus_write     (wb_we),
+        .bus_flags     (bus_flags),
+        .fault         (diagnostic_fault && !wb_code),
+        .fault_flags   (fault_flags),
+        .fault_reason  (diagnostic_reason),
+        .boot_flags    (diagnostic_status),
+        .cpu_flags     (cpu_flags),
+        .keys          (keys),
+        .values        (diagnostic_values)
+    );
+    ngage_debug_video debug_video (
+        .clk       (clk_sys),
+        .diagnostic(diagnostic_video),
+        .values    (diagnostic_values),
+        .x         (video_x),
+        .y         (video_y),
+        .ce_in     (raw_ce),
+        .hsync_in  (raw_hsync),
+        .vsync_in  (raw_vsync),
+        .hblank_in (raw_hblank),
+        .vblank_in (raw_vblank),
+        .rgb_in    (raw_rgb),
+        .ce_out    (ce_pix),
+        .hsync_out (hsync),
+        .vsync_out (vsync),
+        .hblank_out(hblank),
+        .vblank_out(vblank),
+        .rgb_out   (rgb444)
+    );
     ngage_diagnostics diagnostics (
-        .clk(clk_sys),
-        .cold_reset(cold_reset),
-        .freeze_trace(debug_freeze_trace),
-        .fault(!core_reset && ((dma_claim && dma_bad) ||
-            (!dma_claim && brd_claim && brd_ready && brd_unmodeled) ||
-            (mem_req && !ram_hit && !flash_hit) || flash_error)),
-        .fault_address(wb_adr),
+        .clk           (clk_sys),
+        .cold_reset    (cold_reset),
+        .freeze_trace  (debug_freeze_trace),
+        .fault         (diagnostic_fault),
+        .fault_address (wb_adr),
         .fault_is_fetch(wb_code),
-        .fault_reason(flash_error ? 3'd3 : (mem_req && !ram_hit && !flash_hit) ? 3'd2 : 3'd1),
-        .trace_valid(board_trace_valid || lcd_unsupported_valid),
-        .trace_lost(board_trace_valid && lcd_unsupported_valid),
-        .trace_addr(lcd_unsupported_valid ? 32'h0c121208 : board_trace_addr),
-        .trace_data(lcd_unsupported_valid ? lcd_unsupported_data : board_trace_data),
-        .trace_sel(lcd_unsupported_valid ? 4'hf : board_trace_sel),
-        .read_word(debug_read_word),
-        .read_data(debug_read_data),
-        .fault_seen(debug_fault_seen)
+        .fault_reason  (diagnostic_reason),
+        .trace_valid   (board_trace_valid || lcd_unsupported_valid),
+        .trace_lost    (board_trace_valid && lcd_unsupported_valid),
+        .trace_addr    (lcd_unsupported_valid ? 32'h0c121208 : board_trace_addr),
+        .trace_data    (lcd_unsupported_valid ? lcd_unsupported_data : board_trace_data),
+        .trace_sel     (lcd_unsupported_valid ? 4'hf : board_trace_sel),
+        .read_word     (debug_read_word),
+        .read_data     (debug_read_data),
+        .fault_seen    (debug_fault_seen)
     );
 
     wire unused_unmodeled = brd_unmodeled;

@@ -43,6 +43,8 @@ module emu (
     `include "build_id.v"
     localparam CONF_STR = {
         "NGage;;",
+        "J1,OK,Clear,End,Menu,Left soft,Right soft,Send,Power,",
+        "Music,Radio,Shift,Star,Hash,1,2,3,4,5,6,7,8,9,0;",
         "-;",
         "O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
         "-;",
@@ -566,6 +568,16 @@ module emu (
         .save_state(save_error ? 3'd4 : save_saving ? 3'd2 :
                     save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
         .diagnostic_status({
+            15'b0,
+            loader_known_firmware,
+            bundle_download,
+            blocked_load,
+            save_saving,
+            phone_reset,
+            save_busy,
+            save_error,
+            loader_failed,
+            status[16],
             (debug_error || lcd_unsupported),
             debug_busy,
             debug_fault_seen,

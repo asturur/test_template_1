@@ -23,7 +23,16 @@ module test;
  wire trace_valid=dut.u_zap.u_zap_core.o_trace_valid;
  wire trace_last=dut.u_zap.u_zap_core.o_trace_uop_last;
  always #5 clk=~clk;
- ngage_cpu dut(.clk(clk),.reset(reset),.irq(irq),.fiq(fiq),
+ wire [31:0] observed_pc,observed_cpsr,observed_instruction;
+ wire observed_fetch;
+ always @(negedge clk)if(!reset)begin
+  if(observed_pc!==dut.u_zap.u_zap_core.o_instr_wb_adr ||
+     observed_cpsr!==dut.u_zap.u_zap_core.alu_flags_ff ||
+     observed_instruction!==dut.u_zap.u_zap_core.i_instr_wb_dat ||
+     observed_fetch!==dut.u_zap.u_zap_core.instr_valid)$fatal(1,"synthesis debug port wiring");
+ end
+ ngage_cpu dut(.debug_pc(observed_pc),.debug_cpsr(observed_cpsr),
+ .debug_instruction(observed_instruction),.debug_fetch(observed_fetch),.clk(clk),.reset(reset),.irq(irq),.fiq(fiq),
   .wb_cyc(cyc),.wb_stb(stb),.wb_address(addr),.wb_write(we),.wb_write_data(wdata),
   .wb_byte_enable(sel),.wb_lock(bus_lock),.wb_cycle_type(cti),.wb_burst_type(bte),
   .wb_ack(ack),.wb_error(bus_error),.wb_read_data(rdata));

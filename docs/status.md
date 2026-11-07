@@ -1,3 +1,96 @@
+## 2026-11-07: live diagnostic text and named Nokia bindings
+
+Implemented the user's requested **live 320x240 diagnostic text page** in
+`ngage_mister`, outside the phone LCD model. The 40x30 character renderer uses
+one explicit 1024x8 M10K font ROM, initialized from tracked MIF; matching HEX
+and generator are tracked. No runtime font download is needed. A frame-driven
+blink remains alive in CPU Hold; a coherent field snapshot refreshes every
+16 frames (~4 Hz). RGB and CE/sync/blanking share one added system-clock delay
+in both display modes; Phone mode retains its exact pixels/rectangle.
+
+Explicit read-only ZAP core/top -> CPU -> UPP -> board ports expose fetch VA,
+ALU-stage CPSR, raw accepted fetch word and acceptance pulse (patch 0040).
+Screen includes current fetch PC, paired last fetch PC/op, CPSR, active cycles,
+fetch count, current/last Wishbone address/data, ACK/error totals, current/max
+wait, first non-fetch fault address/fetch-PC/data/reason/decode flags, named
+loader/reset/save/CPU gate bits and Nokia held-key mask. These observations
+are not a retired-instruction trace. The first fault survives warm reset/Hold
+and clears on cold reset. The existing exported NGD layout is unchanged.
+The screen does not fix or explain away the board's 0x08000000 failure.
+
+MiSTer controller definition now supplies 23 Nokia action names (Main's
+existing interface supports 28), replacing generic A/B/X/Y prompts. Standard
+D-pad bits are retained; existing primary bit mappings are retained, except
+old duplicate End bit 11 is now Power. Music/radio/Shift/star/hash/digits are
+also assignable. Re-define core buttons after installing the new RBF; Space
+skips optional prompts on small controllers. Keyboard mappings remain.
+Complete map, snapshot/counter semantics and bit legends: `docs/live-controls.md`.
+
+**Local verification passes:** diagnostic counter/wait/first-fault/history
+checks; native Quartus macro selects initialized font primitive; every rendered
+pixel matches an independent font/text reference; frame snapshot/refresh,
+blanking and registered Phone RGB/control bypass; all 27 one-hot controller
+inputs, keyboard/OSD release, matrix/shared IRQ/press tests; ARM board/SIMIF/LCD
+DMA/fault/IRQ/FIQ/SDRAM-wait integration; CPU observation-port wiring and warm
+ADD timing remain one cycle in both memory-delay profiles. Fresh 5M-cycle
+hardware-bound cold smoke passes at PC 00006178, known 18 speculative fetch
+faults and zero data faults. Native 176x208 framebuffer replay still matches.
+Patch reproduction, 55-file formatting, source graph (172 required files/nine
+QIPs), structural top and actual vendor/native-macro top/CPU lint pass.
+
+Simulated layout preview (dummy register values, not a hardware capture):
+`build/sim/unit-debug-video/screen.png`. Logs/source references are under
+`scratch/diagnostic-osd/`. Font assets enter the resumable runner's build hash;
+old 1B..12B checkpoints stay with their saved executable and are untouched.
+Commit/push and start one GitHub build for board testing; **the user monitors
+builds, do not poll/watch it**. M10K initialization, final resource cost, fit,
+timing and actual on-board text/key behavior remain pending Quartus/hardware.
+
+## 2026-11-07: first board diagnostic export; early address fault
+
+User reports Phone display black, **Diagnostic display shows colored bars**.
+Read `/Volumes/sdcard/games/NGage/diagnostics.ngd`; valid 1024-byte v1 snapshot,
+SHA-256 `6fd7a84acbff1b640c7acae7d742b65c322cc5813dbf77d541fa36b9977eff3c`.
+First sticky non-fetch fault: **reason 2 / address 0x08000000**. Fetch-fault
+flag is clear, trace count zero, no wrap/dropped events. This proves export and
+basic diagnostic video operate; it does not prove phone startup or CPU timing.
+No PC, data value, access direction, loader status or RBF revision is encoded
+in the current snapshot. Do not infer the precise instruction or stopping PC.
+
+`ngage_boot_regs` explicitly claims this address and accepts writes; an
+unwritten read should be a board-model error (reason 1), not an unmapped
+memory error (reason 2). Current 5M simulated cold boot has zero data faults.
+Investigate actual build/source identity, boot-register claim/decode and
+hardware timing; do not paper over it with a RAM alias or firmware patch.
+Trace ring is the explicit trace sink/unsupported-LCD stream, not a complete
+CPU instruction or peripheral bus history. Zero entries alone cannot establish
+that no other peripheral accesses occurred or that the CPU stopped permanently.
+
+Preserved snapshot, decoded JSON and observations under
+`scratch/hardware-bringup/first-black-screen/`. No RTL changes or GitHub build
+monitoring performed. The user monitors builds. Waiting for the logo is not a
+substitute for investigating the captured early fault.
+
+## 2026-11-07: user requires original service files and standalone C:
+
+The current user-supplied RBF/ignored kit may be tried for the first hardware
+smoke test, but the four-section NGB firmware/user seed and combined NGA save
+are **not** accepted as the final user workflow. Added milestone **7.6** in
+`docs/mister-implementation-plan.md`: original MCU/PPM service containers as
+`boot.rom`/`boot1.rom`, independently mountable raw C: at file offset zero,
+separate PMM persistence, no firmware repack when changing C:. Service-file
+parsing/loading is not implemented in the current RBF. No loader RTL changed
+in this clarification, and no build or simulation was started.
+
+Verified in maintained RTL that raw scrambled firmware remains in DDR and
+`ngage_codeflash` routes normal array data through `ngage_flash_read_decode`;
+two address-dependent halfword transforms apply only to physical
+`[0x0000a000,0x002b3000)`. C:, PMM and flash status/commands bypass the cipher.
+The current assembled core/extension are derived from service records with
+PPM overlays; the new loader must reproduce those bytes without pre-decoding
+or modifying firmware. Service **PPM** is distinct from writable **PMM**.
+User retains responsibility for monitoring GitHub builds.
+
 ## 2026-11-07: native BRAM lanes corrected; user monitors builds
 
 Run 42358035176 (`87dea06`) rejected automatic byte_size=0: Quartus derived

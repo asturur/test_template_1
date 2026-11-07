@@ -188,6 +188,16 @@ permissions and cacheability still qualify the current request; lookahead only
 reads resident tags/data and never initiates a speculative linefill. The existing
 `cpu_timing`, branch, maintenance and prefetch regressions remain required.
 
+## 0040: synthesis-safe board diagnostic observations
+
+Expose fetch virtual PC, ALU CPSR, raw fetch word and accepted-fetch pulse
+through explicit ZAP core/top ports. These are read-only and remain available
+under synthesis; no hierarchical signal references or simulation trace strings
+are used by hardware. The phone UPP/board forwards them to the host diagnostic
+screen. Upstream-reference builds disable these connections explicitly via
+`NGAGE_NO_CPU_DEBUG`, because pristine upstream lacks the observation ports.
+Fetch observations are not an architectural retirement trace.
+
 ## Verification and limits
 
 ```sh

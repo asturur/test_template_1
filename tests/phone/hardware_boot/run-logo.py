@@ -45,7 +45,8 @@ def main():
     assert sources and 'tests/phone/hardware_boot/tb.v' in sources
     cpp='tests/phone/hardware_boot/logo_main.cpp'
     headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))
-    hashes={f:sha(f) for f in sources+headers+[cpp,__file__]}
+    assets=['rtl/ngage_debug_font.hex','rtl/ngage_debug_font.mif']
+    hashes={f:sha(f) for f in sources+headers+assets+[cpp,__file__]}
     saved=None
     if a.use_saved_build:
         if not a.restore or a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork:

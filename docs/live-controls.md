@@ -1,3 +1,86 @@
+## Live diagnostic text and named controls (2026-11-07)
+
+The new diagnostic display replaces the bars in the integrated MiSTer core
+with a 40x30 text page. A hand-defined 5x7 uppercase font in 8x8 cells occupies
+one explicit 1024x8 M10K ROM, initialized at compile time from
+`rtl/ngage_debug_font.mif`. `tools/generate_debug_font.py` generates that MIF
+and the identical simulator HEX. No font file is loaded from the SD card.
+
+The page samples its fields together every 16 frames (about four times/second).
+The blinking header marker runs from video frames independently of the CPU.
+It remains visible with CPU Hold/reset. All raster controls and RGB, including
+Phone mode, have the same single-clock pipeline delay; phone pixels, active
+rectangle and aspect ratio are otherwise unchanged.
+
+- FETCH PC is the **current instruction-fetch virtual address**, not a retired
+  instruction PC. LAST FETCH PC/OP is a paired accepted fetch address/raw word;
+  Thumb fetch words can contain two instructions. These may be speculative.
+- CPSR is the ALU-stage flags/mode register. Counters show active CPU cycles,
+  accepted fetches, completed Wishbone ACK/error beats, current wait and maximum
+  wait (system clocks). Counts wrap at 32 bits; wait counters saturate.
+- BUS address/data/flags are sampled live and may be idle/stale. LAST BUS fields
+  retain the last completed transfer, choosing write data or returned read data.
+- DATA FAULT, FAULT FETCHPC/DATA/FLAGS/REASON preserve the **first non-fetch
+  fault** until cold reset/core reload. FAULT FETCHPC is the contemporaneous
+  fetch VA, not necessarily the faulting instruction. A warm reset/Hold retains
+  context. FAULT DATA is requested write data, or the unvalidated raw read-data
+  bus for a read fault. Reason 1 is board/protocol rejection, 2 unmapped, 3 flash error.
+- BUS FLAGS: bits 0 CYC, 1 STB, 2 write, 3 instruction/code, 4 ACK, 5 ERR,
+  6 atomic lock, 10:7 byte enables. FAULT FLAGS: 0 write, 1 code, 2 board claim,
+  3 DMA claim, 4 board ready, 5 board unmodeled, 6 RAM hit, 7 flash hit,
+  8 memory request, 9 flash error, 14:12 reason, 16 valid.
+- BOOT FLAGS bits 0..7: PLL lock, firmware loaded, SDRAM scrub done, board init,
+  save mounted, first data fault, export busy, export error/unsupported LCD.
+  Higher BOOT FLAGS bits: 8 OSD Run selected, 9 firmware loader failed,
+  10 save error, 11 save-manager busy, 12 phone reset request,
+  13 save writing, 14 blocked firmware load, 15 firmware download,
+  16 known firmware identity. CPU FLAGS bits 0..8: core reset, IRQ, FIQ, board claim, board ready,
+  memory request, RAM hit, flash hit, flash transaction pending.
+- The right pane names individual gate/status bits. Required boot gates are
+  green/red; fault/error flags are red only when asserted; inactive activity
+  flags are gray. Reset is amber when held. KEYS HELD shows the logical Nokia
+  key mask; hold a key through a page refresh to inspect it.
+
+The existing 1024-byte exported diagnostic format is unchanged; these live
+CPU/bus fields are **screen observations**, not newly added export fields.
+They add observability and do not resolve the first-board 0x08000000 failure.
+
+### Controller definition now uses Nokia names
+
+Re-run MiSTer's **Define joystick buttons** for this core after installing the
+new RBF. Bind physical buttons to the named phone actions; A/B/X/Y placement
+is controller-dependent and is no longer used to describe phone keys. D-pad
+remains Right/Left/Down/Up in standard joystick bits 0..3.
+
+| Prompt | Joystick bit | Nokia key bit | Keyboard |
+| --- | ---: | ---: | --- |
+| OK | 4 | 4 | Enter or A |
+| Clear | 5 | 7 | Backspace |
+| End | 6 | 24 | Escape |
+| Menu | 7 | 6 | Tab |
+| Left soft | 8 | 5 | F1 |
+| Right soft | 9 | 9 | F2 |
+| Send | 10 | 23 | Unassigned |
+| Power | 11 | 26 | F10 |
+| Music | 12 | 25 | C |
+| Radio | 13 | 8 | Unassigned |
+| Shift | 14 | 21 | Either Shift |
+| Star | 15 | 10 | Shift+8 or keypad multiply |
+| Hash | 16 | 11 | Shift+3 or keypad divide |
+| 1..9 | 17..25 | 12..20 | Number row 1..9 |
+| 0 | 26 | 22 | Number row 0 |
+
+Smaller controllers can use the primary phone controls and keyboard for the
+remaining keys; press Space to skip an optional mapping prompt. Main supports
+up to 28 named buttons; these 23 actions fit its existing interface (checked
+against upstream `input.cpp` get_btn/parse_buttons and `menu.cpp` mapping hints). Opening OSD suppresses all phone controls and clears keyboard
+holds. Power is the existing UEM-level hypothesis; naming it does not add a
+new electrical power/reset model. The former duplicate End mapping at joystick
+bit 11 is now Power. Keep matrix/shared-IRQ/OSD and one-hot host tests passing.
+
+The older A/B/X/Y descriptions below are historical and superseded by this
+explicit map. Guest UI and physical key wiring still require phone validation.
+
 ## MiSTer diagnostic controls (2026-11-06)
 
 The MiSTer port now routes held inputs through the same **experimental** GPIO matrix as the live-control simulation. Arrow keys/D-pad are rocker; Enter or keyboard A/controller A is OK; F1/controller X is left softkey; F2/controller Y is right softkey; Tab/Start is Menu; Backspace/B is Clear; Escape/Select or R is End; controller L is Send. The number row, Shift+3/Shift+8 and keypad multiply/divide provide digits and star/hash, Shift maps to the matrix, and F10 drives a separate UEM status-level power-key hypothesis. Keyboard make/break events and controller holds are ORed, so releasing one does not release the other. Opening the OSD suppresses controls and clears held keyboard state. These mappings have directed tests but have not been verified in a booted phone UI. Actual PWRONX electrical behavior, keyboard cleanup on USB disconnect and the need for a keypad interrupt remain unproven.

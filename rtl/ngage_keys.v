@@ -101,12 +101,17 @@ module ngage_keys (
     end
     wire [26:0] joy_keys;
     assign joy_keys = {
-        2'b0,
-        (joystick[6] || joystick[11]),
+        joystick[11],
+        joystick[12],
+        joystick[6],
         joystick[10],
-        13'b0,
+        joystick[26],
+        joystick[14],
+        joystick[25:17],
+        joystick[16],
+        joystick[15],
         joystick[9],
-        1'b0,
+        joystick[13],
         joystick[5],
         joystick[7],
         joystick[8],

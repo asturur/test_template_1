@@ -82,40 +82,53 @@ module ngage_upp #(
     input  wire        mdi_bad,
     input  wire [31:0] mdi_data,
     input  wire [15:0] mdi_events,
-    output wire        adsp_tick
+    output wire        adsp_tick,
+    output wire [31:0] debug_pc,
+    output wire [31:0] debug_cpsr,
+    output wire [31:0] debug_instruction,
+    output wire        debug_fetch
+
 );
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             ngage_cpu cpu (
-                .clk           (clk),
-                .reset         (rst),
-                .irq           (irq),
-                .fiq           (fiq),
-                .wb_lock       (cpu_lock),
-                .wb_cyc        (bus_cyc),
-                .wb_stb        (bus_stb),
-                .wb_code       (bus_code),
-                .wb_address    (bus_adr),
-                .wb_write      (bus_we),
-                .wb_write_data (bus_din),
-                .wb_byte_enable(bus_sel),
-                .wb_cycle_type (),
-                .wb_burst_type (),
-                .wb_ack        (cpu_ack),
-                .wb_read_data  (cpu_rdata),
-                .wb_error      (cpu_err)
+                .debug_pc         (debug_pc),
+                .debug_cpsr       (debug_cpsr),
+                .debug_instruction(debug_instruction),
+                .debug_fetch      (debug_fetch),
+                .clk              (clk),
+                .reset            (rst),
+                .irq              (irq),
+                .fiq              (fiq),
+                .wb_lock          (cpu_lock),
+                .wb_cyc           (bus_cyc),
+                .wb_stb           (bus_stb),
+                .wb_code          (bus_code),
+                .wb_address       (bus_adr),
+                .wb_write         (bus_we),
+                .wb_write_data    (bus_din),
+                .wb_byte_enable   (bus_sel),
+                .wb_cycle_type    (),
+                .wb_burst_type    (),
+                .wb_ack           (cpu_ack),
+                .wb_read_data     (cpu_rdata),
+                .wb_error         (cpu_err)
             );
             assign bus_commit = cpu_ack;
         end else begin : external_master
-            assign cpu_lock   = 1'b0;
-            assign bus_code   = 1'b0;
-            assign bus_cyc    = ext_cyc;
-            assign bus_stb    = ext_stb;
-            assign bus_we     = ext_we;
-            assign bus_adr    = ext_adr;
-            assign bus_din    = ext_din;
-            assign bus_sel    = ext_sel;
-            assign bus_commit = ext_commit;
+            assign debug_pc          = 0;
+            assign debug_cpsr        = 0;
+            assign debug_instruction = 0;
+            assign debug_fetch       = 0;
+            assign cpu_lock          = 1'b0;
+            assign bus_code          = 1'b0;
+            assign bus_cyc           = ext_cyc;
+            assign bus_stb           = ext_stb;
+            assign bus_we            = ext_we;
+            assign bus_adr           = ext_adr;
+            assign bus_din           = ext_din;
+            assign bus_sel           = ext_sel;
+            assign bus_commit        = ext_commit;
         end
     endgenerate
     wire internal_dma_irq;

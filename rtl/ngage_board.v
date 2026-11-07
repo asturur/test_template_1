@@ -75,7 +75,14 @@ module ngage_board #(
     output wire        bus_code,
     output wire [31:0] bus_adr,
     output wire [31:0] bus_din,
-    output wire [ 3:0] bus_sel
+    output wire [ 3:0] bus_sel,
+    output wire [ 8:0] video_x,
+    output wire [ 8:0] video_y,
+    output wire [31:0] debug_pc,
+    output wire [31:0] debug_cpsr,
+    output wire [31:0] debug_instruction,
+    output wire        debug_fetch
+
 );
     wire card_rx_valid, card_tx_will_emit, card_overflow, card_tx_valid, card_rx_pop;
     wire [7:0] card_rx_data, card_tx_data;
@@ -125,6 +132,8 @@ module ngage_board #(
                 .dma_frame_full(lcd_dma_full),
                 .dma_word_addr(lcd_dma_addr),
                 .dma_data(lcd_dma_data),
+                .raster_x(video_x),
+                .raster_y(video_y),
                 .ce_pix(video_ce),
                 .hsync(video_hsync),
                 .vsync(video_vsync),
@@ -141,6 +150,8 @@ module ngage_board #(
             assign lcd_unsupported       = 0;
             assign lcd_unsupported_valid = 0;
             assign lcd_unsupported_data  = 0;
+            assign video_x               = 0;
+            assign video_y               = 0;
             assign video_ce              = 0;
             assign video_hsync           = 0;
             assign video_vsync           = 0;
@@ -155,6 +166,10 @@ module ngage_board #(
         .KEYPAD_ENABLE (KEYPAD_ENABLE),
         .LCD_DMA_ENABLE(LCD_DMA_ENABLE)
     ) upp (
+        .debug_pc         (debug_pc),
+        .debug_cpsr       (debug_cpsr),
+        .debug_instruction(debug_instruction),
+        .debug_fetch      (debug_fetch),
         .dma_mem_ack      (dma_mem_ack),
         .dma_mem_data     (dma_mem_data),
         .dma_mem_req      (dma_mem_req),

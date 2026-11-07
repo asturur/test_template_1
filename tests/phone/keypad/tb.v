@@ -73,6 +73,19 @@ initial begin
  addr='h0c15040c;we=1;commit=1;sel=12;din=0;
  @(negedge clk);commit=0;we=0;sel=3;addr='h0c150400;#1;
  if(value2[3:2]!==2'b10)$fatal(1,"drive zero masks");
+ // Every MiSTer J1 binding has one documented Nokia key, including numbers.
+ for(k=0;k<27;k=k+1)begin
+  joy=32'b1<<k;
+  case(k)
+   0:row=3;1:row=2;2:row=1;3:row=0;4:row=4;5:row=7;
+   6:row=24;7:row=6;8:row=5;9:row=9;10:row=23;11:row=26;
+   12:row=25;13:row=8;14:row=21;15:row=10;16:row=11;
+   26:row=22;default:row=k-5;
+  endcase
+  #1;if(keys!==(27'b1<<row))$fatal(1,"controller binding bit %0d -> Nokia %0d got %h",k,row,keys);
+ end
+ joy=32'hffffffff;inhibit=1;#1;if(keys!==0)$fatal(1,"OSD controller suppression");
+ joy=0;inhibit=0;
  $display("PASS keypad matrix, rocker and held/released host controls");$finish;
 end
 endmodule

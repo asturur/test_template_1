@@ -101,6 +101,10 @@ parameter logic [31:0] CODE_CACHE_LINE          =  32'd64    // Ccahe line size 
         // Clock and reset
         // --------------------------------------
 
+        output wire [31:0] o_debug_pc,
+        output wire [31:0] o_debug_cpsr,
+        output wire [31:0] o_debug_instruction,
+        output wire o_debug_fetch,
         input   logic            i_clk,
         input   logic            i_reset,
 
@@ -257,6 +261,11 @@ zap_core #(
 .o_trace_valid          (o_trace_valid),
 .o_trace_uop_last       (o_trace_uop_last),
 
+// Read-only board diagnostics.
+.o_debug_pc(o_debug_pc),
+.o_debug_cpsr(o_debug_cpsr),
+.o_debug_instruction(o_debug_instruction),
+.o_debug_fetch(o_debug_fetch),
 // Clock and reset.
 .i_clk                  (i_clk),
 .i_reset                (s_reset),

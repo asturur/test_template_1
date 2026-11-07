@@ -122,6 +122,8 @@ def build_simulator(info, variant):
                    "-Wno-fatal", "-Wno-lint", "--x-initial", "0", "--x-assign", "0",
                    "--top-module", "ngage_cpu_sim", "--Mdir", str(objdir.relative_to(ROOT)),
                    "-I" + str(rtl.relative_to(ROOT)), "rtl/ngage_cpu.sv", "sim/ngage_cpu_sim.sv"]
+        if variant != "ngage":
+            command.append("-DNGAGE_NO_CPU_DEBUG")
         if associative:
             command.append("-DNGAGE_ASSOC_EXPERIMENT")
         command += [str(p.relative_to(ROOT)) for p in source]
@@ -229,6 +231,8 @@ def rtl_lint(info, variant):
     associative = variant == "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT", "1") == "1"
     if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
         raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
+    if variant != "ngage":
+        command += ["-DNGAGE_NO_CPU_DEBUG"]
     if associative:
         command += ["-DNGAGE_ASSOC_EXPERIMENT", "rtl/ngage_bram.v"]
         command += [str(p.relative_to(ROOT)) for p in sorted((ROOT / "rtl" / "arm920").glob("*.sv"))]
