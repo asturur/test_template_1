@@ -1,3 +1,9 @@
+## 2026-11-07: Quartus cache-line generate syntax fix
+
+User's GitHub Quartus build reports Error 10170 at `rtl/arm920/cache_lines.sv:18`, rejecting the inline `genvar` declaration and then ignoring the module. Moved `genvar lane;` to module scope and kept the generate loop's initializer as `lane=0`. Byte-lane count, indices, storage, read/write behavior and the `lanes` generate hierarchy are unchanged. Cache-line byte-mask/way/segment-isolation and associative-bank dirty-victim/refill regressions pass. Actual Quartus retry remains the manual GitHub action; local Verilator is not a Quartus syntax result. The fix is a separate commit following the verified RTL-formatting commit.
+
+Also inspected the Pocket CPU design at local `~/develop/n-gage`: it is a custom eight-stage ARMv4T pipeline with caches and an NGVM-specific MMU, not a tiny interpreter. Its smaller compatibility target comes from replacing the Nokia kernel/drivers and omitting full ARM CP15/MMU behavior. Its docs report ZAP/Quartus difficulties; our maintained ZAP already has several Quartus-17 compatibility edits. Replacing our CPU with the Pocket design would require ARM MMU/CP15/original-kernel integration work, not a drop-in swap. See its `docs/core-design.md` section 5 and `docs/hardware.md` section 2. No CPU redesign was made.
+
 ## 2026-11-07: phone RTL readability pass
 
 At the user's direction reformatted all 51 maintained phone RTL/top-level files (`Template.sv`, `rtl/ngage*.v`/`*.sv`) toward the pinned Nortido reference's readable layout: explicit ANSI ports, aligned connections/declarations, separated statements and four-space blocks. No identifiers, values, comments, port order or logic changed. Shared ANSI declarations were expanded to explicit direction/type per port. Imported ZAP, JTFRAME/SDRAM, PLL and framework formatting was retained.
