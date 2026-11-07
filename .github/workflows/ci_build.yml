@@ -26,6 +26,7 @@ jobs:
       # Tee the console so we keep the full log even when the compile fails;
       # PIPESTATUS preserves the real quartus_sh exit code through the pipe.
       - name: Build with Quartus 17.0.2
+        id: compile
         run: |
           set -uo pipefail
           docker run --rm \
@@ -35,6 +36,27 @@ jobs:
             /opt/intelFPGA_lite/quartus/bin/quartus_sh --flow compile Template \
             2>&1 | tee quartus_build.log
           exit "${PIPESTATUS[0]}"
+
+      - name: Export worst 1000 timing paths
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          set -uo pipefail
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/report_quartus_timing.tcl Template 1000 \
+            2>&1 | tee quartus_timing_details.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Summarize path bottlenecks
+        run: |
+          python3 tools/summarize_quartus_paths.py output_files/timing/worst-setup.csv \
+            --output output_files/timing/path-summary.md
+          cat output_files/timing/path-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Require passing timing
+        run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
 
       - name: Check build output
         run: test -f output_files/Template.rbf
@@ -59,6 +81,8 @@ jobs:
           name: quartus-logs
           path: |
             quartus_build.log
+            quartus_timing_details.log
+            output_files/timing/
             output_files/*.rpt
             output_files/*.summary
             output_files/*.smsg

@@ -1,3 +1,80 @@
+## 2026-11-07: keep 104 MHz; export worst 1,000 timing paths
+
+User superseded the 50 MHz proposal: **retain the existing 104 MHz configuration**
+and collect the worst **1,000** paths before RTL optimization. No clock/PLL,
+timer, memory mode, RTL or SDC changes were made. Existing downloaded reports
+have summary data only; no detailed launch/capture nodes/routing or fitted DB
+is available there to re-analyze locally.
+
+Added `tools/report_quartus_timing.tcl` and action steps to reopen the post-fit
+DB on the runner and export 1,000 slow setup paths (one per endpoint), full
+clock/cell/routing detail, CSV fields and grouped Markdown summary, plus slow/
+fast hold, recovery/removal, clock/Fmax and unconstrained-path reports. All are
+saved under `output_files/timing/` in the always-uploaded `quartus-logs` artifact.
+A gate after report extraction rejects negative/missing constrained timing,
+so the current design is expected to fail the job while retaining diagnostics;
+normal RBF upload requires a passing gate. See `docs/timing-closure.md`.
+
+Seven local tests pass for gate behavior, the actual failed board report,
+CSV sorting/grouping/quoted node names and mocked Tcl export flow. Command
+options were checked against Quartus 17 references; the mock does not validate
+real Quartus API execution. No local Quartus download/run, resimulation or FPGA
+deployment. Commit/push and start the baseline report build; user monitors it.
+Next inspect its actual critical paths, then implement targeted timing fixes.
+
+## 2026-11-07: board screenshot captured; severe setup timing failure found
+
+Captured the live board via Zaparoo **WebSocket** JSON-RPC `screenshot` at
+`ws://192.168.1.176:7497/api/v0.1`. HTTP POST is remote-disabled; configured SSH
+authentication failed. WebSocket works directly, with no credentials/config
+changes required on this device. Reuse
+`scratch/hardware-bringup/capture_zaparoo_ws.mjs`; do not ask for SSH credentials
+or change API settings for screenshots. PNG and decoded observation JSON:
+`scratch/hardware-bringup/board-diagnostics-zaparoo.{png,json}`. Remote image:
+`/media/fat/screenshots/NGage/20261107_111823-NEM4-4.03.png`.
+
+Screen/user confirm CPSR **400000D7** (Abort mode 0x17), data fault **08000010**,
+fault-time fetch PC **B7C**, data **7037F800**, flags **12111**, reason **2**.
+Flags mean write=1, ready=1, memory-request=1, board claim=0; RAM/flash claims
+are also zero. BOOT FLAGS **1013F**: required gates and Run are set, known
+firmware, first data fault; RESET=0 and no load/save error. BUS ERRORS=1.
+The running PC is the previously identified 0x60C stop loop. Low-ROM bytes at
+0xB6C..0xB80 set up early 0x080000xx control writes; the fault-time fetch PC is
+not a precise executing/faulting instruction PC, and no firmware patch is justified.
+
+**Completed build reports downloaded once (not monitored):** run 42365167112 /
+`d068883`, under `scratch/hardware-bringup/build-d068883/`. Fitter succeeds:
+**33,832/41,910 ALMs (81%), 457/553 M10Ks (83%), 44,523 registers, 43% logical
+RAM bits**. But STA explicitly fails the core clock: **setup slack -43.702 ns,
+TNS -215405.214 ns, Fmax 18.76 MHz**, while the PLL still clocks it at 104 MHz.
+This is not a timing-valid build. It is a strong candidate for the hardware/
+simulation discrepancy, not proof of the particular failing signal/path.
+
+Next obtain detailed failing timing paths, repair/pipeline the responsible
+logic and require a passing timing gate before publishing a test RBF. Do not
+paper over an unclaimed boot-register fault with an alias or change firmware.
+Current CI can upload RBFs despite Timing requirements not met; fitting and
+artifact generation alone are insufficient. No RTL/build change was made in
+this observation turn. User continues to monitor new builds.
+
+## 2026-11-07: live board PC matches firmware stop loop
+
+User reports fetch PC/last-fetch PC alternating around **0x60C/0x610/0x614**,
+and last fetch op **EAFFFFFE / 00001018** on the new diagnostic page. Direct
+inspection/disassembly of the audited raw core confirms 0x60C=EAFFFFFE
+(`B 0x60C`), 0x610=00001018 (following literal), 0x614=580047E8. This is
+consistent with the firmware's early stop loop plus speculative fetch ahead;
+these fetch observations do not prove execution of literal-pool words or boot
+progress. Some ROM fetches clearly match expected bytes; this is not full DDR
+or firmware integrity validation.
+
+The earlier board export recorded an unmapped non-fetch fault at 0x08000000.
+That may explain reaching this stop loop, but obtain CPSR and the new sticky
+fault address/fetch-PC/data/flags/reason before attributing a cause. First-fault
+fetch PC is contemporaneous fetch state, not a precise faulting-instruction PC.
+Evidence/disassembly under `scratch/hardware-bringup/`, live report JSON under
+`first-black-screen/`. No HDL changes, simulation or build monitoring performed.
+
 ## 2026-11-07: diagnostic font single-port clock fix
 
 Run 42363543248 (`99c2aef`) failed in elaboration: Error 272006 says clock1
