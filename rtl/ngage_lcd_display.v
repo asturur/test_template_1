@@ -57,20 +57,16 @@ module ngage_lcd_display (
     assign pixel_word = pixel_forward ? forwarded_pixel : pixel_q;
     reg [31:0] header = 0;
     reg memory_write = 0, display_on = 0;
-    reg  [ 14:0] cursor = 0;
-    // A row is known only after observing all 88 words in order. This tracks
-    // complete line bands without pretending sparse fragments form a full frame.
-    reg  [207:0] valid_rows = 0;
-    reg  [  7:0] row_number = 0;
-    reg  [  6:0] row_progress = 0;
-    reg  [ 14:0] next_dma_word = 0;
-    wire [207:0] row_bit = 208'b1 << row_number;
-    wire [ 14:0] dma_row = dma_word_addr / 15'd88;
+    reg  [14:0] cursor = 0;
+    // Display memory is updated incrementally, like panel GRAM. Completion
+    // flags describe explicit full transfers only; they never gate scanout.
+    // ngage_bram starts at zero on FPGA configuration and retains pixels on
+    // ordinary phone reset, until firmware overwrites them.
     // As in MiSTer Game Boy, retain a larger centered timing raster for
     // analog black padding, while DE encloses only the native phone pixels.
-    wire         in_phone = x >= 72 && x < 248 && y >= 16 && y < 224;
-    wire [  8:0] px = x - 72, py = y - 16;
-    wire [ 14:0] read_index = ({6'b0, py} * 15'd88) + {7'b0, px[8:1]};
+    wire        in_phone = x >= 72 && x < 248 && y >= 16 && y < 224;
+    wire [ 8:0] px = x - 72, py = y - 16;
+    wire [14:0] read_index = ({6'b0, py} * 15'd88) + {7'b0, px[8:1]};
     reg [8:0] scan_x = 0, scan_y = 0;
     reg [11:0] phone_rgb;
     assign raster_x = scan_x;
@@ -138,29 +134,8 @@ module ngage_lcd_display (
             frame_complete      <= 0;
             incomplete          <= 0;
             unsupported         <= 0;
-            valid_rows          <= 0;
-            row_progress        <= 0;
-            next_dma_word       <= 0;
-            row_number          <= 0;
         end else begin
-            if (dma_valid && dma_word_addr < 18304) begin
-                if (!frame_complete) incomplete <= 1;
-                if (dma_word_addr % 15'd88 == 0) begin
-                    row_number    <= dma_row[7:0];
-                    row_progress  <= 1;
-                    next_dma_word <= dma_word_addr + 1'b1;
-                end else if (row_progress != 0 && dma_word_addr == next_dma_word) begin
-                    next_dma_word <= next_dma_word + 1'b1;
-                    if (row_progress == 87) begin
-                        valid_rows   <= valid_rows | row_bit;
-                        row_progress <= 0;
-                        if (&(valid_rows | row_bit)) begin
-                            frame_complete <= 1;
-                            incomplete     <= 0;
-                        end
-                    end else row_progress <= row_progress + 1'b1;
-                end else row_progress <= 0;
-            end
+            if (dma_valid && dma_word_addr < 18304 && !frame_complete) incomplete <= 1;
             if (dma_frame_full) begin
                 frame_complete <= 1;
                 incomplete     <= 0;
@@ -185,8 +160,6 @@ module ngage_lcd_display (
                                     cursor         <= 0;
                                     incomplete     <= 1;
                                     frame_complete <= 0;
-                                    valid_rows     <= 0;
-                                    row_progress   <= 0;
                                 end else unknown(header, write_data, write_data[7:0]);
                             end
                             32'haf:  display_on <= 1;
@@ -255,8 +228,7 @@ module ngage_lcd_display (
                         endcase
                     else rgb = status[scan_x[7:5]] ? 12'h0f0 : 12'h200;
                 end
-            end else if (display_on && frame_complete && scan_x >= 72 && scan_x < 248 &&
-                         scan_y >= 16 && scan_y < 224)
+            end else if (display_on && scan_x >= 72 && scan_x < 248 && scan_y >= 16 && scan_y < 224)
                 rgb = phone_rgb;
         end
         // Phone mode contains only guest pixels. Unsupported/incomplete state

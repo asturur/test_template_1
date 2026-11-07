@@ -23,6 +23,16 @@ module test;
    if(!hit || hit_way!==n || hp!==(32'h80000000+(n<<8))) $fatal(1,"lookup n=%0d hit=%b way=%d PA=%h",n,hit,hit_way,hp);
   end
   // A different segment has independent tags and its own victim counter.
+  // Every matched way must update only its own dirty half, without decoding
+  // a binary hit-way back into a shared flag write mux.
+  for(n=0;n<64;n=n+1)begin
+   mva=(n<<8)|((n&1)<<4);tick();tick();write_hit=1;tick();write_hit=0;
+  end
+  for(n=0;n<64;n=n+1)begin
+   mva=n<<8;tick();tick();#1;
+   if(!hit || hit_way!==n || hd!==(n&1 ? 2'b10 : 2'b01))$fatal(1,"per-way dirty enable n=%0d dirty=%b",n,hd);
+   clean_hit=1;tick();clean_hit=0;
+  end
   mva=32'h20;pa=32'ha0000020;tick();tick();#1;
   if(hit || vway!==0 || vvalid) $fatal(1,"segment isolation before fill");
   fill=1;tick();fill=0;mva=0;tick();tick();#1;

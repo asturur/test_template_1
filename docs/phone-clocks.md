@@ -96,6 +96,17 @@ Reproducible disassemblies are in the clock-research scratch directory.
 This is firmware evidence supporting a 15.625 ms / 64 Hz hypothesis, not proof
 of the timer source by itself.
 
+## Implemented SIM enable follow-up (2026-11-07)
+
+The diagnostic card is now serviced on a divide-by-32 enable at the unchanged
+104 MHz system clock, nominally 3.25 MHz. Events are captured at system speed,
+then cross a CEN-only work register before processing. SIMIF ready stalls the
+next access until pending work finishes, including FIFO pops. This models a
+slower internal transaction service budget; SIM bit edges, baud-rate divisors
+and physical UPP/UEM signaling remain unimplemented. Do not equate one byte
+event per service opportunity with a real serial byte duration. The normal
+no-ATR selection remains unchanged. No general MMIO or RTC/timer-rate change.
+
 ## Timebase audit and concrete next work
 
 1. **Confirm the timer frequency first.** Nortido's independent reference

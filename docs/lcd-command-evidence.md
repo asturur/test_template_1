@@ -1,3 +1,22 @@
+## 2026-11-07: remove speculative row coverage and display suppression
+
+User requested retaining only needed LCD logic. Removed the per-row complete
+bitmap, contiguous-word counters, per-word /88/%88 and the frame_complete gate
+on phone scanout. These were FPGA bring-up coverage/blanking policy, not
+established panel behavior. The pinned Nortido LCD uses a simple linear burst
+pointer, not that coverage mechanism. Existing framebuffer addressing is already
+linear; leave it and the native176x208 raster intact. Display on/off and known
+command/write validation remain.
+
+Partial direct/DMA updates are visible while the panel is on. The explicit M10K
+wrapper already uses zero power-up initialization; no runtime clear engine or
+large validity bitmap is added. Warm reset retains pixel storage. Completion
+flags now describe explicit full DMA/direct transfers only and are diagnostic;
+out-of-order chunks no longer synthesize a full-frame-coverage event. They do
+not suppress real pixels. Tests verify partial pixels, untouched initial black,
+band addressing and explicit completion, with original command/protocol tests.
+No new panel command, pin frequency or physical timing claim is introduced.
+
 # Reached LCD commands and current decode limits
 
 ## Evidence and scope (2026-11-07)

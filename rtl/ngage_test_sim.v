@@ -1,7 +1,9 @@
 // Synthetic GSM T=0 test card matching scratch/simif-investigation/test_card.h.
 // Fabricated test identities; this is not a physical card dump or a full SIM.
 // Byte interface is a transaction-level bridge, not electrical SIM timing.
-module ngage_test_sim (
+module ngage_test_sim #(
+    parameter integer CLOCK_DIV = 1
+) (
     input  wire       clk,
     input  wire       reset,
     input  wire       tx_valid,
@@ -11,8 +13,51 @@ module ngage_test_sim (
     output wire [7:0] rx_data,
     output reg        overflow,
     output wire [6:0] available,
-    output wire       tx_will_emit
+    output wire       tx_will_emit,
+    output wire       busy
 );
+    // At 104 MHz, CLOCK_DIV=32 provides a 3.25 MHz service enable. This
+    // schedules transaction-level card work; it is not a SIM serial/baud model.
+    localparam integer DIV_AW = CLOCK_DIV > 1 ? $clog2(CLOCK_DIV) : 1;
+    reg  [DIV_AW-1:0] divider;
+    wire              cen = CLOCK_DIV == 1 || divider == CLOCK_DIV - 1;
+    reg pending_tx, pending_pop;
+    reg [7:0] pending_data;
+    reg enabled_tx, enabled_pop;
+    reg  [7:0] enabled_data;
+    wire       work_tx = CLOCK_DIV == 1 ? tx_valid : enabled_tx;
+    wire       work_pop = CLOCK_DIV == 1 ? rx_pop : enabled_pop;
+    wire [7:0] work_data = CLOCK_DIV == 1 ? tx_data : enabled_data;
+    assign busy = CLOCK_DIV != 1 && (pending_tx || pending_pop || enabled_tx || enabled_pop);
+    always @(posedge clk) begin
+        if (reset) begin
+            divider      <= 0;
+            pending_tx   <= 0;
+            pending_pop  <= 0;
+            pending_data <= 0;
+            enabled_tx   <= 0;
+            enabled_pop  <= 0;
+            enabled_data <= 0;
+        end else begin
+            if (cen) divider <= 0;
+            else divider <= divider + 1'b1;
+            if (cen) begin
+                // Service inputs cross a CEN register before FIFO processing,
+                // giving them a complete enable interval even when an event
+                // arrives one system clock before the service edge.
+                enabled_tx   <= pending_tx;
+                enabled_pop  <= pending_pop;
+                enabled_data <= pending_data;
+                pending_tx   <= 0;
+                pending_pop  <= 0;
+            end
+            if (CLOCK_DIV != 1 && !busy && (tx_valid || rx_pop)) begin
+                pending_tx   <= tx_valid;
+                pending_pop  <= rx_pop;
+                pending_data <= tx_data;
+            end
+        end
+    end
     reg [7:0] fifo[0:63], header[0:3];
     reg [5:0] head, tail;
     reg [6:0] used;
@@ -82,15 +127,15 @@ module ngage_test_sim (
             terminal_left <= 0;
             overflow      <= 0;
             for (i = 0; i < 4; i = i + 1) header[i] <= 0;
-        end else begin
+        end else if (cen) begin
             next_used      = used;
             response_count = 0;
-            if (rx_pop && used != 0) begin
+            if (work_pop && used != 0) begin
                 head <= head + 1'b1;
                 next_used = next_used - 1'b1;
             end
             free_slots = 7'd64 - next_used;
-            if (tx_valid) begin
+            if (work_tx) begin
                 if (terminal_left != 0) begin
                     terminal_left <= terminal_left - 1'b1;
                     if (terminal_left == 1) begin
@@ -98,7 +143,7 @@ module ngage_test_sim (
                         emit(0);
                     end
                 end else if (select_left != 0) begin
-                    next_file = {file_id[7:0], tx_data};
+                    next_file = {file_id[7:0], work_data};
                     file_id     <= next_file;
                     select_left <= select_left - 1'b1;
                     if (select_left == 1) begin
@@ -118,7 +163,7 @@ module ngage_test_sim (
                         end
                     end
                 end else if (header_count != 4) begin
-                    header[header_count[1:0]] <= tx_data;
+                    header[header_count[1:0]] <= work_data;
                     header_count              <= header_count + 1'b1;
                 end else begin
                     header_count <= 0;
@@ -126,16 +171,16 @@ module ngage_test_sim (
                         emit(8'h6e);
                         emit(0);
                     end
-     else if(header[1]==8'h10 && header[2]==0 && header[3]==0 && tx_data!=0)begin
-                        terminal_left <= tx_data;
+     else if(header[1]==8'h10 && header[2]==0 && header[3]==0 && work_data!=0)begin
+                        terminal_left <= work_data;
                         emit(8'h10);
                     end
-     else if(header[1]==8'ha4 && header[2]==0 && header[3]==0 && tx_data==2)begin
+     else if(header[1]==8'ha4 && header[2]==0 && header[3]==0 && work_data==2)begin
                         file_id     <= 0;
                         select_left <= 2;
                         emit(8'ha4);
                     end
-     else if(header[1]==8'hc0 && header[2]==0 && header[3]==0 && tx_data==15 && supported_ef(
+     else if(header[1]==8'hc0 && header[2]==0 && header[3]==0 && work_data==15 && supported_ef(
                             selected
                         )) begin
                         length = ef_length(selected);
@@ -157,7 +202,7 @@ module ngage_test_sim (
                         emit(0);
                         emit(8'h90);
                         emit(0);
-                    end else if(header[1]==8'hf2 && header[2]==0 && header[3]==0 && (tx_data==15 || tx_data==22))begin
+                    end else if(header[1]==8'hf2 && header[2]==0 && header[3]==0 && (work_data==15 || work_data==22))begin
                         emit(8'hf2);
                         emit(0);
                         emit(0);
@@ -174,7 +219,7 @@ module ngage_test_sim (
                         emit(9);
                         emit(8'hb0);
                         emit(0);
-                        if (tx_data == 22) begin
+                        if (work_data == 22) begin
                             emit(0);
                             emit(2);
                             emit(0);
@@ -185,7 +230,7 @@ module ngage_test_sim (
                         end
                         emit(8'h90);
                         emit(0);
-                    end else if(header[1]==8'hb0 && header[2]==0 && header[3]==0 && tx_data==ef_length(
+                    end else if(header[1]==8'hb0 && header[2]==0 && header[3]==0 && work_data==ef_length(
                             selected
                         ) && supported_ef(
                             selected

@@ -125,7 +125,53 @@ module arm920_cache_tags (
                 dirty_tree[2 * tree_node + 1] : dirty_tree[2 * tree_node + 2];
         end
     endgenerate
-    integer i, j;
+    // Preserve lowest-way priority without routing metadata writes through
+    // hit_way's binary encoder and a second decoder. Prefix ORs are balanced
+    // reductions of constant slices; each flag has its own fixed write enable.
+    wire [63:0] matched_ways = hit_tree[126:63];
+    wire [63:0] selected_ways;
+    genvar flag_segment, flag_way;
+    generate
+        for (flag_way = 0; flag_way < 64; flag_way = flag_way + 1) begin : metadata_ways
+            if (flag_way == 0) begin : first_way
+                assign selected_ways[flag_way] = matched_ways[flag_way];
+            end else begin : later_way
+                assign selected_ways[flag_way] = matched_ways[flag_way] &&
+                                                  !(|matched_ways[flag_way-1:0]);
+            end
+            for (flag_segment = 0; flag_segment < 8; flag_segment = flag_segment + 1) begin : segments
+                always_ff @(posedge clk) begin
+                    if (reset || invalidate_all) begin
+                        valid[flag_segment][flag_way] <= 0;
+                        dirty[flag_segment][flag_way] <= 0;
+                    end else if (!lock_write) begin
+                        if (scan_invalidate) begin
+                            if (scan_segment == flag_segment && scan_way == flag_way) begin
+                                valid[flag_segment][flag_way] <= 0;
+                                dirty[flag_segment][flag_way] <= 0;
+                            end
+                        end else if (scan_clean) begin
+                            if (scan_segment == flag_segment && scan_way == flag_way)
+                                dirty[flag_segment][flag_way] <= 0;
+                        end else if (segment == flag_segment) begin
+                            if (selected_ways[flag_way]) begin
+                                if (invalidate_line) begin
+                                    valid[flag_segment][flag_way] <= 0;
+                                    dirty[flag_segment][flag_way] <= 0;
+                                end else if (clean_hit) dirty[flag_segment][flag_way] <= 0;
+                                else if (write_hit) dirty[flag_segment][flag_way][lookup_mva[4]] <= 1;
+                            end
+                            if (fill && !hit && victim_way == flag_way) begin
+                                valid[flag_segment][flag_way] <= 1;
+                                dirty[flag_segment][flag_way] <= 0;
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    endgenerate
+    integer i;
     logic [5:0] random_candidate;
     always_comb begin
         hit               = hit_tree[0];
@@ -142,10 +188,6 @@ module arm920_cache_tags (
     always_ff @(posedge clk) begin
         if (reset || invalidate_all) begin
             for (i = 0; i < 8; i = i + 1) begin
-                for (j = 0; j < 64; j = j + 1) begin
-                    valid[i][j] <= 0;
-                    dirty[i][j] <= 0;
-                end
                 if (reset) begin
                     victim[i]       <= 0;
                     random_state[i] <= 6'(i + 1);
@@ -155,20 +197,8 @@ module arm920_cache_tags (
         end else if (lock_write) begin
             lock_base <= lock_base_in;
             for (i = 0; i < 8; i = i + 1) victim[i] <= lock_base_in;
-        end else if (scan_invalidate) begin
-            valid[scan_segment][scan_way] <= 0;
-            dirty[scan_segment][scan_way] <= 0;
-        end else if (scan_clean) begin
-            dirty[scan_segment][scan_way] <= 0;
-        end else begin
-            if (invalidate_line && hit) begin
-                valid[segment][hit_way] <= 0;
-                dirty[segment][hit_way] <= 0;
-            end else if (clean_hit && hit) dirty[segment][hit_way] <= 0;
-            else if (write_hit && hit) dirty[segment][hit_way][lookup_mva[4]] <= 1;
+        end else if (!scan_invalidate && !scan_clean) begin
             if (fill && !hit) begin
-                valid[segment][victim_way] <= 1;
-                dirty[segment][victim_way] <= 0;
                 if (round_robin)
                     victim[segment] <= victim_way == 63 ? lock_base : victim_way + 1'b1;
                 else begin

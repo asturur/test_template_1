@@ -1,5 +1,140 @@
 # MiSTer timing closure
 
+## Fifth iteration: SIM enable, minimal LCD and cache flag writes (2026-11-07)
+
+User selected a slower SIM service enable plus registers, a simpler LCD model,
+and full-speed cache metadata repair. A subsequent clarification explicitly
+removed the speculative LCD row-completeness machinery rather than retaining
+or optimizing it. Firmware, loader, CPU/SDRAM clocks and SDC remain unchanged.
+
+- **SIM:** board card uses CLOCK_DIV=32: 104 MHz /32 = **3.25 MHz**, as Nokia
+  documents (not 3.5 MHz). Committed TX/pop events enter a system-clock holding
+  register, transfer to CEN-only work registers, then execute at the following
+  enable. The extra CEN stage gives even an event arriving just before an enable
+  a complete service interval before FIFO processing. Pending/work busy holds
+  subsequent SIMIF requests via ready until state/bytes are current. No events
+  are dropped or re-sampled from changing bus data. This is a transaction-level
+  service cadence, **not electrical SIM clock generation or ISO7816 baud timing**.
+  Direct card fixtures retain CLOCK_DIV=1 as an immediate semantic oracle.
+- **LCD:** reviewed pinned Nortido `rtl/ngage_lcd.sv`: it uses a linear burst
+  pointer and has no runtime per-word quotient/remainder. Our `/88` and `%88`
+  existed only to reconstruct complete rows and suppress pixels until all rows
+  arrived, not to address the framebuffer. Removed that row bitmap/counters,
+  divide/modulo, and full-frame scanout gate entirely. Panel on/off, known
+  commands, write address bounds, direct/DMA pixels, framebuffer and native
+  176x208 raster remain. BRAM already initializes to zero on FPGA configuration;
+  partial updates show immediately and warm reset does not erase stored pixels.
+  `frame_complete/incomplete` remain lightweight diagnostic flags for explicit
+  full transfers and direct full bursts; chunks no longer fabricate a coverage
+  completion event. No speculative slower panel clock is introduced: updates
+  already occur only on accepted write/DMA enables, with scanout independent.
+- **Cache:** each valid/dirty flag has a fixed per-segment/per-way enable from
+  matched-way bits and a lower-way prefix OR. This preserves lowest-way priority
+  while removing the binary hit-way encode -> decode -> flag-write path. Keep
+  encoded hit_way for data-bank addressing. Reset, lock, scan invalidate/clean,
+  hit invalidate/clean/write, replacement and dirty-half priorities are retained;
+  tag/data M10Ks, lookup latency and warm throughput are not serialized.
+
+No blanket false/multicycle exceptions were added. Internal CEN-to-CEN work
+has explicit service registers, but input holding, ready/status, FIFO readout
+and CPU paths still need fast boundary timing. This fit deliberately retains
+conservative constraints; any later slow-enable timing allowance needs precise
+fitted endpoint/enable verification, not a whole-card exception.
+
+Validation: C++ SIM bytes/FIFO reference, saturation/reset and 600-response
+scoreboard pass; a new enabled-versus-immediate card test covers 160 long
+responses, concurrent TX/pop, capture/hold, 32-clock cadence and pending reset.
+Absent/present board SIMIF matches 31/194 reference operations with real busy
+waits. Those benches previously sampled ready in the same delta cycle as
+changing request fields; add a settle step before the wait loop so they honor
+backpressure, rather than bypassing a newly asserted busy.
+
+The full CPU/cache suite with CPU_BUS_BRIDGE=1 passes **119 checks plus one
+expected legacy direct-mapped associativity XFAIL**. Expanded tags test writes
+and checks both dirty halves across all64 ways, then cleans every line. Warm
+cached ADD remains one clock at memory delays0/3. LCD direct/protocol/bands
+checks verify immediate partial visibility, deterministic untouched black,
+out-of-order band addressing and explicit full-transfer status. Further final
+native raster, board and cold-SDRAM checks are recorded in `status.md`.
+
+Logs: `scratch/timing-closure/pass5-sim-lcd-cache/`. Compare the next fit with
+**53.52 MHz / -9.070 ns**, 33,928 ALMs /457 M10Ks. No new measured Fmax yet;
+user monitors the next GitHub build, do not poll it.
+
+## Registered bus measured result and next decision (2026-11-07)
+
+Completed **42383337100 / c08939d** fits and fails the intended timing gate.
+Reports: `scratch/timing-closure/pass4-c08939d/`. Source ac6ca1f only adds the
+later loader plan, so this measurement is the isolated bus-bridge change.
+
+| Metric | Before bridge cc89013 | Bridge c08939d |
+| --- | ---: | ---: |
+| Core setup slack at 104 MHz | -10.644 ns | **-9.070 ns** |
+| Core slow-model Fmax | 49.36 MHz | **53.52 MHz** |
+| Core setup TNS | -123805.311 ns | **-89226.544 ns** |
+| ALMs | 33,589 | **33,928 (81%)** |
+| Registers | 45,643 | **45,189** |
+| M10Ks | 457 | **457 (83%)** |
+
+Improvement is 1.574 ns / 4.16 MHz; setup TNS magnitude falls **27.93%**.
+Other worst metrics remain positive: hold +0.247, recovery +3.677, removal
++0.878, pulse +0.961 ns. HDMI setup +0.427 ns. This remains a failing 104 MHz
+build and does not establish a passing slower-clock board configuration.
+
+**Zero of the newly exported 1,000 paths show the old shared fault/ACK -> CPU
+next-request combinational traversal** (912 before the bridge). This is
+structural evidence that the intended chain was cut; it is not proof all the
+old endpoints pass, since selected paths and launch registers change.
+
+New leading groups (endpoint counts are disjoint within this table):
+
+| Group | Paths | Worst slack | Actual structure |
+| --- | ---: | ---: | --- |
+| SIM FIFO | 28 | -9.070 ns | Sparse hit/full -> shared unmodeled/ACK -> SIM occupancy checks -> multiwrite FIFO address/data/bypass |
+| LCD division/modulo tracking | 18 | -7.937 ns | `/88` and `%88` in row completeness tracking -> next DMA word/row state |
+| Cache metadata endpoints | 816 | -7.765 ns | 649 tags->tags plus 167 access->tags; representative tag-RAM -> match/priority way encode -> way decode -> dirty-bit write |
+| Other endpoints | 138 | -7.189 ns or better | Includes cache bank output, response capture, diagnostics and remaining memory/control paths |
+
+The largest intra-tag group shows an avoidable **encode then decode** path:
+`hit_tree` -> `way_tree`/`hit_way` -> synthesized Decoder3 -> dirty flags. These
+are not evidence of failed BRAM inference: the launch is an explicit tag RAM
+and the target is deliberately registered valid/dirty metadata. Keep the
+synchronous tag/data RAMs and their latency while simplifying flag write enables.
+
+Suggested next pass, **pending user selection**, has three independent targets:
+
+1. Register the SIM committed-event/response boundary before FIFO occupancy and
+   multiwrite selection. Preserve byte order, availability/status transitions,
+   overflow and simultaneous pop behavior with reference tests; a one-clock
+   shift in visible card state must be explicitly integrated, not hidden by
+   adjusting expected bytes. Do not patch firmware or disable the test SIM to
+   remove its timing paths. A complete serialized BRAM queue is a larger
+   alternative and should not be mixed in without an explicit protocol design.
+2. Remove or pipeline the LCD row-tracker divider/modulo path. This is metadata
+   tracking, not the native raster size or framebuffer contents. Carry valid,
+   address/frame markers and reset/command ordering together through any new
+   stage. Test row boundaries, incomplete/out-of-order bands, full frame, reset,
+   direct-pixel interleaving and exact 176x208 pixels. Do not introduce a panel
+   protocol guess as a timing fix.
+3. Use one-hot matched-way flag updates instead of converting matched ways to
+   an index and decoding it back for dirty/valid writes. Preserve lowest-way
+   priority, replacement, reset/global invalidate, indexed scan/clean and both
+   dirty halves; retain the encoded way output where data-bank addressing needs
+   it. Measure area/fanout and run cache metadata/maintenance plus CPU miss,
+   eviction, SWP and interrupt/abort regressions. Do not serialize ordinary warm
+   cache hits just to meet timing.
+
+Recommendation: tackle all three in one bounded timing pass, with separate
+functional checks for each. Fixing only the worst SIM endpoint would reveal
+LCD/cache limits around **57 MHz** at this placement (an estimate using current
+slacks, not a new fitted result). Therefore none alone establishes a path to
+104 MHz; all currently exceed the 9.615 ns CPU period. Refit may expose paths
+outside the current 1,000. Keep loader/storage work and clock-rate experiments
+separate from this measurement.
+
+This review changes evidence/status docs only: no RTL edits, tests, new commit,
+push or build. User requested analysis and a next-step decision.
+
 ## Third measured result; registered bus iteration (2026-11-07)
 
 Completed **42379146118 / cc89013** fits but fails setup. Reports:

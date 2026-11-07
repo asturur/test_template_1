@@ -56,7 +56,7 @@ initial begin
    @(negedge clk);dv=1;da=i;x=(i%88)*2;y=i/88;
    dd={4'b0,expected(x+1,y),4'b0,expected(x,y)};
   end
-  @(negedge clk);dv=0;if(!complete || !unsupported)$fatal(1,"frame/diagnostic flags");
+  @(negedge clk);dv=0;if(complete || !unsupported)$fatal(1,"unexpected transfer-complete event or missing diagnostic flag");
   if(replay && $value$plusargs("PPM=%s",picture_path))begin fd=$fopen(picture_path,"wb");if(!fd)$fatal(1,"open PPM");$fwrite(fd,"P6\n176 208\n255\n");end
   capture();if(fd)begin $fclose(fd);fd=0;end
  end

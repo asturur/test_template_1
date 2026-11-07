@@ -1,3 +1,72 @@
+## 2026-11-07: implement paced SIM, minimal LCD and cache metadata fix
+
+User selected slower SIM enable/registers and full-speed cache repair; then
+explicitly requested keeping only necessary LCD behavior. Production card now
+uses **104 MHz /32 =3.25 MHz** service CEN, system-speed event holding plus
+CEN-only work registers. Busy stalls subsequent SIMIF access until state/data
+is current. This is a byte-transaction service budget, not physical SIM baud.
+No clock/PLL, firmware, loader, general MMIO/timer/RTC or SDC change.
+
+Reviewed Nortido's pinned LCD: linear burst pointer, no runtime division.
+Removed our speculative row bitmap/counters and /88/%88 entirely, plus the
+full-frame scanout gate. Partial pixels display immediately when panel is on;
+existing BRAM starts black on FPGA load, warm reset retains stored pixels.
+Kept framebuffer/native176x208 raster, known panel commands/on-off, bounds and
+explicit full-transfer diagnostic flags. No new unknown panel frequency or
+protocol behavior. A prototype row-start lookup was unnecessary once the user
+removed coverage tracking and is not retained.
+
+Cache flags now have fixed per-way/segment enables from priority-masked tag
+matches, avoiding hit-way binary encode/decode on metadata writes. Synchronous
+M10Ks, latency, replacement/scan/lock/reset priorities and dirty halves remain.
+Full CPU suite with bridge enabled: **119 PASS +1 expected direct-mapped XFAIL**;
+expanded per-way dirty/clean test passes; warm ADD remains1 clock at0/3 waits.
+C++ card/FIFO and new160-response32-CEN pipeline equivalence tests pass;
+SIMIF absent/present31/194 comparisons pass with backpressure. Fixed benches'
+same-delta ready sampling so they actually wait after asserting requests.
+LCD tests pass for immediate partial pixels, untouched black, out-of-order
+bands, known commands and explicit completion. Native176x208 raster and saved
+firmware-frame replay match pixel-for-pixel. Board SIMIF/LCD DMA/fault/IRQ/FIQ
+integration, structural top elaboration and synthesis-mode RTL lint pass.
+Fresh real-SDRAM cold boot passes5M cycles: PC00006160,326761 transfers,
+12 known speculative fetch faults, zero data faults and no LCD traffic yet.
+This bounded boot is not a new cold-boot logo result.
+
+Logs `scratch/timing-closure/pass5-sim-lcd-cache/`. Next physical measurement
+baseline **53.52MHz /-9.070ns**, 33,928 ALMs,457 M10Ks. No global false/multicycle
+exception added for CEN; fast ready/status/readout boundaries still matter.
+User monitors builds; no CI polling. Frozen long-run checkpoints untouched.
+
+## 2026-11-07: bus bridge fit 53.52 MHz; choose next timing targets
+
+Reviewed completed **42383337100 / c08939d**. Reports under
+`scratch/timing-closure/pass4-c08939d/`. Core setup **-9.070 ns**, Fmax
+**53.52 MHz**, TNS **-89226.544 ns** versus -10.644 /49.36 /-123805.311.
+TNS magnitude improves27.93%; fitter **33,928 ALMs (81%)**, 45,189 registers,
+**457 M10Ks (83%)**. Hold/recovery/removal/pulse remain positive. Compilation
+succeeds; action fails only required timing gate. Still fails104 MHz.
+
+**0 of the new top1000 paths retain the old fault/ACK -> CPU next-request
+combinational traversal** (previous912). Chain was structurally cut; this
+is not a claim that912 former endpoints now pass. Newly exposed groups:
+**28 SIM FIFO paths** worst-9.070ns; **18 LCD divider/modulo paths**
+worst-7.937ns; **816 cache metadata endpoints** (649tags->tags,167access->tags),
+worst-7.765ns. Others138 include cache outputs, response capture, diagnostics.
+Cache example: tag RAM -> match -> priority hit-way encode -> way decoder ->
+dirty-bit register. New SIM worst still crosses shared ACK into multiwrite
+occupancy/address logic. LCD /88,%88 are row-completeness metadata, not pixels.
+
+User requested analysis and choice before more RTL. Recommendation in
+`docs/timing-closure.md`: a bounded three-target pass for SIM event/FIFO
+boundary, LCD row-divider pipeline/replacement, and one-hot cache flag updates
+that avoid encode/decode. Separate reference/CPU/video regressions per target;
+preserve warm cache throughput. SIM-only fix would likely expose~57MHz LCD/
+cache limit at current placement; all3 exceed the104MHz period. No claims of
+predicted closure. Keep loader/storage and clock-rate work separate.
+
+No RTL/test change or new build in this review turn. Evidence/status docs only;
+await user's selection. Do not monitor existing/new CI runs.
+
 ## 2026-11-07: plan original service-file loading and raw C:/PMM
 
 User requested a plan/difficulty assessment while the timing build runs.

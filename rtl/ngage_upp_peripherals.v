@@ -65,6 +65,7 @@ module ngage_upp_peripherals #(
     input  wire        card_overflow,
     input  wire [ 7:0] card_rx_data,
     input  wire [ 6:0] card_available,
+    input  wire        card_busy,
     output wire        card_tx_valid,
     output wire        card_rx_pop,
     output wire [ 7:0] card_tx_data,
@@ -441,7 +442,10 @@ module ngage_upp_peripherals #(
     reg rd_vld;
     reg [31:0] rd_adr;
     wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram || (d_space_hit && !trace_claim));
-    assign ready = init_done && (!ram_read || (rd_vld && rd_adr == a));
+    // A committed card event is captured at system speed and serviced on its
+    // slower enable. Hold the next SIMIF access until card state is current.
+    assign ready = init_done && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
+                   (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin
         if (rst || commit || !req) rd_vld <= 1'b0;

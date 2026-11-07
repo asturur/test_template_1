@@ -10,7 +10,7 @@ ngage_board #(.SIMIF_ENABLE(1)) dut(.clk(clk),.rst(rst),.init_rst(cold),.cyc(cyc
  .init_done(init),.claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.fiq(fiq));
 task access;input [31:0] a,d;input w;input [31:0] expect;begin
  @(negedge clk);adr=a;din=d;we=w;cyc=1;stb=1;commit=0;
- while(!ready)@(negedge clk);
+ #1;while(!ready)begin @(negedge clk);#1;end
  #1;if(!claim || bad || (!w && dout!==expect))begin $display("FAIL %h got %h expected %h claim %b bad %b",a,dout,expect,claim,bad);$finish;end
  commit=1;@(negedge clk);cyc=0;stb=0;commit=0;
 end endtask

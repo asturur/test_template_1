@@ -15,7 +15,7 @@ initial begin
   rc=$fscanf(f,"%h %h %h %h %h %h %h\n",a,d,ss,w,ok,expected,pending);
   if(rc==7)begin
    line=line+1;@(negedge clk);adr=a;din=d;sel=ss;we=w;cyc=1;stb=1;commit=0;
-   while(!ready)@(negedge clk);
+   #1;while(!ready)begin @(negedge clk);#1;end
    // Keep a request stalled for two clocks; accepted read side effects occur once.
    repeat(2)@(negedge clk);
    #1;if(!claim || bad!==!ok || (ok && !w && dout!==expected))begin

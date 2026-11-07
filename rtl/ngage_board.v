@@ -84,12 +84,14 @@ module ngage_board #(
     output wire        debug_fetch
 
 );
-    wire card_rx_valid, card_tx_will_emit, card_overflow, card_tx_valid, card_rx_pop;
+    wire card_rx_valid, card_tx_will_emit, card_overflow, card_tx_valid, card_rx_pop, card_busy;
     wire [7:0] card_rx_data, card_tx_data;
     wire [6:0] card_available;
     generate
         if (SIMIF_ENABLE) begin : test_card
-            ngage_test_sim card (
+            ngage_test_sim #(
+                .CLOCK_DIV(32)
+            ) card (
                 .clk         (clk),
                 .reset       (rst),
                 .tx_valid    (card_tx_valid),
@@ -99,7 +101,8 @@ module ngage_board #(
                 .rx_data     (card_rx_data),
                 .overflow    (card_overflow),
                 .available   (card_available),
-                .tx_will_emit(card_tx_will_emit)
+                .tx_will_emit(card_tx_will_emit),
+                .busy        (card_busy)
             );
         end else begin : no_test_card
             assign card_rx_valid     = 0;
@@ -107,6 +110,7 @@ module ngage_board #(
             assign card_overflow     = 0;
             assign card_rx_data      = 0;
             assign card_available    = 0;
+            assign card_busy         = 0;
         end
     endgenerate
     wire cbus_claim, cbus_bad, cbus_irq, uem_periodic, uem_irq_clear, cbus8d_written;
@@ -188,6 +192,7 @@ module ngage_board #(
         .card_overflow    (card_overflow),
         .card_rx_data     (card_rx_data),
         .card_available   (card_available),
+        .card_busy        (card_busy),
         .card_tx_valid    (card_tx_valid),
         .card_rx_pop      (card_rx_pop),
         .card_tx_data     (card_tx_data),

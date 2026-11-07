@@ -17,3 +17,7 @@ iverilog -g2005 -s tb -o build/sim/unit-test-sim/fifo_stress rtl/ngage_test_sim.
 vvp build/sim/unit-test-sim/fifo_stress > build/sim/unit-test-sim/fifo_stress.log
 cat build/sim/unit-test-sim/fifo_stress.log
 grep -q '^PASS diagnostic SIM FIFO scoreboard' build/sim/unit-test-sim/fifo_stress.log
+iverilog -g2005 -s tb -o build/sim/unit-test-sim/cen rtl/ngage_test_sim.v tests/phone/card_fixture/cen_tb.v
+vvp build/sim/unit-test-sim/cen > build/sim/unit-test-sim/cen.log
+cat build/sim/unit-test-sim/cen.log
+grep -q '^PASS SIM 3.25 MHz enable' build/sim/unit-test-sim/cen.log
