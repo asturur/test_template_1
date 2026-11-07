@@ -1,5 +1,59 @@
 # MiSTer timing closure
 
+## First path-driven optimization (2026-11-07)
+
+Run **42368700686**, source **697f598**, successfully exported the full 1,000
+paths. Local artifact: `scratch/timing-closure/baseline-697f598/`. All exported
+setup paths fail. The report script works with real Quartus 17; the subsequent
+host summary failed with `PermissionError` because Docker created its output
+directory as root. CI now creates `output_files/timing` as the runner before
+starting Quartus. The timing gate remains enabled.
+
+Measured baseline groups (one worst path per endpoint):
+
+| Path group | Endpoints | Worst slack | Longest data delay | Maximum logic levels |
+| --- | ---: | ---: | ---: | ---: |
+| LCD DMA -> SIM FIFO address/control | 152 | -43.702 ns | 52.857 ns | 37 |
+| Cache access -> sparse registers | 158 | -28.092 ns | 36.906 ns | 23 |
+| Cache access -> boot registers | 42 | -26.917 ns | 35.696 ns | 25 |
+| Cache tags -> cache tags | 464 | -19.285 ns | 28.101 ns | 16 |
+
+The worst detailed path starts at `lcd_dma.source[2]`, passes through the DMA
+range check, shared `wb_ack`, SIM pop accounting and a long sequence of SIM
+`Add*` nodes, then reaches the inferred FIFO write address. The SIM `emit` task
+previously advanced tail/occupancy after every byte, serializing as many as
+25 conditional increments in one clock. It now uses offsets from the original
+tail and parallel room checks, then caps the accepted response length and
+updates occupancy/tail once. The byte protocol, immediate response visibility,
+simultaneous pop-before-enqueue, saturation and sticky overflow are preserved.
+This is still a multiwrite response queue; no new single-port BRAM claim is made.
+
+Rank 113 starts at the data write-buffer head, passes through rotating queued
+address/length selection, `query_line_pending`, cache bus eligibility and the
+Wishbone merger before reaching the sparse CAM. Hazard detection now compares
+the four physical slots in parallel and qualifies each by its distance from
+head. It still includes already-retired words within a live group conservatively
+and handles groups crossing a cache-line/address-wrap boundary.
+
+The cache tag loop's lowest-way priority is expressed as a balanced six-level
+tree instead of serial `!hit` selection. Lowest matching way, associated dirty
+bits, no-hit outputs, synchronous BRAM reads and lookup latency are unchanged.
+
+**These are structural RTL fixes, not measured timing closure.** Keep 104 MHz,
+timer constants, SDRAM configuration, firmware and timing constraints unchanged.
+Compare the next fitted 1,000 paths, Fmax, slack, ALMs and M10Ks before choosing
+further changes. Remaining candidates include the cache/Wishbone request and
+response boundaries and sparse CAM selection; the current artifact does not
+establish how much each change improves the next fit.
+
+Validation passes: SIM C++ fixture and absent/present board comparison, new
+600-response FIFO scoreboard, cache tags/bank/access, write-buffer ordering and
+all-head-position/address-wrap hazard checks, integrated ARM board test, CPU
+warm ADD timing at memory delays 0/3, fresh cold 5M-cycle hardware-bound smoke
+(PC 00006178, known 18 speculative fetch faults, zero data faults), shared RTL
+lint and seven timing-tool tests. These simulations do not model physical
+setup/hold failures; the next Quartus build supplies that evidence.
+
 ## Observed baseline and current scope
 
 Completed build **d068883**, action **42365167112**, fits the device but fails

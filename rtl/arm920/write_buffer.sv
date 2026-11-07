@@ -34,14 +34,21 @@ module arm920_write_buffer (
  wire new_group=push && !merge_single;
  // Compare every queued word, including groups crossing a 32-byte line.
  // Retired words in the head group may cause a harmless conservative stall.
- always_comb begin
-  query_line_pending=0;
-  for (int i=0;i<4;i=i+1)
-   for (int j=0;j<4;j=j+1)
-    if (i<count && j<lengths[(head+i)&3] &&
-        ((addresses[(head+i)&3]+32'(j*4)) >> 5)==(query_line_address >> 5))
-     query_line_pending=1;
- end
+ // Compare physical slots in parallel. Rotating all addresses/lengths by
+ // head before comparing puts a mux layer on the bus request critical path.
+ wire [15:0] pending_words;
+ genvar query_slot, query_word;
+ generate
+  for(query_slot=0;query_slot<4;query_slot=query_slot+1) begin : query_slots
+   wire [1:0] distance_from_head = query_slot - head;
+   for(query_word=0;query_word<4;query_word=query_word+1) begin : words
+    assign pending_words[query_slot*4+query_word] =
+     {1'b0,distance_from_head}<count && query_word<lengths[query_slot] &&
+     ((addresses[query_slot]+32'(query_word*4)) >> 5)==(query_line_address >> 5);
+   end
+  end
+ endgenerate
+ assign query_line_pending=|pending_words;
  assign empty=count==0;assign full=count==4;assign entries=count;
  assign bus_valid=!empty && !error_latched;
  assign bus_address=addresses[head]+{28'b0,word_index,2'b0};

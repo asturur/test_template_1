@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Keep this directory runner-owned: Quartus runs as root in Docker,
+      # while the host Python step must also write the Markdown summary.
+      - name: Prepare timing report directory
+        run: mkdir -p output_files/timing
+
       - name: Check Quartus source manifest
         run: |
           docker run --rm \

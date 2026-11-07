@@ -103,21 +103,35 @@ module arm920_cache_tags (
         .q_b   (hit_pa_data)
     );
     always_ff @(posedge clk) lookup_mva <= mva;
+    // A balanced tree preserves lowest-way priority even for duplicate tags.
+    // A procedural "if (!hit)" loop builds a serial 64-way selection chain.
+    wire [126:0] hit_tree;
+    wire [5:0] way_tree[0:126];
+    wire [1:0] dirty_tree[0:126];
+    genvar tree_node;
+    generate
+        for (tree_node = 0; tree_node < 64; tree_node = tree_node + 1) begin : hit_leaves
+            assign hit_tree[63 + tree_node] = valid[segment][tree_node] &&
+                                              tag_data[tree_node] == lookup_mva[31:8];
+            assign way_tree[63 + tree_node] = tree_node;
+            assign dirty_tree[63 + tree_node] = dirty[segment][tree_node];
+        end
+        for (tree_node = 0; tree_node < 63; tree_node = tree_node + 1) begin : hit_nodes
+            assign hit_tree[tree_node] = hit_tree[2 * tree_node + 1] |
+                                         hit_tree[2 * tree_node + 2];
+            assign way_tree[tree_node] = hit_tree[2 * tree_node + 1] ?
+                way_tree[2 * tree_node + 1] : way_tree[2 * tree_node + 2];
+            assign dirty_tree[tree_node] = hit_tree[2 * tree_node + 1] ?
+                dirty_tree[2 * tree_node + 1] : dirty_tree[2 * tree_node + 2];
+        end
+    endgenerate
     integer i, j;
     logic [5:0] random_candidate;
     always_comb begin
-        hit               = 0;
-        hit_way           = 0;
-        hit_dirty         = 0;
-        hit_physical_line = 0;
-        for (integer way = 0; way < 64; way = way + 1) begin
-            if (!hit && valid[segment][way] && tag_data[way] == lookup_mva[31:8]) begin
-                hit               = 1;
-                hit_way           = 6'(way);
-                hit_dirty         = dirty[segment][way];
-                hit_physical_line = {hit_pa_data, 5'b0};
-            end
-        end
+        hit               = hit_tree[0];
+        hit_way           = hit ? way_tree[0] : 6'b0;
+        hit_dirty         = hit ? dirty_tree[0] : 2'b0;
+        hit_physical_line = hit ? {hit_pa_data, 5'b0} : 32'b0;
         random_candidate = random_state[segment];
         if (random_candidate < lock_base) random_candidate = lock_base;
         victim_way           = victim[segment];

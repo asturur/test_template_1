@@ -17,11 +17,11 @@ module ngage_test_sim (
     reg [5:0] head, tail;
     reg [6:0] used;
     reg [15:0] selected, directory, file_id;
-    reg     [ 2:0] header_count;
-    reg     [ 1:0] select_left;
-    reg     [ 7:0] terminal_left;
-    reg     [ 5:0] next_tail;
-    reg     [ 6:0] next_used;
+    reg [2:0] header_count;
+    reg [1:0] select_left;
+    reg [7:0] terminal_left;
+    reg [6:0] next_used;
+    reg [6:0] response_count, free_slots, accepted_count;
     reg     [15:0] next_file;
     reg     [ 7:0] length;
     integer        i;
@@ -34,11 +34,14 @@ module ngage_test_sim (
     task emit;
         input [7:0] value;
         begin
-            if (next_used < 64) begin
-                fifo[next_tail] <= value;
-                next_tail = next_tail + 1'b1;
-                next_used = next_used + 1'b1;
+            // Each byte uses an offset from the original tail. Do not chain
+            // occupancy/tail updates through up to 25 emit calls in one clock.
+            // The offset is constant within each unrolled response branch;
+            // the room checks and write addresses can therefore run in parallel.
+            if (response_count < free_slots) begin
+                fifo[(tail+response_count)&7'd63] <= value;
             end else overflow <= 1;
+            response_count = response_count + 1'b1;
         end
     endtask
     function supported_ef;
@@ -80,12 +83,13 @@ module ngage_test_sim (
             overflow      <= 0;
             for (i = 0; i < 4; i = i + 1) header[i] <= 0;
         end else begin
-            next_tail = tail;
-            next_used = used;
+            next_used      = used;
+            response_count = 0;
             if (rx_pop && used != 0) begin
                 head <= head + 1'b1;
                 next_used = next_used - 1'b1;
             end
+            free_slots = 7'd64 - next_used;
             if (tx_valid) begin
                 if (terminal_left != 0) begin
                     terminal_left <= terminal_left - 1'b1;
@@ -242,8 +246,9 @@ module ngage_test_sim (
                     end
                 end
             end
-            tail <= next_tail;
-            used <= next_used;
+            accepted_count = response_count < free_slots ? response_count : free_slots;
+            tail <= tail + accepted_count[5:0];
+            used <= next_used + accepted_count;
         end
     end
 endmodule

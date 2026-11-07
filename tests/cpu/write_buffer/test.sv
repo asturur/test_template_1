@@ -64,6 +64,21 @@ module test;
   if(entries!=3)$fatal(1,"head pop and tail extension count");
   for(n=1;n<4;n=n+1)beat(32'h6000+32*n,n,1);
   beat(32'h6064,33,1);if(!empty)$fatal(1,"extended tail did not drain");
+  // Repeat hazards with the head at every physical ring slot. Stale retired
+  // slots must not participate; a four-word group can also wrap address zero.
+  for(n=0;n<4;n=n+1)begin
+   enqueue(32'hfffffff8,4,90);
+   enqueue(32'h8100,1,100);
+   query=32'hffffffe0;#1;if(!hazard)$fatal(1,"wrapped group first line head=%0d",n);
+   query=0;#1;if(!hazard)$fatal(1,"wrapped group second line head=%0d",n);
+   query=32'h8100;#1;if(!hazard)$fatal(1,"later live slot head=%0d",n);
+   query=32'h8200;#1;if(hazard)$fatal(1,"unrelated ring slot head=%0d",n);
+   for(k=0;k<4;k=k+1)beat(32'hfffffff8+4*k,90+k,4'(k+1));
+   query=0;#1;if(hazard)$fatal(1,"retired slot still hazardous head=%0d",n);
+   beat(32'h8100,100,1);
+   query=32'h8100;#1;if(hazard)$fatal(1,"empty ring still hazardous head=%0d",n);
+   enqueue(32'h9000,1,1);beat(32'h9000,1,1);
+  end
   $display("PASS: 16-word/4-address write buffer, stalls, ordering, error retention and simultaneous pop/push");$finish;
  end
 endmodule

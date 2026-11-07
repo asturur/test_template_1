@@ -1,3 +1,37 @@
+## 2026-11-07: first fixes from the actual 1,000 timing paths
+
+Downloaded completed run **42368700686 / 697f598** to
+`scratch/timing-closure/baseline-697f598/`. Real Quartus timing export succeeds;
+all 1,000 setup paths fail, worst **-43.702 ns / 52.857 ns data / 37 levels**.
+Host Markdown summary failed because Docker owned its output directory; CI
+now creates that directory as the runner before Quartus. Timing gate retained.
+
+Detailed worst path: LCD DMA source -> DMA validation -> shared WB ACK -> SIM
+FIFO pop -> up to 25 serial conditional response-byte increments -> FIFO address.
+Reworked SIM enqueue into parallel original-tail offsets/room checks and one
+capped count update, preserving immediate bytes/pop/overflow behavior. Cache
+metadata forms 464 paths: replaced serial lowest-way selection with a balanced
+six-level priority tree, preserving tag RAM latency. Rank 113 identifies write-
+buffer head -> rotating address/length lookup -> line hazard -> cache bus
+eligibility -> Wishbone merger -> sparse CAM. Hazard comparisons now use fixed
+physical slots in parallel, qualified by ring distance from head.
+
+104 MHz PLL, timing constraints, timer/SDRAM configuration and firmware remain
+unchanged. Physical improvement/resource cost requires the next GitHub fit;
+no claim of closure or hardware fix yet. See `docs/timing-closure.md` for path
+groups and remaining candidates. Local checks pass: C++ SIM byte reference (554 operations), FIFO overflow/reset
+and 600-response wrap/saturation/concurrent-pop scoreboard; SIMIF reference and
+board checks with card absent/present; 64-way tags, bank replacement and cache
+access/writeback/maintenance; write-buffer stalls/retry/merge and hazards across
+all ring head positions/address wrap; CPU timing with memory delays 0/3 still
+one clock per warm ADD; integrated ARM/SIMIF/LCD DMA/fault/IRQ/FIQ/SDRAM-wait
+board test. Fresh cold hardware-bound 5M smoke matches PC **00006178**, known
+18 speculative fetch faults, **zero data faults**, no LCD yet. Shared RTL lint
+and seven timing-tool tests pass. No new FPGA result yet.
+
+Commit/push and start one measurement build. User monitors builds; do not
+watch/poll new CI runs.
+
 ## 2026-11-07: keep 104 MHz; export worst 1,000 timing paths
 
 User superseded the 50 MHz proposal: **retain the existing 104 MHz configuration**

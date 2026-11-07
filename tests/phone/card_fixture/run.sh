@@ -12,3 +12,8 @@ iverilog -g2005 -s tb -o build/sim/unit-test-sim/overflow rtl/ngage_test_sim.v t
 vvp build/sim/unit-test-sim/overflow > build/sim/unit-test-sim/overflow.log
 cat build/sim/unit-test-sim/overflow.log
 grep -q '^PASS diagnostic SIM bounded FIFO' build/sim/unit-test-sim/overflow.log
+
+iverilog -g2005 -s tb -o build/sim/unit-test-sim/fifo_stress rtl/ngage_test_sim.v tests/phone/card_fixture/fifo_stress.v
+vvp build/sim/unit-test-sim/fifo_stress > build/sim/unit-test-sim/fifo_stress.log
+cat build/sim/unit-test-sim/fifo_stress.log
+grep -q '^PASS diagnostic SIM FIFO scoreboard' build/sim/unit-test-sim/fifo_stress.log
