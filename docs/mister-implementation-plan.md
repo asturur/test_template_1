@@ -325,6 +325,10 @@ Compare the new run's ordered device accesses, flash digest/identify, boot regis
 
 ### 7.6. Load original service firmware and independent raw user storage
 
+Detailed, source-audited work packages 7.6a–7.6e, mapping feasibility evidence,
+MiSTer automatic load-order handling and odd-byte transport constraints:
+[service-firmware-loader-plan.md](service-firmware-loader-plan.md).
+
 **Required after the first existing-RBF smoke test, before final on-board
 storage acceptance.** The old bundle workflow was a bring-up convenience and
 is not the accepted user interface. This requirement supersedes the earlier

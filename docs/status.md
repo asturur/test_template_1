@@ -1,3 +1,31 @@
+## 2026-11-07: plan original service-file loading and raw C:/PMM
+
+User requested a plan/difficulty assessment while the timing build runs.
+Added `docs/service-firmware-loader-plan.md`, linked from milestone7.6 and
+README, with work packages7.6a–e. No production RTL/OSD/storage change.
+Official MCU/PPM contain **2268 +167 addressed records**, not two flat ROM
+halves. Rechecked all2435 checksums and a software fixed-profile ownership
+mapping: both input orders and same-file reloads exactly match all20,905,984
+audited backing bytes. Evidence `docs/evidence/service-rom-mapping-check-
+2026-11-07.json`; script under `scratch/service-rom-loader/`.
+
+Important discovery from official Main at cc47bad62f4c9b6edea55aee3de12bf90855667c:
+numbered boot files are tried before legacy boot.rom fallback, so **boot1 can
+arrive first**. Plan fixed 4.03 PPM-owned ranges to preserve its overlay priority
+regardless of arrival, no extra container staging required. The 1,361,703-byte
+PPM is odd-sized; WIDE16 emits a final zero high transport byte. Byte unpacking
+and profile-bound EOF handling are required, not word-aligned flat copying.
+Installed board Main revision remains unverified. Official sources retained
+read-only under `scratch/service-rom-loader/`; no Main fork changes needed.
+
+End state: unchanged nem440.3c1 as boot.rom and nem440.326 as boot1.rom,
+firmware stays scrambled in DDR with existing live descrambler; S0 raw4MiB C:,
+S1 raw64KiB PMM, diagnostics moves to S2. Parser/checksums/DDR ownership and
+storage reset/dirty/media protections are the real work; address shifts are
+straightforward. Suggested next implementation7.6a host oracle, then streaming
+HDL loader, raw persistence/top gates and separate hardware acceptance. Keep
+this separate from option2 timing build. No build launched or monitored here.
+
 ## 2026-11-07: CAM fit 49.36 MHz; registered UPP bus boundary
 
 Reviewed **42379146118 / cc89013**: core **49.36 MHz**, setup **-10.644 ns**,

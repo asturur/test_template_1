@@ -1,0 +1,89 @@
+{
+  "method": "Software feasibility check only: validated record payloads plus fixed 4.03 PPM ownership; not an HDL loader or hps_io test",
+  "sources": {
+    "mcu": {
+      "bytes": 18777938,
+      "sha256": "e948c435c977772a30ff2dd8ef608f7542a978c0acfd257bc0986925fd548690",
+      "records": 2268
+    },
+    "ppm": {
+      "bytes": 1361703,
+      "sha256": "fd4126eeaddf5c0cd72a9961f51e283bd1ed4245106e20f01d5a5551e85fddc7",
+      "records": 167
+    }
+  },
+  "firmware_backing_bytes": 20905984,
+  "firmware_backing_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+  "map_end_exclusive": [
+    {
+      "physical_start": "0x0",
+      "physical_end": "0x700000",
+      "backing_start": "0x0"
+    },
+    {
+      "physical_start": "0x700000",
+      "physical_end": "0x7f0000",
+      "backing_start": "0x1300000"
+    },
+    {
+      "physical_start": "0x2000000",
+      "physical_end": "0x2400000",
+      "backing_start": "0x700000"
+    },
+    {
+      "physical_start": "0x4000000",
+      "physical_end": "0x4800000",
+      "backing_start": "0xb00000"
+    }
+  ],
+  "ppm_owned_end_exclusive": [
+    [
+      "0x0",
+      "0x12c"
+    ],
+    [
+      "0x164",
+      "0x10000"
+    ],
+    [
+      "0x700000",
+      "0x76c000"
+    ],
+    [
+      "0x4730000",
+      "0x4800000"
+    ]
+  ],
+  "results": [
+    {
+      "order": [
+        "mcu",
+        "ppm"
+      ],
+      "matches_audited_backing": true
+    },
+    {
+      "order": [
+        "ppm",
+        "mcu"
+      ],
+      "matches_audited_backing": true
+    },
+    {
+      "order": [
+        "ppm",
+        "mcu",
+        "mcu"
+      ],
+      "matches_audited_backing": true
+    },
+    {
+      "order": [
+        "mcu",
+        "ppm",
+        "ppm"
+      ],
+      "matches_audited_backing": true
+    }
+  ]
+}
