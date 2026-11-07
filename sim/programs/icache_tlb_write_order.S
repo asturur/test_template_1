@@ -30,8 +30,24 @@ reset_entry:
     ldr r1, =0x80000c0e      @ cacheable section mapping VA 300 -> RAM
     ldr r8, =0x30030100
     ldr r9, =0x60004c00      @ write L1 descriptor through buffered alias
+    @ Keep sequential speculation resident while the descriptor write waits.
+    @ Otherwise an unrelated cold linefill drains the write before the walk.
+    adr r0, buffered_branch
+    mcr p15, 0, r0, c7, c13, 1
+    add r0, r0, #32
+    mcr p15, 0, r0, c7, c13, 1
+    add r0, r0, #32
+    mcr p15, 0, r0, c7, c13, 1
+    add r0, r0, #32
+    mcr p15, 0, r0, c7, c13, 1
     .balign 32
+buffered_branch:
     str r1, [r9]             @ buffered write may still be outstanding
+    @ Let the store enter the buffer before requesting the instruction walk.
+    @ The slow bus keeps it pending; the test still requires actual overlap.
+    .rept 4
+    nop
+    .endr
     mov lr, pc
     bx r8                    @ instruction TLB walk must see new descriptor
     cmp r0, #42
