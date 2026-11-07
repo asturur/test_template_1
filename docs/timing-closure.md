@@ -1,5 +1,57 @@
 # MiSTer timing closure
 
+## Measured first result and second optimization (2026-11-07)
+
+Completed run **42372012944 / 2bcac9d** fits and exports reports correctly;
+CI fails at the intended timing gate. The summary permission fix works.
+Reports: `scratch/timing-closure/pass1-2bcac9d/`.
+
+| Metric | Baseline 697f598 | First optimization 2bcac9d |
+| --- | ---: | ---: |
+| Core setup slack at 104 MHz | -43.702 ns | **-10.023 ns** |
+| Core slow-model Fmax | 18.76 MHz | **50.92 MHz** |
+| Core setup TNS | -215405.214 ns | -138677.094 ns |
+| ALMs | 33,832 (81%) | 34,214 (82%) |
+| Registers | 44,523 | 45,346 |
+| M10Ks | 457 (83%) | 457 (83%) |
+
+Worst reported hold +0.219 ns, recovery +3.961 ns, removal +0.930 ns and
+minimum pulse width +0.961 ns remain positive. This is **still a failing
+104 MHz design**; Fmax alone does not certify the board/external interfaces.
+All newly exported 1,000 setup paths still fail (the selected endpoints change
+as bottlenecks improve). Worst data delay is now 19.178 ns, maximum depth
+18 levels in this subset; worst endpoint slack -10.023 ns has 17 levels.
+
+The previous report's 152 SIM endpoints, 466 cache-tag endpoints and 312
+write-buffer-hazard traversals formed 930 distinct affected paths. Those are
+structures touched, not 930 timing passes. The measured improvement above
+is the result of that combined change and placement, not per-fix attribution.
+
+**Second optimization:** 969 of the new 1,000 detailed paths traverse boot
+register `Selector`/`Mux` logic before shared `unmodeled`/ACK, then reach SIM
+FIFO, CPU request generation and sparse CAM/other peripheral endpoints. The
+boot module encoded an address into an integer index and selected validity
+from 11 boot/45 scratch words (including subtraction for scratch indexing).
+Replace this with constant address comparisons, parallel per-latch validity
+checks, fixed per-latch writes and a balanced OR tree for read data. Preserve
+all addresses/holes, byte-valid read faults, mask behavior (boot masked,
+scratch whole word), zero-reset register 0x08000040, commit gating and latency.
+Storage stays registers; this pass does not claim another BRAM conversion.
+
+Validation: original boot test and a new independent 12,000-cycle scoreboard
+exercise all 56 latches, all masks, unaligned aliases, holes, absent requests,
+withheld commits and reset. Integrated ARM board and fresh cold 5M smoke pass
+at unchanged PC 00006178, 18 known speculative fetch faults, zero data faults;
+shared RTL lint passes. New fitted timing/resource effect is pending CI.
+
+The user also requested the phone's actual slower buses/timebases. ARM920T
+has separate fast CPU/bus clock modes, and Nokia documents several slower
+reference/pin clocks. See `phone-clocks.md` for primary evidence, current
+model assumptions and the registered peripheral bridge investigation. Do not
+infer all phone blocks run at 104 MHz, or relax today's paths merely because
+the corresponding physical serial interface is slower. No PLL, SDC, CPU clock,
+timer rate or firmware change in this optimization.
+
 ## First path-driven optimization (2026-11-07)
 
 Run **42368700686**, source **697f598**, successfully exported the full 1,000

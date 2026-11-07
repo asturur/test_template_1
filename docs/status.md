@@ -1,3 +1,32 @@
+## 2026-11-07: first timing result 50.92 MHz; boot-decode follow-up
+
+Completed **42372012944 / 2bcac9d**: core setup improves **-43.702 ->
+-10.023 ns**, slow-model Fmax **18.76 -> 50.92 MHz**. Setup TNS
+-138677.094 ns; 34,214 ALMs (82%), 45,346 registers, 457 M10Ks (83%).
+Summary permissions now work; action correctly fails the timing gate. Still
+not valid at 104 MHz. Reports `scratch/timing-closure/pass1-2bcac9d/`.
+
+**969 of the new 1,000 paths** traverse boot-register encoded validity muxing
+before shared unmodeled/ACK and downstream CPU/peripheral logic. Replaced
+encoded boot/scratch indices with constant per-latch selects, parallel missing-
+byte checks, fixed writes and balanced read-data OR tree. No address, read-fault,
+byte mask, reset, commit, latency, firmware, PLL/SDC or timer behavior change.
+Original tests plus independent 12,000-cycle boot-latch conformance pass;
+integrated ARM/SIMIF/LCD DMA/IRQ/FIQ/SDRAM-wait board test, cold hardware-bound
+5M smoke (PC 00006178, 18 known fetch faults, zero data faults) and RTL lint pass.
+Commit/push and start next measurement build; user monitors it.
+
+**New user steering: investigate slower phone buses.** Local ARM920T TRM
+chapter 5 confirms separate FCLK/BCLK and CP15 bits 31:30 clock modes. Nokia
+service clock diagram documents 26 MHz main reference, 12 MHz ADSP/audio
+reference, 32.768 kHz sleep, and ~1.083/3.25 MHz SIM clocks. Original external
+memory/MMIO bus rates remain unverified. Hybrid reference uses 26 MHz timer
+enable; ours currently counts system clocks. These are distinct evidence
+levels, not authorization to guess divisors or mask timing failures. Added
+`docs/phone-clocks.md` with register/timebase/bridge follow-up. Actual slower
+MMIO bridge or new domains are not implemented. Preserve cold boot/checkpoint
+lineage when eventually changing timebases.
+
 ## 2026-11-07: first fixes from the actual 1,000 timing paths
 
 Downloaded completed run **42368700686 / 697f598** to

@@ -15,97 +15,76 @@ module ngage_boot_regs (
 );
     reg [31:0] values[0:10], scratch[0:44];
     reg [3:0] valid[0:10], scratch_valid[0:44];
-    integer index, i;
-    reg boot_hit, scratch_hit;
     wire [31:0] a = {addr[31:2], 2'b00};
     wire [31:0] mask = {{8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}}};
+
+    // Constant address comparisons select each latch directly. Encoding an
+    // index and then muxing the validity arrays put a long read-fault path
+    // onto shared Wishbone ACK, including unrelated device transactions.
+    function [31:0] boot_address;
+        input integer slot;
+        begin
+            case (slot)
+                0:       boot_address = 32'h08000000;
+                1:       boot_address = 32'h08000004;
+                2:       boot_address = 32'h08000008;
+                3:       boot_address = 32'h08000010;
+                4:       boot_address = 32'h08000014;
+                5:       boot_address = 32'h08000018;
+                6:       boot_address = 32'h08000040;
+                7:       boot_address = 32'h0c120014;
+                8:       boot_address = 32'h0c120018;
+                9:       boot_address = 32'h0c120034;
+                default: boot_address = 32'h0c120038;
+            endcase
+        end
+    endfunction
+    wire [63:0] selected, missing;
+    wire [31:0] data_tree[0:126];
+    genvar slot;
+    generate
+        for (slot = 0; slot < 11; slot = slot + 1) begin : boot_latches
+            assign selected[slot]     = a == boot_address(slot);
+            assign missing[slot]      = selected[slot] && ((valid[slot] & sel) != sel);
+            assign data_tree[63+slot] = selected[slot] ? values[slot] & mask : 32'b0;
+            always @(posedge clk) begin
+                if (reset) begin
+                    values[slot] <= 0;
+                    valid[slot]  <= slot == 6 ? 4'hf : 0;
+                end else if (req && commit && we && selected[slot]) begin
+                    values[slot] <= (values[slot] & ~mask) | (din & mask);
+                    valid[slot]  <= valid[slot] | sel;
+                end
+            end
+        end
+        for (slot = 0; slot < 45; slot = slot + 1) begin : scratch_latches
+            assign selected[11+slot]  = a == (32'h0c004748 + slot * 4);
+            assign missing[11+slot]   = selected[11+slot] && ((scratch_valid[slot] & sel) != sel);
+            // Scratch reads intentionally expose the whole stored word;
+            // boot latch reads above apply the byte mask, as before.
+            assign data_tree[74+slot] = selected[11+slot] ? scratch[slot] : 32'b0;
+            always @(posedge clk) begin
+                if (reset) begin
+                    scratch[slot]       <= 0;
+                    scratch_valid[slot] <= 0;
+                end else if (req && commit && we && selected[11+slot]) begin
+                    scratch[slot]       <= (scratch[slot] & ~mask) | (din & mask);
+                    scratch_valid[slot] <= scratch_valid[slot] | sel;
+                end
+            end
+        end
+        for (slot = 56; slot < 64; slot = slot + 1) begin : unused_leaves
+            assign selected[slot]     = 0;
+            assign missing[slot]      = 0;
+            assign data_tree[63+slot] = 0;
+        end
+        for (slot = 0; slot < 63; slot = slot + 1) begin : data_nodes
+            assign data_tree[slot] = data_tree[2*slot+1] | data_tree[2*slot+2];
+        end
+    endgenerate
     always @* begin
-        index       = 0;
-        boot_hit    = 0;
-        scratch_hit = 0;
-        claim       = 0;
-        bad         = 0;
-        dout        = 0;
-        case (a)
-            32'h08000000: begin
-                boot_hit = 1;
-                index    = 0;
-            end
-            32'h08000004: begin
-                boot_hit = 1;
-                index    = 1;
-            end
-            32'h08000008: begin
-                boot_hit = 1;
-                index    = 2;
-            end
-            32'h08000010: begin
-                boot_hit = 1;
-                index    = 3;
-            end
-            32'h08000014: begin
-                boot_hit = 1;
-                index    = 4;
-            end
-            32'h08000018: begin
-                boot_hit = 1;
-                index    = 5;
-            end
-            32'h08000040: begin
-                boot_hit = 1;
-                index    = 6;
-            end
-            32'h0c120014: begin
-                boot_hit = 1;
-                index    = 7;
-            end
-            32'h0c120018: begin
-                boot_hit = 1;
-                index    = 8;
-            end
-            32'h0c120034: begin
-                boot_hit = 1;
-                index    = 9;
-            end
-            32'h0c120038: begin
-                boot_hit = 1;
-                index    = 10;
-            end
-            default:
-            if (a >= 32'h0c004748 && a < 32'h0c0047fc) begin
-                scratch_hit = 1;
-                index       = (a - 32'h0c004748) >> 2;
-            end
-        endcase
-        claim = req && (boot_hit || scratch_hit);
-        if (claim) begin
-            if (boot_hit) begin
-                dout = values[index] & mask;
-                if (!we && (valid[index] & sel) != sel) bad = 1;
-            end else begin
-                dout = scratch[index];
-                if (!we && (scratch_valid[index] & sel) != sel) bad = 1;
-            end
-        end
-    end
-    always @(posedge clk) begin
-        if (reset) begin
-            for (i = 0; i < 11; i = i + 1) begin
-                values[i] <= 0;
-                valid[i]  <= i == 6 ? 4'hf : 0;
-            end
-            for (i = 0; i < 45; i = i + 1) begin
-                scratch[i]       <= 0;
-                scratch_valid[i] <= 0;
-            end
-        end else if (commit && claim && !bad && we) begin
-            if (boot_hit) begin
-                values[index] <= (values[index] & ~mask) | (din & mask);
-                valid[index]  <= valid[index] | sel;
-            end else begin
-                scratch[index]       <= (scratch[index] & ~mask) | (din & mask);
-                scratch_valid[index] <= scratch_valid[index] | sel;
-            end
-        end
+        claim = req && (|selected);
+        bad   = claim && !we && (|missing);
+        dout  = req ? data_tree[0] : 32'b0;
     end
 endmodule
