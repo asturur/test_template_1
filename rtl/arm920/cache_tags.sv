@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // ARM920T-shaped cache metadata. Callers must write back a dirty victim
-// before fill. MVA lookup and indexed physical reads take one clock.
+// before fill. MVA lookup takes two clocks; indexed physical reads take one clock.
+// Mutation pulses capture a record, committed on the following edge.
+// Callers serialize mutations and allow fresh lookup stages after commit.
 // 16 KiB / 32-byte lines = 8 segments x 64 indices, MVA lookup and PA tags.
 module arm920_cache_tags (
     input  logic        clk,
@@ -34,11 +36,24 @@ module arm920_cache_tags (
     input  logic        scan_clean,
     input  logic        scan_invalidate
 );
-    logic        valid       [0:7] [0:63];
-    logic [ 1:0] dirty       [0:7] [0:63];
-    logic [ 5:0] victim      [0:7];
-    logic [ 5:0] random_state[0:7];
-    logic [31:0] lookup_mva;
+    logic       valid       [0:7] [0:63];
+    logic [1:0] dirty       [0:7] [0:63];
+    logic [5:0] victim      [0:7];
+    logic [5:0] random_state[0:7];
+    reg [31:0] read_mva, lookup_mva;
+    reg [63:0] read_valid_bits, match_bits;
+    reg [1:0] read_dirty_bits[0:63], compare_dirty[0:63];
+    reg [5:0] read_victim_way, compare_victim_way;
+    reg read_victim_valid, compare_victim_valid;
+    reg [1:0] read_victim_dirty, compare_victim_dirty;
+    reg [26:0] compare_victim_pa;
+    reg [31:0] commit_mva, commit_pa;
+    reg [63:0] commit_selected;
+    reg [ 5:0] commit_way;
+    reg commit_fill, commit_write, commit_clean, commit_invalidate;
+    reg commit_rr;
+    wire commit_allowed = !reset && !invalidate_all && !lock_write &&
+                          !scan_clean && !scan_invalidate;
     wire [26:0] victim_pa_data, scan_pa_data, hit_pa_data;
     wire [2:0] segment = lookup_mva[7:5];
     assign lookup_address     = lookup_mva;
@@ -47,9 +62,9 @@ module arm920_cache_tags (
     assign scan_physical_line = {scan_pa_data, 5'b0};
     // All 64 ways are compared in parallel after one synchronous segment read.
     // Valid/dirty flags stay in registers for reset and indexed maintenance.
-    wire [23:0] tag_data[0:63];
-    wire fill_commit = fill && !hit && !reset && !invalidate_all &&
-                       !lock_write && !scan_invalidate && !scan_clean;
+    wire [23:0] tag_data                                    [0:63];
+    wire        fill_commit = commit_fill && commit_allowed;
+    wire [ 2:0] commit_segment = commit_mva[7:5];
     genvar tag_way;
     generate
         for (tag_way = 0; tag_way < 64; tag_way = tag_way + 1) begin : ways
@@ -59,11 +74,11 @@ module arm920_cache_tags (
                 .READ_ONLY_B(1)
             ) tag_ram (
                 .clk   (clk),
-                .addr_a(segment),
+                .addr_a(commit_segment),
                 .addr_b(mva[7:5]),
-                .data_a(lookup_mva[31:8]),
+                .data_a(commit_mva[31:8]),
                 .data_b(24'b0),
-                .we_a  (fill_commit && victim_way == tag_way),
+                .we_a  (fill_commit && commit_way == tag_way),
                 .we_b  (1'b0),
                 .q_a   (),
                 .q_b   (tag_data[tag_way])
@@ -76,9 +91,9 @@ module arm920_cache_tags (
         .DW(27)
     ) physical_ram (
         .clk   (clk),
-        .addr_a(fill_commit ? {segment, victim_way} : {scan_segment, scan_way}),
+        .addr_a(fill_commit ? {commit_segment, commit_way} : {scan_segment, scan_way}),
         .addr_b({mva[7:5], victim[mva[7:5]]}),
-        .data_a(fill_physical[31:5]),
+        .data_a(commit_pa[31:5]),
         .data_b(27'b0),
         .we_a  (fill_commit),
         .we_b  (1'b0),
@@ -93,32 +108,60 @@ module arm920_cache_tags (
         .READ_ONLY_B(1)
     ) hit_physical_ram (
         .clk   (clk),
-        .addr_a({segment, victim_way}),
+        .addr_a({commit_segment, commit_way}),
         .addr_b({segment, hit_way}),
-        .data_a(fill_physical[31:5]),
+        .data_a(commit_pa[31:5]),
         .data_b(27'b0),
         .we_a  (fill_commit),
         .we_b  (1'b0),
         .q_a   (),
         .q_b   (hit_pa_data)
     );
-    always_ff @(posedge clk) lookup_mva <= mva;
+    // Read flags alongside tag RAM, then register parallel comparisons.
+    // Consumers wait for both stages; collision results are discarded while
+    // a mutation drains, never forwarded from mixed-port RAM collisions.
+    integer lookup_way;
+    always @(posedge clk) begin
+        read_mva             <= mva;
+        lookup_mva           <= read_mva;
+        read_victim_way      <= victim[mva[7:5]];
+        read_victim_valid    <= valid[mva[7:5]][victim[mva[7:5]]];
+        read_victim_dirty    <= dirty[mva[7:5]][victim[mva[7:5]]];
+        compare_victim_way   <= read_victim_way;
+        compare_victim_valid <= read_victim_valid;
+        compare_victim_dirty <= read_victim_dirty;
+        compare_victim_pa    <= victim_pa_data;
+        for (lookup_way = 0; lookup_way < 64; lookup_way = lookup_way + 1) begin
+            read_valid_bits[lookup_way] <= valid[mva[7:5]][lookup_way];
+            read_dirty_bits[lookup_way] <= dirty[mva[7:5]][lookup_way];
+            match_bits[lookup_way] <= !reset && !invalidate_all &&
+                read_valid_bits[lookup_way] && tag_data[lookup_way] == read_mva[31:8];
+            compare_dirty[lookup_way] <= read_dirty_bits[lookup_way];
+        end
+        commit_mva        <= lookup_mva;
+        commit_pa         <= fill_physical;
+        commit_way        <= victim_way;
+        commit_selected   <= selected_ways;
+        commit_rr         <= round_robin;
+        commit_fill       <= commit_allowed && fill && !hit;
+        commit_write      <= commit_allowed && write_hit;
+        commit_clean      <= commit_allowed && clean_hit;
+        commit_invalidate <= commit_allowed && invalidate_line;
+    end
     // A balanced tree preserves lowest-way priority even for duplicate tags.
     // A procedural "if (!hit)" loop builds a serial 64-way selection chain.
     wire [126:0] hit_tree;
-    wire [5:0] way_tree[0:126];
-    wire [1:0] dirty_tree[0:126];
+    wire [  5:0] way_tree  [0:126];
+    wire [  1:0] dirty_tree[0:126];
     genvar tree_node;
     generate
         for (tree_node = 0; tree_node < 64; tree_node = tree_node + 1) begin : hit_leaves
-            assign hit_tree[63 + tree_node] = valid[segment][tree_node] &&
-                                              tag_data[tree_node] == lookup_mva[31:8];
-            assign way_tree[63 + tree_node] = tree_node;
-            assign dirty_tree[63 + tree_node] = dirty[segment][tree_node];
+            assign hit_tree[63+tree_node]   = match_bits[tree_node];
+            assign way_tree[63+tree_node]   = tree_node;
+            assign dirty_tree[63+tree_node] = compare_dirty[tree_node];
         end
         for (tree_node = 0; tree_node < 63; tree_node = tree_node + 1) begin : hit_nodes
-            assign hit_tree[tree_node] = hit_tree[2 * tree_node + 1] |
-                                         hit_tree[2 * tree_node + 2];
+            assign hit_tree[tree_node] = hit_tree[2*tree_node+1] | hit_tree[2*tree_node+2];
             assign way_tree[tree_node] = hit_tree[2 * tree_node + 1] ?
                 way_tree[2 * tree_node + 1] : way_tree[2 * tree_node + 2];
             assign dirty_tree[tree_node] = hit_tree[2 * tree_node + 1] ?
@@ -139,7 +182,9 @@ module arm920_cache_tags (
                 assign selected_ways[flag_way] = matched_ways[flag_way] &&
                                                   !(|matched_ways[flag_way-1:0]);
             end
-            for (flag_segment = 0; flag_segment < 8; flag_segment = flag_segment + 1) begin : segments
+            for (
+                flag_segment = 0; flag_segment < 8; flag_segment = flag_segment + 1
+            ) begin : segments
                 always_ff @(posedge clk) begin
                     if (reset || invalidate_all) begin
                         valid[flag_segment][flag_way] <= 0;
@@ -153,15 +198,16 @@ module arm920_cache_tags (
                         end else if (scan_clean) begin
                             if (scan_segment == flag_segment && scan_way == flag_way)
                                 dirty[flag_segment][flag_way] <= 0;
-                        end else if (segment == flag_segment) begin
-                            if (selected_ways[flag_way]) begin
-                                if (invalidate_line) begin
+                        end else if (commit_segment == flag_segment) begin
+                            if (commit_selected[flag_way]) begin
+                                if (commit_invalidate) begin
                                     valid[flag_segment][flag_way] <= 0;
                                     dirty[flag_segment][flag_way] <= 0;
-                                end else if (clean_hit) dirty[flag_segment][flag_way] <= 0;
-                                else if (write_hit) dirty[flag_segment][flag_way][lookup_mva[4]] <= 1;
+                                end else if (commit_clean) dirty[flag_segment][flag_way] <= 0;
+                                else if (commit_write)
+                                    dirty[flag_segment][flag_way][commit_mva[4]] <= 1;
                             end
-                            if (fill && !hit && victim_way == flag_way) begin
+                            if (fill_commit && commit_way == flag_way) begin
                                 valid[flag_segment][flag_way] <= 1;
                                 dirty[flag_segment][flag_way] <= 0;
                             end
@@ -171,19 +217,19 @@ module arm920_cache_tags (
             end
         end
     endgenerate
-    integer i;
-    logic [5:0] random_candidate;
+    integer       i;
+    logic   [5:0] random_candidate;
     always_comb begin
         hit               = hit_tree[0];
         hit_way           = hit ? way_tree[0] : 6'b0;
         hit_dirty         = hit ? dirty_tree[0] : 2'b0;
         hit_physical_line = hit ? {hit_pa_data, 5'b0} : 32'b0;
-        random_candidate = random_state[segment];
+        random_candidate  = random_state[commit_segment];
         if (random_candidate < lock_base) random_candidate = lock_base;
-        victim_way           = victim[segment];
-        victim_valid         = valid[segment][victim_way];
-        victim_dirty         = dirty[segment][victim_way];
-        victim_physical_line = {victim_pa_data, 5'b0};
+        victim_way           = compare_victim_way;
+        victim_valid         = compare_victim_valid;
+        victim_dirty         = compare_victim_dirty;
+        victim_physical_line = {compare_victim_pa, 5'b0};
     end
     always_ff @(posedge clk) begin
         if (reset || invalidate_all) begin
@@ -198,14 +244,14 @@ module arm920_cache_tags (
             lock_base <= lock_base_in;
             for (i = 0; i < 8; i = i + 1) victim[i] <= lock_base_in;
         end else if (!scan_invalidate && !scan_clean) begin
-            if (fill && !hit) begin
-                if (round_robin)
-                    victim[segment] <= victim_way == 63 ? lock_base : victim_way + 1'b1;
+            if (fill_commit) begin
+                if (commit_rr)
+                    victim[commit_segment] <= commit_way == 63 ? lock_base : commit_way + 1'b1;
                 else begin
-                    victim[segment] <= random_candidate;
-                    random_state[segment] <= {
-                        random_state[segment][4:0],
-                        random_state[segment][5] ^ random_state[segment][4]
+                    victim[commit_segment] <= random_candidate;
+                    random_state[commit_segment] <= {
+                        random_state[commit_segment][4:0],
+                        random_state[commit_segment][5] ^ random_state[commit_segment][4]
                     };
                 end
             end

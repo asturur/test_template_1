@@ -62,7 +62,10 @@ module arm920_cache_access (
         MAINTAIN,
         MAINT_LOOKUP,
         BUFFER_STORE,
-        WAIT_DRAIN
+        WAIT_DRAIN,
+        LOOKUP_WAIT,
+        MAINT_WAIT,
+        STORE_COMMIT
     } state_t;
     state_t state;
     logic [31:0] mva, pa, wdata;
@@ -91,8 +94,9 @@ module arm920_cache_access (
     wire fast_read=fast_lookup_enable && state==IDLE && !req_valid && !maint_valid && !invalidate_all && !lock_write;
     wire [31:0] bank_mva=state==IDLE ?
      (maint_valid ? maint_address : req_valid ? req_mva : fast_read ? fast_lookup_address : mva) :
-     (state==MAINT_LOOKUP || state==MAINTAIN) && saved_maint_by_mva ? saved_maint_address : mva;
-    logic fast_pending, fast_result_valid;
+     (state==MAINT_WAIT || state==MAINT_LOOKUP || state==MAINTAIN) && saved_maint_by_mva ? saved_maint_address : mva;
+    logic fast_pending, fast_compare_pending, fast_result_valid;
+    reg [31:0] fast_compare_address;
     logic [31:0] fast_address_q, fast_result_address;
     // Two streaming lines bridge the synchronous tag/data pipeline. The full
     // 16 KiB cache remains in M10K; these 64 bytes permit one instruction/clock.
@@ -107,16 +111,20 @@ module arm920_cache_access (
     assign fast_lookup_line = result_hit ? line : stream_line[req_mva[5]];
     always_ff @(posedge clk) begin
         if (reset) begin
-            fast_result_valid   <= 0;
-            fast_result_address <= 0;
-            fast_pending        <= 0;
-            fast_address_q      <= 0;
-            stream_valid        <= 0;
+            fast_result_valid    <= 0;
+            fast_result_address  <= 0;
+            fast_pending         <= 0;
+            fast_compare_pending <= 0;
+            fast_compare_address <= 0;
+            fast_address_q       <= 0;
+            stream_valid         <= 0;
         end else begin
             fast_pending <= fast_read;
             fast_address_q <= bank_mva;
-            fast_result_valid<=fast_pending && hit && state==IDLE && !maint_valid && !invalidate_all && !lock_write;
-            fast_result_address <= fast_address_q;
+            fast_compare_pending <= fast_pending;
+            fast_compare_address <= fast_address_q;
+            fast_result_valid<=fast_compare_pending && hit && state==IDLE && !maint_valid && !invalidate_all && !lock_write;
+            fast_result_address <= fast_compare_address;
             // Any serialized operation can mutate/evict a line. Re-prime afterward;
             // neither maintenance nor stores may leave a stale streaming copy.
             if (state != IDLE || maint_valid || invalidate_all || lock_write) stream_valid <= 0;
@@ -326,7 +334,7 @@ module arm920_cache_access (
                     saved_maint_address    <= maint_address;
                     saved_maint_way        <= maint_way;
                     saved_maint_segment    <= maint_segment;
-                    state                  <= MAINT_LOOKUP;
+                    state                  <= MAINT_WAIT;
                 end else if (req_valid && req_ready) begin
                     mva        <= req_mva;
                     pa         <= req_physical;
@@ -336,8 +344,10 @@ module arm920_cache_access (
                     enabled    <= req_cache_enable;
                     cacheable  <= req_cacheable;
                     bufferable <= req_bufferable;
-                    state      <= LOOKUP;
+                    state      <= LOOKUP_WAIT;
                 end
+                LOOKUP_WAIT: state <= LOOKUP;
+                MAINT_WAIT: state <= MAINT_LOOKUP;
                 LOOKUP:
                 if (wr) begin
                     if (enabled && cacheable && hit && bufferable) state <= STORE_HIT;
@@ -354,15 +364,12 @@ module arm920_cache_access (
                     response_valid <= 1;
                     state          <= IDLE;
                 end
-                STORE_HIT: begin
+                STORE_HIT: state <= STORE_COMMIT;
+                STORE_COMMIT: begin
                     response_valid <= 1;
                     state          <= IDLE;
                 end
-                BUFFER_STORE:
-                if (buffer_ready) begin
-                    response_valid <= 1;
-                    state          <= IDLE;
-                end
+                BUFFER_STORE: if (buffer_ready) state <= STORE_COMMIT;
                 WAIT_DRAIN: if (write_buffer_empty) state <= LOOKUP;
                 BYPASS:
                 if ((bus_ack || bus_error) && !buffer_bus_valid) begin
@@ -383,8 +390,8 @@ module arm920_cache_access (
                 if (refill_done) begin
                     // Cacheable accesses and writebacks cannot produce an ARM920 external
                     // abort. Keep the old victim on failure and retry instead of committing.
-                    if (refill_error) state <= LOOKUP;
-                    else state <= LOOKUP;
+                    if (refill_error) state <= LOOKUP_WAIT;
+                    else state <= LOOKUP_WAIT;
                 end
                 default: state <= IDLE;
             endcase

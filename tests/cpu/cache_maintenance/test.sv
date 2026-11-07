@@ -1,7 +1,7 @@
 `timescale 1ns/1ps
 module test;
  logic clk=0;always #5 clk=~clk;
- logic reset=1,start=0,clean=0,invalidate=0,all=0,ack=0,err=0,seed=1,store=0;
+ logic reset=1,start=0,clean=0,invalidate=0,all=0,ack=0,err=0,seed=0,store=0;
  logic [31:0] mva=0,pa=32'h80001000;wire busy,done,error,sread,sv,sc,si,bv;
  wire [5:0] sw,way,lock;wire [2:0] ss;wire [1:0] sd,vd;wire [31:0] spa,ba,bd,vpa;wire [255:0] line;
  wire hit,vvalid,need,ready,rvalid;
@@ -12,7 +12,8 @@ module test;
  initial begin #300000;$fatal(1,"timeout");end
  integer count;
  initial begin
-  tick();reset=0;tick();tick();store=1;tick();seed=0;store=0;#1;
+  tick();reset=0;repeat(3)tick();seed=1;tick();seed=0;repeat(4)tick();
+  seed=1;store=1;tick();seed=0;store=0;repeat(4)tick();#1;
   if(!hit)$fatal(1,"setup missing line");
   launch(1,1,0);wait(bv);#1;
   if(ba!==32'h80001000 || bd!==32'hdeadbeef)$fatal(1,"bad clean address/data");

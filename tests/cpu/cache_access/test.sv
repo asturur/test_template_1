@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 module test;
+ logic fast=0;logic [31:0] fast_addr=0;wire fv;wire [31:0] fc;wire [255:0] fl;
  logic clk=0;always #5 clk=~clk;
  logic reset=1,req=0,wr=0,en=1,c=1,b=1,inv=0,lock=0,rr=1,allow=1,allow_reads=1,hold_after_refill=0;
  logic mv=0,mc=0,mi=0,ma=0,mb=0;logic [31:0] mad=0;logic [5:0] mw=0;logic [2:0] ms=0;wire mr,md,me;
@@ -8,7 +9,7 @@ module test;
  logic [31:0] mem[0:32767];integer reads=0,writes=0,n;
  logic prev_blocked=0,prev_we;logic [31:0] prev_addr,prev_data;logic [3:0] prev_sel;
  wire [31:0] br=mem[ba[16:2]];
- arm920_cache_access dut(.clk(clk),.reset(reset),.req_valid(req),.req_ready(ready),.req_mva(mva),.req_physical(pa),.req_write(wr),.req_cache_enable(en),.req_cacheable(c),.req_bufferable(b),.req_wdata(wd),.req_byte_enable(ben),.response_valid(rv),.response_error(re),.response_data(rd),.write_buffer_empty(wbempty),.write_buffer_error(wberror),.fast_lookup_enable(1'b0),.fast_lookup_address(32'b0),.fast_lookup_valid(),.fast_lookup_checked(),.fast_lookup_line(),.invalidate_all(inv),.lock_write(lock),.lock_base_in(6'b0),.round_robin(rr),.maint_valid(mv),.maint_clean(mc),.maint_invalidate(mi),.maint_all(ma),.maint_by_mva(mb),.maint_address(mad),.maint_way(mw),.maint_segment(ms),.maint_ready(mr),.maint_done(md),.maint_error(me),.bus_valid(bv),.bus_write(bw),.bus_address(ba),.bus_wdata(bd),.bus_byte_enable(bs),.bus_ack(bv && (bw ? allow : allow_reads)),.bus_error(1'b0),.bus_rdata(br));
+ arm920_cache_access dut(.clk(clk),.reset(reset),.req_valid(req),.req_ready(ready),.req_mva(mva),.req_physical(pa),.req_write(wr),.req_cache_enable(en),.req_cacheable(c),.req_bufferable(b),.req_wdata(wd),.req_byte_enable(ben),.response_valid(rv),.response_error(re),.response_data(rd),.write_buffer_empty(wbempty),.write_buffer_error(wberror),.fast_lookup_enable(fast),.fast_lookup_address(fast_addr),.fast_lookup_valid(fv),.fast_lookup_checked(fc),.fast_lookup_line(fl),.invalidate_all(inv),.lock_write(lock),.lock_base_in(6'b0),.round_robin(rr),.maint_valid(mv),.maint_clean(mc),.maint_invalidate(mi),.maint_all(ma),.maint_by_mva(mb),.maint_address(mad),.maint_way(mw),.maint_segment(ms),.maint_ready(mr),.maint_done(md),.maint_error(me),.bus_valid(bv),.bus_write(bw),.bus_address(ba),.bus_wdata(bd),.bus_byte_enable(bs),.bus_ack(bv && (bw ? allow : allow_reads)),.bus_error(1'b0),.bus_rdata(br));
  always @(posedge clk) begin
   if(reset) prev_blocked<=0;
   else begin
@@ -96,6 +97,26 @@ module test;
   $display("OVERLAP: replacement completed after %0d of 8 writeback words",writes-w0);
   hold_after_refill=0;allow=1;while(!wbempty)tick();
   if(writes!=w0+8 || mem[0]!==32'hdeadbeef || mem[4]!==32'hfaceb00c || result!==32'h01000040)$fatal(1,"dirty 65th-way eviction");
+  // Prime both streaming slots, then alternate them every cycle.
+  access(0,32'h20,0,4'hf,1,result);
+  fast=1;fast_addr=32'h20;mva=32'h20;repeat(5)tick();
+  if(!fv || fl[31:0]!==0)$fatal(1,"fast lookup prime");
+  fast_addr=32'h4000;mva=32'h4000;repeat(5)tick();
+  for(n=0;n<12;n=n+1)begin
+   mva=n[0] ? 32'h20 : 32'h4000;fast_addr=mva;#1;
+   if(!fv || fc!==mva || fl[31:0]!==(n[0] ? 0 : 32'h01000040))
+    $fatal(1,"stream address/data alignment");
+   tick();
+  end
+  access(1,32'h20,32'hcafe1234,4'hf,1,result);
+  fast_addr=32'h20;mva=32'h20;
+  repeat(6)begin
+   #1;if(fv && fl[31:0]!==32'hcafe1234)$fatal(1,"stale stream after store");tick();
+  end
+  if(!fv)$fatal(1,"stream did not recover after store");
+  inv=1;#1;if(fv)$fatal(1,"stream survived invalidation");tick();inv=0;
+  repeat(6)begin tick();if(fv)$fatal(1,"pending fast lookup survived invalidation");end
+  reset=1;tick();reset=0;repeat(6)begin tick();if(fv)$fatal(1,"pending fast lookup survived reset");end
   $display("PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction");$finish;
  end
 endmodule

@@ -1,0 +1,14 @@
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -194,8 +194,9 @@ arm920_zap_dcache_adapter experimental_cache(
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+  .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+- // Look two instructions ahead for the synchronous tag + data RAM stages.
+- .fast_enable(!prefetch_busy && !i_cache_prefetch),.fast_next_address(adapter_ack && i_rd ? i_address + 32'd8 : i_address),
++ // The shared bank has tag-read, compare and line-read stages. Look three
++ // ARM words ahead so a resident next line arrives before its first request.
++ .fast_enable(!prefetch_busy && !i_cache_prefetch),.fast_next_address(adapter_ack && i_rd ? i_address + 32'd12 : i_address),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
+  .cacheable(tlb_cacheable),.bufferable(1'b1),

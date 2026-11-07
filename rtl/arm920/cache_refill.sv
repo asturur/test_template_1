@@ -30,14 +30,16 @@ module arm920_cache_refill (
     input  logic         bus_error,
     input  logic [ 31:0] bus_rdata
 );
-    typedef enum logic [2:0] {
+    typedef enum logic [3:0] {
         IDLE,
         TAG_WAIT,
         SELECT_VICTIM,
         READ_VICTIM,
         START_TRANSFER,
         WAIT_TRANSFER,
-        INSTALL
+        INSTALL,
+        COMPARE_WAIT,
+        COMMIT
     } state_t;
     state_t        state;
     logic   [31:0] saved_pa;
@@ -87,7 +89,8 @@ module arm920_cache_refill (
                     saved_pa <= request_physical;
                     state    <= TAG_WAIT;
                 end
-                TAG_WAIT:       state <= SELECT_VICTIM;
+                TAG_WAIT:       state <= COMPARE_WAIT;
+                COMPARE_WAIT:   state <= SELECT_VICTIM;
                 SELECT_VICTIM:
                 if (bank_hit) begin
                     done  <= 1;
@@ -103,8 +106,8 @@ module arm920_cache_refill (
                         state <= IDLE;
                     end else state <= INSTALL;
                 end
-                INSTALL:
-                if (bank_refill_ready) begin
+                INSTALL:        if (bank_refill_ready) state <= COMMIT;
+                COMMIT: begin
                     done  <= 1;
                     state <= IDLE;
                 end

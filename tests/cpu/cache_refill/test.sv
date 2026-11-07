@@ -9,16 +9,18 @@ module test;
  arm920_cache_bank bank(.clk(clk),.reset(reset),.mva(selected_mva),.hit(hit),.hit_way(way),.read_victim(rv),.read_valid(read_valid),.read_line(rline),.victim_valid(valid),.victim_dirty(dirty),.victim_physical_line(vpa),.needs_writeback(need),.writeback_done(wb),.refill(seed ? seed_fill : fill),.refill_physical(seed ? pa : bpa),.refill_line(seed ? {8{32'h10101010}} : bline),.refill_ready(ready),.store(seed && store),.store_dirty(1'b1),.store_enable(32'hf),.store_line({224'b0,32'hdeadbeef}),.invalidate_all(1'b0),.lock_write(1'b0),.lock_base_in(6'b0),.lock_base(lock),.round_robin(1'b1));
  reg seed_fill=0;
  task automatic tick;begin @(posedge clk);#1;@(negedge clk);end endtask
+ // Drain commit, fresh tag read, compare and data read before observing.
+ task automatic settle;begin repeat(4) tick();end endtask
  integer n,beats;
  initial begin #100000; $fatal(1,"test timed out"); end
  initial begin
   tick();reset=0;tick();seed=1;
-  for(n=0;n<64;n=n+1)begin mva=n<<8;pa=32'h80000000+(n<<8);tick();seed_fill=1;tick();seed_fill=0;tick();end
-  mva=0;tick();store=1;tick();store=0;seed=0;
+  for(n=0;n<64;n=n+1)begin mva=n<<8;pa=32'h80000000+(n<<8);settle();seed_fill=1;tick();seed_fill=0;settle();end
+  mva=0;settle();store=1;tick();store=0;seed=0;
   mva=64<<8;pa=32'h90000000;start=1;tick();start=0;
   wait(bvalid);#1;if(!bwrite || baddr!==32'h80000000 || bdata!==32'hdeadbeef)$fatal(1,"first victim beat");
   err=1;tick();err=0;while(!done)tick();if(!error)$fatal(1,"error missing");
-  seed=1;mva=0;tick();#1;if(!hit)$fatal(1,"error discarded dirty victim");seed=0;
+  seed=1;mva=0;settle();#1;if(!hit)$fatal(1,"error discarded dirty victim");seed=0;
   // Complete write-back, then fail the first refill beat. The original dirty
   // line must remain available because installation never committed.
   mva=64<<8;start=1;tick();start=0;beats=0;
@@ -31,7 +33,7 @@ module test;
   end
   if(!bvalid || bwrite)$fatal(1,"expected refill after writeback");
   err=1;tick();err=0;while(!done)tick();if(!error)$fatal(1,"refill error missing");
-  seed=1;mva=0;tick();#1;if(!hit)$fatal(1,"refill error discarded victim");seed=0;
+  seed=1;mva=0;settle();#1;if(!hit)$fatal(1,"refill error discarded victim");seed=0;
   mva=64<<8;start=1;tick();start=0;beats=0;
   while(!done)begin
    if(bvalid)begin
@@ -46,8 +48,8 @@ module test;
    tick();ack=0;
   end
   if(error || beats!=12)$fatal(1,"bad completion %0d",beats);
-  seed=1;mva=64<<8;tick();#1;if(!hit)$fatal(1,"new line missing");tick();if(rline[31:0]!==32'hfa000000)$fatal(1,"new data missing");
-  mva=0;tick();#1;if(hit)$fatal(1,"victim still present");
+  seed=1;mva=64<<8;settle();#1;if(!hit)$fatal(1,"new line missing");tick();if(rline[31:0]!==32'hfa000000)$fatal(1,"new data missing");
+  mva=0;settle();#1;if(hit)$fatal(1,"victim still present");
   $display("PASS: cache bank replacement survives bus error and retries dirty victim");$finish;
  end
 endmodule

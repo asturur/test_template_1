@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Experimental data-cache bank. No CPU/bus connection: the caller must hold
+// Shared I/D cache bank. Mutation pulses capture data and metadata together;
+// both commit on the following edge. The caller must drain before reuse and hold
 // MVA stable through victim read/writeback and pulse writeback_done only after
 // successful completion. The 32-byte RAM read is synchronous, one cycle.
 module arm920_cache_bank (
@@ -46,17 +47,28 @@ module arm920_cache_bank (
     logic [255:0] write_data;
     logic [  5:0] write_way;
     logic fill_commit, store_intent, store_commit;
+    reg [2:0] commit_segment;
+    reg [5:0] commit_way;
+    reg [31:0] commit_enable;
+    reg [255:0] commit_data;
+    wire cancel_commit = reset || invalidate_all || lock_write || scan_clean || scan_invalidate;
+    always @(posedge clk) begin
+        commit_segment <= lookup_address[7:5];
+        commit_way     <= write_way;
+        commit_enable  <= write_enable;
+        commit_data    <= write_data;
+    end
     assign needs_writeback = victim_valid && (|victim_dirty);
-    assign refill_ready=!reset && !invalidate_all && !lock_write && !hit && (!needs_writeback || writeback_done);
+    assign refill_ready=!reset && !invalidate_all && !lock_write && !scan_clean && !scan_invalidate && !hit && (!needs_writeback || writeback_done);
     assign fill_commit = refill && refill_ready;
     // The RAM address uses encoded hit_way, so its actual write still needs
     // global hit. Metadata has fixed per-way matches and must not route that
     // global reduction back through every dirty flag's write enable.
-    assign store_intent = store && !refill && !reset && !invalidate_all && !lock_write;
+    assign store_intent = store && !refill && !cancel_commit;
     assign store_commit = store_intent && hit;
     assign write_enable = fill_commit ? 32'hffffffff : (store_commit ? store_enable : 32'b0);
-    assign write_data = fill_commit ? refill_line : store_line;
-    assign write_way = fill_commit ? victim_way : hit_way;
+    assign write_data = refill ? refill_line : store_line;
+    assign write_way = refill ? victim_way : hit_way;
     always_ff @(posedge clk) begin
         if (reset || invalidate_all) read_valid <= 0;
         else read_valid <= scan_read ? scan_valid : (read_victim ? victim_valid : hit);
@@ -97,10 +109,10 @@ module arm920_cache_bank (
         .read_segment (scan_read ? scan_segment : lookup_address[7:5]),
         .read_way     (scan_read ? scan_way : (read_victim ? victim_way : hit_way)),
         .read_line    (read_line),
-        .write_segment(lookup_address[7:5]),
-        .write_way    (write_way),
-        .write_enable (write_enable),
-        .write_line   (write_data)
+        .write_segment(commit_segment),
+        .write_way    (commit_way),
+        .write_enable (cancel_commit ? 32'b0 : commit_enable),
+        .write_line   (commit_data)
     );
 `ifndef SYNTHESIS
     always @(posedge clk)
