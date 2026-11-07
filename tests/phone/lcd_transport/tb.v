@@ -24,7 +24,8 @@ initial begin
    if(!we && expected_ok && dout!==expected_data)begin $display("FAIL data line %0d",line);$finish;end
    // An arbitrary stall must not perform a write.
    repeat(2)@(negedge clk);
-   commit=expected_ok;@(negedge clk);cyc=0;stb=0;commit=0;
+   // Offer the cycle even on invalid operations: local checks suppress writes.
+   commit=1;@(negedge clk);cyc=0;stb=0;commit=0;
   end
  end
  $display("PASS LCD transport ordering and stalls against C++");$finish;

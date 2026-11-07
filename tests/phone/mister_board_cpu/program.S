@@ -167,6 +167,43 @@ asic_return:
  ldr r2,[r0]
  cmp r7,#1
  bne fail
+ // The temporary 0x0d CAM must reject only its own exhausted write.
+ // Keep interrupt handlers from changing loop registers during this check.
+ mrs r0,cpsr
+ orr r0,r0,#0xc0
+ msr cpsr_c,r0
+ ldr r0,=0x0d000000
+ mov r1,#64
+local_fill:
+ str r1,[r0],#4
+ subs r1,r1,#1
+ bne local_fill
+ str r1,[r0]
+ cmp r7,#2
+ bne fail
+ ldr r0,=0x0d000000
+ ldr r2,[r0]
+ cmp r2,#64
+ bne fail
+ // A full temporary table must not prevent a real timer-register write.
+ ldr r0,=0x0c120a24
+ mov r1,#0
+ str r1,[r0]
+ ldr r0,=0x0c120a30
+ mov r1,#42
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r2,r1
+ bne fail
+ // Invalid LCD header must fault without reaching display or transport state.
+ ldr r0,=0x0c121204
+ mov r1,#1
+ str r1,[r0]
+ ldr r0,=0x0c121200
+ ldr r1,=0xdeadbeef
+ str r1,[r0]
+ cmp r7,#3
+ bne fail
  ldr r0,=0x50415353
  b finish
 irq_handler:
@@ -185,7 +222,7 @@ fiq_handler:
  mov r6,#1
  subs pc,lr,#4
 data_abort_handler:
- mov r7,#1
+ add r7,r7,#1
  subs pc,lr,#4
 fail: mov r0,#1
 finish:

@@ -1,9 +1,9 @@
 /*  UPP-side behavioral peripherals, migrated from the C++ reference
     model (scratch/boot-v15-nosprobe/boot_profile.cpp). Wishbone-slave view:
     combinational claim/dout against the live request; registered state
-    commits when the harness acknowledges (i_commit). Accesses the module
-    claims but cannot serve within observed behavior raise o_unmodeled and
-    the simulation stops, exactly like the C++ model's refusals.
+    uses a request authorization window; each device checks its own ownership,
+    readiness and supported operation before applying side effects. Unsupported
+    selected accesses raise unmodeled for the CPU response/diagnostics only.
 
     Device 1 (2026-10-31): the LCD transport at 0x0c121200/204/208 - the
     header/control/data registers the boot logo travels through.
@@ -51,7 +51,7 @@ module ngage_upp_peripherals #(
     input  wire        we,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
-    input  wire        commit,             // harness acknowledges this cycle
+    input  wire        commit,             // authorize local access checks this cycle
     // configuration (from the harness command line)
     input  wire        cfg_lcd,            // lcd-probe option
     input  wire        cfg_keypad,         // keypad-gpio option
@@ -98,10 +98,13 @@ module ngage_upp_peripherals #(
     input  wire        mdi_bad,
     input  wire [31:0] mdi_data,
     input  wire [15:0] mdi_events,
-    output wire        adsp_tick
+    output wire        adsp_tick,
+    output wire        lcd_write_valid
 );
 
     wire simif_claim, simif_bad, simif_irq;
+    wire        local_access = commit && init_done && cyc && stb;
+    wire        sim_access = local_access && (!simif_claim || (!card_busy && !card_overflow));
     wire [31:0] simif_data;
     generate
         if (SIMIF_ENABLE) begin : simif_enabled
@@ -110,7 +113,7 @@ module ngage_upp_peripherals #(
                 .reset            (rst),
                 .present          (sim_present),
                 .req              (cyc && stb),
-                .commit           (commit),
+                .commit           (sim_access),
                 .we               (we),
                 .addr             (adr),
                 .din              (din),
@@ -171,7 +174,7 @@ module ngage_upp_peripherals #(
         .clk         (clk),
         .reset       (rst),
         .req         (cyc && stb),
-        .commit      (commit),
+        .commit      (local_access),
         .we          (we),
         .addr        (a),
         .din         (din),
@@ -190,7 +193,7 @@ module ngage_upp_peripherals #(
         .clk            (clk),
         .reset          (rst),
         .req            (cyc && stb),
-        .commit         (commit),
+        .commit         (local_access),
         .we             (we),
         .addr           (a),
         .din            (din),
@@ -210,7 +213,7 @@ module ngage_upp_peripherals #(
         .clk       (clk),
         .reset     (rst),
         .req       (cyc && stb),
-        .commit    (commit),
+        .commit    (local_access),
         .we        (we),
         .addr      (a),
         .din       (din),
@@ -226,7 +229,7 @@ module ngage_upp_peripherals #(
         .clk    (clk),
         .reset  (rst),
         .req    (cyc && stb),
-        .commit (commit),
+        .commit (local_access),
         .we     (we),
         .addr   (a),
         .din    (din),
@@ -242,7 +245,7 @@ module ngage_upp_peripherals #(
         .clk   (clk),
         .reset (rst),
         .req   (cyc && stb),
-        .commit(commit),
+        .commit(local_access),
         .we    (we),
         .addr  (a),
         .din   (din),
@@ -255,7 +258,7 @@ module ngage_upp_peripherals #(
         .clk            (clk),
         .reset          (rst),
         .req            (cyc && stb),
-        .commit         (commit),
+        .commit         (local_access),
         .we             (we),
         .periodic_active(periodic_active),
         .addr           (a),
@@ -271,7 +274,7 @@ module ngage_upp_peripherals #(
         .clk        (clk),
         .reset      (rst),
         .req        (cyc && stb),
-        .commit     (commit),
+        .commit     (local_access),
         .we         (we),
         .addr       (a),
         .din        (din),
@@ -287,6 +290,8 @@ module ngage_upp_peripherals #(
     // ---- device 1: LCD transport ------------------------------------------------
     wire lcd_hit = cfg_lcd && (a == 32'h0c12_1200 || a == 32'h0c12_1204 || a == 32'h0c12_1208);
 
+    reg        lcd_bad;
+    reg [31:0] lcd_read_data;
     reg ctl_written, hdr_written;
     reg [31:0] ctl, hdr;
 
@@ -368,8 +373,15 @@ module ngage_upp_peripherals #(
 
     // ---- block-RAM latch arrays ------------------------------------------------
     wire req = cyc && stb;
-    wire wr_ok = commit && we && !unmodeled;
+    wire valid_lanes = sel == 1 || sel == 2 || sel == 4 || sel == 8 ||
+                       sel == 3 || sel == 12 || sel == 15;
+    wire dedicated_claim = simif_claim || extra_claim || gpio_loop_claim ||
+        mdi_claim || trace_claim || boot_claim || icu_claim || timer_claim ||
+        nos_claim || cbus_claim;
+    wire gpio_selected = gpio_hit && !dedicated_claim;
+    wire gpio_write = local_access && we && gpio_selected && valid_lanes;
     wire nos4k_ram = nos4k_hit && !boot_claim && a[31:12] == 20'h0c004;
+    wire nos4k_write = local_access && we && nos4k_ram && !dedicated_claim;
 
     ngage_bram_be #(
         .AW(14)
@@ -378,7 +390,7 @@ module ngage_upp_peripherals #(
         .raddr(a[15:2]),
         .rdata(upload_q),
         .waddr(clearing ? init_index[13:0] : a[15:2]),
-        .we   (clearing ? 4'hf : ((upload_hit && gpio_hit && wr_ok) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((upload_hit && gpio_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
@@ -388,17 +400,17 @@ module ngage_upp_peripherals #(
         .raddr(a[15:2]),
         .rdata(nosmem_q),
         .waddr(clearing ? init_index[13:0] : a[15:2]),
-        .we   (clearing ? 4'hf : ((nosmem_hit && gpio_hit && !mdi_claim && wr_ok) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((nosmem_hit && gpio_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
         .AW(10)
     ) gpio15_ram (
-        .clk(clk),
+        .clk  (clk),
         .raddr(a[11:2]),
         .rdata(gpio15_q),
         .waddr(clearing ? init_index[9:0] : a[11:2]),
-        .we(clearing?4'hf:((gpio15_hit && gpio_hit && !simif_claim && !nos_claim && !gpio_loop_claim && wr_ok)?sel:4'd0)),
+        .we   (clearing ? 4'hf : ((gpio15_hit && gpio_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
@@ -408,7 +420,7 @@ module ngage_upp_peripherals #(
         .raddr(aux_index),
         .rdata(aux_q),
         .waddr(clearing ? init_index[11:0] : aux_index),
-        .we   (clearing ? 4'hf : ((aux_hit && !mdi_claim && !boot_claim && wr_ok) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((aux_hit && gpio_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
@@ -418,7 +430,7 @@ module ngage_upp_peripherals #(
         .raddr(a[11:2]),
         .rdata(nos4k_q),
         .waddr(clearing ? init_index[9:0] : a[11:2]),
-        .we   (clearing ? 4'hf : ((nos4k_ram && wr_ok) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : (nos4k_write ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_sparse_regs #(
@@ -427,7 +439,7 @@ module ngage_upp_peripherals #(
         .clk       (clk),
         .cold_reset(init_rst),
         .req       (d_space_hit && req && !trace_claim),
-        .commit    (commit),
+        .commit    (local_access),
         .we        (we),
         .addr      (a),
         .din       (din),
@@ -448,7 +460,7 @@ module ngage_upp_peripherals #(
                    (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin
-        if (rst || commit || !req) rd_vld <= 1'b0;
+        if (rst || (local_access && ready) || !req) rd_vld <= 1'b0;
         else begin
             rd_vld <= 1'b1;
             rd_adr <= a;
@@ -459,8 +471,10 @@ module ngage_upp_peripherals #(
     reg [31:0] fcnt;  // ticks once per 3174 clocks (32.768kHz@104MHz)
     reg [11:0] fcnt_div;
 
+    wire gpio_access = local_access && gpio_selected && valid_lanes &&
+                       (we || (rd_vld && rd_adr == a));
     wire [31:0] keypad_dout;
-    reg  [31:0] dout_unkeyed;
+    reg [31:0] dout_unkeyed;
     generate
         if (KEYPAD_ENABLE) begin : keypad_enabled
             ngage_keypad keypad (
@@ -468,7 +482,7 @@ module ngage_upp_peripherals #(
                 .reset        (rst),
                 .keys         (keys),
                 .req          (cyc && stb),
-                .commit       (commit),
+                .commit       (gpio_access),
                 .we           (we),
                 .addr         (a),
                 .din          (din),
@@ -592,25 +606,35 @@ module ngage_upp_peripherals #(
             if (a == 32'h0c15_0114 && !we && gpr_q[15:0] == 16'd0)
                 dout_unkeyed = (dout_unkeyed & 32'hffff_0000) | 16'h0080;
         end else if (lcd_hit && cyc && stb) begin
-            if (sel != 4'hf) unmodeled = 1'b1;
+            dout_unkeyed = lcd_read_data;
+            unmodeled    = lcd_bad;
+        end
+    end
+
+    always @* begin
+        lcd_bad       = 0;
+        lcd_read_data = 0;
+        if (lcd_hit && req) begin
+            if (sel != 4'hf) lcd_bad = 1'b1;
             else if (a == 32'h0c12_1204 && we) begin
-                if (din != 32'd1 && din != 32'd2) unmodeled = 1'b1;
+                if (din != 32'd1 && din != 32'd2) lcd_bad = 1'b1;
             end else if (!ctl_written || ctl != 32'd1) begin
-                unmodeled = 1'b1;
+                lcd_bad = 1'b1;
             end else if (a == 32'h0c12_1200 && we) begin
-                if (!hdr_ok) unmodeled = 1'b1;
+                if (!hdr_ok) lcd_bad = 1'b1;
             end else if (a == 32'h0c12_1204 && !we) begin
-                dout_unkeyed = 32'd4;
+                lcd_read_data = 32'd4;
             end else if (a == 32'h0c12_1200 && !we) begin
-                if (hdr_written && hdr == 32'h4920_0000) dout_unkeyed = 32'h4000_0000;
-                else unmodeled = 1'b1;
+                if (hdr_written && hdr == 32'h4920_0000) lcd_read_data = 32'h4000_0000;
+                else lcd_bad = 1'b1;
             end else if (a == 32'h0c12_1208 && we) begin
-                if (!hdr_written) unmodeled = 1'b1;
+                if (!hdr_written) lcd_bad = 1'b1;
             end else if (a == 32'h0c12_1208 && !we) begin
-                if (!(hdr_written && hdr[31:16] == 16'h0784)) unmodeled = 1'b1;
+                if (!(hdr_written && hdr[31:16] == 16'h0784)) lcd_bad = 1'b1;
             end
         end
     end
+    assign lcd_write_valid = local_access && lcd_hit && we && !lcd_bad;
 
     // ---- registered state -------------------------------------------------------
     always @(posedge clk) begin
@@ -634,7 +658,7 @@ module ngage_upp_peripherals #(
                 fcnt     <= fcnt + 32'd1;
             end else fcnt_div <= fcnt_div + 12'd1;
 
-            if (clk_hit && commit && we && !unmodeled) begin
+            if (clk_hit && local_access && we) begin
                 case (a)
                     32'h0c12_0004: begin
                         ctlv <= (ctlv & ~wmask) | (din & wmask);
@@ -651,7 +675,7 @@ module ngage_upp_peripherals #(
                 endcase
             end
 
-            if (lcd_hit && commit && we && !unmodeled) begin
+            if (lcd_write_valid) begin
                 if (a == 32'h0c12_1204) begin
                     ctl         <= din;
                     ctl_written <= 1'b1;

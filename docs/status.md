@@ -1,3 +1,91 @@
+## 2026-11-07: local device validation replaces shared ACK-gated writes
+
+Separate timing commit after loader9d87477. UPP now distributes `bus_access`
+from the active captured request (reset/init/error qualified), without using
+combinational CPU ACK or aggregate `unmodeled` as a global side-effect enable.
+CPU ACK/error/data response and registered invalid-access faults are unchanged.
+Each child retains claim/bad checks; SIM alone checks its busy/overflow, GPIO
+checks supported lanes and dedicated ownership, LCD exports its locally
+validated write strobe. Clock writes no longer consult unrelated validators.
+Sparse CAM capacity/lookup affects only that device's state and selected CPU
+fault response, not LCD/timer/MDI/RAM write enables. No new clock, exception,
+extra bus pipeline stage, firmware patch or default-success response.
+
+Actual LCD DMA owns its registers exclusively, rather than also changing the
+legacy ICU-extra DMA shadow. DMA/direct-LCD collision suppresses only that
+access until accepted; synchronous GPIO read validity clears at its own ready
+edge, and SIM pops cannot repeat while the service pipeline is busy.
+
+Verification passes: actual CPU program fills all64 sparse slots, faults on
+new allocation, preserves existing data, then writes/reads a timer while the
+table remains full; invalid LCD header faults without changing transport or
+panel header. IRQ/FIQ, SIMIF, DMA pixel, SDRAM waits and sticky first-fault
+context still pass. LCD transport tests offer invalid operations with the
+access window asserted and confirm local suppression against both C++ models.
+Full18304-word DMA, board ownership132 pairs, unimplemented chip boundaries,
+SIM present/absent, transaction fixtures and warm/cold RAM tests pass. Retained
+firmware-DMA trace replay is explicitly SKIP (fixture unavailable), not passed.
+
+Fresh **real-SDRAM5M cold boot**: PC00006160,326761 transfers,12 known fetch
+faults, zero data faults. All963 recorded board-trace lines are byte-identical
+to the prior run; SHA256
+`07f2b1710e027039be4743eccc0226caa992935e13197026015aad15af51a398`.
+This verifies the existing bounded stopping point, not a new cold Nokia-logo
+run. Frozen billion-cycle states remain untouched and are not restored into
+this changed HDL. Logs `scratch/timing-closure/pass6-local-validation/`.
+
+**Diagnostic screen needs no redesign:** PC/opcode/CPSR, completed bus
+transactions, wait counts, sticky fault PC/address/reason and text raster remain
+observers of the existing response signals. Their directed monitor/raster tests
+pass unchanged. They do not authorize device writes. Top elaboration, source
+preflight and formatting pass. Next build includes separate loader commit plus
+this timing change; measure new slack/Fmax and paths against61.55MHz/-6.633ns.
+User monitors CI; no automatic monitoring requested.
+
+## 2026-11-07: SIM/LCD/cache fit improves to61.55 MHz; shared commit path exposed
+
+Completed build42400361438 is **7d80fc6**, excluding the later local service
+loader commit9d87477. Quartus compilation/source preflight succeed; action
+fails only the timing gate. Reports retained at
+`scratch/timing-closure/pass5-7d80fc6/`, functional classification and script
+under `analysis/`. Core setup **-6.633ns**, Fmax **61.55MHz**, versus
+-9.070ns/53.52MHz: +2.437ns/+8.03MHz (~15%). ALMs32,507 (78%), down1,421;
+registers43,949, down1,240; M10Ks457 unchanged (83%). Core setup TNS regresses
+from-89226.544 to **-94439.842ns** (~5.84% larger magnitude). Improving the
+single worst path does not mean overall timing closure. PLL remains104MHz.
+Core hold+.255ns, recovery+6.919ns, removal+1.754ns; global fast hold+.072ns,
+recovery+3.409ns, minimum pulse+.961ns, global removal+.980ns; HDMI setup+.087ns.
+
+All1000 exported setup paths still violate (-6.633..-4.959ns), one worst per
+endpoint. **11 chosen functional groups /18 destination instance hierarchies**:
+MDI/DSP-mailbox hypothesis131 (-6.633); LCD framebuffer/command diagnostics410
+(-5.859;408 BRAM pins+2 diagnostic regs); peripheral upload/NOS/aux staging
+RAM94 (-5.718;54+31+9); UPP ICU/config74 (-5.592;72 extra+2 ICU); ARM920
+D-cache bank6 (-5.538); UPP/NOS timers200 (-5.496;199+1); FPGA debug/trace7
+(-5.486;6+1); boot/control17 (-5.448); LCD DMA41 (-5.410); unidentified0x0d
+sparse-register model19 (-5.235); bridge response1 (-5.013). Sum1000.
+These are destination groups, not11 independent root causes or proven phone
+chip timing domains. Staging RAM, MDI and unidentified registers remain models.
+
+**994 launch at UPP bridge address registers; only6 launch at cache tags.**
+Full-route substring audit:801 include sparse `d_regs` CAM logic,991 include
+peripheral `unmodeled` logic,721 include named `wb_ack` logic. Counts overlap;
+optimization can rename equivalent logic. Worst route is bridge address ->
+sparse hit/full decode -> unmodeled -> ACK/commit -> MDI forwarded ring/pointer
+logic -> pointer register (11 levels,15.465ns data delay). LCD BRAM endpoints
+are predominantly write address/data/enable controls on that shared commit
+route, not the removed divider or a measured panel serial-clock failure.
+Old SIM FIFO, LCD /88/%88 and cache dirty/valid metadata destinations are
+absent from this subset; this does not prove their full-design timing passes.
+
+Next recommended target: separate address/error validation from peripheral
+commit/write enables with a registered boundary, preserving exactly-once
+commit, bus-error suppression and read/IRQ behavior. Diagnose shared fault/CAM
+fanout before independently patching all destination modules. MDI additionally
+has same-cycle forwarded ring comparisons worth splitting once the common
+path is cut. Cache-bank write/merge remains a separate6-path group. No RTL
+change, push or new build initiated by this timing-analysis request.
+
 ## 2026-11-07: original boot/boot1 firmware loader, existing NGA retained
 
 Firmware-only slice of7.6: `rtl/ngage_service_loader.v` is connected in

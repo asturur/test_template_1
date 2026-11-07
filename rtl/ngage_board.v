@@ -118,37 +118,36 @@ module ngage_board #(
     wire [15:0] route2a, route2c, route3b, mdi_events;
     wire mdi_claim, mdi_bad, adsp_tick;
     wire [31:0] aligned_addr = {bus_adr[31:2], 2'b00};
-    wire        bus_commit;
+    wire bus_access, lcd_write_valid;
     // Display-controller connection is a transaction-level LCD bus hypothesis.
     generate
         if (LCD_ENABLE) begin : display
             ngage_lcd_display lcd (
-                .clk(clk),
-                .reset(rst),
-                .diagnostic(diagnostic_video),
-                .status(diagnostic_status),
-                .save_state(save_state),
-                .write_valid(bus_commit && bus_we &&
-                             (aligned_addr == 32'h0c121200 || aligned_addr == 32'h0c121208)),
-                .write_addr(aligned_addr),
-                .write_data(bus_din),
-                .dma_valid(lcd_dma_valid),
-                .dma_frame_full(lcd_dma_full),
-                .dma_word_addr(lcd_dma_addr),
-                .dma_data(lcd_dma_data),
-                .raster_x(video_x),
-                .raster_y(video_y),
-                .ce_pix(video_ce),
-                .hsync(video_hsync),
-                .vsync(video_vsync),
-                .hblank(video_hblank),
-                .vblank(video_vblank),
-                .rgb(video_rgb),
-                .frame_complete(),
-                .incomplete(),
-                .unsupported(lcd_unsupported),
+                .clk              (clk),
+                .reset            (rst),
+                .diagnostic       (diagnostic_video),
+                .status           (diagnostic_status),
+                .save_state       (save_state),
+                .write_valid      (lcd_write_valid),
+                .write_addr       (aligned_addr),
+                .write_data       (bus_din),
+                .dma_valid        (lcd_dma_valid),
+                .dma_frame_full   (lcd_dma_full),
+                .dma_word_addr    (lcd_dma_addr),
+                .dma_data         (lcd_dma_data),
+                .raster_x         (video_x),
+                .raster_y         (video_y),
+                .ce_pix           (video_ce),
+                .hsync            (video_hsync),
+                .vsync            (video_vsync),
+                .hblank           (video_hblank),
+                .vblank           (video_vblank),
+                .rgb              (video_rgb),
+                .frame_complete   (),
+                .incomplete       (),
+                .unsupported      (lcd_unsupported),
                 .unsupported_valid(lcd_unsupported_valid),
-                .unsupported_data(lcd_unsupported_data)
+                .unsupported_data (lcd_unsupported_data)
             );
         end else begin : display_disabled
             assign lcd_unsupported       = 0;
@@ -178,6 +177,7 @@ module ngage_board #(
         .dma_mem_data     (dma_mem_data),
         .dma_mem_req      (dma_mem_req),
         .dma_mem_addr     (dma_mem_addr),
+        .lcd_write_valid  (lcd_write_valid),
         .lcd_dma_claim    (lcd_dma_claim),
         .lcd_dma_bad      (lcd_dma_bad),
         .lcd_dma_reg_data (lcd_dma_reg_data),
@@ -217,7 +217,7 @@ module ngage_board #(
         .bus_we           (bus_we),
         .bus_din          (bus_din),
         .bus_sel          (bus_sel),
-        .bus_commit       (bus_commit),
+        .bus_access       (bus_access),
         .cfg_lcd          (cfg_lcd),
         .cfg_keypad       (cfg_keypad),
         .cfg_clocks       (cfg_clocks),
@@ -259,7 +259,7 @@ module ngage_board #(
         .clk            (clk),
         .reset          (rst),
         .req            (bus_cyc && bus_stb),
-        .commit         (bus_commit),
+        .commit         (bus_access),
         .we             (bus_we),
         .addr           (aligned_addr),
         .din            (bus_din),
@@ -281,7 +281,7 @@ module ngage_board #(
         .tick           (adsp_tick),
         .periodic_active(1'b1),
         .req            (bus_cyc && bus_stb),
-        .commit         (bus_commit),
+        .commit         (bus_access),
         .we             (bus_we),
         .addr           (aligned_addr),
         .din            (bus_din),

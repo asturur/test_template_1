@@ -1,3 +1,11 @@
+> **2026-11-07 local validation update:** production UPP side effects use a
+> captured-request access window and each selected device's own validation.
+> Aggregate error/ACK stays on CPU response and diagnostic paths, without
+> qualifying unrelated device writes. SIM busy/overflow, sparse CAM full,
+> GPIO ownership/lanes and LCD command checks remain local. The diagnostic
+> screen layout and sticky fault behavior are unchanged. See latest
+> [status](status.md) for cold-boot trace comparison and regression evidence.
+
 > **Current checkpoint (2026-11-06):** This file retains historical port notes below; several statements about loader, flash, interrupts, SIMIF and DMA are superseded. Read [status.md](status.md) and [mister-review-2026-11-06.md](mister-review-2026-11-06.md) for current implementation, validation and open risks. CPU Hold remains the default, and no hardware boot is claimed.
 
 # MiSTer board-device migration checkpoint
