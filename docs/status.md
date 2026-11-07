@@ -1,3 +1,59 @@
+## 2026-11-07: sparse CAM timing iteration selected
+
+User authorized **candidate 1 only**, commit/push and one build, then measure
+before trying **candidate 2** (registered bus boundary). Implemented direct
+any-match/all-valid full detection and balanced lowest-hit/lowest-free slot
+trees in `ngage_sparse_regs.v`. Fixed per-slot tag writes preserve allocation
+order; padding cannot be allocated. Same byte-enabled M10K and read latency,
+full-table update/refusal, masks and reset semantics. No clock/PLL, SDC,
+timebase, firmware, bus-pipeline or other production RTL change.
+
+Original sparse test plus a new independent scoreboard pass for capacities
+**1/2/3/5/64**, each with directed fill/full update/refusal/read and 4,000
+random cycles. Covers full byte addresses, masks/zeroing, lowest-free order,
+reset, missing request/commit and synchronous read latency. Mixed-port
+same-address collision data stays unspecified and is verified on later reads.
+Integrated ARM/SIMIF/LCD DMA/fault/IRQ/FIQ/SDRAM-wait checks, absent/present
+SIMIF reference comparison and shared RTL synthesis lint pass. Fresh cold
+5M-cycle smoke matches PC **00006178**, 377714 accepted transfers, 18 known
+speculative fetch faults and **zero data faults**; no LCD yet. Formatting and
+whitespace checks pass. Commit/push and launch one timing measurement build.
+Logs: `scratch/timing-closure/pass3-cam/`.
+
+Measurement baseline is run42375426237 / 4040395: **52.09 MHz**, setup
+**-9.582 ns**, 33,857 ALMs, 457 M10Ks. New fitted improvement is unverified.
+User monitors the next action; do not watch/poll it. Wait for measurement before
+implementing option 2.
+
+## 2026-11-07: second timing result 52.09 MHz; awaiting next target choice
+
+Reviewed completed **42375426237 / 4040395** at user request. Artifact under
+`scratch/timing-closure/pass2-4040395/`. Core setup **-9.582 ns** (previous
+-10.023); slow-model Fmax **52.09 MHz** (50.92); TNS **-117903.504 ns**
+(-138677.094). Fitter: **33,857 ALMs / 81%**, 45,783 registers, **457 M10Ks /
+83%**. Saves 357 ALMs; adds 437 registers. Hold +0.184 ns and other reported
+metrics positive; HDMI setup only +0.079 ns. Fails the intended timing gate,
+not compilation. Still invalid at 104 MHz; no board timing sign-off.
+
+**929/1,000** newly exported paths traverse sparse CAM and shared unmodeled
+logic. Worst path: shared WB address -> sparse full/lookup -> unmodeled/ACK ->
+SIM FIFO occupancy/address. Other long paths continue from ACK into CPU/cache
+next-request generation and back into peripheral decode. Prior 969 paths were
+*touched*, not promised timing passes; improvement is modest because the
+critical predicate shifted to another device on the shared response path.
+
+User explicitly wants to **decide the next target before implementation**.
+Recorded options in `docs/timing-closure.md`: (1) derive sparse full directly
+from any-match/all-valid and balance indices without added latency; (2) proper
+registered request/response boundary to cut decode/ACK/next-request feedback,
+with exact-once commit and SWP/reset/fault handling; (3) stage/bank SIM response
+FIFO writes if still limiting. Recommend the small CAM/full split first, then
+bus pipelining if feedback remains. Slower phone interfaces/timebase research
+is separate; do not add false/multicycle exceptions to these CPU paths.
+
+No RTL changes, tests, commit/push or new build in this decision/review turn.
+Only evidence/status docs updated. User continues to monitor builds.
+
 ## 2026-11-07: Nokia clock rates recovered; read-only firmware audit
 
 Downloaded original **NEM-4**, Issue 2 Sep 2004, service chapters 6 and 7 via

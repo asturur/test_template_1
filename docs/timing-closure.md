@@ -1,5 +1,98 @@
 # MiSTer timing closure
 
+## Third iteration: sparse CAM/full split (2026-11-07)
+
+User selected candidate 1, then one measurement build; candidate 2 (registered
+bus boundary) must wait for those results. `ngage_sparse_regs.v` now derives
+full directly from `req && we && !any_hit && all_valid`. The shared fault/ACK
+predicate no longer depends on encoded signed-integer hit/free indices.
+Independent balanced lowest-index trees select the hit and free slots for
+payload and tag writes. Padding leaves are absent in both trees for non-power-
+of-two capacities. Each tag/valid slot has a fixed write enable, preserving
+lowest-free allocation without a dynamic integer-index write.
+
+Payload remains the same byte-enabled M10K, with the same address width, reset,
+new-word zeroing, hit-byte merge and synchronous read latency. Full tables can
+still update existing addresses and must refuse unrelated new addresses.
+No bus pipeline, timing exception, PLL/clock/timebase or firmware change.
+
+The original sparse-store test and a new independent queue/table scoreboard
+cover capacities 1, 2, 3, 5 and 64; full-table updates/refusal; all byte masks;
+full address identity; lowest-free allocation; read latency; reset; and
+withheld requests/commits. Same-address mixed-port RAM collision data remains
+unspecified, so the scoreboard checks those updated bytes on subsequent reads.
+Each capacity receives 4,000 randomized cycles plus directed fill/update/read.
+
+Validation and new physical timing results are recorded in `status.md`.
+Compare the next build against **52.09 MHz / -9.582 ns / 33,857 ALMs / 457
+M10Ks**, then decide the registered-bus experiment from the measured paths.
+Do not attribute all 929 prior traversals to proven timing passes.
+
+## Second measured result and decision point (2026-11-07)
+
+Completed **42375426237 / 4040395** fits and fails only the required timing
+step. Reports: `scratch/timing-closure/pass2-4040395/`. No new RTL or build
+was requested at this review/decision point.
+
+| Metric | Baseline 697f598 | First 2bcac9d | Second 4040395 |
+| --- | ---: | ---: | ---: |
+| Core setup slack, 104 MHz target | -43.702 ns | -10.023 ns | **-9.582 ns** |
+| Core slow-model Fmax | 18.76 MHz | 50.92 MHz | **52.09 MHz** |
+| Core setup TNS | -215405.214 ns | -138677.094 ns | **-117903.504 ns** |
+| ALMs | 33,832 | 34,214 | **33,857 (81%)** |
+| Registers | 44,523 | 45,346 | **45,783** |
+| M10Ks | 457 | 457 | **457 (83%)** |
+
+Last step gains 0.441 ns worst setup slack / 1.17 MHz Fmax (~2.3%); TNS
+magnitude falls ~15%. It saves 357 ALMs and adds 437 registers. All 1,000 newly
+selected paths still fail. Other worst metrics remain positive: hold +0.184,
+recovery +3.721, removal +0.952, minimum pulse +0.961 ns. HDMI setup is only
++0.079 ns on its own clock; do not overlook this small margin in future fits.
+
+**969 prior paths traversed code we changed, not 969 paths guaranteed fixed.**
+The new worst path still ends at SIM FIFO address capture, but now starts at
+shared WB address bit 17 and goes through sparse-register lookup/full logic,
+shared unmodeled/ACK, then SIM pop/space checks and FIFO address/write muxes.
+The representative CPU feedback path continues from sparse decode/fault ->
+WB ACK -> instruction-cache next state -> merger address mux -> sparse CAM.
+**929/1,000 detailed paths traverse both sparse CAM and shared unmodeled.**
+Maximum data delay in this subset is 18.536 ns, versus a 9.615 ns core period;
+small local decode changes alone are unlikely to close every such path.
+
+Concrete candidates, pending user selection:
+
+1. **Sparse CAM lookup/full split (small, preserves latency).** Current
+   `ngage_sparse_regs.v` priority-encodes hit/free indices into integers and
+   derives full from their signs. Derive full directly from any matching tag
+   and all-valid bits; select hit/free indices with a balanced lowest-index
+   tree. Preserve exact address identity, allocation order, byte merge/zeroing,
+   full-table refusal and synchronous payload latency. Test full-table update
+   versus new-address refusal, reset, duplicate-free allocation and multiple
+   sizes including non-power-of-two. This directly targets the newly dominant
+   shared ACK predicate, but may leave the bus feedback and SIM tail long.
+2. **Registered phone-bus request/response boundary (larger, structural).**
+   Capture the CPU request, decode held fields, commit downstream side effects
+   once, latch data/error and return a registered response. Keep response paired
+   with its request across waits and reset; retain SWP lock across bridge gaps.
+   This cuts the decode/ACK/next-request/decode chain. It adds external-access
+   latency, so rerun CPU/cache/abort/SWP/interrupt, board and cold firmware
+   checks, checking that warm cached ADD throughput stays one per clock.
+   Topology needs a deliberate change at ngage_upp/ngage_mister bus ownership;
+   registering ACK alone while repeatedly committing a held request is wrong.
+3. **SIM FIFO write path (remaining endpoint cost).** Even after /25 serial
+   increments were removed, multiple immediate byte writes still create FIFO
+   address/bypass muxes after occupancy checks. Consider a staged packet writer
+   or banked queue with explicit availability/busy semantics, tested against
+   the full SIM byte reference and concurrent-pop/saturation behavior. Treat
+   changed response visibility as a protocol change, not an equivalent rewrite.
+
+Suggested order: try the focused CAM/full split as a small measured iteration;
+then add the registered bus boundary if feedback remains dominant. Expect that
+reaching 104 MHz can require both and expose new paths outside this 1,000-endpoint
+subset. Slower physical flash/MMC/SIM clocks are separate evidence, not grounds
+for relaxing these CPU-domain paths. Timer-rate correctness can proceed as a
+separate experiment after the current decision; it does not itself fix setup.
+
 ## Measured first result and second optimization (2026-11-07)
 
 Completed run **42372012944 / 2bcac9d** fits and exports reports correctly;
