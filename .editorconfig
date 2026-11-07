@@ -1,0 +1,11 @@
+root = true
+
+[Template.sv]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+
+[rtl/ngage*.{v,sv}]
+indent_style = space
+indent_size = 4
+insert_final_newline = true

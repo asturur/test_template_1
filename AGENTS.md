@@ -19,3 +19,7 @@
 - Give each relevant physical NEM-4 chip at least one distinct HDL module, organized using `docs/chip-inventory.md`. The phone board connects chip modules; a chip module may contain smaller functional blocks. Explicitly mark unimplemented components rather than inventing behavior.
 - Name and model inter-chip signals after the schematics when known. Mark transaction-level shortcuts, guessed directions, timings and missing pin behavior explicitly; do not invent physical behavior or silently connect experimental protocol stubs.
 - Keep new HDL Verilog-2001 compatible. Preserve existing behavior and run relevant chip, board and CPU integration tests when changing boundaries.
+
+## RTL readability
+
+- Keep maintained phone RTL and `Template.sv` readable according to `docs/rtl-style.md`: explicit ports, aligned connections, separated statements and four-space indentation. The reproducible formatter is `tools/format_phone_rtl.py` with `.rules.verible_format`. Preserve imported-source styles.

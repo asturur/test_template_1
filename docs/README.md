@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [rtl-style.md](rtl-style.md) | Phone RTL formatting rules and reproducible formatter/check command |
 | [status.md](status.md) | Current development checkpoint and ordered resume work |
 | [TODO.md](TODO.md) | Assumptions and shortcuts to replace, with evidence and validation |
 | [lcd-command-evidence.md](lcd-command-evidence.md) | Fresh HDL LCD fixture, decoded window framing and unresolved initialization commands |
