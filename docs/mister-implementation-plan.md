@@ -325,6 +325,12 @@ Compare the new run's ordered device accesses, flash digest/identify, boot regis
 
 ### 7.6. Load original service firmware and independent raw user storage
 
+**2026-11-07 partial implementation:** firmware-only7.6a/b is implemented and
+compared to current backing through actual hps_io/DDR simulation. Original
+boot/boot1 files now replace the top-level NGB input. User selected retaining
+NGA C:/PMM on S0 and diagnostics on S1 for this slice. Independent raw devices
+below remain deferred; hardware and post-fit loader acceptance are still open.
+
 Detailed, source-audited work packages 7.6a–7.6e, mapping feasibility evidence,
 MiSTer automatic load-order handling and odd-byte transport constraints:
 [service-firmware-loader-plan.md](service-firmware-loader-plan.md).

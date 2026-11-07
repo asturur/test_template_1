@@ -1,3 +1,42 @@
+## 2026-11-07: original boot/boot1 firmware loader, existing NGA retained
+
+Firmware-only slice of7.6: `rtl/ngage_service_loader.v` is connected in
+`Template.sv`/QIP. Original audited4.03 `nem440.3c1` -> `boot.rom`,
+`nem440.326` -> `boot1.rom`, unchanged bytes. Automatic indices00/40 and
+manual F1 MCU/F2 PPM; no top-level NGB load. Both slots must validate after
+all DDR acknowledgements before CPU release. Fixed-profile bounded prefix
+skip + full-container CRC/length, per-record checksums/range checks, byte
+unpacker and registered DDR writes. First load clears firmware backing only;
+reload clears selected ownership and preserves the other slot. Failure holds
+CPU until valid reload, with no rollback claim. Live read descrambler unchanged.
+
+C:/PMM **still use the existing NGA on S0**, diagnostics S1; no raw storage
+migration. Loader cannot write either user region. Existing reload protection
+blocks mounted/busy/error saves. Save header service profile0 accepts seed IDs
+1/2 only with the same exact hash fields, size, CRC and reserved padding;
+legacy profile checks retain exact ID matching. Mount after both files load.
+
+Maintained host oracle `tools/service_firmware.py` verifies all2435 records and
+all20,905,984 raw backing bytes against current core.bin + extension.bin for
+both orders and same-slot reloads. Combined SHA-256:
+`88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329`.
+Initial actual-hps_io/DDR test passes both automatic numbered-first and manual
+opposite orders, full backing/decoded-read comparisons, reload/error recovery,
+odd EOF, malformed records, abort/reset, stalls and C:/PMM/guard preservation.
+Final run also passes EOF before final DDR acknowledgement:580,149,346 clocks,
+90,689,248 accepted DDR writes. Save header IDs1/2 and rejection of unknown ID3
+pass. Actual hps_io + NOR/DDR persistence passes restore/flush/remount with
+concurrent S1 (22 reads/9 writes), and full4MiB C:/64KiB PMM last-sector/reload
+checks pass with service profile0. Legacy loader/DDR tests still pass.
+Top structural elaboration and Quartus source preflight pass; RTL uses
+Verilog-2001 constructs and formatter checks pass.
+
+Evidence: `scratch/service-rom-loader/validation/`, generated tests
+`build/sim/service-loader/`. Independent firmware-only commit; timing build
+42400361438 remains at7d80fc6 and is not monitored or replaced. Raw independent
+C.img/PMM.img work7.6c onward is deferred. Real Main/board acceptance and new
+loader STA remain unverified; no new cold logo/long-checkpoint claim.
+
 ## 2026-11-07: implement paced SIM, minimal LCD and cache metadata fix
 
 User selected slower SIM enable/registers and full-speed cache repair; then

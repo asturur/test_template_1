@@ -2,8 +2,53 @@
 
 ## Scope and difficulty
 
-Implementation plan for milestone 7.6, requested 2026-11-07. No production
-loader, persistence or OSD change is implemented by this planning work.
+Implementation plan for milestone 7.6, requested 2026-11-07. The first
+firmware-only slice is now implemented; independent raw persistence remains
+planned below.
+
+## Implemented firmware-only slice (2026-11-07)
+
+`rtl/ngage_service_loader.v` replaces the NGB download path in `Template.sv`.
+Only the audited 4.03 pair is supported: copy the original `nem440.3c1` to
+`boot.rom` and `nem440.326` to `boot1.rom` in the core's configured game folder.
+These are unchanged service containers, not renamed assembled binaries.
+Automatic indices00/40 and OSD F1 MCU/F2 PPM selectors are supported. Either
+order works; each slot can be reloaded independently before mounting a save.
+Legacy NGB remains a host migration/seed format and a tested old loader module,
+but is no longer a top-level firmware input.
+
+For this narrow slice **keep the existing NGA on S0 and diagnostics on S1**.
+Load both firmware slots, then mount the existing working save. There are no
+new raw C:/PMM files or block-device changes. Service loading never writes the
+C:/PMM backing regions or guard. `ngage_save_header` profile0 accepts either
+existing seed-provenance ID1/2 with the same exact firmware SHA fields, header
+CRC, sizes and reserved words; legacy callers1/2 still require an exact ID.
+NGA contents are never rewritten to migrate the profile. Firmware reload is
+still blocked while a save is mounted, busy or in error. Phone reset retains
+loaded firmware; only cold transport reset clears the two valid bits.
+
+The HDL parser is deliberately fixed-profile: it skips exactly0x2def2 MCU
+prefix bytes or0xd9 PPM prefix bytes, rather than searching markers or running
+the host flashing algorithm. The full container length/CRC validates every
+skipped byte. The maintained host oracle additionally parses bounded TLVs,
+checks the exact algorithm preamble/length/tail boundary and canonical SHA-256.
+Data records have bounded lengths, header/payload checksums and whole-record
+firmware-range checks. Byte unpacking handles odd offsets and PPM's one zero
+transport pad. The first load erases only firmware backing toFF; subsequent
+loads clear only the selected slot's fixed ownership, preserving the other
+slot. Registered DDR requests drain before slot validity; failures invalidate
+the slot with no rollback, keeping the CPU held until a valid reload.
+
+Run the read-only host comparison with `python3 tools/service_firmware.py`.
+Run `tests/phone/service_loader/run.sh` inside `jotego/simulator:arm64` for actual
+hps_io + production DDR adapter verification; outputs are under
+`build/sim/service-loader/` and small retained logs under
+`scratch/service-rom-loader/validation/`. See latest status for measured results.
+The hps_io simulation uses only the existing test-only PS/2 scope qualification;
+file-transfer logic is unchanged. Real Main auto-loading, board acceptance and
+post-fit loader timing remain unverified. No new long-run checkpoint is claimed.
+
+## Remaining complete-workflow scope
 
 This is a **moderate loader/storage refactor**, not a CPU redesign. The address
 translation is small and already understood. The main work is a byte-stream

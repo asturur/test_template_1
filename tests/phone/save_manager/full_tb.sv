@@ -5,7 +5,7 @@ wire mounted,saving,saved,error,mv,mw;wire [31:0] ma,md,lba;wire [3:0] mb;reg m_
 wire rd,wr,ack;wire [12:0] ha;wire [15:0] hd;wire hwe;wire [15:0] hout;
 reg [31:0] ram[0:1064959];reg [15:0] disk[0:2130175];reg [15:0] header[0:255];
 reg [1:0] hs=0;reg hop_read=0;reg [8:0] idx=0;reg [31:0] held_lba=0;integer i;
-ngage_save_manager #(.SD_TIMEOUT(5000)) dut(clk,reset,mount,1'b0,64'd4260352,1'b1,2'd1,
+ngage_save_manager #(.SD_TIMEOUT(5000)) dut(clk,reset,mount,1'b0,64'd4260352,1'b1,2'd0,
  256'h24b589715a8ddf962b0d8974aec0651f1d3ab9a83888b524f481fff5cd2e8bbe,
  256'hf36c44302d1797f385c9f33f5c4f1e2b37247652ee21fc6408f00dc9390b6ecb,
  dv,di,flush,mounted,saving,saved,error,,mv,1'b1,mw,ma,md,mb,m_done,mr,lba,rd,wr,ack,ha,hd,hwe,hout,1'b1);

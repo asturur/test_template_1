@@ -48,7 +48,8 @@ module emu (
         "-;",
         "O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
         "-;",
-        "F0,NGB,Load firmware bundle;",
+        "F1,ROM,Load MCU service firmware;",
+        "F2,ROM,Load PPM service firmware;",
         "S0,NGA,Mount working save;",
         "S1,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
@@ -71,7 +72,7 @@ module emu (
     wire [ 10:0] ps2_key;
     wire [ 31:0] joystick_0;
 
-    // One validated versioned bundle (core, extension, C: and PMM).
+    // Original MCU/PPM service containers; C:/PMM restore from the mounted NGA.
     wire        ioctl_download;
     wire        ioctl_wr;
     wire [26:0] ioctl_addr;
@@ -327,7 +328,7 @@ module emu (
         .sdram_cke (SDRAM_CKE)
     );
 
-    ///////////////////////   DDR3 bundle transport   ////////////////
+    ///////////////////////   DDR3 firmware transport   ////////////////
     // 0x30000000 is a candidate Main DDR reservation; hardware use is
     // prohibited until checked against the installed Main/Linux memory map.
     assign DDRAM_CLK      = clk_sys;
@@ -340,20 +341,25 @@ module emu (
     wire save_mounted, save_saving, save_saved, save_error, save_busy;
     // Do not replace backing memory while a save is mounted or being processed.
     wire bundle_download, blocked_load;
+    // Main uses 00/40 for boot.rom/boot1.rom; F1/F2 are manual selectors.
+    wire firmware_request = ioctl_download && (ioctl_index == 0 || ioctl_index == 16'h40 ||
+                                               ioctl_index == 1 || ioctl_index == 2);
+    wire firmware_ppm = ioctl_index == 16'h40 || ioctl_index == 2;
     ngage_bundle_gate bundle_gate (
         .clk         (clk_sys),
         .reset       (transport_reset),
-        .request     (ioctl_download && ioctl_index == 0),
+        .request     (firmware_request),
         .save_mounted(save_mounted),
         .save_busy   (save_busy),
         .save_error  (save_error),
         .download    (bundle_download),
         .blocked     (blocked_load)
     );
-    ngage_loader loader (
+    ngage_service_loader loader (
         .clk           (clk_sys),
         .reset         (transport_reset),
         .download      (bundle_download),
+        .ppm           (firmware_ppm),
         .wr            (ioctl_wr),
         .addr          (ioctl_addr),
         .data          (ioctl_dout),
@@ -366,9 +372,12 @@ module emu (
         .mem_data      (load_data),
         .mem_be        (load_be),
         .mem_done      (load_done),
-        .image_profile (loader_profile),
-        .known_firmware(loader_known_firmware)
+        .failure_reason()
     );
+    // Service files contain no PMM-seed choice. Both existing NGA profile
+    // IDs are accepted only with the same audited firmware hashes.
+    assign loader_profile        = 0;
+    assign loader_known_firmware = loader_valid;
     wire [31:0] core_ddr_addr;
     wire core_ddr_rd, core_ddr_wr;
     wire [31:0] core_ddr_din;
@@ -470,9 +479,9 @@ module emu (
         .ddr_dout_ready(DDRAM_DOUT_READY)
     );
 
-    // Only the audited stock core/extension are currently supported. The loader
-    // verifies their CRCs; these SHA values bind the mounted save header to that
-    // profile but are not computed in FPGA (CRC is not cryptographic identity).
+    // Only the audited stock service pair is supported. Full-container CRCs
+    // identify its transfer/profile; host verification proves assembled backing
+    // matches these save-header SHA values. FPGA does not compute SHA-256.
     reg flush_prev = 0;
     always @(posedge clk_sys) flush_prev <= status[14];
     ngage_save_manager saves (

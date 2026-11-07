@@ -1,5 +1,15 @@
 # MiSTer flash and working save
 
+**2026-11-07 firmware-only update:** top-level firmware input is now the original
+4.03 service pair: `nem440.3c1` copied unchanged as `boot.rom`, `nem440.326` as
+`boot1.rom`. MCU/PPM manual selectors are also available; either order works.
+Load both first, then mount the existing `.nga` on S0. C:/PMM layout, save/flush
+behavior and S1 diagnostics are unchanged. Both existing seed-profile IDs are
+accepted against the verified service pair's unchanged firmware hashes. NGB
+creation below remains useful only for creating a disposable NGA or older RBFs;
+the new top no longer takes NGB as firmware. Real board validation is pending.
+See [service loader evidence and remaining plan](service-firmware-loader-plan.md).
+
 **Phase A result (2026-11-06):** The actual-HPS, NOR/DDR, full-size save and bundle, reset/dirty and concurrent diagnostic-disk simulations pass; see the latest [status checkpoint](status.md). The mount indication is now edge-detected and a clean zero-size unmount is supported. On the diagnostic raster, the save cell is gray when unmounted, amber when dirty, cyan when saving, green when saved and red on error. The operator must explicitly select **Flush working save** and wait for green before treating the image as flushed. Real Main, media and controlled power-cycle verification remain phase B and have not been performed; a sudden power loss may lose unflushed data.
 
 The NGA image is 4,260,352 bytes: header at file offsets `0x000000–0x0001ff` (LBA 0), C: at `0x000200–0x4001ff` (LBAs 1–8192), and PMM at `0x400200–0x4101ff` (LBAs 8193–8320). Mount the separately created working image on S0; S1 is the separate diagnostic disk. Bundle seeds initialize a newly created save only. A mounted save supplies the authoritative C:/PMM bytes.
@@ -28,7 +38,7 @@ python3 tools/prepare_mister_save.py create scratch/working.ngb scratch/working.
 python3 tools/prepare_mister_save.py inspect scratch/working.nga --bundle scratch/working.ngb
 ```
 
-The intended OSD flow is to load the NGB bundle first, mount the NGA working save, and use **Flush working save** after changes. This flow is not yet tested on a real MiSTer. The processor remains held while later board/peripheral milestones are incomplete.
+The current OSD flow is to load both service containers first, mount the NGA working save, and use **Flush working save** after changes. This flow is not yet tested on a real MiSTer. The processor remains held while later board/peripheral milestones are incomplete.
 
 ## Verification
 

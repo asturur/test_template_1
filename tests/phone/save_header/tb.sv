@@ -13,6 +13,12 @@ initial begin
  mem[20]=mem[20]^1;run();if(valid)$fatal(1,"corrupt header accepted");
  mem[20]=mem[20]^1;profile=2;run();if(valid)$fatal(1,"wrong profile accepted");
  profile=1;ext[0]=!ext[0];run();if(valid)$fatal(1,"wrong firmware accepted");
- $display("PASS save header profile, hashes and CRC");$finish;
+ ext[0]=!ext[0];profile=0;run();if(!valid)$fatal(1,"service pair rejected profile 1");
+ $readmemh("build/sim/unit-save-header/header2.hex",mem);
+ run();if(!valid)$fatal(1,"service pair rejected profile 2");
+ profile=1;run();if(valid)$fatal(1,"legacy profile accepted mismatched profile 2");
+ profile=0;$readmemh("build/sim/unit-save-header/header3.hex",mem);
+ run();if(valid)$fatal(1,"service pair accepted unknown seed profile");
+ $display("PASS save header legacy/service profiles, hashes and CRC");$finish;
 end
 endmodule

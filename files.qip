@@ -69,7 +69,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_rom_map.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_lanes.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_adapter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_arbiter.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_loader.sv
+set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
 
 # ARM920-shaped cache is the development default; FPGA fit/timing remain unverified.
 set_global_assignment -name VERILOG_MACRO "NGAGE_ASSOC_EXPERIMENT=1"

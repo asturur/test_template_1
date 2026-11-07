@@ -16,7 +16,7 @@ hps_io #(.CONF_STR("test"),.WIDE(1),.VDNUM(2),.PS2DIV(1)) hps(.clk_sys(clk),.HPS
  .sd_buff_addr(ha),.sd_buff_dout(hd),.sd_buff_din(hi),.sd_buff_wr(hwe),.ioctl_wait(1'b0),.ioctl_upload_req(1'b0),.ioctl_upload_index(8'b0),.ioctl_din(16'b0),
  .status_in(128'b0),.status_set(1'b0),.status_menumask(16'b0),.info_req(1'b0),.info(8'b0),.video_rotated(1'b0),.new_vmode(1'b0),
  .joystick_0_rumble(16'b0),.joystick_1_rumble(16'b0),.joystick_2_rumble(16'b0),.joystick_3_rumble(16'b0),.joystick_4_rumble(16'b0),.joystick_5_rumble(16'b0));
-ngage_save_manager #(.C_SECTORS(2),.PMM_SECTORS(2),.SD_TIMEOUT(100000)) save(.clk(clk),.reset(reset),.mount(mounts[0]),.readonly_image(readonly_image),.image_size(size),.bundle_verified(1'b1),.profile(2'd1),.core_sha_le(core),.extension_sha_le(extension),
+ngage_save_manager #(.C_SECTORS(2),.PMM_SECTORS(2),.SD_TIMEOUT(100000)) save(.clk(clk),.reset(reset),.mount(mounts[0]),.readonly_image(readonly_image),.image_size(size),.bundle_verified(1'b1),.profile(2'd0),.core_sha_le(core),.extension_sha_le(extension),
  .dirty_valid(dirty),.dirty_sector(dirty_sector),.flush_start(flush),.mounted(mounted),.saving(saving),.saved(saved),.error(error),.busy(busy),
  .mem_valid(mv),.mem_ready(1'b1),.mem_write(mw),.mem_addr(ma),.mem_data(mdata),.mem_be(mbe),.mem_done(mdone),.mem_rdata(mr),
  .sd_lba(lba[0]),.sd_rd(rd[0]),.sd_wr(wr[0]),.sd_ack(ack[0]),.hps_addr(ha),.hps_dout(hd),.hps_we(hwe),.hps_din(hi[0]),.flash_quiescent(1'b1));

@@ -73,11 +73,16 @@ module ngage_save_header #(
         else if (busy) begin
             read_wait <= 0;
             if (address < 254) begin
-                if (word_data != expected) mismatch <= 1;
+                // Profile zero means the verified service pair: seed provenance
+                // comes from the unchanged NGA header (1=erased, 2=seeded).
+                // All firmware hashes, sizes, reserved words and CRC still match.
+                if (address == 6 && profile == 0) begin
+                    if (word_data != 1 && word_data != 2) mismatch <= 1;
+                end else if (word_data != expected) mismatch <= 1;
                 crc <= crc_byte(crc_byte(crc, word_data[7:0]), word_data[15:8]);
             end else if (address == 254) crc_low <= word_data;
             else begin
-                valid<=!mismatch && (profile==1 || profile==2) && ({word_data,crc_low}==(crc^32'hffffffff));
+                valid<=!mismatch && (profile==0 || profile==1 || profile==2) && ({word_data,crc_low}==(crc^32'hffffffff));
                 busy <= 0;
                 done <= 1;
             end
