@@ -1,5 +1,101 @@
 # MiSTer timing closure
 
+## Ninth implementation: registered cache lookup and coherent commit
+
+Both I/D instances retain 16 KiB, eight segments, 64 ways, 32-byte lines,
+MVA tags, stored physical writeback addresses and two dirty halves. The shared
+bank now separates these paths:
+
+1. The tag RAM reads a segment while registers snapshot its valid/dirty bits,
+   replacement index and victim flags. This removes the live segment flag mux
+   from the post-RAM compare path.
+2. Parallel comparisons register a 64-bit match vector with the request MVA,
+   dirty bits and victim physical address. The existing balanced priority tree
+   and one-hot priority selection consume this record, preserving lowest-way
+   duplicate priority.
+3. A mutation pulse captures a complete commit record. The bank records segment,
+   way, byte enables and payload; tags record MVA, physical address, selected
+   ways, operation qualifiers and replacement mode. Refill versus store selects
+   the payload from the operation type, independently of permission. Permission
+   qualifies the recorded write mask. Live inputs cannot redirect a pending write.
+4. The following edge writes line RAM, tag RAM, physical address and flags
+   together. Replacement advances on this edge. Reset, global invalidation,
+   lockdown or indexed maintenance suppress both halves of a pending mutation.
+
+Flags remain resettable registers; storage primitives and geometry are unchanged.
+This deliberately avoids a new flag-RAM read/modify/write and collision protocol.
+The full-cache associative lookup is still serialized. Tag result latency is two
+edges instead of one; selected data is available after a third edge. The debug
+physical-hit query still follows the tag result by one edge. Indexed scan latency
+is unchanged. Direct callers must pulse mutations, drain the commit edge, then
+allow a fresh read/compare/data sequence before consuming results; the focused
+fixtures explicitly wait four edges after a mutation pulse. Collision-cycle RAM
+outputs are not architectural results and are not used by the controller.
+
+`cache_access` inserts LOOKUP_WAIT and MAINT_WAIT, and reports stores only on
+STORE_COMMIT. A buffered store is enqueued once before this completion stage.
+`cache_refill` inserts COMPARE_WAIT and COMMIT; its done pulse follows the actual
+commit edge, then the access controller waits for a fresh lookup. Cached bus
+errors still retain/retry victims; write-buffer acceptance and bus ownership
+rules are unchanged. The adapter consumes ready/response/done handshakes and
+needs no fixed-cycle change. SWP lock, abort and MMU permission logic is unchanged.
+
+Streaming requests carry pending/address context through the extra comparison
+stage. The two streaming line slots remain separate from the full cache; a
+serialized access or maintenance flushes them, and a completed read can prime
+one slot. Cold latency increases, while a resident streaming hit retains the
+existing one-instruction-per-cycle path. ZAP patch 0041 advances lookahead from
+eight to twelve bytes for the extra stage. The first implementation left it at
+eight bytes and failed the unchanged warm ADD assertion (five-cycle intervals
+at a line boundary); the corrected version measures min=max=1 over 120 warm
+samples with both zero and three memory waits. Keep that failed attempt as a
+regression explanation, not as accepted throughput.
+
+Validation evidence is recorded under `scratch/timing-closure/pass9-cache-pipeline/`.
+Fresh real-SDRAM 5M boot passes at PC `00006170`, 306874 bus transfers,
+12 known speculative fetch faults and zero data faults. Baseline was PC
+`00006160` and 326761 transfers. The cycle-free board trace has 845 events versus
+962: all 121 writes match in order and every field; the full current sequence
+is the baseline sequence with exactly 117 reads of `0x0c004778` / `0xe18030b4`
+removed. This is consistent with changed speculative instruction-fetch timing,
+not byte-identical execution. `compare_boot.py` and `boot-comparison.json`
+retain the comparison and first difference. This is early boot only, not a new
+cold-logo result or validation of the peripheral model against a phone.
+
+The instruction-TLB ordering fixture initially lost its required overlap.
+Tracing showed the descriptor queued at cycle2592, accepted at2631, and the
+instruction walk starting at2693, after intervening cold sequential fetches.
+Raising all memory waits from20 to40 or100 did not restore the hazard. The
+fixture now explicitly prefetches four sequential lines before issuing the
+buffered descriptor store and inserts four NOPs before the branch. Its original
+20-cycle delay, nonzero-overlap assertion and descriptor/result checks are
+retained; it also passes at100 waits. Prefetching without the NOPs exposed an
+instruction-walk/store-enqueue race that also fails with unchanged baseline RTL
+(603fd8b); that is not repaired by this cache change. The fixture ensures its
+intended older-write ordering scenario rather than relying on cold-fetch timing.
+The warmed no-NOP reproducer and baseline failure are retained as
+`order-prefetch-abort.S` and `icache-order-warm-baseline.log`; separately audit
+whether software synchronization or CPU-side ordering is required there. Temporary
+trace instrumentation was removed; `order-full.log` preserves the diagnosis.
+
+Validation completes with119 CPU/cache PASS and one expected legacy direct-map
+XFAIL. The main run passed100 cases before the fixture's missing-overlap check;
+`cpu-tail.sh` repeats the corrected fixture and the remaining18 cases using the
+unchanged commands from `tests/cpu/run.sh` (`CPU_BUS_BRIDGE=1`). No assertions
+were relaxed. Board SIM/DMA/IRQ/FIQ/local-fault integration, fresh real-SDRAM
+boot, structural top elaboration, Quartus source-graph preflight, formatting
+and exact pinned-upstream-plus-patches verification pass. `summary.json` and
+`source-hashes.json` record final coverage/source identity. Implementation is
+fcb7dc2, with the fixture adjustment separately committed as110b22d.
+
+The timing consequence is **unmeasured**: no FPGA build was launched. The last
+fit remains 8395967, 68.32 MHz and -5.021 ns setup. Added registers and the remaining
+selection/enable trees require full fitted setup/hold/recovery/removal/pulse and
+resource review. Audit both cache instances across all exported path families.
+The separate peripheral staging-RAM ownership path (-4.903 ns in that fit) is
+unchanged; cache improvements alone cannot establish full-core 104 MHz closure.
+No firmware, peripherals, constraints or historical checkpoint lineage changed.
+
 ## Eighth fit: 68.32 MHz, cache transaction-pipeline rewrite recommended
 
 Reviewed completed42411324930 /8395967. Fmax **68.32MHz** versus65.40;

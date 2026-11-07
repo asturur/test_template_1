@@ -198,6 +198,16 @@ screen. Upstream-reference builds disable these connections explicitly via
 `NGAGE_NO_CPU_DEBUG`, because pristine upstream lacks the observation ports.
 Fetch observations are not an architectural retirement trace.
 
+## 0041: registered cache comparison lookahead
+
+The shared associative bank adds a comparison register between tag and data
+reads. Advance resident-line lookahead from eight to twelve bytes (three ARM
+words) to cover the three-stage lookup. Keeping eight bytes caused a five-cycle
+warm ADD interval at a line boundary in `cpu_timing`; that failed approach is
+retained in `scratch/timing-closure/pass9-cache-pipeline/cpu-first-attempt.log`.
+Current-request translation and permission checks still qualify completion;
+lookahead only reads cache storage and cannot initiate bus traffic or allocation.
+
 ## Verification and limits
 
 ```sh

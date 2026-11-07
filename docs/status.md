@@ -1,3 +1,48 @@
+## 2026-11-07: cache lookup/commit redesign implemented; fitted timing pending
+
+Shared I/D cache geometry and ARM920 policies are preserved. Tag RAM reads now
+snapshot segment flags/victim context, parallel tag comparisons are registered,
+and bank data plus tag/dirty/replacement changes use coherent captured commit
+records. Payload selection uses refill/store intent rather than late permission.
+Data and metadata publish on the same edge; reset/invalidation/maintenance cancel
+pending mutations together. Storage primitives, firmware and peripherals remain
+unchanged. Details and latency contract: `docs/timing-closure.md`, ninth implementation.
+
+Serialized lookup and MVA maintenance gain a compare wait; stores and refills
+complete after the commit edge. Fast lookup address/valid context follows the
+extra stage. ZAP patch0041 extends resident lookahead from8 to12 bytes. Leaving
+it at8 failed warm ADD throughput (five-cycle boundary stalls); corrected
+lookahead passes the original one-cycle assertion at0/3 memory waits. The
+adapter's completion, MMU/abort and SWP handshakes remain intact.
+
+Fresh real-SDRAM5M boot passes PC00006170,306874 transfers,12 known speculative
+fetch faults,zero data faults. Compared to the earlier baseline, all121 board
+writes match in order/value;845 events equal the baseline962-event sequence
+with117 repeated instruction-word reads at0c004778 removed (ignoring cycle
+stamps). This is consistent with changed speculative fetch timing, not an
+identical trace or new cold-logo result. Existing checkpoint pairs/executables
+remain untouched and must not be restored into changed HDL.
+
+Evidence: `scratch/timing-closure/pass9-cache-pipeline/`; includes failed first
+throughput attempt, corrected timing results, boot trace/comparison script/JSON,
+source hashes and regression logs. CPU/cache coverage completes with **119 PASS
+and one expected legacy direct-map XFAIL**:100 passes in the main run, then the
+corrected instruction-walk fixture plus18 remaining cases in `cpu-tail.log`.
+Warm ADD remains1 cycle at0/3 waits. Board SIM/DMA/IRQ/FIQ/local-fault integration,
+real-SDRAM early boot, structural top elaboration, source graph, formatter and
+ZAP patch-series verification pass. The fixture retains its20-wait overlap
+assertion; warming four sequential lines and four NOPs remove cold-fetch timing
+dependence. A warmed no-NOP table-update case also aborts with baseline603fd8b;
+its reproducer is retained for a separate synchronization/CPU-ordering audit.
+Implementation commitfcb7dc2; fixture adjustment110b22d; prior fit review603fd8b.
+
+No FPGA build or dispatch. Last measured fit remains8395967:68.32MHz,
+setup-5.021ns. Added registers, remaining selection logic and full-design
+resource use require a newly authorized fit. The independent peripheral
+staging-RAM ownership path (-4.903ns) is unchanged. **104MHz is unproven.**
+Next: review both cache instances/all top1000 families and full timing/resource
+checks when the user supplies a completed fit; no automatic build authorization.
+
 ## 2026-11-07: fit68.32 MHz exposes structural cache/refill bottleneck; rewrite handoff
 
 Reviewed completed42411324930 /8395967. Fmax **68.32MHz** versus65.40;
