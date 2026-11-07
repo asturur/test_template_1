@@ -1,6 +1,8 @@
 module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,start=0;reg [1:0] profile=1;reg [255:0] core,ext;wire [7:0] addr;reg [15:0] mem[0:255];wire busy,done,valid;
-ngage_save_header dut(clk,reset,start,profile,core,ext,addr,mem[addr],busy,done,valid);
+reg [15:0] word_q;
+ngage_save_header dut(clk,reset,start,profile,core,ext,addr,word_q,busy,done,valid);
+always @(posedge clk) word_q <= mem[addr];
 task tick;begin @(posedge clk);#1;end endtask
 task run;begin @(negedge clk);start=1;tick();@(negedge clk);start=0;wait(done);#1;end endtask
 integer i;

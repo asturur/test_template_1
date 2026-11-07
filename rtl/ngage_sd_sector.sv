@@ -26,15 +26,35 @@ module ngage_sd_sector #(
     output wire [15:0] hps_din
 );
     localparam IDLE = 0, WAIT_ACK = 1, WAIT_END = 2, FAILED = 3;
-    reg     [ 1:0] state = IDLE;
-    reg     [15:0] bufmem         [0:255];
-    reg            op_write = 0;
-    integer        timer = 0;
-    reg     [ 8:0] read_count = 0;
-    reg            read_error = 0;
+    reg [1:0] state = IDLE;
+    wire [15:0] local_q, hps_q;
+    reg           hps_out_of_range;
+    reg           op_write = 0;
+    integer       timer = 0;
+    reg     [8:0] read_count = 0;
+    reg           read_error = 0;
     assign ready      = state == IDLE && !reset;
-    assign local_dout = bufmem[local_addr];
-    assign hps_din    = (hps_addr < 256) ? bufmem[hps_addr[7:0]] : 16'hffff;
+    // Both read ports have one clock of latency. HPS_IO keeps its address
+    // stable between transfers; local consumers explicitly prefetch words.
+    assign local_dout = local_q;
+    assign hps_din    = hps_out_of_range ? 16'hffff : hps_q;
+    wire host_write = hps_we && !op_write && (state == WAIT_ACK || state == WAIT_END) &&
+        hps_addr < 256 && hps_addr == {4'b0, read_count};
+    ngage_bram #(
+        .AW(8),
+        .DW(16)
+    ) buffer (
+        .clk   (clk),
+        .addr_a(local_addr),
+        .data_a(local_din),
+        .we_a  (!reset && local_we && state == IDLE),
+        .q_a   (local_q),
+        .addr_b(hps_addr[7:0]),
+        .data_b(hps_dout),
+        .we_b  (!reset && host_write),
+        .q_b   (hps_q)
+    );
+    always @(posedge clk) hps_out_of_range <= hps_addr >= 256;
     always @(posedge clk) begin
         done  <= 0;
         error <= 0;
@@ -44,12 +64,10 @@ module ngage_sd_sector #(
             sd_wr <= 0;
             timer <= 0;
         end else begin
-            if (local_we && state == IDLE) bufmem[local_addr] <= local_din;
             if (hps_we && !op_write && (state == WAIT_ACK || state == WAIT_END)) begin
                 if (hps_addr >= 256 || hps_addr != {4'b0, read_count}) read_error <= 1;
                 else begin
-                    bufmem[hps_addr[7:0]] <= hps_dout;
-                    read_count            <= read_count + 1'b1;
+                    read_count <= read_count + 1'b1;
                 end
             end
             case (state)

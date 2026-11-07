@@ -45,3 +45,15 @@ Current file layout is custom NGA, not a FAT disk: LBA0 is the save header, LBA1
 Audit checks passed: `tests/phone/sd_sector/run.sh`, `tests/phone/save_manager/run.sh`, and `tests/phone/diag_export/run.sh` inside the existing simulator image. The last includes actual local `hps_io` mount/LBA/ack/buffer traffic for diagnostic writes (with only the documented test-only PS/2 scope adjustment). Logs: `scratch/mister-block-device-audit/tests.log`. No new firmware simulation, synthesis or hardware write was performed.
 
 **Historical C: acceptance gate (phase A now passed; real-hardware phase B remains):** extend real-hps_io coverage to C:/PMM header/restore, dirty-sector writes and remount, including first/last C: sectors, adjacent PMM boundaries, both virtual devices active, read-only/zero-size mount, delayed ack, media replacement and a mutation during flush. Existing full-size tests use a modeled HPS peer; the actual-hps_io diagnostic test does not validate the complete C: save path. Then repeat with installed MiSTer Main and disposable host image: load, make a reversible guest change, flush, reset/remount and power cycle after Saved, compare resulting image bytes. Do not claim hardware persistence until that passes. If automatic saving is wanted, add and test bounded background dirty-sector flushing separately from this protocol conformance gate.
+
+## Explicit block RAM buffers
+
+Sector buffers and the dirty bitmap use explicit Cyclone V M10K primitives.
+Both local and HPS buffer reads have one clock of latency; HPS transfer strobes
+are spaced sufficiently by the actual local `hps_io` protocol. The save bridge
+prefetches each low/high halfword, and the header validator waits after each
+address change. No per-word backpressure or shortened ACK lifetime was added.
+Diagnostic snapshots and trace readout are synchronous as well. Actual HPS
+save/NOR/DDR and diagnostic-export regressions check this timing; changing the
+RAM interface requires rerunning them. See `quartus-memory-audit.md` for the
+wrapper, collision handling and resource-validation limits.

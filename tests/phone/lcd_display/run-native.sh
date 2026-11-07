@@ -2,7 +2,7 @@
 set -eu
 out=build/sim/unit-lcd-native
 mkdir -p "$out"
-iverilog -g2005 -s tb -o "$out/test" rtl/ngage_lcd_display.v tests/phone/lcd_display/native_tb.v
+iverilog -g2005 -s tb -o "$out/test" rtl/ngage_bram.v rtl/ngage_lcd_display.v tests/phone/lcd_display/native_tb.v
 vvp "$out/test" > "$out/run.log"
 cat "$out/run.log"
 grep -q '^PASS native 176x208' "$out/run.log"

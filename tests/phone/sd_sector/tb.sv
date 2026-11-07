@@ -8,13 +8,13 @@ initial begin
  tick();reset=0;tick();
  @(negedge clk);la=9;ld=16'h1234;lwe=1;tick();@(negedge clk);lwe=0;start=1;write_sector=1;lba=42;tick();
  if(!wr||rd||sdlba!=42||ready)$fatal(1,"write request");
- @(negedge clk);start=0;ha=9;#1;if(hout!=16'h1234)$fatal(1,"host read buffer");
+ @(negedge clk);start=0;ha=9;tick();#1;if(hout!=16'h1234)$fatal(1,"host read buffer");
  ack=1;tick();if(wr||rd||done)$fatal(1,"ack start");repeat(3)tick();
  @(negedge clk);ack=0;tick();if(!done||error||!ready)$fatal(1,"write completion");
  @(negedge clk);start=1;write_sector=0;lba=7;tick();if(!rd||wr)$fatal(1,"read request");
  @(negedge clk);start=0;ack=1;
  for(i=0;i<256;i=i+1)begin ha=i;hd=(i==11?16'habcd:i);hwe=1;tick();@(negedge clk);end
- hwe=0;ack=0;tick();la=11;#1;if(!done||error||lout!=16'habcd)$fatal(1,"read completion");
+ hwe=0;ack=0;tick();if(!done||error)$fatal(1,"read completion status");la=11;tick();#1;if(lout!=16'habcd)$fatal(1,"read completion");
  @(negedge clk);start=1;write_sector=0;tick();@(negedge clk);start=0;ack=1;
  for(i=0;i<5;i=i+1)begin ha=i;hd=i;hwe=1;tick();@(negedge clk);end
  hwe=0;ack=0;tick();if(!done || !error || ready)$fatal(1,"short sector accepted");

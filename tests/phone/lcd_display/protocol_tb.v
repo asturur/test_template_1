@@ -22,13 +22,13 @@ initial begin
  // Hybrid host uses 207; accepting the full panel does not settle clipping.
  win('h75,'h0cf00000);if(unsupported)$fatal(1,"reference full window");
  cmd('h5c);wr('h0c121200,'h8924d67f);
- @(negedge clk);write_valid=1;addr='h0c121208;data='h0abc0123;dma_valid=1;dma_addr=0;dma_data='h04560678;
+ @(negedge clk);write_valid=1;addr='h0c121208;data=32'h0abc0123;dma_valid=1;dma_addr=0;dma_data='h04560678;
  @(negedge clk);write_valid=0;dma_valid=0;
- if(dut.pixels[0]!=='h0abc0123)$fatal(1,"CPU/DMA direct priority");
+ if(dut.framebuffer.memory[0]!==24'habc123)$fatal(1,"CPU/DMA direct priority");
  rst();win('h75,'h00a00003);
  if(!unsupported || uc!='h75 || uh!='h09240003 || ud!='h00a00003 || dut.row_start!=3 || dut.row_end!=10)$fatal(1,"partial-window context");
  cmd('h5c);wr('h0c121200,'h8924d67f);wr('h0c121208,0);
- if(dut.memory_write || dut.pixels[0]!=='h0abc0123)$fatal(1,"partial geometry silently rendered");
+ if(dut.memory_write || dut.framebuffer.memory[0]!==24'habc123)$fatal(1,"partial geometry silently rendered");
  rst();win('h15,'h0b100003);if(!unsupported || dut.col_start!=3)$fatal(1,"odd window start hidden");
  rst();cmd('h75);wr('h0c121200,'h09240003);wr('h0c121208,'h0d000000);wr('h0c121208,1);
  if(!unsupported || uc!='h75 || uh!='h09240003)$fatal(1,"nonzero trailing word ignored");

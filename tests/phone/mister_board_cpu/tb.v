@@ -34,7 +34,7 @@ module tb;
     if(saved_swe)begin
      for(i=0;i<4;i=i+1)if(saved_sb[i])ram[saved_sa[11:2]][i*8+:8]<=saved_sd[i*8+:8];
      if(saved_sa==25'h100)begin
-      if(saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.pixels[0]!==32'h01230abc || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $display("FAIL ARM reported %h",saved_sd);$finish;end
+      if(saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $display("FAIL ARM reported %h",saved_sd);$finish;end
       $display("PASS HDL ARM board SIMIF, LCD DMA, diagnostic fault, IRQ/FIQ and SDRAM with waits");$finish;
      end
     end else sr<=ram[saved_sa[11:2]];

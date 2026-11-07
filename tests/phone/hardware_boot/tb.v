@@ -12,7 +12,8 @@ module tb(input wire clk,reset,cold,
  assign ready=init_done;
  assign cycle_count=cycles;
  assign pc=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
- assign frame_word=dut.board.display.lcd.pixels[frame_index];
+ wire [23:0] observed_pixels=dut.board.display.lcd.framebuffer.memory[frame_index];
+ assign frame_word={4'b0,observed_pixels[23:12],4'b0,observed_pixels[11:0]};
  assign scan_x=dut.board.display.lcd.scan_x-9'd72;assign scan_y=dut.board.display.lcd.scan_y-9'd16;
  assign scan_rgb=dut.rgb444;assign scan_ce=dut.ce_pix;
  assign scan_de=!(dut.hblank || dut.vblank);

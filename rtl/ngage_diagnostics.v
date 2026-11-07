@@ -1,6 +1,7 @@
 // Bounded hardware trace buffer and first fault. Readout uses 16-bit words:
 // 0 magic, 1 version, 2..3 fault address, 4 reason, 5 count, 6 next slot,
 // 7 wrapped, then 64 slots of six words: address, data, byte lanes, time.
+// read_data follows read_word by one rising clock edge.
 module ngage_diagnostics (
     input  wire        clk,
     input  wire        cold_reset,
@@ -18,19 +19,52 @@ module ngage_diagnostics (
     output reg  [15:0] read_data,
     output reg         fault_seen = 0
 );
-    reg [31:0] first_fetch_address = 0;
-    reg [ 2:0] first_fetch_reason = 0;
-    reg        fetch_seen = 0;
-    reg [31:0] first_address = 0;
-    reg [ 2:0] first_reason = 0;
-    reg [31:0] ticks = 0;
-    reg [15:0] dropped = 0;
-    reg [ 5:0] next_slot = 0;
-    reg [ 6:0] count = 0;
-    reg        wrapped = 0;
-    reg [31:0] addresses[0:63], values[0:63];
-    reg [19:0] info[0:63];
-    integer slot, field;
+    reg  [31:0] first_fetch_address = 0;
+    reg  [ 2:0] first_fetch_reason = 0;
+    reg         fetch_seen = 0;
+    reg  [31:0] first_address = 0;
+    reg  [ 2:0] first_reason = 0;
+    reg  [31:0] ticks = 0;
+    reg  [15:0] dropped = 0;
+    reg  [ 5:0] next_slot = 0;
+    reg  [ 6:0] count = 0;
+    reg         wrapped = 0;
+    wire [ 8:0] offset = read_word[8:0] - 9'd8;
+    wire [ 5:0] read_slot = offset / 9'd6;
+    wire [ 2:0] field = offset % 9'd6;
+    wire        trace_write = !cold_reset && trace_valid && !freeze_trace;
+    wire [83:0] entry = {trace_sel, ticks[15:0], trace_data, trace_addr};
+    wire [83:0] trace_q;
+    reg         forward_trace;
+    reg  [83:0] forward_entry;
+    reg  [ 2:0] field_q;
+    reg         trace_selected;
+    reg  [15:0] metadata_q;
+    reg  [15:0] metadata;
+    wire [83:0] observed = forward_trace ? forward_entry : trace_q;
+    ngage_bram #(
+        .AW         (6),
+        .DW         (84),
+        .READ_ONLY_B(1)
+    ) trace_ram (
+        .clk   (clk),
+        .addr_a(next_slot),
+        .data_a(entry),
+        .we_a  (trace_write),
+        .q_a   (),
+        .addr_b(read_slot),
+        .data_b(84'b0),
+        .we_b  (1'b0),
+        .q_b   (trace_q)
+    );
+    always @(posedge clk) begin
+        field_q <= field;
+        metadata_q <= metadata;
+        trace_selected <= !cold_reset && read_word >= 8 && read_word < 392 &&
+            (count == 64 || {1'b0, read_slot} < count);
+        forward_trace <= trace_write && next_slot == read_slot;
+        forward_entry <= entry;
+    end
     always @(posedge clk) begin
         if (cold_reset) begin
             ticks               <= 0;
@@ -65,46 +99,39 @@ module ngage_diagnostics (
                         {15'b0, trace_lost};
             end
             if (trace_valid && !freeze_trace) begin
-                addresses[next_slot] <= trace_addr;
-                values[next_slot]    <= trace_data;
-                info[next_slot]      <= {trace_sel, ticks[15:0]};
-                next_slot            <= next_slot + 1'b1;
+                next_slot <= next_slot + 1'b1;
                 if (count < 64) count <= count + 1'b1;
                 else wrapped <= 1;
             end
         end
     end
+    // Metadata and trace fields share the same one-clock read contract.
     always @* begin
-        slot      = 0;
-        field     = 0;
-        read_data = 0;
+        metadata = 0;
         case (read_word)
-            0:   read_data = 16'h4e47;
-            1:   read_data = 16'h0001;
-            2:   read_data = first_address[15:0];
-            3:   read_data = first_address[31:16];
-            4:   read_data = {12'b0, fault_seen, first_reason};
-            5:   read_data = {9'b0, count};
-            6:   read_data = {10'b0, next_slot};
-            7:   read_data = {15'b0, wrapped};
-            392: read_data = dropped;
-            393: read_data = first_fetch_address[15:0];
-            394: read_data = first_fetch_address[31:16];
-            395: read_data = {12'b0, fetch_seen, first_fetch_reason};
-            default:
-            if (read_word >= 8 && read_word < 392) begin
-                slot  = ({21'b0, read_word} - 32'd8) / 32'd6;
-                field = ({21'b0, read_word} - 32'd8) % 32'd6;
-                if (count == 64 || slot < count)
-                    case (field)
-                        0: read_data = addresses[slot][15:0];
-                        1: read_data = addresses[slot][31:16];
-                        2: read_data = values[slot][15:0];
-                        3: read_data = values[slot][31:16];
-                        4: read_data = {12'b0, info[slot][19:16]};
-                        5: read_data = info[slot][15:0];
-                    endcase
-            end
+            0:   metadata = 16'h4e47;
+            1:   metadata = 16'h0001;
+            2:   metadata = first_address[15:0];
+            3:   metadata = first_address[31:16];
+            4:   metadata = {12'b0, fault_seen, first_reason};
+            5:   metadata = {9'b0, count};
+            6:   metadata = {10'b0, next_slot};
+            7:   metadata = {15'b0, wrapped};
+            392: metadata = dropped;
+            393: metadata = first_fetch_address[15:0];
+            394: metadata = first_fetch_address[31:16];
+            395: metadata = {12'b0, fetch_seen, first_fetch_reason};
         endcase
+        read_data = metadata_q;
+        if (trace_selected) begin
+            case (field_q)
+                0: read_data = observed[15:0];
+                1: read_data = observed[31:16];
+                2: read_data = observed[47:32];
+                3: read_data = observed[63:48];
+                4: read_data = {12'b0, observed[83:80]};
+                5: read_data = observed[79:64];
+            endcase
+        end
     end
 endmodule

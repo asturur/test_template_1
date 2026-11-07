@@ -20,12 +20,36 @@ module ngage_dirty_tracker #(
     input  wire          sector_ok,
     input  wire          abort_flush
 );
-    reg        dirty      [0:SECTORS-1];
-    reg [AW:0] cursor = 0;
+    // Two independent write ports: mark on A, successful clear/scrub on B.
+    // The scan is synchronous; forwarding makes mixed-port collisions defined.
+    wire        scan_dirty;
+    reg         scan_mark;
+    reg  [AW:0] cursor = 0;
     reg active = 0, again = 0, rescan = 0;
-    reg [1:0] state = 0;
-    localparam        CLEAR       = 0, IDLE = 1, SCAN = 2, WAIT = 3;
-    localparam [AW:0] NUM_SECTORS = SECTORS                         [AW:0];
+    reg [2:0] state = 0;
+    localparam        CLEAR       = 0, IDLE = 1, SCAN = 2, WAIT = 3, READ = 4;
+    localparam [AW:0] NUM_SECTORS = SECTORS                                   [AW:0];
+    wire mark = !cold_reset && state != CLEAR && dirty_valid && {1'b0, dirty_sector} < NUM_SECTORS;
+    wire clear_done = !cold_reset && !abort_flush && state == WAIT &&
+        !sector_valid && sector_done && sector_ok && !again &&
+        !(mark && dirty_sector == sector_index);
+    wire [AW-1:0] ram_address = state == WAIT ? sector_index :
+        cursor < NUM_SECTORS ? cursor[AW-1:0] : {AW{1'b0}};
+    ngage_bram #(
+        .AW(AW),
+        .DW(1)
+    ) bitmap (
+        .clk   (clk),
+        .addr_a(dirty_sector),
+        .data_a(1'b1),
+        .we_a  (mark),
+        .q_a   (),
+        .addr_b(ram_address),
+        .data_b(1'b0),
+        .we_b  (!cold_reset && (state == CLEAR || clear_done)),
+        .q_b   (scan_dirty)
+    );
+    always @(posedge clk) scan_mark <= mark && dirty_sector == ram_address;
     always @(posedge clk) begin
         if (cold_reset) begin
             state        <= CLEAR;
@@ -38,7 +62,6 @@ module ngage_dirty_tracker #(
             again        <= 0;
             rescan       <= 0;
         end else if (abort_flush && state != CLEAR) begin
-            if (dirty_valid && {1'b0, dirty_sector} < NUM_SECTORS) dirty[dirty_sector] <= 1;
             state        <= IDLE;
             flushing     <= 0;
             flush_error  <= 1;
@@ -49,7 +72,6 @@ module ngage_dirty_tracker #(
         end else
             case (state)
                 CLEAR: begin
-                    dirty[cursor[AW-1:0]] <= 0;
                     if (cursor == NUM_SECTORS - 1'b1) begin
                         cursor    <= 0;
                         init_done <= 1;
@@ -58,7 +80,6 @@ module ngage_dirty_tracker #(
                 end
                 default: begin
                     if (dirty_valid && {1'b0, dirty_sector} < NUM_SECTORS) begin
-                        dirty[dirty_sector] <= 1;
                         if (flushing) rescan <= 1;
                         if (active && dirty_sector == sector_index) again <= 1;
                     end
@@ -69,24 +90,29 @@ module ngage_dirty_tracker #(
                             flush_error <= 0;
                             cursor      <= 0;
                             rescan      <= 0;
-                            state       <= SCAN;
+                            state       <= READ;
                         end
+                        READ:    state <= SCAN;
                         SCAN: begin
                             if (cursor == NUM_SECTORS) begin
                                 if (rescan || dirty_valid) begin
                                     cursor <= 0;
                                     rescan <= 0;
+                                    state  <= READ;
                                 end else begin
                                     flushing <= 0;
                                     state    <= IDLE;
                                 end
-                            end else if (dirty[cursor[AW-1:0]]) begin
+                            end else if (scan_dirty || scan_mark || (mark && dirty_sector == cursor[AW-1:0])) begin
                                 sector_index <= cursor[AW-1:0];
                                 sector_valid <= 1;
                                 active       <= 1;
                                 again        <= 0;
                                 state        <= WAIT;
-                            end else cursor <= cursor + 1'b1;
+                            end else begin
+                                cursor <= cursor + 1'b1;
+                                state  <= READ;
+                            end
                         end
                         WAIT: begin
                             if (sector_valid && sector_accept) sector_valid <= 0;
@@ -97,10 +123,8 @@ module ngage_dirty_tracker #(
                                     flush_error <= 1;
                                     state       <= IDLE;
                                 end else begin
-                                    if (!again && !(dirty_valid && dirty_sector == sector_index))
-                                        dirty[sector_index] <= 0;
                                     cursor <= cursor + 1'b1;
-                                    state  <= SCAN;
+                                    state  <= READ;
                                 end
                             end
                         end

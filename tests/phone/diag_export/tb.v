@@ -15,10 +15,10 @@ initial begin
  for(transactions=0;transactions<2;transactions=transactions+1)begin
   wait(wr);if(lba!==transactions || rd || !busy)begin $display("FAIL request LBA");$finish;end
   @(negedge clk);ack=1;
-  for(i=0;i<256;i=i+1)begin ha=i;#1;if(hd!==(16'h5000 | (transactions*256+i)))begin $display("FAIL sector %0d word %0d got %h",transactions,i,hd);$finish;end @(negedge clk);end
+  for(i=0;i<256;i=i+1)begin ha=i;@(negedge clk);#1;if(hd!==(16'h5000 | (transactions*256+i)))begin $display("FAIL sector %0d word %0d got %h",transactions,i,hd);$finish;end @(negedge clk);end
   ack=0;@(negedge clk);
  end
- wait(done);if(error || busy || freezes!=512)begin $display("FAIL completion freeze=%0d",freezes);$finish;end
+ wait(done);if(error || busy || freezes!=1024)begin $display("FAIL completion freeze=%0d",freezes);$finish;end
  @(negedge clk);pulse_start;wait(wr);wait(done);if(!error || busy)begin $display("FAIL HPS timeout reporting");$finish;end
  @(negedge clk);pulse_start;if(!done || !error)begin $display("FAIL unsafe retry after HPS timeout");$finish;end
  $display("PASS diagnostic snapshot, disk validation and two-sector HPS export");$finish;

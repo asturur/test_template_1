@@ -9,7 +9,8 @@ ngage_save_manager #(.SD_TIMEOUT(5000)) dut(clk,reset,mount,1'b0,64'd4260352,1'b
  256'h24b589715a8ddf962b0d8974aec0651f1d3ab9a83888b524f481fff5cd2e8bbe,
  256'hf36c44302d1797f385c9f33f5c4f1e2b37247652ee21fc6408f00dc9390b6ecb,
  dv,di,flush,mounted,saving,saved,error,,mv,1'b1,mw,ma,md,mb,m_done,mr,lba,rd,wr,ack,ha,hd,hwe,hout,1'b1);
-assign ack=hs==1;assign ha={4'b0,idx};assign hwe=hs==1 && hop_read;assign hd=disk[held_lba*256+idx];
+assign ack=hs==1;assign ha={4'b0,idx};reg hs_phase=0;
+assign hwe=hs==1 && hop_read && hs_phase;assign hd=disk[held_lba*256+idx];
 always @(posedge clk)begin
  m_done<=0;
  if(mv)begin
@@ -19,8 +20,8 @@ always @(posedge clk)begin
   m_done<=1;
  end
  case(hs)
- 0:if(rd||wr)begin if(lba>8320)$fatal(1,"bad LBA");held_lba<=lba;hop_read<=rd;idx<=0;hs<=1;end
- 1:begin if(!hop_read)disk[held_lba*256+idx]<=hout;if(idx==255)hs<=2;else idx<=idx+1'b1;end
+ 0:if(rd||wr)begin if(lba>8320)$fatal(1,"bad LBA");held_lba<=lba;hop_read<=rd;idx<=0;hs_phase<=0;hs<=1;end
+ 1:begin hs_phase<=!hs_phase;if(hs_phase)begin if(!hop_read)disk[held_lba*256+idx]<=hout;if(idx==255)hs<=2;else idx<=idx+1'b1;end end
  2:if(!rd && !wr)hs<=0;
  endcase
 end

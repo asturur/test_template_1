@@ -12,7 +12,8 @@ ngage_save_manager #(.C_SECTORS(1),.PMM_SECTORS(1),.SD_TIMEOUT(5000)) dut(clk,re
  mv,mem_ready,mw,ma,md,mb,mem_done,mr,sd_lba,sd_rd,sd_wr,sd_ack,haddr,hdata,hwe,hout,quiet);
 assign sd_ack=hs==1;
 assign haddr=idx;
-assign hwe=hs==1 && hop_read;
+reg hs_phase=0;
+assign hwe=hs==1 && hop_read && hs_phase;
 assign hdata=disk[held_lba*256+idx];
 wire av,ar,aw,adone;wire [31:0] aa,ad,ard;wire [3:0] ab;
 wire bv,br,bw,bdone;wire [31:0] ba,bd,brd;wire [3:0] bb;
@@ -36,10 +37,11 @@ always @(posedge clk)begin
   else begin dout<={ram[base_index+1],ram[base_index]};delay<=3;end
  end
  if(!stall_sd) case(hs)
- 0:if(sd_rd||sd_wr)begin if(sd_lba>2)$fatal(1,"invalid disk LBA");held_lba<=sd_lba;hop_read<=sd_rd;idx<=0;hs<=1;end
- 1:begin
+ 0:if(sd_rd||sd_wr)begin if(sd_lba>2)$fatal(1,"invalid disk LBA");held_lba<=sd_lba;hop_read<=sd_rd;idx<=0;hs_phase<=0;hs<=1;end
+ 1:begin hs_phase<=!hs_phase;if(hs_phase)begin
   if(!hop_read)disk[held_lba*256+idx]<=hout;
   if(idx==255)hs<=2;else idx<=idx+1'b1;
+ end
  end
  2:if(!sd_rd && !sd_wr)hs<=0;
  endcase

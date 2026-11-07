@@ -19,7 +19,7 @@ initial begin
  for(i=0;i<18303;i=i+1)wr('h0c121208,i==0 ? 32'h0abc0123 : i);
  if(complete || !incomplete)begin $display("FAIL premature completion");$finish;end
  wr('h0c121208,32'h0abc0123);
- if(!complete || incomplete || dut.pixels[18303]!==32'h0abc0123)begin $display("FAIL complete frame");$finish;end
+ if(!complete || incomplete || dut.framebuffer.memory[18303]!==24'habc123)begin $display("FAIL complete frame");$finish;end
  wr('h0c121200,'h09200000);wr('h0c121208,'haf);
  wr('h0c121208,'hfe);if(!unsupported || !complete)begin $display("FAIL unsupported command diagnostic");$finish;end
  if(!dut.display_on)begin $display("FAIL display on");$finish;end
@@ -29,7 +29,7 @@ initial begin
  @(negedge clk);dut.x=336;dut.div=0;@(negedge clk);#1;if(hs!==0)begin $display("FAIL horizontal sync assertion");$finish;end
  @(negedge clk);dut.x=368;dut.div=0;@(negedge clk);#1;if(hs!==1)begin $display("FAIL horizontal sync release");$finish;end
  @(negedge clk);dma_valid=1;dma_addr=7;dma_data=32'h01110222;@(negedge clk);dma_valid=0;
- if(dut.pixels[7]!==32'h01110222)begin $display("FAIL DMA update");$finish;end
+ if(dut.framebuffer.memory[7]!==24'h111222)begin $display("FAIL DMA update");$finish;end
  $display("PASS diagnostic raster and direct LCD frame completeness");$finish;
 end
 endmodule

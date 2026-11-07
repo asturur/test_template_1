@@ -1,11 +1,11 @@
 #!/bin/sh
 set -eu
 mkdir -p build/sim/unit-diag-export
-iverilog -g2005 -s tb -o build/sim/unit-diag-export/test rtl/ngage_diag_export.v rtl/ngage_sd_sector.sv tests/phone/diag_export/tb.v
+iverilog -g2005 -s tb -o build/sim/unit-diag-export/test rtl/ngage_diag_export.v rtl/ngage_bram.v rtl/ngage_sd_sector.sv tests/phone/diag_export/tb.v
 vvp build/sim/unit-diag-export/test > build/sim/unit-diag-export/run.log
 cat build/sim/unit-diag-export/run.log
 grep -q '^PASS diagnostic snapshot' build/sim/unit-diag-export/run.log
-iverilog -g2005 -s tb -o build/sim/unit-diag-export/integrated rtl/ngage_diagnostics.v rtl/ngage_diag_export.v rtl/ngage_sd_sector.sv tests/phone/diag_export/integrated.v
+iverilog -g2005 -s tb -o build/sim/unit-diag-export/integrated rtl/ngage_diagnostics.v rtl/ngage_diag_export.v rtl/ngage_bram.v rtl/ngage_sd_sector.sv tests/phone/diag_export/integrated.v
 vvp build/sim/unit-diag-export/integrated > build/sim/unit-diag-export/integrated.log
 cat build/sim/unit-diag-export/integrated.log
 grep -q '^PASS diagnostic ring' build/sim/unit-diag-export/integrated.log
@@ -30,7 +30,7 @@ for name in names:a=re.sub(r'(?<![\w.])'+name+r'\b','ps2_model.'+name,a)
 b=b.replace('if(PS2DIV) begin','if(PS2DIV) begin: ps2_model',1)
 Path('build/sim/unit-diag-export/hps-compat.sv').write_text(a+'///////////////////////////////   PS2   ///////////////////////////////'+b)
 PYHPS
-verilator --binary --timing -Wno-fatal -Wno-lint --top-module tb --Mdir build/sim/unit-diag-export/hps-obj build/sim/unit-diag-export/hps-compat.sv rtl/ngage_diag_export.v rtl/ngage_sd_sector.sv tests/phone/diag_export/hps_tb.sv > build/sim/unit-diag-export/hps-build.log 2>&1
+verilator --binary --timing -Wno-fatal -Wno-lint --top-module tb --Mdir build/sim/unit-diag-export/hps-obj build/sim/unit-diag-export/hps-compat.sv rtl/ngage_diag_export.v rtl/ngage_bram.v rtl/ngage_sd_sector.sv tests/phone/diag_export/hps_tb.sv > build/sim/unit-diag-export/hps-build.log 2>&1
 build/sim/unit-diag-export/hps-obj/Vtb > build/sim/unit-diag-export/hps.log
 cat build/sim/unit-diag-export/hps.log
 grep -q '^PASS diagnostic export through real hps_io' build/sim/unit-diag-export/hps.log

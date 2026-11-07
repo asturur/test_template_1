@@ -1,4 +1,4 @@
-// Validate one NGSAVE1 sector from an asynchronously readable 16-bit buffer.
+// Validate one NGSAVE1 sector from an synchronously readable 16-bit buffer.
 // Expected SHA values are supplied by the selected, verified firmware profile;
 // the caller must not assert them for an unverified bundle.
 module ngage_save_header #(
@@ -20,6 +20,7 @@ module ngage_save_header #(
     reg [31:0] crc = 32'hffffffff;
     reg [15:0] crc_low = 0;
     reg        mismatch = 0;
+    reg        read_wait = 0;
     function automatic [31:0] crc_byte(input [31:0] c, input [7:0] b);
         reg     [31:0] x;
         integer        i;
@@ -55,18 +56,22 @@ module ngage_save_header #(
     always @(posedge clk) begin
         done <= 0;
         if (reset) begin
-            busy     <= 0;
-            valid    <= 0;
-            address  <= 0;
-            crc      <= 32'hffffffff;
-            mismatch <= 0;
+            busy      <= 0;
+            valid     <= 0;
+            address   <= 0;
+            crc       <= 32'hffffffff;
+            mismatch  <= 0;
+            read_wait <= 0;
         end else if (start && !busy) begin
-            busy     <= 1;
-            valid    <= 0;
-            address  <= 0;
-            crc      <= 32'hffffffff;
-            mismatch <= 0;
-        end else if (busy) begin
+            busy      <= 1;
+            valid     <= 0;
+            address   <= 0;
+            crc       <= 32'hffffffff;
+            mismatch  <= 0;
+            read_wait <= 0;
+        end else if (busy && !read_wait) read_wait <= 1;
+        else if (busy) begin
+            read_wait <= 0;
             if (address < 254) begin
                 if (word_data != expected) mismatch <= 1;
                 crc <= crc_byte(crc_byte(crc, word_data[7:0]), word_data[15:8]);

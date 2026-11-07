@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [quartus-memory-audit.md](quartus-memory-audit.md) | Actual Quartus RAM inference, register-heavy arrays and resource-reduction priorities |
 | [rtl-style.md](rtl-style.md) | Phone RTL formatting rules and reproducible formatter/check command |
 | [status.md](status.md) | Current development checkpoint and ordered resume work |
 | [TODO.md](TODO.md) | Assumptions and shortcuts to replace, with evidence and validation |

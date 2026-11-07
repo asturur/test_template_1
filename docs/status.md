@@ -1,3 +1,60 @@
+## 2026-11-07: explicit M10K conversion verified locally; Quartus next
+
+At the user's direction replaced the large register arrays with explicit
+Cyclone V `altsyncram` M10K instances using the JTFRAME Pocket primitive pattern.
+`ngage_bram.v` supports true/simple dual ports, byte enables and bounded depth;
+its inferred-looking array exists only in the non-synthesis simulator branch.
+Converted dirty bitmap, all HPS sector/snapshot/trace storage, cache data,
+virtual/physical cache metadata, UPP RAM, UEM values, sparse payload and packed
+RGB444 LCD framebuffer. Cache geometry remains 16 KiB / 64 ways. Small control,
+CAM, valid/dirty and streaming pipeline registers remain. Details, source pin,
+latencies and pending hardware gates: `docs/quartus-memory-audit.md`.
+
+**Observed local validation:** complete `tests/cpu/run.sh` passes (119 PASS
+records, one expected legacy direct-mapped associativity XFAIL), including
+MMU, IRQ/FIQ, SWP, lockdown, maintenance and instruction prefetch. The first tag
+pipeline failed the warm ADD timing check (four cycles instead of one); a
+two-line streaming buffer and two-instruction lookahead (ZAP patch 0039) restore
+exactly one cycle per warm ADD in both memory-delay profiles. Intel's actual
+primitive model passes BRAM widths/ports/byte masks/depth, cache tags, complete
+cache access/writeback/maintenance and dirty collision/boundary tests.
+
+Full 4 MiB C:/64 KiB PMM restore/reload and actual `hps_io` save/NOR/DDR transfers
+pass. Diagnostic export through actual HPS, decoded capture and trace ring pass.
+UEM/reference timing, sparse CAM/payload, board ownership and warm/cold reset,
+ARM IRQ/FIQ/data-abort board integration, cache-clean/LCD DMA visibility and
+MiSTer-bound ARM/SIMIF/LCD DMA/diagnostic fault/SDRAM-with-waits checks pass.
+The 176x208 scanout matches the saved firmware image pixel-for-pixel; LCD DMA,
+line bands, full frame and protocol fixtures pass. Optional old retained-DMA
+trace replay is skipped because that old local trace is absent. A fresh bounded
+**5,000,000-cycle** HDL cold boot passes at PC `00006178`, 18 known fetch faults,
+**zero data faults**, before logo/LCD traffic. This is not a new Nokia-logo run.
+
+Source graph: **168 files/nine QIPs**. Explicit synthesis-path vendor-model lint,
+structural top elaboration, formatter and ZAP patch reproduction pass. Logs are
+under `build/sim/` (`cpu-bram-suite.log`, `primitive-cache-current.log`,
+`dirty-bram-current.log`, `hardware-bram-current.log`, and the named chip/unit
+directories). No local Quartus resource/fit/timing result is claimed.
+
+Old 1B..12B checkpoints remain untouched and require their frozen executable;
+new RAM state/layout must start cold. User authorized commit, push and starting
+the GitHub build after verification. Next inspect its RAM summary/M10K packing,
+ALMs, fit and 104 MHz timing before claiming hardware readiness.
+
+## 2026-11-07: fitter failure and memory inference audited; 12B boot completed
+
+The user supplied the failed Quartus 17 reports for 506f9ea. Synthesis completed; fitting fails at **101,673/41,910 ALMs (243%)**, including the combinational-node limit 106,367/83,820. Block memory is 2,367,592/5,662,720 bits (42%). Audited the actual synthesis RAM/entity tables before changing RTL, at the user's direction. Framebuffer, both cache data arrays and UPP RAM windows **do infer RAM**. The dirty tracker instead costs **26,523 ALUTs/8,360 registers**, cache metadata totals **15,655 ALUTs/40,652 registers**, and snapshots/sector buffers/trace also stay in flip-flops and muxes. Parent totals include children and must not be added. The failed fitter's zero RAM-block count is incomplete physical allocation, not absence of inferred RAM.
+
+Full grouped memory table and repair priorities: `docs/quartus-memory-audit.md`. Parsed source hashes/entity counts and reproducer: `scratch/quartus-memory-audit/`. Primary candidate is a synchronous RAM-based dirty bitmap with explicit collision handling; next are pipelined snapshot/sector buffers, then cache metadata banking while preserving 64-way geometry/CPU behavior. No RTL or cache geometry was changed in this audit, and no resource-reduction/fitting success is claimed. The four-bit scaler mode/five-bit VHDL port mismatch is a separate critical warning. Run kit RBF remains unavailable because the action failed fitting.
+
+The frozen normal-power-key simulation **completed 12,000,000,000 cycles**, PC `5152B480`, 18 known fetch faults and **zero data faults**, without interruption. Its framebuffer/scanout hashes are unchanged from the verified 2B Nokia image; no N-Gage logo or screensaver was reached. All permanent **1B through 12B CPU/host pairs** were checked present (1B/2B in `logo-normal-2000m`, 3B..12B in `logo-normal-12000m`). Source firmware hashes passed at run exit. No simulation is currently running. Next boot diagnosis must use saved-build replay; later LCD/keypad/video/source edits have not been spliced into this lineage.
+
+## 2026-11-07: ignored MiSTer run kit prepared
+
+At the user's request prepared `scratch/mister-run/`, entirely ignored by Git. Its SD-card layout contains `games/NGage/NEM4-4.03.ngb` (audited stock core/extension and initial C:/erased PMM), writable `working.nga`, optional empty `diagnostics.ngd`, setup README, checksums and preparation manifest. Bundle CRCs, save header/profile/core/extension identity and byte-for-byte C:/PMM payloads were verified; PMM is erased and original sources unchanged. This is the same firmware/C: profile as the normal Nokia-logo simulation, not a simulator checkpoint or modified firmware.
+
+`_Console/NGage.rbf` is still pending the GitHub action (run 42318379943, commit 506f9ea, building when checked). The kit's `fetch-rbf.sh` downloads only a successful run's Template-rbf artifact, refuses to overwrite an existing core, renames it and records revision/hash. The README covers SD paths, bundle/save loading, CPU Hold -> Run, No ATR, Phone/Original video, flush and diagnostics. Hardware boot/persistence remain unverified. No firmware or working data was staged for Git.
+
 ## 2026-11-07: Quartus cache-line generate syntax fix
 
 User's GitHub Quartus build reports Error 10170 at `rtl/arm920/cache_lines.sv:18`, rejecting the inline `genvar` declaration and then ignoring the module. Moved `genvar lane;` to module scope and kept the generate loop's initializer as `lane=0`. Byte-lane count, indices, storage, read/write behavior and the `lanes` generate hierarchy are unchanged. Cache-line byte-mask/way/segment-isolation and associative-bank dirty-victim/refill regressions pass. Actual Quartus retry remains the manual GitHub action; local Verilator is not a Quartus syntax result. The fix is a separate commit following the verified RTL-formatting commit.

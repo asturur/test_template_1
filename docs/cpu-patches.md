@@ -179,6 +179,15 @@ the looped byte-enable slice and built each 16KB cache from ~135K registers
 Behavior is identical: 400,000 random cycles including same-address
 write/read collisions matched the original module on both outputs.
 
+## 0039: synchronous BRAM instruction lookahead
+
+The associative tag/data path now has two synchronous RAM stages. Look ahead
+two instructions while a current read completes, allowing the cache's two-line
+streaming buffer to maintain one warm ARM instruction per clock. Translation,
+permissions and cacheability still qualify the current request; lookahead only
+reads resident tags/data and never initiates a speculative linefill. The existing
+`cpu_timing`, branch, maintenance and prefetch regressions remain required.
+
 ## Verification and limits
 
 ```sh

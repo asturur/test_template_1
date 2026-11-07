@@ -30,17 +30,41 @@ module ngage_cbus_uem #(
     wire [31:0] a = {addr[31:2], 2'b00};
     reg [15:0] cfg, command, rtc_status;
     reg [  1:0] stage;
-    reg [ 15:0] values      [0:255];
     reg [255:0] written;
     reg [  3:0] adc_channel;
     reg adc_selected, key_released, alarm_started;
     integer sec_count, alarm_left, alarm_div;
     wire [15:0] value = sel == 12 ? din[31:16] : din[15:0];
     wire [ 7:0] regno = command[7:0];
+    wire [15:0] stored_value;
+    reg [15:0] route_2a, route_2c, route_3b;
+    reg         payload_forward;
+    reg  [15:0] payload_value;
+    wire        payload_write = !reset && commit && claim && !bad && we && a == 32'h0c150424;
+    wire        command_write = commit && claim && !bad && we && a == 32'h0c150420 && sel == 12;
+    ngage_bram #(
+        .AW         (8),
+        .DW         (16),
+        .READ_ONLY_B(1)
+    ) values_ram (
+        .clk   (clk),
+        .addr_a(regno),
+        .addr_b(command_write ? value[7:0] : regno),
+        .data_a(value),
+        .data_b(16'b0),
+        .we_a  (payload_write),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (stored_value)
+    );
+    always @(posedge clk) begin
+        payload_forward <= payload_write;
+        if (payload_write) payload_value <= value;
+    end
     assign cbus8d_written = written[8'h8d];
-    assign route2a        = written[8'h2a] ? values[8'h2a] : 16'b0;
-    assign route2c        = written[8'h2c] ? values[8'h2c] : 16'b0;
-    assign route3b        = written[8'h3b] ? values[8'h3b] : 16'b0;
+    assign route2a        = written[8'h2a] ? route_2a : 16'b0;
+    assign route2c        = written[8'h2c] ? route_2c : 16'b0;
+    assign route3b        = written[8'h3b] ? route_3b : 16'b0;
     function automatic is_input(input [7:0] r);
         begin
             is_input = (r >= 8'h20 && r <= 8'h34) || (r >= 8'h3b && r <= 8'h3e) ||
@@ -102,7 +126,8 @@ module ngage_cbus_uem #(
                 else if (is_input(regno) && !written[regno]) read_value = 0;
                 else if (regno == 8'h80) read_value = 16'h0400;
                 else if (regno == 8'h8d && !written[regno]) read_value = 0;
-                else if (written[regno]) read_value = values[regno];
+                else if (written[regno])
+                    read_value = payload_forward ? payload_value : stored_value;
                 else bad = 1;
                 dout = {read_value, 16'b0};
             end else bad = 1;
@@ -149,7 +174,9 @@ module ngage_cbus_uem #(
                     command <= value;
                     stage   <= value[8] ? 3 : 2;
                 end else begin
-                    values[regno]  <= value;
+                    if (regno == 8'h2a) route_2a <= value;
+                    if (regno == 8'h2c) route_2c <= value;
+                    if (regno == 8'h3b) route_3b <= value;
                     written[regno] <= 1;
                     stage          <= 3;
                     if (regno == 8'h35) rtc_status <= rtc_status & ~value;

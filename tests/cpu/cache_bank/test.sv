@@ -16,22 +16,22 @@ module test;
  initial begin
   tick();reset=0;tick();
   for(n=0;n<64;n=n+1) begin
-   mva=n<<8;pa=32'h80000000+(n<<8);refill_line={8{32'h10000000+n}};#1;
+   mva=n<<8;pa=32'h80000000+(n<<8);refill_line={8{32'h10000000+n}};tick();#1;
    if(!ready || hit || need)$fatal(1,"unexpected blocked fill %0d",n);
-   refill=1;tick();refill=0;
+   refill=1;tick();refill=0;tick();
   end
-  mva=0;#1;if(!hit)$fatal(1,"first line missing");
+  mva=0;tick();#1;if(!hit)$fatal(1,"first line missing");
   store=1;mask=1;store_line=0;store_line[7:0]=8'h7a;tick();store=0;mask=0;
   rv=0;tick();if(!rvalid || rline[7:0]!==8'h7a)$fatal(1,"hit data missing");
-  mva=64<<8;pa=32'h90000000;refill_line={8{32'hdeadbeef}};#1;
+  mva=64<<8;pa=32'h90000000;refill_line={8{32'hdeadbeef}};tick();#1;
   if(!need || ready || victim_pa!==32'h80000000 || dirty!==2'b01)$fatal(1,"dirty victim not protected");
   rv=1;refill=1;tick();
   if(!rvalid || rline[7:0]!==8'h7a || hit || ready)$fatal(1,"stalled victim read changed");
   tick();if(!need || ready)$fatal(1,"writeback stall not retained");
-  wb=1;#1;if(!ready)$fatal(1,"ack did not allow refill");tick();wb=0;refill=0;rv=0;#1;
+  wb=1;#1;if(!ready)$fatal(1,"ack did not allow refill");tick();wb=0;refill=0;rv=0;tick();#1;
   if(!hit || need)$fatal(1,"replacement did not install");
   tick();if(!rvalid || rline!=={8{32'hdeadbeef}})$fatal(1,"refill data mismatch");
-  mva=0;#1;if(hit)$fatal(1,"old line still valid");
+  mva=0;tick();#1;if(hit)$fatal(1,"old line still valid");
   $display("PASS: associative bank holds dirty victim until acknowledged and refills");$finish;
  end
 endmodule

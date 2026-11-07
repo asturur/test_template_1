@@ -60,7 +60,7 @@ initial begin: host
    end else for(n=0;n<256;n=n+1)word_out(part==0?disk[current_lba*256+n]:diag_disk[current_lba*256+n]);
    repeat(4)@(negedge clk);end_io();
   end else begin
-   writes=writes+1;if(part==0)snapshot_word0=save.bridge.sector.bufmem[0];begin_io();word_out((part<<8)|'h18);
+   writes=writes+1;if(part==0)snapshot_word0=save.bridge.sector.buffer.memory[0];begin_io();word_out((part<<8)|'h18);
    if(inject_swap && part==0)begin
     for(n=0;n<8;n=n+1)word_out(0);end_io();inject_swap=0;mount_image(1,0,2560);
    end else begin
@@ -73,7 +73,7 @@ initial begin: host
     if(saw_old_snapshot && !first_snapshot_checked && part==0 && current_lba==1)begin
      if(disk[256]!==16'h0000)$fatal(1,"first snapshot did not retain old data");first_snapshot_checked=1;
     end
-    if(part==0)repeat(4)begin @(negedge clk);if(save.bridge.sector.bufmem[0]!==snapshot_word0)$fatal(1,"sector buffer changed before HPS ack release");end
+    if(part==0)repeat(4)begin @(negedge clk);if(save.bridge.sector.buffer.memory[0]!==snapshot_word0)$fatal(1,"sector buffer changed before HPS ack release");end
     end_io();
    end
   end

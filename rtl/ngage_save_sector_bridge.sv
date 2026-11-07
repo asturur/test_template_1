@@ -34,7 +34,7 @@ module ngage_save_sector_bridge #(
     output wire [15:0] hps_din
 );
     localparam IDLE=0,START_READ=1,WAIT_READ=2,LOAD_LO=3,LOAD_HI=4,
-  MEM_ISSUE=5,MEM_WAIT=6,BUF_LOW=7,BUF_HIGH=8,START_WRITE=9,WAIT_WRITE=10,FAIL=11;
+  MEM_ISSUE=5,MEM_WAIT=6,BUF_LOW=7,BUF_HIGH=8,START_WRITE=9,WAIT_WRITE=10,FAIL=11,LOAD_LO_WAIT=12,LOAD_HI_WAIT=13;
     reg [ 3:0] state = IDLE;
     reg        load_op = 0;
     reg [13:0] saved_sector = 0;
@@ -43,9 +43,11 @@ module ngage_save_sector_bridge #(
     reg [15:0] low = 0;
     wire sec_ready, sec_done, sec_error;
     wire [15:0] local_dout;
-    wire        sec_start = (state == START_READ || state == START_WRITE);
-    wire [ 7:0] local_addr = {word_index[6:0], (state == LOAD_HI || state == BUF_HIGH)};
-    wire        local_we = (state == BUF_LOW || state == BUF_HIGH);
+    wire sec_start = (state == START_READ || state == START_WRITE);
+    wire [7:0] local_addr = {
+        word_index[6:0], (state == LOAD_HI || state == LOAD_HI_WAIT || state == BUF_HIGH)
+    };
+    wire local_we = (state == BUF_LOW || state == BUF_HIGH);
     wire [15:0] local_data = state == BUF_HIGH ? snapshot[31:16] : snapshot[15:0];
     ngage_sd_sector #(
         .TIMEOUT(SD_TIMEOUT)
@@ -108,11 +110,13 @@ module ngage_save_sector_bridge #(
                         done  <= 1;
                         error <= 1;
                         state <= FAIL;
-                    end else state <= LOAD_LO;
+                    end else state <= LOAD_LO_WAIT;
                 end
+                LOAD_LO_WAIT: state <= LOAD_LO;
+                LOAD_HI_WAIT: state <= LOAD_HI;
                 LOAD_LO: begin
                     low   <= local_dout;
-                    state <= LOAD_HI;
+                    state <= LOAD_HI_WAIT;
                 end
                 LOAD_HI: begin
                     mem_addr  <= base + ({24'b0, word_index} << 2);
@@ -129,7 +133,7 @@ module ngage_save_sector_bridge #(
                             state <= IDLE;
                         end else begin
                             word_index <= word_index + 1'b1;
-                            state      <= LOAD_LO;
+                            state      <= LOAD_LO_WAIT;
                         end
                     end else begin
                         snapshot <= mem_rdata;

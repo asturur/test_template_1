@@ -1,7 +1,6 @@
 /*  Simple dual-port 32-bit RAM with byte enables and a registered read,
-    written as four independent 8-bit lanes so Quartus infers block RAM
-    (M10K) rather than registers. Read data appears one clock after the
-    address; contents power up as zero (FPGA init / Verilator x-initial 0).
+    implemented with explicit M10K and four native byte enables. Read data
+    appears one clock after the address; contents power up as zero.
 */
 
 module ngage_bram_be #(
@@ -15,20 +14,20 @@ module ngage_bram_be #(
     input  wire [  31:0] wdata
 );
 
-    genvar g;
-    generate
-        for (g = 0; g < 4; g = g + 1) begin : lane
-            (* ramstyle = "no_rw_check" *)
-            reg [7:0] mem[0:(1<<AW)-1];
-            reg [7:0] q;
-
-            always @(posedge clk) begin
-                if (we[g]) mem[waddr] <= wdata[g*8+:8];
-                q <= mem[raddr];
-            end
-
-            assign rdata[g*8+:8] = q;
-        end
-    endgenerate
-
+    ngage_bram #(
+        .AW         (AW),
+        .DW         (32),
+        .BYTE_WIDTH (8),
+        .READ_ONLY_B(1)
+    ) ram (
+        .clk   (clk),
+        .addr_a(waddr),
+        .data_a(wdata),
+        .we_a  (we),
+        .q_a   (),
+        .addr_b(raddr),
+        .data_b(32'b0),
+        .we_b  (4'b0),
+        .q_b   (rdata)
+    );
 endmodule

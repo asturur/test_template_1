@@ -3,7 +3,7 @@ module tb;
 reg clk=0,cold=1,fault=0,fetch=0,tv=0;reg [31:0] fa=0,ta=0,td=0;reg [2:0] reason=0;reg [3:0] sel=0;reg [10:0] ra=0;wire [15:0] data;wire seen;integer i;
 always #5 clk=~clk;
 ngage_diagnostics dut(.clk(clk),.cold_reset(cold),.freeze_trace(1'b0),.fault(fault),.fault_is_fetch(fetch),.fault_address(fa),.fault_reason(reason),.trace_valid(tv),.trace_lost(1'b0),.trace_addr(ta),.trace_data(td),.trace_sel(sel),.read_word(ra),.read_data(data),.fault_seen(seen));
-task check;input [10:0] index;input [15:0] expected;begin ra=index;#1;if(data!==expected)begin $display("FAIL debug word %d got %h want %h",index,data,expected);$finish;end end endtask
+task check;input [10:0] index;input [15:0] expected;begin @(negedge clk);ra=index;@(negedge clk);#1;if(data!==expected)begin $display("FAIL debug word %d got %h want %h",index,data,expected);$finish;end end endtask
 initial begin
  repeat(2)@(negedge clk);cold=0;
  @(negedge clk);fault=1;fetch=1;fa=32'h0c0047e4;reason=1;@(negedge clk);fault=0;fetch=0;

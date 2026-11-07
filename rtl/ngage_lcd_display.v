@@ -49,8 +49,10 @@ module ngage_lcd_display (
     endtask
     reg [3:0] div = 0;
     reg [8:0] x = 0, y = 0;
-    reg [31:0] pixels     [0:18303];
-    reg [31:0] pixel_word;
+    wire [23:0] pixel_word, pixel_q;
+    reg        pixel_forward;
+    reg [23:0] forwarded_pixel;
+    assign pixel_word = pixel_forward ? forwarded_pixel : pixel_q;
     reg [31:0] header = 0;
     reg memory_write = 0, display_on = 0;
     reg  [ 14:0] cursor = 0;
@@ -75,6 +77,32 @@ module ngage_lcd_display (
     assign vblank = diagnostic ? scan_y >= 240 : !(scan_y >= 16 && scan_y < 224);
     assign hsync  = !(scan_x >= 336 && scan_x < 368);
     assign vsync  = !(scan_y >= 244 && scan_y < 247);
+    // Pack only the two RGB444 pixels; unused bus bits need no storage.
+    wire direct_pixel = write_valid && write_addr == 32'h0c121208 &&
+                        header == 32'h8924d67f && memory_write;
+    wire [31:0] pixel_data = direct_pixel ? write_data : dma_data;
+    wire [14:0] pixel_address = direct_pixel ? cursor : dma_word_addr;
+    wire pixel_write = !reset && (direct_pixel || (dma_valid && dma_word_addr < 18304));
+    always @(posedge clk) begin
+        pixel_forward   <= pixel_write && pixel_address == (in_phone ? read_index : 15'b0);
+        forwarded_pixel <= {pixel_data[27:16], pixel_data[11:0]};
+    end
+    ngage_bram #(
+        .AW         (15),
+        .DW         (24),
+        .DEPTH      (18304),
+        .READ_ONLY_B(1)
+    ) framebuffer (
+        .clk   (clk),
+        .addr_a(pixel_address),
+        .addr_b(in_phone ? read_index : 15'b0),
+        .data_a({pixel_data[27:16], pixel_data[11:0]}),
+        .data_b(24'b0),
+        .we_a  (pixel_write),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (pixel_q)
+    );
     always @(posedge clk) begin
         div               <= div + 1'b1;
         ce_pix            <= div == 0;
@@ -87,9 +115,6 @@ module ngage_lcd_display (
             end else x <= x + 1'b1;
             scan_x <= x;
             scan_y <= y;
-            if (in_phone) begin
-                pixel_word <= pixels[read_index];
-            end
         end
         if (reset) begin
             last_command        <= 0;
@@ -196,14 +221,11 @@ module ngage_lcd_display (
                         unknown(header, write_data, last_command);
                 end
             end
-            // One framebuffer write port, with direct writes taking priority.
-            if (write_valid && write_addr == 32'h0c121208 && header == 32'h8924d67f && memory_write)
-                pixels[cursor] <= write_data;
-            else if (dma_valid && dma_word_addr < 18304) pixels[dma_word_addr] <= dma_data;
+
         end
     end
     always @* begin
-        phone_rgb = scan_x[0] ? pixel_word[27:16] : pixel_word[11:0];
+        phone_rgb = scan_x[0] ? pixel_word[23:12] : pixel_word[11:0];
         rgb       = 0;
         if (scan_x < 320 && scan_y < 240) begin
             if (diagnostic) begin

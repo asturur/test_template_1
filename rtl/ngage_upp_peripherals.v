@@ -440,7 +440,7 @@ module ngage_upp_peripherals #(
     // (even to the same address, e.g. after a write) re-reads.
     reg rd_vld;
     reg [31:0] rd_adr;
-    wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram);
+    wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram || (d_space_hit && !trace_claim));
     assign ready = init_done && (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin

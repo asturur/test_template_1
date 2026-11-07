@@ -106,7 +106,7 @@ def build_simulator(info, variant):
     if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
         raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
     if associative:
-        source += sorted((ROOT / "rtl" / "arm920").glob("*.sv"))
+        source += [ROOT / "rtl" / "ngage_bram.v"] + sorted((ROOT / "rtl" / "arm920").glob("*.sv"))
     info["associative_cache_experiment"] = associative
     inputs = source + sorted(rtl.glob("*.svh")) + patches + [
         ROOT / "rtl" / "ngage_cpu.sv", ROOT / "sim" / "ngage_cpu_sim.sv", ROOT / "sim" / "main.cpp",
@@ -230,10 +230,15 @@ def rtl_lint(info, variant):
     if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
         raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
     if associative:
-        command += ["-DNGAGE_ASSOC_EXPERIMENT"]
+        command += ["-DNGAGE_ASSOC_EXPERIMENT", "rtl/ngage_bram.v"]
         command += [str(p.relative_to(ROOT)) for p in sorted((ROOT / "rtl" / "arm920").glob("*.sv"))]
+    if associative:
+        library = Path(os.environ.get("ALTERA_MF", str(ROOT.parent / "jtpublicfork/modules/jtframe/hdl/ver/altera_mf.v")))
+        if not library.is_file():
+            raise RuntimeError("Synthesis-path lint requires ALTERA_MF pointing to Intel's altera_mf.v simulation library")
+        command += ["/vendor/altera_mf.v"]
     info["associative_cache_experiment"] = associative
-    execute(docker(command), BUILD / ("rtl-assoc-synthesis-path-lint.log" if associative else "rtl-synthesis-path-lint.log"))
+    execute(docker(command, [f"type=bind,src={library},dst=/vendor/altera_mf.v,readonly"] if associative else ()), BUILD / ("rtl-assoc-synthesis-path-lint.log" if associative else "rtl-synthesis-path-lint.log"))
     info.update(status="pass", method="verilator-lint-only", synthesis_macro=True, quartus_used=False)
     (BUILD / "rtl-lint-results.json").write_text(json.dumps(info, indent=2) + "\n")
     print("PASS shared RTL syntax with SYNTHESIS defined (ARM64 Verilator only)", flush=True)

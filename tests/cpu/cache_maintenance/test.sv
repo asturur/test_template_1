@@ -12,7 +12,7 @@ module test;
  initial begin #300000;$fatal(1,"timeout");end
  integer count;
  initial begin
-  tick();reset=0;tick();store=1;tick();seed=0;store=0;#1;
+  tick();reset=0;tick();tick();store=1;tick();seed=0;store=0;#1;
   if(!hit)$fatal(1,"setup missing line");
   launch(1,1,0);wait(bv);#1;
   if(ba!==32'h80001000 || bd!==32'hdeadbeef)$fatal(1,"bad clean address/data");

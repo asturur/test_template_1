@@ -15,6 +15,7 @@ set_global_assignment -name QIP_FILE rtl/pll.qip
 set_instance_assignment -name FAST_INPUT_REGISTER ON -to {SDRAM_DQ[*]}
 
 # N-Gage core modules
+set_global_assignment -name VERILOG_FILE rtl/ngage_bram.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_bundle_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mister.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_display.v

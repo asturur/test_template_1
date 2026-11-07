@@ -15,7 +15,7 @@ PY
 extra_rtl=""
 extra_define=""
 if [ "${CPU_ASSOC_EXPERIMENT:-1}" = 1 ]; then
- extra_rtl="rtl/arm920/tlb_bus_gate.sv rtl/arm920/write_buffer.sv rtl/arm920/cache_tags.sv rtl/arm920/cache_lines.sv rtl/arm920/cache_bank.sv rtl/arm920/cache_transfer.sv rtl/arm920/cache_refill.sv rtl/arm920/cache_maintenance.sv rtl/arm920/cache_access.sv rtl/arm920/zap_dcache_adapter.sv"
+ extra_rtl="rtl/arm920/tlb_bus_gate.sv rtl/arm920/write_buffer.sv rtl/arm920/cache_tags.sv rtl/ngage_bram.v rtl/arm920/cache_lines.sv rtl/arm920/cache_bank.sv rtl/arm920/cache_transfer.sv rtl/arm920/cache_refill.sv rtl/arm920/cache_maintenance.sv rtl/arm920/cache_access.sv rtl/arm920/zap_dcache_adapter.sv"
  extra_define="-DNGAGE_ASSOC_EXPERIMENT"
 fi
 if [ "${CPU_SDRAM_PATH:-0}" = 1 ]; then

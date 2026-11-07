@@ -14,38 +14,38 @@ module test;
   tick();reset=0;tick();
   // 64 distinct tags in the same segment must coexist in round-robin mode.
   for(n=0;n<64;n=n+1) begin
-   mva=n<<8;pa=32'h80000000+(n<<8);#1;
+   mva=n<<8;pa=32'h80000000+(n<<8);tick();tick();#1;
    if(hit || vway!==n || vvalid) $fatal(1,"allocation n=%0d hit=%b victim=%d valid=%b",n,hit,vway,vvalid);
-   fill=1;tick();fill=0;
+   fill=1;tick();fill=0;tick();
   end
   for(n=0;n<64;n=n+1) begin
-   mva=n<<8;#1;
+   mva=n<<8;tick();tick();#1;
    if(!hit || hit_way!==n || hp!==(32'h80000000+(n<<8))) $fatal(1,"lookup n=%0d hit=%b way=%d PA=%h",n,hit,hit_way,hp);
   end
   // A different segment has independent tags and its own victim counter.
-  mva=32'h20;pa=32'ha0000020;#1;
+  mva=32'h20;pa=32'ha0000020;tick();tick();#1;
   if(hit || vway!==0 || vvalid) $fatal(1,"segment isolation before fill");
-  fill=1;tick();fill=0;mva=0;#1;
+  fill=1;tick();fill=0;mva=0;tick();tick();#1;
   if(!hit || hit_way!==0) $fatal(1,"segment allocation clobbered another segment");
-  mva=0;write_hit=1;tick();mva=16;tick();write_hit=0;#1;
+  mva=0;tick();write_hit=1;tick();write_hit=0;mva=16;tick();write_hit=1;tick();write_hit=0;tick();tick();#1;
   if(hd!==2'b11) $fatal(1,"dirty halves %b",hd);
-  mva=64<<8;#1;
+  mva=64<<8;tick();tick();#1;
   if(hit || vway!==0 || !vvalid || vd!==2'b11 || vp!==32'h80000000) $fatal(1,"victim data incorrect");
   // Caller may fill only once it has dealt with the dirty victim.
-  fill=1;pa=32'h90000000;tick();fill=0;#1;
+  fill=1;pa=32'h90000000;tick();fill=0;tick();tick();#1;
   if(!hit || hit_way!==0 || hd!==0) $fatal(1,"replacement missing");
-  clean_hit=1;tick();clean_hit=0;invalidate_line=1;tick();invalidate_line=0;#1;
+  clean_hit=1;tick();clean_hit=0;invalidate_line=1;tick();invalidate_line=0;tick();tick();#1;
   if(hit) $fatal(1,"single invalidate failed");
-  lock_in=6'd3;lock_write=1;tick();lock_write=0;mva=32'h1020;#1;
+  lock_in=6'd3;lock_write=1;tick();lock_write=0;mva=32'h1020;tick();tick();#1;
   if(lock_base!==3 || vway!==3) $fatal(1,"lockdown victim base");
-  invalidate_all=1;tick();invalidate_all=0;mva=32'h100;#1;
+  invalidate_all=1;tick();invalidate_all=0;mva=32'h100;tick();tick();#1;
   if(hit || lock_base!==3) $fatal(1,"invalidate must clear lines but preserve lockdown");
-  lock_in=63;lock_write=1;tick();lock_write=0;#1;
+  lock_in=63;lock_write=1;tick();lock_write=0;tick();tick();#1;
   if(vway!==63) $fatal(1,"round-robin lockdown at final way");
-  fill=1;pa=32'h90000100;tick();fill=0;mva=32'h200;#1;
+  fill=1;pa=32'h90000100;tick();fill=0;mva=32'h200;tick();tick();#1;
   if(vway!==63) $fatal(1,"round-robin must wrap to lockdown base");
-  rr=0;#1;if(vway!==63) $fatal(1,"random victim must respect lockdown base");
-  lock_in=6'd4;lock_write=1;tick();lock_write=0;#1;
+  rr=0;tick();tick();#1;if(vway!==63) $fatal(1,"random victim must respect lockdown base");
+  lock_in=6'd4;lock_write=1;tick();lock_write=0;tick();tick();#1;
   if(vway!==4)$fatal(1,"random mode must use the explicitly written victim first");
   $display("PASS: 64-way tags, dirty halves, physical victim and lockdown");$finish;
  end

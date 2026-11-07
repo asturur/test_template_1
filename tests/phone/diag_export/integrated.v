@@ -13,7 +13,7 @@ initial begin
  wait(freeze);@(negedge clk);tv=1;repeat(2)@(negedge clk);tv=0;
  for(part=0;part<2;part=part+1)begin
   wait(wr);if(lba!==part)begin $display("FAIL LBA");$finish;end @(negedge clk);ack=1;
-  for(i=0;i<256;i=i+1)begin ha=i;#1;$fwrite(f,"%c%c",hd[7:0],hd[15:8]);@(negedge clk);end
+  for(i=0;i<256;i=i+1)begin ha=i;@(negedge clk);#1;$fwrite(f,"%c%c",hd[7:0],hd[15:8]);@(negedge clk);end
   ack=0;@(negedge clk);
  end
  wait(done);$fclose(f);if(error)begin $display("FAIL export error");$finish;end

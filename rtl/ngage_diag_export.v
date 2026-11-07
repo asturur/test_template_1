@@ -26,21 +26,36 @@ module ngage_diag_export #(
     input  wire        hps_we,
     output wire [15:0] hps_din
 );
-    localparam IDLE = 0, CAPTURE = 1, FILL = 2, START = 3, WAIT_SD = 4;
+    localparam IDLE = 0, CAPTURE = 1, FILL = 2, START = 3, WAIT_SD = 4, FILL_READ = 5, CAPTURE_READ = 6;
     reg  mount_prev = 0;
     wire mount_event = mount && !mount_prev;
     always @(posedge clk) begin
         if (reset) mount_prev <= 0;
         else mount_prev <= mount;
     end
-    reg [ 2:0] state = IDLE;
-    reg [ 8:0] index = 0;
-    reg        part = 0;
-    reg [15:0] snapshot     [0:511];
+    reg  [ 2:0] state = IDLE;
+    reg  [ 8:0] index = 0;
+    reg         part = 0;
+    wire [ 8:0] capture_word = index == 511 ? 9'd392 : index >= 392 ? index + 1'b1 : index;
+    wire [15:0] snapshot_q;
+    ngage_bram #(
+        .AW         (9),
+        .DW         (16),
+        .READ_ONLY_B(1)
+    ) snapshot (
+        .clk   (clk),
+        .addr_a(capture_word),
+        .data_a(debug_data),
+        .we_a  (!reset && !mount_event && state == CAPTURE),
+        .q_a   (),
+        .addr_b({part, index[7:0]}),
+        .data_b(16'b0),
+        .we_b  (1'b0),
+        .q_b   (snapshot_q)
+    );
     wire sector_ready, sector_done, sector_error;
-    wire [8:0] capture_word = index == 511 ? 9'd392 : index >= 392 ? index + 1'b1 : index;
     assign debug_word   = {2'b0, capture_word};
-    assign freeze_trace = state == CAPTURE;
+    assign freeze_trace = state == CAPTURE || state == CAPTURE_READ;
     ngage_sd_sector #(
         .TIMEOUT(TIMEOUT)
     ) sector (
@@ -53,7 +68,7 @@ module ngage_diag_export #(
         .done        (sector_done),
         .error       (sector_error),
         .local_addr  (index[7:0]),
-        .local_din   (snapshot[{part, index[7:0]}]),
+        .local_din   (snapshot_q),
         .local_we    (state == FILL),
         .local_dout  (),
         .sd_lba      (sd_lba),
@@ -94,22 +109,29 @@ module ngage_diag_export #(
                             busy  <= 1;
                             index <= 0;
                             part  <= 0;
-                            state <= CAPTURE;
+                            state <= CAPTURE_READ;
                         end
                     end
+                    CAPTURE_READ: state <= CAPTURE;
+                    FILL_READ:    state <= FILL;
                     CAPTURE: begin
-                        snapshot[capture_word] <= debug_data;
                         if (index == 511) begin
                             index <= 0;
-                            state <= FILL;
-                        end else index <= index + 1'b1;
+                            state <= FILL_READ;
+                        end else begin
+                            index <= index + 1'b1;
+                            state <= CAPTURE_READ;
+                        end
                     end
                     FILL:
                     if (index[7:0] == 255) begin
                         index <= 0;
                         state <= START;
-                    end else index <= index + 1'b1;
-                    START: if (sector_ready) state <= WAIT_SD;
+                    end else begin
+                        index <= index + 1'b1;
+                        state <= FILL_READ;
+                    end
+                    START:        if (sector_ready) state <= WAIT_SD;
                     WAIT_SD:
                     if (sector_done) begin
                         if (sector_error) begin
@@ -120,7 +142,7 @@ module ngage_diag_export #(
                         end else if (!part) begin
                             part  <= 1;
                             index <= 0;
-                            state <= FILL;
+                            state <= FILL_READ;
                         end else begin
                             busy  <= 0;
                             done  <= 1;
