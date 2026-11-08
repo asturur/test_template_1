@@ -16,6 +16,9 @@ module tb;
  .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsread),
  .mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
  always @(posedge clk)begin
+  if(!reset && dut.wb_err && dut.wb_adr==32'h0c121200 && dut.wb_dat_o==32'hdeadbeef)
+   if(dut.board.display.lcd.header!==0 || dut.board.upp.peripherals.hdr_written!==0)
+    $fatal(1,"invalid header reached LCD queue or transport");
   rdy<=0;sack<=0;
   if(accept)begin
    if(dw || da<32'h30000000 || da>=32'h30001000)begin $display("FAIL unexpected DDR request %h",da);$finish;end
@@ -34,8 +37,8 @@ module tb;
     if(saved_swe)begin
      for(i=0;i<4;i=i+1)if(saved_sb[i])ram[saved_sa[11:2]][i*8+:8]<=saved_sd[i*8+:8];
      if(saved_sa==25'h100)begin
-      if(saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc || dut.board.display.lcd.header!==0 || dut.board.upp.peripherals.hdr_written!==0 || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $display("FAIL ARM reported %h",saved_sd);$finish;end
-      $display("PASS HDL ARM board SIMIF, LCD DMA, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits");$finish;
+      if(saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc || dut.board.display.lcd.header!==32'h09200000 || !dut.board.display.lcd.display_on || !dut.board.upp.peripherals.hdr_written || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $display("FAIL ARM reported %h",saved_sd);$finish;end
+      $display("PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits");$finish;
      end
     end else sr<=ram[saved_sa[11:2]];
    end

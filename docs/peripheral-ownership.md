@@ -94,3 +94,15 @@ commit, stable held results, exact write counts, immediate dependent reads,
 replacement/cancellation at each occupied stage, warm retention and cold reset.
 The board adapter additionally checks that a canceled sparse request cannot
 stall upload RAM, and full CAM state cannot affect trace-sink timing/errors.
+
+## LCD board-command queue (2026-11-08)
+
+When LCD_ENABLE is set on the board, UPP enables the local sink-ready contract.
+A validated LCD write may update transport state and enter the queue only when
+it can accept. The queued address/data/valid cross one registered boundary;
+DMA-valid holds consumption, and a held full queue stalls only LCD writes.
+A drain and replacement can share an edge. LCD reads retain the existing
+transport readback behavior. Reset discards a pending command as it resets
+panel/transport state. Non-display fixtures keep their existing immediate
+transport contract. `tests/phone/lcd_queue/run.sh` covers the queue and connected
+board ready/state wiring; it does not assert physical Nokia panel timing.

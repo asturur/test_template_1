@@ -3,10 +3,11 @@
 // Active bus, CBUS and ADSP ports are transaction-level migration interfaces,
 // not the schematic's multiplexed electrical pin timings.
 module ngage_upp #(
-    parameter INTERNAL_CPU   = 0,
-              SIMIF_ENABLE   = 0,
-              KEYPAD_ENABLE  = 0,
-              LCD_DMA_ENABLE = 0
+    parameter INTERNAL_CPU     = 0,
+              SIMIF_ENABLE     = 0,
+              KEYPAD_ENABLE    = 0,
+              LCD_DMA_ENABLE   = 0,
+              LCD_QUEUE_ENABLE = 0
 ) (
     input  wire        clk,
     input  wire        rst,
@@ -35,6 +36,7 @@ module ngage_upp #(
     output wire        dma_mem_req,
     output wire [24:0] dma_mem_addr,
     output wire        lcd_write_valid,
+    input  wire        lcd_sink_ready,
     output wire        lcd_dma_claim,
     output wire        lcd_dma_bad,
     output wire [31:0] lcd_dma_reg_data,
@@ -206,8 +208,9 @@ module ngage_upp #(
         end
     endgenerate
     ngage_upp_peripherals #(
-        .SIMIF_ENABLE (SIMIF_ENABLE),
-        .KEYPAD_ENABLE(KEYPAD_ENABLE)
+        .LCD_QUEUE_ENABLE(LCD_QUEUE_ENABLE),
+        .SIMIF_ENABLE    (SIMIF_ENABLE),
+        .KEYPAD_ENABLE   (KEYPAD_ENABLE)
     ) peripherals (
         .keys(keys),
         .sim_present(sim_present),
@@ -263,7 +266,8 @@ module ngage_upp #(
         .mdi_data(mdi_data),
         .mdi_events(mdi_events),
         .adsp_tick(adsp_tick),
-        .lcd_write_valid(lcd_write_valid)
+        .lcd_write_valid(lcd_write_valid),
+        .lcd_sink_ready(lcd_sink_ready)
     );
 endmodule
 

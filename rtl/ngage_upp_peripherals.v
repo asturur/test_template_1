@@ -37,8 +37,9 @@
 */
 
 module ngage_upp_peripherals #(
-    parameter SIMIF_ENABLE  = 0,
-              KEYPAD_ENABLE = 0
+    parameter SIMIF_ENABLE     = 0,
+              KEYPAD_ENABLE    = 0,
+              LCD_QUEUE_ENABLE = 0
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -98,7 +99,8 @@ module ngage_upp_peripherals #(
     input  wire [31:0] mdi_data,
     input  wire [15:0] mdi_events,
     output wire        adsp_tick,
-    output wire        lcd_write_valid
+    output wire        lcd_write_valid,
+    input  wire        lcd_sink_ready
 );
 
     wire simif_claim, simif_bad, simif_irq;
@@ -467,7 +469,10 @@ module ngage_upp_peripherals #(
     wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram);
     // A committed card event is captured at system speed and serviced on its
     // slower enable. Hold the next SIMIF access until card state is current.
-    assign ready = init_done && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
+    // Only LCD writes wait for their panel command buffer. Legacy standalone
+    // fixtures without a display keep their original immediate contract.
+    wire lcd_can_accept = !LCD_QUEUE_ENABLE || lcd_sink_ready;
+    assign ready = init_done && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin
@@ -645,7 +650,7 @@ module ngage_upp_peripherals #(
             end
         end
     end
-    assign lcd_write_valid = local_access && lcd_hit && we && !lcd_bad;
+    assign lcd_write_valid = local_access && lcd_hit && we && !lcd_bad && lcd_can_accept;
 
     // ---- registered state -------------------------------------------------------
     always @(posedge clk) begin

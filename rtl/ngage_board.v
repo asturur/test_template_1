@@ -118,19 +118,33 @@ module ngage_board #(
     wire [15:0] route2a, route2c, route3b, mdi_events;
     wire mdi_claim, mdi_bad, adsp_tick;
     wire [31:0] aligned_addr = {bus_adr[31:2], 2'b00};
-    wire bus_access, lcd_write_valid;
+    wire bus_access, lcd_write_valid, lcd_sink_ready;
     // Display-controller connection is a transaction-level LCD bus hypothesis.
     generate
         if (LCD_ENABLE) begin : display
+            wire queued_valid;
+            wire [31:0] queued_addr, queued_data;
+            ngage_lcd_bus_queue command_queue (
+                .clk      (clk),
+                .reset    (rst),
+                .hold     (lcd_dma_valid),
+                .in_valid (lcd_write_valid),
+                .in_ready (lcd_sink_ready),
+                .in_addr  (aligned_addr),
+                .in_data  (bus_din),
+                .out_valid(queued_valid),
+                .out_addr (queued_addr),
+                .out_data (queued_data)
+            );
             ngage_lcd_display lcd (
                 .clk              (clk),
                 .reset            (rst),
                 .diagnostic       (diagnostic_video),
                 .status           (diagnostic_status),
                 .save_state       (save_state),
-                .write_valid      (lcd_write_valid),
-                .write_addr       (aligned_addr),
-                .write_data       (bus_din),
+                .write_valid      (queued_valid),
+                .write_addr       (queued_addr),
+                .write_data       (queued_data),
                 .dma_valid        (lcd_dma_valid),
                 .dma_frame_full   (lcd_dma_full),
                 .dma_word_addr    (lcd_dma_addr),
@@ -150,6 +164,7 @@ module ngage_board #(
                 .unsupported_data (lcd_unsupported_data)
             );
         end else begin : display_disabled
+            assign lcd_sink_ready        = 1;
             assign lcd_unsupported       = 0;
             assign lcd_unsupported_valid = 0;
             assign lcd_unsupported_data  = 0;
@@ -164,10 +179,11 @@ module ngage_board #(
         end
     endgenerate
     ngage_upp #(
-        .INTERNAL_CPU  (INTERNAL_CPU),
-        .SIMIF_ENABLE  (SIMIF_ENABLE),
-        .KEYPAD_ENABLE (KEYPAD_ENABLE),
-        .LCD_DMA_ENABLE(LCD_DMA_ENABLE)
+        .INTERNAL_CPU    (INTERNAL_CPU),
+        .SIMIF_ENABLE    (SIMIF_ENABLE),
+        .KEYPAD_ENABLE   (KEYPAD_ENABLE),
+        .LCD_DMA_ENABLE  (LCD_DMA_ENABLE),
+        .LCD_QUEUE_ENABLE(LCD_ENABLE)
     ) upp (
         .debug_pc         (debug_pc),
         .debug_cpsr       (debug_cpsr),
@@ -178,6 +194,7 @@ module ngage_board #(
         .dma_mem_req      (dma_mem_req),
         .dma_mem_addr     (dma_mem_addr),
         .lcd_write_valid  (lcd_write_valid),
+        .lcd_sink_ready   (lcd_sink_ready),
         .lcd_dma_claim    (lcd_dma_claim),
         .lcd_dma_bad      (lcd_dma_bad),
         .lcd_dma_reg_data (lcd_dma_reg_data),
@@ -317,4 +334,34 @@ module ngage_board #(
         .rfbusda_oe       (),
         .model_implemented()
     );
+endmodule
+
+// Transaction-level board buffer, not a claim about physical panel pin timing.
+// Validation qualifies only capture. Panel decoding/BRAM writes see registered
+// address/data/valid, and DMA has priority without dropping a queued command.
+module ngage_lcd_bus_queue (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        hold,
+    input  wire        in_valid,
+    output wire        in_ready,
+    input  wire [31:0] in_addr,
+    input  wire [31:0] in_data,
+    output wire        out_valid,
+    output reg  [31:0] out_addr,
+    output reg  [31:0] out_data
+);
+    reg pending = 0;
+    assign in_ready  = !reset && (!pending || !hold);
+    assign out_valid = !reset && pending && !hold;
+    always @(posedge clk) begin
+        if (reset) pending <= 0;
+        else if (in_ready) begin
+            pending  <= in_valid;
+            // Payload sampling is independent of late validation. Only the
+            // pending bit records whether these fields form a real command.
+            out_addr <= in_addr;
+            out_data <= in_data;
+        end
+    end
 endmodule

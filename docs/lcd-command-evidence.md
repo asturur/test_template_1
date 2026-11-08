@@ -1,5 +1,39 @@
 ## 2026-11-07: remove speculative row coverage and display suppression
 
+## 2026-11-08: validated command queue and DMA backpressure
+
+Point3 implemented independently after Astra's5ac507e sparse CAM. The board
+contains a one-entry `ngage_lcd_bus_queue`: late transport validation qualifies
+only the pending bit; address/data are sampled independently and panel decoding
+and framebuffer writes consume registered fields one clock later. DMA-valid
+holds a pending command. The queue can drain/replace on the same edge; a full
+queue backpressures only selected LCD writes. Controller state changes only on
+acceptance. Existing direct-data/DMA collision suppression remains conservative.
+Warm reset clears pending work and panel/transport state together. No added
+panel frequency, unknown-command success, firmware or memory-layout change.
+Standalone boards without a display retain the prior unqueued transport contract.
+
+Random queue tests pass4000 cycles (874 commands applied,23 reset cancellations),
+including held/replaced packets and changing unrelated bus payloads. A connected
+board test checks full-queue waits, immediate unrelated upload writes, exact
+header/data ordering, DMA hold, local invalid-header suppression and pending
+warm reset. Actual CPU integration checks rejected header isolation and a valid
+queued display-on command, plus SIM/DMA/IRQ/FIQ/CAM-overflow/SDRAM waits.
+Known LCD transport agrees with both C++ fixtures; full18304-word DMA passes.
+Retained firmware-DMA replay is explicitly SKIP (fixture unavailable).
+
+Fresh real-SDRAM5M boot passes unchanged PC00006170,306874 transfers,12 known
+fetch faults and zero data faults. All845 board events and cycle stamps match
+Astra's baseline byte-for-byte; trace SHA256
+`ea4112346d90486e45bca592800959d43d83b1252e8ee8d1c245a9b19ecf7ecd`.
+Early boot has no LCD traffic; queued LCD behavior is established by the directed
+board/CPU tests, not a new cold-logo claim. Permanent checkpoints untouched.
+Regional ownership sweep, SIM present/absent, warm/cold RAM, diagnostic monitor/
+raster, top elaboration and source graph pass. Full CPU/cache suite finishes
+119 PASS plus one expected legacy direct-map XFAIL; warm ADD stays1 cycle at0/3 waits. Evidence `scratch/timing-closure/pass12-lcd-queue/`.
+No FPGA build or timing claim. Point4 write-buffer metadata is the next separate
+commit; last measured fit remains69.19MHz/-4.837ns.
+
 User requested retaining only needed LCD logic. Removed the per-row complete
 bitmap, contiguous-word counters, per-word /88/%88 and the frame_complete gate
 on phone scanout. These were FPGA bring-up coverage/blanking policy, not

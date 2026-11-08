@@ -204,6 +204,13 @@ local_fill:
  str r1,[r0]
  cmp r7,#3
  bne fail
+ // Valid commands reach the panel through the registered command queue.
+ ldr r0,=0x0c121200
+ ldr r1,=0x09200000
+ str r1,[r0]
+ ldr r0,=0x0c121208
+ mov r1,#0xaf
+ str r1,[r0]
  ldr r0,=0x50415353
  b finish
 irq_handler:
