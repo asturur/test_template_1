@@ -218,6 +218,13 @@ logic                            stall_from_decode;
 logic                            clear_from_alu;
 logic                            stall_from_issue;
 logic                            clear_from_writeback;
+// P2 owns the request until the registered completion is consumed.
+logic postalu_request_cyc, postalu_request_stb;
+logic completion_valid, completion_offer;
+logic [31:0] completion_data, completion_fsr, completion_far;
+logic [1:0] completion_fault;
+wire [1:0] owned_data_fault;
+wire [31:0] owned_data, owned_fsr, owned_far;
 logic                            data_stall;
 logic                            fifo_full;
 logic                            code_stall;
@@ -565,7 +572,60 @@ assign reset                    = i_reset;
 assign irq                      = i_irq;
 assign fiq                      = i_fiq;
 
-assign data_stall   = o_data_wb_stb & o_data_wb_cyc & ~i_data_wb_ack;
+`ifdef NGAGE_ASSOC_EXPERIMENT
+// Fault/TLB/cache ACK terminates here, not in the global advance tree. Stall
+// asserts immediately from P2 ownership; only a complete registered response
+// releases it. No standalone delayed stall and no unowned payload are allowed.
+zap_data_completion u_data_completion (
+        .i_clk(i_clk), .i_reset(reset), .i_kill(clear_from_writeback),
+        .i_request(postalu_request_stb && postalu_request_cyc),
+        .i_ack(i_data_wb_ack), .i_data(i_data_wb_dat),
+        .i_fault({i_dcache_err2, i_data_wb_err}), .i_fsr(i_fsr), .i_far(i_far),
+        .o_offer(completion_offer), .o_valid(completion_valid),
+        .o_data(completion_data), .o_fault(completion_fault),
+        .o_fsr(completion_fsr), .o_far(completion_far)
+);
+assign o_data_wb_stb = completion_offer;
+assign o_data_wb_cyc = completion_offer;
+assign data_stall = postalu_request_stb && postalu_request_cyc && !completion_valid;
+assign owned_data = completion_data;
+assign owned_data_fault = completion_valid ? completion_fault : 2'd0;
+// CP15 receives the FSR/FAR of this exact completed owner, including an abort.
+assign owned_fsr = completion_valid ? completion_fsr : 32'd0;
+assign owned_far = completion_far;
+`ifndef SYNTHESIS
+// P2/M have no shifter/code hold: their only normal stop is data_stall.
+// Once a demand has waited an edge, M is empty, so a later WB kill cannot
+// revoke an offered transaction. A first-cycle older redirect gates the offer.
+reg completion_waited;
+always @(posedge i_clk)
+begin
+        if (reset) completion_waited <= 1'b0;
+        else begin
+                if (completion_waited && clear_from_writeback)
+                        $fatal(1, "WB kill after a blocking demand began waiting");
+                completion_waited <= completion_offer && !i_data_wb_ack;
+        end
+end
+`endif
+
+`else
+// The legacy cache has autonomous background writes/fault context. Preserve
+// that established protocol; this owner is for the selected blocking adapter.
+assign completion_valid = 1'b0;
+assign completion_offer = 1'b0;
+assign completion_data = 32'd0;
+assign completion_fault = 2'd0;
+assign completion_fsr = 32'd0;
+assign completion_far = 32'd0;
+assign o_data_wb_stb = postalu_request_stb;
+assign o_data_wb_cyc = postalu_request_cyc;
+assign data_stall = postalu_request_stb && postalu_request_cyc && !i_data_wb_ack;
+assign owned_data = i_data_wb_dat;
+assign owned_data_fault = {i_dcache_err2, i_data_wb_err};
+assign owned_fsr = i_fsr;
+assign owned_far = i_far;
+`endif
 assign o_debug_pc = o_instr_wb_adr;
 assign o_debug_cpsr = alu_flags_ff;
 assign o_debug_instruction = i_instr_wb_dat;
@@ -576,7 +636,8 @@ assign instr_valid  = o_instr_wb_stb & o_instr_wb_cyc & i_instr_wb_ack  & ~shelv
 // CP registers are changed only when pipe ahead of it is EMPTY. Such
 // instructions can be used as fences in ZAP.
 //
-assign pipeline_is_not_empty    = predecode_val                      ||
+assign pipeline_is_not_empty    = completion_valid                    ||
+                                  predecode_val                      ||
                                   operand_busy                       ||
                                   (decode_condition_code    != NV)   ||
                                   (issue_condition_code_ff  != NV)   ||
@@ -598,7 +659,7 @@ assign code_stall = fifo_full |
                    (!o_icache_en && (
                      (postalu0_data_wb_cyc && postalu0_data_wb_stb && postalu0_data_wb_we) |
                      (postalu1_data_wb_cyc && postalu1_data_wb_stb && postalu1_data_wb_we) |
-                     (o_data_wb_cyc && o_data_wb_stb && o_data_wb_we))) |
+                     (postalu_request_cyc && postalu_request_stb && o_data_wb_we))) |
                    (o_instr_wb_stb & o_instr_wb_cyc & ~i_instr_wb_ack);
 
 assign o_data_wb_adr_check =  {postalu1_address_ff[31:2], 2'd0};
@@ -1226,7 +1287,7 @@ u_zap_alu_main
          .i_condition_code_ff              (shifter_condition_code_ff),
          .i_destination_index_ff           (shifter_destination_index_ff),
          .i_alu_operation_ff               (shifter_alu_operation_ff),
-         .i_data_mem_fault                 (i_data_wb_err | i_dcache_err2),
+         .i_data_mem_fault                 (|owned_data_fault),
 
          .o_force32align_ff                (alu_force32align_ff),
          .o_uop_last                       (alu_uop_last),
@@ -1279,7 +1340,7 @@ zap_postalu_main #(
          .i_reset                          (i_reset),
          .i_data_stall                     (data_stall),
          .i_clear_from_writeback           (clear_from_writeback),
-         .i_data_mem_fault                 (i_data_wb_err | i_dcache_err2),
+         .i_data_mem_fault                 (|owned_data_fault),
 
           .i_uop_last                      (alu_uop_last),
           .o_uop_last                      (postalu0_uop_last),
@@ -1353,7 +1414,7 @@ zap_postalu_main #(
          .i_reset                          (i_reset),
          .i_data_stall                     (data_stall),
          .i_clear_from_writeback           (clear_from_writeback),
-         .i_data_mem_fault                 (i_data_wb_err | i_dcache_err2),
+         .i_data_mem_fault                 (|owned_data_fault),
 
          .i_uop_last                       (postalu0_uop_last),
          .o_uop_last                       (postalu1_uop_last),
@@ -1425,7 +1486,7 @@ zap_postalu_main #(
          .i_reset                          (i_reset),
          .i_data_stall                     (data_stall),
          .i_clear_from_writeback           (clear_from_writeback),
-         .i_data_mem_fault                 (i_data_wb_err | i_dcache_err2),
+         .i_data_mem_fault                 (|owned_data_fault),
 
          .i_uop_last                        (postalu1_uop_last),
          .o_uop_last                        (postalu_uop_last),
@@ -1479,8 +1540,8 @@ zap_postalu_main #(
          .o_mem_translate_ff               (postalu_mem_translate_ff),
 
          .o_data_wb_we_ff                  (o_data_wb_we),
-         .o_data_wb_cyc_ff                 (o_data_wb_cyc),
-         .o_data_wb_stb_ff                 (o_data_wb_stb),
+         .o_data_wb_cyc_ff                 (postalu_request_cyc),
+         .o_data_wb_stb_ff                 (postalu_request_stb),
          .o_data_wb_dat_ff                 (o_data_wb_dat),
          .o_data_wb_sel_ff                 (o_data_wb_sel)
 );
@@ -1522,8 +1583,8 @@ u_zap_memory_main
         .i_swi_ff                       (postalu_swi_ff),
         .i_mem_srcdest_index_ff         (postalu_mem_srcdest_index_ff),
 
-        .i_mem_rd_data                  (i_data_wb_dat),// From memory.
-        .i_mem_fault                    ({i_dcache_err2, i_data_wb_err}),      // From cache.
+        .i_mem_rd_data                  (owned_data),// From memory.
+        .i_mem_fault                    (owned_data_fault),      // From cache.
         .o_mem_fault                    (memory_data_abt_ff[1:0]),
 
         // Can come in handy since this is reused for several other things.
@@ -1675,8 +1736,8 @@ zap_cp15_cb #(
         .o_reg_wr_index         (copro_reg_wr_index),
         .o_reg_rd_index         (copro_reg_rd_index),
 
-        .i_fsr                  (i_fsr),
-        .i_far                  (i_far),
+        .i_fsr                  (owned_fsr),
+        .i_far                  (owned_far),
         .o_dac                  (o_dac),
         .o_baddr                (o_baddr),
         .o_mmu_en               (o_mmu_en),

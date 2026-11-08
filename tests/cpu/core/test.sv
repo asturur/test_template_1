@@ -63,9 +63,15 @@ module test;
  always @(negedge clk)if(!reset)begin
   if(dut.u_zap.cpu_dc_stb && dut.u_zap.data_request_ack!==dut.u_zap.data_ack)
    $fatal(1,"demand completion differs from original strobed ACK");
+`ifdef NGAGE_ASSOC_EXPERIMENT
+`ifndef NGAGE_OPERAND_REFERENCE
   if(dut.u_zap.u_zap_core.data_stall !==
-     (dut.u_zap.u_zap_core.o_data_wb_stb & dut.u_zap.u_zap_core.o_data_wb_cyc & ~dut.u_zap.data_ack))
-   $fatal(1,"global data-stall timing changed");
+     (dut.u_zap.u_zap_core.postalu_request_stb && dut.u_zap.u_zap_core.postalu_request_cyc && !dut.u_zap.u_zap_core.completion_valid))
+   $fatal(1,"advance without an owned completion");
+  if(dut.u_zap.u_zap_core.completion_valid && dut.u_zap.cpu_dc_stb)
+   $fatal(1,"completed demand replayed to cache");
+`endif
+`endif
  end
 `ifndef NGAGE_OPERAND_REFERENCE
  always @(negedge clk)if(!reset)begin
@@ -188,6 +194,8 @@ module test;
     6:sweep_at_edge=dut.u_zap.u_zap_core.postalu1_swp_tag==1;
     7:sweep_at_edge=dut.u_zap.u_zap_core.postalu_swp_tag==1;
     8:sweep_at_edge=dut.u_zap.u_zap_core.postalu_swp_tag==2;
+    9:sweep_at_edge=dut.u_zap.u_zap_core.completion_valid && dut.u_zap.u_zap_core.postalu_swp_tag==1;
+    10:sweep_at_edge=dut.u_zap.u_zap_core.completion_valid && dut.u_zap.u_zap_core.postalu_swp_tag==2;
     default:sweep_at_edge=0;
    endcase
    if(swp_edge>=0)begin

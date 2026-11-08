@@ -1,3 +1,80 @@
+## 2026-11-08: owned completion and registered forwarding validated; fit next
+
+Patch0047 implements the measured completion/stall boundary before the remaining
+operand forwarding work. Selected associative P2 requests hold until ACK captures
+an owned data/abort/retry/FSR/FAR record. Registered validity releases CPU advance
+one edge later; offers are suppressed while completed, and reset/WB-clear gates
+new offers and kills the record. No live D-fault/ACK drives global data stall.
+P2/M advance solely from that stall; the tested late-WB-kill invariant prevents
+revoking an already-waiting owner. CP15 receives matching fault context and drain
+counts completion. Legacy autonomous background completion remains unchanged.
+
+Then load formatting moved before M's existing result register, and static
+immediate/RAZ/PC/CPSR source classification moved into owned R context. No further
+pipeline stage or priority/hazard/current-write relaxation was introduced.
+The contract details ownership/kill/SWP semantics and new timing seams.
+
+Validation:171PASS+1expectedXFAIL,152 CPU outcomes including44 SWP IRQ/FIQ arrival
+cases (both new completion edges); completion oracle5546clocks, formatter8192,
+operand50491 and frozen reference17160. All21,118 ordered architectural effects
+match at3waits. Phone integration, ONLY_CORE/legacy elaboration, top lint,
+174-source/9-QIP preflight and all47patches pass. Existing bus_access warning stays.
+
+Cost is explicit: warm ADD1 stays; load-use minimum18→19 at0/3/7/15/31waits.
+Mixed body1397/1651/2001/2725/4177→1414/1668/2018/2742/4194 (+17each), branch min14
+unchanged. Setup241990/332246/406201/631890/1091490→241991/332235/406204/631890/1091490.
+Fixed mix1729872→1729724 (−.0086%, phase effects); identical issue/retirement counts.
+This is still+11.9075% versus pre-R, not a universal performance win. Legacy smoke
+remains135782/234446 at0/3. Full absolute tables are in the operand contract.
+
+Fresh5M real-SDRAM:PC00006168,289114transfers,12known fetchfaults/0datafaults.
+All848 board events including121writes/all reads and12fault records match in order
+apart from timestamps; final write189507→190170 reaches the same checkpoint.
+No LCD/DDR writes, no full Symbian/hardware proof. Saved checkpoints/frozen binaries
+and board/effect/reference evidence untouched. Two old elaboration text logs were
+accidentally overwritten; original PASS is retained in the prior validation JSON
+and the files explicitly point to new logs. Evidence/tested-source hashes:
+`scratch/timing-closure/completion-forward/validation-summary.json`.
+
+Ready for parent review, push and ONE isolated fit. Baseline remains42492307815:
+86.61MHz/setup−1.931ns/TNS−2673.594ns,32121ALMs/465M10Ks. New completion→advance,
+completion/P2→M formatter and formatted-M→issue seams must be measured. RF address
+select/read locality and dynamic postALU matching are explicitly unchanged;
+static-class capture does not fix them. Shifter, cache/bus, reset-qualified
+peripheral and SDRAM paths remain separate residuals. No clock/SDC change or
+104MHz closure claim; implementation agent performed no push/build dispatch.
+
+## 2026-11-08: journal fit improves RF/resources; slice1 timing remains open
+
+Run42492307815 /738e6a7 compiles/fits; only Require passing timing fails.
+Core Fmax86.61MHz versus83.89 (+2.72); setup−1.931ns versus−1.634
+(worse.297); TNS−2673.594ns versus−2680.821 (essentially unchanged).
+ALMs32121 (−1035), registers43391 (−159), M10Ks465 (+1), DSP38 unchanged.
+All global hold/recovery/removal/pulse checks pass. Full metrics, targeted groups,
+source counts and route interpretation are in timing-closure.md below this date.
+
+All17 targeted queries return10 real paths. Indexed RF→R now passes+.495ns,
+commit→journal+.659ns, journal→queue+3.540ns. The journal has removed its intended
+wide formatted-write→queue payload problem. Remaining failures include decode/CP15
+select→R, late memory/execute forwarding→issue, R source selection and queue
+advance/control. Broad commit_sources_to_r−.798ns is a control path through
+alignment fault→request_ack→data_stall→stall→capture_head, not a surviving live
+commit payload route. Global D-TLB FSR→same stop/capture chain drives128 R
+endpoints, worst−1.298ns. Global reset_drain launches768/1000 paths through bus
+qualification across many chips; this is synchronous functional fanout, not evidence
+for false-pathing reset. The global worst moves to I-cache WRITEBACK→bus merger
+address−1.931ns (21 endpoints), separate from the R acquisition boundary.
+
+Decision: keep the validated RF/journal implementation, but slice1 is NOT104MHz
+closed. Functional baseline remains161PASS+1expectedXFAIL and fresh5M848-event
+cycle-identical trace; this report-only analysis does not rerun or extend boot.
+Next isolate completion/stall ownership before another wide queue mux change
+(promote the plan's measured-only slice5 where required by R), then resolve actual
+late forwarding/source selection and RF address-decode locality. Preserve precise
+faults, current-edge writes and kill/drain semantics; never simply delay global
+stall. Report-only follow-up, no RTL change, commit, push or build requested.
+Evidence: scratch/timing-closure/slice1-finish-42492307815/.
+
 ## 2026-11-08: slice1 read/refresh/forward follow-up validated; routed fit next
 
 Patch0046 completes the selected operand follow-up implementation without another

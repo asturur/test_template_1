@@ -3,8 +3,15 @@
 Review and implementation proposal, 2026-11-08. The review below describes the
 pinned baseline. Slice1 implementation/evidence is recorded separately in
 [cpu-operand-stage-contract.md](cpu-operand-stage-contract.md). The first owned-R
-fit is reviewed in status.md; its read/refresh/forward follow-up is patch0046,
-awaiting a new routed measurement.
+fit and patch0046 RF/journal follow-up are reviewed in status.md; patch0047
+completion/formatting follow-up awaits a new routed measurement.
+The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
+capture, so patch0047 promotes the measured completion/local-advance portion of
+slice5 ahead of cache/translation work. Its blocking response owner adds one
+completion clock, then load formatting moves before M's existing result register;
+see the operand contract for exact ownership, exceptions and measured tradeoffs.
+This does not imply the remaining RF-address/dynamic-forwarding paths are closed.
+
 Reference: `ef9b7621fa2ca90af250ce8d988260ebbc5e59d6`, pinned ZAP plus patches 0001–0044,
 Quartus 17.0.2, Cyclone V `5CSEBA6U23I7`. Line references below refer to this revision.
 The existing uncommitted pass16 analysis in `status.md` and `timing-closure.md` is retained.

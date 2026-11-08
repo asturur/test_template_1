@@ -342,3 +342,17 @@ See [the operand contract](cpu-operand-stage-contract.md) for the inductive
 freshness proof and targeted tests. This is a functional retiming candidate for
 physical measurement, not a claim of104MHz closure. No additional pipeline cycle,
 clock constraint or other architecture slice is introduced.
+
+## Owned demand completion and registered load formatting
+
+Patch0047 adds the selected associative CPU's `zap_data_completion` boundary:
+ACK captures data, abort/retry and FSR/FAR together while P2 stays held; registered
+validity releases the pipeline on the next edge and suppresses request replay.
+WB-clear/reset gate offers and kill pending completion. Legacy background cache
+retains its original completion protocol. The added demand-completion clock is
+measured explicitly; warmed dependent ALU throughput remains1.
+
+The same patch moves load formatting before M's existing result register and
+captures static source classes with R ownership. Current-edge writes, producer
+priority, bank/PC/CPSR behavior and queue capacity/kill semantics stay intact.
+See the operand contract for edge ownership, fault/CP15 and test evidence.

@@ -96,6 +96,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decode_main.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decode.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_issue_main.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_operand_read.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_data_completion.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_shifter_main.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_shifter_multiply.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_shifter_shift.sv

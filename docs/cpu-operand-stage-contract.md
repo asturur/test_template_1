@@ -319,3 +319,156 @@ restored into the changed executable; this is bounded early boot evidence.
 
 Legacy direct-map smoke with the matching UPP bus bridge retains135782/234446
 cycles at0/3waits; an additional direct-bus smoke passes86415/189126cycles.
+
+## Patch0047: owned data completion and registered forwarding inputs
+
+The next fit (42492307815 /738e6a7) proved RF→R+.495ns,
+commit→journal+.659ns and journal→R+3.540ns, while exposing a different path:
+D-TLB FSR/alignment fault→request ACK→global data stall→R capture. It also
+measured M load-format→issue−1.291ns, dynamic producer matching−.983ns and
+R source selection−.951ns. Patch0047 addresses completion ownership first,
+then the registered inputs of late forwarding; it does not delay a bare stall.
+
+In the selected associative configuration, P2 retains the entire request and
+instruction context while `zap_data_completion` captures exactly one response
+`{data, abort/retry, FSR, FAR}` on an offered request's ACK. The CPU remains
+stalled on that capture edge. During the following cycle `completion_valid`
+releases the pipeline, while external STB/CYC are suppressed so the held P2
+request cannot replay an acknowledged store. P2/M consume the record together
+on the next edge; the record then clears. The next P2 request can offer immediately
+after that edge. Stall is now a function of registered P2 ownership and registered
+completion validity; live ACK/fault decoding ends at the completion registers.
+
+| Edge/cycle | P2 ownership | External offer | CPU behavior |
+| --- | --- | --- | --- |
+| Request first appears | Held request | Offered unless reset/WB kill | Stall asserted immediately |
+| Waiting, no ACK | Same request/context | Same request remains offered | Hold P2 and younger pipeline |
+| ACK sampling edge | Same request/context | Exactly one completion captured | Still held on this edge |
+| Registered response cycle | Same request/context + owned response | Suppressed | Advance/consume next edge |
+| Following cycle | Next P2 packet | Next request may offer | Normal execution or next demand wait |
+
+Normal P2 and M advancement has no shifter or instruction-cache hold: their only
+stop is `data_stall`, with reset/WB-clear taking priority. Consequently a valid
+response always has exactly one next-edge consume, without a second ready signal.
+An older WB redirect gates a first-cycle offer immediately. Once a demand has
+waited one edge, M's validity and exception tags have been cleared by the existing
+stall behavior; no unrelated older WB redirect can appear later. An integrated
+assertion checks this ownership invariant throughout CPU/phone regressions.
+Reset and WB-clear kill the record before capture/consume; reset retains the
+existing external board drain contract. ALU branch clear does not kill this older
+P2 owner. CP15 drain includes completion validity; uncached instruction-fetch
+ordering uses the held P2 store even during its suppressed-offer response cycle.
+
+The abort/retry bits reach the existing ALU/P0/P1/P2 fault suppression and M from
+the same owned response. CP15 sees the captured FSR/FAR event, not a new live TLB
+value after offer suppression. A retry retains the existing non-retirement and
+restart semantics. IRQ/FIQ arriving during either SWP response half must still
+observe the whole pre-SWP or whole post-SWP state. Legacy background-cache and
+normal ONLY_CORE configurations retain their original raw completion protocol;
+autonomous background writes/fault context are not forced into this blocking
+owner. `files.qip` and the real-SDRAM test select the associative configuration.
+
+This boundary intentionally adds one clock to a blocking demand's completion;
+it adds no ALU pipeline stage. The first0/3-wait mixed diagnostic preserves warmed
+ADD1, changes load-use minimum18→19, and changes measured body1397→1414 /
+1651→1668. Setup241990→241991 /332246→332235 shows why total runtime cannot be
+computed by adding one for each memory instruction: fetch/pipeline phase overlap
+changes too. Full absolute performance and bounded-boot comparison follow below.
+
+After completion ownership, the unchanged load transform moves before M's existing
+`o_mem_rd_data` register. In the selected configuration its raw data already comes
+from the completion register and its width/address context is the held P2 owner.
+Signed/unsigned byte/halfword, word rotation and nonload/store semantics remain
+unchanged. The M→writeback→issue path now begins with a formatted register word;
+no extra stage or forwarding-priority change accompanies this retiming. The new
+completion/P2→formatter→M register seam is explicitly timed, rather than omitted.
+
+R also captures the static immediate/RAZ/PC/CPSR classifications with each packet,
+appended to its existing control word. All older control-bit positions remain
+unchanged. Issue reads those registered classifications before the unchanged
+newest-producer/current-commit/prior-commit/base priority. Classification has no
+producer-age dependency and follows the same capture/hold/promotion/kill ownership.
+The independent operand oracle still compares values using source indices, not
+the new classifications. Dynamic postALU destination matching remains a physical
+risk for the next fit; this change does not predict forwarding state or add stalls.
+
+Directed checks: completion owner5546 clocks (438captures,398consumes,114kills),
+independent registered formatter8192clocks, and the existing50491-clock operand
+oracle pass. Completion-only CPU checks pass all36 previous SWP IRQ/FIQ edge/wait
+cases, alignment and write-abort fixtures. The final sweep adds both registered
+SWP read/write completion edges, making44 cases. Forwarding changes preserve the
+completion-only0/3 timing results exactly. Evidence is retained under
+`scratch/timing-closure/completion-forward/`.
+
+Residual RF locality is **not** addressed by static class capture. The measured
+D→R−1.060ns route starts at D.alu_source[1], crosses a decode output cell and the
+writeback CP15-address select (fanout194), then the compact RF mux and two head-data
+select cells. The CP15−.635ns route shares that selected address (fanout192).
+Storage→R passes+.495ns, so replacing the compact FF read with the previous
+area-heavy masked tree is not justified. This candidate changes completion/capture
+control and placement but leaves the RF address-select path itself intact.
+If still limiting, a dedicated CP15 asynchronous port on the same FF array can
+remove address stealing from operand port0 at the cost of another read mux;
+registered D bank/word predecode is a larger alternative that moves timing debt
+into D. Neither is implemented or claimed validated here. Dynamic postALU matching,
+RF address locality, shifter recurrence and unrelated cache/bus/peripheral paths
+remain explicit next-fit residuals. No104MHz closure claim is made.
+
+### Final patch0047 validation and costs
+
+`CPU_BUS_BRIDGE=1 sh tests/cpu/run.sh` passes171 checks plus1 expected legacy
+XFAIL:152 CPU outcomes, including44 SWP IRQ/FIQ arrival cases. The completion,
+formatter and operand oracles described above pass; no late-WB-kill, request-replay,
+CP15-drain or precise-fault assertion fails. The3-wait diagnostic matches all21,118
+ordered effective RF/retirement-PC/CPSR effects against patch0046. Legacy CPU smoke
+retains135782/234446 cycles at0/3waits. ONLY_CORE elaboration passes with and without
+the associative macro. Phone CPU integration, structural lint,174-source/9-QIP
+preflight and exact47-patch reproduction pass; the old bus_access warning remains.
+
+| Waits | Setup old→new | Mixed body old→new | Total old→new | Load/use min old→new | Branch/target min |
+| --- | --- | --- | --- | --- | --- |
+|0|241990→241991|1397→1414|243387→243405|18→19|14|
+|3|332246→332235|1651→1668|333897→333903|18→19|14|
+|7|406201→406204|2001→2018|408202→408222|18→19|14|
+|15|631890→631890|2725→2742|634615→634632|18→19|14|
+|31|1091490→1091490|4177→4194|1095667→1095684|18→19|14|
+
+Warm dependent ADD remains1clock at all five waits. The measured body adds17
+clocks each time (+1.22%,1.03%,.85%,.62%,.41%). Each of the ten load-use gaps adds
+one; the nine branch-target gaps retain min14/max and their sum decreases1.
+Normal mixed retirement remains12,656 instructions plus4 serialized CP15
+instructions; there is no missing architectural work. Source-class capture and
+M formatting have no additional latency beyond the owned completion boundary.
+High-wait runs explicitly use `CPU_MAX_CYCLES=2000000`.
+
+| Fixed-mix program | Old cycles0 /3 | New cycles0 /3 |
+| --- | --- | --- |
+|cpu_timing|242672 /333087|242673 /333076|
+|ldm_base_coldcache|242875 /333629|242862 /333551|
+|cache_drain|242960 /333717|242957 /333681|
+|swp_basic|380 /552|377 /547|
+
+The fixed mix changes1729872→1729724 (−.0086%); memory subset1154113→1153975
+(−.0120%). Every program retains identical accepted-issue and retirement counts.
+Small fetch/pipeline phase changes outweigh the added completion edge in this
+particular initialization-heavy mix; this is not a universal speedup claim.
+The total remains11.9075% above the pre-R baseline1545673, so the earlier R-stage
+cost remains an explicit tradeoff. The dependent-load penalty19 versus18 is real.
+
+Fresh real-SDRAM5M reaches PC00006168/289114transfers,12 known fetchfaults and zero
+data faults. All848 board events match patch0046 **in order** when timestamps are
+removed:121writes, all reads, and the same12 fault records. There are no changed
+side-effect reads. The final board write moves189507→190170 (+663clocks), reaching
+the same semantic checkpoint. No LCD/DDR writes occur; this remains early boot,
+not a logo/full Symbian or physical-phone result. No saved CPU/host checkpoint or
+frozen executable was modified or resumed. The old two elaboration text logs were
+accidentally overwritten by runner reuse; their original PASS remains recorded
+and the files explicitly point to this run's logs. Board/effect/reference evidence
+remains preserved.
+
+Full evidence and tested-source hashes:
+`scratch/timing-closure/completion-forward/validation-summary.json`.
+The next isolated routed fit must check the new completion capture→local advance,
+completion/P2→M format and formatted M→issue seams, alongside unchanged RF-address,
+dynamic producer matching and shifter paths. This candidate is functionally
+validated;104MHz closure is still unmeasured.

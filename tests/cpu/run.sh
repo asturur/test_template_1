@@ -2,6 +2,8 @@
 set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$root"
+sh tests/cpu/completion_owner/sim.sh
+sh tests/cpu/completion_owner/format.sh
 sh tests/cpu/operands/reference.sh
 tests/cpu/operands/sim.sh
 tests/cpu/demand_completion/sim.sh

@@ -280,8 +280,9 @@ logic [31:0] o_alu_source_value_nxt,
            o_mem_srcdest_value_nxt;
 
 localparam CONTROL_W = 32+32+1+2+64*8+1+4+$clog2(PHY_REGS)+33+$clog2(ALU_OPS)+33+$clog2(SHIFT_OPS)
-+33+1+$clog2(PHY_REGS)+14+32+2;
++33+1+$clog2(PHY_REGS)+14+32+2+16;
 logic [CONTROL_W-1:0] operand_control;
+logic [15:0] operand_special;
 logic operand_valid, operand_pop, operand_push, issue_block;
 logic [127:0] operand_data; // Raw bases; previous and current commits select below.
 logic [11:0] operand_pending;
@@ -476,6 +477,10 @@ zap_operand_read #(.CONTROL_W(CONTROL_W)) u_operand_read (
         .i_clk(i_clk), .i_reset(i_reset), .i_clear(clear),
         .i_push(operand_push), .i_pop(operand_pop),
         .i_control({
+                        special_class({27'd0, i_mem_srcdest_index_ff}),
+                        special_class(i_shift_length_ff),
+                        special_class(i_shift_source_ff),
+                        special_class(i_alu_source_ff),
                         i_pc_plus_8_ff,
                         i_pc_ff,
                         i_switch_ff,
@@ -526,6 +531,7 @@ zap_operand_read #(.CONTROL_W(CONTROL_W)) u_operand_read (
 assign  o_alu_source_value_nxt  =
         get_register_value (    operand_alu_source_ff,
                                 operand_pending[0 +: 3],
+                                operand_special[0 +: 4],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -558,6 +564,7 @@ assign  o_alu_source_value_nxt  =
 assign  o_shift_source_value_nxt=
         get_register_value (    operand_shift_source_ff,
                                 operand_pending[3 +: 3],
+                                operand_special[4 +: 4],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -589,6 +596,7 @@ assign  o_shift_source_value_nxt=
 assign  o_shift_length_value_nxt=
         get_register_value (    operand_shift_length_ff,
                                 operand_pending[6 +: 3],
+                                operand_special[8 +: 4],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -621,6 +629,7 @@ assign  o_shift_length_value_nxt=
 assign  o_mem_srcdest_value_nxt =
         get_register_value (    {27'd0, operand_mem_srcdest_index_ff},
                                 operand_pending[9 +: 3],
+                                operand_special[12 +: 4],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -655,7 +664,7 @@ assign o_rd_index_1 = i_shift_source_ff[5:0];
 assign o_rd_index_2 = i_shift_length_ff[5:0];
 assign o_rd_index_3 = i_mem_srcdest_index_ff[5:0];
 
-assign {operand_pc_plus_8_ff,
+assign {operand_special, operand_pc_plus_8_ff,
                  operand_pc_ff,
                  operand_switch_ff,
                  operand_taken_ff,
@@ -1002,6 +1011,15 @@ endfunction : determine_load_lock
 // Straightforward read feedback function. Looks at all stages of the pipeline
 // to extract the latest value of the register.
 //
+// These classifications depend only on the accepted instruction, not a live
+// producer. Capture with R ownership instead of decoding a held index again on
+// every issue priority path. Immediate remains the highest-priority class.
+function automatic [3:0] special_class(input [32:0] index);
+        special_class = {index[5:0] == PHY_CPSR[5:0],
+                         index[5:0] == {2'd0, ARCH_PC[3:0]},
+                         index[5:0] == PHY_RAZ_REGISTER[5:0], index[32]};
+endfunction
+
 function automatic [31:0] get_register_value (
 
         // The register inex to search for. This might be a constant too.
@@ -1009,6 +1027,7 @@ function automatic [31:0] get_register_value (
 
         // Previous edge's C/B/A commit selector for this owned source.
         input [2:0]                     pending,
+        input [3:0]                     special,
 
         // Destination on the output of the shifter stage.
         input [$clog2(PHY_REGS)-1:0]    shifter_destination_index_ff,
@@ -1063,10 +1082,7 @@ function automatic [31:0] get_register_value (
         // Resolve priority on narrow controls, independently of the register
         // read tree. The word datapath is a masked OR, not a priority mux chain.
         // Lowest numbered match wins, exactly as in the original if/else chain.
-        match_source[0] = index[32];
-        match_source[1] = index[5:0] == PHY_RAZ_REGISTER[5:0];
-        match_source[2] = index[5:0] == {2'd0, ARCH_PC[3:0]};
-        match_source[3] = index[5:0] == PHY_CPSR[5:0];
+        match_source[3:0] = special;
         match_source[4] = index[5:0] == shifter_destination_index_ff[5:0] && alu_dav_nxt;
         match_source[5] = index[5:0] == alu_destination_index_ff[5:0] && alu_dav_ff;
         match_source[6] = index[5:0] == postalu0_destination_index_ff[5:0] && postalu0_dav_ff;

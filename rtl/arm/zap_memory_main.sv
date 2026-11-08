@@ -118,15 +118,6 @@ module zap_memory_main
 `include "zap_defines.svh"
 `include "zap_localparams.svh"
 
-logic                             mem_load_ff2          ;
-logic [31:0]                      mem_srcdest_value_ff2 ;
-logic [1:0]                       mem_address_ff2       ;
-logic                             sbyte_ff2             ;
-logic                             ubyte_ff2             ;
-logic                             shalf_ff2             ;
-logic                             uhalf_ff2             ;
-logic [31:0]                      mem_rd_data           ;
-
 // On reset or on a clear from WB, we will disable the vectors
 // in this unit. Else, we will just flop everything out.
 always_ff @ (posedge i_clk)
@@ -149,7 +140,6 @@ begin
                 o_pc_plus_8_ff            <= 'x;
                 o_instr_abort_ff          <= 0;
                 o_mem_load_ff             <= 'x;
-                mem_rd_data               <= 'x;
                 o_decompile               <= 0;
         end
         else if ( i_clear_from_writeback )
@@ -170,7 +160,6 @@ begin
                 o_pc_plus_8_ff            <= 'x;
                 o_instr_abort_ff          <= 0;
                 o_mem_load_ff             <= 'x;
-                mem_rd_data               <= 'x;
                 o_decompile               <= 0;
         end
         else if ( i_data_stall )
@@ -214,7 +203,6 @@ begin
 
                 o_mem_load_ff         <= i_mem_load_ff;
                 o_mem_fault           <= i_mem_fault;
-                mem_rd_data           <= i_mem_rd_data;
 
                 // Debug.
                 o_decompile           <= i_decompile;
@@ -223,36 +211,18 @@ begin
         end
 end
 
-// Manual Pipeline Retiming.
-always_ff @ (posedge i_clk)
+// Format before the existing M result register. In the blocking associative
+// build the raw response is already an owned completion register; this removes
+// load-width/rotation logic from M's late writeback/issue forwarding route.
+// Store/nonload value and every byte/half/unaligned rule are unchanged.
+always_ff @(posedge i_clk)
 begin
-        if ( !i_data_stall )
-        begin
-                mem_load_ff2          <= i_mem_load_ff;
-                mem_srcdest_value_ff2 <= i_mem_srcdest_value_ff;
-                mem_address_ff2       <= i_mem_address_ff[1:0];
-                sbyte_ff2             <= i_sbyte_ff;
-                ubyte_ff2             <= i_ubyte_ff;
-                shalf_ff2             <= i_shalf_ff;
-                uhalf_ff2             <= i_uhalf_ff;
-        end
+        if (!i_data_stall)
+                o_mem_rd_data <= transform(
+                        i_mem_load_ff ? i_mem_rd_data : i_mem_srcdest_value_ff,
+                        i_mem_address_ff, i_sbyte_ff, i_ubyte_ff,
+                        i_shalf_ff, i_uhalf_ff, i_mem_load_ff);
 end
-
-assign  o_mem_rd_data         = transform
-                                (
-                                        (
-                                                mem_load_ff2 ?
-                                                mem_rd_data    :
-                                                mem_srcdest_value_ff2
-                                        ),
-
-                                        mem_address_ff2[1:0],
-                                        sbyte_ff2,
-                                        ubyte_ff2,
-                                        shalf_ff2,
-                                        uhalf_ff2,
-                                        mem_load_ff2
-                                );
 
 //
 // Memory always loads 32-bit to processor.
@@ -312,7 +282,7 @@ begin: transform_function
              default: transform = 'x;
                 endcase
 
-                if ( o_dav_ff && mem_load_ff2 )
+                if ( i_dav_ff && mem_load_ff && !i_reset && !i_clear_from_writeback )
                 begin
                         assert ( address[0] == 1'd0 ) else
                         $info("Warning: Address bit 0 is 1, leads to halfword load as UNPREDICTABLE.");
@@ -327,7 +297,7 @@ begin: transform_function
              default: transform = 'x;
                 endcase
 
-                if ( o_dav_ff && mem_load_ff2 )
+                if ( i_dav_ff && mem_load_ff && !i_reset && !i_clear_from_writeback )
                 begin
                         assert ( address[0] == 1'd0 ) else
                         $info("Warning: Address bit 0 is 1, leads to halfword load as UNPREDICTABLE.");

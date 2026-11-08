@@ -1,3 +1,97 @@
+## 2026-11-08: run42492307815 — RF/journal passes; operand integration remains open
+
+Measured SHA738e6a7, implementation cfa91a4. Compile/fitter succeed; only the
+passing-timing gate fails. Comparison is with run42482648381 /709f812.
+
+| Metric | Previous | New |
+| --- | ---: | ---: |
+| Core reported Fmax |83.89MHz|86.61MHz|
+| Core setup WNS |−1.634ns|−1.931ns|
+| Core setup TNS |−2680.821ns|−2673.594ns|
+| ALMs |33156|32121 (77%)|
+| Registers |43550|43391|
+| M10Ks |464|465 (84%)|
+| Logical block memory bits |2482411|2482539|
+| DSP blocks |38|38|
+
+HDMI setup+.408ns. Global minimum hold/recovery/removal/pulse slack:
++.088/+1.504/+.916/+.961ns. The reported Fmax and WNS need not move together:
+the earlier Fmax limiter was a half-cycle SDRAM path; this fit's worst full-cycle
+path is I-cache transfer WRITEBACK state→global bus merger o_wb_adr[12],
+10.792ns data delay/7 logic levels/−1.931ns slack. Its required period is consistent
+with86.61MHz. Neither metric certifies104MHz or external SDRAM board timing.
+
+All17 targeted reports are status=ok,10 distinct endpoints each:
+
+| Group | Worst setup slack ns |
+| --- | ---: |
+| decode_to_r_data |−1.060|
+| decode_to_r_context |+1.446|
+| rf_to_r |+.495|
+| commit_sources_to_r |−.798|
+| commit_to_journal |+.659|
+| journal_to_queue |+3.540|
+| memory_to_issue |−1.291|
+| execute_to_issue |−.983|
+| cp15_select_to_r |−.635|
+| r_to_alu |−.883|
+| r_to_shift_source |−.867|
+| r_to_shift_length |−.368|
+| r_to_memory_operand |−.951|
+| r_queue_feedback |−.822|
+| issue_to_shifter |−.634|
+| shifter_recurrence |−.464|
+| r_stop_to_frontend |−.030|
+
+The intended RF and journal payload seams pass: RF→R was−.723ns and is now+.495;
+new commit→journal and journal→queue are positive. Full routes distinguish the
+remaining causes:
+
+- Broad commit_sources_to_r starts at postALU2 data-write strobe, crosses alignment
+  fault→request_ack→data_stall (fanout681)→stall (323)→capture_head (367), then a
+  journal fold mux. It is an enable/control route, not live commit DATA entering R.
+- Global D-TLB FSR[2]→fault→the same completion/stall/capture chain reaches128 R
+  endpoints (80 head_control,48 head_data), worst−1.298ns. Completion localization
+  is now measured work, not a speculative architectural cleanup.
+- memory_to_issue is real late data: load-format controls→formatted read data→
+  wdata2→issue selection. execute_to_issue is postALU1 destination match/priority→
+  issue data. R→issue includes source match/priority/mux depth. These remain local
+  forwarding work even if the shared stall problem is removed.
+- decode_to_r_data and cp15_select_to_r share high-fanout address decode (194/192)
+  and RF read mux→head_data; the storage-sourced rf_to_r passing query does not
+  cover register-address selection.
+- r_queue_feedback is head control→load lock→capture_head→head control. The tiny
+  r_stop_to_frontend failure instead follows pipeline_is_not_empty→CP15 predecode;
+  it is not proof that the capacity-only fetch stop itself is slow.
+
+Worst1000 use one worst route per endpoint. Source counts: reset_drain copies768,
+D-TLB FSR128, other104. Reset-driven paths traverse functional bus qualification
+(e.g. bus_cyc→local_access→timer clear/pending); do not false-path them as async
+reset. Endpoint groups (count/worst ns): bus arbitration21/−1.931; timers80/−1.776;
+NOR64/−1.571; CBUS58/−1.522; NOS6/−1.507; cache flags96/−1.498;
+MDI hypothesis99/−1.461; other CPU29/−1.337; SDRAM6/−1.328; R128/−1.298;
+staging RAM50/−1.286; LCD DMA68/−1.249; ICU154/−1.178; LCD readout30/−1.134;
+sparse CAM96/−1.077; peripheral response9/−.942; ICU-extra1/−.929;
+diagnostics2/−.920; bridge response1/−.852; other cache2/−.811. These sum1000;
+absence from this bounded list is not a timing pass. Only1 path includes the named
+shared error/ack markers; the separate CPU request_ack/stall chain remains critical.
+
+Decision: functional implementation and RF/journal payload separation are complete,
+but slice1 timing acceptance remains open. Keep the architecture. Next review a
+precise completion/local-advance boundary for the measured D-fault/alignment-fault
+stop chain (promoting relevant slice5 work); never merely register/delay stall.
+Then reduce actual late forwarding selection and RF address-decode fanout, with
+current-edge write, youngest-writer, load-use, CP15 and kill/drain proofs preserved.
+The independent cache/bus worst path and broad reset-qualified peripheral paths
+remain separate closure work. Resources are within proposed36000ALM/480M10K
+budgets; no new functional or performance claim accompanies this report analysis.
+Existing fixed-mix+11.917% cycle cost remains until clock gain justifies it.
+
+Artifacts and reproducible grouping:
+`scratch/timing-closure/slice1-finish-42492307815/analysis/summary.json`,
+`output_files/timing/operand-stages/`, `worst-setup-full.rpt` and `worst-setup.csv`.
+No RTL/constraints changed; no new build launched.
+
 ## 2026-11-08: operand finish fit reporting follows commit journal
 
 Implementation cfa91a4 is the remaining slice1 candidate: compact indexed RF
