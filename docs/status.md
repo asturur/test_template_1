@@ -1,3 +1,15 @@
+## 2026-11-08: Quartus assertion elaboration guard
+
+Run42526326199 stopped in Analysis/Synthesis with Error10207 at
+cache_access.sv:483: hierarchical simulation assertion bank.lookup_address could
+not resolve. No fit/timing measurements exist for the cache stage yet. The local
+SYNTHESIS preprocessor guard alone did not exclude this code in Quartus17.
+Added explicit synthesis translate_off/on around the simulation assertion block;
+functional RTL and simulation assertions are unchanged. Source preflight passes
+174files/9QIPs; directed cache regression passes, including384 streaming requests and24
+cancellation races, with unchanged latency metrics.
+Replacement build required; previous functional/boot evidence remains applicable.
+
 ## 2026-11-08: cache lookup ownership — validated fit candidate
 
 After reverting failed forwarding patch0049 in57bf13d, slice2 captures accepted

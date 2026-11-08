@@ -470,6 +470,8 @@ module arm920_cache_access (
             endcase
         end
     end
+// Quartus 17 may parse simulation guards without SYNTHESIS defined.
+// synthesis translate_off
 `ifndef SYNTHESIS
     always @(posedge clk) begin
         if (!reset) begin
@@ -493,4 +495,5 @@ module arm920_cache_access (
         if (!reset && state != IDLE && (invalidate_all || lock_write))
             $fatal(1, "cache maintenance must not overlap an access");
 `endif
+// synthesis translate_on
 endmodule
