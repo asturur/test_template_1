@@ -29,12 +29,11 @@
 
     Selected byte/halfword/word widths are accepted; unsupported combinations fault.
 
-    The latch arrays (devices 2, 4, 5) live in block RAM with a registered
-    read: a read of one of them asserts `ready` on the second cycle of the
-    request (the address is held stable until the ack). Register-backed
-    devices and all writes are ready immediately. An earlier version read
-    the arrays combinationally, which forced Quartus to build the 64KB GPIO
-    array out of ~525K registers and did not fit the Cyclone V.
+    Regional latch RAMs have a registered read: ready follows the first
+    sampled address (held until acknowledgement). Their writes and register
+    devices remain immediately ready. Sparse-register transactions use a
+    separate staged lookup and ready/commit handshake. The arrays were once
+    combinational, forcing ~525K GPIO registers instead of Cyclone V BRAM.
 */
 
 module ngage_upp_peripherals #(
@@ -369,10 +368,11 @@ module ngage_upp_peripherals #(
     wire d_space_hit = cfg_keypad && (a[31:24] == 8'h0d);
 
     wire [31:0] d_q;
-    wire        d_full;
+    wire d_full, d_ready;
 
     // ---- block-RAM latch arrays ------------------------------------------------
     wire req = cyc && stb;
+    wire d_selected = d_space_hit && req && !trace_claim;
     wire valid_lanes = sel == 1 || sel == 2 || sel == 4 || sel == 8 ||
                        sel == 3 || sel == 12 || sel == 15;
     // Regional ownership: only genuine overlaps qualify each RAM's writes.
@@ -447,14 +447,16 @@ module ngage_upp_peripherals #(
     ) d_regs (
         .clk       (clk),
         .cold_reset(init_rst),
-        .req       (d_space_hit && req && !trace_claim),
+        .reset     (rst),
+        .req       (d_selected),
         .commit    (local_access),
         .we        (we),
         .addr      (a),
         .din       (din),
         .sel       (sel),
         .dout      (d_q),
-        .full      (d_full)
+        .full      (d_full),
+        .ready     (d_ready)
     );
 
     // A RAM-backed read is ready once the RAM has sampled this request's
@@ -462,10 +464,10 @@ module ngage_upp_peripherals #(
     // (even to the same address, e.g. after a write) re-reads.
     reg rd_vld;
     reg [31:0] rd_adr;
-    wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram || (d_space_hit && !trace_claim));
+    wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram);
     // A committed card event is captured at system speed and serviced on its
     // slower enable. Hold the next SIMIF access until card state is current.
-    assign ready = init_done && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
+    assign ready = init_done && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin

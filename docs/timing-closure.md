@@ -1,5 +1,38 @@
 # MiSTer timing closure
 
+## 2026-11-08: staged sparse CAM with selected-device waits
+
+Following regional commitd329a1d, the sparse model now captures request fields,
+registers parallel match/free bits, registers the priority-selected slot/result,
+then reads payload BRAM before ready. Stable requests reach ready after4 rising
+edges; authorized writes publish tag, valid and payload together on the next
+edge. Lookup works with commit low. A terminal held request cannot execute twice;
+identity changes/withdrawal cancel pending work. Warm reset retains the table
+but quarantines a canceled held request; cold reset clears validity. Only the
+selected non-trace0d device waits. Exact contract: `docs/peripheral-ownership.md`.
+
+Full-address matching, lowest-index priority, capacities1/2/3/5/64, byte merges,
+zeroed allocation bytes, read misses and full-table faults are preserved. Unit
+scoreboards test4000 randomized requests per capacity, sustained authorization,
+arbitrary commit waits, same-address dependencies, exact write counts, and
+reset/cancel/replacement at each occupied stage. Board tests verify trace
+exclusion under full CAM and immediate unrelated upload access after cancel.
+
+Peripheral/fixture/diagnostic units, actual CPU SIM/DMA/IRQ/FIQ/CAM-overflow and
+sticky-fault integration, top elaboration, source graph and formatter pass.
+Fresh real-SDRAM5M boot: PC00006170,306874 transfers,12 known fetch faults,
+zero data faults; all845 board events/121 writes and cycle stamps exactly match
+regional baseline. This early boot contains no0d accesses: CAM coverage comes
+from the directed/CPU integration tests, not a new cold-logo claim. Evidence:
+`scratch/timing-closure/pass11-sparse-cam/`.
+
+Full CPU/cache suite:119 PASS plus one expected legacy direct-map XFAIL;
+warm ADD remains1 cycle at0/3 waits. Both restructures are verified separately.
+
+No FPGA build or timing claim. Last fit remains69.19MHz/-4.837ns; area and timing
+of both restructures need the user's next fitted reports. Cache, firmware,
+storage, clocks/constraints and permanent checkpoint pairs remain unchanged.
+
 ## 2026-11-08: regional peripheral RAM ownership decoding
 
 Replaced the shared dedicated-claim exclusion on staging-RAM writes with

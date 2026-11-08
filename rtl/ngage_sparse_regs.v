@@ -1,54 +1,57 @@
-// Bounded full-address register store for sparsely accessed diagnostic pages.
-// A full table refuses a new write instead of aliasing an unrelated address.
+// Bounded behavioral full-address register store, not a silicon register model.
+// Request fields stay stable through ready. Lookup never needs commit; a ready
+// result is consumed with commit, applying a write exactly once. Held requests
+// retain their result until withdrawal or a different transaction identity.
 module ngage_sparse_regs #(
     parameter integer ENTRIES = 64
 ) (
     input  wire        clk,
     input  wire        cold_reset,
+    input  wire        reset,
     input  wire        req,
     input  wire        commit,
     input  wire        we,
     input  wire [31:0] addr,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
-    output reg  [31:0] dout,
-    output reg         full
+    output wire [31:0] dout,
+    output wire        full,
+    output wire        ready
 );
-    reg [ENTRIES-1:0] valid;
-    reg [       31:0] tags  [0:ENTRIES-1];
     localparam integer AW = ENTRIES > 1 ? $clog2(ENTRIES) : 1;
-    wire [31:0] value_q;
-    reg         read_hit;
     localparam integer LEAVES = 1 << AW;
+    localparam IDLE = 3'd0, COMPARE = 3'd1, SELECT = 3'd2, READ = 3'd3, RESULT = 3'd4, DONE = 3'd5, DISCARD = 3'd6;
+    reg [2:0] state;
+    reg [ENTRIES-1:0] valid, matched, vacant;
+    reg [31:0] tags[0:ENTRIES-1];
+    reg [31:0] request_addr, request_data, held_result;
+    reg [   3:0] request_sel;
+    reg          request_write;
+    reg [AW-1:0] selected_slot;
+    reg result_hit, result_full;
+    wire same_request = addr == request_addr && we == request_write &&
+                        sel == request_sel && (!request_write || din == request_data);
+    assign ready = !cold_reset && !reset && req && same_request &&
+                   (state == RESULT || state == DONE);
+    assign full = ready && result_full;
+    wire [31:0] value_q;
+    assign dout = !ready ? 32'b0 : state == DONE ? held_result : result_hit ? value_q : 32'b0;
     wire [ENTRIES-1:0] hit_mask;
-    wire               any_hit = |hit_mask;
-    wire               all_valid = &valid;
     wire [2*LEAVES-2:0] hit_present, free_present;
     wire [AW-1:0] hit_index[0:2*LEAVES-2], free_index[0:2*LEAVES-2];
-    wire [31:0] mask = {{8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}}};
-    wire        write_value = !cold_reset && req && commit && we && !full;
-    // Full is a membership/capacity predicate, not an encoded-index query.
-    // Keep priority selection out of the shared peripheral fault/ACK path.
-    always @* begin
-        dout = read_hit ? value_q : 0;
-        full = req && we && !any_hit && all_valid;
-    end
+    wire write_value = ready && state == RESULT && commit && request_write && !result_full;
+    wire [31:0] mask = {
+        {8{request_sel[3]}}, {8{request_sel[2]}}, {8{request_sel[1]}}, {8{request_sel[0]}}
+    };
     // Balanced lowest-index trees preserve lookup/allocation order. Padding
     // leaves are absent in both trees, including non-power-of-two capacities.
     genvar slot;
     generate
         for (slot = 0; slot < LEAVES; slot = slot + 1) begin : leaves
             if (slot < ENTRIES) begin : active_slot
-                assign hit_mask[slot]              = valid[slot] && tags[slot] == addr;
+                assign hit_mask[slot]              = matched[slot];
                 assign hit_present[LEAVES-1+slot]  = hit_mask[slot];
-                assign free_present[LEAVES-1+slot] = !valid[slot];
-                always @(posedge clk) begin
-                    if (cold_reset) valid[slot] <= 0;
-                    else if (write_value && !any_hit && free_index[0] == slot) begin
-                        valid[slot] <= 1;
-                        tags[slot]  <= addr;
-                    end
-                end
+                assign free_present[LEAVES-1+slot] = vacant[slot];
             end else begin : padding_slot
                 assign hit_present[LEAVES-1+slot]  = 0;
                 assign free_present[LEAVES-1+slot] = 0;
@@ -65,9 +68,8 @@ module ngage_sparse_regs #(
                 free_index[2*slot+1] : free_index[2*slot+2];
         end
     endgenerate
-    // Tags remain a small fully associative CAM; payload is byte-enabled M10K.
-    wire [AW-1:0] write_slot = any_hit ? hit_index[0] : free_index[0];
-    wire [AW-1:0] read_slot = any_hit ? hit_index[0] : {AW{1'b0}};
+    // The chosen slot and write payload are registered before any mutation.
+    // New entries zero unselected bytes; existing entries retain those bytes.
     ngage_bram #(
         .AW         (AW),
         .DW         (32),
@@ -75,14 +77,68 @@ module ngage_sparse_regs #(
         .READ_ONLY_B(1)
     ) payload (
         .clk   (clk),
-        .addr_a(write_slot),
-        .addr_b(read_slot),
-        .data_a(any_hit ? din : din & mask),
+        .addr_a(selected_slot),
+        .addr_b(selected_slot),
+        .data_a(result_hit ? request_data : request_data & mask),
         .data_b(32'b0),
-        .we_a  (write_value ? (any_hit ? sel : 4'hf) : 4'b0),
+        .we_a  (write_value ? (result_hit ? request_sel : 4'hf) : 4'b0),
         .we_b  (4'b0),
         .q_a   (),
         .q_b   (value_q)
     );
-    always @(posedge clk) read_hit <= !cold_reset && any_hit;
+    integer i;
+    always @(posedge clk) begin
+        if (cold_reset) valid <= 0;
+        else if (write_value && !result_hit) begin
+            valid[selected_slot] <= 1;
+            tags[selected_slot]  <= request_addr;
+        end
+        if (cold_reset || reset) begin
+            // A reset cancels even an authorized request held across reset.
+            // It must withdraw or change identity before it can be retried.
+            state         <= req ? DISCARD : IDLE;
+            request_addr  <= addr;
+            request_data  <= din;
+            request_sel   <= sel;
+            request_write <= we;
+        end else if (!req) begin
+            state <= IDLE;
+        end else if (state != IDLE && !same_request) begin
+            // Withdrawal/replacement cancels uncommitted work, including a
+            // resolved write waiting for authorization. No old completion leaks.
+            state <= IDLE;
+        end else begin
+            case (state)
+                IDLE: begin
+                    request_addr  <= addr;
+                    request_data  <= din;
+                    request_sel   <= sel;
+                    request_write <= we;
+                    state         <= COMPARE;
+                end
+                COMPARE: begin
+                    for (i = 0; i < ENTRIES; i = i + 1) begin
+                        matched[i] <= valid[i] && tags[i] == request_addr;
+                        vacant[i]  <= !valid[i];
+                    end
+                    state <= SELECT;
+                end
+                SELECT: begin
+                    selected_slot <= hit_present[0] ? hit_index[0] : free_index[0];
+                    result_hit    <= hit_present[0];
+                    result_full   <= request_write && !hit_present[0] && !free_present[0];
+                    state         <= READ;
+                end
+                READ:    state <= RESULT;  // Payload RAM samples the registered slot.
+                RESULT:
+                if (commit) begin
+                    held_result <= result_hit ? value_q : 32'b0;
+                    state       <= DONE;
+                end
+                DISCARD: state <= DISCARD;
+                DONE:    state <= DONE;  // Identical held request must not execute twice.
+                default: state <= IDLE;
+            endcase
+        end
+    end
 endmodule
