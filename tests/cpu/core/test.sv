@@ -37,6 +37,15 @@ module test;
   .bus_cyc(cyc),.bus_stb(stb),.bus_we(we),.bus_code(),.bus_address(addr),
   .bus_data(wdata),.bus_sel(sel),.bus_ack(ack),.bus_error(bus_error),.bus_read_data(rdata));
 `endif
+ // Check the new demand-only CPU input against the retained original ACK on
+ // every active transfer, across all CPU programs, faults and interrupt races.
+ always @(negedge clk)if(!reset)begin
+  if(dut.u_zap.cpu_dc_stb && dut.u_zap.data_request_ack!==dut.u_zap.data_ack)
+   $fatal(1,"demand completion differs from original strobed ACK");
+  if(dut.u_zap.u_zap_core.data_stall !==
+     (dut.u_zap.u_zap_core.o_data_wb_stb & dut.u_zap.u_zap_core.o_data_wb_cyc & ~dut.u_zap.data_ack))
+   $fatal(1,"global data-stall timing changed");
+ end
  always @(negedge clk)if(!reset)begin
   if(observed_pc!==dut.u_zap.u_zap_core.o_instr_wb_adr ||
      observed_cpsr!==dut.u_zap.u_zap_core.alu_flags_ff ||

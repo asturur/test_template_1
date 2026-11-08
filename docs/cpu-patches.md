@@ -232,6 +232,52 @@ write collisions, reset, both clear sources and both stall sources. The CPU ADD
 fixture retains one-cycle warmed throughput at0/3 waits. Physical timing remains
 unmeasured until the next fit; see status.md for combined integration evidence.
 
+## 0043: separate demand completion from idle housekeeping ACK
+
+The associative adapter exposes `request_ack` for faults, TLB retry, a registered
+cache response, or an instruction fast hit. Its existing `ack` still includes the
+original maintenance-qualified idle term and retains the exact original equation.
+`zap_dcache.o_request_ack` carries only the demand term to the core's existing
+`i_data_wb_ack` input. Legacy direct-mapped and ONLY_CORE configurations alias
+that new signal to their original ACK. Instruction-cache/prefetch logic still
+uses its original adapter ACK; the shared adapter's new output is unused there.
+
+Source audit/proof:
+
+- `zap_top` constructs D-cache `rd = !cpu_dc_we && cpu_dc_stb` and
+  `wr = cpu_dc_we && cpu_dc_stb`, so `rd | wr = cpu_dc_stb`.
+- `zap_core` uses `i_data_wb_ack` only in
+  `data_stall = o_data_wb_stb & o_data_wb_cyc & ~i_data_wb_ack`.
+  The idle ACK term requires `!(rd | wr)` and therefore cannot affect an active
+  CPU stall. The D-cache permanently disables the adapter's instruction fast-hit
+  input, so its demand term has no combinational `active_maint` dependency.
+- D-cache translation retention, checked-request history and lookup resynchronizing
+  still consume the unchanged `o_ack`; their unqualified idle semantics remain.
+  TLB walking/holding, cache data, fault metadata, background ports and bus
+  ownership/ACK routing are unchanged. Memory-stage result/abort/clear controls
+  see the same data-stall clock, and CP15 still consumes the original clean/invalidate
+  done signals. No completion register or extra pipeline cycle is introduced.
+
+This removes the redundant maintenance-idle path from the global stall input
+locally, without postponing stall assertion or releasing a request before its
+result is ready. It targets the162 pass15 maintenance-origin endpoints while
+leaving the existing high-fanout stall distribution itself unchanged. A new fit
+must establish the mapped path, fanout and timing result.
+
+`tests/cpu/demand_completion/sim.sh` checks the retained ACK against the original
+expression and demand/stall equivalence over4741 clocks, including waited
+read/write transfers, fault/TLB combinations, exact-once clean/invalidate,
+lockdown and reset. Its bus model follows the enclosing ZAP mux's accepted-request
+boundary; an initial direct combinational ACK-from-STB model caused a simulation
+convergence loop and was corrected in the fixture (no hardware fix was needed).
+The full CPU fixture additionally compares new demand ACK with original ACK on
+every strobed transfer and verifies original-vs-new global stall each clock.
+Combined verification completes122 PASS plus1 expected legacy direct-map XFAIL;
+actual CPU phone integration and synthesis-path lint pass. Fresh real-SDRAM5M
+boot is byte-identical to pass15's881-event board trace, including all121 writes
+and12 known fetch faults (zero data faults). See status.md and
+`scratch/timing-closure/pass16-cpu/validation-summary.json` for the retained evidence.
+
 ## Verification and limits
 
 ```sh
@@ -247,6 +293,8 @@ on the patched CPU. The unmodified comparison reproduces the original alignment
 and cache-disabled data-translation failures. Synthesis-path lint passes with
 ARM64 Verilator; this is not an FPGA resource, timing, or placement result.
 
-ZAP retains its 17-stage pipeline, ARMv5TE-capable decoder, direct-mapped caches,
-and its other CP15/TLB behavior. Passing these checks does not establish a complete
-ARM920T implementation, original Nokia execution timing, or Symbian compatibility.
+ZAP retains its 17-stage pipeline and ARMv5TE-capable decoder. The project default
+uses the local ARM920-shaped associative cache adapters; the legacy direct-mapped
+configuration remains available for reference tests. Passing these checks does not
+establish a complete ARM920T implementation, original Nokia execution timing, or
+Symbian compatibility.

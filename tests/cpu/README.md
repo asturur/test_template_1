@@ -8,6 +8,7 @@ The suite covers:
 
 - Four asynchronous physical-register reads against an independent write scoreboard and operand priority oracle: all40 registers, all64 forwarding-valid combinations, immediate/PC/CPSR/RAZ overrides, banked/SPSR values, write-port collisions, reset, clear and pipeline stalls.
 
+- Separate demand and idle-housekeeping completions, exact global-stall equivalence on every CPU test cycle, waited transfers, maintenance exact-once handshakes and reset cancellation.
 - CP15 control and lockdown registers, write-buffer drain, prefetch and WFI handshakes; IRQ, FIQ and masked-IRQ wake and handler ordering.
 - TLB C/B attributes, domain/AP permissions, FCSE, page-table walks ordered behind buffered writes, and section/small-page external abort FSR/FAR.
 - Cache tags, line storage, 64-way placement, dirty half-lines, write-back/through, no write allocation, cache disable/re-enable, MVA/index maintenance, lockdown, instruction prefetch (including unaligned MVA and nonidentity translation), instruction coherency and 65th-line eviction.

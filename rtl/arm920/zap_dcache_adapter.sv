@@ -13,7 +13,7 @@ module arm920_zap_dcache_adapter (
  input logic cache_enable,cache_rr,cacheable,bufferable,cache_invalidate,cache_clean,
  input logic cache_lock_write,input logic [5:0] cache_lock_base,output logic cache_lock_done,
  input logic cache_op_single,cache_op_by_mva,input logic [31:0] cache_op_address,
- output logic [31:0] data,output logic ack,err,err2,output logic [7:0] fsr,output logic [31:0] far,
+ output logic [31:0] data,output logic ack,request_ack,err,err2,output logic [7:0] fsr,output logic [31:0] far,
  output logic idle,hold,cache_inv_done,cache_clean_done,
  output logic wb_cyc,wb_stb,wb_wen,output logic [3:0] wb_sel,
  output logic [31:0] wb_adr,wb_data,output logic [2:0] wb_cti,
@@ -47,8 +47,12 @@ module arm920_zap_dcache_adapter (
  assign err=((rd || wr) && (alignment_fault || fault)) ||
             (response_valid && ((response_error && swp_tag!=1) || (swp_tag==2 && swp_read_abort)));
  assign err2=(rd || wr) && tlb_busy && !translation_wait && !launched;
- assign ack=!(rd || wr) && !active_maint && !cache_invalidate && !cache_clean ? 1'b1 :
-            ((rd || wr) && (alignment_fault || fault)) || err2 || response_valid || fast_hit;
+ // Demand completion is distinct from the legacy idle/housekeeping ACK.
+ // A strobed data request cannot use the idle term; exposing that fact here
+ // keeps maintenance ownership out of the CPU-wide stall fanout. Completion
+ // and its data/fault controls stay in the same cycle (no delayed stall).
+ assign request_ack=((rd || wr) && (alignment_fault || fault)) || err2 || response_valid || fast_hit;
+ assign ack=!(rd || wr) && !active_maint && !cache_invalidate && !cache_clean ? 1'b1 : request_ack;
  assign cache_inv_done=mdone && cache_invalidate;
  assign cache_clean_done=mdone && cache_clean;
  // The enclosing ZAP mux registers next-cycle bus outputs. One request is

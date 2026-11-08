@@ -1,3 +1,50 @@
+## 2026-11-08: CPU demand completion separated from maintenance-idle ACK (pass16 step2)
+
+The measured D-cache active_maint->ACK->CPU global-stall path came from an idle
+housekeeping ACK term. D-cache rd|wr is exactly CPU data strobe; core qualifies
+data_stall with that same strobe, so this idle term cannot authorize execution.
+A separate request_ack now carries same-cycle demand/fault/TLB-retry completion
+to the core's stall input. The original shared ACK is unchanged for translation
+retention, lookup recovery and instruction/prefetch consumers. CP15 maintenance
+done, bus handoff, data/fault payloads, SWP locks and all pipeline clocks/controls
+are unchanged. Legacy cache and ONLY_CORE retain the original ACK. There is no
+stall delay, additional completion register or extra CPU cycle. D-cache fast-hit
+is tied off, removing active_maint from its combinational demand-completion cone.
+The high-fanout global stall distribution remains; routed timing is unmeasured.
+
+Focused demand/housekeeping tests pass4741 clocks plus a64-case fault/walk matrix:
+waited reads/writes, exact-once clean/invalidate, lockdown and reset cancellation.
+The fixture retains/checks the original ACK equation. CPU regression additionally
+compares the new completion with original ACK on every strobed transfer and
+checks original-vs-new global stall each clock. A2048-case Boolean enumeration
+also proves strobed stall equality. Initial fixture ACK-from-STB feedback caused
+a simulation convergence loop; using the real enclosing bus mux's accepted-request
+boundary fixes the fixture. No RTL workaround was added for that test error.
+
+Actual CPU phone integration passes SIM/DMA/queued LCD/local faults/diagnostics,
+IRQ/FIQ and waited SDRAM. Fresh real-SDRAM5M boot passes PC00006178,
+289197 transfers,12 known fetch faults and zero data faults. All881 board events,
+including timestamps, are byte-identical to permanent pass15 final-board.tsv;
+all121 ordered writes and12 fault records match. This early bound has no LCD
+or DDR writes; the directed actual CPU fixture covers LCD and later accesses.
+No historical savestate or frozen executable/checkpoint was touched.
+
+Top-level synthesis-path lint, ONLY_CORE elaboration and source graph pass
+(172 required files,9 QIPs). Patch0043 reproduces the imported tree exactly;
+UPSTREAM.json lists the complete ordered series. Full CPU regression completes
+122 PASS (the prior120 plus two new fixtures) and1 expected legacy direct-map
+XFAIL, with no completion/stall equivalence failures. Warm ARM ADD remains
+one clock at0/3 waits (120 warmed samples each). The suite covers SWP read/write
+aborts and IRQ/FIQ, banked execution, load widths/alignment, LDM/PC dependencies,
+cache maintenance/lockdown, MMU/TLB ordering and instruction/data timing.
+Evidence: scratch/timing-closure/pass16-cpu/{full-cpu.log,phone-cpu.log,
+boot-real-sdram.log,boot-comparison.json,final-board.tsv,patch43-verify.log}.
+Step1 commit7e6c73b; step2 is a separate validated completion-boundary change.
+No peripheral, firmware, clock/SDC, reset-distribution or memory-owner changes.
+Latest measured fit remains pass15/run42464280647:79.42MHz,setup-2.111ns,
+TNS-4848.875ns. Neither CPU change has a new Quartus timing/area result.
+No push or GitHub build was launched; parent reviews the two commits next.
+
 ## 2026-11-08: CPU operand selection preserves pipeline latency (pass16 step1)
 
 The40-entry/four-read ZAP register file now decodes each physical read address

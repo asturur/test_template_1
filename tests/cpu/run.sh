@@ -3,6 +3,7 @@ set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
 cd "$root"
 tests/cpu/operands/sim.sh
+tests/cpu/demand_completion/sim.sh
 tests/cpu/cp15/sim.sh
 tests/cpu/tlb_attributes/sim.sh
 tests/cpu/tlb_bus_gate/sim.sh

@@ -201,7 +201,7 @@ arm920_zap_dcache_adapter experimental_cache(
  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
  .cacheable(tlb_cacheable),.bufferable(1'b1),
  .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
- .data(o_dat),.ack(adapter_ack),.err(adapter_err),.err2(adapter_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
+ .data(o_dat),.ack(adapter_ack),.request_ack(),.err(adapter_err),.err2(adapter_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
  .cache_inv_done(o_cache_inv_done),.cache_clean_done(o_cache_clean_done),
  .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
  .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),

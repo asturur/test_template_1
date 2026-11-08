@@ -66,6 +66,7 @@ input   logic [3:0]      i_ben,
 input   logic [31:0]     i_dat,
 output logic  [31:0]     o_dat,
 output  logic            o_ack,
+output  logic            o_request_ack, // Demand completion for CPU stall only.
 output  logic            o_err,
 output  logic [7:0]      o_fsr,
 output  logic [31:0]     o_far,
@@ -256,12 +257,14 @@ arm920_zap_dcache_adapter experimental_cache(
  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
  .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),
  .cache_invalidate(i_cache_inv_req),.cache_clean(i_cache_clean_req),
- .data(o_dat),.ack(o_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
+ .data(o_dat),.ack(o_ack),.request_ack(o_request_ack),.err(o_err),.err2(o_err2),.fsr(o_fsr),.far(o_far),.idle(idle),.hold(hold),
  .cache_inv_done(o_cache_inv_done),.cache_clean_done(o_cache_clean_done),
  .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
  .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
  .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
 `else
+// Legacy cache retains its existing completion contract.
+assign o_request_ack=o_ack;
 assign o_swp_bus_lock=1'b0;
 assign o_cache_lock_done=1'b1;
 assign o_write_buffer_empty=1'b1;

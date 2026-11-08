@@ -175,7 +175,7 @@ logic            cpu_dc_inv, cpu_ic_inv;
 logic            cpu_dc_clean, cpu_ic_clean;
 logic            dc_inv_done, ic_inv_done, dc_clean_done, ic_clean_done;
 logic            cpu_dtlb_inv, cpu_itlb_inv;
-logic            data_ack, data_err, instr_ack, instr_err;
+logic            data_ack, data_request_ack, data_err, instr_ack, instr_err;
 logic [31:0]     ic_data, dc_data, cpu_dc_dat;
 logic            cpu_instr_stb;
 logic            cpu_dc_we, cpu_dc_stb;
@@ -301,7 +301,7 @@ zap_core #(
                          BE_32_ENABLE ? be_32(i_wb_dat, o_wb_sel) : i_wb_dat),
                         // Swap data into CPU based on current o_wb_sel.
 
-.i_data_wb_ack          (data_ack),
+.i_data_wb_ack          (data_request_ack),
 .i_data_wb_err          (data_err),
 
 // Interrupts.
@@ -371,6 +371,7 @@ begin : l_tieoffs_full
 end : l_tieoffs_full
 else
 begin : l_tieoffs_only_core
+        assign data_request_ack = data_ack;
         assign dc_wreg_idx     = '0;
         assign dc_lock         = '0;
         assign dc_reg_data     = '0;
@@ -610,6 +611,7 @@ u_data_cache (
 
 .o_dat                  (dc_data),
 .o_ack                  (data_ack),
+.o_request_ack          (data_request_ack),
 .o_err                  (data_err),
 .o_lock                 (dc_lock),
 .o_reg_dat              (dc_reg_data),

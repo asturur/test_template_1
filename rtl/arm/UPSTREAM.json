@@ -45,7 +45,8 @@
     "patches/zap/0039-bram-instruction-lookahead.patch",
     "patches/zap/0040-board-debug-ports.patch",
     "patches/zap/0041-cache-compare-lookahead.patch",
-    "patches/zap/0042-balanced-operand-selection.patch"
+    "patches/zap/0042-balanced-operand-selection.patch",
+    "patches/zap/0043-separate-demand-completion.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

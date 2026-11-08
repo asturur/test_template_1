@@ -1,3 +1,39 @@
+## 2026-11-08: CPU operand and demand-completion cones (pass16)
+
+Step1 (7e6c73b) replaces four indexed40-register reads with local masked-word
+balanced reductions and resolves issue forwarding priority separately from the
+wide data reduction. Original special-register order, youngest-result priority,
+all banked storage, write priorities and pipeline latency stay unchanged. Warm
+ARM ADD remains one clock at0/3 memory waits. An independent17160-cycle fixture
+passes both original and changed source; patch0042 records the imported edits.
+
+Step2 separates the D-cache adapter's same-cycle demand completion from its
+maintenance-qualified idle ACK. The core only consumes ACK for strobed data_stall,
+and D-cache rd|wr equals that strobe. Therefore the idle term is irrelevant to
+CPU stall but had formed a physical active_maint->ACK->high-fanout stall path.
+Original ACK remains for cache/TLB housekeeping and instruction/prefetch logic;
+CP15 clean/invalidate done and all data/fault/bus controls stay unchanged. Legacy
+and ONLY_CORE use their original ACK. No global-stall retiming or pipeline stage
+is introduced. D-cache fast-hit is disabled, so active_maint is absent from the
+new combinational demand term. The global stall net's fanout is not itself changed.
+
+A focused4741-clock adapter fixture plus full-CPU per-cycle equivalence assertions
+check completion/stall coherence. Actual CPU phone integration passes; fresh5M
+real-SDRAM boot matches pass15's full881-event trace byte-for-byte, including
+121 writes and12 known fetch faults (zero data faults). Top-level structural
+lint, ONLY_CORE and source graph pass. Full CPU regression completes122 PASS
+(the previous120 plus two new fixtures) and1 expected legacy direct-map XFAIL;
+all per-cycle completion/stall comparisons pass and warmed ADD remains one cycle
+at0/3 waits. Latest status and evidence are in scratch/timing-closure/pass16-cpu/.
+
+The operand change targets pass15's worst seven-level register-read/forwarding
+cone. The completion change targets162 maintenance-origin CPU endpoints, with
+no claim that the other99 CPU endpoints have been fixed. Only a new routed fit
+can establish improvement or regressions in setup, hold, fanout, area or RAM use.
+Latest measured core Fmax79.42MHz/setup-2.111ns/TNS-4848.875ns remains the baseline;
+104MHz closure is unverified. No timing exceptions, slower clocks, peripheral
+edits, diagnostic removal, push or new GitHub build.
+
 ## 2026-11-08: CPU operand selection preserves pipeline latency (pass16 step1)
 
 The40-entry/four-read ZAP register file now decodes each physical read address
