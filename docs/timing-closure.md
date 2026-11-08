@@ -1,5 +1,101 @@
 # MiSTer timing closure
 
+## 2026-11-08: regional peripheral RAM ownership decoding
+
+Replaced the shared dedicated-claim exclusion on staging-RAM writes with
+regional qualifiers. Upload0c03 and aux0c06ff no longer depend on boot/scratch
+comparisons. NOS0c10 excludes only MDI; GPIO15 excludes actual SIM/NOS/loopback
+claims; aux12/14 retain only boot/MDI overlaps; NOS4K excludes its45 boot latches.
+The ownership map is in `docs/peripheral-ownership.md`. Dedicated response
+priority, SIM injection snoops, keypad overlays, LCD DMA exclusion, byte-lane
+rules, read readiness and warm/cold behavior remain unchanged. No latency added.
+
+The connected-child ownership sweep covers131072 word addresses plus896
+operation/lane/config overlap cases. Peripheral units, fixtures, board CPU
+SIM/DMA/IRQ/FIQ/fault tests, top elaboration, source graph and formatting pass.
+Fresh real-SDRAM5M boot: PC00006170,306874 transfers,12 known fetch faults,
+zero data faults. All845 board events (including121 writes and cycle stamps)
+are byte-identical to the new-cache baseline. Evidence and reproducible source
+cone/trace checks: `scratch/timing-closure/pass10-regional/`.
+
+Full CPU/cache suite:119 PASS plus one expected legacy direct-map XFAIL.
+Warm ADD remains1 cycle with0/3 memory waits.
+
+No FPGA build dispatched. Timing/resource effect is unmeasured; the last fit
+remains69.19MHz/-4.837ns. Cache, firmware, storage and permanent checkpoints are
+untouched. Sparse CAM remains the next separate change.
+
+## Ninth fit: cache pipeline succeeds; regional peripheral decode is next
+
+Reviewed42417251076 /d3364ea (fcb7dc2 cache pipeline +110b22d fixture refinement).
+Reports under `scratch/timing-closure/pass9-42417251076/`; exact grouped counts
+and reproducible script in `analysis/`. Core Fmax **69.19MHz** versus68.32;
+setup **-4.837ns** versus-5.021 (+.184ns), TNS **-48910.486ns** versus
+-56669.384 (13.69% improvement). ALMs33,445 (+1,176,80%), registers45,169
+(+1,841), M10Ks458 (+2,83%). HDMI setup+.026ns; global hold+.199ns,
+recovery+3.417ns, removal+1.320ns, pulse+.961ns. Compilation succeeds;
+timing gate fails. Small full-core Fmax gain does not mean cache rewrite failed.
+
+Old cache line/dirty/valid commit-path destinations are **absent** from top1000.
+Direct cache destinations798 ->**74**:64 refill-data capture paths,7 write-buffer
+payload/enables,3 victim valid/dirty snapshot paths. This subset does not prove
+cache104MHz closure. Another23 cache-origin paths end in CPU bus merger.
+All64 refill and23 merger paths traverse write-buffer `pending_words` hazard
+logic. The new compare/commit boundaries exposed previously hidden limits.
+
+Functional destination grouping (sum1000): sparse CAM286 (-4.465ns), peripheral
+staging RAM166 (-4.837;upload120/NOS41/aux3/GPIO2), ICU/config106 (-3.899),
+LCD framebuffer/forward104 (-4.223), timer/NOS78 (-4.093), cache74 (-4.688),
+flash50 (-3.977), CPU bridge response32 (-4.695), diagnostics29 (-4.738),
+MDI25 (-4.028), CPU bus merger23 (-4.444), keypad18 (-3.972), SDRAM arbiter7
+(-3.930), CPU fetch/issue2 (-3.874). Named error/ACK union25, all `unmodeled`
+(no named wb_ack); sparse CAM logic occurs on311 routes. Counts overlap with
+destination groups and are not a claim of that many independent bugs.
+
+Recommended next restructures, in order:
+
+1. **Regional peripheral ownership/write commands.** Worst route: captured
+   bus_address[3] fanout1245 ->boot scratch-claim exclusion ->generic GPIO write
+   ->upload BRAM WE (14.612ns data,10 levels). Upload0c03xxxx cannot overlap
+   the boot-register/scratch windows. Replace the global `dedicated_claim`
+   exclusion with per-region ownership: upload,0c10 NOS/MDI, GPIO15, aux,
+   0c004 scratch, etc. Keep only real overlaps local. Stage a coherent regional
+   command/address/data/mask if needed, with exactly-once commit/response;
+   don't rebuild a global ACK->all-side-effects chain.
+2. **Stage the temporary sparse-register lookup/allocation.**286 destination
+   paths are CAM comparison ->miss/capacity decision ->allocation/tag write.
+   Capture request and matched/free-slot decisions before updating tag/payload.
+   Selected-device waits only; retain full-table fault, existing-address writes,
+   byte masks and cancellation semantics. Do not replace it with aliasing RAM
+   or pretend it is verified phone hardware. Address nets also feed over1000
+   loads; regional capture can reduce that physical fanout.
+3. **Local LCD transaction queue.**103 framebuffer RAM endpoints plus1 forward
+   register. Local transport `lcd_bad` decoding still feeds panel command/
+   direct_pixel decode ->BRAM WE in one cycle. Capture the validated LCD
+   transaction payload, qualify DMA/direct collisions and apply it next cycle.
+   Preserve command ordering and partial display; don't guess a panel clock.
+4. **Cache write-buffer hazard metadata.**All87 refill/merger routes compute
+   queued-address+word-offset ->line compare ->issue/ACK ->refill capture.
+   Precompute line membership when enqueueing/merging groups, not on every query.
+   Each contiguous1..4-word group spans at most2 32-byte lines; stored first/last
+   line tags plus valid membership can replace16 runtime address additions.
+   Preserve simultaneous enqueue/merge/retire/error behavior, cross-line groups,
+   and no false-negative hazard. Existing conservative retired-word stalls can
+   remain. Don't redo the successful tag/data pipeline for this separate issue.
+5. **Diagnostic readout arithmetic.**The second-worst overall path is now
+   `read_word` offset ->combinational `/6` divider ->trace RAM address (-4.738).
+   This is export/readout, not the already pipelined fault capture. Replace
+   arithmetic with a bounded decode/table or staged mapping and explicitly
+   preserve/retime the diagnostic-export read contract and unchanged file format.
+
+Timer same-cycle write/clear/rearm plus counter updates (77 main timers),
+MDI forwarded-pointer comparisons (25), and reset/error/access-window fanout
+(62 ICU destinations on a reset-origin route) are later local targets. Do not
+infer that all need slower physical clocks or add broad false/multicycle paths.
+Maintain tests, source/QIP correctness, state coherence and cold boot evidence;
+future fits must validate both improved target groups and other newly exposed
+limits. No RTL edits, commit/push or build dispatched by this analysis request.
+
 ## Ninth implementation: registered cache lookup and coherent commit
 
 Both I/D instances retain 16 KiB, eight segments, 64 ways, 32-byte lines,

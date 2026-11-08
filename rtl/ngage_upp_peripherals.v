@@ -375,13 +375,22 @@ module ngage_upp_peripherals #(
     wire req = cyc && stb;
     wire valid_lanes = sel == 1 || sel == 2 || sel == 4 || sel == 8 ||
                        sel == 3 || sel == 12 || sel == 15;
-    wire dedicated_claim = simif_claim || extra_claim || gpio_loop_claim ||
-        mdi_claim || trace_claim || boot_claim || icu_claim || timer_claim ||
-        nos_claim || cbus_claim;
-    wire gpio_selected = gpio_hit && !dedicated_claim;
-    wire gpio_write = local_access && we && gpio_selected && valid_lanes;
+    // Regional ownership: only genuine overlaps qualify each RAM's writes.
+    // In particular upload0c03 and aux0c06ff do not depend on boot/scratch
+    // comparisons. Dedicated response priority and snooped side effects below
+    // remain unchanged; see docs/peripheral-ownership.md for the overlap map.
+    wire upload_selected = cfg_keypad && upload_hit;
+    wire nosmem_selected = cfg_keypad && nosmem_hit && !mdi_claim;
+    wire gpio15_selected = gpio_hit && gpio15_hit && !simif_claim && !gpio_loop_claim && !nos_claim;
+    wire aux06_selected = cfg_keypad && a[31:8] == 24'h0c06ff;
+    wire aux12_selected = gpio_hit && a[31:16] == 16'h0c12 && !boot_claim;
+    wire aux14_selected = gpio_hit && a[31:16] == 16'h0c14 && !mdi_claim;
+    wire aux_selected = aux06_selected || aux12_selected || aux14_selected;
+    wire gpio_selected = upload_selected || nosmem_selected || gpio15_selected || aux_selected;
+    wire ram_write = local_access && we && valid_lanes;
     wire nos4k_ram = nos4k_hit && !boot_claim && a[31:12] == 20'h0c004;
-    wire nos4k_write = local_access && we && nos4k_ram && !dedicated_claim;
+    // NOS4K retains its existing unrestricted byte-mask write semantics.
+    wire nos4k_write = local_access && we && nos4k_ram;
 
     ngage_bram_be #(
         .AW(14)
@@ -390,7 +399,7 @@ module ngage_upp_peripherals #(
         .raddr(a[15:2]),
         .rdata(upload_q),
         .waddr(clearing ? init_index[13:0] : a[15:2]),
-        .we   (clearing ? 4'hf : ((upload_hit && gpio_write) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((upload_selected && ram_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
@@ -400,7 +409,7 @@ module ngage_upp_peripherals #(
         .raddr(a[15:2]),
         .rdata(nosmem_q),
         .waddr(clearing ? init_index[13:0] : a[15:2]),
-        .we   (clearing ? 4'hf : ((nosmem_hit && gpio_write) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((nosmem_selected && ram_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
@@ -410,7 +419,7 @@ module ngage_upp_peripherals #(
         .raddr(a[11:2]),
         .rdata(gpio15_q),
         .waddr(clearing ? init_index[9:0] : a[11:2]),
-        .we   (clearing ? 4'hf : ((gpio15_hit && gpio_write) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((gpio15_selected && ram_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(
@@ -420,7 +429,7 @@ module ngage_upp_peripherals #(
         .raddr(aux_index),
         .rdata(aux_q),
         .waddr(clearing ? init_index[11:0] : aux_index),
-        .we   (clearing ? 4'hf : ((aux_hit && gpio_write) ? sel : 4'd0)),
+        .we   (clearing ? 4'hf : ((aux_selected && ram_write) ? sel : 4'd0)),
         .wdata(clearing ? 32'b0 : din)
     );
     ngage_bram_be #(

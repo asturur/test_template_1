@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [peripheral-ownership.md](peripheral-ownership.md) | Regional UPP RAM ownership and sparse-register transaction contracts |
 | [timing-closure.md](timing-closure.md) | 104 MHz baseline, worst-1000 timing exports, CI gate and path analysis |
 | [phone-clocks.md](phone-clocks.md) | Phone reference clocks, slower interfaces, timebase assumptions and bus-bridge follow-up |
 | [quartus-memory-audit.md](quartus-memory-audit.md) | Actual Quartus RAM inference, register-heavy arrays and resource-reduction priorities |
