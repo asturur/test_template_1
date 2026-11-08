@@ -1,3 +1,37 @@
+## 2026-11-08: late-owner fit42520603079 rejected; proceed with cache ownership
+
+Measured a1bd4a8 /run42520603079 compiles/fits but fails timing. Versus42516106759:
+Fmax86.15→77.97MHz, WNS−1.928→−2.111ns, TNS−2079.311→−4933.783ns.
+ALMs32992→32527, registers43338→43232; M10Ks465/DSP38 unchanged. HDMI+.244;
+minimum hold/recovery/removal/pulse+.246/+1.715/+.894/+.961 all pass.
+Targeted pointer→issue worsens−1.438→−1.607; execute→issue−.776→−1.872;
+M→issue−1.054→−1.765. RF→R becomes−.212, D→R−1.403, queue feedback−.289,
+completion→R−.675. Captured completion payload/format remain positive:
+backend→completion+1.734, format→M+2.905, formattedM→issue+1.149;
+commit journal+.143/fold+2.405. CP15→R remains absent, CP15 response+.172.
+
+Full pointer route traverses several operand_select LUTs before data reduction;
+parallel source-level grants did not preserve the intended shallow routed seam.
+ALU flags→condition qualification→dav→grant is now worst execute route. M SWI→
+effective write qualification→owner match→grant is worst M route. Reduced ALMs
+and these routes are consistent with logic factoring, not proof of independent
+physical priority trees. Reject patch0049 as a timing experiment; retain evidence
+and revert its implementation separately before cache work. No claim of slice1
+closure. Successful completion, CP15 and stationary ownership remain baseline.
+
+Top1000: timers483, LCD framebuffer BRAM74, writebuffer93, MDI56, RF55, issue45,
+decode30, cache transfer24, cache tags21, DDR19, cache maintenance13, BTB12,
+other75. Worst is LCD address→framebuffer clock-enable−2.111; SDRAM half-cycle
+slack−1.606 accounts for77.97MHz. Broad placement changes remain separate from
+functional behavior. All prior172PASS and848-event exact boot still stand.
+
+Next: original cache lookup request/address-owner slice. Localize bank address
+selection behind accepted ownership and preserve tagged lookahead/mutation epochs.
+Do not combine write-buffer redesign. Verify cache transactions, CPU effects and
+fresh boot; publish added demand cycles and warm sequential throughput. Record
+revert and cache implementation separately; one combined fit after validation.
+Artifacts: scratch/timing-closure/late-owner-fit-42520603079/.
+
 ## 2026-11-08: stationary fit42516106759 — acquisition fixed, pointer issue debt
 
 Run42516106759 SHA71b8940, implementation3b37383. Compile/fitter succeed; only

@@ -35,13 +35,7 @@ typedef struct packed {
  logic irq,fiq,abt,swi,und,last;
  logic [1:0] swp;
 } packet_t;
-packet_t queue[2], incoming, head, physical_packet[2];
-bit physical_known[2]='{0,0};
-bit previous_kill=1,previous_wen=0;
-logic [5:0] previous_wa=0,previous_wb=0;
-logic [39:0] previous_wc=0;
-integer owner_mask_checks[2]='{0,0};
-integer source_wins[2][17];
+packet_t queue[2], incoming, head;
 logic [3:0] output_condition=15;
 logic output_load=0;
 logic [5:0] output_mem_index=0;
@@ -170,40 +164,6 @@ function automatic [31:0] oracle(input integer port_no);
  return answer;
 endfunction
 
-// Independently reconstruct each physical owner's matches from captured test
-// packets and the test's previous/current write events. Never read DUT pending
-// selectors or classification bits to obtain the expected mask or winner.
-task automatic check_owner_masks;
- for(integer bank=0;bank<2;bank++)if(physical_known[bank])for(integer p=0;p<4;p++)begin
-  logic [32:0] idx;
-  logic [15:0] expected_match,actual_matches;
-  logic [16:0] grant,actual_grant;
-  integer winner;
-  idx=physical_packet[bank].indices[33*p+:33];
-  expected_match=0;
-  expected_match[0]=idx[32];expected_match[1]=idx[5:0]==16;
-  expected_match[2]=idx[5:0]==15;expected_match[3]=idx[5:0]==17;
-  for(integer stage=0;stage<6;stage++)expected_match[stage+4]=valid[stage] && dest[stage]==idx[5:0];
-  expected_match[10]=idx[5:0]<40 && wc[idx[5:0]];
-  expected_match[11]=wen && wb==idx[5:0];expected_match[12]=wen && wa==idx[5:0];
-  if(!previous_kill)begin
-   if(idx[5:0]<40 && previous_wc[idx[5:0]])expected_match[13]=1;
-   else if(previous_wen && previous_wb==idx[5:0])expected_match[14]=1;
-   else if(previous_wen && previous_wa==idx[5:0])expected_match[15]=1;
-  end
-  // Oldest-to-newest overwrite is independent of the RTL prefix mask tree.
-  winner=16;
-  for(integer candidate=15;candidate>=0;candidate--)if(expected_match[candidate])winner=candidate;
-  grant=17'b1<<winner;
-  actual_matches=bank ? issue.owner1_match[p] : issue.owner0_match[p];
-  actual_grant=bank ? issue.owner1_select[p] : issue.owner0_select[p];
-  if(actual_matches!==expected_match || actual_grant!==grant)
-   $fatal(1,"owner mask bank=%0d port=%0d cycle=%0d match=%h/%h grant=%h/%h",bank,p,checks,actual_matches,expected_match,actual_grant,grant);
-  if(model_read_slot==bank && issue.operand_select[p]!==grant)$fatal(1,"late owner grant selection");
-  owner_mask_checks[bank]++;source_wins[bank][winner]++;
- end
-endtask
-
 task automatic tick;
  #2; clk=1;
  if(reset) for(integer r=0;r<40;r++) model[r]=0;
@@ -229,7 +189,6 @@ task automatic check_cycle;
  if(cp_data!==model[cp_index])$fatal(1,"independent CP15 RF read");
  if(issue.u_operand_read.read_slot!==model_read_slot || issue.u_operand_read.write_slot!==model_write_slot)
   $fatal(1,"physical FIFO pointer mismatch");
- if(!reset)check_owner_masks();
  // Representation invariant BEFORE this edge's writes: each valid packet's
  // raw base plus its own pending journal equals the independent architectural
  // RF. Check both owners, including reserve data before full-pop promotion.
@@ -277,11 +236,6 @@ task automatic check_cycle;
   output_condition=pop ? head.condition : 15;
   output_load=head.load;output_mem_index=head.indices[99+:6];
  end
- // Record physical capture with the pre-edge write pointer, independently
- // of logical head/pop updates below. Clear forbids new owner identity.
- if(push && !clear_packet)begin physical_packet[model_write_slot]=incoming;physical_known[model_write_slot]=1;end
- previous_kill=clear_packet;previous_wen=wen;
- previous_wa=wa;previous_wb=wb;previous_wc=wc;
  if(clear_packet)begin
   count=0;output_condition=15;kills++;
   if(reset)begin model_read_slot=0;exposed_known=0;end
@@ -311,7 +265,6 @@ task automatic check_cycle;
 endtask
 
 initial begin
- for(integer bank=0;bank<2;bank++)for(integer source=0;source<17;source++)source_wins[bank][source]=0;
  for(integer p=0;p<4;p++) index[p]=0;
  for(integer stage=0;stage<6;stage++) begin dest[stage]=0;value[stage]=32'h10203041*(stage+1);end
  reset=1;tick();reset=0;
@@ -376,7 +329,7 @@ initial begin
   for(integer p=0;p<4;p++)index[p]=33'((r+4+p)%40);
   check_cycle();check_cycle(); // Immediate reuse must ignore killed selectors.
  end
- // Both owner trees see every all-producer validity combination concurrently
+ // Owned operand values see every all-producer validity combination concurrently
  // with current C/B/A and a prior C journal. Include immediate low bits that
  // alias PC/RAZ/CPSR: immediate must win even though several class bits match.
  valid=0;mem_load=0;mem_store=0;align_pc=0;
@@ -409,9 +362,6 @@ initial begin
  end
  if(full_pops<1 || pushes<500 || pops<500)$fatal(1,"coverage");
  if(physical_pushes[0]<500 || physical_pushes[1]<500 || physical_pops[0]<500 || physical_pops[1]<500)$fatal(1,"physical slot coverage");
- for(integer bank=0;bank<2;bank++)for(integer source=0;source<17;source++)
-  if(source_wins[bank][source]==0)$fatal(1,"owner source coverage bank=%0d source=%0d",bank,source);
- $display("OWNER_MASKS: checks=%0d/%0d all17sources win in both physical owners",owner_mask_checks[0],owner_mask_checks[1]);
  $display("SLOTS: pushes=%0d/%0d pops=%0d/%0d",physical_pushes[0],physical_pushes[1],physical_pops[0],physical_pops[1]);
  $display("QUEUE: push=%0d pop=%0d full_pop=%0d kills=%0d",pushes,pops,full_pops,kills);
  $display("PASS: operand oracle %0d cycles; 40 physical registers, all forwarding priorities, immediate/PC/CPSR/RAZ, write collisions, stalls/reset/clear",checks);

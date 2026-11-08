@@ -378,7 +378,7 @@ owner association and held empty/clear PC. Full validation is recorded in status
 and the operand-stage contract. No added pipeline cycle or clock/constraint edit.
 
 
-## Late owner selection after forwarding priority (0049)
+## Rejected late owner selection after forwarding priority (0049)
 
 Patch0049 computes source matches and priority grants for both stationary operand
 owners before selecting the active owner. It removes the early read-pointer mux
@@ -388,3 +388,9 @@ No new state, stage, hazard rule, write priority or cycle is introduced. Per-own
 mask/grant checks reconstruct captured indices, classes and current/previous write
 events independently; existing architectural/cycle and fresh-boot checks remain.
 The operand contract records proof, validation and the area/fanout fit risks.
+
+Fit42520603079 regressed timing despite functional equivalence. Patch0049 is
+archived under `patches/zap/rejected/`, removed from active provenance, and its
+RTL reverted exactly to patch0048. The independent directed collision scenarios
+remain valid and retained; mask observers tied to removed internals are removed.
+Active ARM provenance is48patches. Revert is a new commit; history/evidence remain.

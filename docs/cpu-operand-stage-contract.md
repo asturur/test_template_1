@@ -97,13 +97,9 @@ contract preserves the previous exposed packet PC without widening a payload
 promotion path or changing predictor behavior. Tests check both valid owner
 mapping and the exposed PC across empty/clear intervals.
 
-The R→I interface exports both physical owners' indices, captured special classes
-and pending selectors, the registered read pointer, selected raw head bases and
-shared journal words. Patch0049 computes both owners' source matches and complete
-one-hot priority grants independently, then selects the active grant late. The
-RF fallback is grant16, computed before owner selection. One shared wide datapath
-per operand selects special values, in-flight producers, current C/B/A, previous
-C/B/A and raw base.
+The R→I interface exports raw head bases, head pending selectors and the shared
+journal words. Issue selects special values, in-flight producers, current C/B/A,
+previous C/B/A and raw base in **one** narrow-priority/masked-word reduction.
 It does not serially select current commits and then pass that word through a
 second forwarding mux. Current formatted commit data still reaches issue on this
 edge; this path is retained, not waived or presumed closed.
@@ -558,7 +554,7 @@ reproducible `analyze.py`. Candidate function/cycle validation is complete; the
 new physical seams and total area still require the next isolated routed fit.
 
 
-## Patch0049: select the owner after forwarding priority
+## Rejected patch0049: select the owner after forwarding priority
 
 Fit42516106759 validates patch0048's acquisition changes: CP15→R has no paths,
 D→R data−.213ns, RF→R+.487, commit-source→R+.457 and queue feedback+.023ns.
@@ -632,3 +628,19 @@ Evidence and tested hashes are in
 `scratch/timing-closure/late-owner-forward/validation-summary.json`.
 The implementation is ready for one isolated fit; routed timing and area remain
 unmeasured, and broader slice1/system104MHz closure remains open.
+
+
+Disposition after fit42520603079: patch0049 is rejected despite functional/cycle
+equivalence. Pointer→issue regressed−1.438→−1.607ns, execute→issue−.776→−1.872,
+M→issue−1.054→−1.765; Fmax86.15→77.97MHz and TNS−2079.311→−4933.783ns.
+The routed operand_select chain and reduced ALMs32527 are consistent with
+refactoring that defeated the intended physical seam. All `rtl/arm` files,
+including provenance, were restored byte-for-byte to71b8940/active patches0001–0048.
+Patch0049 is archived in `patches/zap/rejected/` and remains in Git history.
+The extra directed all-producer/current-write collision sequences remain under
+the independent value oracle (56,251clocks PASS); only deleted-internal mask
+observers were removed.48patch reproduction and exact baseline diff pass.
+Evidence remains under late-owner-forward/ and late-owner-fit-42520603079/;
+revert checks are in scratch/timing-closure/cache-lookup-owner/revert/.
+Do not reapply source-level parallel grants without a different physical plan.
+Current ownership/forwarding contract is patch0048; cache lookup ownership is next.

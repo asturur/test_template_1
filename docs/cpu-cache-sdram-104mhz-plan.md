@@ -7,9 +7,10 @@ fit and patch0046 RF/journal follow-up are reviewed in status.md; patch0047
 completion/formatting seams pass in fit42500046692. Patch0048 now separates the
 CP15 read address and replaces wide operand promotion with stationary owners;
 fit42516106759 confirms improved acquisition but exposes read-pointer→forwarding
-priority at−1.438ns. Patch0049 moves owner selection after parallel narrow
-match/priority decisions; its routed timing and duplicated-control area remain
-unmeasured.
+priority at−1.438ns. Patch0049's parallel narrow grants regressed routed timing in
+fit42520603079 and were reverted; active ARM RTL is exactly patch0048. Its failed
+experiment and independent collision tests are preserved. Cache lookup/address
+ownership is the next implementation slice, without bundling write-buffer work.
 The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
 capture, so patch0047 promotes the measured completion/local-advance portion of
 slice5 ahead of cache/translation work. Its blocking response owner adds one
