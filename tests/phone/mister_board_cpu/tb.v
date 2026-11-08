@@ -16,6 +16,8 @@ module tb;
  .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsread),
  .mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
  always @(posedge clk)begin
+  if(!reset && dut.board.upp.internal_dma_irq && dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc)
+   $fatal(1,"DMA completion preceded queued pixel commit");
   if(!reset && dut.wb_err && dut.wb_adr==32'h0c121200 && dut.wb_dat_o==32'hdeadbeef)
    if(dut.board.display.lcd.header!==0 || dut.board.upp.peripherals.hdr_written!==0)
     $fatal(1,"invalid header reached LCD queue or transport");

@@ -171,6 +171,17 @@ module ngage_upp #(
     wire internal_dma_irq;
     generate
         if (LCD_DMA_ENABLE) begin : lcd_dma_enabled
+            wire raw_dma_irq;
+            if (LCD_QUEUE_ENABLE) begin : panel_completion
+                reg delayed_irq = 0;
+                always @(posedge clk) begin
+                    if (rst) delayed_irq <= 0;
+                    else delayed_irq <= raw_dma_irq;
+                end
+                assign internal_dma_irq = delayed_irq;
+            end else begin : immediate_completion
+                assign internal_dma_irq = raw_dma_irq;
+            end
             ngage_lcd_dma lcd_dma (
                 .clk           (clk),
                 .reset         (rst),
@@ -191,7 +202,7 @@ module ngage_upp #(
                 .lcd_frame_full(lcd_dma_full),
                 .lcd_word_addr (lcd_dma_addr),
                 .lcd_data      (lcd_dma_data),
-                .irq_pending   (internal_dma_irq),
+                .irq_pending   (raw_dma_irq),
                 .irq_clear     (dma_irq_clear)
             );
         end else begin : lcd_dma_disabled

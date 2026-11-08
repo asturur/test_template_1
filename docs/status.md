@@ -1,3 +1,32 @@
+## 2026-11-08: align LCD CPU and DMA streams across the command pipeline
+
+Follow-up to712c811: the first queue held CPU commands behind raw DMA, which
+could let a later DMA pixel overtake an accepted CPU packet. That approach is
+superseded. CPU commands and DMA valid/address/data/full-frame now cross the
+same one-clock boundary, preserving their original relative order (including
+header+DMA on the same edge). Existing input-side direct-data/DMA collision
+suppression remains. The live panel consumes one stage every clock; the generic
+queue's hold/backpressure contract is retained and tested with a synthetic
+consumer hold, not driven by raw DMA. DMA completion to the ICU gains the same
+one-clock delay when the panel pipeline is enabled. Non-display mode retains
+the original completion timing. Reset flushes pending CPU/DMA records together;
+as already documented, it may cancel unconsumed work while retaining old GRAM.
+
+A differential mixed-stream fixture compares the whole panel control state,
+first32 pixels and each DMA target (covering the full18304-word address range)
+against the original unqueued display with exactly one-cycle delay.419 checks
+cover direct pixels followed by DMA to the same word, simultaneous header/DMA,
+commands, window state, full pulses and drained warm reset. Pending-reset
+cancellation is separately tested. This fixture catches the initial ordering
+mistake; merely checking that queued commands were not lost did not.
+Actual CPU integration additionally asserts DMA IRQ cannot precede committed
+pixel data. Queue, connected board, mixed-stream and isolated CPU tests pass.
+The isolated real-SDRAM5M boot also passes unchanged PC00006170,306874 transfers,
+12 known fetch faults and zero data faults; all845 board events/cycle stamps
+remain byte-identical. Logs `scratch/timing-closure/pass12-lcd-queue/`.
+No FPGA build. This correction was boot-tested with the previous write buffer;
+point4's separate source is restored only after committing this LCD fix.
+
 ## 2026-11-08: validated LCD commands cross a local board queue
 
 Point3 implemented independently after Astra's5ac507e sparse CAM. The board

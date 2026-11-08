@@ -27,7 +27,7 @@ module tb;
   step();reset=0;hold=1;valid=1;addr='h0c121200;data='h09200000;step();
   valid=0;repeat(20)begin addr=addr+4;data=~data;step();if(ready || out_valid)$fatal(1,"queued command not held during DMA");end
   hold=0;valid=1;addr='h0c121208;data='haf;step();valid=0;step();
-  // Random producer gaps, consecutive header/data writes, long DMA holds and
+  // Random producer gaps, consecutive header/data writes, long consumer holds and
   // reset with a pending entry. The producer changes its payload every cycle.
   for(n=0;n<4000;n=n+1)begin
    rng=rng ^ (rng<<13);rng=rng ^ (rng>>17);rng=rng ^ (rng<<5);
@@ -36,6 +36,6 @@ module tb;
   end
   reset=0;valid=0;hold=0;repeat(3)step();
   if(pending || accepted!=applied+canceled || applied<100)$fatal(1,"queue did not drain");
-  $display("PASS LCD registered command queue: payload/order, replacement, DMA backpressure and reset (%0d applied, %0d canceled)",applied,canceled);$finish;
+  $display("PASS LCD registered command queue: payload/order, replacement, consumer backpressure and reset (%0d applied, %0d canceled)",applied,canceled);$finish;
  end
 endmodule

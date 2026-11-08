@@ -23,9 +23,9 @@ module tb;
  end endtask
  initial begin
   repeat(2)tick();cold=0;wait(init);tick();rst=0;
-  // Test-only DMA-valid injection exercises the exact production queue hold
-  // and per-device ready wiring; the DMA engine itself has separate tests.
-  force dut.lcd_dma_valid=1'b1;
+  // Test-only consumer hold exercises selected-device backpressure; raw DMA
+  // injection below checks relative ordering through the production stages.
+  force dut.display.command_queue.hold=1'b1;
   start_write('h0c121204,1);finish_write();
   if(!dut.display.command_queue.pending)$fatal(1,"control was not queued");
   start_write('h0c121200,'h09200000);
@@ -34,18 +34,18 @@ module tb;
   cyc=0;stb=0;tick();start_write('h0c030220,'h12345678);
   if(!ready)$fatal(1,"LCD queue stalled unrelated RAM");finish_write();tick();
   start_write('h0c121200,'h09200000);if(ready)$fatal(1,"full queue accepted header");
-  release dut.lcd_dma_valid;#1;finish_write();tick();
+  release dut.display.command_queue.hold;#1;finish_write();tick();
   if(headers!=1 || dut.display.lcd.header!=='h09200000)$fatal(1,"header lost or duplicated");
   start_write('h0c121208,'haf);finish_write();
   force dut.lcd_dma_valid=1'b1;addr='h0c030220;data='hdeadbeef;
-  repeat(5)begin tick();if(dut.display.lcd.display_on)$fatal(1,"command applied during DMA");end
-  release dut.lcd_dma_valid;tick();
-  if(!dut.display.lcd.display_on || commands!=3)$fatal(1,"held command lost or skewed");
+  tick();
+  if(!dut.display.lcd.display_on || commands!=3)$fatal(1,"later DMA overtook accepted command");
+  repeat(4)tick();release dut.lcd_dma_valid;tick();
   start_write('h0c121200,'hdeadbeef);#1;
   if(!bad || dut.lcd_write_valid)$fatal(1,"invalid header queued");tick();cyc=0;stb=0;tick();
   if(headers!=1 || dut.display.lcd.header!=='h09200000)$fatal(1,"invalid header changed panel");
-  force dut.lcd_dma_valid=1'b1;start_write('h0c121200,'h4f300000);finish_write();
-  rst=1;tick();release dut.lcd_dma_valid;rst=0;repeat(3)tick();
+  force dut.display.command_queue.hold=1'b1;start_write('h0c121200,'h4f300000);finish_write();
+  rst=1;tick();release dut.display.command_queue.hold;rst=0;repeat(3)tick();
   if(dut.display.command_queue.pending || dut.display.lcd.header!==0 || headers!=1)$fatal(1,"warm reset leaked queued command");
   $display("PASS board LCD queue: selected backpressure, unrelated RAM, exactly-once ordered commands, local faults, DMA and reset");$finish;
  end

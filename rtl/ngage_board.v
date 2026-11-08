@@ -124,10 +124,21 @@ module ngage_board #(
         if (LCD_ENABLE) begin : display
             wire queued_valid;
             wire [31:0] queued_addr, queued_data;
+            reg panel_dma_valid = 0, panel_dma_full = 0;
+            reg [14:0] panel_dma_addr;
+            reg [31:0] panel_dma_data;
+            // Both streams cross the same edge. Holding only CPU commands
+            // behind raw DMA would let later pixels overtake an accepted write.
+            always @(posedge clk) begin
+                panel_dma_valid <= !rst && lcd_dma_valid;
+                panel_dma_full  <= !rst && lcd_dma_full;
+                panel_dma_addr  <= lcd_dma_addr;
+                panel_dma_data  <= lcd_dma_data;
+            end
             ngage_lcd_bus_queue command_queue (
                 .clk      (clk),
                 .reset    (rst),
-                .hold     (lcd_dma_valid),
+                .hold     (1'b0),
                 .in_valid (lcd_write_valid),
                 .in_ready (lcd_sink_ready),
                 .in_addr  (aligned_addr),
@@ -145,10 +156,10 @@ module ngage_board #(
                 .write_valid      (queued_valid),
                 .write_addr       (queued_addr),
                 .write_data       (queued_data),
-                .dma_valid        (lcd_dma_valid),
-                .dma_frame_full   (lcd_dma_full),
-                .dma_word_addr    (lcd_dma_addr),
-                .dma_data         (lcd_dma_data),
+                .dma_valid        (panel_dma_valid),
+                .dma_frame_full   (panel_dma_full),
+                .dma_word_addr    (panel_dma_addr),
+                .dma_data         (panel_dma_data),
                 .raster_x         (video_x),
                 .raster_y         (video_y),
                 .ce_pix           (video_ce),
@@ -338,7 +349,7 @@ endmodule
 
 // Transaction-level board buffer, not a claim about physical panel pin timing.
 // Validation qualifies only capture. Panel decoding/BRAM writes see registered
-// address/data/valid, and DMA has priority without dropping a queued command.
+// address/data/valid. A consumer hold retains a packet without dropping it.
 module ngage_lcd_bus_queue (
     input  wire        clk,
     input  wire        reset,

@@ -95,14 +95,20 @@ replacement/cancellation at each occupied stage, warm retention and cold reset.
 The board adapter additionally checks that a canceled sparse request cannot
 stall upload RAM, and full CAM state cannot affect trace-sink timing/errors.
 
-## LCD board-command queue (2026-11-08)
+## LCD board-command pipeline (2026-11-08)
 
-When LCD_ENABLE is set on the board, UPP enables the local sink-ready contract.
-A validated LCD write may update transport state and enter the queue only when
-it can accept. The queued address/data/valid cross one registered boundary;
-DMA-valid holds consumption, and a held full queue stalls only LCD writes.
-A drain and replacement can share an edge. LCD reads retain the existing
-transport readback behavior. Reset discards a pending command as it resets
-panel/transport state. Non-display fixtures keep their existing immediate
-transport contract. `tests/phone/lcd_queue/run.sh` covers the queue and connected
-board ready/state wiring; it does not assert physical Nokia panel timing.
+When LCD_ENABLE is set, validated UPP packets enter a one-entry board stage.
+DMA valid/address/data/full-frame cross the same edge, preserving original
+CPU/DMA order and allowing a header and DMA pixel from the same source edge.
+Input-side direct-data/DMA collision suppression is unchanged. The live sink
+consumes every clock, so normal throughput remains one accepted command per
+clock; a synthetic consumer hold tests the local ready contract. Only an LCD
+write would wait if that sink were held. Reads retain transport readback timing.
+DMA completion to ICU is delayed one clock to match pixel publication. Display-
+disabled fixtures keep the prior immediate transport/IRQ contract. Reset drops
+pending CPU/DMA records while resetting panel/transport state together.
+
+The initial712c811 CPU-only hold behind raw DMA could reorder streams and is
+superseded. `tests/phone/lcd_queue/run.sh` tests consumer backpressure, local
+validation/reset, and differential panel state/pixels against the unqueued
+stream. This is transaction-level verification, not physical panel timing.
