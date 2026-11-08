@@ -11,8 +11,8 @@ fit candidate pending complete functional checks, not final performance acceptan
 `zap_operand_read` owns two ordered packets: head R0 and reserve R1. It is
 instantiated by `zap_issue_main`, which no longer owns the old skid replay.
 A packet contains the complete existing decode context (including debug text),
-four physical source indices and four committed RF base words. Special/immediate
-kinds remain in the original 33-bit source fields. Source addresses sent to the RF
+four physical source indices and four RF base words with an owned commit journal.
+Special/immediate kinds remain in the original 33-bit source fields. Source addresses sent to the RF
 come directly from D, independent of queue selection, locks, or upstream stop.
 
 `o_full` depends only on registered occupancy. It replaces `o_stall_from_issue`
@@ -51,17 +51,58 @@ ownership and I, but MUST NOT stop committed-write snooping. Hazard holds R0,
 allows bounded D admission, and bubbles I while older execution advances.
 Writeback redirects/mode changes cancel younger physical bank mappings immediately.
 
-The packet's committed base is refreshed on EVERY clock by the exact effective RF
-writes. Expose writeback's `wen,wa1,wa2,wdata1,wdata2`, after its exception/CP15/load
-selection; C is the existing background one-hot write mask/data. Per source, C wins
-B wins A; A/B require wen; C needs its source bit and physical index <40. Capture
-uses this same effective-write override of the asynchronous RF read. R1->R0 moves
-the snooped R1 value, not its pre-edge stale base. The issue-edge base uses the same
-combinational write override, so a concurrent write is visible before the clock.
-No producer-forwarded value is cached as a committed base.
+Patch0046 retimes the representation of committed bases without adding a pipeline
+edge. Each slot stores a raw base and a three-bit one-hot pending selector per
+source; shared `commit_a/b/c` registers hold the preceding edge's exact effective
+writeback data. At any pre-edge observation, applying the slot's pending selector
+to its base gives the architectural RF contents through the preceding edge.
+Current effective writes remain visible combinationally at issue. A/B use the
+exact selected writeback `wen,wa1,wa2,wdata1,wdata2` after exception/CP15/load
+selection; C uses its existing background mask and source index <40. C wins B
+wins A both within an edge and in the journal; a current edge beats the previous
+edge. No producer-forwarded value is cached as a committed base.
+
+On every clock (including data/shifter holds), old pending data folds into the
+base and the new pending selector matches the current write against the slot's
+**post-edge owner**. Capture stores the pre-edge asynchronous RF read and records
+current matches for the incoming packet. Promotion folds the tail's old pending
+data into head base and records current matches for that promoted owner. Reset
+or clear kills both valid bits and both pending selectors on the same edge;
+journal data need not reset because it has no valid owner after a kill.
+
+The reserve payload/index/control captures every accepted D packet, including a
+head replacement when the reserve stays invalid. This speculative invalid payload
+is never promoted: reserve validity is unchanged, and a live reserve implies full,
+which prohibits acceptance. Thus reserve data capture/refresh selection depends
+only on capacity-qualified push, removing the measured load-lock→pop→tail-data
+feedback. Head ownership and promotion continue to use the original pop rule.
+
+The R→I interface exports raw head bases, head pending selectors and the shared
+journal words. Issue selects special values, in-flight producers, current C/B/A,
+previous C/B/A and raw base in **one** narrow-priority/masked-word reduction.
+It does not serially select current commits and then pass that word through a
+second forwarding mux. Current formatted commit data still reaches issue on this
+edge; this path is retained, not waived or presumed closed.
+
+| Transition on edge t | Base after edge t | Pending selector after edge t |
+| --- | --- | --- |
+| Empty→push, or head-only pop+push | Pre-edge RF for incoming source | Current t write matches incoming source |
+| Held head/reserve | Own old base with own t−1 journal applied | Current t write matches held source |
+| Full→pop | Tail old base with tail t−1 journal applied | Current t write matches tail source |
+| Push while head held | Head refreshes; reserve gets pre-edge RF | Each owner's current t write matches |
+| Reset/clear | Payload irrelevant | Both slots invalid, selectors zero |
+
+Inductive freshness proof: capture's raw read already contains all writes through
+t−1; applying pending t therefore represents the RF through t. A held/promoted
+packet first folds its t−1 pending write into the base, then records t, giving the
+same invariant. Current combinational t+1 overrides that representation at issue,
+and nearer in-flight producers retain their existing higher priority. Kill removes
+ownership before reuse; every new capture supplies a fresh base and selector.
+All write pulses may vanish on the following edge without losing their values.
 
 Late forwarding priority is unchanged: immediate, RAZ, PC, live ALU CPSR,
-combinational A, registered A, P0, P1, P2, M ALU result, refreshed committed base.
+combinational A, registered A, P0, P1, P2, M ALU result, current C/B/A commit,
+previous C/B/A journal, raw committed base.
 The nearer in-flight producers are older than this in-order consumer but newer
 than commits. Loads keep all existing I/S/A/P0/P1/P2/M and background locks;
 M's ALU/base result never stands in for its load write. Shift/multiply/flag locks
@@ -114,9 +155,10 @@ include RF capture plus A/B committed-write bypass and CP15 read-port mux paths
 in the targeted inventory. These remain potential critical cones.
 this contract and simulation cannot establish104MHz closure.
 
-## Measured candidate evidence
+## Patch0045 measured candidate evidence (before journal retiming)
 
-The RTL implements the contract above. `CPU_BUS_BRIDGE=1 sh tests/cpu/run.sh`
+Patch0045 implemented the original immediate-refresh representation.
+`CPU_BUS_BRIDGE=1 sh tests/cpu/run.sh`
 passes161 checks plus1 expected legacy direct-map XFAIL, including36 IRQ/FIQ SWP
 arrival cases across D/R/I/S/A/P0/P1/P2/write-half at waits0/3. Existing SWP faults,
 IRQ/FIQ, banking, MMU/TLB, alignment/LDM/PC, maintenance/lockdown/coherence pass.
@@ -210,9 +252,70 @@ All evidence is under `scratch/timing-closure/slice1-operand/`, including the
 normalized boot comparison and exact read-difference list. Old checkpoints and
 frozen executables were untouched; the new boot starts from reset.
 
-Fit remains unmeasured. Evaluate D→R including RF/CP15-port selection and selected
-A/B committed-write bypass, R→I forwarding, W→R refresh, R promotion/enable, A→S
-recurrence, and capacity/clear distribution. The proposed resource limits still
-apply as review triggers; no extra M10K is intended, but synthesis must establish
-actual area/inference. Do not proceed to a later architecture slice without this
-slice's attributable whole-project fit and review.
+The subsequent run42482648381 fit reports83.89MHz, setup−1.634ns and
+TNS−2680.821ns,33,156ALMs/464M10Ks. The read stage improved worst setup but still
+fails104MHz; its D→R, commit→R, queue and late issue paths motivated patch0046.
+The reported domain Fmax is limited by the separate half-cycle SDRAM path.
+See status.md/timing-closure.md for the full routed analysis. No later architecture
+slice should start before this operand follow-up's attributable fit is reviewed.
+
+## Patch0046 physical intent and validation
+
+The compact original indexed FF RF reads replace the forced masked reduction;
+storage/write priority and all four asynchronous ports are unchanged. With the
+same owned R contract, the original27,451-clock oracle passed this RF-only change
+before journal/issue edits. This establishes functional equivalence, **not** a
+physical A/B winner: only the masked version has a routed measurement so far.
+The next integrated fit measures the indexed-read/journal candidate together.
+
+The prior worst D→R path traversed two address-decode cells, four RF reduction
+cells, current-commit bypass and queue selection (−1.634ns). Indexed reads leave
+mux mapping to synthesis; raw capture removes current-commit data selection from
+that cone. The old M/load-format→commit override→head-data path (−1.213ns) now
+terminates first in the unconditional `commit_a/b/c` journal registers. Journal
+folding and head promotion use registered data with narrow masks resolved before
+word selection. Live backend write address/control still reaches pending-match
+registers; it is not a timing exception. The measured pop→tail-data path
+(−.674ns) has been structurally removed by invalid-reserve speculative capture.
+
+The issue priority network includes all previous producers plus both commit ages,
+so it is wider. Mask/routing locality, new pending-selector paths, journal fanout,
+remaining head pop/selection and current formatted-write→issue routes are explicit
+physical risks. The previous fit's issue/shifter and ALU→shifter recurrence
+violations remain unverified. No clock/SDC/cache/translation/SDRAM/peripheral change
+or extra frontend edge accompanies this retiming. Fmax104MHz is not established
+until a routed fit checks these paths and the separate SDRAM half-cycle limit.
+
+The extended independent oracle passes50,491 clocks,29,485 captures,24,017 pops,
+7,670 full-pop events and5,379 kills. Every valid slot's base+journal representation
+is compared against an independent40-word architectural RF before current writes;
+issue outputs compare against that RF after current writes and newer forwards.
+Directed tests exhaust all64 pairs of consecutive write-port masks at every40
+physical index, with capture, held commit, reserve acquisition, promotion, issue,
+kill and immediate reuse; random independent ports/producer masks and live CPSR
+continue. Evidence lives in `scratch/timing-closure/slice1-finish/`.
+
+The final full regression passes161 checks plus1 expected legacy direct-map XFAIL,
+including all36 IRQ/FIQ SWP edge/wait cases. All144 CPU fixture outcomes retain
+exact absolute cycle counts relative to patch0045. The mixed diagnostic at
+waits0/3/7/15/31 has identical TIMING/PHASES/METRICS lines, including setup/body
+counts, load-use18 minimum, branch-target14 minimum and warm ADD1. The3-wait
+ordered effective RF/retirement-PC/CPSR trace matches all21,118 baseline effects.
+The existing11.917% fixed-mix cost from inserting R remains unchanged.
+
+High-wait runs require `CPU_MAX_CYCLES=2000000`; the default500k bound expires
+inside the known631890-clock15-wait setup. The first high-wait attempt used that
+insufficient default and was rerun with the explicit bound, without an RTL change.
+Use `CPU_BUS_BRIDGE=1` when comparing the saved timing and legacy baseline;
+the direct-bus fixture has different absolute counts.
+
+Actual phone CPU integration, top structural lint, ONLY_CORE (parameter1) and
+legacy elaboration,173-source/9-QIP preflight and exact46-patch reproduction pass.
+The existing board bus_access lint warning remains. Fresh real-SDRAM5M is
+byte-identical to patch0045's848-event board trace, including all timestamps,
+121 ordered writes,12 known fetchfaults and all reads. PC00006154,289152transfers,
+zero data faults and no LCD/DDR writes are unchanged. No old checkpoint was
+restored into the changed executable; this is bounded early boot evidence.
+
+Legacy direct-map smoke with the matching UPP bus bridge retains135782/234446
+cycles at0/3waits; an additional direct-bus smoke passes86415/189126cycles.

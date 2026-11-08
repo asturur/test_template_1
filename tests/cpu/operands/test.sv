@@ -178,6 +178,26 @@ task automatic check_cycle;
    $fatal(1,"RF port %0d index %0d",p,index[p][5:0]);
   held[p]=result[p];
  end
+ // Representation invariant BEFORE this edge's writes: each valid packet's
+ // raw base plus its own pending journal equals the independent architectural
+ // RF. Check both owners, including reserve data before full-pop promotion.
+ if(!reset)for(integer slot=0;slot<count;slot++)for(integer p=0;p<4;p++)begin
+  logic [2:0] pending;
+  logic [31:0] represented;
+  integer physical;
+  pending=slot==0 ? issue.u_operand_read.head_pending[3*p+:3] : issue.u_operand_read.tail_pending[3*p+:3];
+  represented=slot==0 ? issue.u_operand_read.head_data[32*p+:32] : issue.u_operand_read.tail_data[32*p+:32];
+  case(pending)
+   0: begin end
+   1: represented=issue.operand_commit_a;
+   2: represented=issue.operand_commit_b;
+   4: represented=issue.operand_commit_c;
+   default: $fatal(1,"journal selector is not one-hot");
+  endcase
+  physical=queue[slot].indices[33*p+:6];
+  if(physical<40 && represented!==model[physical])
+   $fatal(1,"journal owner slot=%0d port=%0d index=%0d cycle=%0d got=%h expected=%h",slot,p,physical,checks,represented,model[physical]);
+ end
  // Apply committed writes to an independent architectural RF scoreboard BEFORE
  // calculating this edge's issue result. No stored DUT operand is consulted.
  if(!reset)begin
@@ -198,7 +218,7 @@ task automatic check_cycle;
  if(count!=0 && !reset)for(integer p=0;p<4;p++)begin
   expected[p]=oracle(p);
   if(nxt[p]!==expected[p])begin
-   $display("DETAIL headidx=%h dutidx=%h base=%h fresh=%h model=%h wen=%b wa=%d wb=%d wc=%h data=%h/%h/%h",head.indices[33*p+:33],issue.operand_mem_srcdest_index_ff,issue.u_operand_read.head_data[32*p+:32],issue.operand_data[32*p+:32],model[head.indices[33*p+:6]],wen,wa,wb,wc,da,db,dc);
+   $display("DETAIL headidx=%h dutidx=%h base=%h raw=%h model=%h wen=%b wa=%d wb=%d wc=%h data=%h/%h/%h",head.indices[33*p+:33],issue.operand_mem_srcdest_index_ff,issue.u_operand_read.head_data[32*p+:32],issue.operand_data[32*p+:32],model[head.indices[33*p+:6]],wen,wa,wb,wc,da,db,dc);
    $fatal(1,"operand oracle port=%0d check=%0d count=%0d got=%h expected=%h",p,checks,count,nxt[p],expected[p]);end
  end
  if(!clear_packet && !data_stall && !shift_stall)begin
@@ -263,6 +283,34 @@ initial begin
  condition=15;irq=1;fiq=1;abt=1;swi=1;und=1;last=1;swp=3;
  repeat(4)check_cycle();
  condition=14;irq=0;fiq=0;abt=0;swi=0;und=0;last=0;swp=0;
+ // Exhaust every pair of consecutive write-port masks for every physical
+ // source, with capture, full hold, promotion, issue, kill and immediate reuse.
+ // Different ports use adjacent indices to detect selector/owner interchange.
+ valid=0;mem_load=0;mem_store=0;align_pc=0;
+ for(integer r=0;r<40;r++)for(integer older=0;older<8;older++)for(integer newer=0;newer<8;newer++)begin
+  clear_wb=1;wen=0;wc=0;dc_lock=0;check_cycle();clear_wb=0;
+  for(integer p=0;p<4;p++)index[p]=33'((r+p)%40);
+  dc_lock='1;check_cycle(); // Head acquisition.
+  wa=6'(r);wb=6'(r);wen=(older&3)!=0;
+  if(!(older&1))wa=6'((r+4)%40);
+  if(!(older&2))wb=6'((r+5)%40);
+  wc=(older&4)!=0 ? (40'b1<<r) : 0;
+  da=random_word();db=random_word();dc=random_word();check_cycle(); // Reserve acquisition+commit.
+  data_stall=1;
+  wa=6'(r);wb=6'(r);wen=(newer&3)!=0;
+  if(!(newer&1))wa=6'((r+4)%40);
+  if(!(newer&2))wb=6'((r+5)%40);
+  wc=(newer&4)!=0 ? (40'b1<<r) : 0;
+  da=random_word();db=random_word();dc=random_word();check_cycle(); // Held consecutive commit.
+  data_stall=0;dc_lock=0;
+  da=random_word();db=random_word();dc=random_word();check_cycle(); // Full pop+current commit.
+  wa=6'((r+1)%40);wb=wa;wc=40'b1<<wa;wen=1;
+  da=random_word();db=random_word();dc=random_word();check_cycle(); // Promoted owner issue+commit.
+  clear_alu=1;data_stall=1;check_cycle(); // Kill with journal data in flight.
+  clear_alu=0;data_stall=0;wen=0;wc=0;
+  for(integer p=0;p<4;p++)index[p]=33'((r+4+p)%40);
+  check_cycle();check_cycle(); // Immediate reuse must ignore killed selectors.
+ end
  // Independent ports, partial matches, changing operands and write collisions.
  for(integer cycle=0;cycle<12000;cycle++) begin
   if(count<2 && !data_stall && !shift_stall)for(integer p=0;p<4;p++) begin index[p]={1'b0,random_word()};index[p][5:0]=6'(random_word()%40);end

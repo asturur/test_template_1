@@ -283,7 +283,9 @@ localparam CONTROL_W = 32+32+1+2+64*8+1+4+$clog2(PHY_REGS)+33+$clog2(ALU_OPS)+33
 +33+1+$clog2(PHY_REGS)+14+32+2;
 logic [CONTROL_W-1:0] operand_control;
 logic operand_valid, operand_pop, operand_push, issue_block;
-logic [127:0] operand_data;
+logic [127:0] operand_data; // Raw bases; previous and current commits select below.
+logic [11:0] operand_pending;
+logic [31:0] operand_commit_a, operand_commit_b, operand_commit_c;
 logic [31:0] operand_rd_data_0, operand_rd_data_1,
              operand_rd_data_2, operand_rd_data_3;
 assign {operand_rd_data_3, operand_rd_data_2,
@@ -514,13 +516,16 @@ zap_operand_read #(.CONTROL_W(CONTROL_W)) u_operand_read (
         .i_wr_data_a(i_rf_wr_data_a), .i_wr_data_b(i_rf_wr_data_b),
         .i_wr_data_c(i_rf_wr_data_c),
         .o_valid(operand_valid), .o_full(o_stall_from_issue),
-        .o_busy(o_operand_busy), .o_control(operand_control), .o_data(operand_data)
+        .o_busy(o_operand_busy), .o_control(operand_control),
+        .o_base_data(operand_data), .o_pending(operand_pending),
+        .o_commit_a(operand_commit_a), .o_commit_b(operand_commit_b),
+        .o_commit_c(operand_commit_c)
 );
 
 // Get values from the feedback network.
 assign  o_alu_source_value_nxt  =
         get_register_value (    operand_alu_source_ff,
-                                2'd0,
+                                operand_pending[0 +: 3],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -544,9 +549,6 @@ assign  o_alu_source_value_nxt  =
                                 i_memory_destination_value_ff,
                                 i_memory_dav_ff,
                                 operand_rd_data_0,
-                                operand_rd_data_1,
-                                operand_rd_data_2,
-                                operand_rd_data_3,
                                 i_cpu_mode,
                                 operand_pc_plus_8_ff,
                                 operand_force32align_ff
@@ -555,7 +557,7 @@ assign  o_alu_source_value_nxt  =
 
 assign  o_shift_source_value_nxt=
         get_register_value (    operand_shift_source_ff,
-                                2'd1,
+                                operand_pending[3 +: 3],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -578,10 +580,7 @@ assign  o_shift_source_value_nxt=
                                 i_memory_destination_index_ff[5:0],
                                 i_memory_destination_value_ff,
                                 i_memory_dav_ff,
-                                operand_rd_data_0,
                                 operand_rd_data_1,
-                                operand_rd_data_2,
-                                operand_rd_data_3,
                                 i_cpu_mode,
                                 operand_pc_plus_8_ff,
                                 1'd0
@@ -589,7 +588,7 @@ assign  o_shift_source_value_nxt=
 
 assign  o_shift_length_value_nxt=
         get_register_value (    operand_shift_length_ff,
-                                2'd2,
+                                operand_pending[6 +: 3],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -612,10 +611,7 @@ assign  o_shift_length_value_nxt=
                                 i_memory_destination_index_ff[5:0],
                                 i_memory_destination_value_ff,
                                 i_memory_dav_ff,
-                                operand_rd_data_0,
-                                operand_rd_data_1,
                                 operand_rd_data_2,
-                                operand_rd_data_3,
                                 i_cpu_mode,
                                 operand_pc_plus_8_ff,
                                 1'd0
@@ -624,7 +620,7 @@ assign  o_shift_length_value_nxt=
 // Value of a register index, never an immediate.
 assign  o_mem_srcdest_value_nxt =
         get_register_value (    {27'd0, operand_mem_srcdest_index_ff},
-                                2'd3,
+                                operand_pending[9 +: 3],
                                 i_shifter_destination_index_ff[5:0],
                                 i_alu_dav_nxt,
                                 i_alu_destination_value_nxt,
@@ -647,9 +643,6 @@ assign  o_mem_srcdest_value_nxt =
                                 i_memory_destination_index_ff[5:0],
                                 i_memory_destination_value_ff,
                                 i_memory_dav_ff,
-                                operand_rd_data_0,
-                                operand_rd_data_1,
-                                operand_rd_data_2,
                                 operand_rd_data_3,
                                 i_cpu_mode,
                                 operand_pc_plus_8_ff,
@@ -1014,8 +1007,8 @@ function automatic [31:0] get_register_value (
         // The register inex to search for. This might be a constant too.
         input [32:0]                    index,
 
-        // Register read port activated for this function.
-        input [1:0]                     rd_port,
+        // Previous edge's C/B/A commit selector for this owned source.
+        input [2:0]                     pending,
 
         // Destination on the output of the shifter stage.
         input [$clog2(PHY_REGS)-1:0]    shifter_destination_index_ff,
@@ -1052,11 +1045,8 @@ function automatic [31:0] get_register_value (
         input [31:0]                    memory_destination_value_ff,
         input                           memory_dav_ff,
 
-        // Data read from register file.
-        input [31:0]                    rd_data_0,
-        input [31:0]                    rd_data_1,
-        input [31:0]                    rd_data_2,
-        input [31:0]                    rd_data_3,
+        // Base is one commit edge behind; journal/current writes follow below.
+        input [31:0]                    rf_data,
 
         // CPU mode and PC.
         input [31:0]                    cpu_mode,
@@ -1066,9 +1056,9 @@ function automatic [31:0] get_register_value (
         input                           force32_align_ff
 );
 
-        logic [31:0] get, rf_data;
-        logic [9:0] match_source, select_source;
-        logic [31:0] selected [0:9];
+        logic [31:0] get;
+        logic [15:0] match_source, select_source;
+        logic [31:0] selected [0:15];
 
         // Resolve priority on narrow controls, independently of the register
         // read tree. The word datapath is a masked OR, not a priority mux chain.
@@ -1083,20 +1073,23 @@ function automatic [31:0] get_register_value (
         match_source[7] = index[5:0] == postalu1_destination_index_ff[5:0] && postalu1_dav_ff;
         match_source[8] = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
         match_source[9] = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff;
+        // Commits are older than every in-flight producer. Keep CURRENT writes
+        // visible on the issue edge (including exception/CP15 and legacy C),
+        // then the registered previous edge, then the held base. One common
+        // priority/reduction avoids serial commit muxes before forwarding.
+        match_source[10] = index[5:0] < 6'd40 && i_rf_wr_addr_c[index[5:0]];
+        match_source[11] = i_rf_wen && index[5:0] == i_rf_wr_addr_b;
+        match_source[12] = i_rf_wen && index[5:0] == i_rf_wr_addr_a;
+        match_source[13] = pending[2];
+        match_source[14] = pending[1];
+        match_source[15] = pending[0];
         select_source[0] = match_source[0];
-        for (int source_no = 1; source_no < 10; source_no++)
+        for (int source_no = 1; source_no < 16; source_no++)
         begin
                 select_source[source_no] = match_source[source_no] &&
-                        !(|(match_source & ((10'b1 << source_no) - 10'b1)));
+                        !(|(match_source & ((16'b1 << source_no) - 16'b1)));
         end
 
-        case (rd_port)
-                2'd0: rf_data = rd_data_0;
-                2'd1: rf_data = rd_data_1;
-                2'd2: rf_data = rd_data_2;
-                2'd3: rf_data = rd_data_3;
-                default: rf_data = 'x;
-        endcase
         selected[0] = index[31:0] & {32{select_source[0]}};
         // RAZ contributes zero but still suppresses every lower-priority source.
         selected[1] = 32'd0;
@@ -1108,10 +1101,17 @@ function automatic [31:0] get_register_value (
         selected[7] = postalu1_destination_value_ff & {32{select_source[7]}};
         selected[8] = postalu_destination_value_ff & {32{select_source[8]}};
         selected[9] = memory_destination_value_ff & {32{select_source[9]}};
+        selected[10] = i_rf_wr_data_c & {32{select_source[10]}};
+        selected[11] = i_rf_wr_data_b & {32{select_source[11]}};
+        selected[12] = i_rf_wr_data_a & {32{select_source[12]}};
+        selected[13] = operand_commit_c & {32{select_source[13]}};
+        selected[14] = operand_commit_b & {32{select_source[14]}};
+        selected[15] = operand_commit_a & {32{select_source[15]}};
         get = (rf_data & {32{!(|match_source)}}) |
               (((selected[0] | selected[1]) | (selected[2] | selected[3])) |
                ((selected[4] | selected[5]) | (selected[6] | selected[7]))) |
-              (selected[8] | selected[9]);
+              (((selected[8] | selected[9]) | (selected[10] | selected[11])) |
+               ((selected[12] | selected[13]) | (selected[14] | selected[15])));
 
         // If it's not a store or load, then align this to 4 bytes. Use
         // owned packet controls.

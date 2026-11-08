@@ -1,0 +1,401 @@
+diff --git a/src/rtl/zap_issue_main.sv b/src/rtl/zap_issue_main.sv
+index dc9bbec..06ab87d 100644
+--- a/src/rtl/zap_issue_main.sv
++++ b/src/rtl/zap_issue_main.sv
+@@ -283,7 +283,9 @@ localparam CONTROL_W = 32+32+1+2+64*8+1+4+$clog2(PHY_REGS)+33+$clog2(ALU_OPS)+33
+ +33+1+$clog2(PHY_REGS)+14+32+2;
+ logic [CONTROL_W-1:0] operand_control;
+ logic operand_valid, operand_pop, operand_push, issue_block;
+-logic [127:0] operand_data;
++logic [127:0] operand_data; // Raw bases; previous and current commits select below.
++logic [11:0] operand_pending;
++logic [31:0] operand_commit_a, operand_commit_b, operand_commit_c;
+ logic [31:0] operand_rd_data_0, operand_rd_data_1,
+              operand_rd_data_2, operand_rd_data_3;
+ assign {operand_rd_data_3, operand_rd_data_2,
+@@ -514,13 +516,16 @@ zap_operand_read #(.CONTROL_W(CONTROL_W)) u_operand_read (
+         .i_wr_data_a(i_rf_wr_data_a), .i_wr_data_b(i_rf_wr_data_b),
+         .i_wr_data_c(i_rf_wr_data_c),
+         .o_valid(operand_valid), .o_full(o_stall_from_issue),
+-        .o_busy(o_operand_busy), .o_control(operand_control), .o_data(operand_data)
++        .o_busy(o_operand_busy), .o_control(operand_control),
++        .o_base_data(operand_data), .o_pending(operand_pending),
++        .o_commit_a(operand_commit_a), .o_commit_b(operand_commit_b),
++        .o_commit_c(operand_commit_c)
+ );
+ 
+ // Get values from the feedback network.
+ assign  o_alu_source_value_nxt  =
+         get_register_value (    operand_alu_source_ff,
+-                                2'd0,
++                                operand_pending[0 +: 3],
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+                                 i_alu_destination_value_nxt,
+@@ -544,9 +549,6 @@ assign  o_alu_source_value_nxt  =
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+                                 operand_rd_data_0,
+-                                operand_rd_data_1,
+-                                operand_rd_data_2,
+-                                operand_rd_data_3,
+                                 i_cpu_mode,
+                                 operand_pc_plus_8_ff,
+                                 operand_force32align_ff
+@@ -555,7 +557,7 @@ assign  o_alu_source_value_nxt  =
+ 
+ assign  o_shift_source_value_nxt=
+         get_register_value (    operand_shift_source_ff,
+-                                2'd1,
++                                operand_pending[3 +: 3],
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+                                 i_alu_destination_value_nxt,
+@@ -578,10 +580,7 @@ assign  o_shift_source_value_nxt=
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                operand_rd_data_0,
+                                 operand_rd_data_1,
+-                                operand_rd_data_2,
+-                                operand_rd_data_3,
+                                 i_cpu_mode,
+                                 operand_pc_plus_8_ff,
+                                 1'd0
+@@ -589,7 +588,7 @@ assign  o_shift_source_value_nxt=
+ 
+ assign  o_shift_length_value_nxt=
+         get_register_value (    operand_shift_length_ff,
+-                                2'd2,
++                                operand_pending[6 +: 3],
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+                                 i_alu_destination_value_nxt,
+@@ -612,10 +611,7 @@ assign  o_shift_length_value_nxt=
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                operand_rd_data_0,
+-                                operand_rd_data_1,
+                                 operand_rd_data_2,
+-                                operand_rd_data_3,
+                                 i_cpu_mode,
+                                 operand_pc_plus_8_ff,
+                                 1'd0
+@@ -624,7 +620,7 @@ assign  o_shift_length_value_nxt=
+ // Value of a register index, never an immediate.
+ assign  o_mem_srcdest_value_nxt =
+         get_register_value (    {27'd0, operand_mem_srcdest_index_ff},
+-                                2'd3,
++                                operand_pending[9 +: 3],
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+                                 i_alu_destination_value_nxt,
+@@ -647,9 +643,6 @@ assign  o_mem_srcdest_value_nxt =
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                operand_rd_data_0,
+-                                operand_rd_data_1,
+-                                operand_rd_data_2,
+                                 operand_rd_data_3,
+                                 i_cpu_mode,
+                                 operand_pc_plus_8_ff,
+@@ -1014,8 +1007,8 @@ function automatic [31:0] get_register_value (
+         // The register inex to search for. This might be a constant too.
+         input [32:0]                    index,
+ 
+-        // Register read port activated for this function.
+-        input [1:0]                     rd_port,
++        // Previous edge's C/B/A commit selector for this owned source.
++        input [2:0]                     pending,
+ 
+         // Destination on the output of the shifter stage.
+         input [$clog2(PHY_REGS)-1:0]    shifter_destination_index_ff,
+@@ -1052,11 +1045,8 @@ function automatic [31:0] get_register_value (
+         input [31:0]                    memory_destination_value_ff,
+         input                           memory_dav_ff,
+ 
+-        // Data read from register file.
+-        input [31:0]                    rd_data_0,
+-        input [31:0]                    rd_data_1,
+-        input [31:0]                    rd_data_2,
+-        input [31:0]                    rd_data_3,
++        // Base is one commit edge behind; journal/current writes follow below.
++        input [31:0]                    rf_data,
+ 
+         // CPU mode and PC.
+         input [31:0]                    cpu_mode,
+@@ -1066,9 +1056,9 @@ function automatic [31:0] get_register_value (
+         input                           force32_align_ff
+ );
+ 
+-        logic [31:0] get, rf_data;
+-        logic [9:0] match_source, select_source;
+-        logic [31:0] selected [0:9];
++        logic [31:0] get;
++        logic [15:0] match_source, select_source;
++        logic [31:0] selected [0:15];
+ 
+         // Resolve priority on narrow controls, independently of the register
+         // read tree. The word datapath is a masked OR, not a priority mux chain.
+@@ -1083,20 +1073,23 @@ function automatic [31:0] get_register_value (
+         match_source[7] = index[5:0] == postalu1_destination_index_ff[5:0] && postalu1_dav_ff;
+         match_source[8] = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
+         match_source[9] = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff;
++        // Commits are older than every in-flight producer. Keep CURRENT writes
++        // visible on the issue edge (including exception/CP15 and legacy C),
++        // then the registered previous edge, then the held base. One common
++        // priority/reduction avoids serial commit muxes before forwarding.
++        match_source[10] = index[5:0] < 6'd40 && i_rf_wr_addr_c[index[5:0]];
++        match_source[11] = i_rf_wen && index[5:0] == i_rf_wr_addr_b;
++        match_source[12] = i_rf_wen && index[5:0] == i_rf_wr_addr_a;
++        match_source[13] = pending[2];
++        match_source[14] = pending[1];
++        match_source[15] = pending[0];
+         select_source[0] = match_source[0];
+-        for (int source_no = 1; source_no < 10; source_no++)
++        for (int source_no = 1; source_no < 16; source_no++)
+         begin
+                 select_source[source_no] = match_source[source_no] &&
+-                        !(|(match_source & ((10'b1 << source_no) - 10'b1)));
++                        !(|(match_source & ((16'b1 << source_no) - 16'b1)));
+         end
+ 
+-        case (rd_port)
+-                2'd0: rf_data = rd_data_0;
+-                2'd1: rf_data = rd_data_1;
+-                2'd2: rf_data = rd_data_2;
+-                2'd3: rf_data = rd_data_3;
+-                default: rf_data = 'x;
+-        endcase
+         selected[0] = index[31:0] & {32{select_source[0]}};
+         // RAZ contributes zero but still suppresses every lower-priority source.
+         selected[1] = 32'd0;
+@@ -1108,10 +1101,17 @@ function automatic [31:0] get_register_value (
+         selected[7] = postalu1_destination_value_ff & {32{select_source[7]}};
+         selected[8] = postalu_destination_value_ff & {32{select_source[8]}};
+         selected[9] = memory_destination_value_ff & {32{select_source[9]}};
++        selected[10] = i_rf_wr_data_c & {32{select_source[10]}};
++        selected[11] = i_rf_wr_data_b & {32{select_source[11]}};
++        selected[12] = i_rf_wr_data_a & {32{select_source[12]}};
++        selected[13] = operand_commit_c & {32{select_source[13]}};
++        selected[14] = operand_commit_b & {32{select_source[14]}};
++        selected[15] = operand_commit_a & {32{select_source[15]}};
+         get = (rf_data & {32{!(|match_source)}}) |
+               (((selected[0] | selected[1]) | (selected[2] | selected[3])) |
+                ((selected[4] | selected[5]) | (selected[6] | selected[7]))) |
+-              (selected[8] | selected[9]);
++              (((selected[8] | selected[9]) | (selected[10] | selected[11])) |
++               ((selected[12] | selected[13]) | (selected[14] | selected[15])));
+ 
+         // If it's not a store or load, then align this to 4 bytes. Use
+         // owned packet controls.
+diff --git a/src/rtl/zap_operand_read.sv b/src/rtl/zap_operand_read.sv
+index 7972d2d..9abb0fd 100644
+--- a/src/rtl/zap_operand_read.sv
++++ b/src/rtl/zap_operand_read.sv
+@@ -23,32 +23,45 @@ module zap_operand_read #(
+         output                      o_full,
+         output                      o_busy,
+         output [CONTROL_W-1:0]      o_control,
+-        output [127:0]              o_data
++        output [127:0]              o_base_data,
++        output [11:0]               o_pending,
++        output [31:0]               o_commit_a,
++        output [31:0]               o_commit_b,
++        output [31:0]               o_commit_c
+ );
+ reg head_valid, tail_valid;
+ reg [CONTROL_W-1:0] head_control, tail_control;
+ reg [23:0] head_index, tail_index;
+ reg [127:0] head_data, tail_data;
+-wire [127:0] capture_data, refreshed_head, refreshed_tail;
++// Each slot base includes every commit except the immediately preceding edge.
++// That last edge is represented by a shared data journal and per-owner one-hot
++// selectors (C > B > A). Issue sees both pieces, plus current writes, in its one
++// late-forwarding selection. No live write data feeds the queue's base registers.
++reg [31:0] commit_a, commit_b, commit_c;
++reg [11:0] head_pending, tail_pending;
++wire [11:0] capture_match, head_match, tail_match;
++wire capture_head = i_push && (!head_valid || i_pop);
++wire promote_head = i_pop && tail_valid;
++wire hold_head = !capture_head && !promote_head;
+ 
+ assign o_valid = head_valid;
+ assign o_full = tail_valid;
+ assign o_busy = head_valid;
+ assign o_control = head_control;
+-// Same-edge committed writes are visible to issue before the sampling edge.
+-assign o_data = refreshed_head;
++assign o_base_data = head_data;
++assign o_pending = head_pending;
++assign o_commit_a = commit_a;
++assign o_commit_b = commit_b;
++assign o_commit_c = commit_c;
+ 
+-function [31:0] committed_value;
++function [2:0] commit_match;
+         input [5:0] index;
+-        input [31:0] base;
++        reg a, b, c;
+         begin
+-                committed_value = base;
+-                if (i_wen && index == i_wr_addr_a)
+-                        committed_value = i_wr_data_a;
+-                if (i_wen && index == i_wr_addr_b)
+-                        committed_value = i_wr_data_b;
+-                if (index < 6'd40 && i_wr_addr_c[index])
+-                        committed_value = i_wr_data_c;
++                a = i_wen && index == i_wr_addr_a;
++                b = i_wen && index == i_wr_addr_b;
++                c = index < 6'd40 && i_wr_addr_c[index];
++                commit_match = {c, b && !c, a && !b && !c};
+         end
+ endfunction
+ 
+@@ -56,24 +69,55 @@ genvar port_no;
+ generate
+         for (port_no = 0; port_no < 4; port_no = port_no + 1)
+         begin : g_refresh
+-                assign capture_data[32*port_no +: 32] = committed_value(
+-                        i_index[6*port_no +: 6], i_data[32*port_no +: 32]);
+-                assign refreshed_head[32*port_no +: 32] = committed_value(
+-                        head_index[6*port_no +: 6], head_data[32*port_no +: 32]);
+-                assign refreshed_tail[32*port_no +: 32] = committed_value(
+-                        tail_index[6*port_no +: 6], tail_data[32*port_no +: 32]);
++                wire [2:0] hp = head_pending[3*port_no +: 3];
++                wire [2:0] tp = tail_pending[3*port_no +: 3];
++                // Resolve ownership and pending-write priority on narrow masks
++                // before selecting words. Promotion must fold the TAIL journal.
++                wire [2:0] fold_head = ({3{hold_head}} & hp) |
++                                               ({3{promote_head}} & tp);
++                wire [2:0] fold_tail = {3{!i_push}} & tp;
++                assign capture_match[3*port_no +: 3] = commit_match(i_index[6*port_no +: 6]);
++                assign head_match[3*port_no +: 3] = commit_match(head_index[6*port_no +: 6]);
++                assign tail_match[3*port_no +: 3] = commit_match(tail_index[6*port_no +: 6]);
++                always @(posedge i_clk)
++                begin
++                        head_data[32*port_no +: 32] <=
++                                (i_data[32*port_no +: 32] & {32{capture_head}}) |
++                                (head_data[32*port_no +: 32] & {32{hold_head && !(|hp)}}) |
++                                (tail_data[32*port_no +: 32] & {32{promote_head && !(|tp)}}) |
++                                (commit_a & {32{fold_head[0]}}) |
++                                (commit_b & {32{fold_head[1]}}) |
++                                (commit_c & {32{fold_head[2]}});
++                        // Speculative capture into an INVALID reserve is safe:
++                        // its validity still follows ordered queue ownership.
++                        // A live reserve implies full, which forbids i_push.
++                        // This removes pop/hazard from the reserve word enables.
++                        tail_data[32*port_no +: 32] <=
++                                (i_data[32*port_no +: 32] & {32{i_push}}) |
++                                (tail_data[32*port_no +: 32] & {32{!i_push && !(|tp)}}) |
++                                (commit_a & {32{fold_tail[0]}}) |
++                                (commit_b & {32{fold_tail[1]}}) |
++                                (commit_c & {32{fold_tail[2]}});
++                end
+         end
+ endgenerate
+ 
+ always @(posedge i_clk)
+ begin
+-        // Refresh on every edge, including global data and multiply holds.
+-        head_data <= refreshed_head;
+-        tail_data <= refreshed_tail;
++        // Unconditional journal advance, including all data/shifter holds.
++        // The narrow selector is zero when its corresponding port did not write.
++        commit_a <= i_wr_data_a;
++        commit_b <= i_wr_data_b;
++        commit_c <= i_wr_data_c;
++        head_pending <= capture_head ? capture_match :
++                        promote_head ? tail_match : head_match;
++        tail_pending <= i_push ? capture_match : tail_match;
+         if (i_reset || i_clear)
+         begin
+                 head_valid <= 1'b0;
+                 tail_valid <= 1'b0;
++                head_pending <= 12'd0;
++                tail_pending <= 12'd0;
+         end
+         else
+         begin
+@@ -85,26 +129,22 @@ begin
+                         begin
+                                 head_control <= tail_control;
+                                 head_index <= tail_index;
+-                                head_data <= refreshed_tail;
+                         end
+                 end
+                 if (i_push)
+                 begin
+                         // No admission while full, even if popping this edge.
++                        // Reserve contents may be speculative while invalid.
++                        tail_control <= i_control;
++                        tail_index <= i_index;
+                         if (!head_valid || i_pop)
+                         begin
+                                 head_valid <= 1'b1;
+                                 head_control <= i_control;
+                                 head_index <= i_index;
+-                                head_data <= capture_data;
+                         end
+                         else
+-                        begin
+                                 tail_valid <= 1'b1;
+-                                tail_control <= i_control;
+-                                tail_index <= i_index;
+-                                tail_data <= capture_data;
+-                        end
+                 end
+         end
+ end
+diff --git a/src/rtl/zap_register_file.sv b/src/rtl/zap_register_file.sv
+index 3456726..245f0e9 100644
+--- a/src/rtl/zap_register_file.sv
++++ b/src/rtl/zap_register_file.sv
+@@ -85,38 +85,13 @@ begin
+         end
+ end
+ 
+-// Decode each asynchronous read locally, then reduce masked words through a
+-// balanced tree. Keep the read combinational: write timing, port priorities and
+-// the decode/issue pipeline boundary are unchanged.
+-wire [3:0][5:0] rd_addr = {i_rd_addr_d, i_rd_addr_c,
+-                           i_rd_addr_b, i_rd_addr_a};
+-wire [3:0][31:0] rd_data;
+-genvar port_no, reg_no, node_no;
+-generate
+-        for (port_no = 0; port_no < 4; port_no = port_no + 1)
+-        begin : g_read_port
+-                wire [31:0] tree [1:127];
+-                for (reg_no = 0; reg_no < 64; reg_no = reg_no + 1)
+-                begin : g_word
+-                        if (reg_no < 40)
+-                        begin : g_present
+-                                assign tree[64 + reg_no] = mem[reg_no] &
+-                                        {32{rd_addr[port_no] == reg_no}};
+-                        end
+-                        else
+-                        begin : g_padding
+-                                assign tree[64 + reg_no] = 32'd0;
+-                        end
+-                end
+-                for (node_no = 1; node_no < 64; node_no = node_no + 1)
+-                begin : g_reduce
+-                        assign tree[node_no] = tree[2*node_no] | tree[2*node_no+1];
+-                end
+-                // Unimplemented physical addresses retain the original X value.
+-                assign rd_data[port_no] = rd_addr[port_no] < 6'd40 ? tree[1] : 'x;
+-        end
+-endgenerate
+-assign {o_rd_data_d, o_rd_data_c, o_rd_data_b, o_rd_data_a} = rd_data;
++// Compact asynchronous FF reads. The owned R packet separates this mux from
++// issue forwarding; leave device mapping to synthesis instead of imposing the
++// address-decode/masked-reduction tree used before the R boundary.
++assign o_rd_data_a = mem[i_rd_addr_a];
++assign o_rd_data_b = mem[i_rd_addr_b];
++assign o_rd_data_c = mem[i_rd_addr_c];
++assign o_rd_data_d = mem[i_rd_addr_d];
+ 
+ `ifndef SYNTHESIS
+ 

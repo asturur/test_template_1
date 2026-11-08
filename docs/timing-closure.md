@@ -1,3 +1,114 @@
+## 2026-11-08: operand slice1 fit: WNS improves, acquisition/refresh still fail104MHz
+
+Run42482648381 /709f812006a5d432656d918faa390926f239cf57 compiles/fits;
+only Require passing timing fails. RTL=c4cb73d, measurement=648b6be,
+documentation=709f812. Core reported Fmax83.89MHz versus83.52 (+.37MHz),
+setup-1.634ns versus-2.358 (+.724ns). TNS-2680.821ns versus-2151 (24.63% worse).
+HDMI setup+.494ns. All global hold/recovery/removal/pulse checks pass, minima
++.231,+1.545,+.778,+.961ns. Overall Fmax is again consistent with a half-cycle
+SDRAM transfer: relationship4.808ns/slack-1.153 (previous-.891), while CPU's worst
+full-cycle path is-1.634. Do not interpret the small Fmax movement as absence of
+operand-stage improvement or as proof of104MHz closure.
+
+ALMs33,156/41,910 (79%,+150), registers43,550 (+677), M10Ks464/553 (84%,-1),
+logical memory bits2,482,411 (-128). Resource increase is modest and within the
+proposed36000ALM/480M10K stop budgets; it does not yet justify the measured CPI
+cost. Current tiny reported clock gain does not establish a real-time performance
+win over the previous design. Fixed-mix cycles+11.917% and warmed-body+0.2–1%
+remain explicit tradeoffs until the whole target clock closes.
+Artifacts/reproducible audit:
+`scratch/timing-closure/slice1-42482648381/analysis/`.
+
+All12 targeted reports return real paths/status=ok,10 paths each. Values below
+are worst slack in the named source/destination sample, NOT whole-stage sign-off
+or family TNS. In particular R→I excludes non-R late backend forwarding sources.
+
+| Targeted group | Worst slack ns |
+| --- | ---: |
+| Decode→R data | -1.634 |
+| Decode→R control/index | +1.744 |
+| RF storage→R data | -.723 |
+| Backend commit sources→R data | -1.213 |
+| R→ALU operand | -.708 |
+| R→shift-source operand | -.401 |
+| R→shift-length operand | -.284 |
+| R→memory operand | -.476 |
+| R queue feedback | -.674 |
+| Issue→shifter | -.251 |
+| Shifter/registered-ALU recurrence→shifter | -.459 |
+| R occupancy stop→frontend | +1.702 |
+
+The architectural partition materially improves all four whole issue-output
+families too (including non-R sources): ALU-1.974→-1.146, shift length-1.773→-1.217,
+shift source-1.881→-1.389, memory operand-2.358→-1.343. The old live issue-stall/skid
+selection before the RF is gone. Remaining forwarding and backend paths still
+fail; the positive capacity-stop/control samples do not imply all CPU control
+paths are closed.
+
+The new worst path is decode.o_shift_source_ff[1] ->RF port-B equality decode
+(two cells) ->masked RF read reduction(four cells) ->capture_data committed-write
+bypass ->head capture/refresh/promotion select ->R.head_data[60]. Eight levels,
+10.436ns data. New R data endpoints148 (head76,tail72), worst-1.634/-1.509.
+Backend refresh starts at M.mem_load_ff2 ->load formatting ->writeback.wdata2 ->
+committed-base override ->head_data(-1.213). RF storage itself→R is-.723.
+Queue feedback is held-index→load-lock checks→pop/enable→tail_data (fanout128),
+not a reintroduced combinational upstream-ready chain. This is a specific read/
+commit/queue data-path problem; adding another frontend stage blindly is not
+supported by the reports.
+
+Worst1000 endpoint groups sum1000; cutoff-.739ns:
+
+| Area | Paths | Worst slack ns |
+| --- | ---: | ---: |
+| Other CPU frontend/execute/register file |449|-1.528|
+| Cache metadata |154|-1.428|
+| Operand acquisition/held bases |148|-1.634|
+| Write buffer |76|-1.088|
+| Peripheral response |35|-1.457|
+| UEM CBUS |28|-1.229|
+| MDI hypothesis |24|-1.364|
+| Sparse CAM |21|-1.142|
+| LCD framebuffer readout |16|-1.132|
+| Diagnostics |11|-.892|
+| Test SIM |10|-1.128|
+| Peripheral staging RAM |10|-.976|
+| NOS I/O |5|-1.556|
+| CPU bus response/fault |3|-1.107|
+| NOR |3|-.993|
+| ICU |3|-.739|
+| SDRAM |2|-1.153|
+| Timers |1|-.974|
+| Other cache controller/refill |1|-.943|
+
+CPU597/cache231=828/1000. BTB valid flags alone account for297 CPU endpoints,
+previously0 in the top1000: predecode.skid[0] ->uop/control selection ->o_clear_btb
+(fanout513) ->dav[]. This newly prominent family and added R endpoints help
+explain why improved worst slack does not imply better aggregate TNS; do not
+attribute all529.821ns TNS delta to these samples without complete endpoint data.
+Cache metadata includes93 reset-driven dirty flags; its worst is D-TLB busy ->
+bank_mva selection(fanout463) ->flag snapshot. These are not new cache RTL changes.
+Ranked subsets and placement change; absence is not timing closure.
+
+Decision/recommendation: retain the owned R architecture as a measured candidate,
+but finish slice1 before starting cache/translation slice2. First do the compact
+original indexed FF RF-read A/B experiment permitted by the architecture plan,
+with identical R/forward/hold/write-refresh contracts and zero additional latency.
+The current D→R route spends six cells in decode/read reduction before commit and
+queue selects; establish which RF mapping best meets both timing and area, rather
+than retaining the masked tree on principle. Use the oracle/CPU/boot checks and
+an isolated fit. Compact RF alone is not guaranteed to fix refresh or late forward
+paths: next inspect same-edge write capture/refresh and redundant priority/data
+mux reconvergence with a precise ownership/proof contract. If necessary evaluate
+registered read-select context at D, quantifying any new decode-stage debt.
+Keep immediate write visibility and long-stall freshness; no extra stage, stale
+snapshot, delayed stall or timing exception to make the report green.
+
+Before claiming slice1 complete require its data/refresh/forward/queue paths to
+meet104MHz within budget, then review CPU frontend BTB clear and later cache lookup
+ownership as separately measured work. SDRAM half-cycle physical closure remains
+mandatory for whole-domain Fmax. This review made no RTL edits, new functional
+runs, commit, push or new build dispatch; measurement exporter works in real STA.
+
 ## 2026-11-08: isolated operand-stage fit instrumentation
 
 Implementation c4cb73d is the first architecture slice: owned RF acquisition and

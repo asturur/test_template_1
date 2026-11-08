@@ -326,3 +326,19 @@ an explicit review trigger, not an accepted universal CPI budget. Exact contract
 cycle tables, reference selection and measured penalties are in
 [cpu-operand-stage-contract.md](cpu-operand-stage-contract.md). Physical104MHz
 closure/resource cost is unmeasured until the separate whole-project fit.
+
+## Operand commit journal and compact FF reads
+
+Patch0046 preserves patch0045's two-entry ordered acquisition queue and cycle
+contract. Indexed RF reads replace the forced masked tree. A shared one-edge
+commit-data journal plus per-owner C/B/A selectors keeps both packet bases fresh
+without live formatted write data entering queue storage. Issue sees current
+writes, previous journal and base in the same priority reduction as all newer
+in-flight producers. An invalid reserve may capture accepted packet payload while
+its unchanged validity rule prevents replay/promotion; this removes pop/hazard
+from reserve word enables. Kill clears both ownership and pending selectors.
+
+See [the operand contract](cpu-operand-stage-contract.md) for the inductive
+freshness proof and targeted tests. This is a functional retiming candidate for
+physical measurement, not a claim of104MHz closure. No additional pipeline cycle,
+clock constraint or other architecture slice is introduced.

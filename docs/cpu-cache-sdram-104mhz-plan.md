@@ -2,7 +2,9 @@
 
 Review and implementation proposal, 2026-11-08. The review below describes the
 pinned baseline. Slice1 implementation/evidence is recorded separately in
-[cpu-operand-stage-contract.md](cpu-operand-stage-contract.md); no new fit yet.
+[cpu-operand-stage-contract.md](cpu-operand-stage-contract.md). The first owned-R
+fit is reviewed in status.md; its read/refresh/forward follow-up is patch0046,
+awaiting a new routed measurement.
 Reference: `ef9b7621fa2ca90af250ce8d988260ebbc5e59d6`, pinned ZAP plus patches 0001–0044,
 Quartus 17.0.2, Cyclone V `5CSEBA6U23I7`. Line references below refer to this revision.
 The existing uncommitted pass16 analysis in `status.md` and `timing-closure.md` is retained.
