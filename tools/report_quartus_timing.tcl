@@ -62,6 +62,10 @@ proc report_operand_stages {output} {
         [list commit_sources_to_r {*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*} $rdata] \
         [list commit_to_journal {*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*} {*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c*}] \
         [list journal_to_queue {*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c* *u_operand_read*head_pending* *u_operand_read*tail_pending*} $rdata] \
+        [list backend_to_completion {*u_data_cache* *u_zap_postalu2_main*} {*u_data_completion*}] \
+        [list completion_to_r {*u_data_completion*o_valid*} {*u_operand_read*}] \
+        [list completion_format_to_m {*u_data_completion* *u_zap_postalu2_main*} {*u_zap_memory_main*o_mem_rd_data*}] \
+        [list formatted_m_to_issue {*u_zap_memory_main*o_mem_rd_data*} {*u_zap_issue_main*o_*_value_ff*}] \
         [list memory_to_issue {*u_zap_memory_main*} {*u_zap_issue_main*o_*_value_ff*}] \
         [list execute_to_issue {*u_zap_shifter_main* *u_zap_alu_main* *u_zap_postalu*} {*u_zap_issue_main*o_*_value_ff*}] \
         [list cp15_select_to_r {*u_zap_predecode* *u_zap_cp15*} $rdata] \
