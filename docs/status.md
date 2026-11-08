@@ -1,3 +1,176 @@
+## 2026-11-08: owned operand acquisition slice1 validated; fit pending
+
+Parent reviewed implementation c4cb73d and the validated-source hashes. Proceed
+with one isolated fit; no cache/translation/SDRAM slice starts before its result.
+The timing export additionally records12 targeted stage families (worst10 each)
+under operand-stages/, including missing/error query status; global timing checks
+are unchanged. Host exporter mocks pass, but real STA coverage remains unmeasured.
+
+
+Patch0045 implements the first architecture slice only. A two-entry owned R packet
+separates D's direct RF reads from late issue forwarding and replaces the old skid.
+Capacity-only upstream stop does not depend on current hazard/forwarding; both
+slots refresh committed bases every hold/capture/issue edge with actual RF C>B>A
+write priority. CP15 drain includes R occupancy, redirects cancel younger packets,
+and issue supplies its own bubbles. FF RF storage/banks and the ALU-to-shifter late
+bypass remain. No cache, MMU/TLB, peripherals, firmware/storage, clock or SDC change.
+Exact contract and full absolute cycle tables: [cpu-operand-stage-contract.md](cpu-operand-stage-contract.md).
+
+Validation:161 PASS+1 expected legacy direct-map XFAIL, including36 new IRQ/FIQ
+SWP arrival cases across D/R/I/S/A/P0/P1/P2/write-half at0/3 waits. The independent
+operand/queue oracle passes27451 clocks, including5088 full-pop events, unique
+packet identity, live CPSR, long stalls, same-edge writes, all40indices/4ports,
+all producer priority masks, C/B/A collisions, clears and NV-tagged exceptions.
+Frozen baseline oracle passes17160. CP15 stolen-port and drain assertions pass.
+The mixed diagnostic matches21118 ordered effective RF/retirement PC/CPSR effects
+against the baseline at3 waits. Actual CPU phone integration, top structural lint,
+ONLY_CORE/legacy elaboration,173sourcefiles/9QIPs and all45patch reproduction pass.
+Separate legacy direct-map CPU smoke passes at0/3waits (135782/234446cycles).
+Preexisting board bus_access lint warning remains; no new operand loop is reported.
+
+Warm dependent ADD remains1clock at0/3/7/15/31 waits. Warm load-use min18 unchanged;
+branch-to-target min13→14. Mixed cached-body clocks1387→1397,1643→1651,1993→2001,
+2698→2725,4169→4177 (+0.2–1%). The uncached4096-iteration setup materially regresses:
+0wait setup209230→241990 is explained by4095 branch→store gaps27→35;3wait setup
+303604→332246 is dominated by store→SUBS summed gaps110592→139251. Fetch-response
+observations increase4088 at3 waits; final observer distinguishes actual F accepts.
+Fixed four-program×two-wait mix1545673→1729872cycles (+11.917%); memory subset+11.905%.
+This exceeds proposed review triggers. Parent accepts a fit candidate with this
+explicit uncached-workload tradeoff, NOT final performance acceptance or a real-time
+speedup claim. No unrelated optimization was made to hide the regression.
+
+Fresh real-SDRAM5M passes PC00006154/289152transfers,12known fetch faults/0datafaults.
+All121ordered board writes and12fault records match the saved baseline.848vs881
+board events differ only in executable UPP RAM reads0c004750–0c0047cc; no changed
+side-effect MMIO reads. Same final architectural board write at189507vs189735
+establishes the bounded semantic checkpoint despite the fixed-cycle PC phase shift.
+No LCD or DDR writes: still early boot, not Symbian/logo proof. No frozen executable
+or historical checkpoint was modified or restored into the changed model.
+Evidence: `scratch/timing-closure/slice1-operand/` (full-cpu.log, operand/reference
+logs, effects.diff, phone-cpu.log, boot-comparison.json, board.tsv and read diffs).
+
+Routed timing/resources remain unmeasured; baseline still83.52MHz/setup−2.358ns,
+33006ALMs/465M10Ks. Next: parent review then one isolated slice1 fit, measuring
+D→R RF/CP15 selection+commit bypass, W→R refresh, R→I forwarding, queue control,
+A→S recurrence and frontend stop. Do not start slice2 before that attributable
+result. No push or build dispatch was performed by the implementation agent.
+
+## 2026-11-08: whole CPU/cache/SDRAM architecture review and 104 MHz plan
+
+Plan only: [cpu-cache-sdram-104mhz-plan.md](cpu-cache-sdram-104mhz-plan.md)
+reviews the actual ef9b762 CPU pipeline, all four RF reads/forwarding and stalls,
+MMU/TLB/cache/maintenance/order, UPP captured requests, NOR-backed DDR versus
+physical SDRAM, DMA/SWP reservations and reset/drain boundaries. It supersedes
+the narrow "more operand mux edits" next-step recommendation with an ordered
+architectural proposal; it does not change the measured pass16 result below.
+
+Recommended first slice: a registered RF-read packet before issue, replacing
+old skid ownership, with every held operand base refreshed from effective RF
+writes (including same-edge collision priority) and late issue/shifter forwarding.
+Retain FF register storage and the adjacent-ADD ALU bypass; budget one extra
+frontend edge and measure branch/load-use penalties explicitly. Compare the old
+compact indexed read with the balanced tree once read and forwarding are separate;
+do not assume pass16's area increase must be retained. Then register cache lookup
+owner/address before fanout, stage write-buffer allocation with capacity reservation,
+and replace translation/recovery glue with request-owned responses in separate fits.
+
+The plan quantifies full-cycle and SDRAM half-cycle budgets from full-path reports,
+retains the proven DDIO/falling+rising capture design, and requires physical closure
+of the still-negative zero-logic DQ transfer plus real external I/O constraints.
+It sets proposed resource/CPI stop limits, differential and integration gates,
+and identifies the retained warmed no-NOP table-walk ordering reproducer as an open
+question. Nokia assumptions, validated simulation and FPGA/board proof stay separate.
+
+Only the plan, README index and this continuity entry changed. No RTL/test/build/
+clock/SDC/firmware/storage edits, new simulation, commit, push or build dispatch.
+Existing pass16 analysis and all frozen checkpoints are preserved. Implementation
+has not started; review the plan before choosing its first slice.
+
+## 2026-11-08: pass16 CPU fit83.52MHz; TNS improves55.64%, memory operand becomes worst
+
+Run42471100156 /ef9b7621fa2ca90af250ce8d988260ebbc5e59d6 compiles/fits
+successfully; only Require passing timing fails. Quartus inline-genvar fix works.
+Core reported Fmax83.52MHz versus79.42 (+4.10MHz/+5.16%); worst setup-2.358ns
+versus-2.111 (-.247ns). TNS-2151.000ns versus-4848.875 (55.64% less negative).
+HDMI setup+.182ns; hold/recovery/removal/pulse global minima+.249,+1.544,+1.000,
++.961ns, all pass. ALMs33,006/41,910 (79%,+1515), registers42,873 (+54),
+M10Ks465/553 (84%,unchanged), logical memory bits2,482,539 unchanged.
+Artifacts/reproducible audit:
+`scratch/timing-closure/pass16-42471100156/analysis/`.
+
+Important explanation of differing Fmax/slack directions: previous Fmax79.42
+was consistent with the half-cycle SDRAM dout path (setup relationship4.808ns,
+slack-1.489ns, despite less-negative absolute slack than the CPU full-cycle path).
+That half-cycle SDRAM path now has slack-.891ns. The new worst CPU path has
+full-cycle relationship9.615ns and slack-2.358ns, consistent with the reported
+83.52MHz limit. Full-path reports verify both relationships. Do not compare
+absolute slack across half/full-cycle paths as though the clock scaling were
+identical, or treat reported Fmax as104MHz sign-off. Earlier summaries correctly
+quoted separate metrics but did not identify this limiting half-cycle family.
+
+Worst1000 endpoint groups, sum1000; current cutoff-.697ns:
+
+| Area | Paths | Worst slack ns |
+| --- | ---: | ---: |
+| ARM CPU decode/issue/register file |292|-2.358|
+| Cache write-buffer enqueue/storage |208|-1.426|
+| Cache metadata/tag flags |160|-2.143|
+| LCD framebuffer readout |94|-1.335|
+| Sparse CAM |94|-1.299|
+| Other cache controller/refill |73|-1.728|
+| DSP mailbox hypothesis/MDI |47|-1.360|
+| UPP timers |12|-.703|
+| Diagnostic observation |9|-1.121|
+| Test SIM/card model |4|-.995|
+| SDRAM transport |3|-.891|
+| NOS I/O model |3|-1.059|
+| Other platform/control |1|-.699|
+
+CPU+cache account for733/1000 endpoints. The162 old direct active_maint sources
+are now0; shared named ACK/unmodeled routes27→0 in this subset. CPU bus-response
+and CBUS destinations29/137→0; timers253→12. Those peripheral RTL blocks were
+not reworked in this pass, so credit placement/routing/subset changes rather
+than inventing local architectural fixes. Their disappearance does not prove
+all meet104MHz. Global stall distribution itself still exists.
+
+Operand port families show mixed outcomes:
+
+| Issue destination | Previous worst ns | Current worst ns |
+| --- | ---: | ---: |
+| ALU source | -2.111 | -1.974 |
+| Shift length | -2.032 | -1.773 |
+| Shift source | -1.685 | -1.881 |
+| Memory source/destination | -1.481 | -2.358 |
+
+Worst path now decode.o_mem_srcdest_index_ff[1] ->issue skid/read-index selection
+(o_rd_index_3) ->register-file port-D address decode ->masked read reduction ->
+issue memory-operand forwarding/result FF. Seven levels,11.109ns data delay.
+Another near-worst route starts at o_stall_from_issue (-2.292ns) and traverses
+that same live read-index/read/forward path. Balanced operand rewrite helps ALU
+and shift length but has not solved the full operand boundary; no extra cycle
+was introduced. The roughly1515-ALM cost is significant and should be tracked.
+
+I-cache lookup context is another independent CPU/cache limit: cache control/
+stream_hit ->bank_mva selection ->tag flag snapshots. bank_mva[6] has fanout471;
+81 read_dirty_bits and55 read_valid_bits endpoints appear. All160 metadata
+paths have worst-2.143, not the old reset-driven dirty-write family. The dominant
+I-cache comb-control source reaches165 endpoints across cache groups.
+Write-buffer paths mainly start at tail (200 total sources), selecting the last
+slot ->merge eligibility ->new_group (fanout404) ->word/data enables. The earlier
+stored-address->physical-hazard->refill->enqueue family remains absent; current
+buffer worst-1.426 versus-1.307, so do not claim all buffer timing improved.
+LCD94 are framebuffer read/forward-enable paths, not unknown panel commands.
+
+Recommended CPU-first next step: isolate and restructure port-D skid/read-index
+selection plus register-file read/forwarding; preserve held operands, older-stage
+write visibility, PC/banked modes, SWP and one-cycle warm ADD. Predecoded/captured
+read context may help but must not make a stalled operand stale or silently add
+a pipeline cycle. Separately localize I-cache bank-MVA/lookup context before its
+large flag-read fanout. Keep these separate from further buffer/peripheral work
+and measure each contribution where practical. No blanket register-file BRAM
+conversion, stall delay or timing exception is justified by these reports.
+Analysis only: no new RTL edit, test run, commit, push or build in this review.
+
 ## 2026-11-08: fix pass16 Quartus inline-genvar parser failure
 
 Run42468961226 /e6d146b stops in Analysis/Synthesis, before a fit: Quartus17

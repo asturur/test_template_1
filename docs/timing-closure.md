@@ -1,3 +1,112 @@
+## 2026-11-08: isolated operand-stage fit instrumentation
+
+Implementation c4cb73d is the first architecture slice: owned RF acquisition and
+late forwarding, with cache/translation/SDRAM/peripheral RTL held unchanged. Its
+161PASS+1expected XFAIL,45-patch reproduction and fresh semantic boot comparison
+are recorded in status.md and cpu-operand-stage-contract.md. Warmed body overhead
+is0.2–1%, while the fixed mix regresses11.917% due chiefly to quantified uncached
+setup costs. This is a candidate for measurement, not final performance acceptance.
+
+The post-fit script now adds12 targeted worst10 setup-path reports under
+`output_files/timing/operand-stages/`, plus summary.csv. They cover D→R data/context,
+RF→R, backend commit sources→R, each R→I operand family, queue feedback, I→S,
+S/registered-A→S recurrence and R-capacity stop→frontend. Node wildcards and query
+status are retained so pruned/renamed/error groups cannot be mistaken for a pass.
+These samples are not family TNS or sign-off; empty groups require inspection.
+Global worst1000, Fmax, hold/recovery/removal, actual clocks and timing gate remain
+unchanged. Reports are read-only and do not alter synthesis/fit inputs/settings.
+
+Host-only `sh tests/timing_reports/run.sh` checks actual exporter Tcl control flow
+with mocked TimeQuest replies,12 bounded calls, CSV/status handling and unchanged
+global export. It is not physical timing or a Quartus integration test. Real STA
+results, resource use and group coverage must be inspected after the next build.
+Only one isolated slice1 build is to be dispatched; slice2 waits for that review.
+
+## 2026-11-08: pass16 CPU fit83.52MHz; TNS improves55.64%, memory operand becomes worst
+
+Run42471100156 /ef9b7621fa2ca90af250ce8d988260ebbc5e59d6 compiles/fits
+successfully; only Require passing timing fails. Quartus inline-genvar fix works.
+Core reported Fmax83.52MHz versus79.42 (+4.10MHz/+5.16%); worst setup-2.358ns
+versus-2.111 (-.247ns). TNS-2151.000ns versus-4848.875 (55.64% less negative).
+HDMI setup+.182ns; hold/recovery/removal/pulse global minima+.249,+1.544,+1.000,
++.961ns, all pass. ALMs33,006/41,910 (79%,+1515), registers42,873 (+54),
+M10Ks465/553 (84%,unchanged), logical memory bits2,482,539 unchanged.
+Artifacts/reproducible audit:
+`scratch/timing-closure/pass16-42471100156/analysis/`.
+
+Important explanation of differing Fmax/slack directions: previous Fmax79.42
+was consistent with the half-cycle SDRAM dout path (setup relationship4.808ns,
+slack-1.489ns, despite less-negative absolute slack than the CPU full-cycle path).
+That half-cycle SDRAM path now has slack-.891ns. The new worst CPU path has
+full-cycle relationship9.615ns and slack-2.358ns, consistent with the reported
+83.52MHz limit. Full-path reports verify both relationships. Do not compare
+absolute slack across half/full-cycle paths as though the clock scaling were
+identical, or treat reported Fmax as104MHz sign-off. Earlier summaries correctly
+quoted separate metrics but did not identify this limiting half-cycle family.
+
+Worst1000 endpoint groups, sum1000; current cutoff-.697ns:
+
+| Area | Paths | Worst slack ns |
+| --- | ---: | ---: |
+| ARM CPU decode/issue/register file |292|-2.358|
+| Cache write-buffer enqueue/storage |208|-1.426|
+| Cache metadata/tag flags |160|-2.143|
+| LCD framebuffer readout |94|-1.335|
+| Sparse CAM |94|-1.299|
+| Other cache controller/refill |73|-1.728|
+| DSP mailbox hypothesis/MDI |47|-1.360|
+| UPP timers |12|-.703|
+| Diagnostic observation |9|-1.121|
+| Test SIM/card model |4|-.995|
+| SDRAM transport |3|-.891|
+| NOS I/O model |3|-1.059|
+| Other platform/control |1|-.699|
+
+CPU+cache account for733/1000 endpoints. The162 old direct active_maint sources
+are now0; shared named ACK/unmodeled routes27→0 in this subset. CPU bus-response
+and CBUS destinations29/137→0; timers253→12. Those peripheral RTL blocks were
+not reworked in this pass, so credit placement/routing/subset changes rather
+than inventing local architectural fixes. Their disappearance does not prove
+all meet104MHz. Global stall distribution itself still exists.
+
+Operand port families show mixed outcomes:
+
+| Issue destination | Previous worst ns | Current worst ns |
+| --- | ---: | ---: |
+| ALU source | -2.111 | -1.974 |
+| Shift length | -2.032 | -1.773 |
+| Shift source | -1.685 | -1.881 |
+| Memory source/destination | -1.481 | -2.358 |
+
+Worst path now decode.o_mem_srcdest_index_ff[1] ->issue skid/read-index selection
+(o_rd_index_3) ->register-file port-D address decode ->masked read reduction ->
+issue memory-operand forwarding/result FF. Seven levels,11.109ns data delay.
+Another near-worst route starts at o_stall_from_issue (-2.292ns) and traverses
+that same live read-index/read/forward path. Balanced operand rewrite helps ALU
+and shift length but has not solved the full operand boundary; no extra cycle
+was introduced. The roughly1515-ALM cost is significant and should be tracked.
+
+I-cache lookup context is another independent CPU/cache limit: cache control/
+stream_hit ->bank_mva selection ->tag flag snapshots. bank_mva[6] has fanout471;
+81 read_dirty_bits and55 read_valid_bits endpoints appear. All160 metadata
+paths have worst-2.143, not the old reset-driven dirty-write family. The dominant
+I-cache comb-control source reaches165 endpoints across cache groups.
+Write-buffer paths mainly start at tail (200 total sources), selecting the last
+slot ->merge eligibility ->new_group (fanout404) ->word/data enables. The earlier
+stored-address->physical-hazard->refill->enqueue family remains absent; current
+buffer worst-1.426 versus-1.307, so do not claim all buffer timing improved.
+LCD94 are framebuffer read/forward-enable paths, not unknown panel commands.
+
+Recommended CPU-first next step: isolate and restructure port-D skid/read-index
+selection plus register-file read/forwarding; preserve held operands, older-stage
+write visibility, PC/banked modes, SWP and one-cycle warm ADD. Predecoded/captured
+read context may help but must not make a stalled operand stale or silently add
+a pipeline cycle. Separately localize I-cache bank-MVA/lookup context before its
+large flag-read fanout. Keep these separate from further buffer/peripheral work
+and measure each contribution where practical. No blanket register-file BRAM
+conversion, stall delay or timing exception is justified by these reports.
+Analysis only: no new RTL edit, test run, commit, push or build in this review.
+
 ## 2026-11-08: CPU operand and demand-completion cones (pass16)
 
 Step1 (7e6c73b) replaces four indexed40-register reads with local masked-word
