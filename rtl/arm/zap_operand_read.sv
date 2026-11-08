@@ -29,27 +29,26 @@ module zap_operand_read #(
         output [31:0]               o_commit_b,
         output [31:0]               o_commit_c
 );
+// Logical occupancy is independent of physical slot selection. Payload never
+// promotes: pop changes only the read pointer and occupancy; push writes the
+// next free physical slot, without consulting pop/hazard in its data enable.
 reg head_valid, tail_valid;
-reg [CONTROL_W-1:0] head_control, tail_control;
-reg [23:0] head_index, tail_index;
-reg [127:0] head_data, tail_data;
-// Each slot base includes every commit except the immediately preceding edge.
-// That last edge is represented by a shared data journal and per-owner one-hot
-// selectors (C > B > A). Issue sees both pieces, plus current writes, in its one
-// late-forwarding selection. No live write data feeds the queue's base registers.
+reg read_slot, write_slot;
+reg [CONTROL_W-1:0] slot0_control, slot1_control;
+reg [23:0] slot0_index, slot1_index;
+reg [127:0] slot0_data, slot1_data;
+reg [11:0] slot0_pending, slot1_pending;
 reg [31:0] commit_a, commit_b, commit_c;
-reg [11:0] head_pending, tail_pending;
-wire [11:0] capture_match, head_match, tail_match;
-wire capture_head = i_push && (!head_valid || i_pop);
-wire promote_head = i_pop && tail_valid;
-wire hold_head = !capture_head && !promote_head;
+wire [11:0] capture_match, slot0_match, slot1_match;
+wire capture0 = i_push && !write_slot;
+wire capture1 = i_push && write_slot;
 
 assign o_valid = head_valid;
 assign o_full = tail_valid;
 assign o_busy = head_valid;
-assign o_control = head_control;
-assign o_base_data = head_data;
-assign o_pending = head_pending;
+assign o_control = read_slot ? slot1_control : slot0_control;
+assign o_base_data = read_slot ? slot1_data : slot0_data;
+assign o_pending = read_slot ? slot1_pending : slot0_pending;
 assign o_commit_a = commit_a;
 assign o_commit_b = commit_b;
 assign o_commit_c = commit_c;
@@ -69,82 +68,82 @@ genvar port_no;
 generate
         for (port_no = 0; port_no < 4; port_no = port_no + 1)
         begin : g_refresh
-                wire [2:0] hp = head_pending[3*port_no +: 3];
-                wire [2:0] tp = tail_pending[3*port_no +: 3];
-                // Resolve ownership and pending-write priority on narrow masks
-                // before selecting words. Promotion must fold the TAIL journal.
-                wire [2:0] fold_head = ({3{hold_head}} & hp) |
-                                               ({3{promote_head}} & tp);
-                wire [2:0] fold_tail = {3{!i_push}} & tp;
+                wire [2:0] p0 = slot0_pending[3*port_no +: 3];
+                wire [2:0] p1 = slot1_pending[3*port_no +: 3];
+                wire [2:0] fold0 = {3{!capture0}} & p0;
+                wire [2:0] fold1 = {3{!capture1}} & p1;
                 assign capture_match[3*port_no +: 3] = commit_match(i_index[6*port_no +: 6]);
-                assign head_match[3*port_no +: 3] = commit_match(head_index[6*port_no +: 6]);
-                assign tail_match[3*port_no +: 3] = commit_match(tail_index[6*port_no +: 6]);
+                assign slot0_match[3*port_no +: 3] = commit_match(slot0_index[6*port_no +: 6]);
+                assign slot1_match[3*port_no +: 3] = commit_match(slot1_index[6*port_no +: 6]);
                 always @(posedge i_clk)
                 begin
-                        head_data[32*port_no +: 32] <=
-                                (i_data[32*port_no +: 32] & {32{capture_head}}) |
-                                (head_data[32*port_no +: 32] & {32{hold_head && !(|hp)}}) |
-                                (tail_data[32*port_no +: 32] & {32{promote_head && !(|tp)}}) |
-                                (commit_a & {32{fold_head[0]}}) |
-                                (commit_b & {32{fold_head[1]}}) |
-                                (commit_c & {32{fold_head[2]}});
-                        // Speculative capture into an INVALID reserve is safe:
-                        // its validity still follows ordered queue ownership.
-                        // A live reserve implies full, which forbids i_push.
-                        // This removes pop/hazard from the reserve word enables.
-                        tail_data[32*port_no +: 32] <=
-                                (i_data[32*port_no +: 32] & {32{i_push}}) |
-                                (tail_data[32*port_no +: 32] & {32{!i_push && !(|tp)}}) |
-                                (commit_a & {32{fold_tail[0]}}) |
-                                (commit_b & {32{fold_tail[1]}}) |
-                                (commit_c & {32{fold_tail[2]}});
+                        // Each physical owner folds its own previous journal,
+                        // even across holds, pop or empty intervals. Capture
+                        // replaces both base and selector with the new owner.
+                        slot0_data[32*port_no +: 32] <=
+                                (i_data[32*port_no +: 32] & {32{capture0}}) |
+                                (slot0_data[32*port_no +: 32] & {32{!capture0 && !(|p0)}}) |
+                                (commit_a & {32{fold0[0]}}) |
+                                (commit_b & {32{fold0[1]}}) |
+                                (commit_c & {32{fold0[2]}});
+                        slot1_data[32*port_no +: 32] <=
+                                (i_data[32*port_no +: 32] & {32{capture1}}) |
+                                (slot1_data[32*port_no +: 32] & {32{!capture1 && !(|p1)}}) |
+                                (commit_a & {32{fold1[0]}}) |
+                                (commit_b & {32{fold1[1]}}) |
+                                (commit_c & {32{fold1[2]}});
                 end
         end
 endgenerate
 
 always @(posedge i_clk)
 begin
-        // Unconditional journal advance, including all data/shifter holds.
-        // The narrow selector is zero when its corresponding port did not write.
         commit_a <= i_wr_data_a;
         commit_b <= i_wr_data_b;
         commit_c <= i_wr_data_c;
-        head_pending <= capture_head ? capture_match :
-                        promote_head ? tail_match : head_match;
-        tail_pending <= i_push ? capture_match : tail_match;
+        slot0_pending <= capture0 ? capture_match : slot0_match;
+        slot1_pending <= capture1 ? capture_match : slot1_match;
         if (i_reset || i_clear)
         begin
                 head_valid <= 1'b0;
                 tail_valid <= 1'b0;
-                head_pending <= 12'd0;
-                tail_pending <= 12'd0;
+                // Preserve the last exposed packet across clear/empty. The BTB
+                // still observes bubble PCs when invalidating feedback entries.
+                // Reset alone establishes a deterministic initial selector.
+                if (i_reset)
+                        read_slot <= 1'b0;
+                write_slot <= i_reset ? 1'b0 : read_slot;
+                slot0_pending <= 12'd0;
+                slot1_pending <= 12'd0;
         end
         else
         begin
-                if (i_pop)
-                begin
+                if (i_pop && tail_valid)
+                        read_slot <= !read_slot;
+                else if (i_push && (!head_valid || i_pop))
+                        read_slot <= write_slot;
+                if (i_push)
+                        write_slot <= !write_slot;
+                case ({i_push, i_pop})
+                2'b10: begin
+                        head_valid <= 1'b1;
+                        tail_valid <= head_valid;
+                end
+                2'b01: begin
                         head_valid <= tail_valid;
                         tail_valid <= 1'b0;
-                        if (tail_valid)
-                        begin
-                                head_control <= tail_control;
-                                head_index <= tail_index;
-                        end
                 end
-                if (i_push)
+                default: begin end // Hold, or one-entry pop+push: same count.
+                endcase
+                if (capture0)
                 begin
-                        // No admission while full, even if popping this edge.
-                        // Reserve contents may be speculative while invalid.
-                        tail_control <= i_control;
-                        tail_index <= i_index;
-                        if (!head_valid || i_pop)
-                        begin
-                                head_valid <= 1'b1;
-                                head_control <= i_control;
-                                head_index <= i_index;
-                        end
-                        else
-                                tail_valid <= 1'b1;
+                        slot0_control <= i_control;
+                        slot0_index <= i_index;
+                end
+                if (capture1)
+                begin
+                        slot1_control <= i_control;
+                        slot1_index <= i_index;
                 end
         end
 end
@@ -159,6 +158,8 @@ begin
                         $fatal(1, "operand queue popped while empty");
                 if (tail_valid && !head_valid)
                         $fatal(1, "operand queue tail without head");
+                if (head_valid && ((read_slot == write_slot) != tail_valid))
+                        $fatal(1, "operand queue pointer/occupancy mismatch");
         end
 end
 `endif

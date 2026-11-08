@@ -8,7 +8,8 @@ fit candidate pending complete functional checks, not final performance acceptan
 
 ## Ownership and interface
 
-`zap_operand_read` owns two ordered packets: head R0 and reserve R1. It is
+`zap_operand_read` owns two ordered packets: logical head R0 and reserve R1,
+stored in two stationary physical slots (patch0048). It is
 instantiated by `zap_issue_main`, which no longer owns the old skid replay.
 A packet contains the complete existing decode context (including debug text),
 four physical source indices and four RF base words with an owned commit journal.
@@ -34,7 +35,7 @@ combinational downstream-ready -> upstream-ready path.
 |1|0|0/1|hold R0 / hold R0, D in R1|
 |1|1|0/1|empty / D replaces R0|
 |2|0|0|hold both; D stopped|
-|2|1|0|R1 moves to R0; D remains stopped for this edge|
+|2|1|0|R1 becomes logical R0 by pointer change; D remains stopped|
 
 A full queue cannot accept on its pop edge: readiness is deliberately conservative.
 The remaining R0 lets D resume on the following edge without a throughput bubble.
@@ -65,17 +66,36 @@ edge. No producer-forwarded value is cached as a committed base.
 On every clock (including data/shifter holds), old pending data folds into the
 base and the new pending selector matches the current write against the slot's
 **post-edge owner**. Capture stores the pre-edge asynchronous RF read and records
-current matches for the incoming packet. Promotion folds the tail's old pending
-data into head base and records current matches for that promoted owner. Reset
+current matches for the incoming packet. Each physical slot folds its own pending
+data and matches its own held indices; changing the logical head never copies
+payload, context, indices or pending selectors between slots. Reset
 or clear kills both valid bits and both pending selectors on the same edge;
 journal data need not reset because it has no valid owner after a kill.
 
-The reserve payload/index/control captures every accepted D packet, including a
-head replacement when the reserve stays invalid. This speculative invalid payload
-is never promoted: reserve validity is unchanged, and a live reserve implies full,
-which prohibits acceptance. Thus reserve data capture/refresh selection depends
-only on capacity-qualified push, removing the measured load-lock→pop→tail-data
-feedback. Head ownership and promotion continue to use the original pop rule.
+Patch0048 replaces patch0046's speculative reserve duplication and physical
+promotion with stationary `slot0/slot1_data`, `_control`, `_index` and `_pending`.
+Only `i_push && !write_slot` or `i_push && write_slot` selects a bank capture;
+otherwise that bank folds its own journal. Neither pop nor hazard controls wide
+payload capture/refresh. `read_slot` selects the logical head at issue, adding an
+explicit registered-pointer mux to the R→I timing budget.
+
+`write_slot` toggles on each accepted push. Full-pop toggles `read_slot`;
+empty-push and single-entry pop+push set it to the old `write_slot`. Last-pop
+holds `read_slot`, so the last logical head remains exposed while empty. For a
+nonempty queue, equal pointers mean full and unequal pointers mean one entry;
+empty pointers may differ. Reset clears both pointers. Clear holds `read_slot`
+and sets `write_slot` to it, killing both occupancies/pending selectors. The next
+capture replaces all identity for its physical owner before it becomes valid.
+Both slots refresh independently, including when empty or stalled. Full-pop
+still rejects push on that edge; single-entry pop+push sustains one uop/clock.
+
+Holding the empty/cleared output selector is behaviorally necessary: the current
+BTB invalidates its feedback-PC index even on invalid bubbles. An initial ordinary
+FIFO pointer that toggled on last-pop changed that observable PC and cost53/77
+clocks in the0/3-wait mixed body. That version was rejected. The retained-pointer
+contract preserves the previous exposed packet PC without widening a payload
+promotion path or changing predictor behavior. Tests check both valid owner
+mapping and the exposed PC across empty/clear intervals.
 
 The R→I interface exports raw head bases, head pending selectors and the shared
 journal words. Issue selects special values, in-flight producers, current C/B/A,
@@ -112,7 +132,7 @@ live D packet (the old skid code used live D here). PC alignment still uses the
 packet's load/store/force-align controls; CPSR is read live at issue.
 
 CP15 sees either R slot as nonempty, in addition to the existing upstream/backend
-stages and background locks. Its stolen RF read port0 therefore cannot overlap a
+stages and background locks. Its serialized operation still cannot overlap a
 meaningful R acquisition. No cache, translation, memory, interrupt tagging, uop
 sequencer or architectural writeback behavior is redesigned.
 
@@ -163,7 +183,7 @@ passes161 checks plus1 expected legacy direct-map XFAIL, including36 IRQ/FIQ SWP
 arrival cases across D/R/I/S/A/P0/P1/P2/write-half at waits0/3. Existing SWP faults,
 IRQ/FIQ, banking, MMU/TLB, alignment/LDM/PC, maintenance/lockdown/coherence pass.
 CP15 assertions reject an owned packet omitted from drain or a meaningful capture
-while it steals RF port0. Actual CPU phone integration, top structural lint,
+during serialized operation. Actual CPU phone integration, top structural lint,
 ONLY_CORE/legacy elaboration,173-file/9-QIP source preflight and exact45-patch
 reproduction pass. A separate legacy direct-map CPU smoke also passes at0/3
 waits (135782/234446 cycles), exercising the background-completion fallback.
@@ -472,3 +492,63 @@ The next isolated routed fit must check the new completion capture→local advan
 completion/P2→M format and formatted M→issue seams, alongside unchanged RF-address,
 dynamic producer matching and shifter paths. This candidate is functionally
 validated;104MHz closure is still unmeasured.
+
+
+## Patch0048: dedicated CP15 read and stationary queue candidate
+
+The same40×32 FF RF now has a fifth asynchronous read mux, `i_rd_addr_cp15` /
+`o_rd_data_cp15`. All four normal addresses are direct D addresses; CP15 enable
+and index never select normalport0's address. Writeback registers
+`i_copro_reg_en ? copro_rd_data : o_rd_data_0` into the existing
+`o_copro_reg_rd_data_ff`. This preserves disabled-response observations and the
+old pre-write value on same-edge read/write collisions. RF storage and A/B/C
+write priority are unchanged; no additional response cycle or forwarding stage
+is added. CP15 serialization and pipeline-empty accounting remain unchanged.
+
+The physical targets are the measured CP15-address→operand-R route (−1.357ns,
+fanout194) and load-lock→promotion→head-data route (−1.085ns, fanout171) from
+fit42500046692. Current bank capture depends on registered capacity/write-slot;
+current full-pop changes only narrow ownership state. Remaining physical risks
+are added RF read fanout/area (previous storage→R margin only+.031ns), the new
+read-pointer→issue mux, narrow hazard→pointer feedback, direct D-address→RF
+read depth, and dynamic producer selection. No routed result yet exists for this candidate. Positive completion
+and registered-formatting seams remain unchanged; SDRAM half-cycle and cache
+paths remain separate work. No clock or timing exception changes.
+
+
+Patch0048 validation:172PASS+1expected legacy-directmap XFAIL; all152 CPU cases,
+including44 SWP IRQ/FIQ edge×wait cases, have identical absolute cycles to
+patch0047. The operand oracle passes50,491clocks (29,485pushes,24,017pops,
+7,670full-pop edges,5,379kills; slot pushes14,741/14,744 and pops12,012/12,005).
+It independently checks valid logical/physical association, both journals, killed
+pending selectors and the exposed PC through empty/clear. The real-writeback
+CP15 oracle passes13,841clocks (6,895enabled,6,647disabled,3,202collisions),
+covering every normal/CP15 index pair and simultaneous A/B/C writes. Frozen
+reference17,160, completion5,546 and formatter8,192clocks continue to pass.
+
+All five mixed timing points exactly retain patch0047's setup/body totals and
+all load/use, branch, accepted-fetch/issue/retirement counters:
+
+| Memory wait | Setup | Body | Total |
+| --- | --- | --- | --- |
+|0|241991|1414|243405|
+|3|332235|1668|333903|
+|7|406204|2018|408222|
+|15|631890|2742|634632|
+|31|1091490|4194|1095684|
+
+Warm ADD remains1clock; load-use min19 and branch-target min14. The fixed
+four-program/two-wait mix stays1729724; legacy CPU0/3 stays135782/234446.
+All21,118 ordered RF/retirement-PC/CPSR effects match at3wait; the0wait warmed
+schedule matches for all1415 observed clocks. Fresh5M real-SDRAM boot matches
+all848 board events byte-for-byte INCLUDING timestamps:121writes, all reads,
+12known fetch faults, no data faults; PC00006168/289114transfers and last write
+190170 are unchanged. No earlier trace, frozen executable or checkpoint was
+resumed or overwritten. No new board/peripheral behavior is claimed.
+
+Phone integration, ONLY_CORE/legacy/ONLY_CORE-assoc elaboration, structural lint,
+174source/9QIP preflight,48patch reproduction and24 targeted timing-query mocks
+pass. The existing board `bus_access` structural warning remains unchanged.
+Evidence: `scratch/timing-closure/cp15-stationary/validation-summary.json` and its
+reproducible `analyze.py`. Candidate function/cycle validation is complete; the
+new physical seams and total area still require the next isolated routed fit.

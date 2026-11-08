@@ -45,12 +45,14 @@ module zap_register_file
         input logic  [5:0]       i_rd_addr_b,
         input logic  [5:0]       i_rd_addr_c,
         input logic  [5:0]       i_rd_addr_d,
+        input logic  [5:0]       i_rd_addr_cp15,
 
         // Read data corresponding. Combinationally read via MUX.
         output logic  [31:0]      o_rd_data_a,
         output logic  [31:0]      o_rd_data_b,
         output logic  [31:0]      o_rd_data_c,
-        output logic  [31:0]      o_rd_data_d
+        output logic  [31:0]      o_rd_data_d,
+        output logic  [31:0]      o_rd_data_cp15
 );
 
 logic [39:0][31:0] mem; // Flip-flop array.
@@ -92,6 +94,9 @@ assign o_rd_data_a = mem[i_rd_addr_a];
 assign o_rd_data_b = mem[i_rd_addr_b];
 assign o_rd_data_c = mem[i_rd_addr_c];
 assign o_rd_data_d = mem[i_rd_addr_d];
+// Dedicated CP15 address ownership. This adds a read mux, not RF storage;
+// normal port A no longer distributes the late CP15 address/enable selection.
+assign o_rd_data_cp15 = mem[i_rd_addr_cp15];
 
 `ifndef SYNTHESIS
 

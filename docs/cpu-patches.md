@@ -356,3 +356,23 @@ The same patch moves load formatting before M's existing result register and
 captures static source classes with R ownership. Current-edge writes, producer
 priority, bank/PC/CPSR behavior and queue capacity/kill semantics stay intact.
 See the operand contract for edge ownership, fault/CP15 and test evidence.
+
+## Stationary operand owners and dedicated CP15 RF read (0048)
+
+Patch0048 gives CP15 a fifth asynchronous read mux on the existing40×32 FF
+storage. Its registered response and pre-write collision semantics are unchanged;
+normalport0 no longer selects CP15's address. CP15 drain/serialization remains.
+The two-entry operand queue now stores each packet in a stationary physical bank.
+Push captures only the bank selected by `write_slot`; pop selects the next head
+with `read_slot` and changes occupancy, without copying wide payload/context.
+Each bank continuously folds its own commit journal with unchanged C>B>A priority.
+Current-edge writes and newest in-flight forwarding remain unchanged.
+
+The output selector holds its last logical head when empty and through clear.
+This preserves bubble-PC observations in the existing BTB, whose feedback-index
+invalidation also runs on invalid cycles. A conventional last-pop pointer toggle
+was rejected after adding53/77 clocks to the mixed0/3-wait body. Corrected0/3
+runs match all baseline phases/counters; a1415-clock warmed schedule and21,118
+architectural effects match exactly. The independent oracle checks both physical
+owner association and held empty/clear PC. Full validation is recorded in status
+and the operand-stage contract. No added pipeline cycle or clock/constraint edit.

@@ -1,3 +1,83 @@
+## 2026-11-08: CP15 read separation and stationary queue — validated fit candidate
+
+Patch0048 candidate separates CP15's RF address from normal operandport0 while
+preserving the existing registered response, and replaces wide head promotion
+with stationary slot0/slot1 payload/context/journal owners plus narrow pointers.
+Capacity-only upstream stop, immediate kill, current writes and forwarding
+priority remain unchanged. Last-pop/clear hold the exposed head selector because
+the existing BTB observes bubble PCs; ordinary FIFO empty-pointer toggling was
+rejected (+53/+77 mixed-body clocks at0/3wait). The corrected candidate exactly
+matches baseline0/3 phases/counters and the1415-clock warmed schedule, with all
+21,118 ordered architectural effects identical at0wait. No extra stage/cycle.
+
+Independent operand oracle50,491clocks and dedicated real-writeback CP15/RF
+oracle13,841clocks pass. All48 upstream patches reproduce exactly;174sources/
+9QIPs, ONLY_CORE/legacy/ONLY_CORE-assoc elaboration, top lint and24 targeted timing
+mocks pass. Full suite172PASS+1expectedXFAIL; all152 CPU absolute cycle counts
+match patch0047, including44 SWP IRQ/FIQ edge×wait cases. Mixed0/3/7/15/31
+setup/body/load-use/branch/counters match exactly; warm ADD stays1, load-use min19,
+branch-target min14. All21,118 effects match at3wait. Fixed mix stays1729724;
+legacy0/3 stays135782/234446. No added stage or cycle penalty in these workloads.
+
+Fresh5M real-SDRAM boot reaches PC00006168/289114transfers,12 known fetch faults,
+zero data faults. All848 board events (121writes and all reads/faults) are byte
+identical to patch0047, INCLUDING timestamps; last board write remains190170.
+Phone integration passes. This remains an early boot checkpoint, not physical
+phone/full OS validation. Evidence and frozen source hashes are in
+scratch/timing-closure/cp15-stationary/validation-summary.json. Existing paired
+checkpoints and earlier reference evidence are preserved. Ready for one isolated
+routed build after review; no push/build performed by implementation agent.
+
+Fit intent: remove measured CP15-address→R−1.357ns and hazard/pop→wide promotion
+−1.085ns. New risks are pointer→issue mux depth/fanout and fifth-port RF read
+fanout/area (previous RFstorage→R only+.031ns). Direct decode read depth and
+late producer selection remain measured follow-ups. No routed104MHz claim;
+completion/format seams stay unchanged. Cache/SDRAM/clock changes are out of scope.
+
+## 2026-11-08: completion fit42500046692 — new seams pass; SDRAM limits Fmax
+
+SHA7185914, implementation53eac60. Fitter succeeds; only Require passing timing
+fails. Versus42492307815: Fmax86.61→77.99MHz; setup−1.931→−1.770ns;
+TNS−2673.594→−2998.328ns. ALMs32121→32181, registers43391→43408,
+M10Ks465 unchanged, DSP38 unchanged, memory bits2482536. HDMI+.140ns;
+minimum hold/recovery/removal/pulse +.194/+1.149/+.894/+.961ns all pass.
+Fmax regression is consistent with SDRAM falling-edge dq_in[8]→rising dout[8],
+slack−1.604ns on a half cycle, data4.790ns/one logic level. This is a physical
+transfer/locality bottleneck, not evidence that the new completion seam failed.
+
+All21 targeted queries return10paths. New seams: backend→completion+1.434,
+completion-valid→R+.358, completion/P2 format→M+1.144, formattedM→issue+.688ns.
+Broad memory→issue improves−1.291→−.559 (remaining source is instruction-abort
+control into effective writeback selection); execute→issue−.983→−.144.
+Commit→journal+1.765, journal→queue+2.515, RF storage→R+.031,
+decode→R context+2.224. Shifter recurrence now+.137; R stop→frontend+1.744.
+Remaining: decode→R data−1.273, CP15 address→R−1.357, R queue feedback−1.085,
+commit sources→R−.624, R→ALU/shift-source/shift-length/memory
+−.324/−.535/−.548/−.464, issue→shifter−.240ns. RF storage margin is very thin.
+
+Global top1000 endpoint families: cache tags160, write buffer176, LCD DMA155,
+DDR adapter67, ICU66, operand queue55, MDI51, extra-register banks51, CBUS47,
+CPU decode20, timers19, cache access17, other116. Exact full paths remain in
+scratch/timing-closure/completion-fit-42500046692/output_files/timing/.
+233 launch from reset_drain (previous768); zero from o_fsr (previous128).
+The worst path−1.770 is M destination index→writeback clear→cache request→
+bank_mva selection (fanout463)→read_valid_bits, not cache data RAM itself.
+Write-buffer worst−1.395 is tail→merge_single→byte enables→entry data.
+CP15 address→RF retains fanout194. Queue feedback follows load-lock/hazard→
+promote_head(fanout171)→head data; completion_valid itself now passes.
+
+Decision: preserve completion/registered formatting; intended seams pass and
+functional validation remains as recorded. Slice1 overall timing remains OPEN.
+Next focused operand change: separate CP15 RF read-address ownership from normal
+port0, then localize queue hazard/pop selection without delaying hazards or adding
+another stage. Check area and preserve current writes/youngest producer/CP15 drain.
+Then original cache lookup-owner/address slice (160 tag endpoints), followed by
+write-buffer reservation/local enables (176). SDRAM half-cycle routing needs an
+isolated physical sign-off pass: otherwise whole-core Fmax can obscure CPU gains.
+Do not claim cache-hit latency fixed:19-clock issue-gap benchmark still needs a
+hit/TLB/phase breakdown before designing a latency improvement. No new RTL,
+commit, push or build from this analysis. No clock/constraint relaxation.
+
 ## 2026-11-08: owned completion and registered forwarding validated; fit next
 
 Patch0047 implements the measured completion/stall boundary before the remaining

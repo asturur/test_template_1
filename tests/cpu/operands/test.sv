@@ -16,6 +16,12 @@ logic [31:0] model[40];
 logic [31:0] expected[4], held[4];
 wire [31:0] nxt[4], result[4];
 integer checks=0, count=0, pushes=0, pops=0, full_pops=0, kills=0;
+bit model_read_slot=0,model_write_slot=0;
+bit exposed_known=0;
+logic [31:0] exposed_pc;
+integer physical_pushes[2]='{0,0},physical_pops[2]='{0,0};
+logic [5:0] cp_index=0;
+wire [31:0] cp_data;
 logic [63:0] dc_lock=0;
 logic [3:0] condition=14;
 logic irq=0,fiq=0,abt=0,swi=0,und=0;
@@ -49,6 +55,7 @@ zap_register_file rf(.i_clk(clk),.i_reset(reset),.i_wen(wen),
  .i_wr_data_a(da),.i_wr_data_b(db),.i_wr_data_c(dc),
  .i_rd_addr_a(index[0][5:0]),.i_rd_addr_b(index[1][5:0]),
  .i_rd_addr_c(index[2][5:0]),.i_rd_addr_d(index[3][5:0]),
+ .i_rd_addr_cp15(cp_index),.o_rd_data_cp15(cp_data),
  .o_rd_data_a(rd_data[0]),.o_rd_data_b(rd_data[1]),
  .o_rd_data_c(rd_data[2]),.o_rd_data_d(rd_data[3]));
 zap_issue_main issue(
@@ -168,6 +175,7 @@ task automatic tick;
 endtask
 
 task automatic check_cycle;
+ cp_index=6'((checks*7+3)%40);
  cpsr=cpsr^32'hf0000000; // Live flags change even while the packet is held.
  #1;
  clear_packet=reset || clear_wb || clear_alu;
@@ -178,6 +186,9 @@ task automatic check_cycle;
    $fatal(1,"RF port %0d index %0d",p,index[p][5:0]);
   held[p]=result[p];
  end
+ if(cp_data!==model[cp_index])$fatal(1,"independent CP15 RF read");
+ if(issue.u_operand_read.read_slot!==model_read_slot || issue.u_operand_read.write_slot!==model_write_slot)
+  $fatal(1,"physical FIFO pointer mismatch");
  // Representation invariant BEFORE this edge's writes: each valid packet's
  // raw base plus its own pending journal equals the independent architectural
  // RF. Check both owners, including reserve data before full-pop promotion.
@@ -185,8 +196,8 @@ task automatic check_cycle;
   logic [2:0] pending;
   logic [31:0] represented;
   integer physical;
-  pending=slot==0 ? issue.u_operand_read.head_pending[3*p+:3] : issue.u_operand_read.tail_pending[3*p+:3];
-  represented=slot==0 ? issue.u_operand_read.head_data[32*p+:32] : issue.u_operand_read.tail_data[32*p+:32];
+  pending=(model_read_slot ^ (slot!=0)) ? issue.u_operand_read.slot1_pending[3*p+:3] : issue.u_operand_read.slot0_pending[3*p+:3];
+  represented=(model_read_slot ^ (slot!=0)) ? issue.u_operand_read.slot1_data[32*p+:32] : issue.u_operand_read.slot0_data[32*p+:32];
   case(pending)
    0: begin end
    1: represented=issue.operand_commit_a;
@@ -218,19 +229,26 @@ task automatic check_cycle;
  if(count!=0 && !reset)for(integer p=0;p<4;p++)begin
   expected[p]=oracle(p);
   if(nxt[p]!==expected[p])begin
-   $display("DETAIL headidx=%h dutidx=%h base=%h raw=%h model=%h wen=%b wa=%d wb=%d wc=%h data=%h/%h/%h",head.indices[33*p+:33],issue.operand_mem_srcdest_index_ff,issue.u_operand_read.head_data[32*p+:32],issue.operand_data[32*p+:32],model[head.indices[33*p+:6]],wen,wa,wb,wc,da,db,dc);
+   $display("DETAIL headidx=%h dutidx=%h base=%h raw=%h model=%h wen=%b wa=%d wb=%d wc=%h data=%h/%h/%h",head.indices[33*p+:33],issue.operand_mem_srcdest_index_ff,issue.operand_data[32*p+:32],issue.operand_data[32*p+:32],model[head.indices[33*p+:6]],wen,wa,wb,wc,da,db,dc);
    $fatal(1,"operand oracle port=%0d check=%0d count=%0d got=%h expected=%h",p,checks,count,nxt[p],expected[p]);end
  end
  if(!clear_packet && !data_stall && !shift_stall)begin
   output_condition=pop ? head.condition : 15;
   output_load=head.load;output_mem_index=head.indices[99+:6];
  end
- if(clear_packet)begin count=0;output_condition=15;kills++;end
+ if(clear_packet)begin
+  count=0;output_condition=15;kills++;
+  if(reset)begin model_read_slot=0;exposed_known=0;end
+  model_write_slot=model_read_slot;
+ end
  else begin
-  if(pop)begin if(count==2)full_pops++;queue[0]=queue[1];count--;pops++;end
-  if(push)begin queue[count]=incoming;count++;pushes++;end
+  if(pop)begin physical_pops[model_read_slot]++;if(count==2)begin model_read_slot=!model_read_slot;full_pops++;end queue[0]=queue[1];count--;pops++;end
+  if(push)begin if(count==0)model_read_slot=model_write_slot;physical_pushes[model_write_slot]++;model_write_slot=!model_write_slot;queue[count]=incoming;count++;pushes++;end
+  if(count!=0)begin exposed_pc=queue[0].pc;exposed_known=1;end
  end
  tick();
+ if(clear_packet && (issue.u_operand_read.slot0_pending!==0 || issue.u_operand_read.slot1_pending!==0 || issue.u_operand_read.read_slot!==model_read_slot || issue.u_operand_read.write_slot!==model_write_slot))$fatal(1,"kill left a physical pending owner");
+ if(exposed_known && issue.operand_pc_plus_8_ff!==exposed_pc)$fatal(1,"empty/clear changed exposed packet PC");
  if(issue.o_condition_code_ff!==output_condition)$fatal(1,"issue condition check=%0d got=%h expected=%h",checks,issue.o_condition_code_ff,output_condition);
  if(!clear_packet)begin
   if(!data_stall && !shift_stall)begin
@@ -329,6 +347,8 @@ initial begin
   check_cycle();
  end
  if(full_pops<1 || pushes<500 || pops<500)$fatal(1,"coverage");
+ if(physical_pushes[0]<500 || physical_pushes[1]<500 || physical_pops[0]<500 || physical_pops[1]<500)$fatal(1,"physical slot coverage");
+ $display("SLOTS: pushes=%0d/%0d pops=%0d/%0d",physical_pushes[0],physical_pushes[1],physical_pops[0],physical_pops[1]);
  $display("QUEUE: push=%0d pop=%0d full_pop=%0d kills=%0d",pushes,pops,full_pops,kills);
  $display("PASS: operand oracle %0d cycles; 40 physical registers, all forwarding priorities, immediate/PC/CPSR/RAZ, write collisions, stalls/reset/clear",checks);
  $finish;

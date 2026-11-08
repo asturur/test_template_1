@@ -50,7 +50,8 @@
     "patches/zap/0044-quartus17-read-tree-genvars.patch",
     "patches/zap/0045-owned-operand-read-stage.patch",
     "patches/zap/0046-journal-operand-commits.patch",
-    "patches/zap/0047-owned-data-completion.patch"
+    "patches/zap/0047-owned-data-completion.patch",
+    "patches/zap/0048-stationary-operand-owners.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

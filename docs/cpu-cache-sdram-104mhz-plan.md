@@ -4,7 +4,9 @@ Review and implementation proposal, 2026-11-08. The review below describes the
 pinned baseline. Slice1 implementation/evidence is recorded separately in
 [cpu-operand-stage-contract.md](cpu-operand-stage-contract.md). The first owned-R
 fit and patch0046 RF/journal follow-up are reviewed in status.md; patch0047
-completion/formatting follow-up awaits a new routed measurement.
+completion/formatting seams pass in fit42500046692. Patch0048 now separates the
+CP15 read address and replaces wide operand promotion with stationary owners;
+its new RF-read and pointer-mux timing/area remain unmeasured.
 The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
 capture, so patch0047 promotes the measured completion/local-advance portion of
 slice5 ahead of cache/translation work. Its blocking response owner adds one

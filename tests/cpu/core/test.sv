@@ -78,7 +78,7 @@ module test;
   if(dut.u_zap.u_zap_core.u_zap_writeback.i_copro_reg_en &&
      dut.u_zap.u_zap_core.u_zap_issue_main.operand_push &&
      !dut.u_zap.u_zap_core.clear_from_writeback && !dut.u_zap.u_zap_core.clear_from_alu)
-   $fatal(1,"CP15 stole RF port during meaningful operand acquisition");
+   $fatal(1,"CP15 operation overlapped meaningful operand acquisition");
   if(dut.u_zap.u_zap_core.operand_busy && !dut.u_zap.u_zap_core.pipeline_is_not_empty)
    $fatal(1,"CP15 drain ignored an owned operand packet");
  end
@@ -165,6 +165,16 @@ module test;
      if(measured_gap<branch_min)branch_min=measured_gap;if(measured_gap>branch_max)branch_max=measured_gap;
      branch_edge=-1;
     end
+   end
+   if($test$plusargs("schedule_trace") && first_body_cycle>=0)begin
+    $display("SCHEDULE %0d F=%08h D=%08h R=%0d:%08h:%0d:%0d I=%0d:%08h stalls=%0d%0d clear=%0d%0d%0d",
+     cycles,observed_pc,dut.u_zap.u_zap_core.u_zap_issue_main.i_pc_ff,
+     dut.u_zap.u_zap_core.u_zap_issue_main.operand_valid,
+     dut.u_zap.u_zap_core.u_zap_issue_main.operand_valid ? dut.u_zap.u_zap_core.u_zap_issue_main.operand_pc_ff : 0,
+     dut.u_zap.u_zap_core.u_zap_issue_main.operand_push,dut.u_zap.u_zap_core.u_zap_issue_main.operand_pop,
+     issue_transfer,issue_transfer ? issue_pc : 0,
+     dut.u_zap.u_zap_core.data_stall,dut.u_zap.u_zap_core.stall_from_shifter,
+     dut.u_zap.u_zap_core.clear_from_writeback,dut.u_zap.u_zap_core.clear_from_alu,dut.u_zap.u_zap_core.clear_from_decode);
    end
    if(retirement) retired_instructions=retired_instructions+1;
    // Structured architectural effects for latency-insensitive reference comparison.

@@ -158,6 +158,7 @@ logic     [31:0]                  cpsr_ff, cpsr_nxt;
 logic [$clog2(PHY_REGS)-1:0]      wa1, wa2;
 logic [31:0]                      wdata1, wdata2;
 logic                             wen;
+logic [31:0]                      copro_rd_data;
 
 logic                             shelve_ff, shelve_nxt;
 logic [31:0]                      pc_shelve_ff, pc_shelve_nxt;
@@ -204,15 +205,17 @@ zap_register_file u_zap_register_file
 
  .i_wen          (       wen             ),
 
- .i_rd_addr_a    ( i_copro_reg_en ? i_copro_reg_rd_index : i_rd_index_0 ),
+ .i_rd_addr_a    (       i_rd_index_0    ),
  .i_rd_addr_b    (       i_rd_index_1    ),
  .i_rd_addr_c    (       i_rd_index_2    ),
  .i_rd_addr_d    (       i_rd_index_3    ),
+ .i_rd_addr_cp15 ( i_copro_reg_rd_index ),
 
  .o_rd_data_a    (       o_rd_data_0     ),
  .o_rd_data_b    (       o_rd_data_1     ),
  .o_rd_data_c    (       o_rd_data_2     ),
- .o_rd_data_d    (       o_rd_data_3     )
+ .o_rd_data_d    (       o_rd_data_3     ),
+ .o_rd_data_cp15 (       copro_rd_data   )
 
 );
 
@@ -513,7 +516,9 @@ begin
 
                 cpsr_ff                   <= cpsr_nxt;
                 o_decompile               <= i_decompile;
-                o_copro_reg_rd_data_ff    <= o_rd_data_0;
+                // Preserve the old registered response, including disabled
+                // cycles, while keeping selection outside normal RF addresses.
+                o_copro_reg_rd_data_ff    <= i_copro_reg_en ? copro_rd_data : o_rd_data_0;
         end
 end
 
