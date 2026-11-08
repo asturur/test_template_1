@@ -1,3 +1,110 @@
+## 2026-11-08: CPU operand selection preserves pipeline latency (pass16 step1)
+
+The40-entry/four-read ZAP register file now decodes each physical read address
+locally and reduces masked words through an explicit balanced tree. Issue resolves
+forwarding priority on narrow match controls before a masked word reduction.
+Priority remains immediate,RAZ,PC,CPSR,combinational ALU,registered ALU,
+postALU0,postALU1,postALU,memory,register file. PC alignment remains qualified
+by the original load/store controls. All writes, bank mappings, skid buffering,
+reset/clear/stall controls and pipeline boundaries are unchanged; no read clock
+or extra pipeline stage was added.
+
+A new independent scoreboard/priority-oracle fixture passes17160 cycles against
+both the original and changed source: all40 physical registers (banked/SPSR
+included), all64 forwarding-valid masks, special-register/immediate collisions,
+random independent read ports, all three write-port collisions, stalls and clears.
+It runs from tests/cpu/run.sh. Warm dependent ARM ADD remains one clock at0/3
+memory waits (120 warmed samples each). Patch0042 reproduces tracked imported
+source byte-for-byte; UPSTREAM.json's modification list is reconciled through0042.
+Source graph passes. Evidence: scratch/timing-closure/pass16-cpu/.
+
+Full CPU/phone integration, bounded fresh real-SDRAM boot and synthesis lint
+will run once with the separate demand-completion/stall change. This step targets
+the measured decode->register-read->issue cone; improvement in routed timing,
+area and fanout remains unmeasured. Latest fit is79.42MHz/setup-2.111ns.
+No clocks, exceptions, peripherals, firmware or saved checkpoints changed.
+
+## 2026-11-08: pass15 targets shrink, overall fit79.42MHz; CPU/peripheral command paths dominate
+
+Run42464280647 /9d37d3345ac8e9107e55d89d37295dedd46da19c compiles/fits
+successfully; only Require passing timing fails. Core reported Fmax79.42MHz
+(previous80.17,-.75MHz); setup-2.111ns (previous-1.945,-.166ns), TNS-4848.875ns
+(previous-4732.980,2.45% worse). HDMI setup+.454ns. All hold/recovery/removal/
+pulse checks pass: global minima+.180,+1.093,+.857,+.961ns respectively.
+Core hold+.247ns; the new reset-driver recovery/removal are positive. No timing
+exception was added. ALMs31,491/41,910 (75%,+698), registers42,819 (+1390),
+M10Ks465/553 (84%,+3); logical block-memory bits remain2,482,539. Resource delta
+includes replication/fit effects; do not attribute every extra register or M10K
+to the4x32 merge metadata alone. Artifacts and reproducible endpoint audit:
+`scratch/timing-closure/pass15-42464280647/analysis/`.
+
+Worst1000 endpoint groups, sum1000 (all exported paths violate setup):
+
+| Area | Paths | Worst slack ns |
+| --- | ---: | ---: |
+| ARM CPU decode/issue/ALU |261|-2.111|
+| UPP timers |253|-1.501|
+| Sparse CAM |144|-1.611|
+| UEM CBUS |137|-1.784|
+| Cache write-buffer enqueue/storage |92|-1.307|
+| DSP mailbox hypothesis/MDI |32|-1.669|
+| CPU bus response/fault |29|-1.554|
+| Cache metadata/tag flags |22|-1.573|
+| SDRAM transport |9|-1.489|
+| NOR flash |8|-1.355|
+| Other cache controller/refill |5|-1.589|
+| Diagnostic observation |4|-1.680|
+| NOS I/O model |3|-1.630|
+| Test SIM/card model |1|-1.347|
+
+CPU+timers+sparse+CBUS account for795/1000 endpoints. Distinguish two CPU cones:
+1. Worst path: decode.o_alu_source_ff[2] ->writeback/register-file Mux3 read
+   tree ->issue forwarding/operand mux ->o_alu_source_value_ff[28],7 levels,
+   10.874ns data,-2.111ns slack. Shift-length register reads follow at-2.032ns.
+   This is operand selection/read/forwarding, not a cache victim lookup.
+2.162 paths originate from D-cache adapter.active_maint ->ack ->global
+   data_stall (fanout679) ->pipeline controls. Destinations: predecode110,
+   Thumb decoder31,uop sequencer14,ALU7. Registered/local maintenance completion
+   and coherent pipeline-stall architecture need a separate examination; simply
+   delaying stall would permit incorrect execution.
+
+Timer253 endpoints are unit_regs (40x32 resettable latches), sourced from bridge
+bus_data[6] (191) orbus_data[9] (62): literal write validation ->bad ->bank write
+enables. Separate ordinary unit-bank acceptance from timer0 control validation;
+BRAM/synchronous read/reset scrub for pure latches is the analogous storage
+opportunity to ICU-extra, retaining real control/status state separately.
+CBUS137 start at bus_sel[2] and traverse value extraction ->extra/whitelist ->bad
+->command_write (fanout134). Destinations include written79,alarm_left41 and
+command13. Stage coherent local command/validation, rather than fanning late
+acceptance across all storage/counter operations.
+Sparse144 includes tags105 and matched/vacant39. Live bridge address ->wide
+same_request identity comparison ->global phase/cancel guards ->tag enables
+or comparison snapshots. The compare/free tree itself is not the current cause;
+move cancellation/commit qualification out of bulk storage paths while preserving
+held-request identity, cancellation and warm-reset retention contracts.
+
+The prior three targets improve locally despite the slight aggregate regression:
+- loader.slot_valid setup sources284→0; remaining registered reset sources39
+  (22 tag flag snapshots plus17 other endpoints), with SynDup drivers visible.
+  Old277 reset-driven dirty-flag endpoints are absent from this subset.
+- NOR86→8, worst-1.887→-1.355; old mem_wdata launch endpoints→0.
+- buffer250→92, worst-1.412→-1.307; old stored-address sources222→0.
+  Current buffer routes start mainly at tail (83), through last-slot selection,
+  next-address merge eligibility and per-word enables, rather than the old
+  physical-line hazard ->refill ->enqueue loop.
+Metadata284→22 and diagnostics8→4 also shrink. Shared named ACK/unmodeled union
+3→27 now reaches the bridge return family; it is not proof of shared peripheral
+write authorization. Counts refer to different ranked subsets: removed paths
+may still fail below the1000th cutoff (-1.046ns). Unchanged blocks can worsen
+with a different placement; no broad104MHz improvement is established.
+
+Recommended next work: CPU register-file read/forwarding and maintenance/stall
+cones are now the Fmax priority; timer-bank local command/storage, CBUS local
+command staging and sparse identity/commit separation are the high-count parallel
+areas. Preserve tests/boot/forwarding and reset semantics, rather than adding clock
+exceptions or another unmeasured cache-lookup stage. This is analysis only:
+no RTL edit, new test run, commit, push or new build from this review.
+
 ## 2026-11-08: reset, memory-owner and refill-control changes verified
 
 Cache refill arbitration now consumes a registered physical-line hazard snapshot,

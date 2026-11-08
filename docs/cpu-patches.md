@@ -208,6 +208,30 @@ retained in `scratch/timing-closure/pass9-cache-pipeline/cpu-first-attempt.log`.
 Current-request translation and permission checks still qualify completion;
 lookahead only reads cache storage and cannot initiate bus traffic or allocation.
 
+## 0042: balanced asynchronous register reads and operand forwarding
+
+Each of the four register reads uses local physical-address comparisons and a
+balanced masked-word reduction. The original synchronous reset, two ordered
+normal write ports and highest-priority asynchronous-load write port are unchanged
+(the latter still writes on a clock edge). Unimplemented physical indices retain
+an X read value. No register banking or read/write latency changes.
+
+Issue builds priority-qualified selection bits independently of the wide data
+and merges selected values with masked ORs. The exact order is immediate, RAZ,
+PC, CPSR, combinational ALU, registered ALU, postALU0, postALU1, postALU, memory,
+then register file. The existing final alignment mask, skid storage, instruction
+controls, clear/reset/stall priorities and issue output registers are unchanged.
+This targets pass15's seven-level register-file/forwarding path without a new
+pipeline stage or synchronous RAM read.
+
+`tests/cpu/operands/sim.sh` compares the real RF/issue against an independent
+scoreboard and priority oracle over17160 cycles; the same fixture passes the
+pre-change implementation. It covers all40 physical addresses, every combination
+of six forwarding valid bits, colliding special operands, random ports, three-port
+write collisions, reset, both clear sources and both stall sources. The CPU ADD
+fixture retains one-cycle warmed throughput at0/3 waits. Physical timing remains
+unmeasured until the next fit; see status.md for combined integration evidence.
+
 ## Verification and limits
 
 ```sh

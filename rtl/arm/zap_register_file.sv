@@ -85,11 +85,37 @@ begin
         end
 end
 
-// 4 read ports.
-assign o_rd_data_a = mem [ i_rd_addr_a ];
-assign o_rd_data_b = mem [ i_rd_addr_b ];
-assign o_rd_data_c = mem [ i_rd_addr_c ];
-assign o_rd_data_d = mem [ i_rd_addr_d ];
+// Decode each asynchronous read locally, then reduce masked words through a
+// balanced tree. Keep the read combinational: write timing, port priorities and
+// the decode/issue pipeline boundary are unchanged.
+wire [3:0][5:0] rd_addr = {i_rd_addr_d, i_rd_addr_c,
+                           i_rd_addr_b, i_rd_addr_a};
+wire [3:0][31:0] rd_data;
+generate
+        for (genvar port_no = 0; port_no < 4; port_no = port_no + 1)
+        begin : g_read_port
+                wire [31:0] tree [1:127];
+                for (genvar reg_no = 0; reg_no < 64; reg_no = reg_no + 1)
+                begin : g_word
+                        if (reg_no < 40)
+                        begin : g_present
+                                assign tree[64 + reg_no] = mem[reg_no] &
+                                        {32{rd_addr[port_no] == reg_no}};
+                        end
+                        else
+                        begin : g_padding
+                                assign tree[64 + reg_no] = 32'd0;
+                        end
+                end
+                for (genvar node_no = 1; node_no < 64; node_no = node_no + 1)
+                begin : g_reduce
+                        assign tree[node_no] = tree[2*node_no] | tree[2*node_no+1];
+                end
+                // Unimplemented physical addresses retain the original X value.
+                assign rd_data[port_no] = rd_addr[port_no] < 6'd40 ? tree[1] : 'x;
+        end
+endgenerate
+assign {o_rd_data_d, o_rd_data_c, o_rd_data_b, o_rd_data_a} = rd_data;
 
 `ifndef SYNTHESIS
 

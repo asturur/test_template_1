@@ -1104,66 +1104,52 @@ function automatic [31:0] get_register_value (
         input                           force32_align_ff
 );
 
-        logic [31:0] get;
+        logic [31:0] get, rf_data;
+        logic [9:0] match_source, select_source;
+        logic [31:0] selected [0:9];
 
-        if   ( index[32] )                 // Catch constant here.
+        // Resolve priority on narrow controls, independently of the register
+        // read tree. The word datapath is a masked OR, not a priority mux chain.
+        // Lowest numbered match wins, exactly as in the original if/else chain.
+        match_source[0] = index[32];
+        match_source[1] = index[5:0] == PHY_RAZ_REGISTER[5:0];
+        match_source[2] = index[5:0] == {2'd0, ARCH_PC[3:0]};
+        match_source[3] = index[5:0] == PHY_CPSR[5:0];
+        match_source[4] = index[5:0] == shifter_destination_index_ff[5:0] && alu_dav_nxt;
+        match_source[5] = index[5:0] == alu_destination_index_ff[5:0] && alu_dav_ff;
+        match_source[6] = index[5:0] == postalu0_destination_index_ff[5:0] && postalu0_dav_ff;
+        match_source[7] = index[5:0] == postalu1_destination_index_ff[5:0] && postalu1_dav_ff;
+        match_source[8] = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
+        match_source[9] = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff;
+        select_source[0] = match_source[0];
+        for (int source_no = 1; source_no < 10; source_no++)
         begin
-                        get = index[31:0];
+                select_source[source_no] = match_source[source_no] &&
+                        !(|(match_source & ((10'b1 << source_no) - 10'b1)));
         end
-        else if ( index[5:0] == PHY_RAZ_REGISTER[5:0] )   // Catch RAZ here.
-        begin
-                        // Return 0.
-                        get = 32'd0;
-        end
-        else if   ( index[5:0] == {2'd0, ARCH_PC[3:0]} )
-        // Catch PC here. ARCH index = PHY index so no problem.
-        begin
-                        get = pc_plus_8_ff;
-        end
-        else if ( index[5:0] == PHY_CPSR[5:0] )   // Catch CPSR here.
-        begin
-                        get = cpu_mode[31:0];
-        end
-        // Match in ALU stage.
-        else if   ( index[5:0] == shifter_destination_index_ff[5:0] && alu_dav_nxt  )
-        begin           // ALU effectively never changes destination so no need to look at _nxt.
-                        get =  alu_destination_value_nxt;
-        end
-        // Match in output of ALU stage.
-        else if   ( index[5:0] == alu_destination_index_ff[5:0] &&   alu_dav_ff       )
-        begin
-                        get =  alu_destination_value_ff;
-        end
-        // Match is output of postALU0 stage.
-        else if   ( index[5:0] == postalu0_destination_index_ff[5:0] && postalu0_dav_ff )
-        begin
-                        get = postalu0_destination_value_ff;
-        end
-        // Match is in output of postALU1 stage.
-        else if ( index[5:0] == postalu1_destination_index_ff[5:0] && postalu1_dav_ff )
-        begin
-                        get = postalu1_destination_value_ff;
-        end
-        // Match in output of postALU stage.
-        else if   ( index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff )
-        begin
-                        get = postalu_destination_value_ff;
-        end
-        // Match in output of memory stage.
-        else if   ( index[5:0] ==   memory_destination_index_ff[5:0] &&   memory_dav_ff )
-        begin
-                        get =    memory_destination_value_ff;
-        end
-        else    // Index not found in the pipeline, fallback to register access.
-        begin
-                case ( rd_port )
-                        2'd0: get =   rd_data_0;
-                        2'd1: get =   rd_data_1;
-                        2'd2: get =   rd_data_2;
-                        2'd3: get =   rd_data_3; // rd_port == 2'd3
-                     default: get =   'x;
-                endcase
-        end
+
+        case (rd_port)
+                2'd0: rf_data = rd_data_0;
+                2'd1: rf_data = rd_data_1;
+                2'd2: rf_data = rd_data_2;
+                2'd3: rf_data = rd_data_3;
+                default: rf_data = 'x;
+        endcase
+        selected[0] = index[31:0] & {32{select_source[0]}};
+        // RAZ contributes zero but still suppresses every lower-priority source.
+        selected[1] = 32'd0;
+        selected[2] = pc_plus_8_ff & {32{select_source[2]}};
+        selected[3] = cpu_mode & {32{select_source[3]}};
+        selected[4] = alu_destination_value_nxt & {32{select_source[4]}};
+        selected[5] = alu_destination_value_ff & {32{select_source[5]}};
+        selected[6] = postalu0_destination_value_ff & {32{select_source[6]}};
+        selected[7] = postalu1_destination_value_ff & {32{select_source[7]}};
+        selected[8] = postalu_destination_value_ff & {32{select_source[8]}};
+        selected[9] = memory_destination_value_ff & {32{select_source[9]}};
+        get = (rf_data & {32{!(|match_source)}}) |
+              (((selected[0] | selected[1]) | (selected[2] | selected[3])) |
+               ((selected[4] | selected[5]) | (selected[6] | selected[7]))) |
+              (selected[8] | selected[9]);
 
         // If it's not a store or load, then align this to 4 bytes. Use
         // *skid* versions.
