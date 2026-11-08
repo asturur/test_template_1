@@ -1,3 +1,84 @@
+## 2026-11-08: late forwarding owner selection — validated fit candidate
+
+Patch0049 computes each stationary owner's source-match and full17-bit priority
+grant before selecting the active owner. The RF fallback is resolved before the
+pointer mux; wide producer/commit words remain shared. No new state, stage, cycle,
+write priority, hazard, queue/kill rule or empty-PC behavior changes. This targets
+the measured read_slot→early index select→match/priority→issue−1.438ns route.
+
+Independent oracle56,251clocks passes, checking224,948/224,944 owner-port masks
+against captured test packets and previous/current write events; all17 grants win
+in both owners.0/3 timing243405/333903 and all phases/counters match baseline;
+the1415-clock warmed schedule and21,118 effects at0wait are byte-identical.
+Fresh5M real-SDRAM boot is byte-identical across all848 board events including
+timestamps: PC00006168/289114transfers,12known fetch faults/0data faults.
+Phone integration,49patch reproduction,174sources/9QIPs, ONLY_CORE/legacy/assoc
+elaboration, top lint and unchanged24 timing-query mocks pass. Full regression
+172PASS+1expectedXFAIL; all152 CPU absolute cycle counts are identical, including
+44 SWP IRQ/FIQ edge×wait cases. Mixed0/3/7/15/31 setup/body/metrics/counters match
+exactly; warm ADD stays1, load-use min19, branch-target min14. All21,118 effects
+match at3wait. Fixed mix stays1729724; legacy0/3 stays135782/234446. No measured
+cycle cost from this change. Last board write remains190170; all121writes and
+all reads/faults match with their timestamps. This remains early boot, not a
+physical-phone/full-OS result.
+
+No routed result exists for patch0049. Duplicated narrow logic increases producer
+address/enable fanout and may cost ALMs; pointer→immediate/PC/base selection and
+hazard context remain. Queue margin was only+.023ns. Do not claim104MHz closure;
+cache, SDRAM, BTB and peripheral work stay separate. Evidence is recorded
+in scratch/timing-closure/late-owner-forward/validation-summary.json with frozen
+source hashes and reproducible analyze.py. Earlier checkpoints/reference logs
+are preserved. Implementation is ready for review and one isolated routed build;
+no push/build performed by the implementation agent.
+
+## 2026-11-08: stationary fit42516106759 — acquisition fixed, pointer issue debt
+
+Run42516106759 SHA71b8940, implementation3b37383. Compile/fitter succeed; only
+Require passing timing fails. Against42500046692: Fmax77.99→86.15MHz;
+setup−1.770→−1.928ns; TNS−2998.328→−2079.311ns (30.65% smaller magnitude).
+ALMs32181→32992 (+811,79%), registers43408→43338 (−70), M10Ks465/DSP38 unchanged.
+HDMI+.336ns; minimum hold/recovery/removal/pulse+.165/+1.275/+1.091/+.961ns.
+Fmax is consistent with falling SDRAM DQ→rising dout slack−.997ns; the worst
+full-cycle path is reset_drain→MDI frame0[15]−1.928ns,9logic levels.
+Separate SDRAM bank prechd→address path−1.413ns also remains.
+
+Targeted24 queries:23ok(10paths each), CP15→R no_paths as intended, not an error.
+Dedicated CP15 response+1.061ns. D→R data−1.273→−.213; RF→R+.031→+.487;
+commit-source→R−.624→+.457; queue feedback−1.085→+.023 (very thin margin).
+Journal capture/fold+1.678/+2.868. Completion capture/advance+2.188/+.262;
+completion format→M+2.465 and formattedM→issue+1.425 all pass.
+However read_slot→issue−1.438: pointer selects source index/control, then dynamic
+match_source→priority select_source→data mux. This is the predicted downstream
+selection risk, not a new memory latency or stale-value problem. R→ALU/source/
+length/memory worst−.991/−1.211/−1.019/−1.438, all worse. Broad M→issue−1.054
+is IRQ→effective write address/enable→match priority (not load formatting).
+Execute→issue−.776; issue→shifter+.168; shifter recurrence−.269;
+R stop→frontend+1.222; D→R context+1.862. Pointer→queue+.023.
+
+Top1000 endpoint groups: CBUS310 (−1.567), BTB287 (−1.051), cache transfer75
+(−1.253), MDI61 (−1.928), write buffer56 (−1.191), issue50 (−1.438), sparse47
+(−1.198), codeflash28 (−.964), LCD DMA22 (−.874), cache tags17 (−1.080),
+other47. Full endpoint grouping saved in endpoint-groups.json beside artifacts.
+37 start at read_slot; 287 start at decode stall and end in BTB dav flags through
+clear_btb(fanout513);310 start bus_data[2] and end CBUS written flags via
+command validation→command_write(fanout297). These are bounded worst-per-endpoint
+counts, not exhaustive coverage or proof that omitted blocks pass.
+
+Decision: keep dedicated CP15 port. Stationary ownership removed wide promotion,
+but slice1 is NOT timing-closed: do not count pointer→issue as a solved path.
+Recommended small follow-up before broad cache edits: compute narrow source-match/
+priority controls for both physical owners in parallel, then use registered owner
+selection late; retain shared wide datapath where possible. Measure area tradeoff
+against current+811ALMs and preserve current-edge forwarding/kill/invalid-PC behavior.
+Alternative hybrid narrow selected context needs explicit cycle/ownership proof;
+do not insert another pipeline stage by default. Then proceed with original cache
+request/address ownership slice; request attribution should distinguish cache-hit
+latency from the19-clock mixed issue gap. BTB clear fanout is a separate CPU item;
+CBUS/MDI and SDRAM remain independent system closure work. No RTL edits, new tests,
+commit/push/build in this report-only turn. Prior172PASS/fresh848-event byte-identical
+validation remains the functional evidence. Reports:
+scratch/timing-closure/stationary-fit-42516106759/output_files/timing/.
+
 ## 2026-11-08: CP15 read separation and stationary queue — validated fit candidate
 
 Patch0048 candidate separates CP15's RF address from normal operandport0 while

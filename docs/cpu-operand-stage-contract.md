@@ -97,9 +97,13 @@ contract preserves the previous exposed packet PC without widening a payload
 promotion path or changing predictor behavior. Tests check both valid owner
 mapping and the exposed PC across empty/clear intervals.
 
-The R→I interface exports raw head bases, head pending selectors and the shared
-journal words. Issue selects special values, in-flight producers, current C/B/A,
-previous C/B/A and raw base in **one** narrow-priority/masked-word reduction.
+The R→I interface exports both physical owners' indices, captured special classes
+and pending selectors, the registered read pointer, selected raw head bases and
+shared journal words. Patch0049 computes both owners' source matches and complete
+one-hot priority grants independently, then selects the active grant late. The
+RF fallback is grant16, computed before owner selection. One shared wide datapath
+per operand selects special values, in-flight producers, current C/B/A, previous
+C/B/A and raw base.
 It does not serially select current commits and then pass that word through a
 second forwarding mux. Current formatted commit data still reaches issue on this
 edge; this path is retained, not waived or presumed closed.
@@ -552,3 +556,79 @@ pass. The existing board `bus_access` structural warning remains unchanged.
 Evidence: `scratch/timing-closure/cp15-stationary/validation-summary.json` and its
 reproducible `analyze.py`. Candidate function/cycle validation is complete; the
 new physical seams and total area still require the next isolated routed fit.
+
+
+## Patch0049: select the owner after forwarding priority
+
+Fit42516106759 validates patch0048's acquisition changes: CP15→R has no paths,
+D→R data−.213ns, RF→R+.487, commit-source→R+.457 and queue feedback+.023ns.
+However `read_slot`→selected context/index→match/priority→issue is−1.438ns.
+Patch0049 directly changes that ordering without changing any sequential state.
+`zap_operand_read` exports unselected slot0/slot1 context, indices and pending
+selectors plus `read_slot`. Issue uses only each context's already captured16
+special bits for the new per-owner match trees. Existing selected context remains
+responsible for hazards, metadata, immediate/PC payloads and PC alignment.
+
+For each of four ports, `owner0_match/owner1_match[15:0]` independently compare
+that owner's index to the six live in-flight destinations and exact current
+writeback destinations/enables. They include that owner's pending journal and
+special classes. `owner0_select/owner1_select[16:0]` resolve the complete original
+priority, including raw-RF fallback16. Only then does `read_slot` select the
+17-bit `operand_select` grant. The six producer words, three current write words,
+three previous journal words and live CPSR feed one shared masked-OR datapath.
+Immediate/PC/base payloads are selected from the same physical owner as the grant.
+No wide producer datapath is duplicated, and no register or cycle is added.
+
+Equivalence follows per owner: the input tuple (physical index, special class,
+pending selector) is exactly the tuple previously selected before matching.
+Computing the deterministic match/priority function separately on both tuples
+and then selecting gives the same grant as selecting the tuple first. Explicit
+fallback16 closes the no-match case before the owner mux. The selected word uses
+the same grant, owner payload and live producer values as before. Current C>B>A,
+previous C>B>A and newest in-flight precedence are unchanged, including current
+exception/CP15-selected writes and legacy C. No forwarded value becomes a stored
+base. Capture, refresh, pop/full admission, clear/reset, retained empty PC, CP15
+drain and load/shift/multiply/WAW locks are untouched.
+
+The independent oracle now keeps its own two physical packet records and previous
+write event. It reconstructs BOTH match masks without DUT classifications/pending
+selectors, chooses a winner by oldest-to-newest overwrite (independent of the RTL
+prefix tree), and checks the late selected grant. Directed cases exercise all64
+in-flight validity masks with simultaneous current C/B/A and prior C, including
+immediate low bits aliasing PC/RAZ/CPSR. All17 sources win for each physical owner.
+The oracle passes56,251clocks and224,948/224,944 owner-port mask checks. It
+includes29,783pushes/24,235pops,7,748full-pop edges and5,459kills; physical slot
+pushes14,889/14,894 and pops12,121/12,114. Coverage counters are explicitly
+initialized, and every source grant must win in both owners before PASS.
+
+Remaining physical risks are duplicated narrow comparator/priority area and
+increased live-producer address/enable fanout. `read_slot` still selects wide
+immediate/PC/base payloads and existing hazard context; hazard→pointer feedback
+had only+.023ns margin. Synthesis may refactor combinational logic, so the next
+fit must confirm the intended late selection and resource cost. All24 timing
+queries retain existing slot/pointer endpoints; the exporter is unchanged.
+Completion/formatting, RF acquisition, shifter recurrence and global paths remain
+in the report. This is an unmeasured fit candidate, not104MHz closure. Cache,
+SDRAM, BTB, CBUS/MDI and clock/constraint work are outside this patch.
+
+
+Patch0049 validation is complete:172PASS+1expected legacy-directmap XFAIL; all
+152 CPU outcomes and absolute cycles match patch0048, including44 SWP IRQ/FIQ
+edge×wait cases. The mixed0/3/7/15/31 setup/body totals remain exactly those in
+the patch0048 table above, with identical load/use, branch, fetch, issue and
+retirement counters. Warm ADD stays1clock, load-use min19, branch-target min14;
+fixed mix1729724 and legacy0/3 at135782/234446 remain unchanged. All21,118 ordered
+architectural effects match at3wait, and the1415-clock warmed0wait schedule is
+byte-identical. No new pipeline latency or measured cycle regression is present.
+
+Fresh5M real-SDRAM boot matches all848 board events byte-for-byte, including
+cycles:121writes, all reads and12known fetch-fault records. PC00006168,
+289114transfers, zero data faults and final board write190170 are unchanged.
+Phone integration, ONLY_CORE/legacy/ONLY_CORE-assoc elaboration, top structural
+lint,174sources/9QIPs,49patch reproduction and all24 timing-query mocks pass.
+The existing board `bus_access` warning remains. Earlier checkpoints, binaries
+and reference traces are preserved; no savestate was resumed into changed RTL.
+Evidence and tested hashes are in
+`scratch/timing-closure/late-owner-forward/validation-summary.json`.
+The implementation is ready for one isolated fit; routed timing and area remain
+unmeasured, and broader slice1/system104MHz closure remains open.

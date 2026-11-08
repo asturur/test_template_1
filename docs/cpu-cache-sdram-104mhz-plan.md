@@ -6,7 +6,10 @@ pinned baseline. Slice1 implementation/evidence is recorded separately in
 fit and patch0046 RF/journal follow-up are reviewed in status.md; patch0047
 completion/formatting seams pass in fit42500046692. Patch0048 now separates the
 CP15 read address and replaces wide operand promotion with stationary owners;
-its new RF-read and pointer-mux timing/area remain unmeasured.
+fit42516106759 confirms improved acquisition but exposes read-pointer→forwarding
+priority at−1.438ns. Patch0049 moves owner selection after parallel narrow
+match/priority decisions; its routed timing and duplicated-control area remain
+unmeasured.
 The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
 capture, so patch0047 promotes the measured completion/local-advance portion of
 slice5 ahead of cache/translation work. Its blocking response owner adds one

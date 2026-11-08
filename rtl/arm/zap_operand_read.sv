@@ -27,7 +27,15 @@ module zap_operand_read #(
         output [11:0]               o_pending,
         output [31:0]               o_commit_a,
         output [31:0]               o_commit_b,
-        output [31:0]               o_commit_c
+        output [31:0]               o_commit_c,
+        // Unselected owners feed parallel narrow forwarding decisions in I.
+        output                      o_read_slot,
+        output [CONTROL_W-1:0]      o_slot0_control,
+        output [CONTROL_W-1:0]      o_slot1_control,
+        output [23:0]               o_slot0_index,
+        output [23:0]               o_slot1_index,
+        output [11:0]               o_slot0_pending,
+        output [11:0]               o_slot1_pending
 );
 // Logical occupancy is independent of physical slot selection. Payload never
 // promotes: pop changes only the read pointer and occupancy; push writes the
@@ -52,6 +60,13 @@ assign o_pending = read_slot ? slot1_pending : slot0_pending;
 assign o_commit_a = commit_a;
 assign o_commit_b = commit_b;
 assign o_commit_c = commit_c;
+assign o_read_slot = read_slot;
+assign o_slot0_control = slot0_control;
+assign o_slot1_control = slot1_control;
+assign o_slot0_index = slot0_index;
+assign o_slot1_index = slot1_index;
+assign o_slot0_pending = slot0_pending;
+assign o_slot1_pending = slot1_pending;
 
 function [2:0] commit_match;
         input [5:0] index;
