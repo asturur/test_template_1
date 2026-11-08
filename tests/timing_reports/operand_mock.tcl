@@ -36,9 +36,9 @@ set f [open [file join $directory worst-setup.csv] w]
 puts $f "global canary"
 close $f
 report_operand_stages $directory
-if {$calls != 21} {error "Expected21 group queries, got$calls"}
+if {$calls != 24} {error "Expected24 group queries, got$calls"}
 set f [open [file join $directory worst-setup.csv]]
 set canary [read $f]
 close $f
 if {$canary ne "global canary\n"} {error "Stage reports modified global export"}
-puts "PASS targeted timing mock:21 bounded queries, status handling; global export unchanged"
+puts "PASS targeted timing mock:24 bounded queries, status handling; global export unchanged"
