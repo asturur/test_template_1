@@ -1,3 +1,40 @@
+## 2026-11-08: precompute write-buffer cache-line membership
+
+Point4 is separate from LCD712c811 and its ordering correctiondb992b9.
+Each1..4-word contiguous buffer group spans at most2 cache lines, including
+32-bit address wrap. Its first tag is already stored in the base address;
+new `last_line` metadata captures the final word's27-bit line tag at allocation
+and the incoming word's tag on a validated adjacent merge. Hazard queries now
+compare these two tags per active physical slot, without per-word address
+addition or length selection. Query/response latency, FIFO size, merging,
+byte-enable/data ordering, errors/retries and conservative retired-word hazards
+are unchanged. No new cache stage, allocation policy or timing exception.
+The only new metadata is4x27 bits; no inferred memory or storage migration.
+
+Independent logical FIFO/per-word hazard scoreboard first passes the old RTL,
+then the new RTL with identical coverage:12021 cycles,1343 new groups,329
+merges,497 crossings,163 wraps and1998 bus errors. It checks FIFO bus beats,
+readiness and exact line membership before/after updates, unrelated lines,
+simultaneous merge/retire/enqueue, backpressure, zero/partial masks and reset.
+Existing directed16-word-buffer tests also pass. Full CPU/cache regression with
+UPP bridge finishes **120 PASS +1 expected direct-map XFAIL** (one new hazard
+scoreboard beyond the previous119); warm ADD remains1 cycle at0/3 waits.
+
+Combined final-hardware CPU integration and real-SDRAM5M boot pass, including
+LCD queued commands/local faults and completion-after-pixel assertion. Early
+boot remains PC00006170,306874 transfers,12 known fetch faults,zero data faults;
+all845 board events/cycle stamps match the baseline. Combined result logs were
+produced with this write-buffer source and the corrected LCD/DMA hardware,
+then preserved from `pass12-lcd-queue/{boot,board}-order-final.log` under
+`scratch/timing-closure/pass13-write-buffer-lines/`. The write buffer was briefly
+restored to its previous version to separately boot-verify the LCD-only follow-up,
+then restored byte-for-byte (source SHA256
+`11b703464faf739b6524dc35b1114b97cb24a75a00cf3e85eca0f74882acfd85`).
+Final buffer/integration/top checks reuse the same implementation. No old long
+checkpoint was loaded; no new logo claim. Last measured fit remains69.19MHz/
+-4.837ns; this targets the87 write-buffer-query routes from that subset, not a
+claim of87 passing paths. No FPGA build dispatched or monitored.
+
 ## 2026-11-08: align LCD CPU and DMA streams across the command pipeline
 
 Follow-up to712c811: the first queue held CPU commands behind raw DMA, which

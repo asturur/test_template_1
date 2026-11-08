@@ -7,3 +7,8 @@ docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work 
  --binary --timing --assert -Wno-fatal -Wno-lint --top-module test --Mdir build/sim/unit-write-buffer \
  rtl/arm920/write_buffer.sv tests/cpu/write_buffer/test.sv > build/sim/unit-write-buffer/build.log 2>&1
 docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint /work/build/sim/unit-write-buffer/Vtest jotego/simulator:arm64
+
+docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint verilator jotego/simulator:arm64 \
+ --binary --timing --assert -Wno-fatal -Wno-lint --top-module hazard_test --Mdir build/sim/unit-write-buffer-hazards \
+ rtl/arm920/write_buffer.sv tests/cpu/write_buffer/hazard_test.sv > build/sim/unit-write-buffer-hazards-build.log 2>&1
+docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint /work/build/sim/unit-write-buffer-hazards/Vhazard_test jotego/simulator:arm64

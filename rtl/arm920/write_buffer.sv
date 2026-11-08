@@ -18,6 +18,11 @@ module arm920_write_buffer (
 );
  logic [31:0] addresses[0:3];
  logic [2:0] lengths[0:3];
+ // Each contiguous group has at most four words, hence at most two 32-byte
+ // lines (including 32-bit address wrap). The first tag is already stored in
+ // addresses; retain the final word's tag when accepting/merging the group.
+ logic [26:0] last_line[0:3];
+ wire [31:0] push_last_address=push_address+{27'b0,(push_words-3'd1),2'b0};
  logic [127:0] data[0:3];
  logic [15:0] enables[0:3];
  logic [1:0] head,tail,word_index;
@@ -32,23 +37,20 @@ module arm920_write_buffer (
                   !(group_done && head==last);
  wire push=push_valid && push_ready;
  wire new_group=push && !merge_single;
- // Compare every queued word, including groups crossing a 32-byte line.
- // Retired words in the head group may cause a harmless conservative stall.
- // Compare physical slots in parallel. Rotating all addresses/lengths by
- // head before comparing puts a mux layer on the bus request critical path.
- wire [15:0] pending_words;
- genvar query_slot, query_word;
+ // Membership arithmetic runs at enqueue, never on the refill query path.
+ // Retired words in the head group remain conservatively hazardous until the
+ // whole group retires, matching the previous per-word query contract.
+ wire [3:0] pending_lines;
+ genvar query_slot;
  generate
   for(query_slot=0;query_slot<4;query_slot=query_slot+1) begin : query_slots
    wire [1:0] distance_from_head = query_slot - head;
-   for(query_word=0;query_word<4;query_word=query_word+1) begin : words
-    assign pending_words[query_slot*4+query_word] =
-     {1'b0,distance_from_head}<count && query_word<lengths[query_slot] &&
-     ((addresses[query_slot]+32'(query_word*4)) >> 5)==(query_line_address >> 5);
-   end
+   assign pending_lines[query_slot] = {1'b0,distance_from_head}<count &&
+    (addresses[query_slot][31:5]==query_line_address[31:5] ||
+     last_line[query_slot]==query_line_address[31:5]);
   end
  endgenerate
- assign query_line_pending=|pending_words;
+ assign query_line_pending=|pending_lines;
  assign empty=count==0;assign full=count==4;assign entries=count;
  assign bus_valid=!empty && !error_latched;
  assign bus_address=addresses[head]+{28'b0,word_index,2'b0};
@@ -62,11 +64,15 @@ module arm920_write_buffer (
    if(bus_valid && bus_error) error_latched<=1;
    if(new_group)begin
     addresses[tail]<=push_address;lengths[tail]<=push_words;
+    last_line[tail]<=push_last_address[31:5];
     data[tail]<=push_data;enables[tail]<=push_byte_enable;tail<=tail+1'b1;
    end else if(push)begin
     data[last][lengths[last]*32+:32]<=push_data[31:0];
     enables[last][lengths[last]*4+:4]<=push_byte_enable[3:0];
     lengths[last]<=lengths[last]+1'b1;
+    // merge_single has already validated the incoming word's full address.
+    // Using that tag avoids reconstructing it from base+length in a query.
+    last_line[last]<=push_address[31:5];
    end
    if(beat_done) begin
     if(group_done)begin head<=head+1'b1;word_index<=0;end
