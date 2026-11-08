@@ -60,6 +60,11 @@ proc report_operand_stages {output} {
         [list decode_to_r_context {*u_zap_decode_main*} {*u_operand_read*head_control* *u_operand_read*tail_control* *u_operand_read*head_index* *u_operand_read*tail_index*}] \
         [list rf_to_r {*u_zap_register_file*} $rdata] \
         [list commit_sources_to_r {*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*} $rdata] \
+        [list commit_to_journal {*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*} {*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c*}] \
+        [list journal_to_queue {*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c* *u_operand_read*head_pending* *u_operand_read*tail_pending*} $rdata] \
+        [list memory_to_issue {*u_zap_memory_main*} {*u_zap_issue_main*o_*_value_ff*}] \
+        [list execute_to_issue {*u_zap_shifter_main* *u_zap_alu_main* *u_zap_postalu*} {*u_zap_issue_main*o_*_value_ff*}] \
+        [list cp15_select_to_r {*u_zap_predecode* *u_zap_cp15*} $rdata] \
         [list r_to_alu {*u_operand_read*} {*u_zap_issue_main*o_alu_source_value_ff*}] \
         [list r_to_shift_source {*u_operand_read*} {*u_zap_issue_main*o_shift_source_value_ff*}] \
         [list r_to_shift_length {*u_operand_read*} {*u_zap_issue_main*o_shift_length_value_ff*}] \

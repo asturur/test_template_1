@@ -1,3 +1,28 @@
+## 2026-11-08: operand finish fit reporting follows commit journal
+
+Implementation cfa91a4 is the remaining slice1 candidate: compact indexed RF
+reads, shared registered commit payload, owner-specific pending selectors, flat
+current/prior/in-flight issue selection and speculative invalid-reserve payload
+capture. Full functional/cycle checks are recorded in status.md and the operand
+contract. Current-edge formatted writes still reach issue; only queue storage
+uses the registered journal. Physical timing and area are not yet measured.
+
+The read-only timing exporter retains all12 earlier groups and adds five:
+commit_to_journal, journal_to_queue, memory_to_issue, execute_to_issue and
+cp15_select_to_r. These match commit_a/b/c and head_pending/tail_pending storage
+and expose retained late-write/execute paths separately from R-sourced paths.
+The broad old commit_sources_to_r query may still report control paths even when
+current formatted commit DATA no longer reaches head/tail bases. Interpret the
+full routes, not group names alone.17groups, worst10 endpoints each; summaries
+record missing/error/unparsed status. Global worst1000 and timing gates unchanged.
+
+Host exporter/CSV checks pass17 bounded queries; these mocks are not a substitute
+for real TimeQuest path coverage. Next action is one isolated combined fit, then
+review all R acquisition/refresh/forwarding groups and resources before slice2.
+Baseline remains83.89MHz/setup-1.634ns for the entire domain (including half-cycle
+SDRAM), not a measurement of the new implementation. Fixed-mix+11.917% cost from
+first R stage remains; no new cycle cost is introduced in the tested programs.
+
 ## 2026-11-08: operand slice1 fit: WNS improves, acquisition/refresh still fail104MHz
 
 Run42482648381 /709f812006a5d432656d918faa390926f239cf57 compiles/fits;
