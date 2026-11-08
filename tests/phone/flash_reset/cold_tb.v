@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
-module ngage_cpu(input clk,reset,irq,fiq,input wb_ack,wb_error,input [31:0] wb_read_data,
+module ngage_cpu(output [31:0] debug_pc,debug_cpsr,debug_instruction,output debug_fetch,input clk,reset,irq,fiq,input wb_ack,wb_error,input [31:0] wb_read_data,
  output wire wb_code,output reg wb_cyc=0,wb_lock=0,wb_stb=0,wb_write=0,output reg [31:0] wb_address=0,wb_write_data=0,output reg [3:0] wb_byte_enable=15,output [2:0] wb_cycle_type,output [1:0] wb_burst_type);
+ assign debug_pc=0;assign debug_cpsr=0;assign debug_instruction=0;assign debug_fetch=0;
  assign wb_code=1'b0;assign wb_cycle_type=0;assign wb_burst_type=0;
 endmodule
 module tb;

@@ -1,3 +1,76 @@
+## 2026-11-08: pass14 improves to80.17MHz; reset distribution becomes visible
+
+Run42439233437 /9e80d10148fcc18fcdf889935bc323291706d142 compiles/fits
+successfully, then fails only the timing gate. Reported core Fmax80.17MHz
+(previous68.31,+11.86/+17.36%); core setup-1.945ns (previous-4.622,+2.677ns).
+TNS-4732.980ns versus-35764.692:86.77% less negative. Quote reported Fmax
+and setup separately; neither establishes104MHz sign-off. HDMI setup+.607ns;
+all reported hold/recovery/removal/pulse checks pass (global minima+.245,
++3.820,+1.118,+.961ns). ALMs30,793/41,910 (73%, down2076), registers41,429
+(down4432), M10Ks462/553 (84%, up4). Fitter confirms each ICU bank is one
+2048-bit M10K; low48 pads to64. Artifacts/reproducible endpoint audit:
+`scratch/timing-closure/pass14-42439233437/analysis/`.
+
+Worst1000 functional endpoint groups, sum1000:
+
+| Area | Paths | Worst slack ns |
+| --- | ---: | ---: |
+| Cache metadata/tag flags |284|-1.789|
+| Cache write-buffer enqueue/storage |250|-1.412|
+| ARM CPU decode/issue |136|-1.538|
+| NOR flash |86|-1.887|
+| Sparse CAM |70|-1.399|
+| DDR transport |43|-1.328|
+| DSP mailbox hypothesis/MDI |39|-1.576|
+| UEM CBUS |22|-1.379|
+| UPP timers |17|-1.482|
+| SDRAM transport |13|-1.430|
+| LCD framebuffer readout |10|-1.457|
+| Diagnostic observation |8|-1.334|
+| Other cache controller/refill |7|-1.132|
+| Test SIM/card model |5|-1.945|
+| NOS I/O model |3|-1.629|
+| UPP interrupt controller |3|-1.626|
+| CPU bus response/fault |2|-1.470|
+| Peripheral response boundary |2|-1.305|
+
+Important source-versus-destination distinction: **all277 cache dirty-flag
+endpoints start at loader.slot_valid[0]**, not the cache hit/victim lookup.
+284 total paths start there (277 dirty flags,5 test-SIM,2 peripheral response).
+The first two LUTs form the top-level reset/readiness cone (Template.sv reset
+includes !loader_valid); its factored net has14,547 fanout. The worst path
+continues through combinational test-card response construction,10 levels,
+10.634ns data delay. The fitted net happens to inherit a sparse d_regs name;
+it is not evidence that the sparse CAM owns the reset distribution.
+
+The next independent worst family is flash (-1.887): bridge address decode
+traverses ICU/owner priority and brd_claim exclusion into flash_start, then
+NOR command/data enables. Source logic confirms mem_req excludes the aggregate
+board/DMA claim even for disjoint NOR addresses. This is ownership routing,
+not actual NOR chip speed. The write-buffer routes include stored-address
+comparisons ->choose_refill ->new_group (fanout398) ->entry data/enables;
+221 paths start at two buffer-address registers. ARM decode paths frequently
+start at post-ALU signed-halfword control (160 total endpoints across groups).
+
+The four prior targets worked: ICU-extra483→0 endpoints, CPU response/fault
+35→2, diagnostics59→8 (no trace-readout /6 family), old read_victim_valid/dirty
+snapshot endpoints→0. Current cache dirty writes are a different reset-driven
+family. Shared named ACK/unmodeled route union38→3; absence in this ranked
+subset does not prove a family meets104MHz. Sparse51→70 and buffer83→250
+counts rose as more severe paths disappeared; their worst slacks improved
+(-2.743→-1.399 and-3.320→-1.412 respectively), so counts alone imply no regression.
+
+Recommended next sequence: (1) register/localize the reset/readiness release
+with coherent per-chip cancellation and preserved warm/cold semantics; do not
+mask reset paths with timing exceptions. This covers the shared284-path source
+and worst SIM path, but SIM response construction may still need its own stage.
+(2) Give NOR/SDRAM a captured regional owner so disjoint memory launch does not
+traverse all peripheral claims; preserve actual overlap and unsupported-access
+fault rules. (3) Rework buffer hazard/refill/enqueue control boundaries, then
+review remaining CPU halfword-to-decode paths. Avoid rewriting cache tag lookup
+again based solely on dirty-flag destination counts. No RTL edits, tests, commit,
+push or new FPGA build were initiated by this timing review.
+
 ## 2026-11-08: implement the four post-pass13 targets
 
 The peripheral owner and each local data/error cone now cross the same response

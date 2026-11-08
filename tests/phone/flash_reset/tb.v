@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
-module ngage_cpu(input clk,reset,irq,fiq,input wb_ack,wb_error,input [31:0] wb_read_data,
+module ngage_cpu(output [31:0] debug_pc,debug_cpsr,debug_instruction,output debug_fetch,input clk,reset,irq,fiq,input wb_ack,wb_error,input [31:0] wb_read_data,
  output wire wb_code,output reg wb_cyc=0,wb_lock=0,wb_stb=0,wb_write=0,output reg [31:0] wb_address=0,wb_write_data=0,output reg [3:0] wb_byte_enable=15,output [2:0] wb_cycle_type,output [1:0] wb_burst_type);
+ assign debug_pc=0;assign debug_cpsr=0;assign debug_instruction=0;assign debug_fetch=0;
  assign wb_code=1'b0;assign wb_cycle_type=0;assign wb_burst_type=0;
 endmodule
 module tb;
@@ -25,6 +26,11 @@ module tb;
  initial begin
  repeat(3)tick();cold=0;wait(init_done);tick();reset=0;
  scenario(32'h200,0);scenario(32'h02400000,0);scenario(32'h007f0000,0);scenario(32'h200,1);
+ // A short warm-reset pulse between clocks must assert cancellation and
+ // remain held until a synchronous drain/release edge.
+ @(negedge clk);reset=1;#1;if(!dut.core_reset)$fatal(1,"reset did not assert between clocks");
+ reset=0;#1;if(!dut.core_reset)$fatal(1,"reset released without a clock");
+ tick();if(dut.core_reset)$fatal(1,"idle reset did not release synchronously");
  $display("PASS reset drains old flash response before restarted request (code, C, PMM, response collision)");$finish;
  end
  initial begin #5000000;$fatal(1,"reset test timeout");end

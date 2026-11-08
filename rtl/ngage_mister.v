@@ -78,12 +78,18 @@ module ngage_mister #(
     // Command state is cleared while draining; pending command setup alone must
     // not prevent release. Cold reset cancels controller state with the transport.
     wire code_idle, user_idle;
-    reg reset_drain = 1'b1;
-    always @(posedge clk_sys) begin
-        if (reset || cold_reset) reset_drain <= 1'b1;
+    // Assert cancellation immediately, but release only on a clock edge after
+    // both flash engines have drained. The registered output, rather than a
+    // live OR of loader/readiness flags, drives the phone reset tree. Quartus
+    // may replicate this register near consumers instead of routing one
+    // combinational reset enable across every chip/cache metadata bank.
+    wire reset_request = reset || cold_reset;
+    (* maxfan = 128, preserve *)reg  reset_drain = 1'b1;
+    always @(posedge clk_sys or posedge reset_request) begin
+        if (reset_request) reset_drain <= 1'b1;
         else if (reset_drain && code_idle && user_idle) reset_drain <= 1'b0;
     end
-    wire core_reset = reset || cold_reset || reset_drain;
+    wire core_reset = reset_drain;
 
     // --- board devices ------------------------------------------------------
     wire brd_claim, brd_ready, brd_unmodeled;
