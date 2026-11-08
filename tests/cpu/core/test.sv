@@ -153,9 +153,13 @@ module test;
      if(measured_gap<init_min)init_min=measured_gap;if(measured_gap>init_max)init_max=measured_gap;
      init_branch_edge=-1;
     end
-    if(measure_load!=0 && issue_pc==measure_load)load_edge=cycles;
+    if(measure_load!=0 && issue_pc==measure_load)begin
+     load_edge=cycles;
+     if($test$plusargs("cache_phase_trace"))$display("LOAD_PHASE START %0d",cycles);
+    end
     if(measure_use!=0 && issue_pc==measure_use && load_edge>=0)begin
      measured_gap=cycles-load_edge;load_samples++;load_sum+=measured_gap;
+     if($test$plusargs("cache_phase_trace"))$display("LOAD_PHASE USE %0d gap=%0d",cycles,measured_gap);
      if(measured_gap<load_min)load_min=measured_gap;if(measured_gap>load_max)load_max=measured_gap;
      load_edge=-1;
     end
@@ -176,6 +180,25 @@ module test;
      dut.u_zap.u_zap_core.data_stall,dut.u_zap.u_zap_core.stall_from_shifter,
      dut.u_zap.u_zap_core.clear_from_writeback,dut.u_zap.u_zap_core.clear_from_alu,dut.u_zap.u_zap_core.clear_from_decode);
    end
+`ifdef NGAGE_ASSOC_EXPERIMENT
+   // Attribute the measured load/use issue gap to accepted demand, tag decision,
+   // response and owned completion. These are real handshakes, not fetch-valid
+   // levels or guessed retirement; identical probes run on the frozen baseline.
+   if($test$plusargs("cache_phase_trace") && load_edge>=0)begin
+    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.req_valid &&
+       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.req_ready)
+     $display("LOAD_PHASE ACCEPT %0d mva=%08h cacheable=%0d enabled=%0d",cycles,
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.address,
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cacheable,
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache_enable);
+    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.state==1)
+     $display("LOAD_PHASE LOOKUP %0d hit=%0d",cycles,
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.hit);
+    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.response_valid)
+     $display("LOAD_PHASE RESPONSE %0d",cycles);
+    if(dut.u_zap.u_zap_core.completion_valid)$display("LOAD_PHASE COMPLETE %0d",cycles);
+   end
+`endif
    if(retirement) retired_instructions=retired_instructions+1;
    // Structured architectural effects for latency-insensitive reference comparison.
    // Observe selected effective RF writes, not decompile text or guessed retirement.

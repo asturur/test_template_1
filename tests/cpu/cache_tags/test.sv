@@ -4,7 +4,7 @@ module test;
  reg [31:0] mva=0,pa=0;reg [5:0] lock_in=0;
  wire hit,vvalid;wire [5:0] hit_way,vway,lock_base;wire [1:0] hd,vd;wire [31:0] hp,vp;
  always #5 clk=~clk;
- arm920_cache_tags dut(.clk(clk),.reset(reset),.mva(mva),.hit(hit),.hit_way(hit_way),.hit_dirty(hd),.hit_physical_line(hp),
+ arm920_cache_tags dut(.clk(clk),.reset(reset),.mva(mva),.lookup_segment_select(8'b1 << mva[7:5]),.hit(hit),.hit_way(hit_way),.hit_dirty(hd),.hit_physical_line(hp),
  .victim_way(vway),.victim_valid(vvalid),.victim_dirty(vd),.victim_physical_line(vp),.fill(fill),.fill_physical(pa),
  .write_hit(write_hit),.invalidate_line(invalidate_line),.invalidate_all(invalidate_all),.clean_hit(clean_hit),
  .lock_write(lock_write),.lock_base_in(lock_in),.lock_base(lock_base),.round_robin(rr),.scan_segment(3'b0),.scan_way(6'b0),.scan_valid(),.scan_dirty(),.scan_physical_line(),.scan_clean(1'b0),.scan_invalidate(1'b0));

@@ -6,7 +6,7 @@ module test;
  logic mv=0,mc=0,mi=0,ma=0,mb=0;logic [31:0] mad=0;logic [5:0] mw=0;logic [2:0] ms=0;wire mr,md,me;
  logic [31:0] mva=0,pa=0,wd=0;logic [3:0] ben=4'hf;
  wire ready,rv,re,bv,bw,wbempty,wberror;wire [31:0] rd,ba,bd;wire [3:0] bs;
- logic [31:0] mem[0:32767];integer reads=0,writes=0,n;
+ logic [31:0] mem[0:32767];integer reads=0,writes=0,n,last_access_cycles;
  logic prev_blocked=0,prev_we;logic [31:0] prev_addr,prev_data;logic [3:0] prev_sel;
  wire [31:0] br=mem[ba[16:2]];
  arm920_cache_access dut(.clk(clk),.reset(reset),.req_valid(req),.req_ready(ready),.req_mva(mva),.req_physical(pa),.req_write(wr),.req_cache_enable(en),.req_cacheable(c),.req_bufferable(b),.req_wdata(wd),.req_byte_enable(ben),.response_valid(rv),.response_error(re),.response_data(rd),.write_buffer_empty(wbempty),.write_buffer_error(wberror),.fast_lookup_enable(fast),.fast_lookup_address(fast_addr),.fast_lookup_valid(fv),.fast_lookup_checked(fc),.fast_lookup_line(fl),.invalidate_all(inv),.lock_write(lock),.lock_base_in(6'b0),.round_robin(rr),.maint_valid(mv),.maint_clean(mc),.maint_invalidate(mi),.maint_all(ma),.maint_by_mva(mb),.maint_address(mad),.maint_way(mw),.maint_segment(ms),.maint_ready(mr),.maint_done(md),.maint_error(me),.bus_valid(bv),.bus_write(bw),.bus_address(ba),.bus_wdata(bd),.bus_byte_enable(bs),.bus_ack(bv && (bw ? allow : allow_reads)),.bus_error(1'b0),.bus_rdata(br));
@@ -27,7 +27,12 @@ module test;
  task automatic access(input logic write_op,input logic [31:0] a,input logic [31:0] data,input logic [3:0] mask,input logic bufferable,output logic [31:0] result);
   begin
    if(!ready)$fatal(1,"request not ready");mva=a;pa=32'h80000000+a;wd=data;ben=mask;b=bufferable;wr=write_op;req=1;tick();req=0;
-   while(!rv)tick();if(re)$fatal(1,"unexpected access error");result=rd;
+   // Poison the live offer after acceptance. Only the captured owner may feed
+   // tag/flag reads, store payloads, bus addresses and response word selection.
+   mva=32'hdeadc0f4;pa=32'hbad00004;wd=~data;ben=~mask;
+   last_access_cycles=0;
+   while(!rv)begin tick();last_access_cycles++;end
+   if(re)$fatal(1,"unexpected access error");result=rd;
    // Existing data checks observe external memory after buffered stores drain.
    while(!wbempty)tick();
   end
@@ -134,6 +139,71 @@ module test;
   if(re || rd!==32'hdecafbad || mem[0]!==32'hdecafbad || writes!=w0+4)
    $fatal(1,"aliased dirty victim returned stale data");
   while(!wbempty)tick();
+  // Explicit acceptance-to-response latency, isolated from CPU/TLB/pipeline
+  // overhead. The same fixture runs against the frozen baseline sources.
+  fast=0;reset=1;tick();reset=0;tick();en=1;c=1;b=1;
+  mem['h200]=32'h51c00800;
+  access(0,32'h800,0,4'hf,1,result);
+  $display("LOOKUP_LATENCY: clean_miss=%0d",last_access_cycles);
+  access(0,32'h800,0,4'hf,1,result);
+  $display("LOOKUP_LATENCY: read_hit=%0d",last_access_cycles);
+  access(1,32'h800,32'h1234abcd,4'hf,1,result);
+  $display("LOOKUP_LATENCY: store_hit=%0d",last_access_cycles);
+  en=0;access(0,32'h900,0,4'hf,0,result);
+  $display("LOOKUP_LATENCY: uncached=%0d",last_access_cycles);en=1;
+  mc=1;mi=0;ma=0;mb=1;mad=32'h800;mv=1;tick();mv=0;last_access_cycles=0;
+  while(!md)begin tick();last_access_cycles++;end
+  $display("LOOKUP_LATENCY: mva_clean=%0d",last_access_cycles);
+  while(!wbempty)tick();tick();
+  mc=0;mi=1;mb=0;mw=0;ms=0;mv=1;tick();mv=0;last_access_cycles=0;
+  while(!md)begin tick();last_access_cycles++;end
+  $display("LOOKUP_LATENCY: indexed_invalidate=%0d",last_access_cycles);tick();
+  ma=1;mv=1;tick();mv=0;last_access_cycles=0;
+  while(!md)begin tick();last_access_cycles++;end
+  $display("LOOKUP_LATENCY: all_invalidate=%0d",last_access_cycles);tick();
+  mc=0;mi=0;ma=0;mb=0;
+  // Independently known resident lines, no speculative bus reads allowed.
+  reset=1;tick();reset=0;tick();
+  for(n=0;n<128;n++)mem['h200+n]=32'h51c00000^(32'h800+4*n);
+  for(n=0;n<16;n++)access(0,32'h800+32*n,0,4'hf,1,result);
+  r0=reads;w0=writes;
+  for(integer step=2;step<=4;step+=2)begin
+   fast=1;mva=32'h800;fast_addr=mva+16;repeat(6)tick();
+   for(integer offset=0;offset<512;offset+=step)begin
+    mva=32'h800+offset;fast_addr=mva+16;#1;
+    if(!fv || fc!==mva || fl[mva[4:2]*32+:32]!==mem[mva[16:2]])
+     $fatal(1,"warm sequential lookup bubble/data step=%0d offset=%0d",step,offset);
+    tick();
+   end
+  end
+  if(reads!=r0 || writes!=w0)$fatal(1,"resident-only lookahead generated bus traffic");
+  $display("LOOKUP_STREAM: 384 ARM/Thumb-sized requests, one per clock across16lines");
+`ifndef NGAGE_CACHE_REFERENCE
+  // Cancel each possible owner/read/compare/line token position. Disable and
+  // lock preserve resident data, so a stale token would appear too early.
+  for(integer stage=0;stage<4;stage++)for(integer kind=0;kind<6;kind++)begin
+   fast=0;tick();mva=32'h800;fast_addr=mva;fast=1;repeat(stage)tick();
+   case(kind)
+    0:fast=0;
+    1:lock=1;
+    2:inv=1;
+    3:reset=1;
+    4:begin mc=1;mi=0;ma=0;mb=1;mad=32'h800;mv=1;end
+    5:begin mva=32'h800;pa=32'h80000800;wd=32'hca110000+stage;ben=4'hf;wr=1;b=1;req=1;end
+   endcase
+   #1;if(kind!=5 && fv)$fatal(1,"cancel left a visible stream result");tick();
+   fast=1;lock=0;inv=0;reset=0;mv=0;req=0;
+   if(kind==4)begin while(!md)tick();tick();end
+   if(kind==5)begin while(!rv)tick();wr=0;end
+   repeat(3)begin tick();if(fv)$fatal(1,"stale lookahead token survived cancel stage=%0d kind=%0d",stage,kind);end
+   if(kind==5)begin
+    tick();if(!fv || fl[31:0]!==32'hca110000+stage)$fatal(1,"lookahead used pre-store data after demand owner");
+   end
+   // Reinstall after invalidate/reset so the next trial has a possible stale hit.
+   fast=0;access(0,32'h800,0,4'hf,1,result);tick();
+  end
+  $display("LOOKUP_CANCEL: 24 token-stage/cause races, demand store data and epoch association");
+`endif
   $display("PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction");$finish;
  end
 endmodule

@@ -10,7 +10,9 @@ fit42516106759 confirms improved acquisition but exposes read-pointer→forwardi
 priority at−1.438ns. Patch0049's parallel narrow grants regressed routed timing in
 fit42520603079 and were reverted; active ARM RTL is exactly patch0048. Its failed
 experiment and independent collision tests are preserved. Cache lookup/address
-ownership is the next implementation slice, without bundling write-buffer work.
+ownership is implemented as the next fit candidate, without bundling write-buffer
+work; see [cache-lookup-stage-contract.md](cache-lookup-stage-contract.md) for the
+exact owner/epoch contract and measured +1 cached-lookup clock.
 The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
 capture, so patch0047 promotes the measured completion/local-advance portion of
 slice5 ahead of cache/translation work. Its blocking response owner adds one

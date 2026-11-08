@@ -188,15 +188,25 @@ always_ff @(posedge i_clk) begin
 end
 assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
 assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+// L0 in cache_access registers the resident-only lookahead PC. It has no
+// dependency on this cycle's ACK. Four ARM words cover owner/read/compare/line;
+// Thumb requests advance more slowly. Actual completion still checks live TLB
+// permission and the exact requested address. Context changes cancel all tokens.
+reg [CPSR_MODE+68:0] fast_context_q;
+wire [CPSR_MODE+68:0] fast_context = {i_mmu_en, i_cache_en, i_cpsr, i_sr, i_baddr, i_dac_reg};
+wire fast_context_change = fast_context != fast_context_q;
+always @(posedge i_clk) begin
+        if (i_reset) fast_context_q <= 0;
+        else fast_context_q <= fast_context;
+end
 arm920_zap_dcache_adapter experimental_cache(
  .clk(i_clk),.reset(i_reset),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
  .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
  .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
- // The shared bank has tag-read, compare and line-read stages. Look three
- // ARM words ahead so a resident next line arrives before its first request.
- .fast_enable(!prefetch_busy && !i_cache_prefetch),.fast_next_address(adapter_ack && i_rd ? i_address + 32'd12 : i_address),
+ .fast_enable(!prefetch_busy && !i_cache_prefetch && !fast_context_change && !i_tlb_inv),
+ .fast_next_address(i_address + 32'd16),
  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),
  .cacheable(tlb_cacheable),.bufferable(1'b1),

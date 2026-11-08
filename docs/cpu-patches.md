@@ -394,3 +394,14 @@ archived under `patches/zap/rejected/`, removed from active provenance, and its
 RTL reverted exactly to patch0048. The independent directed collision scenarios
 remain valid and retained; mask observers tied to removed internals are removed.
 Active ARM provenance is48patches. Revert is a new commit; history/evidence remain.
+
+
+## Owned cache lookahead context (0050;49 active patches)
+
+Patch0050 changes only the associative I-cache wrapper's lookahead offer: four
+ARM words ahead, independent of current ACK, with fast-path cancellation on MMU/
+permission/cache context changes. Its registered L0 owner, one-hot segment reads
+and token epochs live in maintained `rtl/arm920` modules. No extra lookahead
+register is added before L0. Active provenance applies0001–0048 then0050;
+rejected0049 remains archived, not reapplied. See the cache lookup contract for
+acceptance/response association, precise latency measurements and validation.

@@ -6,7 +6,7 @@ module test;
  reg [31:0] mva=0,pa=0,mask=0;reg [255:0] refill_line=0,store_line=0;
  reg [5:0] lock_in=0;wire hit,rvalid,vvalid,need,ready;wire [5:0] way,lock_base;
  wire [1:0] dirty;wire [31:0] victim_pa;wire [255:0] rline;
- arm920_cache_bank dut(.clk(clk),.reset(reset),.mva(mva),.hit(hit),.hit_way(way),
+ arm920_cache_bank dut(.clk(clk),.reset(reset),.mva(mva),.lookup_segment_select(8'b1 << mva[7:5]),.hit(hit),.hit_way(way),
   .read_victim(rv),.read_valid(rvalid),.read_line(rline),.victim_valid(vvalid),.victim_dirty(dirty),
   .victim_physical_line(victim_pa),.needs_writeback(need),.writeback_done(wb),
   .refill(refill),.refill_physical(pa),.refill_line(refill_line),.refill_ready(ready),

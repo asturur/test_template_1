@@ -8,6 +8,7 @@ module arm920_cache_tags (
     input  logic        clk,
     input  logic        reset,
     input  logic [31:0] mva,
+    input  logic [ 7:0] lookup_segment_select,
     output logic [31:0] lookup_address,
     output logic        hit,
     output logic [ 5:0] hit_way,
@@ -65,9 +66,16 @@ module arm920_cache_tags (
     wire [23:0] tag_data                                    [0:63];
     wire        fill_commit = commit_fill && commit_allowed;
     wire [ 2:0] commit_segment = commit_mva[7:5];
-    genvar tag_way;
+    wire [7:0] valid_by_segment[0:63];
+    wire [7:0] dirty0_by_segment[0:63], dirty1_by_segment[0:63];
+    genvar tag_way, lookup_segment;
     generate
         for (tag_way = 0; tag_way < 64; tag_way = tag_way + 1) begin : ways
+            for (lookup_segment = 0; lookup_segment < 8; lookup_segment = lookup_segment + 1) begin : flag_read
+                assign valid_by_segment[tag_way][lookup_segment] = valid[lookup_segment][tag_way];
+                assign dirty0_by_segment[tag_way][lookup_segment] = dirty[lookup_segment][tag_way][0];
+                assign dirty1_by_segment[tag_way][lookup_segment] = dirty[lookup_segment][tag_way][1];
+            end
             ngage_bram #(
                 .AW         (3),
                 .DW         (24),
@@ -132,8 +140,9 @@ module arm920_cache_tags (
         compare_victim_dirty <= read_dirty_bits[read_victim_way];
         compare_victim_pa    <= victim_pa_data;
         for (lookup_way = 0; lookup_way < 64; lookup_way = lookup_way + 1) begin
-            read_valid_bits[lookup_way] <= valid[mva[7:5]][lookup_way];
-            read_dirty_bits[lookup_way] <= dirty[mva[7:5]][lookup_way];
+            read_valid_bits[lookup_way] <= |(valid_by_segment[lookup_way] & lookup_segment_select);
+            read_dirty_bits[lookup_way][0] <= |(dirty0_by_segment[lookup_way] & lookup_segment_select);
+            read_dirty_bits[lookup_way][1] <= |(dirty1_by_segment[lookup_way] & lookup_segment_select);
             match_bits[lookup_way] <= !reset && !invalidate_all &&
                 read_valid_bits[lookup_way] && tag_data[lookup_way] == read_mva[31:8];
             compare_dirty[lookup_way] <= read_dirty_bits[lookup_way];

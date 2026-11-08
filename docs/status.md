@@ -1,3 +1,48 @@
+## 2026-11-08: cache lookup ownership — validated fit candidate
+
+After reverting failed forwarding patch0049 in57bf13d, slice2 captures accepted
+cache address/kind/epoch and an eight-bit segment select before tag/flag reads.
+Only this registered owner drives the bank; it holds through store/refill/retry/
+drain/maintenance. Existing64-way metadata and two stream lines remain. Registered
+lookahead tokens retain address/epoch, and acceptance, mutation or context changes
+cancel every speculative stage. I lookahead is ACK-independent PC+16. No new QIP,
+write-buffer redesign, translation redesign, clock change or timing exception.
+Contract and exact stage boundaries: [cache lookup ownership](cache-lookup-stage-contract.md).
+
+Frozen-source differential: cached hit3→4 visible-response clocks (caller samples
+4→5), clean miss22→23, WB store4→5, MVA clean11→12. Uncached3, indexed invalidate5
+and all512 invalidate1538 are unchanged.384 resident ARM/Thumb requests cross16
+lines at one per clock with no speculative bus transfers;24 stage×cause cancel
+races and poisoned-after-accept inputs pass. Warm CPU load gap19→20 decomposes as
+11pre-accept +4→5cache service +1owned completion +3dependent release. The11
+pre-accept clocks remain a separate future latency target, not cache-hit service.
+
+Full suite172PASS+1expected legacy XFAIL,152 CPU cases including44 SWP IRQ/FIQ
+edge×wait cases. Independent operand oracle56,251clocks; frozen reference17,160.
+Mixed waits0/3/7/15/31 totals243457/333957/408273/634683/1095735 are baseline
++52/+54/+51/+51/+51; setup+2 each. Cached bodies1414/1668/2018/2742/4194 become
+1464/1720/2067/2791/4243. Warm ADD stays1clock, load-use minimum20, branch minimum14;
+accepted-fetch/issue/retirement counts match. All21,118 architectural effects match
+byte-for-byte. Fixed four-program/two-wait mix1729724→1729858 (+134,+0.00775%);
+its setup-heavy total does not hide the separately reported cached-body cost.
+Legacy0/3 smoke remains135782/234446. Full diagnostic case cycles are retained in
+the JSON; interrupt/phase-sensitive diagnostics are correctness tests, not a
+single comparable throughput benchmark.
+
+Fresh5M real-SDRAM boot is byte-identical including timestamps:848 events,121
+ordered writes,12 known fetch faults/no data faults,PC00006168/289114transfers;
+last write190170. Phone integration, top lint,174sources/9QIPs, ONLY_CORE/legacy/
+assoc elaboration and28 targeted timing-query mocks pass. Active49 provenance
+patches (0001–0048 plus0050) reproduce all ARM sources;0049 remains archived.
+Frozen RTL hashes match final validation. Evidence and reproducible analysis:
+scratch/timing-closure/cache-lookup-owner/{validation-summary.json,analyze.py}.
+
+Ready for one isolated fit. The new owner stage targets the measured late request
+qualification→bank address→metadata route (−1.819ns in42520603079). Request→owner,
+owner→tags, lookup stages and cache→response must all be measured. Fanout/resource/
+placement effects remain unmeasured; CPU forwarding, SDRAM and other independent
+paths remain open. This is a verified candidate, not104MHz timing closure.
+
 ## 2026-11-08: failed forwarding experiment reverted; cache slice starts
 
 Active `rtl/arm` including UPSTREAM.json is byte-identical to71b8940/patch0048;

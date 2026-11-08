@@ -65,7 +65,9 @@ module arm920_cache_access (
         WAIT_DRAIN,
         LOOKUP_WAIT,
         MAINT_WAIT,
-        STORE_COMMIT
+        STORE_COMMIT,
+        LOOKUP_CAPTURE,
+        MAINT_CAPTURE
     } state_t;
     state_t state;
     logic [31:0] mva, pa, wdata;
@@ -90,53 +92,109 @@ module arm920_cache_access (
     logic [31:0] saved_maint_address;
     logic [5:0] saved_maint_way;
     logic [2:0] saved_maint_segment;
-    // Prime the tag RAM on the same edge that accepts a serialized request.
-    wire fast_read=fast_lookup_enable && state==IDLE && !req_valid && !maint_valid && !invalidate_all && !lock_write;
-    wire [31:0] bank_mva=state==IDLE ?
-     (maint_valid ? maint_address : req_valid ? req_mva : fast_read ? fast_lookup_address : mva) :
-     (state==MAINT_WAIT || state==MAINT_LOOKUP || state==MAINTAIN) && saved_maint_by_mva ? saved_maint_address : mva;
-    logic fast_pending, fast_compare_pending, fast_result_valid;
-    reg [31:0] fast_compare_address;
-    logic [31:0] fast_address_q, fast_result_address;
-    // Two streaming lines bridge the synchronous tag/data pipeline. The full
-    // 16 KiB cache remains in M10K; these 64 bytes permit one instruction/clock.
-    logic [1:0] stream_valid;
+    // L0 owns the bank address before any tag RAM or flag snapshot reads it.
+    // A serialized owner remains fixed through store/refill/retry/maintenance.
+    // Resident-only lookahead may replace L0 each idle clock; it never starts
+    // a refill or any bus request. Maintenance acceptance has first priority.
+    localparam [1:0] LOOKUP_DEMAND = 2'd0, LOOKUP_AHEAD = 2'd1, LOOKUP_MAINT = 2'd2;
+    reg lookup_owner_valid, lookup_owner_epoch, fast_epoch, fast_enabled_q;
+    reg [1:0] lookup_owner_kind;
+    reg [31:0] lookup_owner_mva;
+    reg [7:0] lookup_owner_segment_select;
+    wire accept_demand = req_valid && req_ready;
+    wire accept_maintenance = maint_valid && maint_ready;
+    wire fast_read = fast_lookup_enable && state == IDLE && !req_valid &&
+                     !maint_valid && !invalidate_all && !lock_write;
+    wire capture_lookup = accept_maintenance || accept_demand || fast_read;
+    wire [31:0] capture_lookup_mva = accept_maintenance ? maint_address :
+                                   accept_demand ? req_mva : fast_lookup_address;
+    wire cancel_fast = !fast_lookup_enable || state != IDLE || accept_demand ||
+                       maint_valid || invalidate_all || lock_write;
+    wire change_epoch = accept_demand || accept_maintenance || invalidate_all ||
+                        lock_write || (fast_enabled_q && !fast_lookup_enable);
+    always @(posedge clk) begin
+        if (reset) begin
+            lookup_owner_valid <= 0;
+            lookup_owner_kind <= LOOKUP_DEMAND;
+            lookup_owner_mva <= 0;
+            lookup_owner_segment_select <= 8'b1;
+            lookup_owner_epoch <= 0;
+            fast_epoch <= 0;
+            fast_enabled_q <= 0;
+        end else begin
+            fast_enabled_q <= fast_lookup_enable;
+            if (change_epoch) fast_epoch <= !fast_epoch;
+            if (capture_lookup) begin
+                lookup_owner_valid <= 1;
+                lookup_owner_kind <= accept_maintenance ? LOOKUP_MAINT :
+                                     accept_demand ? LOOKUP_DEMAND : LOOKUP_AHEAD;
+                lookup_owner_mva <= capture_lookup_mva;
+                lookup_owner_segment_select <= 8'b1 << capture_lookup_mva[7:5];
+                lookup_owner_epoch <= fast_epoch ^ change_epoch;
+            end else if (state == IDLE) lookup_owner_valid <= 0;
+        end
+    end
+    // Address/epoch tokens follow the existing tag-read, compare and line-read
+    // edges. Every cancel clears ALL tokens, so the one-bit epoch cannot alias
+    // a surviving old request even if cancellations occur on adjacent clocks.
+    reg fast_read_pending, fast_compare_pending, fast_result_valid;
+    reg fast_read_epoch, fast_compare_epoch, fast_result_epoch;
+    reg [31:0] fast_read_address, fast_compare_address, fast_result_address;
+    // Two streaming lines still bridge the lookup pipeline at one word/clock.
+    logic [1:0] stream_valid, stream_epoch;
     logic [26:0] stream_tag[0:1];
     logic [255:0] stream_line[0:1];
-    wire stream_hit = stream_valid[req_mva[5]] && stream_tag[req_mva[5]] == req_mva[31:5];
-    wire result_hit = fast_result_valid && fast_result_address[31:5] == req_mva[31:5];
+    wire stream_hit = stream_valid[req_mva[5]] && stream_epoch[req_mva[5]] == fast_epoch &&
+                      stream_tag[req_mva[5]] == req_mva[31:5];
+    wire result_hit = fast_result_valid && fast_result_epoch == fast_epoch &&
+                      fast_result_address[31:5] == req_mva[31:5];
+    // Do not qualify this output with req_valid: the adapter derives req_valid
+    // from !fast_hit, so that would introduce a combinational ACK loop.
     assign fast_lookup_valid=fast_lookup_enable && state==IDLE && !reset && !maint_valid &&
                           !invalidate_all && !lock_write && (stream_hit || result_hit);
     assign fast_lookup_checked = req_mva;
     assign fast_lookup_line = result_hit ? line : stream_line[req_mva[5]];
     always_ff @(posedge clk) begin
         if (reset) begin
-            fast_result_valid    <= 0;
-            fast_result_address  <= 0;
-            fast_pending         <= 0;
+            fast_result_valid <= 0;
+            fast_read_pending <= 0;
             fast_compare_pending <= 0;
+            fast_read_address <= 0;
             fast_compare_address <= 0;
-            fast_address_q       <= 0;
-            stream_valid         <= 0;
+            fast_result_address <= 0;
+            fast_read_epoch <= 0;
+            fast_compare_epoch <= 0;
+            fast_result_epoch <= 0;
+            stream_valid <= 0;
+            stream_epoch <= 0;
         end else begin
-            fast_pending <= fast_read;
-            fast_address_q <= bank_mva;
-            fast_compare_pending <= fast_pending;
-            fast_compare_address <= fast_address_q;
-            fast_result_valid<=fast_compare_pending && hit && state==IDLE && !maint_valid && !invalidate_all && !lock_write;
+            fast_read_pending <= lookup_owner_valid && lookup_owner_kind == LOOKUP_AHEAD;
+            fast_read_address <= lookup_owner_mva;
+            fast_read_epoch <= lookup_owner_epoch;
+            fast_compare_pending <= fast_read_pending;
+            fast_compare_address <= fast_read_address;
+            fast_compare_epoch <= fast_read_epoch;
+            fast_result_valid <= fast_compare_pending && hit && fast_compare_epoch == fast_epoch;
             fast_result_address <= fast_compare_address;
-            // Any serialized operation can mutate/evict a line. Re-prime afterward;
-            // neither maintenance nor stores may leave a stale streaming copy.
-            if (state != IDLE || maint_valid || invalidate_all || lock_write) stream_valid <= 0;
-            else if (fast_result_valid) begin
+            fast_result_epoch <= fast_compare_epoch;
+            if (cancel_fast) begin
+                fast_read_pending <= 0;
+                fast_compare_pending <= 0;
+                fast_result_valid <= 0;
+                stream_valid <= 0;
+            end else if (fast_result_valid && fast_result_epoch == fast_epoch) begin
                 stream_valid[fast_result_address[5]] <= 1;
-                stream_tag[fast_result_address[5]]   <= fast_result_address[31:5];
-                stream_line[fast_result_address[5]]  <= line;
+                stream_epoch[fast_result_address[5]] <= fast_result_epoch;
+                stream_tag[fast_result_address[5]] <= fast_result_address[31:5];
+                stream_line[fast_result_address[5]] <= line;
             end
+            // A serialized read seeds its own returned line, after all older
+            // speculative tokens have been killed. Other stream slot stays dead.
             if (state == READ_LINE && enabled && cacheable) begin
                 stream_valid[mva[5]] <= 1;
-                stream_tag[mva[5]]   <= mva[31:5];
-                stream_line[mva[5]]  <= line;
+                stream_epoch[mva[5]] <= fast_epoch;
+                stream_tag[mva[5]] <= mva[31:5];
+                stream_line[mva[5]] <= line;
             end
         end
     end
@@ -221,7 +279,8 @@ module arm920_cache_access (
     arm920_cache_bank bank (
         .clk                 (clk),
         .reset               (reset),
-        .mva                 (bank_mva),
+        .mva                 (lookup_owner_mva),
+        .lookup_segment_select(lookup_owner_segment_select),
         .hit                 (hit),
         .hit_way             (hit_way),
         .read_victim         (read_victim),
@@ -346,7 +405,7 @@ module arm920_cache_access (
                     saved_maint_address    <= maint_address;
                     saved_maint_way        <= maint_way;
                     saved_maint_segment    <= maint_segment;
-                    state                  <= MAINT_WAIT;
+                    state                  <= maint_by_mva ? MAINT_CAPTURE : MAINT_WAIT;
                 end else if (req_valid && req_ready) begin
                     mva        <= req_mva;
                     pa         <= req_physical;
@@ -356,8 +415,10 @@ module arm920_cache_access (
                     enabled    <= req_cache_enable;
                     cacheable  <= req_cacheable;
                     bufferable <= req_bufferable;
-                    state      <= LOOKUP_WAIT;
+                    state      <= req_cache_enable && req_cacheable ? LOOKUP_CAPTURE : LOOKUP_WAIT;
                 end
+                LOOKUP_CAPTURE: state <= LOOKUP_WAIT;
+                MAINT_CAPTURE: state <= MAINT_WAIT;
                 LOOKUP_WAIT: state <= LOOKUP;
                 MAINT_WAIT: state <= MAINT_LOOKUP;
                 LOOKUP:
@@ -410,6 +471,24 @@ module arm920_cache_access (
         end
     end
 `ifndef SYNTHESIS
+    always @(posedge clk) begin
+        if (!reset) begin
+            if (lookup_owner_valid && lookup_owner_segment_select != (8'b1 << lookup_owner_mva[7:5]))
+                $fatal(1, "cache lookup segment/address owner mismatch");
+            if (state != IDLE && (!lookup_owner_valid || lookup_owner_kind == LOOKUP_AHEAD))
+                $fatal(1, "serialized cache operation lost lookup ownership");
+            if (state != IDLE && lookup_owner_mva !=
+                (lookup_owner_kind == LOOKUP_MAINT ? saved_maint_address : mva))
+                $fatal(1, "serialized cache lookup address changed");
+            if (state == LOOKUP && enabled && cacheable && bank.lookup_address != mva)
+                $fatal(1, "cache decision consumed another lookup address");
+            if (state == MAINT_LOOKUP && saved_maint_by_mva && bank.lookup_address != saved_maint_address)
+                $fatal(1, "MVA maintenance consumed another lookup address");
+            if (fast_compare_pending && !cancel_fast &&
+                (bank.lookup_address != fast_compare_address || fast_compare_epoch != fast_epoch))
+                $fatal(1, "lookahead compare token lost address/epoch association");
+        end
+    end
     always @(posedge clk)
         if (!reset && state != IDLE && (invalidate_all || lock_write))
             $fatal(1, "cache maintenance must not overlap an access");
