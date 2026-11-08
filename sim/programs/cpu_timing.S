@@ -5,8 +5,12 @@ reset_entry:
  ldr r4, =TABLE
  mov r0,#0
  mov r1,#4096
+.global measure_init_target
+.global measure_init_branch
+measure_init_target:
 1: str r0,[r4],#4
  subs r1,r1,#1
+measure_init_branch:
  bne 1b
  ldr r4,=TABLE
  ldr r0,=0x00000c0e

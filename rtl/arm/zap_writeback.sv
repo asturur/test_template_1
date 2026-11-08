@@ -110,6 +110,13 @@ module zap_writeback #(
         output logic     [31:0]               o_rd_data_2,
         output logic     [31:0]               o_rd_data_3,
 
+        // Effective register writes for held operand-base refresh.
+        output logic                         o_rf_wen,
+        output logic [5:0]                   o_rf_wr_addr_a,
+        output logic [5:0]                   o_rf_wr_addr_b,
+        output logic [31:0]                  o_rf_wr_data_a,
+        output logic [31:0]                  o_rf_wr_data_b,
+
         // Program counter (dedicated port).
         output logic     [31:0]               o_pc,
         output logic     [31:0]               o_pc_check,
@@ -162,6 +169,12 @@ logic [32:0]                      pc_del3_ff, pc_del3_nxt;
 logic                             mode32;
 logic                             clear_from_btb;
 logic [31:0]                      pc_from_btb;
+
+assign o_rf_wen = wen;
+assign o_rf_wr_addr_a = wa1;
+assign o_rf_wr_addr_b = wa2;
+assign o_rf_wr_data_a = wdata1;
+assign o_rf_wr_data_b = wdata2;
 
 assign  mode32     = (cpsr_ff[T] == 1'd0) ? 1'd1 : 1'd0;
 assign  o_shelve     = shelve_ff;

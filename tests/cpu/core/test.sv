@@ -8,6 +8,27 @@ module test;
  reg fault_read_only=0,fault_write_only=0; integer fault_address_writes=0;
  reg [31:0] rom[0:16383]; reg [31:0] ram[0:524287];
  integer latency=0,delay=0,cycles=0,completed=0,max_cycles=500000;
+ integer accepted_fetches=0,fetch_responses=0,accepted_issues=0,retired_instructions=0;
+ reg [31:0] measure_load=0,measure_use=0,measure_branch=0,measure_target=0;
+ integer load_edge=-1,branch_edge=-1,load_samples=0,branch_samples=0;
+ integer load_sum=0,load_min=999999,load_max=0,branch_sum=0,branch_min=999999,branch_max=0;
+ integer measured_gap;
+ integer first_body_cycle=-1,init_branch_edge=-1,init_samples=0,init_sum=0,init_min=999999,init_max=0;
+ reg [31:0] measure_init_branch=0,measure_init_target=0;
+ integer init_store_edge=-1,init_subs_edge=-1,store_subs_sum=0,subs_branch_sum=0,store_subs_n=0,subs_branch_n=0;
+ integer swp_edge=-1;
+ reg sweep_at_edge;
+ wire issue_transfer = !dut.u_zap.u_zap_core.data_stall && !dut.u_zap.u_zap_core.stall_from_shifter &&
+   !dut.u_zap.u_zap_core.clear_from_writeback && !dut.u_zap.u_zap_core.clear_from_alu &&
+   dut.u_zap.u_zap_core.issue_condition_code_ff!=4'hf;
+ wire [31:0] issue_pc = dut.u_zap.u_zap_core.issue_pc_ff;
+ wire retirement = dut.u_zap.u_zap_core.u_zap_writeback.i_uop_last &&
+   (dut.u_zap.u_zap_core.u_zap_writeback.i_valid || dut.u_zap.u_zap_core.u_zap_writeback.i_decompile_valid) &&
+   !(|dut.u_zap.u_zap_core.u_zap_writeback.i_data_abt) &&
+   !dut.u_zap.u_zap_core.u_zap_writeback.i_fiq && !dut.u_zap.u_zap_core.u_zap_writeback.i_irq &&
+   !dut.u_zap.u_zap_core.u_zap_writeback.i_instr_abt && !dut.u_zap.u_zap_core.u_zap_writeback.i_swi &&
+   !dut.u_zap.u_zap_core.u_zap_writeback.i_und && !dut.u_zap.u_zap_core.u_zap_writeback.i_copro_reg_en;
+ wire [31:0] retirement_pc = dut.u_zap.u_zap_core.u_zap_writeback.i_pc_plus_8_buf_ff - 8;
  reg [31:0] timing_first=0,timing_last=0,trace_pc=0,last_pc=0;
  integer last_cycle=0,timing_count=0,timing_sum=0,timing_min=999999,timing_max=0,gap;
  integer warm_count=0,warm_sum=0,warm_min=999999,warm_max=0;
@@ -46,6 +67,16 @@ module test;
      (dut.u_zap.u_zap_core.o_data_wb_stb & dut.u_zap.u_zap_core.o_data_wb_cyc & ~dut.u_zap.data_ack))
    $fatal(1,"global data-stall timing changed");
  end
+`ifndef NGAGE_OPERAND_REFERENCE
+ always @(negedge clk)if(!reset)begin
+  if(dut.u_zap.u_zap_core.u_zap_writeback.i_copro_reg_en &&
+     dut.u_zap.u_zap_core.u_zap_issue_main.operand_push &&
+     !dut.u_zap.u_zap_core.clear_from_writeback && !dut.u_zap.u_zap_core.clear_from_alu)
+   $fatal(1,"CP15 stole RF port during meaningful operand acquisition");
+  if(dut.u_zap.u_zap_core.operand_busy && !dut.u_zap.u_zap_core.pipeline_is_not_empty)
+   $fatal(1,"CP15 drain ignored an owned operand packet");
+ end
+`endif
  always @(negedge clk)if(!reset)begin
   if(observed_pc!==dut.u_zap.u_zap_core.o_instr_wb_adr ||
      observed_cpsr!==dut.u_zap.u_zap_core.alu_flags_ff ||
@@ -95,6 +126,80 @@ module test;
 `endif
   if(!reset) begin
    cycles<=cycles+1;
+   if(observed_fetch)fetch_responses=fetch_responses+1;
+   if(dut.u_zap.u_zap_core.u_zap_fetch_main.i_valid && !dut.u_zap.u_zap_core.code_stall &&
+      !dut.u_zap.u_zap_core.u_zap_fetch_main.sleep_ff &&
+      !dut.u_zap.u_zap_core.clear_from_writeback && !dut.u_zap.u_zap_core.clear_from_alu &&
+      !dut.u_zap.u_zap_core.clear_from_decode)accepted_fetches=accepted_fetches+1;
+   if(issue_transfer)begin
+    accepted_issues=accepted_issues+1;
+    if(timing_first!=0 && issue_pc==timing_first && first_body_cycle<0)first_body_cycle=cycles;
+    if(measure_init_target!=0 && issue_pc==measure_init_target)init_store_edge=cycles;
+    if(measure_init_target!=0 && issue_pc==measure_init_target+4 && init_store_edge>=0)begin
+     store_subs_sum+=cycles-init_store_edge;store_subs_n++;init_subs_edge=cycles;init_store_edge=-1;
+    end
+    if(measure_init_branch!=0 && issue_pc==measure_init_branch)begin
+     init_branch_edge=cycles;
+     if(init_subs_edge>=0)begin subs_branch_sum+=cycles-init_subs_edge;subs_branch_n++;init_subs_edge=-1;end
+    end
+    if(measure_init_target!=0 && issue_pc==measure_init_target && init_branch_edge>=0)begin
+     measured_gap=cycles-init_branch_edge;init_samples++;init_sum+=measured_gap;
+     if(measured_gap<init_min)init_min=measured_gap;if(measured_gap>init_max)init_max=measured_gap;
+     init_branch_edge=-1;
+    end
+    if(measure_load!=0 && issue_pc==measure_load)load_edge=cycles;
+    if(measure_use!=0 && issue_pc==measure_use && load_edge>=0)begin
+     measured_gap=cycles-load_edge;load_samples++;load_sum+=measured_gap;
+     if(measured_gap<load_min)load_min=measured_gap;if(measured_gap>load_max)load_max=measured_gap;
+     load_edge=-1;
+    end
+    if(measure_branch!=0 && issue_pc==measure_branch)branch_edge=cycles;
+    if(measure_target!=0 && issue_pc==measure_target && branch_edge>=0)begin
+     measured_gap=cycles-branch_edge;branch_samples++;branch_sum+=measured_gap;
+     if(measured_gap<branch_min)branch_min=measured_gap;if(measured_gap>branch_max)branch_max=measured_gap;
+     branch_edge=-1;
+    end
+   end
+   if(retirement) retired_instructions=retired_instructions+1;
+   // Structured architectural effects for latency-insensitive reference comparison.
+   // Observe selected effective RF writes, not decompile text or guessed retirement.
+   if($test$plusargs("effect_trace"))begin
+    for(integer r=0;r<40;r++)if(r!=16)begin
+     if(dut.u_zap.u_zap_core.i_dc_reg_idx[r])
+      $display("EFFECT RF %0d %08h",r,dut.u_zap.u_zap_core.i_dc_reg_dat);
+     else if(dut.u_zap.u_zap_core.u_zap_writeback.wen && dut.u_zap.u_zap_core.u_zap_writeback.wa2==r)
+      $display("EFFECT RF %0d %08h",r,dut.u_zap.u_zap_core.u_zap_writeback.wdata2);
+     else if(dut.u_zap.u_zap_core.u_zap_writeback.wen && dut.u_zap.u_zap_core.u_zap_writeback.wa1==r)
+      $display("EFFECT RF %0d %08h",r,dut.u_zap.u_zap_core.u_zap_writeback.wdata1);
+    end
+    if(retirement)$display("EFFECT RETIRE %08h %08h",retirement_pc,dut.u_zap.u_zap_core.u_zap_writeback.cpsr_nxt);
+   end
+`ifndef NGAGE_OPERAND_REFERENCE
+   // Sweep interrupt arrival through every new acquisition/execution boundary.
+   // Program checks that handler sees either whole pre-SWP or whole post-SWP state.
+   sweep_at_edge=0;
+   case(swp_edge)
+    0:sweep_at_edge=dut.u_zap.u_zap_core.decode_swp_tag==1;
+    1:sweep_at_edge=dut.u_zap.u_zap_core.u_zap_issue_main.operand_valid && dut.u_zap.u_zap_core.u_zap_issue_main.operand_swp_tag==1;
+    2:sweep_at_edge=dut.u_zap.u_zap_core.issue_swp_tag==1;
+    3:sweep_at_edge=dut.u_zap.u_zap_core.shifter_swp_tag==1;
+    4:sweep_at_edge=dut.u_zap.u_zap_core.alu_swp_tag==1;
+    5:sweep_at_edge=dut.u_zap.u_zap_core.postalu0_swp_tag==1;
+    6:sweep_at_edge=dut.u_zap.u_zap_core.postalu1_swp_tag==1;
+    7:sweep_at_edge=dut.u_zap.u_zap_core.postalu_swp_tag==1;
+    8:sweep_at_edge=dut.u_zap.u_zap_core.postalu_swp_tag==2;
+    default:sweep_at_edge=0;
+   endcase
+   if(swp_edge>=0)begin
+    if(swp_irq_state==0 && sweep_at_edge)begin
+     if($test$plusargs("sweep_fiq"))fiq<=1;else irq<=1;
+     swp_irq_state=1;
+    end
+    if(swp_irq_state==1 && dut.u_zap.cpu_cpsr[4:0]==($test$plusargs("sweep_fiq")?5'h11:5'h12))begin
+     irq<=0;fiq<=0;swp_irq_state=2;
+    end
+   end
+`endif
 `ifdef NGAGE_ASSOC_EXPERIMENT
    if ((($test$plusargs("tlb_order") && dut.u_zap.l_generate_with_cache_mmu.u_data_cache.tlb_raw_stb) ||
         ($test$plusargs("tlb_order_i") && dut.u_zap.l_generate_with_cache_mmu.u_code_cache.tlb_raw_stb)) &&
@@ -176,8 +281,9 @@ module test;
    if (ack) bus_count=bus_count+1;
    if (ack && !we && instruction_test_addr!=0 && addr==instruction_test_addr)
       instruction_fetches=instruction_fetches+1;
-   if(timing_first != 0 && trace_valid && trace_last && $sscanf(trace_text,"%h:",trace_pc)==1 &&
-      trace_pc>=timing_first && trace_pc<timing_last) begin
+   if(timing_first != 0 && retirement &&
+      retirement_pc>=timing_first && retirement_pc<timing_last) begin
+       trace_pc=retirement_pc;
        if(trace_pc==last_pc+4) begin
         gap=cycles-last_cycle;timing_count=timing_count+1;timing_sum=timing_sum+gap;
         if(gap<timing_min)timing_min=gap;if(gap>timing_max)timing_max=gap;
@@ -226,6 +332,14 @@ module test;
       $display("TIMING: ARM ADDs after two passes: samples=%0d min=%0d max=%0d total=%0d (ARM920 normal ADD: 1 cycle)",warm_count,warm_min,warm_max,warm_sum);
       if(warm_count<100 || warm_min!=1 || warm_max!=1)$fatal(1,"cached ARM ADD throughput regressed");
      end
+     if(swp_edge>=0 && swp_irq_state!=2)$fatal(1,"interrupt sweep did not complete");
+     if(first_body_cycle>=0)$display("INIT_EDGES: store_to_subs samples=%0d sum=%0d subs_to_branch samples=%0d sum=%0d",store_subs_n,store_subs_sum,subs_branch_n,subs_branch_sum);
+     if(first_body_cycle>=0)$display("PHASES: setup=%0d body=%0d init_branch samples=%0d sum=%0d min=%0d max=%0d",first_body_cycle,cycles-first_body_cycle,init_samples,init_sum,init_min,init_max);
+     if(measure_load!=0)begin
+      if(load_samples<5 || branch_samples<5)$fatal(1,"insufficient operand timing samples");
+      $display("METRICS: load_use samples=%0d sum=%0d min=%0d max=%0d branch_target samples=%0d sum=%0d min=%0d max=%0d",load_samples,load_sum,load_min,load_max,branch_samples,branch_sum,branch_min,branch_max);
+     end
+     $display("COUNTERS: fetch_response=%0d fetch_accept=%0d issue=%0d retire_uop_last=%0d",fetch_responses,accepted_fetches,accepted_issues,retired_instructions);
      $display("PASS: CPU test, memory delay %0d, %0d cycles",latency,cycles);$finish;
     end else $fatal(1,"unexpected write %h",addr);
    end
@@ -235,6 +349,13 @@ module test;
   fault_read_only=$test$plusargs("fault_read_only");
   fault_write_only=$test$plusargs("fault_write_only");
   if (!$value$plusargs("latency=%d",latency)) latency=0;
+  if (!$value$plusargs("swp_edge=%d",swp_edge))swp_edge=-1;
+  if (!$value$plusargs("measure_init_branch=%h",measure_init_branch))measure_init_branch=0;
+  if (!$value$plusargs("measure_init_target=%h",measure_init_target))measure_init_target=0;
+  if (!$value$plusargs("measure_load=%h",measure_load))measure_load=0;
+  if (!$value$plusargs("measure_use=%h",measure_use))measure_use=0;
+  if (!$value$plusargs("measure_branch=%h",measure_branch))measure_branch=0;
+  if (!$value$plusargs("measure_target=%h",measure_target))measure_target=0;
   if (!$value$plusargs("max_cycles=%d",max_cycles)) max_cycles=500000;
   if (!$value$plusargs("fault_addr=%h",fault_addr)) fault_addr=0;
   if (!$value$plusargs("icache_first=%h",instruction_test_addr)) instruction_test_addr=0;

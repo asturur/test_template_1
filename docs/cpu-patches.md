@@ -293,7 +293,8 @@ on the patched CPU. The unmodified comparison reproduces the original alignment
 and cache-disabled data-translation failures. Synthesis-path lint passes with
 ARM64 Verilator; this is not an FPGA resource, timing, or placement result.
 
-ZAP retains its 17-stage pipeline and ARMv5TE-capable decoder. The project default
+ZAP retains its execution pipeline and ARMv5TE-capable decoder; patch0045 adds
+one owned operand-acquisition edge before issue. The project default
 uses the local ARM920-shaped associative cache adapters; the legacy direct-mapped
 configuration remains available for reference tests. Passing these checks does not
 establish a complete ARM920T implementation, original Nokia execution timing, or
@@ -307,3 +308,21 @@ with10170, despite SystemVerilog source selection and successful Verilator lint.
 The tree, forwarding and pipeline behaviour are unchanged. The operand oracle
 passes17160 cycles, all44 patches reproduce the imported source exactly, and
 the compiled-source preflight now catches that specific unsupported syntax.
+
+## Owned operand acquisition before issue
+
+Patch0045 replaces the old issue skid with a two-entry `zap_operand_read` owner.
+Registered D indices feed the unchanged four-read FF RF directly; registered bases
+feed late issue forwarding. Selected effective writes refresh both slots on every
+edge (including holds), with C>B>A collision priority and capture/issue-edge bypass.
+Capacity-only upstream stop is independent of current hazard/forwarding. CP15 drain
+counts owned packets; the shifter receives issue's own bubble/valid controls.
+ALU/S late bypass, physical banks, memory/exception and legacy load locks remain.
+
+This adds one enabled D-to-I edge and preserves warm dependent ADD interval1.
+Cached mixed-body costs are small in the measured diagnostic, but the fixed mix
+has an11.917% aggregate cycle increase dominated by uncached setup loops. That is
+an explicit review trigger, not an accepted universal CPI budget. Exact contract,
+cycle tables, reference selection and measured penalties are in
+[cpu-operand-stage-contract.md](cpu-operand-stage-contract.md). Physical104MHz
+closure/resource cost is unmeasured until the separate whole-project fit.

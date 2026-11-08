@@ -1,0 +1,934 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -223,6 +223,9 @@
+ logic                            code_stall;
+ logic                            instr_valid;
+ logic                            pipeline_is_not_empty;
++logic                            operand_busy, rf_wen;
++logic [5:0]                      rf_wr_addr_a, rf_wr_addr_b;
++logic [31:0]                     rf_wr_data_a, rf_wr_data_b;
+ 
+ // Fetch
+ logic [31:0]                     fetch_instruction;  // Instruction from the fetch unit.
+@@ -574,6 +577,7 @@
+ // instructions can be used as fences in ZAP.
+ //
+ assign pipeline_is_not_empty    = predecode_val                      ||
++                                  operand_busy                       ||
+                                   (decode_condition_code    != NV)   ||
+                                   (issue_condition_code_ff  != NV)   ||
+                                   (shifter_condition_code_ff!= NV)   ||
+@@ -975,6 +979,12 @@
+         .i_rd_data_2                    (rd_data_2),
+         .i_rd_data_3                    (rd_data_3),
+ 
++        .i_rf_wen(rf_wen),
++        .i_rf_wr_addr_a(rf_wr_addr_a), .i_rf_wr_addr_b(rf_wr_addr_b),
++        .i_rf_wr_addr_c(i_dc_reg_idx[39:0]),
++        .i_rf_wr_data_a(rf_wr_data_a), .i_rf_wr_data_b(rf_wr_data_b),
++        .i_rf_wr_data_c(i_dc_reg_dat), .o_operand_busy(operand_busy),
++
+         // Feedback.
+         .i_dc_lock                      (i_dc_lock),
+         .i_shifter_destination_index_ff (shifter_destination_index_ff),
+@@ -1089,7 +1099,7 @@
+         .i_clear_from_writeback         (clear_from_writeback),
+         .i_data_stall                   (data_stall),
+         .i_clear_from_alu               (clear_from_alu),
+-        .i_condition_code_ff            (stall_from_issue ? NV : issue_condition_code_ff),
++        .i_condition_code_ff            (issue_condition_code_ff),
+         .i_destination_index_ff         (issue_destination_index_ff),
+         .i_alu_operation_ff             (issue_alu_operation_ff),
+         .i_shift_operation_ff           (issue_shift_operation_ff),
+@@ -1102,11 +1112,11 @@
+         .i_mem_signed_byte_enable_ff    (issue_mem_signed_byte_enable_ff),
+         .i_mem_signed_halfword_enable_ff(issue_mem_signed_halfword_enable_ff),
+         .i_mem_unsigned_halfword_enable_ff(issue_mem_unsigned_halfword_enable_ff),
+-        .i_mem_translate_ff             (stall_from_issue ? '0 : issue_mem_translate_ff),
+-        .i_irq_ff                       (stall_from_issue ? '0 : issue_irq_ff),
+-        .i_fiq_ff                       (stall_from_issue ? '0 : issue_fiq_ff),
+-        .i_abt_ff                       (stall_from_issue ? '0 : issue_abt_ff),
+-        .i_swi_ff                       (stall_from_issue ? '0 : issue_swi_ff),
++        .i_mem_translate_ff             (issue_mem_translate_ff),
++        .i_irq_ff                       (issue_irq_ff),
++        .i_fiq_ff                       (issue_fiq_ff),
++        .i_abt_ff                       (issue_abt_ff),
++        .i_swi_ff                       (issue_swi_ff),
+         .i_alu_source_ff                (issue_alu_source_ff),
+         .i_shift_source_ff              (issue_shift_source_ff),
+         .i_alu_source_value_ff          (issue_alu_source_value_ff),
+@@ -1621,6 +1631,9 @@
+ 
+         .o_copro_reg_rd_data_ff (copro_reg_rd_data),
+ 
++        .o_rf_wen(rf_wen),
++        .o_rf_wr_addr_a(rf_wr_addr_a), .o_rf_wr_addr_b(rf_wr_addr_b),
++        .o_rf_wr_data_a(rf_wr_data_a), .o_rf_wr_data_b(rf_wr_data_b),
+         .o_rd_data_0            (rd_data_0),
+         .o_rd_data_1            (rd_data_1),
+         .o_rd_data_2            (rd_data_2),
+--- a/src/rtl/zap_issue_main.sv
++++ b/src/rtl/zap_issue_main.sv
+@@ -16,7 +16,8 @@
+ // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ // 02110-1301, USA.
+ //
+-// This stage converts register indices into actual values. Register
++// The operand-read queue captures committed RF bases before this issue stage.
++// Late forwarding and hazard resolution use its owned head. Register
+ // indices are also pumped forward to allow resolution in the shift
+ // stage. PC references must be resolved here since the value gives
+ // PC + 8. Instructions requiring shifts stall if the target registers
+@@ -100,6 +101,16 @@
+         // Lock
+         input logic [63:0]                       i_dc_lock,
+ 
++        // Effective architectural RF writes, after writeback priority.
++        input logic                             i_rf_wen,
++        input logic [5:0]                       i_rf_wr_addr_a,
++        input logic [5:0]                       i_rf_wr_addr_b,
++        input logic [39:0]                      i_rf_wr_addr_c,
++        input logic [31:0]                      i_rf_wr_data_a,
++        input logic [31:0]                      i_rf_wr_data_b,
++        input logic [31:0]                      i_rf_wr_data_c,
++        output logic                            o_operand_busy,
++
+         // From register file. Read ports.
+         input logic  [31:0]                      i_rd_data_0,
+         input logic  [31:0]                      i_rd_data_1,
+@@ -236,7 +247,7 @@
+         output logic      [32:0]                  o_alu_source_ff,
+         output logic      [32:0]                  o_shift_source_ff,
+ 
+-        // Stall all stages before this if this is 1.
++        // Registered-capacity stop for stages before operand acquisition.
+         output logic                               o_stall_from_issue,
+ 
+         // The PC value.
+@@ -268,8 +279,15 @@
+            o_shift_length_value_nxt,
+            o_mem_srcdest_value_nxt;
+ 
+-logic [32+32+1+2+64*8+1+4+$clog2(PHY_REGS)+33+$clog2(ALU_OPS)+33+$clog2(SHIFT_OPS)
+-+33+1+$clog2(PHY_REGS)+14+32+2-1:0] skid;
++localparam CONTROL_W = 32+32+1+2+64*8+1+4+$clog2(PHY_REGS)+33+$clog2(ALU_OPS)+33+$clog2(SHIFT_OPS)
+++33+1+$clog2(PHY_REGS)+14+32+2;
++logic [CONTROL_W-1:0] operand_control;
++logic operand_valid, operand_pop, operand_push, issue_block;
++logic [127:0] operand_data;
++logic [31:0] operand_rd_data_0, operand_rd_data_1,
++             operand_rd_data_2, operand_rd_data_3;
++assign {operand_rd_data_3, operand_rd_data_2,
++         operand_rd_data_1, operand_rd_data_0} = operand_data;
+ 
+ // Individual lock signals. These are ORed to get the final lock.
+ logic shift_lock;
+@@ -277,47 +295,46 @@
+ logic lock;
+ 
+ //
+-// Asserted when an instruction cannot be issued and leads to all stages
+-// before it stalling.
+-//
+-
+-// Skid MUX output.
+-logic  [31:0]                      skid_pc_plus_8_ff;
+-logic  [31:0]                      skid_pc_ff;
+-logic                              skid_switch_ff;
+-logic    [1:0]                     skid_taken_ff;
+-logic      [64*8-1:0]              skid_decompile;
+-logic                              skid_uop_last;
+-logic [1:0] skid_swp_tag;
+-logic      [3:0]                   skid_condition_code_ff;
+-logic      [$clog2(PHY_REGS )-1:0] skid_destination_index_ff;
+-logic      [32:0]                  skid_alu_source_ff;
+-logic      [$clog2(ALU_OPS)-1:0]   skid_alu_operation_ff;
+-logic      [32:0]                  skid_shift_source_ff;
+-logic      [$clog2(SHIFT_OPS)-1:0] skid_shift_operation_ff;
+-logic      [32:0]                  skid_shift_length_ff;
+-logic                              skid_flag_update_ff;
+-logic    [$clog2(PHY_REGS )-1:0]   skid_mem_srcdest_index_ff;
+-logic                              skid_mem_load_ff;
+-logic                              skid_mem_store_ff;
+-logic                              skid_mem_pre_index_ff;
+-logic                              skid_mem_unsigned_byte_enable_ff;
+-logic                              skid_mem_signed_byte_enable_ff;
+-logic                              skid_mem_signed_halfword_enable_ff;
+-logic                              skid_mem_unsigned_halfword_enable_ff;
+-logic                              skid_mem_translate_ff;
+-logic                              skid_irq_ff;
+-logic                              skid_fiq_ff;
+-logic                              skid_abt_ff;
+-logic                              skid_swi_ff;
+-logic                              skid_force32align_ff;
+-logic                              skid_und_ff;
+-logic  [31:0]                      skid_ppc_ff;
++// Hazard holds the owned head and bubbles issue; capacity stops upstream.
++//
++
++// Owned R0 context.
++logic  [31:0]                      operand_pc_plus_8_ff;
++logic  [31:0]                      operand_pc_ff;
++logic                              operand_switch_ff;
++logic    [1:0]                     operand_taken_ff;
++logic      [64*8-1:0]              operand_decompile;
++logic                              operand_uop_last;
++logic [1:0] operand_swp_tag;
++logic      [3:0]                   operand_condition_code_ff;
++logic      [$clog2(PHY_REGS )-1:0] operand_destination_index_ff;
++logic      [32:0]                  operand_alu_source_ff;
++logic      [$clog2(ALU_OPS)-1:0]   operand_alu_operation_ff;
++logic      [32:0]                  operand_shift_source_ff;
++logic      [$clog2(SHIFT_OPS)-1:0] operand_shift_operation_ff;
++logic      [32:0]                  operand_shift_length_ff;
++logic                              operand_flag_update_ff;
++logic    [$clog2(PHY_REGS )-1:0]   operand_mem_srcdest_index_ff;
++logic                              operand_mem_load_ff;
++logic                              operand_mem_store_ff;
++logic                              operand_mem_pre_index_ff;
++logic                              operand_mem_unsigned_byte_enable_ff;
++logic                              operand_mem_signed_byte_enable_ff;
++logic                              operand_mem_signed_halfword_enable_ff;
++logic                              operand_mem_unsigned_halfword_enable_ff;
++logic                              operand_mem_translate_ff;
++logic                              operand_irq_ff;
++logic                              operand_fiq_ff;
++logic                              operand_abt_ff;
++logic                              operand_swi_ff;
++logic                              operand_force32align_ff;
++logic                              operand_und_ff;
++logic  [31:0]                      operand_ppc_ff;
+ logic                              clear;
+ logic                              stall;
+ 
+ assign lock = (shift_lock | load_lock) &
+-              (skid_condition_code_ff != NV);
++              (operand_condition_code_ff != NV);
+ 
+ assign clear = i_clear_from_writeback | i_clear_from_alu;
+ assign stall = i_data_stall           | i_stall_from_shifter;
+@@ -333,8 +350,9 @@
+                 o_swi_ff                          <= 0;
+                 o_und_ff                          <= 0;
+                 o_flag_update_ff                  <= 0;
+-                o_stall_from_issue                <= 0;
++
+                 o_swp_tag <= 0;
++                o_uop_last <= 0;
+ 
+                 o_destination_index_ff            <= 'x;
+                 o_alu_operation_ff                <= 'x;
+@@ -372,8 +390,9 @@
+                 o_swi_ff             <= 0;
+                 o_und_ff             <= 0;
+                 o_flag_update_ff     <= 0;
+-                o_stall_from_issue   <= 0;
++
+                 o_swp_tag <= 0;
++                o_uop_last <= 0;
+ 
+                 o_destination_index_ff            <= 'x;
+                 o_alu_operation_ff                <= 'x;
+@@ -404,51 +423,57 @@
+         end
+         else if ( ~stall )
+         begin
+-                o_condition_code_ff               <= lock ? NV : skid_condition_code_ff;
+-                o_destination_index_ff            <= skid_destination_index_ff;
+-                o_alu_operation_ff                <= skid_alu_operation_ff;
+-                o_shift_operation_ff              <= skid_shift_operation_ff;
+-                o_flag_update_ff                  <= lock ? 1'd0 : skid_flag_update_ff;
+-                o_mem_srcdest_index_ff            <= skid_mem_srcdest_index_ff;
+-                o_mem_load_ff                     <= skid_mem_load_ff;
+-                o_mem_store_ff                    <= skid_mem_store_ff;
+-                o_mem_pre_index_ff                <= skid_mem_pre_index_ff;
+-                o_mem_unsigned_byte_enable_ff     <= skid_mem_unsigned_byte_enable_ff;
+-                o_mem_signed_byte_enable_ff       <= skid_mem_signed_byte_enable_ff;
+-                o_mem_signed_halfword_enable_ff   <= skid_mem_signed_halfword_enable_ff;
+-                o_mem_unsigned_halfword_enable_ff <= skid_mem_unsigned_halfword_enable_ff;
+-                o_mem_translate_ff                <= skid_mem_translate_ff;
+-                o_irq_ff                          <= lock ? 1'd0 : skid_irq_ff;
+-                o_fiq_ff                          <= lock ? 1'd0 : skid_fiq_ff;
+-                o_abt_ff                          <= lock ? 1'd0 : skid_abt_ff;
+-                o_swi_ff                          <= lock ? 1'd0 : skid_swi_ff;
+-                o_pc_plus_8_ff                    <= skid_pc_plus_8_ff;
++                o_condition_code_ff               <= issue_block ? NV : operand_condition_code_ff;
++                o_destination_index_ff            <= operand_destination_index_ff;
++                o_alu_operation_ff                <= operand_alu_operation_ff;
++                o_shift_operation_ff              <= operand_shift_operation_ff;
++                o_flag_update_ff                  <= issue_block ? 1'd0 : operand_flag_update_ff;
++                o_mem_srcdest_index_ff            <= operand_mem_srcdest_index_ff;
++                o_mem_load_ff                     <= operand_mem_load_ff;
++                o_mem_store_ff                    <= operand_mem_store_ff;
++                o_mem_pre_index_ff                <= operand_mem_pre_index_ff;
++                o_mem_unsigned_byte_enable_ff     <= operand_mem_unsigned_byte_enable_ff;
++                o_mem_signed_byte_enable_ff       <= operand_mem_signed_byte_enable_ff;
++                o_mem_signed_halfword_enable_ff   <= operand_mem_signed_halfword_enable_ff;
++                o_mem_unsigned_halfword_enable_ff <= operand_mem_unsigned_halfword_enable_ff;
++                o_mem_translate_ff                <= issue_block ? 1'd0 : operand_mem_translate_ff;
++                o_irq_ff                          <= issue_block ? 1'd0 : operand_irq_ff;
++                o_fiq_ff                          <= issue_block ? 1'd0 : operand_fiq_ff;
++                o_abt_ff                          <= issue_block ? 1'd0 : operand_abt_ff;
++                o_swi_ff                          <= issue_block ? 1'd0 : operand_swi_ff;
++                o_pc_plus_8_ff                    <= operand_pc_plus_8_ff;
+                 o_shifter_disable_ff              <= o_shifter_disable_nxt;
+-                o_alu_source_ff                   <= skid_alu_source_ff;
+-                o_shift_source_ff                 <= skid_shift_source_ff;
++                o_alu_source_ff                   <= operand_alu_source_ff;
++                o_shift_source_ff                 <= operand_shift_source_ff;
+                 o_alu_source_value_ff             <= o_alu_source_value_nxt;
+                 o_shift_source_value_ff           <= o_shift_source_value_nxt;
+                 o_shift_length_value_ff           <= o_shift_length_value_nxt;
+                 o_mem_srcdest_value_ff            <= o_mem_srcdest_value_nxt;
+-                o_switch_ff                       <= skid_switch_ff;
+-                o_force32align_ff                 <= skid_force32align_ff;
+-                o_und_ff                          <= skid_und_ff;
+-                o_taken_ff                        <= skid_taken_ff;
+-                o_ppc_ff                          <= skid_ppc_ff;
+-                o_pc_ff                           <= skid_pc_ff;
+-                o_decompile                       <= skid_decompile;
+-                o_uop_last                        <= skid_uop_last;
+-                o_swp_tag <= lock ? 2'd0 : skid_swp_tag;
+-                o_stall_from_issue                <= lock;
++                o_switch_ff                       <= operand_switch_ff;
++                o_force32align_ff                 <= operand_force32align_ff;
++                o_und_ff                          <= issue_block ? 1'd0 : operand_und_ff;
++                o_taken_ff                        <= operand_taken_ff;
++                o_ppc_ff                          <= operand_ppc_ff;
++                o_pc_ff                           <= operand_pc_ff;
++                o_decompile                       <= operand_decompile;
++                o_uop_last                        <= issue_block ? 1'd0 : operand_uop_last;
++                o_swp_tag <= issue_block ? 2'd0 : operand_swp_tag;
++
+         end
+ end
+ 
+-// Skid buffer.
+-always_ff @ ( posedge i_clk )
+-begin
+-        if ( ~o_stall_from_issue )
+-        begin
+-                skid <= {
++// R owns both the current issue packet and the one reserved arrival slot.
++// Decode advances under this same capacity/stall condition.
++assign operand_push = !stall && !o_stall_from_issue &&
++        (i_condition_code_ff != NV || i_irq_ff || i_fiq_ff || i_abt_ff ||
++         i_swi_ff || i_und_ff);
++assign operand_pop = !stall && operand_valid && !lock;
++assign issue_block = !operand_valid || lock;
++
++zap_operand_read #(.CONTROL_W(CONTROL_W)) u_operand_read (
++        .i_clk(i_clk), .i_reset(i_reset), .i_clear(clear),
++        .i_push(operand_push), .i_pop(operand_pop),
++        .i_control({
+                         i_pc_plus_8_ff,
+                         i_pc_ff,
+                         i_switch_ff,
+@@ -480,13 +505,21 @@
+                         i_force32align_ff,
+                         i_und_ff,
+                         i_ppc_ff
+-                };
+-        end
+-end
++                }),
++        .i_index({i_mem_srcdest_index_ff[5:0], i_shift_length_ff[5:0],
++                  i_shift_source_ff[5:0], i_alu_source_ff[5:0]}),
++        .i_data({i_rd_data_3, i_rd_data_2, i_rd_data_1, i_rd_data_0}),
++        .i_wen(i_rf_wen), .i_wr_addr_a(i_rf_wr_addr_a),
++        .i_wr_addr_b(i_rf_wr_addr_b), .i_wr_addr_c(i_rf_wr_addr_c),
++        .i_wr_data_a(i_rf_wr_data_a), .i_wr_data_b(i_rf_wr_data_b),
++        .i_wr_data_c(i_rf_wr_data_c),
++        .o_valid(operand_valid), .o_full(o_stall_from_issue),
++        .o_busy(o_operand_busy), .o_control(operand_control), .o_data(operand_data)
++);
+ 
+ // Get values from the feedback network.
+ assign  o_alu_source_value_nxt  =
+-        get_register_value (    skid_alu_source_ff,
++        get_register_value (    operand_alu_source_ff,
+                                 2'd0,
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+@@ -510,18 +543,18 @@
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                i_rd_data_0,
+-                                i_rd_data_1,
+-                                i_rd_data_2,
+-                                i_rd_data_3,
++                                operand_rd_data_0,
++                                operand_rd_data_1,
++                                operand_rd_data_2,
++                                operand_rd_data_3,
+                                 i_cpu_mode,
+-                                skid_pc_plus_8_ff,
+-                                skid_force32align_ff
++                                operand_pc_plus_8_ff,
++                                operand_force32align_ff
+         );
+ 
+ 
+ assign  o_shift_source_value_nxt=
+-        get_register_value (    skid_shift_source_ff,
++        get_register_value (    operand_shift_source_ff,
+                                 2'd1,
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+@@ -545,17 +578,17 @@
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                i_rd_data_0,
+-                                i_rd_data_1,
+-                                i_rd_data_2,
+-                                i_rd_data_3,
++                                operand_rd_data_0,
++                                operand_rd_data_1,
++                                operand_rd_data_2,
++                                operand_rd_data_3,
+                                 i_cpu_mode,
+-                                skid_pc_plus_8_ff,
++                                operand_pc_plus_8_ff,
+                                 1'd0
+         );
+ 
+ assign  o_shift_length_value_nxt=
+-        get_register_value (    skid_shift_length_ff,
++        get_register_value (    operand_shift_length_ff,
+                                 2'd2,
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+@@ -579,18 +612,18 @@
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                i_rd_data_0,
+-                                i_rd_data_1,
+-                                i_rd_data_2,
+-                                i_rd_data_3,
++                                operand_rd_data_0,
++                                operand_rd_data_1,
++                                operand_rd_data_2,
++                                operand_rd_data_3,
+                                 i_cpu_mode,
+-                                skid_pc_plus_8_ff,
++                                operand_pc_plus_8_ff,
+                                 1'd0
+         );
+ 
+ // Value of a register index, never an immediate.
+ assign  o_mem_srcdest_value_nxt =
+-        get_register_value (    {27'd0, skid_mem_srcdest_index_ff},
++        get_register_value (    {27'd0, operand_mem_srcdest_index_ff},
+                                 2'd3,
+                                 i_shifter_destination_index_ff[5:0],
+                                 i_alu_dav_nxt,
+@@ -614,180 +647,109 @@
+                                 i_memory_destination_index_ff[5:0],
+                                 i_memory_destination_value_ff,
+                                 i_memory_dav_ff,
+-                                i_rd_data_0,
+-                                i_rd_data_1,
+-                                i_rd_data_2,
+-                                i_rd_data_3,
++                                operand_rd_data_0,
++                                operand_rd_data_1,
++                                operand_rd_data_2,
++                                operand_rd_data_3,
+                                 i_cpu_mode,
+-                                skid_pc_plus_8_ff,
++                                operand_pc_plus_8_ff,
+                                 1'd0
+         );
+ 
+ // Apply index to register file.
+-assign o_rd_index_0 = skid_alu_source_ff[5:0];
+-assign o_rd_index_1 = skid_shift_source_ff[5:0];
+-assign o_rd_index_2 = skid_shift_length_ff[5:0];
+-assign o_rd_index_3 = skid_mem_srcdest_index_ff[5:0];
+-
+-always_comb
+-begin
+-        if ( o_stall_from_issue )
+-        begin
+-                {skid_pc_plus_8_ff,
+-                 skid_pc_ff,
+-                 skid_switch_ff,
+-                 skid_taken_ff,
+-                 skid_decompile,
+-                 skid_uop_last,
+-                 skid_swp_tag,
+-                 skid_condition_code_ff,
+-                 skid_destination_index_ff,
+-                 skid_alu_source_ff,
+-                 skid_alu_operation_ff,
+-                 skid_shift_source_ff,
+-                 skid_shift_operation_ff,
+-                 skid_shift_length_ff,
+-                 skid_flag_update_ff,
+-                 skid_mem_srcdest_index_ff,
+-                 skid_mem_load_ff,
+-                 skid_mem_store_ff,
+-                 skid_mem_pre_index_ff,
+-                 skid_mem_unsigned_byte_enable_ff,
+-                 skid_mem_signed_byte_enable_ff,
+-                 skid_mem_signed_halfword_enable_ff,
+-                 skid_mem_unsigned_halfword_enable_ff,
+-                 skid_mem_translate_ff,
+-                 skid_irq_ff,
+-                 skid_fiq_ff,
+-                 skid_abt_ff,
+-                 skid_swi_ff,
+-                 skid_force32align_ff,
+-                 skid_und_ff,
+-                 skid_ppc_ff} = skid;
+-        end
+-        else
+-        begin
+-                {skid_pc_plus_8_ff,
+-                 skid_pc_ff,
+-                 skid_switch_ff,
+-                 skid_taken_ff,
+-                 skid_decompile,
+-                 skid_uop_last,
+-                 skid_swp_tag,
+-                 skid_condition_code_ff,
+-                 skid_destination_index_ff,
+-                 skid_alu_source_ff,
+-                 skid_alu_operation_ff,
+-                 skid_shift_source_ff,
+-                 skid_shift_operation_ff,
+-                 skid_shift_length_ff,
+-                 skid_flag_update_ff,
+-                 skid_mem_srcdest_index_ff,
+-                 skid_mem_load_ff,
+-                 skid_mem_store_ff,
+-                 skid_mem_pre_index_ff,
+-                 skid_mem_unsigned_byte_enable_ff,
+-                 skid_mem_signed_byte_enable_ff,
+-                 skid_mem_signed_halfword_enable_ff,
+-                 skid_mem_unsigned_halfword_enable_ff,
+-                 skid_mem_translate_ff,
+-                 skid_irq_ff,
+-                 skid_fiq_ff,
+-                 skid_abt_ff,
+-                 skid_swi_ff,
+-                 skid_force32align_ff,
+-                 skid_und_ff,
+-                 skid_ppc_ff} =
+-                {i_pc_plus_8_ff,
+-                 i_pc_ff,
+-                 i_switch_ff,
+-                 i_taken_ff,
+-                 i_decompile,
+-                 i_uop_last,
+-                        i_swp_tag,
+-                 i_condition_code_ff,
+-                 i_destination_index_ff,
+-                 i_alu_source_ff,
+-                 i_alu_operation_ff,
+-                 i_shift_source_ff,
+-                 i_shift_operation_ff,
+-                 i_shift_length_ff,
+-                 i_flag_update_ff,
+-                 i_mem_srcdest_index_ff,
+-                 i_mem_load_ff,
+-                 i_mem_store_ff,
+-                 i_mem_pre_index_ff,
+-                 i_mem_unsigned_byte_enable_ff,
+-                 i_mem_signed_byte_enable_ff,
+-                 i_mem_signed_halfword_enable_ff,
+-                 i_mem_unsigned_halfword_enable_ff,
+-                 i_mem_translate_ff,
+-                 i_irq_ff,
+-                 i_fiq_ff,
+-                 i_abt_ff,
+-                 i_swi_ff,
+-                 i_force32align_ff,
+-                 i_und_ff,
+-                 i_ppc_ff};
+-        end
+-end
+-
+-logic skid_is_lsl_0;
+-logic skid_is_rori;
++assign o_rd_index_0 = i_alu_source_ff[5:0];
++assign o_rd_index_1 = i_shift_source_ff[5:0];
++assign o_rd_index_2 = i_shift_length_ff[5:0];
++assign o_rd_index_3 = i_mem_srcdest_index_ff[5:0];
++
++assign {operand_pc_plus_8_ff,
++                 operand_pc_ff,
++                 operand_switch_ff,
++                 operand_taken_ff,
++                 operand_decompile,
++                 operand_uop_last,
++                 operand_swp_tag,
++                 operand_condition_code_ff,
++                 operand_destination_index_ff,
++                 operand_alu_source_ff,
++                 operand_alu_operation_ff,
++                 operand_shift_source_ff,
++                 operand_shift_operation_ff,
++                 operand_shift_length_ff,
++                 operand_flag_update_ff,
++                 operand_mem_srcdest_index_ff,
++                 operand_mem_load_ff,
++                 operand_mem_store_ff,
++                 operand_mem_pre_index_ff,
++                 operand_mem_unsigned_byte_enable_ff,
++                 operand_mem_signed_byte_enable_ff,
++                 operand_mem_signed_halfword_enable_ff,
++                 operand_mem_unsigned_halfword_enable_ff,
++                 operand_mem_translate_ff,
++                 operand_irq_ff,
++                 operand_fiq_ff,
++                 operand_abt_ff,
++                 operand_swi_ff,
++                 operand_force32align_ff,
++                 operand_und_ff,
++                 operand_ppc_ff} = operand_control;
++
++logic operand_is_lsl_0;
++logic operand_is_rori;
+ logic w_shift_lock;
+-logic skid_is_mult;
+-
+-assign skid_is_lsl_0 = skid_shift_operation_ff    == {1'd0, LSL} &&
+-                       skid_shift_length_ff[31:0] == 32'd0 &&
+-                       skid_shift_length_ff[32]   == IMMED_EN;
+-
+-assign   skid_is_rori          = skid_shift_operation_ff == RORI;
++logic operand_is_mult;
++
++assign operand_is_lsl_0 = operand_shift_operation_ff    == {1'd0, LSL} &&
++                       operand_shift_length_ff[31:0] == 32'd0 &&
++                       operand_shift_length_ff[32]   == IMMED_EN;
++
++assign   operand_is_rori          = operand_shift_operation_ff == RORI;
+ 
+ // Constant RORI #0 were converted to Constant LSL #0 in decode.
+-assign o_shifter_disable_nxt = skid_is_lsl_0 | skid_is_mult;
++assign o_shifter_disable_nxt = operand_is_lsl_0 | operand_is_mult;
+ 
+ assign w_shift_lock =
+-   shifter_lock_check ( skid_shift_source_ff,
++   shifter_lock_check ( operand_shift_source_ff,
+                         o_destination_index_ff, o_condition_code_ff )
+-|| shifter_lock_check ( skid_shift_length_ff,
++|| shifter_lock_check ( operand_shift_length_ff,
+                         o_destination_index_ff, o_condition_code_ff )
+-|| shifter_lock_check ( skid_alu_source_ff  ,
++|| shifter_lock_check ( operand_alu_source_ff  ,
+                         o_destination_index_ff, o_condition_code_ff )
+-|| shifter_lock_check ( {27'd0, skid_mem_srcdest_index_ff},
++|| shifter_lock_check ( {27'd0, operand_mem_srcdest_index_ff},
+                         o_destination_index_ff, o_condition_code_ff );
+ 
+ 
+-assign skid_is_mult = skid_alu_operation_ff == {1'd0, UMLALL}     ||
+-                      skid_alu_operation_ff == {1'd0, UMLALH}     ||
+-                      skid_alu_operation_ff == {1'd0, SMLALL}     ||
+-                      skid_alu_operation_ff == {1'd0, SMLALH}     ||
+-                      skid_alu_operation_ff == SMULW0             ||
+-                      skid_alu_operation_ff == SMULW1             ||
+-                      skid_alu_operation_ff == SMUL00             ||
+-                      skid_alu_operation_ff == SMUL01             ||
+-                      skid_alu_operation_ff == SMUL10             ||
+-                      skid_alu_operation_ff == SMUL11             ||
+-                      skid_alu_operation_ff == SMLA00             ||
+-                      skid_alu_operation_ff == SMLA01             ||
+-                      skid_alu_operation_ff == SMLA10             ||
+-                      skid_alu_operation_ff == SMLA11             ||
+-                      skid_alu_operation_ff == SMLAW0             ||
+-                      skid_alu_operation_ff == SMLAW1             ||
+-                      skid_alu_operation_ff == SMLAL00L           ||
+-                      skid_alu_operation_ff == SMLAL01L           ||
+-                      skid_alu_operation_ff == SMLAL10L           ||
+-                      skid_alu_operation_ff == SMLAL11L           ||
+-                      skid_alu_operation_ff == SMLAL00H           ||
+-                      skid_alu_operation_ff == SMLAL01H           ||
+-                      skid_alu_operation_ff == SMLAL10H           ||
+-                      skid_alu_operation_ff == SMLAL11H;
++assign operand_is_mult = operand_alu_operation_ff == {1'd0, UMLALL}     ||
++                      operand_alu_operation_ff == {1'd0, UMLALH}     ||
++                      operand_alu_operation_ff == {1'd0, SMLALL}     ||
++                      operand_alu_operation_ff == {1'd0, SMLALH}     ||
++                      operand_alu_operation_ff == SMULW0             ||
++                      operand_alu_operation_ff == SMULW1             ||
++                      operand_alu_operation_ff == SMUL00             ||
++                      operand_alu_operation_ff == SMUL01             ||
++                      operand_alu_operation_ff == SMUL10             ||
++                      operand_alu_operation_ff == SMUL11             ||
++                      operand_alu_operation_ff == SMLA00             ||
++                      operand_alu_operation_ff == SMLA01             ||
++                      operand_alu_operation_ff == SMLA10             ||
++                      operand_alu_operation_ff == SMLA11             ||
++                      operand_alu_operation_ff == SMLAW0             ||
++                      operand_alu_operation_ff == SMLAW1             ||
++                      operand_alu_operation_ff == SMLAL00L           ||
++                      operand_alu_operation_ff == SMLAL01L           ||
++                      operand_alu_operation_ff == SMLAL10L           ||
++                      operand_alu_operation_ff == SMLAL11L           ||
++                      operand_alu_operation_ff == SMLAL00H           ||
++                      operand_alu_operation_ff == SMLAL01H           ||
++                      operand_alu_operation_ff == SMLAL10H           ||
++                      operand_alu_operation_ff == SMLAL11H;
+ 
+ //
+ // Look for reads from registers to be loaded from memory. Four
+ // register sources may cause a load lock.
+ //
+ assign  load_lock =     determine_load_lock
+-                        ( skid_alu_source_ff  ,
++                        ( operand_alu_source_ff  ,
+                         o_mem_srcdest_index_ff,
+                         o_condition_code_ff,
+                         o_mem_load_ff,
+@@ -810,12 +772,12 @@
+                         i_memory_mem_load_ff,
+                         i_memory_dav_ff,
+                         i_dc_lock,
+-                        i_irq_ff || i_fiq_ff || i_abt_ff || i_swi_ff || i_abt_ff
++                        operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
+                         )
+                         ||
+                         determine_load_lock
+                         (
+-                        skid_shift_source_ff,
++                        operand_shift_source_ff,
+                         o_mem_srcdest_index_ff,
+                         o_condition_code_ff,
+                         o_mem_load_ff,
+@@ -838,11 +800,11 @@
+                         i_memory_mem_load_ff,
+                         i_memory_dav_ff,
+                         i_dc_lock,
+-                        i_irq_ff || i_fiq_ff || i_abt_ff || i_swi_ff || i_abt_ff
++                        operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
+                         )
+                         ||
+                         determine_load_lock
+-                        ( skid_shift_length_ff,
++                        ( operand_shift_length_ff,
+                         o_mem_srcdest_index_ff,
+                         o_condition_code_ff,
+                         o_mem_load_ff,
+@@ -865,11 +827,11 @@
+                         i_memory_mem_load_ff,
+                         i_memory_dav_ff,
+                         i_dc_lock,
+-                        i_irq_ff || i_fiq_ff || i_abt_ff || i_swi_ff || i_abt_ff
++                        operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
+                         )
+                         ||
+                         determine_load_lock
+-                        ( {27'd0, skid_mem_srcdest_index_ff},
++                        ( {27'd0, operand_mem_srcdest_index_ff},
+                         o_mem_srcdest_index_ff,
+                         o_condition_code_ff,
+                         o_mem_load_ff,
+@@ -892,7 +854,7 @@
+                         i_memory_mem_load_ff,
+                         i_memory_dav_ff,
+                         i_dc_lock,
+-                        i_irq_ff || i_fiq_ff || i_abt_ff || i_swi_ff || i_abt_ff
++                        operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
+                         )
+                         ||
+                         //
+@@ -901,9 +863,9 @@
+                         // load will overwrite the latest value.
+                         //
+                         (
+-                          skid_destination_index_ff[5:0] != PHY_RAZ_REGISTER[5:0]
++                          operand_destination_index_ff[5:0] != PHY_RAZ_REGISTER[5:0]
+                           &&
+-                          i_dc_lock[skid_destination_index_ff]
++                          i_dc_lock[operand_destination_index_ff]
+                         );
+ 
+ //
+@@ -918,8 +880,8 @@
+ // next-2-next cycle.
+ //
+ assign shift_lock =
+-  (((skid_is_mult |   ((~skid_is_lsl_0) & (~skid_is_rori)))) & w_shift_lock)
+-| (o_flag_update_ff & ((~skid_is_lsl_0) & (~skid_is_rori)));
++  (((operand_is_mult |   ((~operand_is_lsl_0) & (~operand_is_rori)))) & w_shift_lock)
++| (o_flag_update_ff & ((~operand_is_lsl_0) & (~operand_is_rori)));
+ 
+ ////////////////////////////////////
+ // Functions
+@@ -1152,9 +1114,9 @@
+               (selected[8] | selected[9]);
+ 
+         // If it's not a store or load, then align this to 4 bytes. Use
+-        // *skid* versions.
+-        get_register_value = !skid_mem_load_ff  &&
+-                             !skid_mem_store_ff &&
++        // owned packet controls.
++        get_register_value = !operand_mem_load_ff  &&
++                             !operand_mem_store_ff &&
+                              force32_align_ff   ? (get & 32'hffff_fffc) : get;
+ 
+ endfunction : get_register_value
+--- a/src/rtl/zap_writeback.sv
++++ b/src/rtl/zap_writeback.sv
+@@ -110,6 +110,13 @@
+         output logic     [31:0]               o_rd_data_2,
+         output logic     [31:0]               o_rd_data_3,
+ 
++        // Effective register writes for held operand-base refresh.
++        output logic                         o_rf_wen,
++        output logic [5:0]                   o_rf_wr_addr_a,
++        output logic [5:0]                   o_rf_wr_addr_b,
++        output logic [31:0]                  o_rf_wr_data_a,
++        output logic [31:0]                  o_rf_wr_data_b,
++
+         // Program counter (dedicated port).
+         output logic     [31:0]               o_pc,
+         output logic     [31:0]               o_pc_check,
+@@ -162,6 +169,12 @@
+ logic                             mode32;
+ logic                             clear_from_btb;
+ logic [31:0]                      pc_from_btb;
++
++assign o_rf_wen = wen;
++assign o_rf_wr_addr_a = wa1;
++assign o_rf_wr_addr_b = wa2;
++assign o_rf_wr_data_a = wdata1;
++assign o_rf_wr_data_b = wdata2;
+ 
+ assign  mode32     = (cpsr_ff[T] == 1'd0) ? 1'd1 : 1'd0;
+ assign  o_shelve     = shelve_ff;
+--- /dev/null
++++ b/src/rtl/zap_operand_read.sv
+@@ -0,0 +1,125 @@
++// SPDX-License-Identifier: GPL-3.0-or-later
++// Owned register-acquisition packets. Read addresses are supplied by decode;
++// only registered packets feed issue. Full is occupancy-only, never pop-ready.
++module zap_operand_read #(
++        parameter CONTROL_W = 1
++)(
++        input                       i_clk,
++        input                       i_reset,
++        input                       i_clear,
++        input                       i_push,
++        input                       i_pop,
++        input [CONTROL_W-1:0]       i_control,
++        input [23:0]                i_index,
++        input [127:0]               i_data,
++        input                       i_wen,
++        input [5:0]                 i_wr_addr_a,
++        input [5:0]                 i_wr_addr_b,
++        input [39:0]                i_wr_addr_c,
++        input [31:0]                i_wr_data_a,
++        input [31:0]                i_wr_data_b,
++        input [31:0]                i_wr_data_c,
++        output                      o_valid,
++        output                      o_full,
++        output                      o_busy,
++        output [CONTROL_W-1:0]      o_control,
++        output [127:0]              o_data
++);
++reg head_valid, tail_valid;
++reg [CONTROL_W-1:0] head_control, tail_control;
++reg [23:0] head_index, tail_index;
++reg [127:0] head_data, tail_data;
++wire [127:0] capture_data, refreshed_head, refreshed_tail;
++
++assign o_valid = head_valid;
++assign o_full = tail_valid;
++assign o_busy = head_valid;
++assign o_control = head_control;
++// Same-edge committed writes are visible to issue before the sampling edge.
++assign o_data = refreshed_head;
++
++function [31:0] committed_value;
++        input [5:0] index;
++        input [31:0] base;
++        begin
++                committed_value = base;
++                if (i_wen && index == i_wr_addr_a)
++                        committed_value = i_wr_data_a;
++                if (i_wen && index == i_wr_addr_b)
++                        committed_value = i_wr_data_b;
++                if (index < 6'd40 && i_wr_addr_c[index])
++                        committed_value = i_wr_data_c;
++        end
++endfunction
++
++genvar port_no;
++generate
++        for (port_no = 0; port_no < 4; port_no = port_no + 1)
++        begin : g_refresh
++                assign capture_data[32*port_no +: 32] = committed_value(
++                        i_index[6*port_no +: 6], i_data[32*port_no +: 32]);
++                assign refreshed_head[32*port_no +: 32] = committed_value(
++                        head_index[6*port_no +: 6], head_data[32*port_no +: 32]);
++                assign refreshed_tail[32*port_no +: 32] = committed_value(
++                        tail_index[6*port_no +: 6], tail_data[32*port_no +: 32]);
++        end
++endgenerate
++
++always @(posedge i_clk)
++begin
++        // Refresh on every edge, including global data and multiply holds.
++        head_data <= refreshed_head;
++        tail_data <= refreshed_tail;
++        if (i_reset || i_clear)
++        begin
++                head_valid <= 1'b0;
++                tail_valid <= 1'b0;
++        end
++        else
++        begin
++                if (i_pop)
++                begin
++                        head_valid <= tail_valid;
++                        tail_valid <= 1'b0;
++                        if (tail_valid)
++                        begin
++                                head_control <= tail_control;
++                                head_index <= tail_index;
++                                head_data <= refreshed_tail;
++                        end
++                end
++                if (i_push)
++                begin
++                        // No admission while full, even if popping this edge.
++                        if (!head_valid || i_pop)
++                        begin
++                                head_valid <= 1'b1;
++                                head_control <= i_control;
++                                head_index <= i_index;
++                                head_data <= capture_data;
++                        end
++                        else
++                        begin
++                                tail_valid <= 1'b1;
++                                tail_control <= i_control;
++                                tail_index <= i_index;
++                                tail_data <= capture_data;
++                        end
++                end
++        end
++end
++`ifndef SYNTHESIS
++always @(posedge i_clk)
++begin
++        if (!i_reset && !i_clear)
++        begin
++                if (i_push && o_full)
++                        $fatal(1, "operand queue accepted while full");
++                if (i_pop && !o_valid)
++                        $fatal(1, "operand queue popped while empty");
++                if (tail_valid && !head_valid)
++                        $fatal(1, "operand queue tail without head");
++        end
++end
++`endif
++endmodule

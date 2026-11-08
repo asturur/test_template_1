@@ -223,6 +223,9 @@ logic                            fifo_full;
 logic                            code_stall;
 logic                            instr_valid;
 logic                            pipeline_is_not_empty;
+logic                            operand_busy, rf_wen;
+logic [5:0]                      rf_wr_addr_a, rf_wr_addr_b;
+logic [31:0]                     rf_wr_data_a, rf_wr_data_b;
 
 // Fetch
 logic [31:0]                     fetch_instruction;  // Instruction from the fetch unit.
@@ -574,6 +577,7 @@ assign instr_valid  = o_instr_wb_stb & o_instr_wb_cyc & i_instr_wb_ack  & ~shelv
 // instructions can be used as fences in ZAP.
 //
 assign pipeline_is_not_empty    = predecode_val                      ||
+                                  operand_busy                       ||
                                   (decode_condition_code    != NV)   ||
                                   (issue_condition_code_ff  != NV)   ||
                                   (shifter_condition_code_ff!= NV)   ||
@@ -975,6 +979,12 @@ u_zap_issue_main
         .i_rd_data_2                    (rd_data_2),
         .i_rd_data_3                    (rd_data_3),
 
+        .i_rf_wen(rf_wen),
+        .i_rf_wr_addr_a(rf_wr_addr_a), .i_rf_wr_addr_b(rf_wr_addr_b),
+        .i_rf_wr_addr_c(i_dc_reg_idx[39:0]),
+        .i_rf_wr_data_a(rf_wr_data_a), .i_rf_wr_data_b(rf_wr_data_b),
+        .i_rf_wr_data_c(i_dc_reg_dat), .o_operand_busy(operand_busy),
+
         // Feedback.
         .i_dc_lock                      (i_dc_lock),
         .i_shifter_destination_index_ff (shifter_destination_index_ff),
@@ -1089,7 +1099,7 @@ u_zap_shifter_main
         .i_clear_from_writeback         (clear_from_writeback),
         .i_data_stall                   (data_stall),
         .i_clear_from_alu               (clear_from_alu),
-        .i_condition_code_ff            (stall_from_issue ? NV : issue_condition_code_ff),
+        .i_condition_code_ff            (issue_condition_code_ff),
         .i_destination_index_ff         (issue_destination_index_ff),
         .i_alu_operation_ff             (issue_alu_operation_ff),
         .i_shift_operation_ff           (issue_shift_operation_ff),
@@ -1102,11 +1112,11 @@ u_zap_shifter_main
         .i_mem_signed_byte_enable_ff    (issue_mem_signed_byte_enable_ff),
         .i_mem_signed_halfword_enable_ff(issue_mem_signed_halfword_enable_ff),
         .i_mem_unsigned_halfword_enable_ff(issue_mem_unsigned_halfword_enable_ff),
-        .i_mem_translate_ff             (stall_from_issue ? '0 : issue_mem_translate_ff),
-        .i_irq_ff                       (stall_from_issue ? '0 : issue_irq_ff),
-        .i_fiq_ff                       (stall_from_issue ? '0 : issue_fiq_ff),
-        .i_abt_ff                       (stall_from_issue ? '0 : issue_abt_ff),
-        .i_swi_ff                       (stall_from_issue ? '0 : issue_swi_ff),
+        .i_mem_translate_ff             (issue_mem_translate_ff),
+        .i_irq_ff                       (issue_irq_ff),
+        .i_fiq_ff                       (issue_fiq_ff),
+        .i_abt_ff                       (issue_abt_ff),
+        .i_swi_ff                       (issue_swi_ff),
         .i_alu_source_ff                (issue_alu_source_ff),
         .i_shift_source_ff              (issue_shift_source_ff),
         .i_alu_source_value_ff          (issue_alu_source_value_ff),
@@ -1621,6 +1631,9 @@ u_zap_writeback
 
         .o_copro_reg_rd_data_ff (copro_reg_rd_data),
 
+        .o_rf_wen(rf_wen),
+        .o_rf_wr_addr_a(rf_wr_addr_a), .o_rf_wr_addr_b(rf_wr_addr_b),
+        .o_rf_wr_data_a(rf_wr_data_a), .o_rf_wr_data_b(rf_wr_data_b),
         .o_rd_data_0            (rd_data_0),
         .o_rd_data_1            (rd_data_1),
         .o_rd_data_2            (rd_data_2),

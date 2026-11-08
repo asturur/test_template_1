@@ -12,11 +12,21 @@ from pathlib import Path
 b=Path('build/sim/unit-core/program.bin').read_bytes();b+=bytes((-len(b))%4)
 Path('build/sim/unit-core/program.hex').write_text(''.join(f'{int.from_bytes(b[i:i+4],"little"):08x}\n' for i in range(0,len(b),4)))
 PY
+# Tests may select a preserved source snapshot without duplicating production RTL.
+arm_rtl=""
+for source in rtl/arm/*.sv; do
+ if [ -n "${CPU_REFERENCE_DIR:-}" ] && [ -f "$CPU_REFERENCE_DIR/$(basename "$source")" ]; then
+  arm_rtl="$arm_rtl $CPU_REFERENCE_DIR/$(basename "$source")"
+ else
+  arm_rtl="$arm_rtl $source"
+ fi
+done
 extra_rtl=""
 extra_define=""
+if [ -n "${CPU_REFERENCE_DIR:-}" ]; then extra_define="-DNGAGE_OPERAND_REFERENCE"; fi
 if [ "${CPU_ASSOC_EXPERIMENT:-1}" = 1 ]; then
  extra_rtl="rtl/arm920/tlb_bus_gate.sv rtl/arm920/write_buffer.sv rtl/arm920/cache_tags.sv rtl/ngage_bram.v rtl/arm920/cache_lines.sv rtl/arm920/cache_bank.sv rtl/arm920/cache_transfer.sv rtl/arm920/cache_refill.sv rtl/arm920/cache_maintenance.sv rtl/arm920/cache_access.sv rtl/arm920/zap_dcache_adapter.sv"
- extra_define="-DNGAGE_ASSOC_EXPERIMENT"
+ extra_define="$extra_define -DNGAGE_ASSOC_EXPERIMENT"
 fi
 if [ "${CPU_SDRAM_PATH:-0}" = 1 ]; then
  extra_rtl="$extra_rtl rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v"
@@ -28,12 +38,22 @@ if [ "${CPU_BUS_BRIDGE:-0}" = 1 ]; then
 fi
 docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint verilator jotego/simulator:arm64 \
  --binary --timing --assert $extra_define -DNGAGE_RUNTIME_TRACE -Wno-fatal -Wno-lint -Irtl/arm --top-module test --Mdir build/sim/unit-core \
- rtl/ngage_cpu.sv rtl/arm/*.sv $extra_rtl tests/cpu/core/test.sv > build/sim/unit-core/build.log 2>&1
-extra=""
-if [ "$program" = cpu_timing ]; then
+ rtl/ngage_cpu.sv $arm_rtl $extra_rtl tests/cpu/core/test.sv > build/sim/unit-core/build.log 2>&1
+extra="${CPU_RUN_ARGS:-}"
+if [ "$program" = cpu_timing ] || [ "$program" = operand_timing ]; then
  first=$(arm-none-eabi-nm build/sim/unit-core/program.elf | awk '$3=="timing_first" {print $1}')
  last=$(arm-none-eabi-nm build/sim/unit-core/program.elf | awk '$3=="timing_last" {print $1}')
- extra="+pc_first=$first +pc_last=$last"
+ extra="$extra +pc_first=$first +pc_last=$last"
+ for marker in init_branch init_target; do
+  address=$(arm-none-eabi-nm build/sim/unit-core/program.elf | awk -v symbol="measure_$marker" '$3==symbol {print $1}')
+  extra="$extra +measure_$marker=$address"
+ done
+fi
+if [ "$program" = operand_timing ]; then
+ for marker in load use branch target; do
+  address=$(arm-none-eabi-nm build/sim/unit-core/program.elf | awk -v symbol="measure_$marker" '$3==symbol {print $1}')
+  extra="$extra +measure_$marker=$address"
+ done
 fi
 if [ "$program" = cache_associativity ]; then extra="+cache_conflict"; fi
 if [ "$program" = swp_basic ]; then extra="+swp_tags +swp_dma"; fi
@@ -71,5 +91,5 @@ for delay in ${CPU_DELAYS:-0 3}; do
   tail -30 "build/sim/unit-core/run-$delay.log"
   exit 1
  fi
- grep -E '^(PASS|TIMING|STALL):' "build/sim/unit-core/run-$delay.log"
+ grep -E '^(PASS|TIMING|STALL|COUNTERS|METRICS|PHASES|INIT_EDGES):' "build/sim/unit-core/run-$delay.log"
 done
