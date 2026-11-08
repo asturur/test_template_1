@@ -1,3 +1,39 @@
+## 2026-11-08: reset, memory-owner and refill-control changes verified
+
+Cache refill arbitration now consumes a registered physical-line hazard snapshot,
+rather than chaining the buffer's address comparisons through choose_refill and
+back into enqueue enables. Every offered enqueue conservatively marks that
+snapshot hazardous, so an alias newly entering the buffer cannot slip through an
+old empty snapshot. Hazard release after retirement may gain one clock; request
+ownership/backpressure stay held until bus termination. FIFO ready/capacity,
+lookup/hit stages, ordered merging and abort/retry rules are unchanged.
+
+Each buffer slot also captures its next adjacent byte address at allocation or
+merge. Merge eligibility compares that record instead of recomputing base+length
+on the ready/write-enable path. This adds4x32 metadata bits; 32-bit wrap and the
+four-group/sixteen-word limits remain exact. The independent FIFO oracle passes
+12021 cycles with the same1343 enqueues,329 merges,497 line crossings,163 wraps
+and1998 errors. Focused buffer/cache integration passes. The associative access
+fixture additionally tests dirty-victim replacement where a different virtual
+line maps to that same physical line, with writes stalled and reads available;
+refill must wait and return the newly written-back value.
+
+Final CPU-board integration, memory/reset/ownership/queued-LCD/diagnostic-export
+and raster checks, source graph, formatting and top-level structural lint pass.
+Fresh real-SDRAM5M boot passes PC00006178/289197 transfers/12 known fetch faults/
+zero data faults; all121 writes and12 fault records match9e80d10 in order.
+The full board trace and timestamps are byte-identical to the owner-only boot,
+showing no extra change in this early bound from step3 (which is exercised by
+the directed cache tests). Full CPU/cache regression finishes120 PASS plus1
+expected legacy direct-map XFAIL; warm ARM ADD stays1 cycle at0/3 waits.
+Evidence is under
+`scratch/timing-closure/pass15-reset-owner-buffer/`. No source/SDC clocks or
+firmware changes; no historical checkpoint restored. Step1=c8a851f,step2=acbaf22;
+step3 is ready to commit, then push all three and dispatch exactly one
+authorized GitHub build, with no automatic monitoring. Latest measured fit
+remains80.17MHz/-1.945ns; fanout replication, reset recovery/removal and actual
+setup improvement require that new fit.
+
 ## 2026-11-08: captured NOR/SDRAM owner (step2)
 
 ngage_mister now captures the disjoint {PMM,C:,code NOR,SDRAM} region once per

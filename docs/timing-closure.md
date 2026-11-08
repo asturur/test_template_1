@@ -1,3 +1,40 @@
+## 2026-11-08: implement reset, memory-owner and refill-control boundaries
+
+Three separate changes follow the80.17MHz fit. First, the flash-drain register
+is the sole phone reset driver, with asynchronous assertion and clocked release;
+maxfan128/preserve permits Quartus driver replication. This removes loader/ready
+logic from the direct cache/SIM enable paths. Immediate cancellation and accepted
+flash drain remain tested, including a pulse between clocks. No false/multicycle
+exceptions; next fit must check both setup and reset recovery/removal/fanout.
+
+Second, the MiSTer boundary captures the existing four-way disjoint memory region
+once per held bridge request. NOR/SDRAM launch and completion bypass aggregate
+peripheral claims, while unknown/register accesses retain local ownership/errors.
+The captured owner shares the bridge's stable address/data/lane record and clears
+on a request gap/reset. One capture clock is added to memory transactions.
+
+Third, the refill arbiter uses a registered buffer-line hazard snapshot, with every
+offered enqueue conservatively blocking the next read decision. This breaks the
+stored-address ->hazard ->choose_refill ->buffer-enqueue loop; retire/enqueue
+release can add one clock. Per-slot next-address metadata removes the live
+base+length carry chain from merge/ready decisions. FIFO size/ready semantics,
+ordered beats, merge/wrap/errors, lookup stages and fast hits stay unchanged.
+The added storage is4x32 bits plus one hazard bit per cache instance.
+
+Sources target the previous shared reset284 paths, memory claim/launch family
+(including86 NOR endpoints), and buffer hazard/refill/enqueue family250. These
+counts identify existing affected families, not predicted counts meeting104MHz;
+only the next routed fit can establish that. CPU signed-halfword->decode paths
+were inspected: they belong to load-result formatting/forwarding and PC/control
+consumption in imported ZAP, a separate pipeline dependency. Their RTL is retained
+for the next fit/review, rather than changing architectural forwarding as part of
+the write-buffer boundary. No imported CPU source/patch or clock change.
+
+Validation is detailed in status.md and
+`scratch/timing-closure/pass15-reset-owner-buffer/`. The last measured timing
+remains80.17MHz/setup-1.945ns. Dispatch exactly one combined build after final
+checks; do not monitor it automatically.
+
 ## 2026-11-08: pass14 improves to80.17MHz; reset distribution becomes visible
 
 Run42439233437 /9e80d10148fcc18fcdf889935bc323291706d142 compiles/fits

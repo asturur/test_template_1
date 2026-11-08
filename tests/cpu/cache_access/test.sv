@@ -117,6 +117,23 @@ module test;
   inv=1;#1;if(fv)$fatal(1,"stream survived invalidation");tick();inv=0;
   repeat(6)begin tick();if(fv)$fatal(1,"pending fast lookup survived invalidation");end
   reset=1;tick();reset=0;repeat(6)begin tick();if(fv)$fatal(1,"pending fast lookup survived reset");end
+  // A dirty victim and a different virtual line can share the requested
+  // physical line. Queue writeback while writes stall but reads are ready:
+  // the registered hazard must not let the refill consume the old memory.
+  fast=0;allow=1;allow_reads=1;mem[0]=32'h11112222;
+  access(0,0,0,4'hf,1,result);
+  access(1,0,32'hdecafbad,4'hf,1,result);
+  for(n=1;n<64;n=n+1)access(0,n<<8,0,4'hf,1,result);
+  r0=reads;w0=writes;allow=0;
+  mva=32'h4000;pa=32'h80000000;wr=0;b=1;req=1;tick();req=0;
+  repeat(30)begin
+   tick();if(rv || reads!=r0 || writes!=w0)$fatal(1,"aliased dirty victim refill passed queued writeback");
+  end
+  if(wbempty || !dut.buffer_line_hazard)$fatal(1,"dirty alias writeback was not hazardous");
+  allow=1;while(!rv)tick();
+  if(re || rd!==32'hdecafbad || mem[0]!==32'hdecafbad || writes!=w0+4)
+   $fatal(1,"aliased dirty victim returned stale data");
+  while(!wbempty)tick();
   $display("PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction");$finish;
  end
 endmodule

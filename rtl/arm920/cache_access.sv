@@ -145,17 +145,29 @@ module arm920_cache_access (
 
     logic [31:0] store_mask;
     logic buffer_ready, buffer_bus_valid, buffer_full, buffer_line_hazard;
+    logic refill_line_hazard;
     logic bus_held, bus_held_refill;
     wire        choose_refill;
     // Queue dirty replacement data before allowing the refill read to issue.
     wire        refill_buffer_push = state == WAIT_REFILL && refill_bus_valid && refill_bus_write;
+    wire buffer_push_valid = state == BUFFER_STORE ||
+                             (state == MAINTAIN && maint_bus_valid) || refill_buffer_push;
+    // Refill arbitration consumes a registered hazard snapshot. A simultaneous
+    // offered enqueue conservatively blocks reads for another clock, so a new
+    // dirty-victim alias cannot pass through the old empty-buffer snapshot.
+    // Retiring groups may delay release by one clock; offered bus beats retain
+    // the existing held-owner contract. No change to FIFO capacity or ready.
+    always_ff @(posedge clk) begin
+        if (reset) refill_line_hazard <= 1;
+        else refill_line_hazard <= buffer_line_hazard || buffer_push_valid;
+    end
     logic [2:0] buffer_entries;
     logic [31:0] buffer_bus_address, buffer_bus_data;
     logic [3:0] buffer_bus_sel;
     arm920_write_buffer write_buffer (
         .clk(clk),
         .reset(reset),
-        .push_valid(state==BUFFER_STORE || (state==MAINTAIN && maint_bus_valid) || refill_buffer_push),
+        .push_valid(buffer_push_valid),
         .push_ready(buffer_ready),
         .push_address(state==MAINTAIN ? maint_bus_address : refill_buffer_push ? refill_bus_address : pa),
         .push_words(3'd1),
@@ -189,7 +201,7 @@ module arm920_cache_access (
     // Never switch an offered beat until it has completed. Between beats an
     // unrelated replacement read can precede queued writes; an overlapping line
     // must wait until those writes retire.
-    wire refill_read = state==WAIT_REFILL && refill_bus_valid && !refill_bus_write && !buffer_line_hazard;
+    wire refill_read = state==WAIT_REFILL && refill_bus_valid && !refill_bus_write && !refill_line_hazard;
     assign choose_refill = bus_held ? bus_held_refill : refill_read;
     assign bus_valid = choose_refill ? refill_read : (buffer_bus_valid || state == BYPASS);
     assign bus_write = choose_refill ? 1'b0 : buffer_bus_valid ? 1'b1 : wr;

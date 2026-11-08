@@ -18,11 +18,15 @@ module arm920_write_buffer (
 );
  logic [31:0] addresses[0:3];
  logic [2:0] lengths[0:3];
+ // Precompute the next adjacent byte address at enqueue/merge. Merge tests
+ // compare this record, without a base+length carry chain before ready/enables.
+ logic [31:0] next_address[0:3];
  // Each contiguous group has at most four words, hence at most two 32-byte
  // lines (including 32-bit address wrap). The first tag is already stored in
  // addresses; retain the final word's tag when accepting/merging the group.
  logic [26:0] last_line[0:3];
  wire [31:0] push_last_address=push_address+{27'b0,(push_words-3'd1),2'b0};
+ wire [31:0] push_next_address=push_address+{27'b0,push_words,2'b0};
  logic [127:0] data[0:3];
  logic [15:0] enables[0:3];
  logic [1:0] head,tail,word_index;
@@ -33,7 +37,7 @@ module arm920_write_buffer (
  // Adjacent single-word stores share one address slot but are still issued
  // as separate ordered bus beats. Never extend a group being retired now.
  wire merge_single=count!=0 && push_words==1 && lengths[last]<4 &&
-                  push_address==addresses[last]+({29'b0,lengths[last]}<<2) &&
+                  push_address==next_address[last] &&
                   !(group_done && head==last);
  wire push=push_valid && push_ready;
  wire new_group=push && !merge_single;
@@ -65,6 +69,7 @@ module arm920_write_buffer (
    if(new_group)begin
     addresses[tail]<=push_address;lengths[tail]<=push_words;
     last_line[tail]<=push_last_address[31:5];
+    next_address[tail]<=push_next_address;
     data[tail]<=push_data;enables[tail]<=push_byte_enable;tail<=tail+1'b1;
    end else if(push)begin
     data[last][lengths[last]*32+:32]<=push_data[31:0];
@@ -73,6 +78,7 @@ module arm920_write_buffer (
     // merge_single has already validated the incoming word's full address.
     // Using that tag avoids reconstructing it from base+length in a query.
     last_line[last]<=push_address[31:5];
+    next_address[last]<=push_address+32'd4;
    end
    if(beat_done) begin
     if(group_done)begin head<=head+1'b1;word_index<=0;end
