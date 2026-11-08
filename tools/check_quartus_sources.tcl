@@ -67,6 +67,13 @@ while {[llength $queue]} {
     dict set examined $path 1
     if {[file extension $path] ni {.v .sv .vh .svh}} {continue}
     set f [open $path];set text [read $f];close $f
+    # Quartus17 rejects inline generate-loop variable declarations even in
+    # SYSTEMVERILOG_FILE inputs. Catch this known parser failure before compile;
+    # this targeted guard does not replace HDL elaboration or synthesis.
+    regsub -all {//[^\n]*|/\*.*?\*/} $text "" code
+    if {[regexp {for\s*\(\s*genvar\M} $code]} {
+        lappend failures "Quartus17 inline genvar: $path (declare genvar before generate)"
+    }
     foreach {whole include} [regexp -all -inline {`include[ \t]+"([^"\n]+)"} $text] {
         if {$include eq "build_id.v"} {continue}
         set found 0

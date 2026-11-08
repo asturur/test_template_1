@@ -1,3 +1,26 @@
+## 2026-11-08: fix pass16 Quartus inline-genvar parser failure
+
+Run42468961226 /e6d146b stops in Analysis/Synthesis, before a fit: Quartus17
+reports10170 on the three inline `for (genvar ...)` declarations in the new
+zap_register_file read tree (lines95,98,110). The parser restriction previously
+encountered in cache metadata was missed during review. This run provides no
+new Fmax, slack or area result; baseline remains79.42MHz/-2.111ns.
+
+Declare port_no/reg_no/node_no at module scope and reuse them in generate loops.
+No read-tree geometry, logic, ports, latency, forwarding or stall change.
+Patch0044 records the compatibility-only edit; all44 patches reproduce exactly.
+The source preflight now rejects inline-genvar loops in the compiled HDL graph,
+ignoring comments. It rejects the failing source before the fix and passes after;
+focused guard cases include comments, external declarations and multiline loops.
+This guard is not a substitute for Quartus elaboration/synthesis.
+
+Operand oracle passes17160 cycles; top-level structural lint and source graph
+pass172 required files/9 QIPs. No expensive full CPU/boot rerun for a declaration-
+only elaboration fix: the previous122 PASS+1 expected XFAIL and byte-identical
+fresh5M boot remain the functional evidence for the CPU changes. Evidence:
+`scratch/timing-closure/pass16-42468961226/`. Commit/push this fix and dispatch
+one replacement build; do not automatically monitor it. No savestate restored.
+
 ## 2026-11-08: CPU demand completion separated from maintenance-idle ACK (pass16 step2)
 
 The measured D-cache active_maint->ACK->CPU global-stall path came from an idle

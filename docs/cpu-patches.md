@@ -298,3 +298,12 @@ uses the local ARM920-shaped associative cache adapters; the legacy direct-mappe
 configuration remains available for reference tests. Passing these checks does not
 establish a complete ARM920T implementation, original Nokia execution timing, or
 Symbian compatibility.
+
+## Quartus17 register-read generate declarations
+
+Patch0044 moves the balanced register-file read tree's three genvar declarations
+to module scope. Quartus17 rejected the inline declarations in run42468961226
+with10170, despite SystemVerilog source selection and successful Verilator lint.
+The tree, forwarding and pipeline behaviour are unchanged. The operand oracle
+passes17160 cycles, all44 patches reproduce the imported source exactly, and
+the compiled-source preflight now catches that specific unsupported syntax.

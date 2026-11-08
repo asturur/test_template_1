@@ -91,11 +91,12 @@ end
 wire [3:0][5:0] rd_addr = {i_rd_addr_d, i_rd_addr_c,
                            i_rd_addr_b, i_rd_addr_a};
 wire [3:0][31:0] rd_data;
+genvar port_no, reg_no, node_no;
 generate
-        for (genvar port_no = 0; port_no < 4; port_no = port_no + 1)
+        for (port_no = 0; port_no < 4; port_no = port_no + 1)
         begin : g_read_port
                 wire [31:0] tree [1:127];
-                for (genvar reg_no = 0; reg_no < 64; reg_no = reg_no + 1)
+                for (reg_no = 0; reg_no < 64; reg_no = reg_no + 1)
                 begin : g_word
                         if (reg_no < 40)
                         begin : g_present
@@ -107,7 +108,7 @@ generate
                                 assign tree[64 + reg_no] = 32'd0;
                         end
                 end
-                for (genvar node_no = 1; node_no < 64; node_no = node_no + 1)
+                for (node_no = 1; node_no < 64; node_no = node_no + 1)
                 begin : g_reduce
                         assign tree[node_no] = tree[2*node_no] | tree[2*node_no+1];
                 end
