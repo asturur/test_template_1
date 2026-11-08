@@ -44,8 +44,8 @@ module arm920_cache_tags (
     reg [63:0] read_valid_bits, match_bits;
     reg [1:0] read_dirty_bits[0:63], compare_dirty[0:63];
     reg [5:0] read_victim_way, compare_victim_way;
-    reg read_victim_valid, compare_victim_valid;
-    reg [1:0] read_victim_dirty, compare_victim_dirty;
+    reg compare_victim_valid;
+    reg [1:0] compare_victim_dirty;
     reg [26:0] compare_victim_pa;
     reg [31:0] commit_mva, commit_pa;
     reg [63:0] commit_selected;
@@ -125,11 +125,11 @@ module arm920_cache_tags (
         read_mva             <= mva;
         lookup_mva           <= read_mva;
         read_victim_way      <= victim[mva[7:5]];
-        read_victim_valid    <= valid[mva[7:5]][victim[mva[7:5]]];
-        read_victim_dirty    <= dirty[mva[7:5]][victim[mva[7:5]]];
         compare_victim_way   <= read_victim_way;
-        compare_victim_valid <= read_victim_valid;
-        compare_victim_dirty <= read_victim_dirty;
+        // Select the victim flags from the same captured segment snapshot.
+        // Split segment/way selection across the existing two lookup edges.
+        compare_victim_valid <= read_valid_bits[read_victim_way];
+        compare_victim_dirty <= read_dirty_bits[read_victim_way];
         compare_victim_pa    <= victim_pa_data;
         for (lookup_way = 0; lookup_way < 64; lookup_way = lookup_way + 1) begin
             read_valid_bits[lookup_way] <= valid[mva[7:5]][lookup_way];

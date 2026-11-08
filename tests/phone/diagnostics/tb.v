@@ -5,6 +5,17 @@ always #5 clk=~clk;
 ngage_diagnostics dut(.clk(clk),.cold_reset(cold),.freeze_trace(1'b0),.fault(fault),.fault_is_fetch(fetch),.fault_address(fa),.fault_reason(reason),.trace_valid(tv),.trace_lost(1'b0),.trace_addr(ta),.trace_data(td),.trace_sel(sel),.read_word(ra),.read_data(data),.fault_seen(seen));
 task check;input [10:0] index;input [15:0] expected;begin @(negedge clk);ra=index;@(negedge clk);#1;if(data!==expected)begin $display("FAIL debug word %d got %h want %h",index,data,expected);$finish;end end endtask
 initial begin
+ // Exhaust every external word address, including metadata and out-of-range
+ // inputs, before exercising the synchronous RAM/readout and export contract.
+ for(i=0;i<2048;i=i+1)begin
+  ra=i;#1;
+  if(i>=8 && i<392)begin
+   if(dut.read_slot!==(i-8)/6 || dut.field!==(i-8)%6)
+    $fatal(1,"trace decode mismatch at %0d",i);
+  end else if(dut.slot_selected!==64'b0)
+   $fatal(1,"out-of-range trace selection at %0d",i);
+ end
+ ra=0;
  repeat(2)@(negedge clk);cold=0;
  @(negedge clk);fault=1;fetch=1;fa=32'h0c0047e4;reason=1;@(negedge clk);fault=0;fetch=0;
  if(seen)begin $display("FAIL speculative fetch reported as data fault");$finish;end

@@ -1,6 +1,7 @@
 /*  UPP-side behavioral peripherals, migrated from the C++ reference
     model (scratch/boot-v15-nosprobe/boot_profile.cpp). Wishbone-slave view:
-    combinational claim/dout against the live request; registered state
+    external fixtures retain live responses; the internal CPU snapshots each
+    local response and its one-hot owner before returning data. Registered state
     uses a request authorization window; each device checks its own ownership,
     readiness and supported operation before applying side effects. Unsupported
     selected accesses raise unmodeled for the CPU response/diagnostics only.
@@ -37,9 +38,10 @@
 */
 
 module ngage_upp_peripherals #(
-    parameter SIMIF_ENABLE     = 0,
-              KEYPAD_ENABLE    = 0,
-              LCD_QUEUE_ENABLE = 0
+    parameter SIMIF_ENABLE       = 0,
+              KEYPAD_ENABLE      = 0,
+              LCD_QUEUE_ENABLE   = 0,
+              REGISTER_RESPONSES = 0
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -51,11 +53,11 @@ module ngage_upp_peripherals #(
     input  wire        we,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
-    input  wire        commit,             // authorize local access checks this cycle
+    input  wire        commit,                // authorize local access checks this cycle
     // configuration (from the harness command line)
-    input  wire        cfg_lcd,            // lcd-probe option
-    input  wire        cfg_keypad,         // keypad-gpio option
-    input  wire        cfg_clocks,         // ideal-clocks option
+    input  wire        cfg_lcd,               // lcd-probe option
+    input  wire        cfg_keypad,            // keypad-gpio option
+    input  wire        cfg_clocks,            // ideal-clocks option
     input  wire        dma_irq_pending,
     input  wire        sim_fiq_pending,
     input  wire [25:0] keys,
@@ -72,7 +74,7 @@ module ngage_upp_peripherals #(
     output wire        dma_irq_clear,
     // service
     output reg         claim,
-    output wire        ready,              // dout valid / access may be acknowledged
+    output wire        ready,                 // dout valid / access may be acknowledged
     output reg  [31:0] dout,
     output reg         unmodeled,
     output wire        irq,
@@ -100,11 +102,14 @@ module ngage_upp_peripherals #(
     input  wire [15:0] mdi_events,
     output wire        adsp_tick,
     output wire        lcd_write_valid,
-    input  wire        lcd_sink_ready
+    input  wire        lcd_sink_ready,
+    input  wire        dma_shadow_claim,
+    input  wire        lcd_direct_collision,
+    output wire        response_pending
 );
 
     wire simif_claim, simif_bad, simif_irq;
-    wire        local_access = commit && init_done && cyc && stb;
+    wire        local_access = commit && init_done && cyc && stb && !response_pending;
     wire        sim_access = local_access && (!simif_claim || (!card_busy && !card_overflow));
     wire [31:0] simif_data;
     generate
@@ -151,6 +156,7 @@ module ngage_upp_peripherals #(
         nos_tick, gpio_loop_claim, gpio_loop_bad, extra_claim, extra_bad;
     wire [31:0] icu_data, timer_data, nos_data, boot_data, gpio_loop_data, extra_data;
     wire        sysc74_seen;
+    wire        extra_ready;
     wire [95:0] irq_clear;
     wire timer0_pending, unit1_pending, unit60_pending, timer0_rearm;
     wire keypad_irq;
@@ -259,7 +265,7 @@ module ngage_upp_peripherals #(
         .clk            (clk),
         .reset          (rst),
         .req            (cyc && stb),
-        .commit         (local_access),
+        .commit         (local_access && !dma_shadow_claim),
         .we             (we),
         .periodic_active(periodic_active),
         .addr           (a),
@@ -269,7 +275,8 @@ module ngage_upp_peripherals #(
         .bad            (extra_bad),
         .dout           (extra_data),
         .cbus8d_written (cbus8d_written),
-        .sysc74_seen    (sysc74_seen)
+        .sysc74_seen    (sysc74_seen),
+        .ready          (extra_ready)
     );
     ngage_trace_sink trace_sink (
         .clk        (clk),
@@ -471,8 +478,8 @@ module ngage_upp_peripherals #(
     // slower enable. Hold the next SIMIF access until card state is current.
     // Only LCD writes wait for their panel command buffer. Legacy standalone
     // fixtures without a display keep their original immediate contract.
-    wire lcd_can_accept = !LCD_QUEUE_ENABLE || lcd_sink_ready;
-    assign ready = init_done && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
+    wire lcd_can_accept = (!LCD_QUEUE_ENABLE || lcd_sink_ready) && !lcd_direct_collision;
+    wire local_ready = init_done && (!extra_claim || extra_ready) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin
@@ -490,7 +497,9 @@ module ngage_upp_peripherals #(
     wire gpio_access = local_access && gpio_selected && valid_lanes &&
                        (we || (rd_vld && rd_adr == a));
     wire [31:0] keypad_dout;
-    reg [31:0] dout_unkeyed;
+    reg [31:0] gpio_data, clock_data;
+    reg gpio_bad, clock_bad;
+    wire [31:0] dout_unkeyed = gpio_loop_claim ? gpio_loop_data : nos_claim ? nos_data : gpio_data;
     generate
         if (KEYPAD_ENABLE) begin : keypad_enabled
             ngage_keypad keypad (
@@ -513,118 +522,194 @@ module ngage_upp_peripherals #(
             assign keypad_irq  = 1'b0;
         end
     endgenerate
-    always @* dout = keypad_dout;
-    // ---- combinational output ---------------------------------------------------
-    always @(*) begin
-        claim = simif_claim || extra_claim || icu_claim || timer_claim ||
-            nos_claim || cbus_claim || boot_claim || trace_claim || mdi_claim || gpio_loop_claim ||
-            ((lcd_hit || gpio_hit || clk_hit || nos4k_hit || d_space_hit) && cyc && stb);
-        dout_unkeyed = 32'd0;
-        unmodeled = 1'b0;
 
-        if (simif_claim) begin
-            dout_unkeyed = simif_data;
-            unmodeled    = simif_bad || card_overflow;
-        end else if (extra_claim) begin
-            dout_unkeyed = extra_data;
-            unmodeled    = extra_bad;
-        end else if (gpio_loop_claim) begin
-            dout_unkeyed = gpio_loop_data;
-            unmodeled    = gpio_loop_bad;
-        end else if (mdi_claim) begin
-            dout_unkeyed = mdi_data;
-            unmodeled    = mdi_bad;
-        end else if (trace_claim) begin
-            dout_unkeyed = 0;
-            unmodeled    = trace_bad;
-        end else if (boot_claim) begin
-            dout_unkeyed = boot_data;
-            unmodeled    = boot_bad;
-        end else if (icu_claim) begin
-            dout_unkeyed = icu_data;
-            unmodeled    = icu_bad;
-        end else if (timer_claim) begin
-            dout_unkeyed = timer_data;
-            unmodeled    = timer_bad;
-        end else if (nos_claim) begin
-            dout_unkeyed = nos_data;
-            unmodeled    = nos_bad;
-        end else if (cbus_claim) begin
-            dout_unkeyed = cbus_data;
-            unmodeled    = cbus_bad;
-        end else if (nos4k_hit && cyc && stb) begin
-            if (a[31:12] == 20'h0c000) begin
-                // ASIC ROM stub: reads return Thumb BX LR (0x4770)
-                if (we) unmodeled = 1'b1;
-                else dout_unkeyed = 32'h4770_4770;
-            end else begin
-                dout_unkeyed = nos4k_q & wmask;
-                if (we);  // commit handles write
-            end
-        end else if (d_space_hit && cyc && stb) begin
-            dout_unkeyed = d_q & wmask;
-            unmodeled    = d_full;
-        end else if (clk_hit && cyc && stb) begin
-            if (a == 32'h0c12_0020) begin
-                if (we || ctlw != 4'hf) unmodeled = 1'b1;
-                else
-                    case (ctlv)
-                        32'd12: dout_unkeyed = 32'h0400_0000;
-                        32'h27:
-                        if (cmdw == 4'hf && cmdv == 32'd1) dout_unkeyed = 32'h0800_0000;
-                        else unmodeled = 1'b1;
-                        32'd3:
-                        if (pllw == 4'hf && pllv == 32'h2210) dout_unkeyed = 32'h0800_0000;
-                        else unmodeled = 1'b1;
-                        32'h20, 32'h40: dout_unkeyed = 32'h0600_0000;
-                        default: unmodeled = 1'b1;
-                    endcase
-            end else if (!we) begin
-                case (a)
-                    32'h0c12_0004: begin
-                        dout_unkeyed = ctlv;
-                        if ((ctlw & sel) != sel) unmodeled = 1'b1;
-                    end
-                    32'h0c12_0008: begin
-                        dout_unkeyed = cmdv;
-                        if ((cmdw & sel) != sel) unmodeled = 1'b1;
-                    end
-                    default: begin
-                        dout_unkeyed = pllv;
-                        if ((pllw & sel) != sel || pllv != 32'h2210) unmodeled = 1'b1;
-                        else dout_unkeyed = pllv | 32'd1;
-                    end
+    // Local data cones are independent of the global ownership priority.
+    // Only GPIO/NOS/loopback share the keypad overlay, which belongs to that
+    // address family. No SIM/boot/timer path traverses this overlay or a chain
+    // of all device data muxes.
+    always @* begin
+        clock_data = 0;
+        clock_bad  = 0;
+        if (a == 32'h0c12_0020) begin
+            if (we || ctlw != 4'hf) clock_bad = 1'b1;
+            else
+                case (ctlv)
+                    32'd12: clock_data = 32'h0400_0000;
+                    32'h27:
+                    if (cmdw == 4'hf && cmdv == 32'd1) clock_data = 32'h0800_0000;
+                    else clock_bad = 1'b1;
+                    32'd3:
+                    if (pllw == 4'hf && pllv == 32'h2210) clock_data = 32'h0800_0000;
+                    else clock_bad = 1'b1;
+                    32'h20, 32'h40: clock_data = 32'h0600_0000;
+                    default: clock_bad = 1'b1;
                 endcase
-            end
-        end else if (gpio_hit && cyc && stb) begin
-            if (!(sel==1 || sel==2 || sel==4 || sel==8 || sel==3 || sel==12 || sel==15))
-                unmodeled = 1'b1;
-            dout_unkeyed = gpr_q & wmask;
-            // ---- quirk bits on reads ----
-            // euart1 TX idle (0x0c150514 bit 2)
-            if (a == 32'h0c15_0514 && !we) dout_unkeyed = dout_unkeyed | (32'h4 & wmask);
-            // FBUS TX drained (0x0c150504 bits 4,6,7,8 = 0x1D0)
-            if (a == 32'h0c15_0504 && !we) dout_unkeyed = dout_unkeyed | (32'h1d0 & wmask);
-            // FBUS TX empty (0x0c150568 bits 1+2 in upper halfword = 0x60000)
-            if (a == 32'h0c15_0568 && !we) dout_unkeyed = dout_unkeyed | (32'h6_0000 & wmask);
-            // MBUS strobe self-clear: low halfword reads 0
-            if (a == 32'h0c15_021c && !we) dout_unkeyed = dout_unkeyed & 32'hffff_0000;
-            // GSM system-type strap (0x0c150000 bit 22)
-            if (a == 32'h0c15_0000 && !we) dout_unkeyed = dout_unkeyed | (32'h0040_0000 & wmask);
-            // Staged self-test hypothesis: UPP register-version bit.
-            if (a == 32'h0c14_b000 && !we) dout_unkeyed = dout_unkeyed | (32'h80 & wmask);
-            // clock-unit 0x0c148000 lock bit 0
-            if (a == 32'h0c14_8000 && !we) dout_unkeyed = dout_unkeyed | (32'h1 & wmask);
-            // free-running counter 0x0c150110 upper halfword = counter
-            if (a == 32'h0c15_0110 && !we)
-                dout_unkeyed = (dout_unkeyed & 32'h0000_ffff) | {fcnt[15:0], 16'd0};
-            // window constant 0x0c150114: reads 0x0080 if never written
-            if (a == 32'h0c15_0114 && !we && gpr_q[15:0] == 16'd0)
-                dout_unkeyed = (dout_unkeyed & 32'hffff_0000) | 16'h0080;
-        end else if (lcd_hit && cyc && stb) begin
-            dout_unkeyed = lcd_read_data;
-            unmodeled    = lcd_bad;
+        end else if (!we) begin
+            case (a)
+                32'h0c12_0004: begin
+                    clock_data = ctlv;
+                    if ((ctlw & sel) != sel) clock_bad = 1'b1;
+                end
+                32'h0c12_0008: begin
+                    clock_data = cmdv;
+                    if ((cmdw & sel) != sel) clock_bad = 1'b1;
+                end
+                default: begin
+                    clock_data = pllv;
+                    if ((pllw & sel) != sel || pllv != 32'h2210) clock_bad = 1'b1;
+                    else clock_data = pllv | 32'd1;
+                end
+            endcase
         end
+    end
+    always @* begin
+        gpio_data = 0;
+        gpio_bad  = 0;
+        if (!(sel == 1 || sel == 2 || sel == 4 || sel == 8 || sel == 3 || sel == 12 || sel == 15))
+            gpio_bad = 1'b1;
+        gpio_data = gpr_q & wmask;
+        // ---- quirk bits on reads ----
+        // euart1 TX idle (0x0c150514 bit 2)
+        if (a == 32'h0c15_0514 && !we) gpio_data = gpio_data | (32'h4 & wmask);
+        // FBUS TX drained (0x0c150504 bits 4,6,7,8 = 0x1D0)
+        if (a == 32'h0c15_0504 && !we) gpio_data = gpio_data | (32'h1d0 & wmask);
+        // FBUS TX empty (0x0c150568 bits 1+2 in upper halfword = 0x60000)
+        if (a == 32'h0c15_0568 && !we) gpio_data = gpio_data | (32'h6_0000 & wmask);
+        // MBUS strobe self-clear: low halfword reads 0
+        if (a == 32'h0c15_021c && !we) gpio_data = gpio_data & 32'hffff_0000;
+        // GSM system-type strap (0x0c150000 bit 22)
+        if (a == 32'h0c15_0000 && !we) gpio_data = gpio_data | (32'h0040_0000 & wmask);
+        // Staged self-test hypothesis: UPP register-version bit.
+        if (a == 32'h0c14_b000 && !we) gpio_data = gpio_data | (32'h80 & wmask);
+        // clock-unit 0x0c148000 lock bit 0
+        if (a == 32'h0c14_8000 && !we) gpio_data = gpio_data | (32'h1 & wmask);
+        // free-running counter 0x0c150110 upper halfword = counter
+        if (a == 32'h0c15_0110 && !we)
+            gpio_data = (gpio_data & 32'h0000_ffff) | {fcnt[15:0], 16'd0};
+        // window constant 0x0c150114: reads 0x0080 if never written
+        if (a == 32'h0c15_0114 && !we && gpr_q[15:0] == 16'd0)
+            gpio_data = (gpio_data & 32'hffff_0000) | 16'h0080;
+    end
+
+    // Decode priority once into a one-hot owner. Claims may depend on lanes,
+    // direction and device state; an address-only owner cache is not valid.
+    reg [14:0] selected_owner;
+    wire [14:0] result_owner, result_bad;
+    always @* begin
+        selected_owner = 0;
+        if (simif_claim) selected_owner[0] = 1;
+        else if (extra_claim) selected_owner[1] = 1;
+        else if (gpio_loop_claim) selected_owner[2] = 1;
+        else if (mdi_claim) selected_owner[3] = 1;
+        else if (trace_claim) selected_owner[4] = 1;
+        else if (boot_claim) selected_owner[5] = 1;
+        else if (icu_claim) selected_owner[6] = 1;
+        else if (timer_claim) selected_owner[7] = 1;
+        else if (nos_claim) selected_owner[8] = 1;
+        else if (cbus_claim) selected_owner[9] = 1;
+        else if (nos4k_hit && req) selected_owner[10] = 1;
+        else if (d_space_hit && req) selected_owner[11] = 1;
+        else if (clk_hit && req) selected_owner[12] = 1;
+        else if (gpio_hit && req) selected_owner[13] = 1;
+        else if (lcd_hit && req) selected_owner[14] = 1;
+        claim = response_pending ? (|result_owner && req) : |selected_owner;
+    end
+    wire [479:0] local_data = {
+        lcd_read_data,
+        keypad_dout,
+        clock_data,
+        d_q & wmask,
+        (a[31:12] == 20'h0c000 ? (we ? 32'b0 : 32'h47704770) : nos4k_q & wmask),
+        cbus_data,
+        keypad_dout,
+        timer_data,
+        icu_data,
+        boot_data,
+        32'b0,
+        mdi_data,
+        keypad_dout,
+        extra_data,
+        simif_data
+    };
+    wire [14:0] local_bad = {
+        lcd_bad,
+        gpio_bad,
+        clock_bad,
+        d_full,
+        (a[31:12] == 20'h0c000 && we),
+        cbus_bad,
+        nos_bad,
+        timer_bad,
+        icu_bad,
+        boot_bad,
+        trace_bad,
+        mdi_bad,
+        gpio_loop_bad,
+        extra_bad,
+        (simif_bad || card_overflow)
+    };
+    wire [479:0] result_data;
+    generate
+        if (REGISTER_RESPONSES) begin : registered_response
+            reg valid;
+            genvar local_lane;
+            for (local_lane = 0; local_lane < 15; local_lane = local_lane + 1) begin : local_results
+                reg [31:0] data;
+                reg owner, error;
+                always @(posedge clk) begin
+                    if (!rst && req && !valid) begin
+                        data  <= local_data[local_lane*32+:32];
+                        owner <= selected_owner[local_lane];
+                        error <= local_bad[local_lane];
+                    end
+                end
+                assign result_data[local_lane*32+:32] = data;
+                assign result_owner[local_lane]       = owner;
+                assign result_bad[local_lane]         = error;
+            end
+            // The UPP request record is already stable across this edge.
+            // Each device's data/error and ownership cross the same edge as
+            // its authorized effects. Held requests cannot repeat effects.
+            always @(posedge clk) begin
+                if (rst || !req) valid <= 0;
+                else if (!valid) begin
+                    // Payload registers are local, never enabled by aggregate
+                    // ready/error. Only the completion bit uses readiness.
+                    if (claim && local_ready && commit) valid <= 1;
+                end
+            end
+            assign response_pending = valid;
+            assign ready            = valid && req;
+        end else begin : immediate_response
+            assign response_pending = 0;
+            assign ready            = local_ready;
+            assign result_owner     = selected_owner;
+            assign result_bad       = local_bad;
+            assign result_data      = local_data;
+        end
+    endgenerate
+    // Constant slices and a balanced return tree keep each registered local
+    // result separate through elaboration and avoid a procedural mux chain.
+    wire [31:0] response_tree[0:30];
+    genvar response_lane;
+    generate
+        for (
+            response_lane = 0; response_lane < 15; response_lane = response_lane + 1
+        ) begin : response_leaves
+            assign response_tree[15+response_lane] =
+                result_data[response_lane*32+:32] & {32{result_owner[response_lane]}};
+        end
+        for (
+            response_lane = 0; response_lane < 15; response_lane = response_lane + 1
+        ) begin : response_nodes
+            assign response_tree[response_lane] = response_tree[2*response_lane+1] |
+                                                  response_tree[2*response_lane+2];
+        end
+    endgenerate
+    assign response_tree[30] = 32'b0;
+    always @* begin
+        dout      = response_tree[0];
+        unmodeled = |(result_owner & result_bad);
     end
 
     always @* begin

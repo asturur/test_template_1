@@ -1,4 +1,100 @@
+## 2026-11-08: implement the four post-pass13 targets
+
+The peripheral owner and each local data/error cone now cross the same response
+edge in internal-CPU mode. Separate per-device result registers feed an explicit
+balanced masked-OR tree; accepted effects are suppressed while that response is
+pending, including CBUS/MDI. The bridge retains the matching request record.
+This adds one peripheral response clock; ICU bank reads additionally require
+synchronous BRAM readiness. ICU low/DMA/epbus use three explicit M10K wrappers
+with64-edge warm-zero scrub after reset release, independent of cold init_done.
+Only the actual DMA-shadow/LCD owners receive their overlap exclusions.
+
+Cache victim flags use the existing first-stage flag snapshot and victim index
+in stage2, splitting segment and victim selection without increasing lookup
+latency. Diagnostic readout uses fixed parallel address matches/reductions in
+place of /6 and %6, preserving its one-clock NGD/export contract. No new timing
+exceptions or slower physical clocks. Diagnostics retain the previous unconditional
+sample pipeline and coherent delayed history qualifiers.
+
+The top-level linter's V3Gate internal error on a packed registered return vector
+was avoided by independent local word/owner/error registers and constant tree
+slices. No linter optimization waiver was added. Combined validation and fresh
+boot evidence are recorded in status.md and
+`scratch/timing-closure/pass14-combined/`. Await the next Quartus fit to measure
+all clock domains, area/M10Ks and the new worst1000 subset; the latest measured
+baseline is still run42433854189 (68.31MHz, setup-4.622ns).
+
 # MiSTer timing closure
+
+## Thirteenth fit: peripheral read responses and register banks dominate
+
+Reviewed42433854189 /6f34b89. Artifacts and reproducible endpoint audit:
+`scratch/timing-closure/pass13-42433854189/analysis/`. Relative to d3364ea,
+reported core Fmax **68.31MHz** versus69.19 (-.88), setup **-4.622ns** versus
+-4.837 (+.215ns), TNS **-35764.692ns** versus-48910.486 (26.88% better).
+ALMs32,869 (-576,78%), registers45,861 (+692), M10Ks458 unchanged (83%).
+HDMI setup+.324ns; global hold+.244ns, recovery+3.544ns, removal+1.052ns,
+pulse+.961ns. Compilation succeeds; timing gate fails. Quote the separately
+reported Fmax and slack as-is; do not derive a new clock guarantee from either.
+
+Target groups improved despite the small worst-path movement: upload RAM120
+->2 endpoints, sparse CAM286 ->51 (worst now-2.743), LCD framebuffer103 ->0,
+and old write-buffer pending-word/query arithmetic has no named routes in the
+export. Counts refer to different ranked subsets, not proof that removed paths
+meet104MHz. No new LCD or cache-pipeline rewrite is justified by this report.
+
+Current functional endpoint counts (sum1000): ICU-extra banks483 (-3.601),
+cache write-buffer enqueue/storage83 (-3.320), UEM/CBUS58 (-4.208), diagnostic
+observation/readout59 (-4.622), NOR flash55 (-3.385), MDI51 (-3.483), sparse
+CAM51 (-2.743), regional staging RAM40 (-3.411), timers37 (-3.269), CPU bus
+response/fault35 (-4.437), remaining cache victim/tag/controller7 (-4.552),
+other CPU/platform/control41 (-4.030). Shared error/ACK named-route union38
+(33 ACK,6 unmodeled,1 overlap):bridge30,monitor4,diagnostics1,video3; no device
+write destinations. Synthesized wb_dat_i-named LUTs also appear in address-
+decode write paths; their names alone do not establish read-data feedback.
+
+Recommended decision: next major refactor is **peripheral register/read-response
+architecture**, with small independent victim-selection and diagnostic-readout
+fixes. Keep coherent request/destination/data/error records and local effects;
+registering a giant global mux again would just move its unchanged depth.
+
+1. **Local read responses.** Worst path is address ->SIMIF selection ->large
+   wb_dat_i mux ->monitor.sample_data,13.531ns/10 levels. Bridge master_read_data
+   has another long boot/timer/board mux path at-4.437ns. Decode destination once
+   and return a coherent local ready/data/error result through a registered
+   owner/response boundary. Diagnostics should observe that registered response,
+   with matching request/fault context, instead of adding their own always-live
+   read-mux sampling burden. Optional diagnostic removal alone won't fix the
+   real CPU return path. Preserve state-dependent claims, masks and read effects.
+2. **ICU-extra register-bank storage/command ports.**483 paths target low_regs,
+   dma_regs and epbus_regs. Their176x32 stored words are currently resettable FF
+   arrays with variable reads/writes. Move memory-like latches to explicit BRAM
+   with synchronous ready/readback and a reset-scrub protocol; keep true control
+   flags/small probe state as registers. Preserve warm-reset zero semantics and
+   avoid init_done/core_reset/scrub deadlocks. There is also a remaining global
+   !lcd_dma_claim/direct-collision gate on the entire peripherals.commit in UPP;
+   scope those exclusions only to their actual overlapping shadow-DMA/LCD owner.
+   Do not reintroduce aggregate fault/ACK write gating. Use fitted-route and
+   ownership tests to distinguish shared decoder LUTs from actual dependencies.
+3. **Cache victim context: small, latency-preserving opportunity.**3 paths run
+   CP15 alignment/ack/request selection ->bank_mva ->nested segment/victim/flag
+   mux ->read_victim_dirty/valid (-4.552ns). Existing read_valid_bits,
+   read_dirty_bits and read_victim_way already snapshot the same source edge.
+   Evaluate selecting compare_victim_valid/dirty from those captured arrays in
+   the second stage instead of selecting both segment and victim flags on the
+   live-MVA edge. This can split the mux without another cache lookup cycle;
+   verify snapshot/collision/maintenance equivalence and warm ADD throughput.
+4. **Diagnostic /6 mapping.**4 routes, worst-4.188ns, still traverse a full
+   divider into trace read addresses/selection. Replace with bounded decode or
+   a staged table; preserve NGD layout and explicitly retime the export read
+   contract if needed. This is readout, not the completed fault-capture work.
+
+After those, CBUS accepted-write validation feeding alarm decrement/start and
+MDI forwarded-pointer/tick logic remain independent limits. Do not assign
+physical slower clocks or add timing exceptions to conceal these model paths.
+BRAM bank conversion could improve both timing and FF/LUT area; resource use
+and all clock domains must be checked in the next authorized full fit.
+No RTL changes, tests, commit, push or FPGA build were initiated by this review.
 
 ## Thirteenth implementation: precomputed write-buffer line membership
 

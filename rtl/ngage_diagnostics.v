@@ -40,9 +40,35 @@ module ngage_diagnostics (
     reg  [ 5:0] next_slot = 0;
     reg  [ 6:0] count = 0;
     reg         wrapped = 0;
-    wire [ 8:0] offset = read_word[8:0] - 9'd8;
-    wire [ 5:0] read_slot = offset / 9'd6;
-    wire [ 2:0] field = offset % 9'd6;
+    // Fixed NGD layout: decode the 384 trace halfwords in parallel. Each
+    // output is a reduction of constant-address matches, not a divider or a
+    // priority chain. Keep the existing one-clock BRAM/readout contract.
+    wire [63:0] slot_selected;
+    wire [63:0] slot_bits               [0:5];
+    wire [63:0] field_bits              [0:2];
+    wire [ 5:0] read_slot;
+    wire [ 2:0] field;
+    genvar slot, bit_index;
+    generate
+        for (slot = 0; slot < 64; slot = slot + 1) begin : trace_decode
+            wire [5:0] words;
+            for (bit_index = 0; bit_index < 6; bit_index = bit_index + 1) begin : word_decode
+                assign words[bit_index] = read_word == 8 + slot * 6 + bit_index;
+                assign slot_bits[bit_index][slot] = slot_selected[slot] &&
+                    ((slot >> bit_index) & 1);
+            end
+            assign slot_selected[slot] = |words;
+            assign field_bits[0][slot] = words[1] | words[3] | words[5];
+            assign field_bits[1][slot] = words[2] | words[3];
+            assign field_bits[2][slot] = words[4] | words[5];
+        end
+        for (bit_index = 0; bit_index < 6; bit_index = bit_index + 1) begin : slot_encode
+            assign read_slot[bit_index] = |slot_bits[bit_index];
+        end
+        for (bit_index = 0; bit_index < 3; bit_index = bit_index + 1) begin : field_encode
+            assign field[bit_index] = |field_bits[bit_index];
+        end
+    endgenerate
     wire        trace_write = !cold_reset && trace_valid && !freeze_trace;
     wire [83:0] entry = {trace_sel, ticks[15:0], trace_data, trace_addr};
     wire [83:0] trace_q;

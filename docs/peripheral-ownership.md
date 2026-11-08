@@ -112,3 +112,66 @@ The initial712c811 CPU-only hold behind raw DMA could reorder streams and is
 superseded. `tests/phone/lcd_queue/run.sh` tests consumer backpressure, local
 validation/reset, and differential panel state/pixels against the unqueued
 stream. This is transaction-level verification, not physical panel timing.
+
+## Registered local responses and ICU latch RAM (2026-11-08)
+
+Internal-CPU mode now snapshots the separate local data/error cones and one-hot
+priority owner at the accepted local-access edge. The CPU return combines these
+registered values with a masked OR, rather than placing the complete live
+SIM/boot/timer/GPIO/keypad priority mux before the bridge response register.
+Only the GPIO/NOS/loopback family traverses the keypad overlay. The existing
+UPP request register retains address, operation, lanes and payload until the
+response terminates; ownership is retained even if the device's live claim
+changes after acceptance. Diagnostics keep unconditional payload sampling;
+the existing delayed event qualifiers select completed responses and matching
+faults with the still-held request context.
+
+This adds **one clock** to internal-CPU peripheral response latency, on top of
+each device's existing ready delay. Device effects occur at the local response
+capture edge. A response-pending bit suppresses subsequent authorization,
+including CBUS/MDI outside the UPP peripheral module; held responses cannot
+repeat read pops, W1C or trace writes. ACK/error does not become a device write
+enable. Cancellation before acceptance drops the request; reset discards the
+response. Accepted effects are not rolled back. The classic bridge supplies a
+request-low gap between beats. External standalone board fixtures retain their
+immediate response contract; the differential fixture explicitly enables the
+registered path on its second instance. LOCK bypass and the queued LCD CPU/DMA
+streams and delayed completion IRQ are unchanged.
+
+ICU-extra's low48, DMA64 and epbus64 programming words now use three explicit
+32-bit `ngage_bram` instances (the low bank pads to64 physical words). Small
+probe latches and sysc74_seen remain registers. Every reset restarts a parallel
+64-edge zero scrub **after reset releases**. Only selected ICU-extra accesses
+wait for scrub; global cold init_done still comes from the existing regional RAM
+sweep and does not depend on this scrub. Therefore holding core reset until
+cold init_done cannot deadlock. Warm reset also zeros every programming latch.
+Valid bank reads require a previously sampled matching address; writes clear
+read_valid, so an immediate same-address write→read cannot expose the undefined
+mixed-port collision result. Whole-word bank restrictions, excluded low-bank
+control addresses, probe byte masks and unsupported DMA-start faults remain.
+The LCD DMA shadow exclusion now qualifies only extra_regs.commit; the direct
+LCD/DMA collision qualifies only LCD acceptance/readiness.
+
+Focused evidence is under `scratch/timing-closure/pass14-peripheral-response/`.
+The new registered-versus-immediate fixture covers33 transactions with withheld
+authorization and held responses, masks, faults, GPIO/keypad overlays, SIM read
+side effects, trace exact-once behavior, sparse lookup, changing live ownership,
+and warm reset. ICU tests exercise every accessible bank word, immediate
+same-address write/read,80 clocks held in reset and autonomous scrub completion.
+Actual HDL CPU board SIM/DMA/LCD/fault/IRQ/FIQ/waited-SDRAM integration passes.
+Regional sweep, SIM present/absent, LCD mixed-stream419checks, board wrapper,
+132-address inventory, C++ fixtures, monitor/raster, bridge200beats, reset gate,
+source graph and formatter pass. Final combined CPU regression passes120 checks
+plus1 expected legacy XFAIL. Fresh5M real-SDRAM boot passes with zero data faults;
+all121 ordered writes and12 known fetch-fault records match the baseline, with
+expected changed timestamps/read repetitions. Evidence and exact stopping point
+are in status.md and `scratch/timing-closure/pass14-combined/`. No old checkpoint
+was restored.
+No fitted timing/resource improvement or physical-phone validation is claimed.
+
+Known baseline failures found during this check: the keypad board test cannot
+clear keypad pending at0c150100 after the earlier regional-owner change excluded
+NOS from gpio_access (got00201004, expected00001000). The same failure reproduces
+with pristine6f34b89 UPP/peripherals/ICU sources copied under the evidence
+folder's `baseline/`; it is unchanged here. The obsolete diagnostic runner
+PASS prefix was corrected during integration with the readout change.

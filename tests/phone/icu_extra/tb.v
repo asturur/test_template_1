@@ -2,13 +2,14 @@
 module tb;
  reg clk=0,reset=1,req=0,commit=0,we=0,periodic=0,cbus8d_written=0;
  reg [31:0] addr=0,din=0;reg [3:0] sel=15;
- wire claim,bad;wire [31:0] dout;
+ integer j;
+ wire claim,bad,ready;wire [31:0] dout;
  always #5 clk=~clk;
- ngage_icu_extra dut(clk,reset,req,commit,we,periodic,addr,din,sel,claim,bad,dout,cbus8d_written,);
+ ngage_icu_extra dut(clk,reset,req,commit,we,periodic,addr,din,sel,claim,bad,dout,cbus8d_written,,ready);
  task write_word;input [31:0] a,d;begin @(negedge clk);addr=a;din=d;req=1;we=1;commit=1;#1;if(!claim||bad)$fatal(1,"write %h",a);@(negedge clk);req=0;commit=0;end endtask
- task read_word;input [31:0] a,d;begin @(negedge clk);addr=a;req=1;we=0;#1;if(!claim||bad||dout!==d)$fatal(1,"read %h = %h",a,dout);req=0;end endtask
+ task read_word;input [31:0] a,d;begin @(negedge clk);addr=a;req=1;we=0;#1;while(!ready)begin @(negedge clk);#1;end if(!claim||bad||dout!==d)$fatal(1,"read %h = %h",a,dout);req=0;end endtask
  initial begin
-  repeat(2)@(negedge clk);reset=0;
+  repeat(2)@(negedge clk);reset=0;repeat(65)@(negedge clk);
   addr=32'h0c120040;req=1;#1;if(claim)$fatal(1,"low bank before timer");req=0;
   addr=32'h0c14d000;req=1;#1;if(!claim||!bad)$fatal(1,"14d before system init");req=0;
   addr=32'h0c120074;din=3;we=1;req=1;#1;if(!bad)$fatal(1,"system init before CBUS 8d");req=0;
@@ -20,6 +21,30 @@ module tb;
   @(negedge clk);addr=32'h0c120348;din=2;req=1;we=1;commit=1;#1;if(!claim||!bad)$fatal(1,"DMA start must fail");
   @(negedge clk);addr=32'h0c120600;sel=3;#1;if(!bad)$fatal(1,"bad width");
   req=0;commit=0;sel=15;read_word(32'h0c120348,0);
+  // Consecutive bank writes/readbacks cover every address, including the
+  // padded low-bank tail and excluded control holes. No resettable FF array.
+  for(j=0;j<64;j=j+1)begin
+   write_word(32'h0c120300+4*j,32'h12000000+j);
+   read_word(32'h0c120300+4*j,32'h12000000+j);
+   write_word(32'h0c120600+4*j,32'h34000000+j);
+   read_word(32'h0c120600+4*j,32'h34000000+j);
+  end
+  for(j=0;j<48;j=j+1)if(j!=4 && j!=9 && j!=10 && j!=13)begin
+   write_word(32'h0c120040+4*j,32'h56000000+j);
+   read_word(32'h0c120040+4*j,32'h56000000+j);
+  end
+  // No request-low edge between same-address write and read: the mixed-port
+  // value from the write edge must not be exposed as a ready read.
+  @(negedge clk);addr=32'h0c120640;din=32'hfedcba98;we=1;req=1;commit=1;
+  @(negedge clk);we=0;commit=0;#1;if(ready)$fatal(1,"write/read collision marked ready");
+  @(negedge clk);#1;if(!ready || dout!==32'hfedcba98)$fatal(1,"write/read collision data");req=0;
+  // Hold reset longer than the scrub duration. Scrub starts on release and
+  // does not depend on req, commit, or a board-wide initialization signal.
+  reset=1;repeat(80)@(negedge clk);reset=0;req=1;we=0;addr=32'h0c120640;
+  repeat(63)begin @(negedge clk);#1;if(ready)$fatal(1,"scrub completed early");end
+  repeat(3)@(negedge clk);#1;if(!ready||dout!==0)$fatal(1,"warm scrub did not finish");req=0;
+  for(j=0;j<64;j=j+1)begin read_word(32'h0c120300+4*j,0);read_word(32'h0c120600+4*j,0);end
+  for(j=0;j<48;j=j+1)if(j!=4 && j!=9 && j!=10 && j!=13)read_word(32'h0c120040+4*j,0);
   $display("PASS ICU and epbus independent latches, unsupported DMA and widths");$finish;
  end
 endmodule

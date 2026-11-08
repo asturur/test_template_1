@@ -93,6 +93,7 @@ module ngage_upp #(
     output wire        debug_fetch
 
 );
+    wire peripheral_response_pending;
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
@@ -151,21 +152,23 @@ module ngage_upp #(
             );
             // Side effects are qualified by the selected device's own checks.
             // CPU completion/error remains a response, never a shared write enable.
-            assign bus_access = bus_cyc && bus_stb && !rst && init_done && !cpu_err;
+            assign bus_access = bus_cyc && bus_stb && !rst && init_done && !cpu_err &&
+                                (!claim || lcd_dma_claim || !peripheral_response_pending);
         end else begin : external_master
-            assign debug_pc          = 0;
-            assign debug_cpsr        = 0;
+            assign debug_pc = 0;
+            assign debug_cpsr = 0;
             assign debug_instruction = 0;
-            assign debug_fetch       = 0;
-            assign cpu_lock          = 1'b0;
-            assign bus_code          = 1'b0;
-            assign bus_cyc           = ext_cyc;
-            assign bus_stb           = ext_stb;
-            assign bus_we            = ext_we;
-            assign bus_adr           = ext_adr;
-            assign bus_din           = ext_din;
-            assign bus_sel           = ext_sel;
-            assign bus_access        = ext_commit;
+            assign debug_fetch = 0;
+            assign cpu_lock = 1'b0;
+            assign bus_code = 1'b0;
+            assign bus_cyc = ext_cyc;
+            assign bus_stb = ext_stb;
+            assign bus_we = ext_we;
+            assign bus_adr = ext_adr;
+            assign bus_din = ext_din;
+            assign bus_sel = ext_sel;
+            assign bus_access        = ext_commit &&
+                                       (!claim || lcd_dma_claim || !peripheral_response_pending);
         end
     endgenerate
     wire internal_dma_irq;
@@ -219,66 +222,69 @@ module ngage_upp #(
         end
     endgenerate
     ngage_upp_peripherals #(
-        .LCD_QUEUE_ENABLE(LCD_QUEUE_ENABLE),
-        .SIMIF_ENABLE    (SIMIF_ENABLE),
-        .KEYPAD_ENABLE   (KEYPAD_ENABLE)
+        .REGISTER_RESPONSES(INTERNAL_CPU),
+        .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
+        .SIMIF_ENABLE      (SIMIF_ENABLE),
+        .KEYPAD_ENABLE     (KEYPAD_ENABLE)
     ) peripherals (
-        .keys(keys),
-        .sim_present(sim_present),
-        .card_rx_valid(card_rx_valid),
-        .card_tx_will_emit(card_tx_will_emit),
-        .card_overflow(card_overflow),
-        .card_rx_data(card_rx_data),
-        .card_available(card_available),
-        .card_busy(card_busy),
-        .card_tx_valid(card_tx_valid),
-        .card_rx_pop(card_rx_pop),
-        .card_tx_data(card_tx_data),
-        .rst(rst),
-        .init_rst(init_rst),
-        .clk(clk),
-        .cyc(bus_cyc),
-        .stb(bus_stb),
-        .adr(bus_adr),
-        .we(bus_we),
-        .din(bus_din),
-        .sel(bus_sel),
-        .commit           (bus_access && !lcd_dma_claim &&
-                           !(lcd_dma_valid && bus_we && bus_adr == 32'h0c121208)),
-        .cfg_lcd(cfg_lcd),
-        .cfg_keypad(cfg_keypad),
-        .cfg_clocks(cfg_clocks),
-        .dma_irq_pending(dma_irq_pending || internal_dma_irq),
-        .sim_fiq_pending(sim_fiq_pending),
-        .dma_irq_clear(dma_irq_clear),
-        .claim(claim),
-        .ready(ready),
-        .dout(dout),
-        .unmodeled(unmodeled),
-        .irq(irq),
-        .fiq(fiq),
-        .init_done(init_done),
-        .trace_valid(trace_valid),
-        .trace_addr(trace_addr),
-        .trace_data(trace_data),
-        .trace_sel(trace_sel),
-        .cbus_claim(cbus_claim),
-        .cbus_bad(cbus_bad),
-        .cbus_irq(cbus_irq),
-        .cbus_data(cbus_data),
-        .route2a(route2a),
-        .route2c(route2c),
-        .route3b(route3b),
-        .cbus8d_written(cbus8d_written),
-        .uem_periodic(uem_periodic),
-        .uem_irq_clear(uem_irq_clear),
-        .mdi_claim(mdi_claim),
-        .mdi_bad(mdi_bad),
-        .mdi_data(mdi_data),
-        .mdi_events(mdi_events),
-        .adsp_tick(adsp_tick),
-        .lcd_write_valid(lcd_write_valid),
-        .lcd_sink_ready(lcd_sink_ready)
+        .keys                (keys),
+        .sim_present         (sim_present),
+        .card_rx_valid       (card_rx_valid),
+        .card_tx_will_emit   (card_tx_will_emit),
+        .card_overflow       (card_overflow),
+        .card_rx_data        (card_rx_data),
+        .card_available      (card_available),
+        .card_busy           (card_busy),
+        .card_tx_valid       (card_tx_valid),
+        .card_rx_pop         (card_rx_pop),
+        .card_tx_data        (card_tx_data),
+        .rst                 (rst),
+        .init_rst            (init_rst),
+        .clk                 (clk),
+        .cyc                 (bus_cyc),
+        .stb                 (bus_stb),
+        .adr                 (bus_adr),
+        .we                  (bus_we),
+        .din                 (bus_din),
+        .sel                 (bus_sel),
+        .commit              (bus_access),
+        .dma_shadow_claim    (lcd_dma_claim),
+        .lcd_direct_collision(lcd_dma_valid && bus_we && bus_adr == 32'h0c121208),
+        .response_pending    (peripheral_response_pending),
+        .cfg_lcd             (cfg_lcd),
+        .cfg_keypad          (cfg_keypad),
+        .cfg_clocks          (cfg_clocks),
+        .dma_irq_pending     (dma_irq_pending || internal_dma_irq),
+        .sim_fiq_pending     (sim_fiq_pending),
+        .dma_irq_clear       (dma_irq_clear),
+        .claim               (claim),
+        .ready               (ready),
+        .dout                (dout),
+        .unmodeled           (unmodeled),
+        .irq                 (irq),
+        .fiq                 (fiq),
+        .init_done           (init_done),
+        .trace_valid         (trace_valid),
+        .trace_addr          (trace_addr),
+        .trace_data          (trace_data),
+        .trace_sel           (trace_sel),
+        .cbus_claim          (cbus_claim),
+        .cbus_bad            (cbus_bad),
+        .cbus_irq            (cbus_irq),
+        .cbus_data           (cbus_data),
+        .route2a             (route2a),
+        .route2c             (route2c),
+        .route3b             (route3b),
+        .cbus8d_written      (cbus8d_written),
+        .uem_periodic        (uem_periodic),
+        .uem_irq_clear       (uem_irq_clear),
+        .mdi_claim           (mdi_claim),
+        .mdi_bad             (mdi_bad),
+        .mdi_data            (mdi_data),
+        .mdi_events          (mdi_events),
+        .adsp_tick           (adsp_tick),
+        .lcd_write_valid     (lcd_write_valid),
+        .lcd_sink_ready      (lcd_sink_ready)
     );
 endmodule
 

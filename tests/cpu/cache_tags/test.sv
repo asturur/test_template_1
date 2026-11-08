@@ -11,6 +11,22 @@ module test;
  task automatic tick;begin @(posedge clk);#1;@(negedge clk);end endtask
  // Drain commit, fresh tag read, compare and data read before observing.
  task automatic settle;begin repeat(4) tick();end endtask
+ // Independent pre-edge victim snapshot verifies the two-clock interface
+ // even when requests and metadata mutation change on consecutive clocks.
+ reg snapshot_ready=0;
+ reg expected_valid, current_valid;
+ reg [1:0] expected_dirty, current_dirty;
+ reg [5:0] expected_way, current_way;
+ always @(posedge clk) begin
+  current_way=dut.victim[mva[7:5]];
+  current_valid=dut.valid[mva[7:5]][current_way];
+  current_dirty=dut.dirty[mva[7:5]][current_way];
+  #1;
+  if(snapshot_ready && (vway!==expected_way || vvalid!==expected_valid || vd!==expected_dirty))
+   $fatal(1,"victim snapshot changed: way=%0d valid=%b dirty=%b",vway,vvalid,vd);
+  expected_way=current_way;expected_valid=current_valid;expected_dirty=current_dirty;
+  snapshot_ready=1;
+ end
  integer n;
  initial begin
   tick();reset=0;tick();
@@ -50,6 +66,11 @@ module test;
   if(hit) $fatal(1,"single invalidate failed");
   lock_in=6'd3;lock_write=1;tick();lock_write=0;mva=32'h1020;settle();#1;
   if(lock_base!==3 || vway!==3) $fatal(1,"lockdown victim base");
+  // Change segment, way and dirty-half selection every clock, without a
+  // settle bubble. The snapshot checker must retain the previous request.
+  for(n=0;n<512;n=n+1)begin
+   mva=((n*17 & 63)<<8)|((n&7)<<5)|((n&1)<<4);tick();
+  end
   invalidate_all=1;tick();invalidate_all=0;mva=32'h100;settle();#1;
   if(hit || lock_base!==3) $fatal(1,"invalidate must clear lines but preserve lockdown");
   lock_in=63;lock_write=1;tick();lock_write=0;settle();#1;
