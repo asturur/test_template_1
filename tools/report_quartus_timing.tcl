@@ -56,6 +56,10 @@ proc report_operand_stages {output} {
     puts $summary "group,status,reported_paths,worst_slack_ns,from_patterns,to_patterns,message"
     set rdata {*u_operand_read*slot0_data* *u_operand_read*slot1_data*}
     set groups [list \
+        [list cache_request_to_owner {*u_zap_core* *u_code_cache* *u_data_cache*} {*cache*lookup_owner*}] \
+        [list cache_owner_to_tags {*cache*lookup_owner*} {*tags*read_mva* *tags*read_valid_bits* *tags*read_dirty_bits* *tags*match_bits*}] \
+        [list cache_lookup_pipeline {*cache*lookup_owner* *cache*fast_read* *cache*fast_compare* *tags*} {*cache*fast_read* *cache*fast_compare* *cache*fast_result*}] \
+        [list cache_to_response {*cache* *bank*} {*cache*response_valid* *cache*response_data*}] \
         [list decode_to_r_data {*u_zap_decode_main*} $rdata] \
         [list decode_to_r_context {*u_zap_decode_main*} {*u_operand_read*slot0_control* *u_operand_read*slot1_control* *u_operand_read*slot0_index* *u_operand_read*slot1_index*}] \
         [list rf_to_r {*u_zap_register_file*} $rdata] \
