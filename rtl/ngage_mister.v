@@ -201,11 +201,31 @@ module ngage_mister #(
         cdrive_hit,
         pmm_hit
     );
-    wire flash_hit = rom_hit || cdrive_hit || pmm_hit;
-    // Flash request ownership is retained until the command or DDR operation
-    // completes. The C: range has priority over the overlapping CS1 window.
-    wire mem_req = wb_cyc && wb_stb && !(brd_claim || dma_claim);
-    reg  flash_issued = 0;
+    wire       flash_hit = rom_hit || cdrive_hit || pmm_hit;
+    // NOR/SDRAM regions are disjoint from all UPP/DMA register windows.
+    // Capture their owner once per held bridge request. Their launch/return
+    // paths must not traverse the aggregate peripheral claim/priority tree.
+    // The bridge holds address, data and lanes until termination and inserts
+    // a request-low gap; retain this owner through the entire response.
+    reg        memory_owner_valid = 0;
+    reg  [3:0] memory_owner = 0;  // {PMM, C:, code NOR, SDRAM}
+    always @(posedge clk_sys) begin
+        if (core_reset || !wb_cyc || !wb_stb) begin
+            memory_owner_valid <= 0;
+            memory_owner       <= 0;
+        end else if (!memory_owner_valid) begin
+            memory_owner_valid <= 1;
+            memory_owner       <= {pmm_hit, cdrive_hit, rom_hit, ram_hit};
+        end
+    end
+    wire memory_owned = memory_owner_valid && (|memory_owner);
+    wire memory_req = wb_cyc && wb_stb && memory_owned;
+    wire unclaimed_req = wb_cyc && wb_stb && memory_owner_valid &&
+                         !(|memory_owner) && !brd_claim && !dma_claim;
+    // Keep the observation bit's original meaning: an access not routed to a
+    // board register, including unmapped accesses reported as decode faults.
+    wire mem_req = memory_req || unclaimed_req;
+    reg flash_issued = 0;
     wire code_ready,code_rsp,code_err,cm_valid,cm_write,cm_ready,cm_done,code_dirty,code_pending;
     wire [31:0] code_data, cm_addr, cm_data;
     wire [ 3:0] cm_be;
@@ -214,12 +234,12 @@ module ngage_mister #(
     wire [31:0] user_data, um_addr, um_data;
     wire [ 3:0] um_be;
     wire [12:0] user_dirty_sector;
-    wire        flash_start = mem_req && flash_hit && !flash_issued && !core_reset;
+    wire        flash_start = memory_req && (|memory_owner[3:1]) && !flash_issued && !core_reset;
     wire        flash_response = code_rsp || user_rsp;
     always @(posedge clk_sys) begin
         if (core_reset) flash_issued <= 0;
         else begin
-            if (flash_start && (cdrive_hit ? user_ready : code_ready)) flash_issued <= 1;
+            if (flash_start && (memory_owner[2] ? user_ready : code_ready)) flash_issued <= 1;
             if (flash_response) flash_issued <= 0;
         end
     end
@@ -227,7 +247,7 @@ module ngage_mister #(
         .clk         (clk_sys),
         .reset       (core_reset),
         .cold_reset  (cold_reset),
-        .req_valid   (flash_start && !cdrive_hit),
+        .req_valid   (flash_start && !memory_owner[2]),
         .req_ready   (code_ready),
         .req_write   (wb_we),
         .req_address (pa),
@@ -253,7 +273,7 @@ module ngage_mister #(
         .clk         (clk_sys),
         .reset       (core_reset),
         .cold_reset  (cold_reset),
-        .req_valid   (flash_start && cdrive_hit),
+        .req_valid   (flash_start && memory_owner[2]),
         .req_ready   (user_ready),
         .req_write   (wb_we),
         .req_offset  (pa[21:0]),
@@ -294,30 +314,31 @@ module ngage_mister #(
     assign sdram_addr         = wb_adr[24:0];
     assign sdram_din          = wb_dat_o;
     assign sdram_be           = wb_sel;
-    assign sdram_we           = ram_hit && wb_we && mem_req;
-    assign sdram_req          = ram_hit && mem_req;
+    assign sdram_we           = memory_owner[0] && wb_we && memory_req;
+    assign sdram_req          = memory_owner[0] && memory_req;
     wire flash_error = (code_rsp && code_err) || (user_rsp && user_err);
-    wire mem_ack = ram_hit ? sdram_ack : flash_hit ? (flash_response && !flash_error) : 1'b0;
+    wire mem_ack = memory_owner[0] ? sdram_ack : (flash_response && !flash_error);
     // Register board/decode faults so Wishbone STB suppression on ERR cannot
     // form a combinational loop. No invalid access is acknowledged as success.
-    reg  invalid_response = 0;
+    wire board_fault = !memory_owned && ((dma_claim && dma_bad) ||
+                       (!dma_claim && brd_claim && brd_ready && brd_unmodeled));
+    reg invalid_response = 0;
     always @(posedge clk_sys) begin
         if (core_reset) invalid_response <= 0;
-        else
-            invalid_response<=!invalid_response && (((dma_claim && dma_bad) || (!dma_claim && brd_claim && brd_ready && brd_unmodeled)) ||
-                                              (mem_req && !ram_hit && !flash_hit));
+        else invalid_response <= !invalid_response && (board_fault || unclaimed_req);
     end
     wire lcd_write_collision = dma_lcd_valid && wb_cyc && wb_stb && wb_we && pa == 32'h0c121208;
-    assign wb_ack=(core_reset || lcd_write_collision) ? 1'b0 : dma_claim ? !dma_bad : brd_claim ? (brd_ready && !brd_unmodeled) : mem_ack;
-    assign wb_dat_i=dma_claim ? dma_reg_data : brd_claim ? brd_dout : flash_hit ? (user_rsp ? user_data : code_data) : sdram_dout;
+    assign wb_ack = core_reset ? 1'b0 : memory_owned ? mem_ack :
+                    lcd_write_collision ? 1'b0 : dma_claim ? !dma_bad :
+                    brd_claim ? (brd_ready && !brd_unmodeled) : 1'b0;
+    assign wb_dat_i = memory_owned ? (memory_owner[0] ? sdram_dout :
+                                     memory_owner[2] ? user_data : code_data) :
+                     dma_claim ? dma_reg_data : brd_dout;
     assign wb_err = !core_reset && (invalid_response || flash_error);
 
 
-    wire diagnostic_fault=!core_reset && ((dma_claim && dma_bad) ||
-        (!dma_claim && brd_claim && brd_ready && brd_unmodeled) ||
-        (mem_req && !ram_hit && !flash_hit) || flash_error);
-    wire [2:0] diagnostic_reason=flash_error ? 3'd3 :
-        (mem_req && !ram_hit && !flash_hit) ? 3'd2 : 3'd1;
+    wire diagnostic_fault = !core_reset && (board_fault || unclaimed_req || flash_error);
+    wire [2:0] diagnostic_reason = flash_error ? 3'd3 : unclaimed_req ? 3'd2 : 3'd1;
     wire [31:0] cpu_flags = {
         23'b0,
         flash_busy,

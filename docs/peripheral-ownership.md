@@ -175,3 +175,21 @@ NOS from gpio_access (got00201004, expected00001000). The same failure reproduce
 with pristine6f34b89 UPP/peripherals/ICU sources copied under the evidence
 folder's `baseline/`; it is unchanged here. The obsolete diagnostic runner
 PASS prefix was corrected during integration with the readout change.
+
+## External NOR/SDRAM owner (2026-11-08)
+
+The MiSTer phone boundary captures the existing ROM-map's four nonoverlapping
+regions (PMM,C:,code NOR,SDRAM) once per held UPP bridge request. Captured memory
+ownership selects launch, read data and completion without the global peripheral
+claim priority. Address/data/lanes remain the bridge's held transaction record.
+The owner clears on reset or a request-low gap. This adds one capture clock to
+memory accesses and changes no map ranges, command semantics, masks or SWP lock.
+Peripheral windows retain their state-dependent local owners. A request outside
+both the memory regions and all selected peripherals raises a decode fault.
+
+`tests/phone/memory_owner/run.sh` checks14 region endpoints, an unknown address,
+held requests/returns and request gaps. It deliberately poisons unrelated live
+peripheral claims after capture to verify independence. NOR ready/return records
+are isolated in that fixture; the reused flash reset suite verifies real accepted
+DDR responses, code/C:/PMM drain, programming, erase and dirty tracking. Actual
+CPU-board and real-SDRAM boot evidence is recorded in status.md.

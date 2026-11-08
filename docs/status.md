@@ -1,3 +1,25 @@
+## 2026-11-08: captured NOR/SDRAM owner (step2)
+
+ngage_mister now captures the disjoint {PMM,C:,code NOR,SDRAM} region once per
+stable UPP bridge request. Memory launch/response muxes use that register,
+without aggregate board/DMA claims or their validation tree. The bridge retains
+address/data/lanes until termination and guarantees a request-low gap; the owner
+clears on that gap/reset. Existing ROM/C:/PMM map and priority are unchanged.
+This adds one request-capture clock to memory accesses; no firmware, media,
+command/erase behavior, SWP reservation or physical memory clock changes.
+Unknown non-memory accesses retain local peripheral ownership and decode faults.
+
+A focused14-region-endpoint test poisons unrelated claims/data/errors after
+capture: memory launch and held return remain correct, gaps drop ownership,
+and unknown10000000 still reports reason2. It isolates NOR return records;
+separate flash reset fixtures verify actual accepted DDR/drain/program/erase.
+Board CPU integration and a fresh5M real-SDRAM boot pass. The latter reaches
+PC00006178 with289197 transfers,12 known fetch faults and zero data faults;
+all121 ordered writes and12 fault records match9e80d10 (timestamps and read
+repetitions differ with the added capture clock). Evidence
+`scratch/timing-closure/pass15-reset-owner-buffer/owner-*` and `boot-owner.log`.
+Step3 and final combined checks/build remain; no old checkpoint restored.
+
 ## 2026-11-08: registered reset distribution (step1)
 
 The existing flash-drain latch is now the sole phone reset driver: immediate
