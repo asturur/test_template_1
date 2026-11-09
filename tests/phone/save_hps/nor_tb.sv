@@ -32,7 +32,7 @@ ngage_ddr_arbiter flash_arb(clk,reset,1'b0,fmv,fready,fma,fmd,fmb,fdone,pmv,prea
 ngage_ddr_arbiter outer(clk,reset,1'b0,av,ar,aa,ad,ab,adone,xv,xr,xw,xa,xd,xb,xdone,xrd,bv,br,bw,ba,bd,bb,bdone,brd,aw,ard);
 ngage_cflash flash(clk,reset,1'b0,fv,fr,fw,fo,fd,fb,frsp,ferr,fq,fmv,fready,fmw,fma,fmd,fmb,fdone,fmr,fdirty,fsector,fpending,);
 ngage_codeflash pflash(clk,reset,1'b0,pv,pr,pw,pa,pd,pb,prsp,perr,pq,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,pdirty,psector,ppending,);
-ngage_ddr_adapter adapter(clk,reset,bv,br,bw,ba,bd,bb,bdone,brd,phyaddr,phydata,phybe,phyrd,phywr,phybusy,phyrdata,phyready);
+ngage_ddr_adapter adapter(clk,reset,bv,br,bw,ba,bd,bb,bdone,brd,phyaddr,phydata,phybe,phyrd,phywr,phybusy,phyrdata,phyready,1'b0,);
 always @(posedge clk)begin
  cycle<=cycle+1;phyready<=0;
  if(delay>0)begin delay<=delay-1;if(delay==1)phyready<=1;end

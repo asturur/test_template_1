@@ -198,7 +198,7 @@ module emu (
     wire [15:0] sdram_wdata, sdram_dout_16;
     wire [1:0] sdram_dsn;
     wire [3:0] sdram_rd_banks, sdram_wr_banks, sdram_ack_banks, sdram_rdy_banks;
-    wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack;
+    wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack, cpu_sdram_accept;
     wire [31:0] sdram_dout;
     wire mem_req, mem_we, mem_ack;
     wire lcd_dma_req, lcd_dma_ack;
@@ -209,30 +209,31 @@ module emu (
     wire [3:0] mem_be;
     // LCD DMA shares SDRAM with the CPU and respects atomic CPU locks.
     ngage_sdram_arbiter ram_arbiter (
-        .clk      (clk_sys),
-        .reset    (phone_reset),
-        .cpu_lock (cpu_bus_lock),
-        .cpu_req  (cpu_sdram_req),
-        .cpu_we   (cpu_sdram_we),
-        .cpu_addr (cpu_sdram_addr),
-        .cpu_data (cpu_sdram_din),
-        .cpu_be   (cpu_sdram_be),
-        .cpu_ack  (sdram_ack),
-        .cpu_rdata(sdram_dout),
-        .dma_req  (lcd_dma_req),
-        .dma_we   (1'b0),
-        .dma_addr (lcd_dma_addr),
-        .dma_data (32'b0),
-        .dma_be   (4'hf),
-        .dma_ack  (lcd_dma_ack),
-        .dma_rdata(lcd_dma_rdata),
-        .mem_req  (mem_req),
-        .mem_we   (mem_we),
-        .mem_addr (mem_addr),
-        .mem_data (mem_wdata),
-        .mem_be   (mem_be),
-        .mem_ack  (mem_ack),
-        .mem_rdata(mem_rdata)
+        .clk       (clk_sys),
+        .reset     (phone_reset),
+        .cpu_lock  (cpu_bus_lock),
+        .cpu_req   (cpu_sdram_req),
+        .cpu_we    (cpu_sdram_we),
+        .cpu_addr  (cpu_sdram_addr),
+        .cpu_data  (cpu_sdram_din),
+        .cpu_be    (cpu_sdram_be),
+        .cpu_ack   (sdram_ack),
+        .cpu_accept(cpu_sdram_accept),
+        .cpu_rdata (sdram_dout),
+        .dma_req   (lcd_dma_req),
+        .dma_we    (1'b0),
+        .dma_addr  (lcd_dma_addr),
+        .dma_data  (32'b0),
+        .dma_be    (4'hf),
+        .dma_ack   (lcd_dma_ack),
+        .dma_rdata (lcd_dma_rdata),
+        .mem_req   (mem_req),
+        .mem_we    (mem_we),
+        .mem_addr  (mem_addr),
+        .mem_data  (mem_wdata),
+        .mem_be    (mem_be),
+        .mem_ack   (mem_ack),
+        .mem_rdata (mem_rdata)
     );
     wire [3:0] sdram_dst_banks;
 
@@ -338,8 +339,8 @@ module emu (
     ///////////////////////   DDR3 firmware transport   ////////////////
     // 0x30000000 is a candidate Main DDR reservation; hardware use is
     // prohibited until checked against the installed Main/Linux memory map.
-    assign DDRAM_CLK      = clk_sys;
-    assign DDRAM_BURSTCNT = 8'd1;
+    assign DDRAM_CLK = clk_sys;
+    // DDR burst count is owned by the ROM-cache/backend transaction.
     wire loader_valid, loader_failed, loader_known_firmware;
     wire [1:0] loader_profile;
     wire load_req, load_ready, load_done;
@@ -465,9 +466,13 @@ module emu (
         .rsp_valid(arb_rsp),
         .rsp_data (arb_rdata)
     );
-    ngage_ddr_adapter ddr_adapter (
+    wire core_ddr_fetch;
+    ngage_ddr_adapter #(
+        .ROM_CACHE(1)
+    ) ddr_adapter (
         .clk           (clk_sys),
         .reset         (transport_reset),
+        .req_fetch     (core_accept && core_ddr_fetch),
         .req_valid     (arb_valid),
         .req_ready     (arb_ready),
         .req_write     (arb_write),
@@ -476,6 +481,7 @@ module emu (
         .req_be        (arb_be),
         .rsp_valid     (arb_rsp),
         .rsp_data      (arb_rdata),
+        .ddr_burstcount(DDRAM_BURSTCNT),
         .ddr_addr      (DDRAM_ADDR),
         .ddr_din       (DDRAM_DIN),
         .ddr_be        (DDRAM_BE),
@@ -621,16 +627,18 @@ module emu (
         .bus_lock(cpu_bus_lock),
 
         // SDRAM (phone RAM)
-        .sdram_addr(cpu_sdram_addr),
-        .sdram_din (cpu_sdram_din),
-        .sdram_dout(sdram_dout),
-        .sdram_be  (cpu_sdram_be),
-        .sdram_we  (cpu_sdram_we),
-        .sdram_req (cpu_sdram_req),
-        .sdram_ack (sdram_ack),
+        .sdram_addr  (cpu_sdram_addr),
+        .sdram_din   (cpu_sdram_din),
+        .sdram_dout  (sdram_dout),
+        .sdram_be    (cpu_sdram_be),
+        .sdram_we    (cpu_sdram_we),
+        .sdram_req   (cpu_sdram_req),
+        .sdram_ack   (sdram_ack),
+        .sdram_accept(cpu_sdram_accept),
 
         // DDR3 (flash reads)
         .ddram_addr        (core_ddr_addr),
+        .ddram_fetch       (core_ddr_fetch),
         .ddram_rd          (core_ddr_rd),
         .ddram_wr          (core_ddr_wr),
         .ddram_din         (core_ddr_din),

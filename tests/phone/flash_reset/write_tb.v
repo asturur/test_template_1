@@ -10,7 +10,7 @@ wire init_done;wire [31:0] da,wd,back;wire [3:0] be;wire dr,dw,accept,done,dirty
 wire rv,rr,rw,rsp;wire [31:0] ra,rd,rdata;wire [3:0] rb;
 wire [28:0] pa;wire [63:0] pd;wire [7:0] pb;wire pr,pw;reg busy=0,ready=0;reg [63:0] mem=64'hffffffffffffffff;integer writes=0,dirty_count=0;reg [13:0] last_dirty=0;
 wire tracker_init,sector_valid;wire [13:0] sector_index;reg flush=0,sector_accept=0,sector_done=0;
-ngage_mister dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
+ngage_mister #(.DIRECT_SDRAM(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
  .sdram_dout(32'b0),.sdram_ack(1'b0),.ddram_addr(da),.ddram_din(wd),.ddram_be(be),.ddram_rd(dr),.ddram_wr(dw),
  .ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.keys(27'b0));
 ngage_ddr_arbiter arb(.clk(clk),.reset(cold),.cpu_lock(1'b0),.l_valid(1'b0),.l_addr(32'b0),.l_data(32'b0),.l_be(4'b0),.l_write(1'b0),

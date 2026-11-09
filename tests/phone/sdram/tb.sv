@@ -21,7 +21,7 @@ wire [3:0] rd,wr,ba_ack,ba_rdy,ba_dst,ba_dok; wire rfsh; tri [15:0] dq; wire [12
 wire mreq,mwe,mack; wire [24:0] maddr; wire [31:0] mdata,mrdata; wire [3:0] mbe;
 reg dma_req=0, dma_we=0, cpu_lock=0; reg [24:0] dma_addr=0; reg [31:0] dma_data=0; reg [3:0] dma_be=0; wire dma_ack; wire [31:0] dma_rdata;
 ngage_sdram_arbiter arb(clk,phone_reset,cpu_lock,req,we,addr,din,be,ack,dout,
- dma_req,dma_we,dma_addr,dma_data,dma_be,dma_ack,dma_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata);
+ dma_req,dma_we,dma_addr,dma_data,dma_be,dma_ack,dma_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata,);
 ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh);
 jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(32),.BA1_LEN(32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
  .rst(rst),.clk(clk),.init(init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),

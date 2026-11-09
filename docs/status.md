@@ -1,3 +1,349 @@
+## 2026-11-09: performance subset prepared for user-triggered hardware build
+
+Saved future redesign options in docs/cpu-performance-redesign-notes.md. This
+build candidate contains only the implemented ROM buffer/uncached-path/fetch
+handoff/direct-SDRAM changes and their tests. No whole-cache/CPU redesign or
+clock change is included. Current production defaults:78MHz,64-bit/1KiB DDR ROM
+instruction buffer,dedicated SDRAM route,existing CPU/LCD arbitration.
+Final50M stockboot and directed/real-controller checks are recorded below.
+Formatting check passes; final assertion-whitespace change is Verible token-
+equivalent to the50M-tested source. Compact baseline in
+docs/evidence/performance-subset-2026-11-09.json.
+User requested commit/push and will trigger the hardware action. No action is
+dispatched by this step. Original12B simulation and billion checkpoints remain
+independent; use its frozen executable if resumed.
+
+## 2026-11-09: direct SDRAM route complete;50M boot and cache-miss profiling verified
+
+Production DIRECT_SDRAM=1 routes physical0x0a000000..0x0affffff from registered
+ZAPmerger directly to existingCPU/LCD SDRAMarbiter. Bypasses peripheralbridge
+and sharedmemory_owner; RAM bit explicitlyzero in directmode so SDRAMreturns
+are excluded from genericperipheralACK/data mux. Merger/cachecompletion/SDRAM
+arbiter/adapter/controller registers retained. Existinggrant sidebandcpu_accept
+captures route token on sameedge as arbiter's packet; no extraadmissionstage.
+Acceptedcancel drains/discards beforeanother target; unacceptedcancel doesn't
+issue. Flash/MMIO,clocks,controllerprotocol and64-bit/1KiBROMbufferunchanged.
+Diagnosticgrant drivesoneeventFF;widepacket observation separatelypipelined.
+
+Final exact-source stockfirmware run direct-sdram-final2-50m completed50000000
+cycles in518.566s,normalpowerup,78MHzphoneparameter,erasedPMM,same service-loader
+bytes/C: snapshot. Zero datafaults,exactsame12knownfetchfault records. Retired
+3869533instructions,index48900/100000. Paired50MCPU/host files hashed/retained.
+ROM warmloop unchanged1020clocks; firstdelayentry124470→121266 (3204clocks saved).
+NoLCDpixelsyet/full-logo claim; first50M primarily exercises uncachedflashloop.
+Original12B manifesthashunchanged,frozenexecutable/checkpointsuntouched.
+
+NativeMMU/Dcache A/B workload:65clean32Bmisses median159→143 (range159..167→
+143..151),dirtyvictimcase108→90,warmserializedDcachehit5→5. Programchecks dirty
+victimvisibility viauncachedalias,bytes/SWP andDMAvisibility before/afterclean.
+Numbers are end-to-end workload costs withmodeledmemorywaits,notchip latency.
+New profiler: directdirty90 has60RAMbackend-active clocks,9instruction-port
+clocks; cleancase143 has48RAMbackend-active and85instruction-port clocks. These
+portcounters are observational; dirty/clean examples have different contention.
+Five sampled hitclocks correspond to4clocks untilresponsevisible pluscalleredge;
+serializedownership/tagread/compare/dataread/completion,not1KiBROMbuffer hit.
+Our added ARM920cache is one-request-at-a-time. User agrees substantiallongterm
+redesign maybewarranted; nextdesign should address pipelinedhits,wholeline
+transport andCPUload/stall coupling,notdelete104MHz stage registers or assume
+wholeupstreamZAP mustbereplaced. Details docs/direct-sdram-path.md.
+
+Checks pass: route range/lanes/admission/cancel/drain/reset;bothbridgemodes;
+legacyflashreset/owner;actualSDRAMrefresh/mask/reset andSWPlockarbitration;
+actualARM/boardIRQ/FIQ/fault/SIMIF/LCDDMA/SDRAMwaits;correctedLCDcachecoherence;
+topelaboration;176file/9QIPpreflight. ActualJTFRAME+device-model5Mboot at78MHz
+passes483906bus/12fetchfaults/zero datafaults; final104MHzmodel5Mpasses483905bus/
+12fetchfaults/zero datafaults. These are protocol tests,notFPGA104MHzclosure.
+
+Fixed testbug: inheritedlcd_cache omitted0x0c1DMA/IRQ MMUsection and $finish
+failures couldstillprintPASS. Map0x0c100c02 atTTBR+0x304;failuresfatal inthat,
+newbenchmark andboardCPUfixtures. HistoricalPASSstringsalone aren'tevidence.
+Correctednativeprograms genuinelypass (collector rejectsanyFAIL). Focusedlegacy
+memoryowner/flashfixtures explicitlyDIRECT0;nativeARMtests exercisenewroute.
+A/Bflag --legacy-sdram-route is part ofidentity/restoreguard. Neverrestore old
+RTLstates into newroute. Earlierdirect-sdram-50m anddirect-sdram-final-50m were
+superseded observer/explicitowner-prune runs,notfinalverification.
+
+Evidence scratch/direct-sdram/{comparison.json,collect.py,benchmark-profile.log,
+real-sdram-final104.log,final-regression.log}; maintaineddirectedtests under
+ tests/phone/direct_sdram/. No hardwarebuild,push/deploy or clockchange. Later
+CPU/LCD admissionfusion/linebursts/slowperipheralclock are NOTimplemented.
+
+## 2026-11-09: CPU fetch issue4→3clocks; registered returns retained;50M passed
+
+cpu-hit-registered-master-50m completed50000000cycles from reset in544.604s,
+64-bit/1KiB,78MHz phone timebase,normalpowerup,erasedPMM,same stockservice-loader
+firmware/C: snapshot. Zero data faults and exactsame12known earlyfetchfault
+records as instrumentedbaseline. Retired3869284instructions; firstdelay index
+48897/100000 versus44561 at previous50M. Both50M CPU/host checkpoints retained.
+Firstdelay stillrunning; completefirstdelay/logo NOT claimed by this endpoint.
+
+Warm1119→1020clocks (8.847% fewer);79retirements/99fetchcompletions/zeroDDRreads
+unchanged. Chain4+5+2→3+5+2. CPUcode_stall990→891;buswait495 andlookup99unchanged.
+Delayentry135417→124470. Full100000iterationbody projects102Mvs111.9Mcycles.
+ColdDDRcommands1231vs1225; do NOT claimfullbussequenceidentity.
+
+RemovedonlyUPP's duplicate requestcopy for itsknownregistered/heldZAPmerger:
+REGISTERED_MASTER=1 reusesmergerFFfields. Cacheowner,merger,boardmemoryowner,
+bridge{data,error,completion} andcachecompletion registers allremain. Thetwo
+returnclocks deliberatelyretained as timingboundaries. NoCPU/TLB/arbitration
+logic joined withboarddecode. SourceFFfanout/placement needsfuturefit;no104MHz
+closureclaim or timingexception. Genericbridge default0 preservescapture.
+Specializedsource holdsfieldsuntilresponse,then withdrawsorreplaces itscompleted
+offer. RESPONSE keepsdownstreamlow;assertion verifiesheldpacketstability.
+
+Bothbridge modes pass200waitedread/write/errorbeats,exactonceeffects,cancel/reset;
+mode1alsofirstedgeACK/ACK+ERR andcontinuousownerhandoff. Flashreset/program/erase,
+memoryownership,DDRcache/arbiter,topelaboration,176file/9QIPpreflightpass. Actual
+ARM/board IRQ/FIQ,precisefaults,SIMIF,LCDDMA,SDRAMwaitfixturepasses. Sourcecompare
+betweeninstrumentedbaselineand50M differsONLY rtl/ngage_upp.v; inputhashesmatch.
+Evidence scratch/cpu-fetch-handshake/{comparison.json,compare.py,regression.log,
+bridge-unit.log,board-cpu.log}; docs/uncached-fetch.md hasexactstages/contracts.
+Original12B manifesthashunchanged,frozenbinaryuntouched,at1.01B withzero data
+faults onverification. No hardwarebuild,push/deploy. Furtherissue/returnlatency
+work needsownedprefetch/overlap or measuredretiming,not deleting the remaining
+registers that protecttranslation/arbitration/CPUstall paths.
+
+## 2026-11-09: resident instruction-hit latency reduced; separate50M verified
+
+64-bit/1KiB retained. hit-pipeline-fast-50m completed50000000cycles from reset,
+normalpowerup,78MHz phone timebase,unchanged production-service-loader-derived
+firmware/C: snapshot,erasedPMM,modeledDDR/SDRAM. Zero data faults; exact same12
+known early fetch-fault records as isolatedbaseline. Retired3526752instructions;
+first delay index44561/100000 versus37852 in previous64/1KiB50M run. NoLCDpixels
+yet; complete firstdelay/logo NOT verified. Paired50M.cpu/.host retained.
+
+Warm iteration1317→1119clocks (15.03% fewer),79retired/99fetchcompletions unchanged;
+buswait693→495,code_stall1188→990,lookup297→99,zeroDDRreads/backendclocks.
+Sequential fetch chain4+7+2→4+5+2clocks. Detailed bus trace confirms original7:
+1ownership +1flashlaunch +3lookup +2response. Newlookup takes1clock. Wrapper
+presents accepted address to synchronous BRAM on acceptance,then holds its
+captured request. Opt-in HELD_ADDRESS removes redundant imported hit_l history
+while retaining pipelined valid/index/tag matching. Streaming default unchanged.
+All responses stay registered; no CPU,flashcommand,owner,arbiter,descrambler or
+inter-chip boundary bypassed. Added input-address mux timing needs futurefit;
+no104MHz/Fmax claim. Firstdelayentry147802→135417; body projects111.9Mvs131.7M.
+ColdDDR commands1225vs1208; don't claim entireboot bus-sequence equality.
+
+Nine width/capacity unit modes pass1clock hits,immediate producer-pin changes,
+tight alternating/conflicting tags,maskedreload,reset stages/stale burstdrain.
+LegacyDDR/arbitration,flashreset/coldreset/program/erase,memoryownership,codeflash,
+topelaboration and176file/9QIP preflight pass. Evidence/counter/stagecomparison:
+scratch/instruction-hit-latency/{comparison.json,compare.py,regression.log};
+docs/uncached-fetch.md contains exact7→5clock trace and remainingCPUoverhead.
+Original12B run untouched: manifest hash equals prior matrix baselinecheck,
+stillfrozen dd61fbd8/source3adc98c7binary,target12B;840M withzero data faults at
+verification. No hardwarebuild,push or deployment. Furtherlatency work should
+measure the remaining4clock issue/2clock CPUreturn paths before changing them.
+
+## 2026-11-09: all nine DDR instruction-buffer benchmarks complete (50M each)
+
+64/128/256-bit lines ×1/2/4KiB each completed50000000cycles from reset with
+matching RTL/input hashes,78MHz phone timebase and the uncached CPU bypass.
+All9 have zero data faults and12known early fetch faults. Paired50M CPU/host
+checkpoints retained; no hardware build. Each covers37.85% of the first100000
+count delay, about3M retired instructions, no LCD pixels yet. Warm iteration
+is1317clocks/79retirements/99fetch completions/zeroDDR reads in EVERY variant.
+Outer index at50M ranges37852..37856. Default64-bit/1KiB delay entry147802;
+best256-bit/4KiB143566,4236clocks(~54us at78MHz) earlier. Larger capacity and
+lines do not materially shorten this resident delay; retain64-bit/1KiB default.
+Full9-row table/counter interpretation: docs/ddr-rom-cache.md;
+scratch/ddr-cache-matrix/{results.json,results.md,collect.py}. Exact DDR model:
+3clocks first beat,consecutive following beats; not board DDR timing/BRAMfit.
+
+All9unit modes plus legacyDDR/top elaboration passed. Collector verifies all
+final endpoints, source/input lineage, paired checkpoints and warm counters.
+Orchestrator's in-memory old copy hit a duplicate-name result-bookkeeping error
+AFTER launching all9; children continued independently and collector succeeded.
+On-disk orchestrator fixed. Do not mistake this for a hardware/simulation error.
+Original12B run remains on frozen source dd61fbd8/executable3adc98c7,target12B;
+continues beyond700M with12fetch faults/zero data faults. No reset/rebuild or
+checkpoint changes there. Future useful work: reduce resident instruction hit
+handshake latency (currently4+7+2clocks per sequential fetch), preserving timing,
+transaction ownership, reset/reload and fault alignment. Full new-cache logo
+boot not verified by these50M comparisons; do not claim it.
+
+## 2026-11-09: nine-way instruction-cache benchmark running (50M each)
+
+User explicitly requested64/128/256-bit lines at1/2/4KiB and at least50M cycles
+per case, keeping the12B run untouched and no hardware build. The DDR backend
+now collects1/2/4returned64-bit beats per cache miss and drains the whole burst
+on reset; bypass reads/writes remain single-beat. DDRAM_BURSTCNT comes from the
+backend instead of a constant. Defaults remain64-bit/1KiB pending results.
+LARGE fill assembly generalized using sysfl's128-bit reference as a guide;
+cache still DW32/TAG_RAM1 with explicit M10K wrappers. Wider imports require
+DW32. Actual hps_io/service-loader export remains the source of all boot bytes.
+
+Nine unit cases pass lane selection,conflicts,data bypass,masked reload,reset
+stages and cancellation after the first beat of a wider burst. Legacy DDR and
+top elaboration pass. New benchmark outputs include final outer-loop index,
+retirement count and DDR command/beat counts. Same78MHz timebase,normal powerup,
+C: snapshot and CPU uncached bypass in all cases. First-beat modeled latency3
+cycles,consecutive later beats; comparison is simulated cycles,not walltime or
+physical DDR/Fmax/resource proof. Full first100000-count wait may exceed50M;
+measure loop progress and warm cost rather than claim a complete logo boot.
+
+Orchestrator: scratch/ddr-cache-matrix/run-matrix.py; log/status files beside it.
+Cases build in two workers with2compile jobs each; each starts its50M run when
+linked. Compiler intermediates in ONLY these new build folders are removed
+after linking; executables/checkpoints retained. Results under build/sim/runs/
+rom-matrix-{bits}-{bytes}-50m/. Do not modify RTL/runner while variants build.
+Original12B container698bcf6c1c74 and its frozen executable are untouched.
+
+## 2026-11-09: uncached fetch waits removed — separate boot verified
+
+The running hardware-service-boot-12b executable/checkpoints remain untouched.
+Shared arm920_cache_access now admits uncached reads directly to registered
+BYPASS when older stores are drained, otherwise WAIT_DRAIN; its uncached drain
+exit bypasses tag lookup too. Cached accesses,writes and maintenance retain
+original state transitions. No imported ZAP file changed. ROM instruction-only
+LARGE buffer is enabled in Template; data/file reads bypass. Small guard change
+permits earlier miss dispatch but adds no measured warm-hit gain.
+
+Warm boot-delay iteration:1713(no DDR ROM buffer)→1515(buffer)→1317(new bypass).
+13.07% fewer clocks than buffer-only;23.12% fewer than original. New separate1M
+cold run has79retirements,99fetch completions per warm outer iteration,zero DDR
+reads,693 bus wait clocks and1188 CPU code_stall clocks (old1386). Sequential
+CORE_ACK→nextBUS_REQ→BUS_ACK→CORE_ACK reduces6+7+2 to4+7+2 clocks. Exact code,
+loop tally,remaining latency and Nortido comparison: docs/uncached-fetch.md.
+Wider64/128/256-bit and1/2/4KiB matrix remains pending; no warm DDR misses here.
+
+Tests: cache_access and cache_buffer integration pass; uncached unit response
+latency now1clock on immediate bus fixture, cached read4/cleanmiss23 unchanged.
+24 CPU cases pass: load widths,disable/reenable,prefetch-uncached,buffer ordering,
+FIQ flash sequence,SWP basic/read-abort/write-abort each at0/3/11wait settings.
+Production ROM-cache tests pass including lane/conflict,data bypass,full/masked
+reload and reset at lookup/issue/wait/select/fill with stale-response draining.
+Source graph176files/9QIPs,top structural lint pass.
+
+Separate78MHz real-SDRAM5M boot passes374848bus transfers,12known fetch faults,
+zero data faults,acceptedPC00006154,last accepted fetch9clocks before endpoint.
+All121writes and12fault records equal previous cached5M snapshot excluding
+cycle stamps; more polling reads give965boardevents vs848,so don't claim whole
+trace equality. Evidence: scratch/uncached-fetch/{measurement.json,
+boot-comparison.json,real-sdram-boot.log} and CPU/unit logs. Simulations use
+service-loader-derived stock bytes for the1M measurement; real-SDRAM fixture
+uses the independently verified identical assembled firmware. Full logo with
+new optimization is not yet verified. No hardware build,push or deployment.
+
+## 2026-11-09: JTFRAME LARGE cache suitable for DDR — isolated proof
+
+User requested JTFRAME reuse and low BRAM use, preserving live12B sim. Reviewed
+jtframe_romrq_lcache (CACHE_LARGE branch), rom_2slots/ramslot_ctrl and RAMs.
+LARGE lines are16/32/64 BITS, not bytes. Choose1KiB CACHE_SIZE(minimum),DW32,
+BURSTLEN64,TAG_RAM1:128 direct-mapped8-byte lines,8192data bits+1920tag bits
+at24-bit halfword address width; valid128FF and fill64FF. Expected few M10Ks;
+actual primitive packing/resources must be measured. TAG_RAM avoids async tag
+array. Existing generic Jotego RAMs need explicit CycloneV mapping review at
+integration to preserve project's BRAM contract.
+
+SDRAM wiring is req→slot arbitration/controller; slot_sel becomes we (not a
+CPU write), dst marks first16-bit fill beat, din_ok/rdy marks final. A DDR shim
+can issue ONE aligned64-bit request and serialize its response into four16-bit
+fill beats with this exact handshake. Current DDRAM_BURSTCNT1 already returns
+that8-byte line. No multi-beat DDR burst required and no need to discard the
+other32-bit half. Cache max line is8bytes;32-byte lines would require modifying
+the imported cache. Existing adapter currently truncates64→32 so integration
+must expose the full beat, not put cache after the truncation. Preserve shared
+DDR arbitration and held requests; latch CPU request through synchronous tag
+lookup so stale prior data_ok cannot acknowledge a new address.
+
+Unmodified LARGE and generic RAM copies tested in scratch/jtframe-ddr-cache/:
+408 reads produce5 fills: two initial8-byte lines,100 loop repetitions all hits,
+conflicting line/reload and clear/refill; DDR response delays1..7cycles; lane
+order checked. Prototype uses abstract DDR response, not production adapter.
+Only immutable ROM array reads may use it; status/ID/program commands bypass,
+C:/PMM remain uncached; store raw bytes then existing address-specific decode.
+Invalidate on firmware load/reload and drain/cancel late fills on reset/clear.
+Full integration and reset/clear-in-flight tests remain next work, not claimed.
+No phone RTL changed, no build/push; running frozen12B sim untouched. At310M
+still12known fetch errors/zero data faults. Evidence/provenance/test.log beside
+the scratch fixture. This proves interface feasibility, not speedup or104MHz.
+
+## 2026-11-09: first171M cycles attributed to inflated ROM busy wait
+
+User challenged the pre-logo delay. Independent1M-cycle observer, built from
+current HDL with same service-loader-derived backing and78M parameter, did not
+stop/modify the long12B run. Result zero data faults/12known fetch faults.
+At164125 retired PC63cc has r0=100000. Inner6150 entries164235,165948,167661,
+169374,171087,172800,174513,176226: exactly1713 clocks apart, r0=8 and
+r5=100000; r4 advances0..7. Profiles through900k confirm r5 stays100000 while
+r4 rises20→429. This is forward progress through a counted delay, not polling.
+
+ROM6150 resets r1, increments it eight times, with NOPs/compare/branch, then
+returns;63cc repeats that call100000 times. Around79 architectural instructions
+per outer iteration =>21.7 clocks/instruction measured,171.3M clocks total.
+Long run's next LCD control writes171466289/171466893 and header171467529
+land just after the predicted end. At78M171.3M represents2.20 seconds; host
+simulation steps are still100MHz so recorded simulation timestamps differ.
+This establishes inflated busy-wait cost, NOT a necessary two-second LCD delay.
+
+Static reset-toggle helpers630c and62d0 write GPIO-related halfwords0c150204
+and0c150202 and each tail-call63cc with100000 from literal186a0. Similar reset
+sequences can therefore incur this cost more than once. Exact subsequent
+caller/coverage beyond1M needs additional observation; don't claim all200M
+are already individually traced. Boot-ROM slow uncached fetch/pipeline costs
+are the next performance investigation; expected real-phone latency and exact
+calibration units remain unverified. No firmware waits skipped or ROM patched.
+
+Files: scratch/early-boot-delay/{boot-disassembly.txt,summary.json,run.log};
+full observer run under build/sim/runs/early-boot-delay-trace-1m/. Testbench
+NGAGE_EARLY_BOOT_TRACE prints bounded first8 inner entries and100k-cycle
+profiles; runner --early-boot-trace builds a separate source identity.
+Long run must continue with frozen executable via --use-saved-build if resumed.
+
+## 2026-11-09: service12B run100M progress — counted boot delay
+
+At100M cycles in1036.86s (~96.4k/s),PC00006160,12 fetch errors stable,
+zero data faults,no LCD words. Container698bcf6c1c74 active. Disassembly of
+production-loader core output at6150..6178: r1=0; increment r1; compare r0/r1;
+BNE6154; return via LR. Sampled6158/6168/6170 PCs are a counted delay loop,
+not an unconditional terminal spin. Occasional617c/63ec shows other boot code
+also executes. No register capture yet to establish current requested delay
+length. Keep running to12B; no reset,patch or new hardware build.
+
+## 2026-11-09: service-loader-backed12B run active; cleanup
+
+Superseded assembled-input12B run stopped cleanly before further investment.
+Actual hps_io boot1→boot transfers through production ngage_service_loader,
+DDR adapter and decoder passed full20905984-byte equality and C:/PMM guard.
+Added test.cpp --export-boot output, after validity/readback checks, producing
+scratch/hardware-live/service-loaded-boot/{core,extension}.bin. This is staged
+loader execution followed by boot simulation, not one continuous full MiSTer
+HPS/controller simulation. Sources are original audited service containers;
+old assembled binaries are equality oracles only. Loader test log retained.
+
+Fresh run hardware-service-boot-12b started from reset, target12000000000,
+78M phone timebase parameter,normal powerup,actual copied C:,erased PMM.
+Runner uses exported production-loader DDR bytes; modeled backing-memory and
+100MHz host-step caveats remain. Every billion CPU/host pair is permanently
+saved. Existing scanout/RTL includes requested pixel swap. At previous96k
+cycles/s,12B takes about35h; do not confuse ten-million progress reports with
+caps. Main log: scratch/hardware-live/hardware-service-boot-12b.log.
+
+User requested old checkpoint/generated-file cleanup. Automatic approval review
+rejected deleting protected billion-cycle checkpoints. Safer cleanup removed
+1779 sub-billion checkpoint/compiler-intermediate files,4.04GB, preserving all
+billion pairs,firmware,user saves,screenshots,logs and executables. build/sim
+6.6GB→2.6GB. Manifest: scratch/cleanup-20261109/removed-files.json. Older docs'
+sub-billion checkpoint paths may now be historical; retained billion checkpoints
+remain available. No new hardware build or deployment in this step.
+
+## 2026-11-09: hardware-save Verilator investigation20M checkpoint
+
+Fresh run hardware-logo-investigation-20m completed20M cycles in207.474s,
+about96.4k cycles/s. SYS_CLK_HZ phone parameter78M,normal powerup,actual SD-card
+C: copied read-only to scratch/hardware-live/hardware-cdrive.img; PMM verified
+allFF. HDL peripherals with modeled backing memory, not full HPS/physicalSDRAM.
+Host driver retains10ns discrete clock steps;78M parameter changes cycle-based
+timebases, not host timestamps. Checkpoint pair retained in run directory.
+Result PC00006158,zero LCD pixels/display off,12 known fetch errors,zero data
+faults. This is early startup, NOT reproduction of the hardware logo wait.
+Continued frozen executable to100M in hardware-logo-investigation-100m, restoring
+checkpoint20000000 with --use-saved-build and --sys-clk-hz78000000. Runner now
+accepts clock parameter, includes it in nondefault build identity/manifest and
+rejects checkpoint clock mismatch. At measured speed80M additional cycles take
+about14 minutes. Logs under scratch/hardware-live/verilator-investigation*.log.
+
 ## 2026-11-09: diagnostic export recovered; OSD/pixel corrections ready
 
 SD-card diagnostics.ngd updated09:31:59 local; copied to

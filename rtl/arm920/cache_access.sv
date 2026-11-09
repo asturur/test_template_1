@@ -415,7 +415,12 @@ module arm920_cache_access (
                     enabled    <= req_cache_enable;
                     cacheable  <= req_cacheable;
                     bufferable <= req_bufferable;
-                    state      <= req_cache_enable && req_cacheable ? LOOKUP_CAPTURE : LOOKUP_WAIT;
+                    // Uncached reads need no tag/data lookup. Keep the owned
+                    // request registers and older-store drain before bus issue.
+                    if (!req_write && !(req_cache_enable && req_cacheable))
+                        state <= write_buffer_empty ? BYPASS : WAIT_DRAIN;
+                    else
+                        state <= req_cache_enable && req_cacheable ? LOOKUP_CAPTURE : LOOKUP_WAIT;
                 end
                 LOOKUP_CAPTURE: state <= LOOKUP_WAIT;
                 MAINT_CAPTURE: state <= MAINT_WAIT;
@@ -443,7 +448,9 @@ module arm920_cache_access (
                     state          <= IDLE;
                 end
                 BUFFER_STORE: if (buffer_ready) state <= STORE_COMMIT;
-                WAIT_DRAIN: if (write_buffer_empty) state <= LOOKUP;
+                WAIT_DRAIN:
+                if (write_buffer_empty)
+                    state <= !wr && !(enabled && cacheable) ? BYPASS : LOOKUP;
                 BYPASS:
                 if ((bus_ack || bus_error) && !buffer_bus_valid) begin
                     response_data  <= bus_rdata;

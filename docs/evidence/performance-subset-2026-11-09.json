@@ -1,0 +1,290 @@
+{
+  "date": "2026-11-09",
+  "scope": "Implemented performance subset; whole CPU/cache redesign remains notes only",
+  "production": {
+    "sys_clk_hz": 78000000,
+    "target_hz": 104000000,
+    "rom_buffer_bytes": 1024,
+    "rom_line_bits": 64,
+    "direct_sdram": true,
+    "lcd_arbitration": "unchanged"
+  },
+  "stock_boot": {
+    "run": "direct-sdram-final2-50m",
+    "source_identity": "ce5d0d3992dd6378bfe03695c70cd9a82cd8d77a83d3823259432aa5003710de",
+    "container_image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "input_sha256": {
+      "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+      "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+      "cdrive": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+    },
+    "result": {
+      "boot_index": 48900,
+      "boot_limit": 100000,
+      "retired": 3869533,
+      "ddr_commands": 1231,
+      "ddr_beats": 1231,
+      "cycle": 50000000,
+      "pc": 24916,
+      "lcd_words": 0,
+      "frame_complete": 0,
+      "display_on": 0,
+      "unsupported": 0,
+      "bus_errors": 12,
+      "data_errors": 0,
+      "seconds": 518.566,
+      "interrupted": false
+    },
+    "checkpoint_sha256": {
+      "cpu": {
+        "bytes": 42317333,
+        "sha256": "929586322ea6cd4f7950d7ea1f8e2d2de7d4a4f5c42463d6fb04b319dc61c7a3"
+      },
+      "host": {
+        "bytes": 230416,
+        "sha256": "d69f98636735bd4e4ad3171c70b802a737e58319a6d7d59b49b21f7b13da42b9"
+      }
+    },
+    "warm_iteration": {
+      "cycle": 1020,
+      "retired": 79,
+      "fetch_ack": 99,
+      "fetch_wait": 495,
+      "code_stall": 891,
+      "backing_reads": 99,
+      "ddr_reads": 0,
+      "lookup_cycles": 99,
+      "backend_cycles": 0
+    },
+    "first_delay_entry": 121266
+  },
+  "native_benchmark": {
+    "0": {
+      "clean_count": 65,
+      "clean_median": 159,
+      "clean_min": 159,
+      "clean_max": 167,
+      "dirty": [
+        {
+          "mode": 0,
+          "pa": 167821344,
+          "write": 0,
+          "cached": 1,
+          "dirty": 1,
+          "clocks": 108,
+          "reads": 8,
+          "writes": 2
+        }
+      ],
+      "hits": [
+        {
+          "mode": 0,
+          "pa": 167772192,
+          "write": 0,
+          "cached": 1,
+          "dirty": 0,
+          "clocks": 5,
+          "reads": 0,
+          "writes": 0
+        }
+      ],
+      "profiles": [
+        {
+          "mode": 0,
+          "pa": 167772192,
+          "dirty": 0,
+          "clocks": 159,
+          "rom_port": 85,
+          "ram_service": 48,
+          "state0": 1,
+          "state1": 2,
+          "state2": 1,
+          "state3": 0,
+          "state4": 0,
+          "state5": 152,
+          "state6": 0,
+          "state7": 0,
+          "state8": 0,
+          "state9": 0,
+          "state10": 2,
+          "state11": 0,
+          "state12": 0,
+          "state13": 1,
+          "state14": 0
+        },
+        {
+          "mode": 0,
+          "pa": 167772192,
+          "dirty": 0,
+          "clocks": 5,
+          "rom_port": 5,
+          "ram_service": 0,
+          "state0": 1,
+          "state1": 1,
+          "state2": 1,
+          "state3": 0,
+          "state4": 0,
+          "state5": 0,
+          "state6": 0,
+          "state7": 0,
+          "state8": 0,
+          "state9": 0,
+          "state10": 1,
+          "state11": 0,
+          "state12": 0,
+          "state13": 1,
+          "state14": 0
+        },
+        {
+          "mode": 0,
+          "pa": 167821344,
+          "dirty": 1,
+          "clocks": 108,
+          "rom_port": 9,
+          "ram_service": 59,
+          "state0": 1,
+          "state1": 2,
+          "state2": 1,
+          "state3": 0,
+          "state4": 0,
+          "state5": 101,
+          "state6": 0,
+          "state7": 0,
+          "state8": 0,
+          "state9": 0,
+          "state10": 2,
+          "state11": 0,
+          "state12": 0,
+          "state13": 1,
+          "state14": 0
+        }
+      ]
+    },
+    "1": {
+      "clean_count": 65,
+      "clean_median": 143,
+      "clean_min": 143,
+      "clean_max": 151,
+      "dirty": [
+        {
+          "mode": 1,
+          "pa": 167821344,
+          "write": 0,
+          "cached": 1,
+          "dirty": 1,
+          "clocks": 90,
+          "reads": 8,
+          "writes": 2
+        }
+      ],
+      "hits": [
+        {
+          "mode": 1,
+          "pa": 167772192,
+          "write": 0,
+          "cached": 1,
+          "dirty": 0,
+          "clocks": 5,
+          "reads": 0,
+          "writes": 0
+        }
+      ],
+      "profiles": [
+        {
+          "mode": 1,
+          "pa": 167772192,
+          "dirty": 0,
+          "clocks": 143,
+          "rom_port": 85,
+          "ram_service": 48,
+          "state0": 1,
+          "state1": 2,
+          "state2": 1,
+          "state3": 0,
+          "state4": 0,
+          "state5": 136,
+          "state6": 0,
+          "state7": 0,
+          "state8": 0,
+          "state9": 0,
+          "state10": 2,
+          "state11": 0,
+          "state12": 0,
+          "state13": 1,
+          "state14": 0
+        },
+        {
+          "mode": 1,
+          "pa": 167772192,
+          "dirty": 0,
+          "clocks": 5,
+          "rom_port": 5,
+          "ram_service": 0,
+          "state0": 1,
+          "state1": 1,
+          "state2": 1,
+          "state3": 0,
+          "state4": 0,
+          "state5": 0,
+          "state6": 0,
+          "state7": 0,
+          "state8": 0,
+          "state9": 0,
+          "state10": 1,
+          "state11": 0,
+          "state12": 0,
+          "state13": 1,
+          "state14": 0
+        },
+        {
+          "mode": 1,
+          "pa": 167821344,
+          "dirty": 1,
+          "clocks": 90,
+          "rom_port": 9,
+          "ram_service": 60,
+          "state0": 1,
+          "state1": 2,
+          "state2": 1,
+          "state3": 0,
+          "state4": 0,
+          "state5": 83,
+          "state6": 0,
+          "state7": 0,
+          "state8": 0,
+          "state9": 0,
+          "state10": 2,
+          "state11": 0,
+          "state12": 0,
+          "state13": 1,
+          "state14": 0
+        }
+      ]
+    }
+  },
+  "native_program_sha256": "0f99e5e2137fc05f5cdb8dd3528ffc419a0bd3a949b1cd7cd75ed7d8ff7070aa",
+  "native_fixture_sha256": "92528480328c768060dc10ec8dc7f4a49b1577939e4764f23e71edc1de2b7ddb",
+  "post_verification_formatting": {
+    "file": "rtl/ngage_ddr_adapter.sv",
+    "tested_sha256": "e84478978d90c756ad4eac4419f3f8f751f6f307b68a8a257013fb8d4c812e9e",
+    "formatted_sha256": "93b9bc4d50a8c5d813c943ff299a6a30cf17cb93b14717903df46af6a5f4bcd1",
+    "change": "Whitespace around simulation-only burst-count assertion",
+    "verification": "Verible v0.0-4298-g085eef05 verilog-diff --mode=format: Inputs match; reconstructed preformat source matches tested SHA256"
+  },
+  "validation": [
+    "Direct route range, lanes, admission, cancellation/draining and reset",
+    "Bridge modes and legacy flash reset/ownership",
+    "Native ARM board IRQ/FIQ, precise faults, SIMIF, LCD DMA and SDRAM waits",
+    "Corrected cache/DMA coherence, byte accesses, SWP and dirty eviction",
+    "Actual JTFRAME/device model 5M boot at78MHz and104MHz",
+    "SDRAM controller refresh/masking/reset and CPU/DMA lock arbitration",
+    "Top structural elaboration and Quartus176-file/9-QIP source graph"
+  ],
+  "limits": [
+    "No FPGA fit or104MHz timing closure claim",
+    "50M firmware endpoint is still in first flash-resident delay; no new full-logo claim",
+    "Native cache-miss costs include modeled memory waits and instruction contention",
+    "No hardware build dispatched"
+  ],
+  "long_run_manifest_unchanged": true
+}

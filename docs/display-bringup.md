@@ -499,3 +499,69 @@ of `0x0c150214` at cycle 452,340,421; the existing model permits only the
 separately assumed upper halfword `0x0c150216`. Outputs and provenance are in
 `build/sim/runs/boot-checkpoint-gpio206/`; the screen remains the assumed white
 clear. This write sink does not establish GPIO side effects.
+
+## 2026-11-09: first171M cycles attributed to inflated ROM busy wait
+
+User challenged the pre-logo delay. Independent1M-cycle observer, built from
+current HDL with same service-loader-derived backing and78M parameter, did not
+stop/modify the long12B run. Result zero data faults/12known fetch faults.
+At164125 retired PC63cc has r0=100000. Inner6150 entries164235,165948,167661,
+169374,171087,172800,174513,176226: exactly1713 clocks apart, r0=8 and
+r5=100000; r4 advances0..7. Profiles through900k confirm r5 stays100000 while
+r4 rises20→429. This is forward progress through a counted delay, not polling.
+
+ROM6150 resets r1, increments it eight times, with NOPs/compare/branch, then
+returns;63cc repeats that call100000 times. Around79 architectural instructions
+per outer iteration =>21.7 clocks/instruction measured,171.3M clocks total.
+Long run's next LCD control writes171466289/171466893 and header171467529
+land just after the predicted end. At78M171.3M represents2.20 seconds; host
+simulation steps are still100MHz so recorded simulation timestamps differ.
+This establishes inflated busy-wait cost, NOT a necessary two-second LCD delay.
+
+Static reset-toggle helpers630c and62d0 write GPIO-related halfwords0c150204
+and0c150202 and each tail-call63cc with100000 from literal186a0. Similar reset
+sequences can therefore incur this cost more than once. Exact subsequent
+caller/coverage beyond1M needs additional observation; don't claim all200M
+are already individually traced. Boot-ROM slow uncached fetch/pipeline costs
+are the next performance investigation; expected real-phone latency and exact
+calibration units remain unverified. No firmware waits skipped or ROM patched.
+
+Files: scratch/early-boot-delay/{boot-disassembly.txt,summary.json,run.log};
+full observer run under build/sim/runs/early-boot-delay-trace-1m/. Testbench
+NGAGE_EARLY_BOOT_TRACE prints bounded first8 inner entries and100k-cycle
+profiles; runner --early-boot-trace builds a separate source identity.
+Long run must continue with frozen executable via --use-saved-build if resumed.
+
+## 2026-11-09: JTFRAME LARGE cache suitable for DDR — isolated proof
+
+User requested JTFRAME reuse and low BRAM use, preserving live12B sim. Reviewed
+jtframe_romrq_lcache (CACHE_LARGE branch), rom_2slots/ramslot_ctrl and RAMs.
+LARGE lines are16/32/64 BITS, not bytes. Choose1KiB CACHE_SIZE(minimum),DW32,
+BURSTLEN64,TAG_RAM1:128 direct-mapped8-byte lines,8192data bits+1920tag bits
+at24-bit halfword address width; valid128FF and fill64FF. Expected few M10Ks;
+actual primitive packing/resources must be measured. TAG_RAM avoids async tag
+array. Existing generic Jotego RAMs need explicit CycloneV mapping review at
+integration to preserve project's BRAM contract.
+
+SDRAM wiring is req→slot arbitration/controller; slot_sel becomes we (not a
+CPU write), dst marks first16-bit fill beat, din_ok/rdy marks final. A DDR shim
+can issue ONE aligned64-bit request and serialize its response into four16-bit
+fill beats with this exact handshake. Current DDRAM_BURSTCNT1 already returns
+that8-byte line. No multi-beat DDR burst required and no need to discard the
+other32-bit half. Cache max line is8bytes;32-byte lines would require modifying
+the imported cache. Existing adapter currently truncates64→32 so integration
+must expose the full beat, not put cache after the truncation. Preserve shared
+DDR arbitration and held requests; latch CPU request through synchronous tag
+lookup so stale prior data_ok cannot acknowledge a new address.
+
+Unmodified LARGE and generic RAM copies tested in scratch/jtframe-ddr-cache/:
+408 reads produce5 fills: two initial8-byte lines,100 loop repetitions all hits,
+conflicting line/reload and clear/refill; DDR response delays1..7cycles; lane
+order checked. Prototype uses abstract DDR response, not production adapter.
+Only immutable ROM array reads may use it; status/ID/program commands bypass,
+C:/PMM remain uncached; store raw bytes then existing address-specific decode.
+Invalidate on firmware load/reload and drain/cancel late fills on reset/clear.
+Full integration and reset/clear-in-flight tests remain next work, not claimed.
+No phone RTL changed, no build/push; running frozen12B sim untouched. At310M
+still12known fetch errors/zero data faults. Evidence/provenance/test.log beside
+the scratch fixture. This proves interface feasibility, not speedup or104MHz.

@@ -3,7 +3,7 @@ reg clk=0; always #5 clk=~clk;
 reg reset=1, valid=0, wr=0, busy=0, ready=0;
 reg [31:0] addr=0, data=0; reg [3:0] be=0; reg [63:0] dout=0;
 wire req_ready, rsp, rd, we; wire [31:0] result; wire [28:0] da; wire [63:0] din; wire [7:0] db;
-ngage_ddr_adapter dut(clk,reset,valid,req_ready,wr,addr,data,be,rsp,result,da,din,db,rd,we,busy,dout,ready);
+ngage_ddr_adapter dut(clk,reset,valid,req_ready,wr,addr,data,be,rsp,result,da,din,db,rd,we,busy,dout,ready,1'b0,);
 task tick; begin @(posedge clk); #1; end endtask
 task send(input bit w,input [31:0] a,input [3:0] m); begin
  while(!req_ready) tick(); @(negedge clk); valid=1; wr=w; addr=a; be=m; data=32'h12345678; tick(); @(negedge clk); valid=0;

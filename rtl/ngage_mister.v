@@ -13,6 +13,7 @@
 
 module ngage_mister #(
     parameter UEM_POWERUP_STATUS = 2,
+              DIRECT_SDRAM       = 1,
               SYS_CLK_HZ         = 104000000
 ) (
     input  wire        clk_sys,             // CPU/bus clock domain
@@ -42,10 +43,12 @@ module ngage_mister #(
     output wire        sdram_we,
     output wire        sdram_req,
     input  wire        sdram_ack,
+    input  wire        sdram_accept,
 
     // DDR3 port (ROM + C: drive — mostly read, HPS-loaded)
     output wire [31:0] ddram_addr,
     output wire        ddram_rd,
+    output wire        ddram_fetch,
     output wire        ddram_wr,
     output wire [31:0] ddram_din,
     output wire [ 3:0] ddram_be,
@@ -73,6 +76,9 @@ module ngage_mister #(
     wire [31:0] wb_adr, wb_dat_o, wb_dat_i;
     wire [3:0] wb_sel;
     wire wb_ack, wb_err;
+    wire fast_ram_req, fast_ram_we, fast_ram_code, fast_ram_pending, fast_ram_response;
+    wire [31:0] fast_ram_address, fast_ram_data;
+    wire [3:0] fast_ram_be;
     wire irq_line, fiq_line;
 
     // Keep the CPU in reset until any accepted flash transaction has drained.
@@ -112,6 +118,7 @@ module ngage_mister #(
     ngage_board #(
         .SYS_CLK_HZ        (SYS_CLK_HZ),
         .INTERNAL_CPU      (1),
+        .DIRECT_SDRAM      (DIRECT_SDRAM),
         .SIMIF_ENABLE      (1),
         .KEYPAD_ENABLE     (1),
         .LCD_ENABLE        (1),
@@ -127,6 +134,17 @@ module ngage_mister #(
         .diagnostic_video     (diagnostic_video),
         .diagnostic_status    (diagnostic_status[7:0]),
         .save_state           (save_state),
+        .ram_accept           (DIRECT_SDRAM && sdram_accept),
+        .ram_ack              (sdram_ack),
+        .ram_rdata            (sdram_dout),
+        .ram_req              (fast_ram_req),
+        .ram_we               (fast_ram_we),
+        .ram_code             (fast_ram_code),
+        .ram_address          (fast_ram_address),
+        .ram_wdata            (fast_ram_data),
+        .ram_be               (fast_ram_be),
+        .ram_pending          (fast_ram_pending),
+        .ram_response         (fast_ram_response),
         .dma_mem_req          (dma_sdram_req),
         .dma_mem_addr         (dma_sdram_addr),
         .dma_mem_ack          (dma_sdram_ack),
@@ -217,7 +235,7 @@ module ngage_mister #(
             memory_owner       <= 0;
         end else if (!memory_owner_valid) begin
             memory_owner_valid <= 1;
-            memory_owner       <= {pmm_hit, cdrive_hit, rom_hit, ram_hit};
+            memory_owner       <= {pmm_hit, cdrive_hit, rom_hit, (ram_hit && !DIRECT_SDRAM)};
         end
     end
     wire memory_owned = memory_owner_valid && (|memory_owner);
@@ -245,6 +263,14 @@ module ngage_mister #(
             if (flash_response) flash_issued <= 0;
         end
     end
+    // Preserve instruction/data ownership while the flash controller issues
+    // its later backing request. File/literal reads never allocate ROM lines.
+    reg flash_fetch = 0;
+    always @(posedge clk_sys) begin
+        if (core_reset) flash_fetch <= 0;
+        else if (flash_start && !memory_owner[2] && code_ready) flash_fetch <= wb_code && !wb_we;
+    end
+    assign ddram_fetch = cm_valid && !cm_write && !um_valid && flash_fetch;
     ngage_codeflash code_flash (
         .clk         (clk_sys),
         .reset       (core_reset),
@@ -313,11 +339,11 @@ module ngage_mister #(
     assign flash_busy         = flash_issued || code_pending || user_pending;
     assign flash_dirty        = code_dirty || user_dirty;
     assign flash_dirty_sector = user_dirty ? {1'b0, user_dirty_sector} : code_dirty_sector;
-    assign sdram_addr         = wb_adr[24:0];
-    assign sdram_din          = wb_dat_o;
-    assign sdram_be           = wb_sel;
-    assign sdram_we           = memory_owner[0] && wb_we && memory_req;
-    assign sdram_req          = memory_owner[0] && memory_req;
+    assign sdram_addr         = DIRECT_SDRAM ? fast_ram_address[24:0] : wb_adr[24:0];
+    assign sdram_din          = DIRECT_SDRAM ? fast_ram_data : wb_dat_o;
+    assign sdram_be           = DIRECT_SDRAM ? fast_ram_be : wb_sel;
+    assign sdram_we           = DIRECT_SDRAM ? fast_ram_we : memory_owner[0] && wb_we && memory_req;
+    assign sdram_req          = DIRECT_SDRAM ? fast_ram_req : memory_owner[0] && memory_req;
     wire flash_error = (code_rsp && code_err) || (user_rsp && user_err);
     wire mem_ack = memory_owner[0] ? sdram_ack : (flash_response && !flash_error);
     // Register board/decode faults so Wishbone STB suppression on ERR cannot
@@ -339,14 +365,53 @@ module ngage_mister #(
     assign wb_err = !core_reset && (invalid_response || flash_error);
 
 
-    wire diagnostic_fault = !core_reset && (board_fault || unclaimed_req || flash_error);
+    wire       diagnostic_fault = !core_reset && (board_fault || unclaimed_req || flash_error);
     wire [2:0] diagnostic_reason = flash_error ? 3'd3 : unclaimed_req ? 3'd2 : 3'd1;
+    // Observe admission in a separate pipeline: the RAM grant drives only
+    // this one event FF, not a wide diagnostic packet's clock enables.
+    reg        ram_sample_valid = 0;
+    reg [31:0] ram_sample_address = 0, ram_sample_data = 0;
+    reg [3:0] ram_sample_be = 0;
+    reg ram_sample_write = 0, ram_sample_code = 0;
+    reg [31:0] ram_observed_address = 0, ram_observed_data = 0;
+    reg [3:0] ram_observed_be = 0;
+    reg ram_observed_write = 0, ram_observed_code = 0;
+    always @(posedge clk_sys) begin
+        ram_sample_valid   <= !core_reset && fast_ram_req && sdram_accept;
+        ram_sample_address <= fast_ram_address;
+        ram_sample_data    <= fast_ram_data;
+        ram_sample_be      <= fast_ram_be;
+        ram_sample_write   <= fast_ram_we;
+        ram_sample_code    <= fast_ram_code;
+        if (ram_sample_valid) begin
+            ram_observed_address <= ram_sample_address;
+            ram_observed_data    <= ram_sample_data;
+            ram_observed_be      <= ram_sample_be;
+            ram_observed_write   <= ram_sample_write;
+            ram_observed_code    <= ram_sample_code;
+        end
+    end
+    // Slow faults retain their own payload even while a RAM event is visible.
+    wire observe_ram = DIRECT_SDRAM && (fast_ram_req || fast_ram_pending) && !diagnostic_fault;
+    wire [31:0] observed_address = observe_ram ?
+        (fast_ram_pending ? (ram_sample_valid ? ram_sample_address : ram_observed_address) : fast_ram_address) : wb_adr;
+    wire [31:0] observed_data = observe_ram ?
+        (fast_ram_pending ? (ram_sample_valid ? ram_sample_data : ram_observed_data) : fast_ram_data) : wb_dat_o;
+    wire [3:0] observed_be = observe_ram ?
+        (fast_ram_pending ? (ram_sample_valid ? ram_sample_be : ram_observed_be) : fast_ram_be) : wb_sel;
+    wire observed_write = observe_ram ?
+        (fast_ram_pending ? (ram_sample_valid ? ram_sample_write : ram_observed_write) : fast_ram_we) : wb_we;
+    wire observed_code = observe_ram ?
+        (fast_ram_pending ? (ram_sample_valid ? ram_sample_code : ram_observed_code) : fast_ram_code) : wb_code;
+    wire observed_active = observe_ram || (wb_cyc && wb_stb);
+    wire observed_ack = observe_ram ? fast_ram_response : wb_ack;
+    wire observed_error = !observe_ram && wb_err;
     wire [31:0] cpu_flags = {
         23'b0,
         flash_busy,
         flash_hit,
-        ram_hit,
-        mem_req,
+        ram_hit || observe_ram,
+        mem_req || observe_ram,
         brd_ready,
         brd_claim,
         fiq_line,
@@ -354,7 +419,15 @@ module ngage_mister #(
         core_reset
     };
     wire [31:0] bus_flags = {
-        21'b0, wb_sel, bus_lock, wb_err, wb_ack, wb_code, wb_we, wb_stb, wb_cyc
+        21'b0,
+        observed_be,
+        bus_lock,
+        observed_error,
+        observed_ack,
+        observed_code,
+        observed_write,
+        observed_active,
+        observed_active
     };
     wire [31:0] fault_flags = {
         15'b0,
@@ -382,13 +455,13 @@ module ngage_mister #(
         .cpsr          (cpu_cpsr),
         .instruction   (cpu_instruction),
         .fetch         (cpu_fetch),
-        .bus_active    (wb_cyc && wb_stb),
-        .bus_ack       (wb_ack),
-        .bus_error     (wb_err),
-        .bus_address   (wb_adr),
-        .bus_write_data(wb_dat_o),
-        .bus_read_data (wb_dat_i),
-        .bus_write     (wb_we),
+        .bus_active    (observed_active),
+        .bus_ack       (observed_ack),
+        .bus_error     (observed_error),
+        .bus_address   (observed_address),
+        .bus_write_data(observed_data),
+        .bus_read_data (observe_ram ? sdram_dout : wb_dat_i),
+        .bus_write     (observed_write),
         .bus_flags     (bus_flags),
         .fault         (diagnostic_fault && !wb_code),
         .fault_flags   (fault_flags),

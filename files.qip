@@ -134,3 +134,7 @@ set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_bank.v
 set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_init.v
 set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_latch.v
 set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_rfsh.v
+
+# 1KiB raw DDR ROM cache; explicit M10K data/tag storage.
+set_global_assignment -name VERILOG_FILE rtl/jtframe/ngage_jtframe_romrq_lcache.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_rom_cache.v

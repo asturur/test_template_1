@@ -7,8 +7,82 @@ module tb(input wire clk,reset,cold,
  output wire ready,output wire [31:0] cycle_count,pc,frame_word,
  output wire [8:0] scan_x,scan_y,output wire [11:0] scan_rgb,
  output wire scan_ce,scan_de,frame_complete,display_on,unsupported,
- output wire [31:0] bus_errors,data_faults,pixel_writes);
+ output wire [31:0] bus_errors,data_faults,pixel_writes,
+ output wire [31:0] boot_index,boot_limit,retired_count,ddr_command_count,ddr_beat_count);
  integer lcd_unknown_prints=0;
+`ifdef NGAGE_EARLY_BOOT_TRACE
+ wire delay_retire = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_uop_last &&
+   (dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_valid ||
+    dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_decompile_valid) &&
+   !(|dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_data_abt) &&
+   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_instr_abt;
+ wire [31:0] delay_pc = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_pc_plus_8_buf_ff - 8;
+ wire [31:0] delay_r0 = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.u_zap_register_file.mem[0];
+ wire [31:0] delay_r1 = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.u_zap_register_file.mem[1];
+ wire [31:0] delay_r4 = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.u_zap_register_file.mem[4];
+ wire [31:0] delay_r5 = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.u_zap_register_file.mem[5];
+ integer delay_calls=0, delay_entries=0, delay_entry_cycle=0;
+ integer delay_retired=0, delay_fetches=0;
+ integer cost_ddr_beats=0;
+ assign boot_index=delay_r4;assign boot_limit=delay_r5;
+ assign retired_count=cost_retired;assign ddr_command_count=cost_ddr;assign ddr_beat_count=cost_ddr_beats;
+ integer cost_retired=0,cost_fetch_wait=0,cost_code_stall=0,cost_backing=0,cost_ddr=0;
+ integer cost_cache_lookup=0,cost_backend=0;
+ integer hit_trace_clocks=0;
+ reg cost_core_pending_l=0,cost_bus_pending_l=0;
+ wire cost_core_pending=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_cyc && dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_stb;
+ wire cost_bus_pending=dut.wb_cyc && dut.wb_stb && dut.wb_code;
+ wire cost_lookup_busy,cost_backend_busy;
+ generate if(ROM_CACHE)begin: cost_cached
+  assign cost_lookup_busy=adapter.cached.cache.state==1;
+  assign cost_backend_busy=adapter.cached.backend.state!=0;
+  always @(posedge clk) begin
+    if(!reset && delay_entries==3 && hit_trace_clocks<70)begin
+     hit_trace_clocks<=hit_trace_clocks+1;
+     $display("CPU_HIT cycle=%0d cpu_ack=%b cpu_adr=%h rd=%b launched=%b req=%b ready=%b state=%0d response=%b busvalid=%b inflight=%b offer=%b master=%b master_ack=%b bridge=%0d tlb_busy=%b physical=%h",cycles,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.i_instr_wb_ack,dut.board.upp.cpu_inside.cpu.u_zap.cpu_iaddr,dut.board.upp.cpu_inside.cpu.u_zap.cpu_instr_stb,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.launched,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.req_valid,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.req_ready,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.cache.state,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.response_valid,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.bus_valid,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.experimental_cache.inflight,dut.board.upp.cpu_inside.cpu.u_zap.c_wb_stb,dut.board.upp.cpu_inside.master_stb,dut.board.upp.cpu_inside.master_ack,dut.board.upp.cpu_inside.bridge.state,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.tlb_busy,dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_code_cache.tlb_phy_addr);
+
+     $display("HIT_PIPE cycle=%0d bus=%b owner=%b flash_start=%b flash_state=%0d backing=%b accept=%b cache_state=%0d lookup_valid=%b cache_ok=%b raw_rsp=%b flash_rsp=%b bus_ack=%b",cycles,cost_bus_pending,dut.memory_owner_valid,dut.flash_start,dut.code_flash.state,dut.cm_valid,dut.cm_ready,adapter.cached.cache.state,adapter.cached.cache.cache.addr_ok_l,adapter.cached.cache.cache_ok,adone,dut.code_rsp,dut.wb_ack);
+    end
+  end
+ end else begin: cost_uncached
+  assign cost_lookup_busy=0;
+  assign cost_backend_busy=adapter.uncached.backend.state!=0;
+ end endgenerate
+ always @(posedge clk) if(!reset) begin
+   cost_core_pending_l<=cost_core_pending;
+   cost_bus_pending_l<=cost_bus_pending;
+   if(delay_entries==3)begin
+    if(cost_core_pending && !cost_core_pending_l)$display("BOUNDARY CORE_REQ cycle=%0d address=%h",cycles,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);
+    if(cost_core_pending && dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.i_instr_wb_ack)$display("BOUNDARY CORE_ACK cycle=%0d address=%h",cycles,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);
+    if(cost_bus_pending && !cost_bus_pending_l)$display("BOUNDARY BUS_REQ cycle=%0d address=%h",cycles,dut.wb_adr);
+    if(cost_bus_pending && dut.wb_ack)$display("BOUNDARY BUS_ACK cycle=%0d address=%h",cycles,dut.wb_adr);
+   end
+   if(delay_retire)cost_retired<=cost_retired+1;
+   if(dut.wb_cyc && dut.wb_stb && dut.wb_code && !dut.wb_ack && !dut.wb_err)cost_fetch_wait<=cost_fetch_wait+1;
+   if(dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.code_stall)cost_code_stall<=cost_code_stall+1;
+   if(dut.cm_valid && dut.cm_ready)cost_backing<=cost_backing+1;
+   if(pr && ddelay==0)cost_ddr<=cost_ddr+1;
+   if(phyready)cost_ddr_beats<=cost_ddr_beats+1;
+   if(cost_lookup_busy)cost_cache_lookup<=cost_cache_lookup+1;
+   if(cost_backend_busy)cost_backend<=cost_backend+1;
+   if(delay_retire && delay_pc>=32'h6150 && delay_pc<=32'h6178)delay_retired<=delay_retired+1;
+   if(dut.wb_ack && dut.wb_code)delay_fetches<=delay_fetches+1;
+   if(delay_retire && delay_pc==32'h63cc)begin
+     delay_calls<=delay_calls+1;
+     $display("BOOT_DELAY cycle=%0d pc=%h count=%0d outer_r4=%0d outer_r5=%0d",cycles,delay_pc,delay_r0,delay_r4,delay_r5);
+   end
+   if(delay_retire && delay_pc==32'h6150 && delay_entries<8)begin
+     delay_entries<=delay_entries+1;
+     if(delay_entries==0)delay_entry_cycle<=cycles;
+     $display("BOOT_COST cycle=%0d entry=%0d retired=%0d fetch_ack=%0d fetch_wait=%0d code_stall=%0d backing_reads=%0d ddr_reads=%0d lookup_cycles=%0d backend_cycles=%0d",cycles,delay_entries,cost_retired,delay_fetches,cost_fetch_wait,cost_code_stall,cost_backing,cost_ddr,cost_cache_lookup,cost_backend);
+     $display("BOOT_INNER cycle=%0d entry=%0d count=%0d outer_index=%0d outer_limit=%0d",cycles,delay_entries,delay_r0,delay_r4,delay_r5);
+   end
+   if(cycles%100000==0)$display("BOOT_PROFILE cycle=%0d delay_retired=%0d fetches=%0d r0=%0d r1=%0d r4=%0d r5=%0d",cycles,delay_retired,delay_fetches,delay_r0,delay_r1,delay_r4,delay_r5);
+ end
+`else
+ assign boot_index=0;assign boot_limit=0;assign retired_count=0;assign ddr_command_count=0;assign ddr_beat_count=0;
+`endif
+
  assign ready=init_done;
  assign cycle_count=cycles;
  assign pc=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
@@ -25,6 +99,9 @@ module tb;
  reg clk=0,reset=1,cold=1;
 `endif
 parameter integer SYS_CLK_HZ=104000000;
+parameter integer ROM_CACHE=0;
+parameter integer DIRECT_SDRAM=1;
+parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `ifndef NGAGE_LOGO_RUN
 `ifdef NGAGE_REAL_SDRAM
  always #(500000000.0/SYS_CLK_HZ) clk=~clk; // selected nominal hardware frequency
@@ -53,8 +130,10 @@ parameter integer SYS_CLK_HZ=104000000;
   .sdram_dq(dq_read),.sdram_din(dq_write),.sdram_a(sdram_a),.sdram_dqml(dqml),.sdram_dqmh(dqmh),.sdram_ba(bank),.sdram_nwe(nwe),.sdram_ncas(ncas),.sdram_nras(nras),.sdram_ncs(ncs),.sdram_cke(cke));
  mt48lc16m16a2 memory(.Dq_write(dq_write),.Clk(memclk),.Cke(cke),.Dq(dq),.Addr(sdram_a),.Ba(bank),.Cs_n(ncs),.Ras_n(nras),.Cas_n(ncas),.We_n(nwe),.Dqm({dqmh,dqml}),.downloading(1'b0),.VS(1'b0),.frame_cnt(32'b0));
 `endif
+ wire ddr_fetch;
  wire [31:0] da,dd,back;wire [3:0] db;wire dr,dw,accept,done,dirty,busy;wire [13:0] sector;
  wire av,ar,aw,adone;wire [31:0] aa,ad,arsp;wire [3:0] ab;
+ wire [7:0] ddr_burst;
  wire [28:0] pa;wire [63:0] pd;wire [7:0] pb;wire pr,pw;reg phyready=0;reg [63:0] phydata=0;
  reg [7:0] ddr[0:25231359];reg [31:0] ram[0:4194303];
  // The request address is allowed to be zero in an idle fetch phase. Track
@@ -65,14 +144,14 @@ parameter integer SYS_CLK_HZ=104000000;
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.code_stall && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.sleep_ff &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_writeback && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_alu &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_decode;
- integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;
+ integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;reg [7:0] ddr_remaining=0;
  integer owner_counts[0:17]; integer owner; integer k; integer memory_samples=0;
  task report_owner;
   input integer id;
   input [127:0] name;
   begin
    owner_counts[id]=owner_counts[id]+1;
-   if(owner_counts[id]==1) $display("REACHED owner=%0s cycle=%0d addr=%h write=%b data=%h",name,cycles,dut.pa,dut.wb_we,dut.wb_we ? dut.wb_dat_o : dut.wb_dat_i);
+   if(owner_counts[id]==1) $display("REACHED owner=%0s cycle=%0d addr=%h write=%b data=%h",name,cycles,dut.observed_address,dut.observed_write,dut.observed_write ? dut.observed_data : (dut.observe_ram ? csr : dut.wb_dat_i));
   end
  endtask
  reg spending=0;reg [24:0] saddr=0;reg [31:0] swdata=0;reg [3:0] sbe=0;reg swrite=0;integer n;
@@ -82,32 +161,36 @@ parameter integer SYS_CLK_HZ=104000000;
 `else
  localparam UEM_POWERUP_STATUS=1;
 `endif
- ngage_mister #(.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
+ wire cpu_ram_accept;
+ ngage_mister #(.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
 `ifdef NGAGE_LOGO_RUN
  1'b0
 `else
  1'b1
 `endif
  ),.diagnostic_status(8'b0),.debug_freeze_trace(1'b0),.debug_read_word(11'b0),.board_init_done(init_done),.bus_lock(lock),
-  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),
+  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
   .dma_sdram_req(dsreq),.dma_sdram_addr(dsa),.dma_sdram_ack(dsack),.dma_sdram_data(dsr),
-  .ddram_addr(da),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
- ngage_sdram_arbiter arb(.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+  .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
+ ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
   .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsr),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
  ngage_ddr_arbiter darb(.clk(clk),.reset(cold),.cpu_lock(lock),.l_valid(1'b0),.l_addr(32'b0),.l_data(32'b0),.l_be(4'b0),.l_write(1'b0),
   .c_valid(dr||dw),.c_ready(accept),.c_write(dw),.c_addr(da),.c_data(dd),.c_be(db),.c_done(done),.c_rdata(back),
   .req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_data(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp));
- ngage_ddr_adapter adapter(.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
+ ngage_ddr_adapter #(.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
  always @(posedge clk)begin
   phyready<=0;
 `ifndef NGAGE_REAL_SDRAM
   sack_model<=0;
 `endif
-  if(pr && ddelay==0)begin read_addr<={pa,3'b000}-32'h30000000;ddelay<=3;end
+  if(pr && ddelay==0)begin read_addr<={pa,3'b000}-32'h30000000;ddelay<=3;ddr_remaining<=ddr_burst;end
   else if(ddelay!=0)begin ddelay<=ddelay-1'b1;if(ddelay==1)begin
    if(read_addr+7>=25231360)begin $fatal(1,"DDR read out of range %h",read_addr);end
    for(n=0;n<8;n=n+1)phydata[n*8+:8]<=ddr[read_addr+n];phyready<=1;
+   if(ddr_remaining>1)begin
+    ddelay<=1;ddr_remaining<=ddr_remaining-1'b1;read_addr<=read_addr+8;
+   end
   end end
   if(pw && ddelay==0)begin
    if(({pa,3'b000}-32'h30000000)+7>=25231360)begin $fatal(1,"DDR write out of range");end
@@ -131,6 +214,10 @@ parameter integer SYS_CLK_HZ=104000000;
    if(accepted_fetch)begin last_fetch_pc<=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;last_fetch_cycle<=cycles;end
    if(board_log && (dut.wb_ack || dut.wb_err) && (dut.brd_claim || dut.dma_claim))
     $fdisplay(board_log,"%0d\t%s\t0x%08h\t0x%01h\t0x%08h\t%b\t%b\t%b",cycles,dut.wb_we ? "WRITE" : "READ",dut.pa,dut.wb_sel,dut.wb_we ? dut.wb_dat_o : dut.wb_dat_i,dut.wb_err,dut.irq_line,dut.fiq_line);
+   if(dut.fast_ram_response)begin
+    transactions<=transactions+1;
+    report_owner(16,"sdram");
+   end
    if(dut.wb_ack)begin
     transactions<=transactions+1;
     if(dut.dma_claim) report_owner(0,"lcd_dma");

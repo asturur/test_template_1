@@ -10,6 +10,10 @@ entries below the handoff are the evidence log, newest first.
 | [peripheral-ownership.md](peripheral-ownership.md) | Regional UPP RAM ownership and sparse-register transaction contracts |
 | [cpu-operand-stage-contract.md](cpu-operand-stage-contract.md) | Slice1 exact operand ownership/cycle contract, differential reference and measured latency/throughput tradeoffs |
 | [cache-lookup-stage-contract.md](cache-lookup-stage-contract.md) | Slice2 cache lookup ownership, lookahead epochs, latency attribution and validation |
+| [cpu-performance-redesign-notes.md](cpu-performance-redesign-notes.md) | Future cache/LSU/CPU performance redesign options, latency baseline and104MHz verification gates |
+| [direct-sdram-path.md](direct-sdram-path.md) | Dedicated CPU SDRAM route, retained registers, admission/cancellation contract and cache-miss measurements |
+| [uncached-fetch.md](uncached-fetch.md) | Measured boot-delay costs, resident instruction hits and CPU request/return handoffs |
+| [ddr-rom-cache.md](ddr-rom-cache.md) | Instruction-only DDR ROM buffer, 64/128/256-bit × 1/2/4 KiB boot comparison, reset/reload and validation |
 | [write-buffer-stage-contract.md](write-buffer-stage-contract.md) | Pipelined write-buffer reservation, local commit, capacity/hazard ownership and latency validation |
 | [cpu-cache-sdram-104mhz-plan.md](cpu-cache-sdram-104mhz-plan.md) | Source-grounded whole CPU/cache/memory review, proposed 104 MHz architecture, cycle/resource budgets and ordered implementation gates (plan only) |
 | [timing-closure.md](timing-closure.md) | 104 MHz baseline, worst-1000 timing exports, CI gate and path analysis |

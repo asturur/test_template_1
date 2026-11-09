@@ -4,6 +4,7 @@
 // not the schematic's multiplexed electrical pin timings.
 module ngage_upp #(
     parameter INTERNAL_CPU     = 0,
+              DIRECT_SDRAM     = 0,
               SIMIF_ENABLE     = 0,
               KEYPAD_ENABLE    = 0,
               LCD_DMA_ENABLE   = 0,
@@ -32,6 +33,18 @@ module ngage_upp #(
     output wire [31:0] bus_adr,
     output wire [31:0] bus_din,
     output wire [ 3:0] bus_sel,
+    // Dedicated transaction-level SDRAM interface, not physical pin timing.
+    input  wire        ram_accept,
+    input  wire        ram_ack,
+    input  wire [31:0] ram_rdata,
+    output wire        ram_req,
+    output wire        ram_we,
+    output wire        ram_code,
+    output wire [31:0] ram_address,
+    output wire [31:0] ram_wdata,
+    output wire [ 3:0] ram_be,
+    output wire        ram_pending,
+    output wire        ram_response,
     input  wire        dma_mem_ack,
     input  wire [31:0] dma_mem_data,
     output wire        dma_mem_req,
@@ -124,22 +137,62 @@ module ngage_upp #(
                 .wb_read_data     (master_read_data),
                 .wb_error         (master_error)
             );
+            wire slow_master_cyc, slow_master_stb;
+            wire slow_ack, slow_error, slow_idle;
+            wire [31:0] slow_read_data;
+            ngage_cpu_memory_route #(
+                .DIRECT_SDRAM(DIRECT_SDRAM)
+            ) memory_route (
+                .clk           (clk),
+                .reset         (rst),
+                .master_cyc    (master_cyc),
+                .master_stb    (master_stb),
+                .master_we     (master_we),
+                .master_code   (master_code),
+                .master_address(master_address),
+                .master_data   (master_data),
+                .master_sel    (master_sel),
+                .master_ack    (master_ack),
+                .master_error  (master_error),
+                .master_rdata  (master_read_data),
+                .slow_cyc      (slow_master_cyc),
+                .slow_stb      (slow_master_stb),
+                .slow_idle     (slow_idle),
+                .slow_ack      (slow_ack),
+                .slow_error    (slow_error),
+                .slow_rdata    (slow_read_data),
+                .ram_req       (ram_req),
+                .ram_we        (ram_we),
+                .ram_code      (ram_code),
+                .ram_address   (ram_address),
+                .ram_wdata     (ram_wdata),
+                .ram_be        (ram_be),
+                .ram_accept    (ram_accept),
+                .ram_ack       (ram_ack),
+                .ram_rdata     (ram_rdata),
+                .ram_pending   (ram_pending),
+                .ram_response  (ram_response)
+            );
             // A transaction-level UPP boundary, not the physical phone bus.
             // LOCK bypasses the beat pipeline and remains asserted through
             // response/idle bubbles between the two halves of an atomic SWP.
-            ngage_upp_bus_bridge bridge (
+            // ZAP's I/D merger already registers and holds the complete beat.
+            // Reuse that request boundary; retain the registered response.
+            ngage_upp_bus_bridge #(
+                .REGISTERED_MASTER(1)
+            ) bridge (
                 .clk             (clk),
                 .reset           (rst),
-                .master_cyc      (master_cyc),
-                .master_stb      (master_stb),
+                .master_cyc      (slow_master_cyc),
+                .master_stb      (slow_master_stb),
                 .master_we       (master_we),
                 .master_code     (master_code),
                 .master_address  (master_address),
                 .master_data     (master_data),
                 .master_sel      (master_sel),
-                .master_ack      (master_ack),
-                .master_error    (master_error),
-                .master_read_data(master_read_data),
+                .master_ack      (slow_ack),
+                .master_error    (slow_error),
+                .master_read_data(slow_read_data),
                 .bus_cyc         (bus_cyc),
                 .bus_stb         (bus_stb),
                 .bus_we          (bus_we),
@@ -149,7 +202,8 @@ module ngage_upp #(
                 .bus_sel         (bus_sel),
                 .bus_ack         (cpu_ack),
                 .bus_error       (cpu_err),
-                .bus_read_data   (cpu_rdata)
+                .bus_read_data   (cpu_rdata),
+                .idle            (slow_idle)
             );
             // Side effects are qualified by the selected device's own checks.
             // CPU completion/error remains a response, never a shared write enable.
@@ -161,6 +215,14 @@ module ngage_upp #(
             assign debug_instruction = 0;
             assign debug_fetch = 0;
             assign cpu_lock = 1'b0;
+            assign ram_req = 0;
+            assign ram_we = 0;
+            assign ram_code = 0;
+            assign ram_address = 0;
+            assign ram_wdata = 0;
+            assign ram_be = 0;
+            assign ram_pending = 0;
+            assign ram_response = 0;
             assign bus_code = 1'b0;
             assign bus_cyc = ext_cyc;
             assign bus_stb = ext_stb;
@@ -294,7 +356,13 @@ endmodule
 // response cross registers: decode/ACK cannot feed the next CPU address in
 // the same cycle. Every external access adds request and response latency;
 // cached execution and the model's elapsed-time clocks are not slowed.
-module ngage_upp_bus_bridge (
+module ngage_upp_bus_bridge #(
+    // Only for an upstream registered, held packet (the ZAP I/D merger).
+    // Its fields must remain stable until the registered response is consumed,
+    // and retire that offer on the response-consumption edge: withdraw STB
+    // or replace it with a distinct next transaction on that edge.
+    parameter REGISTERED_MASTER = 0
+) (
     input  wire        clk,
     input  wire        reset,
     input  wire        master_cyc,
@@ -309,22 +377,35 @@ module ngage_upp_bus_bridge (
     output reg  [31:0] master_read_data,
     output wire        bus_cyc,
     output wire        bus_stb,
-    output reg         bus_we,
-    output reg         bus_code,
-    output reg  [31:0] bus_address,
-    output reg  [31:0] bus_data,
-    output reg  [ 3:0] bus_sel,
+    output wire        bus_we,
+    output wire        bus_code,
+    output wire [31:0] bus_address,
+    output wire [31:0] bus_data,
+    output wire [ 3:0] bus_sel,
     input  wire        bus_ack,
     input  wire        bus_error,
-    input  wire [31:0] bus_read_data
+    input  wire [31:0] bus_read_data,
+    output wire        idle
 );
     localparam IDLE = 2'd0, ACTIVE = 2'd1, RESPONSE = 2'd2;
     reg [1:0] state;
     reg       response_error;
+    reg request_we, request_code;
+    reg [31:0] request_address, request_data;
+    reg  [3:0] request_sel;
+    wire       start = state == IDLE && master_cyc && master_stb;
+    assign idle         = state == IDLE;
     // CYC withdrawal cancels an unfinished beat. STB/fields are held from the
     // captured request until termination. Upstream response must not depend
     // on master STB: ZAP may suppress STB combinationally on an error.
-    assign bus_cyc      = !reset && state == ACTIVE && master_cyc;
+    // In registered-master mode these fields already come from flip-flops;
+    // no translation/arbitration/decode logic is joined across this boundary.
+    assign bus_we       = REGISTERED_MASTER ? master_we : request_we;
+    assign bus_code     = REGISTERED_MASTER ? master_code : request_code;
+    assign bus_address  = REGISTERED_MASTER ? master_address : request_address;
+    assign bus_data     = REGISTERED_MASTER ? master_data : request_data;
+    assign bus_sel      = REGISTERED_MASTER ? master_sel : request_sel;
+    assign bus_cyc      = !reset && master_cyc && (state == ACTIVE || (REGISTERED_MASTER && start));
     assign bus_stb      = bus_cyc;
     assign master_ack   = !reset && state == RESPONSE && !response_error;
     assign master_error = !reset && state == RESPONSE && response_error;
@@ -333,21 +414,25 @@ module ngage_upp_bus_bridge (
             state            <= IDLE;
             response_error   <= 0;
             master_read_data <= 0;
-            bus_we           <= 0;
-            bus_code         <= 0;
-            bus_address      <= 0;
-            bus_data         <= 0;
-            bus_sel          <= 0;
+            request_we       <= 0;
+            request_code     <= 0;
+            request_address  <= 0;
+            request_data     <= 0;
+            request_sel      <= 0;
         end else begin
             case (state)
                 IDLE:
                 if (master_cyc && master_stb) begin
-                    bus_we      <= master_we;
-                    bus_code    <= master_code;
-                    bus_address <= master_address;
-                    bus_data    <= master_data;
-                    bus_sel     <= master_sel;
-                    state       <= ACTIVE;
+                    request_we      <= master_we;
+                    request_code    <= master_code;
+                    request_address <= master_address;
+                    request_data    <= master_data;
+                    request_sel     <= master_sel;
+                    if (REGISTERED_MASTER && (bus_ack || bus_error)) begin
+                        master_read_data <= bus_read_data;
+                        response_error   <= bus_error;
+                        state            <= RESPONSE;
+                    end else state <= ACTIVE;
                 end
                 ACTIVE: begin
                     if (!master_cyc) state <= IDLE;
@@ -364,4 +449,95 @@ module ngage_upp_bus_bridge (
             endcase
         end
     end
+    // The specialized path must never silently borrow a changing packet.
+    // These observation-only shadow registers disappear from its synthesis.
+    // synthesis translate_off
+    always @(posedge clk) begin
+        if (!reset && REGISTERED_MASTER && state == ACTIVE && master_cyc &&
+            {master_we, master_code, master_address, master_data, master_sel} !==
+            {request_we, request_code, request_address, request_data, request_sel})
+            $fatal(1, "UPP registered master changed an outstanding packet");
+    end
+    // synthesis translate_on
+endmodule
+
+
+// Route an already translated, registered ZAP merger packet. SDRAM acceptance
+// and the route token cross the SAME edge: no peripheral decode/owner stage.
+// Arbitration retains the accepted payload, so cancelled reads/writes drain
+// without borrowing the next CPU packet or returning a stale completion.
+module ngage_cpu_memory_route #(
+    parameter DIRECT_SDRAM = 1
+) (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        master_cyc,
+    input  wire        master_stb,
+    input  wire        master_we,
+    input  wire        master_code,
+    input  wire [31:0] master_address,
+    input  wire [31:0] master_data,
+    input  wire [ 3:0] master_sel,
+    output wire        master_ack,
+    output wire        master_error,
+    output wire [31:0] master_rdata,
+    output wire        slow_cyc,
+    output wire        slow_stb,
+    input  wire        slow_idle,
+    input  wire        slow_ack,
+    input  wire        slow_error,
+    input  wire [31:0] slow_rdata,
+    output wire        ram_req,
+    output wire        ram_we,
+    output wire        ram_code,
+    output wire [31:0] ram_address,
+    output wire [31:0] ram_wdata,
+    output wire [ 3:0] ram_be,
+    input  wire        ram_accept,
+    input  wire        ram_ack,
+    input  wire [31:0] ram_rdata,
+    output reg         ram_pending = 0,
+    output wire        ram_response
+);
+    // Exactly the 16MiB physical RAM range in ngage_rom_map.
+    wire target_ram = DIRECT_SDRAM && master_address[31:24] == 8'h0a;
+    reg  cancelled = 0;
+    assign ram_req = !reset && target_ram && master_cyc && master_stb && !ram_pending && slow_idle;
+    assign ram_address = master_address;
+    assign ram_wdata = master_data;
+    assign ram_we = master_we;
+    assign ram_code = master_code;
+    assign ram_be = master_sel;
+    assign slow_cyc = !reset && !ram_pending && !target_ram && master_cyc;
+    assign slow_stb = slow_cyc && master_stb;
+    assign ram_response = !reset && ram_pending && !cancelled && master_cyc && ram_ack;
+    assign master_ack = ram_response || (!reset && !ram_pending && slow_ack);
+    assign master_error = !reset && !ram_pending && slow_error;
+    // ram_ack/data already come from the registered SDRAM response and owner.
+    // Keep the cache's completion register; do not forward controller pins.
+    assign master_rdata = ram_pending ? ram_rdata : slow_rdata;
+    always @(posedge clk) begin
+        if (reset) begin
+            ram_pending <= 0;
+            cancelled   <= 0;
+        end else begin
+            if (ram_req && ram_accept) begin
+                ram_pending <= 1;
+                cancelled   <= 0;
+            end
+            if (ram_pending && !master_cyc) cancelled <= 1;
+            if (ram_pending && ram_ack) begin
+                ram_pending <= 0;
+                cancelled   <= 0;
+            end
+        end
+    end
+    // synthesis translate_off
+    always @(posedge clk)
+        if (!reset) begin
+            if (ram_accept && !ram_req) $fatal(1, "RAM admission without CPU offer");
+            if (ram_req && slow_stb) $fatal(1, "CPU packet offered to two targets");
+            if (ram_response && (slow_ack || slow_error)) $fatal(1, "overlapping CPU responses");
+        end
+    // synthesis translate_on
 endmodule

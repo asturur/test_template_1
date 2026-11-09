@@ -278,6 +278,15 @@ CPU I/D + walkers → registered ZAP merger (SWP reservation)
     ← UPP registered {data,error,completion} ← selected owner's response
 ```
 
+Current implementation update (2026-11-09): the internal CPU bridge now reuses
+ZAP's already registered/held merger packet (`REGISTERED_MASTER=1`), eliminating
+only the duplicate request-copy edge. Generic bridge mode retains capture.
+Merger, cache owner, board owner and both response registers remain. Separate
+50M boot verification measures issue4→3, return2 unchanged, warm1119→1020clocks;
+this is not104MHz fit evidence. See [uncached fetch](uncached-fetch.md) for the
+held-source contract and complete checks. The source-grounded baseline below
+predates this update.
+
 `ngage_upp.v:284–365`: IDLE captures fields, ACTIVE holds them until ACK/ERR or CYC
 withdrawal, RESPONSE returns registered payload/error and then goes IDLE. STB is
 not used to qualify the returned error because ZAP can suppress STB on error.

@@ -37,11 +37,19 @@ def main():
     p.add_argument('--use-saved-build',action='store_true',help='resume the exact checkpoint executable, ignoring current workspace HDL; never applies new fixes')
     p.add_argument('--powerup',choices=('normal','alarm'),default='normal',help='reset cause; legacy checkpoints require alarm')
     p.add_argument('--restore',type=Path);p.add_argument('--pretest-fixes-fork',action='store_true',help='reviewed pre-self-test fork for NOS IRQ mask, routed GENIO1 and observer upgrade');p.add_argument('--driver-upgrade',action='store_true',help='resume identical HDL/host state layout across the reviewed 64-bit observer counter upgrade');p.add_argument('--diagnostic-irq-fork',action='store_true',help='diagnostic-only fork across the reviewed NOS IRQ-mask fix, with identical serialized layout');p.add_argument('--build-only',action='store_true')
+    p.add_argument('--build-jobs',type=int,default=4)
+    p.add_argument('--rom-cache-bits',type=int,choices=(64,128,256),default=64)
+    p.add_argument('--rom-cache-bytes',type=int,choices=(1024,2048,4096),default=1024)
+    p.add_argument('--legacy-sdram-route',action='store_true',help='A/B baseline: keep SDRAM behind peripheral bridge')
+    p.add_argument('--rom-cache',action='store_true',help='enable production 1KiB DDR ROM cache')
+    p.add_argument('--early-boot-trace',action='store_true',help='bounded delay/caller observer for independent short investigations')
+    p.add_argument('--sys-clk-hz',type=int,default=104000000,help='phone clock/timebase parameter; requires a new checkpoint lineage when changed')
     p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
     a=p.parse_args();assert Path.cwd()==ROOT and 0<a.cycles<2**63 and '/' not in a.name and a.name not in ('.','..')
     # Keep exactly the bounded harness's HDL sources; no software peripherals.
     script=Path('tests/phone/hardware_boot/run.sh').read_text();source_text=script.split('--Mdir build/sim/unit-hardware-boot/obj ',1)[1].split(' > build/',1)[0]
     sources=[f for token in source_text.split() for f in sorted(glob.glob(token))]
+    sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v']
     assert sources and 'tests/phone/hardware_boot/tb.v' in sources
     cpp='tests/phone/hardware_boot/logo_main.cpp'
     headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))
@@ -53,7 +61,12 @@ def main():
             raise ValueError('--use-saved-build requires --restore and forbids model upgrades')
         saved=json.loads((a.restore.parent/'manifest.json').read_text())
         hashes=saved['sources']
-    identity=hashlib.sha256(json.dumps({'sources':hashes,'powerup':a.powerup},sort_keys=True).encode()).hexdigest()
+    identity_fields={'sources':hashes,'powerup':a.powerup,'direct_sdram':not a.legacy_sdram_route}
+    if a.sys_clk_hz!=104000000:identity_fields['sys_clk_hz']=a.sys_clk_hz
+    if a.early_boot_trace:identity_fields['early_boot_trace']=True
+    if a.rom_cache:
+        identity_fields.update(rom_cache=True,rom_cache_bits=a.rom_cache_bits,rom_cache_bytes=a.rom_cache_bytes)
+    identity=hashlib.sha256(json.dumps(identity_fields,sort_keys=True).encode()).hexdigest()
     if saved is not None:identity=saved['source_identity']
     build=Path('build/sim/logo-build')/identity[:16];build.mkdir(parents=True,exist_ok=True)
     image='jotego/simulator:arm64';docker=['docker','run','--rm','--network','none','--platform','linux/arm64','-v',str(ROOT)+':/work','-w','/work','--entrypoint']
@@ -65,18 +78,21 @@ def main():
         if saved.get('powerup','alarm')!=a.powerup:
             raise ValueError('reset cause differs; restart from reset')
     if not binary.exists():
-        cmd=docker+['verilator',image,'--cc','--exe','--build','-j','4','--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_ASSOC_EXPERIMENT','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3']+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+sources+['/work/'+cpp]
+        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_ASSOC_EXPERIMENT','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3','-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     # Precompiled headers are large and unused once the executable exists.
     for cache in build.glob('*.gch'):cache.unlink()
     if a.build_only:print(binary);return
     out=Path('build/sim/runs')/a.name;out.mkdir(parents=True,exist_ok=False)
     inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
-    manifest={'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    manifest={'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
     if saved is not None:manifest['uses_saved_build']=True
     if a.restore:
         prior=json.loads((a.restore.parent/'manifest.json').read_text())
         if prior.get('powerup','alarm')!=a.powerup:raise ValueError('reset cause differs; restart from reset')
+        if not a.use_saved_build and prior.get('direct_sdram',False)!=(not a.legacy_sdram_route):raise ValueError('SDRAM route differs; restart from reset')
+        if prior.get('sys_clk_hz',104000000)!=a.sys_clk_hz:raise ValueError('clock parameter differs; restart from reset')
+        if not a.use_saved_build and (prior.get('rom_cache',False),prior.get('rom_cache_bits',64),prior.get('rom_cache_bytes',1024))!=(a.rom_cache,a.rom_cache_bits,a.rom_cache_bytes):raise ValueError('cache configuration differs; restart from reset')
         for key in (('image','inputs') if (a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork) else ('binary_sha256','image','inputs')):
             if prior[key]!=manifest[key]:raise ValueError('checkpoint lineage mismatch: '+key)
         if not (a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork):

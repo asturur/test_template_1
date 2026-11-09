@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
@@ -96,7 +97,7 @@ struct Test {
         }
     }
 };
-int main() {
+int main(int argc, char** argv) {
     auto mcu=read("firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1");
     auto ppm=read("firmware/NEM-04 v.04.03 N-GAGE/nem440.326");
     auto expected=read("build/firmware/nem4-factory/core.bin");
@@ -107,6 +108,22 @@ int main() {
     t.send(ppm,0x40,true);check(!t.d.valid&&!t.d.failed,"PPM alone released CPU");
     t.send(mcu,0,true);t.compare(expected);
     std::cout<<"PASS actual hps_io boot1 then boot: all 20905984 backing bytes, decoded reads and C:/PMM guard\n"<<std::flush;
+    // Produce boot input only AFTER real hps_io + production loader + DDR
+    // adapter traffic has completed and full backing equality was verified.
+    if (argc == 3 && std::string(argv[1]) == "--export-boot") {
+        std::filesystem::create_directories(argv[2]);
+        auto save = [&](const char* name, size_t offset, size_t size) {
+            auto path = std::filesystem::path(argv[2]) / name;
+            check(!std::filesystem::exists(path), "refuse existing export");
+            std::ofstream f(path, std::ios::binary);
+            f.write(reinterpret_cast<const char*>(t.memory.data()+offset),size);
+            check(bool(f), "boot export failed");
+        };
+        save("core.bin",0,18612224);
+        save("extension.bin",18612224,2293760);
+        std::cout << "PASS exported production service-loader DDR output\n";
+        return 0;
+    }
     // A bad slot must not release the CPU; reloading retains the other slot.
     auto corrupt=ppm;corrupt[0xD9+10]^=1;
     t.send(corrupt,2,false);check(!t.d.valid&&t.d.failed&&t.d.reason==7,"payload corruption accepted");

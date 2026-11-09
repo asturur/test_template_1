@@ -88,7 +88,7 @@ int main(int argc,char **argv) {
     ppm(out+"/scanout.ppm",176,208,active_scan.data());
     double seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count();
     std::ofstream result(out+"/result.json");
-    result<<"{\"cycle\":"<<total()<<",\"pc\":"<<model.pc<<",\"lcd_words\":"<<model.pixel_writes<<",\"frame_complete\":"<<unsigned(model.frame_complete)<<",\"display_on\":"<<unsigned(model.display_on)<<",\"unsupported\":"<<unsigned(model.unsupported)<<",\"bus_errors\":"<<model.bus_errors<<",\"data_errors\":"<<model.data_faults<<",\"seconds\":"<<seconds<<",\"interrupted\":"<<(stop_requested?"true":"false")<<"}\n";
+    result<<"{\"boot_index\":"<<model.boot_index<<",\"boot_limit\":"<<model.boot_limit<<",\"retired\":"<<model.retired_count<<",\"ddr_commands\":"<<model.ddr_command_count<<",\"ddr_beats\":"<<model.ddr_beat_count<<",\"cycle\":"<<total()<<",\"pc\":"<<model.pc<<",\"lcd_words\":"<<model.pixel_writes<<",\"frame_complete\":"<<unsigned(model.frame_complete)<<",\"display_on\":"<<unsigned(model.display_on)<<",\"unsupported\":"<<unsigned(model.unsupported)<<",\"bus_errors\":"<<model.bus_errors<<",\"data_errors\":"<<model.data_faults<<",\"seconds\":"<<seconds<<",\"interrupted\":"<<(stop_requested?"true":"false")<<"}\n";
     model.final();return 0;
  }catch(const std::exception &e){std::fprintf(stderr,"ERROR %s\n",e.what());return 1;}
 }

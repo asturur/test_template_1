@@ -9,7 +9,7 @@ module memory_owner_tb;
  reg ram_done=0;
  wire init_done;
  integer checks=0;
- ngage_mister dut(.clk_sys(clk),.reset(rst),.cold_reset(cold),.sim_present(1'b0),
+ ngage_mister #(.DIRECT_SDRAM(0)) dut(.clk_sys(clk),.reset(rst),.cold_reset(cold),.sim_present(1'b0),
   .board_init_done(init_done),.sdram_dout(32'h12345678),.sdram_ack(ram_done),
   .ddram_dout(32'b0),.ddram_dout_ready(1'b0),.ddram_accept(1'b0),
   .debug_freeze_trace(1'b0),.keys(27'b0));

@@ -21,6 +21,8 @@ start:
  str r0,[r4,#0x680]       // uncached SDRAM alias for success reporting
  ldr r0,=0x0c000c02
  str r0,[r4,#0x300]       // peripheral section
+ ldr r0,=0x0c100c02
+ str r0,[r4,#0x304]       // DMA/IRQ registers are in physical section0x0c1
  ldr r8,=0x0a000020
  ldr r1,=0x01110222
  str r1,[r8]             // visible physical SDRAM before MMU/cache enable

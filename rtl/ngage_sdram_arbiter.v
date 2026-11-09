@@ -24,18 +24,20 @@ module ngage_sdram_arbiter (
     output reg  [31:0] mem_data,
     output reg  [ 3:0] mem_be,
     input  wire        mem_ack,
-    input  wire [31:0] mem_rdata
+    input  wire [31:0] mem_rdata,
+    output wire        cpu_accept
 );
     localparam FREE = 0, ACTIVE = 1;
     reg [1:0] state = FREE;
     reg owner = 0, prefer_dma = 0;
     wire choose_cpu = cpu_req && (cpu_lock || !dma_req || !prefer_dma);
     wire choose_dma = dma_req && !cpu_lock && !choose_cpu;
-    assign mem_req   = (state == ACTIVE);
-    assign cpu_ack   = mem_req && !owner && mem_ack && !reset;
-    assign dma_ack   = mem_req && owner && mem_ack && !reset;
-    assign cpu_rdata = mem_rdata;
-    assign dma_rdata = mem_rdata;
+    assign cpu_accept = !reset && state == FREE && choose_cpu;
+    assign mem_req    = (state == ACTIVE);
+    assign cpu_ack    = mem_req && !owner && mem_ack && !reset;
+    assign dma_ack    = mem_req && owner && mem_ack && !reset;
+    assign cpu_rdata  = mem_rdata;
+    assign dma_rdata  = mem_rdata;
     always @(posedge clk) begin
         if (reset) begin
             state      <= FREE;
