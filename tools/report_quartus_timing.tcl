@@ -56,11 +56,14 @@ proc report_operand_stages {output} {
     puts $summary "group,status,reported_paths,worst_slack_ns,from_patterns,to_patterns,message"
     set rdata {*u_operand_read*slot0_data* *u_operand_read*slot1_data*}
     set groups [list \
-        [list cache_request_to_owner {*u_zap_core* *u_code_cache* *u_data_cache*} {*cache*lookup_owner* *cache*lookup_demand* *cache*lookup_maint* *cache*lookup_ahead*}] \
-        [list cache_address_capture {*u_zap_core* *u_code_cache* *u_data_cache*} {*cache*lookup_demand* *cache*lookup_maint* *cache*lookup_ahead*}] \
-        [list cache_admission_control {*u_zap_core* *u_code_cache* *u_data_cache*} {*cache*lookup_owner_kind* *cache*lookup_owner_valid* *cache*lookup_owner_epoch*}] \
-        [list cache_owner_to_tags {*cache*lookup_owner* *cache*lookup_demand* *cache*lookup_maint* *cache*lookup_ahead*} {*tags*read_mva* *tags*read_valid_bits* *tags*read_dirty_bits* *tags*match_bits*}] \
-        [list cache_lookup_pipeline {*cache*lookup_owner* *cache*lookup_demand* *cache*lookup_maint* *cache*lookup_ahead* *cache*fast_read* *cache*fast_compare* *tags*} {*cache*fast_read* *cache*fast_compare* *cache*fast_result*}] \
+        [list wb_to_reservation {*} {*write_buffer*pending_word_enable* *write_buffer*pending_valid* *write_buffer*pending_merge* *write_buffer*pending_slot* *write_buffer*pending_length* *write_buffer*tail_*}] \
+        [list wb_payload_capture {*} {*write_buffer*pending_data* *write_buffer*pending_byte_enable*}] \
+        [list wb_local_commit {*write_buffer*pending*} {*write_buffer*data* *write_buffer*enables* *write_buffer*committed_lengths*}] \
+        [list wb_reservation_feedback {*write_buffer*} {*write_buffer*count* *write_buffer*lengths* *write_buffer*tail_*}] \
+        [list wb_to_bus {*write_buffer*} {*cache*bus_held* *u_zap_wb_merger*}] \
+        [list cache_request_to_owner {*u_zap_core* *u_code_cache* *u_data_cache*} {*cache*lookup_owner*}] \
+        [list cache_owner_to_tags {*cache*lookup_owner*} {*tags*read_mva* *tags*read_valid_bits* *tags*read_dirty_bits* *tags*match_bits*}] \
+        [list cache_lookup_pipeline {*cache*lookup_owner* *cache*fast_read* *cache*fast_compare* *tags*} {*cache*fast_read* *cache*fast_compare* *cache*fast_result*}] \
         [list cache_to_response {*cache* *bank*} {*cache*response_valid* *cache*response_data*}] \
         [list decode_to_r_data {*u_zap_decode_main*} $rdata] \
         [list decode_to_r_context {*u_zap_decode_main*} {*u_operand_read*slot0_control* *u_operand_read*slot1_control* *u_operand_read*slot0_index* *u_operand_read*slot1_index*}] \
