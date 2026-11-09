@@ -15,7 +15,11 @@ work; see [cache-lookup-stage-contract.md](cache-lookup-stage-contract.md) for t
 exact owner/epoch contract and measured +1 cached-lookup clock. Fit42527340861
 passes the owner→lookup stages but exposes request→owner admission. The
 three-snapshot admission refinement3e344cc regressed fit42542334870 and is
-reverted; retain original L0/Quartus guards and continue write-buffer reservation.
+reverted; retain original L0/Quartus guards. The write-buffer reservation/local
+commit candidate pipelines one acceptance per clock; see
+[its contract](write-buffer-stage-contract.md) for immediate capacity/hazards,
+commit/retire races and measured latency (implementation is separate from this
+original review).
 The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
 capture, so patch0047 promotes the measured completion/local-advance portion of
 slice5 ahead of cache/translation work. Its blocking response owner adds one

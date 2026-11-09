@@ -1,3 +1,56 @@
+## 2026-11-09: pipelined write-buffer reservation — validated fit candidate
+
+After isolated revert62c3707 restored original cache L0/Quartus guards, only the
+write-buffer implementation changes. Acceptance immediately reserves group/word
+capacity and line hazards; a registered local commit writes captured payload one
+clock later. Tail slot/length/next-address summary removes dynamic last-slot merge
+reads. Per-slot/per-word enables replace the live new_group path that drove432
+loads in fit42542334870 (worst sampled buffer−1.536ns). Four groups/sixteen words
+remain the complete capacity; the pending packet is already counted, not an extra
+queue entry. Committed prefix gates bus issue; reserved length gates retirement.
+Reset, errors/retry, held bus beats and same-edge merge/pop/reuse remain precise.
+Contract: [write-buffer reservation](write-buffer-stage-contract.md).
+
+Frozen-reference local latency: accept→issuable0→1clock, sustained enqueue interval1
+unchanged. Four/eight-word streams take4/8→5/9clocks from first acceptance to last
+ACK, only+1startup rather than a per-word throttle. Independent logical FIFO/byte/
+hazard oracle passes12,021clocks:1347 groups,328merges,496crossings,160wraps,
+1989errors. Coverage includes24 pending words killed by reset,1038full retire/new
+reservations,1021ACK+error cases and4head-merge+ACK cases. Directed capacity,
+commit/append, reset/reuse, held-beat and immediate-hazard checks pass. Cache
+lookup latencies,384stream requests and24cancellation tests remain unchanged.
+
+Full regression172PASS+1expected legacy XFAIL, all152CPU cases including44SWP
+IRQ/FIQ edge×wait tests. Main mixed0/3/7/15/31 timing/phases/counters are identical:
+243457/333957/408273/634683/1095735clocks, cached bodies1464/1720/2067/2791/4243;
+warm ADD1, load-use minimum20, branch minimum14. All21,118 architectural effects
+match byte-for-byte. Fixed four-program/two-wait total1729858→1729866 (+8,
++0.0004625%), from cache_drain+4 at each wait; legacy135782/234446 unchanged.
+Other diagnostic absolute counts are retained in JSON, not assumed identical.
+
+The512-WT-halfword-store FIQ fixture exposes the cost:0wait260172→260305 (+133,
++0.05112% of total),3wait360910→361421 (+511,+0.14159%). These setup-heavy totals
+do not imply negligible handler-body cost; isolated serialized writes can expose
+the extra bus-issuable clock through drain/fetch ordering. Targeted frozen-source
+comparison confirms all22,339 ordered architectural effects and issue/retirement
+counts match at each wait. No claim that the boundary is free in every workload.
+
+Fresh5M real-SDRAM boot is byte-identical including all848 event timestamps,
+121writes,12known fetch faults/no data faults,PC00006168/289114transfers,last write
+190170. Phone integration,174sources/9QIPs,ONLY_CORE/legacy/assoc elaboration,
+top lint and33targeted timing-query mocks pass. All49 active ARM patches reproduce;
+no ARM import/source graph changes. Final RTL hashes match frozen sources.
+Reproducible evidence: scratch/timing-closure/write-buffer-reservation/
+{validation-summary.json,analyze.py}; prior checkpoints and failed-fit evidence
+remain untouched.
+
+Ready for one isolated routed fit. Measure reservation control, unconditional
+payload capture, local commit, feedback and bus-owner paths separately. The
+remaining narrow allocation/retirement and committed-length bus gating can still
+be critical; routed resource and fanout effects are unmeasured. Original cache
+admission, CPU forwarding, SDRAM and peripheral timing remain separate open work.
+No104MHz closure claim, timing exception or clock change.
+
 ## 2026-11-09: rejected admission refinement reverted; write-buffer slice begins
 
 Restored cache_access.sv byte-for-byte to6adaf61: original L0 from97daa8a plus
