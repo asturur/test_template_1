@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 module tb;
+    parameter integer OVERLAY_ID=1;
     reg clk=0;
     always #5 clk=~clk;
     reg reset=1, fw_valid=0, fw_loading=0, enabled=0, blocked=0;
@@ -19,9 +20,9 @@ module tb;
     reg [1023:0] filename;
     integer size, count, i, j, n, before_writes, expected_error=0;
     reg [31:0] off, old, replacement;
-    ngage_nos_overlay dut(
+    ngage_nos_overlay #(.OVERLAY_ID(OVERLAY_ID)) dut(
         .clk(clk),.reset(reset),.firmware_valid(fw_valid),.firmware_loading(fw_loading),
-        .enabled(enabled),.blocked(blocked),.download(download),.wr(wr),.addr(addr),.data(data),
+        .enabled(enabled),.checksum_required(enabled),.blocked(blocked),.download(download),.wr(wr),.addr(addr),.data(data),
         .wait_req(wait_req),.ready(ready),.loaded(loaded),.applied(applied),.busy(busy),.error(error),
         .mem_valid(valid),.mem_ready(!pending),.mem_write(write),.mem_addr(target),
         .mem_data(value),.mem_done(done),.mem_rdata(rdata)
@@ -76,7 +77,7 @@ module tb;
             @(negedge clk);download=1;wr=0;tick();
             for(i=0;i<size/2-((corrupt==3)?1:0);i=i+1)begin
                 while(wait_req)tick();
-                @(negedge clk);addr=i*2;data=pack_words[i] ^ (((corrupt==1 && i==size/2-1) || (corrupt==2 && i==10))?16'h1:16'h0);wr=1;
+                @(negedge clk);addr=i*2;data=pack_words[i] ^ (((corrupt==1 && i==size/2-1) || ((corrupt==2 && i==10) || (corrupt==4 && i==4)))?16'h1:16'h0);wr=1;
                 tick();@(negedge clk);wr=0;
             end
             @(negedge clk);download=0;
@@ -113,6 +114,8 @@ module tb;
         check_view(0);
         send(2);
         if(loaded || error!=1 || writes!=before_writes || !ready)$fatal(1,"wrong profile accepted");
+        send(4);
+        if(loaded || error!=1 || writes!=before_writes || !ready)$fatal(1,"wrong component accepted");
         send(3);
         if(loaded || error!=1 || writes!=before_writes || !ready)$fatal(1,"truncated package accepted");
         send(0);wait_ready();

@@ -1,3 +1,58 @@
+## 2026-11-09: Bluetooth hardware-test candidate and SD autoload file
+
+User requests commit/push of the directed-tested Bluetooth addition and copy
+of boot3.rom to the mounted SD card. Copied7144bytes to
+/Volumes/sdcard/games/NGage/boot3.rom; SHA256 matches
+12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa.
+Existing boot.rom/boot1.rom/boot2.rom/working.nga hashes remain unchanged.
+Install the newly built RBF, select Firmware → Bluetooth Compatibility On and
+save MiSTer configuration for persistent auto-application. NOS remains an
+independent selector. No action/build or long-simulation polling in this step.
+Guest BTLDD startup and actual board behavior still need verification.
+
+## 2026-11-09: independent Bluetooth overlay implemented and directed-tested
+
+Firmware now has Bluetooth Compatibility Off/On (status20, defaultOff) and
+Load Bluetooth Compatibility (F4). Private file Bluetooth_Compatibility.ngo,
+identical boot3.rom alias (C0) for automatic loading. Pin4b848014 GPL BTLDD
+write/completion glue plus no-peer HCI responder; linked ARMv4T, original kernel
+ring/completion calls, no NOS dependency. No C: routing/formatting, UI/startup
+patches, cellular/SIM or physical Bluetooth radio. Separate BTLDD delay-literal
+shortcuts from the reference are excluded.
+
+Parameterized existing loader with componentID2 and shared checksum selection;
+two independent8KiB BRAM undo tables and a DDR component arbiter. Either option
+ON retains primary descriptor bypass; turning either OFF restores only its own
+bytes until both OFF restore original descriptor. Each pass latches selection
+and reconciles against current selectors before CPU release. Valid shared-mode
+packs must contain both audited descriptor undo records, not merely valid CRC.
+NOS ID1 files remain unchanged/compatible. Auto-load may arrive before firmware;
+CPU held for missing/bad requested pack. Manual pickers disabled while active/
+busy. Diagnostic BT flags25..28, error source29; screen layout unchanged.
+
+PASS actual hps_io boot3/F4 + boot2/F3 transport, deferred firmware gating,
+all four independent NOS/BT views, shared checksum retention in either OFF
+order, mid-pass toggles, exact original/C:/PMM byte preservation, missing BT
+without forcing NOS, wrong-component rejection/recovery and CRC-valid pack
+missing checksum records rejected before writes. Standalone tests exercise
+both actual packages, reset/reload/partial reload, all-target preflight, CRC,
+profile/type/length/bounds/order checks. Top elaboration and NOS regression pass.
+Host HCI tests with address/undefined-behavior sanitizers cover reset/name,
+settings/no-peer inquiry/connection+name timeouts, vendor/unknown commands,
+malformed/ACL handling and all65536opcodes with zero/max-length framing.
+
+BT pack590records/7144bytes, SHA12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa.
+Only overlaps NOS at8F18/8F1C with identical undo/new values. Original service
+files SHA-verified unchanged. Prepared scratch/mister-overlays/{Bluetooth_Compatibility.ngo,
+boot3.rom}; not copied to SD in this step. Docs firmware-overlays.md and
+ evidence/bluetooth-overlay-2026-11-09.json. Not yet a BTLDD guest ABI/startup/UI,
+installed Main, resource fit or timing verification. No fourth full-core run.
+
+All three existing long simulations and their inputs/checkpoints were left
+running, without polling their status/logs. Their frozen executables do not
+include Bluetooth; future builds/runs must use a new lineage. No commit, push
+or hardware build for this Bluetooth step.
+
 ## 2026-11-09: hardware-test candidate prepared; overlay copied to SD
 
 User requests commit/push and will run the hardware build/test. All maintained

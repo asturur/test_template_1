@@ -15,7 +15,7 @@ Path('build/sim/unit-overlay-hps/hps-compat.sv').write_text(a+'/////////////////
 PY
 verilator --cc --exe --build -j 2 -Wno-fatal --top-module overlay_transport \
  --Mdir "$out/obj" "$out/hps-compat.sv" rtl/ngage_bram.v rtl/ngage_nos_overlay.v \
- rtl/ngage_ddr_adapter.sv rtl/ngage_ddr_lanes.sv \
+ rtl/ngage_ddr_arbiter.sv rtl/ngage_ddr_adapter.sv rtl/ngage_ddr_lanes.sv \
  tests/phone/overlay/hps_transport.v /work/tests/phone/overlay/hps_test.cpp \
  > "$out/build.log" 2>&1
 "$out/obj/Voverlay_transport" "$@"

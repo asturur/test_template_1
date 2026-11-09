@@ -1,3 +1,16 @@
+## Bluetooth implemented, 2026-11-09
+
+Bluetooth Compatibility is now an independent selector (status20), manual F4
+Bluetooth_Compatibility.ngo and automatic boot3.rom/C0. Uses the pinned GPL HCI
+responder and BTLDD glue, no real peer and no NOS enable dependency. Two8KiB
+staging/undo engines arbitrate DDR writes; shared checksum descriptors stay
+skipped until both selectors are OFF. Original NOS ID1 packages stay compatible;
+BT ID2 files cannot be loaded through the NOS picker or vice versa. C:/PMM and
+UI/startup helpers remain excluded. Reference's separate five BTLDD delay-literal
+shortcuts are also excluded; compiled BT glue/object-size/payload are included.
+See firmware-overlays.md and evidence/bluetooth-overlay-2026-11-09.json.
+Older proposal/inventory notes below are historical, not additional scope.
+
 ## User scope update, 2026-11-09
 
 Prioritize NOS, then independent Bluetooth and SIM compatibility. The current

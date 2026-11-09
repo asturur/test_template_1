@@ -2,8 +2,8 @@
 module overlay_transport (
     input wire clk, reset, host_strobe, host_enable,
     input wire [15:0] host_data,
-    input wire firmware_valid, enabled,
-    output wire wait_req, ready, loaded, applied,
+    input wire firmware_valid, enabled, bt_enabled,
+    output wire wait_req, ready, loaded, applied, bt_loaded, bt_applied,
     output wire [3:0] error,
     input wire ddr_busy, ddr_ready,
     input wire [63:0] ddr_q,
@@ -43,20 +43,50 @@ module overlay_transport (
         .joystick_2_rumble(16'b0),.joystick_3_rumble(16'b0),
         .joystick_4_rumble(16'b0),.joystick_5_rumble(16'b0)
     );
+    wire nos_ready, bt_ready, nos_wait, bt_wait;
+    wire [3:0] nos_error, bt_error;
+    wire bt_req, bt_accept, bt_write, bt_done;
+    wire [31:0] bt_target, bt_value, bt_response;
+    assign ready=nos_ready && bt_ready;
+    assign wait_req=(index==16'h80 || index==3) ? nos_wait :
+                    (index==16'hc0 || index==4) ? bt_wait : 1'b0;
+    assign error=nos_error!=0 ? nos_error : bt_error;
     wire req, accept, write, done;
     wire [31:0] target, value, response;
-    ngage_nos_overlay overlay (
+    ngage_nos_overlay #(.SHARED_CHECKSUM(1)) overlay (
         .clk(clk),.reset(reset),.firmware_valid(firmware_valid),.firmware_loading(1'b0),
-        .enabled(enabled),.blocked(1'b0),
+        .enabled(enabled),.checksum_required(enabled || bt_enabled),.blocked(1'b0),
         .download(download && (index==16'h80 || index==3)),
-        .wr(wr),.addr(addr),.data(data),.wait_req(wait_req),
-        .ready(ready),.loaded(loaded),.applied(applied),.busy(),.error(error),
+        .wr(wr),.addr(addr),.data(data),.wait_req(nos_wait),
+        .ready(nos_ready),.loaded(loaded),.applied(applied),.busy(),.error(nos_error),
         .mem_valid(req),.mem_ready(accept),.mem_write(write),.mem_addr(target),
         .mem_data(value),.mem_done(done),.mem_rdata(response)
     );
+    ngage_nos_overlay #(.OVERLAY_ID(2), .SHARED_CHECKSUM(1)) bluetooth (
+        .clk(clk),.reset(reset),.firmware_valid(firmware_valid),.firmware_loading(1'b0),
+        .enabled(bt_enabled),.checksum_required(enabled || bt_enabled),.blocked(1'b0),
+        .download(download && (index==16'hc0 || index==4)),
+        .wr(wr),.addr(addr),.data(data),.wait_req(bt_wait),.ready(bt_ready),
+        .loaded(bt_loaded),.applied(bt_applied),.busy(),.error(bt_error),
+        .mem_valid(bt_req),.mem_ready(bt_accept),.mem_write(bt_write),.mem_addr(bt_target),
+        .mem_data(bt_value),.mem_done(bt_done),.mem_rdata(bt_response)
+    );
+    wire merged_req, merged_accept, merged_write, merged_done;
+    wire [31:0] merged_target, merged_value, merged_response;
+    wire [3:0] merged_be;
+    ngage_ddr_arbiter components (
+        .clk(clk),.reset(reset),.cpu_lock(1'b0),
+        .l_valid(req),.l_ready(accept),.l_write(write),.l_addr(target),.l_data(value),
+        .l_be(4'hf),.l_done(done),.l_rdata(response),
+        .c_valid(bt_req),.c_ready(bt_accept),.c_write(bt_write),.c_addr(bt_target),
+        .c_data(bt_value),.c_be(4'hf),.c_done(bt_done),.c_rdata(bt_response),
+        .req_valid(merged_req),.req_ready(merged_accept),.req_write(merged_write),
+        .req_addr(merged_target),.req_data(merged_value),.req_be(merged_be),
+        .rsp_valid(merged_done),.rsp_data(merged_response)
+    );
     ngage_ddr_adapter adapter (
-        .clk(clk),.reset(reset),.req_valid(req),.req_ready(accept),.req_write(write),
-        .req_addr(target),.req_wdata(value),.req_be(4'hf),.rsp_valid(done),.rsp_data(response),
+        .clk(clk),.reset(reset),.req_valid(merged_req),.req_ready(merged_accept),.req_write(merged_write),
+        .req_addr(merged_target),.req_wdata(merged_value),.req_be(merged_be),.rsp_valid(merged_done),.rsp_data(merged_response),
         .ddr_addr(ddr_addr),.ddr_din(ddr_data),.ddr_be(ddr_be),.ddr_we(ddr_we),
         .ddr_rd(ddr_rd),.ddr_busy(ddr_busy),.ddr_dout(ddr_q),.ddr_dout_ready(ddr_ready)
     );

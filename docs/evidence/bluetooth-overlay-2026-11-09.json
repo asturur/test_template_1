@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-09",
+  "scope": "Independent NOS/Bluetooth firmware selectors; excludes C:/PMM/UI patches",
+  "reference_revision": "4b8480148db15d432e2abf6a6956832c91d9cf55",
+  "package": {
+    "name": "Bluetooth Compatibility",
+    "file": "Bluetooth_Compatibility.ngo",
+    "format": "NGO1",
+    "overlay_id": 2,
+    "records": 590,
+    "bytes": 7144,
+    "sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+    "skip_primary_checksum": true,
+    "original_files_modified": false,
+    "off_restores_original": true,
+    "radio_peer_supported": false,
+    "inputs": {
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1": "e948c435c977772a30ff2dd8ef608f7542a978c0acfd257bc0986925fd548690",
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.326": "fd4126eeaddf5c0cd72a9961f51e283bd1ed4245106e20f01d5a5551e85fddc7"
+    }
+  },
+  "checks": {
+    "both_loaders_and_top": {
+      "path": "scratch/bluetooth-overlay/final-loader-top.log",
+      "sha256": "e0218f85e97fffa0b6d00c0cca329827203c8a8cd8362a8d5fb7a3a4715a2f9b",
+      "passes": [
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS top-level structural elaboration (HPS and PLL stubbed)"
+      ]
+    },
+    "real_hps": {
+      "path": "scratch/bluetooth-overlay/hps-tests.log",
+      "sha256": "d528c1db324fdbf0aec1fea400414b1378c0f15562f0a69591393430b242d42d",
+      "passes": [
+        "PASS Bluetooth actual HPS boot3/F4, four independent views, shared checksum ownership, rapid toggles, exact undo and C:/PMM preservation",
+        "PASS actual hps_io boot2/F3, deferred firmware gating, exact ON/OFF, service-index isolation, backpressure and C:/PMM preservation"
+      ]
+    },
+    "sanitized_guest": {
+      "path": "scratch/bluetooth-overlay/guest-tests.log",
+      "sha256": "70449e70079e93aac0fbe766ba6a6989bd92b716a2c0170ec767001a54e65b06",
+      "passes": [
+        "PASS Bluetooth guest: reset/name/settings, no-peer inquiry/timeouts, unknown/vendor commands, malformed/ACL handling and bounded output"
+      ]
+    }
+  },
+  "directed_cases": [
+    "four independent NOS/BT selections",
+    "actual hps_io automatic boot3 and manual F4",
+    "shared checksum retained until both OFF",
+    "rapid selectors changed during apply",
+    "missing BT keeps CPU held without enabling NOS",
+    "wrong component rejection and recovery",
+    "CRC-valid missing descriptor rejected with zero writes",
+    "firmware and partial reload reconciliation",
+    "exact undo and C:/PMM guard preservation"
+  ],
+  "not_verified": [
+    "real BTLDD guest glue/kernel ABI execution",
+    "firmware startup/UI with Bluetooth",
+    "installed Main hardware transport",
+    "Quartus resource fit/timing"
+  ],
+  "long_simulations": "untouched; not monitored; no new long run"
+}

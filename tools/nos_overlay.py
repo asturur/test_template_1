@@ -27,10 +27,10 @@ def decode(image):
         result[a:a+2]=p.to_bytes(2,'little')
     return result
 
-def inspect(data):
+def inspect(data, overlay_id=1):
     if len(data)<64 or len(data)%4:raise ValueError('overlay length')
     h=struct.unpack_from('<16I',data)
-    if h[0:3]!=(MAGIC,1,1) or not 0<h[3]<=MAX_RECORDS:raise ValueError('overlay format/type')
+    if h[0:3]!=(MAGIC,1,overlay_id) or not 0<h[3]<=MAX_RECORDS:raise ValueError('overlay format/type')
     if h[5:7]!=(svc.PROFILES['mcu'][4],svc.PROFILES['ppm'][4]):raise ValueError('target firmware')
     if data[28:44]!=DIGEST or h[11]!=len(data) or len(data)!=64+12*h[3]:raise ValueError('profile/size')
     if h[12:15]!=(0,12,0):raise ValueError('unsupported flags')

@@ -329,3 +329,13 @@ substitution. Secondary verification remains active. NOS OFF restores both
 descriptor words plus all other original overlay targets. Original service
 files remain byte-identical. The package's own CRC/profile/preflight checks
 remain enabled. See firmware-overlays.md and status.md for verification limits.
+
+### Independent Bluetooth selector and shared checksum (2026-11-09)
+
+NOS or Bluetooth Compatibility ON now retains the same primary descriptor
+bypass. Turning one OFF restores that component's hook/payload words but keeps
+the bypass while the other remains ON. Both OFF restore the original descriptor
+and all words; digest words and secondary verification remain intact. Each
+engine latches and reconciles shared checksum selection before CPU release.
+All four combinations and mid-pass changes pass real hps_io/DDR directed tests;
+BTLDD guest startup remains unverified. No C:/PMM/UI patches were introduced.

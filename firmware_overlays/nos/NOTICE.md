@@ -10,5 +10,5 @@ cellular network, SIM, calls or SMS. Its kernel ABI is specific to NEM-4 4.03.
 No Nokia firmware is included here. The pack builder derives original words
 from the user's audited original service files. NOS Compatibility ON also
 skips the primary firmware checksum using the reference's absent-descriptor
-path. OFF restores both descriptor words and the original checksum behavior;
+path. Both NOS and Bluetooth OFF restore the descriptor and checksum behavior;
 original digest words and files on disk are never changed.

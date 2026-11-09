@@ -1,15 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Reset-only NOS Compatibility overlay. One complete package is staged in
+// Reset-only component overlay (NOS by default, Bluetooth with ID2). One complete package is staged in
 // explicit BRAM, CRC checked, then all expected words checked before any write.
 // Firmware DDR writes pass through the ordinary ROM-cache invalidation path.
 module ngage_nos_overlay #(
-    parameter [31:0] BASE = 32'h30000000
+    parameter         [31:0] BASE            = 32'h30000000,
+    parameter         [31:0] OVERLAY_ID      = 1,
+    parameter integer        SHARED_CHECKSUM = 0
 ) (
     input  wire        clk,
     input  wire        reset,
     input  wire        firmware_valid,
     input  wire        firmware_loading,
     input  wire        enabled,
+    input  wire        checksum_required,
     input  wire        blocked,
     input  wire        download,
     input  wire        wr,
@@ -44,7 +47,12 @@ module ngage_nos_overlay #(
     reg [31:0] body_expected = 0, header_expected = 0, length_expected = 0;
     reg [9:0] count = 0, index = 0;
     reg verify_pass = 1, selection = 0, dirty = 0, fatal = 0;
+    reg checksum_selection = 0, checksum_applied = 0;
+    // With multiple components the checksum stays skipped until ALL are OFF.
+    wire desired_checksum = SHARED_CHECKSUM ? checksum_required : enabled;
+    wire checksum_current = !loaded || checksum_applied == desired_checksum;
     reg [31:0] offset = 0, old_word = 0, new_word = 0, previous_offset = 0;
+    wire checksum_word = offset == 32'h8f18 || offset == 32'h8f1c;
     wire [7:0] byte_data = high_byte ? input_word[15:8] : input_word[7:0];
     wire [31:0] buffer_q;
     wire [10:0] record_base = 11'd16 + index * 11'd3;
@@ -81,11 +89,11 @@ module ngage_nos_overlay #(
     assign wait_req = download && !discard && (state != RECEIVE || word_valid || buffer_write);
     // A parse error cannot affect the original view when the option is OFF.
     assign ready = firmware_valid && !firmware_loading && !download && !busy && !fatal &&
-                   !dirty && (enabled ? (loaded && applied && error==0) : !applied);
+                   !dirty && checksum_current && (enabled ? (loaded && applied && error==0) : !applied);
     assign mem_valid = state == REQUEST && firmware_valid && !firmware_loading;
     assign mem_write = !verify_pass;
     assign mem_addr = BASE + offset;
-    assign mem_data = selection ? new_word : old_word;
+    assign mem_data = (checksum_word ? checksum_selection : selection) ? new_word : old_word;
     task fail;
         input [3:0] reason;
         input hard;
@@ -105,6 +113,7 @@ module ngage_nos_overlay #(
             ending            <= 0;
             loaded            <= 0;
             applied           <= 0;
+            checksum_applied  <= 0;
             dirty             <= 0;
             fatal             <= 0;
             error             <= 0;
@@ -159,7 +168,8 @@ module ngage_nos_overlay #(
                         buffer_data  <= {byte_data, assembly[31:8]};
                         case (byte_pos[13:2])
                             0:      if ({byte_data, assembly[31:8]} != 32'h314f474e) bad_file <= 1;
-                            1, 2:   if ({byte_data, assembly[31:8]} != 1) bad_file <= 1;
+                            1:      if ({byte_data, assembly[31:8]} != 1) bad_file <= 1;
+                            2:      if ({byte_data, assembly[31:8]} != OVERLAY_ID) bad_file <= 1;
                             3: begin
                                 count <= assembly[17:8];
                                 if({byte_data,assembly[31:8]}==0 || {byte_data,assembly[31:8]}>640)
@@ -197,12 +207,13 @@ module ngage_nos_overlay #(
                 end
             end
             if(state==IDLE && !download && !firmware_loading && firmware_valid &&
-               loaded && !blocked && !fatal && (dirty || enabled!=applied)) begin
-                selection       <= enabled;
-                verify_pass     <= 1;
-                index           <= 0;
-                previous_offset <= 0;
-                state           <= OFFSET_READ;
+               loaded && !blocked && !fatal && (dirty || enabled!=applied || !checksum_current)) begin
+                selection          <= enabled;
+                checksum_selection <= desired_checksum;
+                verify_pass        <= 1;
+                index              <= 0;
+                previous_offset    <= 0;
+                state              <= OFFSET_READ;
             end
             case (state)
                 OFFSET_READ: state <= OFFSET_TAKE;
@@ -224,7 +235,12 @@ module ngage_nos_overlay #(
                     if (firmware_loading || !firmware_valid) begin
                         dirty <= 1;
                         state <= IDLE;
-                    end
+                    end  // Shared ownership requires both audited descriptor records;
+                         // a CRC-valid pack without them cannot claim checksum readiness.
+                    else if (SHARED_CHECKSUM && (count < 2 ||
+                        (index == 0 && (offset != 32'h8f18 || old_word != 32'h50009000 || new_word != 32'hffffffff)) ||
+                        (index == 1 && (offset != 32'h8f1c || old_word != 32'h511b4fff || new_word != 32'hffffffff))))
+                        fail(3, 1);
                     else if(offset[1:0]!=0 || offset>=32'h13f0000 ||
                             (index!=0 && offset<=previous_offset))
                         fail(3, 1);
@@ -244,10 +260,11 @@ module ngage_nos_overlay #(
                             previous_offset <= 0;
                             state           <= OFFSET_READ;
                         end else begin
-                            applied <= selection;
-                            dirty   <= 0;
-                            error   <= 0;
-                            state   <= IDLE;
+                            applied          <= selection;
+                            checksum_applied <= checksum_selection;
+                            dirty            <= 0;
+                            error            <= 0;
+                            state            <= IDLE;
                         end
                     end else begin
                         index           <= index + 1'b1;

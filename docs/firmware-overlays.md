@@ -1,41 +1,59 @@
 # Optional firmware overlays
 
-Firmware → **NOS Compatibility: Off/On** selects the first supported overlay.
-Default is Off. Turning it On applies the GPL NOS bootstrap/driver adapted from
-Nortido, and **skips the primary firmware checksum**. Turning it Off restores
-all original words, including the checksum descriptor. Original MCU/PPM files
-on disk, C: and PMM are unchanged. This changes the executed guest view; it is
-an optional compatibility mode, not a verified model of the baseband hardware.
+Firmware has independent **NOS Compatibility: Off/On** and **Bluetooth
+Compatibility: Off/On** selectors. Both default Off. No C: bypass, formatting,
+UI or application startup patches are included. These are optional changes to
+the executed guest view, not verified models of the phone's hardware.
 
-The NOS replacement supports narrow accessory/light/vibration messages. It does
-not provide a cellular modem, SIM service, calls or SMS. Bluetooth and audio
-substitutes are not yet exposed. Next priorities are a separate Bluetooth
-responder and an investigated SIM compatibility backend. C: drive bypasses,
-formatting changes and UI/startup patches are explicitly excluded. Provenance: [NOS notice](../firmware_overlays/nos/NOTICE.md).
+| Component | Named manual package | Automatic alias | Manual index | Auto index |
+|---|---|---|---|---|
+| NOS Compatibility | `NOS_Compatibility.ngo` | `boot2.rom` | F3 |80|
+| Bluetooth Compatibility | `Bluetooth_Compatibility.ngo` | `boot3.rom` | F4 |C0|
 
-## Files and menu
+The automatic aliases are identical copies of their named packages, required
+by stock MiSTer Main's numbered boot-file loading. Place them alongside the
+existing boot.rom and boot1.rom in games/NGage. The named packages work with
+**Load NOS Compatibility** and **Load Bluetooth Compatibility** on the Firmware
+page. Existing official boot files do not move or change. Both packages target
+only the audited NEM-4 v4.03 service files.
 
-The recognizable package name is **`NOS_Compatibility.ngo`**, matching the menu.
-Stock MiSTer Main requires an additional identical **`boot2.rom`** copy for
-automatic loading. Place boot2.rom beside the existing boot.rom and boot1.rom
-in games/NGage. Keep NOS_Compatibility.ngo for the manual **Load NOS
-Compatibility** picker on the Firmware page. Existing official boot files do
-not move or change. The package is specific to NEM-4 v4.03 service files.
+NOS supplies the minimal service-table bootstrap and narrow accessory/light/
+vibration replies. It does not provide a cellular modem, SIM service, calls or
+SMS. [NOS provenance](../firmware_overlays/nos/NOTICE.md).
 
-Main can send boot2 before boot.rom. The loader stages the package in 8KiB BRAM
-and waits for both official firmware slots to validate. The CPU is held while
-validating or applying the selected view, then restarts through the normal reset
-path. Warm resets preserve the undo table. Toggle Off before loading a replacement
-package; the manual picker is disabled while the overlay is applied or busy.
-Persist the menu selection with MiSTer's normal configuration saving if desired.
+Bluetooth redirects BTLDD's write/completion path to Nortido's local HCI
+responder. It supports initialization, local settings and inquiry without real
+peers; connections and remote names time out. It uses the original kernel ring
+and completion routines. It does not require NOS to be enabled, and provides no
+radio or actual Bluetooth link. [Bluetooth provenance](../firmware_overlays/bluetooth/NOTICE.md).
 
-On with a missing/invalid package holds the CPU. Off permits original firmware
-boot after ordinary package errors; an unexpected target word requires an
-original firmware reload rather than releasing a partially altered guest view.
-No hardware build, timing fit or installed-Main end-to-end check is implied by
-simulation results.
+## Selection, checksum and loading
 
-## Build a private package
+Either component ON skips the primary firmware checksum via its existing
+absent-descriptor return. The original expected digest stays intact. Turning
+one component OFF restores its own hook/payload bytes, while the checksum stays
+skipped if the other component remains ON. Both OFF restore the original words
+and primary checksum behavior. Secondary verification and the packages' own CRC
+validation remain active. Original MCU/PPM files on disk and C:/PMM stay intact.
+
+Main may transfer overlays before boot.rom. Each package stages in its own8KiB
+explicit BRAM; application waits for both official service slots to validate.
+The CPU remains held across validation, application, undo and checksum changes,
+then restarts through the existing reset path. Warm phone resets preserve both
+undo tables. Firmware reload triggers reconciliation before CPU release.
+
+On with a missing/invalid package holds the CPU and does not enable the other
+component. Off permits original boot after ordinary package errors; unexpected
+target words require a firmware reload. Turn a component Off before replacing
+its package; its manual picker is disabled while it is applied or either engine
+is busy. Normal MiSTer configuration saving persists the selectors if desired.
+
+No installed-Main end-to-end, FPGA timing/fit or UI boot result is implied by the
+directed tests. Existing long simulations use their frozen builds; these source
+changes do not alter those binaries, checkpoints or results. No fourth long run
+is started for the Bluetooth addition.
+
+## Build private packages
 
 Host prerequisites: Python3 and arm-none-eabi GCC/binutils. From the repo root:
 
@@ -44,51 +62,63 @@ python3 tools/nos_overlay.py \
   --mcu 'firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1' \
   --ppm 'firmware/NEM-04 v.04.03 N-GAGE/nem440.326' \
   --output scratch/mister-overlays/NOS_Compatibility.ngo
+python3 tools/bluetooth_overlay.py \
+  --mcu 'firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1' \
+  --ppm 'firmware/NEM-04 v.04.03 N-GAGE/nem440.326' \
+  --output scratch/mister-overlays/Bluetooth_Compatibility.ngo
 cp scratch/mister-overlays/NOS_Compatibility.ngo scratch/mister-overlays/boot2.rom
+cp scratch/mister-overlays/Bluetooth_Compatibility.ngo scratch/mister-overlays/boot3.rom
 ```
 
-The builder verifies the original service profiles and decoded stock MD5 before
-creating the pack. It does not replace the expected digest. It sets descriptor
-words at raw offsets 8F18 and 8F1C to FFFFFFFF, selecting the original verifier's
-absent-descriptor return, as Nortido does. Secondary verification remains intact.
-Every replacement has an undo word. The generated pack includes words derived
-from the user's firmware; keep it private and out of Git.
+Builders verify original service profiles and the decoded stock MD5 before
+creating a pack. The only common records are descriptor words at8F18/8F1C,
+changed to FFFFFFFF. NOS and BT payload ranges do not overlap. Bluetooth adds
+only the three-word BTLDD write hook, allocation size and erased-tail payload;
+Nortido's separate BTLDD delay-literal shortcuts are not included. Each changed
+word has its original undo value. Generated packages contain words derived from
+the user's firmware: keep them private and out of Git.
 
-## Transport contract and checks
+## Transport and diagnostics
 
-NGO1 v1, overlay ID1, 64-byte header followed by up to640 twelve-byte records:
-raw DDR firmware offset, original LE32 word, replacement LE32 word. The header
-contains both service CRC identities, original primary MD5 identity, record
-count/size, total length, body CRC32 and header CRC32. CRC validation remains
-active even when the guest firmware checksum is skipped.
+NGO1 v1 uses a64-byte header followed by up to640 twelve-byte records: raw DDR
+firmware offset, original LE32 and replacement LE32. NOS is component ID1;
+Bluetooth is ID2. Each picker rejects the other's file. Header fields contain
+both service CRC identities, original primary MD5, record count/size, total
+length and body/header CRC32.
 
-Before writing, the HDL validates the entire package, ordered aligned firmware
-addresses below13F0000 and every target word. No record can address C:/PMM.
-A complete preflight precedes the write pass. Firmware reloads trigger
-reconciliation of original/already-patched words before reapplication. ROM
-writes use the normal adapter invalidation path; CPU reset clears its caches.
-Diagnostic boot flags: bit17 requested,18 applied,19 loaded,20 busy,24:21 error.
-Errors:1 format/profile/length,2 CRC,3 target bounds/order,4 unexpected target
-word,9 attempted package replacement while active. The existing loader-failure
-flag also covers overlay errors.
+The entire package and all target words are checked before the first write.
+Offsets must be ordered, aligned and below13F0000, excluding C:/PMM. ROM writes
+use the existing adapter cache invalidation path; CPU reset clears CPU caches.
+Checksum selection is latched for each pass and reconciled against current
+selectors before CPU release, including changes during a pass.
 
-Directed checks:
+Diagnostic boot flags retain NOS requested/applied/loaded/busy at17..20. BT uses
+25..28 in the same order. Error code21..24 prioritizes NOS; bit29 indicates a BT
+error. Existing loader-failure flag also includes either overlay error. Codes:
+1 format/profile/component/length,2 CRC,3 bounds/order,4 unexpected target,
+9 attempted active package replacement.
+
+## Verification
+
+Inside the existing jotego/simulator:arm64 image:
 
 ```sh
-# Inside the existing jotego/simulator:arm64 image:
 sh tests/phone/overlay/run.sh scratch/mister-overlays/NOS_Compatibility.ngo
-sh tests/phone/mister_transport/lint-top.sh
+OVERLAY_ID=2 sh tests/phone/overlay/run.sh scratch/mister-overlays/Bluetooth_Compatibility.ngo
 sh tests/phone/overlay/hps-run.sh scratch/mister-overlays/NOS_Compatibility.ngo \
   scratch/hardware-live/service-loaded-boot/core.bin \
-  scratch/hardware-live/service-loaded-boot/extension.bin
-# On the host:
-cc -std=c11 -Wall -Wextra -Werror tests/phone/overlay/nos_guest_test.c \
-  -o build/sim/unit-overlay/nos-guest-test
-build/sim/unit-overlay/nos-guest-test
+  scratch/hardware-live/service-loaded-boot/extension.bin \
+  scratch/mister-overlays/Bluetooth_Compatibility.ngo
+sh tests/phone/mister_transport/lint-top.sh
 ```
 
-An independent full-core run uses `run-logo.py --nos-overlay <package>` alongside
-explicit core/extension/C: inputs and clock options. It transfers the package
-through the actual overlay engine and DDR adapter before CPU release; it does
-not prepatch source images. Its manifest includes package SHA and rejects stock/
-overlay checkpoint mixing. See [status](status.md) for the observed stopping point.
+Host tests include `package_test.py <NOS-package> <BT-package>` for allowed patch
+scope and shared descriptor agreement, and `bluetooth_guest_test.c` linked with
+`firmware_overlays/bluetooth/bt_hci.c` for HCI behavior and output bounds. Both
+host payload tests can run with address/undefined-behavior sanitizers.
+
+The earlier independent NOS full-core runner uses `run-logo.py --nos-overlay
+<package>` and lineage-checks its package SHA. It has no Bluetooth full-core
+runner option. Directed HPS tests cover both loaders and all four combinations,
+not firmware execution of the BTLDD hook. See [status](status.md) for evidence
+and the pending guest startup/ABI/hardware checks.

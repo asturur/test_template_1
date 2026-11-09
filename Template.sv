@@ -51,6 +51,8 @@ module emu (
         "P1F2,ROM,Load PPM service firmware;",
         "P1O[19],NOS Compatibility,Off,On;",
         "D0P1F3,NGO,Load NOS Compatibility;",
+        "P1O[20],Bluetooth Compatibility,Off,On;",
+        "D1P1F4,NGO,Load Bluetooth Compatibility;",
         "S0,NGA,Mount working save;",
         "S1,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
@@ -95,9 +97,11 @@ module emu (
 
         .forced_scandoubler(forced_scandoubler),
 
-        .buttons        (buttons),
-        .status         (status),
-        .status_menumask({15'b0, overlay_applied || overlay_busy}),
+        .buttons(buttons),
+        .status(status),
+        .status_menumask({
+            14'b0, bt_applied || bt_busy || overlay_busy, overlay_applied || overlay_busy || bt_busy
+        }),
 
         .ps2_key   (ps2_key),
         .joystick_0(joystick_0),
@@ -155,7 +159,7 @@ module emu (
         .phone_reset  (phone_reset)
     );
     wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted
-        | !status[16] | !overlay_ready;
+        | !status[16] | !overlay_ready | !bt_ready;
     wire ioctl_upload, ioctl_rd, board_init_done;
     wire [1:0] img_mounted, sd_rd, sd_wr, sd_ack;
     wire        img_readonly;
@@ -346,6 +350,11 @@ module emu (
     wire loader_valid, loader_failed, loader_known_firmware;
     wire overlay_ready, overlay_loaded, overlay_applied, overlay_busy;
     wire [3:0] overlay_error;
+    wire bt_ready, bt_loaded, bt_applied, bt_busy, bt_wait;
+    wire [3:0] bt_error;
+    wire bt_req, bt_mem_ready, bt_done, bt_write;
+    wire [31:0] bt_addr, bt_data, bt_rdata;
+    wire any_compatibility = status[19] || status[20];
     wire service_wait, overlay_wait;
     wire overlay_req, overlay_mem_ready, overlay_done, overlay_write;
     wire [31:0] overlay_addr, overlay_data, overlay_rdata;
@@ -392,31 +401,99 @@ module emu (
     // Stock Main autoloads boot2.rom at index80, potentially before boot.rom.
     // The NOS package stages independently and applies only after both services.
     wire overlay_download = ioctl_download && (ioctl_index == 16'h80 || ioctl_index == 3);
-    assign ioctl_wait = firmware_request ? service_wait : overlay_download ? overlay_wait : 1'b0;
-    ngage_nos_overlay nos_overlay (
-        .clk             (clk_sys),
-        .reset           (transport_reset),
-        .firmware_valid  (loader_valid),
-        .firmware_loading(bundle_download),
-        .enabled         (status[19]),
-        .blocked         (save_saving || save_busy),
-        .download        (overlay_download),
-        .wr              (ioctl_wr),
-        .addr            (ioctl_addr),
-        .data            (ioctl_dout),
-        .wait_req        (overlay_wait),
-        .ready           (overlay_ready),
-        .loaded          (overlay_loaded),
-        .applied         (overlay_applied),
-        .busy            (overlay_busy),
-        .error           (overlay_error),
-        .mem_valid       (overlay_req),
-        .mem_ready       (overlay_mem_ready),
-        .mem_write       (overlay_write),
-        .mem_addr        (overlay_addr),
-        .mem_data        (overlay_data),
-        .mem_done        (overlay_done),
-        .mem_rdata       (overlay_rdata)
+    wire bt_download = ioctl_download && (ioctl_index == 16'hc0 || ioctl_index == 4);
+    assign ioctl_wait = firmware_request ? service_wait : overlay_download ? overlay_wait :
+                        bt_download ? bt_wait : 1'b0;
+    ngage_nos_overlay #(
+        .SHARED_CHECKSUM(1)
+    ) nos_overlay (
+        .clk              (clk_sys),
+        .reset            (transport_reset),
+        .firmware_valid   (loader_valid),
+        .firmware_loading (bundle_download),
+        .enabled          (status[19]),
+        .checksum_required(any_compatibility),
+        .blocked          (save_saving || save_busy),
+        .download         (overlay_download),
+        .wr               (ioctl_wr),
+        .addr             (ioctl_addr),
+        .data             (ioctl_dout),
+        .wait_req         (overlay_wait),
+        .ready            (overlay_ready),
+        .loaded           (overlay_loaded),
+        .applied          (overlay_applied),
+        .busy             (overlay_busy),
+        .error            (overlay_error),
+        .mem_valid        (overlay_req),
+        .mem_ready        (overlay_mem_ready),
+        .mem_write        (overlay_write),
+        .mem_addr         (overlay_addr),
+        .mem_data         (overlay_data),
+        .mem_done         (overlay_done),
+        .mem_rdata        (overlay_rdata)
+    );
+    // Independent component and undo table; no NOS enable dependency.
+    // boot3.rom (C0) auto-loads; F4 selects Bluetooth_Compatibility.ngo manually.
+    ngage_nos_overlay #(
+        .OVERLAY_ID     (2),
+        .SHARED_CHECKSUM(1)
+    ) bluetooth_overlay (
+        .clk              (clk_sys),
+        .reset            (transport_reset),
+        .firmware_valid   (loader_valid),
+        .firmware_loading (bundle_download),
+        .enabled          (status[20]),
+        .checksum_required(any_compatibility),
+        .blocked          (save_saving || save_busy),
+        .download         (bt_download),
+        .wr               (ioctl_wr),
+        .addr             (ioctl_addr),
+        .data             (ioctl_dout),
+        .wait_req         (bt_wait),
+        .ready            (bt_ready),
+        .loaded           (bt_loaded),
+        .applied          (bt_applied),
+        .busy             (bt_busy),
+        .error            (bt_error),
+        .mem_valid        (bt_req),
+        .mem_ready        (bt_mem_ready),
+        .mem_write        (bt_write),
+        .mem_addr         (bt_addr),
+        .mem_data         (bt_data),
+        .mem_done         (bt_done),
+        .mem_rdata        (bt_rdata)
+    );
+    wire component_req, component_ready, component_write, component_done;
+    wire [31:0] component_addr, component_data, component_rdata;
+    wire [3:0] component_be;
+    ngage_ddr_arbiter component_arbiter (
+        .clk      (clk_sys),
+        .reset    (transport_reset),
+        .cpu_lock (1'b0),
+        .l_valid  (overlay_req),
+        .l_ready  (overlay_mem_ready),
+        .l_write  (overlay_write),
+        .l_addr   (overlay_addr),
+        .l_data   (overlay_data),
+        .l_be     (4'hf),
+        .l_done   (overlay_done),
+        .l_rdata  (overlay_rdata),
+        .c_valid  (bt_req),
+        .c_ready  (bt_mem_ready),
+        .c_write  (bt_write),
+        .c_addr   (bt_addr),
+        .c_data   (bt_data),
+        .c_be     (4'hf),
+        .c_done   (bt_done),
+        .c_rdata  (bt_rdata),
+        .req_valid(component_req),
+        .req_ready(component_ready),
+        .req_write(component_write),
+        .req_addr (component_addr),
+        .req_data (component_data),
+        .req_be   (component_be),
+        .rsp_valid(component_done),
+        .rsp_data (component_rdata)
     );
     wire firmware_aux_valid, firmware_aux_ready, firmware_aux_write, firmware_aux_done;
     wire [31:0] firmware_aux_addr, firmware_aux_data, firmware_aux_rdata;
@@ -433,14 +510,14 @@ module emu (
         .l_be     (load_be),
         .l_done   (load_done),
         .l_rdata  (),
-        .c_valid  (overlay_req),
-        .c_ready  (overlay_mem_ready),
-        .c_write  (overlay_write),
-        .c_addr   (overlay_addr),
-        .c_data   (overlay_data),
-        .c_be     (4'hf),
-        .c_done   (overlay_done),
-        .c_rdata  (overlay_rdata),
+        .c_valid  (component_req),
+        .c_ready  (component_ready),
+        .c_write  (component_write),
+        .c_addr   (component_addr),
+        .c_data   (component_data),
+        .c_be     (component_be),
+        .c_done   (component_done),
+        .c_rdata  (component_rdata),
         .req_valid(firmware_aux_valid),
         .req_ready(firmware_aux_ready),
         .req_write(firmware_aux_write),
@@ -668,8 +745,13 @@ module emu (
         .save_state(save_error ? 3'd4 : save_saving ? 3'd2 :
                     save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
         .diagnostic_status({
-            7'b0,
-            overlay_error,
+            2'b0,
+            (|bt_error),
+            bt_busy,
+            bt_loaded,
+            bt_applied,
+            status[20],
+            (|overlay_error ? overlay_error : bt_error),
             overlay_busy,
             overlay_loaded,
             overlay_applied,
@@ -681,7 +763,7 @@ module emu (
             phone_reset,
             save_busy,
             save_error,
-            (loader_failed || |overlay_error),
+            (loader_failed || |overlay_error || |bt_error),
             status[16],
             (debug_error || lcd_unsupported),
             debug_busy,

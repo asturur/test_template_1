@@ -199,7 +199,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  end
  ngage_nos_overlay nos_overlay (
   .clk(clk),.reset(cold),.firmware_valid(init_done),.firmware_loading(1'b0),
-  .enabled(1'b1),.blocked(1'b0),.download(overlay_download),.wr(overlay_wr),
+  .enabled(1'b1),.checksum_required(1'b1),.blocked(1'b0),.download(overlay_download),.wr(overlay_wr),
   .addr(overlay_pos),.data(overlay_input),.wait_req(overlay_wait),.ready(overlay_ready),
   .loaded(overlay_loaded),.applied(overlay_applied),.busy(overlay_busy),.error(overlay_error),
   .mem_valid(overlay_req),.mem_ready(overlay_accept),.mem_write(overlay_write),
