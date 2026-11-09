@@ -49,6 +49,8 @@ module emu (
         "P1,Firmware;",
         "P1F1,ROM,Load MCU service firmware;",
         "P1F2,ROM,Load PPM service firmware;",
+        "P1O[19],NOS Compatibility,Off,On;",
+        "D0P1F3,NGO,Load NOS Compatibility;",
         "S0,NGA,Mount working save;",
         "S1,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
@@ -95,7 +97,7 @@ module emu (
 
         .buttons        (buttons),
         .status         (status),
-        .status_menumask(0),
+        .status_menumask({15'b0, overlay_applied || overlay_busy}),
 
         .ps2_key   (ps2_key),
         .joystick_0(joystick_0),
@@ -153,7 +155,7 @@ module emu (
         .phone_reset  (phone_reset)
     );
     wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted
-        | !status[16];
+        | !status[16] | !overlay_ready;
     wire ioctl_upload, ioctl_rd, board_init_done;
     wire [1:0] img_mounted, sd_rd, sd_wr, sd_ack;
     wire        img_readonly;
@@ -342,6 +344,11 @@ module emu (
     assign DDRAM_CLK = clk_sys;
     // DDR burst count is owned by the ROM-cache/backend transaction.
     wire loader_valid, loader_failed, loader_known_firmware;
+    wire overlay_ready, overlay_loaded, overlay_applied, overlay_busy;
+    wire [3:0] overlay_error;
+    wire service_wait, overlay_wait;
+    wire overlay_req, overlay_mem_ready, overlay_done, overlay_write;
+    wire [31:0] overlay_addr, overlay_data, overlay_rdata;
     wire [1:0] loader_profile;
     wire load_req, load_ready, load_done;
     wire [31:0] load_addr, load_data;
@@ -371,7 +378,7 @@ module emu (
         .wr            (ioctl_wr),
         .addr          (ioctl_addr),
         .data          (ioctl_dout),
-        .wait_req      (ioctl_wait),
+        .wait_req      (service_wait),
         .valid         (loader_valid),
         .failed        (loader_failed),
         .mem_valid     (load_req),
@@ -381,6 +388,67 @@ module emu (
         .mem_be        (load_be),
         .mem_done      (load_done),
         .failure_reason()
+    );
+    // Stock Main autoloads boot2.rom at index80, potentially before boot.rom.
+    // The NOS package stages independently and applies only after both services.
+    wire overlay_download = ioctl_download && (ioctl_index == 16'h80 || ioctl_index == 3);
+    assign ioctl_wait = firmware_request ? service_wait : overlay_download ? overlay_wait : 1'b0;
+    ngage_nos_overlay nos_overlay (
+        .clk             (clk_sys),
+        .reset           (transport_reset),
+        .firmware_valid  (loader_valid),
+        .firmware_loading(bundle_download),
+        .enabled         (status[19]),
+        .blocked         (save_saving || save_busy),
+        .download        (overlay_download),
+        .wr              (ioctl_wr),
+        .addr            (ioctl_addr),
+        .data            (ioctl_dout),
+        .wait_req        (overlay_wait),
+        .ready           (overlay_ready),
+        .loaded          (overlay_loaded),
+        .applied         (overlay_applied),
+        .busy            (overlay_busy),
+        .error           (overlay_error),
+        .mem_valid       (overlay_req),
+        .mem_ready       (overlay_mem_ready),
+        .mem_write       (overlay_write),
+        .mem_addr        (overlay_addr),
+        .mem_data        (overlay_data),
+        .mem_done        (overlay_done),
+        .mem_rdata       (overlay_rdata)
+    );
+    wire firmware_aux_valid, firmware_aux_ready, firmware_aux_write, firmware_aux_done;
+    wire [31:0] firmware_aux_addr, firmware_aux_data, firmware_aux_rdata;
+    wire [3:0] firmware_aux_be;
+    ngage_ddr_arbiter firmware_overlay_arbiter (
+        .clk      (clk_sys),
+        .reset    (transport_reset),
+        .cpu_lock (1'b0),
+        .l_valid  (load_req),
+        .l_ready  (load_ready),
+        .l_write  (1'b1),
+        .l_addr   (load_addr),
+        .l_data   (load_data),
+        .l_be     (load_be),
+        .l_done   (load_done),
+        .l_rdata  (),
+        .c_valid  (overlay_req),
+        .c_ready  (overlay_mem_ready),
+        .c_write  (overlay_write),
+        .c_addr   (overlay_addr),
+        .c_data   (overlay_data),
+        .c_be     (4'hf),
+        .c_done   (overlay_done),
+        .c_rdata  (overlay_rdata),
+        .req_valid(firmware_aux_valid),
+        .req_ready(firmware_aux_ready),
+        .req_write(firmware_aux_write),
+        .req_addr (firmware_aux_addr),
+        .req_data (firmware_aux_data),
+        .req_be   (firmware_aux_be),
+        .rsp_valid(firmware_aux_done),
+        .rsp_data (firmware_aux_rdata)
     );
     // Service files contain no PMM-seed choice. Both existing NGA profile
     // IDs are accepted only with the same audited firmware hashes.
@@ -412,14 +480,14 @@ module emu (
         .clk      (clk_sys),
         .reset    (transport_reset),
         .cpu_lock (1'b0),
-        .l_valid  (load_req),
-        .l_ready  (load_ready),
-        .l_addr   (load_addr),
-        .l_data   (load_data),
-        .l_be     (load_be),
-        .l_done   (load_done),
-        .l_write  (1'b1),
-        .l_rdata  (),
+        .l_valid  (firmware_aux_valid),
+        .l_ready  (firmware_aux_ready),
+        .l_addr   (firmware_aux_addr),
+        .l_data   (firmware_aux_data),
+        .l_be     (firmware_aux_be),
+        .l_done   (firmware_aux_done),
+        .l_write  (firmware_aux_write),
+        .l_rdata  (firmware_aux_rdata),
         .c_valid  (save_mem_valid),
         .c_ready  (save_mem_ready),
         .c_write  (save_mem_write),
@@ -584,8 +652,12 @@ module emu (
         .joystick(joystick_0),
         .keys    (phone_keys)
     );
+    // Requested timing experiment: 26 MHz counters and a 64 Hz NOS counter.
+    // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
     ngage_mister #(
-        .SYS_CLK_HZ(SYS_CLK_HZ)
+        .TIMER_CLK_DIV(SYS_CLK_HZ / 26000000),
+        .NOS_TICK_HZ  (64),
+        .SYS_CLK_HZ   (SYS_CLK_HZ)
     ) core (
         .sim_present(status[15]),
         .dma_sdram_req(lcd_dma_req),
@@ -596,7 +668,12 @@ module emu (
         .save_state(save_error ? 3'd4 : save_saving ? 3'd2 :
                     save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
         .diagnostic_status({
-            15'b0,
+            7'b0,
+            overlay_error,
+            overlay_busy,
+            overlay_loaded,
+            overlay_applied,
+            status[19],
             loader_known_firmware,
             bundle_download,
             blocked_load,
@@ -604,7 +681,7 @@ module emu (
             phone_reset,
             save_busy,
             save_error,
-            loader_failed,
+            (loader_failed || |overlay_error),
             status[16],
             (debug_error || lcd_unsupported),
             debug_busy,

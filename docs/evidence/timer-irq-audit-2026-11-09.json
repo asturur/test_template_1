@@ -1,0 +1,54 @@
+{
+  "window": {
+    "start_cycle": 2000000000,
+    "end_cycle": 2050000000,
+    "cycles": 50000000,
+    "phone_clock_hz": 78000000
+  },
+  "duty": {
+    "cycle": 2050000000,
+    "irq_cycles": 8313929,
+    "dfc_nonirq": 28266186,
+    "pump_nonirq": 6045158,
+    "other": 13419885,
+    "timer_edges": 123,
+    "nos_edges": 340,
+    "nos_clears": 339,
+    "nos_ticks": 641,
+    "irq_timer": 107,
+    "irq_nos": 333,
+    "irq_both": 1,
+    "irq_other": 3
+  },
+  "percent": {
+    "irq_mode": 16.627858,
+    "nos_callback_nonirq_window": 56.532372,
+    "mailbox_nonirq_window_subset": 12.090316,
+    "outside_irq_and_callback": 26.83977
+  },
+  "method": "Read-only frozen-model replay. IRQ occupancy is CPSR mode12. Callback/mailbox windows bracket observed entry and saved return PC, excluding IRQ-mode cycles; this is not a strict per-thread accounting of non-IRQ preemptions. Callback window includes actual NOS startup work.",
+  "timer0": {
+    "reload": 406250,
+    "current_source_hz": 78000000,
+    "current_rate_hz": 192,
+    "reference_source_hz": 26000000,
+    "reference_rate_hz": 64,
+    "evidence": "Nortido RTL ce26, monitor guest-tick comment, stock firmware15625us constant. Nokia service pages show26MHz reference but do not specify this timer register clock."
+  },
+  "nos": {
+    "model_counter_hz": 1000,
+    "independently_verified_against_phone": false,
+    "matched_assert_clear_events": 339,
+    "outstanding_at_window_end": 1,
+    "reference_limitation": "Nortido replaces NOS driver exports; its host1ms scheduler is not evidence for original NOS comparator frequency."
+  },
+  "references": {
+    "nortido_revision": "4b8480148db15d432e2abf6a6956832c91d9cf55",
+    "timer_rtl": "https://github.com/nortido/NGage-MiSTer/blob/4b8480148db15d432e2abf6a6956832c91d9cf55/rtl/ngage_soc.sv#L507-L555",
+    "guest_tick": "https://github.com/nortido/NGage-MiSTer/blob/4b8480148db15d432e2abf6a6956832c91d9cf55/hps/mon/irq.c#L259",
+    "nos_replacement": "https://github.com/nortido/NGage-MiSTer/blob/4b8480148db15d432e2abf6a6956832c91d9cf55/hps/guest/nos_glue.S",
+    "nokia_baseband_pdf_sha256": "15f80b3406b0a063ffe897a3b49f476dcc13f7112fe09668b4f0800869fbafaa"
+  },
+  "observer_source_sha256": "79656e9d13d18e50713c93d2b90d39ec72729c6fbcb3582649c94226dd4fe0b2",
+  "changes": "Observation/docs only; no firmware, HDL or live run changes."
+}

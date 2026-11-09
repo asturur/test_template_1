@@ -83,7 +83,11 @@ module tb(input wire clk,reset,cold,
  assign boot_index=0;assign boot_limit=0;assign retired_count=0;assign ddr_command_count=0;assign ddr_beat_count=0;
 `endif
 
+`ifdef NGAGE_NOS_OVERLAY_RUN
+ assign ready=init_done && overlay_ready;
+`else
  assign ready=init_done;
+`endif
  assign cycle_count=cycles;
  assign pc=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
  wire [23:0] observed_pixels=dut.board.display.lcd.framebuffer.memory[frame_index];
@@ -99,6 +103,7 @@ module tb;
  reg clk=0,reset=1,cold=1;
 `endif
 parameter integer SYS_CLK_HZ=104000000;
+parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
 parameter integer ROM_CACHE=0;
 parameter integer DIRECT_SDRAM=1;
 parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
@@ -162,7 +167,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  localparam UEM_POWERUP_STATUS=1;
 `endif
  wire cpu_ram_accept;
- ngage_mister #(.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
+ ngage_mister #(.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
 `ifdef NGAGE_LOGO_RUN
  1'b0
 `else
@@ -174,7 +179,60 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
  ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
   .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsr),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
+`ifdef NGAGE_NOS_OVERLAY_RUN
+ // Separate experiment: exercise the real staged loader and shared DDR path,
+ // not a host-prepatched ROM. The CPU remains reset until application completes.
+ reg overlay_download=0, overlay_wr=0;
+ reg [26:0] overlay_pos=0;
+ reg [15:0] overlay_input=0;
+ reg [15:0] overlay_words[0:4095];
+ reg [1023:0] overlay_path;
+ integer overlay_feed=0, overlay_length=0;
+ wire overlay_wait, overlay_ready, overlay_loaded, overlay_applied, overlay_busy;
+ wire [3:0] overlay_error;
+ wire overlay_req, overlay_accept, overlay_write, overlay_done;
+ wire [31:0] overlay_addr, overlay_data, overlay_response;
+ initial begin
+  if(!$value$plusargs("nos-overlay=%s",overlay_path)) $fatal(1,"NOS overlay input required");
+  $readmemh(overlay_path,overlay_words);
+  overlay_length={overlay_words[23],overlay_words[22]};
+ end
+ ngage_nos_overlay nos_overlay (
+  .clk(clk),.reset(cold),.firmware_valid(init_done),.firmware_loading(1'b0),
+  .enabled(1'b1),.blocked(1'b0),.download(overlay_download),.wr(overlay_wr),
+  .addr(overlay_pos),.data(overlay_input),.wait_req(overlay_wait),.ready(overlay_ready),
+  .loaded(overlay_loaded),.applied(overlay_applied),.busy(overlay_busy),.error(overlay_error),
+  .mem_valid(overlay_req),.mem_ready(overlay_accept),.mem_write(overlay_write),
+  .mem_addr(overlay_addr),.mem_data(overlay_data),.mem_done(overlay_done),.mem_rdata(overlay_response)
+ );
+ always @(posedge clk) if(!cold) begin
+  case(overlay_feed)
+   0: begin overlay_download<=1;overlay_feed<=1;end
+   1: if(!overlay_wait)begin
+    overlay_input<=overlay_words[overlay_pos>>1];overlay_wr<=1;overlay_feed<=2;
+   end
+   2: begin
+    overlay_wr<=0;
+    if(overlay_pos+2==overlay_length)begin overlay_download<=0;overlay_feed<=3;end
+    else begin overlay_pos<=overlay_pos+2;overlay_feed<=1;end
+   end
+   3: if(overlay_ready)begin
+    if(!overlay_applied || {ddr[32'h8f1b],ddr[32'h8f1a],ddr[32'h8f19],ddr[32'h8f18]}!=32'hffffffff ||
+       {ddr[32'h8f1f],ddr[32'h8f1e],ddr[32'h8f1d],ddr[32'h8f1c]}!=32'hffffffff)
+     $fatal(1,"NOS overlay/checksum bypass not applied before CPU release");
+    $display("PASS NOS overlay applied through real DDR adapter before CPU release; checksum bypass active");
+    overlay_feed<=4;
+   end
+  endcase
+  if(overlay_error!=0)$fatal(1,"NOS overlay error %0d",overlay_error);
+  if(!reset && !overlay_ready)$fatal(1,"CPU released before NOS overlay ready");
+ end
+ ngage_ddr_arbiter darb(.clk(clk),.reset(cold),.cpu_lock(lock),
+  .l_valid(overlay_req),.l_ready(overlay_accept),.l_addr(overlay_addr),.l_data(overlay_data),
+  .l_be(4'hf),.l_write(overlay_write),.l_done(overlay_done),.l_rdata(overlay_response),
+`else
  ngage_ddr_arbiter darb(.clk(clk),.reset(cold),.cpu_lock(lock),.l_valid(1'b0),.l_addr(32'b0),.l_data(32'b0),.l_be(4'b0),.l_write(1'b0),
+`endif
   .c_valid(dr||dw),.c_ready(accept),.c_write(dw),.c_addr(da),.c_data(dd),.c_be(db),.c_done(done),.c_rdata(back),
   .req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_data(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp));
  ngage_ddr_adapter #(.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),

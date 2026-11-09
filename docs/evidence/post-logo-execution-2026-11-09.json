@@ -1,0 +1,77 @@
+{
+  "window": {
+    "start": 2000000000,
+    "end": 2050000000,
+    "cycles": 50000000,
+    "nominal_phone_seconds_at_78MHz": 0.6410256410256411
+  },
+  "source_identity": "dd61fbd8e9de2534d2ea7575c4a29ee469768ca0bcfa1c4ad1f0fd3725a42345",
+  "method": "Read-only isolated replay of frozen generated model; original 12B run untouched. Trace counts include micro-operations and condition-failed packets, not architectural instruction retirements. Thumb trace PCs corrected by +4 for disassembly.",
+  "counts": {
+    "cycles": 50000000,
+    "events": 2468294,
+    "unique_pc": 13349,
+    "sleep_cycles": 3325,
+    "irq_high": 5861176,
+    "code_stall": 37454823,
+    "data_stall": 20548151,
+    "irq_trace_events": 440
+  },
+  "actual_irq_mode_entries": 444,
+  "calls": [
+    {
+      "pc": "514a10cc",
+      "count": "326",
+      "first": "2000019850",
+      "last": "2049939290",
+      "r0": "514a18dc",
+      "r1": "800c88d4",
+      "r2": "ffffffff",
+      "r3": "00000134",
+      "lr": "514a18e0"
+    },
+    {
+      "pc": "514a1880",
+      "count": "343",
+      "first": "2000090658",
+      "last": "2049855052",
+      "r0": "80007b98",
+      "r1": "642a0000",
+      "r2": "800c8278",
+      "r3": "0000002c",
+      "lr": "514ae220"
+    },
+    {
+      "pc": "514a18d4",
+      "count": "325",
+      "first": "2000111162",
+      "last": "2049865151",
+      "r0": "00000000",
+      "r1": "804076f8",
+      "r2": "0000001b",
+      "r3": "80006bb8",
+      "lr": "50327f80"
+    }
+  ],
+  "startup": {
+    "mtc_control_state_byte": 3,
+    "mtc_published_state_byte": 3,
+    "sim_server_state_byte": 1,
+    "registered_nos_channels": 0,
+    "unchanged_through_sample": true,
+    "monitored_mtc_ready_builder_5159a2ba_entries": 0
+  },
+  "outcome": {
+    "lcd_words": 36689,
+    "known_fetch_faults": 12,
+    "data_faults": 0,
+    "new_faults": 0,
+    "proven_permanent_hang": false
+  },
+  "limitations": [
+    "Sample is only 0.64 nominal phone seconds after the saved post-logo point.",
+    "Recurring service work does not prove which startup dependency holds the UI.",
+    "Historical MTC enum names are not proof of the current stopping cause."
+  ],
+  "profiler_sha256": "76e70cbe8693f6b3fdf056a7415bfe9deafc790678860038b6809a30d887197f"
+}

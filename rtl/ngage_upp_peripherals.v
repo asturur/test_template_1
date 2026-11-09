@@ -42,7 +42,9 @@ module ngage_upp_peripherals #(
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
               REGISTER_RESPONSES = 0,
-              SYS_CLK_HZ         = 104000000
+              SYS_CLK_HZ         = 104000000,
+              TIMER_CLK_DIV      = 1,
+              NOS_TICK_HZ        = 1000
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -197,7 +199,9 @@ module ngage_upp_peripherals #(
         .irq_clear   (irq_clear),
         .timer0_rearm(timer0_rearm)
     );
-    ngage_timers timers (
+    ngage_timers #(
+        .CLOCK_DIV(TIMER_CLK_DIV)
+    ) timers (
         .clk            (clk),
         .reset          (rst),
         .req            (cyc && stb),
@@ -219,7 +223,7 @@ module ngage_upp_peripherals #(
     );
     localparam integer FAST_TICK_DIV = (SYS_CLK_HZ + 16384) / 32768;
     ngage_nos_io #(
-        .TICK_DIV(SYS_CLK_HZ / 1000),
+        .TICK_DIV(SYS_CLK_HZ / NOS_TICK_HZ),
         .FAST_DIV(FAST_TICK_DIV)
     ) nos_timer (
         .clk       (clk),

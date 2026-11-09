@@ -1,5 +1,101 @@
 # Phone clocks and slower interfaces
 
+## Requested26MHz/64Hz spin (2026-11-09)
+
+Implemented parameterized general-timer enables, divider3 at78MHz and4 at104MHz,
+with CPU-speed register/ACK handling. Template selects this plus experimental
+NOS_TICK_HZ64. A NOS tick advances the counter; firmware still controls compare
+interrupts, so not every tick must raise an IRQ. Calibration counter stays~32kHz;
+ADSP's staged tick is tied to NOS and is also slowed. Generic module defaults
+retain legacy timing for regression fixtures. The older cycle-based sections
+below describe prior builds; NOS64 remains an explicitly requested hypothesis.
+
+A separate cold run passed50.35M cycles with12known fetch faults and zero data
+faults, saved paired state, and continues toward12B as timing26-nos64-resume-12b.
+This is still early startup, not a new logo/UI claim. The original12B run is
+untouched. See latest status and
+[evidence](evidence/timing26-nos64-experiment-2026-11-09.json) for lineage/tests.
+Runner accepts --timer-clock 26mhz and --nos-tick-hz 64; changing either across a
+checkpoint is rejected. New timer divider state required this cold lineage.
+
+
+## 2026-11-09: post-logo timer/IRQ audit
+
+**Two different counters must stay distinct.** The1kHz NOS compare counter at
+0C150114/118 is not the eight general timers at0C120A00+20*k, and neither is
+Nortido's host monitor1ms scheduling quantum.
+
+Nokia NEM-4 baseband pages7-9/10 document26MHz reference and32.768kHz sleep
+clocks, but provide no register-level frequency, prescaler or W1C specification
+for the NOS comparator. Searches of the available local service text and public
+primary Nokia material found no1kHz confirmation. It remains an assumption.
+Firmware514AE058 reads16-bit current count at58150116 and programs current+
+requested_delta at58150118; this establishes software deadline ownership, not Hz.
+
+Nortido latest HEAD4b8480148db15d432e2abf6a6956832c91d9cf55 was checked via gh.
+Its rtl/ngage_soc.sv:507–555 decrements the eight general timers on26MHz enable,
+reloads periodically and latches an expired flag until the guest writes+08.
+Its hps/mon/irq.c:259 explicitly identifies guest timer0 ACK as64Hz/15.625ms.
+Stock firmware reload406250 and time constant15625 support that interpretation:
+26000000/406250=64. Current ngage_timers decrements its periodic timer once per
+CPU clock, so the same reload produces192Hz at78MHz (256Hz at104MHz). This is a
+concrete mismatch against the independent reference and stock timing arithmetic;
+the service document alone does not prove this register's clock source.
+
+Nortido hps/guest/nos_glue.S replaces original NOS driver export pointers with
+nos_attach/nos_ctor and its own channel vtable. Thus its working UI does not
+validate our original NOS comparator frequency or IRQ25 timer path. Do not infer
+1kHz correctness from its unrelated host1ms quantum or copy firmware patches.
+Pinned files are saved under scratch/timer-irq-audit/nortido-4b848014/.
+
+### Measured occupancy and acknowledge behavior
+
+Read-only isolated replay of permanent2B→2.05B,50M clocks at nominal78MHz:
+
+| Observed context | Clocks | Window share |
+|---|---:|---:|
+|CPSR IRQ mode|8,313,929|16.63%|
+|Inside NOS deferred callback, excluding IRQ mode|28,266,186|56.53%|
+|Outside those windows|13,419,885|26.84%|
+|Mailbox pump alone, subset of callback|6,045,158|12.09%|
+
+IRQ occupancy is actual CPSR mode12. Callback windows bracket514A18D4 entry
+and its saved return PC; non-IRQ thread preemptions are not independently
+accounted. The bounded instruction trace shows no user-mode preemption in its
+first complete callback. Treat56.53% as an approximate callback-window share,
+not a formal per-thread CPU profile. Callbacks execute genuine NOS startup work
+as well as repeated service scans. These numbers support heavy IRQ-driven load,
+not proof that all73.16% is wasted or that reducing interrupts fixes the UI.
+
+Timer0 pending rises123times, consistent with192Hz over0.641nominal seconds.
+NOS counter advances641ticks. NOS bit7 has340assertions and339clears; one is
+pending at the end inside an IRQ handler. This shows repeated acknowledged events,
+not a permanently stuck source. Source classification at IRQ-mode entry observes
+107timer-only,333NOS-only,1both and3other; pending-at-entry is not a complete
+interrupt-handler-source trace. Original12B run and firmware remain untouched;
+50M trace/PC totals match the earlier observer and no new faults occur.
+
+Existing NOS wrap/compare/W1C/same-edge-event, staged timer and ICU mask/priority
+checks pass in Jotego Docker. These establish current implementation consistency,
+not physical-phone correctness. Audit also identifies ICU differences from
+Nortido: our raw IRQ status exposes only DMA bit7, our priority encoder is a
+selected-source subset, timer0 reload can implicitly mask IRQ0, and masking
+selected sources also requests device acknowledgment. Keep those as explicit
+staged hypotheses until firmware access traces justify replacing them.
+
+Next implementation experiment: give the general periodic timer a26MHz clock
+enable (divide3 at78MHz,divide4 at104MHz), keep bus accesses at CPU speed, then
+verify64Hz plus expiry/ACK coincidence and compare boot/CPU budgets. Audit the
+bootstrap BOOT_DELAY/UNIT60_DELAY hypotheses separately rather than blindly
+rescaling every legacy counter. Leave the NOS1kHz rate unchanged pending stronger
+evidence. New divider state requires a cold run or an explicitly reviewed state
+migration; never silently load the frozen checkpoint into changed HDL.
+
+Evidence: [compact audit](evidence/timer-irq-audit-2026-11-09.json),
+scratch/timer-irq-audit/{duty_profiler.cpp,duty-50m.log,trace-50m.log,
+directed-checks.log,nos-time-code.txt}. No HDL change, commit, push or build.
+
+
 ## Selected hardware bring-up clock:78MHz (2026-11-09)
 
 The user selected78MHz after the104MHz timing campaign. `Template.sv` sets

@@ -1,3 +1,93 @@
+## 2026-11-09: hardware-test candidate prepared; overlay copied to SD
+
+User requests commit/push and will run the hardware build/test. All maintained
+NOS loader/menu changes and their tested26MHz/NOS64 timer configuration are
+included. NOS_Compatibility.ngo and its identical boot2.rom autoload alias were
+copied to /Volumes/sdcard/games/NGage and SHA-verified; existing boot.rom,
+boot1.rom and working.nga remain byte-identical. Enable Firmware → NOS
+Compatibility after installing the new RBF. Primary checksum skips only when
+NOS is ON. No C: bypass/UI edits. Existing simulations remain independent.
+No GitHub action dispatched by this step. Full NOS startup remains unverified.
+
+## 2026-11-09: compatibility scope narrowed to NOS, Bluetooth and SIM
+
+User prioritizes NOS, then wants Bluetooth and SIM compatibility. Current NOS
+replacement does NOT implement cellular/SIM or BT: only bootstrap and narrow
+accessory/light/vibration messages. BT is a separate reference HCI responder to
+adapt; full SIM startup service is absent from this NOS stub and needs further
+investigation. Exclude C: drive bypasses, formatting changes and UI/startup
+stubs from the overlay scope. Do not expose nonworking BT/SIM toggles; finish
+NOS loader validation first. Preserve original files and existing long runs.
+
+## 2026-11-09: NOS overlay loader implemented; 50M boot and checkpoint checks pass
+
+User explicitly changes checksum policy: enabling NOS Compatibility also skips
+primary firmware verification, using Nortido's absent-descriptor early return
+(8F18/8F1C=FFFFFFFF), not a derived expected digest. Off restores all original
+words and checksum behavior. Secondary verification and package CRC remain on.
+Original service files/C:/PMM and both pre-existing long runs are untouched.
+
+Template Firmware now has NOS Compatibility Off/On (status19, defaultOff) and
+Load NOS Compatibility (F3). Human filename NOS_Compatibility.ngo, identical
+boot2.rom alias for stock Main index80; staged before/after service files, applied
+only after both validate. Explicit8KiB BRAM; bounded profile/CRC validation and
+all-target preflight precede writes through the normal DDR invalidation path.
+CPU held across apply/undo, reload reconciliation and missing/invalid requested
+payload. No nonworking Bluetooth/audio entries. Details docs/firmware-overlays.md.
+
+PASS synthetic and actual450-record/5464-byte packages: early staging, exact
+ON/OFF, rejected bodyCRC/profile/truncation, late target mismatch with zero
+partial writes, firmware/partial reload reconciliation, active replacement
+drain, mid-pass selection changes, bounds/alignment/order protection. Host guest
+payload tests pass attach/RX/queue/cancel/overflow/vibration/unsupported resource.
+Actual hps_io boot2/F3 transfer, deferred apply, service-index isolation, DDR
+backpressure and byte-exact ON/OFF/C:/PMM preservation pass. Stock Main menu
+parser supports D0P1 disable/page order. Top elaboration passes with stubbed
+HPS/PLL. This does not verify physical Main,
+FPGA timing/resource fit, full NOS guest ABI or UI progress. No hardware build.
+
+Separate actual-HDL cold run nos-compatibility-cold-50m targets50M, uses real
+NOS staging engine/DDR adapter before CPU release, stock exported service DDR
+inputs, disposable C: copy,78MHz/26MHz timers/NOS64 and64-bit1KiB ROM buffer.
+Manifest includes package SHA bfbef95b677ea1966de3e25278e9582f7aea563e49c336a1e558356e0caf51e6.
+Do not import stock checkpoints. Separate run completed50M cycles,12known fetch faults,zero datafaults; loader
+applied the actual pack/checksum bypass through DDR before CPU release. Still
+in early delay (PC6154),zero LCDwords; no claim of Nokia/UI, NOS ABI startup or
+observed firmware checksum return yet. Exact frozen-build zero-cycle restore
+produced byte-identical50M CPU/host checkpoints. Evidence
+docs/evidence/nos-overlay-2026-11-09.json. Test logs scratch/nos-overlay/;
+prepared SD package copies scratch/mister-overlays/ (not copied to the card).
+Stock-mode restore of the NOS checkpoint is explicitly rejected. Frozen NOS
+executable strict-resumed50M→12B in nos-compatibility-resume-12b/, retaining
+paired billion checkpoints; this is the pending NOS startup/ABI verification,
+not a proven UI boot. Both older runs remain untouched. No commit/push/build.
+
+## 2026-11-09: timer audit and independent26MHz/NOS64 experiment
+
+General timers now have a registered CPU clock enable: /3 at78MHz, /4 at104MHz,
+so periodic406250 yields64Hz as in the Nortido reference. Writes and IRQ ACK
+remain atCPU speed. Template selects this26MHz experiment and NOS_TICK_HZ=64;
+NOS IRQ deadlines remain firmware controlled, not forced IRQ-per-tick. FAST
+counter remains~32768Hz. Legacy module defaults remain available to fixtures.
+These are exploratory peripheral assumptions, not phone-verified NOS timing.
+
+PASS timer/rate/IRQ tests at78/104MHz, CPU-board integration, clock propagation
+and top elaboration. Cold timing26-nos64 run saved50,347,830 clocks and strictly
+resumed to12B using frozen identity65ea564947bfe4e45ee4d2fa95cd23fc232a5b50fd694004edb0677cb6d9b0c2.
+Both CPU/host files stay together; no imported stock checkpoint for this model.
+Evidence docs/evidence/timing26-nos64-experiment-2026-11-09.json.
+
+Separate frozen post-logo50M audit found16.63% IRQ and~56.53% NOS callback
+windows (including useful startup), with no stuck-level NOS IRQ:340assertions,
+339clears,1pending. Original stock run reached Nokia before1.99B and has
+permanent1B/2B checkpoints; post-checksum2B exact restore is byte-identical.
+No permanent post-logo deadlock established. MTC3/SIM1 and unregistered NOS
+channels are probes, not proven causes. Firmware chooses recurring deadlines.
+Thumb textual trace PCs need+4 for disassembly; live fetch PC is unaffected.
+Evidence docs/evidence/{post-logo-execution,timer-irq-audit}-2026-11-09.json.
+More details docs/phone-clocks.md, docs/display-bringup.md and
+ docs/nortido-compatibility-inventory.md. Preserve every billion checkpoint.
+
 ## 2026-11-09: performance subset prepared for user-triggered hardware build
 
 Saved future redesign options in docs/cpu-performance-redesign-notes.md. This

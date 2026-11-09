@@ -14,7 +14,9 @@
 module ngage_mister #(
     parameter UEM_POWERUP_STATUS = 2,
               DIRECT_SDRAM       = 1,
-              SYS_CLK_HZ         = 104000000
+              SYS_CLK_HZ         = 104000000,
+              TIMER_CLK_DIV      = 1,
+              NOS_TICK_HZ        = 1000
 ) (
     input  wire        clk_sys,             // CPU/bus clock domain
     input  wire        reset,
@@ -117,6 +119,8 @@ module ngage_mister #(
     wire [8:0] video_x, video_y;
     ngage_board #(
         .SYS_CLK_HZ        (SYS_CLK_HZ),
+        .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+        .NOS_TICK_HZ       (NOS_TICK_HZ),
         .INTERNAL_CPU      (1),
         .DIRECT_SDRAM      (DIRECT_SDRAM),
         .SIMIF_ENABLE      (1),

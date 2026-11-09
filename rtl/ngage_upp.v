@@ -9,7 +9,9 @@ module ngage_upp #(
               KEYPAD_ENABLE    = 0,
               LCD_DMA_ENABLE   = 0,
               LCD_QUEUE_ENABLE = 0,
-              SYS_CLK_HZ       = 104000000
+              SYS_CLK_HZ       = 104000000,
+              TIMER_CLK_DIV    = 1,
+              NOS_TICK_HZ      = 1000
 ) (
     input  wire        clk,
     input  wire        rst,
@@ -286,6 +288,8 @@ module ngage_upp #(
     endgenerate
     ngage_upp_peripherals #(
         .SYS_CLK_HZ        (SYS_CLK_HZ),
+        .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+        .NOS_TICK_HZ       (NOS_TICK_HZ),
         .REGISTER_RESPONSES(INTERNAL_CPU),
         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
         .SIMIF_ENABLE      (SIMIF_ENABLE),

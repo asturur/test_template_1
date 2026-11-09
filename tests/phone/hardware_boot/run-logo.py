@@ -37,9 +37,12 @@ def main():
     p.add_argument('--use-saved-build',action='store_true',help='resume the exact checkpoint executable, ignoring current workspace HDL; never applies new fixes')
     p.add_argument('--powerup',choices=('normal','alarm'),default='normal',help='reset cause; legacy checkpoints require alarm')
     p.add_argument('--restore',type=Path);p.add_argument('--pretest-fixes-fork',action='store_true',help='reviewed pre-self-test fork for NOS IRQ mask, routed GENIO1 and observer upgrade');p.add_argument('--driver-upgrade',action='store_true',help='resume identical HDL/host state layout across the reviewed 64-bit observer counter upgrade');p.add_argument('--diagnostic-irq-fork',action='store_true',help='diagnostic-only fork across the reviewed NOS IRQ-mask fix, with identical serialized layout');p.add_argument('--build-only',action='store_true')
+    p.add_argument('--nos-overlay',type=Path,help='separate cold-run lineage: stage NOS_Compatibility.ngo through real overlay loader before CPU release')
     p.add_argument('--build-jobs',type=int,default=4)
     p.add_argument('--rom-cache-bits',type=int,choices=(64,128,256),default=64)
     p.add_argument('--rom-cache-bytes',type=int,choices=(1024,2048,4096),default=1024)
+    p.add_argument('--timer-clock',choices=('cpu','26mhz'),default='cpu',help='counter clock; 26mhz is a separate experiment lineage')
+    p.add_argument('--nos-tick-hz',type=int,choices=(1000,64),default=1000,help='NOS counter frequency, not a forced IRQ frequency')
     p.add_argument('--legacy-sdram-route',action='store_true',help='A/B baseline: keep SDRAM behind peripheral bridge')
     p.add_argument('--rom-cache',action='store_true',help='enable production 1KiB DDR ROM cache')
     p.add_argument('--early-boot-trace',action='store_true',help='bounded delay/caller observer for independent short investigations')
@@ -50,6 +53,7 @@ def main():
     script=Path('tests/phone/hardware_boot/run.sh').read_text();source_text=script.split('--Mdir build/sim/unit-hardware-boot/obj ',1)[1].split(' > build/',1)[0]
     sources=[f for token in source_text.split() for f in sorted(glob.glob(token))]
     sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v']
+    if a.nos_overlay:sources+=['rtl/ngage_nos_overlay.v']
     assert sources and 'tests/phone/hardware_boot/tb.v' in sources
     cpp='tests/phone/hardware_boot/logo_main.cpp'
     headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))
@@ -61,8 +65,18 @@ def main():
             raise ValueError('--use-saved-build requires --restore and forbids model upgrades')
         saved=json.loads((a.restore.parent/'manifest.json').read_text())
         hashes=saved['sources']
+    overlay_sha=sha(a.nos_overlay) if a.nos_overlay else None
+    if a.nos_overlay:
+        import sys
+        sys.path.insert(0,str(ROOT/'tools'))
+        import nos_overlay
+        nos_overlay.inspect(a.nos_overlay.read_bytes())
     identity_fields={'sources':hashes,'powerup':a.powerup,'direct_sdram':not a.legacy_sdram_route}
+    if overlay_sha:identity_fields['nos_overlay_sha256']=overlay_sha
     if a.sys_clk_hz!=104000000:identity_fields['sys_clk_hz']=a.sys_clk_hz
+    if a.timer_clock!='cpu':identity_fields['timer_clock']=a.timer_clock
+    if a.nos_tick_hz!=1000:identity_fields['nos_tick_hz']=a.nos_tick_hz
+    if a.timer_clock=='26mhz' and a.sys_clk_hz not in (78000000,104000000):raise ValueError('26MHz timers require 78/104MHz CPU')
     if a.early_boot_trace:identity_fields['early_boot_trace']=True
     if a.rom_cache:
         identity_fields.update(rom_cache=True,rom_cache_bits=a.rom_cache_bits,rom_cache_bytes=a.rom_cache_bytes)
@@ -78,17 +92,20 @@ def main():
         if saved.get('powerup','alarm')!=a.powerup:
             raise ValueError('reset cause differs; restart from reset')
     if not binary.exists():
-        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_ASSOC_EXPERIMENT','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3','-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
+        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_ASSOC_EXPERIMENT','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3','-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN'] if a.nos_overlay else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     # Precompiled headers are large and unused once the executable exists.
     for cache in build.glob('*.gch'):cache.unlink()
     if a.build_only:print(binary);return
     out=Path('build/sim/runs')/a.name;out.mkdir(parents=True,exist_ok=False)
     inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
-    manifest={'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    manifest={'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    if overlay_sha:manifest['nos_overlay']={'sha256':overlay_sha,'path':str(a.nos_overlay),'skip_primary_checksum':True}
     if saved is not None:manifest['uses_saved_build']=True
     if a.restore:
         prior=json.loads((a.restore.parent/'manifest.json').read_text())
+        if prior.get('nos_overlay',{}).get('sha256')!=overlay_sha:raise ValueError('NOS overlay differs; restart from reset')
+        if prior.get('timer_clock','cpu')!=a.timer_clock or prior.get('nos_tick_hz',1000)!=a.nos_tick_hz:raise ValueError('timer experiment differs; restart from reset')
         if prior.get('powerup','alarm')!=a.powerup:raise ValueError('reset cause differs; restart from reset')
         if not a.use_saved_build and prior.get('direct_sdram',False)!=(not a.legacy_sdram_route):raise ValueError('SDRAM route differs; restart from reset')
         if prior.get('sys_clk_hz',104000000)!=a.sys_clk_hz:raise ValueError('clock parameter differs; restart from reset')
@@ -116,6 +133,11 @@ def main():
         for suffix in ('.cpu','.host'):
             if not Path(str(a.restore)+suffix).is_file() and not Path(str(a.restore)+suffix+'.gz').is_file():raise ValueError('missing checkpoint pair')
     (out/'inputs').mkdir();shutil.copyfile(a.cdrive,out/'inputs/cdrive.img')
+    if a.nos_overlay:
+        overlay_hex=out/'inputs/nos-overlay.hex'
+        data=a.nos_overlay.read_bytes()
+        shutil.copyfile(a.nos_overlay,out/'inputs/NOS_Compatibility.ngo')
+        overlay_hex.write_text(''.join(f'{w[0]:04x}\n' for w in struct.iter_unpack('<H',data.ljust(8192,b'\0'))))
     actual_restore=a.restore
     staging=None
     if a.restore and any(not Path(str(a.restore)+suffix).exists() for suffix in ('.cpu','.host')):
@@ -132,6 +154,7 @@ def main():
         manifest['restore_from_archive']=True
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     cmd=docker+['/work/'+str(binary),image,str(a.cycles),str(out),str(actual_restore) if actual_restore else '-', '+ngage-compact-trace','+core='+str(a.core),'+extension='+str(a.extension),'+cdrive='+str(out/'inputs/cdrive.img')]
+    if a.nos_overlay:cmd+=['+nos-overlay='+str(overlay_hex)]
     print('Running',out,flush=True)
     try:
         run_model(cmd,out)

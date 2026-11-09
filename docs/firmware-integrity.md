@@ -278,3 +278,54 @@ build/oracle/venv/bin/python sim/oracle.py --ideal-clocks --lcd-probe \
 The other firmware variants' provenance and a real physical image remain useful
 independent forensic targets. Timer/interrupt behavior is now the next hardware
 slice for the explicitly patched experiment; see [uem-control-bus.md](uem-control-bus.md).
+
+## 2026-11-09: live stock checksum progress and bypass gates
+
+An isolated replay of hardware-service-boot-12b/checkpoint-1000000000, using
+its frozen generated model, confirms correct intermediate MD5 state after
+6,737,344 bytes. CPU r9..r12 and OpenSSL both yield CD625039, 094C2862,
+4D033BAC, 33E55D40. A further 1M cycles processes 239 blocks (~4197 clocks/block).
+The reference full primary digest matches stock 2c09c86ff047484fdcc0e226f49c44a9;
+this is not yet an observed final digest from this emulated boot.
+
+Disassembly of this stock image shows main verification is effectively always
+on: 500035bc sets r3=1, 500035c0 compares it with zero, and 500035c8 conditionally
+calls 50003298 using descriptor 8f18. Secondary verification at 500035d4 depends
+on descriptor 8f00 being present. The verifier returns early if both start/end
+words are FFFFFFFF; the current descriptors are valid. A mismatch branches to
+the actual infinite loop at 50003290, unlike the currently sampled MD5 PCs.
+No normal boot flag to disable the main check was found. Skipping its call or
+changing the descriptor would modify executed firmware; neither was applied.
+A post-verification checkpoint can avoid repeating it only for the same model
+and compatible saved host state, not across HDL rebuilds.
+
+Evidence: scratch/live-boot-investigation/{checksum-gates.txt,checksum-caller.txt,
+md5-disassembly.txt,md5-progress-1b.log,prefix-proof.json,check-prefix.py,inspect.cpp}.
+Inspector operates on an isolated model and never writes the original checkpoint
+or changes the active run. Primary completion near 1.77B is an extrapolation;
+secondary verification and subsequent display behavior still need observation.
+
+
+### Current service-loader boot passed verification (2026-11-09)
+
+The unmodified hardware-service-boot-12b proceeds from MD5 into Symbian startup
+by1.90B and draws Nokia before1.99B. Its permanent2B CPU/host pair is verified
+by a zero-cycle exact-build restore; both resulting checkpoint files are byte-
+identical to the parent. This is now observed guest progress beyond verification,
+not only an independently computed reference digest. This selected service
+profile has secondary descriptor51230000..5136BFFF and stock MD5
+0b1173ee849db3045a8a0b78507bd96b, also independently matched at extension
+offset70000..1AC000. Historical descriptors above describe different inputs.
+No bypass, digest replacement or firmware patch was used. See latest status
+for screenshot paths, lineage and the separate later hardware failure.
+
+### Optional NOS Compatibility checksum bypass (2026-11-09)
+
+At the user’s explicit request, the optional NOS overlay skips the primary
+firmware checksum while enabled. It changes both raw descriptor address words
+8F18/8F1C to FFFFFFFF, taking the existing verifier's absent-descriptor return.
+The expected digest at8F20..8F2F remains unchanged; there is no derived-digest
+substitution. Secondary verification remains active. NOS OFF restores both
+descriptor words plus all other original overlay targets. Original service
+files remain byte-identical. The package's own CRC/profile/preflight checks
+remain enabled. See firmware-overlays.md and status.md for verification limits.

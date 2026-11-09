@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-09",
+  "scope": "NOS Compatibility optional guest overlay; primary checksum bypass explicitly requested",
+  "package": {
+    "name": "NOS Compatibility",
+    "file": "NOS_Compatibility.ngo",
+    "format": "NGO1",
+    "records": 450,
+    "bytes": 5464,
+    "sha256": "bfbef95b677ea1966de3e25278e9582f7aea563e49c336a1e558356e0caf51e6",
+    "skip_primary_checksum": true,
+    "checksum_bypass": "absent descriptor (8F18..8F1F = FFFFFFFF)",
+    "stock_primary_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+    "original_files_modified": false,
+    "off_restores_original": true,
+    "inputs": {
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1": "e948c435c977772a30ff2dd8ef608f7542a978c0acfd257bc0986925fd548690",
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.326": "fd4126eeaddf5c0cd72a9961f51e283bd1ed4245106e20f01d5a5551e85fddc7"
+    },
+    "compiler": "arm-none-eabi-gcc (GCC) 15.2.0"
+  },
+  "evidence": {
+    "loader_and_top": {
+      "path": "scratch/nos-overlay/final-loader-top-tests.log",
+      "sha256": "563abafc40b85ed676eb96ed230b32d956b610e099d9703daf549337119c51c2",
+      "passes": [
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS top-level structural elaboration (HPS and PLL stubbed)"
+      ]
+    },
+    "guest": {
+      "path": "scratch/nos-overlay/guest-tests.log",
+      "sha256": "3d045943e598c8b0668ad8f2ef647d11bcb07bd1afecbcd5762be8e0f7290d4c",
+      "passes": [
+        "PASS NOS guest: attach, asynchronous receive, queue, cancel, overflow, vibration and unsupported-resource boundary"
+      ]
+    },
+    "real_hps_transport": {
+      "path": "scratch/nos-overlay/hps-tests.log",
+      "sha256": "e12d43be14ec9102376202af670a4e1332a0f5ab2effdf5411ef4d8f0b7f134f",
+      "passes": [
+        "PASS actual hps_io boot2/F3, deferred firmware gating, exact ON/OFF, service-index isolation, backpressure and C:/PMM preservation"
+      ]
+    }
+  },
+  "not_verified": [
+    "installed MiSTer Main transport",
+    "Quartus fit and timing",
+    "full NOS guest ABI/startup/UI"
+  ],
+  "original_simulations_preserved": [
+    "hardware-service-boot-12b",
+    "timing26-nos64-resume-12b"
+  ],
+  "separate_boot": {
+    "run": "build/sim/runs/nos-compatibility-cold-50m",
+    "target": 50000000,
+    "status": "completed",
+    "observed_minimum_cycles": 50000000,
+    "data_faults": 0,
+    "known_fetch_faults": 12,
+    "loader_before_cpu_release": true,
+    "actual_firmware_verifier_return_observed": false,
+    "result": {
+      "boot_index": 0,
+      "boot_limit": 0,
+      "retired": 0,
+      "ddr_commands": 0,
+      "ddr_beats": 0,
+      "cycle": 50000000,
+      "pc": 24916,
+      "lcd_words": 0,
+      "frame_complete": 0,
+      "display_on": 0,
+      "unsupported": 0,
+      "bus_errors": 12,
+      "data_errors": 0,
+      "seconds": 574.224,
+      "interrupted": false,
+      "outputs": {
+        "build/sim/runs/nos-compatibility-cold-50m/framebuffer.bin": "06c6a2c276d53823cad61c13d831dd0e294464328e88527bb61eece8cf1040bf",
+        "build/sim/screens/nos-compatibility-cold-50m/scanout.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e",
+        "build/sim/screens/nos-compatibility-cold-50m/framebuffer.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e"
+      }
+    },
+    "exact_checkpoint_restore": {
+      ".cpu": {
+        "sha256": "e40d0c1b8c7738163cd25bc20a969a93e445a52b5b962b1707fa8da3dc967f48",
+        "bytes": 42333899
+      },
+      ".host": {
+        "sha256": "0a43f4a5b12cd7e97d80142b1cfde5246b0e2868928bea1138bbf05a06c1e806",
+        "bytes": 230416
+      }
+    },
+    "stock_mode_restore_rejected": true
+  },
+  "continuation": {
+    "run": "build/sim/runs/nos-compatibility-resume-12b",
+    "restore_cycle": 50000000,
+    "target_cycles": 12000000000,
+    "uses_frozen_build": true,
+    "status": "running; guest startup not yet verified"
+  }
+}

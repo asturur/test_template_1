@@ -1,5 +1,29 @@
 # Firmware-driven display bring-up
 
+## 2026-11-09: post-logo instruction sampling
+
+An isolated2B→2.05B replay of the same frozen model shows recurring NOS deferred
+callbacks (514A18D4), mailbox scans (514A10CC,26objects ×3kinds) and NOS timers,
+with normal returns and kernel/GENIO IRQ handling. This is real repeated service
+work, not a single self-branch. No LCD polling is observed. Unique trace PCs still
+increase through the50M sample; no permanent global deadlock is established.
+MTC state3, SIM state1 and zero registered NOS channels persist in the cache-aware
+view. These are leads for startup-readiness tracing, not a demonstrated cause.
+The sample is only~0.64nominal phone seconds. See latest status and
+[evidence](evidence/post-logo-execution-2026-11-09.json) for counts and limitations.
+
+## 2026-11-09: current service-loader profile reaches Nokia at2B
+
+Unmodified firmware from the actual service-loader DDR export, copied hardware
+C: and erased PMM reaches Nokia before1.99B in the frozen dd61fbd8e9de2534 model.
+The permanent2B pair in hardware-service-boot-12b is preserved; an exact-binary
+zero-cycle restore produces byte-identical CPU/host files. Actual scanout was
+visually inspected at build/sim/screens/hardware-service-post-checksum-2b/scanout.png.
+At2B:36689LCDwords,display_on/frame_complete1,unsupported1,12knownfetch faults,
+zero datafaults. This establishes post-checksum Nokia, not subsequent UI boot.
+Original12B run continues independently; latest hardware failure at50300B06
+has not been reproduced here. See status.md for request/error/MMU evidence.
+
 2026-11-07: [reached-command evidence and decoder limits](lcd-command-evidence.md) now records the fresh 125-write HDL fixture, stock `lcd.ldd` CA/CC table verification, explicit full-window parameter capture and unknown context. Partial-window rendering remains unsupported; the frozen long run is unaffected by this new build.
 
 ## 2026-11-06: stock-firmware Nokia logo reached in cold HDL boot

@@ -8,7 +8,9 @@ module ngage_board #(
               LCD_ENABLE         = 0,
               LCD_DMA_ENABLE     = 0,
               UEM_POWERUP_STATUS = 1,
-              SYS_CLK_HZ         = 104000000
+              SYS_CLK_HZ         = 104000000,
+              TIMER_CLK_DIV      = 1,
+              NOS_TICK_HZ        = 1000
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -207,6 +209,8 @@ module ngage_board #(
     endgenerate
     ngage_upp #(
         .SYS_CLK_HZ      (SYS_CLK_HZ),
+        .TIMER_CLK_DIV   (TIMER_CLK_DIV),
+        .NOS_TICK_HZ     (NOS_TICK_HZ),
         .INTERNAL_CPU    (INTERNAL_CPU),
         .DIRECT_SDRAM    (DIRECT_SDRAM),
         .SIMIF_ENABLE    (SIMIF_ENABLE),

@@ -1,8 +1,9 @@
 // Tick-level port of the staged board's timer hypotheses. UNIT60_DELAY is an
 // observed-model constant, not a claim about the physical timer prescaler.
 module ngage_timers #(
-    parameter [31:0] BOOT_DELAY   = 32'd18200000,
-                     UNIT60_DELAY = 32'd128
+    parameter integer        CLOCK_DIV    = 1,
+    parameter         [31:0] BOOT_DELAY   = 32'd18200000,
+                             UNIT60_DELAY = 32'd128
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -31,6 +32,14 @@ module ngage_timers #(
     reg [31:0] boot_left, period, period_left, unit1_elapsed, unit1_compare, unit60_left;
     reg unit1_running, boot_started, timer_fired, status_written, compare_written;
     integer index, slot, i;
+    // 78/104 MHz CPU clocks use /3 or /4 for the 26 MHz timer domain.
+    // Registers and acknowledgements remain accessible on every CPU clock.
+    reg  [1:0] divider = 0;
+    wire       timer_ce = divider == CLOCK_DIV - 1;
+    always @(posedge clk) begin
+        if (reset || timer_ce) divider <= 0;
+        else divider <= divider + 1'b1;
+    end
     wire boot_arm=commit && claim && !bad && we && a==32'h0c120a18 &&
                boot_started && din==32'h0115b5c0;
     wire unit60_write = commit && claim && !bad && we && a >= 32'h0c120a60 && a < 32'h0c120a80;
@@ -111,8 +120,8 @@ module ngage_timers #(
             boot_started    <= 0;
             for (i = 0; i < 40; i = i + 1) unit_regs[i] <= 0;
         end else begin
-            if (boot_left != 0) boot_left <= boot_left - 1'b1;
-            if (period_left != 0) begin
+            if (timer_ce && boot_left != 0) boot_left <= boot_left - 1'b1;
+            if (timer_ce && period_left != 0) begin
                 period_left <= period_left - 1'b1;
                 if (period_left == 1) begin
                     timer0_pending <= 1;
@@ -120,8 +129,8 @@ module ngage_timers #(
                     period_left    <= period;
                 end
             end
-            if (unit60_left != 0) unit60_left <= unit60_left - 1'b1;
-            if (unit1_running) begin
+            if (timer_ce && unit60_left != 0) unit60_left <= unit60_left - 1'b1;
+            if (timer_ce && unit1_running) begin
                 if (unit1_elapsed + 1 >= unit1_compare) begin
                     unit1_running <= 0;
                     unit1_elapsed <= 0;
@@ -147,10 +156,10 @@ module ngage_timers #(
                         end
                         32'h0c120a18: begin
                             reload0 <= din;
-                            if (boot_arm) boot_left <= BOOT_DELAY > 0 ? BOOT_DELAY - 1'b1 : 0;
+                            if (boot_arm) boot_left <= BOOT_DELAY > 0 ? BOOT_DELAY - timer_ce : 0;
                             if (din == 32'h000632ea && control0 == 2) begin
                                 period      <= din;
-                                period_left <= din - 1'b1;
+                                period_left <= din - timer_ce;
                             end
                         end
                     endcase
@@ -159,9 +168,9 @@ module ngage_timers #(
                     if (a >= 32'h0c120a60 && a < 32'h0c120a80) begin
                         unit60_pending <= 0;
                         if (slot == 4)
-                            unit60_left<=din==2?(UNIT60_DELAY>0?UNIT60_DELAY-1'b1:0):0;
+                            unit60_left<=din==2?(UNIT60_DELAY>0?UNIT60_DELAY-timer_ce:0):0;
                         else if (slot == 8 && unit_regs[(32'h0c120a64-32'h0c120a20)>>2] == 2)
-                            unit60_left <= UNIT60_DELAY > 0 ? UNIT60_DELAY - 1'b1 : 0;
+                            unit60_left <= UNIT60_DELAY > 0 ? UNIT60_DELAY - timer_ce : 0;
                     end
                     if (a >= 32'h0c120a20 && a < 32'h0c120a40) begin
                         if (slot == 4) begin
@@ -178,24 +187,25 @@ module ngage_timers #(
             // C++ applies a CPU request before ticking the board. A newly armed
             // one-shot consumes its first count on that same edge, and an expiry
             // on an acknowledgement edge reasserts the interrupt.
-            if((boot_arm && BOOT_DELAY==1) || (!boot_arm && boot_left==1) ||
-      (period_left==1 && !timer0_rearm))
+            if(timer_ce && ((boot_arm && BOOT_DELAY==1) || (!boot_arm && boot_left==1) ||
+      (period_left==1 && !timer0_rearm)))
                 timer_fired <= 1;
-            if (boot_arm && BOOT_DELAY == 1) timer0_pending <= 1;
-            else if (!boot_arm && boot_left == 1) timer0_pending <= 1;
-            if (period_left == 1 && !timer0_rearm) begin
+            if (timer_ce && boot_arm && BOOT_DELAY == 1) timer0_pending <= 1;
+            else if (timer_ce && !boot_arm && boot_left == 1) timer0_pending <= 1;
+            if (timer_ce && period_left == 1 && !timer0_rearm) begin
                 timer0_pending <= 1;
                 status0        <= 1;
             end
-            if (unit60_reload && UNIT60_DELAY == 1) unit60_pending <= 1;
-            else if (!unit60_reload && !unit60_stop && unit60_left == 1) unit60_pending <= 1;
+            if (timer_ce && unit60_reload && UNIT60_DELAY == 1) unit60_pending <= 1;
+            else if (timer_ce && !unit60_reload && !unit60_stop && unit60_left == 1)
+                unit60_pending <= 1;
             if (unit1_reconfigure && unit1_active_next) begin
-                if (unit1_compare_next <= 1) begin
+                if (timer_ce && unit1_compare_next <= 1) begin
                     unit1_running <= 0;
                     unit1_elapsed <= 0;
                     unit1_pending <= 1;
-                end else unit1_elapsed <= 1;
-            end else if (!unit1_reconfigure && unit1_running && unit1_elapsed + 1 >= unit1_compare)
+                end else unit1_elapsed <= timer_ce ? 1 : 0;
+            end else if (timer_ce && !unit1_reconfigure && unit1_running && unit1_elapsed + 1 >= unit1_compare)
                 unit1_pending <= 1;
         end
     end

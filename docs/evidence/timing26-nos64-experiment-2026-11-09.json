@@ -1,0 +1,73 @@
+{
+  "profile": {
+    "general_timer_clock_hz": 26000000,
+    "os_tick_hz": 64,
+    "nos_counter_hz": 64,
+    "cpu_clock_hz": 78000000,
+    "nos_irq": "firmware-programmed compare, not forced64Hz",
+    "adsp_tick": "shares the experimental NOS tick",
+    "calibration_counter": "unchanged approximate32768Hz"
+  },
+  "source_identity": "65ea564947bfe4e45ee4d2fa95cd23fc232a5b50fd694004edb0677cb6d9b0c2",
+  "binary_sha256": "bcbb12f89191d133ee2cdcae77d3d10d896ea7630317c9f9dc999f5334656022",
+  "cold_checkpoint_cycle": 50347830,
+  "checkpoint_hashes": {
+    ".cpu": "5a688398e6c53cabe2ca03b2a924b0ff5ca3889f3f528969657ef3d2d1f17a44",
+    ".host": "d840997f83b7707f518e813bef59e4e4dbf9956a0c5d0e303c61537a383f7be5"
+  },
+  "cold_result": {
+    "boot_index": 0,
+    "boot_limit": 0,
+    "retired": 0,
+    "ddr_commands": 0,
+    "ddr_beats": 0,
+    "cycle": 50347830,
+    "pc": 24920,
+    "lcd_words": 0,
+    "frame_complete": 0,
+    "display_on": 0,
+    "unsupported": 0,
+    "bus_errors": 12,
+    "data_errors": 0,
+    "seconds": 537.695,
+    "interrupted": true,
+    "outputs": {
+      "build/sim/runs/timing26-nos64-cold-12b/framebuffer.bin": "06c6a2c276d53823cad61c13d831dd0e294464328e88527bb61eece8cf1040bf",
+      "build/sim/screens/timing26-nos64-cold-12b/scanout.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e",
+      "build/sim/screens/timing26-nos64-cold-12b/framebuffer.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e"
+    }
+  },
+  "continuation": "build/sim/runs/timing26-nos64-resume-12b",
+  "target_cycles": 12000000000,
+  "firmware_inputs": {
+    "core": {
+      "path": "scratch/hardware-live/service-loaded-boot/core.bin",
+      "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+    },
+    "extension": {
+      "path": "scratch/hardware-live/service-loaded-boot/extension.bin",
+      "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+    },
+    "cdrive": {
+      "path": "scratch/hardware-live/hardware-cdrive.img",
+      "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+    }
+  },
+  "checks": {
+    "rates78_and104": "PASS",
+    "non_counter_edge_ACK": "PASS",
+    "NOS_compare_not_forced_irq": "PASS",
+    "legacy_timer_conformance": "PASS",
+    "NOS_wrap_W1C": "PASS",
+    "ICU": "PASS",
+    "clock_propagation_native_video": "PASS",
+    "CPU_board_timers26_NOS64": "PASS",
+    "top_elaboration": "PASS",
+    "baseline_checkpoint_rejection": "PASS"
+  },
+  "limits": [
+    "50M is early startup, not post-logo or verification completion.",
+    "Current performance RTL plus timing changes; not a timing-only A/B against the older original12B executable.",
+    "No hardware timing/fitting/build validation."
+  ]
+}
