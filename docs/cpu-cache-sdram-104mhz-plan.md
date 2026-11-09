@@ -12,7 +12,10 @@ fit42520603079 and were reverted; active ARM RTL is exactly patch0048. Its faile
 experiment and independent collision tests are preserved. Cache lookup/address
 ownership is implemented as the next fit candidate, without bundling write-buffer
 work; see [cache-lookup-stage-contract.md](cache-lookup-stage-contract.md) for the
-exact owner/epoch contract and measured +1 cached-lookup clock.
+exact owner/epoch contract and measured +1 cached-lookup clock. Fit42527340861
+passes the owner→lookup stages but exposes request→owner admission. The next
+refinement samples demand/maintenance/lookahead candidates independently and
+registers only narrow admission selection; it adds no pipeline edge.
 The later journal fit42492307815 exposed D-fault/alignment→ACK→global stall→R
 capture, so patch0047 promotes the measured completion/local-advance portion of
 slice5 ahead of cache/translation work. Its blocking response owner adds one

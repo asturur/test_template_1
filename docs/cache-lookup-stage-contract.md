@@ -1,25 +1,49 @@
 # Cache lookup ownership: slice2 contract
 
-2026-11-08. Baseline is the restored patch0048 CPU (`57bf13d` revert commit,
+2026-11-09. Initial baseline is the restored patch0048 CPU (`57bf13d` revert commit,
 RTL equal to `71b8940` before the cache change). Patch0049's forwarding experiment
 remains rejected and archived. This slice changes cache request/address ownership;
 it does not redesign the write buffer, translation engine, SDRAM or CPU forwarding.
 
 ## Accepted owner and bank address
 
-`arm920_cache_access` captures L0 before the tag RAM or flag snapshot:
-`lookup_owner_valid`, `lookup_owner_kind`, `lookup_owner_mva`,
-`lookup_owner_segment_select` and `lookup_owner_epoch`. Arbitration is accepted
-maintenance, then accepted demand, then idle resident-only lookahead. The existing
-`req_valid && req_ready` and maintenance handshake are unchanged. Demand PA,
-write data, byte mask, cache attributes and MVA still capture on that same edge.
+The first L0 fit42527340861 (`6adaf61`) passes owner→tags+1.328ns,
+lookup pipeline+1.829 and response+1.129, but leaves request→owner−1.140:
+writeback PC→stream hit→admission qualification→wide address capture. The
+following admission refinement preserves all pipeline edges and public handshakes.
 
-Only registered L0 MVA drives `bank.mva`. An eight-bit registered one-hot decode
-of the same MVA segment feeds existing per-way valid/dirty snapshot reductions.
-Tag RAM and victim addressing use L0's binary segment. No metadata arrays or
-cache lines are duplicated. The 64-way compare and balanced selection remain.
-This cuts the measured abort/writeback/request-qualification→live bank address
-(fanout463)→flag-snapshot route, which reached−1.819ns in fit42520603079.
+`arm920_cache_access` samples three candidate records independently of admission:
+
+- `lookup_demand_mva` and `lookup_demand_segment_select` sample the live demand
+  address on every registered-IDLE edge, then hold throughout a busy operation.
+- `lookup_maint_mva` and `lookup_maint_segment_select` do the same for maintenance.
+- `lookup_ahead_mva` and `lookup_ahead_segment_select` sample the resident-only
+  lookahead address every clock. Changes while busy cannot acquire ownership.
+
+Only narrow `lookup_owner_valid`, one-hot `lookup_owner_kind` and
+`lookup_owner_epoch` depend on accepted maintenance/demand or an eligible idle
+lookahead offer. Priority remains maintenance, demand, then lookahead. The exact
+`req_valid && req_ready` and maintenance handshake is unchanged. A post-register
+masked OR selects `lookup_owner_mva` and its coherent eight-bit segment select
+from the three records; these names are now combinational aliases, not FFs.
+No live hit/ACK/request-valid decision controls any wide address capture. That
+control still reaches the narrow grant and FSM; its timing must remain visible.
+
+Demand `mva` and `saved_maint_address` reuse the corresponding snapshots, replacing
+their former separate storage. Total address storage therefore remains three
+32-bit words. Segment snapshots add16bits and the one-hot kind adds1bit before
+synthesis optimization; routed resource use remains unmeasured. No metadata array
+or cache line is duplicated. Tag RAM and victim addressing use the selected
+registered binary segment; per-way valid/dirty reads use its registered one-hot
+segment. The64-way compare and balanced selection remain unchanged.
+
+Idle unaccepted snapshots have no architectural effect. Background write-buffer
+drain uses its own FIFO address/data; its hazard query still uses accepted physical
+`pa`, which is unchanged. Refill and maintenance start only in their owned states
+and preserve their internal records. A read response captures its selected word
+before returning to IDLE. Thus none of these consumers can use an invalid idle
+virtual-address snapshot. A logical-owner scoreboard and held-bus assertions check
+accepted ownership, busy hold, rejected offers and pending background drain.
 
 A serialized owner holds its address and kind through lookup, store, write-buffer
 wait, drain, dirty replacement, refill, retry and maintenance. Live offer inputs
@@ -132,10 +156,15 @@ two-wait mix changes1729724→1729858 (+134,+0.00775%); legacy0/3 remains
 
 ## Physical gates and evidence
 
-The next fit must measure request→L0 capture, L0→tag/flag reads, lookup/token
-pipeline and cache→response separately. The existing24 CPU groups remain; four
-cache groups make28. Registered one-hot fanout and mux placement still require
-routed evidence. CPU forwarding, shifter, cache transfer/maintenance, write-buffer,
+The next fit must measure request→wide candidate capture, request→narrow
+admission control, selected L0→tag/flag reads, lookup/token pipeline and
+cache→response separately. The existing24 CPU groups remain; six cache groups
+make30. Actual snapshot FFs and the registered kind are report endpoints; the
+selected owner aliases must not be mistaken for registers. The post-register
+three-way selection uses some of the formerly positive owner→tags budget; that
+prior+1.328ns result cannot be inherited by this candidate. Registered one-hot
+fanout and mux placement still require routed evidence. CPU forwarding, shifter,
+cache transfer/maintenance, write-buffer,
 SDRAM and peripheral paths remain independent open timing work. No frequency,
 clock relationship or timing exception was changed;104MHz closure is not claimed.
 
@@ -143,3 +172,19 @@ Evidence: `scratch/timing-closure/cache-lookup-owner/`, including source snapsho
 phase-reference/current logs, cache-access differential, frozen-source hashes and
 final validation summary. Prior checkpoints and rejected experiment evidence are
 preserved. Simulation verifies the stated RTL contract, not a physical phone.
+
+## Admission-refinement validation
+
+Candidate RTL is frozen against `6adaf61`. The expanded directed fixture passes
+11,029 logical-owner edges,384 streaming requests and24 cancellation races.
+It also changes24 idle candidates while a buffered store waits for ACK, tries8
+lock-denied offers, and collides maintenance with a store. The accepted owner,
+held bus payload and exact-once store effect remain correct. All isolated cache
+latencies in the table above are unchanged. Full regression172PASS+1expected XFAIL
+includes152 CPU cases/44 SWP edge×wait cases; every absolute cycle and reported
+counter matches the baseline. All five waits, fixed mix1729858, legacy135782/234446,
+21,118 effects and848 fresh5M boot events (including timestamps) are identical.
+Final hashes match frozen RTL. Comparisons are recorded in status and
+`scratch/timing-closure/cache-admission/validation-summary.json`. The Quartus17
+synthesis translate_off/on assertion guard remains.
+No ARM import changes are needed;49 active patches through0050 still reproduce.

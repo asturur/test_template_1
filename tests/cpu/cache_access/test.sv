@@ -23,6 +23,23 @@ module test;
   if(bw)begin writes<=writes+1;for(integer k=0;k<4;k=k+1)if(bs[k])mem[ba[16:2]][k*8+:8]<=bd[k*8+:8];end
   else begin reads<=reads+1;if(hold_after_refill)allow<=0;end
  end
+ // Independent logical-owner scoreboard: observe only accepted interface
+ // events and resident-only offers. Unaccepted snapshots must never own work.
+ logic expected_owner_valid=0;logic [31:0] expected_owner_address=0;
+ integer owner_edges=0;
+ always @(posedge clk) begin
+  if(reset)begin expected_owner_valid=0;expected_owner_address=0;end
+  else if(mv && mr)begin expected_owner_valid=1;expected_owner_address=mad;end
+  else if(req && ready)begin expected_owner_valid=1;expected_owner_address=mva;end
+  else if(fast && dut.state==0 && !req && !mv && !inv && !lock)begin
+   expected_owner_valid=1;expected_owner_address=fast_addr;
+  end else if(dut.state==0)expected_owner_valid=0;
+  #1;
+  if(dut.lookup_owner_valid!==expected_owner_valid ||
+     (expected_owner_valid && dut.lookup_owner_mva!==expected_owner_address))
+   $fatal(1,"logical cache owner differs from accepted interface event");
+  owner_edges++;
+ end
  task automatic tick;begin @(posedge clk);#1;@(negedge clk);end endtask
  task automatic access(input logic write_op,input logic [31:0] a,input logic [31:0] data,input logic [3:0] mask,input logic bufferable,output logic [31:0] result);
   begin
@@ -204,6 +221,35 @@ module test;
   end
   $display("LOOKUP_CANCEL: 24 token-stage/cause races, demand store data and epoch association");
 `endif
+  // Idle snapshots may change while an older buffer group owns the bus.
+  // Neither those candidates nor speculative reads may redirect its payload.
+  fast=0;en=0;b=1;allow=0;wr=1;mva=32'h980;pa=32'h80000980;
+  wd=32'had011234;ben=4'hf;w0=writes;req=1;tick();req=0;
+  while(!rv)tick();
+  if(wbempty)$fatal(1,"background-drain test did not retain a store");
+  for(integer change=0;change<24;change++)begin
+   mva=32'h1000+change*32;mad=32'h2000+change*32;fast_addr=32'h800+change*32;
+   wd=~wd;pa=~pa;fast=change[0];tick();
+  end
+  if(writes!=w0 || ba!==32'h80000980 || bd!==32'had011234)
+   $fatal(1,"idle candidate changed a background write");
+  fast=0;allow=1;while(!wbempty)tick();
+  if(writes!=w0+1 || mem['h260]!==32'had011234)$fatal(1,"background store lost/replayed");
+  // Lock denies all offers; both live addresses can change without ownership.
+  en=1;wr=0;lock=1;req=1;mv=1;
+  for(integer change=0;change<8;change++)begin
+   mva=32'h3000+change*32;mad=32'h4000+change*32;fast_addr=32'h5000+change*32;
+   tick();if(ready || mr || dut.lookup_owner_valid)$fatal(1,"blocked offer acquired cache ownership");
+  end
+  // Simultaneous offers: maintenance wins; the unaccepted store must not occur.
+  lock=0;mc=1;mi=0;ma=0;mb=1;mad=32'h800;
+  mva=32'h980;pa=32'h80000980;wd=32'hbad0bad0;wr=1;req=1;mv=1;tick();
+  req=0;mv=0;wr=0;mad=32'hdeadbeef;mva=32'hbeefdead;fast_addr=32'hfedcba98;
+  while(!md)tick();while(!wbempty)tick();tick();
+  if(mem['h260]!==32'had011234)$fatal(1,"maintenance admitted competing store");
+  mc=0;mb=0;fast=0;
+  access(0,32'h800,0,4'hf,1,result);
+  $display("LOOKUP_ADMISSION: %0d owner edges; idle background drain, denied offers, simultaneous maintenance/demand",owner_edges);
   $display("PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction");$finish;
  end
 endmodule

@@ -1,3 +1,93 @@
+## 2026-11-09: cache admission refinement — validated fit candidate
+
+The remaining request→owner−1.140ns cone now terminates at a narrow registered
+one-hot owner selector. Three independent address/segment candidate records sample
+without live hit/ACK/admission control; demand and maintenance hold throughout busy
+ownership. Their existing address storage is reused, and selection occurs before
+the existing tag-read edge. No new stage or acceptance rule. Epoch cancellation,
+maintenance priority, serial response ownership and stream throughput are retained.
+Quartus17 translate_off/on guards are preserved; no ARM import changes, so49
+active patches through0050 remain the exact provenance baseline.
+
+Directed cache tests and frozen-source comparison pass with identical isolated
+latencies: read hit4 visible/5 sampled, clean miss23, WB store5, uncached3,
+MVA clean12, indexed invalidate5, all512 invalidate1538. The logical-owner oracle
+checks11,029edges;384 sequential resident requests,24 cancellation races,24 changing
+idle candidates during stalled buffered write drain,8denied offers and maintenance-
+versus-store priority pass. Unaccepted virtual snapshots cannot affect background
+FIFO bus records or the retained accepted physical-address hazard query.
+
+Full regression172PASS+1expected legacy XFAIL. All152 CPU absolute cycle counts
+and reported counters/phases match6adaf61's functional baseline, including44 SWP
+IRQ/FIQ edge×wait cases. All five0/3/7/15/31wait results are identical: totals
+243457/333957/408273/634683/1095735, body1464/1720/2067/2791/4243, warmed ADD1,
+load-use minimum20 and branch minimum14. All21,118 architectural effects match
+byte-for-byte. Fixed four-program/two-wait mix remains1729858; legacy0/3 smoke
+remains135782/234446. Fresh5M real-SDRAM matches all848 events and timestamps
+exactly (121writes,12 known fetch faults/no data faults,PC00006168,289114transfers,
+last write190170). No performance cost was added by this admission refinement.
+
+Phone integration,174sources/9QIPs, provenance, ONLY_CORE/legacy/assoc elaboration,
+top lint and30 targeted timing-query mocks pass. Final RTL hashes match the frozen
+sources. Evidence and reproducible comparisons:
+scratch/timing-closure/cache-admission/{validation-summary.json,analyze.py}.
+Contract: [cache lookup ownership](cache-lookup-stage-contract.md).
+
+Ready for one isolated routed fit. Actual snapshot FFs are lookup_demand_mva,
+lookup_maint_mva, lookup_ahead_mva and their segment_select companions; the one-hot
+lookup_owner_kind is registered. lookup_owner_mva/segment_select are now selected
+combinational aliases. Separate capture/control probes prevent a moved path from
+being hidden. The post-register selector consumes some previous owner→tags margin;
+that fit's+1.328ns does not establish this candidate's timing. Narrow admission,
+lookup selection, resources and other known CPU/cache/SDRAM/peripheral paths still
+need routed evidence. No104MHz closure claim, new timing exception or clock change.
+
+## 2026-11-09: cache fit42527340861 — registered lookup passes, admission remains
+
+Run42527340861 SHA6adaf61 compiles/fits; only passing-timing gate fails.
+Correct comparison is restored pre-cache71b8940/run42516106759, not rejected0049:
+Fmax86.15→85.68MHz, WNS−1.928→−2.056ns, TNS−2079.311→−2920.769ns
+(40.47% larger magnitude). ALMs32992→32794 (−198), registers43338→43569 (+231),
+M10Ks465/DSP38 unchanged; memory bits2482539. Relative to rejected forwarding fit,
+Fmax77.97→85.68 and TNS−4933.783→−2920.769, but that bundles revert and cache change.
+HDMI+.163; hold/recovery/removal/pulse minima+.237/+1.462/+1.120/+.961 all pass.
+Global worst is SDRAM wr_l[1]→sdram_a[12] duplicate,12.073ns data/7logic levels,
+−2.056ns. Fmax is consistent with that full-cycle path, not the earlier DQ half-cycle.
+
+28 targeted queries:27ok,10paths each; CP15→R no_paths as intended.
+Cache owner→tags+1.328, lookup pipeline+1.829, response+1.129 demonstrate that
+registered address/segment removed the former live-request→metadata-read cone.
+But request→owner−1.140 remains: writeback pc_del3[5]→stream_hit→adapter/state
+qualification→lookup_owner_mva[11]. The register has localized the slow admission
+cone, not eliminated it. Do not mark complete104MHz cache closure.
+Residual metadata−1.457 is commit_mva→victim selection/range compare→victim update,
+separate from owner→lookup snapshot. Positive completion capture+1.389,
+completion→R+.803, formatter+3.432, formattedM→issue+1.577, journal+1.343/+3.159.
+Operand residuals: D→R−1.028, pointer→issue−1.726, pointer→queue−1.083,
+M→issue−1.585, execute→issue−.869, CP15 response−.002. Pointer queue loop is
+selected control→shift_lock/load lock→read_slot; no wide promotion copy returned.
+
+Top1000 endpoint groups: writebuffer222, ICU175, LCD framebuffer93, LCD DMA65,
+predecode59, cache transfer57, issue47, MDI39, BTB33, cache bank32, fetch22,
+timers19, bridge15, busmerger11, cache tags10, DDR10, other91. Full groups in
+scratch/timing-closure/cache-fit-42527340861/endpoint-groups.json.
+352 launch reset_drain,177 bus_address[7],94 Equal8 marker,93 LCD y[3],41 read_slot.
+Worst writebuffer−1.420 follows reset-qualified request→word index→merge_single→
+entry-data enables; reservation/merge ownership remains relevant. Counts are
+bounded worst-per-endpoint samples, not an exhaustive failing-path inventory.
+
+Decision: retain cache owner because its intended downstream seams pass with
+margin and no ALM increase versus pre-cache. Next finish request admission:
+separate resident lookahead address capture from serialized demand ownership so
+live stream-hit/ACK selection does not control the wide owner address capture;
+preserve exact acceptance, cancellation and response matching without another
+blind pipeline stage. Then original write-buffer reservation/local-enable slice
+(222paths) and victim-update locality. CPU pointer/hazard/forwarding and SDRAM
+address output remain explicit unresolved parallel closure topics. Cache stage
+cost remains +1 hot demand (19→20 issue gap); no frequency win proven yet.
+No RTL edits/tests/commit/push/build in this analysis-only turn. Prior172PASS,
+21118 effects and848-event byte-identical boot remain functional evidence.
+
 ## 2026-11-08: Quartus assertion elaboration guard
 
 Run42526326199 stopped in Analysis/Synthesis with Error10207 at

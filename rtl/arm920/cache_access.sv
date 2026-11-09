@@ -70,7 +70,7 @@ module arm920_cache_access (
         MAINT_CAPTURE
     } state_t;
     state_t state;
-    logic [31:0] mva, pa, wdata;
+    logic [31:0] pa, wdata;
     logic [3:0] ben;
     logic wr, enabled, cacheable, bufferable;
     logic hit, victim_valid, need, refill_ready, read_valid;
@@ -89,25 +89,51 @@ module arm920_cache_access (
     logic [31:0] scan_pa, maint_bus_address, maint_bus_data;
     logic maintenance_busy, maintenance_done, maintenance_error;
     logic saved_maint_clean, saved_maint_invalidate, saved_maint_all, saved_maint_by_mva;
-    logic [31:0] saved_maint_address;
     logic [5:0] saved_maint_way;
     logic [2:0] saved_maint_segment;
-    // L0 owns the bank address before any tag RAM or flag snapshot reads it.
-    // A serialized owner remains fixed through store/refill/retry/maintenance.
-    // Resident-only lookahead may replace L0 each idle clock; it never starts
-    // a refill or any bus request. Maintenance acceptance has first priority.
-    localparam [1:0] LOOKUP_DEMAND = 2'd0, LOOKUP_AHEAD = 2'd1, LOOKUP_MAINT = 2'd2;
+    // L0 samples candidate addresses independently of live admission/hit/ACK.
+    // Only the narrow registered kind grants ownership. Demand/maintenance
+    // snapshots hold once busy; unaccepted idle snapshots have no side effects.
+    // Reuse these snapshots for serialized request/maintenance address storage.
+    localparam [2:0] LOOKUP_DEMAND = 3'b001, LOOKUP_AHEAD = 3'b010, LOOKUP_MAINT = 3'b100;
     reg lookup_owner_valid, lookup_owner_epoch, fast_epoch, fast_enabled_q;
-    reg [1:0] lookup_owner_kind;
-    reg [31:0] lookup_owner_mva;
-    reg [7:0] lookup_owner_segment_select;
+    reg [2:0] lookup_owner_kind;
+    reg [31:0] lookup_demand_mva, lookup_ahead_mva, lookup_maint_mva;
+    reg [7:0] lookup_demand_segment_select, lookup_ahead_segment_select, lookup_maint_segment_select;
+    wire [31:0] mva = lookup_demand_mva;
+    wire [31:0] saved_maint_address = lookup_maint_mva;
+    wire [31:0] lookup_owner_mva =
+        ({32{lookup_owner_kind[0]}} & lookup_demand_mva) |
+        ({32{lookup_owner_kind[1]}} & lookup_ahead_mva) |
+        ({32{lookup_owner_kind[2]}} & lookup_maint_mva);
+    wire [7:0] lookup_owner_segment_select =
+        ({8{lookup_owner_kind[0]}} & lookup_demand_segment_select) |
+        ({8{lookup_owner_kind[1]}} & lookup_ahead_segment_select) |
+        ({8{lookup_owner_kind[2]}} & lookup_maint_segment_select);
+    always @(posedge clk) begin
+        if (reset) begin
+            lookup_demand_mva <= 0;
+            lookup_ahead_mva <= 0;
+            lookup_maint_mva <= 0;
+            lookup_demand_segment_select <= 8'b1;
+            lookup_ahead_segment_select <= 8'b1;
+            lookup_maint_segment_select <= 8'b1;
+        end else begin
+            lookup_ahead_mva <= fast_lookup_address;
+            lookup_ahead_segment_select <= 8'b1 << fast_lookup_address[7:5];
+            if (state == IDLE) begin
+                lookup_demand_mva <= req_mva;
+                lookup_maint_mva <= maint_address;
+                lookup_demand_segment_select <= 8'b1 << req_mva[7:5];
+                lookup_maint_segment_select <= 8'b1 << maint_address[7:5];
+            end
+        end
+    end
     wire accept_demand = req_valid && req_ready;
     wire accept_maintenance = maint_valid && maint_ready;
     wire fast_read = fast_lookup_enable && state == IDLE && !req_valid &&
                      !maint_valid && !invalidate_all && !lock_write;
     wire capture_lookup = accept_maintenance || accept_demand || fast_read;
-    wire [31:0] capture_lookup_mva = accept_maintenance ? maint_address :
-                                   accept_demand ? req_mva : fast_lookup_address;
     wire cancel_fast = !fast_lookup_enable || state != IDLE || accept_demand ||
                        maint_valid || invalidate_all || lock_write;
     wire change_epoch = accept_demand || accept_maintenance || invalidate_all ||
@@ -116,8 +142,6 @@ module arm920_cache_access (
         if (reset) begin
             lookup_owner_valid <= 0;
             lookup_owner_kind <= LOOKUP_DEMAND;
-            lookup_owner_mva <= 0;
-            lookup_owner_segment_select <= 8'b1;
             lookup_owner_epoch <= 0;
             fast_epoch <= 0;
             fast_enabled_q <= 0;
@@ -128,8 +152,6 @@ module arm920_cache_access (
                 lookup_owner_valid <= 1;
                 lookup_owner_kind <= accept_maintenance ? LOOKUP_MAINT :
                                      accept_demand ? LOOKUP_DEMAND : LOOKUP_AHEAD;
-                lookup_owner_mva <= capture_lookup_mva;
-                lookup_owner_segment_select <= 8'b1 << capture_lookup_mva[7:5];
                 lookup_owner_epoch <= fast_epoch ^ change_epoch;
             end else if (state == IDLE) lookup_owner_valid <= 0;
         end
@@ -377,7 +399,6 @@ module arm920_cache_access (
             response_valid         <= 0;
             response_error         <= 0;
             response_data          <= 0;
-            mva                    <= 0;
             pa                     <= 0;
             wdata                  <= 0;
             ben                    <= 0;
@@ -389,7 +410,6 @@ module arm920_cache_access (
             saved_maint_invalidate <= 0;
             saved_maint_all        <= 0;
             saved_maint_by_mva     <= 0;
-            saved_maint_address    <= 0;
             saved_maint_way        <= 0;
             saved_maint_segment    <= 0;
         end else begin
@@ -402,12 +422,10 @@ module arm920_cache_access (
                     saved_maint_invalidate <= maint_invalidate;
                     saved_maint_all        <= maint_all;
                     saved_maint_by_mva     <= maint_by_mva;
-                    saved_maint_address    <= maint_address;
                     saved_maint_way        <= maint_way;
                     saved_maint_segment    <= maint_segment;
                     state                  <= maint_by_mva ? MAINT_CAPTURE : MAINT_WAIT;
                 end else if (req_valid && req_ready) begin
-                    mva        <= req_mva;
                     pa         <= req_physical;
                     wdata      <= req_wdata;
                     ben        <= req_byte_enable;
@@ -475,6 +493,9 @@ module arm920_cache_access (
 `ifndef SYNTHESIS
     always @(posedge clk) begin
         if (!reset) begin
+            if (lookup_owner_kind != LOOKUP_DEMAND && lookup_owner_kind != LOOKUP_AHEAD &&
+                lookup_owner_kind != LOOKUP_MAINT)
+                $fatal(1, "cache lookup kind is not one-hot");
             if (lookup_owner_valid && lookup_owner_segment_select != (8'b1 << lookup_owner_mva[7:5]))
                 $fatal(1, "cache lookup segment/address owner mismatch");
             if (state != IDLE && (!lookup_owner_valid || lookup_owner_kind == LOOKUP_AHEAD))
