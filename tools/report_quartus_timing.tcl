@@ -56,6 +56,8 @@ proc report_operand_stages {output} {
     puts $summary "group,status,reported_paths,worst_slack_ns,from_patterns,to_patterns,message"
     set rdata {*u_operand_read*slot0_data* *u_operand_read*slot1_data*}
     set groups [list \
+        [list sdram_capture_internal {*sdram_ctrl*read_falling*capture*} {*sdram_ctrl*read_falling*capture*}] \
+        [list sdram_capture_to_fabric {*sdram_ctrl*read_falling*capture*} {*phone_sdram*}] \
         [list wb_to_reservation {*} {*write_buffer*pending_word_enable* *write_buffer*pending_valid* *write_buffer*pending_merge* *write_buffer*pending_slot* *write_buffer*pending_length* *write_buffer*tail_*}] \
         [list wb_payload_capture {*} {*write_buffer*pending_data* *write_buffer*pending_byte_enable*}] \
         [list wb_local_commit {*write_buffer*pending*} {*write_buffer*data* *write_buffer*enables* *write_buffer*committed_lengths*}] \

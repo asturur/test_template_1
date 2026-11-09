@@ -1,3 +1,45 @@
+## 2026-11-09: input DDIO handoff — ready for physical fit
+
+Replaced the discrete falling→rising SDRAM register pair with Cyclone V
+ALTDDIO_IN dataout_l. This requests the dedicated input DDR resynchronization
+hardware, eliminating the intended fabric half-cycle route without adding a
+cycle or changing ready/destination timing. PLL remains78 MHz; intent is to
+buy104 MHz margin, not just erase the78 MHz violation. Added targeted internal
+capture and capture→adapter timing reports. No timing exceptions changed.
+
+Both test-only and existing Altera vendor models pass eight78/104 MHz pin-delay
+cases each, plus wrong-edge negative control. SDRAM/arbitration tests, top lint
+and174-source/9-QIP preflight pass. Fresh78 MHz5M-cycle real-SDRAM boot passes
+with zero data faults;848 events are byte-identical, including timestamps, to
+prior78 MHz baseline. Evidence: scratch/clock-78/ddio-input-summary.json and
+associated logs. Physical packing/slack and external pin timing remain unproven;
+next step is one78 MHz fit, inspect new DDIO reports and global timing before
+hardware sign-off. Details: docs/sdram-104mhz-ddio.md.
+
+## 2026-11-09: 78 MHz fit42553413796 — two SDRAM half-cycle violations
+
+Run42553413796, SHA9e354a4, compiles/fits but fails the timing gate; no RBF
+artifact was published. Core Fmax74.54 MHz, setup WNS−0.298 ns, TNS−0.301 ns.
+Exactly two reported setup failures: read_falling.dq_in[8]→dout[8] (−0.298)
+and bit11 (−0.003). These are falling→rising transfers with6.410 ns available,
+zero logic levels; worst data delay5.109 ns includes4.400 ns routing, with
+−1.299 ns clock skew. Lower frequency changed placement/routing: prior104-fit
+Fmax83.28 MHz did not guarantee78 MHz closure. CPU/cache paths pass; worst
+reported CPU path+0.927 ns, other phone logic minimum+0.728 ns. HDMI+0.112 ns.
+Slow hold minimum+0.178 ns, fast hold+0.056 ns, recovery+3.207 ns,
+removal+0.986 ns and pulse width+0.641 ns all pass.
+ALMs32644/41910, registers42945, M10Ks465/553, DSP38.
+
+Next recommendation: focus only on SDRAM capture-to-transfer placement/retiming,
+preserving the falling input sample and rdy/data alignment; validate and refit.
+Do not restart CPU/cache optimization or waive the half-cycle violation.
+Alternative lower-clock candidate72 MHz stays HF=1 but requires a fresh fit
+and timebase review;74.54 MHz is this placement's limit, not a guarantee.
+External SDRAM DQ input/output timing remains unconstrained: internal closure
+alone cannot sign off the physical interface. Board validation remains pending.
+Evidence: scratch/timing-closure/clock78-fit-42553413796/output_files/timing/.
+No HDL changes, simulation reruns, push or build launched during this analysis.
+
 ## 2026-11-09: selected 78 MHz hardware clock — verified build candidate
 
 User selected 78 MHz, superseding the earlier 52 MHz proposal below. Both PLL

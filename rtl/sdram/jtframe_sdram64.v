@@ -78,7 +78,7 @@ module jtframe_sdram64 #(
     output reg    [3:0] dst,
     output reg    [3:0] dok,
     output reg    [3:0] rdy,
-    output reg   [15:0] dout,
+    output       [15:0] dout,
 
     // SDRAM interface
     // SDRAM_A[12:11] and SDRAM_DQML/H are controlled in a way
@@ -190,18 +190,35 @@ assign din = (bg[3] && BA3_WEN) ? ba3_din :
              (bg[2] && BA2_WEN) ? ba2_din :
              (bg[1] && BA1_WEN) ? ba1_din : ba0_din;
 
-// The input register's edge is part of the external SDRAM timing contract.
-// With a 180-degree forwarded clock, a rising system edge can miss the
-// entire single-word DQ-valid window. Keep the second (rising-edge) register
-// so the adapter still consumes data with the original registered rdy.
-wire [15:0] dq_sample;
+// The inverted pin clock requires a falling-edge input sample. ALTDDIO_IN
+// resynchronizes that sample on the next rising edge inside the IO hardware,
+// rather than routing a half-cycle path across the fabric. Its dataout_l
+// replaces BOTH old registers (dq_in and dout), preserving dst/rdy latency.
+// Do not add a rising-edge register here without also realigning responses.
 generate
     if (READ_CAPTURE_NEGEDGE) begin : read_falling
-        reg [15:0] dq_in;
-        always @(negedge clk) dq_in <= sdram_dq;
-        assign dq_sample = dq_in;
+        altddio_in #(
+            .width                 (16),
+            .intended_device_family("Cyclone V"),
+            .invert_input_clocks   ("OFF"),
+            .power_up_high         ("OFF"),
+            .lpm_type              ("altddio_in"),
+            .lpm_hint              ("UNUSED")
+        ) capture (
+            .datain   (sdram_dq),
+            .inclock  (clk),
+            .inclocken(1'b1),
+            .aclr     (1'b0),
+            .aset     (1'b0),
+            .sclr     (1'b0),
+            .sset     (1'b0),
+            .dataout_h(),
+            .dataout_l(dout)
+        );
     end else begin : read_rising
-        assign dq_sample = sdram_dq;
+        reg [15:0] dq_in;
+        always @(posedge clk) dq_in <= sdram_dq;
+        assign dout = dq_in;
     end
 endgenerate
 
@@ -211,7 +228,6 @@ always @(posedge clk) begin
     all_dbusy    <= |ba_dbusy;
     all_dbusy64  <= |ba_dbusy64;
     dok      <= ba_dok;
-    dout     <= dq_sample;
     cmd      <= next_cmd;
 
     // prog signals

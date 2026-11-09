@@ -70,3 +70,42 @@ Logs: `build/sim/unit-sdram-ddio/`, `build/sim/milestone7/`, `build/sim/unit-har
 4. Keep full scrub/refresh timing and run standalone pattern, walking-bit, all-mask and boundary tests on the actual MiSTer module over sustained refresh traffic before trusting the phone boot. Save error address, expected/actual value and clock/build identity. If physical margins fail, adjust the clock/capture design from timing evidence rather than weakening the memory specification or bypassing firmware timeouts.
 
 The single system-clock DDIO/read-capture combination now has a concrete passing simulation implementation. The distinction between that result and a validated 104 MHz FPGA memory interface must remain explicit.
+
+## 2026-11-09: explicit input DDIO resynchronization
+
+The78 MHz fit42553413796 placed falling-edge dq_in[8] in
+DDIOINCELL_X82_Y0_N54 but rising-edge dout[8] in FF_X60_Y4_N19.
+The half-cycle path had4.400 ns routing,5.109 ns total data delay and
+−1.299 ns skew, failing by0.298 ns. Bit11 also failed by0.003 ns.
+
+READ_CAPTURE_NEGEDGE now instantiates ALTDDIO_IN (Cyclone V), connecting
+its falling-sample output dataout_l directly to controller dout. This replaces
+both old registers: the input DDR hardware captures the falling edge and
+resynchronizes it to the rising edge. No extra output register or response
+latency was added; dst/rdy/dok and programming signals are unchanged. The
+rising-only default branch retains its original behavior. PLL stays78 MHz.
+
+Intent: remove the fabric half-cycle route, using dedicated input DDR hardware
+rather than a placement patch that only barely passes78 MHz. This is intended
+for104 MHz too, but only the next physical fit can verify IO packing and slack.
+At78 MHz the half-period is6.410 ns;104 MHz allows4.808 ns. The new targeted
+sdram_capture_internal and sdram_capture_to_fabric reports must be inspected
+alongside global timing. An empty internal report is not evidence of closure;
+check the mapped primitive and detailed reports. No timing exceptions changed.
+
+Reference: [Altera DDR IO timing](https://docs.altera.com/r/docs/683148/current/ddr-i/o-timing)
+and existing jtpublicfork/modules/jtframe/hdl/ver/altera_mf.v ALTDDIO_IN model.
+The maintained test model and extracted vendor ALTDDIO_IN/device-family model
+both pass all eight78/104 MHz ×0/.25/.5/1 ns pin-delay cases, with the wrong-edge
+negative control still failing as expected. Vendor extraction and logs live in
+scratch/clock-78/vendor-ddio-input.v and ddio-input-*-validation.log.
+Use DDIO_MODEL=<model path> with tests/phone/sdram/run-ddio.sh to cross-check
+another vendor model without editing production sources. The production
+primitive is resolved by Quartus, never by the test-only substitute.
+
+External SDRAM pin constraints and physical board validation remain separate,
+unresolved sign-off requirements; functional vendor simulation is not a fit.
+
+Fresh78 MHz5M boot also passes with zero data faults and all848 board events
+byte-identical (timestamps included) to the pre-change78 MHz baseline.
+Source preflight174files/9QIPs, SDRAM/arbitration and top lint pass.
