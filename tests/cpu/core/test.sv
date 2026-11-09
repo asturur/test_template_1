@@ -104,13 +104,18 @@ module test;
 `ifdef NGAGE_SDRAM_PATH
  wire ram_access=addr>=32'h80000000 && addr<32'h80200000;
  wire ram_ack, sreq, swe, sack, sd_done, rfsh, mr; wire [31:0] sdata, mwdata, mrdata; wire [24:0] sa; wire [3:0] sb;
- wire [21:0] ba; wire [15:0] bd; wire [1:0] dsn; wire [3:0] rd,wr; reg [3:0] rr=0; reg [31:0] half_latched=0;
+ wire [21:0] ba; wire [15:0] bd; wire [1:0] dsn; wire [3:0] rd,wr; reg [3:0] rr=0, first_beat=0, read_pending=0; reg [31:0] half_latched=0;
  wire [3:0] take=(rd|wr) & {4{delay>=latency}};
  ngage_sdram_arbiter arb(clk,reset,bus_lock,cyc && stb && ram_access && !bus_error,we,addr[24:0],wdata,sel,ram_ack,sdata,
   1'b0,1'b0,25'b0,32'b0,4'b0,,,sreq,swe,sa,mwdata,sb,sack,mrdata);
  ngage_sdram_adapter #(.RAM_BYTES(4)) mem(clk,reset,1'b0,1'b0,sreq,swe,sa,mwdata,sb,sack,mrdata,sd_done,
-  ba,bd,dsn,rd,wr,take,rr,ba[0] ? half_latched[31:16] : half_latched[15:0],rfsh);
- always @(posedge clk) begin rr<=take; if(|take) half_latched<=ram[addr[20:2]]; end
+  ba,bd,dsn,rd,wr,take,first_beat,rr,|first_beat ? half_latched[15:0] : half_latched[31:16],rfsh);
+ always @(posedge clk) begin
+  first_beat <= take & rd;
+  read_pending <= take & rd;
+  rr <= (take & wr) | read_pending;
+  if(|take) half_latched <= ram[addr[20:2]];
+ end
  assign ack=ram_access ? ram_ack : (cyc && stb && delay>=latency && !bus_error);
 `else
  assign ack=cyc && stb && delay>=latency && !bus_error;

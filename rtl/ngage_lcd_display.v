@@ -206,7 +206,8 @@ module ngage_lcd_display #(
         end
     end
     always @* begin
-        phone_rgb = scan_x[0] ? pixel_word[23:12] : pixel_word[11:0];
+        // Panel order: high halfword pixel precedes low halfword pixel.
+        phone_rgb = scan_x[0] ? pixel_word[11:0] : pixel_word[23:12];
         rgb       = 0;
         if (scan_x < 320 && scan_y < 240) begin
             if (diagnostic) begin

@@ -11,7 +11,7 @@ iverilog -g2012 -s tb -Ptb.INVERTED_CLOCK=1 -Ptb.CAPTURE_NEGEDGE=0 -o "$out/wron
 if vvp "$out/wrong-edge" > "$out/wrong-edge.log" 2>&1; then
     echo 'FAIL wrong-edge negative control unexpectedly passed'; exit 1
 fi
-grep -q 'got zzzzzzzz expected' "$out/wrong-edge.log"
+grep -Eq 'got [0-9a-f]*z[0-9a-fz]* expected' "$out/wrong-edge.log"
 echo 'PASS negative control: inverted clock with rising-only capture fails'
 for hz in 104000000 78000000; do
 for delay in 0 0.25 0.5 1.0; do

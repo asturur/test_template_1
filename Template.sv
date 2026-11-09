@@ -43,13 +43,12 @@ module emu (
     `include "build_id.v"
     localparam CONF_STR = {
         "NGage;;",
-        "J1,OK,Clear,End,Menu,Left soft,Right soft,Send,Power,",
-        "Music,Radio,Shift,Star,Hash,1,2,3,4,5,6,7,8,9,0;",
         "-;",
         "O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
         "-;",
-        "F1,ROM,Load MCU service firmware;",
-        "F2,ROM,Load PPM service firmware;",
+        "P1,Firmware;",
+        "P1F1,ROM,Load MCU service firmware;",
+        "P1F2,ROM,Load PPM service firmware;",
         "S0,NGA,Mount working save;",
         "S1,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
@@ -61,6 +60,8 @@ module emu (
         "-;",
         "T[0],Reset;",
         "R[0],Reset and close OSD;",
+        "J1,OK,Clear,End,Menu,Left soft,Right soft,Send,Power,",
+        "Music,Radio,Shift,Star,Hash,1,2,3,4,5,6,7,8,9,0;",
         "v,0;",
         "V,v",
         `BUILD_DATE
@@ -233,6 +234,8 @@ module emu (
         .mem_ack  (mem_ack),
         .mem_rdata(mem_rdata)
     );
+    wire [3:0] sdram_dst_banks;
+
     ngage_sdram_adapter #(
         .REFRESH_PERIOD((64'd6800 * SYS_CLK_HZ) / 104000000)
     ) phone_sdram (
@@ -254,6 +257,7 @@ module emu (
         .rd         (sdram_rd_banks),
         .wr         (sdram_wr_banks),
         .ba_ack     (sdram_ack_banks),
+        .ba_dst     (sdram_dst_banks),
         .ba_rdy     (sdram_rdy_banks),
         .ba_dout    (sdram_dout_16),
         .rfsh       (sdram_rfsh)
@@ -263,11 +267,11 @@ module emu (
         .AW                  (22),
         .HF                  (1),   // 78 MHz > 66 MHz → HF mode
         .READ_CAPTURE_NEGEDGE(1),   // paired with the inverted DDIO pin clock
-        .BA0_LEN             (16),  // 16-bit single reads
-        .BA1_LEN             (16),
+        .BA0_LEN             (32),  // two 16-bit beats per read
+        .BA1_LEN             (32),
         .BA2_LEN             (16),
         .BA3_LEN             (16),
-        .PROG_LEN            (16),  // must match BA_LEN to avoid state vector overflow
+        .PROG_LEN            (16),  // unused programming port; no longer than physical burst
         .BA0_WEN             (1),   // phone RAM is read+write
         .BA1_WEN             (1),
         .BA2_WEN             (0),
@@ -300,7 +304,7 @@ module emu (
         .rfsh(sdram_rfsh),
 
         .ack (sdram_ack_banks),
-        .dst (),
+        .dst (sdram_dst_banks),
         .dok (),
         .rdy (sdram_rdy_banks),
         .dout(sdram_dout_16),

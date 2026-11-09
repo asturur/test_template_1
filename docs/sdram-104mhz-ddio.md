@@ -109,3 +109,82 @@ unresolved sign-off requirements; functional vendor simulation is not a fit.
 Fresh78 MHz5M boot also passes with zero data faults and all848 board events
 byte-identical (timestamps included) to the pre-change78 MHz baseline.
 Source preflight174files/9QIPs, SDRAM/arbitration and top lint pass.
+
+## 2026-11-09: Model2 SDRAM reference review (no implementation change)
+
+Reference main observed at8f2c730665e6d17b0f7a5b0ae62f5c38da2a3b1c;
+files retained under scratch/model2-sdram-review/. Reviewed pll.v,m2_sdram.sv,
+Model2.sv,Model2.sdc and sim/mem/sdram_model.sv. Source review only; no independent
+Model2 timing report or board validation was obtained and no reference tests run.
+
+Actual PLL parameters are100/80/50/40/100 MHz, last output+5000 ps. Older
+comments describe obsolete40/96 MHz and50/25 MHz configurations. Top drives
+SDRAM_CLK directly from the dedicated180-degree PLL output; controller uses
+posedge DQ capture into dq_r. This differs from our falling-edge input DDIO
+capture; changing clock forwarding alone cannot transplant the read timing.
+An ideal180-degree PLL output and an inverted clock have the same edge phase;
+physical routing/compensation differs and must be timed. Absence of DDIO is not
+in itself evidence of better timing.
+
+Controller supports open rows, request-edge latching, pipelined arbitration,
+1/2/4/8-word read groups and per-bank timing/refresh guards. Current top has13
+ports, priority classes, dedicated write port and capture-depth sweep (after
+calibration top fixes selector2=CL+2). NP=1 does not alone give our interface:
+port0 reads four16-bit words, writes one; adaptation must preserve32-bit byte
+masks, completion semantics, reset/discard, scrub and existing arbiter/SWP lock.
+Our16 MB logical window currently uses address[23] to select two physical banks
+on32 MB geometry (8 MB per bank), not a single16 MB physical bank. Preserve
+module geometry and refresh even if only16 MB is exposed.
+
+SDC defines forwarded pin clock, min/max IO delays and checks missing objects:
+useful practices for our outstanding IO constraints. Do NOT copy its blanket
+input setup3/hold2 and output setup2/hold1 multicycle exceptions. Rationale cites
+capture-depth calibration, but DQ is free-running and commands/data can change
+each cycle. Whole-cycle tagging alone does not establish a valid within-cycle
+capture window or justify relaxed output setup. Requires independent protocol
+and timing proof. The reference's device model explicitly omits forwarded phase
+and analog data-valid delays; its passing protocol tests do not prove our104 MHz
+single-word read case. Several timing/capture comments disagree with live code.
+
+Recommendation: retain current input-DDIO experiment and await its fit. Borrow
+hardware memory self-test/diagnostics and correct pin constraints first. If a
+controller replacement is later needed, use a small single-client32-bit adapter
+with explicit two-halfword reads and physical timing-model tests; do not import
+the whole multi-master controller merely to change clock forwarding. Grouped
+reads/open-row reuse are later performance opportunities, separate from closure.
+
+## 2026-11-09: JTFRAME short-burst/request-cache review
+
+User requested source inspection only before further building. Reviewed local
+jtpublicfork/modules/jtframe/hdl/sdram/{jtframe_romrq,jtframe_romrq_bcache,
+jtframe_romrq_xscache,jtframe_ucache,jtframe_ram_rq,jtframe_rom_2slots}.v and
+Arcade-Deco16_MisterDevel/rtl/cninja/jtcninja_game_sdram.v (bank0 around line416).
+The linked live wrapper uses32-bit ROM slots, default CACHE_SIZE=0, and
+conditionally DOUBLE=1 when JTFRAME_BAn_LEN is defined.
+
+Confirmed: our existing jtframe_sdram64 already supports native32-bit read
+bursts. BA0_LEN/BA1_LEN=32 selects two consecutive16-bit beats; dst marks first,
+rdy marks final. Global physical BURSTLEN is derived from all four BA lengths;
+keep unused BA lengths explicit to avoid default64. Init programs sequential
+read burst length2, CAS2, single-location writes. Writes must remain separately
+sequenced with their byte masks; read burst configuration does not create32-bit
+write support automatically.
+
+jtframe_romrq CACHE_SIZE=0 selects bcache, NOT no cache: two32-bit data registers
+plus address/valid tags. DW16 selects a halfword; the partner halfword is already
+cached. DW32 returns the assembled full word directly. DOUBLE=0 is the32-bit
+fill case, DOUBLE=1 consumes64-bit fills into two32-bit blocks. CACHE_SIZE>0
+selects xscache (CACHE_LARGE=0), caching requested DW-wide results via ucache;
+for DW16 it does not retain the unrequested partner just because it arrived.
+DW32 in xscache explicitly assembles the two beats. A newer CACHE_LARGE branch
+also exists but is unnecessary here. BURSTLEN on romrq applies only to that
+large branch; configure the actual controller BA lengths for small caches.
+
+Recommended next performance change: retain current SDRAM controller/clock,
+use32-bit read bursts and a small assembly/register buffer at the existing
+32-bit adapter boundary. Reusing bcache directly requires clr on every relevant
+write/reset/scrub and careful refill serialization; ROM slot wrappers tie clr
+low and cannot be dropped unchanged into writable phone RAM. A transient fill
+buffer avoids additional persistent coherence state behind the ARM caches.
+Second beat still takes one bus clock, but no second SDRAM command/setup or
+adapter ISSUE/WAIT/GAP sequence. No RTL edits, tests or build in this review.

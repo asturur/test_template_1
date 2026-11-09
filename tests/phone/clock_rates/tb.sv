@@ -11,7 +11,7 @@ module clock_case #(parameter integer HZ=104000000)(input wire clk,reset,output 
   .cpu_ack(1'b0),.cpu_err(1'b0),.cpu_rdata(32'b0),.dma_mem_ack(1'b0),.dma_mem_data(32'b0),.video_ce(ce));
  ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD(REFRESH)) refresh_check(
   .clk(clk),.rst(reset),.phone_reset(1'b1),.init(1'b0),.req(1'b0),.we(1'b0),
-  .addr(25'b0),.din(32'b0),.be(4'b0),.ba_ack(4'b0),.ba_rdy(4'b0),.ba_dout(16'b0),.rfsh(rfsh));
+  .addr(25'b0),.din(32'b0),.be(4'b0),.ba_ack(4'b0),.ba_dst(4'b0),.ba_rdy(4'b0),.ba_dout(16'b0),.rfsh(rfsh));
  integer cycles=0,last_pixel=-1,last_sim=-1,last_refresh=-1,pixels=0,sim_ticks=0,refreshes=0;
  always @(posedge clk)if(!reset)begin
   cycles++;

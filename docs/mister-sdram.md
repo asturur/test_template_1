@@ -2,7 +2,16 @@
 
 **Current 2026-11-06 result:** [104 MHz DDIO/read-capture investigation](sdram-104mhz-ddio.md) supersedes the clock-path conclusions below. The top now forwards `clk_sys` through inverted `altddio_out`, with controller `READ_CAPTURE_NEGEDGE=1` (falling-edge DQ capture, then rising-edge registration). The unchanged four-state Micron model passes, including masks/reset/refresh and selected clock delays; the deliberately wrong-edge negative control still fails. The 104 MHz real-controller 5M boot and 102-event staged comparison pass. The old -90-degree/default-capture path remains a regression. Quartus IO placement, generated-clock/I/O constraints and board timing are still unverified.
 
-`ngage_sdram_adapter` latches each word request, issues two halfword operations, waits for the controller's registered `rdy` and returns exactly one word response. The read-data test using the actual controller observed `ack` 29 ns before the corresponding `rdy` at the 104 MHz test clock. The adapter holds the memory operation through both halves. `ngage_sdram_arbiter` serializes the CPU and future DMA port and preserves the CPU lock across a swap; a continuously asserted Wishbone request after acknowledgement represents another transfer. The present top ties the DMA port off.
+`ngage_sdram_adapter` latches each32-bit request. Reads issue one aligned
+32-bit burst: registered `dst` captures the low16 bits and registered `rdy`
+captures the high16 bits, then one response is returned. There is no persistent
+read cache or invalidation state. Writes retain two independently masked16-bit
+operations and their existing gaps. BA0_LEN/BA1_LEN are32; unused banks and
+programming length are explicitly16, giving global physical BURSTLEN32.
+`ack` accepts a controller request; it never qualifies read data.
+`ngage_sdram_arbiter` serializes CPU/DMA requests and preserves the CPU lock
+across a swap. The adapter drains a read during phone reset and discards its
+response; cold scrub still writes every halfword.
 
 The physical 16 MiB range occupies SDRAM banks 0 and 1, each 4 million 16-bit halfwords (`AW=22`, 13 row and 9 column bits). The CPU map rejects the 0x0b000000 range. A cold PLL/controller reset triggers zeroing of all 8,388,608 halfwords. The phone CPU remains held while the scrub runs and also remains intentionally held for subsequent integration milestones. A normal phone reset does not clear RAM or reset the SDRAM controller; an accepted read is drained and its response discarded. Refresh continues during phone reset.
 

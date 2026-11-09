@@ -1,6 +1,7 @@
-// One 32-bit request at a time, split into 16-bit jtframe_sdram64 operations.
-// rdy, not ack, qualifies the registered controller output. The initial scrub
-// is a cold-start operation; phone_reset discards CPU responses, not RAM.
+// One 32-bit request at a time. Reads use one two-beat SDRAM burst; writes
+// retain two masked single-halfword operations. dst captures the low read
+// halfword and rdy captures the high halfword, never the acceptance ack.
+// The initial scrub is a cold-start operation; phone_reset discards CPU responses, not RAM.
 module ngage_sdram_adapter #(
     parameter         [24:0] RAM_BYTES      = 25'h1000000,
     parameter integer        REFRESH_PERIOD = 6800
@@ -23,6 +24,7 @@ module ngage_sdram_adapter #(
     output wire [ 3:0] rd,
     output wire [ 3:0] wr,
     input  wire [ 3:0] ba_ack,
+    input  wire [ 3:0] ba_dst,
     input  wire [ 3:0] ba_rdy,
     input  wire [15:0] ba_dout,
     output reg         rfsh
@@ -37,6 +39,7 @@ module ngage_sdram_adapter #(
     integer       refresh_count = 0;
     wire          bank = address[23];
     wire          selected_ack = ba_ack[{1'b0, bank}];
+    wire          selected_dst = ba_dst[{1'b0, bank}];
     wire          selected_rdy = ba_rdy[{1'b0, bank}];
     assign ba_addr = {address[22:2], high};
     assign ba_din  = high ? data[31:16] : data[15:0];
@@ -79,14 +82,17 @@ module ngage_sdram_adapter #(
                     end
                 end
                 ISSUE:     if (selected_ack) state <= WAIT_READY;
-                WAIT_READY:
-                if (selected_rdy) begin
+                WAIT_READY: begin
                     if (!write_op) begin
-                        if (high) dout[31:16] <= ba_dout;
-                        else dout[15:0] <= ba_dout;
+                        if (selected_dst) dout[15:0] <= ba_dout;
+                        if (selected_rdy) begin
+                            dout[31:16] <= ba_dout;
+                            state <= RESP;
+                        end
+                    end else if (selected_rdy) begin
+                        gap   <= 2;
+                        state <= GAP;
                     end
-                    gap   <= 2;
-                    state <= GAP;
                 end
                 GAP:
                 if (gap != 0) gap <= gap - 1'b1;

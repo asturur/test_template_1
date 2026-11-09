@@ -38,18 +38,18 @@ parameter integer SYS_CLK_HZ=104000000;
  reg sack_model=0; reg [31:0] sdata_model=0; assign sack=sack_model; assign sdata=sdata_model;
 `else
  wire scrub_done,mem_init; wire [21:0] ba_addr; wire [15:0] ba_din,ba_dout; wire [1:0] ba_dsn;
- wire [3:0] rd,wr,ba_ack,ba_rdy; wire rfsh; tri [15:0] dq; wire [15:0] dq_write; wire [15:0] dq_read=memory.Dq_reg; wire [12:0] sdram_a;
+ wire [3:0] rd,wr,ba_ack,ba_dst,ba_rdy; wire rfsh; tri [15:0] dq; wire [15:0] dq_write; wire [15:0] dq_read=memory.Dq_reg; wire [12:0] sdram_a;
  wire [1:0] bank; wire dqml,dqmh,nwe,ncas,nras,ncs,cke; wire memclk;
  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(memclk));
  // Short smoke scrubs 32 bytes. The independent full-size scrub test covers
  // all 16 MiB; the behavioral SDRAM model starts zero in this Verilator run.
- ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(clk,cold,reset,mem_init,sreq,swe,sa,sd,sb,sack,sdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_rdy,ba_dout,rfsh);
- jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(16),.BA1_LEN(16),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
+ ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(clk,cold,reset,mem_init,sreq,swe,sa,sd,sb,sack,sdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh);
+ jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(32),.BA1_LEN(32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
   .rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
   .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
   .ba0_dsn(ba_dsn),.ba1_dsn(ba_dsn),.ba2_dsn(2'b11),.ba3_dsn(2'b11),
   .prog_en(1'b0),.prog_addr(22'b0),.prog_rd(1'b0),.prog_wr(1'b0),.prog_din(16'b0),.prog_dsn(2'b11),.prog_ba(2'b0),
-  .prog_dst(),.prog_dok(),.prog_rdy(),.prog_ack(),.rfsh(rfsh),.ack(ba_ack),.dst(),.dok(),.rdy(ba_rdy),.dout(ba_dout),
+  .prog_dst(),.prog_dok(),.prog_rdy(),.prog_ack(),.rfsh(rfsh),.ack(ba_ack),.dst(ba_dst),.dok(),.rdy(ba_rdy),.dout(ba_dout),
   .sdram_dq(dq_read),.sdram_din(dq_write),.sdram_a(sdram_a),.sdram_dqml(dqml),.sdram_dqmh(dqmh),.sdram_ba(bank),.sdram_nwe(nwe),.sdram_ncas(ncas),.sdram_nras(nras),.sdram_ncs(ncs),.sdram_cke(cke));
  mt48lc16m16a2 memory(.Dq_write(dq_write),.Clk(memclk),.Cke(cke),.Dq(dq),.Addr(sdram_a),.Ba(bank),.Cs_n(ncs),.Ras_n(nras),.Cas_n(ncas),.We_n(nwe),.Dqm({dqmh,dqml}),.downloading(1'b0),.VS(1'b0),.frame_cnt(32'b0));
 `endif

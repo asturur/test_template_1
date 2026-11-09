@@ -22,8 +22,8 @@ wire mreq,mwe,mack; wire [24:0] maddr; wire [31:0] mdata,mrdata; wire [3:0] mbe;
 reg dma_req=0, dma_we=0, cpu_lock=0; reg [24:0] dma_addr=0; reg [31:0] dma_data=0; reg [3:0] dma_be=0; wire dma_ack; wire [31:0] dma_rdata;
 ngage_sdram_arbiter arb(clk,phone_reset,cpu_lock,req,we,addr,din,be,ack,dout,
  dma_req,dma_we,dma_addr,dma_data,dma_be,dma_ack,dma_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata);
-ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_rdy,ba_dout,rfsh);
-jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(16),.BA1_LEN(16),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
+ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh);
+jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(32),.BA1_LEN(32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
  .rst(rst),.clk(clk),.init(init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
  .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
  .ba0_dsn(ba_dsn),.ba1_dsn(ba_dsn),.ba2_dsn(2'b11),.ba3_dsn(2'b11),
@@ -31,6 +31,8 @@ jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN
  .prog_dst(),.prog_dok(),.prog_rdy(),.prog_ack(),.rfsh(rfsh),.ack(ba_ack),.dst(ba_dst),.dok(ba_dok),.rdy(ba_rdy),.dout(ba_dout),
  .sdram_dq(dq),.sdram_a(a),.sdram_dqml(dqml),.sdram_dqmh(dqmh),.sdram_ba(bank),.sdram_nwe(nwe),.sdram_ncas(ncas),.sdram_nras(nras),.sdram_ncs(ncs),.sdram_cke(cke));
 mt48lc16m16a2 ram(.Clk(memclk),.Cke(cke),.Dq(dq),.Addr(a),.Ba(bank),.Cs_n(ncs),.Ras_n(nras),.Cas_n(ncas),.We_n(nwe),.Dqm({dqmh,dqml}),.downloading(1'b0),.VS(1'b0),.frame_cnt(32'b0));
+integer read_commands=0, before_reads=0;
+always @(posedge memclk) if(!init && {ncs,nras,ncas,nwe}==4'b0101) read_commands=read_commands+1;
 integer acknowledgments=0, refreshes=0, count=0, i, before_ack;
 always @(posedge clk) begin
  if(ack) acknowledgments<=acknowledgments+1;
@@ -40,9 +42,10 @@ always @(posedge clk) begin
 end
 task transfer(input bit w,input [24:0] address,input [31:0] value,input [3:0] mask,input [31:0] expected);
  begin
- @(negedge clk);before_ack=acknowledgments;we=w;addr=address;din=value;be=mask;req=1;
+ @(negedge clk);before_ack=acknowledgments;before_reads=read_commands;we=w;addr=address;din=value;be=mask;req=1;
  count=0; while(!ack && count<3000) begin @(negedge clk);count=count+1; end
  if(!ack) $fatal(1,"timeout address %h",address);
+ if(!w && read_commands!=before_reads+1) $fatal(1,"32-bit read issued %0d READ commands",read_commands-before_reads);
  if(!w && dout!==expected) $fatal(1,"read %h got %h expected %h",address,dout,expected);
  req=0;
  repeat(5) @(negedge clk);
@@ -61,6 +64,8 @@ initial begin
  transfer(1,25'h7ffffc,32'h12345678,15,0); transfer(0,25'h7ffffc,0,15,32'h12345678);
  transfer(1,25'h800000,32'hfedcba98,15,0); transfer(0,25'h800000,0,15,32'hfedcba98);
  transfer(1,25'hfffffc,32'h0123abcd,15,0); transfer(0,25'hfffffc,0,15,32'h0123abcd);
+ transfer(1,25'h3fc,32'h13579bdf,15,0); transfer(1,25'h400,32'h2468ace0,15,0);
+ transfer(0,25'h3fc,0,15,32'h13579bdf); transfer(0,25'h400,0,15,32'h2468ace0);
  // Every byte-enable combination must update only the selected lanes.
  for(i=0;i<16;i=i+1) begin
    transfer(1,4,0,15,0); transfer(1,4,32'h89abcdef,i,0);

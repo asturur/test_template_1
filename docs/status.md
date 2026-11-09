@@ -1,3 +1,102 @@
+## 2026-11-09: diagnostic export recovered; OSD/pixel corrections ready
+
+SD-card diagnostics.ngd updated09:31:59 local; copied to
+scratch/hardware-live/diagnostics-20261109.ngd and decoded JSON beside it.
+Valid wrapped64-entry ring,zero dropped events,no data fault. Historical fetch
+fault0c0047e4/reason1 matches known early scratch-fetch class. Trace contains
+TRtcQueue::Add: 4 and repeated byte61 debug markers plus LCD unknown-command
+records. This short mixed ring is insufficient to identify the logo wait.
+User may have activated Export via shifted Reset row; export itself succeeded.
+
+Requested panel pixel swap now implemented: high16 pixel first, low16 second
+for both direct and DMA frames. Native coordinate/replay and partial-frame
+expectations updated to test that order. Full LCD suite,native raster/replay,
+and top lint pass; source preflight174files/9QIPs passes. OSD metadata moved
+after actionable rows and F1/F2 grouped under Firmware. Native32-bit SDRAM
+changes previously tested are included in the upcoming single build. Current
+board remains old RBF until user installs a replacement.
+
+## 2026-11-09: live hardware diagnostics after Nokia logo
+
+Two Zaparoo screenshots saved under scratch/hardware-live/diagnostic-first.png
+and diagnostic.png (device timestamps082934/083012). Fetch PCs5159EFA8 then
+514AE280; user observes503xxxxx–515xxxxx recurring. Fetch/bus counters advance,
+IRQ sampled low then high, waits13→0 clocks; BUS_ERRORS stable0x18 and all
+captured DATA_FAULT/FAULT_PC/DATA/FLAGS/REASON zero. LCD/ERR stays1 (combined
+export debug_error OR lcd_unsupported, not sufficient to identify LCD failure).
+Firmware/SDRAM/board/save ready; no claim of progress beyond logo from these
+snapshots. Next useful evidence: exported diagnostics trace, map recurring PCs
+and identify peripheral/startup waits before promising later UI boot.
+
+## 2026-11-09: hardware Nokia pixel order matches clean simulator lohi
+
+Compared scratch/hardware-live/nokia-logo.png (1056x1248, exact6x scale) with
+retained build/sim/screens/boot-v15-simif-fresh-gss-8b-frames/
+frame01_c27463_24d67f-{lohi,hilo}.png. Nearest-neighbor reduction to176x208
+produces zero differing RGB pixels against lohi;548 against hilo. Viewed both:
+lohi is clean, hilo has adjacent-pixel comb artifacts. Current LCD scanout uses
+low halfword first for even x, matching lohi. No LCD pixel-order change needed
+for this captured frame. User-reported line artifact may occur in another frame;
+this exact comparison does not explain an artifact absent from the capture.
+
+## 2026-11-09: Nokia logo observed on physical MiSTer
+
+User installed the current RBF and original service boot.rom/boot1.rom, then
+reported Nokia logo. Zaparoo screenshot at192.168.1.176 confirms blue NOKIA on
+white, near bottom of176x208 phone image (captured PNG1056x1248). Saved at
+scratch/hardware-live/nokia-logo.png; device copy
+/media/fat/screenshots/NGage/20261109_082156-screen.png. Earlier screenshot was
+white because user was switching display. Exact running RBF SHA unverified;
+do not attribute this board result to uncommitted32-bit burst RTL. User also
+reports a mixed line; precise artifact/cause not yet identified. Logo alone
+does not establish later phone UI boot, persistence or SDRAM timing sign-off.
+
+User reports OSD selects actionN from highlighted rowN+1. Local Main source
+menu.cpp renders only supported rows but activation counts uppercase J metadata.
+Moved J1 metadata after all actionable options; grouped manual F1/F2 loaders
+under P1 Firmware, keeping explicit file indices and boot auto-load unchanged.
+Changes are local for a future RBF; running hardware menu has not changed.
+
+## 2026-11-09: native32-bit SDRAM reads implemented and verified
+
+BA0_LEN/BA1_LEN32 now fetch both halfwords with one READ command. Adapter
+captures low16 on selected dst and high16 on selected rdy, then returns one
+32-bit response. No persistent cache, invalidation, extra state or second read
+request. Masked writes and cold scrub retain two single-halfword operations.
+PLL stays78MHz and explicit input-DDIO capture is unchanged. All named and
+positional adapter consumers updated, including the CPU ideal burst responder.
+
+Four-state real-controller tests pass at78/104MHz and0/.25/.5/1ns pin delay;
+wrong-edge negative control still detects invalid data (now zzzz0000, reflecting
+the burst). Every normal read checks exactly one physical READ command. Masks,
+row/bank/end boundaries, reset discard, refresh and CPU/DMA lock pass. Top lint
+and174-source/9-QIP preflight pass. CPU cache_load_widths via adapter passes at
+0/3/11 wait settings. Fresh78MHz5M boot passes:289690 transfers,12 known fetch
+faults,zero data faults,acceptedPC00006178. All848 semantic events match prior
+78MHz boot; timestamps change due to reduced read latency. Logs and summary:
+scratch/sdram-burst32/. No Quartus build launched; routed timing remains pending.
+
+## 2026-11-09: JTFRAME native32-bit reads confirmed (review only)
+
+User requested checking Jotego configuration before building. Existing controller
+supports BA_LEN32 two-beat reads; romrq bcache (CACHE_SIZE=0) stores two32-bit
+blocks, while xscache caches requested results. Linked cninja wrapper demonstrates
+DW32. Prefer existing controller plus32-bit read assembly over replacement.
+Writable RAM needs invalidation if retaining ROM-request cache entries; writes
+remain masked16-bit operations. Detailed findings: docs/sdram-104mhz-ddio.md.
+No RTL change, simulation, commit or build launched for this review.
+
+## 2026-11-09: Model2 reference reviewed
+
+Reviewed alphanu1/sega-model2-mister PLL/controller, integration, SDC and device
+model. Useful pin-constraint/self-test/grouped-read ideas; no demonstrated reason
+to replace our current controller before the pending input-DDIO fit. Reference
+uses100 MHz dedicated180-degree PLL pin output and posedge DQ capture,13 clients,
+and broad IO multicycle exceptions requiring independent validation. Its model
+omits physical clock phase. Our16 MB logical RAM spans two8 MB physical banks.
+Detailed findings in docs/sdram-104mhz-ddio.md; local reference files under
+scratch/model2-sdram-review/. No RTL change, build or board claim in this review.
+
 ## 2026-11-09: input DDIO handoff — ready for physical fit
 
 Replaced the discrete falling→rising SDRAM register pair with Cyclone V
