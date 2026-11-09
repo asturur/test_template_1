@@ -13,11 +13,13 @@ if vvp "$out/wrong-edge" > "$out/wrong-edge.log" 2>&1; then
 fi
 grep -q 'got zzzzzzzz expected' "$out/wrong-edge.log"
 echo 'PASS negative control: inverted clock with rising-only capture fails'
+for hz in 104000000 78000000; do
 for delay in 0 0.25 0.5 1.0; do
     iverilog -g2012 -s tb -Ptb.INVERTED_CLOCK=1 -Ptb.CAPTURE_NEGEDGE=1 \
-        -Ptb.CLOCK_PIN_DELAY="$delay" -o "$out/test" $sources
-    vvp "$out/test" > "$out/delay-$delay.log" 2>&1
-    if grep -E 'ERROR:|FATAL:' "$out/delay-$delay.log"; then exit 1; fi
-    grep '^PASS SDRAM real controller' "$out/delay-$delay.log"
-    echo "PASS 104 MHz DDIO/falling capture, modeled clock-pin delay ${delay}ns"
+        -Ptb.SYS_CLK_HZ="$hz" -Ptb.CLOCK_PIN_DELAY="$delay" -o "$out/test" $sources
+    vvp "$out/test" > "$out/delay-$hz-$delay.log" 2>&1
+    if grep -E 'ERROR:|FATAL:' "$out/delay-$hz-$delay.log"; then exit 1; fi
+    grep '^PASS SDRAM real controller' "$out/delay-$hz-$delay.log"
+    echo "PASS ${hz} Hz DDIO/falling capture, modeled clock-pin delay ${delay}ns"
+done
 done

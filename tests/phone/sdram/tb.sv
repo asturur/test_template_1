@@ -2,7 +2,9 @@
 module tb;
 parameter INVERTED_CLOCK=0, CAPTURE_NEGEDGE=0;
 parameter real CLOCK_PIN_DELAY=0.0;
-reg clk=0; always #4.8075 clk=~clk;
+parameter integer SYS_CLK_HZ=104000000;
+localparam real HALF_PERIOD=500000000.0/SYS_CLK_HZ;
+reg clk=0; always #(HALF_PERIOD) clk=~clk;
 wire memclk;
 generate if(INVERTED_CLOCK) begin : inverted_clock
  wire pin_clock;
@@ -10,7 +12,7 @@ generate if(INVERTED_CLOCK) begin : inverted_clock
  assign #(CLOCK_PIN_DELAY) memclk=pin_clock;
 end else begin : shifted_clock
  reg pin_clock=0;
- initial begin #7.211; forever #4.8075 pin_clock=~pin_clock; end
+ initial begin #(1.5*HALF_PERIOD); forever #(HALF_PERIOD) pin_clock=~pin_clock; end
  assign memclk=pin_clock;
 end endgenerate
 reg rst=1, phone_reset=1, req=0, we=0; reg [24:0] addr=0; reg [31:0] din=0; reg [3:0] be=0;

@@ -1,5 +1,53 @@
 # Phone clocks and slower interfaces
 
+## Selected hardware bring-up clock:78MHz (2026-11-09)
+
+The user selected78MHz after the104MHz timing campaign. `Template.sv` sets
+SYS_CLK_HZ=78000000 and the actual PLL parameters request78MHz from50MHz.
+The second output is still unused, with its nominal−90° phase updated to−3205ps.
+SDRAM uses inverted DDIO from clk_sys, HF=1 and both falling capture/rising transfer
+registers. No timing exception is added; TimeQuest derives the new PLL clocks.
+This underclock is a bring-up setting, not a claim about Nokia's clock programming
+or verified FPGA timing closure. The earlier52MHz suggestion was not implemented.
+
+SYS_CLK_HZ propagates through MiSTer→board→UPP/peripherals and UEM. Module defaults
+remain104MHz for historical tests/checkpoint lineage. Known wall-time rates are:
+
+| Model/interface |104MHz defaults|78MHz hardware|
+|---|---:|---:|
+|LCD scan pixel enable (6.5MHz)|/16|/12|
+|Diagnostic SIM service enable (3.25MHz)|/32|/24|
+|NOS millisecond tick|104000clocks|78000clocks|
+|UPP/NOS approximate32.768kHz counter|/3174|/2380|
+|UEM RTC second|104000000clocks|78000000clocks|
+|UEM model alarm delay/check interval|7995392/65536clocks|5996544/49152clocks|
+|Save/diagnostic SD timeout (1second)|104000000clocks|78000000clocks|
+|SDRAM refresh trigger|6800clocks|5100clocks|
+
+The fast-counter divisor rounds to the nearest system clock: nominal rates are
+32766.226Hz and32773.109Hz respectively, not exact32.768kHz. Refresh retains its
+65.3846us trigger interval; controller refresh-command count remains unchanged.
+HF1 timing and11000-clock initialization are retained, giving approximately141us
+initial wait at78MHz (longer than the previous105.8us). Full scrub/reset and
+transaction handshakes remain cycle-based. Audio is still tied to zero; activity
+LED blink timing is cosmetic and remains cycle-derived. No new clock domain.
+
+**Unresolved timer models stay cycle-based.** `ngage_timers` boot/unit/periodic
+counters retain all existing register and decrement semantics. Their wall-time
+periods increase by4/3 when CPU frequency changes: e.g.406250ticks are5.2083ms at
+78MHz instead of3.90625ms at104MHz. This deliberately does not introduce the
+unverified26MHz timer-enable hypothesis. Polling delays and bus transaction cycles
+also scale with CPU progress; they are not RTC seconds.
+
+Dual-rate tests verify propagation, pixel/SIM enables, NOS/fcnt periods, RTC/alarm
+parameters, refresh cadence and unchanged timer constants. Native176×208 scanout
+passes at both divisors. Four-state Micron tests use the actual78MHz period and
+all0/.25/.5/1ns clock-pin delays, preserving the104MHz wrong-edge negative control.
+Source preflight and stubbed top lint pass. Fresh boot results and physical timing
+limits are in status; no old CPU checkpoint is restored into this clock lineage.
+Reproduce: `tests/phone/clock_rates/run.sh` and `tests/phone/sdram/run-ddio.sh` inside
+the existing simulator image; `PHONE_SYS_CLK_HZ=78000000 sh tests/phone/hardware_boot/run-real-sdram.sh`.
+
 ## Verified Nokia documentation (2026-11-07)
 
 Downloaded the **NEM-4** service chapters, Issue 2, September 2004. This is the

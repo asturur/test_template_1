@@ -41,7 +41,8 @@ module ngage_upp_peripherals #(
     parameter SIMIF_ENABLE       = 0,
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
-              REGISTER_RESPONSES = 0
+              REGISTER_RESPONSES = 0,
+              SYS_CLK_HZ         = 104000000
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -216,7 +217,11 @@ module ngage_upp_peripherals #(
         .periodic_active(periodic_active),
         .sysc74_seen    (sysc74_seen)
     );
-    ngage_nos_io nos_timer (
+    localparam integer FAST_TICK_DIV = (SYS_CLK_HZ + 16384) / 32768;
+    ngage_nos_io #(
+        .TICK_DIV(SYS_CLK_HZ / 1000),
+        .FAST_DIV(FAST_TICK_DIV)
+    ) nos_timer (
         .clk       (clk),
         .reset     (rst),
         .req       (cyc && stb),
@@ -491,7 +496,7 @@ module ngage_upp_peripherals #(
     end
 
     // ---- device 6: free-running counter ----------------------------------------
-    reg [31:0] fcnt;  // ticks once per 3174 clocks (32.768kHz@104MHz)
+    reg [31:0] fcnt;  // approximately 32.768 kHz, rounded host-clock divisor
     reg [11:0] fcnt_div;
 
     wire gpio_access = local_access && gpio_selected && valid_lanes &&
@@ -753,8 +758,8 @@ module ngage_upp_peripherals #(
             fcnt        <= 32'd0;
             fcnt_div    <= 12'd0;
         end else begin
-            // free-running counter: one tick per 3174 clocks
-            if (fcnt_div == 12'd3173) begin
+            // Keep the approximate wall-time tick independent of CPU frequency.
+            if (fcnt_div == FAST_TICK_DIV - 1) begin
                 fcnt_div <= 12'd0;
                 fcnt     <= fcnt + 32'd1;
             end else fcnt_div <= fcnt_div + 12'd1;

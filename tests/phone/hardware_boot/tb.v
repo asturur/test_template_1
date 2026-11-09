@@ -24,9 +24,10 @@ module tb(input wire clk,reset,cold,
 module tb;
  reg clk=0,reset=1,cold=1;
 `endif
+parameter integer SYS_CLK_HZ=104000000;
 `ifndef NGAGE_LOGO_RUN
 `ifdef NGAGE_REAL_SDRAM
- always #4.8075 clk=~clk; // match the production 104 MHz clock path
+ always #(500000000.0/SYS_CLK_HZ) clk=~clk; // selected nominal hardware frequency
 `else
  always #5 clk=~clk;
 `endif
@@ -42,7 +43,7 @@ module tb;
  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(memclk));
  // Short smoke scrubs 32 bytes. The independent full-size scrub test covers
  // all 16 MiB; the behavioral SDRAM model starts zero in this Verilator run.
- ngage_sdram_adapter #(.RAM_BYTES(32)) sadapter(clk,cold,reset,mem_init,sreq,swe,sa,sd,sb,sack,sdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_rdy,ba_dout,rfsh);
+ ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(clk,cold,reset,mem_init,sreq,swe,sa,sd,sb,sack,sdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_rdy,ba_dout,rfsh);
  jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(16),.BA1_LEN(16),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
   .rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
   .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
@@ -56,6 +57,14 @@ module tb;
  wire av,ar,aw,adone;wire [31:0] aa,ad,arsp;wire [3:0] ab;
  wire [28:0] pa;wire [63:0] pd;wire [7:0] pb;wire pr,pw;reg phyready=0;reg [63:0] phydata=0;
  reg [7:0] ddr[0:25231359];reg [31:0] ram[0:4194303];
+ // The request address is allowed to be zero in an idle fetch phase. Track
+ // actual F-stage acceptance for bounded-run liveness, not an arbitrary edge.
+ reg [31:0] last_fetch_pc=0;
+ integer last_fetch_cycle=-10000;
+ wire accepted_fetch = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.i_valid &&
+  !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.code_stall && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.sleep_ff &&
+  !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_writeback && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_alu &&
+  !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_decode;
  integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;
  integer owner_counts[0:17]; integer owner; integer k; integer memory_samples=0;
  task report_owner;
@@ -73,7 +82,7 @@ module tb;
 `else
  localparam UEM_POWERUP_STATUS=1;
 `endif
- ngage_mister #(.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
+ ngage_mister #(.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
 `ifdef NGAGE_LOGO_RUN
  1'b0
 `else
@@ -119,6 +128,7 @@ module tb;
   end
   if(!reset)begin
    cycles<=cycles+1;
+   if(accepted_fetch)begin last_fetch_pc<=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;last_fetch_cycle<=cycles;end
    if(board_log && (dut.wb_ack || dut.wb_err) && (dut.brd_claim || dut.dma_claim))
     $fdisplay(board_log,"%0d\t%s\t0x%08h\t0x%01h\t0x%08h\t%b\t%b\t%b",cycles,dut.wb_we ? "WRITE" : "READ",dut.pa,dut.wb_sel,dut.wb_we ? dut.wb_dat_o : dut.wb_dat_i,dut.wb_err,dut.irq_line,dut.fiq_line);
    if(dut.wb_ack)begin
@@ -160,9 +170,9 @@ module tb;
    end
 `else
    if(cycles==5000000)begin
-    if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.diagnostics.fetch_seen || dut.debug_fault_seen || dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr==0)begin $fatal(1,"bounded boot did not progress");end
+    if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.diagnostics.fetch_seen,dut.debug_fault_seen,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);end
     for(k=0;k<18;k=k+1)if(owner_counts[k]!=0)$display("OWNER id=%0d count=%0d",k,owner_counts[k]);
-    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);$finish;
+    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr,cycles-last_fetch_cycle);$finish;
    end
 `endif
   end

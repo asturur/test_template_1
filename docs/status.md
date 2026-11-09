@@ -1,3 +1,74 @@
+## 2026-11-09: selected 78 MHz hardware clock — verified build candidate
+
+User selected 78 MHz, superseding the earlier 52 MHz proposal below. Both PLL
+outputs now request 78 MHz; unused output1 has −3205 ps phase. The physical
+SDRAM clock remains inverted DDIO from clk_sys, with HF=1 and negative-edge read
+capture unchanged. SDC still derives the actual PLL clocks; no timing exceptions
+or artificial clock periods were added. A routed 78 MHz fit remains pending.
+
+Hardware propagates SYS_CLK_HZ=78000000; module/simulation defaults remain104 MHz.
+Known wall-time rates are preserved: LCD divider16→12 (6.5 MHz), SIM32→24,
+NOS tick104000→78000, UEM RTC/alarm dividers, transport one-second timeouts and
+SDRAM refresh6800→5100 (65.3846 us). The rounded fast counter is3174→2380.
+Existing unresolved UPP timer/boot-delay cycle semantics remain unchanged and
+therefore take4/3 as much wall time; no speculative26 MHz timer model was added.
+Details and remaining hardware assumptions: [phone clocks](phone-clocks.md).
+
+Validation: dual104/78 MHz rate checks pass; native video passes at divisors16/12;
+four-state SDRAM passes both actual clock periods at0/.25/.5/1 ns output delays,
+with the104 MHz wrong-edge negative control still failing as expected. Source
+preflight174files/9QIPs and top structural lint pass (PLL/HPS remain stubbed there).
+Fresh78 MHz real-SDRAM boot passes5M clocks:289108 transfers,12 known fetch faults,
+zero data faults, accepted fetch PC00006178, last accepted fetch20 clocks before
+endpoint. All848 ordered semantic board events,121 writes and12 fault records
+match the104 MHz WB baseline. Timestamps differ as expected after scaling refresh;
+last write190170→190272 cycles. Five million clocks represent64.103 ms instead of
+48.077 ms, excluding initialization/reset. No full CPU suite rerun was needed for
+this clock/parameter-only change; prior WB functional evidence remains below.
+
+The first78 MHz test exposed a testbench endpoint assumption: an idle fetch bus
+address can be zero while execution is progressing. The final guard checks a
+recent genuinely accepted F-stage packet (valid, unstalled, awake and uncleared),
+retaining all transaction/fault assertions. The final accepted-fetch age20 passes
+the10000-clock bound. Failed diagnostic logs and final reproducible source hashes,
+rate/SDRAM/boot logs and event comparison are in scratch/clock-78/, with summary
+validation-summary.json. This establishes simulation behavior, not routed timing
+closure or physical phone/SDRAM stability. Next: one78 MHz fit, then board tests.
+
+## 2026-11-09: WB fit42548353482 — stop104MHz loop; lower-clock bring-up next
+
+Run42548353482 SHA c14eac3 compiles/fits; core setup fails. Compare retained
+pre-WB cache baseline6adaf61/run42527340861 (admission refinement reverted):
+Fmax85.68→83.28MHz; WNS−2.056→−2.393ns; TNS−2920.769→−2390.386ns
+(18.16% smaller magnitude). ALMs32794→32489 (−305), registers43569→43407(−162),
+M10Ks465/DSP38 unchanged. Versus rejected admission fitFmax72.40→83.28,
+TNS−5857.134→−2390.386; do not attribute combined revert+WB gain solely toWB.
+HDMI+.266; hold/recovery/removal/pulse minima+.214/+2.304/+1.079/+.961 pass.
+Worst full-cycle reset_drain→NOS status−2.393ns,11.274nsdata/7levels. Reported
+Fmax matches that full-cycle requirement. Functional172PASS, ordered effects and
+848-event timestamp-identical boot remain valid; no new tests in analysis.
+
+WB targeted results: reservation−.743, payloadcapture+2.619, localcommit+3.791,
+reservationfeedback−1.178, downstreambus−1.323. Intended live merge→widepayload
+cone successfully broken; allocation/drain control remains. Cache requestowner
+−.702, owner→tags+1.829,pipeline+1.507,response+1.426. No104MHz closure claim.
+Top1000 endpoints include sparse146,WB123,issue90,fetch88,LCDframebuffer73,
+cacheaccess61,tags56,R55,predecode44,MDI33,maintenance31; others200.
+Full groups scratch/timing-closure/wb-fit-42548353482/endpoint-groups.json.
+
+User checkpoint decision applies: improvement insufficient for continued open-ended
+104MHz optimization. Retain WB change (lower area, healthy commit seams, explicit
+small cycle cost); next target52MHz CPU/cache/SDRAM for functional board bring-up.
+52 is a conservative proposed bring-up point, not measured/stable hardware yet.
+Do a fresh52MHz fit and all timing checks; audit every timebase, SDRAM refresh/init/
+HF parameters, inverted DDIO/read-capture relationship, video/audio derivation and
+cross-domain assumptions. PLL Fmax extrapolation alone cannot establish stability.
+Do not simply change SDC or slow peripherals unintentionally. Preserve interface
+edge contracts and verify fresh SDRAM simulation, then board diagnostics/firmware
+boot towards working phone. Defer further CPU/cache optimization until hardware
+correctness evidence justifies it. This turn only records analysis/recommendation;
+no clock edits, commit, push or new build launched.
+
 ## 2026-11-09: pipelined write-buffer reservation — validated fit candidate
 
 After isolated revert62c3707 restored original cache L0/Quartus guards, only the

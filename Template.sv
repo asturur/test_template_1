@@ -1,7 +1,7 @@
 //============================================================================
 //
 //  N-Gage MiSTer core — Template.sv (emu module)
-//  104 MHz CPU + SDRAM, DDR3 for ROM/flash, BRAM framebuffer
+//  78 MHz CPU + SDRAM, DDR3 for ROM/flash, BRAM framebuffer
 //
 //============================================================================
 
@@ -128,7 +128,8 @@ module emu (
 
     ///////////////////////   CLOCKS   ///////////////////////////////
 
-    wire clk_sys;  // 104 MHz — CPU, bus, board devices, SDRAM logic
+    localparam integer SYS_CLK_HZ = 78000000;
+    wire clk_sys;  // 78 MHz — CPU, bus, board devices, SDRAM logic
     wire pll_locked;
 
     pll pll (
@@ -169,8 +170,8 @@ module emu (
 
     // SDRAM: phone RAM 16MB at PA 0x0a000000, split across BA0 (low 8MB)
     // and BA1 (high 8MB). AW=22 matches DE10 SDRAM geometry (8MB/bank).
-    // 104 MHz system clock, inverted DDIO output to SDRAM chip pin.
-    // Forward the 104 MHz system clock through the output IO register. The
+    // 78 MHz system clock, inverted DDIO output to SDRAM chip pin.
+    // Forward the 78 MHz system clock through the output IO register. The
     // inverted pin clock is paired with falling-edge read capture in sdram_ctrl.
     ngage_sdram_clock sdram_clock (
         .clk      (clk_sys),
@@ -232,7 +233,9 @@ module emu (
         .mem_ack  (mem_ack),
         .mem_rdata(mem_rdata)
     );
-    ngage_sdram_adapter phone_sdram (
+    ngage_sdram_adapter #(
+        .REFRESH_PERIOD((64'd6800 * SYS_CLK_HZ) / 104000000)
+    ) phone_sdram (
         .clk        (clk_sys),
         .rst        (transport_reset),
         .phone_reset(phone_reset),
@@ -258,7 +261,7 @@ module emu (
 
     jtframe_sdram64 #(
         .AW                  (22),
-        .HF                  (1),   // 104 MHz > 66 MHz → HF mode
+        .HF                  (1),   // 78 MHz > 66 MHz → HF mode
         .READ_CAPTURE_NEGEDGE(1),   // paired with the inverted DDIO pin clock
         .BA0_LEN             (16),  // 16-bit single reads
         .BA1_LEN             (16),
@@ -484,7 +487,9 @@ module emu (
     // matches these save-header SHA values. FPGA does not compute SHA-256.
     reg flush_prev = 0;
     always @(posedge clk_sys) flush_prev <= status[14];
-    ngage_save_manager saves (
+    ngage_save_manager #(
+        .SD_TIMEOUT(SYS_CLK_HZ)
+    ) saves (
         .clk             (clk_sys),
         .reset           (transport_reset),
         .mount           (img_mounted[0]),
@@ -534,7 +539,9 @@ module emu (
     wire debug_freeze, debug_busy, debug_error, debug_mounted, lcd_unsupported;
     reg debug_trigger_prev = 0;
     always @(posedge clk_sys) debug_trigger_prev <= status[18];
-    ngage_diag_export debug_export (
+    ngage_diag_export #(
+        .TIMEOUT(SYS_CLK_HZ)
+    ) debug_export (
         .clk           (clk_sys),
         .reset         (transport_reset),
         .mount         (img_mounted[1]),
@@ -567,7 +574,9 @@ module emu (
         .joystick(joystick_0),
         .keys    (phone_keys)
     );
-    ngage_mister core (
+    ngage_mister #(
+        .SYS_CLK_HZ(SYS_CLK_HZ)
+    ) core (
         .sim_present(status[15]),
         .dma_sdram_req(lcd_dma_req),
         .dma_sdram_addr(lcd_dma_addr),

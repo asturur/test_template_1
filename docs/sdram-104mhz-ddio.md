@@ -1,5 +1,15 @@
 # 104 MHz SDRAM clock forwarding and read capture
 
+2026-11-09 hardware selection:78MHz, following the user's bring-up decision.
+The DDR clock forwarding and two-edge capture architecture below is unchanged;
+HF remains1 because78MHz exceeds66MHz. Refresh trigger is scaled6800→5100 to
+retain65.3846us; the11000-clock initialization wait is conservatively retained
+(~141us at78MHz). The unused PLL output is now78MHz/−3205ps. Four-state tests pass
+at actual78MHz and104MHz periods with0/.25/.5/1ns pin delay; the104MHz wrong-edge
+negative control still fails as required. These are model checks, not fitted or
+board timing proof. See [clock audit](phone-clocks.md) for all other timebases.
+The following sections preserve the original104MHz investigation and evidence.
+
 2026-11-06 investigation following Terra's single-output/inverted-clock experiment. The maintained top now uses the existing PLL's 104 MHz system output to drive `SDRAM_CLK` through `rtl/ngage_sdram_clock.v` (`altddio_out`). The controller uses `READ_CAPTURE_NEGEDGE=1`. This configuration passes four-state timing-model tests and bounded firmware execution; FPGA fit, TimeQuest closure and real-board operation are **not verified**.
 
 ## Root cause measured in the original timing model

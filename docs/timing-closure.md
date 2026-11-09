@@ -1,3 +1,37 @@
+## 2026-11-09: WB fit42548353482 — stop104MHz loop; lower-clock bring-up next
+
+Run42548353482 SHA c14eac3 compiles/fits; core setup fails. Compare retained
+pre-WB cache baseline6adaf61/run42527340861 (admission refinement reverted):
+Fmax85.68→83.28MHz; WNS−2.056→−2.393ns; TNS−2920.769→−2390.386ns
+(18.16% smaller magnitude). ALMs32794→32489 (−305), registers43569→43407(−162),
+M10Ks465/DSP38 unchanged. Versus rejected admission fitFmax72.40→83.28,
+TNS−5857.134→−2390.386; do not attribute combined revert+WB gain solely toWB.
+HDMI+.266; hold/recovery/removal/pulse minima+.214/+2.304/+1.079/+.961 pass.
+Worst full-cycle reset_drain→NOS status−2.393ns,11.274nsdata/7levels. Reported
+Fmax matches that full-cycle requirement. Functional172PASS, ordered effects and
+848-event timestamp-identical boot remain valid; no new tests in analysis.
+
+WB targeted results: reservation−.743, payloadcapture+2.619, localcommit+3.791,
+reservationfeedback−1.178, downstreambus−1.323. Intended live merge→widepayload
+cone successfully broken; allocation/drain control remains. Cache requestowner
+−.702, owner→tags+1.829,pipeline+1.507,response+1.426. No104MHz closure claim.
+Top1000 endpoints include sparse146,WB123,issue90,fetch88,LCDframebuffer73,
+cacheaccess61,tags56,R55,predecode44,MDI33,maintenance31; others200.
+Full groups scratch/timing-closure/wb-fit-42548353482/endpoint-groups.json.
+
+User checkpoint decision applies: improvement insufficient for continued open-ended
+104MHz optimization. Retain WB change (lower area, healthy commit seams, explicit
+small cycle cost); next target52MHz CPU/cache/SDRAM for functional board bring-up.
+52 is a conservative proposed bring-up point, not measured/stable hardware yet.
+Do a fresh52MHz fit and all timing checks; audit every timebase, SDRAM refresh/init/
+HF parameters, inverted DDIO/read-capture relationship, video/audio derivation and
+cross-domain assumptions. PLL Fmax extrapolation alone cannot establish stability.
+Do not simply change SDC or slow peripherals unintentionally. Preserve interface
+edge contracts and verify fresh SDRAM simulation, then board diagnostics/firmware
+boot towards working phone. Defer further CPU/cache optimization until hardware
+correctness evidence justifies it. This turn only records analysis/recommendation;
+no clock edits, commit, push or new build launched.
+
 ## 2026-11-09: admission fit42542334870 — reject refinement, keep original L0
 
 Run42542334870 SHA f99ae23 compiles/fits; timing fails. Versus6adaf61:

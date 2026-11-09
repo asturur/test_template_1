@@ -12,7 +12,8 @@
 */
 
 module ngage_mister #(
-    parameter UEM_POWERUP_STATUS = 2
+    parameter UEM_POWERUP_STATUS = 2,
+              SYS_CLK_HZ         = 104000000
 ) (
     input  wire        clk_sys,             // CPU/bus clock domain
     input  wire        reset,
@@ -109,6 +110,7 @@ module ngage_mister #(
     wire [11:0] raw_rgb;
     wire [8:0] video_x, video_y;
     ngage_board #(
+        .SYS_CLK_HZ        (SYS_CLK_HZ),
         .INTERNAL_CPU      (1),
         .SIMIF_ENABLE      (1),
         .KEYPAD_ENABLE     (1),

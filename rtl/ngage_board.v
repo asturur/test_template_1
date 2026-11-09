@@ -6,7 +6,8 @@ module ngage_board #(
               KEYPAD_ENABLE      = 0,
               LCD_ENABLE         = 0,
               LCD_DMA_ENABLE     = 0,
-              UEM_POWERUP_STATUS = 1
+              UEM_POWERUP_STATUS = 1,
+              SYS_CLK_HZ         = 104000000
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -90,7 +91,7 @@ module ngage_board #(
     generate
         if (SIMIF_ENABLE) begin : test_card
             ngage_test_sim #(
-                .CLOCK_DIV(32)
+                .CLOCK_DIV(SYS_CLK_HZ / 3250000)
             ) card (
                 .clk         (clk),
                 .reset       (rst),
@@ -147,7 +148,9 @@ module ngage_board #(
                 .out_addr (queued_addr),
                 .out_data (queued_data)
             );
-            ngage_lcd_display lcd (
+            ngage_lcd_display #(
+                .PIXEL_DIV(SYS_CLK_HZ / 6500000)
+            ) lcd (
                 .clk              (clk),
                 .reset            (rst),
                 .diagnostic       (diagnostic_video),
@@ -190,6 +193,7 @@ module ngage_board #(
         end
     endgenerate
     ngage_upp #(
+        .SYS_CLK_HZ      (SYS_CLK_HZ),
         .INTERNAL_CPU    (INTERNAL_CPU),
         .SIMIF_ENABLE    (SIMIF_ENABLE),
         .KEYPAD_ENABLE   (KEYPAD_ENABLE),
@@ -280,6 +284,7 @@ module ngage_board #(
         .adsp_tick        (adsp_tick)
     );
     ngage_uem #(
+        .SYS_CLK_HZ      (SYS_CLK_HZ),
         .POWER_KEY_ENABLE(KEYPAD_ENABLE),
         .POWERUP_STATUS  (UEM_POWERUP_STATUS)
     ) uem (

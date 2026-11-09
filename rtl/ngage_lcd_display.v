@@ -2,7 +2,9 @@
 // with a separate 320x240 diagnostic active area. The LCD
 // header/RGB444 assumptions follow scratch/current-boot/direct_lcd.py; these
 // signals do not model the physical LCD serial bus or verified scan timing.
-module ngage_lcd_display (
+module ngage_lcd_display #(
+    parameter integer PIXEL_DIV = 16
+) (
     input  wire        clk,
     input  wire        reset,
     input  wire        diagnostic,
@@ -49,7 +51,8 @@ module ngage_lcd_display (
             unsupported_command <= context_command;
         end
     endtask
-    reg [3:0] div = 0;
+    localparam integer DIV_WIDTH = PIXEL_DIV > 1 ? $clog2(PIXEL_DIV) : 1;
+    reg [DIV_WIDTH-1:0] div = 0;
     reg [8:0] x = 0, y = 0;
     wire [23:0] pixel_word, pixel_q;
     reg        pixel_forward;
@@ -104,7 +107,8 @@ module ngage_lcd_display (
         .q_b   (pixel_q)
     );
     always @(posedge clk) begin
-        div               <= div + 1'b1;
+        if (div == PIXEL_DIV - 1) div <= 0;
+        else div <= div + 1'b1;
         ce_pix            <= div == 0;
         unsupported_valid <= 0;
         if (div == 0) begin

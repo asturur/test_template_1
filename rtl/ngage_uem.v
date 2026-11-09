@@ -2,7 +2,8 @@
 // the UPP CBUS register interface is not yet serialized onto CBUS pins.
 module ngage_uem #(
     parameter POWER_KEY_ENABLE = 0,
-              POWERUP_STATUS   = 1
+              POWERUP_STATUS   = 1,
+              SYS_CLK_HZ       = 104000000
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -25,6 +26,9 @@ module ngage_uem #(
     output wire        cbus8d_written
 );
     ngage_cbus_uem #(
+        .SECOND_TICKS    (SYS_CLK_HZ),
+        .ALARM_TICKS     ((64'd7995392 * SYS_CLK_HZ) / 104000000),
+        .ALARM_INTERVAL  ((64'd65536 * SYS_CLK_HZ) / 104000000),
         .POWER_KEY_ENABLE(POWER_KEY_ENABLE),
         .POWERUP_STATUS  (POWERUP_STATUS)
     ) cbus (

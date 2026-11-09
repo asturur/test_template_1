@@ -7,10 +7,10 @@ module  pll_0002(
 	// interface 'reset'
 	input wire rst,
 
-	// interface 'outclk0' — 104 MHz CPU/bus clock
+	// interface 'outclk0' — 78 MHz CPU/bus clock
 	output wire outclk_0,
 
-	// interface 'outclk1' — 104 MHz SDRAM clock (−90° phase shift)
+	// interface 'outclk1' — 78 MHz unused output (−90° phase shift)
 	output wire outclk_1,
 
 	// interface 'locked'
@@ -22,11 +22,11 @@ module  pll_0002(
 		.reference_clock_frequency("50.0 MHz"),
 		.operation_mode("direct"),
 		.number_of_clocks(2),
-		.output_clock_frequency0("104.000000 MHz"),
+		.output_clock_frequency0("78.000000 MHz"),
 		.phase_shift0("0 ps"),
 		.duty_cycle0(50),
-		.output_clock_frequency1("104.000000 MHz"),
-		.phase_shift1("-2404 ps"),               // −90° at 104 MHz = −2404 ps
+		.output_clock_frequency1("78.000000 MHz"),
+		.phase_shift1("-3205 ps"),               // −90° at 78 MHz = −3205 ps
 		.duty_cycle1(50),
 		.output_clock_frequency2("0 MHz"),
 		.phase_shift2("0 ps"),

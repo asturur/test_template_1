@@ -1,12 +1,13 @@
 `timescale 1ns/1ps
 // Check the actual CE/DE stream, not a host crop of a padded screenshot.
 module tb;
+parameter PIXEL_DIV=16;
 reg clk=0,reset=1,diagnostic=0,wv=0,dv=0,full=0;reg [31:0] wa=0,wd=0,dd=0;reg [14:0] da=0;
 wire ce,hb,vb,hs,vs,complete,unsupported;wire [11:0] rgb;
 integer i,x,y,pattern=0,active,hticks,vticks,total,fd;reg begun;reg [1023:0] picture_path,hex_path;
 reg [31:0] picture[0:18303];reg replay=0;
 always #5 clk=~clk;
-ngage_lcd_display dut(.clk(clk),.reset(reset),.diagnostic(diagnostic),.status(8'h80),.save_state(3'b0),.write_valid(wv),.write_addr(wa),.write_data(wd),.dma_valid(dv),.dma_frame_full(full),.dma_word_addr(da),.dma_data(dd),.ce_pix(ce),.hsync(hs),.vsync(vs),.hblank(hb),.vblank(vb),.rgb(rgb),.frame_complete(complete),.unsupported(unsupported));
+ngage_lcd_display #(.PIXEL_DIV(PIXEL_DIV)) dut(.clk(clk),.reset(reset),.diagnostic(diagnostic),.status(8'h80),.save_state(3'b0),.write_valid(wv),.write_addr(wa),.write_data(wd),.dma_valid(dv),.dma_frame_full(full),.dma_word_addr(da),.dma_data(dd),.ce_pix(ce),.hsync(hs),.vsync(vs),.hblank(hb),.vblank(vb),.rgb(rgb),.frame_complete(complete),.unsupported(unsupported));
 function [11:0] expected;
  input integer xx,yy;
  reg [31:0] pair;

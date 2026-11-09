@@ -7,7 +7,7 @@ set_global_assignment -name SEARCH_PATH rtl/arm
 set_global_assignment -name SYSTEMVERILOG_FILE Template.sv
 set_global_assignment -name SDC_FILE Template.sdc
 
-# PLL (104 MHz system; SDRAM pin clock is forwarded through DDIO)
+# PLL (78 MHz system; SDRAM pin clock is forwarded through DDIO)
 set_global_assignment -name QIP_FILE rtl/pll.qip
 
 # Request IO-cell placement for the falling-edge SDRAM input capture.
