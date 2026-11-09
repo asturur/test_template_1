@@ -1,3 +1,45 @@
+## 2026-11-09: admission fit42542334870 — reject refinement, keep original L0
+
+Run42542334870 SHA f99ae23 compiles/fits; timing fails. Versus6adaf61:
+Fmax85.68→72.40MHz; core WNS−2.056→−2.409ns; TNS−2920.769→−5857.134ns
+(100.53% larger magnitude). ALMs32794→33166 (+372), registers43569→43641(+72);
+M10Ks465/DSP38 unchanged. HDMI setup+.163→−.003ns(TNS−.012), now also fails.
+Minimum hold/recovery/removal/pulse+.212/+1.275/+1.001/+.961 all pass.
+Fmax limiter is falling SDRAM DQ[8]→rising dout[8], slack−2.099/data5.285ns on
+half-cycle; global worst is LCD y[4]→framebuffer BRAM clock-enable−2.409ns.
+Do not attribute unrelated placement movements directly to admission logic alone.
+
+Targeted cache capture+0.859 passes; admission control−1.629 worsens from−1.140:
+writeback pc_del3[29]→stream_hit→fast_lookup_valid→qualification→owner_kind[0].
+The critical hit-dependent admission decision still exists. Owner→tags+1.328→+.004:
+owner_kind[1]→selected segment(fanout192)→flag reduction. Splitting snapshots adds
+a register-selection mux on the previously healthy lookup seam. Pipeline+1.259,
+response+1.667 remain positive.30queries:29ok,CP15→R no_paths; admission control
+has9paths, all others10. Retained completion capture+2.026/advance+1.918,
+format+2.734/formattedM→issue+.603,journal+.825/+2.871 all pass.
+Operand residuals pointer→issue−1.219, allR→ALU−1.721, M→issue−1.417,
+execute→issue−.761, queuefeedback−.115, pointerqueue−.018, D→R−.725.
+CP15 read+.564, RF→R+.440. No CPU operand closure claim.
+
+Top1000 endpoints: LCD framebuffer296,timers209,writebuffer123,extraICU51,
+cache access40,BTB35,fetch31,bootregs31,maintenance26,LCD DMA24,tags17,
+issue15,other102. Sources include LCDy296,reset_drain240,cache state_ff99,
+writebackPC90,prefetch-state56. Full grouping saved alongside downloaded artifacts
+in scratch/timing-closure/admission-fit-42542334870/endpoint-groups.json.
+Counts are bounded worst-per-endpoint samples, not exhaustive failure counts.
+
+Recommendation: revert ONLY admission refinement3e344cc in a separate commit,
+retaining original registeredL0 cache stage97daa8a and Quartusguard6adaf61.
+Preserve experiment evidence and useful tests. Stop iterating on wide capture:
+root control is hit-dependent acceptance; narrowing its endpoint did not shorten
+that decision. Continue planned write-buffer reservation/local-enable redesign,
+then address instruction fast-hit/admission ownership as its own bounded protocol
+change if still critical. Stabilize SDRAM transfer/address timing separately; its
+large fit-to-fit movement obscures domain frequency comparisons. Do not call the
+current refinement a win merely because capture is positive. Functional tests
+remain172PASS/identical cycles/effects/848-event boot; no functional regression
+observed. This report makes no RTL edits/revert/commit/push/new build.
+
 ## 2026-11-09: cache fit42527340861 — registered lookup passes, admission remains
 
 Run42527340861 SHA6adaf61 compiles/fits; only passing-timing gate fails.
