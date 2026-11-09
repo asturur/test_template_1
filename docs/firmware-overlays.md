@@ -17,8 +17,10 @@ existing boot.rom and boot1.rom in games/NGage. The named packages work with
 page. Existing official boot files do not move or change. Both packages target
 only the audited NEM-4 v4.03 service files.
 
-NOS supplies the minimal service-table bootstrap and narrow accessory/light/
-vibration replies. It does not provide a cellular modem, SIM service, calls or
+NOS Compatibility now replaces only the NOS driver/export/allocation code
+and narrow accessory/light/vibration replies, while retaining original NOS
+startup and service-table initialization. The fake bootstrap is excluded: it
+prevents the Nokia logo on hardware, even without the replacement driver. It does not provide a cellular modem, SIM service, calls or
 SMS. [NOS provenance](../firmware_overlays/nos/NOTICE.md).
 
 Bluetooth redirects BTLDD's write/completion path to Nortido's local HCI
@@ -53,6 +55,10 @@ directed tests. Existing long simulations use their frozen builds; these source
 changes do not alter those binaries, checkpoints or results. No fourth long run
 is started for the Bluetooth addition.
 
+Prepared, ready-to-copy files live permanently in `runtime/overlays/`; build
+intermediates go under `build/firmware-overlays/`. Generated private files are
+ignored by Git, while the folder README and builders are maintained.
+
 ## Build private packages
 
 Host prerequisites: Python3 and arm-none-eabi GCC/binutils. From the repo root:
@@ -61,13 +67,13 @@ Host prerequisites: Python3 and arm-none-eabi GCC/binutils. From the repo root:
 python3 tools/nos_overlay.py \
   --mcu 'firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1' \
   --ppm 'firmware/NEM-04 v.04.03 N-GAGE/nem440.326' \
-  --output scratch/mister-overlays/NOS_Compatibility.ngo
+  --output runtime/overlays/NOS_Compatibility.ngo
 python3 tools/bluetooth_overlay.py \
   --mcu 'firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1' \
   --ppm 'firmware/NEM-04 v.04.03 N-GAGE/nem440.326' \
-  --output scratch/mister-overlays/Bluetooth_Compatibility.ngo
-cp scratch/mister-overlays/NOS_Compatibility.ngo scratch/mister-overlays/boot2.rom
-cp scratch/mister-overlays/Bluetooth_Compatibility.ngo scratch/mister-overlays/boot3.rom
+  --output runtime/overlays/Bluetooth_Compatibility.ngo
+cp runtime/overlays/NOS_Compatibility.ngo runtime/overlays/boot2.rom
+cp runtime/overlays/Bluetooth_Compatibility.ngo runtime/overlays/boot3.rom
 ```
 
 Builders verify original service profiles and the decoded stock MD5 before
@@ -103,12 +109,12 @@ error. Existing loader-failure flag also includes either overlay error. Codes:
 Inside the existing jotego/simulator:arm64 image:
 
 ```sh
-sh tests/phone/overlay/run.sh scratch/mister-overlays/NOS_Compatibility.ngo
-OVERLAY_ID=2 sh tests/phone/overlay/run.sh scratch/mister-overlays/Bluetooth_Compatibility.ngo
-sh tests/phone/overlay/hps-run.sh scratch/mister-overlays/NOS_Compatibility.ngo \
+sh tests/phone/overlay/run.sh runtime/overlays/NOS_Compatibility.ngo
+OVERLAY_ID=2 sh tests/phone/overlay/run.sh runtime/overlays/Bluetooth_Compatibility.ngo
+sh tests/phone/overlay/hps-run.sh runtime/overlays/NOS_Compatibility.ngo \
   scratch/hardware-live/service-loaded-boot/core.bin \
   scratch/hardware-live/service-loaded-boot/extension.bin \
-  scratch/mister-overlays/Bluetooth_Compatibility.ngo
+  runtime/overlays/Bluetooth_Compatibility.ngo
 sh tests/phone/mister_transport/lint-top.sh
 ```
 
@@ -142,10 +148,37 @@ ID1 package unchanged. Corrected pack447records/5428bytes, SHA256
 After building a NOS pack, test its assembled bootstrap independently:
 
 ```sh
-sh tests/phone/overlay_bootstrap/run.sh scratch/mister-overlays/nos-build/bootstrap.bin
+sh tests/phone/overlay_bootstrap/run.sh build/firmware-overlays/nos/bootstrap.bin
 ```
 
 This uses host ARM binutils and the existing Jotego Docker image to execute our
 actual ZAP CPU. Do not use the local Python Unicorn emulator on this machine;
 it crashed with SIGILL. No phone simulation, original firmware file or long-run
 checkpoint is changed by the test. Hardware logo/startup remains to be retested.
+
+## Hardware-isolated NOS bootstrap failure (2026-11-09)
+
+| Private diagnostic payload | Nokia logo on hardware |
+|---|---|
+| Checksum skip only | Yes, much faster |
+| NOS driver only + skip | Yes |
+| Fake NOS bootstrap only + skip | No |
+| Bootstrap and driver + skip | No |
+
+The failing component is fake NOS startup/service-table initialization itself;
+we have not identified the exact firmware call that fails. The earlier callback
+ABI defect was real but its correction did not restore the logo. Do not add UI
+or C: bypasses to hide this failure. Full UI/service progress remains unverified.
+
+The normal builder now excludes the fake bootstrap. NOS_Compatibility.ngo and
+boot2.rom are byte-identical to the hardware-tested driver-only diagnostic:
+389records/4732bytes, SHA256
+b31873932d9ada7c5b5d6f0fab54d447dcfa0aaf1a7549cbf1d8544095307698.
+This retains the original NOS runtime/startup; it is not a full NOS replacement.
+The existing NOS-toggle RBF supports it; no new bitstream is needed.
+
+To reproduce the failing variant explicitly, pass `--experimental-bootstrap`
+and output to a separate TEST filename. The builder rejects the experimental
+flag with a production NOS_Compatibility.ngo/boot2.rom filename. The diagnostic
+helper uses TEST_NOS_Full_Experimental.ngo as the source for bootstrap-only
+subsets; normal driver/checksum subsets use the production package.

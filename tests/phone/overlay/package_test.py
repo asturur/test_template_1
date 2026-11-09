@@ -19,6 +19,11 @@ n = {a: (old, new) for a, old, new in nos}
 b = {a: (old, new) for a, old, new in bt}
 assert n.keys() & b.keys() == {0x8f18, 0x8f1c}
 assert all(n[a] == b[a] for a in n.keys() & b.keys())
+# Hardware establishes that the fake NOS bootstrap prevents the logo. The
+# production pack must retain original nosstarter/service-table initialization.
+for address in n:
+    assert (address in (0x8f18, 0x8f1c, 0x11b4028, 0x11b4030, 0x11b413c)
+            or 0x11b6000 <= address < 0x11c0000), hex(address)
 # The only sanctioned changes are two checksum descriptor words, BTLDD's
 # three-word write tail, object allocation size and the erased injected tail.
 for address in b:

@@ -23,7 +23,7 @@ def build(mcu, ppm, output):
     if not compiler:
         raise ValueError('arm-none-eabi-gcc is required')
     source = ngo.ROOT / 'firmware_overlays/bluetooth'
-    work = output.parent / 'bluetooth-build'
+    work = ngo.ROOT / 'build/firmware-overlays/bluetooth'
     work.mkdir(parents=True, exist_ok=True)
     flags = ['-marm', '-march=armv4t', '-Os', '-ffreestanding', '-fno-builtin',
              '-fno-common', '-fno-pic', '-fno-tree-loop-distribute-patterns',

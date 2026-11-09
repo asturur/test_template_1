@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-09",
+  "hardware_reports": {
+    "checksum_only": "Nokia logo, very fast",
+    "driver_only": "Nokia logo",
+    "bootstrap_only": "No logo",
+    "full_bootstrap_and_driver": "No logo"
+  },
+  "conclusion": "Fake NOS startup/service-table replacement itself prevents the logo; exact failed firmware call remains unknown",
+  "production_default": "Original NOS startup retained, replacement driver and primary checksum skip only",
+  "package": {
+    "name": "NOS Compatibility",
+    "file": "NOS_Compatibility.ngo",
+    "format": "NGO1",
+    "original_nos_startup_retained": true,
+    "experimental_bootstrap": false,
+    "records": 389,
+    "bytes": 4732,
+    "sha256": "b31873932d9ada7c5b5d6f0fab54d447dcfa0aaf1a7549cbf1d8544095307698",
+    "skip_primary_checksum": true,
+    "checksum_bypass": "absent descriptor (8F18..8F1F = FFFFFFFF)",
+    "stock_primary_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+    "original_files_modified": false,
+    "off_restores_original": true,
+    "inputs": {
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1": "e948c435c977772a30ff2dd8ef608f7542a978c0acfd257bc0986925fd548690",
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.326": "fd4126eeaddf5c0cd72a9961f51e283bd1ed4245106e20f01d5a5551e85fddc7"
+    },
+    "compiler": "arm-none-eabi-gcc (GCC) 15.2.0"
+  },
+  "byte_identical_to_hardware_tested_driver_file": true,
+  "checks": {
+    "loader_log": "scratch/nos-driver-default/loader-tests.log",
+    "loader_log_sha256": "afa1300d7d60112c628f2fbd37797d97d73f1385ccf50fb343fc100d25f7bd88",
+    "passes": [
+      "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+      "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+      "PASS invalid bounds/alignment/order rejected before writes",
+      "PASS invalid bounds/alignment/order rejected before writes",
+      "PASS invalid bounds/alignment/order rejected before writes",
+      "PASS Bluetooth actual HPS boot3/F4, four independent views, shared checksum ownership, rapid toggles, exact undo and C:/PMM preservation",
+      "PASS actual hps_io boot2/F3, deferred firmware gating, exact ON/OFF, service-index isolation, backpressure and C:/PMM preservation"
+    ],
+    "bootstrap_excluded_from_normal_scope": true,
+    "experimental_bootstrap_production_filename_guard": true
+  },
+  "not_verified": [
+    "full UI and phone services",
+    "exact cause inside fake bootstrap",
+    "original NOS runtime performance with replacement driver"
+  ],
+  "sd_card": "Not accessed or changed for this default switch",
+  "simulations": "No new long run; original and timer-only left unpolled"
+}

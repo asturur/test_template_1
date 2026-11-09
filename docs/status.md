@@ -1,3 +1,122 @@
+## 2026-11-09: HARDWARE bootstrap-only fails; production NOS keeps original startup
+
+User confirms TEST_NOS_Bootstrap_Only.ngo gives no logo. Hardware matrix now:
+checksum-only YES (fast), driver-only YES, fake-bootstrap-only NO, full fake
+bootstrap+driver NO. Fake NOS startup/service-table replacement itself is the
+failing component; exact firmware stop/call remains unknown. Earlier no-op
+callback fix repaired a real porting error but did not resolve this failure.
+
+Production tools/nos_overlay.py now excludes fake bootstrap by default. It
+retains original nosstarter/service-table initialization and replaces only NOS
+driver/export/allocation code plus primary checksum descriptor. This retains
+original NOS runtime; do not call it a complete NOS/baseband replacement.
+Runtime NOS_Compatibility.ngo and boot2.rom are byte-identical to the actual
+hardware-tested driver-only file:389records/4732bytes,SHA256
+b31873932d9ada7c5b5d6f0fab54d447dcfa0aaf1a7549cbf1d8544095307698.
+Existing NOS-only RBF accepts it; an RBF rebuild is unnecessary. Local files
+updated, no SD writes in this default-selection step.
+
+Fake bootstrap retained only with explicit --experimental-bootstrap and TEST
+output filename (production names rejected). Prior full447-record file is
+runtime/overlays/TEST_NOS_Full_Experimental.ngo. New package audit rejects fake
+bootstrap addresses in production. Default build byte equality, scope check,
+all-target validation/undo/reload and actual HPS NOS/BT combinations pass.
+Full UI/services remain unverified. Evidence
+ docs/evidence/nos-bootstrap-hardware-isolation-2026-11-09.json.
+
+Permanent ready-to-copy folder is runtime/overlays/, private generated files
+ignored; maintained README/builders committed with diagnostic subset helper.
+Intermediate compiler files belong to build/firmware-overlays/. No original
+service file, C:/PMM or UI edits, no simulator monitoring/new long run or hardware
+build. Original and timer-only sims remain unpolled; old NOS sim remains stopped.
+
+## 2026-11-09: HARDWARE driver-only overlay reaches Nokia
+
+User confirms Nokia logo with TEST_NOS_Driver_Only.ngo as well as checksum-only.
+Thus replacement driver/export/allocation changes can reach logo when original
+NOS bootstrap is retained. Full NOS replacement still fails: remaining suspect
+is replacement startup/service-table path or its interaction with replacement
+driver, not driver alone. Do not present full NOS compatibility as working.
+
+Next existing artifact is runtime/overlays/TEST_NOS_Bootstrap_Only.ngo using
+same Off→manual Load NOS Compatibility→On procedure. A failure here would
+implicate bootstrap path without replacement driver; a success would point to
+combined initialization/driver dependency. Hardware outcome pending. Keep
+TEST_NOS_Driver_Only.ngo as the observed working diagnostic variant. No default
+boot2 replacement, SD writes, RBF build, new sim or simulation polling.
+
+## 2026-11-09: HARDWARE checksum-only reaches Nokia quickly; isolate NOS components
+
+User tested TEST_Checksum_Only.ngo on the NOS-only-toggle RBF: Nokia logo
+appeared "super fast". This establishes primary checksum bypass alone works
+on that hardware/firmware configuration. Full NOS overlay still loses the logo;
+remaining fault lies in replacement bootstrap/driver behavior or interactions,
+not64Hz alone or checksum skip by itself. No loader-held-CPU assumption.
+
+Prepared TEST_NOS_Driver_Only.ngo (389records: original NOS startup, replacement
+driver) and TEST_NOS_Bootstrap_Only.ngo (60records: fake startup/service table,
+original driver), both in runtime/overlays/ and both include primary skip.
+Use existing NOS picker/toggle: Off→manual file→On, BT Off if present. Driver-
+only recommended first. Actual HPS loader/byte-exact apply/undo passes for both.
+Host assert confirms subset union equals full447-record NOS pack, with only
+2checksum records shared. Normal boot2/full NOS package and SD untouched.
+These are diagnostic subsets, not guaranteed internally compatible backends;
+neither has yet been tested on hardware. No new RBF or long sim, no polling.
+Build using tools/checksum_only_overlay.py --variant driver-only|bootstrap-only.
+Logs scratch/nos-component-isolation/loader-tests.log. Instructions and hashes
+runtime/overlays/{README.md,SHA256SUMS}.
+
+## 2026-11-09: NOS hardware A/B, CPU active; checksum-only isolation prepared
+
+User reiterates same hardware shows Nokia with NOS OFF, no logo with NOS ON,
+and reports CPU numbers moving. Treat this as executed firmware-path failure,
+not assume loader hold; actual stop PC still unknown.64Hz alone is not the
+A/B differentiator. Callback correction did not establish restored logo.
+
+Prepared runtime/overlays/TEST_Checksum_Only.ngo (88bytes, ID1): only8F18/8F1C
+primary descriptors becomeFFFFFFFF, all NOS code/bootstrap/export hooks stay
+stock. New tools/checksum_only_overlay.py derives audited undo words from the
+full private NOS package, regenerates CRC/length, refuses to overwrite input.
+Actual HPS loader/application/undo checks pass with the2-record pack. No C:/UI
+patches. Existing boot2/full NOS file, SD card and both long runs untouched;
+no simulator polling/new long run or RBF build.
+
+Hardware test on existing RBF: BT Off, NOS Off, manual Load NOS Compatibility
+select TEST_Checksum_Only.ngo, then NOS On. This deliberately reuses NOS selector
+for checksum-only payload. Logo would isolate failure to NOS replacement changes;
+no logo would implicate checksum bypass/interactions even with stock NOS code.
+Restore full NOS manual package or cold-boot normal boot2 afterward. This test
+has not yet been run on hardware. Instructions runtime/overlays/README.md.
+
+## 2026-11-09: corrected NOS overlay still reported without logo
+
+After receiving the corrected runtime/overlays/boot2.rom path, user reports
+no logo with NOS enabled. The callback fix must not be presented as restoring
+hardware boot. Hardware A/B already shows logo without NOS, so64Hz alone is
+not the differentiator. Next distinguish overlay loader hold/error from actual
+firmware stop using current diagnostic FETCH PC/BOOT flags or a new NGD export,
+with Bluetooth OFF. Existing SD diagnostics.ngd still has16:15 timestamp and
+is not evidence for this attempt. No further speculative firmware patch or
+new long run; original/timer runs left unpolled. If CPU is running, isolate the
+checksum-only change from NOS bootstrap/driver next rather than bundling fixes.
+
+## 2026-11-09: permanent runtime overlay folder; hardware A/B confirmation
+
+Prepared overlay files moved from scratch/mister-overlays into runtime/overlays/:
+boot2.rom/NOS_Compatibility.ngo (corrected callback) and
+boot3.rom/Bluetooth_Compatibility.ngo. SHA256 verified across the move and
+recorded in runtime/overlays/SHA256SUMS. Generated private files stay gitignored;
+README is maintained. Builders now keep intermediate objects under
+build/firmware-overlays/{nos,bluetooth}; docs use the permanent runtime folder.
+Historical scratch references remain evidence, not the delivery location.
+No SD-card access, simulation polling or changes to running inputs in this step.
+
+User hardware A/B confirms Nokia logo without NOS patch, no logo with NOS;
+64Hz change is therefore not the differentiator in that report. Whether the
+corrected boot2 had actually been installed for that A/B remains unverified.
+The bootstrap porting defect is proven, but restoration of the hardware logo
+with the corrected overlay is still pending.
+
 ## 2026-11-09: fix NOS initialization callback; stop old NOS long run
 
 Hardware user reports NOS ON no longer reaches Nokia logo; exact hardware PC/

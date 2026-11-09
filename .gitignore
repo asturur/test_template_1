@@ -56,3 +56,7 @@ claudia-handoff/
 
 # Python bytecode caches
 __pycache__/
+
+# Private prepared runtime overlays; keep only their maintained instructions
+/runtime/overlays/*
+!/runtime/overlays/README.md

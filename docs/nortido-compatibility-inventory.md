@@ -1,3 +1,13 @@
+## Hardware selection, 2026-11-09: retain original NOS startup
+
+Hardware reaches Nokia with checksum-only and driver-only overlays, but not
+bootstrap-only or the full replacement. Production NOS overlay therefore keeps
+original nosstarter/service-table initialization and only replaces the driver.
+The fake bootstrap remains an explicit diagnostic option, excluded by default.
+This supersedes earlier claims that its bootstrap is required for our first
+NOS compatibility implementation. Full UI and NOS-service operation remain
+unverified; original NOS startup/runtime are still present. No C:/UI bypasses.
+
 ## Bluetooth implemented, 2026-11-09
 
 Bluetooth Compatibility is now an independent selector (status20), manual F4

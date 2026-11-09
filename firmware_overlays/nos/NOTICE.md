@@ -15,3 +15,7 @@ original digest words and files on disk are never changed.
 
 The initialization callback installed at guest global800004AC is a no-op, as
 in the pinned reference; it is separate from the NOS channel constructor.
+
+Hardware testing found that the fake bootstrap prevents the Nokia logo. Normal
+packages retain original NOS startup and replace only the driver. bootstrap.S
+is preserved solely for explicit diagnostic builds; it is not the default.

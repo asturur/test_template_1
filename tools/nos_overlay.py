@@ -41,12 +41,14 @@ def inspect(data, overlay_id=1):
         previous=off
     return records
 
-def build(mcu,ppm,out):
+def build(mcu,ppm,out,include_bootstrap=False):
+    if include_bootstrap and out.name in ('NOS_Compatibility.ngo','boot2.rom'):
+        raise ValueError('experimental bootstrap requires a separate TEST filename')
     raw=bytearray(b'\xff'*svc.BACKING_SIZE)
     for kind,path in [('mcu',mcu),('ppm',ppm)]:svc.apply(raw,svc.parse(path.read_bytes(),kind),kind)
     plain=decode(raw)
     if hashlib.md5(plain[0x9000:0x11b5000]).digest()!=DIGEST:raise ValueError('stock decoded digest mismatch')
-    work=out.parent/'nos-build';work.mkdir(parents=True,exist_ok=True)
+    work=ROOT/'build/firmware-overlays/nos';work.mkdir(parents=True,exist_ok=True)
     source=ROOT/'firmware_overlays/nos';cc=shutil.which('arm-none-eabi-gcc')
     if not cc:raise ValueError('arm-none-eabi-gcc is required')
     flags=['-marm','-march=armv4t','-Os','-ffreestanding','-fno-builtin','-fno-common','-fno-pic','-fno-tree-loop-distribute-patterns','-Wall','-Wextra','-Werror']
@@ -70,9 +72,12 @@ def build(mcu,ppm,out):
         dest=work/(section[1:]+'.bin');subprocess.run(['arm-none-eabi-objcopy','-O','binary','-j',section,str(work/'nos.elf'),str(dest)],check=True);add(off,dest.read_bytes(),section=='.text')
     dest=work/'bootstrap.bin';subprocess.run(['arm-none-eabi-objcopy','-O','binary','-j','.text',str(work/'bootstrap.elf'),str(dest)],check=True)
     if dest.stat().st_size>0x120:raise ValueError('bootstrap too large')
-    add(0x320860,dest.read_bytes(),True)
-    if int.from_bytes(raw[0x350504:0x350508],'little')!=0xea000001:raise ValueError('NOS starter ABI')
-    add(0x350504,struct.pack('<I',0xea000000|(((0x50320860-(0x50350504+8))//4)&0xffffff)))
+    # Hardware A/B: checksum-only and driver-only reach Nokia; fake bootstrap
+    # does not. Keep real NOS startup unless explicitly building a diagnostic.
+    if include_bootstrap:
+        add(0x320860,dest.read_bytes(),True)
+        if int.from_bytes(raw[0x350504:0x350508],'little')!=0xea000001:raise ValueError('NOS starter ABI')
+        add(0x350504,struct.pack('<I',0xea000000|(((0x50320860-(0x50350504+8))//4)&0xffffff)))
     # Nortido's absent-descriptor path skips the expensive primary scan.
     # Tie this compatibility-only bypass to NOS, including both undo words.
     add(0x8f18,b'\xff'*8)
@@ -89,13 +94,13 @@ def build(mcu,ppm,out):
     assert restored==raw
     assert active[0x8f18:0x8f20]==b'\xff'*8
     assert active[0x8f20:0x8f30]==raw[0x8f20:0x8f30]
-    report={'name':'NOS Compatibility','file':out.name,'format':'NGO1','records':len(records),'bytes':len(package),'sha256':hashlib.sha256(package).hexdigest(),'skip_primary_checksum':True,'checksum_bypass':'absent descriptor (8F18..8F1F = FFFFFFFF)','stock_primary_md5':DIGEST.hex(),'original_files_modified':False,'off_restores_original':True,'inputs':{str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (mcu,ppm)},'compiler':subprocess.check_output([cc,'--version'],text=True).splitlines()[0]}
+    report={'name':'NOS Compatibility','file':out.name,'format':'NGO1','original_nos_startup_retained':not include_bootstrap,'experimental_bootstrap':include_bootstrap,'records':len(records),'bytes':len(package),'sha256':hashlib.sha256(package).hexdigest(),'skip_primary_checksum':True,'checksum_bypass':'absent descriptor (8F18..8F1F = FFFFFFFF)','stock_primary_md5':DIGEST.hex(),'original_files_modified':False,'off_restores_original':True,'inputs':{str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in (mcu,ppm)},'compiler':subprocess.check_output([cc,'--version'],text=True).splitlines()[0]}
     out.with_suffix('.json').write_text(json.dumps(report,indent=2)+'\n')
     return report
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--mcu',type=Path);p.add_argument('--ppm',type=Path);p.add_argument('--output',type=Path);p.add_argument('--inspect',type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--mcu',type=Path);p.add_argument('--ppm',type=Path);p.add_argument('--output',type=Path);p.add_argument('--inspect',type=Path);p.add_argument('--experimental-bootstrap',action='store_true',help='diagnostic only: include fake startup known to prevent the hardware logo');a=p.parse_args()
     if a.inspect:print(json.dumps({'records':len(inspect(a.inspect.read_bytes()))}));return
     if not all((a.mcu,a.ppm,a.output)):p.error('--mcu, --ppm and --output required')
-    a.output.parent.mkdir(parents=True,exist_ok=True);print(json.dumps(build(a.mcu,a.ppm,a.output),indent=2))
+    a.output.parent.mkdir(parents=True,exist_ok=True);print(json.dumps(build(a.mcu,a.ppm,a.output,a.experimental_bootstrap),indent=2))
 if __name__=='__main__':main()
