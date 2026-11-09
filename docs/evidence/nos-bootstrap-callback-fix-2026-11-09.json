@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-09",
+  "hardware_report": "User reports Nokia logo no longer appears with NOS enabled; exact stop point unknown",
+  "defect": "Port installed a binder at global 800004AC; pinned reference installs a no-op",
+  "reproduced_failure": "Actual ZAP isolated callback test with r0=0 writes 80006F64 to address 00000004 in old bootstrap",
+  "fix": "Install no-op callback; preserve service-table clear helper and separate NOS object constructor",
+  "package": {
+    "name": "NOS Compatibility",
+    "file": "NOS_Compatibility.ngo",
+    "format": "NGO1",
+    "records": 447,
+    "bytes": 5428,
+    "sha256": "992c8a0837dea0135943f28d4bc28332922a3ee14f463f85c3912197832d5c69",
+    "skip_primary_checksum": true,
+    "checksum_bypass": "absent descriptor (8F18..8F1F = FFFFFFFF)",
+    "stock_primary_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+    "original_files_modified": false,
+    "off_restores_original": true,
+    "inputs": {
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.3c1": "e948c435c977772a30ff2dd8ef608f7542a978c0acfd257bc0986925fd548690",
+      "firmware/NEM-04 v.04.03 N-GAGE/nem440.326": "fd4126eeaddf5c0cd72a9961f51e283bd1ed4245106e20f01d5a5551e85fddc7"
+    },
+    "compiler": "arm-none-eabi-gcc (GCC) 15.2.0"
+  },
+  "reference_revision": "4b8480148db15d432e2abf6a6956832c91d9cf55",
+  "hardware_logo_restored": false,
+  "hardware_root_cause_proven": false,
+  "long_simulations": {
+    "original_and_timer_only": "not polled or changed",
+    "NOS": "SIGTERM stopped at user request; final CPU/host checkpoint saved",
+    "final_cycle": 519606938,
+    "checkpoint": "build/sim/runs/nos-compatibility-resume-12b/checkpoint-519606938"
+  },
+  "failed_test_approach": "Host Python Unicorn crashed with SIGILL; Docker image lacks Unicorn. Actual ZAP Verilator microtest used instead.",
+  "tests": {
+    "old_negative": {
+      "path": "scratch/nos-bootstrap-fix/old-test.log",
+      "sha256": "6696f2070816be9d126706f957cc97aafbb9a4ee9bb2896d39879a41ede1900c",
+      "result": [
+        "[49285000] %Fatal: tb.sv:38: Assertion failed in tb: bootstrap callback wrote outside RAM: addr=00000004 data=80006f64"
+      ]
+    },
+    "pinned_reference_positive": {
+      "path": "scratch/nos-bootstrap-fix/reference-test.log",
+      "sha256": "91150c2a86ac88a5685d372e06bb64767934307ea536cc144ea11c6a846105b8",
+      "result": [
+        "PASS actual ZAP bootstrap: no-op callback with null/object r0, table, clear helpers and repeat initialization"
+      ]
+    },
+    "fixed_positive": {
+      "path": "scratch/nos-bootstrap-fix/fixed-test.log",
+      "sha256": "04d84b941ebf62af585e14c2263e2f4dde7606f6d2746cea62a8f86912f64a72",
+      "result": [
+        "PASS actual ZAP bootstrap: no-op callback with null/object r0, table, clear helpers and repeat initialization"
+      ]
+    },
+    "loader_hps": {
+      "path": "scratch/nos-bootstrap-fix/loader-hps-tests.log",
+      "sha256": "cb8f590f33fe857135b29a7475f5ae565dbaf03ac4ff8b78939621a69148c868",
+      "passes": [
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS overlay: real/synthetic pack, early autoload, CRC, exact ON/OFF, all-word preflight, reload, conflict drain, toggles and delayed DDR",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS invalid bounds/alignment/order rejected before writes",
+        "PASS Bluetooth actual HPS boot3/F4, four independent views, shared checksum ownership, rapid toggles, exact undo and C:/PMM preservation",
+        "PASS actual hps_io boot2/F3, deferred firmware gating, exact ON/OFF, service-index isolation, backpressure and C:/PMM preservation"
+      ]
+    }
+  },
+  "sd_installation": {
+    "updated": [
+      "boot2.rom",
+      "NOS_Compatibility.ngo"
+    ],
+    "backup": "scratch/nos-bootstrap-fix/sd-backup/",
+    "unchanged": [
+      "boot.rom",
+      "boot1.rom",
+      "boot3.rom",
+      "working.nga"
+    ]
+  }
+}

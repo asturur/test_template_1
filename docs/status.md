@@ -1,3 +1,32 @@
+## 2026-11-09: fix NOS initialization callback; stop old NOS long run
+
+Hardware user reports NOS ON no longer reaches Nokia logo; exact hardware PC/
+loader state not yet captured. Audit found a concrete porting error: reference
+bootstrap installs a no-op at RAM global800004AC, but ours installed a binder
+that writes80006F64 to[r0+4]. Reproduced on actual ZAP with r0=0: invalid write
+to00000004. Corrected callback is a no-op; independent NOS constructor/clear
+helper remain intact. Pinned reference and fixed assembly pass actual ZAP tests
+(null/object argument, caller state/table, clear word/halfword, repeated init).
+This fixes a proven defect, not yet a proven hardware missing-logo root cause.
+
+Fixed private NOS package447records/5428bytes, SHA256
+992c8a0837dea0135943f28d4bc28332922a3ee14f463f85c3912197832d5c69.
+New package passes backend validation/undo and actual HPS all NOS/BT views,
+shared checksum and C:/PMM preservation. Updated SD boot2.rom and named NOS
+file with verified bytes; old copies in scratch/nos-bootstrap-fix/sd-backup/.
+Original boot/boot1, Bluetooth boot3 and working save remain unchanged. This is
+a guest payload fix: existing overlay RBF works, an RBF rebuild alone would
+continue loading an old boot2. Source fix committed/pushed for continuity.
+
+At explicit user request SIGTERM stopped only nos-compatibility-resume-12b at
+519,606,938cycles. Its final checkpoint-519606938.cpu/.host pair is present;
+result interrupted=true. Earlier50M and all existing checkpoints retained.
+Original and timer-only simulations left running without polling/interference.
+Do not resume old NOS run as verification of the fixed payload. No replacement
+long run or hardware build launched. Host Python Unicorn crashed SIGILL during
+initial test attempt; use tests/phone/overlay_bootstrap/run.sh (actual ZAP in
+existing Docker image). Evidence docs/evidence/nos-bootstrap-callback-fix-2026-11-09.json.
+
 ## 2026-11-09: Bluetooth hardware-test candidate and SD autoload file
 
 User requests commit/push of the directed-tested Bluetooth addition and copy

@@ -18,7 +18,9 @@ fill:
     subs r0, r0, #1
     bne fill
     ldr r0, =0x800004ac
-    adr r3, bind
+    // Reference installs a no-op here, not the channel-object constructor.
+    // The caller's r0 is not guaranteed to be an object pointer.
+    adr r3, init_callback
     str r3, [r0]
     ldr r3, =0x80006f64
     adr r0, clear
@@ -51,9 +53,7 @@ done:
     mov r0, #0
     mov pc, lr
     .ltorg
-bind:
-    ldr r3, =0x80006f64
-    str r3, [r0, #4]
+init_callback:
     mov pc, lr
 clear:
     mov r0, #0

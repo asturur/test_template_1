@@ -12,3 +12,6 @@ from the user's audited original service files. NOS Compatibility ON also
 skips the primary firmware checksum using the reference's absent-descriptor
 path. Both NOS and Bluetooth OFF restore the descriptor and checksum behavior;
 original digest words and files on disk are never changed.
+
+The initialization callback installed at guest global800004AC is a no-op, as
+in the pinned reference; it is separate from the NOS channel constructor.

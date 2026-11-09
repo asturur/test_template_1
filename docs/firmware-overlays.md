@@ -122,3 +122,30 @@ The earlier independent NOS full-core runner uses `run-logo.py --nos-overlay
 runner option. Directed HPS tests cover both loaders and all four combinations,
 not firmware execution of the BTLDD hook. See [status](status.md) for evidence
 and the pending guest startup/ABI/hardware checks.
+
+## NOS bootstrap callback correction (2026-11-09)
+
+The initial NOS port incorrectly installed an object binder at global800004AC.
+Pinned Nortido installs a no-op there. The old callback writes80006F64 through
+r0+4; an actual ZAP microtest with r0=0 reproduces a write to00000004. The
+corrected callback preserves r0 and does not write memory. Both pinned reference
+and corrected bootstrap pass the same CPU test, including service-table layout,
+null/object callback arguments, clear helper and repeat initialization. This
+confirms a porting defect, not that the real missing-logo cause is established.
+
+This change is in the loaded guest payload, not synthesized RTL. Rebuild the
+NOS package and update boot2.rom (and the named manual file if used). A new RBF
+alone still loads the old file. Existing RBF loaders accept the corrected NGO1
+ID1 package unchanged. Corrected pack447records/5428bytes, SHA256
+992c8a0837dea0135943f28d4bc28332922a3ee14f463f85c3912197832d5c69.
+
+After building a NOS pack, test its assembled bootstrap independently:
+
+```sh
+sh tests/phone/overlay_bootstrap/run.sh scratch/mister-overlays/nos-build/bootstrap.bin
+```
+
+This uses host ARM binutils and the existing Jotego Docker image to execute our
+actual ZAP CPU. Do not use the local Python Unicorn emulator on this machine;
+it crashed with SIGILL. No phone simulation, original firmware file or long-run
+checkpoint is changed by the test. Hardware logo/startup remains to be retested.
