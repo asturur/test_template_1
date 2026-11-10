@@ -1,3 +1,17 @@
+## 2026-11-11: All-enabled integration hardware build configured
+
+Commit `027aa18` records the locally verified D2, D3 and S3 implementation.
+The integration build selects `D1_STREAM_TRANSPORT=1`,
+`D2_FLASH_CACHE_BYTES=8192` and `D3_BULK_PERSISTENCE=1`. Background save starts
+Off and is available in the OSD. Use writable copies of the raw C: and PMM
+images for the first hardware test.
+
+The DDR adapter, arbiter and save sector bridge compile as Verilog-2001 `.v`
+files. `Template.sv` uses the stock MiSTer HPS disk-array interface. DDR cache,
+bulk ownership, sector bridge, ordered HPS and combined NOR/HPS tests passed
+in the integration worktree. Both top configurations elaborated and the
+Quartus source graph passed. FPGA fit and hardware testing remain open.
+
 ## 2026-11-11: S3 ordered background saving locally verified
 
 The D3 bulk build now uses one 8,320-sector dirty queue across C: and PMM.

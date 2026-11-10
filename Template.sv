@@ -575,7 +575,7 @@ module emu (
     // operations across phone reset. Do not gate their backing traffic on reset.
     // The first arbiter shares the loader and save engine; the second shares
     // their registered transaction stream with the phone while honoring SWP lock.
-    localparam D3_BULK_PERSISTENCE = 0;
+    localparam D3_BULK_PERSISTENCE = 1;
     wire aux_bulk, arb_bulk, bulk_cancel, bulk_error;
     wire bulk_read_valid, bulk_read_ready, bulk_read_last;
     wire bulk_write_valid, bulk_write_ready, bulk_write_last;
@@ -661,10 +661,9 @@ module emu (
         .rsp_data      (arb_rdata)
     );
     wire core_ddr_fetch;
-    // D1 stream transport is an opt-in candidate; retain the measured legacy
-    // backend and existing ROM cache by default until fit/latency qualification.
-    localparam D1_STREAM_TRANSPORT  = 0;
-    localparam D2_FLASH_CACHE_BYTES = 0;
+    // Integration hardware build: test D1 and the 8 KiB D2 cache together.
+    localparam D1_STREAM_TRANSPORT  = 1;
+    localparam D2_FLASH_CACHE_BYTES = 8192;
     ngage_ddr_flash_adapter #(
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),

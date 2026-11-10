@@ -1,6 +1,6 @@
 # N-Gage donor integration plan
 
-Updated 2026-11-11. **P0/S1/S2 and D1 committed. D2, D3 and S3 locally verified.**
+Updated 2026-11-11. **P0 through S3 and D1 through D3 committed. The integration build enables D1, D2 and D3.**
 
 This plan combines raw C:/PMM persistence, the DDR backend, SDRAM controller,
 useful CPU changes, semi-real NOS/SIM, and the peripheral work. Creating the
@@ -425,6 +425,14 @@ and fitted timing and resource checks remain open.
 The DDR adapter, arbiter and save sector bridge are listed as Verilog-2001
 `.v` sources in the Quartus manifest. The MiSTer top still uses SystemVerilog
 at the stock HPS interface, which takes unpacked arrays for the disk slots.
+
+#### Integration hardware configuration — 2026-11-11
+
+The integration branch enables D1 streaming, an 8 KiB D2 cache and D3 bulk
+persistence. S3 uses the D3 queue and exposes **Background save** in the OSD,
+initially Off. Commit `027aa18` is the same implementation with the three
+build settings at zero for comparison. Both top configurations elaborated
+locally. Run `ci_build.yml` on the integration branch for the fitted RBF.
 
 ## 8. D1-D3: DDR backend
 
