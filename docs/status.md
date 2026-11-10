@@ -1,3 +1,12 @@
+## 2026-11-10: Panic fix pushed; hardware build dispatched
+
+Code fix11dea96 pushed. User-authorized single hardware build started:
+https://github.com/asturur/test_template_1/actions/runs/42831052811
+No build monitoring. Firmware/C inputs unchanged; fixed continuation toward12B
+active with100M screenshots. Bluetooth overlay pre-logo regression remains OPEN;
+keep BT OFF for initial validation. Detailed evidence and completed verification
+follow below. Dispatch record scratch/hardware-fault-47f0/hardware-build.json.
+
 ## 2026-11-10: First phone panic fixed and verified; push/build authorized
 
 User explicitly requests commit/push and ONE build when sure, no confirmation.
