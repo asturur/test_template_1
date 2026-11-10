@@ -1,7 +1,9 @@
 ## 2026-11-10: Memory changes authorized for commit/build; screensaver wake report
 
-User requests commit/push and one hardware build of completed line-refill and
-short-read work. Precommit source graph, imported CPU patch reproduction,
+Committed/pushed3f5e8ae (line refills, short reads, tests and investigation
+notes); exactly one CI build dispatched:
+https://github.com/asturur/test_template_1/actions/runs/42880915185
+Queued at dispatch; do not monitor unless requested. Worktree was clean. Precommit source graph, imported CPU patch reproduction,
 format/whitespace checks pass; full previous CPU180PASS and separate50M runs
 recorded below. Simulator harness includes earlier optional Bluetooth diagnostic
 controls; no Bluetooth overlay package or hardware boot fix is claimed.
