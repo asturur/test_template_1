@@ -28,6 +28,7 @@ entries below the handoff are the evidence log, newest first.
 | [firmware-overlays.md](firmware-overlays.md) | Independent NOS/Bluetooth menus, private packages, automatic loading, shared checksum and checks |
 | [nortido-compatibility-inventory.md](nortido-compatibility-inventory.md) | Counted NOS/Bluetooth/audio/boot substitutions and a concrete reset-only OSD backend design |
 | [bringup.md](bringup.md) | CPU integration boundary, simulation tools, diagnostics and output locations |
+| [speculative-fetch-deadlock.md](speculative-fetch-deadlock.md) | Queued return blocked by an abandoned I-cache refill, scoped fix, checkpoint recovery and verification limits |
 | [cpu-patches.md](cpu-patches.md) | Why the ZAP patches exist and how they were checked |
 | [branch-prediction.md](branch-prediction.md) | BTB collision root cause, self-contained return reproducer and patch 0006 |
 | [mmu-reference.md](mmu-reference.md) | Opt-in native MMU execution, physical access checks and comparison scope |

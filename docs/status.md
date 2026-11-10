@@ -1,3 +1,267 @@
+## 2026-11-10: confirmed speculative-fetch deadlock; corrected HDL recovers
+
+Read4B writeback pending redirect: shelve_ff=1,pc_shelve_ff=503EF43F.
+Thus BX return has resolved CORRECTLY; bad50300B06 is a wrong-path fetch, not
+proof of an architecturally executed literal or corrupted return. Existing
+cacheable refill policy retries every bus error indefinitely, so code_stall
+never clears and writeback cannot apply its pending correct return. ARM920T
+DDI0151C3.8 only allows external aborts for noncached reads/unbuffered writes/
+noncacheable SWP; preserve live cached demand/data retry policy.
+
+Fix: expose already-registered writeback shelve to instruction cache only,
+excluding explicit CP15 prefetch. On a failed AND discarded refill, return a
+completion without installing any line. CPU instr_valid already masks shelve,
+so discarded data is never accepted. No new architectural abort, data-cache
+policy change, ROM/C bypass, timing-chain removal or firmware patch.
+
+Full corrected HDL e9861e744de45ca0 resumed from an explicitly migrated COPY
+of4B stuck state. After1000clocks PC503276C0; bus errors increased only once,
+30,923,397 ->30,923,398, data faults0. Extended strict new-lineage50M replay
+build/sim/runs/icache-discard-recovery-4050m/ is running; at4.03B different
+kernel/user PCs, same bus-error count, no data faults. Full UI not yet claimed.
+
+Migration audit: scratch/startup-fault-audit/migrate-snapshot.py preserves
+17844 named fields, zero-initializes only the newly observable I-refill-error
+register, removes6 unused NBA RAM temporary fields optimized out by current
+bench. Original CPU/host files untouched. Decode/re-encode roundtrip matches
+source bytes. Separate clean pre-failure1000-cycle old-vs-new continuation is
+BYTE IDENTICAL after the same schema conversion for CPU and host (zero differing
+bytes): migration-clean-proof.json. This is a reviewed diagnostic fork, not
+permission to load arbitrary old checkpoints into changed HDL. Source/target
+hashes and field whitelist stored in each migration report.
+
+Focused adapter/cache test tests/cpu/icache_discard proves live permanent errors
+still retry, queued-discard completion arrives without err, and failed data is
+not installed (next live read performs all8beats). Original retry policy FAILS
+same test; fix PASS. Existing cache access, buffer integration, demand completion
+PASS. Full tests/cpu/run.sh passed38 checks then stopped at fiq_store_return (D1 abort).
+That SAME case fails with the original retry policy; it is an existing separate
+FIQ/data-translation issue, not a passing full regression. fiq_privileged_ldrt
+control passes0/3 with original policy. Retain the limitation for hardware testing. CPU-only speculative-branch fixtures did
+NOT independently reproduce this exact pending-redirect case; retained locally
+and excluded as failure proofs. Healthy Pop/BX/literal experiment remains local; it is not a failure reproducer.
+
+Original reduced long run and separate3B->3.56B forensic replay stay untouched.
+The latter has saved3.1B and3.2B at100M cadence; event-wait g3:61 automatically
+starts20M first-fault capture when3.56B terminal checkpoint is ready. No log
+poll loop. Corrected50M replay completed: no further bus errors/data faults; SharedDataServer
+and DosServer launched (EStart exited). Nokia framebuffer unchanged so far.
+Strict continuation icache-discard-recovery-4200m targets another150M clocks,
+saving4.1/4.2B. Diagnostic-fork provenance now propagates through normal restores.
+Next inspect its startup wait and screen, then address measured C-scan cost. No hardware build/push.
+
+## 2026-11-10: fault replay and 100M checkpoint observer
+
+User requests continue3B failure investigation, then C-scan cost; also restore
+100M snapshot cadence. logo_main.cpp now saves every100M, preserving all1B
+milestones. Added --use-saved-build + --driver-upgrade observer-only relink
+against exact frozen HDL archive (workspace tb.v differs, so DO NOT recompile
+current HDL and claim old-checkpoint compatibility). Saved original HDL hashes,
+container/binary validation and serializer schema check retained. Zero-cycle
+and1000-cycle CPU+host byte equality pass: scratch/startup-fault-audit/
+driver-equality.json. No production HDL/firmware/C input changes.
+
+New isolated replay initially resumed3B, saved gracefully at3,017,023,825 for
+observer upgrade, then resumed that exact state with100M cadence in
+build/sim/runs/startup-fault-100m-to-3560m/, target3.56B. Original reduced12B
+run untouched. New run should retain3.1/3.2/.../3.5B and terminal3.56B pairs.
+Do not overwrite existing checkpoints. Final first-fault observer prepared as
+scratch/startup-fault-audit/first-fault; plan run20M from3.56B, ring512 trace
+changes and stop/save at first new bus error. Its host scanout is not updated;
+any pair it produces is an observer diagnostic, not a maintained screenshot run.
+
+Both3B and4B page tables map unused virtual50300000 page to physical00800000
+(PTE0080000e). Valid kernel page50320000 maps00320000;503ef400 maps003ef400.
+Thus mapping did NOT first change at fault. Missing00800B00 ROM mapping alone
+is not a demonstrated loader bug. Four-billion issue/shifter PC503EEF4C,
+ALU PC+4=503EEF50, branch offsetFFF11BB6 sum50300B06. This corresponds to
+executing literal wordFFFFFDDC immediately after BX R1 at503EEF4A. R1 at fault
+is503EF43F, a plausible intended return. I-cache line words503EEF40..5C match
+original backing bytes, including4708BC02 (POP R1; BX R1). Stream slots are
+invalid at4B, remaining data match backing. Control-flow/flush/prediction is a
+hypothesis requiring the BEFORE trace; do not claim a proven BX bug yet.
+
+Cache failure repeats because existing cacheable-refill policy retries external
+bus errors without architectural abort. No prefetch abort/CP15 fault is delivered
+in this frozen failure state. This retry policy is documented in the104MHz plan;
+do not change it speculatively to hide the original wrong control flow.
+
+Local isolated CPU program scratch/startup-fault-audit/thumb_pop_bx_literal.S exercises POP/BX
+followed by the same literal pattern. Cold and alternating/nested call sites,
+high50000000 virtual alias, user mode pass with memory delays0/3/9. It does not
+reproduce the full firmware failure; no CPU fix made. Logs pop-bx-test.log and
+pop-bx-alias-user.log under scratch/startup-fault-audit/.
+
+Inspector failure found/fixed locally: old vw tested pa+3 bounds; unmapped
+ffffffff wraps and indexes plain ROM out of bounds. Use pa<=limit-4 before
+reference indexing. This can explain old bounded observer termination when
+startup changed mappings; not yet independently reproduced as its exact exit.
+Current state/probe helpers guard this. Production simulator was unaffected.
+
+## 2026-11-10: overnight result reproduces hardware fault loop
+
+Read-only user-requested status check: only reduced long simulator is running.
+Permanent4B pair exists and was inspected with its frozen model. PC50300B06,
+CPSR08000030, bus errors30,923,397, data errors0. Prior last progress log at
+3.58B already had same PC and rapidly growing instruction bus faults at
+physical00800B00. Progress log stops updating there, but the executable is
+still running and saved4B afterward; do not report3.58B as current live cycle.
+This matches the PC the user previously reported on hardware, not a proof of
+identical root cause. Preserve3B (before observed fault storm) and4B pairs.
+
+The4B process container now has EKern, EFile, EStart, EwSrv, FbServ and Starter.
+Thus the mmcstore/mount stage is no longer the final startup blocker. The
+bounded observer showed StartupThread changing state around2.320B and third
+process appearing by2.330B. It is no longer running, but its log ends abruptly
+at2.331966138B without final SNAP: it did NOT prove completion of its2.45B cap.
+Cause of observer termination unverified; do not call it a successful replay.
+Its fixed startup-thread object is also obsolete after later thread creation.
+
+Counter1000 bounded replay completed20M normally:458 scan-loop observations,
+1block exit,91IRQ entries versus1050/2/lowIRQ at64Hz; no new faults (12known
+fetch faults/datafaults0). Counts of printed DEADLINE lines are duplicated trace
+observations, not unique calls. Counter cadence experiment is not frequency
+validation or production HDL. Firmware and C source files untouched.
+
+Evidence: scratch/nos-deadline-audit/state-4b.log, startup.log, counter1000.log.
+Next meaningful investigation: strict restore3B and capture the first transition
+into physical00800B00 instruction fault storm / PC50300B06, including active
+process, MMU mappings, exception state and preceding branch. Do not spend more
+cycles merely extending the confirmed error loop. Long run left untouched per
+user instruction; no new simulation/build/monitor started in this check.
+
+## 2026-11-10: overnight handoff; user requests no active monitoring
+
+User asked to stop monitoring until tomorrow to preserve allowance. No Terra
+agent or periodic monitor started. Last usage check: 58% used / 42% remaining;
+requested cutoff is 35% remaining. Existing reduced long run untouched.
+Two finite diagnostic replays were launched and may finish unattended:
+
+- Docker ngage-nos-startup-audit: exact reduced 2B checkpoint, 450M-clock cap
+  (terminal 2.45B), scratch/nos-deadline-audit/startup.log. Watches block exits,
+  startup status and process count. Last observed block31 after crossing34/33/32;
+  at2.025B StartupThread still pending, two processes, no NOS call observed yet.
+- Docker ngage-nos-counter1000-audit: same checkpoint, 20M-clock cap, separate
+  counter-rate HYPOTHESIS ONLY. Host forces NOS divider to produce1kHz ticks;
+  frozen RTL otherwise unchanged. This also affects any consumers of nos_tick.
+  No firmware/C source edits, no saved-state lineage or production fix claim.
+  Log scratch/nos-deadline-audit/counter1000.log (sed output may be buffered).
+
+At reduced2B: NOS counter1641, compare1688, remaining47ticks, comparevalid1,
+status00ee0200, enable8584. Firmware timer queue head8000d1f0 has delta50;
+subsequent relative deltas77,374,160,491. Compare is ahead and armed, not stuck
+behind current count. Remaining47ticks means734ms at64Hz versus47ms at1kHz.
+Native NOS frequency still unproven. General OS64Hz is a separate timer.
+
+Firmware514AE058 normalizes zero delta to1 and writes count+delta;514AE188
+subtracts elapsed count from software timer;514A949C drains expired timer nodes.
+Thus slowing counter really stretches original NOS scheduler deadlines. Static
+paths also request65535ticks, which becomes~1024seconds at64Hz; NOT observed
+as the current2B deadline. Do not claim this hypothetical fallback caused the
+hour-long hardware failure.
+
+Startup stack confirms call return503D535A follows mmcstore RFile::Open;
+subsequent read occurs only on successful open. It has not returned in the
+observed window. Extra tracing needed after the remaining mount scan completes.
+Exact firmware disassembly saved under scratch/nos-deadline-audit/. Initial
+VA-minus50300000 extraction for NOS was wrong and overwritten; correct dump
+uses checkpoint page tables (NOS514AD800 -> PA000AD800; ELocal50390700 ->
+PA00390700), verified instruction514AE058=e92d4010.
+
+Observer caveat: trace-valid can be held across cycles; DEADLINE lines currently
+repeat the same entry and their count is NOT a unique call count. Printed LR
+uses user bank, not necessarily current-mode LR. Use MMIO compare writes for
+actual programming and deduplicate trace events before any call-frequency claim.
+No RTL changes, no firmware/C changes, no hardware build. Tomorrow read final
+bounded logs first, inspect whether mmcstore returned/process creation advanced,
+and then choose further work. Do not poll these runs overnight.
+
+## 2026-11-10: bounded mmcstore scan progresses; hardware boot still fails
+
+Acceptance target from user: reach phone UI within 20 seconds on hardware
+(1.56B CPU clocks at 78MHz). An hour without UI is a boot failure. The bounded
+scan measurements below do not explain it and are not a successful boot claim.
+
+Original long run stopped gracefully at 4,433,931,411 cycles with final paired
+checkpoint in build/sim/runs/hardware-service-boot-12b/. Its exact frozen binary
+restored that pair for zero cycles; resulting CPU and host files were byte
+identical. Preserve this pair and permanent 1B/2B/3B/4B pairs. No 5B checkpoint.
+It is reusable with its frozen simulator, not arbitrary newer RTL.
+Only reduced long run remains: timing26-nos64-after-snapshot-12b, resumed with
+strict identity checks from 1,911,412,026; permanent 2B pair retained there.
+
+Read-only bounded replay from reduced 2B through 2.02B observed 1050 unique
+(block, metadata-offset) scan steps, zero repeats/backwards, and two block exits
+34 -> 33 -> 32. Node addresses can be reused across blocks; include physical
+block number in the uniqueness key. This proves local progress only, not that
+the entire search cannot restart later. StartupThread remains pending in
+RFile::Open(c:\system\mmcstore); no later UI process was observed in snapshots.
+
+Median synchronous one-byte read: original 174936 clocks (19 complete samples),
+reduced 16165 (1050 samples). Original complete-read windows spent about 71%
+in IRQ/NOS code; reduced about 0.45%. Raw C backing bus occupied only 0.033%
+and 0.494% respectively. Reduced remaining cost is mostly kernel/EUser work and
+CPU stalls. Both builds differ in ROM/SDRAM paths as well as clocks: not a
+frequency-only comparison. Both C backing snapshots match the original input;
+no firmware or C input changed. Reduced long run still performs stock checksums,
+so its absolute cycle count is not a matched fast-boot hardware benchmark.
+
+NOS64 changes the actual deadline counter, not just interrupt delivery. Firmware
+programs count+delta; slowing counter can stretch deadlines by 1000/64 relative
+to the older hypothesis. Native frequency remains unverified. Do not infer
+correctness merely from reduced IRQ overhead. Next isolate whole-open return/
+restart and subsequent startup waits, and establish NOS deadline units before
+calling the timer experiment a fix. Hardware/simulator divergence remains open.
+Read-only Zaparoo screenshot attempt timed out; no fresh hardware fault snapshot.
+
+Evidence: docs/mmcstore-scan.md and scratch/metadata-scan-audit/. Discard
+reduced-invalid-overlapping-output.log: two disposable observers shared output
+because SIGTERM to shell PID1 did not stop children. Both observers were killed;
+independently linked reduced-final completed once with a fresh output log.
+No hardware build or RTL change in this investigation.
+
+## 2026-11-09: original/reduced simulations waiting on C:\system\mmcstore open
+
+User requests actual boot-blocker investigation, then comparison with reduced
+NOS frequency. Original observed past4.29B; permanent4B inspected read-only.
+Reduced run checkpointed gracefully at1,911,412,026 and immediately resumed
+its exact frozen executable/source/input identity in
+build/sim/runs/timing26-nos64-after-snapshot-12b/, target12B. Keep prior1B and
+new1.911B CPU/host pairs. Original live run was not stopped or modified. There
+are still TWO long runs; old NOS-overlay simulation remains stopped.
+
+Both process containers have exactly EKern.EXE and EFile.EXE, no later startup/
+UI processes. EFile StartupThread object80409884 has pending RFile::Open for
+literal c:\system\mmcstore (F32 function27). Saved stack80D01AF8 has pending
+80000001; LR503B76B0 maps to RSession send path via CreateSubSession. ROM export
+and IDA names independently identify RFile::Open. FileServer Main is processing
+ELocal/RBusLocalDrive metadata reads; original3B/4B and reduced snapshot show
+changing logical read positions. Do not reuse historical function23/SetEntry
+write-completion claims from other C++ lineages as the current root cause.
+
+Equal5M-cycle C: read probes: original4B→4.005B152word reads/152unique addresses;
+reduced1.911412026B→1.916412026B1600reads/1600unique. Zero mismatches against
+backing data and zero writes in both windows. Both snapshot C: DDR arrays are
+byte-identical to initial4MiB C input. Thus there is active metadata scanning,
+not a proven permanent loop, stuck bus, or missing flash-write completion.
+The reduced/performance build samples10.53x more C reads per clock. It also
+has ROM-buffer/direct-SDRAM improvements; cannot attribute gain solely to64Hz.
+
+Original10M profile at4B has498046trace packets/3161PCs (not retired instruction
+counts),86actual IRQ entries,62mailbox pump/63NOS DFC visits, no LCD update or
+new data fault. Repeated NOS background work is real but not by itself the
+startup gate. Nokia already drawn; higher user/UI startup awaits filesystem
+request completion. Exact cause of expensive scan/termination not yet known.
+Next profile one metadata-cell lookup and its exit/bounds, separating CPU/cache/
+bus/IRQ cost. No C: format bypass, UI/NOS stub patch, HDL fix or build in this
+audit. Preserve current evidence before further assumptions.
+
+Evidence docs/evidence/boot-startup-compare-2026-11-09.json; observer sources/
+logs scratch/post-logo-4b/ and scratch/timing26-compare/. Frozen model inspector
+uses D-cache-aware reads and firmware-specific process offsets from Nortido.
+Failed probe used wrong02000000 C bounds; discarded. Correct C physical window
+is02400000..027FFFFF. No extra long simulation was started; bounded replays ended.
+
 ## 2026-11-09: HARDWARE bootstrap-only fails; production NOS keeps original startup
 
 User confirms TEST_NOS_Bootstrap_Only.ngo gives no logo. Hardware matrix now:

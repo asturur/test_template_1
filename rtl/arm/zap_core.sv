@@ -121,6 +121,7 @@ output logic                             o_instr_wb_we,  // Always 0.
 input logic [31:0]                       i_instr_wb_dat, // A 32-bit ZAP instruction.
 input logic                              i_instr_wb_ack, // Instruction available.
 input logic                              i_instr_wb_err, // Instruction abort fault.
+output wire                              o_instr_discard, // Redirect waiting for old fetch.
 output logic [3:0]                       o_instr_wb_sel, // wishbone byte select.
 
 // Instruction wishbone nxt ports.
@@ -630,6 +631,7 @@ assign o_debug_pc = o_instr_wb_adr;
 assign o_debug_cpsr = alu_flags_ff;
 assign o_debug_instruction = i_instr_wb_dat;
 assign o_debug_fetch = instr_valid && !i_reset;
+assign o_instr_discard = shelve;
 assign instr_valid  = o_instr_wb_stb & o_instr_wb_cyc & i_instr_wb_ack  & ~shelve;
 
 //

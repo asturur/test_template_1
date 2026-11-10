@@ -244,7 +244,7 @@ assign o_reg_idx='0;
 assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
 assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
 arm920_zap_dcache_adapter experimental_cache(
- .clk(i_clk),.reset(i_reset),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
+ .clk(i_clk),.reset(i_reset),.discard_refill(1'b0),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
  .swp_tag(i_swp_tag),.swp_bus_lock(o_swp_bus_lock),.din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
  .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
  .fault(pending_translation ? pending_fault : (tlb_busy ? 1'b0 : tlb_fault)),.fsr_in(pending_translation ? pending_fsr : tlb_fsr),

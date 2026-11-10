@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-10",
+  "cause": "writeback shelve=1 with correct return503ef43f; abandoned cacheable refill00800b00 retries forever",
+  "fix": "only failed instruction refill with a pending redirect completes without installation; CPU inhibits discarded instruction acceptance",
+  "arm_reference": "ARM DDI0151C section3.8; live cached/data access error policy unchanged",
+  "regression": {
+    "original_retry_policy": "FAIL: abandoned instruction refill did not complete harmlessly",
+    "fixed_policy": "PASS: live retry, discard completion, no poisoned line",
+    "cache_access": "PASS",
+    "cache_buffer_integration": "PASS",
+    "demand_completion": "PASS",
+    "full_cpu_suite": "38 PASS lines then fiq_store_return D1; same failure under original retry policy"
+  },
+  "migration_clean_1000_cycles": {
+    "cpu_equal": true,
+    "host_equal": true,
+    "cpu_mismatches": 0,
+    "host_mismatches": 0,
+    "cycles": 1000
+  },
+  "recovered_50m": {
+    "boot_index": 0,
+    "boot_limit": 0,
+    "retired": 0,
+    "ddr_commands": 0,
+    "ddr_beats": 0,
+    "cycle": 4050000000,
+    "pc": 1345996504,
+    "lcd_words": 36756,
+    "frame_complete": 1,
+    "display_on": 1,
+    "unsupported": 1,
+    "bus_errors": 30923398,
+    "data_errors": 0,
+    "seconds": 608.256,
+    "interrupted": false,
+    "outputs": {
+      "build/sim/runs/icache-discard-recovery-4050m/framebuffer.bin": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "build/sim/screens/icache-discard-recovery-4050m/scanout.png": "75bd5b4e8019d1e9dab68dbca9142c2dd39f2a59c50643798b5eb3e351cc9e8e",
+      "build/sim/screens/icache-discard-recovery-4050m/framebuffer.png": "b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab"
+    }
+  },
+  "new_processes": [
+    "SharedDataServer.exe",
+    "DosServer.exe"
+  ],
+  "ui_reached": false,
+  "hardware_verified": false,
+  "firmware_patched": false,
+  "input_sha256": {
+    "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "cdrive": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  }
+}

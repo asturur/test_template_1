@@ -219,6 +219,7 @@ logic [31:0]     cpu_cache_op_address;
 logic            cpu_dwe_check, cpu_dre_check;
 logic            s_reset, s_fiq, s_irq;
 logic            code_stall;
+wire             instr_discard;
 
 assign          s_reset = i_reset;
 
@@ -279,6 +280,7 @@ zap_core #(
 .o_instr_wb_sel         (),
 /* verilator lint_on PINCONNECTEMPTY */
 .o_code_stall           (code_stall),
+.o_instr_discard        (instr_discard),
 
 .i_instr_wb_dat         (!ONLY_CORE ? ic_data   : i_wb_dat),
 .i_instr_wb_ack         (instr_ack),
@@ -685,6 +687,7 @@ u_code_cache (
 .i_rd_check         (1'd1),
 
 .i_rd              (cpu_instr_stb),
+.i_discard         (instr_discard),
 .i_wr              (1'd0),
 .i_ben             (4'b1111),
 .i_dat             (32'd0),

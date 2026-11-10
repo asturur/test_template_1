@@ -2,10 +2,13 @@
 // Experimental ARM920-shaped cache with serialized CPU requests and buffered writes.
 // One request at a time. The caller supplies already translated addresses and
 // attributes; MMU checks, CP15 maintenance, CPU pipeline and Wishbone adapting
-// remain outside this block. Cached and buffered operations retry a bus
-// error; they never report it as
-// an architectural external abort. Persistent errors hold progress.
+// remain outside this block. Live cached and buffered operations retry bus
+// errors without an architectural external abort. An instruction request
+// superseded by a queued redirect may discard a failed refill below.
 module arm920_cache_access (
+    // Only an instruction fetch superseded by a queued redirect may discard
+    // a failed refill. No line is installed and the CPU suppresses its data.
+    input wire discard_refill,
     input  logic         clk,
     input  logic         reset,
     input  logic         req_valid,
@@ -468,10 +471,14 @@ module arm920_cache_access (
                 end
                 WAIT_REFILL:
                 if (refill_done) begin
-                    // Cacheable accesses and writebacks cannot produce an ARM920 external
-                    // abort. Keep the old victim on failure and retry instead of committing.
-                    if (refill_error) state <= LOOKUP_WAIT;
-                    else state <= LOOKUP_WAIT;
+                    // A queued instruction redirect cannot wait forever for an
+                    // abandoned speculative line. Finish only that failed request;
+                    // the CPU's registered shelve flag inhibits instruction acceptance.
+                    // Live cached demands and data accesses retain the retry policy.
+                    if (refill_error && discard_refill) begin
+                        response_valid <= 1;
+                        state <= IDLE;
+                    end else state <= LOOKUP_WAIT;
                 end
                 default: state <= IDLE;
             endcase

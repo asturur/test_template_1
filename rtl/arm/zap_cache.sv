@@ -39,6 +39,7 @@ input   logic            i_reset,
 
 // RAM stall.
 input   logic            i_stall,
+input   wire             i_discard,
 
 // Signals to check (Provide 1 cycle before TLB+cache access).
 input   logic   [31:0]   i_address_check,
@@ -200,7 +201,7 @@ always @(posedge i_clk) begin
         else fast_context_q <= fast_context;
 end
 arm920_zap_dcache_adapter experimental_cache(
- .clk(i_clk),.reset(i_reset),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
+ .clk(i_clk),.reset(i_reset),.discard_refill(i_discard && !prefetch_busy),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
  .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
  .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),

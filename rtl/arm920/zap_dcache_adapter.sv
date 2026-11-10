@@ -3,6 +3,7 @@
 // associative cache. The normal CPU build does not enable this bridge.
 module arm920_zap_dcache_adapter (
  input logic clk,reset,
+ input wire discard_refill,
  input logic external_permit,output logic write_buffer_empty,
  input logic fast_enable,input logic [31:0] fast_next_address,
  input logic [31:0] address,physical,din,far_in,
@@ -80,7 +81,7 @@ module arm920_zap_dcache_adapter (
    if(inflight && (wb_ack || wb_err))inflight<=0;
   end
  end
- arm920_cache_access cache(.clk(clk),.reset(reset),.req_valid(req_valid),.req_ready(req_ready),
+ arm920_cache_access cache(.clk(clk),.reset(reset),.discard_refill(discard_refill),.req_valid(req_valid),.req_ready(req_ready),
   .req_mva(address),.req_physical(physical),.req_write(wr),.req_cache_enable(cache_enable),
   .req_cacheable(cacheable),.req_bufferable((swp_tag==2 && !(cache_enable && cacheable)) ? 1'b0 : bufferable),.req_wdata(din),.req_byte_enable(ben),
    .response_valid(response_valid),.response_error(response_error),.response_data(response_data),.write_buffer_empty(write_buffer_empty),.write_buffer_error(),

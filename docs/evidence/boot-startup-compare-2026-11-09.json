@@ -1,0 +1,120 @@
+{
+  "date": "2026-11-09",
+  "purpose": "Compare current startup gate in original and reduced-NOS-frequency actual HDL runs",
+  "original": {
+    "observed_live_minimum_cycles": 4290000000,
+    "inspected_checkpoint": 4000000000,
+    "source_identity": "dd61fbd8e9de2534d2ea7575c4a29ee469768ca0bcfa1c4ad1f0fd3725a42345"
+  },
+  "reduced": {
+    "inspected_checkpoint": 1911412026,
+    "source_identity": "65ea564947bfe4e45ee4d2fa95cd23fc232a5b50fd694004edb0677cb6d9b0c2",
+    "snapshot_method": "SIGTERM graceful checkpoint; immediately strict-resumed exact executable/source/input identity",
+    "active_run": "build/sim/runs/timing26-nos64-after-snapshot-12b",
+    "target": 12000000000
+  },
+  "shared_startup": {
+    "processes": [
+      "Z:\\System\\Libs\\EKern.EXE",
+      "Z:\\System\\Libs\\EFile.EXE"
+    ],
+    "higher_startup_UI_processes_in_container": false,
+    "startup_thread": {
+      "object": "80409884",
+      "owner": "80408db0",
+      "saved_sp": "80D01AF8",
+      "saved_pc": "5032752C",
+      "saved_lr": "503B76B0",
+      "request_status_word": "80000001",
+      "call_chain": [
+        "EFile StartupThread",
+        "RFile::Open",
+        "RSubSessionBase::CreateSubSession",
+        "RSessionBase send/SVC"
+      ],
+      "function": 27,
+      "filename": "c:\\system\\mmcstore"
+    },
+    "file_server_main": "Current Main thread services C: local-drive/ELocal metadata reads while startup file open remains pending"
+  },
+  "read_samples": {
+    "original": {
+      "window": {
+        "begin": 4000000000,
+        "end": 4005000000,
+        "cycles": 5000000,
+        "reads": 152,
+        "writes": 0,
+        "bad": 0,
+        "unique_addr": 152,
+        "lookups": 0,
+        "unique_lookup_pos": 0,
+        "empty_status": 20
+      },
+      "log": "scratch/post-logo-4b/cflash-profile.log",
+      "sha256": "b837ca680f8e584c9ae5dd72ccfbeac74bf961a60033e3f3dcde8de155b6a9ff"
+    },
+    "reduced": {
+      "window": {
+        "begin": 1911412026,
+        "end": 1916412026,
+        "cycles": 5000000,
+        "reads": 1600,
+        "writes": 0,
+        "bad": 0,
+        "unique_addr": 1600,
+        "lookups": 0,
+        "unique_lookup_pos": 0,
+        "empty_status": 226
+      },
+      "log": "scratch/timing26-compare/cflash-profile.log",
+      "sha256": "a58a6c743d82d58963fbed98430878be61f0d2fe8e9777e9f567609459547092"
+    }
+  },
+  "original_10m_profile": {
+    "cycles": 10000000,
+    "trace_events_microops_not_instructions": 498046,
+    "unique_pc": 3161,
+    "IRQ_mode_entries": 86,
+    "NOS_mailbox_visits": 62,
+    "NOS_DFC_visits": 63,
+    "LCD_words": 36689,
+    "known_fetch_faults": 12,
+    "data_faults": 0
+  },
+  "method_notes": [
+    "Cache-aware D-cache overlay and MMU translation; process/container offsets from Nortido monitor and stock ROM export/IDA tables.",
+    "Both inspected C: DDR arrays are byte-identical to the original 4MiB input at their snapshots.",
+    "Physical C: is 02400000..027FFFFF. An initial probe incorrectly filtered 02000000..023FFFFF; its zero-read result is invalid and excluded.",
+    "Reduced build also includes direct SDRAM and DDR ROM instruction-buffer changes. Throughput gain is not a controlled NOS-frequency-only comparison."
+  ],
+  "limitations": [
+    "No proof that the metadata search is permanently deadlocked; sampled reads advance through distinct addresses.",
+    "No proof yet why this lookup is expensive or whether the search eventually completes.",
+    "Zero read mismatches applies only to sampled reads and expected backing bytes; does not verify full filesystem image consistency or physical flash protocol."
+  ],
+  "next_step": "Measure one ELocal metadata-cell search/read and its termination conditions; separate CPU/cache/bus/IRQ cost before changing a device or bypassing filesystem operations.",
+  "read_word_throughput_ratio": 10.526315789473685,
+  "original_state_evidence": {
+    "path": "scratch/post-logo-4b/final-state.log",
+    "sha256": "bf9b96d2f6118476ca8a4b45cbb8df8b86e6bc3493bc123df77163f41daf31ad"
+  },
+  "reduced_state_evidence": {
+    "path": "scratch/timing26-compare/final-state.log",
+    "sha256": "ce0dbeaa12c1a4217dbd087f0976d5b2f3afefd0bf403377563f8fc355b7ed57"
+  },
+  "original_profile_evidence": {
+    "path": "scratch/post-logo-4b/profile-10m.log",
+    "sha256": "57bc9f602866a69e76a5c15e8c75dd628ceb3daf3a00bfbb20c07ef44bea4c37"
+  },
+  "checkpoints": {
+    "build/sim/runs/hardware-service-boot-12b/checkpoint-4000000000": {
+      ".cpu": "77dde9145d13daf822e68c72af20bc96060d16ac96f43b70233a4a11347206d7",
+      ".host": "2d2857a893d5583a6288075f72c4f9bbad92bc365a7ac8f97e5d960249b74f1c"
+    },
+    "build/sim/runs/timing26-nos64-resume-12b/checkpoint-1911412026": {
+      ".cpu": "2f7e02f411571fc9ed2f388914f7cc961a403f0ff80a80c6408dad06facdbcf9",
+      ".host": "998ade166ba6abcb4c9a7938199b081ba52cdaee211e780ab6ef1c53d11b2656"
+    }
+  }
+}
