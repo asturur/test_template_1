@@ -6,6 +6,7 @@ module ngage_save_sector_bridge #(
     parameter integer        PMM_SECTORS = 128,
     parameter         [31:0] C_BASE      = 32'h31400000,
     parameter         [31:0] PMM_BASE    = 32'h31800000,
+    parameter integer        RAW_IMAGES  = 0,
     parameter integer        SD_TIMEOUT  = 104000000
 ) (
     input  wire        clk,
@@ -49,6 +50,9 @@ module ngage_save_sector_bridge #(
     };
     wire local_we = (state == BUF_LOW || state == BUF_HIGH);
     wire [15:0] local_data = state == BUF_HIGH ? snapshot[31:16] : snapshot[15:0];
+    wire [31:0] file_lba = RAW_IMAGES ? (saved_sector < C_SECTORS ?
+        {18'b0, saved_sector} : {18'b0, saved_sector} - C_SECTORS) :
+        32'd1 + {18'b0, saved_sector};
     ngage_sd_sector #(
         .TIMEOUT(SD_TIMEOUT)
     ) sector (
@@ -56,7 +60,7 @@ module ngage_save_sector_bridge #(
         .reset       (reset),
         .start       (sec_start),
         .write_sector(state == START_WRITE),
-        .start_lba   (32'd1 + {18'b0, saved_sector}),
+        .start_lba   (file_lba),
         .ready       (sec_ready),
         .done        (sec_done),
         .error       (sec_error),

@@ -1,0 +1,90 @@
+{
+  "date": "2026-11-10",
+  "status": {
+    "P0": "locally accepted",
+    "S1": "locally accepted",
+    "S2": "locally accepted"
+  },
+  "branch": "codex/ngage2-integration",
+  "baseline_commit": "7f55e93982219b8ad5315b785e63be4d4532a756",
+  "donor_commit": "e3d2bf778319bdf4ef2bf21a4fc7376186b00a63",
+  "simulator_image": "jotego/simulator:arm64",
+  "simulator_image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "network": "none",
+  "tools": {
+    "verilator": "5.050 2026-07-01",
+    "iverilog": "13.0 stable",
+    "host_arm_gcc": "15.2.0",
+    "verible": "v0.0-4298-g085eef05"
+  },
+  "source_snapshot_at_start": "scratch/ngage2-integration/p0/source.json",
+  "fixtures_manifest": "scratch/ngage2-integration/p0/fixtures.json",
+  "cpu": {
+    "command": "sh tests/cpu/run.sh",
+    "exit_code": 0,
+    "pass_lines": 180,
+    "log": "scratch/ngage2-integration/p0/cpu.log"
+  },
+  "baseline_entrypoint_count": 13,
+  "S1": {
+    "command": "python3 tests/phone/save_image/raw_test.py",
+    "test_groups": 7,
+    "result": "PASS",
+    "log": "scratch/ngage2-integration/s1-tests.log",
+    "legacy_create_inspect": "PASS",
+    "legacy_log": "scratch/ngage2-integration/s1-legacy-test.log"
+  },
+  "S2": {
+    "hps": {
+      "command": "sh tests/phone/raw_save/run-hps.sh",
+      "result": "PASS",
+      "checks": 28,
+      "reads": 39,
+      "writes": 11,
+      "log": "build/sim/unit-raw-save-hps/run.log"
+    },
+    "nor": {
+      "command": "sh tests/phone/raw_save/run-nor.sh",
+      "result": "PASS",
+      "reads": 8,
+      "writes": 8,
+      "immutable_firmware_bytes_compared": 20905984,
+      "log": "build/sim/unit-raw-save-nor/run.log"
+    },
+    "full": {
+      "command": "sh tests/phone/raw_save/run-full.sh",
+      "result": "PASS",
+      "words_compared_each_restore": 1064960,
+      "restores": 2,
+      "log": "build/sim/unit-raw-save-full/run.log"
+    },
+    "final_source_checks_log": "scratch/ngage2-integration/final-aligned.log"
+  },
+  "checks": {
+    "sourcegraph": "PASS171files/9QIPs",
+    "structural_top": "PASS; HPS/PLL stubs, separate actual HPS integration tested",
+    "verilog2001": "PASS: iverilog -g2001 -i -s ngage_raw_save_manager (dependencies separately exercised in SV benches)",
+    "formatter": "PASS final pinned3files idempotent",
+    "whitespace": "git diff --check PASS"
+  },
+  "deferred": [
+    "installed MiSTer Main automatic mount",
+    "FPGA fit/timing/resources",
+    "physical save and power-cycle durability",
+    "new full-phone execution/UI/performance",
+    "D1/D2/D3/S3 and all NOS/peripheral/CPU ports"
+  ],
+  "git_actions": "No commit, push, CI dispatch or deployment",
+  "baseline_repairs": [
+    "Missing immutable fixtures copied and hashed locally",
+    "Pristine scalar bridge reproduces stale synchronous-BRAM bench failure; clocked sample fixes bench",
+    "Existing LINE_REFILL interface added to3stale reset CPU stubs"
+  ],
+  "source_hashes": {
+    "Template.sv": "bfe296ad641b06324690e6e1a0eebe3abc89d3f4f03f45ec12eadfcfb329f81a",
+    "rtl/ngage_raw_save_manager.v": "57d4de959b802c6d5b1336f3758495b80b8402e5240e67fb33c0de943a7f8c64",
+    "rtl/ngage_save_sector_bridge.sv": "257a2f5d7e86c6e1a2fab7f8072f3e1e652a2c3ce0d7fe2ba731fc121dbdbcd4",
+    "tools/prepare_mister_save.py": "f95274210c697d304c4d34f59e589f20c024fcefabe17ff4092102c06d013dc7",
+    "files.qip": "903a828fb9bc230cabe8be00e2b3060d2f9405c2dd5577fd9e49695077833121"
+  }
+}

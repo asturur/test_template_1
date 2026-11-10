@@ -1,3 +1,62 @@
+## 2026-11-10: Integration P0/S1/S2 locally accepted
+
+Worktree `codex/ngage2-integration` only, base7f55e939. No commit/push/CI,
+Quartus build or deployment. Original checkout, simulations and all checkpoints
+untouched. Original NEM-4 firmware/ARM920/timers/NOR and scalar DDR retained.
+[merge-plan.md](../merge-plan.md) records results after each authorized stage;
+[raw-persistence.md](raw-persistence.md) gives conversion/operator policies;
+[integration-baseline.md](integration-baseline.md) records contracts/provenance.
+
+P0: fullCPU180PASS;13/13selected phone suite entry points PASS after stale
+fixture repairs (sync-BRAM sample, existing line-interface CPU stubs); missing
+immutable core/extension/Micron fixtures copied locally with hashes. Existing
+cold/cache-active measurements retained as historical evidence, no new
+whole-phone performance claim. Simulator image df6f55924d5f, no network.
+
+S1: lossless NGA split to exact4MiB boot0.vhd/64KiB boot1.vhd plus original
+header/hash manifest; join supports unchanged byte-identical rollback and
+modified raw payloads with valid original metadata.7/7synthetic conversion
+checks and legacy create/inspect compatibility PASS; no source overwrite.
+
+S2: serialized raw manager, independent per-slot mount/rejection state before
+verified firmware, both-image CPU gate, raw LBA0, manual Save and dirty-media
+protection. TemplateVDNUM4: S0C:,S1PMM,S2reserved,S3diagnostics. Firmware .rom
+namespace/overlays unchanged. Actual four-slot HPS28checks/39reads/11writesPASS;
+raw NOR+scalarDDR8reads/8writesPASS, immutable firmware20,905,984bytes unchanged;
+full-size all1,064,960words restore/reloadPASS. Warm/cold reset, arrival order,
+ACK fall, mutation, timeout and live replacement exercised. No autosave/cache.
+
+Next: review these local stages; installed Main automatic mounting, FPGA
+fit/timing and physical Save/power-cycle remain unverified. No later integration
+stage is implicitly authorized. Logs/evidence: scratch/ngage2-integration/,
+build/sim/unit-raw-save-{hps,nor,full}/. No checkpoint migration performed.
+
+## 2026-11-10: Integration work isolated in a dedicated worktree
+
+This chat now uses codex/ngage2-integration in
+/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer.
+The complete [merge-plan.md](../merge-plan.md) and only this chat's plan
+notes were moved here. Original checkout returned to master; its dirty
+hardware-boot/startup documentation and active simulation remain untouched.
+Existing ignored firmware/scratch/checkpoints were not copied. Future builds
+and edits use this worktree with separate outputs and recorded source hashes.
+No implementation, build, push or commit performed during this move.
+
+## 2026-11-10: Complete donor porting plan; integration branch prepared
+
+User requests one saved plan including semi-real NOS/SIM, all peripheral work,
+raw C:/PMM VHD images, DDR/SDRAM and useful CPU ports, with branch-based CPU
+comparisons. See [merge-plan.md](../merge-plan.md). Created local
+codex/ngage2-baseline at7f55e93982219b8ad5315b785e63be4d4532a756 and switched to
+codex/ngage2-integration from that commit; master unchanged. Existing dirty
+docs/hardware-boot work preserved, not staged/stashed/committed. Baseline ref
+captures committed source only. Before ARM9V2 work, retain another common
+integration checkpoint with new peripherals and old ZAP for fair branch A/B.
+Final semi-real NOS must retain original startup and meaningful runtime, with
+audited selective service substitutes; fully synthetic bootstrap is diagnostic
+only. Plan written; no port implementation, tests/builds, push/CI dispatch,
+firmware/save changes or running-simulator intervention in this turn.
+
 ## 2026-11-10: Memory changes authorized for commit/build; screensaver wake report
 
 Committed/pushed3f5e8ae (line refills, short reads, tests and investigation

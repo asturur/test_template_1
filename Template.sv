@@ -53,8 +53,9 @@ module emu (
         "D0P1F3,NGO,Load NOS Compatibility;",
         "P1O[20],Bluetooth Compatibility,Off,On;",
         "D1P1F4,NGO,Load Bluetooth Compatibility;",
-        "S0,NGA,Mount working save;",
-        "S1,NGD,Mount diagnostic disk;",
+        "S0,VHD,Mount C: raw image;",
+        "S1,VHD,Mount PMM raw image;",
+        "S3,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
         "O[15],Diagnostic SIM (reset required),No ATR,Test card;",
         "O[16],CPU mode,Hold,Run;",
@@ -88,7 +89,7 @@ module emu (
     hps_io #(
         .CONF_STR(CONF_STR),
         .WIDE    (1),
-        .VDNUM   (2)
+        .VDNUM   (4)
     ) hps_io (
         .clk_sys  (clk_sys),
         .HPS_BUS  (HPS_BUS),
@@ -161,17 +162,24 @@ module emu (
     wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted
         | !status[16] | !overlay_ready | !bt_ready;
     wire ioctl_upload, ioctl_rd, board_init_done;
-    wire [1:0] img_mounted, sd_rd, sd_wr, sd_ack;
+    wire [3:0] img_mounted, sd_rd, sd_wr, sd_ack;
     wire        img_readonly;
     wire [63:0] img_size;
-    wire [31:0] sd_lba       [2];
-    wire [ 5:0] sd_blk_cnt   [2];
+    wire [31:0] sd_lba       [4];
+    wire [ 5:0] sd_blk_cnt   [4];
     wire [12:0] sd_buff_addr;
     wire [15:0] sd_buff_dout;
-    wire [15:0] sd_buff_din  [2];
+    wire [15:0] sd_buff_din  [4];
     wire        sd_buff_wr;
-    assign sd_blk_cnt[0] = 0;
-    assign sd_blk_cnt[1] = 0;
+    assign sd_blk_cnt[0]  = 0;
+    assign sd_blk_cnt[1]  = 0;
+    assign sd_blk_cnt[2]  = 0;
+    assign sd_blk_cnt[3]  = 0;
+    // S2 is reserved for future MMC: no card model or disk traffic yet.
+    assign sd_lba[2]      = 0;
+    assign sd_rd[2]       = 0;
+    assign sd_wr[2]       = 0;
+    assign sd_buff_din[2] = 16'hffff;
 
     ///////////////////////   SDRAM   ////////////////////////////////
 
@@ -667,49 +675,47 @@ module emu (
         .ddr_dout_ready(DDRAM_DOUT_READY)
     );
 
-    // Only the audited stock service pair is supported. Full-container CRCs
-    // identify its transfer/profile; host verification proves assembled backing
-    // matches these save-header SHA values. FPGA does not compute SHA-256.
+    // Raw media has no embedded firmware identity. Retain the verified stock
+    // firmware gate; host conversion manifests carry the original provenance.
     reg flush_prev = 0;
     always @(posedge clk_sys) flush_prev <= status[14];
-    ngage_save_manager #(
+    ngage_raw_save_manager #(
         .SD_TIMEOUT(SYS_CLK_HZ)
     ) saves (
-        .clk             (clk_sys),
-        .reset           (transport_reset),
-        .mount           (img_mounted[0]),
-        .readonly_image  (img_readonly),
-        .image_size      (img_size),
-        .bundle_verified (loader_valid && loader_known_firmware && !ioctl_download),
-        .profile         (loader_profile),
-        .core_sha_le     (256'h24b589715a8ddf962b0d8974aec0651f1d3ab9a83888b524f481fff5cd2e8bbe),
-        .extension_sha_le(256'hf36c44302d1797f385c9f33f5c4f1e2b37247652ee21fc6408f00dc9390b6ecb),
-        .dirty_valid     (flash_dirty),
-        .dirty_sector    (flash_dirty_sector),
-        .flush_start     (status[14] && !flush_prev),
-        .mounted         (save_mounted),
-        .saving          (save_saving),
-        .saved           (save_saved),
-        .error           (save_error),
-        .busy            (save_busy),
-        .mem_valid       (save_mem_valid),
-        .mem_ready       (save_mem_ready),
-        .mem_write       (save_mem_write),
-        .mem_addr        (save_mem_addr),
-        .mem_data        (save_mem_data),
-        .mem_be          (save_mem_be),
-        .mem_done        (save_mem_done),
-        .mem_rdata       (save_mem_rdata),
-        .sd_lba          (sd_lba[0]),
-        .sd_rd           (sd_rd[0]),
-        .sd_wr           (sd_wr[0]),
-        .sd_ack          (sd_ack[0]),
-        .hps_addr        (sd_buff_addr),
-        .hps_dout        (sd_buff_dout),
-        .hps_we          (sd_buff_wr),
-        .hps_din         (sd_buff_din[0]),
-        .flash_quiescent (!flash_busy)
+        .clk            (clk_sys),
+        .reset          (transport_reset),
+        .mount          (img_mounted[1:0]),
+        .readonly_image (img_readonly),
+        .image_size     (img_size),
+        .bundle_verified(loader_valid && loader_known_firmware && !ioctl_download),
+        .dirty_valid    (flash_dirty),
+        .dirty_sector   (flash_dirty_sector),
+        .flush_start    (status[14] && !flush_prev),
+        .mounted        (save_mounted),
+        .saving         (save_saving),
+        .saved          (save_saved),
+        .error          (save_error),
+        .busy           (save_busy),
+        .mem_valid      (save_mem_valid),
+        .mem_ready      (save_mem_ready),
+        .mem_write      (save_mem_write),
+        .mem_addr       (save_mem_addr),
+        .mem_data       (save_mem_data),
+        .mem_be         (save_mem_be),
+        .mem_done       (save_mem_done),
+        .mem_rdata      (save_mem_rdata),
+        .sd_lba0        (sd_lba[0]),
+        .sd_lba1        (sd_lba[1]),
+        .sd_rd          (sd_rd[1:0]),
+        .sd_wr          (sd_wr[1:0]),
+        .sd_ack         (sd_ack[1:0]),
+        .hps_addr       (sd_buff_addr),
+        .hps_dout       (sd_buff_dout),
+        .hps_we         (sd_buff_wr),
+        .hps_din        (sd_buff_din[0]),
+        .flash_quiescent(!flash_busy)
     );
+    assign sd_buff_din[1] = sd_buff_din[0];
 
     ///////////////////////   CORE   /////////////////////////////////
 
@@ -729,7 +735,7 @@ module emu (
     ) debug_export (
         .clk           (clk_sys),
         .reset         (transport_reset),
-        .mount         (img_mounted[1]),
+        .mount         (img_mounted[3]),
         .readonly_image(img_readonly),
         .image_size    (img_size),
         .start         (status[18] && !debug_trigger_prev),
@@ -740,14 +746,14 @@ module emu (
         .freeze_trace  (debug_freeze),
         .debug_word    (debug_word),
         .debug_data    (debug_read_data),
-        .sd_lba        (sd_lba[1]),
-        .sd_rd         (sd_rd[1]),
-        .sd_wr         (sd_wr[1]),
-        .sd_ack        (sd_ack[1]),
+        .sd_lba        (sd_lba[3]),
+        .sd_rd         (sd_rd[3]),
+        .sd_wr         (sd_wr[3]),
+        .sd_ack        (sd_ack[3]),
         .hps_addr      (sd_buff_addr),
         .hps_dout      (sd_buff_dout),
         .hps_we        (sd_buff_wr),
-        .hps_din       (sd_buff_din[1])
+        .hps_din       (sd_buff_din[3])
     );
     reg [1:0] osd_sync = 0;
     always @(posedge clk_sys) osd_sync <= {osd_sync[0], OSD_STATUS};

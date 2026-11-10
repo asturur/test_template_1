@@ -1,3 +1,8 @@
+> Current integration branch: see [raw-persistence.md](raw-persistence.md).
+> S0 is raw C:, S1 raw PMM, S2 reserved and diagnostics move to S3.
+> The NGA implementation below remains the legacy format/reference and host
+> rollback format; it is no longer the Template mounting layout on this branch.
+
 # MiSTer flash and working save
 
 **2026-11-07 firmware-only update:** top-level firmware input is now the original

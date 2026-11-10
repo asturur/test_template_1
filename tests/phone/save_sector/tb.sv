@@ -17,7 +17,7 @@ task launch(input bit op,input [13:0] s);begin @(negedge clk);start=1;load=op;in
 initial begin
  for(i=0;i<256;i=i+1)begin ram[i]=32'h12340000+i;disk[i]=0;end
  tick();reset=0;tick();launch(0,0);wait(wr);if(lba!=1)$fatal(1,"C lba");@(negedge clk);ack=1;
- for(i=0;i<256;i=i+1)begin ha=i;#1;disk[i]=hout;@(negedge clk);end
+ for(i=0;i<256;i=i+1)begin ha=i;tick();disk[i]=hout;@(negedge clk);end
  ack=0;wait(done);if(error)$fatal(1,"save failure");tick();
  for(i=0;i<128;i=i+1)ram[i]=0;
  launch(1,0);wait(rd);@(negedge clk);ack=1;

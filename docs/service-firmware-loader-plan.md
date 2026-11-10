@@ -1,3 +1,7 @@
+> S1/S2 raw persistence is implemented locally on the integration branch;
+> see [raw-persistence.md](raw-persistence.md) for the actual image and slot flow.
+> Firmware `.rom` and independent overlay loading remain unchanged.
+
 # Original service firmware and separate user images
 
 ## Scope and difficulty
