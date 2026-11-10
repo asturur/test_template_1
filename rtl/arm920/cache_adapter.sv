@@ -1,6 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Production bridge from the CPU interface to the ARM920T cache.
-module arm920_cache_adapter (
+module arm920_cache_adapter #(parameter LINE_REFILL=0) (
+
+    output wire line_req,
+    output wire [31:0] line_addr,
+    input wire line_ready,
+    input wire line_reject,
+    input wire line_valid,
+    input wire [63:0] line_data,
+    input wire line_wide,
+    input wire line_last,
+    input wire line_error,
+
  input logic clk,reset,
  input wire discard_refill,
  input logic external_permit,output logic write_buffer_empty,
@@ -80,7 +91,11 @@ module arm920_cache_adapter (
    if(inflight && (wb_ack || wb_err))inflight<=0;
   end
  end
- arm920_cache_access cache(.clk(clk),.reset(reset),.discard_refill(discard_refill),.req_valid(req_valid),.req_ready(req_ready),
+ arm920_cache_access #(.LINE_REFILL(LINE_REFILL)) cache(
+.line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
+    .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
+    .line_wide(line_wide),.line_last(line_last),.line_error(line_error),
+.clk(clk),.reset(reset),.discard_refill(discard_refill),.req_valid(req_valid),.req_ready(req_ready),
   .req_mva(address),.req_physical(physical),.req_write(wr),.req_cache_enable(cache_enable),
   .req_cacheable(cacheable),.req_bufferable((swp_tag==2 && !(cache_enable && cacheable)) ? 1'b0 : bufferable),.req_wdata(din),.req_byte_enable(ben),
    .response_valid(response_valid),.response_error(response_error),.response_data(response_data),.write_buffer_empty(write_buffer_empty),.write_buffer_error(),

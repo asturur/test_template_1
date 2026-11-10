@@ -1,7 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Replacement coordinator for arm920_cache_bank + arm920_cache_transfer.
 // The caller must exclude all other bank operations until done.
-module arm920_cache_refill (
+module arm920_cache_refill #(parameter LINE_REFILL=0) (
+
+    output wire line_req,
+    output wire [31:0] line_addr,
+    input wire line_ready,
+    input wire line_reject,
+    input wire line_valid,
+    input wire [63:0] line_data,
+    input wire line_wide,
+    input wire line_last,
+    input wire line_error,
+
     input  logic         clk,
     input  logic         reset,
     input  logic         start,
@@ -52,7 +63,11 @@ module arm920_cache_refill (
     assign bank_writeback_done = state == INSTALL;
     assign bank_refill_physical = saved_pa;
     assign bank_refill_line = transfer_line;
-    arm920_cache_transfer transfer (
+    arm920_cache_transfer #(.LINE_REFILL(LINE_REFILL)) transfer (
+.line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
+    .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
+    .line_wide(line_wide),.line_last(line_last),.line_error(line_error),
+
         .clk           (clk),
         .reset         (reset),
         .start         (transfer_start),

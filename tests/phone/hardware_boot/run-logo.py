@@ -49,7 +49,12 @@ def main():
     p.add_argument('--use-saved-build',action='store_true',help='resume the exact checkpoint executable, ignoring current workspace HDL; never applies new fixes')
     p.add_argument('--powerup',choices=('normal','alarm'),default='normal',help='reset cause; legacy checkpoints require alarm')
     p.add_argument('--restore',type=Path);p.add_argument('--pretest-fixes-fork',action='store_true',help='reviewed pre-self-test fork for NOS IRQ mask, routed GENIO1 and observer upgrade');p.add_argument('--driver-upgrade',action='store_true',help='resume identical HDL/host state layout across the reviewed 64-bit observer counter upgrade');p.add_argument('--diagnostic-irq-fork',action='store_true',help='diagnostic-only fork across the reviewed NOS IRQ-mask fix, with identical serialized layout');p.add_argument('--build-only',action='store_true')
-    p.add_argument('--nos-overlay',type=Path,help='separate cold-run lineage: stage NOS_Compatibility.ngo through real overlay loader before CPU release')
+    overlays=p.add_mutually_exclusive_group()
+    overlays.add_argument('--bluetooth-overlay',type=Path,help='separate cold-run lineage: stage Bluetooth_Compatibility.ngo with real component-ID2 loader')
+    p.add_argument('--stop-on-kernel-panic',action='store_true',help='stop/save after the known NEM-4 terminal panic fetch loop is stable')
+    p.add_argument('--stop-after-lcd-words',type=int,default=0,help='bounded display diagnostic: stop after this many observed LCD data writes plus queue drain')
+    overlays.add_argument('--nos-overlay',type=Path,help='separate cold-run lineage: stage NOS_Compatibility.ngo through real overlay loader before CPU release')
+    p.add_argument('--cpu-reference-dir',type=Path,help='diagnostic cold run using matching-interface reference CPU sources by basename')
     p.add_argument('--build-jobs',type=int,default=4)
     p.add_argument('--rom-cache-bits',type=int,choices=(64,128,256),default=64)
     p.add_argument('--rom-cache-bytes',type=int,choices=(1024,2048,4096),default=1024)
@@ -57,15 +62,23 @@ def main():
     p.add_argument('--nos-tick-hz',type=int,choices=(1000,64),default=1000,help='NOS counter frequency, not a forced IRQ frequency')
     p.add_argument('--legacy-sdram-route',action='store_true',help='A/B baseline: keep SDRAM behind peripheral bridge')
     p.add_argument('--rom-cache',action='store_true',help='enable production 1KiB DDR ROM cache')
+    p.add_argument('--refill-stats',action='store_true',help='passive per-segment refill, stall and memory-traffic counters')
+    p.add_argument('--line-refill',action='store_true',help='32-byte refill transport; requires a matching cold build or audited diagnostic fork')
     p.add_argument('--early-boot-trace',action='store_true',help='bounded delay/caller observer for independent short investigations')
     p.add_argument('--sys-clk-hz',type=int,default=104000000,help='phone clock/timebase parameter; requires a new checkpoint lineage when changed')
     p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
     a=p.parse_args();assert Path.cwd()==ROOT and 0<a.cycles<2**63 and '/' not in a.name and a.name not in ('.','..')
+    overlay_path=a.bluetooth_overlay or a.nos_overlay
+    overlay_id=2 if a.bluetooth_overlay else 1
+    overlay_key='bluetooth_overlay' if a.bluetooth_overlay else 'nos_overlay'
     # Keep exactly the bounded harness's HDL sources; no software peripherals.
     script=Path('tests/phone/hardware_boot/run.sh').read_text();source_text=script.split('--Mdir build/sim/unit-hardware-boot/obj ',1)[1].split(' > build/',1)[0]
     sources=[f for token in source_text.split() for f in sorted(glob.glob(token))]
     sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v']
-    if a.nos_overlay:sources+=['rtl/ngage_nos_overlay.v']
+    if overlay_path:sources+=['rtl/ngage_nos_overlay.v']
+    if a.cpu_reference_dir:
+        if a.restore:p.error('CPU reference selection requires a cold run')
+        sources=[str(a.cpu_reference_dir/Path(f).name) if f.startswith('rtl/arm/') and (a.cpu_reference_dir/Path(f).name).is_file() else f for f in sources]
     assert sources and 'tests/phone/hardware_boot/tb.v' in sources
     cpp='tests/phone/hardware_boot/logo_main.cpp'
     headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))
@@ -76,22 +89,26 @@ def main():
         if not a.restore or a.diagnostic_irq_fork or a.pretest_fixes_fork:
             raise ValueError('--use-saved-build requires --restore and forbids model upgrades')
         saved=json.loads((a.restore.parent/'manifest.json').read_text())
+        if (a.stop_after_lcd_words or a.stop_on_kernel_panic) and not a.driver_upgrade and saved['sources'][cpp]!=sha(cpp):
+            raise ValueError('frozen observer lacks diagnostic stop controls; use the reviewed driver upgrade')
         hashes=dict(saved['sources'])
         if a.driver_upgrade:
             hashes[cpp]=sha(cpp)
             hashes[__file__]=sha(__file__)
-    overlay_sha=sha(a.nos_overlay) if a.nos_overlay else None
-    if a.nos_overlay:
+    overlay_sha=sha(overlay_path) if overlay_path else None
+    if overlay_path:
         import sys
         sys.path.insert(0,str(ROOT/'tools'))
         import nos_overlay
-        nos_overlay.inspect(a.nos_overlay.read_bytes())
+        nos_overlay.inspect(overlay_path.read_bytes(),overlay_id=overlay_id)
     identity_fields={'sources':hashes,'powerup':a.powerup,'direct_sdram':not a.legacy_sdram_route}
-    if overlay_sha:identity_fields['nos_overlay_sha256']=overlay_sha
+    if overlay_sha:identity_fields[overlay_key+'_sha256']=overlay_sha
     if a.sys_clk_hz!=104000000:identity_fields['sys_clk_hz']=a.sys_clk_hz
     if a.timer_clock!='cpu':identity_fields['timer_clock']=a.timer_clock
     if a.nos_tick_hz!=1000:identity_fields['nos_tick_hz']=a.nos_tick_hz
     if a.timer_clock=='26mhz' and a.sys_clk_hz not in (78000000,104000000):raise ValueError('26MHz timers require 78/104MHz CPU')
+    if a.refill_stats:identity_fields['refill_stats']=True
+    if a.line_refill:identity_fields['line_refill']=True
     if a.early_boot_trace:identity_fields['early_boot_trace']=True
     if a.rom_cache:
         identity_fields.update(rom_cache=True,rom_cache_bits=a.rom_cache_bits,rom_cache_bytes=a.rom_cache_bytes)
@@ -111,28 +128,35 @@ def main():
     if not binary.exists() and saved is not None and a.driver_upgrade:
         # Reuse the exact frozen HDL archive; current workspace RTL may differ.
         # Copy only generated headers/serialization sources for schema validation.
+        for name in ('Vtb__ALL.a','verilated.o','verilated_save.o','verilated_threads.o'):
+            if not (build/name).exists():shutil.copyfile(saved_build/name,build/name)
         for source in saved_build.iterdir():
             if source.suffix in ('.h','.cpp') and not (build/source.name).exists():
                 shutil.copyfile(source,build/source.name)
         include='/usr/local/verilator/share/verilator/include'
-        cmd=docker+['g++',image,'-O3','-std=c++17','-I'+str(saved_build),'-I'+include,'-I'+include+'/vltstd',cpp,str(saved_build/'Vtb__ALL.a')]+[str(saved_build/name) for name in ('verilated.o','verilated_save.o','verilated_threads.o')]+['-pthread','-o',str(binary)]
+        cmd=docker+['g++',image,'-O3',*(['-DNGAGE_REFILL_STATS'] if a.refill_stats else []),'-std=c++17','-I'+str(saved_build),'-I'+include,'-I'+include+'/vltstd',cpp,str(saved_build/'Vtb__ALL.a')]+[str(saved_build/name) for name in ('verilated.o','verilated_save.o','verilated_threads.o')]+['-pthread','-o',str(binary)]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     if not binary.exists():
-        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3','-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN'] if a.nos_overlay else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
+        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3'+(' -DNGAGE_REFILL_STATS' if a.refill_stats else ''),'-GLINE_REFILL='+str(int(a.line_refill)),'-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN','-GOVERLAY_COMPONENT='+str(overlay_id)] if overlay_path else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     # Precompiled headers are large and unused once the executable exists.
     for cache in build.glob('*.gch'):cache.unlink()
     if a.build_only:print(binary);return
     out=Path('build/sim/runs')/a.name;out.mkdir(parents=True,exist_ok=False)
     inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
-    manifest={'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
-    if overlay_sha:manifest['nos_overlay']={'sha256':overlay_sha,'path':str(a.nos_overlay),'skip_primary_checksum':True}
+    manifest={'refill_stats':a.refill_stats,'line_refill':a.line_refill,'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    if overlay_sha:manifest[overlay_key]={'sha256':overlay_sha,'path':str(overlay_path),'skip_primary_checksum':True}
+    manifest['stop_after_lcd_words']=a.stop_after_lcd_words
+    manifest['stop_on_kernel_panic']=a.stop_on_kernel_panic
+    if a.cpu_reference_dir:manifest['cpu_reference_dir']=str(a.cpu_reference_dir)
     if saved is not None:manifest['uses_saved_build']=True
     if a.restore:
         prior=json.loads((a.restore.parent/'manifest.json').read_text())
+        if prior.get('cpu_reference_dir'):manifest['cpu_reference_dir']=prior['cpu_reference_dir']
         if prior.get('diagnostic_fork') or prior.get('inherited_diagnostic_fork'):
             manifest['inherited_diagnostic_fork']=prior.get('diagnostic_fork') or prior['inherited_diagnostic_fork']
-        if prior.get('nos_overlay',{}).get('sha256')!=overlay_sha:raise ValueError('NOS overlay differs; restart from reset')
+        if prior.get(overlay_key,{}).get('sha256')!=overlay_sha or prior.get('bluetooth_overlay' if overlay_key=='nos_overlay' else 'nos_overlay'):raise ValueError('component overlay differs; restart from reset')
+        if prior.get('line_refill',False)!=a.line_refill:raise ValueError('line refill mode differs; use only an explicitly audited fork')
         if prior.get('timer_clock','cpu')!=a.timer_clock or prior.get('nos_tick_hz',1000)!=a.nos_tick_hz:raise ValueError('timer experiment differs; restart from reset')
         if prior.get('powerup','alarm')!=a.powerup:raise ValueError('reset cause differs; restart from reset')
         if not a.use_saved_build and prior.get('direct_sdram',False)!=(not a.legacy_sdram_route):raise ValueError('SDRAM route differs; restart from reset')
@@ -161,10 +185,10 @@ def main():
         for suffix in ('.cpu','.host'):
             if not Path(str(a.restore)+suffix).is_file() and not Path(str(a.restore)+suffix+'.gz').is_file():raise ValueError('missing checkpoint pair')
     (out/'inputs').mkdir();shutil.copyfile(a.cdrive,out/'inputs/cdrive.img')
-    if a.nos_overlay:
+    if overlay_path:
         overlay_hex=out/'inputs/nos-overlay.hex'
-        data=a.nos_overlay.read_bytes()
-        shutil.copyfile(a.nos_overlay,out/'inputs/NOS_Compatibility.ngo')
+        data=overlay_path.read_bytes()
+        shutil.copyfile(overlay_path,out/('inputs/Bluetooth_Compatibility.ngo' if overlay_id==2 else 'inputs/NOS_Compatibility.ngo'))
         overlay_hex.write_text(''.join(f'{w[0]:04x}\n' for w in struct.iter_unpack('<H',data.ljust(8192,b'\0'))))
     actual_restore=a.restore
     staging=None
@@ -182,7 +206,9 @@ def main():
         manifest['restore_from_archive']=True
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     cmd=docker+['/work/'+str(binary),image,str(a.cycles),str(out),str(actual_restore) if actual_restore else '-', '+ngage-compact-trace','+core='+str(a.core),'+extension='+str(a.extension),'+cdrive='+str(out/'inputs/cdrive.img')]
-    if a.nos_overlay:cmd+=['+nos-overlay='+str(overlay_hex)]
+    if overlay_path:cmd+=['+nos-overlay='+str(overlay_hex)]
+    if a.stop_on_kernel_panic:cmd+=['+stop-kernel-panic']
+    if a.stop_after_lcd_words:cmd+=['+stop-lcd-words='+str(a.stop_after_lcd_words)]
     print('Running',out,flush=True)
     try:
         run_model(cmd,out)

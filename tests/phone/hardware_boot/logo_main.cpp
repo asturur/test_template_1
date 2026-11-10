@@ -1,4 +1,8 @@
 #include "Vtb.h"
+#ifdef NGAGE_REFILL_STATS
+#include "Vtb___024root.h"
+#include <vector>
+#endif
 #include "verilated.h"
 #include "verilated_save.h"
 #include <chrono>
@@ -28,6 +32,11 @@ int main(int argc,char **argv) {
     if(argc<4)throw std::runtime_error("usage: Vtb target-cycle output-dir checkpoint-prefix-or-dash [+image options]");
     uint64_t target=std::stoull(argv[1]);std::string out=argv[2],restore=argv[3];
     VerilatedContext context; context.commandArgs(argc,argv);
+    uint64_t stop_lcd_words=0, lcd_limit_tick=0, panic_ticks=0;
+    const char *panic_arg=context.commandArgsPlusMatch("stop-kernel-panic");
+    const bool stop_panic=panic_arg && *panic_arg;
+    const char *limit=context.commandArgsPlusMatch("stop-lcd-words=");
+    if(limit && *limit)stop_lcd_words=std::stoull(std::string(limit).substr(std::string(limit).find('=')+1));
     Vtb model{&context};Host host;
     model.clk=0;model.cold=1;model.reset=1;model.frame_index=0;model.eval();
     if(restore!="-") {
@@ -53,10 +62,29 @@ int main(int argc,char **argv) {
         std::printf("CHECKPOINT cycle=%llu prefix=%s\n",(unsigned long long)total(),base.c_str());std::fflush(stdout);
     };
     std::signal(SIGTERM,stop);std::signal(SIGINT,stop);
+#ifdef NGAGE_REFILL_STATS
+    #define Z(x) tb__DOT__dut__DOT__board__DOT__upp__DOT__cpu_inside__DOT__cpu__DOT__u_zap__DOT__##x
+    #define IC(x) Z(l_generate_with_cache_mmu__DOT__u_code_cache__DOT__##x)
+    #define DC(x) Z(l_generate_with_cache_mmu__DOT__u_data_cache__DOT__##x)
+    uint64_t stat_clocks=0,stat_code=0,stat_data=0,stat_ic_clocks=0,stat_dc_clocks=0;
+    uint64_t stat_ic_starts=0,stat_dc_starts=0,stat_ddr_reads=0,stat_ddr_beats=0,stat_trace=0;
+    unsigned prev_ic=0,prev_dc=0,prev_ddelay=model.rootp->tb__DOT__ddelay;
+    std::vector<uint8_t> original_c(4194304);
+    for(unsigned j=0;j<original_c.size();j++)original_c[j]=model.rootp->tb__DOT__ddr[0x1400000+j];
+#endif
     while(total()<target && !stop_requested && !context.gotFinish()) {
         if(host.phase==0 && host.ticks>=4){model.cold=0;host.phase=1;}
         if(host.phase==1 && model.ready){host.phase=2;host.settle=2;}
         if(host.phase==2 && host.settle--==0){model.reset=0;host.phase=3;boot_offset=host.ticks;}
+#ifdef NGAGE_REFILL_STATS
+        auto *r=model.rootp;
+        unsigned ic=r->IC(cache_adapter__DOT__cache__DOT__state),dc=r->DC(cache_adapter__DOT__cache__DOT__state);
+        stat_clocks++;stat_code+=r->Z(u_zap_core__DOT__code_stall);stat_data+=r->Z(u_zap_core__DOT__data_stall);
+        stat_ic_clocks+=ic==5;stat_dc_clocks+=dc==5;
+        stat_ic_starts+=ic==5 && prev_ic!=5;stat_dc_starts+=dc==5 && prev_dc!=5;prev_ic=ic;prev_dc=dc;
+        stat_ddr_reads+=prev_ddelay==0 && r->tb__DOT__ddelay==3;prev_ddelay=r->tb__DOT__ddelay;
+        stat_ddr_beats+=r->tb__DOT__phyready;stat_trace+=r->Z(o_trace_valid);
+#endif
         model.clk=1;context.timeInc(5000);model.eval();
         if(model.scan_ce && model.scan_de && model.scan_x<320 && model.scan_y<240) {
             auto i=(model.scan_y*320+model.scan_x)*3;auto rgb=model.scan_rgb;
@@ -69,6 +97,16 @@ int main(int argc,char **argv) {
             std::printf("PROGRESS cycles=%llu pc=%08x words=%u errors=%u data_errors=%u seconds=%.2f rate=%.0f\n",(unsigned long long)total(),model.pc,model.pixel_writes,model.bus_errors,model.data_faults,seconds,(total()-initial)/seconds);std::fflush(stdout);
         }
         if(total() && total()%100000000==0)save();
+        if(stop_panic) {
+            // NEM-4's terminal panic branch and speculative fetch lookahead.
+            if(model.pc>=0x50324294 && model.pc<0x503242a4)panic_ticks++;
+            else if(model.pc!=0)panic_ticks=0; // zero is an idle fetch, not an escape
+            if(panic_ticks>=1000)break;
+        }
+        if(stop_lcd_words && model.pixel_writes>=stop_lcd_words) {
+            if(!lcd_limit_tick)lcd_limit_tick=total();
+            if(total()-lcd_limit_tick>=1000)break; // let queued LCD writes commit
+        }
     }
     // Snapshot the actual display RAM; this is observation, not a guest write.
     std::array<uint8_t,176*208*3> pixels{};
@@ -88,7 +126,16 @@ int main(int argc,char **argv) {
     ppm(out+"/scanout.ppm",176,208,active_scan.data());
     double seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count();
     std::ofstream result(out+"/result.json");
-    result<<"{\"boot_index\":"<<model.boot_index<<",\"boot_limit\":"<<model.boot_limit<<",\"retired\":"<<model.retired_count<<",\"ddr_commands\":"<<model.ddr_command_count<<",\"ddr_beats\":"<<model.ddr_beat_count<<",\"cycle\":"<<total()<<",\"pc\":"<<model.pc<<",\"lcd_words\":"<<model.pixel_writes<<",\"frame_complete\":"<<unsigned(model.frame_complete)<<",\"display_on\":"<<unsigned(model.display_on)<<",\"unsupported\":"<<unsigned(model.unsupported)<<",\"bus_errors\":"<<model.bus_errors<<",\"data_errors\":"<<model.data_faults<<",\"seconds\":"<<seconds<<",\"interrupted\":"<<(stop_requested?"true":"false")<<"}\n";
+    result<<"{\"boot_index\":"<<model.boot_index<<",\"boot_limit\":"<<model.boot_limit<<",\"retired\":"<<model.retired_count<<",\"ddr_commands\":"<<model.ddr_command_count<<",\"ddr_beats\":"<<model.ddr_beat_count<<",\"cycle\":"<<total()<<",\"pc\":"<<model.pc<<",\"lcd_words\":"<<model.pixel_writes<<",\"frame_complete\":"<<unsigned(model.frame_complete)<<",\"display_on\":"<<unsigned(model.display_on)<<",\"unsupported\":"<<unsigned(model.unsupported)<<",\"bus_errors\":"<<model.bus_errors<<",\"data_errors\":"<<model.data_faults<<",\"seconds\":"<<seconds<<",\"stop_after_lcd_words\":"<<stop_lcd_words<<",\"stopped_on_kernel_panic\":"<<(panic_ticks>=1000?"true":"false")<<",\"stopped_at_lcd_limit\":"<<(lcd_limit_tick?"true":"false")<<",\"interrupted\":"<<(stop_requested?"true":"false")<<"}\n";
+#ifdef NGAGE_REFILL_STATS
+    unsigned changed_c=0;for(unsigned j=0;j<original_c.size();j++)changed_c+=original_c[j]!=model.rootp->tb__DOT__ddr[0x1400000+j];
+    std::ofstream stats(out+"/refill-stats.json");
+    stats<<"{\"clocks\":"<<stat_clocks<<",\"code_stall\":"<<stat_code<<",\"data_stall\":"<<stat_data
+         <<",\"ic_refill_clocks\":"<<stat_ic_clocks<<",\"ic_refill_starts\":"<<stat_ic_starts
+         <<",\"dc_refill_clocks\":"<<stat_dc_clocks<<",\"dc_refill_starts\":"<<stat_dc_starts
+         <<",\"ddr_read_commands\":"<<stat_ddr_reads<<",\"ddr_return_beats\":"<<stat_ddr_beats
+         <<",\"trace_uop_observations\":"<<stat_trace<<",\"c_changed_positions_in_segment\":"<<changed_c<<"}\n";
+#endif
     model.final();return 0;
  }catch(const std::exception &e){std::fprintf(stderr,"ERROR %s\n",e.what());return 1;}
 }

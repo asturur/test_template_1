@@ -2,10 +2,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Date: 29-4-2021 */
 
-// SDRAM is set to burst=2 (64 bits)
+// Physical burst is selected globally (16/32/64/128 bits).
+// Dynamic line mode consumes BL8 for fills and returns 32 bits for short reads.
 /* verilator coverage_off */
 module jtframe_sdram64 #(
-    parameter AW=22,
+    parameter SHORT_READS=0,
+              DYNAMIC_LINE=0,
+              AW=22,
               HF=1,     // 1 for HF operation (idle cycles), 0 for LF operation
                         // HF operation starts at 66.6MHz (1/15ns)
               SHIFTED =0,
@@ -36,6 +39,7 @@ module jtframe_sdram64 #(
               BAPRIO =1      // Bank requests are handled with higher priority to bank 0
                              // and lower to to bank 3
 )(
+    input wire [1:0] line_read,
     input               rst,
     input               clk,
     output              init,
@@ -100,7 +104,7 @@ module jtframe_sdram64 #(
     output              sdram_cke       // SDRAM Chip Select
 );
 /* verilator coverage_off */
-localparam BURSTLEN=(BA0_LEN>32 || BA1_LEN>32 ||BA2_LEN>32 ||BA3_LEN>32) ? 64 :(
+localparam BURSTLEN=(BA0_LEN>64 || BA1_LEN>64 ||BA2_LEN>64 ||BA3_LEN>64) ? 128 :(BA0_LEN>32 || BA1_LEN>32 ||BA2_LEN>32 ||BA3_LEN>32) ? 64 :(
                     (BA0_LEN>16 || BA1_LEN>16 ||BA2_LEN>16 ||BA3_LEN>16) ? 32 : 16);
 
 localparam LATCH = HF==1;
@@ -116,6 +120,8 @@ localparam CMD_LOAD_MODE   = 4'b0___0____0____0, // 0
            CMD_NOP         = 4'b0___1____1____1, // 7
            CMD_INHIBIT     = 4'b1___0____0____0; // 8
 
+wire [3:0] stop_requests;
+assign stop_requests[3:2]=2'b0;
 wire  [3:0] br, bx0_cmd, bx1_cmd, bx2_cmd, bx3_cmd, rfsh_cmd,
             ba_dst, ba_dbusy, ba_dbusy64, ba_rdy, ba_dok,
             init_cmd, post_act, next_cmd, dqm_busy, match;
@@ -374,6 +380,8 @@ jtframe_sdram64_bank #(
     .SHIFTED  ( SHIFTED       ),
     .BURSTLEN ( BURSTLEN      ),
     .BALEN    ( BA0_LEN       ),
+    .DYNAMIC_LINE(DYNAMIC_LINE),
+    .SHORT_READS(SHORT_READS),
     .AUTOPRECH( BA0_AUTOPRECH )
 ) u_bank0(
     .rst        ( other_rst  ),
@@ -382,6 +390,8 @@ jtframe_sdram64_bank #(
 
     // requests
     .addr       ( ba0_addr_l ),
+    .line_read(line_read[0]),
+    .stop_request(stop_requests[0]),
     .rd         ( rd_l[0]    ),
     .wr         ( wr_l[0]    ),
 
@@ -422,6 +432,8 @@ jtframe_sdram64_bank #(
     .SHIFTED  ( SHIFTED       ),
     .BURSTLEN ( BURSTLEN      ),
     .BALEN    ( BA1_LEN       ),
+    .DYNAMIC_LINE(DYNAMIC_LINE),
+    .SHORT_READS(SHORT_READS),
     .AUTOPRECH( BA1_AUTOPRECH )
 ) u_bank1(
     .rst        ( other_rst  ),
@@ -430,6 +442,8 @@ jtframe_sdram64_bank #(
 
     // requests
     .addr       ( ba1_addr_l ),
+    .line_read(line_read[1]),
+    .stop_request(stop_requests[1]),
     .rd         ( rd_l[1]    ),
     .wr         ( wr_l[1]    ),
 
@@ -649,6 +663,10 @@ always @(*) begin
                 6'b1111_11: bg=4'b1000;
             endcase
         end
+    end
+    if(!rfshing && !prog_en)begin
+        if(stop_requests[0])bg=4'b0001;
+        else if(stop_requests[1])bg=4'b0010;
     end
 end
 

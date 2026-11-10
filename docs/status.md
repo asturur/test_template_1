@@ -1,3 +1,195 @@
+## 2026-11-10: Memory changes authorized for commit/build; screensaver wake report
+
+User requests commit/push and one hardware build of completed line-refill and
+short-read work. Precommit source graph, imported CPU patch reproduction,
+format/whitespace checks pass; full previous CPU180PASS and separate50M runs
+recorded below. Simulator harness includes earlier optional Bluetooth diagnostic
+controls; no Bluetooth overlay package or hardware boot fix is claimed.
+
+New hardware observation: key wakes clock screensaver to N-Gage image; after
+roughly one minute screensaver returns. This confirms some input-dependent
+behavior, not menu operation or a reboot. Investigation sequence appended to
+symbian-startup.md: second named Menu/softkey after wake, diagnostic captures,
+then separate key->matrix/direct latch->ICU25->IRQ/W1C replay and UI/server wait
+inspection. Existing cycle counter persists across warm resets, so it cannot
+alone disprove reboot. No speculative UI/firmware/C change bundled in build.
+
+## 2026-11-10: Short SDRAM reads complete; actual-controller cold50M PASS
+
+TASK COMPLETE locally. No hardware build, commit or push. Long frozen12B run
+container480727160d1a remains untouched; original core/extension/C hashes match.
+Existing line-refill work and this extension remain uncommitted.
+
+Template enables SHORT_READS1 with DYNAMIC_LINE1. The bank FSM reserves a BST
+command after READ+2 pin clocks, stops chip output after2halfwords, and ends
+busy/DQM/dok and bank state early. Writes/full-line reads unchanged. Arbiter
+reserves BST so another bank cannot advance on that command slot. All original
+register/DDIO boundaries retained; no fitted104MHz timing/resource claim.
+
+PASS existing Docker image: original Micron timing-model short/line/write/mask/
+reset/DMA/SWP/refresh tests at78/104MHz and104MHz+0.6ns modeled pin delay.
+113 ordinary reads:904->226halfwords (8->2/read). Concurrent mixed-bank600READs:
+4800->3000halfwords;8920->8173clocks (~8.4% fewer, synthetic workload only).
+Old scalar controller, line transfer/owner/DDR stream tests PASS. CPU imported
+patch verification PASS (no new CPU edits since previous180PASS full suite).
+Quartus source graph170files/9QIPs, Template format and diff whitespace PASS.
+
+Independent full-phone original-timing-model cold50M COMPLETED:
+cycles50000000, bus4851552, errors12 (known startup instruction probes),
+data_errors0, lcd_words0, DDR_writes0, fetchPC00006160, busPC00006164,
+last_fetch_age9. Cold early cache-off delay loop; this is startup compatibility,
+not logo/UI completion or cache-active speed evidence. SDRAM samples verify
+firmware RAM pattern writes/readbacks. No ERROR/FATAL/FAIL model messages.
+Runtime610.827s. Uses final dok fix, LINE_REFILL1/SHORT_READS1/ROM_CACHE1,
+SYS_CLK_HZ104000000. Inputs read from original scratch/hardware-live/ files.
+
+Evidence docs/evidence/sdram-short-reads-2026-11-10.json;
+logs scratch/short-reads/{regression,phone-50m,phone-build}.log and generated
+build/sim/unit-hardware-boot-real-sdram/. Timed Micron model has only pre-existing
+two-state X/Z adaptation; --timing cannot combine with Verilator --savable,
+so no new resumable checkpoint was promised/produced for this bounded run.
+Main long run retains exact model and checkpoint pairs; fast resumable backing
+array harness would not exercise this controller, so was not used as proof.
+
+JTFRAME docs under ~/develop/jtpublicfork/modules/jtframe/doc/ confirm different
+per-bank service lengths, global-per-chip physical mode and separate variable-
+length burst controller. AW22=8MiB physical bank on32MiB module; AW23=16MiB bank
+on64MiB chip. Both logical ports already span same16MiB across two physical
+banks; no duplicate RAM. Two-chip128MiB module has shared16bit DQ bus, distinct
+per-chip burst modes but no simultaneous independent data streams. References,
+measured limits and failed97clock refresh-stress trial in cache-line-refill.md.
+
+## 2026-11-10: Burst/line refills implemented; final50M comparison PASS
+
+TASK COMPLETE locally; NO hardware build, commit or push for this experiment.
+User allowance reserve20% remains. Main long panic-owner-fixed-12b confirmed
+running; firmware/core/extension/C source hashes unchanged. Every old billion
+checkpoint preserved. New code/tests/docs remain uncommitted alongside prior
+Bluetooth harness work; no Bluetooth package/overlay fix claimed.
+
+Final line model5271ec5bedfe81c5 (line-refill-on-final-active-50m) and scalar
+baseline5a5a4f90dd9ece26 (line-refill-off-active-50m) each COMPLETED exactly50M
+additional clocks from4700000002 to4750000002. Both FSR/FAR/ABT LR(RF32)/panic
+mask=0, no new bus errors30923398/data0; Nokia image remains.13processes; RfsServer
+stack on final contains Nokia/Images/N-Gage5.jp...; no full UI or total boot-time
+claim. Raw average I-refill137.37->22.87 clocks (~6x), D-refill136.84->39.92.
+Trace micro-op observations4,119,132->5,824,305 (+41.4%); DDR commands722967->252294,
+returned64bit beats722967->981072 (more firmware work). Changed C positions during
+segment1462->5947; not copied-byte throughput. CPU host simulation rate is NOT
+phone speed. Main boot baseline unchanged, no state moved into its directory.
+
+PASS full tests/cpu/run.sh:180PASS total(158CPU cases+22other benches), no XFAIL.
+PASS stream/owner/DDR directed tests; actual Micron/controller78/104MHz inverted
+clock/capture tests on bothbanks and final32byte boundaries, queued normal read
+across mid-line reset, refresh/DMA/word reads/writes. NOR/transport/cache reset/
+reload/mask suites PASS, ROM buffer64/128/256bit configs with LINE_REFILL on,
+normal hit1clock. Reproducible0055CPU patch verified; Quartus source graph PASS.
+No resource/Fmax/timing-closure claim without later Quartus build.
+
+Cache-active snapshot audit and observer1000-clock controls described below;
+zero-clock named-state preservation plus exact disabled replay prove migration
+for this diagnostic fork only. Cold initial candidate50M completedPC6154/errors12/
+data0; early cache-off loop did not test line speed. Superseded first ON candidate
+was gracefully stopped alone and retained after late-write admission guard fix.
+Final helper formatting after simulation: explicit-port token equivalence and
+owner tests PASS; no logic edit after benchmark. SDRAM contract assertions added
+only in physical test/backend and verified independently.
+
+Post-change independent3M: FIFO-only26.08%, fetch-only27.84%, both0.38%; actual
+WAIT_REFILL8.12% (previous45.04%). Further cache-hit/MMU/LSU/short-read scheduling
+work may matter, but current goal remains working phone. User's proposed two
+16MiB overlapping logical views already correspond to new line/word interfaces;
+physical two8MiB banks remain. Short reads still reserve physical BL8 bandwidth.
+Next controller choice: better termination/pipelined long columns or nativeBL2
+with pipelined logical256bit line. Plan/limits docs/cache-line-refill.md;
+machine evidence docs/evidence/line-refill-2026-11-10.json and scratch/line-refill/.
+
+## 2026-11-10: Final guarded burst model in cache-active50M comparison
+
+Continue current task; reserve20% user allowance, no hardware build. Implementation
+still UNCOMMITTED. Final guarded model5271ec5bedfe81c5 (stats included) running
+line-refill-on-final-active-50m, session20787, target4750000002 from4700000002.
+Baseline off model5a5a4f90dd9ece26 in line-refill-off-active-50m, session80766,
+same start/target. Both are audited diagnostic forks, NOT generic checkpoint
+compatibility or cold-boot proof. Long panic-owner-fixed-12b remains untouched.
+
+Cold50M COMPLETED initial model12fd8767b26b04d3, PC6154/errors12/data0;
+I-cache-off early loop doesn't test refill speed. Current final model fixes
+late descriptor-admission ordering beyond that initial cold model.
+Superseded ON candidate21f1f6b3aec89215 (line-refill-on-active-50m) was gracefully
+TERM'd ONLY by exact Docker command path match. Its state/results retained.
+Reason: final owner now rechecks ordinary-bus/write-buffer blockage at acceptance,
+not only initial capture. This prevents a newly queued older write being passed.
+New owner regression verifies this; no actual guest fault claimed for v1.
+
+Snapshot audit complete: olda6d4 advances2clocks from4.7B to memory/cache/TLB/
+writebuffer/CP15 idle. Named state import preserves2255/2256 common fields,
+including complete CPU/RAM/DDR/cache/TLB payload. New idle owner/provider/raw
+reader regs initialized; only combinational old aliases removed/renamed. Exact
+zero-clock read matches ALL common named fields; disabled path matches original
+1000clock control (all2256 fields AND host bytes). Added passive stats observer
+matches prior disabled CPU AND host files byte-for-byte after1000clocks.
+Generated evaluator temporaries are not copied; this proof checks trajectory,
+not just serializer layout. Reports/scripts scratch/line-refill/{schema-*,
+migrate.py,compare-fields.py,quiesce.cpp,profiles.json,final-profiles.json}.
+
+PASS final directed engine/owner/DDR tests; physical SDRAM line reads bothbanks
+and their last32byte boundaries, queued normal read across mid-line warm reset,
+normal32bit reads/writes/DMA/refresh at78/104MHz inverted pin/DDIO capture.
+DDR ROM cache reset/reload suite PASS with LINE_REFILL0 and1, hit latency1.
+Original reset-stage suite caught wrapper wrongly rejecting normal queued
+requests while old reads drain: fixed normal cache admission; raw-line admission
+still waits for ordinary backend drain. Existing transfer/refill/access and
+NOR/transport suites PASS. Full tests/cpu/run.sh still running session35578,
+log scratch/line-refill/cpu-suite.log; don't assume complete until exit.
+Patch0055 reproduces all imported CPU wrappers/top changes; verify.sh PASS.
+Quartus source graph PASS (170files/9QIPs). No Quartus build/timing claim.
+
+Implementation contracts and logical16MiB overlapping-port follow-up in new
+docs/cache-line-refill.md. Current two physical8MiB banks retained; two logical
+interfaces cover same16MiB. BL8 short reads still consume unused physical beats;
+further pipelining/termination or BL2 streaming is follow-up, not completed.
+Next finish final50M A/B metrics/stopping-point inspection, final format/lint/
+regression checks. Do not accidentally commit prior Bluetooth observer/menu
+harness work as a Bluetooth fix. Source firmware/C input hashes must remain same.
+
+## 2026-11-10: Burst refill implementation IN PROGRESS — no hardware build
+
+User requests line/burst refills,104MHz-conscious registers, tests and separate
+50M speed comparison; long sim and firmware/C source inputs untouched. Reserve
+20% remains current. No commit/push or hardware build for this experiment.
+
+New optional LINE_REFILL channel after ARM920 MMU/cache ownership: registered
+I/D line arbiter, streams16/64bit beats into EXISTING cache_transfer refill_line.
+DDR raw four64bit burst beats bypass tiny instruction buffer; flash array-mode
+probe preserves NOR/status fallback, per-address decode still applied. SDRAM
+adapter streams raw16bit DQ directly, avoiding its32bit word assembly. Jotego
+controller extended for legal128bit BL8, two reads per32byte line; normal32bit
+requests retain short rdy plus full physical DQ reservation. Default feature0;
+Template selects1, full-phone runner opt-in --line-refill. New tests and many
+interface updates UNCOMMITTED. Prior Bluetooth harness changes still pending.
+
+PASS new stream engine, DDR line burst/reset-drain/normalcache test; existing
+cache transfer/refill/access tests; legacy physical SDRAM/NOR; physical line
+reads bothbanks incl shortread/write/DMA/refresh at78/104MHz inverted DDIO capture.
+Sources/logs scratch/line-refill and tests/phone/line_refill. DDR ROM cache suite
+currently investigating blank run log, don't mark it passed. Need full CPU tests,
+source graph/patch reproduction and top lint still. No FPGA timing closure claim.
+
+Cold50M initial transport model12fd8767b26b04d3 running separately as
+line-refill-cold-50m (session84751), current30M no faultincrease; early uncached
+ROM loop doesn't meaningfully test new refill speed. Source formats/harness
+have since changed, so keep exact model identity and don't silently resume as
+current. Cache-active quiescent source from4.7B saved scratch/line-refill/
+quiet-4700m.{cpu,host}: +2clocks, all CPU requests/cache/TLB/writebuffer/DDR/flash
+paths idle, old frozena6d4. quiesce.cpp/log retained. Must audit named-field
+migration and original-model equality before using it for current50M A/B runs.
+Migration NOT implemented yet; don't claim upgraded checkpoint compatibility.
+
+Next user steering AFTER current burst tests/measurement: investigate two
+logical SDRAM request ports over SAME16MiB (256bit refill vs32/64bit shortread),
+distinct from physical SDRAM bank mapping. Do not silently remap physical banks.
+
 ## 2026-11-10: Keypad fix pushed/built; refill audit complete; limit updated
 
 User explicitly changes allowance reserve to20% for tomorrow; prior35% pause

@@ -12,12 +12,23 @@
 */
 
 module ngage_mister #(
-    parameter UEM_POWERUP_STATUS = 2,
+    parameter LINE_REFILL        = 0,
+              UEM_POWERUP_STATUS = 2,
               DIRECT_SDRAM       = 1,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
               NOS_TICK_HZ        = 1000
 ) (
+    output wire        ddram_line,
+    input  wire        ddram_beat_valid,
+    input  wire [63:0] ddram_beat_data,
+    input  wire        ddram_beat_last,
+    output wire        ram_line_req,
+    output wire [24:0] ram_line_addr,
+    input  wire        ram_line_ready,
+    input  wire        ram_line_valid,
+    input  wire [15:0] ram_line_data,
+    input  wire        ram_line_last,
     input  wire        clk_sys,             // CPU/bus clock domain
     input  wire        reset,
     input  wire        cold_reset,
@@ -117,7 +128,28 @@ module ngage_mister #(
     wire raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank;
     wire [11:0] raw_rgb;
     wire [8:0] video_x, video_y;
+    wire line_req, line_ready, line_valid, line_wide, line_last, line_error;
+    wire [31:0] line_addr;
+    wire [63:0] line_data;
+    reg         line_reject = 0;
+    reg  [31:0] line_decode_address = 0;
+    wire [31:0] line_decoded_low, line_decoded_high;
+    ngage_flash_read_decode line_dec_low (
+        line_decode_address,
+        ddram_beat_data[31:0],
+        1'b1,
+        1'b1,
+        line_decoded_low
+    );
+    ngage_flash_read_decode line_dec_high (
+        line_decode_address + 32'd4,
+        ddram_beat_data[63:32],
+        1'b1,
+        1'b1,
+        line_decoded_high
+    );
     ngage_board #(
+        .LINE_REFILL       (LINE_REFILL),
         .SYS_CLK_HZ        (SYS_CLK_HZ),
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
         .NOS_TICK_HZ       (NOS_TICK_HZ),
@@ -129,6 +161,15 @@ module ngage_mister #(
         .LCD_DMA_ENABLE    (1),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
+        .line_req             (line_req),
+        .line_addr            (line_addr),
+        .line_ready           (line_ready),
+        .line_reject          (line_reject),
+        .line_valid           (line_valid),
+        .line_data            (line_data),
+        .line_wide            (line_wide),
+        .line_last            (line_last),
+        .line_error           (line_error),
         .debug_pc             (cpu_pc),
         .debug_cpsr           (cpu_cpsr),
         .debug_instruction    (cpu_instruction),
@@ -275,7 +316,9 @@ module ngage_mister #(
         else if (flash_start && !memory_owner[2] && code_ready) flash_fetch <= wb_code && !wb_we;
     end
     assign ddram_fetch = cm_valid && !cm_write && !um_valid && flash_fetch;
+    wire [2:0] code_array_mode;
     ngage_codeflash code_flash (
+        .array_mode  (code_array_mode),
         .clk         (clk_sys),
         .reset       (core_reset),
         .cold_reset  (cold_reset),
@@ -327,27 +370,87 @@ module ngage_mister #(
         .pending     (user_pending),
         .idle        (user_idle)
     );
-    reg mem_owner_user = 0;
+    // Refill-only transport shortcut. MMU permission and cache-line ownership
+    // were checked in UPP. Flash command/status still belongs to each NOR die;
+    // requests outside array mode fall back to its ordinary word interface.
+    localparam LINE_IDLE=0,LINE_ROM_ISSUE=1,LINE_ROM_WAIT=2,
+               LINE_RAM_ISSUE=3,LINE_RAM_WAIT=4;
+    reg [ 2:0] line_state = LINE_IDLE;
+    reg [31:0] line_backing = 0;
+    reg [24:0] line_ram_address = 0;
+    wire line_rom_hit, line_ram_hit, line_c_hit, line_pmm_hit;
+    wire [24:0] line_rom_offset;
+    ngage_rom_map line_mapper (
+        line_addr,
+        line_rom_hit,
+        line_rom_offset,
+        line_ram_hit,
+        line_c_hit,
+        line_pmm_hit
+    );
+    wire [1:0] line_die = line_addr < 32'h01000000 ? 0 : line_addr < 32'h04000000 ? 1 : 2;
+    assign line_ready = LINE_REFILL && !core_reset && line_state==LINE_IDLE &&
+                        code_idle && user_idle && !memory_req && !flash_issued;
+    wire line_ddr_offer = line_state == LINE_ROM_ISSUE && !core_reset;
+    assign ddram_line = line_ddr_offer;
+    assign ram_line_req = line_state == LINE_RAM_ISSUE && !core_reset;
+    assign ram_line_addr = line_ram_address;
+    assign line_valid = !core_reset && ((line_state==LINE_ROM_WAIT && ddram_beat_valid) ||
+                                       (line_state==LINE_RAM_WAIT && ram_line_valid));
+    assign line_data = line_state==LINE_RAM_WAIT ? {48'b0,ram_line_data} : {line_decoded_high,line_decoded_low};
+    assign line_wide = line_state == LINE_ROM_WAIT;
+    assign line_last = line_state == LINE_RAM_WAIT ? ram_line_last : ddram_beat_last;
+    assign line_error = 1'b0; // Backends have no physical error signal; no fabricated success/error.
+    always @(posedge clk_sys) begin
+        line_reject <= 0;
+        if (core_reset || !LINE_REFILL) line_state <= LINE_IDLE;
+        else
+            case (line_state)
+                LINE_IDLE:
+                if (line_req && line_ready) begin
+                    line_decode_address <= line_addr;
+                    if (line_ram_hit && DIRECT_SDRAM) begin
+                        line_ram_address <= line_addr[24:0];
+                        line_state       <= LINE_RAM_ISSUE;
+                    end else if(line_rom_hit && !line_c_hit && !line_pmm_hit && code_array_mode[line_die])begin
+                        line_backing <= 32'h30000000 + {line_rom_offset[24:5], 5'b0};
+                        line_state   <= LINE_ROM_ISSUE;
+                    end else line_reject <= 1;
+                end
+                LINE_ROM_ISSUE: if (ddram_accept) line_state <= LINE_ROM_WAIT;
+                LINE_ROM_WAIT:
+                if (ddram_beat_valid) begin
+                    line_decode_address <= line_decode_address + 8;
+                    if (ddram_beat_last) line_state <= LINE_IDLE;
+                end
+                LINE_RAM_ISSUE: if (ram_line_ready) line_state <= LINE_RAM_WAIT;
+                LINE_RAM_WAIT:  if (ram_line_valid && ram_line_last) line_state <= LINE_IDLE;
+                default:        line_state <= LINE_IDLE;
+            endcase
+    end
+    reg mem_owner_user = 0, mem_owner_line = 0;
     always @(posedge clk_sys)
-        if (ddram_accept && (cm_valid || um_valid))
-            mem_owner_user <= um_valid;
-    assign cm_ready           = ddram_accept && cm_valid;
-    assign um_ready           = ddram_accept && um_valid;
-    assign cm_done            = ddram_dout_ready && !mem_owner_user;
-    assign um_done            = ddram_dout_ready && mem_owner_user;
-    assign ddram_addr         = um_valid ? um_addr : cm_addr;
-    assign ddram_din          = um_valid ? um_data : cm_data;
-    assign ddram_be           = um_valid ? um_be : cm_be;
-    assign ddram_wr           = (um_valid && um_write) || (cm_valid && cm_write);
-    assign ddram_rd           = (um_valid && !um_write) || (cm_valid && !cm_write);
-    assign flash_busy         = flash_issued || code_pending || user_pending;
-    assign flash_dirty        = code_dirty || user_dirty;
+        if (ddram_accept && (cm_valid || um_valid)) begin
+            mem_owner_user <= !line_ddr_offer && um_valid;
+            mem_owner_line <= line_ddr_offer;
+        end
+    assign cm_ready = ddram_accept && cm_valid && !line_ddr_offer;
+    assign um_ready = ddram_accept && um_valid && !line_ddr_offer;
+    assign cm_done = ddram_dout_ready && !mem_owner_user && !mem_owner_line;
+    assign um_done = ddram_dout_ready && mem_owner_user && !mem_owner_line;
+    assign ddram_addr = line_ddr_offer ? line_backing : um_valid ? um_addr : cm_addr;
+    assign ddram_din = um_valid ? um_data : cm_data;
+    assign ddram_be = um_valid ? um_be : cm_be;
+    assign ddram_wr = !line_ddr_offer && ((um_valid && um_write) || (cm_valid && cm_write));
+    assign ddram_rd = line_ddr_offer || (um_valid && !um_write) || (cm_valid && !cm_write);
+    assign flash_busy = flash_issued || code_pending || user_pending;
+    assign flash_dirty = code_dirty || user_dirty;
     assign flash_dirty_sector = user_dirty ? {1'b0, user_dirty_sector} : code_dirty_sector;
-    assign sdram_addr         = DIRECT_SDRAM ? fast_ram_address[24:0] : wb_adr[24:0];
-    assign sdram_din          = DIRECT_SDRAM ? fast_ram_data : wb_dat_o;
-    assign sdram_be           = DIRECT_SDRAM ? fast_ram_be : wb_sel;
-    assign sdram_we           = DIRECT_SDRAM ? fast_ram_we : memory_owner[0] && wb_we && memory_req;
-    assign sdram_req          = DIRECT_SDRAM ? fast_ram_req : memory_owner[0] && memory_req;
+    assign sdram_addr = DIRECT_SDRAM ? fast_ram_address[24:0] : wb_adr[24:0];
+    assign sdram_din = DIRECT_SDRAM ? fast_ram_data : wb_dat_o;
+    assign sdram_be = DIRECT_SDRAM ? fast_ram_be : wb_sel;
+    assign sdram_we = DIRECT_SDRAM ? fast_ram_we : memory_owner[0] && wb_we && memory_req;
+    assign sdram_req = DIRECT_SDRAM ? fast_ram_req : memory_owner[0] && memory_req;
     wire flash_error = (code_rsp && code_err) || (user_rsp && user_err);
     wire mem_ack = memory_owner[0] ? sdram_ack : (flash_response && !flash_error);
     // Register board/decode faults so Wishbone STB suppression on ERR cannot

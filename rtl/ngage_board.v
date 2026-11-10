@@ -1,7 +1,8 @@
 // Phone board transaction-level composition. UPP external pin buses are not
 // yet bit-accurate; temporary CBUS/ADSP transactions are explicitly named.
 module ngage_board #(
-    parameter INTERNAL_CPU       = 0,
+    parameter LINE_REFILL        = 0,
+              INTERNAL_CPU       = 0,
               DIRECT_SDRAM       = 0,
               SIMIF_ENABLE       = 0,
               KEYPAD_ENABLE      = 0,
@@ -12,6 +13,16 @@ module ngage_board #(
               TIMER_CLK_DIV      = 1,
               NOS_TICK_HZ        = 1000
 ) (
+
+    output wire        line_req,
+    output wire [31:0] line_addr,
+    input  wire        line_ready,
+    input  wire        line_reject,
+    input  wire        line_valid,
+    input  wire [63:0] line_data,
+    input  wire        line_wide,
+    input  wire        line_last,
+    input  wire        line_error,
     input  wire        rst,
     input  wire        init_rst,
     input  wire        clk,
@@ -208,6 +219,7 @@ module ngage_board #(
         end
     endgenerate
     ngage_upp #(
+        .LINE_REFILL     (LINE_REFILL),
         .SYS_CLK_HZ      (SYS_CLK_HZ),
         .TIMER_CLK_DIV   (TIMER_CLK_DIV),
         .NOS_TICK_HZ     (NOS_TICK_HZ),
@@ -218,6 +230,16 @@ module ngage_board #(
         .LCD_DMA_ENABLE  (LCD_DMA_ENABLE),
         .LCD_QUEUE_ENABLE(LCD_ENABLE)
     ) upp (
+        .line_req   (line_req),
+        .line_addr  (line_addr),
+        .line_ready (line_ready),
+        .line_reject(line_reject),
+        .line_valid (line_valid),
+        .line_data  (line_data),
+        .line_wide  (line_wide),
+        .line_last  (line_last),
+        .line_error (line_error),
+
         .debug_pc         (debug_pc),
         .debug_cpsr       (debug_cpsr),
         .debug_instruction(debug_instruction),

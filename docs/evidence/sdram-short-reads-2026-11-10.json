@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-10",
+  "feature": "32-bit physical SDRAM short-read termination",
+  "phone_50m": {
+    "status": "PASS",
+    "cycles": 50000000,
+    "bus_completions": 4851552,
+    "startup_probe_bus_errors": 12,
+    "data_errors": 0,
+    "lcd_words": 0,
+    "pc": "00006160",
+    "bus_pc": "00006164",
+    "last_fetch_age": 9,
+    "wall_seconds": 610.827,
+    "sys_clk_hz": 104000000,
+    "LINE_REFILL": 1,
+    "SHORT_READS": 1,
+    "ROM_CACHE": 1,
+    "profile": "Cold full-phone actual SDRAM controller plus original timed Micron model with documented two-state adaptations; early delay loop, no logo claim",
+    "log": "scratch/short-reads/phone-50m.log"
+  },
+  "physical_timing_hz": [
+    78000000,
+    104000000
+  ],
+  "clock_pin_delay_ns": [
+    0,
+    0.6
+  ],
+  "scalar_reads": 113,
+  "scalar_halfwords_before": 904,
+  "scalar_halfwords_after": 226,
+  "mixed_read_commands": 600,
+  "mixed_halfwords_before": 4800,
+  "mixed_halfwords_after": 3000,
+  "mixed_clocks_before": 8920,
+  "mixed_clocks_after": 8173,
+  "input_sha256": {
+    "scratch/hardware-live/service-loaded-boot/core.bin": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "scratch/hardware-live/service-loaded-boot/extension.bin": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "scratch/hardware-live/hardware-cdrive.img": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  },
+  "source_sha256": {
+    "Template.sv": "048e6aac8efa6d320c3abc58d66d63cdab76b8f651a2b708b39173df648b805c",
+    "rtl/sdram/jtframe_sdram64.v": "e45d56b6c8bfe2f0a548196e2e89dc9c87ed560cf5e0770dcdc26c1b10b52de0",
+    "rtl/sdram/jtframe_sdram64_bank.v": "128f1f213bc6b921cfb4e503c32b9641b123790bef6e96b503b29e4ab40551d0",
+    "tests/phone/sdram/tb.sv": "d7fd91eb6595b718b61e1fa1a27dffda895a1864c579c7e91aeca82babf9bb35",
+    "tests/phone/sdram/short_concurrent_tb.sv": "301218e5a2b8d12d182d54f2ba6c71423a66b16b98528f1f2ab36ce85c3c6b45",
+    "tests/phone/hardware_boot/tb.v": "ca1b9c86e22de9c38c14586c4c69321a33f78e57a1d0b5b78ad32accba2fb4aa"
+  },
+  "limitations": [
+    "No Quartus timing-closure/resource claim",
+    "Cold50M does not measure cache-active boot speed",
+    "Mixed-bank benchmark is synthetic controller traffic",
+    "Timed Micron cannot use Verilator savable; frozen long run untouched"
+  ],
+  "binary_sha256": "78c1da87d0103842fe8ad2d63e7f151082c1509ac1b4c3b7f096841f3dde206d",
+  "log_sha256": {
+    "scratch/short-reads/phone-50m.log": "80fbcb6da8e3e2f56935b00a39c9b11210fd6a8f157c7fddf9815995b1eca616",
+    "scratch/short-reads/regression.log": "30371556241e07ec65e14c3e2edfa0e479867ae41927368db0c0d3d4b050e379"
+  }
+}

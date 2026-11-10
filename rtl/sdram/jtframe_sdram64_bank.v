@@ -2,20 +2,25 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Date: 29-4-2021 */
 
-// SDRAM is set to burst=2 (64 bits)
+// Physical burst is selected globally (16/32/64/128 bits).
+// Dynamic line mode consumes BL8 for fills and returns 32 bits for short reads.
 /* verilator coverage_off */
 module jtframe_sdram64_bank #(
-    parameter AW=22,
+    parameter SHORT_READS=0,
+              DYNAMIC_LINE=0,
+              AW=22,
               HF=1,     // 1 for HF operation (idle cycles), 0 for LF operation
                         // HF operation starts at 66.6MHz (1/15ns)
               SHIFTED      =0,
               AUTOPRECH    =0,
               PRECHARGE_ALL=0,
-              BALEN        =64, // 16, 32 or 64 bits
+              BALEN        =64, // 16, 32, 64 or 128 bits
               BURSTLEN     =64,
               READONLY     =0   // set to 1 if ALL BANKS can only read
                                 // this will make dbusy64 match dbusy
 )(
+    output wire stop_request,
+    input wire line_read,
     input               rst,
     input               clk,
     input               help,
@@ -70,9 +75,9 @@ localparam IDLE    = 0,
            PRE_RD  = PRE_ACT + (HF ? 2:1),
            READ    = PRE_RD+1,
            DST     = READ + (SHIFTED==1 ? 1 : 2) ,
-           DTICKS  = BURSTLEN==64 ? 4 : (BURSTLEN==32?2:1),
+           DTICKS  = BURSTLEN/16,
            BUSY    = DST+(DTICKS-1),
-           RDY     = DST + (BALEN==16 ? 0 : (BALEN==32? 1 : 3)),
+           RDY     = DST + (BALEN/16-1),
            STW     = BUSY + 1 + {2'd0,AUTOPRECH[0]};
 
 //                             /CS /RAS /CAS /WE
@@ -101,6 +106,14 @@ reg            last_act;
 wire           rd_wr;
 
 reg            do_prech, do_act, do_read, written;
+reg line_read_ff;
+wire short_read = SHORT_READS && DYNAMIC_LINE && !line_read_ff && !written;
+// CL2: a BST issued two command clocks after READ stops before halfword3.
+// The top arbiter reserves this command slot for the current read owner.
+assign stop_request = short_read && BURSTLEN>32 && st[READ+1];
+wire busy_end = short_read ? st[DST+1] : st[BUSY];
+wire mask_end = short_read ? st[DST-1] : st[RDY-2];
+wire read_ready = DYNAMIC_LINE && !line_read_ff ? st[DST+1] : st[RDY];
 
 // state phases
 reg            in_busy, in_busy64;
@@ -110,7 +123,7 @@ assign ack      = st[READ],
        dst      = st[DST] | (st[READ] & wr),
        dbusy    = |{in_busy, do_read},
        dbusy64  = READONLY ? dbusy : |{in_busy64, do_read},
-       rdy      = (written && !AUTOPRECH) ? st[READ] : st[RDY],
+       rdy      = (written && !AUTOPRECH) ? st[READ] : read_ready,
        addr_row = AW==22 ? addr[AW-1:AW-ROW] : addr[AW-2:AW-1-ROW],
        rd_wr    = rd | wr,
        idle     = st[0];
@@ -123,16 +136,16 @@ always @(posedge clk) begin
         dqm_busy  <= 0; // |{st[RDY-2:READ]}
     end else begin
         if(next_st[READ]) in_busy <= 1;
-        else if( st[(BALEN==16? READ+1 : RDY-2)] || next_st[READ-1:0]!=0 ) in_busy<=0;
+        else if( (short_read ? st[DST-1] : st[(BALEN==16? READ+1 : RDY-2)]) || next_st[READ-1:0]!=0 ) in_busy<=0;
 
         if(next_st[READ]) in_busy64 <= 1;
-        else if( st[BUSY] || next_st[READ-1:0]!=0 ) in_busy64<=0;
+        else if( busy_end || next_st[READ-1:0]!=0 ) in_busy64<=0;
 
         if(next_st[DST]) dok<=1;
-        else if( st[RDY] || next_st[DST-1:0]!=0 ) dok <= 0;
+        else if( (short_read ? st[DST+1] : st[RDY]) || next_st[DST-1:0]!=0 ) dok <= 0;
 
         if(next_st[READ]) dqm_busy<=1;
-        else if(st[RDY-2] || next_st[READ-1:0]!=0) dqm_busy<=0;
+        else if(mask_end || next_st[READ-1:0]!=0) dqm_busy<=0;
 
     end
 end
@@ -149,6 +162,7 @@ always @(*) begin
         ( st[PRE_ACT] && bg && !all_dqm && !all_act) ||
         ( !st[IDLE] && !st[PRE_ACT] && !st[PRE_RD] ) )
           next_st = rot_st;
+    if( short_read && st[DST+1] ) next_st = 1;
     if( st[READ] && wr && !AUTOPRECH)
         next_st = 1; // writes finish earlier
 end
@@ -198,7 +212,7 @@ endgenerate
 // module outputs
 always @(*) begin
     wr_busy = do_read & wr;
-    cmd = do_prech ? CMD_PRECHARGE : (
+    cmd = stop_request ? CMD_STOP : do_prech ? CMD_PRECHARGE : (
           do_act   ? CMD_ACTIVE    : (
           do_read  ? (rd ? CMD_READ : CMD_WRITE ) : CMD_NOP ));
     sdram_a[12:11] =  addr_row[12:11];
@@ -214,6 +228,7 @@ always @(posedge clk) begin
         st       <= 1; // IDLE
         last_act <= 0;
         written  <= 0;
+        line_read_ff <= 0;
     end else begin
         st       <= next_st;
         if( do_act ) begin
@@ -230,7 +245,7 @@ always @(posedge clk) begin
             actd    <= 1;
         end
 
-        if( do_read ) written <= wr;
+        if( do_read ) begin written <= wr;line_read_ff <= line_read;end
             else if(st[0]) written<=0;
 
         if( do_prech || set_prech || (do_read && AUTOPRECH)) begin

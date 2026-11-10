@@ -22,6 +22,7 @@
 //
 
 module zap_dcache #(
+parameter LINE_REFILL=0,
 
 parameter logic [31:0] CACHE_SIZE             = 32'd16384,
 parameter logic [31:0] CACHE_LINE             = 32'd32,
@@ -30,6 +31,17 @@ parameter logic [31:0] CPSR_MODE              = 32'd4
 
 )
 (
+
+
+    output wire line_req,
+    output wire [31:0] line_addr,
+    input wire line_ready,
+    input wire line_reject,
+    input wire line_valid,
+    input wire [63:0] line_data,
+    input wire line_wide,
+    input wire line_last,
+    input wire line_error,
 
 // Clock and reset.
 input   logic            i_clk,
@@ -234,7 +246,11 @@ assign o_reg_dat='0;
 assign o_reg_idx='0;
 assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
 assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
-arm920_cache_adapter cache_adapter(
+arm920_cache_adapter #(.LINE_REFILL(LINE_REFILL)) cache_adapter(
+.line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
+    .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
+    .line_wide(line_wide),.line_last(line_last),.line_error(line_error),
+
  .clk(i_clk),.reset(i_reset),.discard_refill(1'b0),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
  .swp_tag(i_swp_tag),.swp_bus_lock(o_swp_bus_lock),.din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
  .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),

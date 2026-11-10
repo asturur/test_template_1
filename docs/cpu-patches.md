@@ -2,6 +2,18 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## Registered line-refill transport (0055)
+
+Patch0055 adds an optional post-MMU line channel to the existing cache wrappers
+and a registered I/D owner. Scalar Wishbone behavior is retained for commands,
+peripherals, mutable flash and rejected line requests. The owner checks bus/
+write-buffer ordering both before capture and while waiting for acceptance.
+The replacement engine streams into its existing line register and installs
+BRAM only after completion. No cache size, permission rule or core operand
+pipeline change. See [cache-line-refill.md](cache-line-refill.md) for backend
+contracts,50M measurements and the remaining physical timing limits. Pin/patch
+reconstruction and180CPU-suite passes verified; no hardware build requested.
+
 ## Data-request privilege ownership (0054)
 
 Patch0054 takes data privilege and force-user(LDRT/STRT) from the registered

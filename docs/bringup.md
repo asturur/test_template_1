@@ -262,3 +262,29 @@ are rejected. No current RTL is compiled into a frozen run. A zero-cycle4.2B
 continuation produced byte-identical CPU/host files and PNGs matching both
 original terminal images. Failed screenshot callbacks report an error without
 terminating the simulator. Watch mode is for uncompressed completed pairs.
+
+
+### Whole ARM line transport experiment
+
+`run-logo.py --line-refill` enables registered32-byte cache-refill transactions.
+Use a cold run or an explicitly audited compatible source; normal restore rejects
+a different line-refill setting. `--refill-stats` writes per-segment
+`refill-stats.json` (clock/stall/refill/DDR counts and changed simulated C positions)
+without changing the CPU/host save layout. With an exact frozen model, the
+reviewed `--use-saved-build --driver-upgrade` path can relink this observer only;
+it cannot apply HDL changes. Current50M comparison and physical SDRAM contracts
+are documented in [cache-line-refill.md](cache-line-refill.md). BUS diagnostic
+fields continue to count scalar transactions; line traffic is observed separately.
+
+### Physical SDRAM short-read verification
+
+Run `tests/phone/sdram/run-short-reads.sh` inside the existing
+`jotego/simulator:arm64` image. Results are in `build/sim/unit-sdram-short/`.
+For a separate full-phone cold run with the physical controller and original
+Micron timing model, `run-real-sdram.sh` accepts `PHONE_LINE_REFILL=1`,
+`PHONE_SHORT_READS=1`, `PHONE_ROM_CACHE=1`, `PHONE_CYCLES=50000000`, and explicit
+`PHONE_CORE`, `PHONE_EXTENSION`, `PHONE_CDRIVE` read-only input paths. Outputs
+stay in `build/sim/unit-hardware-boot-real-sdram/`; board TSV logging is disabled
+for bounded file sizes. This timed model cannot use Verilator save/restore.
+Do not overwrite a running real-SDRAM test's output directory. Neither this
+runner nor a source edit changes an already running frozen long simulation.

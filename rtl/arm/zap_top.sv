@@ -29,6 +29,7 @@ module zap_top #(
 // CP15 L4 bit default.
 // -----------------------------------
 
+parameter LINE_REFILL = 0,
 parameter logic [0:0] CP15_L4_DEFAULT            = 1'd0,
 
 // -----------------------------------
@@ -121,6 +122,17 @@ parameter logic [31:0] CODE_CACHE_LINE          =  32'd64    // Ccahe line size 
         output  logic            o_wb_we,
         output  logic  [31:0]    o_wb_dat,
         output  logic  [3:0]     o_wb_sel,
+
+    output wire line_req,
+    output wire [31:0] line_addr,
+    input wire line_ready,
+    input wire line_reject,
+    input wire line_valid,
+    input wire [63:0] line_data,
+    input wire line_wide,
+    input wire line_last,
+    input wire line_error,
+
         output  logic  [2:0]     o_wb_cti,
         output  logic  [1:0]     o_wb_bte,
         input   logic            i_wb_ack,
@@ -149,6 +161,19 @@ logic [3:0]      wb_sel;
 logic [31:0]     wb_dat, wb_idat;
 logic [31:0]     wb_adr;
 logic [2:0]      wb_cti;
+wire c_line_req,d_line_req,c_line_ready,d_line_ready;
+wire [31:0] c_line_addr,d_line_addr;
+wire c_line_valid,d_line_valid,c_line_reject,d_line_reject;
+wire [63:0] cache_line_data;
+wire cache_line_wide,cache_line_last,cache_line_error;
+arm920_line_owner #(.ENABLE(LINE_REFILL && !ONLY_CORE)) line_owner(
+ .clk(i_clk),.reset(s_reset),.blocked(o_wb_cyc || !dc_write_buffer_empty || cpu_dc_swp_lock),
+ .c_req(c_line_req),.c_addr(c_line_addr),.c_ready(c_line_ready),.c_valid(c_line_valid),.c_reject(c_line_reject),
+ .d_req(d_line_req),.d_addr(d_line_addr),.d_ready(d_line_ready),.d_valid(d_line_valid),.d_reject(d_line_reject),
+ .out_data(cache_line_data),.out_wide(cache_line_wide),.out_last(cache_line_last),.out_error(cache_line_error),
+ .line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),.line_reject(line_reject),
+ .line_valid(line_valid),.line_data(line_data),.line_wide(line_wide),.line_last(line_last),.line_error(line_error));
+
 logic            wb_ack;
 logic            wb_err;
 logic            cpu_mmu_en;
@@ -580,11 +605,16 @@ if ( !ONLY_CORE )
 begin: l_generate_with_cache_mmu
 
 zap_dcache #(
-        .CACHE_SIZE(DATA_CACHE_SIZE),
+        .LINE_REFILL(LINE_REFILL),
+.CACHE_SIZE(DATA_CACHE_SIZE),
         .CACHE_LINE(CODE_CACHE_LINE),
         .BE_32_ENABLE(BE_32_ENABLE)
 )
 u_data_cache (
+.line_req(d_line_req),.line_addr(d_line_addr),.line_ready(d_line_ready),
+    .line_reject(d_line_reject),.line_valid(d_line_valid),.line_data(cache_line_data),
+    .line_wide(cache_line_wide),.line_last(cache_line_last),.line_error(cache_line_error),
+
 .i_clk                  (i_clk),
 .i_stall                (1'd0), // For timing.
 .i_reset                (s_reset),
@@ -664,10 +694,15 @@ u_data_cache (
 );
 
 zap_cache #(
+.LINE_REFILL(LINE_REFILL),
 .CACHE_SIZE(CODE_CACHE_SIZE),
 .CACHE_LINE(DATA_CACHE_LINE)
 )
 u_code_cache (
+.line_req(c_line_req),.line_addr(c_line_addr),.line_ready(c_line_ready),
+    .line_reject(c_line_reject),.line_valid(c_line_valid),.line_data(cache_line_data),
+    .line_wide(cache_line_wide),.line_last(cache_line_last),.line_error(cache_line_error),
+
 .i_clk              (i_clk),
 .i_stall            (code_stall),
 .i_reset            (s_reset),
@@ -761,3 +796,86 @@ endmodule // zap_top.v
 ///////////////////////////////////////////////////////////////////////////////
 // EOF
 ///////////////////////////////////////////////////////////////////////////////
+
+// Transaction-level refill ownership. Payload and response are registered;
+// neither physical memory pins nor an unowned response drive CPU completion.
+module arm920_line_owner #(
+    parameter ENABLE = 0
+) (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        blocked,
+    input  wire        c_req,
+    input  wire [31:0] c_addr,
+    output wire        c_ready,
+    output reg         c_valid = 0,
+    output reg         c_reject = 0,
+    input  wire        d_req,
+    input  wire [31:0] d_addr,
+    output wire        d_ready,
+    output reg         d_valid = 0,
+    output reg         d_reject = 0,
+    output reg  [63:0] out_data,
+    output reg         out_wide,
+    output reg         out_last,
+    output reg         out_error,
+    output wire        line_req,
+    output reg  [31:0] line_addr,
+    input  wire        line_ready,
+    input  wire        line_reject,
+    input  wire        line_valid,
+    input  wire [63:0] line_data,
+    input  wire        line_wide,
+    input  wire        line_last,
+    input  wire        line_error
+);
+    localparam IDLE = 0, OFFER = 1, ACTIVE = 2;
+    reg [1:0] state = IDLE;
+    reg owner = 0, prefer_data = 1;
+    wire choose_data = d_req && (!c_req || prefer_data);
+    assign line_req = ENABLE && state == OFFER && !blocked;
+    assign c_ready  = line_req && !owner && line_ready;
+    assign d_ready  = line_req && owner && line_ready;
+    always @(posedge clk) begin
+        c_valid  <= 0;
+        d_valid  <= 0;
+        c_reject <= 0;
+        d_reject <= 0;
+        if (reset || !ENABLE) begin
+            state       <= IDLE;
+            owner       <= 0;
+            prefer_data <= 1;
+            line_addr   <= 0;
+            out_data    <= 0;
+            out_wide    <= 0;
+            out_last    <= 0;
+            out_error   <= 0;
+        end else
+            case (state)
+                IDLE:
+                if (!blocked && (c_req || d_req)) begin
+                    owner       <= choose_data;
+                    prefer_data <= !choose_data;
+                    line_addr   <= choose_data ? d_addr : c_addr;
+                    state       <= OFFER;
+                end
+                OFFER:   if (line_req && line_ready) state <= ACTIVE;
+                ACTIVE: begin
+                    if (line_reject) begin
+                        c_reject <= !owner;
+                        d_reject <= owner;
+                        state    <= IDLE;
+                    end else if (line_valid) begin
+                        c_valid   <= !owner;
+                        d_valid   <= owner;
+                        out_data  <= line_data;
+                        out_wide  <= line_wide;
+                        out_last  <= line_last;
+                        out_error <= line_error;
+                        if (line_last || line_error) state <= IDLE;
+                    end
+                end
+                default: state <= IDLE;
+            endcase
+    end
+endmodule

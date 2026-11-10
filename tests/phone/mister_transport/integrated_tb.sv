@@ -15,11 +15,8 @@ wire [28:0] ddr_addr; wire [63:0] ddr_din; wire [7:0] ddr_be; wire ddr_rd,ddr_we
 wire [31:0] unused_read; reg [63:0] mem [0:3]; reg [63:0] fake_out=0; reg fake_ready=0; reg busy=0;
 integer cycles=0, k, slot;
 wire av, ar, aw, rsp; wire [31:0] aa, ad, rv; wire [3:0] ab;
-ngage_ddr_arbiter arb(clk,reset,1'b0,mem_valid,ready,ma,md,be,done,
- 1'b0,,1'b0,32'b0,32'b0,4'b0,,,
- av,ar,aw,aa,ad,ab,rsp,rv,1'b1,);
-ngage_ddr_adapter adapter(clk,reset,av,ar,aw,aa,ad,ab,rsp,rv,
- ddr_addr,ddr_din,ddr_be,ddr_rd,ddr_we,busy,fake_out,fake_ready,1'b0,);
+ngage_ddr_arbiter arb(.clk(clk),.reset(reset),.cpu_lock(1'b0),.l_valid(mem_valid),.l_ready(ready),.l_addr(ma),.l_data(md),.l_be(be),.l_done(done),.c_valid(1'b0),.c_ready(),.c_write(1'b0),.c_addr(32'b0),.c_data(32'b0),.c_be(4'b0),.c_done(),.c_rdata(),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_data(ad),.req_be(ab),.rsp_valid(rsp),.rsp_data(rv),.l_write(1'b1),.l_rdata());
+ngage_ddr_adapter adapter(.clk(clk),.reset(reset),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(rsp),.rsp_data(rv),.ddr_addr(ddr_addr),.ddr_din(ddr_din),.ddr_be(ddr_be),.ddr_rd(ddr_rd),.ddr_we(ddr_we),.ddr_busy(busy),.ddr_dout(fake_out),.ddr_dout_ready(fake_ready),.req_fetch(1'b0),.ddr_burstcount());
 always @(posedge clk) begin
  cycles<=cycles+1; busy<= (cycles%5 < 3);
  if(ddr_we && !busy) begin

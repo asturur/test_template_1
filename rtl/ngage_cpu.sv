@@ -2,7 +2,20 @@
 // N-Gage CPU integration boundary. This is a ZAP-based ARMv4T/ARM920T
 // compatibility configuration; board clocks, SDRAM and peripherals belong
 // outside this module. Use the pinned source plus patches/zap/ fixes.
-module ngage_cpu (
+module ngage_cpu #(
+    parameter LINE_REFILL = 0
+) (
+
+    output wire        line_req,
+    output wire [31:0] line_addr,
+    input  wire        line_ready,
+    input  wire        line_reject,
+    input  wire        line_valid,
+    input  wire [63:0] line_data,
+    input  wire        line_wide,
+    input  wire        line_last,
+    input  wire        line_error,
+
     input  logic        clk,
     input  logic        reset,
     input  logic        irq,
@@ -32,6 +45,7 @@ module ngage_cpu (
     assign debug_fetch       = 0;
 `endif
     zap_top #(
+        .LINE_REFILL    (LINE_REFILL),
         .CP15_L4_DEFAULT(1'b1),
         .ONLY_CORE      (1'b0),
         .RESET_VECTOR   (32'h00000000),
@@ -40,6 +54,16 @@ module ngage_cpu (
         .DATA_CACHE_LINE(32),
         .CODE_CACHE_LINE(32)
     ) u_zap (
+        .line_req   (line_req),
+        .line_addr  (line_addr),
+        .line_ready (line_ready),
+        .line_reject(line_reject),
+        .line_valid (line_valid),
+        .line_data  (line_data),
+        .line_wide  (line_wide),
+        .line_last  (line_last),
+        .line_error (line_error),
+
 `ifndef NGAGE_NO_CPU_DEBUG
         .o_debug_pc         (debug_pc),
         .o_debug_cpsr       (debug_cpsr),

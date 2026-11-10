@@ -2,7 +2,7 @@ module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,v=0,w=0;reg [31:0] a=0,d=0;reg [3:0] be=15;
 wire ready,rsp,err,mv,mw,dirty;wire [31:0] q,ma,md;wire [3:0] mb;wire [13:0] ds;
 reg done=0;reg [31:0] mr=0;reg [31:0] pmm[0:16383];integer marks=0;
-ngage_codeflash dut(clk,reset,1'b0,v,ready,w,a,d,be,rsp,err,q,mv,1'b1,mw,ma,md,mb,done,mr,dirty,ds,,);
+ngage_codeflash dut(,clk,reset,1'b0,v,ready,w,a,d,be,rsp,err,q,mv,1'b1,mw,ma,md,mb,done,mr,dirty,ds,,);
 always @(posedge clk)begin
  done<=0;
  if(mv)begin

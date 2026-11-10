@@ -1,0 +1,136 @@
+{
+  "date": "2026-11-10",
+  "scope": "Separate audited cache-active phone comparison; unmodified firmware/C source; not total boot time or board timing closure",
+  "runs": {
+    "before": {
+      "run": "build/sim/runs/line-refill-off-active-50m",
+      "model": "5a5a4f90dd9ece26a8b8d6e05ecceac7ec2263a73cf9d5320f2f2aa53042ef78",
+      "stats": {
+        "clocks": 50000000,
+        "code_stall": 36234874,
+        "data_stall": 18352378,
+        "ic_refill_clocks": 19976258,
+        "ic_refill_starts": 145418,
+        "dc_refill_clocks": 4523315,
+        "dc_refill_starts": 33056,
+        "ddr_read_commands": 722967,
+        "ddr_return_beats": 722967,
+        "trace_uop_observations": 4119132,
+        "c_changed_positions_in_segment": 1462
+      },
+      "result": {
+        "cycle": 4750000002,
+        "pc": 1345986240,
+        "bus_errors": 30923398,
+        "data_errors": 0,
+        "lcd_words": 36760,
+        "display_on": 1,
+        "frame_complete": 1
+      },
+      "input_hashes": {
+        "core": {
+          "path": "scratch/hardware-live/service-loaded-boot/core.bin",
+          "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+        },
+        "extension": {
+          "path": "scratch/hardware-live/service-loaded-boot/extension.bin",
+          "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+        },
+        "cdrive": {
+          "path": "scratch/hardware-live/hardware-cdrive.img",
+          "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+        }
+      },
+      "checkpoint_sha256": {
+        ".cpu": "34d638c842a78a62b4478d1c7fb8e59da13aeff411c7ba4c5cebd67e846b80b4",
+        ".host": "99c8b0b938e21fab19a3b88bbb8aaae71d3bc0ab328c473f93a55369c64ce289"
+      }
+    },
+    "after": {
+      "run": "build/sim/runs/line-refill-on-final-active-50m",
+      "model": "5271ec5bedfe81c5fe2d5d8da04c6673f953e39a89022d0079528c970f92eb29",
+      "stats": {
+        "clocks": 50000000,
+        "code_stall": 28939276,
+        "data_stall": 20336174,
+        "ic_refill_clocks": 5097305,
+        "ic_refill_starts": 222849,
+        "dc_refill_clocks": 1514863,
+        "dc_refill_starts": 37949,
+        "ddr_read_commands": 252294,
+        "ddr_return_beats": 981072,
+        "trace_uop_observations": 5824305,
+        "c_changed_positions_in_segment": 5947
+      },
+      "result": {
+        "cycle": 4750000002,
+        "pc": 1366061468,
+        "bus_errors": 30923398,
+        "data_errors": 0,
+        "lcd_words": 36760,
+        "display_on": 1,
+        "frame_complete": 1
+      },
+      "input_hashes": {
+        "core": {
+          "path": "scratch/hardware-live/service-loaded-boot/core.bin",
+          "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+        },
+        "extension": {
+          "path": "scratch/hardware-live/service-loaded-boot/extension.bin",
+          "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+        },
+        "cdrive": {
+          "path": "scratch/hardware-live/hardware-cdrive.img",
+          "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+        }
+      },
+      "checkpoint_sha256": {
+        ".cpu": "17fe9df349cdd4fc3e5f7b0a73a26d9434fd4249ada417d0b4169d24ed64fc1a",
+        ".host": "99c8b0b938e21fab19a3b88bbb8aaae71d3bc0ab328c473f93a55369c64ce289"
+      }
+    }
+  },
+  "instruction_refill_average_clocks_before": 137.3712882861819,
+  "instruction_refill_average_clocks_after": 22.873358193216035,
+  "data_refill_average_clocks_before": 136.8379416747338,
+  "data_refill_average_clocks_after": 39.91839047142217,
+  "trace_uop_ratio": 1.4139641555551024,
+  "endpoint_faults": {
+    "line-refill-off-active-50m": {
+      "panic_seen": 0,
+      "panic_words": [
+        0,
+        0,
+        0
+      ],
+      "fsr": 0,
+      "far": 0,
+      "abt_lr": 0
+    },
+    "line-refill-on-final-active-50m": {
+      "panic_seen": 0,
+      "panic_words": [
+        0,
+        0,
+        0
+      ],
+      "fsr": 0,
+      "far": 0,
+      "abt_lr": 0
+    }
+  },
+  "cpu_suite_pass_lines": 180,
+  "cpu_suite_xfail": 0,
+  "cold_50m": "initial candidate12fd8767b26b04d3, PC6154/errors12/data0; I-cache off, not a line-speed measurement",
+  "source_normalization": "2255/2256 common named fields unchanged at zero clocks; disabled1000clocks identical to original including host; passive stats observer CPU/host byte-identical",
+  "formatting": "Final new owner helper formatted after benchmark; same explicit-port-expanded token stream, owner regression re-passed. No CPU logic changed after benchmark model5271ec5bedfe81c5.",
+  "limits": [
+    "Trace observations count micro-ops, not retired ARM instructions.",
+    "Changed C positions are not file bytes copied or whole-drive throughput.",
+    "Fast phone harness uses modeled memory delays; physical controller independently tested at78/104MHz.",
+    "Nokia image remains at both endpoints; no full UI claim.",
+    "SDRAM physical BL8 still uses unused beats on short reads; overlapping16MiB logical-port follow-up documented.",
+    "Hardware build deliberately not launched."
+  ]
+}

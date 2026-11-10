@@ -102,10 +102,14 @@ module tb(input wire clk,reset,cold,
 module tb;
  reg clk=0,reset=1,cold=1;
 `endif
+parameter integer OVERLAY_COMPONENT=1;
 parameter integer SYS_CLK_HZ=104000000;
 parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
 parameter integer ROM_CACHE=0;
 parameter integer DIRECT_SDRAM=1;
+parameter integer LINE_REFILL=0;
+parameter integer SHORT_READS=0;
+parameter integer BOUNDED_CYCLES=5000000;
 parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `ifndef NGAGE_LOGO_RUN
 `ifdef NGAGE_REAL_SDRAM
@@ -116,7 +120,23 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  `endif
  wire init_done,lock;wire [24:0] csa,dsa,sa;wire [31:0] csd,csr,dsr,sd,sr;wire [3:0] csb,sb;
  wire cswe,csreq,csack,dsreq,dsack,swe,sreq;wire sack; wire [31:0] sdata;assign sr=sdata;
+ wire ram_line_req,ram_line_ready,ram_line_valid,ram_line_last;
+ wire [24:0] ram_line_addr;wire [15:0] ram_line_data;
 `ifndef NGAGE_REAL_SDRAM
+ reg [4:0] ram_line_count=0;reg [24:0] ram_line_saved=0;
+ reg ram_line_v=0,ram_line_end=0;reg [15:0] ram_line_q=0;
+ assign ram_line_ready=LINE_REFILL && !reset && ram_line_count==0 && !sreq && !spending;
+ assign ram_line_valid=ram_line_v;assign ram_line_last=ram_line_end;assign ram_line_data=ram_line_q;
+ always @(posedge clk)begin
+  ram_line_v<=0;ram_line_end<=0;
+  if(reset)ram_line_count<=0;
+  else if(ram_line_req && ram_line_ready)begin ram_line_count<=16;ram_line_saved<=ram_line_addr;end
+  else if(ram_line_count!=0)begin
+   ram_line_q<=ram[ram_line_saved[23:2]] >> (ram_line_saved[1]*16);
+   ram_line_saved<=ram_line_saved+2;ram_line_count<=ram_line_count-1;
+   ram_line_v<=1;ram_line_end<=ram_line_count==1;
+  end
+ end
  reg sack_model=0; reg [31:0] sdata_model=0; assign sack=sack_model; assign sdata=sdata_model;
 `else
  wire scrub_done,mem_init; wire [21:0] ba_addr; wire [15:0] ba_din,ba_dout; wire [1:0] ba_dsn;
@@ -125,9 +145,13 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(memclk));
  // Short smoke scrubs 32 bytes. The independent full-size scrub test covers
  // all 16 MiB; the behavioral SDRAM model starts zero in this Verilator run.
- ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(clk,cold,reset,mem_init,sreq,swe,sa,sd,sb,sack,sdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh);
- jtframe_sdram64 #(.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(32),.BA1_LEN(32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
-  .rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
+ wire [1:0] ba_line;
+ ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(
+ .clk(clk),.rst(cold),.phone_reset(reset),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
+ .ba_addr(ba_addr),.ba_din(ba_din),.ba_dsn(ba_dsn),.rd(rd),.wr(wr),.ba_ack(ba_ack),.ba_dst(ba_dst),.ba_rdy(ba_rdy),.ba_dout(ba_dout),.rfsh(rfsh),
+ .line_req(ram_line_req),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
+ jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(LINE_REFILL),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(LINE_REFILL?128:32),.BA1_LEN(LINE_REFILL?128:32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
+  .line_read(ba_line),.rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
   .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
   .ba0_dsn(ba_dsn),.ba1_dsn(ba_dsn),.ba2_dsn(2'b11),.ba3_dsn(2'b11),
   .prog_en(1'b0),.prog_addr(22'b0),.prog_rd(1'b0),.prog_wr(1'b0),.prog_din(16'b0),.prog_dsn(2'b11),.prog_ba(2'b0),
@@ -135,7 +159,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .sdram_dq(dq_read),.sdram_din(dq_write),.sdram_a(sdram_a),.sdram_dqml(dqml),.sdram_dqmh(dqmh),.sdram_ba(bank),.sdram_nwe(nwe),.sdram_ncas(ncas),.sdram_nras(nras),.sdram_ncs(ncs),.sdram_cke(cke));
  mt48lc16m16a2 memory(.Dq_write(dq_write),.Clk(memclk),.Cke(cke),.Dq(dq),.Addr(sdram_a),.Ba(bank),.Cs_n(ncs),.Ras_n(nras),.Cas_n(ncas),.We_n(nwe),.Dqm({dqmh,dqml}),.downloading(1'b0),.VS(1'b0),.frame_cnt(32'b0));
 `endif
- wire ddr_fetch;
+ wire ddr_fetch,ddr_line,arb_line,arb_beat_valid,arb_beat_last,core_beat_valid,core_beat_last;
+ wire [63:0] arb_beat_data,core_beat_data;
  wire [31:0] da,dd,back;wire [3:0] db;wire dr,dw,accept,done,dirty,busy;wire [13:0] sector;
  wire av,ar,aw,adone;wire [31:0] aa,ad,arsp;wire [3:0] ab;
  wire [7:0] ddr_burst;
@@ -167,7 +192,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  localparam UEM_POWERUP_STATUS=1;
 `endif
  wire cpu_ram_accept;
- ngage_mister #(.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
+ ngage_mister #(.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
+ .ram_line_req(ram_line_req),.ram_line_addr(ram_line_addr),.ram_line_ready(ram_line_ready),.ram_line_valid(ram_line_valid),.ram_line_data(ram_line_data),.ram_line_last(ram_line_last),.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
 `ifdef NGAGE_LOGO_RUN
  1'b0
 `else
@@ -193,11 +219,11 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  wire overlay_req, overlay_accept, overlay_write, overlay_done;
  wire [31:0] overlay_addr, overlay_data, overlay_response;
  initial begin
-  if(!$value$plusargs("nos-overlay=%s",overlay_path)) $fatal(1,"NOS overlay input required");
+  if(!$value$plusargs("nos-overlay=%s",overlay_path)) $fatal(1,"component overlay input required");
   $readmemh(overlay_path,overlay_words);
   overlay_length={overlay_words[23],overlay_words[22]};
  end
- ngage_nos_overlay nos_overlay (
+ ngage_nos_overlay #(.OVERLAY_ID(OVERLAY_COMPONENT)) nos_overlay (
   .clk(clk),.reset(cold),.firmware_valid(init_done),.firmware_loading(1'b0),
   .enabled(1'b1),.checksum_required(1'b1),.blocked(1'b0),.download(overlay_download),.wr(overlay_wr),
   .addr(overlay_pos),.data(overlay_input),.wait_req(overlay_wait),.ready(overlay_ready),
@@ -219,13 +245,13 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    3: if(overlay_ready)begin
     if(!overlay_applied || {ddr[32'h8f1b],ddr[32'h8f1a],ddr[32'h8f19],ddr[32'h8f18]}!=32'hffffffff ||
        {ddr[32'h8f1f],ddr[32'h8f1e],ddr[32'h8f1d],ddr[32'h8f1c]}!=32'hffffffff)
-     $fatal(1,"NOS overlay/checksum bypass not applied before CPU release");
-    $display("PASS NOS overlay applied through real DDR adapter before CPU release; checksum bypass active");
+     $fatal(1,"component overlay/checksum bypass not applied before CPU release");
+    $display("PASS component overlay ID%0d applied through real DDR adapter before CPU release; checksum bypass active",OVERLAY_COMPONENT);
     overlay_feed<=4;
    end
   endcase
-  if(overlay_error!=0)$fatal(1,"NOS overlay error %0d",overlay_error);
-  if(!reset && !overlay_ready)$fatal(1,"CPU released before NOS overlay ready");
+  if(overlay_error!=0)$fatal(1,"component overlay error %0d",overlay_error);
+  if(!reset && !overlay_ready)$fatal(1,"CPU released before component overlay ready");
  end
  ngage_ddr_arbiter darb(.clk(clk),.reset(cold),.cpu_lock(lock),
   .l_valid(overlay_req),.l_ready(overlay_accept),.l_addr(overlay_addr),.l_data(overlay_data),
@@ -233,9 +259,11 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `else
  ngage_ddr_arbiter darb(.clk(clk),.reset(cold),.cpu_lock(lock),.l_valid(1'b0),.l_addr(32'b0),.l_data(32'b0),.l_be(4'b0),.l_write(1'b0),
 `endif
+  .c_line(ddr_line),.req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),
+  .c_beat_valid(core_beat_valid),.c_beat_data(core_beat_data),.c_beat_last(core_beat_last),
   .c_valid(dr||dw),.c_ready(accept),.c_write(dw),.c_addr(da),.c_data(dd),.c_be(db),.c_done(done),.c_rdata(back),
   .req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_data(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp));
- ngage_ddr_adapter #(.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
+ ngage_ddr_adapter #(.LINE_REFILL(LINE_REFILL),.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
  always @(posedge clk)begin
   phyready<=0;
@@ -255,7 +283,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    for(n=0;n<8;n=n+1)if(pb[n])ddr[({pa,3'b000}-32'h30000000)+n]<=pd[n*8+:8];phys_writes<=phys_writes+1;
   end
 `ifndef NGAGE_REAL_SDRAM
-  if(sreq && !spending && !sack)begin spending<=1;sdelay<=3;saddr<=sa;swdata<=sd;sbe<=sb;swrite<=swe;end
+  if(sreq && ram_line_count==0 && !spending && !sack)begin spending<=1;sdelay<=3;saddr<=sa;swdata<=sd;sbe<=sb;swrite<=swe;end
   else if(spending)begin if(sdelay!=0)sdelay<=sdelay-1'b1;else begin
    spending<=0;sack_model<=1;
    if(saddr>=25'h1000000)begin $fatal(1,"SDRAM range");end
@@ -314,7 +342,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
     $display("LCD_UNKNOWN cycle=%0d header=%h command=%h data=%h pc=%h",cycles,dut.board.display.lcd.unsupported_header,dut.board.display.lcd.unsupported_command,dut.board.display.lcd.unsupported_data,pc);
    end
 `else
-   if(cycles==5000000)begin
+   if(cycles==BOUNDED_CYCLES)begin
     if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.diagnostics.fetch_seen,dut.debug_fault_seen,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);end
     for(k=0;k<18;k=k+1)if(owner_counts[k]!=0)$display("OWNER id=%0d count=%0d",k,owner_counts[k]);
     $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr,cycles-last_fetch_cycle);$finish;
@@ -328,12 +356,13 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   board_log=0;
 `else
 `ifdef NGAGE_REAL_SDRAM
-  board_log=$fopen("build/sim/unit-hardware-boot-real-sdram/board.tsv","w");
+  board_log=0;
+  if(!$test$plusargs("no-board-log")) board_log=$fopen("build/sim/unit-hardware-boot-real-sdram/board.tsv","w");
 `else
   board_log=$fopen("build/sim/unit-hardware-boot/board.tsv","w");
 `endif
-  if(!board_log) $fatal(1,"cannot open board trace");
-  $fdisplay(board_log,"cycle\top\taddress\tmask\tdata\terror\tirq\tfiq");
+  if(!board_log && !$test$plusargs("no-board-log")) $fatal(1,"cannot open board trace");
+  if(board_log) $fdisplay(board_log,"cycle\top\taddress\tmask\tdata\terror\tirq\tfiq");
 `endif
   for(i=0;i<18;i=i+1)owner_counts[i]=0;
   for(i=0;i<4194304;i=i+1)ram[i]=0;
@@ -359,6 +388,6 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `endif
  end
 `ifndef NGAGE_LOGO_RUN
- initial begin #200000000; $fatal(1,"hardware boot watchdog timeout"); end
+ initial begin #(200000000.0 + BOUNDED_CYCLES*(1000000000.0/SYS_CLK_HZ)); $fatal(1,"hardware boot watchdog timeout"); end
 `endif
 endmodule

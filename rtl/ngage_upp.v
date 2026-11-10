@@ -3,7 +3,8 @@
 // Active bus, CBUS and ADSP ports are transaction-level migration interfaces,
 // not the schematic's multiplexed electrical pin timings.
 module ngage_upp #(
-    parameter INTERNAL_CPU     = 0,
+    parameter LINE_REFILL      = 0,
+              INTERNAL_CPU     = 0,
               DIRECT_SDRAM     = 0,
               SIMIF_ENABLE     = 0,
               KEYPAD_ENABLE    = 0,
@@ -13,6 +14,16 @@ module ngage_upp #(
               TIMER_CLK_DIV    = 1,
               NOS_TICK_HZ      = 1000
 ) (
+
+    output wire        line_req,
+    output wire [31:0] line_addr,
+    input  wire        line_ready,
+    input  wire        line_reject,
+    input  wire        line_valid,
+    input  wire [63:0] line_data,
+    input  wire        line_wide,
+    input  wire        line_last,
+    input  wire        line_error,
     input  wire        clk,
     input  wire        rst,
     input  wire        init_rst,
@@ -116,7 +127,19 @@ module ngage_upp #(
             wire master_ack, master_error;
             wire [31:0] master_address, master_data, master_read_data;
             wire [3:0] master_sel;
-            ngage_cpu cpu (
+            ngage_cpu #(
+                .LINE_REFILL(LINE_REFILL)
+            ) cpu (
+                .line_req   (line_req),
+                .line_addr  (line_addr),
+                .line_ready (line_ready),
+                .line_reject(line_reject),
+                .line_valid (line_valid),
+                .line_data  (line_data),
+                .line_wide  (line_wide),
+                .line_last  (line_last),
+                .line_error (line_error),
+
                 .debug_pc         (debug_pc),
                 .debug_cpsr       (debug_cpsr),
                 .debug_instruction(debug_instruction),

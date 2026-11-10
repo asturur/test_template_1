@@ -1,13 +1,13 @@
 `timescale 1ns/1ps
 module tb;
-parameter LINE_BITS=64,CACHE_BYTES=1024;
+parameter LINE_BITS=64,CACHE_BYTES=1024,LINE_REFILL=0;
 reg clk=0,reset=1,valid=0,write_op=0,busy=0,ready=0,hold_response=0,fetch=1;
 always #5 clk=~clk;
 reg [31:0] address=0,wdata=0;reg [3:0] mask=15;
 wire [7:0] burst;wire accept,rsp,rd,wr;wire [31:0] q;wire [28:0] da;wire [63:0] wd;wire [7:0] be;
 reg [63:0] rdata=0,memory[0:2047];reg [10:0] pending_addr;integer pending=0,pending_beats=0,reads=0,writes=0,i,n,latency,hit_latency;
-ngage_ddr_adapter #(.ROM_CACHE(1),.ROM_CACHE_BITS(LINE_BITS),.ROM_CACHE_BYTES(CACHE_BYTES)) dut(
- .ddr_burstcount(burst),.req_fetch(fetch),.clk(clk),.reset(reset),.req_valid(valid),.req_ready(accept),.req_write(write_op),.req_addr(address),.req_wdata(wdata),.req_be(mask),
+ngage_ddr_adapter #(.LINE_REFILL(LINE_REFILL),.ROM_CACHE(1),.ROM_CACHE_BITS(LINE_BITS),.ROM_CACHE_BYTES(CACHE_BYTES)) dut(
+ .req_line(1'b0),.ddr_burstcount(burst),.req_fetch(fetch),.clk(clk),.reset(reset),.req_valid(valid),.req_ready(accept),.req_write(write_op),.req_addr(address),.req_wdata(wdata),.req_be(mask),
  .rsp_valid(rsp),.rsp_data(q),.ddr_addr(da),.ddr_din(wd),.ddr_be(be),.ddr_rd(rd),.ddr_we(wr),.ddr_busy(busy),.ddr_dout(rdata),.ddr_dout_ready(ready));
 always @(posedge clk) begin
  ready<=0;
@@ -34,7 +34,7 @@ task transact(input bit w,input [31:0] a,input [31:0] data,input [3:0] bytes,inp
  // The producer may change its pins immediately after acceptance.
  @(negedge clk);valid=0;address=32'hdeadbeec;wdata=~data;mask=0;write_op=~w;n=0;
  while(!rsp && n<200)begin @(negedge clk);n=n+1;end
- if(!rsp)$fatal(1,"request timeout %h state%0d",a,dut.cached.cache.state);
+ if(!rsp)$fatal(1,"request timeout %h state%0d",a,dut.word_port.cached.cache.state);
  if(!w && q!==expected)$fatal(1,"read %h got%h want%h",a,q,expected);
  if(reads-before_reads!=misses)$fatal(1,"unexpected DDR reads at%h got%0d want%0d",a,reads-before_reads,misses);
  latency=n;@(negedge clk);if(rsp)$fatal(1,"duplicate completion");
@@ -55,7 +55,7 @@ task abort_at(input integer stage);begin
  while(pending!=0)@(negedge clk);
  @(negedge clk);valid=1;write_op=0;address=32'h30000040;
  @(negedge clk);valid=0;
- wait(dut.cached.cache.state==stage);
+ wait(dut.word_port.cached.cache.state==stage);
  @(negedge clk);reset=1;@(negedge clk);reset=0;
  repeat(25)begin @(negedge clk);if(rsp)$fatal(1,"stale completion after reset stage%0d",stage);end
  transact(0,32'h30000040,0,15,32'h10000010,1);

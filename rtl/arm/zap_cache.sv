@@ -22,12 +22,24 @@
 
 module zap_cache #( // INSTRUCTION CACHE
 
+parameter LINE_REFILL = 0,
 parameter [31:0] CACHE_SIZE             = 32'd16384,
 parameter [31:0] CACHE_LINE             = 32'd32,
 parameter [31:0] CPSR_MODE              = 32'd4
 
 )
 (
+
+
+    output wire line_req,
+    output wire [31:0] line_addr,
+    input wire line_ready,
+    input wire line_reject,
+    input wire line_valid,
+    input wire [63:0] line_data,
+    input wire line_wide,
+    input wire line_last,
+    input wire line_error,
 
 // Clock and reset.
 input   logic            i_clk,
@@ -189,7 +201,11 @@ always @(posedge i_clk) begin
         if (i_reset) fast_context_q <= 0;
         else fast_context_q <= fast_context;
 end
-arm920_cache_adapter cache_adapter(
+arm920_cache_adapter #(.LINE_REFILL(LINE_REFILL)) cache_adapter(
+.line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
+    .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
+    .line_wide(line_wide),.line_last(line_last),.line_error(line_error),
+
  .clk(i_clk),.reset(i_reset),.discard_refill(i_discard && !prefetch_busy),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
  .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),

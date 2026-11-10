@@ -287,3 +287,41 @@ redirect/discard/error correctness tests. This is a measured direction, NOT
 an implemented change or speedup claim. Do not enlarge caches or bypass MMU
 permissions based solely on this sample. Logs and sources live under
 scratch/post-nokia-startup/{refills,refill-reuse}*; aggregate evidence.json.
+
+
+### Hardware screensaver wakes to N-Gage image (2026-11-10)
+
+User observes a clock screensaver; a key wakes it to the N-Gage logo, then the
+clock screensaver returns after roughly one minute. This establishes visible
+key-dependent behavior, not functional menu navigation. Current hardware commit,
+named key and overlay settings were not identified in this report. A reboot,
+normal screensaver wake exposing a stalled startup image, and a stalled UI/key
+event consumer remain distinct hypotheses. An image alone cannot identify one.
+
+Investigation sequence, without firmware/C modifications:
+
+1. Wake using Menu (Tab), then press/release Menu again and left softkey (F1)
+   separately with OSD closed. First input may only dismiss the screensaver.
+   Avoid Power/End as the initial comparison; they have different semantics.
+2. Obtain diagnostic screen/export before waking, immediately after, and after
+   returning to screensaver. Compare fetch-PC samples, CPSR, fault/error growth
+   and PANIC fields. Existing KEYS HELD confirms delivery only to the phone
+   input boundary. It does not prove firmware consumed a key event.
+3. Existing CYCLES/fault history survive warm reset, so monotonic CYCLES cannot
+   rule out a restart. If captures remain ambiguous, add a passive reset-edge
+   counter and short retired-PC/reset-vector history in a separate change;
+   record clock-wrap limitations and keep registered capture boundaries.
+4. Replay a separate compatible checkpoint with one named key pulse, tracing
+   held mask -> GPIO drive/sense -> edge latch -> ICU25 pending/mask -> IRQ
+   acceptance -> firmware W1C acknowledgement -> key-release/repress. Direct
+   and matrix keys need separate checks. Existing W1C fix is e4c897e; user now
+   observes wake behavior, but no firmware-consumption trace exists yet.
+5. If firmware acknowledges the event but navigation does not draw, inspect
+   scheduler/process state and window/input server startup from the replay.
+   Attribute waits to a concrete server/request rather than changing the LCD
+   or interpreting an N-Gage image as a reset. The long simulator has not been
+   demonstrated to reach this same screensaver state; do not call a replay
+   reproduction until that observable state matches.
+
+This is a documented next investigation, not a new keypad/UI fix. Main frozen
+long run and source images remain untouched. Memory build requested separately.

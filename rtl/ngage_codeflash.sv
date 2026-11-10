@@ -4,6 +4,7 @@
 module ngage_codeflash #(
     parameter [31:0] BASE = 32'h30000000
 ) (
+    output wire [ 2:0] array_mode,
     input  wire        clk,
     input  wire        reset,
     input  wire        cold_reset,
@@ -89,6 +90,8 @@ module ngage_codeflash #(
         1'b1,
         decoded
     );
+    assign array_mode = ~(identify | sr_mode | intel_program | lock_mode |
+                          {(|unlock[2]),(|unlock[1]),(|unlock[0])});
     assign idle = (state == IDLE);
     assign pending = (state != IDLE) || intel_program[0] || intel_program[1] || intel_program[2] ||
         unlock[0] != 0 || unlock[1] != 0 || unlock[2] != 0;

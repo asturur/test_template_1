@@ -242,10 +242,22 @@ module emu (
         .mem_rdata (mem_rdata)
     );
     wire [3:0] sdram_dst_banks;
+    wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
+    wire [24:0] ram_line_addr;
+    wire [15:0] ram_line_data;
+    wire [ 1:0] sdram_line_banks;
 
     ngage_sdram_adapter #(
+        .LINE_REFILL   (1),
         .REFRESH_PERIOD((64'd6800 * SYS_CLK_HZ) / 104000000)
     ) phone_sdram (
+        .line_req   (ram_line_req && !cpu_bus_lock),
+        .line_addr  (ram_line_addr),
+        .line_ready (ram_line_ready),
+        .line_valid (ram_line_valid),
+        .line_data  (ram_line_data),
+        .line_last  (ram_line_last),
+        .ba_line    (sdram_line_banks),
         .clk        (clk_sys),
         .rst        (transport_reset),
         .phone_reset(phone_reset),
@@ -271,22 +283,25 @@ module emu (
     );
 
     jtframe_sdram64 #(
+        .SHORT_READS         (1),
+        .DYNAMIC_LINE        (1),
         .AW                  (22),
-        .HF                  (1),   // 78 MHz > 66 MHz → HF mode
-        .READ_CAPTURE_NEGEDGE(1),   // paired with the inverted DDIO pin clock
-        .BA0_LEN             (32),  // two 16-bit beats per read
-        .BA1_LEN             (32),
+        .HF                  (1),    // 78 MHz > 66 MHz → HF mode
+        .READ_CAPTURE_NEGEDGE(1),    // paired with the inverted DDIO pin clock
+        .BA0_LEN             (128),  // BL8: two reads fill one 32-byte ARM line
+        .BA1_LEN             (128),
         .BA2_LEN             (16),
         .BA3_LEN             (16),
-        .PROG_LEN            (16),  // unused programming port; no longer than physical burst
-        .BA0_WEN             (1),   // phone RAM is read+write
+        .PROG_LEN            (16),   // unused programming port; no longer than physical burst
+        .BA0_WEN             (1),    // phone RAM is read+write
         .BA1_WEN             (1),
         .BA2_WEN             (0),
         .BA3_WEN             (0)
     ) sdram_ctrl (
-        .rst (transport_reset),
-        .clk (clk_sys),
-        .init(sdram_init),
+        .line_read(sdram_line_banks),
+        .rst      (transport_reset),
+        .clk      (clk_sys),
+        .init     (sdram_init),
 
         // BA0: phone RAM low 8MB
         .ba0_addr(sdram_haddr),
@@ -582,39 +597,54 @@ module emu (
         .rsp_valid(aux_done),
         .rsp_data (aux_rdata)
     );
+    wire core_ddr_line, arb_line, core_beat_valid, core_beat_last, arb_beat_valid, arb_beat_last;
+    wire [63:0] core_beat_data, arb_beat_data;
     ngage_ddr_arbiter ddr_arbiter (
-        .clk      (clk_sys),
-        .reset    (transport_reset),
-        .cpu_lock (cpu_bus_lock && !reset),
-        .l_valid  (aux_valid),
-        .l_ready  (aux_ready),
-        .l_addr   (aux_addr),
-        .l_data   (aux_data),
-        .l_be     (aux_be),
-        .l_done   (aux_done),
-        .l_write  (aux_write),
-        .l_rdata  (aux_rdata),
-        .c_valid  (core_ddr_rd || core_ddr_wr),
-        .c_ready  (core_accept),
-        .c_write  (core_ddr_wr),
-        .c_addr   (core_ddr_addr),
-        .c_data   (core_ddr_din),
-        .c_be     (core_ddr_be),
-        .c_done   (core_ddr_ready),
-        .c_rdata  (core_ddr_dout),
-        .req_valid(arb_valid),
-        .req_ready(arb_ready),
-        .req_write(arb_write),
-        .req_addr (arb_addr),
-        .req_data (arb_data),
-        .req_be   (arb_be),
-        .rsp_valid(arb_rsp),
-        .rsp_data (arb_rdata)
+        .c_line        (core_ddr_line),
+        .req_line      (arb_line),
+        .rsp_beat_valid(arb_beat_valid),
+        .rsp_beat_data (arb_beat_data),
+        .rsp_beat_last (arb_beat_last),
+        .c_beat_valid  (core_beat_valid),
+        .c_beat_data   (core_beat_data),
+        .c_beat_last   (core_beat_last),
+        .clk           (clk_sys),
+        .reset         (transport_reset),
+        .cpu_lock      (cpu_bus_lock && !reset),
+        .l_valid       (aux_valid),
+        .l_ready       (aux_ready),
+        .l_addr        (aux_addr),
+        .l_data        (aux_data),
+        .l_be          (aux_be),
+        .l_done        (aux_done),
+        .l_write       (aux_write),
+        .l_rdata       (aux_rdata),
+        .c_valid       (core_ddr_rd || core_ddr_wr),
+        .c_ready       (core_accept),
+        .c_write       (core_ddr_wr),
+        .c_addr        (core_ddr_addr),
+        .c_data        (core_ddr_din),
+        .c_be          (core_ddr_be),
+        .c_done        (core_ddr_ready),
+        .c_rdata       (core_ddr_dout),
+        .req_valid     (arb_valid),
+        .req_ready     (arb_ready),
+        .req_write     (arb_write),
+        .req_addr      (arb_addr),
+        .req_data      (arb_data),
+        .req_be        (arb_be),
+        .rsp_valid     (arb_rsp),
+        .rsp_data      (arb_rdata)
     );
     wire core_ddr_fetch;
     ngage_ddr_adapter #(
-        .ROM_CACHE(1)
+        .ROM_CACHE  (1),
+        .LINE_REFILL(1)
     ) ddr_adapter (
+        .req_line      (arb_line),
+        .rsp_beat_valid(arb_beat_valid),
+        .rsp_beat_data (arb_beat_data),
+        .rsp_beat_last (arb_beat_last),
         .clk           (clk_sys),
         .reset         (transport_reset),
         .req_fetch     (core_accept && core_ddr_fetch),
@@ -732,10 +762,21 @@ module emu (
     // Requested timing experiment: 26 MHz counters and a 64 Hz NOS counter.
     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
     ngage_mister #(
+        .LINE_REFILL  (1),
         .TIMER_CLK_DIV(SYS_CLK_HZ / 26000000),
         .NOS_TICK_HZ  (64),
         .SYS_CLK_HZ   (SYS_CLK_HZ)
     ) core (
+        .ddram_line(core_ddr_line),
+        .ddram_beat_valid(core_beat_valid),
+        .ddram_beat_data(core_beat_data),
+        .ddram_beat_last(core_beat_last),
+        .ram_line_req(ram_line_req),
+        .ram_line_addr(ram_line_addr),
+        .ram_line_ready(ram_line_ready && !cpu_bus_lock),
+        .ram_line_valid(ram_line_valid),
+        .ram_line_data(ram_line_data),
+        .ram_line_last(ram_line_last),
         .sim_present(status[15]),
         .dma_sdram_req(lcd_dma_req),
         .dma_sdram_addr(lcd_dma_addr),

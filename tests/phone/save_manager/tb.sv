@@ -20,12 +20,12 @@ wire bv,br,bw,bdone;wire [31:0] ba,bd,brd;wire [3:0] bb;
 wire xv,xr,xw,xdone;wire [31:0] xa,xd,xrd;wire [3:0] xb;
 wire [28:0] da;wire [63:0] din;wire [7:0] dbe;wire dr,dw;reg [63:0] dout=0;reg dready=0;integer delay=0,base_index,j,cycle=0;
 wire dbusy=(cycle%7)<3;
-ngage_ddr_arbiter aux(clk,reset,1'b0,1'b0,,32'b0,32'b0,4'b0,,mv,mem_ready,mw,ma,md,mb,mem_done,mr,av,ar,aw,aa,ad,ab,adone,ard,1'b1,);
-ngage_ddr_arbiter flash_arb(clk,reset,1'b0,fmv,fready,fma,fmd,fmb,fdone,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,xv,xr,xw,xa,xd,xb,xdone,xrd,fmw,fmr);
-ngage_ddr_arbiter outer(clk,reset,1'b0,av,ar,aa,ad,ab,adone,xv,xr,xw,xa,xd,xb,xdone,xrd,bv,br,bw,ba,bd,bb,bdone,brd,aw,ard);
+ngage_ddr_arbiter aux(.clk(clk),.reset(reset),.cpu_lock(1'b0),.l_valid(1'b0),.l_ready(),.l_addr(32'b0),.l_data(32'b0),.l_be(4'b0),.l_done(),.c_valid(mv),.c_ready(mem_ready),.c_write(mw),.c_addr(ma),.c_data(md),.c_be(mb),.c_done(mem_done),.c_rdata(mr),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_data(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(ard),.l_write(1'b1),.l_rdata());
+ngage_ddr_arbiter flash_arb(.clk(clk),.reset(reset),.cpu_lock(1'b0),.l_valid(fmv),.l_ready(fready),.l_addr(fma),.l_data(fmd),.l_be(fmb),.l_done(fdone),.c_valid(pmv),.c_ready(pready),.c_write(pmw),.c_addr(pma),.c_data(pmd),.c_be(pmb),.c_done(pdone),.c_rdata(pmr),.req_valid(xv),.req_ready(xr),.req_write(xw),.req_addr(xa),.req_data(xd),.req_be(xb),.rsp_valid(xdone),.rsp_data(xrd),.l_write(fmw),.l_rdata(fmr));
+ngage_ddr_arbiter outer(.clk(clk),.reset(reset),.cpu_lock(1'b0),.l_valid(av),.l_ready(ar),.l_addr(aa),.l_data(ad),.l_be(ab),.l_done(adone),.c_valid(xv),.c_ready(xr),.c_write(xw),.c_addr(xa),.c_data(xd),.c_be(xb),.c_done(xdone),.c_rdata(xrd),.req_valid(bv),.req_ready(br),.req_write(bw),.req_addr(ba),.req_data(bd),.req_be(bb),.rsp_valid(bdone),.rsp_data(brd),.l_write(aw),.l_rdata(ard));
 ngage_cflash flash(clk,reset,1'b0,fv,fr,fw,fo,fd,fb,frsp,ferr,fq,fmv,fready,fmw,fma,fmd,fmb,fdone,fmr,fdirty,fsector,,);
-ngage_codeflash pflash(clk,reset,1'b0,pv,pr,pw,pa,pd,pb,prsp,perr,pq,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,pdirty,psector,,);
-ngage_ddr_adapter adapter(clk,reset,bv,br,bw,ba,bd,bb,bdone,brd,da,din,dbe,dr,dw,dbusy,dout,dready,1'b0,);
+ngage_codeflash pflash(,clk,reset,1'b0,pv,pr,pw,pa,pd,pb,prsp,perr,pq,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,pdirty,psector,,);
+ngage_ddr_adapter adapter(.clk(clk),.reset(reset),.req_valid(bv),.req_ready(br),.req_write(bw),.req_addr(ba),.req_wdata(bd),.req_be(bb),.rsp_valid(bdone),.rsp_data(brd),.ddr_addr(da),.ddr_din(din),.ddr_be(dbe),.ddr_rd(dr),.ddr_we(dw),.ddr_busy(dbusy),.ddr_dout(dout),.ddr_dout_ready(dready),.req_fetch(1'b0),.ddr_burstcount());
 always @(posedge clk)begin
  cycle<=cycle+1;dready<=0;
  if(delay>0)begin delay<=delay-1;if(delay==1)dready<=1;end

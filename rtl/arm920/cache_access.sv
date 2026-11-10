@@ -5,7 +5,18 @@
 // remain outside this block. Live cached and buffered operations retry bus
 // errors without an architectural external abort. An instruction request
 // superseded by a queued redirect may discard a failed refill below.
-module arm920_cache_access (
+module arm920_cache_access #(parameter LINE_REFILL=0) (
+
+    output wire line_req,
+    output wire [31:0] line_addr,
+    input wire line_ready,
+    input wire line_reject,
+    input wire line_valid,
+    input wire [63:0] line_data,
+    input wire line_wide,
+    input wire line_last,
+    input wire line_error,
+
     // Only an instruction fetch superseded by a queued redirect may discard
     // a failed refill. No line is installed and the CPU suppresses its data.
     input wire discard_refill,
@@ -345,7 +356,11 @@ module arm920_cache_access (
         .bus_ack           (state == MAINTAIN && buffer_ready),
         .bus_error         (1'b0)
     );
-    arm920_cache_refill refill (
+    arm920_cache_refill #(.LINE_REFILL(LINE_REFILL)) refill (
+.line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
+    .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
+    .line_wide(line_wide),.line_last(line_last),.line_error(line_error),
+
         .clk(clk),
         .reset(reset),
         .start(state == LOOKUP && enabled && cacheable && !wr && !hit && !buffer_line_hazard),
