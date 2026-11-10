@@ -1,6 +1,6 @@
 # N-Gage donor integration plan
 
-Date: 2026-11-10. Status: **P0, S1 and S2 locally accepted; later stages remain planned**.
+Date: 2026-11-10. Status: **P0/S1/S2 committed as b232f1e; D1 overlap locally accepted as opt-in; later stages planned**.
 
 This plan combines raw C:/PMM persistence, the DDR backend, SDRAM controller,
 useful CPU changes, semi-real NOS/SIM, and the peripheral work. Creating the
@@ -382,7 +382,8 @@ Logs: `scratch/ngage2-integration/final-aligned.log` and
 `build/sim/unit-raw-save-{hps,nor,full}/{build.log,run.log}`. No Quartus fit,
 installed-Main automatic mounting, hardware UI/save/power-cycle durability or
 new full-phone execution/performance result is claimed. Those remain later
-acceptance gates; D1/D2/D3/S3/NOS/peripheral/CPU stages are unimplemented.
+acceptance gates. At S2 completion the remaining stages were unimplemented;
+D1 is now recorded separately below. D2/D3/S3/NOS/peripheral/CPU remain planned.
 
 ### S3: ordered background saving
 
@@ -406,6 +407,14 @@ failure handling; hardware durability remains separately measured.
 
 ### D1: ownership and streams
 
+**2026-11-10: locally accepted as an opt-in transport candidate**, explicitly
+authorized after committing P0/S1/S2
+as `b232f1e` (`feat(storage): add raw C and PMM persistence`). The integration
+worktree is isolated; no D1 commit, push/CI/deployment or other-chat simulation
+operation is authorized. Initial source/image/donor identities are in
+`scratch/ngage2-integration/d1/initial-source.json`.
+
+
 Adapt the donor below our NOR models and physical-to-backing mapping. Provide
 scalar reads/masked writes, 32-byte line reads, 512-byte snapshots and streaming
 restore writes. Capture owner/address/operation/length/masks on acceptance,
@@ -417,6 +426,139 @@ Tests: independent memory scoreboard, randomized busy/data-ready, earliest legal
 response, exact beat counts, simultaneous clients, held writes, reset at every
 phase and loader readback while CPU reset. Gate: cache-disabled equivalence to
 the existing backend's ordered effects; no stale or misrouted response.
+
+#### D1 initial result — 2026-11-10: full-buffer candidate, superseded by overlap below
+
+Implemented `rtl/ngage_ddr_stream.v` and `ngage_ddr_stream_legacy.v`, selected
+by the adapter's `STREAM_TRANSPORT` parameter. Template explicitly leaves
+`D1_STREAM_TRANSPORT=0`; this stage accepts the implemented/tested candidate,
+not default adoption or measured hardware qualification. Existing ROM cache,
+NOR/backing map, 32-bit lane semantics, outer captured-owner/SWP arbitration,
+phone clock/timer profile and scalar raw-save consumers remain unchanged.
+D2 caching and D3 consumer migration are not implemented.
+
+Descriptors capture owner/address/op/count/masks; one read reserves a complete
+512-byte synchronous `ngage_bram` before issue, then delivers a backpressured
+ordered stream. Counts1..64 support scalar,32B line and512B snapshot reads.
+Streaming restore registers independent64-bit masked burstcount1 writes;
+MiSTer multi-beat write-burst behavior is not assumed. Invalid geometry/count/
+last marker rejects before the offending side effect. Commands already offered
+remain stable through busy/reset until accepted; canceled reads then drain and
+current offered writes commit once, with partial/cancel status and no later
+stream beats. Noncancellable loader readback works while phone reset stays
+asserted. Production NOR retains its existing warm-reset drain/bookkeeping.
+
+Initial full-buffer results, existing simulator image df6f55924d5f, network none:
+
+- `tests/phone/ddr_stream/run.sh`: **483descriptors,209physical reads,
+  330masked writes,5501returned beats PASS**. Independent byte memory and
+  accepted-descriptor read address/count/owner oracle, every256byte mask,
+  poisoned live descriptor pins, randomized busy/data/client backpressure,
+  earliest response,32/512B crossings, malformed descriptors/last markers,
+  committed prefix, separate reset phases and held payload stability.
+- `run-equivalence.sh`: **355old/new ordered transactions PASS**, cache disabled,
+  independent byte images, all16scalar masks in both32-bit halves; **6ROM-cache
+  configurations PASS** (64/128/256bits × line0/1), original hit latency1clock.
+- `run-fabric.sh`: real outer arbiter + opt-in adapter **31grants/28completions
+  PASS**, including24alternating competing grants, CPU scalar/line/loader
+  ownership, finite SWP idle gap, loader readback, busy-held scalar/line reset.
+- `STREAM_TRANSPORT=1 tests/phone/raw_save/run-nor.sh`: **8reads/8writes PASS**,
+  real NOR program/commit, scalar DDR adapter/arbiters and actual four-slot HPS,
+  C:/PMM flush/reload, mutation and20,905,984immutable firmware bytes unchanged.
+- **9/9default regression entrypoints PASS**: mister transport, ROM cache,
+  line refill (including physical SDRAM), flash reset, memory owner, raw HPS,
+  raw NOR, full-size raw restore/reload and structural top. Existing CPU180PASS
+  baseline retained; no CPU logic or default behavior change justified rerun.
+- Both new modules **Verilog-2001 PASS**; default and staged-opt-in whole-top
+  structural elaboration PASS (HPS/PLL stubbed), source graph**173files/9QIPs**,
+  pinned four-file formatter/idempotence and whitespace checks PASS.
+
+Review corrections before acceptance: preserve busy-held commands during reset,
+including adapter mux/busy gates; use BRAM/preload for physical read bursts;
+scoreboard reads against accepted requests rather than observed DDR commands;
+keep noncancellable loader phone reset asserted through response; cover the
+scalar mask×lane Cartesian product; exclude historical hierarchical timeout
+aliases from synthesis. The retained legacy ISSUE command remains reset-gated; the candidate deliberately
+finishes an offered busy-held command before cancel/drain. Normal ordered-effect
+equivalence does not imply matching reset trajectories: candidate-specific tests
+establish the new reset policy independently. No measured phone performance
+regression was inferred from draft test/code corrections.
+
+Contracts and reproduction: [docs/ddr-stream-transport.md](docs/ddr-stream-transport.md).
+Evidence: `docs/evidence/ddr-stream-2026-11-10.json`;
+`scratch/ngage2-integration/d1/{initial-source.json,completion.json,final-source.json}`.
+Final focused log: `final-checks.log`; default suite log: `regressions.log`;
+staged opt-in top: `top-stream-result.log`. Generated tests under
+`build/sim/unit-ddr-stream/` and `unit-d1-raw-save-nor/`.
+
+Fairness is bounded in grants with finite locks, finite stream producers and
+DDR/client progress. No fake timeout discards missing accepted DDR beats.
+Wrapper hierarchy changes do not establish checkpoint serialization compatibility;
+old lineages/checkpoints and the other chat's simulations are untouched.
+FPGA fit/resources/timing, phone/UI performance, default enablement and physical
+persistence remain unverified. No D1 commit, push, CI, Quartus download/build or
+deployment was performed. Next authorized work requires a separate request;
+D2/D3/S3 and NOS/peripheral/CPU ports remain outside this completed stage.
+
+#### D1 latency refinement — 2026-11-10: locally accepted, default unchanged
+
+User prioritized flash latency. The refined candidate reserves the full512-byte
+BRAM but returns registered head beats as DDR arrives, without waiting for the
+physical tail. Separate7-bit received/consumed counters and synchronous RAM
+lookahead sustain one beat/clock with continuous DDR and a ready client.
+Registered same-address forwarding hides undefined mixed-port collision values;
+a stalled head remains unchanged as it switches back to BRAM. No combinational
+DDR-data path or early successful completion. Descriptor ownership ends only
+after physical drain and final logical consumption.
+
+The legacy adapter exposes the already registered head directly and stages
+prefix bytes during the physical tail. Its terminal completion and cache-line
+publication still require the full fill. A delivered prefix is provisional:
+cancellation suppresses remaining logical beats, drains the physical tail and
+requires the consumer to discard the canceled fill. This does not restart the
+CPU on a critical word or implement D2/D3.
+
+Matched synthetic probes compare the **initial full-buffer D1 candidate**,
+frozen in `scratch/ngage2-integration/d1/fullbuffer-baseline/`, with the refined
+candidate. Clocks from first physical capture to logical consumption:
+
+| Schedule | First logical beat, initial → overlap | Last logical beat, initial → overlap |
+| --- | --- | --- |
+| Continuous4beats | 5 → 1 | 8 → 4 |
+| Delayed tail,4beats | 25 → 1 | 28 → 24 |
+| Continuous64beats | 65 → 1 | 128 → 64 |
+| Delayed tail,64beats | 85 → 1 | 148 → 84 |
+
+The separate delayed4beat adapter probe measures **1clock to first logical
+beat in both retained legacy and refined D1**. The table is not a comparison
+against the default production DDR path, a phone workload or a hardware speed
+claim. The final streaming beat may precede the terminal completion pulse;
+outer ownership remains held until completion. CPU cache validity still waits
+for a complete successful fill.
+
+`tests/phone/ddr_stream/run-overlap.sh` PASS: delayed4/64tail and continuous
+matched probes, full64beat stall/drain, midstream stall, catch-up to empty,
+gapped arrivals, same-edge enqueue/consume (including final physical capture),
+response stability, prefix cancellation with63physical beats pending under
+both reset domains, stale-byte/tag exclusion, actual adapter prefix staging and
+fresh fill. Initial gapped test advanced past a one-cycle terminal pulse; the
+driver now retains completion status and rejects duplicates. No RTL failure
+was inferred from that stale test wait.
+
+Final focused regressions PASS: generic483descriptors/209reads/330writes/
+6305returned beats,355ordered legacy/new transactions,6ROM-cache configurations,
+real arbiter31grants/28completions including24alternating, opt-in raw NOR/HPS
+8reads/8writes with immutable firmware unchanged. Randomized beat counts differ
+from the initial candidate because PRNG progress depends on timing; only matched
+directed probes substantiate the latency comparison. Previous9default suite
+passes retained; no default behavior changes justified repeating them. Both new
+modules Verilog2001, pinned formatter,173-file/9-QIP graph, whitespace and
+default/opt-in structural top checks PASS.
+
+Final logs: `scratch/ngage2-integration/d1/overlap/{refinement.log,direct-beat.log}`;
+updated tracked evidence `docs/evidence/ddr-stream-2026-11-10.json`. D1 remains
+uncommitted and opt-in (`D1_STREAM_TRANSPORT=0`). No timing/fit/phone-speed claim,
+checkpoint migration, other-chat run operation, push, CI or deployment.
 
 ### D2: coherent general flash cache
 

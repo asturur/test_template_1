@@ -1,8 +1,9 @@
 module ngage_ddr_adapter #(
-    parameter ROM_CACHE       = 0,
-              ROM_CACHE_BITS  = 64,
-              ROM_CACHE_BYTES = 1024,
-              LINE_REFILL     = 0
+    parameter STREAM_TRANSPORT = 0,
+              ROM_CACHE        = 0,
+              ROM_CACHE_BITS   = 64,
+              ROM_CACHE_BYTES  = 1024,
+              LINE_REFILL      = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -61,13 +62,14 @@ module ngage_ddr_adapter #(
     assign ddr_addr       = owner_line ? line_addr : word_addr;
     assign ddr_din        = owner_line ? line_din : word_din;
     assign ddr_be         = owner_line ? line_be : word_be;
-    assign ddr_rd         = owner_line ? line_rd : (word_rd && line_ready);
+    assign ddr_rd         = owner_line ? line_rd : (word_rd && (STREAM_TRANSPORT || line_ready));
     assign ddr_we         = owner_line ? line_we : word_we;
     assign ddr_burstcount = owner_line ? line_burst : word_burst;
     ngage_ddr_word_adapter #(
-        .ROM_CACHE      (ROM_CACHE),
-        .ROM_CACHE_BITS (ROM_CACHE_BITS),
-        .ROM_CACHE_BYTES(ROM_CACHE_BYTES)
+        .STREAM_TRANSPORT(STREAM_TRANSPORT),
+        .ROM_CACHE       (ROM_CACHE),
+        .ROM_CACHE_BITS  (ROM_CACHE_BITS),
+        .ROM_CACHE_BYTES (ROM_CACHE_BYTES)
     ) word_port (
         .clk           (clk),
         .reset         (reset),
@@ -86,7 +88,7 @@ module ngage_ddr_adapter #(
         .ddr_be        (word_be),
         .ddr_rd        (word_rd),
         .ddr_we        (word_we),
-        .ddr_busy      (ddr_busy || !line_ready),
+        .ddr_busy      (ddr_busy || (!line_ready && (!STREAM_TRANSPORT || owner_line))),
         .ddr_dout      (ddr_dout),
         .ddr_dout_ready(ddr_dout_ready),
         .ddr_burstcount(word_burst)
@@ -94,7 +96,8 @@ module ngage_ddr_adapter #(
     generate
         if (LINE_REFILL) begin : line_port
             ngage_ddr_backend #(
-                .LINE_BITS(256)
+                .STREAM_TRANSPORT(STREAM_TRANSPORT),
+                .LINE_BITS       (256)
             ) backend (
                 .clk           (clk),
                 .reset         (reset),
@@ -138,9 +141,10 @@ module ngage_ddr_adapter #(
 endmodule
 
 module ngage_ddr_word_adapter #(
-    parameter ROM_CACHE       = 0,
-              ROM_CACHE_BITS  = 64,
-              ROM_CACHE_BYTES = 1024
+    parameter STREAM_TRANSPORT = 0,
+              ROM_CACHE        = 0,
+              ROM_CACHE_BITS   = 64,
+              ROM_CACHE_BYTES  = 1024
 ) (
     output wire        drained,
     input  wire        clk,
@@ -199,7 +203,8 @@ module ngage_ddr_word_adapter #(
                 .mem_line (line)
             );
             ngage_ddr_backend #(
-                .LINE_BITS(ROM_CACHE_BITS)
+                .STREAM_TRANSPORT(STREAM_TRANSPORT),
+                .LINE_BITS       (ROM_CACHE_BITS)
             ) backend (
                 .clk           (clk),
                 .reset         (reset),
@@ -225,7 +230,9 @@ module ngage_ddr_word_adapter #(
             );
         end else begin : uncached
             assign drained = req_ready;
-            ngage_ddr_backend backend (
+            ngage_ddr_backend #(
+                .STREAM_TRANSPORT(STREAM_TRANSPORT)
+            ) backend (
                 .clk           (clk),
                 .reset         (reset),
                 .req_valid     (req_valid),
@@ -254,9 +261,111 @@ endmodule
 
 // Single outstanding 32-bit client request on MiSTer's 64-bit DDR port.
 // req_valid must remain asserted until req_ready; responses are one-cycle pulses.
-// A reset cancels an unaccepted command, but an accepted read is drained and
-// discarded before a new request can be accepted.
+// Default legacy reset semantics are preserved. The opt-in stream engine
+// retains a busy-held physical offer through acceptance before drain/discard.
 module ngage_ddr_backend #(
+    parameter STREAM_TRANSPORT = 0,
+    parameter LINE_BITS        = 64
+) (
+    input  wire                 clk,
+    input  wire                 reset,
+    input  wire                 req_valid,
+    output wire                 req_ready,
+    input  wire                 req_write,
+    input  wire [         31:0] req_addr,
+    input  wire [         31:0] req_wdata,
+    input  wire [          3:0] req_be,
+    output wire                 rsp_valid,
+    output wire [         31:0] rsp_data,
+    output wire [         28:0] ddr_addr,
+    output wire [         63:0] ddr_din,
+    output wire [          7:0] ddr_be,
+    output wire                 ddr_rd,
+    output wire                 ddr_we,
+    input  wire                 ddr_busy,
+    input  wire [         63:0] ddr_dout,
+    input  wire                 ddr_dout_ready,
+    input  wire [          7:0] req_burst,
+    output wire [          7:0] ddr_burstcount,
+    output wire                 rsp_beat_valid,
+    output wire [         63:0] rsp_beat_data,
+    output wire                 rsp_beat_last,
+    output wire [LINE_BITS-1:0] rsp_line
+);
+    // Retain the simulation-only historical timeout alias; no hardware state.
+    // synthesis translate_off
+    wire [2:0] state;
+    // synthesis translate_on
+    generate
+        if (STREAM_TRANSPORT) begin : streaming
+            // synthesis translate_off
+            assign state = backend.transport.state;
+            // synthesis translate_on
+            ngage_ddr_stream_legacy #(
+                .LINE_BITS(LINE_BITS)
+            ) backend (
+                .clk           (clk),
+                .reset         (reset),
+                .req_valid     (req_valid),
+                .req_ready     (req_ready),
+                .req_write     (req_write),
+                .req_addr      (req_addr),
+                .req_wdata     (req_wdata),
+                .req_be        (req_be),
+                .req_burst     (req_burst),
+                .rsp_valid     (rsp_valid),
+                .rsp_data      (rsp_data),
+                .rsp_line      (rsp_line),
+                .rsp_beat_valid(rsp_beat_valid),
+                .rsp_beat_data (rsp_beat_data),
+                .rsp_beat_last (rsp_beat_last),
+                .ddr_addr      (ddr_addr),
+                .ddr_din       (ddr_din),
+                .ddr_be        (ddr_be),
+                .ddr_burstcount(ddr_burstcount),
+                .ddr_rd        (ddr_rd),
+                .ddr_we        (ddr_we),
+                .ddr_busy      (ddr_busy),
+                .ddr_dout      (ddr_dout),
+                .ddr_dout_ready(ddr_dout_ready)
+            );
+        end else begin : scalar
+            // synthesis translate_off
+            assign state = {1'b0, backend.state};
+            // synthesis translate_on
+            ngage_ddr_scalar_backend #(
+                .LINE_BITS(LINE_BITS)
+            ) backend (
+                .clk           (clk),
+                .reset         (reset),
+                .req_valid     (req_valid),
+                .req_ready     (req_ready),
+                .req_write     (req_write),
+                .req_addr      (req_addr),
+                .req_wdata     (req_wdata),
+                .req_be        (req_be),
+                .req_burst     (req_burst),
+                .rsp_valid     (rsp_valid),
+                .rsp_data      (rsp_data),
+                .rsp_line      (rsp_line),
+                .rsp_beat_valid(rsp_beat_valid),
+                .rsp_beat_data (rsp_beat_data),
+                .rsp_beat_last (rsp_beat_last),
+                .ddr_addr      (ddr_addr),
+                .ddr_din       (ddr_din),
+                .ddr_be        (ddr_be),
+                .ddr_burstcount(ddr_burstcount),
+                .ddr_rd        (ddr_rd),
+                .ddr_we        (ddr_we),
+                .ddr_busy      (ddr_busy),
+                .ddr_dout      (ddr_dout),
+                .ddr_dout_ready(ddr_dout_ready)
+            );
+        end
+    endgenerate
+endmodule
+
+module ngage_ddr_scalar_backend #(
     parameter LINE_BITS = 64
 ) (
     input  wire                 clk,

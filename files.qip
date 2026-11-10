@@ -64,6 +64,8 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_sector_bridge.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_header.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_manager.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_raw_save_manager.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_stream.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_stream_legacy.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_modem.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cpu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_rom_map.sv

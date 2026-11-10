@@ -1,12 +1,12 @@
 `timescale 1ns/1ps
 module tb;
-parameter LINE_BITS=64,CACHE_BYTES=1024,LINE_REFILL=0;
+parameter LINE_BITS=64,CACHE_BYTES=1024,LINE_REFILL=0,STREAM_TRANSPORT=0;
 reg clk=0,reset=1,valid=0,write_op=0,busy=0,ready=0,hold_response=0,fetch=1;
 always #5 clk=~clk;
 reg [31:0] address=0,wdata=0;reg [3:0] mask=15;
 wire [7:0] burst;wire accept,rsp,rd,wr;wire [31:0] q;wire [28:0] da;wire [63:0] wd;wire [7:0] be;
 reg [63:0] rdata=0,memory[0:2047];reg [10:0] pending_addr;integer pending=0,pending_beats=0,reads=0,writes=0,i,n,latency,hit_latency;
-ngage_ddr_adapter #(.LINE_REFILL(LINE_REFILL),.ROM_CACHE(1),.ROM_CACHE_BITS(LINE_BITS),.ROM_CACHE_BYTES(CACHE_BYTES)) dut(
+ngage_ddr_adapter #(.STREAM_TRANSPORT(STREAM_TRANSPORT),.LINE_REFILL(LINE_REFILL),.ROM_CACHE(1),.ROM_CACHE_BITS(LINE_BITS),.ROM_CACHE_BYTES(CACHE_BYTES)) dut(
  .req_line(1'b0),.ddr_burstcount(burst),.req_fetch(fetch),.clk(clk),.reset(reset),.req_valid(valid),.req_ready(accept),.req_write(write_op),.req_addr(address),.req_wdata(wdata),.req_be(mask),
  .rsp_valid(rsp),.rsp_data(q),.ddr_addr(da),.ddr_din(wd),.ddr_be(be),.ddr_rd(rd),.ddr_we(wr),.ddr_busy(busy),.ddr_dout(rdata),.ddr_dout_ready(ready));
 always @(posedge clk) begin

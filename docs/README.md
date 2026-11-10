@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [ddr-stream-transport.md](ddr-stream-transport.md) | Opt-in D1 scalar/line/sector stream transport, buffered ownership/reset contracts and verification |
 | [raw-persistence.md](raw-persistence.md) | Raw C:/PMM images, lossless NGA migration, four-slot mount/save/reset policies and verification |
 | [integration-baseline.md](integration-baseline.md) | P0 source/toolchain identities, transaction contracts, retained measurements and fixture repairs |
 | [merge-plan.md](../merge-plan.md) | Complete ngage2 integration plan: branches, semi-real NOS/SIM, peripherals, raw C:/PMM images, DDR/SDRAM and CPU candidates with dependencies and tests |

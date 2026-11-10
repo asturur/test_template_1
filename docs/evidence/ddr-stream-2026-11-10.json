@@ -1,0 +1,276 @@
+{
+  "date": "2026-11-10",
+  "stage": "D1",
+  "disposition": "locally accepted latency-oriented overlapping D1 candidate; default remains legacy, uncommitted",
+  "branch": "codex/ngage2-integration",
+  "integration_base_commit": "b232f1e51bab33d0430e53b4750a9ae0bc049c77",
+  "p0_s1_s2_commit": "b232f1e",
+  "donor": {
+    "path": "/Users/andreabogazzi/develop/ngage2",
+    "commit": "e3d2bf778319bdf4ef2bf21a4fc7376186b00a63",
+    "audited_source": "rtl/mem/ddram_flash.sv",
+    "sha256": "0cc0b292a9f8909cc8f102ba380440ad2a740742bfc04db2947fa8f26a5034ed",
+    "use": "read-only architectural audit; no cache/geometry/blank-format code copied"
+  },
+  "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "network": "none",
+  "toolchain": {
+    "verilator": "5.050 2026-07-01",
+    "iverilog": "13.0 stable",
+    "verible": "v0.0-4298-g085eef05"
+  },
+  "initial_source_manifest": "scratch/ngage2-integration/d1/initial-source.json",
+  "source_hashes": {
+    "Template.sv": "0a0808024e41d30c2070f922171bcc95924463d82a895e94f0b860fe2d5fcc3d",
+    "files.qip": "00d67d3e58fe627320b533da349bce9775ce02bff4eca97454b92271a129a237",
+    "rtl/ngage_ddr_adapter.sv": "a4032a51ac0dcdade04f5ad5e6be72e4626eadc2b92a595a83caf8ea47511c74",
+    "rtl/ngage_ddr_stream.v": "d226f29f25c37b714acdf3086f897fbed70865c8d52bbc7488d87162b716089f",
+    "rtl/ngage_ddr_stream_legacy.v": "19c41165e2b94c488582283c5c19a240272ce83283d942b6c531208eab665e75",
+    "tests/phone/ddr_rom_cache/tb.sv": "ed314dcc28e26b0159270d27c89deb4662c1d65644826d10e6073261c0393819",
+    "tests/phone/raw_save/nor_tb.sv": "b02f71499647ca08287121220b28301417f2ffbc1d7d02b3d4d825a8b5b820e4",
+    "tests/phone/raw_save/run-nor.sh": "c5b6fefe9467058cfc0266026a01f3324106982962cc11c617af45aefeb321e9",
+    "tests/phone/ddr_stream/equivalence_tb.sv": "5dd8d6c8b47f6af1021d2367dcea65fbfe813555536ab31611427f9a17205688",
+    "tests/phone/ddr_stream/fabric_tb.sv": "62b77d86ddb557435667922786052695e718a68d11aed53b47e39a2435ca912e",
+    "tests/phone/ddr_stream/memory_peer.sv": "05f8caf3e63d701d3377157725fffd73cff293cb4bacf9ae1f99d710bc32f0c5",
+    "tests/phone/ddr_stream/run-equivalence.sh": "186eb04bd90f67794e87972b639141f1bdd4e3438ee2a7e843de348d3fe39f3b",
+    "tests/phone/ddr_stream/run-fabric.sh": "00c4e1bac34fd46faf2de80abf119d44f68ca1f3384d0b97aa7b211e37f7746f",
+    "tests/phone/ddr_stream/run.sh": "76ffac9bd65c112e91674c88d32515b42beaef60bda89f900ce7c4645c32f0ec",
+    "tests/phone/ddr_stream/test.cpp": "fbf263d0e74a506f721e65a7c1b719dc341140190d60fe792f3860090b6f9ebe",
+    "tests/phone/ddr_stream/adapter_overlap_tb.sv": "dd28ee15cc9b152d90efbcd8f022e07fdc1d36a66987ad0b42b4101827d4c856",
+    "tests/phone/ddr_stream/run-overlap.sh": "a412c99f253f7a496513930f82341629748610062abb1fbbadc7eddb730b829a"
+  },
+  "tests": {
+    "generic": {
+      "command": "sh tests/phone/ddr_stream/run.sh",
+      "result": "PASS",
+      "descriptors": 483,
+      "ddr_read_commands": 209,
+      "masked_write_commands": 330,
+      "logical_beats": 6305,
+      "clocks": 12149,
+      "oracle": "independent accepted descriptor address/count/owner and byte-addressed memory;256masks; randomized downstream and client stalls; held payload stability; issue-edge data; malformed and partial transfers; both resets; phone-held loader readback",
+      "log": "build/sim/unit-ddr-stream/run.log"
+    },
+    "equivalence": {
+      "command": "sh tests/phone/ddr_stream/run-equivalence.sh",
+      "result": "PASS",
+      "normal_ordered_transactions": 355,
+      "scalar_masks": 16,
+      "scalar_lanes": 2,
+      "rom_cache_configurations": 6,
+      "reset_equivalence_claim": false,
+      "log": "build/sim/unit-ddr-stream/equiv-run.log"
+    },
+    "fabric": {
+      "command": "sh tests/phone/ddr_stream/run-fabric.sh",
+      "result": "PASS",
+      "grants": 31,
+      "completions": 28,
+      "competing_alternating_grants": 24,
+      "scope": "existing arbiter, opt-in cached-capable adapter, CPU scalar/line, loader, SWP idle gap, busy-held scalar/line reset",
+      "log": "build/sim/unit-ddr-stream/fabric-run.log"
+    },
+    "raw_nor_hps": {
+      "command": "STREAM_TRANSPORT=1 sh tests/phone/raw_save/run-nor.sh",
+      "result": "PASS",
+      "hps_reads": 8,
+      "hps_writes": 8,
+      "immutable_firmware_bytes_compared": 20905984,
+      "scope": "real NOR programming/dirty commits, scalar DDR adapter/arbiters, actual four-slot HPS, C/PMM flush/reload and mutation",
+      "log": "build/sim/unit-d1-raw-save-nor/run.log"
+    },
+    "default_regressions": {
+      "result": "PASS retained from initial D1; opt-in-only refinement did not change selected default RTL",
+      "entrypoint_count": 9,
+      "entrypoints": [
+        "tests/phone/mister_transport/run.sh",
+        "tests/phone/ddr_rom_cache/run.sh",
+        "tests/phone/line_refill/run.sh",
+        "tests/phone/flash_reset/run.sh",
+        "tests/phone/memory_owner/run.sh",
+        "tests/phone/raw_save/run-hps.sh",
+        "tests/phone/raw_save/run-nor.sh",
+        "tests/phone/raw_save/run-full.sh",
+        "tests/phone/mister_transport/lint-top.sh"
+      ],
+      "log": "scratch/ngage2-integration/d1/regressions.log"
+    },
+    "syntax": {
+      "result": "PASS",
+      "command": "iverilog -g2001 -i, each new module with ngage_bram/dependencies",
+      "log": "scratch/ngage2-integration/d1/overlap/direct-beat.log"
+    },
+    "top": {
+      "result": "PASS default + opt-in; HPS/PLL stubbed structural elaboration only",
+      "optin_copy": "scratch/ngage2-integration/d1/Template-stream.sv",
+      "optin_copy_sha256": "b8b6da063a545350698b09a6b49a57969c0116d521cad56762e2f33d183d0c73",
+      "optin_difference": "only D1_STREAM_TRANSPORT localparam0->1",
+      "default_log": "build/sim/unit/mister-lint-stubs.log",
+      "optin_log": "scratch/ngage2-integration/d1/overlap/top-stream.log"
+    },
+    "sourcegraph": {
+      "result": "PASS",
+      "required_files": 173,
+      "unique_qips": 9,
+      "log": "scratch/ngage2-integration/d1/overlap/sourcegraph.log"
+    },
+    "format": "PASS4maintained files formatted and idempotent",
+    "whitespace": "git diff --check PASS",
+    "cpu": "existing committed180PASS baseline retained; not rerun, default CPU path/CPU logic unchanged",
+    "overlap": {
+      "command": "sh tests/phone/ddr_stream/run-overlap.sh",
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/d1/overlap/direct-beat.log",
+      "baseline_source": "scratch/ngage2-integration/d1/fullbuffer-baseline/ngage_ddr_stream.v",
+      "baseline_source_sha256": "c1c4e18cb378ccdedefd6b49b70aaa580aeb13a845085a414ebebfa363240978",
+      "baseline_manifest": "scratch/ngage2-integration/d1/fullbuffer-baseline/source.json",
+      "baseline_log": "build/sim/unit-ddr-stream-fullbuffer-baseline/run.log",
+      "driver_sha256": "fbf263d0e74a506f721e65a7c1b719dc341140190d60fe792f3860090b6f9ebe",
+      "measurement": "Clock offsets from first physical capture. Same address/count, earliest issue-edge response, ready client and prescribed physical schedule (20 clocks delayed-tail gap). Old engine is initial full-buffer D1, not production legacy. Randomized coverage totals not compared for speed.",
+      "metrics": [
+        {
+          "mode": "fullbuffer",
+          "case": "continuous",
+          "count": 4,
+          "first_offer": 5,
+          "first_consume": 5,
+          "final_physical": 3,
+          "final_consume": 8,
+          "simultaneous": 0,
+          "max_buffered": 4
+        },
+        {
+          "mode": "fullbuffer",
+          "case": "delayed-tail",
+          "count": 4,
+          "first_offer": 25,
+          "first_consume": 25,
+          "final_physical": 23,
+          "final_consume": 28,
+          "simultaneous": 0,
+          "max_buffered": 4
+        },
+        {
+          "mode": "fullbuffer",
+          "case": "continuous",
+          "count": 64,
+          "first_offer": 65,
+          "first_consume": 65,
+          "final_physical": 63,
+          "final_consume": 128,
+          "simultaneous": 0,
+          "max_buffered": 64
+        },
+        {
+          "mode": "fullbuffer",
+          "case": "delayed-tail",
+          "count": 64,
+          "first_offer": 85,
+          "first_consume": 85,
+          "final_physical": 83,
+          "final_consume": 148,
+          "simultaneous": 0,
+          "max_buffered": 64
+        },
+        {
+          "mode": "overlap",
+          "case": "continuous",
+          "count": 4,
+          "first_offer": 1,
+          "first_consume": 1,
+          "final_physical": 3,
+          "final_consume": 4,
+          "simultaneous": 3,
+          "max_buffered": 1
+        },
+        {
+          "mode": "overlap",
+          "case": "delayed-tail",
+          "count": 4,
+          "first_offer": 1,
+          "first_consume": 1,
+          "final_physical": 23,
+          "final_consume": 24,
+          "simultaneous": 2,
+          "max_buffered": 1
+        },
+        {
+          "mode": "overlap",
+          "case": "continuous",
+          "count": 64,
+          "first_offer": 1,
+          "first_consume": 1,
+          "final_physical": 63,
+          "final_consume": 64,
+          "simultaneous": 63,
+          "max_buffered": 1
+        },
+        {
+          "mode": "overlap",
+          "case": "delayed-tail",
+          "count": 64,
+          "first_offer": 1,
+          "first_consume": 1,
+          "final_physical": 83,
+          "final_consume": 84,
+          "simultaneous": 62,
+          "max_buffered": 1
+        },
+        {
+          "mode": "overlap",
+          "case": "full-stall-drain",
+          "count": 64,
+          "first_offer": 1,
+          "first_consume": 72,
+          "final_physical": 63,
+          "final_consume": 135,
+          "simultaneous": 0,
+          "max_buffered": 64
+        },
+        {
+          "mode": "overlap",
+          "case": "mid-stall-catchup-gaps",
+          "count": 16,
+          "first_offer": 1,
+          "first_consume": 1,
+          "final_physical": 50,
+          "final_consume": 51,
+          "simultaneous": 1,
+          "max_buffered": 4
+        }
+      ],
+      "adapter_delayed4_first_transfer_clocks": {
+        "legacy": 1,
+        "overlap": 1
+      },
+      "direct_adapter": "Already registered engine head feeds line consumer directly; staged full line/terminal done retained; both modes tested for prefix staging and cancel/reload",
+      "cancel": "Both reset domains suppress logical tail after prefix with63physical beats pending, drain exactly, no stale bytes/tag in fresh request",
+      "test_fixture_fix": "Initial gapped test missed one-cycle terminal pulse while manually advancing; driver now latches terminal status and rejects duplicate pulses. No RTL failure inferred."
+    }
+  },
+  "review_corrections": [
+    "Retain busy-held commands through acceptance on reset, including adapter mux/busy gating",
+    "Synchronous full-burst BRAM reserve/prefetch before logical backpressure",
+    "Independent read-command oracle from accepted descriptor, not observed DDR address/count",
+    "Loader phone reset stays asserted through readback; captured cancel policy in oracle",
+    "Cartesian scalar mask/lane coverage and stalled logical payload stability",
+    "Synthesis excludes diagnostic hierarchical aliases",
+    "Overlap DDR reception and logical copy using 7-bit occupancy/lookahead and registered same-address forwarding",
+    "Remove redundant adapter beat register while retaining staged line/full completion",
+    "Latch terminal pulses in directed test driver so gaps do not hide completion"
+  ],
+  "contract_limits": [
+    "Physical DDR must eventually accept offered commands and return declared read beats; no fake drain timeout",
+    "Stream producer must supply declared beats; fairness in grants assumes finite locks and downstream/producer/client progress",
+    "Already committed stream prefix/current offered write survive cancel/error; no atomic rollback",
+    "Default legacy ISSUE remains reset-gated; candidate strengthens held-command reset policy; normal equivalence does not imply identical reset trajectories",
+    "Wrapper hierarchy changes: no checkpoint serialization/binary compatibility claim",
+    "D2 cache/D3 wider persistence consumers/S3 autosave not implemented",
+    "FPGA fit/resources/timing/default enablement/physical durability/phone UI-performance unverified",
+    "Early delivered beats are provisional, consumer discards canceled fill; no early CPU restart/cache-line valid publication",
+    "One-beat-per-clock sustained only with continuous DDR and ready client; matched synthetic cycle probes are not phone/FPGA performance"
+  ],
+  "actions": "No D1 commit, push, CI, Quartus download/build or deployment; original checkout/simulations/checkpoints untouched",
+  "initial_fullbuffer_completion": "scratch/ngage2-integration/d1/overlap/prior-completion.json",
+  "fixture_manifest": "scratch/ngage2-integration/p0/fixtures.json (all local fixture hashes reverified)"
+}

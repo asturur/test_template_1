@@ -1,3 +1,74 @@
+## 2026-11-10: D1 overlapping read refinement locally accepted
+
+D1 now returns registered prefix beats as DDR arrives, keeping reserved512B
+BRAM for full client stalls. First copy precedes delayed physical tail;
+ownership/completion/cache validity wait for the full fill. Busy/reset/drain
+contracts retained; delivered prefixes are provisional on cancellation.
+Adapter no longer adds a redundant beat register. Default remains disabled;
+D1 uncommitted, P0/S1/S2 commit b232f1e unchanged.
+
+Matched synthetic first-beat clocks vs initial full-buffer D1: continuous4/64
+5/65→1/1, delayed4/64 25/85→1/1. Final delivery8/128→4/64 and28/148→24/84.
+Actual adapter delayed4beat first copy1clock for both retained legacy and
+refined D1. No CPU early restart, phone speed or physical timing claim.
+
+Final overlap/full-stall/catch-up/gap/prefix-cancel and adapter staging PASS;
+483descriptor oracle,355equivalence,6cache configs, arbiter31/28 and rawNOR/HPS
+8/8 PASS. Both new modules Verilog2001, formatter, default/opt-in top and173/9
+source graph PASS. Previous9default passes retained. Results in merge-plan.md,
+docs/ddr-stream-transport.md and docs/evidence/ddr-stream-2026-11-10.json;
+logs scratch/ngage2-integration/d1/overlap/. No other checkout/simulation/
+checkpoint operation, commit/push/CI, Quartus build or deployment.
+
+## 2026-11-10: D1 overlap refinement in progress
+
+User requests latency-oriented streaming: return registered prefix beats while
+physical DDR tail arrives, retain reserved512B BRAM for arbitrary stalls and
+hold descriptor ownership until physical drain plus final logical consumption.
+Baseline full-buffer source/evidence snapshotted under
+scratch/ngage2-integration/d1/fullbuffer-baseline/. D1 remains uncommitted and
+defaultoff; no other checkout/run/checkpoint operations. New latency tests and
+updated evidence follow; no early CPU cache-line publication is implied.
+
+## 2026-11-10: D1 transport candidate locally accepted; default disabled
+
+P0/S1/S2 committed b232f1e. D1 implementation remains uncommitted on the isolated
+integration branch. New stream transport and legacy adapter provide captured
+scalar/line/512B snapshot descriptors,512B synchronous BRAM read buffering and
+independent64-bit masked streaming writes. Template leaves D1_STREAM_TRANSPORT=0;
+default scalar/ROM cache behavior remains selected. No D2/D3/S3/CPU/NOS ports.
+
+Final PASS: independent483descriptor byte/request oracle (209reads/330writes/
+5501beats);355cache-disabled old/new transactions;6ROM cache configurations;
+real arbiter31grants/28completions incl24alternating grants/SWP/line/scalar/reset;
+opt-in actual raw NOR+DDR+four-slotHPS8reads/8writes, immutable firmware unchanged.
+Default9relevant regression entrypoints PASS including full-size C:/PMM reload.
+Both new modules Verilog2001,173-file/9-QIP source graph, pinned formatter,
+whitespace and default/opt-in structural top checks PASS. CPU180PASS baseline
+retained; no new full-phone execution/performance or hardware fit claim.
+
+Busy-held commands survive reset until acceptance; canceled reads drain and
+partial writes retain their committed prefix. Loader readback completes while
+phone held. Fairness assumes finite locks/producer and DDR/client progress.
+No fabricated drain timeout. Wrapper hierarchy changes require fresh simulation
+lineages; existing checkpoints/running simulations remain untouched.
+
+See [ddr-stream-transport.md](ddr-stream-transport.md), updated
+[merge-plan.md](../merge-plan.md), and docs/evidence/ddr-stream-2026-11-10.json.
+Logs/provenance: scratch/ngage2-integration/d1/. No D1 commit/push/CI,
+Quartus download/build or deployment. Future default enablement, D2 coherent
+cache/D3 bulk consumers and physical timing/persistence require separate work.
+
+## 2026-11-10: P0/S1/S2 committed; D1 implementation authorized
+
+P0/S1/S2 committed on codex/ngage2-integration as b232f1e
+(`feat(storage): add raw C and PMM persistence`). No push/CI/deployment.
+D1 ownership/stream transport is now in progress in this isolated worktree;
+retain the default ROM cache/legacy path, independent buffer/owner descriptors,
+scalar equivalence and all raw-save contracts. D2/D3/S3/CPU/NOS/peripheral ports
+remain outside this stage. Original checkout, running simulations and permanent
+checkpoints remain untouched. D1 source/logs: scratch/ngage2-integration/d1/.
+
 ## 2026-11-10: Integration P0/S1/S2 locally accepted
 
 Worktree `codex/ngage2-integration` only, base7f55e939. No commit/push/CI,

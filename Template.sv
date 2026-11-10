@@ -645,9 +645,13 @@ module emu (
         .rsp_data      (arb_rdata)
     );
     wire core_ddr_fetch;
+    // D1 stream transport is an opt-in candidate; retain the measured legacy
+    // backend and existing ROM cache by default until fit/latency qualification.
+    localparam D1_STREAM_TRANSPORT = 0;
     ngage_ddr_adapter #(
-        .ROM_CACHE  (1),
-        .LINE_REFILL(1)
+        .STREAM_TRANSPORT(D1_STREAM_TRANSPORT),
+        .ROM_CACHE       (1),
+        .LINE_REFILL     (1)
     ) ddr_adapter (
         .req_line      (arb_line),
         .rsp_beat_valid(arb_beat_valid),

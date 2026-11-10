@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
 module tb;
+parameter STREAM_TRANSPORT=0;
 reg clk=0;always #5 clk=~clk;reg inject_short=0,inject_swap=0,hold_requests=0,inject_mutation=0,saw_old_snapshot=0,first_snapshot_checked=0;
 reg reset=1,start=0,flush=0,dirty=0;reg [13:0] dirty_sector=0;
 tri [45:0] bus;tri [35:0] ext;tri [21:0] gamma;
@@ -33,7 +34,7 @@ ngage_ddr_arbiter flash_arb(.clk(clk),.reset(reset),.cpu_lock(1'b0),.l_valid(fmv
 ngage_ddr_arbiter outer(.clk(clk),.reset(reset),.cpu_lock(1'b0),.l_valid(av),.l_ready(ar),.l_addr(aa),.l_data(ad),.l_be(ab),.l_done(adone),.c_valid(xv),.c_ready(xr),.c_write(xw),.c_addr(xa),.c_data(xd),.c_be(xb),.c_done(xdone),.c_rdata(xrd),.req_valid(bv),.req_ready(br),.req_write(bw),.req_addr(ba),.req_data(bd),.req_be(bb),.rsp_valid(bdone),.rsp_data(brd),.l_write(aw),.l_rdata(ard));
 ngage_cflash flash(clk,reset,1'b0,fv,fr,fw,fo,fd,fb,frsp,ferr,fq,fmv,fready,fmw,fma,fmd,fmb,fdone,fmr,fdirty,fsector,fpending,);
 ngage_codeflash pflash(,clk,reset,1'b0,pv,pr,pw,pa,pd,pb,prsp,perr,pq,pmv,pready,pmw,pma,pmd,pmb,pdone,pmr,pdirty,psector,ppending,);
-ngage_ddr_adapter adapter(.clk(clk),.reset(reset),.req_valid(bv),.req_ready(br),.req_write(bw),.req_addr(ba),.req_wdata(bd),.req_be(bb),.rsp_valid(bdone),.rsp_data(brd),.ddr_addr(phyaddr),.ddr_din(phydata),.ddr_be(phybe),.ddr_rd(phyrd),.ddr_we(phywr),.ddr_busy(phybusy),.ddr_dout(phyrdata),.ddr_dout_ready(phyready),.req_fetch(1'b0),.ddr_burstcount());
+ngage_ddr_adapter #(.STREAM_TRANSPORT(STREAM_TRANSPORT)) adapter(.clk(clk),.reset(reset),.req_valid(bv),.req_ready(br),.req_write(bw),.req_addr(ba),.req_wdata(bd),.req_be(bb),.rsp_valid(bdone),.rsp_data(brd),.ddr_addr(phyaddr),.ddr_din(phydata),.ddr_be(phybe),.ddr_rd(phyrd),.ddr_we(phywr),.ddr_busy(phybusy),.ddr_dout(phyrdata),.ddr_dout_ready(phyready),.req_fetch(1'b0),.ddr_burstcount());
 always @(posedge clk)begin
  cycle<=cycle+1;phyready<=0;
  if(delay>0)begin delay<=delay-1;if(delay==1)phyready<=1;end
