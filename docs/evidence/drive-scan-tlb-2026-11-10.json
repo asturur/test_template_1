@@ -1,0 +1,103 @@
+{
+  "profile": "Frozen reduced timer26/NOS64/ROM64bit1KiB/direct-SDRAM model 65ea564947bfe4e4; no overlays; 2B checkpoint diagnostic copy",
+  "window_cycles": 2000000,
+  "summary": {
+    "begin": 2000000000,
+    "end": 2002000000,
+    "loops": 105,
+    "unique": 105,
+    "repeats": 0,
+    "backwards": 0,
+    "segments": 1,
+    "exits": 0,
+    "calls": 106,
+    "returns": 105,
+    "latency_min": 16042,
+    "median": 16165,
+    "max": 32034
+  },
+  "complete_reads": {
+    "clocks": 1724159,
+    "Cbus": 8832,
+    "DDRbusy": 3336,
+    "Creads": 736,
+    "stall_none": 422820,
+    "code_only": 209508,
+    "data_only": 307861,
+    "both": 783970,
+    "irq": 8403,
+    "fiq": 0,
+    "nos": 0,
+    "elocal": 85367,
+    "kernel": 1009042,
+    "euser": 335937,
+    "efile": 0,
+    "other": 285410
+  },
+  "redundant_walk_cycles": {
+    "d": 566314,
+    "i": 201777,
+    "union": 726880,
+    "complete_d": 476309,
+    "complete_i": 186426,
+    "complete_union": 624262,
+    "ttbr_changes": 0
+  },
+  "walk_starts": [
+    {
+      "side": 0,
+      "total": 36627,
+      "resident_smallpage": 31696,
+      "checked": 10771
+    },
+    {
+      "side": 1,
+      "total": 16002,
+      "resident_smallpage": 10682,
+      "checked": 0
+    }
+  ],
+  "ratios": {
+    "c_bus_fraction": 0.005122497403081734,
+    "resident_walk_union_fraction": 0.36206753553471577,
+    "accepted_dcache_requests_per_complete_read": 448.44761904761907
+  },
+  "raw_measurements": [
+    "SUMMARY begin=2000000000 end=2002000000 loops=105 unique=105 repeats=0 backwards=0 segments=1 exits=0 calls=106 returns=105 latency_min=16042 median=16165 max=32034",
+    "COMPLETE_READS clocks=1724159 Cbus=8832 DDRbusy=3336 Creads=736 stall_none=422820 code_only=209508 data_only=307861 both=783970 irq=8403 fiq=0 nos=0 elocal=85367 kernel=1009042 euser=335937 efile=0 other=285410",
+    "INVALIDATE side=0 cycles=0 events=0",
+    "FILLS side=0 type=0 count=13 conflict=0 same=11 blocked=0",
+    "FILLS side=0 type=1 count=0 conflict=0 same=0 blocked=0",
+    "FILLS side=0 type=2 count=36614 conflict=4910 same=31689 blocked=0",
+    "FILLS side=0 type=3 count=0 conflict=0 same=0 blocked=0",
+    "INVALIDATE side=1 cycles=0 events=0",
+    "FILLS side=1 type=0 count=0 conflict=0 same=0 blocked=0",
+    "FILLS side=1 type=1 count=0 conflict=0 same=0 blocked=0",
+    "FILLS side=1 type=2 count=15897 conflict=5204 same=10682 blocked=105",
+    "FILLS side=1 type=3 count=0 conflict=0 same=0 blocked=0",
+    "WALK_START side=0 total=36627 resident_smallpage=31696 checked=10771",
+    "WALK_START side=1 total=16002 resident_smallpage=10682 checked=0",
+    "REDUNDANT_WALK_CLOCKS d=566314 i=201777 union=726880 complete_d=476309 complete_i=186426 complete_union=624262 ttbr_changes=0",
+    "PHASE complete dmaint=0 imaint=0 dtlb=581177 itlb=272846 drequests=47087 dwalk=457452 iwalk=216071 dbeats=61755 ibeats=27668"
+  ],
+  "sources": [
+    "scratch/startup-fault-audit/scan-tlb-cost.cpp",
+    "scratch/startup-fault-audit/scan-tlb-cost.log",
+    "scratch/startup-fault-audit/tlb-stale-lookup.sv",
+    "scratch/startup-fault-audit/tlb-stale-test.log"
+  ],
+  "limits": [
+    "Sampling attribution, not a measured optimization speedup. Walk intervals can overlap useful work.",
+    "Resident means small-page valid+tag lookup of actual TLB RAM at walk launch; nonresident cases include real misses and other mapping types.",
+    "ACKs qualified by FSM FETCH_L1_DESC_0/FETCH_L2_DESC_0, using registered wb_adr_ff. Next-cycle bus outputs fall on ACK and cannot qualify returned beats.",
+    "No TLB invalidation or TTBR changes in window.",
+    "Drive backing latency is the simulator model; not measured physical MiSTer DDR performance.",
+    "No firmware or C input modifications; original simulations untouched."
+  ],
+  "focused_prototype": {
+    "scope": "scratch-only; no maintained RTL edit",
+    "baseline": "REPRODUCED: warm-up4 table beats;24 after stale lookup interval",
+    "address_and_postfill_settle": "PASS: warm-up2 beats; no extra for stale lookup; genuine new miss2 beats",
+    "limits": "No full CPU or firmware validation. Permission/context/stall/prefetch and caller ownership not validated."
+  }
+}

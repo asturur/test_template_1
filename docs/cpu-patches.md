@@ -2,6 +2,43 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## MMU lookup ownership and refill recovery (0052)
+
+The TLB's registered check and RAM lookup must both belong to the current
+request before admitting a page-table walk or a permission fault. Ownership
+includes MMU enable, read/write direction, mode, S/R bits, DAC and TTBR.
+Address matching uses the smallest ARM920 permission granule, 1KiB, so adjacent
+instruction hits keep their one-clock throughput. The live low ten address
+bits supply the physical offset; MMU-disabled accesses use the identity address.
+ARM DDI0151C section3.1/3.1.1 defines tiny1KiB mappings and small-page1KiB
+permission subpages; matching an entire4KiB page would be incorrect.
+
+A local recovery path clocks the existing RAM/check registers for an unowned
+request, even when the CPU is stalled. After installation or invalidation,
+three lookup clocks let the RAM/check pipeline observe the new entry. A held
+CPU cannot suppress an already-returned refill installation. In-flight walks
+invalidated or superseded by a TTBR change drain their bus transaction but
+cannot repopulate the TLB with a stale descriptor.
+
+Instruction lookup waiting is distinct from the existing miss-retry indication:
+`o_lookup_wait` suppresses the adapter's err2 redirect while a lookup is being
+aligned. Treating that wait as a real miss retry made the CPU repeatedly clear
+fetch and never stabilize its lookup owner (cpu_timing stuck at000000FC).
+Address qualification alone also repeated real misses until post-fill settling
+was added. Both failed approaches are recorded under scratch/mmu-handshake/.
+
+No RAM/check stage is removed, and this change does not alter CPU operands,
+cache geometry or SDRAM/DDR clocks. Warm ADD throughput remains one clock in
+cpu_timing at memory delays0/3. Quartus timing has not been measured for this
+change; retaining register boundaries is not proof of104MHz timing closure.
+Directed coverage: tests/cpu/tlb_lookup_owner/sim.sh. Boot/scan comparison and
+remaining regression limitations are in docs/mmcstore-scan.md and status.md.
+
+Patch0051 records the already-committed abandoned instruction-refill discard
+fix, which had not yet been included in the upstream-relative patch series.
+Applying0001–0048,0050,0051,0052 reproduces rtl/arm byte-for-byte; the verifier
+uses the pinned local upstream checkout without a network fetch.
+
 `rtl/arm/` is the ONLY ZAP copy in the project: pinned upstream krevanth/ZAP
 `fc7bd75` plus the ordered series in `patches/zap/`. The Verilator boot
 simulations (`scratch/*/build.py`, `sim/run.py`) and the Quartus build

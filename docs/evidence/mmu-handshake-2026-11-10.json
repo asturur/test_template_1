@@ -1,0 +1,199 @@
+{
+  "date": "2026-11-10",
+  "profile": {
+    "sys_clk_hz": 78000000,
+    "timer_clock": "26mhz",
+    "nos_tick_hz": 64,
+    "rom_cache_bits": 64,
+    "rom_cache_bytes": 1024,
+    "direct_sdram": true,
+    "firmware_overlays": false
+  },
+  "before_model": "65ea564947bfe4e4",
+  "after_model": "8877b43014f2eba6ddadbe3300a23865b0f2e48d994d227d5f29333f82fb01bb",
+  "comparison_cycles_each": 50000000,
+  "before": {
+    "summary": {
+      "begin": 2000000000,
+      "end": 2050000000,
+      "loops": 2626,
+      "unique": 2626,
+      "repeats": 0,
+      "backwards": 0,
+      "segments": 7,
+      "exits": 6,
+      "calls": 2627,
+      "returns": 2626,
+      "latency_min": 15965,
+      "median": 16165,
+      "max": 40852
+    },
+    "complete_reads": {
+      "clocks": 42972910,
+      "Cbus": 210720,
+      "DDRbusy": 89016,
+      "Creads": 17560,
+      "stall_none": 10542385,
+      "code_only": 5288422,
+      "data_only": 7646561,
+      "both": 19495542,
+      "irq": 181937,
+      "fiq": 0,
+      "nos": 0,
+      "elocal": 2141619,
+      "kernel": 25125906,
+      "euser": 8363724,
+      "efile": 0,
+      "other": 7159724
+    },
+    "terminal": {
+      "cycle": 2050000000,
+      "pc": 1345877528,
+      "cpsr": 1610612763,
+      "c1": 4735,
+      "ttbr": 168247296,
+      "svc_sp": 2147505764,
+      "svc_lr": 27,
+      "fiq_sp": 2147507820,
+      "remaining": 0,
+      "errors": 12,
+      "data_errors": 0
+    },
+    "phase_complete": {
+      "dmaint": 0,
+      "imaint": 0,
+      "dtlb": 14453624,
+      "itlb": 6788983,
+      "drequests": 1173979
+    }
+  },
+  "after": {
+    "summary": {
+      "begin": 2000000000,
+      "end": 2050000000,
+      "loops": 3748,
+      "unique": 3748,
+      "repeats": 0,
+      "backwards": 0,
+      "segments": 9,
+      "exits": 8,
+      "calls": 3749,
+      "returns": 3748,
+      "latency_min": 11300,
+      "median": 11430,
+      "max": 33835
+    },
+    "complete_reads": {
+      "clocks": 43340832,
+      "Cbus": 301632,
+      "DDRbusy": 120207,
+      "Creads": 25136,
+      "stall_none": 11430049,
+      "code_only": 8508651,
+      "data_only": 7423476,
+      "both": 15978656,
+      "irq": 147691,
+      "fiq": 0,
+      "nos": 0,
+      "elocal": 1976561,
+      "kernel": 25534458,
+      "euser": 8372397,
+      "efile": 0,
+      "other": 7309725
+    },
+    "terminal": {
+      "cycle": 2050000000,
+      "pc": 1345606812,
+      "cpsr": 1610612763,
+      "c1": 4735,
+      "ttbr": 168247296,
+      "svc_sp": 2147505764,
+      "svc_lr": 27,
+      "fiq_sp": 2147507820,
+      "remaining": 0,
+      "errors": 12,
+      "data_errors": 0
+    },
+    "phase_complete": {
+      "dmaint": 0,
+      "imaint": 0,
+      "dtlb": 10214518,
+      "itlb": 6864195,
+      "drequests": 1671340
+    }
+  },
+  "improvement": {
+    "median_read_latency_reduction_percent": 29.29167955459325,
+    "read_throughput_increase_percent": 42.726580350342736
+  },
+  "cold_boot_50m": {
+    "boot_index": 0,
+    "boot_limit": 0,
+    "retired": 0,
+    "ddr_commands": 0,
+    "ddr_beats": 0,
+    "cycle": 50000000,
+    "pc": 24916,
+    "lcd_words": 0,
+    "frame_complete": 0,
+    "display_on": 0,
+    "unsupported": 0,
+    "bus_errors": 12,
+    "data_errors": 0,
+    "seconds": 590.068,
+    "interrupted": false,
+    "outputs": {
+      "build/sim/runs/mmu-owner-cold-50m/framebuffer.bin": "06c6a2c276d53823cad61c13d831dd0e294464328e88527bb61eece8cf1040bf",
+      "build/sim/screens/mmu-owner-cold-50m/scanout.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e",
+      "build/sim/screens/mmu-owner-cold-50m/framebuffer.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e"
+    }
+  },
+  "input_sha256": {
+    "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "cdrive": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  },
+  "unchanged_input_files": true,
+  "original_2b_cpu_unchanged": true,
+  "matching_c_bus_prefix_pairs": 40,
+  "regressions": {
+    "focused_new_owner": "PASS",
+    "original_policy_new_owner": "FAIL: warm translation performed4 beats instead of2",
+    "warm_add_clocks": 1,
+    "cpu_suite_pass_lines_before_known_fiq_failure": 38,
+    "cpu_suffix_pass_lines": 132,
+    "known_failure": "fiq_store_return D1, reproduced with original policy in prior investigation",
+    "expected_xfail": "legacy direct-map associativity control",
+    "patch_series_verify": "PASS"
+  },
+  "migration_report": "scratch/mmu-handshake/scan-2b.migration.json",
+  "source_logs": [
+    "scratch/mmu-handshake/scan-before-50m.log",
+    "scratch/mmu-handshake/scan-after-50m.log",
+    "scratch/mmu-handshake/cpu-regression.log",
+    "scratch/mmu-handshake/cpu-tail.log"
+  ],
+  "limits": [
+    "Cold50M is early boot, PC00006154; LCD not initialized yet. No UI completion claim.",
+    "Drive scan is an audited diagnostic COPY of2B, not a cold-boot execution comparison.",
+    "No measured104MHz timing closure; existing RAM/check stages retained. No hardware build.",
+    "NOS64 profile remains experimental and unchanged between comparison arms."
+  ],
+  "fixed_residency_probe_2m": {
+    "completed_reads": 151,
+    "walks": [
+      {
+        "side": 0,
+        "starts": 7006,
+        "resident": 1
+      },
+      {
+        "side": 1,
+        "starts": 5936,
+        "resident": 0
+      }
+    ],
+    "inherited_resident_data_walk": 1,
+    "note": "One old walk inherited at2B is discarded conservatively; no resident I walks. Different read counts per2M, so normalize per operation when comparing rates."
+  }
+}

@@ -1,0 +1,250 @@
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -122,6 +122,7 @@
+ logic                            tlb_fault;
+ logic                            tlb_cacheable;
+ logic                            tlb_busy;
++wire                             tlb_lookup_wait;
+ logic [CACHE_LINE*8-1:0]         tr_cache_line;
+ logic [CACHE_LINE*8-1:0]         cf_cache_line;
+ logic [CACHE_LINE-1:0]           cf_cache_line_ben;
+@@ -204,7 +205,7 @@
+  .clk(i_clk),.reset(i_reset),.discard_refill(i_discard && !prefetch_busy),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
+  .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
+  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
+- .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
++ .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(tlb_lookup_wait),
+  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
+  .fast_enable(!prefetch_busy && !i_cache_prefetch && !fast_context_change && !i_tlb_inv),
+  .fast_next_address(i_address + 32'd16),
+@@ -359,6 +360,8 @@
+ `endif
+         .i_idle         (idle),
+         .i_wr_check     (i_wr_check),
++        .i_request_rd   (i_rd || i_cache_prefetch),
++        .i_request_wr   (i_wr),
+         `ifdef NGAGE_ASSOC_EXPERIMENT
+         .i_rd_check     (prefetch_address_selected || prefetch_state==P_RESYNC ? 1'b1 : i_rd_check),
+         .i_hold         (tlb_hold_input),
+@@ -383,6 +386,7 @@
+         .o_fault        (tlb_fault),
+         .o_cacheable    (tlb_cacheable),
+         .o_busy         (tlb_busy),
++        .o_lookup_wait  (tlb_lookup_wait),
+         `ifdef NGAGE_ASSOC_EXPERIMENT
+         .o_wb_stb_nxt   (tlb_raw_stb),
+         .o_wb_cyc_nxt   (tlb_raw_cyc),
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -412,6 +412,8 @@
+         .i_address_check(pending_request ? i_address : i_address_check),
+         .i_idle         (idle),
+         .i_wr_check     (pending_request ? i_wr : i_wr_check),
++        .i_request_rd   (i_rd),
++        .i_request_wr   (i_wr),
+         .i_rd_check     (pending_request ? i_rd : i_rd_check),
+         .i_hold         (hold || i_stall),
+         .i_cpsr         (i_cpsr),
+@@ -428,6 +430,7 @@
+         .o_cacheable    (tlb_cacheable),
+         .o_bufferable   (tlb_bufferable),
+         .o_busy         (tlb_busy),
++        .o_lookup_wait  (),
+         .o_walk_pending (tlb_walk_pending),
+         .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
+         .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
+--- a/src/rtl/zap_tlb.sv
++++ b/src/rtl/zap_tlb.sv
+@@ -39,6 +39,8 @@
+ input   logic    [31:0]  i_address,
+ input   logic    [31:0]  i_address_check,
+ input   logic            i_wr_check,
++input   wire             i_request_rd,
++input   wire             i_request_wr,
+ input   logic            i_rd_check,
+ input   logic    [31:0]  i_address_nxt,
+ 
+@@ -65,6 +67,7 @@
+ output  logic            o_cacheable,
+ output  logic            o_busy,
+ output  logic            o_walk_pending,
++output  wire             o_lookup_wait,
+ output  logic [31:0] o_checked_va, o_checked_lookup,
+ output  logic o_checked_rd, o_checked_wr, o_checked_mmu,
+ output  logic [CPSR_MODE:0] o_checked_cpsr,
+@@ -110,6 +113,56 @@
+ logic                            u0, u1, u2, u3, u4, u5;
+ logic                            unused;
+ 
++// The checker and RAM result are registered independently of the current
++// request. A miss or fault may be consumed only by its owning address/context.
++// Recovery clocks the existing lookup stages even when the CPU is stalled;
++// no RAM/check stage is removed to shorten the miss handshake.
++logic walk_active;
++logic [1:0] refill_settle;
++wire result_owned = o_checked_va[31:10] == i_address[31:10] &&
++                    o_checked_lookup[31:10] == i_address[31:10] &&
++                    o_checked_mmu == i_mmu_en && o_checked_cpsr == i_cpsr &&
++                    o_checked_sr == i_sr && o_checked_dac == i_dac_reg &&
++                    o_checked_baddr == i_baddr && o_checked_rd == i_request_rd &&
++                    o_checked_wr == i_request_wr;
++wire install = setlb_wen || lptlb_wen || sptlb_wen || fptlb_wen;
++logic walk_was_active, walk_cancelled;
++logic [31:0] walk_baddr;
++wire accept_install = !walk_cancelled && !i_inv && i_mmu_en && walk_baddr == i_baddr;
++always_ff @(posedge i_clk) begin
++    if (i_reset) begin
++        walk_was_active <= 0;
++        walk_cancelled <= 0;
++        walk_baddr <= 0;
++    end else begin
++        walk_was_active <= walk_active;
++        if (walk_active && !walk_was_active) begin
++            walk_baddr <= i_baddr;
++            walk_cancelled <= i_inv || !i_mmu_en;
++        end else if (walk_active && (i_inv || !i_mmu_en || walk_baddr != i_baddr)) begin
++            walk_cancelled <= 1;
++        end
++    end
++end
++wire result_ready = result_owned && refill_settle == 0 && !i_inv;
++wire recover_lookup = i_mmu_en && i_idle && !walk_active && !result_ready;
++wire lookup_enable = !i_hold || recover_lookup || install || refill_settle != 0;
++wire [31:0] lookup_address = recover_lookup ? i_address : i_address_nxt;
++wire [31:0] check_address = recover_lookup ? i_address : i_address_check;
++wire walker_idle = i_idle && (!i_mmu_en || result_ready);
++
++always_ff @(posedge i_clk) begin
++    if (i_reset) refill_settle <= 0;
++    else if (install || i_inv) refill_settle <= 3;
++    else if (lookup_enable && refill_settle != 0) refill_settle <= refill_settle - 1'b1;
++end
++
++// The checked permission is valid throughout its 1KiB subpage. Reusing that
++// token for adjacent instructions preserves the resident one-clock fetch path.
++assign o_phy_addr = i_mmu_en ? {phy_addr[31:10], i_address[9:0]} : i_address;
++assign o_lookup_wait = i_mmu_en && i_idle && !result_ready;
++assign o_busy = walk_active || o_lookup_wait;
++
+ // ----------------------------------------------------------------------------
+ 
+ function automatic [31:0] max ( input [31:0] a, b, c, d );
+@@ -235,14 +288,14 @@
+ u_section_tlb (
+ .i_clk          (i_clk),
+ .i_reset        (i_reset),
+-.i_clken        (!i_hold),
++.i_clken        (lookup_enable),
+ 
+ .i_wdata        (setlb_wdata),
+-.i_wen          (setlb_wen),
++.i_wen          (setlb_wen && accept_install),
+ 
+ .i_inv          (i_inv | !i_mmu_en),
+ 
+-.i_raddr        (i_address_nxt[`ZAP_VA__SECTION_INDEX]),
++.i_raddr        (lookup_address[`ZAP_VA__SECTION_INDEX]),
+ .i_waddr        (tlb_address[`ZAP_VA__SECTION_INDEX]),
+ 
+ .o_rdata        (setlb_rdata),
+@@ -258,14 +311,14 @@
+ u_lpage_tlb   (
+ .i_clk          (i_clk),
+ .i_reset        (i_reset),
+-.i_clken        (!i_hold),
++.i_clken        (lookup_enable),
+ 
+ .i_wdata        (lptlb_wdata),
+-.i_wen          (lptlb_wen),
++.i_wen          (lptlb_wen && accept_install),
+ 
+ .i_inv          (i_inv | !i_mmu_en),
+ 
+-.i_raddr        (i_address_nxt[`ZAP_VA__LPAGE_INDEX]),
++.i_raddr        (lookup_address[`ZAP_VA__LPAGE_INDEX]),
+ .i_waddr        (tlb_address[`ZAP_VA__LPAGE_INDEX]),
+ 
+ .o_rdata        (lptlb_rdata),
+@@ -281,14 +334,14 @@
+ u_spage_tlb   (
+ .i_clk          (i_clk),
+ .i_reset        (i_reset),
+-.i_clken        (!i_hold),
++.i_clken        (lookup_enable),
+ 
+ .i_wdata        (sptlb_wdata),
+-.i_wen          (sptlb_wen),
++.i_wen          (sptlb_wen && accept_install),
+ 
+ .i_inv          (i_inv | !i_mmu_en),
+ 
+-.i_raddr        (i_address_nxt[`ZAP_VA__SPAGE_INDEX]),
++.i_raddr        (lookup_address[`ZAP_VA__SPAGE_INDEX]),
+ .i_waddr        (tlb_address[`ZAP_VA__SPAGE_INDEX]),
+ 
+ .o_rdata        (sptlb_rdata),
+@@ -304,14 +357,14 @@
+ u_fpage_tlb (
+ .i_clk          (i_clk),
+ .i_reset        (i_reset),
+-.i_clken        (!i_hold),
++.i_clken        (lookup_enable),
+ 
+ .i_wdata        (fptlb_wdata),
+-.i_wen          (fptlb_wen),
++.i_wen          (fptlb_wen && accept_install),
+ 
+ .i_inv          (i_inv | !i_mmu_en),
+ 
+-.i_raddr        (i_address_nxt[`ZAP_VA__FPAGE_INDEX]),
++.i_raddr        (lookup_address[`ZAP_VA__FPAGE_INDEX]),
+ .i_waddr        (tlb_address[`ZAP_VA__FPAGE_INDEX]),
+ 
+ .o_rdata        (fptlb_rdata),
+@@ -332,10 +385,10 @@
+ )
+ u_zap_tlb_check (
+ .i_clk          (i_clk),
+-.i_clkena       (!i_hold),
++.i_clkena       (lookup_enable),
+ 
+ .i_mmu_en       (i_mmu_en),
+-.i_va           (i_address_check),
++.i_va           (check_address),
+ .i_rd           (i_rd_check),
+ .i_wr           (i_wr_check),
+ 
+@@ -370,12 +423,12 @@
+ logic [31:0] lookup_addr_st1, lookup_addr_st2;
+ always_ff @(posedge i_clk) begin
+  if (i_reset) begin lookup_addr_st1 <= 0; lookup_addr_st2 <= 0; o_checked_lookup <= 0; end
+- else if (!i_hold) begin
+-  lookup_addr_st1 <= i_address_nxt; lookup_addr_st2 <= lookup_addr_st1;
++ else if (lookup_enable) begin
++  lookup_addr_st1 <= lookup_address; lookup_addr_st2 <= lookup_addr_st1;
+   o_checked_lookup <= lookup_addr_st2;
+  end
+ end
+-always_ff @(posedge i_clk) if (!i_hold) begin
++always_ff @(posedge i_clk) if (lookup_enable) begin
+  o_checked_rd <= i_rd_check; o_checked_wr <= i_wr_check; o_checked_mmu <= i_mmu_en;
+  o_checked_cpsr <= i_cpsr; o_checked_sr <= i_sr; o_checked_dac <= i_dac_reg; o_checked_baddr <= i_baddr;
+ end
+@@ -400,14 +453,14 @@
+ .i_bufferable   (bufferable),
+ .i_phy_addr     (phy_addr),
+ 
+-.i_idle         (i_idle),
++.i_idle         (walker_idle),
+ .o_fsr          (o_fsr),
+ .o_far          (o_far),
+ .o_fault        (o_fault),
+-.o_phy_addr     (o_phy_addr),
++.o_phy_addr     (),
+ .o_cacheable    (o_cacheable),
+ .o_bufferable   (o_bufferable),
+-.o_busy         (o_busy),
++.o_busy         (walk_active),
+ 
+ .o_setlb_wdata  (setlb_wdata),
+ .o_setlb_wen    (setlb_wen),

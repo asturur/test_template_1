@@ -122,6 +122,7 @@ logic [31:0]                     tlb_far;
 logic                            tlb_fault;
 logic                            tlb_cacheable;
 logic                            tlb_busy;
+wire                             tlb_lookup_wait;
 logic [CACHE_LINE*8-1:0]         tr_cache_line;
 logic [CACHE_LINE*8-1:0]         cf_cache_line;
 logic [CACHE_LINE-1:0]           cf_cache_line_ben;
@@ -204,7 +205,7 @@ arm920_zap_dcache_adapter experimental_cache(
  .clk(i_clk),.reset(i_reset),.discard_refill(i_discard && !prefetch_busy),.address(prefetch_address_selected ? i_cache_op_address : i_address),.physical(tlb_phy_addr),
  .swp_tag(2'b0),.swp_bus_lock(),.din(i_dat),.far_in(tlb_far),.rd(prefetch_busy ? prefetch_state==P_ISSUE : (i_rd && !i_cache_prefetch)),.wr(i_wr),.ben(i_ben),
  .alignment_fault(1'b0),.alignment_far(32'b0),.fault(tlb_fault),.fsr_in(tlb_fsr),
- .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(1'b0),
+ .external_fsr(tlb_external_fsr),.tlb_busy(tlb_busy),.translation_wait(tlb_lookup_wait),
  .external_permit(i_write_buffer_empty),.write_buffer_empty(),
  .fast_enable(!prefetch_busy && !i_cache_prefetch && !fast_context_change && !i_tlb_inv),
  .fast_next_address(i_address + 32'd16),
@@ -359,6 +360,8 @@ u_zap_tlb (
 `endif
         .i_idle         (idle),
         .i_wr_check     (i_wr_check),
+        .i_request_rd   (i_rd || i_cache_prefetch),
+        .i_request_wr   (i_wr),
         `ifdef NGAGE_ASSOC_EXPERIMENT
         .i_rd_check     (prefetch_address_selected || prefetch_state==P_RESYNC ? 1'b1 : i_rd_check),
         .i_hold         (tlb_hold_input),
@@ -383,6 +386,7 @@ u_zap_tlb (
         .o_fault        (tlb_fault),
         .o_cacheable    (tlb_cacheable),
         .o_busy         (tlb_busy),
+        .o_lookup_wait  (tlb_lookup_wait),
         `ifdef NGAGE_ASSOC_EXPERIMENT
         .o_wb_stb_nxt   (tlb_raw_stb),
         .o_wb_cyc_nxt   (tlb_raw_cyc),

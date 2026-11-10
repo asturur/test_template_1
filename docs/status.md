@@ -1,3 +1,93 @@
+## 2026-11-10: MMU ownership fix verified;50M scan throughput +42.73%
+
+User requested fix with104MHz-conscious registers, tests+boot>=50M, matched
+C-scan comparison; long sims untouched, no hardware build. Implemented in
+zap_tlb plus I/D wrappers. Lookup/check ownership includes minimum1KiB permission
+granule, read/write direction, mode/SR/DAC/MMU/TTBR context. Current low10bits
+supply physical offset; MMU-off identity. Recovery clocks existing lookup stages
+while stalled; three post-fill/invalidate clocks prevent stale miss reuse.
+In-flight invalidation/TTBR cancellation drains without stale installation.
+Instruction lookup wait is distinct from err2 retry; treating both as retry
+caused permanent fetch redirects at000000FC. No RAM/check register removed.
+
+PASS focused ownership test: exact2beat warm/miss, stale lookups, adjacent fetch,
+1KiB permission boundary, held fill, in-flight invalidate/TTBR, direction/mode,
+MMU-off. Original policy FAILS same test (warm4beats). CPU timing0/3 PASS, warm
+ADD1clock. Broad suite38 PASS lines then same known fiq_store_return D1; separate
+suffix132 PASS lines and expected legacy associativity XFAIL, completed normally.
+Do not claim full suite passing. All evidence in scratch/mmu-handshake/.
+
+Three isolated experiments COMPLETED normally:
+- Frozen65ea checkpoint2B+50M:2626reads, median16165clocks,6block exits.
+- Corrected8877b43014f2eba6 same state+50M:3748reads, median11430clocks,8exits.
+  Both0repeats/backwards, errors12unchanged, datafaults0. Throughput+42.73%,
+  median latency-29.29%. Additional first40 C-bus address/data pairs match.
+- Maintained cold50M: build/sim/runs/mmu-owner-cold-50m/, checkpoint50000000 pair,
+  PC00006154, known12earlybusfaults/data0, pre-LCD loop. Not a full UI boot proof.
+  Screens build/sim/screens/mmu-owner-cold-50m/.
+
+Additional fixed2M probe:151reads;7006 D walks,1resident inherited old in-flight
+walk conservatively discarded;5936 I walks,0resident. Real direct-map conflicts
+remain. Profile unchanged78MHz CPU/26MHz timers/NOS64/ROM64bit1KiB/directSDRAM,
+stock firmware and C sources (hashes reverified). No overlays in these runs.
+
+Fixed scan is an AUDITED diagnostic COPY of old2B, not arbitrary checkpoint
+compatibility. Named-field migration preserves17709common fields/all original
+architectural/cache/TLB/memory state and identical host. New recovery state
+initialized conservatively;4 newly materialized I-TLB forwarding buffers recover
+old *_wdata aliases; generated combinational scratch recalculated. Exact whitelist
+and SHA in scratch/mmu-handshake/{schema-final-diff.json,migrate-scan.py,
+scan-2b.migration.json}. Source2B CPU hash rechecked unchanged. Observer scan run
+has no terminal maintained checkpoint; cold run does. Event wait g3:234 completed
+all3 experiments and CPU suffix. No monitoring loop left for this task.
+
+Patch0051 captures already-committed abandoned-refill fix6a52522 omitted from
+prior series;0052 captures MMU change. patches/zap/verify.sh PASS from cached
+pinned upstream. No new timing closure claim:104MHz needs future Quartus reports.
+User now requests commit, push and one hardware build. Original long sims untouched.
+Report docs/mmcstore-scan.md; docs/evidence/mmu-handshake-2026-11-10.json.
+Next: collect the requested hardware build timing; address real TLB conflicts or
+remaining firmware startup blockers separately. Prior build42781963807 user monitored.
+
+## 2026-11-10: C: scan cost traced to redundant MMU walks
+
+Isolated exact frozen65ea checkpoint2B->2.002B observer replay:105 complete
+one-byte reads, median16165clocks,105 unique records/no repeats. C: bus pending
+only8832/1724159 read-call clocks (0.51%). D-cache accepted47087requests,
+448.45/read. No maintenance, TLB invalidations or TTBR changes.
+
+Actual TLB RAM valid+tag at walker start:31696/36627 D walks already resident
+(86.54%);10682/16002 I walks resident (66.75%). Redundant-resident walk intervals
+occupy624262/1724159 complete-read clocks (36.21%, I/D union). This is occupied
+time, NOT a measured optimization gain. D refill-write suppression by hold was
+checked:0 blocked; reject that hypothesis. Existing direct-map conflicts cannot
+explain refetches of currently resident entries.
+
+Mechanism: zap_tlb checker uses i_address_check and registered RAM lookup of
+an earlier i_address_nxt, but FSM starts from idle+walk and captures current
+i_address without matching lookup ownership. At2B, current80601868 is resident,
+lookup/check00010000, stale walk=1. Data request admission has ownership checks,
+walker admission does not. Small standalone full-TLB HDL reproducer confirms
+redundant reads with no Nokia firmware (scratch/startup-fault-audit/
+tlb-stale-lookup.sv, tlb-stale-test.log). Scratch-only address qualification plus3 enabled post-fill settle clocks passes
+local stale-lookup/no-extra-reads and genuine-new-miss2beat control. This is NOT
+a full CPU fix: caller fault/completion ownership, held pipeline, context and
+CP15 prefetch remain unverified. Maintained HDL untouched in this investigation.
+
+Next: qualify walker admission and fault/completion ownership coherently;
+retain registers, real misses, permissions, context/TTBR invalidation and CP15
+prefetch. Instruction/data wrappers differ: do not blindly gate both or allow
+stale physical data to complete while a walk is suppressed. Directed regression
+plus isolated>=50M firmware benchmark required before adoption. Firmware/C input
+and long sims untouched; no extra hardware build. Full report docs/mmcstore-scan.md,
+evidence/drive-scan-tlb-2026-11-10.json. Observer sources/results in
+scratch/startup-fault-audit/scan-tlb-{writes,resident,cost}.{cpp,log}.
+
+Hardware deadlock fix already committed/pushed6a52522 (observer cadence44f72c8).
+One build launched: actions/runs/42781963807. Leave build monitoring to user.
+Corrected replay reached4.1B with SplashScreen, SelfTestServer and EInfoServer;
+no new bus/data faults, Nokia image still last observed. UI not verified.
+
 ## 2026-11-10: confirmed speculative-fetch deadlock; corrected HDL recovers
 
 Read4B writeback pending redirect: shelve_ff=1,pc_shelve_ff=503EF43F.
