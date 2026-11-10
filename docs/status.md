@@ -1,3 +1,67 @@
+## 2026-11-10: First phone panic fixed and verified; push/build authorized
+
+User explicitly requests commit/push and ONE build when sure, no confirmation.
+Functional fix VERIFIED; dispatch ci_build.yml after this commit. Do not monitor
+GitHub build. Build reference goes in scratch/hardware-fault-47f0/hardware-build.json.
+Main objective remains working phone; no full UI or hardware-fix claim yet.
+
+OPEN SEPARATE REGRESSION: Bluetooth overlay ON blocks before Nokia logo (user
+reconfirmed). NOS/BT both OFF in verified baseline. This P2 fix does not establish
+that the Bluetooth overlay works. Investigate overlay loading/hooks next; keep
+BT OFF for initial hardware test. C: and UI stubs are not authorized substitutes.
+
+First e986 ABT at4372559219: STRH5038524C -> VA59893FE0, FSR1D,
+LR_abt50385254/SPSR_abt400000D1. Descriptor0240043A AP1/domain1 grants FIQ
+write. Close replay captures P1mode10/P2mode11/P1force0: CPU wrongly exported
+P1 privilege with P2 address/data. A following exception return restored user
+mode in the younger stage before the privileged store. Fix BOTH o_data_cpsr
+and o_mem_translate to existing P2 registered fields. No added waits, removed
+register, permission-rule change, firmware/C input rewrite or peripheral stub.
+
+Proof: close source4372558010, old abort1209clocks later, CPU state BYTE IDENTICAL
+to original first-abort capture. Fixed10k completes the write (simulated C: word
+FFFFFFFF->00000001 plus subsequent data), returns to startup, FSR/FAR/ABT LR/
+panicmask0. Fixed additional50M COMPLETED4422568010, PC503A2310, same zero
+exception/panic state, old bus counter30923398 stable/data0.13processes now,
+new BTTestServer after RfsServer, versus12before failure. Nokia still displayed;
+no working UI claim. Original firmware/core/extension/C source hashes unchanged;
+only firmware-directed writes to the simulated working flash.
+
+Verification COMPLETE: full CPU suite180PASS/no XFAIL; final targeted0/3.
+New data_privilege_owner.S warms protected stores before SVC return and requires
+LDRT inside SVC to fault as USER. Original wiring wrongly grants that LDRT ->D2;
+identical assembled program bytes pass fixed0/3, recovering from expected
+FSR1D/FAR59800100. Initial isolated reference mistakenly read shared ROM and
+failedD6: INVALID. Final isolated TB/program paths fixed, D2 is valid evidence.
+Patch0054 reconstruction/source preflight PASS. Separate cold50M modela6d4
+completes normally, PC6154,12known initial bus faults/data0. Registers/timing
+boundaries retained; hardware closure still requires the build's measurement.
+
+Audited close migration scratch/hardware-fault-47f0/migrate-owner.py:
+quiesce-close explicitly requires P2request0, CP15idle, both write buffers empty,
+caches/TLB/walks/external buses idle; +10clocks from old4372558000. Whitelist
+preserves17067 common fields/all CPU/RAM/DDR/cache state;20D/19I typed mapping
+imports, new permission tokens invalid. New P2 force-user bit0 only while owning
+memory request inactive; new panic diagnostics invalid0. Source roundtrip/hash
+and old control replay exact. Initial4.3B TLB-only exploratory import was NOT
+fully quiet (missed a new P2request); don't use as final proof. No original
+checkpoint overwritten; diagnostic migration is not arbitrary compatibility.
+
+Fixed strict continuation RUNNING: build/sim/runs/panic-owner-fixed-12b/,
+from panic-owner-fixed-50m/checkpoint-4422568010, target12B, session82873.
+Exact frozen model a6d40d0d5005ce63; automatic100M checkpoints/screens under
+build/sim/screens/panic-owner-fixed-12b-checkpoints/. Launch log
+scratch/hardware-fault-47f0/owner-fixed-12b-launch.log. Old e986 panic-loop run
+received graceful TERM after proof; its checkpoints retained, screenshot sidecar
+exits on result.json. Old retry-loop65ea run/checkpoints also retained unchanged.
+
+Evidence docs/evidence/phone-panic-owner-2026-11-10.json; detailed contracts and
+limits docs/{symbian-startup,cpu-patches,arm920-tlb}.md. No hardware build started
+as of this entry; user authorization explicit and pending dispatch after commit.
+One pre-dispatch check of completed build42820357005: synthesis succeeded,
+CPU78MHz setup+0.364ns; ONLY failing summary is stock HDMI scaler -0.151ns.
+No unrelated scaler/clock change made; next build measures this code's fit.
+
 ## 2026-11-10:100M screenshots enabled; corrected sim panic at4.4B
 
 User requested100M screenshots and a latest-checkpoint image without stopping

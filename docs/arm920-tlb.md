@@ -27,7 +27,10 @@ changes require another main-table lookup; they do not implicitly change the
 architectural contents of the main TLB. MMU-off access is identity, uncacheable
 and unbufferable. Warm cached ADD throughput remains one clock.
 
-The main table and walker accept only an actual current request. The old
+The main table and walker accept only an actual current request. Privilege and
+LDRT/STRT force-user state must accompany the P2 memory request, not a P1
+lookahead instruction. Patch0054 corrects this CPU boundary; changing the TLB
+alone could still falsely reject a privileged FIQ store after exception return. The old
 lookahead/check/hold ports are gone from the TLB interface. The cache wrappers
 retain their CPU integration ports, but no old cache implementation is selected.
 Lookup waiting stalls rather than sending the ZAP instruction retry/redirect.

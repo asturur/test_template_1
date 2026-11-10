@@ -105,3 +105,62 @@ If the long sim encounters a new fault, inspect the nearest100M checkpoint with
 the matching observer and capture the first exception. If it remains fault-free,
 track actual process/request completion rather than treating unchanged logo
 pixels or an idle thread as a deadlock. Firmware and C: inputs remain unchanged.
+
+
+## First exception and request-owner fix
+
+The frozen e986 replay captures its first ABT entry at cycle4,372,559,219.
+`LR_abt=50385254` identifies the precise faulting instruction5038524C (STRH),
+`SPSR_abt=400000D1` establishes privileged FIQ mode, FSR1D/FAR59893FE0 report a
+section permission fault. The page-table descriptor0240043A maps that access to
+C: flash02493FE0, AP1/domain1; DACR selects client access. That store is permitted
+in FIQ. It is not evidence of a missing disk file or required firmware patch.
+
+At the actual request, P1mode=10(user), P2mode=11(FIQ), P1force-user=0. The CPU
+exported P1's mode with P2's address/data, wrongly presenting this protected
+write as user access. The following exception return had restored user mode in
+P1 before the older store completed. Patch0054 exports BOTH mode and force-user
+from P2. This retains the existing registers and MMU permission rules.
+
+A strict close source at4,372,558,010 has no CPU memory request, cache/translation
+transaction, CP15 operation or buffered store outstanding. The old control
+aborts1209clocks later, with a CPU checkpoint byte-identical to the first replay.
+The audited fixed fork preserves17067 common fields, all RAM/DDR/CPU/cache
+state; it imports20D/19I mappings into new TLBs, invalidates new permission
+tokens, and seeds only the new inactive P2 force-user bit and passive panic
+observations. Typed table import plus field whitelist/hash report lives in
+`scratch/hardware-fault-47f0/close-owner-fixed.migration.json`. This is explicitly
+a diagnostic fork, not arbitrary saved-state compatibility or a cold boot proof.
+
+The initial4.3B TLB-only exploratory import used an insufficient quiescence
+check: P2 could have just admitted a request despite idle external/cache paths.
+Do not use that import as the final proof. The close fork adds explicit P2,
+CP15 and both write-buffer checks. It also replays the old exception exactly.
+
+After10,000 fixed clocks, FSR/FAR and ABT LR remain zero, no panic words were
+seen, and the target simulated C: word changes fromFFFFFFFF to00000001 followed
+by further firmware writes. CPU has returned to startup. The source firmware
+and C: files retain their hashes; the firmware is writing only its simulated
+working flash, as a real boot would.
+
+The focused regression's privileged stores before exception return and forced
+user LDRT cover both sides of the bug. Original wiring wrongly grants the LDRT
+inside SVC and failsD2; fixed wiring correctly raises FSR1D/FAR59800100 and
+recovers, passing0/3. Before/after program binary hashes are identical. A first
+isolated baseline attempt read the shared suite's hardcoded program path and
+failedD6; it is INVALID evidence. The final reference testbench uses its own
+program path and the logged D2 LDRT failure is the valid comparison.
+
+Full CPU suite180PASS, patch0054 reconstruction and source preflight pass;
+separate fixed cold50M completes normally with12known initial bus faults/data0.
+The fixed post-failure phone continuation COMPLETED50M additional clocks at
+4422568010: FSR/FAR/ABT LR/panicmask remain zero; bus errors unchanged/data0.
+BTTestServer starts, increasing the process count from12 to13. Nokia remains
+on screen; this is startup progress, not a demonstrated working UI. A strict
+fixed-model continuation toward12B is running with100M screenshots. The old
+confirmed panic-loop run was gracefully stopped and all checkpoints retained.
+
+Bluetooth overlay ON's separate pre-logo failure remains OPEN. This verification
+uses NOS/BT overlays OFF. Do not claim that the P2 fix repairs the overlay;
+load/hook compatibility needs its own investigation and boot validation. Hardware has not yet validated this fix; the old board screenshot alone
+does not prove the same original exception, though the terminal panic matches.

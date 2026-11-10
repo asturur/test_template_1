@@ -100,7 +100,7 @@ output logic                             o_data_wb_re_check,
 
 // Force user view.
 output logic                             o_mem_translate,
-// Privilege of the data request in the post-ALU lookup stage.
+// Privilege of the current registered post-ALU data request.
 output logic [CPSR_MODE:0]               o_data_cpsr,
 
 // --------------------------------------------------
@@ -558,7 +558,7 @@ function automatic logic data_misaligned(input logic [31:0] address,
            !(ubyte || sbyte) && (|address[1:0]);
 endfunction
 assign unused = |{rb_decompile, CPU_MODE, alu_cpsr_nxt[31:30], alu_cpsr_nxt[28:0],
-                 predecode_inst[39:36], postalu_mem_translate_ff,
+                 predecode_inst[39:36],
                  i_dc_reg_idx[63:PHY_REGS]};
 
 assign o_data_alignment_fault = alignment_en && o_data_wb_stb && o_data_wb_cyc &&
@@ -569,9 +569,9 @@ assign alignment_check = alignment_en &&
     data_misaligned(postalu1_address_ff, postalu1_ubyte_ff, postalu1_sbyte_ff,
                     postalu1_uhalf_ff, postalu1_shalf_ff);
 assign o_cpsr                   = alu_flags_ff[ZAP_CPSR_MODE:0];
-// Exception return can update ALU flags while an older FIQ/IRQ store is
-// still approaching the data TLB. Keep its privilege with the lookup.
-assign o_data_cpsr              = postalu1_flags_ff[ZAP_CPSR_MODE:0];
+// Address, direction, privilege and force-user must belong to the same P2
+// request. A following exception return can already restore user mode in P1.
+assign o_data_cpsr              = postalu_flags_ff[ZAP_CPSR_MODE:0];
 assign o_data_swp_tag = postalu_swp_tag;
 assign o_data_wb_adr            = {postalu_address_ff[31:2], 2'd0};
 assign o_data_wb_adr_nxt        = {alu_address_ff[31:2], 2'd0};
@@ -641,7 +641,7 @@ assign pipeline_is_not_empty    = completion_valid                    ||
                                   memory_dav_ff                      ||
                                   (|i_dc_lock);
 
-assign o_mem_translate = postalu1_mem_translate_ff;
+assign o_mem_translate = postalu_mem_translate_ff;
 
 // With the instruction cache disabled, a redirected fetch must wait for
 // older stores to reach memory. Flash-ID/reset routines execute from RAM

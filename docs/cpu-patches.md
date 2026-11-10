@@ -2,6 +2,27 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## Data-request privilege ownership (0054)
+
+Patch0054 takes data privilege and force-user(LDRT/STRT) from the registered
+P2 request, alongside its address, direction, byte lanes and payload. Previously
+those two fields came from P1. An exception return can already put user mode in
+P1 while an older privileged FIQ flash store remains in P2. That produced the
+phone's false section permission fault at5038524C/59893FE0 despite AP1 allowing
+privileged writes. No permission table, firmware or C: input was changed.
+
+The exact old close replay shows P1mode10/P2mode11 and aborts after1209clocks;
+its CPU state is byte-identical to the original first-abort capture. Fixed HDL
+passes the store, updates the simulated flash and returns to startup. The
+source-code request registers and timing boundaries are retained; no extra wait
+or unregistered CPU-to-memory chain was introduced.
+
+`data_privilege_owner.S` covers warm protected stores before exception return,
+then LDRT inside SVC which MUST get an unprivileged permission abort. Identical
+program bytes fail the original wiring (LDRT wrongly allowed), and pass fixed
+wiring at memory delays0/3. Full CPU suite180PASS, no XFAIL. Patch reconstruction
+through0054 passes. Phone verification details: [symbian-startup.md](symbian-startup.md).
+
 ## Production ARM920T TLBs and cache (0053)
 
 Patch0053 removes the ZAP cache fallback and split TLB modules, selects the

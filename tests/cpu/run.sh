@@ -33,6 +33,7 @@ CPU_PROGRAM=operand_timing tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_privileged_store tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_privileged_ldrt tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_flash_sequence tests/cpu/core/sim.sh
+CPU_PROGRAM=data_privilege_owner tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_store_return tests/cpu/core/sim.sh
 CPU_PROGRAM=swp_basic tests/cpu/core/sim.sh
 CPU_PROGRAM=swp_cached tests/cpu/core/sim.sh
