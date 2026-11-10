@@ -29,7 +29,7 @@ EOF
 rm -rf "$work"
 cp -R "$upstream" "$work"
 for p in "$root"/patches/zap/[0-9]*.patch; do
-    patch -d "$work" -p1 -s --no-backup-if-mismatch < "$p"
+    patch -d "$work" -p1 -s -E --no-backup-if-mismatch < "$p"
     echo "applied $(basename "$p")"
 done
 diff -r "$work/src/rtl" "$root/rtl/arm" -x LICENSE -x UPSTREAM.json -x README.md

@@ -132,3 +132,23 @@ synchronization. A CEN alone does not relax104MHz timing checks; actual derived
 clocks or narrowly proven enable-to-enable multicycle constraints need explicit
 analysis. Do not invent a universal26MHz bus rate or alter timer timebases to
 hide a timing problem.
+
+
+## Measured follow-up after the64-entry TLB replacement
+
+The final50M C: scan now takes9512median clocks/read,4484reads versus3748 with
+prior handshake-only RTL. Main-table lookup counts remain1,225,255D /769,505I
+although only33D /24I lookups need page-table walks. The small local permission
+token is keyed by direction/context as well as1KiB address, so switching read/
+write or mode can cause main-table lookups despite a hot translation. Consider
+registered read/write permission grants for the same mapping/context, or a tiny
+multi-entry token front end, before changing architectural table size/semantics.
+Do not let a read grant authorize a write or cross a1KiB AP boundary.
+
+The data wrapper also retains pending_translation/lookup_resync sequencing from
+the old pipelined TLB contract. Review whether it duplicates the new controller's
+owned current-request token; measure its contribution before removing captures.
+Preserve LDM/SWP/interrupt/fault/FCSE ordering and104MHz stage boundaries. These
+are unimplemented opportunities, not claimed speedups. See arm920-tlb.md and
+evidence/tlb64-2026-11-10.json. The old cache fallback is physically removed;
+future cache work targets the single production implementation.

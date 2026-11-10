@@ -37,9 +37,7 @@ module test;
  reg locked_read_pending=0;
  reg dma_pending=0,dma_done=0;reg [31:0] dma_observed=0;
  reg [31:0] instruction_test_addr=0;integer instruction_fetches=0,prefetch_expected=1;
-`ifdef NGAGE_ASSOC_EXPERIMENT
  reg [1023:0] recent_trace[0:15];integer recent_pos=0;
-`endif
  wire [1023:0] trace_text=dut.u_zap.u_zap_core.o_trace;
  wire trace_valid=dut.u_zap.u_zap_core.o_trace_valid;
  wire trace_last=dut.u_zap.u_zap_core.o_trace_uop_last;
@@ -63,14 +61,12 @@ module test;
  always @(negedge clk)if(!reset)begin
   if(dut.u_zap.cpu_dc_stb && dut.u_zap.data_request_ack!==dut.u_zap.data_ack)
    $fatal(1,"demand completion differs from original strobed ACK");
-`ifdef NGAGE_ASSOC_EXPERIMENT
 `ifndef NGAGE_OPERAND_REFERENCE
   if(dut.u_zap.u_zap_core.data_stall !==
      (dut.u_zap.u_zap_core.postalu_request_stb && dut.u_zap.u_zap_core.postalu_request_cyc && !dut.u_zap.u_zap_core.completion_valid))
    $fatal(1,"advance without an owned completion");
   if(dut.u_zap.u_zap_core.completion_valid && dut.u_zap.cpu_dc_stb)
    $fatal(1,"completed demand replayed to cache");
-`endif
 `endif
  end
 `ifndef NGAGE_OPERAND_REFERENCE
@@ -185,25 +181,23 @@ module test;
      dut.u_zap.u_zap_core.data_stall,dut.u_zap.u_zap_core.stall_from_shifter,
      dut.u_zap.u_zap_core.clear_from_writeback,dut.u_zap.u_zap_core.clear_from_alu,dut.u_zap.u_zap_core.clear_from_decode);
    end
-`ifdef NGAGE_ASSOC_EXPERIMENT
    // Attribute the measured load/use issue gap to accepted demand, tag decision,
    // response and owned completion. These are real handshakes, not fetch-valid
    // levels or guessed retirement; identical probes run on the frozen baseline.
    if($test$plusargs("cache_phase_trace") && load_edge>=0)begin
-    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.req_valid &&
-       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.req_ready)
+    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.req_valid &&
+       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.req_ready)
      $display("LOAD_PHASE ACCEPT %0d mva=%08h cacheable=%0d enabled=%0d",cycles,
-      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.address,
-      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cacheable,
-      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache_enable);
-    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.state==1)
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.address,
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cacheable,
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache_enable);
+    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.state==1)
      $display("LOAD_PHASE LOOKUP %0d hit=%0d",cycles,
-      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.hit);
-    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.response_valid)
+      dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.hit);
+    if(dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.response_valid)
      $display("LOAD_PHASE RESPONSE %0d",cycles);
     if(dut.u_zap.u_zap_core.completion_valid)$display("LOAD_PHASE COMPLETE %0d",cycles);
    end
-`endif
    if(retirement) retired_instructions=retired_instructions+1;
    // Structured architectural effects for latency-insensitive reference comparison.
    // Observe selected effective RF writes, not decompile text or guessed retirement.
@@ -246,7 +240,6 @@ module test;
     end
    end
 `endif
-`ifdef NGAGE_ASSOC_EXPERIMENT
    if ((($test$plusargs("tlb_order") && dut.u_zap.l_generate_with_cache_mmu.u_data_cache.tlb_raw_stb) ||
         ($test$plusargs("tlb_order_i") && dut.u_zap.l_generate_with_cache_mmu.u_code_cache.tlb_raw_stb)) &&
        !dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_write_buffer_empty)tlb_order_stalls=tlb_order_stalls+1;
@@ -254,16 +247,15 @@ module test;
     $fatal(1,"prefetch completed with %0d target line fetches, expected %0d",instruction_fetches,prefetch_expected);
    if ($test$plusargs("irq_refill") || $test$plusargs("irq_writeback")) begin
     if(refill_irq_ticks==0 && (($test$plusargs("irq_refill") &&
-       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.transfer.state==2 &&
-       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.transfer.new_address==32'h80030100) ||
+       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.transfer.state==2 &&
+       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.transfer.new_address==32'h80030100) ||
        ($test$plusargs("irq_writeback") &&
-       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.transfer.state==1 &&
-       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.transfer.old_address==32'h80030100)))refill_irq_ticks=1;
+       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.transfer.state==1 &&
+       dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.transfer.old_address==32'h80030100)))refill_irq_ticks=1;
     else if(refill_irq_ticks>0 && refill_irq_ticks<100)refill_irq_ticks=refill_irq_ticks+1;
     if(refill_irq_ticks==2)irq<=1;
     if(refill_irq_ticks>2 && dut.u_zap.cpu_cpsr[4:0]==5'h12)irq<=0;
    end
-`endif
    // A competing bus master becomes ready after the first swap read. It may
    // observe memory only after the CPU releases the external bus lock.
    if(($test$plusargs("swp_cached") || $test$plusargs("swp_cached_irq") || $test$plusargs("swp_mmu_abort")) && bus_lock) $fatal(1,"cached SWP asserted external lock");
@@ -313,16 +305,12 @@ module test;
     if(wfi_ticks==20)begin if($test$plusargs("wfi_fiq"))fiq<=1;else irq<=1;end
     if(wfi_ticks==40)begin irq<=0;fiq<=0;end
    end
-`ifdef NGAGE_ASSOC_EXPERIMENT
    if(trace_valid && trace_last) begin recent_trace[recent_pos%16]=trace_text;recent_pos=recent_pos+1;end
-`endif
-`ifdef NGAGE_ASSOC_EXPERIMENT
    if(cycles==499999) begin
-    $display("EXPERIMENT: last trace %s",trace_text);
-    $display("EXPERIMENT2: mgrstate=%b d-wb=%b/%b d-ack=%b cpu_req=%b ready=%b response=%b ia=%h pa=%h translation_wait=%b",dut.u_zap.l_generate_with_cache_mmu.u_data_cache.state_ff,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_wb_cyc,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_wb_stb,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.wb_ack[0],dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.req_valid,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.req_ready,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.response_valid,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_address,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.tlb_phy_addr,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.translation_wait);
-    $display("EXPERIMENT: addr=%h rd=%b wr=%b ack=%b err2=%b busy=%b launched=%b cache_state=%d bus=%b inflight=%b wb=%b/%b external=%b/%b/%b",dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_address,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_rd,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_wr,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_ack,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_err2,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.tlb_busy,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.launched,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.state,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.bus_valid,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.inflight,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.wb_cyc[0],dut.u_zap.l_generate_with_cache_mmu.u_data_cache.wb_stb[0],cyc,stb,ack);
+    $display("CACHE: last trace %s",trace_text);
+    $display("CACHE_BUS: mgrstate=%b d-wb=%b/%b d-ack=%b cpu_req=%b ready=%b response=%b ia=%h pa=%h translation_wait=%b",dut.u_zap.l_generate_with_cache_mmu.u_data_cache.state_ff,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_wb_cyc,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_wb_stb,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.wb_ack[0],dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.req_valid,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.req_ready,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.response_valid,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_address,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.tlb_phy_addr,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.translation_wait);
+    $display("CACHE: addr=%h rd=%b wr=%b ack=%b err2=%b busy=%b launched=%b cache_state=%d bus=%b inflight=%b wb=%b/%b external=%b/%b/%b",dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_address,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_rd,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.i_wr,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_ack,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.o_err2,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.tlb_busy,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.launched,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.state,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.bus_valid,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.inflight,dut.u_zap.l_generate_with_cache_mmu.u_data_cache.wb_cyc[0],dut.u_zap.l_generate_with_cache_mmu.u_data_cache.wb_stb[0],cyc,stb,ack);
    end
-`endif
    if(cycles>max_cycles) $fatal(1,"CPU unit test timed out");
    if (ack) bus_count=bus_count+1;
    if (ack && !we && instruction_test_addr!=0 && addr==instruction_test_addr)
@@ -364,9 +352,7 @@ module test;
      if ($test$plusargs("swp_abort_check") && fault_address_writes!=1)
       $fatal(1,"SWP read aborted but write attempts=%0d",fault_address_writes);
      if(wdata!==32'h50415353) begin
-`ifdef NGAGE_ASSOC_EXPERIMENT
       for(integer z=0;z<16;z=z+1) $display("RECENT %s",recent_trace[(recent_pos+z)%16]);
-`endif
       $fatal(1,"CPU diagnostic failed: %h",wdata);
      end
      if(($test$plusargs("tlb_order") || $test$plusargs("tlb_order_i")) && tlb_order_stalls==0)$fatal(1,"test did not overlap a TLB walk with buffered writes");

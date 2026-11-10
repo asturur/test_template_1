@@ -1,3 +1,79 @@
+## 2026-11-10: ARM920T64-entry TLBs verified; production cache only
+
+LATEST TASK COMPLETE; user now requests commit/push and will launch the build.
+User requested64-entry mixed-size fully-associative I/D TLBs,104MHz-conscious
+stages, remove old cache, full tests+separate50M boot/scan comparison, preserve
+long sims and no hardware build. Final phone model27535b46216966c0.
+
+New rtl/arm920/{tlb.sv,tlb_bank.sv}: separate64-slot I/D pools, all page sizes,
+grouped8x8 staged CAM selection and explicit64x38bit BRAM payload (pads40bits),
+1KiB checked permission token, full direction/context ownership. CP15c8 all/
+MVA invalidation and c10 independent I/D base/victim/P/readback implemented,
+with preserve separate from replacement lockdown. Correct coarse/fine indexing,
+AP/SR/domain/CB, no negative descriptor caching, proper table external aborts,
+cancelled-walk draining. Whole-page masks prevent duplicate/overlapping hits.
+
+Old cache FSM/tag storage, split TLB/walker/checker and their unused RAM helpers
+DELETED from rtl/arm and QIP. CPU branch-predictor RAM helper remains needed.
+Production adapter/file/instance names arm920_cache_adapter/cache_adapter;
+all NGAGE_ASSOC_EXPERIMENT and CPU_ASSOC_EXPERIMENT toggles removed. No legacy
+cache is compiled or available as a normal build choice. ZAP wrappers remain
+CPU integration glue. Patch0053 records imported-source changes/deletions;
+verify.sh now uses patch -E to actually remove empty deleted files. Pinned
+upstream+0001–0048,0050–0053 reproduces rtl/arm byte-for-byte (PASS).
+
+Verification COMPLETE:
+- tests/cpu/run.sh EXIT0,177 PASS lines, no XFAIL. Former fiq_store_return D1
+  now passes0/3. Warm cached ADD remains1clock. Tests cover SWP/LDM, FCSE,
+  alignment, permissions/aborts, prefetch, locks, buffer ordering, maintenance.
+- Enhanced CPU tlb_lockdown program verifies independent BOTH I/D c10 writes/
+  readback plus D preserved-entry/MVA invalidation; targeted0/3 PASS after suite.
+- Directed bank all64 mixed entries/65th victim/base/P/all/MVA/cancellation,
+  controller four sizes/CB/fine index, permission truth table, table aborts and
+  request/AP1KiB ownership tests PASS.
+- Whole-top structural elaboration and Intel SYNTHESIS BRAM primitive-path lint
+  PASS; QIP paths/Python syntax valid. No Quartus fit/Fmax claim or hardware build.
+
+Final cold run build/sim/runs/tlb64-final-cold-50m/ COMPLETED50M,00006154,
+12known initial bus faults/data0. Still early pre-LCD; no full UI boot claim.
+Normal CPU/host checkpoint50000000 and screens under matching build/sim/screens.
+Matched scan from quiescent2,000,000,027 +50M:
+- prior8877 handshake-only:3748reads, median11430clocks,8block exits;
+- final2753:4484reads, median9512clocks,9block exits;
+- throughput+19.64%, median latency-16.78%. Both0repeats/backwards,12errors
+  unchanged, data0. First56 C-bus address/data pairs match.
+- final main lookup/walk counts: D1,225,255/33; I769,505/24. Real table conflicts
+  effectively removed in this window; local token/context and cache/CPU cost remain.
+- terminal fetch0 was inactive (instr_valid0), last trace503393F8. Diagnostic
+  terminal pair scratch/tlb64/scan-final-50m.cpu/.host resumes100k normally,
+  7more reads/no new faults; fetch50329D28 afterward. No stuck-zero-PC problem.
+
+Final scan uses AUDITED diagnostic migration, not arbitrary compatibility:
+quiesce.cpp advances27clocks from previous audited2B/8877 copy until caches,
+TLB/walker/external bus/pending/CP15 idle. migrate-final.py preserves17068
+common fields with explicit experimental_cache -> cache_adapter name mapping,
+recomputes generated comb scratch, imports20D/19I valid mappings incl AP/domain/
+CB into new pools, asserts no overlap. New permission tokens invalid; RR after
+imported entries; source CP15r10=0. Whitelist/hashes/import records in
+scratch/tlb64/{schema-final-diff.json,scan-final.migration.json}. Original2B,
+firmware and C input hashes reverified unchanged. Shared profile78MHz CPU,
+26MHz timers/NOS64(experimental), ROM64bit1KiB/directSDRAM, no overlays.
+Observer scanout not collected; diagnostic pair is not a maintained runner lineage.
+
+Initial model0238 exposed a real CPU prefetch-restore regression after77passes:
+P_RESTORE waited for removed lookahead/check-stage addresses. It now restores
+from the current request token. Final source was rebuilt and fresh cold50M/
+scan50M rerun (no relabeling initial result). Failed logs retained to avoid repeat.
+All task workers/event wait g3:310 completed; no monitoring process left. Original
+long run65ea executable/checkpoints untouched. No GitHub action/build launched.
+
+Report docs/arm920-tlb.md + docs/mmcstore-scan.md;
+measured evidence docs/evidence/tlb64-2026-11-10.json;
+logs/artifacts scratch/tlb64/. Future performance notes in
+cpu-performance-redesign-notes.md: direction-aware permission grants/token churn
+and old D-wrapper pending_translation/lookup_resync sequencing, not implemented.
+Next: user builds the pushed changes; collect hardware/timing evidence when supplied.
+
 ## 2026-11-10: MMU ownership fix verified;50M scan throughput +42.73%
 
 User requested fix with104MHz-conscious registers, tests+boot>=50M, matched

@@ -2,6 +2,18 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## Production ARM920T TLBs and cache (0053)
+
+Patch0053 removes the ZAP cache fallback and split TLB modules, selects the
+production cache unconditionally, and connects actual CP15c8/c10 I/D controls.
+The replacement lookup/table-walk implementation is maintained in rtl/arm920/
+with the existing cache. TLB slots share page sizes, use staged associative
+lookup/BRAM metadata, and implement round-robin/base/victim/P behavior. See
+[arm920-tlb.md](arm920-tlb.md) for the contract and verification. The old cache
+selection macro and legacy expected-failure test are removed. Patch application
+now uses -E because deleted upstream files must disappear rather than remain
+empty. The complete pinned-upstream reconstruction passes with0053 applied.
+
 ## MMU lookup ownership and refill recovery (0052)
 
 The TLB's registered check and RAM lookup must both belong to the current

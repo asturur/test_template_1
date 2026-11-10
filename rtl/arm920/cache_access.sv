@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Experimental ARM920-shaped cache with serialized CPU requests and buffered writes.
+// ARM920T cache with serialized CPU requests and buffered writes.
 // One request at a time. The caller supplies already translated addresses and
 // attributes; MMU checks, CP15 maintenance, CPU pipeline and Wishbone adapting
 // remain outside this block. Live cached and buffered operations retry bus

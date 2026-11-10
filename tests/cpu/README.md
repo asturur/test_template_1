@@ -2,7 +2,7 @@
 
 Run `tests/cpu/run.sh` from the repository root. These short standalone SystemVerilog benches follow the directed CPU-test style in `jtpublicfork/modules/jtframe/ver/cpu`; they use the existing `jotego/simulator:arm64` image and need no phone firmware or checkpoints. Individual benches have `sim.sh` runners.
 
-The ARM920-shaped associative instruction and data caches are the development default. Set `CPU_ASSOC_EXPERIMENT=0` on a CPU test or `NGAGE_ASSOC_EXPERIMENT=0` on `sim/run.py` to select the old direct-mapped cache. The suite explicitly runs one known-failing legacy associativity test as XFAIL. The default MiSTer source list enables the new caches; neither Quartus inference and FPGA fit nor 104 MHz timing has been verified. Do not restore a checkpoint created by a different CPU build.
+The production ARM920T instruction/data caches and64-entry mixed-page-size I/D TLBs are the only maintained memory-system path. There is no legacy-cache build switch or expected-failure cache geometry test. Keep hardware timing verification separate from functional simulation, and never restore a checkpoint from a different executable without an explicitly audited diagnostic migration.
 
 The suite covers:
 

@@ -3,6 +3,52 @@
 Hardware must reach UI within 20 seconds; an observed hour without UI is an
 unresolved failure. These replay results establish local progress, not full boot.
 
+## ARM920T64-entry replacement
+
+The cache is now the production-only implementation and the split ZAP TLB
+banks have been replaced with mixed-size64-entry associative I/D tables.
+[Architecture and verification](arm920-tlb.md) describe the CP15 and pipeline
+contracts. The final corrected source completed the full50M comparison:
+
+|50M clocks from the same quiescent state|Prior handshake-only8877|ARM920T64-entry2753|
+|---|---:|---:|
+|Complete reads|3748|4484|
+|Median clocks/read|11430|9512|
+|Min / max clocks/read|11300 /33835|9389 /30618|
+|Unique scan entries|3748|4484|
+|Repeated / backwards positions|0 /0|0 /0|
+|Block exits|8|9|
+|Bus errors at end (unchanged)|12|12|
+|Data faults|0|0|
+
+Throughput increases19.64%; median latency falls16.78%. Main-table lookups:
+1,225,255D /769,505I, with only33D /24I actual walks. Remaining token churn and
+CPU/cache load/store latency dominate; changing C: backing transfers is not the
+next large opportunity. A bounded comparison matches56 C-bus address/data pairs.
+The terminal fetch address0 had instr_valid=0, last trace503393F8; it was an
+inactive frontend sample. Restoring the saved pair and running another100k
+clocks completes7 more reads with no new faults or repeated positions.
+
+The full final CPU suite passes177 checks with no XFAIL. The initial candidate
+0238 had the same scan result but failed translated-prefetch restoration in a
+CPU test. Its result is retained as a failed intermediate, not relabeled as final
+proof. Corrected2753 was rebuilt, cold-booted50M and benchmarked50M independently.
+[Machine-readable final evidence](evidence/tlb64-2026-11-10.json).
+
+Both arms start from a quiescent diagnostic copy at2,000,000,027, advanced27
+clocks from the earlier audited2B copy using frozen8877. No CPU/cache/walker
+or external-bus transaction is outstanding. The explicit migration preserves
+CPU/cache/memory state and imports20valid D/19I mappings, including AP/domain/
+C/B, into the new tables. There are no overlapping imported mappings. New local
+permission tokens start invalid; RR starts after the imported entries. Serialized
+cache names map experimental_cache -> cache_adapter. Whitelists, field audit,
+source/target hashes and import records live in scratch/tlb64/scan-final.migration.json.
+Original checkpoints, firmware and C: input files remain untouched. Both runs
+keep the prior78MHz/timers26MHz/NOS64/ROM64bit1KiB/direct-SDRAM configuration.
+The final observer saves a terminal diagnostic pair; its host scanout is not
+updated and it is not a maintained runner lineage. The cold50M run saves normal
+checkpoints/screens under build/sim/runs and build/sim/screens.
+
 ## Implemented fix: completed50M comparison
 
 Ownership/recovery is now implemented in zap_tlb and its I/D wrappers; see

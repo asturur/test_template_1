@@ -94,6 +94,9 @@ def prepare_zap(info, variant, destination=None):
         return (ARM if variant == "ngage" else pristine_zap() / "src" / "rtl"), patches
     shutil.copytree(pristine_zap(), destination, dirs_exist_ok=True)
     if variant == "ngage":
+        for obsolete in (destination / "src" / "rtl").glob("*.sv"):
+            if not (ARM / obsolete.name).is_file():
+                obsolete.unlink()
         for source in list(ARM.glob("*.sv")) + list(ARM.glob("*.svh")):
             shutil.copy2(source, destination / "src" / "rtl" / source.name)
     return destination, patches
@@ -102,17 +105,15 @@ def prepare_zap(info, variant, destination=None):
 def build_simulator(info, variant):
     rtl, patches = prepare_zap(info, variant)
     source = sorted(rtl.glob("*.sv"))
-    associative = variant == "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT", "1") == "1"
-    if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
-        raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
+    associative = variant == "ngage"
     if associative:
         source += [ROOT / "rtl" / "ngage_bram.v"] + sorted((ROOT / "rtl" / "arm920").glob("*.sv"))
-    info["associative_cache_experiment"] = associative
+    info["arm920_cache"] = associative
     inputs = source + sorted(rtl.glob("*.svh")) + patches + [
         ROOT / "rtl" / "ngage_cpu.sv", ROOT / "sim" / "ngage_cpu_sim.sv", ROOT / "sim" / "main.cpp",
         ROOT / "sim" / "boot_profile.cpp", ROOT / "sim" / "boot_profile.h", Path(__file__)]
     key = hashlib.sha256((info["simulator_image_id"] + "".join(digest(p) for p in inputs)).encode()).hexdigest()
-    cache_variant = f"{variant}-assoc-experiment" if associative else variant
+    cache_variant = f"{variant}-arm920" if associative else variant
     stamp = BUILD / f"build-key-{cache_variant}"
     objdir = BUILD / f"obj-{cache_variant}"
     binary = objdir / "Vngage_cpu_sim"
@@ -124,8 +125,6 @@ def build_simulator(info, variant):
                    "-I" + str(rtl.relative_to(ROOT)), "rtl/ngage_cpu.sv", "sim/ngage_cpu_sim.sv"]
         if variant != "ngage":
             command.append("-DNGAGE_NO_CPU_DEBUG")
-        if associative:
-            command.append("-DNGAGE_ASSOC_EXPERIMENT")
         command += [str(p.relative_to(ROOT)) for p in source]
         command += ["/work/sim/main.cpp", "/work/sim/boot_profile.cpp"]
         execute(docker(command), BUILD / "build.log")
@@ -228,20 +227,18 @@ def rtl_lint(info, variant):
     command = ["verilator", "--lint-only", "-DSYNTHESIS", "-Wno-fatal", "-Wno-lint",
                "--top-module", "ngage_cpu", "-I" + str(rtl.relative_to(ROOT)), "rtl/ngage_cpu.sv"]
     command += [str(p.relative_to(ROOT)) for p in sorted(rtl.glob("*.sv"))]
-    associative = variant == "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT", "1") == "1"
-    if variant != "ngage" and os.environ.get("NGAGE_ASSOC_EXPERIMENT") == "1":
-        raise ValueError("NGAGE_ASSOC_EXPERIMENT requires the ngage CPU variant")
+    associative = variant == "ngage"
     if variant != "ngage":
         command += ["-DNGAGE_NO_CPU_DEBUG"]
     if associative:
-        command += ["-DNGAGE_ASSOC_EXPERIMENT", "rtl/ngage_bram.v"]
+        command += ["rtl/ngage_bram.v"]
         command += [str(p.relative_to(ROOT)) for p in sorted((ROOT / "rtl" / "arm920").glob("*.sv"))]
     if associative:
         library = Path(os.environ.get("ALTERA_MF", str(ROOT.parent / "jtpublicfork/modules/jtframe/hdl/ver/altera_mf.v")))
         if not library.is_file():
             raise RuntimeError("Synthesis-path lint requires ALTERA_MF pointing to Intel's altera_mf.v simulation library")
         command += ["/vendor/altera_mf.v"]
-    info["associative_cache_experiment"] = associative
+    info["arm920_cache"] = associative
     execute(docker(command, [f"type=bind,src={library},dst=/vendor/altera_mf.v,readonly"] if associative else ()), BUILD / ("rtl-assoc-synthesis-path-lint.log" if associative else "rtl-synthesis-path-lint.log"))
     info.update(status="pass", method="verilator-lint-only", synthesis_macro=True, quartus_used=False)
     (BUILD / "rtl-lint-results.json").write_text(json.dumps(info, indent=2) + "\n")

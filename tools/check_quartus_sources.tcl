@@ -86,9 +86,11 @@ while {[llength $queue]} {
         if {!$found} {lappend failures "Missing HDL include $include from $path"}
     }
 }
-# The core manifest must select the patched cache, not the upstream fallback.
+# The production cache/TLB must be present; no legacy cache selector exists.
 set f [open files.qip];set manifest [read $f];close $f
-if {![string match {*NGAGE_ASSOC_EXPERIMENT=1*} $manifest]} {lappend failures "Associative-cache macro missing"}
+foreach required {rtl/arm920/cache_adapter.sv rtl/arm920/tlb.sv rtl/arm920/tlb_bank.sv} {
+    if {![string match "*$required*" $manifest]} {lappend failures "Missing production cache/MMU source $required"}
+}
 # GUI metadata must not contradict the maintained two-output PLL HDL.
 set f [open rtl/pll.qip];set pll_qip [read $f];close $f
 if {[string match {*IP_COMPONENT_PARAMETER*} $pll_qip]} {lappend failures "Stale generated core PLL metadata reintroduced"}

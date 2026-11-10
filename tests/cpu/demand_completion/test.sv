@@ -24,7 +24,7 @@ always @(posedge clk)begin
  if(!reset && dut.maint_valid && dut.mready)accepts<=accepts+1;
  if(!reset && (inv_done || clean_done))completions<=completions+1;
 end
-arm920_zap_dcache_adapter dut(
+arm920_cache_adapter dut(
  .clk(clk),.reset(reset),.discard_refill(1'b0),.external_permit(1'b1),.write_buffer_empty(),
  .fast_enable(1'b0),.fast_next_address(32'd0),
  .address(address),.physical(address),.din(32'h87654321),.far_in(address),

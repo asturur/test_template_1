@@ -23,12 +23,8 @@
 
 module zap_dcache #(
 
-parameter logic [31:0] CACHE_SIZE             = 32'd1024,
-parameter logic [31:0] SPAGE_TLB_ENTRIES      = 32'd8,
-parameter logic [31:0] LPAGE_TLB_ENTRIES      = 32'd8,
-parameter logic [31:0] SECTION_TLB_ENTRIES    = 32'd8,
-parameter logic [31:0] FPAGE_TLB_ENTRIES      = 32'd8,
-parameter logic [31:0] CACHE_LINE             = 32'd8,
+parameter logic [31:0] CACHE_SIZE             = 32'd16384,
+parameter logic [31:0] CACHE_LINE             = 32'd32,
 parameter logic        BE_32_ENABLE           = 1'd0,
 parameter logic [31:0] CPSR_MODE              = 32'd4
 
@@ -99,6 +95,11 @@ input   logic [1:0]            i_sr,
 input   logic [31:0]           i_baddr,
 input   logic [31:0]           i_dac_reg,
 input  logic                   i_tlb_inv,
+input wire i_tlb_inv_mva,
+input wire [31:0] i_tlb_inv_address,
+input wire i_tlb_lock_write,
+input wire [31:0] i_tlb_lock_data,
+output wire [31:0] o_tlb_lock_read,
 
 // Wishbone. Signals from all 4 modules are ORed.
 output logic              o_wb_stb, o_wb_stb_nxt,
@@ -134,15 +135,6 @@ logic [31:0]                     tlb_far;
 logic                            tlb_fault;
 logic                            tlb_cacheable, tlb_bufferable;
 logic                            tlb_busy;
-logic [CACHE_LINE*8-1:0]         tr_cache_line;
-logic [CACHE_LINE*8-1:0]         cf_cache_line;
-logic [CACHE_LINE-1:0]           cf_cache_line_ben;
-logic                            cf_cache_tag_wr_en;
-logic [`ZAP_CACHE_TAG_WDT-1:0]   tr_cache_tag, cf_cache_tag;
-logic                            tr_cache_tag_valid;
-logic                            tr_cache_tag_dirty, cf_cache_tag_dirty;
-logic                            cf_cache_clean_req, cf_cache_inv_req;
-logic                            tr_cache_inv_done, tr_cache_clean_done;
 logic [2:0]                      wb_ack;
 logic [2:0]                      state_ff, state_nxt;
 logic [31:0]                     cache_address;
@@ -233,7 +225,6 @@ always_ff @(posedge i_clk) begin
     end
 end
 
-`ifdef NGAGE_ASSOC_EXPERIMENT
 // Experimental CPU integration: isolated behind a compile-time flag until
 // directed CPU, maintenance and bus tests all pass.
 assign checked_cache_index=checked_lookup[`ZAP_VA__CACHE_INDEX];
@@ -243,7 +234,7 @@ assign o_reg_dat='0;
 assign o_reg_idx='0;
 assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
 assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
-arm920_zap_dcache_adapter experimental_cache(
+arm920_cache_adapter cache_adapter(
  .clk(i_clk),.reset(i_reset),.discard_refill(1'b0),.address(i_address),.physical(pending_translation ? pending_pa : tlb_phy_addr),
  .swp_tag(i_swp_tag),.swp_bus_lock(o_swp_bus_lock),.din(i_dat),.far_in(pending_translation ? pending_far : tlb_far),.rd(i_rd),.wr(i_wr),.ben(i_ben),
  .alignment_fault(i_alignment_fault),.alignment_far(i_alignment_far),
@@ -262,166 +253,33 @@ arm920_zap_dcache_adapter experimental_cache(
  .wb_cyc(wb_cyc[0]),.wb_stb(wb_stb[0]),.wb_wen(wb_wen[0]),.wb_sel(wb_sel[0]),
  .wb_adr(wb_adr[0]),.wb_data(wb_dat[0]),.wb_cti(wb_cti[0]),
  .wb_ack(wb_ack[0]),.wb_err(wb_err[0]),.wb_rdata(i_wb_dat));
-`else
-// Legacy cache retains its existing completion contract.
-assign o_request_ack=o_ack;
-assign o_swp_bus_lock=1'b0;
-assign o_cache_lock_done=1'b1;
-assign o_write_buffer_empty=1'b1;
-// Basic cache FSM - serves as manager 0.
-zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE)) u_zap_cache_fsm (
-        .i_clk                  (i_clk),
-        .i_reset                (i_reset),
-        .i_address              (i_address),
-        .i_alignment_fault      (i_alignment_fault),
-        .i_alignment_far        (i_alignment_far),
-        .i_rd                   (i_rd),
-        .i_wr                   (i_wr),
-        .i_din                  (i_dat),
-        .o_idle                 (idle),
-        .i_ben                  (i_ben),
-        .i_load_info            (i_load_info),
-        .o_dat                  (o_dat),
-        .o_ack                  (o_ack),
-        .o_err                  (o_err),
-        .o_fsr                  (o_fsr),
-        .o_far                  (o_far),
-        .i_cache_en             (i_cache_en),
-        .i_cache_inv            (i_cache_inv_req),
-        .i_cache_clean          (i_cache_clean_req),
-        .o_cache_inv_done       (o_cache_inv_done),
-        .o_cache_clean_done     (o_cache_clean_done),
-        .i_cache_line           (tr_cache_line),
-        .i_cache_tag_dirty      (tr_cache_tag_dirty),
-        .i_cache_tag            (tr_cache_tag),
-        .i_cache_tag_valid      (tr_cache_tag_valid),
-        .o_cache_tag            (cf_cache_tag),
-        .o_cache_tag_dirty      (cf_cache_tag_dirty),
-        .o_cache_tag_wr_en      (cf_cache_tag_wr_en),
-        .o_cache_line           (cf_cache_line),
-        .o_cache_line_ben       (cf_cache_line_ben),
-        .o_cache_clean_req      (cf_cache_clean_req),
-        .i_cache_clean_done     (tr_cache_clean_done),
-        .o_cache_inv_req        (cf_cache_inv_req),
-        .i_cache_inv_done       (tr_cache_inv_done),
-        .i_phy_addr             (pending_translation ? pending_pa : tlb_phy_addr),
-        .i_fsr                  (pending_translation ? pending_fsr : tlb_fsr),
-        .i_far                  (pending_translation ? pending_far : tlb_far),
-        .i_fault                (pending_translation ? pending_fault : tlb_fault),
-        .i_cacheable            (pending_translation ? pending_cacheable : tlb_cacheable),
-        .i_bufferable           (pending_translation ? pending_bufferable : tlb_bufferable),
-        .i_busy                 (pending_translation ? 1'b0 : tlb_busy),
-        .i_translation_wait     ((pending_request && !pending_translation) || (lookup_resync && !pending_request)),
-        .o_background_refill    (background_refill),
-        .o_err2                 (o_err2),
-        .o_address              (cache_address),
-        .o_wb_cyc_nxt           (wb_cyc[0]),
-        .o_hold                 (hold),
-        .i_reg_idx              (i_reg_idx),
-        .i_reg_idx_bin          (i_reg_idx_bin),
-        .o_lock                 (o_lock),
-        .o_reg_dat              (o_reg_dat),
-        .o_reg_idx              (o_reg_idx),
 
-        /* verilator lint_off PINCONNECTEMPTY */
-        .o_wb_cyc_ff            (),
-        .o_wb_stb_ff            (),
-        .o_wb_adr_ff            (),
-        .o_wb_dat_ff            (),
-        .o_wb_sel_ff            (),
-        .o_wb_wen_ff            (),
-        .o_wb_cti_ff            (),
-        /* verilator lint_on PINCONNECTEMPTY */
-
-        .o_wb_stb_nxt           (wb_stb[0]),
-        .o_wb_adr_nxt           (wb_adr[0]),
-        .o_wb_dat_nxt           (wb_dat[0]),
-        .o_wb_sel_nxt           (wb_sel[0]),
-        .o_wb_wen_nxt           (wb_wen[0]),
-        .o_wb_cti_nxt           (wb_cti[0]),
-        .i_wb_dat               (i_wb_dat),
-        .i_wb_ack               (wb_ack[0]),
-        .i_wb_err               (wb_err[0])
-);
-
-// Cache Tag RAM - As a manager - this performs cache clean - manager 1.
-zap_cache_tag_ram #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE)) u_zap_cache_tag_ram     (
-        .i_clk                  (i_clk),
-        .i_reset                (i_reset),
-        .i_address_nxt          (pending_request ? i_address : i_address_nxt),
-        .o_checked_index        (checked_cache_index),
-        .i_address              (cache_address),
-        .i_hold                 (hold || i_stall),
-        .i_cache_en             (i_cache_en),
-        .i_cache_line           (cf_cache_line),
-        .o_cache_line           (tr_cache_line),
-        .i_cache_line_ben       (cf_cache_line_ben),
-        .i_cache_tag_wr_en      (cf_cache_tag_wr_en),
-        .i_cache_tag            (cf_cache_tag),
-        .i_cache_tag_dirty      (cf_cache_tag_dirty),
-        .o_cache_tag            (tr_cache_tag),
-        .o_cache_tag_valid      (tr_cache_tag_valid),
-        .o_cache_tag_dirty      (tr_cache_tag_dirty),
-        .i_cache_inv_req        (cf_cache_inv_req),
-        .o_cache_inv_done       (tr_cache_inv_done),
-        .i_cache_clean_req      (cf_cache_clean_req),
-        .o_cache_clean_done     (tr_cache_clean_done),
-
-        /* verilator lint_off PINCONNECTEMPTY */
-        .o_wb_cyc_ff            (),
-        .o_wb_stb_ff            (),
-        .o_wb_adr_ff            (),
-        .o_wb_dat_ff            (),
-        .o_wb_sel_ff            (),
-        .o_wb_wen_ff            (),
-        .o_wb_cti_ff            (),
-        /* verilator lint_on PINCONNECTEMPTY */
-
-        .o_wb_cyc_nxt           (wb_cyc[1]),
-        .o_wb_stb_nxt           (wb_stb[1]),
-        .o_wb_adr_nxt           (wb_adr[1]),
-        .o_wb_dat_nxt           (wb_dat[1]),
-        .o_wb_sel_nxt           (wb_sel[1]),
-        .o_wb_wen_nxt           (wb_wen[1]),
-        .o_wb_cti_nxt           (wb_cti[1]),
-        .i_wb_dat               (i_wb_dat),
-        .i_wb_ack               (wb_ack[1])
-);
-
-`endif
-
-`ifdef NGAGE_ASSOC_EXPERIMENT
 logic tlb_raw_stb,tlb_raw_cyc;
 arm920_tlb_bus_gate tlb_bus_order(.clk(i_clk),.reset(i_reset),.write_buffer_empty(o_write_buffer_empty),
  .in_cyc(tlb_raw_cyc),.in_stb(tlb_raw_stb),.out_cyc(wb_cyc[2]),.out_stb(wb_stb[2]),
  .ack(wb_ack[2]),.err(wb_err[2]));
-`endif
 
-// ZAP TLB control module. Includes TLB RAM inside - Manager 2.
-zap_tlb #(
-        .LPAGE_TLB_ENTRIES      (LPAGE_TLB_ENTRIES),
-        .SPAGE_TLB_ENTRIES      (SPAGE_TLB_ENTRIES),
-        .SECTION_TLB_ENTRIES    (SECTION_TLB_ENTRIES),
-        .FPAGE_TLB_ENTRIES      (FPAGE_TLB_ENTRIES)
-)
+// ARM920T translation controller and table-walk bus.
+arm920_tlb #(.CPSR_MODE(CPSR_MODE))
 u_zap_tlb (
         .i_clk          (i_clk),
         .i_reset        (i_reset),
         .i_address      (i_address),
-        .i_address_nxt  (pending_request ? i_address : i_address_nxt),
-        .i_address_check(pending_request ? i_address : i_address_check),
         .i_idle         (idle),
-        .i_wr_check     (pending_request ? i_wr : i_wr_check),
         .i_request_rd   (i_rd),
         .i_request_wr   (i_wr),
-        .i_rd_check     (pending_request ? i_rd : i_rd_check),
-        .i_hold         (hold || i_stall),
         .i_cpsr         (i_cpsr),
         .i_sr           (i_sr),
         .i_dac_reg      (i_dac_reg),
         .i_baddr        (i_baddr),
         .i_mmu_en       (i_mmu_en),
         .i_inv          (i_tlb_inv),
+        .i_inv_mva      (i_tlb_inv_mva),
+        .i_inv_address  (i_tlb_inv_address),
+        .i_lock_write   (i_tlb_lock_write),
+        .i_lock_data    (i_tlb_lock_data),
+        .o_lock_read    (o_tlb_lock_read),
+        .i_complete     (o_ack),
         .o_phy_addr     (tlb_phy_addr),
         .o_fsr          (tlb_fsr),
         .o_external_fsr (tlb_external_fsr),
@@ -435,13 +293,8 @@ u_zap_tlb (
         .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
         .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
         .o_checked_dac (checked_dac), .o_checked_baddr (checked_baddr),
-        `ifdef NGAGE_ASSOC_EXPERIMENT
         .o_wb_stb_nxt   (tlb_raw_stb),
         .o_wb_cyc_nxt   (tlb_raw_cyc),
-`else
-        .o_wb_stb_nxt   (wb_stb[2]),
-        .o_wb_cyc_nxt   (wb_cyc[2]),
-`endif
         .o_wb_adr_nxt   (wb_adr[2]),
         .o_wb_wen_nxt   (wb_wen[2]),
         .o_wb_sel_nxt   (wb_sel[2]),

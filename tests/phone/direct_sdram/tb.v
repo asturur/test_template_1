@@ -23,20 +23,20 @@ module tb;
  reg measuring=0,measure_dirty=0;reg [31:0] measure_address=0;reg measure_write=0,measure_cached=0;
  always @(posedge clk)if(!reset)begin
   if(cpu_ram_accept)begin if(cswe)cpu_writes<=cpu_writes+1;else cpu_reads<=cpu_reads+1;end
-  if(dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.req_valid && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.req_ready)begin
+  if(dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.req_valid && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.req_ready)begin
    for(profile_i=0;profile_i<15;profile_i=profile_i+1)profile_state[profile_i]=0;
    profile_rom=0;profile_ram=0;
    measuring<=1;measure_start<=cycles;measure_reads<=cpu_reads;measure_writes<=cpu_writes;
-   measure_address<=dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.req_physical;measure_write<=dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.req_write;
-   measure_cached<=dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.req_cache_enable && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.req_cacheable;measure_dirty<=0;
+   measure_address<=dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.req_physical;measure_write<=dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.req_write;
+   measure_cached<=dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.req_cache_enable && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.req_cacheable;measure_dirty<=0;
   end
-  if(measuring && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.transfer_start && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.bank_victim_valid && |dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.refill.bank_victim_dirty)measure_dirty<=1;
+  if(measuring && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.transfer_start && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.bank_victim_valid && |dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.refill.bank_victim_dirty)measure_dirty<=1;
   if(measuring)begin
-   profile_state[dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.state]=profile_state[dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.state]+1;
+   profile_state[dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.state]=profile_state[dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.state]+1;
    if(dut.board.upp.cpu_inside.master_cyc && dut.board.upp.cpu_inside.master_stb && dut.board.upp.cpu_inside.master_code)profile_rom=profile_rom+1;
    if(arb.state==1 && !arb.owner)profile_ram=profile_ram+1;
   end
-  if(measuring && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.experimental_cache.cache.response_valid)begin
+  if(measuring && dut.board.upp.cpu_inside.cpu.u_zap.l_generate_with_cache_mmu.u_data_cache.cache_adapter.cache.response_valid)begin
    $display("RAM_COST mode=%0d pa=%h write=%b cached=%b dirty=%b clocks=%0d reads=%0d writes=%0d",DIRECT_SDRAM,measure_address,measure_write,measure_cached,measure_dirty,cycles-measure_start,cpu_reads-measure_reads,cpu_writes-measure_writes);
    if((measure_address==32'h0a000020 && !measure_write && measure_cached) || measure_dirty)begin
     $write("RAM_PROFILE mode=%0d pa=%h dirty=%b clocks=%0d rom_port=%0d ram_service=%0d",DIRECT_SDRAM,measure_address,measure_dirty,cycles-measure_start,profile_rom,profile_ram);

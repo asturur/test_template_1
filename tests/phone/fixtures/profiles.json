@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "cpu_macro": "NGAGE_ASSOC_EXPERIMENT=1",
+  "cpu_cache": "arm920",
   "firmware": "build/firmware/nem4-factory/{core,extension}.bin",
   "cdrive": "scratch/overnight/cdrive-11b.img",
   "profiles": {

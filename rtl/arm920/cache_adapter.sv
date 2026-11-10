@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Experimental serialized bridge from the ZAP D-cache interface to the new
-// associative cache. The normal CPU build does not enable this bridge.
-module arm920_zap_dcache_adapter (
+// Production bridge from the CPU interface to the ARM920T cache.
+module arm920_cache_adapter (
  input logic clk,reset,
  input wire discard_refill,
  input logic external_permit,output logic write_buffer_empty,

@@ -72,9 +72,10 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_arbiter.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_nos_overlay.v
 
-# ARM920-shaped cache is the development default; FPGA fit/timing remain unverified.
-set_global_assignment -name VERILOG_MACRO "NGAGE_ASSOC_EXPERIMENT=1"
-# Associative cache RTL.
+# Production ARM920T cache and 64-entry instruction/data TLBs.
+# ARM920T cache/MMU RTL.
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb_bank.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb_bus_gate.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/write_buffer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_tags.sv
@@ -84,7 +85,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_transfer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_refill.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_maintenance.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_access.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/zap_dcache_adapter.sv
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_adapter.sv
 
 # ZAP ARM920T CPU: patched copy in rtl/arm (upstream + patches/zap, see rtl/arm/README.md)
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_top.sv
@@ -112,21 +113,12 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_mode16_decoder.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decompile.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_btb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cache.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cache_fsm.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cache_tag_ram.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_dcache.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_dcache_fsm.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_tlb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_tlb_fsm.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_tlb_check.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_wb_merger.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_fifo.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_sync_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_ram_simple.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_ram_simple_ben.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_ram_simple_nopipe.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_dual_rank_synchronizer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_mem_inv_block.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_ones_counter.sv
 
 # SDRAM controller (jtframe_sdram64, self-contained)

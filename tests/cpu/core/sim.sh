@@ -24,10 +24,7 @@ done
 extra_rtl=""
 extra_define=""
 if [ -n "${CPU_REFERENCE_DIR:-}" ]; then extra_define="-DNGAGE_OPERAND_REFERENCE"; fi
-if [ "${CPU_ASSOC_EXPERIMENT:-1}" = 1 ]; then
- extra_rtl="rtl/arm920/tlb_bus_gate.sv rtl/arm920/write_buffer.sv rtl/arm920/cache_tags.sv rtl/ngage_bram.v rtl/arm920/cache_lines.sv rtl/arm920/cache_bank.sv rtl/arm920/cache_transfer.sv rtl/arm920/cache_refill.sv rtl/arm920/cache_maintenance.sv rtl/arm920/cache_access.sv rtl/arm920/zap_dcache_adapter.sv"
- extra_define="$extra_define -DNGAGE_ASSOC_EXPERIMENT"
-fi
+ extra_rtl="rtl/arm920/tlb.sv rtl/arm920/tlb_bank.sv rtl/arm920/tlb_bus_gate.sv rtl/arm920/write_buffer.sv rtl/arm920/cache_tags.sv rtl/ngage_bram.v rtl/arm920/cache_lines.sv rtl/arm920/cache_bank.sv rtl/arm920/cache_transfer.sv rtl/arm920/cache_refill.sv rtl/arm920/cache_maintenance.sv rtl/arm920/cache_access.sv rtl/arm920/cache_adapter.sv"
 if [ "${CPU_SDRAM_PATH:-0}" = 1 ]; then
  extra_rtl="$extra_rtl rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v"
  extra_define="$extra_define -DNGAGE_SDRAM_PATH"

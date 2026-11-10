@@ -132,6 +132,14 @@ module zap_cp15_cb
         // TLB invalidate signal - single cycle.
         output logic                              o_dtlb_inv,
         output logic                              o_itlb_inv,
+output logic o_tlb_inv_mva,
+output logic [31:0] o_tlb_inv_address,
+output logic o_dtlb_lock_write,
+output logic o_itlb_lock_write,
+output logic [31:0] o_tlb_lock_data,
+input wire [31:0] i_dtlb_lock_read,
+input wire [31:0] i_itlb_lock_read,
+
 
         // Cache enable.
         output logic                              o_dcache_en,
@@ -227,8 +235,7 @@ assign xCACHE_TYPE_WORD[0][1:0]  = CODE_CACHE_LINE == 16 ? 2'd1 :
 
 assign xCACHE_TYPE_WORD[0][2]    = ONLY_CORE ? 1'd1 : 1'd0;
 
-// Report ARM920T 64-way associativity. The normal cache remains direct
-// mapped; the experimental associative cache is selected at build time.
+// Report the production ARM920T 64-way associative cache.
 // EKA1 also uses this field to derive the increment in its maintenance loop.
 assign xCACHE_TYPE_WORD[0][5:3]  = 3'd6;
 
@@ -351,6 +358,8 @@ begin
                 o_cache_op_single <= 1'b0;
                 o_cache_op_by_mva <= 1'b0;
                 o_cache_op_address <= 32'b0;
+                o_tlb_inv_mva <= 0; o_tlb_inv_address <= 0;
+                o_dtlb_lock_write <= 0; o_itlb_lock_write <= 0; o_tlb_lock_data <= 0;
                 o_icache_inv   <= 1'd0;
                 o_dcache_clean <= 1'd0;
                 o_icache_clean <= 1'd0;
@@ -386,6 +395,7 @@ begin
 
                 o_dcache_lock_write <= 1'b0;
                 o_icache_lock_write <= 1'b0;
+                o_dtlb_lock_write <= 0; o_itlb_lock_write <= 0;
                 o_itlb_inv      <= 1'd0;
                 o_dtlb_inv      <= 1'd0;
                 o_dcache_inv    <= 1'd0;
@@ -466,11 +476,18 @@ begin
                                 end
                         end
 
+                        if (i_cp_word.ZAP_CRN == 10 && i_cp_word.ZAP_CRM == 0) begin
+                                o_tlb_lock_data <= i_reg_rd_data;
+                                o_dtlb_lock_write <= i_cp_word.ZAP_OPCODE_2 == 0;
+                                o_itlb_lock_write <= i_cp_word.ZAP_OPCODE_2 == 1;
+                        end
                         if
                         (
                                 i_cp_word.ZAP_CRN == TLB_REG  // TLB control.
                         )
                         begin
+                                o_tlb_inv_mva <= i_cp_word.ZAP_OPCODE_2[0];
+                                o_tlb_inv_address <= i_reg_rd_data;
                                 casez({i_cp_word.ZAP_OPCODE_2,
                                        i_cp_word.ZAP_CRM})
 
@@ -704,7 +721,9 @@ begin
                                                                    CP15_L4_DEFAULT && i_cp_word[19:16] == 9 && i_cp_word.ZAP_CRM == 0 && i_cp_word.ZAP_OPCODE_2 == 0 ?
                                                                    {o_dcache_lock_base,26'b0} :
                                                                    CP15_L4_DEFAULT && i_cp_word[19:16] == 9 && i_cp_word.ZAP_CRM == 0 && i_cp_word.ZAP_OPCODE_2 == 1 ?
-                                                                   {o_icache_lock_base,26'b0} : r[ i_cp_word[19:16] ];
+                                                                   {o_icache_lock_base,26'b0} :
+                                                                   i_cp_word[19:16] == 10 && i_cp_word.ZAP_CRM == 0 && i_cp_word.ZAP_OPCODE_2 == 0 ? i_dtlb_lock_read :
+                                                                   i_cp_word[19:16] == 10 && i_cp_word.ZAP_CRM == 0 && i_cp_word.ZAP_OPCODE_2 == 1 ? i_itlb_lock_read : r[ i_cp_word[19:16] ];
                                                 state           <= DONE;
                                         end
                                         else // Store from CPU register.

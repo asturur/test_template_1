@@ -151,6 +151,14 @@ output logic                             o_dcache_clean,
 output logic                             o_icache_clean,
 output logic                             o_dtlb_inv,
 output logic                             o_itlb_inv,
+output logic o_tlb_inv_mva,
+output logic [31:0] o_tlb_inv_address,
+output logic o_dtlb_lock_write,
+output logic o_itlb_lock_write,
+output logic [31:0] o_tlb_lock_data,
+input wire [31:0] i_dtlb_lock_read,
+input wire [31:0] i_itlb_lock_read,
+
 output logic                             o_dcache_en,
 output logic                             o_icache_en,
 output logic                             o_cache_rr,
@@ -573,7 +581,6 @@ assign reset                    = i_reset;
 assign irq                      = i_irq;
 assign fiq                      = i_fiq;
 
-`ifdef NGAGE_ASSOC_EXPERIMENT
 // Fault/TLB/cache ACK terminates here, not in the global advance tree. Stall
 // asserts immediately from P2 ownership; only a complete registered response
 // releases it. No standalone delayed stall and no unowned payload are allowed.
@@ -610,23 +617,6 @@ begin
 end
 `endif
 
-`else
-// The legacy cache has autonomous background writes/fault context. Preserve
-// that established protocol; this owner is for the selected blocking adapter.
-assign completion_valid = 1'b0;
-assign completion_offer = 1'b0;
-assign completion_data = 32'd0;
-assign completion_fault = 2'd0;
-assign completion_fsr = 32'd0;
-assign completion_far = 32'd0;
-assign o_data_wb_stb = postalu_request_stb;
-assign o_data_wb_cyc = postalu_request_cyc;
-assign data_stall = postalu_request_stb && postalu_request_cyc && !i_data_wb_ack;
-assign owned_data = i_data_wb_dat;
-assign owned_data_fault = {i_dcache_err2, i_data_wb_err};
-assign owned_fsr = i_fsr;
-assign owned_far = i_far;
-`endif
 assign o_debug_pc = o_instr_wb_adr;
 assign o_debug_cpsr = alu_flags_ff;
 assign o_debug_instruction = i_instr_wb_dat;
@@ -1753,6 +1743,11 @@ zap_cp15_cb #(
         .o_icache_clean         (o_icache_clean),
         .o_dtlb_inv             (o_dtlb_inv),
         .o_itlb_inv             (o_itlb_inv),
+        .o_tlb_inv_mva(o_tlb_inv_mva), .o_tlb_inv_address(o_tlb_inv_address),
+        .o_dtlb_lock_write(o_dtlb_lock_write), .o_itlb_lock_write(o_itlb_lock_write),
+        .o_tlb_lock_data(o_tlb_lock_data),
+        .i_dtlb_lock_read(i_dtlb_lock_read), .i_itlb_lock_read(i_itlb_lock_read),
+
         .o_dcache_en            (o_dcache_en),
         .o_icache_en            (o_icache_en),
         .o_cache_rr             (o_cache_rr),

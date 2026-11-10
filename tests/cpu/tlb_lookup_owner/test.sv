@@ -2,7 +2,7 @@
 module test;
     reg clk = 0;
     reg reset = 1;
-    reg idle = 0, hold = 0, inv = 0, mmu = 1, rd = 1, wr = 0;
+    reg idle = 0, inv = 0, mmu = 1, rd = 1, wr = 0;
     reg [4:0] mode_bits = 5'h13;
     reg [31:0] dac = 32'hffffffff, baddr = 32'h0a074000;
     reg [31:0] descriptor = 32'h0a081ffe;
@@ -32,16 +32,12 @@ module test;
         end
     end
 
-    zap_tlb #(
-        .LPAGE_TLB_ENTRIES(8), .SPAGE_TLB_ENTRIES(16),
-        .SECTION_TLB_ENTRIES(4), .FPAGE_TLB_ENTRIES(32)
-    ) dut (
-        .i_clk(clk), .i_reset(reset), .i_address(current_address),
-        .i_address_check(check_address), .i_address_nxt(lookup_address),
-        .i_wr_check(wr), .i_rd_check(rd), .i_request_rd(rd), .i_request_wr(wr), .i_hold(hold),
+    arm920_tlb dut (
+        .i_clk(clk), .i_reset(reset), .i_address(current_address), .i_request_rd(rd), .i_request_wr(wr),
         .i_cpsr(mode_bits), .i_sr(2'b0), .i_dac_reg(dac),
         .i_baddr(baddr), .i_mmu_en(mmu), .i_inv(inv),
-        .i_idle(idle), .o_busy(busy), .o_phy_addr(physical), .o_fault(fault), .o_fsr(fsr), .o_far(far_address),
+        .i_inv_mva(1'b0), .i_inv_address(32'b0), .i_lock_write(1'b0), .i_lock_data(32'b0),
+        .i_complete(1'b0), .i_idle(idle), .o_busy(busy), .o_phy_addr(physical), .o_fault(fault), .o_fsr(fsr), .o_far(far_address),
         .o_wb_cyc_nxt(cyc), .o_wb_stb_nxt(stb), .o_wb_adr_nxt(bus_address),
         .i_wb_dat(bus_data), .i_wb_ack(ack), .i_wb_err(1'b0)
     );
@@ -75,19 +71,19 @@ module test;
         lookup_address = 0; check_address = 0;
         repeat (60) tick();
         if (beats != before_beats || busy || fault) $fatal(1, "stale lookup caused walk/fault");
-        address(32'h80612868); hold = 1;
-        settle(); hold = 0;
+        address(32'h80612868);
+        settle();
         if (beats != before_beats + 2 || physical != 32'h0a081868) $fatal(1, "held real miss repeated/lost");
         before_beats = beats;
         address(32'h80613868);
         wait (beats > before_beats); tick(); inv = 1; tick(); inv = 0;
         settle();
-        if (beats < before_beats + 4 || fault) $fatal(1, "invalidation did not discard active walk");
+        if (beats < before_beats + 3 || fault) $fatal(1, "invalidation did not discard active walk");
         before_beats = beats;
         address(32'h80614868);
         wait (beats > before_beats); tick(); baddr = 32'h0a070000;
         settle();
-        if (beats < before_beats + 4 || fault) $fatal(1, "TTBR change did not discard active walk");
+        if (beats < before_beats + 3 || fault) $fatal(1, "TTBR change did not discard active walk");
         descriptor = 32'h0a081efe; mode_bits = 5'h10; dac = 1;
         inv = 1; tick(); inv = 0;
         settle();

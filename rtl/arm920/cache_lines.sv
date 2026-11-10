@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// 512 x 32-byte cache-line storage prototype. No reset is needed: the tag
+// 512 x 32-byte cache-line storage. No reset is needed: the tag
 // array controls validity. 32 byte lanes permit a line refill or byte stores.
 // Read-during-write to the same slot is intentionally unspecified; the cache
 // controller must schedule or bypass that case.

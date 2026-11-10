@@ -31,6 +31,7 @@ entries below the handoff are the evidence log, newest first.
 | [speculative-fetch-deadlock.md](speculative-fetch-deadlock.md) | Queued return blocked by an abandoned I-cache refill, scoped fix, checkpoint recovery and verification limits |
 | [cpu-patches.md](cpu-patches.md) | Why the ZAP patches exist and how they were checked |
 | [branch-prediction.md](branch-prediction.md) | BTB collision root cause, self-contained return reproducer and patch 0006 |
+| [arm920-tlb.md](arm920-tlb.md) | Production64-entry I/D TLBs, CP15 replacement/lockdown, staged lookup and legacy-cache removal |
 | [mmu-reference.md](mmu-reference.md) | Opt-in native MMU execution, physical access checks and comparison scope |
 | [extension-reconstruction.md](extension-reconstruction.md) | Preserved ROOT, reconstructed extension, opt-in boot I/O and MMU-stage debugging |
 | [uem-control-bus.md](uem-control-bus.md) | Post-MMU conversion sequence, retained UEM reference and missing battery-identification input |

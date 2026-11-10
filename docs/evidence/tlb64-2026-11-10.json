@@ -1,0 +1,232 @@
+{
+  "date": "2026-11-10",
+  "source_commit_before_change": "40bfc11",
+  "after_model": "27535b46216966c062a03e1cee795b1abf511d3017da1c1eb5a49b420bd23efb",
+  "before_model": "8877b43014f2eba6",
+  "profile": {
+    "sys_clk_hz": 78000000,
+    "timer_clock": "26mhz",
+    "nos_tick_hz": 64,
+    "rom_cache_bits": 64,
+    "rom_cache_bytes": 1024,
+    "direct_sdram": true
+  },
+  "before": {
+    "summary": {
+      "begin": 2000000027,
+      "end": 2050000027,
+      "loops": 3748,
+      "unique": 3748,
+      "repeats": 0,
+      "backwards": 0,
+      "segments": 9,
+      "exits": 8,
+      "calls": 3749,
+      "returns": 3748,
+      "latency_min": 11300,
+      "median": 11430,
+      "max": 33835
+    },
+    "complete": {
+      "clocks": 43340832,
+      "Cbus": 301632,
+      "DDRbusy": 120207,
+      "Creads": 25136,
+      "stall_none": 11430049,
+      "code_only": 8508651,
+      "data_only": 7423476,
+      "both": 15978656,
+      "irq": 147691,
+      "fiq": 0,
+      "nos": 0,
+      "elocal": 1976561,
+      "kernel": 25534458,
+      "euser": 8372397,
+      "efile": 0,
+      "other": 7309725
+    },
+    "terminal": {
+      "cycle": 2050000027,
+      "pc": 1345606876,
+      "cpsr": 1610612763,
+      "c1": 4735,
+      "ttbr": 168247296,
+      "svc_sp": 2147505764,
+      "svc_lr": 27,
+      "fiq_sp": 2147507820,
+      "remaining": 0,
+      "errors": 12,
+      "data_errors": 0
+    }
+  },
+  "after": {
+    "summary": {
+      "begin": 2000000027,
+      "end": 2050000027,
+      "loops": 4484,
+      "unique": 4484,
+      "repeats": 0,
+      "backwards": 0,
+      "segments": 10,
+      "exits": 9,
+      "calls": 4485,
+      "returns": 4484,
+      "latency_min": 9389,
+      "median": 9512,
+      "max": 30618
+    },
+    "complete": {
+      "clocks": 43198923,
+      "Cbus": 361824,
+      "DDRbusy": 142878,
+      "Creads": 30152,
+      "stall_none": 11814400,
+      "code_only": 9940983,
+      "data_only": 7415717,
+      "both": 14027823,
+      "irq": 161852,
+      "fiq": 0,
+      "nos": 0,
+      "elocal": 1954437,
+      "kernel": 25267445,
+      "euser": 8423400,
+      "efile": 0,
+      "other": 7391789
+    },
+    "terminal": {
+      "cycle": 2050000027,
+      "pc": 0,
+      "cpsr": 1610612763,
+      "c1": 4735,
+      "ttbr": 168247296,
+      "svc_sp": 2147505764,
+      "svc_lr": 27,
+      "fiq_sp": 2147507820,
+      "remaining": 0,
+      "errors": 12,
+      "data_errors": 0
+    }
+  },
+  "comparison_cycles_each": 50000000,
+  "throughput_increase_percent": 19.63713980789754,
+  "median_latency_reduction_percent": 16.78040244969379,
+  "main_tlb_counts": {
+    "dlookups": 1225255,
+    "ilookups": 769505,
+    "dwalks": 33,
+    "iwalks": 24
+  },
+  "cold_boot_50m": {
+    "boot_index": 0,
+    "boot_limit": 0,
+    "retired": 0,
+    "ddr_commands": 0,
+    "ddr_beats": 0,
+    "cycle": 50000000,
+    "pc": 24916,
+    "lcd_words": 0,
+    "frame_complete": 0,
+    "display_on": 0,
+    "unsupported": 0,
+    "bus_errors": 12,
+    "data_errors": 0,
+    "seconds": 577.36,
+    "interrupted": false,
+    "outputs": {
+      "build/sim/runs/tlb64-final-cold-50m/framebuffer.bin": "06c6a2c276d53823cad61c13d831dd0e294464328e88527bb61eece8cf1040bf",
+      "build/sim/screens/tlb64-final-cold-50m/scanout.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e",
+      "build/sim/screens/tlb64-final-cold-50m/framebuffer.png": "1d374a46938121b296ab345b190251c5029ff2ac76a9d087ba72c4f5447b410e"
+    }
+  },
+  "diagnostic_checkpoint_resumed_100k": {
+    "summary": {
+      "begin": 2050000027,
+      "end": 2050100027,
+      "loops": 8,
+      "unique": 8,
+      "repeats": 0,
+      "backwards": 0,
+      "segments": 1,
+      "exits": 0,
+      "calls": 8,
+      "returns": 7,
+      "latency_min": 9389,
+      "median": 9512,
+      "max": 16127
+    },
+    "complete": {
+      "clocks": 73076,
+      "Cbus": 576,
+      "DDRbusy": 252,
+      "Creads": 48,
+      "stall_none": 19886,
+      "code_only": 16730,
+      "data_only": 12454,
+      "both": 24006,
+      "irq": 2324,
+      "fiq": 0,
+      "nos": 0,
+      "elocal": 3031,
+      "kernel": 42823,
+      "euser": 13446,
+      "efile": 0,
+      "other": 11452
+    },
+    "terminal": {
+      "cycle": 2050100027,
+      "pc": 1345494312,
+      "cpsr": 2147483675,
+      "c1": 4735,
+      "ttbr": 168247296,
+      "svc_sp": 2147505764,
+      "svc_lr": 27,
+      "fiq_sp": 2147507820,
+      "remaining": 0,
+      "errors": 12,
+      "data_errors": 0
+    }
+  },
+  "terminal_fetch_was_inactive": {
+    "last": 1345557496,
+    "fetch": 0,
+    "instr_valid": 0,
+    "code_stall": 0
+  },
+  "matching_c_bus_prefix_pairs": 56,
+  "input_sha256": {
+    "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "cdrive": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  },
+  "inputs_and_original_checkpoint_unchanged": true,
+  "imported_valid_tlb_entries": {
+    "data": 20,
+    "code": 19
+  },
+  "migration_report": "scratch/tlb64/scan-final.migration.json",
+  "verification": {
+    "cpu_suite_pass_lines": 177,
+    "xfail_count": 0,
+    "fiq_store_return": "PASS at0/3; previously failing on old TLB",
+    "warm_add_clocks": 1,
+    "whole_top_structural_lint": "PASS",
+    "intel_bram_primitive_lint": "PASS",
+    "pinned_upstream_patch_reconstruction": "PASS",
+    "hardware_build": false,
+    "104mhz_timing_measured": false,
+    "enhanced_independent_i_d_cp15_lockdown": "PASS at memory delays0/3 (targeted after full suite)"
+  },
+  "limits": [
+    "Cold50M remains pre-LCD at00006154; no full UI boot claim.",
+    "The C-scan arm uses a quiescent, explicitly audited diagnostic state copy with typed TLB import and cache-instance rename.",
+    "Scan host scanout is not updated; its saved pair is diagnostic, not a maintained-runner lineage.",
+    "NOS64 profile is experimental and unchanged between arms; no frequency correctness claim."
+  ],
+  "logs": [
+    "scratch/tlb64/cpu-regression-final.log",
+    "scratch/tlb64/scan-before-50m.log",
+    "scratch/tlb64/scan-final-50m.log",
+    "scratch/tlb64/scan-resume-100k.log",
+    "scratch/tlb64/cpu-lockdown-final.log"
+  ]
+}

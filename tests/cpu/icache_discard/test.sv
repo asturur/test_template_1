@@ -22,7 +22,7 @@ always @(posedge clk)begin
  if(!reset && wb_error)failed_beats<=failed_beats+1;
  if(!reset && wb_ack)read_beats<=read_beats+1;
 end
-arm920_zap_dcache_adapter dut(
+arm920_cache_adapter dut(
  .clk(clk),.reset(reset),.discard_refill(discard),.external_permit(1'b1),.write_buffer_empty(),
  .fast_enable(1'b0),.fast_next_address(32'd0),
  .address(address),.physical(address),.din(32'h87654321),.far_in(address),
