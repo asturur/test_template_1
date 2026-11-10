@@ -68,7 +68,7 @@ int main(int argc,char **argv) {
             double seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count();
             std::printf("PROGRESS cycles=%llu pc=%08x words=%u errors=%u data_errors=%u seconds=%.2f rate=%.0f\n",(unsigned long long)total(),model.pc,model.pixel_writes,model.bus_errors,model.data_faults,seconds,(total()-initial)/seconds);std::fflush(stdout);
         }
-        if(total() && total()%1000000000==0)save();
+        if(total() && total()%100000000==0)save();
     }
     // Snapshot the actual display RAM; this is observation, not a guest write.
     std::array<uint8_t,176*208*3> pixels{};

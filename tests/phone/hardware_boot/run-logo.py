@@ -61,10 +61,13 @@ def main():
     hashes={f:sha(f) for f in sources+headers+assets+[cpp,__file__]}
     saved=None
     if a.use_saved_build:
-        if not a.restore or a.diagnostic_irq_fork or a.driver_upgrade or a.pretest_fixes_fork:
+        if not a.restore or a.diagnostic_irq_fork or a.pretest_fixes_fork:
             raise ValueError('--use-saved-build requires --restore and forbids model upgrades')
         saved=json.loads((a.restore.parent/'manifest.json').read_text())
-        hashes=saved['sources']
+        hashes=dict(saved['sources'])
+        if a.driver_upgrade:
+            hashes[cpp]=sha(cpp)
+            hashes[__file__]=sha(__file__)
     overlay_sha=sha(a.nos_overlay) if a.nos_overlay else None
     if a.nos_overlay:
         import sys
@@ -81,16 +84,27 @@ def main():
     if a.rom_cache:
         identity_fields.update(rom_cache=True,rom_cache_bits=a.rom_cache_bits,rom_cache_bytes=a.rom_cache_bytes)
     identity=hashlib.sha256(json.dumps(identity_fields,sort_keys=True).encode()).hexdigest()
-    if saved is not None:identity=saved['source_identity']
+    if saved is not None and not a.driver_upgrade:identity=saved['source_identity']
     build=Path('build/sim/logo-build')/identity[:16];build.mkdir(parents=True,exist_ok=True)
     image='jotego/simulator:arm64';docker=['docker','run','--rm','--network','none','--platform','linux/arm64','-v',str(ROOT)+':/work','-w','/work','--entrypoint']
     image_id=subprocess.check_output(['docker','image','inspect',image,'--format','{{.Id}}'],text=True).strip()
     binary=build/'Vtb'
     if saved is not None:
-        if not binary.is_file() or sha(binary)!=saved['binary_sha256'] or image_id!=saved['image']:
+        saved_build=Path('build/sim/logo-build')/saved['source_identity'][:16]
+        saved_binary=saved_build/'Vtb'
+        if not saved_binary.is_file() or sha(saved_binary)!=saved['binary_sha256'] or image_id!=saved['image']:
             raise ValueError('saved executable/container missing or changed; cannot use frozen build')
         if saved.get('powerup','alarm')!=a.powerup:
             raise ValueError('reset cause differs; restart from reset')
+    if not binary.exists() and saved is not None and a.driver_upgrade:
+        # Reuse the exact frozen HDL archive; current workspace RTL may differ.
+        # Copy only generated headers/serialization sources for schema validation.
+        for source in saved_build.iterdir():
+            if source.suffix in ('.h','.cpp') and not (build/source.name).exists():
+                shutil.copyfile(source,build/source.name)
+        include='/usr/local/verilator/share/verilator/include'
+        cmd=docker+['g++',image,'-O3','-std=c++17','-I'+str(saved_build),'-I'+include,'-I'+include+'/vltstd',cpp,str(saved_build/'Vtb__ALL.a')]+[str(saved_build/name) for name in ('verilated.o','verilated_save.o','verilated_threads.o')]+['-pthread','-o',str(binary)]
+        with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     if not binary.exists():
         cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_ASSOC_EXPERIMENT','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3','-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN'] if a.nos_overlay else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
@@ -104,6 +118,8 @@ def main():
     if saved is not None:manifest['uses_saved_build']=True
     if a.restore:
         prior=json.loads((a.restore.parent/'manifest.json').read_text())
+        if prior.get('diagnostic_fork') or prior.get('inherited_diagnostic_fork'):
+            manifest['inherited_diagnostic_fork']=prior.get('diagnostic_fork') or prior['inherited_diagnostic_fork']
         if prior.get('nos_overlay',{}).get('sha256')!=overlay_sha:raise ValueError('NOS overlay differs; restart from reset')
         if prior.get('timer_clock','cpu')!=a.timer_clock or prior.get('nos_tick_hz',1000)!=a.nos_tick_hz:raise ValueError('timer experiment differs; restart from reset')
         if prior.get('powerup','alarm')!=a.powerup:raise ValueError('reset cause differs; restart from reset')
@@ -122,11 +138,11 @@ def main():
                 raise ValueError('unsupported state fork: HDL/driver changes exceed selected upgrade')
             previous=Path('build/sim/logo-build')/prior['source_identity'][:16]
             def schema(folder):
-                return {f.name:[line.strip() for line in f.read_text().splitlines() if 'os <<' in line or '__Vcheckval =' in line] for f in folder.glob('*.cpp') if '__Vserialize' in f.read_text()}
+                return {f.name:[line.strip() for line in f.read_text().splitlines() if 'os<<' in line.replace(' ','') or '__Vcheckval =' in line or 'for (int __Vi' in line] for f in folder.glob('*.cpp') if '__Vserialize' in f.read_text()}
             if schema(previous)!=schema(build):raise ValueError('serialized model layout changed; restart from reset')
             if a.pretest_fixes_fork:manifest['diagnostic_fork']='Pre-self-test checkpoint: NOS IRQ-mask and UEM-routed GENIO1 fixes plus verified observer upgrade; MTC=0, CPSR IRQ/FIQ masked before fork. Not a cold final-model run.'
             if a.diagnostic_irq_fork:manifest['diagnostic_fork']='NOS IRQ mask correction; interrupted prior hardware profile, not a clean final-model boot'
-            if a.driver_upgrade:manifest['driver_upgrade']='64-bit cycle observer; unchanged HDL serialization and Host layout, replay equality checked'
+            if a.driver_upgrade:manifest['driver_upgrade']='Observer-only upgrade; 64-bit cycle count and 100M checkpoint cadence; unchanged HDL serialization and Host layout'
             if prior.get('diagnostic_fork'):manifest['inherited_diagnostic_fork']=prior['diagnostic_fork']
             if prior.get('inherited_diagnostic_fork'):manifest['inherited_diagnostic_fork']=prior['inherited_diagnostic_fork']
             manifest['parent_source_identity']=prior['source_identity']

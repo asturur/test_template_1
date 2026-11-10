@@ -61,8 +61,8 @@ Run names must be new. `--cycles` is a 64-bit absolute terminal cycle. The drive
 uses serialized 64-bit host ticks to extend the HDL observation counter across
 its 32-bit rollover; device counters retain their actual HDL widths. Manifests record source/executable,
 container and input hashes, profile and restore ancestry. CPU/host checkpoint
-pairs include the testbench memories and HDL display state; billion-cycle pairs
-are retained. Terminal framebuffer and sampled scanout PNGs are written under
+pairs include the testbench memories and HDL display state. New observer builds
+save every 100M cycles; billion-cycle pairs are retained permanently. Terminal framebuffer and sampled scanout PNGs are written under
 `build/sim/screens/<name>/`; `result.json` contains validity/display-on flags
 and hashes. A generated PNG does not by itself establish a logo or a valid frame.
 The five-million-cycle save/restore check matched an uninterrupted run byte for
@@ -70,7 +70,12 @@ byte for both checkpoint files. The 64-bit driver upgrade also matches the old
 driver byte for byte after a 5M -> 6M continuation; a separate synthetic
 observer-counter fixture passed rollover and restore above 2^32 (not a firmware
 boot claim). `--driver-upgrade` permits this reviewed observer-only upgrade with
-unchanged HDL serialization; use normal strict restores once upgraded. Do not import historical C++-peripheral research
+unchanged HDL serialization; use normal strict restores once upgraded. Combining `--use-saved-build` with
+`--driver-upgrade` relinks only the current observer against the verified frozen
+HDL archive; it preserves the original HDL source hashes and checks serialization
+schemas. The 100M cadence upgrade matched CPU/host state byte for byte at zero
+cycles and after a 1,000-cycle continuation. Existing running binaries keep their
+original cadence until restarted with the upgraded observer. Do not import historical C++-peripheral research
 checkpoints into this executable. See newest status for actual boot progress.
 
 Storage: old checkpoints may now be stored as paired `.cpu.gz`/`.host.gz`
