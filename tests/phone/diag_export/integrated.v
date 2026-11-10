@@ -9,6 +9,9 @@ initial begin
  f=$fopen("build/sim/unit-diag-export/captured.ngd","wb");if(!f)begin $display("FAIL opening output");$finish;end
  repeat(2)@(negedge clk);reset=0;mount=1;@(negedge clk);mount=0;
  for(i=0;i<3;i=i+1)begin @(negedge clk);tv=1;ta='h0de00000+i*4;td='h41424340+i;end
+ @(negedge clk);ta='h0c0047f0;td='h65637845;
+ @(negedge clk);ta='h0c0047f4;td='h6f697470;
+ @(negedge clk);ta='h0c0047f8;td='h00010003;
  @(negedge clk);tv=0;fault=1;@(negedge clk);fault=0;start=1;@(negedge clk);start=0;
  wait(freeze);@(negedge clk);tv=1;repeat(2)@(negedge clk);tv=0;
  for(part=0;part<2;part=part+1)begin

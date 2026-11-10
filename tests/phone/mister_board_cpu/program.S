@@ -13,6 +13,18 @@ _start: b reset_entry
  b fiq_handler
 .section .text,"ax"
 reset_entry:
+ // The real firmware reports panics through these three words. Validate the
+ // whole CPU/UPP path without turning an uninitialized read into valid RAM.
+ ldr r0,=0x0c0047f0
+ ldr r1,=0x65637845
+ str r1,[r0]
+ ldr r2,[r0]
+ cmp r1,r2
+ bne fail
+ ldr r1,=0x6f697470
+ str r1,[r0,#4]
+ ldr r1,=0x00010003
+ str r1,[r0,#8]
  mov r5,#0
  mov r6,#0
  mov r7,#0

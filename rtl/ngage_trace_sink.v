@@ -21,13 +21,20 @@ module ngage_trace_sink (
     wire word_sink = a >= 32'h0def0000 && a < 32'h0def1000;
     assign claim = req && (byte_sink || word_sink);
     assign bad   = claim && (!we || (byte_sink && !(sel == 1 || sel == 2 || sel == 4 || sel == 8)));
+    // Observe panic-report attempts without claiming them or changing their
+    // validation/ACK. A rejected report is still useful crash evidence.
+    wire panic_write = req && we && (a == 32'h0c0047f0 || a == 32'h0c0047f4 || a == 32'h0c0047f8);
+    reg panic_held = 0;
+    reg [31:0] panic_address = 0;
     always @(posedge clk) begin
-        trace_valid <= 0;
+        trace_valid   <= 0;
+        panic_held    <= !reset && panic_write;
+        panic_address <= a;
         if (reset) begin
             trace_addr <= 0;
             trace_data <= 0;
             trace_sel  <= 0;
-        end else if (commit && claim && !bad) begin
+        end else if ((commit && claim && !bad) || (panic_write && (!panic_held || panic_address != a))) begin
             trace_valid <= 1;
             trace_addr  <= a;
             trace_data  <= din;

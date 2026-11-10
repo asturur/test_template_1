@@ -5,6 +5,7 @@ module ngage_debug_video (
     input  wire         clk,
     input  wire         diagnostic,
     input  wire [767:0] values,
+    input  wire [ 98:0] panic_report,
     input  wire [  8:0] x,
     input  wire [  8:0] y,
     input  wire         ce_in,
@@ -21,11 +22,15 @@ module ngage_debug_video (
     output wire [ 11:0] rgb_out
 );
     reg [767:0] snapshot = 0;
+    reg [ 98:0] panic_snapshot = 0;
     reg [  7:0] frames = 0;
     always @(posedge clk)
         if (ce_in && x == 0 && y == 0) begin
             frames <= frames + 1'b1;
-            if (frames[3:0] == 0) snapshot <= values;
+            if (frames[3:0] == 0) begin
+                snapshot       <= values;
+                panic_snapshot <= panic_report;
+            end
         end
     wire [  5:0] column = x[8:3];
     wire [  4:0] row = y[7:3];
@@ -62,7 +67,16 @@ module ngage_debug_video (
             29:      text = "KEYS HELD SHOWS NOKIA INPUT BITS        ";
             default: text = {40{8'h20}};
         endcase
-        if (row < 3 || row >= 28) begin
+        if (row == 27) begin
+            text = "PANIC 00000000 00000000 00000000 MASK 0 ";
+            if (column < 40) character = text[(39-column)*8+:8];
+            if (column >= 6 && column < 14) character = hex_digit(panic_snapshot[(13-column)*4+:4]);
+            else if (column >= 15 && column < 23)
+                character = hex_digit(panic_snapshot[32+(22-column)*4+:4]);
+            else if (column >= 24 && column < 32)
+                character = hex_digit(panic_snapshot[64+(31-column)*4+:4]);
+            else if (column == 38) character = hex_digit({1'b0, panic_snapshot[98:96]});
+        end else if (row < 3 || row >= 28) begin
             if (column < 40) character = text[(39-column)*8+:8];
             if (row == 0 && column == 38) character = frames[4] ? "*" : ".";
         end else if (row < 27) begin

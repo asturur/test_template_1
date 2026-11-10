@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
 module tb;
-reg clk=0,cold=1,fault=0,fetch=0,tv=0;reg [31:0] fa=0,ta=0,td=0;reg [2:0] reason=0;reg [3:0] sel=0;reg [10:0] ra=0;wire [15:0] data;wire seen;integer i;
+reg clk=0,cold=1,fault=0,fetch=0,tv=0,freeze=0;reg [31:0] fa=0,ta=0,td=0;reg [2:0] reason=0;reg [3:0] sel=0;reg [10:0] ra=0;wire [15:0] data;wire seen;integer i;
 always #5 clk=~clk;
-ngage_diagnostics dut(.clk(clk),.cold_reset(cold),.freeze_trace(1'b0),.fault(fault),.fault_is_fetch(fetch),.fault_address(fa),.fault_reason(reason),.trace_valid(tv),.trace_lost(1'b0),.trace_addr(ta),.trace_data(td),.trace_sel(sel),.read_word(ra),.read_data(data),.fault_seen(seen));
+ngage_diagnostics dut(.clk(clk),.cold_reset(cold),.freeze_trace(freeze),.fault(fault),.fault_is_fetch(fetch),.fault_address(fa),.fault_reason(reason),.trace_valid(tv),.trace_lost(1'b0),.trace_addr(ta),.trace_data(td),.trace_sel(sel),.read_word(ra),.read_data(data),.fault_seen(seen));
 task check;input [10:0] index;input [15:0] expected;begin @(negedge clk);ra=index;@(negedge clk);#1;if(data!==expected)begin $display("FAIL debug word %d got %h want %h",index,data,expected);$finish;end end endtask
 initial begin
  // Exhaust every external word address, including metadata and out-of-range
@@ -34,6 +34,19 @@ initial begin
  @(negedge clk);cold=1;@(negedge clk);cold=0;fault=1;fa=32'hdeadbeef;
  @(negedge clk);cold=1;fault=0;@(negedge clk);cold=0;
  check(4,0);check(395,0);
+ // Prior wrap must not lose the dedicated report. Partial writes do not
+ // mark a full word valid; freeze affects the ring, not crash evidence.
+ @(negedge clk);tv=1;sel=1;ta='h0c0047f0;td='hdeadbeef;
+ @(negedge clk);tv=0;check(397,0);freeze=1;
+ // First complete word is sticky even if a later panic attempts to overwrite it.
+ @(negedge clk);tv=1;sel=15;ta='h0c0047f0;td='h65637845;
+ @(negedge clk);ta='h0c0047f4;td='h6f697470;
+ @(negedge clk);ta='h0c0047f8;td='h00010003;
+ @(negedge clk);ta='h0c0047f0;td='hdeadbeef;
+ @(negedge clk);ta=0;
+ for(i=0;i<70;i=i+1)@(negedge clk);
+ tv=0;check(396,'h504e);check(397,7);check(398,'h7845);check(399,'h6563);check(400,'h7470);check(401,'h6f69);check(402,3);check(403,1);
+ @(negedge clk);cold=1;@(negedge clk);cold=0;check(397,0);check(398,0);
  $display("PASS pipelined diagnostic readout: coherent back-to-back fetch/data faults, cold flush, wrap and sticky history");$finish;
 end
 endmodule

@@ -15,7 +15,7 @@ for i,label in enumerate(labels):
  line=f'{label:<14}{values[i]:08X}'
  if i<len(side):line+='  '+f'{side[i]:<8} '+str((values[21 if i<8 or i>=17 else 22]>>(i if i<8 else i-8 if i<17 else i-9))&1)
  lines.append(line)
-lines+=['','FAULT FLAGS: SEE LIVE-CONTROLS DOC','KEYS HELD SHOWS NOKIA INPUT BITS']
+lines+=['PANIC 65637845 6F697470 00010003 MASK 7','FAULT FLAGS: SEE LIVE-CONTROLS DOC','KEYS HELD SHOWS NOKIA INPUT BITS']
 lines=[list(s.ljust(40)) for s in lines];lines[0][38]='.'
 raw=Path('build/sim/unit-debug-video/screen.ppm').read_bytes();head,wh,mx,pixels=raw.split(b'\n',3)
 assert (head,wh,mx)==(b'P6',b'320 240',b'255')

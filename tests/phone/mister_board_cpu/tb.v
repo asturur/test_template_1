@@ -41,7 +41,7 @@ module tb;
     if(saved_swe)begin
      for(i=0;i<4;i=i+1)if(saved_sb[i])ram[saved_sa[11:2]][i*8+:8]<=saved_sd[i*8+:8];
      if(saved_sa==25'h100)begin
-      if(saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc || dut.board.display.lcd.header!==32'h09200000 || !dut.board.display.lcd.display_on || !dut.board.upp.peripherals.hdr_written || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $fatal(1,"FAIL ARM reported %h",saved_sd);end
+      if(dut.panic_report!=={3'b111,32'h00010003,32'h6f697470,32'h65637845} || saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc || dut.board.display.lcd.header!==32'h09200000 || !dut.board.display.lcd.display_on || !dut.board.upp.peripherals.hdr_written || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $fatal(1,"FAIL ARM reported %h",saved_sd);end
       $display("PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits");$finish;
      end
     end else sr<=ram[saved_sa[11:2]];

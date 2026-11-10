@@ -33,7 +33,16 @@ def main():
         entries.append({"address": f"0x{words[pos+1]:04x}{words[pos]:04x}",
                         "data": f"0x{words[pos+3]:04x}{words[pos+2]:04x}",
                         "byte_enable": words[pos+4], "tick_low16": words[pos+5]})
-    print(json.dumps({"fault_seen": bool(words[4] & 8),
+    panic = None
+    if words[396] == 0x504e:
+        payload = struct.pack("<6H", *words[398:404])
+        valid_mask = words[397] & 7
+        panic = {"valid_mask": valid_mask,
+                 "category_hex": payload[:8].hex(),
+                 "category": (payload[:8].split(b"\0", 1)[0].decode("ascii", errors="replace")
+                              if valid_mask & 3 == 3 else None),
+                 "reason": struct.unpack("<I", payload[8:])[0] if valid_mask & 4 else None}
+    print(json.dumps({"panic_report": panic, "fault_seen": bool(words[4] & 8),
                       "fault_reason": words[4] & 7,
                       "fault_address": f"0x{words[3]:04x}{words[2]:04x}",
                       "wrapped": bool(words[7] & 1), "dropped_events": words[392],

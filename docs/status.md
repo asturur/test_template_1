@@ -1,3 +1,44 @@
+## 2026-11-10: Working-phone priority; hardware panic recorder verified
+
+User confirms hardware RBF40bfc11, before64-entry TLB replacement. Main goal
+is Symbian startup, not speculative performance changes. Current original
+hardware exception is UNKNOWN; Bluetooth pre-logo failure is separate evidence.
+
+Pristine firmware ARM disassembly refines the panic report:50333e70 copies
+up to8category bytes into40000418/1c and reason into40000410;50324240 sends
+category to0C0047F0/F4 and reason toF8, then parks at50324294. Entry50333e68
+adds10000 to reason. The words are NOT the original PC. Trace evidence under
+scratch/hardware-fault-47f0/{category-reason,ekern-abort}.txt.
+
+Added passive panic-write observation in trace_sink, no ownership/ACK/validity
+change. Dedicated first-word latches in diagnostics survive ring wrap/freeze and
+warm reset; partial writes do not become complete words. Cold reset clears.
+Screen bottom PANIC row shows three words+valid mask, coherent4Hz snapshot.
+Optional backward-compatible NGD metadata396..403 + Python decoder return
+category/reason; missing fields remain null. Panic wins simultaneous unknown
+LCD event; collision still counted as dropped. No firmware/C/overlay changes.
+
+PASS trace sink (uncommitted reporting attempts, held suppression, adjacent
+words, read rejection), diagnostic validity/first-word/freeze/clear, pixel-exact
+raster and snapshot isolation, decoder/export ring and real hps_io virtual-disk
+protocol. Actual HDL ARM/UPP/board integration PASS including report stores and
+readback, display/DMA, IRQ/FIQ and waited SDRAM. Pinned formatter and source
+preflight PASS. Host export recipe's final Verilator step was run inside existing
+Docker because local Verilator is unavailable; same HPS test passed. No hardware
+build or physical104MHz timing claim.
+
+Read-only corrected4.2B state has12processes incl RfsServer, CP15 FSR/FAR and
+ABT LR/SPSR zero, report words zero. Separate matching1M continuation has no
+new errors/aborts and active bitmap/pixel code; forensic watch.cpp can stop/save
+on first new error, ABT entry or final panic PC. Observer not normal scanout
+lineage. Long corrected run remains active, latest4.3B checkpoint checked (12processes, active EwSrv), errors30923398
+unchanged/data0. Original inputs/checkpoints untouched. No claim of working UI.
+
+Next board test latest TLB+recorder with NOS/BT OFF; obtain PANIC category/reason
+before implementing speculative peripheral behavior. Old FIQ/store-return test
+D1 was a FAIL marker, not independently proof of an architectural abort or the
+same board cause. See docs/symbian-startup.md for current evidence and limits.
+
 ## 2026-11-10: Source-check fix; corrected4.2B continuation running
 
 GitHub42815908409 fails BEFORE synthesis: tools/check_quartus_sources.tcl

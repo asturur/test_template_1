@@ -14,8 +14,9 @@ python3 - <<'PY'
 import json
 v=json.load(open('build/sim/unit-diag-export/captured.json'))
 assert v['fault_address']=='0x12345678' and v['fault_reason']==2 and v['fault_seen']
-assert [x['data'] for x in v['events']]==['0x41424340','0x41424341','0x41424342']
+assert [x['data'] for x in v['events']]==['0x41424340','0x41424341','0x41424342','0x65637845','0x6f697470','0x00010003']
 assert v['dropped_events']==2
+assert v['panic_report']=={'valid_mask':7,'category_hex':'457863657074696f','category':'Exceptio','reason':0x10003}
 print('PASS decoded exported fault, events and dropped count')
 PY
 # Test-only adaptation: legacy hps_io references PS/2 generate-block members

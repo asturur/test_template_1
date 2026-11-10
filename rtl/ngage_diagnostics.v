@@ -17,8 +17,29 @@ module ngage_diagnostics (
     input  wire [ 3:0] trace_sel,
     input  wire [10:0] read_word,
     output reg  [15:0] read_data,
+    output wire [98:0] panic_report,
     output reg         fault_seen = 0
 );
+    // First complete report word survives trace-ring wrap and warm CPU reset.
+    // These are firmware category[0:7] and reason, not an architectural PC.
+    reg [95:0] panic_words = 0;
+    reg [ 2:0] panic_seen = 0;
+    assign panic_report = {panic_seen, panic_words};
+    genvar panic_slot;
+    generate
+        for (panic_slot = 0; panic_slot < 3; panic_slot = panic_slot + 1) begin : panic_capture
+            always @(posedge clk) begin
+                if (cold_reset) begin
+                    panic_words[panic_slot*32+:32] <= 0;
+                    panic_seen[panic_slot]         <= 0;
+                end else if (trace_valid && trace_sel == 4'hf && !panic_seen[panic_slot] &&
+                             trace_addr == 32'h0c0047f0 + panic_slot * 4) begin
+                    panic_words[panic_slot*32+:32] <= trace_data;
+                    panic_seen[panic_slot]         <= 1;
+                end
+            end
+        end
+    endgenerate
     // Fault qualifier and payload cross the same edge, then update sticky
     // history together. Trace timing and the one-clock readout are unchanged.
     reg sampled_fault = 0, sampled_fetch = 0;
@@ -158,6 +179,14 @@ module ngage_diagnostics (
             393: metadata = first_fetch_address[15:0];
             394: metadata = first_fetch_address[31:16];
             395: metadata = {12'b0, fetch_seen, first_fetch_reason};
+            396: metadata = 16'h504e;
+            397: metadata = {13'b0, panic_seen};
+            398: metadata = panic_words[15:0];
+            399: metadata = panic_words[31:16];
+            400: metadata = panic_words[47:32];
+            401: metadata = panic_words[63:48];
+            402: metadata = panic_words[79:64];
+            403: metadata = panic_words[95:80];
         endcase
         read_data = metadata_q;
         if (trace_selected) begin

@@ -2,10 +2,11 @@
 module tb;
  reg clk=0,diagnostic=1,ce=1,hs=1,vs=1,hb=0,vb=0;
  reg [8:0] x=0,y=0;reg [11:0] rgb=12'habc;reg [767:0] values=0;
+ reg [98:0] panic={3'b111,32'h00010003,32'h6f697470,32'h65637845};
  wire co,ho,vo,hbo,vbo;wire [11:0] out;
  integer xx,yy,i,fd;reg [11:0] held;
  always #5 clk=~clk;
- ngage_debug_video dut(clk,diagnostic,values,x,y,ce,hs,vs,hb,vb,rgb,co,ho,vo,hbo,vbo,out);
+ ngage_debug_video dut(clk,diagnostic,values,panic,x,y,ce,hs,vs,hb,vb,rgb,co,ho,vo,hbo,vbo,out);
  task tick;begin @(posedge clk);#1;@(negedge clk);end endtask
  initial begin
   for(i=0;i<24;i=i+1)values[i*32+:32]=32'h12345678+i;
@@ -21,12 +22,14 @@ module tb;
   end
   $fclose(fd);
   // Mid-frame source changes cannot tear an already sampled field.
-  values=0;x=0;y=10;tick();if(dut.snapshot[31:0]!==32'h12345678)$fatal(1,"frame snapshot tore");
+  values=0;panic=0;x=0;y=10;tick();if(dut.snapshot[31:0]!==32'h12345678)$fatal(1,"frame snapshot tore");
+  if(dut.panic_snapshot!=={3'b111,32'h00010003,32'h6f697470,32'h65637845})$fatal(1,"panic snapshot tore");
   // Exactly sixteen frame boundaries refresh the coherent observation packet.
   for(i=1;i<=16;i=i+1)begin
    x=0;y=0;tick();x=1;tick();
    if(i<16 && dut.snapshot[31:0]!==32'h12345678)$fatal(1,"early snapshot refresh");
   end
+  if(dut.panic_snapshot!==0)$fatal(1,"panic snapshot never refreshed");
   if(dut.snapshot!==0)$fatal(1,"snapshot never refreshed");
   // Phone mode retains every input pixel and control signal with one clock delay.
   diagnostic=0;

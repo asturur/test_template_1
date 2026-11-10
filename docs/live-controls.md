@@ -114,3 +114,14 @@ Using the pinned Nortido keypad/input source, translated **by key name** into ou
 Matrix press edges latch bit 2 at `0C150100`; up/down/left/right/OK/music latch bits 21/17/19/23/18/22. Read overlays own only mask `00EE0004`, preserving unrelated NOS data and respecting byte enables. W1C respects commit/byte lanes; a coincident press wins. Held/released keys produce no repeat events, while release/repress does. Keypad IRQ is ORed with existing NOS IRQ on ICU source 25. ICU masking does not acknowledge keypad status; keypad W1C cannot clear NOS pending state. No change to the NOS `3680` event mask or routed GENIO1 self-test merge.
 
 `tests/phone/keypad/protocol_tb.v` checks both directions for all 20 matrix keys, default drives, direct-key events, W1C/hold/repress and lane behavior. Board tests verify shared NOS/keypad pending and independent acknowledgements plus ICU masking/re-enable. Existing host input and UEM loopback tests pass. Actual firmware UI responsiveness, physical pin delays and higher-order ghost contacts remain unverified. These changes are in a separate new build; the frozen 12B simulation retains the old keypad.
+
+
+## Firmware panic report
+
+The bottom diagnostic `PANIC` row shows the first full writes to physical
+`0C0047F0`, `0C0047F4`, `0C0047F8`: two little-endian category words, then raw
+reason. `MASK 7` means all three words were observed; cold reset clears them.
+They are reporting attempts, not the original PC. Export after the firmware
+parks and decode with `tools/ngage_diagnostics.py decode diagnostics.ngd`.
+The optional NGD extension occupies halfwords396..403 (magic504E, mask, payload);
+old snapshots decode with `panic_report: null`. See [symbian-startup.md](symbian-startup.md).

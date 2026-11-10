@@ -451,6 +451,7 @@ module ngage_mister #(
         wb_we
     };
     wire [767:0] diagnostic_values;
+    wire [98:0] panic_report;
     ngage_debug_monitor monitor (
         .clk           (clk_sys),
         .cold_reset    (cold_reset),
@@ -476,25 +477,30 @@ module ngage_mister #(
         .values        (diagnostic_values)
     );
     ngage_debug_video debug_video (
-        .clk       (clk_sys),
-        .diagnostic(diagnostic_video),
-        .values    (diagnostic_values),
-        .x         (video_x),
-        .y         (video_y),
-        .ce_in     (raw_ce),
-        .hsync_in  (raw_hsync),
-        .vsync_in  (raw_vsync),
-        .hblank_in (raw_hblank),
-        .vblank_in (raw_vblank),
-        .rgb_in    (raw_rgb),
-        .ce_out    (ce_pix),
-        .hsync_out (hsync),
-        .vsync_out (vsync),
-        .hblank_out(hblank),
-        .vblank_out(vblank),
-        .rgb_out   (rgb444)
+        .panic_report(panic_report),
+        .clk         (clk_sys),
+        .diagnostic  (diagnostic_video),
+        .values      (diagnostic_values),
+        .x           (video_x),
+        .y           (video_y),
+        .ce_in       (raw_ce),
+        .hsync_in    (raw_hsync),
+        .vsync_in    (raw_vsync),
+        .hblank_in   (raw_hblank),
+        .vblank_in   (raw_vblank),
+        .rgb_in      (raw_rgb),
+        .ce_out      (ce_pix),
+        .hsync_out   (hsync),
+        .vsync_out   (vsync),
+        .hblank_out  (hblank),
+        .vblank_out  (vblank),
+        .rgb_out     (rgb444)
     );
+    wire panic_trace = board_trace_valid && (board_trace_addr == 32'h0c0047f0 ||
+                       board_trace_addr == 32'h0c0047f4 || board_trace_addr == 32'h0c0047f8);
+    wire lcd_trace_selected = lcd_unsupported_valid && !panic_trace;
     ngage_diagnostics diagnostics (
+        .panic_report  (panic_report),
         .clk           (clk_sys),
         .cold_reset    (cold_reset),
         .freeze_trace  (debug_freeze_trace),
@@ -504,9 +510,9 @@ module ngage_mister #(
         .fault_reason  (diagnostic_reason),
         .trace_valid   (board_trace_valid || lcd_unsupported_valid),
         .trace_lost    (board_trace_valid && lcd_unsupported_valid),
-        .trace_addr    (lcd_unsupported_valid ? 32'h0c121208 : board_trace_addr),
-        .trace_data    (lcd_unsupported_valid ? lcd_unsupported_data : board_trace_data),
-        .trace_sel     (lcd_unsupported_valid ? 4'hf : board_trace_sel),
+        .trace_addr    (lcd_trace_selected ? 32'h0c121208 : board_trace_addr),
+        .trace_data    (lcd_trace_selected ? lcd_unsupported_data : board_trace_data),
+        .trace_sel     (lcd_trace_selected ? 4'hf : board_trace_sel),
         .read_word     (debug_read_word),
         .read_data     (debug_read_data),
         .fault_seen    (debug_fault_seen)

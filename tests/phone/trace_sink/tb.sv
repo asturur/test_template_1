@@ -8,6 +8,13 @@ initial begin
  commit=1;tick();if(!valid||ta!=='h0de00000||td!=='h41||ts!=1)$fatal(1,"missing trace");
  @(negedge clk);commit=0;sel=15;#1;if(!bad)$fatal(1,"wrong byte-sink width accepted");
  addr='h0def0000;#1;if(bad||!claim)$fatal(1,"word trace rejected");we=0;#1;if(!bad)$fatal(1,"trace read accepted");
+ // Passive panic reports do not claim an address or depend on commit.
+ @(negedge clk);addr='h0c0047f0;we=1;commit=0;sel=15;din='h65637845;
+ tick();if(claim||bad||!valid||td!=='h65637845)$fatal(1,"passive panic attempt");
+ tick();if(valid)$fatal(1,"held panic repeated");
+ @(negedge clk);addr='h0c0047f4;din='h6f697470;
+ tick();if(!valid||ta!=='h0c0047f4||claim)$fatal(1,"back-to-back panic words");
+ @(negedge clk);we=0;tick();if(valid)$fatal(1,"panic read emitted event");
  $display("PASS write-only trace events and widths");$finish;
 end
 endmodule
