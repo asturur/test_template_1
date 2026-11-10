@@ -164,3 +164,126 @@ Bluetooth overlay ON's separate pre-logo failure remains OPEN. This verification
 uses NOS/BT overlays OFF. Do not claim that the P2 fix repairs the overlay;
 load/hook compatibility needs its own investigation and boot validation. Hardware has not yet validated this fix; the old board screenshot alone
 does not prove the same original exception, though the terminal panic matches.
+
+
+## Post-Nokia startup audit (2026-11-10)
+
+Hardware user reports N-Gage logo with overlays/skips OFF. NOS ON did not
+reach it in the next trial; unmodified hardware retry underway. Exact board
+completion and overlay failure causes remain unverified. Do not reset hardware
+or equate the simulator's Nokia image with the N-Gage animation/UI.
+
+Read-only state inspection of fixed-model a6d40d0d5005ce63 checkpoints4.5/4.6/
+4.7/4.8B finds13 processes, including RfsServer and BTTestServer. Latest observed
+long progress4.81B; original12B run left running. Original firmware/core/extension
+and C source hashes match its manifest, as do the4.7B CPU/host checkpoint hashes
+recorded by its screenshot callback. No firmware patch or source C modification.
+
+RfsServer stack contains factory-file paths: `\System\Data\CACerts.dat` at4.5B,
+`Z:\Nokia\Images\Pictures\2.ota` at4.7B, and `\Nokia\Images\N-Gage5.jp...`
+at4.8B (dump boundary truncates the last name). Simulated C differs from initial
+input at25740/35775/39912/57887 byte positions respectively. These are differing
+positions, NOT a byte-transfer counter. Combined with changing stacks and actual
+programming, evidence supports ongoing first-boot factory-file population rather
+than the old panic or a demonstrated permanent wait. It does not prove factory
+initialization finishes or that files are correct.
+
+Important observer pitfall: inactive moving user chunks must be inspected via
+their saved home chunk_base (HOME_STACK). Reading VA00400000 through the current
+mapping showed BTTestServer's btldd.LDD strings while labeling them RfsServer.
+That apparent return to the same file is INVALID loop evidence. Correct home
+stacks show the changing factory-file paths above.
+
+Separate exact-HDL3M replay from4.7B: EFile main thread owns17320/23438 samples
+(~73.9%, every128clocks; includes kernel work), RfsServer2560 (~10.9%), NULL2573
+(~11.0%). IRQ77708 + FIQ131341 =6.97% of clocks, not an interrupt storm in this
+window. Code-stall2257734/3M=75.26%; data-stall1076142/3M=35.87% overlaps it.
+These flags do NOT independently attribute waits to DDR or justify removing
+104MHz timing registers. Old scan-loop probe503909A0 never fires in this sample.
+No increase in backing-bus errors30923398; data errors0.
+
+Independent1M storage probe: C-bus pending5186clocks (0.52%),146 acknowledged
+reads/576 writes (includes NOR command writes); DDR modeled delay44973clocks
+(4.50%, all clients),127 C bytes changed during the interval. C bus/DDR busy
+counters overlap other work; they are not end-to-end operation latency. Thus
+raw C backing-store waiting is not the dominant observed cost in this sample;
+firmware/filesystem/CPU work between transactions matters. Existing model
+C-NOR semantics remain experimental, not certified against the physical phone.
+
+Evidence and passive profilers: scratch/post-nokia-startup/{evidence.json,
+state-4500m.log,state-4600m.log,state-4800m.log,profile*-4700m.log,profile*.cpp};
+4.7B full state scratch/hardware-fault-47f0/state-owner-4700m.log. Profilers link
+only the frozen archive/runtime objects, do not modify source checkpoints, and
+run no host input injection. They do not maintain the scanout buffer or create
+resumable pairs; use the normal runner for future saved continuations.
+
+Next: follow actual factory-copy completions and startup-server progress at later
+100M checkpoints; if progress stops, trace the pending request from its correctly
+mapped client stack. Do not implement another firmware/peripheral stub based on
+an unchanged logo alone. Once initialization succeeds, export a NEW populated
+C image (and consistent PMM where needed) for hardware comparison, retaining
+original inputs. Export is proposed, not yet performed or hardware-verified.
+
+
+### Code-stall decomposition (2026-11-10)
+
+Same exact-model4.7B->4.703B3M replay; observer reconstructs code_stall every
+clock and aborts on mismatch. PASS, matching previous endpoint/cost counters.
+Code_stall is an OR of FIFO full, uncached-store ordering and fetch response wait;
+it must NOT be described as75% lost instruction-memory clocks.
+
+Mutually exclusive reason masks (bit0FIFO full, bit1uncached store, bit2fetchwait):
+0=742266;1=566028;4=1679680;5=12026;others0. Thus FIFO-only18.87%, fetch-only
+55.99%, both0.40%, no code stall24.74%. No uncached-store guard clocks. FIFO
+backpressure reflects downstream throughput, not necessarily lost CPU cycles.
+Fetch waits total1691706 (56.39% all clocks), of which cache WAIT_REFILL1351156
+(45.04% all clocks). Remaining I-cache states: IDLE131257,LOOKUP57265,
+READ_LINE47381,LOOKUP_WAIT57265,LOOKUP_CAPTURE47382. TLB busy overlaps83875
+fetch-wait clocks (2.80% of all clocks); data_stall overlaps461557. These
+are overlapping observations, not additive percentages. See exact raw counters
+scratch/post-nokia-startup/stalls-4700m.log and matching passive stalls.cpp.
+
+Refill implementation fetches eight32-bit words serially for a32-byte ARM920
+line, publishing after full refill. This is different from the separate1KiB
+DDR instruction buffer's64-bit lines. Dominant WAIT_REFILL still needs attribution
+between transfer beats, outer arbitration, DDR/controller waits and setup.
+scratch/post-nokia-startup/refills.cpp and linked refills executable are prepared
+against a6d40d0d5005ce63 but NOT RUN. Resume with separate3M observation of
+build/sim/runs/panic-owner-fixed-12b/checkpoint-4700000000, retain output separately.
+No CPU/cache timing register removed or performance change made.
+
+
+### Completed refill drill-down (2026-11-10)
+
+refills.cpp and refill-reuse.cpp now COMPLETED the same3M interval. Identical
+endpoint and stall totals, no new bus/data errors.9884 instruction line fills,
+79072 acknowledged words (exactly8per fill),3303distinct physical32byte lines
+(105696bytes touched, not necessarily simultaneously live). No I-cache disable
+clock or global invalidation observed. Maximum listed single-line repeat19;
+this evidence does not prove a replacement-policy defect or ideal miss rate.
+
+WAIT_REFILL1351156clocks /9884 =136.70clocks per fill. Transfer phases:
+- WAIT_TRANSFER/REFILL, bus_valid and inflight, no ack:1049651clocks.
+- Same with bus_valid but not inflight:133477clocks.
+- Acknowledged word:79072clocks.
+- Remaining coordinator states:9884clocks each for IDLE,TAG_WAIT,COMPARE_WAIT,
+  SELECT_VICTIM,READ_VICTIM,START_TRANSFER,INSTALL,COMMIT and WAIT_TRANSFER tail.
+
+Transfer averages15.96clocks per32bit word:13.28inflight waiting,1.69before
+inflight,1ack. Coordinator overhead averages9clocks per line beyond transfers.
+About90% of WAIT_REFILL clocks target physical003xxxxx main ROM (1216686);
+raw modeled DDR busy across ALL clients145533clocks (4.85% of all clocks).
+Backing-memory activity overlaps other stages and does not by itself yield an
+exact removable-wait count. Dominant cost is many serialized line beats through
+the registered return path, rather than global I-cache invalidation or page
+walks. It remains necessary to isolate outer ROM/controller stages before
+removing any register;104MHz intent still applies.
+
+Next performance candidate: retain registered ownership/timing boundaries but
+carry a whole32byte instruction refill through the outer memory path, with
+burst/line response assembly, instead of eight fully separate request round
+trips. Critical-word-first/early restart can be considered separately with
+redirect/discard/error correctness tests. This is a measured direction, NOT
+an implemented change or speedup claim. Do not enlarge caches or bypass MMU
+permissions based solely on this sample. Logs and sources live under
+scratch/post-nokia-startup/{refills,refill-reuse}*; aggregate evidence.json.

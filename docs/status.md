@@ -1,3 +1,97 @@
+## 2026-11-10: Keypad fix pushed/built; refill audit complete; limit updated
+
+User explicitly changes allowance reserve to20% for tomorrow; prior35% pause
+was overnight-only and is REVOKED. Continue authorized work, no passive polling.
+
+Keypad commit e4c897e PUSHED. Single hardware build DISPATCHED:
+https://github.com/asturur/test_template_1/actions/runs/42854188526
+No build monitoring. scratch/post-nokia-startup/keypad-build.json. Real ARM/UPP
+regression now includes matrix/direct key injection through a test-only SDRAM
+mailbox, status/ICU source25 checks, low/upper-byte W1C and IRQ deassertion:
+PASS alongside existing LCD/DMA/IRQ/FIQ/diagnostics tests. Host/matrix/board,
+NOS/peripheral-response PASS; pinned formatter/source graph/diff checks PASS.
+Hardware fix still unverified; KEYS HELD changing was confirmed by user.
+No source firmware/C edits. Long baseline12B remains running, latest one-time
+progress5.12B, errors30923398 unchanged/data0. No state migration/restart.
+
+Separate frozen3M refill audit COMPLETED:9884fills,79072words,3303distinct32byte
+lines (~103KiB touched),0global I-cache invalidation/disable clocks. Fill136.70
+clocks average:8serialized words at15.96clocks each plus9coordinator clocks.
+Per word13.28inflight waiting,1.69before inflight,1ack. About90% refill waits
+physical003xxxxx ROM. Raw modeled DDR delay all clients only4.85% of clocks.
+Working-set churn and eight registered transactions per line dominate measured
+fetch wait; no claim of an ideal miss rate or proven replacement-policy defect.
+Next candidate is line/burst transaction assembly preserving104MHz registers;
+NOT implemented yet. Detailed limits docs/symbian-startup.md; scratch/
+post-nokia-startup/{evidence.json,refills-4700m.log,refill-reuse-4700m.log}.
+
+Pending uncommitted hardware_boot runner/tb/observer files are prior Bluetooth
+matrix work. Do NOT bundle them into keypad fix or pretend they fix Bluetooth.
+
+## 2026-11-10: Keypad IRQ acknowledgement defect fixed locally; stalls decomposed
+
+USER LIMIT reached: account65% used/35% remaining. Pause active investigation
+per standing user limit; keep long sim running. No new simulation/build/commit
+started after detecting limit. Resume state recorded below.
+
+Hardware now reaches Nokia screensaver/clock band, no controls work. User
+confirms KEYS HELD changes with OSD closed. Input wires/enables intact. Actual
+board regression FAIL reproduced: keypad W1C at0C150100 never committed because
+gpio_access excludes NOS owner. Keys latch shared source25 forever after press.
+Fixed LOCAL rtl/ngage_upp_peripherals.v keypad_access: accepted valid NOS-owned
+status writes also acknowledge keypad. No NOS storage/IRQ masking bypass.
+New tests/phone/keypad/board_tb.v checks all6direct keys, byte lanes, held level
+and IRQ clear. Full host/matrix/board tests PASS; NOS and peripheral-response
+regressions PASS. Before/after/final logs scratch/post-nokia-startup/keypad*.log.
+NO hardware response claim, full boot replay, commit, push or build yet.
+Existing uncommitted hardware_boot runner/tb/observer edits are separate prior
+Bluetooth work; do NOT accidentally include them in the keypad fix commit.
+
+Separate exact frozen3M from4.7B decomposes code_stall with runtime equality
+assertion: FIFO-only566028 (18.87% all clocks), fetch-only1679680(55.99%),
+both12026(0.40%), neither742266; uncached-store guard0. I-cache WAIT_REFILL
+1351156clocks(45.04% all clocks), biggest fetch contributor. TLB busy overlaps
+83875clocks; data stalls overlap461557. Full FIFO is downstream backpressure,
+not slow ROM. Eight32-bit serial transfers refill each ARM92032byte line;
+not the same as DDR ROM buffer64bit lines. No performance HDL changed.
+Detailed raw scratch/post-nokia-startup/stalls-4700m.log, source stalls.cpp.
+Next refills.cpp/executable PREPARED but NOT RUN, to count transfer phases,
+physical regions and ACKs from the SAME4.7B checkpoint for3M. Use Docker existing
+image/exact frozen a6d40d0d5005ce63. No source/checkpoint rewriting or long-run
+restart. Topic docs live-controls.md and symbian-startup.md updated.
+
+## 2026-11-10: Post-Nokia audit: factory files advancing, no new panic
+
+User hardware reaches N-Gage with skips/overlays OFF; next NOS-ON trial failed
+before it, now retrying OFF. No exact overlay cause or completed UI claim.
+Fixed12B sim remains untouched/running, latest checked progress4.81B, latest
+complete pair4.8B. Screen remains Nokia. Original firmware/C source hashes and
+4.7B checkpoint hashes verified unchanged.
+
+Independent frozen-HDL3M replay from4.7B plus zero-cycle4.5/4.6/4.8B reads:
+RfsServer factory paths advance CACerts.dat -> Pictures/2.ota -> N-Gage5.jp...
+(dump boundary truncation); simulated C differing-byte positions25740 ->35775
+->39912 ->57887. Not a demonstrated stuck scan: old scan-loop probe never fires.
+EFile main owns~74% sampled clocks; IRQ/FIQ~7%, code-side stall75.3%. Separate
+1M probe has only0.52% C-bus pending,4.50% modeled DDR delay,127 bytes changed.
+Observed cost is predominantly firmware/CPU/filesystem work rather than raw
+C backend waits in that sample; no speculative performance/HDL change made.
+Bus errors30923398 unchanged/data0. Working UI not reached in this evidence.
+
+Critical pitfall: inspect inactive user stacks via home chunk_base/HOME_STACK;
+VA00400000 through current mapping can show another process (btldd.LDD) and
+falsely suggest repetition. Details/limits docs/symbian-startup.md, evidence
+scratch/post-nokia-startup/evidence.json and passive profiler sources/logs.
+Next track real copy completions/server progression; if it stops, trace pending
+request. Later export populated C as NEW image for hardware, preserve original
+and consistent PMM; no export performed yet.
+
+Previous Bluetooth matrix remains separate, original packages untouched;
+private observer-watch profiles recorded scratch/bluetooth-boot/active-runs.json.
+Uncommitted hardware_boot runner/tb/observer work predates this audit and enables
+actual BT loader/full-phone comparisons and auto-stop probes; NOT a BT fix.
+Hardware Bluetooth question deferred by user while watching unmodified boot.
+
 ## 2026-11-10: Panic fix pushed; hardware build dispatched
 
 Code fix11dea96 pushed. User-authorized single hardware build started:
