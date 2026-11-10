@@ -1,3 +1,58 @@
+## 2026-11-10: Source-check fix; corrected4.2B continuation running
+
+GitHub42815908409 fails BEFORE synthesis: tools/check_quartus_sources.tcl
+reuses required (file dictionary) as foreach loop variable for the three new
+cache/TLB sources. Final dict size then errors "missing value to go with key".
+Renamed loop variable required_source; tclsh preflight including --list PASS.
+No local Quartus installation/download, no new hardware build launched.
+
+At user's request stopped ONLY old Docker3e48c44d/fervent_golick. Existing
+billion CPU/host checkpoint pairs remain intact; SHA256 inventory saved under
+scratch/hardware-live/stopped-old-sim-checkpoints.json.
+Started icache-discard-recovery-12b from corrected4200000000 paired checkpoint,
+strict --use-saved-build e9861e744de45ca0, matching inputs/profile, target12B,
+100M checkpoint cadence. No latest MMU/TLB changes silently applied; this is the
+compatible diagnostic-fork continuation. Original firmware/C inputs untouched.
+Launch log scratch/hardware-live/recovery-12b-launch.log.
+
+Hardware investigation: independent ARM disassembly of pristine NEM-4 SYM.ROM
+confirms50324240 reads superpage40000400+18/+1c/+10 and sends those three words
+through503245bc (STR r0,[58000000+r1]) to offsets47f0/47f4/47f8; then reset/
+doorbell writes and final B50324294. Screenshot fetch50324294 is therefore a
+firmware panic terminal loop, not merely slow startup. Captured fault-fetch
+503245c0 is exactly the STR in that reporting helper. Original exception cause
+is still UNKNOWN; diagnostic screen's DATA FAULT may be a secondary reporting
+failure. Evidence scratch/hardware-fault-47f0/ekern-abort.txt. Source scratch
+has45words, final word47f8, final byte47fb;
+old boot-model prose ending47e3 was stale. Strict unknown-byte rejection remains.
+Screenshot FAULT FLAGS visually rechecked as00011234 (not earlier transcription
+00011624): read/code0, boardclaim/ready/unmodeled and memreq set. This disagrees
+with the helper's STR; current hardware RBF identity and original saved crash
+words are needed before attributing the mismatch to a specific RTL stage.
+
+## 2026-11-10: Long-run6B audit and live hardware stop
+
+Read-only inspection of the frozen65ea long-run checkpoint6000000000 confirms
+PC50300B06, CPSR08000030, data_errors0. Host ticks6000016390; observer cycle
+1705032704 is the wrapped32-bit counter, not current total progress. It remains
+in the known discarded-I-refill retry deadlock first observed around3.57B.
+This frozen executable does not contain the subsequent discard/MMU/TLB fixes;
+waiting for12B cannot test those fixes. Long run and checkpoints left untouched.
+Evidence scratch/hardware-live/long-sim-6b-status.log.
+
+The separate corrected-discard fork icache-discard-recovery-4200m completed4.2B,
+passed the old deadlock and launched additional startup servers; Nokia frame,
+no demonstrated Symbian UI. It does not include the latest MMU/TLB improvements.
+
+Read-only live Zaparoo screenshot captured at12:28UTC:
+scratch/hardware-live/hardware-stop-2026-11-10T12-28-08-204Z.png (+JSON).
+Current RBF revision/overlay selection not independently established. Screen:
+fetch50324294, CPSR600000D7, sticky DATA FAULT0C0047F0, captured fetch503245C0,
+reason1, flags00011234, bus errors127. Captured fetch is not a precise fault PC;
+sticky fault may predate current activity. This differs from frozen sim50300B06.
+User reports NOS OFF/ON both reach this hardware stop; Bluetooth ON blocks before
+logo. These are board observations, not yet reproduced in the latest model.
+
 ## 2026-11-10: ARM920T64-entry TLBs verified; production cache only
 
 LATEST TASK COMPLETE; user now requests commit/push and will launch the build.

@@ -77,7 +77,8 @@ then 0x30 bytes from `0x58f4` to `0x0c0047b4`. The code performs flash-identific
 operations and returns to ROM. Later routines overwrite part of this same area
 with flash-configuration code.
 
-Only `0x0c004748..0x0c0047e3` is modeled as scratch storage; writes initialize
+`0x0c004748..0x0c0047fb` is modeled as scratch storage (45 words, including
+firmware panic-report words at `0x0c0047f0/f4/f8`); writes initialize
 individual bytes, and unknown reads remain unknown. Its actual backing/extent
 is unverified. The surrounding device window is not converted to generic RAM.
 

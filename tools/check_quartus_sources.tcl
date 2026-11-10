@@ -88,8 +88,8 @@ while {[llength $queue]} {
 }
 # The production cache/TLB must be present; no legacy cache selector exists.
 set f [open files.qip];set manifest [read $f];close $f
-foreach required {rtl/arm920/cache_adapter.sv rtl/arm920/tlb.sv rtl/arm920/tlb_bank.sv} {
-    if {![string match "*$required*" $manifest]} {lappend failures "Missing production cache/MMU source $required"}
+foreach required_source {rtl/arm920/cache_adapter.sv rtl/arm920/tlb.sv rtl/arm920/tlb_bank.sv} {
+    if {![string match "*$required_source*" $manifest]} {lappend failures "Missing production cache/MMU source $required_source"}
 }
 # GUI metadata must not contradict the maintained two-output PLL HDL.
 set f [open rtl/pll.qip];set pll_qip [read $f];close $f
