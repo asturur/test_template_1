@@ -126,3 +126,31 @@ They are reporting attempts; ordinary categories must not be read as a PC. Expor
 parks and decode with `tools/ngage_diagnostics.py decode diagnostics.ngd`.
 The optional NGD extension occupies halfwords396..403 (magic504E, mask, payload);
 old snapshots decode with `panic_report: null`. See [symbian-startup.md](symbian-startup.md).
+
+
+### 2026-11-10: hardware input confirmed; shared W1C commit fix
+
+User reaches Nokia screensaver with moving clock band; controls have no UI
+effect. User confirms diagnostic KEYS HELD changes with OSD closed. This proves
+hardware inputs reach the public Nokia key bits, not firmware recognition.
+
+Auditing Template -> ngage_keys -> ngage_mister -> board/UPP/keypad finds no
+missing enable/wire. However board keypad regression FAILS before the fix:
+0C150100 remains00201004 after matrix W1C, expected00001000. Keypad commit was
+only gpio_access, whose gpio15_selected explicitly excludes nos_claim. NOS owns
+0C150100; keypad press pending could never acknowledge, so first key leaves a
+shared source25 asserted. This is a real RTL defect; hardware responsiveness
+after the fix remains unverified.
+
+Local fix in ngage_upp_peripherals.v authorizes keypad W1C on accepted valid
+NOS-owned writes at0C150100, keeping NOS storage independent. Existing GPIO
+commit remains for drive registers. New board test covers all6direct events,
+wrong byte lane versus proper upper-byte W1C, held input no repeat and IRQ clear.
+Host map, full20key bidirectional matrix, board, NOS counter/status and registered
+peripheral-response tests all PASS. Logs scratch/post-nokia-startup/
+{keypad-tests.log,keypad-after.log,keypad-final-tests.log}. Actual ARM/UPP integration also PASS: software injects public key levels through
+an SDRAM test mailbox, reads matrix/direct status, verifies ICU source25,
+acknowledges low/upper byte events and verifies IRQ deassertion. This is directed
+CPU verification, not a full-firmware key-input replay or hardware validation.
+Keypad fix is separate from pending Bluetooth harness work; one hardware build
+will test board responsiveness. Source preflight and pinned RTL formatting PASS.

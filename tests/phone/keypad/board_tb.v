@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 module tb;
 reg clk=0,rst=1,cold=1,cyc=0,stb=0,we=0,commit=0;reg [31:0] addr=0,din=0;reg [3:0] sel=15;reg [26:0] keys=0;
+integer k;reg [31:0] direct_mask;
 wire init,claim,ready,bad;wire [31:0] dout;always #5 clk=~clk;
 ngage_board #(.KEYPAD_ENABLE(1)) dut(.clk(clk),.rst(rst),.init_rst(cold),.cyc(cyc),.stb(stb),.we(we),.adr(addr),.din(din),.sel(sel),.commit(commit),.keys(keys),.sim_present(1'b0),
  .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.cpu_ack(1'b0),.cpu_err(1'b0),.cpu_rdata(32'b0),
@@ -53,6 +54,26 @@ initial begin
  access('h0c120108,'h02000000,15,1,0,0);
  access('h0c120114,0,15,0,'hffffffff,26);
  access('h0c150100,4,1,1,0,0);keys[5]=0;
- $display("PASS board keypad rocker, matrix and UEM PWRONX");$finish;
+ // Direct-key status shares the NOS-owned address. Upper-byte W1C must
+ // reach the keypad too; unrelated byte lanes must not acknowledge it.
+ keys=0;
+ for(k=0;k<6;k=k+1)begin
+  case(k)
+   0:direct_mask='h00200000; 1:direct_mask='h00020000;
+   2:direct_mask='h00080000; 3:direct_mask='h00800000;
+   4:direct_mask='h00040000; 5:direct_mask='h00400000;
+  endcase
+  keys=27'b1<<(k==5?25:k);
+  access('h0c150100,0,15,0,direct_mask,direct_mask);
+  access('h0c120114,0,15,0,'hffffffff,26);
+  access('h0c150100,direct_mask,1,1,0,0);
+  access('h0c150100,0,15,0,direct_mask,direct_mask);
+  access('h0c150100,direct_mask,4,1,0,0);
+  access('h0c150100,0,15,0,direct_mask,0);
+  access('h0c120114,0,15,0,'hffffffff,0);
+  // Held input must not regenerate the acknowledged edge.
+  access('h0c150100,0,15,0,direct_mask,0);keys=0;
+ end
+ $display("PASS board keypad rocker, matrix, shared W1C and UEM PWRONX");$finish;
 end
 endmodule

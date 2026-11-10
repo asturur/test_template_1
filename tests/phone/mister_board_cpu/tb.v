@@ -8,12 +8,13 @@ module tb;
  wire [31:0] da,dd;wire dr,dw;wire [3:0] db;reg [31:0] rd=0;reg rdy=0;reg [3:0] delay_count=0;reg [31:0] saved_da;wire accept=(dr||dw) && delay_count==0 && !rdy;
  wire dirty,busy;wire [13:0] sector;wire ce,hs,vs,hb,vb;wire [11:0] rgb;
  reg [31:0] rom[0:1023],ram[0:1023];integer i,cycles=0;integer dd_reads=0;
+ reg [26:0] test_keys=0;
  wire cpu_ram_accept;
  ngage_mister #(.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ)) dut(.debug_freeze_trace(1'b0),.sim_present(1'b1),.clk_sys(clk),.reset(reset),.cold_reset(cold),.board_init_done(init_done),.bus_lock(bus_lock),
   .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csread),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
   .dma_sdram_req(dsreq),.dma_sdram_addr(dsa),.dma_sdram_ack(dsack),.dma_sdram_data(dsread),
   .ddram_addr(da),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(rd),.ddram_dout_ready(rdy),.ddram_accept(accept),
-  .flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.ce_pix(ce),.hsync(hs),.vsync(vs),.hblank(hb),.vblank(vb),.rgb444(rgb),.keys(27'b0));
+  .flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.ce_pix(ce),.hsync(hs),.vsync(vs),.hblank(hb),.vblank(vb),.rgb444(rgb),.keys(test_keys));
  ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(reset),.cpu_lock(bus_lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csread),
  .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsread),
  .mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
@@ -39,6 +40,8 @@ module tb;
     spending<=0;sack<=1;
     if(saved_sa>=4096)begin $fatal(1,"FAIL SDRAM address %h",saved_sa);end
     if(saved_swe)begin
+     // Test-only key injection controlled by the ARM regression program.
+     if(saved_sa==25'h104 && saved_sb==15)test_keys<=saved_sd[26:0];
      for(i=0;i<4;i=i+1)if(saved_sb[i])ram[saved_sa[11:2]][i*8+:8]<=saved_sd[i*8+:8];
      if(saved_sa==25'h100)begin
       if(dut.panic_report!=={3'b111,32'h00010003,32'h6f697470,32'h65637845} || saved_sb!=15 || saved_sd!=32'h50415353 || dd_reads==0 || dut.board.display.lcd.framebuffer.memory[0]!==24'h123abc || dut.board.display.lcd.header!==32'h09200000 || !dut.board.display.lcd.display_on || !dut.board.upp.peripherals.hdr_written || !dut.debug_fault_seen || dut.diagnostics.first_address!==32'h08000000)begin $fatal(1,"FAIL ARM reported %h",saved_sd);end

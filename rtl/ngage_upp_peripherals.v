@@ -505,6 +505,11 @@ module ngage_upp_peripherals #(
 
     wire gpio_access = local_access && gpio_selected && valid_lanes &&
                        (we || (rd_vld && rd_adr == a));
+    // GPIO status shares its address with NOS, so its keypad W1C must also
+    // commit when NOS owns the accepted transaction. Storage stays independent.
+    wire keypad_access = gpio_access ||
+                         (local_access && valid_lanes && nos_claim && !nos_bad &&
+                          we && a == 32'h0c150100);
     wire [31:0] keypad_dout;
     reg [31:0] gpio_data, clock_data;
     reg gpio_bad, clock_bad;
@@ -516,7 +521,7 @@ module ngage_upp_peripherals #(
                 .reset        (rst),
                 .keys         (keys),
                 .req          (cyc && stb),
-                .commit       (gpio_access),
+                .commit       (keypad_access),
                 .we           (we),
                 .addr         (a),
                 .din          (din),

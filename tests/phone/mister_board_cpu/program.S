@@ -216,6 +216,53 @@ local_fill:
  str r1,[r0]
  cmp r7,#3
  bne fail
+ // Exercise keypad status through actual CPU/UPP transactions. The test
+ // harness mailbox at SDRAM+104 drives public key bits, not MMIO state.
+ mrs r0,cpsr
+ orr r0,r0,#0xc0
+ msr cpsr_c,r0
+ ldr r0,=0x0c120108
+ mov r1,#0x02000000
+ str r1,[r0]
+ ldr r8,=0x0a000104
+ ldr r9,=0x0c150100
+ ldr r10,=0x0c120114
+ mov r1,#32
+ str r1,[r8]                 // left softkey (matrix event)
+ ldr r2,[r9]
+ tst r2,#4
+ beq fail
+ ldr r2,[r10]
+ cmp r2,#26
+ bne fail
+ mov r1,#4
+ strb r1,[r9]
+ ldr r2,[r9]
+ tst r2,#4
+ bne fail
+ ldr r2,[r10]
+ cmp r2,#0
+ bne fail
+ mov r1,#0
+ str r1,[r8]
+ mov r1,#16
+ str r1,[r8]                 // OK (direct event, upper status byte)
+ ldr r2,[r9]
+ tst r2,#0x00040000
+ beq fail
+ ldr r2,[r10]
+ cmp r2,#26
+ bne fail
+ mov r1,#4
+ strb r1,[r9,#2]
+ ldr r2,[r9]
+ tst r2,#0x00040000
+ bne fail
+ ldr r2,[r10]
+ cmp r2,#0
+ bne fail
+ mov r1,#0
+ str r1,[r8]
  // Valid commands reach the panel through the registered command queue.
  ldr r0,=0x0c121200
  ldr r1,=0x09200000
