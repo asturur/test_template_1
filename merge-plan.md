@@ -1,6 +1,6 @@
 # N-Gage donor integration plan
 
-Date: 2026-11-10. Status: **P0/S1/S2 committed as b232f1e; D1 overlap locally accepted as opt-in; later stages planned**.
+Updated 2026-11-11. **P0/S1/S2 and D1 committed. D2, D3 and S3 locally verified.**
 
 This plan combines raw C:/PMM persistence, the DDR backend, SDRAM controller,
 useful CPU changes, semi-real NOS/SIM, and the peripheral work. Creating the
@@ -382,8 +382,7 @@ Logs: `scratch/ngage2-integration/final-aligned.log` and
 `build/sim/unit-raw-save-{hps,nor,full}/{build.log,run.log}`. No Quartus fit,
 installed-Main automatic mounting, hardware UI/save/power-cycle durability or
 new full-phone execution/performance result is claimed. Those remain later
-acceptance gates. At S2 completion the remaining stages were unimplemented;
-D1 is now recorded separately below. D2/D3/S3/NOS/peripheral/CPU remain planned.
+acceptance gates. D1 through D3 and S3 have separate results below.
 
 ### S3: ordered background saving
 
@@ -402,6 +401,30 @@ snapshot/transfer boundary, continuous writes, failed ACK, unmount/remount,
 manual save and warm reset. Controlled interruption/remount tests must exercise
 the actual original-firmware filesystem. Gate: no lost dirty events; explicit
 failure handling; hardware durability remains separately measured.
+
+#### S3 result — 2026-11-11: implemented and locally verified
+
+S3 uses the D3 bulk configuration and adds an OSD **Background save** switch
+that starts Off. With it enabled, the scheduler can start after one second
+quiet or five seconds pending. A background pass saves at most 16 sectors.
+Manual Save drains both devices. Pending warm reset and overlay operations
+hold off new background passes.
+
+The queue holds one generation per sector across all 8,320 C:/PMM sectors,
+plus one active entry. A new write to a waiting sector coalesces. A write
+after dequeue joins the tail. Failed transfers and queue faults stop saving
+and retain unsaved DDR contents. Slot 3 diagnostics export C: and PMM errors.
+
+Verification passed for 606 randomized offers, full capacity and wrap,
+explicit overflow and failed ACK, ordered and scalar HPS, bulk NOR with D2,
+full-size bulk restore and save, diagnostic export, and both top configurations.
+See [S3 implementation and evidence](docs/background-save.md). The
+original-firmware filesystem interruption/remount test, physical durability,
+and fitted timing and resource checks remain open.
+
+The DDR adapter, arbiter and save sector bridge are listed as Verilog-2001
+`.v` sources in the Quartus manifest. The MiSTer top still uses SystemVerilog
+at the stock HPS interface, which takes unpacked arrays for the disk slots.
 
 ## 8. D1-D3: DDR backend
 
@@ -556,11 +579,14 @@ modules Verilog2001, pinned formatter,173-file/9-QIP graph, whitespace and
 default/opt-in structural top checks PASS.
 
 Final logs: `scratch/ngage2-integration/d1/overlap/{refinement.log,direct-beat.log}`;
-updated tracked evidence `docs/evidence/ddr-stream-2026-11-10.json`. D1 remains
-uncommitted and opt-in (`D1_STREAM_TRANSPORT=0`). No timing/fit/phone-speed claim,
+updated tracked evidence `docs/evidence/ddr-stream-2026-11-10.json`. D1 was
+committed as `386f576` and remains opt-in (`D1_STREAM_TRANSPORT=0`). No timing/fit/phone-speed claim,
 checkpoint migration, other-chat run operation, push, CI or deployment.
 
 ### D2: coherent general flash cache
+
+D1 is committed as `386f576` with `D1_STREAM_TRANSPORT=0` in the default build.
+D2 starts from this revision as an optional shared cache after DDR arbitration.
 
 Port cache organization/beat buffers for ordinary data reads and eligible I/D
 line refills. Cache raw backing bytes before address-dependent descrambling.
@@ -579,6 +605,37 @@ overlays all combinations, undo/reload/restore and reset during fill. Gate:
 same decoded bytes and side effects as uncached reference, measured latency,
 hit ratio, resource and timing results.
 
+#### D2 result — 2026-11-10
+
+The shared raw flash cache is wired after the final DDR arbiter. The
+`D2_FLASH_CACHE_BYTES` build setting selects 8, 16 or 32 KiB and defaults to
+zero. It uses the same line for scalar and eligible I/D refill reads and
+keeps NOR interpretation and address-dependent decoding above the cache.
+Every masked backing write passes through the same port and invalidates a
+matching tag before DDR issue. A scalar miss can respond from the requested
+beat while its fill retains ownership. Tag publication waits for the complete
+line and terminal backend response.
+
+All six cache/transport test configurations passed the ordered word and
+line oracle, with 1,939 transactions per uncached case and 1,940 per cached
+case. Directed probes covered early word return with a stalled tail, reset
+drain, masks, aliases and out-of-range bypass. The actual NOR/HPS test
+passed with D2 and D1 enabled, including changed C:/PMM restore into warm
+entries, program, erase, identification, status and descramble boundaries.
+The cache-off NOR/HPS fixture also passed. Actual NOS/BT HPS testing with
+synthetic packages passed all four overlay views, rapid toggles and exact
+undo. Both top configurations elaborated, the new modules parsed in
+Verilog-2001 mode, and the source graph passed with 175 files and 9 QIPs.
+
+Matched D1 reuse probe, 256 requests. D2 reduced DDR reads from 256 to 16
+and elapsed clocks from 1,920 to 1,280. A scalar hit took one clock and a
+cold first-word miss took six, versus four uncached through D1. The separate
+24 KiB two-pass scan took longer at all three capacities than D1 alone.
+The cache remains opt-in pending representative firmware latency/hit-rate
+measurements and fitted resource/timing results. See
+[the D2 cache contract and measurements](docs/ddr-flash-cache.md) and
+`docs/evidence/ddr-flash-cache-2026-11-10.json`.
+
 ### D3: bulk persistence transfers
 
 Capture each sector with one 64-beat read instead of 128 scalar 32-bit requests.
@@ -592,6 +649,33 @@ Tests: patterned sectors, exact beat count, missing/delayed data, boundaries,
 concurrent mutations, cached reads during saving, both persistence disks,
 reset drain and scalar-versus-bulk byte equivalence. Gate: fewer transactions
 with unchanged contents and dirty-event behavior.
+
+#### D3 result — 2026-11-10
+
+`D3_BULK_PERSISTENCE=1` uses one 64-beat snapshot and 64 individual
+64-bit restore writes per sector. The scalar path stays selectable and is
+the default build. Each snapshot retains the shared DDR grant through
+its last beat and then finishes copying into the existing HPS sector
+buffer before publication. Later mutations remain dirty. Bulk restore
+invalidates the affected sixteen D2 indices before scalar traffic resumes.
+
+The actual HPS/NOR fixture passed in scalar, bulk and bulk with D2 modes.
+It checked both disks, changed-image reload, a cache hit during the host
+save, program/erase/status, and mutation during host transfer. The
+ownership test held a sector behind a D2 fill and SWP lock, buffered a
+stalled snapshot, serialized a queued mutation and drained a reset
+snapshot before the next scalar read. The full-size tests compared
+1,064,960 words on each restore and reload in both modes and verified both
+last-sector saves. The two full-image restores used 2,129,920 scalar DDR
+writes or 1,064,960 bulk DDR writes. Six snapshots in the HPS/NOR fixture
+used 768 scalar commands or six 64-beat commands with the cache off.
+
+The local 4 KiB assessment found that eight 512-byte blocks fit the
+HPS protocol. A larger host request needs a 2,048-halfword buffer and
+whole-request validation. Main already reads ahead. The bulk path
+uses the current one-sector host framing. Hardware timing and installed
+Main validation remain open. See [D3 details](docs/ddr-bulk-persistence.md)
+and `docs/evidence/ddr-bulk-persistence-2026-11-10.json`.
 
 ## 9. R1-R3: SDRAM controller
 

@@ -28,7 +28,8 @@ module ngage_ddr_adapter #(
     input  wire        req_line,
     output wire        rsp_beat_valid,
     output wire [63:0] rsp_beat_data,
-    output wire        rsp_beat_last
+    output wire        rsp_beat_last,
+    output wire        transport_idle
 );
     wire word_ready, word_done, word_drained;
     wire [31:0] word_data;
@@ -42,6 +43,7 @@ module ngage_ddr_adapter #(
     wire [7:0] line_be, line_burst;
     reg active = 0, owner_line = 0;
     wire select_line = LINE_REFILL && req_line;
+    assign transport_idle = !reset && !active && word_drained && line_ready;
     assign req_ready = !reset && !active && word_ready && line_ready && (!select_line || word_drained);
     wire accept = req_valid && req_ready;
     always @(posedge clk) begin

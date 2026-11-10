@@ -3,7 +3,11 @@ reg clk=0;always #5 clk=~clk;reg reset=1,start=0,load=0;reg [13:0] index=0;
 wire ready,done,error,mv,mw;wire [31:0] ma,md,lba;wire [3:0] mb;reg m_done=0;reg [31:0] m_rdata=0;
 wire rd,wr;reg ack=0;reg [12:0] ha=0;reg [15:0] hd=0;reg hwe=0;wire [15:0] hout;
 reg [31:0] ram[0:255];reg [15:0] disk[0:255];integer i;
-ngage_save_sector_bridge #(.C_SECTORS(1),.PMM_SECTORS(1),.SD_TIMEOUT(5000)) dut(clk,reset,start,load,index,ready,done,error,mv,1'b1,mw,ma,md,mb,m_done,m_rdata,lba,rd,wr,ack,ha,hd,hwe,hout);
+ngage_save_sector_bridge #(.C_SECTORS(1),.PMM_SECTORS(1),.SD_TIMEOUT(5000)) dut(
+ .clk(clk),.reset(reset),.start(start),.load_from_disk(load),.sector_index(index),
+ .ready(ready),.done(done),.error(error),.mem_valid(mv),.mem_ready(1'b1),
+ .mem_write(mw),.mem_addr(ma),.mem_data(md),.mem_be(mb),.mem_done(m_done),.mem_rdata(m_rdata),
+ .sd_lba(lba),.sd_rd(rd),.sd_wr(wr),.sd_ack(ack),.hps_addr(ha),.hps_dout(hd),.hps_we(hwe),.hps_din(hout));
 always @(posedge clk)begin
  m_done<=0;if(mv)begin
   if(ma>=32'h31400000 && ma<32'h31400200)begin m_rdata<=ram[(ma-32'h31400000)>>2];if(mw)ram[(ma-32'h31400000)>>2]<=md;end

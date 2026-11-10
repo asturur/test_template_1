@@ -5,9 +5,11 @@ module ngage_reset_gate (
     input  wire cold_reset,
     input  wire reset_request,
     input  wire block_reset,
+    output wire reset_pending,
     output reg  phone_reset = 1
 );
     reg pending = 0;
+    assign reset_pending = pending || reset_request;
     always @(posedge clk) begin
         if (cold_reset) begin
             pending     <= 0;

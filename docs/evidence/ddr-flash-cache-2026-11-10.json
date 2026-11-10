@@ -1,0 +1,174 @@
+{
+  "date": "2026-11-10",
+  "base_commit": "386f5767392b6f5eacf2ec021e26d22d210a1a24",
+  "disposition": "Locally verified opt-in D2 cache candidate",
+  "default_cache_bytes": 0,
+  "simulator_image": "jotego/simulator:arm64",
+  "verilator": "5.050",
+  "source_hashes": {
+    "Template.sv": "ec2c3319ada7cd8978c05fa1353058e0d81f2fe0ace50a25001cfa770d5a7083",
+    "files.qip": "59632e72574293a07d4b56dce3e42f74ea2970446b9a12cf8603ee1640a9292e",
+    "rtl/ngage_ddr_flash_adapter.v": "d95677b979c3cc8b5cd8e5c03d5f2b0b04c233f61d68c803aa33daa0cf16f953",
+    "rtl/ngage_ddr_flash_cache.v": "0bb54cf38077925f23ed4b1f147d7f9be62253a8d4e28b3e4b47cb662ac71cc4",
+    "tests/phone/ddr_flash_cache/run.sh": "5603142e387faa467ee7f0558197007f43089bbcbdc1714069b608e7db13958f",
+    "tests/phone/ddr_flash_cache/tb.sv": "918047782513aa00d08864678514df3128e0216313b49119131ead3dbcc10dca",
+    "tests/phone/raw_save/nor_tb.sv": "a32431e901fa8c2db6619462870cc7c2218c8bce47a386025a216130aeb09d90",
+    "tests/phone/raw_save/run-nor.sh": "4b747f84eecb65ad670280c0296d5aee2f23ef2eda21f5b527d4db3e71663b0a",
+    "tests/phone/overlay/hps-run.sh": "2a1cafaa5c69db8f99104c8b3a264aeb4dd2d7569fa9e561041b1e93165df1e6",
+    "tests/phone/overlay/hps_transport.v": "041b6483b267537dc9c2efe3bb374960cddeffbfd2488f716bb01c14ce3fe045",
+    "tests/phone/overlay/hps_test.cpp": "1b398d84962e2c0e4471971597671c914407fee224607660c8627e20e50b91ee"
+  },
+  "fixture_hashes": {
+    "build/firmware/nem4-factory/core.bin": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "build/firmware/nem4-factory/extension.bin": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "scratch/ngage2-integration/d2/nos.ngo": "6bdc61e7e8d855fbb64523edab5c731d7c697f43dab5f79e72f13b2045db97cc",
+    "scratch/ngage2-integration/d2/bt.ngo": "f60f9232e321b447ff158f60bffec72888ec66f320ea48611cac68ac6aab9310"
+  },
+  "log_hashes": {
+    "scratch/ngage2-integration/d2/cache.log": "3dd86799ebc03bf6c9d3d295f2f50707da66c95c0f24122d1ba1efec430cf4bd",
+    "scratch/ngage2-integration/d2/nor-default.log": "63a3b5ff1f209c7387322f694c744c6a1112103d119f27ea30f0e49ccd75a8a3",
+    "scratch/ngage2-integration/d2/nor.log": "a041559c46dc388666984e5cb36a1850c0383535cf6795a4624d0bae3feb09d1",
+    "scratch/ngage2-integration/d2/overlay.log": "d528c1db324fdbf0aec1fea400414b1378c0f15562f0a69591393430b242d42d",
+    "scratch/ngage2-integration/d2/sourcegraph.log": "4ee0bb44a64a8469b9f5751eab2a4f1dff682ee3cc41563a0ef73f0bd98097b0",
+    "scratch/ngage2-integration/d2/top-cache.log": "7c50c12d454751696b00f4b0c5fa99b43b4314f53b67db4444467eb87eaa0856",
+    "scratch/ngage2-integration/d2/top.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2"
+  },
+  "metrics": [
+    {
+      "cache_bytes": 0,
+      "stream": 0,
+      "requests": 256,
+      "DDR_reads": 256,
+      "service_clocks": 1152,
+      "elapsed_clocks": 1664
+    },
+    {
+      "word_hits": 0,
+      "hit_clocks": 0,
+      "word_misses": 128,
+      "miss_clocks": 384
+    },
+    {
+      "cache_bytes": 0,
+      "stream": 0,
+      "scan_requests": 1536,
+      "scan_reads": 1536,
+      "scan_clocks": 10753
+    },
+    {
+      "cache_bytes": 0,
+      "stream": 1,
+      "requests": 256,
+      "DDR_reads": 256,
+      "service_clocks": 1408,
+      "elapsed_clocks": 1920
+    },
+    {
+      "word_hits": 0,
+      "hit_clocks": 0,
+      "word_misses": 128,
+      "miss_clocks": 512
+    },
+    {
+      "cache_bytes": 0,
+      "stream": 1,
+      "scan_requests": 1536,
+      "scan_reads": 1536,
+      "scan_clocks": 10754
+    },
+    {
+      "cache_bytes": 8192,
+      "stream": 0,
+      "requests": 256,
+      "DDR_reads": 16,
+      "service_clocks": 720,
+      "elapsed_clocks": 1264
+    },
+    {
+      "word_hits": 112,
+      "hit_clocks": 112,
+      "word_misses": 16,
+      "miss_clocks": 96
+    },
+    {
+      "cache_bytes": 8192,
+      "stream": 0,
+      "scan_requests": 1536,
+      "scan_reads": 1536,
+      "scan_clocks": 16130
+    },
+    {
+      "cache_bytes": 8192,
+      "stream": 1,
+      "requests": 256,
+      "DDR_reads": 16,
+      "service_clocks": 720,
+      "elapsed_clocks": 1280
+    },
+    {
+      "word_hits": 112,
+      "hit_clocks": 112,
+      "word_misses": 16,
+      "miss_clocks": 96
+    },
+    {
+      "cache_bytes": 8192,
+      "stream": 1,
+      "scan_requests": 1536,
+      "scan_reads": 1536,
+      "scan_clocks": 17919
+    },
+    {
+      "cache_bytes": 16384,
+      "stream": 1,
+      "requests": 256,
+      "DDR_reads": 16,
+      "service_clocks": 720,
+      "elapsed_clocks": 1280
+    },
+    {
+      "word_hits": 112,
+      "hit_clocks": 112,
+      "word_misses": 16,
+      "miss_clocks": 96
+    },
+    {
+      "cache_bytes": 16384,
+      "stream": 1,
+      "scan_requests": 1536,
+      "scan_reads": 1280,
+      "scan_clocks": 15700
+    },
+    {
+      "cache_bytes": 32768,
+      "stream": 1,
+      "requests": 256,
+      "DDR_reads": 16,
+      "service_clocks": 720,
+      "elapsed_clocks": 1280
+    },
+    {
+      "word_hits": 112,
+      "hit_clocks": 112,
+      "word_misses": 16,
+      "miss_clocks": 96
+    },
+    {
+      "cache_bytes": 32768,
+      "stream": 1,
+      "scan_requests": 1536,
+      "scan_reads": 768,
+      "scan_clocks": 11264
+    }
+  ],
+  "tests": {
+    "ordered_oracle": "Six configurations PASS, 1939 or 1940 transactions plus directed probes",
+    "nor_hps": "D1+D2 and default PASS. Changed warm restore, ID, erase, status and decode tested with D2.",
+    "overlay_hps": "D2 PASS, all four views on stock backing with synthetic NOS/BT packages",
+    "structural": "Default and D1+D2 top elaboration PASS. Verilog-2001 modules, formatter and host source graph PASS."
+  },
+  "open": [
+    "Representative firmware latency and hit ratio",
+    "Quartus resource fit and timing"
+  ]
+}

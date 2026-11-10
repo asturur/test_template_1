@@ -1,5 +1,5 @@
 // Actual hps_io transport and overlay/DDR adapter; CPU and DDR device are modeled.
-module overlay_transport (
+module overlay_transport #(parameter FLASH_CACHE_BYTES = 0) (
     input wire clk, reset, host_strobe, host_enable,
     input wire [15:0] host_data,
     input wire firmware_valid, enabled, bt_enabled,
@@ -9,7 +9,7 @@ module overlay_transport (
     input wire [63:0] ddr_q,
     output wire [28:0] ddr_addr,
     output wire [63:0] ddr_data,
-    output wire [7:0] ddr_be,
+    output wire [7:0] ddr_be, ddr_burst,
     output wire ddr_we, ddr_rd
 );
     tri [45:0] bus;
@@ -84,10 +84,10 @@ module overlay_transport (
         .req_addr(merged_target),.req_data(merged_value),.req_be(merged_be),
         .rsp_valid(merged_done),.rsp_data(merged_response)
     );
-    ngage_ddr_adapter adapter (
-        .clk(clk),.reset(reset),.req_valid(merged_req),.req_ready(merged_accept),.req_write(merged_write),
+    ngage_ddr_flash_adapter #(.FLASH_CACHE_BYTES(FLASH_CACHE_BYTES)) adapter (
+        .clk(clk),.reset(reset),.req_fetch(1'b0),.req_line(1'b0),.req_valid(merged_req),.req_ready(merged_accept),.req_write(merged_write),
         .req_addr(merged_target),.req_wdata(merged_value),.req_be(merged_be),.rsp_valid(merged_done),.rsp_data(merged_response),
-        .ddr_addr(ddr_addr),.ddr_din(ddr_data),.ddr_be(ddr_be),.ddr_we(ddr_we),
+        .ddr_burstcount(ddr_burst),.ddr_addr(ddr_addr),.ddr_din(ddr_data),.ddr_be(ddr_be),.ddr_we(ddr_we),
         .ddr_rd(ddr_rd),.ddr_busy(ddr_busy),.ddr_dout(ddr_q),.ddr_dout_ready(ddr_ready)
     );
 endmodule

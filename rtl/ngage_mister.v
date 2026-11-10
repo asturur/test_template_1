@@ -603,22 +603,23 @@ module ngage_mister #(
                        board_trace_addr == 32'h0c0047f4 || board_trace_addr == 32'h0c0047f8);
     wire lcd_trace_selected = lcd_unsupported_valid && !panic_trace;
     ngage_diagnostics diagnostics (
-        .panic_report  (panic_report),
-        .clk           (clk_sys),
-        .cold_reset    (cold_reset),
-        .freeze_trace  (debug_freeze_trace),
-        .fault         (diagnostic_fault),
-        .fault_address (wb_adr),
-        .fault_is_fetch(wb_code),
-        .fault_reason  (diagnostic_reason),
-        .trace_valid   (board_trace_valid || lcd_unsupported_valid),
-        .trace_lost    (board_trace_valid && lcd_unsupported_valid),
-        .trace_addr    (lcd_trace_selected ? 32'h0c121208 : board_trace_addr),
-        .trace_data    (lcd_trace_selected ? lcd_unsupported_data : board_trace_data),
-        .trace_sel     (lcd_trace_selected ? 4'hf : board_trace_sel),
-        .read_word     (debug_read_word),
-        .read_data     (debug_read_data),
-        .fault_seen    (debug_fault_seen)
+        .panic_report   (panic_report),
+        .clk            (clk_sys),
+        .cold_reset     (cold_reset),
+        .freeze_trace   (debug_freeze_trace),
+        .save_slot_error(diagnostic_status[31:30]),
+        .fault          (diagnostic_fault),
+        .fault_address  (wb_adr),
+        .fault_is_fetch (wb_code),
+        .fault_reason   (diagnostic_reason),
+        .trace_valid    (board_trace_valid || lcd_unsupported_valid),
+        .trace_lost     (board_trace_valid && lcd_unsupported_valid),
+        .trace_addr     (lcd_trace_selected ? 32'h0c121208 : board_trace_addr),
+        .trace_data     (lcd_trace_selected ? lcd_unsupported_data : board_trace_data),
+        .trace_sel      (lcd_trace_selected ? 4'hf : board_trace_sel),
+        .read_word      (debug_read_word),
+        .read_data      (debug_read_data),
+        .fault_seen     (debug_fault_seen)
     );
 
     wire unused_unmodeled = brd_unmodeled;

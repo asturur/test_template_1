@@ -6,6 +6,7 @@ module ngage_diagnostics (
     input  wire        clk,
     input  wire        cold_reset,
     input  wire        freeze_trace,
+    input  wire [ 1:0] save_slot_error,
     input  wire        fault,
     input  wire        fault_is_fetch,
     input  wire [31:0] fault_address,
@@ -187,6 +188,8 @@ module ngage_diagnostics (
             401: metadata = panic_words[63:48];
             402: metadata = panic_words[79:64];
             403: metadata = panic_words[95:80];
+            404: metadata = 16'h5356;
+            405: metadata = {14'b0, save_slot_error};
         endcase
         read_data = metadata_q;
         if (trace_selected) begin

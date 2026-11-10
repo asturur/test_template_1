@@ -1,10 +1,15 @@
-// Two raw persistent images over the existing scalar bridge. Mount metadata
+// Two raw persistent images sharing the save transport. Mount metadata
 // is captured at each slot event, even before firmware verification. Only one
-// slot owns the shared sector buffer/DDR path at a time. No autosave/journal.
+// slot owns the shared sector buffer/DDR path at a time.
 module ngage_raw_save_manager #(
-    parameter integer C_SECTORS   = 8192,
-    parameter integer PMM_SECTORS = 128,
-    parameter integer SD_TIMEOUT  = 104000000
+    parameter integer C_SECTORS           = 8192,
+    parameter integer PMM_SECTORS         = 128,
+    parameter integer SD_TIMEOUT          = 104000000,
+    parameter integer BULK                = 0,
+    parameter integer ORDERED             = BULK,
+    parameter integer AUTO_QUIET_CYCLES   = 78000000,
+    parameter integer AUTO_MAX_AGE_CYCLES = 390000000,
+    parameter integer AUTO_BATCH_SECTORS  = 16
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -15,6 +20,9 @@ module ngage_raw_save_manager #(
     input  wire        dirty_valid,
     input  wire [13:0] dirty_sector,
     input  wire        flush_start,
+    input  wire        autosave_enable,
+    input  wire        pause_autosave,
+    output wire [ 1:0] slot_error,
     output wire        mounted,
     output wire        saving,
     output reg         saved,
@@ -28,6 +36,16 @@ module ngage_raw_save_manager #(
     output wire [ 3:0] mem_be,
     input  wire        mem_done,
     input  wire [31:0] mem_rdata,
+    output wire        bulk_cancel,
+    input  wire        bulk_error,
+    input  wire        bulk_read_valid,
+    output wire        bulk_read_ready,
+    input  wire [63:0] bulk_read_data,
+    input  wire        bulk_read_last,
+    output wire        bulk_write_valid,
+    input  wire        bulk_write_ready,
+    output wire [63:0] bulk_write_data,
+    output wire        bulk_write_last,
     output wire [31:0] sd_lba0,
     output wire [31:0] sd_lba1,
     output wire [ 1:0] sd_rd,
@@ -42,8 +60,10 @@ module ngage_raw_save_manager #(
     localparam IDLE = 0, LOAD_START = 1, LOAD_WAIT = 2, FLUSH_WAIT = 3, FAILED = 4;
     reg [2:0] state = IDLE;
     reg [1:0] mount_prev = 0, pending = 0, restored = 0, media_error = 0;
-    reg terminal_error = 0;
-    assign error = terminal_error || (|media_error);
+    reg       terminal_error = 0;
+    reg [1:0] transfer_error = 0;
+    assign error      = terminal_error || (|media_error);
+    assign slot_error = media_error | transfer_error;
     wire [ 1:0] mount_event = mount & ~mount_prev;
     wire        any_mount = |mount_event;
     reg  [13:0] cursor = 0;
@@ -56,6 +76,9 @@ module ngage_raw_save_manager #(
         else selected_ack_prev <= selected_ack;
     end
     wire tracker_flushing, tracker_error, tracker_init, tracker_valid;
+    wire tracker_pending, tracker_fault;
+    wire start_flush, autosave_due;
+    reg manual_batch = 0;
     wire unsafe_change = state == FAILED || state == FLUSH_WAIT ||
         ((state == LOAD_START || state == LOAD_WAIT) && mount_event[active_slot]) ||
         tracker_flushing || tracker_valid || flush_pending || dirty_valid ||
@@ -63,8 +86,9 @@ module ngage_raw_save_manager #(
     wire bridge_mem_valid;
     wire bridge_host_write = hps_we && (selected_ack || selected_ack_prev) &&
         state != FAILED && !(any_mount && unsafe_change);
-    assign mounted   = &restored;
-    assign mem_valid = bridge_mem_valid && state != FAILED && !(any_mount && unsafe_change);
+    assign bulk_cancel = BULK != 0 && (state == FAILED || (any_mount && unsafe_change));
+    assign mounted     = &restored;
+    assign mem_valid   = bridge_mem_valid && state != FAILED && !(any_mount && unsafe_change);
     wire b_ready, b_done, b_error, b_rd, b_wr;
     wire [31:0] b_lba;
     wire [15:0] b_din;
@@ -75,52 +99,109 @@ module ngage_raw_save_manager #(
         .C_SECTORS  (C_SECTORS),
         .PMM_SECTORS(PMM_SECTORS),
         .RAW_IMAGES (1),
+        .BULK       (BULK),
         .SD_TIMEOUT (SD_TIMEOUT)
     ) bridge (
-        .clk           (clk),
-        .reset         (reset),
-        .start         (start_bridge),
-        .load_from_disk(state == LOAD_START),
-        .sector_index  (state == LOAD_START ? cursor : tracker_index),
-        .ready         (b_ready),
-        .done          (b_done),
-        .error         (b_error),
-        .mem_valid     (bridge_mem_valid),
-        .mem_ready     (mem_ready),
-        .mem_write     (mem_write),
-        .mem_addr      (mem_addr),
-        .mem_data      (mem_data),
-        .mem_be        (mem_be),
-        .mem_done      (mem_done),
-        .mem_rdata     (mem_rdata),
-        .sd_lba        (b_lba),
-        .sd_rd         (b_rd),
-        .sd_wr         (b_wr),
-        .sd_ack        (selected_ack),
-        .hps_addr      (hps_addr),
-        .hps_dout      (hps_dout),
-        .hps_we        (bridge_host_write),
-        .hps_din       (b_din)
+        .clk             (clk),
+        .reset           (reset),
+        .start           (start_bridge),
+        .load_from_disk  (state == LOAD_START),
+        .sector_index    (state == LOAD_START ? cursor : tracker_index),
+        .ready           (b_ready),
+        .done            (b_done),
+        .error           (b_error),
+        .mem_valid       (bridge_mem_valid),
+        .mem_ready       (mem_ready),
+        .mem_write       (mem_write),
+        .mem_addr        (mem_addr),
+        .mem_data        (mem_data),
+        .mem_be          (mem_be),
+        .mem_done        (mem_done),
+        .mem_rdata       (mem_rdata),
+        .bulk_error      (bulk_error),
+        .bulk_read_valid (bulk_read_valid),
+        .bulk_read_ready (bulk_read_ready),
+        .bulk_read_data  (bulk_read_data),
+        .bulk_read_last  (bulk_read_last),
+        .bulk_write_valid(bulk_write_valid),
+        .bulk_write_ready(bulk_write_ready),
+        .bulk_write_data (bulk_write_data),
+        .bulk_write_last (bulk_write_last),
+        .sd_lba          (b_lba),
+        .sd_rd           (b_rd),
+        .sd_wr           (b_wr),
+        .sd_ack          (selected_ack),
+        .hps_addr        (hps_addr),
+        .hps_dout        (hps_dout),
+        .hps_we          (bridge_host_write),
+        .hps_din         (b_din)
     );
-    ngage_dirty_tracker #(
-        .SECTORS(C_SECTORS + PMM_SECTORS),
-        .AW     (14)
-    ) tracker (
-        .clk          (clk),
-        .cold_reset   (reset),
-        .dirty_valid  (dirty_valid),
-        .dirty_sector (dirty_sector),
-        .flush_start  (flush_pending && flash_quiescent && mounted && state == IDLE),
-        .flushing     (tracker_flushing),
-        .flush_error  (tracker_error),
-        .init_done    (tracker_init),
-        .sector_valid (tracker_valid),
-        .sector_accept(accept_dirty),
-        .sector_index (tracker_index),
-        .sector_done  (state == FLUSH_WAIT && b_done),
-        .sector_ok    (!b_error),
-        .abort_flush  (any_mount && unsafe_change)
-    );
+    assign start_flush = !any_mount && state == IDLE && mounted &&
+        flash_quiescent && !tracker_flushing && (flush_pending || autosave_due);
+    generate
+        if (ORDERED != 0) begin : ordered
+            localparam [14:0] BATCH_LIMIT = AUTO_BATCH_SECTORS;
+            reg [31:0] quiet_cycles = 0, age_cycles = 0;
+            always @(posedge clk) begin
+                if (reset || !mounted || !tracker_pending) begin
+                    quiet_cycles <= 0;
+                    age_cycles   <= 0;
+                end else begin
+                    if (dirty_valid) quiet_cycles <= 0;
+                    else if (quiet_cycles < AUTO_QUIET_CYCLES) quiet_cycles <= quiet_cycles + 1'b1;
+                    if (age_cycles < AUTO_MAX_AGE_CYCLES) age_cycles <= age_cycles + 1'b1;
+                end
+            end
+            assign autosave_due = autosave_enable && !pause_autosave && bundle_verified &&
+                tracker_pending && (quiet_cycles >= AUTO_QUIET_CYCLES ||
+                                    age_cycles >= AUTO_MAX_AGE_CYCLES);
+            ngage_ordered_dirty_queue #(
+                .SECTORS(C_SECTORS + PMM_SECTORS),
+                .AW     (14)
+            ) queue (
+                .clk          (clk),
+                .cold_reset   (reset),
+                .dirty_valid  (dirty_valid),
+                .dirty_sector (dirty_sector),
+                .flush_start  (start_flush),
+                .flush_limit  (flush_pending ? 15'd0 : BATCH_LIMIT),
+                .abort_flush  (any_mount && unsafe_change),
+                .init_done    (tracker_init),
+                .flushing     (tracker_flushing),
+                .flush_error  (tracker_error),
+                .queue_fault  (tracker_fault),
+                .pending      (tracker_pending),
+                .sector_valid (tracker_valid),
+                .sector_index (tracker_index),
+                .sector_accept(accept_dirty),
+                .sector_done  (state == FLUSH_WAIT && b_done),
+                .sector_ok    (!b_error)
+            );
+        end else begin : legacy_scan
+            assign tracker_pending = 0;
+            assign tracker_fault   = 0;
+            assign autosave_due    = 0;
+            ngage_dirty_tracker #(
+                .SECTORS(C_SECTORS + PMM_SECTORS),
+                .AW     (14)
+            ) tracker (
+                .clk          (clk),
+                .cold_reset   (reset),
+                .dirty_valid  (dirty_valid),
+                .dirty_sector (dirty_sector),
+                .flush_start  (start_flush),
+                .flushing     (tracker_flushing),
+                .flush_error  (tracker_error),
+                .init_done    (tracker_init),
+                .sector_valid (tracker_valid),
+                .sector_accept(accept_dirty),
+                .sector_index (tracker_index),
+                .sector_done  (state == FLUSH_WAIT && b_done),
+                .sector_ok    (!b_error),
+                .abort_flush  (any_mount && unsafe_change)
+            );
+        end
+    endgenerate
 
     assign sd_lba0 = b_lba;
     assign sd_lba1 = b_lba;
@@ -142,6 +223,8 @@ module ngage_raw_save_manager #(
             active_slot    <= 0;
             saved          <= 0;
             terminal_error <= 0;
+            transfer_error <= 0;
+            manual_batch   <= 0;
             media_error    <= 0;
             dirty_latched  <= 0;
             was_flushing   <= 0;
@@ -152,23 +235,37 @@ module ngage_raw_save_manager #(
             was_flushing <= tracker_flushing;
             if (dirty_valid || (mounted && !flash_quiescent) || (flush_start && mounted))
                 saved <= 0;
+            if (start_flush) begin
+                manual_batch  <= flush_pending;
+                flush_pending <= 0;
+            end
             if (flush_start && mounted) flush_pending <= 1;
-            if (flush_pending && flash_quiescent && mounted && state == IDLE) flush_pending <= 0;
             if (was_flushing && !tracker_flushing && !tracker_error && mounted) begin
-                if (flash_quiescent && !dirty_valid && !flush_start && !flush_pending) begin
+                if (flash_quiescent && !dirty_valid && !tracker_pending && !flush_start && !flush_pending) begin
                     saved         <= 1;
                     dirty_latched <= 0;
-                end else flush_pending <= 1;
+                end else if (manual_batch && !start_flush) flush_pending <= 1;
             end
 
-            if (any_mount && unsafe_change) begin
-                // Fail closed, preserving all DDR/dirty state. Media changed
-                // underneath an active or dirty handset: cold reset required.
+            if (tracker_fault && state != FAILED) begin
                 restored       <= 0;
                 pending        <= 0;
                 saved          <= 0;
                 terminal_error <= 1;
+                transfer_error <= 2'b11;
+                flush_pending  <= 0;
                 state          <= FAILED;
+            end else if (any_mount && unsafe_change) begin
+                // Fail closed, preserving all DDR/dirty state. Media changed
+                // underneath an active or dirty handset: cold reset required.
+                restored <= 0;
+                pending <= 0;
+                saved <= 0;
+                terminal_error <= 1;
+                transfer_error <= transfer_error | mount_event |
+                    ((state == LOAD_WAIT || state == FLUSH_WAIT) ? (2'b01 << active_slot) : 2'b00);
+                flush_pending <= 0;
+                state <= FAILED;
             end else if (state != FAILED) begin
                 // Event metadata is shared by hps_io; consume it now, never
                 // consult it later while another slot owns a restore.
@@ -202,9 +299,10 @@ module ngage_raw_save_manager #(
                     LOAD_WAIT:
                     if (b_done) begin
                         if (b_error) begin
-                            terminal_error <= 1;
-                            saved          <= 0;
-                            state          <= FAILED;
+                            terminal_error              <= 1;
+                            transfer_error[active_slot] <= 1;
+                            saved                       <= 0;
+                            state                       <= FAILED;
                         end else if (cursor == (active_slot ?
                             C_SECTORS + PMM_SECTORS - 1 : C_SECTORS - 1)) begin
                             restored[active_slot] <= 1;
@@ -220,10 +318,12 @@ module ngage_raw_save_manager #(
                     FLUSH_WAIT:
                     if (b_done) begin
                         if (b_error) begin
-                            terminal_error <= 1;
-                            restored       <= 0;
-                            saved          <= 0;
-                            state          <= FAILED;
+                            terminal_error              <= 1;
+                            transfer_error[active_slot] <= 1;
+                            flush_pending               <= 0;
+                            restored                    <= 0;
+                            saved                       <= 0;
+                            state                       <= FAILED;
                         end else state <= IDLE;
                     end
                     default:    state <= FAILED;

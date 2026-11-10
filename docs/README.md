@@ -7,6 +7,9 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [background-save.md](background-save.md) | S3 ordered C:/PMM queue, background scheduling, failure reporting and verification |
+| [ddr-bulk-persistence.md](ddr-bulk-persistence.md) | D3 sector snapshots, restores, ordering and 4 KiB host assessment |
+| [ddr-flash-cache.md](ddr-flash-cache.md) | D2 shared flash backing cache, writer ordering, sizing and tests |
 | [ddr-stream-transport.md](ddr-stream-transport.md) | Opt-in D1 scalar/line/sector stream transport, buffered ownership/reset contracts and verification |
 | [raw-persistence.md](raw-persistence.md) | Raw C:/PMM images, lossless NGA migration, four-slot mount/save/reset policies and verification |
 | [integration-baseline.md](integration-baseline.md) | P0 source/toolchain identities, transaction contracts, retained measurements and fixture repairs |

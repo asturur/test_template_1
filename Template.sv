@@ -57,6 +57,7 @@ module emu (
         "S1,VHD,Mount PMM raw image;",
         "S3,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
+        "D2O[21],Background save,Off,On;",
         "O[15],Diagnostic SIM (reset required),No ATR,Test card;",
         "O[16],CPU mode,Hold,Run;",
         "O[17],Display,Diagnostic,Phone;",
@@ -101,7 +102,10 @@ module emu (
         .buttons(buttons),
         .status(status),
         .status_menumask({
-            14'b0, bt_applied || bt_busy || overlay_busy, overlay_applied || overlay_busy || bt_busy
+            13'b0,
+            D3_BULK_PERSISTENCE == 0,
+            bt_applied || bt_busy || overlay_busy,
+            overlay_applied || overlay_busy || bt_busy
         }),
 
         .ps2_key   (ps2_key),
@@ -151,12 +155,13 @@ module emu (
     // Default to CPU Hold; a deliberate OSD selection releases it only after
     // loader, save, SDRAM scrub and board initialization gates are satisfied.
     wire transport_reset = ~pll_locked;
-    wire phone_reset;
+    wire phone_reset, phone_reset_pending;
     ngage_reset_gate phone_reset_gate (
         .clk          (clk_sys),
         .cold_reset   (transport_reset),
         .reset_request(RESET | status[0] | buttons[1]),
         .block_reset  (save_saving || save_busy),
+        .reset_pending(phone_reset_pending),
         .phone_reset  (phone_reset)
     );
     wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted
@@ -570,6 +575,11 @@ module emu (
     // operations across phone reset. Do not gate their backing traffic on reset.
     // The first arbiter shares the loader and save engine; the second shares
     // their registered transaction stream with the phone while honoring SWP lock.
+    localparam D3_BULK_PERSISTENCE = 0;
+    wire aux_bulk, arb_bulk, bulk_cancel, bulk_error;
+    wire bulk_read_valid, bulk_read_ready, bulk_read_last;
+    wire bulk_write_valid, bulk_write_ready, bulk_write_last;
+    wire [63:0] bulk_read_data, bulk_write_data;
     wire save_mem_valid, save_mem_ready, save_mem_write, save_mem_done;
     wire [31:0] save_mem_addr, save_mem_data, save_mem_rdata;
     wire [3:0] save_mem_be;
@@ -577,6 +587,9 @@ module emu (
     wire [31:0] aux_addr, aux_data, aux_rdata;
     wire [3:0] aux_be;
     ngage_ddr_arbiter auxiliary_arbiter (
+        .l_bulk   (1'b0),
+        .c_bulk   (D3_BULK_PERSISTENCE != 0),
+        .req_bulk (aux_bulk),
         .clk      (clk_sys),
         .reset    (transport_reset),
         .cpu_lock (1'b0),
@@ -608,6 +621,9 @@ module emu (
     wire core_ddr_line, arb_line, core_beat_valid, core_beat_last, arb_beat_valid, arb_beat_last;
     wire [63:0] core_beat_data, arb_beat_data;
     ngage_ddr_arbiter ddr_arbiter (
+        .l_bulk        (aux_bulk),
+        .c_bulk        (1'b0),
+        .req_bulk      (arb_bulk),
         .c_line        (core_ddr_line),
         .req_line      (arb_line),
         .rsp_beat_valid(arb_beat_valid),
@@ -647,77 +663,108 @@ module emu (
     wire core_ddr_fetch;
     // D1 stream transport is an opt-in candidate; retain the measured legacy
     // backend and existing ROM cache by default until fit/latency qualification.
-    localparam D1_STREAM_TRANSPORT = 0;
-    ngage_ddr_adapter #(
-        .STREAM_TRANSPORT(D1_STREAM_TRANSPORT),
-        .ROM_CACHE       (1),
-        .LINE_REFILL     (1)
+    localparam D1_STREAM_TRANSPORT  = 0;
+    localparam D2_FLASH_CACHE_BYTES = 0;
+    ngage_ddr_flash_adapter #(
+        .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
+        .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
+        .STREAM_TRANSPORT (D1_STREAM_TRANSPORT),
+        .ROM_CACHE        (1),
+        .LINE_REFILL      (1)
     ) ddr_adapter (
-        .req_line      (arb_line),
-        .rsp_beat_valid(arb_beat_valid),
-        .rsp_beat_data (arb_beat_data),
-        .rsp_beat_last (arb_beat_last),
-        .clk           (clk_sys),
-        .reset         (transport_reset),
-        .req_fetch     (core_accept && core_ddr_fetch),
-        .req_valid     (arb_valid),
-        .req_ready     (arb_ready),
-        .req_write     (arb_write),
-        .req_addr      (arb_addr),
-        .req_wdata     (arb_data),
-        .req_be        (arb_be),
-        .rsp_valid     (arb_rsp),
-        .rsp_data      (arb_rdata),
-        .ddr_burstcount(DDRAM_BURSTCNT),
-        .ddr_addr      (DDRAM_ADDR),
-        .ddr_din       (DDRAM_DIN),
-        .ddr_be        (DDRAM_BE),
-        .ddr_rd        (DDRAM_RD),
-        .ddr_we        (DDRAM_WE),
-        .ddr_busy      (DDRAM_BUSY),
-        .ddr_dout      (DDRAM_DOUT),
-        .ddr_dout_ready(DDRAM_DOUT_READY)
+        .req_bulk        (arb_bulk),
+        .bulk_cancel     (bulk_cancel),
+        .bulk_error      (bulk_error),
+        .bulk_read_valid (bulk_read_valid),
+        .bulk_read_ready (bulk_read_ready),
+        .bulk_read_data  (bulk_read_data),
+        .bulk_read_last  (bulk_read_last),
+        .bulk_write_valid(bulk_write_valid),
+        .bulk_write_ready(bulk_write_ready),
+        .bulk_write_data (bulk_write_data),
+        .bulk_write_last (bulk_write_last),
+        .req_line        (arb_line),
+        .rsp_beat_valid  (arb_beat_valid),
+        .rsp_beat_data   (arb_beat_data),
+        .rsp_beat_last   (arb_beat_last),
+        .clk             (clk_sys),
+        .reset           (transport_reset),
+        .req_fetch       (core_accept && core_ddr_fetch),
+        .req_valid       (arb_valid),
+        .req_ready       (arb_ready),
+        .req_write       (arb_write),
+        .req_addr        (arb_addr),
+        .req_wdata       (arb_data),
+        .req_be          (arb_be),
+        .rsp_valid       (arb_rsp),
+        .rsp_data        (arb_rdata),
+        .ddr_burstcount  (DDRAM_BURSTCNT),
+        .ddr_addr        (DDRAM_ADDR),
+        .ddr_din         (DDRAM_DIN),
+        .ddr_be          (DDRAM_BE),
+        .ddr_rd          (DDRAM_RD),
+        .ddr_we          (DDRAM_WE),
+        .ddr_busy        (DDRAM_BUSY),
+        .ddr_dout        (DDRAM_DOUT),
+        .ddr_dout_ready  (DDRAM_DOUT_READY)
     );
 
     // Raw media has no embedded firmware identity. Retain the verified stock
     // firmware gate; host conversion manifests carry the original provenance.
-    reg flush_prev = 0;
+    wire [1:0] save_slot_error;
+    reg        flush_prev = 0;
     always @(posedge clk_sys) flush_prev <= status[14];
     ngage_raw_save_manager #(
-        .SD_TIMEOUT(SYS_CLK_HZ)
+        .BULK               (D3_BULK_PERSISTENCE),
+        .AUTO_QUIET_CYCLES  (SYS_CLK_HZ),
+        .AUTO_MAX_AGE_CYCLES(5 * SYS_CLK_HZ),
+        .SD_TIMEOUT         (SYS_CLK_HZ)
     ) saves (
-        .clk            (clk_sys),
-        .reset          (transport_reset),
-        .mount          (img_mounted[1:0]),
-        .readonly_image (img_readonly),
-        .image_size     (img_size),
-        .bundle_verified(loader_valid && loader_known_firmware && !ioctl_download),
-        .dirty_valid    (flash_dirty),
-        .dirty_sector   (flash_dirty_sector),
-        .flush_start    (status[14] && !flush_prev),
-        .mounted        (save_mounted),
-        .saving         (save_saving),
-        .saved          (save_saved),
-        .error          (save_error),
-        .busy           (save_busy),
-        .mem_valid      (save_mem_valid),
-        .mem_ready      (save_mem_ready),
-        .mem_write      (save_mem_write),
-        .mem_addr       (save_mem_addr),
-        .mem_data       (save_mem_data),
-        .mem_be         (save_mem_be),
-        .mem_done       (save_mem_done),
-        .mem_rdata      (save_mem_rdata),
-        .sd_lba0        (sd_lba[0]),
-        .sd_lba1        (sd_lba[1]),
-        .sd_rd          (sd_rd[1:0]),
-        .sd_wr          (sd_wr[1:0]),
-        .sd_ack         (sd_ack[1:0]),
-        .hps_addr       (sd_buff_addr),
-        .hps_dout       (sd_buff_dout),
-        .hps_we         (sd_buff_wr),
-        .hps_din        (sd_buff_din[0]),
-        .flash_quiescent(!flash_busy)
+        .bulk_cancel     (bulk_cancel),
+        .bulk_error      (bulk_error),
+        .bulk_read_valid (bulk_read_valid),
+        .bulk_read_ready (bulk_read_ready),
+        .bulk_read_data  (bulk_read_data),
+        .bulk_read_last  (bulk_read_last),
+        .bulk_write_valid(bulk_write_valid),
+        .bulk_write_ready(bulk_write_ready),
+        .bulk_write_data (bulk_write_data),
+        .bulk_write_last (bulk_write_last),
+        .clk             (clk_sys),
+        .reset           (transport_reset),
+        .mount           (img_mounted[1:0]),
+        .readonly_image  (img_readonly),
+        .image_size      (img_size),
+        .bundle_verified (loader_valid && loader_known_firmware && !ioctl_download),
+        .dirty_valid     (flash_dirty),
+        .dirty_sector    (flash_dirty_sector),
+        .flush_start     (status[14] && !flush_prev),
+        .autosave_enable (status[21]),
+        .pause_autosave  (phone_reset_pending || phone_reset || overlay_busy || bt_busy),
+        .slot_error      (save_slot_error),
+        .mounted         (save_mounted),
+        .saving          (save_saving),
+        .saved           (save_saved),
+        .error           (save_error),
+        .busy            (save_busy),
+        .mem_valid       (save_mem_valid),
+        .mem_ready       (save_mem_ready),
+        .mem_write       (save_mem_write),
+        .mem_addr        (save_mem_addr),
+        .mem_data        (save_mem_data),
+        .mem_be          (save_mem_be),
+        .mem_done        (save_mem_done),
+        .mem_rdata       (save_mem_rdata),
+        .sd_lba0         (sd_lba[0]),
+        .sd_lba1         (sd_lba[1]),
+        .sd_rd           (sd_rd[1:0]),
+        .sd_wr           (sd_wr[1:0]),
+        .sd_ack          (sd_ack[1:0]),
+        .hps_addr        (sd_buff_addr),
+        .hps_dout        (sd_buff_dout),
+        .hps_we          (sd_buff_wr),
+        .hps_din         (sd_buff_din[0]),
+        .flash_quiescent (!flash_busy)
     );
     assign sd_buff_din[1] = sd_buff_din[0];
 
@@ -796,7 +843,7 @@ module emu (
         .save_state(save_error ? 3'd4 : save_saving ? 3'd2 :
                     save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
         .diagnostic_status({
-            2'b0,
+            save_slot_error,
             (|bt_error),
             bt_busy,
             bt_loaded,

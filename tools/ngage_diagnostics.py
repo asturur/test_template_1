@@ -50,7 +50,10 @@ def main():
                                      if valid_mask & 1 else None)
             panic["exception_address"] = (f"0x{struct.unpack('<I', payload[4:8])[0]:08x}"
                                           if valid_mask & 2 else None)
-    print(json.dumps({"panic_report": panic, "fault_seen": bool(words[4] & 8),
+    save_errors = None
+    if words[404] == 0x5356:
+        save_errors = {"C:": bool(words[405] & 1), "PMM": bool(words[405] & 2)}
+    print(json.dumps({"panic_report": panic, "save_errors": save_errors, "fault_seen": bool(words[4] & 8),
                       "fault_reason": words[4] & 7,
                       "fault_address": f"0x{words[3]:04x}{words[2]:04x}",
                       "wrapped": bool(words[7] & 1), "dropped_events": words[392],

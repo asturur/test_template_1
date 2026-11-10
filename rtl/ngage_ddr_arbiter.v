@@ -1,6 +1,9 @@
 // Two requesters, one outstanding transaction; responses return to its owner.
 // A CPU lock reserves the bus across the gap between SWP read and write.
 module ngage_ddr_arbiter (
+    input  wire        l_bulk,
+    input  wire        c_bulk,
+    output wire        req_bulk,
     input  wire        c_line,
     output wire        req_line,
     input  wire        rsp_beat_valid,
@@ -40,6 +43,7 @@ module ngage_ddr_arbiter (
     reg outstanding = 0, owner = 0, prefer_cpu = 0;
     wire choose_cpu = c_valid && (cpu_lock || !l_valid || prefer_cpu);
     wire choose_loader = l_valid && !cpu_lock && !choose_cpu;
+    assign req_bulk     = choose_cpu ? c_bulk : l_bulk;
     assign req_line     = choose_cpu && c_line;
     assign c_beat_valid = outstanding && owner && rsp_beat_valid;
     assign c_beat_data  = rsp_beat_data;

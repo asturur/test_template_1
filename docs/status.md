@@ -1,3 +1,62 @@
+## 2026-11-11: S3 ordered background saving locally verified
+
+The D3 bulk build now uses one 8,320-sector dirty queue across C: and PMM.
+Background save defaults Off in the OSD. When enabled, a pass is eligible
+after one second quiet or five seconds pending. Automatic passes save up to
+16 sectors and let pending warm resets run between passes. Manual Save drains
+both slots. Re-dirty after dequeue queues a new generation. Transfer or queue
+failure stops saving, preserves unsaved DDR contents and exports C:/PMM error
+bits in the slot 3 diagnostic image.
+
+Queue, reset, actual HPS, bulk NOR, full-size reload, diagnostic export and
+structural checks passed. Original-firmware filesystem interruption/remount,
+MiSTer Main durability and fitted timing are open. See
+[background-save.md](background-save.md) and [merge-plan.md](../merge-plan.md).
+
+## 2026-11-10: D3 bulk persistence locally verified
+
+D3 uses the D1 stream engine for 64-beat C:/PMM snapshots and wider restore
+writes. Sector grants serialize mutations, preserve SWP and survive reset
+until the physical tail drains. Restore invalidates sixteen D2 indices.
+`D3_BULK_PERSISTENCE` defaults to zero. D2 and D3 changes are uncommitted
+on the integration worktree, based on D1 commit `386f576`.
+
+Scalar, bulk and bulk+D2 actual HPS/NOR tests passed. Full-size scalar and
+bulk restore/reload matched every word and both last-sector saves. Two
+full-image restores issued 2,129,920 scalar DDR writes or 1,064,960 bulk DDR
+writes. Ownership/reset, scalar bridge, four-slot HPS, six D2 configurations,
+formatter, source graph and both top elaborations passed. The 4 KiB host
+assessment is in [ddr-bulk-persistence.md](ddr-bulk-persistence.md).
+
+Evidence and remaining gates are in [merge-plan.md](../merge-plan.md) and
+`docs/evidence/ddr-bulk-persistence-2026-11-10.json`. Integration logs live in
+`scratch/ngage2-integration/d3/`. Physical fit and timing remain open.
+
+## 2026-11-10: D1 committed and D2 cache candidate locally verified
+
+D1 is committed as `386f576` on `codex/ngage2-integration`. D2 adds the
+optional shared raw flash cache after DDR arbitration. `D2_FLASH_CACHE_BYTES`
+defaults to zero. Matching tags invalidate before ordered DDR writes. Scalar
+misses return the requested beat early and hold their fill until it completes.
+The full contract is in [ddr-flash-cache.md](ddr-flash-cache.md).
+
+Six cache/transport byte-oracle configurations passed. Actual HPS/NOR checks
+passed changed C:/PMM restore, descramble boundaries, C: ID/erase and PMM
+status. NOS/BT overlay HPS tests passed all four views and exact undo.
+Default and D1+D2 top elaboration, Verilog-2001, formatter and source graph
+checks passed. The restore fixture needed a clean flush scan before replacing
+warm media because the existing manager marks NOR activity conservatively.
+The overlay runner needed explicit D1 module dependencies for Verilator's
+hierarchical references. Source-graph preflight ran on the host Tcl runtime.
+
+Matched synthetic D1 reuse probe with D2. 256 to 16 DDR reads and 1,920 to
+1,280 elapsed clocks. Scalar hit one clock, cold first-word miss six clocks
+versus four uncached. The 24 KiB scan was slower with D2 at each capacity.
+Representative firmware performance and Quartus fit/timing remain open.
+D2 work is uncommitted. Results in [merge-plan.md](../merge-plan.md) and
+`docs/evidence/ddr-flash-cache-2026-11-10.json`. Integration logs and fixture
+hashes live under `scratch/ngage2-integration/d2/`.
+
 ## 2026-11-10: D1 overlapping read refinement locally accepted
 
 D1 now returns registered prefix beats as DDR arrives, keeping reserved512B

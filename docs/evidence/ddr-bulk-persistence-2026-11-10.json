@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-10",
+  "base_commit": "386f5767392b6f5eacf2ec021e26d22d210a1a24",
+  "disposition": "Locally verified opt-in D3 bulk sector path",
+  "default_bulk_persistence": 0,
+  "simulator_image": "jotego/simulator:arm64",
+  "source_hashes": {
+    "Template.sv": "61d4c53af556004a260dbe7cf067953ed3c692a0f9b616d74429b053a0a4aba3",
+    "rtl/ngage_ddr_adapter.sv": "1244770bfefff5c71258dac5476870449923631193f7cbe3fe3f746a44d52484",
+    "rtl/ngage_ddr_arbiter.sv": "4a6a11fc9f4af47981a702d649ec5beff2e39e631f67b379e6ae0e066e40c2b7",
+    "rtl/ngage_ddr_flash_adapter.v": "b62c2eb56aff1629117f1b480df986aae1e6530de4e4f73a5c459e63ce321f22",
+    "rtl/ngage_ddr_flash_cache.v": "b1aed28955966bcde4527e93a6ed756dcbb71ac38789b516f7c950eccffbfaaf",
+    "rtl/ngage_raw_save_manager.v": "1b172cb4d4f13921c5d28888d248d5598740a6b4c246bc23d0e3582a8dd4b22f",
+    "rtl/ngage_save_sector_bridge.sv": "60309b094eaca463b1912aa83d3e8818bf1e77c5ca56b8499c39922d626f0bb6",
+    "tests/phone/ddr_bulk/run.sh": "347d51ff72911ef382ae8f31602be9d9c91c4b00638fee298f7d7266a9d72a15",
+    "tests/phone/ddr_bulk/tb.sv": "e1afc0bd0eb0b453d6916dec6e46cf776d69680b560cece0f200a73a2ab4cdf7",
+    "tests/phone/raw_save/full_tb.sv": "a10548c6fab6a5b4ef1c5f99ba320cd05891522f2cb2479a906cff13c11e2e19",
+    "tests/phone/raw_save/run-full.sh": "902c780a640640c31609487d5c27b4b91f5bd72f7ae8449aac63d1bf25bf3159",
+    "tests/phone/raw_save/nor_tb.sv": "5867bcd1e7e14710d755d5a303d27582feea8a98dd08e4ee4bfb4927b0ec1250",
+    "tests/phone/raw_save/run-nor.sh": "35de80a43cc1ec20fdfdfaf15cbaa977593e2890b8220367ad734d6b9d78dc10",
+    "tests/phone/save_sector/tb.sv": "1d83b056c1d26bdbaa0e35485a7b425ec04a85b5369d7e4cafe30e99e42370a6"
+  },
+  "fixture_hashes": {
+    "build/firmware/nem4-factory/core.bin": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "build/firmware/nem4-factory/extension.bin": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+  },
+  "log_hashes": {
+    "scratch/ngage2-integration/d3/cache-regression.log": "3dd86799ebc03bf6c9d3d295f2f50707da66c95c0f24122d1ba1efec430cf4bd",
+    "scratch/ngage2-integration/d3/full-bulk.log": "b95f4b7c7d81114fc83adf7e3bdee6b866cb8e239fcf686ab7852657ccdcb01b",
+    "scratch/ngage2-integration/d3/full-scalar.log": "b4830222f1d3d9fe547161a5f7b27d7d02a13b0d739b6b3417870ed592e30720",
+    "scratch/ngage2-integration/d3/hps.log": "90a083dae2b6e7f3ec805896b549223a02ae7c8b8c832a184dbe2fedaaed6bb8",
+    "scratch/ngage2-integration/d3/nor-bulk-cache.log": "d19e469e788f53615280cea200c04d7b7c58130e9b161c06b35ed8d13a57d3b9",
+    "scratch/ngage2-integration/d3/nor-bulk.log": "5c0b0732d836a299760ce5f88fdae4f250081cbc966cfddb8bb37b5f51529aed",
+    "scratch/ngage2-integration/d3/nor-scalar.log": "c897cbd93c94d768ea456b89a20fe7e311e12e4b65fccd65553f2898622b8746",
+    "scratch/ngage2-integration/d3/ownership.log": "5f7fe74eb224d1423cabfe09d21ec805a83b333b72ccbb6121627422f8864a10",
+    "scratch/ngage2-integration/d3/scalar-bridge.log": "835739d382c6fceb5f402e13401cf819cb6b9d260a93137f2ee28e653eef6835",
+    "scratch/ngage2-integration/d3/sourcegraph.log": "4ee0bb44a64a8469b9f5751eab2a4f1dff682ee3cc41563a0ef73f0bd98097b0",
+    "scratch/ngage2-integration/d3/top-bulk.log": "ad9a7b397a68f5e1649461d0622894aecc400527085b8edf3aca2458a1b0e2ca",
+    "scratch/ngage2-integration/d3/top.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2"
+  },
+  "prior_d2_worktree": {
+    "scratch/ngage2-integration/d3/d2-baseline/tracked.patch": "b62e5e5fd7bb88bb6ca91c3ca2c88dae390ce8b5af198f031da27d5864954a81",
+    "scratch/ngage2-integration/d3/d2-baseline/untracked.tar": "a64e4f145a7ec5dfa43f5a6f0c4b74cd63ddc1be1223354cc0803fee43494997"
+  },
+  "actual_hps_nor_metrics": {
+    "nor-bulk": [
+      {
+        "bulk": 1,
+        "initial_restore_writes": 256,
+        "restore_complete_cycle": 5950
+      },
+      {
+        "bulk": 1,
+        "snapshots": 6,
+        "DDR_reads_through_save": 13,
+        "save_complete_cycle": 16084
+      }
+    ],
+    "nor-bulk-cache": [
+      {
+        "bulk": 1,
+        "initial_restore_writes": 256,
+        "restore_complete_cycle": 5950
+      },
+      {
+        "bulk": 1,
+        "snapshots": 6,
+        "DDR_reads_through_save": 14,
+        "save_complete_cycle": 16149
+      }
+    ],
+    "nor-scalar": [
+      {
+        "bulk": 0,
+        "initial_restore_writes": 512,
+        "restore_complete_cycle": 7993
+      },
+      {
+        "bulk": 0,
+        "snapshots": 0,
+        "DDR_reads_through_save": 775,
+        "save_complete_cycle": 22630
+      }
+    ]
+  },
+  "full_size": {
+    "words_checked_each_restore": 1064960,
+    "restores_per_mode": 2,
+    "bulk_writes": 1064960,
+    "scalar_writes": 2129920,
+    "bulk_snapshot_commands": 2
+  },
+  "tests": {
+    "nor-bulk": "PASS raw NOR",
+    "nor-bulk-cache": "PASS D2 raw NOR",
+    "nor-scalar": "PASS raw NOR",
+    "scalar-bridge": "PASS DDR to HPS sector",
+    "hps": "PASS actual four-slot",
+    "cache-regression": "PASS D2 flash cache",
+    "ownership": "PASS D3 DDR ownership",
+    "full-bulk": "1064960 DDR writes, 2 bulk snapshots",
+    "full-scalar": "2129920 DDR writes, 0 bulk snapshots",
+    "top": "PASS top-level structural elaboration",
+    "sourcegraph": "175 required files, 9 unique QIPs"
+  },
+  "open": [
+    "Fitted FPGA resource and timing",
+    "Installed MiSTer Main and physical persistence"
+  ]
+}

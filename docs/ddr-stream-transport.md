@@ -19,7 +19,7 @@ remain in their existing modules.
 
 `ngage_ddr_stream.v` owns one descriptor through its complete transfer.
 `ngage_ddr_stream_legacy.v` adapts the maintained 32-bit word/cache/32-byte line
-interface, preserving lane mapping and pulse completion. `ngage_ddr_adapter.sv`
+interface, preserving lane mapping and pulse completion. `ngage_ddr_adapter.v`
 selects the new backend with `STREAM_TRANSPORT=1`; the default selects the
 original scalar backend. Existing outer arbiters retain response ownership,
 CPU SWP reservation and round-robin grants. New modules are in `files.qip`.

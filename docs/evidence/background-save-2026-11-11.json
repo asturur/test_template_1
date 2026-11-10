@@ -1,0 +1,109 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "386f5767392b6f5eacf2ec021e26d22d210a1a24",
+  "branch": "codex/ngage2-integration",
+  "disposition": "S3 locally verified on the D2/D3 working tree",
+  "simulator_image": "jotego/simulator:arm64",
+  "configuration": {
+    "ordered_queue": "D3_BULK_PERSISTENCE",
+    "default_background_save": false,
+    "quiet_seconds": 1,
+    "pending_age_seconds": 5,
+    "automatic_batch_sectors": 16,
+    "queue_capacity_sectors": 8320
+  },
+  "source_hashes": {
+    "Template.sv": "e1f2816c58198a35ac6aac727634bff75ff1e636d7374734a5af88795225ab5d",
+    "files.qip": "7dea8e8e57b8b4246f7fcfd33379377e09fd092b62b3f390c294f2ac7ca402b3",
+    "rtl/ngage_ordered_dirty_queue.v": "6d1e8ebb391b69ceb6534e16d801dfa268bbbc91cba53508937812f25b097051",
+    "rtl/ngage_raw_save_manager.v": "a92d47685bddc07908c985814bed2ffdf66ce5849a69e24ecbc2b081245d7912",
+    "rtl/ngage_reset_gate.v": "261f8a4f14c8dcf58301fa5712546387c18f2bb66a314cb6ce81736df5a35477",
+    "rtl/ngage_diagnostics.v": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c",
+    "rtl/ngage_mister.v": "ecd78b7207a733ed3e0ac01d61e2f320aae4408d0b74f5a4e772b0a7b6c15140",
+    "tools/ngage_diagnostics.py": "5e8931a15463ef43ec9efcd733c74d71e230d6b4e099132bda59776a4f10a542",
+    "tests/phone/ordered_dirty_queue/tb.sv": "695dac484eb07a31eba5b281e6319cb921d03a345cfc70129322f08e43e44a89",
+    "tests/phone/ordered_dirty_queue/run.sh": "9760d393cc9b2dad53cc8e27a523821e01d37d83f56330aa5d38c51ced859961",
+    "tests/phone/raw_save/hps_tb.sv": "5ab05b4627ca705ffb4570a1ce3fc229e97fa1603f63d809df195fca70e337c6",
+    "tests/phone/raw_save/run-hps.sh": "a2de3104e7a096b05ac6fa03a0cf195839f0cbd885c6639d6b7840919c1decd9",
+    "tests/phone/raw_save/nor_tb.sv": "fcac7d12d6a69a648f5d3fb7853f305ae936e37348f497f8514293f1bcac5d85",
+    "tests/phone/raw_save/run-nor.sh": "720c57eeedf9ded127b049405a44b898ce7392716c4ab41366dc98b7a992376a",
+    "tests/phone/raw_save/full_tb.sv": "f3c8d167bd5d9d891509bd967b88385a1bdd561784fa1499910cef7df658a0eb",
+    "tests/phone/raw_save/run-full.sh": "01c8c9ed3f21c4e487b35986356d19867ca12b0efffabedcfa9864c68b028b9a",
+    "tests/phone/reset_gate/tb.sv": "815c6c06d1934a05f3a26b2243faeb38c844ad41b4fbd36fa3b26d772c39f725",
+    "tests/phone/diagnostics/tb.v": "50de7b29c7bb2ca2be865b9b99c0034dfc033d7c3f54a392ffe48ed4b6f23b23",
+    "tests/phone/diag_export/integrated.v": "e7f6b23ac0c6af2d038c0ff8b14c40e3f64b5bf5fc78af60b5d17d67b6b3b10b",
+    "tests/phone/diag_export/run.sh": "e15f6b64d85fd6dee9942aef89e5638464de5a405bcecff4b73f365a542f587c"
+  },
+  "prior_worktree": {
+    "scratch/ngage2-integration/s3/pre-s3.patch": "3175d9d48fb75e2118fb0dbb5d57a4540bea1d022ace4dc104bd9a2be19d75e1",
+    "scratch/ngage2-integration/s3/pre-s3-untracked.tar": "85bfe99ef382db8ff0a760af4de66f6bc22f10b175148181f181ad4e3e1def9d"
+  },
+  "fixture_hashes": {
+    "build/firmware/nem4-factory/core.bin": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "build/firmware/nem4-factory/extension.bin": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+  },
+  "log_hashes": {
+    "scratch/ngage2-integration/s3/queue.log": "d5408e01472db0f36c5bb4fcbd4ca75f511f122ef9807807c423da8b48b77e14",
+    "scratch/ngage2-integration/s3/reset.log": "b667a7523b528add428104757df997df243f15d8e1ec4861ccfd3485bdc66aad",
+    "scratch/ngage2-integration/s3/diagnostics.log": "de0c10a37de90f72f3b9d1bd2ec3ac1851e4488a0ea3a30ca0c2feddcd7960a6",
+    "scratch/ngage2-integration/s3/autosave-hps.log": "2f3b6e71e1f958d6e053149e4a40f177fb79094a526f0e21e603009e6f9a24c1",
+    "scratch/ngage2-integration/s3/legacy-hps.log": "111ccafd5c3cc694f51b80fb80c7edc567e8cf2dc1f0cd5753ee5784bfc56484",
+    "scratch/ngage2-integration/s3/bulk-nor.log": "0017cd8d363aa7bbdc8e8e7f01d7b0e38210e566cbe06f9535dbd1e956e93e7e",
+    "scratch/ngage2-integration/s3/bulk-full.log": "9c9dac1dadfd7f5e2848660ef32be68b4000889410230d4f144299fd1051106f",
+    "scratch/ngage2-integration/s3/top.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2",
+    "scratch/ngage2-integration/s3/top-ordered.log": "e8bd52694669a726af1311013f1c1d040496a245419d858460392e51a55be2cc",
+    "scratch/ngage2-integration/s3/sourcegraph.log": "443ef84bd902641713f8dea8cd94b9bb5ce5a8ba0f950f666792e56deab68d62"
+  },
+  "tests": {
+    "queue": [
+      "PASS ordered dirty queue randomized reference, 606 offers",
+      "PASS ordered dirty queue generations, order, full capacity, wrap, batch and failed ACK",
+      "PASS ordered dirty queue explicit overflow retention"
+    ],
+    "reset": [
+      "PASS deferred phone reset"
+    ],
+    "diagnostics": [
+      "PASS diagnostic snapshot, disk validation and two-sector HPS export",
+      "PASS diagnostic ring to captured disk",
+      "PASS decoded exported fault, events and dropped count",
+      "PASS diagnostic export through real hps_io virtual disk protocol"
+    ],
+    "autosave-hps": [
+      "PASS S3 actual HPS ordered autosave, quiet/max age, finite warm reset and manual drain",
+      "PASS actual four-slot hps_io raw C/PMM, S2 reserve, S3 diagnostics, mount order/reset/error/mutation (31 checks, 44 reads, 17 writes)"
+    ],
+    "legacy-hps": [
+      "PASS actual four-slot hps_io raw C/PMM, S2 reserve, S3 diagnostics, mount order/reset/error/mutation (28 checks, 39 reads, 11 writes)"
+    ],
+    "bulk-nor": [
+      "METRIC bulk=1 initial_restore_writes=256 restore_complete_cycle=5950",
+      "METRIC bulk=1 snapshots=6 DDR_reads_through_save=14 save_complete_cycle=16126",
+      "PASS D2 raw NOR cached array, changed C/PMM restore, descramble boundaries, C ID/erase and PMM status",
+      "PASS raw NOR program, scalar DDR adapter/arbiters and actual four-slot hps_io, independent C/PMM flush/reload, concurrent mutation, immutable firmware (12 reads, 8 writes)"
+    ],
+    "bulk-full": [
+      "PASS raw full-size 4 MiB C: and 64 KiB PMM restore/readback, bulk=1, 1064960 DDR writes, 2 bulk snapshots"
+    ],
+    "top": [
+      "PASS top-level structural elaboration (HPS and PLL stubbed)"
+    ],
+    "sourcegraph": [
+      "PASS Quartus 17 source graph: 176 required files, 9 unique QIPs"
+    ],
+    "top-ordered": [
+      "Verilator structural elaboration with D3_BULK_PERSISTENCE=1, exit 0"
+    ],
+    "verilog-2001": [
+      "Ordered queue and raw save manager compile, exit 0"
+    ],
+    "formatter": [
+      "Six production RTL files checked"
+    ]
+  },
+  "open": [
+    "Controlled interruption and remount with the original-firmware filesystem",
+    "Installed MiSTer Main and physical power-cycle durability",
+    "Fitted FPGA resource use and timing"
+  ]
+}

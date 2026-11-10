@@ -33,7 +33,7 @@ struct Test {
     Voverlay_transport d;
     std::vector<uint8_t> memory;
     uint64_t cycles=0,writes=0;
-    unsigned delay=0;
+    unsigned delay=0, remaining=0;
     bool allow_overlay_error=false;
     uint32_t pending_addr=0;
     void tick(unsigned n=1) {
@@ -43,6 +43,8 @@ struct Test {
                 uint64_t data=0;
                 for(unsigned i=0;i<8;i++)data|=uint64_t(memory.at(pending_addr+i))<<(8*i);
                 d.ddr_q=data;d.ddr_ready=1;
+                pending_addr+=8;
+                if(--remaining) delay=2;
             }
             d.eval();
             if(!d.ddr_busy && (d.ddr_we || d.ddr_rd)) {
@@ -53,7 +55,11 @@ struct Test {
                     check(!d.ready,"CPU released during patch writes");
                     for(unsigned i=0;i<8;i++)if(d.ddr_be&(1<<i))memory.at(base+i)=d.ddr_data>>(8*i);
                     writes++;
-                } else { pending_addr=base;delay=4; }
+                } else {
+                    check(!remaining && (d.ddr_burst==1 || d.ddr_burst==4),"DDR read overlap or size");
+                    check(base+8*d.ddr_burst<=0x13f0000,"read burst escaped firmware");
+                    pending_addr=base;remaining=d.ddr_burst;delay=4;
+                }
             }
             d.clk=1;d.eval();cycles++;
             if(!allow_overlay_error)check(!d.error,"overlay transport/validation error");

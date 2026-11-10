@@ -17,7 +17,7 @@ PY
 verilator --cc --exe --build -j 2 -Wno-fatal --top-module service_transport \
  --Mdir build/sim/service-loader/obj \
  build/sim/service-loader/hps-compat.sv rtl/ngage_bundle_gate.v rtl/ngage_service_loader.v \
- rtl/ngage_ddr_adapter.sv rtl/ngage_ddr_lanes.sv rtl/ngage_descramble.v rtl/ngage_flash_read_decode.v \
+ rtl/ngage_ddr_adapter.v rtl/ngage_ddr_lanes.sv rtl/ngage_descramble.v rtl/ngage_flash_read_decode.v \
  tests/phone/service_loader/transport.v /work/tests/phone/service_loader/test.cpp \
  > build/sim/service-loader/build.log 2>&1
 build/sim/service-loader/obj/Vservice_transport

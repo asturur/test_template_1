@@ -1,9 +1,10 @@
 # Raw C: and PMM persistence
 
-The integration branch retains original NEM-4 firmware, ARM920/ZAP, phone/timer
-profile, NOR models and scalar DDR persistence transport. C: and PMM now mount
-independently through stock MiSTer virtual-disk I/O. No DDR cache, streaming
-restore, autosave, MMC model or NOS/peripheral/CPU replacement is included.
+The default build retains original NEM-4 firmware, ARM920/ZAP, phone/timer
+profile, NOR models and scalar DDR persistence transport. C: and PMM mount
+independently through stock MiSTer virtual-disk I/O. The D3 build adds
+[bulk persistence](ddr-bulk-persistence.md) and
+[ordered background saving](background-save.md) with the same image format.
 
 ## Files and migration
 
@@ -89,7 +90,8 @@ Warm phone reset requests defer until load/save finishes. CPU release is also
 separately gated by both mounts and firmware/board initialization. Cold transport
 reset is immediate: it cancels transfers, clears mount/tracker state and requires
 both media to be mounted again. Dirty data is not promised to survive that
-explicit cold reset. No automatic background save or power-loss journal exists.
+explicit cold reset. The D3 build can also run
+[ordered background passes](background-save.md) when enabled in the OSD.
 
 ## Local verification
 
