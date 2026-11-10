@@ -3,6 +3,11 @@
 import argparse, glob, gzip, hashlib, json, shutil, subprocess, struct, zlib
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[3]
+# Screenshot extraction is a separate, zero-clock reader of a completed pair.
+# It links against that run's exact cached HDL, including frozen continuations.
+import sys
+sys.path.insert(0,str(ROOT/'tools'))
+from capture_sim_checkpoint import capture as capture_checkpoint
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def png(ppm, dest):
     data=ppm.read_bytes(); head,wh,maxval,raw=data.split(b'\n',3);w,h=map(int,wh.split())
@@ -23,6 +28,13 @@ def run_model(cmd,out):
             lines=(pending+chunk).split(b'\n');pending=lines.pop()
             for line in lines:
                 if line.startswith(interesting):progress.write(line+b'\n')
+                if line.startswith(b'CHECKPOINT ') and b' prefix=' in line:
+                    prefix=Path(line.split(b' prefix=',1)[1].decode())
+                    try:
+                        capture_checkpoint(prefix)
+                    except Exception as error:
+                        # An observation failure must not terminate a phone run.
+                        print(f'Screenshot failed for {prefix}: {error}',file=sys.stderr,flush=True)
             progress.flush()
             live.seek(0);live.write(head)
             omitted=total-len(head)-len(tail)

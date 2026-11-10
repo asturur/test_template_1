@@ -42,6 +42,14 @@ def main():
                  "category": (payload[:8].split(b"\0", 1)[0].decode("ascii", errors="replace")
                               if valid_mask & 3 == 3 else None),
                  "reason": struct.unpack("<I", payload[8:])[0] if valid_mask & 4 else None}
+        # Kern::Fault(0x10000000) preserves the pre-filled exception context
+        # instead of copying a category string (firmware50333e88..50333ef0).
+        if panic["reason"] == 0x10000000:
+            panic["category"] = None
+            panic["exception_pc"] = (f"0x{struct.unpack('<I', payload[:4])[0]:08x}"
+                                     if valid_mask & 1 else None)
+            panic["exception_address"] = (f"0x{struct.unpack('<I', payload[4:8])[0]:08x}"
+                                          if valid_mask & 2 else None)
     print(json.dumps({"panic_report": panic, "fault_seen": bool(words[4] & 8),
                       "fault_reason": words[4] & 7,
                       "fault_address": f"0x{words[3]:04x}{words[2]:04x}",

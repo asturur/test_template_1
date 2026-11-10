@@ -120,8 +120,9 @@ Matrix press edges latch bit 2 at `0C150100`; up/down/left/right/OK/music latch 
 
 The bottom diagnostic `PANIC` row shows the first full writes to physical
 `0C0047F0`, `0C0047F4`, `0C0047F8`: two little-endian category words, then raw
-reason. `MASK 7` means all three words were observed; cold reset clears them.
-They are reporting attempts, not the original PC. Export after the firmware
+reason. Special reason10000000 preserves exception PC/address instead of a
+category string; the decoder identifies that packet. `MASK 7` means all three words were observed; cold reset clears them.
+They are reporting attempts; ordinary categories must not be read as a PC. Export after the firmware
 parks and decode with `tools/ngage_diagnostics.py decode diagnostics.ngd`.
 The optional NGD extension occupies halfwords396..403 (magic504E, mask, payload);
 old snapshots decode with `panic_report: null`. See [symbian-startup.md](symbian-startup.md).

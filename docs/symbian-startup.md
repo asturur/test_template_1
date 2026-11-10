@@ -27,12 +27,19 @@ Independent ARM disassembly of pristine NEM-4 `SYM.ROM` proves:
   every reported reason has this bias or subtract it without identifying entry.
 - `50324240` sends category words to `47f0/f4`, reason to `47f8`, signals the
   handoff/reset controls, then parks at `50324294`.
-- The report words are **category and reason, not original PC**. Example fixture
+- Ordinary reports contain **category and reason**. Special reason `10000000`
+  preserves the pre-filled context words instead: the observed exception
+  packet holds PC and fault address. The decoder handles this special case. Example fixture
   `65637845 6f697470 00010003` means truncated category `Exceptio`, raw reason
   `00010003`. This fixture is not a captured hardware panic.
 
 Evidence: `scratch/hardware-fault-47f0/{category-reason,ekern-abort}.txt`.
-The original hardware category/reason remain unknown.
+The original hardware report remains unknown. A later4.4B corrected-sim
+checkpoint DOES reproduce the final panic: CPSR600000D7, FSR0000001D,
+FAR59893FE0. Its superpage report is5038524C /59893FE0 /10000000. This special
+packet preserves exception context rather than a category string. An exact
+matching4.3B checkpoint is available to capture the first exception. Whether
+the hardware has the same original exception is still unverified.
 
 ## Passive panic recorder
 

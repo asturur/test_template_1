@@ -230,3 +230,35 @@ The HDL logo harness logs command/header/parameter writes after the initial clea
 ### Native scanout after the HDMI active-area correction
 
 New-build phone `scanout.png` is 176x208 and samples actual CE+DE-qualified video. The phone remains centered in a larger 400x262 timing raster, with black around it for analog output; those blanking intervals are excluded from the HDMI source image and PNG. Diagnostic mode remains 320x240. Older frozen-build screenshots retain their historical 320x240 bordered format. `tests/phone/lcd_display/run-native.sh` verifies coordinate patterns, DE/sync counts, analog black padding and an explicitly labeled display-only Nokia-frame replay.
+
+
+### Screenshots at checkpoints
+
+The runner now renders every completed CPU/host pair with a separate zero-clock
+reader linked against that run's exact saved HDL archive. Native176x208
+framebuffer and sampled scanout PNGs live in
+`build/sim/screens/<run>-checkpoints/checkpoint-<cycle>-{framebuffer,scanout}.png`.
+JSON alongside them records display validity, source identity,64-bit checkpoint
+cycle and unchanged input checkpoint hashes. The original terminal screenshots
+remain in `build/sim/screens/<run>/`. No raw PPMs are retained by the reader.
+
+Extract an existing plain CPU/host pair without stopping a run:
+
+```sh
+python3 tools/capture_sim_checkpoint.py build/sim/runs/<run>/checkpoint-4400000000
+```
+
+For a runner already in progress, its loaded Python code cannot gain the new
+callback. Start the filesystem-only renderer separately; it captures existing
+pairs and each newly completed100M pair, exiting when result.json appears:
+
+```sh
+python3 tools/capture_sim_checkpoint.py build/sim/runs/<run> --watch
+```
+
+This does not restart or advance the phone. It uses the existing pinned Docker
+image and verifies the saved executable; missing or mismatched model artifacts
+are rejected. No current RTL is compiled into a frozen run. A zero-cycle4.2B
+continuation produced byte-identical CPU/host files and PNGs matching both
+original terminal images. Failed screenshot callbacks report an error without
+terminating the simulator. Watch mode is for uncompressed completed pairs.

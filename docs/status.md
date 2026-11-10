@@ -1,3 +1,41 @@
+## 2026-11-10:100M screenshots enabled; corrected sim panic at4.4B
+
+User requested100M screenshots and a latest-checkpoint image without stopping
+the long sim. Added tools/capture_sim_checkpoint.py plus a zero-clock C++ reader
+linked to each checkpoint's exact frozen HDL archive. Existing binary/container
+identity checked, source CPU/host hashes verified unchanged. No HDL, serial
+layout, firmware or C: change. Native176x208 framebuffer+scanout PNGs and JSON in
+build/sim/screens/<run>-checkpoints/. Separate folder avoids colliding with a
+legacy runner's terminal-directory creation. No raw PPMs retained.
+
+Future run-logo.py CHECKPOINT callbacks invoke the reader; failures do not kill
+phone simulation. Existing long run remains unchanged; independent --watch
+renderer session35936 creates screenshots for each completed pair, no agent/log
+polling. Its log scratch/hardware-fault-47f0/checkpoint-screens.log. It exits on
+run result.json.4.3B and4.4B screenshots saved, both still Nokia logo.
+
+Verification: separate checkpoint-screenshot-zero strict4.2B continuation with
+zero cycles matches original CPU AND host byte-for-byte; both checkpoint PNGs
+match original4.2B terminal PNG SHA256. Runner callback/end processing passes.
+Python syntax/diff checks PASS. No hardware build launched.
+
+NEW BOOT EVIDENCE:4.4B e986 corrected lineage is now at50324294/CPSR600000D7,
+the SAME final panic loop observed on hardware. Exact original hardware cause
+not yet established. Zero-clock read of4.4B shows CP15 FSR1D/FAR59893FE0;
+superpage40000418=5038524C,1C=59893FE0,10=10000000. No new backing-bus errors
+(30923398)/data bus errors0: architectural MMU fault is distinct from bus errors.
+Special reason10000000 at50333e88 skips category copy, preserving exception
+context PC/address in the report words. Previous blanket "not PC" prose was
+incomplete; decoder and docs now distinguish this special packet. A synthetic
+NGD packet matching these values decodes PC/address correctly.
+
+Separate exact frozen observer from4.3B is running with100M cap, stopping on
+first ABT entry/new bus error/panic and preserving forensic CPU/host pair;
+session91737, scratch/hardware-fault-47f0/first-abort-from-4300m.log. Original
+long run, source checkpoints, firmware and C: inputs remain untouched. Next
+inspect the first architectural fault and decide whether current64-entry TLB
+fixes that ownership/permission failure; do not silently migrate old state.
+
 ## 2026-11-10: Working-phone priority; hardware panic recorder verified
 
 User confirms hardware RBF40bfc11, before64-entry TLB replacement. Main goal
