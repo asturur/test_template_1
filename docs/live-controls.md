@@ -1,3 +1,10 @@
+## Production SIM selection (2026-11-11)
+
+The diagnostic SIM OSD option is removed. Production always presents no card
+and does not synthesize the diagnostic test-card responder. SIMIF registers
+remain available; stored bit15 has no effect. Test-card selection described in
+historical sections below applies only to standalone diagnostic fixtures.
+
 ## Live diagnostic text and named controls (2026-11-07)
 
 The new diagnostic display replaces the bars in the integrated MiSTer core

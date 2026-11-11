@@ -59,7 +59,6 @@ module emu (
         "S3,NGD,Mount diagnostic disk;",
         "T[14],Flush C:/PMM images;",
         "D2O[21],Background save,Off,On;",
-        "O[15],Diagnostic SIM (reset required),No ATR,Test card;",
         "O[16],CPU mode,Hold,Run;",
         "O[17],Display,Diagnostic,Phone;",
         "T[18],Export diagnostics;",
@@ -933,11 +932,12 @@ module emu (
     // Requested timing experiment: 26 MHz counters and a 64 Hz NOS counter.
     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
     ngage_mister #(
-        .LINE_REFILL  (1),
-        .DMA_LOCAL    (1),
-        .TIMER_CLK_DIV(SYS_CLK_HZ / 26000000),
-        .NOS_TICK_HZ  (64),
-        .SYS_CLK_HZ   (SYS_CLK_HZ)
+        .LINE_REFILL    (1),
+        .DMA_LOCAL      (1),
+        .TEST_SIM_ENABLE(0),
+        .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
+        .NOS_TICK_HZ    (64),
+        .SYS_CLK_HZ     (SYS_CLK_HZ)
     ) core (
         .ddram_line(core_ddr_line),
         .ddram_beat_valid(core_beat_valid),
@@ -949,7 +949,7 @@ module emu (
         .ram_line_valid(ram_line_valid),
         .ram_line_data(ram_line_data),
         .ram_line_last(ram_line_last),
-        .sim_present(status[15]),
+        .sim_present(1'b0),
         .dma_reset(dma_reset),
         .mmc_card_reset(mmc_card_reset),
         .mmc_img_mounted(mmc_img_mounted),

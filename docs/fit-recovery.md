@@ -1,5 +1,30 @@
 # Integration fit recovery
 
+## 2026-11-11: Production diagnostic SIM removed
+
+Template selects TEST_SIM_ENABLE=0 and ties presence low. The diagnostic SIM
+OSD entry is removed; saved status bit15 is unused and cannot enable a card.
+The QIP excludes ngage_test_sim.v. Board now selects the card independently
+of SIMIF, retaining the SIM register controller with no ATR/card/FIQ injection.
+The disabled card also forces presence low at the board boundary, even if a
+caller supplies presence high. Historical standalone test-card fixtures retain
+their generic defaults; the production Template explicitly omits the model.
+
+All four board combinations (card built/omitted, presence low/high) pass; the
+two omitted-card variants compile without the card source. Production top
+elaboration passes without that source; preflight is174 files/nine QIPs.
+No CPU/memory/LCD stage changes or new firmware simulation. Existing other-chat
+simulations and the earlier uncommitted boot-observer work remain untouched.
+
+The previous failed-fit hierarchy attributed440.7 ALMs to the card,709.8 to
+the screen renderer,223.5 to its monitor,285.3 to the diagnostic recorder and
+72.8 to export (including its transport). Thus the renderer alone is about710
+ALMs; the complete listed diagnostic group about1,291. These are prior-fit
+attributions, not guaranteed additive savings or a new successful fit. The
+screen renderer/monitor/recorder/export are retained in this change. No build
+monitoring is authorized.
+
+
 ## 2026-11-11: Logic-fit priority, packed D-cache metadata and VHD-only profile
 
 The replacement user logs fail with **43,217/41,910 ALMs (103%)**, requiring

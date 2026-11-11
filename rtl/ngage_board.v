@@ -5,6 +5,7 @@ module ngage_board #(
               INTERNAL_CPU       = 0,
               DIRECT_SDRAM       = 0,
               SIMIF_ENABLE       = 0,
+              TEST_SIM_ENABLE    = SIMIF_ENABLE,
               KEYPAD_ENABLE      = 0,
               LCD_ENABLE         = 0,
               GENERAL_DMA        = 0,
@@ -210,7 +211,7 @@ module ngage_board #(
     wire [7:0] card_rx_data, card_tx_data;
     wire [6:0] card_available;
     generate
-        if (SIMIF_ENABLE) begin : test_card
+        if (SIMIF_ENABLE && TEST_SIM_ENABLE) begin : test_card
             ngage_test_sim #(
                 .CLOCK_DIV(SYS_CLK_HZ / 3250000)
             ) card (
@@ -433,7 +434,7 @@ module ngage_board #(
         .lcd_dma_addr       (lcd_dma_addr),
         .lcd_dma_data       (lcd_dma_data),
         .keys               (keys[25:0]),
-        .sim_present        (sim_present),
+        .sim_present        (sim_present && TEST_SIM_ENABLE),
         .card_rx_valid      (card_rx_valid),
         .card_tx_will_emit  (card_tx_will_emit),
         .card_overflow      (card_overflow),

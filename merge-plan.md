@@ -871,6 +871,15 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Production diagnostic SIM removal — 2026-11-11
+
+Remove the OSD selector and compile out the test-card responder, retaining
+SIMIF no-card behavior and all semi-real NOS work. Prior-fit card attribution
+is441 ALMs; actual saving remains pending Quartus. Four board cases pass,
+including forced-high presence with the card omitted and compilation without
+its source. Production top and174-file/nine-QIP preflight pass. The diagnostic
+screen is retained. No simulation/checkpoint or build-monitor operation.
+
 #### Second fit recovery — 2026-11-11: selected production profile
 
 New logs reduce the failure to103% ALMs (43,217/41,910), zero MLABs and512/553

@@ -17,6 +17,7 @@ module ngage_mister #(
               DIRECT_SDRAM       = 1,
               DMA_LOCAL          = 1,
               GENERAL_DMA        = 1,
+              TEST_SIM_ENABLE    = 1,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
               NOS_TICK_HZ        = 1000
@@ -201,6 +202,7 @@ module ngage_mister #(
         .INTERNAL_CPU      (1),
         .DIRECT_SDRAM      (DIRECT_SDRAM),
         .SIMIF_ENABLE      (1),
+        .TEST_SIM_ENABLE   (TEST_SIM_ENABLE),
         .KEYPAD_ENABLE     (1),
         .LCD_ENABLE        (1),
         .LCD_DMA_ENABLE    (1),

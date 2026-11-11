@@ -47,7 +47,8 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp_peripherals.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_simif.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_test_sim.v
+# Diagnostic test card omitted; SIM controller retains no-card behavior.
+# set_global_assignment -name VERILOG_FILE rtl/ngage_test_sim.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_uem.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_adsp.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lrb2.v
