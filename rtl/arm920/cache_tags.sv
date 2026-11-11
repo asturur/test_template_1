@@ -4,7 +4,9 @@
 // Mutation pulses capture a record, committed on the following edge.
 // Callers serialize mutations and allow fresh lookup stages after commit.
 // 16 KiB / 32-byte lines = 8 segments x 64 indices, MVA lookup and PA tags.
-module arm920_cache_tags #(parameter READ_ONLY = 0) (
+module arm920_cache_tags #(
+    parameter READ_ONLY = 0
+) (
     input  logic        clk,
     input  logic        reset,
     input  logic [31:0] mva,
@@ -29,6 +31,7 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
     output logic [ 5:0] lock_base,
     input  logic        round_robin,
     // Indexed maintenance interface; caller excludes simultaneous accesses.
+    input  logic        scan_read,
     input  logic [ 2:0] scan_segment,
     input  logic [ 5:0] scan_way,
     output logic        scan_valid,
@@ -37,20 +40,24 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
     input  logic        scan_clean,
     input  logic        scan_invalidate
 );
-    logic       valid       [0:7] [0:63];
-    logic [1:0] dirty       [0:7] [0:63];
-    logic [5:0] victim      [0:7];
-    logic [5:0] random_state[0:7];
+    logic        valid        [ 0:7] [0:63];
+    // Byte lane 3 stores dirty halves in the existing simple-dual tag M10K.
+    // Reset/invalidate clear valid FFs; stale RAM metadata is masked until fill.
+    wire  [31:0] packed_tag   [0:63];
+    reg   [ 1:0] commit_dirty;
+    logic [ 5:0] victim       [ 0:7];
+    logic [ 5:0] random_state [ 0:7];
     reg [31:0] read_mva, lookup_mva;
     reg [63:0] read_valid_bits, match_bits;
     reg [1:0] read_dirty_bits[0:63], compare_dirty[0:63];
     reg [5:0] read_victim_way, compare_victim_way;
-    reg compare_victim_valid;
-    reg [1:0] compare_victim_dirty;
+    reg        compare_victim_valid;
+    reg [ 1:0] compare_victim_dirty;
     reg [26:0] compare_victim_pa;
     reg [31:0] commit_mva, commit_pa;
-    reg [63:0] commit_selected;
-    reg [ 5:0] commit_way;
+    reg  [63:0] commit_selected;
+    wire [63:0] selected_ways;
+    reg  [ 5:0] commit_way;
     reg commit_fill, commit_write, commit_clean, commit_invalidate;
     reg commit_rr;
     wire commit_allowed = !reset && !invalidate_all && !lock_write &&
@@ -59,38 +66,72 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
     wire [2:0] segment = lookup_mva[7:5];
     assign lookup_address     = lookup_mva;
     assign scan_valid         = valid[scan_segment][scan_way];
-    assign scan_dirty         = dirty[scan_segment][scan_way];
+    assign scan_dirty         = READ_ONLY || !scan_valid ? 2'b00 : packed_tag[scan_way][25:24];
     assign scan_physical_line = {scan_pa_data, 5'b0};
     // All 64 ways are compared in parallel after one synchronous segment read.
-    // Valid/dirty flags stay in registers for reset and indexed maintenance.
+    // Valid flags stay resettable; writable-cache dirty flags share tag RAM.
     wire [23:0] tag_data                                    [0:63];
     wire        fill_commit = commit_fill && commit_allowed;
     wire [ 2:0] commit_segment = commit_mva[7:5];
-    wire [7:0] valid_by_segment[0:63];
-    wire [7:0] dirty0_by_segment[0:63], dirty1_by_segment[0:63];
+    wire [ 7:0] valid_by_segment                            [0:63];
+
     genvar tag_way, lookup_segment;
     generate
         for (tag_way = 0; tag_way < 64; tag_way = tag_way + 1) begin : ways
-            for (lookup_segment = 0; lookup_segment < 8; lookup_segment = lookup_segment + 1) begin : flag_read
+            for (
+                lookup_segment = 0; lookup_segment < 8; lookup_segment = lookup_segment + 1
+            ) begin : flag_read
                 assign valid_by_segment[tag_way][lookup_segment] = valid[lookup_segment][tag_way];
-                assign dirty0_by_segment[tag_way][lookup_segment] = dirty[lookup_segment][tag_way][0];
-                assign dirty1_by_segment[tag_way][lookup_segment] = dirty[lookup_segment][tag_way][1];
             end
-            ngage_bram #(
-                .AW         (3),
-                .DW         (24),
-                .READ_ONLY_B(1)
-            ) tag_ram (
-                .clk   (clk),
-                .addr_a(commit_segment),
-                .addr_b(mva[7:5]),
-                .data_a(commit_mva[31:8]),
-                .data_b(24'b0),
-                .we_a  (fill_commit && commit_way == tag_way),
-                .we_b  (1'b0),
-                .q_a   (),
-                .q_b   (tag_data[tag_way])
-            );
+            if (READ_ONLY) begin : instruction_tags
+                ngage_bram #(
+                    .AW         (3),
+                    .DW         (24),
+                    .READ_ONLY_B(1)
+                ) tag_ram (
+                    .clk   (clk),
+                    .addr_a(commit_segment),
+                    .addr_b(mva[7:5]),
+                    .data_a(commit_mva[31:8]),
+                    .data_b(24'b0),
+                    .we_a  (fill_commit && commit_way == tag_way),
+                    .we_b  (1'b0),
+                    .q_a   (),
+                    .q_b   (tag_data[tag_way])
+                );
+                assign packed_tag[tag_way] = {8'b0, tag_data[tag_way]};
+            end else begin : packed_dirty_tags
+                // Indexed maintenance owns port B from TAG_WAIT onward.
+                // Metadata commits write only lane 3, preserving all tag bits.
+                wire scan_mutation = !reset && !invalidate_all && !lock_write &&
+                    (scan_clean || scan_invalidate) && scan_way == tag_way;
+                wire committed_mutation = commit_allowed && commit_selected[tag_way] &&
+                    (commit_write || commit_clean || commit_invalidate);
+                wire filling = fill_commit && commit_way == tag_way;
+                wire [1:0] next_dirty = (commit_clean || commit_invalidate) ? 2'b00 :
+                    commit_dirty | (commit_mva[4] ? 2'b10 : 2'b01);
+                wire [3:0] byte_enable = scan_mutation ? 4'b1000 : filling ? 4'b1111 :
+                    committed_mutation ? 4'b1000 : 4'b0000;
+                ngage_bram #(
+                    .AW         (3),
+                    .DW         (32),
+                    .BYTE_WIDTH (8),
+                    .READ_ONLY_B(1)
+                ) tag_ram (
+                    .clk(clk),
+                    .addr_a((scan_clean || scan_invalidate) ? scan_segment : commit_segment),
+                    .addr_b(scan_read ? scan_segment : mva[7:5]),
+                    .data_a({
+                        6'b0, (scan_mutation || filling) ? 2'b00 : next_dirty, commit_mva[31:8]
+                    }),
+                    .data_b(32'b0),
+                    .we_a(byte_enable),
+                    .we_b(4'b0000),
+                    .q_a(),
+                    .q_b(packed_tag[tag_way])
+                );
+                assign tag_data[tag_way] = packed_tag[tag_way][23:0];
+            end
         end
     endgenerate
     // Two read ports: indexed maintenance and the replacement candidate.
@@ -143,6 +184,7 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
             match_bits[lookup_way] <= !reset && !invalidate_all &&
                 read_valid_bits[lookup_way] && tag_data[lookup_way] == read_mva[31:8];
         end
+        commit_dirty      <= hit_dirty;
         commit_mva        <= lookup_mva;
         commit_pa         <= fill_physical;
         commit_way        <= victim_way;
@@ -160,19 +202,15 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
         if (READ_ONLY) begin : read_only_dirty_pipeline
             assign compare_victim_dirty = 2'b00;
         end else begin : writable_dirty_pipeline
-            always @(posedge clk)
-                compare_victim_dirty <= read_dirty_bits[read_victim_way];
+            always @(posedge clk) compare_victim_dirty <= read_dirty_bits[read_victim_way];
         end
         for (dirty_way = 0; dirty_way < 64; dirty_way = dirty_way + 1) begin : dirty_pipeline
             if (READ_ONLY) begin : read_only
                 assign read_dirty_bits[dirty_way] = 2'b00;
-                assign compare_dirty[dirty_way] = 2'b00;
+                assign compare_dirty[dirty_way]   = 2'b00;
             end else begin : writable
-                always @(posedge clk) begin
-                    read_dirty_bits[dirty_way][0] <= |(dirty0_by_segment[dirty_way] & lookup_segment_select);
-                    read_dirty_bits[dirty_way][1] <= |(dirty1_by_segment[dirty_way] & lookup_segment_select);
-                    compare_dirty[dirty_way] <= read_dirty_bits[dirty_way];
-                end
+                assign read_dirty_bits[dirty_way] = packed_tag[dirty_way][25:24] & {2{read_valid_bits[dirty_way]}};
+                always @(posedge clk) compare_dirty[dirty_way] <= read_dirty_bits[dirty_way];
             end
         end
     endgenerate
@@ -200,7 +238,6 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
     // hit_way's binary encoder and a second decoder. Prefix ORs are balanced
     // reductions of constant slices; each flag has its own fixed write enable.
     wire [63:0] matched_ways = hit_tree[126:63];
-    wire [63:0] selected_ways;
     genvar flag_segment, flag_way;
     generate
         for (flag_way = 0; flag_way < 64; flag_way = flag_way + 1) begin : metadata_ways
@@ -228,29 +265,7 @@ module arm920_cache_tags #(parameter READ_ONLY = 0) (
                         end
                     end
                 end
-                if (READ_ONLY) begin : read_only
-                    assign dirty[flag_segment][flag_way] = 2'b00;
-                end else begin : writable
-                    always_ff @(posedge clk) begin
-                        if (reset || invalidate_all) begin
-                            dirty[flag_segment][flag_way] <= 0;
-                        end else if (!lock_write) begin
-                            if (scan_invalidate || scan_clean) begin
-                                if (scan_segment == flag_segment && scan_way == flag_way)
-                                    dirty[flag_segment][flag_way] <= 0;
-                            end else if (commit_segment == flag_segment) begin
-                                if (commit_selected[flag_way]) begin
-                                    if (commit_invalidate || commit_clean)
-                                        dirty[flag_segment][flag_way] <= 0;
-                                    else if (commit_write)
-                                        dirty[flag_segment][flag_way][commit_mva[4]] <= 1;
-                                end
-                                if (fill_commit && commit_way == flag_way)
-                                    dirty[flag_segment][flag_way] <= 0;
-                            end
-                        end
-                    end
-                end
+
             end
         end
     endgenerate

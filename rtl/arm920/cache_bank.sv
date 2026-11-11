@@ -3,7 +3,9 @@
 // both commit on the following edge. The caller must drain before reuse and hold
 // MVA stable through victim read/writeback and pulse writeback_done only after
 // successful completion. The 32-byte RAM read is synchronous, one cycle.
-module arm920_cache_bank #(parameter READ_ONLY = 0) (
+module arm920_cache_bank #(
+    parameter READ_ONLY = 0
+) (
     input  logic         clk,
     input  logic         reset,
     input  logic [ 31:0] mva,
@@ -74,37 +76,40 @@ module arm920_cache_bank #(parameter READ_ONLY = 0) (
         if (reset || invalidate_all) read_valid <= 0;
         else read_valid <= scan_read ? scan_valid : (read_victim ? victim_valid : hit);
     end
-    arm920_cache_tags #(.READ_ONLY(READ_ONLY)) tags (
-        .clk                 (clk),
-        .reset               (reset),
-        .mva                 (mva),
+    arm920_cache_tags #(
+        .READ_ONLY(READ_ONLY)
+    ) tags (
+        .clk                  (clk),
+        .reset                (reset),
+        .mva                  (mva),
         .lookup_segment_select(lookup_segment_select),
-        .lookup_address      (lookup_address),
-        .hit                 (hit),
-        .hit_way             (hit_way),
-        .hit_dirty           (hit_dirty),
-        .hit_physical_line   (hit_pa),
-        .victim_way          (victim_way),
-        .victim_valid        (victim_valid),
-        .victim_dirty        (victim_dirty),
-        .victim_physical_line(victim_physical_line),
-        .fill                (fill_commit),
-        .fill_physical       (refill_physical),
-        .write_hit           (store_intent && store_dirty && (|store_enable)),
-        .invalidate_line     (1'b0),
-        .invalidate_all      (invalidate_all),
-        .clean_hit           (1'b0),
-        .lock_write          (lock_write),
-        .lock_base_in        (lock_base_in),
-        .lock_base           (lock_base),
-        .round_robin         (round_robin),
-        .scan_segment        (scan_segment),
-        .scan_way            (scan_way),
-        .scan_valid          (scan_valid),
-        .scan_dirty          (scan_dirty),
-        .scan_physical_line  (scan_physical_line),
-        .scan_clean          (scan_clean),
-        .scan_invalidate     (scan_invalidate)
+        .lookup_address       (lookup_address),
+        .hit                  (hit),
+        .hit_way              (hit_way),
+        .hit_dirty            (hit_dirty),
+        .hit_physical_line    (hit_pa),
+        .victim_way           (victim_way),
+        .victim_valid         (victim_valid),
+        .victim_dirty         (victim_dirty),
+        .victim_physical_line (victim_physical_line),
+        .fill                 (fill_commit),
+        .fill_physical        (refill_physical),
+        .write_hit            (store_intent && store_dirty && (|store_enable)),
+        .invalidate_line      (1'b0),
+        .invalidate_all       (invalidate_all),
+        .clean_hit            (1'b0),
+        .lock_write           (lock_write),
+        .lock_base_in         (lock_base_in),
+        .lock_base            (lock_base),
+        .round_robin          (round_robin),
+        .scan_read            (scan_read),
+        .scan_segment         (scan_segment),
+        .scan_way             (scan_way),
+        .scan_valid           (scan_valid),
+        .scan_dirty           (scan_dirty),
+        .scan_physical_line   (scan_physical_line),
+        .scan_clean           (scan_clean),
+        .scan_invalidate      (scan_invalidate)
     );
     arm920_cache_lines lines (
         .clk          (clk),
@@ -116,7 +121,7 @@ module arm920_cache_bank #(parameter READ_ONLY = 0) (
         .write_enable (cancel_commit ? 32'b0 : commit_enable),
         .write_line   (commit_data)
     );
-// synthesis translate_off
+    // synthesis translate_off
 `ifndef SYNTHESIS
     always @(posedge clk)
         if (!reset && READ_ONLY && store_intent)
@@ -127,5 +132,5 @@ module arm920_cache_bank #(parameter READ_ONLY = 0) (
             if (!mva[4] && |store_enable[31:16]) $fatal(1, "store crosses cache half boundary");
         end
 `endif
-// synthesis translate_on
+    // synthesis translate_on
 endmodule

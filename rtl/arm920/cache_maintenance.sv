@@ -45,15 +45,15 @@ module arm920_cache_maintenance (
     logic [255:0] saved_line;
     logic [  1:0] saved_dirty;
     logic [  2:0] word_index;
-    assign busy            = state != IDLE;
-    assign scan_way        = index[8:3];
-    assign scan_segment    = index[2:0];
-    assign scan_read       = state == SELECT_LINE || state == READ_LINE || state == CAPTURE_LINE;
-    assign scan_clean      = state == COMMIT && do_clean && !do_invalidate;
+    assign busy = state != IDLE;
+    assign scan_way = index[8:3];
+    assign scan_segment = index[2:0];
+    assign scan_read       = state == TAG_WAIT || state == SELECT_LINE || state == READ_LINE || state == CAPTURE_LINE;
+    assign scan_clean = state == COMMIT && do_clean && !do_invalidate;
     assign scan_invalidate = state == COMMIT && do_invalidate;
-    assign bus_valid       = state == WRITEBACK;
-    assign bus_address     = saved_pa + {27'b0, word_index, 2'b0};
-    assign bus_wdata       = saved_line[word_index*32+:32];
+    assign bus_valid = state == WRITEBACK;
+    assign bus_address = saved_pa + {27'b0, word_index, 2'b0};
+    assign bus_wdata = saved_line[word_index*32+:32];
     always_ff @(posedge clk) begin
         if (reset) begin
             state         <= IDLE;

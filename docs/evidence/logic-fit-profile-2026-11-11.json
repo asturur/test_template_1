@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "eb5e7afc6fd704c3ab2c7d0706037596e7ca1973",
+  "failed_fit": {
+    "ALMs": 43217,
+    "available_ALMs": 41910,
+    "LABs_required": 4370,
+    "available_LABs": 4191,
+    "MLAB_bits": 0,
+    "M10Ks": 512,
+    "available_M10Ks": 553,
+    "input_sha256": {
+      "/Users/andreabogazzi/Downloads/quartus-logs/quartus_build.log": "8a5f494baa9ff9450de5343cdef46f339468e8b6d6610e3b816ea52ac04588d2",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.fit.summary": "8635ebc89a32a6a743c261c607dfdac3cb24df80e63bed10a9323191cdf30417",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.map.smsg": "f5bee4085c6853f83cda480bea061c27c3ebe1af7547077d4ba01db2d38fc4b9",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.map.summary": "17e469a6aebd0108bb8d65cb907f4e8865b806bfe3b2b1fd8dcd29e433d56e84",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.map.rpt": "82f8dcb5a866fd318a700aecdaa20e7d00397a2c2790fa5f78cb8c2d0d82d35d",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.fit.smsg": "f48b4708655a154733be33e739f7c41fa43852f1005a5f6a353f9e4bf78ced17",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.fit.rpt": "7ab218ebe95f357b6dfa9f6b4a2ccd655587d0df0cdad24ed44b61d59db6f395",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.flow.rpt": "7e99fb06ffb3e64a671c744102c56c7e5ddd6a4548f55e21a8678d24fa259130"
+    }
+  },
+  "intent": {
+    "net_FFs_removed": 1150,
+    "additional_M10Ks": 0,
+    "cache_capacity_changed": false,
+    "added_transaction_cycles": 0,
+    "DMA_workers": 2,
+    "fast_LCD": true,
+    "ALSA": false,
+    "NGA_mount": false
+  },
+  "results": {
+    "equivalence_cycles_each_RAM_model": 11025,
+    "RAM_models": [
+      "behavioral",
+      "Intel_altsyncram",
+      "X_poisoned_collision"
+    ],
+    "Icache_equivalence_cycles": [
+      9416,
+      9440
+    ],
+    "ARM_board_timer_div": 4,
+    "NOS_Hz": 64,
+    "fast_LCD_CPU_cycles_normal_held": [
+      152456,
+      152537
+    ],
+    "bulk_restore_DDR_writes": 1064960,
+    "bulk_snapshots": 2,
+    "source_graph_required_files": 175,
+    "source_graph_QIPs": 9,
+    "top_elaboration": "PASS, HPS/PLL stubbed; no UNOPTFLAT",
+    "physical_fit": "pending; build monitoring disabled"
+  },
+  "source_sha256": {
+    "Template.sv": "8a89d31fdc40518006195004bd39d3a38ec2c99277b65ef9a12d872da42ff71e",
+    "Template.qsf": "646c7152fd527188014d80561e997d1cbf4ab6a3db69c2b76367b7b5e81c798e",
+    "files.qip": "932d4c804ea045b26943a91ac40dc7060bc6e12411023d193edf2944decb5740",
+    "rtl/arm920/cache_tags.sv": "05d62c3aeb2d75c20a673e3a481e43e061823fc757841afc179d864dd35ac7e8",
+    "rtl/arm920/cache_bank.sv": "004852c3d8460f26b7a5b9a2435e61c65da04612450cedf9dd72817c705cf90f",
+    "rtl/arm920/cache_maintenance.sv": "afed5fac5154b1aa4e6861b17b839039b450271302859a435d3de9a80a903d4c"
+  },
+  "test_locations": [
+    "tests/cpu/cache_dirty_packed",
+    "build/sim/unit-cache-dirty-packed",
+    "build/sim/unit-cache-dirty-packed-four-state",
+    "build/sim/unit-icache-read-only",
+    "build/sim/unit-mister-board-cpu",
+    "build/sim/unit-dma-handover",
+    "build/sim/unit-d3-raw-save-full"
+  ],
+  "limitations": [
+    "No full firmware UI boot or hardware qualification",
+    "Physical M10K allocation, ALM savings and 104 MHz timing unmeasured",
+    "Other uncommitted boot-observer work intentionally excluded"
+  ],
+  "test_sha256": {
+    "tests/cpu/cache_dirty_packed/reference_cache_bank.sv": "7ce880db61f59cd2d59e74cee116319203758a09177a54af6e0e8cafde05c7fb",
+    "tests/cpu/cache_dirty_packed/access_equivalence.sv": "6d037f53c63c88adc24dbeda2075aab28f086fc169531457cb73f65b46df92f9",
+    "tests/cpu/cache_dirty_packed/reference_cache_tags.sv": "2fb7265e5a3418eed0a9bdbefe97a85928f889ddfc3d1ae60f2c32483ed42e63",
+    "tests/cpu/cache_dirty_packed/reference_cache_maintenance.sv": "95e0b7a41618e9388bbcda7033a879f1fc983e62cf49a4c255e592fb789662b2",
+    "tests/cpu/cache_dirty_packed/reference_cache_access.sv": "aad7796f0249731c08af2f0ee33ba6fb916a0cce9c44a9d65780b16b318851d5",
+    "tests/cpu/cache_dirty_packed/sim.sh": "d7b91c7c83bdf560367fc0c9cbd67127c77278df104184befcf47224e6c2a11e",
+    "tests/cpu/cache_dirty_packed/README.md": "2da4a8822eb6f2f4aafb4663904a43fb2ebb8e8e276826cf0d75565baa185dbe",
+    "tests/cpu/cache_dirty_packed/poison_bram.v": "eb4b3c7a7ae3ba7702ab21d75cd1b108fdb97fc43eeb0c4fcdda613d4b9c33dd",
+    "tests/cpu/cache_dirty_packed/run-four-state.sh": "b2231823f4311bf67c52221ccaab155a275666f28d4175e0c4c9ceab9b0768dd"
+  },
+  "log_sha256": {
+    "build/sim/unit-cache-dirty-packed/run.log": "8e858f71969ee7663bd9136c5059a972a5c896684ac54d49d2f5c88df2919410",
+    "build/sim/unit-cache-dirty-packed-four-state/run-poison.log": "0862ce2b128a72a9de5079d891125d31252430234bd70644d2be41b6f916df48",
+    "build/sim/unit-cache-dirty-packed-four-state/run-vendor.log": "0862ce2b128a72a9de5079d891125d31252430234bd70644d2be41b6f916df48",
+    "build/sim/unit-dma-handover/logical-reset.log": "c52eab06797db74be73d5c842c053a9d7340e03fb1fe940225436c0e17d045c8",
+    "build/sim/unit-dma-handover/run.log": "f603bc3c3775b3b8378d0f56b99943be24a26b563e4cd2969983612688d598b9",
+    "build/sim/unit-dma-handover/transport.log": "fe2947e32a1cc4c0dad590994718f4452e5302dc0dc5a39b02e235aa8eedd0cb",
+    "build/sim/unit-dma-handover/hold.log": "ff5d0f057327b720526d62b594a6d6180e157d950c3bebe10a330413c08bd8a0",
+    "build/sim/unit-dma-handover/reset.log": "2c4d512d12f128786734f21fc8b58865a04f682c3fdd5e0b31d68fb6b814f559",
+    "build/sim/unit-dma-handover/fast-channels.log": "2490a635203330b20b7ed7c67636a80843b42ea298bf9a304749e0b49c135c67",
+    "build/sim/unit-dma-handover/fence.log": "f9db5cb7ca911e15e75238facc12afed37a252fb6a81ab0bbef3feadf594034a",
+    "build/sim/unit-d3-raw-save-full/run.log": "30ae0094fbd9a80439a113fefad3a06e9d01211b33bcebd6129888d38a449927",
+    "build/sim/unit-mister-board-cpu/run.log": "d84b4b3614b67f86d4521b1518ba55372db32afcadface6953b0a7013028e717",
+    "build/sim/unit-icache-read-only/run-halfword.log": "1c44587b8d8b06771088ab710a71efe763601d9cfb3080e5118dcf03e65a5c1c",
+    "build/sim/unit-icache-read-only/run-wide.log": "2f49da27738c894877bb80d09c4009b46b3ec0c23ab993208fce83292886719f"
+  }
+}

@@ -1,5 +1,56 @@
 # Integration fit recovery
 
+## 2026-11-11: Logic-fit priority, packed D-cache metadata and VHD-only profile
+
+The replacement user logs fail with **43,217/41,910 ALMs (103%)**, requiring
+4,370 LABs versus4,191 available. This is a logic/LAB shortage, not an MLAB
+shortage: detailed MLAB usage is zero; M10Ks are512/553. These logs supersede
+the earlier113% result without erasing that evidence.
+
+Production D-cache dirty halves now occupy the upper byte of each existing
+simple-dual tag RAM. Native byte enables preserve tags during dirty/clean
+updates. Valid flags remain resettable and mask stale RAM. Maintenance selects
+the indexed row during the existing TAG_WAIT; no lookup, store or maintenance
+stage is added. The source removes1,152 dirty-state/read-pipeline FFs and adds
+a two-bit commit snapshot: intended net1,150 FFs, plus removal of their update
+and selection logic. Each8x32 simple-dual RAM is intended to remain one M10K,
+with no cache size/way reduction. Actual ALM savings, block count and104 MHz
+routing/timing require a new Quartus result.
+
+The production QIP comments out the retired NGA manager/header, legacy LCD-only
+frontend, inactive bitmap dirty tracker, scalar DDR lanes, unconnected legacy
+modem, instruction-only DDR cache and simulation disassembler. They remain
+available to historical tests. There was already no active working.nga mount
+instance in Template: C:/PMM use the raw VHD manager exclusively. The flush
+menu now names C:/PMM. Shared sector transport and flash emulation stay because
+the VHD manager still needs them; no image bytes or firmware ABI are changed.
+The shared8 KiB flash cache explicitly selects ROM_CACHE=0. The inactive
+source removals themselves save parsing, not fitted gates; Quartus already
+eliminates unselected generate branches. The unused Linux ALSA mixer is now
+compile-time disabled; this core currently supplies zero phone audio samples.
+
+Keep the fast SDRAM LCD stream. Prior matched CPU measurements were130,685
+frame clocks versus306,802 on the general word path (over2.3x as many clocks).
+The general DMA workers remain necessary for MMC/copy and on-chip RAM LCD;
+that route is not a duplicate full-frame stream engine. Both workers and all
+eight guest channels remain. Semi-real NOS, SIM and peripheral models remain.
+
+Local checks pass: 11,025-cycle old/new cache equivalence with ordinary RAM,
+Intel primitives and X-poisoned collisions; tags/bank/maintenance/access/buffer
+suites; I-cache equivalence9,416/9,440 cycles;104 MHz timer-profile ARM board
+and production DMA/LCD tests. Fast normal/held totals stay152,456/152,537 clocks,
+with queued-tail/transport reset checks passing. Full4 MiB C: and64 KiB PMM
+restore/readback pass in bulk mode (1,064,960 DDR writes, two snapshots).
+Selected-source top elaboration passes with no UNOPTFLAT loop, and the Quartus
+source preflight passes175 required files/nine QIPs. No fresh full boot,
+hardware UI fix or successful physical fit is claimed. Other chats' simulations
+and existing checkpoint pairs are untouched. Earlier uncommitted boot-observer
+work is preserved separately. Build monitoring remains disabled.
+
+See [evidence](evidence/logic-fit-profile-2026-11-11.json) and the maintained
+[packed-cache regression](../tests/cpu/cache_dirty_packed/README.md).
+
+
 ## Failed build and resource attribution
 
 CI run43016356272 compiled `6b7be5a` and failed device capacity. The user supplied

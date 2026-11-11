@@ -23,6 +23,7 @@ tests/cpu/cache_refill/sim.sh
 tests/cpu/cache_maintenance/sim.sh
 tests/cpu/cache_access/sim.sh
 tests/cpu/cache_buffer_integration/sim.sh
+tests/cpu/cache_dirty_packed/sim.sh
 tests/cpu/core/sim.sh
 CPU_PROGRAM=cache_write_miss tests/cpu/core/sim.sh
 CPU_PROGRAM=cache_disable_reenable tests/cpu/core/sim.sh

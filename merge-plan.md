@@ -871,6 +871,26 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Second fit recovery — 2026-11-11: selected production profile
+
+New logs reduce the failure to103% ALMs (43,217/41,910), zero MLABs and512/553
+M10Ks. Priority is a buildable core before further porting. Pack D-cache dirty
+metadata into existing tag RAM with byte enables; intended net1,150 fewer FFs,
+no extra M10Ks, cache size reduction or transaction stages. Ordinary/Intel/
+X-collision old/new equivalence all pass11,025 cycles. Cache suites, I-cache
+cycle comparison,104 MHz timer-profile ARM board and full fast LCD/reset tests
+pass. Fast CPU normal/held totals stay152,456/152,537 clocks. Raw VHD bulk
+restore/save passes full4 MiB C:/64 KiB PMM.
+
+Commented out nine inactive source entries, including legacy NGA mount/header
+and LCD frontend; raw VHD manager remains the only production disk interface.
+Disabled unused Linux ALSA mixer; explicitly disabled superseded instruction-
+only ROM cache. Keep fast LCD, both workers, MMC, SIM and semi-real NOS. Top
+elaboration and175-source/nine-QIP preflight pass. Physical area/timing remain
+pending the next build; do not monitor CI. Prior boot-observer changes remain
+uncommitted and separate. See [fit recovery](docs/fit-recovery.md) and
+[evidence](docs/evidence/logic-fit-profile-2026-11-11.json).
+
 #### Fit recovery — 2026-11-11: local checks pass, CI fit pending
 
 Failed build43016356272 used6b7be5a. Detailed reports contain511/553 M10Ks;

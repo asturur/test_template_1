@@ -57,7 +57,7 @@ module emu (
         "S1,VHD,Mount PMM raw image;",
         "S2,MMC,Mount MMC card (read only);",
         "S3,NGD,Mount diagnostic disk;",
-        "T[14],Flush working save;",
+        "T[14],Flush C:/PMM images;",
         "D2O[21],Background save,Off,On;",
         "O[15],Diagnostic SIM (reset required),No ATR,Test card;",
         "O[16],CPU mode,Hold,Run;",
@@ -782,7 +782,8 @@ module emu (
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
         .STREAM_TRANSPORT (D1_STREAM_TRANSPORT),
-        .ROM_CACHE        (1),
+        // The shared flash cache replaces the old instruction-only ROM cache.
+        .ROM_CACHE        (0),
         .LINE_REFILL      (1)
     ) ddr_adapter (
         .req_bulk        (arb_bulk),

@@ -5,7 +5,7 @@ mkdir -p build/sim/unit
 python3 - <<'PY'
 import re
 from pathlib import Path
-s=Path('files.qip').read_text()
+s='\n'.join(line for line in Path('files.qip').read_text().splitlines() if not line.lstrip().startswith('#'))
 p=[m.group(1) for m in re.finditer(r'-name (?:SYSTEMVERILOG_FILE|VERILOG_FILE) (\S+)',s)]
 p += ['tests/phone/sdram/ddio_model.v','tests/phone/mister_transport/hps_stub.sv','tests/phone/mister_transport/pll_stub.sv']
 Path('build/sim/unit/mister-lint.f').write_text('\n'.join(p)+'\n')

@@ -24,7 +24,8 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_bram.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_bundle_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mister.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_display.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_dma.v
+# Legacy LCD-only frontend; production uses general channels + fast stream.
+# set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_dma.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_keypad.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_keys.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diagnostics.v
@@ -67,19 +68,24 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_flash_read_decode.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cflash.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_am29n643_state.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_codeflash.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_dirty_tracker.sv
+# Inactive bitmap tracker; selected bulk profile uses ordered dirty queue.
+# set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_dirty_tracker.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_sd_sector.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_save_sector_bridge.v
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_header.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_manager.sv
+# Retired NGA header; production mounts raw VHD sectors.
+# set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_header.sv
+# Retired NGA mount/save harness; raw manager below owns slots 0/1.
+# set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_save_manager.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_ordered_dirty_queue.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_raw_save_manager.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_stream.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_stream_legacy.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_modem.v
+# Unconnected legacy modem model; production semi-real NOS is separate.
+# set_global_assignment -name VERILOG_FILE rtl/ngage_modem.v
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_cpu.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_rom_map.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_lanes.sv
+# Scalar DDR fallback only; production uses the stream transport.
+# set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_lanes.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
@@ -123,7 +129,8 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_register_file.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cp15_cb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_mode16_decoder_main.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_mode16_decoder.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decompile.sv
+# Simulation-only CPU disassembler.
+# set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decompile.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_btb.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cache.sv
 set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_dcache.sv
@@ -141,9 +148,9 @@ set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_init.v
 set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_latch.v
 set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_rfsh.v
 
-# 1KiB raw DDR ROM cache; explicit M10K data/tag storage.
-set_global_assignment -name VERILOG_FILE rtl/jtframe/ngage_jtframe_romrq_lcache.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_rom_cache.v
+# Inactive instruction-only DDR cache (replaced by the shared flash cache).
+# set_global_assignment -name VERILOG_FILE rtl/jtframe/ngage_jtframe_romrq_lcache.v
+# set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_rom_cache.v
 
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_flash_cache.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_flash_adapter.v
