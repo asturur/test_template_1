@@ -1,3 +1,14 @@
+## 2026-11-11: integration fit succeeds; local DMA/LCD timing targeted
+
+The new user-supplied artifact fits at38,995 ALMs/497 M10Ks but fails78 MHz
+setup (-2.657 ns, TNS-4592.500 ns, reported Fmax64.61 MHz); hold+0.242 ns passes.
+The top1000 are dominated by LCD geometry-to-framebuffer plus local DMA
+address/decode/ACK/engine control. Header validation is now registered before
+LCD pixel transfer; local DMA captures its response boundary. Tests preserve
+fast LCD/MMC throughput apart from one local-control fixture clock. No measured
+post-change routed timing yet. Keep actual78 MHz;104 MHz/9.615 ns is the design
+target, not a PLL change. [Detailed recovery](lcd-dma-timing-recovery.md).
+
 ## 2026-11-09: 78 MHz fit42553413796 — two SDRAM half-cycle violations
 
 Run42553413796, SHA9e354a4, compiles/fits but fails the timing gate; no RBF

@@ -1,5 +1,26 @@
 # Integration fit recovery
 
+## 2026-11-11: Fit recovered; LCD/local-DMA setup timing work
+
+New supplied logs fit at38,995/41,910 ALMs and497/553 M10Ks. Compilation and
+assembly succeed; the timing gate fails with setup-2.657 ns/TNS-4592.500 ns,
+reported Fmax64.61 MHz at actual78 MHz; hold+0.242 ns passes. Prioritize local
+DMA's decode-to-response-to-engine chain and LCD row validation on pixel writes.
+LCD header validity/byte bounds now commit before pixel beats; local DMA owns
+a registered exact response. All43,681 row pairs match the old LCD every clock
+for1,135,723 checks. Fast frame stays130,685 clocks; complete CPU fixtures gain
+one clock (152,457/152,538). MMC remains98 phases/667,085 clocks; route reset/
+response and78/104 MHz SDRAM/timebase checks pass.
+
+User clarified: actual PLL/production remain78 MHz; design toward104 MHz's
+9.615 ns budget. The temporary clock-source edits were restored, not published.
+P7 is ARM game PCM only, no DSP or full phone audio service. No new physical
+closure/full startup claim or build monitoring. Earlier uncommitted observer
+work and other-chat simulations remain untouched. See
+[LCD/DMA timing recovery](lcd-dma-timing-recovery.md) and its
+[evidence](evidence/lcd-dma-timing-recovery-2026-11-11.json).
+
+
 ## 2026-11-11: Compatibility overlay hardware temporarily omitted
 
 Both NOS/BT compatibility menu toggles and package pickers are commented out.

@@ -48,11 +48,18 @@ module ngage_lcd_display #(
     wire row_band = row_valid && column_valid && row_start < row_end && row_end <= 208 && col_start == 2 && col_end == 177;
     wire [14:0] band_start = {7'd0, row_start} * 15'd88;
     wire [14:0] band_end = {7'd0, row_end} * 15'd88;
-    wire legacy_full_header = full_window && header == 32'h8924d67f;
-    wire [14:0] pixel_limit = legacy_full_header ? 15'd18304 : band_end;
-    wire [16:0] band_transport_bytes = {2'd0, band_end - band_start} * 17'd3;
-    wire pixel_header_ok = header[31:16] == 16'h8924 &&
-        (legacy_full_header || (row_band && {1'b0, header[15:0]} + 17'd1 == band_transport_bytes));
+    // Validate the packet header once on its accepted write, not on every
+    // pixel. Window changes require a non-pixel header first, so they cannot
+    // invalidate a live pixel-header decision without that header write.
+    reg [14:0] pixel_limit = 18304;
+    reg [16:0] band_transport_bytes = 54912;
+    reg pixel_header_ok = 0;
+    wire candidate_legacy_header = full_window && write_data == 32'h8924d67f;
+    wire candidate_header_ok = write_data[31:16] == 16'h8924 &&
+        (candidate_legacy_header ||
+         (row_band && {1'b0, write_data[15:0]} + 17'd1 == band_transport_bytes));
+    wire [14:0] next_band_start = {7'd0, window_first[7:0]} * 15'd88;
+    wire [14:0] next_band_end = {7'd0, window_first[27:20]} * 15'd88;
     task unknown;
         input [31:0] context_header, context_data;
         input [7:0] context_command;
@@ -134,25 +141,28 @@ module ngage_lcd_display #(
             scan_y <= y;
         end
         if (reset) begin
-            last_command        <= 0;
-            row_start           <= 0;
-            row_end             <= 208;
-            col_start           <= 2;
-            col_end             <= 177;
-            row_valid           <= 1;
-            column_valid        <= 1;
-            window_words        <= 0;
-            window_first        <= 0;
-            unsupported_header  <= 0;
-            unsupported_command <= 0;
-            unsupported_data    <= 0;
-            header              <= 0;
-            memory_write        <= 0;
-            display_on          <= 0;
-            cursor              <= 0;
-            frame_complete      <= 0;
-            incomplete          <= 0;
-            unsupported         <= 0;
+            last_command         <= 0;
+            row_start            <= 0;
+            row_end              <= 208;
+            col_start            <= 2;
+            col_end              <= 177;
+            row_valid            <= 1;
+            column_valid         <= 1;
+            window_words         <= 0;
+            window_first         <= 0;
+            unsupported_header   <= 0;
+            unsupported_command  <= 0;
+            unsupported_data     <= 0;
+            header               <= 0;
+            pixel_header_ok      <= 0;
+            pixel_limit          <= 18304;
+            band_transport_bytes <= 54912;
+            memory_write         <= 0;
+            display_on           <= 0;
+            cursor               <= 0;
+            frame_complete       <= 0;
+            incomplete           <= 0;
+            unsupported          <= 0;
         end else begin
             if (dma_valid && dma_word_addr < 18304 && !frame_complete) incomplete <= 1;
             if (dma_frame_full) begin
@@ -161,7 +171,9 @@ module ngage_lcd_display #(
             end
             if (write_valid) begin
                 if (write_addr == 32'h0c121200) begin
-                    header <= write_data;
+                    header          <= write_data;
+                    pixel_header_ok <= candidate_header_ok;
+                    pixel_limit     <= candidate_legacy_header ? 15'd18304 : band_end;
                     if (window_words != 0) unknown(header, window_first, last_command);
                     window_words <= 0;
                     if (write_data == 32'h09240003 &&
@@ -197,6 +209,7 @@ module ngage_lcd_display #(
                             if (last_command == 8'h75) begin
                                 row_valid <= write_data == 0 && (window_first & 32'hf00fff00) == 0 &&
                                     window_first[7:0] < window_first[27:20] && window_first[27:20] <= 208;
+                                band_transport_bytes <= {2'b0, next_band_end - next_band_start} * 17'd3;
                                 row_start <= window_first[7:0];
                                 row_end <= window_first[27:20];
                             end else begin

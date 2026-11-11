@@ -14,3 +14,5 @@ iverilog -g2005 -I. -s tb -o build/sim/unit-lcd-display/protocol rtl/ngage_bram.
 vvp build/sim/unit-lcd-display/protocol > build/sim/unit-lcd-display/protocol.log
 cat build/sim/unit-lcd-display/protocol.log
 grep -q '^PASS LCD cold-boot' build/sim/unit-lcd-display/protocol.log
+
+sh tests/phone/lcd_display/run-equivalence.sh

@@ -33,9 +33,11 @@ module ngage_dma_route #(
     input  wire [31:0] local_rdata,
     output wire        local_waiting
 );
-    localparam IDLE = 3'd0, RAM = 3'd1, LOCAL_WAIT = 3'd2, LOCAL_ACTIVE = 3'd3, REJECT = 3'd4;
+    localparam IDLE = 3'd0, RAM = 3'd1, LOCAL_WAIT = 3'd2, LOCAL_ACTIVE = 3'd3, REJECT = 3'd4, LOCAL_RESPONSE = 3'd5;
     localparam [31:0] LCD_FIFO = 32'h0c121208;
-    reg [2:0] state = IDLE;
+    reg [ 2:0] state = IDLE;
+    reg        local_response_error = 0;
+    reg [31:0] local_response_data = 0;
 
     wire legal_word = cmd_addr[1:0] == 0 && cmd_be != 0;
     wire ram_hit = cmd_addr[31:24] == 8'h0a;
@@ -74,13 +76,24 @@ module ngage_dma_route #(
     assign local_waiting = !reset && !cpu_lock && state == LOCAL_WAIT;
     wire take_local = local_valid && local_ready;
     wire local_response = (take_local || state == LOCAL_ACTIVE) && local_done;
-    assign rsp_valid = !reset && ((state == RAM && ram_ack) || local_response || state == REJECT);
-    assign rsp_error = rsp_valid && (state == REJECT || (local_response && local_error));
-    assign rsp_data  = state == RAM ? ram_rdata : local_rdata;
+    assign rsp_valid = !reset && ((state == RAM && ram_ack) || state == LOCAL_RESPONSE || state == REJECT);
+    assign rsp_error = rsp_valid && (state == REJECT || (state == LOCAL_RESPONSE && local_response_error));
+    assign rsp_data  = state == RAM ? ram_rdata :
+        state == LOCAL_RESPONSE ? local_response_data : local_rdata;
 
     always @(posedge clk) begin
-        if (reset) state <= IDLE;
-        else
+        if (reset) begin
+            state                <= IDLE;
+            local_response_error <= 0;
+            local_response_data  <= 0;
+        end else begin
+            // Local ACK includes the UPP owner mux and peripheral decode.
+            // Capture its exact data/error once; engines consume the registered
+            // response. SDRAM and the dedicated fast LCD route are unchanged.
+            if (local_response) begin
+                local_response_error <= local_error;
+                local_response_data  <= local_rdata;
+            end
             case (state)
                 IDLE:
                 if (accept) begin
@@ -89,15 +102,17 @@ module ngage_dma_route #(
                     held_data  <= cmd_data;
                     held_be    <= cmd_be;
                     if (legal_word && ram_hit) state <= RAM;
-                    else if (mmc_offer) state <= local_done ? IDLE : LOCAL_ACTIVE;
+                    else if (mmc_offer) state <= local_done ? LOCAL_RESPONSE : LOCAL_ACTIVE;
                     else if (legal_word && local_hit) state <= LOCAL_WAIT;
                     else state <= REJECT;
                 end
-                RAM:          if (ram_ack) state <= IDLE;
-                LOCAL_WAIT:   if (take_local) state <= local_done ? IDLE : LOCAL_ACTIVE;
-                LOCAL_ACTIVE: if (local_done) state <= IDLE;
-                REJECT:       state <= IDLE;
-                default:      state <= IDLE;
+                RAM:            if (ram_ack) state <= IDLE;
+                LOCAL_WAIT:     if (take_local) state <= local_done ? LOCAL_RESPONSE : LOCAL_ACTIVE;
+                LOCAL_ACTIVE:   if (local_done) state <= LOCAL_RESPONSE;
+                LOCAL_RESPONSE: state <= IDLE;
+                REJECT:         state <= IDLE;
+                default:        state <= IDLE;
             endcase
+        end
     end
 endmodule

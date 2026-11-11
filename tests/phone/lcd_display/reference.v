@@ -1,0 +1,266 @@
+// Frozen pre-timing-recovery controller at c8add13.
+// Transaction-level LCD controller: native 176x208 phone video,
+// with a separate 320x240 diagnostic active area. The LCD
+// header/RGB444 assumptions follow scratch/current-boot/direct_lcd.py; these
+// signals do not model the physical LCD serial bus or verified scan timing.
+module ngage_lcd_display_reference #(
+    parameter integer PIXEL_DIV = 16
+) (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        diagnostic,
+    input  wire [ 7:0] status,
+    input  wire [ 2:0] save_state,
+    input  wire        write_valid,
+    output wire        pixel_commit,
+    output wire        pixel_mode,
+    input  wire [31:0] write_addr,
+    input  wire [31:0] write_data,
+    input  wire        dma_valid,
+    input  wire        dma_frame_full,
+    input  wire [14:0] dma_word_addr,
+    input  wire [31:0] dma_data,
+    output reg         ce_pix = 0,
+    output wire        hsync,
+    output wire        vsync,
+    output wire        hblank,
+    output wire        vblank,
+    output reg  [11:0] rgb,
+    output reg         frame_complete = 0,
+    output reg         incomplete = 0,
+    output reg         unsupported = 0,
+    output reg         unsupported_valid = 0,
+    output reg  [31:0] unsupported_data = 0,
+    output reg  [31:0] unsupported_header = 0,
+    output reg  [ 7:0] unsupported_command = 0,
+    output wire [ 8:0] raster_x,
+    output wire [ 8:0] raster_y
+);
+    reg [31:0] header = 0;
+    // Decoded UPP parameter framing; original-driver row-band geometry only.
+    reg [7:0] last_command = 0, row_start = 0, row_end = 208, col_start = 2, col_end = 177;
+    reg row_valid = 1, column_valid = 1;
+    reg [1:0] window_words = 0;
+    reg [31:0] window_first = 0;
+    wire full_window = row_valid && column_valid && row_start == 0 && (row_end == 207 || row_end == 208) && col_start == 2 &&
+        col_end == 177;
+    // The original NEM-4 driver emits half-open, full-width row bands.
+    // Its pixel header counts three transport bytes per pair of RGB444 pixels.
+    wire row_band = row_valid && column_valid && row_start < row_end && row_end <= 208 && col_start == 2 && col_end == 177;
+    wire [14:0] band_start = {7'd0, row_start} * 15'd88;
+    wire [14:0] band_end = {7'd0, row_end} * 15'd88;
+    wire legacy_full_header = full_window && header == 32'h8924d67f;
+    wire [14:0] pixel_limit = legacy_full_header ? 15'd18304 : band_end;
+    wire [16:0] band_transport_bytes = {2'd0, band_end - band_start} * 17'd3;
+    wire pixel_header_ok = header[31:16] == 16'h8924 &&
+        (legacy_full_header || (row_band && {1'b0, header[15:0]} + 17'd1 == band_transport_bytes));
+    task unknown;
+        input [31:0] context_header, context_data;
+        input [7:0] context_command;
+        begin
+            unsupported         <= 1;
+            unsupported_valid   <= 1;
+            unsupported_data    <= context_data;
+            unsupported_header  <= context_header;
+            unsupported_command <= context_command;
+        end
+    endtask
+    localparam integer DIV_WIDTH = PIXEL_DIV > 1 ? $clog2(PIXEL_DIV) : 1;
+    reg [DIV_WIDTH-1:0] div = 0;
+    reg [8:0] x = 0, y = 0;
+    wire [23:0] pixel_word, pixel_q;
+    reg        pixel_forward;
+    reg [23:0] forwarded_pixel;
+    assign pixel_word = pixel_forward ? forwarded_pixel : pixel_q;
+    reg memory_write = 0, display_on = 0;
+    reg  [14:0] cursor = 0;
+    // Display memory is updated incrementally, like panel GRAM. Completion
+    // flags describe explicit full transfers only; they never gate scanout.
+    // ngage_bram starts at zero on FPGA configuration and retains pixels on
+    // ordinary phone reset, until firmware overwrites them.
+    // As in MiSTer Game Boy, retain a larger centered timing raster for
+    // analog black padding, while DE encloses only the native phone pixels.
+    wire        in_phone = x >= 72 && x < 248 && y >= 16 && y < 224;
+    wire [ 8:0] px = x - 72, py = y - 16;
+    wire [14:0] read_index = ({6'b0, py} * 15'd88) + {7'b0, px[8:1]};
+    reg [8:0] scan_x = 0, scan_y = 0;
+    reg [11:0] phone_rgb;
+    assign raster_x   = scan_x;
+    assign raster_y   = scan_y;
+    // Native DE rectangle goes directly to MiSTer's scaler. Blanking is
+    // outside the source picture, never black padding inside active video.
+    assign hblank     = diagnostic ? scan_x >= 320 : !(scan_x >= 72 && scan_x < 248);
+    assign vblank     = diagnostic ? scan_y >= 240 : !(scan_y >= 16 && scan_y < 224);
+    assign hsync      = !(scan_x >= 336 && scan_x < 368);
+    assign vsync      = !(scan_y >= 244 && scan_y < 247);
+    // Pack only the two RGB444 pixels; unused bus bits need no storage.
+    assign pixel_mode = !reset && pixel_header_ok && memory_write && cursor < pixel_limit;
+    wire direct_pixel = write_valid && write_addr == 32'h0c121208 && pixel_mode;
+    assign pixel_commit = !reset && direct_pixel;
+    wire [31:0] pixel_data = direct_pixel ? write_data : dma_data;
+    wire [14:0] pixel_address = direct_pixel ? cursor : dma_word_addr;
+    wire        pixel_write = !reset && (direct_pixel || (dma_valid && dma_word_addr < 18304));
+    always @(posedge clk) begin
+        pixel_forward   <= pixel_write && pixel_address == (in_phone ? read_index : 15'b0);
+        forwarded_pixel <= {pixel_data[27:16], pixel_data[11:0]};
+    end
+    ngage_bram #(
+        .AW         (15),
+        .DW         (24),
+        .DEPTH      (18304),
+        .READ_ONLY_B(1)
+    ) framebuffer (
+        .clk   (clk),
+        .addr_a(pixel_address),
+        .addr_b(in_phone ? read_index : 15'b0),
+        .data_a({pixel_data[27:16], pixel_data[11:0]}),
+        .data_b(24'b0),
+        .we_a  (pixel_write),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (pixel_q)
+    );
+    always @(posedge clk) begin
+        if (div == PIXEL_DIV - 1) div <= 0;
+        else div <= div + 1'b1;
+        ce_pix            <= div == 0;
+        unsupported_valid <= 0;
+        if (div == 0) begin
+            if (x == 399) begin
+                x <= 0;
+                if (y == 261) y <= 0;
+                else y <= y + 1'b1;
+            end else x <= x + 1'b1;
+            scan_x <= x;
+            scan_y <= y;
+        end
+        if (reset) begin
+            last_command        <= 0;
+            row_start           <= 0;
+            row_end             <= 208;
+            col_start           <= 2;
+            col_end             <= 177;
+            row_valid           <= 1;
+            column_valid        <= 1;
+            window_words        <= 0;
+            window_first        <= 0;
+            unsupported_header  <= 0;
+            unsupported_command <= 0;
+            unsupported_data    <= 0;
+            header              <= 0;
+            memory_write        <= 0;
+            display_on          <= 0;
+            cursor              <= 0;
+            frame_complete      <= 0;
+            incomplete          <= 0;
+            unsupported         <= 0;
+        end else begin
+            if (dma_valid && dma_word_addr < 18304 && !frame_complete) incomplete <= 1;
+            if (dma_frame_full) begin
+                frame_complete <= 1;
+                incomplete     <= 0;
+            end
+            if (write_valid) begin
+                if (write_addr == 32'h0c121200) begin
+                    header <= write_data;
+                    if (window_words != 0) unknown(header, window_first, last_command);
+                    window_words <= 0;
+                    if (write_data == 32'h09240003 &&
+                        (last_command == 8'h15 || last_command == 8'h75)) begin
+                        window_words <= 2;
+                        if (last_command == 8'h75) row_valid <= 0;
+                        else column_valid <= 0;
+                    end
+                end else if (write_addr == 32'h0c121208) begin
+                    if (header == 32'h09200000) begin
+                        last_command <= write_data[7:0];
+                        // A new command terminates the previous direct memory-write phase.
+                        memory_write <= 0;
+                        case (write_data)
+                            32'h5c: begin
+                                if (row_band) begin
+                                    memory_write   <= 1;
+                                    cursor         <= band_start;
+                                    incomplete     <= 1;
+                                    frame_complete <= 0;
+                                end else unknown(header, write_data, write_data[7:0]);
+                            end
+                            32'haf:  display_on <= 1;
+                            // Window opcodes are understood; geometry is checked after payload.
+                            32'h15:  column_valid <= 0;
+                            32'h75:  row_valid <= 0;
+                            default: unknown(header, write_data, write_data[7:0]);
+                        endcase
+                    end else if (header == 32'h09240003 && window_words != 0) begin
+                        window_words <= window_words - 1'b1;
+                        if (window_words == 2) window_first <= write_data;
+                        else begin
+                            if (last_command == 8'h75) begin
+                                row_valid <= write_data == 0 && (window_first & 32'hf00fff00) == 0 &&
+                                    window_first[7:0] < window_first[27:20] && window_first[27:20] <= 208;
+                                row_start <= window_first[7:0];
+                                row_end <= window_first[27:20];
+                            end else begin
+                                column_valid <= write_data == 0 && window_first == 32'h0b100002;
+                                col_start    <= window_first[7:0];
+                                col_end      <= window_first[27:20];
+                            end
+                            // The second zero word is explicitly emitted by stock firmware.
+                            // Only original-driver full-width row bands are
+                            // modeled; arbitrary column windows remain unknown.
+                            if (write_data != 0 || (window_first & 32'hf00fff00) != 0 ||
+                                (last_command == 8'h75 &&
+                                 (window_first[7:0] >= window_first[27:20] || window_first[27:20] > 208)) ||
+                                (last_command == 8'h15 && window_first != 32'h0b100002))
+                                unknown(header, window_first, last_command);
+                        end
+                    end else if (direct_pixel) begin
+                        if (cursor == pixel_limit - 1'b1) begin
+                            memory_write <= 0;
+                            if (band_start == 0 && pixel_limit == 18304) begin
+                                frame_complete <= 1;
+                                incomplete     <= 0;
+                            end
+                        end else cursor <= cursor + 1'b1;
+                    end else if (header[31:16] == 16'h8924 || header[31:16] == 16'h0924)
+                        unknown(header, write_data, last_command);
+                end
+            end
+
+        end
+    end
+    always @* begin
+        // Panel order: high halfword pixel precedes low halfword pixel.
+        phone_rgb = scan_x[0] ? pixel_word[11:0] : pixel_word[23:12];
+        rgb       = 0;
+        if (scan_x < 320 && scan_y < 240) begin
+            if (diagnostic) begin
+                // Distinct bars plus eight live state cells make this explicitly a test screen.
+                case (scan_x[8:5])
+                    0:       rgb = 12'hf00;
+                    1:       rgb = 12'h0f0;
+                    2:       rgb = 12'h00f;
+                    3:       rgb = 12'hff0;
+                    4:       rgb = 12'h0ff;
+                    5:       rgb = 12'hf0f;
+                    6:       rgb = 12'hfff;
+                    default: rgb = 12'h555;
+                endcase
+                if (scan_y >= 208 && scan_y < 224 && scan_x < 256) begin
+                    if (scan_x[7:5] == 4)
+                        case (save_state)
+                            1:       rgb = 12'hf90;  // dirty
+                            2:       rgb = 12'h0cf;  // saving
+                            3:       rgb = 12'h0f0;  // saved
+                            4:       rgb = 12'hf00;  // error
+                            default: rgb = 12'h333;  // unmounted
+                        endcase
+                    else rgb = status[scan_x[7:5]] ? 12'h0f0 : 12'h200;
+                end
+            end else if (display_on && scan_x >= 72 && scan_x < 248 && scan_y >= 16 && scan_y < 224)
+                rgb = phone_rgb;
+        end
+        // Phone mode contains only guest pixels. Unsupported/incomplete state
+        // remains in the diagnostic page, exported flags and bounded command log.
+    end
+endmodule

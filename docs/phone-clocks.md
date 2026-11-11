@@ -1,3 +1,10 @@
+## Current clock policy — 2026-11-11
+
+The actual PLL and production SYS_CLK_HZ remain78 MHz. Design RTL stage depth
+and fanout toward104 MHz (9.615 ns) and keep104 MHz logical/SDRAM tests, but do
+not change the operating PLL without explicit user authorization. This policy
+was clarified during [LCD/DMA timing recovery](lcd-dma-timing-recovery.md).
+
 # Phone clocks and slower interfaces
 
 ## Requested26MHz/64Hz spin (2026-11-09)

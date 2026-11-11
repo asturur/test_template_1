@@ -1,3 +1,12 @@
+## 2026-11-11 timing follow-up
+
+Header/geometry validation is removed from per-pixel admission without another
+LCD pipeline stage. Full-frame interval stays130,685 clocks. The generic local
+DMA response is now registered: the complete normal/held ARM fixtures are
+152,457/152,538 (one clock higher); MMC matrix runtime is unchanged. See
+[timing recovery](lcd-dma-timing-recovery.md). Actual PLL stays78 MHz;104 MHz
+is the RTL target, and new physical timing remains unverified.
+
 # Production DMA and LCD handover
 
 ## Current result

@@ -245,7 +245,7 @@ contract. No delegation or parallel agents are implied by independent tracks.
 | P4 | LCD transport and partial-update behavior | P2, P1 |
 | P5 | RTC and UEM calendar integration | N1, P1 |
 | P6 | Keypad connectivity and input integration | P1 |
-| P7 | PCM audio and selective NOS sound service | B1, P1, N4 |
+| P7 | ARM game PCM audio | B1, P1; minimal guest playback bridge |
 | P8 | Bluetooth coexistence and remaining chip audit | P1, D2 coherence contract |
 | Z1 | CPU behavior audit and regression additions | P0 |
 | Z2 | MLAB register-file experiment | Z1 |
@@ -871,6 +871,18 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Timing recovery after successful fit — 2026-11-11
+
+New logs fit93% ALMs/90% M10Ks; only setup qualification fails (-2.657 ns at
+78 MHz, reported64.61 MHz Fmax). Keep actual78 MHz; design stages toward104 MHz.
+LCD window/byte-count validation now commits before pixel streaming. Local DMA
+returns registered data/error after peripheral acceptance; SDRAM/fast LCD stay
+on their original timing. Old/new LCD matches1,135,723 checks across43,681 row
+pairs. Full frame stays130,685 clocks; complete ARM fixture+one clock. MMC98
+phases/667,085 clocks unchanged. Reset/ownership and real SDRAM78/104 checks
+pass. Physical timing remains pending a new build, without CI monitoring.
+[Details and evidence](docs/lcd-dma-timing-recovery.md).
+
 #### Temporary lean overlay/menu profile — 2026-11-11
 
 Comment out both NOS/BT compatibility menus and compile guards/source entries;
@@ -1390,18 +1402,27 @@ ghosting, direct keys, press/ACK races, shared NOS pending, OSD inhibition and
 full key-to-IRQ-to-handler flow. Gate: Menu/softkeys act from a matched reached
 UI/screensaver state; a changing KEYS HELD field alone is insufficient.
 
-### P7: PCM audio and NOS sound protocol
+### P7: ARM game PCM audio
 
-Port two-buffer PCM fetching, rate/volume/resampling and completion machinery
-with the selective NOS sound service. Keep original SoundDevice/driver client
-behavior where viable; synthetic hardware page/interrupt is explicitly an
-emulator interface, not DSP or codec emulation. Audit source assignment rather
-than borrowing timer 5 merely because the QD donor does.
+User scope (2026-11-11): game audio produced/controlled by ARM software. No DSP
+execution, telephony/voice services, radio audio or physical codec emulation
+for this phase. Keep only the minimal guest playback/API bridge needed by games.
+Linux ALSA is independent; the native MiSTer core audio output remains available.
 
-Tests: start/stop/restart, reserve/release, completion order, last-buffer/underflow,
-mono/stereo, rates, volume, alignment, guest-thread DFC writes, bus delay/reset
-and concurrent MMC/LCD/saves. Compare captured PCM samples and expected timing.
-Gate: repeated streams work and teardown frees resources; no silent real-DSP claim.
+Adapt the donor two-buffer PCM fetching, rate/volume/resampling and completion
+machinery as an explicit software-audio interface. Preserve original game-side
+start/stop/buffer expectations where viable. The donor HLE register page is an
+emulator invention; do not present it as physical D550/UPP hardware. Do not make
+this depend on full phone NOS sound services or restoring the whole NOS/BT
+compatibility overlay mechanism. Any minimal guest shim must be scoped and
+counted explicitly. Port maintained new HDL as Verilog-2001.
+
+Tests: captured PCM reference comparison, mono/stereo, rates, volume, alignment,
+start/stop/restart, reserve/release, completion order, last-buffer/underflow,
+guest buffer submission, bus delay/reset and concurrent MMC/LCD/saves. Measure
+the PCM engine plus MiSTer output logic that becomes active with nonzero audio.
+Gate: repeated game streams work and teardown frees resources, with explicit
+area/DSP/104 MHz timing budgets. No claim of DSP or phone-service emulation.
 
 ### P8: Bluetooth, SIMIF and remaining chip boundaries
 
@@ -1434,6 +1455,13 @@ suite and signature/instruction comparisons. Gate: no unexplained architectural
 differences before changing execution/storage internals.
 
 ### Z2: MLAB register-file candidate
+
+2026-11-11 audit: first compare word-local FF write decoding and a CP15 selector
+specialized to its architectural/banked read set. Production background port C
+is already tied off; dummy registers are used. Keep compact indexed reads as
+the baseline, all valid bank/microcode state, no extra CPU clocks and104 MHz.
+Only then assess RAM/latest-writer replication, including MLAB's logic cost.
+See [RF area audit](docs/register-file-area-audit.md) for evidence/tests.
 
 Adapt replicated banks/latest-writer/pending-write bypass to the existing owned
 operand stage. Preserve all 40 physical registers, normal/background write
