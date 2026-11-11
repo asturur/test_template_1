@@ -233,13 +233,26 @@ module ngage_upp #(
             wire mmc_destination = MMC_ENABLE && dma_local_addr == 32'h0c120624;
             wire endpoint_ready = (!lcd_destination || (lcd_sink_ready && !lcd_dma_valid && (!GENERAL_DMA || lcd_queue_empty))) &&
                 (!mmc_destination || (mmc_reserved && (dma_local_write ? mmc_tx_ready : mmc_rx_ready)));
-            assign dma_local_ready = !rst && init_done && slow_idle && !cpu_lock &&
-                !dma_local_active && !dma_local_gap && endpoint_ready && (prefer_dma || !slow_master_stb || lcd_reserved || mmc_reserved);
+            wire local_window_ready = !rst && init_done && slow_idle && !cpu_lock &&
+                !dma_local_active && !dma_local_gap &&
+                (prefer_dma || !slow_master_stb || lcd_reserved || mmc_reserved);
+            wire generic_cpu_exclusion;
+            ngage_upp_dma_admission local_admission (
+                .clk           (clk),
+                .reset         (rst),
+                .waiting       (dma_local_waiting),
+                .window_ready  (local_window_ready),
+                .endpoint_ready(endpoint_ready),
+                .ready         (dma_local_ready),
+                .exclude_cpu   (generic_cpu_exclusion)
+            );
             wire dma_take = dma_local_valid && dma_local_ready;
-            // Captured local packets and registered endpoint reservations own
-            // admission. Live cancelable engine valid must not exclude the
-            // CPU that decodes the cancellation itself.
-            wire block_cpu = (dma_local_waiting && dma_local_ready) || dma_local_active || dma_local_gap || ((lcd_reserved || mmc_reserved) && !cpu_lock);
+            // Generic waiting packets reserve CPU admission from sampled
+            // readiness. Live MMC decode must not fan out into CPU CYC and
+            // every peripheral write/diagnostic observation. Actual acceptance
+            // still requires the endpoint's CURRENT readiness.
+            wire block_cpu = generic_cpu_exclusion || dma_local_active || dma_local_gap ||
+                ((lcd_reserved || mmc_reserved) && !cpu_lock);
 `ifndef ALTERA_RESERVED_QIS
 `ifndef SYNTHESIS
             always @(posedge clk) begin
@@ -857,4 +870,30 @@ module ngage_upp_request_stage (
             out_sel     <= in_sel;
         end
     end
+endmodule
+
+
+// Generic local DMA waits without owning the bus. Sample endpoint readiness
+// before using it for CPU exclusion; live endpoint classification is a late
+// route mux and must not feed the shared CPU CYC/commit network.
+// Native MMC uses its existing registered reservation (waiting=0) and keeps
+// same-cycle readiness. The dedicated LCD/SDRAM paths do not use this helper.
+module ngage_upp_dma_admission (
+    input  wire clk,
+    input  wire reset,
+    input  wire waiting,
+    input  wire window_ready,
+    input  wire endpoint_ready,
+    output wire ready,
+    output wire exclude_cpu
+);
+    reg sampled_ready = 0;
+    always @(posedge clk) begin
+        if (reset) sampled_ready <= 0;
+        else sampled_ready <= waiting && endpoint_ready;
+    end
+    assign exclude_cpu = !reset && waiting && window_ready && sampled_ready;
+    // A stale positive sample may reserve a single empty clock, but can never
+    // accept into a full endpoint. A stale negative sample waits for one edge.
+    assign ready       = !reset && window_ready && endpoint_ready && (!waiting || sampled_ready);
 endmodule

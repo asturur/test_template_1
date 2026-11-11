@@ -2,6 +2,49 @@
 
 Build4969d77 fits at40,145/41,910 required ALMs,47,294 registers,501/553 M10Ks and42 DSPs. Core setup is−1.276 ns/TNS−302.002 ns, reported Fmax70.94 MHz. Core hold is+0.247 ns; recovery/removal and other constrained clock domains pass. Actual PLL/SDC stay78 MHz (12.820 ns reported relationship);104 MHz remains the RTL design objective. Diagnostics remain enabled.
 
+## Follow-up43094675130: four remaining endpoints
+
+45dd02a fits at**38,530 ALMs (92%),45,972 registers,502 M10Ks and42 DSPs**.
+Reported core Fmax is75.10 MHz;78 MHz setup−0.496 ns/TNS−0.951 ns, hold+0.250
+ns. Other constrained domains pass. All1,000 sampled endpoints were checked:
+996 pass, four fail. Their negative slacks sum exactly to the core TNS. All four
+share DMA channel classification -> route.live_mmc -> UPP local readiness ->
+generic CPU exclusion -> CPU CYC/peripheral claim/fault, ending at:
+
+| Endpoint | Slack ns |
+| --- | ---: |
+| Diagnostic snapshot242 |−0.496 |
+| Diagnostic snapshot249 |−0.178 |
+| Diagnostic snapshot241 |−0.169 |
+| NOS status_reg10 through MDI events |−0.108 |
+
+Previous SWP/packet/CPU owner/word-selection families are no longer negative.
+RF-to-R is+2.356 ns. Exact node pairs/report hashes:
+[evidence](evidence/timing-78-43094675130.json).
+
+**Fix:** one sampled endpoint-ready bit controls CPU exclusion for generic local
+DMA. Actual acceptance ALSO requires current endpoint readiness, so stale
+positive samples cannot overrun a full endpoint. A ready withdrawal may reserve
+one empty clock, then releases the CPU so software can stop/reconfigure it.
+Each new generic local packet waits a readiness sample; this can overlap CPU
+busy time. It is not an overall one-clock limit for every possible workload.
+Native MMC already owns a registered reservation and retains immediate
+admission. Dedicated fast LCD/direct SDRAM/refill streams are unchanged.
+No diagnostic/NOS/MDI feature, CPU stage, capacity, clock or SDC exception changes.
+
+**Validation:** focused Verilog-2001 checks pass native immediate readiness,
+generic sampling, ready withdrawal after a positive sample, CPU progress under
+backpressure, busy/lock windows, owner gap and reset. UPP held-request checks
+also pass. Production18,304-word LCD frames, all-eight-channel IRQ/ACK, shared
+RAM copies, queue/stop/restart and reset checks pass. Frame interval stays
+128,964 clocks; complete normal/held fixtures149,748/149,826 are each+1 clock.
+MMC30 bus cases remain132,221 clocks and all98 DMA cases exactly669,329 clocks.
+Full production ARM board passes SIMIF, LCD/queue, faults, diagnostics, IRQ/FIQ,
+SDRAM waits and DMA/shared-memory ownership. Formatting/top elaboration and
+173-file/nine-QIP source graph pass. Other-chat boot files and long simulations
+remain untouched. A new routed78 MHz build must establish positive slack;
+these tests do not prove closure. ngage1 identity and diagnostics retained.
+
 ## All1,000 paths accounted for
 
 Both the CSV and full routed report were parsed and crosschecked by exact from/to node pair and slack. There are1,000 unique sampled endpoints,881 negative and119 positive. This is one worst path per endpoint in the exported subset, not every timing path or a complete count of every failing endpoint. Every row is classified in [the annotated CSV](evidence/timing-78-43083011635-paths.csv); report identity/hashes and statistics are in [JSON](evidence/timing-78-43083011635.json).

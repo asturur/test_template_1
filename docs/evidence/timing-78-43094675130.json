@@ -1,0 +1,154 @@
+{
+  "run": "https://github.com/asturur/test_template_1/actions/runs/43094675130",
+  "source_commit": "45dd02a88903558b7fb934a762cafbbb356d6155",
+  "clock_Hz": 78000000,
+  "RTL_objective_Hz": 104000000,
+  "required_ALMs": 38530,
+  "registers": 45972,
+  "M10Ks": 502,
+  "DSPs": 42,
+  "setup_ns": -0.496,
+  "TNS_ns": -0.951,
+  "core_hold_ns": 0.25,
+  "core_fmax_MHz": 75.1,
+  "exported_endpoints": 1000,
+  "negative_endpoints": 4,
+  "negative_slack_sum_matches_core_TNS": true,
+  "failing_paths": [
+    {
+      "rank": "1",
+      "slack_ns": "-0.496",
+      "data_delay_ns": "12.533",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|Equal60~4_OTERM11394",
+      "to_node": "emu:emu|ngage_mister:core|ngage_debug_video:debug_video|snapshot[242]"
+    },
+    {
+      "rank": "2",
+      "slack_ns": "-0.178",
+      "data_delay_ns": "12.222",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|Equal60~4_OTERM11394",
+      "to_node": "emu:emu|ngage_mister:core|ngage_debug_video:debug_video|snapshot[249]"
+    },
+    {
+      "rank": "3",
+      "slack_ns": "-0.169",
+      "data_delay_ns": "12.212",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|Equal60~4_OTERM11394",
+      "to_node": "emu:emu|ngage_mister:core|ngage_debug_video:debug_video|snapshot[241]"
+    },
+    {
+      "rank": "4",
+      "slack_ns": "-0.108",
+      "data_delay_ns": "12.214",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|Equal60~4_OTERM11394",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_nos_io:nos_timer|status_reg[10]"
+    }
+  ],
+  "destination_groups": {
+    "ngage_debug_video": 48,
+    "ngage_nos_io": 5,
+    "ngage_mdi_stub": 26,
+    "ngage_dma_engine": 28,
+    "altsyncram_6gs2": 31,
+    "ascal": 268,
+    "zap_wb_merger": 18,
+    "ngage_mmc_host": 36,
+    "ngage_mister": 3,
+    "ngage_cbus_uem": 19,
+    "altsyncram_msu2": 32,
+    "ngage_upp": 7,
+    "ngage_dma_channels": 40,
+    "ngage_upp_peripherals": 16,
+    "ngage_dma_ram_mux": 37,
+    "ngage_sdram_arbiter": 29,
+    "ngage_timers": 170,
+    "osd": 43,
+    "ngage_upp_bus_bridge": 2,
+    "ngage_icu": 5,
+    "ngage_lcd_stream": 2,
+    "top/port": 2,
+    "ngage_dma_route": 5,
+    "arm920_cache_adapter": 1,
+    "ngage_icu_extra": 12,
+    "ngage_keypad": 2,
+    "zap_cache": 1,
+    "ngage_cflash": 25,
+    "zap_decode_main": 2,
+    "vga_out": 1,
+    "ngage_simif": 1,
+    "arm920_cache_transfer": 2,
+    "ngage_codeflash": 4,
+    "arm920_cache_maintenance": 2,
+    "ngage_cpu_memory_route": 2,
+    "ngage_sparse_regs": 8,
+    "ngage_board": 2,
+    "arm920_cache_access": 23,
+    "altsyncram_cpu2": 1,
+    "jtframe_sdram64": 2,
+    "zap_btb": 15,
+    "ngage_trace_sink": 10,
+    "altsyncram_pms2": 1,
+    "zap_fetch_main": 9,
+    "ngage_lcd_bus_queue": 1,
+    "zap_writeback": 1
+  },
+  "cause": "live MMC offer/packet mux -> generic local readiness -> CPU exclusion/CYC -> peripheral claim/fault and diagnostic or MDI/NOS updates",
+  "fix": "one sampled endpoint-ready bit for generic local CPU exclusion; current readiness still gates acceptance; native MMC retains its reservation and immediate readiness",
+  "results": {
+    "focused_admission": "PASS",
+    "production_board_CPU": "PASS",
+    "production_LCD_normal_held_clocks": [
+      149748,
+      149826
+    ],
+    "previous_LCD_normal_held_clocks": [
+      149747,
+      149825
+    ],
+    "LCD_frame_clocks": 128964,
+    "previous_LCD_frame_clocks": 128964,
+    "MMC_bus_cases_clocks": [
+      30,
+      132221
+    ],
+    "MMC_DMA_cases_clocks": [
+      98,
+      669329
+    ],
+    "previous_MMC_DMA_clocks": 669329,
+    "post_fix_fit_timing": "pending new routed build",
+    "PLL_SDC_changed": false,
+    "diagnostics_removed": false,
+    "other_chat_simulations_untouched": true,
+    "CI_monitoring": false
+  },
+  "source_sha256": {
+    "rtl/ngage_upp.v": "faffd1e5a95a0543fa473d7712afa333b3cb7f08e34eca1944cb9f2105ad1cee",
+    "tests/phone/upp_dma_admission/tb.v": "892f4aba937c84d858a247318221e579ae6a8eb0dea5018642b0d8afcc68aadd",
+    "tests/phone/upp_dma_admission/run.sh": "08a09b78fad0918afc2c72074e00516d2ac4f25b8c3a956fcbde56cd4a9da461"
+  },
+  "report_sha256": {
+    "reports/output_files/timing/worst-setup.csv": "c07c7d82359af8b085b8487edaa856f0b11cb948dee765a042634968f238e0fb",
+    "reports/output_files/timing/worst-setup-full.rpt": "16c7ce8411e45b3a204b3c5c23808fe9ab659bea3fbfb01d8692aacd6884ed32",
+    "reports/output_files/Template.sta.summary": "8fa40cb75ee5e1d2d31d69089136dc90e7057f4177eb8dbd4afd67ed87b64edf",
+    "reports/output_files/Template.fit.summary": "836ddf47e965cef2a08b5598ca9a0e6e61e00c19c45a17076d9a161069ed28bb"
+  },
+  "logs_sha256": {
+    "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/timing-78-43094675130/admission-mmc.log": "e994ae23d6f8e9b874b9c4b227cd85af8a64b94f703df6b944de54100eb97388",
+    "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/timing-78-43094675130/lcd.log": "233b17c6bfa9c7579efd5c068101815a42ad83f0bec220a9d4085c7ea0741a04",
+    "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/timing-78-43094675130/preflight.log": "147a114490db853456cf708225f8e20b4c025951ec9224387023230fc0ac1a4d",
+    "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/timing-78-43094675130/board.log": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e"
+  }
+}

@@ -1,3 +1,22 @@
+## 2026-11-11: Final four78 MHz paths share local DMA admission
+
+43094675130/45dd02a fits38,530 ALMs (92%),502 M10Ks,45,972 FFs and42 DSPs.
+Core setup−0.496 ns/TNS−0.951 ns, hold+0.250 ns, Fmax75.10 MHz. All1,000
+sampled endpoints checked:996 pass; three diagnostic snapshot bits and one
+NOS status bit fail through live MMC-ready -> generic CPU exclusion. Earlier
+major timing families are no longer negative.
+
+Generic local CPU exclusion now uses one sampled readiness bit; actual admission
+still checks current readiness. Stale samples cannot accept into a full endpoint
+and backpressure releases CPU exclusion on the next edge. Native MMC, fast LCD,
+direct SDRAM and refill timing retained. Focused sample/backpressure/owner/reset,
+full production ARM board and preflight pass. LCD frame128,964 unchanged;
+normal/held totals149,748/149,826 (+1 each). MMC bus132,221/DMA669,329 unchanged.
+No diagnostics/NOS removed or PLL/SDC edited; ngage1/games/ngage1 retained.
+Post-fix physical closure needs one new routed build. Other-chat files and all
+long simulations untouched; no CI monitoring.
+[Analysis](timing-78-recovery.md), [evidence](evidence/timing-78-43094675130.json).
+
 ## 2026-11-11: Full78 MHz path audit and ngage1 timing candidate
 
 Completed run43083011635/4969d77 FITS:40,145 ALMs,501 M10Ks,47,294 FFs,

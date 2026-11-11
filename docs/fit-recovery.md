@@ -1,5 +1,13 @@
 # Integration fit recovery
 
+## 2026-11-11:45dd02a leaves four setup endpoints
+
+43094675130 fits38,530 ALMs/502 M10Ks; setup−0.496 ns/TNS−0.951 ns and
+hold+0.250 ns. Remaining diagnostic/NOS endpoints share live MMC decode into
+CPU exclusion. A one-bit sampled-admission cut retains current-ready acceptance
+and native MMC timing. New physical closure remains open; see
+[follow-up](timing-78-recovery.md).
+
 ## 2026-11-11:4969d77 fits; remaining problem is timing
 
 Run43083011635 reports successful fit:40,145 ALMs,501 M10Ks,47,294 registers,

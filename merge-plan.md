@@ -871,6 +871,17 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Final generic-DMA admission timing cut — 2026-11-11
+
+43094675130 fits38,530 ALMs/502 M10Ks; four of1,000 sampled endpoints fail
+through live MMC readiness -> CPU exclusion -> diagnostics/NOS. Worst−0.496 ns,
+TNS−0.951 ns. One sampled readiness bit now controls generic local CPU exclusion;
+actual acceptance still requires current readiness. Native MMC and fast LCD/
+SDRAM retain their paths. Focused and full-board tests pass; LCD frame128,964
+and MMC669,329 clocks unchanged, complete LCD fixture+1. Diagnostics, NOS,
+ngage1 and78 MHz PLL retained. New routed closure remains open.
+[Follow-up](docs/timing-78-recovery.md).
+
 #### 78 MHz timing and ngage1 identity — 2026-11-11
 
 43083011635 fits40,145 ALMs/501 M10Ks; setup−1.276 ns, hold+0.247 ns. All1,000
