@@ -90,7 +90,8 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_rom_map.sv
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_nos_overlay.v
+# Temporarily disabled compatibility packages. Re-enable with the QSF macro.
+# set_global_assignment -name VERILOG_FILE rtl/ngage_nos_overlay.v
 
 # Production ARM920T cache and 64-entry instruction/data TLBs.
 # ARM920T cache/MMU RTL.

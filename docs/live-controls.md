@@ -1,3 +1,11 @@
+## Lean firmware menus (2026-11-11)
+
+Manual MCU/PPM firmware selection and NOS/BT compatibility entries are commented
+out for this profile. Main still loads boot.rom/boot1.rom automatically; swap
+those files on the card and reload the core. Overlay engines are compiled out,
+including automatic boot2/boot3 handling; saved selectors have no effect.
+The diagnostic display and panic export remain available.
+
 ## Production SIM selection (2026-11-11)
 
 The diagnostic SIM OSD option is removed. Production always presents no card

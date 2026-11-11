@@ -73,6 +73,10 @@ set_global_assignment -name SEED 1
 # No phone audio implementation yet; omit the unused Linux ALSA mixer.
 set_global_assignment -name VERILOG_MACRO "MISTER_DISABLE_ALSA=1"
 
+# Temporarily omit NOS/BT compatibility loaders and their OSD entries.
+# Also uncomment ngage_nos_overlay.v in files.qip when re-enabling.
+#set_global_assignment -name VERILOG_MACRO "NGAGE_COMPAT_OVERLAYS=1"
+
 source sys/sys.tcl
 source sys/sys_analog.tcl
 source files.qip

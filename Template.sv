@@ -46,13 +46,13 @@ module emu (
         "-;",
         "O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
         "-;",
-        "P1,Firmware;",
-        "P1F1,ROM,Load MCU service firmware;",
-        "P1F2,ROM,Load PPM service firmware;",
-        "P1O[19],NOS Compatibility,Off,On;",
-        "D0P1F3,NGO,Load NOS Compatibility;",
-        "P1O[20],Bluetooth Compatibility,Off,On;",
-        "D1P1F4,NGO,Load Bluetooth Compatibility;",
+        // "P1,Firmware;",
+        // "P1F1,ROM,Load MCU service firmware;",
+        // "P1F2,ROM,Load PPM service firmware;",
+        // "P1O[19],NOS Compatibility,Off,On;",
+        // "D0P1F3,NGO,Load NOS Compatibility;",
+        // "P1O[20],Bluetooth Compatibility,Off,On;",
+        // "D1P1F4,NGO,Load Bluetooth Compatibility;",
         "S0,VHD,Mount C: raw image;",
         "S1,VHD,Mount PMM raw image;",
         "S2,MMC,Mount MMC card (read only);",
@@ -539,6 +539,10 @@ module emu (
         .mem_done      (load_done),
         .failure_reason()
     );
+    wire firmware_aux_valid, firmware_aux_ready, firmware_aux_write, firmware_aux_done;
+    wire [31:0] firmware_aux_addr, firmware_aux_data, firmware_aux_rdata;
+    wire [3:0] firmware_aux_be;
+`ifdef NGAGE_COMPAT_OVERLAYS
     // Stock Main autoloads boot2.rom at index80, potentially before boot.rom.
     // The NOS package stages independently and applies only after both services.
     wire overlay_download = ioctl_download && (ioctl_index == 16'h80 || ioctl_index == 3);
@@ -636,9 +640,6 @@ module emu (
         .rsp_valid(component_done),
         .rsp_data (component_rdata)
     );
-    wire firmware_aux_valid, firmware_aux_ready, firmware_aux_write, firmware_aux_done;
-    wire [31:0] firmware_aux_addr, firmware_aux_data, firmware_aux_rdata;
-    wire [3:0] firmware_aux_be;
     ngage_ddr_arbiter firmware_overlay_arbiter (
         .clk      (clk_sys),
         .reset    (transport_reset),
@@ -668,6 +669,28 @@ module emu (
         .rsp_valid(firmware_aux_done),
         .rsp_data (firmware_aux_rdata)
     );
+`else
+    // Fit profile: ignore boot2/boot3 downloads and saved overlay selections.
+    // MCU/PPM loading remains active; no overlay can hold CPU release or saving.
+    assign ioctl_wait         = firmware_request && service_wait;
+    assign overlay_ready      = 1'b1;
+    assign bt_ready           = 1'b1;
+    assign overlay_loaded     = 1'b0;
+    assign overlay_applied    = 1'b0;
+    assign overlay_busy       = 1'b0;
+    assign overlay_error      = 4'b0;
+    assign bt_loaded          = 1'b0;
+    assign bt_applied         = 1'b0;
+    assign bt_busy            = 1'b0;
+    assign bt_error           = 4'b0;
+    assign firmware_aux_valid = load_req;
+    assign firmware_aux_write = 1'b1;
+    assign firmware_aux_addr  = load_addr;
+    assign firmware_aux_data  = load_data;
+    assign firmware_aux_be    = load_be;
+    assign load_ready         = firmware_aux_ready;
+    assign load_done          = firmware_aux_done;
+`endif
     // Service files contain no PMM-seed choice. Both existing NGA profile
     // IDs are accepted only with the same audited firmware hashes.
     assign loader_profile        = 0;

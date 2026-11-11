@@ -871,6 +871,17 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Temporary lean overlay/menu profile — 2026-11-11
+
+Comment out both NOS/BT compatibility menus and compile guards/source entries;
+keep the entire implementation for restoration. Previous report attributes
+678 ALMs and14 M10Ks to both package loaders. Semi-real NOS peripherals remain.
+Remove manual MCU/PPM pickers and the empty Firmware submenu; automatic
+boot.rom/boot1.rom loading remains. Ignore saved overlay selectors and boot2/3
+transfers in this profile. Selected/re-enabled-engine top checks pass; preflight
+is173 files/nine QIPs. Hardware boot, area and timing remain unverified.
+Restoration instructions are in [firmware overlays](docs/firmware-overlays.md).
+
 #### Production diagnostic SIM removal — 2026-11-11
 
 Remove the OSD selector and compile out the test-card responder, retaining

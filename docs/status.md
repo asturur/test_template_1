@@ -1,3 +1,37 @@
+## 2026-11-11: Compatibility overlay hardware temporarily omitted
+
+Both NOS/BT compatibility menu toggles and package pickers are commented out.
+The NGAGE_COMPAT_OVERLAYS build macro is commented in Template.qsf, and the
+ngage_nos_overlay.v source assignment is commented in files.qip. Complete
+loader/apply/undo engines and their two DDR arbiters remain under that macro.
+Disabled production directly connects the MCU/PPM loader to the auxiliary DDR
+path; overlay readiness is constant true, busy/errors false. Saved status19/20
+and automatic boot2/boot3 transfers have no effect and cannot hold the CPU.
+Semi-real NOS peripheral behavior is retained; this removes only the optional
+firmware compatibility package mechanism. No runtime patched NOS/BT code is
+loaded by this profile. Original-firmware boot behavior requires hardware test.
+
+The manual MCU/PPM firmware pickers and empty Firmware submenu are also
+commented out. Main still automatically loads boot.rom and boot1.rom; replace
+those files on the card and reload the core to select other firmware.
+
+Prior failed-fit attribution: NOS336.3 ALMs + BT341.4 =677.7 ALMs, plus seven
+M10Ks per staging table (14 total). Additional removed-arbiter savings and the
+new physical fit/timing are unmeasured. Together with the diagnostic card's
+440.7 ALMs, attributed removed blocks total about1,118 ALMs before packing
+changes. The diagnostic screen is still present. No build monitoring.
+
+Selected-source top elaboration passes with neither card nor overlay source;
+re-enabled overlay-engine elaboration also passes with its source/macro added.
+Source preflight passes173 files/nine QIPs. This is a compile/structure check,
+not installed-Main autoload, full firmware boot, fitted timing or hardware
+qualification. Existing simulations/checkpoints remain untouched.
+
+To restore overlays: uncomment the NGAGE_COMPAT_OVERLAYS QSF assignment, its
+ngage_nos_overlay.v QIP assignment, and the four compatibility menu strings
+(and Firmware submenu heading) in Template. Manual firmware pickers can remain
+commented independently. Source and package generation tools are retained.
+
 ## 2026-11-11: Production diagnostic SIM removed
 
 Template selects TEST_SIM_ENABLE=0 and ties presence low. The diagnostic SIM
