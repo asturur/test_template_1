@@ -487,3 +487,15 @@ and token epochs live in maintained `rtl/arm920` modules. No extra lookahead
 register is added before L0. Active provenance applies0001–0048 then0050;
 rejected0049 remains archived, not reapplied. See the cache lookup contract for
 acceptance/response association, precise latency measurements and validation.
+
+## MLAB register file (0057)
+
+Two writer banks replicated for five asynchronous reads replace the FF read
+muxes. Held and committed bypass preserves the original write/read edge and
+masks undefined RAM collisions; reset invalidates metadata, not physical RAM.
+Generic C multi-bit writes/priority and architectural debug taps remain. Explicit
+Intel altdpram wiring is checked against the installed model; unsupported donor
+sclr/outdata_sclr settings are omitted. Independent five-port, CP15/operand,
+whole-core cycle/effect and IRQ/FIQ evidence is in
+[RF audit](register-file-area-audit.md). Verilog-2001; no new CPU cycle or clock
+change. Actual area/routed timing is pending the next build.

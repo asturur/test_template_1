@@ -58,7 +58,8 @@
     "patches/zap/0053-production-arm920-cache-and-tlb.patch",
     "patches/zap/0054-own-data-request-privilege.patch",
     "patches/zap/0055-stream-cache-line-refills.patch",
-    "patches/zap/0056-instruction-cache-read-only-metadata.patch"
+    "patches/zap/0056-instruction-cache-read-only-metadata.patch",
+    "patches/zap/0057-mlab-register-file.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

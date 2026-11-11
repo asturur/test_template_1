@@ -1,0 +1,365 @@
+diff --git a/src/rtl/zap_register_file.sv b/src/rtl/zap_register_file.sv
+index 7307948..260cb49 100644
+--- a/src/rtl/zap_register_file.sv
++++ b/src/rtl/zap_register_file.sv
+@@ -17,134 +17,245 @@
+ // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ // 02110-1301, USA.
+ //
+-// Flip flop based register files. Good for FPGA where flip-flops are
+-// plentiful.
+-//
+-
+-module zap_register_file
+-(
+-        // Clock and reset.
+-        input logic              i_clk,
+-        input logic              i_reset,
++module zap_register_file (
++    // Clock and reset.
++    input wire i_clk,
++    input wire i_reset,
+ 
+-        // Write enable.
+-        input logic              i_wen,
++    // Write enable.
++    input wire i_wen,
+ 
+-        // Write address. Note that _c does not need write enable.
+-        input logic  [5:0]       i_wr_addr_a,   // Binary address.
+-        input logic  [5:0]       i_wr_addr_b,   // Binary address.
+-        input logic  [39:0]      i_wr_addr_c,   // 1-Hot address.
++    // Write address. Note that _c does not need write enable.
++    input wire [ 5:0] i_wr_addr_a,  // Binary address.
++    input wire [ 5:0] i_wr_addr_b,  // Binary address.
++    input wire [39:0] i_wr_addr_c,  // 1-Hot address.
+ 
+-        // Write data.
+-        input logic  [31:0]      i_wr_data_a,
+-        input logic  [31:0]      i_wr_data_b,
+-        input logic  [31:0]      i_wr_data_c,
++    // Write data.
++    input wire [31:0] i_wr_data_a,
++    input wire [31:0] i_wr_data_b,
++    input wire [31:0] i_wr_data_c,
+ 
+-        // Read addresses (All binary).
+-        input logic  [5:0]       i_rd_addr_a,
+-        input logic  [5:0]       i_rd_addr_b,
+-        input logic  [5:0]       i_rd_addr_c,
+-        input logic  [5:0]       i_rd_addr_d,
+-        input logic  [5:0]       i_rd_addr_cp15,
++    // Read addresses (All binary).
++    input wire [5:0] i_rd_addr_a,
++    input wire [5:0] i_rd_addr_b,
++    input wire [5:0] i_rd_addr_c,
++    input wire [5:0] i_rd_addr_d,
++    input wire [5:0] i_rd_addr_cp15,
+ 
+-        // Read data corresponding. Combinationally read via MUX.
+-        output logic  [31:0]      o_rd_data_a,
+-        output logic  [31:0]      o_rd_data_b,
+-        output logic  [31:0]      o_rd_data_c,
+-        output logic  [31:0]      o_rd_data_d,
+-        output logic  [31:0]      o_rd_data_cp15
++    // Read data corresponding. Combinationally read via MUX.
++    output wire [31:0] o_rd_data_a,
++    output wire [31:0] o_rd_data_b,
++    output wire [31:0] o_rd_data_c,
++    output wire [31:0] o_rd_data_d,
++    output wire [31:0] o_rd_data_cp15
+ );
+ 
+-logic [39:0][31:0] mem; // Flip-flop array.
+-
+-// 3 write ports. Synchronous reset for the register file.
+-always_ff @ ( posedge i_clk )
+-begin
+-        if ( i_reset )
+-        begin
+-                mem <= {32'd40{32'd0}};
+-        end
+-        else
+-        begin
+-                // Standard 2-port write.
+-                if ( i_wen )
+-                begin
+-                        mem [ i_wr_addr_a ] <= i_wr_data_a;
+-                        mem [ i_wr_addr_b ] <= i_wr_data_b;
+-                end
+-
+-                // Background load.
+-                if ( |i_wr_addr_c )
+-                begin
+-                        for(int i=0;i<40;i++)
+-                        begin
+-                                if(i_wr_addr_c[i])
+-                                begin
+-                                        mem [i] <= i_wr_data_c;
+-                                end
+-                        end
++    // Replicated asynchronous MLAB banks, adapted from the donor latest-writer
++    // design. A/B writes are held for one clock and bypassed immediately: no
++    // architectural read or operand capture gains a cycle. C retains its generic
++    // multi-bit mask contract in a separate FF bank; production ties C off.
++    reg [39:0] initialized, held_c, committed_c;
++    reg [1:0] latest[0:39];
++    reg held_a, held_b, committed_a, committed_b;
++    reg [5:0] held_index_a, held_index_b, committed_index_a, committed_index_b;
++    reg [31:0] held_data_a, held_data_b, held_data_c;
++    reg [31:0] committed_data_a, committed_data_b, committed_data_c;
++    reg     [31:0] c_words[0:39];
++    integer        r;
++    always @(posedge i_clk) begin
++        if (i_reset) begin
++            initialized       <= 0;
++            held_a            <= 0;
++            held_b            <= 0;
++            held_c            <= 0;
++            committed_a       <= 0;
++            committed_b       <= 0;
++            committed_c       <= 0;
++            held_index_a      <= 0;
++            held_index_b      <= 0;
++            committed_index_a <= 0;
++            committed_index_b <= 0;
++            held_data_a       <= 0;
++            held_data_b       <= 0;
++            held_data_c       <= 0;
++            committed_data_a  <= 0;
++            committed_data_b  <= 0;
++            committed_data_c  <= 0;
++            for (r = 0; r < 40; r = r + 1) latest[r] <= 0;
++        end else begin
++            held_a            <= i_wen && i_wr_addr_a < 40;
++            held_b            <= i_wen && i_wr_addr_b < 40;
++            held_c            <= i_wr_addr_c;
++            held_index_a      <= i_wr_addr_a;
++            held_index_b      <= i_wr_addr_b;
++            held_data_a       <= i_wr_data_a;
++            held_data_b       <= i_wr_data_b;
++            held_data_c       <= i_wr_data_c;
++            committed_a       <= held_a;
++            committed_b       <= held_b;
++            committed_c       <= held_c;
++            committed_index_a <= held_index_a;
++            committed_index_b <= held_index_b;
++            committed_data_a  <= held_data_a;
++            committed_data_b  <= held_data_b;
++            committed_data_c  <= held_data_c;
++            for (r = 0; r < 40; r = r + 1) begin
++                if ((held_a && held_index_a == r) || (held_b && held_index_b == r) || held_c[r]) begin
++                    initialized[r] <= 1;
++                    latest[r] <= held_c[r] ? 2'd2 : (held_b && held_index_b == r) ? 2'd1 : 2'd0;
+                 end
++            end
+         end
+-end
++        // No RAM reset sweep. Invalid words are hidden by initialized/held masks.
++        for (r = 0; r < 40; r = r + 1) if (!i_reset && held_c[r]) c_words[r] <= held_data_c;
++    end
+ 
+-// Compact asynchronous FF reads. The owned R packet separates this mux from
+-// issue forwarding; leave device mapping to synthesis instead of imposing the
+-// address-decode/masked-reduction tree used before the R boundary.
+-assign o_rd_data_a = mem[i_rd_addr_a];
+-assign o_rd_data_b = mem[i_rd_addr_b];
+-assign o_rd_data_c = mem[i_rd_addr_c];
+-assign o_rd_data_d = mem[i_rd_addr_d];
+-// Dedicated CP15 address ownership. This adds a read mux, not RF storage;
+-// normal port A no longer distributes the late CP15 address/enable selection.
+-assign o_rd_data_cp15 = mem[i_rd_addr_cp15];
++    wire [ 5:0] read_index[0:4];
++    wire [31:0] read_data [0:4];
++    assign read_index[0]  = i_rd_addr_a;
++    assign read_index[1]  = i_rd_addr_b;
++    assign read_index[2]  = i_rd_addr_c;
++    assign read_index[3]  = i_rd_addr_d;
++    assign read_index[4]  = i_rd_addr_cp15;
++    assign o_rd_data_a    = read_data[0];
++    assign o_rd_data_b    = read_data[1];
++    assign o_rd_data_c    = read_data[2];
++    assign o_rd_data_d    = read_data[3];
++    assign o_rd_data_cp15 = read_data[4];
+ 
+-`ifndef SYNTHESIS
++    // A same-edge committed write masks undefined MLAB collision data. New held
++    // writes are newer still; C > B > A at both edges, matching the original RF.
+ 
+-wire [31:0] r0   =  mem[0];
+-wire [31:0] r1   =  mem[1];
+-wire [31:0] r2   =  mem[2];
+-wire [31:0] r3   =  mem[3];
+-wire [31:0] r4   =  mem[4];
+-wire [31:0] r5   =  mem[5];
+-wire [31:0] r6   =  mem[6];
+-wire [31:0] r7   =  mem[7];
+-wire [31:0] r8   =  mem[8];
+-wire [31:0] r9   =  mem[9];
+-wire [31:0] r10  =  mem[10];
+-wire [31:0] r11  =  mem[11];
+-wire [31:0] r12  =  mem[12];
+-wire [31:0] r13  =  mem[13];
+-wire [31:0] r14  =  mem[14];
+-wire [31:0] r15  =  mem[15];
+-wire [31:0] r16  =  mem[16];
+-wire [31:0] r17  =  mem[17];
+-wire [31:0] r18  =  mem[18];
+-wire [31:0] r19  =  mem[19];
+-wire [31:0] r20  =  mem[20];
+-wire [31:0] r21  =  mem[21];
+-wire [31:0] r22  =  mem[22];
+-wire [31:0] r23  =  mem[23];
+-wire [31:0] r24  =  mem[24];
+-wire [31:0] r25  =  mem[25];
+-wire [31:0] r26  =  mem[26];
+-wire [31:0] r27  =  mem[27];
+-wire [31:0] r28  =  mem[28];
+-wire [31:0] r29  =  mem[29];
+-wire [31:0] r30  =  mem[30];
+-wire [31:0] r31  =  mem[31];
+-wire [31:0] r32  =  mem[32];
+-wire [31:0] r33  =  mem[33];
+-wire [31:0] r34  =  mem[34];
+-wire [31:0] r35  =  mem[35];
+-wire [31:0] r36  =  mem[36];
+-wire [31:0] r37  =  mem[37];
+-wire [31:0] r38  =  mem[38];
+-wire [31:0] r39  =  mem[39];
+ 
+-`endif
++    genvar port;
++    generate
++        for (port = 0; port < 5; port = port + 1) begin : reads
++            wire [31:0] a_q, b_q;
++            zap_register_mlab bank_a (
++                .clk  (i_clk),
++                .we   (held_a && !i_reset),
++                .waddr(held_index_a),
++                .data (held_data_a),
++                .raddr(read_index[port]),
++                .q    (a_q)
++            );
++            zap_register_mlab bank_b (
++                .clk  (i_clk),
++                .we   (held_b && !i_reset),
++                .waddr(held_index_b),
++                .data (held_data_b),
++                .raddr(read_index[port]),
++                .q    (b_q)
++            );
++            reg  [31:0] value;
++            wire [ 5:0] index = read_index[port];
++            always @(*) begin
++                value = 32'bx;
++                if (index < 40) begin
++                    case (latest[index])
++                        0:       value = a_q;
++                        1:       value = b_q;
++                        default: value = c_words[index];
++                    endcase
++                    if (!initialized[index]) value = 0;
++                    if (committed_a && committed_index_a == index) value = committed_data_a;
++                    if (committed_b && committed_index_b == index) value = committed_data_b;
++                    if (committed_c[index]) value = committed_data_c;
++                    if (held_a && held_index_a == index) value = held_data_a;
++                    if (held_b && held_index_b == index) value = held_data_b;
++                    if (held_c[index]) value = held_data_c;
++                end
++            end
++            assign read_data[port] = value;
++        end
++    endgenerate
+ 
++`ifndef SYNTHESIS
++`ifndef ALTERA_RESERVED_QIS
++    // Architectural debug taps only; never another synthesized RF replica.
++    reg     [31:0] mem        [0:39];
++    integer        debug_word;
++    always @(*) begin
++        for (debug_word = 0; debug_word < 40; debug_word = debug_word + 1) begin
++            case (latest[debug_word])
++                0:       mem[debug_word] = reads[0].bank_a.words[debug_word];
++                1:       mem[debug_word] = reads[0].bank_b.words[debug_word];
++                default: mem[debug_word] = c_words[debug_word];
++            endcase
++            if (!initialized[debug_word]) mem[debug_word] = 0;
++            if (committed_a && committed_index_a == debug_word) mem[debug_word] = committed_data_a;
++            if (committed_b && committed_index_b == debug_word) mem[debug_word] = committed_data_b;
++            if (committed_c[debug_word]) mem[debug_word] = committed_data_c;
++            if (held_a && held_index_a == debug_word) mem[debug_word] = held_data_a;
++            if (held_b && held_index_b == debug_word) mem[debug_word] = held_data_b;
++            if (held_c[debug_word]) mem[debug_word] = held_data_c;
++        end
++    end
++`endif
++`endif
+ endmodule
+ 
+-// ----------------------------------------------------------------------------
+-// EOF
+-// ----------------------------------------------------------------------------
++// One write and one unregistered read; five physical read replicas per writer.
++module zap_register_mlab (
++    input  wire        clk,
++    input  wire        we,
++    input  wire [ 5:0] waddr,
++    input  wire [ 5:0] raddr,
++    input  wire [31:0] data,
++    output wire [31:0] q
++);
++`ifdef ALTERA_RESERVED_QIS
++    `define NGAGE_RF_VENDOR
++`elsif SYNTHESIS
++    `define NGAGE_RF_VENDOR
++`endif
++`ifdef NGAGE_RF_VENDOR
++    altdpram #(
++        .width                             (32),
++        .widthad                           (6),
++        .numwords                          (64),
++        .intended_device_family            ("Cyclone V"),
++        .ram_block_type                    ("MLAB"),
++        .indata_reg                        ("INCLOCK"),
++        .wraddress_reg                     ("INCLOCK"),
++        .wrcontrol_reg                     ("INCLOCK"),
++        .rdaddress_reg                     ("UNREGISTERED"),
++        .rdcontrol_reg                     ("UNREGISTERED"),
++        .outdata_reg                       ("UNREGISTERED"),
++        .indata_aclr                       ("OFF"),
++        .wraddress_aclr                    ("OFF"),
++        .wrcontrol_aclr                    ("OFF"),
++        .rdaddress_aclr                    ("OFF"),
++        .rdcontrol_aclr                    ("OFF"),
++        .outdata_aclr                      ("OFF"),
++        .read_during_write_mode_mixed_ports("DONT_CARE")
++    ) ram (
++        .inclock       (clk),
++        .inclocken     (1'b1),
++        .outclock      (1'b0),
++        .outclocken    (1'b1),
++        .aclr          (1'b0),
++        .wren          (we),
++        .rden          (1'b1),
++        .byteena       (1'b1),
++        .wraddressstall(1'b0),
++        .rdaddressstall(1'b0),
++        .wraddress     (waddr),
++        .data          (data),
++        .rdaddress     (raddr),
++        .q             (q)
++    );
++`else
++    (* ramstyle="MLAB, no_rw_check" *)reg [31:0] words            [0:63];
++    reg        previous_we;
++    reg [ 5:0] previous_address;
++    always @(posedge clk) begin
++        if (we) words[waddr] <= data;
++        previous_we      <= we;
++        previous_address <= waddr;
++    end
++    // Poison active and just-committed collisions; RF bypass must cover both.
++    assign q = ((we && waddr==raddr) || (previous_we && previous_address==raddr)) ? 32'bx : words[raddr];
++`endif
++    `undef NGAGE_RF_VENDOR
++endmodule

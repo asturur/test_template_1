@@ -1,3 +1,29 @@
+## 2026-11-11: ZAP RF MLAB port implemented; one build is next
+
+The RF now uses two single-writer MLAB banks replicated across five asynchronous
+read ports, a latest-writer table and held/committed write bypass. Architectural
+reads still see writes on the original edge; no operand/CPU stage was added.
+Generic multi-bit background C writes retain their prior C>B>A behavior via a
+separate bank; production's constant-zero C mask allows that bank to optimize
+away. Forty words, banked/internal registers, CP15 ownership and diagnostic
+architectural mem taps remain. New code is Verilog-2001 in the existing import
+file. Quartus uses explicit altdpram under ALTERA_RESERVED_QIS or SYNTHESIS.
+
+PASS independent200,400 pre/post-edge read checks with collision poisoning and
+Intel primitives; CP15 ownership13,841 clocks; stalled operand oracle56,251
+clocks. Mixed ARM execution matches old-RF effects and exact cycles at waits0/3
+(210,644/247,890 total; body1,446/1,692). Additional48 bounded cases pass:
+LDM/base writeback, CPU timing and44 SWP IRQ/FIQ arrival/return cases. No long
+boot, other-chat simulation change, PLL/SDC edit or diagnostic removal.
+
+Two unsupported donor altdpram settings (outdata_sclr and sclr) were omitted;
+Intel-model elaboration passes. Ten logical64x32 MLAB banks replace A/B FF
+storage/read muxes; metadata/bypass still cost logic. Net LAB/ALM/MLAB allocation
+and timing are UNMEASURED until the requested normal78 MHz build. Design aim
+remains104 MHz. Stop other optimization work after dispatch; no CI monitoring.
+[RF details](register-file-area-audit.md),
+[evidence](evidence/rf-mlab-2026-11-11.json).
+
 ## 2026-11-11: Shared timer/ICU bank; diagnostics retained
 
 Production UPP now stores24 timer spare words and6 ICU cfg words in one32x32

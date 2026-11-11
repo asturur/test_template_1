@@ -1,0 +1,63 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "1c493b6",
+  "actual_clock_Hz": 78000000,
+  "RTL_target_Hz": 104000000,
+  "PLL_SDC_changed": false,
+  "diagnostics_retained": true,
+  "other_chat_simulations_untouched": true,
+  "new_pipeline_cycles": 0,
+  "logical_MLAB_banks": 10,
+  "bank_shape": [
+    64,
+    32
+  ],
+  "C_contract": "multi-bit C > B > A; C FF storage optimized away when production C mask is constant zero",
+  "models_passed": [
+    "four-state behavioral with active/committed collision poison and architectural debug taps",
+    "Intel altdpram"
+  ],
+  "scoreboard_pre_post_reads_per_model": 200400,
+  "CP15_oracle_clocks": 13841,
+  "operand_oracle_clocks": 56251,
+  "whole_CPU_comparison": {
+    "waits": [
+      0,
+      3
+    ],
+    "ordered_effects": "exact match",
+    "total_clocks": [
+      210644,
+      247890
+    ],
+    "body_clocks": [
+      1446,
+      1692
+    ]
+  },
+  "additional_cases": {
+    "LDM_base_writeback": 2,
+    "CPU_timing": 2,
+    "SWP_IRQ_FIQ_arrival_return": 44
+  },
+  "donor_compatibility_corrections": [
+    "omit unsupported altdpram outdata_sclr parameter",
+    "omit unsupported altdpram sclr port"
+  ],
+  "actual_area_and_routed_timing": "pending requested build",
+  "CI_monitoring": false,
+  "source_sha256": {
+    "rtl/arm/zap_register_file.sv": "01bb32fb7b33ee004118747586b5b88e984899d5b44d6800135f5e70efe856a7",
+    "tests/cpu/rf_mlab/tb.v": "d6b9ca479c22d3259317dc482a93bcebc62fbb2a73c504499172b6ab969b7a35",
+    "tests/cpu/rf_mlab/run.sh": "59281e6d2153ffed895b4d752071984737a63e1dd0d3de3b40aff073cf1b1b17"
+  },
+  "logs_sha256": {
+    "build/sim/unit-rf-mlab/run.log": "99c1e64f1cb5ca11d8ac00ae43b731511025f10c9500da8a859a5079b538e22a",
+    "build/sim/unit-rf-mlab/vendor-run.log": "99c1e64f1cb5ca11d8ac00ae43b731511025f10c9500da8a859a5079b538e22a",
+    "build/sim/unit-operands/result.log": "0ba2bb8b34d940f6d6fc16587e23e32fcd2c471d3ebf52c6b940ad50b48e6361",
+    "build/sim/unit-cp15-rf/result.log": "a52da6c418bf1aca76f46996fd74ebd951e08d9a551b26e43c78135d32c7a853",
+    "scratch/ngage2-integration/rf-mlab-2026-11-11/baseline.log": "0b79e5cf92e1a101be68f205bf9e10f80e4cb93a9fe92323d4e9db146fa8be8e",
+    "scratch/ngage2-integration/rf-mlab-2026-11-11/candidate.log": "0b79e5cf92e1a101be68f205bf9e10f80e4cb93a9fe92323d4e9db146fa8be8e",
+    "scratch/ngage2-integration/rf-mlab-2026-11-11/integration.log": "050ca3da26858776876efad2b6841f64aebc8bd5675397dcc8ac7467f68ea7ad"
+  }
+}

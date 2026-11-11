@@ -871,6 +871,18 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### ZAP register-file MLAB port — 2026-11-11
+
+0057 implements the donor-style latest-writer MLAB approach with five unchanged
+asynchronous reads, held/committed bypass and generic multi-bit C writes.
+No architectural edge or pipeline cycle is added. Scoreboard/Intel/CP15/operand
+checks pass; whole-CPU effects and cycles match old RF at waits0/3. LDM, mixed
+CPU and44 SWP IRQ/FIQ tests pass. Diagnostic mem taps and all diagnostics remain.
+One normal78 MHz build is the next gate for actual LAB/MLAB savings and timing;
+104 MHz remains the RTL objective. Pause further optimization after dispatch to
+reserve allowance for blocking bugs; do not monitor CI. See
+[RF evidence](docs/evidence/rf-mlab-2026-11-11.json).
+
 #### Shared storage and optimization priority — 2026-11-11
 
 Timer24 words and ICU6 words now share one32x32 M10K in production UPP,

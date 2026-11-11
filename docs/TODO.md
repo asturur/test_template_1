@@ -12,10 +12,11 @@ Keep the diagnostic screen, monitor, recorder and export until Symbian boots.
 Actual PLL stays78 MHz; optimize RTL toward104 MHz without changing clocks.
 See [ranked candidates](donor-resource-comparison.md#next-optimization-priorities).
 
-- [ ] Prototype donor-style MLAB ZAP register storage with the independent RF,
-  operand and CP15 oracles. Preserve five read operands, banked registers,
+- [x] Prototype donor-style MLAB ZAP register storage (0057); independent RF,
+  operand and CP15 oracles pass. Preserve five read operands, banked registers,
   held/committed bypass, writer priority and collision ownership. Measure LABs
-  and timing; the current RF's~2,008 ALMs are a block cost, not promised savings.
+  and timing in the requested build; the old RF's~2,008 ALMs are a block cost,
+  not promised savings. Functional tests pass; physical fit is still open.
 - [ ] Compact DMA queue/worker BRAM. The four8x32 queued-payload banks are mostly
   empty; investigate narrow multiword rows and shared storage for suitable
   worker fields. Keep eight immutable channel snapshots, two workers and fast
