@@ -7,6 +7,11 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [lcd-dma-handover.md](lcd-dma-handover.md) | Production DMA/IRQ ownership, fast LCD stream, matched speed results, row bands, reset and remaining verification |
+| [mmc-port.md](mmc-port.md) | Read-only production MMC slot, native host/card, FIFO/DMA/IRQ and HPS ownership tests, image tooling and remaining driver/hardware gates |
+| [performance-path-retirement.md](performance-path-retirement.md) | Faster-path replacement policy, LCD switch retirement, next direct-SDRAM cleanup and measured DDR tradeoffs |
+| [peripheral-integration.md](peripheral-integration.md) | B1 SDRAM/local route, P1 IRQ ownership, P2 byte-count engine/original-driver tests and DMA/MMC integration gates |
+| [semi-real-nos.md](semi-real-nos.md) | N1/N2 original NOS ownership, ARM cancel/receive/charger fixtures and selective service boundaries |
 | [background-save.md](background-save.md) | S3 ordered C:/PMM queue, background scheduling, failure reporting and verification |
 | [ddr-bulk-persistence.md](ddr-bulk-persistence.md) | D3 sector snapshots, restores, ordering and 4 KiB host assessment |
 | [ddr-flash-cache.md](ddr-flash-cache.md) | D2 shared flash backing cache, writer ordering, sizing and tests |

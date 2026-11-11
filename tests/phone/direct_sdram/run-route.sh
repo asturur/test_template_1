@@ -1,5 +1,5 @@
 #!/bin/sh
 set -eu
 mkdir -p build/sim/unit-direct-sdram
-iverilog -g2005 -s route_tb -o build/sim/unit-direct-sdram/route rtl/ngage_upp.v tests/phone/direct_sdram/route_tb.v
+iverilog -g2005 -s route_tb -o build/sim/unit-direct-sdram/route rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_upp.v tests/phone/direct_sdram/route_tb.v
 vvp build/sim/unit-direct-sdram/route

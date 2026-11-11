@@ -1,0 +1,671 @@
+{
+  "date": "2026-11-11",
+  "branch": "codex/ngage2-integration",
+  "commit": "8ff8b11b2527e8eed4ccb85f27304d2f326874ec",
+  "working_tree": "Uncommitted; no push/deployment",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "docker_recovery": "Completed user-initiated stalled restart after VM stopped cleanly; only stale Docker application processes quit/relaunched. No data/settings reset or other simulation/checkpoint operation.",
+  "historical_final_ab": {
+    "scope": "Final sequential pinned-image CPU A/B verification; no production/testbench edits",
+    "image": "jotego/simulator:arm64",
+    "pull": "never",
+    "network": "none",
+    "same_unchanged_source_inputs": 101,
+    "identical_arm_program_bytes": 1376,
+    "phase10_executed_normal_and_hold_both_profiles": true,
+    "profiles": {
+      "fast": {
+        "run": {
+          "pass": true,
+          "total_cycles": 152456,
+          "frame_interval_clocks": 130685,
+          "frame_words": 18304,
+          "clocks_per_word": 7.139696,
+          "phase10_marker_instruction_seen": true
+        },
+        "hold": {
+          "pass": true,
+          "total_cycles": 152537,
+          "frame_interval_clocks": 130685,
+          "frame_words": 18304,
+          "clocks_per_word": 7.139696,
+          "phase10_marker_instruction_seen": true
+        },
+        "reset": {
+          "pass": true,
+          "total_cycles": null
+        },
+        "logical-reset": {
+          "pass": true,
+          "total_cycles": null
+        }
+      },
+      "general": {
+        "run": {
+          "pass": true,
+          "total_cycles": 334970,
+          "frame_interval_clocks": 306802,
+          "frame_words": 18304,
+          "clocks_per_word": 16.761473,
+          "phase10_marker_instruction_seen": true
+        },
+        "hold": {
+          "pass": true,
+          "total_cycles": 335072,
+          "frame_interval_clocks": 306802,
+          "frame_words": 18304,
+          "clocks_per_word": 16.761473,
+          "phase10_marker_instruction_seen": true
+        },
+        "reset": {
+          "pass": true,
+          "total_cycles": null
+        },
+        "logical-reset": {
+          "pass": true,
+          "total_cycles": null
+        }
+      }
+    },
+    "full_frame_speedup": 2.347645100814937,
+    "reset_modes": "Both PASS per profile; exact total cycles are not printed by the frozen testbench",
+    "source_hashes": "cpu-fast/source-hashes-before.json; cpu-general/source-hashes-before.json",
+    "logs": "Each profile directory contains build/run/hold/reset/logical-reset/fence/fast-channels/transport logs and program artifacts"
+  },
+  "production_cleanup": {
+    "FAST_LCD_removed": true,
+    "PHONE_FAST_LCD_removed": true,
+    "eligible_SDRAM_stream_automatic": true,
+    "generic_DMA_onchip_fallback_required": true,
+    "cpu_modes": "normal/held/queued-tail reset/CPU-Hold reset all PASS",
+    "normal_cycles": 152456,
+    "held_cycles": 152537,
+    "frame_clocks": 130685,
+    "arm_bytes": 1376,
+    "original_ISR_zero_wait_cycles": 11067,
+    "original_ISR_three_wait_cycles": 16449,
+    "original_ISR_current_source_hashes_match": true,
+    "boot": {
+      "pass": true,
+      "cycles": 5000000,
+      "bus_transactions": 351379,
+      "instruction_bus_errors": 12,
+      "data_errors": 0,
+      "lcd_register_transactions": 3,
+      "lcd_data_words": 0,
+      "ddr_writes": 0,
+      "last_fetch_pc": "00006164",
+      "bus_pc": "00006168",
+      "last_fetch_age": 3,
+      "stopping_state": "Original low-ROM timing delay loop 00006154..00006174: increment r1, compare r0/r1, conditional loop. Fresh bounded execution stopped at requested cycle limit.",
+      "ui_frame_claim": false,
+      "simulation_walltime_seconds": 58.937,
+      "build_walltime_seconds": 71.141
+    },
+    "top": "PASS with HPS/PLL stubs",
+    "source_graph": "PASS 181 files /9 QIPs; host Tcl",
+    "formatter": "Pinned formatter passes and idempotent for maintained handover files",
+    "compiled_sources_changed_after_binary": [],
+    "frame_clocks_observed_line": "METRIC production full-frame interval clocks=130685 words=18304 clocks-per-word=7.139696"
+  },
+  "source_snapshot_after_run": {
+    "rtl/arm/LICENSE": {
+      "bytes": 35150,
+      "sha256": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987"
+    },
+    "rtl/arm/UPSTREAM.json": {
+      "bytes": 11615,
+      "sha256": "63eef2732a4b8eff42d8722c6fe5426ba0b9acaa229fa63ee6101e8f5dea39a1"
+    },
+    "rtl/arm/zap_alu_main.sv": {
+      "bytes": 50485,
+      "sha256": "1a9ef9e24fea467281045fe00236009f5eb12656d93531471156a452a1db0095"
+    },
+    "rtl/arm/zap_btb.sv": {
+      "bytes": 8154,
+      "sha256": "2dc4c9b45501a2c45fa83d44cb82dc2858969a78775a63a0e955e303a4920b7e"
+    },
+    "rtl/arm/zap_cache.sv": {
+      "bytes": 15646,
+      "sha256": "ddcb9098ae1aa710bb86e91f6f2bce7a9de7a0152ed9646a1e056f836b1baf56"
+    },
+    "rtl/arm/zap_core.sv": {
+      "bytes": 85282,
+      "sha256": "81b47492c4e937b4af806aff4f9eea8ffd83f0c7581472d626a2edc75174856d"
+    },
+    "rtl/arm/zap_cp15_cb.sv": {
+      "bytes": 36177,
+      "sha256": "48f5050dcc26d4bfdd374ef17dea6a5c2ee05967e10dae6cc348911fa6729466"
+    },
+    "rtl/arm/zap_data_completion.sv": {
+      "bytes": 1424,
+      "sha256": "b1ca3318824b4263d99e224ce978a85f3d27768c5171ea874faa8abc764a76e9"
+    },
+    "rtl/arm/zap_dcache.sv": {
+      "bytes": 17395,
+      "sha256": "13dcbce7bbb74ac2762138bc425fb0f58b5be7b16a9c0b498631f7a8890353af"
+    },
+    "rtl/arm/zap_decode.sv": {
+      "bytes": 38686,
+      "sha256": "b0196d50bb714a4fccd8ed9692bb285672435a4db36c02465ea61175b30b2913"
+    },
+    "rtl/arm/zap_decode_main.sv": {
+      "bytes": 19552,
+      "sha256": "0fc22ead311269efa07cd00a66f461b52e5859caa503805c087ab0bbe928069c"
+    },
+    "rtl/arm/zap_decompile.sv": {
+      "bytes": 36885,
+      "sha256": "313b2d22c9a6d35b5ef1aea2892e1c2dc5ba593980cacbbaaf2227d12eebd481"
+    },
+    "rtl/arm/zap_decompile.svh": {
+      "bytes": 2212,
+      "sha256": "13788aac7eb9e128fc4ad67658a053266b12a75aa1f1e68e2465df860703df22"
+    },
+    "rtl/arm/zap_defines.svh": {
+      "bytes": 10978,
+      "sha256": "67fa8a73231b398a19637343c8c764cc9d4a3575b4a7aacfffeabd210703a734"
+    },
+    "rtl/arm/zap_dual_rank_synchronizer.sv": {
+      "bytes": 1816,
+      "sha256": "f73494c1bb7d3546346b32e0244ffd8d73e6e5c8efb34c1ab04bb5709b882813"
+    },
+    "rtl/arm/zap_fetch_main.sv": {
+      "bytes": 6393,
+      "sha256": "a6af0643075f03754f862db89a7fec37f2d8754d37b89f8f499e014cc0be262b"
+    },
+    "rtl/arm/zap_fifo.sv": {
+      "bytes": 4110,
+      "sha256": "3af6c3e48c3d6e6429d68b59d962b7fd2ecf215faa7b627906ee74e239905e25"
+    },
+    "rtl/arm/zap_functions.svh": {
+      "bytes": 8562,
+      "sha256": "9c62b8336a5d035535b42369995fd4f5f337caf243857b878ad85d71bde04b92"
+    },
+    "rtl/arm/zap_issue_main.sv": {
+      "bytes": 54328,
+      "sha256": "393a34178d78dca7e3c857ade32b2a09025c4dbd199a075f90b8e55e5a873216"
+    },
+    "rtl/arm/zap_localparams.svh": {
+      "bytes": 20324,
+      "sha256": "4a2834d59f367ca5b374d96317168eaf882df288a849a9cac929fcc9a339b4a7"
+    },
+    "rtl/arm/zap_memory_main.sv": {
+      "bytes": 13360,
+      "sha256": "21462735f9b9ff8007b65918e58b33d2f1b72e6972fd34eab93da85821e828c9"
+    },
+    "rtl/arm/zap_mode16_decoder.sv": {
+      "bytes": 30743,
+      "sha256": "47979fb06dbd3a7e1a527b9e6a533c314bc27300cfc5bb80ae6f98064879d93b"
+    },
+    "rtl/arm/zap_mode16_decoder_main.sv": {
+      "bytes": 6081,
+      "sha256": "6d9cf536eb8c7f1efa5f5931ba44a72fc326025f50c57dc5160d96c2b3fae913"
+    },
+    "rtl/arm/zap_ones_counter.sv": {
+      "bytes": 1628,
+      "sha256": "c00366f44f0a88c532806a7e95a01f71376558b2dd7ab2be3e6d0f4d56991cbc"
+    },
+    "rtl/arm/zap_operand_read.sv": {
+      "bytes": 7053,
+      "sha256": "92bfed61d105fcb7482f2c15dbafeba7d258bd541f53342f14c9c5269526e3bc"
+    },
+    "rtl/arm/zap_postalu_main.sv": {
+      "bytes": 14912,
+      "sha256": "67f1d62f72383dd3961f90eabd4345b829cc0043d06a0a1b6ad3722a02b5d7d2"
+    },
+    "rtl/arm/zap_predecode_coproc.sv": {
+      "bytes": 10545,
+      "sha256": "001927bdf55935ee4535c2b1941dda2c3f612ebc1fb459867e3dd272b035ab02"
+    },
+    "rtl/arm/zap_predecode_main.sv": {
+      "bytes": 24955,
+      "sha256": "70cce74af7de285a47d9440a2139f97e52d359593e67f39b34afa536df1f6dd3"
+    },
+    "rtl/arm/zap_predecode_uop_sequencer.sv": {
+      "bytes": 44475,
+      "sha256": "9d0f58e32220d7c6f4d48907be2aa8475ae5d505f6b931235d6e8374dbcd7505"
+    },
+    "rtl/arm/zap_ram_simple_nopipe.sv": {
+      "bytes": 3119,
+      "sha256": "69fb85af5f97f884586d2a6722f24d49621cef06d91377c7edcdd30a0de70750"
+    },
+    "rtl/arm/zap_register_file.sv": {
+      "bytes": 4958,
+      "sha256": "cc289d9a2650d1e8c4c02e159fe86b8b5cea48639bbeb3ecb9ed07dddc327f83"
+    },
+    "rtl/arm/zap_shifter_main.sv": {
+      "bytes": 23209,
+      "sha256": "8273424768af3e9b44c8bc225d5f0a5ddcde85d07a81e957e57d5bc3e43717f7"
+    },
+    "rtl/arm/zap_shifter_multiply.sv": {
+      "bytes": 17067,
+      "sha256": "704d9f1531ad85078eefd63b8040e0ba27285e72e50f76ef021f9d74db4fc70b"
+    },
+    "rtl/arm/zap_shifter_shift.sv": {
+      "bytes": 4630,
+      "sha256": "be45c1e46623571ed66549f448e04979abcbf4aa9912dbd3fcd9071b3e96b0ce"
+    },
+    "rtl/arm/zap_sync_fifo.sv": {
+      "bytes": 3493,
+      "sha256": "e689ccd1e2ec1d24a131727c0b22189c12d9062ec1459bd4ee9f999c9463b7b2"
+    },
+    "rtl/arm/zap_top.sv": {
+      "bytes": 30125,
+      "sha256": "a3c2aa7ee2a8d7ffcfaa18ad866ff231ac2941d3d43c958588f7d05584c4fd64"
+    },
+    "rtl/arm/zap_wb_merger.sv": {
+      "bytes": 7949,
+      "sha256": "88f0e2ffe488d18a078bc34f2b2aa03715fbe4d94a6ea36ccd51ff9eda246a8d"
+    },
+    "rtl/arm/zap_writeback.sv": {
+      "bytes": 25885,
+      "sha256": "4480b4d21515093c0f8a830e592b68774e920c3c53b63ea95efa282b76e0c75e"
+    },
+    "rtl/arm920/cache_access.sv": {
+      "bytes": 25392,
+      "sha256": "85b626e7e2432da9f1df1aebd940cc8a6f7bdbcb299f18f769afdd15793efe13"
+    },
+    "rtl/arm920/cache_adapter.sv": {
+      "bytes": 7496,
+      "sha256": "f310cd0c7b5c0ad89ccb0986f42d2cb32c323d69d792b692f67a610eb8511569"
+    },
+    "rtl/arm920/cache_bank.sv": {
+      "bytes": 5497,
+      "sha256": "cf3304c77eff9bd813846503986562a71a9575ec8e64fa1531daa67e6dbe4d2a"
+    },
+    "rtl/arm920/cache_lines.sv": {
+      "bytes": 1603,
+      "sha256": "3d909665b631ad57f0696e8ec9b608479c45c6ddaabd902defe54a0173bd9436"
+    },
+    "rtl/arm920/cache_maintenance.sv": {
+      "bytes": 4374,
+      "sha256": "fb597ba510d78086ba6fa31c7ee07236686e409d2ff5c2af062a84e4906544c7"
+    },
+    "rtl/arm920/cache_refill.sv": {
+      "bytes": 4770,
+      "sha256": "65980ddf557f19b01006ebf80ee4ec3adfd44539f6dff720fd1d1c645de2452c"
+    },
+    "rtl/arm920/cache_tags.sv": {
+      "bytes": 12666,
+      "sha256": "30ea20a74d7dc03989bf85038e334639199b43f64a902b88b64a93c48b3b40d8"
+    },
+    "rtl/arm920/cache_transfer.sv": {
+      "bytes": 5686,
+      "sha256": "3081549e2566b35f769dd6b4a1840c79dbf73b92f92da2b544670fb61f3103c1"
+    },
+    "rtl/arm920/tlb.sv": {
+      "bytes": 11776,
+      "sha256": "84b66bbce35c2da1c7ab966a1f34c45a6c5605482cdb990fab60e0da4d713b6b"
+    },
+    "rtl/arm920/tlb_bank.sv": {
+      "bytes": 4645,
+      "sha256": "b9be6836977579c98777e2ad14fa4f8a28b784b16712099ac3cfa21869091303"
+    },
+    "rtl/arm920/tlb_bus_gate.sv": {
+      "bytes": 687,
+      "sha256": "3df21a78deb07858cb5ed62ce4b90723e516a3553f4730d465b008b87f658709"
+    },
+    "rtl/arm920/write_buffer.sv": {
+      "bytes": 6787,
+      "sha256": "3e68885210dc1281d5c51702662632d0002c59d95c352345f4c3396783617901"
+    },
+    "rtl/ngage_adsp.v": {
+      "bytes": 1093,
+      "sha256": "ea3dd13d1516905269a5bf37ae016c4eb781ae7cebf2f95f65c1cdabb8865c2b"
+    },
+    "rtl/ngage_am29n643_state.v": {
+      "bytes": 524,
+      "sha256": "fd45dcdc965fd1a62b99f78f112d6ee5c05c6f511bfb6a16036ca59330b87a11"
+    },
+    "rtl/ngage_board.v": {
+      "bytes": 20871,
+      "sha256": "32300af3a837af02256c3872a1fa15bfdee5e642cbf9822f581cb8956ad7d4ca"
+    },
+    "rtl/ngage_boot_regs.v": {
+      "bytes": 3976,
+      "sha256": "122d43eabb8a7e2c4f6dd8c24fafb8cd66ee43c2f9b9df613d760963eb00fcaa"
+    },
+    "rtl/ngage_bram.v": {
+      "bytes": 5527,
+      "sha256": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215"
+    },
+    "rtl/ngage_bram_be.v": {
+      "bytes": 812,
+      "sha256": "dcae12f1ad8e90de5390c68f76a690dd492bdf64693d644b647c33340e233a10"
+    },
+    "rtl/ngage_cbus_uem.v": {
+      "bytes": 8674,
+      "sha256": "d84eeddf30351afed8b3d7e5127e7b7782928e13c606bf984fda7335e087a995"
+    },
+    "rtl/ngage_cflash.sv": {
+      "bytes": 12250,
+      "sha256": "9bdca5083ac6076a64d595b021a3b7bf6d765aed417174276cb3c477b309d55e"
+    },
+    "rtl/ngage_codeflash.sv": {
+      "bytes": 13131,
+      "sha256": "52c0d8957d85e0382b7c861f65603bacddf790ad7cf4809a0006066d73db3ea8"
+    },
+    "rtl/ngage_cpu.sv": {
+      "bytes": 3032,
+      "sha256": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb"
+    },
+    "rtl/ngage_debug_font.v": {
+      "bytes": 2095,
+      "sha256": "5636d8bd214efd6955d258281370979d0b39981b533618a8dd97d87cdd5c9815"
+    },
+    "rtl/ngage_debug_monitor.v": {
+      "bytes": 4896,
+      "sha256": "fc4196902e92546921f24c6b594e8a2002e1dbbe739e6b90b16696527e414bca"
+    },
+    "rtl/ngage_debug_video.v": {
+      "bytes": 8346,
+      "sha256": "9228ccca0615945d3c521788c43c5f4e7f80c83d71ef7d2db74ce62fc6648df9"
+    },
+    "rtl/ngage_descramble.v": {
+      "bytes": 2279,
+      "sha256": "0971f194aa54309589c57be63973de2645b49c568837a24572584102a9a7d7a0"
+    },
+    "rtl/ngage_diagnostics.v": {
+      "bytes": 8498,
+      "sha256": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c"
+    },
+    "rtl/ngage_dma_channels.v": {
+      "bytes": 19250,
+      "sha256": "2b8950402141c1ff477225cb68c235470f30636e4ce1be6b64c3f3fd4b66b3f0"
+    },
+    "rtl/ngage_dma_engine.v": {
+      "bytes": 9084,
+      "sha256": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7"
+    },
+    "rtl/ngage_dma_ram_mux.v": {
+      "bytes": 2753,
+      "sha256": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668"
+    },
+    "rtl/ngage_dma_route.v": {
+      "bytes": 3745,
+      "sha256": "5e4c77b78ee542e362e09ff383801f1737c66fe606e11b7de93011365c87464a"
+    },
+    "rtl/ngage_flash_read_decode.v": {
+      "bytes": 904,
+      "sha256": "eddf8b82bf930c898b518cdc66328083baace463bd859063dca9213d62206fac"
+    },
+    "rtl/ngage_gpio_loopback.v": {
+      "bytes": 2910,
+      "sha256": "5ce36abc8536d4fc2654ad25e2f67718d743f5b72cffbfe3219555b57df78711"
+    },
+    "rtl/ngage_icu.v": {
+      "bytes": 5765,
+      "sha256": "e76bec0b919979c3b84ab80f6449cdb8cfdf0328a81c979ba5d5d28614c99440"
+    },
+    "rtl/ngage_icu_extra.v": {
+      "bytes": 4488,
+      "sha256": "e4410e399ac35bc65193ec17fcc54bfa06e63d209ebe6e5b174688b7e2635cc9"
+    },
+    "rtl/ngage_keypad.v": {
+      "bytes": 4752,
+      "sha256": "e310f4ca94b7fa63875e4b5ff27e4f64b15772dd4633318177dc9ae29ceaf8f8"
+    },
+    "rtl/ngage_lcd_display.v": {
+      "bytes": 12878,
+      "sha256": "cbfde58e695faad1cfa739c71ebca5ec0426ecc7f8be92eba435877144e348e9"
+    },
+    "rtl/ngage_lcd_dma.v": {
+      "bytes": 3902,
+      "sha256": "4a2471ea9881e99d461dc46de6e252b39558011ac05b346b3b0f3b09e1c60581"
+    },
+    "rtl/ngage_lcd_stream.v": {
+      "bytes": 4789,
+      "sha256": "b5cdf3356c70fa44869fe9dfaab59af4e193bcc2ad755f3fa4ba7282298c7050"
+    },
+    "rtl/ngage_lrb2.v": {
+      "bytes": 972,
+      "sha256": "973256fdbddf61f7ba5193c7c0b7f0ba90bc35cad978578ea657b32452e4a491"
+    },
+    "rtl/ngage_mdi_stub.v": {
+      "bytes": 4767,
+      "sha256": "4449e866893d9d6d04a64e25987190d147dc16f1bfd1f47561814c11bc0da9a1"
+    },
+    "rtl/ngage_mister.v": {
+      "bytes": 29025,
+      "sha256": "6b5c2841f9dde026d912b74f94ecb44c66de2e4ac4468ccd91e2fdbb1e1880aa"
+    },
+    "rtl/ngage_mjoelner.v": {
+      "bytes": 556,
+      "sha256": "f3d2bb926976f2c614481aad35030d203b9eac833512a91b3082325d182f14e4"
+    },
+    "rtl/ngage_nos_io.v": {
+      "bytes": 5046,
+      "sha256": "dc0e78ad98a7d9c743b31a4e61745ca2e13be18b8f2022c09daba947b90501cf"
+    },
+    "rtl/ngage_rom_map.sv": {
+      "bytes": 1138,
+      "sha256": "637b93bbd30f16b955110fc4005f55e8572edb793e0cf6d568aa4cc161a35c25"
+    },
+    "rtl/ngage_sdram_arbiter.v": {
+      "bytes": 2512,
+      "sha256": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c"
+    },
+    "rtl/ngage_simif.v": {
+      "bytes": 5475,
+      "sha256": "242840b96c1eb0a4655e7f7fe8e5d4c7b4fc60c71fe49987968f3d8c0394b694"
+    },
+    "rtl/ngage_sparse_regs.v": {
+      "bytes": 6328,
+      "sha256": "3a037aeda81349f8998821a32fb75f9fbc57b96ad4b63b0078b50488a08d9e61"
+    },
+    "rtl/ngage_test_sim.v": {
+      "bytes": 12169,
+      "sha256": "58d2287c4d055c32654a2b7188a5d1e6ed801d12a7ab555fcc6e5bd247f77b35"
+    },
+    "rtl/ngage_timers.v": {
+      "bytes": 9741,
+      "sha256": "6ce07dcaa80c5aafbd72225e857638a9f07899bdecdf14334f7323890768cdb5"
+    },
+    "rtl/ngage_trace_sink.v": {
+      "bytes": 1768,
+      "sha256": "0d3f17c3e3ad4d184c2b58c11dc1bf9b9c7b679f06c7100d5a0d3cdd662bae46"
+    },
+    "rtl/ngage_uem.v": {
+      "bytes": 1832,
+      "sha256": "5211fb983cf587d7cfe445c16c09722002c706e60bc4d87afcd5ba5f41040757"
+    },
+    "rtl/ngage_upp.v": {
+      "bytes": 32145,
+      "sha256": "52a6277de47e5431432ca3d48e2a510b7e20e705b3785e879ce9f0bdfd579a2c"
+    },
+    "rtl/ngage_upp_peripherals.v": {
+      "bytes": 32940,
+      "sha256": "3cf99d03169a1246272ef5c71d33e3e128904c14cac6a2806f904c0ecfbaff64"
+    },
+    "tests/phone/dma_handover/fast_channels_tb.v": {
+      "bytes": 4079,
+      "sha256": "505c84a229fe40e3d769a0f8e0a682e1ca949b024f57c1238749fdcf1e93da4c"
+    },
+    "tests/phone/dma_handover/fence_tb.v": {
+      "bytes": 4033,
+      "sha256": "6c8e8f4fd1ce893860be031d1ace0abd0632561d05fe2bd259bc2c22476773b5"
+    },
+    "tests/phone/dma_handover/program.S": {
+      "bytes": 5046,
+      "sha256": "b96b1915aa3cb2aaaf73b39ca2beb8fabcf8f7b47231db5695ae5e623187e852"
+    },
+    "tests/phone/dma_handover/run-host.sh": {
+      "bytes": 1340,
+      "sha256": "dcb54a873e3ef6554a285e28117ee8e7972a85cec9c170e0f5d16fd24bd5c480"
+    },
+    "tests/phone/dma_handover/run.sh": {
+      "bytes": 2597,
+      "sha256": "250cb1a715a25c061164ca6656bcb0f0771d0b79fb1d98d13301d1e5afc2d924"
+    },
+    "tests/phone/dma_handover/tb.v": {
+      "bytes": 12045,
+      "sha256": "a44f7dff4e786407183725314764deddd59e544546848d6a2ca9c4bfca8de60e"
+    },
+    "tests/phone/dma_handover/transport_tb.v": {
+      "bytes": 2623,
+      "sha256": "bd0397c02d0978c3cc166a5285dd9972aa511e8898be06e651b3df1e849a8ba9"
+    }
+  },
+  "logs": {
+    "scratch/ngage2-integration/lcd-handover/only-fast/top-command.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2",
+    "scratch/ngage2-integration/lcd-handover/only-fast/source-graph.log": "3f88c2ee105685438108f37d8fce7dc084839b4eb0a934a67ae18723ae20b9be",
+    "scratch/ngage2-integration/lcd-handover/only-fast/isr-command.log": "d59e001a9e6b88f5f9d82de9a865a49bcbe4990112979789278ac5a1deae7ba3",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu-command.log": "7d7436aadc154d66a69f67ad979ba9857122e47c1099c8ccf54075a04ee2242e",
+    "scratch/ngage2-integration/lcd-handover/only-fast/boot-command.log": "ad55f7b9f5d72b4337c33a752f1b46caeb75fbc938812eb1a42b8f7f8e0d9801",
+    "scratch/ngage2-integration/lcd-handover/only-fast/boot/run.log": "61cadd94fc1835783feb0849c4b262aeec4cf3aac884dc7ad9e49e187b51a5f8",
+    "scratch/ngage2-integration/lcd-handover/only-fast/boot/build.log": "d53e38253a308089e272fb0acc4130253f139bd6acc8aeaad2b42bb29a6e75d7",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/logical-reset.log": "724debb97841e762dcbffb4398e8d30cf903913cb4f15bcb01f90a5a4b608150",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/run.log": "8e5530d87c06df7a4da8aca70867a31b26cb576c8789d8f7872e937662a0ec99",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/transport.log": "fe2947e32a1cc4c0dad590994718f4452e5302dc0dc5a39b02e235aa8eedd0cb",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/program.bin": "ca8ebf984dbcd6fd51357e8179bb2e5697700400598419b683cba6daa5fef682",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/hold.log": "4357e3034dc9defeefd604e7be9fa3ca3aab232430957bc1a66ffd0ad5d66299",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/reset.log": "4bb29dfd3f607a3862182a4c1f12d9435d4ef795f8166729c08bb9bb93d900ce",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/fast-channels.log": "2490a635203330b20b7ed7c67636a80843b42ea298bf9a304749e0b49c135c67",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/fence.log": "f9db5cb7ca911e15e75238facc12afed37a252fb6a81ab0bbef3feadf594034a",
+    "scratch/ngage2-integration/lcd-handover/only-fast/cpu/build.log": "ad7b540615b6b8377be27da0e66dfba659a84ad74fac0ecca74a7c787a0a12eb"
+  },
+  "limits": [
+    "Bounded boot remains in original low-ROM timing delay loop; no frame/UI completion",
+    "Boot harness does not cover Template selected D1/D2/D3 DDR chain",
+    "No FPGA fit/timing or new hardware validation",
+    "General historical LCD A/B is frozen evidence; production option retired",
+    "Source graph was run on host: tclsh is absent from the simulator image"
+  ],
+  "boot_source_snapshot_after_run": {
+    "Template.qsf": "e692e72925eb96c78d4a38a4682250bd8c316ac540f376a87e89ae22e32fafb0",
+    "Template.sv": "9c9d315ba0bf988a5a775f8d5c8af1105a1b22133e5bb4e68feedbac8a578460",
+    "build/firmware/nem4-factory/core.bin": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "build/firmware/nem4-factory/extension.bin": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "files.qip": "9828000c303adf848e189f698402902bae7ec8ed9a6fb5947053afa235b4d9b7",
+    "rtl/arm/zap_alu_main.sv": "1a9ef9e24fea467281045fe00236009f5eb12656d93531471156a452a1db0095",
+    "rtl/arm/zap_btb.sv": "2dc4c9b45501a2c45fa83d44cb82dc2858969a78775a63a0e955e303a4920b7e",
+    "rtl/arm/zap_cache.sv": "ddcb9098ae1aa710bb86e91f6f2bce7a9de7a0152ed9646a1e056f836b1baf56",
+    "rtl/arm/zap_core.sv": "81b47492c4e937b4af806aff4f9eea8ffd83f0c7581472d626a2edc75174856d",
+    "rtl/arm/zap_cp15_cb.sv": "48f5050dcc26d4bfdd374ef17dea6a5c2ee05967e10dae6cc348911fa6729466",
+    "rtl/arm/zap_data_completion.sv": "b1ca3318824b4263d99e224ce978a85f3d27768c5171ea874faa8abc764a76e9",
+    "rtl/arm/zap_dcache.sv": "13dcbce7bbb74ac2762138bc425fb0f58b5be7b16a9c0b498631f7a8890353af",
+    "rtl/arm/zap_decode.sv": "b0196d50bb714a4fccd8ed9692bb285672435a4db36c02465ea61175b30b2913",
+    "rtl/arm/zap_decode_main.sv": "0fc22ead311269efa07cd00a66f461b52e5859caa503805c087ab0bbe928069c",
+    "rtl/arm/zap_decompile.sv": "313b2d22c9a6d35b5ef1aea2892e1c2dc5ba593980cacbbaaf2227d12eebd481",
+    "rtl/arm/zap_decompile.svh": "13788aac7eb9e128fc4ad67658a053266b12a75aa1f1e68e2465df860703df22",
+    "rtl/arm/zap_defines.svh": "67fa8a73231b398a19637343c8c764cc9d4a3575b4a7aacfffeabd210703a734",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "f73494c1bb7d3546346b32e0244ffd8d73e6e5c8efb34c1ab04bb5709b882813",
+    "rtl/arm/zap_fetch_main.sv": "a6af0643075f03754f862db89a7fec37f2d8754d37b89f8f499e014cc0be262b",
+    "rtl/arm/zap_fifo.sv": "3af6c3e48c3d6e6429d68b59d962b7fd2ecf215faa7b627906ee74e239905e25",
+    "rtl/arm/zap_functions.svh": "9c62b8336a5d035535b42369995fd4f5f337caf243857b878ad85d71bde04b92",
+    "rtl/arm/zap_issue_main.sv": "393a34178d78dca7e3c857ade32b2a09025c4dbd199a075f90b8e55e5a873216",
+    "rtl/arm/zap_localparams.svh": "4a2834d59f367ca5b374d96317168eaf882df288a849a9cac929fcc9a339b4a7",
+    "rtl/arm/zap_memory_main.sv": "21462735f9b9ff8007b65918e58b33d2f1b72e6972fd34eab93da85821e828c9",
+    "rtl/arm/zap_mode16_decoder.sv": "47979fb06dbd3a7e1a527b9e6a533c314bc27300cfc5bb80ae6f98064879d93b",
+    "rtl/arm/zap_mode16_decoder_main.sv": "6d9cf536eb8c7f1efa5f5931ba44a72fc326025f50c57dc5160d96c2b3fae913",
+    "rtl/arm/zap_ones_counter.sv": "c00366f44f0a88c532806a7e95a01f71376558b2dd7ab2be3e6d0f4d56991cbc",
+    "rtl/arm/zap_operand_read.sv": "92bfed61d105fcb7482f2c15dbafeba7d258bd541f53342f14c9c5269526e3bc",
+    "rtl/arm/zap_postalu_main.sv": "67f1d62f72383dd3961f90eabd4345b829cc0043d06a0a1b6ad3722a02b5d7d2",
+    "rtl/arm/zap_predecode_coproc.sv": "001927bdf55935ee4535c2b1941dda2c3f612ebc1fb459867e3dd272b035ab02",
+    "rtl/arm/zap_predecode_main.sv": "70cce74af7de285a47d9440a2139f97e52d359593e67f39b34afa536df1f6dd3",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "9d0f58e32220d7c6f4d48907be2aa8475ae5d505f6b931235d6e8374dbcd7505",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "69fb85af5f97f884586d2a6722f24d49621cef06d91377c7edcdd30a0de70750",
+    "rtl/arm/zap_register_file.sv": "cc289d9a2650d1e8c4c02e159fe86b8b5cea48639bbeb3ecb9ed07dddc327f83",
+    "rtl/arm/zap_shifter_main.sv": "8273424768af3e9b44c8bc225d5f0a5ddcde85d07a81e957e57d5bc3e43717f7",
+    "rtl/arm/zap_shifter_multiply.sv": "704d9f1531ad85078eefd63b8040e0ba27285e72e50f76ef021f9d74db4fc70b",
+    "rtl/arm/zap_shifter_shift.sv": "be45c1e46623571ed66549f448e04979abcbf4aa9912dbd3fcd9071b3e96b0ce",
+    "rtl/arm/zap_sync_fifo.sv": "e689ccd1e2ec1d24a131727c0b22189c12d9062ec1459bd4ee9f999c9463b7b2",
+    "rtl/arm/zap_top.sv": "a3c2aa7ee2a8d7ffcfaa18ad866ff231ac2941d3d43c958588f7d05584c4fd64",
+    "rtl/arm/zap_wb_merger.sv": "88f0e2ffe488d18a078bc34f2b2aa03715fbe4d94a6ea36ccd51ff9eda246a8d",
+    "rtl/arm/zap_writeback.sv": "4480b4d21515093c0f8a830e592b68774e920c3c53b63ea95efa282b76e0c75e",
+    "rtl/arm920/cache_access.sv": "85b626e7e2432da9f1df1aebd940cc8a6f7bdbcb299f18f769afdd15793efe13",
+    "rtl/arm920/cache_adapter.sv": "f310cd0c7b5c0ad89ccb0986f42d2cb32c323d69d792b692f67a610eb8511569",
+    "rtl/arm920/cache_bank.sv": "cf3304c77eff9bd813846503986562a71a9575ec8e64fa1531daa67e6dbe4d2a",
+    "rtl/arm920/cache_lines.sv": "3d909665b631ad57f0696e8ec9b608479c45c6ddaabd902defe54a0173bd9436",
+    "rtl/arm920/cache_maintenance.sv": "fb597ba510d78086ba6fa31c7ee07236686e409d2ff5c2af062a84e4906544c7",
+    "rtl/arm920/cache_refill.sv": "65980ddf557f19b01006ebf80ee4ec3adfd44539f6dff720fd1d1c645de2452c",
+    "rtl/arm920/cache_tags.sv": "30ea20a74d7dc03989bf85038e334639199b43f64a902b88b64a93c48b3b40d8",
+    "rtl/arm920/cache_transfer.sv": "3081549e2566b35f769dd6b4a1840c79dbf73b92f92da2b544670fb61f3103c1",
+    "rtl/arm920/tlb.sv": "84b66bbce35c2da1c7ab966a1f34c45a6c5605482cdb990fab60e0da4d713b6b",
+    "rtl/arm920/tlb_bank.sv": "b9be6836977579c98777e2ad14fa4f8a28b784b16712099ac3cfa21869091303",
+    "rtl/arm920/tlb_bus_gate.sv": "3df21a78deb07858cb5ed62ce4b90723e516a3553f4730d465b008b87f658709",
+    "rtl/arm920/write_buffer.sv": "3e68885210dc1281d5c51702662632d0002c59d95c352345f4c3396783617901",
+    "rtl/jtframe/ngage_jtframe_romrq_lcache.v": "26e6d5fa8103b814bb419b9097eb05e2e7cc4ebe71da3887e8347faa6d8b2cce",
+    "rtl/ngage_adsp.v": "ea3dd13d1516905269a5bf37ae016c4eb781ae7cebf2f95f65c1cdabb8865c2b",
+    "rtl/ngage_am29n643_state.v": "fd45dcdc965fd1a62b99f78f112d6ee5c05c6f511bfb6a16036ca59330b87a11",
+    "rtl/ngage_board.v": "32300af3a837af02256c3872a1fa15bfdee5e642cbf9822f581cb8956ad7d4ca",
+    "rtl/ngage_boot_regs.v": "122d43eabb8a7e2c4f6dd8c24fafb8cd66ee43c2f9b9df613d760963eb00fcaa",
+    "rtl/ngage_bram.v": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215",
+    "rtl/ngage_bram_be.v": "dcae12f1ad8e90de5390c68f76a690dd492bdf64693d644b647c33340e233a10",
+    "rtl/ngage_bt_hci_stub.sv": "402891c759164bd8f47b96e78dccb751504866b1ecc091250898b06a83e10246",
+    "rtl/ngage_bundle_gate.v": "b25d41832ff95e1baa7d360f63612943c18ff8c80668782a7a604ce11abfb00a",
+    "rtl/ngage_cbus_uem.v": "d84eeddf30351afed8b3d7e5127e7b7782928e13c606bf984fda7335e087a995",
+    "rtl/ngage_cflash.sv": "9bdca5083ac6076a64d595b021a3b7bf6d765aed417174276cb3c477b309d55e",
+    "rtl/ngage_codeflash.sv": "52c0d8957d85e0382b7c861f65603bacddf790ad7cf4809a0006066d73db3ea8",
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+    "rtl/ngage_ddr_adapter.v": "1244770bfefff5c71258dac5476870449923631193f7cbe3fe3f746a44d52484",
+    "rtl/ngage_ddr_arbiter.v": "4a6a11fc9f4af47981a702d649ec5beff2e39e631f67b379e6ae0e066e40c2b7",
+    "rtl/ngage_ddr_flash_adapter.v": "b62c2eb56aff1629117f1b480df986aae1e6530de4e4f73a5c459e63ce321f22",
+    "rtl/ngage_ddr_flash_cache.v": "b1aed28955966bcde4527e93a6ed756dcbb71ac38789b516f7c950eccffbfaaf",
+    "rtl/ngage_ddr_lanes.sv": "b65c6fd0b2d6715895fc115c885541c15ceddda4cb64dd17c7a97b421e979f4d",
+    "rtl/ngage_ddr_rom_cache.v": "af1d0e25ccbee08950fc2c0881746cdb34a90356f4fdaa56067f1c80e60a0420",
+    "rtl/ngage_ddr_stream.v": "d226f29f25c37b714acdf3086f897fbed70865c8d52bbc7488d87162b716089f",
+    "rtl/ngage_ddr_stream_legacy.v": "19c41165e2b94c488582283c5c19a240272ce83283d942b6c531208eab665e75",
+    "rtl/ngage_debug_font.hex": "0f6bf44b38133883d1866b2cb09df129daffe26e4d7459d3313eae15ded75fc0",
+    "rtl/ngage_debug_font.v": "5636d8bd214efd6955d258281370979d0b39981b533618a8dd97d87cdd5c9815",
+    "rtl/ngage_debug_monitor.v": "fc4196902e92546921f24c6b594e8a2002e1dbbe739e6b90b16696527e414bca",
+    "rtl/ngage_debug_video.v": "9228ccca0615945d3c521788c43c5f4e7f80c83d71ef7d2db74ce62fc6648df9",
+    "rtl/ngage_descramble.v": "0971f194aa54309589c57be63973de2645b49c568837a24572584102a9a7d7a0",
+    "rtl/ngage_diag_export.v": "0b1ed485820ccfff84122e1b07037c112874d4c309aa82d6fc69322ba5a7236c",
+    "rtl/ngage_diagnostics.v": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c",
+    "rtl/ngage_dirty_tracker.sv": "671209ec50178d5774f1551a8a79178c4030c9a45d029a4c995458a345430f24",
+    "rtl/ngage_dma_channels.v": "2b8950402141c1ff477225cb68c235470f30636e4ce1be6b64c3f3fd4b66b3f0",
+    "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+    "rtl/ngage_dma_ram_mux.v": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668",
+    "rtl/ngage_dma_route.v": "5e4c77b78ee542e362e09ff383801f1737c66fe606e11b7de93011365c87464a",
+    "rtl/ngage_flash_read_decode.v": "eddf8b82bf930c898b518cdc66328083baace463bd859063dca9213d62206fac",
+    "rtl/ngage_gpio_loopback.v": "5ce36abc8536d4fc2654ad25e2f67718d743f5b72cffbfe3219555b57df78711",
+    "rtl/ngage_icu.v": "e76bec0b919979c3b84ab80f6449cdb8cfdf0328a81c979ba5d5d28614c99440",
+    "rtl/ngage_icu_extra.v": "e4410e399ac35bc65193ec17fcc54bfa06e63d209ebe6e5b174688b7e2635cc9",
+    "rtl/ngage_keypad.v": "e310f4ca94b7fa63875e4b5ff27e4f64b15772dd4633318177dc9ae29ceaf8f8",
+    "rtl/ngage_keys.v": "1f70326b7d7b2c244230ff2b7d06b7ea512e90d98476e6d51e4a83834c264e0a",
+    "rtl/ngage_lcd_display.v": "cbfde58e695faad1cfa739c71ebca5ec0426ecc7f8be92eba435877144e348e9",
+    "rtl/ngage_lcd_dma.v": "4a2471ea9881e99d461dc46de6e252b39558011ac05b346b3b0f3b09e1c60581",
+    "rtl/ngage_lcd_stream.v": "b5cdf3356c70fa44869fe9dfaab59af4e193bcc2ad755f3fa4ba7282298c7050",
+    "rtl/ngage_loader.sv": "81bd9b5debc65bc6830f27e3c83ac4c40db7332075fd82958e9bed53ab479426",
+    "rtl/ngage_lrb2.v": "973256fdbddf61f7ba5193c7c0b7f0ba90bc35cad978578ea657b32452e4a491",
+    "rtl/ngage_mdi_stub.v": "4449e866893d9d6d04a64e25987190d147dc16f1bfd1f47561814c11bc0da9a1",
+    "rtl/ngage_mister.v": "6b5c2841f9dde026d912b74f94ecb44c66de2e4ac4468ccd91e2fdbb1e1880aa",
+    "rtl/ngage_mjoelner.v": "f3d2bb926976f2c614481aad35030d203b9eac833512a91b3082325d182f14e4",
+    "rtl/ngage_modem.v": "ebf3627db66f0d3734e39369bb0b5fad1b526711358fcfb39098cbba400fe67c",
+    "rtl/ngage_nos_io.v": "dc0e78ad98a7d9c743b31a4e61745ca2e13be18b8f2022c09daba947b90501cf",
+    "rtl/ngage_nos_overlay.v": "0fd3f34fa4d45bef1daa424c9c80bf39d4242844ab39a1aa872202125ed6f298",
+    "rtl/ngage_ordered_dirty_queue.v": "6d1e8ebb391b69ceb6534e16d801dfa268bbbc91cba53508937812f25b097051",
+    "rtl/ngage_raw_save_manager.v": "a92d47685bddc07908c985814bed2ffdf66ce5849a69e24ecbc2b081245d7912",
+    "rtl/ngage_reset_gate.v": "261f8a4f14c8dcf58301fa5712546387c18f2bb66a314cb6ce81736df5a35477",
+    "rtl/ngage_rom_map.sv": "637b93bbd30f16b955110fc4005f55e8572edb793e0cf6d568aa4cc161a35c25",
+    "rtl/ngage_save_header.sv": "2726986699206910b771399df1969477be2c852993a0667b7df0f9ee639f7dc1",
+    "rtl/ngage_save_manager.sv": "cc7eb94251f88b70e7d6922eb48d0ba0d960c3bcac914a4f41973fbedd6d5a73",
+    "rtl/ngage_save_sector_bridge.v": "60309b094eaca463b1912aa83d3e8818bf1e77c5ca56b8499c39922d626f0bb6",
+    "rtl/ngage_sd_sector.sv": "98ca2f73f7d60711062c821e8ef11eb45ccf2ceaeed143498fb5390fa4ff3fbd",
+    "rtl/ngage_sdram_adapter.v": "ccc665cb28b6ce492c67f4221936d4a58a26f8b0a571602b96dfc69df71d27dc",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+    "rtl/ngage_service_loader.v": "7cc101ab1d1b280422357675c1107c4ef1684f80a93be3f791ae0366a297d54b",
+    "rtl/ngage_simif.v": "242840b96c1eb0a4655e7f7fe8e5d4c7b4fc60c71fe49987968f3d8c0394b694",
+    "rtl/ngage_sparse_regs.v": "3a037aeda81349f8998821a32fb75f9fbc57b96ad4b63b0078b50488a08d9e61",
+    "rtl/ngage_test_sim.v": "58d2287c4d055c32654a2b7188a5d1e6ed801d12a7ab555fcc6e5bd247f77b35",
+    "rtl/ngage_timers.v": "6ce07dcaa80c5aafbd72225e857638a9f07899bdecdf14334f7323890768cdb5",
+    "rtl/ngage_trace_sink.v": "0d3f17c3e3ad4d184c2b58c11dc1bf9b9c7b679f06c7100d5a0d3cdd662bae46",
+    "rtl/ngage_uem.v": "5211fb983cf587d7cfe445c16c09722002c706e60bc4d87afcd5ba5f41040757",
+    "rtl/ngage_upp.v": "52a6277de47e5431432ca3d48e2a510b7e20e705b3785e879ce9f0bdfd579a2c",
+    "rtl/ngage_upp_peripherals.v": "3cf99d03169a1246272ef5c71d33e3e128904c14cac6a2806f904c0ecfbaff64",
+    "rtl/pll.v": "db618c42e847e960458b5331c9a8fb090560abed7f2a4a2c06d176193969e183",
+    "rtl/pll/pll_0002.v": "a861ff71dacbae1e7e4c8ae99420bb10b30c627df37ee737729d418bcfa65ffe",
+    "rtl/sdram/jtframe_sdram64.v": "e45d56b6c8bfe2f0a548196e2e89dc9c87ed560cf5e0770dcdc26c1b10b52de0",
+    "rtl/sdram/jtframe_sdram64_bank.v": "128f1f213bc6b921cfb4e503c32b9641b123790bef6e96b503b29e4ab40551d0",
+    "rtl/sdram/jtframe_sdram64_init.v": "a44da0de85368302da3396b068cf5fd1bf6406cbc899ab253d193d1b0a5fac62",
+    "rtl/sdram/jtframe_sdram64_latch.v": "9ee95da3a4431d9938086f26fda6205b73019276153d03d3cbf55dda90fe91cb",
+    "rtl/sdram/jtframe_sdram64_rfsh.v": "7e8282975706aa8fb81d7e60aee44e81863beed35abd36fbc5b81f398ddcd729",
+    "scratch/overnight/cdrive-11b.img": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+    "tests/phone/hardware_boot/run.sh": "1df21c68adfac1ca512d35b16fee103e660dbbe20edba9cfcca7a511ec3cc409",
+    "tests/phone/hardware_boot/tb.v": "1ea7f3227a374b9cf24606cab9229e68f8259aaf7c7cbe8d86eeffa6253099bf",
+    "tests/phone/mister_transport/lint-top.sh": "d1a2fdf8f4c631c0ff898d804bba5cc2ca4edaa117e4b4739e5c5ae7af2d03f9",
+    "tools/check_quartus_sources.tcl": "427de6bc59ca39a966749b988644a0b08863918a58af635e82f922a570725419"
+  }
+}

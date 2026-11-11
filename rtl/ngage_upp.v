@@ -8,6 +8,10 @@ module ngage_upp #(
               DIRECT_SDRAM     = 0,
               SIMIF_ENABLE     = 0,
               KEYPAD_ENABLE    = 0,
+              GENERAL_DMA      = 0,
+              MMC_ENABLE       = GENERAL_DMA,
+              MMC_CLK_DIV      = 4,
+              MMC_TIMEOUT_LOG2 = 23,
               LCD_DMA_ENABLE   = 0,
               LCD_QUEUE_ENABLE = 0,
               SYS_CLK_HZ       = 104000000,
@@ -15,6 +19,14 @@ module ngage_upp #(
               NOS_TICK_HZ      = 1000
 ) (
 
+    output wire        mmc_prefetch_stop,
+    output wire        mmc_clk,
+    output wire        mmc_cmd_o,
+    output wire        mmc_cmd_oe,
+    output wire        mmc_dat_o,
+    output wire        mmc_dat_oe,
+    input  wire        mmc_cmd_i,
+    input  wire        mmc_dat_i,
     output wire        line_req,
     output wire [31:0] line_addr,
     input  wire        line_ready,
@@ -58,11 +70,40 @@ module ngage_upp #(
     output wire [ 3:0] ram_be,
     output wire        ram_pending,
     output wire        ram_response,
+    input  wire        dma_mem_accept,
     input  wire        dma_mem_ack,
     input  wire [31:0] dma_mem_data,
     output wire        dma_mem_req,
     output wire [24:0] dma_mem_addr,
+    output wire [ 7:0] dma_error_pending,
+    output wire        dma_cmd_valid,
+    input  wire        dma_cmd_ready,
+    output wire        dma_cmd_write,
+    output wire [31:0] dma_cmd_addr,
+    output wire [31:0] dma_cmd_data,
+    output wire [ 3:0] dma_cmd_be,
+    input  wire        dma_rsp_valid,
+    input  wire        dma_rsp_error,
+    input  wire [31:0] dma_rsp_data,
+    input  wire        dma_local_valid,
+    output wire        dma_local_ready,
+    input  wire        dma_local_write,
+    input  wire [31:0] dma_local_addr,
+    input  wire [31:0] dma_local_data,
+    input  wire [ 3:0] dma_local_be,
+    output wire        dma_local_done,
+    output wire        dma_local_error,
+    output wire [31:0] dma_local_rdata,
+    output wire        lcd_fast_valid,
+    output wire [31:0] lcd_fast_data,
+    input  wire        lcd_fast_ready,
+    input  wire        lcd_fast_error,
+    output wire        lcd_transport_ready,
     output wire        lcd_write_valid,
+    output wire        lcd_write_dma,
+    output wire        lcd_local_reserved,
+    input  wire        lcd_queue_empty,
+    input  wire        lcd_pixel_mode,
     input  wire        lcd_sink_ready,
     output wire        lcd_dma_claim,
     output wire        lcd_dma_bad,
@@ -121,6 +162,8 @@ module ngage_upp #(
 
 );
     wire peripheral_response_pending;
+    wire lcd_route_ready, lcd_waiting;
+    wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
@@ -165,6 +208,79 @@ module ngage_upp #(
             wire slow_master_cyc, slow_master_stb;
             wire slow_ack, slow_error, slow_idle;
             wire [31:0] slow_read_data;
+            wire cpu_bus_cyc, cpu_bus_stb, cpu_bus_we, cpu_bus_code;
+            wire [31:0] cpu_bus_adr, cpu_bus_din;
+            wire [3:0] cpu_bus_sel;
+            reg dma_local_active = 0, dma_local_gap = 0, prefer_dma = 0;
+            reg dma_write;
+            reg lcd_reserved = 0;
+            reg mmc_reserved = 0;
+            wire mmc_waiting = (mmc_read_waiting && mmc_rx_ready) || (mmc_write_waiting && mmc_tx_ready);
+            assign mmc_route_ready = mmc_reserved && !cpu_lock && slow_idle;
+            // Grant queue capacity on a registered CPU-idle/response boundary.
+            // CPU cancellation decode never feeds its own arbitration grant.
+            assign lcd_route_ready = lcd_reserved && !cpu_lock && lcd_queue_empty && slow_idle;
+            wire dma_bus_active = dma_local_active;
+            assign lcd_local_reserved = lcd_reserved;
+            reg [31:0] dma_addr, dma_data;
+            reg  [3:0] dma_be;
+            wire       dma_lcd = GENERAL_DMA && dma_write && dma_addr == 32'h0c121208;
+            assign lcd_write_dma = dma_bus_active && dma_lcd;
+
+            wire lcd_destination = cfg_lcd && dma_local_addr == 32'h0c121208;
+            wire mmc_destination = MMC_ENABLE && dma_local_addr == 32'h0c120624;
+            wire endpoint_ready = (!lcd_destination || (lcd_sink_ready && !lcd_dma_valid && (!GENERAL_DMA || lcd_queue_empty))) &&
+                (!mmc_destination || (mmc_reserved && (dma_local_write ? mmc_tx_ready : mmc_rx_ready)));
+            assign dma_local_ready = !rst && init_done && slow_idle && !cpu_lock &&
+                !dma_local_active && !dma_local_gap && endpoint_ready && (prefer_dma || !slow_master_stb || lcd_reserved || mmc_reserved);
+            wire dma_take = dma_local_valid && dma_local_ready;
+            wire block_cpu = dma_take || dma_local_active || dma_local_gap || ((lcd_reserved || mmc_reserved) && !cpu_lock);
+            assign dma_local_done  = !rst && dma_local_active && (cpu_ack || cpu_err);
+            assign dma_local_error = dma_local_done && cpu_err;
+            assign dma_local_rdata = cpu_rdata;
+
+            // Use the same UPP device decode and side-effect path for both
+            // owners. The direct CPU SDRAM route remains independent.
+            assign bus_cyc  = dma_bus_active || cpu_bus_cyc;
+            assign bus_stb  = dma_bus_active || cpu_bus_stb;
+            assign bus_we   = dma_bus_active ? dma_write : cpu_bus_we;
+            assign bus_code = !dma_bus_active && cpu_bus_code;
+            assign bus_adr  = dma_bus_active ? dma_addr : cpu_bus_adr;
+            assign bus_din  = dma_bus_active ? dma_data : cpu_bus_din;
+            assign bus_sel  = dma_bus_active ? dma_be : cpu_bus_sel;
+
+            always @(posedge clk) begin
+                if (rst) begin
+                    dma_local_active <= 0;
+                    lcd_reserved     <= 0;
+                    mmc_reserved     <= 0;
+                    dma_local_gap    <= 0;
+                    prefer_dma       <= 0;
+                end else begin
+                    // Device response records clear on a sampled request-low
+                    // cycle. Leave that cycle before handing the bus back.
+                    dma_local_gap <= dma_local_done;
+                    if (MMC_ENABLE && !cpu_lock && mmc_waiting && !lcd_reserved &&
+                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_cyc)))
+                        mmc_reserved <= 1;
+                    if (!mmc_waiting || (dma_local_done && dma_addr == 32'h0c120624))
+                        mmc_reserved <= 0;
+                    if (GENERAL_DMA && !mmc_reserved && !mmc_waiting && !cpu_lock && lcd_waiting && lcd_queue_empty &&
+                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_cyc)))
+                        lcd_reserved <= 1;
+                    if ((dma_local_done && dma_lcd) || !lcd_waiting) lcd_reserved <= 0;
+                    if (dma_local_done) dma_local_active <= 0;
+                    if (dma_take) begin
+                        dma_local_active <= 1;
+                        prefer_dma       <= 0;
+                        dma_write        <= dma_local_write;
+                        dma_addr         <= dma_local_addr;
+                        dma_data         <= dma_local_data;
+                        dma_be           <= dma_local_be;
+                    end else if (slow_idle && slow_master_stb && !block_cpu) prefer_dma <= 1;
+                end
+            end
+
             ngage_cpu_memory_route #(
                 .DIRECT_SDRAM(DIRECT_SDRAM)
             ) memory_route (
@@ -208,8 +324,8 @@ module ngage_upp #(
             ) bridge (
                 .clk             (clk),
                 .reset           (rst),
-                .master_cyc      (slow_master_cyc),
-                .master_stb      (slow_master_stb),
+                .master_cyc      (slow_master_cyc && !block_cpu),
+                .master_stb      (slow_master_stb && !block_cpu),
                 .master_we       (master_we),
                 .master_code     (master_code),
                 .master_address  (master_address),
@@ -218,15 +334,15 @@ module ngage_upp #(
                 .master_ack      (slow_ack),
                 .master_error    (slow_error),
                 .master_read_data(slow_read_data),
-                .bus_cyc         (bus_cyc),
-                .bus_stb         (bus_stb),
-                .bus_we          (bus_we),
-                .bus_code        (bus_code),
-                .bus_address     (bus_adr),
-                .bus_data        (bus_din),
-                .bus_sel         (bus_sel),
-                .bus_ack         (cpu_ack),
-                .bus_error       (cpu_err),
+                .bus_cyc         (cpu_bus_cyc),
+                .bus_stb         (cpu_bus_stb),
+                .bus_we          (cpu_bus_we),
+                .bus_code        (cpu_bus_code),
+                .bus_address     (cpu_bus_adr),
+                .bus_data        (cpu_bus_din),
+                .bus_sel         (cpu_bus_sel),
+                .bus_ack         (cpu_ack && !dma_local_active),
+                .bus_error       (cpu_err && !dma_local_active),
                 .bus_read_data   (cpu_rdata),
                 .idle            (slow_idle)
             );
@@ -240,6 +356,14 @@ module ngage_upp #(
             assign debug_instruction = 0;
             assign debug_fetch = 0;
             assign cpu_lock = 1'b0;
+            assign lcd_route_ready = lcd_queue_empty;
+            assign mmc_route_ready = 0;
+            assign lcd_local_reserved = 0;
+            assign lcd_write_dma = 0;
+            assign dma_local_ready = 0;
+            assign dma_local_done = 0;
+            assign dma_local_error = 0;
+            assign dma_local_rdata = 0;
             assign ram_req = 0;
             assign ram_we = 0;
             assign ram_code = 0;
@@ -259,57 +383,131 @@ module ngage_upp #(
                                        (!claim || lcd_dma_claim || !peripheral_response_pending);
         end
     endgenerate
-    wire internal_dma_irq;
+    wire       internal_dma_irq;
+    wire [7:0] general_dma_irq;
+    wire [7:0] dma_errors, dma_active;
+    assign dma_error_pending = dma_errors;
     generate
-        if (LCD_DMA_ENABLE) begin : lcd_dma_enabled
-            wire raw_dma_irq;
-            if (LCD_QUEUE_ENABLE) begin : panel_completion
-                reg delayed_irq = 0;
-                always @(posedge clk) begin
-                    if (rst) delayed_irq <= 0;
-                    else delayed_irq <= raw_dma_irq;
-                end
-                assign internal_dma_irq = delayed_irq;
-            end else begin : immediate_completion
-                assign internal_dma_irq = raw_dma_irq;
-            end
-            ngage_lcd_dma lcd_dma (
-                .clk           (clk),
-                .reset         (rst),
-                .req           (bus_cyc && bus_stb),
-                .commit        (bus_access),
-                .we            (bus_we),
-                .addr          (bus_adr),
-                .din           (bus_din),
-                .sel           (bus_sel),
-                .claim         (lcd_dma_claim),
-                .bad           (lcd_dma_bad),
-                .dout          (lcd_dma_reg_data),
-                .mem_req       (dma_mem_req),
-                .mem_addr      (dma_mem_addr),
-                .mem_ack       (dma_mem_ack),
-                .mem_data      (dma_mem_data),
-                .lcd_valid     (lcd_dma_valid),
-                .lcd_frame_full(lcd_dma_full),
-                .lcd_word_addr (lcd_dma_addr),
-                .lcd_data      (lcd_dma_data),
-                .irq_pending   (raw_dma_irq),
-                .irq_clear     (dma_irq_clear)
+        if (GENERAL_DMA) begin : general_dma_enabled
+            ngage_dma_channels #(
+                .PRODUCTION(1)
+            ) channels (
+                .clk              (clk),
+                .reset            (rst),
+                .req              (bus_cyc && bus_stb),
+                .commit           (bus_access),
+                .we               (bus_we),
+                .addr             (bus_adr),
+                .din              (bus_din),
+                .sel              (bus_sel),
+                .claim            (lcd_dma_claim),
+                .bad              (lcd_dma_bad),
+                .dout             (lcd_dma_reg_data),
+                .irq_pending      (general_dma_irq),
+                .error_pending    (dma_errors),
+                .active_channels  (dma_active),
+                .lcd_mem_req      (dma_mem_req),
+                .lcd_mem_addr     (dma_mem_addr),
+                .lcd_mem_accept   (dma_mem_accept),
+                .lcd_mem_ack      (dma_mem_ack),
+                .lcd_mem_data     (dma_mem_data),
+                .lcd_pixel_valid  (lcd_fast_valid),
+                .lcd_pixel_data   (lcd_fast_data),
+                .lcd_pixel_ready  (lcd_fast_ready),
+                .lcd_pixel_error  (lcd_fast_error),
+                .lcd_waiting      (lcd_waiting),
+                .lcd_ready        (lcd_route_ready),
+                .lcd_drained      (lcd_queue_empty),
+                .mmc_rx_ready     (mmc_rx_ready),
+                .mmc_tx_ready     (mmc_tx_ready),
+                .mmc_ready        (mmc_route_ready),
+                .mmc_read_waiting (mmc_read_waiting),
+                .mmc_write_waiting(mmc_write_waiting),
+                .source_ready     (8'hff),
+                .destination_ready(8'hff),
+                .cmd_valid        (dma_cmd_valid),
+                .cmd_ready        (dma_cmd_ready),
+                .cmd_write        (dma_cmd_write),
+                .cmd_addr         (dma_cmd_addr),
+                .cmd_data         (dma_cmd_data),
+                .cmd_be           (dma_cmd_be),
+                .rsp_valid        (dma_rsp_valid),
+                .rsp_error        (dma_rsp_error),
+                .rsp_data         (dma_rsp_data)
             );
-        end else begin : lcd_dma_disabled
             assign internal_dma_irq = 0;
-            assign lcd_dma_claim    = 0;
-            assign lcd_dma_bad      = 0;
-            assign lcd_dma_reg_data = 0;
-            assign dma_mem_req      = 0;
-            assign dma_mem_addr     = 0;
             assign lcd_dma_valid    = 0;
             assign lcd_dma_full     = 0;
             assign lcd_dma_addr     = 0;
             assign lcd_dma_data     = 0;
+        end else begin : legacy_dma
+            assign lcd_fast_valid    = 0;
+            assign lcd_fast_data     = 0;
+            assign lcd_waiting       = 0;
+            assign mmc_read_waiting  = 0;
+            assign mmc_write_waiting = 0;
+            assign general_dma_irq   = 0;
+            assign dma_errors        = 0;
+            assign dma_active        = 0;
+            assign dma_cmd_valid     = 0;
+            assign dma_cmd_write     = 0;
+            assign dma_cmd_addr      = 0;
+            assign dma_cmd_data      = 0;
+            assign dma_cmd_be        = 0;
+            if (LCD_DMA_ENABLE) begin : lcd_dma_enabled
+                wire raw_dma_irq;
+                if (LCD_QUEUE_ENABLE) begin : panel_completion
+                    reg delayed_irq = 0;
+                    always @(posedge clk) begin
+                        if (rst) delayed_irq <= 0;
+                        else delayed_irq <= raw_dma_irq;
+                    end
+                    assign internal_dma_irq = delayed_irq;
+                end else begin : immediate_completion
+                    assign internal_dma_irq = raw_dma_irq;
+                end
+                ngage_lcd_dma lcd_dma (
+                    .clk           (clk),
+                    .reset         (rst),
+                    .req           (bus_cyc && bus_stb),
+                    .commit        (bus_access),
+                    .we            (bus_we),
+                    .addr          (bus_adr),
+                    .din           (bus_din),
+                    .sel           (bus_sel),
+                    .claim         (lcd_dma_claim),
+                    .bad           (lcd_dma_bad),
+                    .dout          (lcd_dma_reg_data),
+                    .mem_req       (dma_mem_req),
+                    .mem_addr      (dma_mem_addr),
+                    .mem_ack       (dma_mem_ack),
+                    .mem_data      (dma_mem_data),
+                    .lcd_valid     (lcd_dma_valid),
+                    .lcd_frame_full(lcd_dma_full),
+                    .lcd_word_addr (lcd_dma_addr),
+                    .lcd_data      (lcd_dma_data),
+                    .irq_pending   (raw_dma_irq),
+                    .irq_clear     (dma_irq_clear)
+                );
+            end else begin : lcd_dma_disabled
+                assign internal_dma_irq = 0;
+                assign lcd_dma_claim    = 0;
+                assign lcd_dma_bad      = 0;
+                assign lcd_dma_reg_data = 0;
+                assign dma_mem_req      = 0;
+                assign dma_mem_addr     = 0;
+                assign lcd_dma_valid    = 0;
+                assign lcd_dma_full     = 0;
+                assign lcd_dma_addr     = 0;
+                assign lcd_dma_data     = 0;
+            end
         end
     endgenerate
     ngage_upp_peripherals #(
+        .GENERAL_DMA       (GENERAL_DMA),
+        .MMC_ENABLE        (MMC_ENABLE),
+        .MMC_CLK_DIV       (MMC_CLK_DIV),
+        .MMC_TIMEOUT_LOG2  (MMC_TIMEOUT_LOG2),
         .SYS_CLK_HZ        (SYS_CLK_HZ),
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
         .NOS_TICK_HZ       (NOS_TICK_HZ),
@@ -318,6 +516,16 @@ module ngage_upp #(
         .SIMIF_ENABLE      (SIMIF_ENABLE),
         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
     ) peripherals (
+        .mmc_prefetch_stop   (mmc_prefetch_stop),
+        .mmc_clk             (mmc_clk),
+        .mmc_cmd_o           (mmc_cmd_o),
+        .mmc_cmd_oe          (mmc_cmd_oe),
+        .mmc_cmd_i           (mmc_cmd_i),
+        .mmc_dat_o           (mmc_dat_o),
+        .mmc_dat_oe          (mmc_dat_oe),
+        .mmc_dat_i           (mmc_dat_i),
+        .mmc_rx_ready        (mmc_rx_ready),
+        .mmc_tx_ready        (mmc_tx_ready),
         .keys                (keys),
         .sim_present         (sim_present),
         .card_rx_valid       (card_rx_valid),
@@ -346,6 +554,7 @@ module ngage_upp #(
         .cfg_keypad          (cfg_keypad),
         .cfg_clocks          (cfg_clocks),
         .dma_irq_pending     (dma_irq_pending || internal_dma_irq),
+        .general_dma_irq     (general_dma_irq),
         .sim_fiq_pending     (sim_fiq_pending),
         .dma_irq_clear       (dma_irq_clear),
         .claim               (claim),
@@ -374,8 +583,11 @@ module ngage_upp #(
         .mdi_data            (mdi_data),
         .mdi_events          (mdi_events),
         .adsp_tick           (adsp_tick),
+        .lcd_transport_ready (lcd_transport_ready),
         .lcd_write_valid     (lcd_write_valid),
-        .lcd_sink_ready      (lcd_sink_ready)
+        .lcd_sink_ready      (lcd_sink_ready),
+        .lcd_dma_access      (GENERAL_DMA && lcd_write_dma),
+        .lcd_pixel_mode      (lcd_pixel_mode)
     );
 endmodule
 

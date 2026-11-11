@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "8ff8b11b2527e8eed4ccb85f27304d2f326874ec",
+  "simulator_image": "jotego/simulator:arm64",
+  "fixture_input_hashes": {
+    "/Users/andreabogazzi/develop/NGage_MiSTer/firmware/THC N-Gage ROM Dump/ngage-rom-0x50000000.dmp": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+    "/Users/andreabogazzi/develop/NGage_MiSTer/firmware/THC N-Gage ROM Dump/ngage-gsmstuff-0x5149D280.dll": "e5870e918c90d9c7a6403eb0ee305d174e906aeae0a7fa8069e85a18aeec7aa1",
+    "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/flash-cipher-r4/window-dec.bin": "01a78abfcbc9ff78ff0e5fb46345ba3f51519a7ebfd6949e3e96ae5f894531dc"
+  },
+  "test_only_stubs": [
+    {
+      "address": "0x516c6f20",
+      "symbol": "descriptor_capacity",
+      "original_bytes": "00c09fe500f09ce5",
+      "fixture_target": 1320
+    },
+    {
+      "address": "0x516c6f14",
+      "symbol": "descriptor_write8",
+      "original_bytes": "00c09fe500f09ce5",
+      "fixture_target": 1448
+    },
+    {
+      "address": "0x516c6f2c",
+      "symbol": "descriptor_write16",
+      "original_bytes": "00c09fe500f09ce5",
+      "fixture_target": 1356
+    },
+    {
+      "address": "0x516c74ec",
+      "symbol": "pool_allocate",
+      "original_bytes": "7847c0463d88f7ea",
+      "fixture_target": 1768
+    }
+  ],
+  "test_source_hashes": {
+    "tests/phone/nos_abi/prepare.py": "375b90939c8c618e209f05197d457f31b481b0b12345cbac777602c1fd2ef20e",
+    "tests/phone/nos_abi/program.S": "4b26571b02c07b39186c8d7ad0a47ce304ddf1daa08df61a3f2864a939c9ec3c",
+    "tests/phone/nos_abi/run.sh": "9bfabf950acddd12e02552c7ac4e192345850c931ca39e15fbcb832af5dc6755",
+    "tests/phone/nos_abi/tb.v": "d5250896979e8f0a1ee8338717df7b34d50d2eaf25de9fe07cfb953aa216d489"
+  },
+  "log_hashes": {
+    "build/sim/unit-nos-abi/run-0.log": "f70ffb1ebc9ccafd74fb6eaf271c75bdd22920c6cff499a5654c7d194242bf87",
+    "build/sim/unit-nos-abi/run-3.log": "5e117569576af367f6328898d00f8f86bba5d5374803d3558ec8e242a2b71311",
+    "scratch/ngage2-integration/nos-abi/bounded-replay.log": "3ad9cee356d114082b33fa5dee2de248e125d606149201c0f014bc7e55e7cfcb",
+    "scratch/ngage2-integration/nos-abi/bounded-replay-6100.log": "19e63e83d2b2492aa27045bc676444dab16180e7f635e06beacfc0c893d8f50a"
+  },
+  "passes": {
+    "run-0.log": [
+      "PASS original NEM-4 NOS cancel, receive/retry and charger ABI wait=0 cycles=148431"
+    ],
+    "run-3.log": [
+      "PASS original NEM-4 NOS cancel, receive/retry and charger ABI wait=3 cycles=230200"
+    ]
+  },
+  "frozen_replay_source": {
+    "source_identity": "6af112481fad51dde8dc0f8da9229438fda8c8ecbd62000ff2aa808096aa4330",
+    "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "checkpoint": "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/runs/latest-keypad-fast-12b/checkpoint-8200000000",
+    "sha256": {
+      "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/runs/latest-keypad-fast-12b/checkpoint-8200000000.cpu": "49334f0e74b45a6fb02f13046a18f66f079d9722bf166063cd0717cc17ea5281",
+      "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/runs/latest-keypad-fast-12b/checkpoint-8200000000.host": "a13d8d719e4c6e312a0b2608a3fe68a0e5f181c5de0edcf8dde04246554a905d",
+      "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/logo-build/6af112481fad51dd/Vtb__ALL.a": "0004df19c8eae80781b9e0c74da50a2ab4781bcc5dff67face95e275935be1d9",
+      "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/logo-build/6af112481fad51dd/Vtb___024root.h": "9ff0cf9586a80609565f2e2cffbba3ff4f4242f3eba8442c6a216ed0c31245f1"
+    },
+    "second_checkpoint_sha256": {
+      "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/runs/latest-keypad-fast-12b/checkpoint-6100000000.cpu": "d905165b797ad3a6f8d5bdf849bf00bba6f4e2af74c063a283380bd84d5b686a",
+      "/Users/andreabogazzi/develop/NGage_MiSTer/build/sim/runs/latest-keypad-fast-12b/checkpoint-6100000000.host": "25d8f1eb926cddaa91a7458c7088007c6b60d550f2c0fcaabe2b6113e1289450"
+    }
+  },
+  "bounded_replays": {
+    "bounded-replay.log": {
+      "entry_hits": {
+        "50324294": 0,
+        "50334fcc": 0,
+        "514a10cc": 0,
+        "514a1794": 0,
+        "514a17cc": 0,
+        "514a18d4": 0,
+        "514bce38": 0,
+        "51530c2c": 0,
+        "5159446c": 0,
+        "515c1dc0": 0,
+        "515c1e4c": 0,
+        "516c6f44": 0
+      },
+      "summary": "BOUNDED source_host_tick=8200016390 cycles=2000000 trace_observations=217662 fetch_pc=5032ab50 bus_errors=30923398 data_faults=0"
+    },
+    "bounded-replay-6100.log": {
+      "entry_hits": {
+        "50324294": 0,
+        "50334fcc": 0,
+        "514a10cc": 1,
+        "514a1794": 0,
+        "514a17cc": 0,
+        "514a18d4": 1,
+        "514bce38": 0,
+        "51530c2c": 0,
+        "5159446c": 0,
+        "515c1dc0": 0,
+        "515c1e4c": 0,
+        "516c6f44": 0
+      },
+      "summary": "BOUNDED source_host_tick=6100016390 cycles=2000000 trace_observations=286375 fetch_pc=508b7f42 bus_errors=30923398 data_faults=0"
+    }
+  },
+  "remaining": [
+    "A live original service request and its state-field producer",
+    "Cross-process descriptor faults and concurrent DFC lifetimes",
+    "Selective service payload integration after an observed missing behavior"
+  ]
+}

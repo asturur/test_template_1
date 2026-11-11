@@ -55,6 +55,7 @@ module emu (
         "D1P1F4,NGO,Load Bluetooth Compatibility;",
         "S0,VHD,Mount C: raw image;",
         "S1,VHD,Mount PMM raw image;",
+        "S2,MMC,Mount MMC card (read only);",
         "S3,NGD,Mount diagnostic disk;",
         "T[14],Flush working save;",
         "D2O[21],Background save,Off,On;",
@@ -176,15 +177,52 @@ module emu (
     wire [15:0] sd_buff_dout;
     wire [15:0] sd_buff_din  [4];
     wire        sd_buff_wr;
-    assign sd_blk_cnt[0]  = 0;
-    assign sd_blk_cnt[1]  = 0;
-    assign sd_blk_cnt[2]  = 0;
-    assign sd_blk_cnt[3]  = 0;
-    // S2 is reserved for future MMC: no card model or disk traffic yet.
-    assign sd_lba[2]      = 0;
-    assign sd_rd[2]       = 0;
-    assign sd_wr[2]       = 0;
-    assign sd_buff_din[2] = 16'hffff;
+    assign sd_blk_cnt[0] = 0;
+    assign sd_blk_cnt[1] = 0;
+    assign sd_blk_cnt[3] = 0;
+    // S2 is dedicated to MMC. Backing ownership survives guest/CPU-Hold reset;
+    // global hps_io buffer strobes are qualified inside the MMC adapter.
+    wire mmc_card_reset, mmc_img_mounted, mmc_img_readonly;
+    wire [63:0] mmc_img_size;
+    wire [31:0] mmc_sd_lba;
+    wire [ 5:0] mmc_sd_blk_cnt;
+    wire mmc_sd_rd, mmc_sd_wr, mmc_sd_ack, mmc_sd_buff_wr;
+    wire [12:0] mmc_sd_buff_addr;
+    wire [15:0] mmc_sd_buff_dout, mmc_sd_buff_din;
+    wire mmc_present, mmc_write_protected, mmc_active, mmc_hps_busy, mmc_hps_fault;
+
+    ngage_mmc_hps mmc_backing (
+        .clk              (clk_sys),
+        .init_reset       (transport_reset),
+        .guest_reset      (dma_reset),
+        .hps_img_mounted  (img_mounted[2]),
+        .hps_img_readonly (img_readonly),
+        .hps_img_size     (img_size),
+        .card_reset       (mmc_card_reset),
+        .card_img_mounted (mmc_img_mounted),
+        .card_img_readonly(mmc_img_readonly),
+        .card_img_size    (mmc_img_size),
+        .card_sd_lba      (mmc_sd_lba),
+        .card_sd_blk_cnt  (mmc_sd_blk_cnt),
+        .card_sd_rd       (mmc_sd_rd),
+        .card_sd_wr       (mmc_sd_wr),
+        .card_sd_ack      (mmc_sd_ack),
+        .card_sd_buff_addr(mmc_sd_buff_addr),
+        .card_sd_buff_dout(mmc_sd_buff_dout),
+        .card_sd_buff_din (mmc_sd_buff_din),
+        .card_sd_buff_wr  (mmc_sd_buff_wr),
+        .hps_sd_lba       (sd_lba[2]),
+        .hps_sd_blk_cnt   (sd_blk_cnt[2]),
+        .hps_sd_rd        (sd_rd[2]),
+        .hps_sd_wr        (sd_wr[2]),
+        .hps_sd_ack       (sd_ack[2]),
+        .hps_buff_addr    (sd_buff_addr),
+        .hps_buff_dout    (sd_buff_dout),
+        .hps_buff_wr      (sd_buff_wr),
+        .hps_buff_din     (sd_buff_din[2]),
+        .busy             (mmc_hps_busy),
+        .fault            (mmc_hps_fault)
+    );
 
     ///////////////////////   SDRAM   ////////////////////////////////
 
@@ -207,8 +245,7 @@ module emu (
     wire [ 3:0] cpu_sdram_be;
     wire        cpu_sdram_we;
     wire        cpu_sdram_req;
-    // No competing phone-memory master is wired yet. Future DMA arbitration must
-    // preserve the CPU bus reservation while this signal is asserted.
+    // Retain the CPU bus reservation across the read and write of an atomic swap.
     wire        cpu_bus_lock;
 
     // The adapter owns an entire 32-bit access, including both halfwords.
@@ -220,16 +257,91 @@ module emu (
     wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack, cpu_sdram_accept;
     wire [31:0] sdram_dout;
     wire mem_req, mem_we, mem_ack;
-    wire lcd_dma_req, lcd_dma_ack;
+    wire [7:0] dma_error_pending;
+    wire dma_cmd_valid, dma_cmd_ready, dma_cmd_write;
+    wire [31:0] dma_cmd_addr, dma_cmd_data;
+    wire [ 3:0] dma_cmd_be;
+    wire [31:0] dma_rsp_data;
+    wire        dma_reset;
+    wire lcd_dma_req, lcd_dma_accept, lcd_dma_ack;
     wire [24:0] lcd_dma_addr;
     wire [31:0] lcd_dma_rdata;
+    wire dma_ram_req, dma_ram_write, dma_ram_ack, dma_error, dma_response;
+    wire [24:0] dma_ram_addr;
+    wire [31:0] dma_ram_data, dma_ram_rdata;
+    wire [3:0] dma_ram_be;
+    wire shared_dma_req, shared_dma_write, shared_dma_accept, shared_dma_ack;
+    wire [24:0] shared_dma_addr;
+    wire [31:0] shared_dma_data, shared_dma_rdata;
+    wire [3:0] shared_dma_be;
+    wire dma_local_valid, dma_local_ready, dma_local_write, dma_local_done, dma_local_error;
+    wire [31:0] dma_local_addr, dma_local_data, dma_local_rdata;
+    wire [ 3:0] dma_local_be;
     wire [24:0] mem_addr;
     wire [31:0] mem_wdata, mem_rdata;
     wire [3:0] mem_be;
-    // LCD DMA shares SDRAM with the CPU and respects atomic CPU locks.
+    // One captured route serves all eight guest-programmed DMA channels.
+    ngage_dma_route dma_route (
+        .clk        (clk_sys),
+        .reset      (dma_reset || transport_reset),
+        .cpu_lock   (cpu_bus_lock),
+        .cmd_valid  (dma_cmd_valid),
+        .cmd_ready  (dma_cmd_ready),
+        .cmd_write  (dma_cmd_write),
+        .cmd_addr   (dma_cmd_addr),
+        .cmd_data   (dma_cmd_data),
+        .cmd_be     (dma_cmd_be),
+        .rsp_valid  (dma_response),
+        .rsp_error  (dma_error),
+        .rsp_data   (dma_rsp_data),
+        .ram_req    (dma_ram_req),
+        .ram_write  (dma_ram_write),
+        .ram_addr   (dma_ram_addr),
+        .ram_data   (dma_ram_data),
+        .ram_be     (dma_ram_be),
+        .ram_ack    (dma_ram_ack),
+        .ram_rdata  (dma_ram_rdata),
+        .local_valid(dma_local_valid),
+        .local_ready(dma_local_ready),
+        .local_write(dma_local_write),
+        .local_addr (dma_local_addr),
+        .local_data (dma_local_data),
+        .local_be   (dma_local_be),
+        .local_done (dma_local_done),
+        .local_error(dma_local_error),
+        .local_rdata(dma_local_rdata)
+    );
+    // No extra request pipeline for the fast reader. Capture only the outer
+    // grant's owner; completed words alternate between LCD and general DMA.
+    ngage_dma_ram_mux dma_ram_mux (
+        .clk       (clk_sys),
+        .reset     (dma_reset || transport_reset),
+        .lcd_req   (lcd_dma_req),
+        .lcd_addr  (lcd_dma_addr),
+        .lcd_accept(lcd_dma_accept),
+        .lcd_ack   (lcd_dma_ack),
+        .lcd_rdata (lcd_dma_rdata),
+        .dma_req   (dma_ram_req),
+        .dma_write (dma_ram_write),
+        .dma_addr  (dma_ram_addr),
+        .dma_data  (dma_ram_data),
+        .dma_be    (dma_ram_be),
+        .dma_ack   (dma_ram_ack),
+        .dma_rdata (dma_ram_rdata),
+        .mem_req   (shared_dma_req),
+        .mem_write (shared_dma_write),
+        .mem_addr  (shared_dma_addr),
+        .mem_data  (shared_dma_data),
+        .mem_be    (shared_dma_be),
+        .mem_accept(shared_dma_accept),
+        .mem_ack   (shared_dma_ack),
+        .mem_rdata (shared_dma_rdata)
+    );
+
+    // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
     ngage_sdram_arbiter ram_arbiter (
         .clk       (clk_sys),
-        .reset     (phone_reset),
+        .reset     (dma_reset || transport_reset),
         .cpu_lock  (cpu_bus_lock),
         .cpu_req   (cpu_sdram_req),
         .cpu_we    (cpu_sdram_we),
@@ -239,13 +351,14 @@ module emu (
         .cpu_ack   (sdram_ack),
         .cpu_accept(cpu_sdram_accept),
         .cpu_rdata (sdram_dout),
-        .dma_req   (lcd_dma_req),
-        .dma_we    (1'b0),
-        .dma_addr  (lcd_dma_addr),
-        .dma_data  (32'b0),
-        .dma_be    (4'hf),
-        .dma_ack   (lcd_dma_ack),
-        .dma_rdata (lcd_dma_rdata),
+        .dma_req   (shared_dma_req),
+        .dma_we    (shared_dma_write),
+        .dma_addr  (shared_dma_addr),
+        .dma_data  (shared_dma_data),
+        .dma_be    (shared_dma_be),
+        .dma_ack   (shared_dma_ack),
+        .dma_accept(shared_dma_accept),
+        .dma_rdata (shared_dma_rdata),
         .mem_req   (mem_req),
         .mem_we    (mem_we),
         .mem_addr  (mem_addr),
@@ -273,7 +386,7 @@ module emu (
         .ba_line    (sdram_line_banks),
         .clk        (clk_sys),
         .rst        (transport_reset),
-        .phone_reset(phone_reset),
+        .phone_reset(dma_reset || transport_reset),
         .init       (sdram_init),
         .req        (mem_req),
         .we         (mem_we),
@@ -819,6 +932,7 @@ module emu (
     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
     ngage_mister #(
         .LINE_REFILL  (1),
+        .DMA_LOCAL    (1),
         .TIMER_CLK_DIV(SYS_CLK_HZ / 26000000),
         .NOS_TICK_HZ  (64),
         .SYS_CLK_HZ   (SYS_CLK_HZ)
@@ -834,10 +948,47 @@ module emu (
         .ram_line_data(ram_line_data),
         .ram_line_last(ram_line_last),
         .sim_present(status[15]),
+        .dma_reset(dma_reset),
+        .mmc_card_reset(mmc_card_reset),
+        .mmc_img_mounted(mmc_img_mounted),
+        .mmc_img_readonly(mmc_img_readonly),
+        .mmc_img_size(mmc_img_size),
+        .mmc_sd_lba(mmc_sd_lba),
+        .mmc_sd_blk_cnt(mmc_sd_blk_cnt),
+        .mmc_sd_rd(mmc_sd_rd),
+        .mmc_sd_wr(mmc_sd_wr),
+        .mmc_sd_ack(mmc_sd_ack),
+        .mmc_sd_buff_addr(mmc_sd_buff_addr),
+        .mmc_sd_buff_dout(mmc_sd_buff_dout),
+        .mmc_sd_buff_din(mmc_sd_buff_din),
+        .mmc_sd_buff_wr(mmc_sd_buff_wr),
+        .mmc_present(mmc_present),
+        .mmc_write_protected(mmc_write_protected),
+        .mmc_active(mmc_active),
+        .dma_sdram_accept(lcd_dma_accept),
         .dma_sdram_req(lcd_dma_req),
         .dma_sdram_addr(lcd_dma_addr),
         .dma_sdram_ack(lcd_dma_ack),
         .dma_sdram_data(lcd_dma_rdata),
+        .dma_error_pending(dma_error_pending),
+        .dma_cmd_valid(dma_cmd_valid),
+        .dma_cmd_ready(dma_cmd_ready),
+        .dma_cmd_write(dma_cmd_write),
+        .dma_cmd_addr(dma_cmd_addr),
+        .dma_cmd_data(dma_cmd_data),
+        .dma_cmd_be(dma_cmd_be),
+        .dma_rsp_valid(dma_response),
+        .dma_rsp_error(dma_error),
+        .dma_rsp_data(dma_rsp_data),
+        .dma_local_valid(dma_local_valid),
+        .dma_local_ready(dma_local_ready),
+        .dma_local_write(dma_local_write),
+        .dma_local_addr(dma_local_addr),
+        .dma_local_data(dma_local_data),
+        .dma_local_be(dma_local_be),
+        .dma_local_done(dma_local_done),
+        .dma_local_error(dma_local_error),
+        .dma_local_rdata(dma_local_rdata),
         .diagnostic_video(!status[17]),
         .save_state(save_error ? 3'd4 : save_saving ? 3'd2 :
                     save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
@@ -862,7 +1013,7 @@ module emu (
             save_error,
             (loader_failed || |overlay_error || |bt_error),
             status[16],
-            (debug_error || lcd_unsupported),
+            (debug_error || lcd_unsupported || (|dma_error_pending) || mmc_hps_fault),
             debug_busy,
             debug_fault_seen,
             save_mounted,

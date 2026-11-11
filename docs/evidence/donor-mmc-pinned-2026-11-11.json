@@ -1,0 +1,38 @@
+{
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "donor_snapshot": "docs/evidence/donor-mmc-safety-2026-11-11.json",
+  "mount_policy": "Donor mounted read-only; all output in integration scratch",
+  "focused": {
+    "eof_clocks": 282492,
+    "footer_version_clocks": 196894,
+    "CMD16_clocks": 118914,
+    "CMD16_probes": 31,
+    "result": "PASS"
+  },
+  "cpp": {
+    "MMC_clocks": 13907842,
+    "peripheral_clocks": 3665197,
+    "result": "PASS",
+    "skips": [
+      "private SonicN card",
+      "regs.log replay",
+      "cbus.log replay"
+    ]
+  },
+  "logs": {
+    "scratch/ngage2-integration/p3-pinned/cpp-regressions.log": "3105724ed1a5dca485d060a3571c15396aec8d8334c26023bea8f49330812181",
+    "scratch/ngage2-integration/p3-pinned/cmd16-summary.log": "906180b1fd647c5b91ee0db94c05929f38475c494a939c5a3b30555f78b6cace",
+    "scratch/ngage2-integration/p3-pinned/version-summary.log": "d1f490f8a543fb5194cb23870faab3834f4cee862b3b264f451c503653f091e1",
+    "scratch/ngage2-integration/p3-pinned/eof-summary.log": "8286cca76d06912c2fb1c97e7bd1697867deeb0d936c68678f97dd63e0265323",
+    "scratch/ngage2-integration/p3-pinned/version/run.log": "d1f490f8a543fb5194cb23870faab3834f4cee862b3b264f451c503653f091e1",
+    "scratch/ngage2-integration/p3-pinned/version/build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scratch/ngage2-integration/p3-pinned/cmd16/run.log": "906180b1fd647c5b91ee0db94c05929f38475c494a939c5a3b30555f78b6cace",
+    "scratch/ngage2-integration/p3-pinned/cmd16/build.log": "a2defc9355b4ae53e6436117b534302b1c47e89d7d35b78d7a5beac859e6a5db",
+    "scratch/ngage2-integration/p3-pinned/eof/run.log": "8286cca76d06912c2fb1c97e7bd1697867deeb0d936c68678f97dd63e0265323",
+    "scratch/ngage2-integration/p3-pinned/eof/build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "limits": [
+    "No firmware mount/launch or physical timing claim",
+    "General frame status and hot-mount HPS ownership remain open"
+  ]
+}

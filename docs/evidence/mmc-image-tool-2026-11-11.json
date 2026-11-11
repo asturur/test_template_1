@@ -1,0 +1,108 @@
+{
+  "command": "sh tests/tools/mmc_image/run.sh",
+  "demo": {
+    "every_roundtrip_byte_equal": true,
+    "files": [
+      {
+        "bytes": 2048,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/exported.img",
+        "sha256": "10fc3c51a152e90e5b90319b601d92ccf37290ef53c35ff92507687d8a911a08"
+      },
+      {
+        "bytes": 2975,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/exported.img.json",
+        "sha256": "becbcf00e22df2544d7b6a6b539774e0bb67521e65e744df29fd235747cf8267"
+      },
+      {
+        "bytes": 512,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/exported.img.sidecar",
+        "sha256": "697277a31445a01bebe093d106dc90a4e822eca0458f030b432b5b304ab3bc40"
+      },
+      {
+        "bytes": 2048,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/generated-test.img",
+        "sha256": "10fc3c51a152e90e5b90319b601d92ccf37290ef53c35ff92507687d8a911a08"
+      },
+      {
+        "bytes": 2560,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/generated-test.mmc",
+        "sha256": "556750788346c46aff8079434115fccc5d5ba5bd1c7386eef27977b78117de70"
+      },
+      {
+        "bytes": 3150,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/generated-test.mmc.json",
+        "sha256": "4417e9c4c882aab0994353f6c37a434bb2972c91b0e00c6d324aaa7b838bd2cc"
+      },
+      {
+        "bytes": 2560,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/restored.mmc",
+        "sha256": "556750788346c46aff8079434115fccc5d5ba5bd1c7386eef27977b78117de70"
+      },
+      {
+        "bytes": 3084,
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/demo/restored.mmc.json",
+        "sha256": "3ee8868549db503805b268a7c052a28ef55fba36fa7126f6d1ab02e4bf3c1068"
+      }
+    ],
+    "identity": "Generated test identity, not a real or retail card",
+    "image_bytes": 2560,
+    "payload_bytes": 2048
+  },
+  "import_profile": {
+    "capacity_formula": "(C_SIZE+1)*2^(C_SIZE_MULT+2)*2^READ_BL_LEN",
+    "csd_structure": 2,
+    "max_capacity_bytes": 1073741824,
+    "read_bl_len": 9,
+    "spec_version": 3
+  },
+  "not_claimed": [
+    "Aaru archive support",
+    "FAT folder creation",
+    "Physical card authenticity",
+    "MMC RTL integration",
+    "Protected-title launch",
+    "Writable mount safety for prefixes"
+  ],
+  "opaque_metadata": "Unused bytes preserved; version 1 remains strict",
+  "payload_copy_chunk_bytes": 1048576,
+  "scope": "Standalone P3 host image tooling only; no MMC RTL or disk-image integration",
+  "sources": [
+    {
+      "bytes": 20333,
+      "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/tools/ngage_mmc_image.py",
+      "sha256": "0db3822064da9fa589b66be685e7696fd9a11848d575c43fcfe22bb10d7788b9"
+    },
+    {
+      "bytes": 17888,
+      "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/tests/tools/mmc_image/test_mmc_image.py",
+      "sha256": "36595ea46c9d3d6f27a9803bccb766dc665893271fce9b17592cad9ab3bfa4c6"
+    },
+    {
+      "bytes": 95,
+      "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/tests/tools/mmc_image/run.sh",
+      "sha256": "0084b55a50bcdcad1ee5e92b48e90068a196d9ace2ec03c839997892af03f1f2"
+    },
+    {
+      "bytes": 3979,
+      "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/tests/tools/mmc_image/README.md",
+      "sha256": "e133e293250d349b92169dc0998e35b47d693e043a513fcccdc1c300e7051ac4"
+    },
+    {
+      "bytes": 41100,
+      "path": "/Users/andreabogazzi/develop/ngage2/tools/mkcard.py",
+      "sha256": "89438ec7878a02856a80e1c9eba40b316ec81f82ced1064b80f311470679c0e6"
+    },
+    {
+      "bytes": 39770,
+      "path": "/Users/andreabogazzi/develop/ngage2/rtl/board/mmc_card.sv",
+      "sha256": "8cce78affbf2df917f04717c2b12558c46e389ef61a34243547d243c31d31e5c"
+    }
+  ],
+  "test_log": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-images/tests.log",
+  "test_result": "PASS",
+  "tests": 14,
+  "truncated_prefix": "Explicit import flag required; never eligible for writable mounting",
+  "unknown_profiles": "Inspect/export preserve exact bytes; capacity unknown; import rejected",
+  "frozen_evidence_source": "scratch/ngage2-integration/p3-images/evidence.json",
+  "donor_reference_commit": "7be19cd26024424f83fe825f94155382a5aeca0d; source records describe the audited pre-EOF-fix snapshot."
+}

@@ -1,0 +1,99 @@
+{
+  "completed_utc": "2026-11-11T11:06:45.291078+00:00",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "docker": "--pull=never --network none --platform linux/arm64",
+  "commands": [
+    "docker image: python3 tools/format_phone_rtl.py --formatter scratch/ngage2-integration/tools/verible-verilog-format rtl/ngage_mmc_hps.v",
+    "docker image: python3 tools/format_phone_rtl.py --formatter scratch/ngage2-integration/tools/verible-verilog-format --check rtl/ngage_mmc_hps.v",
+    "docker image: MMC_HPS_OUT=scratch/ngage2-integration/p3-production/hps/pinned tests/phone/mmc_hps/run.sh",
+    "docker image: verilator --lint-only --language 1364-2001 -Wall -Wno-UNUSEDSIGNAL --top-module ngage_mmc_hps rtl/ngage_mmc_hps.v"
+  ],
+  "frozen_adapter_sha256": "e6130d85e9665724b50418fb418999ee6c332786bbf60a21062448f14c3384dd",
+  "strict_compile": "iverilog -g2001",
+  "formatter": {
+    "version": "v0.0-4298-g085eef05",
+    "files": 1,
+    "need_formatting": 0
+  },
+  "lint": {
+    "strict_filtered_pass": true,
+    "only_disabled": "UNUSEDSIGNAL",
+    "intentionally_unused": [
+      "Linux image readonly flag (production always readonly)",
+      "card write data (writes never advertised)",
+      "opaque OCR bits"
+    ]
+  },
+  "direct": {
+    "pass": true,
+    "cases": 36,
+    "mounts": 32,
+    "copied_halfwords": 10779,
+    "clocks": 24435
+  },
+  "actual_hps_io_native_card": {
+    "pass": true,
+    "clocks": 265094,
+    "card_reads": 9,
+    "other_slot_reads": 2,
+    "four_kib_reads": 2,
+    "final_words_after_selected_ack_fall": 7,
+    "overlap_cycles": 2128,
+    "uses_actual_local_hps_io": true,
+    "hps_copy_changes": "PS/2 generated-scope naming only; SD protocol unmodified",
+    "other_slots": "pending independent slot0/1 peers, not full C:/PMM manager"
+  },
+  "admission": {
+    "minimum_size": 1024,
+    "maximum_size": 1073742336,
+    "alignment": 512,
+    "size_zero": "quiet removal",
+    "required_footer": "NGAGEMMC v1; original supplied CID/CSD CRC7 and end bits; CSD structure2/spec3/READ9; byte OCR[30:29]=0; payload<=nonzero CSD capacity",
+    "first_read": "native loader original footer, no duplicate preflight",
+    "readonly": true,
+    "writable_linux_mount": "card still forced WP",
+    "normal_data_reads": "payload extent only; footer excluded",
+    "burst_limit_sectors": 8,
+    "global_hps_supported_limit_sectors": 32
+  },
+  "reset_contract": {
+    "init_reset": "global ~pll_locked; may forget media, advertised work still drains",
+    "guest_reset": "Reset/CPU Hold retain/replay latest mount after drain",
+    "stale_response": "generation+sticky cancellation discard old data/ACK",
+    "cold_plus_guest_priority": "init clear wins guest-only replay",
+    "simultaneous_fresh_mount": "may capture fresh metadata",
+    "no_hps_service": "waits; no invented timeout/fake completion"
+  },
+  "review": "Astra independent read-only audit found no remaining blocker at the same frozen hash; OCR bits match local image tool.",
+  "limitations": [
+    "Read-only first production gate; no write snapshot/durability/hot-replacement claim.",
+    "Valid bulk prefixes may precede later error/cancellation.",
+    "No full C:/PMM save manager inside adapter-specific fixture.",
+    "No whole firmware mount/boot/UI, physical native timing/D550/AMA route or synthesis/fit claim.",
+    "No other checkout, daemon, checkpoint, broad simulation, commit or push operation."
+  ],
+  "source_sha256": {
+    "rtl/ngage_mmc_hps.v": "e6130d85e9665724b50418fb418999ee6c332786bbf60a21062448f14c3384dd",
+    "rtl/ngage_mmc_card.v": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea",
+    "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87",
+    "sys/hps_io.sv": "f4a085fc23bdcefb57c600866a39a448c749cd3c93910f7005316e8df9019bec",
+    "tests/phone/mmc_hps/tb.v": "7d5921af94041c7ecbbe58448d724bbeadf321687553839d16682b2142ce13fb",
+    "tests/phone/mmc_hps/run.sh": "2ba417ee779014bb5ba3157cc3e6e52213b98bde8b750c639b67902d4a00e260",
+    "tests/phone/mmc_hps/README.md": "74aa692666e755432d76fa153d0fd8f66078bca96e2cdf1924732f9260cb4635",
+    "tests/phone/mmc_hps/prepare_hps.py": "317d0057e28e3f952a58765363cf45075188c39eb9802f357ab5acc1ba93476a",
+    "tests/phone/mmc_hps/actual_tb.sv": "2aa586842396de853b5b37f5e5ddf4f847cd0ff0c0c65e751d484c547f8e5fe9"
+  },
+  "log_sha256": {
+    "final-command.log": "f720e9ab25cc5fc7b5b02ddb3e72c148d01f2078f9ecca34649dd6713db654a7",
+    "direct.log": "5e044fb651b0d26af45963df12e73939bf99a7c7de59100006919595ce5ba025",
+    "format-lint.log": "026730183247a47366cf102fbae5e19e13a1fb66ce598fa6e34139aa6624c7b2",
+    "command.log": "0b62b3c1405c2624dae67be44f501dfcefed7adc808f7135613a886a8aa3d2d6",
+    "pinned/direct.log": "5e044fb651b0d26af45963df12e73939bf99a7c7de59100006919595ce5ba025",
+    "pinned/direct-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "pinned/actual.log": "89e012456aa0e2c6e6d07b6189e8aa4d6c5ec39ee68fec4f9a9b03f36134edde",
+    "pinned/actual-build.log": "2c97ce304eb2977ab12d2f5d7c2ad9217eae0e4720a88941b5b8de5ef979d1bd"
+  },
+  "generated_hps_sha256": "3c0fbd6d2d32d3949acf5c337ae51b339d670bd9ac609ba735d0fbe6d303564d",
+  "actual_executable_sha256": "0a303bd5370e62b51a125d9298359aeae5df2536fa1cdcb052568c367f8b9fd8",
+  "frozen_from": "scratch/ngage2-integration/p3-production/hps/results.json"
+}

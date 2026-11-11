@@ -5,7 +5,7 @@ iverilog -g2005 -s tb -o build/sim/unit-lcd-dma/test rtl/ngage_lcd_dma.v tests/p
 vvp build/sim/unit-lcd-dma/test > build/sim/unit-lcd-dma/run.log
 cat build/sim/unit-lcd-dma/run.log
 grep -q '^PASS LCD DMA' build/sim/unit-lcd-dma/run.log
-iverilog -g2005 -s tb -o build/sim/unit-lcd-dma/arbiter rtl/ngage_lcd_dma.v rtl/ngage_bram.v rtl/ngage_lcd_display.v rtl/ngage_sdram_arbiter.v tests/phone/lcd_dma/arbiter_tb.v
+iverilog -g2005 -s tb -o build/sim/unit-lcd-dma/arbiter rtl/ngage_lcd_dma.v rtl/ngage_bram.v rtl/ngage_lcd_display.v rtl/ngage_sdram_arbiter.v rtl/ngage_dma_route.v tests/phone/lcd_dma/arbiter_tb.v
 vvp build/sim/unit-lcd-dma/arbiter > build/sim/unit-lcd-dma/arbiter.log
 cat build/sim/unit-lcd-dma/arbiter.log
 grep -q '^PASS LCD full DMA' build/sim/unit-lcd-dma/arbiter.log
@@ -18,7 +18,7 @@ words=[int(f[4],16) for line in p.read_text().splitlines()[2:] if len(f:=line.sp
 assert len(words)==18304 and sum(words)&0xffffffff==0x6de5f326
 Path('build/sim/unit-lcd-dma/firmware-frame.hex').write_text(''.join(f'{v:08x}\n' for v in words))
 PY
- iverilog -g2005 -DRETAINED_FRAME -s tb -o build/sim/unit-lcd-dma/firmware rtl/ngage_lcd_dma.v rtl/ngage_bram.v rtl/ngage_lcd_display.v rtl/ngage_sdram_arbiter.v tests/phone/lcd_dma/arbiter_tb.v
+ iverilog -g2005 -DRETAINED_FRAME -s tb -o build/sim/unit-lcd-dma/firmware rtl/ngage_lcd_dma.v rtl/ngage_bram.v rtl/ngage_lcd_display.v rtl/ngage_sdram_arbiter.v rtl/ngage_dma_route.v tests/phone/lcd_dma/arbiter_tb.v
  vvp build/sim/unit-lcd-dma/firmware > build/sim/unit-lcd-dma/firmware.log
  cat build/sim/unit-lcd-dma/firmware.log
  grep -q '^PASS LCD full DMA' build/sim/unit-lcd-dma/firmware.log

@@ -1,0 +1,51 @@
+{
+  "scope": "Native Verilog-2001 MMC host/card used together in donor peripheral harness; no production board wiring",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "source_sha256": {
+    "rtl/ngage_mmc_host.v": "f1174b5d7819ef2944d589be68d311413d00fbcdae5c0b6e37955f25d34dce74",
+    "rtl/ngage_mmc_card.v": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea",
+    "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87"
+  },
+  "reference_changes": "Only two test-local module instantiations renamed; donor mounted read-only",
+  "pass": true,
+  "clocks": 3665197,
+  "runtime_output_byte_identical_to_donor": true,
+  "records": {
+    "scratch/ngage2-integration/p3-native-combined/run.log": {
+      "bytes": 11460,
+      "sha256": "1b782135de10cc316c4c6b1e2281704bede82d4fed77fc2b7c26ce7b490ea6b5"
+    },
+    "scratch/ngage2-integration/p3-native-combined/runtime.log": {
+      "bytes": 795,
+      "sha256": "1ff89afea0e48226bb224e83508e90675eef8efdc63ff12699765e345f613f98"
+    },
+    "scratch/ngage2-integration/p3-native-combined/rtl-files.txt": {
+      "bytes": 970,
+      "sha256": "d1b60795ba17bf70f0c879b2349e730380f59f49b7d817cb1bc87250223edd4d"
+    },
+    "scratch/ngage2-integration/p3-native-combined/source-pins.json": {
+      "bytes": 286,
+      "sha256": "6ce36f654df94b68cba4fa4a94208e05d5a30416c315d672089d10c5f95b68c0"
+    },
+    "scratch/ngage2-integration/p3-native-combined/upp_periph.sv": {
+      "bytes": 16648,
+      "sha256": "a8180bad4bd46f9ef3ef45ec37c602749d3cad58bcf8b1c5aa3f5539f2f6aa80"
+    },
+    "scratch/ngage2-integration/p3-native-combined/periph_tb.sv": {
+      "bytes": 8217,
+      "sha256": "323f0f3cdfd5abe0c77605930a9c7d7d1e6c4ba1d503810916481335c687dce7"
+    }
+  },
+  "audit": "Astra found no semantic translation defect in these final three hashes",
+  "skips": [
+    "private SonicN card",
+    "regs.log replay",
+    "cbus.log replay"
+  ],
+  "limits": [
+    "No NEM-4 production UPP/DMA/IRQ binding",
+    "No original EPBUS driver or firmware mount/launch",
+    "Native timing/IRQ22/general framing status/HPS hot-mount ownership gaps remain"
+  ],
+  "failed_harness_approach": "GNU make command-line source variable initially retained newlines as a filename; fixed by flattening the test-local list to spaces, no RTL change."
+}

@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "8ff8b11b2527e8eed4ccb85f27304d2f326874ec",
+  "simulator_image": "jotego/simulator:arm64",
+  "source_hashes": {
+    "Template.sv": "39e8ee3d538cac9e2951a8ae6fab0fecf01ffefac1ada0534dd4cc8b05665f40",
+    "files.qip": "7bc38b041f75aac20fc0069239c832089f55e0bc24f1150caec5e7b75a63c59b",
+    "rtl/ngage_dma_route.v": "5e4c77b78ee542e362e09ff383801f1737c66fe606e11b7de93011365c87464a",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "tests/phone/dma_route/tb.v": "8f9b9e94a8b136327371208afbea21f0d83423a7ff6ae000182e3ae5f1a7faad",
+    "tests/phone/dma_route/run.sh": "9070e5d9cd8d6164f713e18b004a19b236c43a72c21e71d37b80f44b1dcc66fd",
+    "tests/phone/lcd_dma/arbiter_tb.v": "f30b7822273e26ffb70123d2abcfdf47e02d8fa7283f8b20624857a9391e7b6b",
+    "tests/phone/sdram/tb.sv": "40126d2b1809556ba6b987282e031c33e7fb9e71ed91d47b1fe9ee5a7f2a8ffb",
+    "scratch/sdram-reference/mt48lc16m16a2.v": "d5a3a058550f22383da382ced23a16409360b8f213c5a89081ce18cc34b99b19"
+  },
+  "log_hashes": {
+    "scratch/ngage2-integration/dma-route/route.log": "781c7ee07b7b016af93504c9f97af450c4d29e017c93ba23b08f77135634452c",
+    "scratch/ngage2-integration/dma-route/lcd.log": "c8bc3e31ac74c97d2b42bb809d3bd577faeb6b9c611cb97ac51d89317dc6c59f",
+    "scratch/ngage2-integration/dma-route/lcd-direct.log": "e2576aaa4360fe1417cffcfb70b5454844846d163d111fd33d93d636a827e2af",
+    "scratch/ngage2-integration/dma-route/arbiter.log": "e212b161d10a28d558bbee1f5c944d25d19e97d2341318d0243c209a28cffac7",
+    "scratch/ngage2-integration/dma-route/sdram.log": "73ebed2216f4e111e2a7b2084bce97d03a6c90bd17d9affcad7d5a907502fd60",
+    "scratch/ngage2-integration/dma-route/top.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2",
+    "scratch/ngage2-integration/dma-route/format.log": "5318169864cbe4d5c33447a6088d8c7f02a5a8cc5facab99e4301d1a13cc43fd",
+    "build/sim/unit-mister-board-cpu/run.log": "f2c6a828559f89ad56338daf08e33c5fa36d5c4aba43b051b0601a434508e773"
+  },
+  "lcd_full_frame": {
+    "words": 18304,
+    "checksum": "02b0e100",
+    "direct_ps": 366390000,
+    "routed_ps": 366390000
+  },
+  "results": {
+    "scratch/ngage2-integration/dma-route/route.log": [
+      "PASS DMA route paced FIFO, CPU contention, shared RAM masks, SDRAM, rejects and reset"
+    ],
+    "scratch/ngage2-integration/dma-route/lcd.log": [
+      "PASS LCD DMA destination, stalls, data and completion IRQ",
+      "PASS LCD full DMA through SDRAM arbiter words=18304 checksum=02b0e100",
+      "SKIP retained firmware LCD trace unavailable"
+    ],
+    "scratch/ngage2-integration/dma-route/lcd-direct.log": [
+      "PASS LCD full DMA through SDRAM arbiter words=18304 checksum=02b0e100"
+    ],
+    "scratch/ngage2-integration/dma-route/arbiter.log": [
+      "PASS SDRAM CPU/DMA arbitration and SWP lock",
+      "PASS SDRAM 32 alternating CPU/DMA grants, captured writes and reset cancellation"
+    ],
+    "scratch/ngage2-integration/dma-route/sdram.log": [
+      "PASS SDRAM real controller and model, refreshes=361 checked_short_reads=113 halfwords=904 wait_clocks=1447",
+      "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+      "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+      "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+      "PASS concurrent SDRAM banks: commands=600 stops=0 halfwords=4800 refreshes=151 clocks=8920",
+      "PASS concurrent SDRAM banks: commands=600 stops=300 halfwords=3000 refreshes=179 clocks=8173",
+      "PASS concurrent SDRAM banks: commands=600 stops=0 halfwords=4800 refreshes=151 clocks=8920",
+      "PASS concurrent SDRAM banks: commands=600 stops=300 halfwords=3000 refreshes=179 clocks=8173"
+    ],
+    "scratch/ngage2-integration/dma-route/top.log": [
+      "PASS top-level structural elaboration (HPS and PLL stubbed)"
+    ],
+    "build/sim/unit-mister-board-cpu/run.log": [
+      "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits"
+    ]
+  },
+  "remaining": [
+    "Live UPP local endpoint binding and general DMA channel engine",
+    "FPGA fit and hardware"
+  ]
+}

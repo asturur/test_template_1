@@ -1,0 +1,110 @@
+{
+  "donor_base_commit": "7be19cd26024424f83fe825f94155382a5aeca0d",
+  "donor_branch": "codex/dma-byte-count-fix",
+  "actual_donor_modified": true,
+  "environment": "host Icarus Verilog 13.0 (stable), no Docker or network",
+  "commands": [
+    "scratch/ngage2-integration/p3-donor-eof/tests/run.sh",
+    "git apply --check --directory=scratch/ngage2-integration/p3-donor-eof/baseline scratch/ngage2-integration/p3-donor-eof/mmc-payload-eof.patch"
+  ],
+  "compiler_command": "iverilog -g2012 -s tb -o logs/<version> <version>/rtl/board/tdp_ram.sv <version>/rtl/board/mmc_card.sv tests/tb.v",
+  "baseline_witness": {
+    "r1": "00000900",
+    "token": "00101",
+    "busy_released": true,
+    "hps_writes": 0,
+    "result": "BASELINE_BUG"
+  },
+  "baseline_new_regression": {
+    "result": "FAIL as expected",
+    "message": "CMD24 writable EOF accepted",
+    "clocks": 7922
+  },
+  "patched": {
+    "result": "PASS",
+    "mounts": 5,
+    "hps_reads": 4,
+    "hps_writes": 4,
+    "system_clocks": 282492,
+    "build_warnings": 0
+  },
+  "protocol": "1-bit native MMC wire commands and data, command/response CRC7, data CRC16, external HPS model; no internal state force",
+  "limitations": [
+    "Native MMC3.x token semantics for defensive out-of-file negative token are unverified; fallback reuses model token01011 plus R1range.",
+    "Defensive W_END lost-bound and W_PROG lost-bound paths are not directly exercised.",
+    "Does not establish atomic remount of already-issued HPS writes.",
+    "Pinned-image and existing full C++/Verilator MMC regression pending Docker recovery.",
+    "No commit, push, maintained integration MMC RTL wiring, whole-phone simulation or checkpoint operation."
+  ],
+  "logs": [
+    "logs/baseline.log",
+    "logs/baseline-regression.log",
+    "logs/patched.log",
+    "logs/baseline-build.log",
+    "logs/patched-build.log"
+  ],
+  "sha256": {
+    "baseline/rtl/board/mmc_card.sv": "8cce78affbf2df917f04717c2b12558c46e389ef61a34243547d243c31d31e5c",
+    "baseline/rtl/board/tdp_ram.sv": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344",
+    "patched/rtl/board/mmc_card.sv": "162d19a1a3e12d8f3277a0ca3bb7472ebeb5e8265d841e9e708ae4cb65304b1b",
+    "patched/rtl/board/tdp_ram.sv": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344",
+    "tests/tb.v": "60c31bf1f5b381db43214eb58ff63bac4d29548bb25f78181ee6dd4a8e0d1a38",
+    "tests/run.sh": "7fa707152740c8613295ab1488ad683b595a6c07bccabad48436a45362eee4af",
+    "tests/run-one.sh": "d7aab1ba418486a35f81b0320cc7d281b2a2b89d3e9526a915b1df3ebef4f741",
+    "mmc-payload-eof.patch": "d4ce7ec02f96e9322d98762ddb3e2387b4894b3197d1326318a79ec0c27a2ad2",
+    "README.md": "c150915e89d034bd5674863c1c4724fdb623fb51a4a8042c157cc166ea945659"
+  },
+  "isolated_results": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-donor-eof/results.json",
+    "sha256": "b6b1d3b8970d1d948412fa9cdd8ee495c11e3e0c4c382b41d64c0d5ad915699f"
+  },
+  "applied_branch": "codex/mmc-payload-eof-fix",
+  "applied_base_commit": "7be19cd26024424f83fe825f94155382a5aeca0d",
+  "committed": false,
+  "pushed": false,
+  "application": {
+    "result": "Applied and focused regression passed against actual donor files",
+    "command": "MMC_EOF_OUT=<integration>/scratch/ngage2-integration/p3-donor-eof/applied-host sh sim/mmc-eof/run-one.sh",
+    "system_clocks": 282492
+  },
+  "applied_sources": [
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/rtl/board/mmc_card.sv",
+      "bytes": 40263,
+      "sha256": "162d19a1a3e12d8f3277a0ca3bb7472ebeb5e8265d841e9e708ae4cb65304b1b"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/rtl/board/tdp_ram.sv",
+      "bytes": 919,
+      "sha256": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/sim/mmc-eof/tb.v",
+      "bytes": 14117,
+      "sha256": "60c31bf1f5b381db43214eb58ff63bac4d29548bb25f78181ee6dd4a8e0d1a38"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/sim/mmc-eof/run-one.sh",
+      "bytes": 514,
+      "sha256": "d7aab1ba418486a35f81b0320cc7d281b2a2b89d3e9526a915b1df3ebef4f741"
+    }
+  ],
+  "portable_patch": {
+    "path": "docs/evidence/donor-mmc-payload-eof-2026-11-11.patch",
+    "bytes": 18773,
+    "sha256": "0b863d76e6fa585e08332e6b614c159004095deab0b3eb9b16f3b872643e5fb6",
+    "includes": "Card fix and portable sim/mmc-eof regression"
+  },
+  "applied_logs": [
+    {
+      "path": "scratch/ngage2-integration/p3-donor-eof/applied-host/build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-donor-eof/applied-host/run.log",
+      "sha256": "7bbee827ce31b496c67b4cb972e8ca13a5a33335a955bd8816ddff7bbc9918bf",
+      "bytes": 176
+    }
+  ]
+}

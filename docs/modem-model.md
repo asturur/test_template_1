@@ -128,9 +128,9 @@ disassembly:
   `[4]=0x514a1654 (ord3)`, `[5]=0x514a1554 (ord2)`.
   Thunks: 0x511b41e8→vt[3], 0x511b41d0→vt[4], 0x511b41b8→vt[5], each passing
   r1-r3 through untouched; destructor 0x511b40dc calls vt[2] with r1=3.
-- gsmstuff ord5 (`Close`, 0x514a14cc): if id != 0xFE, deregisters — calls
-  0x514a0ed0(1,id,k) for k=0,1,2, 0x514a0fc8(id,3), then ord4(0, id) to zero
-  the channel slot.
+- gsmstuff ord5 (`Close`, 0x514a14cc): normal IDs clear slot 0 and deregister
+  through ord4(0, id). The additional slot and connection cleanup is
+  conditional on `id <= 4` (`0x514a14f8..0x514a1528`).
 - gsmstuff ord6 (`Open`, 0x514a13cc): id==0xFE is a special "control" unit that
   performs one-time global init (allocates a 0x10-byte object via
   0x516c71c8/0x516c6f50, panic reason 0x20 if a global at [0x514a1458-area] is
@@ -203,20 +203,30 @@ against the routing table's u16 `dev<<8|obj` entries (0x51530c40-0x51530c6c).
   0x8000cab4[obj][k], length u16 0x8000c994[obj][k], pending flag
   0x8000ca64[obj][k] (k = 0..2 = request fn number), user descriptor
   0x8000c7f4[obj][k] registered by DoRequest, channel object 0x8000c724[obj].
-  The **pump 0x514a10cc** (run after every marshal via 0x514a1880, and from the
-  DFC 0x514a18d4) copies mailbox k to the user descriptor with
+  `0x514a1880` schedules the DFC at `0x514a18d4`, which calls NOS work
+  `0x516c7ba8` followed by the **pump 0x514a10cc**. The pump copies mailbox k
+  to the user descriptor with
   ThreadDesWrite-style ekern calls (thunks 0x516c6f14=ekern!ord478,
   0x516c6f20=ord144 GetDesMaxLength, 0x516c6f2c=ord480, 0x516c6f38=ord479) and
-  completes the request (0x516c6f44=ekern!ord64) with 0, or KErrOverflow(-4)
-  when the user buffer is smaller than the message (0x514a0be0).
+  completes the request (0x516c6f44=ekern!ord64) with 0, or numeric `-4`
+  (`0x514a1194`) when the user buffer is smaller than the message.
 - LDD request fns (nosdriver DoRequest): fn0/1/2 = receive into mailbox 0/1/2
-  (fn0 also stores a status ptr at 0x8000c78c[obj]); fn3 = 1-byte
+  (fn0 also stores its auxiliary length descriptor at `0x8000c78c[obj]`);
+  fn3 = 1-byte
   connection-state notify (state byte 0x8000ca4a[obj], user des 0x8000c714[0..3],
   only objects 0-3 may use it). Evidence: ord3 jump table 0x514a16d4-0x514a1764.
+  The pump covers slot 0 for IDs 0..0x19 and the extra slots and connection
+  notification for IDs 0..3 (`0x514a122c`, `0x514a12bc`). Kernel request status
+  lives at `channel+0x18+4*request` (`0x503350b8`).
 - DoControl fn 6 = send with an 8-byte headroom header built by 0x514ba2f8
   from the per-object send-queue object 0x8000c92c[obj] (set by LDD control
   fn 6 → 0x514a17e0 path... see 0x514a1794 switch: fn 4 = plain send of a raw
   Phonet frame; fn 6 = header-building send; fn 5 = panic reason 9).
+- Kernel cancel at `0x503350e4` consumes a mask, completes each selected
+  pending request with `-3` through `0x50334fcc`, and then passes the **request
+  number** to the LDD callback. `0x50329c6c` clears the status slot before the
+  completion signal. LDD `0x511b41e8` forwards the number to endpoint
+  `0x514a183c`, which validates channel state. See [semi-real NOS](semi-real-nos.md).
 
 ### 2.4 NOS task send primitive and the DSP hardware mailbox (read from code)
 

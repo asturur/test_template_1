@@ -1,0 +1,147 @@
+{
+  "date": "2026-11-11",
+  "stage": "P2 standalone engine, channel frontend and original setup/start/stop; production handover open",
+  "donor_baseline": "e3d2bf778319bdf4ef2bf21a4fc7376186b00a63",
+  "models": {
+    "implementation": "Sol High",
+    "original_driver_count_and_irq_audit": "Astra"
+  },
+  "source_sha256": {
+    "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+    "rtl/ngage_dma_channels.v": "4403624a8f47a20b3b15b6c0f3d1a6b040f3bd0726df68c0ee4758685c568761",
+    "tests/phone/dma_engine/README.md": "e84df0c2cfc2ae1ef64bd2a339b0e8c183c1924a797b97b545a175c88c217dd1",
+    "tests/phone/dma_engine/run.sh": "28b99b002c58c89c3dc6b958749e6eceb5cd9d14951b9d07a90eaa05aa6ddf09",
+    "tests/phone/dma_engine/tb.v": "8458697815e46feb4280cdc532497fafa76ba2ad545088a5e92164ce5f5f1a78",
+    "tests/phone/dma_channels/README.md": "1fa3c616803ae5010d587f9e53db1fc2eba29e20b3ea1db02c730760e7eb28b7",
+    "tests/phone/dma_channels/audit_rom.py": "5e3e59c870e4cabf5dd8863c54d6da1c4058a5c577ce9d8a7b5f723756bbe15d",
+    "tests/phone/dma_channels/run.sh": "1fbe3f0aa4719f08ba4e2df4c52e7c88d9e7383cc64fa9c00774981b5f316478",
+    "tests/phone/dma_channels/tb.v": "496138d741bd41c4a49bcd265fb7c47c1f57609b54bd448e59706cccbf05f289",
+    "tests/phone/dma_original/README.md": "ba091f9dfc3a8b70c7c381f91b41c196f2cb19b0d9c93e222f9e4607b5b846c7",
+    "tests/phone/dma_original/prepare.py": "c0e1157857d7c5b7ba8775d406e27d3cf9a294f7cb9764f53d92a5e4d5906290",
+    "tests/phone/dma_original/program.S": "fd02adb27c2a33556a2c58dc01366667c199257d61a11238028aead383aa5524",
+    "tests/phone/dma_original/run.sh": "281b869ba4679ed28dc950fc755cf4d46df87acf1497288a982779542a0adb0c",
+    "tests/phone/dma_original/tb.v": "f5010ac1c2fe2c2b96373f940b08e84e569e6529eaeb01e44d7b8881df33f2a5"
+  },
+  "log_sha256": {
+    "scratch/ngage2-integration/p2/channels-final.log": "2b82387b48bfc250aad152fa2f6b3107242f99ec43d52acb29305a0e26da9585",
+    "scratch/ngage2-integration/p2/channels-icarus.log": "4e8342b6ef5f5338b56c4ac81940b33e5ca41ea04e71ea4d69089dbc97091289",
+    "scratch/ngage2-integration/p2/channels-lint.log": "f358aed2af7fd7611bcd81fd0b49038733d0ae43730a15130685c85863450e96",
+    "scratch/ngage2-integration/p2/format.log": "d970e5a6ede421e2d3d71433bef46c569be47ba97e38345405d0a8d02282aecf",
+    "scratch/ngage2-integration/p2/route-final.log": "781c7ee07b7b016af93504c9f97af450c4d29e017c93ba23b08f77135634452c",
+    "scratch/ngage2-integration/p2/lcd-final.log": "c8bc3e31ac74c97d2b42bb809d3bd577faeb6b9c611cb97ac51d89317dc6c59f",
+    "scratch/ngage2-integration/p2/top-final.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2",
+    "scratch/ngage2-integration/p2/source-graph.log": "a7992d9ac0f635991ffd401feb4006e8d2e3e6831d7232d73137a48880ba09ee",
+    "scratch/ngage2-integration/p2/engine-bytes-container/run.log": "75332dd2d7125e5f916be99c9a117b9e74405bdead69d6a4ec92a9d602599602",
+    "scratch/ngage2-integration/p2/original/run-0.log": "b8f4cf2d094c115f69e8feb2e1971f8b5f3030319c61d5ed9f74efcebb91125b",
+    "scratch/ngage2-integration/p2/original/run-3.log": "f562215dcc42da45d5a8dc54601185b45c846c5863a3d1197d7c466fade6c297"
+  },
+  "engine": {
+    "byte_oracle_cases": 4914,
+    "owned_words": 52326,
+    "descriptor": "literal35bitbytebudget",
+    "partial_source_and_destination": true
+  },
+  "channels": {
+    "guest_channels": 8,
+    "tested_engine_counts": [
+      1,
+      3
+    ],
+    "default_engines": 3,
+    "production_owner": false,
+    "original_count_rules": {
+      "memory": "2*(raw_count+1)",
+      "paced_transmit": "destination_width_bytes*(raw_count+1)",
+      "paced_receive": "source_width_bytes*(raw_count+1)"
+    },
+    "unknown_paced_rules": "reject both fixed or both incrementing",
+    "errors": "terminate, latch model diagnostic; no success IRQ"
+  },
+  "original_execution": {
+    "instruction_substitutions": 0,
+    "cases": [
+      "SDRAM32_to_SDRAM32",
+      "SDRAM32_to_test_FIFO8",
+      "test_FIFO8_to_SDRAM32",
+      "onchip16_to_SDRAM32"
+    ],
+    "bytes_each": 16,
+    "wait0_cycles": 11130,
+    "wait3_cycles": 16814,
+    "all_memory_and_trailing_bytes_checked": true,
+    "MMC_FIFO": "test-only exact10120624 interception; production router unchanged",
+    "original_stop_ack": "After every case; only the current channel has an IRQ; clear before next start and final marker"
+  },
+  "static_original_audit": {
+    "fixture_sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+    "kind": "static original-instruction audit; not an executed driver test",
+    "register_helpers": {
+      "0x50324b8c": "channel + 0x04",
+      "0x50324c3c": "channel + 0x14",
+      "0x50324c5c": "channel + 0x18",
+      "0x50324c7c": "channel + 0x1c",
+      "0x50324c90": "channel + 0x20",
+      "0x50324cb0": "channel + 0x24",
+      "0x50324cd0": "channel + 0x28",
+      "0x50324ce4": "channel + 0x2c"
+    },
+    "control_helper": "0x50324bac, channel + 0x08",
+    "stop_and_poll": "0x503212c0..0x50321308",
+    "memory_setup": "0x5032130c..0x503213c0: on-chip mode 2/width 16; other mode 4/width 32",
+    "memory_count": "0x50321424: (argument >> 1) - 1 even after configuring width 32",
+    "paced_count": "0x503215bc..0x503215d0: (argument >> peripheral shift) - 1",
+    "completion_status": "0x50321860 returns constant 3; errors must not synthesize a success IRQ",
+    "peripheral_targets": {
+      "lcd": "0x10121208",
+      "mmc": "0x10120624"
+    },
+    "request_lines": {
+      "lcd_type4": 7,
+      "mmc_type5": 2
+    },
+    "peripheral_width_bits": [
+      0,
+      0,
+      32,
+      32,
+      32,
+      8
+    ],
+    "peripheral_count_shift": [
+      0,
+      0,
+      2,
+      2,
+      2,
+      0
+    ],
+    "dma_irq": {
+      "channels": "0..7",
+      "bank0_bits": "6..13",
+      "handler_ids": "0x63..0x6a",
+      "name_index_table": "0x50347a84"
+    },
+    "open": [
+      "See the original setup/start/stop execution fixture; full ISR and other caller paths remain open",
+      "Original ISR execution and ACK timing beyond retained LCD source 7",
+      "MMC address admission waits for an implemented host/FIFO",
+      "Physical UPP controller timing and hardware error status are unverified"
+    ]
+  },
+  "structural_checks": [
+    "Strict Verilog-2001 lint",
+    "Pinned formatter",
+    "179 source files / 9 QIPs",
+    "Existing LCD unit and full routed frame",
+    "Top elaboration",
+    "Original fixture Verilog-2001 parse with imported CPU ignored"
+  ],
+  "open": [
+    "Original ISR dispatch and callback ordering",
+    "Controlled production LCD register and completion ownership",
+    "Request selector hardware mux",
+    "Real MMC endpoint in P3",
+    "Hardware behavior and FPGA fit"
+  ],
+  "isolation": "Other checkout simulations and checkpoints untouched; donor fix staged separately under user authorization"
+}

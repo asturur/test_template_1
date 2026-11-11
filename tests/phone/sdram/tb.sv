@@ -22,8 +22,21 @@ reg line_req=0;reg [24:0] line_addr=0;
 wire line_ready,line_valid,line_last;wire [15:0] line_data;wire [1:0] ba_line;
 wire mreq,mwe,mack; wire [24:0] maddr; wire [31:0] mdata,mrdata; wire [3:0] mbe;
 reg dma_req=0, dma_we=0, cpu_lock=0; reg [24:0] dma_addr=0; reg [31:0] dma_data=0; reg [3:0] dma_be=0; wire dma_ack; wire [31:0] dma_rdata;
+wire routed_req,routed_we,routed_ack,dma_error;
+wire [24:0] routed_addr;
+wire [31:0] routed_data,routed_rdata;
+wire [3:0] routed_be;
+ngage_dma_route #(.LOCAL_ENABLE(0)) route (
+ .clk(clk),.reset(phone_reset),.cpu_lock(cpu_lock),.cmd_valid(dma_req),.cmd_ready(),
+ .cmd_write(dma_we),.cmd_addr({8'h0a,dma_addr[23:0]}),.cmd_data(dma_data),.cmd_be(dma_be),
+ .rsp_valid(dma_ack),.rsp_error(dma_error),.rsp_data(dma_rdata),
+ .ram_req(routed_req),.ram_write(routed_we),.ram_addr(routed_addr),.ram_data(routed_data),
+ .ram_be(routed_be),.ram_ack(routed_ack),.ram_rdata(routed_rdata),
+ .local_valid(),.local_ready(1'b0),.local_write(),.local_addr(),.local_data(),
+ .local_be(),.local_done(1'b0),.local_error(1'b0),.local_rdata(32'b0)
+);
 ngage_sdram_arbiter arb(clk,phone_reset,cpu_lock,req,we,addr,din,be,ack,dout,
- dma_req,dma_we,dma_addr,dma_data,dma_be,dma_ack,dma_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata,);
+ routed_req,routed_we,routed_addr,routed_data,routed_be,routed_ack,routed_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata,,);
 ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(line_req,line_addr,line_ready,line_valid,line_data,line_last,ba_line,clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh);
 jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(LINE_REFILL),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(LINE_REFILL?128:32),.BA1_LEN(LINE_REFILL?128:32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
  .line_read(ba_line),.rst(rst),.clk(clk),.init(init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
@@ -109,7 +122,7 @@ initial begin
  if(dma_ack) $fatal(1,"DMA passed CPU lock");
  @(negedge clk);cpu_lock=0;count=0;
  while(!dma_ack && count<3000) begin @(negedge clk);count=count+1;end
- if(!dma_ack) $fatal(1,"DMA starved");
+ if(!dma_ack || dma_error) $fatal(1,"DMA routed write failed");
  dma_req=0;repeat(5) @(negedge clk);transfer(0,20,0,15,32'h55aa55aa);
  if(LINE_REFILL)begin
   // The CPU line register is represented by the consumer, not another adapter

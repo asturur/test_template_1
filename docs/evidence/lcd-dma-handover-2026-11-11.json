@@ -1,0 +1,562 @@
+{
+  "date": "2026-11-11",
+  "branch": "codex/ngage2-integration",
+  "base_commit": "8ff8b11b2527e8eed4ccb85f27304d2f326874ec",
+  "working_changes": "Uncommitted; no push or deployment",
+  "models": {
+    "implementation": "Sol High",
+    "ownership_and_source_audit": "Astra"
+  },
+  "production_defaults": {
+    "GENERAL_DMA": 1,
+    "FAST_LCD": 1,
+    "IRQ_bank0_bits": "6..13",
+    "selector_software_contract": "68 clears mask; 64 sets request value; physical polarity unverified",
+    "fast_eligibility": "Captured LCD line7; incrementing 32-bit SDRAM source; fixed 32-bit LCD destination"
+  },
+  "source_sha256": {
+    "Template.sv": "9c9d315ba0bf988a5a775f8d5c8af1105a1b22133e5bb4e68feedbac8a578460",
+    "files.qip": "9828000c303adf848e189f698402902bae7ec8ed9a6fb5947053afa235b4d9b7",
+    "rtl/ngage_dma_channels.v": "7561c15bc5557e4f79d5e947cf29310763baf71dc2a40632e77c7aecda1d7447",
+    "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+    "rtl/ngage_dma_ram_mux.v": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668",
+    "rtl/ngage_dma_route.v": "5e4c77b78ee542e362e09ff383801f1737c66fe606e11b7de93011365c87464a",
+    "rtl/ngage_lcd_stream.v": "b5cdf3356c70fa44869fe9dfaab59af4e193bcc2ad755f3fa4ba7282298c7050",
+    "rtl/ngage_lcd_display.v": "cbfde58e695faad1cfa739c71ebca5ec0426ecc7f8be92eba435877144e348e9",
+    "rtl/ngage_board.v": "4a1fa51a412a249be525aab0d8e78101363e88c5760833d269a39107e7b0e687",
+    "rtl/ngage_mister.v": "5732142a8ffc9353c5b9f25dcb8ed6ce47b42ac5cb0c1eaf049ea3fe0ab47ee8",
+    "rtl/ngage_upp.v": "647698f8ff5054209f27240a2f32c245117ef3c23b431f23ff79f8cbc24dc040",
+    "rtl/ngage_upp_peripherals.v": "3cf99d03169a1246272ef5c71d33e3e128904c14cac6a2806f904c0ecfbaff64",
+    "rtl/ngage_icu.v": "e76bec0b919979c3b84ab80f6449cdb8cfdf0328a81c979ba5d5d28614c99440",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "rtl/ngage_sdram_adapter.v": "ccc665cb28b6ce492c67f4221936d4a58a26f8b0a571602b96dfc69df71d27dc",
+    "tests/phone/dma_handover/README.md": "605a394459bc7d50551d5b025221e00072e593b04aa1073fe085e3a9f52d6c3b",
+    "tests/phone/dma_handover/fast_channels_tb.v": "505c84a229fe40e3d769a0f8e0a682e1ca949b024f57c1238749fdcf1e93da4c",
+    "tests/phone/dma_handover/fence_tb.v": "2a32834eee11d53a492d9d6755a17430677c0a4d59bbd760ffd5ccc119354ab2",
+    "tests/phone/dma_handover/program.S": "b96b1915aa3cb2aaaf73b39ca2beb8fabcf8f7b47231db5695ae5e623187e852",
+    "tests/phone/dma_handover/run-host.sh": "8189d6d9619a2056857a3d4b22bf129d44d7c63215d919f6ef8f228bec0a9628",
+    "tests/phone/dma_handover/run.sh": "d68ff76474f83e7fba95342849e71f2310276bc4272e06a4a9e467a8dd83b159",
+    "tests/phone/dma_handover/tb.v": "d7909f0e05cfdd34a01e2aa47b715f4a5eda103aa830c7865f9a119f9df31add",
+    "tests/phone/dma_handover/transport_tb.v": "94a95aace6c19b6a78b6a59f93d081e654a8fc37eaf7263d1d0bef5fcecad6c2",
+    "tests/phone/dma_isr/README.md": "7483e34a06afeb904b57c1132979717e270f93cdfadd92d9be27b5dfb73132cc",
+    "tests/phone/dma_isr/prepare.py": "0407aba9136627df8a074963d3e85df122319de3cb398d36479ef9ba8e0d08b4",
+    "tests/phone/dma_isr/program.S": "c5ce14bc2b633d5c2d8b113e769e341e05b63d29e6de62af447cd1d29dad8c65",
+    "tests/phone/dma_isr/results.py": "00b0da5cde67fe28301e9f67d70b1a45c15fee92e282b3a8cb11f0c4ac753c82",
+    "tests/phone/dma_isr/run.sh": "3c2d59fcec08ca14f4fd04ae99f9e00973d4f4726fbdb58abc13d3511d4b3784",
+    "tests/phone/dma_isr/tb.v": "7a03ea488b747d0df75567b7f04ca72cf0d93bf1c3462df9629ea548d6afe287",
+    "tests/phone/lcd_stream/README.md": "c470c69c5601f0b3e746521424cdef6c91c8bcf74a090507533a661e659ad6d6",
+    "tests/phone/lcd_stream/comparison_tb.v": "451a88f0fce1719fe8ddd9dc81d70eefef831e181808b16eabe574b3b63eb10c",
+    "tests/phone/lcd_stream/run-comparison.sh": "8a6e9004424c908aa0787e1a8022edce94ff970d0f0693d3f017318a3f43dbe8",
+    "tests/phone/lcd_stream/run.sh": "fbe5bfc9a5218900a94e5684020d42682f7a3dd4a91fe3561a4b818755c008fd",
+    "tests/phone/lcd_stream/tb.v": "be15adf4da243629b7455292325fdb5ef12257c372f4b7f8cd023e79b02eff55",
+    "tests/phone/dma_ram_mux/run.sh": "f05bbf75a1cfcf827aa79b43c6cf44c8cdede644b77442651546b9f56d926720",
+    "tests/phone/dma_ram_mux/tb.v": "fd5cbabecf2b31c6699d7876807191f28722dda3f622e0f2f7252d2e2dddea88",
+    "tests/phone/hardware_boot/tb.v": "1ea7f3227a374b9cf24606cab9229e68f8259aaf7c7cbe8d86eeffa6253099bf",
+    "tests/phone/hardware_boot/run.sh": "1df21c68adfac1ca512d35b16fee103e660dbbe20edba9cfcca7a511ec3cc409",
+    "tests/phone/hardware_boot/run-real-sdram.sh": "b715a599cf73eab86a595645444d6cfc1c6b9c17155e23010feff1ed9678ccc2",
+    "tests/phone/hardware_boot/run-logo.py": "aa52e78be222c1a79680a67cfea8a5992ce3b198b42d4009eeddabcca56c3bac"
+  },
+  "log_sha256": {
+    "scratch/ngage2-integration/lcd-handover/fast/build.log": "7e9b884bb4d3e03d4b59c6896a9f338107b3e04b8ecea84a2b662b762e4f2921",
+    "scratch/ngage2-integration/lcd-handover/fast/hold.log": "f8b33678ecf8cce116edfe2df8843934c7d7e145a7753fa09dc246ca2c466beb",
+    "scratch/ngage2-integration/lcd-handover/fast/logical-reset.log": "d92e9c21b3cbf7f1cae745cb84d7c624f79a411841e050f77d94be419528ac84",
+    "scratch/ngage2-integration/lcd-handover/fast/reset.log": "6cfbb0643c56d6ca46e83f54700ab92128486c190cc36b3498066700d555e40d",
+    "scratch/ngage2-integration/lcd-handover/fast/run.log": "1424d59fa5a4b12c549bd9c5fe18a764db3e11fb637930d96ba2c8e18d8fb9f6",
+    "scratch/ngage2-integration/lcd-handover/generic/build.log": "883e9ccd10c8a1383c986463e01cce3c4d51f9c6b56010d5f1f0a161ab8df0ee",
+    "scratch/ngage2-integration/lcd-handover/generic/hold.log": "4b722dffea00f13cd9fd261a8f321d08cc10a41db858f5642f73dfa9033c5ec3",
+    "scratch/ngage2-integration/lcd-handover/generic/logical-reset.log": "ec2459cb9be9841cef5084b71260d2f70126370295a334969e29086b757e8f07",
+    "scratch/ngage2-integration/lcd-handover/generic/reset.log": "e0174778bdefd2c86d002b7e977bc3319a40b266e357bc7ac001ec35ecc7daad",
+    "scratch/ngage2-integration/lcd-handover/generic/run.log": "5a7de5055ad4bdcdb775c96e0e359c33a94d2215d06cd78c87382b94b3e9a941",
+    "scratch/ngage2-integration/lcd-handover/host-final.log": "4a15f8538832b8db174dcef0c68d526773858faa3fdc3ea5417ef580153a83f5",
+    "scratch/ngage2-integration/lcd-handover/ram-mux.log": "b21604fa699de786e137939a12b08128ed012593c8400120b06447b05af389be",
+    "scratch/ngage2-integration/lcd-handover/ram-mux-lint.log": "86e225a03a8f646532e837f14fa1cf524d5908c9a7bcfe37ed8511c19c9458d3",
+    "scratch/ngage2-integration/lcd-handover/regressions/sdram-ddio.log": "47fb4b9dcb0cc6147e8a4df8d364e9e21a30c994473688cd9ed2c42b7c698791",
+    "scratch/ngage2-integration/lcd-handover/isr-final.log": "d59e001a9e6b88f5f9d82de9a865a49bcbe4990112979789278ac5a1deae7ba3",
+    "scratch/ngage2-integration/lcd-handover/hardware-boot-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "scratch/ngage2-integration/lcd-handover/final-host/channels-1.log": "bbad5d739f3e7c3a53f739314c9461c0212a081bc3222b1cc5321accc895b9fb",
+    "scratch/ngage2-integration/lcd-handover/final-host/channels-3.log": "2827a5e272b548dc66a115b5086179a737902411c48287de65e11d1384a81fd9",
+    "scratch/ngage2-integration/lcd-handover/final-host/dma_engine.log": "75332dd2d7125e5f916be99c9a117b9e74405bdead69d6a4ec92a9d602599602",
+    "scratch/ngage2-integration/lcd-handover/final-host/dma_handover.log": "4a15f8538832b8db174dcef0c68d526773858faa3fdc3ea5417ef580153a83f5",
+    "scratch/ngage2-integration/lcd-handover/final-host/dma_ram_mux.log": "b21604fa699de786e137939a12b08128ed012593c8400120b06447b05af389be",
+    "scratch/ngage2-integration/lcd-handover/final-host/dma_route.log": "781c7ee07b7b016af93504c9f97af450c4d29e017c93ba23b08f77135634452c",
+    "scratch/ngage2-integration/lcd-handover/final-host/icu.log": "c1327f3a82e0739d24d87f43717bd0b2d93b089c77d1596e2dafb6536501c1da",
+    "scratch/ngage2-integration/lcd-handover/final-host/keypad.log": "6b290ed0cb62df6aea29fafa4aed8f9fed6158249f09007d71a5986d402e3fe8",
+    "scratch/ngage2-integration/lcd-handover/final-host/lcd_display.log": "2f641537a4e59f557cfb1b199adc3208ba4201da24a6dbb5a06e1a0215a40757",
+    "scratch/ngage2-integration/lcd-handover/final-host/lcd_dma.log": "c8bc3e31ac74c97d2b42bb809d3bd577faeb6b9c611cb97ac51d89317dc6c59f",
+    "scratch/ngage2-integration/lcd-handover/final-host/lcd_stream.log": "9288cd3637ac035c4df9c71bab38ca7c00e32a25397feb6e22f8278693a40a50",
+    "scratch/ngage2-integration/lcd-handover/final-host/lcd_stream_comparison.log": "cf5848b1363b162c1499dd352c1992ca3443bb7f29d08a454e7a4b7c091ab173"
+  },
+  "matched_legacy_fast_comparison": {
+    "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "network": "none",
+    "pass": true,
+    "origin": "first client read request sampled at edge; legacy register programming excluded",
+    "terminal_sampling": "after sequential updates at terminal edge",
+    "last_pixel_sampling": "accepted sink word at edge",
+    "backend": "actual ngage_sdram_arbiter, identical independent latency-controlled physical memory",
+    "cpu_traffic": false,
+    "pixel_sink": "always ready",
+    "frame_words": 18304,
+    "bitexact_full_stream_compare": true,
+    "measurements": [
+      {
+        "fast": 1,
+        "physical_delay": 0,
+        "words": 18304,
+        "first_request": 5,
+        "last_pixel": 36613,
+        "completion": 36613,
+        "pixel_elapsed": 36608,
+        "completion_elapsed": 36608,
+        "checksum": 110917952
+      },
+      {
+        "fast": 0,
+        "physical_delay": 0,
+        "words": 18304,
+        "first_request": 11,
+        "last_pixel": 36619,
+        "completion": 36619,
+        "pixel_elapsed": 36608,
+        "completion_elapsed": 36608,
+        "checksum": 110917952
+      },
+      {
+        "fast": 1,
+        "physical_delay": 1,
+        "words": 18304,
+        "first_request": 5,
+        "last_pixel": 54917,
+        "completion": 54917,
+        "pixel_elapsed": 54912,
+        "completion_elapsed": 54912,
+        "checksum": 110917952
+      },
+      {
+        "fast": 0,
+        "physical_delay": 1,
+        "words": 18304,
+        "first_request": 11,
+        "last_pixel": 54923,
+        "completion": 54923,
+        "pixel_elapsed": 54912,
+        "completion_elapsed": 54912,
+        "checksum": 110917952
+      },
+      {
+        "fast": 1,
+        "physical_delay": 3,
+        "words": 18304,
+        "first_request": 5,
+        "last_pixel": 91525,
+        "completion": 91525,
+        "pixel_elapsed": 91520,
+        "completion_elapsed": 91520,
+        "checksum": 110917952
+      },
+      {
+        "fast": 0,
+        "physical_delay": 3,
+        "words": 18304,
+        "first_request": 11,
+        "last_pixel": 91531,
+        "completion": 91531,
+        "pixel_elapsed": 91520,
+        "completion_elapsed": 91520,
+        "checksum": 110917952
+      }
+    ],
+    "sha256": {
+      "rtl/ngage_lcd_stream.v": "b5cdf3356c70fa44869fe9dfaab59af4e193bcc2ad755f3fa4ba7282298c7050",
+      "rtl/ngage_lcd_dma.v": "4a2471ea9881e99d461dc46de6e252b39558011ac05b346b3b0f3b09e1c60581",
+      "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+      "tests/phone/lcd_stream/comparison_tb.v": "451a88f0fce1719fe8ddd9dc81d70eefef831e181808b16eabe574b3b63eb10c",
+      "tests/phone/lcd_stream/run-comparison.sh": "8a6e9004424c908aa0787e1a8022edce94ff970d0f0693d3f017318a3f43dbe8",
+      "tests/phone/lcd_stream/README.md": "c470c69c5601f0b3e746521424cdef6c91c8bcf74a090507533a661e659ad6d6"
+    }
+  },
+  "original_driver_evidence": {
+    "date": "2026-11-11",
+    "scope": "Static original-software contract; no phone timing or electrical-polarity claim",
+    "fixture_sha256": {
+      "ngage-rom-0x50000000.dmp": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "lcd.ldd": "50b89c21f72a03cdadd611c2fceb73b770103074d4924ed5ee121e51b86e9f06"
+    },
+    "ldd_address_mapping": "ROM bias 0x504001e0 plus file offset; code begins at file offset0x64",
+    "original_ldd_blocks": {
+      "row_band": [
+        {
+          "address": "00000224",
+          "mnemonic": "push",
+          "operands": "{r4, lr}"
+        },
+        {
+          "address": "00000228",
+          "mnemonic": "mov",
+          "operands": "r3, r0"
+        },
+        {
+          "address": "0000022c",
+          "mnemonic": "add",
+          "operands": "r4, r1, r1, lsl #5"
+        },
+        {
+          "address": "00000230",
+          "mnemonic": "lsl",
+          "operands": "r4, r4, #3"
+        },
+        {
+          "address": "00000234",
+          "mnemonic": "add",
+          "operands": "r1, r3, r1"
+        },
+        {
+          "address": "00000238",
+          "mnemonic": "bl",
+          "operands": "#0x364"
+        },
+        {
+          "address": "0000023c",
+          "mnemonic": "mov",
+          "operands": "r0, r4"
+        },
+        {
+          "address": "00000240",
+          "mnemonic": "pop",
+          "operands": "{r4, lr}"
+        },
+        {
+          "address": "00000244",
+          "mnemonic": "b",
+          "operands": "#0x460"
+        }
+      ],
+      "row_parameters": [
+        {
+          "address": "00000364",
+          "mnemonic": "push",
+          "operands": "{r4, r5, lr}"
+        },
+        {
+          "address": "00000368",
+          "mnemonic": "mov",
+          "operands": "r5, r0"
+        },
+        {
+          "address": "0000036c",
+          "mnemonic": "mov",
+          "operands": "r4, r1"
+        },
+        {
+          "address": "00000370",
+          "mnemonic": "mov",
+          "operands": "r0, #0x75"
+        },
+        {
+          "address": "00000374",
+          "mnemonic": "mov",
+          "operands": "r1, #4"
+        },
+        {
+          "address": "00000378",
+          "mnemonic": "bl",
+          "operands": "#0x4a38"
+        },
+        {
+          "address": "0000037c",
+          "mnemonic": "and",
+          "operands": "r5, r5, #0xff"
+        },
+        {
+          "address": "00000380",
+          "mnemonic": "and",
+          "operands": "r4, r4, #0xff"
+        },
+        {
+          "address": "00000384",
+          "mnemonic": "orr",
+          "operands": "r0, r5, r4, lsl #20"
+        },
+        {
+          "address": "00000388",
+          "mnemonic": "bl",
+          "operands": "#0x4378"
+        },
+        {
+          "address": "0000038c",
+          "mnemonic": "mov",
+          "operands": "r0, #0"
+        },
+        {
+          "address": "00000390",
+          "mnemonic": "pop",
+          "operands": "{r4, r5, lr}"
+        },
+        {
+          "address": "00000394",
+          "mnemonic": "b",
+          "operands": "#0x4378"
+        }
+      ],
+      "pixel_header": [
+        {
+          "address": "00000460",
+          "mnemonic": "push",
+          "operands": "{r4, lr}"
+        },
+        {
+          "address": "00000464",
+          "mnemonic": "mov",
+          "operands": "r4, r0"
+        },
+        {
+          "address": "00000468",
+          "mnemonic": "mov",
+          "operands": "r0, #0x5c"
+        },
+        {
+          "address": "0000046c",
+          "mnemonic": "mov",
+          "operands": "r1, #0"
+        },
+        {
+          "address": "00000470",
+          "mnemonic": "bl",
+          "operands": "#0x4a38"
+        },
+        {
+          "address": "00000474",
+          "mnemonic": "sub",
+          "operands": "r4, r4, #1"
+        },
+        {
+          "address": "00000478",
+          "mnemonic": "orr",
+          "operands": "r0, r4, #0x89000000"
+        },
+        {
+          "address": "0000047c",
+          "mnemonic": "orr",
+          "operands": "r0, r0, #0x240000"
+        },
+        {
+          "address": "00000480",
+          "mnemonic": "pop",
+          "operands": "{r4, lr}"
+        },
+        {
+          "address": "00000484",
+          "mnemonic": "b",
+          "operands": "#0x4330"
+        }
+      ]
+    },
+    "row_band_contract": {
+      "row_end": "start + length",
+      "transport_bytes": "264 * length",
+      "DMA_memory_bytes": "352 * length (88 32-bit words per row)",
+      "header": "0x89240000 | (transport_bytes - 1)",
+      "full_frame_header": "0x8924d67f",
+      "bounds": "176x208; full-width columns2..177; no arbitrary rectangle/wrap interpretation"
+    },
+    "request_helper": {
+      "address": "0x50324d04",
+      "instructions": [
+        {
+          "address": "50324d04",
+          "mnemonic": "push",
+          "operands": "{r4, lr}"
+        },
+        {
+          "address": "50324d08",
+          "mnemonic": "lsr",
+          "operands": "r0, r0, #6"
+        },
+        {
+          "address": "50324d0c",
+          "mnemonic": "lsl",
+          "operands": "r0, r0, #2"
+        },
+        {
+          "address": "50324d10",
+          "mnemonic": "lsl",
+          "operands": "r4, r2, r0"
+        },
+        {
+          "address": "50324d14",
+          "mnemonic": "lsl",
+          "operands": "r0, r1, r0"
+        },
+        {
+          "address": "50324d18",
+          "mnemonic": "ldr",
+          "operands": "r1, [pc, #0x10]"
+        },
+        {
+          "address": "50324d1c",
+          "mnemonic": "bl",
+          "operands": "#0x503245bc"
+        },
+        {
+          "address": "50324d20",
+          "mnemonic": "mov",
+          "operands": "r0, r4"
+        },
+        {
+          "address": "50324d24",
+          "mnemonic": "ldr",
+          "operands": "r1, [pc, #8]"
+        },
+        {
+          "address": "50324d28",
+          "mnemonic": "pop",
+          "operands": "{r4, lr}"
+        },
+        {
+          "address": "50324d2c",
+          "mnemonic": "b",
+          "operands": "#0x503245bc"
+        }
+      ],
+      "literal_addresses": {
+        "00120064": [
+          "50324d34"
+        ],
+        "00120068": [
+          "50324d30"
+        ]
+      },
+      "software_interpretation": "Clear selected nibble with write68, then select line with write64; physical polarity remains unverified",
+      "known_lines": {
+        "LCD": 7,
+        "MMC": 2
+      }
+    },
+    "firmware_observation_boundary": "Initial full-clear header corroborated by maintained startup evidence; band behavior derives from original driver arithmetic, not a new phone capture",
+    "suggested_band_vectors": [
+      {
+        "start": 0,
+        "rows": 208,
+        "row_end": 208,
+        "header": "8924d67f",
+        "words": 18304,
+        "first_pixel_word": 0
+      },
+      {
+        "start": 3,
+        "rows": 7,
+        "row_end": 10,
+        "header": "89240737",
+        "words": 616,
+        "first_pixel_word": 264
+      },
+      {
+        "start": 207,
+        "rows": 1,
+        "row_end": 208,
+        "header": "89240107",
+        "words": 88,
+        "first_pixel_word": 18216
+      },
+      {
+        "start": 0,
+        "rows": 1,
+        "row_end": 1,
+        "header": "89240107",
+        "words": 88,
+        "first_pixel_word": 0
+      }
+    ]
+  },
+  "original_ISR": {
+    "scope": "Original ISR called directly on ZAP; no full kernel IRQ dispatch claim",
+    "inputs": {
+      "rom_sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "original_instruction_range": [
+        "50320000",
+        "503d0000"
+      ],
+      "instruction_window_sha256": "3b543ab996682f64c3c248a96b7b15f6b4f2e69f0d920b6e83e004c1161dcfab",
+      "executed_original_entries": [
+        "5032ca14",
+        "50321860",
+        "503212c0",
+        "50330c7c",
+        "50330d10",
+        "50321868",
+        "50331c08",
+        "50328460"
+      ],
+      "instruction_substitutions": [],
+      "fixture_only": [
+        "virtual 5812xxxx to physical 0c12xxxx register mapping",
+        "synthetic ISR wrapper/channel/vtable objects in kernel RAM",
+        "synthetic IRQ limit/table with captured disable at 5812010c",
+        "synthetic section page-table entry for original VA lookup",
+        "fixture callback counts and verifies original ISR completion",
+        "bounded SDRAM and kernel scratch RAM"
+      ]
+    },
+    "results": [
+      {
+        "wait_cycles": 0,
+        "cycles": 11067,
+        "result": "PASS original NEM-4 DMA ISR wait=0 cycles=11067 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+        "log_sha256": "847cde608851af75204f935196b9ab2da9768eabe04667d10b188056ec3c7bb6"
+      },
+      {
+        "wait_cycles": 3,
+        "cycles": 16449,
+        "result": "PASS original NEM-4 DMA ISR wait=3 cycles=16449 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+        "log_sha256": "bd39a7fb43f5fec1607e08b3d0f6aeec3442d79cee0f65aea053eb49e87d6cc2"
+      }
+    ],
+    "all_measured_source_hashes_match_current": true,
+    "manifest_sha256": "940f660a3c342b4f129b1c511aafedb675cdc5e162e48a7870ae387e67bb923f"
+  },
+  "CPU_frame_AB": {
+    "source_scope": "Complete CPU fixtures before final transport eligibility gate/phase10 extension; not the final extended CPU run",
+    "fast_frame_clocks": 130685,
+    "generic_frame_clocks": 306802,
+    "words": 18304,
+    "ratio": 2.347645100814937,
+    "CPU_command_interleaving": true,
+    "synthetic_RAM_waits": 3,
+    "physical_phone_timing_claim": false
+  },
+  "accepted_tests": [
+    "Final host generic-done/fast-eight-channel/queued-tail fences",
+    "Final host actual board midstream transport reset after four pixels",
+    "Matched legacy/fast whole-frame word oracle at three delays",
+    "244 direct/native fast-stream cases",
+    "4914 generic engine cases",
+    "Generic channel pools 1 and3",
+    "Captured RAM mux fairness/ownership/masks/reset",
+    "Original ISR/callees at waits0/3",
+    "Earlier full production CPU fast/general frame, rowband, mask/ACK, peer progress, reset and CPU Hold tests",
+    "LCD framing/geometry, ICU96/1584, bridge, route, keypad, legacyLCD",
+    "Micron DDIO78/104MHz with four pin delays and wrong-edge negative control",
+    "181-file/9-QIP source graph"
+  ],
+  "pending": [
+    "Final extended CPU phase10 run in fast and generic profiles",
+    "Fresh five-million-cycle bounded boot smoke",
+    "Final pinned formatter check after latest small transport-gate edits",
+    "FPGA fit/timing and new MiSTer hardware test"
+  ],
+  "blocker": {
+    "kind": "Local storage exhaustion and Docker containerd metadata I/O failure",
+    "boot_build": "Generated C++ compile failed writing PCH: No space left on device",
+    "daemon_health": "Bounded read-only docker version and docker desktop status still time out after host storage recovery; Desktop backend processes exist.",
+    "latest_free_space": "91 GiB on 460 GiB APFS data volume after user cleanup",
+    "cleanup": "Only rebuildable integration caches; no checkpoint/image/executable or other checkout deletion",
+    "restart": "Not performed; approval pending because other simulation containers could be interrupted."
+  },
+  "failed_approach": {
+    "manual_78MHz_default_phase": "Failed with Z read because wrong sampling configuration was used; maintained DDIO/falling-edge matrix subsequently passed. See regressions/sdram-78-wrong-phase.log."
+  },
+  "isolation": "No old simulation resume, checkpoint mutation, Docker daemon restart or other simulation process action. Only own stalled formatter/status clients canceled.",
+  "historical_checkpoint": true,
+  "superseded_by": "docs/evidence/lcd-dma-final-2026-11-11.json",
+  "current_status": "Final CPU/boot/formatter/top passes; production slow LCD switch removed and rerun passes. Original pending/blocker fields describe capture time."
+}

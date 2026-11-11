@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "8ff8b11b2527e8eed4ccb85f27304d2f326874ec",
+  "simulator_image": "jotego/simulator:arm64",
+  "source_hashes": {
+    "Template.sv": "2b664e5c5fcec17db4e106f87b086ae4a3d4b6ff7216c94af79c5a9a9ff296a5",
+    "rtl/ngage_upp.v": "a5166ac4a678d2ef7c1510e7a1e12c9a125997beec834236c8e457e2f1f84583",
+    "rtl/ngage_board.v": "1d6b80f5dcf903bd60e4f1fb41d5de334d29716a0acca587a316082b536f7078",
+    "rtl/ngage_mister.v": "6e5b88840a42b5188d7f4edc2a06765b9817115a8ce30db426601bd3ac923a6f",
+    "rtl/ngage_dma_route.v": "5e4c77b78ee542e362e09ff383801f1737c66fe606e11b7de93011365c87464a",
+    "tests/phone/mister_board_cpu/tb.v": "3059c0f15f5bc65c6c2489201caf5697d3c6b812f4672df5004099fa539158ca",
+    "tests/phone/mister_board_cpu/program.S": "2fe6700b8cb402555ef3e148aae8fb356f611656b9388d91677299598a4366f6"
+  },
+  "log_hashes": {
+    "scratch/ngage2-integration/live-upp/arm-board.log": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e",
+    "scratch/ngage2-integration/live-upp/dma-route.log": "781c7ee07b7b016af93504c9f97af450c4d29e017c93ba23b08f77135634452c",
+    "scratch/ngage2-integration/live-upp/upp-bridge.log": "a8e05eb00d1fecbe970db2ef667df5628bc8a1ae110337cbe3858deec253caf8",
+    "scratch/ngage2-integration/live-upp/keypad.log": "6b290ed0cb62df6aea29fafa4aed8f9fed6158249f09007d71a5986d402e3fe8",
+    "scratch/ngage2-integration/live-upp/lcd.log": "c8bc3e31ac74c97d2b42bb809d3bd577faeb6b9c611cb97ac51d89317dc6c59f",
+    "scratch/ngage2-integration/live-upp/top.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2",
+    "scratch/ngage2-integration/live-upp/format.log": "ad8574591bb64854a565dc56ff61addf5aa1388f2bbb97660041e889d7c36583"
+  },
+  "test_results": {
+    "arm-board": [
+      "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits",
+      "PASS DMA via live UPP shared RAM, LCD FIFO and owned error completion"
+    ],
+    "dma-route": [
+      "PASS DMA route paced FIFO, CPU contention, shared RAM masks, SDRAM, rejects and reset"
+    ],
+    "upp-bridge": [
+      "PASS UPP bridge mode=0: waits, exact-once writes, registered data/errors, cancellation and reset",
+      "PASS UPP bridge mode=1: waits, exact-once writes, registered data/errors, cancellation and reset"
+    ],
+    "keypad": [
+      "PASS keypad matrix, rocker and held/released host controls",
+      "PASS board keypad rocker, matrix, shared W1C and UEM PWRONX",
+      "PASS keypad drive banks, bidirectional 20-key scan, press/W1C, lanes and routed GENIO"
+    ],
+    "lcd": [
+      "PASS LCD DMA destination, stalls, data and completion IRQ",
+      "PASS LCD full DMA through SDRAM arbiter words=18304 checksum=02b0e100",
+      "SKIP retained firmware LCD trace unavailable"
+    ],
+    "top": [
+      "PASS top-level structural elaboration (HPS and PLL stubbed)"
+    ]
+  },
+  "nos_rom_audit": {
+    "fixtures": {
+      "ngage-rom-0x50000000.dmp": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "ngage-gsmstuff-0x5149D280.dll": "e5870e918c90d9c7a6403eb0ee305d174e906aeae0a7fa8069e85a18aeec7aa1"
+    },
+    "kernel_cancel": {
+      "0x5033511c": "mov r0, r6",
+      "0x50335120": "mov r1, r5",
+      "0x50335124": "mvn r2, #2",
+      "0x50335128": "bl #0x50334fcc",
+      "0x5033512c": "ldr r3, [r6]",
+      "0x50335130": "mov r0, r6",
+      "0x50335134": "mov r1, r5",
+      "0x50335138": "mov lr, pc",
+      "0x5033513c": "ldr pc, [r3, #0x1c]"
+    },
+    "kernel_status_clear": {
+      "0x50329c6c": "ldr r3, [r1]",
+      "0x50329c70": "mov ip, #0",
+      "0x50329c74": "str ip, [r1]",
+      "0x50329c78": "ldr ip, [r0, #0x24]",
+      "0x50329c7c": "cmp ip, #3"
+    },
+    "ldd_cancel_thunk": {
+      "0x511b41e8": "stmdb sp!, {lr}",
+      "0x511b41ec": "ldr r0, [r0, #0x38]",
+      "0x511b41f0": "ldr r3, [r0, #4]",
+      "0x511b41f4": "mov lr, pc",
+      "0x511b41f8": "ldr pc, [r3, #0xc]",
+      "0x511b41fc": "ldm sp!, {pc}"
+    },
+    "charger_provider_calls": {
+      "0x515944a8": "bl #0x515c1dc0",
+      "0x515944c4": "bl #0x515c1e4c"
+    },
+    "runtime_fixture": "Pending. Host Unicorn 2.1.4 faults in init_cache_info on a one-instruction control."
+  }
+}

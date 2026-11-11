@@ -1,0 +1,176 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "8ff8b11b2527e8eed4ccb85f27304d2f326874ec",
+  "donor_commit": "e3d2bf778319bdf4ef2bf21a4fc7376186b00a63",
+  "simulator_image": "jotego/simulator:arm64",
+  "nem4_read_only_audit": {
+    "firmware_fixture_sha256": {
+      "ngage-rom-0x50000000.dmp": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "ngage-gsmstuff-0x5149D280.dll": "e5870e918c90d9c7a6403eb0ee305d174e906aeae0a7fa8069e85a18aeec7aa1",
+      "window-dec.bin": "01a78abfcbc9ff78ff0e5fb46345ba3f51519a7ebfd6949e3e96ae5f894531dc",
+      "trace-50m.log": "7cbf2c6824672a52c3078999c16626ecfce8a7a6ca50e14b4afc72381d1edac7"
+    },
+    "verified_nos_exports": [
+      "0x514a183c",
+      "0x514a1554",
+      "0x514a1654",
+      "0x514a0a50",
+      "0x514a14cc",
+      "0x514a13cc"
+    ],
+    "verified_nos_overlap_bytes": 2186624,
+    "bounded_trace_entry_hits": {
+      "dfc": {
+        "pc": "0x514a18d4",
+        "count": 6
+      },
+      "mailbox_pump": {
+        "pc": "0x514a10cc",
+        "count": 10
+      },
+      "phonet_router": {
+        "pc": "0x514bce38",
+        "count": 0
+      },
+      "resource_dispatch": {
+        "pc": "0x51530c2c",
+        "count": 0
+      },
+      "energy_dispatch": {
+        "pc": "0x515937ac",
+        "count": 0
+      },
+      "sim_dispatch": {
+        "pc": "0x516601a8",
+        "count": 0
+      },
+      "info_dispatch": {
+        "pc": "0x51591bd0",
+        "count": 0
+      }
+    },
+    "irq_dispatcher": {
+      "pc": "0x5032287c",
+      "bank_current_aliases": [
+        "0x58120114",
+        "0x58120154",
+        "0x58120194"
+      ],
+      "handler_base": "0x5c"
+    }
+  },
+  "source_hashes": {
+    "rtl/ngage_icu.v": "102b8fc2ff8a76560bc8a0e327b4541650eedeed9adc3d0ac90ad3b1573ba104",
+    "tests/phone/icu/tb.sv": "7c4340588878c0472eac1861e355f85e80a59cb1de0b9063b1778c476e6c27c7",
+    "rtl/ngage_sdram_arbiter.v": "0ad14b95821a54c412b379b8672043416db09944006e169947e93ac63b62a0bd",
+    "tests/phone/sdram/arbiter_tb.sv": "f7dae9f64398edf644bb4bd500670d52b5e7117cbcce99d35c866e54a87cad1b",
+    "rtl/ngage_modem.v": "ebf3627db66f0d3734e39369bb0b5fad1b526711358fcfb39098cbba400fe67c",
+    "scratch/modem/ngage_modem.c": "09e4a8bb34ddc70f9e40fd5cbd6492d09d05bbc4b326f2069b0dfa8eaf5d8a1b",
+    "scratch/modem/gen_vectors.c": "18c45688affa6e0aaf8b2948be70cfdd71156ff80786a1a4ab71fb48cb76a756",
+    "scratch/modem/tb_modem.v": "555a8e1281c21b306a33f27db859b0a8e0b8964cb6174b0de0722af1c942963c"
+  },
+  "log_hashes": {
+    "scratch/ngage2-integration/peripheral-preflight/icu.log": "c1327f3a82e0739d24d87f43717bd0b2d93b089c77d1596e2dafb6536501c1da",
+    "scratch/ngage2-integration/peripheral-preflight/previous-icu.log": "2114b5d903b2706c282cccfc7877d33dd3e65f2c5f292da7c63857a03a971f52",
+    "scratch/ngage2-integration/peripheral-preflight/arbiter.log": "e212b161d10a28d558bbee1f5c944d25d19e97d2341318d0243c209a28cffac7",
+    "scratch/ngage2-integration/peripheral-preflight/sdram.log": "73ebed2216f4e111e2a7b2084bce97d03a6c90bd17d9affcad7d5a907502fd60",
+    "scratch/ngage2-integration/peripheral-preflight/board-cpu.log": "026f2c8a456703f7aa73b974733e42e49db6dde32d636982881c81547c8eda59",
+    "scratch/ngage2-integration/peripheral-preflight/timers.log": "47f2fbec1ff5c46a43c92a13597968927657b39618a6b6acb3dcae8a082f2ea1",
+    "scratch/ngage2-integration/peripheral-preflight/timer_rates.log": "59c3bdd2110146f39073a6166328f80a4e0266d7cd9bb29d5598fe098977d894",
+    "scratch/ngage2-integration/peripheral-preflight/nos_io.log": "ad943f25e10677ddc38898924323c525c499f46cb4b5c8e038abc96fa1a23893",
+    "scratch/ngage2-integration/peripheral-preflight/keypad.log": "6b290ed0cb62df6aea29fafa4aed8f9fed6158249f09007d71a5986d402e3fe8",
+    "scratch/ngage2-integration/peripheral-preflight/cbus.log": "4f9ce8f706a5b6fa8c934680505a6c763ec6b6dab69d2f4811d61b3148b55ac2",
+    "scratch/ngage2-integration/peripheral-preflight/lcd_dma.log": "b89798bf65b0ca237bc5ac5cbc69825f780fd18319be3718ae475b80afecc848",
+    "scratch/ngage2-integration/peripheral-preflight/modem-c.log": "7542a4234c9cf086d13ccb624fe652c59aff35b7808dba0a91a667bb6faa2397",
+    "scratch/ngage2-integration/peripheral-preflight/modem-rtl.log": "d2a77f677bda045536b4bfdea56a48d3640d7f915207952296f34efb93639033",
+    "scratch/ngage2-integration/peripheral-preflight/top.log": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2",
+    "scratch/ngage2-integration/peripheral-preflight/format.log": "19a12b37283eac9117edc8ad8c5c14a9108db45d6b60a15faa850a4a7bc186b5",
+    "scratch/ngage2-integration/peripheral-preflight/sourcegraph.log": "443ef84bd902641713f8dea8cd94b9bb5ce5a8ba0f950f666792e56deab68d62"
+  },
+  "results": {
+    "icu": [
+      "PASS ICU priority, masks, FIQ and committed clears",
+      "PASS ICU all 96 sources and 1584 within-bank priority pairs"
+    ],
+    "previous-icu": [
+      "FATAL: tests/phone/icu/tb.sv:9: read 0c120114 got 00000000 expected 00000003"
+    ],
+    "arbiter": [
+      "PASS SDRAM CPU/DMA arbitration and SWP lock",
+      "PASS SDRAM 32 alternating CPU/DMA grants, captured writes and reset cancellation"
+    ],
+    "sdram": [
+      "PASS SDRAM real controller and model, refreshes=361 checked_short_reads=113 halfwords=904 wait_clocks=1447",
+      "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+      "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+      "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+      "PASS concurrent SDRAM banks: commands=600 stops=0 halfwords=4800 refreshes=151 clocks=8920",
+      "PASS concurrent SDRAM banks: commands=600 stops=300 halfwords=3000 refreshes=179 clocks=8173",
+      "PASS concurrent SDRAM banks: commands=600 stops=0 halfwords=4800 refreshes=151 clocks=8920",
+      "PASS concurrent SDRAM banks: commands=600 stops=300 halfwords=3000 refreshes=179 clocks=8173"
+    ],
+    "board-cpu": [
+      "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits"
+    ],
+    "timers": [
+      "PASS staged boot and unit timers"
+    ],
+    "timer_rates": [
+      "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 78000000",
+      "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 104000000"
+    ],
+    "nos_io": [
+      "PASS NOS counter wrap, compare, status and software IRQ"
+    ],
+    "keypad": [
+      "PASS keypad matrix, rocker and held/released host controls",
+      "PASS board keypad rocker, matrix, shared W1C and UEM PWRONX",
+      "PASS keypad drive banks, bidirectional 20-key scan, press/W1C, lanes and routed GENIO"
+    ],
+    "cbus": [
+      "PASS CBUS sequencing, RTC and ADC hypotheses",
+      "PASS CBUS sequencing, RTC and ADC hypotheses"
+    ],
+    "lcd_dma": [
+      "PASS LCD DMA destination, stalls, data and completion IRQ",
+      "PASS LCD full DMA through SDRAM arbiter words=18304 checksum=02b0e100",
+      "SKIP retained firmware LCD trace unavailable"
+    ],
+    "modem-c": [
+      "PASS energy charger flags=1",
+      "PASS energy charger flags=0 fail",
+      "PASS energy charger flags=5 fail",
+      "PASS energy battery flags=3",
+      "PASS energy battery flags=1F",
+      "PASS energy unknown id",
+      "PASS phone-info IMEI",
+      "PASS SIM unregistered -> not reachable",
+      "PASS SIM cardless -> 0xFC not serving",
+      "PASS SIM starting -> 0xFB",
+      "PASS SIM serving -> IMSI OK",
+      "PASS SIM cache invalid -> 0x24",
+      "PASS SIM svc!=0x2D -> 0xFA",
+      "PASS SIM 0x64 -> 0x65 not serving",
+      "PASS unknown resource -> not reachable",
+      "PASS accessory 0x10->0x11",
+      "PASS wrong rx device -> no reply",
+      "PASS runt frame -> no reply"
+    ],
+    "modem-rtl": [
+      "ALL 2022 VECTORS PASS (RTL == C model, byte-exact)"
+    ],
+    "top": [
+      "PASS top-level structural elaboration (HPS and PLL stubbed)"
+    ],
+    "sourcegraph": [
+      "PASS Quartus 17 source graph: 176 required files, 9 unique QIPs"
+    ]
+  },
+  "previous_icu": "Expected failure with only bank 0 IRQ 2 pending and enabled",
+  "open": [
+    "B1 production on-chip RAM and paced FIFO routes",
+    "P1 NEM-4 DMA/MMC/audio source and alias evidence",
+    "N1 original-service request/reply and channel-lifecycle traces",
+    "Quartus fit and hardware behavior"
+  ]
+}

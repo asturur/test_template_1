@@ -1,0 +1,80 @@
+{
+  "donor_base_commit": "7be19cd26024424f83fe825f94155382a5aeca0d",
+  "branch": "codex/mmc-payload-eof-fix",
+  "committed": false,
+  "pushed": false,
+  "scope": "Applied donor source and focused tests; no production integration MMC wiring, Docker or other simulations/checkpoints changed.",
+  "patch": {
+    "path": "docs/evidence/donor-mmc-safety-2026-11-11.patch",
+    "bytes": 47799,
+    "sha256": "762b46984b50fa956882d5bc09d84585041ce760693dd05b55b6bc5b30b49117",
+    "reverse_check": "PASS against actual working copy; applies all three fixes/tests to base 7be19cd"
+  },
+  "sources": [
+    {
+      "path": "rtl/board/mmc_card.sv",
+      "bytes": 40417,
+      "sha256": "3dad56b55982c4589b173850066ca4e8297c68d88fb376d7529912ac5f73c434"
+    },
+    {
+      "path": "rtl/upp/upp_mmc.sv",
+      "bytes": 21681,
+      "sha256": "ff319b6ed1347b735d2fe2ec72748274ac9e723b9db49756cd697d98309b5ef5"
+    },
+    {
+      "path": "sim/mmc-eof/tb.v",
+      "bytes": 14117,
+      "sha256": "60c31bf1f5b381db43214eb58ff63bac4d29548bb25f78181ee6dd4a8e0d1a38"
+    },
+    {
+      "path": "sim/mmc-eof/run-one.sh",
+      "bytes": 514,
+      "sha256": "d7aab1ba418486a35f81b0320cc7d281b2a2b89d3e9526a915b1df3ebef4f741"
+    },
+    {
+      "path": "sim/mmc-footer-version/tb.v",
+      "bytes": 13237,
+      "sha256": "3b3d27079efa392a11c9ec549116d9370c3c2b0b2e2c4791ecc11281afb3510c"
+    },
+    {
+      "path": "sim/mmc-footer-version/run-one.sh",
+      "bytes": 462,
+      "sha256": "67d9dbfd18233c8fc3b4092e7db8bfcaa2b4eebac000b40190be3e7d459b43e8"
+    },
+    {
+      "path": "sim/mmc-cmd16/tb.v",
+      "bytes": 10369,
+      "sha256": "6bf37ca55017972b69520107b6ee5c372fa7e1431bba0d996e4bbf660574bc88"
+    },
+    {
+      "path": "sim/mmc-cmd16/run.sh",
+      "bytes": 413,
+      "sha256": "57abde4d8bf891990ca4b64e6b5768e96cb7f54657bd626db3389982ae4f4d2b"
+    }
+  ],
+  "host_results": [
+    {
+      "test": "mmc-eof",
+      "clocks": 282492,
+      "result": "PASS after card version change"
+    },
+    {
+      "test": "mmc-footer-version",
+      "clocks": 196894,
+      "result": "PASS against applied card"
+    },
+    {
+      "test": "mmc-cmd16",
+      "clocks": 118914,
+      "probes": 31,
+      "result": "PASS against applied host"
+    }
+  ],
+  "pending": [
+    "Pinned-image focused runs",
+    "Existing donor C++/Verilator MMC regression",
+    "General response framing error policy",
+    "HPS mount/reset transaction ownership",
+    "Production Verilog-2001 port and original-driver/firmware acceptance"
+  ]
+}

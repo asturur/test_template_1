@@ -1,3 +1,219 @@
+## 2026-11-11: Integration source checkpoint for hardware testing
+
+The user authorized committing and pushing the accumulated integration work
+on `codex/ngage2-integration`. This checkpoint includes NOS ABI fixtures,
+general DMA/IRQ ownership, the single fast LCD path, native Verilog-2001 MMC
+and validated read-only slot-2 backing, with the evidence below. No firmware,
+save images, build objects or other checkout's checkpoints belong to the commit.
+
+Build a new RBF from this source before testing the slot-2 MMC menu. A validated
+NGAGEMMC v1 `.mmc` image can be attached read-only; original Symbian filesystem
+mounting/file use and game launch still require P3.4 acceptance. Writable MMC
+remains P3.5. Existing validation manifests retain their measured base commit
+and exact source hashes. Publishing this checkpoint does not deploy a build.
+
+## 2026-11-11: Read-only MMC production wiring verified locally
+
+Template slot 2 now connects the native Verilog-2001 MMC host/card through a
+read-only owned HPS adapter. The host sits in UPP, the card on the board; the
+D550/AMA path remains an explicit transaction-level shortcut. IRQ 21/23/24 are
+wired and 22 stays low. Strict original-metadata admission prevents raw fallback
+or CRC repair from inventing a production identity. Guest reset/remount drains
+the accepted HPS generation and reloads retained media; cold initialization
+forgets media, and size-zero removal is quiet.
+
+All 36 direct HPS cases, the actual-interface fixture, 30 bus cases and the
+96-transfer DMA matrix pass. Authored ARM identification/CID/PIO/DMA/IRQ/WP
+passes in 29,010 clocks, or 29,424 with CPU Hold during metadata. The internal
+queued-CMD12 hint suppresses speculative HPS reads. Existing LCD/reset tests
+remain at 130,685 frame clocks; original ISR and fresh 5M boot pass. Formatter,
+185-file source graph and stubbed top pass, with 169 input hashes unchanged. Sol High implemented
+the slices and Astra found no remaining blocker in final source review.
+
+Evidence: [mmc-production-2026-11-11.json](evidence/mmc-production-2026-11-11.json).
+No original EPBUS, firmware mount/launch, physical routing/timing or FPGA fit is
+claimed. P3.4 original-driver/firmware read acceptance is next; writable media
+and safe replacement stay gated by P3.5. No commit/push/deployment occurred.
+The other checkout's simulations/checkpoints are untouched. See
+[P3.3](../merge-plan.md) and [MMC details](mmc-port.md).
+
+## 2026-11-11: Production LCD/IRQ handover with preserved stream speed
+
+The production profile now uses general eight-channel DMA/IRQ ownership and
+the dedicated fast LCD stream by default. Normal queued FIFO/cursor placement
+replaces source-address framebuffer placement. Full-width original-driver
+row bands, last-pixel completion, channel ACK versus IRQ masking, canceled
+tails, unsupported transfers and CPU-Hold reset cancellation are covered.
+
+Matched old/new 18,304-word streams are identical and take exactly
+36,608/54,912/91,520 clocks at the three tested RAM delays. The separate CPU
+fixture is 130,685 clocks per full frame versus 306,802 on the general LCD
+word path. These are synthetic transport results, not board timings.
+
+Current host tests, prior full CPU A/B/reset tests and original ISR execution
+pass. The last transport-reset fix passes an actual-board host test. Storage
+exhaustion interrupted the final boot build and left Docker unresponsive.
+The user freed 91 GiB and initiated a restart. Logs confirmed its VM stopped
+cleanly but the old application backend remained stuck. After the normal
+restart command timed out, only the verified stale Docker application was
+quit and relaunched with the VM already stopped. Engine 28.0.4 now responds;
+the existing pinned image is intact. No data/settings reset, other simulation
+operation or checkpoint mutation occurred.
+
+Final CPU A/B passes all four modes with phase 10 and the same 1,376-byte ARM
+program. Fast normal/held totals are 152,456/152,537 clocks; general totals
+334,970/335,072. Frame intervals remain 130,685/306,802. Per user policy the
+slow LCD switch is now removed; eligible SDRAM streams automatically, with
+the necessary on-chip RAM general route retained. The single-path CPU/reset
+rerun, original ISR, host fences and pinned formatter pass again.
+
+Fresh 5M boot and stubbed top/source graph pass. Boot stops in the original
+low-ROM delay loop at `00006164`, with 351,379 transactions, 12 known fetch
+faults, zero data errors and no frame completion. Its DDR profile does not
+cover Template's selected D1/D2/D3 chain. Final evidence is in
+[lcd-dma-final-2026-11-11.json](evidence/lcd-dma-final-2026-11-11.json).
+Do not claim a new full-phone boot or resume old checkpoints on this layout.
+See [LCD DMA handover](lcd-dma-handover.md) and [the plan](../merge-plan.md).
+
+## 2026-11-11: P3 MMC audit, image preservation and isolated EOF fix
+
+Independent host-side MMC work continued while Docker was unavailable. Original
+NEM-4 evidence confirms FIFO/request-line/IRQ names and the driver's exact host
+length versus rounded DMA tail. The donor's direct card wiring remains an
+explicit shortcut for the unmodeled D550/AMA path. Image inspect/import/export
+and generated tests are added; no user disk/card image is changed.
+
+The image tool passes 14 generated tests with an exact all-byte round trip.
+The donor silently acknowledges writes past the actual payload when its CSD
+advertises more capacity. An isolated patch reproduces the baseline and passes
+a 282,492-clock pin/HPS test, preserving zero reads beyond partial images.
+The reviewed fix/test are applied on donor branch `codex/mmc-payload-eof-fix`
+based on `7be19cd`; the actual donor rerun also passes. No commit/push occurred.
+The same isolated donor branch also rejects unsupported footer versions;
+its external-port test passes 196,894 clocks and the EOF regression still passes.
+The CMD16 cache guard also passes 31 public-pin probes / 118,914 clocks on the
+actual donor. It prevents rejected/malformed responses changing the last
+accepted length; general response framing error policy remains open. All
+three fixes/tests are preserved as a combined portable patch and source hashes.
+All three focused tests now pass in the pinned image, as do the existing MMC
+and peripheral C++ regressions (the latter 3,665,197 clocks). Private game-card
+replay was unavailable and skipped. This does not yet
+connect MMC to production. Details, dependencies and remaining hazards are in
+[MMC port details](mmc-port.md) and [P3](../merge-plan.md).
+
+Standalone Verilog-2001 host/card ports now pass before P3.3 wiring. The card
+passes the unchanged 13,907,842-clock donor suite in external-output lockstep;
+the host passes 31 CMD16 probes and 28 length/padding/pacing/error cases in two
+configurations, with donor-identical results. Both modules together pass the
+3,665,197-clock donor peripheral suite with identical runtime output. Astra's
+translation review found no semantic blocker in the final hashes. Evidence:
+[mmc-native-port-2026-11-11.json](evidence/mmc-native-port-2026-11-11.json).
+P3.3 subsequently connects these modules to UPP/DMA/IRQ and slot2 read-only
+backing, as recorded above. Original-driver acceptance, physical timing and
+writable in-flight hot-mount ownership remain open.
+
+## 2026-11-11: Donor DMA count bug fixed locally
+
+Donor RTL and C transfer functions reproduced memory-copy and MMC-transmit
+overreads. Local commit `7be19cd` on donor branch
+`codex/dma-byte-count-fix` fixes count conversion and partial source reads;
+the original `master` baseline remains `e3d2bf7`. Focused RTL/C tests each
+pass 2,650 cases, strict lint is clean and the existing peripheral regression
+passes 3,665,197 clocks. Private game-card replay and full QEMU are unverified.
+No push or other simulation/checkpoint operation occurred. Portable patch
+and evidence are linked from [the P2 plan](../merge-plan.md).
+
+## 2026-11-11: P2 byte-count engine and channel pool
+
+The standalone DMA engine and eight-channel frontend pass byte conversion,
+queued descriptors, pacing, stop/restart, errors, lock and reset tests. The
+engine passes 4,914 cases / 52,326 owned words; frontend/router builds pass
+with one and three engines. Both new modules are Verilog-2001.
+
+The original NEM-4 driver contradicts the donor's source-unit count rule:
+memory count is in halfwords and paced count follows the fixed peripheral
+width. The frontend converts these to byte extents and preserves partial
+source/destination tails. Original name/IRQ lookup confirms source `6+n`.
+Original setup/start/stop runs on ZAP pass four exact 16-byte transfers at zero
+and three waits (11,130/16,814 cycles), without instruction substitutions.
+Original ISR, request routing and production LCD ownership transition remain
+the P2 gates. The donor bug fix is committed separately as noted above. See
+[peripheral integration](peripheral-integration.md).
+
+## 2026-11-11: N2 original ARM cancel, receive and charger fixtures
+
+The original NEM-4 kernel, LDD and NOS cancellation routines passed four
+mask/enable/pending cases on ZAP with zero and three memory-wait cycles.
+Original mailbox-pump tests passed short receive, required-length reporting,
+cancel before retry, successful retry and no duplicate completion. The
+charger handler passed five flag cases with original response builders and
+state providers. Checked descriptor-copy leaves and fixed pool allocation
+are the explicit fixture substitutions.
+
+Separate exact-model 2M replays from stable 6.1B and 8.2B checkpoints observed
+one original DFC and one pump, with no watched charger request/completion.
+Original checkout mounted read-only. Runtime service replacement needs a
+specific missing request/state-field producer. See [semi-real NOS](semi-real-nos.md).
+
+## 2026-11-11: Live UPP DMA route and NOS cancellation ABI
+
+The MiSTer DMA router now reaches the existing UPP local device bus. The
+ARM integration fixture passed shared NOS4K reads and masked writes,
+an accepted LCD FIFO word and owned error completion for a rejected word.
+The UPP captures the selected owner and waits for the device response.
+Both UPP bridge modes, DMA router, keypad, LCD, Verilog-2001 and top checks
+passed. P2 channel programming is next.
+
+Astra's ROM audit confirmed that NEM-4 cancels in the kernel before calling
+the endpoint with a request number. The donor callback expects a mask and
+can attempt a second completion. The original service ownership and first
+charger-status probe are recorded in [semi-real NOS](semi-real-nos.md).
+
+## 2026-11-11: Integration RBF reaches logo and reports a panic-loop PC
+
+On MiSTer, the user reports `8ff8b11` reaches the logo, then shows fetch
+`50324294/503242A0` and briefly `00000000` before an apparent restart.
+`50324294` is the kernel's fatal self-branch and `503242A0` is a nearby
+literal, so the fetch addresses identify the panic path without identifying
+the first fault or proving reset. The SD card's NGD is older than this boot.
+Read-only inspection found erased C: and non-erased PMM in six sectors.
+Zaparoo captured `503AD63C E59FF044 10000000 MASK 7`, Abort mode, `SAVE ERR 0`
+and `RESET 0` at the park. Stock NEM-4 disassembly identifies an `EUser.dll`
+`ldr r0, [r0]` at the reported fault PC. The source of that address and the
+reset history are unresolved. See [Symbian startup](symbian-startup.md).
+
+## 2026-11-11: B1 captured DMA word route
+
+The MiSTer LCD reader now uses the Verilog-2001 DMA router ahead of the
+existing SDRAM arbiter. The routed LCD fixture matches the direct baseline
+in pixels, checksum and completion time. The four-state SDRAM test passed
+at 78 and 104 MHz with the route connected for DMA writes.
+
+The scripted local-bus test passed shared RAM byte lanes, CPU progress
+during a paced FIFO wait, SWP reservation, address rejection, target errors
+and reset cancellation. Binding those local endpoints to the live UPP bus
+and adding the guest-programmed general DMA engine remain open. See
+[peripheral integration](peripheral-integration.md).
+
+## 2026-11-11: B1 SDRAM contract, P1 IRQ priority and N1 NOS ABI
+
+The existing SDRAM arbiter passed 32 alternating CPU/DMA grants, captured
+masked writes, SWP reservation and reset cancellation. The real controller
+and Micron model passed at 78 and 104 MHz. The on-chip RAM and paced FIFO
+routes still need production integration before general DMA.
+
+IRQ current now reports the lowest enabled pending source in each of the
+three banks. The NEM-4 kernel dispatcher reads all three. The 96-source
+priority test, ARM board, timer, NOS, keypad, CBUS and LCD checks passed.
+The P1 map records NEM-4 EPBUS registrations and the QD-only MMC/DMA/audio
+assignments that still need evidence. See [peripheral integration](peripheral-integration.md).
+
+The ROM audit verified the NEM-4 NOS imports, exports, endpoint vtable and
+original startup branch. The retained instruction trace showed execution of
+the original DFC and mailbox pump. The standalone C/HDL model passed 2,022
+frame vectors. Targeted original-handler request/reply tracing remains open
+before N2 takes ownership of any service. See [semi-real NOS](semi-real-nos.md).
+
 ## 2026-11-11: All-enabled integration hardware build configured
 
 Commit `027aa18` records the locally verified D2, D3 and S3 implementation.

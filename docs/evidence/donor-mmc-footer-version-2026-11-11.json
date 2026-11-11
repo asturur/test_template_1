@@ -1,0 +1,117 @@
+{
+  "donor_base_commit": "7be19cd26024424f83fe825f94155382a5aeca0d",
+  "donor_snapshot_branch": "codex/mmc-payload-eof-fix",
+  "snapshot_includes_uncommitted_payload_eof_fix": true,
+  "snapshot_matches_prior_eof_candidate": true,
+  "actual_donor_modified": true,
+  "commands": [
+    "scratch/ngage2-integration/p3-footer-version/tests/run.sh",
+    "git apply --check --directory=scratch/ngage2-integration/p3-footer-version/baseline scratch/ngage2-integration/p3-footer-version/mmc-footer-version.patch"
+  ],
+  "compiler_command": "iverilog -g2012 -s tb -o logs/<version> <version>/rtl/board/tdp_ram.sv <version>/rtl/board/mmc_card.sv tests/tb.v",
+  "environment": "Host Icarus Verilog 13.0; no Docker or network",
+  "baseline_witness": {
+    "footer_version": 2,
+    "present": true,
+    "cid_csd_ocr_interpreted_as_v1": true,
+    "result": "BASELINE_BUG"
+  },
+  "baseline_new_regression": {
+    "result": "FAIL as expected",
+    "message": "mount presence/version policy",
+    "system_clock": 1388
+  },
+  "patched": {
+    "result": "PASS",
+    "mounts": 7,
+    "hps_reads": 11,
+    "hps_writes": 0,
+    "system_clocks": 196894,
+    "build_warnings": 0
+  },
+  "policy": "Full NGAGEMMC magic plus unsupported byte8 version => existing L_OFF/absent until new mount; never raw fallback. No magic => original raw fallback. Version1 ignores opaque unused bytes.",
+  "wire_peer": "CLK/CMD/DAT0 and HPS only, CRC7 commands/responses, CID/CSD/OCR, CRC16 data and byte oracle; no internal force",
+  "coverage": [
+    "versions0/2/255 rejected",
+    "v1 accepted with nonzero byte9 and patterned unused footer bytes",
+    "rejected mount silent on CMD0/1/2/13 and no further HPS activity",
+    "padding reads remain zeros",
+    "raw no-magic last sector readable",
+    "readonly valid mount",
+    "reset and fresh remount recovery"
+  ],
+  "limitations": [
+    "Software image-format policy, no physical-card behavior claim.",
+    "Pinned-image and existing full donor C++/Verilator regressions pending Docker recovery.",
+    "No commit, push, maintained integration MMC RTL wiring, whole-phone simulation or checkpoint operation."
+  ],
+  "sha256": {
+    "baseline/rtl/board/mmc_card.sv": "162d19a1a3e12d8f3277a0ca3bb7472ebeb5e8265d841e9e708ae4cb65304b1b",
+    "baseline/rtl/board/tdp_ram.sv": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344",
+    "patched/rtl/board/mmc_card.sv": "3dad56b55982c4589b173850066ca4e8297c68d88fb376d7529912ac5f73c434",
+    "patched/rtl/board/tdp_ram.sv": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344",
+    "tests/tb.v": "3b3d27079efa392a11c9ec549116d9370c3c2b0b2e2c4791ecc11281afb3510c",
+    "tests/run.sh": "e79365331f84ec027605735410a8bc8dc2f106e8d7eac88dc088718e38b1e154",
+    "tests/run-one.sh": "67d9dbfd18233c8fc3b4092e7db8bfcaa2b4eebac000b40190be3e7d459b43e8",
+    "mmc-footer-version.patch": "7769367d319753c6a80b9c80ae0953e6a1400c9266813e8e9a87d1115c8ac997",
+    "README.md": "006a82cb09a81b860bb32440f573dc7c101f60d81d8c3f0e2c4b51f0b02ff672"
+  },
+  "applied_branch": "codex/mmc-payload-eof-fix",
+  "committed": false,
+  "pushed": false,
+  "application": {
+    "result": "Applied and actual donor focused rerun passed",
+    "system_clocks": 196894,
+    "eof_regression_after_version_guard": "PASS, 282492 clocks"
+  },
+  "portable_patch": {
+    "path": "docs/evidence/donor-mmc-footer-version-2026-11-11.patch",
+    "bytes": 16030,
+    "sha256": "74af3d89165f1cfefecbd03f6db132de83d86eeaeb02e6535fded79d3c5bce14",
+    "dependency": "Apply after donor-mmc-payload-eof-2026-11-11.patch; includes sim/mmc-footer-version regression"
+  },
+  "applied_sources": [
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/rtl/board/mmc_card.sv",
+      "bytes": 40417,
+      "sha256": "3dad56b55982c4589b173850066ca4e8297c68d88fb376d7529912ac5f73c434"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/rtl/board/tdp_ram.sv",
+      "bytes": 919,
+      "sha256": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/sim/mmc-footer-version/tb.v",
+      "bytes": 13237,
+      "sha256": "3b3d27079efa392a11c9ec549116d9370c3c2b0b2e2c4791ecc11281afb3510c"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/sim/mmc-footer-version/run-one.sh",
+      "bytes": 462,
+      "sha256": "67d9dbfd18233c8fc3b4092e7db8bfcaa2b4eebac000b40190be3e7d459b43e8"
+    }
+  ],
+  "applied_logs": [
+    {
+      "path": "scratch/ngage2-integration/p3-footer-version/applied-host/build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-footer-version/applied-host/run.log",
+      "bytes": 189,
+      "sha256": "31c8e71c77ba94586c55275a308db91e36f01fecb83879d2cae382dcf3972751"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-donor-eof/combined-host/build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-donor-eof/combined-host/run.log",
+      "bytes": 176,
+      "sha256": "7bbee827ce31b496c67b4cb972e8ca13a5a33335a955bd8816ddff7bbc9918bf"
+    }
+  ]
+}

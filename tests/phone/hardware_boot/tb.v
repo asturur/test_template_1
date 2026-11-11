@@ -119,17 +119,37 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `endif
  `endif
  wire init_done,lock;wire [24:0] csa,dsa,sa;wire [31:0] csd,csr,dsr,sd,sr;wire [3:0] csb,sb;
+ // The production frontend owns complete DMA words; the route preserves
+ // writes, byte lanes, local endpoint ownership and terminal errors.
+ wire dma_cmd_valid,dma_cmd_ready,dma_cmd_write,dma_rsp_valid,dma_rsp_error;
+ wire [31:0] dma_cmd_addr,dma_cmd_data,dma_rsp_data,dma_ram_data;
+ wire [3:0] dma_cmd_be,dma_ram_be;
+ wire dma_reset;
+ wire lcd_fast_req,lcd_fast_accept,lcd_fast_ack;
+ wire [24:0] lcd_fast_addr;
+ wire [31:0] lcd_fast_data;
+ wire shared_dma_req,shared_dma_write,shared_dma_accept,shared_dma_ack;
+ wire [24:0] shared_dma_addr;
+ wire [31:0] shared_dma_data,shared_dma_rdata;
+ wire [3:0] shared_dma_be;
+ wire dma_ram_write;
+ wire dma_local_valid,dma_local_ready,dma_local_write,dma_local_done,dma_local_error;
+ wire [31:0] dma_local_addr,dma_local_data,dma_local_rdata;
+ wire [3:0] dma_local_be;
+ wire [7:0] dma_error_pending;
+ reg [7:0] dma_errors_seen=0;
+
  wire cswe,csreq,csack,dsreq,dsack,swe,sreq;wire sack; wire [31:0] sdata;assign sr=sdata;
  wire ram_line_req,ram_line_ready,ram_line_valid,ram_line_last;
  wire [24:0] ram_line_addr;wire [15:0] ram_line_data;
 `ifndef NGAGE_REAL_SDRAM
  reg [4:0] ram_line_count=0;reg [24:0] ram_line_saved=0;
  reg ram_line_v=0,ram_line_end=0;reg [15:0] ram_line_q=0;
- assign ram_line_ready=LINE_REFILL && !reset && ram_line_count==0 && !sreq && !spending;
+ assign ram_line_ready=LINE_REFILL && !dma_reset && !cold && ram_line_count==0 && !sreq && !spending;
  assign ram_line_valid=ram_line_v;assign ram_line_last=ram_line_end;assign ram_line_data=ram_line_q;
  always @(posedge clk)begin
   ram_line_v<=0;ram_line_end<=0;
-  if(reset)ram_line_count<=0;
+  if(dma_reset || cold)ram_line_count<=0;
   else if(ram_line_req && ram_line_ready)begin ram_line_count<=16;ram_line_saved<=ram_line_addr;end
   else if(ram_line_count!=0)begin
    ram_line_q<=ram[ram_line_saved[23:2]] >> (ram_line_saved[1]*16);
@@ -137,6 +157,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    ram_line_v<=1;ram_line_end<=ram_line_count==1;
   end
  end
+ reg ram_discard=0;
  reg sack_model=0; reg [31:0] sdata_model=0; assign sack=sack_model; assign sdata=sdata_model;
 `else
  wire scrub_done,mem_init; wire [21:0] ba_addr; wire [15:0] ba_din,ba_dout; wire [1:0] ba_dsn;
@@ -147,7 +168,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  // all 16 MiB; the behavioral SDRAM model starts zero in this Verilator run.
  wire [1:0] ba_line;
  ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(
- .clk(clk),.rst(cold),.phone_reset(reset),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
+ .clk(clk),.rst(cold),.phone_reset(dma_reset || cold),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
  .ba_addr(ba_addr),.ba_din(ba_din),.ba_dsn(ba_dsn),.rd(rd),.wr(wr),.ba_ack(ba_ack),.ba_dst(ba_dst),.ba_rdy(ba_rdy),.ba_dout(ba_dout),.rfsh(rfsh),
  .line_req(ram_line_req),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
  jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(LINE_REFILL),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(LINE_REFILL?128:32),.BA1_LEN(LINE_REFILL?128:32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
@@ -192,7 +213,10 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  localparam UEM_POWERUP_STATUS=1;
 `endif
  wire cpu_ram_accept;
- ngage_mister #(.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(.ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
+ ngage_mister #(.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(
+  .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
+  .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
+.ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
  .ram_line_req(ram_line_req),.ram_line_addr(ram_line_addr),.ram_line_ready(ram_line_ready),.ram_line_valid(ram_line_valid),.ram_line_data(ram_line_data),.ram_line_last(ram_line_last),.clk_sys(clk),.reset(reset),.cold_reset(cold),.sim_present(1'b0),.diagnostic_video(
 `ifdef NGAGE_LOGO_RUN
  1'b0
@@ -201,10 +225,36 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `endif
  ),.diagnostic_status(8'b0),.debug_freeze_trace(1'b0),.debug_read_word(11'b0),.board_init_done(init_done),.bus_lock(lock),
   .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
-  .dma_sdram_req(dsreq),.dma_sdram_addr(dsa),.dma_sdram_ack(dsack),.dma_sdram_data(dsr),
+  .dma_reset(dma_reset),.dma_sdram_accept(lcd_fast_accept),
+  .dma_sdram_req(lcd_fast_req),.dma_sdram_addr(lcd_fast_addr),.dma_sdram_ack(lcd_fast_ack),.dma_sdram_data(lcd_fast_data),
+  .dma_error_pending(dma_error_pending),
+  .dma_cmd_valid(dma_cmd_valid),.dma_cmd_ready(dma_cmd_ready),.dma_cmd_write(dma_cmd_write),
+  .dma_cmd_addr(dma_cmd_addr),.dma_cmd_data(dma_cmd_data),.dma_cmd_be(dma_cmd_be),
+  .dma_rsp_valid(dma_rsp_valid),.dma_rsp_error(dma_rsp_error),.dma_rsp_data(dma_rsp_data),
+  .dma_local_valid(dma_local_valid),.dma_local_ready(dma_local_ready),.dma_local_write(dma_local_write),
+  .dma_local_addr(dma_local_addr),.dma_local_data(dma_local_data),.dma_local_be(dma_local_be),
+  .dma_local_done(dma_local_done),.dma_local_error(dma_local_error),.dma_local_rdata(dma_local_rdata),
   .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
- ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
-  .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsr),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
+ ngage_dma_route dma_route (
+  .clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),
+  .cmd_valid(dma_cmd_valid),.cmd_ready(dma_cmd_ready),.cmd_write(dma_cmd_write),
+  .cmd_addr(dma_cmd_addr),.cmd_data(dma_cmd_data),.cmd_be(dma_cmd_be),
+  .rsp_valid(dma_rsp_valid),.rsp_error(dma_rsp_error),.rsp_data(dma_rsp_data),
+  .ram_req(dsreq),.ram_write(dma_ram_write),.ram_addr(dsa),.ram_data(dma_ram_data),
+  .ram_be(dma_ram_be),.ram_ack(dsack),.ram_rdata(dsr),
+  .local_valid(dma_local_valid),.local_ready(dma_local_ready),.local_write(dma_local_write),
+  .local_addr(dma_local_addr),.local_data(dma_local_data),.local_be(dma_local_be),
+  .local_done(dma_local_done),.local_error(dma_local_error),.local_rdata(dma_local_rdata)
+ );
+ ngage_dma_ram_mux dma_ram_mux (
+  .clk(clk),.reset(dma_reset || cold),
+  .lcd_req(lcd_fast_req),.lcd_addr(lcd_fast_addr),.lcd_accept(lcd_fast_accept),.lcd_ack(lcd_fast_ack),.lcd_rdata(lcd_fast_data),
+  .dma_req(dsreq),.dma_write(dma_ram_write),.dma_addr(dsa),.dma_data(dma_ram_data),.dma_be(dma_ram_be),.dma_ack(dsack),.dma_rdata(dsr),
+  .mem_req(shared_dma_req),.mem_write(shared_dma_write),.mem_addr(shared_dma_addr),.mem_data(shared_dma_data),.mem_be(shared_dma_be),
+  .mem_accept(shared_dma_accept),.mem_ack(shared_dma_ack),.mem_rdata(shared_dma_rdata)
+ );
+ ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+  .dma_req(shared_dma_req),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
 `ifdef NGAGE_NOS_OVERLAY_RUN
  // Separate experiment: exercise the real staged loader and shared DDR path,
  // not a host-prepatched ROM. The CPU remains reset until application completes.
@@ -283,9 +333,12 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    for(n=0;n<8;n=n+1)if(pb[n])ddr[({pa,3'b000}-32'h30000000)+n]<=pd[n*8+:8];phys_writes<=phys_writes+1;
   end
 `ifndef NGAGE_REAL_SDRAM
-  if(sreq && ram_line_count==0 && !spending && !sack)begin spending<=1;sdelay<=3;saddr<=sa;swdata<=sd;sbe<=sb;swrite<=swe;end
+  // Mirror the physical adapter's logical-reset drain: accepted work may
+  // commit, but its old ACK cannot be returned to a newly reset owner.
+  if((dma_reset || cold) && spending) ram_discard<=1;
+  if(sreq && ram_line_count==0 && !spending && !sack && !dma_reset && !cold)begin spending<=1;ram_discard<=0;sdelay<=3;saddr<=sa;swdata<=sd;sbe<=sb;swrite<=swe;end
   else if(spending)begin if(sdelay!=0)sdelay<=sdelay-1'b1;else begin
-   spending<=0;sack_model<=1;
+   spending<=0;sack_model<=!ram_discard && !dma_reset && !cold;
    if(saddr>=25'h1000000)begin $fatal(1,"SDRAM range");end
    if(swrite)begin for(n=0;n<4;n=n+1)if(sbe[n])ram[saddr[23:2]][n*8+:8]<=swdata[n*8+:8];end
    else sdata_model<=ram[saddr[23:2]];
@@ -295,7 +348,11 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    $display("SDRAM_SAMPLE cycle=%0d addr=%h write=%b data=%h read=%h",cycles,sa,swe,sd,sdata);
    memory_samples<=memory_samples+1;
   end
+  if(reset) dma_errors_seen<=0;
   if(!reset)begin
+   if (|(dma_error_pending & ~dma_errors_seen))
+    $display("DMA_ERROR cycle=%0d channels=%h pc=%h",cycles,dma_error_pending,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);
+   dma_errors_seen<=dma_errors_seen | dma_error_pending;
    cycles<=cycles+1;
    if(accepted_fetch)begin last_fetch_pc<=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;last_fetch_cycle<=cycles;end
    if(board_log && (dut.wb_ack || dut.wb_err) && (dut.brd_claim || dut.dma_claim))

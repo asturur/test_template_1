@@ -1,5 +1,16 @@
 ## 2026-11-07: remove speculative row coverage and display suppression
 
+## 2026-11-11: production DMA consumes the normal panel path
+
+The [LCD DMA handover](lcd-dma-handover.md) replaces production source-offset
+pixel placement with the normal queued FIFO/cursor path. A dedicated read
+stream preserves old-reader throughput on matched backends; the general
+frontend owns registers and IRQs. Full-width row bands follow the original
+`lcd.ldd` end=start+rows and 264-byte-per-row header arithmetic. Malformed
+windows invalidate geometry. Arbitrary rectangles and wrap remain unresolved.
+Final Docker-dependent verification is pending as recorded in that document;
+historical shortcut results below are retained as prior evidence.
+
 ## 2026-11-08: preserve CPU/DMA ordering across the registered panel boundary
 
 Follow-up to712c811: the first queue held CPU commands behind raw DMA, which

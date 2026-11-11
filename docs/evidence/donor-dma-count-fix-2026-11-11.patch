@@ -1,0 +1,739 @@
+diff --git a/rtl/upp/upp_dma.sv b/rtl/upp/upp_dma.sv
+--- a/rtl/upp/upp_dma.sv
++++ b/rtl/upp/upp_dma.sv
+@@ -16,11 +16,12 @@
+ //          (2 for on-chip RAM, 4 for SDRAM, 0x5031B344)
+ //   +0x1C / +0x28  source / destination width: 0x20 and up 32 bits, 0x10 and
+ //          up 16, else 8
+-//   +0x2C  count - 1, in source-width units (0x5031B5CC)
++//   +0x2C  count - 1: halfwords for control 1, fixed-side
++//          peripheral-width units for control 2 (0x5031B5CC)
+ //   other offsets: storage (the generic store in upp_periph).
+-// A transfer reads count + 1 source units and writes the same bytes in
+-// destination-width units (a last partial unit as a narrower write), as the
+-// model does. When it is done the channel's interrupt (source 6 + n,
++// The count is converted to a byte budget independently of the source width.
++// Reads and writes use their native widths, with only the remaining lanes
++// enabled for either final partial unit. When done, the interrupt (source 6 + n,
+ // IrqDmaChannel0-7) is raised until +0x08 = 0 or +0x04 = 0; the kernel's ISR
+ // (0x50326B08) reads no status. [model guess] 0x0C120064/68 hold 4-bit
+ // request-line numbers per channel (MMC = 2, LCD = 7, 0x5031EDF8); the model
+@@ -71,7 +72,7 @@
+ 	// ------------------------------------------------------------------
+ 	// Channel registers
+ 	// ------------------------------------------------------------------
+-	logic [7:0] req, go_clr, sinc, dinc;
++	logic [7:0] req, go_clr, sinc, dinc, peripheral;
+ 	logic [1:0] sw [0:7];
+ 	logic [1:0] dw [0:7];
+ 
+@@ -128,9 +129,9 @@
+ 	logic [2:0]  ech    [0:ENGINES-1];
+ 	logic [31:0] esrc   [0:ENGINES-1];
+ 	logic [31:0] edst   [0:ENGINES-1];
+-	logic [32:0] eleft  [0:ENGINES-1];   // source units still to read
+-	logic [31:0] ebuf   [0:ENGINES-1];   // bytes read and not yet written, first in 7:0
+-	logic [2:0]  efill  [0:ENGINES-1];
++	logic [34:0] eleft  [0:ENGINES-1];   // bytes still to read
++	logic [63:0] ebuf   [0:ENGINES-1];   // bytes read and not yet written, first in 7:0
++	logic [3:0]  efill  [0:ENGINES-1];
+ 	logic        esinc  [0:ENGINES-1];
+ 	logic        edinc  [0:ENGINES-1];
+ 	logic [1:0]  esw    [0:ENGINES-1];
+@@ -205,11 +206,12 @@
+ 	always_ff @(posedge clk) begin
+ 		// ---- the engines ----
+ 		for (int e = 0; e < ENGINES; e++) begin
+-			logic [2:0] swb, dwb, nw;
++			logic [2:0] swb, dwb, nr, nw;
+ 			logic       paced;
+ 			swb = 3'd1 << esw[e];
+ 			dwb = 3'd1 << edw[e];
+-			nw  = (efill[e] < dwb) ? efill[e] : dwb;
++			nr  = (eleft[e] < 35'(swb)) ? 3'(eleft[e]) : swb;
++			nw  = (efill[e] < 4'(dwb)) ? 3'(efill[e]) : dwb;
+ 
+ 			// a stop or restart of its channel ends the transfer
+ 			if (w_go && est[e] != E_FREE && ech[e] == ch) eabort[e] <= 1'b1;
+@@ -217,26 +219,26 @@
+ 			if (est[e] == E_RUN) begin
+ 				if (eabort[e]) begin
+ 					est[e] <= E_FREE;
+-				end else if (efill[e] >= dwb || (eleft[e] == 33'd0 && efill[e] != 3'd0)) begin
++				end else if (efill[e] >= 4'(dwb) || (eleft[e] == 35'd0 && efill[e] != 4'd0)) begin
+ 					// a write of nw bytes
+ 					paced = !edinc[e] && ((edst[e] == LCD_FIFO && !lcd_tx_ready) ||
+ 					                      (edst[e] == MMC_FIFO && !mmc_tx_ready));
+ 					if (!paced) begin
+ 						ewe[e]  <= 1'b1;
+ 						eadr[e] <= {edst[e][31:2], 2'b00};
+-						edat[e] <= ebuf[e] << {edst[e][1:0], 3'b000};
++						edat[e] <= 32'(ebuf[e]) << {edst[e][1:0], 3'b000};
+ 						esel[e] <= 4'((5'b00001 << nw) - 5'd1) << edst[e][1:0];
+ 						en[e]   <= nw;
+ 						est[e]  <= E_BUS;
+ 					end
+-				end else if (eleft[e] != 33'd0) begin
+-					// a read of swb bytes
++				end else if (eleft[e] != 35'd0) begin
++					// a read of nr bytes, including a possible partial source unit
+ 					paced = !esinc[e] && esrc[e] == MMC_FIFO && !mmc_rx_ready;
+ 					if (!paced) begin
+ 						ewe[e]  <= 1'b0;
+ 						eadr[e] <= {esrc[e][31:2], 2'b00};
+-						esel[e] <= 4'((5'b00001 << swb) - 5'd1) << esrc[e][1:0];
+-						en[e]   <= swb;
++						esel[e] <= 4'((5'b00001 << nr) - 5'd1) << esrc[e][1:0];
++						en[e]   <= nr;
+ 						est[e]  <= E_BUS;
+ 					end
+ 				end else begin
+@@ -267,14 +269,14 @@
+ 			est[p_e] <= E_RUN;
+ 			if (ewe[p_e]) begin
+ 				ebuf[p_e]  <= ebuf[p_e] >> {en[p_e], 3'b000};
+-				efill[p_e] <= efill[p_e] - en[p_e];
++				efill[p_e] <= efill[p_e] - 4'(en[p_e]);
+ 				if (edinc[p_e]) edst[p_e] <= edst[p_e] + 32'(en[p_e]);
+ 			end else begin
+ 				rb = m_err ? 32'd0 : m_dat_i >> {esrc[p_e][1:0], 3'b000};
+ 				rb = rb & ((en[p_e] == 3'd4) ? 32'hFFFF_FFFF : (32'd1 << {en[p_e], 3'b000}) - 32'd1);
+-				ebuf[p_e]  <= ebuf[p_e] | (rb << {efill[p_e], 3'b000});
+-				efill[p_e] <= efill[p_e] + en[p_e];
+-				eleft[p_e] <= eleft[p_e] - 33'd1;
++				ebuf[p_e]  <= ebuf[p_e] | ({32'd0, rb} << {efill[p_e], 3'b000});
++				efill[p_e] <= efill[p_e] + 4'(en[p_e]);
++				eleft[p_e] <= eleft[p_e] - 35'(en[p_e]);
+ 				if (esinc[p_e]) esrc[p_e] <= esrc[p_e] + 32'(en[p_e]);
+ 			end
+ 		end
+@@ -295,15 +297,20 @@
+ 				2'd1: ld_src <= pr_q;
+ 				2'd2: ld_dst <= pr_q;
+ 				2'd3: begin
++					logic [1:0] count_shift;
++					// M2M counts halfwords, even with 32-bit SDRAM accesses.
++					// Paced TX counts destination units; RX counts source units.
++					count_shift = peripheral[ld_ch] ?
++					              (!dinc[ld_ch] ? dw[ld_ch] : sw[ld_ch]) : 2'd1;
+ 					ld_busy <= 1'b0;
+ 					if (!ld_cancel && !(w_go && ch == ld_ch)) begin
+ 						est[ld_e]    <= E_RUN;
+ 						ech[ld_e]    <= ld_ch;
+ 						esrc[ld_e]   <= phys(ld_src);
+ 						edst[ld_e]   <= phys(ld_dst);
+-						eleft[ld_e]  <= {1'b0, pr_q} + 33'd1;
+-						ebuf[ld_e]   <= 32'd0;
+-						efill[ld_e]  <= 3'd0;
++						eleft[ld_e]  <= ({3'd0, pr_q} + 35'd1) << count_shift;
++						ebuf[ld_e]   <= 64'd0;
++						efill[ld_e]  <= 4'd0;
+ 						esinc[ld_e]  <= sinc[ld_ch];
+ 						edinc[ld_e]  <= dinc[ld_ch];
+ 						esw[ld_e]    <= sw[ld_ch];
+@@ -328,7 +335,10 @@
+ 		end
+ 		if (w_go) begin
+ 			go_clr[ch] <= 1'b0;
+-			if (w_run) req[ch] <= 1'b1;
++			if (w_run) begin
++				req[ch] <= 1'b1;
++				peripheral[ch] <= wdata == 32'd2;
++			end
+ 			if (w_stop) begin
+ 				req[ch] <= 1'b0;
+ 				irq[ch] <= 1'b0;
+@@ -342,6 +352,7 @@
+ 			irq    <= 8'd0;
+ 			sinc   <= 8'd0;
+ 			dinc   <= 8'd0;
++			peripheral <= 8'd0;
+ 			for (int c = 0; c < 8; c++) begin
+ 				sw[c] <= 2'd0;
+ 				dw[c] <= 2'd0;
+diff --git a/model/hw/ngage_dma.c b/model/hw/ngage_dma.c
+--- a/model/hw/ngage_dma.c
++++ b/model/hw/ngage_dma.c
+@@ -15,7 +15,8 @@
+  *   +0x1C  source width          +0x28  destination width
+  *          8, 0x10, 0x20 (= 8, 16, 32 bits; the MMC FIFO uses 8 and the
+  *          LCD FIFO 0x20, tables at 0x5034025C/0x503402A4)
+- *   +0x2C  transfer count - 1, in source-width units (0x5031B5CC)
++ *   +0x2C  count - 1: halfwords for control 1, fixed-side
++ *          peripheral-width units for control 2 (0x5031B5CC)
+  * Peripheral addresses seen by the DMA are 0x1xxxxxxx for register
+  * 0x0Cxxxxxx: 0x10121208 = LCD FIFO, 0x10120624 = MMC data FIFO,
+  * 0x10150554 and 0x10150500 = accessory interface (tables at
+@@ -63,13 +64,14 @@
+     uint32_t src = r[0x14 >> 2], dst = r[0x20 >> 2];
+     unsigned sw = width_bytes(r[0x1C >> 2]), dw = width_bytes(r[0x28 >> 2]);
+     bool sinc = r[0x18 >> 2] != 0, dinc = r[0x24 >> 2] != 0;
+-    uint32_t units = r[0x2C >> 2] + 1;
+-    size_t total = (size_t)units * sw;
++    unsigned unit_bytes = r[0x08 >> 2] == 1 ? 2 : !dinc ? dw : sw;
++    size_t total = ((uint64_t)r[0x2C >> 2] + 1) * unit_bytes;
+     g_autofree uint8_t *buf = g_malloc(total);
+     hwaddr sa = dma_phys(src), da = dma_phys(dst);
+ 
+-    for (uint32_t i = 0; i < units; i++) {
+-        address_space_read(&address_space_memory, sa, MEMTXATTRS_UNSPECIFIED, buf + i * sw, sw);
++    for (size_t o = 0; o < total; o += sw) {
++        address_space_read(&address_space_memory, sa, MEMTXATTRS_UNSPECIFIED, buf + o,
++                           MIN(sw, total - o));
+         if (sinc) {
+             sa += sw;
+         }
+diff --git a/docs/UPP_WD2.md b/docs/UPP_WD2.md
+--- a/docs/UPP_WD2.md
++++ b/docs/UPP_WD2.md
+@@ -103,13 +103,32 @@
+ | `+0x14` / `+0x20` | source / destination address | physical; `0x1xxxxxxx` = the peripheral at `0x0Cxxxxxx` | tables 0x503401F4, 0x503401D0 | B |
+ | `+0x18` / `+0x24` | source / destination mode | 0 fixed (FIFO), 2 incrementing in on-chip RAM, 4 incrementing in SDRAM | 0x5031B344 | B |
+ | `+0x1C` / `+0x28` | source / destination width | 8, 0x10, 0x20 = 8, 16, 32 bits | MMC FIFO 8, LCD FIFO 0x20 (0x5034025C) | B |
+-| `+0x2C` | count − 1 | in source-width units | 0x5031B5CC | B |
++| `+0x2C` | count − 1 | control 1: halfwords; control 2: fixed peripheral-width units (TX destination, RX source) | NEM-4 `0x50321424`, `0x503215C4`; RH-29 control paths `0x5031B43C`, `0x5031B5D8` | B |
+ | `0x0C120064`/`68` | request-line select | 4 bits per channel (MMC = 2, LCD = 7); not modelled | 0x5031EDF8 | B |
+ 
+ DMA peripheral targets: `0x10121208` LCD FIFO (type 4), `0x10120624` MMC FIFO
+ (type 5), `0x10150554`/`0x10150500` accessory interface. Completion raises
+ IrqDmaChannel*n* (source 6+*n*); the kernel's DMA ISR (0x50326B08) reads no
+ status and stops the channel.
++
++Count units are separate from memory access widths. The original NEM-4 DMA
++driver shifts the byte length right by one before programming a control-1
++transfer, even after selecting 32-bit SDRAM accesses (`0x50321424`). For paced
++control-2 transfers it shifts by the peripheral table entry (`0x503215C4`):
++MMC entries select 8-bit units and shift zero, while LCD selects 32-bit units
++and shift two. Thus raw count 7 moves 16 bytes in a 32-to-32 M2M copy; raw
++count 15 moves 16 bytes for MMC TX 32-to-8 or RX 8-to-32. These are original
++NEM-4 instruction observations; a corresponding RH-29 shift instruction PC
++has not been independently checked here. The older universal source-unit
++interpretation overcopied M2M SDRAM words and MMC TX buffers.
++
++The RTL and C model convert the programmed count to a byte budget. Reads and
++writes use their native widths until the final partial unit, which uses only
++the remaining bytes. `make -C sim dma-count` checks the real RTL and the real
++C transfer functions with stubbed memory/IRQ dependencies, including bounded
++10-byte M2M tails, 512-byte MMC TX, MMC RX, retained LCD counts and all width
++conversions. It is a focused contract test, not a full QEMU execution or a
++physical-controller timing measurement.
+ 
+ ## MMC host (0x0C120600) — `ngage_mmc.c`
+ 
+diff --git a/sim/harness/periph_main.cpp b/sim/harness/periph_main.cpp
+--- a/sim/harness/periph_main.cpp
++++ b/sim/harness/periph_main.cpp
+@@ -282,7 +282,8 @@
+ 		rd(0x0C120000);           // waits for the register store to clear
+ 	}
+ 
+-	// a DMA transfer as ekern programs one
++	// Count units follow the start control: halfwords for M2M, the fixed
++	// peripheral's width for paced transfers (not always the source width).
+ 	void dma_setup(int ch, uint32_t src, uint32_t smode, uint32_t sw, uint32_t dst, uint32_t dmode, uint32_t dw, uint32_t units) {
+ 		uint32_t b = DMA + 0x40 * ch;
+ 		wr(b + 0x04, 1);
+@@ -499,12 +500,12 @@
+ void test_dma(Bench &b) {
+ 	printf("DMA\n");
+ 	CpuTraffic &cpu = *b.traffic;
+-	// every width pair, incrementing both sides, odd lengths
++	// every width pair, incrementing both sides, including partial 32-bit tails
+ 	int n = 0;
+ 	for (int sw : {1, 2, 4}) {
+ 		for (int dw : {1, 2, 4}) {
+ 			uint32_t units = (uint32_t)b.rng.range(1, 70);
+-			uint32_t bytes = units * sw;
++			uint32_t bytes = units * 2; // control 1 counts halfwords
+ 			uint32_t src = SD + 0x100000 + 0x1000 * n, dst = SD + 0x200000 + 0x1000 * n;
+ 			fill_sdram(b, src, bytes, 77 + n);
+ 			fill_sdram(b, dst, bytes + 8, 99 + n);
+@@ -525,13 +526,13 @@
+ 	// a fixed source fills; on-chip RAM to SDRAM with mode 2
+ 	{
+ 		b.wr(OC + 0x100, 0xA5C3E1F0);
+-		b.dma_setup(2, OC + 0x100, 0, 0x20, SD + 0x300000, 4, 0x20, 64);
++		b.dma_setup(2, OC + 0x100, 0, 0x20, SD + 0x300000, 4, 0x20, 128);
+ 		b.dma_start(2);
+ 		while (!b.dma_done(2)) cpu.step(b);
+ 		for (int i = 0; i < 64; i++) CHECK_EQ(b.rd(SD + 0x300000 + 4 * i), 0xA5C3E1F0, "fixed-source fill");
+ 		b.dma_finish(2);
+ 		for (int i = 0; i < 32; i++) b.wr(OC + 0x200 + 4 * i, 0x01010101u * i);
+-		b.dma_setup(3, OC + 0x200, 2, 0x20, SD + 0x310000, 4, 0x10, 32);
++		b.dma_setup(3, OC + 0x200, 2, 0x20, SD + 0x310000, 4, 0x10, 64);
+ 		b.dma_start(3);
+ 		while (!b.dma_done(3)) cpu.step(b);
+ 		for (int i = 0; i < 32; i++) CHECK_EQ(b.rd(SD + 0x310000 + 4 * i), 0x01010101u * i, "on-chip RAM to SDRAM");
+@@ -542,7 +543,7 @@
+ 		const uint32_t units = 600;
+ 		for (int ch = 0; ch < 5; ch++) {
+ 			fill_sdram(b, SD + 0x400000 + 0x10000 * ch, units * 4, 300 + ch);
+-			b.dma_setup(ch, SD + 0x400000 + 0x10000 * ch, 4, 0x20, SD + 0x480000 + 0x10000 * ch, 4, ch & 1 ? 0x08 : 0x20, units);
++			b.dma_setup(ch, SD + 0x400000 + 0x10000 * ch, 4, 0x20, SD + 0x480000 + 0x10000 * ch, 4, ch & 1 ? 0x08 : 0x20, units * 2);
+ 		}
+ 		for (int ch = 0; ch < 5; ch++) b.dma_start(ch);
+ 		uint32_t done = 0;
+@@ -568,7 +569,7 @@
+ 		const uint32_t units = 20000;
+ 		b.wr(SD + 0x600000, 0xA5A5A5A5);
+ 		for (uint32_t i = 0; i < units * 4; i++) b.sd_poke(SD + 0x700000 + i, 0);
+-		b.dma_setup(6, SD + 0x600000, 0, 0x20, SD + 0x700000, 4, 0x20, units);
++		b.dma_setup(6, SD + 0x600000, 0, 0x20, SD + 0x700000, 4, 0x20, units * 2);
+ 		b.dma_start(6);
+ 		b.run(3000);
+ 		b.wr(DMA + 0x40 * 6 + 0x08, 0);
+@@ -811,8 +812,9 @@
+ 			int n = 120;
+ 			while ((b.rd(MMC + 0x04) & 1) && --n > 0) {}
+ 			static const uint32_t widths[3] = {0x20, 0x08, 0x10};
+-			// the count is in source units: FIFO bytes for a read, the SDRAM width for a write
+-			uint32_t w = widths[k % 3], units = write ? 512 / (w == 0x20 ? 4 : w == 0x10 ? 2 : 1) : 512;
++			// The fixed MMC FIFO is 8-bit in either direction: count 512
++			// peripheral bytes independently of the SDRAM access width.
++			uint32_t w = widths[k % 3], units = 512;
+ 			if (write) b.dma_setup(5, sdaddr + 512 * k, 4, w, 0x10120624, 0, 0x08, units);
+ 			else       b.dma_setup(5, 0x10120624, 0, 0x08, sdaddr + 512 * k, 4, w, units);
+ 			b.dma_start(5, 2);
+@@ -1279,7 +1281,7 @@
+ 	// a DMA transfer at the same time: the two take the master port in turns
+ 	const uint32_t units = 3000, src = SD + 0xD10000, dst = SD + 0xD20000;
+ 	fill_sdram(b, src, units * 4, 555);
+-	b.dma_setup(1, src, 4, 0x20, dst, 4, 0x20, units);
++	b.dma_setup(1, src, 4, 0x20, dst, 4, 0x20, units * 2);
+ 	b.wr(AU + 0x04, 3);
+ 	uint64_t run_edge = b.p_edge;
+ 	b.dma_start(1);
+diff --git a/sim/Makefile b/sim/Makefile
+--- a/sim/Makefile
++++ b/sim/Makefile
+@@ -27,12 +27,16 @@
+ PROFILE_FLAGS = $(if $(filter 1,$(CORE_PROFILE)),-DCPU_PROFILE=1 -CFLAGS "-DCPU_PROFILE=1")
+ RUNFLAGS := +verilator+seed+$(SEED) +verilator+rand+reset+2
+ 
+-BENCHES := lcd video keypad flash mmc sdram sdram-faults ddrflash trace upp intc timers haudio periph save phoenix top
++BENCHES := lcd video keypad flash mmc sdram sdram-faults ddrflash trace upp intc timers haudio dma-count periph save phoenix top
+ 
+ .PHONY: test $(BENCHES) coreboot flashcopy hps-read-test clean
+ 
+ test:
+ 	@for b in $(BENCHES); do $(MAKE) --no-print-directory $$b || exit 1; done
++
++# DMA count units, exact source/destination tails, and isolated C-model functions.
++dma-count:
++	$(ROOT)/sim/dma-count/run.sh
+ 
+ $(OUT):
+ 	mkdir -p $@
+diff --git a/sim/dma-count/tb.v b/sim/dma-count/tb.v
+new file mode 100644
+--- /dev/null
++++ b/sim/dma-count/tb.v
+@@ -0,0 +1,185 @@
++`timescale 1ns/1ps
++// Verilog-2001 testbench; the imported DMA and RAM use SystemVerilog.
++module tb;
++    reg clk = 0;
++    always #5 clk = ~clk;
++    reg reset = 1, acc = 0, wr = 0;
++    reg [11:0] off = 0;
++    reg [31:0] wdata = 0;
++    wire [31:0] rmask, rdata;
++    wire [7:0] irq;
++    wire m_cyc, m_stb, m_we;
++    wire [31:0] m_adr, m_dat_o;
++    wire [3:0] m_sel;
++    reg [31:0] m_dat_i;
++    integer clocks = 0;
++    wire m_ack = m_cyc && clocks % 5 >= 2;
++    upp_dma dut (
++        .clk(clk), .reset(reset), .acc(acc), .wr(wr), .off(off), .wdata(wdata),
++        .rmask(rmask), .rdata(rdata), .irq(irq),
++        .mmc_rx_ready(clocks % 7 >= 3), .mmc_tx_ready(clocks % 11 >= 5),
++        .lcd_tx_ready(clocks % 13 >= 4),
++        .m_cyc(m_cyc), .m_stb(m_stb), .m_we(m_we), .m_adr(m_adr),
++        .m_dat_o(m_dat_o), .m_sel(m_sel), .m_ack(m_ack), .m_err(1'b0), .m_dat_i(m_dat_i)
++    );
++    localparam [31:0] MMC_FIFO = 32'h0c120624, LCD_FIFO = 32'h0c121208;
++    reg [7:0] memory [0:4095];
++    reg [7:0] expected [0:4095];
++    reg [7:0] stream [0:2047];
++    integer cases = 0, words = 0, read_total = 0, written = 0;
++    integer sw, dw, total, sa, da, kind;
++    reg si, di;
++    integer j;
++    always @* begin
++        m_dat_i = 0;
++        if (m_adr == MMC_FIFO)
++            for (j = 0; j < 4; j = j + 1)
++                m_dat_i[j*8 +: 8] = (read_total + j) * 17 + 8'h35;
++        else if (m_adr < 4093)
++            for (j = 0; j < 4; j = j + 1)
++                m_dat_i[j*8 +: 8] = memory[m_adr+j];
++    end
++    integer logical_addr, bytes, mask, i;
++    reg [31:0] data;
++    reg stalled = 0;
++    reg [68:0] packet;
++    always @(posedge clk) begin
++        clocks = clocks + 1;
++        if (reset) stalled = 0;
++        else begin
++            if (stalled && (!m_cyc || {m_we, m_adr, m_dat_o, m_sel} !== packet))
++                $fatal(1, "held master packet changed");
++            stalled = m_cyc && !m_ack;
++            packet = {m_we, m_adr, m_dat_o, m_sel};
++            if (m_ack) begin
++                words = words + 1;
++                if (m_we) begin
++                    bytes = total - written;
++                    if (bytes > dw) bytes = dw;
++                    if (bytes <= 0) $fatal(1, "write exceeded byte budget case=%0d", cases);
++                    logical_addr = da + (di ? written : 0);
++                    mask = ((1 << bytes) - 1) << (logical_addr % 4);
++                    data = 0;
++                    for (i = 0; i < bytes; i = i + 1)
++                        data[((logical_addr % 4)+i)*8 +: 8] = stream[written+i];
++                    if (m_adr !== (logical_addr & 32'hfffffffc) || m_sel !== mask[3:0])
++                        $fatal(1, "write packet extent case=%0d byte=%0d", cases, written);
++                    for (i = 0; i < 4; i = i + 1)
++                        if (m_sel[i] && m_dat_o[i*8 +: 8] !== data[i*8 +: 8])
++                            $fatal(1, "write byte mismatch case=%0d byte=%0d", cases, written+i);
++                    if (written + bytes > read_total) $fatal(1, "write consumed unread bytes");
++                    if (kind != 1 && kind != 3)
++                        for (i = 0; i < 4; i = i + 1)
++                            if (m_sel[i]) memory[m_adr+i] = m_dat_o[i*8 +: 8];
++                    written = written + bytes;
++                end else begin
++                    bytes = total - read_total;
++                    if (bytes > sw) bytes = sw;
++                    if (bytes <= 0) $fatal(1, "read exceeded byte budget case=%0d", cases);
++                    logical_addr = sa + (si ? read_total : 0);
++                    mask = ((1 << bytes) - 1) << (logical_addr % 4);
++                    if (m_adr !== (logical_addr & 32'hfffffffc) || m_sel !== mask[3:0])
++                        $fatal(1, "read packet extent case=%0d byte=%0d gotmask=%h expected=%h",
++                               cases, read_total, m_sel, mask[3:0]);
++                    read_total = read_total + bytes;
++                end
++            end
++        end
++    end
++
++    task reg_write;
++        input [11:0] address;
++        input [31:0] value;
++        begin
++            @(negedge clk);
++            off = address;
++            wdata = value;
++            wr = 1;
++            acc = 1;
++            @(negedge clk);
++            wr = 0;
++            acc = 0;
++        end
++    endtask
++
++    // Unit count is deliberately independent of the memory access width.
++    // control 1 counts halfwords. control 2 counts the fixed peripheral side.
++    task run_case;
++        input integer source_width, destination_width, units, control;
++        input source_inc, destination_inc;
++        input integer source_lane, destination_lane, fifo_kind;
++        integer n, b, target, timeout_count;
++        begin
++            cases = cases + 1;
++            sw = source_width;
++            dw = destination_width;
++            si = source_inc;
++            di = destination_inc;
++            kind = fifo_kind;
++            sa = fifo_kind == 2 ? MMC_FIFO : 256 + source_lane;
++            da = fifo_kind == 1 ? MMC_FIFO : fifo_kind == 3 ? LCD_FIFO : 2048 + destination_lane;
++            total = units * (control == 1 ? 2 : di ? sw : dw);
++            read_total = 0;
++            written = 0;
++            for (n = 0; n < 4096; n = n + 1) begin
++                memory[n] = (n * 29 + cases * 13 + n / 7) % 256;
++                expected[n] = memory[n];
++            end
++            for (n = 0; n < total; n = n + 1)
++                stream[n] = fifo_kind == 2 ? (n * 17 + 8'h35) % 256 :
++                            memory[sa + (si ? n : n % sw)];
++            if (fifo_kind != 1 && fifo_kind != 3)
++                for (n = 0; n < total; n = n + dw)
++                    for (b = 0; b < dw && n+b < total; b = b + 1) begin
++                        target = da + (di ? n : 0) + b;
++                        expected[target] = stream[n+b];
++                    end
++            reg_write(12'h304, 1);
++            reg_write(12'h314, sa);
++            reg_write(12'h318, si ? 4 : 0);
++            reg_write(12'h31c, sw * 8);
++            reg_write(12'h320, da == MMC_FIFO ? 32'h10120624 : da == LCD_FIFO ? 32'h10121208 : da);
++            reg_write(12'h324, di ? 4 : 0);
++            reg_write(12'h328, dw * 8);
++            reg_write(12'h32c, units - 1);
++            reg_write(12'h308, control);
++            timeout_count = 0;
++            while (!irq[0]) begin
++                @(negedge clk);
++                timeout_count = timeout_count + 1;
++                if (timeout_count > 100000) $fatal(1, "completion timeout case=%0d", cases);
++            end
++            if (read_total != total || written != total || m_cyc)
++                $fatal(1, "incomplete success case=%0d moved=%0d/%0d expected=%0d", cases, read_total, written, total);
++            for (n = 0; n < 4096; n = n + 1)
++                if (memory[n] !== expected[n]) $fatal(1, "memory guard mismatch case=%0d byte=%0d", cases, n);
++            reg_write(12'h308, 0);
++            reg_write(12'h304, 0);
++            if (irq[0]) $fatal(1, "IRQ did not clear");
++        end
++    endtask
++    integer selected = 0, s, d, count, mode, sl, dl;
++    initial begin
++        if (!$value$plusargs("case=%d", selected)) selected = 0;
++        repeat (4) @(negedge clk);
++        reset = 0;
++        if (selected == 0 || selected == 1) run_case(4, 4, 5, 1, 1, 1, 0, 0, 0);
++        if (selected == 0 || selected == 2) run_case(4, 1, 512, 2, 1, 0, 0, 0, 1);
++        if (selected == 0 || selected == 3) run_case(1, 4, 10, 2, 0, 1, 0, 0, 2);
++        if (selected == 0 || selected == 4) run_case(4, 4, 7, 2, 1, 0, 0, 0, 3);
++        if (selected == 0) begin
++            for (s = 1; s <= 4; s = s * 2)
++                for (d = 1; d <= 4; d = d * 2)
++                    for (count = 1; count <= 9; count = count + 1)
++                        for (sl = 0; sl < 4; sl = sl + s)
++                            for (dl = 0; dl < 4; dl = dl + d) begin
++                                for (mode = 0; mode < 4; mode = mode + 1)
++                                    run_case(s, d, count, 1, mode[0], mode[1], sl, dl, 0);
++                                run_case(s, d, count, 2, 1, 0, sl, dl, 0);
++                                run_case(s, d, count, 2, 0, 1, sl, dl, 0);
++                            end
++        end
++        $display("PASS donor DMA count: %0d cases, %0d words", cases, words);
++        $finish;
++    end
++endmodule
+diff --git a/sim/dma-count/model_test.c b/sim/dma-count/model_test.c
+new file mode 100644
+--- /dev/null
++++ b/sim/dma-count/model_test.c
+@@ -0,0 +1,133 @@
++// Executes the real dma_phys(), width_bytes() and dma_run() from ngage_dma.c.
++// Only QEMU memory/IRQ/allocation dependencies are stubbed, not the transfer.
++#include <stdbool.h>
++#include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++typedef uint64_t hwaddr;
++typedef struct { uint32_t regs[8][16]; FILE *log; } NGageDma;
++#define MIN(a, b) ((a) < (b) ? (a) : (b))
++#define MEMTXATTRS_UNSPECIFIED 0
++#define NGAGE_IRQ_DMA(ch) (6 + (ch))
++#define g_malloc malloc
++static void release(void *p) { free(*(void **)p); }
++#define g_autofree __attribute__((cleanup(release)))
++
++static uint8_t memory[4096], expected[4096], stream[2048];
++static unsigned cases, reads, writes, moved_read, moved_write;
++static unsigned sw, dw, total, sa, da, kind;
++static bool si, di;
++static int address_space_memory, interrupt;
++static void require(bool condition, const char *message)
++{
++    if (!condition) {
++        fprintf(stderr, "FAIL donor DMA C case=%u read=%u written=%u budget=%u: %s\n",
++                cases, moved_read, moved_write, total, message);
++        exit(1);
++    }
++}
++static unsigned ngage_guest_pc(void) { return 0; }
++static void ngage_intc_set_source(int source, int level)
++{
++    require(source == 6, "unexpected interrupt source");
++    interrupt = level;
++}
++static void address_space_read(void *space, hwaddr address, int attrs, void *data, size_t length)
++{
++    (void)space;
++    (void)attrs;
++    unsigned n = MIN(sw, total - moved_read);
++    require(moved_read < total && length == n, "source extent exceeds byte budget");
++    require(address == sa + (si ? moved_read : 0), "source address sequence");
++    if (kind == 2) memcpy(data, stream + moved_read, length);
++    else {
++        require(address + length <= sizeof memory, "source address bounds");
++        memcpy(data, memory + address, length);
++    }
++    moved_read += length;
++    reads++;
++}
++static void address_space_write(void *space, hwaddr address, int attrs, const void *data, size_t length)
++{
++    (void)space;
++    (void)attrs;
++    unsigned n = MIN(dw, total - moved_write);
++    require(moved_write < total && length == n, "destination extent exceeds byte budget");
++    require(address == da + (di ? moved_write : 0), "destination address sequence");
++    require(moved_write + length <= moved_read, "write consumed unread bytes");
++    require(memcmp(data, stream + moved_write, length) == 0, "ordered write payload");
++    if (kind != 1 && kind != 3) {
++        require(address + length <= sizeof memory, "destination address bounds");
++        memcpy(memory + address, data, length);
++    }
++    moved_write += length;
++    writes++;
++}
++
++// Generated by run.sh directly from the maintained C source, without rewriting
++// these functions. This is a focused unit test, not a complete QEMU build.
++#include "dma_run.inc"
++
++static void run_case(unsigned source_width, unsigned destination_width, unsigned units,
++                     unsigned control, bool source_inc, bool destination_inc,
++                     unsigned source_lane, unsigned destination_lane, unsigned fifo_kind)
++{
++    NGageDma state = {0};
++    cases++;
++    sw = source_width;
++    dw = destination_width;
++    si = source_inc;
++    di = destination_inc;
++    kind = fifo_kind;
++    sa = kind == 2 ? 0x0c120624 : 256 + source_lane;
++    da = kind == 1 ? 0x0c120624 : kind == 3 ? 0x0c121208 : 2048 + destination_lane;
++    total = units * (control == 1 ? 2 : di ? sw : dw);
++    reads = writes = moved_read = moved_write = 0;
++    interrupt = 0;
++    for (unsigned i = 0; i < sizeof memory; i++)
++        memory[i] = expected[i] = (i * 29 + cases * 13 + i / 7) % 256;
++    for (unsigned i = 0; i < total; i++)
++        stream[i] = kind == 2 ? (i * 17 + 0x35) % 256 : memory[sa + (si ? i : i % sw)];
++    if (kind != 1 && kind != 3)
++        for (unsigned i = 0; i < total; i += dw)
++            for (unsigned j = 0; j < dw && i+j < total; j++)
++                expected[da + (di ? i : 0) + j] = stream[i+j];
++    state.regs[0][0x08 / 4] = control;
++    state.regs[0][0x14 / 4] = sa;
++    state.regs[0][0x18 / 4] = si ? 4 : 0;
++    state.regs[0][0x1c / 4] = sw * 8;
++    state.regs[0][0x20 / 4] = kind == 1 ? 0x10120624 : kind == 3 ? 0x10121208 : da;
++    state.regs[0][0x24 / 4] = di ? 4 : 0;
++    state.regs[0][0x28 / 4] = dw * 8;
++    state.regs[0][0x2c / 4] = units - 1;
++    dma_run(&state, 0);
++    require(interrupt == 1 && state.regs[0][0x08 / 4] == 0, "terminal state");
++    require(moved_read == total && moved_write == total, "incomplete transfer");
++    require(reads == (total + sw - 1) / sw && writes == (total + dw - 1) / dw,
++            "access count");
++    require(memcmp(memory, expected, sizeof memory) == 0, "destination/tail guards");
++}
++
++int main(int argc, char **argv)
++{
++    int selected = argc > 1 ? atoi(argv[1]) : 0;
++    if (selected == 0 || selected == 1) run_case(4, 4, 5, 1, true, true, 0, 0, 0);
++    if (selected == 0 || selected == 2) run_case(4, 1, 512, 2, true, false, 0, 0, 1);
++    if (selected == 0 || selected == 3) run_case(1, 4, 10, 2, false, true, 0, 0, 2);
++    if (selected == 0 || selected == 4) run_case(4, 4, 7, 2, true, false, 0, 0, 3);
++    if (selected == 0)
++        for (unsigned s = 1; s <= 4; s *= 2)
++            for (unsigned d = 1; d <= 4; d *= 2)
++                for (unsigned count = 1; count <= 9; count++)
++                    for (unsigned sl = 0; sl < 4; sl += s)
++                        for (unsigned dl = 0; dl < 4; dl += d) {
++                            for (unsigned mode = 0; mode < 4; mode++)
++                                run_case(s, d, count, 1, mode & 1, mode & 2, sl, dl, 0);
++                            run_case(s, d, count, 2, true, false, sl, dl, 0);
++                            run_case(s, d, count, 2, false, true, sl, dl, 0);
++                        }
++    printf("PASS donor DMA C count: %u cases, exact read/write extents and memory guards\n", cases);
++    return 0;
++}
+diff --git a/sim/dma-count/run.sh b/sim/dma-count/run.sh
+new file mode 100755
+--- /dev/null
++++ b/sim/dma-count/run.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++set -eu
++root=$(CDPATH= cd -- "$(dirname -- "$0")/../.." && pwd)
++cd "$root"
++out=${DMA_COUNT_OUT:-sim/build/dma-count}
++mkdir -p "$out"
++python3 - "$out/dma_run.inc" <<'PY'
++from pathlib import Path
++import sys
++source = Path('model/hw/ngage_dma.c').read_text()
++start = source.index('static hwaddr dma_phys(')
++end = source.index('static uint64_t dma_read(', start)
++Path(sys.argv[1]).write_text(source[start:end])
++PY
++${CC:-cc} -std=c11 -Wall -Wextra -Werror -I"$out" sim/dma-count/model_test.c -o "$out/model_test"
++iverilog -g2012 -s tb -o "$out/rtl_test" rtl/board/sdp_ram.sv rtl/upp/upp_dma.sv sim/dma-count/tb.v
++if ! "$out/model_test" "${DMA_COUNT_CASE:-0}" > "$out/model.log" 2>&1; then
++    cat "$out/model.log"
++    exit 1
++fi
++if ! vvp "$out/rtl_test" +case="${DMA_COUNT_CASE:-0}" > "$out/rtl.log" 2>&1; then
++    cat "$out/rtl.log"
++    exit 1
++fi
++cat "$out/model.log" "$out/rtl.log"
+diff --git a/sim/dma-count/README.md b/sim/dma-count/README.md
+new file mode 100644
+--- /dev/null
++++ b/sim/dma-count/README.md
+@@ -0,0 +1,50 @@
++# DMA count contract regression
++
++From the repository root:
++
++```sh
++make -C sim dma-count
++```
++
++Requirements: Python 3, a C11 compiler, and Icarus Verilog. The imported DMA
++and RAM are compiled in SystemVerilog mode; `tb.v` uses Verilog-2001 syntax.
++Output is under `sim/build/dma-count/`. `DMA_COUNT_OUT` selects another output
++directory, relative to the repository root. `DMA_COUNT_CASE=1`, `2`, `3` or
++`4` selects one directed case instead of the complete matrix.
++
++The count register has two contracts, independent of memory access width:
++
++| Control | Total bytes |
++| --- | --- |
++| 1, memory-to-memory | `(raw_count + 1) * 2` |
++| 2, paced TX to a fixed destination | `(raw_count + 1) * destination_width_bytes` |
++| 2, paced RX from a fixed source | `(raw_count + 1) * source_width_bytes` |
++
++The directed cases are a 10-byte 32-to-32 M2M copy (raw count 4), 512-byte
++32-to-8 MMC TX (raw count 511), 10-byte 8-to-32 MMC RX (raw count 9), and
++seven 32-bit LCD FIFO words (raw count 6). The original source-unit-count
++implementation fails the first two by reading beyond the requested budget;
++the RX and LCD cases retain their original byte counts.
++
++The full 2,650-case matrix includes all nine native width combinations,
++every naturally aligned lane, fixed/incrementing M2M modes and both paced
++directions, with 1 through 9 count units. A byte oracle independently derives
++all source bytes, source/destination address sequences, exact access sizes or
++lane masks, FIFO output and complete destination memory plus untouched guards.
++This catches undercopy, overcopy, source overread and final partial units.
++The RTL bench also stalls responses and paced endpoints, checks immutable
++held bus packets and observes completion/acknowledgment.
++
++`model_test.c` executes the actual `dma_phys()`, `width_bytes()` and `dma_run()`
++functions extracted verbatim from `model/hw/ngage_dma.c` at test time. It
++stubs QEMU allocation, memory and IRQ dependencies. It does not rebuild or
++boot QEMU. The full peripheral regression remains `make -C sim periph`,
++including real SDRAM/card models, simultaneous channels, CPU traffic, stop,
++LCD and MMC paths. Its M2M setup counts halfwords and MMC phases count fixed
++FIFO bytes regardless of SDRAM width.
++
++Evidence: original NEM-4 DMA code shifts the byte argument right by one at
++`0x50321424` for M2M, and by the peripheral table shift at `0x503215C4` for
++paced transfers. These are software contract observations; exact physical
++UPP timing and error status remain unverified. This change does not alter
++the donor's existing bus-error handling, address aliases or IRQ map.

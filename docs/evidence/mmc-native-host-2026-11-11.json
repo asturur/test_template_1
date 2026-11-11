@@ -1,0 +1,174 @@
+{
+  "scope": "P3.2a standalone host port only; not full P3.2 or production integration",
+  "source": {
+    "path": "rtl/ngage_mmc_host.v",
+    "bytes": 29271,
+    "sha256": "f1174b5d7819ef2944d589be68d311413d00fbcdae5c0b6e37955f25d34dce74"
+  },
+  "donor_sha256": "ff319b6ed1347b735d2fe2ec72748274ac9e723b9db49756cd697d98309b5ef5",
+  "spdx": "GPL-2.0-or-later",
+  "dialect": "Verilog-2001",
+  "production_wiring_changed": false,
+  "commands": [
+    "sh tests/phone/mmc_host/run.sh",
+    "sh tests/phone/mmc_host/run-pinned.sh",
+    "sh scratch/ngage2-integration/p3-native-host/compare-donor.sh"
+  ],
+  "pinned_image": {
+    "name": "jotego/simulator:arm64",
+    "pull": "never",
+    "network": "none"
+  },
+  "format_check": "1 file checked; 0 need formatting",
+  "strict_compile": "Icarus -g2001 -Wall and pinned Verilator --language 1364-2001 accepted",
+  "notices": {
+    "icarus": "rtl/ngage_mmc_host.v:258: warning: @* is sensitive to all 16 words in array 'fmem'.",
+    "verilator_intentional_unused_upper_bits": [
+      "%Warning-UNUSEDSIGNAL: rtl/ngage_mmc_host.v:179:23: Bits of function variable are not used: 'sum'[6:4]",
+      "%Warning-UNUSEDSIGNAL: rtl/ngage_mmc_host.v:187:23: Bits of function variable are not used: 'wide'[7:5]"
+    ],
+    "note": "Not warning-free: explicit modulo-truncation discards upper helper bits; Icarus conservatively includes every FIFO word in @* sensitivity"
+  },
+  "comparisons": {
+    "cmd16": {
+      "pass": true,
+      "donor_port_pass_summary_identical": true,
+      "summary": "PASS CMD16 accepted-length cache: 31 pin-observed probes, R1 error bits, CRC/framing/type rejection, status-only success and reset in 118914 clocks"
+    },
+    "data-4-16": {
+      "pass": true,
+      "donor_port_pass_summary_identical": true,
+      "summary": "PASS MMC host data peer DIV=4 FIFO=16 cases=28 clocks=82004: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering"
+    },
+    "data-12-8": {
+      "pass": true,
+      "donor_port_pass_summary_identical": true,
+      "summary": "PASS MMC host data peer DIV=12 FIFO=8 cases=28 clocks=244751: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering"
+    }
+  },
+  "tested": {
+    "cmd16_pin_probes": 31,
+    "data_cases_per_configuration": 28,
+    "configurations": [
+      {
+        "DIV": 4,
+        "FIFO_DEPTH": 16
+      },
+      {
+        "DIV": 12,
+        "FIFO_DEPTH": 8
+      }
+    ],
+    "lengths_bytes": [
+      1,
+      2,
+      3,
+      5,
+      511,
+      512
+    ],
+    "properties": [
+      "Exact TX/RX and rounded4 padding",
+      "Initial/mid-block empty TX and full RX clock stalls",
+      "CRC/end/token/busy/start errors",
+      "Types5/6/7 and8/9/10 continuation ordering",
+      "Reset during stalled TX/RX followed by fresh transfers",
+      "Response FIFO/status and CMD16 accepted-cache semantics"
+    ]
+  },
+  "sources": [
+    {
+      "path": "rtl/ngage_mmc_host.v",
+      "bytes": 29271,
+      "sha256": "f1174b5d7819ef2944d589be68d311413d00fbcdae5c0b6e37955f25d34dce74"
+    },
+    {
+      "path": "tests/phone/mmc_host/README.md",
+      "bytes": 4883,
+      "sha256": "410632b177dfa89f798ed55b4157d69ef8417effd1cd5ee613c204d5b32651ea"
+    },
+    {
+      "path": "tests/phone/mmc_host/cmd16_tb.v",
+      "bytes": 10436,
+      "sha256": "1518d3add1a3050cdb1946ebd4b9fde1278587e2a2d7317bd16d85020b74732b"
+    },
+    {
+      "path": "tests/phone/mmc_host/data_tb.v",
+      "bytes": 12718,
+      "sha256": "93a18076e76338f4e9be481487195b0f2eb312737ced4a9ca1dec36772ec0535"
+    },
+    {
+      "path": "tests/phone/mmc_host/run-pinned.sh",
+      "bytes": 491,
+      "sha256": "302e57b9815c7f56ae44538c2df2f8d875c2be9a9c24c5f390532aa766b7de12"
+    },
+    {
+      "path": "tests/phone/mmc_host/run.sh",
+      "bytes": 733,
+      "sha256": "504ca6e9af74abde0a9d852d4494e44812fb017fd984edab1fd9982e80c828d1"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/reference/upp_mmc.sv",
+      "bytes": 21681,
+      "sha256": "ff319b6ed1347b735d2fe2ec72748274ac9e723b9db49756cd697d98309b5ef5"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/compare-donor.sh",
+      "bytes": 781,
+      "sha256": "d0cb80bb36a2b330cba705c048fc2d93d6b69b95837259a88ed95b15736e06cf"
+    }
+  ],
+  "logs": [
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/cmd16-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/cmd16.log",
+      "bytes": 220,
+      "sha256": "3d42a353a7d5df2ac4b4c5327d0b1e067b75bd0c2a3ea48b837521a0d46f1dcf"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/data-12-8-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/data-12-8.log",
+      "bytes": 241,
+      "sha256": "d1fe5967044db68c7f9fef128a61cd0c248cdf0d7b2e446196a45f093f7925f5"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/data-4-16-build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/data-4-16.log",
+      "bytes": 239,
+      "sha256": "cc740f5c4913a34139229fd06ce77002c6fd7230b7b5d5b4d9ded6f6e9d9dac4"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/strict.log",
+      "bytes": 84,
+      "sha256": "a5cf4bf3c10ed0f7e3da0b3ab98bfb407648d89bcb3b4e1c3343bf1edb96286f"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-native-host/final-pinned/verilator-lint.log",
+      "bytes": 1042,
+      "sha256": "4559004c028c5e51e62b2fee78ed2b442e21b23e2acf0614de9244a0ac4405cd"
+    }
+  ],
+  "remaining": [
+    "No QIP/board/CPU/DMA/IRQ production integration",
+    "No original NEM-4 driver execution",
+    "No combined card/host or media-generation/drain regression in this slice",
+    "QD-derived clocks/type4 timing and IRQ22 policy unverified for NEM-4",
+    "Direct native pins are a D550/AMA transaction-level shortcut, not measured physical behavior",
+    "General malformed-response status and token-end handling unchanged",
+    "Concurrent command/argument MMIO edits and invalid parameters unsupported",
+    "No physical FPGA timing/resource/hardware or protected-card launch result"
+  ],
+  "frozen_from": "scratch/ngage2-integration/p3-native-host/results.json"
+}

@@ -1,0 +1,58 @@
+{
+  "scope": "P3.3 owned UPP/board/DMA endpoint wiring; no original EPBUS/full-phone/protected-title claim",
+  "inputs": {
+    "rtl/ngage_upp.v": "0a94f02628a0490f63e2289a261fbe360d7537188c33372ce8526497f964b281",
+    "rtl/ngage_upp_peripherals.v": "dbb29717eea9122b36b8f049b34b95ad88a37312c5adb01b3d3a0c223e03962f",
+    "rtl/ngage_dma_channels.v": "24bdd00b120f63c5b4e3e5b268fdbed3541bbcbda405dba501dbb9ea6f5ef2ab",
+    "rtl/ngage_dma_route.v": "83cf7382f1304ea6dab7bb994f7659cbbbdee9de215796280b1ef70e8518c714",
+    "rtl/ngage_board.v": "89b68c1d3a8b6d1428c587495cf460f946a298ce88ecaefc55c793bfaab22ceb",
+    "rtl/ngage_mmc_host.v": "f1174b5d7819ef2944d589be68d311413d00fbcdae5c0b6e37955f25d34dce74",
+    "rtl/ngage_mmc_card.v": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea",
+    "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87",
+    "tests/phone/mmc_production/run-pinned.sh": "76a5e62193259f6fabc30c7cec81621a69abda2299cee5484da5449de14f92a8",
+    "tests/phone/mmc_production/run.sh": "1f5f68ebc0de95df77d1639c4b587626f88a39cd044fdc5885823eafd18ea5d0",
+    "tests/phone/mmc_production/README.md": "af46dfdb504b23c5a6b4ac8ba1608a1d70ed14bd813c0eaf957e18d7debe85b6",
+    "tests/phone/mmc_production/cpu_peer.v": "c4d39bb40cb9984853b1c452dfb2fe809a41381348dcf15fe3d90a551fb32764",
+    "tests/phone/mmc_production/bus_tb.v": "30695d325a09d3a64990ed57590b640286cd4ebd0952425d481c651666ca3807",
+    "tests/phone/mmc_production/dma_tb.v": "ae9bbaaf283fb9adffa1eccf80a5d02859b268ad1bf7257c84e2d3b4d4d753b5"
+  },
+  "commands": [
+    "sh tests/phone/mmc_production/run.sh",
+    "sh tests/phone/mmc_production/run-pinned.sh",
+    "sh tests/phone/dma_route/run.sh",
+    "iverilog -g2001 -s tb -Ptb.ENGINES=1|3 ... tests/phone/dma_channels/tb.v; vvp ...",
+    "sh tests/phone/mmc_production/run-pinned.sh after restoring internal prefetch stop"
+  ],
+  "results": {
+    "captured_bus_pin": {
+      "cases": 30,
+      "clocks": 132221,
+      "pass": true
+    },
+    "all8_dma_pin_and_focus": {
+      "matrix_transfers": 96,
+      "completed_host_data_phases": 98,
+      "clocks": 667085,
+      "pass": true
+    },
+    "pinned_offline": true,
+    "format_check": "8 files,0 need formatting",
+    "generic_channels_1_3": "PASS",
+    "existing_route": "PASS",
+    "prefetch_stop": "PASS final-block hint before TX/RX data, during TX busy, queued CMD12 and7 NRC edges, release at idle; donor !CmdIdle optimization routed internally to card"
+  },
+  "limitations": [
+    "Direct CLK/CMD/DAT0 shortcut bypasses unimplemented D550/AMA physical path",
+    "Clock/timeout settings QD-derived; physical timing unverified",
+    "Source22 deliberately low in ICU; raw host dataBusy IRQ fixture observation only",
+    "General malformed-response status handling unchanged; concurrent command-register edits unsupported",
+    "DMA completion distinct from host CRC/card busy",
+    "CPU leaf peer executes no instructions; root-owned mmc_mister is separate ARM/HPS gate",
+    "Prefetch-stop is an internal model optimization, not an asserted physical D550/AMA signal"
+  ],
+  "failed_approaches": [
+    "Initial authored CPU peer lacked timescale; #1 caused a simulated-second settle delay, fixed in fixture only",
+    "New readiness helper originally read grant globals; explicit function arguments fixed stale TX offer admission in event simulation; all8 matrix passes after correction"
+  ],
+  "frozen_from": "scratch/ngage2-integration/p3-production/results.json"
+}

@@ -29,6 +29,30 @@ module ngage_icu (
         |(irq_pending[95:64] & irq_enable[2]);
     assign fiq = |(fiq_pending[31:0] & fiq_enable[0]) || |(fiq_pending[63:32] & fiq_enable[1]) ||
         |(fiq_pending[95:64] & fiq_enable[2]);
+
+    // The kernel indexes the handler table with a one-based source number
+    // within each bank. Select the lowest enabled pending source.
+    function [5:0] irq_current;
+        input [31:0] pending;
+        reg [15:0] group16;
+        reg [ 7:0] group8;
+        reg [ 3:0] group4;
+        reg [ 1:0] group2;
+        reg [ 4:0] index;
+        begin
+            index[4]    = !(|pending[15:0]);
+            group16     = index[4] ? pending[31:16] : pending[15:0];
+            index[3]    = !(|group16[7:0]);
+            group8      = index[3] ? group16[15:8] : group16[7:0];
+            index[2]    = !(|group8[3:0]);
+            group4      = index[2] ? group8[7:4] : group8[3:0];
+            index[1]    = !(|group4[1:0]);
+            group2      = index[1] ? group4[3:2] : group4[1:0];
+            index[0]    = !group2[0];
+            irq_current = (|pending) ? {1'b0, index} + 6'd1 : 6'd0;
+        end
+    endfunction
+
     always @* begin
         bank       = 0;
         slot       = 0;
@@ -63,14 +87,7 @@ module ngage_icu (
                     4:     dout = cfg1[bank];
                     8, 12: dout = irq_enable[bank];
                     16:    dout = (bank == 0 && raw_irq[7]) ? 32'h80 : 0;
-                    20: begin
-                        if (bank == 0) begin
-                            if (masked_irq[0]) dout = 1;
-                            else if (masked_irq[1]) dout = 2;
-                            else if (masked_irq[7]) dout = 8;
-                            else if (masked_irq[25]) dout = 26;
-                        end
-                    end
+                    20:    dout = {26'b0, irq_current(masked_irq)};
                 endcase
             end
         end else if (req && a >= 32'h0c1201c0 && a < 32'h0c120260) begin
@@ -89,6 +106,10 @@ module ngage_icu (
             end
         end
         if (claim && sel != 4'hf) bad = 1;
+    end
+    // Acknowledge qualification is separate from address decode: claim and
+    // bad must not appear dependent on the committing CPU response path.
+    always @* begin
         irq_clear = 0;
         if (commit && claim && !bad && we && is_irq && slot == 12) irq_clear[bank*32+:32] = din;
     end

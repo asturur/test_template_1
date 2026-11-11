@@ -12,7 +12,7 @@ for config in baseline short78 short104 short104delay; do
     esac
     iverilog -g2012 -s tb -Ptb.INVERTED_CLOCK=1 -Ptb.CAPTURE_NEGEDGE=1 $settings \
         -o "$out/$config" rtl/ngage_sdram_clock.v tests/phone/sdram/ddio_model.v \
-        rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v rtl/sdram/jtframe_sdram64*.v \
+        rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v rtl/ngage_dma_route.v rtl/sdram/jtframe_sdram64*.v \
         scratch/sdram-reference/mt48lc16m16a2.v tests/phone/sdram/tb.sv
     vvp "$out/$config" > "$out/$config.log"
     if grep -E 'ERROR:|FATAL:' "$out/$config.log"; then exit 1; fi

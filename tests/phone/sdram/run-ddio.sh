@@ -4,7 +4,7 @@
 set -eu
 out=build/sim/unit-sdram-ddio
 mkdir -p "$out"
-sources="rtl/ngage_sdram_clock.v ${DDIO_MODEL:-tests/phone/sdram/ddio_model.v} rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v rtl/sdram/jtframe_sdram64.v rtl/sdram/jtframe_sdram64_bank.v rtl/sdram/jtframe_sdram64_init.v rtl/sdram/jtframe_sdram64_latch.v rtl/sdram/jtframe_sdram64_rfsh.v scratch/sdram-reference/mt48lc16m16a2.v tests/phone/sdram/tb.sv"
+sources="rtl/ngage_sdram_clock.v ${DDIO_MODEL:-tests/phone/sdram/ddio_model.v} rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v rtl/ngage_dma_route.v rtl/sdram/jtframe_sdram64.v rtl/sdram/jtframe_sdram64_bank.v rtl/sdram/jtframe_sdram64_init.v rtl/sdram/jtframe_sdram64_latch.v rtl/sdram/jtframe_sdram64_rfsh.v scratch/sdram-reference/mt48lc16m16a2.v tests/phone/sdram/tb.sv"
 # A deliberately mismatched capture edge must still expose the original Z
 # failure. Two-state Verilator cannot substitute for this negative control.
 iverilog -g2012 -s tb -Ptb.INVERTED_CLOCK=1 -Ptb.CAPTURE_NEGEDGE=0 -o "$out/wrong-edge" $sources

@@ -33,6 +33,15 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_clock.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_dma_route.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_dma_engine.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_dma_channels.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_stream.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_dma_ram_mux.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_host.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_card.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_dpram.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_hps.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_board.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp_peripherals.v

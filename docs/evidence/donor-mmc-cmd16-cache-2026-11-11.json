@@ -1,0 +1,157 @@
+{
+  "scope": "Reproduced host-only CMD16 cache fix, now applied on isolated donor branch; no production integration RTL or Docker action.",
+  "donor_head": "7be19cd26024424f83fe825f94155382a5aeca0d",
+  "donor_working_copy_context": "Current branch contains the separately applied MMC card EOF and footer-version source changes; upp_mmc.sv remains identical to this retained baseline",
+  "actual_donor_host_unchanged": false,
+  "baseline": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/baseline/upp_mmc.sv",
+    "bytes": 20998,
+    "sha256": "a04ab0253185c9ca8390f8cb6b0de92a06234d6160588ef1baa67e85f27adc91"
+  },
+  "patched": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/patched/upp_mmc.sv",
+    "bytes": 21681,
+    "sha256": "ff319b6ed1347b735d2fe2ec72748274ac9e723b9db49756cd697d98309b5ef5"
+  },
+  "portable_patch": {
+    "path": "docs/evidence/donor-mmc-cmd16-cache-2026-11-11.patch",
+    "bytes": 12857,
+    "sha256": "1347762165747b28aa15530c0491232ce01227577c4d939de62474b7d1c0aa3a",
+    "includes": "Host cache guard and sim/mmc-cmd16 regression; host source independent of card-side patches"
+  },
+  "patch_application_verified_byte_exact": true,
+  "runner": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/run.sh",
+    "bytes": 822,
+    "sha256": "c9a717af458ab83442522000793e36df63799282230630ab0e546a233e45600b"
+  },
+  "testbench": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/tests/tb.v",
+    "bytes": 10369,
+    "sha256": "6bf37ca55017972b69520107b6ee5c372fa7e1431bba0d996e4bbf660574bc88"
+  },
+  "source_audit": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/tests/audit.py",
+    "bytes": 3061,
+    "sha256": "714da59bc8db2335b1962603a5af40dd42313fdc34da1d12db78e7464e7271ff"
+  },
+  "original_response_audit": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/original-response-audit.json",
+    "bytes": 1206,
+    "sha256": "69b78ebf7dfe9b211a95c9b611bb62dce5cd9587e91f3d7848d3c76613e90521"
+  },
+  "original_bounded_excerpts": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/original-response-mask-excerpts.txt",
+    "bytes": 1527,
+    "sha256": "69b180c4c0c0dbc8f885ac904ef5761185195eb1198640b45d92467be95f5a42"
+  },
+  "donor_card_reference": {
+    "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/reference/mmc_card.sv",
+    "bytes": 40417,
+    "sha256": "3dad56b55982c4589b173850066ca4e8297c68d88fb376d7529912ac5f73c434"
+  },
+  "commands": [
+    "sh scratch/ngage2-integration/p3-cmd16/run.sh",
+    "PYTHONDONTWRITEBYTECODE=1 python3 -B scratch/ngage2-integration/p3-cmd16/tests/audit.py"
+  ],
+  "results": {
+    "baseline_ordinary_oracle": "Expected failure: cached length on DAT0 128, expected last accepted 64",
+    "baseline_reproduction": "Accepted CMD16=64, rejected CMD16=128, subsequent host len0 emits128 bytes",
+    "patched": "PASS 31 independently pin-observed length-zero probes in 118914 system clocks",
+    "checks": [
+      "All 18 R1 cache-rejection mask bits individually",
+      "CRC failure",
+      "Correct-CRC wrong response index/transmission/end",
+      "R2 and type2/R3 exclusion",
+      "Response timeout",
+      "R1 software CRC suppression does not authorize bad-CRC cache update",
+      "Successful state/ready and explicitly excluded status-only bits",
+      "Reset restores512",
+      "Response FIFO payload/availability and existing CRC/timeout status preserved",
+      "Outgoing CMD CRC7 and data CRC16 checked using independent polynomial long division"
+    ],
+    "rejection_mask": "fdffa020",
+    "original_mask": "fd3fa020",
+    "logs": {
+      "baseline-oracle.log": {
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/logs/baseline-oracle.log",
+        "bytes": 125,
+        "sha256": "4b28dad646b87a63746fb4db115ae566a71bb783de4a58177ff3a20d4ac82f46"
+      },
+      "baseline.log": {
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/logs/baseline.log",
+        "bytes": 157,
+        "sha256": "07c96d1dd83903d2f30b403f6baa9340fdae1db2dd08ec996ed762757cdc31f4"
+      },
+      "patched.log": {
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/logs/patched.log",
+        "bytes": 199,
+        "sha256": "bb7e57d869e0ef47a4d5e558863db543691c04197421fe9e35ebdbd3cca0d971"
+      },
+      "baseline-oracle-build.log": {
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/logs/baseline-oracle-build.log",
+        "bytes": 159,
+        "sha256": "d01d12cfccd3008949cbc5d75b45c02c7513a4df2429831db520fe7f9a26a7e8"
+      },
+      "baseline-build.log": {
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/logs/baseline-build.log",
+        "bytes": 159,
+        "sha256": "d01d12cfccd3008949cbc5d75b45c02c7513a4df2429831db520fe7f9a26a7e8"
+      },
+      "patched-build.log": {
+        "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/p3-cmd16/logs/patched-build.log",
+        "bytes": 158,
+        "sha256": "87e61ccdec4c43aa689bf125d2add545a4468e81a2d40906da548f20e45db948"
+      }
+    },
+    "build_notice": "Icarus emits its existing constant-select always_* sensitivity notice (patched source line215); it uses conservative whole-vector sensitivity. This is not a warning/notice-free build and the notice is not the test oracle.",
+    "build_notice_observed": true
+  },
+  "assumptions": [
+    "Direct native CMD/DAT0 peer is a transaction-level shortcut, not verified D550/AMA routing",
+    "DIV4, falling-edge changes/rising-edge sampling, two response idle clocks, accepted data token with immediate busy release",
+    "Short timeout parameters only for bounded tests",
+    "Command/argument registers held stable until response retirement"
+  ],
+  "remaining": [
+    "General malformed-response delivery/error/status behavior is unchanged and unfixed",
+    "No full card/host integration or original-driver execution in this fixture",
+    "No real-phone timing, physical FPGA result, broad donor regression or Docker verification"
+  ],
+  "applied_branch": "codex/mmc-payload-eof-fix",
+  "committed": false,
+  "pushed": false,
+  "application": {
+    "result": "PASS 31 public-pin probes in actual donor checkout",
+    "system_clocks": 118914
+  },
+  "applied_sources": [
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/rtl/upp/upp_mmc.sv",
+      "bytes": 21681,
+      "sha256": "ff319b6ed1347b735d2fe2ec72748274ac9e723b9db49756cd697d98309b5ef5"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/sim/mmc-cmd16/tb.v",
+      "bytes": 10369,
+      "sha256": "6bf37ca55017972b69520107b6ee5c372fa7e1431bba0d996e4bbf660574bc88"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/ngage2/sim/mmc-cmd16/run.sh",
+      "bytes": 413,
+      "sha256": "57abde4d8bf891990ca4b64e6b5768e96cb7f54657bd626db3389982ae4f4d2b"
+    }
+  ],
+  "applied_logs": [
+    {
+      "path": "scratch/ngage2-integration/p3-cmd16/applied-host/build.log",
+      "bytes": 158,
+      "sha256": "a2defc9355b4ae53e6436117b534302b1c47e89d7d35b78d7a5beac859e6a5db"
+    },
+    {
+      "path": "scratch/ngage2-integration/p3-cmd16/applied-host/run.log",
+      "bytes": 243,
+      "sha256": "a7f409ffc25c52b91d20c7d051abea26a8d87b13176504b4a2a5f99d36fcef65"
+    }
+  ]
+}

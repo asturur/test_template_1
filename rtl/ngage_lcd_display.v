@@ -11,6 +11,8 @@ module ngage_lcd_display #(
     input  wire [ 7:0] status,
     input  wire [ 2:0] save_state,
     input  wire        write_valid,
+    output wire        pixel_commit,
+    output wire        pixel_mode,
     input  wire [31:0] write_addr,
     input  wire [31:0] write_data,
     input  wire        dma_valid,
@@ -33,13 +35,24 @@ module ngage_lcd_display #(
     output wire [ 8:0] raster_x,
     output wire [ 8:0] raster_y
 );
-    // Decoded UPP parameter framing. End coordinates are retained, not
-    // invented: only the two observed full-panel row endpoints are accepted.
+    reg [31:0] header = 0;
+    // Decoded UPP parameter framing; original-driver row-band geometry only.
     reg [7:0] last_command = 0, row_start = 0, row_end = 208, col_start = 2, col_end = 177;
+    reg row_valid = 1, column_valid = 1;
     reg [1:0] window_words = 0;
     reg [31:0] window_first = 0;
-    wire full_window = row_start == 0 && (row_end == 207 || row_end == 208) && col_start == 2 &&
+    wire full_window = row_valid && column_valid && row_start == 0 && (row_end == 207 || row_end == 208) && col_start == 2 &&
         col_end == 177;
+    // The original NEM-4 driver emits half-open, full-width row bands.
+    // Its pixel header counts three transport bytes per pair of RGB444 pixels.
+    wire row_band = row_valid && column_valid && row_start < row_end && row_end <= 208 && col_start == 2 && col_end == 177;
+    wire [14:0] band_start = {7'd0, row_start} * 15'd88;
+    wire [14:0] band_end = {7'd0, row_end} * 15'd88;
+    wire legacy_full_header = full_window && header == 32'h8924d67f;
+    wire [14:0] pixel_limit = legacy_full_header ? 15'd18304 : band_end;
+    wire [16:0] band_transport_bytes = {2'd0, band_end - band_start} * 17'd3;
+    wire pixel_header_ok = header[31:16] == 16'h8924 &&
+        (legacy_full_header || (row_band && {1'b0, header[15:0]} + 17'd1 == band_transport_bytes));
     task unknown;
         input [31:0] context_header, context_data;
         input [7:0] context_command;
@@ -58,7 +71,6 @@ module ngage_lcd_display #(
     reg        pixel_forward;
     reg [23:0] forwarded_pixel;
     assign pixel_word = pixel_forward ? forwarded_pixel : pixel_q;
-    reg [31:0] header = 0;
     reg memory_write = 0, display_on = 0;
     reg  [14:0] cursor = 0;
     // Display memory is updated incrementally, like panel GRAM. Completion
@@ -72,20 +84,21 @@ module ngage_lcd_display #(
     wire [14:0] read_index = ({6'b0, py} * 15'd88) + {7'b0, px[8:1]};
     reg [8:0] scan_x = 0, scan_y = 0;
     reg [11:0] phone_rgb;
-    assign raster_x = scan_x;
-    assign raster_y = scan_y;
+    assign raster_x   = scan_x;
+    assign raster_y   = scan_y;
     // Native DE rectangle goes directly to MiSTer's scaler. Blanking is
     // outside the source picture, never black padding inside active video.
-    assign hblank   = diagnostic ? scan_x >= 320 : !(scan_x >= 72 && scan_x < 248);
-    assign vblank   = diagnostic ? scan_y >= 240 : !(scan_y >= 16 && scan_y < 224);
-    assign hsync    = !(scan_x >= 336 && scan_x < 368);
-    assign vsync    = !(scan_y >= 244 && scan_y < 247);
+    assign hblank     = diagnostic ? scan_x >= 320 : !(scan_x >= 72 && scan_x < 248);
+    assign vblank     = diagnostic ? scan_y >= 240 : !(scan_y >= 16 && scan_y < 224);
+    assign hsync      = !(scan_x >= 336 && scan_x < 368);
+    assign vsync      = !(scan_y >= 244 && scan_y < 247);
     // Pack only the two RGB444 pixels; unused bus bits need no storage.
-    wire direct_pixel = write_valid && write_addr == 32'h0c121208 &&
-                        header == 32'h8924d67f && memory_write;
+    assign pixel_mode = !reset && pixel_header_ok && memory_write && cursor < pixel_limit;
+    wire direct_pixel = write_valid && write_addr == 32'h0c121208 && pixel_mode;
+    assign pixel_commit = !reset && direct_pixel;
     wire [31:0] pixel_data = direct_pixel ? write_data : dma_data;
     wire [14:0] pixel_address = direct_pixel ? cursor : dma_word_addr;
-    wire pixel_write = !reset && (direct_pixel || (dma_valid && dma_word_addr < 18304));
+    wire        pixel_write = !reset && (direct_pixel || (dma_valid && dma_word_addr < 18304));
     always @(posedge clk) begin
         pixel_forward   <= pixel_write && pixel_address == (in_phone ? read_index : 15'b0);
         forwarded_pixel <= {pixel_data[27:16], pixel_data[11:0]};
@@ -126,6 +139,8 @@ module ngage_lcd_display #(
             row_end             <= 208;
             col_start           <= 2;
             col_end             <= 177;
+            row_valid           <= 1;
+            column_valid        <= 1;
             window_words        <= 0;
             window_first        <= 0;
             unsupported_header  <= 0;
@@ -150,8 +165,11 @@ module ngage_lcd_display #(
                     if (window_words != 0) unknown(header, window_first, last_command);
                     window_words <= 0;
                     if (write_data == 32'h09240003 &&
-                        (last_command == 8'h15 || last_command == 8'h75))
+                        (last_command == 8'h15 || last_command == 8'h75)) begin
                         window_words <= 2;
+                        if (last_command == 8'h75) row_valid <= 0;
+                        else column_valid <= 0;
+                    end
                 end else if (write_addr == 32'h0c121208) begin
                     if (header == 32'h09200000) begin
                         last_command <= write_data[7:0];
@@ -159,17 +177,17 @@ module ngage_lcd_display #(
                         memory_write <= 0;
                         case (write_data)
                             32'h5c: begin
-                                if (full_window) begin
+                                if (row_band) begin
                                     memory_write   <= 1;
-                                    cursor         <= 0;
+                                    cursor         <= band_start;
                                     incomplete     <= 1;
                                     frame_complete <= 0;
                                 end else unknown(header, write_data, write_data[7:0]);
                             end
                             32'haf:  display_on <= 1;
                             // Window opcodes are understood; geometry is checked after payload.
-                            32'h15, 32'h75: begin
-                            end
+                            32'h15:  column_valid <= 0;
+                            32'h75:  row_valid <= 0;
                             default: unknown(header, write_data, write_data[7:0]);
                         endcase
                     end else if (header == 32'h09240003 && window_words != 0) begin
@@ -177,26 +195,31 @@ module ngage_lcd_display #(
                         if (window_words == 2) window_first <= write_data;
                         else begin
                             if (last_command == 8'h75) begin
+                                row_valid <= write_data == 0 && (window_first & 32'hf00fff00) == 0 &&
+                                    window_first[7:0] < window_first[27:20] && window_first[27:20] <= 208;
                                 row_start <= window_first[7:0];
-                                row_end   <= window_first[27:20];
+                                row_end <= window_first[27:20];
                             end else begin
-                                col_start <= window_first[7:0];
-                                col_end   <= window_first[27:20];
+                                column_valid <= write_data == 0 && window_first == 32'h0b100002;
+                                col_start    <= window_first[7:0];
+                                col_end      <= window_first[27:20];
                             end
                             // The second zero word is explicitly emitted by stock firmware.
-                            // Partial-window endpoint/wrap semantics remain unresolved: flag them.
+                            // Only original-driver full-width row bands are
+                            // modeled; arbitrary column windows remain unknown.
                             if (write_data != 0 || (window_first & 32'hf00fff00) != 0 ||
                                 (last_command == 8'h75 &&
-                                 !(window_first[7:0] == 0 &&
-                                   (window_first[27:20] == 207 || window_first[27:20] == 208))) ||
+                                 (window_first[7:0] >= window_first[27:20] || window_first[27:20] > 208)) ||
                                 (last_command == 8'h15 && window_first != 32'h0b100002))
                                 unknown(header, window_first, last_command);
                         end
-                    end else if (header == 32'h8924d67f && memory_write) begin
-                        if (cursor == 18303) begin
-                            memory_write   <= 0;
-                            frame_complete <= 1;
-                            incomplete     <= 0;
+                    end else if (direct_pixel) begin
+                        if (cursor == pixel_limit - 1'b1) begin
+                            memory_write <= 0;
+                            if (band_start == 0 && pixel_limit == 18304) begin
+                                frame_complete <= 1;
+                                incomplete     <= 0;
+                            end
                         end else cursor <= cursor + 1'b1;
                     end else if (header[31:16] == 16'h8924 || header[31:16] == 16'h0924)
                         unknown(header, write_data, last_command);

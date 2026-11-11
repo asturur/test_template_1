@@ -263,13 +263,31 @@ local_fill:
  bne fail
  mov r1,#0
  str r1,[r8]
+ // A scripted DMA client reads and updates live NOS4K RAM while the ARM
+ // keeps issuing local reads. The test harness sees the SDRAM doorbell.
+ ldr r0,=0x0c004020
+ ldr r1,=0xdec0ffee
+ str r1,[r0]
+ ldr r8,=0x0a000108
+ mov r1,#1
+ str r1,[r8]
+ ldr r1,=0xde22ff44
+5: ldr r2,[r0]
+ cmp r2,r1
+ bne 5b
+6: ldr r2,[r8,#4]
+ cmp r2,#1
+ bne 6b
  // Valid commands reach the panel through the registered command queue.
  ldr r0,=0x0c121200
  ldr r1,=0x09200000
  str r1,[r0]
- ldr r0,=0x0c121208
- mov r1,#0xaf
- str r1,[r0]
+ // The scripted client sends the display-on payload through the LCD FIFO.
+ mov r1,#2
+ str r1,[r8]
+7: ldr r2,[r8,#4]
+ cmp r2,#2
+ bne 7b
  ldr r0,=0x50415353
  b finish
 irq_handler:

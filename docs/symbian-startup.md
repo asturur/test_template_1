@@ -3,6 +3,35 @@
 The immediate objective is a working phone. Performance work resumes only when
 it is necessary to diagnose or remove a demonstrated startup blocker.
 
+## Integration build hardware stop, 2026-11-11
+
+The user reports that RBF `8ff8b11` reaches the logo and then shows fetch
+addresses `0x50324294`, `0x503242a0`, a few other addresses, and `0x00000000`
+before apparently restarting. `0x50324294` is the kernel panic handler's
+final branch to itself. `0x503242a0` is the literal `0x000047f4` in the
+adjacent panic-report address table. The debug raster samples the fetch bus,
+so it can show nearby fetches that never retire. A zero fetch address alone
+does not establish a restart or its cause.
+
+`8ff8b11` already contains the passive panic recorder and the prior
+request-privilege fix (`11dea96`). The same terminal PC occurred in several
+earlier panics with different triggers. The mounted SD card's
+`diagnostics.ngd` is an older export
+without either the panic or save-error metadata. At inspection, `boot0.vhd`
+was all `0xff` and `boot1.vhd` had non-erased bytes in six sectors. These
+describe the files on disk at inspection, with no inference about pending
+or committed writes during the reported boot.
+
+Zaparoo capture at 01:45 CET shows `PANIC 503AD63C E59FF044 10000000 MASK 7`,
+`CPSR 600000D7` (Abort mode), `BOOT FLAGS 0809019F`, `SAVE ERR 0`, and
+`RESET 0`. The report is the exception-context form. The NEM-4 ROM maps
+`503AD63C` to an `EUser.dll` load, `ldr r0, [r0]`. The reported fault address
+is `E59FF044`. The capture establishes an invalid-looking load address and
+leaves its pointer origin unresolved. It shows both overlays loaded with
+their apply bits clear. The screenshot was captured while parked and does
+not establish the reset history. PNG and capture metadata are under
+`scratch/hardware-live/hardware-stop-2026-11-11T00-45-36-862Z.*`.
+
 ## Hardware panic, 2026-11-10
 
 User identifies the running RBF as commit `40bfc11` (MMU handshake fix, before

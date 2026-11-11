@@ -2,6 +2,8 @@
 module tb;
 reg clk=0,reset=1,req=0,commit=0,we=0;reg [31:0] addr=0,din=0;wire claim,bad;wire [31:0] dout;
 wire dreq,dack,valid,irq,full;wire [24:0] da;wire [31:0] dr,ld;wire [14:0] la;
+wire route_req,route_write,route_ack,route_response,route_error;
+wire [24:0] route_addr;wire [31:0] route_data,route_rdata;wire [3:0] route_be;
 reg cr=0,lock=0;wire ca;wire [31:0] cd;wire mr,mw;wire [24:0] ma;wire [31:0] mwdata;wire [3:0] mbe;reg mack=0;reg [31:0] mdata=0;
 wire frame_complete,incomplete;
 `ifdef RETAINED_FRAME
@@ -15,7 +17,17 @@ endfunction
 reg [31:0] pixel_checksum=0;
 integer writes=0,cpu_done=0,idx;reg [31:0] frame_sum;reg saw_full=0;reg [31:0] checksum=0;always #5 clk=~clk;
 ngage_lcd_dma dma(.clk(clk),.reset(reset),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(4'hf),.claim(claim),.bad(bad),.dout(dout),.mem_req(dreq),.mem_addr(da),.mem_ack(dack),.mem_data(dr),.lcd_valid(valid),.lcd_frame_full(full),.lcd_word_addr(la),.lcd_data(ld),.irq_pending(irq),.irq_clear(1'b0));
-ngage_sdram_arbiter arb(.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(cr),.cpu_we(1'b0),.cpu_addr(25'h10),.cpu_data(32'b0),.cpu_be(4'hf),.cpu_ack(ca),.cpu_rdata(cd),.dma_req(dreq),.dma_we(1'b0),.dma_addr(da),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dack),.dma_rdata(dr),.mem_req(mr),.mem_we(mw),.mem_addr(ma),.mem_data(mwdata),.mem_be(mbe),.mem_ack(mack),.mem_rdata(mdata));
+ngage_dma_route #(.LOCAL_ENABLE(0)) route (
+ .clk(clk),.reset(reset),.cpu_lock(lock),.cmd_valid(dreq),.cmd_ready(),
+ .cmd_write(1'b0),.cmd_addr({8'h0a,da[23:0]}),.cmd_data(32'b0),.cmd_be(4'hf),
+ .rsp_valid(route_response),.rsp_error(route_error),.rsp_data(dr),
+ .ram_req(route_req),.ram_write(route_write),.ram_addr(route_addr),.ram_data(route_data),
+ .ram_be(route_be),.ram_ack(route_ack),.ram_rdata(route_rdata),
+ .local_valid(),.local_ready(1'b0),.local_write(),.local_addr(),.local_data(),
+ .local_be(),.local_done(1'b0),.local_error(1'b0),.local_rdata(32'b0)
+);
+assign dack=route_response && !route_error;
+ngage_sdram_arbiter arb(.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(cr),.cpu_we(1'b0),.cpu_addr(25'h10),.cpu_data(32'b0),.cpu_be(4'hf),.cpu_ack(ca),.cpu_rdata(cd),.dma_req(route_req),.dma_we(route_write),.dma_addr(route_addr),.dma_data(route_data),.dma_be(route_be),.dma_ack(route_ack),.dma_rdata(route_rdata),.mem_req(mr),.mem_we(mw),.mem_addr(ma),.mem_data(mwdata),.mem_be(mbe),.mem_ack(mack),.mem_rdata(mdata));
 ngage_lcd_display display(.clk(clk),.reset(reset),.diagnostic(1'b0),.status(8'b0),.save_state(3'd0),.write_valid(1'b0),.write_addr(32'b0),.write_data(32'b0),
  .dma_valid(valid),.dma_frame_full(full),.dma_word_addr(la),.dma_data(ld),.ce_pix(),.hsync(),.vsync(),.hblank(),.vblank(),.rgb(),.frame_complete(frame_complete),.incomplete(incomplete));
 always @(negedge clk)begin

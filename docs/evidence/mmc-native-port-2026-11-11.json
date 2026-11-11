@@ -1,0 +1,67 @@
+{
+  "stage": "P3.2 standalone Verilog-2001 host/card slice",
+  "production_MMC_wiring": false,
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "maintained_modules": {
+    "rtl/ngage_mmc_host.v": {
+      "bytes": 29271,
+      "sha256": "f1174b5d7819ef2944d589be68d311413d00fbcdae5c0b6e37955f25d34dce74"
+    },
+    "rtl/ngage_mmc_card.v": {
+      "bytes": 51989,
+      "sha256": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea"
+    },
+    "rtl/ngage_mmc_dpram.v": {
+      "bytes": 1248,
+      "sha256": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87"
+    }
+  },
+  "tests": {
+    "host_CMD16": {
+      "probes": 31,
+      "clocks": 118914
+    },
+    "host_data": {
+      "cases_per_config": 28,
+      "DIV4_FIFO16_clocks": 82004,
+      "DIV12_FIFO8_clocks": 244751,
+      "donor_results_identical": true
+    },
+    "card_EOF": {
+      "clocks": 282492,
+      "pass": true
+    },
+    "card_footer_version": {
+      "clocks": 196894,
+      "pass": true
+    },
+    "card_donor_CPP": {
+      "clocks": 13907842,
+      "donor_port_public_output_lockstep": true
+    },
+    "combined_donor_peripheral": {
+      "clocks": 3665197,
+      "runtime_log_byte_identical": true
+    }
+  },
+  "source_review": "Astra: no semantic conversion defect found in final three hashes; behavioral and timing hypotheses remain inherited.",
+  "child_evidence": [
+    "mmc-native-host-2026-11-11.json",
+    "mmc-native-card-2026-11-11.json",
+    "mmc-native-combined-2026-11-11.json"
+  ],
+  "next": [
+    "P3.3 production captured UPP/DMA/IRQ binding, request line2 and FIFO tails",
+    "Actual local hps_io width/multiblock/ACK contract and read-only mount adaptation",
+    "Original EPBUS/DMA functions and bounded firmware identify/mount/read trace",
+    "Writable HPS ownership/reset/remount persistence gate"
+  ],
+  "limits": [
+    "No physical D550/AMA/card wiring or real-phone timing claim",
+    "IRQ22 asserted-level and general frame error/status policy remain open",
+    "Native defensive token semantics/lost-bound fallback and HPS hot-mount ownership remain open",
+    "Same-address dual RAM writes remain undefined/outside valid traffic",
+    "No firmware mount/game launch/hardware-fit claim",
+    "No commit/push or deployment"
+  ]
+}

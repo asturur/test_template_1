@@ -1,0 +1,125 @@
+{
+  "date": "2026-11-11",
+  "repository": "/Users/andreabogazzi/develop/ngage2",
+  "branch": "codex/dma-byte-count-fix",
+  "commit": "7be19cd26024424f83fe825f94155382a5aeca0d",
+  "baseline_master": "e3d2bf778319bdf4ef2bf21a4fc7376186b00a63",
+  "remote_action": "None; local commit only",
+  "problem": "Universal source-width count overreads and overwrites memory copies and MMC transmit buffers",
+  "fix": {
+    "control1": "Count halfwords independently of access width",
+    "control2": "Count fixed peripheral-width units",
+    "tail": "Use remaining byte budget for partial source and destination accesses"
+  },
+  "reproduced_baseline": [
+    {
+      "model": "rtl",
+      "case": 1,
+      "exit_code": 1
+    },
+    {
+      "model": "rtl",
+      "case": 2,
+      "exit_code": 1
+    },
+    {
+      "model": "rtl",
+      "case": 3,
+      "exit_code": 0
+    },
+    {
+      "model": "rtl",
+      "case": 4,
+      "exit_code": 0
+    },
+    {
+      "model": "c",
+      "case": 1,
+      "exit_code": 1
+    },
+    {
+      "model": "c",
+      "case": 2,
+      "exit_code": 1
+    },
+    {
+      "model": "c",
+      "case": 3,
+      "exit_code": 0
+    },
+    {
+      "model": "c",
+      "case": 4,
+      "exit_code": 0
+    }
+  ],
+  "verification": {
+    "C_transfer_function_cases": 2650,
+    "RTL_cases": 2650,
+    "RTL_owned_words": 37433,
+    "existing_peripheral_cycles": 3665197,
+    "strict_Verilator_Wall": "Pass, no suppressions or warnings",
+    "applied_sources": "All 9 hashes match tested snapshot; executable test mode verified"
+  },
+  "limits": [
+    "C transfer functions tested with stubbed dependencies; full QEMU not rebuilt",
+    "Private sonicn.mmc game-card fixture absent; synthetic MMC tests passed",
+    "Physical UPP timing and error status remain unverified",
+    "Existing donor bus-error behavior and broad address aliases unchanged"
+  ],
+  "source_sha256": {
+    "rtl/upp/upp_dma.sv": {
+      "before_sha256": "acb0a5a1596a5177d56b3ab51274621b4d92a1c423a1eb545a6793e4cea14451",
+      "after_sha256": "d33ee306bb71b5502169672f356db69f903bb8e1d8c99d93ba5d3d0271142d0e"
+    },
+    "model/hw/ngage_dma.c": {
+      "before_sha256": "c1b7bb5dd1a2f5a01f74e3aea6e2c8cd5319cc02608e2740a37d3a89858ba94b",
+      "after_sha256": "32923984812a6cb35cd3173e9c1ecdbdb0357debc7a1603c57576a3d3bd5da60"
+    },
+    "docs/UPP_WD2.md": {
+      "before_sha256": "9874c4af259960dd9e7f11fedf77a451a23e3f50f6d9bbe84c7ac053da06e616",
+      "after_sha256": "271234218533a7de64e8c5f7b52c9048673c8e14c1ca47bc2552ed831690f840"
+    },
+    "sim/harness/periph_main.cpp": {
+      "before_sha256": "7fa996ed2b0ae1519c5f341f026e3ce3aa37bb8a34f437a07135bcf8635609b4",
+      "after_sha256": "e3a2ecc120c6266ba1a87494fc99e9ba4373e1d99c2e72a0639de7c011a61f79"
+    },
+    "sim/Makefile": {
+      "before_sha256": "610b069ecf53a0abdffa509be6d463d9f0c4e7b5c8180097d028c3b644aa8288",
+      "after_sha256": "e0cccd11a55d2763337c496e800e2495064cea9b30e3d3bbf3854a541b4759d2"
+    },
+    "sim/dma-count/tb.v": {
+      "before_sha256": null,
+      "after_sha256": "e39bc1455fec4a0e66fe9ebae28d3a7d14a4dd98ee0e9b380628337860a59c63"
+    },
+    "sim/dma-count/model_test.c": {
+      "before_sha256": null,
+      "after_sha256": "585c653b2ccaf5920f1c96a441cb5e765308e04a3711bfe7c4ee3e8b377aa4cf"
+    },
+    "sim/dma-count/run.sh": {
+      "before_sha256": null,
+      "after_sha256": "a63804275972eba0385a6a38d81e751417addbb5c45650cfbf4da927b2faa6e3"
+    },
+    "sim/dma-count/README.md": {
+      "before_sha256": null,
+      "after_sha256": "0e68b800790f41ab9f37ef58e299341acfe24e273c0ae11e5046fc60a161e80a"
+    }
+  },
+  "patch": {
+    "path": "docs/evidence/donor-dma-count-fix-2026-11-11.patch",
+    "sha256": "e72d9bd7049b5fbf3584e01d5e96c6c63ef11ee1dfb617c7ac9cf78431ff5537"
+  },
+  "log_sha256": {
+    "scratch/ngage2-integration/donor-dma-fix/container-focused.log": "39226bbdcd7215bbe8affa3dab8192a86a2bcd26200b8e8e7eda6c5094fbca3f",
+    "scratch/ngage2-integration/donor-dma-fix/container-periph.log": "ce244186394bcb23dd63177dec67a17194c30ce6096aec2c9945f96aa5f6db96",
+    "scratch/ngage2-integration/donor-dma-fix/lint-fixed.log": "759bb03de30e0c55e3c282251163c09b0221cfc32ee1ef2db56095170634c348",
+    "scratch/ngage2-integration/donor-dma-fix/baseline-rtl-case1.log": "4f4d293a48f1e42ff4efabd1514df962d910da929000678b58d05d5e73538f56",
+    "scratch/ngage2-integration/donor-dma-fix/baseline-rtl-case2.log": "123eaa8f45599f40d6b51ff24ec6e7fdc281ceafaa08aa3484bf0705a4f87524",
+    "scratch/ngage2-integration/donor-dma-fix/baseline-c-case1.log": "cd88fc46f86ab96107ba8242cdb3173d1551870653de3f31e0a75750c56ab87e",
+    "scratch/ngage2-integration/donor-dma-fix/baseline-c-case2.log": "e20bbbd571b07244f22c595c65541c0fd4cb2067661baf2082d5bb32b8322d11",
+    "scratch/ngage2-integration/donor-dma-fix/fixed-focused/model.log": "f12b35a9e4b87b5f6876784abd232537c7035a4d130e8fcf38dd87ddbc728b97",
+    "scratch/ngage2-integration/donor-dma-fix/fixed-focused/rtl.log": "a3b87ee0ecafccf8e579b75fb739e03996e693adadb8e4b8444b6f9bad5a5ac6"
+  },
+  "integration_evidence": "dma-engine-2026-11-11.json",
+  "isolation": "Prepared and tested under integration scratch; only verified patch applied to donor; original master retained; other simulations and checkpoints untouched"
+}

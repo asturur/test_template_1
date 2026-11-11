@@ -9,7 +9,8 @@ module tb;
  wire dirty,busy;wire [13:0] sector;wire ce,hs,vs,hb,vb;wire [11:0] rgb;
  reg [31:0] rom[0:1023],ram[0:16383];integer i,cycles=0;integer dd_reads=0,dma_words=0;
  wire cpu_ram_accept;
- ngage_mister #(.DIRECT_SDRAM(DIRECT_SDRAM)) dut(.debug_freeze_trace(1'b0),.sim_present(1'b1),.clk_sys(clk),.reset(reset),.cold_reset(cold),.board_init_done(init_done),.bus_lock(bus_lock),
+ // Preserve the four-register LCD fixture as an explicit legacy comparison.
+ ngage_mister #(.DIRECT_SDRAM(DIRECT_SDRAM),.GENERAL_DMA(0)) dut(.debug_freeze_trace(1'b0),.sim_present(1'b1),.clk_sys(clk),.reset(reset),.cold_reset(cold),.board_init_done(init_done),.bus_lock(bus_lock),
   .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csread),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
   .dma_sdram_req(dsreq),.dma_sdram_addr(dsa),.dma_sdram_ack(dsack),.dma_sdram_data(dsread),
   .ddram_addr(da),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(rd),.ddram_dout_ready(rdy),.ddram_accept(accept),

@@ -38,7 +38,11 @@
 */
 
 module ngage_upp_peripherals #(
-    parameter SIMIF_ENABLE       = 0,
+    parameter GENERAL_DMA        = 0,
+              MMC_ENABLE         = 0,
+              MMC_CLK_DIV        = 4,
+              MMC_TIMEOUT_LOG2   = 23,
+              SIMIF_ENABLE       = 0,
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
               REGISTER_RESPONSES = 0,
@@ -62,6 +66,7 @@ module ngage_upp_peripherals #(
     input  wire        cfg_keypad,            // keypad-gpio option
     input  wire        cfg_clocks,            // ideal-clocks option
     input  wire        dma_irq_pending,
+    input  wire [ 7:0] general_dma_irq,
     input  wire        sim_fiq_pending,
     input  wire [25:0] keys,
     input  wire        sim_present,
@@ -104,15 +109,88 @@ module ngage_upp_peripherals #(
     input  wire [31:0] mdi_data,
     input  wire [15:0] mdi_events,
     output wire        adsp_tick,
+    output wire        lcd_transport_ready,
     output wire        lcd_write_valid,
     input  wire        lcd_sink_ready,
+    input  wire        lcd_dma_access,
+    input  wire        lcd_pixel_mode,
     input  wire        dma_shadow_claim,
     input  wire        lcd_direct_collision,
+    output wire        mmc_clk,
+    output wire        mmc_cmd_o,
+    output wire        mmc_cmd_oe,
+    output wire        mmc_dat_o,
+    output wire        mmc_dat_oe,
+    input  wire        mmc_cmd_i,
+    input  wire        mmc_dat_i,
+    output wire        mmc_rx_ready,
+    output wire        mmc_tx_ready,
+    output wire        mmc_prefetch_stop,
     output wire        response_pending
 );
 
+    wire extra_ready;
+    wire local_access = commit && init_done && cyc && stb && !response_pending;
+    // Native host owns this register window before the generic storage bank.
+    // Storage bits are retained; FIFO side effects occur once on admission.
+    wire mmc_claim = MMC_ENABLE && cyc && stb && adr[31:6] == (32'h0c120600 >> 6);
+    wire mmc_fifo = adr[5:2] == 4'h9;
+    wire mmc_bad = mmc_claim && (sel == 0 || (!mmc_fifo && (sel != 15 || adr[1:0] != 0)));
+    wire [31:0] mmc_mask, mmc_data;
+    wire       mmc_busy;
+    wire [3:0] mmc_irq;
+    // Donor internal prefetch optimization: a queued final command remains
+    // command-busy through its preceding block and NRC/card busy. This is
+    // not a phone pin or a modeled D550/AMA-WD2 signal.
+    assign mmc_prefetch_stop = MMC_ENABLE && !mmc_irq[2];
+    wire mmc_storage = mmc_mask != 32'hffffffff;
+    wire mmc_accept = local_access && mmc_claim && !mmc_bad && !mmc_busy &&
+        (!mmc_storage || extra_ready);
+    generate
+        if (MMC_ENABLE) begin : mmc_enabled
+            ngage_mmc_host #(
+                .DIV         (MMC_CLK_DIV),
+                .TIMEOUT_LOG2(MMC_TIMEOUT_LOG2)
+            ) host (
+                .clk     (clk),
+                .reset   (rst),
+                .acc     (mmc_claim),
+                .we      (we),
+                .wr      (mmc_accept && we),
+                .rd      (mmc_accept && !we),
+                .off     ({adr[5:2], 2'b00}),
+                .be      (sel),
+                .wdata   (din),
+                .rmask   (mmc_mask),
+                .rdata   (mmc_data),
+                .busy    (mmc_busy),
+                .rx_ready(mmc_rx_ready),
+                .tx_ready(mmc_tx_ready),
+                .irq     (mmc_irq),
+                .mmc_clk (mmc_clk),
+                .cmd_o   (mmc_cmd_o),
+                .cmd_oe  (mmc_cmd_oe),
+                .cmd_i   (mmc_cmd_i),
+                .dat_o   (mmc_dat_o),
+                .dat_oe  (mmc_dat_oe),
+                .dat_i   (mmc_dat_i)
+            );
+        end else begin : mmc_disabled
+            assign mmc_mask     = 0;
+            assign mmc_data     = 0;
+            assign mmc_busy     = 0;
+            assign mmc_irq      = 0;
+            assign mmc_rx_ready = 0;
+            assign mmc_tx_ready = 0;
+            assign mmc_clk      = 0;
+            assign mmc_cmd_o    = 1;
+            assign mmc_cmd_oe   = 0;
+            assign mmc_dat_o    = 1;
+            assign mmc_dat_oe   = 0;
+        end
+    endgenerate
     wire simif_claim, simif_bad, simif_irq;
-    wire        local_access = commit && init_done && cyc && stb && !response_pending;
+
     wire        sim_access = local_access && (!simif_claim || (!card_busy && !card_overflow));
     wire [31:0] simif_data;
     generate
@@ -158,12 +236,12 @@ module ngage_upp_peripherals #(
         nos_pending, periodic_active, boot_claim, boot_bad, trace_claim, trace_bad,
         nos_tick, gpio_loop_claim, gpio_loop_bad, extra_claim, extra_bad;
     wire [31:0] icu_data, timer_data, nos_data, boot_data, gpio_loop_data, extra_data;
-    wire        sysc74_seen;
-    wire        extra_ready;
+    wire sysc74_seen;
+
     wire [95:0] irq_clear;
     wire timer0_pending, unit1_pending, unit60_pending, timer0_rearm;
     wire keypad_irq;
-    wire [95:0] irq_sources = {
+    wire [95:0] legacy_irq_sources = {
         64'b0,
         6'b0,
         (nos_pending || keypad_irq),
@@ -173,6 +251,10 @@ module ngage_upp_peripherals #(
         (unit1_pending || cbus_irq),
         timer0_pending
     };
+    wire [95:0] irq_sources = legacy_irq_sources |
+        (GENERAL_DMA ? {82'd0, general_dma_irq, 6'd0} : 96'd0) |
+    // DataRdy/source22 is a donor hypothesis: deliberately not asserted.
+    {71'd0, mmc_irq[3], mmc_irq[2], 1'b0, mmc_irq[0], 21'd0};
     wire [95:0] fiq_sources = {
         64'b0, 5'b0, (sim_fiq_pending || simif_irq), 22'b0, unit60_pending, 3'b0
     };
@@ -180,11 +262,12 @@ module ngage_upp_peripherals #(
     assign uem_irq_clear = irq_clear[1];
     assign uem_periodic  = periodic_active;
     assign adsp_tick     = nos_tick;
+    wire dma_selector = GENERAL_DMA && (a == 32'h0c120064 || a == 32'h0c120068);
     ngage_icu icu (
         .clk         (clk),
         .reset       (rst),
-        .req         (cyc && stb),
-        .commit      (local_access),
+        .req         (cyc && stb && !dma_selector),
+        .commit      (local_access && !dma_selector),
         .we          (we),
         .addr        (a),
         .din         (din),
@@ -271,21 +354,22 @@ module ngage_upp_peripherals #(
         .dout  (boot_data)
     );
     ngage_icu_extra extra_regs (
-        .clk            (clk),
-        .reset          (rst),
-        .req            (cyc && stb),
-        .commit         (local_access && !dma_shadow_claim),
-        .we             (we),
+        .clk(clk),
+        .reset(rst),
+        .req(cyc && stb),
+        .commit         (local_access && !dma_shadow_claim &&
+                         (!mmc_claim || (!mmc_fifo && !mmc_bad && !mmc_busy))),
+        .we(we),
         .periodic_active(periodic_active),
-        .addr           (a),
-        .din            (din),
-        .sel            (sel),
-        .claim          (extra_claim),
-        .bad            (extra_bad),
-        .dout           (extra_data),
-        .cbus8d_written (cbus8d_written),
-        .sysc74_seen    (sysc74_seen),
-        .ready          (extra_ready)
+        .addr(a),
+        .din(din),
+        .sel(sel),
+        .claim(extra_claim),
+        .bad(extra_bad),
+        .dout(extra_data),
+        .cbus8d_written(cbus8d_written),
+        .sysc74_seen(sysc74_seen),
+        .ready(extra_ready)
     );
     ngage_trace_sink trace_sink (
         .clk        (clk),
@@ -311,6 +395,7 @@ module ngage_upp_peripherals #(
     reg [31:0] lcd_read_data;
     reg ctl_written, hdr_written;
     reg [31:0] ctl, hdr;
+    assign lcd_transport_ready = cfg_lcd && ctl_written && ctl == 1 && hdr_written;
 
     wire hdr_ok = din == 32'h4f30_0000 || din == 32'h4920_0000 ||
               din == 32'h0920_0000 || din[31:16] == 16'h0924 ||
@@ -488,7 +573,8 @@ module ngage_upp_peripherals #(
     // Only LCD writes wait for their panel command buffer. Legacy standalone
     // fixtures without a display keep their original immediate contract.
     wire lcd_can_accept = (!LCD_QUEUE_ENABLE || lcd_sink_ready) && !lcd_direct_collision;
-    wire local_ready = init_done && (!extra_claim || extra_ready) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
+    wire local_ready = init_done && (!extra_claim || (mmc_claim && !mmc_storage) || extra_ready) &&
+        (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 
     always @(posedge clk) begin
@@ -607,11 +693,12 @@ module ngage_upp_peripherals #(
 
     // Decode priority once into a one-hot owner. Claims may depend on lanes,
     // direction and device state; an address-only owner cache is not valid.
-    reg [14:0] selected_owner;
-    wire [14:0] result_owner, result_bad;
+    reg [15:0] selected_owner;
+    wire [15:0] result_owner, result_bad;
     always @* begin
         selected_owner = 0;
-        if (simif_claim) selected_owner[0] = 1;
+        if (mmc_claim) selected_owner[15] = 1;
+        else if (simif_claim) selected_owner[0] = 1;
         else if (extra_claim) selected_owner[1] = 1;
         else if (gpio_loop_claim) selected_owner[2] = 1;
         else if (mdi_claim) selected_owner[3] = 1;
@@ -628,7 +715,8 @@ module ngage_upp_peripherals #(
         else if (lcd_hit && req) selected_owner[14] = 1;
         claim = response_pending ? (|result_owner && req) : |selected_owner;
     end
-    wire [479:0] local_data = {
+    wire [511:0] local_data = {
+        (mmc_data & mmc_mask) | (extra_data & ~mmc_mask),
         lcd_read_data,
         keypad_dout,
         clock_data,
@@ -645,7 +733,8 @@ module ngage_upp_peripherals #(
         extra_data,
         simif_data
     };
-    wire [14:0] local_bad = {
+    wire [15:0] local_bad = {
+        mmc_bad,
         lcd_bad,
         gpio_bad,
         clock_bad,
@@ -662,12 +751,12 @@ module ngage_upp_peripherals #(
         extra_bad,
         (simif_bad || card_overflow)
     };
-    wire [479:0] result_data;
+    wire [511:0] result_data;
     generate
         if (REGISTER_RESPONSES) begin : registered_response
             reg valid;
             genvar local_lane;
-            for (local_lane = 0; local_lane < 15; local_lane = local_lane + 1) begin : local_results
+            for (local_lane = 0; local_lane < 16; local_lane = local_lane + 1) begin : local_results
                 reg [31:0] data;
                 reg owner, error;
                 always @(posedge clk) begin
@@ -708,7 +797,7 @@ module ngage_upp_peripherals #(
     genvar response_lane;
     generate
         for (
-            response_lane = 0; response_lane < 15; response_lane = response_lane + 1
+            response_lane = 0; response_lane < 16; response_lane = response_lane + 1
         ) begin : response_leaves
             assign response_tree[15+response_lane] =
                 result_data[response_lane*32+:32] & {32{result_owner[response_lane]}};
@@ -720,7 +809,6 @@ module ngage_upp_peripherals #(
                                                   response_tree[2*response_lane+2];
         end
     endgenerate
-    assign response_tree[30] = 32'b0;
     always @* begin
         dout      = response_tree[0];
         unmodeled = |(result_owner & result_bad);
@@ -731,6 +819,7 @@ module ngage_upp_peripherals #(
         lcd_read_data = 0;
         if (lcd_hit && req) begin
             if (sel != 4'hf) lcd_bad = 1'b1;
+            if (GENERAL_DMA && lcd_dma_access && a == 32'h0c121208 && !lcd_pixel_mode) lcd_bad = 1;
             else if (a == 32'h0c12_1204 && we) begin
                 if (din != 32'd1 && din != 32'd2) lcd_bad = 1'b1;
             end else if (!ctl_written || ctl != 32'd1) begin

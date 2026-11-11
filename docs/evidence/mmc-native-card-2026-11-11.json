@@ -1,0 +1,138 @@
+{
+  "completed_utc": "2026-11-11T10:15:56.931817+00:00",
+  "image": "jotego/simulator:arm64",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "docker_policy": "--pull=never --network none --platform linux/arm64; donor mounted read-only",
+  "maintained_changes_only": [
+    "rtl/ngage_mmc_card.v",
+    "rtl/ngage_mmc_dpram.v",
+    "tests/phone/mmc_card/"
+  ],
+  "production_wiring_changed": false,
+  "donor_changed": false,
+  "commands": [
+    "docker image: python3 tools/format_phone_rtl.py --formatter scratch/ngage2-integration/tools/verible-verilog-format rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v",
+    "docker image: python3 tools/format_phone_rtl.py --formatter scratch/ngage2-integration/tools/verible-verilog-format --check rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v",
+    "docker image: MMC_CARD_OUT=scratch/ngage2-integration/p3-native-card/logs/pinned tests/phone/mmc_card/run.sh",
+    "NGAGE2_DONOR=/Users/andreabogazzi/develop/ngage2 MMC_CARD_DONOR_OUT=scratch/ngage2-integration/p3-native-card/donor-suite tests/phone/mmc_card/run-donor.sh",
+    "docker image: verilator --lint-only --language 1364-2001 -Wall -Wno-UNUSEDSIGNAL --top-module ngage_mmc_card rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v"
+  ],
+  "strict_iverilog_standard": "-g2001",
+  "strict_verilator_language": "1364-2001",
+  "formatter": {
+    "version": "v0.0-4298-g085eef05",
+    "check_files": 2,
+    "need_formatting": 0
+  },
+  "lint": {
+    "filtered_strict_pass": true,
+    "only_disabled_warning": "UNUSEDSIGNAL",
+    "raw_warning_counts": {
+      "UNUSEDSIGNAL": 4
+    },
+    "width_or_truncation_warnings": 0
+  },
+  "public_tests": {
+    "eof": {
+      "pass": true,
+      "system_clocks": 282492,
+      "mounts": 5,
+      "hps_reads": 4,
+      "persisted_hps_writes": 4
+    },
+    "footer_version": {
+      "pass": true,
+      "system_clocks": 196894,
+      "mounts": 7,
+      "hps_reads": 11,
+      "hps_writes": 0
+    }
+  },
+  "donor_cpp": {
+    "harness_unchanged": true,
+    "prefix": "Vmmc_card",
+    "top": "ngage_mmc_card",
+    "seed": 1,
+    "donor_pass": true,
+    "port_pass": true,
+    "lockstep_pass": true,
+    "each_system_clocks": 13907842,
+    "run_logs_byte_identical": true,
+    "run_log_sha256": "27a5f31a89084692fa6caabe13bba0bc5a2aec6f56bbf0169d0f4158003aa46a",
+    "final_fixture_hps_summary_not_aggregate": {
+      "block_reads": 108,
+      "block_writes": 0
+    }
+  },
+  "four_state_public_lockstep": {
+    "eof_pass": true,
+    "footer_version_pass": true,
+    "ignored_outputs": [
+      "inactive CMD/DAT data",
+      "unowned HPS buffer data"
+    ],
+    "compared_outputs": [
+      "CMD/DAT direction and driven value",
+      "card presence and active ownership",
+      "WP when present",
+      "HPS read/write request",
+      "HPS requested extent when valid",
+      "HPS active write bytes"
+    ]
+  },
+  "source_conversion_audit": "Independent read-only audit found no semantic blocker: priority-preserving pick_slot, modulo-equivalent truncation/subtract, separate loop indices, unchanged task/NBA ordering, own-port-new and mixed-port-old RAM simulation. Same-address simultaneous dual writes remain undefined.",
+  "scope_limits": [
+    "No formal equivalence proof; exercised trace equivalence only.",
+    "Native defensive negative token semantics and physical phone/card timing remain unverified.",
+    "Lost-bound W_END/W_PROG branches are not directly exercised.",
+    "Atomic remount/reset while HPS owns an in-flight transfer remains unresolved.",
+    "No D550/AMA routing, physical card detect/power or production HPS wiring.",
+    "Donor unsupported commands and 32-bit sector-tag address limit retained.",
+    "Only seed1 selected from original C++ suite; no whole-firmware mount/boot/UI or hardware synthesis/fit claim.",
+    "No actual user card image modified, commit, push, other simulation or checkpoint operation."
+  ],
+  "reference_sha256": {
+    "reference/common.h": "00f26fcf3e58e95b5424ed8e6d09f4ab1c10b2863b57fb25a37cdb0bb77b7e8a",
+    "reference/tdp_ram.sv": "e235b8c071c5b2faa97bc263d51f1e79e7ad52786be4edb7bf2667c4e91fe344",
+    "reference/mmc_card.sv": "3dad56b55982c4589b173850066ca4e8297c68d88fb376d7529912ac5f73c434",
+    "reference/mmc_main.cpp": "a8ab3becbffa3a449016ddaffe0b0a6232c2d6efb44ebe7302f028dfe479bc09"
+  },
+  "maintained_sha256": {
+    "rtl/ngage_mmc_card.v": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea",
+    "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87",
+    "tests/phone/mmc_card/eof_tb.v": "897d88873f811955481edb13183c8d8f131b4cbcbf0c4ddbc347d39387642dad",
+    "tests/phone/mmc_card/run.sh": "e4ca093e373cb6f497e25c31cc5560074366266ba3e52554146d89d9ae6c841f",
+    "tests/phone/mmc_card/README.md": "5023dc87bf2a7dc2c0395bea148c0c05aaf7a20d571d364ef4fc1dcf8316af61",
+    "tests/phone/mmc_card/version_tb.v": "9afc9e32712de40e7ad144aa286ba6a9547b378251bb32e544f697d18477ac72",
+    "tests/phone/mmc_card/run-donor.sh": "074a26854837b696076fe17866efd00817ca3a899f39ac1ae58ac275a61d3f0e",
+    "tests/phone/mmc_card/equivalence.v": "854a0cef30b8f887abd042cf5985372e3767cc9ab430a510ff3518e0cf920acd"
+  },
+  "log_sha256": {
+    "logs/lint.log": "1aaa29cf95a83587c588dcd9c8588967c03596f5ff0f6ed1f4431263c4c3a7f0",
+    "logs/version.log": "af37d25d6b1bf35d6a93a014decbaa3c5a6f455b8a337c42bb81e8f9d7d7123d",
+    "logs/pinned-command.log": "b32559941af2cc228708f2fd47a0ceb38c69d745b951567312b838e84faecf83",
+    "logs/eof.log": "37a03ffc10612612817c7756c87c670d0044e7999769e2f0f0ad1ece153b25cb",
+    "logs/lint-final.log": "f9d38024fe0cad2cf709710e19c949b2ec36d7d0ccdc00a979d71caf5eb896a2",
+    "logs/donor-command.log": "dc2effa95d654b5ffb509d52b7cf5c6b709365bb57f106eca98f4880c7910b3f",
+    "logs/pinned/version.log": "af37d25d6b1bf35d6a93a014decbaa3c5a6f455b8a337c42bb81e8f9d7d7123d",
+    "logs/pinned/eof.log": "37a03ffc10612612817c7756c87c670d0044e7999769e2f0f0ad1ece153b25cb",
+    "logs/pinned/eof-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "logs/pinned/version-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "donor-suite/public-equivalence/version.log": "4896224c2ac318d0272820264f0bf691dfe5d1370b6befb40a1737ddb6906b98",
+    "donor-suite/public-equivalence/eof.log": "3365904d1e8db39b7c8a7021f75d10980db6c6f84e919b1378b0793ca5e96e41",
+    "donor-suite/public-equivalence/eof-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "donor-suite/public-equivalence/version-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "donor-suite/equivalence/run.log": "27a5f31a89084692fa6caabe13bba0bc5a2aec6f56bbf0169d0f4158003aa46a",
+    "donor-suite/equivalence/build.log": "a4c412455175c3c0ec536dbf29516e6ad3cacd2f51d9c54367dc20b924780a92",
+    "donor-suite/port/run.log": "27a5f31a89084692fa6caabe13bba0bc5a2aec6f56bbf0169d0f4158003aa46a",
+    "donor-suite/port/build.log": "f6a66fe918ec0e6cdb5ce32e8d36204d62495306beaa738f90d9075a4d07c28c",
+    "donor-suite/donor/run.log": "27a5f31a89084692fa6caabe13bba0bc5a2aec6f56bbf0169d0f4158003aa46a",
+    "donor-suite/donor/build.log": "bf6689276c3e56d5bc6d919776fe5cd3e8cd452f022eb50a6cdbb93dd52f26d9"
+  },
+  "executable_sha256": {
+    "donor": "09725e3a36ef2c23b36e0687e597999c91bf16f67ef1672b0ac39ec53f8d4958",
+    "port": "99009a549387b74a9f13c7fe5af06dec76f60550c2cf086fe47a022da1b8c62b",
+    "equivalence": "8241fc07b6d135471774c8a01e4ae6815e7a8070c24421bd615e323f247c3da4"
+  },
+  "frozen_from": "scratch/ngage2-integration/p3-native-card/results.json"
+}

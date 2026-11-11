@@ -1,0 +1,204 @@
+{
+  "date": "2026-11-11",
+  "scope": "Read-only source/private-ROM audit; no simulations, Docker actions, network downloads, maintained-source or donor writes.",
+  "donor": "/Users/andreabogazzi/develop/ngage2 at parent-pinned 7be19cd (baseline e3d2bf7)",
+  "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+  "epbus_sha256": "8fe06b8766e85fd16323081ab0ff898fa1324c4c4113b222eab96fb626599228",
+  "epbus_file_bias": "503f3de0",
+  "irq_table": [
+    {
+      "source": 21,
+      "entry": "50323768",
+      "name_address": "503468ac",
+      "name": "IrqMMCDataIdle",
+      "object_address": "800007a0",
+      "epbus_binds": true
+    },
+    {
+      "source": 22,
+      "entry": "50323770",
+      "name_address": "503468bc",
+      "name": "IrqMMCDataRdy",
+      "object_address": "80000798",
+      "epbus_binds": false
+    },
+    {
+      "source": 23,
+      "entry": "50323778",
+      "name_address": "503468cc",
+      "name": "IrqMMCCmdIdle",
+      "object_address": "80000790",
+      "epbus_binds": true
+    },
+    {
+      "source": 24,
+      "entry": "50323780",
+      "name_address": "503468dc",
+      "name": "IrqMMCCmdRdy",
+      "object_address": "80000788",
+      "epbus_binds": true
+    }
+  ],
+  "epbus_bindings": [
+    {
+      "name": "IrqMMCCmdIdle",
+      "constructor": "503f561c",
+      "literal": "503f5660",
+      "string": "503fcb7c"
+    },
+    {
+      "name": "IrqMMCDataIdle",
+      "constructor": "503f5694",
+      "literal": "503f56d8",
+      "string": "503fcb8c"
+    },
+    {
+      "name": "IrqMMCCmdRdy",
+      "constructor": "503f570c",
+      "literal": "503f5750",
+      "string": "503fcb9c"
+    }
+  ],
+  "fifo_contract": {
+    "physical": "0c120624",
+    "dma_alias": "10120624",
+    "original_dma_type": 5,
+    "peripheral_width_bits": 8,
+    "request_line": 2,
+    "host_exact_length_write": "503f4c24 writes to 58120608",
+    "dma_roundup4": [
+      "503f4cd4 ldr r3,[r6,#0x14]",
+      "503f4cd8 add r4,r3,#3",
+      "503f4cdc bic r4,r4,#3"
+    ],
+    "tx_wrapper": "503f57b8",
+    "rx_wrapper": "503f57bc",
+    "required_tail": "RX supplies zero padding and TX discards padding, up to 3 bytes after the exact host length. Do not classify this original-driver padding as an invalid FIFO access."
+  },
+  "metadata_vectors": {
+    "observed_structure": 2,
+    "observed_spec": 3,
+    "observed_read_bl_len": 9,
+    "legacy_formula_max_bytes_for_this_profile": 1073741824,
+    "sonic_csd_without_crc": "8c08032a0079a3ffb6c081e1800020",
+    "sonic_csd_crc_end_byte": "db",
+    "other_layouts": "No additional local vector verifies them. Preserve opaque identities in inspect/export; do not invent capacity."
+  },
+  "source_findings": [
+    {
+      "id": "EOF-write-loss",
+      "status": "Proven by source; isolated wire-level regression delegated.",
+      "file": "rtl/board/mmc_card.sv",
+      "lines": [
+        618,
+        951,
+        992,
+        1003,
+        1015,
+        1161
+      ],
+      "effect": "CMD24/25 checks only CSD capacity. A valid CRC returns an accepted token; beyond actual nblk, no HPS write occurs, yet busy ends successfully. The CMD25 next-block bound also checks only CSD capacity.",
+      "fix": "Check the actual backing end as well as CSD capacity for initial and next writes. Treat !w_in_file as an error, never successful programming. Preserve zero-filled read tails."
+    },
+    {
+      "id": "footer-version-ignored",
+      "status": "Proven by source.",
+      "file": "rtl/board/mmc_card.sv",
+      "lines": [
+        678,
+        683,
+        687,
+        698
+      ],
+      "effect": "Only the 8 magic bytes are checked. Version byte 8 is ignored; the footer is then stripped and its identity fields are parsed as version 1.",
+      "test": "Valid magic with an unknown version must not be accepted as version 1. Use an explicit error or opaque handling."
+    },
+    {
+      "id": "small-default-capacity",
+      "status": "Proven by source.",
+      "file": "rtl/board/mmc_card.sv",
+      "lines": [
+        493,
+        497,
+        502
+      ],
+      "effect": "A raw image of 1\u20133 sectors advertises a minimum of 4 sectors, contrary to the rounded-down comment. This provides a small EOF regression fixture."
+    },
+    {
+      "id": "cmd16-error-cache",
+      "status": "Proven by source; impact needs a focused peer test.",
+      "file": "rtl/upp/upp_mmc.sv",
+      "lines": [
+        350,
+        354,
+        355,
+        356
+      ],
+      "effect": "Any CMD16 response updates cached blocklen, even with an R1 error or response CRC failure. A subsequent transfer with length 0 can therefore use the rejected length."
+    },
+    {
+      "id": "mount-reset-ownership",
+      "status": "Integration hazard; no executed failure is claimed.",
+      "file": "rtl/board/mmc_card.sv",
+      "lines": [
+        1187,
+        1193,
+        1198,
+        1200
+      ],
+      "effect": "Mount resets the card and loader but not an owned HPS transfer. Reset drops HPS state. Adapt the drain and generation policy before supporting writable hot replacement."
+    },
+    {
+      "id": "host-frame-validation",
+      "status": "Source coverage gap.",
+      "file": "rtl/upp/upp_mmc.sv",
+      "lines": [
+        350,
+        354,
+        355
+      ],
+      "effect": "Response CRC is checked, but the response end bit, header and index are not validated. Add malformed-response injection tests."
+    }
+  ],
+  "physical_boundary": {
+    "source": "docs/chip-inventory.md, rows D550 and X553",
+    "D550": "TMS320DA250GHH-144 separate audio DSP, with MMC/USB and AMA-WD2_BUS(4:0).",
+    "X553": "MMC connector connected through the audio-DSP/card interface and support circuitry.",
+    "rule": "Direct pins from the UPP MMIO host to the card are a transaction-level shortcut for NEM-4, not verified physical routing. Keep the ADSP module and missing AMA behavior visible."
+  },
+  "rom_provenance": {
+    "audit_input": {
+      "path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer/scratch/ngage2-integration/fixtures/core.bin",
+      "bytes": 18612224,
+      "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+    },
+    "copied_from": {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/build/firmware/nem4-factory/core.bin",
+      "bytes": 18612224,
+      "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+    },
+    "copy_manifest": "scratch/ngage2-integration/p0/fixtures.json",
+    "profile": "NEM-4 4.03 service-file assembly, core portion of VA-linear flash backing; not the stock THC dump. The separate extension.bin is not included in this input.",
+    "assembly_source": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/authentic-flash-image/assemble.py",
+    "assembly_description": "MCU nem440.3c1 plus PPM nem440.326 overlays, flash banks mapped into VA-linear order, unwritten holes filled FF, per-device hole 0x12c..0x164 left erased; core is the first 0x11c0000 bytes of the 0x13f0000-byte assembled backing.",
+    "stock_comparison_input": {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/firmware/THC N-Gage ROM Dump/ngage-rom-0x50000000.dmp",
+      "bytes": 20381696,
+      "sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5"
+    },
+    "whole_files_identical": false,
+    "fixture_is_simple_stock_prefix": false,
+    "stock_identical_audit_interval": {
+      "virtual_start": "50320000",
+      "virtual_end_exclusive": "503fd800",
+      "file_start": "00320000",
+      "file_end_exclusive": "003fd800",
+      "bytes": 907264,
+      "byte_identical": true,
+      "sha256": "7114ce103cb7629a3af93feb96cb08e215e0bbc056b67b4c3114b5b1723f3935",
+      "covers": "All IRQ table, DMA type-table and EPBUS instruction/name excerpts used in this P3 audit."
+    },
+    "conclusion": "The whole-file hashes describe different profiles, while the audited original instruction and table bytes are identical to the stock dump. No simulation or firmware rebuild was performed."
+  },
+  "frozen_evidence_source": "scratch/ngage2-integration/p3-audit/source-audit.json"
+}

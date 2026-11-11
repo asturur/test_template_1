@@ -26,17 +26,24 @@ initial begin
  @(negedge clk);write_valid=0;dma_valid=0;
  if(dut.framebuffer.memory[0]!==24'habc123)$fatal(1,"CPU/DMA direct priority");
  rst();win('h75,'h00a00003);
- if(!unsupported || uc!='h75 || uh!='h09240003 || ud!='h00a00003 || dut.row_start!=3 || dut.row_end!=10)$fatal(1,"partial-window context");
+ if(unsupported || dut.row_start!=3 || dut.row_end!=10)$fatal(1,"original row-band geometry");
  cmd('h5c);wr('h0c121200,'h8924d67f);wr('h0c121208,0);
- if(dut.memory_write || dut.framebuffer.memory[0]!==24'habc123)$fatal(1,"partial geometry silently rendered");
+ if(!unsupported || dut.framebuffer.memory[264]!==0)$fatal(1,"mismatched row-band byte extent rendered");
  rst();win('h15,'h0b100003);if(!unsupported || dut.col_start!=3)$fatal(1,"odd window start hidden");
  rst();cmd('h75);wr('h0c121200,'h09240003);wr('h0c121208,'h0d000000);wr('h0c121208,1);
  if(!unsupported || uc!='h75 || uh!='h09240003)$fatal(1,"nonzero trailing word ignored");
+ cmd('h5c);wr('h0c121200,'h8924d67f);wr('h0c121208,'h01230456);
+ if(dut.framebuffer.memory[0]!==24'habc123)$fatal(1,"malformed trailing word reused old geometry");
+ rst();cmd('h75);wr('h0c121200,'h09240004);wr('h0c121208,'h0d000000);wr('h0c121208,0);
+ cmd('h5c);wr('h0c121200,'h8924d67f);wr('h0c121208,'h01230456);
+ if(dut.framebuffer.memory[0]!==24'habc123 || dut.pixel_mode)$fatal(1,"malformed header count reused old geometry");
+ rst();win('h75,'h0d000100);cmd('h5c);wr('h0c121200,'h8924d67f);wr('h0c121208,'h01230456);
+ if(dut.framebuffer.memory[0]!==24'habc123 || dut.pixel_mode)$fatal(1,"reserved parameter bits reused old geometry");
  rst();cmd('h75);wr('h0c121200,'h09240003);wr('h0c121208,'h0d000000);wr('h0c121200,'h09200000);
  if(!unsupported || uh!='h09240003)$fatal(1,"interrupted window payload hidden");
  rst();cmd('hca);wr('h0c121200,'h0924000a);wr('h0c121208,'hf640f208);
  if(!unsupported || uc!='hca || uh!='h0924000a || ud!='hf640f208)$fatal(1,"init parameter diagnostic context");
  rst();cmd('hfe);if(!unsupported || uc!='hfe || uh!='h09200000)$fatal(1,"unknown command context");
- $display("PASS LCD cold-boot fixture, window framing, unknown context and safe partial-window rejection");$finish;
+ $display("PASS LCD cold-boot fixture, window framing, unknown context and original row-band geometry and byte-extent rejection");$finish;
 end
 endmodule
