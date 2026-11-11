@@ -10,6 +10,32 @@ module tb(input wire clk,reset,cold,
  output wire [31:0] bus_errors,data_faults,pixel_writes,
  output wire [31:0] boot_index,boot_limit,retired_count,ddr_command_count,ddr_beat_count);
  integer lcd_unknown_prints=0;
+`ifdef NGAGE_FAULT_CONTEXT
+ `define BP_CORE dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core
+ `include "tests/phone/hardware_boot/fault_context_watch.vh"
+ `undef BP_CORE
+ reg [63:0] fault_elapsed=0, key_at=0, key_hold=0;
+ reg [26:0] key_mask=0;
+ reg key_was_active=0;
+ wire key_active=key_mask!=0 && fault_elapsed>=key_at && fault_elapsed-key_at<key_hold;
+ wire [26:0] phone_keys=key_active ? key_mask : 27'b0;
+ initial begin
+  if($value$plusargs("key-at=%d",key_at)) begin end
+  if($value$plusargs("key-hold=%d",key_hold)) begin end
+  if($value$plusargs("key-mask=%h",key_mask)) begin end
+ end
+ always @(posedge clk) begin
+  if(reset)begin fault_elapsed<=0;key_was_active<=0;end
+  else begin
+   fault_elapsed<=fault_elapsed+1;
+   key_was_active<=key_active;
+   if(key_active!=key_was_active)$display("KEY_PULSE cycle=%0d mask=%h active=%0d",fault_elapsed,key_mask,key_active);
+  end
+ end
+`else
+ wire [26:0] phone_keys=0;
+`endif
+
 `ifdef NGAGE_EARLY_BOOT_TRACE
  wire delay_retire = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_uop_last &&
    (dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback.i_valid ||
@@ -234,7 +260,13 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .dma_local_valid(dma_local_valid),.dma_local_waiting(dma_local_waiting),.dma_local_ready(dma_local_ready),.dma_local_write(dma_local_write),
   .dma_local_addr(dma_local_addr),.dma_local_data(dma_local_data),.dma_local_be(dma_local_be),
   .dma_local_done(dma_local_done),.dma_local_error(dma_local_error),.dma_local_rdata(dma_local_rdata),
-  .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
+  .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(
+`ifdef NGAGE_LOGO_RUN
+ phone_keys
+`else
+ 27'b0
+`endif
+ ));
  ngage_dma_route dma_route (
   .clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),
   .cmd_valid(dma_cmd_valid),.cmd_ready(dma_cmd_ready),.cmd_write(dma_cmd_write),
@@ -313,8 +345,18 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .c_beat_valid(core_beat_valid),.c_beat_data(core_beat_data),.c_beat_last(core_beat_last),
   .c_valid(dr||dw),.c_ready(accept),.c_write(dw),.c_addr(da),.c_data(dd),.c_be(db),.c_done(done),.c_rdata(back),
   .req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_data(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp));
+`ifdef NGAGE_PRODUCTION_DDR
+ // Selected Template transport/cache. HPS sector traffic remains absent in
+ // this phone harness; the bulk engine is instantiated but not requested.
+ ngage_ddr_flash_adapter #(.FLASH_CACHE_BYTES(8192),.STREAM_TRANSPORT(1),.BULK_PERSISTENCE(1),.LINE_REFILL(LINE_REFILL)) adapter(
+  .req_bulk(1'b0),.bulk_cancel(1'b0),.bulk_write_valid(1'b0),
+  .bulk_write_data(64'b0),.bulk_write_last(1'b0),.bulk_read_ready(1'b1),
+.req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
+  .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
+`else
  ngage_ddr_adapter #(.LINE_REFILL(LINE_REFILL),.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
+`endif
  always @(posedge clk)begin
   phyready<=0;
 `ifndef NGAGE_REAL_SDRAM

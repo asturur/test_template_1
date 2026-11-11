@@ -64,6 +64,11 @@ def main():
     p.add_argument('--rom-cache',action='store_true',help='enable production 1KiB DDR ROM cache')
     p.add_argument('--refill-stats',action='store_true',help='passive per-segment refill, stall and memory-traffic counters')
     p.add_argument('--line-refill',action='store_true',help='32-byte refill transport; requires a matching cold build or audited diagnostic fork')
+    p.add_argument('--production-ddr',action='store_true',help='Template D1 streaming/D2 8KiB cache/D3 engine; no HPS sector requests')
+    p.add_argument('--fault-context',action='store_true',help='passively capture caller/register/memory history and stop on first Count abort; new lineage')
+    p.add_argument('--key-at',type=int,default=0,help='single diagnostic key pulse start in CPU clocks')
+    p.add_argument('--key-mask',type=lambda x:int(x,0),default=0,help='public phone key bits for diagnostic pulse')
+    p.add_argument('--key-hold',type=int,default=0,help='diagnostic key hold in CPU clocks')
     p.add_argument('--early-boot-trace',action='store_true',help='bounded delay/caller observer for independent short investigations')
     p.add_argument('--sys-clk-hz',type=int,default=104000000,help='phone clock/timebase parameter; requires a new checkpoint lineage when changed')
     p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
@@ -75,13 +80,14 @@ def main():
     script=Path('tests/phone/hardware_boot/run.sh').read_text();source_text=script.split('--Mdir build/sim/unit-hardware-boot/obj ',1)[1].split(' > build/',1)[0]
     sources=[f for token in source_text.split() for f in sorted(glob.glob(token))]
     sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v']
+    if a.production_ddr:sources+=['rtl/ngage_ddr_flash_adapter.v','rtl/ngage_ddr_flash_cache.v']
     if overlay_path:sources+=['rtl/ngage_nos_overlay.v']
     if a.cpu_reference_dir:
         if a.restore:p.error('CPU reference selection requires a cold run')
         sources=[str(a.cpu_reference_dir/Path(f).name) if f.startswith('rtl/arm/') and (a.cpu_reference_dir/Path(f).name).is_file() else f for f in sources]
     assert sources and 'tests/phone/hardware_boot/tb.v' in sources
     cpp='tests/phone/hardware_boot/logo_main.cpp'
-    headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))
+    headers=sorted(str(f) for f in Path('rtl').rglob('*') if f.suffix in ('.vh','.svh'))+['tests/phone/hardware_boot/fault_context_watch.vh']
     assets=['rtl/ngage_debug_font.hex','rtl/ngage_debug_font.mif']
     hashes={f:sha(f) for f in sources+headers+assets+[cpp,__file__]}
     saved=None
@@ -110,6 +116,10 @@ def main():
     if a.refill_stats:identity_fields['refill_stats']=True
     if a.line_refill:identity_fields['line_refill']=True
     if a.early_boot_trace:identity_fields['early_boot_trace']=True
+    if a.key_mask and (not a.fault_context or a.key_at<0 or a.key_hold<=0 or a.key_mask>=1<<27):
+        raise ValueError('key pulse requires fault-context, valid 27-bit mask and positive hold')
+    if a.production_ddr:identity_fields['production_ddr']=True
+    if a.fault_context:identity_fields.update(fault_context=True,key_pulse=[a.key_at,a.key_mask,a.key_hold])
     if a.rom_cache:
         identity_fields.update(rom_cache=True,rom_cache_bits=a.rom_cache_bits,rom_cache_bytes=a.rom_cache_bytes)
     identity=hashlib.sha256(json.dumps(identity_fields,sort_keys=True).encode()).hexdigest()
@@ -137,14 +147,14 @@ def main():
         cmd=docker+['g++',image,'-O3',*(['-DNGAGE_REFILL_STATS'] if a.refill_stats else []),'-std=c++17','-I'+str(saved_build),'-I'+include,'-I'+include+'/vltstd',cpp,str(saved_build/'Vtb__ALL.a')]+[str(saved_build/name) for name in ('verilated.o','verilated_save.o','verilated_threads.o')]+['-pthread','-o',str(binary)]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     if not binary.exists():
-        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3'+(' -DNGAGE_REFILL_STATS' if a.refill_stats else ''),'-GLINE_REFILL='+str(int(a.line_refill)),'-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN','-GOVERLAY_COMPONENT='+str(overlay_id)] if overlay_path else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+sources+['/work/'+cpp]
+        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3'+(' -DNGAGE_REFILL_STATS' if a.refill_stats else ''),'-GLINE_REFILL='+str(int(a.line_refill)),'-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN','-GOVERLAY_COMPONENT='+str(overlay_id)] if overlay_path else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+(['-DNGAGE_FAULT_CONTEXT'] if a.fault_context else [])+(['-DNGAGE_PRODUCTION_DDR'] if a.production_ddr else [])+sources+['/work/'+cpp]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     # Precompiled headers are large and unused once the executable exists.
     for cache in build.glob('*.gch'):cache.unlink()
     if a.build_only:print(binary);return
     out=Path('build/sim/runs')/a.name;out.mkdir(parents=True,exist_ok=False)
     inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
-    manifest={'refill_stats':a.refill_stats,'line_refill':a.line_refill,'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    manifest={'production_ddr':a.production_ddr,'fault_context':a.fault_context,'key_pulse':[a.key_at,a.key_mask,a.key_hold],'refill_stats':a.refill_stats,'line_refill':a.line_refill,'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
     if overlay_sha:manifest[overlay_key]={'sha256':overlay_sha,'path':str(overlay_path),'skip_primary_checksum':True}
     manifest['stop_after_lcd_words']=a.stop_after_lcd_words
     manifest['stop_on_kernel_panic']=a.stop_on_kernel_panic
@@ -158,6 +168,8 @@ def main():
         if prior.get(overlay_key,{}).get('sha256')!=overlay_sha or prior.get('bluetooth_overlay' if overlay_key=='nos_overlay' else 'nos_overlay'):raise ValueError('component overlay differs; restart from reset')
         if prior.get('line_refill',False)!=a.line_refill:raise ValueError('line refill mode differs; use only an explicitly audited fork')
         if prior.get('timer_clock','cpu')!=a.timer_clock or prior.get('nos_tick_hz',1000)!=a.nos_tick_hz:raise ValueError('timer experiment differs; restart from reset')
+        if prior.get('production_ddr',False)!=a.production_ddr:raise ValueError('DDR backend differs; restart from reset')
+        if prior.get('fault_context',False)!=a.fault_context or prior.get('key_pulse',[0,0,0])!=[a.key_at,a.key_mask,a.key_hold]:raise ValueError('fault observer/key pulse differs; restart from reset')
         if prior.get('powerup','alarm')!=a.powerup:raise ValueError('reset cause differs; restart from reset')
         if not a.use_saved_build and prior.get('direct_sdram',False)!=(not a.legacy_sdram_route):raise ValueError('SDRAM route differs; restart from reset')
         if prior.get('sys_clk_hz',104000000)!=a.sys_clk_hz:raise ValueError('clock parameter differs; restart from reset')
@@ -207,6 +219,7 @@ def main():
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
     cmd=docker+['/work/'+str(binary),image,str(a.cycles),str(out),str(actual_restore) if actual_restore else '-', '+ngage-compact-trace','+core='+str(a.core),'+extension='+str(a.extension),'+cdrive='+str(out/'inputs/cdrive.img')]
     if overlay_path:cmd+=['+nos-overlay='+str(overlay_hex)]
+    if a.fault_context:cmd+=['+key-at='+str(a.key_at),'+key-mask='+format(a.key_mask,'x'),'+key-hold='+str(a.key_hold)]
     if a.stop_on_kernel_panic:cmd+=['+stop-kernel-panic']
     if a.stop_after_lcd_words:cmd+=['+stop-lcd-words='+str(a.stop_after_lcd_words)]
     print('Running',out,flush=True)

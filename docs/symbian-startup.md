@@ -3,6 +3,20 @@
 The immediate objective is a working phone. Performance work resumes only when
 it is necessary to diagnose or remove a demonstrated startup blocker.
 
+## Keypress symptom clarified, 2026-11-11
+
+The user now specifies that **any key**, while the clock screensaver is shown,
+reveals the N-Gage logo; after some minutes the screensaver returns. This is
+input-dependent wake/redraw and continuing inactivity handling, not proof of a
+CPU reset or a key-triggered Count exception. Keep the older captured panic
+separate until a timed capture links it to this sequence. The immediate target
+is startup remaining behind the splash image instead of reaching a usable UI.
+
+No new live capture was obtained: the previously used Zaparoo endpoint was
+unreachable. A separate fresh-simulation observer/key-pulse smoke is being
+prepared; old simulations and checkpoints remain untouched. No build monitoring
+or new subagents are authorized. Dirty-cache optimization is deferred.
+
 ## Integration build hardware stop, 2026-11-11
 
 The user reports that RBF `8ff8b11` reaches the logo and then shows fetch
