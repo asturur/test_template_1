@@ -9,15 +9,28 @@ changed. No other-chat simulation or saved checkpoint was touched.
 | Storage | Previous logic state | Replacement | Visible timing |
 | --- | --- | --- | --- |
 | Eight immutable queued DMA descriptors |111 payload bits/channel,888 FF bits in total | Four8x32 simple-dual M10Ks;17 padding bits/row are constant. The fast-classification bits remain live for scheduling. | One synchronous fetch clock before engine launch; no extra transfer-beat stage. |
-| Six timers' four spare words each |24x32 =768 FF bits | One32x32 M10K plus24 reset-valid flags | These passive reads wait one RAM sample; writes, live counters and IRQ/ACK do not. |
-| ICU configuration words |Six32-bit words,192 FF bits | One8x32 M10K plus6 reset-valid flags | Only cfg0/cfg1 reads wait one RAM sample. Mask/current/IRQ/FIQ remain immediate. |
+| Six timers' four spare words each |24x32 =768 FF bits | Rows0..23 of shared32x32 M10K plus24 reset-valid flags | These passive reads wait one RAM sample; writes, live counters and IRQ/ACK do not. |
+| ICU configuration words |Six32-bit words,192 FF bits | Rows24..29 of the same M10K plus6 reset-valid flags | Only cfg0/cfg1 reads wait one RAM sample. Mask/current/IRQ/FIQ remain immediate. |
 
-Intended cost: **six additional M10Ks**,497->503/553 if the prior allocation is
+Intended cost: **five additional M10Ks**,497->502/553 if the prior allocation is
 otherwise unchanged. Source-level state arithmetic removes1,848 FF bits and
-adds47 small validity/read/dispatch state bits in the two-worker production
-profile: approximately**1,801 fewer FF state bits**, plus the associated wide
+adds42 small validity/read/dispatch state bits in the two-worker production
+profile: approximately**1,806 fewer FF state bits**, plus the associated wide
 selection/reset logic. This is not a measured ALM saving or successful fit;
 physical synthesis/packing can change unrelated blocks.
+
+### Shared timer/ICU bank
+
+Production UPP owns the shared bank; private controller banks are disabled at
+elaboration. Thirty words use960 bits of one10,240-bit M10K. UPP accepts one
+MMIO request at a time, so sharing needs no arbitration and adds no latency
+beyond the existing synchronous sample. Standalone controller fixtures retain
+the private-bank option. Live counters and interrupt state remain independent.
+
+The production shared-bank oracle passes the same12,788 transactions with
+4,659 sample clocks. Board IRQ routing and production ARM LCD normal/held/reset
+fixtures pass; the frame remains130,685 clocks. Intel/poison checks also pass, with unrelated large RAMs modeled behaviorally.
+Production elaboration confirms exactly one passive bank and no private banks.
 
 ### Why this differs from deleting registers
 

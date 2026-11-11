@@ -267,7 +267,59 @@ module ngage_upp_peripherals #(
     assign uem_periodic  = periodic_active;
     assign adsp_tick     = nos_tick;
     wire dma_selector = GENERAL_DMA && (a == 32'h0c120064 || a == 32'h0c120068);
-    ngage_icu icu (
+    // UPP owns one MMIO access at a time, so the passive timer and ICU
+    // words can share one 32x32 M10K with no arbitration or extra wait state.
+    wire [31:0] icu_live_data, timer_live_data;
+    wire passive_icu = icu_claim && !icu_bad && a >= 32'h0c120100 &&
+        a < 32'h0c1201c0 && a[5:3] == 0;
+    wire passive_timer = timer_claim && !timer_bad &&
+        (a[4:2] == 0 || a[4:2] == 3 || a[4:2] == 5 || a[4:2] == 7);
+    wire [1:0] timer_word = a[4:2] == 0 ? 2'd0 : a[4:2] == 3 ? 2'd1 : a[4:2] == 5 ? 2'd2 : 2'd3;
+    // Rows0..23: six timers x four words. Rows24..29: three ICU banks x two.
+    wire [4:0] passive_address = passive_timer ? {a[7:5], timer_word} : {2'b11, a[7:6], a[2]};
+    wire passive_selected = passive_icu || passive_timer;
+    wire passive_read = passive_selected && !we;
+    wire passive_write = passive_selected && we && local_access && !rst;
+    wire [31:0] passive_q;
+    reg [29:0] passive_valid = 0;
+    reg passive_pending = 0, passive_word_valid = 0;
+    reg [4:0] passive_sample_address;
+    ngage_bram #(
+        .AW         (5),
+        .DW         (32),
+        .READ_ONLY_B(1)
+    ) passive_words (
+        .clk   (clk),
+        .addr_a(passive_address),
+        .addr_b(passive_address),
+        .data_a(din),
+        .data_b(32'b0),
+        .we_a  (passive_write),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (passive_q)
+    );
+    wire passive_ready = !passive_read ||
+        (passive_pending && passive_sample_address == passive_address);
+    wire [31:0] passive_data = passive_word_valid ? passive_q : 32'b0;
+    assign icu_data   = passive_icu ? passive_data : icu_live_data;
+    assign timer_data = passive_timer ? passive_data : timer_live_data;
+    always @(posedge clk) begin
+        if (rst) begin
+            passive_valid          <= 0;
+            passive_pending        <= 0;
+            passive_word_valid     <= 0;
+            passive_sample_address <= 0;
+        end else begin
+            if (passive_write) passive_valid[passive_address] <= 1;
+            passive_pending        <= passive_read;
+            passive_word_valid     <= passive_read && passive_valid[passive_address];
+            passive_sample_address <= passive_address;
+        end
+    end
+    ngage_icu #(
+        .PASSIVE_STORAGE(0)
+    ) icu (
         .clk         (clk),
         .reset       (rst),
         .req         (cyc && stb && !dma_selector),
@@ -280,7 +332,7 @@ module ngage_upp_peripherals #(
         .fiq_pending (fiq_sources),
         .claim       (icu_claim),
         .bad         (icu_bad),
-        .dout        (icu_data),
+        .dout        (icu_live_data),
         .irq         (irq),
         .fiq         (fiq),
         .irq_clear   (irq_clear),
@@ -288,7 +340,8 @@ module ngage_upp_peripherals #(
         .ready       (icu_ready)
     );
     ngage_timers #(
-        .CLOCK_DIV(TIMER_CLK_DIV)
+        .CLOCK_DIV      (TIMER_CLK_DIV),
+        .PASSIVE_STORAGE(0)
     ) timers (
         .clk            (clk),
         .reset          (rst),
@@ -302,7 +355,7 @@ module ngage_upp_peripherals #(
         .clear_unit1    (1'b0),
         .claim          (timer_claim),
         .bad            (timer_bad),
-        .dout           (timer_data),
+        .dout           (timer_live_data),
         .timer0_pending (timer0_pending),
         .unit1_pending  (unit1_pending),
         .unit60_pending (unit60_pending),
@@ -585,7 +638,7 @@ module ngage_upp_peripherals #(
     wire lcd_can_accept = (!LCD_QUEUE_ENABLE || lcd_sink_ready) && !lcd_direct_collision;
     wire local_ready = init_done && (!extra_claim || (mmc_claim && !mmc_storage) || extra_ready) &&
         (!boot_claim || boot_ready) &&
-        (!icu_claim || icu_bad || icu_ready) && (!timer_claim || timer_bad || timer_ready) &&
+        (!icu_claim || icu_bad || icu_ready) && (!timer_claim || timer_bad || timer_ready) && passive_ready &&
         (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 

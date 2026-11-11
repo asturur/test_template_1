@@ -1,5 +1,13 @@
 # Integration fit recovery
 
+## 2026-11-11: Passive banks consolidated
+
+Timer24 words and ICU6 words share one32x32 M10K in production. This reduces
+intended extra RAMs from six to five and estimated net FF removal to1,806.
+No extra sample latency. Keep diagnostics until Symbian boots. Next candidates
+and gates are ranked in [donor comparison](donor-resource-comparison.md#next-optimization-priorities);
+DMA BRAM queue/worker compaction is recorded in TODO. Physical fit pending.
+
 ## 2026-11-11: DMA queue and passive timer/ICU words moved to RAM
 
 Implemented four-M10K immutable DMA queue, one-M10K timer spare words and

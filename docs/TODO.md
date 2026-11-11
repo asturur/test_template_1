@@ -6,6 +6,28 @@ separately configurable; never describe a probe as authentic boot. See
 [flash-layout.md](flash-layout.md), and [uem-control-bus.md](uem-control-bus.md)
 for evidence and reproducible traces.
 
+## Fit and storage priorities (2026-11-11)
+
+Keep the diagnostic screen, monitor, recorder and export until Symbian boots.
+Actual PLL stays78 MHz; optimize RTL toward104 MHz without changing clocks.
+See [ranked candidates](donor-resource-comparison.md#next-optimization-priorities).
+
+- [ ] Prototype donor-style MLAB ZAP register storage with the independent RF,
+  operand and CP15 oracles. Preserve five read operands, banked registers,
+  held/committed bypass, writer priority and collision ownership. Measure LABs
+  and timing; the current RF's~2,008 ALMs are a block cost, not promised savings.
+- [ ] Compact DMA queue/worker BRAM. The four8x32 queued-payload banks are mostly
+  empty; investigate narrow multiword rows and shared storage for suitable
+  worker fields. Keep eight immutable channel snapshots, two workers and fast
+  LCD; worker execution state is still mostly live registers, not these banks.
+  Test start/program/stop/restart ordering, fetch collisions, busy peers,
+  accepted-owner drain, reset, all channels/IRQs and native MMC lengths. Measure
+  added launch clocks, FF staging, total LABs/M10Ks and setup/hold; preserve the
+  130,685-clock LCD frame and avoid adding latency to every transfer beat.
+- [ ] Investigate DMA's remaining768 live programming mirror bits. A RAM change
+  must capture the original start-edge descriptor despite immediate rewrites,
+  cancellation and other channels; measure launch latency before adoption.
+
 ## CPU and cache
 
 - [ ] Fix ZAP cold-cache `LDM` replay when the base register is loaded before

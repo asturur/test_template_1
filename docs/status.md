@@ -1,3 +1,21 @@
+## 2026-11-11: Shared timer/ICU bank; diagnostics retained
+
+Production UPP now stores24 timer spare words and6 ICU cfg words in one32x32
+M10K. Private standalone banks are disabled in production. Read sample latency
+is unchanged; counters/IRQ masks remain immediate. Current total intends five
+extra M10Ks (four DMA queue plus one shared), approximately1,806 net source FF
+state bits removed. No physical fit/timing claim. Actual PLL remains78 MHz;
+104 MHz is the RTL objective.
+
+Shared behavioral/Intel/poison oracle passes12,788 transactions/4,659 sample clocks. Board IRQ
+and production ARM LCD normal/held/reset pass; frame remains130,685 clocks.
+Diagnostics stay enabled until Symbian boots. Ranked next candidates: RF MLAB,
+remaining duplicated/passive FF words, then DMA queue/worker BRAM compaction;
+the latter is now explicitly in TODO. Cache/TLB changes need separate gates.
+No other-chat simulations/checkpoints touched; no long boot or CI monitoring.
+See [RAM details](ram-conversions.md) and
+[priorities](donor-resource-comparison.md#next-optimization-priorities).
+
 ## 2026-11-11: DMA queue and passive timer/ICU words moved to RAM
 
 Implemented four-M10K immutable DMA queue, one-M10K timer spare words and

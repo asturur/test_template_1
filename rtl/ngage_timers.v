@@ -3,7 +3,8 @@
 // Timer 0 supplies the OS tick; medint uses timer 3 with reload/count 390.
 // The board selects a 26 MHz enable (/3 at 78 MHz, /4 at 104 MHz).
 module ngage_timers #(
-    parameter integer CLOCK_DIV = 1
+    parameter integer CLOCK_DIV       = 1,
+                      PASSIVE_STORAGE = 1
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -42,39 +43,50 @@ module ngage_timers #(
     wire [4:0] spare_address = {unit_index, spare_index};
     wire spare_write = write_access && spare_word && !reset;
     wire spare_read = claim && !bad && !we && spare_word;
-    reg [23:0] spare_valid = 0;
-    reg spare_read_pending = 0, spare_sample_valid = 0;
-    reg  [ 4:0] spare_sample_address;
-    wire [31:0] spare_data;
-    ngage_bram #(
-        .AW         (5),
-        .DW         (32),
-        .READ_ONLY_B(1)
-    ) passive_words (
-        .clk   (clk),
-        .addr_a(spare_address),
-        .addr_b(spare_address),
-        .data_a(din),
-        .data_b(32'b0),
-        .we_a  (spare_write),
-        .we_b  (1'b0),
-        .q_a   (),
-        .q_b   (spare_data)
-    );
-    assign ready = !spare_read || (spare_read_pending && spare_sample_address == spare_address);
-    always @(posedge clk) begin
-        if (reset) begin
-            spare_valid          <= 0;
-            spare_read_pending   <= 0;
-            spare_sample_valid   <= 0;
-            spare_sample_address <= 0;
-        end else begin
-            if (spare_write) spare_valid[spare_address] <= 1;
-            spare_read_pending   <= spare_read;
-            spare_sample_address <= spare_address;
-            spare_sample_valid   <= spare_read && spare_valid[spare_address];
+    // Production UPP supplies these words from its shared store.
+    // Standalone fixtures retain a local bank through PASSIVE_STORAGE=1.
+    wire [31:0] passive_data;
+    generate
+        if (PASSIVE_STORAGE) begin : standalone_passive
+            reg [23:0] spare_valid = 0;
+            reg spare_read_pending = 0, spare_sample_valid = 0;
+            reg  [ 4:0] spare_sample_address;
+            wire [31:0] spare_data;
+            ngage_bram #(
+                .AW         (5),
+                .DW         (32),
+                .READ_ONLY_B(1)
+            ) passive_words (
+                .clk   (clk),
+                .addr_a(spare_address),
+                .addr_b(spare_address),
+                .data_a(din),
+                .data_b(32'b0),
+                .we_a  (spare_write),
+                .we_b  (1'b0),
+                .q_a   (),
+                .q_b   (spare_data)
+            );
+            assign passive_data = spare_sample_valid ? spare_data : 32'b0;
+            assign ready = !spare_read || (spare_read_pending && spare_sample_address == spare_address);
+            always @(posedge clk) begin
+                if (reset) begin
+                    spare_valid          <= 0;
+                    spare_read_pending   <= 0;
+                    spare_sample_valid   <= 0;
+                    spare_sample_address <= 0;
+                end else begin
+                    if (spare_write) spare_valid[spare_address] <= 1;
+                    spare_read_pending   <= spare_read;
+                    spare_sample_address <= spare_address;
+                    spare_sample_valid   <= spare_read && spare_valid[spare_address];
+                end
+            end
+        end else begin : shared_passive
+            assign passive_data = 0;
+            assign ready        = 1;
         end
-    end
+    endgenerate
     // One short shared divider; each counter has its own parallel decrementer.
     // Bus admission/ACK never waits for this enable. Register writes override
     // a decrement on their edge; the first count follows on the next enable.
@@ -95,7 +107,7 @@ module ngage_timers #(
     assign periodic_active = periodic[0];
     // Independent one-hot selection; no priority chain through six counters.
     wire [31:0] selected_data[0:5];
-    assign dout = spare_word ? (spare_sample_valid ? spare_data : 32'b0) :
+    assign dout = PASSIVE_STORAGE && spare_word ? passive_data :
         selected_data[0] | selected_data[1] | selected_data[2] |
         selected_data[3] | selected_data[4] | selected_data[5];
 

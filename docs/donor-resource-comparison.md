@@ -78,37 +78,41 @@ storage change. Original NEM-4 boot, bank/permission/maintenance tests, CP15
 behavior, aliasing and throughput must all be qualified. This is a larger
 CPU/backend experiment after cheaper storage reductions, not the first fit fix.
 
-## Recommended order to obtain margin
+## Next optimization priorities
 
-1. Isolate the two840e3d4 timing patches against the known completed-fit source,
-   as already recorded. Keep actual78 MHz, design toward104 MHz/9.615 ns. No
-   extra feature removals can establish which patch triggered the regression.
-2. Move queued DMA descriptors and passive timer/ICU readback to explicit RAM.
-   Preserve all guest bits, start snapshots, IRQ/ACK/reset/stop ordering and
-   two workers. Accept launch/read-control latency only where measured; retain
-   the130,685-clock fast LCD frame interval and native MMC throughput.
-3. Provide a donor-style compile-time diagnostic profile. A lean profile can
-   omit renderer/monitor while retaining first-fault/trace export if required.
-   This is a visible diagnostic capability choice, not a free optimization.
-4. Prototype the donor MLAB RF against our independent RF/CP15/operand oracle,
-   including reset, B>A and C priority, banked/SPSR/microcode registers, stalled
-   journal refresh and undefined collisions. New maintained RTL: Verilog-2001.
-5. Only then compare cache/TLB architectures or a donor CPU integration. These
-   are correctness/performance changes requiring full qualification.
+Diagnostics remain enabled until Symbian boots, per the user's decision. The
+~1,186-ALM diagnostic group is excluded from near-term savings. Keep78 MHz
+operation and design toward104 MHz; retain the semi-real NOS and fast LCD.
 
-For each isolated candidate record map LUT/FF/RAM/MLAB totals, placed ALMs,
-packing recovery/unavailable estimates, required LABs, and setup/hold results.
-The previous93% headline already meant97% placed occupancy: do not treat
-estimated dense-packing recovery as guaranteed audio or timing headroom. Use
-identical clocks/toolchain/settings for A/B comparisons. A robust fit needs
-margin for ARM game PCM audio, not just enough capacity to finish one seed.
+1. **Validate the current RAM conversions in a real fit.** Timer/ICU passive
+   storage now shares one M10K; DMA queues use four. If LABs still overflow,
+   isolate the two840e3d4 timing changes against the last completed fit. Compare
+   required/placed ALMs, packing recovery, LABs, DSPs and setup/hold. This is a
+   bounded comparison when reports are available, not CI monitoring.
+2. **Prototype the ZAP MLAB register file.** It targets a~2,008-ALM block with a
+   donor implementation to study. Savings are unmeasured. Preserve five read
+   operands, writer priority, banked/SPSR/microcode words, reset and held versus
+   committed bypass. Require independent RF/CP15/operand checks, stalled journal
+   refresh, collision poisoning and CPU integration before adoption.
+3. **Reduce remaining duplicated/passive FF storage.** DMA has768 live
+   programming mirror bits. Timer raw control/status upper bits merit an audit,
+   not an assumed removable count. Preserve start-edge snapshots and concurrent
+   live timer/IRQ updates. Use readback/reset/cancellation differential tests,
+   original instruction fixtures, LCD/MMC throughput and measured area/timing.
+4. **Compact DMA BRAM, including suitable worker storage.** Record as a TODO:
+   fewer physical RAMs are useful but do not directly solve LAB pressure.
+   Multiword fetch/staging can cost registers and launch clocks. Preserve eight
+   channels, two workers, immutable queued payloads, cancellation and accepted
+   ownership; test collision/reset, blocked peers, all IRQs and MMC lengths.
+   Reject a transfer-beat slowdown or loss of the130,685-clock LCD frame.
+5. **Consider CPU cache/TLB geometry only as a separate later experiment.**
+   Those blocks are large, but donor associativity/lockdown behavior differs.
+   Require architectural differential tests, abort/alias/lockdown coverage and
+   measured firmware latency. High risk relative to storage-only changes.
 
-Required regressions: DMA raw readback/immutable queued descriptors/all channels/
-stop-reset/fairness/LCD/MMC; timer arbitrary-word readback, expiry-versus-write,
-26 MHz counters and original routines; all IRQ/FIQ sources and priority;
-RF scoreboard/CP15/operand and CPU tests for the RF candidate. Routed resource
-and timing results are required after functional tests. No new long boot is
-started casually; preserve every old checkpoint lineage.
+All new maintained HDL remains Verilog-2001. No candidate has a promised ALM
+saving until mapped; moving small tables into MLABs can consume the same scarce
+LAB resources we are trying to recover.
 
 ## Work performed
 

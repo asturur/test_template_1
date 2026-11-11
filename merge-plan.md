@@ -871,6 +871,24 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Shared storage and optimization priority — 2026-11-11
+
+Timer24 words and ICU6 words now share one32x32 M10K in production UPP,
+replacing their two private banks with identical sample latency. Together with
+four queued-DMA banks this intends five extra M10Ks, not six. Source state
+reduction is approximately1,806 FF bits; physical fit/timing remains pending.
+Board IRQ and production LCD tests pass; the full frame stays130,685 clocks.
+The shared12,788-transaction old-model oracle passes behavioral/Intel/poison
+checks with4,659 sample clocks; unrelated large RAMs use behavioral models.
+
+Keep all remaining diagnostics until Symbian boots. Next: actual-fit evidence
+and timing-change isolation if needed, then donor-style MLAB RF, then remaining
+DMA programming mirrors/passive FF storage. DMA BRAM queue/worker compaction
+is explicitly in docs/TODO.md: preserve eight channels/two workers/snapshots
+and fast LCD; evaluate staging logic and launch latency, not RAM count alone.
+Cache/TLB substitutions follow later architectural qualification. Details:
+[ranked candidates](docs/donor-resource-comparison.md#next-optimization-priorities).
+
 #### RAM conversions implemented — 2026-11-11
 
 Four queued-descriptor M10Ks plus timer/ICU passive-word M10Ks replace~1,801
@@ -891,8 +909,8 @@ and768 timer spare/224 ICU passive readback bits. Costs are not savings;
 no matching current donor whole-core report is available locally. Donor uses
 RAM-backed programming/passive words and already has the latest-writer MLAB RF.
 Prioritize preserving guest bits/snapshots in RAM and controlled isolation of
-the last timing patches; then consider a compile-time diagnostic profile and
-RF port. Cache/TLB or whole-CPU substitutions require separate qualification.
+the last timing patches; then consider the RF port. Retain diagnostics until Symbian boots; DMA
+BRAM compaction is a later TODO. Cache/TLB or whole-CPU substitutions require separate qualification.
 See [comparison and gates](docs/donor-resource-comparison.md). No HDL changes,
 simulation starts, branch switches or CI monitoring in this audit.
 
