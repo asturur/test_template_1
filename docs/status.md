@@ -1,3 +1,74 @@
+## 2026-11-11: DMA queue and passive timer/ICU words moved to RAM
+
+Implemented four-M10K immutable DMA queue, one-M10K timer spare words and
+one-M10K ICU cfg words. Intended six extra M10Ks and~1,801 net source FF state
+bits removed. Small reset-valid flags preserve full readback/warm-reset zeroes.
+Queue snapshots still commit at start; one RAM fetch clock precedes dispatch.
+Only passive timer/ICU reads wait a sample; live count/IRQ/masks stay immediate.
+Actual PLL remains78 MHz;104 MHz is the RTL design objective.
+
+Old-model12,788-transaction readback oracle passes ordinary/Intel/poisoned RAM;
+one/two/three-worker DMA with fetch-edge stop/restart passes Intel/poison too.
+Timer/IRQ/26 MHz timebase and original NEM-4 timer/DMA/ISR fixtures pass.
+Fast LCD frame stays130,685 clocks; normal/held totals152,454/152,534. MMC98
+phases pass667,186 versus matched old667,085 clocks (+0.015%). Its accepted-
+owner fixtures now wait for the actual edge; old mreq-only wait was an offer.
+No new physical fit/timing or long boot claim; no other simulation/checkpoint
+changed. [RAM explanation](ram-conversions.md),
+[evidence](evidence/ram-conversions-2026-11-11.json).
+
+## 2026-11-11: Donor resource comparison identifies storage overhead
+
+Integration remains on codex/ngage2-integration; donor is back on its original
+codex/mmc-payload-eof-fix branch. Read-only comparison with donor master91a6d08
+finds always-built diagnostics (~1,186 ALMs), FF-based RF (~2,008), fully
+associative TLB banks (~3,987), 64-way tag modules (~3,400), and duplicated DMA
+programming/queued snapshots. These are our block costs, not removable savings
+or a matching donor area delta. Timers alone retain768 passive spare bits;
+ICU cfg/global readback224 more. DMA queues retain896 descriptor bits plus768
+live src/dst/count mirrors. Donor uses RAM-backed peripheral/descriptor storage
+and a latest-writer MLAB RF already. Our128 tiny tag M10Ks are also inefficient,
+but grouping them changes lookup bandwidth; donor two-way caches/direct-mapped
+TLBs have different semantics. Prioritize RAM storage transformations and
+controlled timing-patch isolation before CPU geometry changes. No RTL/tests/
+CI/branch changes. [Comparison and tests](donor-resource-comparison.md),
+[evidence](evidence/donor-resource-comparison-2026-11-11.json).
+
+## 2026-11-11: Timing patch fails LAB fit; isolate before further changes
+
+User reported4277 required LABs versus4191 available for840e3d4. A one-shot
+artifact download of completed failed run43059270414 confirms42,407 required
+ALMs,47,605 fitter registers,42 DSPs and497 M10Ks in the detailed report.
+The failed summary's zero RAM blocks is again a partial-fit summary artifact.
+Reports are retained under
+`scratch/ngage2-integration/timing-recovery-2026-11-11/ci-43059270414/`.
+No build monitoring/polling or new RTL changes occurred during this audit.
+
+The only synthesized source changes since c8add13 are LCD header/geometry
+prevalidation and the local DMA registered response. PLL, SDC, Template profile,
+QSF options, caches, worker count and enabled peripherals are unchanged. The
+LCD patch adds precomputed geometry/limit/valid state and two source-level
+constant multiplier expressions; DMA adds a32-bit data/one-bit error snapshot
+and one response state. Synthesis FF count is44,061->44,128 (**+67**, correcting
+the initial spoken +68); DSP count40->42. No feature was re-enabled.
+
+The old93% ALM headline did not represent7% physical placement headroom. The
+fitter formula was40,492 placed -2,533 estimated recoverable +1,036 unavailable
+=38,995 required. The failed run reports41,551 placed -1 recoverable +857
+unavailable =42,407 required. Thus the required estimate rises3,412 while the
+placed count rises1,059; loss of dense-packing credit accounts for2,532 of the
+required increase (with unavailable estimate down179). The prior placement was
+already97% occupied. Failed-fit packing/hierarchy figures are incomplete and
+are not a controlled per-module area measurement.
+
+The changed netlist caused global mapping/packing differences, including
+unchanged timers, ICU, CPU and DMA workers. This establishes an area regression
+but not which of the two patches triggered it. Local functional/cycle tests do
+not prove area or timing benefit. Next isolate LCD-only and DMA-response-only
+against c8add13 with identical78 MHz clocks/options/toolchain, inspecting map
+as well as fitter packing; do not add more features or tune a seed to hide it.
+Actual operating clock remains78 MHz; RTL target remains104 MHz.
+
 ## 2026-11-11: Fit recovered; LCD/local-DMA setup timing work
 
 New supplied logs fit at38,995/41,910 ALMs and497/553 M10Ks. Compilation and

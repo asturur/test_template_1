@@ -1,3 +1,11 @@
+## Passive readback RAM follow-up — 2026-11-11
+
+Four spare words per timer now use one shared M10K; full values and warm-reset
+zeroes are preserved with validity flags. Passive reads wait one RAM sample;
+active count/control/reload/status and interrupt timing stay on their previous
+path. Old-model randomized/vendor/collision tests and original routines pass.
+See [RAM conversions](ram-conversions.md).
+
 # UPP general timers
 
 ## Original NEM-4 evidence

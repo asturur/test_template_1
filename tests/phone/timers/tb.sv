@@ -5,11 +5,12 @@ parameter integer DIV=1;
 reg clk=0; always #5 clk=~clk;
 reg reset=1,req=0,commit=0,we=0,clear1=0;
 reg [31:0] addr=0,din=0;reg [3:0] sel=15;
+wire ready;
 wire claim,bad,p0,p1,p60,rearm,periodic;wire [31:0] dout;wire [5:0] pending;
 integer cycles=0, cases=0,n,k,first,last,elapsed;reg [31:0] saved;
 always @(posedge clk) cycles=cycles+1;
 ngage_timers #(.CLOCK_DIV(DIV)) dut(clk,reset,req,commit,we,addr,din,sel,clear1,
- claim,bad,dout,p0,p1,p60,rearm,periodic,1'b0,pending);
+ claim,bad,dout,p0,p1,p60,rearm,periodic,1'b0,pending,ready);
 task tick;begin @(posedge clk);#1;end endtask
 task fresh;begin @(negedge clk);reset=1;req=0;commit=0;we=0;tick();@(negedge clk);reset=0;end endtask
 task wr(input integer unit_no,input integer off,input [31:0] value);begin

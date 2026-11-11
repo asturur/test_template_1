@@ -1,0 +1,95 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "840e3d4",
+  "clock_Hz": 78000000,
+  "RTL_target_Hz": 104000000,
+  "PLL_SDC_changed": false,
+  "intended_additional_M10Ks": 6,
+  "source_state_bits_removed": 1848,
+  "source_state_bits_added_production": 47,
+  "net_source_state_bits_removed": 1801,
+  "retained": [
+    "live timer state/IRQ masks",
+    "ICU global OR/AND latch",
+    "DMA live src/dst/count mirrors",
+    "8 channels, 2 workers, fast LCD"
+  ],
+  "results": {
+    "readback_oracle_transactions": 12788,
+    "readback_extra_clocks": 4659,
+    "readback_models": [
+      "behavioral",
+      "Intel",
+      "X-poisoned"
+    ],
+    "DMA_workers_tested": [
+      1,
+      2,
+      3
+    ],
+    "DMA_fetch_stop_restart_collision": "PASS Intel and X-poisoned",
+    "original_timer_phases": 7,
+    "original_timer_divisors": [
+      3,
+      4
+    ],
+    "original_memory_waits": [
+      0,
+      3
+    ],
+    "original_DMA_cycles": [
+      11130,
+      16814
+    ],
+    "original_ISR_cycles": [
+      11067,
+      16449
+    ],
+    "LCD_frame_clocks": 130685,
+    "LCD_ARM_normal_held_clocks": [
+      152454,
+      152534
+    ],
+    "MMC_bus_cases_clocks": [
+      30,
+      132221
+    ],
+    "MMC_DMA_cases_clocks": [
+      98,
+      667186
+    ],
+    "matched_old_queue_MMC_clocks": 667085,
+    "MMC_clock_delta": 101,
+    "physical_fit_timing": "pending",
+    "long_boot_started": false,
+    "build_monitoring": false
+  },
+  "source_sha256": {
+    "rtl/ngage_dma_channels.v": "70e944e8f8d12f2de0e0d24d467b5fbe40bf203865e425bab640410c16741e06",
+    "rtl/ngage_icu.v": "c6b21ed52a2309c77b8c4c6ae2d0cc1e36e46d78777575e85bf725cad16e6c63",
+    "rtl/ngage_timers.v": "119f1bb20be06e1e1f037aa1d3cfba3544f25fb39dd226d69793491b785eb0ac",
+    "rtl/ngage_upp_peripherals.v": "43cbdcd1ddda081e72478e9c2b6939da65e9fc00d3f411e617d390b784a43177"
+  },
+  "logs_sha256": {
+    "build/sim/unit-dma-channels-vendor/run-poison-1.log": "6ae962df3e1c759cd203124b95385db3d6827205d140cf67f6ff8eb8cee69c6e",
+    "build/sim/unit-dma-channels-vendor/run-poison-2.log": "67ef042b85410a85f483c67b23d5b4a58758f1344d9c8ec379e9adf55d666cd2",
+    "build/sim/unit-dma-channels-vendor/run-poison-3.log": "cb67af0a5d75e5a05915b4c6b94acb273220c0bd823ddf814743f527aabc77d0",
+    "build/sim/unit-dma-channels-vendor/run-vendor-1.log": "6ae962df3e1c759cd203124b95385db3d6827205d140cf67f6ff8eb8cee69c6e",
+    "build/sim/unit-dma-channels-vendor/run-vendor-2.log": "67ef042b85410a85f483c67b23d5b4a58758f1344d9c8ec379e9adf55d666cd2",
+    "build/sim/unit-dma-channels-vendor/run-vendor-3.log": "cb67af0a5d75e5a05915b4c6b94acb273220c0bd823ddf814743f527aabc77d0",
+    "build/sim/unit-dma-handover/build.log": "a3aa691bcbbea6ad8f338b006f4f47f7f08613287a01ce97dc0e81c8adb78b04",
+    "build/sim/unit-dma-handover/fast-channels.log": "d74967e2379e15d478e78798597b69245cf9282a5f59e4fe7bb7bba8186bf684",
+    "build/sim/unit-dma-handover/fence.log": "2c2588b92bf95c1252afa9634e07601ea8cb32fa2e7d2b23dec5c13c105f17de",
+    "build/sim/unit-dma-handover/hold.log": "34f0462792584182296e075bd5fa4b9e9fb62a556f01de5ee67d7b25dc184476",
+    "build/sim/unit-dma-handover/logical-reset.log": "432c772572a4fba451df81e36f5f28d1254a72577ad478fee60a394f9fe850a5",
+    "build/sim/unit-dma-handover/reset.log": "616b8c3b0279bc779f5f042cfe24e16c35d545986f080222ab82bcd20b7f4280",
+    "build/sim/unit-dma-handover/run.log": "9fc34386eff9bf6d9a572c9350255eb7936561a7f46598094c6df0d98dd0d32a",
+    "build/sim/unit-dma-handover/transport.log": "bb38d90a471ae5869249f2accc067610e2ef96de4999190a5b44f5fc93626c33",
+    "build/sim/unit-mmc-production/bus.log": "ac8d539540a35030f4dc72a526fdddd2e30f7621b2dabb5629328e99b2a321fb",
+    "build/sim/unit-mmc-production/dma.log": "1e375dda8b12f03eda92684ba3cc14fe8c7919c11975a1ac3aaa2edf124dfdc1",
+    "build/sim/unit-mmc-queue-before/dma.log": "a32e79f6068a28f4207e8a6ddd0533e74ccf37c038935a4f031da4bd3783c3e7",
+    "build/sim/unit-register-ram/run.log": "6ffc936566fbed3ab43ba2915d2df9910cd60abc9808a4c8c8fb2c4522b177f5",
+    "build/sim/unit-register-ram-vendor/run-poison.log": "6ffc936566fbed3ab43ba2915d2df9910cd60abc9808a4c8c8fb2c4522b177f5",
+    "build/sim/unit-register-ram-vendor/run-vendor.log": "6ffc936566fbed3ab43ba2915d2df9910cd60abc9808a4c8c8fb2c4522b177f5"
+  }
+}

@@ -471,6 +471,26 @@ module tb;
         repeat (8) @(negedge clk);
         if (active != 0 || irq != 0 || errors != 0 || cmd_valid || rsp_valid)
             $fatal(1, "reset leaked old ownership");
+        // Target the synchronous descriptor fetch itself. A stop/restart on
+        // its consuming edge must discard the old RAM sample, even if that
+        // edge also overwrites the same queue row (undefined mixed-port RDW).
+        setup(0, 32'h0a000080, 32'h0a0007c0, 3, 32, 32, 4, 4);
+        old_commands = commands;
+        put(0, 6'h08, 1);
+        wait(dut.descriptor_loaded && dut.descriptor_channel == 0);
+        @(negedge clk);addr=32'h0c120308;din=0;req=1;commit=1;we=1;
+        @(negedge clk);req=0;commit=0;we=0;
+        idle;
+        if(commands!=old_commands || irq || errors)$fatal(1,"descriptor-fetch stop escaped");
+        put(0, 6'h08, 1);
+        wait(dut.descriptor_loaded && dut.descriptor_channel == 0);
+        @(negedge clk);addr=32'h0c120308;din=1;req=1;commit=1;we=1;
+        @(negedge clk);req=0;commit=0;we=0;
+        idle;
+        if(irq!==1 || errors || commands!=old_commands+4)$fatal(1,"descriptor-fetch restart duplicated/lost work");
+        for(j=0;j<8;j=j+1)if(ram[1984+j]!==ram[128+j])$fatal(1,"descriptor-fetch restart used collision data");
+        put(0,6'h04,0);
+        $display("PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence");
         // Claim only implemented aligned full-word registers.
         addr = 32'h0c120314;
         req  = 1;

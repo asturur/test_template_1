@@ -9,6 +9,8 @@ entries below the handoff are the evidence log, newest first.
 | --- | --- |
 | [register-file-area-audit.md](register-file-area-audit.md) | Production RF cost/port ownership, safe area candidates and upcoming PCM audio headroom |
 | [lcd-dma-timing-recovery.md](lcd-dma-timing-recovery.md) | Successful fit/new setup failure, LCD header validation and local DMA response boundary;78 MHz operation/104 MHz objective |
+| [donor-resource-comparison.md](donor-resource-comparison.md) | Active architecture/resource differences, extra FF snapshots/readback, diagnostics and donor MLAB RF candidates |
+| [ram-conversions.md](ram-conversions.md) | DMA queue/passive timer-ICU BRAM conversions, snapshot/reset contracts and measured performance |
 | [fit-recovery.md](fit-recovery.md) | Failed integration fit attribution, BRAM/register recovery, DMA worker measurements and verification |
 | [irq-timer-keypad-flow.md](irq-timer-keypad-flow.md) | Original NEM-4 IRQ pending/current, programmable timers, configured keypad edges and combined verification |
 | [general-timers.md](general-timers.md) | Six parallel programmable counters, original timer routines, reprogram/ACK semantics and 78/104 MHz rate evidence |

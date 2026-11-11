@@ -1,3 +1,14 @@
+## Queued-descriptor RAM (2026-11-11)
+
+The111-bit start snapshot per channel now lives in four8x32 M10Ks. The fast
+classification remains live for arbitration; a synchronous fetch precedes
+engine launch by one clock. Stop/restart/reset invalidate a sampled old row,
+including same-row read/write collisions. Payload words do not reset; pending
+state controls validity. Generic defaults remain three workers; production two.
+The register programming/readback contract below remains, but historical
+cycle-exact FF-queue comparisons do not apply to the added launch clock.
+Intel/poisoned RAM tests cover that exact fetch cancellation boundary.
+
 # DMA programming and scheduling fixture
 
 Run `sh tests/phone/dma_channels/run.sh` from the repository root. It uses the

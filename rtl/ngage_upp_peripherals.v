@@ -130,6 +130,7 @@ module ngage_upp_peripherals #(
 );
 
     wire extra_ready;
+    wire icu_ready, timer_ready;
     wire local_access = commit && init_done && cyc && stb && !response_pending;
     // Native host owns this register window before the generic storage bank.
     // Storage bits are retained; FIFO side effects occur once on admission.
@@ -283,7 +284,8 @@ module ngage_upp_peripherals #(
         .irq         (irq),
         .fiq         (fiq),
         .irq_clear   (irq_clear),
-        .timer0_rearm(timer0_rearm)
+        .timer0_rearm(timer0_rearm),
+        .ready       (icu_ready)
     );
     ngage_timers #(
         .CLOCK_DIV(TIMER_CLK_DIV)
@@ -307,7 +309,8 @@ module ngage_upp_peripherals #(
         .timer0_rearm   (timer0_rearm),
         .periodic_active(periodic_active),
         .sysc74_seen    (sysc74_seen),
-        .pending_sources(timer_pending)
+        .pending_sources(timer_pending),
+        .ready          (timer_ready)
     );
     localparam integer FAST_TICK_DIV = (SYS_CLK_HZ + 16384) / 32768;
     ngage_nos_io #(
@@ -582,6 +585,7 @@ module ngage_upp_peripherals #(
     wire lcd_can_accept = (!LCD_QUEUE_ENABLE || lcd_sink_ready) && !lcd_direct_collision;
     wire local_ready = init_done && (!extra_claim || (mmc_claim && !mmc_storage) || extra_ready) &&
         (!boot_claim || boot_ready) &&
+        (!icu_claim || icu_bad || icu_ready) && (!timer_claim || timer_bad || timer_ready) &&
         (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 

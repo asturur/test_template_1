@@ -5,6 +5,7 @@ module tb;
 reg clk=0;always #5 clk=~clk;
 reg reset=1,req=0,commit=0,we=0,uem=0;
 reg [31:0] addr=0,din=0;
+wire timer_ready,icu_ready;
 wire tc,tb,ic,ib,irq,fiq,rearm;wire [31:0] td,id;wire [5:0] pending;
 wire [95:0] clear;
 wire [95:0] irq_sources={90'd0,pending}|{94'd0,uem,1'b0};
@@ -12,9 +13,9 @@ wire [95:0] fiq_sources={90'd0,pending};
 integer cycles=0,cases=0;
 always @(posedge clk)cycles=cycles+1;
 ngage_timers timers(clk,reset,req,commit,we,addr,din,4'hf,1'b0,tc,tb,td,
- ,,,rearm,,1'b0,pending);
+ ,,,rearm,,1'b0,pending,timer_ready);
 ngage_icu icu(clk,reset,req,commit,we,addr,din,4'hf,irq_sources,fiq_sources,
- ic,ib,id,irq,fiq,clear,rearm);
+ ic,ib,id,irq,fiq,clear,rearm,icu_ready);
 task tick;begin @(posedge clk);#1;end endtask
 task wr(input [31:0] a,input [31:0] d);begin
  @(negedge clk);req=1;commit=1;we=1;addr=a;din=d;#1;

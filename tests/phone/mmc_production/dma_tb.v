@@ -484,6 +484,10 @@ module tb;
             hold_ram = 1;
             reg_write(32'h0c120388, 2);
             wait (mreq);
+            // mreq includes a combinational offer. Wait for its accepting edge
+            // before testing cancellation/reset of an owned memory transaction.
+            @(posedge clk); #1;
+            if (route.state != 3'd1) $fatal(1, "RAM offer was not accepted");
             reg_write(32'h0c120388, 0);
             reg_read(32'h0c120388, v);
             if (!v) $fatal(1, "stop discarded accepted RAM owner");
@@ -503,6 +507,10 @@ module tb;
             hold_ram = 1;
             reg_write(32'h0c120388, 2);
             wait (mreq);
+            // mreq includes a combinational offer. Wait for its accepting edge
+            // before testing cancellation/reset of an owned memory transaction.
+            @(posedge clk); #1;
+            if (route.state != 3'd1) $fatal(1, "RAM offer was not accepted");
             reg_write(32'h0c120394, 32'h0a000200);
             reg_write(32'h0c1203ac, 7);
             fork
@@ -538,6 +546,10 @@ module tb;
             hold_ram = 1;
             reg_write(32'h0c120408, 2);
             wait (mreq);
+            // mreq includes a combinational offer. Wait for its accepting edge
+            // before testing cancellation/reset of an owned memory transaction.
+            @(posedge clk); #1;
+            if (route.state != 3'd1) $fatal(1, "RAM offer was not accepted");
             reset_composition();
             // Fresh transfer after canceled route ownership; no stale data.
             configure_dma(4, 1, 5);

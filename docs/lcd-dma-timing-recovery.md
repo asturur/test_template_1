@@ -1,3 +1,38 @@
+## 2026-11-11: Timing patch fails LAB fit; isolate before further changes
+
+User reported4277 required LABs versus4191 available for840e3d4. A one-shot
+artifact download of completed failed run43059270414 confirms42,407 required
+ALMs,47,605 fitter registers,42 DSPs and497 M10Ks in the detailed report.
+The failed summary's zero RAM blocks is again a partial-fit summary artifact.
+Reports are retained under
+`scratch/ngage2-integration/timing-recovery-2026-11-11/ci-43059270414/`.
+No build monitoring/polling or new RTL changes occurred during this audit.
+
+The only synthesized source changes since c8add13 are LCD header/geometry
+prevalidation and the local DMA registered response. PLL, SDC, Template profile,
+QSF options, caches, worker count and enabled peripherals are unchanged. The
+LCD patch adds precomputed geometry/limit/valid state and two source-level
+constant multiplier expressions; DMA adds a32-bit data/one-bit error snapshot
+and one response state. Synthesis FF count is44,061->44,128 (**+67**, correcting
+the initial spoken +68); DSP count40->42. No feature was re-enabled.
+
+The old93% ALM headline did not represent7% physical placement headroom. The
+fitter formula was40,492 placed -2,533 estimated recoverable +1,036 unavailable
+=38,995 required. The failed run reports41,551 placed -1 recoverable +857
+unavailable =42,407 required. Thus the required estimate rises3,412 while the
+placed count rises1,059; loss of dense-packing credit accounts for2,532 of the
+required increase (with unavailable estimate down179). The prior placement was
+already97% occupied. Failed-fit packing/hierarchy figures are incomplete and
+are not a controlled per-module area measurement.
+
+The changed netlist caused global mapping/packing differences, including
+unchanged timers, ICU, CPU and DMA workers. This establishes an area regression
+but not which of the two patches triggered it. Local functional/cycle tests do
+not prove area or timing benefit. Next isolate LCD-only and DMA-response-only
+against c8add13 with identical78 MHz clocks/options/toolchain, inspecting map
+as well as fitter packing; do not add more features or tune a seed to hide it.
+Actual operating clock remains78 MHz; RTL target remains104 MHz.
+
 # LCD/local-DMA timing recovery — 2026-11-11
 
 ## Supplied build: fit succeeds, setup timing fails

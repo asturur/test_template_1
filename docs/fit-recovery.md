@@ -1,5 +1,25 @@
 # Integration fit recovery
 
+## 2026-11-11: DMA queue and passive timer/ICU words moved to RAM
+
+Implemented four-M10K immutable DMA queue, one-M10K timer spare words and
+one-M10K ICU cfg words. Intended six extra M10Ks and~1,801 net source FF state
+bits removed. Small reset-valid flags preserve full readback/warm-reset zeroes.
+Queue snapshots still commit at start; one RAM fetch clock precedes dispatch.
+Only passive timer/ICU reads wait a sample; live count/IRQ/masks stay immediate.
+Actual PLL remains78 MHz;104 MHz is the RTL design objective.
+
+Old-model12,788-transaction readback oracle passes ordinary/Intel/poisoned RAM;
+one/two/three-worker DMA with fetch-edge stop/restart passes Intel/poison too.
+Timer/IRQ/26 MHz timebase and original NEM-4 timer/DMA/ISR fixtures pass.
+Fast LCD frame stays130,685 clocks; normal/held totals152,454/152,534. MMC98
+phases pass667,186 versus matched old667,085 clocks (+0.015%). Its accepted-
+owner fixtures now wait for the actual edge; old mreq-only wait was an offer.
+No new physical fit/timing or long boot claim; no other simulation/checkpoint
+changed. [RAM explanation](ram-conversions.md),
+[evidence](evidence/ram-conversions-2026-11-11.json).
+
+
 ## 2026-11-11: Fit recovered; LCD/local-DMA setup timing work
 
 New supplied logs fit at38,995/41,910 ALMs and497/553 M10Ks. Compilation and

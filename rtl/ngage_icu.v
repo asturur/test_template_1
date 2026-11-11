@@ -19,9 +19,10 @@ module ngage_icu (
     output wire        irq,
     output wire        fiq,
     output reg  [95:0] irq_clear,
-    input  wire        timer0_rearm
+    input  wire        timer0_rearm,
+    output wire        ready
 );
-    reg [31:0] irq_enable[0:2], fiq_enable[0:2], cfg0[0:2], cfg1[0:2], global_enable;
+    reg [31:0] irq_enable[0:2], fiq_enable[0:2], global_enable;
     integer bank, slot, i;
     reg is_irq, is_fiq, is_global, is_fast;
     reg [31:0] raw_irq, raw_fiq, masked_irq, masked_fiq;
@@ -31,6 +32,45 @@ module ngage_icu (
     assign fiq = |(fiq_pending[31:0] & fiq_enable[0]) || |(fiq_pending[63:32] & fiq_enable[1]) ||
         |(fiq_pending[95:64] & fiq_enable[2]);
 
+    // The six passive configuration words are independent of IRQ state.
+    // Live masks/current selection keep their immediate response and timing.
+    wire [2:0] cfg_address = {bank[1:0], a[2]};
+    wire       cfg_selected = claim && !bad && is_irq && (slot == 0 || slot == 4);
+    wire       cfg_write = cfg_selected && commit && we && !reset;
+    wire       cfg_read = cfg_selected && !we;
+    reg  [5:0] cfg_valid = 0;
+    reg cfg_read_pending = 0, cfg_sample_valid = 0;
+    reg  [ 2:0] cfg_sample_address;
+    wire [31:0] cfg_data;
+    ngage_bram #(
+        .AW         (3),
+        .DW         (32),
+        .READ_ONLY_B(1)
+    ) configuration_words (
+        .clk   (clk),
+        .addr_a(cfg_address),
+        .addr_b(cfg_address),
+        .data_a(din),
+        .data_b(32'b0),
+        .we_a  (cfg_write),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (cfg_data)
+    );
+    assign ready = !cfg_read || (cfg_read_pending && cfg_sample_address == cfg_address);
+    always @(posedge clk) begin
+        if (reset) begin
+            cfg_valid          <= 0;
+            cfg_read_pending   <= 0;
+            cfg_sample_valid   <= 0;
+            cfg_sample_address <= 0;
+        end else begin
+            if (cfg_write) cfg_valid[cfg_address] <= 1;
+            cfg_read_pending   <= cfg_read;
+            cfg_sample_address <= cfg_address;
+            cfg_sample_valid   <= cfg_read && cfg_valid[cfg_address];
+        end
+    end
     // The kernel indexes the handler table with a one-based source number
     // within each bank. Select the lowest enabled pending source.
     function [5:0] irq_current;
@@ -85,8 +125,7 @@ module ngage_icu (
                 raw_irq    = irq_pending[bank*32+:32];
                 masked_irq = raw_irq & irq_enable[bank];
                 case (slot)
-                    0:     dout = cfg0[bank];
-                    4:     dout = cfg1[bank];
+                    0, 4:  dout = cfg_sample_valid ? cfg_data : 32'b0;
                     8, 12: dout = irq_enable[bank];
                     16:    dout = raw_irq;
                     20:    dout = {26'b0, irq_current(masked_irq)};
@@ -121,8 +160,6 @@ module ngage_icu (
             for (i = 0; i < 3; i = i + 1) begin
                 irq_enable[i] <= 0;
                 fiq_enable[i] <= 0;
-                cfg0[i]       <= 0;
-                cfg1[i]       <= 0;
             end
         end else begin
             // Timer programming does not alter interrupt enable state. The
@@ -133,8 +170,6 @@ module ngage_icu (
                     else global_enable <= global_enable & ~din;
                 end else if (is_irq)
                     case (slot)
-                        0:  cfg0[bank] <= din;
-                        4:  cfg1[bank] <= din;
                         8:  irq_enable[bank] <= irq_enable[bank] | din;
                         12: irq_enable[bank] <= irq_enable[bank] & ~din;
                     endcase

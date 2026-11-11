@@ -1,0 +1,152 @@
+{
+  "date": "2026-11-11",
+  "integration_HEAD": "840e3d4b9f764801c5d9f17e1347f4782d2353e7",
+  "donor_master": "91a6d08b64cfa94297e2b5f85c1e1d416e13c76d",
+  "donor_current_branch_untouched": "codex/mmc-payload-eof-fix",
+  "source_comparison_donor_sha256": {
+    "NGage.sv": "250b660746ad9cc963aa9db752f2850a3c331c85da5cd2d917a03c7b44235aae",
+    "NGage.qsf": "1c594acc76650c322c5618d19768d13fab2e4736307b411b1788d7a878d300c4",
+    "rtl/cpu/arm925t.sv": "f8b83852ca0d05a6f251aee49248e407c76b9d8bcbdbdd413d237e8ca0a28e6c",
+    "rtl/cpu/zap/zap_register_file.sv": "e31aa515ce9e5efb1875b37d41f77f4238cb74c0ce710807053c73554b798acd",
+    "rtl/upp/upp_dma.sv": "acb0a5a1596a5177d56b3ab51274621b4d92a1c423a1eb545a6793e4cea14451",
+    "rtl/upp/upp_timers.sv": "b5e6724388081e9548eb19694a6e0286ded48e09c2e6697e60add009c78b6747",
+    "rtl/upp/upp_periph.sv": "3b970d23ab15da86734299b842c899d9578d3312a2f8ceadfed76ced9ea163ec",
+    "docs/CPU.md": "c48e90d0717384912ab978e61e43b215fcaf70eb0762c4dbfc8ec61729525955"
+  },
+  "our_successful_fit_profile": {
+    "required_ALMs": 38995,
+    "placed_ALMs": 40492,
+    "M10Ks": 497,
+    "commit_identity": "not independently embedded in user report",
+    "report_sha256": "b75a2683974c882af5ff938fc1e6362083e654f5fb048da3455b4ed56af6dd2f",
+    "selected_entity_rows": {
+      "zap_top": [
+        {
+          "ALMs_total": 17462.1,
+          "ALMs_local": 2.4,
+          "registers": "18209 (0)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap"
+        }
+      ],
+      "zap_register_file": [
+        {
+          "ALMs_total": 2007.6,
+          "ALMs_local": 2007.6,
+          "registers": "1294 (1294)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_writeback:u_zap_writeback|zap_register_file:u_zap_register_file"
+        }
+      ],
+      "arm920_tlb_bank": [
+        {
+          "ALMs_total": 1992.7,
+          "ALMs_local": 1992.7,
+          "registers": "1958 (1958)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|arm920_tlb:u_zap_tlb|arm920_tlb_bank:bank"
+        },
+        {
+          "ALMs_total": 1993.8,
+          "ALMs_local": 1993.8,
+          "registers": "1932 (1932)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_tlb:u_zap_tlb|arm920_tlb_bank:bank"
+        }
+      ],
+      "arm920_cache_tags": [
+        {
+          "ALMs_total": 1413.1,
+          "ALMs_local": 1413.1,
+          "registers": "860 (860)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|arm920_cache_bank:bank|arm920_cache_tags:tags"
+        },
+        {
+          "ALMs_total": 1986.7,
+          "ALMs_local": 1983.4,
+          "registers": "1296 (1292)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|arm920_cache_bank:bank|arm920_cache_tags:tags"
+        }
+      ],
+      "ngage_dma_channels": [
+        {
+          "ALMs_total": 2497.8,
+          "ALMs_local": 1281.7,
+          "registers": "3520 (2145)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels"
+        }
+      ],
+      "ngage_timers": [
+        {
+          "ALMs_total": 1080.7,
+          "ALMs_local": 1080.7,
+          "registers": "1616 (1616)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_timers:timers"
+        }
+      ],
+      "ngage_debug_video": [
+        {
+          "ALMs_total": 612.7,
+          "ALMs_local": 612.7,
+          "registers": "812 (812)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_debug_video:debug_video"
+        }
+      ],
+      "ngage_debug_monitor": [
+        {
+          "ALMs_total": 223.6,
+          "ALMs_local": 223.6,
+          "registers": "612 (612)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_debug_monitor:monitor"
+        }
+      ],
+      "ngage_diagnostics": [
+        {
+          "ALMs_total": 281.1,
+          "ALMs_local": 281.1,
+          "registers": "380 (380)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_diagnostics:diagnostics"
+        }
+      ],
+      "ngage_diag_export": [
+        {
+          "ALMs_total": 68.8,
+          "ALMs_local": 23.6,
+          "registers": "87 (23)",
+          "hierarchy": "|sys_top|emu:emu|ngage_diag_export:debug_export"
+        }
+      ],
+      "ngage_mmc_card": [
+        {
+          "ALMs_total": 1997.5,
+          "ALMs_local": 1997.5,
+          "registers": "2026 (2026)",
+          "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_mmc_card:mmc_shortcut.card"
+        }
+      ]
+    }
+  },
+  "our_failed_fit": {
+    "required_ALMs": 42407,
+    "LABs_required": 4277,
+    "LABs_available": 4191,
+    "report_sha256": "3b469b5874438c3ac53be2afb64541e59dcf547bebeb137d1147657871411e11"
+  },
+  "findings": {
+    "always_present_diagnostics_ALMs": 1186.2,
+    "screen_and_monitor_only_ALMs": 836.3,
+    "fully_associative_TLB_banks_ALMs": 3986.5,
+    "cache_tag_modules_ALMs": 3399.8,
+    "tiny_cache_tag_M10Ks": 128,
+    "tiny_cache_tag_logical_bits": 28672,
+    "RF_ALMs": 2007.6,
+    "timer_passive_spare_register_bits": 768,
+    "ICU_passive_config_register_bits": 224,
+    "DMA_queued_descriptor_register_bits": 896,
+    "DMA_live_source_destination_count_register_bits": 768,
+    "DMA_engines_ours": 2,
+    "DMA_engines_donor_default": 3
+  },
+  "limitations": [
+    "No matching current donor whole-core fit report available locally",
+    "Entity costs are not removable savings and parent/child rows must not be added",
+    "Donor CPU/MMU/cache semantics differ; substitutions require architectural and performance tests",
+    "No RTL changes, simulations, synthesis, CI polling or branch changes in this audit"
+  ]
+}

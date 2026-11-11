@@ -1,12 +1,12 @@
 module tb;
 reg clk=0;always #5 clk=~clk;reg reset=1,req=0,commit=0,we=0;reg [31:0] addr=0,din=0;reg [3:0] sel=15;
-reg [95:0] ip=0,fp=0;wire claim,bad,irq,fiq;wire [31:0] dout;wire [95:0] clear;
+reg [95:0] ip=0,fp=0;wire claim,bad,irq,fiq,ready;wire [31:0] dout;wire [95:0] clear;
 integer bank_index, source_index, other_index;
 reg [31:0] bank_base;
-ngage_icu dut(clk,reset,req,commit,we,addr,din,sel,ip,fp,claim,bad,dout,irq,fiq,clear,1'b0);
+ngage_icu dut(clk,reset,req,commit,we,addr,din,sel,ip,fp,claim,bad,dout,irq,fiq,clear,1'b0,ready);
 task tick;begin @(posedge clk);#1;end endtask
 task wr(input [31:0] a,input [31:0] d);begin @(negedge clk);req=1;we=1;commit=1;addr=a;din=d;#1;if(!claim||bad)$fatal(1,"write decode %h",a);tick();@(negedge clk);req=0;commit=0;end endtask
-task read_eq(input [31:0] a,input [31:0] d);begin @(negedge clk);req=1;we=0;addr=a;#1;if(!claim||bad||dout!==d)$fatal(1,"read %h got %h expected %h",a,dout,d);@(negedge clk);req=0;end endtask
+task read_eq(input [31:0] a,input [31:0] d);begin @(negedge clk);req=1;we=0;addr=a;#1;while(!ready)begin tick();#1;end if(!claim||bad||dout!==d)$fatal(1,"read %h got %h expected %h",a,dout,d);@(negedge clk);req=0;end endtask
 initial begin
  tick();reset=0;ip[0]=1;ip[1]=1;ip[7]=1;ip[25]=1;fp[3]=1;fp[26]=1;tick();if(irq||fiq)$fatal(1,"masked input delivered");
  read_eq('h0c1201d0,32'h04000008);read_eq('h0c1201d4,0);

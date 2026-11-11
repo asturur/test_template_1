@@ -23,7 +23,8 @@ module ngage_timers #(
     output wire        timer0_rearm,
     output wire        periodic_active,
     input  wire        sysc74_seen,
-    output wire [ 5:0] pending_sources
+    output wire [ 5:0] pending_sources,
+    output wire        ready
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     wire [ 2:0] unit_index = addr[7:5];
@@ -32,6 +33,48 @@ module ngage_timers #(
     assign bad   = claim && (sel != 15 || addr[1:0] != 0);
     wire write_access = commit && claim && !bad && we;
 
+    // Passive readback words have no counter-side effects. Keep their full
+    // values in one M10K; validity flags provide immediate warm-reset zeroes.
+    wire spare_word = register_index == 0 || register_index == 3 ||
+        register_index == 5 || register_index == 7;
+    wire [1:0] spare_index = register_index == 0 ? 2'd0 :
+        register_index == 3 ? 2'd1 : register_index == 5 ? 2'd2 : 2'd3;
+    wire [4:0] spare_address = {unit_index, spare_index};
+    wire spare_write = write_access && spare_word && !reset;
+    wire spare_read = claim && !bad && !we && spare_word;
+    reg [23:0] spare_valid = 0;
+    reg spare_read_pending = 0, spare_sample_valid = 0;
+    reg  [ 4:0] spare_sample_address;
+    wire [31:0] spare_data;
+    ngage_bram #(
+        .AW         (5),
+        .DW         (32),
+        .READ_ONLY_B(1)
+    ) passive_words (
+        .clk   (clk),
+        .addr_a(spare_address),
+        .addr_b(spare_address),
+        .data_a(din),
+        .data_b(32'b0),
+        .we_a  (spare_write),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (spare_data)
+    );
+    assign ready = !spare_read || (spare_read_pending && spare_sample_address == spare_address);
+    always @(posedge clk) begin
+        if (reset) begin
+            spare_valid          <= 0;
+            spare_read_pending   <= 0;
+            spare_sample_valid   <= 0;
+            spare_sample_address <= 0;
+        end else begin
+            if (spare_write) spare_valid[spare_address] <= 1;
+            spare_read_pending   <= spare_read;
+            spare_sample_address <= spare_address;
+            spare_sample_valid   <= spare_read && spare_valid[spare_address];
+        end
+    end
     // One short shared divider; each counter has its own parallel decrementer.
     // Bus admission/ACK never waits for this enable. Register writes override
     // a decrement on their edge; the first count follows on the next enable.
@@ -52,15 +95,14 @@ module ngage_timers #(
     assign periodic_active = periodic[0];
     // Independent one-hot selection; no priority chain through six counters.
     wire [31:0] selected_data[0:5];
-    assign dout = selected_data[0] | selected_data[1] | selected_data[2] |
-                  selected_data[3] | selected_data[4] | selected_data[5];
+    assign dout = spare_word ? (spare_sample_valid ? spare_data : 32'b0) :
+        selected_data[0] | selected_data[1] | selected_data[2] |
+        selected_data[3] | selected_data[4] | selected_data[5];
 
     genvar t;
     generate
         for (t = 0; t < 6; t = t + 1) begin : g_timer
             reg [31:0] control, count, reload, status;
-            // Unidentified words remain storage, without invented pin effects.
-            reg [31:0] spare0, spare_c, spare_14, spare_1c;
             reg running, pending;
             reg  [31:0] data;
             wire        hit = write_access && unit_index == t;
@@ -73,29 +115,25 @@ module ngage_timers #(
             assign selected_data[t]   = data & {32{unit_index == t}};
             always @* begin
                 case (register_index)
-                    0:       data = spare0;
+                    0:       data = 0;
                     1:       data = control;
                     2:       data = status;
-                    3:       data = spare_c;
+                    3:       data = 0;
                     4:       data = count;
-                    5:       data = spare_14;
+                    5:       data = 0;
                     6:       data = reload;
-                    7:       data = spare_1c;
+                    7:       data = 0;
                     default: data = 0;
                 endcase
             end
             always @(posedge clk) begin
                 if (reset) begin
-                    control  <= 0;
-                    count    <= 0;
-                    reload   <= 0;
-                    status   <= 0;
-                    spare0   <= 0;
-                    spare_c  <= 0;
-                    spare_14 <= 0;
-                    spare_1c <= 0;
-                    running  <= 0;
-                    pending  <= 0;
+                    control <= 0;
+                    count   <= 0;
+                    reload  <= 0;
+                    status  <= 0;
+                    running <= 0;
+                    pending <= 0;
                 end else begin
                     if (timer_ce && running && !count_write && !stopping) begin
                         // Zero wraps naturally: a zero load takes 2^32 enables.
@@ -107,7 +145,6 @@ module ngage_timers #(
                     if (t == 1 && clear_unit1) pending <= 0;
                     if (hit) begin
                         case (register_index)
-                            0: spare0 <= din;
                             1: begin
                                 control <= din;
                                 if (din[1:0] == 0) running <= 0;
@@ -117,7 +154,6 @@ module ngage_timers #(
                                 status  <= din;
                                 pending <= 0;
                             end
-                            3: spare_c <= din;
                             4: begin
                                 count  <= din;
                                 // Original 50323f4c programs and polls again
@@ -127,9 +163,7 @@ module ngage_timers #(
                                 status <= 0;
                                 if (control[1:0] != 0) running <= 1;
                             end
-                            5: spare_14 <= din;
                             6: reload <= din;
-                            7: spare_1c <= din;
                         endcase
                     end
                     // A coincident new expiry survives acknowledgement. Stop

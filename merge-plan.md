@@ -871,6 +871,41 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### RAM conversions implemented — 2026-11-11
+
+Four queued-descriptor M10Ks plus timer/ICU passive-word M10Ks replace~1,801
+net source FF state bits (intended6 blocks). Preserve start-time snapshots,
+full-width readback/reset values and live counter/IRQ timing. One fetch clock
+precedes DMA launch; passive reads wait one sample. One/two/three workers,
+Intel/poison collision fences,12,788-transaction old-register oracle and
+original NEM-4 timer/DMA/ISR fixtures pass. Full LCD frame stays130,685 clocks;
+MMC matrix+101/667,085 clocks (~0.015%). Actual PLL78 MHz; RTL target104 MHz.
+Physical area/timing pending. [Details](docs/ram-conversions.md).
+
+#### Fit margin: donor architecture/storage comparison — 2026-11-11
+
+Read-only comparison identifies our always-built diagnostics (~1,186 ALMs),
+FF RF (~2,008), fully associative TLB banks (~3,987), 64-way tag modules
+(~3,400), 896 queued DMA descriptor bits plus768 live programming mirrors,
+and768 timer spare/224 ICU passive readback bits. Costs are not savings;
+no matching current donor whole-core report is available locally. Donor uses
+RAM-backed programming/passive words and already has the latest-writer MLAB RF.
+Prioritize preserving guest bits/snapshots in RAM and controlled isolation of
+the last timing patches; then consider a compile-time diagnostic profile and
+RF port. Cache/TLB or whole-CPU substitutions require separate qualification.
+See [comparison and gates](docs/donor-resource-comparison.md). No HDL changes,
+simulation starts, branch switches or CI monitoring in this audit.
+
+#### Timing patch area regression — 2026-11-11
+
+840e3d4 fails4277/4191 LABs (42,407 required ALMs). Only LCD prevalidation and
+local DMA response RTL changed; actual78 MHz/SDC/options are identical. Map
+FFs increase67 and DSPs2. Required ALMs rise3,412 but placed ALMs rise1,059;
+dense-packing recovery estimate drops2,533->1. Prior93% required headline
+already had97% placed occupancy. Do not assume spare area from that headline.
+Isolate LCD-only/DMA-only fits before keeping either timing change or adding
+features. [Evidence/analysis](docs/lcd-dma-timing-recovery.md).
+
 #### Timing recovery after successful fit — 2026-11-11
 
 New logs fit93% ALMs/90% M10Ks; only setup qualification fails (-2.657 ns at

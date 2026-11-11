@@ -130,16 +130,27 @@ module ngage_dma_channels #(
         end
     end
     assign ready = !programming_read || (read_pending && read_address == programming_address);
-    reg [31:0] queued_src[0:7], queued_dst[0:7];
-    reg [34:0] queued_bytes[0:7];
-    reg [2:0] queued_sw[0:7], queued_dw[0:7];
-    reg [7:0] queued_si, queued_di, pending, cancel;
+    reg [7:0] pending, cancel;
+    // Only the fast-path classification remains live for queue arbitration.
+    // The immutable start snapshot is read from four M10Ks before dispatch.
+    reg       descriptor_loaded = 0;
+    reg [2:0] descriptor_channel;
+    localparam ENGINE_BITS = ENGINES > 1 ? $clog2(ENGINES) : 1;
+    reg  [ENGINE_BITS-1:0] descriptor_engine;
+    wire [          127:0] descriptor_data;
+    wire [           31:0] descriptor_src = descriptor_data[31:0];
+    wire [           31:0] descriptor_dst = descriptor_data[63:32];
+    wire [           34:0] descriptor_bytes = descriptor_data[98:64];
+    wire [            2:0] descriptor_dw = descriptor_data[101:99];
+    wire [            2:0] descriptor_sw = descriptor_data[104:102];
+    wire                   descriptor_di = descriptor_data[105];
+    wire                   descriptor_si = descriptor_data[106];
+    wire [            3:0] descriptor_request = descriptor_data[110:107];
     reg [7:0] completion_wait, completion_cancel;
     reg [7:0] queued_fast;
     reg       fast_owned;
     reg [2:0] fast_channel;
     wire fast_ready, fast_busy, fast_done, fast_error, fast_aborted;
-    reg [3:0] queued_request[        0:7];
     reg [3:0] engine_request[0:ENGINES-1];
     reg [1:0] run_code      [        0:7];
     reg [2:0] dispatch_rr;
@@ -217,12 +228,65 @@ module ngage_dma_channels #(
                 next_channel = candidate;
         end
     end
-    // A programming write takes precedence over dispatch of its old queue.
-    wire dispatch = !reset && next_channel >= 0 &&
+    // A start snapshots all fields on its committing edge. Reprogramming the
+    // live registers cannot change queued work. A restart/stop invalidates a
+    // sampled old descriptor before any engine sees it, including RAM RDW.
+    wire descriptor_select = !reset && !descriptor_loaded && next_channel >= 0 &&
         !((start_write || stop_write) && ch == next_channel[2:0]);
-
-    wire fast_dispatch = dispatch && queued_fast[next_channel < 0 ? 0 : next_channel];
-    wire generic_dispatch = dispatch && !queued_fast[next_channel < 0 ? 0 : next_channel];
+    wire descriptor_write = start_write && !reset;
+    wire [2:0] descriptor_read_address = descriptor_loaded ? descriptor_channel :
+        next_channel < 0 ? 3'd0 : next_channel[2:0];
+    wire [127:0] descriptor_input = {
+        17'b0,
+        request_select[ch*4+:4],
+        source_increment[ch],
+        destination_increment[ch],
+        source_bytes[ch],
+        destination_bytes[ch],
+        programmed_bytes,
+        dst_reg[ch],
+        src_reg[ch]
+    };
+    genvar descriptor_word;
+    generate
+        for (
+            descriptor_word = 0; descriptor_word < 4; descriptor_word = descriptor_word + 1
+        ) begin : queued_descriptor
+            ngage_bram #(
+                .AW         (3),
+                .DW         (32),
+                .READ_ONLY_B(1)
+            ) ram (
+                .clk   (clk),
+                .addr_a(ch),
+                .addr_b(descriptor_read_address),
+                .data_a(descriptor_input[descriptor_word*32+:32]),
+                .data_b(32'b0),
+                .we_a  (descriptor_write),
+                .we_b  (1'b0),
+                .q_a   (),
+                .q_b   (descriptor_data[descriptor_word*32+:32])
+            );
+        end
+    endgenerate
+    wire dispatch = !reset && descriptor_loaded && pending[descriptor_channel] &&
+        !running[descriptor_channel] && !completion_wait[descriptor_channel] &&
+        !((start_write || stop_write) && ch == descriptor_channel);
+    wire fast_dispatch = dispatch && queued_fast[descriptor_channel];
+    wire generic_dispatch = dispatch && !queued_fast[descriptor_channel];
+    always @(posedge clk) begin
+        if (reset) begin
+            descriptor_loaded  <= 0;
+            descriptor_channel <= 0;
+            descriptor_engine  <= 0;
+        end else begin
+            descriptor_loaded <= descriptor_select;
+            if (descriptor_select) begin
+                descriptor_channel <= next_channel[2:0];
+                descriptor_engine  <= free_engine < 0 ? 0 : free_engine;
+            end
+        end
+    end
     wire fast_cancel = fast_owned && (cancel[fast_channel] ||
         ((start_write || stop_write) && ch == fast_channel));
     generate
@@ -232,8 +296,8 @@ module ngage_dma_channels #(
                 .reset         (reset),
                 .transfer_valid(fast_dispatch),
                 .transfer_ready(fast_ready),
-                .source_addr   (queued_src[next_channel < 0 ? 0 : next_channel]),
-                .transfer_words(queued_bytes[next_channel < 0 ? 0 : next_channel][34:2]),
+                .source_addr   (descriptor_src),
+                .transfer_words(descriptor_bytes[34:2]),
                 .stop          (fast_cancel),
                 .busy          (fast_busy),
                 .done          (fast_done),
@@ -337,7 +401,7 @@ module ngage_dma_channels #(
     genvar e;
     generate
         for (e = 0; e < ENGINES; e = e + 1) begin : engines
-            wire dispatch_here = generic_dispatch && free_engine == e;
+            wire dispatch_here = generic_dispatch && descriptor_engine == e;
             wire cancel_here = owned[e] && (cancel[engine_channel[e]] ||
                 ((start_write || stop_write) && ch == engine_channel[e]));
             assign engine_ready[e] = reserved && !bus_owned && bus_engine == e && cmd_ready && packet_ready;
@@ -346,13 +410,13 @@ module ngage_dma_channels #(
                 .reset(reset),
                 .transfer_valid(dispatch_here),
                 .transfer_ready(transfer_ready[e]),
-                .source_addr(queued_src[next_channel < 0 ? 0 : next_channel]),
-                .destination_addr(queued_dst[next_channel < 0 ? 0 : next_channel]),
-                .source_bytes(queued_sw[next_channel < 0 ? 0 : next_channel]),
-                .destination_bytes(queued_dw[next_channel < 0 ? 0 : next_channel]),
-                .source_increment(queued_si[next_channel < 0 ? 0 : next_channel]),
-                .destination_increment(queued_di[next_channel < 0 ? 0 : next_channel]),
-                .transfer_bytes(queued_bytes[next_channel < 0 ? 0 : next_channel]),
+                .source_addr(descriptor_src),
+                .destination_addr(descriptor_dst),
+                .source_bytes(descriptor_sw),
+                .destination_bytes(descriptor_dw),
+                .source_increment(descriptor_si),
+                .destination_increment(descriptor_di),
+                .transfer_bytes(descriptor_bytes),
                 .source_ready(engine_code[e] == 1 || (PRODUCTION ?
                     (engine_request[e] != 2 || engine_code[e] != 3 || mmc_rx_ready) : source_ready[engine_channel[e]])),
                 .destination_ready    (engine_code[e] == 1 ||
@@ -397,8 +461,6 @@ module ngage_dma_channels #(
             pending               <= 0;
             cancel                <= 0;
             owned                 <= 0;
-            queued_si             <= 0;
-            queued_di             <= 0;
             irq_pending           <= 0;
             error_pending         <= 0;
             dispatch_rr           <= 0;
@@ -413,7 +475,6 @@ module ngage_dma_channels #(
                 source_bytes[i]      <= 0;
                 destination_bytes[i] <= 0;
                 run_code[i]          <= 0;
-                queued_request[i]    <= 0;
             end
             for (i = 0; i < ENGINES; i = i + 1) begin
                 engine_channel[i] <= 0;
@@ -466,20 +527,20 @@ module ngage_dma_channels #(
                 if (fast_error) error_pending[fast_channel] <= 1;
             end
             if (fast_dispatch) begin
-                fast_owned            <= 1;
-                fast_channel          <= next_channel[2:0];
-                pending[next_channel] <= 0;
-                cancel[next_channel]  <= 0;
-                dispatch_rr           <= next_channel[2:0] + 3'd1;
+                fast_owned                  <= 1;
+                fast_channel                <= descriptor_channel;
+                pending[descriptor_channel] <= 0;
+                cancel[descriptor_channel]  <= 0;
+                dispatch_rr                 <= descriptor_channel + 3'd1;
             end
             if (generic_dispatch) begin
-                owned[free_engine]          <= 1;
-                engine_channel[free_engine] <= next_channel[2:0];
-                engine_code[free_engine]    <= run_code[next_channel];
-                engine_request[free_engine] <= queued_request[next_channel];
-                pending[next_channel]       <= 0;
-                cancel[next_channel]        <= 0;
-                dispatch_rr                 <= next_channel[2:0] + 3'd1;
+                owned[descriptor_engine]          <= 1;
+                engine_channel[descriptor_engine] <= descriptor_channel;
+                engine_code[descriptor_engine]    <= run_code[descriptor_channel];
+                engine_request[descriptor_engine] <= descriptor_request;
+                pending[descriptor_channel]       <= 0;
+                cancel[descriptor_channel]        <= 0;
+                dispatch_rr                       <= descriptor_channel + 3'd1;
             end
             if (write) begin
                 case (offset)
@@ -510,14 +571,6 @@ module ngage_dma_channels #(
                     queued_fast[ch] <= PRODUCTION && din == 2 && lcd_supported &&
                         src_reg[ch][31:24] == 8'h0a && src_reg[ch][1:0] == 0;
                     run_code[ch] <= din[1:0];
-                    queued_request[ch] <= request_select[ch*4+:4];
-                    queued_src[ch] <= src_reg[ch];
-                    queued_dst[ch] <= dst_reg[ch];
-                    queued_bytes[ch] <= programmed_bytes;
-                    queued_sw[ch] <= source_bytes[ch];
-                    queued_dw[ch] <= destination_bytes[ch];
-                    queued_si[ch] <= source_increment[ch];
-                    queued_di[ch] <= destination_increment[ch];
                 end
             end
         end

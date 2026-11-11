@@ -1,0 +1,51 @@
+{
+  "run_id": 43059270414,
+  "commit": "840e3d4",
+  "audit": "one-shot failed artifact read; no monitoring",
+  "required_LABs": 4277,
+  "available_LABs": 4191,
+  "required_ALMs": [
+    38995,
+    42407
+  ],
+  "placed_ALMs": [
+    40492,
+    41551
+  ],
+  "estimated_recoverable_ALMs": [
+    2533,
+    1
+  ],
+  "unavailable_ALMs": [
+    1036,
+    857
+  ],
+  "synthesized_FFs": [
+    44061,
+    44128
+  ],
+  "DSPs": [
+    40,
+    42
+  ],
+  "detailed_M10Ks": [
+    497,
+    497
+  ],
+  "RTL_diff": [
+    "rtl/ngage_lcd_display.v",
+    "rtl/ngage_dma_route.v"
+  ],
+  "PLL_SDC_QSF_or_profile_changed": false,
+  "which_patch_triggers_regression": "not isolated",
+  "artifact_sha256": {
+    "quartus_build.log": "782d244534d1cb90cc3efa6fb5708fbd5ca71e4c14d09ed0d8e009c5f567b15d",
+    "output_files/Template.fit.summary": "f0611089dea901ef221e494df0490c5723bc91565323088accd52a29662e61c1",
+    "output_files/Template.map.smsg": "62f2b38410dd90a6a87507fd2c52207cda3da36135bf6cd7a94904daaf5cfd61",
+    "output_files/Template.map.summary": "6c4a3b084a6fd047845fa3342448fbea9ce07cd8df521cc0a4ab6872e55ca54d",
+    "output_files/Template.map.rpt": "30d780428953c7e4013d55a66b2b24906c9529bcf61425c429f26fd4e18fb512",
+    "output_files/Template.fit.smsg": "b63b65dbb58bf8d79b3fab81b598fe1441aab2cd8c9b49e90b185b20f9524b53",
+    "output_files/Template.fit.rpt": "3b469b5874438c3ac53be2afb64541e59dcf547bebeb137d1147657871411e11",
+    "output_files/Template.flow.rpt": "843bb8d24afce78e1d99af814d5f2b757a1b4b3e029da91c2fff0378e0a5a1dc"
+  }
+}
