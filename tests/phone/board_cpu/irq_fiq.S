@@ -33,6 +33,12 @@ reset_entry:
  ldr r0,=0x0c1201c8
  mov r1,#8
  str r1,[r0]
+ // Timer3 needs an actual count/reload, as in the production board fixture.
+ ldr r0,=0x0c120a78
+ mov r1,#30
+ str r1,[r0]
+ ldr r0,=0x0c120a70
+ str r1,[r0]
  ldr r0,=0x0c120a64
  mov r1,#2
  str r1,[r0]

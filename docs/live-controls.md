@@ -1,3 +1,12 @@
+## Core identity: ngage1
+
+The core now uses `games/ngage1` and separate ngage1 settings. CI packages
+`ngage1.rbf`. Copy your unchanged NEM-4 `boot.rom`/`boot1.rom`, C:/PMM VHDs,
+MMC and diagnostic files there, then reselect the mounted images. The internal
+Quartus project is still Template. Old `games/NGage` files are not moved or
+modified automatically. This is the original N-Gage core; QD firmware remains
+a separate donor-core configuration.
+
 ## Lean firmware menus (2026-11-11)
 
 Manual MCU/PPM firmware selection and NOS/BT compatibility entries are commented

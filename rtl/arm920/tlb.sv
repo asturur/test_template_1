@@ -34,6 +34,7 @@ module arm920_tlb #(
     output wire o_busy,
     output wire o_walk_pending,
     output wire o_lookup_wait,
+    output wire o_checked_owner,
     output wire [31:0] o_checked_va,
     output wire [31:0] o_checked_lookup,
     output wire o_checked_rd,
@@ -167,6 +168,9 @@ module arm920_tlb #(
     assign o_external_fsr = i_mmu_en && owner ? token_external_fsr : 8'h08;
     assign o_cacheable = i_mmu_en && owner && token_cb[1];
     assign o_bufferable = i_mmu_en && owner && token_cb[0];
+    // Exact ownership predicate for consumers. Avoid selecting a checked VA
+    // through owner and comparing the selected address back to the request.
+    assign o_checked_owner = !i_mmu_en || owner;
     assign o_checked_va = !i_mmu_en || owner ? i_address : token_va;
     assign o_checked_lookup = o_checked_va;
     assign o_checked_rd = !i_mmu_en ? i_request_rd : token_rd;

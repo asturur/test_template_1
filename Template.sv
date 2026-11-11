@@ -42,7 +42,7 @@ module emu (
 
     `include "build_id.v"
     localparam CONF_STR = {
-        "NGage;;",
+        "ngage1;;",
         "-;",
         "O[122:121],Aspect ratio,Original,Full Screen,[ARC1],[ARC2];",
         "-;",

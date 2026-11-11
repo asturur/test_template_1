@@ -1,3 +1,30 @@
+## 2026-11-11: Full78 MHz path audit and ngage1 timing candidate
+
+Completed run43083011635/4969d77 FITS:40,145 ALMs,501 M10Ks,47,294 FFs,
+42 DSPs. Setup−1.276 ns/TNS−302.002 ns; hold+0.247 ns. All1,000 CSV and full
+routed paths crosschecked:690 failures from speculative SWP lock fanout,187
+from UPP owner packet decode,2 instruction fast-word/fetch and2 reconstructed
+D-cache translation-owner paths;119 sampled endpoints pass. RF paths pass;
+its inclusive hierarchy now costs910.7 ALMs including400 memory ALMs.
+
+Candidate registers SWP ownership before its first bus read, holds a selected
+slow UPP request before decode, selects candidate instruction words in parallel
+and uses the exact TLB owner directly (old-expression assertions retained).
+CPU effects/cycles match at waits0/3; SWP normal/cache/buffer/abort/DMA and IRQ/
+FIQ cases pass. LCD mixed-workload frame128,964 vs130,685 clocks; MMC98 cases
+669,329 vs667,186 (+0.321%). Fast LCD/direct SDRAM/refill paths gain no stage.
+Legacy board FIQ fixture also fails baseline: timer3 had no count/reload. Fixed
+its ARM setup, not timer RTL; both external and production board checks pass.
+
+CONF_STR is now ngage1; CI packages ngage1.rbf. MiSTer files/settings move to
+games/ngage1; copy existing NEM-4 service ROMs and current disk images there,
+then reselect mounts. No SD-card files were moved. PLL remains78 MHz;104 MHz
+is the design objective. Diagnostics stay enabled. Other-chat dirty boot files
+and all long simulations/checkpoints are untouched. Routed timing AFTER these
+changes is unverified; one fresh build is the gate, no build monitoring.
+[Complete analysis](timing-78-recovery.md),
+[all1,000 classified paths](evidence/timing-78-43083011635-paths.csv).
+
 ## 2026-11-11: ZAP RF MLAB port implemented; one build is next
 
 The RF now uses two single-writer MLAB banks replicated across five asynchronous

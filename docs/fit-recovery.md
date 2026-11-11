@@ -1,5 +1,13 @@
 # Integration fit recovery
 
+## 2026-11-11:4969d77 fits; remaining problem is timing
+
+Run43083011635 reports successful fit:40,145 ALMs,501 M10Ks,47,294 registers,
+42 DSPs. Core setup−1.276 ns, hold+0.247 ns. Full1,000-path investigation and
+four root-cause timing changes are in [timing-78-recovery.md](timing-78-recovery.md).
+RF inclusive cost910.7 ALMs includes400 memory ALMs; RF read paths pass.
+No post-fix physical-fit/closure claim. Diagnostics retained; PLL stays78 MHz.
+
 ## 2026-11-11: Passive banks consolidated
 
 Timer24 words and ICU6 words share one32x32 M10K in production. This reduces

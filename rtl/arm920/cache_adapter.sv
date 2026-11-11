@@ -33,7 +33,10 @@ module arm920_cache_adapter #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
  logic launched,active_maint,inflight;
  logic swp_read_abort,swp_lock_active;
  wire swp_uncached_begin=req_valid && req_ready && swp_tag==1 && !(cache_enable && cacheable);
- assign swp_bus_lock=swp_lock_active || swp_uncached_begin;
+ // req_valid/req_ready admits the SWP before cache_access can issue its bus
+ // read. Register ownership on that edge; never distribute live TLB/context
+ // comparisons as the board-wide LOCK. Already accepted DMA still drains.
+ assign swp_bus_lock=swp_lock_active;
  logic [7:0] swp_abort_fsr; logic [31:0] swp_abort_far;
  logic [7:0] saved_external_fsr;logic [31:0] saved_external_far;
  logic lock_pending;logic [5:0] pending_lock_base;
@@ -41,7 +44,7 @@ module arm920_cache_adapter #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
  assign cache_lock_done=apply_lock;
  wire [5:0] apply_lock_base=cache_lock_write ? cache_lock_base : pending_lock_base;
  logic req_ready,response_valid,response_error,fast_valid;
- logic [31:0] fast_checked;logic [255:0] fast_line;
+ logic [31:0] fast_checked;logic [255:0] fast_line; wire [31:0] fast_word;
  logic [31:0] response_data;
  logic mready,mdone,merror;
  logic bus_valid,bus_write;logic [31:0] bus_adr,bus_data;logic [3:0] bus_sel;
@@ -52,7 +55,7 @@ module arm920_cache_adapter #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
  wire maint_valid=(cache_invalidate || cache_clean) && !launched && !active_maint && !lock_pending && !cache_lock_write;
  assign idle=!launched && !active_maint;
  assign hold=(launched && !response_valid) || (request && !response_valid && !fast_hit);
- assign data=fast_hit ? fast_line[address[4:2]*32+:32] : response_data;
+ assign data=fast_hit ? fast_word : response_data;
  assign fsr=alignment_fault ? 8'h01 : response_valid && swp_tag==2 && swp_read_abort ? swp_abort_fsr : response_valid && response_error ? saved_external_fsr : fsr_in;
  assign far=alignment_fault ? alignment_far : response_valid && swp_tag==2 && swp_read_abort ? swp_abort_far : response_valid && response_error ? saved_external_far : far_in;
  assign err=((rd || wr) && (alignment_fault || fault)) ||
@@ -100,7 +103,7 @@ module arm920_cache_adapter #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
   .req_cacheable(cacheable),.req_bufferable((swp_tag==2 && !(cache_enable && cacheable)) ? 1'b0 : bufferable),.req_wdata(din),.req_byte_enable(ben),
    .response_valid(response_valid),.response_error(response_error),.response_data(response_data),.write_buffer_empty(write_buffer_empty),.write_buffer_error(),
   .fast_lookup_enable(fast_enable),.fast_lookup_address(fast_next_address),.fast_lookup_valid(fast_valid),
-  .fast_lookup_checked(fast_checked),.fast_lookup_line(fast_line),
+  .fast_lookup_checked(fast_checked),.fast_lookup_line(fast_line),.fast_lookup_word(fast_word),
   .invalidate_all(1'b0),.lock_write(apply_lock),.lock_base_in(apply_lock_base),.round_robin(cache_rr),
   .maint_valid(maint_valid),.maint_clean(cache_clean),.maint_invalidate(cache_invalidate),.maint_all(!cache_op_single),.maint_by_mva(cache_op_by_mva),.maint_address(cache_op_address),
   .maint_way(cache_op_address[31:26]),.maint_segment(cache_op_address[7:5]),.maint_ready(mready),.maint_done(mdone),.maint_error(merror),

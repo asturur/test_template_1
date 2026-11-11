@@ -254,13 +254,27 @@ module ngage_upp #(
 
             // Use the same UPP device decode and side-effect path for both
             // owners. The direct CPU SDRAM route remains independent.
-            assign bus_cyc  = dma_bus_active || cpu_bus_cyc;
-            assign bus_stb  = dma_bus_active || cpu_bus_stb;
-            assign bus_we   = dma_bus_active ? dma_write : cpu_bus_we;
-            assign bus_code = !dma_bus_active && cpu_bus_code;
-            assign bus_adr  = dma_bus_active ? dma_addr : cpu_bus_adr;
-            assign bus_din  = dma_bus_active ? dma_data : cpu_bus_din;
-            assign bus_sel  = dma_bus_active ? dma_be : cpu_bus_sel;
+            // Hold the selected packet before regional decode. Neither owner
+            // selection nor its wide address/lane mux crosses device command
+            // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
+            ngage_upp_request_stage request_stage (
+                .clk        (clk),
+                .reset      (rst),
+                .in_cyc     (dma_bus_active || cpu_bus_cyc),
+                .in_stb     (dma_bus_active || cpu_bus_stb),
+                .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
+                .in_code    (!dma_bus_active && cpu_bus_code),
+                .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
+                .in_data    (dma_bus_active ? dma_data : cpu_bus_din),
+                .in_sel     (dma_bus_active ? dma_be : cpu_bus_sel),
+                .out_cyc    (bus_cyc),
+                .out_stb    (bus_stb),
+                .out_we     (bus_we),
+                .out_code   (bus_code),
+                .out_address(bus_adr),
+                .out_data   (bus_din),
+                .out_sel    (bus_sel)
+            );
 
             always @(posedge clk) begin
                 if (rst) begin
@@ -797,4 +811,50 @@ module ngage_cpu_memory_route #(
             if (ram_response && (slow_ack || slow_error)) $fatal(1, "overlapping CPU responses");
         end
     // synthesis translate_on
+endmodule
+
+
+// One held request per CYC/STB assertion; the existing CPU response phase and
+// DMA gap provide the request-low edge. Cancellation immediately suppresses
+// side effects, while an already captured downstream transaction may drain.
+module ngage_upp_request_stage (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        in_cyc,
+    input  wire        in_stb,
+    input  wire        in_we,
+    input  wire        in_code,
+    input  wire [31:0] in_address,
+    input  wire [31:0] in_data,
+    input  wire [ 3:0] in_sel,
+    output wire        out_cyc,
+    output wire        out_stb,
+    output reg         out_we,
+    output reg         out_code,
+    output reg  [31:0] out_address,
+    output reg  [31:0] out_data,
+    output reg  [ 3:0] out_sel
+);
+    reg  valid = 0;
+    wire offered = in_cyc && in_stb;
+    assign out_cyc = !reset && valid && offered;
+    assign out_stb = out_cyc;
+    always @(posedge clk) begin
+        if (reset) begin
+            valid       <= 0;
+            out_we      <= 0;
+            out_code    <= 0;
+            out_address <= 0;
+            out_data    <= 0;
+            out_sel     <= 0;
+        end else if (!offered) valid <= 0;
+        else if (!valid) begin
+            valid       <= 1;
+            out_we      <= in_we;
+            out_code    <= in_code;
+            out_address <= in_address;
+            out_data    <= in_data;
+            out_sel     <= in_sel;
+        end
+    end
 endmodule

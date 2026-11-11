@@ -42,6 +42,7 @@ module arm920_cache_access #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
     output logic         fast_lookup_valid,
     output logic [ 31:0] fast_lookup_checked,
     output logic [255:0] fast_lookup_line,
+    output wire [31:0] fast_lookup_word,
     input  logic         invalidate_all,
     input  logic         lock_write,
     input  logic [  5:0] lock_base_in,
@@ -168,6 +169,17 @@ module arm920_cache_access #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
                           !invalidate_all && !lock_write && (stream_hit || result_hit);
     assign fast_lookup_checked = req_mva;
     assign fast_lookup_line = result_hit ? line : stream_line[req_mva[5]];
+    // Select words before the late hit/owner decision, keeping that decision
+    // out of the wide line mux followed by the variable word mux.
+    wire [31:0] result_word = line[req_mva[4:2]*32+:32];
+    wire [31:0] stream_word0 = stream_line[0][req_mva[4:2]*32+:32];
+    wire [31:0] stream_word1 = stream_line[1][req_mva[4:2]*32+:32];
+    assign fast_lookup_word = result_hit ? result_word : req_mva[5] ? stream_word1 : stream_word0;
+    // synthesis translate_off
+    always @(negedge clk) if (!reset && fast_lookup_valid &&
+        fast_lookup_word !== fast_lookup_line[req_mva[4:2]*32+:32])
+        $fatal(1, "fast lookup word differs from the selected line");
+    // synthesis translate_on
     always_ff @(posedge clk) begin
         if (reset) begin
             fast_result_valid <= 0;

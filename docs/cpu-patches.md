@@ -499,3 +499,13 @@ sclr/outdata_sclr settings are omitted. Independent five-port, CP15/operand,
 whole-core cycle/effect and IRQ/FIQ evidence is in
 [RF audit](register-file-area-audit.md). Verilog-2001; no new CPU cycle or clock
 change. Actual area/routed timing is pending the next build.
+
+## Direct checked translation owner (0058)
+
+D-cache now consumes TLB's exact checked-owner predicate rather than selecting
+checked VA/context fields and comparing them back to the request. No extra
+cycle, permission change or token-granularity change; the original conjunction
+remains as a simulation equivalence assertion. The associated maintained ARM920
+backend changes register SWP ownership before bypass bus issue and select fast
+instruction words before the late line-source selector. See
+[78 MHz audit and tests](timing-78-recovery.md). Physical closure remains open.

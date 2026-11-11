@@ -871,6 +871,22 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### 78 MHz timing and ngage1 identity — 2026-11-11
+
+43083011635 fits40,145 ALMs/501 M10Ks; setup−1.276 ns, hold+0.247 ns. All1,000
+paths classified,881 negative:690 SWP lock,187 selected UPP packet decode,
+2 I-cache word selection and2 D-cache owner reconstruction. Candidate cuts
+these causes with registered SWP ownership, one held slow-bus admission edge,
+parallel word selection and direct exact TLB owner. Behavioral/effect/latency,
+MMU/abort/IRQ/FIQ, LCD and MMC tests pass. Mixed LCD frame128,964 clocks;
+MMC suite+0.321%. No extra fast LCD/direct SDRAM/refill stage. Physical closure
+is still pending one new routed78 MHz build. Diagnostics remain enabled.
+
+Before commit the core becomes ngage1 and packages ngage1.rbf; use games/ngage1
+for unchanged NEM-4 boot.rom/boot1.rom and existing VHD/MMC/diagnostic files,
+with newly selected mounts. No SD files moved, PLL/SDC changed or long simulation
+started. Details and every classified path: [timing audit](docs/timing-78-recovery.md).
+
 #### ZAP register-file MLAB port — 2026-11-11
 
 0057 implements the donor-style latest-writer MLAB approach with five unchanged

@@ -1,0 +1,148 @@
+{
+  "run": "https://github.com/asturur/test_template_1/actions/runs/43083011635",
+  "source_commit": "4969d77a6b023109a650c4a6bfa35175644fa496",
+  "clock_Hz": 78000000,
+  "setup_ns": -1.276,
+  "setup_TNS_ns": -302.002,
+  "hold_ns": 0.247,
+  "core_fmax_MHz": 70.94,
+  "required_ALMs": 40145,
+  "M10Ks": 501,
+  "DSPs": 42,
+  "registers": 47294,
+  "RF_inclusive_ALMs": 910.7,
+  "RF_memory_ALMs": 400.0,
+  "RF_registers": 298,
+  "exported_paths": 1000,
+  "violating_exported_endpoints": 881,
+  "full_report_paths_crosschecked": 1000,
+  "families": {
+    "SWP lock admission": {
+      "paths": 785,
+      "violations": 690,
+      "worst_slack_ns": -1.276,
+      "mean_cell_ns": 3.773,
+      "mean_route_ns": 8.729
+    },
+    "UPP owner packet decode": {
+      "paths": 206,
+      "violations": 187,
+      "worst_slack_ns": -0.884,
+      "mean_cell_ns": 4.092,
+      "mean_route_ns": 8.306
+    },
+    "I-cache fast word to fetch": {
+      "paths": 2,
+      "violations": 2,
+      "worst_slack_ns": -0.437,
+      "mean_cell_ns": 4.006,
+      "mean_route_ns": 8.258
+    },
+    "D-cache checked owner": {
+      "paths": 2,
+      "violations": 2,
+      "worst_slack_ns": -0.098,
+      "mean_cell_ns": 3.793,
+      "mean_route_ns": 8.33
+    },
+    "Cache completion positive margin": {
+      "paths": 5,
+      "violations": 0,
+      "worst_slack_ns": 0.04,
+      "mean_cell_ns": 3.527,
+      "mean_route_ns": 8.41
+    }
+  },
+  "unconstrained_io": {
+    "inputs": 20,
+    "input_paths": 46,
+    "outputs": 86,
+    "output_paths": 169,
+    "unconstrained_clocks": 0
+  },
+  "input_sha256": {
+    "reports/output_files/timing/worst-setup.csv": "5f8717666389e2d9c73b6630ef11f095992076da1363449587de326b4a1043be",
+    "reports/output_files/timing/worst-setup-full.rpt": "c4bbe5cbda504b024f0e3a04fede6095f58c92e0e183dfe0c990fb643f9d43a6",
+    "reports/output_files/Template.fit.rpt": "3955e75d661d6f076de2b8bdc7114370d51a260333259118a499b036d14a3e1b",
+    "reports/output_files/Template.sta.summary": "254223b03adaa79bffc5b6fc7c8dc4e5c250232e51c0eef9d79c31ecc1996a69"
+  },
+  "post_fix_physical_result": "not yet measured",
+  "changes": [
+    "registered uncached-SWP ownership instead of live speculative lock",
+    "held selected slow UPP packet before regional decode",
+    "parallel fast instruction word selection",
+    "direct TLB checked-owner predicate with old-expression assertion",
+    "ngage1 CONF_STR and CI RBF package",
+    "legacy board fixture programs real FIQ count/reload"
+  ],
+  "validation": {
+    "CPU_effects_and_cycles_vs_4969d77": "exact at waits0/3",
+    "CPU_total_cycles": [
+      210644,
+      247890
+    ],
+    "CPU_body_cycles": [
+      1446,
+      1692
+    ],
+    "SWP_IRQ_FIQ_cases": 44,
+    "additional_SWP_cases": 12,
+    "TLB_ownership_and_attributes": "PASS",
+    "cache_access": "PASS",
+    "read_only_cache_equivalence_cycles": [
+      9416,
+      9440
+    ],
+    "LCD_frame_clocks_before_after": [
+      130685,
+      128964
+    ],
+    "LCD_total_clocks_normal_held": [
+      149747,
+      149825
+    ],
+    "MMC_bus_cases_clocks": [
+      30,
+      132221
+    ],
+    "MMC_DMA_cases_clocks_before_after": [
+      98,
+      667186,
+      669329
+    ],
+    "production_board_CPU": "PASS",
+    "legacy_FIQ_fixture": "baseline and candidate fail identically without a programmed count; corrected fixture PASS",
+    "UPP_request_stage_and_bridge_modes": "PASS",
+    "Quartus_source_graph": [
+      173,
+      9
+    ],
+    "ZAP_provenance": "PASS0058",
+    "physical_post_fix_result": "pending new routed build"
+  },
+  "source_sha256": {
+    "rtl/ngage_upp.v": "3feb18d10f6262e964aff7a2b71b0e209bb5e55a0a15396c60870eee1021c3bf",
+    "rtl/arm920/cache_adapter.sv": "f3cf2f5281768f36678d8e354f1b02a0a0c1fe5f035b95c4d89bf92fd63d58c3",
+    "rtl/arm920/cache_access.sv": "fba7bfa4b5df0a5e1642efd4e3e467305e8b485eaa4195778445476955e173ad",
+    "rtl/arm920/tlb.sv": "bbb00ec06f9ec811f4d4fa92068bc7b29dc918b26efe6d429a0b1f8b3838716c",
+    "rtl/arm/zap_dcache.sv": "eb314d5abfb9dff4a16570928a02f039fed5aa3583fb71e43fd0c276ae81c998",
+    "Template.sv": "ee07556eafa416b7cff42072e1237e2ea0d9df4ed8bfd8262578c08751523f23",
+    ".github/workflows/ci_build.yml": "e992cd93dcd62e60a591a30ee28a8445acb02e459ed476a336354285386c0afe",
+    "tests/phone/board_cpu/irq_fiq.S": "1870b3c08bd2b03290771454fdafba109c67ee26f04240031d7885ee52ad0da8"
+  },
+  "logs_sha256": {
+    "scratch/ngage2-integration/timing-78-43083011635/local-tests.log": "d19a13cd1cea8044463c9eed054d81bb8c932d1bd2a32b8889ed72c96dc23447",
+    "scratch/ngage2-integration/timing-78-43083011635/lcd-tests.log": "9744dd746ac1c92440b662849588a477d0769fc762b8cf0cb9c202b2197a63e4",
+    "scratch/ngage2-integration/timing-78-43083011635/core-timing.log": "0b79e5cf92e1a101be68f205bf9e10f80e4cb93a9fe92323d4e9db146fa8be8e",
+    "scratch/ngage2-integration/timing-78-43083011635/core-integration.log": "050ca3da26858776876efad2b6841f64aebc8bd5675397dcc8ac7467f68ea7ad",
+    "scratch/ngage2-integration/timing-78-43083011635/swp-boundaries.log": "ed3f4262a5bbc9cff08c9d7f2060fd10efd21338e7c4a93556d1c60a6a94b4aa",
+    "scratch/ngage2-integration/timing-78-43083011635/tlb-owner.log": "1a7afc6cab96c54474174a79e351b53c00041b5a34a7a8910d1bb9d99a1e76f7",
+    "scratch/ngage2-integration/timing-78-43083011635/tlb-attributes.log": "93dbbe2546fcad3b8533302b43019f57af3e077e33f96e3051c4b5bb808df316",
+    "scratch/ngage2-integration/timing-78-43083011635/cache-access.log": "0d0755e8f9723ed7ec72513ded1ee6d15c3fe13f3a504f8801d6dc102a2c4877",
+    "scratch/ngage2-integration/timing-78-43083011635/icache-read-only.log": "f1598d8b309bf1d30875e6cc1d80349e22469155caf6c1d637adb81dd56b36d6",
+    "scratch/ngage2-integration/timing-78-43083011635/mister-board-cpu.log": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e",
+    "scratch/ngage2-integration/timing-78-43083011635/board-fixed-fixture.log": "a54a0ae85486d6b1cfc407ada20826454d66de8c8e5ce9b5b3047ddfad1cf381",
+    "scratch/ngage2-integration/timing-78-43083011635/preflight.log": "64c06d2d7a622a719505a7b02944680d86eb51e0ddbb5d374486f86ebcf5cb96",
+    "scratch/ngage2-integration/timing-78-43083011635/provenance.log": "b55527c8a1a6512dfff755ada550705a60a52e30251b1e05456d69456c64054c"
+  }
+}

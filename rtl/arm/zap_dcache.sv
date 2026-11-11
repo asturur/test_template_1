@@ -180,10 +180,17 @@ always_ff @(posedge i_clk) begin
     if (i_reset) checked_request_prev <= 1'b0;
     else checked_request_prev <= checked_request && pending_request && !o_ack;
 end
-assign checked_request = checked_va == i_address && checked_lookup == i_address && checked_rd == i_rd && checked_wr == i_wr &&
+wire checked_owner;
+assign checked_request = checked_owner;
+// synthesis translate_off
+wire checked_request_legacy = checked_va == i_address && checked_lookup == i_address && checked_rd == i_rd && checked_wr == i_wr &&
  checked_mmu == i_mmu_en && checked_cpsr == i_cpsr && checked_sr == i_sr &&
  checked_dac == i_dac_reg && checked_baddr == i_baddr &&
  checked_cache_index == i_address[`ZAP_VA__CACHE_INDEX];
+always @(negedge i_clk) if (!i_reset && checked_request !== checked_request_legacy)
+    $fatal(1, "direct TLB owner differs from checked-context reconstruction");
+// synthesis translate_on
+
 logic [31:0] pending_va_assert;
 logic pending_rd_assert, pending_wr_assert;
 logic [ZAP_CPSR_MODE:0] pending_cpsr_assert;
@@ -306,6 +313,7 @@ u_zap_tlb (
         .o_busy         (tlb_busy),
         .o_lookup_wait  (),
         .o_walk_pending (tlb_walk_pending),
+        .o_checked_owner(checked_owner),
         .o_checked_va (checked_va), .o_checked_lookup (checked_lookup), .o_checked_rd (checked_rd), .o_checked_wr (checked_wr),
         .o_checked_mmu (checked_mmu), .o_checked_cpsr (checked_cpsr), .o_checked_sr (checked_sr),
         .o_checked_dac (checked_dac), .o_checked_baddr (checked_baddr),

@@ -63,8 +63,10 @@ jobs:
       - name: Require passing timing
         run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
 
-      - name: Check build output
-        run: test -f output_files/Template.rbf
+      - name: Prepare ngage1 build output
+        run: |
+          test -f output_files/Template.rbf
+          cp output_files/Template.rbf output_files/ngage1.rbf
 
       # Show the errors inline in the job log on failure, so the cause is
       # visible without downloading the artifact.
@@ -98,6 +100,6 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: Template-rbf
-          path: output_files/Template.rbf
+          name: ngage1-rbf
+          path: output_files/ngage1.rbf
           if-no-files-found: error

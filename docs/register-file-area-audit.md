@@ -1,5 +1,13 @@
 # ZAP register-file area audit (2026-11-11)
 
+## Measured fit43083011635
+
+4969d77 fits at40,145 ALMs/501 M10Ks. RF inclusive hierarchy is910.7 ALMs
+(400 memory ALMs),938.5 placed ALMs and298 dedicated registers. RF-to-R
+setup is+1.481 ns and CP15 read+1.530 ns; it is not a reported failing family.
+Whole-core setup is−1.276 ns elsewhere. This is measured allocation, not an
+isolated RF-only synthesis comparison. See [all-path audit](timing-78-recovery.md).
+
 ## Implemented MLAB candidate (0057)
 
 The RF now uses two single-writer MLAB banks replicated across five asynchronous
