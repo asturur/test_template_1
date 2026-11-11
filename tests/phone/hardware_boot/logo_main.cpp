@@ -37,7 +37,15 @@ int main(int argc,char **argv) {
     const bool stop_panic=panic_arg && *panic_arg;
     const char *limit=context.commandArgsPlusMatch("stop-lcd-words=");
     if(limit && *limit)stop_lcd_words=std::stoull(std::string(limit).substr(std::string(limit).find('=')+1));
+    auto number_arg=[&](const char *name)->uint64_t {
+        const char *value=context.commandArgsPlusMatch(name);
+        if(!value || !*value)return 0;
+        return std::stoull(std::string(value).substr(std::string(value).find('=')+1),nullptr,0);
+    };
+    const uint64_t key_mask=number_arg("key-mask="),key_start=number_arg("key-start="),key_duration=number_arg("key-duration=");
+    if(key_mask>0x7ffffffULL || key_start+key_duration<key_start)throw std::runtime_error("invalid key pulse");
     Vtb model{&context};Host host;
+    model.keys=0;
     model.clk=0;model.cold=1;model.reset=1;model.frame_index=0;model.eval();
     if(restore!="-") {
         std::ifstream h(restore+".host",std::ios::binary);h.read(reinterpret_cast<char*>(&host),sizeof host);
@@ -85,6 +93,7 @@ int main(int argc,char **argv) {
         stat_ddr_reads+=prev_ddelay==0 && r->tb__DOT__ddelay==3;prev_ddelay=r->tb__DOT__ddelay;
         stat_ddr_beats+=r->tb__DOT__phyready;stat_trace+=r->Z(o_trace_valid);
 #endif
+        model.keys=(key_mask && total()>=key_start && total()-key_start<key_duration) ? key_mask : 0;
         model.clk=1;context.timeInc(5000);model.eval();
         if(model.scan_ce && model.scan_de && model.scan_x<320 && model.scan_y<240) {
             auto i=(model.scan_y*320+model.scan_x)*3;auto rgb=model.scan_rgb;

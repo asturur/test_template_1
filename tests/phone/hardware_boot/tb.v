@@ -3,6 +3,7 @@
 // phone bus devices, flash state, address mapping and CPU are HDL.
 `ifdef NGAGE_LOGO_RUN
 module tb(input wire clk,reset,cold,
+ input wire [26:0] keys,
  input wire [14:0] frame_index,
  output wire ready,output wire [31:0] cycle_count,pc,frame_word,
  output wire [8:0] scan_x,scan_y,output wire [11:0] scan_rgb,
@@ -101,6 +102,7 @@ module tb(input wire clk,reset,cold,
 `else
 module tb;
  reg clk=0,reset=1,cold=1;
+ wire [26:0] keys=0;
 `endif
 parameter integer OVERLAY_COMPONENT=1;
 parameter integer SYS_CLK_HZ=104000000;
@@ -202,7 +204,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  ),.diagnostic_status(8'b0),.debug_freeze_trace(1'b0),.debug_read_word(11'b0),.board_init_done(init_done),.bus_lock(lock),
   .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
   .dma_sdram_req(dsreq),.dma_sdram_addr(dsa),.dma_sdram_ack(dsack),.dma_sdram_data(dsr),
-  .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
+  .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(keys));
  ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(reset),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
   .dma_req(dsreq),.dma_we(1'b0),.dma_addr(dsa),.dma_data(32'b0),.dma_be(4'hf),.dma_ack(dsack),.dma_rdata(dsr),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
 `ifdef NGAGE_NOS_OVERLAY_RUN

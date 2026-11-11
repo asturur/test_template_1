@@ -288,3 +288,15 @@ stay in `build/sim/unit-hardware-boot-real-sdram/`; board TSV logging is disable
 for bounded file sizes. This timed model cannot use Verilator save/restore.
 Do not overwrite a running real-SDRAM test's output directory. Neither this
 runner nor a source edit changes an already running frozen long simulation.
+
+### Keypad-capable continuation model
+
+Latest continuation (see status.md) exposes a27-bit top-level `keys` input.
+Its observer holds it zero unless explicitly invoked with `+key-mask=<mask>`,
+`+key-start=<absolute cycle>` and `+key-duration=<clocks>` in a separate replay.
+This avoids Verilator removing the input-dependent keypad logic. The normal
+long-run launcher provides no pulse and does not inject any inputs. Raw replay
+stimulus must be recorded alongside its manifest; these are observer plusargs,
+not firmware modifications. Full-phone Menu pulse latch/release and existing
+keypad regressions pass. Hardware checkpoint export is a distinct, currently
+unimplemented feature documented in [hardware-checkpoints.md](hardware-checkpoints.md).

@@ -12,6 +12,7 @@ entries below the handoff are the evidence log, newest first.
 | [cpu-operand-stage-contract.md](cpu-operand-stage-contract.md) | Slice1 exact operand ownership/cycle contract, differential reference and measured latency/throughput tradeoffs |
 | [cache-lookup-stage-contract.md](cache-lookup-stage-contract.md) | Slice2 cache lookup ownership, lookahead epochs, latency attribution and validation |
 | [cpu-performance-redesign-notes.md](cpu-performance-redesign-notes.md) | Future cache/LSU/CPU performance redesign options, latency baseline and104MHz verification gates |
+| [memory-performance-baseline.md](memory-performance-baseline.md) | Collected cache, TLB, SDRAM and DDR cycle measurements, provenance and new-core comparison procedure |
 | [direct-sdram-path.md](direct-sdram-path.md) | Dedicated CPU SDRAM route, retained registers, admission/cancellation contract and cache-miss measurements |
 | [uncached-fetch.md](uncached-fetch.md) | Measured boot-delay costs, resident instruction hits and CPU request/return handoffs |
 | [cache-line-refill.md](cache-line-refill.md) | Registered ARM line transport, DDR bursts, direct SDRAM fill and overlapping logical-port follow-up |
@@ -29,6 +30,7 @@ entries below the handoff are the evidence log, newest first.
 | [nortido-hybrid-reference.md](nortido-hybrid-reference.md) | Hybrid-core LCD/keypad/MMC leads, local trace cross-check and limits of patched guest behavior |
 | [firmware-overlays.md](firmware-overlays.md) | Independent NOS/Bluetooth menus, private packages, automatic loading, shared checksum and checks |
 | [nortido-compatibility-inventory.md](nortido-compatibility-inventory.md) | Counted NOS/Bluetooth/audio/boot substitutions and a concrete reset-only OSD backend design |
+| [hardware-checkpoints.md](hardware-checkpoints.md) | Current export limitations and required hardware-to-Verilator checkpoint design |
 | [bringup.md](bringup.md) | CPU integration boundary, simulation tools, diagnostics and output locations |
 | [speculative-fetch-deadlock.md](speculative-fetch-deadlock.md) | Queued return blocked by an abandoned I-cache refill, scoped fix, checkpoint recovery and verification limits |
 | [cpu-patches.md](cpu-patches.md) | Why the ZAP patches exist and how they were checked |

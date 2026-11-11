@@ -325,3 +325,175 @@ Investigation sequence, without firmware/C modifications:
 
 This is a documented next investigation, not a new keypad/UI fix. Main frozen
 long run and source images remain untouched. Memory build requested separately.
+
+
+### Latest fast continuation:6.1B–6.3B startup progress (2026-11-10)
+
+Requested inspection used exact-model6af112481fad51dd read-only state readers
+and a separate3M replay from6.2B. Main latest-keypad-fast-12b remains running;
+no key injection or source firmware/C edits. CPU/host6.2B hashes still match its
+screenshot manifest after inspection. All earlier code dumps were backed up and
+restored; this sample's dumps/logs are separate under scratch/latest-continuation/.
+
+New6.3B CPU/host and framebuffer/scanout screenshots were generated normally.
+Viewed6.3B framebuffer still shows NOKIA on white. Screen files are under
+build/sim/screens/latest-keypad-fast-12b-checkpoints/. The unchanged image is
+not by itself evidence of a hung CPU or missing LCD initialization.
+
+Process container:15entries at6.1/6.2B (previously13at4.8B), including newly
+observed EDbsrv.exe and Sysagx.exe. At6.3B there are16entries, with newly observed
+EikSrvs.exe. These are container entries, not a count of proved healthy servers.
+Nevertheless new processes plus continuing filesystem changes establish startup
+progress beyond the earlier fixed13-process state. C image positions differing
+from source:323489at6.1B,336991at6.2B,339353at6.3B. These are differing positions,
+not transferred-byte counts or a proof of filesystem correctness/completion.
+
+Correctly mapped inactive RfsServer HOME_STACK at6.1B contains a Cdbv2.dat
+path. Its home chunk at6.2/6.3B contains C:\System\Data\cdbv2.dat/.old and
+Z:\system\rfs\ScriptInit.txt plus factory copy/mkdir script text. Home-heap
+strings can be stale or whole script contents: do not describe every listed
+path as the active request. This narrows current work to factory/database
+initialization; it does not identify a single permanent blocking IPC yet.
+
+Separate3M sample at6.2B, every128clock current-thread observations:
+EFile main10804/23438(46.10%), NULL9858(42.06%), EDbsrv main2016(8.60%),
+RfsServer597(2.55%). Current-thread attribution includes kernel work and does
+not mean NULL's whole share is hardware idle. IRQ+FIQ311008clocks(10.37%).
+Modes UND2040904,USR573866,FIQ282152,SVC74222,IRQ28856. Kernel/NULL paths already
+use UND mode; mode1B alone is not new undefined-instruction crash evidence.
+
+C bus activity30572/3M(1.02%), acknowledged reads1311/writes2300, modeled DDR
+busy83982(2.80%, all clients),1037C positions changed within sample. Much of the
+elapsed work therefore happens above raw C backing transport in this window;
+this is not a whole-boot storage-latency attribution. Existing stale scan probe
+503909A0 did not fire. New bus/data errors0; FSR/FAR/ABT LR zero at6.2/6.3B.
+Code/data stall masks:neither930537,code-only912394,data-only354235,both802834.
+Top trace PC counts include micro-ops; they must not be called retired ARM counts.
+
+Observer limitation: generic raw code dumps outside the reference-plain core
+window may still be scrambled. Attempted disassembly of516c71xx is invalid;
+do not infer corrupt instructions or CPU faults from it. No such fix was made.
+
+Next: trace completion/status of RfsServer/database/UI startup requests as the
+new EikSrvs process runs. A screensaver-matching checkpoint still does not exist;
+keep periodic screenshots and use a separate replay for key-crash testing only
+once its initial visible/software state is established. No permanent startup
+wait, reboot or LCD-command defect is proven by this sample.
+Evidence scratch/latest-continuation/{state-6100000000,state-6200000000,
+state-extended-6200,state-extended-6300,profile-6200m,summary-6100-6200}.log.
+
+
+###6.5B: Starter waits for UI readiness; AppArc recognizer startup dominates
+
+Requested repeat investigation (2026-11-10), exact model6af112481fad51dd.
+Viewed newly dumped6.5B framebuffer: still NOKIA white. Main run advanced to
+6.54B during inspection; no restart/inputs/source-image edits.6.5B CPU/host
+hashes verified unchanged after readers and disposable replays.
+
+There are19process container entries, up from16at6.3B. Newly observed:
+C32exe.exe, Ealwls.exe, MediaServerStub.exe. EikSrvs has EikAppUiServer,
+BackupServerThread, ViewServerThread and AppArcServerThread. Presence is not
+proof every server finished initialization, but this is beyond the prior
+filesystem/database stage. RfsServer is now in a request wait rather than the
+6.1B database-path stack. C differing positions339809at6.5B versus339353at6.3B.
+
+Concrete startup barrier in this snapshot:
+
+- StarterServer thread8040f108 is in wait state2. Its field+0x100 points to
+  semaphore8040cd8c, named EikAppUiServerStartSemaphore in the kernel container.
+- That semaphore's count at+0x14 isFFFFFFFF; both queue links at+0x18/+0x1C
+  point to8040f20c, Starter's embedded wait link at thread+0x104. Reciprocal
+  links substantiate Starter waiting on this exact UI-ready semaphore.
+- EikAppUiServer80413f94 also has a queued wait, on semaphore80411b18 owned
+  by that thread. This is consistent with waiting for asynchronous completion;
+  which outstanding operation will release it is not independently identified.
+
+Separate3M from6.5B: AppArcServerThread80417310 owns23072/23438current-thread
+samples(98.44%), Supervisor318(1.36%), LoaderThread48(0.20%). Thread attribution
+includes kernel execution. Raw C bus activity/ack reads/writes0, changed C
+positions0within this window; modeled DDR busy27318clocks(0.91%). Thus database
+writes are no longer this sample's dominant activity. No new bus/data errors.
+Code/data masks:neither983541,code-only776374,data-only468055,both772030.
+
+AppArc's saved stack and bounded live call-context probe contain ROM paths
+Z:\System\Recogs\rmrecog.mdl, Z:\System\Recogs\MusicRec.mdl and
+Z:\System\Libs\MediaServerStub.exe. These are UTF16 stack candidates with
+residual trailing characters; trim only to the evident extension when describing
+context, not as proof of a captured file-open argument. MediaServerStub's newly
+created process corroborates recognizer/helper initialization. No valid direct
+descriptor argument was decoded by this probe (the3reported strings are stack
+candidates); do not label it a complete IPC transcript.
+
+The selected user-side wrapper503b3654 passes a request status to503ac70c,
+waits via503b2470, then returns status at503b3678. Observed selected return
+samples have R0=0, so those waits finish successfully; no failed-loader return
+was observed. Names/semantics beyond this instruction-level wrapper are not
+symbolized. Three million clocks cannot establish that the full AppArc pass
+finishes or that a later rescan is erroneous. Historical LLE AppArc-rescan notes
+are hypotheses only for this distinct current HDL lineage.
+
+Why the logo remains: the observed Starter/UI-ready barrier has not been
+released at6.5B while AppArc registry/recognizer initialization continues.
+This is a concrete wait-chain finding, not proof that LCD is stuck or that an
+infinite loop exists. Next target the completion that signals the named UI-start
+semaphore and AppArc scan/load progress; trace repeated work only if the same
+operations demonstrably restart. Firmware and C remain unmodified.
+
+Evidence scratch/latest-continuation/{state-extended-6500,profile-6500m,
+workprobe-6500,pathprobe-6500,waits-6500}.log, with exact-model readers alongside.
+Prior code-dump evidence was preserved; this sample copies are in code-6500/.
+
+
+### AppArc startup completion verified; no infinite recognizer loop (2026-11-10)
+
+This supersedes the6.5B interpretation that AppArc itself might be indefinitely
+blocking UI readiness. Exact-model passive50M from6.5B and targeted replay:
+
+- Initial recognizer-pass tail reaches17/17 and returns0 at6,500,243,454.
+- Subsequent scans of C:\System\Recogs\* and D:\System\Recogs\* return
+  -12 (path not found, also defined in the local EKA2L1 utils/err.h). The Z:
+  scan returns0 and enumerates17recognizers, CERTRESPREC.MDL through MusicRec.mdl.
+  Loop index advances0..17, finishes at6,520,041,406. Firmware's error path
+  skips these non-memory errors; only -4 takes the explicit leave branch here.
+- No additional recognizer scan starts before the50M endpoint6.55B. Three starts
+  and four ends include the first pass begun before the source checkpoint.
+  Early failed-list exits do not initialize the loop/status registers; their
+  printed garbage index/result fields must not be interpreted as data corruption.
+- Crucially the UI server's ApsExe helper returns from its two-status wait at
+ 6,525,847,945 (PC50601e64), with statusA at004047f0=0 and statusB at00404808=
+  80000001. This directly proves the observed startup request completes
+  successfully. Do not infer exact higher-level statusB semantics without symbols.
+
+Named EikAppUiServerStartSemaphore remains -1 at6.55B: Starter still awaits
+whole UI readiness, but the earlier AppArc startup wait is already over. At6.6B
+EikAppUiServer's owned request semaphore has count3 and empty queue, versus
+count-1 with a waiter at6.5B. Its stack has unwound out of the ApsExe wait.
+
+Later UI execution is in Bafl.dll, Cone.dll and avkon.dll (actual ROM directory
+and module headers read from the checkpoint). Bafl50910ee4 recursively decodes
+bit-packed data into an output buffer. Separate3M from6.6B observes60decoder
+entries and60returns, all60matched output pointers advancing, none backward.
+This is evidence of resource-decoding progress, not proof the entire resource
+phase finishes or all resource contents are correct. It does not justify a new
+AppArc stub, skipping scans or fabricating a readiness signal.
+
+No missing mandatory recognizer or lost AppArc completion is shown. The two
+missing folders do not prevent the populated ROM pass or startup-request success.
+This does not exclude a different later failure. Historical LLE rescan bugs
+must not be applied to the present run based on an unchanged Nokia image.
+
+ROM code boundary correction: earlier disassembly failure at516c71xx came from
+starting in literal/data words. At516c7130 the ARM LDR-IP/LDR-PC import thunks
+decode correctly. The earlier suggestion that this dump was still scrambled is
+not established; no new flash decoder defect is evidenced.
+
+All observation replay endpoints retain errors30923398/data0. Source6.5/6.6B
+CPU/host hashes verified against screenshot manifests. Long run untouched;
+source firmware/C hashes unchanged. Evidence scratch/latest-continuation/
+{scanprobe-6500,barrierprobe-6500,resourceprobe-6600,waits-6600}.log, with full
+warning-containing originals losslessly compressed as .full.log.gz. ROM module
+readers, dumps and disassembly are local evidence, not modified firmware.
+
+User now elects to let the main simulation run and check again in about2hours.
+No further polling, replay, hardware build or scheduled reminder requested.
+At78MHz,7B CPU clocks correspond to89.7seconds; at104MHz,67.3seconds.
