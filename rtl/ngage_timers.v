@@ -1,9 +1,9 @@
-// Tick-level port of the staged board's timer hypotheses. UNIT60_DELAY is an
-// observed-model constant, not a claim about the physical timer prescaler.
+// Six UPP general timers. Original NEM-4 kernel helpers at 50324948..50324a44
+// access control +04, acknowledge/status +08, live count +10 and reload +18.
+// Timer 0 supplies the OS tick; medint uses timer 3 with reload/count 390.
+// The board selects a 26 MHz enable (/3 at 78 MHz, /4 at 104 MHz).
 module ngage_timers #(
-    parameter integer        CLOCK_DIV    = 1,
-    parameter         [31:0] BOOT_DELAY   = 32'd18200000,
-                             UNIT60_DELAY = 32'd128
+    parameter integer CLOCK_DIV = 1
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -14,199 +14,133 @@ module ngage_timers #(
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
     input  wire        clear_unit1,
-    output reg         claim,
-    output reg         bad,
-    output reg  [31:0] dout,
-    output reg         timer0_pending,
-    output reg         unit1_pending,
-    output reg         unit60_pending,
+    output wire        claim,
+    output wire        bad,
+    output wire [31:0] dout,
+    output wire        timer0_pending,
+    output wire        unit1_pending,
+    output wire        unit60_pending,
     output wire        timer0_rearm,
     output wire        periodic_active,
-    input  wire        sysc74_seen
+    input  wire        sysc74_seen,
+    output wire [ 5:0] pending_sources
 );
     wire [31:0] a = {addr[31:2], 2'b00};
-    wire timer0=(a==32'h0c120a04 || a==32'h0c120a08 || a==32'h0c120a10 || a==32'h0c120a18);
-    wire units = (a >= 32'h0c120a20 && a < 32'h0c120ac0);
-    reg [31:0] unit_regs[0:39];
-    reg [31:0] control0, compare0, reload0, status0;
-    reg [31:0] boot_left, period, period_left, unit1_elapsed, unit1_compare, unit60_left;
-    reg unit1_running, boot_started, timer_fired, status_written, compare_written;
-    integer index, slot, i;
-    // 78/104 MHz CPU clocks use /3 or /4 for the 26 MHz timer domain.
-    // Registers and acknowledgements remain accessible on every CPU clock.
+    wire [ 2:0] unit_index = addr[7:5];
+    wire [ 2:0] register_index = addr[4:2];
+    assign claim = req && a >= 32'h0c120a00 && a < 32'h0c120ac0;
+    assign bad   = claim && (sel != 15 || addr[1:0] != 0);
+    wire write_access = commit && claim && !bad && we;
+
+    // One short shared divider; each counter has its own parallel decrementer.
+    // Bus admission/ACK never waits for this enable. Register writes override
+    // a decrement on their edge; the first count follows on the next enable.
     reg  [1:0] divider = 0;
     wire       timer_ce = divider == CLOCK_DIV - 1;
     always @(posedge clk) begin
         if (reset || timer_ce) divider <= 0;
         else divider <= divider + 1'b1;
     end
-    wire boot_arm=commit && claim && !bad && we && a==32'h0c120a18 &&
-               boot_started && din==32'h0115b5c0;
-    wire unit60_write = commit && claim && !bad && we && a >= 32'h0c120a60 && a < 32'h0c120a80;
-    wire unit1_control_write = commit && claim && !bad && we && a == 32'h0c120a24;
-    wire unit1_compare_write = commit && claim && !bad && we && a == 32'h0c120a30;
-    wire unit1_reconfigure = unit1_control_write || unit1_compare_write;
-    wire unit1_active_next = unit1_control_write ? (din != 0) : unit1_running;
-    wire [31:0] unit1_compare_next = unit1_compare_write ? din : unit1_compare;
-    wire unit60_stop = unit60_write && a[4:0] == 4 && din != 2;
-    wire unit60_reload=unit60_write && ((a[4:0]==4 && din==2) ||
-                      (a[4:0]==8 && unit_regs[(32'h0c120a64-32'h0c120a20)>>2]==2));
-    assign periodic_active = (period != 0);
-    assign timer0_rearm=commit && claim && !bad && we && a==32'h0c120a18 &&
-                      din==32'h000632ea && control0==2;
-    always @* begin
-        claim = req && (timer0 || units);
-        bad   = claim && sel != 15;
-        dout  = 0;
-        index = 0;
-        slot  = 0;
-        if (claim && timer0 && !bad) begin
-            if (we)
-                case (a)
-                    32'h0c120a04: if (din != 2 && !(timer_fired && din == 0)) bad = 1;
-                    32'h0c120a08: if (din != 0 && !(timer0_pending && din == 1)) bad = 1;
-                    32'h0c120a10:
-                    if(din!=32'h0115b5c0 && !(timer_fired && din==0) &&
-                        !(timer_fired && sysc74_seen && din==32'h000632ea))
-                        bad = 1;
-                    32'h0c120a18:
-                    if(din!=32'h0115b5c0 && !(timer_fired && din==0) &&
-                        !(timer_fired && control0==2 && din==32'h000632ea))
-                        bad = 1;
+
+    wire [31:0] read_data[0:5];
+    wire [ 5:0] periodic;
+    assign timer0_pending  = pending_sources[0];
+    assign unit1_pending   = pending_sources[1];
+    assign unit60_pending  = pending_sources[3];
+    // Reload programming has no authority over the ICU mask.
+    assign timer0_rearm    = 1'b0;
+    assign periodic_active = periodic[0];
+    // Independent one-hot selection; no priority chain through six counters.
+    wire [31:0] selected_data[0:5];
+    assign dout = selected_data[0] | selected_data[1] | selected_data[2] |
+                  selected_data[3] | selected_data[4] | selected_data[5];
+
+    genvar t;
+    generate
+        for (t = 0; t < 6; t = t + 1) begin : g_timer
+            reg [31:0] control, count, reload, status;
+            // Unidentified words remain storage, without invented pin effects.
+            reg [31:0] spare0, spare_c, spare_14, spare_1c;
+            reg running, pending;
+            reg  [31:0] data;
+            wire        hit = write_access && unit_index == t;
+            wire        count_write = hit && register_index == 4;
+            wire        stopping = hit && register_index == 1 && din[1:0] == 0;
+            wire        expiry = timer_ce && running && count == 1 && !count_write && !stopping;
+            assign pending_sources[t] = pending;
+            assign periodic[t]        = running && control[1] && reload != 0;
+            assign read_data[t]       = data;
+            assign selected_data[t]   = data & {32{unit_index == t}};
+            always @* begin
+                case (register_index)
+                    0:       data = spare0;
+                    1:       data = control;
+                    2:       data = status;
+                    3:       data = spare_c;
+                    4:       data = count;
+                    5:       data = spare_14;
+                    6:       data = reload;
+                    7:       data = spare_1c;
+                    default: data = 0;
                 endcase
-            else
-                case (a)
-                    32'h0c120a04: if (!timer_fired || control0 != 2) bad = 1;
-                    32'h0c120a08: if (!timer_fired || !status_written) bad = 1;
-                    32'h0c120a10: if (!timer_fired || !compare_written) bad = 1;
-                    32'h0c120a18: bad = 1;
-                endcase
-        end
-        if (timer0)
-            case (a)
-                32'h0c120a04: dout = control0;
-                32'h0c120a08: dout = status0;
-                32'h0c120a10: dout = compare0;
-                32'h0c120a18: dout = reload0;
-            endcase
-        else if (units) begin
-            index = (a - 32'h0c120a20) >> 2;
-            slot  = a[4:0];
-            if (slot == 8 && a[7:5] == 1) dout = unit1_pending ? 1 : 0;
-            else if (slot == 8 && a[7:5] == 3) dout = unit60_pending ? 1 : 0;
-            else if (slot == 8) dout = 0;
-            else dout = unit_regs[index];
-        end
-    end
-    always @(posedge clk) begin
-        if (reset) begin
-            timer0_pending  <= 0;
-            unit1_pending   <= 0;
-            unit60_pending  <= 0;
-            timer_fired     <= 0;
-            status_written  <= 0;
-            compare_written <= 0;
-            control0        <= 0;
-            compare0        <= 0;
-            reload0         <= 0;
-            status0         <= 0;
-            boot_left       <= 0;
-            period          <= 0;
-            period_left     <= 0;
-            unit1_elapsed   <= 0;
-            unit1_compare   <= 0;
-            unit60_left     <= 0;
-            unit1_running   <= 0;
-            boot_started    <= 0;
-            for (i = 0; i < 40; i = i + 1) unit_regs[i] <= 0;
-        end else begin
-            if (timer_ce && boot_left != 0) boot_left <= boot_left - 1'b1;
-            if (timer_ce && period_left != 0) begin
-                period_left <= period_left - 1'b1;
-                if (period_left == 1) begin
-                    timer0_pending <= 1;
-                    status0        <= 1;
-                    period_left    <= period;
-                end
             end
-            if (timer_ce && unit60_left != 0) unit60_left <= unit60_left - 1'b1;
-            if (timer_ce && unit1_running) begin
-                if (unit1_elapsed + 1 >= unit1_compare) begin
-                    unit1_running <= 0;
-                    unit1_elapsed <= 0;
-                    unit1_pending <= 1;
-                end else unit1_elapsed <= unit1_elapsed + 1'b1;
-            end
-            if (clear_unit1) unit1_pending <= 0;
-            if (commit && claim && !bad && we) begin
-                if (timer0)
-                    case (a)
-                        32'h0c120a04: begin
-                            control0 <= din;
-                            if (din == 2) boot_started <= 1;
-                        end
-                        32'h0c120a08: begin
-                            status0        <= din;
-                            timer0_pending <= 0;
-                            status_written <= 1;
-                        end
-                        32'h0c120a10: begin
-                            compare0        <= din;
-                            compare_written <= 1;
-                        end
-                        32'h0c120a18: begin
-                            reload0 <= din;
-                            if (boot_arm) boot_left <= BOOT_DELAY > 0 ? BOOT_DELAY - timer_ce : 0;
-                            if (din == 32'h000632ea && control0 == 2) begin
-                                period      <= din;
-                                period_left <= din - timer_ce;
+            always @(posedge clk) begin
+                if (reset) begin
+                    control  <= 0;
+                    count    <= 0;
+                    reload   <= 0;
+                    status   <= 0;
+                    spare0   <= 0;
+                    spare_c  <= 0;
+                    spare_14 <= 0;
+                    spare_1c <= 0;
+                    running  <= 0;
+                    pending  <= 0;
+                end else begin
+                    if (timer_ce && running && !count_write && !stopping) begin
+                        // Zero wraps naturally: a zero load takes 2^32 enables.
+                        if (count == 1) begin
+                            count <= control[1] ? reload : 0;
+                            if (!control[1]) running <= 0;
+                        end else count <= count - 1'b1;
+                    end
+                    if (t == 1 && clear_unit1) pending <= 0;
+                    if (hit) begin
+                        case (register_index)
+                            0: spare0 <= din;
+                            1: begin
+                                control <= din;
+                                if (din[1:0] == 0) running <= 0;
+                                else if (!running || expiry) running <= 1;
                             end
-                        end
-                    endcase
-                else if (units) begin
-                    unit_regs[index] <= din;
-                    if (a >= 32'h0c120a60 && a < 32'h0c120a80) begin
-                        unit60_pending <= 0;
-                        if (slot == 4)
-                            unit60_left<=din==2?(UNIT60_DELAY>0?UNIT60_DELAY-timer_ce:0):0;
-                        else if (slot == 8 && unit_regs[(32'h0c120a64-32'h0c120a20)>>2] == 2)
-                            unit60_left <= UNIT60_DELAY > 0 ? UNIT60_DELAY - timer_ce : 0;
+                            2: begin
+                                status  <= din;
+                                pending <= 0;
+                            end
+                            3: spare_c <= din;
+                            4: begin
+                                count  <= din;
+                                // Original 50323f4c programs and polls again
+                                // without ACK: completion belongs to the new
+                                // deadline. This transaction-level inference
+                                // does not acknowledge an older IRQ event.
+                                status <= 0;
+                                if (control[1:0] != 0) running <= 1;
+                            end
+                            5: spare_14 <= din;
+                            6: reload <= din;
+                            7: spare_1c <= din;
+                        endcase
                     end
-                    if (a >= 32'h0c120a20 && a < 32'h0c120a40) begin
-                        if (slot == 4) begin
-                            unit1_running <= din != 0;
-                            unit1_elapsed <= 0;
-                        end
-                        if (slot == 16) begin
-                            unit1_compare <= din;
-                            unit1_elapsed <= 0;
-                        end
+                    // A coincident new expiry survives acknowledgement. Stop
+                    // and count programming cancel the old deadline instead.
+                    // Sub-clock hardware ordering remains unmeasured on NEM-4.
+                    if (expiry) begin
+                        status  <= 1;
+                        pending <= 1;
                     end
                 end
             end
-            // C++ applies a CPU request before ticking the board. A newly armed
-            // one-shot consumes its first count on that same edge, and an expiry
-            // on an acknowledgement edge reasserts the interrupt.
-            if(timer_ce && ((boot_arm && BOOT_DELAY==1) || (!boot_arm && boot_left==1) ||
-      (period_left==1 && !timer0_rearm)))
-                timer_fired <= 1;
-            if (timer_ce && boot_arm && BOOT_DELAY == 1) timer0_pending <= 1;
-            else if (timer_ce && !boot_arm && boot_left == 1) timer0_pending <= 1;
-            if (timer_ce && period_left == 1 && !timer0_rearm) begin
-                timer0_pending <= 1;
-                status0        <= 1;
-            end
-            if (timer_ce && unit60_reload && UNIT60_DELAY == 1) unit60_pending <= 1;
-            else if (timer_ce && !unit60_reload && !unit60_stop && unit60_left == 1)
-                unit60_pending <= 1;
-            if (unit1_reconfigure && unit1_active_next) begin
-                if (timer_ce && unit1_compare_next <= 1) begin
-                    unit1_running <= 0;
-                    unit1_elapsed <= 0;
-                    unit1_pending <= 1;
-                end else unit1_elapsed <= timer_ce ? 1 : 0;
-            end else if (timer_ce && !unit1_reconfigure && unit1_running && unit1_elapsed + 1 >= unit1_compare)
-                unit1_pending <= 1;
         end
-    end
+    endgenerate
 endmodule

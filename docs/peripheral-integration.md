@@ -76,13 +76,18 @@ FIFO devices are P2/P3 work.
 
 ## P1 interrupt ownership
 
+The follow-up [flow corrections](irq-timer-keypad-flow.md) replace the retained
+raw-status/FIQ and timer-script assumptions after the first P1 checkpoint.
+
+
 The NEM-4 kernel dispatcher at `0x5032287c` reads virtual `0x58120114`
 and tries the other banks at `+0x40` and `+0x80` when earlier banks report
 zero. It adds `0x5c` and the bank stride to the reported number before
 calling the handler. ICU IRQ current now returns the lowest enabled pending
 source as a one-based number in each bank, including 32 for the highest bit.
-The existing source wiring, legacy raw status and FIQ policy retain their
-observed behavior. Source 4 in IRQ bank 0 is special to the guest dispatcher
+Raw status exposes all routed sources; both IRQ and FIQ current select only
+enabled pending sources. Six timer levels feed both independently enabled planes.
+The original boot explicitly masks IRQ0, and timer1 owns its separate ACK. Source 4 in IRQ bank 0 is special to the guest dispatcher
 and needs its own evidence before routing a device there.
 
 | Source | Current model owner | Evidence and integration limits |

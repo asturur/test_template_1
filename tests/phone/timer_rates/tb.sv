@@ -16,7 +16,7 @@ module tb;
     integer nos_irqs = 0;
     reg previous_nos = 0;
     reg previous_irq = 0;
-    ngage_timers #(.CLOCK_DIV(DIV), .BOOT_DELAY(2), .UNIT60_DELAY(2)) timers (
+    ngage_timers #(.CLOCK_DIV(DIV)) timers (
         .clk(clk), .reset(reset), .req(req), .commit(commit), .we(we),
         .addr(addr), .din(din), .sel(4'hf), .clear_unit1(1'b0),
         .claim(claim), .bad(bad), .dout(data_out), .timer0_pending(pending),
@@ -32,16 +32,27 @@ module tb;
     task tick;
         begin @(posedge clk); #1; end
     endtask
+    task write_timer(input [31:0] address, input [31:0] value);
+        begin
+            @(negedge clk); req=1; commit=1; we=1; addr=address; din=value;
+            #1; if (!claim || bad) $fatal(1,"timer bus programming rejected");
+            tick(); @(negedge clk); req=0; commit=0; we=0;
+        end
+    endtask
     initial begin
         repeat (2) tick();
         @(negedge clk);
         reset = 0;
-        // Start a normal 406250-count period; no firmware wait is involved.
-        timers.period = 406250;
-        timers.period_left = 406250;
-        timers.control0 = 2;
-        timers.timer_fired = 1;
-        timers.status_written = 1;
+        // Exact original NEM-4 tick sequence: ctrl2, reload406250,
+        // live-count406250, ACK0. No force of internal timer state.
+        write_timer(32'h0c120a04,2);
+        write_timer(32'h0c120a18,406250);
+        @(negedge clk);
+        while(timers.divider != DIV-1) @(negedge clk);
+        req=1; commit=1; we=1; addr=32'h0c120a10; din=406250;
+        tick();
+        @(negedge clk); req=0; commit=0; we=0;
+        nos.counter=0; nos.divider=0;
         nos.enable_bits = 16'h80;
         nos.compare_valid = 1;
         nos.compare_reg = 1;

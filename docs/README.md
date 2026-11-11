@@ -7,6 +7,8 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [irq-timer-keypad-flow.md](irq-timer-keypad-flow.md) | Original NEM-4 IRQ pending/current, programmable timers, configured keypad edges and combined verification |
+| [general-timers.md](general-timers.md) | Six parallel programmable counters, original timer routines, reprogram/ACK semantics and 78/104 MHz rate evidence |
 | [lcd-dma-handover.md](lcd-dma-handover.md) | Production DMA/IRQ ownership, fast LCD stream, matched speed results, row bands, reset and remaining verification |
 | [mmc-port.md](mmc-port.md) | Read-only production MMC slot, native host/card, FIFO/DMA/IRQ and HPS ownership tests, image tooling and remaining driver/hardware gates |
 | [performance-path-retirement.md](performance-path-retirement.md) | Faster-path replacement policy, LCD switch retirement, next direct-SDRAM cleanup and measured DDR tradeoffs |

@@ -32,6 +32,44 @@ their apply bits clear. The screenshot was captured while parked and does
 not establish the reset history. PNG and capture metadata are under
 `scratch/hardware-live/hardware-stop-2026-11-11T00-45-36-862Z.*`.
 
+### Bad-pointer caller investigation, 2026-11-11
+
+Stock NEM-4 identifies the fault as EUser ordinal265,
+`RArrayBase::Count() const`. `E59FF044` occurs nowhere in the retained ROM,
+factory core/extension or decoded core. The original vector instruction is
+`E59FF028`, and adding an object-member offset `1C` produces the reported bad
+pointer. Real Count callers perform that addition. This is a possible ordinary
+data path, not proof of a null/vector read or instruction/data response mixing.
+The hardware caller and the source of its parent object remain unknown.
+
+A simulation-only observer now captures Count's actual writeback abort, banked
+caller LR, pre-abort registers, last R0 producer and recent owned memory
+completions. An isolated fixture executes the exact original Thumb import and
+ARM Count, verifies a healthy return, then deliberately passes a vector-word
+value to original Gsmadv member-offset code. It captures PC`503AD63C`,
+R0/FAR`E59FF044`, LR`504BEB39`, producer`504BEB32` and FSR5. Uncached-ROM
+zero/three-wait tests pass in863/1208 clocks; cacheable-ROM tests pass
+in1053/1553. This validates the observer and one induced path to the same
+address; it does not identify Gsmadv as the hardware caller or fix the panic.
+
+The original abort handler saves the interrupted LR at `[80006740]+15C`,
+PC at+160 and SPSR at+164. Its panic path copies only PC/FAR/FSR to the
+superpage and emits PC/FAR/special reason through the existing external sink.
+The sink cannot recover LR. Backing-bus snooping of the dynamic saved frame
+is unreliable with write-back cache and translation; no hardware tracing
+state or new CPU ports were added.
+
+Evidence and reusable observer/fixture are in
+`scratch/ngage2-integration/bad-pointer-investigation-2026-11-11/`, with the
+source/result manifest in [bad-pointer evidence](evidence/bad-pointer-2026-11-11.json).
+The static inventory has249 branch candidates through51 exact import thunks;
+224 match identified extracted modules. Indirect calls remain outside that
+inventory. A fresh current-model simulation can use the observer; changing its
+testbench does not authorize importing an old checkpoint. No main-checkout run
+or checkpoint was touched. Current production D1/D2/D3, physical SDRAM/DDR,
+IRQ timing and key flow are outside the direct-memory fixture and remain
+possible contributors until the actual caller/load history is captured.
+
 ## Hardware panic, 2026-11-10
 
 User identifies the running RBF as commit `40bfc11` (MMU handshake fix, before

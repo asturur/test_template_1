@@ -1,6 +1,7 @@
-// IRQ/FIQ bank model derived from staged BootProfile. Inputs are pending
-// device levels; clear outputs request device acknowledgement. Global enable
-// is a diagnostic latch in that model, not a verified hardware master gate.
+// Level-sensitive IRQ/FIQ banks. Raw status exposes every routed producer;
+// current selects the lowest enabled pending source within the addressed bank.
+// The legacy clear output remains for staged UEM/DMA acknowledgement only.
+// Global enable is a diagnostic latch, not a verified hardware master gate.
 module ngage_icu (
     input  wire        clk,
     input  wire        reset,
@@ -23,7 +24,7 @@ module ngage_icu (
     reg [31:0] irq_enable[0:2], fiq_enable[0:2], cfg0[0:2], cfg1[0:2], global_enable;
     integer bank, slot, i;
     reg is_irq, is_fiq, is_global, is_fast;
-    reg [31:0] raw_irq, raw_fiq, masked_irq;
+    reg [31:0] raw_irq, raw_fiq, masked_irq, masked_fiq;
     wire [31:0] a = {addr[31:2], 2'b00};
     assign irq = |(irq_pending[31:0] & irq_enable[0]) || |(irq_pending[63:32] & irq_enable[1]) ||
         |(irq_pending[95:64] & irq_enable[2]);
@@ -66,6 +67,7 @@ module ngage_icu (
         raw_irq    = 0;
         raw_fiq    = 0;
         masked_irq = 0;
+        masked_fiq = 0;
         if (req && (a == 32'h0c120064 || a == 32'h0c120068)) begin
             is_global = 1;
             claim     = 1;
@@ -86,7 +88,7 @@ module ngage_icu (
                     0:     dout = cfg0[bank];
                     4:     dout = cfg1[bank];
                     8, 12: dout = irq_enable[bank];
-                    16:    dout = (bank == 0 && raw_irq[7]) ? 32'h80 : 0;
+                    16:    dout = raw_irq;
                     20:    dout = {26'b0, irq_current(masked_irq)};
                 endcase
             end
@@ -94,14 +96,14 @@ module ngage_icu (
             bank = (a - 32'h0c1201c0) >> 6;
             slot = a[5:0];
             if (slot == 8 || slot == 12 || slot == 16 || slot == 20) begin
-                is_fiq  = 1;
-                claim   = 1;
-                raw_fiq = fiq_pending[bank*32+:32];
+                is_fiq     = 1;
+                claim      = 1;
+                raw_fiq    = fiq_pending[bank*32+:32];
+                masked_fiq = raw_fiq & fiq_enable[bank];
                 case (slot)
                     8, 12: dout = fiq_enable[bank];
                     16:    dout = raw_fiq;
-                    20:    if (raw_fiq[3]) dout = 4;
- else if (raw_fiq[26]) dout = 27;
+                    20:    dout = {26'b0, irq_current(masked_fiq)};
                 endcase
             end
         end
@@ -123,7 +125,8 @@ module ngage_icu (
                 cfg1[i]       <= 0;
             end
         end else begin
-            if (timer0_rearm) irq_enable[0][0] <= 0;
+            // Timer programming does not alter interrupt enable state. The
+            // original boot ISR explicitly masks source 0 after stopping it.
             if (commit && claim && !bad && we) begin
                 if (is_global) begin
                     if (a == 32'h0c120068) global_enable <= global_enable | din;

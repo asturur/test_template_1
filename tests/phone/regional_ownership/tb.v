@@ -21,7 +21,7 @@ module tb;
  endtask
  initial begin
   repeat(2)@(negedge clk);cold=0;wait(init);@(negedge clk);rst=0;
-  force dut.upp.peripherals.timers.period=1;
+  force dut.upp.peripherals.periodic_active=1;
   cyc=1;stb=1;
   for(region=0;region<8;region=region+1)begin
    case(region)

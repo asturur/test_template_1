@@ -14,7 +14,8 @@ module ngage_gpio_loopback (
     input  wire [15:0] route3b,
     output wire        claim,
     output wire        bad,
-    output reg  [31:0] dout
+    output reg  [31:0] dout,
+    output wire        genio1_level
 );
     reg [31:0] r200, r204, r208, r20c, r21c;
     wire [31:0] a = {addr[31:2], 2'b00};
@@ -24,6 +25,8 @@ module ngage_gpio_loopback (
     assign claim = req && (a == 32'h0c150200 || a == 32'h0c150204 || a == 32'h0c150208 ||
                            a == 32'h0c15020c || a == 32'h0c15021c);
     assign bad = claim && !width_ok;
+    // Pin observation is independent of the register currently being read.
+    assign genio1_level = route2a[3] && r200[16];
     always @* begin
         dout = 0;
         case (a)
@@ -32,7 +35,7 @@ module ngage_gpio_loopback (
             32'h0c150208: begin
                 dout     = r208;
                 dout[19] = route3b[10] && r200[18];
-                dout[17] = route2a[3] && r200[16];
+                dout[17] = genio1_level;
             end
             32'h0c15020c: begin
                 dout    = r20c;

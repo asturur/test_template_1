@@ -1,10 +1,12 @@
 `timescale 1ns/1ps
 module tb;
+integer test_cycles=0;
 reg clk=0,reset=1,inhibit=0,req=1,commit=0,we=0;reg [31:0] addr=0,din=0,base=0;reg [3:0] sel=15;reg [10:0] ps2=0;reg [31:0] joy=0;wire [26:0] keys;wire [31:0] value;reg [25:0] direct=0;wire [31:0] value2;integer k,row,col;
 always #5 clk=~clk;
+always @(posedge clk)test_cycles<=test_cycles+1;
 ngage_keys input_keys(.clk(clk),.reset(reset),.inhibit(inhibit),.ps2_key(ps2),.joystick(joy),.keys(keys));
-ngage_keypad dut(.clk(clk),.reset(reset),.keys(keys[25:0]),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(sel),.base(base),.genio1_driven(1'b0),.value(value));
-ngage_keypad direct_dut(.clk(clk),.reset(reset),.keys(direct),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(sel),.base(base),.genio1_driven(1'b0),.value(value2));
+ngage_keypad dut(.clk(clk),.reset(reset),.keys(keys[25:0]),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(sel),.base(base),.genio1_driven(1'b0),.genio1_level(1'b0),.value(value));
+ngage_keypad direct_dut(.clk(clk),.reset(reset),.keys(direct),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(sel),.base(base),.genio1_driven(1'b0),.genio1_level(1'b0),.value(value2));
 task event_key;input [7:0] code;input ext,down;begin @(negedge clk);ps2={~ps2[10],down,ext,code};@(negedge clk);end endtask
 initial begin
  repeat(2)@(negedge clk);reset=0;
@@ -86,6 +88,6 @@ initial begin
  end
  joy=32'hffffffff;inhibit=1;#1;if(keys!==0)$fatal(1,"OSD controller suppression");
  joy=0;inhibit=0;
- $display("PASS keypad matrix, rocker and held/released host controls");$finish;
+ $display("PASS keypad matrix, rocker and held/released host controls cycles=%0d",test_cycles);$finish;
 end
 endmodule

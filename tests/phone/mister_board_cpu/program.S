@@ -45,6 +45,12 @@ reset_entry:
  ldr r0,=0x0c1201c8
  mov r1,#8
  str r1,[r0]
+ // Program a real timer3 deadline/reload before starting the FIQ producer.
+ ldr r0,=0x0c120a78
+ ldr r1,=390
+ str r1,[r0]
+ ldr r0,=0x0c120a70
+ str r1,[r0]
  ldr r0,=0x0c120a64
  mov r1,#2
  str r1,[r0]
@@ -216,6 +222,21 @@ local_fill:
  str r1,[r0]
  cmp r7,#3
  bne fail
+ // NEM-4 idle matrix: clear both data latches, D outputs low, E inputs.
+ // Only E falling inputs raise matrix IRQ; GENIO op4 enables at +16.
+ ldr r0,=0x0c150400
+ mov r1,#0
+ strh r1,[r0]
+ strh r1,[r0,#12]
+ mov r1,#0x1f
+ strh r1,[r0,#2]
+ mov r1,#0x3f00
+ strh r1,[r0,#14]
+ mov r1,#0x3f
+ strh r1,[r0,#16]
+ ldr r0,=0x0c150016
+ mov r1,#0xee
+ strh r1,[r0]
  // Exercise keypad status through actual CPU/UPP transactions. The test
  // harness mailbox at SDRAM+104 drives public key bits, not MMIO state.
  mrs r0,cpsr
@@ -291,6 +312,9 @@ local_fill:
  ldr r0,=0x50415353
  b finish
 irq_handler:
+ ldr r0,=0x0c120a28
+ mov r1,#1
+ str r1,[r0]
  ldr r0,=0x0c12010c
  mov r1,#2
  str r1,[r0]

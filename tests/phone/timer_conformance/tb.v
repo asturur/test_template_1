@@ -1,33 +1,58 @@
 `timescale 1ns/1ps
+// Programmable timer/ICU ownership. The former staged C++ oracle deliberately
+// retained fixed delays and boot whitelists and is no longer a hardware oracle.
 module tb;
-reg clk=0,reset=1,req=0,commit=0,we=0;reg [31:0] addr=0,din=0;reg [3:0] sel=15;
-wire tclaim,tbad,iclaim,ibad,p0,p1,p60,rearm,irq,fiq;wire [31:0] td,id;wire [95:0] clear;
-integer f,n,active,write_flag,expected_irq,expected_fiq,expected_ok,line;reg [31:0] repeat_count;reg [31:0] expected_data;integer rc;
-always #5 clk=~clk;
-ngage_timers #(.BOOT_DELAY(3)) timers(clk,reset,req,commit,we,addr,din,sel,clear[1],tclaim,tbad,td,p0,p1,p60,rearm,,1'b0);
-ngage_icu icu(clk,reset,req,commit,we,addr,din,sel,{94'b0,p1,p0},{92'b0,p60,3'b0},iclaim,ibad,id,irq,fiq,clear,rearm);
+reg clk=0;always #5 clk=~clk;
+reg reset=1,req=0,commit=0,we=0,uem=0;
+reg [31:0] addr=0,din=0;
+wire tc,tb,ic,ib,irq,fiq,rearm;wire [31:0] td,id;wire [5:0] pending;
+wire [95:0] clear;
+wire [95:0] irq_sources={90'd0,pending}|{94'd0,uem,1'b0};
+wire [95:0] fiq_sources={90'd0,pending};
+integer cycles=0,cases=0;
+always @(posedge clk)cycles=cycles+1;
+ngage_timers timers(clk,reset,req,commit,we,addr,din,4'hf,1'b0,tc,tb,td,
+ ,,,rearm,,1'b0,pending);
+ngage_icu icu(clk,reset,req,commit,we,addr,din,4'hf,irq_sources,fiq_sources,
+ ic,ib,id,irq,fiq,clear,rearm);
+task tick;begin @(posedge clk);#1;end endtask
+task wr(input [31:0] a,input [31:0] d);begin
+ @(negedge clk);req=1;commit=1;we=1;addr=a;din=d;#1;
+ if((!tc&&!ic)||(tc?tb:ib))$fatal(1,"write rejected %h",a);
+ tick();@(negedge clk);req=0;commit=0;we=0;
+end endtask
+task rd(input [31:0] a,input [31:0] expected);begin
+ @(negedge clk);req=1;commit=0;we=0;addr=a;#1;
+ if((!tc&&!ic)||(tc?tb:ib)||(tc?td:id)!==expected)
+  $fatal(1,"read%h got%h expected%h",a,tc?td:id,expected);
+ cases=cases+1;@(negedge clk);req=0;
+end endtask
+task check(input condition,input [255:0] name);begin
+ if(!condition)$fatal(1,"%s cycle%0d",name,cycles);cases=cases+1;
+end endtask
 initial begin
- f=$fopen("build/sim/unit-timer-conformance/reference.tsv","r");if(!f)begin $display("FAIL fixture missing");$finish;end
- @(negedge clk);reset=0;line=0;
- while(!$feof(f))begin
-  rc=$fscanf(f,"%d %h %h %d %h %d %d %d\n",active,addr,din,write_flag,expected_data,expected_irq,expected_fiq,expected_ok);
-  if(rc==8)begin
-   line=line+1;
-   if(active==2)begin
-    req=0;commit=0;we=0;repeat_count=addr;
-    while(repeat_count>1)begin @(posedge clk);@(negedge clk);repeat_count=repeat_count-1;end
-    active=0;
-   end
-   req=active;commit=0;we=write_flag;#1;
-   if(active && (!iclaim && !tclaim))begin $display("FAIL unclaimed line %0d",line);$finish;end
-   if(active && ((tclaim ? tbad : ibad)===expected_ok[0]))begin $display("FAIL accept mismatch line %0d",line);$finish;end
-   if(active && expected_ok && !we && (tclaim ? td : id)!==expected_data)begin $display("FAIL data mismatch line %0d",line);$finish;end
-   commit=active && expected_ok;@(posedge clk);#1;
-   if(irq!==expected_irq[0])begin $display("FAIL IRQ mismatch line %0d got %b expected %b",line,irq,expected_irq[0]);$finish;end
-   if(fiq!==expected_fiq[0])begin $display("FAIL FIQ mismatch line %0d got %b expected %b",line,fiq,expected_fiq[0]);$finish;end
-   @(negedge clk);
-  end
- end
- $display("PASS timer IRQ edges against C++");$finish;
+ tick();@(negedge clk);reset=0;
+ // Masked IRQ1 expiry remains pending, including across mask-clear writes.
+ wr('h0c120a30,30);wr('h0c120a24,1);repeat(31)tick();
+ check(!irq&&pending[1],"masked timer pending");rd('h0c120110,2);
+ wr('h0c120108,2);check(irq,"unmask existing event");rd('h0c120114,2);
+ wr('h0c12010c,2);check(!irq&&pending[1],"mask is not timer ACK");
+ wr('h0c120108,2);uem=1;wr('h0c120a28,1);
+ check(irq&&!pending[1],"timer ACK preserves shared UEM");rd('h0c120110,2);
+ uem=0;#1;check(!irq,"shared producer release");
+ // Timer0 reload does not alter IRQ enables. A stopped/ACKed timer alone
+ // releases its level; the original periodic reload need not be a magic value.
+ wr('h0c120108,1);wr('h0c120a04,2);wr('h0c120a18,64);rd('h0c120108,3);
+ wr('h0c120a10,64);repeat(65)tick();check(irq&&pending[0],"ordinary timer0 expiry");
+ wr('h0c120a04,0);wr('h0c120a08,0);check(!irq,"timer0 stop ACK");
+ // A masked timer3 must not steal current from enabled timer4 in either plane.
+ wr('h0c120a70,25);wr('h0c120a64,1);wr('h0c120a90,25);wr('h0c120a84,1);
+ wr('h0c1201c8,16);repeat(26)tick();check(fiq,"enabled timer4 FIQ");
+ rd('h0c1201d0,24);rd('h0c1201d4,5);
+ wr('h0c120a88,1);check(!fiq&&pending[3],"timer4 ACK preserves masked timer3");
+ wr('h0c1201c8,8);check(fiq,"timer3 unmask");rd('h0c1201d4,4);
+ wr('h0c1201cc,8);check(!fiq&&pending[3],"FIQ mask retains producer");
+ wr('h0c1201c8,8);wr('h0c120a68,0);check(!fiq&&!pending[3],"timer3 explicit ACK");
+ $display("PASS programmable timer ICU ownership cases=%0d cycles=%0d",cases,cycles);$finish;
 end
 endmodule

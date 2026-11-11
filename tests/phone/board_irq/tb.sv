@@ -5,13 +5,12 @@ always @(posedge clk) if(dma_clear)dma_clear_seen<=1;
 wire claim,ready,bad,irq,fiq,init_done;wire [31:0] dout;
 ngage_board dut(.clk(clk),.rst(reset),.init_rst(reset),.cyc(cyc),.stb(stb),.we(we),.commit(commit),.adr(addr),.din(din),.sel(sel),
  .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.dma_irq_pending(dma_pending),.sim_fiq_pending(sim_pending),.dma_irq_clear(dma_clear),.claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.irq(irq),.fiq(fiq),.init_done(init_done));
-defparam dut.upp.peripherals.timers.BOOT_DELAY=3;
 defparam dut.uem.cbus.ALARM_TICKS=8;
 defparam dut.uem.cbus.ALARM_INTERVAL=1;
 defparam dut.upp.peripherals.nos_timer.TICK_DIV=2;
 defparam dut.adsp.mdi.ANNOUNCE_TICKS=3;
 task tick;begin @(posedge clk);#1;end endtask
-task wr(input [31:0] a,input [31:0] d);begin @(negedge clk);cyc=1;stb=1;we=1;addr=a;din=d;commit=1;#1;if(!claim||!ready||bad)$fatal(1,"bad board write %h",a);tick();@(negedge clk);cyc=0;stb=0;commit=0;end endtask
+task wr(input [31:0] a,input [31:0] d);integer waits;begin @(negedge clk);cyc=1;stb=1;we=1;addr=a;din=d;commit=1;#1;waits=0;while(!ready && waits<20)begin tick();waits=waits+1;end if(!claim||!ready||bad)$fatal(1,"bad board write %h",a);tick();@(negedge clk);cyc=0;stb=0;commit=0;end endtask
 task halfwrite(input [31:0] a,input [15:0] v,input [3:0] lanes);begin
  @(negedge clk);cyc=1;stb=1;we=1;addr=a;sel=lanes;din=lanes==12?{v,16'b0}:{16'b0,v};commit=1;#1;
  if(!claim||!ready||bad)$fatal(1,"CBUS board write %h",a);tick();@(negedge clk);cyc=0;stb=0;commit=0;sel=15;
@@ -21,11 +20,11 @@ task ram_read(input [31:0] a,input [31:0] expected);
  if(!ready||!claim||bad||dout!==expected)$fatal(1,"RAM read %h got %h expected %h",a,dout,expected);
  @(negedge clk);commit=1;tick();@(negedge clk);cyc=0;stb=0;commit=0;end
 endtask
-task read_eq(input [31:0] a,input [31:0] expected);begin @(negedge clk);cyc=1;stb=1;we=0;addr=a;#1;if(!claim||!ready||bad||dout!==expected)$fatal(1,"board read %h got %h",a,dout);@(negedge clk);cyc=0;stb=0;end endtask
+task read_eq(input [31:0] a,input [31:0] expected);integer waits;begin @(negedge clk);cyc=1;stb=1;we=0;addr=a;#1;waits=0;while(!ready && waits<20)begin tick();waits=waits+1;end if(!claim||!ready||bad||dout!==expected)$fatal(1,"board read %h got %h",a,dout);@(negedge clk);cyc=0;stb=0;end endtask
 initial begin
  tick();reset=0;wait(init_done);tick();
  wr('h0c120034,32'h12345678);read_eq('h0c120034,32'h12345678);
- if(dut.upp.peripherals.aux_ram.lane[0].mem[12'h440]!==0)$fatal(1,"boot latch also wrote GPIO backing RAM");
+ if(dut.upp.peripherals.aux_ram.ram.memory[12'h440][7:0]!==0)$fatal(1,"boot latch also wrote GPIO backing RAM");
  read_eq('h08000040,0);wr('h08000000,32'h76543210);read_eq('h08000000,32'h76543210);wr('h0c004748,32'h1234abcd);read_eq('h0c004748,32'h1234abcd);
  ram_read('h0c030220,0);ram_read('h0c100220,0);ram_read('h0c150220,0);ram_read('h0c14f010,0);
  wr('h0c030220,32'h11223344);wr('h0c100220,32'h55667788);wr('h0c150220,32'h99aabbcc);wr('h0c14f010,32'h12345678);
@@ -39,8 +38,8 @@ initial begin
  read_eq('h0c1201d0,32'h04000000);read_eq('h0c1201d4,27);
  wr('h0c1201cc,32'h04000000);sim_pending=0;if(fiq)$fatal(1,"SIM FIQ mask");
  wr('h0c120108,2);wr('h0c120a30,4);wr('h0c120a24,1);repeat(5)tick();
- if(!irq || fiq)$fatal(1,"unit1 IRQ routing");read_eq('h0c120114,2);wr('h0c12010c,2);repeat(2)tick();if(irq)$fatal(1,"unit1 ack");
- wr('h0c1201c8,8);wr('h0c120a64,2);repeat(130)tick();if(!fiq||irq)$fatal(1,"unit60 FIQ routing");read_eq('h0c1201d0,8);read_eq('h0c1201d4,4);
+ if(!irq || fiq)$fatal(1,"unit1 IRQ routing");read_eq('h0c120114,2);wr('h0c12010c,2);wr('h0c120a28,1);repeat(2)tick();if(irq)$fatal(1,"unit1 ack");
+ wr('h0c1201c8,8);wr('h0c120a78,390);wr('h0c120a70,390);wr('h0c120a64,2);repeat(391)tick();if(!fiq||irq)$fatal(1,"unit60 FIQ routing");read_eq('h0c1201d0,8);read_eq('h0c1201d4,4);
  wr('h0c120a68,0);if(fiq)$fatal(1,"FIQ not cleared");
  wr('h0c120108,32'h02000000);wr('h0c150010,32'h10000000);if(!irq)$fatal(1,"NOS IRQ routing");
  read_eq('h0c120114,26);wr('h0c150010,32'h00001000);if(irq)$fatal(1,"NOS IRQ clear");
@@ -48,7 +47,7 @@ initial begin
  if(!irq)$fatal(1,"CBUS alarm IRQ routing");read_eq('h0c120114,2);wr('h0c12010c,2);repeat(2)tick();if(irq)$fatal(1,"CBUS IRQ clear");
  wr('h0c1201cc,8);wr('h0c120108,32'h02000000);wr('h0c150010,32'h06000000);
  wr('h0c14b004,32'h00000500);wr('h0c1003e8,2);wr('h0c1003ec,0);
- wr('h0c120a04,2);wr('h0c120a18,32'h0115b5c0);repeat(5)tick();wr('h0c120a08,1);wr('h0c120a18,32'h000632ea);repeat(20)tick();
+ wr('h0c120a04,2);wr('h0c120a18,32'h000632ea);wr('h0c120a10,32'h000632ea);wr('h0c120a08,0);repeat(20)tick();
  read_eq('h0c1003e8,32'h00020002);read_eq('h0c1001f4,32'h7cd00000);read_eq('h0c1001f8,32'h04000001);
  if(!irq)$fatal(1,"MDI status did not reach ICU");read_eq('h0c120114,26);
  wr('h0c150100,32'h00000600);if(irq)$fatal(1,"MDI status clear");

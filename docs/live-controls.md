@@ -154,3 +154,62 @@ acknowledges low/upper byte events and verifies IRQ deassertion. This is directe
 CPU verification, not a full-firmware key-input replay or hardware validation.
 Keypad fix is separate from pending Bluetooth harness work; one hardware build
 will test board responsiveness. Source preflight and pinned RTL formatting PASS.
+
+## 2026-11-11: NEM-4 configuration and pin-edge interrupt flow
+
+This supersedes the direct logical-press IRQ assumption above. Key levels now
+produce interrupts through the GPIO configuration used by the stock NEM-4
+`ekeyb.dll`, rather than bypassing direction and per-pin enable state. The public
+key numbering and bidirectional one-hop contact map are retained. The stock
+NEM-4 two-by-two table at `5041B10C` and four-by-four table at `5041B11C`,
+indexed by its `50419A00/50419D14` scan path, agree with that map; the digit
+entries independently contain the expected ASCII values. This retains the
+NEM-4 split matrix and separate GPIO30 line, without importing the QD layout.
+
+Original dispatcher `5041a3cc` operations 0/1 clear/set the UIF data latches at
+`150400/15040C`; operations 2/3 set/clear direction at `150402/15040E` (one means
+output). Operations 4/5 set/clear per-pin interrupt enable at `150404/150410`.
+The configuration pairs use low-byte set/high-byte clear, with clear priority.
+Data is a plain low-halfword latch. Output pins return their latch; only an
+input E pin falling while individually enabled latches matrix status bit 2.
+The NEM-4 ISR tests bit 2 and ACKs `0C`; that ACK alone does not prove a port-D
+bit-3 producer, so none is added. Port-D enable is stored/readable, with its
+interrupt producer explicitly unimplemented.
+
+The rocker uses GENIO1/10/13/2/11, direction at `15020E`, output-set at `150202`
+and output-clear at `150204`. Music is separate GENIO28: direction `150210`,
+output-set `150206`, output-clear `150208`, and input `15020C` bit 12. Their IRQ
+enable aliases are `150016` set and `150014` clear; their original event masks
+retain status bits 21/17/19/23/18/22 respectively. GPIO30/KPC retains inverted
+direction bit 19 at `120C14` and now consumes its independent output-set/clear
+aliases `120C0C/120C10`. All register effects require an accepted write and the
+corresponding byte lanes.
+
+Pin history advances even while masked. Held/released inputs do not repeat,
+and enabling an already-low input does not invent a falling edge. A new
+falling pin wins simultaneous W1C. Scanning with E interrupts disabled cannot
+queue phantom key events. IRQ25 remains the OR of independently acknowledged
+NOS and keypad producers. The UPP now forwards accepted GENIO writes even
+when the loopback owns the register, and supplies a stable routed GENIO1 level
+independent of the CPU read-data mux. UEM self-test merging is preserved.
+
+Directed host/protocol/board tests cover all 20 contacts in both directions,
+all six direct event mappings, direction/output-high suppression, individual
+interrupt masking, held re-enable, release/repress, W1C lanes/priority, GPIO30
+data aliases, shared NOS acknowledgement and routed GENIO1 stability. The
+[original-instruction fixture](../tests/phone/keypad/original/README.md) executes
+stock NEM-4 configuration, scan and ACK routines on ZAP at 78 and 104 MHz with
+zero/three memory waits. It uses authored callers and bounded RAM, with no
+original instruction substitutions. Its original direct-input cases are Up
+and Music; the original Down enable path also invokes a GPIO23Low callback
+object whose initialization is outside that fixture.
+
+These checks establish software-visible model behavior, not a physical phone
+measurement or complete firmware UI wake. Reset direction remains the retained
+staged profile (D and GPIO30 low outputs, E inputs, all IRQ enables clear);
+physical reset/pullup timing, GPIO23Low callback/line behavior and higher-order
+ghosting remain open. Register readback of set/clear aliases is modeled as the
+current consumed state. The logic adds parallel pin history/configuration
+registers without adding CPU bus states; 104 MHz physical fit is still a build
+result, not a claim from simulation. New logs, firmware identities and source
+hashes are retained in `scratch/ngage2-integration/keypad-flow-2026-11-11/`.

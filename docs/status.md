@@ -1,3 +1,39 @@
+## 2026-11-11: Original IRQ/timer/keypad flow fixes verified locally
+
+Raw IRQ status now exposes all sources; FIQ current uses enabled-source
+priority in all banks. Original NEM-4 tables qualify all six timers on both
+planes. Reload cannot mask IRQ0, and masking cannot acknowledge timer1.
+Six parallel programmable counters replace the boot script and fixed unit60
+delay. Repeated original delay exposed stale completion; a new count resets
+completion while retaining pending IRQ, with the clearing-write assignment
+explicitly marked as transaction-level inference.
+
+Keypad GPIO data/direction/enables now govern pin edges. Shared NOS/W1C and
+loopback-owned configuration commits are independent; stable GENIO1 no longer
+depends on the CPU read address. Original NEM-4 key tables match the retained
+map. No CPU bus stage or fast LCD fallback is added; hardware remains78 MHz,
+with26 MHz timer behaviour verified at78/104 MHz.
+
+Focused tests, all96 IRQ/FIQ sources and1,584 priority pairs per plane,
+46 timer cases at divisors1/3/4,19 ICU ownership cases, exact64 Hz periods,
+original seven-phase timers and original keypad routines at both rates and
+zero/three waits pass. Combined board ownership/registered response/clock and
+104 MHz timer-profile ARM IRQ/FIQ/keypad/local DMA/LCD/fault checks pass.
+Old hypothesis/zero-wait/hierarchy fixture assumptions were corrected.
+
+Astra's simulation-only pointer observer passes four original-instruction
+fixtures. It proves the recorded value can arise from e59ff028+1c without
+instruction/data mixing, but does not identify the hardware caller. Original
+exception context saves LR at [80006740]+15c; the existing panic sink does
+not export that frame. No synthesized trace state or CPU change is included.
+
+See [flow corrections](irq-timer-keypad-flow.md), [timers](general-timers.md),
+[controls](live-controls.md), [startup](symbian-startup.md), and
+[evidence](evidence/irq-timer-keypad-flow-2026-11-11.json). No old simulation or
+checkpoint was resumed/modified. New timer semantics need a fresh lineage.
+Full UI wake, hardware caller provenance and production DDR full boot remain
+open. The user queued fit recovery after these fixes, then push/rebuild.
+
 ## 2026-11-11: Integration source checkpoint for hardware testing
 
 The user authorized committing and pushing the accumulated integration work

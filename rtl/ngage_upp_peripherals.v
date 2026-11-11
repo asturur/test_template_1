@@ -235,11 +235,13 @@ module ngage_upp_peripherals #(
     wire icu_claim, icu_bad, timer_claim, timer_bad, nos_claim, nos_bad,
         nos_pending, periodic_active, boot_claim, boot_bad, trace_claim, trace_bad,
         nos_tick, gpio_loop_claim, gpio_loop_bad, extra_claim, extra_bad;
+    wire genio1_level;
     wire [31:0] icu_data, timer_data, nos_data, boot_data, gpio_loop_data, extra_data;
     wire sysc74_seen;
 
     wire [95:0] irq_clear;
     wire timer0_pending, unit1_pending, unit60_pending, timer0_rearm;
+    wire [5:0] timer_pending;
     wire keypad_irq;
     wire [95:0] legacy_irq_sources = {
         64'b0,
@@ -247,17 +249,18 @@ module ngage_upp_peripherals #(
         (nos_pending || keypad_irq),
         17'b0,
         dma_irq_pending,
-        5'b0,
-        (unit1_pending || cbus_irq),
-        timer0_pending
+        1'b0,
+        timer_pending[5:2],
+        (timer_pending[1] || cbus_irq),
+        timer_pending[0]
     };
     wire [95:0] irq_sources = legacy_irq_sources |
         (GENERAL_DMA ? {82'd0, general_dma_irq, 6'd0} : 96'd0) |
     // DataRdy/source22 is a donor hypothesis: deliberately not asserted.
     {71'd0, mmc_irq[3], mmc_irq[2], 1'b0, mmc_irq[0], 21'd0};
-    wire [95:0] fiq_sources = {
-        64'b0, 5'b0, (sim_fiq_pending || simif_irq), 22'b0, unit60_pending, 3'b0
-    };
+    // NEM-4's FiqTimer0..5 and IrqTimer0..5 name tables identify the same
+    // six timer levels on independently enabled planes (50322fe8/503236c0).
+    wire [95:0] fiq_sources = {64'b0, 5'b0, (sim_fiq_pending || simif_irq), 20'b0, timer_pending};
     assign dma_irq_clear = irq_clear[7];
     assign uem_irq_clear = irq_clear[1];
     assign uem_periodic  = periodic_active;
@@ -293,7 +296,8 @@ module ngage_upp_peripherals #(
         .addr           (a),
         .din            (din),
         .sel            (sel),
-        .clear_unit1    (irq_clear[1]),
+        // Masking the shared line must not acknowledge the timer producer.
+        .clear_unit1    (1'b0),
         .claim          (timer_claim),
         .bad            (timer_bad),
         .dout           (timer_data),
@@ -302,7 +306,8 @@ module ngage_upp_peripherals #(
         .unit60_pending (unit60_pending),
         .timer0_rearm   (timer0_rearm),
         .periodic_active(periodic_active),
-        .sysc74_seen    (sysc74_seen)
+        .sysc74_seen    (sysc74_seen),
+        .pending_sources(timer_pending)
     );
     localparam integer FAST_TICK_DIV = (SYS_CLK_HZ + 16384) / 32768;
     ngage_nos_io #(
@@ -325,20 +330,21 @@ module ngage_upp_peripherals #(
         .nos_tick  (nos_tick)
     );
     ngage_gpio_loopback gpio_loop (
-        .clk    (clk),
-        .reset  (rst),
-        .req    (cyc && stb),
-        .commit (local_access),
-        .we     (we),
-        .addr   (a),
-        .din    (din),
-        .sel    (sel),
-        .route2a(route2a),
-        .route2c(route2c),
-        .route3b(route3b),
-        .claim  (gpio_loop_claim),
-        .bad    (gpio_loop_bad),
-        .dout   (gpio_loop_data)
+        .clk         (clk),
+        .reset       (rst),
+        .req         (cyc && stb),
+        .commit      (local_access),
+        .we          (we),
+        .addr        (a),
+        .din         (din),
+        .sel         (sel),
+        .route2a     (route2a),
+        .route2c     (route2c),
+        .route3b     (route3b),
+        .claim       (gpio_loop_claim),
+        .bad         (gpio_loop_bad),
+        .dout        (gpio_loop_data),
+        .genio1_level(genio1_level)
     );
     ngage_boot_regs boot_regs (
         .clk   (clk),
@@ -591,11 +597,13 @@ module ngage_upp_peripherals #(
 
     wire gpio_access = local_access && gpio_selected && valid_lanes &&
                        (we || (rd_vld && rd_adr == a));
-    // GPIO status shares its address with NOS, so its keypad W1C must also
-    // commit when NOS owns the accepted transaction. Storage stays independent.
+    // Keypad configuration/status overlays share accepted transactions with
+    // GPIO loopback and NOS. Each owner retains its independent state.
     wire keypad_access = gpio_access ||
                          (local_access && valid_lanes && nos_claim && !nos_bad &&
-                          we && a == 32'h0c150100);
+                          we && a == 32'h0c150100) ||
+                         (local_access && valid_lanes && gpio_loop_claim &&
+                          !gpio_loop_bad && we);
     wire [31:0] keypad_dout;
     reg [31:0] gpio_data, clock_data;
     reg gpio_bad, clock_bad;
@@ -614,6 +622,7 @@ module ngage_upp_peripherals #(
                 .sel          (sel),
                 .base         (dout_unkeyed),
                 .genio1_driven(route2a[3]),
+                .genio1_level (genio1_level),
                 .value        (keypad_dout),
                 .irq          (keypad_irq)
             );

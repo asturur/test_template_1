@@ -59,16 +59,16 @@ module tb;
   transfer(0,'h0c150110,0,15);
   // Ownership may change after acceptance. Retain the sampled owner and
   // result even when the live low-bank claim disappears with periodic mode.
-  force g[0].dut.upp.peripherals.timers.period=1;
-  force g[1].dut.upp.peripherals.timers.period=1;
+  force g[0].dut.upp.peripherals.periodic_active=1;
+  force g[1].dut.upp.peripherals.periodic_active=1;
   tick();req=1;we=0;addr='h0c120040;sel=15;authorize=1;legacy_done=0;
   while(!ready[1])tick();legacy_done=1;
-  force g[0].dut.upp.peripherals.timers.period=0;
-  force g[1].dut.upp.peripherals.timers.period=0;
+  force g[0].dut.upp.peripherals.periodic_active=0;
+  force g[1].dut.upp.peripherals.periodic_active=0;
   #1;if(!claim[1] || bad[1] || dout[1]!==0)$fatal(1,"accepted owner changed with state");
   repeat(3)tick();req=0;authorize=0;tick();
-  release g[0].dut.upp.peripherals.timers.period;
-  release g[1].dut.upp.peripherals.timers.period;
+  release g[0].dut.upp.peripherals.periodic_active;
+  release g[1].dut.upp.peripherals.periodic_active;
   // Warm reset releases independently of cold init_done, then scrub completes.
   rst=1;tick();rst=0;repeat(65)tick();
   transfer(0,'h0c120340,0,15);if(dout[1]!==0)$fatal(1,"DMA warm zero");

@@ -841,6 +841,36 @@ FIQ semantics and timing profile are preserved. The source map records the
 observed NEM-4 EPBUS registrations and unresolved MMC, general DMA, audio
 and request-line assignments. Peripheral routes require their own evidence.
 
+#### P1/P4 flow correction — 2026-11-11: locally verified
+
+The donor comparison reproduced five retained IRQ/timer differences at both
+8ff8b11 and6b7be5a. Raw IRQ status now exposes all sources; FIQ current applies
+its enable mask and full within-bank priority. Timer programming no longer
+changes ICU masks, and timer1 acknowledges only its own register. Original
+NEM-4 tables qualify all six timer levels on both planes.
+
+Six parallel programmable counters replace boot-value whitelists, stored-only
+counts and fixed unit60 delay. Original repeated synchronous delay exposed
+stale completion; new count resets completion without clearing pending IRQ.
+The clearing-write assignment is an explicitly documented transaction-level
+inference. Keypad GPIO data/direction/enable now governs actual pin edges;
+loopback-owned configuration commits and stable GENIO1 level are connected.
+CPU bus stages and the fast LCD stream are preserved.
+
+All source/priority cases, timer/ICU ownership, original timer and keypad code
+at78/104 MHz and zero/three memory waits pass. Combined board ownership,
+registered response, clock and ARM integration checks pass. The pointer
+observer also passes four original-instruction fixtures, but does not identify
+the real hardware caller. No full firmware UI wake,104 MHz fit or selected
+D1/D2/D3 full-boot proof is claimed. Old checkpoints remain frozen.
+
+See [flow corrections](docs/irq-timer-keypad-flow.md),
+[timers](docs/general-timers.md), [controls](docs/live-controls.md), and
+[startup](docs/symbian-startup.md). User queued the failed113% ALM build's fit
+investigation after these fixes, followed by commit/push and rebuild. The
+provided Quartus logs are read-only inputs; resource recovery must preserve
+behaviour, the fast LCD path and explicit memory/timing contracts.
+
 ## 11. N1-N4: original NOS plus selective services and SIM
 
 ### N1: service/ABI and original-runtime audit
