@@ -52,7 +52,21 @@
     "source_graph_required_files": 175,
     "source_graph_QIPs": 9,
     "top_elaboration": "PASS, HPS/PLL stubbed; no UNOPTFLAT",
-    "physical_fit": "pending; build monitoring disabled"
+    "physical_fit": "pending; build monitoring disabled",
+    "ARM_cache_cycles_wait0_wait3": {
+      "cache_irq_writeback": [
+        148048,
+        233966
+      ],
+      "swp_cached": [
+        143877,
+        226043
+      ],
+      "cache_single_maintenance": [
+        144124,
+        226442
+      ]
+    }
   },
   "source_sha256": {
     "Template.sv": "8a89d31fdc40518006195004bd39d3a38ec2c99277b65ef9a12d872da42ff71e",

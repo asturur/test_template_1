@@ -33,6 +33,9 @@ The general DMA workers remain necessary for MMC/copy and on-chip RAM LCD;
 that route is not a duplicate full-frame stream engine. Both workers and all
 eight guest channels remain. Semi-real NOS, SIM and peripheral models remain.
 
+ARM dirty-writeback IRQ, cached SWP and single-line CP15 maintenance also pass
+with zero/three memory waits; exact cycle counts are in the evidence.
+
 Local checks pass: 11,025-cycle old/new cache equivalence with ordinary RAM,
 Intel primitives and X-poisoned collisions; tags/bank/maintenance/access/buffer
 suites; I-cache equivalence9,416/9,440 cycles;104 MHz timer-profile ARM board

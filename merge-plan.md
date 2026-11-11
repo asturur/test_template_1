@@ -880,7 +880,8 @@ no extra M10Ks, cache size reduction or transaction stages. Ordinary/Intel/
 X-collision old/new equivalence all pass11,025 cycles. Cache suites, I-cache
 cycle comparison,104 MHz timer-profile ARM board and full fast LCD/reset tests
 pass. Fast CPU normal/held totals stay152,456/152,537 clocks. Raw VHD bulk
-restore/save passes full4 MiB C:/64 KiB PMM.
+restore/save passes full4 MiB C:/64 KiB PMM. ARM dirty-writeback IRQ, cached
+SWP and CP15 single-line maintenance pass with zero/three waits.
 
 Commented out nine inactive source entries, including legacy NGA mount/header
 and LCD frontend; raw VHD manager remains the only production disk interface.
