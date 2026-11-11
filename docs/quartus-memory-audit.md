@@ -143,7 +143,7 @@ operations/maintenance clear streaming validity; the D-cache does not enable
 this shortcut. ZAP patch 0039 records the lookahead change.
 
 Small resettable/parallel control remains in registers: cache valid/dirty flags,
-victim/random state, sparse CAM tags, IRQ/timer/boot registers, small protocol
+victim/random state, IRQ/timer/boot registers, small protocol
 headers/FIFOs and the streaming pipeline. These have control or associative
 access requirements; replacing them with one synchronous RAM would change their
 interfaces. This conversion does not claim every flip-flop should be RAM.
@@ -209,3 +209,19 @@ wren. Native enable count equals native width / byte size. Read outputs discard
 padding; byte-enabled 32-bit RAM is unchanged. This can increase physical block
 usage, particularly for the dirty bitmap; measure it in the next fitter report.
 The user monitors subsequent builds, so do not watch/poll without a new request.
+
+
+## 2026-11-11: Sparse tag store fit recovery
+
+The behavioral sparse-register store now places its 64×32-bit tags in a second
+explicit M10K beside the existing payload BRAM. A single tag comparator and
+bounded hashed linear probing replace the parallel CAM/tag array;
+64 valid bits retain cold-clear/warm-preserve behavior. Collision-free lookup
+is two module clocks versus the previous four, with an explicit 65-clock
+adversarial/full-table bound at 64 entries. The public commit, cancellation and
+held-response contract is preserved. See [peripheral ownership](peripheral-ownership.md).
+
+This removes 2,048 source tag flip-flops plus parallel match/selection state
+and logic, at the intended cost of one extra M10K. The previous fitted sparse
+instance cost does not establish the new ALM/FF result; a fresh fit and timing
+run must measure that. No Quartus toolchain was downloaded.

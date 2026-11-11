@@ -1,0 +1,231 @@
+{
+  "date": "2026-11-11",
+  "base_commit": "1dd285e4d185a0b8fa46808a0930f9579cf540e8",
+  "scope": "Instruction-only READ_ONLY metadata specialization; no cache capacity, lookup-stage, RAM-port or response-latency changes. Defaults preserve writable cache.",
+  "simulator": {
+    "image": "jotego/simulator:arm64",
+    "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "network": "none"
+  },
+  "source_level_resource_change": {
+    "dirty_array_bits_omitted": 1024,
+    "dirty_read_pipeline_bits_omitted": 128,
+    "dirty_compare_pipeline_bits_omitted": 128,
+    "dirty_victim_pipeline_bits_omitted": 2,
+    "total_state_bits_omitted": 1282,
+    "added_m10k_blocks": 0,
+    "physical_alm_or_ff_savings": "Unmeasured. Prior Quartus already pruned some constant-fed logic; fresh synthesis/fitter required."
+  },
+  "equivalence": {
+    "fixture": "tests/cpu/icache_read_only/test.v",
+    "result": "PASS",
+    "wide64_cycles": 9416,
+    "halfword16_cycles": 9440,
+    "comparison": "Every external adapter output each non-reset cycle, generic READ_ONLY=0 versus READ_ONLY=1 on identical read-only inputs. Dirty outputs additionally checked zero.",
+    "coverage": [
+      "64-way capacity and eviction",
+      "all eight segments",
+      "word and streamed line refill",
+      "cache hits and lookahead",
+      "whole-cache clean and invalidate",
+      "MVA invalidate and indexed clean+invalidate",
+      "lockdown",
+      "refill retry and instruction discard",
+      "translation and alignment errors",
+      "warm reset"
+    ],
+    "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/icache-read-only.log"
+  },
+  "generic_regressions": [
+    {
+      "suite": "cache_tags",
+      "result": [
+        "PASS: 64-way tags, dirty halves, physical victim and lockdown"
+      ],
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cache_tags.log"
+    },
+    {
+      "suite": "cache_bank",
+      "result": [
+        "PASS: associative bank holds dirty victim until acknowledged and refills"
+      ],
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cache_bank.log"
+    },
+    {
+      "suite": "cache_access",
+      "result": [
+        "PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction"
+      ],
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cache_access.log"
+    },
+    {
+      "suite": "cache_maintenance",
+      "result": [
+        "PASS: indexed clean, error retention and invalidate all"
+      ],
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cache_maintenance.log"
+    },
+    {
+      "suite": "icache_discard",
+      "result": [
+        "PASS: live refill errors retry; discarded fetch completes; failed line is not installed"
+      ],
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/icache_discard.log"
+    }
+  ],
+  "cpu_runs": [
+    {
+      "program": "cache_instruction_associativity",
+      "delay": 0,
+      "cycles": 144085,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/cache_instruction_associativity-0.log"
+    },
+    {
+      "program": "cache_instruction_associativity",
+      "delay": 3,
+      "cycles": 226412,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/cache_instruction_associativity-3.log"
+    },
+    {
+      "program": "icache_lockdown",
+      "delay": 0,
+      "cycles": 151439,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_lockdown-0.log"
+    },
+    {
+      "program": "icache_lockdown",
+      "delay": 3,
+      "cycles": 236916,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_lockdown-3.log"
+    },
+    {
+      "program": "icache_prefetch_lockdown",
+      "delay": 0,
+      "cycles": 151440,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_prefetch_lockdown-0.log"
+    },
+    {
+      "program": "icache_prefetch_lockdown",
+      "delay": 3,
+      "cycles": 236904,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_prefetch_lockdown-3.log"
+    },
+    {
+      "program": "icache_prefetch_uncached",
+      "delay": 0,
+      "cycles": 151416,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_prefetch_uncached-0.log"
+    },
+    {
+      "program": "icache_prefetch_uncached",
+      "delay": 3,
+      "cycles": 236869,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_prefetch_uncached-3.log"
+    },
+    {
+      "program": "icache_prefetch_translated",
+      "delay": 0,
+      "cycles": 151476,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_prefetch_translated-0.log"
+    },
+    {
+      "program": "icache_prefetch_translated",
+      "delay": 3,
+      "cycles": 236898,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/icache_prefetch_translated-3.log"
+    },
+    {
+      "program": "cache_irq_refill",
+      "delay": 0,
+      "cycles": 143916,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/cache_irq_refill-0.log"
+    },
+    {
+      "program": "cache_irq_refill",
+      "delay": 3,
+      "cycles": 226166,
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/cpu/cache_irq_refill-3.log"
+    }
+  ],
+  "provenance": {
+    "patch": "patches/zap/0056-instruction-cache-read-only-metadata.patch",
+    "verification": "PASS: complete local pristine source plus patches reproduces rtl/arm",
+    "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/zap-verify.log",
+    "download_performed": false
+  },
+  "limitations": [
+    "No Quartus run or physical area/timing result yet.",
+    "No full-phone boot or current hardware bad-pointer reproduction claimed.",
+    "Equality is simulation evidence for tested read-only traces, not a formal proof across every possible input."
+  ],
+  "source_sha256": {
+    "rtl/ngage_bram.v": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215",
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+    "rtl/arm920/cache_access.sv": "b7ac7209f437280cbaeebfd0b4b23a33af03195862058a1cc31b0e5fa05bfca9",
+    "rtl/arm920/cache_adapter.sv": "04671eb3b4fa7fe004175c08266230cebd4e6d844e8a503e0385692f0f6e6457",
+    "rtl/arm920/cache_bank.sv": "681784004686c2cf353925660388ef642f7796c627e500067cdca0c4b315d327",
+    "rtl/arm920/cache_lines.sv": "3d909665b631ad57f0696e8ec9b608479c45c6ddaabd902defe54a0173bd9436",
+    "rtl/arm920/cache_maintenance.sv": "fb597ba510d78086ba6fa31c7ee07236686e409d2ff5c2af062a84e4906544c7",
+    "rtl/arm920/cache_refill.sv": "65980ddf557f19b01006ebf80ee4ec3adfd44539f6dff720fd1d1c645de2452c",
+    "rtl/arm920/cache_tags.sv": "2126e46dbc7fb6a831231f296d34e8e914eda68685e2c2bd644388b9429728fc",
+    "rtl/arm920/cache_transfer.sv": "3081549e2566b35f769dd6b4a1840c79dbf73b92f92da2b544670fb61f3103c1",
+    "rtl/arm920/tlb.sv": "84b66bbce35c2da1c7ab966a1f34c45a6c5605482cdb990fab60e0da4d713b6b",
+    "rtl/arm920/tlb_bank.sv": "b9be6836977579c98777e2ad14fa4f8a28b784b16712099ac3cfa21869091303",
+    "rtl/arm920/tlb_bus_gate.sv": "3df21a78deb07858cb5ed62ce4b90723e516a3553f4730d465b008b87f658709",
+    "rtl/arm920/write_buffer.sv": "3e68885210dc1281d5c51702662632d0002c59d95c352345f4c3396783617901",
+    "rtl/arm/zap_alu_main.sv": "1a9ef9e24fea467281045fe00236009f5eb12656d93531471156a452a1db0095",
+    "rtl/arm/zap_btb.sv": "2dc4c9b45501a2c45fa83d44cb82dc2858969a78775a63a0e955e303a4920b7e",
+    "rtl/arm/zap_cache.sv": "518091b7dd7570e807b26e10b1665fa2c42059d73199f90cd2f58ec180567ec0",
+    "rtl/arm/zap_core.sv": "81b47492c4e937b4af806aff4f9eea8ffd83f0c7581472d626a2edc75174856d",
+    "rtl/arm/zap_cp15_cb.sv": "48f5050dcc26d4bfdd374ef17dea6a5c2ee05967e10dae6cc348911fa6729466",
+    "rtl/arm/zap_data_completion.sv": "b1ca3318824b4263d99e224ce978a85f3d27768c5171ea874faa8abc764a76e9",
+    "rtl/arm/zap_dcache.sv": "13dcbce7bbb74ac2762138bc425fb0f58b5be7b16a9c0b498631f7a8890353af",
+    "rtl/arm/zap_decode.sv": "b0196d50bb714a4fccd8ed9692bb285672435a4db36c02465ea61175b30b2913",
+    "rtl/arm/zap_decode_main.sv": "0fc22ead311269efa07cd00a66f461b52e5859caa503805c087ab0bbe928069c",
+    "rtl/arm/zap_decompile.sv": "313b2d22c9a6d35b5ef1aea2892e1c2dc5ba593980cacbbaaf2227d12eebd481",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "f73494c1bb7d3546346b32e0244ffd8d73e6e5c8efb34c1ab04bb5709b882813",
+    "rtl/arm/zap_fetch_main.sv": "a6af0643075f03754f862db89a7fec37f2d8754d37b89f8f499e014cc0be262b",
+    "rtl/arm/zap_fifo.sv": "3af6c3e48c3d6e6429d68b59d962b7fd2ecf215faa7b627906ee74e239905e25",
+    "rtl/arm/zap_issue_main.sv": "393a34178d78dca7e3c857ade32b2a09025c4dbd199a075f90b8e55e5a873216",
+    "rtl/arm/zap_memory_main.sv": "21462735f9b9ff8007b65918e58b33d2f1b72e6972fd34eab93da85821e828c9",
+    "rtl/arm/zap_mode16_decoder.sv": "47979fb06dbd3a7e1a527b9e6a533c314bc27300cfc5bb80ae6f98064879d93b",
+    "rtl/arm/zap_mode16_decoder_main.sv": "6d9cf536eb8c7f1efa5f5931ba44a72fc326025f50c57dc5160d96c2b3fae913",
+    "rtl/arm/zap_ones_counter.sv": "c00366f44f0a88c532806a7e95a01f71376558b2dd7ab2be3e6d0f4d56991cbc",
+    "rtl/arm/zap_operand_read.sv": "92bfed61d105fcb7482f2c15dbafeba7d258bd541f53342f14c9c5269526e3bc",
+    "rtl/arm/zap_postalu_main.sv": "67f1d62f72383dd3961f90eabd4345b829cc0043d06a0a1b6ad3722a02b5d7d2",
+    "rtl/arm/zap_predecode_coproc.sv": "001927bdf55935ee4535c2b1941dda2c3f612ebc1fb459867e3dd272b035ab02",
+    "rtl/arm/zap_predecode_main.sv": "70cce74af7de285a47d9440a2139f97e52d359593e67f39b34afa536df1f6dd3",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "9d0f58e32220d7c6f4d48907be2aa8475ae5d505f6b931235d6e8374dbcd7505",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "69fb85af5f97f884586d2a6722f24d49621cef06d91377c7edcdd30a0de70750",
+    "rtl/arm/zap_register_file.sv": "cc289d9a2650d1e8c4c02e159fe86b8b5cea48639bbeb3ecb9ed07dddc327f83",
+    "rtl/arm/zap_shifter_main.sv": "8273424768af3e9b44c8bc225d5f0a5ddcde85d07a81e957e57d5bc3e43717f7",
+    "rtl/arm/zap_shifter_multiply.sv": "704d9f1531ad85078eefd63b8040e0ba27285e72e50f76ef021f9d74db4fc70b",
+    "rtl/arm/zap_shifter_shift.sv": "be45c1e46623571ed66549f448e04979abcbf4aa9912dbd3fcd9071b3e96b0ce",
+    "rtl/arm/zap_sync_fifo.sv": "e689ccd1e2ec1d24a131727c0b22189c12d9062ec1459bd4ee9f999c9463b7b2",
+    "rtl/arm/zap_top.sv": "a3c2aa7ee2a8d7ffcfaa18ad866ff231ac2941d3d43c958588f7d05584c4fd64",
+    "rtl/arm/zap_wb_merger.sv": "88f0e2ffe488d18a078bc34f2b2aa03715fbe4d94a6ea36ccd51ff9eda246a8d",
+    "rtl/arm/zap_writeback.sv": "4480b4d21515093c0f8a830e592b68774e920c3c53b63ea95efa282b76e0c75e",
+    "rtl/arm/UPSTREAM.json": "1cbecb41fa0ffa1a89f0b2b4ee470418a58bddd1f34ce05c70a44bb1fade1a13",
+    "patches/zap/0056-instruction-cache-read-only-metadata.patch": "b8fb22dff4290ccb0fcde80f03a8bf065a2e6a48a8a6300945cd333563a659d4",
+    "tests/cpu/icache_read_only/test.v": "7d11f7f65f48059f0900b5403f9e9698786b4bb880737589f8617ad4e2d91568",
+    "tests/cpu/icache_read_only/sim.sh": "a285a124d14cd05e319223236fbd51b0b8f2330926f6eb8f69965388ddf61853",
+    "sim/programs/cache_instruction_associativity.S": "9bef9c2c03177b9dbd6649461abd169d1cf4358db03d02d8973307937ca3c55c",
+    "sim/programs/icache_lockdown.S": "467a630fd5bdd488cfa75e359c282bbcc400c90907654f1eedd8d7d2777ffb9b",
+    "sim/programs/icache_prefetch_lockdown.S": "fc535f07f27c782a37b3d1957c6fa559cdff79ba5a6e78119d76c970f4c1c62d",
+    "sim/programs/icache_prefetch_uncached.S": "4f42039871ac51a37d543802d10f99528c3cc81c412c20b13de06ed48632e3cc",
+    "sim/programs/icache_prefetch_translated.S": "f1849749640cc9cbd9f9dbf002654a608dc36209a8445e0c7428620c999e4022",
+    "sim/programs/cache_irq_refill.S": "44c2a5a0c5262ef0af14c8f2c352581f73af4e3a551d0e4eb8ae2537d42847d9"
+  }
+}

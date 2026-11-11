@@ -19,11 +19,12 @@ module ngage_sparse_regs #(
     output wire        ready
 );
     localparam integer AW = ENTRIES > 1 ? $clog2(ENTRIES) : 1;
-    localparam integer LEAVES = 1 << AW;
-    localparam IDLE = 3'd0, COMPARE = 3'd1, SELECT = 3'd2, READ = 3'd3, RESULT = 3'd4, DONE = 3'd5, DISCARD = 3'd6;
-    reg [2:0] state;
-    reg [ENTRIES-1:0] valid, matched, vacant;
-    reg [31:0] tags[0:ENTRIES-1];
+    localparam integer LAST_INDEX = ENTRIES - 1;
+    localparam [AW-1:0] LAST_SLOT = LAST_INDEX[AW-1:0];
+    localparam IDLE = 3'd0, PROBE = 3'd1, RESULT = 3'd2, DONE = 3'd3, DISCARD = 3'd4;
+    reg [        2:0] state;
+    reg [ENTRIES-1:0] valid;
+    reg [     AW-1:0] probe_count;
     reg [31:0] request_addr, request_data, held_result;
     reg [   3:0] request_sel;
     reg          request_write;
@@ -36,38 +37,53 @@ module ngage_sparse_regs #(
     assign full = ready && result_full;
     wire [31:0] value_q;
     assign dout = !ready ? 32'b0 : state == DONE ? held_result : result_hit ? value_q : 32'b0;
-    wire [ENTRIES-1:0] hit_mask;
-    wire [2*LEAVES-2:0] hit_present, free_present;
-    wire [AW-1:0] hit_index[0:2*LEAVES-2], free_index[0:2*LEAVES-2];
     wire write_value = ready && state == RESULT && commit && request_write && !result_full;
     wire [31:0] mask = {
         {8{request_sel[3]}}, {8{request_sel[2]}}, {8{request_sel[1]}}, {8{request_sel[0]}}
     };
-    // Balanced lowest-index trees preserve lookup/allocation order. Padding
-    // leaves are absent in both trees, including non-power-of-two capacities.
-    genvar slot;
-    generate
-        for (slot = 0; slot < LEAVES; slot = slot + 1) begin : leaves
-            if (slot < ENTRIES) begin : active_slot
-                assign hit_mask[slot]              = matched[slot];
-                assign hit_present[LEAVES-1+slot]  = hit_mask[slot];
-                assign free_present[LEAVES-1+slot] = vacant[slot];
-            end else begin : padding_slot
-                assign hit_present[LEAVES-1+slot]  = 0;
-                assign free_present[LEAVES-1+slot] = 0;
+    // Fold every address bit, including the low byte-address bits. The
+    // final subtraction bounds non-power-of-two capacities without division.
+    function [AW-1:0] address_hash;
+        input [31:0] address;
+        reg     [AW-1:0] folded;
+        reg     [  AW:0] bounded;
+        integer          bit_number;
+        begin
+            folded = 0;
+            for (bit_number = 0; bit_number < 32; bit_number = bit_number + 1) begin
+                folded[bit_number%AW] = folded[bit_number%AW] ^ address[bit_number];
             end
-            assign hit_index[LEAVES-1+slot]  = slot;
-            assign free_index[LEAVES-1+slot] = slot;
+            bounded = {1'b0, folded};
+            if (bounded >= ENTRIES[AW:0]) bounded = bounded - ENTRIES[AW:0];
+            address_hash = bounded[AW-1:0];
         end
-        for (slot = 0; slot < LEAVES - 1; slot = slot + 1) begin : nodes
-            assign hit_present[slot] = hit_present[2*slot+1] | hit_present[2*slot+2];
-            assign free_present[slot] = free_present[2*slot+1] | free_present[2*slot+2];
-            assign hit_index[slot] = hit_present[2*slot+1] ?
-                hit_index[2*slot+1] : hit_index[2*slot+2];
-            assign free_index[slot] = free_present[2*slot+1] ?
-                free_index[2*slot+1] : free_index[2*slot+2];
-        end
-    endgenerate
+    endfunction
+    wire slot_valid = valid[selected_slot];
+    wire [31:0] tag_q;
+    wire slot_hit = slot_valid && tag_q == request_addr;
+    wire last_probe = probe_count == LAST_SLOT;
+    wire advance_probe = state == PROBE && slot_valid && !slot_hit && !last_probe;
+    wire [AW-1:0] next_slot = selected_slot == LAST_SLOT ? {AW{1'b0}} : selected_slot + 1'b1;
+    // Both RAMs sample the first hash on capture. A collision prefetches the
+    // next slot while the current tag is compared, so probes cost one clock.
+    wire [AW-1:0] first_slot = address_hash(addr);
+    wire [AW-1:0] read_slot = state == IDLE ? first_slot :
+                             advance_probe ? next_slot : selected_slot;
+    ngage_bram #(
+        .AW         (AW),
+        .DW         (32),
+        .READ_ONLY_B(1)
+    ) tag_store (
+        .clk   (clk),
+        .addr_a(selected_slot),
+        .addr_b(read_slot),
+        .data_a(request_addr),
+        .data_b(32'b0),
+        .we_a  (write_value && !result_hit),
+        .we_b  (1'b0),
+        .q_a   (),
+        .q_b   (tag_q)
+    );
     // The chosen slot and write payload are registered before any mutation.
     // New entries zero unselected bytes; existing entries retain those bytes.
     ngage_bram #(
@@ -78,7 +94,7 @@ module ngage_sparse_regs #(
     ) payload (
         .clk   (clk),
         .addr_a(selected_slot),
-        .addr_b(selected_slot),
+        .addr_b(read_slot),
         .data_a(result_hit ? request_data : request_data & mask),
         .data_b(32'b0),
         .we_a  (write_value ? (result_hit ? request_sel : 4'hf) : 4'b0),
@@ -86,12 +102,10 @@ module ngage_sparse_regs #(
         .q_a   (),
         .q_b   (value_q)
     );
-    integer i;
     always @(posedge clk) begin
         if (cold_reset) valid <= 0;
         else if (write_value && !result_hit) begin
             valid[selected_slot] <= 1;
-            tags[selected_slot]  <= request_addr;
         end
         if (cold_reset || reset) begin
             // A reset cancels even an authorized request held across reset.
@@ -114,22 +128,20 @@ module ngage_sparse_regs #(
                     request_data  <= din;
                     request_sel   <= sel;
                     request_write <= we;
-                    state         <= COMPARE;
+                    selected_slot <= first_slot;
+                    probe_count   <= 0;
+                    state         <= PROBE;
                 end
-                COMPARE: begin
-                    for (i = 0; i < ENTRIES; i = i + 1) begin
-                        matched[i] <= valid[i] && tags[i] == request_addr;
-                        vacant[i]  <= !valid[i];
+                PROBE: begin
+                    if (slot_hit || !slot_valid || last_probe) begin
+                        result_hit  <= slot_hit;
+                        result_full <= request_write && !slot_hit && slot_valid;
+                        state       <= RESULT;
+                    end else begin
+                        selected_slot <= next_slot;
+                        probe_count   <= probe_count + 1'b1;
                     end
-                    state <= SELECT;
                 end
-                SELECT: begin
-                    selected_slot <= hit_present[0] ? hit_index[0] : free_index[0];
-                    result_hit    <= hit_present[0];
-                    result_full   <= request_write && !hit_present[0] && !free_present[0];
-                    state         <= READ;
-                end
-                READ:    state <= RESULT;  // Payload RAM samples the registered slot.
                 RESULT:
                 if (commit) begin
                     held_result <= result_hit ? value_q : 32'b0;

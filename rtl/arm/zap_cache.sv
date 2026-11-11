@@ -201,7 +201,7 @@ always @(posedge i_clk) begin
         if (i_reset) fast_context_q <= 0;
         else fast_context_q <= fast_context;
 end
-arm920_cache_adapter #(.LINE_REFILL(LINE_REFILL)) cache_adapter(
+arm920_cache_adapter #(.LINE_REFILL(LINE_REFILL), .READ_ONLY(1)) cache_adapter(
 .line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
     .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
     .line_wide(line_wide),.line_last(line_last),.line_error(line_error),

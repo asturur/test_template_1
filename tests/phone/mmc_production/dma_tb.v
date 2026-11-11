@@ -4,6 +4,7 @@
 `endif
 // Authored register/native-pin peer. No hierarchy reads, force or state restore.
 module tb;
+    wire local_waiting;
     parameter DIV = 4, FIFO_DEPTH = 16;
     reg clk = 0, reset = 1;
     always #5 clk = ~clk;
@@ -23,10 +24,10 @@ module tb;
     reg rx_finished = 0, tx_finished = 0;
     reg [31:0] status, value;
     wire claim, ready, bad, initialized, irq_line, cpu_lock;
-    wire bcyc, bstb, bwe, baccess, lcd_claim, lcd_bad;
+    wire bcyc, bstb, bwe, baccess, lcd_claim, lcd_bad, lcd_ready;
     wire [31:0] baddr, bdata, periph_data, lcd_data;
     wire [ 3:0] bsel;
-    wire        cpu_ack = bcyc && bstb && (lcd_claim || (claim && ready));
+    wire        cpu_ack = bcyc && bstb && ((lcd_claim && lcd_ready) || (!lcd_claim && claim && ready));
     wire        cpu_error = cpu_ack && (lcd_claim ? lcd_bad : bad);
     wire [31:0] cpu_read = lcd_claim ? lcd_data : periph_data;
     wire cv, cr, cw, rv, re, lv, lr, lw, ld, le, mreq, mwrite, mack;
@@ -77,6 +78,7 @@ module tb;
         .init_done        (initialized),
         .cpu_lock         (cpu_lock),
         .lcd_dma_claim    (lcd_claim),
+        .lcd_dma_ready    (lcd_ready),
         .lcd_dma_bad      (lcd_bad),
         .lcd_dma_reg_data (lcd_data),
         .irq              (irq_line),
@@ -102,6 +104,7 @@ module tb;
         .dma_rsp_data     (rr),
         .dma_error_pending(dma_errors),
         .dma_local_valid  (lv),
+        .dma_local_waiting(local_waiting),
         .dma_local_ready  (lr),
         .dma_local_write  (lw),
         .dma_local_addr   (la),
@@ -160,7 +163,7 @@ module tb;
         .ram_be     (mbe),
         .ram_ack    (mack),
         .ram_rdata  (mrdata),
-        .local_valid(lv),
+        .local_valid(lv),.local_waiting(local_waiting),
         .local_ready(lr),
         .local_write(lw),
         .local_addr (la),

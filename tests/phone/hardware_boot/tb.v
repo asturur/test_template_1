@@ -133,7 +133,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  wire [31:0] shared_dma_data,shared_dma_rdata;
  wire [3:0] shared_dma_be;
  wire dma_ram_write;
- wire dma_local_valid,dma_local_ready,dma_local_write,dma_local_done,dma_local_error;
+ wire dma_local_waiting,dma_local_valid,dma_local_ready,dma_local_write,dma_local_done,dma_local_error;
  wire [31:0] dma_local_addr,dma_local_data,dma_local_rdata;
  wire [3:0] dma_local_be;
  wire [7:0] dma_error_pending;
@@ -231,7 +231,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .dma_cmd_valid(dma_cmd_valid),.dma_cmd_ready(dma_cmd_ready),.dma_cmd_write(dma_cmd_write),
   .dma_cmd_addr(dma_cmd_addr),.dma_cmd_data(dma_cmd_data),.dma_cmd_be(dma_cmd_be),
   .dma_rsp_valid(dma_rsp_valid),.dma_rsp_error(dma_rsp_error),.dma_rsp_data(dma_rsp_data),
-  .dma_local_valid(dma_local_valid),.dma_local_ready(dma_local_ready),.dma_local_write(dma_local_write),
+  .dma_local_valid(dma_local_valid),.dma_local_waiting(dma_local_waiting),.dma_local_ready(dma_local_ready),.dma_local_write(dma_local_write),
   .dma_local_addr(dma_local_addr),.dma_local_data(dma_local_data),.dma_local_be(dma_local_be),
   .dma_local_done(dma_local_done),.dma_local_error(dma_local_error),.dma_local_rdata(dma_local_rdata),
   .ddram_addr(da),.ddram_fetch(ddr_fetch),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.keys(27'b0));
@@ -242,7 +242,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .rsp_valid(dma_rsp_valid),.rsp_error(dma_rsp_error),.rsp_data(dma_rsp_data),
   .ram_req(dsreq),.ram_write(dma_ram_write),.ram_addr(dsa),.ram_data(dma_ram_data),
   .ram_be(dma_ram_be),.ram_ack(dsack),.ram_rdata(dsr),
-  .local_valid(dma_local_valid),.local_ready(dma_local_ready),.local_write(dma_local_write),
+  .local_valid(dma_local_valid),.local_waiting(dma_local_waiting),.local_ready(dma_local_ready),.local_write(dma_local_write),
   .local_addr(dma_local_addr),.local_data(dma_local_data),.local_be(dma_local_be),
   .local_done(dma_local_done),.local_error(dma_local_error),.local_rdata(dma_local_rdata)
  );

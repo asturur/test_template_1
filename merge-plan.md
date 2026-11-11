@@ -871,6 +871,27 @@ investigation after these fixes, followed by commit/push and rebuild. The
 provided Quartus logs are read-only inputs; resource recovery must preserve
 behaviour, the fast LCD path and explicit memory/timing contracts.
 
+#### Fit recovery — 2026-11-11: local checks pass, CI fit pending
+
+Failed build43016356272 used6b7be5a. Detailed reports contain511/553 M10Ks;
+the zero-RAM summary does not mean BRAM inference disappeared. The new DMA/MMC
+paths account for most added peripheral logic. Recovery moves full DMA raw
+readback and45 scratch words into RAM, replaces sparse CAM tags with a hashed
+BRAM store, and explicitly removes instruction-cache dirty metadata. Capacity,
+readback bits, queues and lookup stages are retained. The added RAM budget is
+three M10Ks; fitted savings are not assumed.
+
+Measured one/two/three-worker tests show two preserve useful stalled-MMC/copy
+concurrency, while three add no current benefit. Production selects two with
+all eight channels and the separate fast LCD path. A captured local admission
+signal also removes structural DMA cancellation feedback without a new state
+or transfer clock. Normal/held full CPU LCD tests remain152,456/152,537 clocks,
+frame interval130,685; real MMC all-channel tests retain98 phases/667,085 clocks.
+Instruction-cache equivalence/provenance, vendor RAM conformance and combined
+chip/board tests pass. Hardware area/timing and full UI boot remain unverified
+until CI/hardware. See [fit recovery](docs/fit-recovery.md). Commit/push and
+manual CI rebuild are authorized by the user after these fixes.
+
 ## 11. N1-N4: original NOS plus selective services and SIM
 
 ### N1: service/ABI and original-runtime audit

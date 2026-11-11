@@ -1,0 +1,422 @@
+{
+  "base_commit": "1dd285e4d185a0b8fa46808a0930f9579cf540e8",
+  "scope": "DMA frontend programming readback RAM and 1/2/3 execution-worker comparison; no fitted area/timing claim",
+  "dma_sha256": "dc17656725436483eea8aee5c715fcf97dd2852e6163500fb4dc46b37c485a0d",
+  "image": {
+    "tag": "jotego/simulator:arm64",
+    "id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "pull": "never",
+    "network": "none"
+  },
+  "baseline": {
+    "original_git_blob_sha256": "24bdd00b120f63c5b4e3e5b268fdbed3541bbcbda405dba501dbb9ea6f5ef2ab",
+    "compiled_module_rename_only": true,
+    "compiled_source_sha256": "51ebe2876c6ee668a4a0dc4d1899d55d01564f0089dee34da9e13a96fdd1c51d"
+  },
+  "storage": {
+    "raw_programming_bits_preserved": 2048,
+    "embedded_ram": "one64x32 M10K via ngage_bram",
+    "live_address_count_mirror_bits": 768,
+    "live_mode_width_bits": 64,
+    "reset_valid_bits": 64,
+    "read_lookup_bits": 8,
+    "estimated_soft_flip_flop_reduction": 1144,
+    "measured_ALM_saving": null
+  },
+  "ready_contract": {
+    "raw_programming_reads": "one synchronous RAM lookup clock",
+    "writes_selectors_status_control": "immediate, unchanged",
+    "dispatch_stream": "no added state/cycle; metadata ready at accepted start",
+    "query_identity": "registered address tag and reset-valid; changed/canceled reads cannot reuse another word"
+  },
+  "channel_ab": [
+    {
+      "engines": 1,
+      "readbacks": 397,
+      "raw_read_wait_clocks": 387,
+      "cycles": 3169,
+      "result": "PASS cycle-exact external packets/dispatch/IRQ and complete raw readback",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/run-1.log",
+      "log_sha256": "06cbf079a64ffee8225b8c7bbd229feb4713f27ba416a935f3f653531e192d4a"
+    },
+    {
+      "engines": 2,
+      "readbacks": 397,
+      "raw_read_wait_clocks": 387,
+      "cycles": 3055,
+      "result": "PASS cycle-exact external packets/dispatch/IRQ and complete raw readback",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/run-2.log",
+      "log_sha256": "8b344d96f7a4c64e618450b1c8a36abcd83f8e3576b8c04079f4b6c5144b770c"
+    },
+    {
+      "engines": 3,
+      "readbacks": 397,
+      "raw_read_wait_clocks": 387,
+      "cycles": 3055,
+      "result": "PASS cycle-exact external packets/dispatch/IRQ and complete raw readback",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/run-3.log",
+      "log_sha256": "b0c66aa50e5849d8c08c6a35f2b0929520897510d7b6a711c4d2def473b3cb46"
+    }
+  ],
+  "strict_verilog_2001": {
+    "channels_engines2": "compile and run PASS",
+    "production_concurrency_engines2": "compile PASS",
+    "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/strict-channels.log",
+    "log_sha256": "19f84332a0159dcffe7c83b285dea252081cf5f6b8bf8bfc6f3487fd31b9316c"
+  },
+  "concurrency_ab": [
+    {
+      "engines": 1,
+      "mode": "stalled",
+      "metrics": {
+        "frame_clocks": 146431,
+        "copy_words_at_frame": 0,
+        "cpu_acks_at_frame": 18320,
+        "max_cpu_gap": 8,
+        "release_to_all_done": 3324
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-1-0.log",
+      "log_sha256": "6919f505bbb7f1e8bd20e64cbeadcbda2f5a742f4048ed486bbe235aeae996e2"
+    },
+    {
+      "engines": 1,
+      "mode": "mmc",
+      "metrics": {
+        "bytes": 256,
+        "clocks": 1284,
+        "cpu_acks": 269,
+        "max_cpu_gap": 8
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-1-1.log",
+      "log_sha256": "e344df449adef68377dbfd2e7b51a75d13a05cf226d6d4dc88ab85e5610ed5a9"
+    },
+    {
+      "engines": 1,
+      "mode": "lcd",
+      "metrics": {
+        "frame_clocks": 146434,
+        "cpu_acks": 18317,
+        "max_cpu_gap": 8
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-1-2.log",
+      "log_sha256": "7237602eb00d557c49eebbb306de36ab4fc3524aa99d592c34a79028e45dc5ce"
+    },
+    {
+      "engines": 2,
+      "mode": "stalled",
+      "metrics": {
+        "frame_clocks": 148479,
+        "copy_words_at_frame": 128,
+        "cpu_acks_at_frame": 18576,
+        "max_cpu_gap": 8,
+        "release_to_all_done": 1272
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-2-0.log",
+      "log_sha256": "2e7ee9f455a465ea8e7bb60383d5e0d22e74b0ba3e11ca9bf953194837e73d88"
+    },
+    {
+      "engines": 2,
+      "mode": "mmc",
+      "metrics": {
+        "bytes": 256,
+        "clocks": 1284,
+        "cpu_acks": 269,
+        "max_cpu_gap": 8
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-2-1.log",
+      "log_sha256": "2018937cb6426a24980fb1e7b62019f68fb205f398963929badabaa3bfc3af01"
+    },
+    {
+      "engines": 2,
+      "mode": "lcd",
+      "metrics": {
+        "frame_clocks": 146434,
+        "cpu_acks": 18317,
+        "max_cpu_gap": 8
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-2-2.log",
+      "log_sha256": "8d8e1c5ba59c7f553d9d86c2a6c2bcf7f39c4dc18f5900fd769de1d5beba4ac1"
+    },
+    {
+      "engines": 3,
+      "mode": "stalled",
+      "metrics": {
+        "frame_clocks": 148479,
+        "copy_words_at_frame": 128,
+        "cpu_acks_at_frame": 18576,
+        "max_cpu_gap": 8,
+        "release_to_all_done": 1272
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-3-0.log",
+      "log_sha256": "45e759676cb5f900488e63f08088459bd5b65eecc0067d0a64ef074bfe07e915"
+    },
+    {
+      "engines": 3,
+      "mode": "mmc",
+      "metrics": {
+        "bytes": 256,
+        "clocks": 1284,
+        "cpu_acks": 269,
+        "max_cpu_gap": 8
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-3-1.log",
+      "log_sha256": "e335b62a3a0b2177a48e3c6f18b25cdc662676c472dc608d2017837cbd0b79e7"
+    },
+    {
+      "engines": 3,
+      "mode": "lcd",
+      "metrics": {
+        "frame_clocks": 146434,
+        "cpu_acks": 18317,
+        "max_cpu_gap": 8
+      },
+      "result": "PASS",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/concurrency/run-3-2.log",
+      "log_sha256": "df71bd8a7afc04a19ac20c335fbe6cf9c976d3be4a18707bd9e7662691e5a188"
+    }
+  ],
+  "selection": {
+    "production_engines": 2,
+    "generic_module_default": 3,
+    "reason": "two workers finish ordinary copy while MMC FIFO is blocked; third gives no progress/throughput benefit for measured workload",
+    "tradeoff": "three simultaneously blocked/independent paced jobs can benefit from a third worker; not claimed equivalent for every future workload",
+    "cpu_fairness": "continuous synthetic memory requester; maximum ACK gap8 clocks in all nine experiments"
+  },
+  "original_cpu": [
+    {
+      "kind": "original",
+      "memory_wait_clocks": 0,
+      "cycles": 11130,
+      "result": "PASS original NEM-4 DMA setup/start wait=0 cycles=11130 cases=4 exact_bytes=16 unwritten_trails=preserved substitutions=0",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/original/run-0.log",
+      "log_sha256": "e095bc2b1c7749c1842296eda5a320f22cd1948880dd0668ddd4353e035d44ad"
+    },
+    {
+      "kind": "original",
+      "memory_wait_clocks": 3,
+      "cycles": 16814,
+      "result": "PASS original NEM-4 DMA setup/start wait=3 cycles=16814 cases=4 exact_bytes=16 unwritten_trails=preserved substitutions=0",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/original/run-3.log",
+      "log_sha256": "7805ac1470b95279429068bbf64d3eb1711ab278a3ef4d891de70777963dfaa2"
+    },
+    {
+      "kind": "isr",
+      "memory_wait_clocks": 0,
+      "cycles": 11067,
+      "result": "PASS original NEM-4 DMA ISR wait=0 cycles=11067 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/isr/run-0.log",
+      "log_sha256": "18db095db2c4ade81966d6a659a4f324e2e7621e64c77e41c715d890ddd2b258"
+    },
+    {
+      "kind": "isr",
+      "memory_wait_clocks": 3,
+      "cycles": 16449,
+      "result": "PASS original NEM-4 DMA ISR wait=3 cycles=16449 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+      "log": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/isr/run-3.log",
+      "log_sha256": "877186c07096b9ee4438db1e4a6880e246c3bd03ac1630ddb48ec1309233f581"
+    }
+  ],
+  "original_inputs": {
+    "original": {
+      "rom_sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "original_instruction_range": [
+        "50320000",
+        "503d0000"
+      ],
+      "instruction_substitutions": [],
+      "fixture_only": [
+        "virtual 5812xxxx to physical 0c12xxxx register mapping",
+        "request-selector write capture at 58120064/68",
+        "byte FIFO at original type-5 endpoint 10120624",
+        "bounded SDRAM, on-chip RAM and kernel scratch RAM"
+      ]
+    },
+    "isr": {
+      "rom_sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "original_instruction_range": [
+        "50320000",
+        "503d0000"
+      ],
+      "instruction_window_sha256": "3b543ab996682f64c3c248a96b7b15f6b4f2e69f0d920b6e83e004c1161dcfab",
+      "executed_original_entries": [
+        "5032ca14",
+        "50321860",
+        "503212c0",
+        "50330c7c",
+        "50330d10",
+        "50321868",
+        "50331c08",
+        "50328460"
+      ],
+      "instruction_substitutions": [],
+      "fixture_only": [
+        "virtual 5812xxxx to physical 0c12xxxx register mapping",
+        "synthetic ISR wrapper/channel/vtable objects in kernel RAM",
+        "synthetic IRQ limit/table with captured disable at 5812010c",
+        "synthetic section page-table entry for original VA lookup",
+        "fixture callback counts and verifies original ISR completion",
+        "bounded SDRAM and kernel scratch RAM"
+      ]
+    }
+  },
+  "isr_strict_source_manifest": {
+    "scope": "Original ISR called directly on ZAP; no full kernel IRQ dispatch claim",
+    "inputs": {
+      "rom_sha256": "26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5",
+      "original_instruction_range": [
+        "50320000",
+        "503d0000"
+      ],
+      "instruction_window_sha256": "3b543ab996682f64c3c248a96b7b15f6b4f2e69f0d920b6e83e004c1161dcfab",
+      "executed_original_entries": [
+        "5032ca14",
+        "50321860",
+        "503212c0",
+        "50330c7c",
+        "50330d10",
+        "50321868",
+        "50331c08",
+        "50328460"
+      ],
+      "instruction_substitutions": [],
+      "fixture_only": [
+        "virtual 5812xxxx to physical 0c12xxxx register mapping",
+        "synthetic ISR wrapper/channel/vtable objects in kernel RAM",
+        "synthetic IRQ limit/table with captured disable at 5812010c",
+        "synthetic section page-table entry for original VA lookup",
+        "fixture callback counts and verifies original ISR completion",
+        "bounded SDRAM and kernel scratch RAM"
+      ]
+    },
+    "simulator_image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "results": [
+      {
+        "wait_cycles": 0,
+        "cycles": 11067,
+        "result": "PASS original NEM-4 DMA ISR wait=0 cycles=11067 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+        "log_sha256": "18db095db2c4ade81966d6a659a4f324e2e7621e64c77e41c715d890ddd2b258"
+      },
+      {
+        "wait_cycles": 3,
+        "cycles": 16449,
+        "result": "PASS original NEM-4 DMA ISR wait=3 cycles=16449 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+        "log_sha256": "877186c07096b9ee4438db1e4a6880e246c3bd03ac1630ddb48ec1309233f581"
+      }
+    ],
+    "source_sha256": {
+      "rtl/arm/zap_alu_main.sv": "1a9ef9e24fea467281045fe00236009f5eb12656d93531471156a452a1db0095",
+      "rtl/arm/zap_btb.sv": "2dc4c9b45501a2c45fa83d44cb82dc2858969a78775a63a0e955e303a4920b7e",
+      "rtl/arm/zap_cache.sv": "518091b7dd7570e807b26e10b1665fa2c42059d73199f90cd2f58ec180567ec0",
+      "rtl/arm/zap_core.sv": "81b47492c4e937b4af806aff4f9eea8ffd83f0c7581472d626a2edc75174856d",
+      "rtl/arm/zap_cp15_cb.sv": "48f5050dcc26d4bfdd374ef17dea6a5c2ee05967e10dae6cc348911fa6729466",
+      "rtl/arm/zap_data_completion.sv": "b1ca3318824b4263d99e224ce978a85f3d27768c5171ea874faa8abc764a76e9",
+      "rtl/arm/zap_dcache.sv": "13dcbce7bbb74ac2762138bc425fb0f58b5be7b16a9c0b498631f7a8890353af",
+      "rtl/arm/zap_decode.sv": "b0196d50bb714a4fccd8ed9692bb285672435a4db36c02465ea61175b30b2913",
+      "rtl/arm/zap_decode_main.sv": "0fc22ead311269efa07cd00a66f461b52e5859caa503805c087ab0bbe928069c",
+      "rtl/arm/zap_decompile.sv": "313b2d22c9a6d35b5ef1aea2892e1c2dc5ba593980cacbbaaf2227d12eebd481",
+      "rtl/arm/zap_decompile.svh": "13788aac7eb9e128fc4ad67658a053266b12a75aa1f1e68e2465df860703df22",
+      "rtl/arm/zap_defines.svh": "67fa8a73231b398a19637343c8c764cc9d4a3575b4a7aacfffeabd210703a734",
+      "rtl/arm/zap_dual_rank_synchronizer.sv": "f73494c1bb7d3546346b32e0244ffd8d73e6e5c8efb34c1ab04bb5709b882813",
+      "rtl/arm/zap_fetch_main.sv": "a6af0643075f03754f862db89a7fec37f2d8754d37b89f8f499e014cc0be262b",
+      "rtl/arm/zap_fifo.sv": "3af6c3e48c3d6e6429d68b59d962b7fd2ecf215faa7b627906ee74e239905e25",
+      "rtl/arm/zap_functions.svh": "9c62b8336a5d035535b42369995fd4f5f337caf243857b878ad85d71bde04b92",
+      "rtl/arm/zap_issue_main.sv": "393a34178d78dca7e3c857ade32b2a09025c4dbd199a075f90b8e55e5a873216",
+      "rtl/arm/zap_localparams.svh": "4a2834d59f367ca5b374d96317168eaf882df288a849a9cac929fcc9a339b4a7",
+      "rtl/arm/zap_memory_main.sv": "21462735f9b9ff8007b65918e58b33d2f1b72e6972fd34eab93da85821e828c9",
+      "rtl/arm/zap_mode16_decoder.sv": "47979fb06dbd3a7e1a527b9e6a533c314bc27300cfc5bb80ae6f98064879d93b",
+      "rtl/arm/zap_mode16_decoder_main.sv": "6d9cf536eb8c7f1efa5f5931ba44a72fc326025f50c57dc5160d96c2b3fae913",
+      "rtl/arm/zap_ones_counter.sv": "c00366f44f0a88c532806a7e95a01f71376558b2dd7ab2be3e6d0f4d56991cbc",
+      "rtl/arm/zap_operand_read.sv": "92bfed61d105fcb7482f2c15dbafeba7d258bd541f53342f14c9c5269526e3bc",
+      "rtl/arm/zap_postalu_main.sv": "67f1d62f72383dd3961f90eabd4345b829cc0043d06a0a1b6ad3722a02b5d7d2",
+      "rtl/arm/zap_predecode_coproc.sv": "001927bdf55935ee4535c2b1941dda2c3f612ebc1fb459867e3dd272b035ab02",
+      "rtl/arm/zap_predecode_main.sv": "70cce74af7de285a47d9440a2139f97e52d359593e67f39b34afa536df1f6dd3",
+      "rtl/arm/zap_predecode_uop_sequencer.sv": "9d0f58e32220d7c6f4d48907be2aa8475ae5d505f6b931235d6e8374dbcd7505",
+      "rtl/arm/zap_ram_simple_nopipe.sv": "69fb85af5f97f884586d2a6722f24d49621cef06d91377c7edcdd30a0de70750",
+      "rtl/arm/zap_register_file.sv": "cc289d9a2650d1e8c4c02e159fe86b8b5cea48639bbeb3ecb9ed07dddc327f83",
+      "rtl/arm/zap_shifter_main.sv": "8273424768af3e9b44c8bc225d5f0a5ddcde85d07a81e957e57d5bc3e43717f7",
+      "rtl/arm/zap_shifter_multiply.sv": "704d9f1531ad85078eefd63b8040e0ba27285e72e50f76ef021f9d74db4fc70b",
+      "rtl/arm/zap_shifter_shift.sv": "be45c1e46623571ed66549f448e04979abcbf4aa9912dbd3fcd9071b3e96b0ce",
+      "rtl/arm/zap_sync_fifo.sv": "e689ccd1e2ec1d24a131727c0b22189c12d9062ec1459bd4ee9f999c9463b7b2",
+      "rtl/arm/zap_top.sv": "a3c2aa7ee2a8d7ffcfaa18ad866ff231ac2941d3d43c958588f7d05584c4fd64",
+      "rtl/arm/zap_wb_merger.sv": "88f0e2ffe488d18a078bc34f2b2aa03715fbe4d94a6ea36ccd51ff9eda246a8d",
+      "rtl/arm/zap_writeback.sv": "4480b4d21515093c0f8a830e592b68774e920c3c53b63ea95efa282b76e0c75e",
+      "rtl/arm920/cache_access.sv": "b7ac7209f437280cbaeebfd0b4b23a33af03195862058a1cc31b0e5fa05bfca9",
+      "rtl/arm920/cache_adapter.sv": "04671eb3b4fa7fe004175c08266230cebd4e6d844e8a503e0385692f0f6e6457",
+      "rtl/arm920/cache_bank.sv": "681784004686c2cf353925660388ef642f7796c627e500067cdca0c4b315d327",
+      "rtl/arm920/cache_lines.sv": "3d909665b631ad57f0696e8ec9b608479c45c6ddaabd902defe54a0173bd9436",
+      "rtl/arm920/cache_maintenance.sv": "fb597ba510d78086ba6fa31c7ee07236686e409d2ff5c2af062a84e4906544c7",
+      "rtl/arm920/cache_refill.sv": "65980ddf557f19b01006ebf80ee4ec3adfd44539f6dff720fd1d1c645de2452c",
+      "rtl/arm920/cache_tags.sv": "2126e46dbc7fb6a831231f296d34e8e914eda68685e2c2bd644388b9429728fc",
+      "rtl/arm920/cache_transfer.sv": "3081549e2566b35f769dd6b4a1840c79dbf73b92f92da2b544670fb61f3103c1",
+      "rtl/arm920/tlb.sv": "84b66bbce35c2da1c7ab966a1f34c45a6c5605482cdb990fab60e0da4d713b6b",
+      "rtl/arm920/tlb_bank.sv": "b9be6836977579c98777e2ad14fa4f8a28b784b16712099ac3cfa21869091303",
+      "rtl/arm920/tlb_bus_gate.sv": "3df21a78deb07858cb5ed62ce4b90723e516a3553f4730d465b008b87f658709",
+      "rtl/arm920/write_buffer.sv": "3e68885210dc1281d5c51702662632d0002c59d95c352345f4c3396783617901",
+      "rtl/ngage_bram.v": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215",
+      "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+      "rtl/ngage_dma_channels.v": "dc17656725436483eea8aee5c715fcf97dd2852e6163500fb4dc46b37c485a0d",
+      "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+      "rtl/ngage_dma_route.v": "4e9daad6c59cc1b10a61c0211af16f5b631fa980c075076b1171c1e185b4d5c0",
+      "sim/programs/link.ld": "a4c0b87aeb5c2784b0d279b105e0881f3ee52e6a33ebb857f724acff99c16267",
+      "tests/phone/dma_isr/README.md": "7483e34a06afeb904b57c1132979717e270f93cdfadd92d9be27b5dfb73132cc",
+      "tests/phone/dma_isr/prepare.py": "0407aba9136627df8a074963d3e85df122319de3cb398d36479ef9ba8e0d08b4",
+      "tests/phone/dma_isr/program.S": "c5ce14bc2b633d5c2d8b113e769e341e05b63d29e6de62af447cd1d29dad8c65",
+      "tests/phone/dma_isr/results.py": "f2777509f5f21350bd785a0a82dfcd1f5b1da7b1d07b19e24aa11c59eeb4246a",
+      "tests/phone/dma_isr/run.sh": "e50dcfa9d6f9ad84d44c70f1d916d2075996a06071f5a6dbafab4d09860006c0",
+      "tests/phone/dma_isr/tb.v": "3ebc627509ba02ff945ecc2b1f5f122386741927a286392b73f693707f02f135"
+    },
+    "executable_sha256": "6b04818e4a20bdc02e1790c717d9b2ad2eb7c5b76236931da62c23808f9a80e4",
+    "checks": [
+      "remaining-zero exactly one callback",
+      "positive remaining original next chunk then final callback",
+      "channel ACK before restart and callback",
+      "original IRQ-disable wrapper and mask write",
+      "all 4096 SDRAM bytes and source/guard preservation",
+      "no original instruction substitutions"
+    ]
+  },
+  "source_hashes": {
+    "rtl/ngage_bram.v": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215",
+    "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+    "rtl/ngage_dma_channels.v": "dc17656725436483eea8aee5c715fcf97dd2852e6163500fb4dc46b37c485a0d",
+    "rtl/ngage_dma_route.v": "4e9daad6c59cc1b10a61c0211af16f5b631fa980c075076b1171c1e185b4d5c0",
+    "rtl/ngage_lcd_stream.v": "b5cdf3356c70fa44869fe9dfaab59af4e193bcc2ad755f3fa4ba7282298c7050",
+    "rtl/ngage_dma_ram_mux.v": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "tests/phone/dma_channels/README.md": "a0ebdd1f23a7c6a1f1d2b8e715ce265e8117352f37e536ea98595220a1bb183d",
+    "tests/phone/dma_channels/audit_rom.py": "5e3e59c870e4cabf5dd8863c54d6da1c4058a5c577ce9d8a7b5f723756bbe15d",
+    "tests/phone/dma_channels/concurrency_tb.v": "cdd4962656933cb53ecfedbd7310f8bb0171928a7044d3d475da70ba97bc0785",
+    "tests/phone/dma_channels/run-concurrency.sh": "f36919cedb7cea5529d600bf6720806e63490b9a041fa9649b1953801f4015ea",
+    "tests/phone/dma_channels/run.sh": "5cd50636dd7b098e7d82205c69d9d0c5f6dcfb776aba0042dddd57407aed5088",
+    "tests/phone/dma_channels/tb.v": "b59a89007b016ae139e6de509fbba6e50d97caa68e3f33f4943aee6c7637b00e",
+    "tests/phone/dma_original/tb.v": "3bb5e60b37c0d369b9547eba7e6825a1aa68df4fe08c2c604aeada65f35682e9",
+    "tests/phone/dma_original/run.sh": "e06e7279491c53c4e826d86214f8c11d03365d37e1843ce899dd87e40f7b2d45",
+    "tests/phone/dma_original/prepare.py": "c0e1157857d7c5b7ba8775d406e27d3cf9a294f7cb9764f53d92a5e4d5906290",
+    "tests/phone/dma_original/program.S": "fd02adb27c2a33556a2c58dc01366667c199257d61a11238028aead383aa5524",
+    "tests/phone/dma_isr/tb.v": "3ebc627509ba02ff945ecc2b1f5f122386741927a286392b73f693707f02f135",
+    "tests/phone/dma_isr/run.sh": "e50dcfa9d6f9ad84d44c70f1d916d2075996a06071f5a6dbafab4d09860006c0",
+    "tests/phone/dma_isr/prepare.py": "0407aba9136627df8a074963d3e85df122319de3cb398d36479ef9ba8e0d08b4",
+    "tests/phone/dma_isr/results.py": "f2777509f5f21350bd785a0a82dfcd1f5b1da7b1d07b19e24aa11c59eeb4246a",
+    "tests/phone/dma_isr/program.S": "c5ce14bc2b633d5c2d8b113e769e341e05b63d29e6de62af447cd1d29dad8c65"
+  },
+  "final_logs": {
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/final-ab.log": "7e501d0936d1ad7bdacd3957dd7f64a86221e5e65462cfa7e758290128ded66f",
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/dma/final-concurrency-ab.log": "ca14dd32cee497f446071535ee1b9e05847fe6b8d1ec97af2def124e0b7a42ec"
+  },
+  "limits": [
+    "synthetic FIFO and RAM timings; no phone/card throughput claim",
+    "CPU fairness experiment is memory-request arbitration, not executed CPU instructions",
+    "original CPU fixtures call original driver/ISR paths with documented bounded fixture state; no instruction substitutions",
+    "parent separately owns and verifies production two-worker UPP/full LCD/MMC wiring",
+    "new Quartus synthesis/fitting required to quantify ALM savings and104MHz timing"
+  ],
+  "preservation": "Only newly authored fit-recovery output paths written; other checkout, firmware/save inputs, previousp2/ISR evidence, simulations and billion-cycle checkpoint pairs untouched."
+}

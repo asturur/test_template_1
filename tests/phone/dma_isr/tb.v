@@ -22,13 +22,13 @@ module tb;
         cpu.u_zap.u_zap_core.u_zap_writeback.i_uop_last;
     wire [31:0] retired_pc = cpu.u_zap.u_zap_core.u_zap_writeback.i_pc_plus_8_buf_ff - 8;
     wire access = cyc && stb;
-    wire ack = access && delay >= wait_cycles;
+    wire ack = access && delay >= wait_cycles && (!in_dma || dma_ready);
     wire in_program = address < 8192;
     wire in_app = address >= 32'h50320000 && address < 32'h503d0000;
     wire in_kernel_ram = address >= 32'h80000000 && address < 32'h80020000;
     wire in_dma = address >= 32'h58120300 && address < 32'h58120500;
     wire page_table = address == 32'h41000280;
-    wire claim, bad;
+    wire claim, bad, dma_ready;
     wire [31:0] dma_data;
     wire [7:0] irq, errors, active;
     wire cmd_valid, cmd_ready, cmd_write, rsp_valid, rsp_error;
@@ -56,7 +56,7 @@ module tb;
     ngage_dma_channels dut (
         .clk(clk), .reset(reset), .req(access && in_dma), .commit(ack && in_dma),
         .we(write_op), .addr(address - 32'h4c000000), .din(value), .sel(lanes),
-        .claim(claim), .bad(bad), .dout(dma_data), .irq_pending(irq),
+        .claim(claim), .bad(bad), .dout(dma_data), .ready(dma_ready), .irq_pending(irq),
         .error_pending(errors), .active_channels(active),
         .source_ready(8'hff), .destination_ready(8'hff),
         .cmd_valid(cmd_valid), .cmd_ready(cmd_ready), .cmd_write(cmd_write),
@@ -129,8 +129,8 @@ module tb;
                 end else if (in_dma) begin
                     if (address[5:0] == 8 && value != 0) begin
                         if (irq != 0 || starts >= 3 || dut.ch != 1 ||
-                            dut.count_reg[1] != 7 || dut.swidth_reg[1] != 32 ||
-                            dut.dwidth_reg[1] != 32 || value != 1 ||
+                            dut.count_reg[1] != 7 || dut.source_bytes[1] != 4 ||
+                            dut.destination_bytes[1] != 4 || value != 1 ||
                             (starts == 2 && (acknowledgments != 2 || callbacks != 1)))
                             $fatal(1, "ISR start order count=%0d irq=%h ack=%0d", starts, irq, acknowledgments);
                         if (dut.src_reg[1] != (starts == 2 ? 32'h0a000110 : 32'h0a000100) ||
@@ -200,7 +200,12 @@ module tb;
                 $fatal(1, "CPU read outside ISR fixture %h pc=%h", address, pc);
         end
 
+    reg [4095:0] program_path, app_path;
     initial begin
+        program_path = "scratch/ngage2-integration/lcd-handover/isr/program.hex";
+        app_path = "scratch/ngage2-integration/lcd-handover/isr/app.hex";
+        if ($value$plusargs("program=%s", program_path)) begin end
+        if ($value$plusargs("app=%s", app_path)) begin end
         if (!$value$plusargs("wait=%d", wait_cycles)) wait_cycles = 0;
         for (i = 0; i < 32768; i = i + 1) kernel_ram[i] = 0;
         // Original wrapper validates handler ID against limit, then examines
@@ -210,8 +215,8 @@ module tb;
         kernel_ram[32'h673c >> 2] = 4096;
         for (i = 0; i < 4096; i = i + 1) ram[i] = 8'ha5;
         for (i = 0; i < 32; i = i + 1) ram[256+i] = i * 13 + 7;
-        $readmemh("scratch/ngage2-integration/lcd-handover/isr/program.hex", program_words);
-        $readmemh("scratch/ngage2-integration/lcd-handover/isr/app.hex", app_words);
+        $readmemh(program_path, program_words);
+        $readmemh(app_path, app_words);
         repeat (5) @(negedge clk);
         reset = 0;
     end

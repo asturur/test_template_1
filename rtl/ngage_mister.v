@@ -70,6 +70,7 @@ module ngage_mister #(
     input  wire        dma_rsp_error,
     input  wire [31:0] dma_rsp_data,
     input  wire        dma_local_valid,
+    input  wire        dma_local_waiting,
     output wire        dma_local_ready,
     input  wire        dma_local_write,
     input  wire [31:0] dma_local_addr,
@@ -157,7 +158,7 @@ module ngage_mister #(
 
     // --- board devices ------------------------------------------------------
     wire brd_claim, brd_ready, brd_unmodeled;
-    wire dma_claim, dma_bad, dma_lcd_valid, dma_frame_full;
+    wire dma_claim, dma_ready, dma_bad, dma_lcd_valid, dma_frame_full;
     wire [31:0] dma_reg_data, dma_lcd_data;
     wire [14:0] dma_lcd_addr;
     wire [31:0] brd_dout;
@@ -251,6 +252,7 @@ module ngage_mister #(
         .dma_rsp_error        (dma_rsp_error),
         .dma_rsp_data         (dma_rsp_data),
         .dma_local_valid      (DMA_LOCAL ? dma_local_valid : 1'b0),
+        .dma_local_waiting    (DMA_LOCAL ? dma_local_waiting : 1'b0),
         .dma_local_ready      (dma_local_ready),
         .dma_local_write      (dma_local_write),
         .dma_local_addr       (dma_local_addr),
@@ -260,6 +262,7 @@ module ngage_mister #(
         .dma_local_error      (dma_local_error),
         .dma_local_rdata      (dma_local_rdata),
         .lcd_dma_claim        (dma_claim),
+        .lcd_dma_ready        (dma_ready),
         .lcd_dma_bad          (dma_bad),
         .lcd_dma_reg_data     (dma_reg_data),
         .lcd_dma_valid        (dma_lcd_valid),
@@ -545,7 +548,7 @@ module ngage_mister #(
     end
     wire lcd_write_collision = dma_lcd_valid && wb_cyc && wb_stb && wb_we && pa == 32'h0c121208;
     assign wb_ack = core_reset ? 1'b0 : memory_owned ? mem_ack :
-                    lcd_write_collision ? 1'b0 : dma_claim ? !dma_bad :
+                    lcd_write_collision ? 1'b0 : dma_claim ? (dma_ready && !dma_bad) :
                     brd_claim ? (brd_ready && !brd_unmodeled) : 1'b0;
     assign wb_dat_i = memory_owned ? (memory_owner[0] ? sdram_dout :
                                      memory_owner[2] ? user_data : code_data) :

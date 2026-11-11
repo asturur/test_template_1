@@ -5,7 +5,7 @@
 // remain outside this block. Live cached and buffered operations retry bus
 // errors without an architectural external abort. An instruction request
 // superseded by a queued redirect may discard a failed refill below.
-module arm920_cache_access #(parameter LINE_REFILL=0) (
+module arm920_cache_access #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
 
     output wire line_req,
     output wire [31:0] line_addr,
@@ -290,7 +290,7 @@ module arm920_cache_access #(parameter LINE_REFILL=0) (
             bus_held_refill <= choose_refill;
         end
     end
-    arm920_cache_bank bank (
+    arm920_cache_bank #(.READ_ONLY(READ_ONLY)) bank (
         .clk                 (clk),
         .reset               (reset),
         .mva                 (lookup_owner_mva),

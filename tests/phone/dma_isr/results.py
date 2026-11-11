@@ -2,11 +2,12 @@
 """Write the focused fixture's compact evidence from successful local runs."""
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
-OUT = Path('scratch/ngage2-integration/lcd-handover/isr')
+OUT = Path(os.environ.get('PHONE_TEST_OUT', 'scratch/ngage2-integration/lcd-handover/isr'))
 SOURCES = sorted(set(
     list(Path('tests/phone/dma_isr').glob('*'))
     + list(Path('rtl/arm').glob('*.sv'))

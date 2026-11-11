@@ -6,7 +6,7 @@ module tb;
     reg reset = 1, req = 0, commit = 0, we = 0;
     reg [31:0] addr = 0, din = 0;
     reg [3:0] sel = 15;
-    wire claim, bad;
+    wire claim, bad, ready;
     wire [31:0] dout;
     wire [7:0] irq, errors, active;
     reg [7:0] src_ready = 255, dst_ready = 255;
@@ -51,6 +51,7 @@ module tb;
         .claim            (claim),
         .bad              (bad),
         .dout             (dout),
+        .ready            (ready),
         .irq_pending      (irq),
         .error_pending    (errors),
         .active_channels  (active),
@@ -66,6 +67,36 @@ module tb;
         .rsp_error        (rsp_error),
         .rsp_data         (rsp_data)
     );
+`ifdef DMA_BASELINE
+    wire baseline_claim, baseline_bad, baseline_valid, baseline_write;
+    wire [31:0] baseline_data, baseline_addr, baseline_wdata;
+    wire [3:0] baseline_be;
+    wire [7:0] baseline_irq, baseline_errors, baseline_active;
+    ngage_dma_channels_baseline #(.ENGINES(ENGINES)) baseline (
+        .clk(clk), .reset(reset), .req(req), .commit(commit), .we(we),
+        .addr(addr), .din(din), .sel(sel), .claim(baseline_claim),
+        .bad(baseline_bad), .dout(baseline_data), .irq_pending(baseline_irq),
+        .error_pending(baseline_errors), .active_channels(baseline_active),
+        .source_ready(src_ready), .destination_ready(dst_ready),
+        .cmd_valid(baseline_valid), .cmd_ready(cmd_ready), .cmd_write(baseline_write),
+        .cmd_addr(baseline_addr), .cmd_data(baseline_wdata), .cmd_be(baseline_be),
+        .rsp_valid(rsp_valid), .rsp_error(rsp_error), .rsp_data(rsp_data)
+    );
+    always @(negedge clk) begin
+        #2;
+        if (!reset) begin
+            if ({claim,bad,irq,errors,active,cmd_valid} !==
+                {baseline_claim,baseline_bad,baseline_irq,baseline_errors,
+                 baseline_active,baseline_valid})
+                $fatal(1,"baseline DMA control/dispatch mismatch");
+            if (cmd_valid && {cmd_write,cmd_addr,cmd_data,cmd_be} !==
+                {baseline_write,baseline_addr,baseline_wdata,baseline_be})
+                $fatal(1,"baseline DMA external packet mismatch");
+            if (req && !we && ready && claim && !bad && dout !== baseline_data)
+                $fatal(1,"baseline full readback mismatch %h got%h old%h",addr,dout,baseline_data);
+        end
+    end
+`endif
     ngage_dma_route route (
         .clk        (clk),
         .reset      (reset),
@@ -142,6 +173,7 @@ module tb;
         stalled_packet <= {cmd_write, cmd_addr, cmd_data, cmd_be};
     end
 
+    integer readbacks=0, read_waits=0, cycles=0;
     task put;
         input integer channel;
         input [5:0] off;
@@ -154,7 +186,7 @@ module tb;
             commit = 1;
             we     = 1;
             #1;
-            if (!claim || bad) $fatal(1, "register rejected ch=%0d off=%h", channel, off);
+            if (!claim || bad || !ready) $fatal(1, "register rejected ch=%0d off=%h", channel, off);
             @(negedge clk);
             req    = 0;
             commit = 0;
@@ -170,6 +202,8 @@ module tb;
             addr = 32'h0c120300 + channel * 64 + off;
             req  = 1;
             #1;
+            while (!ready) begin read_waits=read_waits+1; @(negedge clk); #1; end
+            readbacks=readbacks+1;
             if (!claim || bad || dout !== value)
                 $fatal(1, "register ch=%0d off=%h got=%h expected=%h", channel, off, dout, value);
             @(negedge clk);
@@ -197,7 +231,15 @@ module tb;
             repeat (3) @(negedge clk);
         end
     endtask
-    integer ch, j, old_commands, old_writes;
+    integer ch, j, old_commands, old_writes, round_no, word_no;
+    reg [31:0] raw_value;
+    function [5:0] raw_offset;
+        input integer word_index;
+        begin
+            raw_offset = word_index == 0 ? 6'h04 : 6'h10 + word_index*4;
+        end
+    endfunction
+    always @(posedge clk) if (!reset) cycles=cycles+1;
     initial begin
         for (j = 0; j < 4096; j = j + 1) begin
             ram[j]  = (j * 37 + (j >> 3) + 5) & 255;
@@ -205,6 +247,44 @@ module tb;
         end
         repeat (4) @(negedge clk);
         reset = 0;
+
+        // All 2048 raw programming bits retain arbitrary values. Reset uses
+        // word-valid bits, never a payload clear loop or truncated mode echo.
+        for(ch=0;ch<8;ch=ch+1)
+            for(word_no=0;word_no<8;word_no=word_no+1)
+                get(ch,raw_offset(word_no),0);
+        for(round_no=0;round_no<4;round_no=round_no+1)
+            for(ch=0;ch<8;ch=ch+1)
+                for(word_no=0;word_no<8;word_no=word_no+1)begin
+                    case(round_no)
+                        0: raw_value=32'hffffffff;
+                        1: raw_value=32'h80000000 | (ch<<16) | word_no;
+                        2: raw_value=32'h10000020 ^ (ch<<20) ^ (word_no<<8);
+                        default: raw_value=32'h13579bdf ^ (ch*32'h24680101) ^ (word_no*32'h01020408);
+                    endcase
+                    put(ch,raw_offset(word_no),raw_value);
+                    get(ch,raw_offset(word_no),raw_value);
+                end
+        // A changed query cannot reuse an earlier word's registered result.
+        @(negedge clk);req=1;we=0;addr=32'h0c120304;#1;
+        while(!ready)begin @(negedge clk);#1;end
+        addr=32'h0c1204ec;#1;
+        if(ready)$fatal(1,"changed raw-read address reused stale ready");
+        @(negedge clk);#1;
+        if(!ready)$fatal(1,"registered raw read did not become ready");
+        repeat(5)begin
+            @(negedge clk);#1;
+            if(!ready || dout!==(32'h13579bdf ^ (7*32'h24680101) ^ (7*32'h01020408)))
+                $fatal(1,"held programming read changed");
+        end
+        req=0;
+        // A canceled pre-lookup read has no side effect. Physical RAM contents
+        // survive reset, but every unwritten logical word reads zero afterward.
+        @(negedge clk);req=1;addr=32'h0c12031c;#1;req=0;
+        reset=1;repeat(2)@(negedge clk);reset=0;
+        for(ch=0;ch<8;ch=ch+1)
+            for(word_no=0;word_no<8;word_no=word_no+1)
+                get(ch,raw_offset(word_no),0);
 
         // Fill the engine pool and queue every remaining channel behind it.
         hold_ram = 1;
@@ -215,6 +295,7 @@ module tb;
         if (active !== 8'hff || irq != 0) $fatal(1, "queued channels lost");
         // Queued descriptors cannot observe later programming-latch writes.
         put(7, 6'h14, 32'h0b000000);
+        get(7, 6'h14, 32'h0b000000);
         hold_ram = 0;
         idle;
         if (irq !== 8'hff || errors != 0) $fatal(1, "multi-channel completion ownership");
@@ -223,6 +304,9 @@ module tb;
             if (ram[1024+ch*32+j] !== ram[ch*32+j]) $fatal(1, "channel %0d byte %0d", ch, j);
             get(ch, 6'h08, 0);
         end
+        put(3, 6'h04, 32'hffffffff);
+        get(3, 6'h04, 32'hffffffff);
+        if (irq !== 8'hff) $fatal(1,"nonzero enable echo acknowledged IRQ");
         put(3, 6'h04, 0);
         if (irq !== 8'hf7) $fatal(1, "ACK cleared wrong channel");
         for (ch = 0; ch < 8; ch = ch + 1) put(ch, 6'h08, 0);
@@ -331,6 +415,21 @@ module tb;
         if (errors !== 64 || irq != 0 || commands != old_commands) $fatal(1, "invalid descriptor");
         put(6, 6'h04, 0);
 
+        // Width validation uses the full original word, not its low byte.
+        setup(6,32'h0a000100,32'h0a000680,0,32'h10000020,32,32'h80000000,32'hffffffff);
+        get(6,6'h1c,32'h10000020);
+        old_commands=commands;
+        put(6,6'h08,1);idle;
+        if(errors!==64 || irq!=0 || commands!=old_commands)
+            $fatal(1,"invalid width high bits truncated before dispatch");
+        put(6,6'h04,0);
+        setup(6,32'h0a000100,32'h0a000680,1,32,32,32'h80000000,32'hffffffff);
+        put(6,6'h08,1);idle;
+        if(irq!==64 || errors!=0)$fatal(1,"nonzero high mode bits lost");
+        for(j=0;j<4;j=j+1)
+            if(ram[1664+j]!==ram[256+j])$fatal(1,"high mode increment byte%0d",j);
+        put(6,6'h04,0);
+
         // Unknown paced count rules must not silently use the source width.
         setup(6, 32'h0a000100, 32'h0c004080, 9, 32, 8, 0, 0);
         old_commands = commands;
@@ -386,6 +485,10 @@ module tb;
         $display(
             "PASS DMA channels engines=%0d queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
             ENGINES);
+        $display("PASS DMA full raw readback words=%0d wait_clocks=%0d cycles=%0d",readbacks,read_waits,cycles);
+`ifdef DMA_BASELINE
+        $display("PASS DMA baseline cycle-exact packets/dispatch/IRQ and full readback");
+`endif
         $finish;
     end
     initial begin

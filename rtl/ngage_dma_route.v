@@ -30,7 +30,8 @@ module ngage_dma_route #(
     output wire [ 3:0] local_be,
     input  wire        local_done,
     input  wire        local_error,
-    input  wire [31:0] local_rdata
+    input  wire [31:0] local_rdata,
+    output wire        local_waiting
 );
     localparam IDLE = 3'd0, RAM = 3'd1, LOCAL_WAIT = 3'd2, LOCAL_ACTIVE = 3'd3, REJECT = 3'd4;
     localparam [31:0] LCD_FIFO = 32'h0c121208;
@@ -66,7 +67,11 @@ module ngage_dma_route #(
     assign ram_data  = start_ram ? cmd_data : local_data;
     assign ram_be    = start_ram ? cmd_be : local_be;
 
-    assign local_valid = !reset && !cpu_lock && (state == LOCAL_WAIT || (live_mmc && cmd_valid));
+    assign local_valid   = !reset && !cpu_lock && (state == LOCAL_WAIT || (live_mmc && cmd_valid));
+    // Generic local admission derives only from the captured request state.
+    // Live MMC already owns a separate registered UPP reservation; do not
+    // feed its cancelable cmd_valid back into CPU request exclusion.
+    assign local_waiting = !reset && !cpu_lock && state == LOCAL_WAIT;
     wire take_local = local_valid && local_ready;
     wire local_response = (take_local || state == LOCAL_ACTIVE) && local_done;
     assign rsp_valid = !reset && ((state == RAM && ram_ack) || local_response || state == REJECT);

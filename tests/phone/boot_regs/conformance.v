@@ -3,7 +3,7 @@ module tb;
     reg clk = 0, reset = 1, req = 0, commit = 0, we = 0;
     reg [31:0] addr = 0, din = 0;
     reg [3:0] sel = 0;
-    wire claim, bad;
+    wire claim, bad, ready;
     wire [31:0] dout;
     reg [31:0] address_map[0:55], expected[0:55];
     reg [3:0] written[0:55];
@@ -11,7 +11,7 @@ module tb;
     reg [31:0] mask, wanted;
     reg wanted_claim, wanted_bad;
     always #5 clk = ~clk;
-    ngage_boot_regs dut(clk, reset, req, commit, we, addr, din, sel, claim, bad, dout);
+    ngage_boot_regs dut(clk, reset, req, commit, we, addr, din, sel, claim, bad, dout, ready);
     task check;
         begin
             slot = -1;
@@ -25,7 +25,7 @@ module tb;
                 wanted = slot < 11 ? expected[slot] & mask : expected[slot];
                 wanted_bad = !we && ((written[slot] & sel) != sel);
             end
-            if (claim !== wanted_claim || bad !== wanted_bad || dout !== wanted)
+            if (claim !== wanted_claim || bad !== wanted_bad || ((!we && ready || !req) && dout !== wanted))
                 $fatal(1, "boot conformance addr=%h sel=%h req=%b we=%b got=%b/%b/%h expected=%b/%b/%h",
                        addr, sel, req, we, claim, bad, dout, wanted_claim, wanted_bad, wanted);
         end
@@ -71,6 +71,14 @@ module tb;
             din = $random(seed);
             reset = iteration % 997 == 996;
             cycle;
+        end
+        // Exercise completed synchronous reads, not only canceled random requests.
+        reset = 0; req = 1; we = 0; commit = 0; sel = 15;
+        for (iteration = 0; iteration < 56; iteration = iteration + 1) begin
+            addr = address_map[iteration];
+            cycle;
+            cycle;
+            if (!ready) $fatal(1, "boot RAM read did not become ready");
         end
         $display("PASS boot register conformance: 12000 cycles, all latches, masks, holes and resets");
         $finish;

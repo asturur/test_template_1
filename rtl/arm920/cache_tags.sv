@@ -4,7 +4,7 @@
 // Mutation pulses capture a record, committed on the following edge.
 // Callers serialize mutations and allow fresh lookup stages after commit.
 // 16 KiB / 32-byte lines = 8 segments x 64 indices, MVA lookup and PA tags.
-module arm920_cache_tags (
+module arm920_cache_tags #(parameter READ_ONLY = 0) (
     input  logic        clk,
     input  logic        reset,
     input  logic [31:0] mva,
@@ -137,15 +137,11 @@ module arm920_cache_tags (
         // Select the victim flags from the same captured segment snapshot.
         // Split segment/way selection across the existing two lookup edges.
         compare_victim_valid <= read_valid_bits[read_victim_way];
-        compare_victim_dirty <= read_dirty_bits[read_victim_way];
         compare_victim_pa    <= victim_pa_data;
         for (lookup_way = 0; lookup_way < 64; lookup_way = lookup_way + 1) begin
             read_valid_bits[lookup_way] <= |(valid_by_segment[lookup_way] & lookup_segment_select);
-            read_dirty_bits[lookup_way][0] <= |(dirty0_by_segment[lookup_way] & lookup_segment_select);
-            read_dirty_bits[lookup_way][1] <= |(dirty1_by_segment[lookup_way] & lookup_segment_select);
             match_bits[lookup_way] <= !reset && !invalidate_all &&
                 read_valid_bits[lookup_way] && tag_data[lookup_way] == read_mva[31:8];
-            compare_dirty[lookup_way] <= read_dirty_bits[lookup_way];
         end
         commit_mva        <= lookup_mva;
         commit_pa         <= fill_physical;
@@ -157,6 +153,29 @@ module arm920_cache_tags (
         commit_clean      <= commit_allowed && clean_hit;
         commit_invalidate <= commit_allowed && invalidate_line;
     end
+    // The instruction-only instance has no dirty state or dirty pipeline.
+    // Read/write caches retain the same first-read and compare-stage registers.
+    genvar dirty_way;
+    generate
+        if (READ_ONLY) begin : read_only_dirty_pipeline
+            assign compare_victim_dirty = 2'b00;
+        end else begin : writable_dirty_pipeline
+            always @(posedge clk)
+                compare_victim_dirty <= read_dirty_bits[read_victim_way];
+        end
+        for (dirty_way = 0; dirty_way < 64; dirty_way = dirty_way + 1) begin : dirty_pipeline
+            if (READ_ONLY) begin : read_only
+                assign read_dirty_bits[dirty_way] = 2'b00;
+                assign compare_dirty[dirty_way] = 2'b00;
+            end else begin : writable
+                always @(posedge clk) begin
+                    read_dirty_bits[dirty_way][0] <= |(dirty0_by_segment[dirty_way] & lookup_segment_select);
+                    read_dirty_bits[dirty_way][1] <= |(dirty1_by_segment[dirty_way] & lookup_segment_select);
+                    compare_dirty[dirty_way] <= read_dirty_bits[dirty_way];
+                end
+            end
+        end
+    endgenerate
     // A balanced tree preserves lowest-way priority even for duplicate tags.
     // A procedural "if (!hit)" loop builds a serial 64-way selection chain.
     wire [126:0] hit_tree;
@@ -197,28 +216,37 @@ module arm920_cache_tags (
                 always_ff @(posedge clk) begin
                     if (reset || invalidate_all) begin
                         valid[flag_segment][flag_way] <= 0;
-                        dirty[flag_segment][flag_way] <= 0;
                     end else if (!lock_write) begin
                         if (scan_invalidate) begin
-                            if (scan_segment == flag_segment && scan_way == flag_way) begin
-                                valid[flag_segment][flag_way] <= 0;
-                                dirty[flag_segment][flag_way] <= 0;
-                            end
-                        end else if (scan_clean) begin
                             if (scan_segment == flag_segment && scan_way == flag_way)
-                                dirty[flag_segment][flag_way] <= 0;
-                        end else if (commit_segment == flag_segment) begin
-                            if (commit_selected[flag_way]) begin
-                                if (commit_invalidate) begin
-                                    valid[flag_segment][flag_way] <= 0;
-                                    dirty[flag_segment][flag_way] <= 0;
-                                end else if (commit_clean) dirty[flag_segment][flag_way] <= 0;
-                                else if (commit_write)
-                                    dirty[flag_segment][flag_way][commit_mva[4]] <= 1;
-                            end
-                            if (fill_commit && commit_way == flag_way) begin
+                                valid[flag_segment][flag_way] <= 0;
+                        end else if (!scan_clean && commit_segment == flag_segment) begin
+                            if (commit_selected[flag_way] && commit_invalidate)
+                                valid[flag_segment][flag_way] <= 0;
+                            if (fill_commit && commit_way == flag_way)
                                 valid[flag_segment][flag_way] <= 1;
-                                dirty[flag_segment][flag_way] <= 0;
+                        end
+                    end
+                end
+                if (READ_ONLY) begin : read_only
+                    assign dirty[flag_segment][flag_way] = 2'b00;
+                end else begin : writable
+                    always_ff @(posedge clk) begin
+                        if (reset || invalidate_all) begin
+                            dirty[flag_segment][flag_way] <= 0;
+                        end else if (!lock_write) begin
+                            if (scan_invalidate || scan_clean) begin
+                                if (scan_segment == flag_segment && scan_way == flag_way)
+                                    dirty[flag_segment][flag_way] <= 0;
+                            end else if (commit_segment == flag_segment) begin
+                                if (commit_selected[flag_way]) begin
+                                    if (commit_invalidate || commit_clean)
+                                        dirty[flag_segment][flag_way] <= 0;
+                                    else if (commit_write)
+                                        dirty[flag_segment][flag_way][commit_mva[4]] <= 1;
+                                end
+                                if (fill_commit && commit_way == flag_way)
+                                    dirty[flag_segment][flag_way] <= 0;
                             end
                         end
                     end

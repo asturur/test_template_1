@@ -26,7 +26,7 @@ module tb;
     wire       in_kernel_ram = address >= 32'h80000000 && address < 32'h80020000;
     wire       in_dma = address >= 32'h58120300 && address < 32'h58120500;
     wire       selector = address == 32'h58120064 || address == 32'h58120068;
-    wire claim, bad;
+    wire claim, bad, dma_ready;
     wire [31:0] dma_data;
     wire [7:0] irq, errors, active;
     wire cmd_valid, cmd_ready, cmd_write, rsp_valid, rsp_error;
@@ -86,6 +86,7 @@ module tb;
         .claim            (claim),
         .bad              (bad),
         .dout             (dma_data),
+        .ready            (dma_ready),
         .irq_pending      (irq),
         .error_pending    (errors),
         .active_channels  (active),
@@ -212,14 +213,14 @@ module tb;
                     if (address[5:0] == 8 && value != 0) begin
                         if (starts >= 4 || irq != 0 || dut.ch !== starts[2:0] ||
                         dut.count_reg[dut.ch] !== ((starts == 0 || starts == 3) ? 7 : 15) ||
-                        dut.swidth_reg[dut.ch] !== (starts == 2 ? 8 : starts == 3 ? 16 : 32) ||
-                        dut.dwidth_reg[dut.ch] !== (starts == 1 ? 8 : 32) ||
+                        dut.source_bytes[dut.ch] !== (starts == 2 ? 1 : starts == 3 ? 2 : 4) ||
+                        dut.destination_bytes[dut.ch] !== (starts == 1 ? 1 : 4) ||
                         value !== ((starts == 0 || starts == 3) ? 1 : 2))
                             $fatal(1, "original descriptor mismatch case=%0d", starts);
                         $display(
                             "original descriptor ch=%0d source=%h destination=%h widths=%0d/%0d raw_count=%0d control=%0d",
                             dut.ch, dut.src_reg[dut.ch], dut.dst_reg[dut.ch],
-                            dut.swidth_reg[dut.ch], dut.dwidth_reg[dut.ch], dut.count_reg[dut.ch],
+                            dut.source_bytes[dut.ch]*8, dut.destination_bytes[dut.ch]*8, dut.count_reg[dut.ch],
                             value);
                         starts <= starts + 1;
                     end
@@ -253,7 +254,12 @@ module tb;
                 $fatal(1, "CPU read outside fixture %h pc=%h", address, pc);
         end
 
+    reg [4095:0] program_path, app_path;
     initial begin
+        program_path = "scratch/ngage2-integration/p2/original/program.hex";
+        app_path = "scratch/ngage2-integration/p2/original/app.hex";
+        if ($value$plusargs("program=%s", program_path)) begin end
+        if ($value$plusargs("app=%s", app_path)) begin end
         if (!$value$plusargs("wait=%d", wait_cycles)) wait_cycles = 0;
         for (i = 0; i < 32768; i = i + 1) kernel_ram[i] = 0;
         for (i = 0; i < 4096; i = i + 1) begin
@@ -264,8 +270,8 @@ module tb;
             ram[256+i]  = i * 13 + 7;
             chip[256+i] = 8'h80 + i;
         end
-        $readmemh("scratch/ngage2-integration/p2/original/program.hex", program_words);
-        $readmemh("scratch/ngage2-integration/p2/original/app.hex", app_words);
+        $readmemh(program_path, program_words);
+        $readmemh(app_path, app_words);
         repeat (5) @(negedge clk);
         reset = 0;
     end

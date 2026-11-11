@@ -235,7 +235,7 @@ module ngage_upp_peripherals #(
     wire icu_claim, icu_bad, timer_claim, timer_bad, nos_claim, nos_bad,
         nos_pending, periodic_active, boot_claim, boot_bad, trace_claim, trace_bad,
         nos_tick, gpio_loop_claim, gpio_loop_bad, extra_claim, extra_bad;
-    wire genio1_level;
+    wire genio1_level, boot_ready;
     wire [31:0] icu_data, timer_data, nos_data, boot_data, gpio_loop_data, extra_data;
     wire sysc74_seen;
 
@@ -357,7 +357,8 @@ module ngage_upp_peripherals #(
         .sel   (sel),
         .claim (boot_claim),
         .bad   (boot_bad),
-        .dout  (boot_data)
+        .dout  (boot_data),
+        .ready (boot_ready)
     );
     ngage_icu_extra extra_regs (
         .clk(clk),
@@ -580,6 +581,7 @@ module ngage_upp_peripherals #(
     // fixtures without a display keep their original immediate contract.
     wire lcd_can_accept = (!LCD_QUEUE_ENABLE || lcd_sink_ready) && !lcd_direct_collision;
     wire local_ready = init_done && (!extra_claim || (mmc_claim && !mmc_storage) || extra_ready) &&
+        (!boot_claim || boot_ready) &&
         (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
 

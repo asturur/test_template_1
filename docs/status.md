@@ -1,3 +1,30 @@
+## 2026-11-11: Fit recovery locally verified, rebuild pending
+
+Flow corrections are committed locally as1dd285e. The failed6b7be5a build
+reports47,296 required ALMs and52,920 registers. Its detailed RAM report lists
+511/553 M10Ks; the zero-RAM summary is a partial failed-fit result. New DMA/MMC
+logic dominates the added peripherals. Full-width DMA programming readback,
+boot scratch and sparse tags now use RAM; read-only I-cache dirty bookkeeping
+is explicitly absent. This intends three extra M10Ks, with actual area pending
+synthesis. No cache capacity, DMA channel count or fast LCD path is reduced.
+
+One/two/three-worker measurements establish two as sufficient for current
+MMC-wait/copy/native-LCD concurrency. Production uses two; the third did not
+improve measured throughput or CPU fairness. Captured local waiting state now
+breaks DMA cancellation feedback without an added transfer clock. Structural
+elaboration has no UNOPTFLAT warning; Quartus must confirm its timing graph.
+
+All local storage, cache equivalence, vendor RAM, CPU cache and combined board
+checks pass. Production MMC retains98 phases/667,085 clocks; full ARM LCD
+normal/held totals remain152,456/152,537 and frame interval130,685. CPU Hold,
+queued-tail/reset, masks and eight-channel IRQ cases pass. Hardware remains
+78 MHz;26 MHz timers and architecture are checked with the104 MHz profile.
+
+[Fit recovery](fit-recovery.md) records tradeoffs and evidence. Area/timing,
+full firmware UI wake and the hardware bad-pointer caller remain open. User
+authorized push and CI rebuild after fixes. No other checkout's simulation or
+checkpoint was changed, and no local Quartus toolchain was downloaded.
+
 ## 2026-11-11: Original IRQ/timer/keypad flow fixes verified locally
 
 Raw IRQ status now exposes all sources; FIQ current uses enabled-source

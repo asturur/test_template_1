@@ -86,6 +86,7 @@ module ngage_upp #(
     input  wire        dma_rsp_error,
     input  wire [31:0] dma_rsp_data,
     input  wire        dma_local_valid,
+    input  wire        dma_local_waiting,
     output wire        dma_local_ready,
     input  wire        dma_local_write,
     input  wire [31:0] dma_local_addr,
@@ -106,6 +107,7 @@ module ngage_upp #(
     input  wire        lcd_pixel_mode,
     input  wire        lcd_sink_ready,
     output wire        lcd_dma_claim,
+    output wire        lcd_dma_ready,
     output wire        lcd_dma_bad,
     output wire [31:0] lcd_dma_reg_data,
     output wire        lcd_dma_valid,
@@ -234,7 +236,18 @@ module ngage_upp #(
             assign dma_local_ready = !rst && init_done && slow_idle && !cpu_lock &&
                 !dma_local_active && !dma_local_gap && endpoint_ready && (prefer_dma || !slow_master_stb || lcd_reserved || mmc_reserved);
             wire dma_take = dma_local_valid && dma_local_ready;
-            wire block_cpu = dma_take || dma_local_active || dma_local_gap || ((lcd_reserved || mmc_reserved) && !cpu_lock);
+            // Captured local packets and registered endpoint reservations own
+            // admission. Live cancelable engine valid must not exclude the
+            // CPU that decodes the cancellation itself.
+            wire block_cpu = (dma_local_waiting && dma_local_ready) || dma_local_active || dma_local_gap || ((lcd_reserved || mmc_reserved) && !cpu_lock);
+`ifndef ALTERA_RESERVED_QIS
+`ifndef SYNTHESIS
+            always @(posedge clk) begin
+                if (!rst && dma_take && !block_cpu)
+                    $fatal(1, "DMA admission failed to exclude the CPU");
+            end
+`endif
+`endif
             assign dma_local_done  = !rst && dma_local_active && (cpu_ack || cpu_err);
             assign dma_local_error = dma_local_done && cpu_err;
             assign dma_local_rdata = cpu_rdata;
@@ -390,6 +403,9 @@ module ngage_upp #(
     generate
         if (GENERAL_DMA) begin : general_dma_enabled
             ngage_dma_channels #(
+                // Two workers preserve MMC-wait + copy concurrency. LCD has
+                // its own native stream; a third worker measured no benefit.
+                .ENGINES   (2),
                 .PRODUCTION(1)
             ) channels (
                 .clk              (clk),
@@ -403,6 +419,7 @@ module ngage_upp #(
                 .claim            (lcd_dma_claim),
                 .bad              (lcd_dma_bad),
                 .dout             (lcd_dma_reg_data),
+                .ready            (lcd_dma_ready),
                 .irq_pending      (general_dma_irq),
                 .error_pending    (dma_errors),
                 .active_channels  (dma_active),
@@ -441,6 +458,7 @@ module ngage_upp #(
             assign lcd_dma_addr     = 0;
             assign lcd_dma_data     = 0;
         end else begin : legacy_dma
+            assign lcd_dma_ready     = 1'b1;
             assign lcd_fast_valid    = 0;
             assign lcd_fast_data     = 0;
             assign lcd_waiting       = 0;

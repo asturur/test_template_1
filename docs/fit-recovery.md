@@ -1,0 +1,99 @@
+# Integration fit recovery
+
+## Failed build and resource attribution
+
+CI run43016356272 compiled `6b7be5a` and failed device capacity. The user supplied
+the full logs under `Downloads/quartus-logs`; they were read without alteration.
+The failed summary reports47,296 required ALMs versus41,910 available and52,920
+registers. The detailed fitter RAM report lists511/553 M10Ks, despite the
+partial summary showing zero RAM blocks. Logical memory bits were2,882,214;
+implementation allocation was5,232,640 bits. BRAM inference was present, with
+only42 blocks of headroom.
+
+The largest new peripheral contributions were the general DMA frontend
+(2,362 local ALMs;3,599 including workers/stream), MMC card(1,941), host(785)
+and HPS backing adapter(505). DDR transport/cache slices were much smaller.
+Existing boot registers, sparse tags and cache metadata also retained useful
+opportunities. The failed fitter's packing estimates are incomplete; adding
+source-level savings cannot predict a new physical fit.
+
+## Changes selected
+
+| Area | Recovery | Behaviour and latency |
+| --- | --- | --- |
+| DMA programming words | One64×32 M10K retains full raw readback; live source/destination/count and decoded mode/width metadata remain available to dispatch | All32 readback bits, invalid widths, queues and captured descriptors preserved. Raw programming reads gain one RAM clock; writes/start/stop/status and streaming timing stay unchanged. |
+| Boot scratch |45×32 data FFs move into one M10K; byte-valid flags remain resettable | Fixed boot latches stay immediate. Scratch reads wait for their RAM sample, including coherent error data. Unwritten bytes read zero after warm reset; data RAM needs no reset sweep. |
+| Sparse register tags | One extra M10K replaces64 full-address FF tags and the CAM/selection network | Full capacity, cold/warm reset, partial writes, overflow, cancellation and exact-once commit preserved. Collision-free lookup is2 clocks versus4 previously; adversarial64-entry collisions take65, plus one replacement bubble. |
+| Instruction cache | Static read-only specialization removes dirty metadata and its pipeline | No capacity, tag/data port, lookup stage or refill change. D-cache remains generic. Source-level omission is1,282 state bits, with zero extra M10Ks; physical savings require synthesis. |
+| Execution pool | Production uses two general DMA workers, retaining all eight programmable channels | Native LCD streaming remains separate. Two workers retain the measured MMC-wait plus copy concurrency; a third adds no benefit in those jobs. |
+
+These storage changes intend three additional M10Ks. Full-width register
+contents are retained rather than truncated to fit. They do not enable a slower
+LCD implementation or reduce cache capacity. Runtime OSD settings or an absent
+MMC image do not remove gateware; compile-time selection of two workers does
+remove the third worker.
+
+### DMA worker measurements
+
+The same native18,304-word LCD stream, router, RAM mux and CPU/DMA SDRAM arbiter
+were exercised with one/two/three workers. With one MMC FIFO stalled, one worker
+completed no copy words by LCD completion. Two and three both completed128 copy
+words and had identical timing. CPU maximum acknowledgement gap was8 clocks
+in every case.
+
+| Workload | One worker | Two workers | Three workers |
+| --- | ---: | ---: | ---: |
+| Isolated normal MMC,256 bytes |1,284 clocks |1,284 |1,284 |
+| Isolated full LCD |146,434 clocks |146,434 |146,434 |
+| LCD with stalled MMC and copy |146,431; copy blocked |148,479; copy complete |148,479; copy complete |
+| Finish outstanding work after MMC release |3,324 clocks |1,272 |1,272 |
+
+The2,048 additional LCD clocks in the concurrent case are useful shared-RAM
+copy traffic, not a worker overhead. These are synthetic transport measurements,
+not phone throughput. A future workload with multiple independently blocked
+peripherals may justify a larger pool. Current wired peripherals are LCD and
+MMC; memory copies are another job class. On-chip-RAM LCD uses a general worker;
+the normal SDRAM LCD stream has its own path.
+
+## Structural DMA timing correction
+
+The failed build also reported a combinational feedback path through live MMC
+`cmd_valid`, local admission, CPU exclusion and CPU cancellation decode.
+Logical MMC reservation made a functional oscillation unproven, but cutting
+that timing path was not acceptable as a timing solution.
+
+The router now exports `local_waiting` directly from its captured LOCAL_WAIT
+state. UPP excludes CPU admission using that state and the existing registered
+LCD/MMC reservations. Actual DMA take/accept timing is unchanged; every accepted
+word must still exclude the CPU. No DMA state or transfer clock was added.
+The final structural elaboration reports no UNOPTFLAT loop. A new Quartus run
+must confirm that its own loop/timing warnings are gone.
+
+## Local validation
+
+- Boot scratch: directed reset/byte-valid tests plus12,000 randomized cycles,
+  both ordinary RAM and the existing Intel `altsyncram` model.
+- Sparse storage:22,430 oracle transactions across capacities1/2/3/5/64,
+  with both RAM models, full collisions, all address bits, cancellation at
+  every probe/result stage and cold/warm reset.
+- DMA: old/new packet, dispatch, IRQ and full readback equivalence for
+  one/two/three workers;397 readbacks each. The worker benchmark above also
+  compares old/new externally visible transactions.
+- Instruction cache: cycle equivalence for wide and halfword refill, five
+  generic cache suites, twelve CPU cache/prefetch/IRQ runs and patch replay.
+- Combined board: IRQ/timer/keypad, ownership, registered response and clocks;
+  actual MMC bus plus98 all-channel DMA phases; fast LCD queue/tail fences.
+- Combined ARM at the104 MHz timer profile: board IRQ/FIQ/keypad/local DMA/
+  LCD/fault checks and production full-frame/row-band/copy/hold/reset tests.
+  Normal/held totals remain exactly152,456/152,537 clocks; the fast frame
+  interval remains130,685 clocks.
+
+Evidence is in [fit-recovery-2026-11-11.json](evidence/fit-recovery-2026-11-11.json),
+[I-cache evidence](evidence/icache-read-only-2026-11-11.json), and the isolated
+scratch paths it references. The generic DMA default remains three for tests;
+production explicitly selects two. Hardware PLL selection remains78 MHz, with
+104 MHz kept as the architectural timing target. No local Quartus download,
+other checkout simulation operation or old checkpoint mutation occurred.
+
+Actual ALM/register/M10K allocation and timing remain pending a new CI fit.
+Neither this recovery nor the pointer observer proves full firmware UI wake.

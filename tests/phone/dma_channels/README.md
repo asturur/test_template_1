@@ -2,7 +2,7 @@
 
 Run `sh tests/phone/dma_channels/run.sh` from the repository root. It uses the
 installed `jotego/simulator:arm64` image with networking and image pulling
-disabled. Logs are in `build/sim/unit-dma-channels-{1,3}/`.
+disabled. Logs are in `build/sim/unit-dma-channels-{1,2,3}/`.
 
 `ngage_dma_channels.v` snapshots eight channel descriptors into a configurable
 execution pool (default three engines). Round-robin dispatch and word grants
@@ -44,7 +44,7 @@ RAM and test FIFO endpoints. It checks all eight queued channels, immutable
 snapshots, halfword memory counts at 32-bit width, byte peripheral TX/RX
 counts, partial tails and sentinels, paced peers, selective IRQ ACK, accepted
 word stop/restart, route/target errors, invalid descriptors, held commands,
-SWP lock exclusion and coordinated reset. One- and three-engine builds pass.
+SWP lock exclusion and coordinated reset. One-, two- and three-engine builds pass.
 The byte FIFO at shared-RAM address `0x0c004080` is fixture-only; it adds no
 production peripheral alias. CPU-side fairness remains covered by the B1
 router/UPP tests. An execution pool occupied entirely by paused descriptors
@@ -64,3 +64,23 @@ python3 tests/phone/dma_channels/audit_rom.py /path/to/ngage-rom-0x50000000.dmp
 This needs the existing Python Capstone installation. It verifies the fixture
 hash, original register helpers, peripheral width/count tables and DMA IRQ
 name indices. No firmware bytes are copied into the repository.
+
+
+The programming-word readback payload now resides in a single 64x32 M10K.
+All 32 bits of every implemented word are preserved; reset-valid bits mask
+retained physical RAM. Source/destination/count mirrors and decoded width/
+mode metadata remain live for immediate start snapshots. Raw programming
+reads wait one RAM clock through `ready`; writes, selectors and active/status
+reads retain their previous timing. The fixture includes arbitrary complete
+readback, invalid high-bit width codes, high-bit-only nonzero modes, held and
+changed queries, cancellation, reset masking and reads during queued work.
+
+Run `sh tests/phone/dma_channels/run-concurrency.sh` for the production worker
+comparison. It measures pools of one, two and three using the actual router,
+LCD RAM mux and CPU/DMA arbiter. Synthetic memory has two wait-count clocks;
+a continuous synthetic CPU memory-request stream checks arbitration fairness.
+Modes cover a blocked MMC FIFO plus memory copy and a complete native fast-LCD
+stream, isolated continuously-ready MMC, and isolated fast LCD. This is a
+transport/concurrency comparison, not a physical card/phone speed measurement.
+See [DMA readback RAM](../../../docs/dma-readback-ram.md) for the measured
+results and boundaries.

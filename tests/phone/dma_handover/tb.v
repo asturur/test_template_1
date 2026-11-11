@@ -19,7 +19,7 @@ module tb;
  wire [3:0] dma_cmd_be;
  wire dma_cmd_ready,dma_rsp_valid,dma_rsp_error;
  wire [31:0] dma_rsp_data;
- wire local_valid,local_ready,local_write,local_done,local_error;
+ wire local_waiting,local_valid,local_ready,local_write,local_done,local_error;
  wire [31:0] local_addr,local_data,local_rdata;
  wire [3:0] local_be;
  wire fast_req,fast_accept,fast_ack,merge_req,merge_write,merge_ack,merge_accept;
@@ -43,7 +43,7 @@ module tb;
   .cmd_write(dma_cmd_write),.cmd_addr(dma_cmd_addr),.cmd_data(dma_cmd_data),.cmd_be(dma_cmd_be),
   .rsp_valid(dma_rsp_valid),.rsp_error(dma_rsp_error),.rsp_data(dma_rsp_data),
   .ram_req(dsreq),.ram_write(dswe),.ram_addr(dsa),.ram_data(dsd),.ram_be(dsb),.ram_ack(dsack),.ram_rdata(dsread),
-  .local_valid(local_valid),.local_ready(local_ready),.local_write(local_write),.local_addr(local_addr),
+  .local_valid(local_valid),.local_waiting(local_waiting),.local_ready(local_ready),.local_write(local_write),.local_addr(local_addr),
   .local_data(local_data),.local_be(local_be),.local_done(local_done),.local_error(local_error),.local_rdata(local_rdata)
  );
  ngage_mister #(.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DMA_LOCAL(1)) dut(
@@ -55,7 +55,7 @@ module tb;
   .dma_cmd_valid(dma_cmd_valid),.dma_cmd_ready(dma_cmd_ready),.dma_cmd_write(dma_cmd_write),
   .dma_cmd_addr(dma_cmd_addr),.dma_cmd_data(dma_cmd_data),.dma_cmd_be(dma_cmd_be),
   .dma_rsp_valid(dma_rsp_valid),.dma_rsp_error(dma_rsp_error),.dma_rsp_data(dma_rsp_data),
-  .dma_local_valid(local_valid),.dma_local_ready(local_ready),.dma_local_write(local_write),
+  .dma_local_valid(local_valid),.dma_local_waiting(local_waiting),.dma_local_ready(local_ready),.dma_local_write(local_write),
   .dma_local_addr(local_addr),.dma_local_data(local_data),.dma_local_be(local_be),
   .dma_local_done(local_done),.dma_local_error(local_error),.dma_local_rdata(local_rdata),
   .ddram_addr(da),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(rd),.ddram_dout_ready(rdy),.ddram_accept(accept),

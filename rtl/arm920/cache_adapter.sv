@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Production bridge from the CPU interface to the ARM920T cache.
-module arm920_cache_adapter #(parameter LINE_REFILL=0) (
+module arm920_cache_adapter #(parameter LINE_REFILL=0, parameter READ_ONLY=0) (
 
     output wire line_req,
     output wire [31:0] line_addr,
@@ -91,7 +91,7 @@ module arm920_cache_adapter #(parameter LINE_REFILL=0) (
    if(inflight && (wb_ack || wb_err))inflight<=0;
   end
  end
- arm920_cache_access #(.LINE_REFILL(LINE_REFILL)) cache(
+ arm920_cache_access #(.LINE_REFILL(LINE_REFILL), .READ_ONLY(READ_ONLY)) cache(
 .line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
     .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
     .line_wide(line_wide),.line_last(line_last),.line_error(line_error),

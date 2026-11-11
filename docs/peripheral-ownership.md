@@ -42,28 +42,40 @@ at the real overlaps. Board/SIM/DMA tests exercise the effects and overlays.
 
 ## Sparse-register transaction pipeline
 
-The sparse model remains a temporary behavioral CAM with full32-bit addresses,
-64 default entries and a byte-enabled payload BRAM. Supported tested capacities
-are1,2,3,5,64. Lowest-index matching/allocation is unchanged; padding leaves never
-match or allocate. A write hit succeeds when full. A write miss when full faults
-and changes nothing. A read miss returns zero. New allocations zero unselected
-bytes, including the existing zero-mask allocation behavior; hits merge only
-selected bytes. Parent read masks are unchanged.
+The sparse model remains a temporary behavioral register store with full
+32-bit address identity and 64 default entries. Tested capacities are 1, 2, 3,
+5 and 64. Tags and byte-enabled payloads each use one synchronous BRAM; only
+validity and transaction/probe state remain in registers. A write hit succeeds
+when full. A write miss when full faults and changes nothing. A read miss
+returns zero and never allocates. New allocations zero unselected bytes,
+including zero-mask allocations; hits merge only selected bytes. Parent read
+masks are unchanged. Physical slot order is private.
+
+Lookup folds every address bit into a bounded hash, including low byte-address
+bits, then linearly probes with explicit wrap at ENTRIES. The first invalid
+slot terminates a miss; a complete occupied cycle establishes full capacity.
+No deletion occurs except cold-reset invalidation, so an invalid slot cannot
+hide a later matching key. Non-power-of-two capacities bound the folded hash
+with one conditional subtraction, rather than a division.
 
 | Stage | Registered work / externally visible behavior |
 | --- | --- |
-| IDLE → COMPARE | Capture selected address, write/read, payload and lanes |
-| COMPARE → SELECT | Register parallel matches and available slots |
-| SELECT → READ | Register chosen slot, hit and overflow result |
-| READ → RESULT | Payload BRAM samples the registered slot; ready becomes true |
+| IDLE → PROBE | Capture request/hash; tag and payload RAM read the first slot |
+| PROBE → PROBE | On collision, compare the current tag while both RAMs prefetch the next slot |
+| PROBE → RESULT | Register hit/miss/full at a matching, invalid or final occupied slot |
 | RESULT → DONE | On commit, publish tag/valid/payload together and retain the terminal result |
 
-With stable fields from idle, ready appears after four rising edges; a write
-commits on the following edge when commit is high. The previous write was
-immediate and read took one edge. Only selected non-trace0d transactions wait.
-Other RAM read readiness, dedicated devices, LCD/DMA and SIM overlays retain
-their original contracts. Full/error is qualified by ready, so diagnostic and
-CPU fault response describe the same captured failing request.
+A collision-free lookup is ready after two rising edges from idle, versus four
+in the previous CAM pipeline. Each additional probe costs one clock. At 64
+entries, aligned adjacent register words remain two-clock lookups, while an
+adversarial chain/full-table miss takes 65 clocks. The unchanged request-identity
+replacement bubble adds one clock when no request-low gap occurs. The UPP adds
+its own bus-boundary latency; these are direct module measurements.
+
+A write commits on the following edge when commit is high. Only selected
+non-trace 0d transactions wait. Other RAM read readiness, dedicated devices,
+LCD/DMA and SIM overlays retain their contracts. Full/error is qualified by
+ready, so diagnostic and CPU fault responses describe the same captured request.
 
 **Lookup is independent of commit.** External testbenches may wait for ready
 before granting authorization; the internal CPU may hold authorization throughout
@@ -88,12 +100,22 @@ Registered tag/payload values are independent of live response logic. Mutation
 requires its registered result and local ready/commit handshake; the existing
 UPP bus-access error suppression remains intact.
 
-Tests retain full-address, masks, capacity and low-slot scoreboarding while
-using explicit ready handshakes. They add sustained authorization, withheld
-commit, stable held results, exact write counts, immediate dependent reads,
-replacement/cancellation at each occupied stage, warm retention and cold reset.
-The board adapter additionally checks that a canceled sparse request cannot
-stall upload RAM, and full CAM state cannot affect trace-sink timing/errors.
+Tests use a logical address/value oracle, independent of physical allocation.
+They cover full addresses, masks, capacity, sustained/withheld authorization,
+held results, exact write counts, dependent reads and warm/cold retention.
+Adversarial aligned collisions start at the last slot, wrap through every entry,
+fill the table, update/read all existing keys and reject new writes. Withdrawal,
+replacement and warm reset cancel updates at every probe/result clock; cold
+reset also checks that stale tag/payload RAM never becomes visible. Across the
+five capacities, 22,430 oracle-checked transactions pass. The board adapter also
+checks that canceled sparse requests cannot stall upload RAM, and full state
+cannot affect trace-sink timing/errors.
+
+The source replaces 2,048 tag flip-flops and the 64-way comparator/selection
+network with one M10K tag store and a single 32-bit comparison. This is a source
+structure/resource intent, not a new fitted ALM count or 104 MHz timing result.
+Evidence and baseline comparisons are under
+`scratch/ngage2-integration/fit-recovery-2026-11-11/sparse/`.
 
 ## LCD board-command pipeline (2026-11-08)
 

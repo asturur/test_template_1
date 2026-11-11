@@ -1,0 +1,321 @@
+{
+  "date": "2026-11-11",
+  "flow_checkpoint": "1dd285e4d185a0b8fa46808a0930f9579cf540e8",
+  "failed_build": {
+    "run_id": 43016356272,
+    "commit": "6b7be5ab35cf75be3e92b649941a475c2bd9cf50",
+    "ALMs_needed": 47296,
+    "ALMs_available": 41910,
+    "registers": 52920,
+    "logical_memory_bits": 2882214,
+    "implementation_memory_bits": 5232640,
+    "M10K_reported_detailed": 511,
+    "M10K_available": 553,
+    "summary_zero_RAM_is_not_missing_inference": true,
+    "input_sha256": {
+      "/Users/andreabogazzi/Downloads/quartus-logs/quartus_build.log": "8b92134e903fb9f5f56b75018d274fe116d7901fbf73a3406ddac62ac1d82f30",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.fit.summary": "bbfa0c822331107ae56e879f17485dee19cb8718930fe07694204032468f19c7",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.map.smsg": "c916f95be26e4bd93115217f3beeacea1e7d9e33b731f7874ef4cb7b0bf54e1c",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.map.summary": "9e0db5c122d386f6f9c6c396df5b876d1fa4bf730539257b3f6a2b3420cd0e3c",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.map.rpt": "add848a071540a603ddee6d27dc7141ca49fc240d8187ea121e8a4b66d22fcb0",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.fit.smsg": "f48b4708655a154733be33e739f7c41fa43852f1005a5f6a353f9e4bf78ced17",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.fit.rpt": "57600fdf1bca81a99a6b71d43547b42b6929229b92b6ce1d077bb612cbb743a5",
+      "/Users/andreabogazzi/Downloads/quartus-logs/output_files/Template.flow.rpt": "216d6857fdc9a71f03abd354d38c95c162e34f7dfc321b16eed7933e5434d941"
+    }
+  },
+  "new_fit": "pending",
+  "image": "jotego/simulator:arm64",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "production": {
+    "DMA_engines": 2,
+    "DMA_channels": 8,
+    "native_LCD_stream": true,
+    "sys_clk_hz": 78000000,
+    "tested_timer_profile_hz": 104000000,
+    "additional_M10K_intent": 3,
+    "physical_resource_savings_measured": false
+  },
+  "worker_benchmark": {
+    "workers": [
+      1,
+      2,
+      3
+    ],
+    "isolated_MMC_256bytes_cycles": [
+      1284,
+      1284,
+      1284
+    ],
+    "isolated_LCD_cycles": [
+      146434,
+      146434,
+      146434
+    ],
+    "stalled_MMC_plus_copy_frame_cycles": [
+      146431,
+      148479,
+      148479
+    ],
+    "copy_words_before_frame": [
+      0,
+      128,
+      128
+    ],
+    "post_release_completion_cycles": [
+      3324,
+      1272,
+      1272
+    ],
+    "max_CPU_ACK_gap": [
+      8,
+      8,
+      8
+    ],
+    "evidence": "scratch/ngage2-integration/fit-recovery-2026-11-11/dma"
+  },
+  "results": {
+    "peripheral_response.log": {
+      "pass": [
+        "PASS peripheral registered responses: 33 coherent/held/authorized transactions, masks, faults, keypad, SIM, sparse and warm reset"
+      ],
+      "sha256": "4542cf443a41dca7fe90752274ca0258d5a502b22e43068b2c5b27257f596537"
+    },
+    "dma-handover.log": {
+      "pass": [
+        "PASS production DMA CPU copy/all eight IRQs/selective ACK/mask preservation; full 18304-word normal FIFO frame; row-band packing/sentinels; CPU interleave; stop/restart prefix=128; invalid LCD/MMC errors in 152456 cycles",
+        "PASS production DMA CPU copy/all eight IRQs/selective ACK/mask preservation; full 18304-word normal FIFO frame; row-band packing/sentinels; CPU interleave; stop/restart prefix=44; invalid LCD/MMC errors in 152537 cycles",
+        "PASS production DMA reset cancels accepted queued LCD tail, channel and route completion",
+        "PASS CPU Hold logical reset cancels DMA route/mux/accepted RAM tail; restarted CPU programs fresh eight-channel transfers"
+      ],
+      "sha256": "e6f0e36d1384d446600b6c0881ab778999f842bce27b4bbf9f1e8f65fc947f01"
+    },
+    "timer_rates.log": {
+      "pass": [
+        "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 78000000",
+        "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 104000000"
+      ],
+      "sha256": "47bb970ac4a071bcaec1ac122f25122f3b158a57281b5d164a824c4148ae2280"
+    },
+    "top-lint.log": {
+      "pass": [
+        "PASS top-level structural elaboration (HPS and PLL stubbed)"
+      ],
+      "sha256": "f707e7a24ee28f05013a455db75c68514173d58af72f8f9680bc4aafb2c8d8f2"
+    },
+    "icu.log": {
+      "pass": [
+        "PASS ICU priority, masks, FIQ and committed clears",
+        "PASS ICU all 96 sources and 1584 priority pairs in each IRQ/FIQ plane, raw status and masked priority"
+      ],
+      "sha256": "d7dc247a1a727083b35879a4d8d4df97338dc746efa6debb661924737ccd9b81"
+    },
+    "timer_conformance.log": {
+      "pass": [
+        "PASS programmable timer ICU ownership cases=19 cycles=178"
+      ],
+      "sha256": "f099b441efc49265484db75d9631fdd3ee881963b894470e93fc2825f7f2422b"
+    },
+    "boot_regs.log": {
+      "pass": [
+        "PASS boot latches and executable scratch validity",
+        "PASS boot register conformance: 12000 cycles, all latches, masks, holes and resets"
+      ],
+      "sha256": "6131d53bfcd850b5cf6ed2ad6218f3c8b4c3f6b0a80d0f95b8034f43a6fcc61b"
+    },
+    "clock_rates.log": {
+      "pass": [
+        "PASS hardware78MHz PLL, HF1/DDIO, refresh and timeout selection",
+        "PASS clock rates HZ=78000000 pixel_div=12 SIM_div=24 NOS_div=78000 fast_div=2380 refresh=5100",
+        "PASS clock rates HZ=104000000 pixel_div=16 SIM_div=32 NOS_div=104000 fast_div=3174 refresh=6800",
+        "PASS native 176x208 CE/DE pixels, sync, diagnostics and zero baked-in borders",
+        "PASS native 176x208 CE/DE pixels, sync, diagnostics and zero baked-in borders"
+      ],
+      "sha256": "a07ac98c64a52ff6f34333acbbcad06906374ed50a69e613500761597c6eacc4"
+    },
+    "gpio_loopback.log": {
+      "pass": [
+        "PASS GPIO set/clear and UEM routed loopbacks"
+      ],
+      "sha256": "ab52f2f2e7186e7e408e0326074beae355d779bf38b033fe0ff4c035e23af68e"
+    },
+    "dma-handover-host.log": {
+      "pass": [
+        "PASS production DMA final-response stop/restart cancellation fence and reset",
+        "PASS production LCD stream eight-channel ownership, literal count, selective ACK and final queued-tail stop/restart fence",
+        "PASS production fast LCD rejects midstream transport reset without success IRQ; retained prefix=4"
+      ],
+      "sha256": "4a15f8538832b8db174dcef0c68d526773858faa3fdc3ea5417ef580153a83f5"
+    },
+    "mmc_production.log": {
+      "pass": [
+        "PASS MMC captured bus/pin peer DIV=4 FIFO=16 cases=30 clocks=132221: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset, final-block prefetch suppression through NRC/busy and 5/6/7/8/9/10 ordering",
+        "PASS MMC production UPP/DMA: all8 channels TX2/RX3 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=98 clocks=667085"
+      ],
+      "sha256": "008e785e10fa6f70d63e1828c8641c26f64886ede074126a5442ca21f2353d2c"
+    },
+    "board_irq.log": {
+      "pass": [
+        "PASS board ICU/timer IRQ and FIQ routing"
+      ],
+      "sha256": "5c9fe273bbd5d944bc00cd619f9ab765d913e61d0797b7b79211e833279a97d3"
+    },
+    "boot-vendor.log": {
+      "pass": [
+        "PASS boot register conformance: 12000 cycles, all latches, masks, holes and resets"
+      ],
+      "sha256": "9889c5a5b016c14e48ff37e162b732bff2aa74805070262146a398534cf3e6f3"
+    },
+    "sparse_regs.log": {
+      "pass": [
+        "PASS sparse address separation, warm/cold reset and bounded overflow",
+        "PASS sparse store ENTRIES=1: masks, capacity, exact-once, waits, dependencies, collision/wrap/full and cancel/reset stages",
+        "PASS sparse store ENTRIES=2: masks, capacity, exact-once, waits, dependencies, collision/wrap/full and cancel/reset stages",
+        "PASS sparse store ENTRIES=3: masks, capacity, exact-once, waits, dependencies, collision/wrap/full and cancel/reset stages",
+        "PASS sparse store ENTRIES=5: masks, capacity, exact-once, waits, dependencies, collision/wrap/full and cancel/reset stages",
+        "PASS sparse store ENTRIES=64: masks, capacity, exact-once, waits, dependencies, collision/wrap/full and cancel/reset stages"
+      ],
+      "sha256": "8888659a583d478c2027a9a040c8c7a7d6ebbbf435ddb6444af3b0c8920ce7ab"
+    },
+    "timers.log": {
+      "pass": [
+        "PASS programmable six timers DIV=1 cases=46 cycles=1537",
+        "PASS programmable six timers DIV=3 cases=46 cycles=4341",
+        "PASS programmable six timers DIV=4 cases=46 cycles=5744"
+      ],
+      "sha256": "efdd265f5144a2f58127c637551e04405cf49db1ce2c22ea9fb33824ebc34efb"
+    },
+    "mister-board-cpu.log": {
+      "pass": [
+        "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits",
+        "PASS DMA via live UPP shared RAM, LCD FIFO and owned error completion"
+      ],
+      "sha256": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e"
+    },
+    "keypad.log": {
+      "pass": [
+        "PASS keypad matrix, rocker and held/released host controls cycles=79",
+        "PASS board keypad rocker, matrix, shared W1C and UEM PWRONX cycles=16626",
+        "PASS keypad drive banks, bidirectional 20-key scan, press/W1C, lanes and routed GENIO cycles=548"
+      ],
+      "sha256": "4f4ac724b9f8668855092cf4c415513bf7eaf66fe9677e508924c1f9e695eef2"
+    },
+    "dma_route.log": {
+      "pass": [
+        "PASS DMA route paced FIFO, CPU contention, shared RAM masks, SDRAM, rejects and reset"
+      ],
+      "sha256": "781c7ee07b7b016af93504c9f97af450c4d29e017c93ba23b08f77135634452c"
+    },
+    "regional_ownership.log": {
+      "pass": [
+        "PASS regional ownership: exhaustive windows and overlap/lane/config cases"
+      ],
+      "sha256": "aeb7ef21f7ca55a1f74a36c4be4fcc56a7765e7f3cce05e1daa0e5e89c970996"
+    },
+    "board_inventory.log": {
+      "pass": [
+        "PASS ownership of 132 retained-trace device/address pairs"
+      ],
+      "sha256": "53fe01b02b0c510be4b0c1420636ab741667aec28be7b5852cee7424f6d3ac73"
+    },
+    "nos_io.log": {
+      "pass": [
+        "PASS NOS counter wrap, compare, status and software IRQ"
+      ],
+      "sha256": "ad943f25e10677ddc38898924323c525c499f46cb4b5c8e038abc96fa1a23893"
+    }
+  },
+  "related_evidence": [
+    "icache-read-only-2026-11-11.json",
+    "irq-timer-keypad-flow-2026-11-11.json",
+    "dma-readback-ram-2026-11-11.json"
+  ],
+  "component_reports": [
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/report.md",
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/astra/root-review.json",
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/sparse/evidence.json",
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/dma"
+  ],
+  "source_and_test_sha256": {
+    "Template.sv": "1d410244237310b84b5988320b8f921d7ce0a3df169a3809f1cc8823395e2ffe",
+    "patches/zap/0056-instruction-cache-read-only-metadata.patch": "b8fb22dff4290ccb0fcde80f03a8bf065a2e6a48a8a6300945cd333563a659d4",
+    "rtl/arm/UPSTREAM.json": "1cbecb41fa0ffa1a89f0b2b4ee470418a58bddd1f34ce05c70a44bb1fade1a13",
+    "rtl/arm/zap_cache.sv": "518091b7dd7570e807b26e10b1665fa2c42059d73199f90cd2f58ec180567ec0",
+    "rtl/arm920/cache_access.sv": "b7ac7209f437280cbaeebfd0b4b23a33af03195862058a1cc31b0e5fa05bfca9",
+    "rtl/arm920/cache_adapter.sv": "04671eb3b4fa7fe004175c08266230cebd4e6d844e8a503e0385692f0f6e6457",
+    "rtl/arm920/cache_bank.sv": "681784004686c2cf353925660388ef642f7796c627e500067cdca0c4b315d327",
+    "rtl/arm920/cache_tags.sv": "2126e46dbc7fb6a831231f296d34e8e914eda68685e2c2bd644388b9429728fc",
+    "rtl/ngage_board.v": "a63b7f818ea616030a68def290e706b402e297338893a7fae29fb485708c9d44",
+    "rtl/ngage_boot_regs.v": "4acf9f555704a60d01556589801c7b7d1e70535464e56dad2a0df1064f170e29",
+    "rtl/ngage_dma_channels.v": "dc17656725436483eea8aee5c715fcf97dd2852e6163500fb4dc46b37c485a0d",
+    "rtl/ngage_dma_route.v": "4e9daad6c59cc1b10a61c0211af16f5b631fa980c075076b1171c1e185b4d5c0",
+    "rtl/ngage_mister.v": "53f63b830768782d32add9a3de78fd314b8494d52f8c11f09d2d5d87459def1b",
+    "rtl/ngage_sparse_regs.v": "cb44404346ce87f73b53fbdf1271b615cd81bd920294a34c6edfcb7fac7ab83a",
+    "rtl/ngage_upp.v": "e193323a5833b977b7fe4335aef536c8a1cef32d9c133c40b83cb162f2eb463f",
+    "rtl/ngage_upp_peripherals.v": "d4727dac2172d268f48adf55024125553cd17c533fe72ca6d26b3625fbaf50cc",
+    "tests/cpu/icache_read_only/sim.sh": "a285a124d14cd05e319223236fbd51b0b8f2330926f6eb8f69965388ddf61853",
+    "tests/cpu/icache_read_only/test.v": "7d11f7f65f48059f0900b5403f9e9698786b4bb880737589f8617ad4e2d91568",
+    "tests/phone/boot_regs/conformance.v": "9b89a3901b29aad2c3433fe73ab99fda7f8cf9541ff507019b228d76a12aa5f5",
+    "tests/phone/boot_regs/run.sh": "fe7ccedb08ebc6f726bcdf3b564c0ddca6a3d2d73de14770ddc463146aeb60b4",
+    "tests/phone/boot_regs/tb.sv": "c8e29f159978acb92d8673bef6cd7a41b3f9d57b5a0f917bf4e98206b1c4fd13",
+    "tests/phone/dma_channels/README.md": "a0ebdd1f23a7c6a1f1d2b8e715ce265e8117352f37e536ea98595220a1bb183d",
+    "tests/phone/dma_channels/concurrency_tb.v": "cdd4962656933cb53ecfedbd7310f8bb0171928a7044d3d475da70ba97bc0785",
+    "tests/phone/dma_channels/run-concurrency.sh": "f36919cedb7cea5529d600bf6720806e63490b9a041fa9649b1953801f4015ea",
+    "tests/phone/dma_channels/run.sh": "5cd50636dd7b098e7d82205c69d9d0c5f6dcfb776aba0042dddd57407aed5088",
+    "tests/phone/dma_channels/tb.v": "b59a89007b016ae139e6de509fbba6e50d97caa68e3f33f4943aee6c7637b00e",
+    "tests/phone/dma_handover/run-host.sh": "edbe7e28312bd97b10db390796c065136c1bc6a80482cfdab45c0ba97b791f87",
+    "tests/phone/dma_handover/tb.v": "381335f76da27854d4a649ab1d496f4423d6ab8ff4c77a9065e6f9126d2c653d",
+    "tests/phone/dma_handover/transport_tb.v": "57cec831d201fd587943edc6941632fd81b4b668b002211a64480d116e586d5b",
+    "tests/phone/dma_isr/results.py": "f2777509f5f21350bd785a0a82dfcd1f5b1da7b1d07b19e24aa11c59eeb4246a",
+    "tests/phone/dma_isr/run.sh": "e50dcfa9d6f9ad84d44c70f1d916d2075996a06071f5a6dbafab4d09860006c0",
+    "tests/phone/dma_isr/tb.v": "3ebc627509ba02ff945ecc2b1f5f122386741927a286392b73f693707f02f135",
+    "tests/phone/dma_original/run.sh": "e06e7279491c53c4e826d86214f8c11d03365d37e1843ce899dd87e40f7b2d45",
+    "tests/phone/dma_original/tb.v": "3bb5e60b37c0d369b9547eba7e6825a1aa68df4fe08c2c604aeada65f35682e9",
+    "tests/phone/hardware_boot/tb.v": "58a8238a6794cab56fc377505da70ff2f8a188d00912ba6fad9d63c2174db2b8",
+    "tests/phone/mister_board_cpu/tb.v": "c86b4e7f07dc0ebef59834eead3a043b41e0a3c316d9c7812399831939586a84",
+    "tests/phone/mmc_mister/tb.v": "10ac8fce25bb1996bd1ee273fac011de84a282f15b3e8e66564920d1ffc54836",
+    "tests/phone/mmc_production/dma_tb.v": "cdda3821907ec1b70fa45630ea54c298965125fd54e3a44fbf86acedf263cf5b",
+    "tests/phone/sparse_regs/conformance.v": "0f63e578172f69f22d305ba3df70bd060d1f25f98b59feb186310554a1cd381c",
+    "tests/phone/sparse_regs/run.sh": "ccc9c9b893d35f3d7a6b16c2608f68c6c7c9ae27c2ac2a1d7401eb737904dc03"
+  },
+  "limits": [
+    "FPGA area/timing awaits new CI compile",
+    "Full firmware UI wake and hardware pointer caller remain unverified",
+    "Old simulations/checkpoints untouched",
+    "Worst-case sparse collisions slower but bounded65clocks"
+  ],
+  "final_formatter": {
+    "check": "9 phone RTL files pass",
+    "post_test_whitespace_only_file": "rtl/ngage_upp.v",
+    "tested_hash": "c828a3f9fb3869859bb0107c2ad21bf96c8e5f1c5f577bb5cf0cab53959f799e",
+    "formatted_hash": "e193323a5833b977b7fe4335aef536c8a1cef32d9c133c40b83cb162f2eb463f"
+  },
+  "final_original_DMA": {
+    "setup_start_stop_cycles": [
+      11130,
+      16814
+    ],
+    "ISR_cycles": [
+      11067,
+      16449
+    ],
+    "memory_waits": [
+      0,
+      3
+    ],
+    "instruction_substitutions": []
+  },
+  "final_DMA_AB": {
+    "reads_per_pool": 397,
+    "extra_raw_read_clocks_per_pool": 387,
+    "cycles": [
+      3169,
+      3055,
+      3055
+    ],
+    "workers": [
+      1,
+      2,
+      3
+    ]
+  }
+}

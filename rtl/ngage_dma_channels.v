@@ -49,7 +49,8 @@ module ngage_dma_channels #(
     output wire [ 3:0] cmd_be,
     input  wire        rsp_valid,
     input  wire        rsp_error,
-    input  wire [31:0] rsp_data
+    input  wire [31:0] rsp_data,
+    output wire        ready
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     wire [2:0] channel = a[8:6];
@@ -69,10 +70,66 @@ module ngage_dma_channels #(
     wire start_write = write && offset == 6'h08 && (din == 1 || din == 2 || din == 3);
     wire stop_write = write && offset == 6'h08 && din == 0;
 
-    reg [31:0] enable_reg[0:7];
+    // Full programming words are retained in one M10K for arbitrary readback.
+    // Only descriptor inputs needed at start remain live: addresses/count,
+    // zero/nonzero modes and validated byte-width codes. Dispatch never waits
+    // for readback RAM and snapshots exactly the same accepted start edge.
     reg [31:0] src_reg[0:7], dst_reg[0:7], count_reg[0:7];
-    reg [31:0] smode_reg[0:7], dmode_reg[0:7];
-    reg [31:0] swidth_reg[0:7], dwidth_reg[0:7];
+    reg [7:0] source_increment, destination_increment;
+    reg [2:0] source_bytes[0:7], destination_bytes[0:7];
+    reg [63:0] programming_valid;
+    reg [ 2:0] programming_index;
+    reg        programming_word;
+    always @* begin
+        programming_word  = 1;
+        programming_index = 0;
+        case (offset)
+            6'h04:   programming_index = 0;
+            6'h14:   programming_index = 1;
+            6'h18:   programming_index = 2;
+            6'h1c:   programming_index = 3;
+            6'h20:   programming_index = 4;
+            6'h24:   programming_index = 5;
+            6'h28:   programming_index = 6;
+            6'h2c:   programming_index = 7;
+            default: programming_word = 0;
+        endcase
+    end
+    wire [ 5:0] programming_address = {ch, programming_index};
+    wire        programming_write = write && programming_word && !reset;
+    wire        programming_read = claim && !bad && !we && !selector && programming_word;
+    wire [31:0] programming_data;
+    ngage_bram #(
+        .AW         (6),
+        .DW         (32),
+        .READ_ONLY_B(1)
+    ) programming_ram (
+        .clk   (clk),
+        .addr_a(programming_address),
+        .addr_b(6'b0),
+        .data_a(din),
+        .data_b(32'b0),
+        .we_a  (programming_write),
+        .we_b  (1'b0),
+        .q_a   (programming_data),
+        .q_b   ()
+    );
+    reg read_pending, read_word_valid;
+    reg [5:0] read_address;
+    always @(posedge clk) begin
+        if (reset) begin
+            programming_valid <= 0;
+            read_pending      <= 0;
+            read_word_valid   <= 0;
+            read_address      <= 0;
+        end else begin
+            if (programming_write) programming_valid[programming_address] <= 1;
+            read_pending    <= programming_read;
+            read_address    <= programming_address;
+            read_word_valid <= programming_valid[programming_address];
+        end
+    end
+    assign ready = !programming_read || (read_pending && read_address == programming_address);
     reg [31:0] queued_src[0:7], queued_dst[0:7];
     reg [34:0] queued_bytes[0:7];
     reg [2:0] queued_sw[0:7], queued_dw[0:7];
@@ -119,10 +176,10 @@ module ngage_dma_channels #(
     // NEM-4 control 1 counts halfwords, including its 32-bit memory path.
     // Control 2 counts units of the fixed peripheral, not the memory source.
     // Both come from original caller byte lengths; the engine consumes bytes.
-    wire [2:0] source_width = width_bytes(swidth_reg[ch]);
-    wire [2:0] destination_width = width_bytes(dwidth_reg[ch]);
-    wire source_fixed = smode_reg[ch] == 0;
-    wire destination_fixed = dmode_reg[ch] == 0;
+    wire [2:0] source_width = source_bytes[ch];
+    wire [2:0] destination_width = destination_bytes[ch];
+    wire source_fixed = !source_increment[ch];
+    wire destination_fixed = !destination_increment[ch];
     wire paced_count_known = source_fixed != destination_fixed;
     wire [2:0] count_width = din == 1 ? 3'd2 : !paced_count_known ? 3'd0 :
         source_fixed ? source_width : destination_width;
@@ -320,53 +377,43 @@ module ngage_dma_channels #(
 
     always @* begin
         dout = 0;
-        case (offset)
-            6'h04:   dout = enable_reg[ch];
-            6'h08:   dout = active_channels[ch] ? {30'd0, run_code[ch]} : 0;
-            6'h14:   dout = src_reg[ch];
-            6'h18:   dout = smode_reg[ch];
-            6'h1c:   dout = swidth_reg[ch];
-            6'h20:   dout = dst_reg[ch];
-            6'h24:   dout = dmode_reg[ch];
-            6'h28:   dout = dwidth_reg[ch];
-            6'h2c:   dout = count_reg[ch];
-            default: dout = 0;
-        endcase
+        if (programming_word && !selector) begin
+            if (ready && read_word_valid) dout = programming_data;
+        end else if (offset == 6'h08) dout = active_channels[ch] ? {30'd0, run_code[ch]} : 0;
         if (selector) dout = request_select;
     end
 
     integer i;
     always @(posedge clk) begin
         if (reset) begin
-            queued_fast       <= 0;
-            fast_owned        <= 0;
-            fast_channel      <= 0;
-            completion_wait   <= 0;
-            completion_cancel <= 0;
-            request_select    <= 0;
-            pending           <= 0;
-            cancel            <= 0;
-            owned             <= 0;
-            queued_si         <= 0;
-            queued_di         <= 0;
-            irq_pending       <= 0;
-            error_pending     <= 0;
-            dispatch_rr       <= 0;
-            reserved          <= 0;
-            bus_owned         <= 0;
-            bus_engine        <= 0;
-            bus_rr            <= 0;
+            source_increment      <= 0;
+            destination_increment <= 0;
+            queued_fast           <= 0;
+            fast_owned            <= 0;
+            fast_channel          <= 0;
+            completion_wait       <= 0;
+            completion_cancel     <= 0;
+            request_select        <= 0;
+            pending               <= 0;
+            cancel                <= 0;
+            owned                 <= 0;
+            queued_si             <= 0;
+            queued_di             <= 0;
+            irq_pending           <= 0;
+            error_pending         <= 0;
+            dispatch_rr           <= 0;
+            reserved              <= 0;
+            bus_owned             <= 0;
+            bus_engine            <= 0;
+            bus_rr                <= 0;
             for (i = 0; i < 8; i = i + 1) begin
-                enable_reg[i]     <= 0;
-                src_reg[i]        <= 0;
-                dst_reg[i]        <= 0;
-                count_reg[i]      <= 0;
-                smode_reg[i]      <= 0;
-                dmode_reg[i]      <= 0;
-                swidth_reg[i]     <= 0;
-                dwidth_reg[i]     <= 0;
-                run_code[i]       <= 0;
-                queued_request[i] <= 0;
+                src_reg[i]           <= 0;
+                dst_reg[i]           <= 0;
+                count_reg[i]         <= 0;
+                source_bytes[i]      <= 0;
+                destination_bytes[i] <= 0;
+                run_code[i]          <= 0;
+                queued_request[i]    <= 0;
             end
             for (i = 0; i < ENGINES; i = i + 1) begin
                 engine_channel[i] <= 0;
@@ -437,18 +484,17 @@ module ngage_dma_channels #(
             if (write) begin
                 case (offset)
                     6'h04: begin
-                        enable_reg[ch] <= din;
                         if (din == 0) begin
                             irq_pending[ch]   <= 0;
                             error_pending[ch] <= 0;
                         end
                     end
                     6'h14: src_reg[ch] <= din;
-                    6'h18: smode_reg[ch] <= din;
-                    6'h1c: swidth_reg[ch] <= din;
+                    6'h18: source_increment[ch] <= din != 0;
+                    6'h1c: source_bytes[ch] <= width_bytes(din);
                     6'h20: dst_reg[ch] <= din;
-                    6'h24: dmode_reg[ch] <= din;
-                    6'h28: dwidth_reg[ch] <= din;
+                    6'h24: destination_increment[ch] <= din != 0;
+                    6'h28: destination_bytes[ch] <= width_bytes(din);
                     6'h2c: count_reg[ch] <= din;
                     default: begin
                     end
@@ -468,10 +514,10 @@ module ngage_dma_channels #(
                     queued_src[ch] <= src_reg[ch];
                     queued_dst[ch] <= dst_reg[ch];
                     queued_bytes[ch] <= programmed_bytes;
-                    queued_sw[ch] <= width_bytes(swidth_reg[ch]);
-                    queued_dw[ch] <= width_bytes(dwidth_reg[ch]);
-                    queued_si[ch] <= smode_reg[ch] != 0;
-                    queued_di[ch] <= dmode_reg[ch] != 0;
+                    queued_sw[ch] <= source_bytes[ch];
+                    queued_dw[ch] <= destination_bytes[ch];
+                    queued_si[ch] <= source_increment[ch];
+                    queued_di[ch] <= destination_increment[ch];
                 end
             end
         end

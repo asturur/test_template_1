@@ -274,7 +274,7 @@ module emu (
     wire [24:0] shared_dma_addr;
     wire [31:0] shared_dma_data, shared_dma_rdata;
     wire [3:0] shared_dma_be;
-    wire dma_local_valid, dma_local_ready, dma_local_write, dma_local_done, dma_local_error;
+    wire dma_local_valid, dma_local_waiting, dma_local_ready, dma_local_write, dma_local_done, dma_local_error;
     wire [31:0] dma_local_addr, dma_local_data, dma_local_rdata;
     wire [ 3:0] dma_local_be;
     wire [24:0] mem_addr;
@@ -282,34 +282,35 @@ module emu (
     wire [3:0] mem_be;
     // One captured route serves all eight guest-programmed DMA channels.
     ngage_dma_route dma_route (
-        .clk        (clk_sys),
-        .reset      (dma_reset || transport_reset),
-        .cpu_lock   (cpu_bus_lock),
-        .cmd_valid  (dma_cmd_valid),
-        .cmd_ready  (dma_cmd_ready),
-        .cmd_write  (dma_cmd_write),
-        .cmd_addr   (dma_cmd_addr),
-        .cmd_data   (dma_cmd_data),
-        .cmd_be     (dma_cmd_be),
-        .rsp_valid  (dma_response),
-        .rsp_error  (dma_error),
-        .rsp_data   (dma_rsp_data),
-        .ram_req    (dma_ram_req),
-        .ram_write  (dma_ram_write),
-        .ram_addr   (dma_ram_addr),
-        .ram_data   (dma_ram_data),
-        .ram_be     (dma_ram_be),
-        .ram_ack    (dma_ram_ack),
-        .ram_rdata  (dma_ram_rdata),
-        .local_valid(dma_local_valid),
-        .local_ready(dma_local_ready),
-        .local_write(dma_local_write),
-        .local_addr (dma_local_addr),
-        .local_data (dma_local_data),
-        .local_be   (dma_local_be),
-        .local_done (dma_local_done),
-        .local_error(dma_local_error),
-        .local_rdata(dma_local_rdata)
+        .clk          (clk_sys),
+        .reset        (dma_reset || transport_reset),
+        .cpu_lock     (cpu_bus_lock),
+        .cmd_valid    (dma_cmd_valid),
+        .cmd_ready    (dma_cmd_ready),
+        .cmd_write    (dma_cmd_write),
+        .cmd_addr     (dma_cmd_addr),
+        .cmd_data     (dma_cmd_data),
+        .cmd_be       (dma_cmd_be),
+        .rsp_valid    (dma_response),
+        .rsp_error    (dma_error),
+        .rsp_data     (dma_rsp_data),
+        .ram_req      (dma_ram_req),
+        .ram_write    (dma_ram_write),
+        .ram_addr     (dma_ram_addr),
+        .ram_data     (dma_ram_data),
+        .ram_be       (dma_ram_be),
+        .ram_ack      (dma_ram_ack),
+        .ram_rdata    (dma_ram_rdata),
+        .local_valid  (dma_local_valid),
+        .local_waiting(dma_local_waiting),
+        .local_ready  (dma_local_ready),
+        .local_write  (dma_local_write),
+        .local_addr   (dma_local_addr),
+        .local_data   (dma_local_data),
+        .local_be     (dma_local_be),
+        .local_done   (dma_local_done),
+        .local_error  (dma_local_error),
+        .local_rdata  (dma_local_rdata)
     );
     // No extra request pipeline for the fast reader. Capture only the outer
     // grant's owner; completed words alternate between LCD and general DMA.
@@ -981,6 +982,7 @@ module emu (
         .dma_rsp_error(dma_error),
         .dma_rsp_data(dma_rsp_data),
         .dma_local_valid(dma_local_valid),
+        .dma_local_waiting(dma_local_waiting),
         .dma_local_ready(dma_local_ready),
         .dma_local_write(dma_local_write),
         .dma_local_addr(dma_local_addr),

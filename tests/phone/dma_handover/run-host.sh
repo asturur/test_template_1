@@ -3,11 +3,11 @@ set -eu
 out=build/sim/unit-dma-handover
 mkdir -p "$out"
 iverilog -g2001 -s fence_tb -o "$out/fence" \
-    rtl/ngage_dma_engine.v rtl/ngage_dma_channels.v rtl/ngage_lcd_stream.v tests/phone/dma_handover/fence_tb.v
+    rtl/ngage_bram.v rtl/ngage_dma_engine.v rtl/ngage_dma_channels.v rtl/ngage_lcd_stream.v tests/phone/dma_handover/fence_tb.v
 vvp "$out/fence" > "$out/fence.log"
 grep '^PASS' "$out/fence.log"
 iverilog -g2001 -s fast_channels_tb -o "$out/fast-channels" \
-    rtl/ngage_dma_engine.v rtl/ngage_dma_channels.v rtl/ngage_lcd_stream.v \
+    rtl/ngage_bram.v rtl/ngage_dma_engine.v rtl/ngage_dma_channels.v rtl/ngage_lcd_stream.v \
     tests/phone/dma_handover/fast_channels_tb.v
 vvp "$out/fast-channels" > "$out/fast-channels.log"
 grep '^PASS' "$out/fast-channels.log"

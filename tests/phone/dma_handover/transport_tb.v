@@ -11,7 +11,7 @@ module transport_tb;
         .clk(clk),.rst(reset),.init_rst(reset),.cyc(cyc),.stb(cyc),.we(we),.commit(cyc),.adr(addr),.din(data),.sel(4'hf),
         .cpu_ack(1'b0),.cpu_err(1'b0),.cpu_rdata(32'd0),.cfg_lcd(1'b1),.cfg_keypad(1'b0),.cfg_clocks(1'b0),
         .dma_mem_req(mem_req),.dma_mem_addr(mem_addr),.dma_mem_accept(mem_req&&!mem_ack),.dma_mem_ack(mem_ack),.dma_mem_data(32'h01230abc),
-        .dma_cmd_ready(1'b0),.dma_rsp_valid(1'b0),.dma_rsp_error(1'b0),.dma_rsp_data(32'd0),.dma_local_valid(1'b0),
+        .dma_cmd_ready(1'b0),.dma_rsp_valid(1'b0),.dma_rsp_error(1'b0),.dma_rsp_data(32'd0),.dma_local_valid(1'b0),.dma_local_waiting(1'b0),
         .claim(claim),.ready(ready),.unmodeled(bad),.init_done(init_done)
     );
     always @(posedge clk)begin

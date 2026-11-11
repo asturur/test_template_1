@@ -3,7 +3,7 @@
 // both commit on the following edge. The caller must drain before reuse and hold
 // MVA stable through victim read/writeback and pulse writeback_done only after
 // successful completion. The 32-byte RAM read is synchronous, one cycle.
-module arm920_cache_bank (
+module arm920_cache_bank #(parameter READ_ONLY = 0) (
     input  logic         clk,
     input  logic         reset,
     input  logic [ 31:0] mva,
@@ -74,7 +74,7 @@ module arm920_cache_bank (
         if (reset || invalidate_all) read_valid <= 0;
         else read_valid <= scan_read ? scan_valid : (read_victim ? victim_valid : hit);
     end
-    arm920_cache_tags tags (
+    arm920_cache_tags #(.READ_ONLY(READ_ONLY)) tags (
         .clk                 (clk),
         .reset               (reset),
         .mva                 (mva),
@@ -116,11 +116,16 @@ module arm920_cache_bank (
         .write_enable (cancel_commit ? 32'b0 : commit_enable),
         .write_line   (commit_data)
     );
+// synthesis translate_off
 `ifndef SYNTHESIS
+    always @(posedge clk)
+        if (!reset && READ_ONLY && store_intent)
+            $fatal(1, "read-only instruction cache received a store intent");
     always @(posedge clk)
         if (!reset && store_commit && |store_enable) begin
             if (mva[4] && |store_enable[15:0]) $fatal(1, "store crosses cache half boundary");
             if (!mva[4] && |store_enable[31:16]) $fatal(1, "store crosses cache half boundary");
         end
 `endif
+// synthesis translate_on
 endmodule
