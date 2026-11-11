@@ -1,3 +1,19 @@
+## 2026-11-11: First recovery CI exposed a RAM-port mismatch
+
+Pushed0a47a0f and dispatched43032422026. Synthesis failed with32 missing-source
+errors before a new area report: DMA programming RAM read write-only portA
+while using simple dual-port mode. It now reads portB at the same address and
+latency. The common RAM model now drives portA readback0 in this mode, matching
+Intel instead of masking the error during ordinary simulation.
+
+The old connection fails the tightened ordinary model; all397 raw DMA reads
+pass for one/two/three engines against the actual Intel RAM library. Explicit
+RAM contract, actual MMC DMA and fast LCD host regressions pass. No extra RAM,
+read stage or transfer clock is added. Commit/push/rebuild retry is authorized;
+there is still no new fitted area/timing result. Other simulations/checkpoints
+remain untouched. See [fit recovery](fit-recovery.md) and
+[DMA readback](dma-readback-ram.md).
+
 ## 2026-11-11: Fit recovery locally verified, rebuild pending
 
 Flow corrections are committed locally as1dd285e. The failed6b7be5a build

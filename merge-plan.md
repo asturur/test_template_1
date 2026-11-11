@@ -892,6 +892,13 @@ chip/board tests pass. Hardware area/timing and full UI boot remain unverified
 until CI/hardware. See [fit recovery](docs/fit-recovery.md). Commit/push and
 manual CI rebuild are authorized by the user after these fixes.
 
+First recovery CI43032422026 at0a47a0f stopped before fit: DMA raw RAM used
+portA readback in simple dual-port mode. Corrected to portB with the same
+handshake/latency; the ordinary wrapper now matches Intel's write-A/read-B
+contract. All three worker counts pass vendor-model raw-read tests, and the old
+connection fails the tightened ordinary model. Resource/timing measurement
+remains pending a retry; no area success is inferred from this synthesis error.
+
 ## 11. N1-N4: original NOS plus selective services and SIM
 
 ### N1: service/ABI and original-runtime audit

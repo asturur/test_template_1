@@ -97,3 +97,13 @@ other checkout simulation operation or old checkpoint mutation occurred.
 
 Actual ALM/register/M10K allocation and timing remain pending a new CI fit.
 Neither this recovery nor the pointer observer proves full firmware UI wake.
+
+## First CI retry: primitive-port mismatch
+
+Run43032422026 at0a47a0f failed synthesis before resource allocation. Its32
+missing-source errors identify DMA programming RAM's unsupported simple-mode
+`q_a` read. That connection is corrected to read-B, and the wrapper's ordinary
+model now matches Intel's write-A/read-B contract. All three worker counts
+pass397 raw reads against the actual vendor model; the prior connection fails
+the tightened ordinary model. RAM, actual MMC DMA and LCD host regressions pass.
+See [DMA readback](dma-readback-ram.md). Actual area/timing still require retry.

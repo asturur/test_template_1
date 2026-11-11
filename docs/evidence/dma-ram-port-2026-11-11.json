@@ -1,0 +1,80 @@
+{
+  "base_commit": "0a47a0f513a763b133c17e5e79a06acc0524d4f1",
+  "failed_CI_run": 43032422026,
+  "error": "12009: unsupported q_a read in simple dual-port programming RAM",
+  "contract": "READ_ONLY_B=1 is write-A/read-B; q_a=0 in Intel and ordinary models",
+  "latency_change": 0,
+  "tests": {
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/bram.log": {
+      "sha256": "038e9215b8b007b507d177d3434978f5d5683dc4399304e78f7ff1612e490c56",
+      "result_lines": [
+        "PASS Quartus native-macro primitive selection",
+        "PASS explicit BRAM widths, ports, byte enables, depth and read latency",
+        "PASS explicit BRAM widths, ports, byte enables, depth and read latency"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/current.log": {
+      "sha256": "832cad751ced4e7950a4148c602b6048051c30284c2cd4b71b1a569b680e8ce9",
+      "result_lines": [
+        "PASS DMA channels engines=2 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3055"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/mmc-production.log": {
+      "sha256": "008e785e10fa6f70d63e1828c8641c26f64886ede074126a5442ca21f2353d2c",
+      "result_lines": [
+        "PASS MMC captured bus/pin peer DIV=4 FIFO=16 cases=30 clocks=132221: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset, final-block prefetch suppression through NRC/busy and 5/6/7/8/9/10 ordering",
+        "PASS MMC production UPP/DMA: all8 channels TX2/RX3 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=98 clocks=667085"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/lcd-host.log": {
+      "sha256": "4a15f8538832b8db174dcef0c68d526773858faa3fdc3ea5417ef580153a83f5",
+      "result_lines": [
+        "PASS production DMA final-response stop/restart cancellation fence and reset",
+        "PASS production LCD stream eight-channel ownership, literal count, selective ACK and final queued-tail stop/restart fence",
+        "PASS production fast LCD rejects midstream transport reset without success IRQ; retained prefix=4"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/current-build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_lines": []
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/baseline-build.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "result_lines": []
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/baseline.log": {
+      "sha256": "7d9a3893baca3172255e2a9ee3b622e21cbbecefb57787b463953a1149880383",
+      "result_lines": [
+        "FATAL: /src/tests/phone/dma_channels/tb.v:208: register ch=0 off=04 got=00000000 expected=ffffffff"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/vendor/run-1.log": {
+      "sha256": "b9e146e53cf6660f858046f3fc3abdb862ec45f3b54445edcbe08fdabaa6de0e",
+      "result_lines": [
+        "PASS DMA channels engines=1 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3169"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/vendor/run-3.log": {
+      "sha256": "6b84edff12a34b738333bd32c1f82001aa4463ca95ead97ab0048c3d7fed6776",
+      "result_lines": [
+        "PASS DMA channels engines=3 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3055"
+      ]
+    },
+    "scratch/ngage2-integration/fit-recovery-2026-11-11/ram-port-fix/vendor/run-2.log": {
+      "sha256": "832cad751ced4e7950a4148c602b6048051c30284c2cd4b71b1a569b680e8ce9",
+      "result_lines": [
+        "PASS DMA channels engines=2 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3055"
+      ]
+    }
+  },
+  "source_sha256": {
+    "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+    "rtl/ngage_dma_channels.v": "51620cca26adf8c2d2f00fb48ca54b5f7d24828a817fe8dcdc4c1d7c9e7bf645",
+    "tests/phone/bram/tb.v": "6fafa5241028e533d0f38fc6e7ac43144a18dabbce8233f1c21f05712b82faf3",
+    "tests/phone/dma_channels/run-vendor.sh": "0f90f40086e1a28a27b767f5990c915428a81366121ee13b02f032d0ce5fb18d"
+  }
+}

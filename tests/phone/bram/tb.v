@@ -14,6 +14,7 @@ module exercise #(parameter AW=4, DW=16, BW=DW, RO=0, DEPTH=1<<AW)(output reg do
     initial begin
         tick();if(qb!==0)$fatal(1,"power-up DW=%0d",DW);
         a=2;b=3;da={DW{1'b1}};wa={N{1'b1}};tick();wa=0;
+        if(RO && qa!==0)$fatal(1,"simple-dual-port A is write-only DW=%0d",DW);
         // Changing the address cannot change q before a clock edge.
         old_q=qb;b=2;#1;if(qb!==old_q)$fatal(1,"asynchronous read DW=%0d",DW);
         tick();if(qb!=={DW{1'b1}})$fatal(1,"port A write/B read DW=%0d",DW);

@@ -108,3 +108,22 @@ exactly387 added read clocks, at each pool size. Its totals are3169 clocks
 with one worker and3055 with two/three. Original setup/start/stop remains
 11130/16814 clocks at zero/three memory waits; original ISR/chunk restart
 remains11067/16449 clocks. Instruction substitutions remain zero.
+
+## Quartus simple-dual-port correction
+
+The first recovery build (`0a47a0f`, run43032422026) stopped during synthesis:
+programming RAM incorrectly consumed `q_a` while `READ_ONLY_B=1` selected
+write-A/read-B simple dual-port mode. The ordinary RAM model had allowed this
+unsupported read, so the behavioral-only register tests did not catch it.
+
+The RAM now reads `q_b` at the programming address; its write port and read
+handshake are unchanged. The common wrapper also exposes `q_a=0` in this mode
+in both simulation and synthesis, matching Intel's library. The added vendor
+runner checks all raw words with one/two/three engines using an existing local
+`altera_mf.v`; it never downloads Quartus. All397 reads pass in each pool. The
+previous connection fails the corrected ordinary model at channel0 offset04,
+returning0 instead offfffffff. The explicit RAM suite also checks this contract.
+
+Run `sh tests/phone/dma_channels/run-vendor.sh /existing/path/altera_mf.v`.
+This corrects a primitive-port mismatch without another read or transfer clock.
+No area/timing result was produced by that failed synthesis; a new fit is needed.

@@ -3,6 +3,7 @@
 // Address and write controls are sampled on the rising edge; q is available
 // after that edge. Same-port writes return new data. Cross-port collisions
 // are undefined and must be avoided or forwarded by the caller.
+// READ_ONLY_B selects simple dual-port write-A/read-B: q_a is not a read port.
 module ngage_bram #(
     parameter integer AW          = 8,
     parameter integer DW          = 16,
@@ -36,7 +37,7 @@ module ngage_bram #(
     localparam integer RAM_BYTES      = (DW + RAM_BYTE_WIDTH - 1) / RAM_BYTE_WIDTH;
     localparam integer RAM_WIDTH      = RAM_BYTES * RAM_BYTE_WIDTH;
     wire [RAM_WIDTH-1:0] ram_q_a, ram_q_b;
-    assign q_a = ram_q_a[DW-1:0];
+    assign q_a = READ_ONLY_B ? {DW{1'b0}} : ram_q_a[DW-1:0];
     assign q_b = ram_q_b[DW-1:0];
     altsyncram #(
         .operation_mode                    (READ_ONLY_B ? "DUAL_PORT" : "BIDIR_DUAL_PORT"),
@@ -117,7 +118,9 @@ module ngage_bram #(
             end
         end
     endgenerate
-    assign q_a = a_q;
+    // Intel's simple-dual-port model drives q_a to zero. Keep ordinary
+    // simulation honest so consuming the write-only port cannot pass tests.
+    assign q_a = READ_ONLY_B ? {DW{1'b0}} : a_q;
     assign q_b = b_q;
 `endif
     `undef NGAGE_BRAM_PRIMITIVE

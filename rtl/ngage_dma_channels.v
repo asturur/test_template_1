@@ -106,13 +106,13 @@ module ngage_dma_channels #(
     ) programming_ram (
         .clk   (clk),
         .addr_a(programming_address),
-        .addr_b(6'b0),
+        .addr_b(programming_address),
         .data_a(din),
         .data_b(32'b0),
         .we_a  (programming_write),
         .we_b  (1'b0),
-        .q_a   (programming_data),
-        .q_b   ()
+        .q_a   (),
+        .q_b   (programming_data)
     );
     reg read_pending, read_word_valid;
     reg [5:0] read_address;
