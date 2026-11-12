@@ -6,7 +6,8 @@ wire cyc,stb,we;wire [31:0] address,value,data,pc;wire [3:0] lanes;
 reg [31:0] program_words[0:2047],app_words[0:180223],boot_words[0:191],ram[0:32767];
 integer cycles=0,delay=0,wait_cycles=0,i,checked=0,mmio=0;
 wire access=cyc&&stb;
-wire ack=access&&delay>=wait_cycles;
+wire timer_ready;
+wire ack=access&&delay>=wait_cycles&&(!timer||timer_ready);
 wire app=address>=32'h50320000&&address<32'h503d0000;
 wire boot=address>=32'h3000&&address<32'h3300;
 wire kernel_ram=address>=32'h80000000&&address<32'h80020000;
@@ -23,7 +24,7 @@ ngage_timers #(.CLOCK_DIV(DIV)) dut(.clk(clk),.reset(reset),.req(access&&timer),
  .commit(ack&&timer),.we(we),.addr(address-32'h4c000000),.din(value),.sel(lanes),
  .clear_unit1(1'b0),.claim(claim),.bad(bad),.dout(timer_data),.timer0_pending(p0),
  .unit1_pending(p1),.unit60_pending(p3),.timer0_rearm(),.periodic_active(periodic),
- .sysc74_seen(1'b0),.pending_sources(pending));
+ .sysc74_seen(1'b0),.pending_sources(pending),.ready(timer_ready));
 always @(posedge clk)if(!reset)begin
  cycles<=cycles+1;
  if(cycles>200000)$fatal(1,"timeout pc=%h checked%0d",pc,checked);

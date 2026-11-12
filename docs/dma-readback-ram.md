@@ -127,3 +127,12 @@ returning0 instead offfffffff. The explicit RAM suite also checks this contract.
 Run `sh tests/phone/dma_channels/run-vendor.sh /existing/path/altera_mf.v`.
 This corrects a primitive-port mismatch without another read or transfer clock.
 No area/timing result was produced by that failed synthesis; a new fit is needed.
+
+## Live programming mirrors removed — 2026-11-12
+
+The remaining768 src/dst/raw-count FF bits now occupy live rows in the
+existing queued-descriptor banks. A ready-qualified one-clock start sample
+feeds an immutable committing-edge snapshot; raw readback stays unchanged.
+See [area reductions](area-reductions-2026-11-12.md) for row layout,
+withdrawn/channel-switched/gapless-start tests, Intel/poison coverage and
+LCD/MMC launch cost. Earlier no-start-wait descriptions above are historical.

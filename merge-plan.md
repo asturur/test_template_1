@@ -910,6 +910,55 @@ One normal78 MHz build is the next gate for actual LAB/MLAB savings and timing;
 reserve allowance for blocking bugs; do not monitor CI. See
 [RF evidence](docs/evidence/rf-mlab-2026-11-11.json).
 
+#### Further area reductions and JTAG exploration — 2026-11-12
+
+DMA768 live mirror bits now share existing queue RAM rows, adding4 handshake
+bits and one start-sampling clock; immutable accepted snapshots retained. Boot
+11 words reuse scratch rows45..55 (net374 declared bits), preserving byte/reset
+fault semantics. Bounded NOS/RTC/MDI/refresh/DMA indices remove another185
+bits at production parameters. This pass~1,323 net source bits; combined with
+timer upper-word change~1,676. No intended additional M10Ks; actual ALMs/timing
+need a routed fit. Keep78 MHz PLL/SDC,104 MHz objective, diagnostics and NOS.
+
+Intel/poison RAM for1/2/3 workers, exact/gapless/canceled start snapshots,
+original DMA driver/ISR, boot12,000-cycle conformance, production ARM board,
+LCD/MMC, rate/RTC references, real SDRAM/refresh/scrub and preflight pass.
+LCD frame128,964 ->128,965 launch-inclusive clocks; full normal/held149,765/
+149,844; MMC669,385 (+56 over98-case suite), no per-beat wait added.
+[Detailed reductions/tests](docs/area-reductions-2026-11-12.md).
+
+Explored read-only Virtual JTAG to replace renderer after hardware proof. J13
+is USB Mini-B; Micro-B is OTG. Keep monitor/first-fault/panic/NGD capture, add
+narrow CDC-safe observations and host polling; avoid a duplicated867-bit shift
+snapshot. No endpoint/host tools available locally and no display removed.
+[Dependencies, protocol and hardware gates](docs/jtag-diagnostics-plan.md).
+Added SSH/DDR3 and EKA1 process/log paths: working RAM is external SDRAM and
+can contain stale physical data versus dirty cache; CPU Hold resets, so a
+coherent dump needs new quiesce/readout or a declared guest observer. Prefer
+selected-event DDR ring + SSH after installed memory reservation/coherency
+proof. Exact local ROM contains FLogger/FLogSvr and C:\LOGS paths; Startup key/
+animation debug calls reach svc0xc00097/op14. Runtime execution, kernel sink
+and existing persistent logs are unverified. No endpoint/ring/parser or
+active-board read added. Expanded [JTAG/SSH plan](docs/jtag-diagnostics-plan.md)
+and [static evidence](docs/evidence/symbian-diagnostics-leads-2026-11-12.json).
+Other chat frozen simulation untouched; no CI launch/monitoring.
+
+#### Further timer readback storage reduction — 2026-11-12
+
+Move366 control/status upper bits into the existing shared M10K, now64x32;
+retain live mode/status/count/reload/IRQ logic. Twelve validity flags and one
+address bit give approximately353 fewer source FF bits; physical ALMs remain
+unmeasured. Preserve raw readback and expiry/count-write priority, including
+held reads across expiry. Control/status reads add one RAM sampling clock;
+count/reload reads and writes keep their timing.
+
+Expanded standalone/production old-model oracle passes12,848 transactions;
+timer/IRQ/rate, ARM board, full LCD/DMA and MMC tests pass. LCD frame128,964,
+normal/held149,748/149,826 and MMC132,221/669,329 clocks unchanged. No diagnostic,
+NOS or DMA channel removal; actual PLL/SDC stays78 MHz. Other chat simulation
+untouched; no CI launch/monitoring. Final vendor and original firmware results:
+[implementation and evidence](docs/timer-readback-ram.md).
+
 #### Shared storage and optimization priority — 2026-11-11
 
 Timer24 words and ICU6 words now share one32x32 M10K in production UPP,

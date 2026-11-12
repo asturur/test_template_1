@@ -94,7 +94,9 @@ always @(posedge clk)begin
 end
 task wr(input [31:0] a,d);
  begin
-  @(negedge clk);req=1;commit=1;we=1;addr=a;din=d;#1;
+  @(negedge clk);req=1;commit=0;we=1;addr=a;din=d;#1;
+  while(!ready)begin @(negedge clk);#1;end
+  commit=1;
   if(!claim||bad||!ready)$fatal(1,"programming rejected %h",a);
   @(negedge clk);req=0;commit=0;we=0;
  end

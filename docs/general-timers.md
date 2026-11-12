@@ -133,3 +133,12 @@ reproducible intermediate build objects were removed to keep outputs small.
 All outputs and source/input identities are retained under
 `scratch/ngage2-integration/timer-flow-2026-11-11/`. No existing long-run or
 billion-cycle checkpoint is resumed, overwritten or removed by these tests.
+
+## Upper-word storage reduction — 2026-11-12
+
+Control[31:2] and status[31:1] now share the existing timer/ICU M10K, with
+one-clock sampling on these reads. Counter/reload and live mode/status/IRQ
+behavior stay in registers; no frequency change. See
+[timer readback RAM](timer-readback-ram.md) for expiry ordering, oracle coverage,
+source-state accounting and production performance measurements. The earlier
+fixture totals above describe the pre-conversion baseline.

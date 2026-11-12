@@ -14,9 +14,10 @@ module fence_tb;
     reg rsp_valid=0;
     integer writes=0,phase;
     assign cmd_ready=!rsp_valid;
+    wire ready;
     ngage_dma_channels #(.ENGINES(1),.PRODUCTION(1)) dut (
         .clk(clk),.reset(reset),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(4'hf),
-        .claim(claim),.bad(bad),.dout(dout),.irq_pending(irq_pending),.error_pending(error_pending),.active_channels(active_channels),
+        .ready(ready),.claim(claim),.bad(bad),.dout(dout),.irq_pending(irq_pending),.error_pending(error_pending),.active_channels(active_channels),
         .lcd_ready(!queued),.lcd_drained(!queued),.source_ready(8'hff),.destination_ready(8'hff),
         .cmd_valid(cmd_valid),.cmd_ready(cmd_ready),.cmd_write(cmd_write),.cmd_addr(cmd_addr),.cmd_data(cmd_data),.cmd_be(cmd_be),
         .rsp_valid(rsp_valid),.rsp_error(1'b0),.rsp_data(32'h01230abc)
@@ -35,8 +36,10 @@ module fence_tb;
     task wr;
         input [31:0] a,d;
         begin
-            @(negedge clk);req=1;commit=1;we=1;addr=a;din=d;
-            #1;if(!claim || bad)$fatal(1,"register decode %h",a);
+            @(negedge clk);req=1;commit=0;we=1;addr=a;din=d;
+            #1;while(!ready)begin @(negedge clk);#1;end
+            commit=1;
+            if(!claim || bad)$fatal(1,"register decode %h",a);
             @(negedge clk);req=0;commit=0;
         end
     endtask
@@ -60,6 +63,10 @@ module fence_tb;
         repeat(3)@(negedge clk);reset=0;
         for(phase=0;phase<3;phase=phase+1)begin
             program_word();
+            if(phase==1)begin
+                wait(dut.owned[0]);
+                @(negedge clk);req=1;commit=0;we=1;addr=32'h0c120308;din=2;
+            end
             // Stop/restart exactly on RUN's final done-generation edge,
             // before the scheduler has observed the engine's done pulse.
             while(!(dut.engines[0].engine.state==1 &&

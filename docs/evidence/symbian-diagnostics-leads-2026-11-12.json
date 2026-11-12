@@ -1,0 +1,248 @@
+{
+  "date": "2026-11-12",
+  "scope": "Read-only static NEM-4 firmware and current RTL audit; no active simulation, SD image or MiSTer SSH read",
+  "rom_path": "firmware/SYM.ROM",
+  "rom_sha256": "afc1cc8b693f2b68d23ca203aa4d4eb4266baad4ab718f013a33b915d39574ef",
+  "rom_entries": 1017,
+  "relevant_files": [
+    {
+      "path": "System/Libs/ekern.exe",
+      "bytes": 161612,
+      "address": 1345458076,
+      "file_offset": 3280796,
+      "attributes": 1,
+      "sha256": "759eeede74c0f82e13a30b188385b1b00b4baa359504f7c1f5249dfb8bf1f2ff"
+    },
+    {
+      "path": "System/Libs/EFSrv.dll",
+      "bytes": 25988,
+      "address": 1346230992,
+      "file_offset": 4053712,
+      "attributes": 1,
+      "sha256": "0ab46ef272d1b9cd00643ce3c5c1cac8654d529335430660e3576aefb7426380"
+    },
+    {
+      "path": "System/Libs/EStart.exe",
+      "bytes": 4620,
+      "address": 1346300000,
+      "file_offset": 4122720,
+      "attributes": 1,
+      "sha256": "51e85008b57b75058396e12e469924d10d790e7dbbe526e047a70675e3ca8465"
+    },
+    {
+      "path": "System/Libs/FLogger.dll",
+      "bytes": 9248,
+      "address": 1347210768,
+      "file_offset": 5033488,
+      "attributes": 1,
+      "sha256": "c8cccf5d03380230b7a102e7ce20cc9f8659ee321ffb8925b6aca478a3339f8a"
+    },
+    {
+      "path": "System/Programs/FLogSvr.exe",
+      "bytes": 376,
+      "address": 1347220128,
+      "file_offset": 5042848,
+      "attributes": 1,
+      "sha256": "b9d77658a9b6a77f228f8b65f8b8825ffc04ae5857ca21a4f753772d9fb35a8e"
+    },
+    {
+      "path": "System/Programs/LogServ.exe",
+      "bytes": 47068,
+      "address": 1347241792,
+      "file_offset": 5064512,
+      "attributes": 1,
+      "sha256": "092e80206c31d7fab595b66819b4c457d74247655435253597a8e758d9b9853a"
+    },
+    {
+      "path": "System/Apps/Startup/Startup.app",
+      "bytes": 15028,
+      "address": 1354495520,
+      "file_offset": 12318240,
+      "attributes": 1,
+      "sha256": "4cd352ccdf7ca7cdd2ee052e1b3765bd53f50d0cd88b1e43aad5e388d97cc8b9"
+    },
+    {
+      "path": "System/Apps/Startup/Startup.mbm",
+      "bytes": 153622,
+      "address": 1354510656,
+      "file_offset": 12333376,
+      "attributes": 1,
+      "sha256": "9ced9953c200312a1634e990e6699f98a0a7a31c8d29e590f1f139301897264e"
+    },
+    {
+      "path": "System/Apps/Startup/Startup.aif",
+      "bytes": 50,
+      "address": 1354664288,
+      "file_offset": 12487008,
+      "attributes": 1,
+      "sha256": "dbd5ac2fd4bb71cf917e9b1d62b5daaf78d3ad61d1e489ed972488a70601c71d"
+    },
+    {
+      "path": "System/Apps/Startup/Startup.r01",
+      "bytes": 360,
+      "address": 1360293600,
+      "file_offset": 18116320,
+      "attributes": 1,
+      "sha256": "c7dc69c42aa72a763bca4ec1b361991706388fcd61b9551b37e8f7187a1af669"
+    }
+  ],
+  "selected_string_leads": [
+    {
+      "offset": "0x4b60e0",
+      "address": "0x504b60e0",
+      "encoding": "utf16le",
+      "text": "C:\\LOGS\\FAX\\FAXLOG.TXT",
+      "hits": [
+        "\\logs\\",
+        "c:\\logs"
+      ],
+      "containing_rom_entry": "System/Libs/FaxSvr.dll"
+    },
+    {
+      "offset": "0x4cf058",
+      "address": "0x504cf058",
+      "encoding": "utf16le",
+      "text": "C:\\LOGS\\",
+      "hits": [
+        "\\logs\\",
+        "c:\\logs"
+      ],
+      "containing_rom_entry": "System/Libs/FLogger.dll"
+    },
+    {
+      "offset": "0xbc2724",
+      "address": "0x50bc2724",
+      "encoding": "utf16le",
+      "text": "StartupApp - aKeyEvent.iScanCode : %d",
+      "hits": [
+        "startup"
+      ],
+      "containing_rom_entry": "System/Apps/Startup/Startup.app"
+    },
+    {
+      "offset": "0xbc2774",
+      "address": "0x50bc2774",
+      "encoding": "utf16le",
+      "text": "StartupApp - DismissQueryL - TryExitL(EEikBidOk)",
+      "hits": [
+        "startup"
+      ],
+      "containing_rom_entry": "System/Apps/Startup/Startup.app"
+    },
+    {
+      "offset": "0xbc27d8",
+      "address": "0x50bc27d8",
+      "encoding": "utf16le",
+      "text": "StartupApp - DismissQueryL - TryExitL(EEikBidCancel)",
+      "hits": [
+        "startup"
+      ],
+      "containing_rom_entry": "System/Apps/Startup/Startup.app"
+    },
+    {
+      "offset": "0xbc29d0",
+      "address": "0x50bc29d0",
+      "encoding": "utf16le",
+      "text": "StartupApp - iAnimationCancelled == %d ",
+      "hits": [
+        "startup"
+      ],
+      "containing_rom_entry": "System/Apps/Startup/Startup.app"
+    },
+    {
+      "offset": "0xbc2a24",
+      "address": "0x50bc2a24",
+      "encoding": "utf16le",
+      "text": "StartupApp - iAnimationShowing changed from %d to %d",
+      "hits": [
+        "startup"
+      ],
+      "containing_rom_entry": "System/Apps/Startup/Startup.app"
+    }
+  ],
+  "startup_key_debug_path": {
+    "format_virtual_address": "0x50bc2724",
+    "format_literal_reference_file_offset": "0xbc04fc",
+    "descriptor_constructor_thunk": "0x50bc1594",
+    "print_thunk": "0x50bc15a0",
+    "print_table_pointer": "0x503cb888",
+    "print_implementation": "0x503b409c",
+    "debug_operation": 14,
+    "gateway": "0x503ac790",
+    "svc": "0xc00097",
+    "dynamic_execution": "unverified",
+    "kernel_sink": "not yet established"
+  },
+  "gateway_disassembly": [
+    {
+      "file_offset": "0x3b409c",
+      "disassembly": [
+        "503b409c: push {r0, r1, r2, r3}",
+        "503b40a0: push {r4, r5, lr}",
+        "503b40a4: sub sp, sp, #0x218",
+        "503b40a8: add r5, sp, #0x214",
+        "503b40ac: ldr r3, [pc, #0x4c]",
+        "503b40b0: str r3, [sp, #0x214]",
+        "503b40b4: add r3, sp, #0x228",
+        "503b40b8: str r3, [sp, #8]",
+        "503b40bc: add r0, sp, #0xc",
+        "503b40c0: mov r1, #0x100",
+        "503b40c4: bl #0x503a202c",
+        "503b40c8: add r4, sp, #0xc",
+        "503b40cc: mov r0, r4",
+        "503b40d0: ldr r1, [sp, #0x224]",
+        "503b40d4: add r2, sp, #8",
+        "503b40d8: mov r3, r5",
+        "503b40dc: bl #0x503ae374",
+        "503b40e0: mov r3, #0xe",
+        "503b40e4: str r3, [sp]",
+        "503b40e8: mov r0, sp",
+        "503b40ec: mov r1, r4",
+        "503b40f0: mov r2, #0",
+        "503b40f4: mov r3, r2",
+        "503b40f8: bl #0x503ac790",
+        "503b40fc: b #0x503b4104"
+      ]
+    },
+    {
+      "file_offset": "0x3ac790",
+      "disassembly": [
+        "503ac790: svc #0xc00097",
+        "503ac794: svc #0xc00098"
+      ]
+    }
+  ],
+  "epocwind_string_found": false,
+  "phone_ram": "external16MiB SDRAM, not directly HPS DDR3 mapped",
+  "cache_warning": "Physical RAM export can miss dirty cache/write-buffer state; CPU Hold resets, not non-destructive halt",
+  "ddr_windows_current_rtl": {
+    "rom": [
+      "0x30000000",
+      "0x313effff"
+    ],
+    "cdrive": [
+      "0x31400000",
+      "0x317fffff"
+    ],
+    "pmm": [
+      "0x31800000",
+      "0x3180ffff"
+    ]
+  },
+  "installed_linux_reservation": "unverified; do not allocate new region by guessing",
+  "public_sources_via_gh": {
+    "kernelhwsrv_commit": "0c3208650587ac0230aed8a74e9bddb5288023eb",
+    "debug_header": "kernel/eka/include/e32debug.h",
+    "layout_applicability": "API-family reference only; not matching EKA1 object layout"
+  },
+  "local_scan_sha256": "ca16190816f5d114e4201d17ad0a26a9958d789c27d6a572679148452cef6bdb",
+  "plan": "docs/jtag-diagnostics-plan.md",
+  "not_implemented": [
+    "JTAG endpoint",
+    "DDR event ring",
+    "SSH physical-memory reader",
+    "non-resetting quiesce",
+    "process parser",
+    "LFFS extractor"
+  ]
+}

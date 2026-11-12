@@ -17,17 +17,29 @@ See [ranked candidates](donor-resource-comparison.md#next-optimization-prioritie
   held/committed bypass, writer priority and collision ownership. Measure LABs
   and timing in the requested build; the old RF's~2,008 ALMs are a block cost,
   not promised savings. Functional tests pass; physical fit is still open.
-- [ ] Compact DMA queue/worker BRAM. The four8x32 queued-payload banks are mostly
-  empty; investigate narrow multiword rows and shared storage for suitable
+- [ ] Compact DMA queue/worker BRAM. The three16x32 plus one8x32 queued-payload banks now also hold
+  live source/destination/count; investigate narrow multiword rows and shared storage for suitable
   worker fields. Keep eight immutable channel snapshots, two workers and fast
   LCD; worker execution state is still mostly live registers, not these banks.
   Test start/program/stop/restart ordering, fetch collisions, busy peers,
   accepted-owner drain, reset, all channels/IRQs and native MMC lengths. Measure
   added launch clocks, FF staging, total LABs/M10Ks and setup/hold; preserve the
   130,685-clock LCD frame and avoid adding latency to every transfer beat.
-- [ ] Investigate DMA's remaining768 live programming mirror bits. A RAM change
-  must capture the original start-edge descriptor despite immediate rewrites,
-  cancellation and other channels; measure launch latency before adoption.
+- [x] Move DMA's768 live programming mirror bits into unused queue RAM rows
+  (2026-11-12). One parallel start-sampling clock, four handshake bits, no
+  intended extra M10K; Intel/poison1/2/3-worker, gapless/canceled snapshots,
+  original driver/ISR and LCD/MMC integration pass. Physical savings pending.
+  See [area reductions](area-reductions-2026-11-12.md).
+- [ ] Qualify a read-only Virtual JTAG replacement before removing diagnostic
+  video. Validate Mini-B J13 host/tool access, CDC-safe narrow readback, retained
+  first fault/panic/NGD and real board equivalence; compare net fit including hub.
+  No endpoint is wired yet; see [JTAG plan](jtag-diagnostics-plan.md).
+- [ ] Trace NEM-4 debug SVC0xc00097/op14 to its actual kernel sink; Startup key
+  and animation debug calls remain in ROM. Check whether FLogger callers create
+  useful persistent C:\LOGS output before adding a process-memory decoder.
+  Evaluate selected-event DDR3+SSH transport with verified HPS reservation and
+  coherency; external SDRAM/cache export needs a non-resetting snapshot design.
+  See [diagnostic transport/process plan](jtag-diagnostics-plan.md).
 
 ## CPU and cache
 

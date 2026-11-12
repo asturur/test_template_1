@@ -22,7 +22,8 @@ module transport_tb;
         input [31:0] a,d;
         begin
             @(negedge clk);addr=a;data=d;cyc=1;
-            #1;if(dut.lcd_dma_claim ? dut.lcd_dma_bad : (!claim||!ready||bad))$fatal(1,"external fixture rejected %h",a);
+            #1;while(dut.lcd_dma_claim ? !dut.lcd_dma_ready : !ready)begin @(negedge clk);#1;end
+            if(dut.lcd_dma_claim ? dut.lcd_dma_bad : (!claim||!ready||bad))$fatal(1,"external fixture rejected %h",a);
             @(negedge clk);cyc=0;
         end
     endtask

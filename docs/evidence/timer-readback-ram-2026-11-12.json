@@ -1,0 +1,143 @@
+{
+  "date": "2026-11-12",
+  "implementation": "timer upper control/status readback in existing shared M10K",
+  "source_ff_bits_removed": 366,
+  "source_ff_bits_added": 13,
+  "net_source_ff_bits_removed": 353,
+  "physical_alm_saving": null,
+  "intended_additional_m10k": 0,
+  "actual_clock_mhz": 78,
+  "design_target_mhz": 104,
+  "behavioral_oracle": {
+    "profiles": [
+      "standalone",
+      "production shared"
+    ],
+    "transactions_each": 12848,
+    "sample_clocks_each": 4286,
+    "frozen_reference_unchanged": true
+  },
+  "vendor_oracle": {
+    "standalone_intel": 12836,
+    "standalone_poison": 12836,
+    "shared_intel": 12836,
+    "shared_poison": 12848,
+    "note": "Same hardware; final exact-expiry-write cases added between compilation of shared Intel and shared poison. Behavioral final oracle covers all cases."
+  },
+  "original_arm_fixture": [
+    {
+      "div": 3,
+      "waits": 0,
+      "clocks": 19532,
+      "mmio": 242
+    },
+    {
+      "div": 3,
+      "waits": 3,
+      "clocks": 26023,
+      "mmio": 206
+    },
+    {
+      "div": 4,
+      "waits": 0,
+      "clocks": 21697,
+      "mmio": 290
+    },
+    {
+      "div": 4,
+      "waits": 3,
+      "clocks": 28207,
+      "mmio": 243
+    }
+  ],
+  "production_clocks": {
+    "lcd_frame": 128964,
+    "lcd_normal": 149748,
+    "lcd_held": 149826,
+    "mmc_bus": 132221,
+    "mmc_dma": 669329
+  },
+  "checks": [
+    "timer46 cases/div1,3,4",
+    "ICU ownership19 cases",
+    "timer rate78/104MHz",
+    "board IRQ/FIQ",
+    "production ARM board",
+    "LCD DMA stop/restart/reset",
+    "MMC production bus30 and DMA98 cases",
+    "top-level structural elaboration",
+    "Quartus source graph173 files/9 QIPs",
+    "git diff --check"
+  ],
+  "failed_invocations": [
+    "First container-only production scripts could not find the host ARM compiler; corrected by running the host wrapper. No hardware/test failure."
+  ],
+  "unverified": [
+    "physical area and setup/hold",
+    "full boot and real-phone behavior"
+  ],
+  "other_chat_simulation": "untouched; not inspected",
+  "ci": "not launched or monitored",
+  "logs": {
+    "scratch/ngage2-integration/timer-upper-ram-20261112/oracle-final.log": {
+      "sha256": "1b4bb3beb2daf5b7decd2548d666a1cf07e1911da062fea5aaeda2933a5e90ef",
+      "pass_lines": [
+        "PASS passive timer/ICU RAM oracle: 12848 transactions, 4286 added read clocks; live IRQ/counters identical",
+        "PASS passive timer/ICU RAM oracle: 12848 transactions, 4286 added read clocks; live IRQ/counters identical"
+      ]
+    },
+    "scratch/ngage2-integration/timer-upper-ram-20261112/vendor.log": {
+      "sha256": "6a7b7f8794f80ebac67bf149ed7923cc22d82fb1c9a66b0b546cf95a7f4d73b9",
+      "pass_lines": [
+        "PASS passive timer/ICU RAM oracle: 12836 transactions, 4280 added read clocks; live IRQ/counters identical",
+        "PASS passive timer/ICU RAM oracle: 12836 transactions, 4280 added read clocks; live IRQ/counters identical",
+        "PASS passive timer/ICU RAM oracle: 12836 transactions, 4280 added read clocks; live IRQ/counters identical",
+        "PASS passive timer/ICU RAM oracle: 12848 transactions, 4286 added read clocks; live IRQ/counters identical"
+      ]
+    },
+    "scratch/ngage2-integration/timer-upper-ram-20261112/firmware-ready.log": {
+      "sha256": "86ef3887dc1f81327d64c193aaec16e57ebd3eae311e2149526a4b2655f6ab27",
+      "pass_lines": [
+        "PASS original NEM4 timer instructions DIV=3 waits=0 phases=7 mmio=242 cycles=19532",
+        "PASS original NEM4 timer instructions DIV=3 waits=3 phases=7 mmio=206 cycles=26023",
+        "PASS original NEM4 timer instructions DIV=4 waits=0 phases=7 mmio=290 cycles=21697",
+        "PASS original NEM4 timer instructions DIV=4 waits=3 phases=7 mmio=243 cycles=28207"
+      ]
+    },
+    "scratch/ngage2-integration/timer-upper-ram-20261112/lcd.log": {
+      "sha256": "233b17c6bfa9c7579efd5c068101815a42ad83f0bec220a9d4085c7ea0741a04",
+      "pass_lines": [
+        "PASS production DMA final-response stop/restart cancellation fence and reset",
+        "PASS production LCD stream eight-channel ownership, literal count, selective ACK and final queued-tail stop/restart fence",
+        "PASS production fast LCD rejects midstream transport reset without success IRQ; retained prefix=4",
+        "PASS production DMA CPU copy/all eight IRQs/selective ACK/mask preservation; full 18304-word normal FIFO frame; row-band packing/sentinels; CPU interleave; stop/restart prefix=121; invalid LCD/MMC errors in 149748 cycles",
+        "PASS production DMA CPU copy/all eight IRQs/selective ACK/mask preservation; full 18304-word normal FIFO frame; row-band packing/sentinels; CPU interleave; stop/restart prefix=43; invalid LCD/MMC errors in 149826 cycles",
+        "PASS production DMA reset cancels accepted queued LCD tail, channel and route completion",
+        "PASS CPU Hold logical reset cancels DMA route/mux/accepted RAM tail; restarted CPU programs fresh eight-channel transfers"
+      ]
+    },
+    "scratch/ngage2-integration/timer-upper-ram-20261112/board.log": {
+      "sha256": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e",
+      "pass_lines": [
+        "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits",
+        "PASS DMA via live UPP shared RAM, LCD FIFO and owned error completion"
+      ]
+    },
+    "scratch/ngage2-integration/timer-upper-ram-20261112/mmc-lint.log": {
+      "sha256": "c22102b176c274e3d152eb1f98346c430e217f73c0ee94cea834049a6f70f05b",
+      "pass_lines": [
+        "PASS MMC captured bus/pin peer DIV=4 FIFO=16 cases=30 clocks=132221: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset, final-block prefetch suppression through NRC/busy and 5/6/7/8/9/10 ordering",
+        "PASS MMC production UPP/DMA: all8 channels TX2/RX3 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=98 clocks=669329",
+        "PASS top-level structural elaboration (HPS and PLL stubbed)"
+      ]
+    }
+  },
+  "sha256": {
+    "rtl/ngage_timers.v": "c13e586583a5bf97c70869d3bfa29012f96cd1c7852e0044e679371abc5ab6b2",
+    "rtl/ngage_upp_peripherals.v": "09a9bb0e06daacfb6f51fbf46975c5b2ce89373749f7de82490ba4c7ee5aae66",
+    "tests/phone/register_ram/tb.v": "c654d994cee1832e7d9e1c856b81b5bdcc735ffb45c2cc5911677c81d0616a19",
+    "tests/phone/register_ram/model_wrapper.v": "b7c4f4a0d4ad50e8ce1a75310b5d56ca5d9e0e8bf1144ee6633ad406354b5990",
+    "tests/phone/timers/tb.sv": "ab449784c4aaedb8c07b665a23bfd92a49c82030b1ce76b3e46efbf5c16b9a84",
+    "tests/phone/timer_original/tb.v": "c08570e871bcdc46d2b3cec17bc0405c7fc758ab697a83076f356f0f31568ef2"
+  }
+}

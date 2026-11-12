@@ -25,7 +25,11 @@ module ngage_nos_io #(
     reg [31:0] enable_reg, status_reg, counter_lo, window_reg, compare_reg;
     reg [15:0] counter, fast_counter, enable_bits;
     reg compare_valid;
-    integer divider, fast_divider;
+    // Bound carry chains to the selected timebase, including divisor1.
+    localparam integer TICK_BITS = TICK_DIV > 1 ? $clog2(TICK_DIV) : 1;
+    localparam integer FAST_BITS = FAST_DIV > 1 ? $clog2(FAST_DIV) : 1;
+    reg [TICK_BITS-1:0] divider;
+    reg [FAST_BITS-1:0] fast_divider;
     reg [31:0] next_enable, next_status, next_compare, status_after_bus;
     wire valid_sel=(sel==1 || sel==2 || sel==4 || sel==8 || sel==3 || sel==12 || sel==15);
     // Only the modeled event sources participate in this staged IRQ profile.

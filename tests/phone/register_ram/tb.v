@@ -101,6 +101,41 @@ module tb;
             access(32'h0c120100+64*n+4*k,32'h87654321^(n*5+k),1,15);
             access(32'h0c120100+64*n+4*k,0,0,15);
         end
+        // Preserve every raw control/status bit, then mask a sampled status
+        // on hardware expiry. Hold the read across the exact expiry edge.
+        for(n=0;n<6;n=n+1)begin
+            access(32'h0c120a04+32*n,32'hfedcba98,1,15);
+            access(32'h0c120a04+32*n,0,0,15);
+            access(32'h0c120a08+32*n,32'hdeadbeee,1,15);
+            access(32'h0c120a08+32*n,0,0,15);
+            access(32'h0c120a10+32*n,32,1,15);
+            access(32'h0c120a08+32*n,0,0,15);
+            access(32'h0c120a04+32*n,32'hfedcba99,1,15);
+            access(32'h0c120a08+32*n,32'hdeadbeee,1,15);
+            @(negedge clk);req=1;we=0;commit=0;addr=32'h0c120a08+32*n;
+            for(k=0;k<140;k=k+1)begin
+                @(negedge clk);#1;
+                if(ready && data!==reference_data)$fatal(1,"sampled status across expiry %h got %h expected %h",addr,data,reference_data);
+            end
+            if(data!==1)$fatal(1,"held status failed to expire");
+            req=0;
+        end
+        fresh();
+        // Force three exact expiry collisions: status ACK loses to expiry;
+        // count programming and stop instead cancel the old expiry.
+        for(n=0;n<3;n=n+1)begin
+            fresh();
+            access(32'h0c120a10,20,1,15);
+            access(32'h0c120a04,1,1,15);
+            while(!timer_reference.g_timer[0].expiry) @(negedge clk);
+            req=1;we=1;commit=1;
+            addr=n==0?32'h0c120a08:n==1?32'h0c120a10:32'h0c120a04;
+            din=n==0?32'hfffffffe:n==1?32'd100:32'hfffffffc;
+            @(negedge clk);req=0;commit=0;
+            access(32'h0c120a08,0,0,15);
+            access(32'h0c120a04,0,0,15);
+        end
+        fresh();
         // Counters and IRQ masks run while passive accesses insert RAM waits.
         access(32'h0c120a18,23,1,15);access(32'h0c120a10,23,1,15);access(32'h0c120a04,2,1,15);
         access(32'h0c120108,32'hffffffff,1,15);
@@ -109,7 +144,7 @@ module tb;
             rng=random_word(rng);value=rng;
             if((n%401)==0)fresh();
             if(rng[1])begin
-                k=(rng>>8)%6;offset=rng[3:2]==0?0:rng[3:2]==1?12:rng[3:2]==2?20:28;
+                k=(rng>>8)%6;offset=rng[6:4]*4;
                 access(32'h0c120a00+32*k+offset,value,rng[0],rng[5:4]==0?3:15);
             end else begin
                 k=(rng>>8)%3;

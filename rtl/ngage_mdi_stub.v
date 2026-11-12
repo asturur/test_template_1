@@ -20,7 +20,8 @@ module ngage_mdi_stub #(
 );
     reg [31:0] control, pointers, receive_ptr, frame0, frame1;
     reg control_seen, pointers_seen, receive_seen, armed, sent;
-    integer elapsed;
+    localparam integer ELAPSED_BITS = ANNOUNCE_TICKS > 1 ? $clog2(ANNOUNCE_TICKS) : 1;
+    reg [ELAPSED_BITS-1:0] elapsed;
     reg [31:0] n_control, n_pointers, n_receive, n_frame0, n_frame1;
     reg [31:0] bus_control, bus_pointers, bus_receive, bus_frame0, bus_frame1;
     wire [31:0] a = {addr[31:2], 2'b00};

@@ -183,14 +183,25 @@ module tb;
             addr   = 32'h0c120300 + channel * 64 + off;
             din    = value;
             req    = 1;
-            commit = 1;
+            commit = 0;
             we     = 1;
             #1;
+            while (!ready) begin @(negedge clk); #1; end
+            commit = 1;
             if (!claim || bad || !ready) $fatal(1, "register rejected ch=%0d off=%h", channel, off);
             @(negedge clk);
             req    = 0;
             commit = 0;
             we     = 0;
+        end
+    endtask
+    // Drive a committed field on the very next bus clock, without an idle gap.
+    task adjacent_field;
+        input [5:0] off;
+        input [31:0] value;
+        begin
+            @(negedge clk);req=1;commit=1;we=1;addr=32'h0c120300+off;din=value;
+            #1;if(!ready||bad)$fatal(1,"adjacent field write stalled");
         end
     endtask
     task get;
@@ -285,6 +296,36 @@ module tb;
         for(ch=0;ch<8;ch=ch+1)
             for(word_no=0;word_no<8;word_no=word_no+1)
                 get(ch,raw_offset(word_no),0);
+
+        // Cancel a sampled start, and switch channels before accepting it.
+        // Neither operation may launch work or reuse the other channel's sample.
+        setup(0,32'h0a000000,32'h0a000400,3,32,32,1,1);
+        old_commands=commands;
+        @(negedge clk);req=1;commit=0;we=1;addr=32'h0c120308;din=1;#1;
+        if(ready)$fatal(1,"start skipped live sampling");
+        @(negedge clk);#1;if(!ready)$fatal(1,"start sample missing");
+        addr=32'h0c120348;#1;if(ready)$fatal(1,"start reused another channel sample");
+        req=0;repeat(5)@(negedge clk);
+        if(active||irq||errors||commands!=old_commands)$fatal(1,"withdrawn start launched work");
+        // Last programming write immediately precedes start; every field is
+        // then overwritten on adjacent clocks. The queue owns the old values.
+        hold_ram=1;
+        adjacent_field(6'h14,32'h0a000080);
+        adjacent_field(6'h20,32'h0a000e00);
+        adjacent_field(6'h2c,3);
+        @(negedge clk);addr=32'h0c120308;din=1;commit=0;#1;
+        while(!ready)begin @(negedge clk);#1;end
+        commit=1;
+        adjacent_field(6'h14,32'h0b000000);
+        adjacent_field(6'h20,32'h0b000000);
+        adjacent_field(6'h2c,32'hffffffff);
+        @(negedge clk);req=0;commit=0;we=0;hold_ram=0;
+        idle;
+        if(irq!==1||errors)$fatal(1,"adjacent snapshot completion");
+        for(j=0;j<8;j=j+1)if(ram[3584+j]!==ram[128+j])$fatal(1,"adjacent start snapshot changed");
+        reset=1;@(negedge clk);reset=0;
+        for(j=0;j<4096;j=j+1)ram[j]=(j*37+(j>>3)+5)&255;
+        $display("PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot");
 
         // Fill the engine pool and queue every remaining channel behind it.
         hold_ram = 1;
@@ -484,7 +525,9 @@ module tb;
         if(commands!=old_commands || irq || errors)$fatal(1,"descriptor-fetch stop escaped");
         put(0, 6'h08, 1);
         wait(dut.descriptor_loaded && dut.descriptor_channel == 0);
-        @(negedge clk);addr=32'h0c120308;din=1;req=1;commit=1;we=1;
+        @(negedge clk);addr=32'h0c120308;din=1;req=1;commit=0;we=1;
+        #1;while(!ready)begin @(negedge clk);#1;end
+        commit=1;
         @(negedge clk);req=0;commit=0;we=0;
         idle;
         if(irq!==1 || errors || commands!=old_commands+4)$fatal(1,"descriptor-fetch restart duplicated/lost work");

@@ -65,21 +65,27 @@ module ngage_dma_channels #(
     reg [31:0] request_select;
     assign claim = req && ((decoded && known) || selector);
     assign bad   = claim && (sel != 4'hf || addr[1:0] != 0 || (we && offset == 6'h08 && din > 3));
-    wire write = claim && commit && we && !bad && !selector;
+    wire write = claim && commit && we && !bad && !selector && ready;
     wire selector_write = claim && commit && we && !bad && selector;
     wire start_write = write && offset == 6'h08 && (din == 1 || din == 2 || din == 3);
     wire stop_write = write && offset == 6'h08 && din == 0;
 
-    // Full programming words are retained in one M10K for arbitrary readback.
-    // Only descriptor inputs needed at start remain live: addresses/count,
-    // zero/nonzero modes and validated byte-width codes. Dispatch never waits
-    // for readback RAM and snapshots exactly the same accepted start edge.
-    reg [31:0] src_reg[0:7], dst_reg[0:7], count_reg[0:7];
+    // Readback words remain in one M10K. The first three queue banks also
+    // hold live source/destination/count in rows0..7; immutable snapshots use
+    // rows8..15. A start samples the three live words in parallel before ACK,
+    // replacing768 FF mirror bits without extra M10Ks or transfer-beat waits.
+    wire        start_request = claim && !bad && we && !selector && offset == 6'h08 && din != 0;
+    reg         start_sample_pending;
+    reg  [ 2:0] start_sample_channel;
+    reg  [63:0] programming_valid;
+    wire [31:0] live_source, live_destination, live_count;
+    wire [31:0] src_value = programming_valid[{ch, 3'd1}] ? live_source : 32'd0;
+    wire [31:0] dst_value = programming_valid[{ch, 3'd4}] ? live_destination : 32'd0;
+    wire [31:0] count_value = programming_valid[{ch, 3'd7}] ? live_count : 32'd0;
     reg [7:0] source_increment, destination_increment;
     reg [2:0] source_bytes[0:7], destination_bytes[0:7];
-    reg [63:0] programming_valid;
-    reg [ 2:0] programming_index;
-    reg        programming_word;
+    reg [2:0] programming_index;
+    reg       programming_word;
     always @* begin
         programming_word  = 1;
         programming_index = 0;
@@ -118,18 +124,23 @@ module ngage_dma_channels #(
     reg [5:0] read_address;
     always @(posedge clk) begin
         if (reset) begin
-            programming_valid <= 0;
-            read_pending      <= 0;
-            read_word_valid   <= 0;
-            read_address      <= 0;
+            programming_valid    <= 0;
+            read_pending         <= 0;
+            read_word_valid      <= 0;
+            read_address         <= 0;
+            start_sample_pending <= 0;
+            start_sample_channel <= 0;
         end else begin
+            start_sample_pending <= start_request;
+            start_sample_channel <= ch;
             if (programming_write) programming_valid[programming_address] <= 1;
             read_pending    <= programming_read;
             read_address    <= programming_address;
             read_word_valid <= programming_valid[programming_address];
         end
     end
-    assign ready = !programming_read || (read_pending && read_address == programming_address);
+    assign ready = (!programming_read || (read_pending && read_address == programming_address)) &&
+        (!start_request || (start_sample_pending && start_sample_channel == ch));
     reg [7:0] pending, cancel;
     // Only the fast-path classification remains live for queue arbitration.
     // The immutable start snapshot is read from four M10Ks before dispatch.
@@ -194,15 +205,15 @@ module ngage_dma_channels #(
     wire paced_count_known = source_fixed != destination_fixed;
     wire [2:0] count_width = din == 1 ? 3'd2 : !paced_count_known ? 3'd0 :
         source_fixed ? source_width : destination_width;
-    wire [34:0] programmed_units = {3'd0, count_reg[ch]} + 35'd1;
+    wire [34:0] programmed_units = {3'd0, count_value} + 35'd1;
     // Production admits the evidenced LCD and byte-wide MMC request lines.
     // Unknown paced descriptors fail before any traffic; no fake ready line.
-    wire source_lcd = src_reg[ch] == 32'h0c121208 || src_reg[ch] == 32'h10121208;
-    wire destination_lcd = dst_reg[ch] == 32'h0c121208 || dst_reg[ch] == 32'h10121208;
+    wire source_lcd = src_value == 32'h0c121208 || src_value == 32'h10121208;
+    wire destination_lcd = dst_value == 32'h0c121208 || dst_value == 32'h10121208;
     wire lcd_supported = destination_lcd && !source_fixed && destination_fixed &&
         source_width == 4 && destination_width == 4 && request_select[ch*4+:4] == 7;
-    wire source_mmc = src_reg[ch] == 32'h0c120624 || src_reg[ch] == 32'h10120624;
-    wire destination_mmc = dst_reg[ch] == 32'h0c120624 || dst_reg[ch] == 32'h10120624;
+    wire source_mmc = src_value == 32'h0c120624 || src_value == 32'h10120624;
+    wire destination_mmc = dst_value == 32'h0c120624 || dst_value == 32'h10120624;
     wire mmc_supported = request_select[ch*4+:4] == 2 &&
         ((din == 2 && destination_mmc && !source_fixed && destination_fixed &&
           source_width == 4 && destination_width == 1) ||
@@ -231,11 +242,12 @@ module ngage_dma_channels #(
     // A start snapshots all fields on its committing edge. Reprogramming the
     // live registers cannot change queued work. A restart/stop invalidates a
     // sampled old descriptor before any engine sees it, including RAM RDW.
-    wire descriptor_select = !reset && !descriptor_loaded && next_channel >= 0 &&
+    wire descriptor_select = !reset && !descriptor_loaded && !start_request && next_channel >= 0 &&
         !((start_write || stop_write) && ch == next_channel[2:0]);
     wire descriptor_write = start_write && !reset;
-    wire [2:0] descriptor_read_address = descriptor_loaded ? descriptor_channel :
+    wire [2:0] queue_read_channel = descriptor_loaded ? descriptor_channel :
         next_channel < 0 ? 3'd0 : next_channel[2:0];
+    wire [3:0] descriptor_read_address = start_request ? {1'b0, ch} : {1'b1, queue_read_channel};
     wire [127:0] descriptor_input = {
         17'b0,
         request_select[ch*4+:4],
@@ -244,34 +256,48 @@ module ngage_dma_channels #(
         source_bytes[ch],
         destination_bytes[ch],
         programmed_bytes,
-        dst_reg[ch],
-        src_reg[ch]
+        dst_value,
+        src_value
     };
     genvar descriptor_word;
     generate
         for (
             descriptor_word = 0; descriptor_word < 4; descriptor_word = descriptor_word + 1
         ) begin : queued_descriptor
+            localparam integer BANK_AW = descriptor_word < 3 ? 4 : 3;
+            wire [31:0] bank_q;
+            wire field_write = programming_write &&
+                (descriptor_word == 0 ? offset == 6'h14 :
+                 descriptor_word == 1 ? offset == 6'h20 :
+                 descriptor_word == 2 ? offset == 6'h2c : 1'b0);
+            wire [BANK_AW-1:0] bank_write_address = descriptor_word < 3 ?
+                {descriptor_write, ch} : ch;
+            wire [BANK_AW-1:0] bank_read_address = descriptor_word < 3 ?
+                descriptor_read_address : descriptor_read_address[2:0];
+            assign descriptor_data[descriptor_word*32+:32] = bank_q;
+            if (descriptor_word == 0) assign live_source = bank_q;
+            if (descriptor_word == 1) assign live_destination = bank_q;
+            if (descriptor_word == 2) assign live_count = bank_q;
             ngage_bram #(
-                .AW         (3),
+                .AW         (BANK_AW),
                 .DW         (32),
                 .READ_ONLY_B(1)
             ) ram (
                 .clk   (clk),
-                .addr_a(ch),
-                .addr_b(descriptor_read_address),
-                .data_a(descriptor_input[descriptor_word*32+:32]),
+                .addr_a(bank_write_address),
+                .addr_b(bank_read_address),
+                .data_a(descriptor_write ? descriptor_input[descriptor_word*32+:32] : din),
                 .data_b(32'b0),
-                .we_a  (descriptor_write),
+                .we_a  (descriptor_write || field_write),
                 .we_b  (1'b0),
                 .q_a   (),
-                .q_b   (descriptor_data[descriptor_word*32+:32])
+                .q_b   (bank_q)
             );
         end
     endgenerate
     wire dispatch = !reset && descriptor_loaded && pending[descriptor_channel] &&
         !running[descriptor_channel] && !completion_wait[descriptor_channel] &&
-        !((start_write || stop_write) && ch == descriptor_channel);
+        !((start_request || stop_write) && ch == descriptor_channel);
     wire fast_dispatch = dispatch && queued_fast[descriptor_channel];
     wire generic_dispatch = dispatch && !queued_fast[descriptor_channel];
     always @(posedge clk) begin
@@ -333,7 +359,8 @@ module ngage_dma_channels #(
         end
     endfunction
     reg reserved, bus_owned;
-    integer bus_engine, bus_rr, choice, bus_scan, bus_candidate;
+    reg [ENGINE_BITS-1:0] bus_engine, bus_rr;
+    integer choice, bus_scan, bus_candidate;
     integer lcd_scan;
     always @* begin
         lcd_waiting       = 0;
@@ -469,9 +496,6 @@ module ngage_dma_channels #(
             bus_engine            <= 0;
             bus_rr                <= 0;
             for (i = 0; i < 8; i = i + 1) begin
-                src_reg[i]           <= 0;
-                dst_reg[i]           <= 0;
-                count_reg[i]         <= 0;
                 source_bytes[i]      <= 0;
                 destination_bytes[i] <= 0;
                 run_code[i]          <= 0;
@@ -550,13 +574,10 @@ module ngage_dma_channels #(
                             error_pending[ch] <= 0;
                         end
                     end
-                    6'h14: src_reg[ch] <= din;
                     6'h18: source_increment[ch] <= din != 0;
                     6'h1c: source_bytes[ch] <= width_bytes(din);
-                    6'h20: dst_reg[ch] <= din;
                     6'h24: destination_increment[ch] <= din != 0;
                     6'h28: destination_bytes[ch] <= width_bytes(din);
-                    6'h2c: count_reg[ch] <= din;
                     default: begin
                     end
                 endcase
@@ -569,7 +590,7 @@ module ngage_dma_channels #(
                 error_pending[ch]     <= 0;
                 if (start_write) begin
                     queued_fast[ch] <= PRODUCTION && din == 2 && lcd_supported &&
-                        src_reg[ch][31:24] == 8'h0a && src_reg[ch][1:0] == 0;
+                        src_value[31:24] == 8'h0a && src_value[1:0] == 0;
                     run_code[ch] <= din[1:0];
                 end
             end

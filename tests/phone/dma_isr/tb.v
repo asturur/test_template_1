@@ -129,12 +129,12 @@ module tb;
                 end else if (in_dma) begin
                     if (address[5:0] == 8 && value != 0) begin
                         if (irq != 0 || starts >= 3 || dut.ch != 1 ||
-                            dut.count_reg[1] != 7 || dut.source_bytes[1] != 4 ||
+                            dut.count_value != 7 || dut.source_bytes[1] != 4 ||
                             dut.destination_bytes[1] != 4 || value != 1 ||
                             (starts == 2 && (acknowledgments != 2 || callbacks != 1)))
                             $fatal(1, "ISR start order count=%0d irq=%h ack=%0d", starts, irq, acknowledgments);
-                        if (dut.src_reg[1] != (starts == 2 ? 32'h0a000110 : 32'h0a000100) ||
-                            dut.dst_reg[1] != (starts == 2 ? 32'h0a000440 : 32'h0a000400))
+                        if (dut.src_value != (starts == 2 ? 32'h0a000110 : 32'h0a000100) ||
+                            dut.dst_value != (starts == 2 ? 32'h0a000440 : 32'h0a000400))
                             $fatal(1, "ISR source/destination mismatch");
                         starts <= starts + 1;
                     end

@@ -24,7 +24,7 @@ module ngage_bram #(
     output wire [   DW-1:0] q_b
 );
     generate
-        if (AW <= 5) begin : tested
+        if (AW <= 6) begin : tested
             ngage_test_bram #(.AW(AW),.DW(DW),.BYTE_WIDTH(BYTE_WIDTH),.BYTES(BYTES),.READ_ONLY_B(READ_ONLY_B),.DEPTH(DEPTH)) ram
                 (.clk(clk),.addr_a(addr_a),.addr_b(addr_b),.data_a(data_a),.data_b(data_b),.we_a(we_a),.we_b(we_b),.q_a(q_a),.q_b(q_b));
         end else begin : unrelated

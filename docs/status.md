@@ -1,3 +1,44 @@
+## 2026-11-12: Further RAM reuse, bounded state and JTAG investigation
+
+DMA mirrors reuse existing queued-descriptor RAM rows; start samples for one
+clock and preserves immutable payload/stop/restart ownership. Boot11 words
+share scratch RAM with byte validity and warm readable-zero behavior. Bound
+NOS/RTC/MDI/refresh/DMA indices to parameter ranges. This pass~1,323 fewer
+declared FF bits, no intended extra M10Ks;~1,676 including timer upper words.
+Actual ALM/setup/hold savings still unmeasured.78 MHz PLL/SDC unchanged.
+
+Intel/poison1/2/3-worker snapshots/cancellation, unchanged original driver/ISR,
+boot12,000-cycle conformance, production ARM board, LCD/MMC, NOS/RTC/rates,
+actual SDRAM/refresh/full16 MiB scrub and preflight pass. LCD launch-inclusive
+frame128,965 (+1), full normal/held149,765/149,844; MMC669,385 (+56 total).
+No per-beat wait added. [Details/evidence](area-reductions-2026-11-12.md).
+
+Read-only Virtual JTAG can replace renderer after a fitted hardware prototype;
+J13 is Mini-B, not Micro-USB. Host tooling absent here, no endpoint wired or
+visual diagnostics removed. Retain monitor/recorder and use narrow handshake
+reads instead of duplicating a full snapshot. [Plan](jtag-diagnostics-plan.md).
+Expanded the diagnostic plan with SSH-readable DDR3 events, cache-aware
+external-SDRAM snapshots and version-matched EKA1 process inventory. Firmware
+FLogger/FLogSvr/C:\LOGS and Startup key/animation debug calls are static leads;
+the latter reach svc0xc00097/op14. Kernel sink/runtime logs still unverified.
+No shared allocation, reader or process parser implemented. CPU Hold resets,
+not a non-destructive pause. Installed DDR reservation/coherency proof required.
+Other chat frozen simulation/checkpoints not accessed; new HDL needs a new
+model/cold boot, not cross-model restore. No long run or CI launch/monitoring.
+
+## 2026-11-12: Timer upper readback moved into existing shared RAM
+
+Removed366 raw control/status FF bits, adding13 metadata bits (net~353).
+Shared timer/ICU bank expands32x32 ->64x32 within one intended M10K. Live counters,
+reload/modes/status/IRQ stay parallel; expiry/count-write invalidation preserves
+raw readback, even across a held read. Control/status reads add one sample clock.
+Expanded12,848-transaction standalone/shared reference oracle, six-timer/rate/IRQ,
+production ARM board, LCD/DMA and MMC tests pass. LCD frame128,964; complete
+normal/held149,748/149,826 and MMC132,221/669,329 unchanged. Physical ALM/timing
+savings pending Quartus; no clocks/diagnostics/NOS removed or CI launched.
+Other chat simulation/checkpoints untouched. Final vendor/firmware results and
+remaining DMA candidates: [timer readback conversion](timer-readback-ram.md).
+
 ## 2026-11-11: Final four78 MHz paths share local DMA admission
 
 43094675130/45dd02a fits38,530 ALMs (92%),502 M10Ks,45,972 FFs and42 DSPs.

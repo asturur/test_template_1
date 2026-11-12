@@ -20,7 +20,7 @@ module tb;
     reg local_busy = 0, fifo_busy = 0, fifo_write = 0;
     reg  [7:0] fifo_byte;
     wire       access = cyc && stb;
-    wire       ack = access && delay >= wait_cycles;
+    wire       ack = access && delay >= wait_cycles && (!in_dma || dma_ready);
     wire       in_program = address < 8192;
     wire       in_app = address >= 32'h50320000 && address < 32'h503d0000;
     wire       in_kernel_ram = address >= 32'h80000000 && address < 32'h80020000;
@@ -212,15 +212,15 @@ module tb;
                 end else if (in_dma) begin
                     if (address[5:0] == 8 && value != 0) begin
                         if (starts >= 4 || irq != 0 || dut.ch !== starts[2:0] ||
-                        dut.count_reg[dut.ch] !== ((starts == 0 || starts == 3) ? 7 : 15) ||
+                        dut.count_value !== ((starts == 0 || starts == 3) ? 7 : 15) ||
                         dut.source_bytes[dut.ch] !== (starts == 2 ? 1 : starts == 3 ? 2 : 4) ||
                         dut.destination_bytes[dut.ch] !== (starts == 1 ? 1 : 4) ||
                         value !== ((starts == 0 || starts == 3) ? 1 : 2))
                             $fatal(1, "original descriptor mismatch case=%0d", starts);
                         $display(
                             "original descriptor ch=%0d source=%h destination=%h widths=%0d/%0d raw_count=%0d control=%0d",
-                            dut.ch, dut.src_reg[dut.ch], dut.dst_reg[dut.ch],
-                            dut.source_bytes[dut.ch]*8, dut.destination_bytes[dut.ch]*8, dut.count_reg[dut.ch],
+                            dut.ch, dut.src_value, dut.dst_value,
+                            dut.source_bytes[dut.ch]*8, dut.destination_bytes[dut.ch]*8, dut.count_value,
                             value);
                         starts <= starts + 1;
                     end

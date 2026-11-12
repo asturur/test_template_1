@@ -25,7 +25,8 @@ module ngage_timers #(
     output wire        periodic_active,
     input  wire        sysc74_seen,
     output wire [ 5:0] pending_sources,
-    output wire        ready
+    output wire        ready,
+    output wire [ 5:0] status_clear
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     wire [ 2:0] unit_index = addr[7:5];
@@ -40,20 +41,25 @@ module ngage_timers #(
         register_index == 5 || register_index == 7;
     wire [1:0] spare_index = register_index == 0 ? 2'd0 :
         register_index == 3 ? 2'd1 : register_index == 5 ? 2'd2 : 2'd3;
-    wire [4:0] spare_address = {unit_index, spare_index};
-    wire spare_write = write_access && spare_word && !reset;
-    wire spare_read = claim && !bad && !we && spare_word;
+    wire high_word = register_index == 1 || register_index == 2;
+    wire status_word = register_index == 2;
+    wire [3:0] high_index = {unit_index, status_word};
+    wire [5:0] spare_address = high_word ? {2'b10, unit_index, status_word} : {1'b0, unit_index, spare_index};
+    wire spare_write = write_access && (spare_word || high_word) && !reset;
+    wire spare_read = claim && !bad && !we && (spare_word || high_word);
     // Production UPP supplies these words from its shared store.
     // Standalone fixtures retain a local bank through PASSIVE_STORAGE=1.
     wire [31:0] passive_data;
     generate
         if (PASSIVE_STORAGE) begin : standalone_passive
-            reg [23:0] spare_valid = 0;
+            reg     [23:0] spare_valid = 0;
+            reg     [11:0] high_valid = 0;
+            integer        i;
             reg spare_read_pending = 0, spare_sample_valid = 0;
-            reg  [ 4:0] spare_sample_address;
+            reg  [ 5:0] spare_sample_address;
             wire [31:0] spare_data;
             ngage_bram #(
-                .AW         (5),
+                .AW         (6),
                 .DW         (32),
                 .READ_ONLY_B(1)
             ) passive_words (
@@ -67,19 +73,26 @@ module ngage_timers #(
                 .q_a   (),
                 .q_b   (spare_data)
             );
-            assign passive_data = spare_sample_valid ? spare_data : 32'b0;
+            assign passive_data = spare_sample_valid && (!high_word || high_valid[high_index]) ? spare_data : 32'b0;
             assign ready = !spare_read || (spare_read_pending && spare_sample_address == spare_address);
             always @(posedge clk) begin
                 if (reset) begin
                     spare_valid          <= 0;
+                    high_valid           <= 0;
                     spare_read_pending   <= 0;
                     spare_sample_valid   <= 0;
                     spare_sample_address <= 0;
                 end else begin
-                    if (spare_write) spare_valid[spare_address] <= 1;
-                    spare_read_pending   <= spare_read;
+                    if (spare_write) begin
+                        if (high_word) high_valid[high_index] <= 1;
+                        else spare_valid[spare_address[4:0]] <= 1;
+                    end
+                    for (i = 0; i < 6; i = i + 1) begin
+                        if (status_clear[i]) high_valid[2*i+1] <= 0;
+                    end
+                    spare_read_pending <= spare_read;
                     spare_sample_address <= spare_address;
-                    spare_sample_valid   <= spare_read && spare_valid[spare_address];
+                    spare_sample_valid   <= spare_read && (high_word ? high_valid[high_index] : spare_valid[spare_address[4:0]]);
                 end
             end
         end else begin : shared_passive
@@ -107,20 +120,25 @@ module ngage_timers #(
     assign periodic_active = periodic[0];
     // Independent one-hot selection; no priority chain through six counters.
     wire [31:0] selected_data[0:5];
-    assign dout = PASSIVE_STORAGE && spare_word ? passive_data :
-        selected_data[0] | selected_data[1] | selected_data[2] |
+    wire [31:0] live_data = selected_data[0] | selected_data[1] | selected_data[2] |
         selected_data[3] | selected_data[4] | selected_data[5];
+    assign dout = !PASSIVE_STORAGE ? live_data : spare_word ? passive_data :
+        register_index == 1 ? {passive_data[31:2], live_data[1:0]} :
+        register_index == 2 ? {passive_data[31:1], live_data[0]} : live_data;
 
     genvar t;
     generate
         for (t = 0; t < 6; t = t + 1) begin : g_timer
-            reg [31:0] control, count, reload, status;
+            reg [1:0] control;
+            reg [31:0] count, reload;
+            reg status;
             reg running, pending;
             reg  [31:0] data;
             wire        hit = write_access && unit_index == t;
             wire        count_write = hit && register_index == 4;
             wire        stopping = hit && register_index == 1 && din[1:0] == 0;
             wire        expiry = timer_ce && running && count == 1 && !count_write && !stopping;
+            assign status_clear[t]    = count_write || expiry;
             assign pending_sources[t] = pending;
             assign periodic[t]        = running && control[1] && reload != 0;
             assign read_data[t]       = data;
@@ -158,12 +176,12 @@ module ngage_timers #(
                     if (hit) begin
                         case (register_index)
                             1: begin
-                                control <= din;
+                                control <= din[1:0];
                                 if (din[1:0] == 0) running <= 0;
                                 else if (!running || expiry) running <= 1;
                             end
                             2: begin
-                                status  <= din;
+                                status  <= din[0];
                                 pending <= 0;
                             end
                             4: begin

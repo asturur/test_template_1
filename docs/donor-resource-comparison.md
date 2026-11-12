@@ -119,3 +119,22 @@ LAB resources we are trying to recover.
 Read-only RTL/report comparison and this documentation/evidence. No HDL,
 configuration, clocks, branches, simulations or build jobs changed. Other-chat
 uncommitted diagnostics and donor experiment folders are intact.
+
+## Follow-up implementation — 2026-11-12
+
+RF MLAB is now fitted; timer/ICU passive storage is shared. The next safe
+reduction moved366 timer control/status upper bits into that same M10K
+(net~353 FF bits after metadata). Production LCD/MMC clocks are unchanged;
+ALM savings await mapping. See [timer readback RAM](timer-readback-ram.md).
+DMA programming mirrors remain next; queue/worker compaction follows. This
+supersedes the older prospective ranking and read-only scope above.
+
+## Further implemented follow-up — 2026-11-12
+
+DMA live parameters now share queue banks; boot latches share scratch RAM;
+NOS/RTC/MDI/refresh and DMA indices use bounded widths. Net declared state
+reduction~1,323 bits beyond the previous timer353, without intended additional
+M10Ks. Measured setup overhead is one clock per start, no per-beat waits.
+[Implementation/tests](area-reductions-2026-11-12.md),
+[JTAG replacement exploration](jtag-diagnostics-plan.md). Earlier prospective
+DMA mirror priority is complete; physical area/timing and JTAG board gates remain.

@@ -268,24 +268,32 @@ module ngage_upp_peripherals #(
     assign adsp_tick     = nos_tick;
     wire dma_selector = GENERAL_DMA && (a == 32'h0c120064 || a == 32'h0c120068);
     // UPP owns one MMIO access at a time, so the passive timer and ICU
-    // words can share one 32x32 M10K with no arbitration or extra wait state.
+    // words share one64x32 M10K without arbitration; reads sample for one clock.
     wire [31:0] icu_live_data, timer_live_data;
     wire passive_icu = icu_claim && !icu_bad && a >= 32'h0c120100 &&
         a < 32'h0c1201c0 && a[5:3] == 0;
+    wire timer_high = a[4:2] == 1 || a[4:2] == 2;
+    wire timer_status = a[4:2] == 2;
+    wire [3:0] timer_high_index = {a[7:5], timer_status};
+    wire [5:0] timer_status_clear;
     wire passive_timer = timer_claim && !timer_bad &&
-        (a[4:2] == 0 || a[4:2] == 3 || a[4:2] == 5 || a[4:2] == 7);
+        (timer_high || a[4:2] == 0 || a[4:2] == 3 || a[4:2] == 5 || a[4:2] == 7);
     wire [1:0] timer_word = a[4:2] == 0 ? 2'd0 : a[4:2] == 3 ? 2'd1 : a[4:2] == 5 ? 2'd2 : 2'd3;
-    // Rows0..23: six timers x four words. Rows24..29: three ICU banks x two.
-    wire [4:0] passive_address = passive_timer ? {a[7:5], timer_word} : {2'b11, a[7:6], a[2]};
+    // Rows0..23: timer spares;24..29: ICU configuration;32..43: timer high bits.
+    wire [5:0] passive_address = passive_timer ?
+        (timer_high ? {2'b10, a[7:5], timer_status} : {1'b0, a[7:5], timer_word}) :
+        {3'b011, a[7:6], a[2]};
     wire passive_selected = passive_icu || passive_timer;
     wire passive_read = passive_selected && !we;
     wire passive_write = passive_selected && we && local_access && !rst;
     wire [31:0] passive_q;
     reg [29:0] passive_valid = 0;
+    reg [11:0] timer_high_valid = 0;
+    integer timer_valid_index;
     reg passive_pending = 0, passive_word_valid = 0;
-    reg [4:0] passive_sample_address;
+    reg [5:0] passive_sample_address;
     ngage_bram #(
-        .AW         (5),
+        .AW         (6),
         .DW         (32),
         .READ_ONLY_B(1)
     ) passive_words (
@@ -301,19 +309,37 @@ module ngage_upp_peripherals #(
     );
     wire passive_ready = !passive_read ||
         (passive_pending && passive_sample_address == passive_address);
-    wire [31:0] passive_data = passive_word_valid ? passive_q : 32'b0;
-    assign icu_data   = passive_icu ? passive_data : icu_live_data;
-    assign timer_data = passive_timer ? passive_data : timer_live_data;
+    // Live validity masks an already sampled status word on expiry/count rewrite.
+    wire high_selected = passive_timer && timer_high;
+    wire [31:0] passive_data = passive_word_valid &&
+        (!high_selected || timer_high_valid[timer_high_index]) ? passive_q : 32'b0;
+    assign icu_data = passive_icu ? passive_data : icu_live_data;
+    assign timer_data = !passive_timer ? timer_live_data :
+        a[4:2] == 1 ? {passive_data[31:2], timer_live_data[1:0]} :
+        a[4:2] == 2 ? {passive_data[31:1], timer_live_data[0]} : passive_data;
     always @(posedge clk) begin
         if (rst) begin
             passive_valid          <= 0;
+            timer_high_valid       <= 0;
             passive_pending        <= 0;
             passive_word_valid     <= 0;
             passive_sample_address <= 0;
         end else begin
-            if (passive_write) passive_valid[passive_address] <= 1;
-            passive_pending        <= passive_read;
-            passive_word_valid     <= passive_read && passive_valid[passive_address];
+            if (passive_write) begin
+                if (high_selected) timer_high_valid[timer_high_index] <= 1;
+                else passive_valid[passive_address[4:0]] <= 1;
+            end
+            // Expiry overrides a coincident software status write, as in the live timer.
+            for (
+                timer_valid_index = 0;
+                timer_valid_index < 6;
+                timer_valid_index = timer_valid_index + 1
+            ) begin
+                if (timer_status_clear[timer_valid_index])
+                    timer_high_valid[2*timer_valid_index+1] <= 0;
+            end
+            passive_pending <= passive_read;
+            passive_word_valid     <= passive_read && (high_selected ? timer_high_valid[timer_high_index] : passive_valid[passive_address[4:0]]);
             passive_sample_address <= passive_address;
         end
     end
@@ -363,7 +389,8 @@ module ngage_upp_peripherals #(
         .periodic_active(periodic_active),
         .sysc74_seen    (sysc74_seen),
         .pending_sources(timer_pending),
-        .ready          (timer_ready)
+        .ready          (timer_ready),
+        .status_clear   (timer_status_clear)
     );
     localparam integer FAST_TICK_DIV = (SYS_CLK_HZ + 16384) / 32768;
     ngage_nos_io #(

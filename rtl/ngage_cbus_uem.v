@@ -33,10 +33,16 @@ module ngage_cbus_uem #(
     reg [255:0] written;
     reg [  3:0] adc_channel;
     reg adc_selected, key_released, alarm_started;
-    integer sec_count, alarm_left, alarm_div;
-    wire [15:0] value = sel == 12 ? din[31:16] : din[15:0];
-    wire [ 7:0] regno = command[7:0];
-    wire [15:0] stored_value;
+    localparam integer SECOND_BITS   = SECOND_TICKS > 1 ? $clog2(SECOND_TICKS) : 1;
+    localparam integer ALARM_COUNT   = (ALARM_TICKS + ALARM_INTERVAL - 1) / ALARM_INTERVAL;
+    localparam integer ALARM_BITS    = ALARM_COUNT > 0 ? $clog2(ALARM_COUNT + 1) : 1;
+    localparam integer INTERVAL_BITS = ALARM_INTERVAL > 1 ? $clog2(ALARM_INTERVAL) : 1;
+    reg  [  SECOND_BITS-1:0] sec_count;
+    reg  [   ALARM_BITS-1:0] alarm_left;
+    reg  [INTERVAL_BITS-1:0] alarm_div;
+    wire [             15:0] value = sel == 12 ? din[31:16] : din[15:0];
+    wire [              7:0] regno = command[7:0];
+    wire [             15:0] stored_value;
     reg [15:0] route_2a, route_2c, route_3b;
     reg         payload_forward;
     reg  [15:0] payload_value;
@@ -184,7 +190,7 @@ module ngage_cbus_uem #(
                         !value[3]) begin
                         key_released <= 1;
                         if (!alarm_started) begin
-                            alarm_left    <= (ALARM_TICKS + ALARM_INTERVAL - 1) / ALARM_INTERVAL;
+                            alarm_left    <= ALARM_COUNT;
                             alarm_started <= 1;
                         end
                     end

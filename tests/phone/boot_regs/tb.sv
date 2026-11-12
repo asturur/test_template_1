@@ -16,8 +16,16 @@ initial begin
  sel=15;#1;if(!bad)$fatal(1,"warm scratch invalid lanes");
  addr='h0c0047fc;#1;if(claim)$fatal(1,"scratch boundary");
  addr='h0c120018;sel=15;we=0;#1;if(!claim||!bad)$fatal(1,"unwritten clock latch");
- we=1;din='h76543210;commit=1;tick();we=0;commit=0;#1;if(bad||dout!=='h76543210)$fatal(1,"clock latch round trip");
+ we=1;din='h76543210;commit=1;tick();we=0;commit=0;tick();#1;if(!ready||bad||dout!=='h76543210)$fatal(1,"clock latch round trip");
  addr='h0c120034;#1;if(!bad)$fatal(1,"clock latches alias");
+ // The readable-zero reset latch must not expose retained RAM bytes.
+ addr='h08000040;we=1;commit=1;sel=15;din='hffffffff;tick();
+ reset=1;req=0;commit=0;tick();reset=0;
+ @(negedge clk);req=1;we=0;addr='h08000040;tick();
+ if(!ready||bad||dout!==0)$fatal(1,"warm readable-zero boot latch");
+ @(negedge clk);we=1;commit=1;sel=2;din='h0000cd00;tick();
+ we=0;commit=0;sel=15;tick();
+ if(!ready||bad||dout!=='h0000cd00)$fatal(1,"warm readable-zero partial write");
  $display("PASS boot latches and executable scratch validity");$finish;
 end
 endmodule

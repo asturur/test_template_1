@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-12",
+  "source_state_estimate": {
+    "dma_mirrors_net": 764,
+    "boot_net": 374,
+    "bounded_state_at_production_parameters": 185,
+    "this_pass_total": 1323,
+    "previous_timer_net": 353,
+    "combined_total": 1676,
+    "warning": "Declared register bits, not measured fitted FF/ALM savings"
+  },
+  "additional_intended_m10k": 0,
+  "physical_area_timing": "unverified; no Quartus run",
+  "actual_clock_mhz": 78,
+  "design_objective_mhz": 104,
+  "production_measurements": {
+    "lcd_frame_before": 128964,
+    "lcd_frame_after": 128965,
+    "lcd_normal_before": 149748,
+    "lcd_normal_after": 149765,
+    "lcd_held_before": 149826,
+    "lcd_held_after": 149844,
+    "mmc_bus": 132221,
+    "mmc_dma_before": 669329,
+    "mmc_dma_after": 669385
+  },
+  "original_firmware": {
+    "dma_setup_wait0": 11130,
+    "dma_setup_wait3": 16814,
+    "dma_isr_wait0": 11067,
+    "dma_isr_wait3": 16449,
+    "instruction_substitutions": 0
+  },
+  "known_iteration_failures": [
+    "Icarus rejected forward reference of programming_valid; declaration moved before use.",
+    "Direct bus fixtures assumed immediate starts; now honor ready. Restart fence pre-samples before final engine edge.",
+    "Original DMA fixture debug assertions named removed arrays; now inspect sampled values at accepted start; ACK now honors ready.",
+    "First bounded-state command used nonexistent direct_sdram/run.sh; corrected route and actual SDRAM tests pass."
+  ],
+  "other_chat_simulation": "not inspected or changed",
+  "ci": "not launched or monitored",
+  "jtag_status": "exploration only; no endpoint or renderer removal; host tools unavailable",
+  "sha256": {
+    "rtl/ngage_dma_channels.v": "431d4127ca36db9b4edc2a4e3d6eea350ebf1f80c7f774f2da843f412f048591",
+    "rtl/ngage_boot_regs.v": "e3c63930e1b456e59ea82e5ace7978ba6ba2072f24054a516114f1058d226a9e",
+    "rtl/ngage_nos_io.v": "b689a18a878a8a8bc4cfa9059d7b82892b6185a198a4f291cdca376846246263",
+    "rtl/ngage_cbus_uem.v": "ef0f8ba0237efe3b5b3a88ab8d1b7ebe86d2f0f0bd0188ed038d0fab883d7101",
+    "rtl/ngage_mdi_stub.v": "ff526b698b1042b7eda10a6088e78eb7305fed0b6e001a503ef195c08a651fcc",
+    "rtl/ngage_sdram_adapter.v": "9e3c81b00238a48b6e3998c723c880f40a288f4172cd13b5eb83340acc1ac092",
+    "tests/phone/dma_channels/tb.v": "4fec48402ce1acc05ac91dfc83359caa78919b2e6cc94f64b9df4dd7d89d3360",
+    "tests/phone/dma_channels/concurrency_tb.v": "b1abc36e723e7ccf6cef86e46d719e4394a3d37514c568ec0b3b3fa78fbe96e1",
+    "tests/phone/dma_handover/fence_tb.v": "84ed6fe80315f5a06f8f09cd771c290a51b35e77959b3da2dc7f7612856672df",
+    "tests/phone/dma_handover/fast_channels_tb.v": "f2c01f920b29d92dc25b188ac8ad3fa12912a592eb28f7d22469ce3f9eaaf8eb",
+    "tests/phone/dma_handover/transport_tb.v": "29edb956eb92fb376db329c066a7dc0036e0aad0c824a14e48b7f1125b27fa3f",
+    "tests/phone/dma_original/tb.v": "2ca4dcaaa0444e828b2ca9b142268baf71c8531928a1e46aa1507253cf119415",
+    "tests/phone/dma_isr/tb.v": "74e67f59be96dea08a59063e177fd040bb70dcff5f22567f9dba5f1428752b66",
+    "tests/phone/boot_regs/tb.sv": "1904d49c3ed5e8893b67f92c7c070afb437740efae87291fb9df93ef4ec7a2cf",
+    "tests/phone/boot_regs/conformance.v": "9b89a3901b29aad2c3433fe73ab99fda7f8cf9541ff507019b228d76a12aa5f5",
+    "tests/phone/boot_regs/run-vendor.sh": "819bd73232fe53772e9fdeff9c75c8628208e3912000b61a94a62e94d00f34e8"
+  },
+  "logs": {
+    "scratch/ngage2-integration/dma-live-ram-20261112/vendor-final.log": {
+      "sha256": "1ecd744e38c0c615d9198ea1cbf39598348c80e4d3b73bbf5a033f9fe0ef97c4",
+      "pass_lines": [
+        "PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot",
+        "PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence",
+        "PASS DMA channels engines=1 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3366",
+        "PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot",
+        "PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence",
+        "PASS DMA channels engines=2 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3244",
+        "PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot",
+        "PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence",
+        "PASS DMA channels engines=3 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3244",
+        "PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot",
+        "PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence",
+        "PASS DMA channels engines=1 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3366",
+        "PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot",
+        "PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence",
+        "PASS DMA channels engines=2 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3244",
+        "PASS DMA canceled/channel-switched start and gapless programming/start/rewrite snapshot",
+        "PASS DMA descriptor-fetch stop/restart and same-row RAM collision fence",
+        "PASS DMA channels engines=3 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA full raw readback words=397 wait_clocks=387 cycles=3244"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/dma-live-ram-20261112/channels.log": {
+      "sha256": "0f75193b6335d01f83d40d5b87f6dffb14d3f4f850bdcae1c6a67bd2f23f8069",
+      "pass_lines": [
+        "PASS DMA channels engines=1 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA channels engines=2 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset",
+        "PASS DMA channels engines=3 queue, snapshots, IRQ ACK, paced peers, stop/restart, route/errors, lock/reset"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/dma-live-ram-20261112/concurrency.log": {
+      "sha256": "ae3037aee59e47e0d91fc4381046efb876fbe35532be0c39e17260d72e296ba3",
+      "pass_lines": [
+        "PASS concurrency engines=1 mode=stalled frame_clocks=146433 copy_words_at_frame=0 cpu_acks_at_frame=18322 max_cpu_gap=8 release_to_all_done=3580",
+        "PASS concurrency engines=1 mode=mmc bytes=256 clocks=1544 cpu_acks=334 max_cpu_gap=8",
+        "PASS concurrency engines=1 mode=lcd frame_clocks=146433 cpu_acks=18317 max_cpu_gap=8",
+        "PASS concurrency engines=2 mode=stalled frame_clocks=148481 copy_words_at_frame=128 cpu_acks_at_frame=18578 max_cpu_gap=8 release_to_all_done=1528",
+        "PASS concurrency engines=2 mode=mmc bytes=256 clocks=1544 cpu_acks=334 max_cpu_gap=8",
+        "PASS concurrency engines=2 mode=lcd frame_clocks=146433 cpu_acks=18317 max_cpu_gap=8",
+        "PASS concurrency engines=3 mode=stalled frame_clocks=148481 copy_words_at_frame=128 cpu_acks_at_frame=18578 max_cpu_gap=8 release_to_all_done=1528",
+        "PASS concurrency engines=3 mode=mmc bytes=256 clocks=1544 cpu_acks=334 max_cpu_gap=8",
+        "PASS concurrency engines=3 mode=lcd frame_clocks=146433 cpu_acks=18317 max_cpu_gap=8"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/dma-live-ram-20261112/lcd.log": {
+      "sha256": "daa71ec708a1403ad1fbf390fdc8681b14b66b34aafe59f12516faf5a7817fa5",
+      "pass_lines": [
+        "PASS production DMA final-response stop/restart cancellation fence and reset",
+        "PASS production LCD stream eight-channel ownership, literal count, selective ACK and final queued-tail stop/restart fence",
+        "PASS production fast LCD rejects midstream transport reset without success IRQ; retained prefix=4",
+        "PASS production DMA CPU copy/all eight IRQs/selective ACK/mask preservation; full 18304-word normal FIFO frame; row-band packing/sentinels; CPU interleave; stop/restart prefix=121; invalid LCD/MMC errors in 149765 cycles",
+        "PASS production DMA CPU copy/all eight IRQs/selective ACK/mask preservation; full 18304-word normal FIFO frame; row-band packing/sentinels; CPU interleave; stop/restart prefix=43; invalid LCD/MMC errors in 149844 cycles",
+        "PASS production DMA reset cancels accepted queued LCD tail, channel and route completion",
+        "PASS CPU Hold logical reset cancels DMA route/mux/accepted RAM tail; restarted CPU programs fresh eight-channel transfers"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/dma-live-ram-20261112/mmc-lint.log": {
+      "sha256": "0c2c81696ea05aba0c0ded053d34496d379f9c92cdad11dad75f71620801f2b0",
+      "pass_lines": [
+        "PASS MMC captured bus/pin peer DIV=4 FIFO=16 cases=30 clocks=132221: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset, final-block prefetch suppression through NRC/busy and 5/6/7/8/9/10 ordering",
+        "PASS MMC production UPP/DMA: all8 channels TX2/RX3 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=98 clocks=669385",
+        "PASS top-level structural elaboration (HPS and PLL stubbed)"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/dma-live-ram-20261112/original-isr.log": {
+      "sha256": "ee7f93b1ac36fb728d94128d4617d92c0a29c6c4976998bc27e4e5ac0a059a28",
+      "pass_lines": [
+        "PASS original NEM-4 DMA setup/start wait=0 cycles=11130 cases=4 exact_bytes=16 unwritten_trails=preserved substitutions=0",
+        "PASS original NEM-4 DMA setup/start wait=3 cycles=16814 cases=4 exact_bytes=16 unwritten_trails=preserved substitutions=0",
+        "PASS original NEM-4 DMA ISR wait=0 cycles=11067 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0",
+        "PASS original NEM-4 DMA ISR wait=3 cycles=16449 isr=3 callbacks=2 next_chunks=1 ack_before_restart=1 guards=preserved substitutions=0"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/boot-shared-ram-20261112/tests.log": {
+      "sha256": "9531f5d65368042ae778be2426c80d764373042856993bd1f1da5df06090daf2",
+      "pass_lines": [
+        "PASS boot latches and executable scratch validity",
+        "PASS boot register conformance: 12000 cycles, all latches, masks, holes and resets",
+        "PASS direct SDRAM route: range, packet/lane ownership, one admission, cancellation/drain, reset",
+        "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 78000000",
+        "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 104000000"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/boot-shared-ram-20261112/vendor.log": {
+      "sha256": "5c9c8cec3be6e82034cb4ccab2aa623ae9753840d70acd52452a75dfb6bf754c",
+      "pass_lines": [
+        "PASS boot register conformance: 12000 cycles, all latches, masks, holes and resets",
+        "PASS boot register conformance: 12000 cycles, all latches, masks, holes and resets"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/boot-shared-ram-20261112/board.log": {
+      "sha256": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e",
+      "pass_lines": [
+        "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits",
+        "PASS DMA via live UPP shared RAM, LCD FIFO and owned error completion"
+      ],
+      "note": ""
+    },
+    "scratch/ngage2-integration/bounded-state-20261112/tests.log": {
+      "sha256": "66ce6a8f2090f467588902b27d7c540ba986bedd88598aa25002cdc7e0adbb04",
+      "pass_lines": [
+        "PASS NOS counter wrap, compare, status and software IRQ",
+        "PASS staged MDI ring announcement and consumption",
+        "PASS CBUS sequencing, RTC and ADC hypotheses",
+        "PASS CBUS sequencing, RTC and ADC hypotheses",
+        "PASS CBUS alarm, 1 Hz phase and acknowledgement against C++",
+        "PASS CBUS alarm, 1 Hz phase and acknowledgement against C++"
+      ],
+      "note": "bounded-state/tests.log contains successful NOS/MDI/CBUS checks then corrected invocation error; final SDRAM/rates results in separate logs"
+    },
+    "scratch/ngage2-integration/bounded-state-20261112/sdram-lint.log": {
+      "sha256": "647cceaf43e35374fafada82ea97ce53071228329724a1330ffaf88a893184ce",
+      "pass_lines": [
+        "PASS SDRAM real controller and model, refreshes=361 checked_short_reads=113 halfwords=904 wait_clocks=1447",
+        "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+        "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+        "PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456",
+        "PASS concurrent SDRAM banks: commands=600 stops=0 halfwords=4800 refreshes=151 clocks=8920",
+        "PASS concurrent SDRAM banks: commands=600 stops=300 halfwords=3000 refreshes=179 clocks=8173",
+        "PASS concurrent SDRAM banks: commands=600 stops=0 halfwords=4800 refreshes=151 clocks=8920",
+        "PASS concurrent SDRAM banks: commands=600 stops=300 halfwords=3000 refreshes=179 clocks=8173",
+        "PASS full 16 MiB cold scrub: 8388608 halfwords, 6784 scheduled refresh pulses",
+        "PASS top-level structural elaboration (HPS and PLL stubbed)"
+      ],
+      "note": ""
+    }
+  },
+  "test_scope": {
+    "dma_channels_behavioral": "pre-final gapless cases and before final narrow bus indices; final Intel/poison matrix covers final logic/cases",
+    "concurrency": "before narrow bus index refactor; final matrix and production tests cover final indices",
+    "boot_conformance": "all12000 cycles plus completed reads, across behavioral/Intel/poison",
+    "production_board": "after all logic changes"
+  }
+}

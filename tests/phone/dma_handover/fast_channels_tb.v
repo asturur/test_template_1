@@ -14,9 +14,10 @@ module fast_channels_tb;
     reg [31:0] mem_data=0;
     integer reads=0,pixels=0,ch,cancel_mode,old_pixels;
     reg sink_drained=1;
+    wire ready;
     ngage_dma_channels #(.ENGINES(1),.PRODUCTION(1)) dut (
         .clk(clk),.reset(reset),.req(req),.commit(commit),.we(we),.addr(addr),.din(din),.sel(4'hf),
-        .claim(claim),.bad(bad),.dout(dout),.irq_pending(irq_pending),.error_pending(error_pending),.active_channels(active_channels),
+        .ready(ready),.claim(claim),.bad(bad),.dout(dout),.irq_pending(irq_pending),.error_pending(error_pending),.active_channels(active_channels),
         .lcd_ready(1'b1),.lcd_drained(sink_drained),.source_ready(8'hff),.destination_ready(8'hff),
         .lcd_mem_req(mem_req),.lcd_mem_addr(mem_addr),.lcd_mem_accept(mem_req&&!mem_ack),.lcd_mem_ack(mem_ack),.lcd_mem_data(mem_data),
         .lcd_pixel_valid(pixel_valid),.lcd_pixel_data(pixel_data),.lcd_pixel_ready(1'b1),.lcd_pixel_error(1'b0),
@@ -34,8 +35,10 @@ module fast_channels_tb;
     end
     task wr;
         input [31:0] a,d;
-        begin @(negedge clk);req=1;commit=1;we=1;addr=a;din=d;
-            #1;if(!claim || bad)$fatal(1,"register decode %h",a);
+        begin @(negedge clk);req=1;commit=0;we=1;addr=a;din=d;
+            #1;while(!ready)begin @(negedge clk);#1;end
+            commit=1;
+            if(!claim || bad)$fatal(1,"register decode %h",a);
             @(negedge clk);req=0;commit=0;
         end
     endtask
