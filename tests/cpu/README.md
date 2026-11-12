@@ -16,3 +16,15 @@ The suite covers:
 - CPU load widths, multiple-load cases, alignment and selected Thumb return dependencies, at several synthetic memory delays.
 
 Dirty eviction/maintenance is still synchronous; exact ARM920 buffering, replacement randomness, prefetch fault/cancellation, persistent bus errors, interrupt races, EmbeddedICE debug wake and physical bus timing remain unverified. The ADD benchmark asserts one-cycle warmed dependent-ADD throughput under the synthetic memory model; it does not establish cycle-accurate ARM920 timing. Verilator `SYNTHESIS` lint checks syntax, not FPGA resource inference or timing.
+
+
+## Donor import benchmarks
+
+The separate [benchmark harness](donor_import/README.md) freezes the user-pinned
+ce8d2c9 and3f5e8ae commits and current sources without changing this checkout.
+It assembles one shared 15-kernel ARM batch for all variants. All 32 host
+checks and the first 480 HDL observations pass, with exact deterministic repeats
+and matched controller negative controls. See the [measured results](../../docs/cpu-donor-baseline-results.md). This is partial phase00/01 coverage of the
+[import plan](../../docs/cpu-donor-import-plan.md), not a CPU import or a replacement
+for the correctness suite above. Its synthetic memory model does not establish
+physical SDRAM performance.

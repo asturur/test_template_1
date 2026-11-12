@@ -1,0 +1,2063 @@
+{
+  "date": "2026-11-12",
+  "scope": "Partial phase00/01: first ARM kernel batch; no CPU imports",
+  "experiment": "cpu-donor-baselines-20261112-b",
+  "attempt": "0003",
+  "status": "PASS",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+  "manifest": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/manifest.json",
+  "manifest_sha256": "1cff85cd64bd5790b13f7ec8cfbbe697369fe3a943f47d7ca5b072cbcb91a72a",
+  "variants": {
+    "h0": {
+      "commit": "ce8d2c902724a59e7537b845bc841dbd82d5bbf7",
+      "kind": "git",
+      "source_id": "33183fa2197e364eb631f651713073a4270912cb0331f54e8ca6f64c74b1bd43"
+    },
+    "h1": {
+      "commit": "3f5e8aeae3260562a814eacdd8d8aa505c044af8",
+      "kind": "git",
+      "source_id": "0887efef127f7681345a2b3a34b1e86ae92cb8d150016023a34b93df9c81d06f"
+    },
+    "working": {
+      "commit": "ca2b94758331e74f5bb6525658f5f61f37ab661f",
+      "kind": "working-tree",
+      "source_id": "3d96bd00dcf92d24204ea67f4e6574ad5043bcd6dff92bffbe602122e4d24905"
+    },
+    "working_previous_sdram": {
+      "commit": "ca2b94758331e74f5bb6525658f5f61f37ab661f",
+      "kind": "matched-override",
+      "source_id": "0574d1350539bf00bd0529fd5cb11fe3f2f4b1af430ef71b228f01262009a1fd"
+    }
+  },
+  "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+  "builds": {
+    "h0/line": {
+      "build_log_sha256": "21f3a00c2d802ea2ed8d53dd08a9e40802a0c757e420de2fc3b558ac319b8863",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/h0/line/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm",
+        "-GLINE_ENABLE=0",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "8b3bba175d1019642e7cb9e4ec2dd1e442a03596cc1a2d15e573aee38c9c9074"
+    },
+    "h0/scalar": {
+      "build_log_sha256": "c970ade0c6a8151110b163fe6b720b5c81f8294cf5ea782f1bdef8381373efd5",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/h0/scalar/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm",
+        "-GLINE_ENABLE=0",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h0/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "8b3bba175d1019642e7cb9e4ec2dd1e442a03596cc1a2d15e573aee38c9c9074"
+    },
+    "h1/line": {
+      "build_log_sha256": "ddebea9db08c0704f013421c0ac6bfd48d0aca5117c65512a8a6a0a85d0cce02",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/h1/line/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm",
+        "-GLINE_ENABLE=1",
+        "-DBENCH_HAS_LINE",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "555c0790f893cb556286e8ec035ea66463cc995a274a40dfeb40cf78206cf785"
+    },
+    "h1/scalar": {
+      "build_log_sha256": "1883f7592eaf0868eb4b793033409f4785fb0e457cd9614e6aa9116f326262c6",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/h1/scalar/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm",
+        "-GLINE_ENABLE=0",
+        "-DBENCH_HAS_LINE",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/h1/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "7ef3fb89f6b1a030cf0e4df5ee39a6c1d8f1dbf6197cb434eb909e8bd886df38"
+    },
+    "working/line": {
+      "build_log_sha256": "c303e4f4f7b60f2f272971b6fd8950a3f92bcb792bfaa92f1f20238ba04edb34",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/working/line/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm",
+        "-GLINE_ENABLE=1",
+        "-DBENCH_HAS_LINE",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "819bd2cd7d146537b5c69363c88ecfa33144331f0cd6ede4a4ec6a754850daba"
+    },
+    "working/scalar": {
+      "build_log_sha256": "7965bf84635a1d278919e289cdb19e089ade3b2c90fda4d0674e21635fff6615",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/working/scalar/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm",
+        "-GLINE_ENABLE=0",
+        "-DBENCH_HAS_LINE",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "471f316dc498a658ca7122fac69419b0a2c64483ff99679d664044184385cb62"
+    },
+    "working_previous_sdram/line": {
+      "build_log_sha256": "636eee9c06f02915622039136da8c2205cd3a51ac9006e45095e6bdd607c4c4e",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/working_previous_sdram/line/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm",
+        "-GLINE_ENABLE=1",
+        "-DBENCH_HAS_LINE",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "0e898326def53b8b470526329df352c94a8a59956761d05568c20c599553663e"
+    },
+    "working_previous_sdram/scalar": {
+      "build_log_sha256": "9d352b16f9206a8834be2f3265d6640ba23b290d3965a0872ad26ebe0e755d15",
+      "command": [
+        "docker",
+        "run",
+        "--rm",
+        "--pull=never",
+        "--network",
+        "none",
+        "--platform",
+        "linux/arm64",
+        "-v",
+        "/Users/andreabogazzi/develop/NGage_MiSTer:/work",
+        "-w",
+        "/work",
+        "--entrypoint",
+        "verilator",
+        "jotego/simulator:arm64",
+        "--binary",
+        "--timing",
+        "--assert",
+        "-j",
+        "2",
+        "-Wno-fatal",
+        "-Wno-lint",
+        "-DNGAGE_RUNTIME_TRACE",
+        "--top-module",
+        "bench",
+        "--Mdir",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/working_previous_sdram/scalar/obj",
+        "-I/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm",
+        "-GLINE_ENABLE=0",
+        "-DBENCH_HAS_LINE",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/ngage_cpu.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/ngage_bram.v",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_alu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_btb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_cache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_core.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_cp15_cb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_data_completion.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_dcache.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_decode.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_decode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_decompile.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_dual_rank_synchronizer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_fetch_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_issue_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_memory_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_mode16_decoder.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_mode16_decoder_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_ones_counter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_operand_read.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_postalu_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_predecode_coproc.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_predecode_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_predecode_uop_sequencer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_ram_simple_nopipe.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_register_file.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_shifter_main.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_shifter_multiply.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_shifter_shift.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_sync_fifo.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_top.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_wb_merger.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm/zap_writeback.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_access.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_adapter.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_lines.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_maintenance.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_refill.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_tags.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/cache_transfer.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/tlb.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/tlb_bank.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/tlb_bus_gate.sv",
+        "/work/scratch/cpu-donor-import/cpu-donor-baselines-20261112-b/working_previous_sdram/rtl/arm920/write_buffer.sv",
+        "/work/build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/tb.sv"
+      ],
+      "executable_sha256": "b26bb085247577adf626c19bb6f1efe0a268f536d6c5059e2b9df98a2112faf4"
+    }
+  },
+  "executed_scope": {
+    "cases": 15,
+    "variants": 4,
+    "modes": [
+      "scalar",
+      "line"
+    ],
+    "profiles": [
+      "0:0",
+      "2:9"
+    ],
+    "seeds": [
+      1,
+      17
+    ],
+    "jitter": 0,
+    "warmups": 2,
+    "samples": 3
+  },
+  "counts": {
+    "observations": 480,
+    "deterministic_pairs": 240,
+    "controller_negative_controls": 120,
+    "proxy_counter_checks": 480,
+    "cold_refill_counter_checks": 32,
+    "assertion_build_cases": 120
+  },
+  "qualifications": [
+    {
+      "path": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/qualification-0001/result.json",
+      "sha256": "636648ffdb72d1c8ac828212bfc91d29baaca22826a2843b6abf997e3fc1e896",
+      "checks": 38,
+      "statuses": {
+        "PASS": 38
+      }
+    },
+    {
+      "path": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/qualification-0002/result.json",
+      "sha256": "82e4bb4219ac2389266e180ccca655f0b60c7e5bdcbf052f8b31bdc74c38952f",
+      "checks": 38,
+      "statuses": {
+        "PASS": 38
+      }
+    },
+    {
+      "path": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/qualification-0003/result.json",
+      "sha256": "ab0eb88056f093f3a5c8bad3ba2803cc3553b890870be23b5928a1f48320c836",
+      "checks": 38,
+      "statuses": {
+        "PASS": 38
+      }
+    },
+    {
+      "path": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/qualification-0004/result.json",
+      "sha256": "ffbfaf4e1066238cbf905e05d69204642c2bef320c05aa0c3c2d871ae97d5dda",
+      "checks": 38,
+      "statuses": {
+        "PASS": 38
+      }
+    }
+  ],
+  "host_tests": {
+    "status": "PASS",
+    "count": 32,
+    "log": "scratch/cpu-donor-import/session-20261112-host-tests.log"
+  },
+  "software_kernel_oracle": {
+    "status": "BLOCKED",
+    "reason": "Previously recorded host Unicorn native initialization SIGILL; simulator image has no installed Unicorn. No download or new oracle pass."
+  },
+  "clock_contract": {
+    "harness_period_ns": 10,
+    "identical_for_all_variants": true,
+    "board_operating_hz": 78000000,
+    "target_hz": 104000000,
+    "board_clocks_changed": false
+  },
+  "other_gates": {
+    "resources": "NOT_RUN",
+    "routed_timing": "NOT_RUN",
+    "gameplay": "BLOCKED",
+    "cpu_imports": "NOT_RUN",
+    "full_phase00_01": "NOT_RUN",
+    "instrumented_vs_uninstrumented": "NOT_RUN",
+    "random_holds_and_reset": "NOT_RUN"
+  },
+  "tables": [
+    {
+      "case": "add_dependent",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "ADD instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "alu_independent",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "arithmetic instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "carry_flags",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "ADD/ADC/SUB/SBC instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "shift_dependent",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "shifted data-processing instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_accumulate",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "MUL/MLA instruction",
+      "body_cycles_median": {
+        "h0": 179,
+        "h1": 179,
+        "working": 179,
+        "working_previous_sdram": 179
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_long",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "SMULL/SMLAL instruction",
+      "body_cycles_median": {
+        "h0": 289,
+        "h1": 289,
+        "working": 289,
+        "working_previous_sdram": 289
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_dependent",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "load-plus-ADD iteration",
+      "body_cycles_median": {
+        "h0": 579,
+        "h1": 579,
+        "working": 579,
+        "working_previous_sdram": 579
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_independent",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "word load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_formats",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "formatted load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "store_reload",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "increment/store/reload iteration",
+      "body_cycles_median": {
+        "h0": 988,
+        "h1": 988,
+        "working": 988,
+        "working_previous_sdram": 988
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "block_copy",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "32-bit word copied",
+      "body_cycles_median": {
+        "h0": 1521,
+        "h1": 1521,
+        "working": 1521,
+        "working_previous_sdram": 1521
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "direct_branch",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "loop iteration (ADD/SUBS/BNE)",
+      "body_cycles_median": {
+        "h0": 1392,
+        "h1": 1392,
+        "working": 1392,
+        "working_previous_sdram": 1392
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "call_return",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "leaf call (BL/ADD/MOV pc,lr)",
+      "body_cycles_median": {
+        "h0": 1134,
+        "h1": 1134,
+        "working": 1134,
+        "working_previous_sdram": 1134
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cp15_reads",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "CP15 read",
+      "body_cycles_median": {
+        "h0": 331,
+        "h1": 331,
+        "working": 331,
+        "working_previous_sdram": 331
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cache_line_stride",
+      "mode": "line",
+      "profile": "0:0",
+      "operations": 65,
+      "operation_unit": "cold word load with 256-byte stride",
+      "body_cycles_median": {
+        "h0": 2897,
+        "h1": 3157,
+        "working": 3157,
+        "working_previous_sdram": 3157
+      },
+      "h1_vs_h0": {
+        "cycles_saved": -0.08974801518812558,
+        "throughput_gain": -0.08235666772252137
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "add_dependent",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "ADD instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "alu_independent",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "arithmetic instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "carry_flags",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "ADD/ADC/SUB/SBC instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "shift_dependent",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "shifted data-processing instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_accumulate",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "MUL/MLA instruction",
+      "body_cycles_median": {
+        "h0": 179,
+        "h1": 179,
+        "working": 179,
+        "working_previous_sdram": 179
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_long",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "SMULL/SMLAL instruction",
+      "body_cycles_median": {
+        "h0": 289,
+        "h1": 289,
+        "working": 289,
+        "working_previous_sdram": 289
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_dependent",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "load-plus-ADD iteration",
+      "body_cycles_median": {
+        "h0": 579,
+        "h1": 579,
+        "working": 579,
+        "working_previous_sdram": 579
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_independent",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "word load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_formats",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "formatted load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "store_reload",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "increment/store/reload iteration",
+      "body_cycles_median": {
+        "h0": 988,
+        "h1": 988,
+        "working": 988,
+        "working_previous_sdram": 988
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "block_copy",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "32-bit word copied",
+      "body_cycles_median": {
+        "h0": 1521,
+        "h1": 1521,
+        "working": 1521,
+        "working_previous_sdram": 1521
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "direct_branch",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "loop iteration (ADD/SUBS/BNE)",
+      "body_cycles_median": {
+        "h0": 1392,
+        "h1": 1392,
+        "working": 1392,
+        "working_previous_sdram": 1392
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "call_return",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "leaf call (BL/ADD/MOV pc,lr)",
+      "body_cycles_median": {
+        "h0": 1134,
+        "h1": 1134,
+        "working": 1134,
+        "working_previous_sdram": 1134
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cp15_reads",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "CP15 read",
+      "body_cycles_median": {
+        "h0": 331,
+        "h1": 331,
+        "working": 331,
+        "working_previous_sdram": 331
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cache_line_stride",
+      "mode": "line",
+      "profile": "2:9",
+      "operations": 65,
+      "operation_unit": "cold word load with 256-byte stride",
+      "body_cycles_median": {
+        "h0": 7577,
+        "h1": 3742,
+        "working": 3742,
+        "working_previous_sdram": 3742
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.5061369935330606,
+        "throughput_gain": 1.024853019775521
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "add_dependent",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "ADD instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "alu_independent",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "arithmetic instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "carry_flags",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "ADD/ADC/SUB/SBC instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "shift_dependent",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "shifted data-processing instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_accumulate",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "MUL/MLA instruction",
+      "body_cycles_median": {
+        "h0": 179,
+        "h1": 179,
+        "working": 179,
+        "working_previous_sdram": 179
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_long",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "SMULL/SMLAL instruction",
+      "body_cycles_median": {
+        "h0": 289,
+        "h1": 289,
+        "working": 289,
+        "working_previous_sdram": 289
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_dependent",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "load-plus-ADD iteration",
+      "body_cycles_median": {
+        "h0": 579,
+        "h1": 579,
+        "working": 579,
+        "working_previous_sdram": 579
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_independent",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "word load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_formats",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 128,
+      "operation_unit": "formatted load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "store_reload",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "increment/store/reload iteration",
+      "body_cycles_median": {
+        "h0": 988,
+        "h1": 988,
+        "working": 988,
+        "working_previous_sdram": 988
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "block_copy",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "32-bit word copied",
+      "body_cycles_median": {
+        "h0": 1521,
+        "h1": 1521,
+        "working": 1521,
+        "working_previous_sdram": 1521
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "direct_branch",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "loop iteration (ADD/SUBS/BNE)",
+      "body_cycles_median": {
+        "h0": 1392,
+        "h1": 1392,
+        "working": 1392,
+        "working_previous_sdram": 1392
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "call_return",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 32,
+      "operation_unit": "leaf call (BL/ADD/MOV pc,lr)",
+      "body_cycles_median": {
+        "h0": 1134,
+        "h1": 1134,
+        "working": 1134,
+        "working_previous_sdram": 1134
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cp15_reads",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 64,
+      "operation_unit": "CP15 read",
+      "body_cycles_median": {
+        "h0": 331,
+        "h1": 331,
+        "working": 331,
+        "working_previous_sdram": 331
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cache_line_stride",
+      "mode": "scalar",
+      "profile": "0:0",
+      "operations": 65,
+      "operation_unit": "cold word load with 256-byte stride",
+      "body_cycles_median": {
+        "h0": 2897,
+        "h1": 2897,
+        "working": 2897,
+        "working_previous_sdram": 2897
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "add_dependent",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "ADD instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "alu_independent",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "arithmetic instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "carry_flags",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "ADD/ADC/SUB/SBC instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "shift_dependent",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "shifted data-processing instruction",
+      "body_cycles_median": {
+        "h0": 129,
+        "h1": 129,
+        "working": 129,
+        "working_previous_sdram": 129
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_accumulate",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "MUL/MLA instruction",
+      "body_cycles_median": {
+        "h0": 179,
+        "h1": 179,
+        "working": 179,
+        "working_previous_sdram": 179
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "multiply_long",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "SMULL/SMLAL instruction",
+      "body_cycles_median": {
+        "h0": 289,
+        "h1": 289,
+        "working": 289,
+        "working_previous_sdram": 289
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_dependent",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "load-plus-ADD iteration",
+      "body_cycles_median": {
+        "h0": 579,
+        "h1": 579,
+        "working": 579,
+        "working_previous_sdram": 579
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_independent",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "word load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "load_formats",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 128,
+      "operation_unit": "formatted load",
+      "body_cycles_median": {
+        "h0": 1408,
+        "h1": 1408,
+        "working": 1408,
+        "working_previous_sdram": 1408
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "store_reload",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "increment/store/reload iteration",
+      "body_cycles_median": {
+        "h0": 988,
+        "h1": 988,
+        "working": 988,
+        "working_previous_sdram": 988
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "block_copy",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "32-bit word copied",
+      "body_cycles_median": {
+        "h0": 1521,
+        "h1": 1521,
+        "working": 1521,
+        "working_previous_sdram": 1521
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "direct_branch",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "loop iteration (ADD/SUBS/BNE)",
+      "body_cycles_median": {
+        "h0": 1392,
+        "h1": 1392,
+        "working": 1392,
+        "working_previous_sdram": 1392
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "call_return",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 32,
+      "operation_unit": "leaf call (BL/ADD/MOV pc,lr)",
+      "body_cycles_median": {
+        "h0": 1134,
+        "h1": 1134,
+        "working": 1134,
+        "working_previous_sdram": 1134
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cp15_reads",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 64,
+      "operation_unit": "CP15 read",
+      "body_cycles_median": {
+        "h0": 331,
+        "h1": 331,
+        "working": 331,
+        "working_previous_sdram": 331
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    },
+    {
+      "case": "cache_line_stride",
+      "mode": "scalar",
+      "profile": "2:9",
+      "operations": 65,
+      "operation_unit": "cold word load with 256-byte stride",
+      "body_cycles_median": {
+        "h0": 7577,
+        "h1": 7577,
+        "working": 7577,
+        "working_previous_sdram": 7577
+      },
+      "h1_vs_h0": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      },
+      "working_vs_h1": {
+        "cycles_saved": 0.0,
+        "throughput_gain": 0.0
+      }
+    }
+  ],
+  "physical_controller_evidence": "docs/evidence/cpu-donor-import/sdram-source-correspondence-2026-11-12.json",
+  "gameplay_inputs": "docs/evidence/cpu-donor-import/gameplay-input-2026-11-12.json",
+  "raw_report": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0003/report.json",
+  "raw_report_sha256": "5f3fed0bdd060cd566998b220f63328462c655971e7eefaafe6e2af6993c4d7d",
+  "preservation": {
+    "branch": "codex/ngage2-integration",
+    "branch_changes": false,
+    "production_cpu_edits": false,
+    "donor_edits": false,
+    "commit_push_deploy_ci_board_operations": false,
+    "existing_simulations_and_checkpoints": "untouched"
+  },
+  "limitations": [
+    "Partial phase00/01; no complete ISA/CPI, physical controller, resource, routed timing or gameplay claim",
+    "Warm-up windows excluded from body medians; retire_proxy is not architectural instructions",
+    "No overall score: full benchmark groups/weights remain to be frozen before imports"
+  ]
+}

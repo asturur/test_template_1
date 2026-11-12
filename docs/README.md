@@ -7,6 +7,9 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [cpu-donor-import-plan.md](cpu-donor-import-plan.md) | Ordered benchmark-first CPU imports, full difference coverage, measurement/acceptance rules and Call of Duty validation |
+| [cpu-donor-baseline-results.md](cpu-donor-baseline-results.md) | First480 measured ARM baseline runs, deterministic/counter qualification, refill tradeoff and remaining phase00/01 gates |
+| [cpu-donor-comparison.md](cpu-donor-comparison.md) | Current ZAP versus donor ARM9V2 execution/decode, specific port candidates and benchmark limits |
 | [sdram-native-validation.md](sdram-native-validation.md) | Native SDRAM runtime procedure, measured latency results and remaining board/fit gates |
 | [sdram-request-ownership.md](sdram-request-ownership.md) | Shared scalar write payload, reset-drain admission, unchanged latency and cache refill/commit storage explanation |
 | [menu-bringup-2026-11-12.md](menu-bringup-2026-11-12.md) | Live DDR C: capture, Phone exit, no-radio Bluetooth comparison and guarded exit tracing |

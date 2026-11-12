@@ -25,6 +25,91 @@ Next CPU experiment must freeze this additional memory change explicitly.
 [Ownership/results/buffer explanation](sdram-request-ownership.md),
 [evidence](evidence/sdram-request-ownership-2026-11-12.json).
 
+## 2026-11-12: First CPU baseline matrix and observer qualification pass
+
+Pinned H0/H1 then frozen current B0/control now execute in existing Docker image.
+Attempt0002 smoke passes; attempt0003 passes480 ARM-kernel observations,240
+exact deterministic pairs and120 exact controller negative controls. All480
+ordinary-retirement contracts and32 cold-refill beat contracts pass. All32 host
+checks and152 matrix HDL assertion/marker/replay checks pass (plus10 smoke).
+Frozen sources/harness/programs unchanged; current means recorded B0, not live tree.
+
+H1/current body cycles match throughout. Cold line stride exposes a synthetic
+transport tradeoff: H0→H1 at0:0 is2897→3157 clocks (8.97% more); at2:9 it is
+7577→3742 (50.61% fewer). Hot/scalar kernels unchanged. These are not physical
+SDRAM or FPS results. All9 native/six old-controller source hashes match the
+other chat's physical runtime evidence. Call of Duty v3.6a container found and
+hash-pinned; runnable scene/input/frame marker still BLOCKED.
+
+Phase00/01 remains partial: independent oracle (host Unicorn SIGILL), observer
+on/off, random holds/reset, further waits/seeds, Thumb/IRQ/fault/compiled-C and
+real memory/contention/gameplay coverage remain. No CPU import, new fit/timing,
+clock change, branch switch, commit, push, CI, deployment or hardware access.
+Other-chat code, simulations and checkpoints preserved. Stay at78MHz;104MHz
+remains the target. [Results/next gates](cpu-donor-baseline-results.md),
+[evidence](evidence/cpu-donor-import/baseline-runtime-2026-11-12.json).
+
+## 2026-11-12: Pinned CPU benchmark references and first tests implemented
+
+User pins H0=ce8d2c902724a59e7537b845bc841dbd82d5bbf7 and its direct child
+H1=3f5e8aeae3260562a814eacdd8d8aa505c044af8, then current work. First
+[donor-import harness](../tests/cpu/donor_import/README.md) freezes both plus
+working and matched saved-old-controller sources, without checkout/branch/stash.
+Native-controller work remains explicitly uncommitted. One set of15 ARM kernel
+binaries is shared across variants: ALU/flags/shift/multiply, loads/formats/stores,
+LDM/STM copy, branches/returns, CP15 and line-stride. Guest assertions included.
+
+All15 assemble;23 host isolation/parser/comparison/drift checks pass. Prepared
+cpu-donor-baselines-20261112-b;-a syntax failure superseded and retained. Docker
+socket denies HDL execution; optional Unicorn native init SIGILL is recorded
+BLOCKED. Historical RTL exceeds local Icarus support. No HDL benchmark passes,
+cycle results, FPS, CPU import, commit or production-source edit this turn.
+Synthetic scalar/line backing does not instantiate SDRAM: current/old-controller
+pair is a negative control here. Physical comparisons remain separate.
+
+Next: run the pinned-pair HDL smoke with Docker access, qualify/repeat counters,
+then complete phase01 coverage before any CPU imports. Exact commands in harness
+README; [plan](cpu-donor-import-plan.md),
+[evidence](evidence/cpu-donor-import/first-batch-2026-11-12.json). Board controls,
+media, other-chat RTL and frozen simulations/checkpoints untouched.
+
+## 2026-11-12: Benchmark-first CPU import plan prepared
+
+User requests every donor CPU difference addressed in an ordered, measured
+plan. [cpu-donor-import-plan.md](cpu-donor-import-plan.md) defines00 baseline/
+measurement isolation and01 benchmarks BEFORE any import, followed by semantic
+fixes, return prediction, multiply, ALU/rotate, decode, hit completion/forwarding,
+block/serialization, frontend/predictor, early return/HUM, buffers/cache/TLB,
+full ARM9V2 execution comparison and cumulative gameplay qualification.
+
+Compare every candidate with its immediate accepted parent AND frozen B0;
+no gain double counting. Already-ported RF and original ARM920 contracts have
+explicit dispositions. Functional improvements can be accepted without speed
+claims; performance-only imports need repeatable benefit and regression checks.
+Call of Duty needs a pinned active scene and real frame marker; missing/runnable
+state is BLOCKED, never inferred FPS. No prerequisite baseline fit imposed.
+Next task:00/01 only, establish source/bench manifests, validated counters and
+original results. This turn changed planning/docs only; no benchmark or CPU
+implementation, simulation, branch, fit, CI, board or checkpoint action.
+
+## 2026-11-12: CPU execution/decode comparison with donor completed
+
+Source audit only. Donor542300b CPU matches local master2904ebc and replaces
+ZAP integer stages with ARM9V2; ours retains patched ZAP execution. Our ALU
+has only SWP metadata additions versus upstream; multiplier is byte-identical.
+Donor MLAB RF strategy is already ported (0057). Remaining ideas: registered
+short-hit/early-late load handling, block-transfer sequencing, DSP multiply,
+ALU/rotate flags and predictor integration, with timing/fault contracts intact.
+
+Concrete source differences to test: our stateful Thumb BL pair versus donor
+independently interruptible halves/lone suffix, ARMv5-capable guest decode versus
+donor strictv4T, and existing MOV pc,lr RAS pattern wrongly namingr15. No new
+failure reproduced or fix applied. Donor historical post-setup random-body
+high-wait gains only2.6–3.1%; those are not results against our current CPU or
+FPS. ARM920 versus TI925 CP15/cache/TLB behavior prevents blind replacement.
+[Detailed comparison and next tests](cpu-donor-comparison.md). No RTL, branches,
+board access, simulations, fit, CI or running checkpoints changed by this audit.
+
 ## 2026-11-12: Native SDRAM runtime gates pass; line/write latency measured
 
 Docker access restored; existing jotego/simulator:arm64 used without pull.

@@ -1,0 +1,161 @@
+{
+  "date": "2026-11-12",
+  "scope": "First test batch and source preparation only; no CPU RTL imports",
+  "baseline_order": [
+    "ce8d2c902724a59e7537b845bc841dbd82d5bbf7",
+    "3f5e8aeae3260562a814eacdd8d8aa505c044af8",
+    "working"
+  ],
+  "experiment": "cpu-donor-baselines-20261112-b",
+  "variants": {
+    "h0": {
+      "commit": "ce8d2c902724a59e7537b845bc841dbd82d5bbf7",
+      "kind": "git",
+      "source_id": "33183fa2197e364eb631f651713073a4270912cb0331f54e8ca6f64c74b1bd43",
+      "has_line": false
+    },
+    "h1": {
+      "commit": "3f5e8aeae3260562a814eacdd8d8aa505c044af8",
+      "kind": "git",
+      "source_id": "0887efef127f7681345a2b3a34b1e86ae92cb8d150016023a34b93df9c81d06f",
+      "has_line": true
+    },
+    "working": {
+      "commit": "ca2b94758331e74f5bb6525658f5f61f37ab661f",
+      "kind": "working-tree",
+      "source_id": "3d96bd00dcf92d24204ea67f4e6574ad5043bcd6dff92bffbe602122e4d24905",
+      "has_line": true
+    },
+    "working_previous_sdram": {
+      "commit": "ca2b94758331e74f5bb6525658f5f61f37ab661f",
+      "kind": "matched-override",
+      "source_id": "0574d1350539bf00bd0529fd5cb11fe3f2f4b1af430ef71b228f01262009a1fd",
+      "has_line": true
+    }
+  },
+  "programs": [
+    {
+      "id": "add_dependent",
+      "group": "C",
+      "binary_sha256": "658bfca49c6db9ea07907678722d21633c35d945b9fe33d6d2c5cc4399bd0058",
+      "operations": 128
+    },
+    {
+      "id": "alu_independent",
+      "group": "C",
+      "binary_sha256": "5486a257fd7c3c33c1a8668511f48fcba7fb5482a7ae276b70ae9e0ce22fa540",
+      "operations": 128
+    },
+    {
+      "id": "carry_flags",
+      "group": "C",
+      "binary_sha256": "6b56e0b27a2e8cabcd20e64bbad9f0d8422e58f01a379d5ece6dc1840430ad20",
+      "operations": 128
+    },
+    {
+      "id": "shift_dependent",
+      "group": "C",
+      "binary_sha256": "85681946357bc3287c752904a51603e06e1dd939a468f0276781098c89b81fcb",
+      "operations": 64
+    },
+    {
+      "id": "multiply_accumulate",
+      "group": "D",
+      "binary_sha256": "c8d9565715bf2fd0c52c8c5a4b92e1e327dd4a8318cc6340b5fc72716e954722",
+      "operations": 32
+    },
+    {
+      "id": "multiply_long",
+      "group": "D",
+      "binary_sha256": "8b236baa1eb66bccdcc55946bac82e067e1d2afd346d2bf3df0ffd62ddb74b86",
+      "operations": 32
+    },
+    {
+      "id": "load_dependent",
+      "group": "E",
+      "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+      "operations": 32
+    },
+    {
+      "id": "load_independent",
+      "group": "E",
+      "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+      "operations": 128
+    },
+    {
+      "id": "load_formats",
+      "group": "E",
+      "binary_sha256": "a99ed265bac47dbf15f65901af32c6c10897df3d179b37be86e943af8b5cfa21",
+      "operations": 128
+    },
+    {
+      "id": "store_reload",
+      "group": "E",
+      "binary_sha256": "0cde1e3605736945dd9b33bab9bdaf934c61c655544b1533c8de1e3a133ab5e9",
+      "operations": 32
+    },
+    {
+      "id": "block_copy",
+      "group": "F",
+      "binary_sha256": "bf9b2024cad7c34933ad98d7e923852715c4cc8f7eafcc5a0ead9b1ec71c79a7",
+      "operations": 64
+    },
+    {
+      "id": "direct_branch",
+      "group": "B",
+      "binary_sha256": "a6c8d7e330e3d776abbcbda645fc3035429d3b7296ad46227a383acd9daf75e0",
+      "operations": 64
+    },
+    {
+      "id": "call_return",
+      "group": "B",
+      "binary_sha256": "da225e4d0fd2e2cd478a77d3fddbc807f7c1d936b50c70b7c02b2019c8bc8558",
+      "operations": 32
+    },
+    {
+      "id": "cp15_reads",
+      "group": "F",
+      "binary_sha256": "07c9c6d49c73c444dddf2f5f080f686d6bf6abb2114a209b2df41f849d514390",
+      "operations": 64
+    },
+    {
+      "id": "cache_line_stride",
+      "group": "G",
+      "binary_sha256": "789f08f1672030554e0ebeaa0a0074f174b80f395062402a64c5d8b15e39a5af",
+      "operations": 65
+    }
+  ],
+  "shared_binary_count": 15,
+  "host_tests": {
+    "status": "PASS",
+    "count": 23,
+    "log": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/host-tests.log"
+  },
+  "hdl": {
+    "status": "BLOCKED",
+    "reason": "permission denied while trying to connect to the Docker daemon socket at unix:///Users/andreabogazzi/.docker/run/docker.sock: Get \"http://%2FUsers%2Fandreabogazzi%2F.docker%2Frun%2Fdocker.sock/v1.48/images/jotego/simulator:arm64/json\": dial unix /Users/andreabogazzi/.docker/run/docker.sock: connect: operation not permitted",
+    "attempt": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/attempts/0001/result.json"
+  },
+  "software_kernel_oracle": {
+    "status": "BLOCKED",
+    "reason": "native Unicorn initialization failed",
+    "native_exit_code": -4
+  },
+  "full_icarus_elaboration": {
+    "status": "BLOCKED",
+    "reason": "Historical production RTL is not supported by local Icarus (forward references and unsupported elaboration); no production RTL edits made to accommodate it."
+  },
+  "superseded_experiment": "cpu-donor-baselines-20261112-a (testbench syntax error; never simulated)",
+  "limitations": [
+    "Synthetic memory only; no physical-controller timing or FPS result",
+    "Thumb/IRQ/complete architectural matrix, compiled C, real memory contention and gameplay are not implemented in this batch",
+    "No HDL benchmark passed; phase00/01 qualification remains incomplete"
+  ],
+  "manifest": "build/sim/cpu-donor-import/cpu-donor-baselines-20261112-b/manifest.json",
+  "preparation": {
+    "gcc": "arm-none-eabi-gcc (GCC) 15.2.0",
+    "generator_sha256": "7e82ae1b7a4985e72244175b0318f44c9cccbc02aa0ad5e86c42812a9f5b9469",
+    "linker_sha256": "0aa885aa395c000fa50ba9f27667617d14395d79c46a4a766d4bb84970b71d05",
+    "runner_sha256": "2b7372532e9dd184d39233feca0e3f5e2430921c4967f670c8439d23af828355"
+  }
+}

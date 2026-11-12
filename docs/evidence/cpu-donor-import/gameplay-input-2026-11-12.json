@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-12",
+  "title": "Call of Duty",
+  "version": "USA, Europe; En,Fr,De,Es,It; v3.6a (existing local preparation log)",
+  "input_inventory_status": "PASS",
+  "gameplay_status": "BLOCKED",
+  "reason": "No verified runnable gameplay scene, guest-level starting state, input script or game-produced-frame marker in this benchmark suite. No board access or game launch performed.",
+  "inputs": [
+    {
+      "path": "scratch/worktree-consolidation-20261111/ignored-worktree-files/scratch/ngage2-integration/game-mmc-cards/call-of-duty.mmc",
+      "bytes": 33546752,
+      "sha256": "a611fdf97810936094f76144317ece03bd7ca5c090378263ec1423e714ca3ea1"
+    },
+    {
+      "path": "scratch/worktree-consolidation-20261111/ignored-worktree-files/scratch/ngage2-integration/game-mmc-cards/call-of-duty.img",
+      "bytes": 33546240,
+      "sha256": "6dba89256ced9eee2209c0d366f36643b619338623d8a2aeb8ff30df3181454e"
+    },
+    {
+      "path": "scratch/worktree-consolidation-20261111/ignored-worktree-files/scratch/ngage2-integration/game-mmc-cards/call-of-duty.img.cid",
+      "bytes": 33,
+      "sha256": "8e1eed33dec7fc90c12bbfc9b3dded73eb67f28d47b3db83b425a6078b0ca9b9"
+    },
+    {
+      "path": "scratch/worktree-consolidation-20261111/ignored-worktree-files/scratch/ngage2-integration/game-mmc-cards/call-of-duty.img.csd",
+      "bytes": 33,
+      "sha256": "d97e11ccd370c93b296afb57073afbabd7b8b0bfe22494e034b631a71f104cb0"
+    }
+  ],
+  "existing_format_inspection": "scratch/worktree-consolidation-20261111/ignored-worktree-files/scratch/ngage2-integration/game-mmc-cards/call-of-duty-inspection.json",
+  "existing_preparation_log": "scratch/worktree-consolidation-20261111/ignored-worktree-files/scratch/ngage2-integration/game-mmc-cards/call-of-duty.log",
+  "format_scope": "Existing extent eligibility only; not a fresh hardware mount result",
+  "scene_contract": {
+    "level_save": "NOT_RUN",
+    "difficulty_camera": "NOT_RUN",
+    "input_script": "NOT_RUN",
+    "firmware_disks_overlays": "NOT_RUN",
+    "game_frame_marker": "NOT_RUN",
+    "five_paired_active_windows": "NOT_RUN"
+  },
+  "clock_contract": {
+    "operating_hz": 78000000,
+    "target_hz": 104000000,
+    "clock_changes_performed": false
+  },
+  "preservation": "All inputs read-only; game data and existing sessions left untouched"
+}

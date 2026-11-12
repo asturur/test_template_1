@@ -1,0 +1,85 @@
+{
+  "status": "PASS",
+  "scope": "Source correspondence only; reuses existing physical-controller evidence, not a new runtime test",
+  "evidence": "docs/evidence/sdram-native-validation-2026-11-12.json",
+  "evidence_sha256": "6185f2184e700dd7f9198922b2d489c16fb5a5921c7a978e70269a46552740f8",
+  "native": {
+    "Template.sv": {
+      "frozen_sha256": "14a9c712fdb737858f85f1dd4c65e69c376d8ffa99024c407b92b9d86aa04181",
+      "runtime_validation_sha256": "14a9c712fdb737858f85f1dd4c65e69c376d8ffa99024c407b92b9d86aa04181",
+      "status": "PASS"
+    },
+    "rtl/ngage_sdram_adapter.v": {
+      "frozen_sha256": "353371a06e384f71490432e41a71847d99e066d7f08faae394e79bffcc860212",
+      "runtime_validation_sha256": "353371a06e384f71490432e41a71847d99e066d7f08faae394e79bffcc860212",
+      "status": "PASS"
+    },
+    "rtl/ngage_dma_ram_mux.v": {
+      "frozen_sha256": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+      "runtime_validation_sha256": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+      "status": "PASS"
+    },
+    "rtl/ngage_sdram_arbiter.v": {
+      "frozen_sha256": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+      "runtime_validation_sha256": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64.v": {
+      "frozen_sha256": "b7ffebdf113cb5c634da050d2bf316f0d61608b27146ae3a16ff10b7ae5ee6f7",
+      "runtime_validation_sha256": "b7ffebdf113cb5c634da050d2bf316f0d61608b27146ae3a16ff10b7ae5ee6f7",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64_bank.v": {
+      "frozen_sha256": "31c744e6edd33fed1974008e19d8b18589407e6892a79f0d37e49e2302184016",
+      "runtime_validation_sha256": "31c744e6edd33fed1974008e19d8b18589407e6892a79f0d37e49e2302184016",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64_init.v": {
+      "frozen_sha256": "d3baed0548df5119be97af697e2c3d19546a842eda49c60621c0e815b36fbfbf",
+      "runtime_validation_sha256": "d3baed0548df5119be97af697e2c3d19546a842eda49c60621c0e815b36fbfbf",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64_rfsh.v": {
+      "frozen_sha256": "7e8282975706aa8fb81d7e60aee44e81863beed35abd36fbc5b81f398ddcd729",
+      "runtime_validation_sha256": "7e8282975706aa8fb81d7e60aee44e81863beed35abd36fbc5b81f398ddcd729",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64_latch.v": {
+      "frozen_sha256": "9ee95da3a4431d9938086f26fda6205b73019276153d03d3cbf55dda90fe91cb",
+      "runtime_validation_sha256": "9ee95da3a4431d9938086f26fda6205b73019276153d03d3cbf55dda90fe91cb",
+      "status": "PASS"
+    }
+  },
+  "legacy": {
+    "Template.sv": {
+      "frozen_sha256": "151cda64f56c5e27bc548c16d1ded8d75d2a7b9685ee98d850020264e8e01be9",
+      "runtime_validation_sha256": "151cda64f56c5e27bc548c16d1ded8d75d2a7b9685ee98d850020264e8e01be9",
+      "status": "PASS"
+    },
+    "rtl/ngage_sdram_adapter.v": {
+      "frozen_sha256": "9e3c81b00238a48b6e3998c723c880f40a288f4172cd13b5eb83340acc1ac092",
+      "runtime_validation_sha256": "9e3c81b00238a48b6e3998c723c880f40a288f4172cd13b5eb83340acc1ac092",
+      "status": "PASS"
+    },
+    "rtl/ngage_dma_ram_mux.v": {
+      "frozen_sha256": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668",
+      "runtime_validation_sha256": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64.v": {
+      "frozen_sha256": "e45d56b6c8bfe2f0a548196e2e89dc9c87ed560cf5e0770dcdc26c1b10b52de0",
+      "runtime_validation_sha256": "e45d56b6c8bfe2f0a548196e2e89dc9c87ed560cf5e0770dcdc26c1b10b52de0",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64_bank.v": {
+      "frozen_sha256": "128f1f213bc6b921cfb4e503c32b9641b123790bef6e96b503b29e4ab40551d0",
+      "runtime_validation_sha256": "128f1f213bc6b921cfb4e503c32b9641b123790bef6e96b503b29e4ab40551d0",
+      "status": "PASS"
+    },
+    "rtl/sdram/jtframe_sdram64_init.v": {
+      "frozen_sha256": "a44da0de85368302da3396b068cf5fd1bf6406cbc899ab253d193d1b0a5fac62",
+      "runtime_validation_sha256": "a44da0de85368302da3396b068cf5fd1bf6406cbc899ab253d193d1b0a5fac62",
+      "status": "PASS"
+    }
+  }
+}
