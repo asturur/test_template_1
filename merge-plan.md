@@ -1761,3 +1761,16 @@ User confirms manual SAVING remains1 and may have reset mid-flush: only partial
 persistence established. Donor ordered sector/ACK flow reviewed; investigate
 our HPS/DDR ownership after diagnostics. C:\logs work deferred. HDMI scrambled
 lines and CRT left shift/first columns deferred. See [DDR diagnostics](docs/ddr-diagnostics.md).
+
+
+## 2026-11-12 save blocker investigation
+
+Promoted alongside DDR diagnosis. Fix write-back failure revoking resident mount
+and permanently holding CPU reset; retain DDR and sticky error, stop persistence,
+clear busy/saving and block manual retry until cold reinitialization. Restore and
+unsafe-media protections remain. No deadline/clock change. Actual-HPS slow-Main
+post-ACK tests cover manual/automatic modes; quiescence wait/drain, scalar/ordered
+saves, D1+D2+D3 NOR and DDR progress readback checks pass. Main ACK precedes file
+write; Saved cannot mean media durability. Manual board stall not reproduced;
+new-RBF DDR DWORD242/243 flags/LBA now distinguish its wait phase. No build watch
+or access to other chat simulations. [Save findings](docs/save-blockers-2026-11-12.md).

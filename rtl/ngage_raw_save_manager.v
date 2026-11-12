@@ -24,6 +24,7 @@ module ngage_raw_save_manager #(
     input  wire        pause_autosave,
     output wire [ 1:0] slot_error,
     output wire        mounted,
+    output wire [31:0] debug_state,
     output wire        saving,
     output reg         saved,
     output wire        error,
@@ -210,7 +211,38 @@ module ngage_raw_save_manager #(
     assign sd_wr = state == FAILED || (any_mount && unsafe_change) ? 2'b00 :
         active_slot ? {b_wr, 1'b0} : {1'b0, b_wr};
     assign hps_din = b_din;
-    assign saving = tracker_flushing || state == FLUSH_WAIT || flush_pending;
+    assign saving = state != FAILED && (tracker_flushing || state == FLUSH_WAIT || flush_pending);
+    // Passive runtime readback: no counters or control-path registers added.
+    assign debug_state = {
+        3'b0,
+        dirty_valid,
+        pause_autosave,
+        autosave_enable,
+        bundle_verified,
+        tracker_fault,
+        tracker_error,
+        mem_done,
+        mem_ready,
+        bridge_mem_valid,
+        b_wr,
+        b_rd,
+        selected_ack,
+        b_error,
+        b_done,
+        b_ready,
+        flash_quiescent,
+        tracker_valid,
+        tracker_flushing,
+        tracker_pending,
+        flush_pending,
+        manual_batch,
+        error,
+        saving,
+        saved,
+        mounted,
+        active_slot,
+        state
+    };
     assign busy = state != IDLE && state != FAILED;
     integer slot;
     always @(posedge clk) begin
@@ -239,7 +271,7 @@ module ngage_raw_save_manager #(
                 manual_batch  <= flush_pending;
                 flush_pending <= 0;
             end
-            if (flush_start && mounted) flush_pending <= 1;
+            if (flush_start && mounted && state != FAILED) flush_pending <= 1;
             if (was_flushing && !tracker_flushing && !tracker_error && mounted) begin
                 if (flash_quiescent && !dirty_valid && !tracker_pending && !flush_start && !flush_pending) begin
                     saved         <= 1;
@@ -321,7 +353,11 @@ module ngage_raw_save_manager #(
                             terminal_error              <= 1;
                             transfer_error[active_slot] <= 1;
                             flush_pending               <= 0;
-                            restored                    <= 0;
+                            // A failed write-back does not invalidate the already
+                            // restored DDR image. Stop persistence/retries, retain
+                            // the dirty generation and let the phone keep running.
+                            // Restore failures and unsafe media changes still
+                            // revoke mounted and hold the phone in reset.
                             saved                       <= 0;
                             state                       <= FAILED;
                         end else state <= IDLE;

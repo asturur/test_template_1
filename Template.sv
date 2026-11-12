@@ -928,8 +928,9 @@ module emu (
 
     // Raw media has no embedded firmware identity. Retain the verified stock
     // firmware gate; host conversion manifests carry the original provenance.
-    wire [1:0] save_slot_error;
-    reg        flush_prev = 0;
+    wire [ 1:0] save_slot_error;
+    wire [31:0] save_debug_state;
+    reg         flush_prev = 0;
     always @(posedge clk_sys) flush_prev <= status[14];
     ngage_raw_save_manager #(
         .BULK               (D3_BULK_PERSISTENCE),
@@ -959,6 +960,7 @@ module emu (
         .autosave_enable (status[21]),
         .pause_autosave  (phone_reset_pending || phone_reset || overlay_busy || bt_busy),
         .slot_error      (save_slot_error),
+        .debug_state     (save_debug_state),
         .mounted         (save_mounted),
         .saving          (save_saving),
         .saved           (save_saved),
@@ -1013,21 +1015,22 @@ module emu (
         .CLOCK_HZ (SYS_CLK_HZ),
         .BUILD_TAG({16'b0, `BUILD_DATE})
     ) telemetry (
-        .clk           (clk_sys),
-        .reset         (transport_reset),
-        .cpu_reset     (dma_reset),
-        .allow_capture (!debug_busy && !export_pending && !export_trigger),
-        .values        (diagnostic_values),
-        .capture_active(telemetry_capture),
-        .debug_word    (telemetry_word),
-        .debug_data    (debug_read_data),
-        .req_valid     (snapshot_valid),
-        .req_ready     (snapshot_ready),
-        .req_write     (snapshot_write),
-        .req_addr      (snapshot_addr),
-        .req_data      (snapshot_data),
-        .rsp_valid     (snapshot_done),
-        .rsp_data      (snapshot_rdata)
+        .clk             (clk_sys),
+        .reset           (transport_reset),
+        .cpu_reset       (dma_reset),
+        .allow_capture   (!debug_busy && !export_pending && !export_trigger),
+        .values          (diagnostic_values),
+        .save_observation({sd_lba[0], save_debug_state}),
+        .capture_active  (telemetry_capture),
+        .debug_word      (telemetry_word),
+        .debug_data      (debug_read_data),
+        .req_valid       (snapshot_valid),
+        .req_ready       (snapshot_ready),
+        .req_write       (snapshot_write),
+        .req_addr        (snapshot_addr),
+        .req_data        (snapshot_data),
+        .rsp_valid       (snapshot_done),
+        .rsp_data        (snapshot_rdata)
     );
     ngage_diag_text_ddr #(
         .CLOCK_HZ(SYS_CLK_HZ)

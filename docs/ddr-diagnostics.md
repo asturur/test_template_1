@@ -97,7 +97,7 @@ Snapshot slots at0x313ff000 and0x313ff400, each256 DWORDs:
 |0..7|magic0x3244474e (`NGD2`), version1, sequence, clock Hz, capture start/end cycle, reset generation, NGD count406|
 |8..31|24 existing monitor values, in `tools/ngage_runtime_diag.py:NAMES` order|
 |32..234|NGD halfwords0..405 packed low then high|
-|235..254|reserved zero, except240/241 low/high64-bit build-date string tag|
+|235..254|reserved zero, except240/241 low/high64-bit build-date string tag and242/243 save status/LBA|
 |255|seal `sequence XOR0x4344474e`|
 
 Each snapshot invalidates its seal, writes payload, and commits seal last.
@@ -152,3 +152,20 @@ by extending timeouts without evidence. No persistence RTL changed in this pass.
 Also queued, unchanged: HDMI scrambled lines; CRT left shift and missing first
 one/two columns or pixel/window misalignment. Startup/runtime diagnosis takes
 priority over these display defects.
+
+
+## Save progress extension
+
+Snapshot DWORD242 is the passive save state and243 the current file LBA.
+State bits2:0:0 Idle,1 Load start,2 Load wait,3 Flush wait,4 Failed.
+Bit3 selects slot0 C: /1 PMM. Bits4..28 respectively:
+mounted, saved, saving, error, manual batch, manual pending, queue pending,
+queue flushing, queue sector valid, flash quiescent, bridge ready, bridge done,
+bridge error, host ACK, host read request, host write request, DDR request,
+DDR ready, DDR done, queue error, queue fault, bundle verified, autosave enabled,
+autosave paused, dirty event. Bits31:29 zero. The reader exposes named flags.
+This expands reserved words without changing version1 or existing NGD layout.
+
+The save investigation is now active, with a verified write-back failure/CPU
+reset isolation fix. The earlier deferred-save notes above record the initial
+checkpoint; see [current save findings](save-blockers-2026-11-12.md).

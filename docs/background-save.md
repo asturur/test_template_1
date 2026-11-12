@@ -28,7 +28,13 @@ one-bit RAMs track enqueue and dequeue generations for each sector, with
 forwarding for simultaneous updates. The arrays contain 141,440 logical bits
 before memory block rounding. Cold reset initializes the generation RAMs.
 
-A failed transfer stops saving and retains the active generation. An unsafe
+A failed write-back stops persistence, retains the active generation and keeps
+the restored DDR image available to the phone; it no longer forces CPU reset.
+SAVING/BUSY clear and per-device Error remains sticky. Further saves require
+cold reinitialization; another manual click does not retry. Restore failures
+still block boot. See [save blockers](save-blockers-2026-11-12.md).
+
+A failed transfer retains the active generation. An unsafe
 media replacement or invalid queue event also stops the save path. Pending
 DDR contents stay resident until a cold reset. Queue faults never switch to
 unordered scanning. Slot 3 diagnostic exports carry C: and PMM error bits in

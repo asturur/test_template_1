@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-12",
+  "baseline": "877292a",
+  "finding": "write-back error cleared restored and forced permanent CPU reset through !save_mounted",
+  "fix": "retain resident mount on write-back error; sticky error, no persistence retries, clear saving/busy; subsequent manual action cannot latch saving",
+  "not_changed": [
+    "SD timeout",
+    "78MHz PLL/constraints",
+    "DDR transport data path",
+    "restore and unsafe-media failure policy"
+  ],
+  "repro_before": "scratch/save-blockers-20261112/repro-before.log; CPU-release/mounted-on-save-timeout assertion fails on baseline",
+  "checks": {
+    "ordered_actual_hps": "pass 37 checks,59 reads,22 writes; manual/auto delayed host plus quiescence wait and failed-save media replacement",
+    "scalar_actual_hps": "pass 30 checks,44 reads,13 writes; before final additional quiescence/media assertions",
+    "D1_D2_8KiB_D3_NOR_actual_hps": "pass 12 reads/8 writes,6 sector snapshots, initial restore256 physical writes",
+    "sd_sector_watchdog": "pass request timeout and stuck ACK; unchanged RTL",
+    "DDR_save_progress": "pass behavioral,8/1024-record rings,physical adapter,Intel BRAM,collision poison,reader output",
+    "top_structure": "pass HPS/PLL stubs",
+    "source_graph": "pass 175 files /9QIPs",
+    "format": "pass pinned Verible",
+    "diff_check": "pass"
+  },
+  "host_reference": {
+    "path": "/Users/andreabogazzi/develop/zap-frontend/Main_MiSTer/user_io.cpp",
+    "sha256": "cdf50160765f045f742046db90a8a8e0f57d7945af465594c567854f80554f99",
+    "finding": "UIO_SECTOR_WR fetch and DisableIO/ACK fall precede FileWriteAdv; O_SYNC file write can delay next request",
+    "installed_binary_equivalence": "unverified"
+  },
+  "diagnostics": {
+    "snapshot_word242": "packed save manager flags/state, no new registers",
+    "snapshot_word243": "current file LBA",
+    "reader": "named save_progress flags"
+  },
+  "remaining": [
+    "actual board prolonged manual SAVING not reproduced",
+    "hardware cause of autosave stop unconfirmed",
+    "new RBF required for status/readback and failure-isolation fix",
+    "continuous CPU line-refill plus autosave not newly qualified",
+    "actual fitted timing/area unmeasured"
+  ],
+  "source_sha256": {
+    "Template.sv": "151cda64f56c5e27bc548c16d1ded8d75d2a7b9685ee98d850020264e8e01be9",
+    "rtl/ngage_raw_save_manager.v": "5285f5bb0382d4ec2ae81d5774dba5ebe4af052690ef7631f4cb35c043cf8811",
+    "rtl/ngage_diag_ddr.v": "2f69835a2921c5ff9375b6df9220ae46a7a5a660f0d30dc7e85d0de080124a30",
+    "tools/ngage_runtime_diag.py": "1cc5056d87fa3e16037f27206ceafed5126ba679cdbf3f8fea7267c4ca5b4791",
+    "tests/phone/raw_save/hps_tb.sv": "0fbdd66ed6830f13983591d0a11d90b5961ea2136851747faefa78b3e6f19ec6",
+    "tests/phone/diag_ddr/tb.v": "d603c844d5086be5cd6dbc1b8e7aa6417c2d7dcea30a649a95627ab9f52f7589",
+    "tests/phone/diag_ddr/test_reader.py": "ccd0ec7dd02133e55260390fc6a6b8e4001bbb411cda8c75b23d56fea830cbe8"
+  },
+  "no_actions": [
+    "no push or CI monitor",
+    "no remote save/reset/media write",
+    "no other-chat simulation/checkpoint access"
+  ],
+  "logs": "scratch/save-blockers-20261112/"
+}

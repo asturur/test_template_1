@@ -1,7 +1,8 @@
 `timescale 1ns/1ps
 module tb;
 parameter ORDERED=0;
-reg autosave=0;
+reg autosave=0, flash_quiescent=1;
+integer post_write_delay=0;
 wire [1:0] slot_error;
 reg clk=0;always #5 clk=~clk;reg inject_short=0,inject_swap=0,hold_requests=0,inject_mutation=0,saw_old_snapshot=0,first_snapshot_checked=0;
 reg reset=1,start=0,flush=0,dirty=0;reg [13:0] dirty_sector=0;
@@ -31,7 +32,7 @@ ngage_raw_save_manager #(.C_SECTORS(3),.PMM_SECTORS(2),.SD_TIMEOUT(100000),.ORDE
  .autosave_enable(autosave),.pause_autosave(warm_pending||phone_reset),.slot_error(slot_error),
  .dirty_valid(dirty),.dirty_sector(dirty_sector),.flush_start(flush),.mounted(mounted),.saving(saving),.saved(saved),.error(error),.busy(busy),
  .mem_valid(mv),.mem_ready(1'b1),.mem_write(mw),.mem_addr(ma),.mem_data(mdata),.mem_be(mbe),.mem_done(mdone),.mem_rdata(mr),
- .sd_lba0(lba[0]),.sd_lba1(lba[1]),.sd_rd(rd[1:0]),.sd_wr(wr[1:0]),.sd_ack(ack[1:0]),.hps_addr(ha),.hps_dout(hd),.hps_we(hwe),.hps_din(hi[0]),.flash_quiescent(1'b1));
+ .sd_lba0(lba[0]),.sd_lba1(lba[1]),.sd_rd(rd[1:0]),.sd_wr(wr[1:0]),.sd_ack(ack[1:0]),.hps_addr(ha),.hps_dout(hd),.hps_we(hwe),.hps_din(hi[0]),.flash_quiescent(flash_quiescent));
 ngage_diag_export #(.TIMEOUT(100000)) diag(.clk(clk),.reset(reset),.mount(mounts[3]),.readonly_image(readonly_image),.image_size(size),.start(start),.mounted(debug_mounted),.busy(debug_busy),.error(debug_error),.done(debug_done),.freeze_trace(freeze),.debug_word(debug_word),.debug_data(debug_data),.sd_lba(lba[3]),.sd_rd(rd[3]),.sd_wr(wr[3]),.sd_ack(ack[3]),.hps_addr(ha),.hps_dout(hd),.hps_we(hwe),.hps_din(hi[3]));
 always @(posedge clk)begin
  memory_done<=0;
@@ -93,6 +94,7 @@ initial begin: host
     end_io();
    end
   end
+  if(!status_word[0] && post_write_delay!=0)repeat(post_write_delay)@(negedge clk);
   host_busy=0;
  end
 end
@@ -222,11 +224,51 @@ initial begin: test
   checks=checks+1;
   $display("PASS S3 actual HPS ordered autosave, quiet/max age, finite warm reset and manual drain");
  end
+ // A manual request can remain pending before any HPS request when the
+ // NOR command/program/erase boundary is not quiescent. Report SAVING while
+ // pending, then drain when safe; do not misclassify this as an ACK timeout.
+ autosave=0;
+ cold();mount_image(1,0,1536);mount_image(2,0,1024);wait_mounted();
+ mark(0,32'h600df00d);flash_quiescent=0;
+ @(negedge clk);flush=1;@(negedge clk);flush=0;
+ repeat(200)@(negedge clk);
+ if(!saving||busy||(|rd)||(|wr)||mv||error||!save.flush_pending)
+  $fatal(1,"manual quiescence wait started unsafe transfer or lost request");
+ flash_quiescent=1;wait(saved&&!saving);
+ if({disk[0][1],disk[0][0]}!==32'h600df00d)$fatal(1,"manual quiescence wait lost data");
+ checks=checks+1;
  // A stalled host times out, retaining all RAM contents and reporting error.
  cold();mount_image(1,0,1536);mount_image(2,0,1024);wait_mounted();mark(ORDERED != 0 ? 3 : 0,32'h10203040);pause_host();
- @(negedge clk);flush=1;@(negedge clk);flush=0;wait(error);if(saved||mounted||ram[ORDERED != 0 ? 384 : 0]!==32'h10203040 ||
+ @(negedge clk);flush=1;@(negedge clk);flush=0;wait(error);repeat(4)@(negedge clk);if(saved||!mounted||phone_reset||saving||busy||ram[ORDERED != 0 ? 384 : 0]!==32'h10203040 ||
      slot_error!==(ORDERED != 0 ? 2'b10 : 2'b01))
      $fatal(1,"timeout discarded dirty RAM or mislabeled the device");checks=checks+1;
+ // Main drops the FPGA ACK before its O_SYNC file write. While Main is
+ // blocked on that write, the next sector can exceed our request deadline.
+ for(integer mode=0;mode<(ORDERED ? 2 : 1);mode=mode+1)begin
+  integer before_writes;
+  autosave=0;post_write_delay=0;
+  cold();mount_image(1,0,1536);mount_image(2,0,1024);wait_mounted();
+  before_writes=writes;
+  post_write_delay=100500;
+  mark(0,32'hc001cafe);mark(3,32'hd002beef);
+  if(mode==1)autosave=1;
+  else begin @(negedge clk);flush=1;@(negedge clk);flush=0;end
+  wait(error);repeat(4)@(negedge clk);
+  if(!mounted||phone_reset||saving||busy||saved||slot_error!=2'b10 ||
+     ram[384]!==32'hd002beef||{disk[0][1],disk[0][0]}!==32'hc001cafe)
+   $fatal(1,"slow host reset phone/lost resident data or reported false save mode%0d",mode);
+  wait(!host_busy);post_write_delay=0;before_writes=writes;
+  // No uncertain automatic retry; another manual click must not latch SAVING.
+  @(negedge clk);flush=1;@(negedge clk);flush=0;
+  repeat(20)@(negedge clk);
+  if(saving||busy||(|wr)||(|rd)||writes!=before_writes||!mounted)
+   $fatal(1,"failed persistence retried/stuck saving=%b busy=%b wr=%h rd=%h writes=%0d before=%0d mounted=%b state=%0d",saving,busy,wr,rd,writes,before_writes,mounted,save.state);
+  checks=checks+1;
+  // Resident DDR may keep running, but replacing uncertain media is unsafe.
+  mount_image(1,0,1536);
+  if(mounted||!error||(|rd)||(|wr))$fatal(1,"failed-save replacement released CPU gate");
+ end
+ $display("PASS delayed Main file write: manual/auto errors preserve CPU release and DDR, no retry or stuck SAVING");
  $display("PASS actual four-slot hps_io raw C/PMM, S2 reserve, S3 diagnostics, mount order/reset/error/mutation (%0d checks, %0d reads, %0d writes)",checks,reads,writes);$finish;
 end
 initial begin #20000000;$fatal(1,"timeout state=%d restored=%b pending=%b cursor=%d",save.state,save.restored,save.pending,save.cursor);end

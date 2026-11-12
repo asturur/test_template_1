@@ -127,6 +127,15 @@ class Reader:
                              end_cycle=w[5], reset_generation=w[6], values=dict(zip(NAMES, w[8:32])),
                              build_tag=((w[241] << 32) | w[240]).to_bytes(8, 'big').lstrip(b'\0').decode('ascii', errors='replace'),
                              ngd_halfwords=list(ngd))
+                save_flags = ('mounted saved saving error manual_batch flush_pending tracker_pending '
+                              'tracker_flushing tracker_valid flash_quiescent bridge_ready bridge_done '
+                              'bridge_error host_ack host_read_request host_write_request ddr_request '
+                              'ddr_ready ddr_done tracker_error tracker_fault bundle_verified '
+                              'autosave_enabled autosave_paused dirty_event').split()
+                event['save_progress'] = dict(state=w[242] & 7, slot=(w[242] >> 3) & 1,
+                                              flags_hex=f'0x{w[242]:08x}', lba=w[243],
+                                              **{name: bool(w[242] & (1 << bit))
+                                                 for bit, name in enumerate(save_flags, 4)})
                 if ngd[396] == 0x504E:
                     panic = struct.pack('<6H', *ngd[398:404])
                     event['panic'] = dict(valid_mask=ngd[397] & 7, payload_hex=panic.hex(),

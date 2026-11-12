@@ -1,3 +1,23 @@
+## 2026-11-12: Save-error CPU reset fixed; manual stall needs board trace
+
+User promoted autosave/manual save blockers. Confirmed write-back error cleared
+restored and permanently gated CPU reset. Now retains resident mounts/dirty DDR,
+reports sticky per-device error, stops persistence without stopping the phone;
+no unsafe retry or stuck SAVING from a subsequent manual click. Restore errors
+and unsafe media changes still block boot. No timeout/PLL change or CPU stage.
+
+Local Main reference drops ACK before synchronous file write: a slow previous
+write can time out the next request. Actual installed latency unmeasured. New
+actual-HPS delayed-host manual/auto and quiescence/drain checks pass; baseline
+D1+D2+D3 NOR, scalar/ordered HPS, sector watchdog, Intel/poison/physical DDR reader
+and production top pass. DWORD242/243 now export passive save flags/LBA via SSH.
+
+No general manual-drain deadlock reproduced; user's prolonged SAVING remains
+unresolved until new-RBF DDR capture distinguishes quiescence/DDR/HPS/queue wait.
+No push/CI monitoring/hardware action; other chat's simulations untouched.
+[Details and remaining board gate](save-blockers-2026-11-12.md).
+
+
 ## 2026-11-12: DDR3 runtime text and diagnostic mailbox implemented
 
 DDR diagnostics first; C:\logs and save repair deferred. Committed kernel debug

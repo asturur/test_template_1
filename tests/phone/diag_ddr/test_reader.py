@@ -16,6 +16,8 @@ for name in ('guard.bin', 'guard-wrap.bin'):
     assert len(text) == len(snap) == 1
     assert text[0]['text'] == 'ABCDEFGHIJKL'
     assert snap[0]['values']['fetch_pc'] == 0xABC00000
+    assert snap[0]['save_progress']['lba'] == 0x12345678
+    assert snap[0]['save_progress']['flags_hex'] == '0xabcdef00'
     assert snap[0]['panic']['valid_mask'] == 0, 'cold reset clears panic validity'
     assert reader.poll() == [], 'duplicate output'
     # A torn mailbox is ignored even when its magic/version look right.
