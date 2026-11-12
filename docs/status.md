@@ -1,3 +1,125 @@
+## 2026-11-12: SDRAM write-payload sharing accepted before CPU work
+
+Baseline tests precede isolated candidate edits. Adapter now shares the outer
+arbiter's held 32-bit write data/four byte enables, removing36 declared state
+bits beyond the previous62-bit mux removal. New owner_ready gates CPU/DMA
+admission until canceled physical operations drain; deliberately omitting it
+fails. All16 masks, producer changes after admission and grant waits0/3/7 pass.
+Normal latencies unchanged; canceled-write recovery costs two extra clocks in
+the directed fixture. No cache/CPU RTL, bank geometry, clocks or pin changes.
+
+All310 latency samples plus mixed completion match at each78/104MHz. Native
+line first/whole remains8/23 clocks, masked write12, mixed4119. Physical/DDIO/
+short/concurrent/full16MiB scrub/mux/LCD/refill tests pass. Top and CPU-path
+elaboration/formatter pass. Both5M-cycle real-controller CPU/board runs pass,
+327791/327792 bus transfers,12 known instruction faults,zero data faults.
+Fitted savings/routed timing remain NOT_RUN; board stays78MHz,104MHz target.
+
+Incoming32-byte cache refill and registered commit buffers remain unchanged;
+no full-line SDRAM adapter buffer exists. Completion uses counted last beat
+plus no reported error; production has no checksum/ECC and ties line_error low.
+Direct filling is feasible as a separately tested cache-interface change.
+Preserved initial dirty files, other-chat work, immutable CPU baselines and
+existing sessions/checkpoints; no branch switch/commit/push/CI/deploy/hardware.
+Next CPU experiment must freeze this additional memory change explicitly.
+[Ownership/results/buffer explanation](sdram-request-ownership.md),
+[evidence](evidence/sdram-request-ownership-2026-11-12.json).
+
+## 2026-11-12: Native SDRAM runtime gates pass; line/write latency measured
+
+Docker access restored; existing jotego/simulator:arm64 used without pull.
+Formatting/top lint, expanded physical Micron/DDIO/short/native-concurrent-bank,
+full16MiB scrub, mux capture/LCD comparison, all9 DMA concurrency cases,
+handover/reset and line-refill integration pass. Wrong-edge negative control
+needed production short reads to exercise DQ release; still fails with required
+Z data. No vendor timing relaxation or production logic repair needed.
+
+Matched saved pre-change/current physical-model traffic at78/104MHz gives
+identical cycles: row-hit line first8 unchanged, whole29->23; conflict33->27;
+refresh46->31. All16 masked-word writes: hit21->12, conflict25->16,
+refresh33->18. Mixed128 CPU+128 LCD words4693->4119 clocks(-12.2%);
+CPU read mean21.140625->23.734375(+12.3%) as scheduling phase shifts.
+Do not claim uniform latency/FPS improvement. Both5M real-controller boots
+pass,12 peripheral instruction faults each, zero data errors/LCD words.
+
+62 runtime logs scanned without unexpected timing/error/warning diagnostics;
+input/source hashes, min/mean/p95/max and exact commands in
+`docs/evidence/sdram-native-validation-2026-11-12.json`; raw logs/snapshots in
+`scratch/sdram-native-runtime-20261112/`.
+[Results and limits](cache-line-refill.md#native-sdram-runtime-validation-and-latency-2026-11-12).
+Same branch, unrelated changes/media/original long run/checkpoints preserved;
+no commit/push/deploy. AW22/two8MiB banks unchanged. Fit/104MHz routed timing,
+board IO/geometry, full Symbian boot and gameplay remain unverified.
+
+## 2026-11-12: Native SDRAM implementation staged; runtime tests need Docker
+
+Validation retry on the same branch remains blocked: image inspection and
+container listing cannot connect to the Docker socket (sandbox `operation not
+permitted`); `sh tests/phone/sdram/run-native.sh` exits 126 before starting a
+container. Escalation is disabled. All 13 relevant runner shell-syntax checks
+and `git diff --check` pass; default core/extension/C: inputs exist and their
+hashes are recorded in `scratch/sdram-native-validation-20261112/attempt.json`.
+No runtime failure or latency measurement obtained; RTL, running simulations,
+checkpoints and source media untouched. Formatting/top lint, physical regressions,
+CPU integration and matched old/new latency comparison still require Docker.
+
+Original core, existingcodex/ngage2-integration branch; no new branch. One
+logical256-bit refill now schedules2xBL8 READs eight clocks apart; native32-bit
+writes use consecutive masked halfwords and recovery, removing adapter GAP/
+second-half restart. DMA/LCD mux loses duplicate62-bit packet; actual outer
+arbiter remains payload owner. Production excludes unused bank2/3/programmer.
+LCD remains scalar32-bit source; no new FIFO/BRAM/prefetch or clock change.
+
+Retained AW22 /2x8MiB physical mapping. One16MiB physical bank needs larger
+chip geometry; not possible by changing bank count on a32MiB module. No such
+unverified mode added. Local Icarus elaboration of native/Micron, scrub, mux
+capture and legacy concurrent-bank hierarchy passes; shell/diff checks pass.
+Docker denied, escalation disabled; cached Linux formatter cannot execute on
+macOS. Runtime regressions, benchmarks, top lint, formatting check, fit and board
+validation remain pending; no measured speed/ALM/104MHz-closure claim.
+
+User requested a new-chat test prompt. Exact commands and acceptance checks:
+[sdram-native-validation.md](sdram-native-validation.md). Implementation details:
+[cache-line-refill.md](cache-line-refill.md#native-sdram-service-implemented-runtime-validation-pending-2026-11-12).
+No commit/push/deployment or running-boot/checkpoint changes.
+
+## 2026-11-12: Original-core SDRAM specialization assessed
+
+No new branches unless user explicitly asks. Original core is still AW22 /
+2x8MiB physical banks (16MiB phone RAM); not2x16MiB. Scalar/refill logical
+ports share that RAM. BL8 on16-bit SDRAM returns128 bits, hence two READs for
+one256-bit line; fixedBL16 is not a chip mode. Full-page+STOP is possible, but
+planned back-to-backBL8 reads can also return continuous data. Current adapter
+restarts after the first half, adding avoidable handshake latency.
+
+Prioritize one line owner/planned2xBL8, native consecutive masked32-bit writes,
+and merging duplicate outer admission packets. Refill already streams into
+cache's own256-bit install buffer. BA2/3/programmer/random-priority are tied
+inactive and may already synthesize away; source deletion is not proven area
+saving. Preserve IO DDIO, open rows, real timing waits, refresh and reset drain.
+Donor scheduling is useful; its mapping/capture/wide payload are not drop-in.
+New JTFRAME burst reference closes rows each operation and lacks runtime byte
+masks/DDIO parameter, so is not an automatic better choice. No RTL/clock/run/
+CI changes. [Assessment](cache-line-refill.md#n-gage-specific-controller-assessment-2026-11-12).
+
+Earlier ngage2 candidate was published44cd0a4 oncodex/ngage2-lcd-fast; CI run
+43230068156 was confirmed in progress once. No subsequent monitoring here.
+
+## 2026-11-12: ngage2 SDRAM compared with integration
+
+Source comparison favors retaining ngage2's physical controller: native16-byte
+read/write interface, four open rows, ns-derived timings. General DMA still
+uses scalar classic requests. Integration's benefit is dedicated LCD routing;
+its JTFRAME scalar adapter serializes requests and splits32-bit writes into
+two16-bit transactions with gaps. No blanket controller speed/area winner or
+new measurement claimed. Different input-capture schedules are not drop-in.
+
+Recommend native LCD sink first, optional bounded16-byte source prefetch using
+existing ngage2 burst capability. Extra burst staging128 payload bits+controls,
+or reserve4 existing FIFO slots and stream directly; this exceeds the previous
+one-word reader scope. No controller replacement/baseline fit needed for this
+assessment. [Comparison and costs](ngage2-timing-investigation.md#sdram-comparison-with-ngage1-integration).
+
 ## 2026-11-12: Bluetooth retries removed experimentally; Phone exit persists
 
 New read-only DDR C: capture yields stable live filesystem without flushing.

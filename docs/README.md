@@ -7,6 +7,8 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [sdram-native-validation.md](sdram-native-validation.md) | Native SDRAM runtime procedure, measured latency results and remaining board/fit gates |
+| [sdram-request-ownership.md](sdram-request-ownership.md) | Shared scalar write payload, reset-drain admission, unchanged latency and cache refill/commit storage explanation |
 | [menu-bringup-2026-11-12.md](menu-bringup-2026-11-12.md) | Live DDR C: capture, Phone exit, no-radio Bluetooth comparison and guarded exit tracing |
 | [save-blockers-2026-11-12.md](save-blockers-2026-11-12.md) | Autosave/manual error isolation, Main ACK/file-write ordering and remaining stall evidence |
 | [ddr-diagnostics.md](ddr-diagnostics.md) | SSH runtime text/snapshots, DDR format, verification and deferred save/video defects |

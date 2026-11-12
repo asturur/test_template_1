@@ -40,8 +40,8 @@ module tb;
         lcd_addr = 25'h777;
         dma_addr = 25'h888;
         repeat (3) @(negedge clk);
-        if (mem_addr != 25'h100 || mem_write || mem_be != 15 || lcd_accept)
-            $fatal(1, "owned word changed or accepted twice");
+        if (mem_addr != lcd_addr || mem_write || mem_be != 15 || lcd_accept)
+            $fatal(1, "owned source selection changed or accepted twice");
         mem_ack = 1;
         #1;
         if (!lcd_ack || dma_ack || lcd_rdata != 32'hcafef00d) $fatal(1, "LCD response ownership");
@@ -94,7 +94,7 @@ module tb;
         #1;
         if (lcd_ack || dma_ack) $fatal(1, "stale ACK acquired a new owner");
         mem_ack = 0;
-        $display("PASS DMA RAM mux zero request latency, 32 alternating grants, capture, masks, response ownership and reset");
+        $display("PASS DMA RAM mux zero request latency, 32 alternating grants, masks, response ownership and reset");
         $finish;
     end
     initial begin

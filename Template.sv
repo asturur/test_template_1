@@ -337,12 +337,14 @@ module emu (
         .mem_rdata (shared_dma_rdata)
     );
 
+    wire sdram_owner_ready;
     // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
+    // Keep the arbiter payload intact until a canceled physical transfer drains.
     ngage_sdram_arbiter ram_arbiter (
         .clk       (clk_sys),
         .reset     (dma_reset || transport_reset),
         .cpu_lock  (cpu_bus_lock),
-        .cpu_req   (cpu_sdram_req),
+        .cpu_req   (cpu_sdram_req && sdram_owner_ready),
         .cpu_we    (cpu_sdram_we),
         .cpu_addr  (cpu_sdram_addr),
         .cpu_data  (cpu_sdram_din),
@@ -350,7 +352,7 @@ module emu (
         .cpu_ack   (sdram_ack),
         .cpu_accept(cpu_sdram_accept),
         .cpu_rdata (sdram_dout),
-        .dma_req   (shared_dma_req),
+        .dma_req   (shared_dma_req && sdram_owner_ready),
         .dma_we    (shared_dma_write),
         .dma_addr  (shared_dma_addr),
         .dma_data  (shared_dma_data),
@@ -376,6 +378,7 @@ module emu (
         .LINE_REFILL   (1),
         .REFRESH_PERIOD((64'd6800 * SYS_CLK_HZ) / 104000000)
     ) phone_sdram (
+        .owner_ready(sdram_owner_ready),
         .line_req   (ram_line_req && !cpu_bus_lock),
         .line_addr  (ram_line_addr),
         .line_ready (ram_line_ready),
@@ -408,13 +411,15 @@ module emu (
     );
 
     jtframe_sdram64 #(
+        .BANKS               (2),
+        .PROG_ENABLE         (0),
         .SHORT_READS         (1),
         .DYNAMIC_LINE        (1),
         .AW                  (22),
         .HF                  (1),    // 78 MHz > 66 MHz → HF mode
         .READ_CAPTURE_NEGEDGE(1),    // paired with the inverted DDIO pin clock
-        .BA0_LEN             (128),  // BL8: two reads fill one 32-byte ARM line
-        .BA1_LEN             (128),
+        .BA0_LEN             (256),  // One logical service schedules two physical BL8s
+        .BA1_LEN             (256),
         .BA2_LEN             (16),
         .BA3_LEN             (16),
         .PROG_LEN            (16),   // unused programming port; no longer than physical burst

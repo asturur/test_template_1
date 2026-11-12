@@ -19,7 +19,7 @@ s=s.replace('inout     [data_bits - 1 : 0] Dq;','inout [data_bits - 1 : 0] Dq; i
 s=s.replace('= Dq [ 7 : 0];','= Dq_write [ 7 : 0];').replace('= Dq [15 : 8];','= Dq_write [15 : 8];')
 Path('build/sim/milestone7/sdram-model-verilator.v').write_text(s)
 s=Path('tests/phone/sdram/tb.sv').read_text()
-s=s.replace('parameter INVERTED_CLOCK=0, CAPTURE_NEGEDGE=0;', 'parameter INVERTED_CLOCK=1, CAPTURE_NEGEDGE=1;')
+s=s.replace('parameter INVERTED_CLOCK=0, CAPTURE_NEGEDGE=0,', 'parameter INVERTED_CLOCK=1, CAPTURE_NEGEDGE=1,')
 s=s.replace('tri [15:0] dq;', 'tri [15:0] dq; wire [15:0] dq_write; wire [15:0] dq_read=ram.Dq_reg;')
 s=s.replace('.sdram_dq(dq),.sdram_a(a)', '.sdram_dq(dq_read),.sdram_din(dq_write),.sdram_a(a)')
 s=s.replace('mt48lc16m16a2 ram(.Clk(memclk)', 'mt48lc16m16a2 ram(.Dq_write(dq_write),.Clk(memclk)')

@@ -1,0 +1,255 @@
+{
+  "date": "2026-11-12",
+  "scope": "Shared scalar write payload; cache/CPU unchanged",
+  "status": "PASS",
+  "branch": "codex/ngage2-integration",
+  "reference_head": "c41d620d430bb590a90086598c7eab543b4f78e7",
+  "image": "jotego/simulator:arm64",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "baseline_manifest": {
+    "path": "scratch/sdram-ownership-20261112/before-manifest.json",
+    "sha256": "0dca1b25afcf5f198ac70a881ed1ef901ece4e19594dd0c958e55958c543b64b"
+  },
+  "candidate_manifest": {
+    "path": "scratch/sdram-ownership-20261112/candidate-manifest.json",
+    "sha256": "c0deb47cda393727745194ab6bce9d5f37ce094b6eccf1e03d2baa4bc0453fc7"
+  },
+  "new_benchmark_input": {
+    "path": "scratch/sdram-ownership-20261112/ownership_tb.sv",
+    "sha256": "b06291f6c7b1909cf968e91c1d95e600cd9df637129bd83319b021e3cb253c66",
+    "written_and_run_before_candidate": true
+  },
+  "maintained_files_sha256": {
+    "Template.sv": "1d82696e170d631426b8cfb823e5cf6c4f0a9a36593bfbcf4e4a55ae71b23e40",
+    "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+    "tests/phone/sdram/tb.sv": "cd6963688f709ee90d73790126ffcd4191f0571952f53fae8c6896eb117dc152",
+    "tests/phone/sdram/scrub_tb.sv": "f55df75b5b3b2d3d2a259999d5b41b8307d85aa541bc6fafb3feff905a20baa8",
+    "tests/phone/sdram/latency_tb.sv": "3ec4b573488927fedda581b76f9682d56aea0dcdf5bb7407289727e91a674da8",
+    "tests/phone/sdram/run-latency.sh": "d46ad5aa6740118bc45668b743da46862bfc395fd6d9aee8677ff39ed8a8390f",
+    "tests/phone/sdram/run-native.sh": "d8be3c1b1c44b22855dc5ed62b44e434536b62f8a0644947ad519b2031f0b1d3",
+    "tests/phone/hardware_boot/tb.v": "71140b3e24d624af324abf9c827ef865dca5ff592551158e4f389e7e46ac40b3",
+    "tests/cpu/core/test.sv": "2a5d2ff9fec9a26d5df7005cb19b03450b92c45d36430eb72d5c72ff29a292f1",
+    "tests/phone/sdram/ownership_tb.sv": "b06291f6c7b1909cf968e91c1d95e600cd9df637129bd83319b021e3cb253c66",
+    "tests/phone/sdram/run-ownership.sh": "e27efeae6616923fec66bf1abedb7cf0aa5dfb63107fade75d778baf19d125e9"
+  },
+  "maintained_source_matches_validated_snapshot": true,
+  "source_state_change": {
+    "adapter_write_data_bits_removed": 32,
+    "adapter_byte_enable_bits_removed": 4,
+    "total_declared_state_bits_removed": 36,
+    "new_production_state_bits": 0,
+    "prior_mux_packet_removal_bits": 62,
+    "fitted_resources": "NOT_RUN",
+    "routed_timing": "NOT_RUN"
+  },
+  "clock_contract": {
+    "operating_hz": 78000000,
+    "target_hz": 104000000,
+    "board_clock_changes": false,
+    "simulated_rates": [
+      78000000,
+      104000000
+    ]
+  },
+  "physical_latency": {
+    "78000000": {
+      "status": "PASS",
+      "latency_samples": 310,
+      "mixed_total_clocks": 4119,
+      "all_latency_and_refresh_records_identical": true,
+      "before_log": "scratch/sdram-ownership-20261112/baseline-logs/physical/native-78000000.log",
+      "candidate_log": "scratch/sdram-ownership-20261112/candidate-logs/physical/native-78000000.log"
+    },
+    "104000000": {
+      "status": "PASS",
+      "latency_samples": 310,
+      "mixed_total_clocks": 4119,
+      "all_latency_and_refresh_records_identical": true,
+      "before_log": "scratch/sdram-ownership-20261112/baseline-logs/physical/native-104000000.log",
+      "candidate_log": "scratch/sdram-ownership-20261112/candidate-logs/physical/native-104000000.log"
+    }
+  },
+  "ownership_grant_wait_tests": {
+    "0": {
+      "status": "PASS",
+      "normal_transactions": 32,
+      "all_latencies_identical": true
+    },
+    "3": {
+      "status": "PASS",
+      "normal_transactions": 32,
+      "all_latencies_identical": true
+    },
+    "7": {
+      "status": "PASS",
+      "normal_transactions": 32,
+      "all_latencies_identical": true
+    }
+  },
+  "reset_recovery_clocks": {
+    "0": {
+      "before": [
+        {
+          "after_launch": 0,
+          "new_response_clocks": 19
+        },
+        {
+          "after_launch": 1,
+          "new_response_clocks": 17
+        }
+      ],
+      "candidate": [
+        {
+          "after_launch": 0,
+          "new_response_clocks": 21
+        },
+        {
+          "after_launch": 1,
+          "new_response_clocks": 19
+        }
+      ]
+    },
+    "3": {
+      "before": [
+        {
+          "after_launch": 0,
+          "new_response_clocks": 25
+        },
+        {
+          "after_launch": 1,
+          "new_response_clocks": 20
+        }
+      ],
+      "candidate": [
+        {
+          "after_launch": 0,
+          "new_response_clocks": 27
+        },
+        {
+          "after_launch": 1,
+          "new_response_clocks": 22
+        }
+      ]
+    },
+    "7": {
+      "before": [
+        {
+          "after_launch": 0,
+          "new_response_clocks": 33
+        },
+        {
+          "after_launch": 1,
+          "new_response_clocks": 24
+        }
+      ],
+      "candidate": [
+        {
+          "after_launch": 0,
+          "new_response_clocks": 35
+        },
+        {
+          "after_launch": 1,
+          "new_response_clocks": 26
+        }
+      ]
+    }
+  },
+  "reset_tradeoff": "Two additional response clocks only after a canceled operation in the delayed-controller fixture; normal ownership and all physical latency records identical",
+  "negative_controls": {
+    "unguarded_owner": {
+      "status": "PASS",
+      "expected_failure": "outer SDRAM write payload changed before drain",
+      "log": "scratch/sdram-ownership-20261112/candidate-logs/no-owner-guard.log"
+    },
+    "wrong_capture_edge": {
+      "status": "PASS",
+      "expected_failure": "Z-data failure with original Micron timings",
+      "log": "scratch/sdram-ownership-20261112/candidate/build/sim/unit-sdram-ddio/wrong-edge.log"
+    }
+  },
+  "regressions": {
+    "micron_functional": "PASS",
+    "ddio_full_and_production_profiles_16_cases": "PASS",
+    "short_and_concurrent_banks": "PASS",
+    "full_16mib_scrub": "PASS",
+    "mux_and_outer_capture": "PASS",
+    "lcd_18304_words_bitexact": "PASS",
+    "cache_refill_error_reset_and_owner": "PASS",
+    "top_elaboration_hps_pll_stubs": "PASS",
+    "cpu_sdram_path_elaboration": "PASS",
+    "formatter": "PASS",
+    "maintained_ownership_runner": "PASS"
+  },
+  "runtime_scan": {
+    "logs": 49,
+    "unexpected_diagnostics": [],
+    "expected_negative_controls_excluded": true
+  },
+  "bounded_cpu_board_boots": {
+    "78000000": {
+      "status": "PASS",
+      "summary": "PASS bounded hardware-bound boot cycles=5000000 bus=327791 errors=12 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006178 bus_pc=0000617c last_fetch_age=7",
+      "instruction_faults": 12,
+      "data_faults": 0,
+      "log": "scratch/sdram-ownership-20261112/candidate-logs/cpu-real-78000000-run.log",
+      "sha256": "f34f6f9fbac6ccb60f14f25824b3a95a45655aa817654f057656968905d989f9"
+    },
+    "104000000": {
+      "status": "PASS",
+      "summary": "PASS bounded hardware-bound boot cycles=5000000 bus=327792 errors=12 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006178 bus_pc=00006154 last_fetch_age=19",
+      "instruction_faults": 12,
+      "data_faults": 0,
+      "log": "scratch/sdram-ownership-20261112/candidate-logs/cpu-real-104000000-run.log",
+      "sha256": "bff252e6187ef66297b3545866c07d005507302e523fc6ea35f1308cde1ffb1f"
+    }
+  },
+  "inputs": [
+    {
+      "path": "build/firmware/nem4-factory/core.bin",
+      "bytes": 18612224,
+      "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+      "matches_existing_physical_validation": true
+    },
+    {
+      "path": "build/firmware/nem4-factory/extension.bin",
+      "bytes": 2293760,
+      "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+      "matches_existing_physical_validation": true
+    },
+    {
+      "path": "scratch/overnight/cdrive-11b.img",
+      "bytes": 4194304,
+      "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+      "matches_existing_physical_validation": true
+    }
+  ],
+  "line_storage": {
+    "changes": "NONE",
+    "sdram_adapter": "16-bit registered beat, no full-line buffer",
+    "cache_transfer_refill": "32-byte incoming assembly buffer",
+    "cache_transfer_victim": "Separate dirty-victim snapshot",
+    "cache_bank_commit": "32-byte registered installation stage",
+    "good_data_contract": "Last counted beat plus no reported error; production line_error tied low, no checksum/ECC",
+    "direct_fill": "Separate unimplemented cache-interface experiment"
+  },
+  "preservation": {
+    "cpu_cache_rtl_changed": false,
+    "clock_geometry_command_schedule_pin_boundaries_changed": false,
+    "frozen_cpu_baselines_changed": false,
+    "branch_changes": false,
+    "commit_push_ci_deploy_board_operations": false,
+    "other_chat_edits": "Preserved; live preimages checked before adoption"
+  },
+  "staging_failures_resolved": [
+    "First isolated latency wrapper lacked absolute saved-legacy path; retried successfully before candidate changes",
+    "Initial candidate declaration order rejected by Icarus; reordered before runtime qualification",
+    "First isolated top lint lacked build_id.v include; copied existing read-only build-date include and reran successfully"
+  ],
+  "artifacts": "scratch/sdram-ownership-20261112",
+  "limitations": [
+    "36 is a source-level state count; fitted savings and routed timing NOT_RUN",
+    "No board reload, signal-integrity or installed-geometry qualification",
+    "No full Symbian/gameplay/FPS result",
+    "Cache refill/victim/commit buffers unchanged"
+  ]
+}

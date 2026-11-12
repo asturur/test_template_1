@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Date: 29-4-2021 */
 
-// Physical burst is selected globally (16/32/64/128 bits).
-// Dynamic line mode consumes BL8 for fills and returns 32 bits for short reads.
+// Physical BL8; a256-bit logical service reserves a second READ slot.
+// line_read also marks native32-bit writes (two consecutive halfwords).
 /* verilator coverage_off */
 module jtframe_sdram64_bank #(
     parameter SHORT_READS=0,
@@ -14,12 +14,13 @@ module jtframe_sdram64_bank #(
               SHIFTED      =0,
               AUTOPRECH    =0,
               PRECHARGE_ALL=0,
-              BALEN        =64, // 16, 32, 64 or 128 bits
+              BALEN        =64, // 16, 32, 64, 128 or 256 logical bits
               BURSTLEN     =64,
               READONLY     =0   // set to 1 if ALL BANKS can only read
                                 // this will make dbusy64 match dbusy
 )(
     output wire stop_request,
+    output wire column_request,
     input wire line_read,
     input               rst,
     input               clk,
@@ -107,6 +108,19 @@ wire           rd_wr;
 
 reg            do_prech, do_act, do_read, written;
 reg line_read_ff;
+localparam WRITE_RECOVERY = HF ? 2 : 1;
+wire word_write = DYNAMIC_LINE && BALEN==256 && line_read_ff && written;
+wire write_done, second_read;
+generate if(DYNAMIC_LINE && BALEN==256) begin : wide_service
+    assign write_done = st[READ+1+WRITE_RECOVERY];
+    assign second_read = line_read_ff && !written && st[READ+7];
+end else begin : narrow_service
+    assign write_done = 1'b0;
+    assign second_read = 1'b0;
+end endgenerate
+wire second_write = word_write && st[READ];
+// Reserve the physical command slot; other bank FSMs must not advance there.
+assign column_request = second_write || second_read;
 wire short_read = SHORT_READS && DYNAMIC_LINE && !line_read_ff && !written;
 // CL2: a BST issued two command clocks after READ stops before halfword3.
 // The top arbiter reserves this command slot for the current read owner.
@@ -123,7 +137,8 @@ assign ack      = st[READ],
        dst      = st[DST] | (st[READ] & wr),
        dbusy    = |{in_busy, do_read},
        dbusy64  = READONLY ? dbusy : |{in_busy64, do_read},
-       rdy      = (written && !AUTOPRECH) ? st[READ] : read_ready,
+       rdy      = word_write ? write_done :
+                  (written && !AUTOPRECH) ? st[READ] : read_ready,
        addr_row = AW==22 ? addr[AW-1:AW-ROW] : addr[AW-2:AW-1-ROW],
        rd_wr    = rd | wr,
        idle     = st[0];
@@ -163,8 +178,9 @@ always @(*) begin
         ( !st[IDLE] && !st[PRE_ACT] && !st[PRE_RD] ) )
           next_st = rot_st;
     if( short_read && st[DST+1] ) next_st = 1;
-    if( st[READ] && wr && !AUTOPRECH)
-        next_st = 1; // writes finish earlier
+    if( st[READ] && written && !AUTOPRECH && !word_write)
+        next_st = 1; // legacy narrow-bank writes finish earlier
+    if(word_write && write_done) next_st=1;
 end
 
 wire row_match = match && actd && !AUTOPRECH[0];
@@ -211,12 +227,14 @@ endgenerate
 
 // module outputs
 always @(*) begin
-    wr_busy = do_read & wr;
-    cmd = stop_request ? CMD_STOP : do_prech ? CMD_PRECHARGE : (
+    wr_busy = (do_read & wr) | second_write;
+    cmd = second_write ? CMD_WRITE : second_read ? CMD_READ : stop_request ? CMD_STOP : do_prech ? CMD_PRECHARGE : (
           do_act   ? CMD_ACTIVE    : (
           do_read  ? (rd ? CMD_READ : CMD_WRITE ) : CMD_NOP ));
     sdram_a[12:11] =  addr_row[12:11];
     sdram_a[10:0] = do_act ? addr_row[10:0] :
+            second_write ? {1'b0, addr[AW-1], addr[8:0] + 9'd1} :
+            second_read ? {1'b0, addr[AW-1], addr[8:0] + 9'd8} :
             { do_read ? AUTOPRECH[0] : PRECHARGE_ALL[0], addr[AW-1], addr[8:0]};
 end
 

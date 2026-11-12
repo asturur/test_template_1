@@ -2,6 +2,8 @@
 // Concurrent physical-bank clients: BST must retain its command slot without
 // allowing another bank to advance on that slot. Original Micron timing model.
 module tb;
+    parameter NATIVE = 0;
+    localparam LINE_BEATS = NATIVE ? 16 : 8;
     parameter SYS_CLK_HZ = 104000000;
     parameter SHORT_READS = 1, LINE_REFILL = 1, CAPTURE_NEGEDGE = 1;
     localparam real HALF_PERIOD = 500000000.0 / SYS_CLK_HZ;
@@ -41,8 +43,8 @@ module tb;
         .AW(22),
         .HF(1),
         .READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),
-        .BA0_LEN(LINE_REFILL ? 128 : 32),
-        .BA1_LEN(LINE_REFILL ? 128 : 32),
+        .BA0_LEN(LINE_REFILL ? (NATIVE ? 256 : 128) : 32),
+        .BA1_LEN(LINE_REFILL ? (NATIVE ? 256 : 128) : 32),
         .BA2_LEN(16),
         .BA3_LEN(16),
         .PROG_LEN(16),
@@ -129,7 +131,7 @@ module tb;
     reg [15:0] expected;
     reg [21:0] word_address;
     initial begin
-        for (j = 0; j < 2048; j = j + 1) begin
+        for (j = 0; j < 4096; j = j + 1) begin
             ram.Bank0[j] = 16'ha000 ^ j;
             ram.Bank1[j] = 16'h5000 ^ j;
         end
@@ -138,8 +140,8 @@ module tb;
         wait (!init);
         repeat (5) @(negedge clk);
         for (round = 0; round < 300; round = round + 1) begin
-            address0 = ((round * 37) % 256) * 8;
-            address1 = ((round * 67) % 256) * 8;
+            address0 = ((round * 37) % 256) * LINE_BEATS;
+            address1 = ((round * 67) % 256) * LINE_BEATS;
             long_read = round % 4;
             pending = 3;
             rd = 3;
@@ -148,7 +150,7 @@ module tb;
             captured[0] = 0;
             captured[1] = 0;
             timeout = 0;
-            expected_beats=expected_beats+((long_read[0] || !SHORT_READS)?8:2)+((long_read[1] || !SHORT_READS)?8:2);
+            expected_beats=expected_beats+(long_read[0]?LINE_BEATS:(!SHORT_READS?8:2))+(long_read[1]?LINE_BEATS:(!SHORT_READS?8:2));
             while (finished != 3 && timeout < 10000) begin
                 @(negedge clk);
                 timeout = timeout + 1;
@@ -178,7 +180,7 @@ module tb;
                         captured[b] = captured[b] + 1;
                     end
                     if (ba_rdy[b]) begin
-                        if (!receiving[b] || captured[b] != (long_read[b] ? 8 : 2))
+                        if (!receiving[b] || captured[b] != (long_read[b] ? LINE_BEATS : 2))
                             $fatal(1, "wrong beat count bank%0d count%0d", b, captured[b]);
                         receiving[b] = 0;
                         finished[b]  = 1;
@@ -191,7 +193,7 @@ module tb;
             if (SHORT_READS && ba_dok[1:0] != 0) $fatal(1, "dok stuck after short read");
         end
         repeat (30) @(negedge clk);
-        if(commands!=600 || stops!=(SHORT_READS?300:0) || physical_beats!=expected_beats || refreshes==0)
+        if(commands!=(NATIVE?900:600) || stops!=(SHORT_READS?300:0) || physical_beats!=expected_beats || refreshes==0)
             $fatal(
                 1,
                 "traffic totals reads%0d stops%0d beats%0d expected%0d refresh%0d",

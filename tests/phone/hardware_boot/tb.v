@@ -165,10 +165,12 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  wire [7:0] dma_error_pending;
  reg [7:0] dma_errors_seen=0;
 
+ wire sdram_owner_ready;
  wire cswe,csreq,csack,dsreq,dsack,swe,sreq;wire sack; wire [31:0] sdata;assign sr=sdata;
  wire ram_line_req,ram_line_ready,ram_line_valid,ram_line_last;
  wire [24:0] ram_line_addr;wire [15:0] ram_line_data;
 `ifndef NGAGE_REAL_SDRAM
+ assign sdram_owner_ready=1'b1;
  reg [4:0] ram_line_count=0;reg [24:0] ram_line_saved=0;
  reg ram_line_v=0,ram_line_end=0;reg [15:0] ram_line_q=0;
  assign ram_line_ready=LINE_REFILL && !dma_reset && !cold && ram_line_count==0 && !sreq && !spending;
@@ -194,10 +196,10 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  // all 16 MiB; the behavioral SDRAM model starts zero in this Verilator run.
  wire [1:0] ba_line;
  ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(
- .clk(clk),.rst(cold),.phone_reset(dma_reset || cold),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
+ .owner_ready(sdram_owner_ready),.clk(clk),.rst(cold),.phone_reset(dma_reset || cold),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
  .ba_addr(ba_addr),.ba_din(ba_din),.ba_dsn(ba_dsn),.rd(rd),.wr(wr),.ba_ack(ba_ack),.ba_dst(ba_dst),.ba_rdy(ba_rdy),.ba_dout(ba_dout),.rfsh(rfsh),
  .line_req(ram_line_req),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
- jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(LINE_REFILL),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(LINE_REFILL?128:32),.BA1_LEN(LINE_REFILL?128:32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
+ jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(1),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(256),.BA1_LEN(256),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
   .line_read(ba_line),.rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
   .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
   .ba0_dsn(ba_dsn),.ba1_dsn(ba_dsn),.ba2_dsn(2'b11),.ba3_dsn(2'b11),
@@ -285,8 +287,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .mem_req(shared_dma_req),.mem_write(shared_dma_write),.mem_addr(shared_dma_addr),.mem_data(shared_dma_data),.mem_be(shared_dma_be),
   .mem_accept(shared_dma_accept),.mem_ack(shared_dma_ack),.mem_rdata(shared_dma_rdata)
  );
- ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
-  .dma_req(shared_dma_req),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
+ ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+  .dma_req(shared_dma_req && sdram_owner_ready),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
 `ifdef NGAGE_NOS_OVERLAY_RUN
  // Separate experiment: exercise the real staged loader and shared DDR path,
  // not a host-prepatched ROM. The CPU remains reset until application completes.

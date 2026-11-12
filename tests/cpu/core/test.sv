@@ -105,7 +105,7 @@ module test;
  ngage_sdram_arbiter arb(clk,reset,bus_lock,cyc && stb && ram_access && !bus_error,we,addr[24:0],wdata,sel,ram_ack,sdata,
   1'b0,1'b0,25'b0,32'b0,4'b0,,,sreq,swe,sa,mwdata,sb,sack,mrdata,,);
  ngage_sdram_adapter #(.RAM_BYTES(4)) mem(1'b0,25'b0,,,,,,clk,reset,1'b0,1'b0,sreq,swe,sa,mwdata,sb,sack,mrdata,sd_done,
-  ba,bd,dsn,rd,wr,take,first_beat,rr,|first_beat ? half_latched[15:0] : half_latched[31:16],rfsh);
+  ba,bd,dsn,rd,wr,take,first_beat,rr,|first_beat ? half_latched[15:0] : half_latched[31:16],rfsh,);
  always @(posedge clk) begin
   first_beat <= take & rd;
   read_pending <= take & rd;

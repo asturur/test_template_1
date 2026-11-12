@@ -1,0 +1,703 @@
+{
+  "date_utc": "2026-11-12T14:43:08.378426+00:00",
+  "branch": "codex/ngage2-integration",
+  "image": "jotego/simulator:arm64",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "commands": [
+    "docker image inspect jotego/simulator:arm64 --format {{.Id}}",
+    "docker run --rm --pull=never --network none --platform linux/arm64 -v \"$PWD:/work\" -w /work --entrypoint sh jotego/simulator:arm64 -c 'python3 tools/format_phone_rtl.py --formatter scratch/rtl-format/tools/verible-v0.0-4298-g085eef05/bin/verible-verilog-format Template.sv rtl/ngage_sdram_adapter.v rtl/ngage_dma_ram_mux.v; python3 tools/format_phone_rtl.py --formatter scratch/rtl-format/tools/verible-v0.0-4298-g085eef05/bin/verible-verilog-format --check Template.sv rtl/ngage_sdram_adapter.v rtl/ngage_dma_ram_mux.v; sh tests/phone/mister_transport/lint-top.sh'",
+    "sh tests/phone/sdram/run-native.sh",
+    "sh tests/phone/dma_channels/run-concurrency.sh",
+    "sh tests/phone/dma_handover/run.sh",
+    "docker run --rm --pull=never --network none --platform linux/arm64 -v \"$PWD:/work\" -w /work --entrypoint sh jotego/simulator:arm64 -c 'sh tests/phone/line_refill/run.sh'",
+    "PHONE_SYS_CLK_HZ=78000000 PHONE_LINE_REFILL=1 PHONE_SHORT_READS=1 sh tests/phone/hardware_boot/run-real-sdram.sh",
+    "PHONE_SYS_CLK_HZ=104000000 PHONE_LINE_REFILL=1 PHONE_SHORT_READS=1 sh tests/phone/hardware_boot/run-real-sdram.sh",
+    "docker run --rm --pull=never --network none --platform linux/arm64 -v \"$PWD:/work\" -w /work --entrypoint sh jotego/simulator:arm64 -c 'sh tests/phone/sdram/run-latency.sh'"
+  ],
+  "all_final_commands_exit_code": 0,
+  "runtime_log_scan": {
+    "logs": 62,
+    "unexpected_diagnostics": [],
+    "expected_negative_control": "scratch/sdram-native-runtime-20261112/wrong-edge.log"
+  },
+  "inputs": [
+    {
+      "path": "build/firmware/nem4-factory/core.bin",
+      "bytes": 18612224,
+      "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+    },
+    {
+      "path": "build/firmware/nem4-factory/extension.bin",
+      "bytes": 2293760,
+      "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+    },
+    {
+      "path": "scratch/overnight/cdrive-11b.img",
+      "bytes": 4194304,
+      "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+    }
+  ],
+  "sources_sha256": {
+    "Template.sv": "14a9c712fdb737858f85f1dd4c65e69c376d8ffa99024c407b92b9d86aa04181",
+    "rtl/ngage_sdram_adapter.v": "353371a06e384f71490432e41a71847d99e066d7f08faae394e79bffcc860212",
+    "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "rtl/sdram/jtframe_sdram64.v": "b7ffebdf113cb5c634da050d2bf316f0d61608b27146ae3a16ff10b7ae5ee6f7",
+    "rtl/sdram/jtframe_sdram64_bank.v": "31c744e6edd33fed1974008e19d8b18589407e6892a79f0d37e49e2302184016",
+    "rtl/sdram/jtframe_sdram64_init.v": "d3baed0548df5119be97af697e2c3d19546a842eda49c60621c0e815b36fbfbf",
+    "rtl/sdram/jtframe_sdram64_rfsh.v": "7e8282975706aa8fb81d7e60aee44e81863beed35abd36fbc5b81f398ddcd729",
+    "rtl/sdram/jtframe_sdram64_latch.v": "9ee95da3a4431d9938086f26fda6205b73019276153d03d3cbf55dda90fe91cb",
+    "tests/phone/sdram/tb.sv": "56b79e2af22f04953c836cb6d4501494ef36db4cbdf33a5066efe6160cf3acf6",
+    "tests/phone/sdram/latency_tb.sv": "be93ae2cc0e50438a087c27bf35e3755457a9de2aa4d4bb37c1f170875903214",
+    "tests/phone/sdram/short_concurrent_tb.sv": "78df8b6db39ef9edaa82ec1b9ff725207a5506ba66926127651ac6d29458aa53",
+    "tests/phone/sdram/run-ddio.sh": "737fc6c0d96216a233d356a5d7cf6525cc56ec5facea8a18da53820fb171a2a7",
+    "tests/phone/sdram/run-short-reads.sh": "b8c50a38fe883f656983ad9d96d040ea010dcfe4223d03177ee42cb13e964418",
+    "tests/phone/sdram/run-latency.sh": "d1676951707dddc9d206ebc16877be437663210ad519a139ec281ca5a9ec2c17",
+    "scratch/sdram-reference/mt48lc16m16a2.v": "d5a3a058550f22383da382ced23a16409360b8f213c5a89081ce18cc34b99b19"
+  },
+  "legacy_sources_sha256": {
+    "scratch/sdram-specialize-20261112/before/jtframe_sdram64.v": "e45d56b6c8bfe2f0a548196e2e89dc9c87ed560cf5e0770dcdc26c1b10b52de0",
+    "scratch/sdram-specialize-20261112/before/jtframe_sdram64_bank.v": "128f1f213bc6b921cfb4e503c32b9641b123790bef6e96b503b29e4ab40551d0",
+    "scratch/sdram-specialize-20261112/before/jtframe_sdram64_init.v": "a44da0de85368302da3396b068cf5fd1bf6406cbc899ab253d193d1b0a5fac62",
+    "scratch/sdram-specialize-20261112/before/ngage_dma_ram_mux.v": "81b949f8d9beb087908cb0cdf33b7ee97bb1aa8c1f791915336e9819b8d42668",
+    "scratch/sdram-specialize-20261112/before/ngage_sdram_adapter.v": "9e3c81b00238a48b6e3998c723c880f40a288f4172cd13b5eb83340acc1ac092",
+    "scratch/sdram-specialize-20261112/before/Template.sv": "151cda64f56c5e27bc548c16d1ded8d75d2a7b9685ee98d850020264e8e01be9"
+  },
+  "latency_unit": "system clocks; source offer at falling edge to sampled consumer response; no cache lookup",
+  "latency_configuration": {
+    "line_refill": 1,
+    "short_reads": 1,
+    "ddio_capture": 1,
+    "aw": 22,
+    "banks": 2,
+    "physical_burst": "BL8 CL2",
+    "refresh_schedule": "isolated probes explicitly enter active refresh; mixed phase requests one nine-refresh debt every 200 clocks, 16 times; automatic timer kept outside probe window identically in both versions",
+    "mixed_traffic": "64 masked CPU writes + 64 CPU reads against 128 LCD scalar reads; actual mux and outer arbiter; eight-clock response gaps"
+  },
+  "latency": {
+    "78000000": {
+      "legacy": {
+        "line_hit": {
+          "samples": 2,
+          "first": {
+            "min": 8,
+            "mean": 8,
+            "p95": 8,
+            "max": 8
+          },
+          "whole": {
+            "min": 29,
+            "mean": 29,
+            "p95": 29,
+            "max": 29
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_conflict": {
+          "samples": 2,
+          "first": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "whole": {
+            "min": 33,
+            "mean": 33,
+            "p95": 33,
+            "max": 33
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_refresh": {
+          "samples": 2,
+          "first": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "whole": {
+            "min": 46,
+            "mean": 46,
+            "p95": 46,
+            "max": 46
+          },
+          "refresh_commands_during_samples": 4
+        },
+        "write_hit": {
+          "samples": 16,
+          "first": {
+            "min": 21,
+            "mean": 21,
+            "p95": 21,
+            "max": 21
+          },
+          "whole": {
+            "min": 21,
+            "mean": 21,
+            "p95": 21,
+            "max": 21
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_conflict": {
+          "samples": 16,
+          "first": {
+            "min": 25,
+            "mean": 25,
+            "p95": 25,
+            "max": 25
+          },
+          "whole": {
+            "min": 25,
+            "mean": 25,
+            "p95": 25,
+            "max": 25
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_refresh": {
+          "samples": 16,
+          "first": {
+            "min": 33,
+            "mean": 33,
+            "p95": 33,
+            "max": 33
+          },
+          "whole": {
+            "min": 33,
+            "mean": 33,
+            "p95": 33,
+            "max": 33
+          },
+          "refresh_commands_during_samples": 32
+        },
+        "mixed_lcd_read": {
+          "samples": 128,
+          "first": {
+            "min": 13,
+            "mean": 27.5390625,
+            "p95": 38,
+            "max": 38
+          },
+          "whole": {
+            "min": 13,
+            "mean": 27.5390625,
+            "p95": 38,
+            "max": 38
+          },
+          "refresh_commands_during_samples": 87
+        },
+        "mixed_cpu_write": {
+          "samples": 64,
+          "first": {
+            "min": 29,
+            "mean": 34.1875,
+            "p95": 40,
+            "max": 45
+          },
+          "whole": {
+            "min": 29,
+            "mean": 34.1875,
+            "p95": 40,
+            "max": 45
+          },
+          "refresh_commands_during_samples": 58
+        },
+        "mixed_cpu_read": {
+          "samples": 64,
+          "first": {
+            "min": 19,
+            "mean": 21.140625,
+            "p95": 23,
+            "max": 28
+          },
+          "whole": {
+            "min": 19,
+            "mean": 21.140625,
+            "p95": 23,
+            "max": 28
+          },
+          "refresh_commands_during_samples": 28
+        },
+        "mixed_total_clocks": 4693
+      },
+      "native": {
+        "line_hit": {
+          "samples": 2,
+          "first": {
+            "min": 8,
+            "mean": 8,
+            "p95": 8,
+            "max": 8
+          },
+          "whole": {
+            "min": 23,
+            "mean": 23,
+            "p95": 23,
+            "max": 23
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_conflict": {
+          "samples": 2,
+          "first": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "whole": {
+            "min": 27,
+            "mean": 27,
+            "p95": 27,
+            "max": 27
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_refresh": {
+          "samples": 2,
+          "first": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "whole": {
+            "min": 31,
+            "mean": 31,
+            "p95": 31,
+            "max": 31
+          },
+          "refresh_commands_during_samples": 2
+        },
+        "write_hit": {
+          "samples": 16,
+          "first": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "whole": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_conflict": {
+          "samples": 16,
+          "first": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "whole": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_refresh": {
+          "samples": 16,
+          "first": {
+            "min": 18,
+            "mean": 18,
+            "p95": 18,
+            "max": 18
+          },
+          "whole": {
+            "min": 18,
+            "mean": 18,
+            "p95": 18,
+            "max": 18
+          },
+          "refresh_commands_during_samples": 16
+        },
+        "mixed_lcd_read": {
+          "samples": 128,
+          "first": {
+            "min": 13,
+            "mean": 23.0546875,
+            "p95": 29,
+            "max": 29
+          },
+          "whole": {
+            "min": 13,
+            "mean": 23.0546875,
+            "p95": 29,
+            "max": 29
+          },
+          "refresh_commands_during_samples": 80
+        },
+        "mixed_cpu_write": {
+          "samples": 64,
+          "first": {
+            "min": 20,
+            "mean": 22.625,
+            "p95": 25,
+            "max": 28
+          },
+          "whole": {
+            "min": 20,
+            "mean": 22.625,
+            "p95": 25,
+            "max": 28
+          },
+          "refresh_commands_during_samples": 32
+        },
+        "mixed_cpu_read": {
+          "samples": 64,
+          "first": {
+            "min": 19,
+            "mean": 23.734375,
+            "p95": 29,
+            "max": 29
+          },
+          "whole": {
+            "min": 19,
+            "mean": 23.734375,
+            "p95": 29,
+            "max": 29
+          },
+          "refresh_commands_during_samples": 32
+        },
+        "mixed_total_clocks": 4119
+      }
+    },
+    "104000000": {
+      "legacy": {
+        "line_hit": {
+          "samples": 2,
+          "first": {
+            "min": 8,
+            "mean": 8,
+            "p95": 8,
+            "max": 8
+          },
+          "whole": {
+            "min": 29,
+            "mean": 29,
+            "p95": 29,
+            "max": 29
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_conflict": {
+          "samples": 2,
+          "first": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "whole": {
+            "min": 33,
+            "mean": 33,
+            "p95": 33,
+            "max": 33
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_refresh": {
+          "samples": 2,
+          "first": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "whole": {
+            "min": 46,
+            "mean": 46,
+            "p95": 46,
+            "max": 46
+          },
+          "refresh_commands_during_samples": 4
+        },
+        "write_hit": {
+          "samples": 16,
+          "first": {
+            "min": 21,
+            "mean": 21,
+            "p95": 21,
+            "max": 21
+          },
+          "whole": {
+            "min": 21,
+            "mean": 21,
+            "p95": 21,
+            "max": 21
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_conflict": {
+          "samples": 16,
+          "first": {
+            "min": 25,
+            "mean": 25,
+            "p95": 25,
+            "max": 25
+          },
+          "whole": {
+            "min": 25,
+            "mean": 25,
+            "p95": 25,
+            "max": 25
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_refresh": {
+          "samples": 16,
+          "first": {
+            "min": 33,
+            "mean": 33,
+            "p95": 33,
+            "max": 33
+          },
+          "whole": {
+            "min": 33,
+            "mean": 33,
+            "p95": 33,
+            "max": 33
+          },
+          "refresh_commands_during_samples": 32
+        },
+        "mixed_lcd_read": {
+          "samples": 128,
+          "first": {
+            "min": 13,
+            "mean": 27.5390625,
+            "p95": 38,
+            "max": 38
+          },
+          "whole": {
+            "min": 13,
+            "mean": 27.5390625,
+            "p95": 38,
+            "max": 38
+          },
+          "refresh_commands_during_samples": 87
+        },
+        "mixed_cpu_write": {
+          "samples": 64,
+          "first": {
+            "min": 29,
+            "mean": 34.1875,
+            "p95": 40,
+            "max": 45
+          },
+          "whole": {
+            "min": 29,
+            "mean": 34.1875,
+            "p95": 40,
+            "max": 45
+          },
+          "refresh_commands_during_samples": 58
+        },
+        "mixed_cpu_read": {
+          "samples": 64,
+          "first": {
+            "min": 19,
+            "mean": 21.140625,
+            "p95": 23,
+            "max": 28
+          },
+          "whole": {
+            "min": 19,
+            "mean": 21.140625,
+            "p95": 23,
+            "max": 28
+          },
+          "refresh_commands_during_samples": 28
+        },
+        "mixed_total_clocks": 4693
+      },
+      "native": {
+        "line_hit": {
+          "samples": 2,
+          "first": {
+            "min": 8,
+            "mean": 8,
+            "p95": 8,
+            "max": 8
+          },
+          "whole": {
+            "min": 23,
+            "mean": 23,
+            "p95": 23,
+            "max": 23
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_conflict": {
+          "samples": 2,
+          "first": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "whole": {
+            "min": 27,
+            "mean": 27,
+            "p95": 27,
+            "max": 27
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "line_refresh": {
+          "samples": 2,
+          "first": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "whole": {
+            "min": 31,
+            "mean": 31,
+            "p95": 31,
+            "max": 31
+          },
+          "refresh_commands_during_samples": 2
+        },
+        "write_hit": {
+          "samples": 16,
+          "first": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "whole": {
+            "min": 12,
+            "mean": 12,
+            "p95": 12,
+            "max": 12
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_conflict": {
+          "samples": 16,
+          "first": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "whole": {
+            "min": 16,
+            "mean": 16,
+            "p95": 16,
+            "max": 16
+          },
+          "refresh_commands_during_samples": 0
+        },
+        "write_refresh": {
+          "samples": 16,
+          "first": {
+            "min": 18,
+            "mean": 18,
+            "p95": 18,
+            "max": 18
+          },
+          "whole": {
+            "min": 18,
+            "mean": 18,
+            "p95": 18,
+            "max": 18
+          },
+          "refresh_commands_during_samples": 16
+        },
+        "mixed_lcd_read": {
+          "samples": 128,
+          "first": {
+            "min": 13,
+            "mean": 23.0546875,
+            "p95": 29,
+            "max": 29
+          },
+          "whole": {
+            "min": 13,
+            "mean": 23.0546875,
+            "p95": 29,
+            "max": 29
+          },
+          "refresh_commands_during_samples": 80
+        },
+        "mixed_cpu_write": {
+          "samples": 64,
+          "first": {
+            "min": 20,
+            "mean": 22.625,
+            "p95": 25,
+            "max": 28
+          },
+          "whole": {
+            "min": 20,
+            "mean": 22.625,
+            "p95": 25,
+            "max": 28
+          },
+          "refresh_commands_during_samples": 32
+        },
+        "mixed_cpu_read": {
+          "samples": 64,
+          "first": {
+            "min": 19,
+            "mean": 23.734375,
+            "p95": 29,
+            "max": 29
+          },
+          "whole": {
+            "min": 19,
+            "mean": 23.734375,
+            "p95": 29,
+            "max": 29
+          },
+          "refresh_commands_during_samples": 32
+        },
+        "mixed_total_clocks": 4119
+      }
+    }
+  },
+  "bounded_boot": {
+    "78": {
+      "summary": "PASS bounded hardware-bound boot cycles=5000000 bus=327791 errors=12 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006178 bus_pc=0000617c last_fetch_age=7",
+      "fault_addresses": [
+        "0c0047e4",
+        "0c0047e8"
+      ]
+    },
+    "104": {
+      "summary": "PASS bounded hardware-bound boot cycles=5000000 bus=327792 errors=12 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006178 bus_pc=00006154 last_fetch_age=19",
+      "fault_addresses": [
+        "0c0047e4",
+        "0c0047e8"
+      ]
+    }
+  },
+  "artifacts": "scratch/sdram-native-runtime-20261112",
+  "remaining_gates": [
+    "routed setup/hold and 104 MHz closure",
+    "board SDRAM signal integrity and installed geometry",
+    "complete Symbian/UI boot",
+    "gameplay FPS",
+    "fitted ALM/resource change"
+  ],
+  "preservation": {
+    "original_running_container": "frosty_neumann; untouched",
+    "checkpoints": "untouched",
+    "source_inputs": "hashes verified unchanged after boots",
+    "branch": "unchanged",
+    "commit_push_deploy": false
+  },
+  "fix": "Wrong-edge negative control now enables production short reads; original BL8 positive setup no longer exercises DQ release. Vendor timings and negative expected Z failure retained. No production logic repair needed."
+}

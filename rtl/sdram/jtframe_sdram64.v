@@ -2,11 +2,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  * Date: 29-4-2021 */
 
-// Physical burst is selected globally (16/32/64/128 bits).
-// Dynamic line mode consumes BL8 for fills and returns 32 bits for short reads.
+// Logical bank service length may be256 bits; physical reads remain BL8.
+// A256-bit line schedules two READ commands eight clocks apart. Dynamic
+// scalar reads return32 bits and wide writes issue two masked halfwords.
 /* verilator coverage_off */
 module jtframe_sdram64 #(
-    parameter SHORT_READS=0,
+    parameter BANKS=2,
+              PROG_ENABLE=0,
+              SHORT_READS=0,
               DYNAMIC_LINE=0,
               AW=22,
               HF=1,     // 1 for HF operation (idle cycles), 0 for LF operation
@@ -104,7 +107,7 @@ module jtframe_sdram64 #(
     output              sdram_cke       // SDRAM Chip Select
 );
 /* verilator coverage_off */
-localparam BURSTLEN=(BA0_LEN>64 || BA1_LEN>64 ||BA2_LEN>64 ||BA3_LEN>64) ? 128 :(BA0_LEN>32 || BA1_LEN>32 ||BA2_LEN>32 ||BA3_LEN>32) ? 64 :(
+localparam BURSTLEN=(BA0_LEN>128 || BA1_LEN>128) ? 256 : (BA0_LEN>64 || BA1_LEN>64 ||BA2_LEN>64 ||BA3_LEN>64) ? 128 :(BA0_LEN>32 || BA1_LEN>32 ||BA2_LEN>32 ||BA3_LEN>32) ? 64 :(
                     (BA0_LEN>16 || BA1_LEN>16 ||BA2_LEN>16 ||BA3_LEN>16) ? 32 : 16);
 
 localparam LATCH = HF==1;
@@ -121,6 +124,7 @@ localparam CMD_LOAD_MODE   = 4'b0___0____0____0, // 0
            CMD_INHIBIT     = 4'b1___0____0____0; // 8
 
 wire [3:0] stop_requests;
+wire [1:0] column_requests;
 assign stop_requests[3:2]=2'b0;
 wire  [3:0] br, bx0_cmd, bx1_cmd, bx2_cmd, bx3_cmd, rfsh_cmd,
             ba_dst, ba_dbusy, ba_dbusy64, ba_rdy, ba_dok,
@@ -323,6 +327,7 @@ jtframe_sdram64_rfsh #(.HF(HF),.RFSHCNT(RFSHCNT)) u_rfsh(
     .sdram_a    ( rfsh_a    )
 );
 
+generate if (PROG_ENABLE) begin : programmer
 jtframe_sdram64_bank #(
     .AW       ( AW      ),
     .HF       ( HF      ),
@@ -334,6 +339,9 @@ jtframe_sdram64_bank #(
     .AUTOPRECH    ( 1   ),
     .PRECHARGE_ALL( 1   )
 ) u_prog(
+    .line_read  ( 1'b0       ),
+    .stop_request(           ),
+    .column_request(         ),
     .rst        ( prog_rst   ),
     .clk        ( clk        ),
     .help       ( 1'b0       ),
@@ -374,6 +382,12 @@ jtframe_sdram64_bank #(
     .cmd        ( pre_cmd    )
 );
 
+end else begin : no_programmer
+    assign pre_ack=0, pre_dst=0, pre_dok=0, pre_rdy=0;
+    assign pre_br=0, prog_busy=0, pre_cmd=4'b0111, pre_a=0;
+    assign wr_busy[4]=0, idle[4]=1;
+end endgenerate
+
 jtframe_sdram64_bank #(
     .AW       ( AW            ),
     .HF       ( HF            ),
@@ -392,6 +406,7 @@ jtframe_sdram64_bank #(
     .addr       ( ba0_addr_l ),
     .line_read(line_read[0]),
     .stop_request(stop_requests[0]),
+    .column_request(column_requests[0]),
     .rd         ( rd_l[0]    ),
     .wr         ( wr_l[0]    ),
 
@@ -444,6 +459,7 @@ jtframe_sdram64_bank #(
     .addr       ( ba1_addr_l ),
     .line_read(line_read[1]),
     .stop_request(stop_requests[1]),
+    .column_request(column_requests[1]),
     .rd         ( rd_l[1]    ),
     .wr         ( wr_l[1]    ),
 
@@ -477,6 +493,7 @@ jtframe_sdram64_bank #(
     .cmd        ( bx1_cmd    )
 );
 
+generate if (BANKS==4) begin : extra_banks
 jtframe_sdram64_bank #(
     .AW       ( AW            ),
     .HF       ( HF            ),
@@ -485,6 +502,9 @@ jtframe_sdram64_bank #(
     .BALEN    ( BA2_LEN       ),
     .AUTOPRECH( BA2_AUTOPRECH )
 ) u_bank2(
+    .line_read  ( 1'b0       ),
+    .stop_request(           ),
+    .column_request(         ),
     .rst        ( other_rst  ),
     .clk        ( clk        ),
     .help       ( help       ),
@@ -532,6 +552,9 @@ jtframe_sdram64_bank #(
     .BALEN    ( BA3_LEN       ),
     .AUTOPRECH( BA3_AUTOPRECH )
 ) u_bank3(
+    .line_read  ( 1'b0       ),
+    .stop_request(           ),
+    .column_request(         ),
     .rst        ( other_rst  ),
     .clk        ( clk        ),
     .help       ( help       ),
@@ -570,6 +593,14 @@ jtframe_sdram64_bank #(
     .sdram_a    ( bx3_a      ),
     .cmd        ( bx3_cmd    )
 );
+
+end else begin : no_extra_banks
+    assign ack[3:2]=0, br[3:2]=0, ba_dst[3:2]=0, ba_dbusy[3:2]=0;
+    assign ba_dbusy64[3:2]=0, wr_busy[3:2]=0, idle[3:2]=2'b11;
+    assign post_act[3:2]=0, ba_dok[3:2]=0, ba_rdy[3:2]=0;
+    assign dqm_busy[3:2]=0, ba2_row=0, ba3_row=0;
+    assign bx2_a=0, bx3_a=0, bx2_cmd=4'b0111, bx3_cmd=4'b0111;
+end endgenerate
 
 always @(*) begin
     rfsh_bg = &idle && (noreq | help) && rfsh_br;
@@ -665,8 +696,8 @@ always @(*) begin
         end
     end
     if(!rfshing && !prog_en)begin
-        if(stop_requests[0])bg=4'b0001;
-        else if(stop_requests[1])bg=4'b0010;
+        if(stop_requests[0] || column_requests[0])bg=4'b0001;
+        else if(stop_requests[1] || column_requests[1])bg=4'b0010;
     end
 end
 

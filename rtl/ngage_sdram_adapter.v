@@ -1,8 +1,10 @@
-// LINE_REFILL requires BA0/BA1_LEN=128 and DYNAMIC_LINE=1 in jtframe_sdram64.
-// ba_line stays stable through the selected bank read; each line uses two BL8s.
-// One 32-bit request at a time. Reads use one two-beat SDRAM burst; writes
-// retain two masked single-halfword operations. dst captures the low read
-// halfword and rdy captures the high halfword, never the acceptance ack.
+// Native N-Gage service: BA0/BA1_LEN=256 and DYNAMIC_LINE=1.
+// ba_line marks a 256-bit read or 32-bit write. One request owns both BL8s
+// or both masked WRITE commands. The controller reserves their command slots.
+// No intermediate line payload: read beats stream to the cache install buffer.
+// The outer arbiter owns scalar write data/masks through response or reset drain.
+// Gate new outer grants with owner_ready; its payload registers retain old data
+// across logical reset until this adapter has drained the canceled operation.
 // The initial scrub is a cold-start operation; phone_reset discards CPU responses, not RAM.
 module ngage_sdram_adapter #(
     parameter                LINE_REFILL    = 0,
@@ -37,21 +39,24 @@ module ngage_sdram_adapter #(
     input  wire [ 3:0] ba_dst,
     input  wire [ 3:0] ba_rdy,
     input  wire [15:0] ba_dout,
-    output reg         rfsh
+    output reg         rfsh,
+    output wire        owner_ready
 );
-    localparam IDLE = 0, ISSUE = 1, WAIT_READY = 2, GAP = 3, RESP = 4, WAIT_DROP = 5;
+    localparam IDLE = 0, ISSUE = 1, WAIT_READY = 2, RESP = 3, WAIT_DROP = 4;
     reg [2:0] state = IDLE;
     reg       line_op = 0;
-    reg [3:0] line_half = 0;
-    reg [2:0] capture_beat = 0;
+    reg [3:0] capture_beat = 0;
     reg       capturing = 0;
-    assign line_ready=LINE_REFILL && state==IDLE && scrub_done && !req && !phone_reset && !rst && !init;
-    assign ba_line = {2{line_op}};
+    assign line_ready = LINE_REFILL && state == IDLE && scrub_done && !req &&
+                        !phone_reset && !rst && !init;
     reg [24:0] address = 0, scrub_address = 0;
-    reg [31:0] data = 0;
-    reg [ 3:0] mask = 0;
     reg write_op = 0, high = 0, scrub = 0, discard = 0;
-    reg [1:0] gap = 0;
+    wire [31:0] data = scrub ? 32'd0 : din;
+    wire [ 3:0] mask = scrub ? 4'hf : be;
+    // Admission to the outer holding register may overlap an ordinary line or
+    // scrub, but must wait while a logically canceled operation drains.
+    assign owner_ready = !rst && !init && !phone_reset && !discard;
+    assign ba_line     = {2{line_op || write_op}};
     localparam integer REFRESH_BITS = REFRESH_PERIOD > 1 ? $clog2(REFRESH_PERIOD) : 1;
     reg  [REFRESH_BITS-1:0] refresh_count = 0;
     wire                    bank = address[23];
@@ -59,15 +64,27 @@ module ngage_sdram_adapter #(
     wire                    selected_dst = ba_dst[{1'b0, bank}];
     wire                    selected_rdy = ba_rdy[{1'b0, bank}];
     wire                    read_beat = selected_dst || capturing;
-    assign ba_addr = line_op ? address[22:1] : {address[22:2], high};
-    assign ba_din  = high ? data[31:16] : data[15:0];
-    assign ba_dsn  = high ? ~mask[3:2] : ~mask[1:0];
-    assign rd      = (state == ISSUE && !write_op) ? (bank ? 4'b0010 : 4'b0001) : 0;
-    assign wr      = (state == ISSUE && write_op) ? (bank ? 4'b0010 : 4'b0001) : 0;
+    assign ba_addr = line_op ? address[22:1] : {address[22:2], 1'b0};
+    // ACK follows the first pin WRITE edge; expose the high halfword in
+    // that cycle for the already-reserved consecutive second WRITE edge.
+    wire send_high = write_op && (high || selected_ack);
+    assign ba_din = send_high ? data[31:16] : data[15:0];
+    assign ba_dsn = send_high ? ~mask[3:2] : ~mask[1:0];
+    assign rd     = (state == ISSUE && !write_op) ? (bank ? 4'b0010 : 4'b0001) : 0;
+    assign wr     = (state == ISSUE && write_op) ? (bank ? 4'b0010 : 4'b0001) : 0;
     // synthesis translate_off
+    reg [35:0] held_write_payload;
+    always @(posedge clk) begin
+        if (!rst && !init) begin
+            if (state == IDLE && scrub_done && req && !phone_reset) held_write_payload <= {din, be};
+            if ((state == ISSUE || state == WAIT_READY) && write_op && !scrub)
+                if ({din, be} !== held_write_payload)
+                    $fatal(1, "outer SDRAM write payload changed before drain");
+        end
+    end
     always @(posedge clk)
         if (LINE_REFILL && !rst && !init && line_op && state == WAIT_READY && selected_rdy)
-            if (capture_beat != 7) $fatal(1, "SDRAM line port requires eight-halfword reads");
+            if (capture_beat != 15) $fatal(1, "SDRAM line service requires sixteen halfwords");
     // synthesis translate_on
     always @(posedge clk) begin
         ack        <= 0;
@@ -78,7 +95,6 @@ module ngage_sdram_adapter #(
             state         <= IDLE;
             line_op       <= 0;
             capturing     <= 0;
-            line_half     <= 0;
             scrub_done    <= 0;
             scrub_address <= 0;
             refresh_count <= 0;
@@ -98,14 +114,11 @@ module ngage_sdram_adapter #(
                     if (!scrub_done) begin
                         scrub    <= 1;
                         address  <= scrub_address;
-                        data     <= 0;
-                        mask     <= 4'hf;
                         write_op <= 1;
                         state    <= ISSUE;
                     end else if (line_req && line_ready) begin
                         scrub        <= 0;
                         line_op      <= 1;
-                        line_half    <= 0;
                         capture_beat <= 0;
                         address      <= {line_addr[24:5], 5'b0};
                         write_op     <= 0;
@@ -113,13 +126,15 @@ module ngage_sdram_adapter #(
                     end else if (req && !phone_reset) begin
                         scrub    <= 0;
                         address  <= {addr[24:2], 2'b00};
-                        data     <= din;
-                        mask     <= be;
                         write_op <= we;
                         state    <= ISSUE;
                     end
                 end
-                ISSUE:     if (selected_ack) state <= WAIT_READY;
+                ISSUE:
+                if (selected_ack) begin
+                    high  <= write_op;
+                    state <= WAIT_READY;
+                end
                 WAIT_READY: begin
                     if (!write_op) begin
                         if (read_beat) begin
@@ -130,8 +145,7 @@ module ngage_sdram_adapter #(
                             if (line_op) begin
                                 line_valid <= !discard && !phone_reset;
                                 line_data  <= ba_dout;
-                                line_last  <= line_half == 15;
-                                line_half  <= line_half + 1'b1;
+                                line_last  <= capture_beat == 15;
                             end else begin
                                 if (selected_dst) dout[15:0] <= ba_dout;
                                 else if (capture_beat == 1) dout[31:16] <= ba_dout;
@@ -139,26 +153,16 @@ module ngage_sdram_adapter #(
                         end
                         if (selected_rdy) begin
                             capturing <= 0;
-                            if (line_op && line_half != 15) begin
-                                address <= address + 16;
-                                state   <= ISSUE;
-                            end else state <= line_op ? IDLE : RESP;
+                            state     <= line_op ? IDLE : RESP;
                         end
                     end else if (selected_rdy) begin
-                        gap   <= 2;
-                        state <= GAP;
+                        if (scrub) begin
+                            if (scrub_address + 4 >= RAM_BYTES) scrub_done <= 1;
+                            else scrub_address <= scrub_address + 4;
+                            state <= IDLE;
+                        end else state <= RESP;
                     end
                 end
-                GAP:
-                if (gap != 0) gap <= gap - 1'b1;
-                else if (!high) begin
-                    high  <= 1;
-                    state <= ISSUE;
-                end else if (scrub) begin
-                    if (scrub_address + 4 >= RAM_BYTES) scrub_done <= 1;
-                    else scrub_address <= scrub_address + 4;
-                    state <= IDLE;
-                end else state <= RESP;
                 RESP: begin
                     if (discard || phone_reset) state <= IDLE;
                     else begin

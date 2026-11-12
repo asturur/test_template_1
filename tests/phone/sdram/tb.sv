@@ -20,6 +20,7 @@ wire ack, scrub_done, init; wire [31:0] dout; wire [21:0] ba_addr; wire [15:0] b
 wire [3:0] rd,wr,ba_ack,ba_rdy,ba_dst,ba_dok; wire rfsh; tri [15:0] dq; wire [12:0] a; wire [1:0] bank; wire dqml,dqmh,nwe,ncas,nras,ncs,cke;
 reg line_req=0;reg [24:0] line_addr=0;
 wire line_ready,line_valid,line_last;wire [15:0] line_data;wire [1:0] ba_line;
+wire owner_ready;
 wire mreq,mwe,mack; wire [24:0] maddr; wire [31:0] mdata,mrdata; wire [3:0] mbe;
 reg dma_req=0, dma_we=0, cpu_lock=0; reg [24:0] dma_addr=0; reg [31:0] dma_data=0; reg [3:0] dma_be=0; wire dma_ack; wire [31:0] dma_rdata;
 wire routed_req,routed_we,routed_ack,dma_error;
@@ -35,10 +36,10 @@ ngage_dma_route #(.LOCAL_ENABLE(0)) route (
  .local_valid(),.local_ready(1'b0),.local_write(),.local_addr(),.local_data(),
  .local_be(),.local_done(1'b0),.local_error(1'b0),.local_rdata(32'b0)
 );
-ngage_sdram_arbiter arb(clk,phone_reset,cpu_lock,req,we,addr,din,be,ack,dout,
- routed_req,routed_we,routed_addr,routed_data,routed_be,routed_ack,routed_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata,,);
-ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(line_req,line_addr,line_ready,line_valid,line_data,line_last,ba_line,clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh);
-jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(LINE_REFILL),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(LINE_REFILL?128:32),.BA1_LEN(LINE_REFILL?128:32),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
+ngage_sdram_arbiter arb(clk,phone_reset,cpu_lock,req && owner_ready,we,addr,din,be,ack,dout,
+ routed_req && owner_ready,routed_we,routed_addr,routed_data,routed_be,routed_ack,routed_rdata,mreq,mwe,maddr,mdata,mbe,mack,mrdata,,);
+ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD(250)) adapter(line_req,line_addr,line_ready,line_valid,line_data,line_last,ba_line,clk,rst,phone_reset,init,mreq,mwe,maddr,mdata,mbe,mack,mrdata,scrub_done,ba_addr,ba_din,ba_dsn,rd,wr,ba_ack,ba_dst,ba_rdy,ba_dout,rfsh,owner_ready);
+jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(1),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(CAPTURE_NEGEDGE),.BA0_LEN(256),.BA1_LEN(256),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
  .line_read(ba_line),.rst(rst),.clk(clk),.init(init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
  .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
  .ba0_dsn(ba_dsn),.ba1_dsn(ba_dsn),.ba2_dsn(2'b11),.ba3_dsn(2'b11),
@@ -50,6 +51,40 @@ integer line_bank;reg [24:0] line_base;
 integer read_commands=0, before_reads=0,actual_read_beats=0;
 always @(posedge memclk)begin #0.001;if(ram.Data_out_enable)actual_read_beats=actual_read_beats+1;end
 always @(posedge memclk) if(!init && {ncs,nras,ncas,nwe}==4'b0101) read_commands=read_commands+1;
+// Check pin-level command spacing as well as returned data. A logical line
+// keeps one owner and both writes must use their own byte-enable pair.
+integer pin_cycle=0, first_read_cycle=0, first_write_cycle=0;
+integer write_commands=0;
+`ifdef VERILATOR
+wire [15:0] pin_write_data=ctrl.sdram_din;
+`else
+wire [15:0] pin_write_data=dq;
+`endif
+reg line_second=0, write_second=0;
+reg [12:0] first_write_addr=0;
+reg [1:0] first_write_bank=0;
+always @(posedge memclk) begin
+ pin_cycle=pin_cycle+1;
+ if(!init && {ncs,nras,ncas,nwe}==4'b0101 && adapter.line_op) begin
+  if(!line_second)first_read_cycle=pin_cycle;
+  else if(pin_cycle-first_read_cycle!=8)$fatal(1,"line READ spacing %0d",pin_cycle-first_read_cycle);
+  line_second=!line_second;
+ end
+ if(!init && {ncs,nras,ncas,nwe}==4'b0100) begin
+  write_commands=write_commands+1;
+  if(!write_second)begin
+   first_write_cycle=pin_cycle;first_write_addr=a;first_write_bank=bank;
+   if(pin_write_data!==adapter.data[15:0] || {dqmh,dqml}!==~adapter.mask[1:0])
+    $fatal(1,"low WRITE payload/mask data=%h mask=%b",pin_write_data,{dqmh,dqml});
+  end else begin
+   if(pin_cycle-first_write_cycle!=1 || bank!==first_write_bank || a[8:0]!==first_write_addr[8:0]+9'd1)
+    $fatal(1,"native word WRITE was not consecutive in one bank");
+   if(pin_write_data!==adapter.data[31:16] || {dqmh,dqml}!==~adapter.mask[3:2])
+    $fatal(1,"high WRITE payload/mask data=%h mask=%b",pin_write_data,{dqmh,dqml});
+  end
+  write_second=!write_second;
+ end
+end
 integer acknowledgments=0, refreshes=0, count=0, i, before_ack;
 always @(posedge clk) begin
  if(ack) acknowledgments<=acknowledgments+1;
@@ -59,11 +94,16 @@ always @(posedge clk) begin
 end
 integer before_beats;
 integer short_checks=0, short_beats=0, short_wait=0;
+integer write_checks=0, write_wait=0, before_writes=0, line_wait=0, line_clocks=0;
 task transfer(input bit w,input [24:0] address,input [31:0] value,input [3:0] mask,input [31:0] expected);
  begin
- @(negedge clk);before_ack=acknowledgments;before_reads=read_commands;before_beats=actual_read_beats;we=w;addr=address;din=value;be=mask;req=1;
+ @(negedge clk);before_ack=acknowledgments;before_reads=read_commands;before_beats=actual_read_beats;before_writes=write_commands;we=w;addr=address;din=value;be=mask;req=1;
  count=0; while(!ack && count<3000) begin @(negedge clk);count=count+1; end
  if(!ack) $fatal(1,"timeout address %h",address);
+ if(w)begin
+  if(write_commands-before_writes!=2 || write_second)$fatal(1,"word did not finish exactly two WRITEs");
+  write_checks=write_checks+1;write_wait=write_wait+count;
+ end
  if(!w && read_commands!=before_reads+1) $fatal(1,"32-bit read issued %0d READ commands",read_commands-before_reads);
  if(!w && dout!==expected) $fatal(1,"read %h got %h expected %h",address,dout,expected);
  req=0;
@@ -134,16 +174,18 @@ initial begin
   endcase
   for(i=0;i<8;i=i+1)transfer(1,line_base+i*4,32'h90008000+i*32'h00010001,15,0);
   @(negedge clk);line_addr=line_base;line_req=1;before_reads=read_commands;
-  wait(line_ready);@(negedge clk);line_req=0;count=0;
+  wait(line_ready);@(negedge clk);line_req=0;count=0;line_clocks=0;
   while(count<16)begin
-   @(negedge clk);
+   @(negedge clk);line_clocks=line_clocks+1;
+   if(count>0 && !line_valid)$fatal(1,"gap inside native line at halfword %0d",count);
    if(line_valid)begin
     if(line_data!==(count[0]?16'h9000:16'h8000)+(count/2))$fatal(1,"line half %d got %h",count,line_data);
     if(line_last!==(count==15))$fatal(1,"line last at %d",count);
     count=count+1;
    end
   end
-  if(read_commands-before_reads!=2)$fatal(1,"line did not use two BL8 reads");
+  if(read_commands-before_reads!=2 || line_second)$fatal(1,"line did not use two BL8 reads");
+  line_wait=line_wait+line_clocks;
   repeat(4)@(negedge clk);
   transfer(0,line_base+4,0,15,32'h90018001);
   if(line_bank==0)begin
@@ -162,6 +204,7 @@ initial begin
  // Keep the memory busy across many refresh intervals.
  for(i=0;i<80;i=i+1) begin transfer(1,8,i,15,0);transfer(0,8,0,15,i);end
  repeat(1500) @(negedge clk); if(refreshes<9) $fatal(1,"refresh not operating %d",refreshes);
+ $display("BENCH native SDRAM writes=%0d write_wait_clocks=%0d four_line_wait_clocks=%0d",write_checks,write_wait,line_wait);
  $display("PASS SDRAM real controller and model, refreshes=%0d checked_short_reads=%0d halfwords=%0d wait_clocks=%0d",refreshes,short_checks,short_beats,short_wait);$finish;
 end
 initial begin #5000000; $fatal(1,"global timeout");end

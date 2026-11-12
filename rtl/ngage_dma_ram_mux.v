@@ -1,6 +1,8 @@
 // Share the outer CPU/DMA RAM arbiter between the fast LCD reader and the
 // general DMA router. A free port forwards its selected request immediately;
-// ownership and payload are captured only when the outer arbiter accepts it.
+// ownership is captured when the outer arbiter accepts it. That arbiter owns
+// the payload snapshot; this mux keeps only the response tag and fairness bit.
+// Payload outputs are meaningful at acceptance, not while a request is owned.
 // Both producers keep a captured word until ACK. Reset must also cancel/drain
 // the outer arbiter and physical RAM adapter before fresh ownership resumes.
 module ngage_dma_ram_mux (
@@ -28,17 +30,13 @@ module ngage_dma_ram_mux (
     input  wire [31:0] mem_rdata
 );
     reg owned, owner_dma, prefer_dma;
-    reg         saved_write;
-    reg  [24:0] saved_addr;
-    reg  [31:0] saved_data;
-    reg  [ 3:0] saved_be;
-    wire        select_dma = dma_req && (!lcd_req || prefer_dma);
-    wire        offered = lcd_req || dma_req;
+    wire select_dma = owned ? owner_dma : dma_req && (!lcd_req || prefer_dma);
+    wire offered = lcd_req || dma_req;
     assign mem_req   = !reset && (owned || offered);
-    assign mem_write = owned ? saved_write : select_dma && dma_write;
-    assign mem_addr  = owned ? saved_addr : select_dma ? dma_addr : lcd_addr;
-    assign mem_data  = owned ? saved_data : select_dma ? dma_data : 32'd0;
-    assign mem_be    = owned ? saved_be : select_dma ? dma_be : 4'hf;
+    assign mem_write = select_dma && dma_write;
+    assign mem_addr  = select_dma ? dma_addr : lcd_addr;
+    assign mem_data  = select_dma ? dma_data : 32'd0;
+    assign mem_be    = select_dma ? dma_be : 4'hf;
     wire accepted = !reset && !owned && offered && mem_accept;
     wire response = !reset && mem_ack && (owned || accepted);
     wire response_dma = owned ? owner_dma : select_dma;
@@ -54,12 +52,8 @@ module ngage_dma_ram_mux (
             prefer_dma <= 0;
         end else begin
             if (accepted) begin
-                owned       <= 1;
-                owner_dma   <= select_dma;
-                saved_write <= mem_write;
-                saved_addr  <= mem_addr;
-                saved_data  <= mem_data;
-                saved_be    <= mem_be;
+                owned     <= 1;
+                owner_dma <= select_dma;
             end
             if (response) begin
                 owned      <= 0;
