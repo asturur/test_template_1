@@ -1,0 +1,22 @@
+{
+  "source": "working.nga original November7 project copy",
+  "original_nga_sha256": "5dcd7fbee6d969ce557db98bf0d484349aa47276193e8bb46871726d8adf9f9f",
+  "backup": "/media/fat/games/ngage1/backup-before-working-20261112",
+  "images": {
+    "boot0.vhd": {
+      "before": "cd3517473707d59c3d915b52a3e16213cadce80d9ffb2b4371958fb7acb51a08",
+      "after": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+    },
+    "boot1.vhd": {
+      "before": "0d4fd8e6611265fbce34b4757c309ae7d7d71bb4e29d32fa12c15299c54fe9cf",
+      "after": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "requires_core_reload": true,
+  "validation": "original guest LFFS:103 entries,66 files,0 C writes; exact NGA roundtrip",
+  "validation_filesystem_manifest": "scratch/restore-working-nga-20261112/validated-filesystem/manifest.json",
+  "local_pair": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/restore-working-nga-20261112",
+  "verification": "direct MiSTer read-back SHA256 matches both regenerated images; source NGA unchanged",
+  "SMB_note": "first Mac rename failed and rolled back; direct SSH installation succeeded; Mac share cached directory state afterward; final verification used actual MiSTer filesystem",
+  "core_action": "no reload/reset/flush/key or OSD operation performed; reload required"
+}

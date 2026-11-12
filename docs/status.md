@@ -1,3 +1,72 @@
+## 2026-11-12: Bluetooth retries removed experimentally; Phone exit persists
+
+New read-only DDR C: capture yields stable live filesystem without flushing.
+Baseline StarterMonLog appends Phone.app exit10:11:29. User freshly reloaded in
+Hold; guarded volatile BT package applied590words, exact readback verified.
+Original firmware/disk files unchanged; reloading undoes it. Host HCI sanitizer
+checks pass.300s capture reaches SysAp Start listening with zero-33/no panic,
+but live C: still logs Phone.app exit10:11:28. Therefore BT removal alone does
+not get the menu. d1 fields not yet interpreted as an exit reason.
+
+Prepared/tested912-byte exit/caller tracer via original RDebug; actual ZAP
+0/3wait ARM/Thumb/register/flags/SP and host safety tests pass. User reloaded in Hold;823 BT+trace
+words applied/read back, awaiting Run confirmation/output. No new FPGA
+logic/build, no NOS/UI shortcut or save; other chat's work untouched.
+[Details/limits/next step](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: Hardware Menu hold/release captured without panic or CPU reset
+
+First55 s capture missed brief key tap (all masks0). User then held Menu;75 s
+read-only capture saw0 ->0x40 ->0, confirming public bit6/Menu at core input.
+295 snapshots, panic mask0/reset generation0 throughout, errors13->13,
++38,324,872 ACKs; scheduler/DFC fetches continue. No new runtime text after prior
+sequence1187, no save request/error; autosave Off and dirty pending. Input receipt
+does not prove guest keypad IRQ consumption or UI response. No synthetic key,
+reset, flush/media write, RTL change or other-chat simulation access.
+Evidence: `docs/evidence/mister-menu-key-2026-11-12.json`; captures/summary under
+`scratch/mister-menu-key-20261112/`. Both bounded remote readers exited normally
+via timeout (SSH exit124); no ongoing capture.
+
+## 2026-11-12: Hardware advances after disk restore; scheduler activity, no panic
+
+Read-only30 s DDR capture after user reload:86 snapshots, panic mask0/reset gen0,
++15,088,164 bus ACKs and no new errors over29.25 s. Retained text reaches SysAp
+AppUi Start listening, ADSP session/channel setup, RTC Add5; repeated Bluetooth
+CBUS ERROR-33. Prior Count panic absent. PCs mostly50327fa8 in original scheduler/
+DFC dispatch; ROM explicitly selects mode1b here. Cannot yet distinguish normal
+scheduling from pathological spinning or identify active hardware processes.
+No new text during sample;117 early text sequence positions already overwritten,
+producer drops0. Save idle/dirty pending/autosave Off/no error. No hardware input,
+reset, flush, media write, RTL change or access to other chat simulations.
+[Details](ddr-diagnostics.md#hardware-after-workingnga-restoration2026-11-12);
+`docs/evidence/mister-ddr-after-disk-2026-11-12.json`.
+
+## 2026-11-12: ngage1 disk pair restored from original working.nga
+
+User requested reverting media before crash work. Original November7 working.nga
+SHA5dcd7fbe... split to C:4 MiB/PMM64 KiB; exact NGA roundtrip and original guest
+LFFS103 entries/66 files/0 writes verified. Card's previous boot0 was allFF;
+previous boot1 retained. Installed new /media/fat/games/ngage1/boot0.vhd and
+boot1.vhd via SSH rename, old pair in backup-before-working-20261112. Direct
+MiSTer read-back hashes match af5017dc.../71189f7f...; source NGA unchanged.
+Mac SMB staging rename failed/rolled back; direct install succeeded; SMB then
+showed cached directory state. No core reload/reset/flush performed. Reload RBF
+to reopen the restored images; CPU reset alone does not remount them. Evidence:
+`docs/evidence/working-nga-restored-2026-11-12.json`; local pair/reference in
+`scratch/restore-working-nga-20261112/`. No claim of successful Symbian boot.
+
+## 2026-11-12: Hardware DDR diagnostics verified; same Count bad-pointer panic
+
+Read-only SSH /dev/mem retrieves real runtime text and live sealed snapshots,
+build date261112 at78 MHz.25 s follow:71 accepted snapshots, sequence+96,
+Abort CPSR600000D7, fatal-loop fetches, no new bus errors/ACKs or reset generation.
+Panic503AD63C /E59FF044 /10000000 mask7 matches earlier EUser Count bad-pointer
+crash. Caller/LR/pointer origin still unknown; backend has no process/RAM dump.
+Text retained TRtcQueue::Add:2/4 and auxstart100, zero producer drops/reader gaps.
+Both images mounted, dirty queue pending, autosave Off, saving/error false;
+no save attempted. No hardware input/reset/OSD/media write or other-chat run
+access. [Details](ddr-diagnostics.md#first-hardware-ddr-readback2026-11-12).
+
 ## 2026-11-12: CI fitter seed and failed-timing RBF downloads
 
 Manual CI Build accepts validated seed1..2147483647 (default1); reports selected

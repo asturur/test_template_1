@@ -1,0 +1,134 @@
+{
+  "date": "2026-11-12",
+  "test": "user presses and holds Menu, then releases; observer sends no input",
+  "captures": [
+    {
+      "file": "scratch/mister-menu-key-20261112/capture.jsonl",
+      "sha256": "e4894d66db0652cfb66009c2f436d1af20f60a187950cddd16c7708200e12331"
+    },
+    {
+      "file": "scratch/mister-menu-key-20261112/held-key-capture.jsonl",
+      "sha256": "4d2db39464f3e59b82c989a3f83e46537f1fa0891d35b1dcf34660417e661dc6"
+    }
+  ],
+  "confirmed_keys": [
+    {
+      "snapshot_sequence": 2714336833,
+      "cycle": 206367064,
+      "keys": "0x00000000",
+      "panic_valid": 0,
+      "reset_generation": 0
+    },
+    {
+      "snapshot_sequence": 2714336839,
+      "cycle": 323367064,
+      "keys": "0x00000040",
+      "panic_valid": 0,
+      "reset_generation": 0
+    },
+    {
+      "snapshot_sequence": 2714336894,
+      "cycle": 1395867064,
+      "keys": "0x00000000",
+      "panic_valid": 0,
+      "reset_generation": 0
+    }
+  ],
+  "key_mapping": "ngage_keys maps PS2 Tab to public bit6/Menu;0x40",
+  "snapshots": 295,
+  "observation_seconds_via_snapshot_sequences": 74.25,
+  "after_release_seconds_via_snapshot_sequences": 59.0,
+  "panic_valid_masks": [
+    0
+  ],
+  "reset_generations": [
+    0
+  ],
+  "bus_errors_start_end": [
+    13,
+    13
+  ],
+  "bus_ack_delta": 38324872,
+  "fetch_pc_histogram": {
+    "0x50327fa8": 113,
+    "0x50327f9c": 45,
+    "0x503279fc": 3,
+    "0x50327a08": 16,
+    "0x50322678": 4,
+    "0x50327fb4": 14,
+    "0x50327fa0": 42,
+    "0x50327a00": 2,
+    "0x50322668": 1,
+    "0x5032772c": 1,
+    "0x50327f38": 4,
+    "0x50327f44": 2,
+    "0x50327f5c": 3,
+    "0x50322660": 1,
+    "0x50327924": 1,
+    "0x503228e0": 1,
+    "0x00000000": 2,
+    "0x5032266c": 2,
+    "0x503278a0": 1,
+    "0x50327a04": 3,
+    "0x50327f40": 2,
+    "0x50327fac": 7,
+    "0x5032791c": 1,
+    "0x50327fb0": 3,
+    "0x5032795c": 1,
+    "0x50327fa4": 7,
+    "0x514aeb2c": 1,
+    "0x5032786c": 1,
+    "0x514aeae0": 1,
+    "0x50327f58": 1,
+    "0x503276fc": 1,
+    "0x50327f80": 2,
+    "0x50327f54": 1,
+    "0x50327f8c": 1,
+    "0x50327900": 1,
+    "0x50327954": 1,
+    "0x50327f74": 1,
+    "0x50327f84": 1
+  },
+  "save_progress": {
+    "state": 0,
+    "slot": 1,
+    "flags_hex": "0x02006418",
+    "lba": 127,
+    "mounted": true,
+    "saved": false,
+    "saving": false,
+    "error": false,
+    "manual_batch": false,
+    "flush_pending": false,
+    "tracker_pending": true,
+    "tracker_flushing": false,
+    "tracker_valid": false,
+    "flash_quiescent": true,
+    "bridge_ready": true,
+    "bridge_done": false,
+    "bridge_error": false,
+    "host_ack": false,
+    "host_read_request": false,
+    "host_write_request": false,
+    "ddr_request": false,
+    "ddr_ready": false,
+    "ddr_done": false,
+    "tracker_error": false,
+    "tracker_fault": false,
+    "bundle_verified": true,
+    "autosave_enabled": false,
+    "autosave_paused": false,
+    "dirty_event": false
+  },
+  "last_text_sequence": 1187,
+  "new_text_since_prior_capture": false,
+  "conclusion": "Menu press/release reached core and user confirms display wake; no CPU reset/panic/new bus error. Home/menu application readiness remains unproved.",
+  "no_actions": [
+    "no synthetic input",
+    "no reset/core reload",
+    "no save/flush",
+    "no media/physical-memory writes",
+    "no other-chat simulation access"
+  ],
+  "user_visual_confirmation": "Menu hides screensaver and displays N-Gage logo; firmware consumed wake action"
+}

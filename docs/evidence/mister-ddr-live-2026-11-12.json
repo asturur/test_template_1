@@ -1,0 +1,100 @@
+{
+  "date": "2026-11-12",
+  "hardware": "MiSTer192.168.1.176; user reports newly built DDR diagnostic core loaded",
+  "access": "SSH read-only Python /dev/mem O_RDONLY|O_SYNC mmap; no media read/write, OSD, key, reset, load or physical-memory write",
+  "result": "end-to-end FPGA DDR3 -> Linux -> SSH signatures, sealed records and live snapshots verified",
+  "build_tag": "261112",
+  "clock_hz": 78000000,
+  "exact_build_commit": "not encoded in current build tag; unverified",
+  "capture": {
+    "duration_limit_seconds": 25,
+    "accepted_snapshots": 72,
+    "sequence_first": 2714331447,
+    "sequence_last": 2714331544,
+    "snapshot_cycle_delta": 1891500000,
+    "fetch_pc_values": [
+      "0x00000000",
+      "0x50324294",
+      "0x50324298",
+      "0x5032429c",
+      "0x503242a0"
+    ],
+    "cpsr_values": [
+      "0x600000d7"
+    ],
+    "warm_reset_generations": [
+      0
+    ],
+    "ack_first": 34879632,
+    "ack_last": 34879632,
+    "error_first": 13,
+    "error_last": 13
+  },
+  "panic_report": {
+    "valid_mask": 7,
+    "category_hex": "3cd63a5044f09fe5",
+    "category": null,
+    "reason": 268435456,
+    "exception_pc": "0x503ad63c",
+    "exception_address": "0xe59ff044"
+  },
+  "symbol_interpretation": "NEM-4 EUser ordinal265 RArrayBase::Count(), ldr r0,[r0], previously documented; matches2026-11-11 hardware packet. Actual caller and pointer origin still unknown.",
+  "text_hex": "c05452746351756575653a3a4164643a2032c05452746351756575653a3a4164643a2034c0617578737461727420313030",
+  "text_readable": "\\xc0TRtcQueue::Add: 2\\xc0TRtcQueue::Add: 4\\xc0auxstart 100",
+  "producer_dropped_bytes": 0,
+  "reader_gaps": 0,
+  "save_progress": {
+    "state": 0,
+    "slot": 1,
+    "flags_hex": "0x02006418",
+    "lba": 127,
+    "mounted": true,
+    "saved": false,
+    "saving": false,
+    "error": false,
+    "manual_batch": false,
+    "flush_pending": false,
+    "tracker_pending": true,
+    "tracker_flushing": false,
+    "tracker_valid": false,
+    "flash_quiescent": true,
+    "bridge_ready": true,
+    "bridge_done": false,
+    "bridge_error": false,
+    "host_ack": false,
+    "host_read_request": false,
+    "host_write_request": false,
+    "ddr_request": false,
+    "ddr_ready": false,
+    "ddr_done": false,
+    "tracker_error": false,
+    "tracker_fault": false,
+    "bundle_verified": true,
+    "autosave_enabled": false,
+    "autosave_paused": false,
+    "dirty_event": false
+  },
+  "save_errors": {
+    "C:": false,
+    "PMM": false
+  },
+  "sticky_fetch_fault": {
+    "seen": true,
+    "address": "0x0c0047e4",
+    "reason": 1,
+    "interpretation": "historical first fetch fault, not identified as cause of current abort"
+  },
+  "limits": [
+    "monitor PC is fetch, including speculative/literal addresses; isolated0does not establish reset",
+    "no architectural register bank/caller LR/FSR/general SDRAM/process-list dump",
+    "text source short; no new text during observed terminal interval",
+    "no save attempt or successful flush verified"
+  ],
+  "artifacts": {
+    "scratch/mister-ddr-live-20261112/initial.jsonl": "f1c7381b8ef533cbfc8848366555ee1be4256f5c9cb9b66747f06ef454cb3b0c",
+    "scratch/mister-ddr-live-20261112/follow-25s.jsonl": "fc05c011cdd5a925e61f05ec2a4b068500284a2058237fa135f0b3b5b1de06d7",
+    "scratch/mister-ddr-live-20261112/latest-snapshot.ngd": "d4faaaef94def706952ecaf96500f5cca40ac816a111f2eac227ff6ec091a4b6",
+    "scratch/mister-ddr-live-20261112/latest-decoded.json": "a144e11b66f423b7f100b05acb0d47c5c7f06437415ab9bc7957835ca4a2d750",
+    "scratch/mister-ddr-live-20261112/runtime-text.raw": "eb57b062f8b3d74bb3eaf0e6c49625d6f2b011804871d9cffa433f52ade79545"
+  }
+}

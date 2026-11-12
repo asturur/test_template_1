@@ -169,3 +169,65 @@ This expands reserved words without changing version1 or existing NGD layout.
 The save investigation is now active, with a verified write-back failure/CPU
 reset isolation fix. The earlier deferred-save notes above record the initial
 checkpoint; see [current save findings](save-blockers-2026-11-12.md).
+
+
+## First hardware DDR readback,2026-11-12
+
+User loaded the diagnostic RBF. Read-only SSH capture successfully retrieves
+NGT1 text and sealed NGD2 snapshots directly through Linux /dev/mem; build date
+261112,78 MHz. This qualifies the FPGA-to-Linux path on the tested installation;
+exact RBF commit is not encoded. No reset, key, OSD, save or memory/media write.
+25 s bounded follow yielded71 valid snapshots; sequence advanced96 (24 s of
+snapshot cycle time), zero producer drops/reader gaps. Sampling can skip frames.
+The fetch PC remained in the fatal handler/literal/speculative vicinity, CPSR
+600000D7 (Abort mode), reset generation0. Bus ACK count34879632 and error count13
+were unchanged. An isolated sampled PC0 does not establish a reset.
+
+All snapshots retained panic503AD63C/E59FF044/10000000, valid mask7. The existing
+special-context decoder identifies exception PC503AD63C and fault address
+E59FF044, matching the earlier hardware bad-pointer packet. Existing stock-ROM
+analysis maps this to EUser RArrayBase::Count(), `ldr r0,[r0]`. This records the
+terminal fault, not its caller/pointer origin; LR/FSR/registers/process inventory
+are not exported by this backend. Sticky first fetch fault0C0047E4/reason1 is
+historical; no new error appeared during capture.
+
+Retained text is `[0xc0]TRtcQueue::Add: 2[0xc0]TRtcQueue::Add: 4[0xc0]auxstart 100`.
+Raw bytes are preserved; no additional text arrived while terminal. Save state
+Idle, both images mounted, unsaved queue pending, autosave Off, no flush request,
+no save/queue/bridge errors, no HPS/DDR save request active. This is not a test
+of saving and does not explain the earlier manual-flush stall. No C:\logs work.
+
+Local raw/decoded captures: `scratch/mister-ddr-live-20261112/`.
+Maintained evidence: `docs/evidence/mister-ddr-live-2026-11-12.json`.
+
+
+## Hardware after working.nga restoration,2026-11-12
+
+User reports further progress after reloading the restored pair.30 s read-only
+DDR sample:86 accepted snapshots over29.25 s of cycle time, panic mask0 throughout,
+reset generation0, +15,088,164 bus ACKs and no increase from13 historical errors.
+Prior Count bad-pointer packet is absent. Save idle, both images mounted,
+unsaved queue pending, autosave Off, no save error. No input/reset/flush/media write.
+
+Retained text(1053 bytes) reaches `RAdspServerSession::Construct`, channel counts1/2,
+`CSysApAppUi::ConstructL: Start listening`, `TRtcQueue::Add: 5`. It contains repeated
+BTLDD CompleteWithError/HCI CBUS sender/receiver ERROR-33. These identify Bluetooth
+transport errors, not a proven cause of remaining startup delay. No new text
+arrived during the sample. First117 sequence positions of this session were
+already overwritten before attachment; this is not a full boot log. Producer
+drops0. Most packets hold one byte because the256-cycle gap is shorter than
+observed inter-character time; future packet-gap tuning could improve retention
+without expanding RAM. No such RTL change made in this inspection.
+
+Sample PCs cluster50327f38..50327fb4, especially50327fa8; sampled bus address
+0c120a10 throughout. Exact original ROM disassembly confirms DFC-list dispatch
+at50327f48 (head80006bb8), callback50327f7c and scheduling call50327fa8->50329d94.
+The firmware explicitly selects mode1b here; CPSRdb is not alone evidence of an
+undefined-instruction exception. Active kernel activity is established, useful
+UI work or normal waiting versus a pathological scheduler loop is not. Current
+backend cannot identify active processes, inspect run queues or read registers.
+Do not borrow the other chat's simulated process list as hardware evidence.
+
+Raw, readable text, NGD and decoded files under
+`scratch/mister-ddr-after-disk-20261112/`; maintained evidence in
+`docs/evidence/mister-ddr-after-disk-2026-11-12.json`.
