@@ -1973,3 +1973,24 @@ Quartus 17 command references:
 [report_timing](https://resources.altera.com/quartushelp/17.0/tafs/tafs/tcl_pkg_sta_ver_1.0_cmd_report_timing.htm),
 [get_path_info](https://resources.altera.com/quartushelp/17.0/tafs/tafs/tcl_pkg_sta_ver_1.0_cmd_get_path_info.htm),
 [report_ucp](https://resources.altera.com/quartushelp/17.0/tafs/tafs/tcl_pkg_sta_ver_1.0_cmd_report_ucp.htm).
+
+## CI seed and failed-timing RBF retention (2026-11-12)
+
+The manual **CI Build** action accepts a `seed` string, default1, validated as
+an integer1..2147483647 before compilation. The runner updates only the active
+SEED assignment in Template.qsf, preserving its line endings. The checked-in
+QSF remains seed1; PLL/constraints remain unchanged. The selected seed appears
+in the run title, build log and step summary, and `build-info.json` records it
+with the commit and run ID in both `quartus-logs` and `ngage1-rbf` artifacts.
+
+Timing checks still fail the job when timing is incomplete/negative. Preparing
+and uploading an existing RBF have explicit failure-independent conditions, so
+`ngage1.rbf` remains downloadable even after compile/STA/timing-check failure.
+A failed fit that produces no RBF cannot provide a bitstream. Cancelled runs
+are not forced to upload an RBF. Artifact availability is not timing sign-off.
+
+Local checks exercised valid/boundary/invalid seeds, literal hostile input,
+unchanged QSF on rejection, CRLF preservation, metadata/summary, workflow YAML
+and shell syntax, and a synthetic negative timing report followed by retaining
+an existing RBF. No Quartus build, dispatch or monitoring was performed.
+Reproducer: `scratch/ci-seed-20261112/check.py`.

@@ -1,3 +1,14 @@
+## 2026-11-12: CI fitter seed and failed-timing RBF downloads
+
+Manual CI Build accepts validated seed1..2147483647 (default1); reports selected
+seed in run title/log/summary and build-info.json in both artifacts. Existing
+RBF is prepared/uploaded despite earlier compile/STA/timing failure; job remains
+failed. No RBF invented when fit produces none. Local seed validation, QSF CRLF,
+metadata, YAML/shell and synthetic timing-failure retention checks pass. No RTL,
+PLL, constraints, source QSF seed, remote build/monitoring or other-chat work
+changed. [Usage/details](timing-closure.md#ci-seed-and-failed-timing-rbf-retention-2026-11-12).
+
+
 ## 2026-11-12: Save-error CPU reset fixed; manual stall needs board trace
 
 User promoted autosave/manual save blockers. Confirmed write-back error cleared

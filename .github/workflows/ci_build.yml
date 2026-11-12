@@ -1,7 +1,14 @@
 name: CI Build
+run-name: ngage1 build (seed ${{ inputs.seed || '1' }})
 
 on:
   workflow_dispatch:
+    inputs:
+      seed:
+        description: Quartus fitter seed (1..2147483647)
+        required: false
+        default: '1'
+        type: string
 
 permissions:
   contents: read
@@ -12,6 +19,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Select and report fitter seed
+        env:
+          FITTER_SEED: ${{ inputs.seed || '1' }}
+        run: python3 tools/set_quartus_seed.py Template.qsf --seed "$FITTER_SEED"
 
       # Keep this directory runner-owned: Quartus runs as root in Docker,
       # while the host Python step must also write the Markdown summary.
@@ -63,7 +75,10 @@ jobs:
       - name: Require passing timing
         run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
 
+      # Keep an existing bitstream even if compile/STA or the timing gate
+      # failed. Missing RBFs (e.g. a failed fit) cannot be recovered here.
       - name: Prepare ngage1 build output
+        if: ${{ !cancelled() && hashFiles('output_files/Template.rbf') != '' }}
         run: |
           test -f output_files/Template.rbf
           cp output_files/Template.rbf output_files/ngage1.rbf
@@ -87,6 +102,7 @@ jobs:
         with:
           name: quartus-logs
           path: |
+            output_files/build-info.json
             quartus_build.log
             quartus_timing_details.log
             output_files/timing/
@@ -96,10 +112,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Upload RBF
-        if: success()
+      - name: Upload RBF (including failed timing)
+        if: ${{ !cancelled() && hashFiles('output_files/ngage1.rbf') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: ngage1-rbf
-          path: output_files/ngage1.rbf
+          path: |
+            output_files/ngage1.rbf
+            output_files/build-info.json
           if-no-files-found: error

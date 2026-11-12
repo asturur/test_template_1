@@ -1774,3 +1774,12 @@ saves, D1+D2+D3 NOR and DDR progress readback checks pass. Main ACK precedes fil
 write; Saved cannot mean media durability. Manual board stall not reproduced;
 new-RBF DDR DWORD242/243 flags/LBA now distinguish its wait phase. No build watch
 or access to other chat simulations. [Save findings](docs/save-blockers-2026-11-12.md).
+
+
+## 2026-11-12 CI experiment support
+
+CI Build now accepts/reports fitter seed (default1), records build metadata,
+and uploads an existing ngage1.rbf even after timing failure. Timing failure
+still fails the job. Valid/invalid seeds, unchanged source QSF, newline handling,
+metadata, YAML/shell and synthetic failed-timing retention verified locally.
+No clock/RTL change, remote dispatch or build monitoring.
