@@ -1,3 +1,21 @@
+## 2026-11-12: DDR3 runtime text and diagnostic mailbox implemented
+
+DDR diagnostics first; C:\logs and save repair deferred. Committed kernel debug
+sink bytes now feed a nonblocking256-entry FIFO/1024-record DDR text ring;
+periodic4 Hz snapshots export monitor/fault/panic/save-error data. Shared loader
+service port, no new CPU/flash arbitration stage. Existing64 KiB ROM/C: gap,
+read-only Linux reader via SSH; no save required.78 MHz unchanged,104 MHz target.
+Bounded behavioral/Intel/poison, physical DDR lanes, host torn-record/wrap checks,
+recorder/raster and production-top checks pass. New RBF/fit/hardware readback
+still required; visual diagnostics retained for qualification. No CI monitoring,
+long boot or access to the other chat's frozen runs/checkpoints.
+
+Manual SAVING=1 never cleared per user: changed sectors/log prove partial save
+only. Donor ordered512-byte/ACK wait reviewed; save fix follows DDR evidence.
+HDMI scrambled lines and CRT left shift/first columns queued, unchanged.
+[Implementation, reader, format and deferred work](ddr-diagnostics.md).
+
+
 ## 2026-11-12: Further RAM reuse, bounded state and JTAG investigation
 
 DMA mirrors reuse existing queued-descriptor RAM rows; start samples for one

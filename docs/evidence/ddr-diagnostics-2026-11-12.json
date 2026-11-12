@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-12",
+  "baseline": "45f3ea9",
+  "branch": "codex/ngage2-integration",
+  "status": "local implementation verified; fit and FPGA-to-Linux board readback pending",
+  "source_sha256": {
+    "Template.sv": "fa365c20faa7fd2621663cc58ef6b6e6acec3f228af904379e7d85f2010530dc",
+    "files.qip": "557a574119218f1b1ac2ecdf6ec2fb1449923f3d89c6d2a2ea0c04e145188479",
+    "rtl/ngage_mister.v": "16f92a67ecd66798a65b92b35b07f900b06e87726608be193fa4197336e12c34",
+    "rtl/ngage_diag_ddr.v": "3aff89bf2d37d12fd64286b57d5a5814ae67147dffb2c676015275ec804bf936",
+    "rtl/ngage_diag_text_ddr.v": "1c1f1617b29fa7e4c46e35479b28a5800286851668f42a832a791420374bfaba",
+    "tools/ngage_runtime_diag.py": "8c0147a13deb7014a45be194a7ecf5ba55864d7b06ced0b336fb5e94f6326228",
+    "tests/phone/diag_ddr/tb.v": "fbe63a8576c9f7e4799a1dfa1778b946cf1f113fa53d4c4193a47fd4fd045575",
+    "tests/phone/diag_ddr/run.sh": "1848178a55babec38210062344f13d5b4bdbcd4ba3878c9e0450c8488d575637",
+    "tests/phone/diag_ddr/test_reader.py": "dab9865acb20bee2acc642a0cb138d7e29348efd479c93cd8196d65ef25964bb"
+  },
+  "checks": {
+    "verilog_2001_1024_and_8_records": "pass",
+    "physical_stream_adapter_address_and_lanes": "pass",
+    "intel_altsyncram": "pass existing scratch/tlb64/reference/altera_mf.v",
+    "collision_poison_ram": "pass",
+    "reader_exact_writer_output_torn_wrap_dedup": "pass",
+    "production_top_with_hps_pll_stubs": "pass",
+    "existing_recorder_monitor_raster": "pass",
+    "bounded_arm_phone_board": "pass SIMIF LCD DMA queued LCD local faults diagnostics IRQ/FIQ SDRAM waits",
+    "source_graph": "pass 175 files / 9 QIPs; host tclsh (container has no tclsh)",
+    "format": "pass pinned Verible",
+    "git_diff_check": "pass"
+  },
+  "hardware": {
+    "linux_reserved_start": "0x1ff00000",
+    "guard_base": "0x313f0000",
+    "text_header": "0x313f0000",
+    "snapshot_slots": [
+      "0x313ff000",
+      "0x313ff400"
+    ],
+    "physical_read_access": "verified read-only in earlier SSH checks",
+    "new_hdl_loaded": false,
+    "fit_and_timing": "unmeasured",
+    "pll_hz": 78000000,
+    "target_hz": 104000000
+  },
+  "priority": [
+    "DDR runtime diagnosis",
+    "save stall investigation comparing donor",
+    "deferred HDMI/CRT defects"
+  ],
+  "save_observation": "SAVING stays1; changed sectors/log show partial persistence only; no successful drain established",
+  "donor": {
+    "path": "/Users/andreabogazzi/develop/ngage2",
+    "commit": "542300b",
+    "files": [
+      "rtl/mister/flash_save.sv",
+      "rtl/mem/ddram_flash.sv"
+    ],
+    "summary": "ordered dirty sectors,64-beat snapshot,sd_wr held to ack then wait ack low,redirty retained; quiet100ms age2s; CS1 only on QD; no ACK-wait timeout"
+  },
+  "other_chat": "frozen simulations and checkpoints not inspected or modified",
+  "build_monitoring": false,
+  "raw_logs": "scratch/ngage1-diagnostics-20261112/"
+}

@@ -13,6 +13,7 @@
 
 module ngage_mister #(
     parameter LINE_REFILL        = 0,
+              DEBUG_VIDEO        = 1,
               UEM_POWERUP_STATUS = 2,
               DIRECT_SDRAM       = 1,
               DMA_LOCAL          = 1,
@@ -22,74 +23,77 @@ module ngage_mister #(
               TIMER_CLK_DIV      = 1,
               NOS_TICK_HZ        = 1000
 ) (
-    output wire        ddram_line,
-    input  wire        ddram_beat_valid,
-    input  wire [63:0] ddram_beat_data,
-    input  wire        ddram_beat_last,
-    output wire        ram_line_req,
-    output wire [24:0] ram_line_addr,
-    input  wire        ram_line_ready,
-    input  wire        ram_line_valid,
-    input  wire [15:0] ram_line_data,
-    input  wire        ram_line_last,
-    input  wire        clk_sys,              // CPU/bus clock domain
-    input  wire        reset,
-    input  wire        cold_reset,
-    input  wire        sim_present,
-    output wire        dma_reset,
+    output wire         ddram_line,
+    input  wire         ddram_beat_valid,
+    input  wire [ 63:0] ddram_beat_data,
+    input  wire         ddram_beat_last,
+    output wire         ram_line_req,
+    output wire [ 24:0] ram_line_addr,
+    input  wire         ram_line_ready,
+    input  wire         ram_line_valid,
+    input  wire [ 15:0] ram_line_data,
+    input  wire         ram_line_last,
+    input  wire         clk_sys,              // CPU/bus clock domain
+    input  wire         reset,
+    input  wire         cold_reset,
+    input  wire         sim_present,
+    output wire         dma_reset,
     // X553 backing interface. The board's direct native-MMC connection is a
     // transaction-level shortcut for the unimplemented D550/AMA path.
-    input  wire        mmc_card_reset,
-    input  wire        mmc_img_mounted,
-    input  wire        mmc_img_readonly,
-    input  wire [63:0] mmc_img_size,
-    output wire [31:0] mmc_sd_lba,
-    output wire [ 5:0] mmc_sd_blk_cnt,
-    output wire        mmc_sd_rd,
-    output wire        mmc_sd_wr,
-    input  wire        mmc_sd_ack,
-    input  wire [12:0] mmc_sd_buff_addr,
-    input  wire [15:0] mmc_sd_buff_dout,
-    output wire [15:0] mmc_sd_buff_din,
-    input  wire        mmc_sd_buff_wr,
-    output wire        mmc_present,
-    output wire        mmc_write_protected,
-    output wire        mmc_active,
-    input  wire        dma_sdram_accept,
-    output wire        dma_sdram_req,
-    output wire [24:0] dma_sdram_addr,
-    input  wire        dma_sdram_ack,
-    input  wire [31:0] dma_sdram_data,
-    output wire [ 7:0] dma_error_pending,
-    output wire        dma_cmd_valid,
-    input  wire        dma_cmd_ready,
-    output wire        dma_cmd_write,
-    output wire [31:0] dma_cmd_addr,
-    output wire [31:0] dma_cmd_data,
-    output wire [ 3:0] dma_cmd_be,
-    input  wire        dma_rsp_valid,
-    input  wire        dma_rsp_error,
-    input  wire [31:0] dma_rsp_data,
-    input  wire        dma_local_valid,
-    input  wire        dma_local_waiting,
-    output wire        dma_local_ready,
-    input  wire        dma_local_write,
-    input  wire [31:0] dma_local_addr,
-    input  wire [31:0] dma_local_data,
-    input  wire [ 3:0] dma_local_be,
-    output wire        dma_local_done,
-    output wire        dma_local_error,
-    output wire [31:0] dma_local_rdata,
-    input  wire        diagnostic_video,
-    input  wire [31:0] diagnostic_status,
-    input  wire [ 2:0] save_state,
-    input  wire        debug_freeze_trace,
-    input  wire [10:0] debug_read_word,
-    output wire [15:0] debug_read_data,
-    output wire        debug_fault_seen,
-    output wire        lcd_unsupported,
-    output wire        board_init_done,
-    output wire        bus_lock,             // reserve shared memory for an atomic CPU swap
+    input  wire         mmc_card_reset,
+    input  wire         mmc_img_mounted,
+    input  wire         mmc_img_readonly,
+    input  wire [ 63:0] mmc_img_size,
+    output wire [ 31:0] mmc_sd_lba,
+    output wire [  5:0] mmc_sd_blk_cnt,
+    output wire         mmc_sd_rd,
+    output wire         mmc_sd_wr,
+    input  wire         mmc_sd_ack,
+    input  wire [ 12:0] mmc_sd_buff_addr,
+    input  wire [ 15:0] mmc_sd_buff_dout,
+    output wire [ 15:0] mmc_sd_buff_din,
+    input  wire         mmc_sd_buff_wr,
+    output wire         mmc_present,
+    output wire         mmc_write_protected,
+    output wire         mmc_active,
+    input  wire         dma_sdram_accept,
+    output wire         dma_sdram_req,
+    output wire [ 24:0] dma_sdram_addr,
+    input  wire         dma_sdram_ack,
+    input  wire [ 31:0] dma_sdram_data,
+    output wire [  7:0] dma_error_pending,
+    output wire         dma_cmd_valid,
+    input  wire         dma_cmd_ready,
+    output wire         dma_cmd_write,
+    output wire [ 31:0] dma_cmd_addr,
+    output wire [ 31:0] dma_cmd_data,
+    output wire [  3:0] dma_cmd_be,
+    input  wire         dma_rsp_valid,
+    input  wire         dma_rsp_error,
+    input  wire [ 31:0] dma_rsp_data,
+    input  wire         dma_local_valid,
+    input  wire         dma_local_waiting,
+    output wire         dma_local_ready,
+    input  wire         dma_local_write,
+    input  wire [ 31:0] dma_local_addr,
+    input  wire [ 31:0] dma_local_data,
+    input  wire [  3:0] dma_local_be,
+    output wire         dma_local_done,
+    output wire         dma_local_error,
+    output wire [ 31:0] dma_local_rdata,
+    input  wire         diagnostic_video,
+    input  wire [ 31:0] diagnostic_status,
+    input  wire [  2:0] save_state,
+    input  wire         debug_freeze_trace,
+    input  wire [ 10:0] debug_read_word,
+    output wire [ 15:0] debug_read_data,
+    output wire [767:0] debug_values,
+    output wire         debug_char_valid,
+    output wire [  7:0] debug_char_data,
+    output wire         debug_fault_seen,
+    output wire         lcd_unsupported,
+    output wire         board_init_done,
+    output wire         bus_lock,             // reserve shared memory for an atomic CPU swap
 
     // SDRAM port (phone RAM — active R/W, 16MB)
     output wire [24:0] sdram_addr,
@@ -665,26 +669,47 @@ module ngage_mister #(
         .keys          (keys),
         .values        (diagnostic_values)
     );
-    ngage_debug_video debug_video (
-        .panic_report(panic_report),
-        .clk         (clk_sys),
-        .diagnostic  (diagnostic_video),
-        .values      (diagnostic_values),
-        .x           (video_x),
-        .y           (video_y),
-        .ce_in       (raw_ce),
-        .hsync_in    (raw_hsync),
-        .vsync_in    (raw_vsync),
-        .hblank_in   (raw_hblank),
-        .vblank_in   (raw_vblank),
-        .rgb_in      (raw_rgb),
-        .ce_out      (ce_pix),
-        .hsync_out   (hsync),
-        .vsync_out   (vsync),
-        .hblank_out  (hblank),
-        .vblank_out  (vblank),
-        .rgb_out     (rgb444)
-    );
+    // Capture committed debug59 bytes independently of recorder freeze/video.
+    assign debug_char_valid = board_trace_valid && board_trace_addr >= 32'h0de00000 &&
+        board_trace_addr < 32'h0de01000 &&
+        (board_trace_sel == 1 || board_trace_sel == 2 || board_trace_sel == 4 || board_trace_sel == 8);
+    assign debug_char_data = board_trace_sel == 1 ? board_trace_data[7:0] :
+        board_trace_sel == 2 ? board_trace_data[15:8] :
+        board_trace_sel == 4 ? board_trace_data[23:16] : board_trace_data[31:24];
+    assign debug_values = diagnostic_values;
+    generate
+        if (DEBUG_VIDEO) begin : visual_debug
+            ngage_debug_video debug_video (
+                .panic_report(panic_report),
+                .clk         (clk_sys),
+                .diagnostic  (diagnostic_video),
+                .values      (diagnostic_values),
+                .x           (video_x),
+                .y           (video_y),
+                .ce_in       (raw_ce),
+                .hsync_in    (raw_hsync),
+                .vsync_in    (raw_vsync),
+                .hblank_in   (raw_hblank),
+                .vblank_in   (raw_vblank),
+                .rgb_in      (raw_rgb),
+                .ce_out      (ce_pix),
+                .hsync_out   (hsync),
+                .vsync_out   (vsync),
+                .hblank_out  (hblank),
+                .vblank_out  (vblank),
+                .rgb_out     (rgb444)
+            );
+        end else begin : phone_video_only
+            reg [ 5:0] control = 6'b011110;
+            reg [11:0] pixels = 0;
+            always @(posedge clk_sys) begin
+                control <= {raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank, 1'b0};
+                pixels  <= raw_rgb;
+            end
+            assign {ce_pix, hsync, vsync, hblank, vblank} = control[5:1];
+            assign rgb444                                 = pixels;
+        end
+    endgenerate
     wire panic_trace = board_trace_valid && (board_trace_addr == 32'h0c0047f0 ||
                        board_trace_addr == 32'h0c0047f4 || board_trace_addr == 32'h0c0047f8);
     wire lcd_trace_selected = lcd_unsupported_valid && !panic_trace;

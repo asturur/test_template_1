@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [ddr-diagnostics.md](ddr-diagnostics.md) | SSH runtime text/snapshots, DDR format, verification and deferred save/video defects |
 | [timing-78-recovery.md](timing-78-recovery.md) | All1,000 paths from43083011635, four root-cause fixes, measured costs and ngage1 deployment |
 | [register-file-area-audit.md](register-file-area-audit.md) | Production RF cost/port ownership, safe area candidates and upcoming PCM audio headroom |
 | [lcd-dma-timing-recovery.md](lcd-dma-timing-recovery.md) | Successful fit/new setup failure, LCD header validation and local DMA response boundary;78 MHz operation/104 MHz objective |

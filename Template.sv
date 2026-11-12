@@ -484,8 +484,9 @@ module emu (
     );
 
     ///////////////////////   DDR3 firmware transport   ////////////////
-    // 0x30000000 is a candidate Main DDR reservation; hardware use is
-    // prohibited until checked against the installed Main/Linux memory map.
+    // Installed Linux reserves0x1ff00000..0x3fffffff (2026-11-12 SSH audit).
+    // Core ROM/C:/PMM occupy0x30000000..0x3180ffff. Diagnostics use the unused
+    // ROM/C: guard at0x313f0000 (text ring and two1KiB snapshots); no new span.
     assign DDRAM_CLK = clk_sys;
     // DDR burst count is owned by the ROM-cache/backend transaction.
     wire loader_valid, loader_failed, loader_known_firmware;
@@ -503,6 +504,85 @@ module emu (
     wire load_req, load_ready, load_done;
     wire [31:0] load_addr, load_data;
     wire [3:0] load_be;
+    wire snapshot_valid, snapshot_ready, snapshot_write, snapshot_done;
+    wire [31:0] snapshot_addr, snapshot_data, snapshot_rdata;
+    wire text_valid, text_ready, text_write, text_done, runtime_char_valid;
+    wire [31:0] text_addr, text_data, text_rdata, text_dropped;
+    wire [7:0] runtime_char_data;
+    wire telemetry_valid, telemetry_ready, telemetry_write, telemetry_done;
+    wire [31:0] telemetry_addr, telemetry_data, telemetry_rdata;
+    wire         telemetry_capture;
+    wire [ 10:0] telemetry_word;
+    wire [767:0] diagnostic_values;
+    wire service_valid, service_ready, service_write, service_done;
+    wire [31:0] service_addr, service_data, service_rdata;
+    wire [3:0] service_be;
+    ngage_ddr_arbiter diagnostic_arbiter (
+        .clk           (clk_sys),
+        .reset         (transport_reset),
+        .cpu_lock      (1'b0),
+        .l_bulk        (1'b0),
+        .c_bulk        (1'b0),
+        .req_bulk      (),
+        .c_line        (1'b0),
+        .req_line      (),
+        .rsp_beat_valid(1'b0),
+        .rsp_beat_data (64'b0),
+        .rsp_beat_last (1'b0),
+        .c_beat_valid  (),
+        .c_beat_data   (),
+        .c_beat_last   (),
+        .l_valid       (snapshot_valid),
+        .l_ready       (snapshot_ready),
+        .l_write       (snapshot_write),
+        .l_addr        (snapshot_addr),
+        .l_data        (snapshot_data),
+        .l_be          (4'hf),
+        .l_done        (snapshot_done),
+        .l_rdata       (snapshot_rdata),
+        .c_valid       (text_valid),
+        .c_ready       (text_ready),
+        .c_write       (text_write),
+        .c_addr        (text_addr),
+        .c_data        (text_data),
+        .c_be          (4'hf),
+        .c_done        (text_done),
+        .c_rdata       (text_rdata),
+        .req_valid     (telemetry_valid),
+        .req_ready     (telemetry_ready),
+        .req_write     (telemetry_write),
+        .req_addr      (telemetry_addr),
+        .req_data      (telemetry_data),
+        .req_be        (),
+        .rsp_valid     (telemetry_done),
+        .rsp_data      (telemetry_rdata)
+    );
+    ngage_diag_loader_port diagnostics_port (
+        .clk       (clk_sys),
+        .reset     (transport_reset),
+        .load_valid(load_req),
+        .load_ready(load_ready),
+        .load_addr (load_addr),
+        .load_data (load_data),
+        .load_be   (load_be),
+        .load_done (load_done),
+        .diag_valid(telemetry_valid),
+        .diag_ready(telemetry_ready),
+        .diag_write(telemetry_write),
+        .diag_addr (telemetry_addr),
+        .diag_data (telemetry_data),
+        .diag_done (telemetry_done),
+        .diag_rdata(telemetry_rdata),
+        .mem_valid (service_valid),
+        .mem_ready (service_ready),
+        .mem_write (service_write),
+        .mem_addr  (service_addr),
+        .mem_data  (service_data),
+        .mem_be    (service_be),
+        .mem_done  (service_done),
+        .mem_rdata (service_rdata)
+    );
+
     wire save_mounted, save_saving, save_saved, save_error, save_busy;
     // Do not replace backing memory while a save is mounted or being processed.
     wire bundle_download, blocked_load;
@@ -644,14 +724,14 @@ module emu (
         .clk      (clk_sys),
         .reset    (transport_reset),
         .cpu_lock (1'b0),
-        .l_valid  (load_req),
-        .l_ready  (load_ready),
-        .l_write  (1'b1),
-        .l_addr   (load_addr),
-        .l_data   (load_data),
-        .l_be     (load_be),
-        .l_done   (load_done),
-        .l_rdata  (),
+        .l_valid  (service_valid),
+        .l_ready  (service_ready),
+        .l_write  (service_write),
+        .l_addr   (service_addr),
+        .l_data   (service_data),
+        .l_be     (service_be),
+        .l_done   (service_done),
+        .l_rdata  (service_rdata),
         .c_valid  (component_req),
         .c_ready  (component_ready),
         .c_write  (component_write),
@@ -683,13 +763,14 @@ module emu (
     assign bt_applied         = 1'b0;
     assign bt_busy            = 1'b0;
     assign bt_error           = 4'b0;
-    assign firmware_aux_valid = load_req;
-    assign firmware_aux_write = 1'b1;
-    assign firmware_aux_addr  = load_addr;
-    assign firmware_aux_data  = load_data;
-    assign firmware_aux_be    = load_be;
-    assign load_ready         = firmware_aux_ready;
-    assign load_done          = firmware_aux_done;
+    assign firmware_aux_valid = service_valid;
+    assign firmware_aux_write = service_write;
+    assign firmware_aux_addr  = service_addr;
+    assign firmware_aux_data  = service_data;
+    assign firmware_aux_be    = service_be;
+    assign service_ready      = firmware_aux_ready;
+    assign service_done       = firmware_aux_done;
+    assign service_rdata      = firmware_aux_rdata;
 `endif
     // Service files contain no PMM-seed choice. Both existing NGA profile
     // IDs are accepted only with the same audited firmware hashes.
@@ -913,10 +994,59 @@ module emu (
     wire [26:0] phone_keys;
     wire [15:0] debug_read_data;
     wire        debug_fault_seen;
-    wire [10:0] debug_word;
+    wire [10:0] debug_word, export_word;
     wire debug_freeze, debug_busy, debug_error, debug_mounted, lcd_unsupported;
     reg debug_trigger_prev = 0;
     always @(posedge clk_sys) debug_trigger_prev <= status[18];
+    wire export_trigger = status[18] && !debug_trigger_prev;
+    reg  export_pending = 0;
+    wire export_start = export_pending && !debug_busy && !telemetry_capture;
+    always @(posedge clk_sys) begin
+        if (transport_reset) export_pending <= 0;
+        else begin
+            if (export_start) export_pending <= 0;
+            if (export_trigger) export_pending <= 1;
+        end
+    end
+    assign debug_word = telemetry_capture ? telemetry_word : export_word;
+    ngage_diag_ddr #(
+        .CLOCK_HZ (SYS_CLK_HZ),
+        .BUILD_TAG({16'b0, `BUILD_DATE})
+    ) telemetry (
+        .clk           (clk_sys),
+        .reset         (transport_reset),
+        .cpu_reset     (dma_reset),
+        .allow_capture (!debug_busy && !export_pending && !export_trigger),
+        .values        (diagnostic_values),
+        .capture_active(telemetry_capture),
+        .debug_word    (telemetry_word),
+        .debug_data    (debug_read_data),
+        .req_valid     (snapshot_valid),
+        .req_ready     (snapshot_ready),
+        .req_write     (snapshot_write),
+        .req_addr      (snapshot_addr),
+        .req_data      (snapshot_data),
+        .rsp_valid     (snapshot_done),
+        .rsp_data      (snapshot_rdata)
+    );
+    ngage_diag_text_ddr #(
+        .CLOCK_HZ(SYS_CLK_HZ)
+    ) runtime_text (
+        .clk       (clk_sys),
+        .reset     (transport_reset),
+        .cpu_reset (dma_reset),
+        .char_valid(runtime_char_valid),
+        .char_data (runtime_char_data),
+        .cycles    (diagnostic_values[159:128]),
+        .dropped   (text_dropped),
+        .req_valid (text_valid),
+        .req_ready (text_ready),
+        .req_write (text_write),
+        .req_addr  (text_addr),
+        .req_data  (text_data),
+        .rsp_valid (text_done),
+        .rsp_data  (text_rdata)
+    );
     ngage_diag_export #(
         .TIMEOUT(SYS_CLK_HZ)
     ) debug_export (
@@ -925,13 +1055,13 @@ module emu (
         .mount         (img_mounted[3]),
         .readonly_image(img_readonly),
         .image_size    (img_size),
-        .start         (status[18] && !debug_trigger_prev),
+        .start         (export_start),
         .mounted       (debug_mounted),
         .busy          (debug_busy),
         .error         (debug_error),
         .done          (),
         .freeze_trace  (debug_freeze),
-        .debug_word    (debug_word),
+        .debug_word    (export_word),
         .debug_data    (debug_read_data),
         .sd_lba        (sd_lba[3]),
         .sd_rd         (sd_rd[3]),
@@ -1048,9 +1178,12 @@ module emu (
             loader_valid,
             pll_locked
         }),
-        .debug_freeze_trace(debug_freeze),
+        .debug_freeze_trace(debug_freeze || telemetry_capture),
         .debug_read_word(debug_word),
         .debug_read_data(debug_read_data),
+        .debug_values(diagnostic_values),
+        .debug_char_valid(runtime_char_valid),
+        .debug_char_data(runtime_char_data),
         .debug_fault_seen(debug_fault_seen),
         .lcd_unsupported(lcd_unsupported),
         .clk_sys(clk_sys),

@@ -1745,3 +1745,19 @@ guest behavior. Next: coherent DDR/bulk saving and general DMA/MMC. Final
 functional acceptance additionally requires semi-real NOS runtime, responsive
 UI/input and the selected peripheral features, with memory/CPU improvements
 promoted only when measured and validated.
+
+
+## 2026-11-12 runtime diagnostics checkpoint
+
+DDR3 runtime diagnostics precede save repair. Implemented committed kernel-byte
+capture, bounded text ring, periodic fault/panic/monitor mailbox and read-only
+SSH reader in the existing ROM/C: guard. No CPU/flash arbitration stage added;
+78 MHz retained,104 MHz objective. Unit/physical-adapter/Intel/poison/reader and
+existing recorder/raster/top checks pass. Fitted timing and new-RBF board capture
+remain gates. Keep visual diagnostics for first comparison; remove renderer
+once DDR readback is demonstrated. Other chat's simulations untouched.
+
+User confirms manual SAVING remains1 and may have reset mid-flush: only partial
+persistence established. Donor ordered sector/ACK flow reviewed; investigate
+our HPS/DDR ownership after diagnostics. C:\logs work deferred. HDMI scrambled
+lines and CRT left shift/first columns deferred. See [DDR diagnostics](docs/ddr-diagnostics.md).
