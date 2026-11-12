@@ -13,7 +13,6 @@
 
 module ngage_mister #(
     parameter LINE_REFILL        = 0,
-              DEBUG_VIDEO        = 1,
               UEM_POWERUP_STATUS = 2,
               DIRECT_SDRAM       = 1,
               DMA_LOCAL          = 1,
@@ -81,6 +80,7 @@ module ngage_mister #(
     output wire         dma_local_done,
     output wire         dma_local_error,
     output wire [ 31:0] dma_local_rdata,
+    // Retained only for old authored fixtures; production always shows Phone.
     input  wire         diagnostic_video,
     input  wire [ 31:0] diagnostic_status,
     input  wire [  2:0] save_state,
@@ -177,7 +177,6 @@ module ngage_mister #(
     wire cpu_fetch;
     wire raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank;
     wire [11:0] raw_rgb;
-    wire [8:0] video_x, video_y;
     wire line_req, line_ready, line_valid, line_wide, line_last, line_error;
     wire [31:0] line_addr;
     wire [63:0] line_data;
@@ -226,10 +225,10 @@ module ngage_mister #(
         .debug_cpsr           (cpu_cpsr),
         .debug_instruction    (cpu_instruction),
         .debug_fetch          (cpu_fetch),
-        .video_x              (video_x),
-        .video_y              (video_y),
-        .diagnostic_video     (diagnostic_video),
-        .diagnostic_status    (diagnostic_status[7:0]),
+        .video_x              (),
+        .video_y              (),
+        .diagnostic_video     (1'b0),
+        .diagnostic_status    (8'b0),
         .save_state           (save_state),
         .ram_accept           (DIRECT_SDRAM && sdram_accept),
         .ram_ack              (sdram_ack),
@@ -677,39 +676,17 @@ module ngage_mister #(
         board_trace_sel == 2 ? board_trace_data[15:8] :
         board_trace_sel == 4 ? board_trace_data[23:16] : board_trace_data[31:24];
     assign debug_values = diagnostic_values;
-    generate
-        if (DEBUG_VIDEO) begin : visual_debug
-            ngage_debug_video debug_video (
-                .panic_report(panic_report),
-                .clk         (clk_sys),
-                .diagnostic  (diagnostic_video),
-                .values      (diagnostic_values),
-                .x           (video_x),
-                .y           (video_y),
-                .ce_in       (raw_ce),
-                .hsync_in    (raw_hsync),
-                .vsync_in    (raw_vsync),
-                .hblank_in   (raw_hblank),
-                .vblank_in   (raw_vblank),
-                .rgb_in      (raw_rgb),
-                .ce_out      (ce_pix),
-                .hsync_out   (hsync),
-                .vsync_out   (vsync),
-                .hblank_out  (hblank),
-                .vblank_out  (vblank),
-                .rgb_out     (rgb444)
-            );
-        end else begin : phone_video_only
-            reg [ 5:0] control = 6'b011110;
-            reg [11:0] pixels = 0;
-            always @(posedge clk_sys) begin
-                control <= {raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank, 1'b0};
-                pixels  <= raw_rgb;
-            end
-            assign {ce_pix, hsync, vsync, hblank, vblank} = control[5:1];
-            assign rgb444                                 = pixels;
-        end
-    endgenerate
+    // Phone-only video retains the existing one-clock RGB/control boundary.
+    // The text renderer, font and video snapshot registers are absent. DDR
+    // recorders above/below remain independent of video and continue running.
+    reg [ 5:0] video_control = 6'b011110;
+    reg [11:0] video_pixels = 0;
+    always @(posedge clk_sys) begin
+        video_control <= {raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank, 1'b0};
+        video_pixels  <= raw_rgb;
+    end
+    assign {ce_pix, hsync, vsync, hblank, vblank} = video_control[5:1];
+    assign rgb444                                 = video_pixels;
     wire panic_trace = board_trace_valid && (board_trace_addr == 32'h0c0047f0 ||
                        board_trace_addr == 32'h0c0047f4 || board_trace_addr == 32'h0c0047f8);
     wire lcd_trace_selected = lcd_unsupported_valid && !panic_trace;

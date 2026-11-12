@@ -37,8 +37,8 @@ module emu (
 
     wire [1:0] ar = status[122:121];
 
-    assign VIDEO_ARX = (ar == 2'b00) ? (status[17] ? 13'd11 : 13'd4) : ({11'b0, ar} - 13'd1);
-    assign VIDEO_ARY = (ar == 2'b00) ? (status[17] ? 13'd13 : 13'd3) : 13'd0;
+    assign VIDEO_ARX = (ar == 2'b00) ? 13'd11 : ({11'b0, ar} - 13'd1);
+    assign VIDEO_ARY = (ar == 2'b00) ? 13'd13 : 13'd0;
 
     `include "build_id.v"
     localparam CONF_STR = {
@@ -60,7 +60,6 @@ module emu (
         "T[14],Flush C:/PMM images;",
         "D2O[21],Background save,Off,On;",
         "O[16],CPU mode,Hold,Run;",
-        "O[17],Display,Diagnostic,Phone;",
         "T[18],Export diagnostics;",
         "-;",
         "-;",
@@ -1148,7 +1147,7 @@ module emu (
         .dma_local_done(dma_local_done),
         .dma_local_error(dma_local_error),
         .dma_local_rdata(dma_local_rdata),
-        .diagnostic_video(!status[17]),
+        .diagnostic_video(1'b0),
         .save_state(save_error ? 3'd4 : save_saving ? 3'd2 :
                     save_mounted && save_saved ? 3'd3 : save_mounted ? 3'd1 : 3'd0),
         .diagnostic_status({
@@ -1233,7 +1232,7 @@ module emu (
 
     ///////////////////////   VIDEO   ////////////////////////////////
 
-    // 320×240 diagnostic raster; 176×208 phone pixels are centered within it.
+    // Phone raster: 176×208 active guest pixels within the existing scan timing.
     // Display-controller framebuffer storage is inside the phone board.
 
     assign CLK_VIDEO = clk_sys;
