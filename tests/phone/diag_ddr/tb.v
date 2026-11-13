@@ -3,7 +3,7 @@ module tb;
     parameter RING_BITS=10;
     parameter PHYSICAL=0;
     reg clk=0; always #5 clk=~clk;
-    reg reset=1,cpu_reset=1,allow_capture=0,char_valid=0;
+    reg reset=1,cpu_reset=1,char_valid=0;
     reg [7:0] char_data=0;
     reg [767:0] values=0;
     wire capture;
@@ -19,7 +19,7 @@ module tb;
     wire sv,sr,sw,sd;wire [31:0] sa,sdata,srd;
     wire xv,xr,xw,xd;wire [31:0] xa,xdata,xrd,lost;
     ngage_diag_ddr #(.PERIOD(12000),.BUILD_TAG(64'h0032343131303100)) snapshot(
-        .clk(clk),.reset(reset),.cpu_reset(cpu_reset),.allow_capture(allow_capture),.save_observation(64'h12345678abcdef00),.values(values),
+        .clk(clk),.reset(reset),.cpu_reset(cpu_reset),.save_observation(64'h12345678abcdef00),.values(values),
         .capture_active(capture),.debug_word(debug_word),.debug_data(debug_data),
         .req_valid(sv),.req_ready(sr),.req_write(sw),.req_addr(sa),.req_data(sdata),.rsp_valid(sd),.rsp_data(srd));
     ngage_diag_text_ddr #(.RING_BITS(RING_BITS),.GAP_CYCLES(8)) text(
@@ -142,7 +142,7 @@ module tb;
         tick();ta=32'h0c0047f4;td=32'h00000000;
         tick();ta=32'h0c0047f8;td=32'h00000077;
         tick();tv=0;sel=1;
-        wait(text.state==8);allow_capture=1;
+        wait(text.state==8);
         emit(60);drain();
         if(lost!=0)$fatal(1,"unexpected initial drops");
         if(text_commits!=5)$fatal(1,"12-byte batching: %d",text_commits);
@@ -152,8 +152,7 @@ module tb;
         for(i=0;i<24;i=i+1)if(memory[k+8+i]!==values[i*32+:32])$fatal(1,"monitor word %d",i);
         if(memory[k+32]!==32'h00014e47)$fatal(1,"NGD registered read pipeline %h",memory[k+32]);
         if(memory[k+32+198]!==32'h0007504e)$fatal(1,"panic metadata snapshot %h",memory[k+230]);
-        // Manual export ownership blocks only capture, not the independent text.
-        allow_capture=0;wait(!capture);before_seq=snapshot_commits;
+        wait(!capture);
         // Loader arriving during a diagnostic transaction cannot steal response.
         emit(12);wait(dv&&dr);tick();lv=1;wait(lr);tick();lv=0;wait(ld);repeat(2)tick();
         if(loads!=1)$fatal(1,"lost loader write");
@@ -161,7 +160,6 @@ module tb;
         drain();hold=1;emit(400);repeat(4)tick();
         if(lost!=132)$fatal(1,"nonblocking overflow count %0d expected132",lost);
         hold=0;drain();
-        if(snapshot_commits!=before_seq)$fatal(1,"capture ignored manual export ownership");
         if(memory[4]!==lost)$fatal(1,"drop header not published");
         // Warm reset splits byte generations but never resets transport/history.
         tick();cpu_reset=1;tick();cpu_reset=0;emit(24);drain();
@@ -170,7 +168,7 @@ module tb;
         wait(text.state==8);emit(12);drain();
         if(memory[3]<=before_seq)$fatal(1,"core reset reused committed sequence");
         // Finish a current snapshot after reload; independently readable slots.
-        allow_capture=1;wait(snapshot_commits>=2);allow_capture=0;
+        wait(snapshot_commits>=2);wait(!capture);
         repeat(30)tick();
         if(PHYSICAL)for(i=0;i<8192;i=i+1)
             if(physical_memory[i]!=={memory[i*2+1],memory[i*2]})$fatal(1,"physical final mismatch at%h",i*8);

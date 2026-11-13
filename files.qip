@@ -26,7 +26,6 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_display.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_keypad.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_keys.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diagnostics.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_diag_export.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diag_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diag_text_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v

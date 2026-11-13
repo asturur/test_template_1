@@ -12,13 +12,12 @@ independently through stock MiSTer virtual-disk I/O. The D3 build adds
 | --- | --- | --- | --- |
 | S0 | `boot0.vhd` | 4,194,304 bytes | C: byte zero at file byte zero |
 | S1 | `boot1.vhd` | 65,536 bytes | PMM byte zero at file byte zero |
-| S2 | Reserved for future MMC | Unsupported | No disk requests; reads return `ffff` |
-| S3 | Diagnostic `.NGD` | Existing diagnostic format | Previously S1 |
+| S2 | Read-only MMC card image | See [MMC images](mmc-port.md) | Independent MMC adapter |
 
 These are raw byte arrays. The `.vhd` suffix does not imply a VHD header/footer,
 partition table or FAT filesystem. Renaming NGA is not conversion. Both images
-are mandatory; no PMM is created or formatted implicitly. Move an existing
-manually mounted diagnostic image from S1 to S3. Do not name it `boot1.vhd`.
+are mandatory; no PMM is created or formatted implicitly. The diagnostic-disk
+slot/exporter has been removed; runtime diagnostics use DDR.
 The `.rom` namespace is unchanged: `boot.rom`, `boot1.rom`, NOS `boot2.rom` and
 Bluetooth `boot3.rom` still carry firmware/services and independent overlays.
 
@@ -61,7 +60,8 @@ metadata is not consulted later. C: and PMM may arrive in either order. One
 scalar bridge, sector buffer and DDR requester serialize both devices; file
 sector zero maps to region sector zero. Slot ACK selects buffer ingress, with
 one retained ACK cycle for registered HPS data at handshake termination.
-Diagnostic S3 uses its own buffer and ACK; reserved S2 never drives traffic.
+MMC uses S2 with independent buffer/ACK ownership. Runtime diagnostics have no
+HPS disk slot and are read through DDR/SSH.
 
 The CPU remains held until **both** images finish restoring. Each image must
 be writable and exactly the listed size. Missing/unmounted/invalid images hold
@@ -110,8 +110,8 @@ The NOR test uses immutable stock core/extension fixtures at the existing
 remain unchanged. The HPS tests use the actual maintained `sys/hps_io.sv`, with
 only the existing test-only PS/2 generate-scope compatibility adjustment.
 Full-size restore/reload compares all 1,064,960 C:/PMM words through the scalar
-bridge. Small tests exercise four-slot routing, both mount orders, early events,
-first/last sectors, simultaneous diagnostics, delayed ACK, mutation, invalid
+bridge. Small tests exercise three-slot routing, both mount orders, early events,
+first/last sectors, MMC isolation, delayed ACK, mutation, invalid
 media, active replacement, timeout and warm/cold reset.
 
 Installed MiSTer Main automatic `boot0.vhd`/`boot1.vhd` mounting, physical Save

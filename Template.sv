@@ -56,11 +56,9 @@ module emu (
         "S0,VHD,Mount C: raw image;",
         "S1,VHD,Mount PMM raw image;",
         "S2,MMC,Mount MMC card (read only);",
-        "S3,NGD,Mount diagnostic disk;",
         "T[14],Flush C:/PMM images;",
         "D2O[21],Background save,Off,On;",
         "O[16],CPU mode,Hold,Run;",
-        "T[18],Export diagnostics;",
         "-;",
         "-;",
         "T[0],Reset;",
@@ -89,7 +87,7 @@ module emu (
     hps_io #(
         .CONF_STR(CONF_STR),
         .WIDE    (1),
-        .VDNUM   (4)
+        .VDNUM   (3)
     ) hps_io (
         .clk_sys  (clk_sys),
         .HPS_BUS  (HPS_BUS),
@@ -166,18 +164,17 @@ module emu (
     wire reset = phone_reset | !loader_valid | !sdram_scrub_done | !board_init_done | !save_mounted
         | !status[16] | !overlay_ready | !bt_ready;
     wire ioctl_upload, ioctl_rd, board_init_done;
-    wire [3:0] img_mounted, sd_rd, sd_wr, sd_ack;
+    wire [2:0] img_mounted, sd_rd, sd_wr, sd_ack;
     wire        img_readonly;
     wire [63:0] img_size;
-    wire [31:0] sd_lba       [4];
-    wire [ 5:0] sd_blk_cnt   [4];
+    wire [31:0] sd_lba       [3];
+    wire [ 5:0] sd_blk_cnt   [3];
     wire [12:0] sd_buff_addr;
     wire [15:0] sd_buff_dout;
-    wire [15:0] sd_buff_din  [4];
+    wire [15:0] sd_buff_din  [3];
     wire        sd_buff_wr;
     assign sd_blk_cnt[0] = 0;
     assign sd_blk_cnt[1] = 0;
-    assign sd_blk_cnt[3] = 0;
     // S2 is dedicated to MMC. Backing ownership survives guest/CPU-Hold reset;
     // global hps_io buffer strobes are qualified inside the MMC adapter.
     wire mmc_card_reset, mmc_img_mounted, mmc_img_readonly;
@@ -1000,21 +997,7 @@ module emu (
     wire [26:0] phone_keys;
     wire [15:0] debug_read_data;
     wire        debug_fault_seen;
-    wire [10:0] debug_word, export_word;
-    wire debug_freeze, debug_busy, debug_error, debug_mounted, lcd_unsupported;
-    reg debug_trigger_prev = 0;
-    always @(posedge clk_sys) debug_trigger_prev <= status[18];
-    wire export_trigger = status[18] && !debug_trigger_prev;
-    reg  export_pending = 0;
-    wire export_start = export_pending && !debug_busy && !telemetry_capture;
-    always @(posedge clk_sys) begin
-        if (transport_reset) export_pending <= 0;
-        else begin
-            if (export_start) export_pending <= 0;
-            if (export_trigger) export_pending <= 1;
-        end
-    end
-    assign debug_word = telemetry_capture ? telemetry_word : export_word;
+    wire        lcd_unsupported;
     ngage_diag_ddr #(
         .CLOCK_HZ (SYS_CLK_HZ),
         .BUILD_TAG({16'b0, `BUILD_DATE})
@@ -1022,7 +1005,6 @@ module emu (
         .clk             (clk_sys),
         .reset           (transport_reset),
         .cpu_reset       (dma_reset),
-        .allow_capture   (!debug_busy && !export_pending && !export_trigger),
         .values          (diagnostic_values),
         .save_observation({sd_lba[0], save_debug_state}),
         .capture_active  (telemetry_capture),
@@ -1053,31 +1035,6 @@ module emu (
         .req_data  (text_data),
         .rsp_valid (text_done),
         .rsp_data  (text_rdata)
-    );
-    ngage_diag_export #(
-        .TIMEOUT(SYS_CLK_HZ)
-    ) debug_export (
-        .clk           (clk_sys),
-        .reset         (transport_reset),
-        .mount         (img_mounted[3]),
-        .readonly_image(img_readonly),
-        .image_size    (img_size),
-        .start         (export_start),
-        .mounted       (debug_mounted),
-        .busy          (debug_busy),
-        .error         (debug_error),
-        .done          (),
-        .freeze_trace  (debug_freeze),
-        .debug_word    (export_word),
-        .debug_data    (debug_read_data),
-        .sd_lba        (sd_lba[3]),
-        .sd_rd         (sd_rd[3]),
-        .sd_wr         (sd_wr[3]),
-        .sd_ack        (sd_ack[3]),
-        .hps_addr      (sd_buff_addr),
-        .hps_dout      (sd_buff_dout),
-        .hps_we        (sd_buff_wr),
-        .hps_din       (sd_buff_din[3])
     );
     reg [1:0] osd_sync = 0;
     always @(posedge clk_sys) osd_sync <= {osd_sync[0], OSD_STATUS};
@@ -1176,8 +1133,8 @@ module emu (
             save_error,
             (loader_failed || |overlay_error || |bt_error),
             status[16],
-            (debug_error || lcd_unsupported || (|dma_error_pending) || mmc_hps_fault),
-            debug_busy,
+            (lcd_unsupported || (|dma_error_pending) || mmc_hps_fault),
+            1'b0,  // Retired diagnostic-disk busy bit; preserve DDR layout.
             debug_fault_seen,
             save_mounted,
             board_init_done,
@@ -1185,8 +1142,8 @@ module emu (
             loader_valid,
             pll_locked
         }),
-        .debug_freeze_trace(debug_freeze || telemetry_capture),
-        .debug_read_word(debug_word),
+        .debug_freeze_trace(telemetry_capture),
+        .debug_read_word(telemetry_word),
         .debug_read_data(debug_read_data),
         .debug_values(diagnostic_values),
         .debug_char_valid(runtime_char_valid),
@@ -1255,8 +1212,8 @@ module emu (
 
     reg [26:0] act_cnt;
     always @(posedge clk_sys) act_cnt <= act_cnt + 1'd1;
-    assign LED_USER = (loader_failed || save_error || blocked_load || debug_error) ?
-        act_cnt[22] : (bundle_download || save_saving || save_busy || debug_busy) ?
+    assign LED_USER = (loader_failed || save_error || blocked_load) ?
+        act_cnt[22] : (bundle_download || save_saving || save_busy) ?
         act_cnt[25] : (save_mounted && save_saved);
 
 endmodule

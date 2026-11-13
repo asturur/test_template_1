@@ -37,9 +37,9 @@ still block boot. See [save blockers](save-blockers-2026-11-12.md).
 A failed transfer retains the active generation. An unsafe
 media replacement or invalid queue event also stops the save path. Pending
 DDR contents stay resident until a cold reset. Queue faults never switch to
-unordered scanning. Slot 3 diagnostic exports carry C: and PMM error bits in
-the optional save extension. `tools/ngage_diagnostics.py` decodes them as
-`save_errors`; older captures report `null` for the extension.
+unordered scanning. C: and PMM error bits remain in the DDR snapshot save
+extension, decoded by `tools/ngage_runtime_diag.py` as `save_errors`. The
+diagnostic-disk exporter and disk creation/decoder tool have been removed.
 
 ## Verification
 
@@ -48,8 +48,8 @@ capacity, pointer wrap, overflow, re-dirty while active and failed ACK
 retention. The real `hps_io` simulation checks both the scalar baseline and
 ordered saving, including quiet and max-age scheduling, reset between passes,
 manual save and per-device errors. The bulk NOR and full-size tests check
-C:/PMM reload through the ordered path. The diagnostic integration test checks
-the decoded PMM error through the slot 3 disk export.
+C:/PMM reload through the ordered path. DDR integration/reader tests retain
+save-error and progress decoding without a diagnostic-disk slot.
 
 Controlled interruption and remount with the original firmware filesystem,
 installed MiSTer Main durability, and fitted FPGA resource and timing checks

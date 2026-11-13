@@ -1,3 +1,13 @@
+### 2026-11-13: Diagnostic disk removed; DDR debugger retained
+
+Removed S3/NGD mount and Export OSD, exporter/controller/two RAM instances,
+disk CLI/tests, fourth HPS slot and recorder arbitration. C:/PMM/MMC stay0/1/2;
+DDR snapshot/text format, addresses and reader remain unchanged. Existing DDR,
+recorder, raw/ordered/legacy save, NOR and actual MMC/HPS tests pass; source
+graph and top elaboration pass. No fitted savings or timing closure claim;
+PLL remains78MHz, target104MHz. No board/media/firmware changes or CI launch.
+Details: docs/diagnostic-disk-retirement.md.
+
 ### 2026-11-13: First actual a413b1e hardware stopper fixed in HDL
 
 Installed RBF hash matches a413b1e/seed44. Autonomous original-ROM boot and DDR

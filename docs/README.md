@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [diagnostic-disk-retirement.md](diagnostic-disk-retirement.md) | Removed diagnostic disk/OSD and fourth HPS slot; retained DDR debugger and verification |
 | [euart-production-integration.md](euart-production-integration.md) | Completed production UART/CTSI host boundary, native CPU FIQ tests and remaining D550 peer gate |
 | [sim-adsp-native-progress.md](sim-adsp-native-progress.md) | Native SIM dynamic-flags tests, D550 test42/codec implementation and remaining transport/readiness gates |
 | [donor-stub-update-2026-11-12.md](donor-stub-update-2026-11-12.md) | Retail-input versus patched execution, new IMEI/SIM completions and native HDL-only applicability |
@@ -41,7 +42,7 @@ entries below the handoff are the evidence log, newest first.
 | [ddr-bulk-persistence.md](ddr-bulk-persistence.md) | D3 sector snapshots, restores, ordering and 4 KiB host assessment |
 | [ddr-flash-cache.md](ddr-flash-cache.md) | D2 shared flash backing cache, writer ordering, sizing and tests |
 | [ddr-stream-transport.md](ddr-stream-transport.md) | Opt-in D1 scalar/line/sector stream transport, buffered ownership/reset contracts and verification |
-| [raw-persistence.md](raw-persistence.md) | Raw C:/PMM images, lossless NGA migration, four-slot mount/save/reset policies and verification |
+| [raw-persistence.md](raw-persistence.md) | Raw C:/PMM images, lossless NGA migration, three-slot mount/save/reset policies and verification |
 | [integration-baseline.md](integration-baseline.md) | P0 source/toolchain identities, transaction contracts, retained measurements and fixture repairs |
 | [merge-plan.md](../merge-plan.md) | Complete ngage2 integration plan: branches, semi-real NOS/SIM, peripherals, raw C:/PMM images, DDR/SDRAM and CPU candidates with dependencies and tests |
 | [symbian-startup.md](symbian-startup.md) | Current hardware panic, passive category/reason recorder, corrected simulation and next boot evidence |

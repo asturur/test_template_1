@@ -3,8 +3,8 @@
 `ngage_mmc_hps.v` owns the MMC slot's read transactions and admits manually
 mounted production images before the native card becomes present. Template
 must connect only slot 2 mount/ACK/request signals; the halfword buffer bus is
-shared. Slots 0/1 remain C:/PMM, and slot 3 remains diagnostics. The adapter
-contains no phone chip or D550/AMA wiring.
+shared. Slots 0/1 remain C:/PMM; MMC uses slot 2. The diagnostic disk
+slot was removed. The adapter contains no phone chip or D550/AMA wiring.
 
 The actual local `sys/hps_io.sv` contract is WIDE=1, 13-bit halfword index,
 16-bit data, and a six-bit blocks-minus-one count. It supports up to 32 sectors
@@ -87,7 +87,7 @@ ACK already high, delayed ACK, resets before ACK and during transfer, init plus
 guest reset, removal during ownership, repeated/latest remounts and write
 rejection. It checks that invalid metadata cannot produce a live ACK fall.
 
-The second fixture runs the actual local four-slot `hps_io.sv`, the standalone
+The second fixture runs the actual local three-slot `hps_io.sv`, the standalone
 native card and adapter. It passes in 265,094 clocks: nine card reads, two
 simultaneous other-slot reads, two 4-KiB reads, seven final halfwords captured
 after slot-2 ACK fell and 2,128 cycles of overlapping slot requests. A real

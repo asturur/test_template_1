@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-13",
+  "base_commit": "3ab8e10b502d576afefcee1c20abd3c2519e3168",
+  "change": "Remove diagnostic disk, exporter, fourth HPS slot and OSD controls; retain DDR diagnostics",
+  "source_sha256": {
+    "Template.sv": "be39eb7330351b5ad507ca1b218d6c8add2c3230ba762e0ade2055d52e1c9d15",
+    "files.qip": "806daf31783b2a9bc932e74e94983b89e47ecc8592d2dfebc4b86c0eec0c19e2",
+    "rtl/ngage_diag_ddr.v": "a602dde2671ef6130fddab7d082f8e4d1babac31a2bdf3b8b24ccb71ade3e897",
+    "rtl/ngage_diagnostics.v": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c",
+    "tools/ngage_runtime_diag.py": "1cc5056d87fa3e16037f27206ceafed5126ba679cdbf3f8fea7267c4ca5b4791",
+    "tests/phone/diag_ddr/tb.v": "dd5ef8eb2d06cc2b02af177e296a6ac3e5311d19234d5ee4e139da791d4ede18"
+  },
+  "removed_ram_instances": [
+    {
+      "purpose": "export snapshot",
+      "words": 512,
+      "width_bits": 16
+    },
+    {
+      "purpose": "export sector buffer",
+      "words": 256,
+      "width_bits": 16
+    }
+  ],
+  "production_hps_slots": {
+    "0": "C:",
+    "1": "PMM",
+    "2": "read-only MMC"
+  },
+  "ddr_format_changed": false,
+  "checks": {
+    "diag_ddr": "PASS: ring10/ring3, physical DDR, poisoned BRAM, reader",
+    "diagnostics": "PASS",
+    "raw_hps": "PASS:31checks/49reads/12writes",
+    "ordered_raw_hps": "PASS:36checks/59reads/20writes",
+    "mmc_hps": "PASS:36direct cases;265094clocks actual three-slot",
+    "legacy_save_hps": "PASS: both fixtures22reads/7writes",
+    "production_raw_nor": "PASS:12reads/6writes;5914restore/14495save cycles",
+    "source_graph": "PASS:173files/9QIPs",
+    "top_structural": "PASS:HPS/PLL stubbed",
+    "formatter": "PASS:pinned Verible idempotent"
+  },
+  "fit_run": false,
+  "timing_run": false,
+  "board_test": false,
+  "pll_changed": false,
+  "firmware_or_media_changed": false
+}

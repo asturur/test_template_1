@@ -1,3 +1,12 @@
+## 2026-11-13: DDR is the only runtime diagnostic transport
+
+Diagnostic-disk S3, Export OSD, HPS export controller/buffers and disk CLI/tests
+are removed. HPS has only C:/PMM/MMC slots0/1/2. DDR snapshot/text addresses,
+wire version and reader are retained; the retired disk-busy status bit is0.
+The DDR recorder read port is direct, with no export arbitration/allow_capture
+input. Source/history below describes the original qualification build where
+applicable. See [diagnostic-disk-retirement.md](diagnostic-disk-retirement.md).
+
 # DDR3 runtime diagnostics (2026-11-12)
 
 Priority: understand Symbian startup using runtime DDR3 readback. C:\logs work
@@ -34,8 +43,9 @@ this is not a promise of zero contention. PLL and constraints remain78 MHz;
   No new asynchronous register-array memory. Actual fitted ALM/M10K/timing costs
   are unmeasured. Snapshot traffic is approximately4 KiB/s before transport
   overhead; text uses32 bytes per up-to12 characters plus header updates.
-* Manual NGD disk export and periodic snapshots serialize use of the registered
-  NGD read port. Warm CPU reset preserves transport/history. Cold transport reset
+* Periodic snapshots directly own the registered NGD read port; the diagnostic-
+  disk exporter and its arbitration were removed on2026-11-13. Warm CPU reset
+  preserves transport/history. Cold transport reset
   starts a new session, seeds sequences from retained DDR and clears mailbox seals.
 
 Visual diagnostics remain enabled for the first hardware comparison.

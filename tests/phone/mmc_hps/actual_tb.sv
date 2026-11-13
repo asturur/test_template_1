@@ -189,15 +189,14 @@ module actual_tb;
     reg [15:0] host_data=0;reg strobe=0,enable=0;
     assign bus[31:16]=host_data;assign bus[33]=strobe;assign bus[34]=enable;
     assign bus[35]=0;assign bus[45:38]=0;assign ext[32]=0;
-    wire [3:0] mounts,rd_bus,wr_bus,h_ack;
-    wire h_ro;wire [63:0] h_size;wire [31:0] h_lba[4];
-    wire [5:0] h_count[4];wire [12:0] h_addr;wire [15:0] h_dout,h_din[4];wire h_we;
+    wire [2:0] mounts,rd_bus,wr_bus,h_ack;
+    wire h_ro;wire [63:0] h_size;wire [31:0] h_lba[3];
+    wire [5:0] h_count[3];wire [12:0] h_addr;wire [15:0] h_dout,h_din[3];wire h_we;
     reg [1:0] other_rd=0;
     assign rd_bus[1:0]=other_rd;assign wr_bus[1:0]=0;
     assign h_lba[0]=32'h100;assign h_lba[1]=32'h200;
     assign h_count[0]=0;assign h_count[1]=0;assign h_din[0]=16'h1111;assign h_din[1]=16'h2222;
-    assign rd_bus[3]=0;assign wr_bus[3]=0;assign h_lba[3]=0;assign h_count[3]=0;assign h_din[3]=16'hffff;
-    hps_io #(.CONF_STR("test"),.WIDE(1),.VDNUM(4),.PS2DIV(1)) hps(.clk_sys(clk),.HPS_BUS(bus),.EXT_BUS(ext),.gamma_bus(gamma),
+    hps_io #(.CONF_STR("test"),.WIDE(1),.VDNUM(3),.PS2DIV(1)) hps(.clk_sys(clk),.HPS_BUS(bus),.EXT_BUS(ext),.gamma_bus(gamma),
         .img_mounted(mounts),.img_readonly(h_ro),.img_size(h_size),.sd_lba(h_lba),.sd_blk_cnt(h_count),.sd_rd(rd_bus),.sd_wr(wr_bus),.sd_ack(h_ack),
         .sd_buff_addr(h_addr),.sd_buff_dout(h_dout),.sd_buff_din(h_din),.sd_buff_wr(h_we),.ioctl_wait(1'b0),.ioctl_upload_req(1'b0),.ioctl_upload_index(8'b0),.ioctl_din(16'b0),
         .status_in(128'b0),.status_set(1'b0),.status_menumask(16'b0),.info_req(1'b0),.info(8'b0),.video_rotated(1'b0),.new_vmode(1'b0),
@@ -303,7 +302,7 @@ module actual_tb;
         // A physically short HPS transaction cannot publish metadata completion.
         short_next=1;expect_present=0;mount(0,16,1);
         if(!adapter_fault||present)fail("short metadata HPS transfer accepted");
-        $display("PASS actual four-slot MMC HPS card_reads=%0d other_reads=%0d bulk=%0d delayed_tail_words=%0d overlaps=%0d clocks=%0d",card_reads,other_reads,bulk_reads,delayed_tail_words,overlaps,clocks);
+        $display("PASS actual three-slot MMC HPS card_reads=%0d other_reads=%0d bulk=%0d delayed_tail_words=%0d overlaps=%0d clocks=%0d",card_reads,other_reads,bulk_reads,delayed_tail_words,overlaps,clocks);
         $finish;
     end
     initial begin #20000000;fail("watchdog");end

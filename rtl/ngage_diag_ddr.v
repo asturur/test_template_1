@@ -10,7 +10,6 @@ module ngage_diag_ddr #(
     input  wire         clk,
     input  wire         reset,
     input  wire         cpu_reset,
-    input  wire         allow_capture,
     input  wire [767:0] values,
     input  wire [ 63:0] save_observation,
     output wire         capture_active,
@@ -152,7 +151,7 @@ module ngage_diag_ddr #(
                 CLEAR1:          if (accepted) state <= CLEAR1_WAIT;
                 CLEAR1_WAIT:     if (rsp_valid) state <= IDLE;
                 IDLE:
-                if (period_left == 0 && allow_capture) begin
+                if (period_left == 0) begin
                     start_cycle <= cycles;
                     index       <= 0;
                     half_index  <= 0;
