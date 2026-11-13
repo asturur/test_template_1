@@ -66,8 +66,10 @@ need Quartus. Operating PLL stays78MHz;104MHz remains the design objective.
 This fixes native flash operations. It does **not** establish that erase or the
 AMD program tail caused the initial missing PMM50/1. That record's provisioning
 and the exact native lookup branch remain a separate investigation. No PMM data,
-SIM state, startup test result or deadline is fabricated. No hardware full-boot
-success is claimed until a new RBF is tested. The board remains on the approved
+SIM state, startup test result or deadline is fabricated. The91045a6 RBF now reaches responsive Insert SIM on the board, but Menu
+remains unavailable. Earlier six-profile C controls also avoided USER21 and
+ViewSrv11, so their absence is not attributed to this flash fix. See
+[board qualification](board-boot-91045a6.md). The board remains on the approved
 six-profile C workaround, original firmware/PMM and Background save Off.
 
 Evidence: [pmm-native-flash-2026-11-13.json](evidence/pmm-native-flash-2026-11-13.json).

@@ -1,12 +1,12 @@
 # N-Gage project documentation
 
-**Resume with [status.md](status.md) - start at its "HANDOFF / START HERE"
-block (2026-11-01).** It records completed work, exact measured stopping points,
-assumptions, missing hardware, next steps and when to rerun checks; the dated
-entries below the handoff are the evidence log, newest first.
+**Resume with the newest dated entries in [status.md](status.md).** Older
+handoff blocks are historical evidence, not the current experiment. Follow the
+topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [board-boot-91045a6.md](board-boot-91045a6.md) | Deployed build, clean cardless Phone, corrected active blocker and native MTC/SIM observations |
 | [pmm-native-flash.md](pmm-native-flash.md) | Native PMM erase/status/program-tail controller fix, exact original-driver CPU tests and reset/dirty integration |
 | [phone-profile-startup.md](phone-profile-startup.md) | Native profile count5 versus6 causes recreation/Phone timeout; C-only initialized-data control, original-ROM Phone progress and reader gaps |
 | [menu-blocker-map.md](menu-blocker-map.md) | Consolidated Phone/ViewSrv, EStor wait, PMM/DSY panic, SIM and self-test evidence; standalone software observer |

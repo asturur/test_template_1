@@ -1,3 +1,45 @@
+## 2026-11-13: donor-author checklist checked against native NOS
+
+The author's supplied explanation confirms state5/no-card can leave Startup
+waiting behind Insert SIM, without a crash. His stand-in bypasses native NOS
+and PMM checks. System Agent ready-status7, internal SIM_Server serving-state8,
+and MTC state8 are distinct fields/protocols; never substitute their numbers.
+
+New tests execute the original NEM-4 handlers, getters and status mapper with
+invalid cache inputs. Allocation/memory utilities/transport are fixture leaves;
+native code, header creation and failure decisions are original. All five
+optional reads send exactly once, free the request once and return24:
+
+| Request/service | Native handler | Reply |
+| --- | --- | --- |
+|21/2C provider|51660384|22/2C/24|
+|13/11 service table|5166042C|14/11/24|
+|31/3B ALS/CSP|51661290|32/3B/24|
+|33/3E operator|51661340|34/3E/24|
+|29/37 dynamic flags|51661634|2A/37/24|
+
+Cipher60/FA uses native asynchronous registration/getter/completion. Separate
+original-code tests verify getter notification0/1/2 maps to reply61/FA status
+24/30/31, respectively; registration/consumption and notification delivery are
+explicit fixture leaves. Donor's actual header uses31 for not-required, so the
+author's prose shorthand "all24" is not the exact cipher contract. No missing
+native handler is demonstrated; production SIM5 still takes its own fallback,
+and these direct handler fixtures do not prove serving initialization, real
+queue delivery or application-level consumption.
+
+INFO1B/02 is product-feature configuration, separate from Phone profile DB
+rows and from SIM EF files. Static native dispatch reaches515B6FF4 (non1 target)
+or515B74CC (target1), reads cached product data through514BFDA4/800C88A0 and
+forms03 responses. No end-to-end INFO_PP hardware qualification or valid factory
+profile is claimed. Do not return zero in HDL merely because the donor stub does.
+
+Reproduce tests/tools/test_native_sim_optional_queries.py and
+ tests/tools/test_native_sim_ciphering.py using the existing offline simulator
+image/Linux Unicorn environment. ROM SHA e5870e91... remains unchanged in every
+case. Board91045a6 independently reports DOS startup failure: RF1E/0D and
+ADSP36/01 have fatal severity0C; see [current board evidence](board-boot-91045a6.md).
+Original native SIM and RF/ADSP device behavior remain the required fixes.
+
 ## Subsequent completed boundary
 
 Production EUART/CTSI integration and unchanged-driver CPU FIQ tests are now

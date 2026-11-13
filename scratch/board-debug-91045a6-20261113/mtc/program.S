@@ -1,0 +1,79 @@
+.syntax unified
+.arm
+.global _start
+_start:
+ ldr sp,=0x8000f000
+ mov r0,#100
+ mov r1,#6
+ ldr r2,=0x80000000
+ mov r3,#3
+ mov r4,#4
+ mov r5,#5
+ mov r6,#6
+ mov r7,#7
+ mov r8,#8
+ mov r9,#9
+ mov r10,#7
+ mov r11,#11
+ ldr r12,=0x511bd001
+ cmp r0,r0
+ mov lr,pc
+ bx r12
+returned:
+ mrs r3,cpsr
+ and r3,r3,#0xf0000000
+ cmp r3,#0x60000000
+ bne fail
+ cmp r0,#0
+ bne fail
+ cmp r4,#4
+ bne fail
+ cmp r5,#5
+ bne fail
+ cmp r6,#6
+ bne fail
+ cmp r7,#7
+ bne fail
+ cmp r8,#8
+ bne fail
+ cmp r9,#9
+ bne fail
+ cmp r10,#7
+ bne fail
+ cmp r11,#11
+ bne fail
+ ldr r3,=0x8000f000
+ cmp sp,r3
+ bne fail
+ ldr r0,=0xf0000000
+ ldr r1,=0x50415353
+ str r1,[r0]
+ b .
+original:
+ mrs r12,cpsr
+ and r12,r12,#0xf0000000
+ cmp r12,#0x60000000
+ bne fail
+ ldr r12,=0x8000f000
+ cmp sp,r12
+ bne fail
+ cmp r0,#100
+ bne fail
+ cmp r1,#6
+ bne fail
+ ldr r0,=0x80000000
+ cmp r2,r0
+ bne fail
+ mov r0,#0
+ str r0,[r2]
+ mov r1,#0xab
+ mov r2,#0xcd
+ mov r3,#0xef
+ mov r12,#0xee
+ cmp r0,r0
+ bx lr
+fail:
+ ldr r0,=0xf0000000
+ mov r1,#0
+ str r1,[r0]
+ b .

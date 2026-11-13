@@ -1,5 +1,12 @@
 # Menu bring-up: confirmed waits, deaths and remaining native work
 
+**Current91045a6/six-profile C control:** Phone accepts digits, Menu remains
+unavailable; lightweight observers show no USER21/ViewSrv11. Earlier same-C
+controls also lack them. The table below combines historical stages and must
+not be read as all currently active. Production has no card/presence, native
+SIM is non-serving5, and MTC eventually publishes READY for state8. See
+[latest board evidence](board-boot-91045a6.md).
+
 Use this map before repeating the November12 investigation. Detailed traces,
 receipts and qualified experiments remain in
 [menu-bringup-2026-11-12.md](menu-bringup-2026-11-12.md) and
@@ -31,7 +38,7 @@ This identifies a first-run data/performance problem; no missing completion
 IRQ is demonstrated. Whole-C data differs, so this is not a single-file
 replacement experiment. See [native profile evidence](phone-profile-startup.md).
 
-## Current original-firmware comparison
+## Historical b656156/original first-boot C comparison
 
 b656156/seed44 passes the prior UART drain and storage-reset point, reaches
 SysAp, N-Gage logo and clock screensaver. Menu wakes the clock back to the logo

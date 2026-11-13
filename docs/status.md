@@ -1,3 +1,34 @@
+## 2026-11-13: native startup failures identified on deployed91045a6
+
+DOS observer sees event1/value2. Correct native-NOS-context24byte result dump
+on board,560 snapshots/no gaps/reset/fault: RF chipID1E times out0D, ADSP36
+fails01 (both severity0C); Bluetooth15 times out0D, current02 fails01 (severity0A).
+Do not call RF fixed from isolated MDI/receiver tests: full request/ring/IRQ/
+response completion still fails in this build. Next RF probe is native send
+5164B4EE through MDI to receiver515920D0; retain original deadline/revision/tests.
+Author's SIM checklist yields passing original-handler tests for21/2C,13/11,
+31/3B,33/3E,29/37 ->24, plus native cipher getter/callback0/1/2 ->24/30/31.
+Direct fixture entry does not prove serving SIM or scheduler delivery. INFO_PP
+is product-feature data, not Phone profile rows. No duplicate NOS responder.
+An unsafe-context diagnostic dump was removed by reload/discarded; corrected
+NOS read passes actualZAP waits0/3. Production HDL, PLL and card data unchanged.
+Details: docs/board-boot-91045a6.md and docs/sim-adsp-native-progress.md.
+
+## 2026-11-13:91045a6 deployed; current cardless Menu gate distinguished
+
+Installed completed run43481493258/commit91045a6/seed44 with verified RBF hash
+c1482546..., no SD backup. Timing gate fails (-0.198ns worst setup);78MHz PLL
+unchanged. Clean original ROM88fd.../same six-profile C/erased PMM reaches
+responsive Insert SIM/digits, Menu unchanged,640 snapshots/no gaps/reset/fault.
+Observation-only controls do not reproduce USER21/ViewSrv11 on six-profile C;
+older same-C controls also lack them. Missing50/1 is not the active proved crash,
+and no new flash fix is credited with removing it. PMM lookup probe does not
+observe group7/record1. SIM fallback positively logs native non-serving5.
+MTC observer qualified on actualZAP waits0/3 sees READY/action4 later for state8,
+not a completely missing READY. Production card/presence is still disabled.
+Original firmware, deadlines, self-tests and disk data stay authoritative.
+See [board-boot-91045a6.md](board-boot-91045a6.md) for receipts/scope/next gate.
+
 ## 2026-11-13: Native PMM flash erase/status/program-tail fixed
 
 Unchanged original NOS drivers reproduce two controller failures on HEAD4bcc593:

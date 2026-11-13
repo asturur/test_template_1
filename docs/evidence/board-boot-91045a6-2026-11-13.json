@@ -1,0 +1,329 @@
+{
+  "commit": "91045a64fb035eaf16e84e3f9f0e03b7cd6bdadd",
+  "seed": 44,
+  "rbf_sha256": "c14825461fb74e01d39eeb7436b2233856d9a29644eaca1ed5b5bbbb61e56f28",
+  "capture_sha256": "fa90ca1200944314251ccd910faa2511dd210684dcaf099f6fd68c71497188ae",
+  "snapshots": 560,
+  "events": {
+    "session": 1,
+    "producer_drops": 1,
+    "snapshot": 560,
+    "text": 2798
+  },
+  "resets": [
+    0
+  ],
+  "first_faults": [
+    0
+  ],
+  "observed": [
+    "D EVENT id=00000001 value=00000002",
+    "M TESTS 03030000 00030000 03000000 030d0000 03030301 0401030d "
+  ],
+  "native_selftests": [
+    {
+      "index": 0,
+      "test_id": "13",
+      "severity": 12,
+      "name": [
+        "ST_UPP_REGISTER_VER_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 1,
+      "test_id": "2e",
+      "severity": 12,
+      "name": [
+        "ST_UEM_CBUS_IF_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 2,
+      "test_id": "0f",
+      "severity": 12,
+      "name": [
+        "ST_SLEEP_X_LOOP_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 3,
+      "test_id": "01",
+      "severity": 12,
+      "name": [
+        "ST_AUX_DA_LOOP_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 4,
+      "test_id": "03",
+      "severity": 12,
+      "name": [
+        "ST_EAR_DATA_LOOP_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 5,
+      "test_id": "11",
+      "severity": 12,
+      "name": [
+        "ST_TX_IDP_LOOP_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 6,
+      "test_id": "12",
+      "severity": 10,
+      "name": [
+        "ST_TX_IQ_DP_LOOP_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 7,
+      "test_id": "0c",
+      "severity": 12,
+      "name": [
+        "ST_SIM_CLK_LOOP_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 8,
+      "test_id": "0d",
+      "severity": 12,
+      "name": [
+        "ST_SIM_IO_CTRL_LOOP_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 9,
+      "test_id": "08",
+      "severity": 10,
+      "name": [
+        "ST_MBUS_RX_TX_LOOP_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 10,
+      "test_id": "14",
+      "severity": 10,
+      "name": [
+        "ST_BACKUP_BATT_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 11,
+      "test_id": "2a",
+      "severity": 10,
+      "name": [
+        "ST_RADIO_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 12,
+      "test_id": "07",
+      "severity": 10,
+      "name": [
+        "ST_KEYBOARD_STUCK_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 13,
+      "test_id": "2b",
+      "severity": 10,
+      "name": [
+        "ST_LCD_TEST"
+      ],
+      "result": 0
+    },
+    {
+      "index": 14,
+      "test_id": "15",
+      "severity": 10,
+      "name": [
+        "ST_LPRF_IF_TEST"
+      ],
+      "result": 13
+    },
+    {
+      "index": 15,
+      "test_id": "2c",
+      "severity": 10,
+      "name": [
+        "ST_LPRF_AUDIO_LINES_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 16,
+      "test_id": "02",
+      "severity": 10,
+      "name": [
+        "ST_CURRENT_CONS_TEST"
+      ],
+      "result": 1
+    },
+    {
+      "index": 17,
+      "test_id": "19",
+      "severity": 10,
+      "name": [
+        "ST_EXTERNAL_RAM_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 18,
+      "test_id": "31",
+      "severity": 10,
+      "name": [
+        "ST_VIBRA_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 19,
+      "test_id": "34",
+      "severity": 10,
+      "name": [
+        "ST_KEYB_LINE_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 20,
+      "test_id": "1e",
+      "severity": 12,
+      "name": [
+        "ST_RF_CHIP_ID_TEST"
+      ],
+      "result": 13
+    },
+    {
+      "index": 21,
+      "test_id": "35",
+      "severity": 10,
+      "name": [
+        "ST_ZOCUS_CBUS_IF_TEST"
+      ],
+      "result": 3
+    },
+    {
+      "index": 22,
+      "test_id": "36",
+      "severity": 12,
+      "name": [
+        "ST_ADSP_TEST"
+      ],
+      "result": 1
+    },
+    {
+      "index": 23,
+      "test_id": "00",
+      "severity": 0,
+      "name": [],
+      "result": 4
+    }
+  ],
+  "test_scope": "Observation only; no functional ROM, SIM state, deadlines or startup result substitutions",
+  "restored_original_rom": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "all_observers_removed": true
+  },
+  "unchanged_card_and_settings": {
+    "card_sha256": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    },
+    "run": true,
+    "background_save": false,
+    "read_only": true
+  },
+  "native_optional_sim_queries": [
+    {
+      "request": "21",
+      "service": "2c",
+      "entry": "0x51660385",
+      "alloc": [
+        40
+      ],
+      "reply": "42222c24a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+      "native_missing_cache_completion": true
+    },
+    {
+      "request": "13",
+      "service": "11",
+      "entry": "0x5166042d",
+      "alloc": [
+        20
+      ],
+      "reply": "42141124a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+      "native_missing_cache_completion": true
+    },
+    {
+      "request": "31",
+      "service": "3b",
+      "entry": "0x51661291",
+      "alloc": [
+        15
+      ],
+      "reply": "42323b2425a5a5a5a5a5a5a5a5a5a5",
+      "native_missing_cache_completion": true
+    },
+    {
+      "request": "33",
+      "service": "3e",
+      "entry": "0x51661341",
+      "alloc": [
+        56
+      ],
+      "reply": "42343e24a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5",
+      "native_missing_cache_completion": true
+    },
+    {
+      "request": "29",
+      "service": "37",
+      "entry": "0x51661635",
+      "alloc": [
+        8
+      ],
+      "reply": "422a3724a5a5a5a5",
+      "native_missing_cache_completion": true
+    }
+  ],
+  "native_ciphering_cases": [
+    {
+      "cache_valid": false,
+      "cipher_bit": 0,
+      "native_notification": 0,
+      "reply": "4261fa24",
+      "fixture_delivery": true
+    },
+    {
+      "cache_valid": true,
+      "cipher_bit": 1,
+      "native_notification": 1,
+      "reply": "4261fa30",
+      "fixture_delivery": true
+    },
+    {
+      "cache_valid": true,
+      "cipher_bit": 0,
+      "native_notification": 2,
+      "reply": "4261fa31",
+      "fixture_delivery": true
+    }
+  ],
+  "final_clean_capture_scope": "58 snapshots/reset0/firstfault0/queuefault false; initial unread-backlog reader gap, no timing claims"
+}
