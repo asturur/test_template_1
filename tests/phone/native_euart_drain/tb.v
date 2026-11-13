@@ -1,0 +1,107 @@
+`timescale 1ns/1ps
+module tb;
+    reg clk = 0, reset = 1;
+    real half_period = 6.410256;
+    initial if ($value$plusargs("half_period=%f",half_period)) begin end
+    always #(half_period) clk = ~clk;
+    wire cyc, stb, write_op;
+    wire [31:0] address, value, data, pc;
+    wire [3:0] lanes;
+    reg [31:0] program_words[0:2047];
+    reg [31:0] hal_words[0:1023], poll_words[0:1023], iat_words[0:1023], driver_words[0:2047];
+    reg [31:0] ram[0:32767];
+    integer i, cycles = 0, delay = 0, wait_cycles = 0;
+    wire access = cyc && stb;
+    wire in_program = address < 8192;
+    wire in_hal = address >= 32'h50324000 && address < 32'h50325000;
+    wire in_poll = address >= 32'h5033c000 && address < 32'h5033d000;
+    wire in_iat = address >= 32'h50348000 && address < 32'h50349000;
+    wire in_driver = address >= 32'h510e8000 && address < 32'h510ea000;
+    wire in_ram = address >= 32'h80000000 && address < 32'h80020000;
+    wire in_uart = address >= 32'h58150000 && address < 32'h58150600;
+    reg [31:0] clock_control=0;
+    wire in_clock = {address[31:2],2'b0} == 32'h5814f008;
+    wire claim,bad,uart_ready,irq,tv,rr;
+    wire [31:0] uart_data;
+    wire [7:0] td;
+    integer byte_count = 0, index_reads=0;
+    reg block_tx=0, release_tx=0;
+    initial if($test$plusargs("block_tx"))block_tx=1;
+    wire sink_ready = !block_tx && release_tx;
+    wire ack = access && delay >= wait_cycles && (!peripheral || board_ready);
+    wire board_ready, board_claim, board_bad, board_fiq, board_init;
+    wire [31:0] board_data;
+    wire peripheral = in_uart || in_clock || address[31:16]==16'h0c12;
+    wire [31:0] physical = address[31:24]==8'h58 ? {8'h0c,address[23:0]} : address;
+    ngage_board board (
+        .clk(clk), .rst(reset), .init_rst(reset),
+        .cyc(access && peripheral), .stb(access && peripheral),
+        .commit(ack && peripheral), .we(write_op), .adr(physical), .din(value), .sel(lanes),
+        .cfg_lcd(1'b0), .cfg_keypad(1'b1), .cfg_clocks(1'b1),
+        .dma_irq_pending(1'b0), .sim_fiq_pending(1'b0),
+        .keys(27'b0), .sim_present(1'b0),
+        .adsp_tx_valid(tv), .adsp_tx_ready(sink_ready), .adsp_tx_data(td),
+        .adsp_rx_valid(1'b0), .adsp_rx_ready(rr), .adsp_rx_data(8'b0),
+        .claim(board_claim), .ready(board_ready), .unmodeled(board_bad),
+        .dout(board_data), .fiq(board_fiq), .init_done(board_init)
+    );
+    assign data = in_program ? program_words[address[12:2]] :
+        in_hal ? hal_words[address[11:2]] : in_poll ? poll_words[address[11:2]] :
+        in_iat ? iat_words[address[11:2]] : in_driver ? driver_words[address[12:2]] :
+        in_ram ? ram[address[16:2]] : peripheral ? board_data : 0;
+    ngage_cpu cpu (
+        .clk(clk), .reset(reset || !board_init), .irq(1'b0), .fiq(board_fiq),
+        .wb_cyc(cyc), .wb_stb(stb), .wb_write(write_op), .wb_address(address),
+        .wb_write_data(value), .wb_byte_enable(lanes), .wb_ack(ack),
+        .wb_read_data(data), .wb_error(1'b0), .debug_pc(pc),
+        .line_ready(1'b0), .line_reject(1'b0), .line_valid(1'b0),
+        .line_data(64'b0), .line_wide(1'b0), .line_last(1'b0), .line_error(1'b0)
+    );
+    always @(posedge clk) if (!reset) begin
+        cycles <= cycles + 1;
+        if (ack && !write_op && physical==32'h0c15055c) begin
+            index_reads<=index_reads+1;
+            release_tx<=1;
+        end
+        if (cycles > 60000) begin
+            if(!block_tx || byte_count!=0 || index_reads<50 ||
+               board.upp.peripherals.euart1.tx_count!=1)
+                $fatal(1,"unexpected drain stall PC%h bytes%0d reads%0d",pc,byte_count,index_reads);
+            $display("PASS reproduced original drain deadlock: tied-low TX ready, indices10, one byte owned, no DSP reply");
+            $finish;
+        end
+        if (!access || ack) delay <= 0;
+        else delay <= delay + 1;
+        if (tv && sink_ready) begin
+            if(td!=8'h55)$fatal(1,"unexpected sync byte");
+            byte_count <= byte_count + 1;
+        end
+        if (ack && peripheral && (!board_claim || board_bad)) $fatal(1,"native EUART rejected %h PC%h",address,pc);
+        if (ack && write_op) begin
+            if (address == 32'hf0000000) begin
+                if (value != 32'h50415353 || byte_count != 1 || index_reads<2 || block_tx)
+                    $fatal(1,"native EUART result%h bytes%0d PC%h",value,byte_count,pc);
+                $display("PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=%0d cycles=%0d",wait_cycles,cycles);
+                $finish;
+            end else if (in_ram) begin
+                for (i = 0; i < 4; i = i + 1)
+                    if (lanes[i]) ram[address[16:2]][i*8+:8] <= value[i*8+:8];
+            end else if (in_clock) begin
+                for (i=0;i<4;i=i+1) if(lanes[i]) clock_control[i*8+:8]<=value[i*8+:8];
+            end else if (!peripheral) $fatal(1, "native EUART write outside map %h", address);
+        end
+        if (ack && !write_op && !in_program && !in_hal && !in_poll && !in_iat && !in_driver && !in_ram && !peripheral)
+            $fatal(1, "native EUART read outside map %h PC=%h", address, pc);
+    end
+    initial begin
+        if (!$value$plusargs("wait=%d", wait_cycles)) wait_cycles = 0;
+        for (i = 0; i < 32768; i = i + 1) ram[i] = 0;
+        $readmemh("build/sim/unit-native-euart-drain/program.hex", program_words);
+        $readmemh("build/sim/unit-native-euart-drain/hal.hex", hal_words);
+        $readmemh("build/sim/unit-native-euart-drain/poll.hex", poll_words);
+        $readmemh("build/sim/unit-native-euart-drain/iat.hex", iat_words);
+        $readmemh("build/sim/unit-native-euart-drain/driver.hex", driver_words);
+        repeat (5) @(negedge clk);
+        reset = 0;
+    end
+endmodule

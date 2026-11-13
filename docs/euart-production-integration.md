@@ -1,3 +1,10 @@
+## Hardware follow-up: permanent TX backpressure was wrong
+
+The first actual a413b1e board run exposed an infinite native TX drain loop.
+The tied-low MiSTer connection described below is historical and is now
+corrected to accept TX delivery while leaving DSP RX absent. See
+[uart-tx-drain-fix.md](uart-tx-drain-fix.md) for captured evidence and tests.
+
 # Completed EUART1 / shared CTSI integration — 2026-11-13
 
 The UART controller is now selected in files.qip and instantiated in production

@@ -1,3 +1,16 @@
+### 2026-11-13: First actual a413b1e hardware stopper fixed in HDL
+
+Installed RBF hash matches a413b1e/seed44. Autonomous original-ROM boot and DDR
+capture identifies native ADSP UART drain loop510E89CC polling0C15055C=10:
+one TX byte never consumed.1065 samples/404seconds, IRQ/FIQ masked, no panic
+or reset. Cause: newly tied-low adsp_tx_ready. Single HDL connection changed
+to1 so TX can drain without a responding DSP; RX stays absent. Original native
+routine negative control reproduces deadlock; TX-only delivery passes78/104MHz,
+wait0/3=17478/17958cycles. UART/CTSI/MiSTer regressions pass. Live ROM remains
+original88fd596a...; no patches, save, SIM, PMM, clock or other behavior changed.
+Hardware retest needs a new RBF; no full boot claim. Details:
+docs/uart-tx-drain-fix.md.
+
 ### 2026-11-13: Publish native startup/debugger baseline
 
 User requests commit/push and will build manually. Publish the qualified local

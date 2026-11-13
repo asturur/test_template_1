@@ -284,10 +284,11 @@ module ngage_mister #(
         .video_vblank         (raw_vblank),
         .video_rgb            (raw_rgb),
         .keys                 (keys),
-        // External D550 protocol peer is not implemented. Backpressure the
-        // serial link rather than discard bytes or fabricate a response.
+        // No CTS/peer-ack is modeled on this byte link. TX delivery must
+        // drain even without a responding D550; otherwise the native stop
+        // routine spins forever with interrupts masked. DSP RX stays absent.
         .adsp_tx_valid        (),
-        .adsp_tx_ready        (1'b0),
+        .adsp_tx_ready        (1'b1),
         .adsp_tx_data         (),
         .adsp_rx_valid        (1'b0),
         .adsp_rx_ready        (),
