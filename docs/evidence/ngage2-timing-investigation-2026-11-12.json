@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-12",
+  "target": "ngage2",
+  "source_checkout": "/Users/andreabogazzi/develop/ngage2",
+  "source_commit": "542300b8dae1afb3e61c840d024364f29e0ca4a6",
+  "staged_checkout": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/ngage2-timing-20261112",
+  "staged_branch": "codex/ngage2-timing-1000",
+  "report_patch_sha256": "857788ca78ac4c5e18cb827e1ebd3f610ccb7eb80d61fcd0304da64ee139d18a",
+  "observed": {
+    "source_dma_workers": 3,
+    "source_setup_export_limit": 30,
+    "local_fitted_reports_available": false,
+    "docker_socket_access": "operation not permitted",
+    "mock_cases_passed": 8,
+    "shell_syntax": "pass",
+    "diff_check": "pass"
+  },
+  "historical_only": {
+    "release_commit": "91a6d08",
+    "seed": 9,
+    "setup_wns_ns": -1.453,
+    "hold_ns": 0.243,
+    "required_alms": 33473,
+    "source": "ngage2/docs/PROGRESS-LOG.md final section"
+  },
+  "not_verified": [
+    "Quartus17 execution of modified exporter",
+    "current source routed timing",
+    "RTL two-worker variant behavior/performance",
+    "LCD fast-path implementation",
+    "104MHz closure"
+  ],
+  "unmodified": [
+    "sibling checkout",
+    "production RTL and clocks",
+    "running simulations and checkpoints",
+    "remote branches and CI"
+  ]
+}

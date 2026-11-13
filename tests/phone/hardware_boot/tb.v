@@ -3,6 +3,9 @@
 // phone bus devices, flash state, address mapping and CPU are HDL.
 `ifdef NGAGE_LOGO_RUN
 module tb(input wire clk,reset,cold,
+ input wire [63:0] key_command_id,key_command_hold,
+ input wire [26:0] key_command_mask,
+ output wire [63:0] key_applied_id,
  input wire [14:0] frame_index,
  output wire ready,output wire [31:0] cycle_count,pc,frame_word,
  output wire [8:0] scan_x,scan_y,output wire [11:0] scan_rgb,
@@ -10,6 +13,11 @@ module tb(input wire clk,reset,cold,
  output wire [31:0] bus_errors,data_faults,pixel_writes,
  output wire [31:0] boot_index,boot_limit,retired_count,ddr_command_count,ddr_beat_count);
  integer lcd_unknown_prints=0;
+ wire [26:0] interactive_keys;
+ ngage_sim_keys interactive_input(
+  .clk(clk),.reset(reset),.command_id(key_command_id),
+  .command_hold(key_command_hold),.command_mask(key_command_mask),
+  .applied_id(key_applied_id),.keys(interactive_keys));
 `ifdef NGAGE_FAULT_CONTEXT
  `define BP_CORE dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core
  `include "tests/phone/hardware_boot/fault_context_watch.vh"
@@ -18,7 +26,7 @@ module tb(input wire clk,reset,cold,
  reg [26:0] key_mask=0;
  reg key_was_active=0;
  wire key_active=key_mask!=0 && fault_elapsed>=key_at && fault_elapsed-key_at<key_hold;
- wire [26:0] phone_keys=key_active ? key_mask : 27'b0;
+ wire [26:0] phone_keys=interactive_keys | (key_active ? key_mask : 27'b0);
  initial begin
   if($value$plusargs("key-at=%d",key_at)) begin end
   if($value$plusargs("key-hold=%d",key_hold)) begin end
@@ -33,7 +41,7 @@ module tb(input wire clk,reset,cold,
   end
  end
 `else
- wire [26:0] phone_keys=0;
+ wire [26:0] phone_keys=interactive_keys;
 `endif
 
 `ifdef NGAGE_EARLY_BOOT_TRACE

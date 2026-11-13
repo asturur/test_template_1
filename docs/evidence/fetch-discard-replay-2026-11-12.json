@@ -1,0 +1,42 @@
+{
+  "model": "8b92e8641d9c7365",
+  "result": {
+    "cycle": 2346643768,
+    "first_error": 2346633768,
+    "errors": 14,
+    "data_errors": 0,
+    "post_trace_observations": 792,
+    "shelve": 0,
+    "pc": 1345607904,
+    "fsr": 0,
+    "far": 0
+  },
+  "first_error_cycle": 2346633768,
+  "first_failed_refill": {
+    "cycle": 2346633770,
+    "shelve": 0,
+    "refill_done": 1,
+    "refill_error": 1
+  },
+  "second_failed_refill": {
+    "cycle": 2346633786,
+    "shelve": 1,
+    "redirect": "503EF43F",
+    "refill_done": 1,
+    "refill_error": 1
+  },
+  "discard_completion": {
+    "cycle": 2346633787,
+    "response_valid": 1,
+    "icache_state": 0
+  },
+  "queued_redirect_released": 2346633788,
+  "bx_trace_cycle": 2346633789,
+  "correct_fetch": {
+    "cycle": 2346633791,
+    "pc": "503EF43E"
+  },
+  "conclusion": "Abandoned speculative cached fetch retries once before BX redirect is pending, then completes through scoped discard path. Execution resumes at correct Thumb return; no architectural fault in the observed recovery window.",
+  "raw_trace": "scratch/fetch-00800b00-20261112/replay.log",
+  "main_run_untouched": true
+}

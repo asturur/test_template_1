@@ -21,6 +21,30 @@ original88fd596a...; no patches, save, SIM, PMM, clock or other behavior changed
 Hardware retest needs a new RBF; no full boot claim. Details:
 [uart-tx-drain-fix.md](uart-tx-drain-fix.md).
 
+## 2026-11-13: Build 43327385834 fits; two diagnostic snapshot timing endpoints fail
+
+Pushed 0ac4577, seed 1, unchanged 78 MHz configuration: Quartus fit and
+bitstream generation pass, timing gate fails. 37,042/41,910 ALMs needed (88%),
+43,195 registers, 505/553 M10Ks (91%), 42/112 DSPs. Actual placement occupies
+38,918 ALMs (93%); 48 M10Ks remain. Versus preceding 60334fe/seed42 fit:
+635 fewer ALMs needed, 463 fewer registers and one fewer M10K. Multiple source
+changes and different seeds prevent isolated optimization attribution.
+
+Core Fmax 76.45 MHz; setup -0.261 ns/TNS -0.326 ns, hold +0.181 ns. Other
+reported constrained setup domains and recovery/removal/pulse-width pass.
+All 1,000 endpoint rows checked; two negatives -0.261/-0.065 exactly sum to
+core TNS. Both are CPU memory-route launch -> diagnostic telemetry snapshot
+RAM data-input registers8/2. Immediate timing target is diagnostic capture;
+no RTL fix applied. SDRAM capture-to-adapter sample margin is +3.815 ns.
+Detailed export is slow100C; normal STA summary is multicorner sign-off input.
+Existing external IO constraint gaps remain; no 78/104 MHz closure claim.
+
+RBF retained despite failed timing. Other-chat local startup/EUART/ADSP changes
+are outside this build. Reports downloaded under scratch/fpga-build-43327385834
+and previous-run folders. No new CI, clock/constraint/HDL changes, commit/push
+or board operation. [Full report](fpga-build-43327385834.md),
+[evidence](evidence/fpga-build-43327385834.json).
+
 ## 2026-11-13: Publish native startup/debugger baseline
 
 User requests commit/push and will build manually. Publish the qualified local

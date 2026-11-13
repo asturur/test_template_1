@@ -1,0 +1,40 @@
+{
+  "date": "2026-11-12",
+  "base_commit": "542300b8dae1afb3e61c840d024364f29e0ca4a6",
+  "checkout": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/ngage2-timing-20261112",
+  "patch_sha256": "f3030c8e6994e38b8ab0b2d973e3aed125af9a62d6cd73b69b01cf45bf8f2d25",
+  "files": [
+    "NGage.sv",
+    "rtl/upp/upp_dma.sv",
+    "rtl/upp/upp_lcdif.sv",
+    "rtl/upp/upp_periph.sv",
+    "sim/Makefile",
+    "tests/lcd_fast/run.sh",
+    "tests/lcd_fast/tb.v",
+    "docs/LCD_DMA.md"
+  ],
+  "implementation": {
+    "general_workers": 2,
+    "dedicated_lcd_readers": 1,
+    "runtime_or_build_switch": false,
+    "native_destination": "existing LCD FIFO",
+    "source_reads": "existing scalar shared DMA master",
+    "new_payload_ram": false,
+    "sdram_controller_modified": false
+  },
+  "validation": {
+    "dma_lcd_testbench_elaboration": "pass",
+    "integrated_upp_periph_elaboration": "pass with existing Icarus notices",
+    "diff_check": "pass",
+    "runtime_regression": "not run: Docker socket operation not permitted",
+    "top_verilator": "not run",
+    "quartus_fit": "not run",
+    "board_test": "user manual experiment pending"
+  },
+  "scope_limits": [
+    "descriptor-shaped SDRAM/aligned32-bit eligibility only; generic fallback for other formats",
+    "completion at FIFO acceptance, not physical panel drain",
+    "no burst prefetch",
+    "ALM and FPS changes unmeasured"
+  ]
+}

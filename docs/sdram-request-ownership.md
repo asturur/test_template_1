@@ -1,5 +1,12 @@
 # SDRAM request ownership and cache-line storage
 
+Post-fit follow-up, 2026-11-13: [build 43327385834](fpga-build-43327385834.md)
+now supplies whole-core and hierarchy resource observations. It fits, but fails
+78 MHz setup at two diagnostic snapshot RAM inputs; reported SDRAM capture paths
+have positive margin. The earlier NOT_RUN labels below describe this change's
+pre-fit checkpoint. The new fit combines multiple source changes and a different
+seed, so it does not isolate the 36-bit payload removal's cost.
+
 2026-11-12. Follow-up to the native two-READ/two-WRITE controller work.
 Implemented on the existing branch after baseline tests, using isolated
 `scratch/sdram-ownership-20261112/before/` and `candidate/` snapshots.

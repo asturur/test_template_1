@@ -18,7 +18,7 @@ def png(ppm, dest):
 def run_model(cmd,out):
     # Preserve the entire console losslessly, with bounded live diagnostics.
     head=bytearray();tail=bytearray();pending=b'';total=0;cap=256*1024
-    interesting=(b'PROGRESS ',b'REACHED ',b'CHECKPOINT ',b'BUS_FAULT ',b'LCD ',b'LCD_UNKNOWN ',b'ERROR ',b'FAIL ',b'PASS ',b'%Error',b'FATAL')
+    interesting=(b'PROGRESS ',b'REACHED ',b'CHECKPOINT ',b'KEY_',b'BAD_POINTER ',b'FAULT_RF ',b'MEM_HISTORY ',b'R0_HISTORY ',b'BUS_FAULT ',b'LCD ',b'LCD_UNKNOWN ',b'ERROR ',b'FAIL ',b'PASS ',b'%Error',b'FATAL')
     with gzip.open(out/'run.log.gz','wb',compresslevel=1) as archive,(out/'run.log').open('w+b') as live,(out/'progress.log').open('wb') as progress:
         process=subprocess.Popen(cmd,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
         while chunk:=process.stdout.read1(65536):
@@ -56,6 +56,9 @@ def main():
     overlays.add_argument('--nos-overlay',type=Path,help='separate cold-run lineage: stage NOS_Compatibility.ngo through real overlay loader before CPU release')
     p.add_argument('--cpu-reference-dir',type=Path,help='diagnostic cold run using matching-interface reference CPU sources by basename')
     p.add_argument('--build-jobs',type=int,default=4)
+    p.add_argument('--checkpoint-before',type=int,default=1000000000,help='checkpoint period through switch cycle')
+    p.add_argument('--checkpoint-after',type=int,default=100000000,help='checkpoint period after switch cycle')
+    p.add_argument('--checkpoint-switch',type=int,default=10000000000,help='absolute cycle where checkpoint cadence changes')
     p.add_argument('--rom-cache-bits',type=int,choices=(64,128,256),default=64)
     p.add_argument('--rom-cache-bytes',type=int,choices=(1024,2048,4096),default=1024)
     p.add_argument('--timer-clock',choices=('cpu','26mhz'),default='cpu',help='counter clock; 26mhz is a separate experiment lineage')
@@ -73,13 +76,15 @@ def main():
     p.add_argument('--sys-clk-hz',type=int,default=104000000,help='phone clock/timebase parameter; requires a new checkpoint lineage when changed')
     p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
     a=p.parse_args();assert Path.cwd()==ROOT and 0<a.cycles<2**63 and '/' not in a.name and a.name not in ('.','..')
+    if not (0<a.checkpoint_before<2**63 and 0<a.checkpoint_after<2**63 and 0<=a.checkpoint_switch<2**63):
+        p.error('checkpoint periods must be positive 64-bit cycle counts; switch must be nonnegative')
     overlay_path=a.bluetooth_overlay or a.nos_overlay
     overlay_id=2 if a.bluetooth_overlay else 1
     overlay_key='bluetooth_overlay' if a.bluetooth_overlay else 'nos_overlay'
     # Keep exactly the bounded harness's HDL sources; no software peripherals.
     script=Path('tests/phone/hardware_boot/run.sh').read_text();source_text=script.split('--Mdir build/sim/unit-hardware-boot/obj ',1)[1].split(' > build/',1)[0]
     sources=[f for token in source_text.split() for f in sorted(glob.glob(token))]
-    sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v']
+    sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v','tests/phone/hardware_boot/key_input.v']
     if a.production_ddr:sources+=['rtl/ngage_ddr_flash_adapter.v','rtl/ngage_ddr_flash_cache.v']
     if overlay_path:sources+=['rtl/ngage_nos_overlay.v']
     if a.cpu_reference_dir:
@@ -156,8 +161,10 @@ def main():
     inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
     manifest={'production_ddr':a.production_ddr,'fault_context':a.fault_context,'key_pulse':[a.key_at,a.key_mask,a.key_hold],'refill_stats':a.refill_stats,'line_refill':a.line_refill,'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
     if overlay_sha:manifest[overlay_key]={'sha256':overlay_sha,'path':str(overlay_path),'skip_primary_checksum':True}
+    manifest['interactive_keys']=saved.get('interactive_keys',False) if saved is not None else True
     manifest['stop_after_lcd_words']=a.stop_after_lcd_words
     manifest['stop_on_kernel_panic']=a.stop_on_kernel_panic
+    manifest['checkpoint_schedule']={'through_cycle':a.checkpoint_switch,'period_through':a.checkpoint_before,'period_after':a.checkpoint_after}
     if a.cpu_reference_dir:manifest['cpu_reference_dir']=str(a.cpu_reference_dir)
     if saved is not None:manifest['uses_saved_build']=True
     if a.restore:
@@ -217,9 +224,11 @@ def main():
             if suffix in expected and sha(dest)!=expected[suffix]['sha256']:raise ValueError('archived checkpoint hash mismatch')
         manifest['restore_from_archive']=True
     (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+    (out/'key-command.txt').write_text('0 0 0\n')
     cmd=docker+['/work/'+str(binary),image,str(a.cycles),str(out),str(actual_restore) if actual_restore else '-', '+ngage-compact-trace','+core='+str(a.core),'+extension='+str(a.extension),'+cdrive='+str(out/'inputs/cdrive.img')]
     if overlay_path:cmd+=['+nos-overlay='+str(overlay_hex)]
     if a.fault_context:cmd+=['+key-at='+str(a.key_at),'+key-mask='+format(a.key_mask,'x'),'+key-hold='+str(a.key_hold)]
+    cmd+=['+checkpoint-before='+str(a.checkpoint_before),'+checkpoint-after='+str(a.checkpoint_after),'+checkpoint-switch='+str(a.checkpoint_switch),'+key-command='+str(out/'key-command.txt')]
     if a.stop_on_kernel_panic:cmd+=['+stop-kernel-panic']
     if a.stop_after_lcd_words:cmd+=['+stop-lcd-words='+str(a.stop_after_lcd_words)]
     print('Running',out,flush=True)

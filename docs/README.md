@@ -54,6 +54,7 @@ entries below the handoff are the evidence log, newest first.
 | [uncached-fetch.md](uncached-fetch.md) | Measured boot-delay costs, resident instruction hits and CPU request/return handoffs |
 | [sdram-native-validation.md](sdram-native-validation.md) | Native SDRAM runtime procedure, measured latency results and remaining board/fit gates |
 | [sdram-request-ownership.md](sdram-request-ownership.md) | Shared scalar write payload, reset-drain admission, unchanged latency and cache refill/commit storage explanation |
+| [fpga-build-43327385834.md](fpga-build-43327385834.md) | Fitted resource comparison, 78 MHz setup failure at two diagnostic snapshot RAM endpoints and retained timing evidence |
 | [cache-line-refill.md](cache-line-refill.md) | Registered ARM line transport, DDR bursts, direct SDRAM fill and overlapping logical-port follow-up |
 | [ddr-rom-cache.md](ddr-rom-cache.md) | Instruction-only DDR ROM buffer, 64/128/256-bit × 1/2/4 KiB boot comparison, reset/reload and validation |
 | [write-buffer-stage-contract.md](write-buffer-stage-contract.md) | Pipelined write-buffer reservation, local commit, capacity/hazard ownership and latency validation |

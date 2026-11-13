@@ -1,0 +1,351 @@
+diff --git a/.github/workflows/ci_build.yml b/.github/workflows/ci_build.yml
+index 2ac5a2a..5972713 100644
+--- a/.github/workflows/ci_build.yml
++++ b/.github/workflows/ci_build.yml
+@@ -34,7 +34,7 @@ jobs:
+ 
+       # The donor's existing script checks every available timing corner and
+       # the gated-video-clock uncertainty. Preserve its failure exit status.
+-      - name: Export and check timing
++      - name: Export 1000 failing endpoints per corner and check timing
+         id: timing
+         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+         shell: bash
+@@ -44,10 +44,17 @@ jobs:
+             -v "${{ github.workspace }}:/project" \
+             -w /project \
+             theypsilon/quartus-lite-c5:17.0.2.docker0 \
+-            /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/report_timing.tcl \
++            /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/report_timing.tcl 1000 \
+             2>&1 | tee quartus_timing_details.log
+           exit "${PIPESTATUS[0]}"
+ 
++      - name: Summarize failing path families
++        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
++        run: |
++          python3 tools/summarize_timing.py build/timing/corner-*/failing-setup.csv \
++            --output build/timing/path-summary.md
++          cat build/timing/path-summary.md >> "$GITHUB_STEP_SUMMARY"
++
+       # A compiled core remains available for board experiments when timing
+       # fails. The job stays failed; the artifact explicitly records timing.
+       - name: Check and label build output
+@@ -95,6 +102,7 @@ jobs:
+             build/hold-paths.rpt
+             build/unconstrained-paths.rpt
+             build/timing-corners.tsv
++            build/timing/
+           if-no-files-found: warn
+           retention-days: 14
+ 
+diff --git a/docs/BUILDING.md b/docs/BUILDING.md
+index b63ef30..c71113b 100644
+--- a/docs/BUILDING.md
++++ b/docs/BUILDING.md
+@@ -100,3 +100,28 @@ for C: and 1 for the card (the other way round before 2026-11-10):
+     <file delay="1" type="s" index="1" path="sonicn.mmc"/>
+ </mistergamedescription>
+ ```
++
++## Timing investigation (2026-11-12)
++
++After a completed fit, run `quartus_sta -t tools/report_timing.tcl 1000`.
++The optional count defaults to 1000 (range 1..10000). Each operating corner
++exports up to that many **negative setup endpoints**, one worst path per
++endpoint, ordered by slack. This is a bounded sample, not every failing path.
++`build/timing/corners.csv` maps numbered corner directories to their names and
++counts; each contains `failing-setup-full.rpt` (including routing),
++`failing-setup.csv`, `hold-full.rpt` and `fmax.rpt`. A passing corner produces a
++header-only CSV. The legacy `critical-paths.rpt` now also uses the negative
++filter/count, but remains an initial-corner report; use the indexed reports
++for analysis. Per-corner setup/hold/recovery/removal minima and the gated-clock
++uncertainty check retain their failure exit status.
++
++Run `python3 tools/summarize_timing.py build/timing/corner-*/failing-setup.csv`
++for block-pair counts and worst node pairs. CI publishes this summary and all
++reports even when timing fails. A row count equal to the limit can be truncated;
++counts and summed slacks of this subset are not complete endpoint counts/TNS.
++Do not compare different corners as if they were independent endpoint failures.
++
++The change has orchestration tests with a mocked STA API; a real Quartus17
++export and fresh fit are still required. No clock/SDC/RTL changes are included.
++
++Run `python3 tests/timing/check.py` for the mocked orchestration regression.
+diff --git a/tests/timing/check.py b/tests/timing/check.py
+new file mode 100644
+index 0000000..52cab25
+--- /dev/null
++++ b/tests/timing/check.py
+@@ -0,0 +1,29 @@
++import csv
++import os
++from pathlib import Path
++import subprocess
++repo=Path(__file__).resolve().parents[2]
++root=repo/'build/timing-script-tests'
++root.mkdir(parents=True,exist_ok=True)
++env=dict(os.environ, NGAGE_REPORT_SCRIPT=str(repo/'tools/report_timing.tcl'))
++for mode,count,expected in [('fail',None,3),('pass',None,0),('uncertainty',None,3),('empty',None,1),('fail','17',3),('pass','0',1),('pass','10001',1),('pass','oops',1)]:
++    work=root/(mode+'-'+str(count));work.mkdir(exist_ok=True)
++    args=['tclsh',str(repo/'tests/timing/mock_sta.tcl'),'unused',mode]+([] if count is None else [count])
++    run=subprocess.run(args,cwd=work,env=env,capture_output=True,text=True)
++    assert run.returncode==expected,(mode,count,run.returncode,run.stderr)
++    if mode in ('fail','pass') and expected != 1:
++        rows=list(csv.DictReader((work/'build/timing/corner-01/failing-setup.csv').open()))
++        assert len(rows)==(int(count or 1000) if mode=='fail' else 0)
++        assert not list(csv.DictReader((work/'build/timing/corner-02/failing-setup.csv').open()))
++        if rows:
++            assert rows[0]['corner']=='Corner, "slow"'
++            assert rows[0]['from_node']=='emu|upp_dma:dma|source[1],"x"'
++            assert all(float(row['slack_ns'])<0 for row in rows)
++        inv=list(csv.DictReader((work/'build/timing/corners.csv').open()))
++        assert len(inv)==2 and inv[0]['corner']=='Corner, "slow"'
++        for rpt in work.glob('build/timing/corner-*/failing-setup-full.rpt'):
++            assert '-less_than_slack 0' in rpt.read_text() and '-show_routing' in rpt.read_text()
++        paths=sorted(work.glob('build/timing/corner-*/failing-setup.csv'))
++        subprocess.run(['python3',str(repo/'tools/summarize_timing.py'),*map(str,paths),'--output',str(work/'summary.md')],check=True,capture_output=True)
++    print('PASS',mode,count)
++print('Mock orchestration only: Quartus17 execution and routed timing remain unverified.')
+diff --git a/tests/timing/mock_sta.tcl b/tests/timing/mock_sta.tcl
+new file mode 100644
+index 0000000..d385c68
+--- /dev/null
++++ b/tests/timing/mock_sta.tcl
+@@ -0,0 +1,61 @@
++# API substitute for exercising report orchestration, not a timing model.
++set mode [lindex $argv 1]
++set argv [lrange $argv 2 end]
++set selected slow
++proc project_open args {}
++proc create_timing_netlist args {}
++proc read_sdc args {}
++proc update_timing_netlist args {}
++proc delete_timing_netlist args {}
++proc project_close args {}
++proc get_clocks args {return sysclk}
++proc post_message args {}
++proc qexit args {exit 3}
++proc foreach_in_collection {v xs script} {
++    foreach x $xs {uplevel 1 [list set $v $x]; uplevel 1 $script}
++}
++proc report_timing {args} {
++    set target [lindex $args [expr {[lsearch -exact $args -file]+1}]]
++    set f [open $target w]; puts $f $args; close $f
++}
++proc report_ucp args {report_timing {*}$args}
++proc report_clock_fmax_summary args {report_timing {*}$args}
++proc get_available_operating_conditions {} {
++    if {$::mode eq "empty"} {return {}}
++    return {slow fast}
++}
++proc set_operating_conditions {corner} {set ::selected $corner}
++proc get_operating_conditions_info args {return "Corner, \"$::selected\""}
++proc get_timing_paths {args} {
++    if {[lsearch -exact $args -from_clock] >= 0} {return uncertainty}
++    if {[lsearch -exact $args -less_than_slack] >= 0} {
++        if {[lindex $args [expr {[lsearch -exact $args -less_than_slack]+1}]] != 0} {error "missing negative filter"}
++        if {[lindex $args [expr {[lsearch -exact $args -nworst]+1}]] != 1} {error "missing endpoint bound"}
++        if {$::mode ne "fail" || $::selected eq "fast"} {return {}}
++        set limit [lindex $args [expr {[lsearch -exact $args -npaths]+1}]]
++        set result {}
++        for {set n 1} {$n <= min(1200,$limit)} {incr n} {lappend result $n}
++        return $result
++    }
++    return summary
++}
++proc get_path_info {option path} {
++    switch -- $option {
++        -required_points {return uncpoint}
++        -slack {if {$::mode eq "fail" && $::selected eq "slow"} {return -1.453}; return 0.243}
++        -data_delay {return 10.8}
++        -num_logic_levels {return 11}
++        -from_clock - -to_clock {return sysclk}
++        -from {return {emu|upp_dma:dma|source[1],"x"}}
++        -to {return {emu|upp_lcdif:lcd|destination[2]}}
++    }
++    error "unknown option $option"
++}
++proc get_node_info {option node} {return $node}
++proc get_clock_info args {return sysclk}
++proc get_point_info {option point} {
++    if {$option eq "-type"} {return unc}
++    if {$::mode eq "uncertainty"} {return -0.300}
++    return -0.140
++}
++source $::env(NGAGE_REPORT_SCRIPT)
+diff --git a/tools/quartus_seeds.sh b/tools/quartus_seeds.sh
+index efa22cd..c560e61 100755
+--- a/tools/quartus_seeds.sh
++++ b/tools/quartus_seeds.sh
+@@ -32,6 +32,10 @@ if [[ $2 == fetch ]]; then
+ 	mkdir -p output_files build
+ 	rsync -a "$host:$d/output_files/NGage.rbf" "$host:$d/output_files/NGage.fit.summary" "$host:$d/output_files/NGage.sta.summary" output_files/
+ 	rsync -a "$host:$d/build/timing-corners.tsv" "$host:$d/build/critical-paths.rpt" "$host:$d/build/hold-paths.rpt" build/
++	# Historical builds predate the per-corner export directory.
++	if ssh "$host" "test -d $d/build/timing"; then
++		rsync -a "$host:$d/build/timing/" build/timing/
++	fi
+ 	exit 0
+ fi
+ seeds=($2)
+diff --git a/tools/report_timing.tcl b/tools/report_timing.tcl
+index ff0b7d5..5c41f97 100644
+--- a/tools/report_timing.tcl
++++ b/tools/report_timing.tcl
+@@ -1,15 +1,62 @@
+-# Run after fitting: quartus_sta -t tools/report_timing.tcl
++# Run after fitting: quartus_sta -t tools/report_timing.tcl [path_count]
++# Up to path_count negative setup endpoints PER corner, worst first.
++# No clock, constraint, fit setting or sign-off threshold changes.
++set path_count 1000
++if {[llength $argv] > 1} {error "Usage: report_timing.tcl \[path_count\]"}
++if {[llength $argv] == 1} {set path_count [lindex $argv 0]}
++if {![string is integer -strict $path_count] || $path_count < 1 || $path_count > 10000} {
++    error "Path count must be an integer from 1 to 10000"
++}
++
++proc csv_cell {value} {
++    return "\"[string map [list \" \"\"] $value]\""
++}
++proc path_clock {path option} {
++    set id [get_path_info $option $path]
++    if {$id eq ""} {return ""}
++    return [get_clock_info -name $id]
++}
++proc export_failing_setup {directory count corner} {
++    # One worst path per endpoint avoids filling the sample with variants of
++    # one sink. Zero paths is valid at a passing corner; keep a CSV header.
++    report_timing -setup -less_than_slack 0 -npaths $count -nworst 1 \
++        -detail full_path -show_routing -file $directory/failing-setup-full.rpt
++    set paths [get_timing_paths -setup -less_than_slack 0 -npaths $count \
++        -nworst 1 -detail full_path]
++    set f [open $directory/failing-setup.csv w]
++    puts $f "rank,corner,slack_ns,data_delay_ns,logic_levels,from_clock,to_clock,from_node,to_node"
++    set rank 0
++    foreach_in_collection path $paths {
++        incr rank
++        set cells {}
++        foreach field [list $rank $corner [get_path_info -slack $path] \
++            [get_path_info -data_delay $path] [get_path_info -num_logic_levels $path] \
++            [path_clock $path -from_clock] [path_clock $path -to_clock] \
++            [get_node_info -name [get_path_info -from $path]] \
++            [get_node_info -name [get_path_info -to $path]]] {
++            lappend cells [csv_cell $field]
++        }
++        puts $f [join $cells ,]
++    }
++    close $f
++    post_message -type info "$corner: exported $rank failing setup endpoints (limit $count)"
++    return $rank
++}
+ project_open NGage
+ create_timing_netlist
+ read_sdc
+ update_timing_netlist
+ file mkdir build
+-report_timing -setup -npaths 30 -nworst 1 -detail full_path -file build/critical-paths.rpt
++report_timing -setup -less_than_slack 0 -npaths $path_count -nworst 1 -detail full_path -show_routing -file build/critical-paths.rpt
+ report_timing -hold -npaths 10 -detail full_path -file build/hold-paths.rpt
+ report_ucp -file build/unconstrained-paths.rpt
+ set summary [open build/timing-corners.tsv w]
+ puts $summary "corner\tcheck\tworst_slack_ns"
+ set failed 0
++set corner_index 0
++file mkdir build/timing
++set inventory [open build/timing/corners.csv w]
++puts $inventory "directory,corner,exported_failing_endpoints,limit"
+ # NGage.sdc declares the framework's gated video clock (comb~0) a clock of
+ # its own. If that node is not the gate in this build, clk_sys keeps the
+ # gated branch's uncertainty: report it instead of fitting against it.
+@@ -30,6 +77,15 @@ foreach_in_collection corner [get_available_operating_conditions] {
+     set_operating_conditions $corner
+     update_timing_netlist
+     set name [get_operating_conditions_info -display_name $corner]
++    incr corner_index
++    # Numeric paths avoid spaces/punctuation in operating-condition names.
++    set directory [format "build/timing/corner-%02d" $corner_index]
++    file mkdir $directory
++    set exported [export_failing_setup $directory $path_count $name]
++    puts $inventory "[csv_cell $directory],[csv_cell $name],$exported,$path_count"
++    report_clock_fmax_summary -file $directory/fmax.rpt
++    report_timing -hold -npaths 100 -nworst 1 -detail full_path -show_routing \
++        -file $directory/hold-full.rpt
+     foreach check {setup hold recovery removal} {
+         foreach_in_collection path [get_timing_paths -$check -npaths 1] {
+             set slack [get_path_info -slack $path]
+@@ -40,6 +96,8 @@ foreach_in_collection corner [get_available_operating_conditions] {
+     }
+ }
+ close $summary
++close $inventory
++if {$corner_index == 0} {error "No operating conditions found; refusing an unchecked timing result"}
+ delete_timing_netlist
+ project_close
+ if {$failed} {
+diff --git a/tools/summarize_timing.py b/tools/summarize_timing.py
+new file mode 100644
+index 0000000..b119f11
+--- /dev/null
++++ b/tools/summarize_timing.py
+@@ -0,0 +1,61 @@
++#!/usr/bin/env python3
++"""Summarize TimeQuest path CSV by endpoint block without dumping long routes."""
++import argparse
++import csv
++from collections import defaultdict
++from decimal import Decimal
++from pathlib import Path
++
++def block(node):
++    # Keep ZAP submodules individually visible rather than collapsing the CPU.
++    for part in reversed(node.split('|')[:-1]):
++        if ':' in part:
++            return part.split(':', 1)[0]
++    return 'top/other'
++
++def summary(path):
++    with path.open(newline='') as f:
++        reader = csv.DictReader(f)
++        required = {'slack_ns', 'data_delay_ns', 'logic_levels', 'from_node', 'to_node'}
++        if not required <= set(reader.fieldnames or []):
++            raise ValueError('missing path CSV columns')
++        rows = list(reader)
++    if not rows:
++        return "No failing setup endpoints exported for this corner.\n"
++    rows.sort(key=lambda r: Decimal(r['slack_ns']))
++    groups = defaultdict(list)
++    for r in rows:
++        for field in ('slack_ns', 'data_delay_ns', 'logic_levels'):
++            Decimal(r[field])
++        groups[(block(r['from_node']), block(r['to_node']))].append(r)
++    lines = [f'# Failing setup endpoints ({len(rows)} exported)', '',
++             'One worst path per endpoint in this corner; bounded diagnostic subset, not full timing sign-off.', '',
++             '| From block | To block | Paths | Worst slack ns | Max data delay ns | Max logic levels |',
++             '| --- | --- | ---: | ---: | ---: | ---: |']
++    for (src, dst), members in sorted(groups.items(), key=lambda g: Decimal(g[1][0]['slack_ns'])):
++        lines.append(f'| {src} | {dst} | {len(members)} | {members[0]["slack_ns"]} | '
++                     f'{max(Decimal(r["data_delay_ns"]) for r in members)} | '
++                     f'{max(Decimal(r["logic_levels"]) for r in members)} |')
++    lines += ['', '## Worst ten node pairs', '']
++    for r in rows[:10]:
++        lines += [f'- {r["slack_ns"]} ns, {r["logic_levels"]} levels, {r["data_delay_ns"]} ns data: '
++                  f'`{r["from_node"]}` → `{r["to_node"]}`']
++    return '\n'.join(lines) + '\n'
++
++def main():
++    p = argparse.ArgumentParser(description=__doc__)
++    p.add_argument('csv', type=Path, nargs='+')
++    p.add_argument('--output', type=Path)
++    a = p.parse_args()
++    try:
++        text = '\n'.join(f'## {path.parent.name}\n\n' + summary(path) for path in a.csv)
++    except (OSError, ValueError, ArithmeticError) as e:
++        p.exit(1, f'Path summary failed: {e}\n')
++    if a.output:
++        a.output.write_text(text)
++        print(f'Wrote {a.output}')
++    else:
++        print(text, end='')
++
++if __name__ == '__main__':
++    main()

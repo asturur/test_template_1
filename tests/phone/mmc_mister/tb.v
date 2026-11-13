@@ -137,7 +137,7 @@ module tb;
        if(saved_sd!==32'h50415353 || mmc_fault || !mmc_present || !mmc_wp || hps_reads<3 || dut.dma_error_pending)
         $fatal(1,"MMC completion marker=%h fault%0d present%0d WP%0d HPSreads%0d DMAerrors%h",saved_sd,mmc_fault,mmc_present,mmc_wp,hps_reads,dut.dma_error_pending);
        if($test$plusargs("hold") && (!held_once || hps_reads<4))$fatal(1,"CPU Hold path not exercised");
-       $display("PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, ICU21/23/24, read-only rejection cycles=%0d HPSreads=%0d hold=%0d",cycles,hps_reads,held_once);$finish;
+       $display("PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, full512-byte DMA/PIO sectors, ICU21/23/24, read-only rejection cycles=%0d HPSreads=%0d hold=%0d",cycles,hps_reads,held_once);$finish;
       end
      end
     end else sr<=ram[saved_sa[16:2]];

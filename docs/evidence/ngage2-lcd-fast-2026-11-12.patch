@@ -1,0 +1,705 @@
+diff --git a/NGage.sv b/NGage.sv
+index 5e9e757..7162e11 100644
+--- a/NGage.sv
++++ b/NGage.sv
+@@ -524,7 +524,9 @@ wire mmc_dat = (mmc_dat_oe ? mmc_dat_o : 1'b1) & (card_dat_oe ? card_dat_o : 1'b
+ 
+ wire [31:0] dbg_src0, dbg_en0_irq, dbg_en0_fiq;
+ 
+-upp_periph upp_periph
++upp_periph #(
++	.DMA_ENGINES(2)
++) upp_periph
+ (
+ 	.clk(clk_sys),
+ 	.reset(mem_reset),
+diff --git a/docs/LCD_DMA.md b/docs/LCD_DMA.md
+new file mode 100644
+index 0000000..03fe412
+--- /dev/null
++++ b/docs/LCD_DMA.md
+@@ -0,0 +1,70 @@
++# Native LCD DMA, experimental implementation (2026-11-12)
++
++Production now has two general DMA workers and one specialized LCD reader.
++There is no old/new switch. Use a separate master build for comparison.
++No CPU, generated CPU, SDRAM-controller, physical panel timing or clock changes.
++
++The reader shares the existing registered DMA memory master with the general
++workers. It only reads memory; the destination write is a valid/ready enqueue
++into the existing LCD command/data FIFO, bypassing the audio/CPU Wishbone and
++peripheral-register path. Panel packing, phase limits, reads and byte timing
++remain in upp_lcdif. Completion means the final FIFO word has been accepted,
++matching the generic destination-write boundary, not physical panel drain.
++
++Eligibility: peripheral-paced transfer; incrementing aligned source wholly in
++0x0a000000..0x0affffff; fixed LCD FIFO destination (0x10121208 or0x0c121208);
++32-bit source/destination widths. The normal byte budget/count-minus-one rules
++remain. Other descriptors still use generic width conversion, not invented
++native semantics. Requests on all eight channels are supported. Starts queue
++when their worker class is full; only two generic transfers run concurrently.
++
++A selected CPU LCD access reserves FIFO admission before its sampled ready
++state, including reads and control writes. The native word waits under that
++reservation or a full FIFO. There is one ordered FIFO, no new payload RAM.
++A32-bit last-word shadow preserves ordinary FIFO-register readback after native
++writes. Read-phase data still comes from the panel's read sequence.
++
++Stop/restart suppresses unaccepted native data; a launched memory read keeps
++its registered request until ACK/ERR, then cancellation drops its old result.
++Read errors retain the generic zero-data behavior. Same-channel restart waits
++for its old owner to leave. The shared loader rotates through queued channels,
++retrying when the required worker class is full so blocked generic work cannot
++prevent LCD dispatch. Reset clears reader/loader/queue ownership as before.
++
++This first version uses scalar memory reads, with one held word. Burst prefetch
++is deferred, and the existing SDRAM controller already supports it. This
++isolates the native destination path and worker specialization for your manual
++experiment. Do not infer FPS, setup slack or ALM savings from this source.
++
++## Checks and manual experiment
++
++Local Icarus **elaboration only** passes for DMA, LCD interface, their focused
++bench and the integrated peripheral hierarchy. The hierarchy has existing
++Icarus constant-select notices and an existing audio assertion warning.
++Docker cannot be reached by this agent session (Unix socket operation not
++permitted), so no runtime test, Verilator top regression or Quartus fit has
++been executed. Treat this as an unqualified experimental candidate.
++
++Run inside the already installed image, from this checkout:
++
++```sh
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 \
++  -c 'make -C sim lcd-fast dma-count periph top'
++```
++
++`lcd-fast` exercises exact serialized bytes with a small FIFO, all-channel
++routing, unsupported-source fallback, last-word readback, CPU priority,
++held-word stop, outstanding-read restart, two blocked MMC workers plus a queued
++generic request, and reset. It is provided but has not been executed here.
++Run the complete normal suite before promoting this experiment.
++
++Build the core normally (`quartus_sh --flow compile NGage`) and compare against
++a separate master build with matching clock, firmware/save/card and scene.
++The 1,000-path reporting changes are a separate patch, not required for this
++LCD implementation. No core was built or deployed by this work.
++
++For gameplay measure completed uploads and frame intervals alongside CPU
++progress/stalls; a shorter transfer alone does not establish a higher game FPS.
++A36608-pixel RGB444 frame removes18304 shared-bus destination writes, retaining
++18304 scalar source reads. FIFO backpressure and CPU arbitration remain real.
+diff --git a/rtl/upp/upp_dma.sv b/rtl/upp/upp_dma.sv
+index 85969b5..38a6b1a 100644
+--- a/rtl/upp/upp_dma.sv
++++ b/rtl/upp/upp_dma.sv
+@@ -31,12 +31,15 @@
+ //
+ // Where the model moves the data at once, this moves it over the bus master
+ // port (Wishbone B3 classic, one beat a cycle, through the arbiter in
+-// ngage_mem): ENGINES transfers run at a time, taking turns on the port;
+-// further starts wait for an engine. A start while the channel runs restarts
++// ngage_mem): ENGINES general transfers plus one word-only LCD reader run
++// concurrently. Eligible aligned SDRAM -> fixed LCD FIFO descriptors use that
++// reader and enqueue locally, preserving the LCD interface's ordered FIFO.
++// Other descriptors retain generic width conversion. Further starts queue.
++// A start while the channel runs restarts
+ // it; a stop ends it after the access in flight.
+ // Accesses are 32-bit (upp_periph drops others, as the model's region does).
+ module upp_dma #(
+-	parameter int ENGINES = 3
++	parameter int ENGINES = 2
+ ) (
+ 	input  logic        clk,
+ 	input  logic        reset,
+@@ -54,6 +57,10 @@ module upp_dma #(
+ 	input  logic        mmc_tx_ready,
+ 	input  logic        lcd_tx_ready,
+ 
++	output wire         lcd_valid,
++	output wire [31:0]  lcd_data,
++	input  wire         lcd_ready,
++
+ 	output logic        m_cyc,
+ 	output logic        m_stb,
+ 	output logic        m_we,
+@@ -65,7 +72,10 @@ module upp_dma #(
+ 	input  logic [31:0] m_dat_i
+ );
+ 
+-	localparam int EW = (ENGINES > 1) ? $clog2(ENGINES) : 1;
++	// The last slot is a word-only LCD reader, not a general DMA worker.
++	localparam TOTAL = ENGINES + 1;
++	localparam LCD_SLOT = ENGINES;
++	localparam int EW = (TOTAL > 1) ? $clog2(TOTAL) : 1;
+ 	localparam logic [31:0] MMC_FIFO = 32'h0C12_0624;
+ 	localparam logic [31:0] LCD_FIFO = 32'h0C12_1208;
+ 
+@@ -125,24 +135,24 @@ module upp_dma #(
+ 	// ------------------------------------------------------------------
+ 	localparam logic [1:0] E_FREE = 2'd0, E_RUN = 2'd1, E_BUS = 2'd2;
+ 
+-	logic [1:0]  est    [0:ENGINES-1];
+-	logic [2:0]  ech    [0:ENGINES-1];
+-	logic [31:0] esrc   [0:ENGINES-1];
+-	logic [31:0] edst   [0:ENGINES-1];
+-	logic [34:0] eleft  [0:ENGINES-1];   // bytes still to read
+-	logic [63:0] ebuf   [0:ENGINES-1];   // bytes read and not yet written, first in 7:0
+-	logic [3:0]  efill  [0:ENGINES-1];
+-	logic        esinc  [0:ENGINES-1];
+-	logic        edinc  [0:ENGINES-1];
+-	logic [1:0]  esw    [0:ENGINES-1];
+-	logic [1:0]  edw    [0:ENGINES-1];
+-	logic        eabort [0:ENGINES-1];
++	logic [1:0]  est    [0:TOTAL-1];
++	logic [2:0]  ech    [0:TOTAL-1];
++	logic [31:0] esrc   [0:TOTAL-1];
++	logic [31:0] edst   [0:TOTAL-1];
++	logic [34:0] eleft  [0:TOTAL-1];   // bytes still to read
++	logic [63:0] ebuf   [0:TOTAL-1];   // bytes read and not yet written, first in 7:0
++	logic [3:0]  efill  [0:TOTAL-1];
++	logic        esinc  [0:TOTAL-1];
++	logic        edinc  [0:TOTAL-1];
++	logic [1:0]  esw    [0:TOTAL-1];
++	logic [1:0]  edw    [0:TOTAL-1];
++	logic        eabort [0:TOTAL-1];
+ 	// the access an engine asks for
+-	logic        ewe    [0:ENGINES-1];
+-	logic [31:0] eadr   [0:ENGINES-1];
+-	logic [31:0] edat   [0:ENGINES-1];
+-	logic [3:0]  esel   [0:ENGINES-1];
+-	logic [2:0]  en     [0:ENGINES-1];   // bytes it moves
++	logic        ewe    [0:TOTAL-1];
++	logic [31:0] eadr   [0:TOTAL-1];
++	logic [31:0] edat   [0:TOTAL-1];
++	logic [3:0]  esel   [0:TOTAL-1];
++	logic [2:0]  en     [0:TOTAL-1];   // bytes it moves
+ 
+ 	// the master port
+ 	logic          p_busy;
+@@ -153,8 +163,17 @@ module upp_dma #(
+ 	logic          ld_busy, ld_cancel;
+ 	logic [1:0]    ld_step;
+ 	logic [2:0]    ld_ch;
+-	logic [EW-1:0] ld_e;
+ 	logic [31:0]   ld_src, ld_dst;
++	reg [2:0] req_rr;
++	wire [34:0] lcd_bytes = ({3'd0, pr_q} + 35'd1) << 2;
++	wire lcd_descriptor = peripheral[ld_ch] && sinc[ld_ch] &&
++		!dinc[ld_ch] && sw[ld_ch] == 2 && dw[ld_ch] == 2 &&
++		(ld_dst == LCD_FIFO || ld_dst == 32'h10121208) && ld_src[31:24] == 8'h0a &&
++		ld_src[1:0] == 0 && ({11'd0, ld_src[23:0]} + lcd_bytes <= 35'h1000000);
++	wire lcd_cancel = w_go && ch == ech[LCD_SLOT];
++	assign lcd_valid = !reset && est[LCD_SLOT] == E_RUN &&
++		efill[LCD_SLOT] != 0 && !eabort[LCD_SLOT] && !lcd_cancel;
++	assign lcd_data = ebuf[LCD_SLOT][31:0];
+ 
+ 	logic          free_any;
+ 	logic [EW-1:0] free_e;
+@@ -162,20 +181,28 @@ module upp_dma #(
+ 		free_any = 1'b0;
+ 		free_e   = '0;
+ 		for (int e = ENGINES - 1; e >= 0; e--) begin
+-			if (est[e] == E_FREE && !(ld_busy && ld_e == EW'(e))) begin
++			if (est[e] == E_FREE) begin
+ 				free_any = 1'b1;
+ 				free_e   = EW'(e);
+ 			end
+ 		end
+ 	end
+ 
++	reg [7:0] channel_active;
++	always @* begin
++		channel_active = 0;
++		for (integer e = 0; e < TOTAL; e = e + 1)
++			if (est[e] != E_FREE) channel_active[ech[e]] = 1;
++	end
+ 	logic       req_any;
+ 	logic [2:0] req_ch;
+ 	always_comb begin
+ 		req_any = 1'b0;
+ 		req_ch  = 3'd0;
+-		for (int c = 7; c >= 0; c--) begin
+-			if (req[c]) begin
++		for (integer i = 7; i >= 0; i = i - 1) begin
++			integer c;
++			c = (int'(req_rr) + i) & 7;
++			if (req[c] && !channel_active[c]) begin
+ 				req_any = 1'b1;
+ 				req_ch  = 3'(c);
+ 			end
+@@ -190,11 +217,12 @@ module upp_dma #(
+ 	always_comb begin
+ 		grant_any = 1'b0;
+ 		grant_e   = '0;
+-		for (int i = ENGINES - 1; i >= 0; i--) begin
++		for (int i = TOTAL - 1; i >= 0; i--) begin
+ 			int e;
+ 			e = int'(rr) + i;
+-			if (e >= ENGINES) e = e - ENGINES;
+-			if (est[e] == E_BUS) begin
++			if (e >= TOTAL) e = e - TOTAL;
++			if (est[e] == E_BUS && (e != LCD_SLOT ||
++                (!eabort[e] && !(w_go && ch == ech[e])))) begin
+ 				grant_any = 1'b1;
+ 				grant_e   = EW'(e);
+ 			end
+@@ -205,7 +233,7 @@ module upp_dma #(
+ 
+ 	always_ff @(posedge clk) begin
+ 		// ---- the engines ----
+-		for (int e = 0; e < ENGINES; e++) begin
++		for (int e = 0; e < TOTAL; e++) begin
+ 			logic [2:0] swb, dwb, nr, nw;
+ 			logic       paced;
+ 			swb = 3'd1 << esw[e];
+@@ -216,7 +244,25 @@ module upp_dma #(
+ 			// a stop or restart of its channel ends the transfer
+ 			if (w_go && est[e] != E_FREE && ech[e] == ch) eabort[e] <= 1'b1;
+ 
+-			if (est[e] == E_RUN) begin
++			if (e == LCD_SLOT) begin
++				if (est[e] == E_BUS && (eabort[e] || lcd_cancel) &&
++					!(p_busy && p_e == LCD_SLOT)) est[e] <= E_FREE;
++				// One held word; local enqueue is the destination completion.
++				// A cancelled read drains on the existing master before reuse.
++				if (est[e] == E_RUN) begin
++					if (eabort[e] || lcd_cancel) begin
++						est[e] <= E_FREE;
++					end else if (efill[e] != 0) begin
++						if (lcd_valid && lcd_ready) efill[e] <= 0;
++					end else if (eleft[e] != 0) begin
++						est[e] <= E_BUS;
++					end else begin
++						irq[ech[e]] <= 1;
++						go_clr[ech[e]] <= 1;
++						est[e] <= E_FREE;
++					end
++				end
++			end else if (est[e] == E_RUN) begin
+ 				if (eabort[e]) begin
+ 					est[e] <= E_FREE;
+ 				end else if (efill[e] >= 4'(dwb) || (eleft[e] == 35'd0 && efill[e] != 4'd0)) begin
+@@ -255,19 +301,24 @@ module upp_dma #(
+ 			if (grant_any && !m_cyc) begin
+ 				p_busy  <= 1'b1;
+ 				p_e     <= grant_e;
+-				rr      <= (grant_e == EW'(ENGINES - 1)) ? '0 : grant_e + 1'd1;
++				rr      <= (grant_e == EW'(TOTAL - 1)) ? '0 : grant_e + 1'd1;
+ 				m_cyc   <= 1'b1;
+-				m_we    <= ewe[grant_e];
+-				m_adr   <= eadr[grant_e];
+-				m_dat_o <= edat[grant_e];
+-				m_sel   <= esel[grant_e];
++				m_we    <= grant_e == LCD_SLOT ? 1'b0 : ewe[grant_e];
++				m_adr   <= grant_e == LCD_SLOT ? esrc[LCD_SLOT] : eadr[grant_e];
++				m_dat_o <= grant_e == LCD_SLOT ? 32'd0 : edat[grant_e];
++				m_sel   <= grant_e == LCD_SLOT ? 4'hf : esel[grant_e];
+ 			end
+ 		end else if (m_ack || m_err) begin
+ 			logic [31:0] rb;
+ 			m_cyc    <= 1'b0;
+ 			p_busy   <= 1'b0;
+ 			est[p_e] <= E_RUN;
+-			if (ewe[p_e]) begin
++			if (p_e == LCD_SLOT) begin
++				ebuf[p_e] <= {32'd0, m_err ? 32'd0 : m_dat_i};
++				efill[p_e] <= 4;
++				eleft[p_e] <= eleft[p_e] - 4;
++				esrc[p_e] <= esrc[p_e] + 4;
++			end else if (ewe[p_e]) begin
+ 				ebuf[p_e]  <= ebuf[p_e] >> {en[p_e], 3'b000};
+ 				efill[p_e] <= efill[p_e] - 4'(en[p_e]);
+ 				if (edinc[p_e]) edst[p_e] <= edst[p_e] + 32'(en[p_e]);
+@@ -283,12 +334,12 @@ module upp_dma #(
+ 
+ 		// ---- the loader ----
+ 		if (!ld_busy) begin
+-			if (req_any && free_any && !(w_go && ch == req_ch)) begin
++			if (req_any && !(w_go && ch == req_ch)) begin
+ 				ld_busy     <= 1'b1;
+ 				ld_cancel   <= 1'b0;
+ 				ld_ch       <= req_ch;
+-				ld_e        <= free_e;
+ 				ld_step     <= 2'd0;
++				req_rr <= req_ch + 1'b1;
+ 				req[req_ch] <= 1'b0;
+ 			end
+ 		end else begin
+@@ -304,18 +355,32 @@ module upp_dma #(
+ 					              (!dinc[ld_ch] ? dw[ld_ch] : sw[ld_ch]) : 2'd1;
+ 					ld_busy <= 1'b0;
+ 					if (!ld_cancel && !(w_go && ch == ld_ch)) begin
+-						est[ld_e]    <= E_RUN;
+-						ech[ld_e]    <= ld_ch;
+-						esrc[ld_e]   <= phys(ld_src);
+-						edst[ld_e]   <= phys(ld_dst);
+-						eleft[ld_e]  <= ({3'd0, pr_q} + 35'd1) << count_shift;
+-						ebuf[ld_e]   <= 64'd0;
+-						efill[ld_e]  <= 4'd0;
+-						esinc[ld_e]  <= sinc[ld_ch];
+-						edinc[ld_e]  <= dinc[ld_ch];
+-						esw[ld_e]    <= sw[ld_ch];
+-						edw[ld_e]    <= dw[ld_ch];
+-						eabort[ld_e] <= 1'b0;
++						if (lcd_descriptor && est[LCD_SLOT] == E_FREE) begin
++							est[LCD_SLOT] <= E_RUN;
++							ech[LCD_SLOT] <= ld_ch;
++							esrc[LCD_SLOT] <= ld_src;
++							eleft[LCD_SLOT] <= lcd_bytes;
++							ebuf[LCD_SLOT] <= 0;
++							efill[LCD_SLOT] <= 0;
++							eabort[LCD_SLOT] <= 0;
++						end else if ((lcd_descriptor || !free_any)) begin
++							// Retry without blocking other channels behind a
++							// full worker class. Register writes below win.
++							req[ld_ch] <= 1;
++						end else begin
++						est[free_e]    <= E_RUN;
++						ech[free_e]    <= ld_ch;
++						esrc[free_e]   <= phys(ld_src);
++						edst[free_e]   <= phys(ld_dst);
++						eleft[free_e]  <= ({3'd0, pr_q} + 35'd1) << count_shift;
++						ebuf[free_e]   <= 64'd0;
++						efill[free_e]  <= 4'd0;
++						esinc[free_e]  <= sinc[ld_ch];
++						edinc[free_e]  <= dinc[ld_ch];
++						esw[free_e]    <= sw[ld_ch];
++						edw[free_e]    <= dw[ld_ch];
++						eabort[free_e] <= 1'b0;
++						end
+ 					end
+ 				end
+ 				default: ;
+@@ -357,7 +422,8 @@ module upp_dma #(
+ 				sw[c] <= 2'd0;
+ 				dw[c] <= 2'd0;
+ 			end
+-			for (int e = 0; e < ENGINES; e++) est[e] <= E_FREE;
++			for (int e = 0; e < TOTAL; e++) est[e] <= E_FREE;
++			req_rr <= 0;
+ 			ld_busy <= 1'b0;
+ 			p_busy  <= 1'b0;
+ 			rr      <= '0;
+diff --git a/rtl/upp/upp_lcdif.sv b/rtl/upp/upp_lcdif.sv
+index 7801240..36282c6 100644
+--- a/rtl/upp/upp_lcdif.sv
++++ b/rtl/upp/upp_lcdif.sv
+@@ -68,6 +68,10 @@ module upp_lcdif #(
+ 	output logic [31:0] rdata,
+ 	output logic        busy,
+ 
++	input  wire         dma_valid,
++	input  wire [31:0]  dma_data,
++	output wire         dma_ready,
++
+ 	output logic        tx_ready,       // the queue can take a word (DMA pacing)
+ 	output logic        active,         // the bus has carried a byte since reset
+ 
+@@ -101,14 +105,25 @@ module upp_lcdif #(
+ 	wire         q_full, q_empty, q_valid;
+ 	wire [32:0]  q_dout;
+ 
+-	wire push = wr && (off == 4'h0 || off == 4'h8);
++	wire cpu_push = wr && (off == 4'h0 || off == 4'h8);
++	// Reserve for a selected CPU access before its pipelined ready sample.
++	// Native traffic cannot fill the FIFO between that sample and CPU commit.
++	assign dma_ready = !reset && !acc && !q_full;
++	wire dma_push = dma_valid && dma_ready;
++	wire push = cpu_push || dma_push;
++	reg [31:0] last_word;
++	always @(posedge clk) begin
++		if (dma_push) last_word <= dma_data;
++		if (wr && off == 4'h8) last_word <= wdata;
++		if (reset) last_word <= 0;
++	end
+ 	wire want_read = acc && !we && off == 4'h8 && read_phase;
+ 
+ 	upp_fifo #(.DW(33), .AW(QAW)) queue (
+ 		.clk(clk),
+ 		.flush(reset),
+ 		.push(push),
+-		.din({off == 4'h0, wdata}),
++		.din(dma_push ? {1'b0, dma_data} : {off == 4'h0, wdata}),
+ 		.pop(q_pop),
+ 		.dout(q_dout),
+ 		.valid(q_valid),
+@@ -135,6 +150,10 @@ module upp_lcdif #(
+ 					rdata = {29'd0, !q_full, 2'd0};
+ 				end
+ 				4'h8: begin
++					if (!read_phase) begin
++						rmask = 32'hffffffff;
++						rdata = last_word;
++					end
+ 					if (we) begin
+ 						busy = q_full;
+ 					end else if (read_phase) begin
+diff --git a/rtl/upp/upp_periph.sv b/rtl/upp/upp_periph.sv
+index 2bd11b5..9f6406a 100644
+--- a/rtl/upp/upp_periph.sv
++++ b/rtl/upp/upp_periph.sv
+@@ -62,7 +62,7 @@ module upp_periph #(
+ 	parameter int LCD_WR_HIGH        = 2,
+ 	parameter int LCD_RD_LOW         = 4,
+ 	parameter int LCD_RD_HIGH        = 6,
+-	parameter int DMA_ENGINES        = 3,
++	parameter int DMA_ENGINES        = 2,
+ 	parameter int POWER_ON_HOLD_CLKS = 312_000_000,    // 3 s, as the model
+ 	parameter int CLK_HZ             = 104_000_000     // for the audio device
+ ) (
+@@ -300,6 +300,8 @@ module upp_periph #(
+ 		.irq(tmr_irq)
+ 	);
+ 
++	wire lcd_dma_valid, lcd_dma_ready;
++	wire [31:0] lcd_dma_data;
+ 	upp_dma #(.ENGINES(DMA_ENGINES)) dma (
+ 		.clk(clk),
+ 		.reset(reset),
+@@ -313,6 +315,9 @@ module upp_periph #(
+ 		.mmc_rx_ready(mmc_rx_ready),
+ 		.mmc_tx_ready(mmc_tx_ready),
+ 		.lcd_tx_ready(lcd_tx_ready),
++		.lcd_valid(lcd_dma_valid),
++		.lcd_data(lcd_dma_data),
++		.lcd_ready(lcd_dma_ready && !init_busy),
+ 		.m_cyc(d_cyc),
+ 		.m_stb(d_stb),
+ 		.m_we(d_we),
+@@ -401,6 +406,9 @@ module upp_periph #(
+ 		.rdata(d_lcd),
+ 		.busy(b_lcd),
+ 		.tx_ready(lcd_tx_ready),
++		.dma_valid(lcd_dma_valid && !init_busy),
++		.dma_data(lcd_dma_data),
++		.dma_ready(lcd_dma_ready),
+ 		.active(lcd_active),
+ 		.csx(lcd_csx),
+ 		.dcx(lcd_dcx),
+diff --git a/sim/Makefile b/sim/Makefile
+index fe03e5a..760988f 100644
+--- a/sim/Makefile
++++ b/sim/Makefile
+@@ -27,7 +27,7 @@ PROFILE_FILES = $(if $(filter 1,$(CORE_PROFILE)),$(ROOT)/sim/profile/cpu_profile
+ PROFILE_FLAGS = $(if $(filter 1,$(CORE_PROFILE)),-DCPU_PROFILE=1 -CFLAGS "-DCPU_PROFILE=1")
+ RUNFLAGS := +verilator+seed+$(SEED) +verilator+rand+reset+2
+ 
+-BENCHES := lcd video keypad flash mmc sdram sdram-faults ddrflash trace upp intc timers haudio dma-count periph save phoenix top
++BENCHES := lcd-fast lcd video keypad flash mmc sdram sdram-faults ddrflash trace upp intc timers haudio dma-count periph save phoenix top
+ 
+ .PHONY: test $(BENCHES) coreboot flashcopy hps-read-test clean
+ 
+@@ -283,3 +283,7 @@ phoenix: $(BUILD)/phoenix/Vphoenix_load | $(OUT)
+ 	cd $(ROOT) && $<
+ phoenix-real: $(BUILD)/phoenix/Vphoenix_load | $(OUT)
+ 	cd $(ROOT) && $< $(PHOENIX_DIR)/RH2946.0C1 $(PHOENIX_DIR)/RH2946.0S5 $(PHOENIX_REF)/cs0.bin $(PHOENIX_REF)/cs1.bin
++
++# Native LCD DMA path, including ordered panel bytes and cancellation races.
++lcd-fast:
++	sh $(ROOT)/tests/lcd_fast/run.sh
+diff --git a/tests/lcd_fast/run.sh b/tests/lcd_fast/run.sh
+new file mode 100644
+index 0000000..8e003eb
+--- /dev/null
++++ b/tests/lcd_fast/run.sh
+@@ -0,0 +1,8 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../.."
++mkdir -p build/lcd-fast
++iverilog -g2012 -s tb -o build/lcd-fast/test \
++    rtl/board/sdp_ram.sv rtl/upp/upp_fifo.sv rtl/upp/upp_dma.sv \
++    rtl/upp/upp_lcdif.sv tests/lcd_fast/tb.v
++vvp build/lcd-fast/test
+diff --git a/tests/lcd_fast/tb.v b/tests/lcd_fast/tb.v
+new file mode 100644
+index 0000000..b61b0fb
+--- /dev/null
++++ b/tests/lcd_fast/tb.v
+@@ -0,0 +1,185 @@
++`timescale 1ns/1ps
++module tb;
++    reg clk = 0;
++    always #5 clk = ~clk;
++    reg reset = 1, acc = 0, wr = 0;
++    reg [11:0] off = 0;
++    reg [31:0] wdata = 0;
++    wire [7:0] irq;
++    wire m_cyc, m_stb, m_we;
++    wire [31:0] m_adr, m_dat_o;
++    wire [3:0] m_sel;
++    reg ack_enable = 1;
++    reg [31:0] reads = 0;
++    wire m_ack = m_cyc && ack_enable;
++    wire [31:0] m_dat_i = m_adr ^ 32'h12345678;
++    wire valid, ready;
++    wire [31:0] data;
++    wire fifo_ready;
++    reg block_native = 0;
++    reg lacc = 0, lwe = 1, lwr = 0, lrd = 0;
++    reg [3:0] loff = 0;
++    reg [31:0] lwdata = 0;
++    wire [31:0] lmask, lrdata;
++    wire busy, wrx, dcx;
++    wire [7:0] dout;
++    reg old_wrx = 1;
++    integer native_words = 0, generic_lcd = 0, pin_bytes = 0;
++    integer cycles = 0;
++    reg fallback_commit = 0;
++    reg [31:0] fallback_data;
++    // Generic fallback emulates the bus' full-word LCD write completion.
++    wire fallback = m_ack && m_we && m_adr == 32'h0c121208 && m_sel == 15;
++    assign ready = fifo_ready && !block_native;
++    upp_dma #(.ENGINES(2)) dma (
++        .clk(clk), .reset(reset), .acc(acc), .wr(wr), .off(off), .wdata(wdata),
++        .irq(irq), .rmask(), .rdata(), .mmc_rx_ready(1'b0), .mmc_tx_ready(1'b0),
++        .lcd_tx_ready(1'b1), .lcd_valid(valid), .lcd_data(data), .lcd_ready(ready),
++        .m_cyc(m_cyc), .m_stb(m_stb), .m_we(m_we), .m_adr(m_adr),
++        .m_dat_o(m_dat_o), .m_sel(m_sel), .m_ack(m_ack), .m_err(1'b0), .m_dat_i(m_dat_i)
++    );
++    upp_lcdif #(.QAW(2)) lcd (
++        .clk(clk), .reset(reset), .acc(lacc || fallback_commit), .we(lwe),
++        .wr(lwr || fallback_commit), .rd(lrd), .off(fallback_commit ? 4'h8 : loff),
++        .wdata(fallback_commit ? fallback_data : lwdata), .rmask(lmask), .rdata(lrdata),
++        .busy(busy), .dma_valid(valid && !block_native), .dma_data(data),
++        .dma_ready(fifo_ready), .tx_ready(), .active(), .csx(), .dcx(dcx), .wrx(wrx),
++        .rdx(), .resx(), .d_o(dout), .d_oe(), .d_i(8'h5a)
++    );
++    reg [31:0] first_source = 32'h0a000100;
++    reg check_pixels = 0;
++    reg [31:0] expected_word;
++    reg [7:0] expected_byte;
++    always @(posedge clk) begin
++        cycles <= cycles + 1;
++        old_wrx <= wrx;
++        fallback_commit <= fallback;
++        if (fallback) begin fallback_data <= m_dat_o; generic_lcd <= generic_lcd + 1; end
++        if (!reset) begin
++            if (m_ack && !m_we) reads <= reads + 1;
++            if (valid && ready) native_words <= native_words + 1;
++            if (!old_wrx && wrx && dcx && check_pixels) begin
++                expected_word = (first_source + (pin_bytes / 4) * 4) ^ 32'h12345678;
++                expected_byte = expected_word >> ((pin_bytes % 4) * 8);
++                if (dout !== expected_byte) $fatal(1, "panel byte %0d got %h expected %h", pin_bytes, dout, expected_byte);
++                pin_bytes <= pin_bytes + 1;
++            end
++        end
++        if (cycles > 30000) $fatal(1, "watchdog");
++    end
++    task regwrite;
++        input [11:0] address;
++        input [31:0] value;
++        begin
++            @(negedge clk); acc=1; wr=1; off=address; wdata=value;
++            @(negedge clk); acc=0; wr=0;
++        end
++    endtask
++    task lcdwrite;
++        input [3:0] address;
++        input [31:0] value;
++        begin
++            @(negedge clk); lacc=1; lwe=1; loff=address; lwdata=value;
++            repeat (2) @(negedge clk);
++            while (busy) @(negedge clk);
++            lwr=1;
++            @(negedge clk); lwr=0; lacc=0;
++        end
++    endtask
++    task setup;
++        input integer channel;
++        input [31:0] source, destination, count, control;
++        reg [11:0] base;
++        begin
++            base = 12'h300 + channel*64;
++            regwrite(base+4,0);
++            regwrite(base+20,source);
++            regwrite(base+24,4);
++            regwrite(base+28,32);
++            regwrite(base+32,destination);
++            regwrite(base+36,0);
++            regwrite(base+40,32);
++            regwrite(base+44,count-1);
++            regwrite(base+8,control);
++        end
++    endtask
++    integer before_words, before_reads, before_generic, channel;
++    reg [31:0] held;
++    initial begin
++        repeat (4) @(negedge clk); reset=0;
++        // Four-byte packing: exact pin bytes despite FIFO backpressure.
++        lcdwrite(0,32'h092c009f); // 160 bytes
++        check_pixels=1;
++        setup(0,first_source,32'h10121208,40,2);
++        wait (irq[0]);
++        @(negedge clk);
++        if (native_words != 40 || reads != 40 || generic_lcd != 0)
++            $fatal(1,"native transfer counts %0d/%0d/%0d",native_words,reads,generic_lcd);
++        wait (pin_bytes==160); repeat (4) @(negedge clk);
++        if (pin_bytes != 160) $fatal(1,"duplicate panel bytes");
++        check_pixels=0;
++        loff=8; lacc=1; lwe=0;
++        #1;
++        if (lmask !== 32'hffffffff || lrdata !== ((first_source+156)^32'h12345678))
++            $fatal(1,"native FIFO readback lost");
++        @(negedge clk); lacc=0; lwe=1;
++        // The fast reader is selected by descriptor, on every channel.
++        for (channel=0; channel<8; channel=channel+1) begin
++            before_words=native_words;
++            setup(channel,first_source,32'h10121208,1,2);
++            wait(irq[channel]); @(negedge clk);
++            if(native_words!=before_words+1) $fatal(1,"channel routing %0d",channel);
++        end
++        // Unsupported source falls back to the generic worker.
++        before_generic=generic_lcd;
++        setup(0,32'h00000100,32'h10121208,1,2);
++        wait (irq[0]); repeat (3) @(negedge clk);
++        if (generic_lcd != before_generic+1) $fatal(1,"fallback missing");
++        // CPU selection reserves FIFO admission before its write strobe.
++        lacc=1; block_native=1;
++        setup(0,first_source,32'h10121208,2,2);
++        wait(valid); @(negedge clk); block_native=0;
++        repeat (4) begin @(negedge clk); if(ready) $fatal(1,"CPU reservation ignored"); end
++        // Stop drops held unaccepted data and cannot complete with IRQ.
++        before_words=native_words;
++        regwrite(12'h308,0);
++        lacc=0;
++        repeat(30) @(negedge clk);
++        if (irq[0] || native_words!=before_words) $fatal(1,"stop emitted data/IRQ");
++        // Stop/restart while a read is held: old response drains, then new src.
++        ack_enable=0;
++        setup(0,first_source,32'h10121208,3,2);
++        wait(m_cyc); @(negedge clk); held=m_adr;
++        regwrite(12'h308,0);
++        setup(0,32'h0a000800,32'h10121208,1,2);
++        repeat(4) begin @(negedge clk); if(!m_cyc || m_adr!==held) $fatal(1,"read changed on cancellation"); end
++        before_words=native_words;
++        ack_enable=1;
++        wait(irq[0]); @(negedge clk);
++        if(native_words!=before_words+1 || data!==(32'h0a000800^32'h12345678))
++            $fatal(1,"restart consumed old response");
++        for(channel=0; channel<8; channel=channel+1) regwrite(12'h304+channel*64,0);
++        // Two stalled MMC workers must not stop LCD admission/completion.
++        setup(1,first_source,32'h10120624,4,2);
++        setup(2,first_source,32'h10120624,4,2);
++        repeat(20) @(negedge clk);
++        before_words=native_words;
++        // An unsupported descriptor waiting for a general worker must not
++        // prevent a later channel from reaching the independent LCD slot.
++        setup(0,first_source,32'h0a000400,4,1);
++        setup(7,first_source,32'h10121208,7,2);
++        wait(irq[7]); @(negedge clk);
++        if(native_words!=before_words+7 || irq[1] || irq[2]) $fatal(1,"LCD/general ownership");
++        // Reset retracts local valid and drops ownership.
++        block_native=1;
++        setup(7,first_source,32'h10121208,2,2);
++        wait(valid); @(negedge clk); reset=1;
++        #1; if(valid) $fatal(1,"valid during reset");
++        repeat(3) @(negedge clk); reset=0; block_native=0;
++        before_words=native_words;
++        repeat(30) @(negedge clk);
++        if(irq || m_cyc || native_words!=before_words) $fatal(1,"reset leaked state");
++        $display("PASS LCD native reader: ordered bytes, fallback, readback, CPU priority, stop/restart, blocked workers, reset");
++        $finish;
++    end
++endmodule

@@ -1,0 +1,13 @@
+--- a/NGage.sv
++++ b/NGage.sv
+@@ -524,7 +524,9 @@
+ 
+ wire [31:0] dbg_src0, dbg_en0_irq, dbg_en0_fiq;
+ 
+-upp_periph upp_periph
++upp_periph #(
++	.DMA_ENGINES(2)
++) upp_periph
+ (
+ 	.clk(clk_sys),
+ 	.reset(mem_reset),

@@ -174,6 +174,76 @@ data_idle:
  ldr r4,[r8,#0x20]
  tst r4,#0x04000000
  beq fail
+ // Filesystem sector reads: short transfer success is insufficient.
+ mov r12,#7
+ mov r0,#16
+ mov r1,#512
+ mov r2,#5
+ bl command
+ bl response_ok
+ put r8,8,512
+ mov r0,#17
+ mov r1,#512
+ mov r2,#33
+ bl command
+ bl response_ok
+ put r9,4,1
+ put r9,0x14,0x10120624
+ put r9,0x18,0
+ put r9,0x1c,512
+ put r9,0x20,0x0a001000
+ put r9,0x24,1
+ put r9,0x28,32
+ put r9,0x2c,7
+ put r9,8,3
+sector_dma_wait:
+ ldr r4,[r9,#8]
+ cmp r4,#0
+ bne sector_dma_wait
+ ldr r0,=0x0a001000
+ mov r5,#0
+ mov r6,#0xa4
+sector_dma_verify:
+ ldrb r4,[r0,r5]
+ and r3,r6,#255
+ cmp r4,r3
+ bne fail
+ add r6,r6,#37
+ add r5,r5,#1
+ cmp r5,#512
+ blo sector_dma_verify
+ ldr r4,[r0,#512]
+ ldr r3,=0xa5a5a5a5
+ cmp r4,r3
+ bne fail
+ put r9,4,0
+sector_dma_idle:
+ ldr r4,[r8,#0x18]
+ tst r4,#4
+ bne sector_dma_idle
+ // A second sector through byte PIO must have a distinct LBA-dependent seed.
+ mov r12,#8
+ put r8,8,512
+ mov r0,#17
+ mov r1,#1024
+ mov r2,#33
+ bl command
+ bl response_ok
+ mov r5,#0
+ mov r6,#0xb5
+sector_pio_verify:
+ ldrb r4,[r8,#0x24]
+ and r3,r6,#255
+ cmp r4,r3
+ bne fail
+ add r6,r6,#37
+ add r5,r5,#1
+ cmp r5,#512
+ blo sector_pio_verify
+sector_pio_idle:
+ ldr r4,[r8,#0x18]
+ tst r4,#4
+ bne sector_pio_idle
  ldr r0,=0x0a000100
  put r0,0,0x50415353
 park: b park

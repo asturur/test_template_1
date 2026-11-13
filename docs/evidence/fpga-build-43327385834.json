@@ -1,0 +1,1412 @@
+{
+  "date": "2026-11-13",
+  "status": "FAIL",
+  "fitter": "PASS",
+  "assembler_bitstream": "PASS",
+  "timing_gate": "FAIL",
+  "source_commit": "0ac4577fca69fc540cd3d324ac3f26f7a3b50247",
+  "workflow_url": "https://github.com/asturur/test_template_1/actions/runs/43327385834",
+  "latest": {
+    "run_id": 43327385834,
+    "build_info": {
+      "fitter_seed": 1,
+      "commit": "0ac4577fca69fc540cd3d324ac3f26f7a3b50247",
+      "run_id": "43327385834",
+      "timing_status": "consult job timing gate and reports"
+    },
+    "resources": {
+      "alms_needed": {
+        "used": 37042,
+        "capacity": 41910,
+        "percent": 88.38463373896445,
+        "free": 4868
+      },
+      "registers": 43195,
+      "memory_bits": {
+        "used": 2764173,
+        "capacity": 5662720,
+        "percent": 48.81352071089512,
+        "free": 2898547
+      },
+      "m10k": {
+        "used": 505,
+        "capacity": 553,
+        "percent": 91.32007233273056,
+        "free": 48
+      },
+      "dsp": {
+        "used": 42,
+        "capacity": 112,
+        "percent": 37.5,
+        "free": 70
+      },
+      "plls": {
+        "used": 3,
+        "capacity": 6,
+        "percent": 50.0,
+        "free": 3
+      },
+      "alms_placed": {
+        "used": 38918,
+        "capacity": 41910,
+        "percent": 92.86089238845145,
+        "free": 2992
+      },
+      "labs_used": {
+        "used": 4121,
+        "capacity": 4191,
+        "percent": 98.32975423526605,
+        "free": 70
+      }
+    },
+    "timing": {
+      "core_setup": {
+        "kind": "Setup",
+        "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "slack_ns": -0.261,
+        "tns_ns": -0.326
+      },
+      "core_hold": {
+        "kind": "Hold",
+        "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "slack_ns": 0.181,
+        "tns_ns": 0.0
+      },
+      "core_fmax_mhz": 76.45,
+      "all_domains": [
+        {
+          "kind": "Setup",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": -0.261,
+          "tns_ns": -0.326
+        },
+        {
+          "kind": "Setup",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 0.435,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 3.363,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 7.772,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "FPGA_CLK2_50",
+          "slack_ns": 10.926,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 22.895,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 0.181,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 0.251,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 0.273,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 0.274,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 0.414,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "FPGA_CLK2_50",
+          "slack_ns": 0.423,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 3.402,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 3.954,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 7.374,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 16.6,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 1.067,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 1.086,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 1.201,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 1.555,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+          "slack_ns": 0.641,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|fpll_0|fpll|vcoph[0]",
+          "slack_ns": 1.122,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+          "slack_ns": 1.196,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 1.931,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 3.579,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 4.973,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 9.21,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "FPGA_CLK2_50",
+          "slack_ns": 9.215,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "FPGA_CLK3_50",
+          "slack_ns": 9.73,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 18.897,
+          "tns_ns": 0.0
+        }
+      ],
+      "worst_by_type": {
+        "Hold": 0.181,
+        "Minimum Pulse Width": 0.641,
+        "Recovery": 3.402,
+        "Removal": 1.067,
+        "Setup": -0.261
+      }
+    },
+    "worst_endpoint_export": {
+      "rows": 1000,
+      "negative_endpoints": 2,
+      "negative_tns_ns": -0.326,
+      "negative": [
+        {
+          "rank": "1",
+          "slack_ns": "-0.261",
+          "data_delay_ns": "12.422",
+          "logic_levels": "12",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|Equal0~0_OTERM161",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg8"
+        },
+        {
+          "rank": "2",
+          "slack_ns": "-0.065",
+          "data_delay_ns": "12.226",
+          "logic_levels": "11",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|Equal0~0_OTERM161",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg2"
+        }
+      ],
+      "full_report_pairs_and_slacks_crosschecked": true,
+      "scope": "1000 worst endpoints in slow 1100mV 100C model; use STA summary for multicorner constrained sign-off"
+    },
+    "entities": [
+      {
+        "Entity Name": "jtframe_sdram64",
+        "Compilation Hierarchy Node": "|jtframe_sdram64:sdram_ctrl|",
+        "ALMs needed [=A-B+C]": "152.9 (28.4)",
+        "Dedicated Logic Registers": "219 (27)",
+        "M10Ks": "0"
+      },
+      {
+        "Entity Name": "ngage_diag_ddr",
+        "Compilation Hierarchy Node": "|ngage_diag_ddr:telemetry|",
+        "ALMs needed [=A-B+C]": "743.5 (743.5)",
+        "Dedicated Logic Registers": "350 (350)",
+        "M10Ks": "1"
+      },
+      {
+        "Entity Name": "ngage_dma_ram_mux",
+        "Compilation Hierarchy Node": "|ngage_dma_ram_mux:dma_ram_mux|",
+        "ALMs needed [=A-B+C]": "6.9 (6.9)",
+        "Dedicated Logic Registers": "3 (3)",
+        "M10Ks": "0"
+      },
+      {
+        "Entity Name": "ngage_sdram_adapter",
+        "Compilation Hierarchy Node": "|ngage_sdram_adapter:phone_sdram|",
+        "ALMs needed [=A-B+C]": "72.2 (72.2)",
+        "Dedicated Logic Registers": "140 (140)",
+        "M10Ks": "0"
+      }
+    ],
+    "operand_stages": [
+      {
+        "group": "sdram_capture_internal",
+        "status": "no_paths",
+        "reported_paths": "0",
+        "worst_slack_ns": "",
+        "from_patterns": "*sdram_ctrl*read_falling*capture*",
+        "to_patterns": "*sdram_ctrl*read_falling*capture*",
+        "message": ""
+      },
+      {
+        "group": "sdram_capture_to_fabric",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.815",
+        "from_patterns": "*sdram_ctrl*read_falling*capture*",
+        "to_patterns": "*phone_sdram*",
+        "message": ""
+      },
+      {
+        "group": "wb_to_reservation",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.253",
+        "from_patterns": "*",
+        "to_patterns": "*write_buffer*pending_word_enable* *write_buffer*pending_valid* *write_buffer*pending_merge* *write_buffer*pending_slot* *write_buffer*pending_length* *write_buffer*tail_*",
+        "message": ""
+      },
+      {
+        "group": "wb_payload_capture",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "5.153",
+        "from_patterns": "*",
+        "to_patterns": "*write_buffer*pending_data* *write_buffer*pending_byte_enable*",
+        "message": ""
+      },
+      {
+        "group": "wb_local_commit",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "6.361",
+        "from_patterns": "*write_buffer*pending*",
+        "to_patterns": "*write_buffer*data* *write_buffer*enables* *write_buffer*committed_lengths*",
+        "message": ""
+      },
+      {
+        "group": "wb_reservation_feedback",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.261",
+        "from_patterns": "*write_buffer*",
+        "to_patterns": "*write_buffer*count* *write_buffer*lengths* *write_buffer*tail_*",
+        "message": ""
+      },
+      {
+        "group": "wb_to_bus",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.498",
+        "from_patterns": "*write_buffer*",
+        "to_patterns": "*cache*bus_held* *u_zap_wb_merger*",
+        "message": ""
+      },
+      {
+        "group": "cache_request_to_owner",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.216",
+        "from_patterns": "*u_zap_core* *u_code_cache* *u_data_cache*",
+        "to_patterns": "*cache*lookup_owner*",
+        "message": ""
+      },
+      {
+        "group": "cache_owner_to_tags",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "4.781",
+        "from_patterns": "*cache*lookup_owner*",
+        "to_patterns": "*tags*read_mva* *tags*read_valid_bits* *tags*read_dirty_bits* *tags*match_bits*",
+        "message": ""
+      },
+      {
+        "group": "cache_lookup_pipeline",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "4.783",
+        "from_patterns": "*cache*lookup_owner* *cache*fast_read* *cache*fast_compare* *tags*",
+        "to_patterns": "*cache*fast_read* *cache*fast_compare* *cache*fast_result*",
+        "message": ""
+      },
+      {
+        "group": "cache_to_response",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.297",
+        "from_patterns": "*cache* *bank*",
+        "to_patterns": "*cache*response_valid* *cache*response_data*",
+        "message": ""
+      },
+      {
+        "group": "decode_to_r_data",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.305",
+        "from_patterns": "*u_zap_decode_main*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "decode_to_r_context",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.268",
+        "from_patterns": "*u_zap_decode_main*",
+        "to_patterns": "*u_operand_read*slot0_control* *u_operand_read*slot1_control* *u_operand_read*slot0_index* *u_operand_read*slot1_index*",
+        "message": ""
+      },
+      {
+        "group": "rf_to_r",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.877",
+        "from_patterns": "*u_zap_register_file*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "commit_sources_to_r",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.372",
+        "from_patterns": "*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "commit_to_journal",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "4.974",
+        "from_patterns": "*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*",
+        "to_patterns": "*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c*",
+        "message": ""
+      },
+      {
+        "group": "journal_to_queue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "7.496",
+        "from_patterns": "*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c* *u_operand_read*slot0_pending* *u_operand_read*slot1_pending*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "backend_to_completion",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.354",
+        "from_patterns": "*u_data_cache* *u_zap_postalu2_main*",
+        "to_patterns": "*u_data_completion*",
+        "message": ""
+      },
+      {
+        "group": "completion_to_r",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.072",
+        "from_patterns": "*u_data_completion*o_valid*",
+        "to_patterns": "*u_operand_read*",
+        "message": ""
+      },
+      {
+        "group": "completion_format_to_m",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.292",
+        "from_patterns": "*u_data_completion* *u_zap_postalu2_main*",
+        "to_patterns": "*u_zap_memory_main*o_mem_rd_data*",
+        "message": ""
+      },
+      {
+        "group": "formatted_m_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.218",
+        "from_patterns": "*u_zap_memory_main*o_mem_rd_data*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "memory_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "0.937",
+        "from_patterns": "*u_zap_memory_main*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "execute_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.156",
+        "from_patterns": "*u_zap_shifter_main* *u_zap_alu_main* *u_zap_postalu*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "cp15_select_to_r",
+        "status": "no_paths",
+        "reported_paths": "0",
+        "worst_slack_ns": "",
+        "from_patterns": "*u_zap_predecode* *u_zap_cp15*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "r_pointer_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.257",
+        "from_patterns": "*u_operand_read*read_slot*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_pointer_to_queue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.868",
+        "from_patterns": "*u_operand_read*read_slot* *u_operand_read*write_slot*",
+        "to_patterns": "*u_operand_read*",
+        "message": ""
+      },
+      {
+        "group": "cp15_read_response",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.091",
+        "from_patterns": "*u_zap_register_file* *u_zap_cp15* *u_zap_predecode*",
+        "to_patterns": "*u_zap_writeback*o_copro_reg_rd_data_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_alu",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.072",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_alu_source_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_shift_source",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.257",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_shift_source_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_shift_length",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.752",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_shift_length_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_memory_operand",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.293",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_mem_srcdest_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_queue_feedback",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.868",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_operand_read*",
+        "message": ""
+      },
+      {
+        "group": "issue_to_shifter",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.227",
+        "from_patterns": "*u_zap_issue_main*o_*_ff*",
+        "to_patterns": "*u_zap_shifter_main*",
+        "message": ""
+      },
+      {
+        "group": "shifter_recurrence",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.839",
+        "from_patterns": "*u_zap_shifter_main* *u_zap_alu_main*",
+        "to_patterns": "*u_zap_shifter_main*",
+        "message": ""
+      },
+      {
+        "group": "r_stop_to_frontend",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.528",
+        "from_patterns": "*u_operand_read*head_valid* *u_operand_read*tail_valid*",
+        "to_patterns": "*u_zap_decode_main* *u_zap_predecode* *u_zap_fetch*",
+        "message": ""
+      }
+    ],
+    "report_hashes": {
+      "Template.fit.summary": "669d5bbdd06cc4db4e7d05492092f3612861a4f034d303297819684d4da488c9",
+      "Template.fit.rpt": "9508e2964c46199350b9cd557201559fe3714f0f16825e8ebd3f7922f620aa70",
+      "Template.sta.summary": "c2dc6362b660e918b493ba083dd5ace3aa832e2936a3bb128bf0d616292aa5b4",
+      "Template.sta.rpt": "0da831ecb89d08e7f8739580bfb9e8e97a080feed2e72a5e17fd7a277533c682",
+      "build-info.json": "a9efca8ae3bcd6d7c8cf8aa23ea6e61de7bdbf792a2baaf1cf6c71b8f9736dc0",
+      "timing/worst-setup.csv": "b26cd5e957a5a476f33ae1c432bf46aa91490cca06fd1056f43383f3e5ea62c5",
+      "timing/worst-setup-full.rpt": "3d60cfb9c34f3bf9c412304211c710a496df862eb8554d038c5fa15e09a073b0",
+      "timing/operand-stages/summary.csv": "ce850e04e0d208222eb41039a1715e0d99e2cbc61ac5cb214ce99b2caf797e48"
+    }
+  },
+  "previous": {
+    "run_id": 43223120958,
+    "build_info": {
+      "fitter_seed": 42,
+      "commit": "60334fef9be380a09d747a9e987ffdb97edfd9ef",
+      "run_id": "43223120958",
+      "timing_status": "consult job timing gate and reports"
+    },
+    "resources": {
+      "alms_needed": {
+        "used": 37677,
+        "capacity": 41910,
+        "percent": 89.89978525411597,
+        "free": 4233
+      },
+      "registers": 43658,
+      "memory_bits": {
+        "used": 2772365,
+        "capacity": 5662720,
+        "percent": 48.958186172016276,
+        "free": 2890355
+      },
+      "m10k": {
+        "used": 506,
+        "capacity": 553,
+        "percent": 91.500904159132,
+        "free": 47
+      },
+      "dsp": {
+        "used": 42,
+        "capacity": 112,
+        "percent": 37.5,
+        "free": 70
+      },
+      "plls": {
+        "used": 3,
+        "capacity": 6,
+        "percent": 50.0,
+        "free": 3
+      },
+      "alms_placed": {
+        "used": 39589,
+        "capacity": 41910,
+        "percent": 94.46194225721784,
+        "free": 2321
+      },
+      "labs_used": {
+        "used": 4176,
+        "capacity": 4191,
+        "percent": 99.6420901932713,
+        "free": 15
+      }
+    },
+    "timing": {
+      "core_setup": {
+        "kind": "Setup",
+        "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "slack_ns": -0.275,
+        "tns_ns": -1.314
+      },
+      "core_hold": {
+        "kind": "Hold",
+        "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "slack_ns": 0.243,
+        "tns_ns": 0.0
+      },
+      "core_fmax_mhz": 76.37,
+      "all_domains": [
+        {
+          "kind": "Setup",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": -0.275,
+          "tns_ns": -1.314
+        },
+        {
+          "kind": "Setup",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 0.054,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 3.467,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 6.956,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "FPGA_CLK2_50",
+          "slack_ns": 11.653,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Setup",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 23.562,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 0.235,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 0.243,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 0.275,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 0.277,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 0.348,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Hold",
+          "clock": "FPGA_CLK2_50",
+          "slack_ns": 0.417,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 2.297,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 3.682,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 6.438,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Recovery",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 16.193,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 1.215,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 1.37,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 1.682,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Removal",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 1.79,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+          "slack_ns": 0.641,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|fpll_0|fpll|vcoph[0]",
+          "slack_ns": 1.122,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+          "slack_ns": 1.196,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+          "slack_ns": 1.928,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk",
+          "slack_ns": 3.587,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 4.973,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "FPGA_CLK1_50",
+          "slack_ns": 9.213,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "FPGA_CLK2_50",
+          "slack_ns": 9.219,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "FPGA_CLK3_50",
+          "slack_ns": 9.73,
+          "tns_ns": 0.0
+        },
+        {
+          "kind": "Minimum Pulse Width",
+          "clock": "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "slack_ns": 18.931,
+          "tns_ns": 0.0
+        }
+      ],
+      "worst_by_type": {
+        "Hold": 0.235,
+        "Minimum Pulse Width": 0.641,
+        "Recovery": 2.297,
+        "Removal": 1.215,
+        "Setup": -0.275
+      }
+    },
+    "worst_endpoint_export": {
+      "rows": 1000,
+      "negative_endpoints": 10,
+      "negative_tns_ns": -1.314,
+      "negative": [
+        {
+          "rank": "1",
+          "slack_ns": "-0.275",
+          "data_delay_ns": "12.329",
+          "logic_levels": "9",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg9"
+        },
+        {
+          "rank": "2",
+          "slack_ns": "-0.215",
+          "data_delay_ns": "12.265",
+          "logic_levels": "10",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg12"
+        },
+        {
+          "rank": "3",
+          "slack_ns": "-0.167",
+          "data_delay_ns": "12.221",
+          "logic_levels": "11",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg7"
+        },
+        {
+          "rank": "4",
+          "slack_ns": "-0.164",
+          "data_delay_ns": "12.185",
+          "logic_levels": "9",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|Equal0~0_OTERM203",
+          "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[17]_OTERM2560"
+        },
+        {
+          "rank": "5",
+          "slack_ns": "-0.155",
+          "data_delay_ns": "12.209",
+          "logic_levels": "11",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg10"
+        },
+        {
+          "rank": "6",
+          "slack_ns": "-0.079",
+          "data_delay_ns": "12.102",
+          "logic_levels": "8",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|Equal0~0_OTERM203",
+          "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[18]_OTERM2556"
+        },
+        {
+          "rank": "7",
+          "slack_ns": "-0.073",
+          "data_delay_ns": "12.096",
+          "logic_levels": "8",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|Equal0~0_OTERM203",
+          "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[16]_OTERM3076"
+        },
+        {
+          "rank": "8",
+          "slack_ns": "-0.068",
+          "data_delay_ns": "12.091",
+          "logic_levels": "8",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|Equal0~0_OTERM203",
+          "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[48]_OTERM3338"
+        },
+        {
+          "rank": "9",
+          "slack_ns": "-0.063",
+          "data_delay_ns": "12.116",
+          "logic_levels": "11",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg11"
+        },
+        {
+          "rank": "10",
+          "slack_ns": "-0.055",
+          "data_delay_ns": "12.111",
+          "logic_levels": "11",
+          "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+          "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+          "to_node": "emu:emu|ngage_diag_ddr:telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg26"
+        }
+      ],
+      "full_report_pairs_and_slacks_crosschecked": true,
+      "scope": "1000 worst endpoints in slow 1100mV 100C model; use STA summary for multicorner constrained sign-off"
+    },
+    "entities": [
+      {
+        "Entity Name": "jtframe_sdram64",
+        "Compilation Hierarchy Node": "|jtframe_sdram64:sdram_ctrl|",
+        "ALMs needed [=A-B+C]": "141.1 (23.7)",
+        "Dedicated Logic Registers": "187 (10)",
+        "M10Ks": "0"
+      },
+      {
+        "Entity Name": "ngage_diag_ddr",
+        "Compilation Hierarchy Node": "|ngage_diag_ddr:telemetry|",
+        "ALMs needed [=A-B+C]": "740.3 (740.3)",
+        "Dedicated Logic Registers": "372 (372)",
+        "M10Ks": "1"
+      },
+      {
+        "Entity Name": "ngage_dma_ram_mux",
+        "Compilation Hierarchy Node": "|ngage_dma_ram_mux:dma_ram_mux|",
+        "ALMs needed [=A-B+C]": "70.2 (70.2)",
+        "Dedicated Logic Registers": "63 (63)",
+        "M10Ks": "0"
+      },
+      {
+        "Entity Name": "ngage_debug_video",
+        "Compilation Hierarchy Node": "|ngage_debug_video:visual_debug.debug_video|",
+        "ALMs needed [=A-B+C]": "678.3 (678.3)",
+        "Dedicated Logic Registers": "815 (815)",
+        "M10Ks": "1"
+      },
+      {
+        "Entity Name": "ngage_sdram_adapter",
+        "Compilation Hierarchy Node": "|ngage_sdram_adapter:phone_sdram|",
+        "ALMs needed [=A-B+C]": "101.6 (101.6)",
+        "Dedicated Logic Registers": "183 (183)",
+        "M10Ks": "0"
+      }
+    ],
+    "operand_stages": [
+      {
+        "group": "sdram_capture_internal",
+        "status": "no_paths",
+        "reported_paths": "0",
+        "worst_slack_ns": "",
+        "from_patterns": "*sdram_ctrl*read_falling*capture*",
+        "to_patterns": "*sdram_ctrl*read_falling*capture*",
+        "message": ""
+      },
+      {
+        "group": "sdram_capture_to_fabric",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.857",
+        "from_patterns": "*sdram_ctrl*read_falling*capture*",
+        "to_patterns": "*phone_sdram*",
+        "message": ""
+      },
+      {
+        "group": "wb_to_reservation",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.094",
+        "from_patterns": "*",
+        "to_patterns": "*write_buffer*pending_word_enable* *write_buffer*pending_valid* *write_buffer*pending_merge* *write_buffer*pending_slot* *write_buffer*pending_length* *write_buffer*tail_*",
+        "message": ""
+      },
+      {
+        "group": "wb_payload_capture",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "4.856",
+        "from_patterns": "*",
+        "to_patterns": "*write_buffer*pending_data* *write_buffer*pending_byte_enable*",
+        "message": ""
+      },
+      {
+        "group": "wb_local_commit",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "6.719",
+        "from_patterns": "*write_buffer*pending*",
+        "to_patterns": "*write_buffer*data* *write_buffer*enables* *write_buffer*committed_lengths*",
+        "message": ""
+      },
+      {
+        "group": "wb_reservation_feedback",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.125",
+        "from_patterns": "*write_buffer*",
+        "to_patterns": "*write_buffer*count* *write_buffer*lengths* *write_buffer*tail_*",
+        "message": ""
+      },
+      {
+        "group": "wb_to_bus",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.483",
+        "from_patterns": "*write_buffer*",
+        "to_patterns": "*cache*bus_held* *u_zap_wb_merger*",
+        "message": ""
+      },
+      {
+        "group": "cache_request_to_owner",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.537",
+        "from_patterns": "*u_zap_core* *u_code_cache* *u_data_cache*",
+        "to_patterns": "*cache*lookup_owner*",
+        "message": ""
+      },
+      {
+        "group": "cache_owner_to_tags",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "5.481",
+        "from_patterns": "*cache*lookup_owner*",
+        "to_patterns": "*tags*read_mva* *tags*read_valid_bits* *tags*read_dirty_bits* *tags*match_bits*",
+        "message": ""
+      },
+      {
+        "group": "cache_lookup_pipeline",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "4.903",
+        "from_patterns": "*cache*lookup_owner* *cache*fast_read* *cache*fast_compare* *tags*",
+        "to_patterns": "*cache*fast_read* *cache*fast_compare* *cache*fast_result*",
+        "message": ""
+      },
+      {
+        "group": "cache_to_response",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "4.057",
+        "from_patterns": "*cache* *bank*",
+        "to_patterns": "*cache*response_valid* *cache*response_data*",
+        "message": ""
+      },
+      {
+        "group": "decode_to_r_data",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.546",
+        "from_patterns": "*u_zap_decode_main*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "decode_to_r_context",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.746",
+        "from_patterns": "*u_zap_decode_main*",
+        "to_patterns": "*u_operand_read*slot0_control* *u_operand_read*slot1_control* *u_operand_read*slot0_index* *u_operand_read*slot1_index*",
+        "message": ""
+      },
+      {
+        "group": "rf_to_r",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.002",
+        "from_patterns": "*u_zap_register_file*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "commit_sources_to_r",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.435",
+        "from_patterns": "*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "commit_to_journal",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.294",
+        "from_patterns": "*u_zap_memory_main* *u_zap_postalu2_main* *u_zap_alu_main*",
+        "to_patterns": "*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c*",
+        "message": ""
+      },
+      {
+        "group": "journal_to_queue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "6.874",
+        "from_patterns": "*u_operand_read*commit_a* *u_operand_read*commit_b* *u_operand_read*commit_c* *u_operand_read*slot0_pending* *u_operand_read*slot1_pending*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "backend_to_completion",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.527",
+        "from_patterns": "*u_data_cache* *u_zap_postalu2_main*",
+        "to_patterns": "*u_data_completion*",
+        "message": ""
+      },
+      {
+        "group": "completion_to_r",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.284",
+        "from_patterns": "*u_data_completion*o_valid*",
+        "to_patterns": "*u_operand_read*",
+        "message": ""
+      },
+      {
+        "group": "completion_format_to_m",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "5.792",
+        "from_patterns": "*u_data_completion* *u_zap_postalu2_main*",
+        "to_patterns": "*u_zap_memory_main*o_mem_rd_data*",
+        "message": ""
+      },
+      {
+        "group": "formatted_m_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.648",
+        "from_patterns": "*u_zap_memory_main*o_mem_rd_data*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "memory_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.526",
+        "from_patterns": "*u_zap_memory_main*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "execute_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.195",
+        "from_patterns": "*u_zap_shifter_main* *u_zap_alu_main* *u_zap_postalu*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "cp15_select_to_r",
+        "status": "no_paths",
+        "reported_paths": "0",
+        "worst_slack_ns": "",
+        "from_patterns": "*u_zap_predecode* *u_zap_cp15*",
+        "to_patterns": "*u_operand_read*slot0_data* *u_operand_read*slot1_data*",
+        "message": ""
+      },
+      {
+        "group": "r_pointer_to_issue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "0.970",
+        "from_patterns": "*u_operand_read*read_slot*",
+        "to_patterns": "*u_zap_issue_main*o_*_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_pointer_to_queue",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.211",
+        "from_patterns": "*u_operand_read*read_slot* *u_operand_read*write_slot*",
+        "to_patterns": "*u_operand_read*",
+        "message": ""
+      },
+      {
+        "group": "cp15_read_response",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.042",
+        "from_patterns": "*u_zap_register_file* *u_zap_cp15* *u_zap_predecode*",
+        "to_patterns": "*u_zap_writeback*o_copro_reg_rd_data_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_alu",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "0.940",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_alu_source_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_shift_source",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.038",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_shift_source_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_shift_length",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "0.970",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_shift_length_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_to_memory_operand",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.218",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_zap_issue_main*o_mem_srcdest_value_ff*",
+        "message": ""
+      },
+      {
+        "group": "r_queue_feedback",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "3.041",
+        "from_patterns": "*u_operand_read*",
+        "to_patterns": "*u_operand_read*",
+        "message": ""
+      },
+      {
+        "group": "issue_to_shifter",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "1.549",
+        "from_patterns": "*u_zap_issue_main*o_*_ff*",
+        "to_patterns": "*u_zap_shifter_main*",
+        "message": ""
+      },
+      {
+        "group": "shifter_recurrence",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "2.661",
+        "from_patterns": "*u_zap_shifter_main* *u_zap_alu_main*",
+        "to_patterns": "*u_zap_shifter_main*",
+        "message": ""
+      },
+      {
+        "group": "r_stop_to_frontend",
+        "status": "ok",
+        "reported_paths": "10",
+        "worst_slack_ns": "5.430",
+        "from_patterns": "*u_operand_read*head_valid* *u_operand_read*tail_valid*",
+        "to_patterns": "*u_zap_decode_main* *u_zap_predecode* *u_zap_fetch*",
+        "message": ""
+      }
+    ],
+    "report_hashes": {
+      "Template.fit.summary": "a55429bdff5a2dc25191e9ca34dd92f838531966b5620c57f56e07a967b5d800",
+      "Template.fit.rpt": "3748dfa1dbe7ab585c2e10dc2e6fdd638ebc39693d3b3e8584f043b11dc765d8",
+      "Template.sta.summary": "ebf759c5a984fa291023f31d95955043badf4aeef7c0b80640cc2a68bfb56555",
+      "Template.sta.rpt": "a31ef7988de0e2f4cb96f984566ae8dc83d50bcd6c39a9fac77d6f01c88cd193",
+      "build-info.json": "fbb817af447eddd9051a0999bddc3fc0721a05beb3571926e999e072cc2eb1fa",
+      "timing/worst-setup.csv": "6d3a16f58e05cb1ab22c3ae396494e856f03c94ac2111219dd2a80174466db68",
+      "timing/worst-setup-full.rpt": "cd23e16bd64e8da3e2d7b7cfc5192d0da94e1adeb9807fef81abb5aa44a392b0",
+      "timing/operand-stages/summary.csv": "ca428f1dbf513714531c3a031369fd149ca4058f2548e2475a724995e80bee61"
+    }
+  },
+  "resource_delta": {
+    "alms_needed": -635,
+    "registers": -463,
+    "memory_bits": -8192,
+    "m10k": -1,
+    "dsp": 0,
+    "plls": 0,
+    "alms_placed": -671,
+    "labs_used": -55
+  },
+  "comparison_limitations": [
+    "Different fitter seeds: previous42, latest1",
+    "Source includes diagnostics changes, renderer removal and native SDRAM/request sharing; no isolated saving attribution",
+    "Latest source excludes other-chat uncommitted startup/EUART/ADSP work"
+  ],
+  "constraints": {
+    "system_hz": 78000000,
+    "target_hz": 104000000,
+    "unconstrained_clocks": 0,
+    "unconstrained_input_ports": 20,
+    "unconstrained_input_paths": 46,
+    "unconstrained_output_ports": 86,
+    "unconstrained_output_paths": 168,
+    "coverage": "Existing external IO constraint gaps remain; no constraint or clock changes"
+  },
+  "diagnosis": "Both negative exported endpoints are diagnostic snapshot RAM data inputs, launched from CPU memory route; negative slack sum matches core TNS. Target diagnostic capture path before attributing failure to the CPU execution pipeline or native SDRAM schedule.",
+  "next_step": "Diagnostic snapshot capture is the immediate timing target; validate a future change and rerun routed fit. Current fit establishes neither78 nor104MHz closure",
+  "actions": "Read-only reports plus local documentation/evidence; no RTL change, new CI, deployment, commit or push"
+}

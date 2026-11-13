@@ -35,10 +35,21 @@ int main(int argc,char **argv) {
     uint64_t stop_lcd_words=0, lcd_limit_tick=0, panic_ticks=0;
     const char *panic_arg=context.commandArgsPlusMatch("stop-kernel-panic");
     const bool stop_panic=panic_arg && *panic_arg;
+    auto number_arg=[&](const char *name,uint64_t fallback) {
+        const char *value=context.commandArgsPlusMatch(name);
+        return value && *value ? std::stoull(std::string(value).substr(std::string(value).find('=')+1)) : fallback;
+    };
+    const uint64_t checkpoint_before=number_arg("checkpoint-before=",1000000000ULL);
+    const uint64_t checkpoint_after=number_arg("checkpoint-after=",100000000ULL);
+    const uint64_t checkpoint_switch=number_arg("checkpoint-switch=",10000000000ULL);
+    if(!checkpoint_before || !checkpoint_after)throw std::runtime_error("checkpoint intervals must be positive");
+    const char *key_arg=context.commandArgsPlusMatch("key-command=");
+    const std::string key_file=key_arg && *key_arg ? std::string(key_arg).substr(std::string(key_arg).find('=')+1) : "";
     const char *limit=context.commandArgsPlusMatch("stop-lcd-words=");
     if(limit && *limit)stop_lcd_words=std::stoull(std::string(limit).substr(std::string(limit).find('=')+1));
     Vtb model{&context};Host host;
-    model.clk=0;model.cold=1;model.reset=1;model.frame_index=0;model.eval();
+    model.clk=0;model.cold=1;model.reset=1;model.frame_index=0;
+    model.key_command_id=0;model.key_command_mask=0;model.key_command_hold=0;model.eval();
     if(restore!="-") {
         std::ifstream h(restore+".host",std::ios::binary);h.read(reinterpret_cast<char*>(&host),sizeof host);
         if(!h || h.peek()!=EOF)throw std::runtime_error("invalid host checkpoint");
@@ -76,6 +87,20 @@ int main(int argc,char **argv) {
         if(host.phase==0 && host.ticks>=4){model.cold=0;host.phase=1;}
         if(host.phase==1 && model.ready){host.phase=2;host.settle=2;}
         if(host.phase==2 && host.settle--==0){model.reset=0;host.phase=3;boot_offset=host.ticks;}
+        // The command file is atomically replaced by send_sim_key.py. Only the
+        // simulation host checks it; latched key levels, duration and request ID
+        // are HDL state, so a checkpoint taken during a hold resumes faithfully.
+        if(host.phase==3 && (total()&65535)==0 && !key_file.empty()) {
+            std::ifstream request(key_file);uint64_t id=0,hold=0;uint32_t mask=0;
+            if(request>>id>>std::hex>>mask>>std::dec>>hold) {
+                if(id>model.key_applied_id && mask<(1U<<27)) {
+                    model.key_command_id=id;model.key_command_mask=mask;model.key_command_hold=hold;
+                    std::printf("KEY_REQUEST cycle=%llu id=%llu mask=%07x hold=%llu\n",
+                        (unsigned long long)total(),(unsigned long long)id,mask,(unsigned long long)hold);
+                    std::fflush(stdout);
+                }
+            }
+        }
 #ifdef NGAGE_REFILL_STATS
         auto *r=model.rootp;
         unsigned ic=r->IC(cache_adapter__DOT__cache__DOT__state),dc=r->DC(cache_adapter__DOT__cache__DOT__state);
@@ -96,7 +121,8 @@ int main(int argc,char **argv) {
             double seconds=std::chrono::duration<double>(std::chrono::steady_clock::now()-started).count();
             std::printf("PROGRESS cycles=%llu pc=%08x words=%u errors=%u data_errors=%u seconds=%.2f rate=%.0f\n",(unsigned long long)total(),model.pc,model.pixel_writes,model.bus_errors,model.data_faults,seconds,(total()-initial)/seconds);std::fflush(stdout);
         }
-        if(total() && total()%100000000==0)save();
+        const uint64_t interval=total()<=checkpoint_switch ? checkpoint_before : checkpoint_after;
+        if(total() && total()%interval==0)save();
         if(stop_panic) {
             // NEM-4's terminal panic branch and speculative fetch lookahead.
             if(model.pc>=0x50324294 && model.pc<0x503242a4)panic_ticks++;
