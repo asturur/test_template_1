@@ -6,7 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
-| [rf-native-media.md](rf-native-media.md) | Captured native RF request, media12 rejection, exact-packet Verilator before/after and pending FPGA qualification |
+| [rf-native-media.md](rf-native-media.md) | Native media12 RF fix, exact-packet reproduction, hardware1E=00 qualification and subsequent native panic |
 | [board-boot-91045a6.md](board-boot-91045a6.md) | Deployed build, clean cardless Phone, corrected active blocker and native MTC/SIM observations |
 | [pmm-native-flash.md](pmm-native-flash.md) | Native PMM erase/status/program-tail controller fix, exact original-driver CPU tests and reset/dirty integration |
 | [phone-profile-startup.md](phone-profile-startup.md) | Native profile count5 versus6 causes recreation/Phone timeout; C-only initialized-data control, original-ROM Phone progress and reader gaps |

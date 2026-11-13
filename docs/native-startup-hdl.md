@@ -1,3 +1,21 @@
+## 2026-11-14: next board stop is ADSP response assertion
+
+RF1E=00 is observed on installed646ac68. The later panic reproduces without
+RF tracing. Minimal native assertion observation captures St_product.c/0xDF2,
+pResp_adsp->message_id == ST_ADSP_RUN_RESP, LR516A629B. RF result remains00 while
+ADSP36 is03/pending. Full actual unexpected message ID is not captured; do not
+promote the old5902 misdelivery into a current measurement. See rf-native-media.md
+and the latest evidence. No firmware decision or deadline is substituted.
+
+## Latest RF board gate — 2026-11-13
+
+Installed646ac68/seed44 now delivers nativeF1/A1 and original RF startup1E=00
+under the original500 deadline argument. See [RF board qualification](rf-native-media.md).
+This advances the RF gate only: ADSP36=01 and native SIM-ready remain open.
+One earlier traced boot and a later original-ROM/no-observer control panicked
+after delivery; the successful RF capture did not. Reliable boot is unresolved. All observer hooks are
+removed after qualification; executable firmware and card data stay unchanged.
+
 # Original-firmware startup: HDL-only qualification
 
 User selected **strictly unmodified firmware, HDL only** on2026-11-12.

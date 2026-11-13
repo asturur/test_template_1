@@ -1,0 +1,363 @@
+{
+  "date": "2026-11-13",
+  "installed_build": {
+    "fitter_seed": 44,
+    "commit": "646ac6848a73da72957c1a5c552eaf9b2612af8c",
+    "run_id": "43514093456",
+    "timing_status": "consult job timing gate and reports"
+  },
+  "rbf_bytes": 4495992,
+  "rbf_sha256": "2399bb9e39dcc11db4c7be50bc6b688ea319f7a4668b44db4bd5a29114dc09fb",
+  "qualified_capture": {
+    "capture": "scratch/rf-board-qualification-20261113/assert/running.jsonl",
+    "sha256": "ba63f44e1b1a2f3edfa4149705915c40bfa768a3eb912b07d32c43dc0c09efd6",
+    "events": {
+      "session": 1,
+      "producer_drops": 1,
+      "snapshot": 460,
+      "text": 2935
+    },
+    "snapshots": 460,
+    "reset_generations": [
+      0
+    ],
+    "panic_masks": [
+      0
+    ],
+    "first_fault_reasons": [
+      0
+    ],
+    "queue_fault": false,
+    "producer_drops": [
+      {
+        "type": "producer_drops",
+        "total": 0
+      }
+    ],
+    "native_events": [
+      {
+        "cycle": 1153005664,
+        "sequence": 285511,
+        "text": "R2 516e76fc 80026420 00000004 001d0000 514c4909 127c00d000010500 00000000 00040004 00000500 00000000"
+      },
+      {
+        "cycle": 1153049751,
+        "sequence": 285520,
+        "text": "R2 516e76fc 80026420 00000006 001d0000 514c4909 127c00f200060027000a0087 00040004 00040004 00000500 00000000"
+      },
+      {
+        "cycle": 4263646715,
+        "sequence": 287074,
+        "text": "Y SIM N 052f1901"
+      },
+      {
+        "cycle": 377105641,
+        "sequence": 287657,
+        "text": "R4 0000001b 80009d20 80026938 00000000 516a6101 0c070020 000a000a 00040004 00000500 00000000"
+      },
+      {
+        "cycle": 377141642,
+        "sequence": 287665,
+        "text": "R5 80009d20 80026938 00001b07 800ca49c 51591d2d 0c070020 000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 377146908,
+        "sequence": 287673,
+        "text": "R6 00000020 800ca49c 00001b07 800ca49c 5164b043  000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 377152416,
+        "sequence": 287681,
+        "text": "R7 000000a1 00000100 800ca3c4 00e80000 5164b4cd  000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 377161921,
+        "sequence": 287689,
+        "text": "R1 000000f1 800ca49c 80026788 00000000 5164b4f3 20a00255 000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 377197906,
+        "sequence": 287697,
+        "text": "R2 516e76fc 80026780 00000006 001d0000 514c4909 127c00f10006012420a00255 000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 377276866,
+        "sequence": 287707,
+        "text": "R3 0000f1a1 80026698 800a7e40 00e80000 5159203d 20a10103 00100010 000a000a 00000500 00000001"
+      },
+      {
+        "cycle": 909039923,
+        "sequence": 287715,
+        "text": "R2 516e76fc 80029930 00000010 001d0000 514c4909 127c00f3001a0129000000e1 00100010 000a000a 00000500 00000001"
+      },
+      {
+        "cycle": 909149479,
+        "sequence": 287725,
+        "text": "R2 516e76fc 80029930 00000010 001d0000 514c4909 127c00f3001a01290001050f 00200020 000a000a 00000500 00000001"
+      },
+      {
+        "cycle": 957968800,
+        "sequence": 287735,
+        "text": "R2 516e76fc 80029870 00000010 001d0000 514c4909 127c00f3001a0129000000e0 00300030 000a000a 00000500 00000001"
+      },
+      {
+        "cycle": 958021837,
+        "sequence": 287745,
+        "text": "R2 516e76fc 80029870 00000010 001d0000 514c4909 127c00f3001a01290001050f 00400040 000a000a 00000500 00000001"
+      },
+      {
+        "cycle": 1118832708,
+        "sequence": 287782,
+        "text": "R2 516e76fc 80029930 00000010 001d0000 514c4909 127c00f3001a01290001050f 00500050 000a000a 00000500 00000000"
+      },
+      {
+        "cycle": 1121448974,
+        "sequence": 287801,
+        "text": "D EVENT id=00000001 value=00000002"
+      },
+      {
+        "cycle": 1121573358,
+        "sequence": 287844,
+        "text": "M TESTS 03030000 00030000 03000000 03010000 03030301 04010300 "
+      },
+      {
+        "cycle": 1554873635,
+        "sequence": 288218,
+        "text": "R2 516e76fc 80026690 00000006 001d0000 514c4909 127c00f20006013600035555 00600060 000a000a 00000500 00000000"
+      }
+    ],
+    "rf_receiver_observed": true,
+    "request_to_receiver_cycles": 171225,
+    "request_to_receiver_seconds": 0.0021951923076923077,
+    "native_result_bytes": "000003030000030000000003000001030103030300030104",
+    "rf_test_1e": 0,
+    "adsp_test_36": 1,
+    "bt_test_15": 1,
+    "current_test_02": 1
+  },
+  "qualified_observer": {
+    "records": 1201,
+    "observer_sha256": "c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3",
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "instrumented_rom_sha256": "41916fdae4411715955dceced7b18c63a1c34c3334c7216d5b3d98bdbbe6c40a",
+    "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+    "diagnostic_cpu_view_md5": "9473848003e807382133e8aec256f14d",
+    "checksum_check_retained": true,
+    "slow_wait_trace": false,
+    "functional_startup_substitutions": false,
+    "native_assert_observation": true,
+    "fresh_held": true,
+    "applied": true
+  },
+  "first_capture": {
+    "capture": "scratch/rf-board-qualification-20261113/running.jsonl",
+    "sha256": "dc0def6a8b669c9a009e59bec56d1313e55c115fb70e33108ee00edf5fb460e4",
+    "events": {
+      "session": 1,
+      "producer_drops": 1,
+      "snapshot": 520,
+      "text": 2238
+    },
+    "snapshots": 520,
+    "reset_generations": [
+      0
+    ],
+    "panic_masks": [
+      0,
+      7
+    ],
+    "first_fault_reasons": [
+      0
+    ],
+    "queue_fault": false,
+    "producer_drops": [
+      {
+        "type": "producer_drops",
+        "total": 0
+      }
+    ],
+    "native_events": [
+      {
+        "cycle": 1153005457,
+        "sequence": 283273,
+        "text": "R2 516e76fc 80026420 00000004 001d0000 514c4909 127c00d000010500 00000000 00040004 00000500 00000000"
+      },
+      {
+        "cycle": 1153049621,
+        "sequence": 283282,
+        "text": "R2 516e76fc 80026420 00000006 001d0000 514c4909 127c00f200060027000a0087 00040004 00040004 00000500 00000000"
+      },
+      {
+        "cycle": 4263481299,
+        "sequence": 284738,
+        "text": "Y SIM N 052f1901"
+      },
+      {
+        "cycle": 296694370,
+        "sequence": 285137,
+        "text": "R4 0000001b 80009d20 80026698 00000000 516a6101 0c070020 000a000a 00040004 00000500 00000000"
+      },
+      {
+        "cycle": 296730008,
+        "sequence": 285145,
+        "text": "R5 80009d20 80026698 00001b07 800ca49c 51591d2d 0c070020 000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 296735276,
+        "sequence": 285153,
+        "text": "R6 00000020 800ca49c 00001b07 800ca49c 5164b043  000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 296740794,
+        "sequence": 285161,
+        "text": "R7 000000a1 00000100 800ca3c4 00e80000 5164b4cd  000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 296750283,
+        "sequence": 285169,
+        "text": "R1 000000f1 800ca49c 80026878 00000000 5164b4f3 20a00255 000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 296786266,
+        "sequence": 285177,
+        "text": "R2 516e76fc 80026870 00000006 001d0000 514c4909 127c00f10006012420a00255 000a000a 00040004 00000500 00000001"
+      },
+      {
+        "cycle": 296866214,
+        "sequence": 285187,
+        "text": "R3 0000f1a1 80026938 800a7e40 00e80000 5159203d 20a10103 00100010 000a000a 00000500 00000001"
+      }
+    ],
+    "rf_receiver_observed": true,
+    "request_to_receiver_cycles": 171844,
+    "request_to_receiver_seconds": 0.002203128205128205
+  },
+  "rf_hardware_success_observed": true,
+  "rf_startup_test_id": "1e",
+  "rf_startup_result": "00",
+  "original_timeout_argument": 500,
+  "timeout_extended": false,
+  "firmware_functional_substitutions": false,
+  "production_hdl_changed_in_this_session": false,
+  "adsp_and_sim_ready_complete": false,
+  "assertion_observer_test": "PASS native NOS assertion observer: original args/registers/flags/SP/ARM tail, bounded ROM strings and invalid pointers, stack/debug-only writes",
+  "scope": "Native RF delivery and original1E=00 verified. Minimal assertion capture also reads1E=00 while ADSP test remains pending3 and asserts on an unexpected response ID. Overall native boot remains blocked by ADSP and SIM readiness.",
+  "clean_control": {
+    "capture": "scratch/rf-board-qualification-20261113/clean-control.jsonl",
+    "sha256": "f3a6c5a1cc0d36800915d60a5ec5ba79da2f2bda0812f890a9c8ddbeaeca9ba7",
+    "events": {
+      "session": 1,
+      "producer_drops": 1,
+      "snapshot": 542,
+      "text": 1138
+    },
+    "snapshots": 542,
+    "reset_generations": [
+      0
+    ],
+    "panic_masks": [
+      0,
+      7
+    ],
+    "first_fault_reasons": [
+      0
+    ],
+    "queue_fault": false,
+    "producer_drops": [
+      {
+        "type": "producer_drops",
+        "total": 0
+      }
+    ],
+    "native_events": []
+  },
+  "cleanup": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "completed_date": "2026-11-14",
+  "panic_reproduced_without_observer": true,
+  "minimal_assertion_capture": {
+    "capture": "scratch/rf-board-qualification-20261113/assert/minimal-running.jsonl",
+    "sha256": "6a25d760551efb7127d7b40409c03af9fbb2b2a951dad5d536138fdc77fd9003",
+    "events": {
+      "session": 1,
+      "producer_drops": 1,
+      "snapshot": 475,
+      "text": 1156
+    },
+    "snapshots": 475,
+    "reset_generations": [
+      0
+    ],
+    "panic_masks": [
+      0,
+      7
+    ],
+    "first_fault_reasons": [
+      0
+    ],
+    "queue_fault": false,
+    "producer_drops": [
+      {
+        "type": "producer_drops",
+        "total": 0
+      }
+    ],
+    "native_events": [
+      {
+        "cycle": 324319050,
+        "sequence": 290688,
+        "text": "A NOS file/line/expr/lr 5170cccc 00000df2 5170ccf4 516a629b ../../ENOS/CMT_SW/CONFIG/St_product.c pResp_adsp->message_id == ST_ADSP_RUN_RESP"
+      },
+      {
+        "cycle": 324328282,
+        "sequence": 290700,
+        "text": "A RESULTS 03030000 00030000 03000000 030d0000 03030301 04030300 "
+      }
+    ],
+    "native_result_bytes": "00000303000003000000000300000d030103030300030304",
+    "rf_test_1e": 0,
+    "adsp_test_36": 3,
+    "bt_test_15": 13,
+    "current_test_02": 1
+  },
+  "minimal_assertion_observer": {
+    "records": 97,
+    "observer_sha256": "7c70db99ca603e0d4aec8706dda498a641ffb0e2f3872fd04d0ac52fa57d6c46",
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "instrumented_rom_sha256": "8db482d603738cc4af33c114fc23c2f05713f8f16b781a78f6ad4b1e8435f3a3",
+    "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+    "diagnostic_cpu_view_md5": "162e1d47c9057c8eba93217f1f7706c8",
+    "checksum_check_retained": true,
+    "slow_wait_trace": false,
+    "functional_startup_substitutions": false,
+    "native_assert_observation": true,
+    "scope": "Native assertion and CPU-visible result observation only; RF/exit/SIM/DOS hooks omitted",
+    "fresh_held": true,
+    "applied": true
+  },
+  "assertion_scope": "Native assertion-only hook; RF/exit/SIM/DOS hooks omitted",
+  "assertion_file": "../../ENOS/CMT_SW/CONFIG/St_product.c",
+  "assertion_line_hex": "df2",
+  "assertion_expression": "pResp_adsp->message_id == ST_ADSP_RUN_RESP",
+  "assertion_lr": "516a629b",
+  "unexpected_adsp_message_id": "Not captured in this run; do not assert5902 from older experiments",
+  "minimal_capture_tail": "Capture ended with SSH timeout after475 valid snapshots, no reader gaps in retained data. Reauthenticated before cleanup; final missing tail is not an absence/timing proof.",
+  "final_cleanup": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  }
+}

@@ -1,10 +1,82 @@
 # Native RF completion lost at the UPP DSP media filter
 
+The media12 fix is now verified on the user's installed646ac68 RBF. Native
+F1/A1 reaches the original receiver, and original startup test1E reports00.
+This qualifies the RF success path; it does not establish repeated-boot reliability
+or complete SIM/ADSP/Phone boot.
+
+## Hardware qualification — 2026-11-13
+
+Installed bitstream matches completed Actions43514093456 exactly: commit
+646ac6848a73da72957c1a5c552eaf9b2612af8c, seed44,4495992bytes, SHA256
+2399bb9e39dcc11db4c7be50bc6b688ea319f7a4668b44db4bd5a29114dc09fb.
+No build/deploy or production RTL edit was needed in this verification session.
+No FPGA timing-closure claim follows from it; operating PLL remains78MHz.
+
+The existing qualified RF observer sees the same native request, now followed
+by receiver515920D0 with keyF1A1/body20A10103. D2M pointers advance4->A and are
+consumed. Native request-send to receiver-entry takes171225 clocks, about2.195ms
+at78MHz including observation overhead. This is response-delivery latency, not
+an independently measured full startup-function duration. Original timeout
+argument500, revision03, result decisions and registry remain authoritative.
+
+At the subsequent native NOS result dump, the original24byte array is
+000003030000030000000003000001030103030300030104.
+Registry-index20/ID1E is00; ADSP36 remains01. BT15/current02 are01. DOS event1
+is still2 because other native startup work fails. SIM remains non-serving5;
+screen shows Insert SIM. This is the requested positive RF board result, not
+serving SIM, registered network or Menu success.
+
+The qualified capture has460 snapshots/115s, no reader gaps, producer drops,
+reset, panic, first fault or save-queue fault. Hooks are observation-only and
+firmware checksum checking remains enabled. Source firmware is unchanged.
+
+The first traced boot and a subsequent original-ROM/no-observer control
+panicked after RF delivery, with recorder category prefixFILE: FI and reason
+00010001. The clean control has560 snapshots/no reader gaps. The prefix alone
+did not identify the source, so the native assertion was observed directly.
+
+A minimal97-word assertion-only installer omits every RF/exit/SIM/DOS hook and
+preserves the original assertion. It captures filename
+../../ENOS/CMT_SW/CONFIG/St_product.c, line0xDF2, callerLR516A629B, expression
+pResp_adsp->message_id == ST_ADSP_RUN_RESP. This is the native ADSP startup test
+expecting its response, not a newly guessed RF receive-IRQ fault. Its CPU-visible
+result array at that point is00000303000003000000000300000D030103030300030304:
+RF1E is already00; ADSP36 is still03 (pending/unfinished). Current data does not
+record the unexpected message's actual ID. The older November5 experiment
+found unrelated5902 delivery here; that is a lead, not proof of today's byte.
+
+This identifies the next observed blocker as the known unfinished native ADSP
+response path. It does not qualify a serving SIM, external DSP or reliable Phone
+boot. The successful115s RF capture had no panic; the ADSP assertion is therefore
+an intermittent outcome of the remaining startup path, not grounds to discard
+the positively observed RF result.
+
+Assertion observer tests cover original args/registers/flags/SP/ARM tailcall,
+bounded ROM strings, invalid pointers, immutable result reads and stack/debug-only
+writes. The fixture initially set SP before switching banked mode; corrected
+before installation. No production RTL, clock, timing constraint or card data
+changed. The minimal capture retained475 snapshots/no reader gaps, then its SSH
+connection timed out; a fresh authorized connection was established for cleanup.
+Missing tail data is not used for timing/absence claims.
+
+Normal reload removes all hooks; final original-ROM/card/settings verification
+is recorded in the evidence. Source firmware stays original, Run/save-Off is
+restored, and other-thread simulations and formatter setup files are untouched.
+
+[evidence/rf-board-qualification-2026-11-13.json](evidence/rf-board-qualification-2026-11-13.json)
+pins both captures, observed native boundaries and guard/readback receipts.
+Local raw logs, summary tool and assertion probe are under
+scratch/rf-board-qualification-20261113/.
+
+## Historical91045a6 defect and source fix
+
 On installed91045a6, the native RF request reaches MDI and is consumed, but the
 UPP DSP peer rejects its media byte12. The previous peer accepted only00.
 Allow12 alongside the existing00 profile, preserving F1/A0, length, destination,
 subtype and explicit revision03 checks. No state, RAM, queue or clock is added.
-This is a verified source fix; the installed FPGA still contains the defect.
+This was the pre-build source checkpoint; the646ac68 board qualification above
+now demonstrates the successful RF path.
 
 ## Qualified hardware observation
 
@@ -89,7 +161,5 @@ replacement/backup, RBF rebuild, CI monitoring, subagent or other-thread simulat
 was used. A first cleanup hash read preceded completed restore and safely failed;
 the later full verification passes.
 
-Next gate: build/deploy this actual HDL change, then qualify the original RF
-startup result on hardware with unchanged firmware/deadlines. SIM readiness and
-external D550 ADSP remain independent unfinished work. No installed RF fix or
-timing closure is claimed yet.
+The previously pending RF hardware gate now has a positive result above.
+SIM readiness and external D550 ADSP remain unfinished; the native ADSP assertion above remains an active boot blocker. No full-phone boot or timing closure is claimed.

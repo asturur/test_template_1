@@ -1,3 +1,35 @@
+## 2026-11-14: RF gate passed; later assertion is native ADSP response check
+
+646ac68/seed44 RBF is hash-matched to43514093456. NativeF1/A1 body20A10103 reaches
+515920D0 in~2.195ms after request; original startup1E=00 under unchanged500
+argument.115s/460-snapshot qualified RF capture has no gaps/reset/panic/fault.
+A clean original-ROM control also reproduces the later panic. Minimal native
+assertion-only probe identifies St_product.c lineDF2: pResp_adsp->message_id ==
+ST_ADSP_RUN_RESP, LR516A629B. CPU-visible array at assertion still hasRF1E=00,
+ADSP36=03/pending. This is the known unfinished ADSP response path, not proof
+of another RF defect. Actual unexpected message byte was not captured; old5902
+history is a lead only. Capture retains475 snapshots/no gaps before SSH timeout;
+reauthenticated for cleanup. No production HDL or disk/PLL change. Restore
+original88fd.../automatic Run/save-Off after hooks. SIM ready remains open.
+See docs/rf-native-media.md and rf-board-qualification-2026-11-13.json.
+
+## 2026-11-13: RF startup1E=00 verified on installed646ac68
+
+Installed RBF hash2399bb9e... matches completed43514093456/646ac68/seed44.
+Native request now reaches receiver515920D0 asF1A1/body20A10103; delivery~2.195ms
+including probes. Original timeout500 and registry remain unchanged. Native
+CPU-visible result array confirms1E=00, ADSP36=01; SIM remains non-serving5 and
+screen Insert SIM. Qualified115s capture:460 snapshots/no gaps/reset/panic/fault.
+First130s traced boot and a subsequent original-ROM clean control both
+panicked FILE: FI*/00010001 after RF delivery;
+no final RF result, no full filename/cause, not a successful qualification.
+A tested native assertion logger was added; full file/line capture is pending.
+RF success is not repeated-boot reliability.
+Removed all hooks for clean original-ROM control; preserve unchanged card data,
+automatic Run/save-Off,78MHz PLL/104MHz objective and other-thread simulations.
+No production HDL change/new build. Details: docs/rf-native-media.md and its
+rf-board-qualification-2026-11-13.json evidence.
+
 ## 2026-11-13: Native RF request loss reproduced; media12 accepted in HDL
 
 Qualified91045a6 capture: native1B/07 -> flags20 -> F1/A0, exact MDI packet

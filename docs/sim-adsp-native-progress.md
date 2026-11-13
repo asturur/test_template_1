@@ -1,3 +1,13 @@
+## 2026-11-14: RF passes on hardware; ADSP assertion identified
+
+Installed646ac68 nativeRF1E=00 is verified, with receiverF1/A1/body20A10103.
+Later original-firmware boot can assert St_product.c/0xDF2 because the native
+ADSP waiter expects ST_ADSP_RUN_RESP. Minimal assertion-only capture hasRF00,
+ADSP pending03; an earlier successful capture completed ADSP with failed01.
+The actual unexpected ID remains unmeasured. Older5902 cross-delivery evidence
+is a specific follow-up lead, not today's proved sender. SIM remains non-serving5.
+See [RF board evidence](rf-native-media.md) before repeating native startup work.
+
 ## 2026-11-13: donor-author checklist checked against native NOS
 
 The author's supplied explanation confirms state5/no-card can leave Startup
