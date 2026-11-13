@@ -1,0 +1,185 @@
+{
+  "six": {
+    "capture_sha256": "261bd067356e6cb9b4dad190e2bdd766d6bd437d67707be85db1df118e175a50",
+    "records": [
+      {
+        "uid": 0,
+        "type": 0,
+        "stored_name": " "
+      },
+      {
+        "uid": 1,
+        "type": 1,
+        "stored_name": " "
+      },
+      {
+        "uid": 2,
+        "type": 2,
+        "stored_name": " "
+      },
+      {
+        "uid": 3,
+        "type": 3,
+        "stored_name": " "
+      },
+      {
+        "uid": 4,
+        "type": 4,
+        "stored_name": " "
+      },
+      {
+        "uid": 5,
+        "type": 5,
+        "stored_name": " "
+      },
+      {
+        "uid": 0,
+        "type": 0,
+        "stored_name": " "
+      },
+      {
+        "uid": 1,
+        "type": 1,
+        "stored_name": " "
+      },
+      {
+        "uid": 2,
+        "type": 2,
+        "stored_name": " "
+      },
+      {
+        "uid": 3,
+        "type": 3,
+        "stored_name": " "
+      },
+      {
+        "uid": 4,
+        "type": 4,
+        "stored_name": " "
+      },
+      {
+        "uid": 5,
+        "type": 5,
+        "stored_name": " "
+      }
+    ],
+    "reader_gaps": 0,
+    "snapshots": 440
+  },
+  "five": {
+    "capture_sha256": "bded5988da384b94f15b39291ac4a9361f98314433e302aa2a720b126fc9671b",
+    "records": [
+      {
+        "uid": 0,
+        "type": 0,
+        "stored_name": " "
+      },
+      {
+        "uid": 1,
+        "type": 1,
+        "stored_name": " "
+      },
+      {
+        "uid": 2,
+        "type": 2,
+        "stored_name": " "
+      },
+      {
+        "uid": 3,
+        "type": 3,
+        "stored_name": " "
+      },
+      {
+        "uid": 4,
+        "type": 4,
+        "stored_name": " "
+      }
+    ],
+    "reader_gaps": 0,
+    "snapshots": 438
+  },
+  "resource": {
+    "source": "firmware/NEM-4 FW V 4.03 (Retail)/DRIVES/Z/System/Data/profileengine.r01",
+    "sha256": "22b9eefa21fcb6616c60da8cc2132f86c828a958d3fc23e8f4d32f7501fa51a6",
+    "names": [
+      {
+        "type": 0,
+        "name": "General",
+        "resource_byte_offset": 12
+      },
+      {
+        "type": 1,
+        "name": "Silent",
+        "resource_byte_offset": 26
+      },
+      {
+        "type": 2,
+        "name": "Meeting",
+        "resource_byte_offset": 38
+      },
+      {
+        "type": 3,
+        "name": "Outdoor",
+        "resource_byte_offset": 52
+      },
+      {
+        "type": 4,
+        "name": "Pager",
+        "resource_byte_offset": 66
+      },
+      {
+        "type": 5,
+        "name": "Offline",
+        "resource_byte_offset": 76
+      }
+    ]
+  },
+  "missing_row": {
+    "uid": 5,
+    "type": 5,
+    "display_name": "Offline"
+  },
+  "observer_sha256": "c054b7804532b01a7d1aab3868abe6dbce5a45607da15144a585ef35abcfb0ab",
+  "cpu_tests": "PASS actual ZAP, six-row iteration and ARM/Thumb ABI at waits0/3",
+  "card_files_changed": false,
+  "production_firmware_behavior_changed": false,
+  "limits": [
+    "These are stored profile types and localized display defaults, not proof every mode is exposed in the current UI",
+    "First-run creation speed remains a separate issue",
+    "The five-row board observation occurs after startup, not in the untouched raw seed",
+    "Initialized C bypasses the failure; no root-cause fix is qualified"
+  ],
+  "provenance": {
+    "untouched_seed": {
+      "path": "scratch/profile-root-cause-20261113/seed-files/files/system/Apps/profileApp/dbProfile.db",
+      "bytes": 2657,
+      "sha256": "f8dd4f987286135cb5615d502e4fc6ae9b969007d7fe6b113f1f482faca0c655",
+      "native_row_count": 1,
+      "types": [
+        0
+      ]
+    },
+    "factory_template": {
+      "path": "firmware/NEM-4 FW V 4.03 (Retail)/DRIVES/Z/System/Data/dbProfile.db",
+      "bytes": 3250,
+      "sha256": "b226e244c34f0bcefc2f0f33c2e3caa622d433c7448ebcf387e46095eccdcbb0",
+      "native_row_count": 5,
+      "types": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "first_boot": {
+      "seed_has_FirstBoot_dat": false,
+      "script": "firmware/NEM-4 FW V 4.03 (Retail)/DRIVES/Z/System/rfs/ScriptInit.txt",
+      "script_sha256": "7dcd09157419b2145e48e805c953e29716b5292bca942127e6e4424cd107662a",
+      "command": "CP Z:\\System\\Data\\dbProfile.db Apps\\profileApp\\dbProfile.db",
+      "query_log": "scratch/profile-root-cause-20261113/template-query/guest.log",
+      "private_staging_only": true,
+      "source_image_unchanged": true
+    }
+  }
+}

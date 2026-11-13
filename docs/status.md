@@ -1,3 +1,65 @@
+## 2026-11-13: Six-profile workaround authorized for next blockers
+
+User accepts initialized six-profile userdata as an explicit workaround while
+investigating later issues; native first-boot timeout remains unresolved. Reload
+uses existing card C4a75... (no new card write), original ROM/PMM and Run/save-Off,
+removing all volatile probes and AF5 data. Corrected native phase capture has559
+snapshots/no gaps: Delete succeeds, ReplaceL succeeds, SetTypeL returns, then
+ViewSrv11 kills Phone~15.35s after Count5/expected6 during remaining rebuild.
+NotFound on second Delete and AlreadyExists on MkDirAll are expected conditions.
+No production HDL fix yet. Next independent gates: PMM50/1/DSY USER21, native
+SIM-ready and RF/ADSP startup. See phone-profile-startup.md for exact scope.
+
+## 2026-11-13: Missing first-boot marker explains factory DB replacement
+
+Exact AF5 seed filesystem has no FirstBoot.dat. Original Nokia ScriptInit.txt
+contains CP Z:\System\Data\dbProfile.db Apps\profileApp\dbProfile.db. This
+explains rawGeneral1 becoming factory5 before Phone checks it. Disk conversion
+is byte-identical; no lost Offline row established. Need native first-boot/profile
+creation to finish within original deadlines and persist, not a replacement C.
+One phase probe misidentified RFsDelete as Copy and tried to print a nonexistent
+second descriptor; removed by reload, capture discarded. Export parser now
+verifies API signatures; corrected scalar-only observer passes actual ZAP
+wait0/3 tests. SD files unchanged. No production HDL fix yet.
+
+## 2026-11-13: Factory profile template itself contains five rows
+
+Read-only native filesystem/EDbms query of untouched AF5 seed finds one General
+row (2657-byte db, f8dd4f98...). Exact3250-byte Nokia ROM template b226e244...
+has five rows0..4, proved by staging/querying only a private local copy; native
+file operations all succeed, source and SD unchanged. Initialized DB has six.
+Therefore runtime5/expected6 is not proof of conversion damage; an earlier
+startup stage changes the seed and native initialization then misses the Phone
+deadline. Trace copy/create/commit stages, not another disk replacement.
+Linux-pinned Unicorn in existing offline container bypasses Mac SIGILL; HLE
+logical queries do not qualify physical flash timing. No HDL fix claimed yet.
+Details: [phone-profile-startup.md](phone-profile-startup.md).
+
+## 2026-11-13: Root-cause correction — disk replacement is only a workaround
+
+User explicitly requires understanding/fixing why native initialization leaves
+or recreates the five-row state; replacing C is not accepted as the fix. Do not
+mark this boot blocker solved from initialized-image success. Exact missing row
+is Offline (UID/type5), proved by native read-only iteration; the later old-data boot has0..4; untouched raw seed has only General. Current image remains initialized for comparison, but the
+required task is factory-template provenance, native creation timing/completion,
+and persistence through unmodified firmware. No further SD replacements/backups.
+Next check whether original ROM template itself contains five rows; if so,
+first-run initialization is normal and its failure/timeout is the actual bug.
+
+## 2026-11-13: Missing profile is Offline; image fix confirmed
+
+Read-only native ProfileLookup iteration proves old raw/converted C has
+UID/types0..4 (General, Silent, Meeting, Outdoor, Pager); initialized C also
+has5=Offline. Stored names are single-space defaults, resolved through original
+profileengine.r01. This is not a CPU profile, SIM identity or VHD-format loss.
+Native initialization creates all six plus related settings. Installed C
+already resolves this mismatch; first-run creation speed remains unqualified.
+Same observer915 records, actual ZAP ABI/row tests wait0/3 pass, no reader gaps.
+No SD changes/backups; restored original ROM and installed C with Run/save-Off.
+A fixed200ms freshness wait safely refused a comparison before writes; source
+now waits for an actual advancing snapshot up to3s. Refused attempt is not
+used as five-row evidence. Details: [phone-profile-startup.md](phone-profile-startup.md).
+
 ## 2026-11-13: Native Phone profile-rebuild timeout isolated
 
 Same minimal native probe: original C af5017dc... returns5 ProfileLookup rows

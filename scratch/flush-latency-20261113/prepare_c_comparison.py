@@ -21,7 +21,11 @@ try:
   pmm=hashlib.sha256(m[0x1800000:0x1810000]).hexdigest()
   assert pmm=='71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063'
   a=snapshot(m);assert held_fresh(a)
-  time.sleep(.2);b=snapshot(m);assert held_fresh(b) and a[2]!=b[2]
+  deadline=time.monotonic()+3
+  while True:
+   time.sleep(.1);b=snapshot(m);assert held_fresh(b)
+   if a[2]!=b[2]:break
+   assert time.monotonic()<deadline,'telemetry not advancing; no writes made'
   m[0x1400000:0x1800000]=data
   assert bytes(m[0x1400000:0x1800000])==data
   assert hashlib.sha256(m[:0x13f0000]).hexdigest()==rom

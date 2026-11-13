@@ -1,0 +1,132 @@
+{
+  "source_c_sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+  "card_files_changed": false,
+  "functional_firmware_substitutions": false,
+  "capture_sha256": "2d230b78e9689ea664c9aa8e181a23592be7c9fd12d160211d731f7a7d2c1ed3",
+  "snapshots": 559,
+  "reader_gaps": 0,
+  "operations": {
+    "1": "CountL",
+    "2": "RDbStoreDatabase::OpenL (void)",
+    "3": "CFileStore::OpenL",
+    "4": "RFs::Delete",
+    "5": "RFs::MkDirAll",
+    "6": "RFs::Volume",
+    "7": "CFileStore::ReplaceL",
+    "8": "CFileStore::SetTypeL (void)",
+    "9": "CStreamStore::CompactL"
+  },
+  "events": [
+    {
+      "seconds_from_first_text": 72.60396467948718,
+      "line": "P ENTER id=00000005 caller=50a13543 arg1=50a15848"
+    },
+    {
+      "seconds_from_first_text": 72.63670998717949,
+      "line": "P API id=00000005 rc=fffffff5 extra=ffffffff caller=50a13543"
+    },
+    {
+      "seconds_from_first_text": 72.68066408974359,
+      "line": "P ENTER id=00000006 caller=50a1360f arg1=0040470c"
+    },
+    {
+      "seconds_from_first_text": 72.69812319230769,
+      "line": "P API id=00000006 rc=00000000 extra=ffffffff caller=50a1360f"
+    },
+    {
+      "seconds_from_first_text": 72.69909323076924,
+      "line": "P ENTER id=00000003 caller=50a13729 arg1=004042e4"
+    },
+    {
+      "seconds_from_first_text": 72.77373158974359,
+      "line": "P API id=00000003 rc=0042948c extra=ffffffff caller=50a13729"
+    },
+    {
+      "seconds_from_first_text": 72.7746773974359,
+      "line": "P ENTER id=00000009 caller=50a1372f arg1=004042e4"
+    },
+    {
+      "seconds_from_first_text": 72.82321378205128,
+      "line": "P API id=00000009 rc=00000000 extra=ffffffff caller=50a1372f"
+    },
+    {
+      "seconds_from_first_text": 72.8241618076923,
+      "line": "P ENTER id=00000002 caller=50a13739 arg1=0042948c"
+    },
+    {
+      "seconds_from_first_text": 72.88370465384615,
+      "line": "P API id=00000002 rc=511bc0ec extra=ffffffff caller=50a13739"
+    },
+    {
+      "seconds_from_first_text": 72.89315123076923,
+      "line": "P ENTER id=00000001 caller=50a13501 arg1=00000000"
+    },
+    {
+      "seconds_from_first_text": 72.89412,
+      "line": "P API id=00000001 rc=00000005 extra=00000006 caller=50a13501"
+    },
+    {
+      "seconds_from_first_text": 72.9293212948718,
+      "line": "P ENTER id=00000004 caller=50a11b93 arg1=004049c8"
+    },
+    {
+      "seconds_from_first_text": 72.97924753846154,
+      "line": "P API id=00000004 rc=00000000 extra=ffffffff caller=50a11b93"
+    },
+    {
+      "seconds_from_first_text": 72.98029856410257,
+      "line": "P ENTER id=00000005 caller=50a13543 arg1=50a15848"
+    },
+    {
+      "seconds_from_first_text": 73.00796496153846,
+      "line": "P API id=00000005 rc=fffffff5 extra=ffffffff caller=50a13543"
+    },
+    {
+      "seconds_from_first_text": 73.04178526923077,
+      "line": "P ENTER id=00000004 caller=50a1359d arg1=004042e4"
+    },
+    {
+      "seconds_from_first_text": 73.05942292307692,
+      "line": "P API id=00000004 rc=ffffffff extra=ffffffff caller=50a1359d"
+    },
+    {
+      "seconds_from_first_text": 73.10373248717949,
+      "line": "P ENTER id=00000006 caller=50a1360f arg1=0040470c"
+    },
+    {
+      "seconds_from_first_text": 73.11447224358974,
+      "line": "P API id=00000006 rc=00000000 extra=ffffffff caller=50a1360f"
+    },
+    {
+      "seconds_from_first_text": 73.22080951282051,
+      "line": "P ENTER id=00000007 caller=50a13659 arg1=004042e4"
+    },
+    {
+      "seconds_from_first_text": 73.38682705128205,
+      "line": "P API id=00000007 rc=00414bdc extra=ffffffff caller=50a13659"
+    },
+    {
+      "seconds_from_first_text": 73.38778882051282,
+      "line": "P ENTER id=00000008 caller=50a136a1 arg1=004044ec"
+    },
+    {
+      "seconds_from_first_text": 73.39247370512821,
+      "line": "P API id=00000008 rc=511bc3e8 extra=ffffffff caller=50a136a1"
+    },
+    {
+      "seconds_from_first_text": 88.23574237179487,
+      "line": "X VIEW_TARGET Phone[100058b3]0003::Phone"
+    },
+    {
+      "seconds_from_first_text": 88.2422465,
+      "line": "X THREAD_PANIC a0=0041d468 a1=00701e78 a2=0000000b lr=5064dd55 sp=00701e78 cpsr=00000010 r6=0000000b"
+    }
+  ],
+  "observed": "Count5/expected6; deletion succeeds; native replacement/store initialization proceeds; ViewSrv11 kills Phone about15.35s after Count. SetTypeL returns; later native database work is incomplete when killed.",
+  "limits": [
+    "No general file-error or permanently lost IRQ demonstrated",
+    "The trace does not yet identify which CPU/driver cost prevents completing the rebuild",
+    "Do not decode incidental r0 of void APIs as errors",
+    "First phase attempt had a bad diagnostic descriptor and is discarded"
+  ]
+}

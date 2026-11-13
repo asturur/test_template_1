@@ -1,3 +1,46 @@
+## 2026-11-13 controlled workaround approved
+
+Use the already-installed initialized six-profile C to expose later blockers.
+Do not mark native first boot solved: corrected phase trace shows successful
+deletion/replacement, then Phone/ViewSrv11 during unfinished DB initialization.
+No VHD conversion loss is demonstrated. Keep original deadlines/firmware and
+investigate PMM/DSY, native SIM and external startup independently.
+
+## 2026-11-13 profile initialization investigation correction
+
+Nokia's exact ROM template itself contains five rows; original AF5 raw seed
+contains one General row; later old-data hardware boot sees five. Preinitialized
+six-row C is a workaround, not the required fix. Native database queries and
+filesystem extraction isolate provenance without SD changes. Next trace native
+copy/create/commit/deadline completion and fix the actual core behavior.
+See docs/phone-profile-startup.md and scratch/profile-root-cause-20261113/.
+
+### 2026-11-13: Root-cause correction — disk replacement is only a workaround
+
+User explicitly requires understanding/fixing why native initialization leaves
+or recreates the five-row state; replacing C is not accepted as the fix. Do not
+mark this boot blocker solved from initialized-image success. Exact missing row
+is Offline (UID/type5), proved by native read-only iteration; original raw seed
+already has only0..4. Current image remains initialized for comparison, but the
+required task is factory-template provenance, native creation timing/completion,
+and persistence through unmodified firmware. No further SD replacements/backups.
+Next check whether original ROM template itself contains five rows; if so,
+first-run initialization is normal and its failure/timeout is the actual bug.
+
+### 2026-11-13: Missing profile is Offline; image fix confirmed
+
+Read-only native ProfileLookup iteration proves old raw/converted C has
+UID/types0..4 (General, Silent, Meeting, Outdoor, Pager); initialized C also
+has5=Offline. Stored names are single-space defaults, resolved through original
+profileengine.r01. This is not a CPU profile, SIM identity or VHD-format loss.
+Native initialization creates all six plus related settings. Installed C
+already resolves this mismatch; first-run creation speed remains unqualified.
+Same observer915 records, actual ZAP ABI/row tests wait0/3 pass, no reader gaps.
+No SD changes/backups; restored original ROM and installed C with Run/save-Off.
+A fixed200ms freshness wait safely refused a comparison before writes; source
+now waits for an actual advancing snapshot up to3s. Refused attempt is not
+used as five-row evidence. Details: [phone-profile-startup.md](phone-profile-startup.md).
+
 ### 2026-11-13: Native Phone profile-rebuild timeout isolated
 
 Same minimal native probe: original C af5017dc... returns5 ProfileLookup rows
