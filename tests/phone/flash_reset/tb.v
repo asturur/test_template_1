@@ -8,10 +8,11 @@ module ngage_cpu #(parameter LINE_REFILL=0)(
  assign debug_pc=0;assign debug_cpsr=0;assign debug_instruction=0;assign debug_fetch=0;
  assign wb_code=1'b0;assign wb_cycle_type=0;assign wb_burst_type=0;
 endmodule
+// Flash-only fixture: no DMA/MMC host or endpoint stimulus is supplied.
 module tb;
  reg clk=0,reset=1,cold=1;always #5 clk=~clk;
  wire init_done;wire [31:0] da;wire dr,dw;reg accepted=0,done=0;integer accepts=0;
- ngage_mister #(.DIRECT_SDRAM(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
+ ngage_mister #(.DIRECT_SDRAM(0),.DMA_LOCAL(0),.GENERAL_DMA(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
  .sdram_dout(32'b0),.sdram_ack(1'b0),.ddram_addr(da),.ddram_rd(dr),.ddram_wr(dw),.ddram_dout(32'hdeadbeef),.ddram_dout_ready(done),.ddram_accept((dr||dw)&&!accepted),.keys(27'b0));
  always @(posedge clk)if((dr||dw)&&!accepted)begin accepted<=1;accepts<=accepts+1;end
  task tick;begin @(posedge clk);#1;end endtask

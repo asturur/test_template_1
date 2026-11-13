@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [pmm-native-flash.md](pmm-native-flash.md) | Native PMM erase/status/program-tail controller fix, exact original-driver CPU tests and reset/dirty integration |
 | [phone-profile-startup.md](phone-profile-startup.md) | Native profile count5 versus6 causes recreation/Phone timeout; C-only initialized-data control, original-ROM Phone progress and reader gaps |
 | [menu-blocker-map.md](menu-blocker-map.md) | Consolidated Phone/ViewSrv, EStor wait, PMM/DSY panic, SIM and self-test evidence; standalone software observer |
 | [lcd-pair-order.md](lcd-pair-order.md) | Shared low-first scanout correction, independent natural-coordinate oracle and CRT/HDMI source tests |

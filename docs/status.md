@@ -1,3 +1,21 @@
+## 2026-11-13: Native PMM flash erase/status/program-tail fixed
+
+Unchanged original NOS drivers reproduce two controller failures on HEAD4bcc593:
+Intel erase rejects20; AMD program-only writes its data then rejects trailing20.
+Added bounded PMM-only Intel20/D0/status70 and AMD erase, plus correct program
+completion-tail handling. Both original erase routines, actual delay/status code
+and AMD programmer pass on ZAP waits0/3=58,983/105,167 clocks. Entire8192-byte
+reference matches decoded original service firmware88fd..., not a patched stub.
+All-sector/lane/protection/dirty/reset tests pass in Verilog2001. Integrated
+DDR arbiter/adapter/tracker PMM erase drains across phone reset,4096 writes and
+32 dirty events. Warm/cold/program/C-erase and DDR-cache regressions pass.
+Flash-only reset fixtures explicitly disable undriven DMA/MMC routes; baseline
+HEAD reproduced their prior X/timeout. No new RAM/queue or ordinary pipeline
+stage;11 source state bits before pruning,12-bit local erase increment. PLL78MHz,
+104MHz objective; fit/STA and board qualification pending. This does not prove
+why PMM50/1 was absent or claim Menu boot fixed. Board media/firmware unchanged.
+See [pmm-native-flash.md](pmm-native-flash.md).
+
 ## 2026-11-13: Six-profile workaround authorized for next blockers
 
 User accepts initialized six-profile userdata as an explicit workaround while

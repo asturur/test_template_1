@@ -31,17 +31,18 @@ module ngage_codeflash #(
     output wire        idle
 );
     localparam IDLE       = 0, ISSUE = 1, WAIT_MEM = 2;
-    localparam READ_ARRAY = 0, PROGRAM_READ = 1, PROGRAM_WRITE = 2;
+    localparam READ_ARRAY = 0, PROGRAM_READ = 1, PROGRAM_WRITE = 2, ERASE_WRITE = 3;
     reg [1:0] state = IDLE, operation = READ_ARRAY;
     // Separate state owner for each logical die. Mapping logical selects to
     // schematic references D310/D311/D313 still requires independent proof.
-    wire [2:0] identify, sr_mode, intel_program, lock_mode;
+    wire [2:0] identify, sr_mode, intel_program, lock_mode, erase_armed, amd_erase, amd_program_tail;
     wire [1:0] unlock[0:2], lock_bank[0:2];
-    wire [7:0] die_state[0:2];
-    reg  [7:0] die_next;
-    reg  [1:0] chip = 0;
+    wire [10:0] die_state[0:2];
+    reg  [10:0] die_next;
+    reg  [ 1:0] chip = 0;
     reg [31:0] saved_address = 0, saved_data = 0;
     reg [3:0] saved_be = 0;
+    reg [1:0] intel_erase_block = 0;
     wire [31:0] aligned = {req_address[31:2], 2'b00};
     wire [31:0] half_address = aligned + (req_be == 12 ? 2 : 0);
     wire half_ok = req_be == 3 || req_be == 12;
@@ -66,12 +67,15 @@ module ngage_codeflash #(
                 .next_state(die_next),
                 .state     (die_state[die])
             );
-            assign identify[die]      = die_state[die][0];
-            assign sr_mode[die]       = die_state[die][1];
-            assign intel_program[die] = die_state[die][2];
-            assign lock_mode[die]     = die_state[die][3];
-            assign unlock[die]        = die_state[die][5:4];
-            assign lock_bank[die]     = die_state[die][7:6];
+            assign identify[die]         = die_state[die][0];
+            assign sr_mode[die]          = die_state[die][1];
+            assign intel_program[die]    = die_state[die][2];
+            assign lock_mode[die]        = die_state[die][3];
+            assign unlock[die]           = die_state[die][5:4];
+            assign lock_bank[die]        = die_state[die][7:6];
+            assign erase_armed[die]      = die_state[die][8];
+            assign amd_erase[die]        = die_state[die][9];
+            assign amd_program_tail[die] = die_state[die][10];
         end
     endgenerate
     ngage_rom_map mapper (
@@ -82,6 +86,14 @@ module ngage_codeflash #(
         cdrive_hit,
         pmm_map
     );
+    // PMM consists of four 16KiB boot sectors. Only this writable window may
+    // be erased; immutable firmware and the neighboring sectors stay intact.
+    wire erase_confirm = pmm_hit && erase_armed[target] &&
+        ((amd_erase[target] && unlock[target] == 2 && value == 16'h30) ||
+         (!amd_erase[target] && value == 16'hd0 &&
+          half_address[15:14] == intel_erase_block));
+    wire erase_last = &mem_addr[13:2];
+    wire erase_sector_last = &mem_addr[8:2];
     wire [31:0] decoded;
     ngage_flash_read_decode dec (
         saved_address,
@@ -90,11 +102,11 @@ module ngage_codeflash #(
         1'b1,
         decoded
     );
-    assign array_mode = ~(identify | sr_mode | intel_program | lock_mode |
+    assign array_mode = ~(identify | sr_mode | intel_program | lock_mode | erase_armed |
                           {(|unlock[2]),(|unlock[1]),(|unlock[0])});
     assign idle = (state == IDLE);
     assign pending = (state != IDLE) || intel_program[0] || intel_program[1] || intel_program[2] ||
-        unlock[0] != 0 || unlock[1] != 0 || unlock[2] != 0;
+        (|erase_armed) || unlock[0] != 0 || unlock[1] != 0 || unlock[2] != 0;
     assign req_ready = state == IDLE && !reset;
     assign mem_valid = state == ISSUE;
     function automatic [31:0] mask32(input [3:0] be);
@@ -125,15 +137,30 @@ module ngage_codeflash #(
         die_next = die_state[target];
         if (die_update) begin
             if (unlock[target] == 3 || intel_program[target]) begin
+                die_next[10]  = unlock[target] == 3;
                 die_next[5:4] = 0;
                 die_next[2]   = 0;
                 if (pmm_hit && intel_program[target]) die_next[1] = 1;
-            end else if (value == 16'hff || value == 16'hf0) begin
-                die_next[0]   = 0;
-                die_next[1]   = 0;
-                die_next[2]   = 0;
-                die_next[3]   = 0;
+            end else if (erase_confirm) begin
+                die_next[8]   = 0;
+                die_next[9]   = 0;
                 die_next[5:4] = 0;
+                die_next[1]   = !amd_erase[target];
+            end else if (value == 16'hff || value == 16'hf0) begin
+                die_next[0]    = 0;
+                die_next[1]    = 0;
+                die_next[2]    = 0;
+                die_next[3]    = 0;
+                die_next[5:4]  = 0;
+                die_next[10:8] = 0;
+            end else if (value == 16'h70) die_next[1] = 1;
+            else if (value == 16'h20 && amd_program_tail[target]) begin
+                // Original AMD program routine5167F094 ends with20. It is
+                // a read-access tail, not the start of an Intel block erase.
+                die_next[10] = 0;
+            end else if (pmm_hit && value == 16'h20 && unlock[target] == 0) begin
+                die_next[8] = 1;
+                die_next[9] = 0;
             end else if (value == 16'h40) die_next[2] = 1;
             else if (value == 16'h50) die_next[1] = 0;
             else if (value == 16'h60) begin
@@ -144,6 +171,11 @@ module ngage_codeflash #(
             else if (unlock[target] == 1 && (chip_offset & 32'h7ff) == 32'h554 && value == 16'h55)
                 die_next[5:4] = 2;
             else if (unlock[target] == 2 && (chip_offset & 32'h7ff) == 32'h2aa &&
+                     value == 16'h80) begin
+                die_next[8]   = 1;
+                die_next[9]   = 1;
+                die_next[5:4] = 0;
+            end else if (unlock[target] == 2 && (chip_offset & 32'h7ff) == 32'h2aa &&
                      value == 16'h90) begin
                 die_next[0]   = 1;
                 die_next[5:4] = 0;
@@ -191,6 +223,26 @@ module ngage_codeflash #(
                                 operation     <= PROGRAM_READ;
                                 state         <= ISSUE;
                             end
+                        end else if (erase_confirm) begin
+                            // Transaction-level shortcut: hold the confirmation
+                            // response until all acknowledged DDR writes finish.
+                            // No physical erase/suspend timing is claimed.
+                            mem_addr  <= BASE + 32'h01800000 + {16'b0, half_address[15:14], 14'b0};
+                            mem_data  <= 32'hffffffff;
+                            mem_be    <= 4'hf;
+                            mem_write <= 1;
+                            operation <= ERASE_WRITE;
+                            state     <= ISSUE;
+                        end else if (value == 16'h20 && amd_program_tail[target]) begin
+                            rsp_valid <= 1;
+                        end else if (pmm_hit && value == 16'h20 && unlock[target] == 0) begin
+                            intel_erase_block <= half_address[15:14];
+                            rsp_valid         <= 1;
+                        end else if (value == 16'h70) begin
+                            rsp_valid <= 1;
+                        end else if (unlock[target] == 2 &&
+                                     (chip_offset & 32'h7ff) == 32'h2aa && value == 16'h80) begin
+                            rsp_valid <= 1;
                         end else if (value == 16'hff || value == 16'hf0) begin
                             rsp_valid <= 1;
                         end else if (value == 16'h40) begin
@@ -269,6 +321,20 @@ module ngage_codeflash #(
                             mem_be    <= saved_be;
                             operation <= PROGRAM_WRITE;
                             state     <= ISSUE;
+                        end
+                    end else if (operation == ERASE_WRITE) begin
+                        // One mark per completed 512-byte sector, not per word.
+                        // Keep draining an accepted erase across phone reset.
+                        if (erase_sector_last) begin
+                            dirty_valid  <= 1;
+                            dirty_sector <= 14'd8192 + {7'b0, mem_addr[15:9]};
+                        end
+                        if (erase_last) begin
+                            rsp_valid <= 1;
+                            state     <= IDLE;
+                        end else begin
+                            mem_addr <= {mem_addr[31:14], mem_addr[13:2] + 12'd1, 2'b0};
+                            state    <= ISSUE;
                         end
                     end else begin
                         dirty_valid  <= 1;

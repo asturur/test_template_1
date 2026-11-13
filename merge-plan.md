@@ -1,3 +1,15 @@
+## 2026-11-13 native PMM flash repair
+
+Implemented missing Intel erase/status, AMD sector erase and original AMD
+program-tail command handling in the production DDR-backed NOR controller.
+Unchanged original-service driver bytes pass actual CPU waits0/3; all-sector,
+protected firmware, dirty-sector ownership, reset/cold and actual shared-DDR
+integration checks pass. Adds11 source state bits/no RAM or queue; ordinary
+read/program latency unchanged,12-bit erase address increment. New fit/RBF
+qualification is required;78MHz PLL/104MHz design objective retained. Missing
+PMM50/1 provisioning and complete native SIM/RF/ADSP startup remain open.
+Details/evidence: docs/pmm-native-flash.md.
+
 ## 2026-11-13 controlled workaround approved
 
 Use the already-installed initialized six-profile C to expose later blockers.

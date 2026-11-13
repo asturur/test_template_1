@@ -1,0 +1,82 @@
+{
+  "reference": {
+    "source": "firmware/THC N-Gage ROM Dump/ngage-gsmstuff-0x5149D280.dll",
+    "source_sha256": "e5870e918c90d9c7a6403eb0ee305d174e906aeae0a7fa8069e85a18aeec7aa1",
+    "base": "0x5167e000",
+    "bytes": 8192,
+    "native_erase": "0x5167ef28",
+    "native_poll": "0x5167f020",
+    "native_amd_erase": "0x5167f1c4",
+    "native_amd_program": "0x5167f094",
+    "fixture": "chip0 base0, delay calibration104; no driver helper stubs",
+    "modified_guest_instructions": false,
+    "original_service_backing_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "physical_rom_offset": "0x27e000",
+    "verified_original_bytes": 8192
+  },
+  "baseline_defects": [
+    {
+      "operation": "Intel erase",
+      "failure": "Original NOS command rejected addr=007f4000 data=00200020 PC=5167ef4e; untouched HEAD controller",
+      "reference_head": "4bcc593e1ae4c52d98642c98eb9af11f83fc8b76"
+    },
+    {
+      "operation": "AMD program tail",
+      "failure": "[6495000] %Fatal: program-only.v:49: Assertion failed in baseline_tb: original NOS command rejected addr=007f4000 data=00200020 PC=5167f1b6",
+      "reference_head": "4bcc593e1ae4c52d98642c98eb9af11f83fc8b76"
+    }
+  ],
+  "checks": {
+    "native-qualified.log": {
+      "sha256": "2036f8bc65f1fdcb1d789015a46af5b38e0a7a103706f928ebb0d9bfa4643c47",
+      "pass_lines": [
+        "PASS original NOS Intel/AMD erase and AMD program on ZAP, exact2x16KiB preservation,erase64/program1 marks, wait0 cycles58983",
+        "PASS original NOS Intel/AMD erase and AMD program on ZAP, exact2x16KiB preservation,erase64/program1 marks, wait3 cycles105167"
+      ]
+    },
+    "directed-verilog2001.log": {
+      "sha256": "54b908e0b84ed321868acf94df4de3a84fb9a2402807cd0441089b3453589f47",
+      "pass_lines": [
+        "PASS code-flash identification, bank scope, PMM program and NOR AND",
+        "PASS PMM Intel/AMD erase,all sectors,lanes,protection,dirty marks,reset drain/cancel wait0",
+        "PASS PMM Intel/AMD erase,all sectors,lanes,protection,dirty marks,reset drain/cancel wait3"
+      ]
+    },
+    "reset-pmm-erase.log": {
+      "sha256": "c8718af6b47eaa0779c1699ba2611ca31693d13ba3c26326589ff8d46971ac2a",
+      "pass_lines": [
+        "PASS reset drains old flash response before restarted request (code, C, PMM, response collision)",
+        "PASS cold reset drains actual DDR adapter and restarts flash request",
+        "PASS integrated C/PMM program and erase reset, DDR drain and dirty tracking"
+      ]
+    },
+    "cache-qualified.log": {
+      "sha256": "3dd86799ebc03bf6c9d3d295f2f50707da66c95c0f24122d1ba1efec430cf4bd",
+      "pass_lines": [
+        "PASS D2 flash cache 1939 ordered transactions",
+        "PASS D2 flash cache 1939 ordered transactions",
+        "PASS D2 flash cache 1940 ordered transactions",
+        "PASS D2 flash cache 1940 ordered transactions",
+        "PASS D2 flash cache 1940 ordered transactions",
+        "PASS D2 flash cache 1940 ordered transactions"
+      ]
+    },
+    "reset-pmm-qualified.log": {
+      "sha256": "c8718af6b47eaa0779c1699ba2611ca31693d13ba3c26326589ff8d46971ac2a",
+      "pass_lines": [
+        "PASS reset drains old flash response before restarted request (code, C, PMM, response collision)",
+        "PASS cold reset drains actual DDR adapter and restarts flash request",
+        "PASS integrated C/PMM program and erase reset, DDR drain and dirty tracking"
+      ]
+    }
+  },
+  "limits": [
+    "Does not prove cause of initial PMM50/1 absence",
+    "New RBF and native board boot qualification pending",
+    "Confirmation waits for acknowledged erase writes; electrical busy/suspend timing unmodeled",
+    "Operating PLL78MHz;104MHz objective, no STA result"
+  ],
+  "source_state_bits_added_before_pruning": 11,
+  "new_bram": 0,
+  "ordinary_read_program_pipeline_stages_added": 0
+}

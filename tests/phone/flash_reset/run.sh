@@ -22,4 +22,4 @@ grep -q '^PASS cold reset drains' build/sim/unit-flash-reset/cold.log
 iverilog -g2012 -s tb -o build/sim/unit-flash-reset/writes -f build/sim/unit-flash-reset/common.f tests/phone/flash_reset/write_tb.v
 vvp build/sim/unit-flash-reset/writes > build/sim/unit-flash-reset/writes.log
 cat build/sim/unit-flash-reset/writes.log
-grep -q '^PASS integrated C, PMM and erase reset writes' build/sim/unit-flash-reset/writes.log
+grep -q '^PASS integrated C/PMM program and erase reset' build/sim/unit-flash-reset/writes.log

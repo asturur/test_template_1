@@ -8,11 +8,12 @@ module ngage_cpu #(parameter LINE_REFILL=0)(
  assign debug_pc=0;assign debug_cpsr=0;assign debug_instruction=0;assign debug_fetch=0;
  assign wb_code=1'b0;assign wb_cycle_type=0;assign wb_burst_type=0;
 endmodule
+// Flash-only fixture: no DMA/MMC host or endpoint stimulus is supplied.
 module tb;
 reg clk=0,reset=1,cold=1;always #5 clk=~clk;
 wire init_done;wire [31:0] da,wd,back;wire [3:0] be;wire dr,dw,accept,done;
 wire [28:0] phyaddr;wire [63:0] phydata;wire [7:0] phybe;wire phyrd,phywr;reg phyready=0;reg [63:0] read_data=64'hfeedbeefdeadbeef;integer reads=0;
-ngage_mister #(.DIRECT_SDRAM(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
+ngage_mister #(.DIRECT_SDRAM(0),.DMA_LOCAL(0),.GENERAL_DMA(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
  .sdram_dout(32'b0),.sdram_ack(1'b0),.ddram_addr(da),.ddram_din(wd),.ddram_be(be),.ddram_rd(dr),.ddram_wr(dw),
  .ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.keys(27'b0));
 ngage_ddr_adapter adapter(.clk(clk),.reset(cold),.req_valid(dr||dw),.req_ready(accept),.req_write(dw),.req_addr(da),.req_wdata(wd),.req_be(be),

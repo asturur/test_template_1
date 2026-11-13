@@ -8,13 +8,14 @@ module ngage_cpu #(parameter LINE_REFILL=0)(
  assign debug_pc=0;assign debug_cpsr=0;assign debug_instruction=0;assign debug_fetch=0;
  assign wb_code=1'b0;assign wb_cycle_type=0;assign wb_burst_type=0;
 endmodule
+// Flash-only fixture: no DMA/MMC host or endpoint stimulus is supplied.
 module tb;
 reg clk=0,reset=1,cold=1;always #5 clk=~clk;
 wire init_done;wire [31:0] da,wd,back;wire [3:0] be;wire dr,dw,accept,done,dirty;wire [13:0] sector;
 wire rv,rr,rw,rsp;wire [31:0] ra,rd,rdata;wire [3:0] rb;
 wire [28:0] pa;wire [63:0] pd;wire [7:0] pb;wire pr,pw;reg busy=0,ready=0;reg [63:0] mem=64'hffffffffffffffff;integer writes=0,dirty_count=0;reg [13:0] last_dirty=0;
 wire tracker_init,sector_valid;wire [13:0] sector_index;reg flush=0,sector_accept=0,sector_done=0;
-ngage_mister #(.DIRECT_SDRAM(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
+ngage_mister #(.DIRECT_SDRAM(0),.DMA_LOCAL(0),.GENERAL_DMA(0)) dut(.clk_sys(clk),.reset(reset),.cold_reset(cold),.debug_freeze_trace(1'b0),.sim_present(1'b0),.board_init_done(init_done),
  .sdram_dout(32'b0),.sdram_ack(1'b0),.ddram_addr(da),.ddram_din(wd),.ddram_be(be),.ddram_rd(dr),.ddram_wr(dw),
  .ddram_dout(back),.ddram_dout_ready(done),.ddram_accept(accept),.flash_dirty(dirty),.flash_dirty_sector(sector),.keys(27'b0));
 ngage_ddr_arbiter arb(.clk(clk),.reset(cold),.cpu_lock(1'b0),.l_valid(1'b0),.l_addr(32'b0),.l_data(32'b0),.l_be(4'b0),.l_write(1'b0),
@@ -76,7 +77,18 @@ initial begin
  if(mem!==64'hffffffffffffffff || dirty_count!=3 || writes!=3)$fatal(1,"cold reset failed to cancel uncommitted DDR write");
  @(negedge clk);reset=0;cpu_cmd(32'h007f0010,16'h40);start_program(32'h007f0010,16'h4567);
  if(mem[15:0]!==16'h4567 || dirty_count!=4)$fatal(1,"program did not recover after cold reset");
- $display("PASS integrated C, PMM and erase reset writes, DDR drain and dirty tracking");$finish;
+ // PMM erase confirmation must also drain through the actual shared DDR
+ // arbiter/adapter after a phone reset, retaining all32 sector dirty events.
+ cpu_cmd(32'h007fc000,16'h20);
+ @(negedge clk);dut.board.upp.cpu_inside.cpu.wb_cyc=1;dut.board.upp.cpu_inside.cpu.wb_stb=1;dut.board.upp.cpu_inside.cpu.wb_write=1;
+ dut.board.upp.cpu_inside.cpu.wb_address=32'h007fc000;dut.board.upp.cpu_inside.cpu.wb_byte_enable=3;dut.board.upp.cpu_inside.cpu.wb_write_data=32'hd0;
+ wait(dw);busy=1;wait(accept);tick();
+ @(negedge clk);reset=1;dut.board.upp.cpu_inside.cpu.wb_cyc=0;dut.board.upp.cpu_inside.cpu.wb_stb=0;tick();
+ @(negedge clk);reset=0;repeat(3)tick();if(!dut.core_reset)$fatal(1,"PMM erase released CPU before DDR drain");
+ @(negedge clk);busy=0;wait(!dut.core_reset);repeat(2)tick();
+ if(mem!==64'hffffffffffffffff||dirty_count!=36||writes!=4100||last_dirty!=8319)
+  $fatal(1,"PMM erase/reset mismatch mem%h dirty%0d writes%0d last%0d",mem,dirty_count,writes,last_dirty);
+ $display("PASS integrated C/PMM program and erase reset, DDR drain and dirty tracking");$finish;
 end
 initial begin #10000000;$fatal(1,"write reset timeout");end
 endmodule
