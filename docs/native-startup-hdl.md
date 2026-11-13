@@ -296,3 +296,26 @@ EUART is now selected and connected through the board byte interface. Actual
 CPU FIQ26 with unchanged TX/RX/HAL/poll and simultaneous SIM/UART registered
 ownership tests pass. External D550 peer remains explicitly inactive; this is
 not an unpatched boot fix. [Scope/results](euart-production-integration.md).
+
+
+## Native RF media rejection recovered on hardware (2026-11-13)
+
+The full native send chain is now observed on installed91045a6: startup1B/07,
+INFO flags20, resourceF1, MDI frame127c00f10006012420a00255. Native ring consumption
+completes, but D2M never publishes a version reply and receiver515920D0 is not
+called. The peer's media00-only guard rejects native12. Accept12 alongside00;
+keep revision03, supported subtype/resource/length and endpoint rules unchanged.
+The padding55 is untouched allocator data and is not required to be zero.
+
+Exact-packet Verilator/native CPU driver reproduction fails on old peer and
+passes at waits0/3=4913/7367 clocks with the fix. Peer/ring and board/CPU regressions
+pass; original receiver/builder/client checks still accept03 and reject04.
+No added storage/queue/clock. This is source qualification, not an installed RF
+or complete startup fix; a new RBF and original-deadline hardware retest remain.
+
+The authoritative380-snapshot capture has no reader gaps/reset/panic/fault.
+RF result is01 in that diagnostic boot versus earlier0D; keep those native upper
+failure paths distinct. Invalid earlier observer branch/mapping attempts were
+removed and discarded. All hooks are removed, original firmware88fd.../Run/save-Off
+and unchanged media verified. See [rf-native-media.md](rf-native-media.md) for
+receipts, exact scope, diagnostic failures and next gate.

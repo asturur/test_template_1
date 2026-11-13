@@ -61,7 +61,9 @@ module ngage_upp_dsp_peer #(
                 if (received < 11) header[received] <= rx_data;
                 if (rx_last) begin
                     received <= 0;
-                    if (received == 11 && header[0] == 0 &&
+                    // The native MDI task emits media12. Media00 remains
+                    // supported for the existing transport-level fixtures.
+                    if (received == 11 && (header[0] == 8'h12 || header[0] == 0) &&
                         (header[1] & 8'hfc) == 8'h7c && header[3] == 8'hf1 &&
                         header[4] == 0 && header[5] == 6 && header[9] == 8'ha0 &&
                         ((header[8] == 8'h20 && header[10] == 2) ||

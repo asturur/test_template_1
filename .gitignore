@@ -48,6 +48,12 @@ c5_pin_model_dump.txt
 !/scratch/simif-investigation/
 /scratch/simif-board/__pycache__/
 /scratch/simif-investigation/__pycache__/
+!/scratch/rf-timeout-20261113/
+/scratch/rf-timeout-20261113/*
+!/scratch/rf-timeout-20261113/README.md
+!/scratch/rf-timeout-20261113/trace.S
+!/scratch/rf-timeout-20261113/build_probe.py
+!/scratch/rf-timeout-20261113/run.sh
 /scratch/current-boot/__pycache__/
 
 # Local firmware dumps and extracted phone data

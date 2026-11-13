@@ -1,0 +1,131 @@
+{
+  "date": "2026-11-13",
+  "baseline_commit": "edc4c2f",
+  "installed_rbf_commit": "91045a64fb035eaf16e84e3f9f0e03b7cd6bdadd",
+  "installed_rbf_sha256": "c14825461fb74e01d39eeb7436b2233856d9a29644eaca1ed5b5bbbb61e56f28",
+  "capture": "scratch/rf-timeout-20261113/mapped.jsonl",
+  "capture_sha256": "a87f68616cbba8125e4cd54449af3114300c9b2f052b14ca12f54887c0b80858",
+  "snapshots": 380,
+  "reader_gaps": 0,
+  "reset_generations": [
+    0
+  ],
+  "panic_valid_masks": [
+    0
+  ],
+  "first_fault_reasons": [
+    0
+  ],
+  "queue_faults": false,
+  "producer_drops": [
+    {
+      "type": "producer_drops",
+      "total": 0
+    }
+  ],
+  "observer_apply": {
+    "records": 1123,
+    "observer_sha256": "c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3",
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "instrumented_rom_sha256": "af6ca9c29baf8f7da64374acc996f4f4636691e444bd51943a3d65295d11fc1e",
+    "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+    "diagnostic_cpu_view_md5": "0bd269cb96a68705e7192db442044808",
+    "checksum_check_retained": true,
+    "slow_wait_trace": false,
+    "functional_startup_substitutions": false,
+    "fresh_held": true,
+    "applied": true
+  },
+  "native_boundaries": [
+    "R2 516e76fc 80026420 00000004 001d0000 514c4909 127c00d000010500 00000000 00040004 00000500 00000000",
+    "R2 516e76fc 80026420 00000006 001d0000 514c4909 127c00f200060027000a0087 00040004 00040004 00000500 00000000",
+    "R4 0000001b 80009d20 80026698 00000000 516a6101 0c070020 000a000a 00040004 00000500 00000000",
+    "R5 80009d20 80026698 00001b07 800ca49c 51591d2d 0c070020 000a000a 00040004 00000500 00000001",
+    "R6 00000020 800ca49c 00001b07 800ca49c 5164b043  000a000a 00040004 00000500 00000001",
+    "R7 000000a1 00000100 800ca3c4 00e80000 5164b4cd  000a000a 00040004 00000500 00000001",
+    "R1 000000f1 800ca49c 800269c8 00000000 5164b4f3 20a00255 000a000a 00040004 00000500 00000001",
+    "R2 516e76fc 800269c0 00000006 001d0000 514c4909 127c00f10006012420a00255 000a000a 00040004 00000500 00000001",
+    "R2 516e76fc 80029970 00000010 001d0000 514c4909 127c00f3001a0129000000e1 00100010 00040004 00000500 00000001",
+    "R2 516e76fc 80029970 00000010 001d0000 514c4909 127c00f3001a01290001050f 00200020 00040004 00000500 00000001",
+    "R2 516e76fc 80029870 00000010 001d0000 514c4909 127c00f3001a0129000000e0 00300030 00040004 00000500 00000001",
+    "R2 516e76fc 80029870 00000010 001d0000 514c4909 127c00f3001a01290001050f 00400040 00040004 00000500 00000001",
+    "R2 516e76fc 80029870 00000010 001d0000 514c4909 127c00f3001a01290001050f 00500050 00040004 00000500 00000001",
+    "R2 516e76fc 80029970 00000010 001d0000 514c4909 127c00f3001a01290001050f 00600060 00040004 00000500 00000000",
+    "R2 516e76fc 80029970 00000010 001d0000 514c4909 127c00f3001a01290001050f 00700070 00040004 00000500 00000000",
+    "R2 516e76fc 80026690 00000006 001d0000 514c4909 127c00f20006013600035555 00800080 00040004 00000500 00000000"
+  ],
+  "native_result_bytes": "00000303000003000000000300000d030103030301030104",
+  "rf_result": 1,
+  "rf_registry_id": "1e",
+  "rf_severity": 12,
+  "rf_receiver_observed": false,
+  "request_hex": "127c00f10006012420a00255",
+  "expected_device_reply_hex": "12007cf10006240120a10103",
+  "loss": "Peer rejects native media12 after the ring consumes all six RF halfwords; D2M producer remains4, no RF receiver call",
+  "hdl_change": "Accept media12 alongside existing media00; retain all version/resource/length/routing checks and revision03",
+  "added_state_bits": 0,
+  "added_ram_bits": 0,
+  "added_queue_stages": 0,
+  "pll_hz": 78000000,
+  "hardware_fix_qualified": false,
+  "build_started": false,
+  "ci_monitored": false,
+  "other_thread_simulations_touched": false,
+  "negative_native_cpu": "scratch/rf-timeout-20261113/native-before/captured-run.log",
+  "positive_native_cpu": "scratch/rf-timeout-20261113/native-mdi-captured.log",
+  "positive_cycles": {
+    "wait0": 4913,
+    "wait3": 7367
+  },
+  "regressions": [
+    "captured-packet-regression.log",
+    "board-regression.log",
+    "probe-contracts.log"
+  ],
+  "invalid_diagnostics": [
+    {
+      "captures": [
+        "running.jsonl",
+        "expanded.jsonl",
+        "expanded-later.jsonl",
+        "client.jsonl"
+      ],
+      "reason": "Unchecked Thumb BL exceeded signed4MiB range; RF trace target wrapped to519bdxxx; panic excludes absence/timing conclusions"
+    },
+    {
+      "captures": [
+        "corrected.jsonl"
+      ],
+      "reason": "513bd000 is outside native mapped ROM; panic at513bd00c; replaced with zero padding after original NOS body at51716a00"
+    }
+  ],
+  "cleanup": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    },
+    "snapshots": 80,
+    "reset_generations": [
+      0
+    ],
+    "panic_valid_masks": [
+      0
+    ],
+    "first_fault_reasons": [
+      0
+    ]
+  },
+  "source_sha256": {
+    "rtl/ngage_upp_dsp_peer.v": "b6ffdae6be3f8717ba15c63d1218850c0c747f3c246a0e264c4d3b5b2a19f08b",
+    "tests/phone/native_mdi/program.S": "997a4317b85fa212d355f88bcb727477d44ea3ef180b8d02d7e413ad06a366ac",
+    "tests/phone/upp_mdi/tb.v": "3c08b5f9909ea56a3a72df357e6ed811b44a4835f8c0f105ca4521e94e91285a",
+    "tests/phone/upp_dsp_peer/tb.v": "f7e3a2e3b820540090a6dc54b5d892992d5ef56d72f29533d53c99bc680ade22",
+    "scratch/rf-timeout-20261113/trace.S": "b254a3a6e701cd87fc05907d59eac1d7a9453e16d2b0418f03100941efe802fa",
+    "scratch/rf-timeout-20261113/build_probe.py": "b0319f56bbb0050b057b420067d9f88d7e99e8d77951fef2b08bc4f4a5230ffe"
+  },
+  "original_peer_sha256": "80f2f8acf966143cf59348b7d2dc2ab392b2c69310edf612c1842a2bc577a9b1"
+}

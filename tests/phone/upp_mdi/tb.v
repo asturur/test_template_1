@@ -82,10 +82,10 @@ module tb;
     endtask
     initial begin
         // Hardware halfwords emitted by the unmodified native TX task.
-        query[0]='h007c;query[1]='h00f1;query[2]='h0006;
-        query[3]='h2a1b;query[4]='h20a0;query[5]='h0200;
-        reply[0]='h0000;reply[1]='h7cf1;reply[2]='h0006;
-        reply[3]='h1b2a;reply[4]='h20a1;reply[5]='h0103;
+        query[0]='h127c;query[1]='h00f1;query[2]='h0006;
+        query[3]='h0124;query[4]='h20a0;query[5]='h0255;
+        reply[0]='h1200;reply[1]='h7cf1;reply[2]='h0006;
+        reply[3]='h2401;reply[4]='h20a1;reply[5]='h0103;
         for(wrapping=0;wrapping<2;wrapping=wrapping+1)begin
             req=0;commit=0;reset=1;repeat(3)@(negedge clk);reset=0;
             start=wrapping?247:0;

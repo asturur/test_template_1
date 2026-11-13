@@ -45,13 +45,14 @@ start:
  ldr r2,=0x00040100
  cmp r1,r2
  bne fail
- // Same authored frame as the unchanged native TX-task fixture produces.
+ // Exact RF query captured from native startup on91045a6: media12,
+ // object01/24 and untouched allocation padding55.
  ldr r1,=0x80002000
- ldr r0,=0xf1007c00
+ ldr r0,=0xf1007c12
  str r0,[r1]
- ldr r0,=0x1b2a0600
+ ldr r0,=0x24010600
  str r0,[r1,#4]
- ldr r0,=0x0002a020
+ ldr r0,=0x5502a020
  str r0,[r1,#8]
  mov r0,r10
  mov r2,#6
@@ -63,11 +64,11 @@ start:
  // Native RX reader byte-swaps the response into normal Phonet order.
  ldr r0,=0x80003000
  ldr r1,[r0]
- ldr r2,=0xf17c0000
+ ldr r2,=0xf17c0012
  cmp r1,r2
  bne fail
  ldr r1,[r0,#4]
- ldr r2,=0x2a1b0600
+ ldr r2,=0x01240600
  cmp r1,r2
  bne fail
  ldr r1,[r0,#8]

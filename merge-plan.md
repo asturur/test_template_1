@@ -1,3 +1,23 @@
+## 2026-11-13: Native RF request loss reproduced; media12 accepted in HDL
+
+Qualified91045a6 capture: native1B/07 -> flags20 -> F1/A0, exact MDI packet
+127c00f10006012420a00255. All six request halfwords are consumed; D2M stays4,
+no RF receiver callback. Peer wrongly requires media00; accept native12 alongside00,
+retaining revision03 and all routing/length/subtype checks. Exact captured-packet
+Verilator on original CPU/ring code fails old RTL and passes fixed at waits0/3
+=4913/7367 clocks. Peer/ring reset/backpressure/wrap/publication/IRQ, board/CPU and
+original RF contracts pass; no extra state/RAM/queue/clock. Original deadlines,
+firmware, PLL and disks preserved. No RBF build/deploy or CI monitoring; hardware
+RF qualification remains pending. SIM/non-serving5 and external ADSP still open.
+
+Authoritative mapped-page observer:380 snapshots/no gaps/reset/panic/first fault;
+RF result01 here versus earlier0D, both fatal failures, not interchangeable paths.
+Early probes had out-of-range Thumb branches, then an unmapped pad; their panics
+invalidate absence/timing claims. Final guarded NOS-page probe observes full send
+chain and no device completion. Reload removed hooks; original88fd.../Run/save-Off
+and unchanged C/PMM hashes verified. Other-thread simulations untouched.
+Details: [rf-native-media.md](docs/rf-native-media.md).
+
 ## 2026-11-13: native startup failures identified on deployed91045a6
 
 DOS observer sees event1/value2. Correct native-NOS-context24byte result dump

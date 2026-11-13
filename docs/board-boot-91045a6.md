@@ -123,3 +123,17 @@ Final reload removed all observers; full original ROM88fd... and unchanged C/PMM
 hashes are verified. Saved automatic Run/save-Off is restored. Final58 snapshots
 have reset0/firstfault0/no queue fault; initial unread-backlog reader gap excludes
 that short capture from timing/absence-of-events claims.
+
+
+## Subsequent RF boundary capture (2026-11-13)
+
+A qualified380-snapshot/no-gap/reset/panic/first-fault capture now observes the
+complete native RF send through INFO, platform routing and MDI. Exact packet
+127c00f10006012420a00255 is consumed; D2M stays4 and no RF receiver runs. The
+installed peer rejects media12, accepting only00. An exact-packet Verilator
+reproducer fails on this peer and passes with the source media guard correction.
+Native RF result is01 in this observed boot rather than the earlier0D; no
+functional result or original deadline was changed. Source repair is not yet in
+this installed RBF. See [rf-native-media.md](rf-native-media.md) for the native
+chain, local verification and rejected diagnostic attempts. Cleanup verifies
+original88fd.../automatic Run/save-Off and unchanged C/PMM; no rebuild or CI watch.
