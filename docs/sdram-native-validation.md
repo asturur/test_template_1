@@ -1,3 +1,9 @@
+2026-11-13 follow-up: the new3ab8e10/seed43 board image fails earlier with a
+bad RAM pointer. Bounded native simulations pass; a concrete SDRAM output IO
+packing defect is corrected separately. Physical qualification of that change
+and on-board qualification of UART TX progress remain pending. No rollback of
+dbe5bc6 or firmware patches. See [current investigation](sdram-early-boot-2026-11-13.md).
+
 # Native SDRAM implementation: validation handoff
 
 The subsequent [request-ownership cleanup](sdram-request-ownership.md) removes

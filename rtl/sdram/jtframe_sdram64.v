@@ -94,7 +94,7 @@ module jtframe_sdram64 #(
     // of the SDRAM, as done in the MiSTer 128MB module
     inout       [15:0]  sdram_dq,       // SDRAM Data bus 16 Bits
     `ifdef VERILATOR // sdram_dq is used as input-only in Verilator sims
-    output reg  [15:0]  sdram_din,      // Data to be stored in SDRAM
+    output      [15:0]  sdram_din,      // Data to be stored in SDRAM
     `endif
     output reg  [12:0]  sdram_a,        // SDRAM Address bus 13 Bits
     output              sdram_dqml,     // SDRAM Low-byte Data Mask
@@ -185,9 +185,16 @@ assign mask_mux = prog_en ? prog_dsn :
     end
 `endif
 
-`ifndef VERILATOR
+// Keep data and output-enable registers separate. Registering a Z-valued
+// data mux makes Quartus infer clear/load controls that cannot pack into the
+// Cyclone V output IO cell. Data is sampled on the same edge as before; only
+// the registered enable controls whether those bits drive the shared pins.
 reg  [15:0] dq_pad;
-assign sdram_dq = dq_pad;
+reg         dq_oe;
+`ifdef VERILATOR
+assign sdram_din = dq_pad;
+`else
+assign sdram_dq = dq_oe ? dq_pad : 16'hzzzz;
 `endif
 
 always @(negedge clk) begin
@@ -251,11 +258,8 @@ always @(posedge clk) begin
 
     wr_l <= wr_aux & ~ba_rdy;
 
-`ifndef VERILATOR
-    dq_pad <= wr_cycle ? (prog_en ? prog_din : din) : 16'hzzzz;
-`else
-    sdram_din <= prog_en ? prog_din : din;
-`endif
+    dq_pad <= prog_en ? prog_din : din;
+    dq_oe  <= wr_cycle;
     if( MISTER ) begin
         if( next_cmd==CMD_ACTIVE )
             sdram_a[12:11] <= next_a[12:11];

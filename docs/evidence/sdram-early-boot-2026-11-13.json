@@ -1,0 +1,236 @@
+{
+  "date": "2026-11-13",
+  "base_commit": "9a783d2ec5fbe62da65d7caf164fea1254f007b2",
+  "suspect_commit": "dbe5bc6d551081d7cd51f3190960a76224103bf4",
+  "installed_build": {
+    "commit": "3ab8e10b502d576afefcee1c20abd3c2519e3168",
+    "run_id": 43391828015,
+    "seed": 43,
+    "rbf_sha256": "32655ead988e28e32c191f4d0abf9507aab7dc1e93b25eb97b522e1d7c950985"
+  },
+  "comparison_build": {
+    "commit": "a413b1edf4fe961134edef94237af2b197ea0039",
+    "seed": 44,
+    "rbf_sha256": "b9752a43a405d02a800a7d3a5b7b979c1abdcc21c14d0d7169c051966705aa82",
+    "contains_suspect_commit": true
+  },
+  "latest_first_two_boots": [
+    {
+      "snapshots": 757,
+      "first_sequence": 2714450247,
+      "last_sequence": 2714451012,
+      "first_data_fault": {
+        "cycles": 1407559,
+        "first_fault_address": 721417180,
+        "first_fault_pc": 3972,
+        "first_fault_data": 184549376,
+        "first_fault_flags": 73985,
+        "first_fault_reason": 2,
+        "errors": 1
+      },
+      "last_values": {
+        "cycles": 498472967,
+        "fetch_pc": 1548,
+        "last_pc": 1552,
+        "cpsr": 1073742039,
+        "bus_address": 1552,
+        "bus_read_data": 0,
+        "first_fault_address": 721417180,
+        "first_fault_pc": 3972,
+        "errors": 1
+      },
+      "autosave_ever_enabled": false
+    },
+    {
+      "snapshots": 2257,
+      "first_sequence": 2714451013,
+      "last_sequence": 2714453297,
+      "first_data_fault": {
+        "cycles": 338998394,
+        "first_fault_address": 721417216,
+        "first_fault_pc": 6012,
+        "first_fault_data": 0,
+        "first_fault_flags": 73984,
+        "first_fault_reason": 2,
+        "errors": 13
+      },
+      "last_values": {
+        "cycles": 4121260026,
+        "fetch_pc": 1552,
+        "last_pc": 1548,
+        "cpsr": 1073742039,
+        "bus_address": 1552,
+        "bus_read_data": 0,
+        "first_fault_address": 721417216,
+        "first_fault_pc": 6012,
+        "errors": 13
+      },
+      "autosave_ever_enabled": false
+    }
+  ],
+  "latest_third_boot": [
+    {
+      "snapshots": 1157,
+      "first_sequence": 2714457396,
+      "last_sequence": 2714458566,
+      "first_data_fault": {
+        "cycles": 354135565,
+        "first_fault_address": 721417216,
+        "first_fault_pc": 5920,
+        "first_fault_data": 0,
+        "first_fault_flags": 73984,
+        "first_fault_reason": 2,
+        "errors": 13
+      },
+      "last_values": {
+        "cycles": 1679766381,
+        "fetch_pc": 0,
+        "last_pc": 1552,
+        "cpsr": 1073742039,
+        "bus_address": 1548,
+        "bus_read_data": 0,
+        "first_fault_address": 721417216,
+        "first_fault_pc": 5920,
+        "errors": 13
+      },
+      "autosave_ever_enabled": false
+    }
+  ],
+  "old_rbf_control": [
+    {
+      "snapshots": 1161,
+      "first_sequence": 2714455565,
+      "last_sequence": 2714457253,
+      "first_data_fault": null,
+      "last_values": {
+        "cycles": 1606657627,
+        "fetch_pc": 1359907284,
+        "last_pc": 1359907344,
+        "cpsr": 536871131,
+        "bus_address": 202704220,
+        "bus_read_data": 16,
+        "first_fault_address": 0,
+        "first_fault_pc": 0,
+        "errors": 13
+      },
+      "autosave_ever_enabled": false
+    }
+  ],
+  "native_verilator_hardware_fault_reproduced": false,
+  "model_checks": {
+    "verilator": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006174"
+      ],
+      "log_sha256": "c75e22dee9bcb0842c5b3422decf13e267f7855cd25e5cf788351470f8e6348f",
+      "testbench_sha256": "546ce037e41ca1b02ba69e2e504f7f04b36d790a2c01094ab1fc187c870deb1f"
+    },
+    "verilator/full-scrub": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006158"
+      ],
+      "log_sha256": "4c1ae76523fd5acd4bdd3e8b8c020dc196254ce55271ea6c07fa9c92309ad26b",
+      "testbench_sha256": "509deeef8e82bb6b92759c6a959a7ad74b61bf9d561c28273a86100688fa3836"
+    },
+    "verilator/intel-rf": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006174"
+      ],
+      "log_sha256": "e4ae2f94f3b9b3108fffb24a90523a9f0e77345eec96bcde155a23cba499d8ce",
+      "testbench_sha256": "546ce037e41ca1b02ba69e2e504f7f04b36d790a2c01094ab1fc187c870deb1f"
+    },
+    "verilator/intel-memories": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006174"
+      ],
+      "log_sha256": "2c17119af2f25f70ddf0561cd44e70c9ce1f50316e069ad1c4dbef0bd68fa3f9",
+      "testbench_sha256": "546ce037e41ca1b02ba69e2e504f7f04b36d790a2c01094ab1fc187c870deb1f"
+    },
+    "verilator/before-dbe5bc6": {
+      "pass_lines": [
+        "PASS early native boot pre-dbe5bc6 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006154"
+      ],
+      "log_sha256": "95ddd31fc4cf57ee3da0764f73401695244e5a15654ef971ddddb93c2ba6e2a8",
+      "testbench_sha256": "bfc84545cd06d5d8f80fd10ca7eeee53850d37b67c0a90a80ce3d65679cabb52"
+    },
+    "verilator/dq-pad-fixed": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006174"
+      ],
+      "log_sha256": "8be88917f71a575189c08c46c808e547596161e8d1a88197a53b95311b0ccae0",
+      "testbench_sha256": "546ce037e41ca1b02ba69e2e504f7f04b36d790a2c01094ab1fc187c870deb1f"
+    },
+    "verilator/dq-pad-fixed-104": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006174"
+      ],
+      "log_sha256": "b66254a6ddf5d21e5581185405cd85d0ab0d07183119dd5b18443e997bc010f6",
+      "testbench_sha256": "546ce037e41ca1b02ba69e2e504f7f04b36d790a2c01094ab1fc187c870deb1f"
+    },
+    "verilator/production-profile": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=200000 wait=3 data_errors=0 SP=0afff358 pc=00006174"
+      ],
+      "log_sha256": "e42334aa5d952061080532f5d358bbb5c5272a9331cd4e8bfa46c9543fa667b9",
+      "testbench_sha256": "603cb0ba7e141c3cb25bc9ab0224cd85286fcdb64d3dd79fec1e8bebf5f0a2bb"
+    },
+    "verilator/diagnostic-contention": {
+      "pass_lines": [
+        "PASS early native boot banks2/programmer0 cycles=1000000 wait=3 data_errors=0 SP=0afff358 pc=00006170"
+      ],
+      "log_sha256": "973be1864506fb2e305d5003ca6de5daa267aef3cfd945bbb1bc93b8ce21b056",
+      "testbench_sha256": "639545acebce05745e90613f8bd59d23a5efc6d5d350d4a96130e2798020e357"
+    }
+  },
+  "pin_fix_trace_equivalence": {
+    "rows": 360,
+    "identical_cycle_tags": true,
+    "trace_sha256": "6c14682fd931b7a407935bc4e6941325c7e77c657252cd6a6bd8d2935c0358c8"
+  },
+  "fitter_observation": {
+    "before_input_registers": 16,
+    "before_output_registers": 0,
+    "before_oe_registers": 16,
+    "unique_cannot_pack_data_warnings": 16,
+    "defect_predates_suspect_commit": true
+  },
+  "four_state_micron": {
+    "pass_lines": 46,
+    "log_sha256": "5be73e172ed967ac1cb9c466eaebdceff8c0aa224c39e28971f27ba212c32266",
+    "profiles": "78/104MHz, pin delay0/.25/.5/1ns, full/native short reads, bank concurrency, all masks, wrong-edge negative control, top lint"
+  },
+  "final_board": {
+    "latest_installed_rbf_restored": true,
+    "cpu_hold_verified": true,
+    "autosave_off_verified": true,
+    "card_disk_hashes_unchanged": true
+  },
+  "firmware_patched": false,
+  "media_written": false,
+  "pll_changed": false,
+  "memory_optimization_bundle_reverted": false,
+  "new_fit_run": false,
+  "pin_fix_board_verified": false,
+  "source_sha256": {
+    "rtl/sdram/jtframe_sdram64.v": "3276a924899890c02c7d08b4439dbfc276f89dfe5da81bb59dbe5d4c2f0a6eb3",
+    "tools/check_sdram_io_registers.py": "6f758ec52af08622578c8435e29563deaab2e08e5663274e2028266909b651b2",
+    "tests/phone/hardware_boot/tb.v": "71140b3e24d624af324abf9c827ef865dca5ff592551158e4f389e7e46ac40b3",
+    "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+    ".github/workflows/ci_build.yml": "198b5012ba546d8281df3de1d1d6bef3b8ee827ac051b04f1ebec4f8e9d88793"
+  },
+  "rom_identity": {
+    "ROM_SHA256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "read_only": true
+  },
+  "first_five_million_cycle_smoke": {
+    "result": [
+      "PASS bounded hardware-bound boot cycles=5000000 bus=442766 errors=12 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006178 bus_pc=00006154 last_fetch_age=25"
+    ],
+    "log_sha256": "444071cd1f07123ba21c9a3d648d0fa4feccfc76292bdd9acb1ba405906217e8",
+    "note": "Historical scratch filename does not describe bank count; controller defaults were already BANKS2/PROG_ENABLE0."
+  },
+  "later_339M_hardware_point_fully_replayed": false,
+  "model_profile_limits": "Full scrub/vendor-model and 78/104 candidate runs retain bounded-smoke UEM1/timer1/NOS1000. Separate board-settings UEM2/timer3/NOS64/testSIM0 and contention runs use short scrub.",
+  "ci_io_register_gate_added": false,
+  "ci_gate_not_published_reason": "Current gh OAuth token rejects workflow-file updates; keep existing build workflow and manual packing checker."
+}

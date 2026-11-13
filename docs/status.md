@@ -1,3 +1,18 @@
+## 2026-11-13: New board early RAM fault; separate SDRAM data/OE registers
+
+Installed3ab8e10/seed43 confirmed. Three original-ROM boots fault at2AFFF3DC
+or2AFFF400 and fall into0000060C; olda413b1e/seed44 control reaches the known
+UART drain without a data fault. Both include dbe5bc6. Isolated parent/current
+memory backends, variable waits, full scrub, Intel RAM and diagnostic-contention
+Verilator tests pass the bounded early sequence; hardware fault not reproduced.
+The later~339M-cycle stage has not been fully replayed. Fitter confirms all16
+SDRAM data-output registers failed IO packing (input/OE do pack). Split data
+and OE in RTL without added bus clocks; pin-level78/104MHz tests and identical
+native trace pass. This defect predates dbe5bc6; no blanket rollback. New fit
+and board qualification pending; checker added. Latest RBF restored in Hold,
+save Off, disk hashes unchanged. No firmware/media/PLL changes or CI launch.
+Details: [sdram-early-boot-2026-11-13.md](sdram-early-boot-2026-11-13.md).
+
 ## 2026-11-13: HDMI-only adjacent-column swap queued
 
 User reports hilo/lohi-like adjacent columns swapped on HDMI; CRT ordering is
