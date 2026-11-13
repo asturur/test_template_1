@@ -1,3 +1,12 @@
+## 2026-11-13: HDMI-only adjacent-column swap queued
+
+User reports hilo/lohi-like adjacent columns swapped on HDMI; CRT ordering is
+correct. Added a separate display TODO with CE/scaler/packed-line checks.
+Shared RGB does not imply identical sampling: ascal is CE-qualified, unscaled
+CRT consumes continuous RGB. The proven hold bug may contribute; correlation
+is unverified until both outputs are retested with6a23a15. No global halfword
+swap or other HDL change made. See [TODO.md](TODO.md#display-output-follow-up-2026-11-13).
+
 ## 2026-11-13: CRT left-edge pixel corruption reproduced and fixed
 
 Continuous RGB sampling reproduces missing left white border: native pixel1

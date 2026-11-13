@@ -47,3 +47,20 @@ at div12 and1,676,800 at div16,36,608 active pixels each. Each first/last
 two-column edge contributes4,992/6,656 checked clocks respectively. The native
 CE/DE test, production top structural elaboration and pinned formatting pass.
 [Source hashes and results](evidence/crt-pixel-hold-2026-11-13.json).
+
+## Additional user observation: HDMI-only pair ordering
+
+The user reports adjacent columns appear swapped (hilo/lohi) on HDMI while CRT
+column order looks correct. This is recorded separately in
+[TODO.md](TODO.md#display-output-follow-up-2026-11-13); it is not a confirmed
+remaining cause or a completed hardware retest of6a23a15.
+
+`sys_top.v` feeds both paths from the same core RGB and stock scanline pipeline.
+HDMI's `ascal` input uses `vga_data_sl` with `vga_ce_sl`; `ascal.vhd` registers
+pixel, DE and CE together before CE-qualified processing. Unscaled CRT instead
+continues through the OSD and continuous-clock analog pipeline. Neither branch
+has an explicit phone halfword-order selector. The previously demonstrated
+between-CE RGB corruption is a possible explanation for differing appearances,
+not proof that it accounts for this report. First retest the hold fix, then
+locate any remaining divergence at scaler sampling/packing/line readback rather
+than changing shared framebuffer order based only on the HDMI appearance.

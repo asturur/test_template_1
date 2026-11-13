@@ -6,6 +6,24 @@ separately configurable; never describe a probe as authentic boot. See
 [flash-layout.md](flash-layout.md), and [uem-control-bus.md](uem-control-bus.md)
 for evidence and reproducible traces.
 
+## Display output follow-up (2026-11-13)
+
+- [ ] Investigate adjacent LCD column swaps on HDMI (hilo/lohi appearance).
+  User reports CRT column order is correct while HDMI is wrong; this is separate
+  from the CRT missing-margin report. No new hardware comparison of the RGB-hold
+  fix6a23a15 is available yet. Retest both outputs with that fix before changing
+  pixel order. Both routes share RGB through `VGA_scanlines`; HDMI samples its
+  CE-qualified output into `ascal`, while unscaled CRT continues through OSD and
+  the continuous analog pipeline. The proven between-CE RGB corruption can make
+  the two outputs differ, but does not yet establish the HDMI swap's cause.
+  Trace distinct adjacent pixels (e.g. ABC/123/456/789) at panel memory, core CE,
+  `vga_data_sl`/`vga_ce_sl` and scaler input/packed-line readback. Check first/last
+  columns and line boundaries, then compare HDMI at integer/nearest scaling
+  with CRT at div12/16. Acceptance: identical source column order, no pair
+  reversal or one-pixel shift, no regression in CRT borders. Keep the shared
+  LCD halfword order unchanged until the point of divergence is measured.
+  See [CRT evidence and limits](crt-pixel-hold.md).
+
 ## Fit and storage priorities (2026-11-11)
 
 Keep the diagnostic screen, monitor, recorder and export until Symbian boots.
