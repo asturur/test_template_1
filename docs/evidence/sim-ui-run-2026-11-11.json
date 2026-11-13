@@ -1,0 +1,26 @@
+{
+  "model": "build/sim/logo-build/8b92e8641d9c7365/Vtb",
+  "cadence_checkpoints": [
+    40000,
+    80000,
+    90000,
+    100000
+  ],
+  "key_hold": 150000,
+  "resume_from": 100000,
+  "compared_cycle": 200000,
+  "byte_identical": {
+    ".cpu": "8905cf06aa004d859840e9dde33b2e57bc750c5e98cf11141cc8473f79778239",
+    ".host": "bfabcf4edd150b66ed04882ac1d0edbca394e8542aee361d21506aafc5b49dac"
+  },
+  "long_model": "8b92e8641d9c73654fcf6388de1e99a784d2766e65a08e5c43fb1687736d30bf",
+  "binary_sha256": "9520bb9f7cbc2813c90793cf65aee4cd0ebe931e3792163666c4a41c387b0ef4",
+  "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "checkpoint_schedule": {
+    "through_cycle": 10000000000,
+    "period_through": 1000000000,
+    "period_after": 100000000
+  },
+  "run": "build/sim/runs/integration-ui-fresh-12b",
+  "profile": "normal reset, 78MHz, timers26MHz, NOS64, no overlays, production DDR, line refills, fault context, live keys (none requested)"
+}

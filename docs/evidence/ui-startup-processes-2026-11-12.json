@@ -1,0 +1,1667 @@
+{
+  "model": "8b92e8641d9c73654fcf6388de1e99a784d2766e65a08e5c43fb1687736d30bf",
+  "binary_sha256": "9520bb9f7cbc2813c90793cf65aee4cd0ebe931e3792163666c4a41c387b0ef4",
+  "snapshots": {
+    "6000000000": {
+      "processes": [
+        {
+          "index": 0,
+          "object": "80404cb0",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\EKern.EXE"
+        },
+        {
+          "index": 1,
+          "object": "80408db0",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\EFile.EXE"
+        },
+        {
+          "index": 2,
+          "object": "8040b3b8",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\EwSrv.exe"
+        },
+        {
+          "index": 3,
+          "object": "8040c364",
+          "exit_type": 3,
+          "path": "z:\\system\\libs\\FbServ.exe"
+        },
+        {
+          "index": 4,
+          "object": "8040ef80",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\Starter.exe"
+        },
+        {
+          "index": 5,
+          "object": "8040b734",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\SharedDataServer.exe"
+        },
+        {
+          "index": 6,
+          "object": "8040f83c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\DosServer.exe"
+        },
+        {
+          "index": 7,
+          "object": "8041000c",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\SplashScreen.exe"
+        },
+        {
+          "index": 8,
+          "object": "80410634",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\SelfTestServer.exe"
+        },
+        {
+          "index": 9,
+          "object": "8041102c",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\EInfoServer.exe"
+        },
+        {
+          "index": 10,
+          "object": "80411754",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\randsvr.exe"
+        },
+        {
+          "index": 11,
+          "object": "8041236c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\BTTestServer.exe"
+        },
+        {
+          "index": 12,
+          "object": "8041379c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\Sysagx.exe"
+        },
+        {
+          "index": 13,
+          "object": "80413cd4",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\EikSrvs.exe"
+        },
+        {
+          "index": 14,
+          "object": "80417bac",
+          "exit_type": 3,
+          "path": "z:\\System\\Libs\\C32exe.exe"
+        },
+        {
+          "index": 15,
+          "object": "804183ec",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\Ealwls.exe"
+        },
+        {
+          "index": 16,
+          "object": "80419c80",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\MediaServerStub.exe"
+        },
+        {
+          "index": 17,
+          "object": "8041c738",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\PhoneServer.exe"
+        },
+        {
+          "index": 18,
+          "object": "804130c0",
+          "exit_type": 0,
+          "path": "Z:\\System\\programs\\DBRECOVERY.EXE"
+        },
+        {
+          "index": 19,
+          "object": "8041dd44",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\EDbsrv.exe"
+        },
+        {
+          "index": 20,
+          "object": "8041e430",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\sae.exe"
+        },
+        {
+          "index": 21,
+          "object": "8041e774",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 22,
+          "object": "8041ed70",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\adspserver.exe"
+        },
+        {
+          "index": 23,
+          "object": "80422010",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 24,
+          "object": "804225e0",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\AudioServer.exe"
+        },
+        {
+          "index": 25,
+          "object": "80419364",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\watcher.exe"
+        },
+        {
+          "index": 26,
+          "object": "80422fa0",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 27,
+          "object": "80424b60",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 28,
+          "object": "804259a4",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 29,
+          "object": "80426084",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\LogServ.exe"
+        },
+        {
+          "index": 30,
+          "object": "8042f2c0",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\Loadersrv.exe"
+        },
+        {
+          "index": 31,
+          "object": "80424568",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\WAPSTKSRV.EXE"
+        }
+      ],
+      "threads": [
+        {
+          "object": "80404f94",
+          "owner": "80404cb0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "80403f64",
+          "lr": "503407cc",
+          "pc": "5032752c",
+          "cpsr": "680000db",
+          "chunk": "80404f00",
+          "chunk_base": "80400000",
+          "size": "00034000",
+          "name": "Supervisor"
+        },
+        {
+          "object": "80408b40",
+          "owner": "80404cb0",
+          "raw_state": "00000004",
+          "exit": "3",
+          "sp": "80004e10",
+          "lr": "514af5f4",
+          "pc": "516c713c",
+          "cpsr": "4000001b",
+          "chunk": "00000000",
+          "chunk_base": "00000000",
+          "size": "00000000",
+          "name": "NULL"
+        },
+        {
+          "object": "80408fb4",
+          "owner": "80408db0",
+          "raw_state": "00000005",
+          "exit": "3",
+          "sp": "80601f0c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "80409150",
+          "chunk_base": "80600000",
+          "size": "0002a000",
+          "name": "Main"
+        },
+        {
+          "object": "804094d4",
+          "owner": "80408db0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "80803f18",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80409680",
+          "chunk_base": "80800000",
+          "size": "0000b000",
+          "name": "LoaderThread"
+        },
+        {
+          "object": "8040afd4",
+          "owner": "80408db0",
+          "raw_state": "00000004",
+          "exit": "3",
+          "sp": "80d01f8c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040ae88",
+          "chunk_base": "80d00000",
+          "size": "00003000",
+          "name": "ReclaimThread_-2141090988"
+        },
+        {
+          "object": "8040bc78",
+          "owner": "8040b3b8",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "81101ec0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040be04",
+          "chunk_base": "81100000",
+          "size": "00019000",
+          "name": "Main"
+        },
+        {
+          "object": "8040c4b0",
+          "owner": "8040c364",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "81301e7c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8040c64c",
+          "chunk_base": "81300000",
+          "size": "00006000",
+          "name": "Fontbitmapserver"
+        },
+        {
+          "object": "8040f108",
+          "owner": "8040ef80",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ebc",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040f294",
+          "chunk_base": "80e00000",
+          "size": "00005000",
+          "name": "StarterServer"
+        },
+        {
+          "object": "8040b810",
+          "owner": "8040b734",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401edc",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040b99c",
+          "chunk_base": "80f00000",
+          "size": "00006000",
+          "name": "SharedDataServer"
+        },
+        {
+          "object": "8040f9cc",
+          "owner": "8040f83c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e94",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040fb58",
+          "chunk_base": "81000000",
+          "size": "00004000",
+          "name": "DosServer"
+        },
+        {
+          "object": "8041016c",
+          "owner": "8041000c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ea0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804102dc",
+          "chunk_base": "83500000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "804107d8",
+          "owner": "80410634",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401b1c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "00000010",
+          "chunk": "80410974",
+          "chunk_base": "83600000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "80410bcc",
+          "owner": "80410634",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00601eb4",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80410d3c",
+          "chunk_base": "83700000",
+          "size": "0000b000",
+          "name": "SelfTestServer"
+        },
+        {
+          "object": "804111c4",
+          "owner": "8041102c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e7c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80411350",
+          "chunk_base": "83800000",
+          "size": "00004000",
+          "name": "EInfoServer"
+        },
+        {
+          "object": "804118bc",
+          "owner": "80411754",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401f04",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80411a58",
+          "chunk_base": "83900000",
+          "size": "00004000",
+          "name": "RandomServer"
+        },
+        {
+          "object": "80412508",
+          "owner": "8041236c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401eec",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804126a4",
+          "chunk_base": "83b00000",
+          "size": "00005000",
+          "name": "Main"
+        },
+        {
+          "object": "80413920",
+          "owner": "8041379c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e54",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80413aac",
+          "chunk_base": "83d00000",
+          "size": "00004000",
+          "name": "SystemAgent"
+        },
+        {
+          "object": "80415bc4",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e58",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80413e1c",
+          "chunk_base": "83e00000",
+          "size": "0001e000",
+          "name": "EikAppUiServer"
+        },
+        {
+          "object": "8041663c",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00602ea0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804167d8",
+          "chunk_base": "83f00000",
+          "size": "00008000",
+          "name": "BackupServerThread"
+        },
+        {
+          "object": "804173f0",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00701ec0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80417588",
+          "chunk_base": "84000000",
+          "size": "00002000",
+          "name": "ViewServerThread"
+        },
+        {
+          "object": "80417d28",
+          "owner": "80417bac",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "84101ef0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "80417eb4",
+          "chunk_base": "84100000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "804185b4",
+          "owner": "804183ec",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00501ea8",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80418740",
+          "chunk_base": "84400000",
+          "size": "00004000",
+          "name": "AlarmWorldServerThread"
+        },
+        {
+          "object": "80418a14",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00801eb8",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80418bb0",
+          "chunk_base": "84500000",
+          "size": "00019000",
+          "name": "AppArcServerThread"
+        },
+        {
+          "object": "80419eac",
+          "owner": "80419c80",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "84601edc",
+          "lr": "50599f2f",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "8041a048",
+          "chunk_base": "84600000",
+          "size": "00007000",
+          "name": "MediaServer"
+        },
+        {
+          "object": "8041a354",
+          "owner": "80419c80",
+          "raw_state": "00000004",
+          "exit": "3",
+          "sp": "84f0045c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "68000010",
+          "chunk": "8041a514",
+          "chunk_base": "84f00000",
+          "size": "00001000",
+          "name": "MediaServerTaskThread"
+        },
+        {
+          "object": "8041ce24",
+          "owner": "8041c738",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e9c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8041cfb0",
+          "chunk_base": "85000000",
+          "size": "00005000",
+          "name": "PhoneServerThread"
+        },
+        {
+          "object": "80414bf0",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00a00eb8",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80414d90",
+          "chunk_base": "85100000",
+          "size": "00005000",
+          "name": "KeySoundServerThread"
+        },
+        {
+          "object": "804152f4",
+          "owner": "804130c0",
+          "raw_state": "00000006",
+          "exit": "0",
+          "sp": "00401fc4",
+          "lr": "503b3670",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "00000000",
+          "chunk_base": "00000000",
+          "size": "00000000",
+          "name": "DbRecovery"
+        },
+        {
+          "object": "8041de20",
+          "owner": "8041dd44",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ef0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8041df90",
+          "chunk_base": "85300000",
+          "size": "00008000",
+          "name": "DBMS server"
+        },
+        {
+          "object": "8041e50c",
+          "owner": "8041e430",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401eb0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8041dc80",
+          "chunk_base": "85200000",
+          "size": "00004000",
+          "name": "Sae"
+        },
+        {
+          "object": "8041e884",
+          "owner": "8041e774",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "8041e9f4",
+          "chunk_base": "85400000",
+          "size": "0000e000",
+          "name": "SysAp"
+        },
+        {
+          "object": "8041ef80",
+          "owner": "8041ed70",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00501a9c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8041f10c",
+          "chunk_base": "85600000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "8042152c",
+          "owner": "80417bac",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "85701f04",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8042169c",
+          "chunk_base": "85700000",
+          "size": "00016000",
+          "name": "EtelServer"
+        },
+        {
+          "object": "80422180",
+          "owner": "80422010",
+          "raw_state": "00000004",
+          "exit": "3",
+          "sp": "00404a80",
+          "lr": "503b3670",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8042230c",
+          "chunk_base": "85800000",
+          "size": "00021000",
+          "name": "Phone"
+        },
+        {
+          "object": "80422778",
+          "owner": "804225e0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401eb0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80422904",
+          "chunk_base": "85900000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "804231a4",
+          "owner": "80419364",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ea4",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80422d5c",
+          "chunk_base": "85a00000",
+          "size": "00004000",
+          "name": "WatcherThread"
+        },
+        {
+          "object": "80423700",
+          "owner": "80419364",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00601b9c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80423870",
+          "chunk_base": "85b00000",
+          "size": "00013000",
+          "name": "WatcherMainThread"
+        },
+        {
+          "object": "80423c70",
+          "owner": "80422fa0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "40000010",
+          "chunk": "80423de0",
+          "chunk_base": "85c00000",
+          "size": "0000c000",
+          "name": "ScreenSaver"
+        },
+        {
+          "object": "80424c3c",
+          "owner": "80424b60",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80424dac",
+          "chunk_base": "85e00000",
+          "size": "0000e000",
+          "name": "Autolock"
+        },
+        {
+          "object": "80425b28",
+          "owner": "804259a4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80425cb4",
+          "chunk_base": "85f00000",
+          "size": "0000c000",
+          "name": "Startup"
+        },
+        {
+          "object": "80426f64",
+          "owner": "80426084",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e9c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804270d4",
+          "chunk_base": "86000000",
+          "size": "00008000",
+          "name": "LogServ"
+        },
+        {
+          "object": "80430450",
+          "owner": "8042f2c0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00507c28",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "8042f8c0",
+          "chunk_base": "86300000",
+          "size": "00011000",
+          "name": "LOADERSRV"
+        },
+        {
+          "object": "80424734",
+          "owner": "80424568",
+          "raw_state": "00000004",
+          "exit": "3",
+          "sp": "00506554",
+          "lr": "503b76b0",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "804252e4",
+          "chunk_base": "00500000",
+          "size": "00011000",
+          "name": "WAPSTKSRV"
+        }
+      ],
+      "current_thread": "80408fb4",
+      "c_image_differing_positions": 340904,
+      "sample_clocks": 2000000,
+      "thread_samples_every128": {
+        "80408fb4": 10504,
+        "80424734": 2101,
+        "80422180": 1732,
+        "80404f94": 1288
+      },
+      "thread_sample_percent": {
+        "Main": 67.2256,
+        "WAPSTKSRV": 13.4464,
+        "Phone": 11.0848,
+        "Supervisor": 8.2432
+      },
+      "storage": {
+        "c_bus_clocks": 0,
+        "ack_reads": 0,
+        "ack_writes": 0,
+        "ddr_modeled_delay_clocks": 34842,
+        "c_differing_positions_in_sample": 0
+      },
+      "stall_bins_none_code_data_both": [
+        617530,
+        534674,
+        239608,
+        608188
+      ]
+    },
+    "7000000000": {
+      "processes": [
+        {
+          "index": 0,
+          "object": "80404cb0",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\EKern.EXE"
+        },
+        {
+          "index": 1,
+          "object": "80408db0",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\EFile.EXE"
+        },
+        {
+          "index": 2,
+          "object": "8040b3b8",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\EwSrv.exe"
+        },
+        {
+          "index": 3,
+          "object": "8040c364",
+          "exit_type": 3,
+          "path": "z:\\system\\libs\\FbServ.exe"
+        },
+        {
+          "index": 4,
+          "object": "8040ef80",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\Starter.exe"
+        },
+        {
+          "index": 5,
+          "object": "8040b734",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\SharedDataServer.exe"
+        },
+        {
+          "index": 6,
+          "object": "8040f83c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\DosServer.exe"
+        },
+        {
+          "index": 7,
+          "object": "80410634",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\SelfTestServer.exe"
+        },
+        {
+          "index": 8,
+          "object": "8041102c",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\EInfoServer.exe"
+        },
+        {
+          "index": 9,
+          "object": "80411754",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\randsvr.exe"
+        },
+        {
+          "index": 10,
+          "object": "8041236c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\BTTestServer.exe"
+        },
+        {
+          "index": 11,
+          "object": "8041379c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\Sysagx.exe"
+        },
+        {
+          "index": 12,
+          "object": "80413cd4",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\EikSrvs.exe"
+        },
+        {
+          "index": 13,
+          "object": "80417bac",
+          "exit_type": 3,
+          "path": "z:\\System\\Libs\\C32exe.exe"
+        },
+        {
+          "index": 14,
+          "object": "804183ec",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\Ealwls.exe"
+        },
+        {
+          "index": 15,
+          "object": "80419c80",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\MediaServerStub.exe"
+        },
+        {
+          "index": 16,
+          "object": "8041c738",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\PhoneServer.exe"
+        },
+        {
+          "index": 17,
+          "object": "804130c0",
+          "exit_type": 0,
+          "path": "Z:\\System\\programs\\DBRECOVERY.EXE"
+        },
+        {
+          "index": 18,
+          "object": "8041dd44",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\EDbsrv.exe"
+        },
+        {
+          "index": 19,
+          "object": "8041e430",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\sae.exe"
+        },
+        {
+          "index": 20,
+          "object": "8041e774",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 21,
+          "object": "8041ed70",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\adspserver.exe"
+        },
+        {
+          "index": 22,
+          "object": "80422010",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 23,
+          "object": "804225e0",
+          "exit_type": 3,
+          "path": "Z:\\System\\programs\\AudioServer.exe"
+        },
+        {
+          "index": 24,
+          "object": "80419364",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\watcher.exe"
+        },
+        {
+          "index": 25,
+          "object": "80422fa0",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 26,
+          "object": "80424b60",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 27,
+          "object": "804259a4",
+          "exit_type": 3,
+          "path": "Z:\\SYSTEM\\PROGRAMS\\AppRun.exe"
+        },
+        {
+          "index": 28,
+          "object": "80426084",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\LogServ.exe"
+        },
+        {
+          "index": 29,
+          "object": "8042f2c0",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\Loadersrv.exe"
+        },
+        {
+          "index": 30,
+          "object": "80424568",
+          "exit_type": 3,
+          "path": "Z:\\System\\Libs\\WAPSTKSRV.EXE"
+        },
+        {
+          "index": 31,
+          "object": "8043479c",
+          "exit_type": 3,
+          "path": "Z:\\System\\Programs\\FLogSvr.exe"
+        }
+      ],
+      "threads": [
+        {
+          "object": "80404f94",
+          "owner": "80404cb0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "80403f64",
+          "lr": "503407cc",
+          "pc": "5032752c",
+          "cpsr": "680000db",
+          "chunk": "80404f00",
+          "chunk_base": "80400000",
+          "size": "00038000",
+          "name": "Supervisor"
+        },
+        {
+          "object": "80408b40",
+          "owner": "80404cb0",
+          "raw_state": "00000004",
+          "exit": "3",
+          "sp": "80004e10",
+          "lr": "514af5f4",
+          "pc": "516c713c",
+          "cpsr": "4000001b",
+          "chunk": "00000000",
+          "chunk_base": "00000000",
+          "size": "00000000",
+          "name": "NULL"
+        },
+        {
+          "object": "80408fb4",
+          "owner": "80408db0",
+          "raw_state": "00000005",
+          "exit": "3",
+          "sp": "80601b64",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80409150",
+          "chunk_base": "80600000",
+          "size": "0002a000",
+          "name": "Main"
+        },
+        {
+          "object": "804094d4",
+          "owner": "80408db0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "80803f18",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "80409680",
+          "chunk_base": "80800000",
+          "size": "0000b000",
+          "name": "LoaderThread"
+        },
+        {
+          "object": "8040afd4",
+          "owner": "80408db0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "80d01f8c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040ae88",
+          "chunk_base": "80d00000",
+          "size": "00003000",
+          "name": "ReclaimThread_-2141090988"
+        },
+        {
+          "object": "8040bc78",
+          "owner": "8040b3b8",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "81101ec0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040be04",
+          "chunk_base": "81100000",
+          "size": "0001c000",
+          "name": "Main"
+        },
+        {
+          "object": "8040c4b0",
+          "owner": "8040c364",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "81301e7c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8040c64c",
+          "chunk_base": "81300000",
+          "size": "00006000",
+          "name": "Fontbitmapserver"
+        },
+        {
+          "object": "8040f108",
+          "owner": "8040ef80",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ebc",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040f294",
+          "chunk_base": "80e00000",
+          "size": "00005000",
+          "name": "StarterServer"
+        },
+        {
+          "object": "8040b810",
+          "owner": "8040b734",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401edc",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040b99c",
+          "chunk_base": "80f00000",
+          "size": "00006000",
+          "name": "SharedDataServer"
+        },
+        {
+          "object": "8040f9cc",
+          "owner": "8040f83c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e94",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8040fb58",
+          "chunk_base": "81000000",
+          "size": "00004000",
+          "name": "DosServer"
+        },
+        {
+          "object": "804107d8",
+          "owner": "80410634",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401b1c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "00000010",
+          "chunk": "80410974",
+          "chunk_base": "83600000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "80410bcc",
+          "owner": "80410634",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00601eb4",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80410d3c",
+          "chunk_base": "83700000",
+          "size": "0000b000",
+          "name": "SelfTestServer"
+        },
+        {
+          "object": "804111c4",
+          "owner": "8041102c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e7c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80411350",
+          "chunk_base": "83800000",
+          "size": "00004000",
+          "name": "EInfoServer"
+        },
+        {
+          "object": "804118bc",
+          "owner": "80411754",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401f04",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80411a58",
+          "chunk_base": "83900000",
+          "size": "00004000",
+          "name": "RandomServer"
+        },
+        {
+          "object": "80412508",
+          "owner": "8041236c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401eec",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804126a4",
+          "chunk_base": "83b00000",
+          "size": "00005000",
+          "name": "Main"
+        },
+        {
+          "object": "80413920",
+          "owner": "8041379c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e54",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80413aac",
+          "chunk_base": "83d00000",
+          "size": "00004000",
+          "name": "SystemAgent"
+        },
+        {
+          "object": "80415bc4",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e58",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80413e1c",
+          "chunk_base": "83e00000",
+          "size": "0001e000",
+          "name": "EikAppUiServer"
+        },
+        {
+          "object": "8041663c",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00602ea0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804167d8",
+          "chunk_base": "83f00000",
+          "size": "00008000",
+          "name": "BackupServerThread"
+        },
+        {
+          "object": "804173f0",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00701ec0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80417588",
+          "chunk_base": "84000000",
+          "size": "00002000",
+          "name": "ViewServerThread"
+        },
+        {
+          "object": "80417d28",
+          "owner": "80417bac",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "84101ef0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "80417eb4",
+          "chunk_base": "84100000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "804185b4",
+          "owner": "804183ec",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00501ea8",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80418740",
+          "chunk_base": "84400000",
+          "size": "00004000",
+          "name": "AlarmWorldServerThread"
+        },
+        {
+          "object": "80418a14",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00801eb8",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80418bb0",
+          "chunk_base": "84500000",
+          "size": "0001a000",
+          "name": "AppArcServerThread"
+        },
+        {
+          "object": "80419eac",
+          "owner": "80419c80",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "84601edc",
+          "lr": "50599f2f",
+          "pc": "5032752c",
+          "cpsr": "68000010",
+          "chunk": "8041a048",
+          "chunk_base": "84600000",
+          "size": "0000c000",
+          "name": "MediaServer"
+        },
+        {
+          "object": "8041a354",
+          "owner": "80419c80",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "84f00fd0",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "88000010",
+          "chunk": "8041a514",
+          "chunk_base": "84f00000",
+          "size": "00001000",
+          "name": "MediaServerTaskThread"
+        },
+        {
+          "object": "8041ce24",
+          "owner": "8041c738",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e9c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8041cfb0",
+          "chunk_base": "85000000",
+          "size": "00005000",
+          "name": "PhoneServerThread"
+        },
+        {
+          "object": "80414bf0",
+          "owner": "80413cd4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00a00eb8",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80414d90",
+          "chunk_base": "85100000",
+          "size": "00005000",
+          "name": "KeySoundServerThread"
+        },
+        {
+          "object": "804152f4",
+          "owner": "804130c0",
+          "raw_state": "00000006",
+          "exit": "0",
+          "sp": "00401fc4",
+          "lr": "503b3670",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "00000000",
+          "chunk_base": "00000000",
+          "size": "00000000",
+          "name": "DbRecovery"
+        },
+        {
+          "object": "8041de20",
+          "owner": "8041dd44",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ef0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8041df90",
+          "chunk_base": "85300000",
+          "size": "00008000",
+          "name": "DBMS server"
+        },
+        {
+          "object": "8041e50c",
+          "owner": "8041e430",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401eb0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "8041dc80",
+          "chunk_base": "85200000",
+          "size": "00004000",
+          "name": "Sae"
+        },
+        {
+          "object": "8041e884",
+          "owner": "8041e774",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "8041e9f4",
+          "chunk_base": "85400000",
+          "size": "0000e000",
+          "name": "SysAp"
+        },
+        {
+          "object": "8041ef80",
+          "owner": "8041ed70",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00501a9c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8041f10c",
+          "chunk_base": "85600000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "8042152c",
+          "owner": "80417bac",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "85701f04",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "8042169c",
+          "chunk_base": "85700000",
+          "size": "00016000",
+          "name": "EtelServer"
+        },
+        {
+          "object": "80422180",
+          "owner": "80422010",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00403f00",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "8042230c",
+          "chunk_base": "85800000",
+          "size": "0002e000",
+          "name": "Phone"
+        },
+        {
+          "object": "80422778",
+          "owner": "804225e0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401eb0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80422904",
+          "chunk_base": "85900000",
+          "size": "00004000",
+          "name": "Main"
+        },
+        {
+          "object": "804231a4",
+          "owner": "80419364",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ea4",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "80422d5c",
+          "chunk_base": "85a00000",
+          "size": "00004000",
+          "name": "WatcherThread"
+        },
+        {
+          "object": "80423700",
+          "owner": "80419364",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00601b9c",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80423870",
+          "chunk_base": "85b00000",
+          "size": "00013000",
+          "name": "WatcherMainThread"
+        },
+        {
+          "object": "80423c70",
+          "owner": "80422fa0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "40000010",
+          "chunk": "80423de0",
+          "chunk_base": "85c00000",
+          "size": "0000c000",
+          "name": "ScreenSaver"
+        },
+        {
+          "object": "80424c3c",
+          "owner": "80424b60",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80424dac",
+          "chunk_base": "85e00000",
+          "size": "0000e000",
+          "name": "Autolock"
+        },
+        {
+          "object": "80425b28",
+          "owner": "804259a4",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00404e20",
+          "lr": "50916f7d",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "80425cb4",
+          "chunk_base": "85f00000",
+          "size": "0000c000",
+          "name": "Startup"
+        },
+        {
+          "object": "80426f64",
+          "owner": "80426084",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401e9c",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "20000010",
+          "chunk": "804270d4",
+          "chunk_base": "86000000",
+          "size": "00008000",
+          "name": "LogServ"
+        },
+        {
+          "object": "80430450",
+          "owner": "8042f2c0",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00507c28",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "8042f8c0",
+          "chunk_base": "86300000",
+          "size": "00011000",
+          "name": "LOADERSRV"
+        },
+        {
+          "object": "80424734",
+          "owner": "80424568",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "005077e0",
+          "lr": "503b2484",
+          "pc": "5032752c",
+          "cpsr": "60000010",
+          "chunk": "804252e4",
+          "chunk_base": "00500000",
+          "size": "00011000",
+          "name": "WAPSTKSRV"
+        },
+        {
+          "object": "80435ae4",
+          "owner": "8043479c",
+          "raw_state": "00000002",
+          "exit": "3",
+          "sp": "00401ef0",
+          "lr": "503a8208",
+          "pc": "5032752c",
+          "cpsr": "28000010",
+          "chunk": "80434878",
+          "chunk_base": "86500000",
+          "size": "00004000",
+          "name": "FLogger server"
+        }
+      ],
+      "current_thread": "80408fb4",
+      "c_image_differing_positions": 409514,
+      "sample_clocks": 2000000,
+      "thread_samples_every128": {
+        "80422180": 7777,
+        "80408fb4": 5133,
+        "80424734": 1407,
+        "80408b40": 1222,
+        "80404f94": 86
+      },
+      "thread_sample_percent": {
+        "Phone": 49.7728,
+        "Main": 32.8512,
+        "WAPSTKSRV": 9.0048,
+        "NULL": 7.8208,
+        "Supervisor": 0.5504
+      },
+      "storage": {
+        "c_bus_clocks": 11022,
+        "ack_reads": 428,
+        "ack_writes": 1092,
+        "ddr_modeled_delay_clocks": 53706,
+        "c_differing_positions_in_sample": 541
+      },
+      "stall_bins_none_code_data_both": [
+        599902,
+        568423,
+        235950,
+        595725
+      ]
+    }
+  },
+  "method": "Read-only cache-aware process inspector plus independent2M-clock exact-model replay from each checkpoint; D-cache packed dirty tag bits masked from virtual tags. Firmware-specific object offsets. No main-run intervention.",
+  "interpretation": "No permanent failure isolated. Phone/EFile/WAP active, UI threads mostly blocked on request waits. Splash process disappears and FLogSvr appears between6B and7B; C: data changes. Phone/database/file-service initialization is the next request trace, not proven root cause.",
+  "c_image_sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+}

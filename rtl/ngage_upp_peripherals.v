@@ -104,8 +104,16 @@ module ngage_upp_peripherals #(
     input  wire        cbus8d_written,
     output wire        uem_periodic,
     output wire        uem_irq_clear,
+    // Transaction-level AMA serial bytes; electrical/baud timing is unmodeled.
+    output wire        adsp_tx_valid,
+    input  wire        adsp_tx_ready,
+    output wire [ 7:0] adsp_tx_data,
+    input  wire        adsp_rx_valid,
+    output wire        adsp_rx_ready,
+    input  wire [ 7:0] adsp_rx_data,
     input  wire        mdi_claim,
     input  wire        mdi_bad,
+    input  wire        mdi_ready,
     input  wire [31:0] mdi_data,
     input  wire [15:0] mdi_events,
     output wire        adsp_tick,
@@ -132,6 +140,30 @@ module ngage_upp_peripherals #(
     wire extra_ready;
     wire icu_ready, timer_ready;
     wire local_access = commit && init_done && cyc && stb && !response_pending;
+    wire uart_claim, uart_bad, uart_ready, uart_fiq;
+    wire [31:0] uart_data;
+    ngage_upp_euart euart1 (
+        .clk        (clk),
+        .reset      (rst),
+        .req        (cyc && stb && cfg_keypad),
+        .commit     (local_access),
+        .we         (we),
+        .addr       (adr),
+        .din        (din),
+        .sel        (sel),
+        .claim      (uart_claim),
+        .bad        (uart_bad),
+        .ready      (uart_ready),
+        .dout       (uart_data),
+        .irq_pending(uart_fiq),
+        .tx_valid   (adsp_tx_valid),
+        .tx_ready   (adsp_tx_ready),
+        .tx_data    (adsp_tx_data),
+        .rx_valid   (adsp_rx_valid),
+        .rx_ready   (adsp_rx_ready),
+        .rx_data    (adsp_rx_data)
+    );
+
     // Native host owns this register window before the generic storage bank.
     // Storage bits are retained; FIFO side effects occur once on admission.
     wire mmc_claim = MMC_ENABLE && cyc && stb && adr[31:6] == (32'h0c120600 >> 6);
@@ -261,7 +293,9 @@ module ngage_upp_peripherals #(
     {71'd0, mmc_irq[3], mmc_irq[2], 1'b0, mmc_irq[0], 21'd0};
     // NEM-4's FiqTimer0..5 and IrqTimer0..5 name tables identify the same
     // six timer levels on independently enabled planes (50322fe8/503236c0).
-    wire [95:0] fiq_sources = {64'b0, 5'b0, (sim_fiq_pending || simif_irq), 20'b0, timer_pending};
+    wire [95:0] fiq_sources = {
+        64'b0, 5'b0, (sim_fiq_pending || simif_irq || uart_fiq), 20'b0, timer_pending
+    };
     assign dma_irq_clear = irq_clear[7];
     assign uem_irq_clear = irq_clear[1];
     assign uem_periodic  = periodic_active;
@@ -574,7 +608,7 @@ module ngage_upp_peripherals #(
     // remain unchanged; see docs/peripheral-ownership.md for the overlap map.
     wire upload_selected = cfg_keypad && upload_hit;
     wire nosmem_selected = cfg_keypad && nosmem_hit && !mdi_claim;
-    wire gpio15_selected = gpio_hit && gpio15_hit && !simif_claim && !gpio_loop_claim && !nos_claim;
+    wire gpio15_selected = gpio_hit && gpio15_hit && !simif_claim && !uart_claim && !gpio_loop_claim && !nos_claim;
     wire aux06_selected = cfg_keypad && a[31:8] == 24'h0c06ff;
     wire aux12_selected = gpio_hit && a[31:16] == 16'h0c12 && !boot_claim;
     wire aux14_selected = gpio_hit && a[31:16] == 16'h0c14 && !mdi_claim;
@@ -657,14 +691,14 @@ module ngage_upp_peripherals #(
     // (even to the same address, e.g. after a write) re-reads.
     reg rd_vld;
     reg [31:0] rd_adr;
-    wire ram_read = !we && ((gpio_hit && !simif_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram);
+    wire ram_read = !we && ((gpio_hit && !simif_claim && !uart_claim && !nos_claim && !mdi_claim && !gpio_loop_claim && !boot_claim) || nos4k_ram);
     // A committed card event is captured at system speed and serviced on its
     // slower enable. Hold the next SIMIF access until card state is current.
     // Only LCD writes wait for their panel command buffer. Legacy standalone
     // fixtures without a display keep their original immediate contract.
     wire lcd_can_accept = (!LCD_QUEUE_ENABLE || lcd_sink_ready) && !lcd_direct_collision;
-    wire local_ready = init_done && (!extra_claim || (mmc_claim && !mmc_storage) || extra_ready) &&
-        (!boot_claim || boot_ready) &&
+    wire local_ready = init_done && (!uart_claim || uart_ready) && (!extra_claim || (mmc_claim && !mmc_storage) || extra_ready) &&
+        (!boot_claim || boot_ready) && (!mdi_claim || mdi_ready) &&
         (!icu_claim || icu_bad || icu_ready) && (!timer_claim || timer_bad || timer_ready) && passive_ready &&
         (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
                    (!ram_read || (rd_vld && rd_adr == a));
@@ -764,8 +798,6 @@ module ngage_upp_peripherals #(
             gpio_bad = 1'b1;
         gpio_data = gpr_q & wmask;
         // ---- quirk bits on reads ----
-        // euart1 TX idle (0x0c150514 bit 2)
-        if (a == 32'h0c15_0514 && !we) gpio_data = gpio_data | (32'h4 & wmask);
         // FBUS TX drained (0x0c150504 bits 4,6,7,8 = 0x1D0)
         if (a == 32'h0c15_0504 && !we) gpio_data = gpio_data | (32'h1d0 & wmask);
         // FBUS TX empty (0x0c150568 bits 1+2 in upper halfword = 0x60000)
@@ -806,14 +838,14 @@ module ngage_upp_peripherals #(
         else if (nos4k_hit && req) selected_owner[10] = 1;
         else if (d_space_hit && req) selected_owner[11] = 1;
         else if (clk_hit && req) selected_owner[12] = 1;
-        else if (gpio_hit && req) selected_owner[13] = 1;
+        else if ((uart_claim || gpio_hit) && req) selected_owner[13] = 1;
         else if (lcd_hit && req) selected_owner[14] = 1;
         claim = response_pending ? (|result_owner && req) : |selected_owner;
     end
     wire [511:0] local_data = {
         (mmc_data & mmc_mask) | (extra_data & ~mmc_mask),
         lcd_read_data,
-        keypad_dout,
+        uart_claim ? uart_data : keypad_dout,
         clock_data,
         d_q & wmask,
         (a[31:12] == 20'h0c000 ? (we ? 32'b0 : 32'h47704770) : nos4k_q & wmask),
@@ -826,12 +858,12 @@ module ngage_upp_peripherals #(
         mdi_data,
         keypad_dout,
         extra_data,
-        simif_data
+        simif_data | (uart_claim ? uart_data : 32'b0)
     };
     wire [15:0] local_bad = {
         mmc_bad,
         lcd_bad,
-        gpio_bad,
+        uart_claim ? uart_bad : gpio_bad,
         clock_bad,
         d_full,
         (a[31:12] == 20'h0c000 && we),
@@ -844,7 +876,7 @@ module ngage_upp_peripherals #(
         mdi_bad,
         gpio_loop_bad,
         extra_bad,
-        (simif_bad || card_overflow)
+        (simif_bad || card_overflow || (uart_claim && uart_bad))
     };
     wire [511:0] result_data;
     generate

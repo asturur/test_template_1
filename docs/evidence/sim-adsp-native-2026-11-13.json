@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-13",
+  "boot_complete": false,
+  "production_wired": false,
+  "firmware_modified": false,
+  "operating_mhz": 78,
+  "design_target_mhz": 104,
+  "files": {
+    "rtl/ngage_aic23.v": "701202c89384f1e66cc7a22b48ca34b3102b539e009764fb15391d3b1c78c053",
+    "rtl/ngage_adsp_diagnostic.v": "a10d80f81abad438fcfdc2db6922d06355f16c5942317f0b636733f8a258d8aa",
+    "tests/tools/test_native_sim_dynamic_flags.py": "10e01648ccbe1b9c27de2afa88eda3a46c339105f55ba0e795d86a800665c514",
+    "tests/tools/test_native_adsp_packets.py": "e466c637daf90674d1d0e7343f822076f326a619e012bb91270805fb3b7e10e5",
+    "tests/phone/adsp_diagnostic/tb.v": "a2aa9972dda3e847731b5f994ad1022ba89f590c1fc0d2030b3642bf2d6fdb8d",
+    "tests/phone/adsp_diagnostic/run.sh": "8826d4e8860e68176a453226a6c265c4f2b06147b74b934c46a4101ca364a329"
+  },
+  "tests": {
+    "native_sim_dynamic_flags": "PASS absent/present-zero/present-nonzero; original instructions/status mapping",
+    "native_adsp_packets": "PASS checksum valid/corrupt and8 sequences; synthetic descriptor",
+    "adsp_diagnostic_78": "PASS D550 diagnostic42: clock/flash/codec failures, exact codec reset, stalls, response ownership, unknown test and reset",
+    "adsp_diagnostic_104": "PASS D550 diagnostic42: clock/flash/codec failures, exact codec reset, stalls, response ownership, unknown test and reset",
+    "upp_euart": "PASS",
+    "native_startup_contracts": "PASS original RF/ADSP pending, timeout, success/failure, release, ROM immutability",
+    "native_adsp_controls": "PASS controls0..5 both levels",
+    "verilog_format": "PASS pinned Verible"
+  },
+  "fit_timing": "NOT_RUN",
+  "remaining": [
+    "Native SIM/MTC ready producer",
+    "Actual ADSP startup/ACK/retry framing",
+    "Production EUART/shared CTSI and chip wiring",
+    "Native full request/response and Phone/Menu boot"
+  ]
+}

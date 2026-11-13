@@ -30,7 +30,11 @@ initial begin
   if(fiq!==1)begin $display("FAIL SIM FIQ 26");$finish;end rd('h0c15080c,'h3b);rd('h0c15080c,0);
   wr('h0c150800,16);rd('h0c1500b8,0);if(fiq!==0)begin $display("FAIL cleared FIQ");$finish;end
   wr('h0c15080c,'ha0);wr('h0c15080c,'ha4);wr('h0c15080c,0);wr('h0c15080c,0);wr('h0c15080c,2);
-  rd('h0c150800,8);wr('h0c150800,8);rd('h0c150800,16);rd('h0c15080c,'ha4);rd('h0c150800,0);
+  rd('h0c150800,8);
+  // W1C acknowledgement must name TX-complete before advancing to RX.
+  wr('h0c150800,0);rd('h0c150800,8);
+  wr('h0c150800,16);rd('h0c150800,8);
+  wr('h0c150800,8);rd('h0c150800,16);rd('h0c15080c,'ha4);rd('h0c150800,0);
   wr('h0c15080c,'h3f);wr('h0c15080c,0);rd('h0c150800,8);wr('h0c150800,8);
   rd('h0c15080c,'h9f);rd('h0c15080c,'h16);rd('h0c150800,0);
  end else begin rd('h0c150800,0);rd('h0c15080c,0);rd('h0c1500b8,0);end

@@ -115,8 +115,12 @@ module ngage_cbus_uem #(
             end else if (we && a == 32'h0c150424) begin
                 if (stage != 2 || command[8]) bad = 1;
             end else if (!we && a == 32'h0c150420 && sel == 12) begin
-                if (stage != 3) bad = 1;
-                else dout = {command | 16'h0400, 16'b0};
+                // The native CBUS client polls before its first transfer and
+                // while a command is assembling. Status reads are always
+                // legal; reset-idle and completed transfers report done.
+                dout = {
+                    (command & ~16'h0400) | ((stage == 0 || stage == 3) ? 16'h0400 : 16'b0), 16'b0
+                };
             end else if (!we && a == 32'h0c150424 && stage == 3 && command[8]) begin
                 if (regno == 8'h3a) begin
                     if (adc_selected && adc_channel > 13) bad = 1;

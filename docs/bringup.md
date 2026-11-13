@@ -37,6 +37,11 @@ it, before the register-file read port changes.
 
 ## Running
 
+For the fresh integration UI investigation, checkpoint cadence and live key
+commands, see [sim-ui-run.md](sim-ui-run.md). New host-driver defaults save
+every billion through 10B, then every 100M; older frozen drivers retain their
+compiled cadence.
+
 For milestone 7.5's resumable **actual HDL phone** run, from the project root:
 
 ```sh
@@ -61,8 +66,8 @@ Run names must be new. `--cycles` is a 64-bit absolute terminal cycle. The drive
 uses serialized 64-bit host ticks to extend the HDL observation counter across
 its 32-bit rollover; device counters retain their actual HDL widths. Manifests record source/executable,
 container and input hashes, profile and restore ancestry. CPU/host checkpoint
-pairs include the testbench memories and HDL display state. New observer builds
-save every 100M cycles; billion-cycle pairs are retained permanently. Terminal framebuffer and sampled scanout PNGs are written under
+pairs include the testbench memories and HDL display state. Earlier observer builds
+save every 100M cycles; current defaults are recorded above. Billion-cycle pairs are retained permanently. Terminal framebuffer and sampled scanout PNGs are written under
 `build/sim/screens/<name>/`; `result.json` contains validity/display-on flags
 and hashes. A generated PNG does not by itself establish a logo or a valid frame.
 The five-million-cycle save/restore check matched an uninterrupted run byte for

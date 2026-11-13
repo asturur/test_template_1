@@ -163,3 +163,22 @@ Still useful:
    an executable profile needs its own inspected offsets and image hash.
 4. Revisit the 18 IDA databases when named OS interfaces become a bottleneck.
    They are analyst artifacts, not additional raw flash contents.
+
+## ADSP firmware package located (2026-11-12)
+
+The original NEM-4 Phoenix product configuration explicitly names
+`AdspFile=e403a400h450.usb` at line10 of
+`firmware/MCU/extracted/products/NEM-4/NEM_4.ini`.
+The corresponding `E403A400H450.USB` file is present in that directory and has
+an identical copy under `firmware/Disk1/data2/products/NEM-4/`.
+Size1506378 bytes; SHA256
+`0be93de04ebccd676d34ceaa2b9f4a901b3d0941565bc7b0f795e78ba8866429`.
+It begins08A5, followed by mostly binary payload; its container/encoding and
+mapping to the2MiB D551 flash are not decoded or qualified yet.
+
+This is positive package evidence that we already possess the external ADSP
+firmware update file. Earlier statements implying no ADSP firmware was supplied
+were premature. Do not confuse this file with ARM-side adspserver.exe/adsp.dll,
+the internal UPP DSP upload, or an already decoded raw D551 chip dump. Next:
+identify the update format, decode its records and recover reset/MADI/self-test
+behavior before looking externally for a replacement ROM. Source file untouched.

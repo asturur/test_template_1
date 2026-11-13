@@ -11,6 +11,11 @@ task command(input [15:0] d);begin wr('h0c150420,d,12);end endtask
 task payload(input [15:0] d);begin wr('h0c150424,d,12);end endtask
 initial begin
  tick();reset=0;tick();
+ // Original 503822BC polls completion before starting its first transaction.
+ rd('h0c150420,'h400);
+ cfg(7);rd('h0c150420,0);
+ command('h36);rd('h0c150420,'h36);
+ payload('hffff);rd('h0c150420,'h436);
  @(negedge clk);req=1;we=1;addr='h0c150424;sel=12;din='h12340000;#1;if(!bad)$fatal(1,"payload without command");req=0;
  cfg(7);command('h13f);rd('h0c150424,POWERUP_STATUS);
  cfg(7);command('h135);rd('h0c150420,'h535);rd('h0c150424,'h18);

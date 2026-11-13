@@ -1,3 +1,13 @@
+## 2026-11-12: SIMIF W1C phase transition corrected
+
+Zero or unrelated status acknowledgements formerly advanced TX-done to RX and
+raised18 while8 remained unacknowledged. Reproduced in the board fixture; the
+transition now requires din[3] as well as pending status[3]. All card/presence,
+FIFO/overflow/stress/CEN and committed peripheral response tests pass. This
+corrects the controller, not the unresolved native SIM-ready handshake. Strict
+original-firmware/HDL-only boot remains the requirement; see
+[native-startup-hdl.md](native-startup-hdl.md).
+
 ## 2026-11-06: diagnostic SIMIF HDL port
 
 The staged card/controller behavior now has a Verilog-2001 UPP SIMIF and a separate bounded synthetic card module on the board. MiSTer offers reset-sampled No ATR and Test card profiles. C++/HDL card and controller tests, FIQ routing, and a CPU-executed SELECT fixture pass; see `docs/status.md` for commands and limits. Two 20M-cycle from-reset C++/HDL shadow runs passed, but they did not reach SIM initialization. This does not establish a functioning SIM, cellular modem or physical serial timing.

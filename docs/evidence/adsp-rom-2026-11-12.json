@@ -1,0 +1,423 @@
+{
+  "source_sha256": "0be93de04ebccd676d34ceaa2b9f4a901b3d0941565bc7b0f795e78ba8866429",
+  "source_bytes": 1506378,
+  "source_modified": false,
+  "flash_byte_base_candidate": 4194304,
+  "flash_capacity_bytes": 2097152,
+  "unread_flash_tail": "not supplied; do not treat as observed erased data",
+  "load_table_offset": 4096,
+  "load_table_end": 95896,
+  "load_table_format": "big-endian32 destination word address and16-bit-word count",
+  "ram_bytes": 262144,
+  "ram_loaded_bytes": 91664,
+  "ram_holes": "zero fill is an analysis placeholder, not observed reset contents",
+  "records": [
+    {
+      "index": 0,
+      "header_offset": 4096,
+      "source_offset": 4104,
+      "destination_word": 128,
+      "destination_byte": 256,
+      "words": 128,
+      "bytes": 256
+    },
+    {
+      "index": 1,
+      "header_offset": 4360,
+      "source_offset": 4368,
+      "destination_word": 444,
+      "destination_byte": 888,
+      "words": 8,
+      "bytes": 16
+    },
+    {
+      "index": 2,
+      "header_offset": 4384,
+      "source_offset": 4392,
+      "destination_word": 558,
+      "destination_byte": 1116,
+      "words": 3922,
+      "bytes": 7844
+    },
+    {
+      "index": 3,
+      "header_offset": 12236,
+      "source_offset": 12244,
+      "destination_word": 8940,
+      "destination_byte": 17880,
+      "words": 1334,
+      "bytes": 2668
+    },
+    {
+      "index": 4,
+      "header_offset": 14912,
+      "source_offset": 14920,
+      "destination_word": 32980,
+      "destination_byte": 65960,
+      "words": 8,
+      "bytes": 16
+    },
+    {
+      "index": 5,
+      "header_offset": 14936,
+      "source_offset": 14944,
+      "destination_word": 32988,
+      "destination_byte": 65976,
+      "words": 34,
+      "bytes": 68
+    },
+    {
+      "index": 6,
+      "header_offset": 15012,
+      "source_offset": 15020,
+      "destination_word": 33024,
+      "destination_byte": 66048,
+      "words": 8904,
+      "bytes": 17808
+    },
+    {
+      "index": 7,
+      "header_offset": 32828,
+      "source_offset": 32836,
+      "destination_word": 42466,
+      "destination_byte": 84932,
+      "words": 2942,
+      "bytes": 5884
+    },
+    {
+      "index": 8,
+      "header_offset": 38720,
+      "source_offset": 38728,
+      "destination_word": 56238,
+      "destination_byte": 112476,
+      "words": 8802,
+      "bytes": 17604
+    },
+    {
+      "index": 9,
+      "header_offset": 56332,
+      "source_offset": 56340,
+      "destination_word": 65536,
+      "destination_byte": 131072,
+      "words": 15932,
+      "bytes": 31864
+    },
+    {
+      "index": 10,
+      "header_offset": 88204,
+      "source_offset": 88212,
+      "destination_word": 81468,
+      "destination_byte": 162936,
+      "words": 8,
+      "bytes": 16
+    },
+    {
+      "index": 11,
+      "header_offset": 88228,
+      "source_offset": 88236,
+      "destination_word": 81476,
+      "destination_byte": 162952,
+      "words": 74,
+      "bytes": 148
+    },
+    {
+      "index": 12,
+      "header_offset": 88384,
+      "source_offset": 88392,
+      "destination_word": 81550,
+      "destination_byte": 163100,
+      "words": 24,
+      "bytes": 48
+    },
+    {
+      "index": 13,
+      "header_offset": 88440,
+      "source_offset": 88448,
+      "destination_word": 81574,
+      "destination_byte": 163148,
+      "words": 62,
+      "bytes": 124
+    },
+    {
+      "index": 14,
+      "header_offset": 88572,
+      "source_offset": 88580,
+      "destination_word": 81636,
+      "destination_byte": 163272,
+      "words": 92,
+      "bytes": 184
+    },
+    {
+      "index": 15,
+      "header_offset": 88764,
+      "source_offset": 88772,
+      "destination_word": 81728,
+      "destination_byte": 163456,
+      "words": 194,
+      "bytes": 388
+    },
+    {
+      "index": 16,
+      "header_offset": 89160,
+      "source_offset": 89168,
+      "destination_word": 127616,
+      "destination_byte": 255232,
+      "words": 3364,
+      "bytes": 6728
+    }
+  ],
+  "vectors": [
+    {
+      "index": 0,
+      "source_offset": 4104,
+      "target": 4461056,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 1,
+      "source_offset": 4112,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 2,
+      "source_offset": 4120,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 3,
+      "source_offset": 4128,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 4,
+      "source_offset": 4136,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 5,
+      "source_offset": 4144,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 6,
+      "source_offset": 4152,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 7,
+      "source_offset": 4160,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 8,
+      "source_offset": 4168,
+      "target": 211713,
+      "owner": "unresolved",
+      "record": null
+    },
+    {
+      "index": 9,
+      "source_offset": 4176,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 10,
+      "source_offset": 4184,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 11,
+      "source_offset": 4192,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 12,
+      "source_offset": 4200,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 13,
+      "source_offset": 4208,
+      "target": 121070,
+      "owner": "loaded_ram",
+      "record": 8
+    },
+    {
+      "index": 14,
+      "source_offset": 4216,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 15,
+      "source_offset": 4224,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 16,
+      "source_offset": 4232,
+      "target": 120322,
+      "owner": "loaded_ram",
+      "record": 8
+    },
+    {
+      "index": 17,
+      "source_offset": 4240,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 18,
+      "source_offset": 4248,
+      "target": 119771,
+      "owner": "loaded_ram",
+      "record": 8
+    },
+    {
+      "index": 19,
+      "source_offset": 4256,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 20,
+      "source_offset": 4264,
+      "target": 119080,
+      "owner": "loaded_ram",
+      "record": 8
+    },
+    {
+      "index": 21,
+      "source_offset": 4272,
+      "target": 117636,
+      "owner": "loaded_ram",
+      "record": 8
+    },
+    {
+      "index": 22,
+      "source_offset": 4280,
+      "target": 118347,
+      "owner": "loaded_ram",
+      "record": 8
+    },
+    {
+      "index": 23,
+      "source_offset": 4288,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 24,
+      "source_offset": 4296,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 25,
+      "source_offset": 4304,
+      "target": 1279,
+      "owner": "loaded_ram",
+      "record": 2
+    },
+    {
+      "index": 26,
+      "source_offset": 4312,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 27,
+      "source_offset": 4320,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 28,
+      "source_offset": 4328,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 29,
+      "source_offset": 4336,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 30,
+      "source_offset": 4344,
+      "target": 4515933,
+      "owner": "external_flash_candidate",
+      "record": null
+    },
+    {
+      "index": 31,
+      "source_offset": 4352,
+      "target": 1281,
+      "owner": "loaded_ram",
+      "record": 2
+    }
+  ],
+  "boot_execution_verified": false,
+  "arm_core_evidence": false,
+  "decoder": {
+    "upstream": "XVilka/c55xde",
+    "commit": "fe0630ce6592506b372d2c8bc1700fb16106394f",
+    "patch_sha256": "0b28d09085c89885e9f7840efca0234b3e8960de34cbed1b6bb4a29ba795b1b1",
+    "selected_opcode_and_asan_tests": "PASS",
+    "full_decoder_qualified": false
+  },
+  "native_test42": {
+    "dispatcher": "451AAC",
+    "handler": "4519C3",
+    "reply_type": "8B",
+    "identifier": "42",
+    "flags_word": "DBA7",
+    "result_word": "DBA6",
+    "pass_flags": 7,
+    "failure_result": "0C",
+    "checks": [
+      "port1C00 bit0; CLKMD lock inference",
+      "flash data word2B0000==FFFC; original file160000 matches",
+      "I2C1A transfer1E00 succeeds; codec reset inference"
+    ],
+    "madi_roundtrip_qualified": false
+  },
+  "image_qualification_tests": 5,
+  "pll_mhz": 78,
+  "timing_target_mhz": 104
+}

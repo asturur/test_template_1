@@ -21,6 +21,34 @@ class RuntimeBT(unittest.TestCase):
         for kind in ('mcu', 'ppm'):
             svc.apply(cls.original, svc.parse((folder/svc.PROFILES[kind][0]).read_bytes(), kind), kind)
 
+    def test_slow_wait_trace_is_separate(self):
+        blob = (ROOT/'build/firmware-overlays/exit-trace/trace.bin').read_bytes()
+        plain = bt.exit_records(blob)
+        slow = bt.exit_records(blob, slow_wait=True)
+        self.assertEqual([r for r in slow if r not in plain],
+                         [next(r for r in slow if r[0] == 0x3b247c)])
+        self.assertEqual(next(r[1] for r in slow if r[0] == 0x3b247c), 0xe2844001)
+        bt.validate_image(self.original, slow)
+        self.assertNotIn(0x3b247c, [r[0] for r in plain])
+
+    def test_view_config_scope(self):
+        raw = self.original.copy()
+        records = list(bt.VIEW_CONFIG_RECORDS)
+        bt.validate_image(raw, records)
+        bt.patch_image(raw, records)
+        changed = {i for i,(a,b) in enumerate(zip(raw,self.original)) if a != b}
+        self.assertEqual(changed, {0x63ea2a,0x63ea2b,0x63ea3c,0x63ea3d})
+
+    def test_view_timeout_scope(self):
+        raw = self.original.copy()
+        records = list(bt.VIEW_TIMEOUT_RECORDS)
+        bt.validate_image(raw, records)
+        bt.patch_image(raw, records)
+        changed = {i for i,(a,b) in enumerate(zip(raw,self.original)) if a != b}
+        self.assertTrue(changed)
+        self.assertTrue(changed <= set(range(0x64bf68,0x64bf70)))
+        self.assertEqual([new for off,old,new in records], [10000000,100000000])
+
     def test_identity_and_readback(self):
         raw = self.original.copy()
         bt.validate_image(raw, self.records)

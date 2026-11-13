@@ -84,7 +84,7 @@ module ngage_simif (
                     32'h0c150800:
                     if (we && low_access) begin
                         status <= status & ~din[15:0];
-                        if (status[3] && phase == 1) begin
+                        if (status[3] && din[3] && phase == 1) begin
                             if (card_available != 0) status <= (status & ~din[15:0]) | 16'h10;
                             phase <= 2;
                         end

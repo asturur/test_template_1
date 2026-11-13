@@ -19,19 +19,27 @@ import time
 BASE, SIZE, ROM_SIZE = 0x30000000, 0x1400000, 0x13F0000
 ROM_SHA = '88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329'
 PACKAGE_SHA = '12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa'
-EXIT_TRACE_SHA = '21536f61dbd1ec1e93d32110d7a4521ab89a978110eca776d7dd05b8e505db44'
-EXIT_HOOKS = (0x3b4718, 0x3b46e0, 0x3b7fb8, 0x3b7fe4, 0x3b8010)
+EXIT_TRACE_SHA = 'c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3'
+VIEW_TIMEOUT_RECORDS = ((0x64bf68, 1000000, 10000000),
+                        (0x64bf6c, 10000000, 100000000))
+VIEW_CONFIG_RECORDS = ((0x63ea28, 0x1c01f8cb, 0x00c1f8cb),
+                       (0x63ea3c, 0x68281c01, 0x682800c1))
+EXIT_HOOKS = (0x3b4718, 0x3b46e0, 0x3b7fb8, 0x3b7fe4, 0x3b8010, 0x3a2b48, 0x3b247c)
 
 
-def exit_records(blob):
+def exit_records(blob, slow_wait=False):
     if hashlib.sha256(blob).hexdigest() != EXIT_TRACE_SHA:
         raise ValueError('requires the tested NEM-4 exit-trace payload')
     records = [(0x11b6000+i, 0xffffffff, struct.unpack_from('<I', blob, i)[0])
                for i in range(0, len(blob), 4)]
     for i, entry in enumerate(EXIT_HOOKS):
-        target = 0x11b6000 + i*0x44
+        if entry == 0x3b247c and not slow_wait:
+            continue
+        target = 0x11b6000 + i*4
         branch = 0xea000000 | (((target-entry-8)//4) & 0xffffff)
-        records.append((entry, 0xe92d4000, branch))
+        old = (0xea003c0a if entry == 0x3a2b48 else
+               0xe2844001 if entry == 0x3b247c else 0xe92d4000)
+        records.append((entry, old, branch))
     return records
 
 
@@ -101,7 +109,16 @@ def main():
     source.add_argument('--package-b64')
     p.add_argument('--apply', action='store_true')
     p.add_argument('--exit-trace-b64', help='also install the tested exit diagnostic payload')
+    p.add_argument('--slow-wait-trace', action='store_true',
+                   help='diagnostic only: trace slow file waits; adds runtime overhead')
+    deadline = p.add_mutually_exclusive_group()
+    deadline.add_argument('--view-config-scale8', action='store_true',
+                          help='experiment: scale EikSrv configured2s/20s deadlines eightfold')
+    deadline.add_argument('--view-timeout-scale10', action='store_true',
+                   help='experiment: extend ViewSrv default soft/hard deadlines tenfold')
     args = p.parse_args()
+    if args.slow_wait_trace and not args.exit_trace_b64:
+        p.error('--slow-wait-trace requires --exit-trace-b64')
     if args.package:
         with open(args.package, 'rb') as f:
             package = f.read()
@@ -109,7 +126,11 @@ def main():
         package = base64.b64decode(args.package_b64, validate=True)
     records = records_from_package(package)
     if args.exit_trace_b64:
-        records += exit_records(base64.b64decode(args.exit_trace_b64, validate=True))
+        records += exit_records(base64.b64decode(args.exit_trace_b64, validate=True), args.slow_wait_trace)
+    if args.view_timeout_scale10:
+        records += list(VIEW_TIMEOUT_RECORDS)
+    if args.view_config_scale8:
+        records += list(VIEW_CONFIG_RECORDS)
     records.sort()
     flags = (os.O_RDWR if args.apply else os.O_RDONLY) | os.O_SYNC
     fd = os.open('/dev/mem', flags)
@@ -121,6 +142,9 @@ def main():
             report = dict(mode='apply' if args.apply else 'read-only preflight', records=len(records),
                           package_sha256=PACKAGE_SHA, original_rom_sha256=ROM_SHA,
                           exit_trace_sha256=EXIT_TRACE_SHA if args.exit_trace_b64 else None,
+                          slow_wait_trace=args.slow_wait_trace,
+                          view_timeout_scale=10 if args.view_timeout_scale10 else 1,
+                          view_config_scale=8 if args.view_config_scale8 else 1,
                           fresh_held=bool(held_fresh(first)), applied=False,
                           requires='fresh RBF load in CPU Hold, no prior execution, autosave Off')
             if args.apply:

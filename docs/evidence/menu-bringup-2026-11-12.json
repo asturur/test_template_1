@@ -1,6 +1,6 @@
 {
   "date": "2026-11-12",
-  "goal": "usable menu; not achieved",
+  "goal": "Menu reached with original deadlines and initialized disks; carrier, clean-first-boot and durable save remain open",
   "baseline_phone_exit": {
     "c_sha256": "cacd9103b73df319378abcb5884d101f4370f92080f97c8cfc76120ff441a23f",
     "log": "1.1.2003 10:11:29 Phone.app exit;d1=0,100,0,0;d2=3584286,13053952"
@@ -31,7 +31,7 @@
     "bytes": 912,
     "sha256": "21536f61dbd1ec1e93d32110d7a4521ab89a978110eca776d7dd05b8e505db44",
     "tests": "ZAP0/3wait ARM/Thumb ABI pass;host guards5tests pass",
-    "hardware": "installed with BT after user fresh-held reload; awaiting Run/output",
+    "hardware": "User selected Run; hook execution and RDebug output confirmed; one ViewSrv thread panic captured",
     "coverage": "UserExit/Panic and RThreadKill/Terminate/Panic;not all kernel/process death paths",
     "apply": {
       "mode": "apply",
@@ -44,6 +44,14 @@
       "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
       "patched_rom_sha256": "164c335174a34411dd634c4fdbce6e0b6364c8d96c17ea94b2cfa71eb6e41403",
       "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "observation": {
+      "panic": "X THREAD_PANIC a0=0041cf54 a1=00701e78 lr=5064dd55 sp=00701e78 cpsr=00000010",
+      "category": "ViewSrv: original ROM UTF16 literal5064F6D0 referenced by panic wrapper5064DD38",
+      "reason": "not captured by v1; static callers include11,3,4,6,7,8,9,10; cannot identify from shared LR alone",
+      "c_sha256": "c1a896732eef7e855b8462c1c452411e2da0730fdd7d85f9c59cfa0a0606f5e6",
+      "log": "1.1.2003 10:11:28 Phone.app exit;d1=0,100,0,0;d2=3637004,12906496",
+      "limits": "same boot has Phone exit and ViewSrv panic; affected thread and causal connection not yet proven; zero kernel panic mask does not exclude user thread panic"
     }
   },
   "read_c": "read-only mmap,consecutive equal images,original guest filesystem102entries65files0writes",
@@ -58,6 +66,517 @@
     "scratch/menu-bringup-20261112/live-c-1.vhd": "cacd9103b73df319378abcb5884d101f4370f92080f97c8cfc76120ff441a23f",
     "scratch/menu-bringup-20261112/live-c-2.vhd": "cacd9103b73df319378abcb5884d101f4370f92080f97c8cfc76120ff441a23f",
     "scratch/menu-bringup-20261112/bt-live-c.vhd": "6048178ad46f2726f6a94c192b1138dcbd299d8bb48b2292ef58b7d9bde37768",
-    "scratch/menu-bringup-20261112/bt-startup.jsonl": "88bd072c70b0f84a1f567a39f1949246066621201b271988874b12841fcc46e5"
+    "scratch/menu-bringup-20261112/bt-startup.jsonl": "88bd072c70b0f84a1f567a39f1949246066621201b271988874b12841fcc46e5",
+    "scratch/menu-bringup-20261112/exit-live-c.vhd": "c1a896732eef7e855b8462c1c452411e2da0730fdd7d85f9c59cfa0a0606f5e6",
+    "scratch/menu-bringup-20261112/exit-running/capture.jsonl": "2482e494afc0be4dff917c2198a26bba13a8fe1dfb9af992e7bf448ff48c86d7",
+    "scratch/menu-bringup-20261112/exit-running/text.raw": "ab1989a02ee207af7d6d81448d0fda49d43ab1f6017681e8dc22bef13f938127",
+    "scratch/menu-bringup-20261112/exit-v2-running.jsonl": "e951ad278ca559e9216a66c9206e3d40d561487ecf885b3718a9006f45d16dea",
+    "scratch/menu-bringup-20261112/exit-v2-text.raw": "5161c77ff919f59bba6e171a94b6e02279557775c98d4a7dbad47a455893dc66"
+  },
+  "exit_trace_v2": {
+    "bytes": 1132,
+    "sha256": "b30425a30d0ace76bdb6e55ae2b0a6b85822db1c69960c73f4d928f1dd7192fb",
+    "adds": "original r2 panic reason and r6 thread-entry register",
+    "tests": "six host safety tests pass; actual ZAP ARM/Thumb0/3wait pass",
+    "hardware": "User selected Run; captured ViewSrv reason11 (r2=0000000b,r6=0000000b), caller5064DD55",
+    "apply": {
+      "mode": "apply",
+      "records": 878,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "b30425a30d0ace76bdb6e55ae2b0a6b85822db1c69960c73f4d928f1dd7192fb",
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "f427324b8f1544828a10e2e4199e2fd7dee0e1e623a265b61dbc79db31245376",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "snapshots": 846,
+    "panic": [
+      "X THREAD_PANIC a0=0041cf78 a1=00701e78 a2=0000000b lr=5064dd55 sp=00701e78 cpsr=00000010 r6=0000000b"
+    ]
+  },
+  "view_timeout_comparison": {
+    "hardware": "Failed comparison: same ViewSrv11 panic at78.0 sampled CPU seconds, SysAp44.5s (baseline70.75/37.5). Defaults replaced by explicit EikSrv configuration.",
+    "changes": [
+      {
+        "rom_address": "5064BF68",
+        "original_us": 1000000,
+        "experiment_us": 10000000
+      },
+      {
+        "rom_address": "5064BF6C",
+        "original_us": 10000000,
+        "experiment_us": 100000000
+      }
+    ],
+    "fixture": {
+      "original_us": [
+        1000000,
+        9000000
+      ],
+      "extended_us": [
+        10000000,
+        90000000
+      ],
+      "constructor_other_bytes_identical": true,
+      "limits": "Original Thumb constructor and timer scheduling execute in Unicorn; external base constructors and scheduling import are leaf stubs. No full OS/hardware qualification."
+    },
+    "limits": "speed-related expiry remains hypothesis; runtime setter overrides not excluded; do not disable panic or claim menu fixed",
+    "apply": {
+      "mode": "apply",
+      "records": 880,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "b30425a30d0ace76bdb6e55ae2b0a6b85822db1c69960c73f4d928f1dd7192fb",
+      "view_timeout_scale": 10,
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "92afb368bf735c26c1d796d646d3ac71fe95a10714deeb0b5d6f08b745fdbade",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "baseline_panic_sample_seconds": 70.75,
+    "baseline_sysap_sample_seconds": 37.5,
+    "timing_limit": "Relative sampled CPU elapsed, not exact event timestamp; capture may start after execution begins.",
+    "result": "No meaningful change relative to startup stage; constructor-default experiment is insufficient."
+  },
+  "view_config_comparison": {
+    "hardware": "Installed and running; user sees INSERT SIM CARD and confirms multiple digits respond. Menu key reaches core but does not change view.",
+    "resource_file": "EikPriv.RSC, exact complete file found in original ROM",
+    "resource_signature": "040000000160bd19",
+    "resource_values": {
+      "19bd6012_server_event_us": 20000000,
+      "19bd6013_client_request_us": 2000000
+    },
+    "original_setters": "EikSrv5063EA2E/5063EA40 -> ViewCli exports26/25 -> IPC -> ViewSrv5064E250/5064E240 -> setters5064C06C/5064C064",
+    "changes": [
+      {
+        "rom_word": "5063EA28",
+        "old": "1c01f8cb",
+        "new": "00c1f8cb"
+      },
+      {
+        "rom_word": "5063EA3C",
+        "old": "68281c01",
+        "new": "682800c1"
+      }
+    ],
+    "effect": "Each ADDS r1,r0,#0 becomes LSLS r1,r0,#3; configured20s/2s becomes160s/16s. Preserve BL/argument handle, IPC and timeout logic. Constructor defaults revert to stock.",
+    "tests": {
+      "original_server_client_us": [
+        20000000,
+        2000000
+      ],
+      "extended_server_client_us": [
+        160000000,
+        16000000
+      ],
+      "limits": "Original EikSrv Thumb configuration code executed; resource-reader and IPC leaf calls stubbed. Hardware outcome unverified."
+    },
+    "host_tests": 7,
+    "limits": "Runtime and menu outcome unverified; deadline extension only tests performance-timeout hypothesis.",
+    "apply": {
+      "mode": "apply",
+      "records": 880,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "b30425a30d0ace76bdb6e55ae2b0a6b85822db1c69960c73f4d928f1dd7192fb",
+      "view_timeout_scale": 1,
+      "view_config_scale": 8,
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "8bacba9c28f50ac1e2aab250cbe28b4c0055212b61a8d2793c986634f2f06fe8",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "observed_sample_seconds": 479.5,
+    "view_srv_panic_count": 0,
+    "user_panic": "USER21 at82.5 sampled seconds, original TDesC8::AtC bounds check; not yet assigned to a named thread",
+    "menu_key": {
+      "sample_seconds_on": 153.5,
+      "sample_seconds_off": 154.25,
+      "mask": "40",
+      "reset_generation": 0,
+      "new_panic_after_key": false
+    },
+    "live_c": {
+      "sha256": "de9723306d98354a18bea2739f5029cd92e53bc2705849b0616482e11edda7ff",
+      "entries": 105,
+      "files": 68,
+      "writes": 0,
+      "new_phone_exit": false
+    },
+    "result": "Phone UI and numeric input responsive; usable menu not reached; SIM path and USER21 need investigation"
+  },
+  "descriptor_trace_v3": {
+    "bytes": 1376,
+    "sha256": "185654cc5676dab6df24fdc576ac113b721353d6c841fc0a4a8655a22d109bbe",
+    "hook": "503A2B48 bounds-failure B only, log original AtC caller LR/index/header; resume original503B1B78 without PUSH",
+    "tests": "7 host checks and ZAP six-hook ARM/Thumb0/3wait pass",
+    "hardware": "Captured failing AtC caller50FC9A7B in Nokia.dsy, index25, transformed header6000000A (original4000000C, length12)",
+    "apply": {
+      "mode": "apply",
+      "records": 942,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "185654cc5676dab6df24fdc576ac113b721353d6c841fc0a4a8655a22d109bbe",
+      "view_timeout_scale": 1,
+      "view_config_scale": 8,
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "e496f76691744f7a8f15d4495e65657531f95cd47969f4e57c3d6364f736a040",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    }
+  },
+  "dsy_trace_v4": {
+    "bytes": 1588,
+    "sha256": "647aa94ca457608f83acde4eb68f7d7fd8fd3eb12d23600c913774e2ac29d929",
+    "apply": {
+      "mode": "apply",
+      "records": 995,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "647aa94ca457608f83acde4eb68f7d7fd8fd3eb12d23600c913774e2ac29d929",
+      "view_timeout_scale": 1,
+      "view_config_scale": 8,
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "6b76f8549862d27a6f32c5404c8a28691f2f4c29c783edae5b3b0726cff02140",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "hardware": "Autonomous reload/start verified; capture identifies12-byte original PERM read error and DSY parser caller",
+    "guards": "Only bounds failure from LR50FC9A7B,length12, data and known saved-LR stack pointer in00400000..00FF0000; reads exactly12 message bytes and known helper saved LR",
+    "tests": "seven host checks, bounded dump guard/register/flags/continuation fixture and ZAP six-hook ARM/Thumb0/3wait pass",
+    "message": {
+      "words": [
+        "23000000",
+        "1d530006",
+        "00110500"
+      ],
+      "bytes": "000000230600531d00051100",
+      "helper_caller": "50fc91fd",
+      "class": "CPermRecordReadResp from original UTF16 diagnostic strings",
+      "resource": "23",
+      "message_id": "05",
+      "status": "11",
+      "parser_fault": "reads index25 from descriptor length12"
+    },
+    "static_request": {
+      "builder": "50FC97B8",
+      "body": "utid,04,0032,0001,00000000,00000002",
+      "group": 50,
+      "record": 1,
+      "offset": 0,
+      "length": 2
+    },
+    "original_service": {
+      "class": "cPERM_Server",
+      "class_descriptor": "516DFD6C",
+      "dispatch": "51597F40,case2304->51598380->51598794",
+      "read": "5152BA5C via51598886",
+      "error_11": "record lookup/header/state integrity paths to5152BC9A; specific taken branch not captured",
+      "short_error": "515988C2..CC calls resize routine514B9B3C with length4 body, plus8byte Phonet header"
+    }
+  },
+  "zaparoo_control": {
+    "user_authorized": "reload, wait20-30s, F12,7Down,Enter to start CPU",
+    "observed": "same-core launch retained running patched ROM; full-SHA guard refused without writes. launch.system:menu then mister.core:_Console/ngage1,wait30s restores exact original/freshHold; patch995verified; keyboard F12/7Down/Enter/F12 starts CPU",
+    "api": "local HTTP7497/api/v0.1 via existing SSH; screenshot works; core screenshot omits OSD"
+  },
+  "pmm_observation": {
+    "live": {
+      "bytes": 65536,
+      "sha256": "d355928744c3f4ba634c044fd7346367e750154e845756822fef08465747afef",
+      "consecutive_equal_reads": 2,
+      "reads": 2,
+      "physical_base": "0x31800000"
+    },
+    "live_non_ff_bytes": 1395,
+    "catalog_chain_records_per_sector": [
+      66,
+      0,
+      3,
+      0
+    ],
+    "backup_sha256": "0d4fd8e6611265fbce34b4757c309ae7d7d71bb4e29d32fa12c15299c54fe9cf",
+    "limits": "NOS formats/programs PMM; exact group50 record lookup/encoding and reason for error11 not fully decoded. No PMM restoration or seed changes applied."
+  },
+  "pmm_record50_trial": {
+    "candidate": {
+      "source_sha256": "d355928744c3f4ba634c044fd7346367e750154e845756822fef08465747afef",
+      "sha256": "77e0e24008ecc2b828ac45c7d7bcefc151037f24fe89cff28f2f6cceaf564dfd",
+      "offset": 1830,
+      "existing_records": 66,
+      "group": 50,
+      "record": 1,
+      "payload_hex": "0400",
+      "limits": "Diagnostic candidate: original DSY writer prefixes04 and appends its value; zero chosen for this experiment, factory semantics unverified. Native catalog/header layout retained. No card writes."
+    },
+    "apply": {
+      "applied": true,
+      "bytes": 65536,
+      "physical_base": "0x31800000",
+      "sha256": "77e0e24008ecc2b828ac45c7d7bcefc151037f24fe89cff28f2f6cceaf564dfd",
+      "fresh_held": true,
+      "autosave": false,
+      "card_files_unchanged": true
+    },
+    "fixture": "original NOS header/state decoders accept candidate, supplied group map translates50->7, state8; full startup not represented by fixture",
+    "observed_seconds": 179.25,
+    "user_panics": 0,
+    "descriptor_failures": 0,
+    "view_srv_panics": 0,
+    "screen": "Verified Phone display INSERT SIM CARD; menu not reached",
+    "limits": "Candidate has69 previously generated records plus new50/1 record0400; value0 semantics unverified. Matched formatted-source-without-new-record control still needed to attribute improvement to this record alone. Not a production PMM remedy.",
+    "card_files_unchanged": true
+  },
+  "display_correction": "Concurrent user/manual Phone selection raced with our API display toggle; restored and screenshot-verified Phone. Do not toggle display blindly while user is changing OSD.",
+  "view_target_v5": {
+    "bytes": 1728,
+    "sha256": "432edf1c145713053ae2e4079bf175e63c9a995a40a7508ed6358f0626096db2",
+    "apply": {
+      "mode": "apply",
+      "records": 1028,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "432edf1c145713053ae2e4079bf175e63c9a995a40a7508ed6358f0626096db2",
+      "view_timeout_scale": 1,
+      "view_config_scale": 1,
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "b3a7733d6ad8536e2c022745de8e016fc46972e4a6b7e044cd0b0d5cc57cfd07",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "target": "Phone[100058b3]0003::Phone",
+    "events": [
+      {
+        "marker": "Start listening",
+        "sample_seconds": 60.25
+      },
+      {
+        "marker": "X VIEW_TARGET",
+        "sample_seconds": 93.5
+      },
+      {
+        "marker": "X THREAD_PANIC",
+        "sample_seconds": 93.5
+      }
+    ],
+    "tests": "actual original FullName/TBuf/memcpy with exec/print leaves; host7, DSY scope and ZAP0/3wait pass",
+    "limits": "PC samples are periodic/aggregate, no thread ownership or retired-instruction counter; file-library activity is a lead only"
+  },
+  "view_context_v6": {
+    "bytes": 2400,
+    "sha256": "ebd081885d9d148e84ea57589ad04a869b7bbb3138c8de844ef2972edc9cf7c7",
+    "apply": {
+      "mode": "apply",
+      "records": 1196,
+      "package_sha256": "12b078de67083dffe006be7b0102444c9f2d0e6a3660674ff3cb2449de2ec2aa",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "exit_trace_sha256": "ebd081885d9d148e84ea57589ad04a869b7bbb3138c8de844ef2972edc9cf7c7",
+      "view_timeout_scale": 1,
+      "view_config_scale": 1,
+      "fresh_held": true,
+      "applied": true,
+      "requires": "fresh RBF load in CPU Hold, no prior execution, autosave Off",
+      "patched_rom_sha256": "96ec08fced415318b033124eeb0e239f2b4785fb39da0c375adfc6a6e511404c",
+      "rollback": "reload the RBF; original service/disk files unchanged"
+    },
+    "hardware": "installed, Run confirmed via user-authorized OSD sequence;150s capture active, original deadlines and erased-mounted PMM retained",
+    "tests": "balanced Suspend/Context/Resume checked with actual EUser wrappers and exec leaf stubs, success/error/short responses, register/flags/SP; host7, DSY and ZAP0/3wait pass"
+  },
+  "file_wait_trials_20261112": {
+    "trace_payload_sha256": "5ed41292a552fcc535b9aa616f972c9acd1e27fc19e5290cc1774aa6bc786123",
+    "trace_source": "firmware_overlays/diagnostics/exit_trace.S",
+    "observed_flush": {
+      "ipc_hex": "24",
+      "file_api_return": "503df597",
+      "caller": "508b7e85",
+      "module": "EStor.dll"
+    },
+    "observed_positional_write": {
+      "ipc_hex": "20",
+      "file_api_return": "503df417",
+      "caller": "not decoded: V10 assumed non-positional frame; do not use printed caller"
+    },
+    "initialized_c_trial": {
+      "image_sha256": "e588a32da3e63e7c74933bf0d23e251f0ceffe58bb19bd944c9c06ac835a6c21",
+      "rom_sha256": "1db39873f0fcd3c0d07172e5cffd8b196c72d8272106bafcfa6e60c351691b86",
+      "deadlines_us": [
+        2000000,
+        20000000
+      ],
+      "slow_wait_hook": false,
+      "outcome": "Phone ViewSrv11 still occurs; context in synchronous RFile Flush IPC24",
+      "capture": "scratch/menu-bringup-20261112/initialized-c-running.jsonl"
+    },
+    "limits": "Slow-wait RDebug adds overhead and mixes process owners; not uninstrumented duration or proof of a SIM wait. No card files changed."
+  },
+  "pmm_matched_control_20261112": {
+    "image_sha256": "d355928744c3f4ba634c044fd7346367e750154e845756822fef08465747afef",
+    "rom_sha256": "b74f13c5bc5f3f0f2e20b277f8f805e39e88dd4b413ca4f90caf66f837021492",
+    "c_image_sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+    "configured_deadline_scale": 8,
+    "slow_wait_hook": false,
+    "outcome": "USER21 reproduced:23/05 status11,12byte frame; DSY reads byte25",
+    "candidate_diff_bytes": 11,
+    "candidate_diff_range_hex": [
+      "726",
+      "733"
+    ],
+    "candidate_result": {
+      "capture": "scratch/menu-bringup-20261112/pmm-candidate-v10-running.jsonl",
+      "seconds": 150,
+      "snapshots": 582,
+      "descriptor_bounds": false,
+      "USER21": false,
+      "limits": "Runtime comparison supports record absence as trigger; factory value meaning and durable write/reload not established."
+    },
+    "card_files_changed": false
+  },
+  "virtual_sim_v2_20261112": {
+    "sha256": "8bc68a198fb43e0231d78fb29c99977a387238768635465fe31b7a11f5fbe916",
+    "rom_sha256": "a7b95d03f1e94c42c366aa8ac18d9dbb855e54d84622e93158829ef973a7c96f",
+    "ready_indication": "080b0def",
+    "reply_events": [
+      "05012f19",
+      "08012d1d",
+      "082afa3b",
+      "08013a2d",
+      "08013a2b",
+      "08012f19"
+    ],
+    "screen": "User reports Device startup failed contact retailer",
+    "capture": "scratch/menu-bringup-20261112/virtual-sim-v2-running.jsonl",
+    "CPU_fault": false,
+    "application_panic": false,
+    "carrier_signal_implemented": false
+  },
+  "native_dos_events_20261112": {
+    "capture": "scratch/menu-bringup-20261112/dos-events-running.jsonl",
+    "selftest_event_1_value": 2,
+    "pmm_event_256_value": 0,
+    "limits": "Self-test failure observed, exact failing test/subservice unresolved. PMM native read result observed, durable host write not verified."
+  },
+  "virtual_sim_v5_hardware": {
+    "startup_event": {
+      "id": 1,
+      "value": 3
+    },
+    "menu_opened": true,
+    "contacts_opened": true,
+    "startup_snapshots": 941,
+    "interaction_snapshots": 352,
+    "panic_masks": [
+      0
+    ],
+    "reset_generations": [
+      0
+    ],
+    "view_deadlines_us": [
+      16000000,
+      160000000
+    ],
+    "c_sha256": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+    "pmm_sha256": "44679faaa2289cf4011eda0aea7ec763bc9be983047fe04331712c982da79826",
+    "pmm_changed_bytes": 326,
+    "pmm_zero_to_one_bits": 0,
+    "durable_host_save_verified": false,
+    "carrier_registration_verified": false,
+    "card_files_changed": false
+  },
+  "normal_deadline_menu_restart": {
+    "menu_opened": true,
+    "phone_idle": true,
+    "view_deadlines_us": [
+      2000000,
+      20000000
+    ],
+    "rom_sha256": "0a847054e0498a6e9ef61bb12b140345b6d1b3296ed93dd4f92442c7f254f7c7",
+    "disk_source": "captured booted C/PMM from V5",
+    "clean_first_boot_qualified": false,
+    "card_files_changed": false,
+    "captures": {
+      "menu-restart-normal-running": {
+        "snapshots_at_confirmation": 555,
+        "panic_masks": [
+          0
+        ],
+        "reset_generations": [
+          0
+        ],
+        "failure_events": []
+      },
+      "menu-restart-normal-phone": {
+        "snapshots_at_confirmation": 294,
+        "panic_masks": [
+          0
+        ],
+        "reset_generations": [
+          0
+        ],
+        "failure_events": []
+      }
+    },
+    "screenshot": "scratch/menu-bringup-20261112/menu-original-deadlines.png"
+  },
+  "trace_free_profile": {
+    "records_sha256": "5beb3351f92eccea06e996f87867f8851d1faa2ecb02bcf7ce2e1684017c660d",
+    "base": 1366387200,
+    "bytes": 932,
+    "sha256": "248f671cb93db2ec1b13aa8c1bf0bd1380dd689f0e92ccdd5bb4b00537c3da56",
+    "excluded_automatic_tests": [
+      {
+        "id": 30,
+        "name": "ST_RF_CHIP_ID_TEST",
+        "automatic_group_before": 2,
+        "automatic_group_after": 0,
+        "physical_function_retained": true
+      },
+      {
+        "id": 54,
+        "name": "ST_ADSP_TEST",
+        "automatic_group_before": 2,
+        "automatic_group_after": 0,
+        "physical_function_retained": true
+      }
+    ],
+    "diagnostic_trace": false,
+    "hooks": [
+      3123576,
+      3127900,
+      3126672,
+      3126744,
+      3127368,
+      3127376,
+      3126536,
+      3127344,
+      3127328,
+      3126892,
+      3126528,
+      3111332,
+      3111364,
+      2485696,
+      2496872,
+      2496876
+    ],
+    "limits": "Logical SIM with applicable startup tests; no physical RF/ADSP; carrier/signal not implemented; Menu/Contacts hardware verified with extended deadlines; normal-deadline/save qualification pending",
+    "native_arm_tests_pass": true,
+    "board_tested": false,
+    "default_hdl_integrated": false
+  },
+  "production_requirement": {
+    "firmware": "strictly original",
+    "implementation": "HDL device behavior",
+    "automatic_rom_patches_allowed": false,
+    "startup_test_exclusions_allowed": false,
+    "deadline_edits_allowed": false,
+    "hdl_only_menu_verified": false,
+    "native_client_contracts_pass": true,
+    "card_board_baseline_pass": true
   }
 }

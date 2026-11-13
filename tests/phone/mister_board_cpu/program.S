@@ -83,7 +83,7 @@ reset_entry:
  ldr r0,=0x0c1003e8
  mov r1,#2
  str r1,[r0]
- ldr r2,[r0]
+ ldrh r2,[r0] // Only MCU-owned producer is stable; DSP consumer may advance.
  cmp r1,r2
  bne fail
  // Exercise the actual UPP SIMIF and separate diagnostic card on the CPU bus.

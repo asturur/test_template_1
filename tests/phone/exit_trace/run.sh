@@ -14,11 +14,11 @@ out=Path('build/sim/unit-exit-trace');src=Path('build/firmware-overlays/exit-tra
 symbols={p[2]:int(p[0],16) for line in subprocess.check_output(['arm-none-eabi-nm',str(out/'program.elf')],text=True).splitlines() if len(p:=line.split())==3}
 data=(out/'program.bin').read_bytes();assert len(data)<2044
 data=data.ljust(2044,b'\0')+symbols['test_debug'].to_bytes(4,'little')
-for name,data in [('program',data),('payload',(src/'trace.bin').read_bytes().ljust(1024,b'\0'))]:
+for name,data in [('program',data),('payload',(src/'trace.bin').read_bytes().ljust(4096,b'\0'))]:
  (out/(name+'.hex')).write_text(''.join(f'{int.from_bytes(data[i:i+4],"little"):08x}\n' for i in range(0,len(data),4)))
 report=json.loads((src/'trace.json').read_text());hooks=report['hooks']
 records={off:new for off,old,new in report['records']}
-(out/'hooks.hex').write_text(''.join(f'{records[address-0x50000000]:08x}\n' for address in hooks.values()))
+(out/'hooks.hex').write_text(''.join(f'{records[address-0x50000000]:08x}\n' for name,address in hooks.items() if name != 'wait_request'))
 PY
 docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -c '
  for waits in 0 3; do

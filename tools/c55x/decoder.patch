@@ -1,0 +1,266 @@
+diff --git a/c55xde.table.h b/c55xde.table.h
+index 378c1c6..5f805c2 100644
+--- a/c55xde.table.h
++++ b/c55xde.table.h
+@@ -1,14 +1,3 @@
+-{
+-	.byte = 0x48,
+-	.size = 0x02,
+-	.insn = {
+-		// xxxxx10001001000
+-		.i_list = NULL,
+-		.m_list = (insn_mask_t []) { INSN_MASK(8,3,4),  LIST_END },
+-		.f_list = NULL,
+-		.syntax = INSN_SYNTAX(RETI),
+-	},
+-},
+ {
+ 	.byte = 0x60,
+ 	.size = 0x02,
+diff --git a/c55xde.table_e.h b/c55xde.table_e.h
+index e19b55b..b43a184 100644
+--- a/c55xde.table_e.h
++++ b/c55xde.table_e.h
+@@ -691,7 +691,7 @@
+ 		.i_list = NULL,
+ 		.m_list = NULL,
+ 		.f_list = (insn_flag_t []) { INSN_FLAG(0,E), INSN_FLAG(8,FDDD), INSN_FLAG(12,k4),  LIST_END },
+-		.syntax = INSN_SYNTAX(MOV –k4, dst),
++		.syntax = INSN_SYNTAX(MOV -k4, dst),
+ 	},
+ },
+ {
+@@ -733,7 +733,7 @@
+ 				.i_list = NULL,
+ 				.m_list = (insn_mask_t []) { INSN_MASK(12,1,0), INSN_MASK(14,2,1),  LIST_END },
+ 				.f_list = (insn_flag_t []) { INSN_FLAG(0,E), INSN_FLAG(8,FDDD),  LIST_END },
+-				.syntax = INSN_SYNTAX(SFTS dst, #−1),
++				.syntax = INSN_SYNTAX(SFTS dst, #-1),
+ 			},
+ 			{
+ 				// 01x1FDDD0100010E
+@@ -899,6 +899,12 @@
+ 				.f_list = (insn_flag_t []) { INSN_FLAG(0,E),  LIST_END },
+ 				.syntax = INSN_SYNTAX(RET),
+ 			},
++            {
++                .i_list = NULL,
++                .m_list = (insn_mask_t []) { INSN_MASK(8,3,5), LIST_END },
++                .f_list = (insn_flag_t []) { INSN_FLAG(0,E), LIST_END },
++                .syntax = INSN_SYNTAX(RETI),
++            },
+ 			LIST_END,
+ 		},
+ 		.m_list = NULL,
+@@ -971,7 +977,7 @@
+ 				.i_list = NULL,
+ 				.m_list = (insn_mask_t []) { INSN_MASK(8,3,1),  LIST_END },
+ 				.f_list = (insn_flag_t []) { INSN_FLAG(0,E), INSN_FLAG(12,FDDD),  LIST_END },
+-				.syntax = INSN_SYNTAX(SFTL dst, #−1),
++				.syntax = INSN_SYNTAX(SFTL dst, #-1),
+ 			},
+ 			{
+ 				// FDDDx0100101000E
+diff --git a/c55xde_main.cpp b/c55xde_main.cpp
+index d62c3fd..68d47f9 100644
+--- a/c55xde_main.cpp
++++ b/c55xde_main.cpp
+@@ -154,6 +154,7 @@ insn_head_t insn_head_list_e[] = {
+ };
+ 
+ #include <map>
++#include <string>
+ 
+ // хеш-таблица для трансляции опкодов
+ 
+@@ -164,6 +165,9 @@ std::map< uint8_t,
+ 
+ #define get_bits(v, f, n)	(((v) >> (f)) & ((2 << (n - 1)) - 1))
+ 
++static uint32_t read_be(const uint8_t *p, unsigned n) {
++ uint32_t v=0;while(n--)v=(v<<8)|*p++;return v;
++}
+ #define F_INVAL			-1
+ #define f_valid(x)		((x) != (typeof(x))F_INVAL)
+ 
+@@ -233,7 +237,7 @@ int run_f_list(insn_data_t * data)
+ 			data->f.k12 = get_bits(data->opcode64, flag->f, 12);
+ 			break;
+ 		case C55X_OPCODE_k16:
+-			data->f.k16 = get_bits(data->opcode64, flag->f, 16);
++			data->f.k16 = read_be(data->stream + flag->f/8, 2);
+ 			break;
+ 
+ 		case C55X_OPCODE_l1:
+@@ -246,14 +250,14 @@ int run_f_list(insn_data_t * data)
+ 			data->f.l7 = get_bits(data->opcode64, flag->f, 7);
+ 			break;
+ 		case C55X_OPCODE_l16:
+-			data->f.l16 = get_bits(data->opcode64, flag->f, 16);
++			data->f.l16 = read_be(data->stream + flag->f/8, 2);
+ 			break;
+ 
+ 		case C55X_OPCODE_K8:
+ 			data->f.K8 = get_bits(data->opcode64, flag->f, 8);
+ 			break;
+ 		case C55X_OPCODE_K16:
+-			data->f.K16 = get_bits(data->opcode64, flag->f, 16);
++			data->f.K16 = read_be(data->stream + flag->f/8, 2);
+ 			break;
+ 
+ 		case C55X_OPCODE_L7:
+@@ -263,18 +267,18 @@ int run_f_list(insn_data_t * data)
+ 			data->f.L8 = get_bits(data->opcode64, flag->f, 8);
+ 			break;
+ 		case C55X_OPCODE_L16:
+-			data->f.L16 = get_bits(data->opcode64, flag->f, 16);
++			data->f.L16 = read_be(data->stream + flag->f/8, 2);
+ 			break;
+ 
+ 		case C55X_OPCODE_P8:
+ 			data->f.P8 = get_bits(data->opcode64, flag->f, 8);
+ 			break;
+ 		case C55X_OPCODE_P24:
+-			data->f.P24 = get_bits(data->opcode64, flag->f, 24);
++			data->f.P24 = read_be(data->stream + flag->f/8, 3);
+ 			break;
+ 
+ 		case C55X_OPCODE_D16:
+-			data->f.D16 = get_bits(data->opcode64, flag->f, 16);
++			data->f.D16 = read_be(data->stream + flag->f/8, 2);
+ 			break;
+ 
+ 		case C55X_OPCODE_SHFT:
+@@ -377,24 +381,16 @@ int run_m_list(insn_data_t * data)
+ 	return 1;
+ }
+ 
+-void substitute(char * string, const char * token, const char * fmt, ...)
+-{
+-	va_list args;
+-	char data[64];
+-	char * pos;
+-
+-	for (;;) {
+-		pos = strstr(string, token);
+-		if (!pos)
+-			return;
+-
+-		va_start(args, fmt);
+-		vsprintf(data, fmt, args);
+-		va_end(args);
+-
+-		memmove(pos + strlen(data), pos + strlen(token), strlen(pos + strlen(token)) + 1);
+-		memmove(pos, data, strlen(data));
+-	}
++template<size_t N> void substitute(char (&string)[N], const char *token, const char *fmt, ...) {
++ char replacement[1024];va_list args;va_start(args,fmt);
++ int n=vsnprintf(replacement,sizeof(replacement),fmt,args);va_end(args);
++ if(n<0 || (size_t)n>=sizeof(replacement)){fprintf(stderr,"replacement bounds\n");exit(6);}
++ std::string result(string);size_t cursor=0;
++ while((cursor=result.find(token,cursor))!=std::string::npos){
++  result.replace(cursor,strlen(token),replacement);cursor+=strlen(replacement);
++ }
++ if(result.size()>=N){fprintf(stderr,"syntax bounds\n");exit(7);}
++ memcpy(string,result.c_str(),result.size()+1);
+ }
+ 
+ const char * get_xreg_str(uint8_t key, char * str)
+@@ -625,6 +621,7 @@ const char * get_mmm_str(uint8_t key, char * str)
+ 		//	C54CM:1 => *ARn(AR0)
+ 	case 0x07: return "*ARn(T0)";
+ 	};
++	return "invalid";
+ }
+ 
+ /*
+@@ -880,13 +877,13 @@ void decode_addressing_modes(insn_data_t * data)
+ 
+ 		if (field_value(AAAAAAAI) & 1) {
+ 			if (strstr(tmp, "k16")) {
+-				substitute(tmp, "k16", "%X", *(uint16_t *)(data->stream + data->length));
++				substitute(tmp, "k16", "%X", read_be(data->stream + data->length, 2));
+ 				data->length += 2;
+ 			} else if (strstr(tmp, "k23")) {
+-				substitute(tmp, "k23", "%X", *(uint32_t *)(data->stream + data->length) & 0x7FFFFF);
++				substitute(tmp, "k23", "%X", read_be(data->stream + data->length, 3) & 0x7FFFFF);
+ 				data->length += 3;
+ 			} else if (strstr(tmp, "K16")) {
+-				substitute(tmp, "K16", "%X", *(uint16_t *)(data->stream + data->length));
++				substitute(tmp, "K16", "%X", read_be(data->stream + data->length, 2));
+ 				data->length += 2;
+ 			}
+ 
+@@ -1031,62 +1028,14 @@ void initialize(void)
+ 		insn_head_hash_e[ insn_head_list_e[i].byte ] = &insn_head_list_e[i];
+ }
+ 
+-int main(int argc, const char * argv[])
+-{
+-#if 1
+-	int length;
+-	uint8_t data[] = { 0x20,			// NOP
+-			   0x21,			// NOP E
+-			   0xFD,			// invalid
+-			   0xCB, 0x88,			//
+-			   0x5F, 0x00,			// SWAP (...)
+-			   0x60, 0x07,			// BCC l4, cond
+-			   0x16, 0x07, 0xF0,		// MOV #7Fh, DPH
+-			   0x00, 0x00, 0xFF,		// RPTCC #FFh, cond
+-			   0x12, 0x00, 0x00,		// CMP[U] src RELOP dst, TCx
+-			   0x12, 0x03, 0x01,		// ROL TC2, src, CARRY, dst
+-			   0x12, 0x03, 0x09,		// ROR CARRY, src, TC2, dst
+-			   0x12, 0x01, 0x08,		// CMPAND[U] src RELOP dst, !TCy, TCx
+-			   0x12, 0x02, 0x00,		// CMPOR[U] src RELOP dst, TCy, TCx
+-			   0x90, 0x5A,			// MOV xsrc, xdst
+-			   0x56, 0xFF,			// MAC[R] ...
+-			   0xFA, 0x00, 0x00, 0x04,	// MOV [rnd ...
+-			   0xFD, 0x00, 0x00, 0x00,	// MPY[R] ... :: MPY[R] ...
+-			   0xFD, 0xff, 0x04, 0x00,	// MPY[R] ... :: MAC[R] ...
+-			   0xFF }, * p = data;
+-
+-	initialize();
+-
+-	while (p < (data + sizeof(data))) {
+-		printf("%04X: ", p - data);
+-		p += decode(p);
+-	}
+-#else
+-	uint8_t * data;
+-	int fd, count, address = 0;
+-
+-	initialize();
+-
+-	data = (uint8_t *)malloc(1024 * 64);
+-	if (!data)
+-		return -1;
+-
+-	fd = open("test/c55x_random.bin", 0);
+-	if (fd == -1)
+-		return -2;
+-
+-	count = read(fd, data, 1024 * 64);
+-	while (address < count) {
+-		int len;
+-
+-		printf("%04X: ", address);
+-		len = decode(data + address);
+-		if (len < 0) {
+-			address += 1;
+-		} else {
+-			address += len;
+-		}
+-	}
+-#endif
+-	return 0;
++int main(int argc, const char *argv[]) {
++ if(argc<3)return 2;
++ FILE *f=fopen(argv[1],"rb");if(!f)return 3;
++ long offset=strtol(argv[2],0,0),count=argc>3?strtol(argv[3],0,0):256;
++ if(offset<0||count<0||count>0x200000)return 4;
++ uint8_t *data=(uint8_t*)calloc(count+8,1);if(!data)return 5;
++ long requested=count;fseek(f,offset,SEEK_SET);long got=fread(data,1,count+8,f);count=got<requested?got:requested;fclose(f);
++ initialize();long at=0;
++ while(at<count){printf("%08lX: ",offset+at+(argc>4?strtol(argv[4],0,0):0));int n=decode(data+at);at+=n>0?n:1;}
++ free(data);return 0;
+ }

@@ -57,7 +57,11 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_icu.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_icu_extra.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_timers.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_nos_io.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_mdi_stub.v
+# Legacy announcement-only comparison; not in production.
+# set_global_assignment -name VERILOG_FILE rtl/ngage_mdi_stub.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_upp_dsp_peer.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_upp_mdi.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_upp_euart.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_cbus_uem.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_gpio_loopback.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_boot_regs.v

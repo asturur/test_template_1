@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-13",
+  "completed": "Production EUART/CTSI host byte-transport and interrupt boundary",
+  "boot_complete": false,
+  "d550_peer_active": false,
+  "firmware_modified": false,
+  "clock_mhz": 78,
+  "target_mhz": 104,
+  "files": {
+    "rtl/ngage_upp_euart.v": "47b09e1e22e820eb67811985fa914976da48a2615ad277177dc7205939bfe9cb",
+    "rtl/ngage_upp_peripherals.v": "410bef9f56703ddac5c221ebed9cf0b070f52da5db1410594efaf0674f0deede",
+    "rtl/ngage_upp.v": "c073f01b606bb3d4d6472f414e53c2c583d9072df1ebc68bd96863f19788d45f",
+    "rtl/ngage_board.v": "669523411a5229044d84e424155cb7a77b51e92edd237b39e6a2756f6f46f1af",
+    "rtl/ngage_mister.v": "394b3e1c49528caebadc9f4ac75da0fbd72238fd159c7787125c100e6234d762",
+    "files.qip": "fc23bb602ce3990d6271cf74554174455e9e40edd8a57d50ab988d182926d92f",
+    "tests/phone/native_euart_board/tb.v": "30ced39c334e61d89b276177695bde25f39b9af8d2fe4ac7e5bee9b71551b4c2",
+    "tests/phone/native_euart_board/program.S": "4354160ccea814f0e86b0ee6925e15510e9fbaeb0410746436cec82278ec63bb",
+    "tests/phone/ctsi_board/tb.v": "2cc966f5b61175ede2d078377a101ecc5ceaa1a07c755f273ecb652abd0c104c"
+  },
+  "native_runs": {
+    "78-0": [
+      "PASS production board EUART/CTSI native TX/RX/HAL with actual CPU FIQ26, byte order and backpressure wait=0 cycles=27001"
+    ],
+    "78-3": [
+      "PASS production board EUART/CTSI native TX/RX/HAL with actual CPU FIQ26, byte order and backpressure wait=3 cycles=31140"
+    ],
+    "104-0": [
+      "PASS production board EUART/CTSI native TX/RX/HAL with actual CPU FIQ26, byte order and backpressure wait=0 cycles=27001"
+    ],
+    "104-3": [
+      "PASS production board EUART/CTSI native TX/RX/HAL with actual CPU FIQ26, byte order and backpressure wait=3 cycles=31140"
+    ]
+  },
+  "tests": [
+    "CTSI dual immediate/registered board PASS",
+    "SIM four profiles PASS",
+    "33 peripheral responses PASS",
+    "132 address ownership PASS",
+    "regional ownership PASS",
+    "UART FIFO/wrap/IRQ/reset PASS",
+    "MiSTer internal-CPU board SIMIF/LCD/DMA/diagnostics/IRQ/FIQ/SDRAM integration PASS"
+  ],
+  "fit_timing": "NOT_RUN"
+}

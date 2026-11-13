@@ -8,7 +8,7 @@ ngage_board dut(.clk(clk),.rst(reset),.init_rst(reset),.cyc(cyc),.stb(stb),.we(w
 defparam dut.uem.cbus.ALARM_TICKS=8;
 defparam dut.uem.cbus.ALARM_INTERVAL=1;
 defparam dut.upp.peripherals.nos_timer.TICK_DIV=2;
-defparam dut.adsp.mdi.ANNOUNCE_TICKS=3;
+defparam dut.upp_mdi.ANNOUNCE_TICKS=3;
 task tick;begin @(posedge clk);#1;end endtask
 task wr(input [31:0] a,input [31:0] d);integer waits;begin @(negedge clk);cyc=1;stb=1;we=1;addr=a;din=d;commit=1;#1;waits=0;while(!ready && waits<20)begin tick();waits=waits+1;end if(!claim||!ready||bad)$fatal(1,"bad board write %h",a);tick();@(negedge clk);cyc=0;stb=0;commit=0;end endtask
 task halfwrite(input [31:0] a,input [15:0] v,input [3:0] lanes);begin

@@ -1,3 +1,74 @@
+## 2026-11-13: Publish native startup/debugger baseline
+
+User requests commit/push and will build manually. Publish the qualified local
+SIMIF/CBUS/internal-DSP/EUART work and maintained evidence; no CI launch/watch,
+board action or firmware patching. Separate simulator/checkpoint and MMC test
+experiments remain unstaged. Next session captures the first failure of this
+exact RBF and fixes one native issue at a time; no overlay/deadline/self-test
+patch sequence. External D550 and SIM-ready still incomplete. Protocol:
+[debugger-baseline-2026-11-13.md](debugger-baseline-2026-11-13.md).
+
+## 2026-11-13: Production EUART/CTSI host boundary completed
+
+Selected UART in QIP; dedicated UPP FIFO/register ownership, board byte ports,
+SIM-low/UART-high composite status, FIQ26 and exact-once registered effects.
+Unchanged native driver/HAL/poll through board with actual CPU FIQ passes at
+78/104MHz schedules, wait0/3=27001/31140cycles. Separate dual-board test passes
+simultaneous SIM/UART masks/ACK, status lanes, held reads/writes, TX backpressure,
+idle/drain and reset. SIM matrix,33 response,132 address, regional and UART
+regressions pass. No clock/firmware/CPU changes or hardware boot claim. External
+D550 peer is explicitly inactive; full DSP protocol and native SIM-ready remain.
+Details: [euart-production-integration.md](euart-production-integration.md).
+
+## 2026-11-13: Memory and CPU benchmark commits pushed; fresh FPGA build started
+
+User authorizes commit/push and a fresh build. Current branch remains
+codex/ngage2-integration. New commits dbe5bc6 (native SDRAM/ownership) and
+0ac4577 (pinned CPU benchmarks/evidence) are pushed, together with the already
+local ca2b947 diagnostics and c41d620 renderer removal. Remote source is exactly
+0ac4577fca69fc540cd3d324ac3f26f7a3b50247; no history rewrite or branch switch.
+
+Fresh manual CI run43327385834 uses fitter seed1 and unchanged78MHz clocks:
+https://github.com/asturur/test_template_1/actions/runs/43327385834
+Confirmed workflow_dispatch, correct branch/SHA, in_progress at source-manifest
+check. Compile/fit/setup/hold/resources remain pending;104MHz stays the target.
+This is a build launch, not a completed fit or board deployment.
+
+The exact scoped commit export passes32 host checks, native ownership/physical/
+DDIO/short/concurrent/scrub/mux/LCD/refill regressions and top elaboration.
+Other-chat native startup/ADSP/MMC/overlay/research edits and reference/media
+files remain local and are not included in this build. Shared-file commits
+contain only memory/benchmark hunks; their other edits remain intact.
+Publication plan, validation logs and run metadata are under
+scratch/publish-memory-20261113/. Await this run's actual fit/timing evidence
+before attributing whole-core resource or timing gains.
+
+## 2026-11-13: Native SIM29/37 verified; D550 test42/codec operation implemented
+
+Original NEM-4 NOS already implements donor dynamic-flags completion. Three
+native absent/present-cache cases pass with original status mapping (missing
+returns24). Do not duplicate the NOS service. New Verilog D550 diagnostic42
+and separate N501 codec reset boundary pass78/104MHz directed success/failure,
+stall/ownership/reset tests. Native packet checksum/sequence primitives pass,
+including corrupt rejection and correct exclusion of TX55/55 preamble from RX.
+These blocks are not production-wired; full packet startup/ACK/retry, shared
+CTSI/EUART and native SIM/MTC-ready remain. Boot is NOT complete. No firmware,
+PLL, board, CPU, build or other-chat source changes. Details:
+[sim-adsp-native-progress.md](sim-adsp-native-progress.md).
+
+## 2026-11-12: Updated donor retail boot stubs audited
+
+Donor0fe531f still replaces NOS and patches BT retry limits at load; retail
+input files do not imply unmodified execution. New IMEI response unblocks
+SPMark04; SIM29/37 ->2A/37/24 completes Settings. Native NEM-4 IMEI response
+shape already matches; backing identity/PMM path still needs qualification.
+Our experimental SIM shim lacks an explicit29 case; native NOS behavior is not
+therefore proven missing. Ready/security events confirm client requirements,
+not physical initialization. No new donor BT controller; self-test passes are
+synthetic. Six actual donor-header host checks pass. No HDL/firmware/board/build
+changes; strict HDL-only boot remains incomplete. Details:
+[donor-stub-update-2026-11-12.md](donor-stub-update-2026-11-12.md).
+
 ## 2026-11-12: SDRAM write-payload sharing accepted before CPU work
 
 Baseline tests precede isolated candidate edits. Adapter now shares the outer
@@ -25,6 +96,38 @@ Next CPU experiment must freeze this additional memory change explicitly.
 [Ownership/results/buffer explanation](sdram-request-ownership.md),
 [evidence](evidence/sdram-request-ownership-2026-11-12.json).
 
+## 2026-11-12: ADSP image mapped and matching test42 handler identified
+
+Read-only original ADSP analysis:17 RAM load records reconstruct91664 bytes,
+32 vectors point to coherent C55x startup (reset441200, external candidate base
+400000). Internal startup calls resolve into supplied RAM copies. TI DA250
+block diagram shows C55x, no ARM; mixed-section classification stays evidence-
+based. Vector8/033B01 remains unresolved. Source SHA unchanged.
+
+Found DSP dispatcher451AAC/type2B ->4519C3/type8B and explicit test42. It
+checks port1C00 bit0 (inferred CLKMD lock), actual flash word2B0000=FFFC
+(present at file160000), and I2C codec reset1E00 to slave1A. FlagsDBA7 must
+be7 for resultDBA6=0; otherwise0C. This is actionable native diagnostic logic,
+not an invented success. Correct exploratory timer label:3Cxx is I2C here.
+
+Pinned open-source decoder needed fixes for operand endian, RET/RETI and a
+recursive substitution crash; selected opcode/ASAN checks and five image tests
+pass. Full decoder and boot execution remain unqualified. Next: exact MADI
+framing/ACK/startup/byte layout, then bounded D550/codec protocol HDL and shared
+CTSI wiring. No FPGA/board/firmware modification or second CPU.78MHz PLL stays,
+104MHz target. Details: [adsp-rom-investigation.md](adsp-rom-investigation.md).
+
+## 2026-11-12: External ADSP firmware found in existing Nokia package
+
+NEM_4.ini line10 explicitly selects AdspFile=e403a400h450.usb. Existing
+firmware/MCU/extracted/products/NEM-4/E403A400H450.USB is1506378bytes,
+SHA2560be93de04ebccd676d34ceaa2b9f4a901b3d0941565bc7b0f795e78ba8866429;
+Disk1/data2 copy matches exactly. Prior implication that ADSP firmware was
+missing is corrected. Container begins08A5; format/encoding, D551 placement and
+DSP instruction/protocol contents remain unqualified. Decode this existing
+update before asking for an external ADSP ROM. No firmware modified or executed.
+Details: firmware-inventory.md, ADSP firmware package section.
+
 ## 2026-11-12: First CPU baseline matrix and observer qualification pass
 
 Pinned H0/H1 then frozen current B0/control now execute in existing Docker image.
@@ -48,6 +151,25 @@ clock change, branch switch, commit, push, CI, deployment or hardware access.
 Other-chat code, simulations and checkpoints preserved. Stay at78MHz;104MHz
 remains the target. [Results/next gates](cpu-donor-baseline-results.md),
 [evidence](evidence/cpu-donor-import/baseline-runtime-2026-11-12.json).
+
+## 2026-11-12: Area gate before next native-startup FPGA build
+
+User confirms there are no ongoing simulations. Earlier preservation wording
+is historical; source edits from the other chat still need to remain separate.
+Separate renderer-removal commit c41d620 is complete before
+the next FPGA build; retain DDR diagnostics only.78MHz PLL stays;104MHz remains
+the design objective. Production renderer/font and Display OSD option removed;
+registered Phone video and DDR observation/recorders retained. See
+[diagnostic-video-retirement.md](diagnostic-video-retirement.md) for scope/tests.
+Exact resource savings await Quartus; no build monitoring requested.
+
+Native EUART1 controller implemented locally with two synchronous8-bit BRAM
+queues, native byte lanes, count-minus-one batches, FIFO backpressure and RX/TX
+interrupt ownership. Directed saturation/wrap/held-commit/mask/ACK/reset checks
+pass. Original TX/RX IRQ/HAL/poll code on HDL CPU also passes, wait0/3 in
+7064/9834cycles. UART is not yet selected in files.qip or wired into production:
+shared CTSI and external DSP peer integration remain. Two M10K queue instances;
+actual ALM/fit/104MHz timing unmeasured. It emits no invented diagnostic result. Native firmware remains unchanged.
 
 ## 2026-11-12: Pinned CPU benchmark references and first tests implemented
 
@@ -73,6 +195,72 @@ README; [plan](cpu-donor-import-plan.md),
 [evidence](evidence/cpu-donor-import/first-batch-2026-11-12.json). Board controls,
 media, other-chat RTL and frozen simulations/checkpoints untouched.
 
+## 2026-11-12: Native RF timeout replaced by qualified UPP DSP version link
+
+HDL-only/original-firmware requirement reconfirmed. Production replaces the
+announcement/discard MDI stub with a BRAM-backed UPP internal DSP ring and
+explicit synthetic03/HDL01 version peer. Original receiver -> INFO builder ->
+RF startup check passes03/fails04 unchanged.54 is the RF-version subblock ID,
+not an ASCII marker; prior TEST03 fixture interpretation corrected.
+
+Native HDL CPU driver tests pass wait0/3 in4913/7367cycles; full-ring/wrap/
+backpressure/reset tests, board SIM profiles,33 peripheral response cases and
+integrated board CPU/LCD/DMA/IRQ regression pass. Pinned formatting applied.
+132-address ownership, exhaustive regional and sparse wrapper checks also pass;
+the wrapper timeout now allows the existing64-slot full-table scan (66cycles),
+replacing its stale16-cycle bound. Sparse RTL is unchanged.
+No new fit, timing, board reload or unmodified Menu claim. User owns the running
+patched hardware session. Other-chat work/checkpoints remain untouched.
+
+Continue native D550 ADSP startup path, SIM readiness and Bluetooth. Current
+ADSP server entry510EAC14, LDD510E9294; controls4/5 call native CBUS device1,
+registers0F/10. All12 ADSPCTRL controls and unchanged EUART1 TX/RX IRQ contracts now pass.
+ADSPComm binds FiqCTSI_FIQ; UART byte TX0554/RX0556 and RX indices0562
+are currently only generic storage in production. Recover native MADI framing
+and shared CTSI ownership next; never answer this test through internal MDI. Details: [native-startup-hdl.md](native-startup-hdl.md).
+
+## 2026-11-12: Two boot-peripheral RTL defects reproduced and corrected
+
+User prioritizes unpatched HDL boot; MMC work is parked. SIMIF now advances
+TX-done->RX only when the pending TX bit is actually acknowledged. Before-fix
+board test gets18 instead of8 after zero/unrelated ACK. CBUS status reads now
+work at reset-idle and during assembly; original503822BC polls idle BEFORE its
+first CFG write. Before-fix RTL rejects that read. No firmware changes.
+
+After-fix card/presence/FIFO/CEN, CBUS power/RTC/alarm reference and33 held/
+committed peripheral response cases pass. Native unmodified CBUS host contract
+also passes. Actual HDL CPU runs unchanged CBUS driver/HAL successfully at
+wait0/3 in1220/1832cycles; no MMU/pin-level qualification implied.
+No installed RBF/fit/timing or unpatched Menu success yet. Native SIM readiness,
+actual Info/ADSP provider paths and Bluetooth remain unresolved; ADSP request
+previously reached Symbian adspserver, not a proven direct DSP mailbox.
+Details/evidence: [native-startup-hdl.md](native-startup-hdl.md).
+
+User's current temporary patches were reapplied only to volatile ROM/C/PMM,
+verified fresh Hold, then CPU started; MMC mount/card files untouched. User
+has taken hardware controls; leave that session alone. Sonic N footer/capacity/
+FAT validate and user confirms donor mounts it. Extended authored MMC sector
+fixture fails stage7; retained for later, not investigated further now.
+Other-chat CPU/SDRAM/DMA work and frozen simulations/checkpoints untouched.
+
+## 2026-11-12: User selects strictly original firmware / HDL-only startup
+
+Do not integrate an automatic compatibility patcher. The working Menu remains
+a diagnostic comparison; no unmodified-firmware HDL success is claimed. Native
+SIM, RF/ADSP and Bluetooth behavior must replace the experiment's substitutions;
+original tests/deadlines/checksums remain. Scope, acceptance and dependencies:
+[native-startup-hdl.md](native-startup-hdl.md).
+
+First unmodified native RF/ADSP contract fixtures pass: actual request bytes,
+pending state/timers, timeout/error propagation, response validation and release;
+ROM unchanged after every call. Existing card/FIFO/CEN and four board/FIQ cases
+also pass in the existing simulator image. Production card is still omitted;
+enabling it alone previously left SIM starting. MDI currently consumes outgoing
+messages without handling them. Identify native request routing/physical owner
+before implementing responses; no forced ready/events/success and no hidden
+firmware edits. No production HDL change, board reset, media write or other-chat
+simulation/checkpoint action in this qualification pass.
+
 ## 2026-11-12: Benchmark-first CPU import plan prepared
 
 User requests every donor CPU difference addressed in an ordered, measured
@@ -92,6 +280,59 @@ Next task:00/01 only, establish source/bench manifests, validated counters and
 original results. This turn changed planning/docs only; no benchmark or CPU
 implementation, simulation, branch, fit, CI, board or checkpoint action.
 
+## 2026-11-12: Unattended boot integration is not yet implemented
+
+User requests normal startup without manual patches. Successful Menu evidence
+still depends on volatile BT/SIM compatibility and repaired/initialized disks;
+it is not evidence of an unpatched-firmware HDL boot. Production integration
+scope is being clarified: automatic built-in compatibility versus strictly
+unmodified firmware/peripheral HDL. Do not silently equate those requirements.
+
+Prepared trace-free SIM payload932bytes (248f671c...), manifest5beb3351...:
+no debug output, no self-test observer call patches; native SIM/indication,
+async ownership and applicability ARM fixtures pass alongside diagnostic V5.
+No hardware application or Template/RTL integration of this variant yet.
+BT590 + SIM249 records exceed one legacy640-record staging table; do not
+re-enable the former two overlay engines blindly (previous677.7 ALMs/14 M10Ks).
+Original-deadline Menu remains running; no additional board reset/media write.
+[Details](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: Menu also works with original startup deadlines
+
+Guarded fresh Hold restart restored captured booted C/PMM to volatile DDR,
+applied ready-SIM V5/BT/failure-only tracers, and retained original2s/20s
+ViewSrv configuration. Native DOS event1/value3, time/date prompts, responsive
+Phone idle and Tab->real Menu grid are confirmed on hardware. No panic/reset
+or descriptor failure in bounded captures at confirmation. Screenshot:
+`scratch/menu-bringup-20261112/menu-original-deadlines.png`.
+
+This qualifies the combined V5+initialized C/PMM path, not a clean first boot
+or one isolated root cause for the former deadline failure. Carrier/signal,
+durable host save and default deployment remain open. Current board is running
+this original-deadline experiment; all patches/disks are volatile. Source ROM,
+card images, PLL and other-chat RTL/simulations remain untouched. Builder now
+reconstructs the audited service pair rather than requiring scratch ROM; exact
+hardware-tested record-manifest SHA and all native ARM fixtures still match.
+[Details](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: Real Menu and Contacts reached on MiSTer
+
+Virtual handset V5 passes native startup (DOS event1/value3), completes the
+animation and time/date setup, opens the Menu grid with Tab, moves selection
+with Right and opens Contacts with Enter. Captured941 startup snapshots and352
+interaction snapshots have panic mask0/reset generation0. Screenshots and
+stable read-only C/PMM captures are preserved under scratch/menu-bringup-20261112.
+Only absent RF/ADSP automatic applicability changed; native BT/current failures
+remain nonfatal, all test functions/severity and native NOS queues remain.
+
+Native PMM wrote326 changed bytes after setup, with zero0->1 bit changes,
+including updated date records and old-record retirement. C extraction includes
+FirstBoot.dat. This proves native programming, not durable host/OSD save.
+Current success still uses16s/160s deadlines; original-deadline restart with
+captured booted disks is next. Carrier/signal is unfinished. All changes are
+volatile; original card files, other-chat RTL and simulations are untouched.
+[Details](menu-bringup-2026-11-12.md).
+
 ## 2026-11-12: CPU execution/decode comparison with donor completed
 
 Source audit only. Donor542300b CPU matches local master2904ebc and replaces
@@ -109,6 +350,164 @@ high-wait gains only2.6–3.1%; those are not results against our current CPU or
 FPS. ARM920 versus TI925 CP15/cache/TLB behavior prevents blind replacement.
 [Detailed comparison and next tests](cpu-donor-comparison.md). No RTL, branches,
 board access, simulations, fit, CI or running checkpoints changed by this audit.
+
+## 2026-11-12: Retailer screen confirmed as native DOS self-test failure
+
+DOS observer captures event1 value2 (self-test failure) and event100(hex)
+value0 from successful PMM record callback. Ready-SIM v2 serves native
+state8 and reaches this failure without CPU abort/application panic.
+Prepared1276byte virtual-SIM v3 adds observation of original resource35
+reply packets, not success substitution; original35/02 receiver/five-arg
+dispatch/encrypted unaligned Thumb patch/unchanged packet tests pass.
+Next bounded hardware capture identifies failing test/status. Carrier/signal,
+ordinary startup deadline and durable PMM persistence remain open.
+No card file/RTL/simulation changes; original NOS remains active.
+[Details](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: Native ready-SIM advances to a startup-failed screen
+
+Matched PMM base/control reproduces USER21; adding50/1 payload0400 alone
+removes it over150s. Repair tool preserves the exact audited native base;
+minimal empty catalogs plus that record failed early and were rejected.
+Virtual SIM v1 answers native home-PLMN but never publishes readiness. V2
+1056bytes8bc68a19... explicitly publishes SIM_IND/no-PIN and makes native
+SIM_Server serving8, with11 getter methods using the virtual backend.
+Hardware confirms IMSI, same-identity, flags and PLMN replies in state8.
+User now sees “Device startup failed contact the retailer”; bounded trace
+has no CPU data fault or user/thread panic. No usable menu claim. Donor
+history documents this screen from DOS self-test failure, but our cause
+is not yet proven. Prepared/tested132byte observer for native DOS event1
+(self-test) and100(hex, PMM result), preserving actual event values.
+Next capture identifies fatal startup condition rather than bypassing it.
+Normal2s deadline still fails even with initialized C; carrier/signal and
+durable PMM/save remain unfinished. All experiments volatile; original card
+files and other chat RTL/simulations untouched.
+[Evidence](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: User stopped fresh integration simulation at10,107,094,767 cycles
+
+Sent handled SIGTERM to the exact long-run container and confirmed it exited.
+Final result has interrupted=true; no panic stop. Final paired checkpoint:
+`build/sim/runs/integration-ui-fresh-12b/checkpoint-10107094767`.
+CPU/host files exist and SHA256/lengths are recorded in
+`scratch/sim-interactive-20261111/stopped-state.json`. Frozen model remains
+8b92e8641d9c7365, with compiled sources/manifest preserved. Permanent billion
+checkpoints retained. No automatic restart, further simulation or polling.
+
+Final fetchPC5032460C, LCD words38116, bus errors14 unchanged,
+data errors0. Final framebuffer/scanout PNGs are in
+`build/sim/screens/integration-ui-fresh-12b/`. Stopping was the user's choice;
+these observations do not prove startup could never progress. Original
+firmware/C: untouched. Resume only with this frozen executable and recorded
+profile, if explicitly requested later.
+
+## 2026-11-12: File-store waits captured; initialized-C comparison prepared
+
+V9/V10 slow-wait tracing confirms synchronous RFile::Write IPC20(hex) and
+RFile::Flush IPC24 through original EFSrv. Flush caller508B7E85 belongs to
+EStor; write API503DF417 is the positional Write variant (its caller-frame
+size differs, so V10 write caller output is not yet valid). Instrumentation
+adds overhead; this does not establish uninstrumented durations or a SIM root
+cause. V10 extended-deadline run still has USER21, reaches Insert SIM card.
+Resident C capture e588a32d... decodes105entries/68files with zero extractor
+writes; compared with working seed, Contacts.cdb and CntModel.ini now exist
+and settings are initialized. Prepared pinned volatile initialized-C comparison
+with original PMM, normal deadlines, and slow-wait hook omitted. Test whether
+repeated first-boot storage work contributes, without changing card files.
+SIM-ready/carrier/signal, ordinary startup speed, crash freedom and PMM
+read/write/persistence remain required, unverified acceptance conditions.
+Other chat RTL/simulations/checkpoints untouched. No commit/push/build.
+[Evidence](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: Ready SIM target; Phone awaits a completion
+
+User requests a ready synthetic SIM with fictional carrier and signal, retaining
+semi-real NOS. Existing test-card APDU model does not implement registration.
+V7 saved context (72bytes, pointer-return ABI corrected) proves Phone waiting
+in User::WaitForRequest, status00403F0C, SP00403F00, LR503B2484, request count0;
+specific awaited operation remains unproven. Original deadlines still fail.
+Donor history found the same ViewSrv11 fixed by completing synchronous SIM/
+product-profile queries; donor uses logically ready SIM despite stale no-SIM
+comments. Native NEM-4 cipher query already has an async handler; completion
+and server readiness need runtime verification before adopting QD replies.
+No implementation/card changes or other chat simulations touched.
+[Evidence and next investigation](menu-bringup-2026-11-12.md#ready-sim-and-synthetic-network-target-v7-wait-context).
+
+## 2026-11-12: Active timeout diagnosis names Phone; saved-context trace running
+
+User requires investigating ordinary deadlines now. V5 original2s/20s baseline
+prints VIEW_TARGET Phone[100058b3]0003::Phone before ViewSrv11: target proven.
+Aggregate PC samples show file/kernel/library work but cannot assign thread
+ownership or exact stalls. V6 now1196words verified in fresh-held core, normal
+deadlines/erased-mounted PMM, original NOS and BT comparison retained. It uses
+original RThread Suspend/Context/RequestCount/Resume at expired panic point,
+resumes before printing; result/length+raw17words capture current saved context.
+2400byte payload ebd08188..., ROM96ec08fc... Host actual-wrapper success/error/
+short/balanced-resume tests, ZAP0/3wait, host7 and DSY scope tests pass.
+150s hardware capture running; Phone display selected from cold defaults.
+Other chat's RTL/simulations/checkpoints/card images/78MHz PLL untouched.
+[Details](menu-bringup-2026-11-12.md).
+
+## 2026-11-12: Hardware confirms ViewSrv11; deadline comparison prepared
+
+New read-only DDR C: capture yields stable live filesystem without flushing.
+Baseline StarterMonLog appends Phone.app exit10:11:29. User freshly reloaded in
+Hold; guarded volatile BT package applied590words, exact readback verified.
+Original firmware/disk files unchanged; reloading undoes it. Host HCI sanitizer
+checks pass.300s capture reaches SysAp Start listening with zero-33/no panic,
+but live C: still logs Phone.app exit10:11:28. Therefore BT removal alone does
+not get the menu. d1 fields not yet interpreted as an exit reason.
+
+Prepared/tested912-byte exit/caller tracer via original RDebug; actual ZAP
+0/3wait ARM/Thumb/register/flags/SP and host safety tests pass. User reloaded in Hold;823 BT+trace
+words applied/read back. Run confirmed; actual trace catches ViewSrv thread panic
+from5064DD55, but v1 omitted r2/reason. Live C: again records Phone exit.
+Expanded1132-byte tracer installed/read back878words; Run confirms
+ViewSrv11 (r2=0b,r6=0b), caller5064DD55. Clean exits map to multiple
+server/helper threads; target of ViewSrv panic not yet named. Six host safety
+and ZAP ARM/Thumb0/3wait tests pass. Prepared two-word volatile comparison:
+ViewSrv default soft1s/hard10s ->10s/100s, preserving panic and callbacks.
+Original Thumb constructor/two timer phases tested in bounded Unicorn fixture.
+Fresh-held reload completed;880 BT+trace+deadline words applied/read back,
+volatile ROM SHA92afb368... User selected Run; prior capture retained.
+Constructor-only comparison failed: same ViewSrv11,33.5s after SysAp versus
+33.25s baseline. Found EikSrv explicitly configures20s/2s from EikPriv.RSC
+resources19BD6012/13, replacing defaults. Prepared corrected two-instruction
+configuration scaling160s/16s;7 host tests + original Thumb config fixture pass.
+Fresh-held reload completed; corrected880words verified, volatile ROM
+SHA8bacba9c... User confirmed Run; bounded480s read-only capture in progress.
+Hardware progress: INSERT SIM CARD view, user confirms responsive multiple
+digits. Menu mask40 consumed with no reset/new panic but view unchanged.
+Live C:105entries68files0writes; no new Phone exit. No ViewSrv11 so far.
+Different USER21 at82.5s is TDesC8::AtC bounds failure, before key153.5s;
+original caller/thread unknown. Production sim_present0/test-card disabled.
+Prepared1376-byte v3 failure-only hook503A2B48;7 host + six-hook ZAP
+ARM/Thumb0/3wait pass. V3 installed942words; captures Nokia.dsy
+50FC9A7B reading byte25 from12-byte descriptor (header gray-transform decoded).
+Prepared/tested1588-byte v4 scoped message+saved-helper-LR dump; host7,
+Unicorn guard/read-scope/ABI and ZAP six-hook0/3wait pass. User authorized
+autonomous Zaparoo reload/start. Same-core launch retained old ROM: guard
+refused. Menu->ngage1->30s yields freshHold;995words verified, ROM6b76f854...
+OSD F12/7Down/Enter/F12 starts CPU, fetch/cycles advance, autosaveOff.
+V4 captures native PERM error: resource23/id05/status11,12byte frame;
+DSY CPermRecordReadResp reads byte25. Request group50/record1 offset0 len2.
+Native cPERM_Server51598794 deliberately shrinks error reply to4byte body;
+reader5152BA5C error11 has multiple header/lookup/state paths, exact path unknown.
+Read-only live PMM d3559287... is formatted with69 linked records, proving
+native NOS writes erased backing; record50/1 correctness not established.
+Previous PMM backup0d4fd8e6... only read, never restored. Next derive defaults/
+lookup error; no guessed success reply, card image or production RTL changes.
+Volatile PMM candidate77e0e240... appends50/1 payload0400 to previously
+generated69record capture. Original header/state fixture passes. Exact-ROM/
+freshHold/erased-PMM/autosaveOff guards and64KiB readback pass. ~180s capture
+no USER21/bounds/ViewSrv11; Phone still INSERT SIM CARD. Zero value semantics
+unverified; matched formatted-source control needed before assigning causality.
+No production PMM/default or card file changes. SIM not proven menu blocker.
+Display toggle raced manual user selection; restored/screenshot verified Phone.
+Usable menu not reached; retain working deadline extension for next trace.
+No new FPGA
+logic/build, no NOS/UI shortcut or save; other chat's work untouched.
+[Details/limits/next step](menu-bringup-2026-11-12.md).
 
 ## 2026-11-12: Native SDRAM runtime gates pass; line/write latency measured
 
@@ -168,59 +567,6 @@ User requested a new-chat test prompt. Exact commands and acceptance checks:
 [cache-line-refill.md](cache-line-refill.md#native-sdram-service-implemented-runtime-validation-pending-2026-11-12).
 No commit/push/deployment or running-boot/checkpoint changes.
 
-## 2026-11-12: Original-core SDRAM specialization assessed
-
-No new branches unless user explicitly asks. Original core is still AW22 /
-2x8MiB physical banks (16MiB phone RAM); not2x16MiB. Scalar/refill logical
-ports share that RAM. BL8 on16-bit SDRAM returns128 bits, hence two READs for
-one256-bit line; fixedBL16 is not a chip mode. Full-page+STOP is possible, but
-planned back-to-backBL8 reads can also return continuous data. Current adapter
-restarts after the first half, adding avoidable handshake latency.
-
-Prioritize one line owner/planned2xBL8, native consecutive masked32-bit writes,
-and merging duplicate outer admission packets. Refill already streams into
-cache's own256-bit install buffer. BA2/3/programmer/random-priority are tied
-inactive and may already synthesize away; source deletion is not proven area
-saving. Preserve IO DDIO, open rows, real timing waits, refresh and reset drain.
-Donor scheduling is useful; its mapping/capture/wide payload are not drop-in.
-New JTFRAME burst reference closes rows each operation and lacks runtime byte
-masks/DDIO parameter, so is not an automatic better choice. No RTL/clock/run/
-CI changes. [Assessment](cache-line-refill.md#n-gage-specific-controller-assessment-2026-11-12).
-
-Earlier ngage2 candidate was published44cd0a4 oncodex/ngage2-lcd-fast; CI run
-43230068156 was confirmed in progress once. No subsequent monitoring here.
-
-## 2026-11-12: ngage2 SDRAM compared with integration
-
-Source comparison favors retaining ngage2's physical controller: native16-byte
-read/write interface, four open rows, ns-derived timings. General DMA still
-uses scalar classic requests. Integration's benefit is dedicated LCD routing;
-its JTFRAME scalar adapter serializes requests and splits32-bit writes into
-two16-bit transactions with gaps. No blanket controller speed/area winner or
-new measurement claimed. Different input-capture schedules are not drop-in.
-
-Recommend native LCD sink first, optional bounded16-byte source prefetch using
-existing ngage2 burst capability. Extra burst staging128 payload bits+controls,
-or reserve4 existing FIFO slots and stream directly; this exceeds the previous
-one-word reader scope. No controller replacement/baseline fit needed for this
-assessment. [Comparison and costs](ngage2-timing-investigation.md#sdram-comparison-with-ngage1-integration).
-
-## 2026-11-12: Bluetooth retries removed experimentally; Phone exit persists
-
-New read-only DDR C: capture yields stable live filesystem without flushing.
-Baseline StarterMonLog appends Phone.app exit10:11:29. User freshly reloaded in
-Hold; guarded volatile BT package applied590words, exact readback verified.
-Original firmware/disk files unchanged; reloading undoes it. Host HCI sanitizer
-checks pass.300s capture reaches SysAp Start listening with zero-33/no panic,
-but live C: still logs Phone.app exit10:11:28. Therefore BT removal alone does
-not get the menu. d1 fields not yet interpreted as an exit reason.
-
-Prepared/tested912-byte exit/caller tracer via original RDebug; actual ZAP
-0/3wait ARM/Thumb/register/flags/SP and host safety tests pass. User reloaded in Hold;823 BT+trace
-words applied/read back, awaiting Run confirmation/output. No new FPGA
-logic/build, no NOS/UI shortcut or save; other chat's work untouched.
-[Details/limits/next step](menu-bringup-2026-11-12.md).
-
 ## 2026-11-12: Hardware Menu hold/release captured without panic or CPU reset
 
 First55 s capture missed brief key tap (all masks0). User then held Menu;75 s
@@ -274,6 +620,85 @@ Both images mounted, dirty queue pending, autosave Off, saving/error false;
 no save attempted. No hardware input/reset/OSD/media write or other-chat run
 access. [Details](ddr-diagnostics.md#first-hardware-ddr-readback2026-11-12).
 
+## 2026-11-12: Original-core SDRAM specialization assessed
+
+No new branches unless user explicitly asks. Original core is still AW22 /
+2x8MiB physical banks (16MiB phone RAM); not2x16MiB. Scalar/refill logical
+ports share that RAM. BL8 on16-bit SDRAM returns128 bits, hence two READs for
+one256-bit line; fixedBL16 is not a chip mode. Full-page+STOP is possible, but
+planned back-to-backBL8 reads can also return continuous data. Current adapter
+restarts after the first half, adding avoidable handshake latency.
+
+Prioritize one line owner/planned2xBL8, native consecutive masked32-bit writes,
+and merging duplicate outer admission packets. Refill already streams into
+cache's own256-bit install buffer. BA2/3/programmer/random-priority are tied
+inactive and may already synthesize away; source deletion is not proven area
+saving. Preserve IO DDIO, open rows, real timing waits, refresh and reset drain.
+Donor scheduling is useful; its mapping/capture/wide payload are not drop-in.
+New JTFRAME burst reference closes rows each operation and lacks runtime byte
+masks/DDIO parameter, so is not an automatic better choice. No RTL/clock/run/
+CI changes. [Assessment](cache-line-refill.md#n-gage-specific-controller-assessment-2026-11-12).
+
+Earlier ngage2 candidate was published44cd0a4 oncodex/ngage2-lcd-fast; CI run
+43230068156 was confirmed in progress once. No subsequent monitoring here.
+
+## 2026-11-12: ngage2 native LCD path implemented for manual experiment
+
+Isolated ngage2 checkout at `scratch/ngage2-timing-20261112`: unconditional2
+workers + descriptor-selected LCD reader; no switch, master build is comparison.
+Scalar reads share original DMA master; native writes use ordered LCD FIFO,
+CPU selection reserves admission, last-word shadow preserves readback.
+Aligned32-bit SDRAM descriptors only; generic fallback retains other formats.
+Stop/restart drains accepted read and suppresses stale enqueue. Completion at
+last FIFO accept, not panel drain. No SDRAM/CPU/clock/panel-serializer changes.
+
+DMA/LCD/focused bench and integrated UPP hierarchy elaborate with local Icarus;
+Docker remains denied, so regression/Verilator top/fit/board tests not run.
+Runnable focused test supplied; no ALM/FPS/timing claim. Separate portable patch
+and manual instructions linked in [checkpoint](ngage2-timing-investigation.md#lcd-implementation-checkpoint).
+Sibling checkout, active integration RTL and all long simulations untouched.
+Frame location clarified: SDRAM source -> small LCD FIFO -> panel screen RAM
+in FPGA M10Ks; native path retains that separation.
+
+## 2026-11-12: UI startup inspection at6B/7B, active Phone and EFile work
+
+Read frozen6B/7B states and independently replayed2M clocks each. At7B32
+process objects (31 pending, retained exited DBRECOVERY); SplashScreen gone
+since6B and FLogSvr added. UI threads exist: EikAppUiServer/AppArc/ViewServer,
+SysAp, Phone, ScreenSaver, Autolock and Startup. This does not prove UI ready.
+Phone49.77%, EFile32.85%, WAP9.00%, NULL7.82%, Supervisor0.55% at7B;
+EFile67.23%/Phone11.08% at6B. IRQ/FIQ7.43% at7B, no observed storm.
+
+C: differing positions340904->409514 from6B to7B. At7B541 positions change in
+2M, with428 C read ACKs/1092 write ACKs; canonical input hash verified unchanged.
+Phone home-stack resource/profile/database strings change; not a proven live
+SQL request. CPU code/data stalls58.21%/41.58% overlap29.79%; modeled DDR delay
+2.69%, C-bus active0.55%. Narrow backend counts exclude CPU/cache handoffs.
+
+Starter waits on request semaphore; AppArc blocked in ordinary wait path.
+EikAppUiServer/Startup LR50916F7D resolves through original Cone import to
+WaitForAnyRequest svc4D, not proof of a missing UI readiness signal. No permanent
+blocker isolated. Next request/completion trace should target Phone initialization
+and its EFile/database operations.7.24B at78MHz is92.82 simulated seconds.
+Main run/checkpoints/HDL/firmware/C: untouched; no keys or ongoing polling.
+[Full process list/findings](ui-startup-processes.md),
+[raw structured measurements](evidence/ui-startup-processes-2026-11-12.json).
+
+## 2026-11-12: ngage2 SDRAM compared with integration
+
+Source comparison favors retaining ngage2's physical controller: native16-byte
+read/write interface, four open rows, ns-derived timings. General DMA still
+uses scalar classic requests. Integration's benefit is dedicated LCD routing;
+its JTFRAME scalar adapter serializes requests and splits32-bit writes into
+two16-bit transactions with gaps. No blanket controller speed/area winner or
+new measurement claimed. Different input-capture schedules are not drop-in.
+
+Recommend native LCD sink first, optional bounded16-byte source prefetch using
+existing ngage2 burst capability. Extra burst staging128 payload bits+controls,
+or reserve4 existing FIFO slots and stream directly; this exceeds the previous
+one-word reader scope. No controller replacement/baseline fit needed for this
+assessment. [Comparison and costs](ngage2-timing-investigation.md#sdram-comparison-with-ngage1-integration).
+
 ## 2026-11-12: CI fitter seed and failed-timing RBF downloads
 
 Manual CI Build accepts validated seed1..2147483647 (default1); reports selected
@@ -284,6 +709,40 @@ metadata, YAML/shell and synthetic timing-failure retention checks pass. No RTL,
 PLL, constraints, source QSF seed, remote build/monitoring or other-chat work
 changed. [Usage/details](timing-closure.md#ci-seed-and-failed-timing-rbf-retention-2026-11-12).
 
+## 2026-11-12: ngage2 LCD-port cost assessed; baseline fit deferred
+
+User prioritizes LCD-specific port value/cost, not a fresh baseline fit.
+Recommend2 general workers + lightweight LCD reader on existing DMA read
+scheduler, native writes into existing ordered LCD FIFO. No new SDRAM-controller
+port/CPU/clock change needed. Eligible frame cuts shared DMA transactions36608
+->18304, retaining all reads. Panel ceiling~2.816ms; historical3.97–4.93ms upload
+permits theoretical29–43% shorter upload, no promised FPS/timing gain.
+
+Source worker declares251 state bits; specialized reader+FIFO bridge/readback
+budget140–180 bits, net~70–110 fewer declared bits if replacing one worker.
+Zero intended extra M10K; exact ALMs unknown. Estimates include32-bit last-FIFO-
+word shadow because native writes bypass generic storage. CPU FIFO admission
+must reserve before sampled readiness; preserve phase ordering/stop/restart.
+FIFO-only bypass is smaller implementation but retains LCD's general slot.
+No RTL/simulation/fit performed. [Costs and limits](ngage2-timing-investigation.md#current-direction-price-the-lcd-port-first).
+
+## 2026-11-12: Separate ngage2 timing investigation staged
+
+Pinned sibling ngage2 at542300b (three DMA workers); isolated checkout
+`scratch/ngage2-timing-20261112`, branch `codex/ngage2-timing-1000`.
+Reporting patch exports up to1,000 negative setup endpoints per corner with
+CSV/full routes/Fmax/hold and CI summaries/artifacts. Preserves timing failure
+and uncertainty checks. Eight mock-STA cases, shell syntax/diff checks pass;
+real Quartus17 export/fit pending. Docker socket inaccessible in this session.
+Sibling checkout, production RTL/clocks, remote CI and long boots untouched.
+
+Latest documented donor release91a6d08 is−1.453ns/+0.243ns,33,473ALMs; not a
+current-source measurement. Historical failures span CPU stages,65–78% routing.
+Two-worker experiment patch remains unapplied/unverified: integration concurrency
+relies on independent LCD ownership. Donor LCD has ordered physical bus/FIFO;
+proposed native FIFO write path must preserve it before independent stream work.
+Next: current baseline fit+classify, isolated worker comparison and LCD gates.
+[Investigation, portable patches and limits](ngage2-timing-investigation.md).
 
 ## 2026-11-12: Save-error CPU reset fixed; manual stall needs board trace
 
@@ -304,6 +763,20 @@ unresolved until new-RBF DDR capture distinguishes quiescence/DDR/HPS/queue wait
 No push/CI monitoring/hardware action; other chat's simulations untouched.
 [Details and remaining board gate](save-blockers-2026-11-12.md).
 
+## 2026-11-12: Fresh run7.24B; speculative fetch recovery confirmed
+
+Requested status: main container running at7.24B/12B,144,101 cycles/s overall,
+LCD38104, bus errors14 unchanged, data errors0, PC503D0EEC. Complete1..7B
+pairs. Viewed7B framebuffer: NOKIA logo, with a narrow black top edge. No UI
+or panic observed; last recorded screenshot does not identify active work.
+
+Separate fetch-fault replay finished automatically at2,346,643,768. First
+failed refill retries before BX redirect is ready; second error sees shelve1,
+correct return503EF43F, cache discard completion, then correct Thumb fetch
+503EF43E. FSR/FAR0, no data errors,792 later trace observations. Old discard
+fix works in this occurrence; these two bus errors are not the UI blocker.
+No firmware/HDL/key change, new replay or ongoing polling. Main run untouched.
+[Sequence/evidence](evidence/fetch-discard-replay-2026-11-12.json).
 
 ## 2026-11-12: DDR3 runtime text and diagnostic mailbox implemented
 
@@ -322,6 +795,43 @@ only. Donor ordered512-byte/ACK wait reviewed; save fix follows DDR evidence.
 HDMI scrambled lines and CRT left shift/first columns queued, unchanged.
 [Implementation, reader, format and deferred work](ddr-diagnostics.md).
 
+## 2026-11-12: Requested short-replay status, first fault not captured yet
+
+The separate fetch-fault replay container is still running (37 minutes at this
+check). Latest diagnostic timestamp is approximately2.299B, approaching the
+expected2.345..2.349B event. No FIRST_ERROR or result.json yet, so speculative
+cancellation remains unconfirmed for this occurrence. Log~12.5MiB, primarily
+existing decoder UNPREDICTABLE warnings, which alone do not prove retirement
+or a firmware bug. No new main-run status check, key input or changes. Replay
+continues with its existing first-error+10K/cycle-cap automatic stop; no polling.
+
+## 2026-11-12: Focused00800B00 fetch-fault replay launched
+
+Two fresh-run instruction bus errors occurred around2.345..2.349B; count12->14
+then stable through4.8B, unlike the old retry storm. Registered shelve/discard
+fix exists in frozen8b92e8641d9c7365; harmless speculative cancellation is a
+hypothesis, not yet proved for this occurrence. Do not invent ROM mapping.
+
+Exact-model observer zero-cycle2B restore passes; standalone replay launched
+from permanent2B pair, auto-stopping10,000 clocks after the first new error
+or2.349B. Captures branch/trace/refill-discard/FSR/FAR recovery context. Pending
+outputs in `scratch/fetch-00800b00-20261112/`; container
+`ngage-fetch-00800b00-20261112`. Main long run/firmware/C: untouched; no main
+status poll, key request or production RTL edit. No ongoing replay polling.
+Forensic host scanout is not advanced. [Evidence context](speculative-fetch-deadlock.md#fresh-integration-run-two-isolated-fetch-faults-2026-11-12).
+
+## 2026-11-12: Requested fresh-run status at4.80B
+
+Local Docker container confirmed running, not paused/OOM-killed. Latest logged
+progress4.80B/12B,143,612 cycles/s overall,36,760 LCD words,0 data errors and
+14 backing-bus fetch faults (two more than190M/1.17B; both logged at00800B00).
+Latest sampled fetch PC5034401C, with varying high-ROM fetch addresses across
+the last140M; no panic/terminal result. This alone does not identify the active
+thread or prove useful startup progress. Complete1/2/3/4B checkpoint pairs exist.
+Viewed4B native framebuffer: NOKIA logo on white. No newer checkpoint image yet,
+so current-frame state is not claimed. No keys sent, no replay/HDL change or
+ongoing polling. Main run unchanged in local jotego/simulator:arm64 container
+cb26d7e6a3ea9462574860be5b8ec1c221e834b2e39a436baf949481b30b43d3.
 
 ## 2026-11-12: Further RAM reuse, bounded state and JTAG investigation
 
@@ -363,6 +873,70 @@ normal/held149,748/149,826 and MMC132,221/669,329 unchanged. Physical ALM/timing
 savings pending Quartus; no clocks/diagnostics/NOS removed or CI launched.
 Other chat simulation/checkpoints untouched. Final vendor/firmware results and
 remaining DMA candidates: [timer readback conversion](timer-readback-ram.md).
+
+## 2026-11-12: Requested fresh-run status at1.17B
+
+Integration UI run is still running, not paused/OOM-killed. Latest logged
+progress1.17B/12B,147,483 cycles/s overall,36,687 LCD words,0 data errors and
+12 unchanged boot fetch faults. PC50323FA8, past low-ROM delay; continued LCD
+configuration writes occurred through1.170313399B. Complete1B CPU/host pair
+exists (42,331,660/230,416 bytes) and its screenshot is still blank white.
+That image predates the subsequent LCD activity; no current logo/UI claim.
+No panic result, key request, new replay or ongoing polling. Main run unchanged.
+
+## 2026-11-11: Requested fresh-run status at190M
+
+Container confirmed running, not paused/OOM-killed. Latest logged progress190M
+of12B,159,207 cycles/s overall,0 data errors and12 unchanged boot fetch faults.
+Firmware began LCD control writes around112M; LCD pixel count remains0, so no
+logo/frame yet. Sampled PC still lies in original low-ROM startup delay code
+(0000616C at190M). No panic/terminal result or checkpoint yet; first scheduled
+pair is1B. No key sent or replay started. Run continues untouched; no ongoing
+polling. At this rate, roughly85 minutes remained to its first1B checkpoint.
+
+## 2026-11-11: Fresh integration UI simulation launched; HDL edits are safe
+
+Running `integration-ui-fresh-12b`, frozen model `8b92e8641d9c7365`, target12B.
+Cold normal power-up; current integration HDL;78MHz CPU/26MHz timers/NOS64;
+production D1/D2/D3 DDR path, line refills, no overlays, no MMC, erased PMM,
+unmodified core/extension and private C: input copy. Passive Count fault-context
+observer and terminal-panic stop save the stopping state automatically.
+
+Checkpoint schedule:1B through10B, then100M. Final/interrupt stops also save.
+Screens are checkpoint-triggered under
+`build/sim/screens/integration-ui-fresh-12b-checkpoints/`. **Do not poll this run;
+inspect only when the user commands it.** Initial Docker launch alone was
+confirmed; no ongoing monitor or agent is attached. Detached runnerPID11975,
+container `cb26d7e6a3ea9462574860be5b8ec1c221e834b2e39a436baf949481b30b43d3`.
+Runtime/command records: `scratch/sim-interactive-20261111/long-run-launch.json`.
+
+The user can edit HDL now: the process uses its frozen binary. Exact maintained
+sources are archived in the run's `compiled-sources.tar.gz`; retain its model
+objects/binary/manifest for restore. No firmware/C: source was modified. No keys
+have been sent. `tools/send_sim_key.py RUN KEY` injects normal keypad levels;
+held mask, request ID and release timer survive checkpoints. Request/application/
+release are logged without an agent polling loop.
+
+Verification before launch: focused key duration/replacement/reset/64-bit-hold
+checks; scaled1B/100M cadence switch; actual ARM-model timed key injection;
+100K ->200K held-key continuation byte-identical to uninterrupted200K (CPU/host).
+Temporary smoke checkpoint duplicates were removed. This verifies controls and
+resume, not Symbian/UI readiness. [Run instructions](sim-ui-run.md),
+[evidence](evidence/sim-ui-run-2026-11-11.json).
+
+## 2026-11-11: Old checkpoint readable; integration requires a cold boot
+
+Audited current908b2d3 against the old10.5B model6af112481fad51dd:26 changed
+source files plus two removed/renamed transport paths. RF memory/bypass,
+cache/TLB, timers/ICU/keypad, general DMA/LCD/MMC and storage state/layout
+changes make direct restore unsafe. No architectural-state converter exists.
+Frozen zero-cycle restore/resave at10.5B passes byte-identically for CPU/host;
+PC5039F6E0, LCD38124, no data errors. Original checkpoints untouched; test-only
+state/input duplicates removed. Docker now responds and no container is running.
+No new long boot was started. Next: fresh production-DDR/fault-context boot,
+then same-model continuation toward the UI/panic; no firmware overlays or input
+image modifications. [Compatibility and bounded command](checkpoint-compatibility.md),
+[evidence](evidence/checkpoint-compatibility-2026-11-11.json).
 
 ## 2026-11-11: Final four78 MHz paths share local DMA admission
 

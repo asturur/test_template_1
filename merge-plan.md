@@ -1,3 +1,86 @@
+### 2026-11-13: Publish native startup/debugger baseline
+
+User requests commit/push and will build manually. Publish the qualified local
+SIMIF/CBUS/internal-DSP/EUART work and maintained evidence; no CI launch/watch,
+board action or firmware patching. Separate simulator/checkpoint and MMC test
+experiments remain unstaged. Next session captures the first failure of this
+exact RBF and fixes one native issue at a time; no overlay/deadline/self-test
+patch sequence. External D550 and SIM-ready still incomplete. Protocol:
+docs/debugger-baseline-2026-11-13.md.
+
+### 2026-11-13: Production EUART/CTSI host boundary completed
+
+Selected UART in QIP; dedicated UPP FIFO/register ownership, board byte ports,
+SIM-low/UART-high composite status, FIQ26 and exact-once registered effects.
+Unchanged native driver/HAL/poll through board with actual CPU FIQ passes at
+78/104MHz schedules, wait0/3=27001/31140cycles. Separate dual-board test passes
+simultaneous SIM/UART masks/ACK, status lanes, held reads/writes, TX backpressure,
+idle/drain and reset. SIM matrix,33 response,132 address, regional and UART
+regressions pass. No clock/firmware/CPU changes or hardware boot claim. External
+D550 peer is explicitly inactive; full DSP protocol and native SIM-ready remain.
+Details: docs/euart-production-integration.md.
+
+### 2026-11-13: Native SIM29/37 verified; D550 test42/codec operation implemented
+
+Original NEM-4 NOS already implements donor dynamic-flags completion. Three
+native absent/present-cache cases pass with original status mapping (missing
+returns24). Do not duplicate the NOS service. New Verilog D550 diagnostic42
+and separate N501 codec reset boundary pass78/104MHz directed success/failure,
+stall/ownership/reset tests. Native packet checksum/sequence primitives pass,
+including corrupt rejection and correct exclusion of TX55/55 preamble from RX.
+These blocks are not production-wired; full packet startup/ACK/retry, shared
+CTSI/EUART and native SIM/MTC-ready remain. Boot is NOT complete. No firmware,
+PLL, board, CPU, build or other-chat source changes. Details:
+docs/sim-adsp-native-progress.md.
+
+### 2026-11-12: Updated donor retail boot stubs audited
+
+Donor0fe531f still replaces NOS and patches BT retry limits at load; retail
+input files do not imply unmodified execution. New IMEI response unblocks
+SPMark04; SIM29/37 ->2A/37/24 completes Settings. Native NEM-4 IMEI response
+shape already matches; backing identity/PMM path still needs qualification.
+Our experimental SIM shim lacks an explicit29 case; native NOS behavior is not
+therefore proven missing. Ready/security events confirm client requirements,
+not physical initialization. No new donor BT controller; self-test passes are
+synthetic. Six actual donor-header host checks pass. No HDL/firmware/board/build
+changes; strict HDL-only boot remains incomplete. Details:
+docs/donor-stub-update-2026-11-12.md.
+
+### 2026-11-12 ADSP ROM disassembly checkpoint
+
+Original E403A400H450.USB maps17 RAM records/32 C55x vectors; matching native
+2B/8B test42 handler found. It requires clock-status bit, existingFFFC image
+marker and successful codec I2C reset. No unconditional success or extra DSP
+CPU proposed. Five image tests and selected decoder/ASAN fixtures pass; exact
+MADI framing and shared CTSI remain before production HDL wiring. See
+docs/adsp-rom-investigation.md. Renderer removalc41d620 remains the pre-build
+area gate,78MHz PLL/104MHz objective unchanged. No boot/build claim.
+
+### 2026-11-12 build area gate and UART transport progress
+
+Separate diagnostic-video retirement commit c41d620 is complete before the next FPGA build;
+DDR diagnostics remain. No active simulations remain. Keep78MHz PLL and design
+for104MHz. Production text/font/diagnostic bars and OSD Display selector removed;
+exact savings unmeasured until Quartus. docs/diagnostic-video-retirement.md.
+Native EUART controller focused tests and unchanged TX/RX IRQ/HAL on HDL CPU
+pass (7064/9834cycles at wait0/3). Two M10K FIFO instances; ALM cost not yet
+measured. Production shared-CTSI and external DSP protocol wiring remain. Do not mistake transport for a completed
+external DSP diagnostic or unpatched Menu boot.
+
+### 2026-11-12 native startup integration checkpoint
+
+Strict original-firmware/HDL-only requirement retained. UPP internal DSP MDI
+now replaces discard-only stub in production; one8192-bit dual-port RAM and
+streaming peer answer native RF/SW version queries. Native receiver/INFO/test
+chain and original TX/RX driver on HDL CPU pass; ringwrap, saturation, reset,
+board SIM, peripheral response and integrated CPU/DMA/LCD/IRQ regressions pass.
+Native ADSPCTRL12 cases and EUART1 TX/RX IRQ contracts also pass; production
+UART currently lacks a real byte transport.132-address/regional ownership and
+sparse wrapper checks pass (stale16-cycle bound corrected to66 for64 slots).
+Separate D550 ADSP, SIM readiness and Bluetooth remain open. No complete
+unmodified Menu boot/fit/timing claim. MMC parked; running board untouched.
+See docs/native-startup-hdl.md and its evidence JSON for contracts/results.
+
 # N-Gage donor integration plan
 
 Updated 2026-11-11. **P0 through S3 and D1 through D3 committed. The integration build enables D1, D2 and D3.**
@@ -1178,6 +1261,17 @@ descriptors and DFC concurrency remain open integration gates. See
 
 ### N3: stateful missing services and logical SIM
 
+Current user acceptance (2026-11-12): the selected handset profile must present
+an inserted synthetic SIM ready without PIN, a fictional carrier and stable
+synthetic signal. SIM queries must receive coherent replies rather than being
+left pending or answered as no-card. Retain native NOS outside audited missing
+service boundaries. Validate normal-deadline Phone activation, responsive Menu
+and digits, no ViewSrv/descriptor panic, and PMM record write/read/reload plus
+host persistence. A deadline extension, one successful frame, or an initialized
+C: seed alone does not satisfy these gates. Radio registration is a named
+synthetic service state; no physical SIM or network connection is implied.
+
+
 Implement individually audited SIM/security, self-test, battery/charger,
 phone/product information and accessory/light behavior that the original
 runtime cannot provide with currently modeled hardware. Prefer retaining real
@@ -1199,6 +1293,53 @@ runtime still demonstrably active.
 Physical SIMIF remains a distinct P8 audit item: no-card/ATR/APDU behavior needs
 its own physical-interface evidence and tests before connecting it to logical
 SIM state. Never run two independent SIM state owners silently.
+
+#### N3 hardware investigation checkpoint — 2026-11-12
+
+Native missing PMM50/1 triggers a short error reply that Nokia.dsy mishandles
+as USER21. Matched native-base/candidate runs isolate the missing record;
+`ngage_pmm_profile.py` preserves the audited base and appends synthetic0400.
+Native DOS completion100(hex)/value0 is observed. Empty hand-built catalogs
+failed and are rejected. Durable host save/reload is still unverified.
+
+Native virtual-SIM prototype now publishes ready state8 and serves IMSI,
+identity, flags, home PLMN and audited optional getters through native NOS
+queues. It advances from Insert SIM to Startup failure: real self-tests find
+absent RF/ADSP (fatal), plus optional BT/current failures. V5 removes only the
+absent RF/ADSP from the virtual profile's automatic group, retaining native
+results and explicit diagnostics; native enumeration tests pass. Hardware now
+reports DOS startup passed, opens real Menu and launches Contacts with responsive
+navigation. Native PMM date/record updates have no0->1 bit changes. Stable booted
+C/PMM captures are preserved for restart tests; durable save is unverified.
+Original2s/20s deadlines also reach Phone/Menu on a guarded fresh restart with
+the captured initialized disks. Clean-first-boot qualification, carrier/signal
+and durable host save remain incomplete.
+All trials are volatile; original media, other-chat RTL and simulations remain
+unchanged. Detailed captures/identities in docs/menu-bringup-2026-11-12.md.
+
+### N3 production requirement update — original firmware, HDL only
+
+User explicitly selected strictly unmodified firmware on2026-11-12. The patched
+Menu is reference evidence, not the production solution. Do not automatically
+apply the experimental SIM/BT packages or exclude startup tests in the final
+core. Original NOS/test registry/checksums and2s/20s deadlines remain. Implement
+missing behavior through identified chip/device interfaces, including native
+SIM readiness and RF/ADSP control replies, then native Bluetooth startup and
+network simulation. Qualify valid PMM/data persistence separately.
+
+Boot RTL progress: SIMIF W1C phase transition and CBUS reset-idle status poll
+are reproduced and corrected, with board/card/FIFO/CEN/RTC/peripheral response
+regressions passing. Original CBUS driver/HAL also passes on the actual CPU
+with wait0/3 (1220/1832cycles), without instruction substitutions.
+These do not yet prove native SIM readiness or an unpatched
+Menu boot. MMC is parked behind boot, per user priority; a full-sector authored
+CPU fixture now reproduces failure at stage7 for later investigation.
+
+First original-byte RF/ADSP client contracts now pass with request/timer/error
+and response-ownership checks; directed card/board/CEN baseline also passes.
+No HDL-only boot claim yet. Detailed ordered dependencies and tests are in
+`docs/native-startup-hdl.md`. Earlier overlay-packaging tasks remain historical
+experiments and are superseded as the production route by this decision.
 
 ### N4: overlay capacity and semi-real profile integration
 

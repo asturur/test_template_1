@@ -284,6 +284,14 @@ module ngage_mister #(
         .video_vblank         (raw_vblank),
         .video_rgb            (raw_rgb),
         .keys                 (keys),
+        // External D550 protocol peer is not implemented. Backpressure the
+        // serial link rather than discard bytes or fabricate a response.
+        .adsp_tx_valid        (),
+        .adsp_tx_ready        (1'b0),
+        .adsp_tx_data         (),
+        .adsp_rx_valid        (1'b0),
+        .adsp_rx_ready        (),
+        .adsp_rx_data         (8'b0),
         .sim_present          (sim_present),
         .mmc_card_reset       (mmc_card_reset),
         .mmc_img_mounted      (mmc_img_mounted),

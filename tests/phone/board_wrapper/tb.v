@@ -6,12 +6,15 @@ module tb;
  wire [31:0] dout,trace_addr,trace_data;wire [3:0] trace_sel;
  always #5 clk=~clk;
  ngage_board_sim dut(clk,reset,cold_reset,cyc,stb,we,adr,din,sel,claim,fallback,ack,err,dout,irq,fiq,init_done,trace_valid,trace_addr,trace_data,trace_sel);
+ // A full 64-entry BRAM-backed sparse table probes every slot before error.
+ // Allow capture/result overhead as well as the bounded 64-cycle search.
+ localparam integer MAX_DEVICE_WAIT = 66;
  integer n,waits;
  task transfer;
  input write_op;input [31:0] address,value;input [3:0] lanes;input expected_error;input [31:0] expected_data;
  begin
   @(negedge clk);cyc=1;stb=1;we=write_op;adr=address;din=value;sel=lanes;waits=0;#1;
-  while(!ack && !err)begin @(negedge clk);#1;waits=waits+1;if(waits>16)$fatal(1,"device handshake timeout");end
+  while(!ack && !err)begin @(negedge clk);#1;waits=waits+1;if(waits>MAX_DEVICE_WAIT)$fatal(1,"device handshake timeout");end
   if(err!==expected_error || (!write_op && !expected_error && dout!==expected_data))$fatal(1,"board sparse result %h",address);
   @(negedge clk);cyc=0;stb=0;@(negedge clk);
  end endtask

@@ -1,0 +1,181 @@
+{
+  "current_commit": "908b2d34d306ee08c6454583cc72eea12be9fbe0",
+  "checkpoint_model": "6af112481fad51dde8dc0f8da9229438fda8c8ecbd62000ff2aa808096aa4330",
+  "changed_sources": [
+    {
+      "path": "rtl/arm/zap_cache.sv",
+      "checkpoint_sha256": "ddcb9098ae1aa710bb86e91f6f2bce7a9de7a0152ed9646a1e056f836b1baf56",
+      "current_sha256": "518091b7dd7570e807b26e10b1665fa2c42059d73199f90cd2f58ec180567ec0"
+    },
+    {
+      "path": "rtl/arm/zap_dcache.sv",
+      "checkpoint_sha256": "13dcbce7bbb74ac2762138bc425fb0f58b5be7b16a9c0b498631f7a8890353af",
+      "current_sha256": "eb314d5abfb9dff4a16570928a02f039fed5aa3583fb71e43fd0c276ae81c998"
+    },
+    {
+      "path": "rtl/arm/zap_register_file.sv",
+      "checkpoint_sha256": "cc289d9a2650d1e8c4c02e159fe86b8b5cea48639bbeb3ecb9ed07dddc327f83",
+      "current_sha256": "01bb32fb7b33ee004118747586b5b88e984899d5b44d6800135f5e70efe856a7"
+    },
+    {
+      "path": "rtl/ngage_bram.v",
+      "checkpoint_sha256": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215",
+      "current_sha256": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71"
+    },
+    {
+      "path": "rtl/arm920/cache_access.sv",
+      "checkpoint_sha256": "85b626e7e2432da9f1df1aebd940cc8a6f7bdbcb299f18f769afdd15793efe13",
+      "current_sha256": "fba7bfa4b5df0a5e1642efd4e3e467305e8b485eaa4195778445476955e173ad"
+    },
+    {
+      "path": "rtl/arm920/cache_adapter.sv",
+      "checkpoint_sha256": "f310cd0c7b5c0ad89ccb0986f42d2cb32c323d69d792b692f67a610eb8511569",
+      "current_sha256": "f3cf2f5281768f36678d8e354f1b02a0a0c1fe5f035b95c4d89bf92fd63d58c3"
+    },
+    {
+      "path": "rtl/arm920/cache_bank.sv",
+      "checkpoint_sha256": "cf3304c77eff9bd813846503986562a71a9575ec8e64fa1531daa67e6dbe4d2a",
+      "current_sha256": "004852c3d8460f26b7a5b9a2435e61c65da04612450cedf9dd72817c705cf90f"
+    },
+    {
+      "path": "rtl/arm920/cache_maintenance.sv",
+      "checkpoint_sha256": "fb597ba510d78086ba6fa31c7ee07236686e409d2ff5c2af062a84e4906544c7",
+      "current_sha256": "afed5fac5154b1aa4e6861b17b839039b450271302859a435d3de9a80a903d4c"
+    },
+    {
+      "path": "rtl/arm920/cache_tags.sv",
+      "checkpoint_sha256": "30ea20a74d7dc03989bf85038e334639199b43f64a902b88b64a93c48b3b40d8",
+      "current_sha256": "05d62c3aeb2d75c20a673e3a481e43e061823fc757841afc179d864dd35ac7e8"
+    },
+    {
+      "path": "rtl/arm920/tlb.sv",
+      "checkpoint_sha256": "84b66bbce35c2da1c7ab966a1f34c45a6c5605482cdb990fab60e0da4d713b6b",
+      "current_sha256": "bbb00ec06f9ec811f4d4fa92068bc7b29dc918b26efe6d429a0b1f8b3838716c"
+    },
+    {
+      "path": "rtl/ngage_mister.v",
+      "checkpoint_sha256": "165668f52cb25e5bd7bfff9880d984310119be1b235c33f1b4e1115743759d88",
+      "current_sha256": "de038e5f0f1abfc275fbcd54ec859755d87309f4aaf253062d267b455189310d"
+    },
+    {
+      "path": "rtl/ngage_lcd_display.v",
+      "checkpoint_sha256": "3fcd4faa01fe8f7b13d2203753c4f17d90cdc12f367428287baac7b5081ead85",
+      "current_sha256": "8d3d8897309b0104e867bf335df685131f93bd38188883501dac388acf98b48f"
+    },
+    {
+      "path": "rtl/ngage_keypad.v",
+      "checkpoint_sha256": "e310f4ca94b7fa63875e4b5ff27e4f64b15772dd4633318177dc9ae29ceaf8f8",
+      "current_sha256": "71bc5885794e2becda1a0123c3926ad748327d9f1bda5b613a62cdaedbb06708"
+    },
+    {
+      "path": "rtl/ngage_diagnostics.v",
+      "checkpoint_sha256": "288c9a33c02a7291a5829385502c8bc7072003c216b1d2d96f97941ede5c0bd7",
+      "current_sha256": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c"
+    },
+    {
+      "path": "rtl/ngage_sdram_arbiter.v",
+      "checkpoint_sha256": "0ad14b95821a54c412b379b8672043416db09944006e169947e93ac63b62a0bd",
+      "current_sha256": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c"
+    },
+    {
+      "path": "rtl/ngage_board.v",
+      "checkpoint_sha256": "4060bcad20cd0ce9096e09ce5e9b97fb754c431b6f1d4062b8548e2aa0d80864",
+      "current_sha256": "056a430f1172976697e421cfee5ec137508840460d030b152cb1e30c6ca7829f"
+    },
+    {
+      "path": "rtl/ngage_upp.v",
+      "checkpoint_sha256": "d2c60e5b7e5e0765c3d91e123f70b6eba5d1c4cbba3098118e5f58431b3ef356",
+      "current_sha256": "faffd1e5a95a0543fa473d7712afa333b3cb7f08e34eca1944cb9f2105ad1cee"
+    },
+    {
+      "path": "rtl/ngage_upp_peripherals.v",
+      "checkpoint_sha256": "61ec782967e104f4211b4fc8a292caa540794647070df38230d14be9e07fd02b",
+      "current_sha256": "106657f1a87e17d2e61ea1987bec7564bb32deaf4c0db9d861eb3fa9d89ba4b4"
+    },
+    {
+      "path": "rtl/ngage_sparse_regs.v",
+      "checkpoint_sha256": "3a037aeda81349f8998821a32fb75f9fbc57b96ad4b63b0078b50488a08d9e61",
+      "current_sha256": "cb44404346ce87f73b53fbdf1271b615cd81bd920294a34c6edfcb7fac7ab83a"
+    },
+    {
+      "path": "rtl/ngage_icu.v",
+      "checkpoint_sha256": "6e0e8063a86fde4d1636e62faabb609d6461d3bab91647b615c74c032de86e07",
+      "current_sha256": "ec99bcdabae6747ca5aae132f6552ffa72205cf91262cfb6f4606cbc806d7b96"
+    },
+    {
+      "path": "rtl/ngage_timers.v",
+      "checkpoint_sha256": "6ce07dcaa80c5aafbd72225e857638a9f07899bdecdf14334f7323890768cdb5",
+      "current_sha256": "3d6edbe62dd4ce9349c82f8568cec357c3172a8de971fcdd19cfc5a2c2d3cfb2"
+    },
+    {
+      "path": "rtl/ngage_gpio_loopback.v",
+      "checkpoint_sha256": "5ce36abc8536d4fc2654ad25e2f67718d743f5b72cffbfe3219555b57df78711",
+      "current_sha256": "243c4aeaca74ad440a68744f5371107e198b7301bd6d5092b2c5419cefb6c02b"
+    },
+    {
+      "path": "rtl/ngage_boot_regs.v",
+      "checkpoint_sha256": "122d43eabb8a7e2c4f6dd8c24fafb8cd66ee43c2f9b9df613d760963eb00fcaa",
+      "current_sha256": "4acf9f555704a60d01556589801c7b7d1e70535464e56dad2a0df1064f170e29"
+    },
+    {
+      "path": "tests/phone/hardware_boot/tb.v",
+      "checkpoint_sha256": "013aec0cd7fb4cb952b7b4c358ae7272a6ff3acd4344e82b2a79b69c262c3b9a",
+      "current_sha256": "9fd7fee7e8eaa80c725af6455bf0e8fab9684b0c20a75fae6313a0149f39ca77"
+    },
+    {
+      "path": "tests/phone/hardware_boot/logo_main.cpp",
+      "checkpoint_sha256": "41bf9b2665ee233c8b7b08770b5a6cf0c031044fb5e3e1fc104e5a7deefa1744",
+      "current_sha256": "97ae7106c190cc81064711d2be22edf68fce9b5ae0c1b0effa969c6ddecfc10f"
+    },
+    {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/tests/phone/hardware_boot/run-logo.py",
+      "checkpoint_sha256": "aa52e78be222c1a79680a67cfea8a5992ce3b198b42d4009eeddabcca56c3bac",
+      "current_sha256": "ebca0d34f9c3e661751df3c9ed3484f16dae19a52dfa378751d32df3c044e456"
+    }
+  ],
+  "missing_sources": [
+    "rtl/ngage_ddr_arbiter.sv",
+    "rtl/ngage_ddr_adapter.sv"
+  ],
+  "safe_restore_compatible": false,
+  "checkpoint_cycle": 10500000000,
+  "decision": "Fresh cold boot required for current integration core; existing states remain usable only with frozen old core.",
+  "method": "Source/state-organization audit plus zero-cycle restore/resave with exact original frozen executable. No incompatible restore attempted.",
+  "frozen_restore": {
+    "boot_index": 0,
+    "boot_limit": 0,
+    "retired": 0,
+    "ddr_commands": 0,
+    "ddr_beats": 0,
+    "cycle": 10500000000,
+    "pc": 1345976032,
+    "lcd_words": 38124,
+    "frame_complete": 1,
+    "display_on": 1,
+    "unsupported": 1,
+    "bus_errors": 30923398,
+    "data_errors": 0,
+    "seconds": 0.0613667,
+    "stop_after_lcd_words": 0,
+    "stopped_on_kernel_panic": false,
+    "stopped_at_lcd_limit": false,
+    "interrupted": false,
+    "outputs": {
+      "build/sim/runs/checkpoint-compatibility-frozen-10500m/framebuffer.bin": "c002b25c7a1ecf0235e551429a18fcc07126f262d3ca51caae52139170572f1a",
+      "build/sim/screens/checkpoint-compatibility-frozen-10500m/scanout.png": "6073581047b623ec0a4ebd160cac0e21d4be1b8424b7da4eff784e39df5d6d0f",
+      "build/sim/screens/checkpoint-compatibility-frozen-10500m/framebuffer.png": "158ef1573c94508a26d85f02e28b1d51dbc6ab95be23a9aeb79072301f77ab0f"
+    }
+  },
+  "checkpoint_files": {
+    ".cpu": {
+      "sha256": "d6cec9bad0b7dd007a5f8f9b8ed06e4a40fb55f69434832f5d2f80ac1dc2d161",
+      "bytes": 42317877,
+      "zero_cycle_resave_identical": true
+    },
+    ".host": {
+      "sha256": "3fa2e6e320682e80e8c84e95144e2012d5dea84b5577ceefc4810aa3fa533f7c",
+      "bytes": 230416,
+      "zero_cycle_resave_identical": true
+    }
+  }
+}

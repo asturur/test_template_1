@@ -1,0 +1,135 @@
+{
+  "date": "2026-11-12",
+  "requirement": "strict original firmware, HDL only",
+  "source_sha256": {
+    "rtl/ngage_simif.v": "ae20cccae97d52ecfdc4ffffee42217833dfb8bbc728c72ed7fd8edfbdaf7c1a",
+    "rtl/ngage_cbus_uem.v": "eb5529e5fb1fda9bfe4367284a43f3fc5a914033825c1a72f1a756f3e46049ce",
+    "tests/phone/simif_board/tb.v": "2cb37bcd6848898a9149885a40409a601c7537b9bbb7fb36b5009d7c5f9d26df",
+    "tests/phone/cbus/tb.sv": "2eb2fb2fa863771f5b3a0e401e5e2e60956184318e056d9bacb659aa65af589d",
+    "tests/phone/native_cbus/program.S": "5a56b94eac8635eca48cd08d1f3a526bb5e6e0600f3f7beaee7aae37712ef210",
+    "tests/phone/native_cbus/tb.v": "3d76af0f459e30a0f99d04179c33793371ea0c6eb74fe58f5c52f8387a5176ea",
+    "tests/phone/native_cbus/prepare.py": "944c8e921132d9d4bf95dcc5f38b1addaea3d14440a686e1ff6481ea73b0d462",
+    "tests/phone/native_cbus/run.sh": "78853f75d83cbb478373f812900c803e0cd57687194f0f10ebf5da137ad9fce3",
+    "tests/tools/test_native_cbus_contract.py": "43a08c7b9e45b9e204416302c79efb097b3b1af2d57212a1ac3aeba026ea80b5",
+    "tests/tools/test_native_startup_contracts.py": "76571dceef9bc209c73daa7f18c02cdd086f2d903b465cd4f3c4aa7f39e3cb93",
+    "rtl/ngage_upp_mdi.v": "627cb0ed7dcdeaca19a70ab05c52a17864f7515922d3bf8299ed6fa71a786e07",
+    "rtl/ngage_upp_dsp_peer.v": "80f2f8acf966143cf59348b7d2dc2ab392b2c69310edf612c1842a2bc577a9b1",
+    "rtl/ngage_board.v": "cb484f5692db43f3634adf4cb72568c80a5c359bc0e303820480f76db95ba26f",
+    "rtl/ngage_adsp.v": "7bad8b1438afecd59e6ad453677be9109b491222a16d1162bba46366744fbef4",
+    "rtl/ngage_upp.v": "c32bfe19e3cf303f852002e6cd66c606045e0b8cf8e7d56eb2291409c3696e6c",
+    "rtl/ngage_upp_peripherals.v": "332cb70e348536632e43dbf85305a6dc54752123cdef26e88444a1ea49c33174",
+    "tests/tools/test_native_info_version.py": "62bdbe5eb5e2f726128caa33dba442acb764072e8a1ee6671c958a0235edc640",
+    "tests/tools/test_native_mdi_contract.py": "6606a6cf06024df2c442ec789bcd6b901e9fab8aed4b4b5e5e918d63cecfa955",
+    "tests/tools/test_native_adsp_controls.py": "7406c79af5760aaf42e362248f6f72e87ee2ca8447115a54f13c96d764dc4294",
+    "tests/tools/test_native_euart_contract.py": "29f4dfa3894eb8679724b67f3a15aaecab8b47a230e7f42c06636c9ec32f6255",
+    "tests/phone/board_wrapper/tb.v": "133026a9903568c744c518a6e430dc3f45e41d393c18cb2dd94a8749425d251e",
+    "rtl/ngage_upp_euart.v": "47b09e1e22e820eb67811985fa914976da48a2615ad277177dc7205939bfe9cb",
+    "tests/phone/upp_euart/tb.v": "bc0c7ac74448721d43dc506aedce64b15bf44635cebe5953d084566302b91659",
+    "tests/phone/native_euart/program.S": "c17c87227cd44d36cab9d3a3f35ce7feeed2b306079c5adf1353c983cf60c81e",
+    "tests/phone/native_euart/prepare.py": "744ee8d4f4ba779ed0f1ac827fd617a1051d8a00e46b8f6f74772b2fa6ce1864",
+    "tests/phone/native_euart/tb.v": "87222169398a039622585a63711e6b75af3bcf79aa1b5460bf930cc17cb1af1f"
+  },
+  "sim_w1c": {
+    "before": "got0x18 expected0x08 after zero/unrelated ACK",
+    "after": "all4 board/card/presence combinations pass",
+    "full_sim_readiness_proven": false
+  },
+  "cbus_status": {
+    "before": "reset-idle poll rejected",
+    "after": "idle/completed DONE400; assembly not done; status readable",
+    "native_client_entry": "503822BC",
+    "native_hal_read": "503245FC",
+    "native_hal_write": "50324608",
+    "original_firmware_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "native_cpu_cycles": {
+      "wait0": 1220,
+      "wait3": 1832
+    },
+    "original_code_modified": false,
+    "mmu_qualified": false,
+    "physical_serial_protocol_qualified": false
+  },
+  "other_passes": [
+    "CBUS both powerup profiles",
+    "CBUS alarm/1Hz phase/ACK C++ references both profiles",
+    "33 registered peripheral response/hold/reset cases",
+    "554 card reference operations",
+    "600-response FIFO stress",
+    "FIFO saturation/reset",
+    "32-clock card CEN",
+    "native RF/ADSP pending/error/response/release contracts",
+    "132 retained-trace device/address ownership pairs",
+    "exhaustive regional overlap/lane/config ownership",
+    "sparse wrapper cancellation/full/trace/warm-cold retention (66cycle bound)"
+  ],
+  "mmc": {
+    "priority": "parked behind boot by user",
+    "reference_image": "sonicn.mmc; user confirms donor works",
+    "image_sha256": "7fd800c9318ea86a3ba57b5ecd1189d2c3609c413358706b17a172c36d94733e",
+    "metadata_capacity_and_fat_basic_checks_pass": true,
+    "authored_full_sector_cpu_test": "fails stage7; not diagnosed further"
+  },
+  "new_rbf_built": false,
+  "full_unmodified_menu_verified": false,
+  "other_chat_simulations_changed": false,
+  "user_hardware_controls_left_alone": true,
+  "upp_mdi": {
+    "native_rf_chain": "515920D0 ->5164C3EC ->516A60C0;03 passes/04 fails",
+    "rf_reply": "0c0800015408000330330000",
+    "native_cpu_cycles": {
+      "wait0": 4913,
+      "wait3": 7367
+    },
+    "ram_bits": 8192,
+    "ring_halfwords": 250,
+    "unknown_requests": "unanswered",
+    "d550_implemented": false,
+    "board_cpu_regression": "PASS SIMIF/LCD/DMA/faults/diagnostics/IRQ/FIQ/SDRAM waits",
+    "fit_and_timing_verified": false
+  },
+  "external_adsp": {
+    "native_control_cases": 12,
+    "native_control_contract": "PASS",
+    "native_uart_tx_rx_contract": "PASS original HAL MMIO and callbacks; ROM unchanged",
+    "uart_tx_data": "0C150554 high8",
+    "uart_tx_count": "0C15055A count-minus-one",
+    "uart_rx_data": "0C150556 high8",
+    "uart_rx_indices": "0C150562",
+    "uart_rx_ack": "0C1500BA bit3",
+    "driver_interrupt": "FiqCTSI_FIQ",
+    "production_uart_protocol_implemented": false,
+    "diagnostic_success_proven": false
+  },
+  "fixture_correction": {
+    "path": "tests/phone/board_wrapper/tb.v",
+    "old_timeout": 16,
+    "new_timeout": 66,
+    "reason": "existing64-slot serial BRAM probe plus capture/result",
+    "failure_address": "0DFF0220",
+    "mdi_claim_at_failure": 0,
+    "mdi_ready_at_failure": 1,
+    "sparse_rtl_changed": false
+  },
+  "euart_hdl": {
+    "native_cpu_cycles": {
+      "wait0": 7064,
+      "wait3": 9834
+    },
+    "original_code_modified": false,
+    "fixture": "authored caller/IRQ/callbacks, RTOS flag, byte loopback; not a DSP reply",
+    "directed_checks": "PASS lanes/batches/stalls/BRAM latency/saturation/wrap/IRQ/mask/ACK/flush/reset",
+    "selected_in_production": false,
+    "m10k_instances": 2,
+    "fifo_payload_bits": 256,
+    "fit_timing_measured": false
+  },
+  "diagnostic_video_retirement": {
+    "commit": "c41d620",
+    "ddr_paths_retained": true,
+    "recorder_ddr_export_tests": "PASS",
+    "integrated_cpu_lcd_dma_irq_tests": "PASS",
+    "pll_mhz": 78,
+    "design_target_mhz": 104,
+    "new_fpga_build_started": false
+  }
+}

@@ -1,5 +1,16 @@
 # Symbian startup blockers
 
+## Fresh integration6B/7B process audit, 2026-11-12
+
+[Current process/wait/profile evidence](ui-startup-processes.md) shows active
+Phone/EFile work,32 process objects and named UI services. The7B replay spends
+49.77% of thread samples in Phone,32.85% EFile and9% WAP; AppArc is not consuming
+this sample. C: content changes and SplashScreen has exited since6B. Existing
+wait PCs resolve to ordinary request waits; the specific request gating visible
+UI remains unidentified. Next trace Phone initialization and its EFile/database
+requests, not a presumed AppArc loop. All original images/main simulation remain
+untouched.7.24B clocks at78MHz represent92.82 seconds.
+
 The immediate objective is a working phone. Performance work resumes only when
 it is necessary to diagnose or remove a demonstrated startup blocker.
 

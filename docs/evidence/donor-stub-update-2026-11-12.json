@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-12",
+  "donor_commit": "0fe531fd1c0a48a0d94d82d24371d848c9e7da2b",
+  "donor_files": {
+    "firmware-patches/rom-patches.txt": "950b53686d3d5e7ae82d1cecc12462a02ef5fb9a03853c6fe8eef841dd5d1f6c",
+    "firmware-patches/nos-stub/nos_isi_replies.h": "4235d96a1ad6ac14081c817eb03d1db0c9e82506be46420bceae072431729072",
+    "firmware-patches/nos-stub/nos_isi.c": "066558196520d12ec19bef71da7d214e5847bbfcbb3e2a5165ebbd8d1a75d8b1",
+    "rtl/mister/phoenix_load.sv": "3dedf67fd30660a7b9e27db3d0fefa67b9d7b6b692897cfc61b8a5daec8a184a",
+    "docs/NOS_STANDIN.md": "98439b77f096113c9eed509b943628649e890939ee7f3967bdbb81fad1e7256b"
+  },
+  "new_contract_commits": [
+    "05fe43d8cc58e94740ad06629733f8ded8167a59",
+    "4f4eb29617e3708d3f1312fea7e4ef88469ab0d6"
+  ],
+  "probe": "scratch/donor-stub-update-20261112/probe.c",
+  "probe_sha256": "9dafb36bfd2f69748248c9cd9eeabaee991b2a13801520f5d7c96d8b21c164b4",
+  "results": [
+    "PASS IMEI layout, identity and header ownership",
+    "PASS unsupported IMEI target remains unanswered",
+    "PASS dynamic flags explicit data-not-available reply",
+    "PASS SIM ready and security indications follow initial response",
+    "PASS Phone ciphering query completion",
+    "PASS self-test stub reports unconditional success (not physical evidence)"
+  ],
+  "native_hardware_verification": "NOT_RUN",
+  "firmware_modifications": false,
+  "boot_fixed": false
+}

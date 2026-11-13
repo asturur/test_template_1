@@ -7,17 +7,23 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
-| [cpu-donor-import-plan.md](cpu-donor-import-plan.md) | Ordered benchmark-first CPU imports, full difference coverage, measurement/acceptance rules and Call of Duty validation |
-| [cpu-donor-baseline-results.md](cpu-donor-baseline-results.md) | First480 measured ARM baseline runs, deterministic/counter qualification, refill tradeoff and remaining phase00/01 gates |
-| [cpu-donor-comparison.md](cpu-donor-comparison.md) | Current ZAP versus donor ARM9V2 execution/decode, specific port candidates and benchmark limits |
-| [sdram-native-validation.md](sdram-native-validation.md) | Native SDRAM runtime procedure, measured latency results and remaining board/fit gates |
-| [sdram-request-ownership.md](sdram-request-ownership.md) | Shared scalar write payload, reset-drain admission, unchanged latency and cache refill/commit storage explanation |
+| [euart-production-integration.md](euart-production-integration.md) | Completed production UART/CTSI host boundary, native CPU FIQ tests and remaining D550 peer gate |
+| [sim-adsp-native-progress.md](sim-adsp-native-progress.md) | Native SIM dynamic-flags tests, D550 test42/codec implementation and remaining transport/readiness gates |
+| [donor-stub-update-2026-11-12.md](donor-stub-update-2026-11-12.md) | Retail-input versus patched execution, new IMEI/SIM completions and native HDL-only applicability |
+| [adsp-rom-investigation.md](adsp-rom-investigation.md) | Original DA250 image, RAM relocation, architecture evidence and matching diagnostic42 handler |
+| [native-startup-hdl.md](native-startup-hdl.md) | Strictly original-firmware startup requirement, native RF/ADSP contracts and hardware qualification gates |
 | [menu-bringup-2026-11-12.md](menu-bringup-2026-11-12.md) | Live DDR C: capture, Phone exit, no-radio Bluetooth comparison and guarded exit tracing |
+| [ui-startup-processes.md](ui-startup-processes.md) | Frozen6B/7B process inventory, CPU ownership, waits and next Phone/EFile request trace |
 | [save-blockers-2026-11-12.md](save-blockers-2026-11-12.md) | Autosave/manual error isolation, Main ACK/file-write ordering and remaining stall evidence |
 | [ddr-diagnostics.md](ddr-diagnostics.md) | SSH runtime text/snapshots, DDR format, verification and deferred save/video defects |
+| [sim-ui-run.md](sim-ui-run.md) | Fresh frozen integration simulation, 1B/100M checkpoint schedule and live key commands |
+| [checkpoint-compatibility.md](checkpoint-compatibility.md) | Verified old10.5B restore, integration incompatibility and fresh production-path boot profile |
 | [timing-78-recovery.md](timing-78-recovery.md) | All1,000 paths from43083011635, four root-cause fixes, measured costs and ngage1 deployment |
 | [register-file-area-audit.md](register-file-area-audit.md) | Production RF cost/port ownership, safe area candidates and upcoming PCM audio headroom |
 | [lcd-dma-timing-recovery.md](lcd-dma-timing-recovery.md) | Successful fit/new setup failure, LCD header validation and local DMA response boundary;78 MHz operation/104 MHz objective |
+| [cpu-donor-import-plan.md](cpu-donor-import-plan.md) | Ordered benchmark-first CPU imports, full difference coverage, measurement/acceptance rules and Call of Duty validation |
+| [cpu-donor-baseline-results.md](cpu-donor-baseline-results.md) | First480 measured ARM baseline runs, deterministic/counter qualification, refill tradeoff and remaining phase00/01 gates |
+| [cpu-donor-comparison.md](cpu-donor-comparison.md) | Current ZAP versus donor ARM9V2 execution/decode, specific port candidates and benchmark limits |
 | [donor-resource-comparison.md](donor-resource-comparison.md) | Active architecture/resource differences, extra FF snapshots/readback, diagnostics and donor MLAB RF candidates |
 | [area-reductions-2026-11-12.md](area-reductions-2026-11-12.md) | DMA/boot RAM reuse, bounded state, tests and measured launch costs |
 | [jtag-diagnostics-plan.md](jtag-diagnostics-plan.md) | JTAG/SSH DDR3 process and log diagnostics, host requirements and hardware gates |
@@ -45,10 +51,13 @@ entries below the handoff are the evidence log, newest first.
 | [cpu-performance-redesign-notes.md](cpu-performance-redesign-notes.md) | Future cache/LSU/CPU performance redesign options, latency baseline and104MHz verification gates |
 | [direct-sdram-path.md](direct-sdram-path.md) | Dedicated CPU SDRAM route, retained registers, admission/cancellation contract and cache-miss measurements |
 | [uncached-fetch.md](uncached-fetch.md) | Measured boot-delay costs, resident instruction hits and CPU request/return handoffs |
+| [sdram-native-validation.md](sdram-native-validation.md) | Native SDRAM runtime procedure, measured latency results and remaining board/fit gates |
+| [sdram-request-ownership.md](sdram-request-ownership.md) | Shared scalar write payload, reset-drain admission, unchanged latency and cache refill/commit storage explanation |
 | [cache-line-refill.md](cache-line-refill.md) | Registered ARM line transport, DDR bursts, direct SDRAM fill and overlapping logical-port follow-up |
 | [ddr-rom-cache.md](ddr-rom-cache.md) | Instruction-only DDR ROM buffer, 64/128/256-bit × 1/2/4 KiB boot comparison, reset/reload and validation |
 | [write-buffer-stage-contract.md](write-buffer-stage-contract.md) | Pipelined write-buffer reservation, local commit, capacity/hazard ownership and latency validation |
 | [cpu-cache-sdram-104mhz-plan.md](cpu-cache-sdram-104mhz-plan.md) | Source-grounded whole CPU/cache/memory review, proposed 104 MHz architecture, cycle/resource budgets and ordered implementation gates (plan only) |
+| [ngage2-timing-investigation.md](ngage2-timing-investigation.md) | Separate donor104 MHz investigation, per-corner failing1000 export, worker/LCD port assessment and portable patches |
 | [timing-closure.md](timing-closure.md) | 104 MHz baseline, worst-1000 timing exports, CI gate and path analysis |
 | [phone-clocks.md](phone-clocks.md) | Phone reference clocks, slower interfaces, timebase assumptions and bus-bridge follow-up |
 | [quartus-memory-audit.md](quartus-memory-audit.md) | Actual Quartus RAM inference, register-heavy arrays and resource-reduction priorities |

@@ -6,7 +6,7 @@ module tb;
  ngage_board #(.SIMIF_ENABLE(1)) dut(.clk(clk),.rst(rst),.init_rst(cold),.cyc(cyc),.stb(stb),.we(write_op),.adr(addr),.din(32'b0),.sel(lanes),.commit(1'b0),
   .cfg_lcd(1'b1),.cfg_keypad(keypad),.cfg_clocks(1'b1),.dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.dma_irq_clear(),
   .claim(claim),.ready(ready),.unmodeled(bad),.dout(dout),.irq(irq),.fiq(fiq),.init_done(init),.trace_valid(),.trace_addr(),.trace_data(),.trace_sel());
- wire legacy_claim = dut.upp.peripherals.simif_claim || dut.upp.peripherals.extra_claim ||
+ wire legacy_claim = dut.upp.peripherals.uart_claim || dut.upp.peripherals.simif_claim || dut.upp.peripherals.extra_claim ||
   dut.upp.peripherals.gpio_loop_claim || dut.upp.peripherals.mdi_claim || dut.upp.peripherals.trace_claim ||
   dut.upp.peripherals.boot_claim || dut.upp.peripherals.icu_claim || dut.upp.peripherals.timer_claim ||
   dut.upp.peripherals.nos_claim || dut.upp.peripherals.cbus_claim;

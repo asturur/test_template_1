@@ -115,6 +115,13 @@ module ngage_board #(
     output wire        video_hblank,
     output wire        video_vblank,
     output wire [11:0] video_rgb,
+    // Transaction-level AMA serial bytes; electrical/baud timing is unmodeled.
+    output wire        adsp_tx_valid,
+    input  tri0        adsp_tx_ready,
+    output wire [ 7:0] adsp_tx_data,
+    input  tri0        adsp_rx_valid,
+    output wire        adsp_rx_ready,
+    input  tri0 [ 7:0] adsp_rx_data,
     input  wire        cfg_lcd,                // lcd-probe option
     input  wire        cfg_keypad,             // keypad-gpio option
     input  wire        cfg_clocks,             // ideal-clocks option
@@ -239,7 +246,7 @@ module ngage_board #(
     wire cbus_claim, cbus_bad, cbus_irq, uem_periodic, uem_irq_clear, cbus8d_written;
     wire [31:0] cbus_data, mdi_data;
     wire [15:0] route2a, route2c, route3b, mdi_events;
-    wire mdi_claim, mdi_bad, adsp_tick;
+    wire mdi_claim, mdi_bad, mdi_ready, adsp_tick;
     wire [31:0] aligned_addr = {bus_adr[31:2], 2'b00};
     wire bus_access, lcd_write_valid, lcd_sink_ready;
     wire lcd_fast_valid, lcd_fast_ready, lcd_fast_error;
@@ -493,8 +500,15 @@ module ngage_board #(
         .cbus8d_written     (cbus8d_written),
         .uem_periodic       (uem_periodic),
         .uem_irq_clear      (uem_irq_clear),
+        .adsp_tx_valid      (adsp_tx_valid),
+        .adsp_tx_ready      (adsp_tx_ready),
+        .adsp_tx_data       (adsp_tx_data),
+        .adsp_rx_valid      (adsp_rx_valid),
+        .adsp_rx_ready      (adsp_rx_ready),
+        .adsp_rx_data       (adsp_rx_data),
         .mdi_claim          (mdi_claim),
         .mdi_bad            (mdi_bad),
+        .mdi_ready          (mdi_ready),
         .mdi_data           (mdi_data),
         .mdi_events         (mdi_events),
         .adsp_tick          (adsp_tick)
@@ -524,7 +538,9 @@ module ngage_board #(
         .route3b        (route3b),
         .cbus8d_written (cbus8d_written)
     );
-    ngage_adsp adsp (
+    // UPP's internal DSP link is distinct from external D550 audio DSP.
+    // This remains a transaction model; no DSP instruction execution is claimed.
+    ngage_upp_mdi upp_mdi (
         .clk            (clk),
         .reset          (rst),
         .tick           (adsp_tick),
@@ -537,8 +553,27 @@ module ngage_board #(
         .sel            (bus_sel),
         .claim          (mdi_claim),
         .bad            (mdi_bad),
+        .ready          (mdi_ready),
         .dout           (mdi_data),
         .irq_events     (mdi_events)
+    );
+    // External audio-DSP/AMA behavior is not implemented yet. It must not
+    // receive UPP-internal MDI traffic or fabricate an ADSP self-test response.
+    ngage_adsp adsp (
+        .clk            (clk),
+        .reset          (rst),
+        .tick           (1'b0),
+        .periodic_active(1'b0),
+        .req            (1'b0),
+        .commit         (1'b0),
+        .we             (1'b0),
+        .addr           (32'b0),
+        .din            (32'b0),
+        .sel            (4'b0),
+        .claim          (),
+        .bad            (),
+        .dout           (),
+        .irq_events     ()
     );
     // Physical radio components are explicitly unimplemented and disconnected.
     // A future pin-accurate controller must replace these disabled connections.

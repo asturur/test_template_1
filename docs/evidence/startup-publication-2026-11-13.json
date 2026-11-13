@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-13",
+  "branch": "codex/ngage2-integration",
+  "parent": "0ac4577fca69fc540cd3d324ac3f26f7a3b50247",
+  "scope": "native startup interfaces, focused regressions and retained debugger evidence",
+  "verification": "exact staged index exported to scratch/publish-startup-20261113/export; every selected file byte-identical to working tree",
+  "checks": [
+    "Quartus17 source graph:174 files,9 QIPs",
+    "CBUS both power profiles",
+    "UPP DSP peer",
+    "UPP MDI",
+    "UPP EUART",
+    "Shared CTSI immediate/registered board",
+    "Board ICU/timer IRQ/FIQ",
+    "33 peripheral registered responses",
+    "132 retained address ownership pairs",
+    "Board sparse cancellation/overflow/warm-cold reset",
+    "SIMIF four presence/card profiles",
+    "D550 diagnostic42 at78/104 scheduling"
+  ],
+  "fixture_fix": "Board IRQ fixture now targets dut.upp_mdi.ANNOUNCE_TICKS after chip-boundary separation; all assertions retained",
+  "firmware_patches_enabled": false,
+  "external_d550_peer_active": false,
+  "sim_present": false,
+  "operating_pll_mhz": 78,
+  "full_native_boot_verified": false,
+  "build_launched": false,
+  "build_monitoring": false,
+  "hardware_actions": false,
+  "next": "Read-only DDR capture from fresh unchanged-firmware boot; identify and fix one first failure at a time"
+}

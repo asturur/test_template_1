@@ -20,7 +20,7 @@ docker run --rm --pull=never --network none --platform linux/arm64 \
 set -eu
 for profile in standalone shared; do
  extra="rtl/ngage_timers.v rtl/ngage_icu.v"
- if [ "$profile" = shared ]; then extra="-DSHARED_READBACK rtl/ngage_upp_peripherals.v rtl/ngage_mmc_host.v rtl/ngage_simif.v rtl/ngage_bram_be.v rtl/ngage_sparse_regs.v rtl/ngage_icu.v rtl/ngage_icu_extra.v rtl/ngage_timers.v rtl/ngage_nos_io.v rtl/ngage_gpio_loopback.v rtl/ngage_boot_regs.v rtl/ngage_trace_sink.v rtl/ngage_keypad.v"; fi
+ if [ "$profile" = shared ]; then extra="-DSHARED_READBACK rtl/ngage_upp_peripherals.v rtl/ngage_upp_euart.v rtl/ngage_mmc_host.v rtl/ngage_simif.v rtl/ngage_bram_be.v rtl/ngage_sparse_regs.v rtl/ngage_icu.v rtl/ngage_icu_extra.v rtl/ngage_timers.v rtl/ngage_nos_io.v rtl/ngage_gpio_loopback.v rtl/ngage_boot_regs.v rtl/ngage_trace_sink.v rtl/ngage_keypad.v"; fi
 for mode in vendor poison; do
  if [ "$mode" = vendor ]; then ram="-DALTERA_RESERVED_QIS rtl/ngage_bram.v /vendor/altera_mf.v"; else ram="tests/cpu/cache_dirty_packed/poison_bram.v"; fi
  if [ "$profile" = shared ]; then

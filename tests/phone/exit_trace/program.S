@@ -51,13 +51,13 @@ returned:
     cmp sp, r0
     bne fail
     add r5, r5, #1
-    cmp r5, #5
+    cmp r5, #6
     bne again
     ldr r7, =thumb_test+1
     adr lr, finished_thumb
     bx r7
 finished_thumb:
-    mov r0, #6
+    mov r0, #7
     ldr r1, =0x80000000
     ldr r1, [r1]
     cmp r0, r1
@@ -71,7 +71,7 @@ stop:
     str r0, [r1]
     b .
 .balign 4
-targets: .word 0x503b4718,0x503b46e0,0x503b7fb8,0x503b7fe4,0x503b8010
+targets: .word 0x503b4718,0x503b46e0,0x503b7fb8,0x503b7fe4,0x503b8010,0x503a2b48
 .thumb
 .thumb_func
 thumb_test:
@@ -79,6 +79,7 @@ thumb_test:
     ldr r7, =0x503b4718
     ldr r0, =0x11223344
     ldr r1, =0x55667788
+    ldr r2, =0x99887766
     bl thumb_jump
     ldr r2, =0x11223344
     cmp r0, r2
@@ -111,20 +112,22 @@ test_debug:
     ldr r0, [r12]
     add r0, r0, #1
     str r0, [r12]
-    cmp r0, #5
+    cmp r0, #6
     bhi check_thumb
     ldr r0, =returned
-    cmp r0, r3
+    ldr r12, [sp]
+    cmp r0, r12
     bne fail
-    ldr r0, [sp]
+    ldr r0, [sp, #4]
     ldr r12, =0x8000f000
     cmp r0, r12
     bne fail
     b check_args
 check_thumb:
-    tst r3, #1
-    beq fail
     ldr r0, [sp]
+    tst r0, #1
+    beq fail
+    ldr r0, [sp, #4]
     ldr r12, =0x8000eff8
     cmp r0, r12
     bne fail
@@ -135,10 +138,16 @@ check_args:
     ldr r0, =0x55667788
     cmp r0, r2
     bne fail
-    ldr r0, [sp]
+    ldr r0, =0x99887766
+    cmp r0, r3
+    bne fail
+    ldr r0, [sp, #12]
+    cmp r0, r6
+    bne fail
+    ldr r0, [sp, #4]
     cmp r0, #0x80000000
     blo fail
-    ldr r0, [sp, #4]
+    ldr r0, [sp, #8]
     tst r0, #0x20
     bne fail
     // Volatile argument registers and condition flags may be destroyed.
