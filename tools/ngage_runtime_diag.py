@@ -75,7 +75,17 @@ class Reader:
                 # Read retained records in sequence order, restricting them to
                 # this FPGA session and to the published head. Torn slots retry.
                 records = []
-                for slot in range(capacity):
+                # Only unread sequence numbers can occupy candidate slots.
+                # Scanning/sealing every old slot over uncached /dev/mem made
+                # the host fall behind short debug bursts on the real board.
+                available = (distance(head, self.last_text) if self.last_text is not None
+                             else distance(head, h[5]) + 1)
+                count = min(capacity, available) if available < 0x80000000 else 0
+                candidates = ((head - i) & 0xFFFFFFFF for i in range(count))
+                for candidate in candidates:
+                    if candidate in (0, TEXT_SEAL):
+                        continue
+                    slot = candidate % capacity
                     result = self.sealed(0x100 + slot * 32, 32)
                     if not result:
                         continue
@@ -159,7 +169,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--file', help='64 KiB offline guard dump instead of /dev/mem')
     parser.add_argument('--follow', action='store_true')
-    parser.add_argument('--interval', type=float, default=0.25)
+    parser.add_argument('--interval', type=float, default=0.02)
     args = parser.parse_args()
     if args.interval < 0.01:
         parser.error('interval must be at least 0.01 seconds')

@@ -51,3 +51,41 @@ for name in ('guard.bin', 'guard-wrap.bin'):
             return result
     assert not any(e['type'] == 'text' for e in Torn(raw).poll())
 print('PASS DDR reader: writer output, deduplication, torn snapshots/text, wrap gaps and raw bytes')
+
+# Incremental polling must not touch1024 already-consumed uncached slots.
+class CountReads(diag.Reader):
+    def __init__(self, memory):
+        super().__init__(memory)
+        self.text_reads = 0
+    def sealed(self, offset, size, *args, **kwargs):
+        if size == 32:
+            self.text_reads += 1
+        return super().sealed(offset, size, *args, **kwargs)
+
+def ring(seed):
+    raw = bytearray(65536)
+    struct.pack_into('<8I', raw, 0, diag.TEXT_MAGIC, 1, 1024, 0, 0, seed, 78000000, 32)
+    return raw
+
+def publish(raw, seq, valid=True):
+    struct.pack_into('<8I', raw, 0x100+(seq%1024)*32,
+        seq, 123, 1, 0x58, 0, 0, 0, (seq ^ diag.TEXT_SEAL) if valid else 0)
+    struct.pack_into('<I', raw, 12, seq)
+
+for seed in (1, diag.TEXT_SEAL-1, 0xffffffff):
+    raw = ring(seed)
+    publish(raw, seed)
+    reader = CountReads(raw)
+    assert [e['sequence'] for e in reader.poll() if e['type'] == 'text'] == [seed]
+    assert reader.text_reads == 1
+    reader.text_reads = 0
+    assert reader.poll() == [] and reader.text_reads == 0
+    next_seq = diag.advance(seed)
+    publish(raw, next_seq, valid=False)
+    assert not any(e['type'] == 'text' for e in reader.poll())
+    assert reader.last_text == seed, 'torn final record must be retried'
+    publish(raw, next_seq)
+    reader.text_reads = 0
+    assert [e['sequence'] for e in reader.poll() if e['type'] == 'text'] == [next_seq]
+    assert reader.text_reads == 1, 'skip reserved seal/zero sequence values'
+print('PASS incremental reader: idle/new-only reads, torn-tail retry, seal and32-bit wrap')
