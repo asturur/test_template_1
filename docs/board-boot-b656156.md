@@ -68,3 +68,13 @@ Read-only capture was stopped; phone left running. No other thread simulations
 or checkpoints were touched. Raw JSONL, decoded kernel text, original disassembly,
 screenshots and completed reports are in `scratch/board-debug-b656156-20261113/`.
 Compact identities/samples: [evidence](evidence/board-boot-b656156.json).
+
+## Follow-up: native thread failures captured
+
+The previously unidentified foreground failure is now observed with the reused
+software tracer: Phone's named main thread is killed by ViewSrv11 while file
+Write/Flush is pending. A separate native Nokia.dsy USER21 matches the short
+PMM error from the prior investigation. The lighter exit-only control also
+captures Phone11, so file-wait logging is not required for that failure. See
+[the consolidated blocker map](menu-blocker-map.md). This updates the earlier
+unknown frontier without claiming a lost IRQ, exact file or complete boot fix.

@@ -7,6 +7,8 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [menu-blocker-map.md](menu-blocker-map.md) | Consolidated Phone/ViewSrv, EStor wait, PMM/DSY panic, SIM and self-test evidence; standalone software observer |
+| [lcd-pair-order.md](lcd-pair-order.md) | Shared low-first scanout correction, independent natural-coordinate oracle and CRT/HDMI source tests |
 | [board-boot-b656156.md](board-boot-b656156.md) | Original-ROM automatic boot passes old reset, healthy queue, idle/logo foreground gate and failed seed44 timing |
 | [save-queue-fault-2026-11-13.md](save-queue-fault-2026-11-13.md) | Qualified SDRAM IO packing/fit, clean boot queue-fault reset, containment and next DDR cause/count capture |
 | [sdram-early-boot-2026-11-13.md](sdram-early-boot-2026-11-13.md) | New bad-pointer captures, dbe5bc6 isolation, SDRAM pin-register correction and subsequent IO-packing/board qualification |

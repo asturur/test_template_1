@@ -1,3 +1,29 @@
+## 2026-11-13: Software tracer names Phone death; LCD pair order fixed
+
+Reused the tested exit/descriptor/wait observer through the existing DDR
+path; no extra HDL recorder or functional BT/SIM/deadline/self-test patch.
+Standalone observer keeps the boot checksum check and adjusts only its expected
+digest for instrumentation. Fresh Hold/full-image/write guards verified;
+original saved Run/save-Off settings restored. Card files remain unchanged.
+
+On installed b656156, ViewSrv11 kills Phone[100058b3]0003::Phone while its
+main thread waits for positional RFile::Write (IPC20hex). A lighter exit-only
+control, without file-wait logging, also captures Phone/ViewSrv11, waiting
+for RFile::Flush (IPC24hex). Detailed trace independently reproduces Nokia.dsy
+USER21: byte25 access on12-byte PMM error reply. Live PMM matches yesterday's
+failing V10 image and lacks group50/record1. Successive file calls show progress;
+a single pending request does not prove lost IRQ. Exact file/completion latency,
+native logical SIM-ready and external D550 startup remain unresolved. Consolidated
+old/new causal map: [menu-blocker-map.md](menu-blocker-map.md).
+
+Shared LCD scanout selected high halfword first; old native oracle hid it with
+x XOR1. Corrected low-first selector and natural-order fixtures pass every
+native pixel, protocol/state, continuous CRT and HDMI source at div12/16 plus
+top elaboration. Old RTL fails first natural-coordinate pixel. No added RAM,
+FF, stage, bus clock or PLL change. Physical outputs need new RBF; current
+seed44 setup failure is not fixed by this selector. [Video evidence](lcd-pair-order.md).
+No new CI/watch or other-thread simulation changes.
+
 ## 2026-11-13: b656156 passes prior reset; foreground settles on logo
 
 Installed/artifact b656156, seed44 verified. Automatic original-ROM Run with

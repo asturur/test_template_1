@@ -1,0 +1,122 @@
+{
+  "source_commit": "b656156c0adc3cad4fdb17452b1994c5f5b6ed1f",
+  "seed": 44,
+  "date": "2026-11-13",
+  "snapshot_samples": 641,
+  "observer": {
+    "applied": true,
+    "records": 717,
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "instrumented_rom_sha256": "59e64c511828cca30337ba23d84d93d7d17b16dbf23287da36a9fc07e3d4f9c4",
+    "exit_trace_sha256": "c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3",
+    "observer_only": true,
+    "slow_wait_trace": true,
+    "checksum_check_retained": true,
+    "bt_sim_deadline_selftest_changes": false,
+    "card_images_changed": false,
+    "rollback": "reload RBF; this trace is not a production boot fix"
+  },
+  "trace_records": [
+    "X DESCRIPTOR_BOUNDS a0=00403418 a1=00000019 a2=6000000a lr=50fc9a7b sp=00401e04 cpsr=80000010 r6=004030ac",
+    "X DSY_MESSAGE w0=23000000 w1=1d530006 w2=00110500 caller=50fc91fd",
+    "X PANIC a0=00401df4 a1=00000015 a2=503ca6d4 lr=503bf514 sp=00401df4 cpsr=60000010 r6=004030ac",
+    "X THREAD_PANIC a0=00401dec a1=00401df4 a2=00000015 lr=503b4704 sp=00401dec cpsr=60000010 r6=004030ac",
+    "X VIEW_TARGET Phone[100058b3]0003::Phone",
+    "X VIEW_CONTEXT ret=00701c40 len=00000048 requests=00000000",
+    "X CTX0 00000001 00000000 80000354",
+    "X CTX1 00000100 00000017 0040348c",
+    "X CTX2 004034a4 00000020 00000004",
+    "X CTX3 0000830b 00000000 00000000",
+    "X CTX4 80422048 00403480 503b2484",
+    "X CTX5 5032752c 60000010 5557d517",
+    "X THREAD_PANIC a0=0041d424 a1=00701e78 a2=0000000b lr=5064dd55 sp=00701e78 cpsr=00000010 r6=0000000b"
+  ],
+  "file_waits": [
+    {
+      "ipc": "00000020",
+      "api_return": "503df417",
+      "caller": "508b8243",
+      "count": 67
+    },
+    {
+      "ipc": "00000024",
+      "api_return": "503df597",
+      "caller": "508b7e85",
+      "count": 78
+    }
+  ],
+  "phone_target_confirmed": true,
+  "phone_panic_reason": 11,
+  "phone_wait_context": {
+    "pc": "5032752c",
+    "lr": "503b2484",
+    "r7_ipc": "00000020",
+    "status_pointer_r5": "0040348c"
+  },
+  "descriptor_panic_reason": 21,
+  "descriptor_index": 25,
+  "descriptor_caller": "50fc9a7b",
+  "dsy_caller": "50fc91fd",
+  "pmm_sha256": "c29cf6ddaf4b46f4a52fc67129731d1e1d254b9bd6923325f2a850f092a62057",
+  "pmm_group50_record1_present": false,
+  "reset_generations": [
+    0
+  ],
+  "queue_fault_seen": false,
+  "limits": [
+    "Exit-only control also reproduces Phone11 without dense wait logging; all software instrumentation still adds some execution cost",
+    "Pending file IPC is not proof of a permanently unanswered request",
+    "No new HDL recorder selected",
+    "No BT/SIM/deadline/self-test substitution or card-image change"
+  ],
+  "capture_sha256": "e74e250a11be7853e9c6f15df48ff354474aa51d63c591f379859f92fa636253",
+  "exit_only_control": {
+    "apply_receipt": {
+      "records": 716,
+      "observer_sha256": "c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "instrumented_rom_sha256": "9c8e9d02b9fc552926bae66aa793e019a42427eee3fa746074fe4ebf47980d26",
+      "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+      "diagnostic_cpu_view_md5": "73a4140a3792d123420c7c22769ddbe5",
+      "checksum_check_retained": true,
+      "slow_wait_trace": false,
+      "functional_startup_substitutions": false,
+      "fresh_held": true,
+      "applied": true
+    },
+    "snapshot_samples": 642,
+    "trace_records": [
+      "X VIEW_TARGET Phone[100058b3]0003::Phone",
+      "X VIEW_CONTEXT ret=00701c40 len=00000048 requests=00000000",
+      "X CTX0 00000001 00000000 80000354",
+      "X CTX1 00000003 00000014 00403f54",
+      "X CTX2 00403f6c 00000024 0042a78c",
+      "X CTX3 00000002 0042ac54 00000000",
+      "X CTX4 80421ff8 00403f48 503b2484",
+      "X CTX5 5032752c 60000010 5557d517",
+      "X THREAD_PANIC a0=0041cf44 a1=00701e78 a2=0000000b lr=5064dd55 sp=00701e78 cpsr=00000010 r6=0000000b"
+    ],
+    "capture_sha256": "7b6abe2108176c893dc4257dd9831c27b1e97f1605500cf6fd7798630f9ad66d",
+    "phone_panic_reason": 11,
+    "phone_wait_ipc": "00000024",
+    "phone_status_pointer": "00403f54",
+    "descriptor_panic_seen": false,
+    "text_dropped": 0,
+    "queue_fault_seen": false,
+    "reset_generations": [
+      0
+    ]
+  },
+  "rollback_verified": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    },
+    "automatic_cpu_cycles_advancing": true,
+    "autosave_off_observed": true
+  }
+}
