@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [board-boot-b656156.md](board-boot-b656156.md) | Original-ROM automatic boot passes old reset, healthy queue, idle/logo foreground gate and failed seed44 timing |
 | [save-queue-fault-2026-11-13.md](save-queue-fault-2026-11-13.md) | Qualified SDRAM IO packing/fit, clean boot queue-fault reset, containment and next DDR cause/count capture |
 | [sdram-early-boot-2026-11-13.md](sdram-early-boot-2026-11-13.md) | New bad-pointer captures, dbe5bc6 isolation, SDRAM pin-register correction and subsequent IO-packing/board qualification |
 | [crt-pixel-hold.md](crt-pixel-hold.md) | Reproduced CRT left-edge RGB corruption, existing-register hold fix and continuous-output tests |

@@ -8,6 +8,7 @@
 ## Development continuity
 
 - On resuming N-Gage development, read `docs/status.md` first and use `docs/README.md` to find detailed evidence before repeating research or simulations.
+- For MiSTer input, reloads, screenshots and DDR capture, use `/Users/andreabogazzi/.codex/skills/mister-control/SKILL.md` and its helper/cached references; avoid repeating API/key discovery.
 - Keep the relevant topic docs and `docs/status.md` current when code, assumptions, measured stopping points, or next steps change. Record failed approaches worth avoiding.
 - Simulation requirements, commands, diagnostics, and output locations are in `docs/bringup.md` under Running and Diagnostics. Read the latest checkpoint in `docs/status.md` for the current experiment and its assumptions before selecting a run.
 - Use the existing `jotego/simulator:arm64` image for simulation. Do not download Quartus. Keep logs and generated files small; old build objects can be rebuilt. Screen captures, when produced, live under `build/sim/screens/`.

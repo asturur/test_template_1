@@ -1,3 +1,21 @@
+### 2026-11-13: b656156 passes prior reset; foreground settles on logo
+
+Installed/artifact b656156, seed44 verified. Automatic original-ROM Run with
+save Off advances~56.0B cycles/718s, no reset/data fault/queue fault; count settles
+at1,118. Old UART drain passed; BT retries, ADSP session and SysAp construction
+appear. N-Gage logo remains; held Menu40/digit1=1000 reach core without UI
+response. Long final windows are normal kernel/NOS NULL idle, not a NOS waiter.
+Kernel panic_report cannot exclude user-thread panic. Next causal blocker is
+unidentified; no firmware/deadline/SIM/self-test patches or guessed HDL change.
+All16 SDRAM IO registers pack, but this seed fails core setup -0.932ns/TNS
+-5.228 including functional DMA/TLB paths. Resolve timing and observe native
+thread exits/ownership before assigning cause. Capture stopped; phone running;
+no media writes/CI monitoring/other simulations. Later clock screensaver wakes
+to logo on Menu with reset generation0: input/wake works, not a CPU reboot.
+Created/installed mister-control skill and global/project usage rule; live
+health/version/screenshot/held Menu/bounded DDR helper verified.
+Details: docs/board-boot-b656156.md.
+
 ### 2026-11-13: New fit passes; runtime dirty-queue fault resets phone
 
 Installed4dc6396/seed43 identity verified. All16 SDRAM DQ input/data/OE registers
