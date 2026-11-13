@@ -22,301 +22,283 @@
 // Otherwise, this stage is simply a buffer.
 //
 
-module zap_memory_main
-#(
-        // Width of CPSR.
-        parameter [31:0] FLAG_WDT = 32,
+module zap_memory_main #(
+    // Width of CPSR.
+    parameter [31:0] FLAG_WDT = 32,
 
-        // Number of physical registers.
-        parameter [31:0] PHY_REGS = 46
-)
-(
-        // Debug
-        input   logic    [64*8-1:0]          i_decompile,
-        input   logic                        i_decompile_valid,
-        output  logic    [64*8-1:0]          o_decompile,
-        output  logic                        o_decompile_valid,
-        input   logic                        i_uop_last,
-        output  logic                        o_uop_last,
+    // Number of physical registers.
+    parameter [31:0] PHY_REGS = 46
+) (
+    // Debug
+    input  logic [64*8-1:0] i_decompile,
+    input  logic            i_decompile_valid,
+    output logic [64*8-1:0] o_decompile,
+    output logic            o_decompile_valid,
+    input  logic            i_uop_last,
+    output logic            o_uop_last,
 
-        // Clock and reset.
-        input logic                          i_clk,
-        input logic                          i_reset,
+    // Clock and reset.
+    input logic i_clk,
+    input logic i_reset,
 
-        // Pipeline control signals.
-        input logic                          i_clear_from_writeback,
-        input logic                          i_data_stall,
+    // Pipeline control signals.
+    input logic i_clear_from_writeback,
+    input logic i_data_stall,
 
-        // Memory stuff.
-        input   logic                        i_mem_load_ff,
-        input   logic [1:0]                  i_mem_address_ff, // Access Address.
+    // Memory stuff.
+    input logic       i_mem_load_ff,
+    input logic [1:0] i_mem_address_ff, // Access Address.
 
-        // Data read from memory.
-        input   logic [31:0]                 i_mem_rd_data,
+    // Data read from memory.
+    input logic [31:0] i_mem_rd_data,
 
-        // Memory fault transfer. i_mem_fault comes from the cache unit.
-        input   logic  [1:0]                 i_mem_fault,      // Fault in.
-        output  logic   [1:0]                 o_mem_fault,     // Fault out.
+    // Memory fault transfer. i_mem_fault comes from the cache unit.
+    input  logic [1:0] i_mem_fault,  // Fault in.
+    output logic [1:0] o_mem_fault,  // Fault out.
 
-        // Data valid and buffered PC.
-        input logic                          i_dav_ff,
-        input logic [31:0]                   i_pc_plus_8_ff,
+    // Data valid and buffered PC.
+    input logic        i_dav_ff,
+    input logic [31:0] i_pc_plus_8_ff,
 
-        // ALU value, flags,and where to write the value.
-        input logic [31:0]                   i_alu_result_ff,
-        input logic  [FLAG_WDT-1:0]          i_flags_ff,
-        input logic [$clog2(PHY_REGS)-1:0]   i_destination_index_ff,
+    // ALU value, flags,and where to write the value.
+    input logic [                31:0] i_alu_result_ff,
+    input logic [        FLAG_WDT-1:0] i_flags_ff,
+    input logic [$clog2(PHY_REGS)-1:0] i_destination_index_ff,
 
-        // Interrupts.
-        input   logic                        i_irq_ff,
-        input   logic                        i_fiq_ff,
-        input   logic                        i_instr_abort_ff,
-        input   logic                        i_swi_ff,
+    // Interrupts.
+    input logic i_irq_ff,
+    input logic i_fiq_ff,
+    input logic i_instr_abort_ff,
+    input logic i_swi_ff,
 
-        // Memory SRCDEST index. For loads, this tells the register file where
-        // to put the read data. Set to point to RAZ if invalid.
-        input logic [$clog2(PHY_REGS)-1:0]   i_mem_srcdest_index_ff,
+    // Memory SRCDEST index. For loads, this tells the register file where
+    // to put the read data. Set to point to RAZ if invalid.
+    input logic [$clog2(PHY_REGS)-1:0] i_mem_srcdest_index_ff,
 
-        // SRCDEST value.
-        input logic [31:0]                   i_mem_srcdest_value_ff,
+    // SRCDEST value.
+    input logic [31:0] i_mem_srcdest_value_ff,
 
-        // Memory size and type.
-        input logic                          i_sbyte_ff,
-                                             i_ubyte_ff,
-                                             i_shalf_ff,
-                                             i_uhalf_ff,
+    // Memory size and type.
+    input logic i_sbyte_ff,
+    i_ubyte_ff,
+    i_shalf_ff,
+    i_uhalf_ff,
 
-        // Undefined instr.
-        input logic                          i_und_ff,
-        output logic                         o_und_ff,
+    // Undefined instr.
+    input  logic i_und_ff,
+    output logic o_und_ff,
 
-        // ALU result and flags.
-        output logic  [31:0]                 o_alu_result_ff,
-        output logic  [FLAG_WDT-1:0]         o_flags_ff,
+    // ALU result and flags.
+    output logic [        31:0] o_alu_result_ff,
+    output logic [FLAG_WDT-1:0] o_flags_ff,
 
-        // Where to write ALU and memory read target register.
-        output logic [$clog2(PHY_REGS)-1:0]  o_destination_index_ff,
+    // Where to write ALU and memory read target register.
+    output logic [$clog2(PHY_REGS)-1:0] o_destination_index_ff,
 
-        // Set to point to the RAZ register if invalid.
-        output logic [$clog2(PHY_REGS)-1:0]  o_mem_srcdest_index_ff,
+    // Set to point to the RAZ register if invalid.
+    output logic [$clog2(PHY_REGS)-1:0] o_mem_srcdest_index_ff,
 
-        // Outputs valid and PC buffer.
-        output logic                         o_dav_ff,
-        output logic [31:0]                  o_pc_plus_8_ff,
+    // Outputs valid and PC buffer.
+    output logic        o_dav_ff,
+    output logic [31:0] o_pc_plus_8_ff,
 
-        // The whole interrupt signaling scheme.
-        output logic                         o_irq_ff,
-        output logic                         o_fiq_ff,
-        output logic                         o_swi_ff,
-        output logic                         o_instr_abort_ff,
+    // The whole interrupt signaling scheme.
+    output logic o_irq_ff,
+    output logic o_fiq_ff,
+    output logic o_swi_ff,
+    output logic o_instr_abort_ff,
 
-        // Memory load information is passed down.
-        output logic                         o_mem_load_ff,
-        output logic  [31:0]                 o_mem_rd_data
+    // Memory load information is passed down.
+    output logic        o_mem_load_ff,
+    output logic [31:0] o_mem_rd_data
 );
 
-`include "zap_defines.svh"
-`include "zap_localparams.svh"
+  `include "zap_defines.svh"
+  `include "zap_localparams.svh"
 
-// On reset or on a clear from WB, we will disable the vectors
-// in this unit. Else, we will just flop everything out.
-always_ff @ (posedge i_clk)
-begin
-        if ( i_reset )
-        begin
-                o_dav_ff                  <= 0;
-                o_decompile_valid         <= 0;
-                o_uop_last                <= 0;
-                o_irq_ff                  <= 0;
-                o_fiq_ff                  <= 0;
-                o_swi_ff                  <= 0;
-                o_instr_abort_ff          <= 0;
-                o_und_ff                  <= 0;
-                o_mem_fault               <= 0;
-                o_alu_result_ff           <= 'x;
-                o_flags_ff                <= 0;
-                o_mem_srcdest_index_ff    <= 'x;
-                o_destination_index_ff    <= 'x;
-                o_pc_plus_8_ff            <= 'x;
-                o_instr_abort_ff          <= 0;
-                o_mem_load_ff             <= 'x;
-                o_decompile               <= 0;
-        end
-        else if ( i_clear_from_writeback )
-        begin
-                o_dav_ff                  <= 0;
-                o_decompile_valid         <= 0;
-                o_uop_last                <= 0;
-                o_irq_ff                  <= 0;
-                o_fiq_ff                  <= 0;
-                o_swi_ff                  <= 0;
-                o_instr_abort_ff          <= 0;
-                o_und_ff                  <= 0;
-                o_mem_fault               <= 0;
-                o_alu_result_ff           <= 'x;
-                o_flags_ff                <= 0;
-                o_mem_srcdest_index_ff    <= 'x;
-                o_destination_index_ff    <= 'x;
-                o_pc_plus_8_ff            <= 'x;
-                o_instr_abort_ff          <= 0;
-                o_mem_load_ff             <= 'x;
-                o_decompile               <= 0;
-        end
-        else if ( i_data_stall )
-        begin
-                // Invalidate when data stall.
-                o_decompile_valid <= 1'd0;
-                o_uop_last        <= 1'd0;
-                o_und_ff          <= 1'd0;
-                o_irq_ff          <= 1'd0;
-                o_fiq_ff          <= 1'd0;
-                o_swi_ff          <= 1'd0;
-                o_instr_abort_ff  <= 1'd0;
-                o_dav_ff          <= 1'd0;
-        end
-        else
-        begin
-                // Just flop everything out.
-                o_alu_result_ff       <= i_alu_result_ff;
-                o_flags_ff            <= i_flags_ff;
-                o_mem_srcdest_index_ff<= i_mem_srcdest_index_ff;
-                o_destination_index_ff<= i_destination_index_ff;
-                o_pc_plus_8_ff        <= i_pc_plus_8_ff;
+  // On reset or on a clear from WB, we will disable the vectors
+  // in this unit. Else, we will just flop everything out.
+  always_ff @(posedge i_clk) begin
+    if (i_reset) begin
+      o_dav_ff               <= 0;
+      o_decompile_valid      <= 0;
+      o_uop_last             <= 0;
+      o_irq_ff               <= 0;
+      o_fiq_ff               <= 0;
+      o_swi_ff               <= 0;
+      o_instr_abort_ff       <= 0;
+      o_und_ff               <= 0;
+      o_mem_fault            <= 0;
+      o_alu_result_ff        <= 'x;
+      o_flags_ff             <= 0;
+      o_mem_srcdest_index_ff <= 'x;
+      o_destination_index_ff <= 'x;
+      o_pc_plus_8_ff         <= 'x;
+      o_instr_abort_ff       <= 0;
+      o_mem_load_ff          <= 'x;
+      o_decompile            <= 0;
+    end else if (i_clear_from_writeback) begin
+      o_dav_ff               <= 0;
+      o_decompile_valid      <= 0;
+      o_uop_last             <= 0;
+      o_irq_ff               <= 0;
+      o_fiq_ff               <= 0;
+      o_swi_ff               <= 0;
+      o_instr_abort_ff       <= 0;
+      o_und_ff               <= 0;
+      o_mem_fault            <= 0;
+      o_alu_result_ff        <= 'x;
+      o_flags_ff             <= 0;
+      o_mem_srcdest_index_ff <= 'x;
+      o_destination_index_ff <= 'x;
+      o_pc_plus_8_ff         <= 'x;
+      o_instr_abort_ff       <= 0;
+      o_mem_load_ff          <= 'x;
+      o_decompile            <= 0;
+    end else if (i_data_stall) begin
+      // Invalidate when data stall.
+      o_decompile_valid <= 1'd0;
+      o_uop_last        <= 1'd0;
+      o_und_ff          <= 1'd0;
+      o_irq_ff          <= 1'd0;
+      o_fiq_ff          <= 1'd0;
+      o_swi_ff          <= 1'd0;
+      o_instr_abort_ff  <= 1'd0;
+      o_dav_ff          <= 1'd0;
+    end else begin
+      // Just flop everything out.
+      o_alu_result_ff        <= i_alu_result_ff;
+      o_flags_ff             <= i_flags_ff;
+      o_mem_srcdest_index_ff <= i_mem_srcdest_index_ff;
+      o_destination_index_ff <= i_destination_index_ff;
+      o_pc_plus_8_ff         <= i_pc_plus_8_ff;
 
-                casez    ({i_und_ff, i_fiq_ff, i_irq_ff, i_swi_ff, i_instr_abort_ff})
-                5'b1????: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b10000;
-                5'b01???: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b01000;
-                5'b001??: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00100;
-                5'b0001?: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00010;
-                5'b00001: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00001;
-                5'b00000: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00000;
-                // Synthesis will OPTIMIZE. OK to do for FPGA synthesis.
-                default : {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= {5{1'bx}};
-                endcase
+      casez ({
+        i_und_ff, i_fiq_ff, i_irq_ff, i_swi_ff, i_instr_abort_ff
+      })
+        5'b1????: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b10000;
+        5'b01???: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b01000;
+        5'b001??: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00100;
+        5'b0001?: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00010;
+        5'b00001: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00001;
+        5'b00000: {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= 5'b00000;
+        // Synthesis will OPTIMIZE. OK to do for FPGA synthesis.
+        default:  {o_und_ff, o_fiq_ff, o_irq_ff, o_swi_ff, o_instr_abort_ff} <= {5{1'bx}};
+      endcase
 
-                o_dav_ff              <= i_und_ff         ? 1'd0 :
+      o_dav_ff              <= i_und_ff         ? 1'd0 :
                                          i_fiq_ff         ? 1'd0 :
                                          i_irq_ff         ? 1'd0 :
                                          i_swi_ff         ? 1'd0 :
                                          i_instr_abort_ff ? 1'd0 :
                                          i_dav_ff;
 
-                o_mem_load_ff         <= i_mem_load_ff;
-                o_mem_fault           <= i_mem_fault;
+      o_mem_load_ff <= i_mem_load_ff;
+      o_mem_fault <= i_mem_fault;
 
-                // Debug.
-                o_decompile           <= i_decompile;
-                o_decompile_valid     <= i_decompile_valid;
-                o_uop_last            <= i_uop_last;
+      // Debug.
+      o_decompile <= i_decompile;
+      o_decompile_valid <= i_decompile_valid;
+      o_uop_last <= i_uop_last;
+    end
+  end
+
+  // Format before the existing M result register. In the blocking associative
+  // build the raw response is already an owned completion register; this removes
+  // load-width/rotation logic from M's late writeback/issue forwarding route.
+  // Store/nonload value and every byte/half/unaligned rule are unchanged.
+  always_ff @(posedge i_clk) begin
+    if (!i_data_stall)
+      o_mem_rd_data <= transform(
+          i_mem_load_ff ? i_mem_rd_data : i_mem_srcdest_value_ff,
+          i_mem_address_ff,
+          i_sbyte_ff,
+          i_ubyte_ff,
+          i_shalf_ff,
+          i_uhalf_ff,
+          i_mem_load_ff
+      );
+  end
+
+  //
+  // Memory always loads 32-bit to processor.
+  // We will rotate that here as we wish.
+  //
+  function automatic [31:0] transform(
+
+      // Data and address.
+      input [31:0] data,
+      input [1:0] address,
+
+      // Memory access data type.
+      input sbyte,
+      input ubyte,
+      input shalf,
+      input uhalf,
+
+      // Memory load.
+      input mem_load_ff);
+    begin : transform_function
+
+      // If it's a store, don't bother with the output of this.
+      if (mem_load_ff == 1'd0) begin
+        transform = data;
+      end  // Unsigned byte. Take only lower byte.
+      else if (ubyte == 1'd1) begin
+        case (address[1:0])
+          2'd0: transform = {24'd0, data[7:0]};
+          2'd1: transform = {24'd0, data[15:8]};
+          2'd2: transform = {24'd0, data[23:16]};
+          2'd3: transform = {24'd0, data[31:24]};
+          default: transform = 'x;
+        endcase
+      end  // Signed byte. Sign extend lower byte.
+      else if (sbyte == 1'd1) begin
+        // Take lower byte and sign extend it.
+        case (address[1:0])
+          2'd0: transform = {{24{data[7]}}, data[7:0]};
+          2'd1: transform = {{24{data[15]}}, data[15:8]};
+          2'd2: transform = {{24{data[23]}}, data[23:16]};
+          2'd3: transform = {{24{data[31]}}, data[31:24]};
+          default: transform = 'x;
+        endcase
+      end  // Signed half word. Sign extend lower 16-bit.
+      else if (shalf == 1'd1) begin
+        case (address[1])
+          1'd0: transform = {{16{data[15]}}, data[15:0]};
+          1'd1: transform = {{16{data[31]}}, data[31:16]};
+          default: transform = 'x;
+        endcase
+
+        if (i_dav_ff && mem_load_ff && !i_reset && !i_clear_from_writeback) begin
+          assert (address[0] == 1'd0)
+          else $info("Warning: Address bit 0 is 1, leads to halfword load as UNPREDICTABLE.");
         end
-end
+      end  // Unsigned half word. Take only lower 16-bit.
+      else if (uhalf == 1'd1) begin
+        case (address[1])
+          1'd0: transform = {16'd0, data[15:0]};
+          1'd1: transform = {16'd0, data[31:16]};  // address[1] = 1'd1
+          default: transform = 'x;
+        endcase
 
-// Format before the existing M result register. In the blocking associative
-// build the raw response is already an owned completion register; this removes
-// load-width/rotation logic from M's late writeback/issue forwarding route.
-// Store/nonload value and every byte/half/unaligned rule are unchanged.
-always_ff @(posedge i_clk)
-begin
-        if (!i_data_stall)
-                o_mem_rd_data <= transform(
-                        i_mem_load_ff ? i_mem_rd_data : i_mem_srcdest_value_ff,
-                        i_mem_address_ff, i_sbyte_ff, i_ubyte_ff,
-                        i_shalf_ff, i_uhalf_ff, i_mem_load_ff);
-end
-
-//
-// Memory always loads 32-bit to processor.
-// We will rotate that here as we wish.
-//
-function automatic [31:0] transform (
-
-        // Data and address.
-        input [31:0]    data,
-        input [1:0]     address,
-
-        // Memory access data type.
-        input           sbyte,
-        input           ubyte,
-        input           shalf,
-        input           uhalf,
-
-        // Memory load.
-        input           mem_load_ff
-);
-begin: transform_function
-
-        // If it's a store, don't bother with the output of this.
-        if ( mem_load_ff == 1'd0 )
-        begin
-                transform = data;
+        if (i_dav_ff && mem_load_ff && !i_reset && !i_clear_from_writeback) begin
+          assert (address[0] == 1'd0)
+          else $info("Warning: Address bit 0 is 1, leads to halfword load as UNPREDICTABLE.");
         end
-        // Unsigned byte. Take only lower byte.
-        else if ( ubyte == 1'd1 )
-        begin
-                case ( address[1:0] )
-                2'd0: transform = {24'd0, data[7:0]};
-                2'd1: transform = {24'd0, data[15:8]};
-                2'd2: transform = {24'd0, data[23:16]};
-                2'd3: transform = {24'd0, data[31: 24]};
-            default : transform = 'x;
-                endcase
-        end
-        // Signed byte. Sign extend lower byte.
-        else if ( sbyte == 1'd1 )
-        begin
-                // Take lower byte and sign extend it.
-                case ( address[1:0] )
-                2'd0: transform = {{24{data[7] }},data[7:0]};
-                2'd1: transform = {{24{data[15]}},data[15:8]};
-                2'd2: transform = {{24{data[23]}},data[23:16]};
-                2'd3: transform = {{24{data[31]}},data[31:24]};
-             default: transform = 'x;
-                endcase
-        end
-        // Signed half word. Sign extend lower 16-bit.
-        else if ( shalf == 1'd1 )
-        begin
-                case ( address[1] )
-                1'd0: transform = {{16{data[15]}},data[15:0]};
-                1'd1: transform = {{16{data[31]}},data[31:16]};
-             default: transform = 'x;
-                endcase
-
-                if ( i_dav_ff && mem_load_ff && !i_reset && !i_clear_from_writeback )
-                begin
-                        assert ( address[0] == 1'd0 ) else
-                        $info("Warning: Address bit 0 is 1, leads to halfword load as UNPREDICTABLE.");
-                end
-        end
-        // Unsigned half word. Take only lower 16-bit.
-        else if ( uhalf == 1'd1 )
-        begin
-                case ( address[1] )
-                1'd0: transform = {16'd0, data[15:0]};
-                1'd1: transform = {16'd0, data[31:16]}; // address[1] = 1'd1
-             default: transform = 'x;
-                endcase
-
-                if ( i_dav_ff && mem_load_ff && !i_reset && !i_clear_from_writeback )
-                begin
-                        assert ( address[0] == 1'd0 ) else
-                        $info("Warning: Address bit 0 is 1, leads to halfword load as UNPREDICTABLE.");
-                end
-        end
-        // Default. Typically, a word.
-        else
-        begin
-                // Rotate data based on byte targetted.
-                case ( address[1:0] )
-                2'b00: transform = {             data [31:0]};
-                2'b01: transform = {data  [7:0], data [31:8]};
-                2'b10: transform = {data [15:0], data[31:16]};
-                2'b11: transform = {data [23:0], data[31:24]};
-              default: transform = 'x;
-                endcase
-        end
-end
-endfunction
+      end  // Default. Typically, a word.
+      else begin
+        // Rotate data based on byte targetted.
+        case (address[1:0])
+          2'b00:   transform = {data[31:0]};
+          2'b01:   transform = {data[7:0], data[31:8]};
+          2'b10:   transform = {data[15:0], data[31:16]};
+          2'b11:   transform = {data[23:0], data[31:24]};
+          default: transform = 'x;
+        endcase
+      end
+    end
+  endfunction
 
 endmodule : zap_memory_main
 

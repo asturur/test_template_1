@@ -24,237 +24,212 @@
 
 module zap_wb_merger #(
 
-        //
-        // If ONLY_CORE=0, use NXT ports from cache,
-        // else use FF ports from CPU.
-        //
-        parameter logic ONLY_CORE = 1'd0
-)
-(
+    //
+    // If ONLY_CORE=0, use NXT ports from cache,
+    // else use FF ports from CPU.
+    //
+    parameter logic ONLY_CORE = 1'd0
+) (
 
-// Clock and reset
-input logic             i_clk,
-input logic             i_reset,
+    // Clock and reset
+    input logic i_clk,
+    input logic i_reset,
 
-// Wishbone bus 1
-input logic             i_c_wb_stb,
-input logic             i_c_wb_cyc,
-input logic             i_c_wb_wen,
-input logic [3:0]       i_c_wb_sel,
-input logic [31:0]      i_c_wb_dat,
-input logic [31:0]      i_c_wb_adr,
-input logic [2:0]       i_c_wb_cti,
-output logic            o_c_wb_ack,
-output logic            o_c_wb_err,
+    // Wishbone bus 1
+    input  logic        i_c_wb_stb,
+    input  logic        i_c_wb_cyc,
+    input  logic        i_c_wb_wen,
+    input  logic [ 3:0] i_c_wb_sel,
+    input  logic [31:0] i_c_wb_dat,
+    input  logic [31:0] i_c_wb_adr,
+    input  logic [ 2:0] i_c_wb_cti,
+    output logic        o_c_wb_ack,
+    output logic        o_c_wb_err,
 
-// Wishbone bus 2
-input logic             i_d_wb_lock,
-output logic            o_wb_lock,
-input logic             i_d_wb_stb,
-input logic             i_d_wb_cyc,
-input logic             i_d_wb_wen,
-input logic [3:0]       i_d_wb_sel,
-input logic [31:0]      i_d_wb_dat,
-input logic [31:0]      i_d_wb_adr,
-input logic [2:0]       i_d_wb_cti,
-output logic            o_d_wb_ack,
-output logic            o_d_wb_err,
+    // Wishbone bus 2
+    input  logic        i_d_wb_lock,
+    output logic        o_wb_lock,
+    input  logic        i_d_wb_stb,
+    input  logic        i_d_wb_cyc,
+    input  logic        i_d_wb_wen,
+    input  logic [ 3:0] i_d_wb_sel,
+    input  logic [31:0] i_d_wb_dat,
+    input  logic [31:0] i_d_wb_adr,
+    input  logic [ 2:0] i_d_wb_cti,
+    output logic        o_d_wb_ack,
+    output logic        o_d_wb_err,
 
-// Common bus
-output logic            o_wb_cyc,
-output logic            o_wb_code,
-output logic            o_wb_stb,
-output logic            o_wb_wen,
-output logic [3:0]      o_wb_sel,
-output logic [31:0]     o_wb_dat,
-output logic [31:0]     o_wb_adr,
-output logic [2:0]      o_wb_cti,
-input logic             i_wb_ack,
-input logic             i_wb_err
+    // Common bus
+    output logic        o_wb_cyc,
+    output logic        o_wb_code,
+    output logic        o_wb_stb,
+    output logic        o_wb_wen,
+    output logic [ 3:0] o_wb_sel,
+    output logic [31:0] o_wb_dat,
+    output logic [31:0] o_wb_adr,
+    output logic [ 2:0] o_wb_cti,
+    input  logic        i_wb_ack,
+    input  logic        i_wb_err
 
 );
 
-`include "zap_defines.svh"
-`include "zap_localparams.svh"
+  `include "zap_defines.svh"
+  `include "zap_localparams.svh"
 
-////////////////////////////////////
-// FSM
-////////////////////////////////////
+  ////////////////////////////////////
+  // FSM
+  ////////////////////////////////////
 
-//
-// Channel select state machine.
-//
-// This will select either instruction or
-// data in a round robin fashion. It will
-// not interrupt a burst.
-//
+  //
+  // Channel select state machine.
+  //
+  // This will select either instruction or
+  // data in a round robin fashion. It will
+  // not interrupt a burst.
+  //
 
-// State variable.
-enum logic {CODE = 1'd0, DATA = 1'd1, DEFAULT_XX = 'x} state_ff, state_nxt;
+  // State variable.
+  enum logic {
+    CODE = 1'd0,
+    DATA = 1'd1,
+    DEFAULT_XX = 'x
+  }
+      state_ff, state_nxt;
 
-// Alias
-logic switch;
+  // Alias
+  logic switch;
 
-assign o_wb_code = (state_ff == CODE);
-assign o_wb_lock = (state_ff == DATA) && i_d_wb_lock;
-assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
+  assign o_wb_code = (state_ff == CODE);
+  assign o_wb_lock = (state_ff == DATA) && i_d_wb_lock;
+  assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
 
-always_comb
-begin
-        // There is no need to assign default values in this case.
+  always_comb begin
+    // There is no need to assign default values in this case.
 
-        case(state_ff)
+    case (state_ff)
 
-        CODE:
-        begin
-                // Switch over if EOB and data STB exists.
-                if ( switch && i_d_wb_stb )
-                begin
-                        state_nxt = DATA;
-                end
-                // Switch over if code STB == 0 and data STB exists.
-                else if ( !i_c_wb_stb && i_d_wb_stb )
-                begin
-                        state_nxt = DATA;
-                end
-                else
-                begin
-                        state_nxt = state_ff;
-                end
+      CODE: begin
+        // Switch over if EOB and data STB exists.
+        if (switch && i_d_wb_stb) begin
+          state_nxt = DATA;
+        end  // Switch over if code STB == 0 and data STB exists.
+        else if (!i_c_wb_stb && i_d_wb_stb) begin
+          state_nxt = DATA;
+        end else begin
+          state_nxt = state_ff;
         end
+      end
 
-        DATA:
-        begin
-                if (i_d_wb_lock) state_nxt = DATA;
-                // Switch over if EOB and code STB exists.
-                else if ( switch && i_c_wb_stb )
-                begin
-                        state_nxt = CODE;
-                end
-                // Switch over if data STB == 0 and code STB exists.
-                else if ( i_c_wb_stb && !i_d_wb_stb )
-                begin
-                        state_nxt = CODE;
-                end
-                else
-                begin
-                        state_nxt = state_ff;
-                end
+      DATA: begin
+        if (i_d_wb_lock) state_nxt = DATA;
+        // Switch over if EOB and code STB exists.
+        else if (switch && i_c_wb_stb) begin
+          state_nxt = CODE;
+        end  // Switch over if data STB == 0 and code STB exists.
+        else if (i_c_wb_stb && !i_d_wb_stb) begin
+          state_nxt = CODE;
+        end else begin
+          state_nxt = state_ff;
         end
+      end
 
-        default: // Propagate X.
+      default: // Propagate X.
         begin
-                state_nxt = DEFAULT_XX;
+        state_nxt = DEFAULT_XX;
+      end
+
+    endcase
+  end
+
+  // State Updation Logic
+  always_ff @(posedge i_clk) begin
+    if (i_reset) begin
+      state_ff <= CODE;
+    end else begin
+      state_ff <= state_nxt;
+    end
+  end
+
+  ////////////////////////////////////
+  // ACK towards CPU
+  ////////////////////////////////////
+
+  // Based on the current selection, redirect ACK to code or data.
+  assign o_c_wb_ack = (state_ff == CODE) & (i_wb_err | i_wb_ack);
+  assign o_d_wb_ack = (state_ff == DATA) & (i_wb_err | i_wb_ack);
+  assign o_c_wb_err = (state_ff == CODE) & i_wb_err;
+  assign o_d_wb_err = (state_ff == DATA) & i_wb_err;
+
+  /////////////////////////////////////
+  // WB output generation logic.
+  /////////////////////////////////////
+
+  generate  // Quartus 17 compat: explicit generate
+    if (!ONLY_CORE) begin : l_genblk1
+
+      //
+      // We can flop these, because we're using NXT ports.
+      // Use state_nxt since we are using wishbone NXT ports.
+      //
+      always_ff @(posedge i_clk) begin
+        if (i_reset) begin
+          o_wb_cyc <= 0;
+          o_wb_stb <= 0;
+          o_wb_wen <= 0;
+          o_wb_sel <= 0;
+          o_wb_dat <= 0;
+          o_wb_adr <= 0;
+          o_wb_cti <= CTI_EOB;
+        end else if (state_nxt == CODE) begin
+          o_wb_cyc <= i_c_wb_cyc;
+          o_wb_stb <= i_c_wb_stb;
+          o_wb_wen <= i_c_wb_wen;
+          o_wb_sel <= i_c_wb_sel;
+          o_wb_dat <= i_c_wb_dat;
+          o_wb_adr <= i_c_wb_adr;
+          o_wb_cti <= i_c_wb_cti;
+        end else begin
+          o_wb_cyc <= i_d_wb_cyc;
+          o_wb_stb <= i_d_wb_stb;
+          o_wb_wen <= i_d_wb_wen;
+          o_wb_sel <= i_d_wb_sel;
+          o_wb_dat <= i_d_wb_dat;
+          o_wb_adr <= i_d_wb_adr;
+          o_wb_cti <= i_d_wb_cti;
         end
+      end
 
-        endcase
-end
+    end : l_genblk1
+    else begin : l_genblk2
 
-// State Updation Logic
-always_ff @ (posedge i_clk)
-begin
-        if ( i_reset )
-        begin
-                state_ff <= CODE;
+      //
+      // Not required to flop these since the sources are flops themselves.
+      // Just a 2:1 MUX on the path - very little delay - won't affect timing.
+      // Here, we use all FF versions.
+      //
+      always_comb begin
+        if (state_ff == CODE) begin
+          o_wb_cyc = i_c_wb_cyc;
+          o_wb_stb = i_c_wb_stb;
+          o_wb_wen = i_c_wb_wen;
+          o_wb_sel = i_c_wb_sel;
+          o_wb_dat = i_c_wb_dat;
+          o_wb_adr = i_c_wb_adr;
+          o_wb_cti = i_c_wb_cti;
+        end else begin
+          o_wb_cyc = i_d_wb_cyc;
+          o_wb_stb = i_d_wb_stb;
+          o_wb_wen = i_d_wb_wen;
+          o_wb_sel = i_d_wb_sel;
+          o_wb_dat = i_d_wb_dat;
+          o_wb_adr = i_d_wb_adr;
+          o_wb_cti = i_d_wb_cti;
         end
-        else
-        begin
-                state_ff <= state_nxt;
-        end
-end
+      end
 
-////////////////////////////////////
-// ACK towards CPU
-////////////////////////////////////
+    end : l_genblk2
 
-// Based on the current selection, redirect ACK to code or data.
-assign o_c_wb_ack = (state_ff == CODE) & (i_wb_err | i_wb_ack);
-assign o_d_wb_ack = (state_ff == DATA) & (i_wb_err | i_wb_ack);
-assign o_c_wb_err = (state_ff == CODE) & i_wb_err;
-assign o_d_wb_err = (state_ff == DATA) & i_wb_err;
-
-/////////////////////////////////////
-// WB output generation logic.
-/////////////////////////////////////
-
-generate  // Quartus 17 compat: explicit generate
-if ( !ONLY_CORE )
-begin: l_genblk1
-
-        //
-        // We can flop these, because we're using NXT ports.
-        // Use state_nxt since we are using wishbone NXT ports.
-        //
-        always_ff @ (posedge i_clk)
-        begin
-                if ( i_reset )
-                begin
-                        o_wb_cyc <= 0;
-                        o_wb_stb <= 0;
-                        o_wb_wen <= 0;
-                        o_wb_sel <= 0;
-                        o_wb_dat <= 0;
-                        o_wb_adr <= 0;
-                        o_wb_cti <= CTI_EOB;
-                end
-                else if ( state_nxt == CODE )
-                begin
-                        o_wb_cyc <= i_c_wb_cyc;
-                        o_wb_stb <= i_c_wb_stb;
-                        o_wb_wen <= i_c_wb_wen;
-                        o_wb_sel <= i_c_wb_sel;
-                        o_wb_dat <= i_c_wb_dat;
-                        o_wb_adr <= i_c_wb_adr;
-                        o_wb_cti <= i_c_wb_cti;
-                end
-                else
-                begin
-                        o_wb_cyc <= i_d_wb_cyc;
-                        o_wb_stb <= i_d_wb_stb;
-                        o_wb_wen <= i_d_wb_wen;
-                        o_wb_sel <= i_d_wb_sel;
-                        o_wb_dat <= i_d_wb_dat;
-                        o_wb_adr <= i_d_wb_adr;
-                        o_wb_cti <= i_d_wb_cti;
-                end
-        end
-
-end: l_genblk1
-else
-begin: l_genblk2
-
-        //
-        // Not required to flop these since the sources are flops themselves.
-        // Just a 2:1 MUX on the path - very little delay - won't affect timing.
-        // Here, we use all FF versions.
-        //
-        always_comb
-        begin
-                if ( state_ff == CODE )
-                begin
-                        o_wb_cyc = i_c_wb_cyc;
-                        o_wb_stb = i_c_wb_stb;
-                        o_wb_wen = i_c_wb_wen;
-                        o_wb_sel = i_c_wb_sel;
-                        o_wb_dat = i_c_wb_dat;
-                        o_wb_adr = i_c_wb_adr;
-                        o_wb_cti = i_c_wb_cti;
-                end
-                else
-                begin
-                        o_wb_cyc = i_d_wb_cyc;
-                        o_wb_stb = i_d_wb_stb;
-                        o_wb_wen = i_d_wb_wen;
-                        o_wb_sel = i_d_wb_sel;
-                        o_wb_dat = i_d_wb_dat;
-                        o_wb_adr = i_d_wb_adr;
-                        o_wb_cti = i_d_wb_cti;
-                end
-        end
-
-end: l_genblk2
-
-endgenerate
+  endgenerate
 endmodule : zap_wb_merger
 
 // ----------------------------------------------------------------------------

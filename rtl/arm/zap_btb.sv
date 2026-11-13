@@ -20,238 +20,221 @@
 //
 
 module zap_btb #(
-        //
-        // Entries in the branch predictor RAM. Only half are available
-        // in 32-bit state.
-        //
-        parameter logic [31:0] BP_ENTRIES = 32'd1024
+    //
+    // Entries in the branch predictor RAM. Only half are available
+    // in 32-bit state.
+    //
+    parameter logic [31:0] BP_ENTRIES = 32'd1024
 ) (
-        // Clock and reset.
-        input logic         i_clk,
-        input logic         i_reset,
+    // Clock and reset.
+    input logic i_clk,
+    input logic i_reset,
 
-        ////////////////////////////
-        // Pipeline sync controls
-        ////////////////////////////
+    ////////////////////////////
+    // Pipeline sync controls
+    ////////////////////////////
 
-        input logic         i_stall,
-        input logic         i_clear,
+    input logic i_stall,
+    input logic i_clear,
 
-        //////////////////////////
-        // Feedback path.
-        //////////////////////////
+    //////////////////////////
+    // Feedback path.
+    //////////////////////////
 
-        // Feedback status.
-        input logic         i_fb_ok,
-        input logic         i_fb_nok,
+    // Feedback status.
+    input logic i_fb_ok,
+    input logic i_fb_nok,
 
-        // Branch source address.
-        input logic [31:0] i_fb_branch_src_address,
+    // Branch source address.
+    input logic [31:0] i_fb_branch_src_address,
 
-        // Branch predicted state. This should be changed.
-        input logic [1:0]   i_fb_current_branch_state,
+    // Branch predicted state. This should be changed.
+    input logic [1:0] i_fb_current_branch_state,
 
-        // Branch target address. This is the correct destination address.
-        input logic [31:0] i_fb_branch_dest_address,
+    // Branch target address. This is the correct destination address.
+    input logic [31:0] i_fb_branch_dest_address,
 
-        /////////////////////////
-        // Live read path.
-        /////////////////////////
+    /////////////////////////
+    // Live read path.
+    /////////////////////////
 
-        // Read addresses from SRAM.
-        input logic [31:0] i_rd_addr,
-        input logic [31:0] i_rd_addr_del,
+    // Read addresses from SRAM.
+    input logic [31:0] i_rd_addr,
+    input logic [31:0] i_rd_addr_del,
 
-        ////////////////////////
-        // Control path
-        ////////////////////////
+    ////////////////////////
+    // Control path
+    ////////////////////////
 
-        // BTB control path change.
-        output logic        o_clear_from_btb,
-        output logic [31:0] o_pc_from_btb,
+    // BTB control path change.
+    output logic        o_clear_from_btb,
+    output logic [31:0] o_pc_from_btb,
 
-        /////////////////////////
-        // Branch state.
-        /////////////////////////
+    /////////////////////////
+    // Branch state.
+    /////////////////////////
 
-        output logic [1:0]  o_branch_state
+    output logic [1:0] o_branch_state
 );
 
-`include "zap_localparams.svh"
-`include "zap_functions.svh"
+  `include "zap_localparams.svh"
+  `include "zap_functions.svh"
 
-// Quartus 17 compat: moved from parameter list to module body
-localparam [31:0] TAG_WDT = 32 - $clog2(BP_ENTRIES) - 1;
+  // Quartus 17 compat: moved from parameter list to module body
+  localparam [31:0] TAG_WDT = 32 - $clog2(BP_ENTRIES) - 1;
 
-typedef struct packed {
-        logic [TAG_WDT-1:0]            tag;
-        logic [$clog2(BP_ENTRIES)-1:0] index;
-        logic                          offset;
-} t_address;
+  typedef struct packed {
+    logic [TAG_WDT-1:0]            tag;
+    logic [$clog2(BP_ENTRIES)-1:0] index;
+    logic                          offset;
+  } t_address;
 
-localparam [31:0] MAX_WDT = 32 + 2 + TAG_WDT;
+  localparam [31:0] MAX_WDT = 32 + 2 + TAG_WDT;
 
-logic unused;
+  logic unused;
 
-assign unused = |{i_rd_addr[0],
-                  i_rd_addr    [31:$clog2(BP_ENTRIES)+1],
-                  i_rd_addr_del[$clog2(BP_ENTRIES):0],
-                  i_fb_branch_src_address[0]};
+  assign unused = |{i_rd_addr[0], i_rd_addr[31:$clog2(
+      BP_ENTRIES
+  )+1], i_rd_addr_del[$clog2(
+      BP_ENTRIES
+  ):0], i_fb_branch_src_address[0]};
 
-logic [BP_ENTRIES-1:0] dav;
-logic                  bp_dav;
-logic                  mem_wr_en;
-logic                  mem_rd_en;
+  logic [        BP_ENTRIES-1:0] dav;
+  logic                          bp_dav;
+  logic                          mem_wr_en;
+  logic                          mem_rd_en;
 
-logic [$clog2(BP_ENTRIES)-1:0] mem_wr_addr;
-logic [$clog2(BP_ENTRIES)-1:0] mem_rd_addr;
+  logic [$clog2(BP_ENTRIES)-1:0] mem_wr_addr;
+  logic [$clog2(BP_ENTRIES)-1:0] mem_rd_addr;
 
-struct packed {
-        logic [31:0]        target;
-        logic [TAG_WDT-1:0] tag;
-        logic [1:0]         state; // LSB
-} mem_wr_data, mem_rd_data;
+  struct packed {
+    logic [31:0]        target;
+    logic [TAG_WDT-1:0] tag;
+    logic [1:0]         state;   // LSB
+  }
+      mem_wr_data, mem_rd_data;
 
-// Update memory on any kind of feedback.
-assign mem_wr_en   = i_fb_ok | i_fb_nok;
+  // Update memory on any kind of feedback.
+  assign mem_wr_en = i_fb_ok | i_fb_nok;
 
-// Read memory when no pipeline stall.
-assign mem_rd_en = ~i_stall;
+  // Read memory when no pipeline stall.
+  assign mem_rd_en = ~i_stall;
 
-// Memory addresses are driven by index.
-// Quartus 17 compat: interpret raw logic [31:0] ports through the struct
-t_address fb_src_addr, rd_addr_cast, rd_addr_del_cast;
-assign fb_src_addr      = i_fb_branch_src_address;
-assign rd_addr_cast     = i_rd_addr;
-assign rd_addr_del_cast = i_rd_addr_del;
+  // Memory addresses are driven by index.
+  // Quartus 17 compat: interpret raw logic [31:0] ports through the struct
+  t_address fb_src_addr, rd_addr_cast, rd_addr_del_cast;
+  assign fb_src_addr        = i_fb_branch_src_address;
+  assign rd_addr_cast       = i_rd_addr;
+  assign rd_addr_del_cast   = i_rd_addr_del;
 
-assign mem_wr_addr = fb_src_addr.index;
-assign mem_rd_addr = rd_addr_cast.index;
+  assign mem_wr_addr        = fb_src_addr.index;
+  assign mem_rd_addr        = rd_addr_cast.index;
 
-// Memory write data. Compute the new state based on feedback.
-assign mem_wr_data.state   = compute(i_fb_current_branch_state,i_fb_nok);
-assign mem_wr_data.tag     = fb_src_addr.tag;
-assign mem_wr_data.target  = i_fb_branch_dest_address;
+  // Memory write data. Compute the new state based on feedback.
+  assign mem_wr_data.state  = compute(i_fb_current_branch_state, i_fb_nok);
+  assign mem_wr_data.tag    = fb_src_addr.tag;
+  assign mem_wr_data.target = i_fb_branch_dest_address;
 
-// BTB RAM.
-zap_ram_simple_nopipe #(.DEPTH(BP_ENTRIES), .WIDTH(MAX_WDT)) u_br_ram
-(
-        .i_clk    (i_clk),
-        .i_wr_en  (mem_wr_en),
-        .i_wr_addr(mem_wr_addr),
-        .i_rd_addr(mem_rd_addr),
-        .i_wr_data(mem_wr_data),
-        .i_rd_en  (!i_stall),
-        .o_rd_data(mem_rd_data)
-);
+  // BTB RAM.
+  zap_ram_simple_nopipe #(
+      .DEPTH(BP_ENTRIES),
+      .WIDTH(MAX_WDT)
+  ) u_br_ram (
+      .i_clk    (i_clk),
+      .i_wr_en  (mem_wr_en),
+      .i_wr_addr(mem_wr_addr),
+      .i_rd_addr(mem_rd_addr),
+      .i_wr_data(mem_wr_data),
+      .i_rd_en  (!i_stall),
+      .o_rd_data(mem_rd_data)
+  );
 
-// Writing branch state. When clear, set DAV to 0.
-always_ff @ ( posedge i_clk )
-begin
-        if ( i_reset )
-        begin
-                dav    <= '0;
-        end
-        else if ( i_clear )
-        begin
-                dav    <= '0;
-        end
-        else
-        begin
-                dav[fb_src_addr.index] <= mem_wr_en;
-        end
-end
+  // Writing branch state. When clear, set DAV to 0.
+  always_ff @(posedge i_clk) begin
+    if (i_reset) begin
+      dav <= '0;
+    end else if (i_clear) begin
+      dav <= '0;
+    end else begin
+      dav[fb_src_addr.index] <= mem_wr_en;
+    end
+  end
 
-// Clocked out in parallel with the RAM.
-always_ff @ ( posedge i_clk )
-begin
-        if ( i_reset )
-        begin
-                bp_dav <= 1'd0;
-        end
-        else if ( i_clear )
-        begin
-                bp_dav <= 1'd0;
-        end
-        else if ( mem_rd_en )
-        begin
-                bp_dav <= dav[rd_addr_cast.index];
-        end
-end
+  // Clocked out in parallel with the RAM.
+  always_ff @(posedge i_clk) begin
+    if (i_reset) begin
+      bp_dav <= 1'd0;
+    end else if (i_clear) begin
+      bp_dav <= 1'd0;
+    end else if (mem_rd_en) begin
+      bp_dav <= dav[rd_addr_cast.index];
+    end
+  end
 
-logic mem_rd_taken;
-logic mem_rd_tag_match;
+  logic mem_rd_taken;
+  logic mem_rd_tag_match;
 
-// Memory read data state read as taken.
-assign mem_rd_taken = (mem_rd_data.state == WT || mem_rd_data.state == ST);
+  // Memory read data state read as taken.
+  assign mem_rd_taken = (mem_rd_data.state == WT || mem_rd_data.state == ST);
 
-// Memory read address tag match with tag in memory read data.
-assign mem_rd_tag_match = rd_addr_del_cast.tag == mem_rd_data.tag;
+  // Memory read address tag match with tag in memory read data.
+  assign mem_rd_tag_match = rd_addr_del_cast.tag == mem_rd_data.tag;
 
-//
-// Tag check and clear generation logic. Use RAM data. This is produced
-// 1 cycle after the memory is read.
-//
-always_ff @ ( posedge i_clk )
-begin
-        if ( i_reset )
-        begin
-                o_clear_from_btb <= 1'd0;
-                o_pc_from_btb    <= {32{1'dx}};
-                o_branch_state   <= {2{1'dx}};
-        end
-        else if ( !i_stall )
-        begin
-                // State is meaningful only for a valid matching entry. A
-                // collision's taken state must not claim a redirect occurred:
-                // downstream PC writes can otherwise trust stale prediction
-                // metadata and fall through instead of changing the PC.
-                o_branch_state <= (mem_rd_tag_match && bp_dav) ? mem_rd_data.state : SNT;
+  //
+  // Tag check and clear generation logic. Use RAM data. This is produced
+  // 1 cycle after the memory is read.
+  //
+  always_ff @(posedge i_clk) begin
+    if (i_reset) begin
+      o_clear_from_btb <= 1'd0;
+      o_pc_from_btb    <= {32{1'dx}};
+      o_branch_state   <= {2{1'dx}};
+    end else if (!i_stall) begin
+      // State is meaningful only for a valid matching entry. A
+      // collision's taken state must not claim a redirect occurred:
+      // downstream PC writes can otherwise trust stale prediction
+      // metadata and fall through instead of changing the PC.
+      o_branch_state <= (mem_rd_tag_match && bp_dav) ? mem_rd_data.state : SNT;
 
-                //
-                // If the tag matches and prediction is taken, resync
-                // the pipeline to the predicted address.
-                //
-                if ( mem_rd_tag_match & bp_dav & mem_rd_taken )
-                begin
-                        o_clear_from_btb <= 1'd1;
-                        o_pc_from_btb    <= mem_rd_data.target;
-                end
-                else
-                begin
-                        o_clear_from_btb <= 1'd0;
-                end
-        end
-end
+      //
+      // If the tag matches and prediction is taken, resync
+      // the pipeline to the predicted address.
+      //
+      if (mem_rd_tag_match & bp_dav & mem_rd_taken) begin
+        o_clear_from_btb <= 1'd1;
+        o_pc_from_btb    <= mem_rd_data.target;
+      end else begin
+        o_clear_from_btb <= 1'd0;
+      end
+    end
+  end
 
-//
-// Function for branch prediction.
-//
-function automatic [1:0] compute ( input [1:0] pred, input nok );
+  //
+  // Function for branch prediction.
+  //
+  function automatic [1:0] compute(input [1:0] pred, input nok);
 
-                // Branch was predicted incorrectly. Go to opposite state.
-                if ( nok )
-                begin
-                        case ( pred )
-                        SNT: return WNT; // May be not so strongly not taken.
-                        WNT: return WT;  // Perhaps it is taken.
-                        WT:  return WNT; // Perhaps it is not taken.
-                        ST:  return WT;  // May be not so strongy taken.
-                   default:  return 'x;  // Propagate X.
-                        endcase
-                end
-                else // Confirm that branch was correctly predicted.
-                begin
-                        case ( pred )
-                        SNT: return SNT; // Reinforce.
-                        WNT: return SNT; // Reinforce.
-                        WT:  return ST;  // Reinforce.
-                        ST:  return ST;  // Reinforce.
-                   default:  return 'x;  // Propagate X.
-                        endcase
-                end
+    // Branch was predicted incorrectly. Go to opposite state.
+    if (nok) begin
+      case (pred)
+        SNT: return WNT;  // May be not so strongly not taken.
+        WNT: return WT;  // Perhaps it is taken.
+        WT: return WNT;  // Perhaps it is not taken.
+        ST: return WT;  // May be not so strongy taken.
+        default: return 'x;  // Propagate X.
+      endcase
+    end else  // Confirm that branch was correctly predicted.
+    begin
+      case (pred)
+        SNT: return SNT;  // Reinforce.
+        WNT: return SNT;  // Reinforce.
+        WT: return ST;  // Reinforce.
+        ST: return ST;  // Reinforce.
+        default: return 'x;  // Propagate X.
+      endcase
+    end
 
-endfunction : compute
+  endfunction : compute
 
 endmodule : zap_btb
 

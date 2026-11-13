@@ -23,237 +23,227 @@
 //
 
 module zap_predecode_coproc #(
-        parameter [31:0] PHY_REGS = 32'd46
-)
-(
-        input logic              i_clk,
-        input logic              i_reset,
+    parameter [31:0] PHY_REGS = 32'd46
+) (
+    input logic i_clk,
+    input logic i_reset,
 
-        // Instruction and valid qualifier.
-        input logic [34:0]       i_instruction,
-        input logic              i_valid,
+    // Instruction and valid qualifier.
+    input logic [34:0] i_instruction,
+    input logic        i_valid,
 
-        // CPSR T Bit.
-        input logic              i_cpsr_ff_t,
-        input logic [4:0]        i_cpsr_ff_mode,
+    // CPSR T Bit.
+    input logic       i_cpsr_ff_t,
+    input logic [4:0] i_cpsr_ff_mode,
 
-        // Interrupts.
-        input logic              i_irq,
-        input logic              i_fiq,
+    // Interrupts.
+    input logic i_irq,
+    input logic i_fiq,
 
-         // Clear and stall signals.
-        input logic              i_clear_from_writeback, // | High Priority
-        input logic              i_data_stall,           // |
-        input logic              i_clear_from_alu,       // |
-        input logic              i_stall_from_shifter,   // |
-        input logic              i_stall_from_issue,     // V Low Priority
-        input logic              i_clear_from_decode,
+    // Clear and stall signals.
+    input logic i_clear_from_writeback,  // | High Priority
+    input logic i_data_stall,            // |
+    input logic i_clear_from_alu,        // |
+    input logic i_stall_from_shifter,    // |
+    input logic i_stall_from_issue,      // V Low Priority
+    input logic i_clear_from_decode,
 
-        // Pipeline Valid. Must become 0 when every stage of the pipeline
-        // is invalid.
-        input logic              i_pipeline_dav,
+    // Pipeline Valid. Must become 0 when every stage of the pipeline
+    // is invalid.
+    input logic i_pipeline_dav,
 
-        // Coprocessor done signal.
-        input logic              i_copro_done,
-        input logic              i_wfi_irq,
-        input logic              i_wfi_fiq,
+    // Coprocessor done signal.
+    input logic i_copro_done,
+    input logic i_wfi_irq,
+    input logic i_wfi_fiq,
 
-        // Interrupts output.
-        output logic              o_irq,
-        output logic              o_fiq,
+    // Interrupts output.
+    output logic o_irq,
+    output logic o_fiq,
 
-        // Instruction and valid qualifier.
-        output logic [34:0]       o_instruction,
-        output logic              o_valid,
+    // Instruction and valid qualifier.
+    output logic [34:0] o_instruction,
+    output logic        o_valid,
 
-        // We can generate stall if coprocessor is slow. We also have
-        // some minimal latency.
-        output logic              o_stall_from_decode,
+    // We can generate stall if coprocessor is slow. We also have
+    // some minimal latency.
+    output logic o_stall_from_decode,
 
-        // Are we really asking for the coprocessor ?
-        output logic              o_copro_dav_nxt,
+    // Are we really asking for the coprocessor ?
+    output logic o_copro_dav_nxt,
 
-        // The entire instruction is passed to the coprocessor.
-        output logic  [31:0]      o_copro_word_nxt
+    // The entire instruction is passed to the coprocessor.
+    output logic [31:0] o_copro_word_nxt
 );
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
-`include "zap_defines.svh"
-`include "zap_localparams.svh"
+  `include "zap_defines.svh"
+  `include "zap_localparams.svh"
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
-// State register.
-enum logic {IDLE, BUSY} state_ff, state_nxt;
+  // State register.
+  enum logic {
+    IDLE,
+    BUSY
+  }
+      state_ff, state_nxt;
 
-// Output registers.
-logic        cp_dav_ff, cp_dav_nxt;
-logic [31:0] cp_word_ff, cp_word_nxt;
+  // Output registers.
+  logic cp_dav_ff, cp_dav_nxt;
+  logic [31:0] cp_word_ff, cp_word_nxt;
 
-logic unused;
+  logic unused;
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
-assign unused = |{PHY_REGS};
+  assign unused = |{PHY_REGS};
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
-// Connect next state to output.
-assign  o_copro_word_nxt = cp_word_nxt;
-assign  o_copro_dav_nxt  = cp_dav_nxt;
+  // Connect next state to output.
+  assign o_copro_word_nxt = cp_word_nxt;
+  assign o_copro_dav_nxt = cp_dav_nxt;
 
-///////////////////////////////////////////////////////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
-// STATE MACHINE. Next state logic.
-always_comb
-begin
-        // -----------------------------------------------------
-        // Default values section
-        // (Done to avoid combo loops/incomplete assignments),
-        // -----------------------------------------------------
+  // STATE MACHINE. Next state logic.
+  always_comb begin
+    // -----------------------------------------------------
+    // Default values section
+    // (Done to avoid combo loops/incomplete assignments),
+    // -----------------------------------------------------
 
-        cp_dav_nxt              = cp_dav_ff;
-        cp_word_nxt             = cp_word_ff;
-        o_stall_from_decode     = 1'd0;
-        o_instruction           = i_instruction;
-        o_valid                 = i_valid;
-        state_nxt               = state_ff;
-        o_irq                   = i_irq;
-        o_fiq                   = i_fiq;
+    cp_dav_nxt          = cp_dav_ff;
+    cp_word_nxt         = cp_word_ff;
+    o_stall_from_decode = 1'd0;
+    o_instruction       = i_instruction;
+    o_valid             = i_valid;
+    state_nxt           = state_ff;
+    o_irq               = i_irq;
+    o_fiq               = i_fiq;
 
-        // -----------------------------------------------------
-        // Code Section
-        // -----------------------------------------------------
+    // -----------------------------------------------------
+    // Code Section
+    // -----------------------------------------------------
 
-        case ( state_ff )
-        IDLE:
-                // Activate only if no 16-bit, not in USER mode and CP15 access is requested.
-                casez ( (!i_cpsr_ff_t && (i_instruction[34:32] == 3'd0) && i_valid) ? i_instruction[31:0] : 32'd0 )
-                MRC, MCR, LDC, STC, CDP, MRC2, MCR2, LDC2, STC2:
-                begin
-                        if ( i_instruction[11:8] == 4'b1111 && i_cpsr_ff_mode != USR )  // CP15 and root access -- perfectly fine.
+    case (state_ff)
+      IDLE:
+      // Activate only if no 16-bit, not in USER mode and CP15 access is requested.
+      casez ( (!i_cpsr_ff_t && (i_instruction[34:32] == 3'd0) && i_valid) ? i_instruction[31:0] : 32'd0 )
+        MRC, MCR, LDC, STC, CDP, MRC2, MCR2, LDC2, STC2: begin
+          if ( i_instruction[11:8] == 4'b1111 && i_cpsr_ff_mode != USR )  // CP15 and root access -- perfectly fine.
                         begin
-                                o_instruction = i_instruction;
-                                o_valid       = i_valid;
-                                o_irq         = 1'd0;
-                                o_fiq         = 1'd0;
+            o_instruction = i_instruction;
+            o_valid       = i_valid;
+            o_irq         = 1'd0;
+            o_fiq         = 1'd0;
 
-                                // As long as there is an instruction to process...
-                                if ( i_pipeline_dav )
-                                begin
-                                        // Do not impose any output. However, continue
-                                        // to stall all before this unit in the
-                                        // pipeline.
-                                        o_valid                 = i_valid;
-                                        o_stall_from_decode     = 1'd1;
-                                        cp_dav_nxt              = 1'd0;
-                                        cp_word_nxt             = 32'd0;
-                                end
-                                else
-                                begin
-                                        // Prepare to move to BUSY. Continue holding
-                                        // stall. Send out 0s.
-                                        o_valid                 = i_valid;
-                                        o_stall_from_decode     = 1'd1;
-                                        cp_word_nxt             = i_instruction[31:0];
-                                        cp_dav_nxt              = 1'd1;
-                                        state_nxt               = BUSY;
-                                end
-                        end
-                        else // Warning...
-                        begin
+            // As long as there is an instruction to process...
+            if (i_pipeline_dav) begin
+              // Do not impose any output. However, continue
+              // to stall all before this unit in the
+              // pipeline.
+              o_valid             = i_valid;
+              o_stall_from_decode = 1'd1;
+              cp_dav_nxt          = 1'd0;
+              cp_word_nxt         = 32'd0;
+            end else begin
+              // Prepare to move to BUSY. Continue holding
+              // stall. Send out 0s.
+              o_valid             = i_valid;
+              o_stall_from_decode = 1'd1;
+              cp_word_nxt         = i_instruction[31:0];
+              cp_dav_nxt          = 1'd1;
+              state_nxt           = BUSY;
+            end
+          end else  // Warning...
+          begin
 
-                                // Remain transparent since this is not a coprocessor
-                                // instruction.
-                                o_valid                 = i_valid;
-                                o_instruction           = i_instruction;
-                                o_irq                   = i_irq;
-                                o_fiq                   = i_fiq;
-                                cp_dav_nxt              = 0;
-                                o_stall_from_decode     = 0;
+            // Remain transparent since this is not a coprocessor
+            // instruction.
+            o_valid             = i_valid;
+            o_instruction       = i_instruction;
+            o_irq               = i_irq;
+            o_fiq               = i_fiq;
+            cp_dav_nxt          = 0;
+            o_stall_from_decode = 0;
 
 
-                                // Don't care. This is perfectly OK - synth will OPTIMIZE.
-                                // OK to do for FPGA synthesis.
-                                cp_word_nxt             = {32{1'dx}};
-                        end
-                end
-                default:
-                begin
-                        // Remain transparent since this is not a coprocessor
-                        // instruction.
-                        o_valid                 = i_valid;
-                        o_instruction           = i_instruction;
-                        o_irq                   = i_irq;
-                        o_fiq                   = i_fiq;
-                        cp_dav_nxt              = 0;
-                        o_stall_from_decode     = 0;
-
-                        // Don't care. This is perfectly OK - synth will OPTIMIZE.
-                        // OK to do for FPGA synthesis.
-                        cp_word_nxt             = {32{1'dx}};
-                end
-                endcase
-
-        BUSY:
-        begin
-                // Provide coprocessor word and valid to the coprocessor.
-                cp_word_nxt             = cp_word_ff;
-                cp_dav_nxt              = cp_dav_ff;
-
-                // Continue holding stall.
-                o_stall_from_decode     = 1'd1;
-
-                // Send out nothing.
-                o_valid                 = i_valid;
-                o_instruction           = i_instruction;
-
-                // Block interrupts.
-                o_irq = 1'd0;
-                o_fiq = 1'd0;
-
-                // If we get a response, we can move back to IDLE. Release
-                // the stall so that processor can continue.
-                if ( i_copro_done )
-                begin
-                        // A WFI wake interrupt must replace the following
-                        // instruction, rather than arrive one instruction late.
-                        o_irq = i_wfi_irq;
-                        o_fiq = i_wfi_fiq;
-                        cp_dav_nxt              = 1'd0;
-                        cp_word_nxt             = 32'd0;
-                        state_nxt               = IDLE;
-                        o_stall_from_decode     = 1'd0;
-                end
+            // Don't care. This is perfectly OK - synth will OPTIMIZE.
+            // OK to do for FPGA synthesis.
+            cp_word_nxt         = {32{1'dx}};
+          end
         end
-        endcase
-end
+        default: begin
+          // Remain transparent since this is not a coprocessor
+          // instruction.
+          o_valid             = i_valid;
+          o_instruction       = i_instruction;
+          o_irq               = i_irq;
+          o_fiq               = i_fiq;
+          cp_dav_nxt          = 0;
+          o_stall_from_decode = 0;
 
-always_ff @ (posedge i_clk)
-begin
-        if ( i_reset )
-        begin
-                cp_word_ff <= 0;
-                state_ff   <= IDLE;
-                cp_dav_ff  <= 1'd0;
+          // Don't care. This is perfectly OK - synth will OPTIMIZE.
+          // OK to do for FPGA synthesis.
+          cp_word_nxt         = {32{1'dx}};
         end
+      endcase
+
+      BUSY: begin
+        // Provide coprocessor word and valid to the coprocessor.
+        cp_word_nxt         = cp_word_ff;
+        cp_dav_nxt          = cp_dav_ff;
+
+        // Continue holding stall.
+        o_stall_from_decode = 1'd1;
+
+        // Send out nothing.
+        o_valid             = i_valid;
+        o_instruction       = i_instruction;
+
+        // Block interrupts.
+        o_irq               = 1'd0;
+        o_fiq               = 1'd0;
+
+        // If we get a response, we can move back to IDLE. Release
+        // the stall so that processor can continue.
+        if (i_copro_done) begin
+          // A WFI wake interrupt must replace the following
+          // instruction, rather than arrive one instruction late.
+          o_irq               = i_wfi_irq;
+          o_fiq               = i_wfi_fiq;
+          cp_dav_nxt          = 1'd0;
+          cp_word_nxt         = 32'd0;
+          state_nxt           = IDLE;
+          o_stall_from_decode = 1'd0;
+        end
+      end
+    endcase
+  end
+
+  always_ff @(posedge i_clk) begin
+    if (i_reset) begin
+      cp_word_ff <= 0;
+      state_ff   <= IDLE;
+      cp_dav_ff  <= 1'd0;
+    end
         else if(( i_clear_from_writeback )
              || ( i_clear_from_alu && !i_data_stall )
              || ( i_clear_from_decode && !i_data_stall && !i_stall_from_shifter
                   && !i_stall_from_issue ))
         begin
-                cp_word_ff <= 0;
-                state_ff   <= IDLE;
-                cp_dav_ff  <= 1'd0;
-        end
-        else if ( !i_data_stall && !i_stall_from_shifter && !i_stall_from_issue )
-        begin
-                state_ff   <= state_nxt;
-                cp_word_ff <= cp_word_nxt;
-                cp_dav_ff  <= cp_dav_nxt;
-        end
-end
+      cp_word_ff <= 0;
+      state_ff   <= IDLE;
+      cp_dav_ff  <= 1'd0;
+    end else if (!i_data_stall && !i_stall_from_shifter && !i_stall_from_issue) begin
+      state_ff   <= state_nxt;
+      cp_word_ff <= cp_word_nxt;
+      cp_dav_ff  <= cp_dav_nxt;
+    end
+  end
 
 endmodule : zap_predecode_coproc
 

@@ -25,26 +25,21 @@ module zap_ones_counter (
     input  logic [15:0] i_word
 );
 
-logic [4:0] offset [15:0];
+  logic [4:0] offset[15:0];
 
-always_comb
-begin
-    for(int i=0;i<16;i++)
-    begin
-        if ( i == 0 )
-        begin
-            offset[0]  = {4'd0, i_word[0]};
-        end
-        else
-        begin
-            offset[i] = offset[i-1] + {4'd0, i_word[i]};
-        end
+  always_comb begin
+    for (int i = 0; i < 16; i++) begin
+      if (i == 0) begin
+        offset[0] = {4'd0, i_word[0]};
+      end else begin
+        offset[i] = offset[i-1] + {4'd0, i_word[i]};
+      end
     end
-end
+  end
 
-// Since LDM and STM occur only on 4 byte regions, compute the
-// next offset.
-assign o_ones_counter = {5'd0, offset[15], 2'd0};
+  // Since LDM and STM occur only on 4 byte regions, compute the
+  // next offset.
+  assign o_ones_counter = {5'd0, offset[15], 2'd0};
 
 endmodule : zap_ones_counter
 

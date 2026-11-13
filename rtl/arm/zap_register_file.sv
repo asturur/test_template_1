@@ -50,147 +50,147 @@ module zap_register_file (
     output wire [31:0] o_rd_data_cp15
 );
 
-    // Replicated asynchronous MLAB banks, adapted from the donor latest-writer
-    // design. A/B writes are held for one clock and bypassed immediately: no
-    // architectural read or operand capture gains a cycle. C retains its generic
-    // multi-bit mask contract in a separate FF bank; production ties C off.
-    reg [39:0] initialized, held_c, committed_c;
-    reg [1:0] latest[0:39];
-    reg held_a, held_b, committed_a, committed_b;
-    reg [5:0] held_index_a, held_index_b, committed_index_a, committed_index_b;
-    reg [31:0] held_data_a, held_data_b, held_data_c;
-    reg [31:0] committed_data_a, committed_data_b, committed_data_c;
-    reg     [31:0] c_words[0:39];
-    integer        r;
-    always @(posedge i_clk) begin
-        if (i_reset) begin
-            initialized       <= 0;
-            held_a            <= 0;
-            held_b            <= 0;
-            held_c            <= 0;
-            committed_a       <= 0;
-            committed_b       <= 0;
-            committed_c       <= 0;
-            held_index_a      <= 0;
-            held_index_b      <= 0;
-            committed_index_a <= 0;
-            committed_index_b <= 0;
-            held_data_a       <= 0;
-            held_data_b       <= 0;
-            held_data_c       <= 0;
-            committed_data_a  <= 0;
-            committed_data_b  <= 0;
-            committed_data_c  <= 0;
-            for (r = 0; r < 40; r = r + 1) latest[r] <= 0;
-        end else begin
-            held_a            <= i_wen && i_wr_addr_a < 40;
-            held_b            <= i_wen && i_wr_addr_b < 40;
-            held_c            <= i_wr_addr_c;
-            held_index_a      <= i_wr_addr_a;
-            held_index_b      <= i_wr_addr_b;
-            held_data_a       <= i_wr_data_a;
-            held_data_b       <= i_wr_data_b;
-            held_data_c       <= i_wr_data_c;
-            committed_a       <= held_a;
-            committed_b       <= held_b;
-            committed_c       <= held_c;
-            committed_index_a <= held_index_a;
-            committed_index_b <= held_index_b;
-            committed_data_a  <= held_data_a;
-            committed_data_b  <= held_data_b;
-            committed_data_c  <= held_data_c;
-            for (r = 0; r < 40; r = r + 1) begin
-                if ((held_a && held_index_a == r) || (held_b && held_index_b == r) || held_c[r]) begin
-                    initialized[r] <= 1;
-                    latest[r] <= held_c[r] ? 2'd2 : (held_b && held_index_b == r) ? 2'd1 : 2'd0;
-                end
-            end
+  // Replicated asynchronous MLAB banks, adapted from the donor latest-writer
+  // design. A/B writes are held for one clock and bypassed immediately: no
+  // architectural read or operand capture gains a cycle. C retains its generic
+  // multi-bit mask contract in a separate FF bank; production ties C off.
+  reg [39:0] initialized, held_c, committed_c;
+  reg [1:0] latest[0:39];
+  reg held_a, held_b, committed_a, committed_b;
+  reg [5:0] held_index_a, held_index_b, committed_index_a, committed_index_b;
+  reg [31:0] held_data_a, held_data_b, held_data_c;
+  reg [31:0] committed_data_a, committed_data_b, committed_data_c;
+  reg     [31:0] c_words[0:39];
+  integer        r;
+  always @(posedge i_clk) begin
+    if (i_reset) begin
+      initialized       <= 0;
+      held_a            <= 0;
+      held_b            <= 0;
+      held_c            <= 0;
+      committed_a       <= 0;
+      committed_b       <= 0;
+      committed_c       <= 0;
+      held_index_a      <= 0;
+      held_index_b      <= 0;
+      committed_index_a <= 0;
+      committed_index_b <= 0;
+      held_data_a       <= 0;
+      held_data_b       <= 0;
+      held_data_c       <= 0;
+      committed_data_a  <= 0;
+      committed_data_b  <= 0;
+      committed_data_c  <= 0;
+      for (r = 0; r < 40; r = r + 1) latest[r] <= 0;
+    end else begin
+      held_a            <= i_wen && i_wr_addr_a < 40;
+      held_b            <= i_wen && i_wr_addr_b < 40;
+      held_c            <= i_wr_addr_c;
+      held_index_a      <= i_wr_addr_a;
+      held_index_b      <= i_wr_addr_b;
+      held_data_a       <= i_wr_data_a;
+      held_data_b       <= i_wr_data_b;
+      held_data_c       <= i_wr_data_c;
+      committed_a       <= held_a;
+      committed_b       <= held_b;
+      committed_c       <= held_c;
+      committed_index_a <= held_index_a;
+      committed_index_b <= held_index_b;
+      committed_data_a  <= held_data_a;
+      committed_data_b  <= held_data_b;
+      committed_data_c  <= held_data_c;
+      for (r = 0; r < 40; r = r + 1) begin
+        if ((held_a && held_index_a == r) || (held_b && held_index_b == r) || held_c[r]) begin
+          initialized[r] <= 1;
+          latest[r] <= held_c[r] ? 2'd2 : (held_b && held_index_b == r) ? 2'd1 : 2'd0;
         end
-        // No RAM reset sweep. Invalid words are hidden by initialized/held masks.
-        for (r = 0; r < 40; r = r + 1) if (!i_reset && held_c[r]) c_words[r] <= held_data_c;
+      end
     end
+    // No RAM reset sweep. Invalid words are hidden by initialized/held masks.
+    for (r = 0; r < 40; r = r + 1) if (!i_reset && held_c[r]) c_words[r] <= held_data_c;
+  end
 
-    wire [ 5:0] read_index[0:4];
-    wire [31:0] read_data [0:4];
-    assign read_index[0]  = i_rd_addr_a;
-    assign read_index[1]  = i_rd_addr_b;
-    assign read_index[2]  = i_rd_addr_c;
-    assign read_index[3]  = i_rd_addr_d;
-    assign read_index[4]  = i_rd_addr_cp15;
-    assign o_rd_data_a    = read_data[0];
-    assign o_rd_data_b    = read_data[1];
-    assign o_rd_data_c    = read_data[2];
-    assign o_rd_data_d    = read_data[3];
-    assign o_rd_data_cp15 = read_data[4];
+  wire [ 5:0] read_index[0:4];
+  wire [31:0] read_data [0:4];
+  assign read_index[0]  = i_rd_addr_a;
+  assign read_index[1]  = i_rd_addr_b;
+  assign read_index[2]  = i_rd_addr_c;
+  assign read_index[3]  = i_rd_addr_d;
+  assign read_index[4]  = i_rd_addr_cp15;
+  assign o_rd_data_a    = read_data[0];
+  assign o_rd_data_b    = read_data[1];
+  assign o_rd_data_c    = read_data[2];
+  assign o_rd_data_d    = read_data[3];
+  assign o_rd_data_cp15 = read_data[4];
 
-    // A same-edge committed write masks undefined MLAB collision data. New held
-    // writes are newer still; C > B > A at both edges, matching the original RF.
+  // A same-edge committed write masks undefined MLAB collision data. New held
+  // writes are newer still; C > B > A at both edges, matching the original RF.
 
 
-    genvar port;
-    generate
-        for (port = 0; port < 5; port = port + 1) begin : reads
-            wire [31:0] a_q, b_q;
-            zap_register_mlab bank_a (
-                .clk  (i_clk),
-                .we   (held_a && !i_reset),
-                .waddr(held_index_a),
-                .data (held_data_a),
-                .raddr(read_index[port]),
-                .q    (a_q)
-            );
-            zap_register_mlab bank_b (
-                .clk  (i_clk),
-                .we   (held_b && !i_reset),
-                .waddr(held_index_b),
-                .data (held_data_b),
-                .raddr(read_index[port]),
-                .q    (b_q)
-            );
-            reg  [31:0] value;
-            wire [ 5:0] index = read_index[port];
-            always @(*) begin
-                value = 32'bx;
-                if (index < 40) begin
-                    case (latest[index])
-                        0:       value = a_q;
-                        1:       value = b_q;
-                        default: value = c_words[index];
-                    endcase
-                    if (!initialized[index]) value = 0;
-                    if (committed_a && committed_index_a == index) value = committed_data_a;
-                    if (committed_b && committed_index_b == index) value = committed_data_b;
-                    if (committed_c[index]) value = committed_data_c;
-                    if (held_a && held_index_a == index) value = held_data_a;
-                    if (held_b && held_index_b == index) value = held_data_b;
-                    if (held_c[index]) value = held_data_c;
-                end
-            end
-            assign read_data[port] = value;
+  genvar port;
+  generate
+    for (port = 0; port < 5; port = port + 1) begin : reads
+      wire [31:0] a_q, b_q;
+      zap_register_mlab bank_a (
+          .clk  (i_clk),
+          .we   (held_a && !i_reset),
+          .waddr(held_index_a),
+          .data (held_data_a),
+          .raddr(read_index[port]),
+          .q    (a_q)
+      );
+      zap_register_mlab bank_b (
+          .clk  (i_clk),
+          .we   (held_b && !i_reset),
+          .waddr(held_index_b),
+          .data (held_data_b),
+          .raddr(read_index[port]),
+          .q    (b_q)
+      );
+      reg  [31:0] value;
+      wire [ 5:0] index = read_index[port];
+      always @(*) begin
+        value = 32'bx;
+        if (index < 40) begin
+          case (latest[index])
+            0:       value = a_q;
+            1:       value = b_q;
+            default: value = c_words[index];
+          endcase
+          if (!initialized[index]) value = 0;
+          if (committed_a && committed_index_a == index) value = committed_data_a;
+          if (committed_b && committed_index_b == index) value = committed_data_b;
+          if (committed_c[index]) value = committed_data_c;
+          if (held_a && held_index_a == index) value = held_data_a;
+          if (held_b && held_index_b == index) value = held_data_b;
+          if (held_c[index]) value = held_data_c;
         end
-    endgenerate
+      end
+      assign read_data[port] = value;
+    end
+  endgenerate
 
 `ifndef SYNTHESIS
 `ifndef ALTERA_RESERVED_QIS
-    // Architectural debug taps only; never another synthesized RF replica.
-    reg     [31:0] mem        [0:39];
-    integer        debug_word;
-    always @(*) begin
-        for (debug_word = 0; debug_word < 40; debug_word = debug_word + 1) begin
-            case (latest[debug_word])
-                0:       mem[debug_word] = reads[0].bank_a.words[debug_word];
-                1:       mem[debug_word] = reads[0].bank_b.words[debug_word];
-                default: mem[debug_word] = c_words[debug_word];
-            endcase
-            if (!initialized[debug_word]) mem[debug_word] = 0;
-            if (committed_a && committed_index_a == debug_word) mem[debug_word] = committed_data_a;
-            if (committed_b && committed_index_b == debug_word) mem[debug_word] = committed_data_b;
-            if (committed_c[debug_word]) mem[debug_word] = committed_data_c;
-            if (held_a && held_index_a == debug_word) mem[debug_word] = held_data_a;
-            if (held_b && held_index_b == debug_word) mem[debug_word] = held_data_b;
-            if (held_c[debug_word]) mem[debug_word] = held_data_c;
-        end
+  // Architectural debug taps only; never another synthesized RF replica.
+  reg     [31:0] mem        [0:39];
+  integer        debug_word;
+  always @(*) begin
+    for (debug_word = 0; debug_word < 40; debug_word = debug_word + 1) begin
+      case (latest[debug_word])
+        0:       mem[debug_word] = reads[0].bank_a.words[debug_word];
+        1:       mem[debug_word] = reads[0].bank_b.words[debug_word];
+        default: mem[debug_word] = c_words[debug_word];
+      endcase
+      if (!initialized[debug_word]) mem[debug_word] = 0;
+      if (committed_a && committed_index_a == debug_word) mem[debug_word] = committed_data_a;
+      if (committed_b && committed_index_b == debug_word) mem[debug_word] = committed_data_b;
+      if (committed_c[debug_word]) mem[debug_word] = committed_data_c;
+      if (held_a && held_index_a == debug_word) mem[debug_word] = held_data_a;
+      if (held_b && held_index_b == debug_word) mem[debug_word] = held_data_b;
+      if (held_c[debug_word]) mem[debug_word] = held_data_c;
     end
+  end
 `endif
 `endif
 endmodule
@@ -205,57 +205,57 @@ module zap_register_mlab (
     output wire [31:0] q
 );
 `ifdef ALTERA_RESERVED_QIS
-    `define NGAGE_RF_VENDOR
+  `define NGAGE_RF_VENDOR
 `elsif SYNTHESIS
-    `define NGAGE_RF_VENDOR
+  `define NGAGE_RF_VENDOR
 `endif
 `ifdef NGAGE_RF_VENDOR
-    altdpram #(
-        .width                             (32),
-        .widthad                           (6),
-        .numwords                          (64),
-        .intended_device_family            ("Cyclone V"),
-        .ram_block_type                    ("MLAB"),
-        .indata_reg                        ("INCLOCK"),
-        .wraddress_reg                     ("INCLOCK"),
-        .wrcontrol_reg                     ("INCLOCK"),
-        .rdaddress_reg                     ("UNREGISTERED"),
-        .rdcontrol_reg                     ("UNREGISTERED"),
-        .outdata_reg                       ("UNREGISTERED"),
-        .indata_aclr                       ("OFF"),
-        .wraddress_aclr                    ("OFF"),
-        .wrcontrol_aclr                    ("OFF"),
-        .rdaddress_aclr                    ("OFF"),
-        .rdcontrol_aclr                    ("OFF"),
-        .outdata_aclr                      ("OFF"),
-        .read_during_write_mode_mixed_ports("DONT_CARE")
-    ) ram (
-        .inclock       (clk),
-        .inclocken     (1'b1),
-        .outclock      (1'b0),
-        .outclocken    (1'b1),
-        .aclr          (1'b0),
-        .wren          (we),
-        .rden          (1'b1),
-        .byteena       (1'b1),
-        .wraddressstall(1'b0),
-        .rdaddressstall(1'b0),
-        .wraddress     (waddr),
-        .data          (data),
-        .rdaddress     (raddr),
-        .q             (q)
-    );
+  altdpram #(
+      .width                             (32),
+      .widthad                           (6),
+      .numwords                          (64),
+      .intended_device_family            ("Cyclone V"),
+      .ram_block_type                    ("MLAB"),
+      .indata_reg                        ("INCLOCK"),
+      .wraddress_reg                     ("INCLOCK"),
+      .wrcontrol_reg                     ("INCLOCK"),
+      .rdaddress_reg                     ("UNREGISTERED"),
+      .rdcontrol_reg                     ("UNREGISTERED"),
+      .outdata_reg                       ("UNREGISTERED"),
+      .indata_aclr                       ("OFF"),
+      .wraddress_aclr                    ("OFF"),
+      .wrcontrol_aclr                    ("OFF"),
+      .rdaddress_aclr                    ("OFF"),
+      .rdcontrol_aclr                    ("OFF"),
+      .outdata_aclr                      ("OFF"),
+      .read_during_write_mode_mixed_ports("DONT_CARE")
+  ) ram (
+      .inclock       (clk),
+      .inclocken     (1'b1),
+      .outclock      (1'b0),
+      .outclocken    (1'b1),
+      .aclr          (1'b0),
+      .wren          (we),
+      .rden          (1'b1),
+      .byteena       (1'b1),
+      .wraddressstall(1'b0),
+      .rdaddressstall(1'b0),
+      .wraddress     (waddr),
+      .data          (data),
+      .rdaddress     (raddr),
+      .q             (q)
+  );
 `else
-    (* ramstyle="MLAB, no_rw_check" *)reg [31:0] words            [0:63];
-    reg        previous_we;
-    reg [ 5:0] previous_address;
-    always @(posedge clk) begin
-        if (we) words[waddr] <= data;
-        previous_we      <= we;
-        previous_address <= waddr;
-    end
-    // Poison active and just-committed collisions; RF bypass must cover both.
-    assign q = ((we && waddr==raddr) || (previous_we && previous_address==raddr)) ? 32'bx : words[raddr];
+  (* ramstyle="MLAB, no_rw_check" *)reg [31:0] words            [0:63];
+  reg        previous_we;
+  reg [ 5:0] previous_address;
+  always @(posedge clk) begin
+    if (we) words[waddr] <= data;
+    previous_we      <= we;
+    previous_address <= waddr;
+  end
+  // Poison active and just-committed collisions; RF bypass must cover both.
+  assign q = ((we && waddr==raddr) || (previous_we && previous_address==raddr)) ? 32'bx : words[raddr];
 `endif
-    `undef NGAGE_RF_VENDOR
+  `undef NGAGE_RF_VENDOR
 endmodule
