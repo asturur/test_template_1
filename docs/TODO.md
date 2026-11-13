@@ -14,6 +14,21 @@ for evidence and reproducible traces.
   HDMI source sampling and continuous CRT at div12/16; RGB hold is retained.
   No added storage/stage/PLL change. See [pair-order results](lcd-pair-order.md).
 
+## Native boot follow-up (2026-11-13)
+
+- [ ] Complete logical SIM-ready/NOS and qualify external startup from the
+  initialized C4a75e4cb... baseline. Original-ROM automatic card boot now reaches
+  responsive Phone/Insert SIM; Menu remains unavailable. Do not repeat the
+  unqualified lost-flash-IRQ hypothesis: native profile count5/expected6 caused
+  recreation/ViewSrv11, and initialized C eliminates that observed path.
+- [ ] Qualify erased/first-run initialization speed and identify cost within
+  native profile creation. Warm initialized userdata does not qualify that path.
+- [ ] Repeat the same dense I/O observer with the incremental DDR host reader.
+  Zero producer FIFO drops did not prevent host reader gaps; pair only complete
+  adjacent gap-free records. Current minimal captures pass without gaps.
+
+See [Phone profile evidence](phone-profile-startup.md).
+
 ## Fit and storage priorities (2026-11-11)
 
 Keep the diagnostic screen, monitor, recorder and export until Symbian boots.

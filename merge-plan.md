@@ -1,3 +1,30 @@
+### 2026-11-13: Native Phone profile-rebuild timeout isolated
+
+Same minimal native probe: original C af5017dc... returns5 ProfileLookup rows
+versus expected6, recreates dbProfile.db and dies ViewSrv11. Change only C to
+initialized4a75e4cb...: count6/6, no ViewSrv11 in150s/600 snapshots, responsive
+Phone/Insert SIM and digits; Menu still unavailable. Exact same original PMM
+and firmware behavior; no BT/SIM/deadline/self-test substitutions. A subsequent
+boot removes every observer, verifies full original ROM88fd596a..., and also
+reaches responsive Phone. This is initialized-userdata progress, not complete
+native SIM/RF/DSP or erased-first-boot qualification.
+
+Installed the verified C image as card boot0. Old seed is reproducible from
+scratch/overnight/cdrive-11b.img; the SD backup was removed at user request.
+Do not create SD backups of rebuildable files. PMM/firmware unchanged;
+save Off, saved automatic Run restored. Final automatic card boot passes150s/600 snapshots and digit input with
+original ROM/no debugger memory writes; no reset/queue fault/reader gaps. Local ready copy: build/mister/initialized-c/boot0.vhd.
+
+Dense traces show real writes/flushes completing; no permanently lost flash IRQ
+is established. Native recreation and CPU startup work exceed the UI deadline.
+Current controls change whole C; other initialized files also differ. Old naive
+5–6s timing estimates crossed reader gaps and are rejected. Host reader now
+reads only unread slots, polls20ms; seal/torn/gap/reserved/wrap and idle-read
+cost tests pass. Minimal live captures have no gaps; same dense-stream repeat
+remains pending. Both scoped probes pass ZAP ARM/Thumb/ABI tests at waits0/3.
+No new FPGA logic/PLL/CI or other-thread simulation changes.
+Details: [phone-profile-startup.md](phone-profile-startup.md).
+
 ### 2026-11-13: Software tracer names Phone death; LCD pair order fixed
 
 Reused the tested exit/descriptor/wait observer through the existing DDR

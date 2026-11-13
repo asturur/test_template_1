@@ -18,6 +18,19 @@ the blocked process; zero kernel panic_report does not exclude a thread panic.
 | Startup rejection | Device startup failed/contact retailer; DOS event1 becomes2. Async original result array80024388 reports LPRF_IF15/1, CURRENT_CONS02/1, RF_CHIP_ID1E/0D, ADSP36/1 | RF/ADSP have fatal severity0C; BT/current severity0A. Passing first list response does not prove the later RUN tests pass |
 | Menu success control | Excluding only RF/ADSP automatic applicability, ready-SIM service, valid PMM and BT experiment reaches Phone/Menu/Contacts | A combined software comparison, not a production fix. Original2s/20s deadlines also work with initialized images; no perpetual16s/160s extension is justified |
 
+## Follow-up: profile recreation isolated
+
+The file wait is now traced to native profile initialization: existing
+ProfileLookup count5 versus expected6 causes recreation of
+C:\system\apps\profileApp\dbProfile.db. The same minimal observer with only
+initialized C changed reports6/6, skips the rebuild and reaches responsive
+Phone/Insert SIM without ViewSrv11. Original PMM and firmware behavior remain.
+A subsequent boot removes every observer, verifies the full original ROM
+hash, and also reaches Insert SIM with digit input. Menu remains unavailable.
+This identifies a first-run data/performance problem; no missing completion
+IRQ is demonstrated. Whole-C data differs, so this is not a single-file
+replacement experiment. See [native profile evidence](phone-profile-startup.md).
+
 ## Current original-firmware comparison
 
 b656156/seed44 passes the prior UART drain and storage-reset point, reaches

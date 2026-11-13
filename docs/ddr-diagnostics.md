@@ -251,3 +251,16 @@ Do not borrow the other chat's simulated process list as hardware evidence.
 Raw, readable text, NGD and decoded files under
 `scratch/mister-ddr-after-disk-20261112/`; maintained evidence in
 `docs/evidence/mister-ddr-after-disk-2026-11-12.json`.
+
+## Host reader follow-up —2026-11-13
+
+Dense software probes exposed reader gaps despite zero producer FIFO drops.
+The host reader previously sealed all1024 slots on every poll over uncached
+/dev/mem, then slept250ms. It now reads only slots in the unread published
+sequence window and polls every20ms. Seal/session/overwrite checks remain;
+idle polls touch no text slots, one new record touches one. Writer-output,
+torn-tail, gap, reserved-sequence and32-bit-wrap tests pass. Minimal hardware
+profile captures have no reader gaps; the same dense-stream repeat is pending.
+A late attachment can still report an initial backlog gap. Do not equate zero
+producer drops with lossless capture, and reject latency pairs crossing gaps.
+See [Phone investigation](phone-profile-startup.md). No FPGA resources added.

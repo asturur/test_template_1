@@ -1,0 +1,807 @@
+{
+  "date": "2026-11-13",
+  "installed_commit": "b656156c0adc3cad4fdb17452b1994c5f5b6ed1f",
+  "seed": 44,
+  "clock_hz": 78000000,
+  "original_c_sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+  "initialized_c_sha256": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+  "pmm_sha256": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063",
+  "baseline": {
+    "sha256": "b26fa22e13d4bb3ed2bed7cc5143d1763f1bd25dc4bd54ef930fe580587d1220",
+    "snapshots": 600,
+    "reader_gaps": 0,
+    "producer_drops": 0,
+    "records": [
+      "P API id=00000003 rc=0042948c extra=ffffffff caller=50a13729",
+      "P API id=00000002 rc=511ba0c4 extra=ffffffff caller=50a13739",
+      "P API id=00000001 rc=00000005 extra=00000006 caller=50a13501",
+      "X VIEW_TARGET Phone[100058b3]0003::Phone",
+      "X THREAD_PANIC a0=0041d468 a1=00701e78 a2=0000000b lr=5064dd55 sp=00701e78 cpsr=00000010 r6=0000000b"
+    ],
+    "reset_generations": [
+      0
+    ],
+    "queue_fault": false,
+    "view_panic_seen": true,
+    "descriptor_panic_seen": false
+  },
+  "c_only_comparison": {
+    "sha256": "15f6f9fcf485f1d3354ffd2eb124ad56ad1a2796a43f320803b1a59387ccb3eb",
+    "snapshots": 600,
+    "reader_gaps": 0,
+    "producer_drops": 0,
+    "records": [
+      "P API id=00000003 rc=0042948c extra=ffffffff caller=50a13729",
+      "P API id=00000002 rc=511ba0c4 extra=ffffffff caller=50a13739",
+      "P API id=00000001 rc=00000006 extra=00000006 caller=50a13501",
+      "P API id=00000003 rc=00429700 extra=ffffffff caller=50a13729",
+      "P API id=00000002 rc=511ba0c4 extra=ffffffff caller=50a13739",
+      "P API id=00000001 rc=00000006 extra=00000006 caller=50a13501"
+    ],
+    "reset_generations": [
+      0
+    ],
+    "queue_fault": false,
+    "view_panic_seen": false,
+    "descriptor_panic_seen": false
+  },
+  "c_only_apply": {
+    "applied": true,
+    "c_sha256": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+    "rom_unchanged": "922b6e0e23354ba63e486e501991b6aced1a4c7b71800da31842e4035e018e58",
+    "pmm_unchanged": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063",
+    "card_files_unchanged": true,
+    "fresh_hold": true
+  },
+  "strict_io": {
+    "method": "Only complete consecutive BEGIN+END messages within one gap-free epoch; no FIFO pairing across corruption",
+    "reader_gaps": 31,
+    "pairs": [
+      {
+        "op": "00000079",
+        "file": "00404984",
+        "handle": "00000000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.03730917948717949,
+        "start": 4278946819,
+        "end": 4281950170
+      },
+      {
+        "op": "00000024",
+        "file": "0040751c",
+        "handle": "000b0000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.018062666666666668,
+        "start": 4285405683,
+        "end": 4286903181
+      },
+      {
+        "op": "00000079",
+        "file": "00404d94",
+        "handle": "00000000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.015477423076923076,
+        "start": 5264574061,
+        "end": 5265869842
+      },
+      {
+        "op": "00000024",
+        "file": "00406f44",
+        "handle": "00110000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.0043847948717948716,
+        "start": 5269124467,
+        "end": 5269555167
+      },
+      {
+        "op": "00000079",
+        "file": "00404b24",
+        "handle": "00000000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.028200858974358974,
+        "start": 5278100367,
+        "end": 5280388620
+      },
+      {
+        "op": "00000024",
+        "file": "00406fe0",
+        "handle": "00120000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.00661525641025641,
+        "start": 5282453570,
+        "end": 5283058166
+      },
+      {
+        "op": "00000097",
+        "file": "004042ac",
+        "handle": "00000000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.046717358974358976,
+        "start": 5709542936,
+        "end": 5713275472
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 77,
+        "rc": "00000000",
+        "seconds": 0.03730544871794872,
+        "start": 5715005392,
+        "end": 5718003867
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.04165476923076923,
+        "start": 5775810625,
+        "end": 5779148281
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.01287174358974359,
+        "start": 5779265357,
+        "end": 5780362428
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 841,
+        "bytes": 292,
+        "rc": "00000000",
+        "seconds": 0.017308692307692306,
+        "start": 5784885525,
+        "end": 5786324211
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.042871858974358974,
+        "start": 5786448571,
+        "end": 5789881169
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 2439,
+        "bytes": 94,
+        "rc": "00000000",
+        "seconds": 0.01262423076923077,
+        "start": 5859386399,
+        "end": 5860459742
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.041766423076923076,
+        "start": 5860582662,
+        "end": 5863929060
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.013958307692307692,
+        "start": 5864046075,
+        "end": 5865223398
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.004082064102564103,
+        "start": 5933610798,
+        "end": 5934018169
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 3275,
+        "bytes": 96,
+        "rc": "00000000",
+        "seconds": 0.014478858974358974,
+        "start": 5937048766,
+        "end": 5938266764
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.04509175641025641,
+        "start": 5938389440,
+        "end": 5941995181
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.017270910256410258,
+        "start": 6009068292,
+        "end": 6010503965
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 4295,
+        "bytes": 168,
+        "rc": "00000000",
+        "seconds": 0.008443525641025641,
+        "start": 6011085890,
+        "end": 6011833132
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.01597397435897436,
+        "start": 6011956548,
+        "end": 6013295641
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.014948102564102565,
+        "start": 6084672324,
+        "end": 6085926876
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.010902205128205129,
+        "start": 6128199337,
+        "end": 6129138256
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 8305,
+        "bytes": 114,
+        "rc": "00000000",
+        "seconds": 0.008886807692307692,
+        "start": 6129774170,
+        "end": 6130555993
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.041613846153846154,
+        "start": 6187328034,
+        "end": 6190662452
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.012547461538461539,
+        "start": 6190779477,
+        "end": 6191846761
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 10551,
+        "bytes": 651,
+        "rc": "00000000",
+        "seconds": 0.020590884615384615,
+        "start": 6194028905,
+        "end": 6195723605
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.014339076923076923,
+        "start": 6195846876,
+        "end": 6197053865
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 12100,
+        "bytes": 219,
+        "rc": "00000000",
+        "seconds": 0.01727647435897436,
+        "start": 6218692315,
+        "end": 6220128545
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.011813166666666666,
+        "start": 6220252596,
+        "end": 6221262696
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.01228226923076923,
+        "start": 6221380034,
+        "end": 6222426593
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 12319,
+        "bytes": 166,
+        "rc": "00000000",
+        "seconds": 0.008041294871794872,
+        "start": 6223301295,
+        "end": 6224017166
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.014224461538461538,
+        "start": 6224152540,
+        "end": 6225350755
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 1.6837108974358974,
+        "start": 6225481356,
+        "end": 6356899463
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 12485,
+        "bytes": 78,
+        "rc": "00000000",
+        "seconds": 0.008880076923076923,
+        "start": 6357514116,
+        "end": 6358295420
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.018930820512820513,
+        "start": 6358419222,
+        "end": 6359984424
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.7542900512820513,
+        "start": 6360101612,
+        "end": 6419024775
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 12563,
+        "bytes": 87,
+        "rc": "00000000",
+        "seconds": 0.046409,
+        "start": 6419727960,
+        "end": 6423436512
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.046821948717948716,
+        "start": 6423558987,
+        "end": 6427299710
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.04022257692307692,
+        "start": 6427417433,
+        "end": 6430643344
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 13830,
+        "bytes": 132,
+        "rc": "00000000",
+        "seconds": 0.008223474358974359,
+        "start": 6497165567,
+        "end": 6497895648
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 14757,
+        "bytes": 186,
+        "rc": "00000000",
+        "seconds": 0.07189007692307692,
+        "start": 6536428382,
+        "end": 6542124455
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.01342375641025641,
+        "start": 6542259964,
+        "end": 6543395754
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.01265647435897436,
+        "start": 6592435976,
+        "end": 6593511760
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.01654446153846154,
+        "start": 6593628542,
+        "end": 6595007549
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.040982333333333336,
+        "start": 6635015464,
+        "end": 6638300667
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.08662839743589744,
+        "start": 6638417802,
+        "end": 6645263392
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 20774,
+        "bytes": 171,
+        "rc": "00000000",
+        "seconds": 0.011178935897435897,
+        "start": 6715891850,
+        "end": 6716852459
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.018554153846153845,
+        "start": 6716976427,
+        "end": 6718512300
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.017068141025641026,
+        "start": 6718629355,
+        "end": 6720049212
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 24586,
+        "bytes": 130,
+        "rc": "00000000",
+        "seconds": 0.00833351282051282,
+        "start": 6792443085,
+        "end": 6793181758
+      },
+      {
+        "op": "00000020",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 16,
+        "bytes": 14,
+        "rc": "00000000",
+        "seconds": 0.012116961538461538,
+        "start": 6793316679,
+        "end": 6794350500
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.011050858974358974,
+        "start": 6857786642,
+        "end": 6858737151
+      },
+      {
+        "op": "00000024",
+        "file": "00414c00",
+        "handle": "00020000",
+        "offset": 0,
+        "bytes": 0,
+        "rc": "00000000",
+        "seconds": 0.010935807692307693,
+        "start": 6881565259,
+        "end": 6882506834
+      }
+    ],
+    "paths": [
+      "Q PATH file=00404984 name=C:\\System\\System.ini",
+      "Q PATH file=00404d94 name=C:\\System\\System.ini",
+      "Q PATH file=00404b24 name=C:\\System\\System.ini",
+      "Q PATH file=004042a8 name=C:\\system\\apps\\profileApp\\dbProfile.db",
+      "Q PATH file=004042ac name=C:\\system\\apps\\profileApp\\dbProfile.db"
+    ],
+    "panics": [
+      {
+        "text": "X VIEW_TARGET Phone[100058b3]0003::Phone",
+        "start": 6888557896,
+        "end": 6888578188,
+        "start_epoch": 31,
+        "end_epoch": 31
+      },
+      {
+        "text": "X THREAD_PANIC a0=0041d468 a1=00701e78 a2=0000000b lr=5064dd55 sp=00701e78 cpsr=00000010 r6=0000000b",
+        "start": 6889065335,
+        "end": 6889116618,
+        "start_epoch": 31,
+        "end_epoch": 31
+      }
+    ],
+    "valid_begins": 60,
+    "valid_ends": 64,
+    "phone_io_span_seconds": 33.431078
+  },
+  "core_rom_original_c_only_apply": {
+    "applied": true,
+    "c_sha256": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+    "rom_unchanged": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "pmm_unchanged": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063",
+    "card_files_unchanged": true,
+    "fresh_hold": true
+  },
+  "first_count": {
+    "actual": 5,
+    "expected": 6,
+    "query": "select * from ProfileLookup",
+    "caller": "50a13501"
+  },
+  "comparison_count": {
+    "actual": 6,
+    "expected": 6
+  },
+  "native_profile_path": "C:\\system\\apps\\profileApp\\dbProfile.db",
+  "firmware_behavior_substitutions": false,
+  "card_files_changed": true,
+  "limits": [
+    "Timed I/O pairs are gap-free subset; software observer adds cost",
+    "Matched C-only comparison changes whole C, not just profile DB",
+    "Initialized C was captured after prior software-assisted Menu session; fresh first-boot performance and native RF/DSP/SIM are not qualified",
+    "RDbStoreDatabase::OpenL is void; incidental r0 is not an error code",
+    "Menu remained unavailable although digit input worked",
+    "Dense-stream qualification of incremental reader is pending"
+  ],
+  "card_install": {
+    "installed": "/media/fat/games/ngage1/boot0.vhd",
+    "sha256": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+    "backup": "/media/fat/games/ngage1/backups/boot0-before-profile-init-20261113.vhd",
+    "backup_sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47",
+    "pmm_unchanged": true,
+    "firmware_files_changed": false
+  },
+  "card_changes_scope": "After the matched comparison: boot0 only, exact old image retained in backups; PMM/firmware unchanged",
+  "original_rom_c_only": {
+    "sha256": "f49418217a0c5d6d15f2a13d4e540f910eaa08befe201008a1da313f26fa8205",
+    "snapshots": 600,
+    "reader_gaps": 0,
+    "reset_generations": [
+      0
+    ],
+    "queue_fault": false,
+    "keys": [
+      "0x0"
+    ],
+    "autosave_off": true
+  },
+  "original_rom_input": {
+    "sha256": "56c0c1483bc9906b1996930288c7fb01394977f766a9e7c0677bc28be42e5b5a",
+    "snapshots": 77,
+    "reader_gaps": 1,
+    "reset_generations": [
+      0
+    ],
+    "queue_fault": false,
+    "keys": [
+      "0x0",
+      "0x1000",
+      "0x40"
+    ],
+    "autosave_off": true
+  },
+  "card_automatic_boot": {
+    "sha256": "310cc39a90ee002639bfbea989a309e40d6e53fb41887c99dcae49dc4510e01b",
+    "snapshots": 600,
+    "reader_gaps": 0,
+    "reset_generations": [
+      0
+    ],
+    "queue_fault": false,
+    "keys": [
+      "0x0"
+    ],
+    "autosave_off": true
+  },
+  "card_input": {
+    "sha256": "f10e5e75778b0933c1127f950eb4b1e6f14e4bc593633e078334fef81590c34b",
+    "snapshots": 78,
+    "reader_gaps": 1,
+    "reset_generations": [
+      0
+    ],
+    "queue_fault": false,
+    "keys": [
+      "0x0",
+      "0x1000"
+    ],
+    "autosave_off": true
+  },
+  "final_state_verified": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_verified": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "final_display": "Insert SIM card, digit input responsive; Menu remains unavailable",
+  "rom_hooks_remaining": false,
+  "screenshots": {
+    "profile-screen.png": "cb6894adefdaf6ac1a13e14f8e4c0be8925b1adb835e28cb50d8721890628423",
+    "c-comparison-screen.png": "a4283441f33df391bbdf2472462078338eefc1240a8b9bde148b42eb83952c87",
+    "c-comparison-digit.png": "c98418faee9580f40f606169b92ddce3c7e812289bc5027e12ea45639708e0e8",
+    "c-comparison-menu.png": "06400b0f1e2989ca7152f7fd7658d395e45a005ae1d96fbda2cf70e5e23354eb",
+    "original-rom-screen.png": "8fd5d22069963bf0208bfe91c9c982b0ab4a66f8be252e49419eefb00d79472f",
+    "original-rom-digit.png": "c98418faee9580f40f606169b92ddce3c7e812289bc5027e12ea45639708e0e8",
+    "card-auto-screen.png": "8fd5d22069963bf0208bfe91c9c982b0ab4a66f8be252e49419eefb00d79472f",
+    "card-auto-digit.png": "06400b0f1e2989ca7152f7fd7658d395e45a005ae1d96fbda2cf70e5e23354eb"
+  },
+  "probe_cpu_tests": "PASS reproducible actual ZAP fixtures: I/O and profile, waits0/3",
+  "reader_tests": "PASS writer output, deduplication, torn text/snapshots, overwritten ring, idle/new-only uncached reads, torn-tail retry, reserved and32-bit wraps",
+  "sd_backup_removed": {
+    "path": "/media/fat/games/ngage1/backups/boot0-before-profile-init-20261113.vhd",
+    "removed": true,
+    "empty_directory_removed": true,
+    "user_preference": "No SD backups of rebuildable files",
+    "rebuild_source": "scratch/overnight/cdrive-11b.img",
+    "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  }
+}

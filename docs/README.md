@@ -7,6 +7,7 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
+| [phone-profile-startup.md](phone-profile-startup.md) | Native profile count5 versus6 causes recreation/Phone timeout; C-only initialized-data control, original-ROM Phone progress and reader gaps |
 | [menu-blocker-map.md](menu-blocker-map.md) | Consolidated Phone/ViewSrv, EStor wait, PMM/DSY panic, SIM and self-test evidence; standalone software observer |
 | [lcd-pair-order.md](lcd-pair-order.md) | Shared low-first scanout correction, independent natural-coordinate oracle and CRT/HDMI source tests |
 | [board-boot-b656156.md](board-boot-b656156.md) | Original-ROM automatic boot passes old reset, healthy queue, idle/logo foreground gate and failed seed44 timing |
