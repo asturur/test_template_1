@@ -107,7 +107,7 @@ Snapshot slots at0x313ff000 and0x313ff400, each256 DWORDs:
 |0..7|magic0x3244474e (`NGD2`), version1, sequence, clock Hz, capture start/end cycle, reset generation, NGD count406|
 |8..31|24 existing monitor values, in `tools/ngage_runtime_diag.py:NAMES` order|
 |32..234|NGD halfwords0..405 packed low then high|
-|235..254|reserved zero, except240/241 low/high64-bit build-date string tag and242/243 save status/LBA|
+|235..254|reserved zero, except240/241 low/high64-bit build-date string tag and242/243 save status/LBA,244 tagged queue state|
 |255|seal `sequence XOR0x4344474e`|
 
 Each snapshot invalidates its seal, writes payload, and commits seal last.
@@ -175,6 +175,16 @@ bridge error, host ACK, host read request, host write request, DDR request,
 DDR ready, DDR done, queue error, queue fault, bundle verified, autosave enabled,
 autosave paused, dirty event. Bits31:29 zero. The reader exposes named flags.
 This expands reserved words without changing version1 or existing NGD layout.
+
+Word244 is an optional queue observation, recognized only when bits31:24 are
+0x51. Bits23:9 are the existing15-bit queue count; bits8..2 are initialized,
+queue fault, flush error, flushing, in-flight, mark pending, head ready.
+Bits1/0 latch the first overflow/invalid-sector causes until cold reset.
+The reader emits `save_queue` only for that marker; old zero-filled snapshots
+remain compatible. Two sticky FFs are added; count and other flags are wired
+from existing state. No new RAM/counter or guest bus stage is added.
+The flags are observed during the snapshot, not an atomic per-fault trace.
+See [confirmed board queue fault](save-queue-fault-2026-11-13.md).
 
 The save investigation is now active, with a verified write-back failure/CPU
 reset isolation fix. The earlier deferred-save notes above record the initial

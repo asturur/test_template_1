@@ -32,7 +32,11 @@ A failed write-back stops persistence, retains the active generation and keeps
 the restored DDR image available to the phone; it no longer forces CPU reset.
 SAVING/BUSY clear and per-device Error remains sticky. Further saves require
 cold reinitialization; another manual click does not retry. Restore failures
-still block boot. See [save blockers](save-blockers-2026-11-12.md).
+still block boot. Runtime queue-integrity faults now follow the same resident
+DDR/CPU-release policy while reporting both slot errors. Unsafe media replacement
+still revokes release, including replacement simultaneous with a queue fault.
+See [save blockers](save-blockers-2026-11-12.md) and the confirmed
+[board queue-fault reset](save-queue-fault-2026-11-13.md).
 
 A failed transfer retains the active generation. An unsafe
 media replacement or invalid queue event also stops the save path. Pending
@@ -49,7 +53,11 @@ retention. The real `hps_io` simulation checks both the scalar baseline and
 ordered saving, including quiet and max-age scheduling, reset between passes,
 manual save and per-device errors. The bulk NOR and full-size tests check
 C:/PMM reload through the ordered path. DDR integration/reader tests retain
-save-error and progress decoding without a diagnostic-disk slot.
+save-error and progress decoding without a diagnostic-disk slot. The new public
+invalid-sector injection verifies continued resident DDR use and no retries;
+production geometry covers8,320 unique sectors and44,960 repeated marks with
+behavioral and Intel RAM. Snapshot word244 exposes count/status and sticky
+overflow/invalid-sector cause. The actual FPGA trigger remains unresolved.
 
 Controlled interruption and remount with the original firmware filesystem,
 installed MiSTer Main durability, and fitted FPGA resource and timing checks

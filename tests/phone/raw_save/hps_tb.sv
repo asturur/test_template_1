@@ -4,6 +4,7 @@ parameter ORDERED=0;
 reg autosave=0, flash_quiescent=1;
 integer post_write_delay=0;
 wire [1:0] slot_error;
+wire [31:0] queue_debug;
 reg clk=0;always #5 clk=~clk;reg inject_short=0,inject_swap=0,hold_requests=0,inject_mutation=0,saw_old_snapshot=0,first_snapshot_checked=0;
 reg reset=1,flush=0,dirty=0;reg [13:0] dirty_sector=0;
 tri [45:0] bus;tri [35:0] ext;tri [21:0] gamma;
@@ -28,7 +29,7 @@ hps_io #(.CONF_STR("test"),.WIDE(1),.VDNUM(3),.PS2DIV(1)) hps(.clk_sys(clk),.HPS
  .joystick_0_rumble(16'b0),.joystick_1_rumble(16'b0),.joystick_2_rumble(16'b0),.joystick_3_rumble(16'b0),.joystick_4_rumble(16'b0),.joystick_5_rumble(16'b0));
 ngage_raw_save_manager #(.C_SECTORS(3),.PMM_SECTORS(2),.SD_TIMEOUT(100000),.ORDERED(ORDERED),
  .AUTO_QUIET_CYCLES(40),.AUTO_MAX_AGE_CYCLES(120),.AUTO_BATCH_SECTORS(2)) save(.clk(clk),.reset(reset),.mount(mounts[1:0]),.readonly_image(readonly_image),.image_size(size),.bundle_verified(verified),
- .autosave_enable(autosave),.pause_autosave(warm_pending||phone_reset),.slot_error(slot_error),
+ .autosave_enable(autosave),.pause_autosave(warm_pending||phone_reset),.slot_error(slot_error),.debug_queue_state(queue_debug),
  .dirty_valid(dirty),.dirty_sector(dirty_sector),.flush_start(flush),.mounted(mounted),.saving(saving),.saved(saved),.error(error),.busy(busy),
  .mem_valid(mv),.mem_ready(1'b1),.mem_write(mw),.mem_addr(ma),.mem_data(mdata),.mem_be(mbe),.mem_done(mdone),.mem_rdata(mr),
  .sd_lba0(lba[0]),.sd_lba1(lba[1]),.sd_rd(rd[1:0]),.sd_wr(wr[1:0]),.sd_ack(ack[1:0]),.hps_addr(ha),.hps_dout(hd),.hps_we(hwe),.hps_din(hi[0]),.flash_quiescent(flash_quiescent));
@@ -220,6 +221,37 @@ initial begin: test
       $fatal(1,"manual save during background batch did not drain");
   checks=checks+1;
   $display("PASS S3 actual HPS ordered autosave, quiet/max age, finite warm reset and manual drain");
+ end
+ // A runtime queue-integrity fault stops persistence, not the restored phone.
+ // Inject through the public mark input; the queue must retain its fault and
+ // earlier pending sector while all resident DDR words stay usable.
+ if (ORDERED != 0) begin
+  integer before_writes;
+  autosave=0;
+  cold();mount_image(1,0,1536);mount_image(2,0,1024);wait_mounted();
+  mark(0,32'h51a7cafe);before_writes=writes;
+  @(negedge clk);dirty_sector=14'd5;dirty=1;
+  @(negedge clk);dirty=0;
+  wait(error);repeat(5)@(negedge clk);
+  if(queue_debug[31:24]!=8'h51 || queue_debug[1:0]!=2'b01 || queue_debug[23:9]!=1 ||
+     !save.tracker_fault || !save.tracker_error || !save.tracker_pending ||
+     !mounted || phone_reset || saving || busy || saved || slot_error!=2'b11 ||
+     ram[0]!==32'h51a7cafe)
+   $fatal(1,"queue fault reset restored phone or lost resident DDR");
+  // Later phone writes remain in DDR. Neither manual nor automatic save may
+  // restart uncertain persistence, even though the handset stays released.
+  mark(3,32'hdc0de123);autosave=1;
+  @(negedge clk);flush=1;@(negedge clk);flush=0;
+  repeat(200)@(negedge clk);autosave=0;
+  if(writes!=before_writes || (|rd) || (|wr) || mv || !mounted || saved ||
+     saving || busy || ram[384]!==32'hdc0de123)
+   $fatal(1,"queue fault retried persistence or blocked resident DDR");
+  // Replacement of uncertain media still revokes the phone's release gate.
+  mount_image(1,0,1536);
+  if(mounted || !error || (|rd) || (|wr))
+   $fatal(1,"queue-failed replacement accepted");
+  checks=checks+1;
+  $display("PASS runtime queue fault preserves DDR/CPU release, reports both slots, blocks saves/retries and rejects replacement");
  end
  // A manual request can remain pending before any HPS request when the
  // NOR command/program/erase boundary is not quiescent. Report SAVING while

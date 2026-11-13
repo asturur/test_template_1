@@ -6,6 +6,7 @@ always #5 clk=~clk;
 reg reset=1, dirty=0, flush=0, abort=0;
 reg [2:0] index=0;
 reg [3:0] limit=0;
+wire [31:0] debug_state;
 wire initialized, flushing, failed, fault, pending, offered;
 wire [2:0] sector;
 reg accept=0, done=0, ok=1;
@@ -14,7 +15,7 @@ ngage_ordered_dirty_queue #(.SECTORS(6), .AW(3), .DEPTH(DEPTH)) dut (
     .clk(clk),.cold_reset(reset),.dirty_valid(dirty),.dirty_sector(index),
     .flush_start(flush),.flush_limit(limit),.abort_flush(abort),
     .init_done(initialized),.flushing(flushing),.flush_error(failed),
-    .queue_fault(fault),.pending(pending),.sector_valid(offered),.sector_index(sector),
+    .queue_fault(fault),.debug_state(debug_state),.pending(pending),.sector_valid(offered),.sector_index(sector),
     .sector_accept(accept),.sector_done(done),.sector_ok(ok)
 );
 task automatic mark(input [2:0] n);
@@ -122,7 +123,7 @@ initial begin
     if (DEPTH<6) begin
         mark(2); mark(4); mark(1); mark(0);
         repeat(4) @(negedge clk);
-        if (!fault || !failed || !pending) $fatal(1,"overflow did not fail closed");
+        if (!fault || !failed || !pending || debug_state[31:24]!=8'h51 || debug_state[1:0]!=2'b10 || debug_state[23:9]!=DEPTH) $fatal(1,"overflow did not fail closed");
         start(0);
         repeat(4) @(negedge clk);
         if (offered || flushing || !pending) $fatal(1,"overflow silently changed order");

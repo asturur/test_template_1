@@ -136,6 +136,14 @@ class Reader:
                                               flags_hex=f'0x{w[242]:08x}', lba=w[243],
                                               **{name: bool(w[242] & (1 << bit))
                                                  for bit, name in enumerate(save_flags, 4)})
+                if w[244] >> 24 == 0x51:
+                    q = w[244]
+                    event['save_queue'] = dict(count=(q >> 9) & 0x7fff,
+                        initialized=bool(q & 256), fault=bool(q & 128),
+                        flush_error=bool(q & 64), flushing=bool(q & 32),
+                        in_flight=bool(q & 16), mark_pending=bool(q & 8),
+                        head_ready=bool(q & 4), overflow=bool(q & 2),
+                        invalid_sector=bool(q & 1), raw_hex=f'0x{q:08x}')
                 if ngd[396] == 0x504E:
                     panic = struct.pack('<6H', *ngd[398:404])
                     event['panic'] = dict(valid_mask=ngd[397] & 7, payload_hex=panic.hex(),

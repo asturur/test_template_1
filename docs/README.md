@@ -7,7 +7,8 @@ entries below the handoff are the evidence log, newest first.
 
 | Document | Purpose |
 | --- | --- |
-| [sdram-early-boot-2026-11-13.md](sdram-early-boot-2026-11-13.md) | New bad-pointer captures, dbe5bc6 isolation, SDRAM pin-register correction and unverified fitter/board gates |
+| [save-queue-fault-2026-11-13.md](save-queue-fault-2026-11-13.md) | Qualified SDRAM IO packing/fit, clean boot queue-fault reset, containment and next DDR cause/count capture |
+| [sdram-early-boot-2026-11-13.md](sdram-early-boot-2026-11-13.md) | New bad-pointer captures, dbe5bc6 isolation, SDRAM pin-register correction and subsequent IO-packing/board qualification |
 | [crt-pixel-hold.md](crt-pixel-hold.md) | Reproduced CRT left-edge RGB corruption, existing-register hold fix and continuous-output tests |
 | [diagnostic-disk-retirement.md](diagnostic-disk-retirement.md) | Removed diagnostic disk/OSD and fourth HPS slot; retained DDR debugger and verification |
 | [euart-production-integration.md](euart-production-integration.md) | Completed production UART/CTSI host boundary, native CPU FIQ tests and remaining D550 peer gate |

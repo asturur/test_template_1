@@ -6,6 +6,16 @@ implementation defect has been corrected in RTL: SDRAM data-output registers
 could not pack into I/O cells. This is a board-fix candidate, not a verified
 successful boot or a new timing result.
 
+## Subsequent qualification:4dc6396/seed43
+
+Completed run43404825368 confirms all16 DQ input/data-output/OE registers pack
+in IO cells. Core setup/hold +0.360/+0.250ns; reported summary checks all positive,
+TNS zero. Two original-ROM boots no longer show the early sticky data fault and
+reach~1.108B CPU cycles before a separately identified save-queue fault revokes
+CPU release. This supports the pin-register correction without proving every
+SDRAM timing margin or full boot. No blanket dbe5bc6 rollback was made.
+See [build identities and next blocker](save-queue-fault-2026-11-13.md).
+
 ## Board observations
 
 Installed RBF exactly matches3ab8e10, run43391828015, seed43, SHA256

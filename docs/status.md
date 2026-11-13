@@ -1,3 +1,19 @@
+## 2026-11-13: New fit passes; runtime dirty-queue fault resets phone
+
+Installed4dc6396/seed43 identity verified. All16 SDRAM DQ input/data/OE registers
+now pack in IO cells; core setup/hold +0.360/+0.250ns, all reported TNS zero.
+Fit37,179 ALMs/506 M10Ks. Two original-ROM boots pass the earlier bad-pointer
+region but stop at~1.108B CPU cycles: tracker_fault clears restored, revoking
+CPU release even with autosave Off. Clean Run without Flush repeats it. No data
+fault or panic recorded. Preserve completed restores on that failure; saves
+still fail with sticky errors/no retry, unsafe remount still blocks boot.
+Negative control fails, ordered38/legacy31 actual HPS checks pass. Production
+8,320-sector queue and repeated marks pass behavioral/Intel RAM; FPGA trigger
+unresolved. Add two sticky cause bits and existing count to DDR word244 for next
+capture. No firmware/RAM/media/PLL changes, CI launch/watch or other simulations.
+User saved Run for next reload; no patch preparation needed. New RBF required.
+Details: [save-queue-fault-2026-11-13.md](save-queue-fault-2026-11-13.md).
+
 ## 2026-11-13: New board early RAM fault; separate SDRAM data/OE registers
 
 Installed3ab8e10/seed43 confirmed. Three original-ROM boots fault at2AFFF3DC

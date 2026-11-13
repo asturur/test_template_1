@@ -19,7 +19,7 @@ module tb;
     wire sv,sr,sw,sd;wire [31:0] sa,sdata,srd;
     wire xv,xr,xw,xd;wire [31:0] xa,xdata,xrd,lost;
     ngage_diag_ddr #(.PERIOD(12000),.BUILD_TAG(64'h0032343131303100)) snapshot(
-        .clk(clk),.reset(reset),.cpu_reset(cpu_reset),.save_observation(64'h12345678abcdef00),.values(values),
+        .clk(clk),.reset(reset),.cpu_reset(cpu_reset),.save_observation(64'h12345678abcdef00),.save_queue_observation(32'h514101c2),.values(values),
         .capture_active(capture),.debug_word(debug_word),.debug_data(debug_data),
         .req_valid(sv),.req_ready(sr),.req_write(sw),.req_addr(sa),.req_data(sdata),.rsp_valid(sd),.rsp_data(srd));
     ngage_diag_text_ddr #(.RING_BITS(RING_BITS),.GAP_CYCLES(8)) text(
@@ -148,7 +148,7 @@ module tb;
         if(text_commits!=5)$fatal(1,"12-byte batching: %d",text_commits);
         wait(snapshot_commits>=1);
         k=memory[(16'hf000>>2)+255]!=0 ? (16'hf000>>2) : (16'hf400>>2);
-        if(memory[k+242]!==32'habcdef00||memory[k+243]!==32'h12345678)$fatal(1,"save progress words");
+        if(memory[k+242]!==32'habcdef00||memory[k+243]!==32'h12345678||memory[k+244]!==32'h514101c2)$fatal(1,"save progress words");
         for(i=0;i<24;i=i+1)if(memory[k+8+i]!==values[i*32+:32])$fatal(1,"monitor word %d",i);
         if(memory[k+32]!==32'h00014e47)$fatal(1,"NGD registered read pipeline %h",memory[k+32]);
         if(memory[k+32+198]!==32'h0007504e)$fatal(1,"panic metadata snapshot %h",memory[k+230]);

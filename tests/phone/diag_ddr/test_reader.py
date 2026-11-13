@@ -18,6 +18,16 @@ for name in ('guard.bin', 'guard-wrap.bin'):
     assert snap[0]['values']['fetch_pc'] == 0xABC00000
     assert snap[0]['save_progress']['lba'] == 0x12345678
     assert snap[0]['save_progress']['flags_hex'] == '0xabcdef00'
+    assert snap[0]['save_queue'] == dict(count=8320, initialized=True,
+        fault=True, flush_error=True, flushing=False, in_flight=False,
+        mark_pending=False, head_ready=False, overflow=True,
+        invalid_sector=False, raw_hex='0x514101c2')
+    # Older snapshots leave the extension word zero; they remain readable.
+    legacy = bytearray(raw)
+    for pos in (0xF000+244*4, 0xF400+244*4):
+        struct.pack_into('<I', legacy, pos, 0)
+    old = [e for e in diag.Reader(legacy).poll() if e['type'] == 'snapshot']
+    assert len(old) == 1 and 'save_queue' not in old[0]
     assert snap[0]['panic']['valid_mask'] == 0, 'cold reset clears panic validity'
     assert reader.poll() == [], 'duplicate output'
     # A torn mailbox is ignored even when its magic/version look right.

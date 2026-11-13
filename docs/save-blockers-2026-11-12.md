@@ -22,9 +22,12 @@ resident DDR image; these later changes have no persistence guarantee after
 failure. Cold reload is still needed to reinitialize persistence. No automatic
 retry, rollback or successful-save claim was added.
 
-Restore failure, malformed/short reads, unsafe image replacement and internal
-queue faults keep their existing boot-blocking policy. An image replacement
-after failed persistence still revokes the resident mount gate. Timeouts remain
+Restore failure, malformed/short reads and unsafe image replacement still
+block CPU release. Internal queue faults initially retained that policy too.
+The2026-11-13 board capture confirms a queue fault is the next CPU-reset cause;
+that path now preserves completed restores. See the
+[queue-fault follow-up](save-queue-fault-2026-11-13.md). Image replacement after
+failed persistence still revokes the resident mount gate. Timeouts remain
 unchanged:1 second per HPS wait phase in the78 MHz production build. The fix
 adds no storage, no CPU pipeline stage and no normal-save transaction cycles.
 
@@ -82,8 +85,9 @@ registers, counters or RAM were added for this observation. The SSH reader emits
 With a new RBF, capture DDR JSONL before and during one save action. Check the
 manager state, pending/quiescent, DDR request/ready/done, HPS request/ACK, slot,
 LBA, queue flags and per-device error. Quarter-second observations may miss
-short phases but should show a sustained wait. Exact queue depth, completed
-sector count and a latched timeout-phase reason are not implemented.
+short phases but should show a sustained wait. Queue count and sticky overflow/invalid-sector reason were added in word244
+on2026-11-13. Completed-sector count and a latched timeout-phase reason remain
+unimplemented.
 
 ## Checks
 

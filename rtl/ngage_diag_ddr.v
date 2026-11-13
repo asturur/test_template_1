@@ -12,6 +12,7 @@ module ngage_diag_ddr #(
     input  wire         cpu_reset,
     input  wire [767:0] values,
     input  wire [ 63:0] save_observation,
+    input  wire [ 31:0] save_queue_observation,
     output wire         capture_active,
     output wire [ 10:0] debug_word,
     input  wire [ 15:0] debug_data,
@@ -70,6 +71,7 @@ module ngage_diag_ddr #(
                 241:     snapshot_data = BUILD_TAG[63:32];
                 242:     snapshot_data = save_observation[31:0];
                 243:     snapshot_data = save_observation[63:32];
+                244:     snapshot_data = save_queue_observation;
                 default: snapshot_data = 0;
             endcase
         end

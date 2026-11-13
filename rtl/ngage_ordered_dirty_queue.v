@@ -14,6 +14,7 @@ module ngage_ordered_dirty_queue #(
     input  wire          flush_start,
     input  wire [  AW:0] flush_limit,
     input  wire          abort_flush,
+    output wire [  31:0] debug_state,
     output reg           init_done = 0,
     output reg           flushing = 0,
     output reg           flush_error = 0,
@@ -36,6 +37,7 @@ module ngage_ordered_dirty_queue #(
     reg [AW-1:0] mark_sector = 0;
     reg push_forward = 0, pop_forward = 0;
     reg push_generation = 0, pop_generation = 0;
+    reg [1:0] fault_cause = 0;
     wire enqueue_bit, dequeue_bit;
     wire [AW:0] entry;
     wire head_generation = entry[AW];
@@ -52,6 +54,21 @@ module ngage_ordered_dirty_queue #(
     wire overflow = new_entry && !push;
     wire clearing = !init_done && !cold_reset;
     wire [AW-1:0] lookup_sector = input_valid ? dirty_sector : {AW{1'b0}};
+    // Passive tagged DDR observation. Count already freezes after a fault;
+    // retain only its two cause bits, not another copy of the queue payload.
+    wire [14:0] observed_count = count;
+    assign debug_state = {
+        8'h51,
+        observed_count,
+        init_done,
+        queue_fault,
+        flush_error,
+        flushing,
+        in_flight,
+        mark_valid,
+        head_ready,
+        fault_cause
+    };
     assign pending = count != 0 || in_flight || mark_valid || (init_done && dirty_valid);
 
     // Separate generation RAMs allow one mark lookup and both state updates
@@ -114,6 +131,7 @@ module ngage_ordered_dirty_queue #(
             flushing     <= 0;
             flush_error  <= 0;
             queue_fault  <= 0;
+            fault_cause  <= 0;
             in_flight    <= 0;
             sector_valid <= 0;
             limited      <= 0;
@@ -140,6 +158,7 @@ module ngage_ordered_dirty_queue #(
             endcase
 
             if (overflow || invalid_mark) queue_fault <= 1;
+            if (!queue_fault && (overflow || invalid_mark)) fault_cause <= {overflow, invalid_mark};
             if (abort_flush || queue_fault || overflow || invalid_mark) begin
                 flushing     <= 0;
                 flush_error  <= 1;

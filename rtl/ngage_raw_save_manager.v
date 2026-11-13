@@ -22,6 +22,7 @@ module ngage_raw_save_manager #(
     input  wire        flush_start,
     input  wire        autosave_enable,
     input  wire        pause_autosave,
+    output wire [31:0] debug_queue_state,
     output wire [ 1:0] slot_error,
     output wire        mounted,
     output wire [31:0] debug_state,
@@ -162,6 +163,7 @@ module ngage_raw_save_manager #(
             ) queue (
                 .clk          (clk),
                 .cold_reset   (reset),
+                .debug_state  (debug_queue_state),
                 .dirty_valid  (dirty_valid),
                 .dirty_sector (dirty_sector),
                 .flush_start  (start_flush),
@@ -179,9 +181,10 @@ module ngage_raw_save_manager #(
                 .sector_ok    (!b_error)
             );
         end else begin : legacy_scan
-            assign tracker_pending = 0;
-            assign tracker_fault   = 0;
-            assign autosave_due    = 0;
+            assign tracker_pending   = 0;
+            assign tracker_fault     = 0;
+            assign debug_queue_state = 0;
+            assign autosave_due      = 0;
             ngage_dirty_tracker #(
                 .SECTORS(C_SECTORS + PMM_SECTORS),
                 .AW     (14)
@@ -280,7 +283,11 @@ module ngage_raw_save_manager #(
             end
 
             if (tracker_fault && state != FAILED) begin
-                restored       <= 0;
+                // Queue integrity stops persistence, not the resident phone.
+                // Keep completed restores valid, as for a failed write-back.
+                // An incomplete restore stays unreleased. Simultaneous or
+                // later unsafe replacement still revokes it; FAILED cannot retry.
+                if (any_mount && unsafe_change) restored <= 0;
                 pending        <= 0;
                 saved          <= 0;
                 terminal_error <= 1;
