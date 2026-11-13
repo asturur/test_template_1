@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-13",
+  "base_commit": "91f7da1a1818579e9da5536e74e3b1b08d7c5b04",
+  "cause": "Unconditional copying of read-ahead framebuffer RGB between CE pulses",
+  "before": {
+    "source_sha256": "c08944defd383527c0515920b9d6e7498a815c9d94172059d59afb776f8026f8",
+    "pixel_div": 12,
+    "pattern": "two white columns at each edge",
+    "incorrect_system_clock_samples": 199056,
+    "first_error_raster": [
+      73,
+      16
+    ],
+    "first_error_native": [
+      1,
+      0
+    ],
+    "got_rgb": "004400",
+    "expected_rgb": "ffffff"
+  },
+  "after": [
+    {
+      "pixel_div": 12,
+      "clock_ratio_hz": 78000000,
+      "patterns_passed": 2,
+      "checked_clocks_per_pattern": 1257600,
+      "active_pixels_per_pattern": 36608,
+      "each_two_column_edge_clocks_per_pattern": 4992
+    },
+    {
+      "pixel_div": 16,
+      "clock_ratio_hz": 104000000,
+      "patterns_passed": 2,
+      "checked_clocks_per_pattern": 1676800,
+      "active_pixels_per_pattern": 36608,
+      "each_two_column_edge_clocks_per_pattern": 6656
+    }
+  ],
+  "source_sha256": {
+    "rtl/ngage_mister.v": "1d04b73c453a040335350b41da7f221b1e3555efbebab90c11a64eb6771f2c94",
+    "rtl/ngage_lcd_display.v": "8d3d8897309b0104e867bf335df685131f93bd38188883501dac388acf98b48f",
+    "tests/phone/crt_output/tb.v": "41131c6e783c71002f57e53b99be74655e0b6a95e677d4232a59f127315a8f16",
+    "tests/phone/crt_output/run.sh": "0c39e9f0cc8429bca316ce0238aed7998e296552f5168946536000f385f7a480",
+    "sys/scanlines.v": "1fc7ac5359fd224a3fc06388f7671e07bf57cf6a39f35803a265661c56c564d4",
+    "sys/vga_out.sv": "02a533c3dfd547afddea2946019ecc79bbe9c27bb6128c0999fa5fc9e78f8108"
+  },
+  "checks": {
+    "continuous_crt": "PASS both patterns at div12 and16",
+    "native_ce_de": "PASS",
+    "top_structural": "PASS HPS/PLL stubbed",
+    "pinned_formatter": "PASS idempotent",
+    "shell_syntax": "PASS",
+    "diff_check": "PASS"
+  },
+  "added_registers": 0,
+  "added_ram_instances": 0,
+  "added_pipeline_stages": 0,
+  "fit_or_sta_run": false,
+  "physical_crt_verified": false,
+  "pll_changed": false,
+  "geometry_changed": false
+}

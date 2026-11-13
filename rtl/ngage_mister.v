@@ -686,13 +686,15 @@ module ngage_mister #(
         board_trace_sel == 4 ? board_trace_data[23:16] : board_trace_data[31:24];
     assign debug_values = diagnostic_values;
     // Phone-only video retains the existing one-clock RGB/control boundary.
+    // The panel RAM reads ahead between CE pulses. Hold the sampled pixel
+    // throughout its period: analog VGA consumes RGB on every system clock.
     // The text renderer, font and video snapshot registers are absent. DDR
     // recorders above/below remain independent of video and continue running.
     reg [ 5:0] video_control = 6'b011110;
     reg [11:0] video_pixels = 0;
     always @(posedge clk_sys) begin
         video_control <= {raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank, 1'b0};
-        video_pixels  <= raw_rgb;
+        if (raw_ce) video_pixels <= raw_rgb;
     end
     assign {ce_pix, hsync, vsync, hblank, vblank} = video_control[5:1];
     assign rgb444                                 = video_pixels;

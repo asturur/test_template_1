@@ -1,3 +1,13 @@
+## 2026-11-13: CRT left-edge pixel corruption reproduced and fixed
+
+Continuous RGB sampling reproduces missing left white border: native pixel1
+becomes pixel3 between CE pulses. Cause is read-ahead LCD RAM copied into the
+output RGB register on every system clock. Qualify its existing write with
+raw_ce; no new register/RAM/stage, no geometry or PLL change. Both div12/16
+continuous patterns cover all176x208 pixels and symmetric first/last columns;
+native CE/DE and production top checks pass. Physical CRT confirmation and
+fit/STA remain pending. Details: [crt-pixel-hold.md](crt-pixel-hold.md).
+
 ## 2026-11-13: Diagnostic disk removed; DDR debugger retained
 
 Removed S3/NGD mount and Export OSD, exporter/controller/two RAM instances,

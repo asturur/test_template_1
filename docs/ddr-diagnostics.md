@@ -159,9 +159,9 @@ bulk persistence and HPS latency, capture scheduler/raw-save state and last
 completed sector, and compare ACK ownership/OSD behavior. Do not mask the fault
 by extending timeouts without evidence. No persistence RTL changed in this pass.
 
-Also queued, unchanged: HDMI scrambled lines; CRT left shift and missing first
-one/two columns or pixel/window misalignment. Startup/runtime diagnosis takes
-priority over these display defects.
+Display follow-up2026-11-13: CRT missing left columns now has a reproduced
+RGB hold bug and an HDL correction; see [crt-pixel-hold.md](crt-pixel-hold.md).
+Hardware confirmation, CRT centering and HDMI scrambled lines remain pending.
 
 
 ## Save progress extension
