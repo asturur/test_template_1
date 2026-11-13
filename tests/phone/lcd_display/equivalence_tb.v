@@ -1,5 +1,7 @@
 `timescale 1ns/1ps
-// Architectural/timing comparison, including malformed geometry and headers.
+// Protocol/state comparison, including malformed geometry and headers.
+// Historical reference emits high-halfword-first RGB; the intentional scanout
+// correction is checked independently against native little-endian pixels.
 module equivalence_tb;
     reg clk = 0, reset = 1, diagnostic = 0, write_valid = 0;
     reg [7:0] status = 0;
@@ -91,8 +93,8 @@ module equivalence_tb;
     );
     always @(negedge clk) begin
         checks = checks + 1;
-        if ({c_pixel_commit, c_pixel_mode, c_ce_pix, c_hsync, c_vsync, c_hblank, c_vblank, c_rgb, c_frame_complete, c_incomplete, c_unsupported, c_unsupported_valid, c_unsupported_data, c_unsupported_header, c_unsupported_command, c_raster_x, c_raster_y} !==
-            {r_pixel_commit, r_pixel_mode, r_ce_pix, r_hsync, r_vsync, r_hblank, r_vblank, r_rgb, r_frame_complete, r_incomplete, r_unsupported, r_unsupported_valid, r_unsupported_data, r_unsupported_header, r_unsupported_command, r_raster_x, r_raster_y})
+        if ({c_pixel_commit, c_pixel_mode, c_ce_pix, c_hsync, c_vsync, c_hblank, c_vblank, c_frame_complete, c_incomplete, c_unsupported, c_unsupported_valid, c_unsupported_data, c_unsupported_header, c_unsupported_command, c_raster_x, c_raster_y} !==
+            {r_pixel_commit, r_pixel_mode, r_ce_pix, r_hsync, r_vsync, r_hblank, r_vblank, r_frame_complete, r_incomplete, r_unsupported, r_unsupported_valid, r_unsupported_data, r_unsupported_header, r_unsupported_command, r_raster_x, r_raster_y})
             $fatal(1, "LCD cycle mismatch check=%0d rows=%0d..%0d addr=%h data=%h", checks, first_row, last_row, write_addr, write_data);
     end
     task write_word;

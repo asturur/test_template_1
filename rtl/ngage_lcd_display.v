@@ -242,8 +242,9 @@ module ngage_lcd_display #(
         end
     end
     always @* begin
-        // Panel order: high halfword pixel precedes low halfword pixel.
-        phone_rgb = scan_x[0] ? pixel_word[11:0] : pixel_word[23:12];
+        // Native framebuffer halfwords are little-endian: the pixel at the
+        // lower address comes first. Keep storage/DMA words unchanged.
+        phone_rgb = scan_x[0] ? pixel_word[23:12] : pixel_word[11:0];
         rgb       = 0;
         if (scan_x < 320 && scan_y < 240) begin
             if (diagnostic) begin

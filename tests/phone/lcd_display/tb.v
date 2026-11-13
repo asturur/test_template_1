@@ -24,8 +24,8 @@ initial begin
  wr('h0c121208,'hfe);if(!unsupported || !complete)begin $display("FAIL unsupported command diagnostic");$finish;end
  if(!dut.display_on)begin $display("FAIL display on");$finish;end
  @(negedge clk);dut.x=72;dut.y=16;dut.div=0;@(negedge clk);#1;
- if(rgb!==12'habc)begin $display("FAIL first pixel orientation %h",rgb);$finish;end
- repeat(16)@(negedge clk);#1;if(rgb!==12'h123)begin $display("FAIL second pixel orientation %h",rgb);$finish;end
+ if(rgb!==12'h123)begin $display("FAIL first pixel orientation %h",rgb);$finish;end
+ repeat(16)@(negedge clk);#1;if(rgb!==12'habc)begin $display("FAIL second pixel orientation %h",rgb);$finish;end
  @(negedge clk);dut.x=336;dut.div=0;@(negedge clk);#1;if(hs!==0)begin $display("FAIL horizontal sync assertion");$finish;end
  @(negedge clk);dut.x=368;dut.div=0;@(negedge clk);#1;if(hs!==1)begin $display("FAIL horizontal sync release");$finish;end
  @(negedge clk);dma_valid=1;dma_addr=7;dma_data=32'h01110222;@(negedge clk);dma_valid=0;

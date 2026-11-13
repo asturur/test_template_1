@@ -14,6 +14,7 @@ module tb;
     wire sl_ce, sl_de, sl_hs, sl_vs, analog_de, analog_hs, analog_vs;
     integer i, pattern = 0, samples, pixels, left_samples, right_samples;
     integer source_samples, output_samples, mismatches, ce_mismatches, first_x, first_y;
+    integer hdmi_pixels = 0;
     integer first_rgb, first_expected, done = 0;
     reg capture = 0, collecting = 0;
     // One production register, three scanline stages, three analog stages.
@@ -79,6 +80,13 @@ module tb;
             expected_y[i] <= expected_y[i-1];
         end
     end
+    // This is the actual shared RGB/CE/DE input consumed by HDMI ascal.
+    always @(negedge clk) if (expected_valid[3] && sl_ce && sl_de) begin
+        if (sl_rgb !== expected_rgb[3])
+            $fatal(1,"HDMI source column order x=%0d y=%0d got=%06x expected=%06x",
+                expected_x[3],expected_y[3],sl_rgb,expected_rgb[3]);
+        hdmi_pixels = hdmi_pixels + 1;
+    end
     always @(negedge clk) if (expected_valid[6]) begin
         output_samples = output_samples + 1;
         if ({analog_de,analog_hs,analog_vs} !== {expected_de[6],expected_hs[6],expected_vs[6]})
@@ -111,21 +119,22 @@ module tb;
         for (pattern = 0; pattern < 2; pattern = pattern + 1) begin
             for (source_samples = 0; source_samples < 18304; source_samples = source_samples + 1) begin
                 @(negedge clk); dma_valid = 1; dma_addr = source_samples;
-                dma_data = {4'b0,pixel((source_samples%88)*2,source_samples/88),
-                            4'b0,pixel((source_samples%88)*2+1,source_samples/88)};
+                // Native little-endian halfword stores: pixel x at the low address.
+                dma_data = {4'b0,pixel((source_samples%88)*2+1,source_samples/88),
+                            4'b0,pixel((source_samples%88)*2,source_samples/88)};
             end
             @(negedge clk); dma_valid = 0; capture = 1;
             wait (collecting); wait (!collecting); repeat (9) @(negedge clk);
             if (mismatches) $fatal(1,"CRT RGB hold div=%0d pattern=%0d: %0d bad clocks, CE errors=%0d; first raster=%0d,%0d got=%06x expected=%06x",
                 PIXEL_DIV,pattern,mismatches,ce_mismatches,first_x,first_y,first_rgb,first_expected);
-            if (samples != 176*208*PIXEL_DIV || pixels != 176*208 ||
+            if (hdmi_pixels != 176*208 || samples != 176*208*PIXEL_DIV || pixels != 176*208 ||
                 left_samples != 2*208*PIXEL_DIV || right_samples != left_samples ||
                 output_samples != 400*262*PIXEL_DIV)
                 $fatal(1,"missing pixels or edge columns");
-            $display("PASS continuous CRT div=%0d pattern=%0d: %0d clocks, %0d pixels, left/right %0d/%0d clocks",
+            $display("PASS continuous CRT and HDMI source div=%0d pattern=%0d: %0d clocks, %0d pixels, left/right %0d/%0d clocks",
                 PIXEL_DIV,pattern,output_samples,pixels,left_samples,right_samples);
             samples = 0; pixels = 0; left_samples = 0; right_samples = 0;
-            output_samples = 0;
+            hdmi_pixels = 0; output_samples = 0;
         end
         $finish;
     end

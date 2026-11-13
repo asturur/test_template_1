@@ -12,7 +12,7 @@ initial begin
  for(w=0;w<20;w=w+1)begin addr=w;data='h0abc0123;valid=1;@(negedge clk);end
  valid=0;#1;if(!incomplete || complete)$fatal(1,"partial transfer status");
  dut.x=72;dut.y=16;dut.div=0;repeat(3)@(negedge clk);#1;
- if(rgb!==12'habc)$fatal(1,"partial pixel hidden %h",rgb);
+ if(rgb!==12'h123)$fatal(1,"partial pixel hidden %h",rgb);
  // Untouched pixels retain deterministic initial black.
  dut.x=72;dut.y=17;dut.div=0;repeat(3)@(negedge clk);#1;
  if(rgb!==0)$fatal(1,"unwritten pixel not black %h",rgb);

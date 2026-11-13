@@ -64,3 +64,12 @@ between-CE RGB corruption is a possible explanation for differing appearances,
 not proof that it accounts for this report. First retest the hold fix, then
 locate any remaining divergence at scaler sampling/packing/line readback rather
 than changing shared framebuffer order based only on the HDMI appearance.
+
+## Follow-up: shared pair order corrected
+
+The later natural-coordinate test proved the shared high-first selector was
+wrong independently of RGB hold. The original CRT fixture loaded words in the
+same reversed order, so its border/hold success did not validate native pair
+ordering. Both fixture input and scanout are corrected; the hold fix remains.
+See [LCD pair-order evidence](lcd-pair-order.md). This supersedes the earlier
+recommendation to retain shared ordering pending investigation.

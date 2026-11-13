@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-13",
+  "base_commit": "4c8c3a3",
+  "cause": "Shared LCD scanout selected high halfword first; old native oracle hid reversal with x XOR 1",
+  "fix": "Select low-address halfword first; retain CE-qualified output hold",
+  "negative_control": {
+    "result": "FAIL old RTL against natural native pixel coordinates",
+    "first_raster": [
+      72,
+      16
+    ],
+    "got": "010",
+    "expected": "000",
+    "log_sha256": "1729ff9ee6d2188ba9677b220e2186091d49521f983cb3e9ec6a9bc2cdd9c7ae"
+  },
+  "checks": {
+    "lcd_protocol": "PASS",
+    "frozen_protocol_state": "PASS 43681 row pairs,1135723 checks; RGB intentionally checked independently",
+    "native_pixels": "PASS 36608 pixels",
+    "crt_and_hdmi_source": "PASS two patterns at div12 and16",
+    "top_elaboration": "PASS HPS/PLL stubbed"
+  },
+  "coverage": [
+    {
+      "pixel_div": 12,
+      "clocks_per_pattern": 1257600,
+      "pixels_per_pattern": 36608,
+      "patterns": 2
+    },
+    {
+      "pixel_div": 16,
+      "clocks_per_pattern": 1676800,
+      "pixels_per_pattern": 36608,
+      "patterns": 2
+    }
+  ],
+  "added_registers": 0,
+  "added_ram_instances": 0,
+  "added_pipeline_stages": 0,
+  "pll_changed": false,
+  "fit_sta_run": false,
+  "physical_outputs_verified": false,
+  "log_sha256": "6af6adc1bf2bb819c0b68a826237df01ca421d4f03c27a42de44feeaa4cc3fa0",
+  "source_sha256": {
+    "rtl/ngage_lcd_display.v": "0a7fbe123e9a30d4ec660e8d28ff7bdb0f30355a8b20077346502b8c1199d1f5",
+    "tests/phone/crt_output/tb.v": "70a49239f7b43feb6f238a52ee7cbf7d1ddc7da3391934a565d65d86cc96341b",
+    "tests/phone/lcd_display/native_tb.v": "f63f26d06f5da27798ad7ee61e0bc8b4138c12ba0f0ed1215917add8b4bf25e2",
+    "tests/phone/lcd_display/equivalence_tb.v": "c290e82539cb043de559e66fe3fc6dfd65c0cdab4432b3239bde24d6eae1bf27",
+    "sys/scanlines.v": "1fc7ac5359fd224a3fc06388f7671e07bf57cf6a39f35803a265661c56c564d4",
+    "sys/vga_out.sv": "02a533c3dfd547afddea2946019ecc79bbe9c27bb6128c0999fa5fc9e78f8108"
+  }
+}

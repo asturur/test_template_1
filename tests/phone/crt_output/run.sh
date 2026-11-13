@@ -24,5 +24,5 @@ for divider in 12 16; do
   sys/scanlines.v sys/vga_out.sv tests/phone/crt_output/tb.v
  vvp "$out/test-$divider" > "$out/run-$divider.log" 2>&1
  cat "$out/run-$divider.log"
- grep -q '^PASS continuous CRT' "$out/run-$divider.log"
+ grep -q '^PASS continuous CRT and HDMI source' "$out/run-$divider.log"
 done

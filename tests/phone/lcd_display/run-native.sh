@@ -23,14 +23,14 @@ from pathlib import Path
 import runpy,hashlib,json
 out=Path('build/sim/unit-lcd-native');screens=Path('build/sim/screens/native-phone-video-replay');screens.mkdir(exist_ok=True)
 runpy.run_path('tests/phone/hardware_boot/run-logo.py')['png'](out/'scanout.ppm',screens/'scanout.png')
-# Check high-halfword-first scanout against the unchanged source words.
+# Check low-halfword-first scanout against the unchanged source words.
 import struct
 expected=bytearray()
 for word, in struct.iter_unpack('<I',Path('build/sim/runs/logo-normal-2000m/framebuffer.bin').read_bytes()):
- for pixel in (word>>16,word&0xffff):
+ for pixel in (word&0xffff,word>>16):
   expected.extend(((pixel>>8&15)*17,(pixel>>4&15)*17,(pixel&15)*17))
 assert (out/'scanout.ppm').read_bytes()==b'P6\n176 208\n255\n'+expected
-(screens/'provenance.json').write_text(json.dumps({'kind':'display-only RTL replay, not a new phone cold boot','source':'build/sim/runs/logo-normal-2000m/framebuffer.bin','active_resolution':[176,208],'scanout_png_sha256':hashlib.sha256((screens/'scanout.png').read_bytes()).hexdigest(),'result':'All active raster pixels match high-halfword-first source order; no padding or diagnostic overlay.'},indent=2)+'\n')
-print('PASS native scanout matches high-halfword-first firmware pixels')
+(screens/'provenance.json').write_text(json.dumps({'kind':'display-only RTL replay, not a new phone cold boot','source':'build/sim/runs/logo-normal-2000m/framebuffer.bin','active_resolution':[176,208],'scanout_png_sha256':hashlib.sha256((screens/'scanout.png').read_bytes()).hexdigest(),'result':'All active raster pixels match low-halfword-first source order; no padding or diagnostic overlay.'},indent=2)+'\n')
+print('PASS native scanout matches low-halfword-first firmware pixels')
 PY
 fi

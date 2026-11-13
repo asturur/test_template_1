@@ -31,7 +31,7 @@ task capture;
       total=total+1;if(!hs)hticks=hticks+1;if(!vs)vticks=vticks+1;
       if(!hb && !vb)begin
        if(x<72 || x>=248 || y<16 || y>=224)$fatal(1,"border included in phone DE %0d,%0d",x,y);
-       if(rgb!==expected((x-72)^1,y-16))$fatal(1,"pixel mismatch pattern %0d at %0d,%0d: %h want %h",pattern,x,y,rgb,expected((x-72)^1,y-16));
+       if(rgb!==expected(x-72,y-16))$fatal(1,"pixel mismatch pattern %0d at %0d,%0d: %h want %h",pattern,x,y,rgb,expected(x-72,y-16));
        active=active+1;
        if(fd)$fwrite(fd,"%c%c%c",{rgb[11:8],rgb[11:8]},{rgb[7:4],rgb[7:4]},{rgb[3:0],rgb[3:0]});
       end
