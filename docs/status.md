@@ -1,3 +1,144 @@
+## 2026-11-14: Active MMC mount investigation — native CMD2 identification failure
+
+User reprioritized successful MMC mounting; investigation continues. Original
+SPMark04 file is still unchanged. Observation-only fresh-Hold driver hooks show
+CMD0 success and two CMD1 replies (OCR00ff8000 then80ff8000), then CMD2 returns
+native8000 while the last captured host status is100. No CID bytes replace the
+previous OCR in the request response buffer, and the sequence retries. This
+locates rejection before filesystem sector reads; it is not proof of bad FAT
+or CRC. Adding raw-status/native-event observations to resolve the first failure.
+
+The first kernel RDebug-based probe was invalid (ABT503aec54/reason10000000),
+removed by reload. Current direct-port hooks use the established privileged
+59000000 diagnostic endpoint, retain original firmware behavior/checksum check,
+and pass320 randomized state/output/stack/flags cases across five hooks. Exact
+sources/captures in scratch/mmc-native-20261114. Temporary observation changes
+are not a boot fix. No production HDL, PLL, card image or other simulations changed.
+
+## 2026-11-14: SPMark04 MMC detected but rejected before app launch
+
+Tested `/media/fat/games/ngage/spmark04.mmc` in original ngage1 build
+2d9605f/run43572455384/seed44, auto-Run, save Off, no firmware/RAM patches.
+Stock MGL mounted the existing image in HPS slot2; Main held the exact file
+alongside ngage1 boot0/boot1.vhd. Native Menu never acquired a SPMark icon.
+Tools → Memory prompted to format, then displayed “(memorycard corrupted)”
+after No. Formatting was declined. No benchmark executed, no scores, and no
+SPMark crash: the stopping point is native card/filesystem mounting.
+
+Image footer/profile/capacity pass the existing inspector; read-only host FAT
+directory parsing finds SYSTEM/APPS/SPMARK/SPMARK.APP (UID10200F51), AIF/RSC,
+3DTEST.DLL and assets. This does not establish complete filesystem integrity
+or correct on-wire MMC reads. Exact image, C and PMM hashes remain unchanged.
+Alarm dismissal is already recorded separately. Stopped at this clear result
+as requested. Next MMC work must distinguish host-sector/card-protocol data
+from original-driver expectations before changing the image or firmware.
+See [SPMark04 MMC result](mmc-spmark04.md). No production RTL/build change.
+
+## 2026-11-14: Alarm notification qualified, dismissal unresolved; original reload
+
+Images completes its initial load without focus: card tab reports no card;
+phone tab shows existing N-Gage1/2/3 thumbnails. Opening N-Gage1 was interrupted
+by a native Clock alarm dialog: “Clock alarm: Snooze9:35AM”, Stop/Snooze controls.
+This qualifies GUI notification, not exact firing time (prior keys could snooze)
+or audio. F1 Stop tap and held1s did not visibly remove the dialog. Dedicated
+20s78snapshot capture verifies mask20 in4samples, no kernel stop; CPU remains
+active in FbsCli/Palette/kernel. Do not claim dropped input or an ADSP cause.
+Alarm dismissal joins the shared visible-wait/focus symptoms as unresolved.
+
+Reloaded original auto-Run RBF to clear ALL temporary guest state: alarm,
+Calendar Month default and Converter Length input. C/PMM card files unchanged,
+no save/Flush/backup. New read-only boot captureclean-final-boot.jsonl; full
+post-autoload original verificationclean-restored.json. Remaining Media/local
+UI checks should be done without Calendar/alarm to avoid contaminating them.
+No production RTL fix, no new build/PLL/resource change.
+
+Current CPU cache source fact: arm920/cache_tags.sv is ALREADY64-way with8
+segments. Historical docs calling an older cache direct mapped do not describe
+the present implementation. No cache hash/associativity change proposed here.
+
+## 2026-11-14: More native local functions pass; Tools focus recovery observed
+
+Original firmware: Apps installed/downloaded lists empty; Favourites existing
+Notes shortcut launches editor (closed empty); To-do A saved/reopened with exact
+subject/date/Normal priority and deleted back to no data. Converter Length
+1mile displays1609.34399metres. Help opens Installing applications article.
+Settings and Device/General fields open: Automatic device language, English
+writing, DictionaryOff. Date/time settings show9:21AM/01-01-2003; no changes.
+Clock analog progression is about9minutes during539.05wallseconds (coarse
+image reading only, not oscillator calibration). Temporary alarm09:20 configured,
+but no alarm popup was qualified; intervening key input could dismiss it. No
+audio pass or alarm-failure claim. Final reload must clear alarm/prefs.
+
+Manager opens no data. Memory application reports no memorycard inserted
+(slot not mounted; no MMC access qualification). About displays full native
+Nokia copyright view. Bluetooth opens Off with first-use N-Gage name query;
+cancelling it without enabling radio. No BT communication pass.
+
+SIM-directory selection/launch attempt remained on Tools and subsequent
+navigation appeared stalled. CPU/NOS continues, no fault/stop; live long Menu
+arrives(mask40 in4samples), task switcher opens, focus cancel restores Tools
+navigation. Same class of focus responsiveness symptom, not a proven SIM or
+alarm failure. Test card SST=0 and no ADN/6F3A or READ_RECORD support, so SIM
+phonebook is outside current card capabilities. Need explicit trace before
+changing SIM. Call services/RF/audio remain unimplemented/unqualified.
+Screens/captures in scratch/phone-functions-20261114. No production RTL change.
+
+## 2026-11-14: Clock progression valid; frozen-time hypothesis rejected
+
+After Menu restart, visually confirmed Extras then numeric1 opens Clock.
+clock-valid-start.png shows09:07 versus08:55 setup in this same boot, dated
+01/01/2003/no alarms. Absolute phone time has progressed; do not claim a frozen
+RTC/time source from earlier failed navigation screenshots. Wall timestamp
+saved in clock-valid-start-time.json for a later rate check. UEM RTC remains a
+staged model, but no timer/RTC code change is justified here. Continuing Apps,
+Favourites, To-do, Converter, Help, Media/Tools with original firmware. Calendar
+Month default remains a temporary volatile setting for final restoration.
+
+## 2026-11-14: Original-firmware Menu closure observed and restart succeeds
+
+During Calendar Month-default blank/focus/exit control, native UI reports
+“App. closed Menu” (calendar-control-exit.png). This is an actual new failure,
+not an observer-induced boot: original ROM/media were verified and all hooks
+removed. Subsequent short Menu restarts its populated grid normally
+(menu-after-closed.png).79snapshot read-only follow-up has panic valid_mask0,
+no recorded reason; native retained text only supplies existing BT-33 errors.
+Kernel panic recorder silence does NOT exclude a user-thread panic. Need a
+future standalone exit-tracer reproduction to get exact category/reason before
+any fix; do not claim ViewSrv or OOM from this notification alone.
+
+F2 during Calendar blank had no visible effect. A tab/Extras/Clock macro from
+that blank state also stayed Calendar; those images are NOT Clock evidence.
+After focus recovery the native Month body displays; Menu closure then seen.
+Clock/remaining apps continue only after the visually confirmed Menu restart.
+Temporary Month preference remains only in volatile guest C; restore by final
+original reload. No production RTL or extra FPGA resource changes.
+
+## 2026-11-14: Calendar alternate startup view also blocks
+
+Uninstrumented Settings opens after normal focus recovery. Default view radio
+shows original Day; changed temporarily to Month. Confirmed native Exit returns
+to Menu with Calendar selected, then Enter relaunch shows SAME blank Calendar
+body at12s. This is not confined to Day rendering. Default is temporarily Month
+in volatile guest C only; card images unchanged and saveOff. Restore Day or
+reload original before session ends. Testing native F2 in blank state next,
+then remaining apps. Full original ROM/settings/C/PMM verification passed after
+autoload; no software observers active. No production HDL fix yet.
+
+## 2026-11-14: Observer checkpoint CEBDB9C; original core restored
+
+Commitcebdb9c preserves native wait-animation identification, guarded user
+observers, exact ZAP trampoline reproducer and failed-probe warnings. Together
+with2cf9bdf it is local-only; no production HDL or new build. Pre-commit required
+formatting the isolated tb.v; formatted with the repository Verible rules.
+
+Original auto-Run firmware is now restored and fully verified in
+scratch/calendar-idle-run-20261114/restored.json: ROM88fd596a..., exact saved
+Run/save-Off CFG, C4a75e4cb..., PMM71189f7f.... An initial verifier was launched
+during media reload and failed the image assertion; rerunning read-only AFTER
+the native setup prompt passes. Do not hash before autoload finishes or treat
+that early mismatch as a retained patch. All software observers are gone.
+Next uninstrumented Calendar startup-view control, then remaining UI functions.
+
 ## 2026-11-14: CIdle starvation not demonstrated; return to uninstrumented app tests
 
 Calendar blank and focus recovery reproduce under the CIdle observer with no

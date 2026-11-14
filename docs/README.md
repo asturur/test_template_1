@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [mmc-spmark04.md](mmc-spmark04.md) | SPMark04 hardware mount attempt, native corrupted-card result, image identity and remaining boundary |
 | [phone-functions.md](phone-functions.md) | Sequential on-hardware Calendar, Contacts, Profiles and remaining function verification, data readback and unresolved latency |
 | [sim-mandatory-files.md](sim-mandatory-files.md) | Native serving-to-rejected transition, missing mandatory BCCH/Kc/FPLMN reads and small constant-profile correction |
 | [sim-fifo-single-write.md](sim-fifo-single-write.md) | Native SIM SELECT byte loss, physical RAM-port correction and original RX CPU/board qualification |

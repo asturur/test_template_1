@@ -79,6 +79,66 @@
     "scratch/phone-functions-20261114/clock-open.png": {
       "sha256": "223c6c31acd895e87c7ef6404977a3d1a7055bea60129cd30cd32ef3719a247f",
       "bytes": 30824
+    },
+    "scratch/phone-functions-20261114/calendar-month-relaunch-12s.png": {
+      "sha256": "0dfb82f8a82e313e7f5d8d0ee8c508d713cebedd02d5f2396f1dd77f2eff52d7",
+      "bytes": 25305
+    },
+    "scratch/phone-functions-20261114/calendar-control-exit.png": {
+      "sha256": "9074014d588110c27f22c4f4645a70fc082d1e28f1921394224574d9360cfa2d",
+      "bytes": 26683
+    },
+    "scratch/phone-functions-20261114/todo-readback.png": {
+      "sha256": "f0361ee67ffda73d796f80d5c9e1a85d3c2a52ae79e732e573be0cdd6edba54a",
+      "bytes": 25603
+    },
+    "scratch/phone-functions-20261114/todo-deleted.png": {
+      "sha256": "95494ba258299b785dee387a45a554b56a3c33b1a8bb9c3abd19060463302bb8",
+      "bytes": 27715
+    },
+    "scratch/phone-functions-20261114/converter-mile-result.png": {
+      "sha256": "023b65f41b320b56cd9319233424ec053e95a7bf6bfa5913a4387ade64db27b9",
+      "bytes": 26868
+    },
+    "scratch/phone-functions-20261114/help-article-text.png": {
+      "sha256": "923a8d412741a26b69eb5760c95d38d050acedaced83b8bc7c7d6dd50b47e988",
+      "bytes": 28470
+    },
+    "scratch/phone-functions-20261114/settings-general-fields.png": {
+      "sha256": "7112fd264f2696507b02d592e0fdbac3832686f6dc1921a6373f3c39809a87de",
+      "bytes": 30236
+    },
+    "scratch/phone-functions-20261114/settings-date-time.png": {
+      "sha256": "844dcd504e1a8b0696825c0549e2c1f62d0d114122945cf88eddc5589a24b25f",
+      "bytes": 27285
+    },
+    "scratch/phone-functions-20261114/memory-confirmed.png": {
+      "sha256": "1a11d1687c1237dca621294dd5ef9a2af3081966d78750cd1894c9fa36a50119",
+      "bytes": 27790
+    },
+    "scratch/phone-functions-20261114/bluetooth-exit.png": {
+      "sha256": "3665c34b9102eb17e3e62e9f55f5b3880d7d7c82e81ee608ddcf1d795a47d0ea",
+      "bytes": 27633
+    },
+    "scratch/phone-functions-20261114/images-phone.png": {
+      "sha256": "3c0dc92040f67a4b9f8026780d894158822a1a0e230d75560b32d3c43d49e66f",
+      "bytes": 38144
+    },
+    "scratch/phone-functions-20261114/image-ngage1-view.png": {
+      "sha256": "16dab937523cb1826345816ae01d8841f05a1d7eef5529f769fd98b2c428ac47",
+      "bytes": 31128
+    },
+    "scratch/phone-functions-20261114/alarm-stop-held.png": {
+      "sha256": "16dab937523cb1826345816ae01d8841f05a1d7eef5529f769fd98b2c428ac47",
+      "bytes": 31128
+    },
+    "docs/evidence/spmark04-memory-card.png": {
+      "sha256": "4b69a2da135adca69cec61d1df33ad637796357e17c220981b20aa7786342646",
+      "bytes": 28365
+    },
+    "docs/evidence/spmark04-format-declined.png": {
+      "sha256": "bfe0f9783912dc72e84cb635c968487fd3862a82e06c40f031a021f89eba3410",
+      "bytes": 27118
     }
   },
   "original_media_verification": {
@@ -213,7 +273,30 @@
         }
       ],
       "method": "Only consecutive complete matching BEGIN/END in one gap-free epoch; debug execution cost remains"
-    }
+    },
+    "wait_animation": {
+      "native_avkon_file_base": "506aa740",
+      "whole_file_match": true,
+      "blank_icon_index": 264,
+      "progress_mask_indices": [
+        355,
+        357,
+        359,
+        361,
+        363,
+        365,
+        367
+      ],
+      "source": "scratch/calendar-animation-20261114/calendar.summary.assets.json",
+      "instrumented_counts_not_frame_rate": true
+    },
+    "c_idle_probe": {
+      "retained_matching_events": 0,
+      "result": "Inconclusive for starvation; other active-object classes/callbacks/server work excluded",
+      "source": "scratch/calendar-idle-run-20261114/calendar.summary.json"
+    },
+    "month_default_control": "Verified Exit to Menu then Month-default relaunch blank at12s too; reset to original via RBF reload",
+    "hdl_fix": false
   },
   "contacts": {
     "created": "Test",
@@ -253,23 +336,41 @@
     "saved_reopened_deleted": true
   },
   "calculator": "12+34=46",
-  "clock": "View only; no rate/alarm qualification",
+  "clock": {
+    "progression": "About9minutes in539.0468wallseconds; coarse analog readings, not calibration",
+    "date_time_settings": "9:21AM 01/01/2003",
+    "alarm_set": "09:20AM",
+    "notification_observed": true,
+    "stop_key_mask_samples": {
+      "0x0": 74,
+      "0x20": 4
+    },
+    "dismissal": "No visible dismissal after tap/hold, CPU active, cause unknown",
+    "audio_qualified": false,
+    "temporary_alarm_cleared_by_original_reload": true
+  },
   "unverified": [
-    "Media",
-    "Tools",
-    "Apps",
-    "Favourites",
-    "To-do",
-    "Converter",
-    "Help",
+    "Remaining Media apps/playback",
     "Offline restart",
-    "RF calls/SMS",
+    "Contacts groups/search/SIM import",
+    "SIM phonebook",
+    "RF calls/SMS/data",
+    "BT communication",
     "Audio",
-    "SD persistence"
+    "Mounted MMC/game access",
+    "SD persistence",
+    "Exact RTC rate",
+    "Alarm dismissal"
   ],
-  "active_experiment": {
+  "rejected_observers": {
+    "global_sync": "MediaServerTaskThread USER0 before Calendar; runtime ABI mocks insufficient; removed",
+    "calendar_idle": "Decoded deferred keys/info note; applied only held, never executed; removed",
+    "lcd_user_service": "Kernel ABT loop before Calendar; entire run invalid; original media verified after reload",
+    "bitmap_direct_mmio": "Fault before setup; discarded. Exact trampoline passes isolated ZAP waits0/3, not full board context. Removed and original verified."
+  },
+  "lcd_observation": {
     "path": "scratch/calendar-lcd-port-20261114",
-    "status": "Corrected direct-port observer healthy; Calendar source white before focus/AAF afterward; next bitmap-conversion call trace",
+    "status": "Qualified historical observation; removed by original RBF reload",
     "differential_cases": 280,
     "boundary": "Port helpers spied; all original native driver instructions execute; USR/SVC/IRQ/UND CPSR/SPSR checked; no service/SWI",
     "applied": {
@@ -293,9 +394,83 @@
       "2": 4
     }
   },
-  "rejected_observers": {
-    "global_sync": "MediaServerTaskThread USER0 before Calendar; runtime ABI mocks insufficient; removed",
-    "calendar_idle": "Decoded deferred keys/info note; applied only held, never executed; removed",
-    "lcd_user_service": "Kernel ABT loop before Calendar; entire run invalid; original media verified after reload"
+  "active_experiment": {
+    "status": "Original core, no observation hooks; clean boot for remaining Media UI tests",
+    "software_hooks": false,
+    "production_rtl_changed": false,
+    "source": "scratch/phone-functions-20261114/clean-restored.json"
+  },
+  "menu": {
+    "one_app_closed_notification": true,
+    "reason": null,
+    "restarted_via_menu_key": true,
+    "screen": "scratch/phone-functions-20261114/calendar-control-exit.png"
+  },
+  "apps": {
+    "applications_tab": "no installed applications",
+    "downloaded_tab": "no applications to install",
+    "installation_tested": false
+  },
+  "favourites": {
+    "existing_shortcuts": [
+      "Calendar",
+      "Inbox",
+      "Notes"
+    ],
+    "notes_editor_launch": true,
+    "shortcuts_modified": false
+  },
+  "todo": {
+    "subject": "A",
+    "due_date": "01/01/2003",
+    "priority": "Normal",
+    "saved_reopened_deleted": true
+  },
+  "converter": {
+    "type": "Length",
+    "source": "1mile",
+    "displayed_result": "1609.34399metres",
+    "temporary_setting_cleared_by_reload": true
+  },
+  "help": {
+    "categories_topics_and_article": true,
+    "article": "Installing applications"
+  },
+  "tools": {
+    "settings": [
+      "Device/General: Automatic,English,DictionaryOff",
+      "Date/time:9:21AM,01/01/2003,ddmm yyyy"
+    ],
+    "manager": "no data",
+    "memory": "no memorycard inserted",
+    "about": "Nokia copyright text",
+    "bluetooth": "Off/settings and first-use N-Gage name query; no enable/pairing",
+    "sim_directory": "View not reached; Tools needed focus recovery. SST0 and no ADN/READ_RECORD capability; cause not proven"
+  },
+  "images": {
+    "card_tab": "no memorycard inserted",
+    "phone_thumbnails": [
+      "N-Gage1",
+      "N-Gage2",
+      "N-Gage3"
+    ],
+    "full_view": "Interrupted by alarm; not qualified yet"
+  },
+  "mmc_spmark04": {
+    "image": "/media/fat/games/ngage/spmark04.mmc",
+    "bytes": 16773632,
+    "sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919",
+    "hps_slot": 2,
+    "host_mount_verified": true,
+    "host_format_and_extent_check": "pass; not a filesystem/hardware integrity test",
+    "host_directory": "SYSTEM/APPS/SPMARK/SPMARK.APP",
+    "app_uid3": "10200F51",
+    "native_result": "Format memory card prompt; No selected; (memorycard corrupted)",
+    "benchmark_launched": false,
+    "scores": null,
+    "benchmark_crash_observed": false,
+    "image_c_pmm_hashes_unchanged": true,
+    "production_code_changed": false,
+    "next": "Trace native MMC initialization and sector reads before altering image/firmware"
   }
 }

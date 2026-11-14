@@ -15,17 +15,27 @@ hooks are listed separately; they retain the checksum check and original behavio
 
 | Function | Observed | Remaining |
 | --- | --- | --- |
-| Phone/Menu | Idle, populated grid, navigation, Options, task switcher | Real RF/calls unimplemented or untested |
+| Phone/Menu | Idle, populated grid, navigation, Options, task switcher; Menu restarts after closure | One original Menu app closure during Calendar control; reason unknown. Real RF/calls unimplemented or untested |
 | Calendar | Memo create/save/reopen/delete; day/month/week; Exit | Initial blank body/repaint issue, described below |
 | Contacts | Empty list; Test create/save/reopen/edit/delete | Search/groups/SIM import; SD persistence |
 | Profiles | Six modes visible; General/Silent/Meeting/Outdoor/Pager activate; setting change/restore | Offline restart, audio/RF behavior |
 | Messaging | Empty-recipient draft12345678 save/reopen/delete; second Close works | First Close shares redraw symptom; RF sending/MMS/email untested |
-| Clock | Current time/date/no-alarms view and Exit | Alarm and RTC rate qualification |
+| Clock | Time progresses; alarm setup and native notification observed | Alarm dismissal unresponsive despite captured Stop; audio and precise rate unqualified |
 | Calculator | 12+34=46 | Further operations |
 | Notes | Test create/save/reopen/delete | Further operations |
 | Log | Main recent-calls/duration/cost view | Actual call accounting |
-| Other Extras | Inventory only: Apps, Favourites, To-do, Converter, Help | Sequential tests after shared redraw diagnosis |
-| Media/Tools | Not inventoried yet | Sequential checks |
+| Apps | Applications/Downloaded tabs open, both empty | Actual install/launch from media |
+| Favourites | Existing shortcuts visible; Notes shortcut opens editor | Shortcut editing not tested |
+| To-do | Empty list; A create/save/reopen/delete, date/Normal priority verified | Alarm/completion/filter variants |
+| Converter | Length selection; 1mile→1609.34399metres | Other units/currencies |
+| Help | Category/topic navigation and full Installing applications text | Remaining articles |
+| Settings | Device/General and Date/time fields load | Other settings and write/readback |
+| Software Manager | Installed list opens/no data | Install/uninstall |
+| Memory card UI / SPMark04 | Mounted SPMark04 image is detected; Memory reports corrupted and requests formatting | App never launched; no score/crash. See [MMC result](mmc-spmark04.md) |
+| About | Native Nokia copyright view | — |
+| Bluetooth UI | Off/default-name query opens; cancelled | Radio communication/timeouts remain unqualified |
+| SIM directory | Launch did not produce its view; Tools needed focus recovery | Test card advertises no phonebook/ADN; reason unproven |
+| Images | Phone thumbnails N-Gage1/2/3; card tab says no card; completes without focus | Full image view interrupted by alarm; other Media pending |
 
 All our Calendar, Contacts, Messaging and Notes test records were deleted.
 General is active and its original Ringing alert setting is restored.
@@ -199,3 +209,42 @@ messages, including at recovery; it has not demonstrated CIdle starvation.
 Other active-object classes/callback addresses/server work are outside its
 coverage. No timer/CPU/priority change follows from this negative probe.
 Observers are removed before remaining functional checks.
+
+Uninstrumented startup-view control: Settings opens and the original Day
+choice can be changed to Month. Verified Exit returns to Menu with Calendar
+selected; relaunch is blank at12s with Month default too. The blocker is not
+specific to Day rendering. Month is a temporary volatile guest setting; restore
+Day or reload original before ending. SD files and Background save are unchanged.
+
+A later original-firmware Calendar Month/focus/exit control reports “App.
+closed Menu”. Menu key successfully restarts its full grid.79snapshot follow-up
+has no panic-recorder reason; user-thread panic category remains unknown. Do
+not attribute it to ViewSrv/OOM without an exit-tracer reproduction. Clock
+navigation attempted while Calendar blank did not leave Calendar and supplies
+no time-progression evidence.
+
+Additional original-firmware Extras pass: Apps shows both empty Applications
+and Downloaded tabs. Favourites displays Calendar/Inbox/Notes and launches its
+Notes editor; closed empty without adding a note. To-do starts normally (after
+Calendar/Agenda use), creates A with01/01/2003/Normal priority, saves/reopens
+exact fields, then explicit Delete to-do note?/Yes restores no data. Converter
+selects Length and displays1mile=1609.34399metres. Help category/topic navigation
+opens the complete Installing applications text from ROM. No installs, network
+requests or shortcut edits were attempted. Temporary Converter and Calendar
+preferences are confined to volatile guest C pending final original reload.
+
+Clock coarse interval: approximately9minutes of analog movement during539.05
+wallseconds. Date/time settings subsequently show9:21AM/01-01-2003. Temporary
+09:20alarm setup/readback is verified; firing is not, because active key input
+could have dismissed a notification. No audio success or failed-alarm conclusion.
+Settings, Manager, Memory/no-card, About and Bluetooth-Off/name-query views open.
+SIM-directory attempt leaves Tools; a task-switch/focus cycle restores input.
+No CPU stop; held Menu is captured. Card SST=0/noADN/READ_RECORD means phonebook
+is not a supported capability yet, but does not itself prove the wait cause.
+
+The alarm notification is now positively observed over Images, with Stop and
+Snooze controls. Prior keys may have snoozed it, so timing is not qualified.
+Stop tap/held1s does not visibly dismiss; mask20 reaches the core, no kernel
+stop, active FbsCli/Palette/kernel. Exact blocker remains unknown; no ADSP cause
+inferred solely from DEVSOUND logs. Original RBF reload clears temporary alarm,
+Calendar Month and Converter settings; media originals reverified after loading.
