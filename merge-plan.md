@@ -1,3 +1,20 @@
+## 2026-11-14: ADSP unexpected59/02 captured; D550 initiates D0 startup
+
+Native St_product/DF2 assertion consumes resource59/message02 from object39,
+frame000000590600233908020100ffffffff while expecting8B. RF1E stays00; ADSP36
+is03/pending. Sender process remains unproved. One-site UART probe saw no bytes;
+shared-HAL130s/520-snapshot capture sees init/one zero byte, no startup packet,
+but no assertion in that run. Late attachment has a gap: no absence/timing claim.
+Recovered original D550448CDA/448C33, called from relocatedRAM03FCA4, send
+D0/01 then D0/04. Original ARM checksum/dispatch/constructor tests accept these,
+emit exact D0/05, set host link ready and reset sequence; corruption rejected.
+New bounded bootstrap transmitter passes78/104MHz schedules/stalls/reset; seven
+state bits/no RAM. Standalone only, NOT selected/wired production or a boot fix.
+Next: physical reset/clock/UART admission, D0/05/ACK/retry, actual2B/8B/test42.
+All observation hooks removed; original88fd.../automatic Run/save-Off and same
+C4a75.../PMM71189... verified. PLL78MHz/104MHz objective and simulations untouched.
+Details: [adsp-native-link.md](docs/adsp-native-link.md).
+
 ## 2026-11-14: RF gate passed; later assertion is native ADSP response check
 
 646ac68/seed44 RBF is hash-matched to43514093456. NativeF1/A1 body20A10103 reaches

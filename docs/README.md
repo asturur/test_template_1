@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [adsp-native-link.md](adsp-native-link.md) | Actual unexpected ADSP response, original D550/ARM startup exchange, bounded transmitter and remaining production gates |
 | [rf-native-media.md](rf-native-media.md) | Native media12 RF fix, exact-packet reproduction, hardware1E=00 qualification and subsequent native panic |
 | [board-boot-91045a6.md](board-boot-91045a6.md) | Deployed build, clean cardless Phone, corrected active blocker and native MTC/SIM observations |
 | [pmm-native-flash.md](pmm-native-flash.md) | Native PMM erase/status/program-tail controller fix, exact original-driver CPU tests and reset/dirty integration |

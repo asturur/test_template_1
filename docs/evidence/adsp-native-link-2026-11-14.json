@@ -1,0 +1,154 @@
+{
+  "date": "2026-11-14",
+  "production_build": "646ac68/seed44",
+  "production_hdl_changed": false,
+  "implemented_boundary": "standalone original D550 startup byte transmitter; not selected for production",
+  "captures": {
+    "assertion": {
+      "path": "scratch/adsp-native-20261114/running.jsonl",
+      "sha256": "2f5baf356f7788856f8ac0e06841d4879abca08b826c3fa11ded09f0b0a18c45",
+      "event_counts": {
+        "session": 1,
+        "producer_drops": 1,
+        "snapshot": 520,
+        "text": 1204
+      },
+      "reset_generations": [
+        0
+      ],
+      "first_fault_reasons": [
+        0
+      ],
+      "producer_drops": [
+        0
+      ],
+      "uart_writes": [],
+      "native_assertion": [
+        "A NOS file/line/expr/lr 5170cccc 00000df2 5170ccf4 516a629b ../../ENOS/CMT_SW/CONFIG/St_product.c pResp_adsp->message_id == ST_ADSP_RUN_RESP",
+        "A MESSAGE ptr/frame 800266c8 000000590600233908020100ffffffff",
+        "A RESULTS 03030000 00030000 03000000 030d0000 03030301 04030300 "
+      ],
+      "reader_gap_free": true
+    },
+    "shared_hal": {
+      "path": "scratch/adsp-hal-20261114/running.jsonl",
+      "sha256": "533df02025575bce730a780afd2f11e24098232f13d7a8f9c37ba8fd725313d3",
+      "event_counts": {
+        "session": 1,
+        "producer_drops": 1,
+        "snapshot": 520,
+        "text": 1207
+      },
+      "reset_generations": [
+        0
+      ],
+      "first_fault_reasons": [
+        0
+      ],
+      "producer_drops": [
+        0
+      ],
+      "uart_writes": [
+        "U3c=ffff",
+        "U3a=004c",
+        "U6c=001e",
+        "U10=0003",
+        "U54=0000",
+        "U12=0410",
+        "U10=0008",
+        "U16=0001",
+        "U10=0004",
+        "U18=0007",
+        "U16=0000",
+        "U60=0007",
+        "U6a=0010",
+        "U6c=0010",
+        "U60=0000",
+        "U3c=0002",
+        "U10=0004",
+        "U18=0007",
+        "U16=0000",
+        "U60=0007",
+        "U6a=0010",
+        "U6c=0010",
+        "U60=0000",
+        "U3c=0002"
+      ],
+      "native_assertion": [],
+      "reader_gap_free": true
+    },
+    "late_unqualified": {
+      "path": "scratch/adsp-hal-20261114/late.jsonl",
+      "sha256": "5434a9b00c6ee54aedebe29d6d26e0fec48a15a00f37ebfb346add402b976bc6",
+      "event_counts": {
+        "session": 1,
+        "reader_gap": 1,
+        "text": 1024,
+        "producer_drops": 1,
+        "snapshot": 238
+      },
+      "reset_generations": [
+        0
+      ],
+      "first_fault_reasons": [
+        0
+      ],
+      "producer_drops": [
+        0
+      ],
+      "uart_writes": [
+        "U10=0004",
+        "U18=0007",
+        "U16=0000",
+        "U60=0007",
+        "U6a=0010",
+        "U6c=0010",
+        "U60=0000",
+        "U3c=0002",
+        "U10=0004",
+        "U18=0007",
+        "U16=0000",
+        "U60=0007",
+        "U6a=0010",
+        "U6c=0010",
+        "U60=0000",
+        "U3c=0002"
+      ],
+      "native_assertion": [],
+      "reader_gap_free": false
+    }
+  },
+  "unexpected_frame_window16": "000000590600233908020100ffffffff",
+  "source_object": "0x39",
+  "source_process": "unproved",
+  "restored": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "original_inputs": {
+    "cpu_rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "dsp_image_sha256": "0be93de04ebccd676d34ceaa2b9f4a901b3d0941565bc7b0f795e78ba8866429"
+  },
+  "d550_startup_frames": [
+    "5555200078d000040111016058a5",
+    "5555200078d00003040160003cd2"
+  ],
+  "original_arm_reply": "5555207800d000030501400065aa",
+  "board_adsp36_success": false,
+  "board_sim_serving_ready": false,
+  "quartus_fit_sta": "NOT_RUN",
+  "verification": [
+    "D550 startup transmitter 78/104MHz schedules, stalls/repetition/reset",
+    "original ARM checksum, D0 dispatch/response/link state, corruption rejection and ROM immutability",
+    "original packet primitives, EUART TX/RX HAL and ADSPCTRL controls0..5",
+    "existing diagnostic42/codec tests at78/104MHz",
+    "Verilator strict1364-2001 lint",
+    "pinned Verible formatting"
+  ]
+}
