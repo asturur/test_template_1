@@ -22,6 +22,17 @@ for name in ('guard.bin', 'guard-wrap.bin'):
         fault=True, flush_error=True, flushing=False, in_flight=False,
         mark_pending=False, head_ready=False, overflow=True,
         invalid_sector=False, raw_hex='0x514101c2')
+    # Decode passive production-chip status, gated by its explicit marker.
+    observed = bytearray(raw)
+    for pos in (0xF000+30*4, 0xF400+30*4):
+        struct.pack_into('<I', observed, pos, 0x80000000 | (0x8fff << 9))
+    b = [e for e in diag.Reader(observed).poll() if e['type'] == 'snapshot'][0]['bringup']
+    assert b['adsp_state'] == 15 and b['adsp_test42_seen']
+    assert b['adsp_test42_complete'] and b['adsp_test42_ok'] and b['adsp_test42_acked']
+    assert b['sim_present'] and not b['sim_overflow'] and not b['sim_busy']
+    for pos in (0xF000+30*4, 0xF400+30*4):
+        struct.pack_into('<I', observed, pos, 0x1ff)
+    assert 'bringup' not in [e for e in diag.Reader(observed).poll() if e['type'] == 'snapshot'][0]
     # Older snapshots leave the extension word zero; they remain readable.
     legacy = bytearray(raw)
     for pos in (0xF000+244*4, 0xF400+244*4):

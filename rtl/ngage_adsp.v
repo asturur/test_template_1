@@ -20,7 +20,8 @@ module ngage_adsp (
     output wire [15:0] codec_word,
     input  wire        codec_response_valid,
     input  wire        codec_response_error,
-    output wire        link_ready
+    output wire        link_ready,
+    output wire [11:0] debug_status
 );
     localparam BOOT=4'd0, LINK=4'd1, READY=4'd2, ACK=4'd3,
         DIAG=4'd4, RESULT=4'd5, REPLY=4'd6, CONFIRM=4'd7;
@@ -191,6 +192,44 @@ module ngage_adsp (
                     default: rx_state <= 0;
                 endcase
             end
+        end
+    end
+
+    // Passive DDR observations survive clock gating but clear on phone reset.
+    // No observer feeds protocol control or backpressures the guest.
+    reg diagnostic_seen, diagnostic_complete, diagnostic_ok, diagnostic_acked;
+    assign debug_status = {
+        diagnostic_acked,
+        diagnostic_ok,
+        diagnostic_complete,
+        diagnostic_seen,
+        enabled,
+        clock_ready,
+        link_ready,
+        active,
+        state
+    };
+    always @(posedge clk) begin
+        if (reset) begin
+            diagnostic_seen     <= 0;
+            diagnostic_complete <= 0;
+            diagnostic_ok       <= 0;
+            diagnostic_acked    <= 0;
+        end else if (!local_reset) begin
+            if (state == DIAG && diag_ready && test_id == 16'h42) begin
+                diagnostic_seen     <= 1;
+                diagnostic_complete <= 0;
+                diagnostic_ok       <= 0;
+                diagnostic_acked    <= 0;
+            end
+            if (state == RESULT && diag_valid && test_id == 16'h42) begin
+                diagnostic_complete <= 1;
+                diagnostic_ok       <= diag_result == 0;
+            end
+            if (frame_done && resource == 8'h7f && control == 8'h82 &&
+                rx_length == 2 && rx_sequence == device_sequence &&
+                state == CONFIRM && !rx_flags[7] && test_id == 16'h42)
+                diagnostic_acked <= 1;
         end
     end
 

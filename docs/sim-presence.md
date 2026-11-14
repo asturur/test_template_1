@@ -1,3 +1,17 @@
+## 2026-11-14: Production synthetic-card selection for native initialization
+
+Template now selects the existing separate ngage_test_sim card and asserts
+physical-model presence; files.qip includes it. No-PIN test IMSI001010123456789
+and existing GSM EF contents remain fabricated, not a physical card dump.
+No native SIM state, indication, MTC state or firmware reply is substituted.
+This reverses the temporary production card omission; no OSD control returns.
+Serving/ready state and Menu remain hardware qualification gates. See newest
+status.md and adsp-native-link.md for the observation-dependent ADSP result.
+
+Card reference/FIFO/overflow/CEN and controller/CTSI/CPU integration pass. The
+old card's440.7ALMs is a historical figure; new fit is pending. Passive DDR
+status now exposes presence, overflow, busy/RX-valid plus D550 milestones.
+
 ## 2026-11-12: SIMIF W1C phase transition corrected
 
 Zero or unrelated status acknowledgements formerly advanced TX-done to RX and

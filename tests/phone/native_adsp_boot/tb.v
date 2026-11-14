@@ -106,6 +106,8 @@ module tb;
                     $write("\n");
                     if (!board.audio_boot.d550.link_ready || !board.audio_boot.n501.reset_seen)
                         $fatal(1, "device startup/codec reset incomplete");
+                    if (board.bringup_status[11:8] !== 4'b0111)
+                        $fatal(1, "passive ADSP status missing native completion");
                     $display(
                         "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=%0d cycles=%0d",
                         wait_cycles, cycles);

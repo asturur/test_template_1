@@ -1,3 +1,55 @@
+## 2026-11-14: Native ADSP pass observed; synthetic-card board build prepared
+
+462ba08 board delivery capture proves original NOS accepts82/8B/result0000,
+writes ADSP36=00 and frees its actual response.640snapshots/no gaps/reset/panic.
+However completion/assert-only tracing still reproduces unrelated59/02 winning
+the shared waiter. Extra UART/dispatcher logging changes scheduling: this is
+NOT stable original-firmware boot qualification. No native replies, deadlines,
+self-test registry or state were overwritten. Reload removed all probes;
+original88fd.../Run/save-Off/C4a75.../PMM71189... verified. See the compact
+adsp-board-2026-11-14.json evidence and adsp-native-link.md; no SD backups.
+
+Next selected build connects the existing synthetic no-PIN GSM card at SIMIF,
+using fabricated test identity001010123456789. Original NOS still owns card
+initialization/readiness; no SIM-ready override, carrier or real registration.
+No OSD option added. Four passive D550 milestone bits reuse spare CPU_FLAGS
+DDR snapshot bits, together with existing live state and SIM status. They never
+feed protocol control/backpressure; enable/clock resets retain history until
+phone reset. This allows original-ROM board diagnosis without observer timing.
+Expected old card cost440.7ALMs is historical, not this build's measured cost.
+
+Card554-op reference,600-response FIFO/overflow/reset/CEN, all four presence/
+selection combinations, shared SIM/UART CTSI/FIQ26,132 board ownership pairs,
+ADSP CRC/replay/failure/milestone checks, native CBUS/UART CPU waits0/3 at78/104,
+DDR writer/reader and full MiSTer CPU SIM/LCD/DMA/IRQ/FIQ checks pass. Native
+104,408/139,536 clock counts are unchanged.177-source/9QIP preflight passes.
+The clock script had stale exact-whitespace and removed diagnostic-disk timeout
+assertions; corrected the test only.78MHz PLL remains unchanged,104MHz objective.
+Build/fit/board SIM readiness and the shared-waiter race remain to qualify.
+Logs: scratch/sim-card-production-20261114/. Other simulations untouched.
+
+## 2026-11-14: Hardware qualification and next delivery gate
+
+Build43545934572/seed44 fits37,498ALMs/89%; D550186.8ALMs needed,183registers,
+zero RAM/M10K/DSP. Core setup-0.278ns/three CPU cache-fetch paths, no D550 path
+in worst1000. RBF SHA8a6eceef... installed without backup. Original-ROM160s
+control reaches Insert SIM,640snapshots/no gaps/reset/panic/recorder fault.
+Completion/assert-only probe reproduces St_product/DF2 consuming unrelated59/02;
+no accepted8B completion. Do not claim native ADSP36 fixed from isolated tests.
+
+A broader HAL UART/CBUS observation proves D0 startup/05, native transport ACKs
+and one actual2B/test42 ->8B/result0000 plus host ACK. That capture has a reader
+gap and heavy CBUS logging alters scheduling; no latency/absence/boot claim.
+It also shows earlier17/4B/1C application traffic currently ACKed without replies.
+Original DSP17 handler emits77; other replies remain investigation, not invented.
+Reduced-volume UART/native-dispatch/completion/assert capture is ACTIVE at
+scratch/adsp-delivery-board-20261114/running.jsonl (160s). Do not interrupt it.
+Observation-only hooks are in volatile backing; fresh-Hold/MD5 guards passed,
+348writes verified. Automatic Run/save-Off restored. Must reload and verify
+original full ROM88fd.../same C4a75.../PMM71189... after instrumentation.
+No production HDL change since462ba08, no SIM enable yet, no SD backups/Flush.
+PLL78MHz,104MHz design objective and other simulations remain untouched.
+
 ## 2026-11-14: Native clock-control chain qualified while build runs
 
 Expanded native_adsp_boot to execute original ADSPCTRL510E9734 controls4/5,

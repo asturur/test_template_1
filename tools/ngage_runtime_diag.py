@@ -137,6 +137,15 @@ class Reader:
                              end_cycle=w[5], reset_generation=w[6], values=dict(zip(NAMES, w[8:32])),
                              build_tag=((w[241] << 32) | w[240]).to_bytes(8, 'big').lstrip(b'\0').decode('ascii', errors='replace'),
                              ngd_halfwords=list(ngd))
+                if w[30] & 0xfe000000 == 0x80000000:
+                    b = (w[30] >> 9) & 0xffff
+                    event['bringup'] = dict(adsp_state=b & 15,
+                        raw_hex=f'0x{b:04x}',
+                        **{name: bool(b & (1 << bit)) for bit, name in enumerate(
+                            ('adsp_active', 'adsp_link', 'adsp_clock', 'adsp_enabled',
+                             'adsp_test42_seen', 'adsp_test42_complete', 'adsp_test42_ok',
+                             'adsp_test42_acked', 'sim_overflow', 'sim_busy',
+                             'sim_rx_valid', 'sim_present'), 4)})
                 save_flags = ('mounted saved saving error manual_batch flush_pending tracker_pending '
                               'tracker_flushing tracker_valid flash_quiescent bridge_ready bridge_done '
                               'bridge_error host_ack host_read_request host_write_request ddr_request '

@@ -117,6 +117,7 @@ module ngage_board #(
     output wire        video_vblank,
     output wire [11:0] video_rgb,
     // Transaction-level AMA serial bytes; electrical/baud timing is unmodeled.
+    output wire [15:0] bringup_status,
     output wire        adsp_tx_valid,
     input  tri0        adsp_tx_ready,
     output wire [ 7:0] adsp_tx_data,
@@ -249,7 +250,11 @@ module ngage_board #(
     wire [15:0] route2a, route2c, route3b, mdi_events;
     wire mdi_claim, mdi_bad, mdi_ready, adsp_tick;
     wire adsp_receive_enabled, adsp_controls_written;
-    wire [4:0] adsp_controls;
+    wire [ 4:0] adsp_controls;
+    wire [11:0] adsp_debug_status;
+    assign bringup_status = {
+        sim_present && TEST_SIM_ENABLE, card_rx_valid, card_busy, card_overflow, adsp_debug_status
+    };
     wire peer_tx_ready, peer_rx_valid;
     wire [ 7:0] peer_rx_data;
     // Native ADSPCTRL power-up clears wire2F maskF0 and sets wire30 bit20.
@@ -600,7 +605,8 @@ module ngage_board #(
                 .codec_word          (codec_word),
                 .codec_response_valid(codec_response_valid),
                 .codec_response_error(codec_response_error),
-                .link_ready          ()
+                .link_ready          (),
+                .debug_status        (adsp_debug_status)
             );
             ngage_aic23 n501 (
                 .clk            (clk),
@@ -614,9 +620,10 @@ module ngage_board #(
                 .reset_seen     ()
             );
         end else begin : external_audio_fixture
-            assign peer_tx_ready = 1'b1;
-            assign peer_rx_valid = 1'b0;
-            assign peer_rx_data  = 8'b0;
+            assign adsp_debug_status = 0;
+            assign peer_tx_ready     = 1'b1;
+            assign peer_rx_valid     = 1'b0;
+            assign peer_rx_data      = 8'b0;
         end
     endgenerate
     // Physical radio components are explicitly unimplemented and disconnected.

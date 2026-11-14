@@ -1,3 +1,33 @@
+## 2026-11-14: Native ADSP pass observed; synthetic-card board build prepared
+
+462ba08 board delivery capture proves original NOS accepts82/8B/result0000,
+writes ADSP36=00 and frees its actual response.640snapshots/no gaps/reset/panic.
+However completion/assert-only tracing still reproduces unrelated59/02 winning
+the shared waiter. Extra UART/dispatcher logging changes scheduling: this is
+NOT stable original-firmware boot qualification. No native replies, deadlines,
+self-test registry or state were overwritten. Reload removed all probes;
+original88fd.../Run/save-Off/C4a75.../PMM71189... verified. See the compact
+adsp-board-2026-11-14.json evidence and adsp-native-link.md; no SD backups.
+
+Next selected build connects the existing synthetic no-PIN GSM card at SIMIF,
+using fabricated test identity001010123456789. Original NOS still owns card
+initialization/readiness; no SIM-ready override, carrier or real registration.
+No OSD option added. Four passive D550 milestone bits reuse spare CPU_FLAGS
+DDR snapshot bits, together with existing live state and SIM status. They never
+feed protocol control/backpressure; enable/clock resets retain history until
+phone reset. This allows original-ROM board diagnosis without observer timing.
+Expected old card cost440.7ALMs is historical, not this build's measured cost.
+
+Card554-op reference,600-response FIFO/overflow/reset/CEN, all four presence/
+selection combinations, shared SIM/UART CTSI/FIQ26,132 board ownership pairs,
+ADSP CRC/replay/failure/milestone checks, native CBUS/UART CPU waits0/3 at78/104,
+DDR writer/reader and full MiSTer CPU SIM/LCD/DMA/IRQ/FIQ checks pass. Native
+104,408/139,536 clock counts are unchanged.177-source/9QIP preflight passes.
+The clock script had stale exact-whitespace and removed diagnostic-disk timeout
+assertions; corrected the test only.78MHz PLL remains unchanged,104MHz objective.
+Build/fit/board SIM readiness and the shared-waiter race remain to qualify.
+Logs: scratch/sim-card-production-20261114/. Other simulations untouched.
+
 ## 2026-11-14: Native clock-control chain qualified while build runs
 
 Expanded native_adsp_boot to execute original ADSPCTRL510E9734 controls4/5,

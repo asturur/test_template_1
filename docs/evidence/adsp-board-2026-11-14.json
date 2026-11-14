@@ -1,0 +1,87 @@
+{
+  "path": "/media/fat/_Console/ngage1.rbf",
+  "bytes": 4512944,
+  "sha256": "8a6eceefe57f5592f5905ddc194a9991396d241c894ff89abeb3afb32950fff3",
+  "card_backup_created": false,
+  "fitter_seed": 44,
+  "commit": "462ba08eb313194e12cb170d5b20e094deb57ee5",
+  "run_id": "43545934572",
+  "timing_status": "consult job timing gate and reports",
+  "logic_alms_needed": 37498,
+  "logic_pct": 89,
+  "rbf_bytes": 4512944,
+  "setup_slack_ns": -0.278,
+  "negative_setup_paths": 3,
+  "adsp_alms_needed": 186.8,
+  "adsp_alms_placed": 192.7,
+  "adsp_registers": 183,
+  "adsp_block_memory_bits": 0,
+  "adsp_m10k": 0,
+  "adsp_dsp_blocks": 0,
+  "original_media": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "date": "2026-11-14",
+  "native_timeout_argument": 3000,
+  "board_scope": "Observation-dependent native ADSP36 pass; original-firmware stable completion NOT qualified",
+  "native_sim_serving": "UNRESOLVED",
+  "pll_mhz": 78,
+  "design_objective_mhz": 104,
+  "captures": {
+    "clean": {
+      "path": "scratch/adsp-board-462ba08/clean.jsonl",
+      "sha256": "fdab093321312efce0e1a4b0ba1ded37b26f4370e8d00ac8c5a1c1a4dbc3af11",
+      "snapshots": 640,
+      "reader_gaps": 0,
+      "native_completion": [],
+      "assertion": false,
+      "observation_only_instrumentation": false
+    },
+    "completion_only": {
+      "path": "scratch/adsp-board-462ba08/observed.jsonl",
+      "sha256": "804faf58997378ba127ff4e4ffb4dfd54e58d40dc0c40f0b9c2b382617c0e904",
+      "snapshots": 640,
+      "reader_gaps": 0,
+      "native_completion": [],
+      "assertion": true,
+      "observation_only_instrumentation": true
+    },
+    "uart_cbus": {
+      "path": "scratch/adsp-link-board-20261114/running.jsonl",
+      "sha256": "2c19b3bdaeca7d677c351e3a29dcadf2873558acb1cb0ab22554cd1289b8682a",
+      "snapshots": 637,
+      "reader_gaps": 1,
+      "native_completion": [],
+      "assertion": false,
+      "observation_only_instrumentation": true
+    },
+    "delivery": {
+      "path": "scratch/adsp-delivery-board-20261114/running.jsonl",
+      "sha256": "ec2a7460d329007779e1fbda0abe0b62152de61a4d2d9b5731af74578d3f7325",
+      "snapshots": 640,
+      "reader_gaps": 0,
+      "native_completion": [
+        "J ADSP result/body/array 00000000 0e8b000700420000 03030000 00030000 03000000 030d0000 03030301 04000300 "
+      ],
+      "assertion": false,
+      "observation_only_instrumentation": true
+    }
+  },
+  "restored_original_media": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  }
+}

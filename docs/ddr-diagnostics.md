@@ -1,3 +1,16 @@
+## 2026-11-14: Passive D550 and SIM observations
+
+CPU_FLAGS bit31 marks the new status extension, bits30:25 remain zero and
+bits8:0 retain their previous definitions. Bits24:9 contain BRINGUP_STATUS:
+0..3 D550 state,4 active,5 link-ready,6 clock-ready,7 enabled,
+8 diagnostic42 accepted,9 completed,10 result zero,11 native positive reply ACK,
+12 SIM overflow,13 busy,14 RX-valid,15 model presence. The reader emits a
+`bringup` object only with the extension marker. Four milestone registers are
+passive, never stall the CPU/protocol, survive device clock gating and clear on
+phone reset. A new accepted42 clears its prior completion/result/ACK flags.
+Successful UART ACK does not prove NOS36 completion; keep that distinction.
+No new snapshot memory, format length, graphics or firmware instrumentation.
+
 ## 2026-11-13: DDR is the only runtime diagnostic transport
 
 Diagnostic-disk S3, Export OSD, HPS export controller/buffers and disk CLI/tests

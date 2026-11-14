@@ -197,6 +197,7 @@ module ngage_mister #(
         1'b1,
         line_decoded_high
     );
+    wire [15:0] bringup_status;
     ngage_board #(
         .LINE_REFILL       (LINE_REFILL),
         .SYS_CLK_HZ        (SYS_CLK_HZ),
@@ -286,6 +287,7 @@ module ngage_mister #(
         .keys                 (keys),
         // The board owns the boot-only D550 peer. External byte ports below
         // are retained only for transport fixtures; production uses neither.
+        .bringup_status       (bringup_status),
         .adsp_tx_valid        (),
         .adsp_tx_ready        (1'b1),
         .adsp_tx_data         (),
@@ -611,7 +613,9 @@ module ngage_mister #(
     wire observed_ack = observe_ram ? fast_ram_response : wb_ack;
     wire observed_error = !observe_ram && wb_err;
     wire [31:0] cpu_flags = {
-        23'b0,
+        1'b1,
+        6'b0,
+        bringup_status,
         flash_busy,
         flash_hit,
         ram_hit || observe_ram,

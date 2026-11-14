@@ -5,11 +5,12 @@ module tb;
     reg hv = 0, ready = 0, allow = 1, inject = 0;
     reg [7:0] hd = 0;
     wire hr, rv, link, cv, cr, response, error;
+    wire [11:0] debug_status;
     wire [ 7:0] rd;
     wire [ 6:0] ca;
     wire [15:0] cw;
-    reg  [ 7:0] output_bytes[0:4095];
-    reg  [ 7:0] input_bytes [ 0:255];
+    reg  [ 7:0] output_bytes [0:4095];
+    reg  [ 7:0] input_bytes  [ 0:255];
     integer count = 0, codecs = 0, cycles = 0, i, n, base, before_codecs, file;
     reg  [15:0] check;
     real        half_period = 6.410256;
@@ -36,7 +37,8 @@ module tb;
         .codec_word          (cw),
         .codec_response_valid(response),
         .codec_response_error(error || inject),
-        .link_ready          (link)
+        .link_ready          (link),
+        .debug_status        (debug_status)
     );
     ngage_aic23 codec (
         .clk            (clk),
@@ -222,6 +224,7 @@ module tb;
         packet_check(base, 12);
         validate_reply(base + 12, 0, 16'h42, 0);
         if (codecs != 1) $fatal(1, "diagnostic codec count");
+        if (debug_status[11:8] !== 4'b0111) $fatal(1, "diagnostic completion observation");
         // Duplicate input and NACK replay the owned result; neither reruns42.
         base = count;
         request(1, 16'h42, 8'h2b, 0);
@@ -233,6 +236,8 @@ module tb;
         validate_reply(base, 0, 16'h42, 0);
         if (codecs != 1) $fatal(1, "replay reran codec");
         acknowledge(0);
+        repeat (3) tick();
+        if (debug_status[11:8] !== 4'b1111) $fatal(1, "native ACK observation");
         base = count;
         request(1, 16'h42, 8'h2b, 0);
         await_bytes(base + 12);
@@ -255,6 +260,7 @@ module tb;
         request(4, 16'h42, 8'h2b, 0);
         await_bytes(base + 34);
         validate_reply(base + 12, 2, 16'h42, 12);
+        if (debug_status[11:8] !== 4'b0011) $fatal(1, "failed prerequisite observation");
         acknowledge(2);
         locked = 1;
         fv     = 0;
@@ -286,6 +292,10 @@ module tb;
         tick();
         if (rv || link || !hr) $fatal(1, "disable ownership");
         start_link();
+        if (debug_status[11:8] !== 4'b1011) $fatal(1, "clock gating discarded observation");
+        reset = 1;
+        repeat (3) tick();
+        if (debug_status[11:8] !== 0) $fatal(1, "phone reset did not clear observations");
         $fclose(file);
         $display(
             "PASS D550 boot peer: startup ACK, native 2B/8B, CRC, routing, stalls, codec prerequisite failures, unsupporteds, duplicate/NACK replay, sequence and disable/reset");
