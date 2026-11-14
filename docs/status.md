@@ -1,3 +1,25 @@
+## 2026-11-14: Shared-waiter failure reproduced with original NOS clients
+
+Native LPRF15 client sends5901/body080103, timeout1000; ADSP36 sends822B,
+timeout3000. Explicit fixture timeout/message scheduling plus the original
+shared pointer setter reproduces captured St_product/DF2/LR516A629B from late
+BT body08020100. No guest code changed; this proves the interleaving is sufficient,
+not the live timer/BT trigger. New test and docs/bt-adsp-startup-race.md retain it.
+NEM-4 BTLDD ARM image and actual A6=0/1 CBUS reset writes are identified; old
+preliminary20E4/2144 addresses are literal pools for this image. Registration24
+is a CBUS event index, not proved IRQ24. Do not wire guessed events/status.
+7e893c8 build43552422501 is still in its scheduled wait; no CI polling. Follow-up
+04:15:30UTC retrieves/deploys. Original ROM/Run/save-Off/disk hashes restored.
+
+## 2026-11-14:7e893c8 SIM/milestone build launched, seed44
+
+Run43552422501 launched03:35UTC from7e893c8;40-minute follow-up scheduled
+04:15:30UTC/05:15:30Rome. Retrieve logs/RBF even on timing-only failure, inspect
+fit/STA, then deploy original-ROM autoRun/save-Off and read new passive DDR
+bringup flags. No build polling. Shared59/02 race remains open; ADSP36=00 is
+observation-dependent. Details below; scratch/sim-card-production-20261114/build.json.
+Other simulations, PLL and card firmware/disks unchanged. All probes removed.
+
 ## 2026-11-14: Native ADSP pass observed; synthetic-card board build prepared
 
 462ba08 board delivery capture proves original NOS accepts82/8B/result0000,

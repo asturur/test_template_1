@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [bt-adsp-startup-race.md](bt-adsp-startup-race.md) | Native late Bluetooth result/shared ADSP waiter reproduction and actual CBUS transport leads |
 | [adsp-native-link.md](adsp-native-link.md) | Actual unexpected ADSP response, original D550/ARM startup exchange, bounded transmitter and remaining production gates |
 | [rf-native-media.md](rf-native-media.md) | Native media12 RF fix, exact-packet reproduction, hardware1E=00 qualification and subsequent native panic |
 | [board-boot-91045a6.md](board-boot-91045a6.md) | Deployed build, clean cardless Phone, corrected active blocker and native MTC/SIM observations |
