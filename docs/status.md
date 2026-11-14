@@ -1,3 +1,15 @@
+## 2026-11-14: Native Bluetooth event callback contract qualified
+
+Twelve original ARM cases execute actual CBUS503825EC -> BTLDD503F1298,
+kernel critical-section helpers and HAL:150102 bit10 produces exactly native
+W1C150102/10 and deferred queueobject+147C; unrelated bits stay silent. Only
+queue delivery is spied. Source/physical handshake and HCI remain unimplemented.
+Maintained test: tests/tools/test_native_lrb2_event.py. Evidence/next steps in
+bt-adsp-startup-race.md. Board currently has original ROM/autoRun/save-Off.
+Still awaiting build43552422501/7e893c8 at the scheduled04:15:30UTC follow-up;
+retrieve/deploy then inspect passive milestones and native SIM initialization.
+No CI polling or changes to other simulations, firmware, disks or PLL.
+
 ## 2026-11-14: Missing native Bluetooth GENIO path identified
 
 CBUS callback503825EC tests halfword150102/10 = full status150100 bit20;

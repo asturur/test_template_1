@@ -63,6 +63,13 @@ That callback writes0010 to150102, sets its queued-work flag and schedules
 original-instruction observations, not a guessed ICU vector. Schematic LPRFInt
 on GENIO22 corroborates the transport connection; edge/pin timings need proof.
 
+`tests/tools/test_native_lrb2_event.py` executes that original CBUS -> BTLDD
+callback on the original ARM image, including original kernel critical-section
+helpers and HAL MMIO. Twelve status/flags cases pass:150102/10 causes exactly
+the original W1C write and queue of object+147C; unrelated status stays silent.
+Only deferred-queue delivery is spied. This qualifies the callback contract,
+not the source of the status, physical reset/sync polarity or an HCI response.
+
 Current UPP has no producer for status bit20. Keypad models enable bit4 but its
 actual event/read overlay mask00EE0004 excludes bit20. NOS currently treats
 that upper status bit as a generic latch, so merely asserting an external IRQ
