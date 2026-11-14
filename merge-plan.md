@@ -1,3 +1,146 @@
+## 2026-11-14: CIdle starvation not demonstrated; return to uninstrumented app tests
+
+Calendar blank and focus recovery reproduce under the CIdle observer with no
+kernel-stop/panic evidence. No filtered Calendar/Agenda CIdle START/READY/RUN
+message is retained, including around focus recovery. The observer covers only
+CIdle callbacks in specified ROM ranges; it does NOT cover CAsyncCallBack,
+other active-object classes, other callback addresses or server initialization.
+Therefore the specific CIdle starvation experiment is inconclusive and does
+not justify a timer/priority/CPU change. Do not present starvation as fixed or
+confirmed. The exact native Avkon wait-animation identity remains qualified.
+
+All observers are being removed by original RBF auto-Run reload; full original
+ROM/settings/C/PMM verifier in scratch/calendar-idle-run-20261114/restored.json.
+Next uninstrumented Calendar default-view control and remaining apps one by
+one. No production RTL/build/resource/PLL changes. All prior test entries were
+cleaned. The original seeded C remains on card; SD persistence was not tested.
+
+## 2026-11-14: Exact native wait-animation assets identified; test idle starvation
+
+Reduced observer identifies exact ORIGINAL Avkon.mbm resources in Calendar's
+blank first view: bitmap506B9768=index264 (blank30x40 note image), plus seven
+successive120x10 progress-mask frames355/357/359/361/363/365/367. Exact whole
+Avkon.mbm bytes match core.bin atVA506AA740; index lookup uses that full match,
+not ambiguous identical individual headers.90s359snapshots/one initial reader
+gap/no kernel stop/panic;1418blank-icon and709progress-mask entry observations
+retained. Counts are instrumented scanline entries, not native frames or a
+measured uninstrumented animation rate. The prior high-volume gap issue is
+avoided by one filtered native Print.288ABI cases qualify wrapper entry state,
+not full native service/runtime timing. Focus recovery again displays full day.
+Source/screens/captures: scratch/calendar-animation-20261114. Observer removed
+by fresh original Hold reload.
+
+This confirms ongoing wait/progress drawing rather than a giant bitmap; why
+it remains active is NOT yet proven. Working hypothesis: animated work may
+starve lower-priority Calendar/Agenda initialization on the slow soft CPU.
+Next CIdle scheduling observer in scratch/calendar-idle-run-20261114 watches
+Start50399D70, post-SetActive50399DA4, RunL50399DAC only in USER mode and callback
+ROM ranges AgnModel/Agnsynca/Agndasvr or Calendar. READY reads native iStatus+4
+and priority+14 after actual RequestComplete/SetActive; RunL pairs by object.
+No callback/function/deadline/data substitution.504baseline/traced ABI cases
+pass, including ARM/Thumb return, USER/SVC/IRQ/UND and callback-range rejection;
+print service spied, original function remainder not simulated. Test caught a
+saved-R4 retrieval error before any hardware use; corrected from saved stack.
+Fresh-Hold guarded apply underway; next restore saved Run/saveOff and capture.
+No production RTL/build/resource/PLL change. Contacts/Profiles checks remain
+as recorded; remaining app coverage still pending Calendar cause.
+
+## 2026-11-14: Calendar blank correlates with repeated Avkon-size drawing
+
+Lower scanline observer50559228 boots healthy original Phone/Menu; original
+Calendar blank first view and full day after focus recovery reproduce.
+Retained Calendar capture repeatedly reports30x40/depth8 colour and120x10/depth1
+monochrome, compression33, normal lengths30/120 and sourcepoint0,0. Heavy
+three-line logging causes many reader gaps (266 by279snapshots); rates and
+complete call coverage are NOT qualified. No oversized rectangle established.
+Recovered20s follow-up79snapshots/one initial reader gap has no retained matching
+30x40/120x10 loop; it has small4x16/44x44 drawing then normal idle/NOS samples.
+No kernel-stop sample or captured panic. This suggests an Avkon drawing/animation
+lead, not a confirmed root cause or HDL fix.
+
+Firmware Avkon.mbm contains matching resources: ROM-object headers and byte-RLE
+scanout decoded locally, shape previews in scratch/calendar-scan-core-20261114.
+120x10 candidates are striped progress bars;30x40 includes many distinct note,
+calendar and animation icons. Dimensions alone do not identify actual assets.
+A read-only primary-source SymbianSource Avkon tree lookup is only newer-SDK
+context, not an exact firmware match. Native asset bytes are the main evidence.
+
+Preparing smaller USER observer in scratch/calendar-animation-20261114: same
+entry, sourcepoint0,0, dimensions exactly30x40 or120x10, one native debug print
+of bitmap pointer/parent return/length. Parent read ONLY for known5055969B
+caller whose60-byte frame saves LR at originalSP+56.288ABI cases pass with
+native print service spied. High-volume observer removed by fresh Hold reload;
+next guarded apply then capture exact asset identity. No production RTL/build,
+PLL, ALM change or other-thread simulation changes.
+
+## 2026-11-14: User scanline observer qualified; lower conversion entry next
+
+The direct-MMIO Thumb bitmap observer was invalid on hardware and removed.
+Original ROM, Run/save-Off settings and C/PMM hashes are fully reverified in
+scratch/calendar-bitmap-20261114/restored-after-invalid.json. Its exact Thumb
+trampoline passes actual ngage_cpu/ZAP Verilator with bus waits 0/3 (10,435/
+15,826 cycles, 172 diagnostic bytes). The first bench incorrectly used fetch
+PC as completion and had a dangling else; corrected to an executed memory
+marker before accepting these results. No CPU defect inferred.
+
+A USER-only observer at CBitwiseBitmap GetScanLine 505598A4 uses native
+RDebug::Print, no kernel hooks/direct MMIO. 36 ABI tests pass with debug service
+spied. Hardware boots Phone/Menu without kernel stop; Calendar blank-first and
+focus-recovered full day reproduce. Only 25x23/depth1/compression33 toolbar
+scans were observed through this outer entry. This does not cover the busy
+lower 50559228 conversion path. Source/captures:
+scratch/calendar-scan-user-20261114. Removed by fresh Hold reload.
+
+Next small observer targets only lower scanline 50559228, exact original
+12-byte prologue replayed (52-byte native frame). Same USER print path and y
+multiple32 filter; 36 ABI cases pass after correcting generated UTF16 trace
+label. Fresh-Hold apply underway in scratch/calendar-scan-core-20261114.
+No production RTL/build/resource/PLL change. Contacts/Profiles results remain
+qualified as documented. Do not treat stale/pre-settle screenshots as current
+Menu selection. Native Menu numeric shortcut3 successfully opens Calendar.
+
+## 2026-11-14: Bitmap Thumb probe INVALID; isolate exact trampoline on ZAP
+
+1253fresh-Hold records passed full ROM/checksum/apply; filtered bitmap probe
+enters kernel fault loop5032429C before Time prompt. No G metadata retained;
+Unicorn432prologue cases did not qualify actual ZAP execution. No production
+Calendar conclusion from this run. Removed by original RBF reload; full original
+ROM/settings/C/PMM verification underway. Do not reapply this prepared observer.
+
+An isolated short Verilator fixture is now compiling/running in existing image:
+scratch/calendar-bitmap-20261114/zap. Production ngage_cpu/ZAP/cache RTL, native
+scanline page and exact injected Thumb→ARM→replayed Thumb prologue, valid bitmap/
+point and debug sink. Stops at original505598B0 continuation; remainder native
+function/kernel not simulated. First uncached zero-wait case pending. Keep
+fixture/debug results separate from phone behavior. No production RTL fix yet.
+Local checkpoint2cf9bdf preserves valid app tests/source-pixel evidence/tools;
+new investigation not pushed, no build/PLL/resource changes, no other sims.
+
+## 2026-11-14: Verified app/probe checkpoint2CF9BDF; bitmap metadata probe preparing
+
+Local commit2cf9bdf records original-firmware app results and reusable direct-
+port observer tools; no production HDL or FPGA build change. Not pushed yet.
+Calendar root remains upstream of LCD: last DMA sourceFFF/blank, focus redraw
+sourceAAF/day; one sampled pixel limits scope. Ordinary held Down arrives but
+no recovery. Contacts/five Profiles/alert restore/Notes/Messaging draft CRUD and
+Calculator12+34 pass, all local entries removed; full matrix in phone-functions.
+
+Next observer:scratch/calendar-bitmap-20261114. Retains qualified direct-port
+LCD hooks and adds CBitwiseBitmap GetPixel50558F8C,GetScanLine505598A4,
+StretchScanLine50559F20 metadata on y multiples32 (pixel also x0). Logs bitmap
+width/height/depth,point,arg3 andcaller; no service/SWI. Native12-byte Thumb
+prologues have no PC-relative/control flow, are replayed exactly; all GPRs,
+CPSR/SPSR/SP/LR/live saved stack match original continuation in432USR/SVC/IRQ/
+UND/filter/length cases. Remaining native function body is not simulated by
+that fixture.2096byte combined payload also logs colour/compression and known
+scanline data argument.1253fresh-Hold records/full hash/checksum verified,
+applied.json true. Saved Run/saveOff restored; verified6DownOSD plus starts CPU.
+120s boot capture ACTIVE:scratch/calendar-bitmap-20261114/boot.jsonl. Qualify
+healthy Phone/Menu then Calendar conversion. Remove/reload/full original-
+media verify afterward. Do not patch warm. No other simulations/checkpoints.
+Static donor history has recent ZAP predictor/104MHz work; no port or causal
+claim yet. Stay on the Calendar conversion issue before adding more app tests.
+
 ## 2026-11-14: Calendar source stays white; focus redraw changes source toAAF
 
 Corrected direct-port LCD observer boots healthy Phone/Menu and reproduces

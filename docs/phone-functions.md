@@ -161,4 +161,41 @@ but this case points upstream of LCD decoding. A dedicated15s live capture
 records held Down mask2 in4/59snapshots and no UI recovery. The earlier90s key
 capture expired before input and is not evidence. Next trace busy bitmap
 conversion arguments rather than change panel logic speculatively. Observer
-still active and must be removed/reverified after diagnosis.
+was removed and the original firmware/settings/disks were reverified.
+
+### Bitmap observation limits
+
+A direct-MMIO USER bitmap probe faulted before setup and was discarded; no
+Calendar evidence comes from it. Its Thumb trampoline passes an isolated actual
+ZAP/Verilator fixture at bus waits0/3 after testbench corrections. A corrected
+USER-only native RDebug::Print observer at505598A4 boots healthy Phone/Menu and
+reproduces Calendar blank/focus recovery. It records only small25x23/depth1
+bitmaps through that outer GetScanLine entry. No oversized bitmap or cause is
+established. Next isolate the busy lower conversion entry50559228. Native
+Menu numeric shortcut3 opens Calendar reliably; allow frame settling before
+interpreting selections. No production RTL fix yet.
+
+The lower50559228 observer repeats normal30x40 color and120x10 monochrome
+scanline dimensions/lengths during blank Calendar. Three-line output overruns
+the host reader often, so exact call rates/coverage are unqualified. After
+focus recovery, a20s follow-up has79snapshots, one initial gap, no retained
+matching repeated pattern and normal idle/NOS sampling. Native Avkon.mbm
+contains progress-strip120x10 assets and many different30x40 icons; local
+RLE-decoded shape previews cannot identify the exact runtime bitmap by size
+alone. A smaller pointer/parent observer is preparing. This remains a lead,
+not an HDL fix or a complete causal diagnosis.
+
+Reduced pointer observation identifies exact original Avkon assets: blank
+note image264 and rotating progress masks355..367 (odd indices). Exact full
+Avkon.mbm file matches the firmware ROM, avoiding header-only ambiguity. The
+90s instrumented capture has359snapshots/one initial gap/no stop or captured
+panic. This is an active wait-animation path, not proof of oversized drawing.
+The reason for continued waiting remains open. Next observe Calendar/Agenda
+CIdle scheduling, actual ready status/priority, and execution around focus
+recovery; CPU-bound animation starvation is a hypothesis, not a fixed defect.
+
+The filtered CIdle Start/READY/RunL experiment retains no Calendar/Agenda
+messages, including at recovery; it has not demonstrated CIdle starvation.
+Other active-object classes/callback addresses/server work are outside its
+coverage. No timer/CPU/priority change follows from this negative probe.
+Observers are removed before remaining functional checks.
