@@ -312,3 +312,28 @@ python3 tests/tools/test_native_adsp_bootstrap.py
 Private bounded sources, manifests and raw captures remain in
 scratch/adsp-native-20261114 and scratch/adsp-hal-20261114. Compact capture
 identity/qualification is retained in evidence/adsp-native-link-2026-11-14.json.
+
+## 2026-11-14: Current-consumption failure contract qualified during build
+
+Native registry CURRENT_CONS02 points to516A5EBC, severity0A (RF/ADSP are0C).
+New tests/tools/test_native_current_startup.py executes the unchanged client:
+resource17/request0A110F01, deadline200; normal status1 values outside
+00007FFD..00007FFF finish00. Those three sentinels or status0 schedule a second
+request; the same unresolved condition then finishes01. Status2 fails01 and a
+true timeout produces0D. Eight reply cases pass with original code/stack/ROM;
+timer delivery is explicitly fixture-scheduled, not an RTOS qualification.
+Therefore observed01 is not enough to infer the ADC returned the wrong sample.
+
+Original energy handler51594648 calls515C5B68 and515B80B8(channel0F,format1).
+The latter reaches51653CA4, using separate CBUS field accessors. Native CBUS
+logical3B/3C/42 (device4) map through the real table to physical8E/8F/95;
+control logical32 maps85. Production currently supplies default zeros for
+unwritten current measurement inputs. The analog/accumulator completion and
+exact failing live response still need qualification; do not replace native
+replies, force readiness or assign guessed passing ADC values. Source/trace
+notes are in scratch/current-test-20261114/. No UEM/BT HDL change was made.
+
+Build43557629525/940c0f6 remains in the scheduled wait until05:18:15UTC. No CI
+polling. Next hardware step remains original ADSP77/AB error replies and36's
+original deadline; the current-consumption investigation is a separate lead.
+

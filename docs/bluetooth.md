@@ -8,4 +8,14 @@ The existing long-boot model returns assumed CBUS inputs or echoes written value
 
 `rtl/ngage_bt_hci_stub.sv` is an isolated experimental no-radio HCI command responder based on that emulator. Run `tests/bluetooth/hci/sim.sh` for its directed tests. It is not connected to the phone model, and does not resolve the firmware timeout. Correct integration requires the real LRB-2 transport/register behavior, interrupt and reset sequencing; never substitute HLE channel bytes directly for physical CBUS transactions without evidence.
 
-Preliminary disassembly of `firmware/disk_dump/Z/System/Libs/btldd.ldd` suggests functions around 0x503f20e4/0x503f2144 issue device 5, 16-bit register operations; registers 0x25, 0x27, 0x28 and 0x2a occur at call sites. This is an inference from a hypothesized load address, not a verified bus capture. Compare with actual ROM mappings and capture device transactions before assigning register meanings or return values. A complete LRB-2 register/pin protocol datasheet remains missing.
+The matching NEM-4 retail BTLDD is ARM code at503F0AB0. Its original wrappers
+503F2584/503F25E4 issue device5,16-bit logical register writes/reads; register27
+maps physicalA6. A real capture positively shows reset writesA6=0/1. Older
+preliminary20E4/2144 addresses from a different dump are literal pools in this
+image and must not be used. Original CBUS callback503825EC tests GENIO status
+150102/10 (full bit20), invokes BTLDD503F1298, W1C-acks it and queues503F12D4.
+Twelve original-instruction cases qualify that callback; logical CBUS event24
+is not ICU IRQ24. Production lacks the bit20 producer and proper W1C ownership.
+Full LRB2 reset/sync/status semantics and HCI transport remain unimplemented;
+see [bt-adsp-startup-race.md](bt-adsp-startup-race.md) for exact evidence/tests.
+A complete LRB-2 register/pin protocol datasheet remains missing.

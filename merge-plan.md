@@ -1,3 +1,36 @@
+## 2026-11-14: Current-consumption failure contract qualified during build
+
+Native registry CURRENT_CONS02 points to516A5EBC, severity0A (RF/ADSP are0C).
+New tests/tools/test_native_current_startup.py executes the unchanged client:
+resource17/request0A110F01, deadline200; normal status1 values outside
+00007FFD..00007FFF finish00. Those three sentinels or status0 schedule a second
+request; the same unresolved condition then finishes01. Status2 fails01 and a
+true timeout produces0D. Eight reply cases pass with original code/stack/ROM;
+timer delivery is explicitly fixture-scheduled, not an RTOS qualification.
+Therefore observed01 is not enough to infer the ADC returned the wrong sample.
+
+Original energy handler51594648 calls515C5B68 and515B80B8(channel0F,format1).
+The latter reaches51653CA4, using separate CBUS field accessors. Native CBUS
+logical3B/3C/42 (device4) map through the real table to physical8E/8F/95;
+control logical32 maps85. Production currently supplies default zeros for
+unwritten current measurement inputs. The analog/accumulator completion and
+exact failing live response still need qualification; do not replace native
+replies, force readiness or assign guessed passing ADC values. Source/trace
+notes are in scratch/current-test-20261114/. No UEM/BT HDL change was made.
+
+Build43557629525/940c0f6 remains in the scheduled wait until05:18:15UTC. No CI
+polling. Next hardware step remains original ADSP77/AB error replies and36's
+original deadline; the current-consumption investigation is a separate lead.
+
+## 2026-11-14:940c0f6 ADSP response build launched
+
+Run43557629525/seed44 launched04:38UTC;40-minute in-thread follow-up scheduled
+05:18:15UTC/06:18:15Rome. Retrieve/deploy and qualify native short error replies,
+original36 deadline and SIM readiness. No CI polling. Source/contract details
+below; scratch/adsp-app-config-20261114/build.json retains identity. Current
+board stays original7e893c8/Run/save-Off, no observer or disk changes. Continue
+qualifying native peripheral dependencies while the build runs.
+
 ## 2026-11-14: Bound missing ADSP application responses; next board build
 
 7e893c8 MTC/assert observation is complete, hooks removed by reload, original
