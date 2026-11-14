@@ -1,3 +1,70 @@
+## 2026-11-14: Native SIM transfer stops early; buffer follow-up active
+
+Direct native tracing proves SIM does receive its ATR and writes SELECT header
+A0 A4 00 00 02, then DF-GSM selection7F20. Native status collector returns18
+twice and RX callback runs twice; next transfer starts with one7F byte and
+stops.720snapshots/no gaps; SIM stays1, no native assert, MTC NORMAL/READY and
+ADSP36=00 repeat. The HAL-only trace was bypassed by inline MMIO; direct native
+helpers/dispatch-table hooks work. Original IRQ handles both bits8 and10, so
+combined18 alone is NOT proof of a phase/priority fault; do not add guessed delays.
+
+Exact RX data is needed before choosing a controller/card fix. Same observer
+plus two read-only native RAM buffer words passes84 differential/ABI cases.
+Fresh-Hold416words verified; checksum retained, automatic Run/saveOff restored.
+Capture ACTIVE at scratch/sim-buffer-20261114/running.jsonl (180s); do not
+interrupt, then reload/verify original ROM/settings/disks. Previous direct trace
+was removed by reload. Receipts/source/tests persist in scratch/sim-boundary-
+20261114 and scratch/sim-buffer-20261114. No HDL change, no functional patches,
+no SD backups, no changes to other simulations or78MHz PLL.
+
+## 2026-11-14: Native ADSP36=00; MTC reaches NORMAL/READY
+
+940c0f6's native test array now records RF1E=00 and ADSP36=00, with original
+startup code/deadlines. MTC changes3→1/NORMAL and publishes C0/action4/READY;
+Cm_commgr assertion is absent. BT15/CURRENT02 stay01 (severity0A), so these
+failures do not prevent this native NORMAL/READY transition. No test results,
+state or replies were injected. This is specific ADSP/startup progress, not a
+Phone/Menu or timing-closure claim. Untouched control still has no usable UI.
+
+The MTC-only720-snapshot run reaches NORMAL/READY. A second719-snapshot run
+prints completed RESULTS words03030000 00030000 03000000 03010000 03030301
+04000300 (decode each word little-endian), confirming ADSP36=00. Both have no
+reader gaps. Native SIM is still1 at READY. SIM kernel-HAL probe produced no
+lines because native SIM accesses MMIO inline, as proved by disassembly; do
+not mistake that for absent transfers. Both observers removed by fresh reload.
+
+Next frontier is native SIM initialization/serving. A direct-boundary observer
+now covers original control/read/write helpers, original status/ack helper,
+TX/RX and SIM_Server dispatch tables.84 mode/flags cases and actual original
+status-helper differential checks pass; original MMIO/W1C/args/SP preserved.
+406fresh-Hold words verified, checksum retained, saved Run/saveOff restored.
+Capture ACTIVE: scratch/sim-boundary-20261114/running.jsonl (180s). Do not
+interrupt. Must reload/verify original ROM/settings/disks afterward. No SIM,
+state, deadline or functional substitutions; no new HDL since940c0f6. Failed
+setup-0.386ns remains a limitation of this diagnostic RBF. No SD backups.
+
+## 2026-11-14:940c0f6 deployed; clean capture complete, MTC observer active
+
+Build43557629525/seed44 fits38,046ALMs/91%,508M10Ks/92%; D550209.0ALMs,
+202registers, zeroRAM/DSP. Setup-0.386ns/20 failing worst1000 paths, hold+0.245ns:
+one CPU flags→FIFO empty path and19 CPU bus-address→DMA paths, no D550 path.
+This retained timing-failed RBF is a diagnostic experiment, not timing-qualified.
+SHA c25d452f.../4,521,668bytes deployed with no backup.78MHz PLL unchanged.
+
+Untouched180s control:720snapshots, no reader gaps/reset/panic/first fault or
+SIM overflow. Native42 request/result-zero/hostACK milestones all true. Menu40
+positively sampled; Nokia becomes blank, no usable UI. Original ROM88fd...,
+Run/saveOff/C4a75.../PMM71189... verified. Native36 deadline is not proved byACK.
+
+Fresh-Hold guarded MTC/assert-only observer262words applied/verified, same
+previously qualified payload and diagnostic imagebf1d.../MD5bb9543...; no replies,
+state/deadline/self-test substitutions. Exact saved Run/saveOff restored and
+CPU started through verified unchanged menu.180s capture ACTIVE at
+scratch/adsp-app-mtc-20261114/running.jsonl. Do not reload while active.
+Initial MTC mode3/SIM1; final tests/readiness pending. After capture, reload and
+verify original ROM/settings/disks before continuing. Fit and clean receipts:
+scratch/adsp-app-config-20261114/{fit-timing,clean-result,deployment}.json.
+
 ## 2026-11-14: Current-consumption failure contract qualified during build
 
 Native registry CURRENT_CONS02 points to516A5EBC, severity0A (RF/ADSP are0C).

@@ -1,3 +1,48 @@
+## 2026-11-14: Native SIM transfer stops early; buffer follow-up active
+
+Direct native tracing proves SIM does receive its ATR and writes SELECT header
+A0 A4 00 00 02, then DF-GSM selection7F20. Native status collector returns18
+twice and RX callback runs twice; next transfer starts with one7F byte and
+stops.720snapshots/no gaps; SIM stays1, no native assert, MTC NORMAL/READY and
+ADSP36=00 repeat. The HAL-only trace was bypassed by inline MMIO; direct native
+helpers/dispatch-table hooks work. Original IRQ handles both bits8 and10, so
+combined18 alone is NOT proof of a phase/priority fault; do not add guessed delays.
+
+Exact RX data is needed before choosing a controller/card fix. Same observer
+plus two read-only native RAM buffer words passes84 differential/ABI cases.
+Fresh-Hold416words verified; checksum retained, automatic Run/saveOff restored.
+Capture ACTIVE at scratch/sim-buffer-20261114/running.jsonl (180s); do not
+interrupt, then reload/verify original ROM/settings/disks. Previous direct trace
+was removed by reload. Receipts/source/tests persist in scratch/sim-boundary-
+20261114 and scratch/sim-buffer-20261114. No HDL change, no functional patches,
+no SD backups, no changes to other simulations or78MHz PLL.
+
+## 2026-11-14: Native ADSP36=00; MTC reaches NORMAL/READY
+
+940c0f6's native test array now records RF1E=00 and ADSP36=00, with original
+startup code/deadlines. MTC changes3→1/NORMAL and publishes C0/action4/READY;
+Cm_commgr assertion is absent. BT15/CURRENT02 stay01 (severity0A), so these
+failures do not prevent this native NORMAL/READY transition. No test results,
+state or replies were injected. This is specific ADSP/startup progress, not a
+Phone/Menu or timing-closure claim. Untouched control still has no usable UI.
+
+The MTC-only720-snapshot run reaches NORMAL/READY. A second719-snapshot run
+prints completed RESULTS words03030000 00030000 03000000 03010000 03030301
+04000300 (decode each word little-endian), confirming ADSP36=00. Both have no
+reader gaps. Native SIM is still1 at READY. SIM kernel-HAL probe produced no
+lines because native SIM accesses MMIO inline, as proved by disassembly; do
+not mistake that for absent transfers. Both observers removed by fresh reload.
+
+Next frontier is native SIM initialization/serving. A direct-boundary observer
+now covers original control/read/write helpers, original status/ack helper,
+TX/RX and SIM_Server dispatch tables.84 mode/flags cases and actual original
+status-helper differential checks pass; original MMIO/W1C/args/SP preserved.
+406fresh-Hold words verified, checksum retained, saved Run/saveOff restored.
+Capture ACTIVE: scratch/sim-boundary-20261114/running.jsonl (180s). Do not
+interrupt. Must reload/verify original ROM/settings/disks afterward. No SIM,
+state, deadline or functional substitutions; no new HDL since940c0f6. Failed
+setup-0.386ns remains a limitation of this diagnostic RBF. No SD backups.
+
 ## 2026-11-14: Production synthetic-card selection for native initialization
 
 Template now selects the existing separate ngage_test_sim card and asserts

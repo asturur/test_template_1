@@ -1,0 +1,117 @@
+{
+  "source": "940c0f68d4823cd0aa4cdf35f8dd4f9f830571ea",
+  "run_id": "43557629525",
+  "seed": 44,
+  "alms": 38046,
+  "ram_blocks": 508,
+  "registers": 43471,
+  "adsp_alms": 209.0,
+  "adsp_registers": 202,
+  "adsp_ram_dsp": 0,
+  "setup_slack_ns": -0.386,
+  "hold_slack_ns": 0.245,
+  "negative_paths_in_worst1000": 20,
+  "adsp_paths_in_worst1000": 0,
+  "worst_paths": [
+    {
+      "rank": "1",
+      "slack_ns": "-0.386",
+      "data_delay_ns": "12.409",
+      "logic_levels": "10",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_alu_main:u_zap_alu_main|flags_ff[4]",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|empty_ff"
+    },
+    {
+      "rank": "2",
+      "slack_ns": "-0.236",
+      "data_delay_ns": "12.655",
+      "logic_levels": "12",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[31]",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|state.IDLE~DUPLICATE"
+    },
+    {
+      "rank": "3",
+      "slack_ns": "-0.231",
+      "data_delay_ns": "12.657",
+      "logic_levels": "12",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[31]",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|state.IDLE"
+    }
+  ],
+  "deployment": {
+    "path": "/media/fat/_Console/ngage1.rbf",
+    "bytes": 4521668,
+    "sha256": "c25d452faf9a19ab64d5981f04bbb215742f0c5e8c50a3da3e285aa6a09d779e",
+    "card_backup_created": false,
+    "fitter_seed": 44,
+    "commit": "940c0f68d4823cd0aa4cdf35f8dd4f9f830571ea",
+    "run_id": "43557629525",
+    "timing_status": "consult job timing gate and reports"
+  },
+  "clean": {
+    "snapshots": 720,
+    "reader_gaps": 0,
+    "reset_generations": [
+      0
+    ],
+    "first_fault": false,
+    "panic": false,
+    "menu_mask_seen": true,
+    "sim_overflow": false,
+    "milestones": {
+      "adsp_test42_seen": true,
+      "adsp_test42_complete": true,
+      "adsp_test42_ok": true,
+      "adsp_test42_acked": true
+    },
+    "original_firmware": true,
+    "functional_hooks": false
+  },
+  "native_mtc_observation": {
+    "snapshots": 720,
+    "reader_gaps": 0,
+    "native_mtc_messages": [
+      "M MTC msg/action/lr/0958/095c/df48/sim 000000c0 00000003 5159a70f 03030027 00000003 00000103 00000001",
+      "M MTC msg/action/lr/0958/095c/df48/sim 00000001 00000001 5159a71b 03030027 00000003 00000103 00000001",
+      "M MTC msg/action/lr/0958/095c/df48/sim 000000c0 00000004 5159a0cf 01010027 00000001 00000101 00000001"
+    ],
+    "native_normal_ready": true,
+    "native_assertion": false,
+    "functional_substitutions": false,
+    "native_sim_at_ready": 1,
+    "native_result36": "not directly printed; NORMAL/READY is higher-level progress, not an exact36 result measurement",
+    "cleanup": "Reload removed this observer; new fresh-Hold SIM observer is separate"
+  },
+  "native_completed_results": {
+    "snapshots": 719,
+    "reader_gaps": 0,
+    "native_test_words": [
+      "03030000",
+      "00030000",
+      "03000000",
+      "03010000",
+      "03030301",
+      "04000300"
+    ],
+    "decoded_results": {
+      "BT15": 1,
+      "CURRENT02": 1,
+      "RF1E": 0,
+      "ADSP36": 0
+    },
+    "native_mtc_normal_ready": true,
+    "sim_state_at_ready": 1,
+    "native_assertion": false,
+    "functional_substitutions": false,
+    "sim_hal_probe_lines": 0,
+    "probe_limit": "Original SIM code accesses MMIO inline, bypassing the kernel HAL hooks; zero HAL lines does not prove no SIM transfers.",
+    "cleanup": "Reload removed this observer; direct native SIM boundary observer being prepared"
+  },
+  "sim_next": "Direct native boundary capture active; readiness remains unverified"
+}
