@@ -25,6 +25,7 @@ tests/cpu/cache_access/sim.sh
 tests/cpu/cache_buffer_integration/sim.sh
 tests/cpu/cache_dirty_packed/sim.sh
 tests/cpu/core/sim.sh
+python3 tests/cpu/thumb_ldm_base/run.py
 CPU_PROGRAM=cache_write_miss tests/cpu/core/sim.sh
 CPU_PROGRAM=cache_disable_reenable tests/cpu/core/sim.sh
 CPU_ASM_DEFINES='-DNONIDENTITY -DUSER_CONTEXT -DSMALLPAGE' tests/cpu/core/sim.sh

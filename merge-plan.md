@@ -1,3 +1,58 @@
+## 2026-11-14: Normal-boot autosave drains and matches both backing files
+
+On the original uninstrumented installed RBF, enabling Background save drains
+42 dirty sectors to zero, Saved=true with no queue/slot error or CPU reset.
+After host sync both boot0.vhd and boot1.vhd match two stable live-DDR payload
+reads byte for byte. This qualifies one normal-boot write-back pass, not
+power-loss durability or every prior save failure. Native time/date acceptance
+and cold reload/readback are being tested separately. No image backup created.
+[Evidence](docs/evidence/autosave-normal-boot-20261114.json).
+
+## 2026-11-14: SPMark FillRate CPU cause reproduced and corrected
+
+Native GLES C903/1845 loads R0/R1 through R1 then adds them. Thumb LDM with
+base in list must suppress writeback; ZAP overwrote loaded R1 with base+8.
+Fresh hardware capture's bad pointer00819EEC exactly equals buffer00415600 +
+(object004048E4+8), callerFFE0B3DD; native64-byte fill faults at503A6B78.
+Old production CPU test fails signature11; corrected decode passes332/552
+clocks at delays0/3. Independent Unicorn3311 cases and exhaustive4096 decode
+cases pass, as do ARM base/cold/small-page and throughput regressions.
+
+Patch0059 adds no state/RAM/stage and changes no PLL.78MHz remains current,
+104MHz target; new fit/timing and original-firmware benchmark results pending.
+Game initialization and JPEG wait are separate unresolved observations.
+Observation hooks were removed by ordinary reload. See
+[benchmark diagnosis](docs/spmark04-benchmark.md). User requested normal autosave;
+RTC reads-zero and native day/calibration/PMM persistence remain to address.
+
+## 2026-11-14 follow-up: native FillRate exception and RTC/persistence gap
+
+Fatal-only probe captured PC503A6B78/FAR00819DBC/FSR05, exception12 in native
+Mem::Fill; R1 is the shifted64-byte-tail mask, not a huge allocation. Caller/
+user-stack/MMU probe passes USER240/kernel100/fill36 preservation checks and
+is undergoing hardware capture. No HDL cause established yet. Native3D DLLs
+map3DTEST=FFD00000/GLES=FFE00000; game still returns explicit−1.
+
+User requests autosave for normal boots and no repeated date/time prompts.
+Confirmed UEM RTC reads forced0/reset and no HPS RTC/TIMESTAMP input wired.
+Do not port donor's invented full-date HLE register as a native-NOS fix. Decode
+native RTC calibration/day-base/PMM contract, then qualify save draining with
+DDR queue/LBA/errors and cold reload/readback. No disk write/Flush/backup yet.
+[Current benchmark/RTC evidence](docs/spmark04-benchmark.md).
+
+## 2026-11-14 follow-up: SPMark benchmark diagnosis in progress
+
+Native3dtest.dll load succeeds; game returns its explicit−1 initialization-error
+sentinel, verified against original DLL Run instructions. IsolatedFillRate
+closes SPMark; system set renders2D and reaches unresolved JPEG Encoding.
+Native RAM report11,032KiB free; no numeric benchmark score. Minimal passive
+trace is accepted; broad earlier diagnostic that logged unrelated NOS comparisons
+is rejected. Fatal-user-exception PC/register probe passes USER240/kernel20
+state-preservation cases and is undergoing hardware capture. No HDL fix/build
+claimed yet; see [benchmark evidence](docs/spmark04-benchmark.md). Same card/RBF,
+save Off; no other-thread simulations or images changed.78MHz PLL unchanged;
+104MHz remains the design objective, current RBF setup−0.270ns is unqualified.
+
 ## 2026-11-14: Native MMC mount and SPMark launch verified; benchmark reports failure
 
 The same games/ngage/spmark04.mmc now mounts with original firmware and no

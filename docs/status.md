@@ -1,3 +1,67 @@
+## 2026-11-14: Normal-boot autosave drains and matches both backing files
+
+On the original uninstrumented installed RBF, enabling Background save drains
+42 dirty sectors to zero, Saved=true with no queue/slot error or CPU reset.
+After host sync both boot0.vhd and boot1.vhd match two stable live-DDR payload
+reads byte for byte. This qualifies one normal-boot write-back pass, not
+power-loss durability or every prior save failure. Native time/date acceptance
+and cold reload/readback are being tested separately. No image backup created.
+[Evidence](evidence/autosave-normal-boot-20261114.json).
+
+## 2026-11-14: SPMark FillRate CPU cause reproduced and corrected
+
+Native GLES C903/1845 loads R0/R1 through R1 then adds them. Thumb LDM with
+base in list must suppress writeback; ZAP overwrote loaded R1 with base+8.
+Fresh hardware capture's bad pointer00819EEC exactly equals buffer00415600 +
+(object004048E4+8), callerFFE0B3DD; native64-byte fill faults at503A6B78.
+Old production CPU test fails signature11; corrected decode passes332/552
+clocks at delays0/3. Independent Unicorn3311 cases and exhaustive4096 decode
+cases pass, as do ARM base/cold/small-page and throughput regressions.
+
+Patch0059 adds no state/RAM/stage and changes no PLL.78MHz remains current,
+104MHz target; new fit/timing and original-firmware benchmark results pending.
+Game initialization and JPEG wait are separate unresolved observations.
+Observation hooks were removed by ordinary reload. See
+[benchmark diagnosis](spmark04-benchmark.md). User requested normal autosave;
+RTC reads-zero and native day/calibration/PMM persistence remain to address.
+
+## 2026-11-14: FillRate native exception captured; date/time gap identified
+
+IsolatedFillRate terminates through kernel exception kind12 at503A6B78 in
+Mem::Fill, FAR00819DBC/FSR05, USR40000010, LR503A31F0/SP0040480C. No reset or
+trace gaps. R1=40000000 is the routine's shifted64-byte-tail mask, not a huge
+requested length. Caller/stack/MMU-state probe now passes USER240/kernel100/
+fill36 preservation cases and is running from a fresh held boot; no HDL cause
+or fix is yet established.3DTEST baseFFD00000, GLESFFE00000 were measured.
+
+User asks for autosave and avoiding time/date entry. UEM currently forces its
+RTC reads to0 and has no HPS clock input; Main already supplies RTC/TIMESTAMP.
+Autosave Off also restores the same C:/PMM seed. Donor wall clock has useful
+seconds/minutes/hours/day handling but its full-date HLE register is for its
+substituted NOS and cannot satisfy our native requirement. Current save drain
+and native clock/day-base handling need separate validation. No write/backup/
+Flush was performed. [Details](spmark04-benchmark.md).
+
+## 2026-11-14: SPMark 3D returns explicit initialization failure; fill-rate closes app
+
+The same mounted card's3dtest.dll loads successfully (native return0), then
+original3D Run returns rawBFF00000/00000000: explicit−1 sentinel. Original-code
+replay confirms null/init-error returns that value before game execution.
+Isolated3D FillRate closes SPMark; relaunch works. System Tests render2D and
+advance through scaling to an unresolved JPEG Encoding wait. No numeric score.
+SPMark reports11,032KiB free RAM and expected ARM4T/4096colours/176×208; its104MHz
+field is firmware metadata, PLL remains78MHz.
+
+A minimal observation-only trace captured the loader/result pair gap-free,
+without reset/fault/panic. A broader earlier trace disturbed startup and is
+rejected evidence; do not reuse its allocation/null/general comparison hooks.
+The next fresh-Hold observer targets only SPMark load/lookup/result plus the
+kernel's fatal unhandled-user-exception branch, to capture the fill-rate fault
+PC/registers. USER240 and kernel/lookup20 preservation cases pass. Hardware
+exception capture is in progress; no new HDL change or build yet. Same
+experimental RBFcd46abe has−0.270ns78MHz setup slack. Save Off, no Flush/card
+replacement or source image writes. [Evidence and limits](spmark04-benchmark.md).
+
 ## 2026-11-14: Native MMC mount and SPMark launch verified; benchmark reports failure
 
 The same games/ngage/spmark04.mmc now mounts with original firmware and no

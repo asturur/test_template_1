@@ -1,3 +1,5 @@
+> Follow-up: [native FillRate CPU cause and tested Thumb LDM correction](spmark04-benchmark.md). New RBF benchmark qualification is pending.
+
 # SPMark04 MMC hardware result — 2026-11-14
 
 **Current result: native read-only mount and SPMark04 launch work.** Original

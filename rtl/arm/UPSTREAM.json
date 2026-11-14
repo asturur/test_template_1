@@ -60,7 +60,8 @@
     "patches/zap/0055-stream-cache-line-refills.patch",
     "patches/zap/0056-instruction-cache-read-only-metadata.patch",
     "patches/zap/0057-mlab-register-file.patch",
-    "patches/zap/0058-direct-checked-translation-owner.patch"
+    "patches/zap/0058-direct-checked-translation-owner.patch",
+    "patches/zap/0059-thumb-ldmia-base-writeback.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

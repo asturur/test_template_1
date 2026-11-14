@@ -45,6 +45,16 @@ unordered scanning. C: and PMM error bits remain in the DDR snapshot save
 extension, decoded by `tools/ngage_runtime_diag.py` as `save_errors`. The
 diagnostic-disk exporter and disk creation/decoder tool have been removed.
 
+## Normal-boot hardware qualification, 2026-11-14
+
+Installed cd46abe/seed44, original firmware: Background save On drains42 dirty
+sectors to0, reports Saved with no slot/queue error or reset. After host sync,
+C:4MiB and PMM64KiB backing files match two stable live-DDR reads byte for byte.
+[Measured evidence](evidence/autosave-normal-boot-20261114.json). This is a
+successful normal pass; cold reload, accepted date/time persistence and power
+interruption remain separate gates. The earlier failed FPGA trigger is not
+proven absent in all placements by this result. No SD image backup was made.
+
 ## Verification
 
 The queue tests cover 606 offers against a randomized order reference, full
