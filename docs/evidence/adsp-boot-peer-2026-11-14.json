@@ -82,6 +82,30 @@
         "PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=0 cycles=17478",
         "PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=3 cycles=17958"
       ]
+    },
+    "scratch/adsp-boot-peer-20261114/native-control-chain.log": {
+      "sha256": "d3e65ce977c1fc744b5aa5848c69ddbb73b84440c9b6418bfd56baeb1f896953",
+      "pass_lines": [
+        "PASS original ADSP startup: D550 D0/01 then D0/04, checksum/corruption rejection, exact D0/05, link-ready/sequence reset, pending reset and repeated D0/04; ROM unchanged",
+        "PASS unmodified native RF/ADSP clients: pending requests, timers, response validation, failure propagation, release and unchanged ROM",
+        "PASS original NOS diagnostic request/deadline, MADI fragment, 8 RTL/native-UART replies, original frame-to-Phonet and NOS result/free; ROM unchanged",
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=0 cycles=104408",
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=3 cycles=139536",
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=0 cycles=104408",
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=3 cycles=139536",
+        "PASS original ADSP startup: D550 D0/01 then D0/04, checksum/corruption rejection, exact D0/05, link-ready/sequence reset, pending reset and repeated D0/04; ROM unchanged",
+        "PASS unmodified native RF/ADSP clients: pending requests, timers, response validation, failure propagation, release and unchanged ROM",
+        "PASS original NOS diagnostic request/deadline, MADI fragment, 1 RTL/native-UART replies, original frame-to-Phonet and NOS result/free; ROM unchanged"
+      ]
     }
+  },
+  "native_control_chain": {
+    "control": "510e9734",
+    "cbus_rmw": "503820c4",
+    "writer": "503822bc",
+    "fixture_only_followup_to_build": "462ba08",
+    "cycles_wait0": 104408,
+    "cycles_wait3": 139536,
+    "hardware_logic_changed": false
   }
 }

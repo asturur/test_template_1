@@ -1,3 +1,19 @@
+## 2026-11-14: Native clock-control chain qualified while build runs
+
+Expanded native_adsp_boot to execute original ADSPCTRL510E9734 controls4/5,
+its real CBUS vtable/RMW503820C4, native writer503822BC, original UART and
+production peer. Clock-stop/RX-listen/power-up ordering passes waits0/3 at
+104,408/139,536 clocks for78/104MHz schedules, followed by original8B decoding
+and NOS completion. This changes the fixture only; in-flight462ba08 HDL is
+unchanged. Source state remains196+5 bits, no packet RAM/new FIFO.
+
+Run43545934572/462ba08/seed44 was launched02:22:24UTC; the40-minute in-thread
+follow-up is active. No CI polling. Deployment/identity script is prepared at
+scratch/adsp-board-462ba08/deploy.py. A completion-only + assertion observer
+is prepared/tested there if needed after the initial original-ROM board run:
+logs native8B/body/result before original free, with no pre-completion logging
+or functional/deadline substitution. Fresh-Hold guards and reload cleanup apply.
+
 ## 2026-11-14: Boot-only D550 peer selected; original-driver integration passes
 
 Production board now connects a small D550 peer to existing EUART/CTSI and N501.

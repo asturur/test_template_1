@@ -30,13 +30,19 @@ start:
  ldr r0,=0x80008000
  ldr r1,=0x80007050
  str r0,[r1]
- // Original CBUS writer/table: begin in the native clock-stop profile.
- mov r2,#15
- mov r5,#0xf0
- bl cbus_write
- mov r2,#16
- mov r5,#0
- bl cbus_write
+ // Real CBUS virtual method table and ADSPCTRL object, backed by fixture RAM.
+ ldr r0,=0x50383e1c
+ ldr r1,=0x80007000
+ str r0,[r1]
+ ldr r0,=0x80009038
+ str r1,[r0]
+ // Original ADSPCTRL controls4/5 enter the native clock-stop profile.
+ mov r1,#4
+ mov r5,#1
+ bl adsp_control
+ mov r1,#5
+ mov r5,#1
+ bl adsp_control
  ldr r1,=0x0c1201c8
  mov r0,#0x04000000
  str r0,[r1]
@@ -45,17 +51,17 @@ start:
  ldr r4,=0x510e876c
  mov lr,pc
  bx r4
- // Match power-up ordering: RX listening first, then release both clock controls.
+ // Match the original server's power-up order: RX first, then controls4/5.
  ldr r1,=0x8000500c
  ldr r0,[r1]
  cmp r0,#0
  bne fail
- mov r2,#15
+ mov r1,#4
  mov r5,#0
- bl cbus_write
- mov r2,#16
- mov r5,#0x20
- bl cbus_write
+ bl adsp_control
+ mov r1,#5
+ mov r5,#0
+ bl adsp_control
  mov r0,#28
  bl await_rx
  ldr r0,=link_ack
@@ -79,19 +85,14 @@ start:
  bne fail
  ldr r0,=0x50415353
  b finish
-cbus_write:
+adsp_control:
  stmdb sp!,{lr}
- sub sp,sp,#8
- mov r0,#0
- str r0,[sp]
- str r5,[sp,#4]
- ldr r0,=0x80007000
- mov r1,#1
- mov r3,#8
- ldr r4,=0x503822bc
+ ldr r2,=0x8000a000
+ str r5,[r2]
+ ldr r0,=0x80009000
+ ldr r4,=0x510e9734
  mov lr,pc
  bx r4
- add sp,sp,#8
  cmp r0,#0
  bne fail
  ldmia sp!,{pc}
