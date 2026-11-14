@@ -48,5 +48,39 @@
     "panic": false,
     "display": "Nokia then blank after confirmed Menu; no usable Menu",
     "native_nos_result36": "not directly observed by this passive recorder"
+  },
+  "mtc_assert_observer": {
+    "snapshots": 720,
+    "reader_gaps": 0,
+    "functional_substitutions": false,
+    "sim_state": 1,
+    "mtc_state_transition": [
+      3,
+      8
+    ],
+    "assertion": {
+      "file": "../../ENOS/CMT_SW/CORESW/CL/CM/Cm_commgr.c",
+      "line_hex": "CC4",
+      "expression": "cm_inst->ComMgr_MTCState == CM_MTC_IDLE",
+      "lr": "514BB8E9"
+    },
+    "test_array_words": [
+      "03030000",
+      "00030000",
+      "03000000",
+      "03010000",
+      "03030301",
+      "04010300"
+    ],
+    "test_array_encoding": "32-bit hex words; decode each little-endian before indexing bytes",
+    "decoded_results": {
+      "BT15": 1,
+      "CURRENT02": 1,
+      "RF1E": 0,
+      "ADSP36": 1
+    },
+    "adsp42_seen": false,
+    "timing_caveat": "Observation run times out before42 reaches peer; untouched control proves round-trip but not original NOS deadline. Observer changes scheduling.",
+    "cleanup": "Reload removed hooks; original ROM, automatic Run, saveOff and both card image hashes verified."
   }
 }

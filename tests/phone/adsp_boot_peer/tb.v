@@ -140,6 +140,53 @@ module tb;
             emit(22);
         end
     endtask
+    task control_request;
+        input [2:0] seq;
+        input [7:0] message;
+        input [15:0] argument;
+        input corrupt;
+        begin
+            header(8'h82, message == 8'h17 ? 12 : 10);
+            input_bytes[8]  = 8'h00;
+            input_bytes[9]  = 8'h3c;
+            input_bytes[10] = 8'h06;
+            input_bytes[11] = message;
+            input_bytes[13] = 3;
+            input_bytes[14] = argument[15:8];
+            input_bytes[15] = argument[7:0];
+            if (message == 8'h17) begin
+                input_bytes[18] = 1;
+                input_bytes[19] = 8'h40 | seq;
+                checksum(22);
+                if (corrupt) input_bytes[21] = input_bytes[21] ^ 1;
+                emit(22);
+            end else begin
+                input_bytes[16] = 1;
+                input_bytes[17] = 8'h40 | seq;
+                checksum(20);
+                if (corrupt) input_bytes[19] = input_bytes[19] ^ 1;
+                emit(20);
+            end
+        end
+    endtask
+    task validate_control;
+        input integer start;
+        input [7:0] message;
+        input [2:0] seq;
+        begin
+            packet_check(start, 20);
+            if (output_bytes[start+7] != 10 || output_bytes[start+8] != 8'h3c ||
+                output_bytes[start+9] != 0 || output_bytes[start+10] != 6 ||
+                output_bytes[start+11] != message || output_bytes[start+12] != 0 ||
+                output_bytes[start+13] != 3 || output_bytes[start+14] != 0 ||
+                output_bytes[start+15] != 2 || output_bytes[start+16] != 1 ||
+                output_bytes[start+17] != (8'h60 | seq))
+                $fatal(1, "control native error layout/ownership");
+            $fwrite(file, "control ");
+            for (i = start; i < start + 20; i = i + 1) $fwrite(file, "%02x", output_bytes[i]);
+            $fwrite(file, "\n");
+        end
+    endtask
     task packet_check;
         input integer start, bytes;
         begin
@@ -293,6 +340,46 @@ module tb;
         if (rv || link || !hr) $fatal(1, "disable ownership");
         start_link();
         if (debug_status[11:8] !== 4'b1011) $fatal(1, "clock gating discarded observation");
+        // Known startup controls receive native status2, never fake success.
+        // Check corruption, backpressure, busy metadata, duplicate and NACK.
+        base          = count;
+        before_codecs = codecs;
+        control_request(0, 8'h17, 3, 1);
+        quiet(base);
+        control_request(0, 8'h17, 3, 0);
+        await_bytes(base + 32);
+        packet_check(base, 12);
+        validate_control(base + 12, 8'h77, 0);
+        base = count;
+        control_request(0, 8'h4b, 3, 0);
+        quiet(base);  // same sequence, different opcode cannot replay gain reply
+        control_request(0, 8'h17, 3, 0);
+        await_bytes(base + 32);
+        validate_control(base + 12, 8'h77, 0);
+        base = count;
+        acknowledge(8'h80);
+        await_bytes(base + 20);
+        validate_control(base, 8'h77, 0);
+        acknowledge(0);
+        base = count;
+        control_request(1, 8'h4b, 0, 0);
+        await_bytes(base + 32);
+        validate_control(base + 12, 8'hab, 1);
+        acknowledge(1);
+        base = count;
+        control_request(2, 8'h4b, 1, 0);
+        await_bytes(base + 32);
+        validate_control(base + 12, 8'hab, 2);
+        acknowledge(2);
+        if (codecs != before_codecs || debug_status[11:8] !== 4'b1011)
+            $fatal(1, "unsupported control fabricated codec/diagnostic progress");
+        // A diagnostic following short replies must retain its long layout.
+        base = count;
+        request(3, 16'h42, 8'h2b, 0);
+        await_bytes(base + 34);
+        validate_reply(base + 12, 3, 16'h42, 0);
+        acknowledge(3);
+
         reset = 1;
         repeat (3) tick();
         if (debug_status[11:8] !== 0) $fatal(1, "phone reset did not clear observations");

@@ -80,7 +80,7 @@ if args.capture:
             frames.append(capture[40:62])
 else:
     path=ROOT/'build/sim/unit-adsp-boot-peer/replies.txt'
-    if path.exists():frames=[bytes.fromhex(l.split()[1]) for l in path.read_text().splitlines()]
+    if path.exists():frames=[bytes.fromhex(l.split()[1]) for l in path.read_text().splitlines() if l.startswith('reply ')]
 for frame in frames:
     assert frame[:2]==b'UU' and len(frame)==22
     arm['packet'](frame[2:])

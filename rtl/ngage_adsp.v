@@ -1,5 +1,6 @@
 // D550 boot-only transaction model. No C55x CPU, audio execution or packet RAM.
-// Original D0 link startup and 2B/test42 -> 8B diagnostics only. The byte stream
+// Original D0 startup, 2B/test42 diagnostics, and native error replies for
+// unimplemented 17/4B audio controls. The byte stream
 // replaces AMA/serial pins; clock/reset admission is the explicit board shim.
 module ngage_adsp (
     input  wire        clk,
@@ -82,7 +83,15 @@ module ngage_adsp (
     reg [1:0] rx_state;
     reg [7:0] rx_index, rx_last, rx_length, resource, control, rx_flags;
     reg [15:0] rx_check;
-    reg rx_good, diag_shape, same_request, frame_done;
+    reg rx_good, same_request, frame_done;
+    // Streaming envelope candidates: bit0 diagnostic2B/service7/length12,
+    // bit1 gain17/service3/length12, bit2 control4B/service3/length10.
+    // Only two owned kind bits are added; no application packet is buffered.
+    reg [2:0] reply_shapes;
+    localparam DIAGNOSTIC = 2'd0, GAIN = 2'd1, CONTROL = 2'd2, UNKNOWN = 2'd3;
+    reg [1:0] request_kind;
+    wire [1:0] incoming_kind = host_tx_data == 8'h2b ? DIAGNOSTIC :
+        host_tx_data == 8'h17 ? GAIN : host_tx_data == 8'h4b ? CONTROL : UNKNOWN;
     reg [7:0] object_dest, object_source, transaction;
     reg [2:0] request_sequence, rx_sequence, device_sequence;
     reg         previous_request;
@@ -101,7 +110,8 @@ module ngage_adsp (
             rx_flags      <= 0;
             rx_check      <= 0;
             rx_good       <= 0;
-            diag_shape    <= 0;
+            reply_shapes  <= 0;
+            request_kind  <= UNKNOWN;
             same_request  <= 0;
             frame_done    <= 0;
             object_dest   <= 0;
@@ -120,7 +130,7 @@ module ngage_adsp (
                             rx_index     <= 0;
                             rx_check     <= 0;
                             rx_good      <= 1;
-                            diag_shape   <= 1;
+                            reply_shapes <= 0;
                             same_request <= 1;
                         end else rx_state <= 0;
                     end
@@ -137,9 +147,9 @@ module ngage_adsp (
                             end
                             4: rx_good <= rx_good && host_tx_data == 0;
                             5: begin
-                                rx_length  <= host_tx_data;
-                                rx_last    <= 8'd7 + host_tx_data + {7'b0, host_tx_data[0]};
-                                diag_shape <= host_tx_data == 12;
+                                rx_length    <= host_tx_data;
+                                rx_last      <= 8'd7 + host_tx_data + {7'b0, host_tx_data[0]};
+                                reply_shapes <= {host_tx_data == 10, {2{host_tx_data == 12}}};
                                 if (host_tx_data < 2 || host_tx_data > 247) rx_state <= 0;
                             end
                             6: begin
@@ -160,12 +170,18 @@ module ngage_adsp (
                                 if (state == READY) transaction <= host_tx_data;
                             end
                             9:
-                            if (resource == 8'h82)
-                                diag_shape <= diag_shape && host_tx_data == 8'h2b;
+                            if (resource == 8'h82) begin
+                                reply_shapes <= reply_shapes & {host_tx_data == 8'h4b,
+                                    host_tx_data == 8'h17, host_tx_data == 8'h2b};
+                                same_request <= same_request && incoming_kind == request_kind;
+                                if (state == READY) request_kind <= incoming_kind;
+                            end
                             10:
-                            if (resource == 8'h82) diag_shape <= diag_shape && host_tx_data == 0;
+                            if (resource == 8'h82)
+                                reply_shapes <= reply_shapes & {3{host_tx_data == 0}};
                             11:
-                            if (resource == 8'h82) diag_shape <= diag_shape && host_tx_data == 7;
+                            if (resource == 8'h82)
+                                reply_shapes <= reply_shapes & {{2{host_tx_data == 3}}, host_tx_data == 7};
                             12:
                             if (resource == 8'h82) begin
                                 same_request <= same_request && host_tx_data == test_id[15:8];
@@ -228,36 +244,41 @@ module ngage_adsp (
             end
             if (frame_done && resource == 8'h7f && control == 8'h82 &&
                 rx_length == 2 && rx_sequence == device_sequence &&
-                state == CONFIRM && !rx_flags[7] && test_id == 16'h42)
+                state == CONFIRM && !rx_flags[7] && request_kind == DIAGNOSTIC && test_id == 16'h42)
                 diagnostic_acked <= 1;
         end
     end
 
-    // One shared serializer/checksum for ACK and the bounded diagnostic reply.
+    // One serializer/checksum for ACK, diagnostic and short error replies.
+    // Native D550446C2B/446401 emit77/AB with service0003/status0002 for
+    // invalid controls. Audio execution remains unimplemented: report that
+    // native error, never pretend a gain/codec operation or DSP memory test
+    // succeeded. A transport ACK alone leaves original clients waiting.
     // No wide packet register, variable-index packet array or extra FIFO.
     reg  [ 4:0] tx_index;
     reg  [15:0] tx_check;
     reg  [ 7:0] byte_data;
-    wire [ 4:0] checksum_index = state == ACK ? 5'd10 : 5'd20;
+    wire        short_reply = request_kind != DIAGNOSTIC;
+    wire [ 4:0] checksum_index = state == ACK ? 5'd10 : short_reply ? 5'd18 : 5'd20;
     always @* begin
         byte_data = 0;
         case (tx_index)
-            0, 1:    byte_data = 8'h55;
-            2:       byte_data = 8'h20;
-            4:       byte_data = 8'h78;
-            5:       byte_data = state == ACK ? 8'h7f : 8'h82;
-            7:       byte_data = state == ACK ? 8'h02 : 8'h0c;
-            8:       byte_data = state == ACK ? 8'h82 : object_source;
-            9:       byte_data = state == ACK ? {5'b0, request_sequence} : object_dest;
-            10:      byte_data = transaction;
-            11:      byte_data = 8'h8b;
-            13:      byte_data = 8'h07;
-            14:      byte_data = test_id[15:8];
-            15:      byte_data = test_id[7:0];
-            16:      byte_data = result[15:8];
-            17:      byte_data = result[7:0];
-            18:      byte_data = 8'h01;
-            19:      byte_data = {5'b01100, device_sequence};
+            0, 1: byte_data = 8'h55;
+            2: byte_data = 8'h20;
+            4: byte_data = 8'h78;
+            5: byte_data = state == ACK ? 8'h7f : 8'h82;
+            7: byte_data = state == ACK ? 8'h02 : short_reply ? 8'h0a : 8'h0c;
+            8: byte_data = state == ACK ? 8'h82 : object_source;
+            9: byte_data = state == ACK ? {5'b0, request_sequence} : object_dest;
+            10: byte_data = transaction;
+            11: byte_data = request_kind == GAIN ? 8'h77 : request_kind == CONTROL ? 8'hab : 8'h8b;
+            13: byte_data = short_reply ? 8'h03 : 8'h07;
+            14: byte_data = short_reply ? 8'h00 : test_id[15:8];
+            15: byte_data = short_reply ? 8'h02 : test_id[7:0];
+            16: byte_data = short_reply ? 8'h01 : result[15:8];
+            17: byte_data = short_reply ? {5'b01100, device_sequence} : result[7:0];
+            18: byte_data = 8'h01;
+            19: byte_data = {5'b01100, device_sequence};
             default: ;
         endcase
         if (tx_index == checksum_index) byte_data = tx_check[15:8];
@@ -297,7 +318,7 @@ module ngage_adsp (
                         if (state == REPLY) state <= CONFIRM;
                         else if (ack_only) state <= READY;
                         else if (replay) state <= REPLY;
-                        else state <= DIAG;
+                        else state <= short_reply ? REPLY : DIAG;
                     end else tx_index <= tx_index + 1'b1;
                 end
                 default: ;
@@ -329,9 +350,9 @@ module ngage_adsp (
                         tx_check         <= 0;
                         request_sequence <= rx_sequence;
                         previous_request <= 1;
-                        ack_only         <= !diag_shape;
+                        ack_only         <= !(|reply_shapes);
                         replay           <= 0;
-                    end else if (previous_request && rx_sequence==request_sequence && same_request && (state==READY || diag_shape)) begin
+                    end else if (previous_request && rx_sequence==request_sequence && same_request && (state==READY || (|reply_shapes))) begin
                         state    <= ACK;
                         tx_index <= 0;
                         tx_check <= 0;

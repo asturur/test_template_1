@@ -1,3 +1,38 @@
+## 2026-11-14: Bound missing ADSP application responses; next board build
+
+7e893c8 MTC/assert observation is complete, hooks removed by reload, original
+88fd.../automatic Run/save-Off/C4a75.../PMM71189... verified.720snapshots/no
+reader gaps: native SIM remains1; MTC goes3→8/self-test failure, repeats request8
+and asserts Cm_commgr.c/CC4 (transition already active). Decode RESULTS as
+little-endian words: RF1E=00, BT15=01, CURRENT02=01, ADSP36=01/timeout.
+No42 request reaches peer before that observed panic. Untouched control's
+positive42 ACK proves transport, not native36 meeting its original deadline.
+
+Captured original startup sends17/gain and4B/control before42. Production
+previously transport-ACKed them without application replies. Recovered D550
+446C2B/446401 and RAM header builder define77/AB, service0003,16-bit status.
+A small HDL change now explicitly rejects these unimplemented controls with
+native status0002. No pretend codec/gain/memory-test success, DSP CPU/audio,
+packet RAM/FIFO, SIM override or firmware patch. Four source state bits added
+(two owned kind bits/two additional envelope candidates), shared serializer.
+This is a bounded error-response experiment, NOT a verified boot fix.
+
+Original ARM MADI accepts five actual RTL packets;10 classifier/guard cases
+prove AB to object3C enters original510ED308 only when reset is not outstanding,
+independent of status. That method changes native ADSP clock/reset controls;
+ACK alone cannot exercise it. Generic77 routes to the registered consumer.
+Unknown opcodes/envelopes remain ACK-only. Peer tests at78/104MHz cover short/
+long layout, CRC, stalls, duplicate/NACK replay and opcode ownership. Actual CPU
+CBUS/UART/FIQ/native diagnostic regressions pass waits0/3 at unchanged104408/
+139536clocks for both schedules.177-source/9QIP preflight passes. PLL stays78MHz.
+
+Next: build/deploy, measure fit/timing and observe original-firmware controls,
+42 deadline/result and SIM readiness. Keep original deadlines/disks; no SD
+backups or other-thread simulation changes. Bluetooth GENIO20 remains a known
+missing path, its full LRB2 reset/sync profile is still unqualified. Detailed
+logs/receipts: scratch/adsp-app-config-20261114/. Prior active-capture entries
+below are historical and superseded; there is no active hardware observer.
+
 ## 2026-11-14:7e893c8 timing passes; untouched ADSP42 round-trip observed
 
 Build43552422501/seed44 succeeds:38,065ALMs/91%,508M10Ks/92%, setup+0.059ns,
