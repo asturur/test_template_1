@@ -1,3 +1,33 @@
+## 2026-11-14: Mandatory SIM file correction ready for FPGA
+
+Build43565865117/d6cec18 hardware confirms9F16 and full SIM transfers; untouched
+boot displays SIM card rejected. Native trace records070D/01 taking SIM1→8,
+then070D/75 taking8→6. Sender5161518D/caller5150BB99 and dispatcher025F caught.
+Old zero-only probe was insufficient; the later queued-message dump is allocator
+poison after cleanup, not a guest use-after-free finding. Do not reuse it.
+
+Original post-ready file phase5150F004 requires6F74/BCCH,6F7E/LOCI,6F20/Kc,
+6F7B/FPLMN. Our card lacks three of these mandatory TS51.011 files. Existing
+SELECT/FCP/READ machinery now supplies constant16/9/12-byte neutral contents,
+including Kc sequence07 (no key). No new state, buffers/RAM, firmware, deadlines,
+SIM-ready overrides or claimed authentication/network/writable-file support.
+Exact live failing filename inferred, not directly captured. Board fix pending.
+
+Old RTL fails the new APDU vector; corrected475byte vectors pass at DIV1/32,
+plus554-op oracle,600-response FIFO/CEN/reset, four presence/card board profiles
+and eight original-RX ZAP cases. Five original native-code file/dispatcher cases
+reproduce025F/reason75 for missing files and025E for complete files; file/PMM
+boundaries spied, not full RTOS. Formatter/177-source9QIP preflight pass.
+
+All observers removed, original88fd.../Run/saveOff/C4a75.../PMM71189... verified.
+One loader stall required Linux reboot; later reload worked. No active capture,
+SD backups, other simulation/checkpoint or PLL changes. Baseline37,756ALMs90%,
+508M10Ks92%, card235.2ALMs/oneM10K; incremental fit pending. Setup-0.462ns with
+14negative worst1000 paths, no card path; retained RBF is diagnostic. Keep78MHz,
+104MHz design objective and scarce area in mind. LateBT59/02 ADSP-waiter race is
+still separate. Next commit/push/build seed44; qualify sustained SIM8 and Menu.
+See docs/sim-mandatory-files.md and docs/sim-fifo-single-write.md.
+
 ## 2026-11-14: d6cec18 SIM FIFO build launched
 
 Build43565865117/seed44 launched06:20UTC;40-minute in-thread follow-up scheduled

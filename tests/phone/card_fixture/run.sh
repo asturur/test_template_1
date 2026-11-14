@@ -21,3 +21,11 @@ iverilog -g2005 -s tb -o build/sim/unit-test-sim/cen rtl/ngage_bram.v rtl/ngage_
 vvp build/sim/unit-test-sim/cen > build/sim/unit-test-sim/cen.log
 cat build/sim/unit-test-sim/cen.log
 grep -q '^PASS SIM 3.25 MHz enable' build/sim/unit-test-sim/cen.log
+
+for divisor in 1 32; do
+  iverilog -g2005 -s tb -Ptb.CLOCK_DIV=$divisor -o build/sim/unit-test-sim/mandatory \
+    rtl/ngage_bram.v rtl/ngage_test_sim.v tests/phone/card_fixture/mandatory.v
+  vvp build/sim/unit-test-sim/mandatory > build/sim/unit-test-sim/mandatory-$divisor.log
+  cat build/sim/unit-test-sim/mandatory-$divisor.log
+  grep -q '^PASS mandatory SIM files' build/sim/unit-test-sim/mandatory-$divisor.log
+done

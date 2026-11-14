@@ -1,0 +1,58 @@
+{
+  "baseline_build": "43565865117",
+  "baseline_source": "d6cec18698c966b9e02850a6d64dd392fb5c9cd9",
+  "baseline_seed": 44,
+  "baseline_alms": 37756,
+  "baseline_m10ks": 508,
+  "baseline_card_alms": 235.2,
+  "baseline_setup_ns": -0.462,
+  "observed": [
+    "native SELECT raw9f16",
+    "native070d/01 SIM1->8",
+    "native070d/75 SIM8->6",
+    "470d/75 sender5161518d caller5150bb99",
+    "native dispatcher5150b65c receives025f"
+  ],
+  "discarded": "late R6 message dump contains allocator poison after cleanup; not a functional guest UAF finding",
+  "native_file_phase": "5150f004",
+  "native_read_order": [
+    "6f74",
+    "6f7e",
+    "6f20",
+    "6f7b"
+  ],
+  "added_ef_lengths": {
+    "6f74": 16,
+    "6f20": 9,
+    "6f7b": 12
+  },
+  "new_state_registers": 0,
+  "new_ram_instances": 0,
+  "board_fix_verified": false,
+  "exact_failed_live_file_captured": false,
+  "native_fixture_scope": "Original file-phase and result-dispatch instructions; file, directory and PMM leaves are spies",
+  "tests": {
+    "native_original_cases": 5,
+    "apdu_bytes_per_clock_divisor": 475,
+    "clock_divisors": [
+      1,
+      32
+    ],
+    "unchanged_oracle_operations": 554,
+    "fifo_responses": 600,
+    "board_profiles": 4,
+    "native_rx_zap_cases": 8,
+    "source_graph_files": 177,
+    "source_graph_qips": 9
+  },
+  "restore": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  }
+}

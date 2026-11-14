@@ -60,3 +60,28 @@ scratch/sim-fifo-single-write-20261114 (tests and previous RTL). Next build must
 first verify identity/fit/timing, then original-ROM boot, native SELECT9F16,
 later APDUs, native SIM readiness and Phone/Menu. Keep the original deadlines
 and card images. Do not add unverified passing response values.
+
+## FPGA qualification, build43565865117 / d6cec18
+
+Seed44 fits37,756/41,910ALMs (90%),508/553M10Ks (92%). The card is
+235.2ALMs/190registers/oneM10K, versus504.9ALMs before serialization. This
+correction saves about270cardALMs and290coreALMs. Setup remains-0.462ns
+on CPU cache-control paths (14negative worst1000paths, none in the card);
+hold+0.243ns. This retained RBF is diagnostic, not timing-qualified.
+
+The untouched150s control has600snapshots, no reader gaps, reset-generation
+change, panic or save-queue fault. Native ADSP42 result/positive ACK milestones
+are all set. Display now reaches **SIM card rejected**. That is progress from
+the earlier transfer stall, not a working SIM/menu claim.
+
+An observation-only exact native LDRH tap now recordsA4,9F,16, followed by
+complete25-byte DF status, ICCID, EF metadata, SST, AD/IMSI/ACC reads and
+TERMINAL PROFILE9000. Thus the leading-byte correction is observed in actual
+native execution, beyond its RTL tests. The57received response packets are
+in scratch/sim-fifo-byte-20261114/packets.json. Original code/deadlines and
+SD images remain unchanged apart from temporary, checksum-preserving tracing.
+The later rejection is070D/reason75 after an initial serving transition. See
+[the mandatory-file correction](sim-mandatory-files.md) for its025F producer
+and the missing standard EFs. Prefer profile-byte/logic corrections within the
+existing card; avoid new buffers or diagnostic RTL with only10%ALM/8%M10K
+headroom. Sustained native SIM readiness and untouched Phone/Menu remain pending.

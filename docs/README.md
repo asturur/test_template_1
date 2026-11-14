@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [sim-mandatory-files.md](sim-mandatory-files.md) | Native serving-to-rejected transition, missing mandatory BCCH/Kc/FPLMN reads and small constant-profile correction |
 | [sim-fifo-single-write.md](sim-fifo-single-write.md) | Native SIM SELECT byte loss, physical RAM-port correction and original RX CPU/board qualification |
 | [bt-adsp-startup-race.md](bt-adsp-startup-race.md) | Native late Bluetooth result/shared ADSP waiter reproduction and actual CBUS transport leads |
 | [adsp-native-link.md](adsp-native-link.md) | Actual unexpected ADSP response, original D550/ARM startup exchange, bounded transmitter and remaining production gates |

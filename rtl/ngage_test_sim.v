@@ -123,7 +123,8 @@ module ngage_test_sim #(
         input [15:0] f;
         begin
             case (f)
-                16'h6fb7,16'h6f05,16'h6fae,16'h6f38,16'h6f7e,16'h6fad,16'h6f07,16'h6f78,16'h2fe2:
+                16'h6fb7,16'h6f05,16'h6fae,16'h6f38,16'h6f7e,16'h6fad,16'h6f07,16'h6f78,16'h2fe2,
+                16'h6f74,16'h6f20,16'h6f7b:
                 supported_ef = 1;
                 default: supported_ef = 0;
             endcase
@@ -133,14 +134,15 @@ module ngage_test_sim #(
         input [15:0] f;
         begin
             case (f)
-                16'h6fb7: ef_length = 3;
-                16'h6f38: ef_length = 16;
-                16'h6f7e: ef_length = 11;
-                16'h6fad: ef_length = 4;
-                16'h6f07: ef_length = 9;
-                16'h6f78: ef_length = 2;
-                16'h2fe2: ef_length = 10;
-                default:  ef_length = 1;
+                16'h6fb7:           ef_length = 3;
+                16'h6f38, 16'h6f74: ef_length = 16;
+                16'h6f7e:           ef_length = 11;
+                16'h6fad:           ef_length = 4;
+                16'h6f07, 16'h6f20: ef_length = 9;
+                16'h6f7b:           ef_length = 12;
+                16'h6f78:           ef_length = 2;
+                16'h2fe2:           ef_length = 10;
+                default:            ef_length = 1;
             endcase
         end
     endfunction
@@ -151,6 +153,12 @@ module ngage_test_sim #(
         begin
             ef_byte = 0;
             case (file)
+                // TS51.011 mandatory boot reads: BCCH is an empty bitmap
+                // (default zero), Kc has no available key (sequence7), and
+                // FPLMN has no entries. These remain constant test-card data;
+                // no authentication, network or writable-file claim is made.
+                16'h6f20: if (index == 8) ef_byte = 8'h07;
+                16'h6f7b: ef_byte = 8'hff;
                 16'h2fe2:
                 case (index)
                     0:       ef_byte = 8'h98;
