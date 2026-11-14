@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-14",
+  "scope": "production D550 boot-only peer; board qualification pending",
+  "source_state_bits": {
+    "ngage_adsp": 165,
+    "ngage_adsp_bootstrap_tx": 7,
+    "ngage_adsp_diagnostic": 21,
+    "ngage_aic23": 3
+  },
+  "new_uem_control_bits": 5,
+  "packet_ram_bits": 0,
+  "new_fifos": 0,
+  "dsp_cpu": false,
+  "pll_mhz": 78,
+  "design_objective_mhz": 104,
+  "native_software_modified": false,
+  "native_timeout_argument": 3000,
+  "native_cpu_cycles_wait0": 97708,
+  "native_cpu_cycles_wait3": 129410,
+  "fit_sta": "PENDING",
+  "board_adsp36_pass": "PENDING",
+  "logs": {
+    "build/sim/unit-native-adsp-boot/run-104-0.log": {
+      "sha256": "df175d1967537cb4c37f0e3d738b0a1b6e624d4d93be8900ab83feeaa879accf",
+      "pass_lines": [
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=0 cycles=97708"
+      ]
+    },
+    "build/sim/unit-native-adsp-boot/run-104-3.log": {
+      "sha256": "15d574f98ac5f072ee37ab824c58c9dd8b19414c2a97af6e8bf8702edaa6b0a1",
+      "pass_lines": [
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=3 cycles=129410"
+      ]
+    },
+    "build/sim/unit-native-adsp-boot/run-78-3.log": {
+      "sha256": "032b4211220a73972baefc65e3a8e2dc200c24e1f9fc3e6381f2d99cc388e167",
+      "pass_lines": [
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=3 cycles=129410"
+      ]
+    },
+    "build/sim/unit-native-adsp-boot/run-78-0.log": {
+      "sha256": "62bc7acf3e59dc48b52c8bef2a70e6e54a6ecb301d434448645f5b05735b5b81",
+      "pass_lines": [
+        "PASS production D550 boot peer with original CBUS/UART TX/RX/HAL, CPU FIQ26 and diagnostic8B wait=0 cycles=97708"
+      ]
+    },
+    "build/sim/unit-adsp-boot-peer/run-78.log": {
+      "sha256": "b65b69d2cd5fb046609c23f7245926fcf490c76923e53070a6a81b010df4af25",
+      "pass_lines": [
+        "PASS D550 boot peer: startup ACK, native 2B/8B, CRC, routing, stalls, codec prerequisite failures, unsupporteds, duplicate/NACK replay, sequence and disable/reset"
+      ]
+    },
+    "build/sim/unit-adsp-boot-peer/run-104.log": {
+      "sha256": "9d99f80efa77ac9a93b465da0cb35de49de9cdb40d85a2f9903a563d8423a05a",
+      "pass_lines": [
+        "PASS D550 boot peer: startup ACK, native 2B/8B, CRC, routing, stalls, codec prerequisite failures, unsupporteds, duplicate/NACK replay, sequence and disable/reset"
+      ]
+    },
+    "scratch/adsp-boot-peer-20261114/regressions.log": {
+      "sha256": "853117a5e537cd312ec450694048bee1a6c501b354457bb631edddc6f2386b06",
+      "pass_lines": [
+        "PASS UPP EUART native byte lanes, batches, BRAM latency, stalls, FIFO saturation/wrap, IRQ masks/ACK, flush/reset",
+        "PASS production CTSI: SIM/UART status lanes, FIQ26 masks/ACK, TX backpressure, exactly-once registered responses and reset",
+        "PASS CBUS sequencing, RTC and ADC hypotheses",
+        "PASS CBUS sequencing, RTC and ADC hypotheses",
+        "PASS ownership of 132 retained-trace device/address pairs"
+      ]
+    },
+    "scratch/adsp-boot-peer-20261114/mister-board.log": {
+      "sha256": "80153aa4dd9851535e2f84ed89a9ba51cd0546a6ad2942752ccb5d414dfee68e",
+      "pass_lines": [
+        "PASS HDL ARM board SIMIF, LCD DMA, queued LCD commands, local CAM/LCD faults, diagnostics, IRQ/FIQ and SDRAM with waits",
+        "PASS DMA via live UPP shared RAM, LCD FIFO and owned error completion"
+      ]
+    },
+    "scratch/adsp-boot-peer-20261114/drain.log": {
+      "sha256": "2431a7d7a6e693eef5183b006ae60f5574a4121e8c9a77b9d4dc480ab80d0e27",
+      "pass_lines": [
+        "PASS reproduced original drain deadlock: tied-low TX ready, indices10, one byte owned, no DSP reply",
+        "PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=0 cycles=17478",
+        "PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=3 cycles=17958",
+        "PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=0 cycles=17478",
+        "PASS original drain/stop returns after TX-only delivery with absent DSP RX wait=3 cycles=17958"
+      ]
+    }
+  }
+}

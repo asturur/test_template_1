@@ -23,7 +23,9 @@ module ngage_uem #(
     output wire [15:0] route2a,
     output wire [15:0] route2c,
     output wire [15:0] route3b,
-    output wire        cbus8d_written
+    output wire        cbus8d_written,
+    output wire        adsp_controls_written,
+    output wire [ 4:0] adsp_controls
 );
     ngage_cbus_uem #(
         .SECOND_TICKS    (SYS_CLK_HZ),
@@ -32,24 +34,26 @@ module ngage_uem #(
         .POWER_KEY_ENABLE(POWER_KEY_ENABLE),
         .POWERUP_STATUS  (POWERUP_STATUS)
     ) cbus (
-        .power_pressed  (!pwronx),
-        .clk            (clk),
-        .reset          (reset),
-        .req            (req),
-        .commit         (commit),
-        .we             (we),
-        .addr           (addr),
-        .din            (din),
-        .sel            (sel),
-        .kernel_periodic(kernel_periodic),
-        .clear_irq      (clear_irq),
-        .claim          (claim),
-        .bad            (bad),
-        .dout           (dout),
-        .irq_pending    (uem_int),
-        .route2a        (route2a),
-        .route2c        (route2c),
-        .route3b        (route3b),
-        .cbus8d_written (cbus8d_written)
+        .power_pressed        (!pwronx),
+        .clk                  (clk),
+        .reset                (reset),
+        .req                  (req),
+        .commit               (commit),
+        .we                   (we),
+        .addr                 (addr),
+        .din                  (din),
+        .sel                  (sel),
+        .kernel_periodic      (kernel_periodic),
+        .clear_irq            (clear_irq),
+        .claim                (claim),
+        .bad                  (bad),
+        .dout                 (dout),
+        .irq_pending          (uem_int),
+        .route2a              (route2a),
+        .route2c              (route2c),
+        .route3b              (route3b),
+        .cbus8d_written       (cbus8d_written),
+        .adsp_controls_written(adsp_controls_written),
+        .adsp_controls        (adsp_controls)
     );
 endmodule

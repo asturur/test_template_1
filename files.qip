@@ -49,6 +49,9 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_simif.v
 # set_global_assignment -name VERILOG_FILE rtl/ngage_test_sim.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_uem.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_adsp.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_adsp_bootstrap_tx.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_adsp_diagnostic.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_aic23.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lrb2.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mjoelner.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sparse_regs.v

@@ -1,3 +1,77 @@
+## 2026-11-14: Production boot-only peer integrated
+
+The previously standalone startup transmitter is now wired as part of the small
+production D550 model. This is a useful hardware-build checkpoint; native board
+ADSP36=00 and complete Phone/Menu boot remain unverified.
+
+Production has no DSP CPU, interpreter, audio engine, packet RAM or new FIFO.
+The D550 peer, serializer, diagnostic operation and codec have196 source state
+bits, plus five UEM control-view bits, before pruning/FSM encoding. Fit/STA must
+measure actual ALMs. Existing UART queues are reused. The parser drains serial
+TX even when disabled/busy to preserve native masked-interrupt drain progress.
+
+Admission requires native ADSPCTRL's power-up profile: CBUS wire2F bitsF0 clear,
+wire30 bit20 set, both written, and UART RX enabled/not flushing. UEM exposes
+only the five used bits; no whole-register mirror is added. This is explicitly
+a transaction-level control shortcut, not a guessed AMA/GPIO reset pin map.
+Admission is registered before the peer's synchronous reset distribution.
+The test holds the clocks stopped, starts original UART RX, proves no startup
+bytes arrive, then releases both controls using the original CBUS writer/table.
+
+The peer sends the recovered startup frames, waits for valid D0/05, checks
+framing/address/length/CRC, ACKs valid single-fragment82 traffic, and implements
+only the native2B diagnostic envelope. Test42 goes through the existing clock/
+flash/codec operation before8B is serialized. Other test IDs return0C; unknown
+application messages receive transport ACK only, not invented application data.
+No automatic test is excluded and no firmware deadline/result is overwritten.
+D551 is a constant boot-profile signatureFFFC from the audited image, not a full
+flash loader or executed DSP firmware. N501's reset1E00 transaction is separately
+modeled and wired on the board. PCM, other codec controls and actual audio/DSP
+execution remain absent.
+
+One request owns reply metadata. Duplicates/NACKs replay its cached result with
+the same device sequence, without rerunning codec reset. Positive ACK advances
+the sequence. Output backpressure holds the byte and checksum state. Native D0/01
+can re-request link reset; disable/reset cancels partial state. Timed retry, long
+or fragmented application operations and other DSP services are unsupported.
+ADSP_EXTERNAL selects an external transport only in existing UART fixtures;
+production uses the integrated peer and there is no OSD/config enable option.
+
+Validation:
+
+* adsp_boot_peer at78/104MHz schedules: startup confirmation, CRC/routing,
+  codec stalls, all prerequisites separately, unknown test/operation, duplicate/
+  NACK replay, sequence, disable/reset; no second codec reset on replay.
+* native_adsp_boot: original CBUS503822BC/table, UART RX-start510E876C,
+  TX-start510E88C8, drain510E89CC, ISR510E8D58 and real HAL/IAT instructions run
+  on HDL CPU through production board/UEM/UPP/EUART/FIQ26/D550/N501. Authoring
+  supplies the caller, object/cache backing and FIQ wrapper, not guest code
+  substitutions or a fake receive handler. Waits0/3 and78/104MHz schedules pass.
+* test_native_adsp_boot_protocol.py executes original NOS request creation,
+  original ARM normal-fragment builder, validates the actual CPU-captured ACK
+  against its outstanding original packet, then runs the actual8B through the
+  original checksum/frame-to-Phonet code and unchanged NOS result/free path.
+  The original3000 timeout is checked. Allocator/descriptor/timer/transport leaves
+  are explicit; this is not a full RTOS boot or a physical deadline measurement.
+* UART, shared SIM/UART CTSI, CBUS and132 retained board ownership checks pass.
+  MiSTer internal-CPU integration and original drain positive/negative controls
+  also pass. Native boot fixture takes97,708/129,410 clocks at waits0/3.
+  Quartus source graph has176 required files/9 unique QIPs. Verilog2001 and pinned
+  formatting checks pass. Native driver tests retain immutable original code.
+
+The first native CPU fixture lacked its CBUS cache backing and wrote through a
+null pointer. Explicit authored cache storage fixed the fixture, not production
+HDL. The deliberate one-cycle admission register required the standalone start
+fixture to allow that cycle; no hardware expectation was relaxed.
+
+Run `sh tests/phone/native_adsp_boot/run.sh` on the host; it uses only the existing
+offline simulator image. `sh tests/phone/adsp_boot_peer/run.sh` is the smaller
+byte-level fixture. Build/run manifests and logs remain in build/sim/unit-native-
+adsp-boot and unit-adsp-boot-peer; selected small evidence is recorded alongside
+the earlier capture evidence. No new disk or ROM files are needed on MiSTer.
+
+---
+
 # Native D550 link startup — 2026-11-14
 
 RF startup1E passes on installed646ac68/seed44. The next captured failure is

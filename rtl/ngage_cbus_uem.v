@@ -25,7 +25,9 @@ module ngage_cbus_uem #(
     output wire [15:0] route2c,
     output wire [15:0] route3b,
     output wire        cbus8d_written,
-    input  wire        power_pressed
+    input  wire        power_pressed,
+    output wire        adsp_controls_written,
+    output wire [ 4:0] adsp_controls
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     reg [15:0] cfg, command, rtc_status;
@@ -44,6 +46,9 @@ module ngage_cbus_uem #(
     wire [              7:0] regno = command[7:0];
     wire [             15:0] stored_value;
     reg [15:0] route_2a, route_2c, route_3b;
+    reg [4:0] d550_controls;
+    assign adsp_controls_written = written[8'h2f] && written[8'h30];
+    assign adsp_controls         = d550_controls;
     reg         payload_forward;
     reg  [15:0] payload_value;
     wire        payload_write = !reset && commit && claim && !bad && we && a == 32'h0c150424;
@@ -146,6 +151,7 @@ module ngage_cbus_uem #(
     always @(posedge clk) begin
         if (reset) begin
             cfg           <= 0;
+            d550_controls <= 0;
             command       <= 0;
             stage         <= 0;
             written       <= 0;
@@ -184,6 +190,8 @@ module ngage_cbus_uem #(
                     command <= value;
                     stage   <= value[8] ? 3 : 2;
                 end else begin
+                    if (regno == 8'h2f) d550_controls[4:1] <= value[7:4];
+                    if (regno == 8'h30) d550_controls[0] <= value[5];
                     if (regno == 8'h2a) route_2a <= value;
                     if (regno == 8'h2c) route_2c <= value;
                     if (regno == 8'h3b) route_3b <= value;

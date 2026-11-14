@@ -1,3 +1,23 @@
+## 2026-11-14: Boot-only D550 peer selected; original-driver integration passes
+
+Production board now connects a small D550 peer to existing EUART/CTSI and N501.
+Native CBUS wire2F/F0 clear + wire30/20 set and UART RX admission gate startup;
+registered admission keeps that decode off the peer's distributed reset path.
+D0 startup/05 confirmation, streaming CRC, ACK, one outstanding2B/test42→8B,
+duplicate/NACK replay and prerequisite failure propagation are implemented.
+No DSP CPU/audio engine/packet RAM/new FIFO;196 source state bits in peer/codec
+plus5 UEM control-view bits before optimization/FSM encoding. D551 is explicitly
+only a fixed audited boot-signature model, not loaded/executed DSP firmware.
+Original CBUS/UART/HAL on actual HDL CPU passes78/104MHz schedules and waits0/3.
+Native-generated diagnostic packet and actual CPU/UART reply pass original ARM
+MADI checksum/address/resource/sequence checks, frame-to-Phonet extraction and
+unchanged NOS self-test/result/free with3000 deadline retained. Unit tests cover
+stalls, corruption, unknown operations, duplicate/NACK replay, failures and reset.
+Quartus source graph/Verilog2001 checks pass; full fit/STA and native board36=00
+remain pending.78MHz PLL/104MHz objective, disks, firmware and other simulations
+unchanged. This is the next useful RBF to build, not a verified full phone boot.
+SIM serving readiness remains separate. See [adsp-native-link.md](adsp-native-link.md).
+
 ## 2026-11-14: ADSP unexpected59/02 captured; D550 initiates D0 startup
 
 Native St_product/DF2 assertion consumes resource59/message02 from object39,

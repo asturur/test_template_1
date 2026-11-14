@@ -20,7 +20,8 @@ module ngage_upp_euart (
     output wire [ 7:0] tx_data,
     input  wire        rx_valid,
     output wire        rx_ready,
-    input  wire [ 7:0] rx_data
+    input  wire [ 7:0] rx_data,
+    output wire        receive_enabled
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     wire low_lane = |sel[1:0];
@@ -91,6 +92,7 @@ module ngage_upp_euart (
     assign tx_valid = !reset && tx_count != 0 && tx_sample == 2;
     assign tx_data = tx_q;
     // Native RX producer/consumer indices are four bits; leave one slot empty.
+    assign receive_enabled = !reset && enables[3] && rx_control[2:0] == 0;
     assign rx_ready = !reset && !rx_flush && rx_count != 15;
     assign status = (rx_count != 0 ? 16'h0008 : 0) | (tx_done ? 16'h0010 : 0);
     assign irq_pending = !reset && |(status & enables & 16'h0018);

@@ -153,6 +153,7 @@ module ngage_upp #(
     output wire        uem_periodic,
     output wire        uem_irq_clear,
     // Transaction-level AMA serial bytes; electrical/baud timing is unmodeled.
+    output wire        adsp_receive_enabled,
     output wire        adsp_tx_valid,
     input  wire        adsp_tx_ready,
     output wire [ 7:0] adsp_tx_data,
@@ -631,6 +632,7 @@ module ngage_upp #(
         .cbus8d_written      (cbus8d_written),
         .uem_periodic        (uem_periodic),
         .uem_irq_clear       (uem_irq_clear),
+        .adsp_receive_enabled(adsp_receive_enabled),
         .adsp_tx_valid       (adsp_tx_valid),
         .adsp_tx_ready       (adsp_tx_ready),
         .adsp_tx_data        (adsp_tx_data),

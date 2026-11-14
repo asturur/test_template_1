@@ -6,6 +6,7 @@
 module ngage_adsp_bootstrap_tx (
     input  wire       clk,
     input  wire       reset,
+    input  tri0       reset_only,
     input  wire       request_valid,
     output wire       request_ready,
     output wire       tx_valid,
@@ -52,7 +53,7 @@ module ngage_adsp_bootstrap_tx (
             case (state)
                 IDLE:
                 if (request_valid) begin
-                    index <= 0;
+                    index <= reset_only ? 5'd14 : 5'd0;
                     state <= SEND;
                 end
                 SEND:

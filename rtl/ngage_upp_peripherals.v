@@ -105,6 +105,7 @@ module ngage_upp_peripherals #(
     output wire        uem_periodic,
     output wire        uem_irq_clear,
     // Transaction-level AMA serial bytes; electrical/baud timing is unmodeled.
+    output wire        adsp_receive_enabled,
     output wire        adsp_tx_valid,
     input  wire        adsp_tx_ready,
     output wire [ 7:0] adsp_tx_data,
@@ -143,25 +144,26 @@ module ngage_upp_peripherals #(
     wire uart_claim, uart_bad, uart_ready, uart_fiq;
     wire [31:0] uart_data;
     ngage_upp_euart euart1 (
-        .clk        (clk),
-        .reset      (rst),
-        .req        (cyc && stb && cfg_keypad),
-        .commit     (local_access),
-        .we         (we),
-        .addr       (adr),
-        .din        (din),
-        .sel        (sel),
-        .claim      (uart_claim),
-        .bad        (uart_bad),
-        .ready      (uart_ready),
-        .dout       (uart_data),
-        .irq_pending(uart_fiq),
-        .tx_valid   (adsp_tx_valid),
-        .tx_ready   (adsp_tx_ready),
-        .tx_data    (adsp_tx_data),
-        .rx_valid   (adsp_rx_valid),
-        .rx_ready   (adsp_rx_ready),
-        .rx_data    (adsp_rx_data)
+        .clk            (clk),
+        .reset          (rst),
+        .req            (cyc && stb && cfg_keypad),
+        .commit         (local_access),
+        .we             (we),
+        .addr           (adr),
+        .din            (din),
+        .sel            (sel),
+        .claim          (uart_claim),
+        .bad            (uart_bad),
+        .ready          (uart_ready),
+        .dout           (uart_data),
+        .irq_pending    (uart_fiq),
+        .tx_valid       (adsp_tx_valid),
+        .tx_ready       (adsp_tx_ready),
+        .tx_data        (adsp_tx_data),
+        .rx_valid       (adsp_rx_valid),
+        .rx_ready       (adsp_rx_ready),
+        .rx_data        (adsp_rx_data),
+        .receive_enabled(adsp_receive_enabled)
     );
 
     // Native host owns this register window before the generic storage bank.
