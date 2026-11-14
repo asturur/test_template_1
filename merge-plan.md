@@ -1,3 +1,17 @@
+## 2026-11-14: Mandatory SIM files pushed; build43572455384 running
+
+Production fix2d9605f0289a9dd22353823f0141a3f195ab4578 pushed to
+codex/ngage2-integration. CI43572455384/seed44 launched07:43:53UTC and source
+identity verified; no continuous build polling. One-shot in-thread follow-up
+resume-mandatory-sim-hardware-test created ACTIVE for09:24Europe/Rome
+(08:24UTC) to retrieve fit/timing/RBF, deploy and resume original boot tests.
+The old deleted automation was not reused. All local tests pass (below).
+Board is original d6cec18/autoRun/saveOff, all observers removed and complete
+ROM/settings/C/PMM hashes verified. No active capture or SD backups. New HDL
+board outcome/area/timing still pending. Read docs/sim-mandatory-files.md before
+repeating probes. Next measure sustained SIM8/no75 rejection and Phone/Menu;
+lateBT59/02 assertion remains separate. Preserve other-thread simulations.
+
 ## 2026-11-14: Mandatory SIM file correction ready for FPGA
 
 Build43565865117/d6cec18 hardware confirms9F16 and full SIM transfers; untouched
