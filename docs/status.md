@@ -1,3 +1,59 @@
+## 2026-11-14: SPMark 3D benchmark completed on unpatched firmware
+
+Native Run All returns3D score84, Game1.31fps, FillRate0.27Mtexels/s and
+PolyCount5.86Ktriangles/s. Captured both initial score page and lower detail
+page; repeated scrolling confirms the end. No extra result rows exist in this
+3D view. No system-suite result claimed. This passes the prior immediate
+Game initialization failure and native FillRate crash on the Thumb LDM build.
+
+Same autosaved C:/PMM, original ROM and exact unchanged SPMark MMC. The early
+MMC boot stayed at Nokia splash, but cardless boot and200-second delayed MMC
+insertion reach Menu; the delayed run discovers/launches SPMark and completes.
+This is an insertion-timing workaround, not an identified startup root cause.
+Build43625070290/22e5e14/source1a1f8ad/seed44, RBFef4a22c7... still fails78MHz
+setup−0.435ns, so benchmark values are experimental, not timing qualification.
+No recorded CPU reset/data fault/panic/save error;1122 snapshots with one reader
+gap. Autosave queue empty; after sync both files match stable live DDR. Phone
+left on score page, CPU Run/save On. No firmware/RAM patch, card formatting,
+new build request or SD backup. Stopped owned capture; other threads untouched.
+[Full evidence](evidence/spmark04-thumb-ldm-board-20261114.json),
+[score](evidence/spmark04-ldm-results-top.png),
+[scrolled details](evidence/spmark04-ldm-results-bottom.png).
+
+## 2026-11-14: SPMark Run All now renders the 3D game
+
+With200-second delayed MMC insertion, native Menu discovers SPMark04 and the
+original application launches. Run All Tests renders the helicopter scene,
+passing the prior immediate Game initialization failure. No firmware/RAM patch.
+The numeric results and isolated FillRate completion are still pending; the
+new RBF misses78MHz timing, so this is experimental board progress. Save On.
+[Current evidence](evidence/spmark04-thumb-ldm-board-20261114.json).
+
+## 2026-11-14: Thumb LDM RBF deployed; testing delayed MMC insertion
+
+Build43625070290 finished and supplied RBF22e5e14/source1a1f8ad, seed44.
+38,041ALMs (91%); setup−0.435ns/TNS−2.016ns, hold+0.180ns, so experimental
+hardware results are not timing sign-off. Deployed RBF SHA
+ef4a22c75fb81ec9b2743e4ec64f8ea1bfb2b3c6b1e72b1947e991fb4f75c266.
+Original full ROM and exact SPMark MMC hashes pass; no observation/functional
+firmware patch. Run and autosave remain On. Boot with early MMC stays at Nokia
+splash; same RBF/cardless boot reaches native setup and populated Menu using
+the autosaved C:/PMM. This is not the first non-fresh-disk boot: the previous
+RBF had already reloaded the saved disks successfully.200-second MGL delayed
+insertion is now being tested, per official MiSTer MGL documentation. No score
+yet. On completion scroll and capture every result row, not only first page.
+[Board evidence](evidence/spmark04-thumb-ldm-board-20261114.json).
+
+## 2026-11-14: MiSTer RTC source confirmed in official developer docs
+
+MiSTer already supplies absolute time via hps_io RTC/TIMESTAMP, sourced from
+its I2C RTC board or NTP. Documentation says send once at core start; the FPGA
+must tick locally afterward. Local hps_io exposes completed-update toggle bits,
+but Template leaves both outputs disconnected. The gap is our UEM integration,
+not absent MiSTer hardware. No direct FPGA I2C controller is needed. Native
+UEM day/base-date/calibration and PMM semantics still need implementation and
+testing; no claim the Startup prompt is fixed. See [contract and tests](mister-rtc.md).
+
 ## 2026-11-14: Autosave survives normal reload; RTC prompt remains
 
 With CPU Run and Background save On saved, ordinary unpatched reload reaches

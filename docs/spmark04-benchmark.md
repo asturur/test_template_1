@@ -1,9 +1,36 @@
 # SPMark04 benchmark diagnosis — 2026-11-14
 
-MMC mounting and application launch are qualified separately in
-[mmc-spmark04.md](mmc-spmark04.md). There is still no numeric benchmark result.
-A native FillRate failure now has a reproduced CPU cause and a minimal HDL fix.
-The new RBF and numeric benchmark results remain unverified on hardware.
+The Thumb LDM fix is now qualified by a completed native SPMark3D run on
+MiSTer: score84, Game1.31fps, FillRate0.27Mtexels/s, PolyCount5.86Ktriangles/s.
+Both result pages were captured, including the lower PolyCount row. No
+system-suite score was captured. Earlier no-score observations below are
+historical diagnosis, superseded for the3D suite by this completed run.
+
+## Hardware qualification and remaining limits
+
+Build43625070290/22e5e14, exact local-source1a1f8ad tree, seed44. RBF SHA
+`ef4a22c75fb81ec9b2743e4ec64f8ea1bfb2b3c6b1e72b1947e991fb4f75c266`.
+38,041/41,910ALMs (91%);78MHz setup−0.435ns/TNS−2.016ns, hold+0.180ns.
+Result is experimental because timing still fails. No PLL change.
+Original full firmware hash passes; no observer or functional RAM/ROM patch.
+Same autosaved C:/PMM and original read-only MMC were used. Autosave remains
+On, drains without error, and after sync both backing files match stable DDR.
+MMC SHA remains60d7c4aa... after completion; no format/write/SD backup.
+
+An early-MMC MGL boot stayed on Nokia splash, while cardless boot reached
+setup and populated Menu. Official MGL delay200 inserts the same card after
+startup; SPMark appears, launches and completes Run All with native3D results.
+This is a measured workaround, not proof of the startup cause or a universal
+hot-insertion qualification.1122 benchmark snapshots have generation0 and zero
+sticky data-fault reason/save error; one reader gap limits transient claims.
+The previous implicit-writeback failure no longer prevents Game initialization
+or crashes FillRate. Detailed system/JPEG behavior is still unqualified.
+
+![Score](evidence/spmark04-ldm-results-top.png)
+![Scrolled lower results](evidence/spmark04-ldm-results-bottom.png)
+
+Full [machine evidence](evidence/spmark04-thumb-ldm-board-20261114.json) and
+bounded raw captures/scripts in `scratch/spmark-ldm-board-20261114`.
 
 ## Confirmed Thumb LDM cause and local correction
 
@@ -22,8 +49,8 @@ Patch0059 suppresses writeback only for Thumb LDM with its base in the list.
 Thumb STM and LDM without a loaded base retain writeback; ARM LDM is unchanged.
 This is a combinational decoder correction: no state, RAM or pipeline stage
 added; PLL stays78MHz, with104MHz the design objective. Fitted area/timing and
-unmodified-firmware benchmark progression require the next RBF. The earlier
-Game initialization failure is not yet proven to share this cause.
+unmodified-firmware benchmark progression are measured above. The new build
+also passes the earlier Game initialization boundary.
 
 The production CPU regression executes those exact two opcodes. Old RTL fails
 signature11, overwrites R1 with80000208 and computes R5=00001208. Fixed RTL

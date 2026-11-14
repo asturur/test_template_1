@@ -1,3 +1,5 @@
+> Update: [completed native3D benchmark and all result rows](spmark04-benchmark.md). Same original card, Thumb LDM fix, delayed insertion; fit timing still fails.
+
 > Follow-up: [native FillRate CPU cause and tested Thumb LDM correction](spmark04-benchmark.md). New RBF benchmark qualification is pending.
 
 # SPMark04 MMC hardware result — 2026-11-14

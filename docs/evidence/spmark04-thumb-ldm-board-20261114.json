@@ -1,0 +1,287 @@
+{
+  "path": "/media/fat/_Console/ngage1.rbf",
+  "bytes": 4533484,
+  "sha256": "ef4a22c75fb81ec9b2743e4ec64f8ea1bfb2b3c6b1e72b1947e991fb4f75c266",
+  "card_backup_created": false,
+  "fitter_seed": 44,
+  "commit": "22e5e14ffd56add5028907de94bcf4fd2bfa903c",
+  "run_id": "43625070290",
+  "timing_status": "consult job timing gate and reports",
+  "local_source": "1a1f8adc9b187ef6ff2cf9390936dd690da1cb2e",
+  "tree": "ac467786b0ac841717cf0ecddd8a5ab9651fcab5",
+  "fit_alms": 38041,
+  "fit_alms_total": 41910,
+  "core_clock_hz": 78000000,
+  "setup_slack_ns": -0.435,
+  "setup_tns_ns": -2.016,
+  "hold_slack_ns": 0.18,
+  "hardware_benchmark_verified": true,
+  "original_rom_and_card": {
+    "rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "mmc_sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919",
+    "cfg_hex": "00002100000000000000000000000000"
+  },
+  "initial_boot": {
+    "result": "Nokia splash remains; no benchmark launch yet",
+    "observer_or_functional_patch": false,
+    "cpu_run": true,
+    "autosave": true,
+    "summary": {
+      "snapshots": 600,
+      "reader_gaps": 0,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 1,
+          "flags_hex": "0x06006038",
+          "lba": 6,
+          "mounted": true,
+          "saved": true,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 7,
+          "payload_hex": "46494c453a20464901000100",
+          "reason": 65537
+        }
+      },
+      "text_tail": "\ufffdTRtcQueue::Add: 2\ufffdTRtcQueue::Add: 4\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdiChannelCount = 1 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdRAdspServerSession::Construct\ufffdiChannelCount = 2 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdCSysApAppUi::ConstructL: Start listening\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdTRtcQueue::Add: 5\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    }
+  },
+  "cardless_control": {
+    "result": "Native time/date prompts and populated Menu reached with same RBF and autosaved media",
+    "summary": {
+      "snapshots": 720,
+      "reader_gaps": 0,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 0,
+          "flags_hex": "0x06006010",
+          "lba": 2448,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "\ufffdTRtcQueue::Add: 2\ufffdTRtcQueue::Add: 4\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdiChannelCount = 1 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdRAdspServerSession::Construct\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdiChannelCount = 2 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdCSysApAppUi::ConstructL: Start listening\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdTRtcQueue::Add: 5\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdStartupApp - iAnimationShowing changed from 0 to 1\ufffdStartupApp - iAnimationShowing changed from 1 to 0\ufffdStartupApp - iAnimationCancelled == 0 \ufffdNDE: In ConstructL\ufffd\ufffd\ufffdCContactDBObserver::NewL()\ufffd\ufffd\ufffdCContactDBObserver::ConstructL()\ufffd\ufffd\ufffd\ufffd**** CAccessoryButtonMonitor::CAccessoryModeMonitor() ****\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd"
+    },
+    "menu_screenshot": "scratch/spmark-ldm-board-20261114/cardless-menu-ready.png"
+  },
+  "delayed_insertion": {
+    "status": "Native MMC discovery, application launch and 3D benchmark completion succeeded",
+    "mgl_delay_seconds": 200,
+    "card_unchanged": true,
+    "reference": "https://mister-devel.github.io/MkDocs_MiSTer/advanced/mgl/",
+    "early_insert_failure_cause_proven": false
+  },
+  "run_all": {
+    "status": "completed with native 3D results",
+    "first_3d_scene_rendered": true,
+    "score_3d": 84,
+    "game_fps": 1.31,
+    "fill_rate_mtexels_per_second": 0.27,
+    "poly_count_ktriangles_per_second": 5.86,
+    "result_screenshots": [
+      "spmark04-ldm-results-top.png",
+      "spmark04-ldm-results-bottom.png"
+    ],
+    "scroll_check": "Six overlapping lower captures, all identical after first lower page: bottom confirmed",
+    "system_benchmark_qualified": false,
+    "observer_or_functional_patch": false
+  },
+  "benchmark_capture": {
+    "snapshots": 1122,
+    "reader_gaps": 1,
+    "generations": [
+      0
+    ],
+    "fault_reasons": [
+      0
+    ],
+    "last": {
+      "clock_hz": 78000000,
+      "reset_generation": 0,
+      "save_progress": {
+        "state": 0,
+        "slot": 0,
+        "flags_hex": "0x06006010",
+        "lba": 2568,
+        "mounted": true,
+        "saved": false,
+        "saving": false,
+        "error": false,
+        "manual_batch": false,
+        "flush_pending": false,
+        "tracker_pending": false,
+        "tracker_flushing": false,
+        "tracker_valid": false,
+        "flash_quiescent": true,
+        "bridge_ready": true,
+        "bridge_done": false,
+        "bridge_error": false,
+        "host_ack": false,
+        "host_read_request": false,
+        "host_write_request": false,
+        "ddr_request": false,
+        "ddr_ready": false,
+        "ddr_done": false,
+        "tracker_error": false,
+        "tracker_fault": false,
+        "bundle_verified": true,
+        "autosave_enabled": true,
+        "autosave_paused": false,
+        "dirty_event": false
+      },
+      "save_queue": {
+        "count": 0,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": false,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000100"
+      },
+      "save_errors": {
+        "c": false,
+        "pmm": false
+      },
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      }
+    },
+    "text_tail": "CI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdEMON Server: BT connection initialized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+  },
+  "final_save_readback": {
+    "boot0.vhd": {
+      "file_sha256": "a7e9131d4a89ba5fddd93b114de8d0c2c087baf58ea52de966930290afdf88c4",
+      "size": 4194304,
+      "payload_matches_ddr": true,
+      "ddr_stable": true,
+      "payload_sha256": "a7e9131d4a89ba5fddd93b114de8d0c2c087baf58ea52de966930290afdf88c4"
+    },
+    "boot1.vhd": {
+      "file_sha256": "0ee3e9b01d505f0161025e1a5ca1655548339ed73a4e85fc7ae6684e265cb9db",
+      "size": 65536,
+      "payload_matches_ddr": true,
+      "ddr_stable": true,
+      "payload_sha256": "0ee3e9b01d505f0161025e1a5ca1655548339ed73a4e85fc7ae6684e265cb9db"
+    },
+    "cfg_hex": "00002100000000000000000000000000"
+  },
+  "final_mmc": {
+    "sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919",
+    "unchanged": true
+  },
+  "limitations": [
+    "Setup timing fails at78MHz (-0.435ns, TNS-2.016ns), so experimental measurement",
+    "One early-MMC boot stayed at splash; cardless and200-second delayed MMC insertion reached UI. Cause not isolated.",
+    "Numeric results qualify the displayed3D suite; no system-suite score or general game/write compatibility claimed.",
+    "One reader gap: zero sampled fault/reset is not proof every transient event was observed."
+  ]
+}

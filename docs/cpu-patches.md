@@ -518,5 +518,7 @@ caused SPMark FillRate's unmapped64-byte fill. STM and base-absent LDM retain
 writeback; ARM decoding is unchanged. No new state, RAM or pipeline stage.
 Original C903/1845 replay fails on old RTL and passes on corrected production
 CPU at delays0/3; exhaustive4096 decoder and3311 independent defined-ISA oracle
-cases pass, alongside ARM LDM and throughput controls. Hardware/fit qualification
-pending. See [exact witness and limits](spmark04-benchmark.md).
+cases pass, alongside ARM LDM and throughput controls. Hardware3D qualification now completes SPMark:84points,1.31fps Game,
+0.27Mtexels/s FillRate and5.86Ktriangles/s PolyCount with original firmware.
+Delayed MMC insertion was needed;78MHz fit still fails setup−0.435ns. See
+[exact witness and limits](spmark04-benchmark.md).

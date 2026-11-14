@@ -8,7 +8,7 @@ topic links before repeating research or simulations.
 | --- | --- |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
-| [spmark04-benchmark.md](spmark04-benchmark.md) | SPMark native FillRate CPU cause, Thumb LDM correction, tests and benchmark/RTC qualification gates |
+| [spmark04-benchmark.md](spmark04-benchmark.md) | Completed native SPMark3D results, Thumb LDM CPU fix, delayed MMC insertion and timing/RTC limits |
 | [mmc-spmark04.md](mmc-spmark04.md) | SPMark04 hardware mount attempt, native corrupted-card result, image identity and remaining boundary |
 | [phone-functions.md](phone-functions.md) | Sequential on-hardware Calendar, Contacts, Profiles and remaining function verification, data readback and unresolved latency |
 | [sim-mandatory-files.md](sim-mandatory-files.md) | Native serving-to-rejected transition, missing mandatory BCCH/Kc/FPLMN reads and small constant-profile correction |
@@ -56,6 +56,7 @@ topic links before repeating research or simulations.
 | [performance-path-retirement.md](performance-path-retirement.md) | Faster-path replacement policy, LCD switch retirement, next direct-SDRAM cleanup and measured DDR tradeoffs |
 | [peripheral-integration.md](peripheral-integration.md) | B1 SDRAM/local route, P1 IRQ ownership, P2 byte-count engine/original-driver tests and DMA/MMC integration gates |
 | [semi-real-nos.md](semi-real-nos.md) | N1/N2 original NOS ownership, ARM cancel/receive/charger fixtures and selective service boundaries |
+| [mister-rtc.md](mister-rtc.md) | Official MiSTer RTC transport, missing UEM wiring and native-clock integration tests |
 | [background-save.md](background-save.md) | S3 ordered C:/PMM queue, background scheduling, failure reporting and verification |
 | [ddr-bulk-persistence.md](ddr-bulk-persistence.md) | D3 sector snapshots, restores, ordering and 4 KiB host assessment |
 | [ddr-flash-cache.md](ddr-flash-cache.md) | D2 shared flash backing cache, writer ordering, sizing and tests |
