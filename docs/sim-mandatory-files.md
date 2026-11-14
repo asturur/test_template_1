@@ -21,7 +21,7 @@ The existing card lacks6F74,6F20 and6F7B. Their required status and sizes16/9/12
 are specified by [TS51.011 sections10.3.14,10.3.3 and10.3.16](https://www.etsi.org/deliver/etsi_ts/151000_151099/151011/04.03.00_60/ts_151011v040300p.pdf).
 This establishes a concrete profile defect matching the observed rejection.
 The exact failing file was inferred from the native sequence, not captured as
-a live TX filename, and the corrected FPGA boot remains to be verified.
+a live TX filename, and the correction was then qualified by the untouched boot below.
 
 ## Small card correction
 
@@ -37,8 +37,8 @@ this correction addresses the observed post-ready read phase.
 Only combinational file selectors, lengths and constant bytes change. No new
 state registers, packet buffers or RAM instances; one existing64-byte FIFO is
 retained. Baseline is37,756ALMs/90%,508M10Ks/92%, card235.2ALMs/oneM10K.
-Incremental ALM/timing cost needs the new fit; source simplicity is not a fit
-measurement.78MHz PLL remains unchanged, with104MHz as the design objective.
+The new fit measures239.7cardALMs (+4.5), oneM10K; full-core placement
+is38,236ALMs/91%,508M10Ks/92%.78MHz PLL remains unchanged, with104MHz as the design objective.
 
 ## Qualification
 
@@ -65,5 +65,32 @@ Receipts: scratch/sim-fifo-byte-20261114, sim-state-20261114,
 sim-reject-post-20261114, sim-reject-request-20261114 and
 sim-mandatory-files-20261114. Maintained tests are
 tests/phone/card_fixture/mandatory.v and tests/tools/test_native_sim_boot_files.py.
-Next build: compare card/core fit, original boot, post-ready EF reads, native
-SIM state staying8, rejection absent, and actual Phone/Menu response.
+## Hardware result: original Phone and Menu
+
+Run43572455384/seed44 passes timing at78MHz (setup+0.096ns,hold+0.176ns;
+zero negative worst1000 paths). RBF SHA2564a63d5c2eb3a91545c88ee96767ed3cde93b05b415164ad24988493b21905373
+was atomically deployed, with no card backup. The150s untouched control has
+600snapshots/no gaps, no reset/panic/first-fault or queue/save error; ADSP42
+completion/result-zero/positive ACK are all observed.
+
+Accepting the normal Time and Date prompts reaches Phone idle. A short Menu
+press opens the app grid; it takes tens of seconds to populate. Navigation and
+Options work. All firmware, RAM code and deadlines are original, with the full
+ROM hash verified; C and PMM files are unchanged. This uses the existing prepared
+six-profile C image, not an empty-first-boot qualification. No native SIM-state
+observer was installed this time: functional Phone/Menu success is the measured
+result, not a direct sample proving state8 forever.
+
+Calendar opens its header, but the main view remains blank beyond one minute.
+Short Menu and End do not switch it away; a1s Menu hold opens the task switcher.
+Selecting Telephone, then short Menu restores the populated grid. Calendar
+remains backgrounded for further diagnosis. The core is left at that working
+Menu with saveOff and no active observer/capture. Repeated HCI-33 remains, and
+Calendar, save/MMC, empty-C profile creation and broader cold-boot reliability
+are separate remaining gates. Runtime PC samples include FbsCli rendering code;
+that alone does not diagnose the Calendar cause. Follow-up captures have initial
+late-reader gaps, so do not use them for IO timing pairs across those gaps.
+
+Do not confuse short Tab (Menu) with a1s hold (task switcher). Screens and
+runtime-summary.json are in scratch/sim-mandatory-files-20261114; deployment,
+fit and original-ROM/settings/disk verification receipts are alongside them.

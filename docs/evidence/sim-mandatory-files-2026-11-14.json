@@ -28,7 +28,7 @@
   },
   "new_state_registers": 0,
   "new_ram_instances": 0,
-  "board_fix_verified": false,
+  "board_fix_verified": true,
   "exact_failed_live_file_captured": false,
   "native_fixture_scope": "Original file-phase and result-dispatch instructions; file, directory and PMM leaves are spies",
   "tests": {
@@ -54,5 +54,104 @@
       "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
       "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
     }
+  },
+  "hardware": {
+    "build": "43572455384",
+    "source": "2d9605f0289a9dd22353823f0141a3f195ab4578",
+    "rbf_sha256": "4a63d5c2eb3a91545c88ee96767ed3cde93b05b415164ad24988493b21905373",
+    "fit": {
+      "run_id": "43572455384",
+      "source": "2d9605f0289a9dd22353823f0141a3f195ab4578",
+      "seed": 44,
+      "alms": 38236,
+      "ram_blocks": 508,
+      "sim_alms": 239.7,
+      "sim_regs": 182,
+      "sim_m10k": 1,
+      "setup_slack_ns": 0.096,
+      "hold_slack_ns": 0.176,
+      "negative_paths": 0,
+      "timing_pass": true
+    },
+    "runtime": {
+      "clean": {
+        "snapshots": 600,
+        "reader_gaps": 0,
+        "reset_generations": [
+          0
+        ],
+        "panic_seen": false,
+        "first_fault_seen": false,
+        "queue_fault_seen": false,
+        "save_error_seen": false,
+        "last_pc": "0x510e8f80"
+      },
+      "setup-menu": {
+        "snapshots": 178,
+        "reader_gaps": 1,
+        "reset_generations": [
+          0
+        ],
+        "panic_seen": false,
+        "first_fault_seen": false,
+        "queue_fault_seen": false,
+        "save_error_seen": false,
+        "last_pc": "0x516c718c"
+      },
+      "menu-stability": {
+        "snapshots": 177,
+        "reader_gaps": 1,
+        "reset_generations": [
+          0
+        ],
+        "panic_seen": false,
+        "first_fault_seen": false,
+        "queue_fault_seen": false,
+        "save_error_seen": false,
+        "last_pc": "0x516c7178"
+      },
+      "app-stability": {
+        "snapshots": 178,
+        "reader_gaps": 1,
+        "reset_generations": [
+          0
+        ],
+        "panic_seen": false,
+        "first_fault_seen": false,
+        "queue_fault_seen": false,
+        "save_error_seen": false,
+        "last_pc": "0x50559182"
+      }
+    },
+    "verified_original": {
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "original_settings_restored": true,
+      "run": true,
+      "autosave": false,
+      "card_images_unchanged": {
+        "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+        "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+      }
+    },
+    "observed_ui": [
+      "Time query accepted with F1",
+      "Date query accepted with F1",
+      "normal Phone idle screen",
+      "long Menu opens Telephone task switcher",
+      "short Menu opens populated application grid",
+      "Menu Options responds",
+      "right/right/OK launches Calendar header; body remains blank after about one minute"
+    ],
+    "native_state_8_directly_sampled_this_build": false,
+    "firmware_or_ram_hooks_used": false,
+    "empty_first_boot_profile_creation_fixed": false,
+    "left_on": "populated Menu; Calendar still backgrounded",
+    "calendar_recovery": "1s Menu hold opens task switcher; select Telephone then short Tab restores populated Menu",
+    "screens": [
+      "scratch/sim-mandatory-files-20261114/setup-after-date.png",
+      "scratch/sim-mandatory-files-20261114/menu-final.png",
+      "scratch/sim-mandatory-files-20261114/calendar-settled.png"
+    ],
+    "prepared_c_seed_required_for_this_qualification": true
   }
 }

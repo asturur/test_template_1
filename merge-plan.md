@@ -1,3 +1,57 @@
+## 2026-11-14: Original-firmware Phone and populated Menu verified on MiSTer
+
+2d9605f/run43572455384/seed44 deployed (RBF4a63d5c2.../4,499,156bytes).
+Normal Time and Date prompts accepted with F1; Phone idle and populated Menu
+appear, navigation and Options work. NO firmware/RAM/deadline hooks this boot.
+Full original ROM88fd... and unchanged C4a75.../PMM71189.../Run/saveOff verified.
+Uses the existing initialized six-profile C seed; empty-C profile creation is
+not fixed or qualified. Native SIM8 was not directly sampled in this untouched
+run; functional card/boot progress is qualified by the normal Phone/Menu UI.
+
+Timing PASS at78MHz:setup+0.096ns,hold+0.176ns,zero negative worst1000 paths.
+38,236ALMs91%,508M10Ks92%; card239.7ALMs (+4.5),182regs,oneM10K. Preserve
+scarce area;104MHz design objective unchanged. No new RTL needed this turn.
+Clean150s:600snapshots/no reader gaps/no reset, panic, first fault or queue/save
+fault; ADSP42 request/completion/result-zero/positive ACK milestones all observed.
+Setup/menu/app follow-ups have initial late-reader gaps; do not infer IO timing
+across them. BT/HCI-33 repeats without preventing this boot. Stable repeated
+cold-boot coverage and lateBT/ADSP race remain unqualified.
+
+Calendar starts its header but body remains blank beyond a minute; short Menu
+and End did not leave it. Long Menu DOES open the task switcher and DDR captures
+mask40. Select Telephone there, then short Tab returns the working app grid.
+Calendar is still backgrounded, not killed; core left on populated Menu, saveOff,
+with no active capture or observer. No reset was needed to recover the UI.
+Snapshot PCs include FbsCli.dll rendering code; that does not establish an IPC,
+disk, font or CPU cause. Next issue is Calendar/app progress and performance.
+Short Tab opens Menu; a1s Menu hold opens task switcher, so do not conflate them.
+
+Results/screens: scratch/sim-mandatory-files-20261114 (menu-final.png,
+setup-after-date.png, calendar-settled.png, runtime-summary.json, fit-timing.json,
+board-original-verified.json). See docs/sim-mandatory-files.md and maintained
+JSON evidence. No SD backups, disk replacement, Flush, autosave, other-thread
+simulation/checkpoint, PLL or production-code changes. Prior reminder already
+absent when deletion attempted; no new scheduled build follow-up.
+
+## 2026-11-14: 2d9605f timing-passing build deployed; clean control active
+
+Run43572455384/seed44 completed successfully. Source2d9605f verified; RBF
+4a63d5c2.../4,499,156bytes atomically deployed and reloaded, no SD backup.
+38,236ALMs91%,508M10Ks92%; card239.7ALMs (+4.5),182regs,oneM10K.
+Setup+0.096ns/hold+0.176ns, zero negative worst1000 paths.78MHz unchanged;
+104MHz remains design objective. Full core fit rose480ALMs, mostly outside
+card; retain scarce resource headroom. Do not equate source-only cost with fit.
+
+Untouched original-ROM automatic Run/saveOff150s capture ACTIVE at
+scratch/sim-mandatory-files-20261114/clean.jsonl. Do not reload until complete.
+Then inspect display/keys and if needed qualify sustained native SIM8 with the
+already-tested sparse transition observer. Prior pending follow-up was already
+absent when deletion attempted; no duplicate automation remains. One aborted
+old-build capture preceded actual deployment after a report UTF8 decoding error;
+discard aborted-old-build.jsonl as qualification for this source. No functional
+firmware changes, disk replacement, Flush, new probes or other simulations.
+Fit/deployment receipts in scratch/sim-mandatory-files-20261114.
+
 ## 2026-11-14: Mandatory SIM files pushed; build43572455384 running
 
 Production fix2d9605f0289a9dd22353823f0141a3f195ab4578 pushed to
