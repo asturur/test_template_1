@@ -1,0 +1,43 @@
+{
+  "previous_run": "43557629525",
+  "source": "940c0f6",
+  "native_raw_rx": [
+    "a4",
+    "00",
+    "16"
+  ],
+  "expected_select_status": [
+    "9f",
+    "16"
+  ],
+  "old_inferred_fifo": {
+    "name": "fifo_rtl_0",
+    "mode": "Simple Dual Port",
+    "numwords": 64,
+    "width": 8,
+    "bits": 512,
+    "m10k": 1
+  },
+  "new_structure": "Explicit ngage_bram single write per system clock; atomic publication after read settle; no extra packet buffer",
+  "board_fix_verified": false,
+  "functional_guest_substitutions": false,
+  "card_oracle_operations": 554,
+  "fifo_scoreboard_responses": 600,
+  "native_rx_cpu_cases": 8,
+  "native_real_card_cycles": [
+    17651,
+    18145,
+    18381,
+    18969
+  ],
+  "cleanup": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  }
+}

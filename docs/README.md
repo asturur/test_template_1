@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [sim-fifo-single-write.md](sim-fifo-single-write.md) | Native SIM SELECT byte loss, physical RAM-port correction and original RX CPU/board qualification |
 | [bt-adsp-startup-race.md](bt-adsp-startup-race.md) | Native late Bluetooth result/shared ADSP waiter reproduction and actual CBUS transport leads |
 | [adsp-native-link.md](adsp-native-link.md) | Actual unexpected ADSP response, original D550/ARM startup exchange, bounded transmitter and remaining production gates |
 | [rf-native-media.md](rf-native-media.md) | Native media12 RF fix, exact-packet reproduction, hardware1E=00 qualification and subsequent native panic |

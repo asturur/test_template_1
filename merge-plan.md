@@ -1,3 +1,48 @@
+## 2026-11-14: Single-write SIM FIFO correction ready for FPGA
+
+Actual native inline RX records A4,00,16 where SELECT should return9F16.
+Quartus43557629525 inferred the old multi-emit64×8 array as one8-bit write port
+in one M10K. New RTL serializes through explicit ngage_bram, reuses that FIFO,
+publishes only after all writes/read settle and holds busy until then. No new
+packet buffer, profile/service, SIM-state or firmware substitution. At most
+26system clocks per response;78MHz PLL/104MHz design objective unchanged.
+This fixes the physical port contract; board causality/progress remain pending.
+
+554-op unchanged C++ oracle,600-response FIFO/atomic-publication scoreboard,
+overflow/mid-response reset/CEN32, all card/presence/controller/CTSI tests pass.
+New original SIM RX ZAP fixture passes authored FIFO/production card, cache off/
+on, waits0/3 (real-card17651/18145/18381/18969clocks). Full MiSTer CPU/LCD/DMA/
+IRQ/FIQ/SDRAM, ownership,33 response cases and177-source/9QIP checks pass.
+Details in docs/sim-fifo-single-write.md; fit/STA and new board behavior pending.
+
+All observers removed and original88fd.../Run/saveOff/C4a75.../PMM71189... verified.
+The byte-tap run later hit RF timeout/late-BT assertion; observer timing and the
+current RBF's setup failure remain limitations, not a new untouched RF result.
+No active capture, SD backup or other-thread simulation change. Next: commit,
+push, build seed44 and schedule40-minute retrieval/deploy/debug continuation.
+
+## 2026-11-14: SIM buffer discrepancy narrowed; exact byte tap active
+
+Native SIM RX buffer later contains00 16 after SELECT, while the expected card
+status is9F16. The sample occurs after callbacks, so post-processing is not yet
+excluded. Original RX routine given9F16 in Unicorn stores9F16; production ZAP
+with authored FIFO also passes cache-off/on + waits0/3 (982/1497/1708/2321clocks).
+This excludes a basic byte-store/cache issue in that fixture, not the production
+streaming memory path. Production card/controller CPU integration is compiling
+under tests/phone/native_sim_rx; do not overstate its pending results.
+
+Completed buffer observer removed; original88fd.../Run/saveOff/C4a75.../PMM71189...
+verified. A decisive tap now preserves the exact original inline LDRH+LSLS pair
+at51635C3C and logs returned bytes before the native store/parser.12 complete
+RX-function differential cases match all registers/flags/SP, MMIO and RAM writes;
+only debug output is added. Fresh-Hold454words/checksum verified; automatic
+Run/saveOff restored.180s capture ACTIVE at scratch/sim-byte-20261114/running.jsonl.
+Do not interrupt; reload/verify after capture. No functional or deadline patch,
+no new production HDL, no SD backups or other simulation changes. Next fix must
+follow the raw-byte evidence; current possible controller/CPU/post-processing
+causes remain distinct. ADSP36=00 and native NORMAL/READY remain qualified as
+above; Phone/Menu and native SIM readiness are still unresolved.
+
 ## 2026-11-14: Native SIM transfer stops early; buffer follow-up active
 
 Direct native tracing proves SIM does receive its ATR and writes SELECT header

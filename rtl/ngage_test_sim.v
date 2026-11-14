@@ -28,7 +28,10 @@ module ngage_test_sim #(
     wire       work_tx = CLOCK_DIV == 1 ? tx_valid : enabled_tx;
     wire       work_pop = CLOCK_DIV == 1 ? rx_pop : enabled_pop;
     wire [7:0] work_data = CLOCK_DIV == 1 ? tx_data : enabled_data;
-    assign busy = CLOCK_DIV != 1 && (pending_tx || pending_pop || enabled_tx || enabled_pop);
+    localparam EMIT_IDLE = 2'd0, EMIT_WRITE = 2'd1, EMIT_PUBLISH = 2'd2;
+    reg  [1:0] emit_state;
+    wire       emitting = emit_state != EMIT_IDLE;
+    assign busy = emitting || (CLOCK_DIV != 1 && (pending_tx || pending_pop || enabled_tx || enabled_pop));
     always @(posedge clk) begin
         if (reset) begin
             divider      <= 0;
@@ -58,35 +61,62 @@ module ngage_test_sim #(
             end
         end
     end
-    reg [7:0] fifo[0:63], header[0:3];
+    reg [7:0] header[0:3];
     reg [5:0] head, tail;
     reg [6:0] used;
     reg [15:0] selected, directory, file_id;
     reg [2:0] header_count;
     reg [1:0] select_left;
     reg [7:0] terminal_left;
-    reg [6:0] next_used;
-    reg [6:0] response_count, free_slots, accepted_count;
+    reg [6:0] next_used, free_slots;
     reg     [15:0] next_file;
-    reg     [ 7:0] length;
     integer        i;
+    localparam RESPONSE_PAIR=3'd0, RESPONSE_PROC=3'd1, RESPONSE_EF_HEADER=3'd2,
+        RESPONSE_DF_HEADER=3'd3, RESPONSE_EF_DATA=3'd4;
+    reg [ 2:0] response_kind;
+    reg [15:0] response_pair;
+    reg [4:0] response_length, accepted_length, emit_index;
+    wire [7:0] fifo_data;
+    wire       pop_now = cen && !emitting && work_pop && used != 0;
+    // One physical write per system clock. Earlier parallel emit() calls were
+    // inferred as one8-bit write port by Quartus; RTL simulation allowed more
+    // writes than that port can perform. Publish after all writes and a read-
+    // settle edge. The64-byte queue remains one M10K, without a packet buffer.
+    ngage_bram #(
+        .AW         (6),
+        .DW         (8),
+        .READ_ONLY_B(1)
+    ) fifo (
+        .clk(clk),
+        .addr_a(tail + {1'b0, emit_index}),
+        .addr_b(pop_now ? head + 6'd1 : head),
+        .data_a(response_byte(
+            emit_index, response_kind, selected, directory, response_length, response_pair
+        )),
+        .data_b(8'b0),
+        .we_a(!reset && emit_state == EMIT_WRITE),
+        .we_b(1'b0),
+        .q_a(),
+        .q_b(fifo_data)
+    );
     assign tx_will_emit=tx_valid && ((terminal_left==1) ||
-     (terminal_left==0 && select_left==1) ||
-     (terminal_left==0 && select_left==0 && header_count==4));
+        (terminal_left==0 && select_left==1) ||
+        (terminal_left==0 && select_left==0 && header_count==4));
     assign rx_valid = used != 0;
-    assign rx_data = used != 0 ? fifo[head] : 8'b0;
+    assign rx_data = used != 0 ? fifo_data : 8'b0;
     assign available = used;
-    task emit;
-        input [7:0] value;
+    task queue_response;
+        input [2:0] kind;
+        input [4:0] count;
+        input [15:0] pair;
         begin
-            // Each byte uses an offset from the original tail. Do not chain
-            // occupancy/tail updates through up to 25 emit calls in one clock.
-            // The offset is constant within each unrolled response branch;
-            // the room checks and write addresses can therefore run in parallel.
-            if (response_count < free_slots) begin
-                fifo[(tail+response_count)&7'd63] <= value;
-            end else overflow <= 1;
-            response_count = response_count + 1'b1;
+            response_kind   <= kind;
+            response_pair   <= pair;
+            response_length <= count;
+            accepted_length <= count < free_slots ? count : free_slots[4:0];
+            emit_index      <= 0;
+            emit_state      <= free_slots != 0 ? EMIT_WRITE : EMIT_PUBLISH;
+            if (count > free_slots) overflow <= 1;
         end
     endtask
     function supported_ef;
@@ -114,186 +144,189 @@ module ngage_test_sim #(
             endcase
         end
     endfunction
+
+    function [7:0] ef_byte;
+        input [15:0] file;
+        input [4:0] index;
+        begin
+            ef_byte = 0;
+            case (file)
+                16'h2fe2:
+                case (index)
+                    0:       ef_byte = 8'h98;
+                    1:       ef_byte = 8'h10;
+                    2:       ef_byte = 8'h10;
+                    3:       ef_byte = 8'h32;
+                    4:       ef_byte = 8'h54;
+                    5:       ef_byte = 8'h76;
+                    6:       ef_byte = 8'h98;
+                    7:       ef_byte = 8'h10;
+                    8:       ef_byte = 8'h32;
+                    9:       ef_byte = 8'hf8;
+                    default: ;
+                endcase
+                16'h6f78: if (index == 1) ef_byte = 1;
+                16'h6f07:
+                case (index)
+                    0:       ef_byte = 8;
+                    1:       ef_byte = 8'h09;
+                    2, 3, 4: ef_byte = 8'h10;
+                    5:       ef_byte = 8'h32;
+                    6:       ef_byte = 8'h54;
+                    7:       ef_byte = 8'h76;
+                    8:       ef_byte = 8'h98;
+                    default: ;
+                endcase
+                16'h6fad: if (index == 3) ef_byte = 2;
+                16'h6f7e: ef_byte = index < 10 ? 8'hff : 8'h01;
+                16'h6fae: ef_byte = 3;
+                16'h6f05: ef_byte = 1;
+                16'h6fb7:
+                case (index)
+                    0:       ef_byte = 8'h11;
+                    1:       ef_byte = 8'hf2;
+                    default: ef_byte = 8'hff;
+                endcase
+                default: ;
+            endcase
+        end
+    endfunction
+    function [7:0] response_byte;
+        input [4:0] index;
+        input [2:0] kind;
+        input [15:0] file, dir;
+        input [4:0] count;
+        input [15:0] pair;
+        begin
+            response_byte = 0;
+            case (kind)
+                RESPONSE_PAIR: response_byte = index == 0 ? pair[15:8] : pair[7:0];
+                RESPONSE_PROC: response_byte = pair[15:8];
+                RESPONSE_EF_HEADER:
+                case (index)
+                    0:       response_byte = 8'hc0;
+                    4:       response_byte = ef_length(file);
+                    5:       response_byte = file[15:8];
+                    6:       response_byte = file[7:0];
+                    7:       response_byte = 4;
+                    9:       response_byte = 8'h0f;
+                    10, 11:  response_byte = 8'hff;
+                    12:      response_byte = 1;
+                    13:      response_byte = 2;
+                    16:      response_byte = 8'h90;
+                    default: ;
+                endcase
+                RESPONSE_DF_HEADER: begin
+                    case (index)
+                        0:       response_byte = 8'hf2;
+                        5:       response_byte = dir[15:8];
+                        6:       response_byte = dir[7:0];
+                        7:       response_byte = dir == 16'h3f00 ? 1 : 2;
+                        13:      response_byte = 9;
+                        14:      response_byte = 8'hb0;
+                        17:      response_byte = 2;
+                        19, 21:  response_byte = 8'h83;
+                        20, 22:  response_byte = 8'h8a;
+                        default: ;
+                    endcase
+                    if (index == count - 2) response_byte = 8'h90;
+                    if (index == count - 1) response_byte = 0;
+                end
+                RESPONSE_EF_DATA: begin
+                    if (index == 0) response_byte = 8'hb0;
+                    else if (index == count - 2) response_byte = 8'h90;
+                    else if (index != count - 1) response_byte = ef_byte(file, index - 1'b1);
+                end
+                default: ;
+            endcase
+        end
+    endfunction
     always @(posedge clk) begin
         if (reset) begin
-            head          <= 0;
-            tail          <= 0;
-            used          <= 0;
-            selected      <= 16'h3f00;
-            directory     <= 16'h3f00;
-            file_id       <= 0;
-            header_count  <= 0;
-            select_left   <= 0;
-            terminal_left <= 0;
-            overflow      <= 0;
+            head            <= 0;
+            tail            <= 0;
+            used            <= 0;
+            selected        <= 16'h3f00;
+            directory       <= 16'h3f00;
+            file_id         <= 0;
+            header_count    <= 0;
+            select_left     <= 0;
+            terminal_left   <= 0;
+            overflow        <= 0;
+            emit_state      <= EMIT_IDLE;
+            response_kind   <= RESPONSE_PAIR;
+            response_pair   <= 0;
+            response_length <= 0;
+            accepted_length <= 0;
+            emit_index      <= 0;
             for (i = 0; i < 4; i = i + 1) header[i] <= 0;
-        end else if (cen) begin
-            next_used      = used;
-            response_count = 0;
-            if (work_pop && used != 0) begin
-                head <= head + 1'b1;
-                next_used = next_used - 1'b1;
+        end else begin
+            if (emit_state == EMIT_WRITE) begin
+                if (emit_index + 1'b1 == accepted_length) emit_state <= EMIT_PUBLISH;
+                else emit_index <= emit_index + 1'b1;
+            end else if (emit_state == EMIT_PUBLISH) begin
+                tail       <= tail + {1'b0, accepted_length};
+                used       <= used + {2'b0, accepted_length};
+                emit_state <= EMIT_IDLE;
             end
-            free_slots = 7'd64 - next_used;
-            if (work_tx) begin
-                if (terminal_left != 0) begin
-                    terminal_left <= terminal_left - 1'b1;
-                    if (terminal_left == 1) begin
-                        emit(8'h90);
-                        emit(0);
-                    end
-                end else if (select_left != 0) begin
-                    next_file = {file_id[7:0], work_data};
-                    file_id     <= next_file;
-                    select_left <= select_left - 1'b1;
-                    if (select_left == 1) begin
-                        if(next_file==16'h3f00 || next_file==16'h7f20 ||
-         (next_file==16'h2fe2 && directory==16'h3f00) ||
-         (supported_ef(
-                                next_file
-                            ) && next_file != 16'h2fe2 && directory == 16'h7f20)) begin
-                            selected <= next_file;
-                            if (next_file == 16'h3f00 || next_file == 16'h7f20)
-                                directory <= next_file;
-                            emit(8'h9f);
-                            emit((next_file == 16'h3f00 || next_file == 16'h7f20) ? 8'h16 : 8'h0f);
-                        end else begin
-                            emit(8'h94);
-                            emit(4);
+            if (cen && !emitting) begin
+                next_used = used;
+                if (work_pop && used != 0) begin
+                    head <= head + 1'b1;
+                    next_used = next_used - 1'b1;
+                end
+                used <= next_used;
+                free_slots = 7'd64 - next_used;
+                if (work_tx) begin
+                    if (terminal_left != 0) begin
+                        terminal_left <= terminal_left - 1'b1;
+                        if (terminal_left == 1) queue_response(RESPONSE_PAIR, 2, 16'h9000);
+                    end else if (select_left != 0) begin
+                        next_file = {file_id[7:0], work_data};
+                        file_id     <= next_file;
+                        select_left <= select_left - 1'b1;
+                        if (select_left == 1) begin
+                            if(next_file==16'h3f00 || next_file==16'h7f20 ||
+                                (next_file==16'h2fe2 && directory==16'h3f00) ||
+                                (supported_ef(
+                                    next_file
+                                ) && next_file != 16'h2fe2 && directory == 16'h7f20)) begin
+                                selected <= next_file;
+                                if (next_file == 16'h3f00 || next_file == 16'h7f20)
+                                    directory <= next_file;
+                                queue_response(RESPONSE_PAIR, 2,
+                                               (next_file==16'h3f00 || next_file==16'h7f20) ? 16'h9f16 : 16'h9f0f);
+                            end else queue_response(RESPONSE_PAIR, 2, 16'h9404);
                         end
-                    end
-                end else if (header_count != 4) begin
-                    header[header_count[1:0]] <= work_data;
-                    header_count              <= header_count + 1'b1;
-                end else begin
-                    header_count <= 0;
-                    if (header[0] != 8'ha0) begin
-                        emit(8'h6e);
-                        emit(0);
-                    end
-     else if(header[1]==8'h10 && header[2]==0 && header[3]==0 && work_data!=0)begin
-                        terminal_left <= work_data;
-                        emit(8'h10);
-                    end
-     else if(header[1]==8'ha4 && header[2]==0 && header[3]==0 && work_data==2)begin
-                        file_id     <= 0;
-                        select_left <= 2;
-                        emit(8'ha4);
-                    end
-     else if(header[1]==8'hc0 && header[2]==0 && header[3]==0 && work_data==15 && supported_ef(
-                            selected
-                        )) begin
-                        length = ef_length(selected);
-                        emit(8'hc0);
-                        emit(0);
-                        emit(0);
-                        emit(0);
-                        emit(length);
-                        emit(selected[15:8]);
-                        emit(selected[7:0]);
-                        emit(4);
-                        emit(0);
-                        emit(8'h0f);
-                        emit(8'hff);
-                        emit(8'hff);
-                        emit(1);
-                        emit(2);
-                        emit(0);
-                        emit(0);
-                        emit(8'h90);
-                        emit(0);
-                    end else if(header[1]==8'hf2 && header[2]==0 && header[3]==0 && (work_data==15 || work_data==22))begin
-                        emit(8'hf2);
-                        emit(0);
-                        emit(0);
-                        emit(0);
-                        emit(0);
-                        emit(directory[15:8]);
-                        emit(directory[7:0]);
-                        emit(directory == 16'h3f00 ? 1 : 2);
-                        emit(0);
-                        emit(0);
-                        emit(0);
-                        emit(0);
-                        emit(0);
-                        emit(9);
-                        emit(8'hb0);
-                        emit(0);
-                        if (work_data == 22) begin
-                            emit(0);
-                            emit(2);
-                            emit(0);
-                            emit(8'h83);
-                            emit(8'h8a);
-                            emit(8'h83);
-                            emit(8'h8a);
-                        end
-                        emit(8'h90);
-                        emit(0);
-                    end else if(header[1]==8'hb0 && header[2]==0 && header[3]==0 && work_data==ef_length(
-                            selected
-                        ) && supported_ef(
-                            selected
-                        )) begin
-                        emit(8'hb0);
-                        case (selected)
-                            16'h2fe2: begin
-                                emit(8'h98);
-                                emit(8'h10);
-                                emit(8'h10);
-                                emit(8'h32);
-                                emit(8'h54);
-                                emit(8'h76);
-                                emit(8'h98);
-                                emit(8'h10);
-                                emit(8'h32);
-                                emit(8'hf8);
-                            end
-                            16'h6f78: begin
-                                emit(0);
-                                emit(1);
-                            end
-                            16'h6f07: begin
-                                emit(8);
-                                emit(8'h09);
-                                emit(8'h10);
-                                emit(8'h10);
-                                emit(8'h10);
-                                emit(8'h32);
-                                emit(8'h54);
-                                emit(8'h76);
-                                emit(8'h98);
-                            end
-                            16'h6fad: begin
-                                emit(0);
-                                emit(0);
-                                emit(0);
-                                emit(2);
-                            end
-                            16'h6f7e: begin
-                                for (i = 0; i < 10; i = i + 1) emit(8'hff);
-                                emit(1);
-                            end
-                            16'h6fae: emit(3);
-                            16'h6f38: for (i = 0; i < 16; i = i + 1) emit(0);
-                            16'h6f05: emit(1);
-                            16'h6fb7: begin
-                                emit(8'h11);
-                                emit(8'hf2);
-                                emit(8'hff);
-                            end
-                        endcase
-                        emit(8'h90);
-                        emit(0);
+                    end else if (header_count != 4) begin
+                        header[header_count[1:0]] <= work_data;
+                        header_count              <= header_count + 1'b1;
                     end else begin
-                        emit(8'h6d);
-                        emit(0);
+                        header_count <= 0;
+                        if (header[0] != 8'ha0) queue_response(RESPONSE_PAIR, 2, 16'h6e00);
+                        else if(header[1]==8'h10 && header[2]==0 && header[3]==0 && work_data!=0) begin
+                            terminal_left <= work_data;
+                            queue_response(RESPONSE_PROC, 1, 16'h1000);
+                        end else if(header[1]==8'ha4 && header[2]==0 && header[3]==0 && work_data==2) begin
+                            file_id     <= 0;
+                            select_left <= 2;
+                            queue_response(RESPONSE_PROC, 1, 16'ha400);
+                        end else if(header[1]==8'hc0 && header[2]==0 && header[3]==0 && work_data==15 && supported_ef(
+                                selected
+                            ))
+                            queue_response(RESPONSE_EF_HEADER, 18, 0);
+                        else if(header[1]==8'hf2 && header[2]==0 && header[3]==0 && (work_data==15 || work_data==22))
+                            queue_response(RESPONSE_DF_HEADER, work_data[4:0] + 5'd3, 0);
+                        else if(header[1]==8'hb0 && header[2]==0 && header[3]==0 && work_data==ef_length(
+                                selected
+                            ) && supported_ef(
+                                selected
+                            ))
+                            queue_response(RESPONSE_EF_DATA, ef_length(selected) + 5'd3, 0);
+                        else queue_response(RESPONSE_PAIR, 2, 16'h6d00);
                     end
                 end
             end
-            accepted_count = response_count < free_slots ? response_count : free_slots;
-            tail <= tail + accepted_count[5:0];
-            used <= next_used + accepted_count;
         end
     end
 endmodule
