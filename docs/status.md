@@ -1,3 +1,33 @@
+## 2026-11-14: Autosave survives normal reload; RTC prompt remains
+
+With CPU Run and Background save On saved, ordinary unpatched reload reaches
+the Time prompt again. Both C:/PMM save queues drain to0 with no slot/queue
+error or reset; after host sync both backing payloads again match two stable
+live-DDR reads byte for byte. DDR telemetry explicitly reports78,000,000Hz.
+The prompt therefore recurs despite working persistence in this experiment;
+C: saving alone does not solve the absent UEM running RTC/validity backend.
+Native calibration/day-base semantics and HPS clock wiring are the next clock
+work, separate from the already dispatched Thumb LDM build. No HLE date-register
+or firmware patch introduced. [Evidence](evidence/autosave-normal-boot-20261114.json).
+
+## 2026-11-14: Thumb LDM fix committed and seed44 build dispatched
+
+Local1a1f8ad contains the tested Thumb loaded-base correction. Build snapshot
+22e5e14ffd56add5028907de94bcf4fd2bfa903c has exactly the same source tree
+ac467786b0ac841717cf0ecddd8a5ab9651fcab5. Seed44 workflow
+[43625070290](https://github.com/asturur/test_template_1/actions/runs/43625070290)
+started on codex/thumb-ldm-1a1f8ad. User monitors CI; no build polling.
+Hardware benchmark progression and fitted timing/area remain pending.
+
+Normal-boot autosave also saved the subsequently accepted native time/date
+writes: C:/PMM each matched live DDR after sync. Background save On and CPU Run
+are now persisted in ngage1.CFG (00002100000000000000000000000000). The subsequent normal
+unpatched reload and recurring clock prompt are recorded above. This changes the saved image baseline;
+old hash-guarded observer scripts must not silently substitute the previous
+seed. Current post-date C SHA9e08fe273b49544272784881a0e48747acc32a51463fcd07be8271ac399387a8,
+PMM SHAb47b95ddca081033f5914589aa27346944fe8c393f4a648aaa9b4ff0814e9f73.
+No SD backups. The running RBF is still the previouscd46abe, not this new fix.
+
 ## 2026-11-14: Normal-boot autosave drains and matches both backing files
 
 On the original uninstrumented installed RBF, enabling Background save drains

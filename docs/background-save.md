@@ -51,8 +51,10 @@ Installed cd46abe/seed44, original firmware: Background save On drains42 dirty
 sectors to0, reports Saved with no slot/queue error or reset. After host sync,
 C:4MiB and PMM64KiB backing files match two stable live-DDR reads byte for byte.
 [Measured evidence](evidence/autosave-normal-boot-20261114.json). This is a
-successful normal pass; cold reload, accepted date/time persistence and power
-interruption remain separate gates. The earlier failed FPGA trigger is not
+successful normal pass. A subsequent normal reload with save On also drains
+without errors and both files again match stable DDR after sync. Time is still
+requested despite the accepted settings being saved; RTC backend/validity and
+power interruption remain separate gates. The earlier failed FPGA trigger is not
 proven absent in all placements by this result. No SD image backup was made.
 
 ## Verification
