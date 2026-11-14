@@ -1,3 +1,36 @@
+## 2026-11-14: MTC/assert observer active on7e893c8
+
+Untouched720-snapshot control is complete. Guarded fresh-Hold MTC/assert-only
+instrumentation applied262verified words; no exits, SIM replies, state, deadlines
+or self-test substitutions. Instrumented backingbf1d5425..., diagnostic MD5bb9543...
+with original checksum retained. Saved Run/save-Off restored and CPU started
+through the verified unchanged CPU row.180s capture is ACTIVE at
+scratch/sim-card-native-observation-20261114/running.jsonl. Do not interrupt.
+Initial native MTC NOS_READY/action0C reports mode3/SIM1; final test result and
+readiness remain pending. Must reload/verify original88fd... after observing.
+See docs/evidence/sim-card-board-2026-11-14.json for successful fit/timing and
+untouched ADSP42 request/result-zero/native-ACK milestone proof.
+
+## 2026-11-14:7e893c8 timing passes; untouched ADSP42 round-trip observed
+
+Build43552422501/seed44 succeeds:38,065ALMs/91%,508M10Ks/92%, setup+0.059ns,
+hold+0.246ns at unchanged78MHz. D550192.0ALMs/190registers/zeroRAM-DSP;
+synthetic card504.5ALMs/215registers/oneM10K. RBF SHAe95f40e9... deployed
+without backup; original88fd.../Run/save-Off/C4a75.../PMM71189... verified.
+180s untouched control:720snapshots/no gaps/reset/panic/first data fault or
+SIM overflow. Passive ADSP42 accepted/completed/result-zero/positive native ACK
+all become true without any firmware observer. This proves the transport
+round-trip on original code; NOS36's stored result is not directly recorded.
+Screen Nokia, then blank after Menu; key40 positively sampled. No usable UI yet.
+
+Fresh-Hold MTC/assert-only observation is being prepared at
+scratch/sim-card-native-observation-20261114 to read native SIM state and final
+NOS test array, with no replies/state/deadline substitutions. Do not reload an
+active capture. Preserve original-ROM cleanup after observation. No speculative
+BT hardware change, no other simulations/PLL/disk changes. Native GENIO20 path
+remains a proved missing producer, with reset/status semantics still to qualify.
+Build/capture receipts: scratch/sim-card-production-20261114/qualification.json.
+
 ## 2026-11-14: Native Bluetooth event callback contract qualified
 
 Twelve original ARM cases execute actual CBUS503825EC -> BTLDD503F1298,

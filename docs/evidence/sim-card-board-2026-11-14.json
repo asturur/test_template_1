@@ -1,0 +1,52 @@
+{
+  "path": "/media/fat/_Console/ngage1.rbf",
+  "bytes": 4518628,
+  "sha256": "e95f40e95dbce72c986aff69e96d314b0ed167f0b4513d9b246c2e0a462526ed",
+  "card_backup_created": false,
+  "fitter_seed": 44,
+  "commit": "7e893c89f1f3752eee1d5db49aed628ebc8b31d0",
+  "run_id": "43552422501",
+  "timing_status": "consult job timing gate and reports",
+  "logic_alms_needed": 38065,
+  "logic_pct": 91,
+  "registers": 43764,
+  "ram_blocks": 508,
+  "setup_slack_ns": 0.059,
+  "hold_slack_ns": 0.246,
+  "timing_pass": true,
+  "adsp_alms_needed": 192.0,
+  "adsp_registers": 190,
+  "adsp_ram": 0,
+  "adsp_dsp": 0,
+  "card_alms_needed": 504.5,
+  "card_registers": 215,
+  "card_m10k": 1,
+  "original_media": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "clean_control": {
+    "snapshots": 720,
+    "reader_gaps": 0,
+    "all_original_firmware": true,
+    "adsp42_seen": true,
+    "adsp42_complete": true,
+    "adsp42_ok": true,
+    "adsp42_acked": true,
+    "sim_overflow": false,
+    "key_menu_sampled": true,
+    "reset_generations": [
+      0
+    ],
+    "first_data_fault": false,
+    "panic": false,
+    "display": "Nokia then blank after confirmed Menu; no usable Menu",
+    "native_nos_result36": "not directly observed by this passive recorder"
+  }
+}
