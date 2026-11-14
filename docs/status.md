@@ -1,3 +1,123 @@
+## 2026-11-14: Normal-boot autosave drains and matches both backing files
+
+On the original uninstrumented installed RBF, enabling Background save drains
+42 dirty sectors to zero, Saved=true with no queue/slot error or CPU reset.
+After host sync both boot0.vhd and boot1.vhd match two stable live-DDR payload
+reads byte for byte. This qualifies one normal-boot write-back pass, not
+power-loss durability or every prior save failure. Native time/date acceptance
+and cold reload/readback are being tested separately. No image backup created.
+[Evidence](evidence/autosave-normal-boot-20261114.json).
+
+## 2026-11-14: SPMark FillRate CPU cause reproduced and corrected
+
+Native GLES C903/1845 loads R0/R1 through R1 then adds them. Thumb LDM with
+base in list must suppress writeback; ZAP overwrote loaded R1 with base+8.
+Fresh hardware capture's bad pointer00819EEC exactly equals buffer00415600 +
+(object004048E4+8), callerFFE0B3DD; native64-byte fill faults at503A6B78.
+Old production CPU test fails signature11; corrected decode passes332/552
+clocks at delays0/3. Independent Unicorn3311 cases and exhaustive4096 decode
+cases pass, as do ARM base/cold/small-page and throughput regressions.
+
+Patch0059 adds no state/RAM/stage and changes no PLL.78MHz remains current,
+104MHz target; new fit/timing and original-firmware benchmark results pending.
+Game initialization and JPEG wait are separate unresolved observations.
+Observation hooks were removed by ordinary reload. See
+[benchmark diagnosis](spmark04-benchmark.md). User requested normal autosave;
+RTC reads-zero and native day/calibration/PMM persistence remain to address.
+
+## 2026-11-14: FillRate native exception captured; date/time gap identified
+
+IsolatedFillRate terminates through kernel exception kind12 at503A6B78 in
+Mem::Fill, FAR00819DBC/FSR05, USR40000010, LR503A31F0/SP0040480C. No reset or
+trace gaps. R1=40000000 is the routine's shifted64-byte-tail mask, not a huge
+requested length. Caller/stack/MMU-state probe now passes USER240/kernel100/
+fill36 preservation cases and is running from a fresh held boot; no HDL cause
+or fix is yet established.3DTEST baseFFD00000, GLESFFE00000 were measured.
+
+User asks for autosave and avoiding time/date entry. UEM currently forces its
+RTC reads to0 and has no HPS clock input; Main already supplies RTC/TIMESTAMP.
+Autosave Off also restores the same C:/PMM seed. Donor wall clock has useful
+seconds/minutes/hours/day handling but its full-date HLE register is for its
+substituted NOS and cannot satisfy our native requirement. Current save drain
+and native clock/day-base handling need separate validation. No write/backup/
+Flush was performed. [Details](spmark04-benchmark.md).
+
+## 2026-11-14: SPMark 3D returns explicit initialization failure; fill-rate closes app
+
+The same mounted card's3dtest.dll loads successfully (native return0), then
+original3D Run returns rawBFF00000/00000000: explicit−1 sentinel. Original-code
+replay confirms null/init-error returns that value before game execution.
+Isolated3D FillRate closes SPMark; relaunch works. System Tests render2D and
+advance through scaling to an unresolved JPEG Encoding wait. No numeric score.
+SPMark reports11,032KiB free RAM and expected ARM4T/4096colours/176×208; its104MHz
+field is firmware metadata, PLL remains78MHz.
+
+A minimal observation-only trace captured the loader/result pair gap-free,
+without reset/fault/panic. A broader earlier trace disturbed startup and is
+rejected evidence; do not reuse its allocation/null/general comparison hooks.
+The next fresh-Hold observer targets only SPMark load/lookup/result plus the
+kernel's fatal unhandled-user-exception branch, to capture the fill-rate fault
+PC/registers. USER240 and kernel/lookup20 preservation cases pass. Hardware
+exception capture is in progress; no new HDL change or build yet. Same
+experimental RBFcd46abe has−0.270ns78MHz setup slack. Save Off, no Flush/card
+replacement or source image writes. [Evidence and limits](spmark04-benchmark.md).
+
+## 2026-11-14: Native MMC mount and SPMark launch verified; benchmark reports failure
+
+The same games/ngage/spmark04.mmc now mounts with original firmware and no
+RAM/ROM patch. Memory shows NO NAME,16MB capacity,1272kB used,15MB free; used
+space exactly matches the independent FAT audit. SPMark04 is discovered in
+Menu, launches from the card, renders its background and opens Options.
+Run All Tests returns no numeric score. Native Show Test Results reports:
+3D Game=Test failed;3D Score/FillRate/PolyCount=N/A. Options/results remain
+responsive. No observed app closure, CPU reset, sticky fault or kernel panic;
+final15s/59snapshots remain generation0. Cause of the 3D test failure is unknown.
+The initial unchanged-background observation was not proof of a hang: the app
+had returned to responsive UI with a failed-test result.
+
+Deployedcd46abe/seed44/run43609237775, SHA0a67b2b852f480496c588e42e5c6f0ca93c47ec0dffec1c75fca5f3b212fd85c.
+Local HDL corrections are716aaf9 (R2 ordering) and78bf39d (native DMA RX2).
+Original ROM/C/PMM/settings and exact MMC image hashes remain unchanged after
+the test; Run on, Background save Off, no Flush/format/backup. Core is left on
+SPMark Results with the card mounted. Read-only mounting/reading and application
+loading are now demonstrated; writable cards and broad game compatibility are
+not qualified. This experimental RBF misses78MHz setup by0.270ns/TNS0.811ns,
+so timing-clean qualification is still separate. PLL unchanged,104MHz objective.
+[Result and screenshots](mmc-spmark04.md); [machine evidence](evidence/mmc-spmark04-board-20261114.json).
+
+## 2026-11-14: Native MMC mount now succeeds; testing SPMark04
+
+Deployed RX2-fix build43609237775/cd46abe/seed44, RBF SHA0a67b2b852f480496c588e42e5c6f0ca93c47ec0dffec1c75fca5f3b212fd85c.
+Original ROM/media/settings verified, no memory/firmware patch. The same
+SPMark04 card now mounts: native Memory reports NO NAME,16MB capacity,
+1272kB used,15MB free, with no format/corrupt prompt. Used bytes exactly match
+the318allocated4KiB clusters in the read-only host audit. SPMark04 appears in
+native Menu; launch is in progress. Screens/native DDR capture and identity are
+under scratch/mmc-rx2-board-20261114. Mount result is real hardware evidence;
+benchmark outcome is still pending.
+
+This RBF fits37,983ALMs (91%),508M10Ks (92%), but misses78MHz setup by0.270ns
+(TNS0.811ns). Hardware behavior is experimental, not timing sign-off. PLL is
+unchanged;104MHz remains the design objective. No card formatting or source
+image writes, and Background save remains Off.
+
+## 2026-11-14: Native MMC RX2 correction committed and build started
+
+Local78bf39da215eaedc019361961d16f17b8bfaa1e7 committed the small DMA admission/
+pacing correction and its native/production tests. Build snapshotcd46abe439b2b3f71ff5770f054f4596d8bb4ec8
+has exact source tree86087a7468d907fd545e94a3bf9f4e24ea9fb060. Seed44 build
+[43609237775](https://github.com/asturur/test_template_1/actions/runs/43609237775)
+started on codex/mmc-rx2-78bf39d. Only production RTL difference from the tested
+R2 build is ngage_dma_channels.v; no new register or RAM. User monitors CI.
+
+Restored uninstrumented currently installed199a9d5 RBF by ordinary reload
+without the MMC MGL. Exact original ROM/C/PMM/settings hashes pass, Run on and
+save Off; only C/PMM files are mounted, avoiding the known RX2 wait until the
+next RBF. Same SPMark04 image remains unchanged at games/ngage/spmark04.mmc.
+When user announces readiness, deploy verified artifact and launch the existing
+slot2 MGL; qualify first-sector DMA/data completion, native Memory capacity,
+SPMark discovery/launch and any result/crash. Native mount is still not achieved.
+
 ## 2026-11-14: R2 fixed on FPGA; native RX2 DMA admission bug reproduced and corrected
 
 Deployed completed seed44 build43603176364/199a9d5.78MHz timing passes,

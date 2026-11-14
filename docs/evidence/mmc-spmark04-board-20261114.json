@@ -1,0 +1,71 @@
+{
+  "path": "/media/fat/_Console/ngage1.rbf",
+  "bytes": 4511908,
+  "sha256": "0a67b2b852f480496c588e42e5c6f0ca93c47ec0dffec1c75fca5f3b212fd85c",
+  "card_backup_created": false,
+  "fitter_seed": 44,
+  "commit": "cd46abe439b2b3f71ff5770f054f4596d8bb4ec8",
+  "run_id": "43609237775",
+  "timing_status": "failed setup -0.270ns, TNS -0.811ns; experimental hardware use",
+  "clock_hz": 78000000,
+  "alms": 37983,
+  "m10ks": 508,
+  "original_firmware": true,
+  "card_mount": "pending observation",
+  "native_mount_verified": true,
+  "native_memory_view": {
+    "name": "NO NAME",
+    "capacity": "16 MB",
+    "used": "1272 kB",
+    "free": "15 MB"
+  },
+  "used_bytes_match_audit": true,
+  "spmark_discovered": true,
+  "spmark_launch": "verified native app launched from MMC",
+  "functional_memory_patch": false,
+  "mmc_read_only": true,
+  "benchmark": {
+    "selection": "Run All Tests",
+    "result_view": "SPMark04 3D Score: N/A; 3D Game: Test failed; 3D FillRate: N/A; 3D PolyCount: N/A",
+    "numeric_score": null,
+    "application_crash_observed": false,
+    "core_reset_observed": false,
+    "cause": "unresolved; no shader/CPU/IMEI/timing root cause established",
+    "follow_up_control": "Options and Show Test Results respond; not a demonstrated permanent UI hang"
+  },
+  "source_images_unchanged": true,
+  "firmware_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+  "final_state": "SPMark Results visible; auto-Run/saveOff; no observers installed",
+  "final_diagnostics": {
+    "seconds": 15,
+    "snapshots": 59,
+    "reset_generations": [
+      0
+    ],
+    "recorded_kernel_panic": false,
+    "recorded_fault": false,
+    "autosave": false
+  },
+  "screens": {
+    "docs/evidence/mmc-mounted-memory.png": {
+      "bytes": 29043,
+      "sha256": "e75252f7590b721cbead34d91ff5f8f11ea6c592af62d6edfb02322019f82d14"
+    },
+    "docs/evidence/mmc-mounted-menu.png": {
+      "bytes": 35768,
+      "sha256": "df3d73e758f030836981af96544d4400afa2b7e79f90454c72d7f9217831158d"
+    },
+    "docs/evidence/spmark04-native-options.png": {
+      "bytes": 32982,
+      "sha256": "7714daef900eaf63b60367cc8db2aada06c4ec1e25e16d1c5cf43b7b0a673771"
+    },
+    "docs/evidence/spmark04-native-results.png": {
+      "bytes": 31780,
+      "sha256": "85a9e21366ec172c7b8a89fdb1da1d8a3cf86bfe92b0ee7ed9b19961334b7315"
+    },
+    "docs/evidence/spmark04-native-results-lower.png": {
+      "bytes": 31374,
+      "sha256": "fd149490ccf328389ff984b4c6969967948aae4d29b410c2b47b29ae129056ba"
+    }
+  }
+}

@@ -1,9 +1,41 @@
+> Follow-up: [native FillRate CPU cause and tested Thumb LDM correction](spmark04-benchmark.md). New RBF benchmark qualification is pending.
+
 # SPMark04 MMC hardware result — 2026-11-14
 
-**Stopped before application launch: Symbian reports the card corrupted.** No
-benchmark scores or SPMark crash were obtained. Formatting was declined.
+**Current result: native read-only mount and SPMark04 launch work.** Original
+firmware is unchanged. Run All Tests produces `3D Game: Test failed`, with
+3D Score/FillRate/PolyCount all `N/A`. Options/results remain responsive; no
+core reset or confirmed app crash was observed. The failure reason is unresolved.
 
-## Controlled test
+The tested RBF is build43609237775/cd46abe/seed44, SHA256
+`0a67b2b852f480496c588e42e5c6f0ca93c47ec0dffec1c75fca5f3b212fd85c`. It
+fits37,983ALMs/508M10Ks but misses78MHz setup by0.270ns. These observations
+are functional hardware evidence, not timing sign-off.
+
+Native Memory reports NO NAME,16MB capacity,1272kB used,15MB free. Used bytes
+match the318allocated4KiB FAT clusters. The same source MMC, C and PMM image
+hashes and original ROM hash are verified unchanged after the benchmark. No
+formatting, save/Flush, firmware patch or image replacement was used.
+
+![Mounted card capacity](evidence/mmc-mounted-memory.png)
+
+![Native SPMark results](evidence/spmark04-native-results.png)
+
+![Remaining result rows](evidence/spmark04-native-results-lower.png)
+
+The two HDL corrections are [R2 completion ordering](mmc-r2-order.md) and
+[native receive DMA control2](mmc-native-dma-control.md).
+[Machine evidence](evidence/mmc-spmark04-board-20261114.json) records exact
+identity, screens and bounded final diagnostics. The card remains mounted and
+the phone is left on SPMark Results. Writable MMC and unrelated titles are
+separate acceptance gates.
+
+## Historical initial failure
+
+The first test below stopped before launch and reported a corrupted card.
+Formatting was declined. The current result above supersedes that stopping point.
+
+## Initial controlled test
 
 - Original ngage1 build `2d9605f`, run43572455384/seed44, 78MHz.
 - Original firmware/deadlines, initialized C: seed, auto-Run, Background save Off.
@@ -26,7 +58,7 @@ Main's process is `MiSTer_Zaparoo`; its open descriptors verified the exact MMC
 file plus `/media/fat/games/ngage1/boot0.vhd` and `boot1.vhd`. Linux opens images
 read/write; the production MMC HDL adapter currently forces card read-only.
 
-## Observations
+## Initial observations
 
 1. Boot completed to native Phone/Menu. The usual eight Menu icons appeared;
    SPMark did not appear, including after an extended wait.
@@ -67,7 +99,7 @@ hashes remain in `scratch/spmark04-mmc-20261114/`. No production RTL changed.
 
 The active investigation now identifies and reproduces the CMD2 completion-order
 failure before FAT reads. See [native R2 correction](mmc-r2-order.md). A new RBF
-and successful original-firmware mount remain pending.
+and original-firmware mount were subsequently qualified above.
 
 ## Original next boundary
 

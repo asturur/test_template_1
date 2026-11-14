@@ -1,0 +1,127 @@
+{
+  "before": {
+    "reset_generation": 0,
+    "save_progress": {
+      "state": 0,
+      "slot": 1,
+      "flags_hex": "0x02006418",
+      "lba": 127,
+      "mounted": true,
+      "saved": false,
+      "saving": false,
+      "error": false,
+      "manual_batch": false,
+      "flush_pending": false,
+      "tracker_pending": true,
+      "tracker_flushing": false,
+      "tracker_valid": false,
+      "flash_quiescent": true,
+      "bridge_ready": true,
+      "bridge_done": false,
+      "bridge_error": false,
+      "host_ack": false,
+      "host_read_request": false,
+      "host_write_request": false,
+      "ddr_request": false,
+      "ddr_ready": false,
+      "ddr_done": false,
+      "tracker_error": false,
+      "tracker_fault": false,
+      "bundle_verified": true,
+      "autosave_enabled": false,
+      "autosave_paused": false,
+      "dirty_event": false
+    },
+    "save_queue": {
+      "count": 42,
+      "initialized": true,
+      "fault": false,
+      "flush_error": false,
+      "flushing": false,
+      "in_flight": false,
+      "mark_pending": false,
+      "head_ready": true,
+      "overflow": false,
+      "invalid_sector": false,
+      "raw_hex": "0x51005504"
+    },
+    "save_errors": {
+      "c": false,
+      "pmm": false
+    }
+  },
+  "after": {
+    "reset_generation": 0,
+    "save_progress": {
+      "state": 0,
+      "slot": 1,
+      "flags_hex": "0x06006418",
+      "lba": 3,
+      "mounted": true,
+      "saved": false,
+      "saving": false,
+      "error": false,
+      "manual_batch": false,
+      "flush_pending": false,
+      "tracker_pending": true,
+      "tracker_flushing": false,
+      "tracker_valid": false,
+      "flash_quiescent": true,
+      "bridge_ready": true,
+      "bridge_done": false,
+      "bridge_error": false,
+      "host_ack": false,
+      "host_read_request": false,
+      "host_write_request": false,
+      "ddr_request": false,
+      "ddr_ready": false,
+      "ddr_done": false,
+      "tracker_error": false,
+      "tracker_fault": false,
+      "bundle_verified": true,
+      "autosave_enabled": true,
+      "autosave_paused": false,
+      "dirty_event": false
+    },
+    "save_queue": {
+      "count": 1,
+      "initialized": true,
+      "fault": false,
+      "flush_error": false,
+      "flushing": false,
+      "in_flight": false,
+      "mark_pending": false,
+      "head_ready": true,
+      "overflow": false,
+      "invalid_sector": false,
+      "raw_hex": "0x51000304"
+    },
+    "save_errors": {
+      "c": false,
+      "pmm": false
+    }
+  },
+  "snapshots": 399,
+  "generations": [
+    0
+  ],
+  "reader_gaps": 1,
+  "readback": {
+    "boot0.vhd": {
+      "file_sha256": "abd73016b020c5e97e0c6251740216b109c5baca248bd172099fb8f786547e59",
+      "size": 4194304,
+      "payload_matches_ddr": true,
+      "ddr_stable": true,
+      "payload_sha256": "abd73016b020c5e97e0c6251740216b109c5baca248bd172099fb8f786547e59"
+    },
+    "boot1.vhd": {
+      "file_sha256": "25c0716e5901ca0d85ad6b5e223f3e09bf0eb85ce174c2995c640c1eca5b111c",
+      "size": 65536,
+      "payload_matches_ddr": true,
+      "ddr_stable": true,
+      "payload_sha256": "25c0716e5901ca0d85ad6b5e223f3e09bf0eb85ce174c2995c640c1eca5b111c"
+    },
+    "cfg_hex": "00000100000000000000000000000000"
+  },
+  "limits": "One normal boot, host sync and stable live-DDR byte comparison; cold-reload/power-loss qualification pending."
+}

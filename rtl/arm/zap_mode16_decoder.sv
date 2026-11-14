@@ -598,16 +598,19 @@ module zap_mode16_decoder (
           end
 
           T_LDMIA_STMIA: begin
-            // Implicit IA type i.e., post index up by 4. Make WB = 1.
+            // Thumb LDM keeps the loaded base value when Rn is in the list.
+            // STM and LDM without Rn retain implicit IA writeback.
 
             logic [ 3:0] base;
             logic [15:0] reglist;
+            logic writeback;
 
             base = {1'd0, i_instruction[10:8]};
             reglist = {8'd0, i_instruction[7:0]};
+            writeback = !i_instruction[11] || !reglist[base];
 
             o_instruction[34:0] = {
-              3'd0, AL, 3'b100, 1'd0, 1'd1, 1'd0, 1'd1, i_instruction[11], base, reglist
+              3'd0, AL, 3'b100, 1'd0, 1'd1, 1'd0, writeback, i_instruction[11], base, reglist
             };
 
           end

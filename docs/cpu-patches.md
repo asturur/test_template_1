@@ -509,3 +509,14 @@ remains as a simulation equivalence assertion. The associated maintained ARM920
 backend changes register SWP ownership before bypass bus issue and select fast
 instruction words before the late line-source selector. See
 [78 MHz audit and tests](timing-78-recovery.md). Physical closure remains open.
+
+## Thumb LDM loaded-base preservation (0059)
+
+Suppress implicit writeback for Thumb LDM when Rn is in its load list. The
+old unconditional writeback corrupted a native GLES allocator offset and
+caused SPMark FillRate's unmapped64-byte fill. STM and base-absent LDM retain
+writeback; ARM decoding is unchanged. No new state, RAM or pipeline stage.
+Original C903/1845 replay fails on old RTL and passes on corrected production
+CPU at delays0/3; exhaustive4096 decoder and3311 independent defined-ISA oracle
+cases pass, alongside ARM LDM and throughput controls. Hardware/fit qualification
+pending. See [exact witness and limits](spmark04-benchmark.md).

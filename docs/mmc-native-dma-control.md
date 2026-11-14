@@ -69,3 +69,12 @@ preserves all registers/CPSR/SP, replays the original CMP, retains the checksum
 check, and passes384 exact-output/state cases. It is not a startup workaround.
 Sources/raw captures are under scratch/mmc-dma-native-20261114 and
 scratch/mmc-dma-control2-20261114. New FPGA build/native mount remains the gate.
+
+## Hardware follow-up: mount works
+
+Build43609237775/cd46abe now mounts the same card with original firmware:
+16MB capacity,1272kB used,15MB free. SPMark04 launches and presents native
+Options/results. Run All Tests reports3D Game failed and no numeric score; the
+app remains responsive. See [hardware evidence](mmc-spmark04.md). The first
+sector/DMA blocker is passed. This seed has setup-0.270ns, so it is functional
+experimental evidence rather than timing-clean release qualification.
