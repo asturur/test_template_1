@@ -1,0 +1,164 @@
+# Phone function verification
+
+Hardware: `2d9605f`, build43572455384/seed44, 78MHz timing passing.
+Last fit: 38,236/41,910 ALMs (91%), 508/553 M10Ks (92%). The104MHz design
+objective remains unchanged. No production RTL changes or new FPGA debug logic
+have been made during this investigation.
+
+Functional tests use original firmware and deadlines with the existing
+initialized six-profile C: seed. Background save remains Off. No Flush, SD-card
+backups, media replacement, or other-thread simulation changes. Guest filesystem
+writes below do **not** qualify SD-card persistence. Temporary observation-only
+hooks are listed separately; they retain the checksum check and original behavior.
+
+## Results
+
+| Function | Observed | Remaining |
+| --- | --- | --- |
+| Phone/Menu | Idle, populated grid, navigation, Options, task switcher | Real RF/calls unimplemented or untested |
+| Calendar | Memo create/save/reopen/delete; day/month/week; Exit | Initial blank body/repaint issue, described below |
+| Contacts | Empty list; Test create/save/reopen/edit/delete | Search/groups/SIM import; SD persistence |
+| Profiles | Six modes visible; General/Silent/Meeting/Outdoor/Pager activate; setting change/restore | Offline restart, audio/RF behavior |
+| Messaging | Empty-recipient draft12345678 save/reopen/delete; second Close works | First Close shares redraw symptom; RF sending/MMS/email untested |
+| Clock | Current time/date/no-alarms view and Exit | Alarm and RTC rate qualification |
+| Calculator | 12+34=46 | Further operations |
+| Notes | Test create/save/reopen/delete | Further operations |
+| Log | Main recent-calls/duration/cost view | Actual call accounting |
+| Other Extras | Inventory only: Apps, Favourites, To-do, Converter, Help | Sequential tests after shared redraw diagnosis |
+| Media/Tools | Not inventoried yet | Sequential checks |
+
+All our Calendar, Contacts, Messaging and Notes test records were deleted.
+General is active and its original Ringing alert setting is restored.
+
+## Calendar and shared redraw issue
+
+Without an observer, a fresh Calendar launch shows its header but a blank body
+at10,30,60,120,180seconds. It is **not** a proven permanent deadlock: its day
+view becomes usable, and memo CRUD plus Month/Week work. The baseline Calendar
+file is only365bytes and matches the live pre-test file, so large initial DB
+creation is not established.
+
+An early focus experiment reproduces the recovery on original firmware: blank
+at10s, then long Menu,2s,Cancel,2s produces the complete day view by18.96s.
+The task-switch screenshot already has the date header behind it while day rows
+remain blank. This qualifies a workaround, not an HDL fix or a specific
+scheduler/LCD/cache cause. Short Menu and End were ineffective in earlier tests.
+
+The40s and180s uninstrumented samples concentrate userspace in FbsCli, Palette
+and Gdi. The180s run has719snapshots and one initial reader gap:209FbsCli,
+99Palette,62Gdi,158kernel,114EUser. No captured fatal fault/panic/reset. Shared
+rendering PCs alone do not identify which app/thread owns the work.
+
+A narrow observation of AGN-model's sync IPC import (`5085BAAC`, literal
+`5085BAB4`) captures16 complete consecutive BEGIN/END pairs in gap-free epochs.
+All return0; combined wait0.170160s, maximum0.115005s. IPC15 takes0.002788s.
+One initial gap loses earlier calls; this is not complete startup I/O coverage.
+No observed request explains the minutes-long blank. Under that observer an
+early focus cycle also recovers the day view.24Linux-Unicorn native-thunk ABI
+cases pass, with original sync lower/kernel service boundary spied. Observer
+removed; full original ROM/settings/C/PMM verified afterward.
+
+Messaging supplies a second case: its first text-editor launch takes roughly
+a minute. Entering12345678 reduces the counter160→152; recipient stays empty.
+The first Close leaves editor-looking output/cleared softkeys while similar
+FbsCli/Palette work is sampled. Task-switch/Cancel recovers Messaging main;
+Drafts contains the correct saved text. Reopen returns the exact body, and the
+second Close works normally. Deleted the test draft; no Send action occurred.
+Do not call the first symptom a stuck filesystem save solely from its picture.
+
+### Rejected probes
+
+The global FullName-based sync observer boot produced repeated
+MediaServerTaskThread USER0 before Calendar launch. Its48 mocked ABI cases did
+not qualify runtime service/stack cost. Discard that boot as Calendar evidence;
+remove by reload. It establishes neither a new production defect nor causality
+for the MediaServer panic.
+
+Calendar's two local CIdle callbacks were decoded before running the proposed
+idle probe. The+10 callback (`509A0539`) injects deferred key events through
+CCoeEnv::SimulateKeyEventL; the-20 callback (`5099FE41`) creates a deferred dialog.
+They are not established first-paint callbacks. That observer was installed only
+in fresh Hold, **never executed**, then removed by another original-ROM Hold
+reload. Its72 ABI cases are not hardware evidence. Do not repeat this detour.
+
+### LCD submission experiment and kernel-observer correction
+
+The first LCD entry observer (`scratch/calendar-lcd-20261114`) used the user
+RDebug service inside kernel-driver code. It reached Menu, then entered ABT
+loop50324294/98/9C before Calendar launched. Its later screenshots remain Menu.
+Discard that run as production LCD evidence. Its66 user-mode differential tests
+were insufficient for exception context. The exact low-level corruption cause
+is not proven. Removed by reload; original full ROM/settings/C/PMM reverified.
+**Do not reuse that prepared observer.**
+
+The correction (`scratch/calendar-lcd-port-20261114`) writes ASCII/hex directly
+to the original mapped debug59 sink atVA59000000/PA0DE00000. No debug-service/SWI,
+heap or exception-state changes. It observes native window50400544,12-bit header
+50400640,16-bit header50400668 and line50400EFC. All registers/flags/SP are
+restored before the original first instruction/body executes. At DMA caller
+5040184C it samples source pixel25 on row60 if inside the requested band, otherwise
+the first band row; zero-count/other callers skip. Source follows the native
+buffer+352*row,16-bit pixel calculation. No argument points outside the pending
+DMA band. A direct single-line call samples its own original32-bit source pixel.
+
+280Linux-Unicorn baseline/traced comparisons match all registers,CPSR,SPSR,SP/LR,
+object/row/pixel memory and complete original port sequence in USR/SVC/IRQ/UND,
+ARM/Thumb returns. Native176-pixel conversion runs modes10/7; port helpers spied.
+DMA full/partial/zero-band samples are checked. No full kernel/panel qualification
+claimed. 918fresh-Hold records/full-image/checksum verified; saved Run/saveOff restored,
+CPU started and120s boot capture active. Next healthy Menu check then Calendar
+source/transfer/focus comparison. The model accepts8924/RGB444;
+actual runtime16-bit use remains unknown, not a bug finding.
+
+## Data and input evidence
+
+Calendar memo `.Adgjmpt` saves/reopens exactly, then Clear/Yes returns to empty
+day. That is the correct Abc multi-tap result of12345678, not numeric input.
+After Save the native Calendar file grows365→530bytes,
+SHA1240a13a542c15d5a6d133634bd3b79a6a325951f7908a29827bf6a6047c5409.
+Month/Week and Back/Exit work after recovery. No user entry was removed.
+
+Contacts first asks Copy new SIM contacts?; declined. Created Test/12345678,
+saved/reopened exact fields, edited number to192345678, saved/reopened, then
+Clear/Yes prompts Delete Test? and returns to no contacts. Its new form needs
+several seconds to draw; no permanent blank established. Native read-only LFFS
+decode extracts79files with zero decoder writes/source unchanged. Contacts.cdb
+changes5492→7272bytes,
+SHA3d3e86d2de8749d261f8b016c3f9008cbd6db957ad1b5b184bc8579625d99795.
+UI readback qualifies content; compressed DB strings are not plain UTF16.
+
+Profiles names: General,Silent,Meeting,Outdoor,Pager,Offline. Each of the first
+five has its active label verified. General customization displays Jungle.mid,
+Ringing and volume defaults. Incoming alert Ringing→Beep once→Ringing verifies
+setting write/read/restore. Offline explicitly asks for a device restart;
+declined until the end-of-session restart test. No audio/RF success inferred.
+
+Notes Test saves/reopens and Delete note?/Yes returns to no data. Calculator
+12+34 returns46. Clock opens a progressing analog time/date view, but no measured
+rate/alarm test. One rapid two-Down sequence opened Log rather than Calculator;
+250ms holds/2s gaps avoid that missed input during icon redraw. This is test
+pacing, not a keypad RTL bug finding. Slash is the independent Hash binding;
+Shift+# additionally asserts the mapped phone Shift modifier.
+
+Evidence/screens and stable read-only C: snapshots:
+`scratch/phone-functions-20261114`. Native decoder:
+`scratch/profile-root-cause-20261113/extract_linux.py`. Initial C: Calendar,
+Contacts and Profile files match the baseline hashes before testing. Preserved
+original ROM SHA88fd596a...; C:4a75e4cb...; PMM71189f7f...; saved CFG
+`00000100000000000000000000000000` (Run On/save Off).
+
+Corrected LCD hardware result: Phone/Menu healthy; Calendar blank15/40/75s.
+180s719snapshots/one initial gap/no ABT or captured panic. Last body44..208,
+43296byte header, source pixel25,row60FFF matches white view. No later LCD calls
+in the remaining capture despite busy FbsCli/Palette samples. All retained
+window/header pairs complete. Fixed-format final EOF header must be included;
+its absent trailing delimiter briefly looked like a missing header in an early
+parser version. This was a parser issue, not a native-driver stall.
+Focus-follow retained records show body44..188/header38016bytes/sourceAAF with
+complete day/blue highlight. Normal12-bit transfers in both stages; no16-bit
+use observed. One pixel does not qualify a whole frame/DMA/coherence contract,
+but this case points upstream of LCD decoding. A dedicated15s live capture
+records held Down mask2 in4/59snapshots and no UI recovery. The earlier90s key
+capture expired before input and is not evidence. Next trace busy bitmap
+conversion arguments rather than change panel logic speculatively. Observer
+still active and must be removed/reverified after diagnosis.

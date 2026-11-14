@@ -1,0 +1,301 @@
+{
+  "date": "2026-11-14",
+  "hardware": {
+    "source": "2d9605f0289a9dd22353823f0141a3f195ab4578",
+    "run": 43572455384,
+    "seed": 44,
+    "rbf_sha256": "4a63d5c2eb3a91545c88ee96767ed3cde93b05b415164ad24988493b21905373",
+    "clock_hz": 78000000,
+    "alms": 38236,
+    "m10ks": 508,
+    "production_code_changed": false
+  },
+  "scope": "Original firmware/deadlines, initialized six-profile C, saveOff; observation-only hooks explicit; no SD persistence/RF/audio qualification",
+  "screens": {
+    "scratch/phone-functions-20261114/calendar-native-180s.png": {
+      "sha256": "0dfb82f8a82e313e7f5d8d0ee8c508d713cebedd02d5f2396f1dd77f2eff52d7",
+      "bytes": 25305
+    },
+    "scratch/phone-functions-20261114/calendar-clean-before-focus.png": {
+      "sha256": "0dfb82f8a82e313e7f5d8d0ee8c508d713cebedd02d5f2396f1dd77f2eff52d7",
+      "bytes": 25305
+    },
+    "scratch/phone-functions-20261114/calendar-clean-after-focus.png": {
+      "sha256": "c748f8b2ed1a1b10441e88238bdb1d3ab329ea08a4b3a6a6436e4335424e7711",
+      "bytes": 26243
+    },
+    "scratch/phone-functions-20261114/contacts-reopened.png": {
+      "sha256": "5982e363215decb7a81b219da4cdb48ce5de195286a1bbd8396400d69eef3957",
+      "bytes": 25753
+    },
+    "scratch/phone-functions-20261114/contacts-edited.png": {
+      "sha256": "b66f7bdd3ef1b7ac4d5153967b40f376aa2695400b46d2c5322414eb8a2ca7e0",
+      "bytes": 25837
+    },
+    "scratch/phone-functions-20261114/contacts-deleted.png": {
+      "sha256": "ee3659b0f5a34540d2d221c09673b9137048e18220b9730d87415b239207a435",
+      "bytes": 25759
+    },
+    "scratch/phone-functions-20261114/profiles-open.png": {
+      "sha256": "e9d4c2bd9ad5118ec4643b9400cb2f75c7d61e99a2d5f26e80a892947fba1195",
+      "bytes": 26559
+    },
+    "scratch/phone-functions-20261114/profiles-silent-active.png": {
+      "sha256": "143692a84dfb965b43d82050144a62cdd11209a64a8fe812f3509a2faeafc7ac",
+      "bytes": 26498
+    },
+    "scratch/phone-functions-20261114/profiles-alert-changed.png": {
+      "sha256": "9a91a2db00c97b40b561efe48309cf12da1aa8b4ea4a72c1e586864c2a5548e2",
+      "bytes": 27640
+    },
+    "scratch/phone-functions-20261114/profiles-alert-restored.png": {
+      "sha256": "610fc2c84bee851d5b10dba0eb6c1183951500b2d2e8e2a2a72e59e02a508005",
+      "bytes": 27533
+    },
+    "scratch/phone-functions-20261114/profiles-offline.png": {
+      "sha256": "8c82fcf695afa4dcef08d907182d6541f22030afd798964e719327488e2b034c",
+      "bytes": 27437
+    },
+    "scratch/phone-functions-20261114/messaging-draft-reopened.png": {
+      "sha256": "9ebecb373f9f8e94a65fdb63f7a9f3b182b1452cf15048c75437b2db5f1354a5",
+      "bytes": 25780
+    },
+    "scratch/phone-functions-20261114/messaging-deleted.png": {
+      "sha256": "ee5ab517d8125a7001e17710b3e3a81e10ccf600e9a41a5f6ec3475ea27de3cd",
+      "bytes": 25580
+    },
+    "scratch/phone-functions-20261114/calculator-add.png": {
+      "sha256": "996ed9c8e741ad0925d0568a7da5d4f175a112ac858010eb7efb7bd5189835a3",
+      "bytes": 25510
+    },
+    "scratch/phone-functions-20261114/notes-reopened.png": {
+      "sha256": "aa59e67bbbc7bc4a17452df7b2df3249a7166b3a8d6955535177eacd54abe1cb",
+      "bytes": 25451
+    },
+    "scratch/phone-functions-20261114/notes-deleted.png": {
+      "sha256": "c6d0fbad34bf34b606c7ba82df02b9fd4a6d616fc94e95b5f5af96d4c9c480f6",
+      "bytes": 27908
+    },
+    "scratch/phone-functions-20261114/clock-open.png": {
+      "sha256": "223c6c31acd895e87c7ef6404977a3d1a7055bea60129cd30cd32ef3719a247f",
+      "bytes": 30824
+    }
+  },
+  "original_media_verification": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "calendar": {
+    "untouched_blank_seconds": 180,
+    "untouched_focus_recovery_seconds": 18.959907666081563,
+    "memo_crud_day_month_week": true,
+    "hdlfixed": false,
+    "agenda": {
+      "reader_gaps": 1,
+      "pairs": [
+        {
+          "ipc": "0000001f",
+          "handle": "400e0006",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.004290435897435898
+        },
+        {
+          "ipc": "00000022",
+          "handle": "400e0006",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.003396653846153846
+        },
+        {
+          "ipc": "00000001",
+          "handle": "400e0006",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.007915935897435897
+        },
+        {
+          "ipc": "00000000",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.11500538461538462
+        },
+        {
+          "ipc": "00000016",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0028875641025641026
+        },
+        {
+          "ipc": "0000001a",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.002377
+        },
+        {
+          "ipc": "00000018",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.006446858974358974
+        },
+        {
+          "ipc": "0000004c",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0017197051282051281
+        },
+        {
+          "ipc": "00000002",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0019181794871794872
+        },
+        {
+          "ipc": "00000016",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.002850346153846154
+        },
+        {
+          "ipc": "0000001a",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.002514102564102564
+        },
+        {
+          "ipc": "00000018",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0063112307692307695
+        },
+        {
+          "ipc": "0000001f",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.004522282051282051
+        },
+        {
+          "ipc": "00000015",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0027876794871794872
+        },
+        {
+          "ipc": "00000009",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0025313333333333334
+        },
+        {
+          "ipc": "0000000a",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0026849358974358976
+        }
+      ],
+      "method": "Only consecutive complete matching BEGIN/END in one gap-free epoch; debug execution cost remains"
+    }
+  },
+  "contacts": {
+    "created": "Test",
+    "original_number": "12345678",
+    "edited_number": "192345678",
+    "deleted": true,
+    "guest_db_bytes": 7272,
+    "guest_db_sha256": "3d3e86d2de8749d261f8b016c3f9008cbd6db957ad1b5b184bc8579625d99795"
+  },
+  "profiles": {
+    "activated": [
+      "Silent",
+      "Meeting",
+      "Outdoor",
+      "Pager",
+      "General"
+    ],
+    "alert_change": [
+      "Ringing",
+      "Beep once",
+      "Ringing"
+    ],
+    "offline": "Restart confirmation only; declined",
+    "restored": "General"
+  },
+  "messaging": {
+    "recipient": "",
+    "draft": "12345678",
+    "reopened": true,
+    "deleted": true,
+    "sent": false,
+    "first_close": "Shared delayed redraw, focus recovered",
+    "second_close": "Normal"
+  },
+  "notes": {
+    "text": "Test",
+    "saved_reopened_deleted": true
+  },
+  "calculator": "12+34=46",
+  "clock": "View only; no rate/alarm qualification",
+  "unverified": [
+    "Media",
+    "Tools",
+    "Apps",
+    "Favourites",
+    "To-do",
+    "Converter",
+    "Help",
+    "Offline restart",
+    "RF calls/SMS",
+    "Audio",
+    "SD persistence"
+  ],
+  "active_experiment": {
+    "path": "scratch/calendar-lcd-port-20261114",
+    "status": "Corrected direct-port observer healthy; Calendar source white before focus/AAF afterward; next bitmap-conversion call trace",
+    "differential_cases": 280,
+    "boundary": "Port helpers spied; all original native driver instructions execute; USR/SVC/IRQ/UND CPSR/SPSR checked; no service/SWI",
+    "applied": {
+      "records": 918,
+      "observer_sha256": "c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "instrumented_rom_sha256": "28aa88cd8e205e8336c9d208205a22ed07f41a3d16f34b03ceaf429a5d6d6438",
+      "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+      "diagnostic_cpu_view_md5": "62c8a5cdfd72d0f32d801187f55dea9c",
+      "checksum_check_retained": true,
+      "slow_wait_trace": false,
+      "functional_startup_substitutions": false,
+      "fresh_held": true,
+      "applied": true
+    },
+    "source_before": "FFF at row60,x25 in body44..208",
+    "source_after": "AAF at row60,x25 in body44..188",
+    "whole_frame_qualification": false,
+    "down_live_masks": {
+      "0": 55,
+      "2": 4
+    }
+  },
+  "rejected_observers": {
+    "global_sync": "MediaServerTaskThread USER0 before Calendar; runtime ABI mocks insufficient; removed",
+    "calendar_idle": "Decoded deferred keys/info note; applied only held, never executed; removed",
+    "lcd_user_service": "Kernel ABT loop before Calendar; entire run invalid; original media verified after reload"
+  }
+}
