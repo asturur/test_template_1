@@ -55,3 +55,11 @@ unsupported. Native IRQ22/dataBusy is observable in the test but remains
 unconnected to production ICU. The separate `mmc_mister` authored-ARM fixture
 covers the actual board/card/HPS-adapter boundary. These tests do not establish
 original EPBUS execution, a mounted phone filesystem or protected-title launch.
+
+## Native RX2 correction
+
+The runner now executes the complete8-channel matrix and focused controls for
+RX_CONTROL=2 (native) and3 (retained alias). Both pass669385clocks with96matrix
+transfers plus focused controls. The guest run value remains the programmed
+control. Original kernel start/stop code is separately covered with production
+admission by dma_original; full board/card/HPS reads use RX2 in mmc_mister.

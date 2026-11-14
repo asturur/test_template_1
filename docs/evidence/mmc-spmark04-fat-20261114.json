@@ -1,0 +1,104 @@
+{
+  "scope": "Read-only FAT12/16 structure and all reachable file allocation chains; no execution or native mount claim",
+  "path": "/media/fat/games/ngage/spmark04.mmc",
+  "image_sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919",
+  "payload_sectors": 32760,
+  "partition": {
+    "index": 0,
+    "type": "0x1",
+    "start": 32,
+    "sectors": 32672
+  },
+  "geometry": {
+    "fat_bits": 12,
+    "bytes_per_sector": 512,
+    "sectors_per_cluster": 8,
+    "reserved": 1,
+    "fats": 2,
+    "root_entries": 512,
+    "sectors_per_fat": 12,
+    "total_sectors": 32672,
+    "data_clusters": 4076
+  },
+  "fat_mirrors_equal": true,
+  "file_count": 12,
+  "owned_clusters": 318,
+  "allocated_clusters": 318,
+  "orphan_clusters": [],
+  "files": [
+    {
+      "path": "/SYSTEM/APPS/SPMARK/3DTEST.DLL",
+      "bytes": 965584,
+      "clusters": 236,
+      "sha256": "5b918e3d10a8b4e91265325649c98c72fba7260be6cab37a102d7f50cd7eebef"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/FUTURE~1.GIF",
+      "bytes": 6910,
+      "clusters": 2,
+      "sha256": "2410ed4c674ffc4d88c65abe29f449bcba1b74a3ccd027e1b70558531c2bb859"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/FUTURE~2.GIF",
+      "bytes": 28438,
+      "clusters": 7,
+      "sha256": "88527759508913a810fa4266bf652684b5b06c4a9b5be004c0851aa27d8ea603"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/SPMARK.AIF",
+      "bytes": 2483,
+      "clusters": 1,
+      "sha256": "4e021b131982e07f68a342d986bf8e1e58373ffd60404c1f91fe004d93893804"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/SPMARK.APP",
+      "bytes": 75676,
+      "clusters": 19,
+      "sha256": "f4d3819d0d7c21f6f669835d03cf9fd8c8b50aa3e0bac6975c4cbaccb09b3a4e"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/SPMARK.RSC",
+      "bytes": 1129,
+      "clusters": 1,
+      "sha256": "69276e046ec90bf45e0d31f28b02d8e7028f0f1f3736bf9baeb47821d2574331"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/SPMARK~1.RSC",
+      "bytes": 44,
+      "clusters": 1,
+      "sha256": "4b051985c727ce8357b7c8fdf7f12acdf862c1cc8685f31d09ccf4df21859a22"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/AGENDATA.DAT",
+      "bytes": 1754,
+      "clusters": 1,
+      "sha256": "c6527ad9769d8d9d743bc8dd1543fab8040f7622d8b1f8f9f291bb0d75b238ff"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/FM_TXT.GIF",
+      "bytes": 25524,
+      "clusters": 7,
+      "sha256": "ca050b59bacf7d2cecd37a13566bb8b230e0d40e56386685d897fea1fffb97c7"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/LIBGLE~1.DLL",
+      "bytes": 106480,
+      "clusters": 26,
+      "sha256": "3008a3900a91471200ea00b26733066aad288d589a7f48cefbfc0c6b62ebad2b"
+    },
+    {
+      "path": "/SYSTEM/APPS/SPMARK/TEST.JPG",
+      "bytes": 34105,
+      "clusters": 9,
+      "sha256": "333e8e841fe8870a28959b4b0d80acf5e7500c9426bea8e31160a32c70bdfb47"
+    },
+    {
+      "path": "/SYSTEM/HELP/SPMARK.HLP",
+      "bytes": 14735,
+      "clusters": 4,
+      "sha256": "296564a903605b74bf8f6820e4e5e2d99128eb66cccdfb15d21ee3e4195a296c"
+    }
+  ],
+  "errors": [],
+  "warnings": []
+}

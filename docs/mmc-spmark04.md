@@ -75,3 +75,19 @@ Trace original-driver MMC initialization and its first filesystem sector reads;
 compare received bytes with the host image. Separate command/response/data-path
 failure from filesystem expectations before changing the image or firmware.
 Benchmark timing, IMEI queries and game execution are downstream, untested.
+
+## Complete read-only allocation audit (build pending)
+
+The exact card was audited while the user monitors build43603176364. FAT12,
+partition type01/LBA32,32672sectors,8sectors/cluster, two12-sector FATs,512root
+entries and4076data clusters. Both FAT copies match. All12files and318allocated
+clusters are reachable through valid directory/file chains: no truncation,
+loops, cross-links, orphan clusters, invalid links or partition/BPB bounds
+violations were found. SPMark.APP is75676bytes in19clusters, SHA256
+`f4d3819d0d7c21f6f669835d03cf9fd8c8b50aa3e0bac6975c4cbaccb09b3a4e`.
+
+Image SHA remained60d7c4aa… before/after. This strengthens the evidence that
+“corrupted” currently reflects identification/transport failure rather than
+damaged FAT allocation; it does not prove original-firmware mount compatibility
+or executable integrity. [Full audit](evidence/mmc-spmark04-fat-20261114.json);
+read-only source in scratch/mmc-native-20261114/audit-fat.py.

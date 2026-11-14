@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
 | [mmc-spmark04.md](mmc-spmark04.md) | SPMark04 hardware mount attempt, native corrupted-card result, image identity and remaining boundary |
 | [phone-functions.md](phone-functions.md) | Sequential on-hardware Calendar, Contacts, Profiles and remaining function verification, data readback and unresolved latency |

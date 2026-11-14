@@ -3,6 +3,7 @@
 // The exact MMC-style address is intercepted ONLY here: the production router
 // intentionally rejects it until the real endpoint contract is implemented.
 module tb;
+    parameter PRODUCTION_PROFILE = 0;
     reg clk = 0, reset = 1;
     always #5 clk = ~clk;
     wire cyc, stb, write_op;
@@ -20,7 +21,7 @@ module tb;
     reg local_busy = 0, fifo_busy = 0, fifo_write = 0;
     reg  [7:0] fifo_byte;
     wire       access = cyc && stb;
-    wire       ack = access && delay >= wait_cycles && (!in_dma || dma_ready);
+    wire       ack = access && delay >= wait_cycles && (!(in_dma || selector) || dma_ready);
     wire       in_program = address < 8192;
     wire       in_app = address >= 32'h50320000 && address < 32'h503d0000;
     wire       in_kernel_ram = address >= 32'h80000000 && address < 32'h80020000;
@@ -57,7 +58,7 @@ module tb;
 
     assign data = in_program ? program_words[address[12:2]] :
         in_app ? app_words[(address - 32'h50320000) >> 2] :
-        in_kernel_ram ? kernel_ram[address[16:2]] : in_dma ? dma_data : 0;
+        in_kernel_ram ? kernel_ram[address[16:2]] : (in_dma || selector) ? dma_data : 0;
     ngage_cpu cpu (
         .clk           (clk),
         .reset         (reset),
@@ -74,11 +75,14 @@ module tb;
         .wb_error      (1'b0),
         .debug_pc      (pc)
     );
-    ngage_dma_channels dut (
+    ngage_dma_channels #(
+        .PRODUCTION(PRODUCTION_PROFILE),
+        .ENGINES   (PRODUCTION_PROFILE ? 2 : 3)
+    ) dut (
         .clk              (clk),
         .reset            (reset),
-        .req              (access && in_dma),
-        .commit           (ack && in_dma),
+        .req              (access && (in_dma || selector)),
+        .commit           (ack && (in_dma || selector)),
         .we               (write_op),
         .addr             (address - 32'h4c000000),
         .din              (value),
@@ -90,6 +94,11 @@ module tb;
         .irq_pending      (irq),
         .error_pending    (errors),
         .active_channels  (active),
+        .lcd_ready        (1'b1),
+        .lcd_drained      (1'b1),
+        .mmc_ready        (!fifo_busy),
+        .mmc_rx_ready     (!fifo_busy),
+        .mmc_tx_ready     (!fifo_busy),
         .source_ready     (8'hff),
         .destination_ready(8'hff),
         .cmd_valid        (cmd_valid),
@@ -219,9 +228,8 @@ module tb;
                             $fatal(1, "original descriptor mismatch case=%0d", starts);
                         $display(
                             "original descriptor ch=%0d source=%h destination=%h widths=%0d/%0d raw_count=%0d control=%0d",
-                            dut.ch, dut.src_value, dut.dst_value,
-                            dut.source_bytes[dut.ch]*8, dut.destination_bytes[dut.ch]*8, dut.count_value,
-                            value);
+                            dut.ch, dut.src_value, dut.dst_value, dut.source_bytes[dut.ch] * 8,
+                            dut.destination_bytes[dut.ch] * 8, dut.count_value, value);
                         starts <= starts + 1;
                     end
                 end else if (address == 32'he0000000) begin
@@ -257,9 +265,11 @@ module tb;
     reg [4095:0] program_path, app_path;
     initial begin
         program_path = "scratch/ngage2-integration/p2/original/program.hex";
-        app_path = "scratch/ngage2-integration/p2/original/app.hex";
-        if ($value$plusargs("program=%s", program_path)) begin end
-        if ($value$plusargs("app=%s", app_path)) begin end
+        app_path     = "scratch/ngage2-integration/p2/original/app.hex";
+        if ($value$plusargs("program=%s", program_path)) begin
+        end
+        if ($value$plusargs("app=%s", app_path)) begin
+        end
         if (!$value$plusargs("wait=%d", wait_cycles)) wait_cycles = 0;
         for (i = 0; i < 32768; i = i + 1) kernel_ram[i] = 0;
         for (i = 0; i < 4096; i = i + 1) begin

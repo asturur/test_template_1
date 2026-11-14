@@ -96,7 +96,7 @@ identified:
  put r9,0x24,1
  put r9,0x28,32
  put r9,0x2c,7
- put r9,8,3
+ put r9,8,2
 wait_dma:
  ldr r4,[r9,#8]
  cmp r4,#0
@@ -195,7 +195,7 @@ data_idle:
  put r9,0x24,1
  put r9,0x28,32
  put r9,0x2c,511
- put r9,8,3
+ put r9,8,2
 sector_dma_wait:
  ldr r4,[r9,#8]
  cmp r4,#0

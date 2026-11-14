@@ -6,6 +6,8 @@ common='rtl/ngage_upp_peripherals.v rtl/ngage_upp_euart.v rtl/ngage_mmc_host.v r
 iverilog -g2001 -s tb -o "$out/bus" $common tests/phone/mmc_production/bus_tb.v > "$out/bus-build.log" 2>&1
 vvp "$out/bus" > "$out/bus.log" 2>&1
 grep '^PASS' "$out/bus.log"
-iverilog -g2001 -s tb -o "$out/dma" $common rtl/ngage_upp.v rtl/ngage_dma_channels.v rtl/ngage_dma_engine.v rtl/ngage_dma_route.v rtl/ngage_lcd_stream.v tests/phone/mmc_production/cpu_peer.v tests/phone/mmc_production/dma_tb.v > "$out/dma-build.log" 2>&1
-vvp "$out/dma" > "$out/dma.log" 2>&1
-grep '^PASS' "$out/dma.log"
+for rx_control in 2 3; do
+    iverilog -g2001 -s tb -Ptb.RX_CONTROL="$rx_control" -o "$out/dma-$rx_control" $common rtl/ngage_upp.v rtl/ngage_dma_channels.v rtl/ngage_dma_engine.v rtl/ngage_dma_route.v rtl/ngage_lcd_stream.v tests/phone/mmc_production/cpu_peer.v tests/phone/mmc_production/dma_tb.v > "$out/dma-$rx_control-build.log" 2>&1
+    vvp "$out/dma-$rx_control" > "$out/dma-$rx_control.log" 2>&1
+    grep '^PASS' "$out/dma-$rx_control.log"
+done

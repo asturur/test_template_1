@@ -34,10 +34,10 @@ The following are explicit fixture boundaries:
 - The CPU's original virtual `5812xxxx` register accesses are translated to
   physical `0c12xxxx` at the candidate DMA frontend, without enabling the MMU.
 - Original request selector writes at `58120068/64` are captured and checked,
-  with readiness supplied directly. This does not implement a request mux.
+  and also fed to the frontend when PRODUCTION_PROFILE=1.
 - Exact address `10120624` is intercepted by a test-only byte FIFO **before**
-  `ngage_dma_route`. The production router continues to reject this MMC-style
-  endpoint; this test does not establish MMC behavior or real-phone timing.
+  `ngage_dma_route`. This isolates the native programming/admission/pacing contract; the separate
+  mmc_mister fixture covers the actual production endpoint.
 - SDRAM and on-chip RAM use bounded testbench arrays and delayed responses.
   The original MMIO helpers and start bookkeeping execute without replacement.
 - IRQs are checked in the candidate frontend. The CPU polls the original run
@@ -53,3 +53,13 @@ in 11,130 cycles and three memory waits in 16,814 cycles, including the original
 stop/acknowledgment after every case. This establishes compatibility between
 those original programming routines and the candidate frontend's byte-budget
 interpretation, within the fixture boundaries above.
+
+## Production admission profile
+
+`DMA_PRODUCTION_PROFILE=1 PHONE_TEST_OUT=build/sim/unit-native-mmc-dma-control2
+sh tests/phone/dma_original/run.sh ROM` selects the real production request
+policy with2workers and feeds original selector writes into it. Native TX and
+RX both use control2. The old production filter failed RX with channel2 error04;
+the corrected filter passes all4cases at11130/16814clocks (wait0/3). The default
+generic profile retains the same results. FIFO readiness uses the bounded
+fixture reservation, and original kernel instructions remain unchanged.

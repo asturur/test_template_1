@@ -272,7 +272,7 @@ connection remains a shortcut for the missing D550/AMA path.
 
 Host MMIO at `0c120600` participates in the captured UPP response owner,
 including retained register bits and byte-lane FIFO side effects. Selector 2
-TX (control 2)/RX (control 3) descriptors capture route/width/count at start.
+TX (control 2)/RX (historically tested as control 3) descriptors capture route/width/count at start. Native RX uses control2; see the correction below.
 MMC byte offers acquire the router and UPP FIFO reservation atomically, so
 waiting for data/space need not occupy the shared route. All eight channels
 retain independent ACK/error ownership. IRQ 21/23/24 use the modeled host
@@ -325,3 +325,11 @@ The first real SPMark04 mount failed at CMD2 before FAT reads. Native driver
 execution now reproduces the response-ready/command-idle ordering failure and
 verifies the small host correction. See [R2 evidence](mmc-r2-order.md). Hardware
 mounting remains open; older authored tests alone did not establish it.
+
+## Native receive start correction (2026-11-14)
+
+The earlier RX3 qualification used an authored caller and missed native RX2.
+Original kernel/helper execution with PRODUCTION enabled now catches and
+verifies the corrected admission/pacing. R2 enumeration passes on FPGA, and
+sector transfers pass locally with native RX2; final native mount requires the
+next RBF. See [exact descriptor and tests](mmc-native-dma-control.md).
