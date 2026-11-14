@@ -74,3 +74,10 @@ A new FPGA build and original-firmware boot must verify CMD2/CID, CMD9/CSD,
 then actual sector reads and a native mount of the same SPMark04 card. There
 are no benchmark scores yet. Keep formatting and background saves off. Remove
 all observation hooks by reloading the original/new RBF before final acceptance.
+
+## Hardware follow-up
+
+Build43603176364 now confirms exact CID/CSD and native enumeration through
+CMD16. The next blocker is original DMA RX2 being rejected by the production
+filter; see [native DMA control](mmc-native-dma-control.md). Mounting is still
+unverified. The new RBF fits90%ALMs and passes78MHz timing.

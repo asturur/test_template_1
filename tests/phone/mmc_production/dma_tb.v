@@ -4,6 +4,7 @@
 `endif
 // Authored register/native-pin peer. No hierarchy reads, force or state restore.
 module tb;
+    parameter RX_CONTROL = 2;
     wire local_waiting;
     parameter DIV = 4, FIFO_DEPTH = 16;
     reg clk = 0, reset = 1;
@@ -26,9 +27,9 @@ module tb;
     wire claim, ready, bad, initialized, irq_line, cpu_lock;
     wire bcyc, bstb, bwe, baccess, lcd_claim, lcd_bad, lcd_ready;
     wire [31:0] baddr, bdata, periph_data, lcd_data;
-    wire [ 3:0] bsel;
-    wire        cpu_ack = bcyc && bstb && ((lcd_claim && lcd_ready) || (!lcd_claim && claim && ready));
-    wire        cpu_error = cpu_ack && (lcd_claim ? lcd_bad : bad);
+    wire [3:0] bsel;
+    wire cpu_ack = bcyc && bstb && ((lcd_claim && lcd_ready) || (!lcd_claim && claim && ready));
+    wire cpu_error = cpu_ack && (lcd_claim ? lcd_bad : bad);
     wire [31:0] cpu_read = lcd_claim ? lcd_data : periph_data;
     wire cv, cr, cw, rv, re, lv, lr, lw, ld, le, mreq, mwrite, mack;
     wire [31:0] ca, cd, rr, la, ldata, lrdata, mdata;
@@ -144,34 +145,35 @@ module tb;
         .mmc_dat_i        (dat_i)
     );
     ngage_dma_route route (
-        .clk        (clk),
-        .reset      (reset),
-        .cpu_lock   (cpu_lock),
-        .cmd_valid  (cv),
-        .cmd_ready  (cr),
-        .cmd_write  (cw),
-        .cmd_addr   (ca),
-        .cmd_data   (cd),
-        .cmd_be     (cb),
-        .rsp_valid  (rv),
-        .rsp_error  (re),
-        .rsp_data   (rr),
-        .ram_req    (mreq),
-        .ram_write  (mwrite),
-        .ram_addr   (ma),
-        .ram_data   (mdata),
-        .ram_be     (mbe),
-        .ram_ack    (mack),
-        .ram_rdata  (mrdata),
-        .local_valid(lv),.local_waiting(local_waiting),
-        .local_ready(lr),
-        .local_write(lw),
-        .local_addr (la),
-        .local_data (ldata),
-        .local_be   (lbe),
-        .local_done (ld),
-        .local_error(le),
-        .local_rdata(lrdata)
+        .clk          (clk),
+        .reset        (reset),
+        .cpu_lock     (cpu_lock),
+        .cmd_valid    (cv),
+        .cmd_ready    (cr),
+        .cmd_write    (cw),
+        .cmd_addr     (ca),
+        .cmd_data     (cd),
+        .cmd_be       (cb),
+        .rsp_valid    (rv),
+        .rsp_error    (re),
+        .rsp_data     (rr),
+        .ram_req      (mreq),
+        .ram_write    (mwrite),
+        .ram_addr     (ma),
+        .ram_data     (mdata),
+        .ram_be       (mbe),
+        .ram_ack      (mack),
+        .ram_rdata    (mrdata),
+        .local_valid  (lv),
+        .local_waiting(local_waiting),
+        .local_ready  (lr),
+        .local_write  (lw),
+        .local_addr   (la),
+        .local_data   (ldata),
+        .local_be     (lbe),
+        .local_done   (ld),
+        .local_error  (le),
+        .local_rdata  (lrdata)
     );
     always @(posedge clk) begin
         cycles <= cycles + 1;
@@ -454,7 +456,7 @@ module tb;
             configure_dma(0, 1, 8);
             write_register(6'h08, 8);
             write_register(6'h04, 37);
-            reg_write(32'h0c120308, 3);
+            reg_write(32'h0c120308, RX_CONTROL);
             for (k = 0; k < 8; k = k + 1) memory[768+k] = 8'h40 + k;
             reg_write(32'h0c120344, 1);
             reg_write(32'h0c120354, 32'h0a000300);
@@ -469,7 +471,7 @@ module tb;
             for (k = 0; k < 8; k = k + 1)
             if (memory[896+k] !== 8'h40 + k) $fatal(1, "blocked MMC starved peer RAM copy");
             reg_read(32'h0c120308, v);
-            if (v !== 3) $fatal(1, "blocked MMC completed without bytes");
+            if (v !== RX_CONTROL) $fatal(1, "blocked MMC completed without bytes");
             reg_write(32'h0c120308, 0);
             wait_inactive(0);
             require_no_irq(0);
@@ -486,7 +488,8 @@ module tb;
             wait (mreq);
             // mreq includes a combinational offer. Wait for its accepting edge
             // before testing cancellation/reset of an owned memory transaction.
-            @(posedge clk); #1;
+            @(posedge clk);
+            #1;
             if (route.state != 3'd1) $fatal(1, "RAM offer was not accepted");
             reg_write(32'h0c120388, 0);
             reg_read(32'h0c120388, v);
@@ -509,7 +512,8 @@ module tb;
             wait (mreq);
             // mreq includes a combinational offer. Wait for its accepting edge
             // before testing cancellation/reset of an owned memory transaction.
-            @(posedge clk); #1;
+            @(posedge clk);
+            #1;
             if (route.state != 3'd1) $fatal(1, "RAM offer was not accepted");
             reg_write(32'h0c120394, 32'h0a000200);
             reg_write(32'h0c1203ac, 7);
@@ -548,7 +552,8 @@ module tb;
             wait (mreq);
             // mreq includes a combinational offer. Wait for its accepting edge
             // before testing cancellation/reset of an owned memory transaction.
-            @(posedge clk); #1;
+            @(posedge clk);
+            #1;
             if (route.state != 3'd1) $fatal(1, "RAM offer was not accepted");
             reset_composition();
             // Fresh transfer after canceled route ownership; no stale data.
@@ -558,7 +563,7 @@ module tb;
                 card_read_data(5, 28, 0, 0);
                 begin
                     write_register(6'h04, 37);
-                    reg_write(32'h0c120408, 3);
+                    reg_write(32'h0c120408, RX_CONTROL);
                     await_dma(4);
                 end
             join
@@ -594,7 +599,7 @@ module tb;
                     fork
                         begin
                             write_register(6'h04, rx ? 37 : 25);
-                            reg_write(32'h0c120308 + ch * 64, rx ? 3 : 2);
+                            reg_write(32'h0c120308 + ch * 64, rx ? RX_CONTROL : 2);
                             // Live selector edits must not change an accepted descriptor.
                             reg_write(32'h0c120068, 15 << (ch * 4));
                             await_dma(ch);
@@ -624,8 +629,8 @@ module tb;
         end
         focused_boundaries();
         $display(
-            "PASS MMC production UPP/DMA: all8 channels TX2/RX3 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=%0d clocks=%0d",
-            cases, cycles);
+            "PASS MMC production UPP/DMA: all8 channels TX2/RX%0d selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=%0d clocks=%0d",
+            RX_CONTROL, cases, cycles);
         $finish;
     end
 endmodule

@@ -1,3 +1,48 @@
+## 2026-11-14: R2 fixed on FPGA; native RX2 DMA admission bug reproduced and corrected
+
+Deployed completed seed44 build43603176364/199a9d5.78MHz timing passes,
+37,826ALMs (90%),508M10Ks (92%). Original boot reaches real MMC payload reads;
+exact CID/CSD and CMD3/13/7/16 now succeed. Native mount still fails to finish:
+first CMD17/512bytes remains data-busy with no DMA completion.
+
+Captured channel0 descriptor is valid byte FIFO10120624 →32-bit SDRAM0afe6cb4,
+count511, selector2. Original kernel5032170c writes peripheral start2 for RX,
+as donor does. Production filter incorrectly required RX3. Original unchanged
+kernel helper reproduces production error04 on RX2; accepting RX2 and reusing
+existing internal RX tag fixes it without new registers/RAM. Native setup/start/
+stop tests pass11130/16814clocks; real card/HPS full-sector/odd/Hold tests pass
+197627/198041clocks using RX2. Both8-channel RX2 and retained RX3 matrices pass
+669385clocks each. Strict language/style pass. Another RBF/native mount is the
+remaining gate. See [native DMA control](mmc-native-dma-control.md). No disk
+formatting, image replacement, firmware functionality patch or PLL change.
+
+## 2026-11-14: SPMark04 full FAT allocation audit passes; observers removed
+
+While user monitors the already-dispatched build (no CI polling), a read-only
+audit of the exact existing card finds valid FAT12 geometry, equal FAT mirrors,
+all12files/318allocated clusters reachable, no loops/cross-links/truncation/orphans
+or bounds errors. Image unchanged. This rules out those structural failures,
+not original-driver compatibility or all filesystem semantics. Evidence in
+[MMC audit](evidence/mmc-spmark04-fat-20261114.json). Native mount still awaits
+new RBF. Post-reload original ROM/C/PMM/settings verification passes: no active
+software observer remains. See scratch/mmc-native-20261114/restored-after-trace.json.
+
+## 2026-11-14: MMC R2 hardware build dispatched; waiting for user readiness
+
+Build [43603176364](https://github.com/asturur/test_template_1/actions/runs/43603176364),
+seed44, branch codex/mmc-r2-716aaf9. Build commit199a9d5ad28d7e9d64963a9af93cc8daafed2596
+has the exact verified tree1f9062ebf5ba7e2476a8aaf3808aca637cd08fe1 of local integration
+commit716aaf9b3ab26ac80400bfd6255c91e02162b679. Separate build branch preserves local
+history and the existing remote integration branch. Published using gh CLI; a
+bulk tree request exceeded GitHub's processing limit, resolved by separate blob
+uploads before dispatch. User explicitly monitors this build; do not poll it.
+
+Reloaded original auto-Run RBF + same slot2 SPMark04 MGL to remove all temporary
+observers. No image formatting or replacement. Once user reports build ready,
+deploy/verify exact artifact, boot original firmware and check native CMD2/CMD9,
+sector reads and Memory capacity/SPMark discovery. Successful mount remains the
+active goal; do not mark it achieved from local regression results.
+
 ## 2026-11-14: MMC CMD2 root reproduced; small R2 host correction verified locally
 
 Native trace shows CMD0/CMD1 success, then CMD2 native8000. Raw response-ready

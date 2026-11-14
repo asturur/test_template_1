@@ -1,0 +1,571 @@
+{
+  "build_commit": "199a9d5ad28d7e9d64963a9af93cc8daafed2596",
+  "rbf_sha256": "1a1719ce00430cd546dde5f06fc8f85c90cea2cd59811ce5a8daf48eae7e318a",
+  "fit_alms": 37826,
+  "m10ks": 508,
+  "clock_hz": 78000000,
+  "timing_gate": "passed",
+  "original_uninstrumented_boot": "Nokia logo; HPS image position moved from footer to16384; no fault/panic",
+  "observer_boot": "Fresh-Hold observation-only; exact original checksum check retained",
+  "identification": {
+    "cid": "00000053504d41524b10c0eb55d8bfbd",
+    "csd": "8c0f002a0179a3ffb6c081e18a40001f"
+  },
+  "recorded_mmc_records": [
+    {
+      "kind": "B",
+      "words": [
+        0,
+        0,
+        0,
+        0,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        0,
+        0,
+        0,
+        0,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        1,
+        2147516416,
+        0,
+        5,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        2,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        1,
+        256,
+        0,
+        8453888,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        1,
+        2147516416,
+        0,
+        5,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        2,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        1,
+        256,
+        0,
+        8454016,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        2,
+        0,
+        0,
+        4,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        264,
+        8,
+        10,
+        0,
+        8
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        8,
+        0,
+        264,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        8,
+        0,
+        264,
+        0,
+        4
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        8,
+        0,
+        264,
+        0,
+        8
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        2,
+        256,
+        0,
+        1392508928,
+        1380011344,
+        3955232843,
+        3183466581
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        3,
+        16842752,
+        0,
+        2,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        2,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        3,
+        256,
+        0,
+        327680,
+        1380011344,
+        3955232843,
+        3183466581
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        9,
+        16842752,
+        0,
+        4,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        10
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        264,
+        8,
+        10,
+        0,
+        8
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        8,
+        0,
+        264,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        8,
+        0,
+        264,
+        0,
+        4
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        8,
+        0,
+        264,
+        0,
+        8
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        9,
+        256,
+        0,
+        704647052,
+        4288903425,
+        3783377078,
+        520110218
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        13,
+        16842752,
+        0,
+        2,
+        2151710020,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        2,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        13,
+        256,
+        0,
+        458752,
+        4288903425,
+        3783377078,
+        520110218
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        7,
+        16842752,
+        0,
+        2,
+        2151721820,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        2,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        7,
+        256,
+        0,
+        458752,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        16,
+        512,
+        0,
+        2,
+        2151721732,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        8,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        256,
+        2,
+        2,
+        0,
+        2
+      ]
+    },
+    {
+      "kind": "E",
+      "words": [
+        16,
+        256,
+        0,
+        589824,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "B",
+      "words": [
+        17,
+        0,
+        512,
+        2,
+        2151721644,
+        2151709828,
+        0
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        260,
+        0,
+        0,
+        9,
+        6
+      ]
+    },
+    {
+      "kind": "Q",
+      "words": [
+        2,
+        0,
+        260,
+        9,
+        12
+      ]
+    },
+    {
+      "kind": "S",
+      "words": [
+        4,
+        0,
+        0,
+        11,
+        4
+      ]
+    }
+  ],
+  "reader_gaps": 0,
+  "next_wait": "CMD17 argument0 length512: response received, raw status4/data-busy, no native data/DMA completion; not a mount pass",
+  "native_dma_descriptor": {
+    "channel": 0,
+    "irq_enable": 1,
+    "run": 0,
+    "source": 269616676,
+    "source_mode": 0,
+    "source_width": 8,
+    "destination": 184446132,
+    "destination_mode": 4,
+    "destination_width": 32,
+    "count": 511
+  },
+  "native_start_control": 2,
+  "native_start_evidence": [
+    "5032177c MOV r1,#2",
+    "50321784 tailcalls50324bac"
+  ],
+  "tests_after_dma_correction": {
+    "native_production_wait0": 11130,
+    "native_production_wait3": 16814,
+    "generic_native_wait0": 11130,
+    "generic_native_wait3": 16814,
+    "matrix_clocks_rx2": 669385,
+    "matrix_clocks_legacy_rx3": 669385,
+    "production_board_clocks": 197627,
+    "production_board_hold_clocks": 198041,
+    "production_frontend_baseline": "RX2 channel2 error04; native TX2 succeeded",
+    "passive_observer_cases": 384
+  },
+  "native_mount_verified": false,
+  "spmark_launched": false
+}

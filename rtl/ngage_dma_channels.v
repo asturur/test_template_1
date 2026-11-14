@@ -217,7 +217,7 @@ module ngage_dma_channels #(
     wire mmc_supported = request_select[ch*4+:4] == 2 &&
         ((din == 2 && destination_mmc && !source_fixed && destination_fixed &&
           source_width == 4 && destination_width == 1) ||
-         (din == 3 && source_mmc && source_fixed && !destination_fixed &&
+         ((din == 2 || din == 3) && source_mmc && source_fixed && !destination_fixed &&
           source_width == 1 && destination_width == 4));
     wire production_supported = !PRODUCTION ||
         (din == 1 ? (!source_lcd && !destination_lcd && !source_mmc && !destination_mmc) :
@@ -558,13 +558,18 @@ module ngage_dma_channels #(
                 dispatch_rr                 <= descriptor_channel + 3'd1;
             end
             if (generic_dispatch) begin
-                owned[descriptor_engine]          <= 1;
+                owned[descriptor_engine] <= 1;
                 engine_channel[descriptor_engine] <= descriptor_channel;
-                engine_code[descriptor_engine]    <= run_code[descriptor_channel];
+                // Native control2 paces both directions. Reuse the internal
+                // RX execution tag for a fixed MMC source; guest readback
+                // remains the actual control2. Legacy control3 still works.
+                engine_code[descriptor_engine]    <= PRODUCTION &&
+                    run_code[descriptor_channel] == 2 && descriptor_request == 2 && !descriptor_si ?
+                    2'd3 : run_code[descriptor_channel];
                 engine_request[descriptor_engine] <= descriptor_request;
-                pending[descriptor_channel]       <= 0;
-                cancel[descriptor_channel]        <= 0;
-                dispatch_rr                       <= descriptor_channel + 3'd1;
+                pending[descriptor_channel] <= 0;
+                cancel[descriptor_channel] <= 0;
+                dispatch_rr <= descriptor_channel + 3'd1;
             end
             if (write) begin
                 case (offset)

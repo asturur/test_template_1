@@ -44,3 +44,7 @@ in the source-width register1c and7 in count2c. It now correctly programs an
 was changed for this test repair. Full512-byte DMA/PIO, sentinel, identity, odd
 lengths and read-only checks pass197627clocks/4HPSreads; CPU Hold recovery passes
 198041clocks/5reads. These supersede the older short-only29010/29424 totals.
+
+Native receive starts now use control2, matching original kernel5032170c.
+The same full-sector/odd/Hold checks retain197627/198041clocks after correction
+of production admission and internal RX-ready tagging.
