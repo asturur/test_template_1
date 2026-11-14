@@ -1,3 +1,14 @@
+## 2026-11-14: d6cec18 SIM FIFO build launched
+
+Build43565865117/seed44 launched06:20UTC;40-minute in-thread follow-up scheduled
+07:00:40UTC/08:00:40Rome. Retrieve identity/fit/STA/RBF, deploy and qualify native
+SELECT9F16, later SIM APDUs/readiness and Phone/Menu. No CI polling. All tests
+passed; new FIFO hardware fix remains unverified on the board. Details below
+and docs/sim-fifo-single-write.md. Board remains original940c0f6/Run/saveOff,
+no active observer; original ROM/settings/disks verified. No SD backups,
+subagents, PLL or other-thread simulation changes. Continue useful local
+qualification while the build runs; preserve the first-byte evidence.
+
 ## 2026-11-14: Single-write SIM FIFO correction ready for FPGA
 
 Actual native inline RX records A4,00,16 where SELECT should return9F16.
