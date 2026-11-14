@@ -53,6 +53,30 @@ that event's provider and native status callback before defining a minimal
 LRB2 reset/sync/CBUS transport. Keep the peer bounded and return unsupported
 for application behavior that has not been established.
 
+## Recovered GENIO event path (not implemented yet)
+
+Native CBUS special callback503825EC reads halfword150102 and tests0010:
+that is bit20 of the32-bit GENIO/NOS status at150100. It invokes the callback
+registered as CBUS event24; BTLDD's callback structure+1474 points to503F1298.
+That callback writes0010 to150102, sets its queued-work flag and schedules
+503F12D4. BTLDD enables/disables0010 through150016/150014. These are positive
+original-instruction observations, not a guessed ICU vector. Schematic LPRFInt
+on GENIO22 corroborates the transport connection; edge/pin timings need proof.
+
+Current UPP has no producer for status bit20. Keypad models enable bit4 but its
+actual event/read overlay mask00EE0004 excludes bit20. NOS currently treats
+that upper status bit as a generic latch, so merely asserting an external IRQ
+would also leave wrong W1C/read ownership. A proper correction must give the
+GENIO/LRB2 path its own enable/event/W1C ownership and share existing IRQ25
+without clearing NOS or keypad events. Do not connect event24 as ICU IRQ24.
+
+Original BTLDD503F12D4 consumes device27 status100/10/20/40/80 and low handshake
+bits;1830 tests bit4 and1774 tests0C. Exact state transitions/reset/sync direction
+are still unqualified. Board capture sees reset0/1 writes, not a verified ready
+handshake or HCI packet. First qualify original callbacks and the minimal native
+CBUS status handshake, then bounded HCI transport. This discovery is not yet a
+BT HDL fix, and7e893c8 deliberately does not include speculative BT changes.
+
 ## SIM dependency
 
 The production card selection is in7e893c8/build43552422501. The native SIM

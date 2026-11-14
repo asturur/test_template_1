@@ -1,3 +1,17 @@
+## 2026-11-14: Missing native Bluetooth GENIO path identified
+
+CBUS callback503825EC tests halfword150102/10 = full status150100 bit20;
+event24 calls BTLDD503F1298, which W1C-acks that bit and queues503F12D4. Native
+BTLDD enables10 at150016/disables150014. This is CBUS logical event24, NOT ICU24.
+Our UPP has no bit20 producer; keypad mask00EE0004 excludes it and NOS upper
+status still has ordinary-latch semantics, so a fix must include proper GPIO
+pending/enable/W1C ownership, not merely OR an IRQ. Original device27 reset/
+sync/status transitions remain to qualify before selecting any LRB2 responder.
+No speculative BT code added. Detailed evidence/addresses in bt-adsp-startup-race.md.
+Build43552422501/7e893c8/seed44 continues; retrieve on scheduled04:15:30UTC
+follow-up, deploy and test original ROM/SIM + passive ADSP flags first. No CI
+polling, other simulation changes, firmware/disk writes or SD backups.
+
 ## 2026-11-14: Shared-waiter failure reproduced with original NOS clients
 
 Native LPRF15 client sends5901/body080103, timeout1000; ADSP36 sends822B,
