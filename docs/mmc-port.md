@@ -318,3 +318,10 @@ mount remain unverified. See [production evidence](evidence/mmc-production-2026-
 [HPS tests](../tests/phone/mmc_hps/README.md),
 [bus/DMA tests](../tests/phone/mmc_production/README.md) and
 [authored ARM test](../tests/phone/mmc_mister/README.md).
+
+## Original NEM-4 long-response correction (2026-11-14)
+
+The first real SPMark04 mount failed at CMD2 before FAT reads. Native driver
+execution now reproduces the response-ready/command-idle ordering failure and
+verifies the small host correction. See [R2 evidence](mmc-r2-order.md). Hardware
+mounting remains open; older authored tests alone did not establish it.

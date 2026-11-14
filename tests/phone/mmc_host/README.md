@@ -84,3 +84,12 @@ Card/host combined tests, original NEM-4 driver execution, DMA/FIFO/IRQ producti
 integration, media reset/drain generations, physical FPGA checks and protected
 card launch remain separate gates. Passing this host-only slice does **not**
 complete P3.2 or enable an MMC endpoint in production.
+
+## Native NEM-4 R2 ordering correction (2026-11-14)
+
+The original driver consumes three response-ready words, waits command-idle,
+then consumes the fourth. R2 tests now follow that order rather than waiting
+idle before reading all four. Two added probes verify R2 CRC errors and missing
+responses release busy and leave the accepted CMD16 length intact. The33
+cache probes pass126430clocks; both28-case data suites retain82004/244751clocks.
+The separate native_mmc test reproduces the original driver failure and fix.

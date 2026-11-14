@@ -293,3 +293,22 @@ stay in `build/sim/unit-hardware-boot-real-sdram/`; board TSV logging is disable
 for bounded file sizes. This timed model cannot use Verilator save/restore.
 Do not overwrite a running real-SDRAM test's output directory. Neither this
 runner nor a source edit changes an already running frozen long simulation.
+
+### Kernel-side software observation
+
+The2026-11-14 LCD observer using user RDebug::Print inside an LDD entered the
+kernel ABT loop before Calendar opened. Its user-mode-only ABI tests were
+insufficient for exception context. Discard that run; do not reuse the prepared
+`scratch/calendar-lcd-20261114` observer. The exact internal corruption cause
+was not established; no production LCD defect follows from that run.
+
+Kernel/IRQ observations should emit directly through the firmware's existing
+mapped debug59 byte sink (VA59000000→PA0DE00000), avoiding a user-service/SWI,
+heap and mode/IRQ/SPSR changes. The corrected experiment is
+`scratch/calendar-lcd-port-20261114`;280 original/traced comparisons include
+CPSR/SPSR and USR/SVC/IRQ/UND, with native port helpers explicitly spied. Fresh
+Hold/full-image/checksum guards and post-reload original-media verification
+remain mandatory. See [phone function results](phone-functions.md) and latest
+status before deploying any probe. Direct logging can interleave with native
+output and change timing; discard malformed/gapped messages rather than pairing
+them across gaps or claiming original-firmware latency from an instrumented run.

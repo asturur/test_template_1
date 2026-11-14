@@ -1,3 +1,420 @@
+## 2026-11-14: MMC CMD2 root reproduced; small R2 host correction verified locally
+
+Native trace shows CMD0/CMD1 success, then CMD2 native8000. Raw response-ready
+status100 exists, but IRQ23/CmdIdle wakes the R2 waiter with only event2 before
+IRQ24/CmdRdy. The actual original driver on ZAP reproduces native8000 with the
+old host. Keep long-response command-busy until its first three words are read;
+then publish idle for the fourth. No new registers/RAM, no global IRQ priority
+or firmware/PLL change. Donor has the same host/priority; QD success did not
+qualify this original NEM-4 response sequence/CPU latency.
+
+Corrected native driver test passes exact CID at11463/16661clocks (wait0/3).
+33host response/cache probes and56data cases pass, including R2 CRC/timeout
+release. Production board/card/HPS/DMA passes full512-byte reads plus odd-length,
+ICU/WP and Hold:197627/198041clocks. Repaired the previously unrun full-sector
+fixture's width/count mistake, without changing production DMA. Strict language
+lint/pinned format pass. Hardware native card mount is still pending new RBF;
+not a benchmark pass. See [MMC response ordering](docs/mmc-r2-order.md).
+
+## 2026-11-14: Active MMC mount investigation — native CMD2 identification failure
+
+User reprioritized successful MMC mounting; investigation continues. Original
+SPMark04 file is still unchanged. Observation-only fresh-Hold driver hooks show
+CMD0 success and two CMD1 replies (OCR00ff8000 then80ff8000), then CMD2 returns
+native8000 while the last captured host status is100. No CID bytes replace the
+previous OCR in the request response buffer, and the sequence retries. This
+locates rejection before filesystem sector reads; it is not proof of bad FAT
+or CRC. Adding raw-status/native-event observations to resolve the first failure.
+
+The first kernel RDebug-based probe was invalid (ABT503aec54/reason10000000),
+removed by reload. Current direct-port hooks use the established privileged
+59000000 diagnostic endpoint, retain original firmware behavior/checksum check,
+and pass320 randomized state/output/stack/flags cases across five hooks. Exact
+sources/captures in scratch/mmc-native-20261114. Temporary observation changes
+are not a boot fix. No production HDL, PLL, card image or other simulations changed.
+
+## 2026-11-14: SPMark04 MMC detected but rejected before app launch
+
+Tested `/media/fat/games/ngage/spmark04.mmc` in original ngage1 build
+2d9605f/run43572455384/seed44, auto-Run, save Off, no firmware/RAM patches.
+Stock MGL mounted the existing image in HPS slot2; Main held the exact file
+alongside ngage1 boot0/boot1.vhd. Native Menu never acquired a SPMark icon.
+Tools → Memory prompted to format, then displayed “(memorycard corrupted)”
+after No. Formatting was declined. No benchmark executed, no scores, and no
+SPMark crash: the stopping point is native card/filesystem mounting.
+
+Image footer/profile/capacity pass the existing inspector; read-only host FAT
+directory parsing finds SYSTEM/APPS/SPMARK/SPMARK.APP (UID10200F51), AIF/RSC,
+3DTEST.DLL and assets. This does not establish complete filesystem integrity
+or correct on-wire MMC reads. Exact image, C and PMM hashes remain unchanged.
+Alarm dismissal is already recorded separately. Stopped at this clear result
+as requested. Next MMC work must distinguish host-sector/card-protocol data
+from original-driver expectations before changing the image or firmware.
+See [SPMark04 MMC result](docs/mmc-spmark04.md). No production RTL/build change.
+
+## 2026-11-14: Alarm notification qualified, dismissal unresolved; original reload
+
+Images completes its initial load without focus: card tab reports no card;
+phone tab shows existing N-Gage1/2/3 thumbnails. Opening N-Gage1 was interrupted
+by a native Clock alarm dialog: “Clock alarm: Snooze9:35AM”, Stop/Snooze controls.
+This qualifies GUI notification, not exact firing time (prior keys could snooze)
+or audio. F1 Stop tap and held1s did not visibly remove the dialog. Dedicated
+20s78snapshot capture verifies mask20 in4samples, no kernel stop; CPU remains
+active in FbsCli/Palette/kernel. Do not claim dropped input or an ADSP cause.
+Alarm dismissal joins the shared visible-wait/focus symptoms as unresolved.
+
+Reloaded original auto-Run RBF to clear ALL temporary guest state: alarm,
+Calendar Month default and Converter Length input. C/PMM card files unchanged,
+no save/Flush/backup. New read-only boot captureclean-final-boot.jsonl; full
+post-autoload original verificationclean-restored.json. Remaining Media/local
+UI checks should be done without Calendar/alarm to avoid contaminating them.
+No production RTL fix, no new build/PLL/resource change.
+
+Current CPU cache source fact: arm920/cache_tags.sv is ALREADY64-way with8
+segments. Historical docs calling an older cache direct mapped do not describe
+the present implementation. No cache hash/associativity change proposed here.
+
+## 2026-11-14: More native local functions pass; Tools focus recovery observed
+
+Original firmware: Apps installed/downloaded lists empty; Favourites existing
+Notes shortcut launches editor (closed empty); To-do A saved/reopened with exact
+subject/date/Normal priority and deleted back to no data. Converter Length
+1mile displays1609.34399metres. Help opens Installing applications article.
+Settings and Device/General fields open: Automatic device language, English
+writing, DictionaryOff. Date/time settings show9:21AM/01-01-2003; no changes.
+Clock analog progression is about9minutes during539.05wallseconds (coarse
+image reading only, not oscillator calibration). Temporary alarm09:20 configured,
+but no alarm popup was qualified; intervening key input could dismiss it. No
+audio pass or alarm-failure claim. Final reload must clear alarm/prefs.
+
+Manager opens no data. Memory application reports no memorycard inserted
+(slot not mounted; no MMC access qualification). About displays full native
+Nokia copyright view. Bluetooth opens Off with first-use N-Gage name query;
+cancelling it without enabling radio. No BT communication pass.
+
+SIM-directory selection/launch attempt remained on Tools and subsequent
+navigation appeared stalled. CPU/NOS continues, no fault/stop; live long Menu
+arrives(mask40 in4samples), task switcher opens, focus cancel restores Tools
+navigation. Same class of focus responsiveness symptom, not a proven SIM or
+alarm failure. Test card SST=0 and no ADN/6F3A or READ_RECORD support, so SIM
+phonebook is outside current card capabilities. Need explicit trace before
+changing SIM. Call services/RF/audio remain unimplemented/unqualified.
+Screens/captures in scratch/phone-functions-20261114. No production RTL change.
+
+## 2026-11-14: Original-firmware Menu closure observed and restart succeeds
+
+During Calendar Month-default blank/focus/exit control, native UI reports
+“App. closed Menu” (calendar-control-exit.png). This is an actual new failure,
+not an observer-induced boot: original ROM/media were verified and all hooks
+removed. Subsequent short Menu restarts its populated grid normally
+(menu-after-closed.png).79snapshot read-only follow-up has panic valid_mask0,
+no recorded reason; native retained text only supplies existing BT-33 errors.
+Kernel panic recorder silence does NOT exclude a user-thread panic. Need a
+future standalone exit-tracer reproduction to get exact category/reason before
+any fix; do not claim ViewSrv or OOM from this notification alone.
+
+F2 during Calendar blank had no visible effect. A tab/Extras/Clock macro from
+that blank state also stayed Calendar; those images are NOT Clock evidence.
+After focus recovery the native Month body displays; Menu closure then seen.
+Clock/remaining apps continue only after the visually confirmed Menu restart.
+Temporary Month preference remains only in volatile guest C; restore by final
+original reload. No production RTL or extra FPGA resource changes.
+
+## 2026-11-14: Calendar alternate startup view also blocks
+
+Uninstrumented Settings opens after normal focus recovery. Default view radio
+shows original Day; changed temporarily to Month. Confirmed native Exit returns
+to Menu with Calendar selected, then Enter relaunch shows SAME blank Calendar
+body at12s. This is not confined to Day rendering. Default is temporarily Month
+in volatile guest C only; card images unchanged and saveOff. Restore Day or
+reload original before session ends. Testing native F2 in blank state next,
+then remaining apps. Full original ROM/settings/C/PMM verification passed after
+autoload; no software observers active. No production HDL fix yet.
+
+## 2026-11-14: CIdle starvation not demonstrated; return to uninstrumented app tests
+
+Calendar blank and focus recovery reproduce under the CIdle observer with no
+kernel-stop/panic evidence. No filtered Calendar/Agenda CIdle START/READY/RUN
+message is retained, including around focus recovery. The observer covers only
+CIdle callbacks in specified ROM ranges; it does NOT cover CAsyncCallBack,
+other active-object classes, other callback addresses or server initialization.
+Therefore the specific CIdle starvation experiment is inconclusive and does
+not justify a timer/priority/CPU change. Do not present starvation as fixed or
+confirmed. The exact native Avkon wait-animation identity remains qualified.
+
+All observers are being removed by original RBF auto-Run reload; full original
+ROM/settings/C/PMM verifier in scratch/calendar-idle-run-20261114/restored.json.
+Next uninstrumented Calendar default-view control and remaining apps one by
+one. No production RTL/build/resource/PLL changes. All prior test entries were
+cleaned. The original seeded C remains on card; SD persistence was not tested.
+
+## 2026-11-14: Exact native wait-animation assets identified; test idle starvation
+
+Reduced observer identifies exact ORIGINAL Avkon.mbm resources in Calendar's
+blank first view: bitmap506B9768=index264 (blank30x40 note image), plus seven
+successive120x10 progress-mask frames355/357/359/361/363/365/367. Exact whole
+Avkon.mbm bytes match core.bin atVA506AA740; index lookup uses that full match,
+not ambiguous identical individual headers.90s359snapshots/one initial reader
+gap/no kernel stop/panic;1418blank-icon and709progress-mask entry observations
+retained. Counts are instrumented scanline entries, not native frames or a
+measured uninstrumented animation rate. The prior high-volume gap issue is
+avoided by one filtered native Print.288ABI cases qualify wrapper entry state,
+not full native service/runtime timing. Focus recovery again displays full day.
+Source/screens/captures: scratch/calendar-animation-20261114. Observer removed
+by fresh original Hold reload.
+
+This confirms ongoing wait/progress drawing rather than a giant bitmap; why
+it remains active is NOT yet proven. Working hypothesis: animated work may
+starve lower-priority Calendar/Agenda initialization on the slow soft CPU.
+Next CIdle scheduling observer in scratch/calendar-idle-run-20261114 watches
+Start50399D70, post-SetActive50399DA4, RunL50399DAC only in USER mode and callback
+ROM ranges AgnModel/Agnsynca/Agndasvr or Calendar. READY reads native iStatus+4
+and priority+14 after actual RequestComplete/SetActive; RunL pairs by object.
+No callback/function/deadline/data substitution.504baseline/traced ABI cases
+pass, including ARM/Thumb return, USER/SVC/IRQ/UND and callback-range rejection;
+print service spied, original function remainder not simulated. Test caught a
+saved-R4 retrieval error before any hardware use; corrected from saved stack.
+Fresh-Hold guarded apply underway; next restore saved Run/saveOff and capture.
+No production RTL/build/resource/PLL change. Contacts/Profiles checks remain
+as recorded; remaining app coverage still pending Calendar cause.
+
+## 2026-11-14: Calendar blank correlates with repeated Avkon-size drawing
+
+Lower scanline observer50559228 boots healthy original Phone/Menu; original
+Calendar blank first view and full day after focus recovery reproduce.
+Retained Calendar capture repeatedly reports30x40/depth8 colour and120x10/depth1
+monochrome, compression33, normal lengths30/120 and sourcepoint0,0. Heavy
+three-line logging causes many reader gaps (266 by279snapshots); rates and
+complete call coverage are NOT qualified. No oversized rectangle established.
+Recovered20s follow-up79snapshots/one initial reader gap has no retained matching
+30x40/120x10 loop; it has small4x16/44x44 drawing then normal idle/NOS samples.
+No kernel-stop sample or captured panic. This suggests an Avkon drawing/animation
+lead, not a confirmed root cause or HDL fix.
+
+Firmware Avkon.mbm contains matching resources: ROM-object headers and byte-RLE
+scanout decoded locally, shape previews in scratch/calendar-scan-core-20261114.
+120x10 candidates are striped progress bars;30x40 includes many distinct note,
+calendar and animation icons. Dimensions alone do not identify actual assets.
+A read-only primary-source SymbianSource Avkon tree lookup is only newer-SDK
+context, not an exact firmware match. Native asset bytes are the main evidence.
+
+Preparing smaller USER observer in scratch/calendar-animation-20261114: same
+entry, sourcepoint0,0, dimensions exactly30x40 or120x10, one native debug print
+of bitmap pointer/parent return/length. Parent read ONLY for known5055969B
+caller whose60-byte frame saves LR at originalSP+56.288ABI cases pass with
+native print service spied. High-volume observer removed by fresh Hold reload;
+next guarded apply then capture exact asset identity. No production RTL/build,
+PLL, ALM change or other-thread simulation changes.
+
+## 2026-11-14: User scanline observer qualified; lower conversion entry next
+
+The direct-MMIO Thumb bitmap observer was invalid on hardware and removed.
+Original ROM, Run/save-Off settings and C/PMM hashes are fully reverified in
+scratch/calendar-bitmap-20261114/restored-after-invalid.json. Its exact Thumb
+trampoline passes actual ngage_cpu/ZAP Verilator with bus waits 0/3 (10,435/
+15,826 cycles, 172 diagnostic bytes). The first bench incorrectly used fetch
+PC as completion and had a dangling else; corrected to an executed memory
+marker before accepting these results. No CPU defect inferred.
+
+A USER-only observer at CBitwiseBitmap GetScanLine 505598A4 uses native
+RDebug::Print, no kernel hooks/direct MMIO. 36 ABI tests pass with debug service
+spied. Hardware boots Phone/Menu without kernel stop; Calendar blank-first and
+focus-recovered full day reproduce. Only 25x23/depth1/compression33 toolbar
+scans were observed through this outer entry. This does not cover the busy
+lower 50559228 conversion path. Source/captures:
+scratch/calendar-scan-user-20261114. Removed by fresh Hold reload.
+
+Next small observer targets only lower scanline 50559228, exact original
+12-byte prologue replayed (52-byte native frame). Same USER print path and y
+multiple32 filter; 36 ABI cases pass after correcting generated UTF16 trace
+label. Fresh-Hold apply underway in scratch/calendar-scan-core-20261114.
+No production RTL/build/resource/PLL change. Contacts/Profiles results remain
+qualified as documented. Do not treat stale/pre-settle screenshots as current
+Menu selection. Native Menu numeric shortcut3 successfully opens Calendar.
+
+## 2026-11-14: Bitmap Thumb probe INVALID; isolate exact trampoline on ZAP
+
+1253fresh-Hold records passed full ROM/checksum/apply; filtered bitmap probe
+enters kernel fault loop5032429C before Time prompt. No G metadata retained;
+Unicorn432prologue cases did not qualify actual ZAP execution. No production
+Calendar conclusion from this run. Removed by original RBF reload; full original
+ROM/settings/C/PMM verification underway. Do not reapply this prepared observer.
+
+An isolated short Verilator fixture is now compiling/running in existing image:
+scratch/calendar-bitmap-20261114/zap. Production ngage_cpu/ZAP/cache RTL, native
+scanline page and exact injected Thumb→ARM→replayed Thumb prologue, valid bitmap/
+point and debug sink. Stops at original505598B0 continuation; remainder native
+function/kernel not simulated. First uncached zero-wait case pending. Keep
+fixture/debug results separate from phone behavior. No production RTL fix yet.
+Local checkpoint2cf9bdf preserves valid app tests/source-pixel evidence/tools;
+new investigation not pushed, no build/PLL/resource changes, no other sims.
+
+## 2026-11-14: Verified app/probe checkpoint2CF9BDF; bitmap metadata probe preparing
+
+Local commit2cf9bdf records original-firmware app results and reusable direct-
+port observer tools; no production HDL or FPGA build change. Not pushed yet.
+Calendar root remains upstream of LCD: last DMA sourceFFF/blank, focus redraw
+sourceAAF/day; one sampled pixel limits scope. Ordinary held Down arrives but
+no recovery. Contacts/five Profiles/alert restore/Notes/Messaging draft CRUD and
+Calculator12+34 pass, all local entries removed; full matrix in phone-functions.
+
+Next observer:scratch/calendar-bitmap-20261114. Retains qualified direct-port
+LCD hooks and adds CBitwiseBitmap GetPixel50558F8C,GetScanLine505598A4,
+StretchScanLine50559F20 metadata on y multiples32 (pixel also x0). Logs bitmap
+width/height/depth,point,arg3 andcaller; no service/SWI. Native12-byte Thumb
+prologues have no PC-relative/control flow, are replayed exactly; all GPRs,
+CPSR/SPSR/SP/LR/live saved stack match original continuation in432USR/SVC/IRQ/
+UND/filter/length cases. Remaining native function body is not simulated by
+that fixture.2096byte combined payload also logs colour/compression and known
+scanline data argument.1253fresh-Hold records/full hash/checksum verified,
+applied.json true. Saved Run/saveOff restored; verified6DownOSD plus starts CPU.
+120s boot capture ACTIVE:scratch/calendar-bitmap-20261114/boot.jsonl. Qualify
+healthy Phone/Menu then Calendar conversion. Remove/reload/full original-
+media verify afterward. Do not patch warm. No other simulations/checkpoints.
+Static donor history has recent ZAP predictor/104MHz work; no port or causal
+claim yet. Stay on the Calendar conversion issue before adding more app tests.
+
+## 2026-11-14: Calendar source stays white; focus redraw changes source toAAF
+
+Corrected direct-port LCD observer boots healthy Phone/Menu and reproduces
+Calendar blank at15/40/75s, no ABT/panic.180s719snapshots, one initial reader
+gap; all later observed WINDOW/HEADER12 pairs complete, normal264-byte/row
+geometry. The final body44..208/43296-byte transfer has CPU source pixel25,row60
+FFF (white), matching the blank panel. No further LCD calls through remainder
+of capture while CPU samples FbsCli/Palette conversion. Do not infer complete
+coverage before initial gap. EOF fixed-format records need explicit flush;
+an earlier apparent missing final header was just the parser's unterminated
+last message, not a native-driver hang.
+
+Focus cycle shows complete day. Retained focus-follow records have matching
+window/header pairs and body44..188/source sampleAAF, matching blue highlight.
+Both stages use12-bit packets, not observed16-bit use. One pixel is not a full
+frame comparison or proof of every DMA/coherence contract. Evidence points
+upstream to bitmap/rendering/initialization, not an LCD decoder change.
+Reopen reproduces blank. A short live15s capture confirms held Down arrives
+(mask2 in4/59snapshots) but does not recover the view. The earlier90s ordinary
+key capture expired before the key; its all-zero masks are NOT input evidence.
+Current core still has direct-port observation active, Calendar blank, saveOff.
+Next identify the busy bitmap conversion call/arguments using direct-port
+observation, then remove all hooks/reload/full original-media verification.
+Contacts/Profiles/Messaging/Notes/Calculator results remain as in phone-functions.
+No production RTL or resource/PLL changes; all test entries cleaned. No other
+simulation/checkpoint touched. Hardware/source evidence in scratch/calendar-lcd-port-20261114.
+
+## 2026-11-14: Kernel LCD-service probe INVALID; direct-port correction ready
+
+The user-debug-service LCD observer reached Menu then kernel ABT loop50324294/98/9C
+(mode17) before Calendar opened; its15/40s screenshots are unchanged Menu, NOT
+Calendar. Discard the entire run as production LCD evidence. User-mode-only
+66case tests missed exception context. RDebug::Print invokes a user SVC and is
+inappropriate in this kernel driver context; exact low-level cause is not proven.
+Removed by original reload and full ROM/settings/C/PMM verify. No HDL defect
+inferred. Do not reapply scratch/calendar-lcd-20261114/prepared/observer.py.
+
+Corrected scratch/calendar-lcd-port-20261114 emits ASCII/hex directly to the
+existing original VA59000000→PA0DE00000 debug59 byte sink. NO service/SWI, heap,
+IRQ/mode/SPSR mutation. Same native LCD window/header/line hooks. Header12 caller
+5040184C additionally samples pixel25 at row60 when inside requested DMA band,
+otherwise its first row; zero-count/other callers skip sample. Source follows
+native[r5+38]+352*row,16-bit pixels.280baseline/traced differential cases pass
+all registers/CPSR/SPSR/SP/LR, memory and original port sequence in USR/SVC/IRQ/
+UND with ARM/Thumb return; DMA samples tested full/partial/zero bands. Port
+helpers spied, so board qualification still required. No new FPGA logic/RTL.
+
+918fresh-Hold records and full image/checksum verified, applied.json true.
+Saved Run/saveOff restored; verified6DownOSD plus starts CPU.120s boot capture
+ACTIVE:scratch/calendar-lcd-port-20261114/boot.jsonl. Qualify healthy Menu BEFORE
+Calendar. Then
+record actual source/row/mode versus blank view and focus cycle; remove/reload/
+full-media-verify afterward. Other phone app results remain valid untouched
+runs, all local test entries cleaned; General/Ringing restored. No other sims.
+
+## 2026-11-14: LCD row observer running; idle probe rejected before execution
+
+Static analysis identifies Calendar's+10 idle callback as deferred key injection
+(CCoeEnv::SimulateKeyEventL down/key), and its-20 callback as a deferred dialog.
+They are not established first-paint callbacks. The idle observer was applied
+while fresh Held but NEVER RUN, then removed by original-ROM Hold reload. Do
+not use it as evidence or spend a boot tracing the wrong routines.
+
+A narrower actual LCD probe now wraps window50400544,12-bit header50400640,
+16-bit header50400668 and single-line submission50400EFC. Entry-only wrappers
+restore ALL registers/flags/SP before executing original first instruction/body;
+line trace reads native descriptor row, driver mode+70 and source pixel25 that
+original code subsequently reads.66Linux-Unicorn original/traced differential
+cases match all registers/flags/SP/LR, object/row/pixels memory and complete port
+sequence; native176-pixel conversion runs modes10/7, port/debug helpers spied.
+No global IPC/name services/FPGA logic. Header16 is worth checking because model
+accepts8924/RGB444 only; actual use remains UNKNOWN, not a bug claim.
+881fresh-Hold records/full ROM+checksum verified; applied.json qualifies.
+Saved Run/saveOff restored, CPU now started via verified6DownOSD plus.120s boot
+capture ACTIVE:scratch/calendar-lcd-20261114/boot.jsonl. Next check healthy boot,
+Calendar blank versus row/mode submissions, focus cycle;
+remove observer by reload/full-ROM/settings/disk verification afterward. All
+local test records cleaned. No source RTL/build change or other simulation work.
+
+## 2026-11-14: Shared redraw investigation; Calendar idle probe preparing
+
+Contacts CRUD/five profile modes/General setting restore pass. Messaging unsent
+12345678 draft saves/reopens/deletes; first Close shares delayed redraw, task
+switch/Cancel recovers, second Close works. Notes Test save/reopen/delete passes;
+Calculator12+34=46; Clock and Log views open. All test records removed, General
+restored. No claimed RF/voice/BT/audio/SD persistence or Offline restart test.
+No production RTL changes.91%ALM/92%M10K,78MHz unchanged/104MHz objective.
+
+Stopped adding apps to diagnose shared Calendar/SMS initial redraw. Native
+Calendar has CIdle callbacks at5099FE41(priority-20) and509A0539(priority+10),
+Start import509AE128/literal509AE134. New local observer records scheduling and
+callback entry/return; suppresses low callback output while original context+BC
+busy flag nonzero, but always invokes unchanged original callback.72Linux-Unicorn
+ABI cases pass (native Start/import body, kernel helpers and callback bodies
+spied; debug clobbers flags, ARM/Thumb return). No global name/sync hook.
+Candidate in scratch/calendar-idle-20261114; test.log/manifest ready. Fresh Hold
+reload PREPARING; saved CFG temporarily all0. Next apply guarded observer only
+once full fresh telemetry/original hash qualifies, restore saved Run/saveOff,
+start via verified6DownOSD'= '. Remove observer/reload/verify after capture.
+Do not start CPU before apply or patch warm. No backups/Flush/other simulations.
+Full phone matrix/evidence paths in docs/phone-functions.md.
+
+## 2026-11-14: Contacts CRUD and five profile modes pass on original firmware
+
+No HDL/firmware changes; saveOff and original media/settings verified. Contacts
+Test/12345678 create/save/reopen, edit to192345678, delete-specific-Test/empty list
+pass. Native read-only LFFS decode79files/zero writes; Contacts DB5492→7272bytes.
+Profiles shows General/Silent/Meeting/Outdoor/Pager/Offline. First five active
+labels verified; General restored. General alert Ringing→Beep once→Ringing passes.
+Offline has explicit expected restart confirmation; declined pending a separate
+end-of-session restart test. No audio/RF/SD-save success inferred.
+Calendar initial blank is focus/repaint-sensitive: no-hook long-Menu/Cancel at10s
+renders complete day by18.96s. AGN trace's16 valid pairs all return0,max115ms;
+not enough to explain blank>180s. That issue is narrowed but NOT fixed in HDL.
+Current original-ROM core on app grid after Profiles, no observer/capture.
+Continue local apps one at a time (Messaging unsent draft next), then return to
+Calendar repaint/scheduling with actual evidence; preserve small area/104MHz goal.
+Full matrix/evidence paths in docs/phone-functions.md. No other simulations touched.
+
+## 2026-11-14: Calendar initial-paint behavior narrowed; Contacts testing active
+
+Production2d9605f/build43572455384 unchanged;78MHz timing-pass/91%ALMs.
+Original ROM/settings/C/PMM reverified after removing every observer. SaveOff;
+no Flush, media replacements/backups, PLL/subagent/other-simulation changes.
+Calendar memo CRUD, day/month/week work. Uninstrumented initial body blank
+at10/30/60/120/180s. Clean early long-Menu/Cancel renders complete day within
+18.96s, reproduced after a separate observed run. This is a focus/repaint
+workaround, not an HDL fix or proof of scheduler starvation/LCD defect.
+Narrow AGN-model import observer captures16 complete consecutive gap-free pairs:
+all rc0,sum0.170160s,max0.115005s; IPC15=0.002788s. One initial gap limits coverage.
+No agenda request observed to explain minutes-long blank. Global FullName-based
+observer run produced MediaServerTaskThread USER0 before Calendar, discarded/removed;
+48mock ABI cases did not qualify runtime stack/service cost. Narrow import's
+24native-thunk ABI cases pass; it has no FullName/global sync hook and is also
+removed. Native original-media control now active; no firmware hooks.
+Contacts opens a normal Copy new SIM contacts? prompt by10s; No selected.
+Next create/read/edit/delete unique local test contact; then Profiles and the
+remaining local apps. Keep docs/phone-functions.md matrix current. Evidence:
+scratch/phone-functions-20261114 and scratch/calendar-ipc-narrow-20261114.
+No production RTL fix yet; retain initial redraw issue as active investigation.
+
 ## 2026-11-14: Original-firmware Phone and populated Menu verified on MiSTer
 
 2d9605f/run43572455384/seed44 deployed (RBF4a63d5c2.../4,499,156bytes).

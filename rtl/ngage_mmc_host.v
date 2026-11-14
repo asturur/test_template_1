@@ -54,7 +54,10 @@
 // response and NRC (8 clocks) after it, or the busy signal on DAT0 after it
 // for types 4 and 7; for 10 and 7 it covers the block before the command
 // (epbus waits for command idle, data idle and the DMA in any order, with the
-// DMA already running, 0x503F5888-0x503F5A94). A read block's data busy lasts until the block, CRC
+// DMA already running, 0x503F5888-0x503F5A94). For R2 the first three response
+// words precede command idle; its fourth word follows idle, as the original
+// NEM-4 driver requires. This is a register-level ordering model, not measured
+// physical UPP shift-register timing. A read block's data busy lasts until the block, CRC
 // included, has arrived and every byte has been read from the FIFO (the model
 // clears it with the last byte read); a written block's until the card's
 // busy after its CRC status token ends (the model: the last byte written).
@@ -454,10 +457,16 @@ module ngage_mmc_host #(
             end
             C_TAIL:
             if (fall) begin
-                if (ccnt == 8'd8) begin
+                // The original NEM-4 R2 driver waits for three response-ready
+                // words, then command-idle and the final word. Keep idle from
+                // winning IRQ23 over response-ready IRQ24 before those reads.
+                // Otherwise a delayed CPU observes only the idle event and
+                // rejects a valid CID/CSD with native error 0x8000.
+                if (ccnt == 8'd8 && (!resp_long || !status[B_RESP] ||
+                    status[B_RESP_CRC] || resp_pos >= 3'd3)) begin
                     status[B_CMD_BUSY] <= 1'b0;
                     cstate             <= C_IDLE;
-                end else begin
+                end else if (ccnt != 8'd8) begin
                     ccnt <= ccnt + 8'd1;
                 end
             end

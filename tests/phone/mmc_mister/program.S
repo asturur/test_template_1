@@ -190,11 +190,11 @@ data_idle:
  put r9,4,1
  put r9,0x14,0x10120624
  put r9,0x18,0
- put r9,0x1c,512
+ put r9,0x1c,8
  put r9,0x20,0x0a001000
  put r9,0x24,1
  put r9,0x28,32
- put r9,0x2c,7
+ put r9,0x2c,511
  put r9,8,3
 sector_dma_wait:
  ldr r4,[r9,#8]
@@ -253,10 +253,17 @@ command:
  str r0,[r8,#0x1c]
  str r1,[r8,#0x20]
  str r2,[r8,#4]
+ cmp r2,#13
+ beq command_r2_wait
 command_wait:
  ldr r4,[r8,#0x18]
  tst r4,#8
  bne command_wait
+ bx lr
+command_r2_wait:
+ ldr r4,[r8,#0x18]
+ tst r4,#0x100
+ beq command_r2_wait
  bx lr
 response_ok:
  tst r4,#0x42

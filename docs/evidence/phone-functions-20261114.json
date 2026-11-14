@@ -1,0 +1,476 @@
+{
+  "date": "2026-11-14",
+  "hardware": {
+    "source": "2d9605f0289a9dd22353823f0141a3f195ab4578",
+    "run": 43572455384,
+    "seed": 44,
+    "rbf_sha256": "4a63d5c2eb3a91545c88ee96767ed3cde93b05b415164ad24988493b21905373",
+    "clock_hz": 78000000,
+    "alms": 38236,
+    "m10ks": 508,
+    "production_code_changed": false
+  },
+  "scope": "Original firmware/deadlines, initialized six-profile C, saveOff; observation-only hooks explicit; no SD persistence/RF/audio qualification",
+  "screens": {
+    "scratch/phone-functions-20261114/calendar-native-180s.png": {
+      "sha256": "0dfb82f8a82e313e7f5d8d0ee8c508d713cebedd02d5f2396f1dd77f2eff52d7",
+      "bytes": 25305
+    },
+    "scratch/phone-functions-20261114/calendar-clean-before-focus.png": {
+      "sha256": "0dfb82f8a82e313e7f5d8d0ee8c508d713cebedd02d5f2396f1dd77f2eff52d7",
+      "bytes": 25305
+    },
+    "scratch/phone-functions-20261114/calendar-clean-after-focus.png": {
+      "sha256": "c748f8b2ed1a1b10441e88238bdb1d3ab329ea08a4b3a6a6436e4335424e7711",
+      "bytes": 26243
+    },
+    "scratch/phone-functions-20261114/contacts-reopened.png": {
+      "sha256": "5982e363215decb7a81b219da4cdb48ce5de195286a1bbd8396400d69eef3957",
+      "bytes": 25753
+    },
+    "scratch/phone-functions-20261114/contacts-edited.png": {
+      "sha256": "b66f7bdd3ef1b7ac4d5153967b40f376aa2695400b46d2c5322414eb8a2ca7e0",
+      "bytes": 25837
+    },
+    "scratch/phone-functions-20261114/contacts-deleted.png": {
+      "sha256": "ee3659b0f5a34540d2d221c09673b9137048e18220b9730d87415b239207a435",
+      "bytes": 25759
+    },
+    "scratch/phone-functions-20261114/profiles-open.png": {
+      "sha256": "e9d4c2bd9ad5118ec4643b9400cb2f75c7d61e99a2d5f26e80a892947fba1195",
+      "bytes": 26559
+    },
+    "scratch/phone-functions-20261114/profiles-silent-active.png": {
+      "sha256": "143692a84dfb965b43d82050144a62cdd11209a64a8fe812f3509a2faeafc7ac",
+      "bytes": 26498
+    },
+    "scratch/phone-functions-20261114/profiles-alert-changed.png": {
+      "sha256": "9a91a2db00c97b40b561efe48309cf12da1aa8b4ea4a72c1e586864c2a5548e2",
+      "bytes": 27640
+    },
+    "scratch/phone-functions-20261114/profiles-alert-restored.png": {
+      "sha256": "610fc2c84bee851d5b10dba0eb6c1183951500b2d2e8e2a2a72e59e02a508005",
+      "bytes": 27533
+    },
+    "scratch/phone-functions-20261114/profiles-offline.png": {
+      "sha256": "8c82fcf695afa4dcef08d907182d6541f22030afd798964e719327488e2b034c",
+      "bytes": 27437
+    },
+    "scratch/phone-functions-20261114/messaging-draft-reopened.png": {
+      "sha256": "9ebecb373f9f8e94a65fdb63f7a9f3b182b1452cf15048c75437b2db5f1354a5",
+      "bytes": 25780
+    },
+    "scratch/phone-functions-20261114/messaging-deleted.png": {
+      "sha256": "ee5ab517d8125a7001e17710b3e3a81e10ccf600e9a41a5f6ec3475ea27de3cd",
+      "bytes": 25580
+    },
+    "scratch/phone-functions-20261114/calculator-add.png": {
+      "sha256": "996ed9c8e741ad0925d0568a7da5d4f175a112ac858010eb7efb7bd5189835a3",
+      "bytes": 25510
+    },
+    "scratch/phone-functions-20261114/notes-reopened.png": {
+      "sha256": "aa59e67bbbc7bc4a17452df7b2df3249a7166b3a8d6955535177eacd54abe1cb",
+      "bytes": 25451
+    },
+    "scratch/phone-functions-20261114/notes-deleted.png": {
+      "sha256": "c6d0fbad34bf34b606c7ba82df02b9fd4a6d616fc94e95b5f5af96d4c9c480f6",
+      "bytes": 27908
+    },
+    "scratch/phone-functions-20261114/clock-open.png": {
+      "sha256": "223c6c31acd895e87c7ef6404977a3d1a7055bea60129cd30cd32ef3719a247f",
+      "bytes": 30824
+    },
+    "scratch/phone-functions-20261114/calendar-month-relaunch-12s.png": {
+      "sha256": "0dfb82f8a82e313e7f5d8d0ee8c508d713cebedd02d5f2396f1dd77f2eff52d7",
+      "bytes": 25305
+    },
+    "scratch/phone-functions-20261114/calendar-control-exit.png": {
+      "sha256": "9074014d588110c27f22c4f4645a70fc082d1e28f1921394224574d9360cfa2d",
+      "bytes": 26683
+    },
+    "scratch/phone-functions-20261114/todo-readback.png": {
+      "sha256": "f0361ee67ffda73d796f80d5c9e1a85d3c2a52ae79e732e573be0cdd6edba54a",
+      "bytes": 25603
+    },
+    "scratch/phone-functions-20261114/todo-deleted.png": {
+      "sha256": "95494ba258299b785dee387a45a554b56a3c33b1a8bb9c3abd19060463302bb8",
+      "bytes": 27715
+    },
+    "scratch/phone-functions-20261114/converter-mile-result.png": {
+      "sha256": "023b65f41b320b56cd9319233424ec053e95a7bf6bfa5913a4387ade64db27b9",
+      "bytes": 26868
+    },
+    "scratch/phone-functions-20261114/help-article-text.png": {
+      "sha256": "923a8d412741a26b69eb5760c95d38d050acedaced83b8bc7c7d6dd50b47e988",
+      "bytes": 28470
+    },
+    "scratch/phone-functions-20261114/settings-general-fields.png": {
+      "sha256": "7112fd264f2696507b02d592e0fdbac3832686f6dc1921a6373f3c39809a87de",
+      "bytes": 30236
+    },
+    "scratch/phone-functions-20261114/settings-date-time.png": {
+      "sha256": "844dcd504e1a8b0696825c0549e2c1f62d0d114122945cf88eddc5589a24b25f",
+      "bytes": 27285
+    },
+    "scratch/phone-functions-20261114/memory-confirmed.png": {
+      "sha256": "1a11d1687c1237dca621294dd5ef9a2af3081966d78750cd1894c9fa36a50119",
+      "bytes": 27790
+    },
+    "scratch/phone-functions-20261114/bluetooth-exit.png": {
+      "sha256": "3665c34b9102eb17e3e62e9f55f5b3880d7d7c82e81ee608ddcf1d795a47d0ea",
+      "bytes": 27633
+    },
+    "scratch/phone-functions-20261114/images-phone.png": {
+      "sha256": "3c0dc92040f67a4b9f8026780d894158822a1a0e230d75560b32d3c43d49e66f",
+      "bytes": 38144
+    },
+    "scratch/phone-functions-20261114/image-ngage1-view.png": {
+      "sha256": "16dab937523cb1826345816ae01d8841f05a1d7eef5529f769fd98b2c428ac47",
+      "bytes": 31128
+    },
+    "scratch/phone-functions-20261114/alarm-stop-held.png": {
+      "sha256": "16dab937523cb1826345816ae01d8841f05a1d7eef5529f769fd98b2c428ac47",
+      "bytes": 31128
+    },
+    "docs/evidence/spmark04-memory-card.png": {
+      "sha256": "4b69a2da135adca69cec61d1df33ad637796357e17c220981b20aa7786342646",
+      "bytes": 28365
+    },
+    "docs/evidence/spmark04-format-declined.png": {
+      "sha256": "bfe0f9783912dc72e84cb635c968487fd3862a82e06c40f031a021f89eba3410",
+      "bytes": 27118
+    }
+  },
+  "original_media_verification": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "original_settings_restored": true,
+    "run": true,
+    "autosave": false,
+    "card_images_unchanged": {
+      "boot0.vhd": "4a75e4cb75d5fb25c4148f888e3e4858e37841f97834df7a002d6f38ca15b329",
+      "boot1.vhd": "71189f7fb6aed638640078fba3a35fda6c39c8962e74dcc75935aac948da9063"
+    }
+  },
+  "calendar": {
+    "untouched_blank_seconds": 180,
+    "untouched_focus_recovery_seconds": 18.959907666081563,
+    "memo_crud_day_month_week": true,
+    "hdlfixed": false,
+    "agenda": {
+      "reader_gaps": 1,
+      "pairs": [
+        {
+          "ipc": "0000001f",
+          "handle": "400e0006",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.004290435897435898
+        },
+        {
+          "ipc": "00000022",
+          "handle": "400e0006",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.003396653846153846
+        },
+        {
+          "ipc": "00000001",
+          "handle": "400e0006",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.007915935897435897
+        },
+        {
+          "ipc": "00000000",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.11500538461538462
+        },
+        {
+          "ipc": "00000016",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0028875641025641026
+        },
+        {
+          "ipc": "0000001a",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.002377
+        },
+        {
+          "ipc": "00000018",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.006446858974358974
+        },
+        {
+          "ipc": "0000004c",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0017197051282051281
+        },
+        {
+          "ipc": "00000002",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0019181794871794872
+        },
+        {
+          "ipc": "00000016",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.002850346153846154
+        },
+        {
+          "ipc": "0000001a",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.002514102564102564
+        },
+        {
+          "ipc": "00000018",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0063112307692307695
+        },
+        {
+          "ipc": "0000001f",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.004522282051282051
+        },
+        {
+          "ipc": "00000015",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0027876794871794872
+        },
+        {
+          "ipc": "00000009",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0025313333333333334
+        },
+        {
+          "ipc": "0000000a",
+          "handle": "4012000a",
+          "caller": "508340c7",
+          "rc": "00000000",
+          "seconds": 0.0026849358974358976
+        }
+      ],
+      "method": "Only consecutive complete matching BEGIN/END in one gap-free epoch; debug execution cost remains"
+    },
+    "wait_animation": {
+      "native_avkon_file_base": "506aa740",
+      "whole_file_match": true,
+      "blank_icon_index": 264,
+      "progress_mask_indices": [
+        355,
+        357,
+        359,
+        361,
+        363,
+        365,
+        367
+      ],
+      "source": "scratch/calendar-animation-20261114/calendar.summary.assets.json",
+      "instrumented_counts_not_frame_rate": true
+    },
+    "c_idle_probe": {
+      "retained_matching_events": 0,
+      "result": "Inconclusive for starvation; other active-object classes/callbacks/server work excluded",
+      "source": "scratch/calendar-idle-run-20261114/calendar.summary.json"
+    },
+    "month_default_control": "Verified Exit to Menu then Month-default relaunch blank at12s too; reset to original via RBF reload",
+    "hdl_fix": false
+  },
+  "contacts": {
+    "created": "Test",
+    "original_number": "12345678",
+    "edited_number": "192345678",
+    "deleted": true,
+    "guest_db_bytes": 7272,
+    "guest_db_sha256": "3d3e86d2de8749d261f8b016c3f9008cbd6db957ad1b5b184bc8579625d99795"
+  },
+  "profiles": {
+    "activated": [
+      "Silent",
+      "Meeting",
+      "Outdoor",
+      "Pager",
+      "General"
+    ],
+    "alert_change": [
+      "Ringing",
+      "Beep once",
+      "Ringing"
+    ],
+    "offline": "Restart confirmation only; declined",
+    "restored": "General"
+  },
+  "messaging": {
+    "recipient": "",
+    "draft": "12345678",
+    "reopened": true,
+    "deleted": true,
+    "sent": false,
+    "first_close": "Shared delayed redraw, focus recovered",
+    "second_close": "Normal"
+  },
+  "notes": {
+    "text": "Test",
+    "saved_reopened_deleted": true
+  },
+  "calculator": "12+34=46",
+  "clock": {
+    "progression": "About9minutes in539.0468wallseconds; coarse analog readings, not calibration",
+    "date_time_settings": "9:21AM 01/01/2003",
+    "alarm_set": "09:20AM",
+    "notification_observed": true,
+    "stop_key_mask_samples": {
+      "0x0": 74,
+      "0x20": 4
+    },
+    "dismissal": "No visible dismissal after tap/hold, CPU active, cause unknown",
+    "audio_qualified": false,
+    "temporary_alarm_cleared_by_original_reload": true
+  },
+  "unverified": [
+    "Remaining Media apps/playback",
+    "Offline restart",
+    "Contacts groups/search/SIM import",
+    "SIM phonebook",
+    "RF calls/SMS/data",
+    "BT communication",
+    "Audio",
+    "Mounted MMC/game access",
+    "SD persistence",
+    "Exact RTC rate",
+    "Alarm dismissal"
+  ],
+  "rejected_observers": {
+    "global_sync": "MediaServerTaskThread USER0 before Calendar; runtime ABI mocks insufficient; removed",
+    "calendar_idle": "Decoded deferred keys/info note; applied only held, never executed; removed",
+    "lcd_user_service": "Kernel ABT loop before Calendar; entire run invalid; original media verified after reload",
+    "bitmap_direct_mmio": "Fault before setup; discarded. Exact trampoline passes isolated ZAP waits0/3, not full board context. Removed and original verified."
+  },
+  "lcd_observation": {
+    "path": "scratch/calendar-lcd-port-20261114",
+    "status": "Qualified historical observation; removed by original RBF reload",
+    "differential_cases": 280,
+    "boundary": "Port helpers spied; all original native driver instructions execute; USR/SVC/IRQ/UND CPSR/SPSR checked; no service/SWI",
+    "applied": {
+      "records": 918,
+      "observer_sha256": "c76a4d881bb71dd5058dc7b1032d332aa0da61c2e098506edbde5764a09247d3",
+      "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "instrumented_rom_sha256": "28aa88cd8e205e8336c9d208205a22ed07f41a3d16f34b03ceaf429a5d6d6438",
+      "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+      "diagnostic_cpu_view_md5": "62c8a5cdfd72d0f32d801187f55dea9c",
+      "checksum_check_retained": true,
+      "slow_wait_trace": false,
+      "functional_startup_substitutions": false,
+      "fresh_held": true,
+      "applied": true
+    },
+    "source_before": "FFF at row60,x25 in body44..208",
+    "source_after": "AAF at row60,x25 in body44..188",
+    "whole_frame_qualification": false,
+    "down_live_masks": {
+      "0": 55,
+      "2": 4
+    }
+  },
+  "active_experiment": {
+    "status": "Original core, no observation hooks; clean boot for remaining Media UI tests",
+    "software_hooks": false,
+    "production_rtl_changed": false,
+    "source": "scratch/phone-functions-20261114/clean-restored.json"
+  },
+  "menu": {
+    "one_app_closed_notification": true,
+    "reason": null,
+    "restarted_via_menu_key": true,
+    "screen": "scratch/phone-functions-20261114/calendar-control-exit.png"
+  },
+  "apps": {
+    "applications_tab": "no installed applications",
+    "downloaded_tab": "no applications to install",
+    "installation_tested": false
+  },
+  "favourites": {
+    "existing_shortcuts": [
+      "Calendar",
+      "Inbox",
+      "Notes"
+    ],
+    "notes_editor_launch": true,
+    "shortcuts_modified": false
+  },
+  "todo": {
+    "subject": "A",
+    "due_date": "01/01/2003",
+    "priority": "Normal",
+    "saved_reopened_deleted": true
+  },
+  "converter": {
+    "type": "Length",
+    "source": "1mile",
+    "displayed_result": "1609.34399metres",
+    "temporary_setting_cleared_by_reload": true
+  },
+  "help": {
+    "categories_topics_and_article": true,
+    "article": "Installing applications"
+  },
+  "tools": {
+    "settings": [
+      "Device/General: Automatic,English,DictionaryOff",
+      "Date/time:9:21AM,01/01/2003,ddmm yyyy"
+    ],
+    "manager": "no data",
+    "memory": "no memorycard inserted",
+    "about": "Nokia copyright text",
+    "bluetooth": "Off/settings and first-use N-Gage name query; no enable/pairing",
+    "sim_directory": "View not reached; Tools needed focus recovery. SST0 and no ADN/READ_RECORD capability; cause not proven"
+  },
+  "images": {
+    "card_tab": "no memorycard inserted",
+    "phone_thumbnails": [
+      "N-Gage1",
+      "N-Gage2",
+      "N-Gage3"
+    ],
+    "full_view": "Interrupted by alarm; not qualified yet"
+  },
+  "mmc_spmark04": {
+    "image": "/media/fat/games/ngage/spmark04.mmc",
+    "bytes": 16773632,
+    "sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919",
+    "hps_slot": 2,
+    "host_mount_verified": true,
+    "host_format_and_extent_check": "pass; not a filesystem/hardware integrity test",
+    "host_directory": "SYSTEM/APPS/SPMARK/SPMARK.APP",
+    "app_uid3": "10200F51",
+    "native_result": "Format memory card prompt; No selected; (memorycard corrupted)",
+    "benchmark_launched": false,
+    "scores": null,
+    "benchmark_crash_observed": false,
+    "image_c_pmm_hashes_unchanged": true,
+    "production_code_changed": false,
+    "next": "Trace native MMC initialization and sector reads before altering image/firmware"
+  }
+}
