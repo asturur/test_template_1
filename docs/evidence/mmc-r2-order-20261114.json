@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-14",
+  "scope": "Native MMC CMD2 response-order failure and register-free host correction; physical mount pending",
+  "board_source": "2d9605f",
+  "donor_checkout": "0fe531f",
+  "host_baseline_sha256": "f1174b5d7819ef2944d589be68d311413d00fbcdae5c0b6e37955f25d34dce74",
+  "observed": {
+    "first_failed_command": 2,
+    "native_return": "8000",
+    "raw_host_status": "100",
+    "native_events": "2, expected8",
+    "image_unchanged": true
+  },
+  "tests": {
+    "original_driver_baseline": "native8000 reproduced",
+    "original_driver_fixed_wait0_clocks": 11463,
+    "original_driver_fixed_wait3_clocks": 16661,
+    "host_probes": 33,
+    "host_probe_clocks": 126430,
+    "data_peer_cases_each": 28,
+    "data_peer_clocks": [
+      82004,
+      244751
+    ],
+    "production_clocks": [
+      197627,
+      198041
+    ],
+    "production_hps_reads": [
+      4,
+      5
+    ],
+    "observer_cases": 320
+  },
+  "production_changes": {
+    "registers_added_by_source": 0,
+    "ram_added_by_source": 0,
+    "pll_changed": false,
+    "firmware_patched_for_functionality": false,
+    "hardware_mount_verified": false
+  },
+  "sources": {
+    "rtl/ngage_mmc_host.v": "ff1076b22ac08cecad58eb1447f5d42d96a293be3b9d5a3484e769963634ad71",
+    "tests/phone/native_mmc/program.S": "0ebbb185ab66bf64bc7e130751ca7efdd4ce4208f5af7437f161e616e501b622",
+    "tests/phone/native_mmc/prepare.py": "ecd962f4cd2a0b025d6e05212f637bcc7e0828e49385cef2519dca1b46f74d2b",
+    "tests/phone/native_mmc/tb.v": "6a42127f140b668a5ffc8ccfe754dc8f1ac1e31eb1a6cf0f4436f62961d8ebb4",
+    "tests/phone/native_mmc/run.sh": "a53cbc05346a54bee3468deabb48ceabcf2296fde4123d44a55224f5e75ca0c7",
+    "tests/phone/mmc_host/cmd16_tb.v": "cae296af53b915de478833d323a099d6f1896678005a71a6622d822eb682e5a4",
+    "tests/phone/mmc_mister/program.S": "697342f4663c0ae613bb5d42e65cba83798a06ec672896a0141f8636e9de8efa"
+  }
+}

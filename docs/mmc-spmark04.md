@@ -63,7 +63,13 @@ Before/after SHA256 values are identical:
 Reproducible launcher/inspection source, JSON manifests, captures and final
 hashes remain in `scratch/spmark04-mmc-20261114/`. No production RTL changed.
 
-## Next boundary, when resumed
+## Follow-up
+
+The active investigation now identifies and reproduces the CMD2 completion-order
+failure before FAT reads. See [native R2 correction](mmc-r2-order.md). A new RBF
+and successful original-firmware mount remain pending.
+
+## Original next boundary
 
 Trace original-driver MMC initialization and its first filesystem sector reads;
 compare received bytes with the host image. Separate command/response/data-path

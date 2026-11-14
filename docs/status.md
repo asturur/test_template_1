@@ -1,3 +1,21 @@
+## 2026-11-14: MMC CMD2 root reproduced; small R2 host correction verified locally
+
+Native trace shows CMD0/CMD1 success, then CMD2 native8000. Raw response-ready
+status100 exists, but IRQ23/CmdIdle wakes the R2 waiter with only event2 before
+IRQ24/CmdRdy. The actual original driver on ZAP reproduces native8000 with the
+old host. Keep long-response command-busy until its first three words are read;
+then publish idle for the fourth. No new registers/RAM, no global IRQ priority
+or firmware/PLL change. Donor has the same host/priority; QD success did not
+qualify this original NEM-4 response sequence/CPU latency.
+
+Corrected native driver test passes exact CID at11463/16661clocks (wait0/3).
+33host response/cache probes and56data cases pass, including R2 CRC/timeout
+release. Production board/card/HPS/DMA passes full512-byte reads plus odd-length,
+ICU/WP and Hold:197627/198041clocks. Repaired the previously unrun full-sector
+fixture's width/count mistake, without changing production DMA. Strict language
+lint/pinned format pass. Hardware native card mount is still pending new RBF;
+not a benchmark pass. See [MMC response ordering](mmc-r2-order.md).
+
 ## 2026-11-14: Active MMC mount investigation — native CMD2 identification failure
 
 User reprioritized successful MMC mounting; investigation continues. Original

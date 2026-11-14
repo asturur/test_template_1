@@ -34,3 +34,13 @@ This verifies the production composition and an authored client. It does not
 establish original-driver execution, FAT mounting, game launch, writable
 persistence, physical D550/AMA routing or FPGA timing. New hierarchy also
 requires a fresh checkpoint lineage; the runner restores no snapshots.
+
+## Full-sector verification (2026-11-14)
+
+R2 identification now waits response-ready before reading CID, following the
+native response order. The formerly unrun full-sector extension had placed512
+in the source-width register1c and7 in count2c. It now correctly programs an
+8-bit fixed FIFO source and count511 for512bytes. No production DMA behavior
+was changed for this test repair. Full512-byte DMA/PIO, sentinel, identity, odd
+lengths and read-only checks pass197627clocks/4HPSreads; CPU Hold recovery passes
+198041clocks/5reads. These supersede the older short-only29010/29424 totals.
