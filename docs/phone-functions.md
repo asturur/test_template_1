@@ -11,6 +11,9 @@ backups, media replacement, or other-thread simulation changes. Guest filesystem
 writes below do **not** qualify SD-card persistence. Temporary observation-only
 hooks are listed separately; they retain the checksum check and original behavior.
 
+The later MMC/SPMark row uses build43609237775/cd46abe/seed44, which misses
+78MHz setup by0.270ns. Other rows retain their original hardware scope above.
+
 ## Results
 
 | Function | Observed | Remaining |
@@ -31,7 +34,7 @@ hooks are listed separately; they retain the checksum check and original behavio
 | Help | Category/topic navigation and full Installing applications text | Remaining articles |
 | Settings | Device/General and Date/time fields load | Other settings and write/readback |
 | Software Manager | Installed list opens/no data | Install/uninstall |
-| Memory card UI / SPMark04 | Mounted SPMark04 image is detected; Memory reports corrupted and requests formatting | App never launched; no score/crash. See [MMC result](mmc-spmark04.md) |
+| Memory card UI / SPMark04 | Follow-up cd46abe: native16MB mount,1272kB used,15MB free; app launches and Options/results respond | Run All Tests:3D Game failed, score/fill/poly N/A; timing unqualified. See [MMC result](mmc-spmark04.md) |
 | About | Native Nokia copyright view | — |
 | Bluetooth UI | Off/default-name query opens; cancelled | Radio communication/timeouts remain unqualified |
 | SIM directory | Launch did not produce its view; Tools needed focus recovery | Test card advertises no phonebook/ADN; reason unproven |

@@ -333,3 +333,13 @@ Original kernel/helper execution with PRODUCTION enabled now catches and
 verifies the corrected admission/pacing. R2 enumeration passes on FPGA, and
 sector transfers pass locally with native RX2; final native mount requires the
 next RBF. See [exact descriptor and tests](mmc-native-dma-control.md).
+
+## Native hardware read acceptance: observed on 2026-11-14
+
+Both original-driver gaps are corrected in HDL. The existing SPMark04 MMC
+mounts with native16MB capacity and matching used bytes, and its application
+loads/launches using original firmware. No source image or functional firmware
+patch was needed. Benchmark3D Game reports failure, with no score; why remains
+open. [Full result](mmc-spmark04.md). Writable cards/removal, wider titles,
+end-to-end native file hash comparison and timing-clean sign-off remain separate
+gates; the tested RX2 build misses setup by0.270ns.

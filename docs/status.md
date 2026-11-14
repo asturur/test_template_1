@@ -1,3 +1,59 @@
+## 2026-11-14: Native MMC mount and SPMark launch verified; benchmark reports failure
+
+The same games/ngage/spmark04.mmc now mounts with original firmware and no
+RAM/ROM patch. Memory shows NO NAME,16MB capacity,1272kB used,15MB free; used
+space exactly matches the independent FAT audit. SPMark04 is discovered in
+Menu, launches from the card, renders its background and opens Options.
+Run All Tests returns no numeric score. Native Show Test Results reports:
+3D Game=Test failed;3D Score/FillRate/PolyCount=N/A. Options/results remain
+responsive. No observed app closure, CPU reset, sticky fault or kernel panic;
+final15s/59snapshots remain generation0. Cause of the 3D test failure is unknown.
+The initial unchanged-background observation was not proof of a hang: the app
+had returned to responsive UI with a failed-test result.
+
+Deployedcd46abe/seed44/run43609237775, SHA0a67b2b852f480496c588e42e5c6f0ca93c47ec0dffec1c75fca5f3b212fd85c.
+Local HDL corrections are716aaf9 (R2 ordering) and78bf39d (native DMA RX2).
+Original ROM/C/PMM/settings and exact MMC image hashes remain unchanged after
+the test; Run on, Background save Off, no Flush/format/backup. Core is left on
+SPMark Results with the card mounted. Read-only mounting/reading and application
+loading are now demonstrated; writable cards and broad game compatibility are
+not qualified. This experimental RBF misses78MHz setup by0.270ns/TNS0.811ns,
+so timing-clean qualification is still separate. PLL unchanged,104MHz objective.
+[Result and screenshots](mmc-spmark04.md); [machine evidence](evidence/mmc-spmark04-board-20261114.json).
+
+## 2026-11-14: Native MMC mount now succeeds; testing SPMark04
+
+Deployed RX2-fix build43609237775/cd46abe/seed44, RBF SHA0a67b2b852f480496c588e42e5c6f0ca93c47ec0dffec1c75fca5f3b212fd85c.
+Original ROM/media/settings verified, no memory/firmware patch. The same
+SPMark04 card now mounts: native Memory reports NO NAME,16MB capacity,
+1272kB used,15MB free, with no format/corrupt prompt. Used bytes exactly match
+the318allocated4KiB clusters in the read-only host audit. SPMark04 appears in
+native Menu; launch is in progress. Screens/native DDR capture and identity are
+under scratch/mmc-rx2-board-20261114. Mount result is real hardware evidence;
+benchmark outcome is still pending.
+
+This RBF fits37,983ALMs (91%),508M10Ks (92%), but misses78MHz setup by0.270ns
+(TNS0.811ns). Hardware behavior is experimental, not timing sign-off. PLL is
+unchanged;104MHz remains the design objective. No card formatting or source
+image writes, and Background save remains Off.
+
+## 2026-11-14: Native MMC RX2 correction committed and build started
+
+Local78bf39da215eaedc019361961d16f17b8bfaa1e7 committed the small DMA admission/
+pacing correction and its native/production tests. Build snapshotcd46abe439b2b3f71ff5770f054f4596d8bb4ec8
+has exact source tree86087a7468d907fd545e94a3bf9f4e24ea9fb060. Seed44 build
+[43609237775](https://github.com/asturur/test_template_1/actions/runs/43609237775)
+started on codex/mmc-rx2-78bf39d. Only production RTL difference from the tested
+R2 build is ngage_dma_channels.v; no new register or RAM. User monitors CI.
+
+Restored uninstrumented currently installed199a9d5 RBF by ordinary reload
+without the MMC MGL. Exact original ROM/C/PMM/settings hashes pass, Run on and
+save Off; only C/PMM files are mounted, avoiding the known RX2 wait until the
+next RBF. Same SPMark04 image remains unchanged at games/ngage/spmark04.mmc.
+When user announces readiness, deploy verified artifact and launch the existing
+slot2 MGL; qualify first-sector DMA/data completion, native Memory capacity,
+SPMark discovery/launch and any result/crash. Native mount is still not achieved.
+
 ## 2026-11-14: R2 fixed on FPGA; native RX2 DMA admission bug reproduced and corrected
 
 Deployed completed seed44 build43603176364/199a9d5.78MHz timing passes,
