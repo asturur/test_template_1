@@ -4,8 +4,9 @@ There is one active checkout: `/Users/andreabogazzi/develop/NGage_MiSTer` on
 `codex/ngage2-integration`. The former detached worktree at
 `/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer` was clean,
 its908b2d3 commit was already an integration ancestor, and no running process
-used it. It is removed from Git worktrees; the old path is now a symlink to the
-same main checkout, so this chat cannot drift into the old detached copy.
+used it. It is removed from Git worktrees. The old path is an empty compatibility
+directory because a symlink there prevents this chat sandbox from starting. All
+commands must explicitly use the main checkout; no second source copy remains.
 
 Recovered saved master commit d751692: memory-performance baseline/evidence,
 hardware-checkpoint notes and historical status/startup investigation. Current

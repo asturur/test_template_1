@@ -10,7 +10,9 @@
 - The active development checkout is `/Users/andreabogazzi/develop/NGage_MiSTer`,
   on the original `codex/ngage2-integration` branch.
 - The legacy chat path `/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer`
-  resolves to that same checkout. It must not become another worktree/copy.
+  is an empty compatibility directory for this chat sandbox. Always set the
+  working directory to the active checkout above; do not develop in the legacy
+  path or turn it into another worktree/copy. A symlink there breaks the sandbox.
 - Do not create or switch branches, create worktrees, or continue development
   from a detached HEAD unless the user explicitly changes this instruction.
 - Reconcile work into the original integration branch. Preserve other threads'

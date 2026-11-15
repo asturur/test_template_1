@@ -2,7 +2,7 @@
   "branch": "codex/ngage2-integration",
   "main_checkout": "/Users/andreabogazzi/develop/NGage_MiSTer",
   "legacy_chat_path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer",
-  "legacy_path_is_symlink": true,
+  "legacy_path_is_symlink": false,
   "registered_worktrees": 1,
   "previous_integration_head": "194b51d8866ff0b028f6ac71f6326d1a13d85130",
   "recovered_main_commit": "d751692a10f5c1502b7c4dc08d2d32375eecb6b2",
@@ -17,5 +17,7 @@
   "runtime_source_changes": false,
   "simulations_started_or_stopped": false,
   "profiling_remains_stopped": true,
-  "local_formatter_and_hook": "included with checksum/license/provenance"
+  "local_formatter_and_hook": "included with checksum/license/provenance",
+  "legacy_path_is_empty_compatibility_directory": true,
+  "legacy_symlink_rejected_by_sandbox": true
 }
