@@ -85,6 +85,9 @@ module test;
      observed_instruction!==dut.u_zap.u_zap_core.i_instr_wb_dat ||
      observed_fetch!==dut.u_zap.u_zap_core.instr_valid)$fatal(1,"synthesis debug port wiring");
  end
+`ifdef NGAGE_LOAD_FORWARD_CHECK
+ `include "tests/cpu/load_forward/monitor.vh"
+`endif
  ngage_cpu dut(.debug_pc(observed_pc),.debug_cpsr(observed_cpsr),
  .debug_instruction(observed_instruction),.debug_fetch(observed_fetch),.clk(clk),.reset(reset),.irq(irq),.fiq(fiq),
   .wb_lock(bus_lock),.wb_cycle_type(cti),.wb_burst_type(bte),
@@ -372,6 +375,11 @@ module test;
       $display("METRICS: load_use samples=%0d sum=%0d min=%0d max=%0d branch_target samples=%0d sum=%0d min=%0d max=%0d",load_samples,load_sum,load_min,load_max,branch_samples,branch_sum,branch_min,branch_max);
      end
      $display("COUNTERS: fetch_response=%0d fetch_accept=%0d issue=%0d retire_uop_last=%0d",fetch_responses,accepted_fetches,accepted_issues,retired_instructions);
+`ifdef NGAGE_LOAD_FORWARD_CHECK
+     if($test$plusargs("load_forward_check") && (load_forward_early<10 || load_forward_late<4))
+      $fatal(1,"load-forward coverage missing early=%0d late=%0d",load_forward_early,load_forward_late);
+     $display("LOAD_FORWARD: early_issue=%0d late_issue=%0d",load_forward_early,load_forward_late);
+`endif
      $display("PASS: CPU test, memory delay %0d, %0d cycles",latency,cycles);$finish;
     end else $fatal(1,"unexpected write %h",addr);
    end

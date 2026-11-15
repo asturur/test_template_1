@@ -185,6 +185,11 @@ module zap_issue_main #(
     input logic i_postalu_mem_load_ff,
     input logic i_memory_mem_load_ff,
 
+    // Owned P2 completion register, only fault-free aligned ordinary words.
+    // Narrow/unaligned/SWP results retain the registered Memory formatter.
+    input wire i_postalu_load_ready,
+    input wire [31:0] i_postalu_load_data,
+
     // -----------------------------------
     // END OF FEEDBACK NETWORK
     // -----------------------------------
@@ -766,6 +771,12 @@ module zap_issue_main #(
   // Look for reads from registers to be loaded from memory. Four
   // register sources may cause a load lock.
   //
+  // The formatted memory result already reaches every operand through the
+  // effective current B write. Allow issue on that actual commit edge, not on
+  // raw cache ACK or memory validity alone. Higher-priority exceptions/CP15
+  // remove or redirect B; earlier load stages and background locks still hold.
+  wire memory_load_committing = i_memory_dav_ff && i_memory_mem_load_ff && i_rf_wen &&
+                                i_rf_wr_addr_b == i_memory_mem_srcdest_index_ff;
   assign load_lock = determine_load_lock(
           operand_alu_source_ff,
           o_mem_srcdest_index_ff,
@@ -971,10 +982,10 @@ module zap_issue_main #(
                    postalu1_mem_load_ff )                     || // Post ALU1
         (  index[5:0] == postalu_mem_srcdest_index_ff &&
                    postalu_dav_ff                             &&
-                   postalu_mem_load_ff )                      || // Post ALU
+                   postalu_mem_load_ff && !i_postalu_load_ready ) || // Post ALU
         (  index[5:0] == memory_mem_srcdest_index_ff  &&
                    memory_mem_load_ff                         &&
-                   memory_dav_ff   )                             // Memory
+                   memory_dav_ff && !memory_load_committing )     // Memory
         ) begin
       determine_load_lock = 1'd1;
     end else begin
@@ -1052,8 +1063,8 @@ module zap_issue_main #(
       input force32_align_ff);
 
     logic [31:0] get;
-    logic [15:0] match_source, select_source;
-    logic [31:0] selected[0:15];
+    logic [16:0] match_source, select_source;
+    logic [31:0] selected[0:16];
 
     // Resolve priority on narrow controls, independently of the register
     // read tree. The word datapath is a masked OR, not a priority mux chain.
@@ -1063,22 +1074,27 @@ module zap_issue_main #(
     match_source[5]   = index[5:0] == alu_destination_index_ff[5:0] && alu_dav_ff;
     match_source[6]   = index[5:0] == postalu0_destination_index_ff[5:0] && postalu0_dav_ff;
     match_source[7]   = index[5:0] == postalu1_destination_index_ff[5:0] && postalu1_dav_ff;
-    match_source[8]   = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
-    match_source[9]   = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff;
+    match_source[8]   = i_postalu_load_ready && index[5:0] == i_postalu_mem_srcdest_index_ff;
+    match_source[9]   = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
+    // A load's B result wins its own A/base write on an equal destination.
+    // Keep younger in-flight producers ahead of both, then let the existing
+    // effective C/B/A commit priority select the already formatted load word.
+    match_source[10]  = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff &&
+                       !(memory_load_committing && index[5:0] == i_memory_mem_srcdest_index_ff);
     // Commits are older than every in-flight producer. Keep CURRENT writes
     // visible on the issue edge (including exception/CP15 and legacy C),
     // then the registered previous edge, then the held base. One common
     // priority/reduction avoids serial commit muxes before forwarding.
-    match_source[10]  = index[5:0] < 6'd40 && i_rf_wr_addr_c[index[5:0]];
-    match_source[11]  = i_rf_wen && index[5:0] == i_rf_wr_addr_b;
-    match_source[12]  = i_rf_wen && index[5:0] == i_rf_wr_addr_a;
-    match_source[13]  = pending[2];
-    match_source[14]  = pending[1];
-    match_source[15]  = pending[0];
+    match_source[11]  = index[5:0] < 6'd40 && i_rf_wr_addr_c[index[5:0]];
+    match_source[12]  = i_rf_wen && index[5:0] == i_rf_wr_addr_b;
+    match_source[13]  = i_rf_wen && index[5:0] == i_rf_wr_addr_a;
+    match_source[14]  = pending[2];
+    match_source[15]  = pending[1];
+    match_source[16]  = pending[0];
     select_source[0]  = match_source[0];
-    for (int source_no = 1; source_no < 16; source_no++) begin
+    for (int source_no = 1; source_no < 17; source_no++) begin
       select_source[source_no] = match_source[source_no] &&
-                        !(|(match_source & ((16'b1 << source_no) - 16'b1)));
+                        !(|(match_source & ((17'b1 << source_no) - 17'b1)));
     end
 
     selected[0] = index[31:0] & {32{select_source[0]}};
@@ -1090,19 +1106,21 @@ module zap_issue_main #(
     selected[5] = alu_destination_value_ff & {32{select_source[5]}};
     selected[6] = postalu0_destination_value_ff & {32{select_source[6]}};
     selected[7] = postalu1_destination_value_ff & {32{select_source[7]}};
-    selected[8] = postalu_destination_value_ff & {32{select_source[8]}};
-    selected[9] = memory_destination_value_ff & {32{select_source[9]}};
-    selected[10] = i_rf_wr_data_c & {32{select_source[10]}};
-    selected[11] = i_rf_wr_data_b & {32{select_source[11]}};
-    selected[12] = i_rf_wr_data_a & {32{select_source[12]}};
-    selected[13] = operand_commit_c & {32{select_source[13]}};
-    selected[14] = operand_commit_b & {32{select_source[14]}};
-    selected[15] = operand_commit_a & {32{select_source[15]}};
+    selected[8] = i_postalu_load_data & {32{select_source[8]}};
+    selected[9] = postalu_destination_value_ff & {32{select_source[9]}};
+    selected[10] = memory_destination_value_ff & {32{select_source[10]}};
+    selected[11] = i_rf_wr_data_c & {32{select_source[11]}};
+    selected[12] = i_rf_wr_data_b & {32{select_source[12]}};
+    selected[13] = i_rf_wr_data_a & {32{select_source[13]}};
+    selected[14] = operand_commit_c & {32{select_source[14]}};
+    selected[15] = operand_commit_b & {32{select_source[15]}};
+    selected[16] = operand_commit_a & {32{select_source[16]}};
     get = (rf_data & {32{!(|match_source)}}) |
               (((selected[0] | selected[1]) | (selected[2] | selected[3])) |
                ((selected[4] | selected[5]) | (selected[6] | selected[7]))) |
               (((selected[8] | selected[9]) | (selected[10] | selected[11])) |
-               ((selected[12] | selected[13]) | (selected[14] | selected[15])));
+               ((selected[12] | selected[13]) | (selected[14] | selected[15]))) |
+              selected[16];
 
     // If it's not a store or load, then align this to 4 bytes. Use
     // owned packet controls.

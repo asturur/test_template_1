@@ -545,3 +545,15 @@ CPU completion. No new state or RAM. Matching-load holds fall9→6; production
 the immediate predecessor improves19.78%/17.93% at0:0/2:9 waits. FPGA timing,
 fit and boot remain unverified. See the
 [measured path and staged plan](cache-load-optimization-plan.md).
+
+## Owned load forwarding (0062)
+
+Use existing registered P2 completion data for fault-free aligned ordinary word
+loads while Memory captures the same result. Keep narrow/unaligned/SWP/fault
+formatting paths. Release the final Memory dependency only on the actual
+formatted B commit; preserve younger-writer and paired base/load priority.
+No new registers/RAM or clock change. Full six-kernel gain1.3900%/1.3899%;
+98CPU runs plus44IRQ/FIQ edge sweeps, five unit suites and four broken controls
+pass. All83pinned upstream file hashes and37reconstructed SV/SVH token streams
+match; strict byte comparison retains prior formatting drift.
+[Contract, timing limits and next dual-port work](cpu-load-forwarding.md).

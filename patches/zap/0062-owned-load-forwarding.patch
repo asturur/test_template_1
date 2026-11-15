@@ -1,0 +1,138 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -601,6 +601,10 @@
+ // CP15 receives the FSR/FAR of this exact completed owner, including an abort.
+ assign owned_fsr = completion_valid ? completion_fsr : 32'd0;
+ assign owned_far = completion_far;
++wire issue_word_load_ready = completion_valid && completion_fault == 2'b00 &&
++      postalu_dav_ff && postalu_mem_load_ff && postalu_swp_tag == 2'b00 &&
++      postalu_address_ff[1:0] == 2'b00 &&
++      !(postalu_ubyte_ff || postalu_sbyte_ff || postalu_uhalf_ff || postalu_shalf_ff);
+ `ifndef SYNTHESIS
+ // P2/M have no shifter/code hold: their only normal stop is data_stall.
+ // Once a demand has waited an edge, M is empty, so a later WB kill cannot
+@@ -1074,6 +1078,8 @@
+         .i_postalu_destination_value_ff (postalu_alu_result_ff),
+         .i_postalu_mem_srcdest_index_ff (postalu_mem_srcdest_index_ff),
+         .i_postalu_mem_load_ff          (postalu_mem_load_ff),
++      .i_postalu_load_ready          (issue_word_load_ready),
++      .i_postalu_load_data           (completion_data),
+ 
+         // Switch indicator.
+         .i_switch_ff                    (decode_switch_ff),
+--- a/src/rtl/zap_issue_main.sv
++++ b/src/rtl/zap_issue_main.sv
+@@ -186,6 +186,11 @@
+         input logic                              i_postalu1_mem_load_ff,
+         input logic                              i_postalu_mem_load_ff,
+         input logic                              i_memory_mem_load_ff,
++
++    // Owned P2 completion register, only fault-free aligned ordinary words.
++    // Narrow/unaligned/SWP results retain the registered Memory formatter.
++    input wire i_postalu_load_ready,
++    input wire [31:0] i_postalu_load_data,
+ 
+         // -----------------------------------
+         // END OF FEEDBACK NETWORK
+@@ -750,7 +755,9 @@
+ // Look for reads from registers to be loaded from memory. Four
+ // register sources may cause a load lock.
+ //
+-assign  load_lock =     determine_load_lock
++wire memory_load_committing = i_memory_dav_ff && i_memory_mem_load_ff && i_rf_wen &&
++                                i_rf_wr_addr_b == i_memory_mem_srcdest_index_ff;
++  assign  load_lock =     determine_load_lock
+                         ( operand_alu_source_ff  ,
+                         o_mem_srcdest_index_ff,
+                         o_condition_code_ff,
+@@ -988,10 +995,10 @@
+                    postalu1_mem_load_ff )                     || // Post ALU1
+                 (  index[5:0] == postalu_mem_srcdest_index_ff &&
+                    postalu_dav_ff                             &&
+-                   postalu_mem_load_ff )                      || // Post ALU
++                   postalu_mem_load_ff && !i_postalu_load_ready )                      || // Post ALU
+                 (  index[5:0] == memory_mem_srcdest_index_ff  &&
+                    memory_mem_load_ff                         &&
+-                   memory_dav_ff   )                             // Memory
++                   memory_dav_ff   && !memory_load_committing )                             // Memory
+         )
+         begin
+                 determine_load_lock = 1'd1;
+@@ -1076,8 +1083,8 @@
+ );
+ 
+         logic [31:0] get;
+-        logic [15:0] match_source, select_source;
+-        logic [31:0] selected [0:15];
++        logic [16:0] match_source, select_source;
++        logic [31:0] selected [0:16];
+ 
+         // Resolve priority on narrow controls, independently of the register
+         // read tree. The word datapath is a masked OR, not a priority mux chain.
+@@ -1087,23 +1094,25 @@
+         match_source[5] = index[5:0] == alu_destination_index_ff[5:0] && alu_dav_ff;
+         match_source[6] = index[5:0] == postalu0_destination_index_ff[5:0] && postalu0_dav_ff;
+         match_source[7] = index[5:0] == postalu1_destination_index_ff[5:0] && postalu1_dav_ff;
+-        match_source[8] = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
+-        match_source[9] = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff;
++        match_source[8] = i_postalu_load_ready && index[5:0] == i_postalu_mem_srcdest_index_ff;
++    match_source[9]   = index[5:0] == postalu_destination_index_ff[5:0] && postalu_dav_ff;
++        match_source[10] = index[5:0] == memory_destination_index_ff[5:0] && memory_dav_ff&&
++                       !(memory_load_committing && index[5:0] == i_memory_mem_srcdest_index_ff);
+         // Commits are older than every in-flight producer. Keep CURRENT writes
+         // visible on the issue edge (including exception/CP15 and legacy C),
+         // then the registered previous edge, then the held base. One common
+         // priority/reduction avoids serial commit muxes before forwarding.
+-        match_source[10] = index[5:0] < 6'd40 && i_rf_wr_addr_c[index[5:0]];
+-        match_source[11] = i_rf_wen && index[5:0] == i_rf_wr_addr_b;
+-        match_source[12] = i_rf_wen && index[5:0] == i_rf_wr_addr_a;
+-        match_source[13] = pending[2];
+-        match_source[14] = pending[1];
+-        match_source[15] = pending[0];
++        match_source[11] = index[5:0] < 6'd40 && i_rf_wr_addr_c[index[5:0]];
++        match_source[12] = i_rf_wen && index[5:0] == i_rf_wr_addr_b;
++        match_source[13] = i_rf_wen && index[5:0] == i_rf_wr_addr_a;
++        match_source[14] = pending[2];
++        match_source[15] = pending[1];
++        match_source[16] = pending[0];
+         select_source[0] = match_source[0];
+-        for (int source_no = 1; source_no < 16; source_no++)
++        for (int source_no = 1; source_no < 17; source_no++)
+         begin
+                 select_source[source_no] = match_source[source_no] &&
+-                        !(|(match_source & ((16'b1 << source_no) - 16'b1)));
++                        !(|(match_source & ((17'b1 << source_no) - 17'b1)));
+         end
+ 
+         selected[0] = index[31:0] & {32{select_source[0]}};
+@@ -1115,19 +1124,21 @@
+         selected[5] = alu_destination_value_ff & {32{select_source[5]}};
+         selected[6] = postalu0_destination_value_ff & {32{select_source[6]}};
+         selected[7] = postalu1_destination_value_ff & {32{select_source[7]}};
+-        selected[8] = postalu_destination_value_ff & {32{select_source[8]}};
+-        selected[9] = memory_destination_value_ff & {32{select_source[9]}};
+-        selected[10] = i_rf_wr_data_c & {32{select_source[10]}};
+-        selected[11] = i_rf_wr_data_b & {32{select_source[11]}};
+-        selected[12] = i_rf_wr_data_a & {32{select_source[12]}};
+-        selected[13] = operand_commit_c & {32{select_source[13]}};
+-        selected[14] = operand_commit_b & {32{select_source[14]}};
+-        selected[15] = operand_commit_a & {32{select_source[15]}};
++        selected[8] = i_postalu_load_data & {32{select_source[8]}};
++        selected[9] = postalu_destination_value_ff & {32{select_source[9]}};
++        selected[10] = memory_destination_value_ff & {32{select_source[10]}};
++        selected[11] = i_rf_wr_data_c & {32{select_source[11]}};
++        selected[12] = i_rf_wr_data_b & {32{select_source[12]}};
++        selected[13] = i_rf_wr_data_a & {32{select_source[13]}};
++        selected[14] = operand_commit_c & {32{select_source[14]}};
++        selected[15] = operand_commit_b & {32{select_source[15]}};
++    selected[16] = operand_commit_a & {32{select_source[16]}};
+         get = (rf_data & {32{!(|match_source)}}) |
+               (((selected[0] | selected[1]) | (selected[2] | selected[3])) |
+                ((selected[4] | selected[5]) | (selected[6] | selected[7]))) |
+               (((selected[8] | selected[9]) | (selected[10] | selected[11])) |
+-               ((selected[12] | selected[13]) | (selected[14] | selected[15])));
++               ((selected[12] | selected[13]) | (selected[14] | selected[15])))|
++              selected[16];
+ 
+         // If it's not a store or load, then align this to 4 bytes. Use
+         // owned packet controls.

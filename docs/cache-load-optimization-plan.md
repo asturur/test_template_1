@@ -10,7 +10,18 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
-## Current checkpoint — C's second checked mapping accepted in simulation
+## Current checkpoint — CPU load-use overlap accepted; build next
+
+Phase08's early/late producer availability now uses registered P2 aligned words
+and actual formatted Memory commits, without changing cache RAM/control.
+Indices151.2480/141.5576; full suite/98CPU+44edge/five units/four controls pass.
+Build feedback precedes another optimization. Then F1 should exploit independent
+A-write/B-read use with owned stages and explicit same-slot interlocks/forwarding.
+Modest extra BRAM is allowed for useful port/buffer capacity. P1 probes alone do
+not create multiple accepted CPU requests or permit speculative device effects.
+[Contract and measured results](cpu-load-forwarding.md).
+
+## Previous checkpoint — C's second checked mapping accepted in simulation
 
 C now shares two 1KiB mappings under one context, retaining independent R/W
 permissions and exact primary fault ownership. Final full payload qualification,

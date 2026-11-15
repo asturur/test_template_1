@@ -37,6 +37,7 @@ CPU_ASM_DEFINES='-DNONIDENTITY -DUSER_CONTEXT -DSMALLPAGE' tests/cpu/core/sim.sh
 CPU_PROGRAM=cpu_timing tests/cpu/core/sim.sh
 CPU_PROGRAM=tlb_lockdown tests/cpu/core/sim.sh
 CPU_PROGRAM=operand_timing tests/cpu/core/sim.sh
+CPU_PROGRAM=load_forward CPU_LOAD_FORWARD_CHECK=1 CPU_RUN_ARGS=+load_forward_check tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_privileged_store tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_privileged_ldrt tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_flash_sequence tests/cpu/core/sim.sh

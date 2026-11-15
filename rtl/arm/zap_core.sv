@@ -611,6 +611,13 @@ module zap_core #(
   // CP15 receives the FSR/FAR of this exact completed owner, including an abort.
   assign owned_fsr = completion_valid ? completion_fsr : 32'd0;
   assign owned_far = completion_far;
+  // Registered P2 raw words need no rotate/extend when aligned and full width.
+  // Issue may use this owner while Memory captures it. Never forward live ACK
+  // data, faults/retries, narrow/unaligned values, SWP, or a failed condition.
+  wire issue_word_load_ready = completion_valid && completion_fault == 2'b00 &&
+      postalu_dav_ff && postalu_mem_load_ff && postalu_swp_tag == 2'b00 &&
+      postalu_address_ff[1:0] == 2'b00 &&
+      !(postalu_ubyte_ff || postalu_sbyte_ff || postalu_uhalf_ff || postalu_shalf_ff);
 `ifndef SYNTHESIS
   // P2/M have no shifter/code hold: their only normal stop is data_stall.
   // Once a demand has waited an edge, M is empty, so a later WB kill cannot
@@ -1086,6 +1093,8 @@ module zap_core #(
       .i_postalu_destination_value_ff(postalu_alu_result_ff),
       .i_postalu_mem_srcdest_index_ff(postalu_mem_srcdest_index_ff),
       .i_postalu_mem_load_ff         (postalu_mem_load_ff),
+      .i_postalu_load_ready          (issue_word_load_ready),
+      .i_postalu_load_data           (completion_data),
 
       // Switch indicator.
       .i_switch_ff(decode_switch_ff),

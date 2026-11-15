@@ -1,0 +1,383 @@
+{
+  "added_declared_state_bits": 0,
+  "benchmark": {
+    "elapsed_seconds": 421.588,
+    "groups": 12,
+    "original_baseline_index_by_profile": {
+      "0:0": 151.24796420745886,
+      "2:9": 141.55761975429408
+    },
+    "path": "build/sim/spmark-payload/load-forward-20261115",
+    "repeats": 2,
+    "step_index_by_profile": {
+      "0:0": 101.39002763422214,
+      "2:9": 101.38986386458319
+    },
+    "windows_per_repeat": 84,
+    "wrong_output_controls": 6
+  },
+  "cleanup": {
+    "bytes": 2369640376,
+    "files": 26,
+    "scope": "Only this step\u2019s rebuildable compiler headers. Kept executables, frozen sources, logs, manifests and checkpoints; other simulations untouched."
+  },
+  "clock_pll_mhz": 78,
+  "cpu": {
+    "extra/result.json": {
+      "path": "build/sim/load-forward-cpu-20261115/extra/result.json",
+      "programs": [
+        "cache_associativity",
+        "cache_drain",
+        "cache_external_abort",
+        "cache_fcse",
+        "cache_instruction_associativity",
+        "cache_lockdown",
+        "cache_page_external_abort",
+        "cache_single_maintenance",
+        "cache_tlb_write_order",
+        "cache_write_miss",
+        "cache_write_through",
+        "icache_lockdown",
+        "icache_prefetch_lockdown",
+        "icache_prefetch_translated",
+        "icache_prefetch_uncached",
+        "icache_single_invalidate",
+        "icache_tlb_write_order",
+        "ldm_base_cold_fault",
+        "swp_abort_irq",
+        "swp_mmu_abort",
+        "swp_read_abort",
+        "swp_write_abort",
+        "tlb_lockdown"
+      ],
+      "runs": 44,
+      "sha256": "6077051d5a26f76db10ba2cbd0561de288683f58e2eda7f082fd8cb5eb48a2d7",
+      "status": "PASS"
+    },
+    "permission-programs-result.json": {
+      "path": "build/sim/load-forward-cpu-20261115/permission-programs-result.json",
+      "programs": [
+        "cache_store_absence",
+        "load_forward",
+        "tlb_permission_reuse",
+        "tlb_two_mapping"
+      ],
+      "runs": 8,
+      "sha256": "4f19e0e827c760ba8e770d37dc7ec70fafa88af0d6bb7e70e818ecc7385da837",
+      "status": "PASS"
+    },
+    "result.json": {
+      "path": "build/sim/load-forward-cpu-20261115/result.json",
+      "programs": [
+        "alignment_cases",
+        "armv4t_profile",
+        "cache_disable_reenable",
+        "cache_irq_refill",
+        "cache_irq_writeback",
+        "cache_load_widths",
+        "cpu_timing",
+        "data_privilege_owner",
+        "fiq_flash_return",
+        "fiq_privileged_ldrt",
+        "fiq_privileged_store",
+        "fiq_store_return",
+        "ldm_base_smallpage",
+        "mmu_fcse",
+        "mmu_fetch",
+        "operand_timing",
+        "smoke",
+        "swp_basic",
+        "swp_cached_irq",
+        "swp_fiq",
+        "swp_irq_core",
+        "thumb_ldm_base_in_list",
+        "thumb_return_dependency"
+      ],
+      "runs": 46,
+      "sha256": "35fe392b239272aee920aec383debb082b668b9548986e81d9d5aad409430be6",
+      "status": "PASS"
+    }
+  },
+  "cpu_monitor": {
+    "aligned_word_matches_registered_formatter_next_edge": true,
+    "fault_width_alignment_swp_and_completion_owner_checks": true
+  },
+  "cpu_runs": 98,
+  "format_equivalence": {
+    "tests/cpu/core/test.sv": "token-equivalent formatting",
+    "tests/cpu/load_forward/monitor.vh": "token-equivalent formatting",
+    "tests/cpu/operands/test.sv": "token-equivalent formatting"
+  },
+  "fpga_fit_timing_and_boot": "NOT_RUN",
+  "independent_operand_oracle": {
+    "checked_clocks": 80580,
+    "commit_issues": 2720,
+    "early_issues": 2880
+  },
+  "irq_fiq_sweep_runs": 44,
+  "irq_fiq_sweeps": {
+    "runs": {
+      "fiq-0-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 298 cycles"
+      ],
+      "fiq-0-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-1-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "fiq-1-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-10-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-10-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-2-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "fiq-2-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-3-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-3-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-4-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-4-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-5-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-5-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-6-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-6-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-7-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-7-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-8-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-8-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-9-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-9-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-0-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 298 cycles"
+      ],
+      "irq-0-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-1-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "irq-1-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-10-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-10-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-2-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "irq-2-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-3-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-3-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-4-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-4-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-5-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-5-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-6-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-6-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-7-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-7-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-8-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-8-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-9-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-9-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ]
+    },
+    "status": "PASS"
+  },
+  "known_format_tool_limit": "Verible emits parse warnings for the preexisting conditional instance/else layout in core/test.sv and returns zero; active Verilator configurations compiled and all CPU/monitor runs pass. That layout was not refactored.",
+  "negative_controls": {
+    "controls": {
+      "memory-base-beats-load": {
+        "exit": 1,
+        "failure": "[222655] %Fatal: test.sv:317: Assertion failed in test.check_cycle.unnamedblk11: operand oracle port=0 check=44530 count=2 got=60c12186 expected=b00db000",
+        "rejected": true
+      },
+      "p2-base-beats-load": {
+        "exit": 1,
+        "failure": "[222265] %Fatal: test.sv:317: Assertion failed in test.check_cycle.unnamedblk11: operand oracle port=0 check=44452 count=2 got=50a0f145 expected=12340000",
+        "rejected": true
+      },
+      "predecessor": {
+        "exit": 1,
+        "failure": "[222265] %Fatal: test.sv:317: Assertion failed in test.check_cycle.unnamedblk11: operand oracle port=0 check=44452 count=2 got=50a0f145 expected=12340000",
+        "rejected": true
+      },
+      "uncommitted-memory": {
+        "exit": 1,
+        "failure": "[222595] %Fatal: test.sv:317: Assertion failed in test.check_cycle.unnamedblk11: operand oracle port=0 check=44518 count=2 got=bad0a000 expected=60c12186",
+        "rejected": true
+      }
+    },
+    "status": "PASS"
+  },
+  "new_ram": false,
+  "next_gate": "FPGA build, fit/timing/boot; then F1 independent BRAM read/write overlap with explicit ownership/hazards. Modest extra BRAM allowed.",
+  "profile": {
+    "all_original_counters_match": true,
+    "groups": 6,
+    "load_dependency_clocks_before_after": {
+      "matrix4": [
+        196,
+        131
+      ],
+      "transpose4": [
+        1540,
+        1091
+      ],
+      "triangle_edges": [
+        2676,
+        1907
+      ]
+    },
+    "path": "build/sim/spmark-profile/load-forward-after-20261115/result.json",
+    "repeats": 2
+  },
+  "provenance": {
+    "lexically_matching_sv_svh": 37,
+    "ordered_patch_count": 61,
+    "patch": "patches/zap/0062-owned-load-forwarding.patch",
+    "patch_sha256": "8001b895d310a8aeef272bd8e5f3090cf9244426b8ce5a77a92e806ab749c008",
+    "pristine_hashes_verified": 83,
+    "status": "PASS",
+    "strict_byte_comparison": "Preexisting formatting/comment drift remains; new patch reconstructs matching lexical tokens"
+  },
+  "scope": "Joint phase08 early aligned-word P2 forwarding and actual formatted Memory B-commit availability with paired-write priority",
+  "source_files": 129,
+  "source_id": "70d8cf77298691b4b3dd3f2bab371876ff49b9f7d1ccddbcea82fe52b6e8a5b5",
+  "source_matches_current": true,
+  "status": "PASS",
+  "timing_target_mhz": 104,
+  "units": {
+    "source": "build/sim/spmark-payload/load-forward-20261115/source",
+    "status": "PASS",
+    "tests": {
+      "cache_hit_response": [
+        "PASS: hit response one clock earlier (3 vs 4), 17 exact-once requests; lanes/store/SWP-class/miss/uncached/reset"
+      ],
+      "completion_owner": [
+        "PASS: completion owner 5546 clocks, 438 captures, 398 consumes, 114 kills; pulse, abort/retry, payload, reuse, reset"
+      ],
+      "cp15_rf": [
+        "PASS: independent CP15 RF ownership 13841 clocks, enabled=6895 disabled=6647 collisions=3202"
+      ],
+      "demand_completion": [
+        "PASS: demand/housekeeping completion split, 4729 checked clocks, fault/walk matrix, waited transfers, exact-once clean/invalidate, lockdown/reset"
+      ],
+      "operands": [
+        "PASS: operand oracle 80580 cycles; 40 physical registers, all forwarding priorities, immediate/PC/CPSR/RAZ, write collisions, stalls/reset/clear"
+      ]
+    }
+  }
+}

@@ -18,6 +18,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | resident-read | 66,253 / 66,253 | 8,522 / 8,522 | 40,317 / 40,317 | 135,327 / 201,330 | 5,226 / 5,226 | 5,958 / 5,958 | 134.0546 / 125.4664 | [JSON](evidence/spmark-payload-resident-read-20261115.json) |
 | resident-store | 66,031 / 66,031 | 7,786 / 7,786 | 39,005 / 39,005 | 135,327 / 201,330 | 4,334 / 4,334 | 5,058 / 5,058 | 145.1635 / 135.8637 | [JSON](evidence/spmark-payload-resident-store-20261115.json) |
 | two-mapping | 60,850 / 60,850 | 7,510 / 7,510 | 37,360 / 37,360 | 135,318 / 201,321 | 4,328 / 4,328 | 5,052 / 5,052 | 149.1744 / 139.6171 | [JSON](evidence/spmark-payload-two-mapping-20261115.json) |
+| load-forward | 60,784 / 60,784 | 7,060 / 7,060 | 36,686 / 36,686 | 135,314 / 201,317 | 4,324 / 4,324 | 5,048 / 5,048 | 151.2480 / 141.5576 | [JSON](evidence/spmark-payload-load-forward-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -101,3 +102,14 @@ negative controls, including a consumed-fault owner bug found in the initial
 prototype and corrected before the accepted benchmark. Added state is 65 bits
 per I/D controller, 130 total; no new RAM or PLL change. Fit/timing and phone
 boot remain unverified. [Design and qualification](cache-two-mapping.md).
+
+`load-forward` is the declared joint early/late CPU producer-availability step:
+aligned word loads forward from the existing P2 completion register, other
+formatted loads become available on their effective Memory B-commit edge.
+Paired base/load priority is preserved. Full12groups/84windows, exact repeats
+and all six wrong-output controls pass (421.588s). Suite gain1.3900%/1.3899%
+over C; transpose6.37%, triangle1.84%, matrix0.11%.98CPU runs plus44IRQ/FIQ edge
+sweeps, five related units and four negative controls pass. No new state/RAM;
+FPGA cost/timing/boot need the requested next build. The table keeps the original
+baseline100; the JSON explicitly records both original and predecessor indices.
+[Implementation and dual-port next step](cpu-load-forwarding.md).

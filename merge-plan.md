@@ -1,3 +1,15 @@
+## 2026-11-15: CPU load-forwarding completed; next gate is a build
+
+Declared joint early P2 aligned-word and late Memory B-commit availability,
+including paired load/base priority. Full payload qualification,98CPU runs,
+44IRQ/FIQ edge sweeps, five units/four negative controls pass. Original indices
+151.2480/141.5576, +1.3900%/+1.3899% over C; transpose+6.37%. No extra state/RAM
+or PLL change. Keep78MHz and target104MHz; physical gates remain unverified.
+The user requests build feedback before more RTL. Then prioritize F1 owned
+independent dual-port reads/writes and collision handling; modest extra BRAM
+is allowed for useful buffers/banking/ports. Broader instruction, RAS, forwarding
+and pipeline work remains. [Design/evidence](docs/cpu-load-forwarding.md).
+
 ## 2026-11-15: C second checked mapping independently completed in simulation
 
 Two shared-context1KiB mappings preserve separate R/W permissions and exact

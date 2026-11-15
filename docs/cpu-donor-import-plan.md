@@ -180,6 +180,16 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+Update2026-11-15: phase08's P2 aligned-word/Memory-commit load-availability slice
+is jointly qualified, with paired producer priority. Full suite +1.3900%/+1.3899%
+over C, original indices151.2480/141.5576.98CPU/44edge runs, five units/four negative
+controls pass. No extra state/RAM. **Build gate now**, then prioritize owned
+F1 independent dual-port cache reads/writes with real collision handling and
+stage credits. Modest extra BRAM is allowed where it buys useful ports/bandwidth.
+This does not close broader08, RAS/correctness, arithmetic or phase13 replacement.
+[Implementation, limits and next contract](cpu-load-forwarding.md).
+
+
 C update 2026-11-15: the second shared-context checked mapping is implemented
 and independently qualified on the original branch. All six payloads, both
 profiles, repeat/output controls,96CPU runs/seven unit suites/four negative

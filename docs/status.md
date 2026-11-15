@@ -1,3 +1,40 @@
+## 2026-11-15: CPU load-result overlap accepted; build gate next
+
+Patch0062 is the declared joint phase08 early/late load-availability step.
+Fault-free aligned non-SWP words forward from the existing registered P2 result
+while Memory captures it; formatted Memory loads release dependency on their
+actual B commit. Paired load/base and younger-writer priorities are preserved.
+Only core/issue HDL changes; no new FF/RAM/clock/pipeline edge.78MHz PLL stays;
+104MHz remains target, with forwarding/readiness timing and ALM cost unverified.
+
+Full six-payload/both-profile suite passes12groups/84windows per repeat, two
+identical repetitions and six wrong-output controls. Medians60784matrix,
+7060transpose,36686triangle,135314/201317frame,4324/5048tails. Index versus original
+baseline151.2480/141.5576, +1.3900%/+1.3899% over C; transpose+6.37%.
+98CPU regressions plus44IRQ/FIQ edge sweeps, five related unit suites and four
+negative controls pass. Independent operand oracle80580clocks; actual CPU
+monitor checks owner/class and next registered formatter output. All83pristine
+upstream hashes/37reconstructed SV/SVH token streams pass; strict byte drift
+remains preexisting. Shared cached upstream was not pristine and was untouched;
+a fresh gh archive under this experiment supplied the verified originals.
+
+Focused math profiles reconcile all original counters and repeat exactly.
+Load-dependency clocks matrix196→131, transpose1540→1091, triangle2676→1907.
+Transpose data hold stays3368clocks; percent47.71% rises only as its window shrinks.
+This is not a new six-case stall profile. The initial late-only comparison failed
+subset membership, so only the complete final joint result is accepted.
+
+User requests a build after this improvement. Commit/push this checkpoint;
+do not add another RTL optimization before fit/timing/boot feedback. Next F1
+candidate is independent read/write overlap on existing dual ports with owned
+stage credits, separate read/dirty addresses and same-slot interlock/forwarding.
+Modest extra BRAM is explicitly allowed for useful buffers/banking/ports; prior
+no-RAM steps were choices, not a constraint. Earlier RAS/forwarding/arithmetic/
+frontend and full-pipeline phases remain open. Other simulations, permanent
+checkpoints, original branch and checkout preserved.
+[Implementation/results](cpu-load-forwarding.md),
+[qualification](evidence/cpu-load-forwarding-20261115.json).
+
 ## 2026-11-15: C second checked mapping implemented and simulation-qualified
 
 One additional FIFO publication slot shares the existing mapping context and

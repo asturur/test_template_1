@@ -1,3 +1,22 @@
+# CPU load-forwarding profile — 2026-11-15
+
+All six benchmark cases pass both memory profiles. Focused math profiles also
+pass both, with two exact repetitions and all accepted original counters intact.
+Matrix load-dependency clocks196→131, transpose1540→1091, triangle2676→1907.
+Transpose total7510→7060; its3368data-hold clocks are unchanged, so44.85%→47.71%
+is a shorter denominator, not a memory regression. Current load-dependency
+occupancies0.22%/15.45%/5.20%; matrix/triangle empty queues33.88%/31.75% still need
+causal attribution. No new six-case stall profile is claimed.
+
+The CPU step improves suite throughput1.3900%/1.3899%; indices151.2480/141.5576.
+User requests a build now. After physical feedback, choose owned dual-port cache
+request overlap as the next F1 experiment rather than another isolated metadata
+shortcut. Independent throughput, same-slot hazards and precise ownership are
+separate tests; modest extra BRAM is allowed. Keep the older CPU plan active.
+[Design](cpu-load-forwarding.md),
+[profile evidence](evidence/spmark-payload-load-forward-profile-20261115.json).
+Older checkpoints follow.
+
 # Profile after C's second checked mapping — 2026-11-15
 
 The final full benchmark qualifies all six kernels at both profiles. A separate
