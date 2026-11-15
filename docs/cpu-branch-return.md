@@ -1,3 +1,7 @@
+Later0069 also fixes Thumb state-bit address mismatches; see
+[canonical prediction addresses](thumb-prediction-address.md). The measured
+0065/0066 progression below remains historical and is not counted twice.
+
 # Owned branch feedback and return prediction
 
 Patches0065/0066 implement the two requested CPU steps. The complete original

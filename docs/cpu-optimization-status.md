@@ -10,8 +10,9 @@ on MiSTer or closed at104MHz. Actual PLL remains78MHz.
 With the original six-kernel baseline defined as100, the latest implementation
 scores **228.5393 /192.2189** at synthetic I:D waits0:0/2:9. This is approximately
 2.285×/1.922× baseline kernel throughput, not whole-phone or donor-relative speed.
-The latest single change gains1.4988%/1.4982%; the separate four-case original
-JPEG bitmap suite gains3.5457%. No native JPEG deadline pass is claimed.
+The latest Thumb prediction-address fix leaves those ARM-heavy kernels unchanged
+and improves the four-case JPEG bitmap suite2.2906%. The preceding P0 removal
+gained1.4988%/1.4982% on the six kernels and3.5457% on JPEG. No native JPEG deadline pass is claimed.
 
 The loaded50114ac/seed43 placement lost all16SDRAM output I/O registers and
 fails early boot; the previous d4f2a8/seed44 placement packs them and boots the
@@ -39,6 +40,7 @@ of the cause of every failure. [Board evidence](spmark-jpeg-hang.md#new-rbf-boot
 |07/store completion | Ordinary posted stores reply after durable reservation; resident stores on data/dirty commit | SWP/write-through/uncached ordering retained |
 |Bounded cacheF2 | Consume old registered completion while admitting eligible next P1 request | Only one unresolved demand; global miss hold remains |
 |New: execution-stage latency | Remove legacy P0 register; preserve registered P1 TLB/probe and P2 demand/completion | Routed timing and board qualification pending |
+|New: Thumb prediction addresses | Canonical fetch targets avoid state-bit-only false redirects; raw BX mode changes retained | JPEG +2.2906%; full speculative RAS and general frontend gaps remain |
 
 The historical BTB tag-collision correctness fix is also present; it is not a
 new performance gain to add to the table. See the [measured progression](spmark-payload-results.md).
@@ -51,7 +53,7 @@ correctness gaps when their fixtures reproduce an actual issue.
 
 | Suggested priority | Original items | Bounded experiment and reason |
 | --- | --- | --- |
-|1|10a, remaining06/08|Thumb calls/returns, fetch/decode bubbles, earlier safe direct branches and late operand pickup. The JPEG routine is call/stack/load heavy; current measured empty operand queue is23248/113957clocks. Classify actual gaps before changing FIFO depth or predictor size |
+|1|10a, remaining06/08|Thumb calls/returns, fetch/decode bubbles, earlier safe direct branches and late operand pickup. The JPEG routine is call/stack/load heavy; current measured empty operand queue is21245/111449clocks. Classify actual gaps before changing FIFO depth or predictor size |
 |2|Remaining07/12b|Audit any remaining redundant short-hit admission/response waits. JPEG still spends41008clocks waiting for data. Keep synchronous BRAM and precise fault capture; a full overlapped hit pipeline belongs to the heavier work below |
 |3|09a/09b|Precompute LDM/STM lists/counts/offsets; reduce PUSH/POP setup and last-word/load-PC overhead. Retain one ordered memory owner and precise per-beat abort/base restoration |
 |4|04a/04b|Improve MUL/MLA/long-multiply DSP mapping, schedule and reuse of full products. Matrix profiles show meaningful multiply occupancy; JPEG bitmap diffusion shows none |
@@ -80,7 +82,9 @@ present or inapplicable. These are not promised performance optimizations.
 -14: native phone/game and cumulative fit/timing qualification. A full CPU
   replacement is an option after the smaller measured changes, not a prerequisite.
 
-## Latest stage-removal contract and evidence
+Latest Thumb contract and measured witness: [thumb-prediction-address.md](thumb-prediction-address.md).
+
+## Previous stage-removal contract and evidence
 
 P0 was described as a tag-RAM delay, but actual TLB checks and data pre-reads
 use registered P1. P0 only delayed the complete ALU packet. Its27outputs now

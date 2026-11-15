@@ -184,6 +184,11 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+2026-11-16:0069 qualifies canonical Thumb prediction addresses, +2.2906% on
+original JPEG bitmap work with unchanged six-kernel ARM results. Raw BX mode
+changes remain. This bounded slice does not complete10a/10b or replace the
+frontend/RAS. [Contract/evidence](thumb-prediction-address.md).
+
 Update2026-11-15: requested branch steps are simulation-qualified in0065/0066.
 Owned decoded feedback gains11.9640%/7.8126%; Rm14 MOV pc,lr recognition plus
 trace-proven confirmed-target retention gains8.0813%/7.6970% more. Cumulative

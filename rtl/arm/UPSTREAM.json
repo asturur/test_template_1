@@ -70,7 +70,8 @@
     "patches/zap/0065-owned-branch-feedback.patch",
     "patches/zap/0066-recognize-mov-pc-lr.patch",
     "patches/zap/0067-overlap-owned-completions.patch",
-    "patches/zap/0068-remove-unused-tag-delay.patch"
+    "patches/zap/0068-remove-unused-tag-delay.patch",
+    "patches/zap/0069-normalize-prediction-address.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

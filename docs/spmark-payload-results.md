@@ -26,6 +26,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | store-commit | 56,009 / 56,009 | 5,784 / 5,784 | 27,744 / 27,744 | 87,288 / 201,316 | 3,015 / 3,015 | 3,076 / 3,076 | 206.0389 / 179.2512 | [JSON](evidence/spmark-payload-store-commit-20261115.json) |
 | completion-overlap | 56,082 / 56,082 | 5,719 / 5,719 | 27,667 / 27,667 | 71,269 / 201,314 | 2,574 / 2,574 | 2,624 / 2,624 | 225.1646 / 189.3816 | [JSON](evidence/spmark-payload-completion-overlap-20261115.json) |
 | legacy-delay-removed | 54,730 / 54,730 | 5,465 / 5,465 | 27,201 / 27,201 | 71,264 / 201,307 | 2,564 / 2,564 | 2,628 / 2,628 | 228.5393 / 192.2189 | [JSON](evidence/cpu-postalu-trim-20261116.json) |
+| thumb-target-address | 54,730 / 54,730 | 5,465 / 5,465 | 27,201 / 27,201 | 71,264 / 201,307 | 2,564 / 2,564 | 2,628 / 2,628 | 228.5393 / 192.2189 | [JSON](evidence/thumb-prediction-address-20261116.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -153,3 +154,7 @@ cache waits still hold the pipeline. [Contract/tests](cache-completion-overlap.m
 Legacy P0 delay removal is +1.4988%/+1.4982% over completion overlap; the8-bit
 tail regresses4cycles. Full suite repeats and output controls pass. Physical
 fit/timing/native qualification remain. [Contract](cpu-optimization-status.md).
+
+Thumb target-address normalization leaves all six ARM-heavy kernels unchanged.
+Its separate original JPEG bitmap suite gains2.2906%; new Thumb call cases are
+not included in this index. [Contract](thumb-prediction-address.md).

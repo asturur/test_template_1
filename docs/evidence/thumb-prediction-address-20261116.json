@@ -1,0 +1,4976 @@
+{
+  "status": "PASS_OFFLINE_PHYSICAL_GATES_PENDING",
+  "date": "2026-11-16",
+  "baseline_commit": "2a045021fbb107dca67624e25231e32cc085f96d",
+  "scope": "Canonical branch-prediction fetch addresses; raw BX mode bit retained",
+  "rtl_changes": [
+    "rtl/arm/zap_alu_main.sv"
+  ],
+  "compiled_files_byte_verified": 46,
+  "alu_sha256": "fbed334e4ec21ed8520596a1d2d7b5553248a98c007a5e87fff88d9a81a465db",
+  "new_state_ram_or_pipeline_stages": 0,
+  "actual_pll_hz": 78000000,
+  "timing_target_hz": 104000000,
+  "board_or_ci_action": false,
+  "architectural": {
+    "status": "PASS",
+    "programs": {
+      "smoke": {
+        "0": [
+          "COUNTERS: fetch_response=95 fetch_accept=81 issue=63 retire_uop_last=59",
+          "LOAD_FORWARD: early_issue=6 late_issue=3",
+          "PASS: CPU test, memory delay 0, 442 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=80 fetch_accept=77 issue=63 retire_uop_last=59",
+          "LOAD_FORWARD: early_issue=2 late_issue=3",
+          "PASS: CPU test, memory delay 3, 705 cycles"
+        ]
+      },
+      "branch_return": {
+        "0": [
+          "COUNTERS: fetch_response=21832 fetch_accept=13578 issue=13163 retire_uop_last=12931",
+          "LOAD_FORWARD: early_issue=65 late_issue=30",
+          "PASS: CPU test, memory delay 0, 98392 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13664 fetch_accept=13580 issue=13163 retire_uop_last=12931",
+          "LOAD_FORWARD: early_issue=63 late_issue=28",
+          "PASS: CPU test, memory delay 3, 152064 cycles"
+        ]
+      },
+      "thumb_return_dependency": {
+        "0": [
+          "COUNTERS: fetch_response=20718 fetch_accept=12400 issue=12344 retire_uop_last=12329",
+          "LOAD_FORWARD: early_issue=9 late_issue=7",
+          "PASS: CPU test, memory delay 0, 94790 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12600 fetch_accept=12401 issue=12344 retire_uop_last=12329",
+          "LOAD_FORWARD: early_issue=7 late_issue=5",
+          "PASS: CPU test, memory delay 3, 148363 cycles"
+        ]
+      },
+      "cache_store_absence": {
+        "0": [
+          "COUNTERS: fetch_response=20878 fetch_accept=12602 issue=12525 retire_uop_last=12512",
+          "LOAD_FORWARD: early_issue=29 late_issue=4",
+          "PASS: CPU test, memory delay 0, 96087 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12630 fetch_accept=12583 issue=12523 retire_uop_last=12512",
+          "LOAD_FORWARD: early_issue=19 late_issue=0",
+          "PASS: CPU test, memory delay 3, 150289 cycles"
+        ]
+      },
+      "cache_write_miss": {
+        "0": [
+          "COUNTERS: fetch_response=20580 fetch_accept=12361 issue=12339 retire_uop_last=12338",
+          "LOAD_FORWARD: early_issue=7 late_issue=6",
+          "PASS: CPU test, memory delay 0, 94696 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12381 fetch_accept=12361 issue=12339 retire_uop_last=12338",
+          "LOAD_FORWARD: early_issue=7 late_issue=1",
+          "PASS: CPU test, memory delay 3, 148217 cycles"
+        ]
+      },
+      "cache_write_through": {
+        "0": [
+          "COUNTERS: fetch_response=20627 fetch_accept=12400 issue=12371 retire_uop_last=12370",
+          "LOAD_FORWARD: early_issue=15 late_issue=14",
+          "PASS: CPU test, memory delay 0, 94871 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12410 fetch_accept=12387 issue=12371 retire_uop_last=12370",
+          "LOAD_FORWARD: early_issue=16 late_issue=13",
+          "PASS: CPU test, memory delay 3, 148502 cycles"
+        ]
+      },
+      "cache_drain": {
+        "0": [
+          "COUNTERS: fetch_response=20638 fetch_accept=12407 issue=12380 retire_uop_last=12379",
+          "LOAD_FORWARD: early_issue=17 late_issue=16",
+          "PASS: CPU test, memory delay 0, 94916 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12417 fetch_accept=12394 issue=12380 retire_uop_last=12379",
+          "LOAD_FORWARD: early_issue=18 late_issue=15",
+          "PASS: CPU test, memory delay 3, 148553 cycles"
+        ]
+      },
+      "cache_load_widths": {
+        "0": [
+          "COUNTERS: fetch_response=22027 fetch_accept=13680 issue=13114 retire_uop_last=13073",
+          "LOAD_FORWARD: early_issue=6 late_issue=35",
+          "PASS: CPU test, memory delay 0, 97814 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=14156 fetch_accept=13685 issue=13114 retire_uop_last=13073",
+          "LOAD_FORWARD: early_issue=4 late_issue=33",
+          "PASS: CPU test, memory delay 3, 151993 cycles"
+        ]
+      },
+      "cache_disable_reenable": {
+        "0": [
+          "COUNTERS: fetch_response=20594 fetch_accept=12372 issue=12342 retire_uop_last=12341",
+          "LOAD_FORWARD: early_issue=8 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94717 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12379 fetch_accept=12364 issue=12342 retire_uop_last=12341",
+          "LOAD_FORWARD: early_issue=7 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148221 cycles"
+        ]
+      },
+      "cache_single_maintenance": {
+        "0": [
+          "COUNTERS: fetch_response=20639 fetch_accept=12393 issue=12361 retire_uop_last=12360",
+          "LOAD_FORWARD: early_issue=14 late_issue=10",
+          "PASS: CPU test, memory delay 0, 94921 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12422 fetch_accept=12391 issue=12361 retire_uop_last=12360",
+          "LOAD_FORWARD: early_issue=13 late_issue=10",
+          "PASS: CPU test, memory delay 3, 148593 cycles"
+        ]
+      },
+      "cache_instruction_associativity": {
+        "0": [
+          "COUNTERS: fetch_response=20620 fetch_accept=12400 issue=12340 retire_uop_last=12336",
+          "LOAD_FORWARD: early_issue=4 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94943 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12421 fetch_accept=12400 issue=12340 retire_uop_last=12336",
+          "LOAD_FORWARD: early_issue=4 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148587 cycles"
+        ]
+      },
+      "icache_buffer_order": {
+        "0": [
+          "COUNTERS: fetch_response=20588 fetch_accept=12370 issue=12340 retire_uop_last=12338",
+          "LOAD_FORWARD: early_issue=5 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94711 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12378 fetch_accept=12363 issue=12340 retire_uop_last=12338",
+          "LOAD_FORWARD: early_issue=5 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148247 cycles"
+        ]
+      },
+      "data_privilege_owner": {
+        "0": [
+          "COUNTERS: fetch_response=20634 fetch_accept=12423 issue=12363 retire_uop_last=12352",
+          "LOAD_FORWARD: early_issue=7 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94952 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12407 fetch_accept=12397 issue=12360 retire_uop_last=12353",
+          "LOAD_FORWARD: early_issue=4 late_issue=1",
+          "PASS: CPU test, memory delay 3, 148538 cycles"
+        ]
+      },
+      "cache_irq_writeback": {
+        "0": [
+          "COUNTERS: fetch_response=21184 fetch_accept=12611 issue=12543 retire_uop_last=12537",
+          "LOAD_FORWARD: early_issue=68 late_issue=66",
+          "PASS: CPU test, memory delay 0, 97361 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13043 fetch_accept=12612 issue=12542 retire_uop_last=12537",
+          "LOAD_FORWARD: early_issue=65 late_issue=63",
+          "PASS: CPU test, memory delay 3, 153813 cycles"
+        ]
+      },
+      "cache_irq_refill": {
+        "0": [
+          "COUNTERS: fetch_response=20610 fetch_accept=12388 issue=12354 retire_uop_last=12347",
+          "LOAD_FORWARD: early_issue=5 late_issue=3",
+          "PASS: CPU test, memory delay 0, 94802 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12397 fetch_accept=12380 issue=12353 retire_uop_last=12347",
+          "LOAD_FORWARD: early_issue=4 late_issue=2",
+          "PASS: CPU test, memory delay 3, 148395 cycles"
+        ]
+      },
+      "fiq_privileged_store": {
+        "0": [
+          "COUNTERS: fetch_response=20561 fetch_accept=12352 issue=12323 retire_uop_last=12321",
+          "LOAD_FORWARD: early_issue=4 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94605 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12358 fetch_accept=12347 issue=12323 retire_uop_last=12321",
+          "LOAD_FORWARD: early_issue=2 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148077 cycles"
+        ]
+      },
+      "fiq_store_return": {
+        "0": [
+          "COUNTERS: fetch_response=20578 fetch_accept=12369 issue=12339 retire_uop_last=12334",
+          "LOAD_FORWARD: early_issue=6 late_issue=5",
+          "PASS: CPU test, memory delay 0, 94689 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12368 fetch_accept=12358 issue=12337 retire_uop_last=12334",
+          "LOAD_FORWARD: early_issue=3 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148170 cycles"
+        ]
+      },
+      "fiq_flash_return": {
+        "0": [
+          "COUNTERS: fetch_response=20594 fetch_accept=12376 issue=12346 retire_uop_last=12341",
+          "LOAD_FORWARD: early_issue=8 late_issue=6",
+          "PASS: CPU test, memory delay 0, 94755 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12379 fetch_accept=12364 issue=12344 retire_uop_last=12341",
+          "LOAD_FORWARD: early_issue=3 late_issue=4",
+          "PASS: CPU test, memory delay 3, 148257 cycles"
+        ]
+      },
+      "ldm_base_smallpage": {
+        "0": [
+          "COUNTERS: fetch_response=20648 fetch_accept=12418 issue=12381 retire_uop_last=12376",
+          "LOAD_FORWARD: early_issue=16 late_issue=13",
+          "PASS: CPU test, memory delay 0, 94928 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12422 fetch_accept=12406 issue=12380 retire_uop_last=12376",
+          "LOAD_FORWARD: early_issue=9 late_issue=7",
+          "PASS: CPU test, memory delay 3, 148565 cycles"
+        ]
+      },
+      "ldm_base_in_list": {
+        "0": [
+          "COUNTERS: fetch_response=33 fetch_accept=23 issue=21 retire_uop_last=17",
+          "LOAD_FORWARD: early_issue=3 late_issue=0",
+          "PASS: CPU test, memory delay 0, 150 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=25 fetch_accept=23 issue=21 retire_uop_last=17",
+          "LOAD_FORWARD: early_issue=1 late_issue=1",
+          "PASS: CPU test, memory delay 3, 232 cycles"
+        ]
+      },
+      "thumb_ldm_base_in_list": {
+        "0": [
+          "COUNTERS: fetch_response=74 fetch_accept=58 issue=59 retire_uop_last=46",
+          "LOAD_FORWARD: early_issue=11 late_issue=3",
+          "PASS: CPU test, memory delay 0, 328 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=66 fetch_accept=57 issue=60 retire_uop_last=46",
+          "LOAD_FORWARD: early_issue=8 late_issue=1",
+          "PASS: CPU test, memory delay 3, 552 cycles"
+        ]
+      },
+      "mmu_fcse": {
+        "0": [
+          "COUNTERS: fetch_response=20614 fetch_accept=12398 issue=12360 retire_uop_last=12358",
+          "LOAD_FORWARD: early_issue=11 late_issue=10",
+          "PASS: CPU test, memory delay 0, 94805 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12392 fetch_accept=12379 issue=12359 retire_uop_last=12358",
+          "LOAD_FORWARD: early_issue=4 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148325 cycles"
+        ]
+      },
+      "cache_fcse": {
+        "0": [
+          "COUNTERS: fetch_response=20664 fetch_accept=12411 issue=12370 retire_uop_last=12367",
+          "LOAD_FORWARD: early_issue=12 late_issue=7",
+          "PASS: CPU test, memory delay 0, 95010 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12444 fetch_accept=12401 issue=12368 retire_uop_last=12367",
+          "LOAD_FORWARD: early_issue=11 late_issue=7",
+          "PASS: CPU test, memory delay 3, 148777 cycles"
+        ]
+      },
+      "mmu_fetch": {
+        "0": [
+          "COUNTERS: fetch_response=20555 fetch_accept=12345 issue=12321 retire_uop_last=12319",
+          "LOAD_FORWARD: early_issue=5 late_issue=3",
+          "PASS: CPU test, memory delay 0, 94558 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12345 fetch_accept=12336 issue=12321 retire_uop_last=12319",
+          "LOAD_FORWARD: early_issue=3 late_issue=1",
+          "PASS: CPU test, memory delay 3, 147969 cycles"
+        ]
+      },
+      "cache_associativity": {
+        "0": [
+          "COUNTERS: fetch_response=20587 fetch_accept=12367 issue=12336 retire_uop_last=12335",
+          "LOAD_FORWARD: early_issue=8 late_issue=3",
+          "PASS: CPU test, memory delay 0, 94693 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12384 fetch_accept=12358 issue=12336 retire_uop_last=12335",
+          "LOAD_FORWARD: early_issue=7 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148266 cycles"
+        ]
+      },
+      "cache_lockdown": {
+        "0": [
+          "COUNTERS: fetch_response=21178 fetch_accept=12602 issue=12535 retire_uop_last=12533",
+          "LOAD_FORWARD: early_issue=69 late_issue=66",
+          "PASS: CPU test, memory delay 0, 97282 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13043 fetch_accept=12604 issue=12535 retire_uop_last=12533",
+          "LOAD_FORWARD: early_issue=68 late_issue=63",
+          "PASS: CPU test, memory delay 3, 153708 cycles"
+        ]
+      },
+      "icache_lockdown": {
+        "0": [
+          "COUNTERS: fetch_response=21509 fetch_accept=13223 issue=12729 retire_uop_last=12726",
+          "LOAD_FORWARD: early_issue=5 late_issue=3",
+          "PASS: CPU test, memory delay 0, 101183 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13234 fetch_accept=13153 issue=12729 retire_uop_last=12726",
+          "LOAD_FORWARD: early_issue=3 late_issue=1",
+          "PASS: CPU test, memory delay 3, 157889 cycles"
+        ]
+      },
+      "swp_basic": {
+        "0": [
+          "COUNTERS: fetch_response=44 fetch_accept=37 issue=37 retire_uop_last=30",
+          "LOAD_FORWARD: early_issue=5 late_issue=2",
+          "PASS: CPU test, memory delay 0, 214 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=39 fetch_accept=36 issue=37 retire_uop_last=30",
+          "LOAD_FORWARD: early_issue=3 late_issue=1",
+          "PASS: CPU test, memory delay 3, 359 cycles"
+        ]
+      },
+      "swp_bufferable": {
+        "0": [
+          "COUNTERS: fetch_response=20569 fetch_accept=12351 issue=12336 retire_uop_last=12333",
+          "LOAD_FORWARD: early_issue=9 late_issue=2",
+          "PASS: CPU test, memory delay 0, 94622 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12363 fetch_accept=12349 issue=12336 retire_uop_last=12333",
+          "LOAD_FORWARD: early_issue=6 late_issue=3",
+          "PASS: CPU test, memory delay 3, 148107 cycles"
+        ]
+      },
+      "swp_cached": {
+        "0": [
+          "COUNTERS: fetch_response=20597 fetch_accept=12372 issue=12343 retire_uop_last=12340",
+          "LOAD_FORWARD: early_issue=9 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94727 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12380 fetch_accept=12364 issue=12343 retire_uop_last=12340",
+          "LOAD_FORWARD: early_issue=8 late_issue=2",
+          "PASS: CPU test, memory delay 3, 148234 cycles"
+        ]
+      },
+      "swp_cached_irq": {
+        "0": [
+          "COUNTERS: fetch_response=20643 fetch_accept=12421 issue=12372 retire_uop_last=12365",
+          "LOAD_FORWARD: early_issue=11 late_issue=4",
+          "PASS: CPU test, memory delay 0, 94955 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12413 fetch_accept=12397 issue=12366 retire_uop_last=12361",
+          "LOAD_FORWARD: early_issue=6 late_issue=2",
+          "PASS: CPU test, memory delay 3, 148536 cycles"
+        ]
+      },
+      "swp_irq_core": {
+        "0": [
+          "COUNTERS: fetch_response=69 fetch_accept=62 issue=41 retire_uop_last=35",
+          "LOAD_FORWARD: early_issue=2 late_issue=0",
+          "PASS: CPU test, memory delay 0, 343 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=50 fetch_accept=49 issue=35 retire_uop_last=31",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 3, 474 cycles"
+        ]
+      },
+      "swp_fiq": {
+        "0": [
+          "COUNTERS: fetch_response=60 fetch_accept=54 issue=37 retire_uop_last=32",
+          "LOAD_FORWARD: early_issue=2 late_issue=0",
+          "PASS: CPU test, memory delay 0, 297 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=44 fetch_accept=43 issue=32 retire_uop_last=28",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 3, 412 cycles"
+        ]
+      },
+      "swp_mmu_abort": {
+        "0": [
+          "COUNTERS: fetch_response=20581 fetch_accept=12364 issue=12340 retire_uop_last=12335",
+          "LOAD_FORWARD: early_issue=5 late_issue=2",
+          "PASS: CPU test, memory delay 0, 94672 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12373 fetch_accept=12358 issue=12340 retire_uop_last=12337",
+          "LOAD_FORWARD: early_issue=3 late_issue=2",
+          "PASS: CPU test, memory delay 3, 148178 cycles"
+        ]
+      },
+      "cache_external_abort": {
+        "0": [
+          "COUNTERS: fetch_response=20582 fetch_accept=12365 issue=12336 retire_uop_last=12333",
+          "LOAD_FORWARD: early_issue=6 late_issue=5",
+          "PASS: CPU test, memory delay 0, 94675 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12370 fetch_accept=12356 issue=12336 retire_uop_last=12334",
+          "LOAD_FORWARD: early_issue=3 late_issue=2",
+          "PASS: CPU test, memory delay 3, 148169 cycles"
+        ]
+      },
+      "cache_page_external_abort": {
+        "0": [
+          "COUNTERS: fetch_response=20579 fetch_accept=12362 issue=12336 retire_uop_last=12333",
+          "LOAD_FORWARD: early_issue=5 late_issue=5",
+          "PASS: CPU test, memory delay 0, 94663 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=12371 fetch_accept=12357 issue=12336 retire_uop_last=12334",
+          "LOAD_FORWARD: early_issue=3 late_issue=2",
+          "PASS: CPU test, memory delay 3, 148174 cycles"
+        ]
+      },
+      "swp_write_abort": {
+        "0": [
+          "COUNTERS: fetch_response=30 fetch_accept=24 issue=15 retire_uop_last=12",
+          "LOAD_FORWARD: early_issue=2 late_issue=0",
+          "PASS: CPU test, memory delay 0, 159 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=24 fetch_accept=24 issue=17 retire_uop_last=12",
+          "LOAD_FORWARD: early_issue=1 late_issue=1",
+          "PASS: CPU test, memory delay 3, 252 cycles"
+        ]
+      },
+      "swp_read_abort": {
+        "0": [
+          "COUNTERS: fetch_response=33 fetch_accept=28 issue=18 retire_uop_last=14",
+          "LOAD_FORWARD: early_issue=1 late_issue=1",
+          "PASS: CPU test, memory delay 0, 173 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=28 fetch_accept=27 issue=18 retire_uop_last=15",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 3, 276 cycles"
+        ]
+      },
+      "cache_tlb_write_order": {
+        "20": [
+          "COUNTERS: fetch_response=71 fetch_accept=65 issue=36 retire_uop_last=34",
+          "LOAD_FORWARD: early_issue=3 late_issue=5",
+          "PASS: CPU test, memory delay 20, 2360 cycles"
+        ]
+      },
+      "icache_tlb_write_order": {
+        "20": [
+          "COUNTERS: fetch_response=156 fetch_accept=116 issue=56 retire_uop_last=53",
+          "LOAD_FORWARD: early_issue=2 late_issue=3",
+          "PASS: CPU test, memory delay 20, 3660 cycles"
+        ]
+      }
+    }
+  },
+  "extra_architectural": {
+    "status": "PASS",
+    "programs": {
+      "extra_load_forward": {
+        "0": [
+          "COUNTERS: fetch_response=23621 fetch_accept=13398 issue=13333 retire_uop_last=13330",
+          "LOAD_FORWARD: early_issue=261 late_issue=163",
+          "PASS: CPU test, memory delay 0, 98137 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=15419 fetch_accept=13390 issue=13333 retire_uop_last=13330",
+          "LOAD_FORWARD: early_issue=258 late_issue=160",
+          "PASS: CPU test, memory delay 3, 151894 cycles"
+        ]
+      },
+      "extra_wfi": {
+        "0": [
+          "COUNTERS: fetch_response=53 fetch_accept=49 issue=29 retire_uop_last=23",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 0, 251 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=41 fetch_accept=41 issue=29 retire_uop_last=23",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 3, 365 cycles"
+        ]
+      },
+      "extra_wfi_fiq": {
+        "0": [
+          "COUNTERS: fetch_response=53 fetch_accept=49 issue=29 retire_uop_last=23",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 0, 251 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=41 fetch_accept=41 issue=29 retire_uop_last=23",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 3, 365 cycles"
+        ]
+      },
+      "extra_wfi_masked": {
+        "0": [
+          "COUNTERS: fetch_response=28 fetch_accept=26 issue=18 retire_uop_last=17",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 0, 131 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=23 fetch_accept=23 issue=18 retire_uop_last=17",
+          "LOAD_FORWARD: early_issue=0 late_issue=0",
+          "PASS: CPU test, memory delay 3, 199 cycles"
+        ]
+      },
+      "extra_alignment": {
+        "0": [
+          "COUNTERS: fetch_response=21447 fetch_accept=13212 issue=12922 retire_uop_last=12852",
+          "LOAD_FORWARD: early_issue=18 late_issue=12",
+          "PASS: CPU test, memory delay 0, 98969 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13127 fetch_accept=13115 issue=12887 retire_uop_last=12854",
+          "LOAD_FORWARD: early_issue=16 late_issue=12",
+          "PASS: CPU test, memory delay 3, 154555 cycles"
+        ]
+      },
+      "extra_permission": {
+        "0": [
+          "COUNTERS: fetch_response=21375 fetch_accept=13133 issue=12871 retire_uop_last=12806",
+          "LOAD_FORWARD: early_issue=70 late_issue=3",
+          "PASS: CPU test, memory delay 0, 98679 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13073 fetch_accept=13060 issue=12840 retire_uop_last=12806",
+          "LOAD_FORWARD: early_issue=5 late_issue=0",
+          "PASS: CPU test, memory delay 3, 154109 cycles"
+        ]
+      },
+      "extra_two_mapping": {
+        "0": [
+          "COUNTERS: fetch_response=21684 fetch_accept=13399 issue=13134 retire_uop_last=13069",
+          "LOAD_FORWARD: early_issue=136 late_issue=5",
+          "PASS: CPU test, memory delay 0, 99914 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=13379 fetch_accept=13332 issue=13103 retire_uop_last=13069",
+          "LOAD_FORWARD: early_issue=7 late_issue=5",
+          "PASS: CPU test, memory delay 3, 156275 cycles"
+        ]
+      }
+    }
+  },
+  "irq_fiq": {
+    "status": "PASS",
+    "runs": {
+      "irq-0-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 292 cycles"
+      ],
+      "irq-0-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-1-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 308 cycles"
+      ],
+      "irq-1-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-2-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 308 cycles"
+      ],
+      "irq-2-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-3-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-3-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-4-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-4-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-5-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-5-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-6-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-6-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-7-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-7-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-8-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-8-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-9-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-9-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "irq-10-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "irq-10-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-0-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 292 cycles"
+      ],
+      "fiq-0-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-1-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 308 cycles"
+      ],
+      "fiq-1-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-2-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 308 cycles"
+      ],
+      "fiq-2-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-3-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-3-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-4-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-4-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-5-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-5-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-6-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-6-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-7-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-7-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-8-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-8-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-9-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-9-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ],
+      "fiq-10-0": [
+        "LOAD_FORWARD: early_issue=2 late_issue=0",
+        "PASS: CPU test, memory delay 0, 343 cycles"
+      ],
+      "fiq-10-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=0",
+        "PASS: CPU test, memory delay 3, 474 cycles"
+      ]
+    }
+  },
+  "unit": {
+    "result": "PASS Thumb prediction: 773 address/state/condition/restore cases",
+    "log_sha256": "9b96e9100fcb5534393766695e6319259be7159a358a576d9df3aed4c87cf5b1"
+  },
+  "negative_controls": {
+    "status": "PASS",
+    "variants": [
+      {
+        "name": "predecessor",
+        "status": "REJECTED",
+        "diagnostic": "[30000] %Fatal: alu.sv:107: Assertion failed in test.trial: prediction address flags=00000033 raw=505a9e47 pred=505a9e46 op=13 BX=1 S=0 CC=14 state=3 owner=1 dav=1 clear=1/0 pc=505a9e47/505a9e46 flags=00000033/00000033"
+      },
+      {
+        "name": "full-width-compare",
+        "status": "REJECTED",
+        "diagnostic": "[30000] %Fatal: alu.sv:107: Assertion failed in test.trial: prediction address flags=00000033 raw=505a9e47 pred=505a9e46 op=13 BX=1 S=0 CC=14 state=3 owner=1 dav=1 clear=1/0 pc=505a9e46/505a9e46 flags=00000033/00000033"
+      },
+      {
+        "name": "raw-btb-target",
+        "status": "REJECTED",
+        "diagnostic": "[30000] %Fatal: alu.sv:107: Assertion failed in test.trial: prediction address flags=00000033 raw=505a9e47 pred=505a9e46 op=13 BX=1 S=0 CC=14 state=3 owner=1 dav=1 clear=0/0 pc=505a9e47/505a9e46 flags=00000033/00000033"
+      },
+      {
+        "name": "ignore-address-bit1",
+        "status": "REJECTED",
+        "diagnostic": "[2450000] %Fatal: alu.sv:107: Assertion failed in test.trial: prediction address flags=20000013 raw=81234560 pred=81234562 op=13 BX=0 S=0 CC=14 state=2 owner=1 dav=1 clear=0/1 pc=81234560/81234560 flags=20000013/20000013"
+      },
+      {
+        "name": "ignore-mode-switch",
+        "status": "REJECTED",
+        "diagnostic": "[3910000] %Fatal: alu.sv:107: Assertion failed in test.trial: prediction address flags=20000013 raw=81234561 pred=81234561 op=13 BX=1 S=0 CC=14 state=0 owner=1 dav=1 clear=1/1 pc=81234560/81234560 flags=20000013/20000033"
+      },
+      {
+        "name": "lose-raw-state-bit",
+        "status": "REJECTED",
+        "diagnostic": "[30000] %Fatal: alu.sv:107: Assertion failed in test.trial: prediction address flags=00000033 raw=505a9e47 pred=505a9e46 op=13 BX=1 S=0 CC=14 state=3 owner=1 dav=1 clear=1/0 pc=505a9e46/505a9e46 flags=00000013/00000033"
+      }
+    ]
+  },
+  "existing_alu_unit": "PASS ALU feedback: 7 targets/conditions/holds, fault and exception ownership",
+  "witness_before": {
+    "counts": {
+      "branches": 2327,
+      "switches": 1099,
+      "bit0_only": 257,
+      "false_flush": 257,
+      "other": 852,
+      "decode_clear": 1084
+    },
+    "observation": {
+      "status": "PASS",
+      "windows": [
+        {
+          "index": 0,
+          "cycles": 116136,
+          "retire_proxy": 22508,
+          "reads": 338,
+          "writes": 86,
+          "lines": 60,
+          "halfwords": 960
+        },
+        {
+          "index": 1,
+          "cycles": 113957,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 2,
+          "cycles": 113957,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 3,
+          "cycles": 113957,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 4,
+          "cycles": 113957,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 5,
+          "cycles": 113957,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 6,
+          "cycles": 113957,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        }
+      ],
+      "total": {
+        "windows": 7,
+        "cycles": 960747,
+        "reads": 20889,
+        "writes": 4701,
+        "lines": 152,
+        "halfwords": 2432
+      },
+      "body_cycles_median": 113957,
+      "cycles_per_operation": 1780.578125
+    },
+    "log_sha256": "4d0a2dd0c33e55b4267072691df574fe726630848143e1db9910ea9b1045085a"
+  },
+  "witness_after": {
+    "counts": {
+      "branches": 2327,
+      "switches": 1099,
+      "bit0_only": 257,
+      "false_flush": 0,
+      "other": 852,
+      "decode_clear": 1028
+    },
+    "observation": {
+      "status": "PASS",
+      "windows": [
+        {
+          "index": 0,
+          "cycles": 113638,
+          "retire_proxy": 22508,
+          "reads": 338,
+          "writes": 86,
+          "lines": 60,
+          "halfwords": 960
+        },
+        {
+          "index": 1,
+          "cycles": 111449,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 2,
+          "cycles": 111449,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 3,
+          "cycles": 111449,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 4,
+          "cycles": 111449,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 5,
+          "cycles": 111449,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 6,
+          "cycles": 111449,
+          "retire_proxy": 22508,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        }
+      ],
+      "total": {
+        "windows": 7,
+        "cycles": 943201,
+        "reads": 20889,
+        "writes": 4701,
+        "lines": 152,
+        "halfwords": 2432
+      },
+      "body_cycles_median": 111449,
+      "cycles_per_operation": 1741.390625
+    },
+    "log_sha256": "3f71853710080a5b61fa2de437cabce5567455846a51ca91bf8604db8648596e"
+  },
+  "thumb_micro": {
+    "status": "PASS",
+    "repeats": 2,
+    "comparison": [
+      {
+        "case": "thumb_calls_cross",
+        "mode": "line",
+        "profile": "0:0",
+        "seed": 1,
+        "jitter": 0,
+        "status": "PASS",
+        "reference_cycles": 1014,
+        "candidate_cycles": 984,
+        "cycles_saved": 0.029585798816568087,
+        "throughput_gain": 0.030487804878048808
+      },
+      {
+        "case": "thumb_calls_cross",
+        "mode": "line",
+        "profile": "2:9",
+        "seed": 1,
+        "jitter": 0,
+        "status": "PASS",
+        "reference_cycles": 1014,
+        "candidate_cycles": 984,
+        "cycles_saved": 0.029585798816568087,
+        "throughput_gain": 0.030487804878048808
+      },
+      {
+        "case": "thumb_calls_same",
+        "mode": "line",
+        "profile": "0:0",
+        "seed": 1,
+        "jitter": 0,
+        "status": "PASS",
+        "reference_cycles": 844,
+        "candidate_cycles": 812,
+        "cycles_saved": 0.03791469194312791,
+        "throughput_gain": 0.039408866995073843
+      },
+      {
+        "case": "thumb_calls_same",
+        "mode": "line",
+        "profile": "2:9",
+        "seed": 1,
+        "jitter": 0,
+        "status": "PASS",
+        "reference_cycles": 844,
+        "candidate_cycles": 812,
+        "cycles_saved": 0.03791469194312791,
+        "throughput_gain": 0.039408866995073843
+      }
+    ],
+    "rows": [
+      {
+        "binary_sha256": "d986f56e32a64decca3d7ee758b6d0cc0595f08adf3a56ce88c2f5b14dce987a",
+        "body_cycles_median": 1014,
+        "case": "thumb_calls_cross",
+        "cycles_per_operation": 31.6875,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/before/line/thumb_calls_cross/0-0/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "0:0",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "84d1b3c56240c075d2bd39ce934905e73659256798a51b57319af4afc6b2cae3",
+        "status": "PASS",
+        "total": {
+          "cycles": 100185,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 20538,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "before",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1216,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "d986f56e32a64decca3d7ee758b6d0cc0595f08adf3a56ce88c2f5b14dce987a",
+        "body_cycles_median": 1014,
+        "case": "thumb_calls_cross",
+        "cycles_per_operation": 31.6875,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/before/line/thumb_calls_cross/2-9/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "2:9",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "84d1b3c56240c075d2bd39ce934905e73659256798a51b57319af4afc6b2cae3",
+        "status": "PASS",
+        "total": {
+          "cycles": 165915,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 12342,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "before",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1228,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 1014,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "69e3b62fa85e5185e224ab294fb23cb23a40f46e2e375db584ddab1c25e219c9",
+        "body_cycles_median": 844,
+        "case": "thumb_calls_same",
+        "cycles_per_operation": 26.375,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/before/line/thumb_calls_same/0-0/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "0:0",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "84d1b3c56240c075d2bd39ce934905e73659256798a51b57319af4afc6b2cae3",
+        "status": "PASS",
+        "total": {
+          "cycles": 99474,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 20538,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "before",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1209,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "69e3b62fa85e5185e224ab294fb23cb23a40f46e2e375db584ddab1c25e219c9",
+        "body_cycles_median": 844,
+        "case": "thumb_calls_same",
+        "cycles_per_operation": 26.375,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/before/line/thumb_calls_same/2-9/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "2:9",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "84d1b3c56240c075d2bd39ce934905e73659256798a51b57319af4afc6b2cae3",
+        "status": "PASS",
+        "total": {
+          "cycles": 165204,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 12342,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "before",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1221,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 844,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "d986f56e32a64decca3d7ee758b6d0cc0595f08adf3a56ce88c2f5b14dce987a",
+        "body_cycles_median": 984,
+        "case": "thumb_calls_cross",
+        "cycles_per_operation": 30.75,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/working/line/thumb_calls_cross/0-0/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "0:0",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "548fef8c84a143435274750f696346a82598a00524f2e1381b9d817da8961add",
+        "status": "PASS",
+        "total": {
+          "cycles": 100034,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 20538,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "working",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1185,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "d986f56e32a64decca3d7ee758b6d0cc0595f08adf3a56ce88c2f5b14dce987a",
+        "body_cycles_median": 984,
+        "case": "thumb_calls_cross",
+        "cycles_per_operation": 30.75,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/working/line/thumb_calls_cross/2-9/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "2:9",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "548fef8c84a143435274750f696346a82598a00524f2e1381b9d817da8961add",
+        "status": "PASS",
+        "total": {
+          "cycles": 165764,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 12342,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "working",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1197,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          },
+          {
+            "cycles": 984,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 103,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "69e3b62fa85e5185e224ab294fb23cb23a40f46e2e375db584ddab1c25e219c9",
+        "body_cycles_median": 812,
+        "case": "thumb_calls_same",
+        "cycles_per_operation": 25.375,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/working/line/thumb_calls_same/0-0/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "0:0",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "548fef8c84a143435274750f696346a82598a00524f2e1381b9d817da8961add",
+        "status": "PASS",
+        "total": {
+          "cycles": 99315,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 20538,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "working",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1178,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "binary_sha256": "69e3b62fa85e5185e224ab294fb23cb23a40f46e2e375db584ddab1c25e219c9",
+        "body_cycles_median": 812,
+        "case": "thumb_calls_same",
+        "cycles_per_operation": 25.375,
+        "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+        "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+        "jitter": 0,
+        "line_enabled": true,
+        "log": "build/sim/cpu-donor-import/thumb-calls-20261116/attempts/0001/working/line/thumb_calls_same/2-9/1/run.log",
+        "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+        "mode": "line",
+        "operations": 32,
+        "profile": "2:9",
+        "samples": 3,
+        "seed": 1,
+        "source_id": "548fef8c84a143435274750f696346a82598a00524f2e1381b9d817da8961add",
+        "status": "PASS",
+        "total": {
+          "cycles": 165045,
+          "halfwords": 176,
+          "lines": 11,
+          "reads": 12342,
+          "windows": 5,
+          "writes": 4101
+        },
+        "variant": "working",
+        "warmups": 2,
+        "windows": [
+          {
+            "cycles": 1190,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          },
+          {
+            "cycles": 812,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 104,
+            "writes": 0
+          }
+        ]
+      }
+    ]
+  },
+  "jpeg": {
+    "rows": [
+      {
+        "case": "diffuse_m10_8x8_jpeg",
+        "profile": "0:0",
+        "before": 113957,
+        "after": 111449,
+        "throughput_gain_percent": 2.2503566653805818,
+        "windows": [
+          {
+            "cycles": 113638,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22508,
+            "writes": 86
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 23738,
+            "data_completion_wait": 41008,
+            "decode_sequencing": 8405,
+            "load_dependency": 13161,
+            "multiply_busy": 0,
+            "operand_queue_empty": 21245,
+            "redirect_event": 1486,
+            "shift_dependency": 2406
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 10464,
+            "LOOKUP": 3552,
+            "LOOKUP_CAPTURE": 9540,
+            "LOOKUP_WAIT": 3552,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 5180,
+            "STORE_COMMIT": 4360,
+            "STORE_HIT": 4360,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 111449,
+            "external_wait": 0,
+            "fetch_wait": 18968,
+            "read_wait": 22259,
+            "redirects": 1936,
+            "response_ack": 11366,
+            "retire": 22508,
+            "translation_wait": 3439,
+            "write_wait": 18749
+          }
+        }
+      },
+      {
+        "case": "diffuse_m10_8x8_jpeg",
+        "profile": "2:9",
+        "before": 113957,
+        "after": 111449,
+        "throughput_gain_percent": 2.2503566653805818,
+        "windows": [
+          {
+            "cycles": 114931,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22508,
+            "writes": 86
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 111449,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 23738,
+            "data_completion_wait": 41008,
+            "decode_sequencing": 8405,
+            "load_dependency": 13161,
+            "multiply_busy": 0,
+            "operand_queue_empty": 21245,
+            "redirect_event": 1486,
+            "shift_dependency": 2406
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 10464,
+            "LOOKUP": 3552,
+            "LOOKUP_CAPTURE": 9540,
+            "LOOKUP_WAIT": 3552,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 5180,
+            "STORE_COMMIT": 4360,
+            "STORE_HIT": 4360,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 111449,
+            "external_wait": 0,
+            "fetch_wait": 18968,
+            "read_wait": 22259,
+            "redirects": 1936,
+            "response_ack": 11366,
+            "retire": 22508,
+            "translation_wait": 3439,
+            "write_wait": 18749
+          }
+        }
+      },
+      {
+        "case": "diffuse_m10_8x8_random",
+        "profile": "0:0",
+        "before": 113973,
+        "after": 111465,
+        "throughput_gain_percent": 2.2500336428475265,
+        "windows": [
+          {
+            "cycles": 113654,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22495,
+            "writes": 86
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 23728,
+            "data_completion_wait": 41008,
+            "decode_sequencing": 8405,
+            "load_dependency": 13160,
+            "multiply_busy": 0,
+            "operand_queue_empty": 21275,
+            "redirect_event": 1487,
+            "shift_dependency": 2402
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 10464,
+            "LOOKUP": 3552,
+            "LOOKUP_CAPTURE": 9540,
+            "LOOKUP_WAIT": 3552,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 5180,
+            "STORE_COMMIT": 4360,
+            "STORE_HIT": 4360,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 111465,
+            "external_wait": 0,
+            "fetch_wait": 18978,
+            "read_wait": 22259,
+            "redirects": 1938,
+            "response_ack": 11366,
+            "retire": 22495,
+            "translation_wait": 3439,
+            "write_wait": 18749
+          }
+        }
+      },
+      {
+        "case": "diffuse_m10_8x8_random",
+        "profile": "2:9",
+        "before": 113973,
+        "after": 111465,
+        "throughput_gain_percent": 2.2500336428475265,
+        "windows": [
+          {
+            "cycles": 114947,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22495,
+            "writes": 86
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 111465,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 23728,
+            "data_completion_wait": 41008,
+            "decode_sequencing": 8405,
+            "load_dependency": 13160,
+            "multiply_busy": 0,
+            "operand_queue_empty": 21275,
+            "redirect_event": 1487,
+            "shift_dependency": 2402
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 10464,
+            "LOOKUP": 3552,
+            "LOOKUP_CAPTURE": 9540,
+            "LOOKUP_WAIT": 3552,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 5180,
+            "STORE_COMMIT": 4360,
+            "STORE_HIT": 4360,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 111465,
+            "external_wait": 0,
+            "fetch_wait": 18978,
+            "read_wait": 22259,
+            "redirects": 1938,
+            "response_ack": 11366,
+            "retire": 22495,
+            "translation_wait": 3439,
+            "write_wait": 18749
+          }
+        }
+      },
+      {
+        "case": "diffuse_m8_8x8_random",
+        "profile": "0:0",
+        "before": 112956,
+        "after": 110320,
+        "throughput_gain_percent": 2.389412617839004,
+        "windows": [
+          {
+            "cycles": 112561,
+            "halfwords": 976,
+            "index": 0,
+            "lines": 61,
+            "reads": 346,
+            "retire_proxy": 22316,
+            "writes": 86
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 23546,
+            "data_completion_wait": 41008,
+            "decode_sequencing": 8405,
+            "load_dependency": 13161,
+            "multiply_busy": 0,
+            "operand_queue_empty": 20500,
+            "redirect_event": 1422,
+            "shift_dependency": 2278
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 10464,
+            "LOOKUP": 3552,
+            "LOOKUP_CAPTURE": 9540,
+            "LOOKUP_WAIT": 3552,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 5180,
+            "STORE_COMMIT": 4360,
+            "STORE_HIT": 4360,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 110320,
+            "external_wait": 0,
+            "fetch_wait": 18683,
+            "read_wait": 22259,
+            "redirects": 1808,
+            "response_ack": 11366,
+            "retire": 22316,
+            "translation_wait": 3439,
+            "write_wait": 18749
+          }
+        }
+      },
+      {
+        "case": "diffuse_m8_8x8_random",
+        "profile": "2:9",
+        "before": 112956,
+        "after": 110320,
+        "throughput_gain_percent": 2.389412617839004,
+        "windows": [
+          {
+            "cycles": 113872,
+            "halfwords": 976,
+            "index": 0,
+            "lines": 61,
+            "reads": 346,
+            "retire_proxy": 22316,
+            "writes": 86
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 110320,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 23546,
+            "data_completion_wait": 41008,
+            "decode_sequencing": 8405,
+            "load_dependency": 13161,
+            "multiply_busy": 0,
+            "operand_queue_empty": 20500,
+            "redirect_event": 1422,
+            "shift_dependency": 2278
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 10464,
+            "LOOKUP": 3552,
+            "LOOKUP_CAPTURE": 9540,
+            "LOOKUP_WAIT": 3552,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 5180,
+            "STORE_COMMIT": 4360,
+            "STORE_HIT": 4360,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 110320,
+            "external_wait": 0,
+            "fetch_wait": 18683,
+            "read_wait": 22259,
+            "redirects": 1808,
+            "response_ack": 11366,
+            "retire": 22316,
+            "translation_wait": 3439,
+            "write_wait": 18749
+          }
+        }
+      },
+      {
+        "case": "diffuse_m10_16x8_jpeg",
+        "profile": "0:0",
+        "before": 224845,
+        "after": 219849,
+        "throughput_gain_percent": 2.2724688308793706,
+        "windows": [
+          {
+            "cycles": 222390,
+            "halfwords": 1136,
+            "index": 0,
+            "lines": 71,
+            "reads": 338,
+            "retire_proxy": 44524,
+            "writes": 150
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 46962,
+            "data_completion_wait": 80752,
+            "decode_sequencing": 16533,
+            "load_dependency": 25961,
+            "multiply_busy": 0,
+            "operand_queue_empty": 41909,
+            "redirect_event": 2958,
+            "shift_dependency": 4774
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 20576,
+            "LOOKUP": 6976,
+            "LOOKUP_CAPTURE": 18820,
+            "LOOKUP_WAIT": 6976,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 10236,
+            "STORE_COMMIT": 8584,
+            "STORE_HIT": 8584,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 219849,
+            "external_wait": 0,
+            "fetch_wait": 37400,
+            "read_wait": 43923,
+            "redirects": 3792,
+            "response_ack": 22438,
+            "retire": 44524,
+            "translation_wait": 6703,
+            "write_wait": 36829
+          }
+        }
+      },
+      {
+        "case": "diffuse_m10_16x8_jpeg",
+        "profile": "2:9",
+        "before": 224845,
+        "after": 219849,
+        "throughput_gain_percent": 2.2724688308793706,
+        "windows": [
+          {
+            "cycles": 223782,
+            "halfwords": 1136,
+            "index": 0,
+            "lines": 71,
+            "reads": 338,
+            "retire_proxy": 44524,
+            "writes": 150
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 219849,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          }
+        ],
+        "scored_profile": {
+          "buckets": {
+            "advance_other": 46962,
+            "data_completion_wait": 80752,
+            "decode_sequencing": 16533,
+            "load_dependency": 25961,
+            "multiply_busy": 0,
+            "operand_queue_empty": 41909,
+            "redirect_event": 2958,
+            "shift_dependency": 4774
+          },
+          "cache_states": {
+            "BUFFER_STORE": 0,
+            "BYPASS": 0,
+            "IDLE": 20576,
+            "LOOKUP": 6976,
+            "LOOKUP_CAPTURE": 18820,
+            "LOOKUP_WAIT": 6976,
+            "MAINTAIN": 0,
+            "MAINT_CAPTURE": 0,
+            "MAINT_LOOKUP": 0,
+            "MAINT_WAIT": 0,
+            "READ_LINE": 10236,
+            "STORE_COMMIT": 8584,
+            "STORE_HIT": 8584,
+            "WAIT_DRAIN": 0,
+            "WAIT_REFILL": 0
+          },
+          "raw": {
+            "cycles": 219849,
+            "external_wait": 0,
+            "fetch_wait": 37400,
+            "read_wait": 43923,
+            "redirects": 3792,
+            "response_ack": 22438,
+            "retire": 44524,
+            "translation_wait": 6703,
+            "write_wait": 36829
+          }
+        }
+      }
+    ],
+    "equal_weight_throughput_gain_percent": 2.290551622446224,
+    "qualification": {
+      "compiled_source_changes": [
+        "rtl/arm/zap_alu_main.sv"
+      ],
+      "original_code_retirement_matches": true,
+      "rows": [
+        {
+          "case": "diffuse_m10_8x8_jpeg",
+          "observation": {
+            "body_cycles_median": 111449,
+            "cycles_per_operation": 1741.390625,
+            "status": "PASS",
+            "total": {
+              "cycles": 943201,
+              "halfwords": 2432,
+              "lines": 152,
+              "reads": 20889,
+              "windows": 7,
+              "writes": 4701
+            },
+            "windows": [
+              {
+                "cycles": 113638,
+                "halfwords": 960,
+                "index": 0,
+                "lines": 60,
+                "reads": 338,
+                "retire_proxy": 22508,
+                "writes": 86
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "0:0",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m10_8x8_jpeg",
+          "observation": {
+            "body_cycles_median": 111449,
+            "cycles_per_operation": 1741.390625,
+            "status": "PASS",
+            "total": {
+              "cycles": 1011939,
+              "halfwords": 2432,
+              "lines": 152,
+              "reads": 12691,
+              "windows": 7,
+              "writes": 4701
+            },
+            "windows": [
+              {
+                "cycles": 114931,
+                "halfwords": 960,
+                "index": 0,
+                "lines": 60,
+                "reads": 338,
+                "retire_proxy": 22508,
+                "writes": 86
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              },
+              {
+                "cycles": 111449,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22508,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "2:9",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m10_8x8_random",
+          "observation": {
+            "body_cycles_median": 111465,
+            "cycles_per_operation": 1741.640625,
+            "status": "PASS",
+            "total": {
+              "cycles": 943313,
+              "halfwords": 2432,
+              "lines": 152,
+              "reads": 20889,
+              "windows": 7,
+              "writes": 4701
+            },
+            "windows": [
+              {
+                "cycles": 113654,
+                "halfwords": 960,
+                "index": 0,
+                "lines": 60,
+                "reads": 338,
+                "retire_proxy": 22495,
+                "writes": 86
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "0:0",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m10_8x8_random",
+          "observation": {
+            "body_cycles_median": 111465,
+            "cycles_per_operation": 1741.640625,
+            "status": "PASS",
+            "total": {
+              "cycles": 1012051,
+              "halfwords": 2432,
+              "lines": 152,
+              "reads": 12691,
+              "windows": 7,
+              "writes": 4701
+            },
+            "windows": [
+              {
+                "cycles": 114947,
+                "halfwords": 960,
+                "index": 0,
+                "lines": 60,
+                "reads": 338,
+                "retire_proxy": 22495,
+                "writes": 86
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              },
+              {
+                "cycles": 111465,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22495,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "2:9",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m8_8x8_random",
+          "observation": {
+            "body_cycles_median": 110320,
+            "cycles_per_operation": 1723.75,
+            "status": "PASS",
+            "total": {
+              "cycles": 935302,
+              "halfwords": 2448,
+              "lines": 153,
+              "reads": 20897,
+              "windows": 7,
+              "writes": 4701
+            },
+            "windows": [
+              {
+                "cycles": 112561,
+                "halfwords": 976,
+                "index": 0,
+                "lines": 61,
+                "reads": 346,
+                "retire_proxy": 22316,
+                "writes": 86
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "0:0",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m8_8x8_random",
+          "observation": {
+            "body_cycles_median": 110320,
+            "cycles_per_operation": 1723.75,
+            "status": "PASS",
+            "total": {
+              "cycles": 1003992,
+              "halfwords": 2448,
+              "lines": 153,
+              "reads": 12699,
+              "windows": 7,
+              "writes": 4701
+            },
+            "windows": [
+              {
+                "cycles": 113872,
+                "halfwords": 976,
+                "index": 0,
+                "lines": 61,
+                "reads": 346,
+                "retire_proxy": 22316,
+                "writes": 86
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              },
+              {
+                "cycles": 110320,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 22316,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "2:9",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m10_16x8_jpeg",
+          "observation": {
+            "body_cycles_median": 219849,
+            "cycles_per_operation": 1717.5703125,
+            "status": "PASS",
+            "total": {
+              "cycles": 1739425,
+              "halfwords": 3344,
+              "lines": 209,
+              "reads": 20889,
+              "windows": 7,
+              "writes": 5069
+            },
+            "windows": [
+              {
+                "cycles": 222390,
+                "halfwords": 1136,
+                "index": 0,
+                "lines": 71,
+                "reads": 338,
+                "retire_proxy": 44524,
+                "writes": 150
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "0:0",
+          "variant": "unprofiled"
+        },
+        {
+          "case": "diffuse_m10_16x8_jpeg",
+          "observation": {
+            "body_cycles_median": 219849,
+            "cycles_per_operation": 1717.5703125,
+            "status": "PASS",
+            "total": {
+              "cycles": 1809708,
+              "halfwords": 3344,
+              "lines": 209,
+              "reads": 12691,
+              "windows": 7,
+              "writes": 5069
+            },
+            "windows": [
+              {
+                "cycles": 223782,
+                "halfwords": 1136,
+                "index": 0,
+                "lines": 71,
+                "reads": 338,
+                "retire_proxy": 44524,
+                "writes": 150
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 5,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              },
+              {
+                "cycles": 219849,
+                "halfwords": 0,
+                "index": 6,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 44524,
+                "writes": 0
+              }
+            ]
+          },
+          "profile": "2:9",
+          "variant": "unprofiled"
+        }
+      ],
+      "status": "PASS"
+    },
+    "pixel_controls": {
+      "controls": [
+        {
+          "case": "diffuse_m10_8x8_jpeg",
+          "corrupted_expected_address": "0x80003010",
+          "program_sha256": "5bbd2eb36930a92429394781b96588f205752daf7f65721808f9ea45940f3fc0",
+          "status": "REJECTED"
+        },
+        {
+          "case": "diffuse_m10_8x8_random",
+          "corrupted_expected_address": "0x80003010",
+          "program_sha256": "aad9670c3ebe4609a808a02ec0f5a9d3906e945981d2128a30f4a4eb39c19eeb",
+          "status": "REJECTED"
+        },
+        {
+          "case": "diffuse_m8_8x8_random",
+          "corrupted_expected_address": "0x80003010",
+          "program_sha256": "fe2457cb6e2617d71874d882f7f738efb5b1c38017dd5d243ef78619110a5852",
+          "status": "REJECTED"
+        },
+        {
+          "case": "diffuse_m10_16x8_jpeg",
+          "corrupted_expected_address": "0x80003010",
+          "program_sha256": "549719cbae33441a94af02936cda0207f5f622aaff544048eca6cef1d0244121",
+          "status": "REJECTED"
+        }
+      ],
+      "status": "PASS"
+    },
+    "result_sha256": "28d3d034bd4b5e8d7dece027948499209b345b04bb69be1086229d23b6a546ad",
+    "manifest_sha256": "f0895170e57b34e91b4746a78782c62d514bb8ad537504d073f4fb1486e44053",
+    "directory": "build/sim/jpeg-payload/thumb-target-20261116"
+  },
+  "full_suite": {
+    "rows": [
+      {
+        "body_cycles_median": 54730,
+        "case": "matrix4",
+        "cycles_per_operation": 3420.625,
+        "deterministic_repeats": 2,
+        "operations": 16,
+        "oracle": {
+          "executed_max": "0x10002640",
+          "executed_min": "0x100011c4",
+          "helper_instructions": 0,
+          "instructions": 14176,
+          "outputs": [
+            {
+              "address": "0x80003000",
+              "bytes": 1024,
+              "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+            }
+          ],
+          "payload_instructions": 14176,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 14176
+          }
+        ],
+        "profile": "0:0",
+        "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 582119,
+          "halfwords": 4000,
+          "lines": 250,
+          "reads": 20918,
+          "windows": 7,
+          "writes": 5653
+        },
+        "unit": "4x4 matrix products",
+        "windows": [
+          {
+            "cycles": 58771,
+            "halfwords": 1760,
+            "index": 0,
+            "lines": 110,
+            "reads": 369,
+            "retire_proxy": 14353,
+            "writes": 263
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 54730,
+        "case": "matrix4",
+        "cycles_per_operation": 3420.625,
+        "deterministic_repeats": 2,
+        "operations": 16,
+        "oracle": {
+          "executed_max": "0x10002640",
+          "executed_min": "0x100011c4",
+          "helper_instructions": 0,
+          "instructions": 14176,
+          "outputs": [
+            {
+              "address": "0x80003000",
+              "bytes": 1024,
+              "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+            }
+          ],
+          "payload_instructions": 14176,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 14176
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 14176
+          }
+        ],
+        "profile": "2:9",
+        "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 656100,
+          "halfwords": 4000,
+          "lines": 250,
+          "reads": 12720,
+          "windows": 7,
+          "writes": 5653
+        },
+        "unit": "4x4 matrix products",
+        "windows": [
+          {
+            "cycles": 60359,
+            "halfwords": 1760,
+            "index": 0,
+            "lines": 110,
+            "reads": 369,
+            "retire_proxy": 14353,
+            "writes": 263
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 54730,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 5465,
+        "case": "transpose4",
+        "cycles_per_operation": 170.78125,
+        "deterministic_repeats": 2,
+        "operations": 32,
+        "oracle": {
+          "executed_max": "0x100026a4",
+          "executed_min": "0x10002644",
+          "helper_instructions": 0,
+          "instructions": 800,
+          "outputs": [
+            {
+              "address": "0x80001000",
+              "bytes": 2048,
+              "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+            }
+          ],
+          "payload_instructions": 800,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 800
+          }
+        ],
+        "profile": "0:0",
+        "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 260134,
+          "halfwords": 3344,
+          "lines": 209,
+          "reads": 20590,
+          "windows": 7,
+          "writes": 5126
+        },
+        "unit": "4x4 matrix transposes",
+        "windows": [
+          {
+            "cycles": 7712,
+            "halfwords": 1152,
+            "index": 0,
+            "lines": 72,
+            "reads": 41,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5460,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 5465,
+        "case": "transpose4",
+        "cycles_per_operation": 170.78125,
+        "deterministic_repeats": 2,
+        "operations": 32,
+        "oracle": {
+          "executed_max": "0x100026a4",
+          "executed_min": "0x10002644",
+          "helper_instructions": 0,
+          "instructions": 800,
+          "outputs": [
+            {
+              "address": "0x80001000",
+              "bytes": 2048,
+              "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+            }
+          ],
+          "payload_instructions": 800,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 800
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 800
+          }
+        ],
+        "profile": "2:9",
+        "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 330352,
+          "halfwords": 3312,
+          "lines": 207,
+          "reads": 12392,
+          "windows": 7,
+          "writes": 5126
+        },
+        "unit": "4x4 matrix transposes",
+        "windows": [
+          {
+            "cycles": 8339,
+            "halfwords": 1120,
+            "index": 0,
+            "lines": 70,
+            "reads": 41,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5460,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5465,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 27201,
+        "case": "triangle_edges",
+        "cycles_per_operation": 1700.0625,
+        "deterministic_repeats": 2,
+        "operations": 16,
+        "oracle": {
+          "executed_max": "0x503a30b8",
+          "executed_min": "0x10002be0",
+          "helper_instructions": 1872,
+          "instructions": 8528,
+          "outputs": [
+            {
+              "address": "0x80000334",
+              "bytes": 12,
+              "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+            },
+            {
+              "address": "0x80007a04",
+              "bytes": 128,
+              "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+            }
+          ],
+          "payload_instructions": 6656,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 1872,
+            "index": 0,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 1,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 2,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 3,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 4,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 5,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 6,
+            "payload_retire_proxy": 6656
+          }
+        ],
+        "profile": "0:0",
+        "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 304400,
+          "halfwords": 1536,
+          "lines": 96,
+          "reads": 21000,
+          "windows": 7,
+          "writes": 4473
+        },
+        "unit": "triangle edge setups",
+        "windows": [
+          {
+            "cycles": 29473,
+            "halfwords": 1008,
+            "index": 0,
+            "lines": 63,
+            "reads": 451,
+            "retire_proxy": 8657,
+            "writes": 216
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 27201,
+        "case": "triangle_edges",
+        "cycles_per_operation": 1700.0625,
+        "deterministic_repeats": 2,
+        "operations": 16,
+        "oracle": {
+          "executed_max": "0x503a30b8",
+          "executed_min": "0x10002be0",
+          "helper_instructions": 1872,
+          "instructions": 8528,
+          "outputs": [
+            {
+              "address": "0x80000334",
+              "bytes": 12,
+              "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+            },
+            {
+              "address": "0x80007a04",
+              "bytes": 128,
+              "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+            }
+          ],
+          "payload_instructions": 6656,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 1872,
+            "index": 0,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 1,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 2,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 3,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 4,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 5,
+            "payload_retire_proxy": 6656
+          },
+          {
+            "helper_retire_proxy": 1872,
+            "index": 6,
+            "payload_retire_proxy": 6656
+          }
+        ],
+        "profile": "2:9",
+        "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 371801,
+          "halfwords": 1360,
+          "lines": 85,
+          "reads": 12802,
+          "windows": 7,
+          "writes": 4473
+        },
+        "unit": "triangle edge setups",
+        "windows": [
+          {
+            "cycles": 30590,
+            "halfwords": 832,
+            "index": 0,
+            "lines": 52,
+            "reads": 451,
+            "retire_proxy": 8657,
+            "writes": 216
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 27201,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 71264,
+        "case": "fill16_frame",
+        "cycles_per_operation": 1.9466783216783217,
+        "deterministic_repeats": 2,
+        "operations": 36608,
+        "oracle": {
+          "executed_max": "0x10002b1c",
+          "executed_min": "0x10002ab4",
+          "helper_instructions": 0,
+          "instructions": 22896,
+          "outputs": [
+            {
+              "address": "0x80004000",
+              "bytes": 73232,
+              "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+            }
+          ],
+          "payload_instructions": 22896,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 22896
+          }
+        ],
+        "profile": "0:0",
+        "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 6277218,
+          "halfwords": 768672,
+          "lines": 48042,
+          "reads": 20598,
+          "windows": 7,
+          "writes": 260393
+        },
+        "unit": "pixels",
+        "windows": [
+          {
+            "cycles": 71603,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 49,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71262,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71264,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71262,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71264,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71262,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71264,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 201307,
+        "case": "fill16_frame",
+        "cycles_per_operation": 5.498989291958042,
+        "deterministic_repeats": 2,
+        "operations": 36608,
+        "oracle": {
+          "executed_max": "0x10002b1c",
+          "executed_min": "0x10002ab4",
+          "helper_instructions": 0,
+          "instructions": 22896,
+          "outputs": [
+            {
+              "address": "0x80004000",
+              "bytes": 73232,
+              "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+            }
+          ],
+          "payload_instructions": 22896,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 22896
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 22896
+          }
+        ],
+        "profile": "2:9",
+        "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 7462180,
+          "halfwords": 768672,
+          "lines": 48042,
+          "reads": 12400,
+          "windows": 7,
+          "writes": 260393
+        },
+        "unit": "pixels",
+        "windows": [
+          {
+            "cycles": 201900,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 49,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 201305,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201307,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201305,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201307,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201305,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201307,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 2564,
+        "case": "fill16_tail",
+        "cycles_per_operation": 2.506353861192571,
+        "deterministic_repeats": 2,
+        "operations": 1023,
+        "oracle": {
+          "executed_max": "0x10002b58",
+          "executed_min": "0x10002ab4",
+          "helper_instructions": 0,
+          "instructions": 654,
+          "outputs": [
+            {
+              "address": "0x80004000",
+              "bytes": 2064,
+              "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+            }
+          ],
+          "payload_instructions": 654,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 654
+          }
+        ],
+        "profile": "0:0",
+        "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 245600,
+          "halfwords": 3376,
+          "lines": 211,
+          "reads": 20606,
+          "windows": 7,
+          "writes": 5647
+        },
+        "unit": "pixels",
+        "windows": [
+          {
+            "cycles": 2422,
+            "halfwords": 80,
+            "index": 0,
+            "lines": 5,
+            "reads": 57,
+            "retire_proxy": 663,
+            "writes": 513
+          },
+          {
+            "cycles": 2574,
+            "halfwords": 16,
+            "index": 1,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2593,
+            "halfwords": 16,
+            "index": 2,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2554,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2564,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2554,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2564,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 2564,
+        "case": "fill16_tail",
+        "cycles_per_operation": 2.506353861192571,
+        "deterministic_repeats": 2,
+        "operations": 1023,
+        "oracle": {
+          "executed_max": "0x10002b58",
+          "executed_min": "0x10002ab4",
+          "helper_instructions": 0,
+          "instructions": 654,
+          "outputs": [
+            {
+              "address": "0x80004000",
+              "bytes": 2064,
+              "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+            }
+          ],
+          "payload_instructions": 654,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 654
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 654
+          }
+        ],
+        "profile": "2:9",
+        "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 319575,
+          "halfwords": 3360,
+          "lines": 210,
+          "reads": 12408,
+          "windows": 7,
+          "writes": 5647
+        },
+        "unit": "pixels",
+        "windows": [
+          {
+            "cycles": 6172,
+            "halfwords": 64,
+            "index": 0,
+            "lines": 4,
+            "reads": 57,
+            "retire_proxy": 663,
+            "writes": 513
+          },
+          {
+            "cycles": 2576,
+            "halfwords": 16,
+            "index": 1,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2595,
+            "halfwords": 16,
+            "index": 2,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2554,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2564,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2554,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2564,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 2628,
+        "case": "fill8_tail",
+        "cycles_per_operation": 1.2813261823500732,
+        "deterministic_repeats": 2,
+        "operations": 2051,
+        "oracle": {
+          "executed_max": "0x10002a74",
+          "executed_min": "0x100029f8",
+          "helper_instructions": 0,
+          "instructions": 667,
+          "outputs": [
+            {
+              "address": "0x80004000",
+              "bytes": 2068,
+              "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+            }
+          ],
+          "payload_instructions": 667,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 667
+          }
+        ],
+        "profile": "0:0",
+        "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 246369,
+          "halfwords": 3360,
+          "lines": 210,
+          "reads": 20606,
+          "windows": 7,
+          "writes": 5654
+        },
+        "unit": "bytes",
+        "windows": [
+          {
+            "cycles": 2571,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 57,
+            "retire_proxy": 676,
+            "writes": 515
+          },
+          {
+            "cycles": 2642,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2628,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2626,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2628,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2626,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2628,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 2628,
+        "case": "fill8_tail",
+        "cycles_per_operation": 1.2813261823500732,
+        "deterministic_repeats": 2,
+        "operations": 2051,
+        "oracle": {
+          "executed_max": "0x10002a74",
+          "executed_min": "0x100029f8",
+          "helper_instructions": 0,
+          "instructions": 667,
+          "outputs": [
+            {
+              "address": "0x80004000",
+              "bytes": 2068,
+              "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+            }
+          ],
+          "payload_instructions": 667,
+          "status": "PASS"
+        },
+        "payload_windows": [
+          {
+            "helper_retire_proxy": 0,
+            "index": 0,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 1,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 2,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 3,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 4,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 5,
+            "payload_retire_proxy": 667
+          },
+          {
+            "helper_retire_proxy": 0,
+            "index": 6,
+            "payload_retire_proxy": 667
+          }
+        ],
+        "profile": "2:9",
+        "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+        "status": "PASS",
+        "throughput_ratio": 1.0,
+        "total": {
+          "cycles": 320287,
+          "halfwords": 3360,
+          "lines": 210,
+          "reads": 12408,
+          "windows": 7,
+          "writes": 5654
+        },
+        "unit": "bytes",
+        "windows": [
+          {
+            "cycles": 6212,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 57,
+            "retire_proxy": 676,
+            "writes": 507
+          },
+          {
+            "cycles": 2642,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2628,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2626,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2628,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2626,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2628,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ]
+      }
+    ],
+    "qualification": [
+      {
+        "case": "matrix4",
+        "status": "PASS",
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "transpose4",
+        "status": "PASS",
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "triangle_edges",
+        "status": "PASS",
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "fill16_frame",
+        "status": "PASS",
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "fill16_tail",
+        "status": "PASS",
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "fill8_tail",
+        "status": "PASS",
+        "wrong_output_rejected": true
+      }
+    ],
+    "index_original_baseline_100": {
+      "0:0": 228.5392921544569,
+      "2:9": 192.2189044604709
+    },
+    "comparison_to_previous": {
+      "0:0": 100.0,
+      "2:9": 100.0
+    },
+    "result_sha256": "b2576c8bf26628de8a6e525c77a0172147c849a6867988463d94544b19c56e14",
+    "manifest_sha256": "14b2aa075dfb618121f876c9fc1b4e9b3ba9cd2b4523ff416a0cba2dbe13feb7",
+    "directory": "build/sim/spmark-payload/thumb-target-20261116"
+  },
+  "provenance": {
+    "status": "PASS",
+    "pristine_hashes": 83,
+    "lexically_matching_sv_svh": 37,
+    "strict_bytes": "Preexisting formatting/comment drift retained",
+    "patch_sha256": "070db995145e82f4df1c6e169e7d32484fba3df1d72bea5ef8358a1deb2c69fb"
+  },
+  "limitations": [
+    "No routed timing/area/native hardware qualification or native JPEG deadline pass",
+    "Full six-kernel results unchanged; do not add Thumb microbenchmarks to their original index",
+    "All original JPEG profiles/repeats/unprofiled counters checked; no full six-kernel occupancy reprofile",
+    "Original witness filter used incorrect MOV opcode0; corrected13 and explicit false_flush counter are accepted; all witness guest counters match accepted snapshots",
+    "Generic frontend/decode separation and speculative RAS recovery remain open",
+    "Raw bit0 remains in ALU result and BX mode checks; only fetch address storage/comparison is normalized"
+  ],
+  "final_unit": {
+    "result": "PASS Thumb prediction: 773 address/state/condition/restore cases",
+    "source_sha256": "041a5e7da85153a57246055310ee09ae40b3df8f0da8d86e9e39561ce0829034",
+    "log_sha256": "68a2e35f402e2117c5f47c60026b7ba7917cb3824eb9e53e0cd7ec441cdf9843"
+  },
+  "micro_runner_sha256": "667dcbaa847b0c9aedcdbe2ada0684d3bd5c7a5fc402537eac9a5cea52b422a9",
+  "unit_format_qualification": {
+    "before_sha256": "041a5e7da85153a57246055310ee09ae40b3df8f0da8d86e9e39561ce0829034",
+    "formatted_sha256": "a755d81cbdd545175746dce908ea2ee6e84e37bb7936c6416f32d946a92adfaa",
+    "lexically_equal": true,
+    "formatter": "repository-pinned Verible default test formatting"
+  }
+}

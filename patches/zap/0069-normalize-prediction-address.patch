@@ -1,0 +1,22 @@
+--- a/src/rtl/zap_alu_main.sv
++++ b/src/rtl/zap_alu_main.sv
+@@ -635,7 +635,7 @@
+                 o_clear_from_alu                <= |w_clear_from_alu;
+                 r_clear_from_alu                <=  w_clear_from_alu;
+ 
+-                w_pc_from_alu_btarget           <= tmp_sum;
++                w_pc_from_alu_btarget           <=  { tmp_sum [31:1], 1'b0} ;
+                 w_pc_from_alu_resync            <= i_pc_ff + (flags_ff[T] ? 32'd2 : 32'd4);
+ 
+                 o_confirm_from_alu              <= w_confirm_from_alu;
+@@ -1028,8 +1028,8 @@
+                         else if
+                         (
+                                 // Check branch target address.
+-                                opcode == {2'd0, ADD} ? (i_ppc_ff == quick_sum):
+-                                opcode == {2'd0, MOV} ? (i_ppc_ff == rm) : 1'd0
++                                opcode == {2'd0, ADD} ? (i_ppc_ff  [31:1] == quick_sum [31:1] ):
++                                opcode == {2'd0, MOV} ? (i_ppc_ff  [31:1] == rm [31:1] ) : 1'd0
+                         )
+                         begin // Everything's good.
+                                 w_clear_from_alu        = CONTINUE;

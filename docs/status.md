@@ -1,3 +1,31 @@
+## 2026-11-16: Thumb return prediction avoids257false redirects per JPEG block
+
+User authorized Thumb frontend/calls work, commit and push. Original-code RTL
+witness identifies an even RAS fetch address versus odd BX state-tagged target.
+Writeback already clearsPC[0]; old ALU full-word comparison falsely redirects.
+0069 stores canonical fetch targets and compares bits31:1, retaining rawBXbit0
+and prior real-mode-change/exception/condition priorities. ALU only; no added
+state/RAM/stage/cache protocol/PLL, actual78MHz/104MHz goal.
+
+Same original block:257actual bit0-only redirects→0, branches2327/exchanges1099
+unchanged. All original guest counters match accepted before/after snapshots.
+8×8JPEG113957→111449; four-case suite +2.2906%. EmptyR23248→21245, data41008 and
+loaddep13161 unchanged. Thumb32calls cross/same word1014→984/844→812 (+3.05/3.94%).
+Full six ARM kernels unchanged: original indices228.5393/192.2189. Not a native
+JPEG deadline or physical speed/timing result; full frontend/RAS work remains.
+
+92architectural/44IRQ-FIQ cases,773directed address/mode/condition/restore cases,
+existingALUhold/reset/owner test, six exercised broken variants, both complete
+benchmark suites/two repeats/output controls and8unprofiled JPEG matches pass.
+83pristine hashes/37ZAP lexical streams reconstruct through0069. Final compiled
+sources byte-match accepted frozen benchmarks. Original observer filter opcode0
+was corrected to13; accepted witness additionally counts actual false redirects.
+No other simulations/checkpoints, media/firmware/clock/deadline changes or CI/
+hardware interaction. Current SDRAM build remains pinned ca5a9d0, not this change.
+[Contract/results](thumb-prediction-address.md),
+[evidence](evidence/thumb-prediction-address-20261116.json),
+[complete CPU ledger](cpu-optimization-status.md).
+
 ## 2026-11-16: Legacy CPU delay removed; original index228.54/192.22
 
 User requested another CPU performance improvement while SDRAM build runs.

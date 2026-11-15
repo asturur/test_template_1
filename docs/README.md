@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [thumb-prediction-address.md](thumb-prediction-address.md) | Removed false Thumb mode-bit redirects; original JPEG +2.29%, unchanged ARM suite, bounded ALU change |
 | [cpu-optimization-status.md](cpu-optimization-status.md) | Complete implemented/remaining CPU-cache ledger; P0 latency removal and original indices228.54/192.22 |
 | [cache-completion-overlap.md](cache-completion-overlap.md) | First F2 consume/admit overlap, no new state, indices225.16/189.38; deeper unresolved-request parallelism remains |
 | [cache-store-completion.md](cache-store-completion.md) | Owned posted/resident store completion, no new state, indices206.04/179.25 and full qualification |

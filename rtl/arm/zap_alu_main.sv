@@ -600,7 +600,8 @@ module zap_alu_main #(
       o_clear_from_alu <= |w_clear_from_alu;
       r_clear_from_alu <= w_clear_from_alu;
 
-      w_pc_from_alu_btarget <= tmp_sum;
+      // Fetch PCs have bit0 cleared; BX consumes the raw bit separately for T.
+      w_pc_from_alu_btarget <= {tmp_sum[31:1], 1'b0};
       w_pc_from_alu_resync <= i_pc_ff + (flags_ff[T] ? 32'd2 : 32'd4);
 
       o_confirm_from_alu <= w_confirm_from_alu;
@@ -915,8 +916,10 @@ begin
              //
         else if (
             // Check branch target address.
-            opcode == {2'd0, ADD} ? (i_ppc_ff == quick_sum):
-                                opcode == {2'd0, MOV} ? (i_ppc_ff == rm) : 1'd0
+            // Compare fetch addresses. Bit0 is not an instruction address bit;
+            // the BX mode-change check above still requires a real redirect.
+            opcode == {2'd0, ADD} ? (i_ppc_ff[31:1] == quick_sum[31:1]):
+                                opcode == {2'd0, MOV} ? (i_ppc_ff[31:1] == rm[31:1]) : 1'd0
                         )
                         begin // Everything's good.
           w_clear_from_alu = CONTINUE;
