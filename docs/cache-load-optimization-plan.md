@@ -10,6 +10,26 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
+## Current checkpoint — full E0 reprofile chooses resident-way reuse next
+
+A/D, B and E0 are accepted and measured. Full current profiling passes all six
+kernels at both memory profiles, two exact repeats, 84 windows per repeat and
+unchanged original counters. Nine parser tests pass. Resident data holds remain
+54.10% transpose, 68.97% fill16 tail and 60.74% fill8 tail, with zero modeled
+external waits; their hot stores still hold 7 clocks. Next priority is the owned
+indexed bank path for resident-way reuse: qualify reads first, then measure
+stores independently without losing byte/dirty halves or adding line copies.
+P1/F overlap must retain that owner interface and remain a separate experiment.
+
+C stays open (matrix translation holds 9.92%). Matrix/triangle empty-queue
+attribution stays open (32.67%/30.49%); raw fetch waits do not establish causation.
+The delayed full frame remains backend-limited, BUFFER_STORE 41.88% of clocks.
+A posted-reservation response-step reduction is a separately noted unimplemented
+hypothesis; preserve real resident data/dirty commits. Keep 78 MHz PLL and the
+104 MHz objective; FPGA fit/timing/boot are unverified.
+[Current profile and priority](spmark-payload-profile.md),
+[resident bank design/tests](selected-way-pipeline-investigation.md).
+
 ## Measured current latency
 
 A warmed ordinary load with a matching local translation token holds P2 for
@@ -85,7 +105,7 @@ All37upstream SV/SVH token streams reconstruct through0061; strict byte
 verification still has preexisting formatting drift. FPGA fit/timing and phone
 boot remain separate gates. Keep the78MHz PLL unchanged.
 
-## B — permit both access directions in one local mapping token
+## B — both access directions in one local mapping token (implemented; full simulation acceptance passes)
 
 Dependency: A accepted and measured. Keep one context/1KiB mapping record,
 but store separately checked read/write permission outcomes. A read-allowed
@@ -103,6 +123,59 @@ across SVC/User/FIQ, LDRT/STRT, all1KiB AP boundaries, MMU off/on, TTBR/DACR/
 FCSE changes, all/MVA invalidation, preserved entries, external L1/L2 abort
 and retry across idle ACK. Run both I-side prefetch/CP15 tests and D-side tests
 because translation code is shared. No promised speedup until remeasured.
+
+B now passes the tests above. The pre-change controller fails the new direction-
+reuse test as expected; the candidate passes 3,092 hot checks through actual
+descriptor publication, plus a CPU loop with 32 denied force-user stores and
+read recovery at delays 0/3. Full benchmark indices versus original baseline
+are 124.0646/122.1471; throughput gain over A/D is 1.9993%.
+The qualified transpose profile reduces translation-related holds from 12.19%
+to 2.07% and data holds from 58.85% to 54.10%. These are overlapping
+occupancies; they are not additive recoverable loss.
+
+### B implementation and later pipeline contract
+
+`arm920_tlb` now publishes a checked mapping separately from an exact walk-fault
+result. A mapping stores read-allowed and write-allowed bits under one existing
+1 KiB/context record. Direction changes select those registered outcomes without
+republishing or rerunning the CAM/BRAM lookup. The two denied directions share
+the existing domain/AP FSR field; no duplicate context, physical mapping or FSR
+register is needed. A permission fault leaves the mapping available for a later
+allowed read. Invalid-descriptor/table-bus faults instead match the full captured
+address and direction and are discarded only by their live owner's completion.
+Idle legacy ACKs cannot consume them.
+
+Three state bits per TLB instance are added (mapping/result class and two
+permission outcomes), six across the instruction/data instances before synthesis.
+There is no new RAM, cache line copy, descriptor bank, port or outstanding request
+slot. Permission calculation stays at descriptor publication, outside the hot
+request-direction selection. Current BRAM/read/compare stages and the 78 MHz
+PLL are retained; 104 MHz remains the routed-timing objective. FPGA area/timing
+is not inferred from the state-bit count.
+
+This makes the record a reusable mapping capability rather than the current
+request's completion record. Use that boundary for subsequent overlap:
+
+1. An address-only P1 lookup may probe the current mapping while the previous
+   P2 request completes. A probe must not launch a walk, publish/consume a fault,
+   allocate a completion, issue external traffic or perform a store.
+2. At P2 admission, validate the actual MVA/context, effective privilege,
+   direction, alignment and current mapping generation. Capture physical
+   address, C/B, permission/fault/FAR, byte formatting and destination ownership
+   with the request. A later response must not read a newer live token.
+3. An overlapping tag-read/compare/data pipeline needs per-stage valid/owner
+   metadata and ready/credit handling. Invalidation/context changes revoke
+   probes; accepted older work must still drain or fault precisely. Preserve
+   ordering for stores, MMIO, SWP and CP15; do not weaken the global hold until
+   completions and oldest-fault handling support more than one request.
+
+These are dependencies for E/F, not extra hardware silently bundled into B.
+Before enabling overlap, test token replacement/invalidation while an older
+response is held, read/write permission differences at both stages, wrong-path
+probes, hit/miss backpressure, oldest faults and exact-once stores. Measure load
+latency and independent initiation interval separately. C remains an independent
+locality experiment; its results should decide whether an additional mapping
+slot is justified before any larger request queue.
 
 ## C — two small fully associative local mapping slots
 
@@ -170,6 +243,31 @@ latency. One eligibility bit and a32-bit selection are added, no BRAM/line copy.
 Fit/timing and phone boot remain unverified; no commit/push/CI/deployment.
 
 ## E — selected-way certificates before a larger pipelined interface
+
+E0 implementation checkpoint: [absent-line stores](cache-store-absence.md) now
+pass full simulation acceptance. One 28-bit line-result record and two owned
+class bits accelerate only ordinary cacheable buffered write misses. SWP,
+uncached and write-through classes keep their old paths; a read/refill revokes
+the record. Captured PA/data/mask and completion ownership are retained under
+queue stalls and later directory revocation. No indexed resident bank path or
+multi-request pipeline is implemented. The negative shortcut therefore remains
+a separately measured predecessor for resident-way and P1/F experiments.
+
+
+Investigation update 2026-11-15: the user prioritized E feasibility before
+implementing C. [Measured lookup and pipeline investigation](selected-way-pipeline-investigation.md)
+qualifies an unchanged-timing observer on all six B kernels and checks 1/2-entry
+shadow records against actual tag decisions. Full-frame stores are all misses
+in the sampled window: positive selected-way reuse alone cannot help them.
+A store-only absence record covers 16,016/18,306 demands. Resident reuse covers
+1,487/2,544 matrix and 704/800 transpose demands with two shared records.
+These are potential skipped searches, not speedups. Recommend one common
+presence/way directory and owned indexed bank contract; measure store-miss,
+resident-read and resident-store shortcuts separately before P1/F overlap.
+Existing data/dirty commits and single-owner CPU control require explicit
+interfaces, not only a `hit_way` mux. See the investigation for tests and what
+carries into a later execution pipeline. B production RTL remains unchanged.
+
 
 Dependency: A–D ownership contracts and measured locality. A same-line-only
 shortcut is cheap but misses the interleaved matrix input pattern. Investigate

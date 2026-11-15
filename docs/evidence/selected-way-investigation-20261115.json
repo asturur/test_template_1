@@ -1,0 +1,273 @@
+{
+  "analysis": {
+    "assertions": "Every predicted present/absent decision and selected way matches the actual registered cache lookup",
+    "mutation_policy": "Clear all certificates on any actual fill, maintenance, lock or invalidation; retain policies always reread fresh line data; absence applies only to nonallocating stores",
+    "rows": [
+      {
+        "case": "matrix4",
+        "policies": {
+          "load_only_flush_store_1": {
+            "resident_load": 96
+          },
+          "load_only_flush_store_2": {
+            "resident_load": 1376
+          },
+          "load_only_retain_store_1": {
+            "resident_load": 96
+          },
+          "load_only_retain_store_2": {
+            "resident_load": 1504
+          },
+          "loads_stores_resident_1": {
+            "resident_load": 96,
+            "resident_store": 96
+          },
+          "loads_stores_resident_2": {
+            "resident_load": 1376,
+            "resident_store": 111
+          },
+          "loads_stores_with_absence_1": {
+            "resident_load": 96,
+            "resident_store": 96
+          },
+          "loads_stores_with_absence_2": {
+            "resident_load": 1376,
+            "resident_store": 111
+          }
+        },
+        "totals": {
+          "admissions": 2544,
+          "cached_store_mutations": 368,
+          "load_hit": 2176,
+          "ram_commits": 368,
+          "store_hit": 368
+        }
+      },
+      {
+        "case": "transpose4",
+        "policies": {
+          "load_only_flush_store_1": {
+            "resident_load": 64
+          },
+          "load_only_flush_store_2": {
+            "resident_load": 64
+          },
+          "load_only_retain_store_1": {
+            "resident_load": 128
+          },
+          "load_only_retain_store_2": {
+            "resident_load": 320
+          },
+          "loads_stores_resident_1": {
+            "resident_load": 128,
+            "resident_store": 128
+          },
+          "loads_stores_resident_2": {
+            "resident_load": 320,
+            "resident_store": 384
+          },
+          "loads_stores_with_absence_1": {
+            "resident_load": 128,
+            "resident_store": 128
+          },
+          "loads_stores_with_absence_2": {
+            "resident_load": 320,
+            "resident_store": 384
+          }
+        },
+        "totals": {
+          "admissions": 800,
+          "cached_store_mutations": 384,
+          "load_hit": 416,
+          "ram_commits": 384,
+          "store_hit": 384
+        }
+      },
+      {
+        "case": "triangle_edges",
+        "policies": {
+          "load_only_flush_store_1": {
+            "resident_load": 288
+          },
+          "load_only_flush_store_2": {
+            "resident_load": 288
+          },
+          "load_only_retain_store_1": {
+            "resident_load": 320
+          },
+          "load_only_retain_store_2": {
+            "resident_load": 320
+          },
+          "loads_stores_resident_1": {
+            "resident_load": 320,
+            "resident_store": 592
+          },
+          "loads_stores_resident_2": {
+            "resident_load": 368,
+            "resident_store": 672
+          },
+          "loads_stores_with_absence_1": {
+            "resident_load": 320,
+            "resident_store": 592
+          },
+          "loads_stores_with_absence_2": {
+            "resident_load": 368,
+            "resident_store": 672
+          }
+        },
+        "totals": {
+          "admissions": 1712,
+          "cached_store_mutations": 912,
+          "load_hit": 800,
+          "ram_commits": 912,
+          "store_hit": 912
+        }
+      },
+      {
+        "case": "fill16_frame",
+        "policies": {
+          "load_only_flush_store_1": {},
+          "load_only_flush_store_2": {},
+          "load_only_retain_store_1": {},
+          "load_only_retain_store_2": {},
+          "loads_stores_resident_1": {},
+          "loads_stores_resident_2": {},
+          "loads_stores_with_absence_1": {
+            "absent_store": 16016
+          },
+          "loads_stores_with_absence_2": {
+            "absent_store": 16016
+          }
+        },
+        "totals": {
+          "admissions": 18306,
+          "load_hit": 1,
+          "store_miss": 18305
+        }
+      },
+      {
+        "case": "fill16_tail",
+        "policies": {
+          "load_only_flush_store_1": {},
+          "load_only_flush_store_2": {},
+          "load_only_retain_store_1": {},
+          "load_only_retain_store_2": {},
+          "loads_stores_resident_1": {
+            "resident_store": 448
+          },
+          "loads_stores_resident_2": {
+            "resident_store": 448
+          },
+          "loads_stores_with_absence_1": {
+            "resident_store": 448
+          },
+          "loads_stores_with_absence_2": {
+            "resident_store": 448
+          }
+        },
+        "totals": {
+          "admissions": 514,
+          "cached_store_mutations": 513,
+          "load_hit": 1,
+          "ram_commits": 513,
+          "store_hit": 513
+        }
+      },
+      {
+        "case": "fill8_tail",
+        "policies": {
+          "load_only_flush_store_1": {},
+          "load_only_flush_store_2": {},
+          "load_only_retain_store_1": {},
+          "load_only_retain_store_2": {},
+          "loads_stores_resident_1": {
+            "resident_store": 450
+          },
+          "loads_stores_resident_2": {
+            "resident_store": 450
+          },
+          "loads_stores_with_absence_1": {
+            "resident_store": 450
+          },
+          "loads_stores_with_absence_2": {
+            "resident_store": 450
+          }
+        },
+        "totals": {
+          "admissions": 516,
+          "cached_store_mutations": 515,
+          "load_hit": 1,
+          "ram_commits": 515,
+          "store_hit": 515
+        }
+      }
+    ],
+    "scope": "One complete first scored window of each accepted original workload; cold certificate models; not an RTL speedup or full workload locality proof"
+  },
+  "current_cpu_source_matches_accepted_permission_reuse": true,
+  "current_source_files_checked": 128,
+  "fit_timing_boot": "NOT_RUN",
+  "limits": [
+    "One complete first scored window per workload at synthetic0:0, not all gameplay or board timings",
+    "Shadow certificates were checked against actual serialized tag decisions; no fast path is implemented",
+    "Sampled windows contain no fill/maintenance revocations; mutation and collision correctness still needs RTL qualification",
+    "Future execution/memory overlap is not verified by the single-request trace"
+  ],
+  "model_control_tests": 8,
+  "production_rtl_changed_by_investigation": false,
+  "qualification": {
+    "base": "build/sim/spmark-payload/permission-reuse-20261115",
+    "base_result_sha256": "50aee922082cd5c89e196921764d6ed71d200d0675ac004549b0a3f78c37092d",
+    "harness_sha256": "3ebe76fac89d7d4bcc4801702b8a31e47fb738a3bf64be5225852b7f3a3531b5",
+    "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "observer_sha256": "dc7e91c74e10b70c57f240ff45b51c6feb2b9bff6dfa0a50f56572688aef2c09",
+    "repeat": 1,
+    "rows": [
+      {
+        "case": "matrix4",
+        "original_counters_identical": true,
+        "trace_events": 8368
+      },
+      {
+        "case": "transpose4",
+        "original_counters_identical": true,
+        "trace_events": 3168
+      },
+      {
+        "case": "triangle_edges",
+        "original_counters_identical": true,
+        "trace_events": 6960
+      },
+      {
+        "case": "fill16_frame",
+        "original_counters_identical": true,
+        "trace_events": 54918
+      },
+      {
+        "case": "fill16_tail",
+        "original_counters_identical": true,
+        "trace_events": 2568
+      },
+      {
+        "case": "fill8_tail",
+        "original_counters_identical": true,
+        "trace_events": 2578
+      }
+    ],
+    "scored_window_traced": 2,
+    "source_id": "6f2a7f96206cd9db12a7692b63308172733780e3afb20cd0ceccd85ecba7787c",
+    "status": "PASS"
+  },
+  "reproduce": [
+    "python3 scratch/selected-way-investigation-20261115/trace.py",
+    "python3 scratch/selected-way-investigation-20261115/analyze.py",
+    "python3 scratch/selected-way-investigation-20261115/test_analysis.py -v"
+  ],
+  "scripts_sha256": {
+    "analyze.py": "770095b1de7c63ad3851cd399e72e751d6e2ec6fc8a38b9c785c2f0b8020b50b",
+    "test_analysis.py": "82b1e8fb7db7bcc153dffccf4f05e0fafc928bfc0d24d86033195b4cc1d41a09",
+    "trace.py": "7033b72329b3eeb4ecaa2227d08a3efbb5a5a3fd5fae2c85546bf4e0151ad825"
+  },
+  "speedup_measured": false,
+  "status": "PASS"
+}

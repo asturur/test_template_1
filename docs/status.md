@@ -1,3 +1,160 @@
+## 2026-11-15: Full E0 profile complete; resident-way bank access chosen next
+
+All six kernels at 0:0/2:9, 12 groups/84 windows per repeat, two exact repeats
+and every original raw counter pass. All 128 current CPU hashes match accepted
+E0; nine parser tests pass. Hot absent full-frame stores now hold 4 clocks;
+zero-wait data holds 59.35% versus 70% before E0. At 2:9, data holds 72.67%,
+BUFFER_STORE 41.88% and overlapping backend activity 81.79%, confirming the
+modeled backing-write limit. The throughput table is unchanged by profiling.
+
+Next important change: resident-way reuse with an owned indexed bank interface,
+including store data/dirty commits. Transpose data holds 54.10%, small fills
+68.97%/60.74%, all without external waits; resident STRs still hold 7 clocks.
+Qualify indexed reads first and measure stores separately, retaining 104 MHz
+RAM/register boundaries and later P1/F owner/credit compatibility. No large
+line copies or dirty mirrors. C remains open for matrix translation (9.92%).
+Empty queues matrix32.67%/triangle30.49% still need fetch/redirect attribution;
+raw fetch counters overlap and do not prove a branch cause. Older CPU plan stays.
+A possible posted-reservation response shortening is noted as unimplemented,
+separate from resident mutation timing and from the chosen larger priority.
+
+No new RTL, guest, clock, hardware or branch/worktree change in this profiling
+pass. User requested committing and pushing accumulated work after recording
+this result. CI/build/deployment remains unrequested. Only the current profile's
+rebuildable compiler headers were removed; sources/executable/evidence remain.
+[Profile and next tests](spmark-payload-profile.md),
+[evidence](evidence/spmark-payload-cycle-profile-store-absence-20261115.json).
+
+## 2026-11-15: E0 absent-line stores implemented and simulation-qualified
+
+A single 28-bit absence record plus two captured class bits skips repeated tag
+searches for ordinary cacheable/bufferable write misses. Only cache_access and
+cache_adapter differ from B's frozen CPU source closure. Current P2 permission/
+PA/class gates, exact posted-write ordering, owned completion and no allocation
+are preserved. Refills/cache disable/maintenance/invalidation/lock revoke the
+record without canceling an accepted owner. No new RAM or PLL change; 78 MHz
+operation and 104 MHz design objective remain.
+
+Dedicated test: 44 owned requests/39 ordered posted packets, response 5→2 clocks,
+all masks, refill/hit/dirty halves/clean, aliases/current PA, unsupported classes,
+queue full/pending maintenance, error retry and reset. Port-only predecessor
+fails the shortcut check. 92 CPU runs and 13 related unit suites pass. The new
+CPU program proves warmed absence cannot authorize a denied force-user store,
+and that refill revokes the record before resident updates.
+
+All six original kernels pass both memory profiles, exact repeats, 84 windows
+and six wrong-output controls. Full frame 183,380→135,329 at 0:0 (+35.51%
+throughput), 201,344→201,332 at 2:9 (+0.00596%); other medians unchanged. Suite
+step gains 5.1946% / 0.000993%, original-baseline indices
+130.5092/122.1483. Delayed writes are backend-limited.
+
+An old instruction-cache fixture failed identically on B at cycle1470 because
+it compared data early-response timing with the instruction class. Corrected
+test-only reference keeps writable metadata under instruction-class responses;
+all value/timing comparisons pass both refill transports. A temporary helper's
+PASS-format/log collision was resolved by recovering separate existing-binary
+write-buffer runs. No production response-class or buffer behavior was changed.
+
+The absent class is captured with request ownership for later pipelining; the
+controller/adapter/global stall remain single-request. C and resident selected-
+way/indexed bank work stay open. FPGA fit/timing and phone boot remain unverified.
+No commit/push/CI/hardware/branch/worktree actions. Reclaimed
+3.53 GiB of this step's rebuildable compiler headers; kept executables,
+sources, logs and checkpoints.
+[Design/results/commands](cache-store-absence.md),
+[qualification](evidence/cache-store-absence-20261115.json).
+
+## 2026-11-15: Selected-way investigation identifies resident and absent-line paths
+
+User prioritized E investigation with later instruction/request overlap in mind.
+A frozen B observer runs all six original kernels at 0:0; every original counter
+and all seven windows per case match. One complete scored window per workload
+is traced. Cold 1/2-entry shadow certificates agree with every actual hit/way
+or absence decision; eight stale-result/eligibility model controls pass.
+
+Important correction to a hit-only plan: full-frame fill has 18,305 store misses,
+no resident stores, and no write allocation. Two resident-way records cover
+none of those stores; one absence record already covers 16,016/18,306 total
+demands. Two shared resident records cover matrix 1,487/2,544, transpose 704/800,
+triangle 1,040/1,712 and about 87% of the small fills. This is lookup coverage,
+not an implemented speedup. Traced windows have no fills/maintenance; concurrent
+RAM hazards and mutation correctness still need actual RTL tests.
+
+Plan now separates a reusable small presence/way directory and owned indexed
+bank access from the single-request FSM/adapter/CPU completion control. Data
+and dirty-half RAM commits need fresh owner-aligned accesses; do not wire stale
+CAM hit/dirty snapshots into a bypass. Later in-order hit overlap requires
+stage metadata, ordering/credits, hazards and precise register/store commit;
+selected-way lookup itself does not supply execution parallelism. Approximately
+71 directory bits for two combined presence/absence records, not a total ALM
+estimate. No extra data array or RAM port is proposed.
+
+Recommended experiments: common directory/indexed boundary; store-only absence
+shortcut; resident reads; resident stores; P1 address probes; F stage/CPU overlap.
+C remains open and independently measured. 78 MHz PLL/104 MHz objective unchanged.
+No production RTL changes, new branch/worktree, commit/push, CI or hardware action.
+Only this observer's rebuildable compiler headers were removed afterward;
+executables, logs, sources and checkpoints remain.
+[Detailed design, reusable boundaries and tests](selected-way-pipeline-investigation.md),
+[evidence](evidence/selected-way-investigation-20261115.json).
+
+## 2026-11-15: B permission-token reuse implemented and simulation-qualified
+
+One local mapping now holds independently checked read/write permissions.
+Valid mappings and exact descriptor/walk faults have separate publication and
+consumption rules; denied writes cannot authorize stores or poison later reads,
+and idle ACKs do not consume walk faults. Three new bits per TLB instance,
+six across I/D, no new RAM or duplicate mapping. Only `rtl/arm920/tlb.sv`
+changes in the frozen CPU source closure. Existing cache/register boundaries
+and 78 MHz PLL remain; 104 MHz remains the timing objective.
+
+Acceptance: predecessor fails the new reuse check; candidate passes 3,092
+controller checks, seven related unit suites, 86 CPU runs, Verilog-2001 parsing,
+and all six original kernels at both memory profiles, two exact repeats,
+84 windows per repeat and six wrong-output controls. Transpose 10,220→9,164,
+triangle 41,391→40,991; matrix/fills unchanged. Suite throughput +1.9993% over
+A/D, original-baseline indices 124.0646/122.1471. Focused
+transpose observer confirms hot stores 10→7 held clocks, translation-related
+holds 12.19%→2.07%, unchanged accepted counters and two exact repeats.
+
+Next: C's second mapping slot as a separate locality experiment, then selected-
+way/request overlap. The plan now specifies side-effect-free P1 probes, P2
+permission/generation validation, captured fault/physical/destination metadata,
+per-stage ownership/credit and precise ordering before allowing overlapping
+requests. B itself retains the single-request completion contract. The older
+CPU donor plan remains active; FPGA fit/timing and phone boot are unverified.
+
+Removed only rebuildable precompiled headers from this chat's test/profile
+outputs, reclaiming 1.70 GiB; executables, source, logs, checkpoints and other
+threads' outputs are preserved. No branch/worktree changes, commit, push, CI
+or hardware deployment in this step.
+[Results](spmark-payload-results.md), [implementation/pipeline plan](cache-load-optimization-plan.md),
+[qualification](evidence/permission-token-reuse-20261115.json).
+
+## 2026-11-15: Current integration reprofile complete; B permission reuse recommended
+
+On `e188110`, all128 production CPU source hashes match the accepted A/D
+snapshot. All six original payloads pass both0:0/2:9 profiles, two exact repeats,
+84windows per repeat and unchanged original counters; nine parser tests pass.
+Zero-wait data holds now matrix28.84%, transpose58.85%, triangle29.26%,
+full-frame70.00%, fill16tail68.97%, fill8tail60.74%. Cumulative throughput remains
+121.6327/119.7529 versus original baseline100; this profiling pass changes no RTL.
+
+Next recommendation: B, share one mapping with separate R/W permission results;
+measure independently before C's second mapping slot, E selected-way overlap
+and F request pipelining. Transpose STR holds10clocks versus7for a matching
+token; mapping/direction reuse is a measured target, not a promised speedup.
+Fill translation holds are only0.12–0.19%, so later store/cache work is still
+needed. Empty-queue attribution remains open; older donor plan stays active.
+Keep78MHz PLL,104MHz target and separate FPGA area/timing/boot acceptance.
+
+Worktree audit: original integration is the only N-Gage checkout; no detached
+Codex worktrees remain. The separate MAME worktree is branch-attached, clean,
+and preserved. No other simulations/checkpoints were touched. No commit/push,
+CI or hardware action in this pass.
+[Profile and recommendation](spmark-payload-profile.md),
+[evidence](evidence/spmark-payload-cycle-profile-integration-20261115.json).
+
 ## 2026-11-15: Reconciled all saved work into the original integration branch
 
 There is one active checkout: `/Users/andreabogazzi/develop/NGage_MiSTer` on

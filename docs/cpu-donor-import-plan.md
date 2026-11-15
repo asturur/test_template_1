@@ -180,6 +180,41 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+Full-profile priority update 2026-11-15: after E0, choose resident-way reuse
+through owned indexed bank operations, including the store path. Transpose/
+small-fill data holds are 54.10%/68.97%/60.74%, with no modeled external waits.
+Read and store qualification remain separate measured changes; preserve P2
+permissions, fresh data/dirty RAM and the later stage-owner contract. C remains
+open for matrix translation reuse; empty-queue/fetch/branch causation remains
+an attribution task. This prioritization does not close or discard the earlier
+correctness, RAS/branch, forwarding or CPU pipeline plan. [Current profile](spmark-payload-profile.md).
+
+
+E0 update 2026-11-15: a separately measured absent-line store shortcut now
+improves the full-frame kernel 35.51% at 0:0, with delayed writes backend-limited.
+It passes 92 CPU runs and full payload controls. This is a tag-result reuse
+step, not a new allocation policy or execution pipeline. C, resident selected-
+way work and F overlap remain open. [Implementation](cache-store-absence.md).
+
+
+Update 2026-11-15: cache-plan B now passes 86 CPU runs, 3,092 controller checks
+and the complete original-payload benchmark. It adds 1.9993% kernel throughput
+over A/D and reduces transpose hot stores from 10 to 7 held clocks. This is
+phase12b's single-record dual-direction permission reuse; C's second slot,
+selected-way overlap and a multi-request pipeline remain separate experiments.
+The mapping-capability/completion-owner separation and pipeline prerequisites
+are explicit in the cache plan. All architectural/area/104 MHz gates remain.
+
+
+Current checkpoint2026-11-15: ARMv4T guest pruning and the measured narrow A/D
+phase07/12b handoff/response work are included in integration e188110. Full
+reprofiling passes both memory profiles and unchanged accepted counters. Next
+recommended experiment is cache-plan B's dual-direction permission reuse,
+then C's second small mapping record; measure each separately. This does not
+complete the remaining02a/02b/02c correctness audits or the broader import/
+integration gates. Empty-queue time still needs attribution before choosing
+phase03/08/10 work. [Current profile](spmark-payload-profile.md).
+
 User priority update2026-11-15: execute the guest ARMv4T pruning portion of02b
 first, before other imports, and remeasure original SPMark payloads. Patch0060
 implements that instruction-profile/execution-hardware portion and Thumb

@@ -11,6 +11,8 @@ The suite covers:
 - Separate demand and idle-housekeeping completions, exact global-stall equivalence on every CPU test cycle, waited transfers, maintenance exact-once handshakes and reset cancellation.
 - CP15 control and lockdown registers, write-buffer drain, prefetch and WFI handshakes; IRQ, FIQ and masked-IRQ wake and handler ordering.
 - TLB C/B attributes, domain/AP permissions, FCSE, page-table walks ordered behind buffered writes, and section/small-page external abort FSR/FAR.
+- Dual-direction permission reuse through real descriptor publication (3,092 hot checks), exact walk-fault ownership and idle ACKs; repeated CPU LDRT/read, denied STRT/write and read recovery with FSR/FAR and unchanged data.
+- Absent-line buffered stores: real-cache 44-request/39-packet ordering and mask/refill/dirty/queue/error/reset checks; CPU warmed-record privilege denial and resident refill recovery.
 - Cache tags, line storage, 64-way placement, dirty half-lines, write-back/through, no write allocation, cache disable/re-enable, MVA/index maintenance, lockdown, instruction prefetch (including unaligned MVA and nonidentity translation), instruction coherency and 65th-line eviction.
 - A four-address/16-word write buffer, grouping, full/backpressure, ordered reads and fills, transient bus errors, and IRQs during refill and dirty eviction.
 - CPU load widths, multiple-load cases, alignment and selected Thumb return dependencies, at several synthetic memory delays.

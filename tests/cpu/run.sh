@@ -9,9 +9,11 @@ sh tests/cpu/operands/reference.sh
 tests/cpu/operands/sim.sh
 tests/cpu/demand_completion/sim.sh
 sh tests/cpu/cache_hit_response/sim.sh
+sh tests/cpu/cache_store_absence/sim.sh
 sh tests/cpu/icache_discard/sim.sh
 tests/cpu/cp15/sim.sh
 tests/cpu/tlb_attributes/sim.sh
+sh tests/cpu/tlb_permission_reuse/sim.sh
 tests/cpu/tlb_lookup_owner/sim.sh
 tests/cpu/tlb64_bank/sim.sh
 tests/cpu/tlb_bus_gate/sim.sh
@@ -37,6 +39,8 @@ CPU_PROGRAM=fiq_privileged_store tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_privileged_ldrt tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_flash_sequence tests/cpu/core/sim.sh
 CPU_PROGRAM=data_privilege_owner tests/cpu/core/sim.sh
+CPU_PROGRAM=tlb_permission_reuse tests/cpu/core/sim.sh
+CPU_PROGRAM=cache_store_absence tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_store_return tests/cpu/core/sim.sh
 CPU_PROGRAM=swp_basic tests/cpu/core/sim.sh
 CPU_PROGRAM=swp_cached tests/cpu/core/sim.sh

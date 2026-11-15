@@ -1,0 +1,747 @@
+{
+  "base": "build/sim/spmark-payload/permission-reuse-20261115",
+  "base_result_sha256": "50aee922082cd5c89e196921764d6ed71d200d0675ac004549b0a3f78c37092d",
+  "executable_sha256": "b55f04557db846c31003dfca97eebb9659f01fb5719bb538050831c49aa74741",
+  "harness_sha256": "d737de4134dbc66e87e166b1e88dbe5a9381728328b0f46e31d5c225367e78c2",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "input_sha256": {
+    "3DTEST.DLL.hex": "1eb5d727f971a0bfcd389dc7f40897f2745a5e181146bb6d7e89844a3eb1a01f",
+    "firmware.hex": "43940451437139663bb0b8c5c1cc06f1e2e600ac88d282c8c3cdfb40ad22e0ad",
+    "transpose4.bin": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+    "transpose4.hex": "dfb37103d3d76592cf963a2e2da073005624ddac693fc69a86b1bd7b5bba734e"
+  },
+  "meaning": "blocking-signal occupancy; not additive causal loss",
+  "observer_sha256": "84c408c6e0d5071b7a12679f1fd3bfde72babdfd278333bef83cb60fc68a4c3f",
+  "repeat": 2,
+  "rows": [
+    {
+      "bucket_percentages": {
+        "advance_other": 12.560017459624618,
+        "data_completion_wait": 54.103011785246615,
+        "decode_sequencing": 0.0,
+        "load_dependency": 16.80488869489306,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 14.797031863814928,
+        "redirect_event": 1.0366652116979485,
+        "shift_dependency": 0.6983849847228285
+      },
+      "cache_state_percent_of_all_cycles": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 14.993452640768224,
+        "LOOKUP": 8.729812309035356,
+        "LOOKUP_CAPTURE": 8.729812309035356,
+        "LOOKUP_WAIT": 8.729812309035356,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 4.539502400698385,
+        "STORE_COMMIT": 4.190309908336971,
+        "STORE_HIT": 4.190309908336971,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "case": "transpose4",
+      "memory_profile": "0:0",
+      "original_counters_identical": true,
+      "profile": {
+        "pcs": [
+          {
+            "bucket": 0,
+            "cycles": 1280,
+            "instruction": "ldr\tr2, [r0, #4]",
+            "pc": 268445252
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr3, [r0, #16]",
+            "pc": 268445256
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #4]",
+            "pc": 268445260
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr2, [r0, #16]",
+            "pc": 268445264
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr2, [r0, #8]",
+            "pc": 268445268
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr3, [r0, #32]",
+            "pc": 268445272
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #8]",
+            "pc": 268445276
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr2, [r0, #32]",
+            "pc": 268445280
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr2, [r0, #12]",
+            "pc": 268445284
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr3, [r0, #48]\t@ 0x30",
+            "pc": 268445288
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #12]",
+            "pc": 268445292
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr2, [r0, #48]\t@ 0x30",
+            "pc": 268445296
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr2, [r0, #24]",
+            "pc": 268445300
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr3, [r0, #36]\t@ 0x24",
+            "pc": 268445304
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #24]",
+            "pc": 268445308
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr2, [r0, #36]\t@ 0x24",
+            "pc": 268445312
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr2, [r0, #28]",
+            "pc": 268445316
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr3, [r0, #52]\t@ 0x34",
+            "pc": 268445320
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #28]",
+            "pc": 268445324
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr2, [r0, #52]\t@ 0x34",
+            "pc": 268445328
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr2, [r0, #44]\t@ 0x2c",
+            "pc": 268445332
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "ldr\tr3, [r0, #56]\t@ 0x38",
+            "pc": 268445336
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #44]\t@ 0x2c",
+            "pc": 268445340
+          },
+          {
+            "bucket": 0,
+            "cycles": 1120,
+            "instruction": "str\tr2, [r0, #56]\t@ 0x38",
+            "pc": 268445344
+          },
+          {
+            "bucket": 0,
+            "cycles": 1265,
+            "instruction": "ldr\tip, [pc, #136]\t@ 0x94",
+            "pc": 192
+          },
+          {
+            "bucket": 0,
+            "cycles": 5,
+            "instruction": "ldr\tr0, [pc, #104]\t@ 0x90",
+            "pc": 220
+          },
+          {
+            "bucket": 2,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #4]",
+            "pc": 268445260
+          },
+          {
+            "bucket": 2,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #8]",
+            "pc": 268445276
+          },
+          {
+            "bucket": 2,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #12]",
+            "pc": 268445292
+          },
+          {
+            "bucket": 2,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #24]",
+            "pc": 268445308
+          },
+          {
+            "bucket": 2,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #28]",
+            "pc": 268445324
+          },
+          {
+            "bucket": 2,
+            "cycles": 1120,
+            "instruction": "str\tr3, [r0, #44]\t@ 0x2c",
+            "pc": 268445340
+          },
+          {
+            "bucket": 2,
+            "cycles": 960,
+            "instruction": "bx\tip",
+            "pc": 200
+          },
+          {
+            "bucket": 2,
+            "cycles": 20,
+            "instruction": "mov\tr2, #512\t@ 0x200",
+            "pc": 228
+          },
+          {
+            "bucket": 3,
+            "cycles": 320,
+            "instruction": "bne\t0x0",
+            "pc": 212
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr2, [r0, #4]",
+            "pc": 268445252
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr3, [r0, #16]",
+            "pc": 268445256
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr3, [r0, #4]",
+            "pc": 268445260
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr2, [r0, #16]",
+            "pc": 268445264
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr2, [r0, #8]",
+            "pc": 268445268
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr3, [r0, #32]",
+            "pc": 268445272
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr3, [r0, #8]",
+            "pc": 268445276
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr2, [r0, #32]",
+            "pc": 268445280
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr2, [r0, #12]",
+            "pc": 268445284
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr3, [r0, #48]\t@ 0x30",
+            "pc": 268445288
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr3, [r0, #12]",
+            "pc": 268445292
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr2, [r0, #48]\t@ 0x30",
+            "pc": 268445296
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr2, [r0, #24]",
+            "pc": 268445300
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr3, [r0, #36]\t@ 0x24",
+            "pc": 268445304
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr3, [r0, #24]",
+            "pc": 268445308
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr2, [r0, #36]\t@ 0x24",
+            "pc": 268445312
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr2, [r0, #28]",
+            "pc": 268445316
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr3, [r0, #52]\t@ 0x34",
+            "pc": 268445320
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr3, [r0, #28]",
+            "pc": 268445324
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr2, [r0, #52]\t@ 0x34",
+            "pc": 268445328
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr2, [r0, #44]\t@ 0x2c",
+            "pc": 268445332
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tr3, [r0, #56]\t@ 0x38",
+            "pc": 268445336
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr3, [r0, #44]\t@ 0x2c",
+            "pc": 268445340
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "str\tr2, [r0, #56]\t@ 0x38",
+            "pc": 268445344
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "bx\tlr",
+            "pc": 268445348
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "mov\tr0, r4",
+            "pc": 188
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "ldr\tip, [pc, #136]\t@ 0x94",
+            "pc": 192
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "mov\tlr, pc",
+            "pc": 196
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "bx\tip",
+            "pc": 200
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "add\tr4, r4, #64\t@ 0x40",
+            "pc": 204
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "subs\tr8, r8, #1",
+            "pc": 208
+          },
+          {
+            "bucket": 4,
+            "cycles": 160,
+            "instruction": "bne\t0x0",
+            "pc": 212
+          },
+          {
+            "bucket": 4,
+            "cycles": 5,
+            "instruction": "nop\t\t\t@ (mov r0, r0)",
+            "pc": 216
+          }
+        ],
+        "windows": [
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 7032,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1493,
+              "redirect_event": 94,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1438,
+              "LOOKUP": 864,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 864,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 1882
+            },
+            "raw": {
+              "cycles": 11374,
+              "external_wait": 1174,
+              "fetch_wait": 1412,
+              "read_wait": 4344,
+              "redirects": 158,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 4958,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1356,
+              "redirect_event": 95,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1374,
+              "LOOKUP": 800,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 800,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 9164,
+              "external_wait": 0,
+              "fetch_wait": 982,
+              "read_wait": 2270,
+              "redirects": 159,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 4958,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1356,
+              "redirect_event": 95,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1374,
+              "LOOKUP": 800,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 800,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 9164,
+              "external_wait": 0,
+              "fetch_wait": 982,
+              "read_wait": 2270,
+              "redirects": 159,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 4958,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1356,
+              "redirect_event": 95,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1374,
+              "LOOKUP": 800,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 800,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 9164,
+              "external_wait": 0,
+              "fetch_wait": 982,
+              "read_wait": 2270,
+              "redirects": 159,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 4958,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1356,
+              "redirect_event": 95,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1374,
+              "LOOKUP": 800,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 800,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 9164,
+              "external_wait": 0,
+              "fetch_wait": 982,
+              "read_wait": 2270,
+              "redirects": 159,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 4958,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1356,
+              "redirect_event": 95,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1374,
+              "LOOKUP": 800,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 800,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 9164,
+              "external_wait": 0,
+              "fetch_wait": 982,
+              "read_wait": 2270,
+              "redirects": 159,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 1151,
+              "data_completion_wait": 4958,
+              "decode_sequencing": 0,
+              "load_dependency": 1540,
+              "multiply_busy": 0,
+              "operand_queue_empty": 1356,
+              "redirect_event": 95,
+              "shift_dependency": 64
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 1374,
+              "LOOKUP": 800,
+              "LOOKUP_CAPTURE": 800,
+              "LOOKUP_WAIT": 800,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 416,
+              "STORE_COMMIT": 384,
+              "STORE_HIT": 384,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 9164,
+              "external_wait": 0,
+              "fetch_wait": 982,
+              "read_wait": 2270,
+              "redirects": 159,
+              "response_ack": 800,
+              "retire": 1025,
+              "translation_wait": 190,
+              "write_wait": 2688
+            }
+          }
+        ]
+      },
+      "scored_cycles": 45820
+    }
+  ],
+  "source_id": "6f2a7f96206cd9db12a7692b63308172733780e3afb20cd0ceccd85ecba7787c",
+  "status": "PASS"
+}

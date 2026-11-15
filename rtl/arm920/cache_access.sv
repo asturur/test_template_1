@@ -31,6 +31,10 @@ module arm920_cache_access #(
     input  logic [ 31:0] req_physical,
     input  logic         req_write,
     input  wire          req_early_read,
+    // Upstream classification, not a user/build option: false for SWP and
+    // unsupported clients. Current permission/attribute checks still precede
+    // admission, and this input alone cannot authorize an external write.
+    input  wire          req_ordinary_store,
     input  logic         req_cache_enable,
     input  logic         req_cacheable,
     input  logic         req_bufferable,
@@ -90,6 +94,11 @@ module arm920_cache_access #(
   } state_t;
   state_t state;
   reg response_valid_q, early_read_owner;
+  // Reusable tag fact, never a translation or a permission result. One entry
+  // covers a streaming nonallocating store line without another tag search.
+  reg absence_valid;
+  reg [26:0] absence_line;
+  reg ordinary_store_owner, absent_store_owner;
   reg [31:0] response_data_q;
   // READ_LINE follows the registered way decision and synchronous line read.
   // The CPU completion register can capture this owned word directly. Keep
@@ -131,6 +140,26 @@ module arm920_cache_access #(
   reg [7:0] lookup_owner_segment_select;
   wire accept_demand = req_valid && req_ready;
   wire accept_maintenance = maint_valid && maint_ready;
+  wire ordinary_buffered_store = !READ_ONLY && req_ordinary_store && req_write &&
+                                  req_cache_enable && req_cacheable && req_bufferable;
+  wire absence_revoke = reset || READ_ONLY || !req_cache_enable ||
+                         invalidate_all || lock_write || maint_valid ||
+                         maintenance_busy || scan_read || scan_clean || scan_invalidate ||
+                         refill_busy || fill || state == WAIT_REFILL;
+  wire absence_known = absence_valid && !absence_revoke &&
+                       absence_line == req_mva[31:5];
+  wire use_absent_store = ordinary_buffered_store && absence_known;
+  wire checked_store_lookup = state == LOOKUP && ordinary_store_owner && wr &&
+                              enabled && cacheable && bufferable;
+  always @(posedge clk) begin
+    if (absence_revoke) absence_valid <= 0;
+    else if (checked_store_lookup) absence_valid <= !hit;
+    // Only the one-bit validity depends on the late 64-way hit reduction.
+    // Capture the small tag under the already registered request/state owner,
+    // avoiding a global-hit enable cone across all 27 payload flops.
+    if (reset) absence_line <= 0;
+    else if (checked_store_lookup) absence_line <= mva[31:5];
+  end
   wire fast_read = fast_lookup_enable && state == IDLE && !req_valid &&
                      !maint_valid && !invalidate_all && !lock_write;
   wire capture_lookup = accept_maintenance || accept_demand || fast_read;
@@ -292,7 +321,13 @@ module arm920_cache_access #(
   // Offer a cache-store request independently of the live global hit tree.
   // Bank data writes and each metadata way apply their own hit validation.
   // A write-through miss still queues its bus write without allocating.
-  assign store_request=(state==STORE_HIT) || (state==BUFFER_STORE && buffer_ready && wr && enabled && cacheable && !bufferable);
+  // The captured absent class never mutates the bank, even while its ordinary
+  // tag pipeline still contains another address. Keep it with this owner;
+  // later ready/credit stages can carry the same class without a live lookup.
+  assign store_request = !absent_store_owner &&
+                         ((state == STORE_HIT) ||
+                          (state == BUFFER_STORE && buffer_ready && wr &&
+                           enabled && cacheable && !bufferable));
   assign store_mask = {28'b0, ben} << {mva[4:2], 2'b00};
   // Never switch an offered beat until it has completed. Between beats an
   // unrelated replacement read can precede queued writes; an overlapping line
@@ -427,6 +462,8 @@ module arm920_cache_access #(
     if (reset) begin
       state                  <= IDLE;
       early_read_owner       <= 0;
+      ordinary_store_owner   <= 0;
+      absent_store_owner     <= 0;
       response_valid_q       <= 0;
       response_error         <= 0;
       response_data_q        <= 0;
@@ -460,6 +497,8 @@ module arm920_cache_access #(
           saved_maint_segment    <= maint_segment;
           state                  <= maint_by_mva ? MAINT_CAPTURE : MAINT_WAIT;
         end else if (req_valid && req_ready) begin
+          ordinary_store_owner <= ordinary_buffered_store;
+          absent_store_owner <= use_absent_store;
           early_read_owner <= req_early_read && !req_write &&
                               req_cache_enable && req_cacheable;
           mva        <= req_mva;
@@ -472,7 +511,8 @@ module arm920_cache_access #(
           bufferable <= req_bufferable;
           // Uncached reads need no tag/data lookup. Keep the owned
           // request registers and older-store drain before bus issue.
-          if (!req_write && !(req_cache_enable && req_cacheable))
+          if (use_absent_store) state <= BUFFER_STORE;
+          else if (!req_write && !(req_cache_enable && req_cacheable))
             state <= write_buffer_empty ? BYPASS : WAIT_DRAIN;
           else state <= req_cache_enable && req_cacheable ? LOOKUP_CAPTURE : LOOKUP_WAIT;
         end
@@ -554,6 +594,11 @@ module arm920_cache_access #(
         $fatal(1, "serialized cache lookup address changed");
       if (state == LOOKUP && enabled && cacheable && bank.lookup_address != mva)
         $fatal(1, "cache decision consumed another lookup address");
+      if (absent_store_owner && (state == BUFFER_STORE || state == STORE_COMMIT) && store_request)
+        $fatal(1, "absent store attempted a cache mutation");
+      if (absent_store_owner && response_valid_q && !invalidate_all && !lock_write &&
+          bank.lookup_address[31:5] == mva[31:5] && hit)
+        $fatal(1, "absent store certificate contradicted the settled tag lookup");
       if (state == MAINT_LOOKUP && saved_maint_by_mva && bank.lookup_address != saved_maint_address)
         $fatal(1, "MVA maintenance consumed another lookup address");
       if (fast_compare_pending && !cancel_fast &&

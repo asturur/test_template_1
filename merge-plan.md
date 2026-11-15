@@ -1,3 +1,53 @@
+## 2026-11-15: Full reprofile completed; next resident-way priority recorded
+
+All six E0 kernels/both profiles, exact repeats and every original counter pass;
+nine parser controls pass. Next larger priority is owned indexed resident bank
+access including stores: data holds transpose54.10%, tails68.97%/60.74%, no
+external waits, seven-clock hot stores. Qualify reads/store mutations separately
+and keep P1/F ownership compatibility, 104 MHz target and current 78 MHz PLL.
+C and fetch/branch attribution remain open. User requested committing/pushing
+the accumulated implementation, tests, results and plans after this checkpoint.
+No build/deployment requested. [Profile](docs/spmark-payload-profile.md).
+
+## 2026-11-15: E0 absent-line store reuse implemented and accepted in simulation
+
+Single absence record/captured class, 30 declared state bits, no new RAM or PLL
+change. Ordinary buffered cacheable write misses skip repeated tag searches;
+permissions/PA/byte masks, no allocation and posted ordering are preserved.
+Dedicated latency 5→2 clocks; 44 owned requests, 92 CPU runs, 13 related suites
+and full original-payload repeat/negative controls pass. Full-frame throughput
++35.51% at 0:0; delayed backing writes limit 2:9 gain. Other medians unchanged.
+Pipeline ownership is captured, but resident indexed access, C and F overlap
+remain separate. FPGA fit/timing/boot are unverified. No commit/push/build/deploy.
+[Implementation and qualification](docs/cache-store-absence.md),
+[results](docs/spmark-payload-results.md).
+
+## 2026-11-15: E feasibility and future pipeline boundary investigated
+
+Selected-way investigation now distinguishes resident hits from nonallocating
+write misses. Two resident records model 58% matrix/88% transpose coverage;
+full-frame fill is all store misses, requiring absence reuse instead (87% of
+demands). All six original-counter checks pass; this is shadow-model coverage,
+not accelerated RTL or measured speedup. The plan defines a reusable directory
+and indexed bank-owner contract; current FSM/adapter/CPU stall/completion
+control must change separately for overlap, with explicit dirty-RAM hazards,
+ordered commits and faults. C remains open; no production RTL was changed.
+[Investigation and staged tests](docs/selected-way-pipeline-investigation.md).
+
+## 2026-11-15: Permission reuse accepted; pipeline prerequisites recorded
+
+Cache-plan B is implemented on the original integration branch. It passes
+3,092 controller checks, seven unit suites, 86 CPU runs and all six original
+payloads at both memory profiles with exact repeats and wrong-output controls.
+Suite throughput improves 1.9993% over A/D; transpose stores hold 7 rather than
+10 clocks. Three bits per I/D TLB instance, no new RAM. Separate mapping/fault
+publication supports the documented future P1 probe/P2 admission and per-request
+owner/credit contract. No overlapping request hardware is introduced in B.
+Next experiment is C, then measured selected-way/request overlap. Keep the
+78 MHz PLL and 104 MHz target; FPGA fit/timing/boot remain unverified.
+[Results](docs/spmark-payload-results.md), [plan](docs/cache-load-optimization-plan.md),
+[qualification](docs/evidence/permission-token-reuse-20261115.json).
+
 ## 2026-11-15: Reconciled all saved work into the original integration branch
 
 There is one active checkout: `/Users/andreabogazzi/develop/NGage_MiSTer` on

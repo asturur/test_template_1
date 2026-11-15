@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // ARM920T translation/permission controller. No direct-mapped page-size banks.
 // Main-table lookup and bus walks are serialized; a checked 1KiB permission
-// token serves adjacent accesses without another CAM/BRAM lookup. The minimum
+// token serves adjacent reads/writes without another CAM/BRAM lookup. The minimum
 // ARM920 permission granule is 1KiB (small-page AP quarters and tiny pages).
 module arm920_tlb #(
     parameter CPSR_MODE = 4
@@ -58,6 +58,9 @@ module arm920_tlb #(
                L2_WAIT=4, L2_DECODE=5, INSTALL=6;
   reg [2:0] state;
   reg token_valid, token_rd, token_wr;
+  // A reusable mapping has separately checked direction permissions. Invalid
+  // descriptors and table-bus aborts instead publish an exact request result.
+  reg token_mapping, token_read_allowed, token_write_allowed;
   reg [31:0] token_va, token_dac, token_baddr;
   reg [21:0] token_pa;
   reg [CPSR_MODE:0] token_cpsr;
@@ -72,10 +75,15 @@ module arm920_tlb #(
   reg fine_table, bus_active;
   reg [37:0] fill_payload;
   wire mutation = i_inv || i_lock_write;
-  wire owner = token_valid && token_va[31:10] == i_address[31:10] &&
-                 token_cpsr == i_cpsr && token_sr == i_sr && token_dac == i_dac_reg &&
-                 token_baddr == i_baddr && token_rd == i_request_rd && token_wr == i_request_wr;
   wire request = i_request_rd || i_request_wr;
+  wire token_context = token_valid && token_va[31:10] == i_address[31:10] &&
+                       token_cpsr == i_cpsr && token_sr == i_sr &&
+                       token_dac == i_dac_reg && token_baddr == i_baddr;
+  wire owner = request && token_context && (token_mapping ||
+               (token_va[9:0] == i_address[9:0] &&
+                token_rd == i_request_rd && token_wr == i_request_wr));
+  wire permission_denied = (i_request_rd && !token_read_allowed) ||
+                           (i_request_wr && !token_write_allowed);
   wire bank_lookup = state == IDLE && i_mmu_en && i_idle && request && !owner && !mutation;
   wire bank_valid, bank_hit;
   wire [37:0] bank_payload;
@@ -149,9 +157,11 @@ module arm920_tlb #(
     end
   endfunction
 
-  task publish;
+  // Shared context is published only after the registered descriptor lookup or
+  // walk completes. Keep this record independent of the consumer's completion
+  // owner so future address-only probes need not allocate architectural work.
+  task publish_context;
     input [37:0] entry;
-    input [7:0] fsr;
     begin
       token_valid <= 1;
       token_va <= request_va;
@@ -163,8 +173,36 @@ module arm920_tlb #(
       token_baddr <= request_baddr;
       token_pa <= physical_subpage(entry, request_va);
       token_cb <= entry[35:34];
-      token_fsr <= fsr;
       token_external_fsr <= {entry[33:30], entry[37:36] == 0 ? 4'h8 : 4'ha};
+    end
+  endtask
+
+  task publish_mapping;
+    input [37:0] entry;
+    reg [7:0] read_fsr, write_fsr;
+    begin
+      read_fsr = permission_fault(entry, request_va, request_dac,
+                                 request_cpsr, request_sr, 1'b1, 1'b0);
+      write_fsr = permission_fault(entry, request_va, request_dac,
+                                  request_cpsr, request_sr, 1'b0, 1'b1);
+      publish_context(entry);
+      token_mapping <= 1;
+      token_read_allowed <= read_fsr == 0;
+      token_write_allowed <= write_fsr == 0;
+      // Both denied directions have the same AP/domain fault code. Share its
+      // eight bits rather than duplicating the whole context or FSR per access.
+      token_fsr <= read_fsr | write_fsr;
+    end
+  endtask
+
+  task publish_fault;
+    input [7:0] fsr;
+    begin
+      publish_context(38'b0);
+      token_mapping <= 0;
+      token_read_allowed <= 0;
+      token_write_allowed <= 0;
+      token_fsr <= fsr;
     end
   endtask
 
@@ -173,7 +211,8 @@ module arm920_tlb #(
   assign o_lookup_wait = o_busy;
   assign o_walk_pending = o_busy;
   assign o_phy_addr = i_mmu_en ? {token_pa, i_address[9:0]} : i_address;
-  assign o_fault = i_mmu_en && owner && state == IDLE && !mutation && |token_fsr;
+  assign o_fault = i_mmu_en && owner && state == IDLE && !mutation &&
+                   (token_mapping ? permission_denied : |token_fsr);
   assign o_fsr = o_fault ? token_fsr : 0;
   assign o_far = o_fault ? i_address : 0;
   assign o_external_fsr = i_mmu_en && owner ? token_external_fsr : 8'h08;
@@ -184,8 +223,8 @@ module arm920_tlb #(
   assign o_checked_owner = !i_mmu_en || owner;
   assign o_checked_va = !i_mmu_en || owner ? i_address : token_va;
   assign o_checked_lookup = o_checked_va;
-  assign o_checked_rd = !i_mmu_en ? i_request_rd : token_rd;
-  assign o_checked_wr = !i_mmu_en ? i_request_wr : token_wr;
+  assign o_checked_rd = !i_mmu_en || owner ? i_request_rd : token_rd;
+  assign o_checked_wr = !i_mmu_en || owner ? i_request_wr : token_wr;
   assign o_checked_mmu = i_mmu_en && token_valid;
   assign o_checked_cpsr = !i_mmu_en ? i_cpsr : token_cpsr;
   assign o_checked_sr = !i_mmu_en ? i_sr : token_sr;
@@ -202,6 +241,9 @@ module arm920_tlb #(
     if (i_reset) begin
       state <= IDLE;
       token_valid <= 0;
+      token_mapping <= 0;
+      token_read_allowed <= 0;
+      token_write_allowed <= 0;
       token_rd <= 0;
       token_wr <= 0;
       token_va <= 0;
@@ -228,7 +270,10 @@ module arm920_tlb #(
       cancelled <= 0;
       fill_payload <= 0;
     end else begin
-      if (i_complete && o_fault) token_valid <= 0;
+      // Legacy completion ACKs also occur while no request is live. Only a
+      // consumed exact walk fault is discarded; denied directions do not evict
+      // the reusable mapping or its independent opposite-direction permission.
+      if (i_complete && o_fault && !token_mapping) token_valid <= 0;
       if (mutation || !i_mmu_en) token_valid <= 0;
       if (state != IDLE && (mutation || !i_mmu_en || request_baddr != i_baddr)) cancelled <= 1;
       case (state)
@@ -249,15 +294,7 @@ module arm920_tlb #(
         if (obsolete) state <= IDLE;
         else if (bank_valid) begin
           if (bank_hit) begin
-            publish(bank_payload, permission_fault(
-                    bank_payload,
-                    request_va,
-                    request_dac,
-                    request_cpsr,
-                    request_sr,
-                    request_rd,
-                    request_wr
-                    ));
+            publish_mapping(bank_payload);
             state <= IDLE;
           end else begin
             bus_address <= {request_baddr[31:14], request_va[31:20], 2'b0};
@@ -270,7 +307,7 @@ module arm920_tlb #(
           bus_active <= 0;
           if (obsolete) state <= IDLE;
           else if (i_wb_err) begin
-            publish(0, 8'h0c);
+            publish_fault(8'h0c);
             state <= IDLE;
           end else begin
             descriptor <= i_wb_dat;
@@ -282,7 +319,7 @@ module arm920_tlb #(
         else
           case (descriptor[1:0])
             0: begin
-              publish(0, 8'h05);
+              publish_fault(8'h05);
               state <= IDLE;
             end
             2: begin
@@ -311,7 +348,7 @@ module arm920_tlb #(
           bus_active <= 0;
           if (obsolete) state <= IDLE;
           else if (i_wb_err) begin
-            publish(0, {domain, 4'he});
+            publish_fault({domain, 4'he});
             state <= IDLE;
           end else begin
             descriptor <= i_wb_dat;
@@ -321,7 +358,7 @@ module arm920_tlb #(
         L2_DECODE:
         if (obsolete) state <= IDLE;
         else if (descriptor[1:0] == 0 || (descriptor[1:0] == 3 && !fine_table)) begin
-          publish(0, {domain, 4'h7});
+          publish_fault({domain, 4'h7});
           state <= IDLE;
         end else begin
           case (descriptor[1:0])
@@ -342,15 +379,7 @@ module arm920_tlb #(
         end
         INSTALL: begin
           if (!obsolete)
-            publish(fill_payload, permission_fault(
-                    fill_payload,
-                    request_va,
-                    request_dac,
-                    request_cpsr,
-                    request_sr,
-                    request_rd,
-                    request_wr
-                    ));
+            publish_mapping(fill_payload);
           state <= IDLE;
         end
         default: state <= IDLE;

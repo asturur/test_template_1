@@ -1,0 +1,1922 @@
+{
+  "baseline": "build/sim/spmark-payload/early-hit-response-20261115/result.json",
+  "baseline_index_by_profile": {
+    "0:0": 101.9993028644848,
+    "2:9": 101.9993028644848
+  },
+  "elapsed_seconds": 521.052,
+  "manifest": {
+    "executable": "build/sim/spmark-payload/permission-reuse-20261115/obj/Vbench",
+    "executable_sha256": "9a8df11c0e2a486f8a5b153b1f365957a52a51920811509dcc1a77821cdfbc48",
+    "format": "spmark-payload-line16-v1",
+    "harness_sha256": "dc8d48f0cd2bd97e7cd591315e7ad5babfc6f9741dd683971dcaa22bc6070af7",
+    "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "normal_import_link": {
+      "iat": "0x199a0",
+      "ordinal": 1514,
+      "target": "0x503a2f6c"
+    },
+    "original_images": {
+      "3DTEST.DLL": "5b918e3d10a8b4e91265325649c98c72fba7260be6cab37a102d7f50cd7eebef",
+      "libGLES_CM.dll": "3008a3900a91471200ea00b26733066aad288d589a7f48cefbfc0c6b62ebad2b"
+    },
+    "original_rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "payload_sha256": {
+      "3DTEST.DLL": "8e114572eb686f17297aeb7388fdf486926852a83dd0a4d5d2ff755d28507e35",
+      "libGLES_CM.dll": "5f440ed67da99404ef77fc973fbdb66dca4878f182156fab2777491a18834ee8"
+    },
+    "profiles": [
+      "0:0",
+      "2:9"
+    ],
+    "programs": {
+      "fill16_frame": {
+        "body_begin": 192,
+        "body_end": 228,
+        "sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0"
+      },
+      "fill16_frame-wrong-output": {
+        "body_begin": 192,
+        "body_end": 228,
+        "sha256": "0bd9ff5155b377e3693805f5f44555dfcf73a723830b0924c5cdb2aadb72ec48"
+      },
+      "fill16_tail": {
+        "body_begin": 192,
+        "body_end": 228,
+        "sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7"
+      },
+      "fill16_tail-wrong-output": {
+        "body_begin": 192,
+        "body_end": 228,
+        "sha256": "77b17fc48ef9dde80e03a624150df7504de21a32fa5e23df630bd4969e6fcfac"
+      },
+      "fill8_tail": {
+        "body_begin": 192,
+        "body_end": 228,
+        "sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7"
+      },
+      "fill8_tail-wrong-output": {
+        "body_begin": 192,
+        "body_end": 228,
+        "sha256": "7d93fdce5852cda7055c5faf3fa355156d674d5bcc00ae75240c6470fcf6dc25"
+      },
+      "matrix4": {
+        "body_begin": 220,
+        "body_end": 268,
+        "sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9"
+      },
+      "matrix4-wrong-output": {
+        "body_begin": 220,
+        "body_end": 268,
+        "sha256": "aed18f060976e6ffa55845873b1a672cc62ceff0dc35e8f5fb62757988db522e"
+      },
+      "transpose4": {
+        "body_begin": 184,
+        "body_end": 216,
+        "sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118"
+      },
+      "transpose4-wrong-output": {
+        "body_begin": 184,
+        "body_end": 216,
+        "sha256": "d0ea5e26dd245ebf659a419ce6b2990c7d1834d262d93cf0cdd6559a00e83d4f"
+      },
+      "triangle_edges": {
+        "body_begin": 388,
+        "body_end": 424,
+        "sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395"
+      },
+      "triangle_edges-wrong-output": {
+        "body_begin": 388,
+        "body_end": 424,
+        "sha256": "4dbaaffda15f48c3bb7df5fe853ffb37b9901509ca3e63aff3bc1f6c2bf7bf7a"
+      }
+    },
+    "repeat": 2,
+    "source": {
+      "commit": "e188110a239498546d82b924988dae325b835b87",
+      "files": {
+        "Template.sv": "470d451ef1d2a642f33039a3e61c7fdd06277eae430d856e74adf1d6b240c3f9",
+        "files.qip": "17933841df1db6141029c0bc0f94d6e4cc4f1c7694531fcfb09cd545d05370f8",
+        "patches/zap/0001-translate-cache-disabled-accesses.patch": "3916b4c2d90b855c882df349f0e6608eaaf1499b53475f2716779419ff4df0b9",
+        "patches/zap/0002-arm920t-alignment-faults.patch": "b887d6e551c17b55af7c287da7fdb7b2e33e71640cf5337d1f5e344bedb39575",
+        "patches/zap/0003-order-uncached-fetches-after-stores.patch": "14b996b2a231e760bd0432a76ce01b71186aafb37feee6453dd23171ce0e1fa8",
+        "patches/zap/0004-optional-quiet-simulation-trace.patch": "cd7eb2867b98b1928f3d9167d3bce25960a95179862200fde71fe18a373f2b4f",
+        "patches/zap/0005-transform-background-load-completions.patch": "f6080d56e87e5707872713de5fdee3e1f060e927b29bdf5975f593483e61f765",
+        "patches/zap/0006-qualify-branch-state-with-tag.patch": "da071614387fc1d2089ecdfa69e83aa8bf27f5edf05a5cea84d594a47ea8f71b",
+        "patches/zap/0007-preserve-fault-status-on-ack.patch": "367c2e8a583013ba63287cac7e2e4d63993e0cca227367ba74fea26fafdb492b",
+        "patches/zap/0008-thumb-sp-relative-ldr-str-add-offset.patch": "6a49b0ee83965258c10eedd79b57dfa28bee7b7f9ada17e1b443ec6df83690dc",
+        "patches/zap/0009-arm920t-cache-type-register.patch": "8e343142c959615b49fabbfcc7aff37c5d452c11388a4f78a854d56468aea056",
+        "patches/zap/0010-dcache-retain-translation-across-background-refill.patch": "ad9dfb3b67ed5e77625884726602485264650de59cafee126d87349089393215",
+        "patches/zap/0011-thumb-hi-register-op-undefined-trap.patch": "6b32cd0a215a780facb8cb94eb09a2352de4127d451e031b244ad81bd0776d48",
+        "patches/zap/0012-silence-simulation-info-floods.patch": "634d14d644ff85a055e2f16f1279e2aedd6985f6183e1c9903c4159ec5a78aeb",
+        "patches/zap/0013-quartus17-compatibility.patch": "0db5648347de9a9557cce2468bef24e611ad83f6d132353257932660b0db9f5d",
+        "patches/zap/0014-byte-lane-cache-data-ram.patch": "6ac01c779e82cea035b76e712943bdfbc4853668c55321d8459cd3d895b2b8bf",
+        "patches/zap/0015-arm920t-write-through.patch": "4972f88b0665b504996e7ac426742a50c99221c37a7f15896b31da56c2f5497d",
+        "patches/zap/0016-cp15-drain-write-buffer.patch": "bdf38ae32447ae65ad06d8f5f2c74c92347ef9514de9e6c4c7242585a0f0038d",
+        "patches/zap/0017-arm920-control-register.patch": "11206b6b9e911bf737d420e5d1f41f1dc7c9e1374e9fb9acbb6a681de3e764de",
+        "patches/zap/0018-arm920-identification.patch": "91345669a47e0c6a3359ad0f24204cbb9bd9e1f9f1010d6c7bcfc80462fcdd0c",
+        "patches/zap/0019-arm920-write-miss.patch": "ad60517e88937d4bf7ac8ba8a1c3a84d81d3d0cf211947bf26019366b055e54d",
+        "patches/zap/0020-preserve-disabled-cache.patch": "a9bf8ffe9a506bdeba10a2e7ebd872a53d951f9d96d6b930f63e9bdce70c3ecb",
+        "patches/zap/0021-associative-experiment.patch": "254b9c317b4bcdb359960af237d720ff7551fe52eec4eb361bcfa2bfbaf851a5",
+        "patches/zap/0022-cache-rr-control.patch": "e2e7f100c6f7f4845e18e72d8103fc5129f4e36f412b13f3997e896cd97ffa35",
+        "patches/zap/0023-cache-lockdown-control.patch": "783b4700b3436c4efb009e4bda5b6c871395490bd91680ed4611f6b08478667d",
+        "patches/zap/0024-associative-instruction-cache.patch": "de7236528d2ab3a9bb4ccf5bdb2d160df0c3f23d65077459a911770ff1cf8c2a",
+        "patches/zap/0025-cache-single-maintenance.patch": "9a9cf7624948280051f2aa77f04bc5238c0d37c2a38a9fc6939b1b3c40bca8a7",
+        "patches/zap/0026-cache-comment.patch": "b0138e904f3fdcde4b23bafc87e8b65f19a3fd4e5d89fa7fb2fd8dd42890de18",
+        "patches/zap/0027-lockdown-handshake.patch": "f9b8240f143afcd48499a5cb9cc9ba89678d448ae17b6e2db2f2971325da04ee",
+        "patches/zap/0028-write-buffer-drain.patch": "89c057266f9de58c3f57ec0969c34b1267f44bc44e27d186ca673bf010463214",
+        "patches/zap/0029-external-fault-context.patch": "8f4417565d6b2e6be7af26e7e58a5ae0cc6e468410b3b373d543d09c66e935c0",
+        "patches/zap/0030-wait-for-interrupt.patch": "bffbae61da8f973d25ff739384a9261f0c6e88eb9d89efa6f94d4f6b2bc102bf",
+        "patches/zap/0031-wfi-interrupt-order.patch": "f6cd4318549150e5c7b77ee5a3e34283adda0dbcf78018f3fb9e6a60a6cb86e9",
+        "patches/zap/0032-instruction-prefetch.patch": "4c55e4c6a7ccab01a8759ccc7527130272056d263ce01296cda3cfbe6f9116e6",
+        "patches/zap/0033-tlb-buffer-order.patch": "2a3a96c5c5df955829d5323a40fd47a6591836ee05b1fe0859c1093b24791a93",
+        "patches/zap/0034-fast-instruction-cache.patch": "dedbaf90869666e3dd178328388c1b6e2390ec83487cdd0dc213a45113108b1d",
+        "patches/zap/0035-swp-metadata-and-lock.patch": "b41d3bf6752031c29586869c61124eabfe0285058c601d73ad49a7d63e8d93d5",
+        "patches/zap/0036-data-privilege-pipeline.patch": "7cfb4a8aa81baec6b12f1b8540fa6d6bdf038b13d1e76b794da0a08e7e40b20f",
+        "patches/zap/0037-hold-tlb-multi-load.patch": "354352303cb4f7c1aad886c3fe622c0cab045da8c30bb16be0ec59e8d5b813b1",
+        "patches/zap/0038-bus-owner-diagnostics.patch": "d8b140a1f37237a33f0b59317fc2916b9188378fbb0157dc45f0e7a837aef203",
+        "patches/zap/0039-bram-instruction-lookahead.patch": "6568bc8e0d4ecd4e77ea1319e367735484d6728627604410d24b6dff342876bd",
+        "patches/zap/0040-board-debug-ports.patch": "eab6c8e6c0c4cb82a30c788c639e974f37a1c81cff051e4194a0c0db1936f82b",
+        "patches/zap/0041-cache-compare-lookahead.patch": "74b9a39664d3fa163b956d9b6f717041af21078c8fc651547bd03448637900c3",
+        "patches/zap/0042-balanced-operand-selection.patch": "c599d3e61c083743d31d658660cac29aacb433ed3daa11f117eceac9441708bd",
+        "patches/zap/0043-separate-demand-completion.patch": "38bff07381a48f9ec9ade91340b3a54e5fe7526a3f09eb5dcd37c9f58417aa8f",
+        "patches/zap/0044-quartus17-read-tree-genvars.patch": "a635dbda4b747140bbfbc15a512a1336df3645282061955ea895948a69b55c3c",
+        "patches/zap/0045-owned-operand-read-stage.patch": "23c4f5541c2143bdfd50318b0e5a2db63c7bf0915bfef2776ffc3447a561aee4",
+        "patches/zap/0046-journal-operand-commits.patch": "2fb15ffe50358cb2ff8f5ba98c449704a69be992549d384888bbdb3084ef9f18",
+        "patches/zap/0047-owned-data-completion.patch": "73120312f40c63dd95afc72df6972ec81519a0158085ecb6504dd37fb2f7efb7",
+        "patches/zap/0048-stationary-operand-owners.patch": "1d8586f6531c709ab5e137fd136844266aaa2a3da1e5a85bd6b2d5bb4fbf1934",
+        "patches/zap/0050-owned-cache-lookahead-context.patch": "35f4eff6abe2da73148caba043c95fe94f12cd73a18864670b21140e657464e5",
+        "patches/zap/0051-discard-abandoned-instruction-refill.patch": "2807352a61f6a6053e85573fe07eebfe52e7ebfa541436b31f1174d63bb7be01",
+        "patches/zap/0052-own-mmu-lookup-and-refill.patch": "07a06708addecffd4d3ca4d3eb0682d72d02e262d3c6e5488c14b7d727119b90",
+        "patches/zap/0053-production-arm920-cache-and-tlb.patch": "03c4e902b4787d6c2369b81517e1c15bb19b526a0cab15afecee76e84f8542a4",
+        "patches/zap/0054-own-data-request-privilege.patch": "01b118383e5c26c5b205b30c29843bdb981faf479483c56e1611ddc52581177f",
+        "patches/zap/0055-stream-cache-line-refills.patch": "edbdb537250d720e60f4513230999e5b6bdc6a1cf1a3e5acbf3056e738962f88",
+        "patches/zap/0056-instruction-cache-read-only-metadata.patch": "b8fb22dff4290ccb0fcde80f03a8bf065a2e6a48a8a6300945cd333563a659d4",
+        "patches/zap/0057-mlab-register-file.patch": "f7303e8d1b9e402f765f1cdc5a4427ef41a840dd23871c4f8b0265539ff6fa31",
+        "patches/zap/0058-direct-checked-translation-owner.patch": "e7ed92b10573479ad8cd6c82c564ddcc1847209180ef14f091e4b4f76f4a2c72",
+        "patches/zap/0059-thumb-ldmia-base-writeback.patch": "022aa14e0e9eb5892dd5247ca77da4063276684a95941369c077409ad053a1de",
+        "patches/zap/0060-arm920t-instruction-profile.patch": "fe8c8827bbe65543d6b67573cade23bad7ecb746c224bde15b3b7a3ca645761d",
+        "patches/zap/0061-owned-translation-admission.patch": "b05949ffa3b650a215ed0dd7f78741a056f87add0297ad8b4c44842f02fc074a",
+        "patches/zap/rejected/0049-late-owner-forwarding.patch": "d9466926153496e40d0dcd6feffb6b0f7dada968ec3854a9c1e01fc11035499a",
+        "patches/zap/rejected/README.md": "d3cfc927f5b8bcc3192aebb71b25a5a6ff8643e9ce17341c0ef61dc980add373",
+        "patches/zap/verify.sh": "d45ddf9528f55b3073f1114f094ba6dcef03a1e25fa895b94083b88c04f0f70b",
+        "rtl/arm/LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",
+        "rtl/arm/README.md": "8812da580faeb3a6b3d74a369e0c44309e368dde97b897d49156977741925a19",
+        "rtl/arm/UPSTREAM.json": "a93768947de9e212542d8e5c86949276ec428f68aeeb624067d9d3f8c042fc61",
+        "rtl/arm/zap_alu_main.sv": "2afb4d3ce74481a9694cfd7b21e5c73b31d5e002a6b41167a6881cd77cade9f1",
+        "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+        "rtl/arm/zap_btb.sv": "08b3c2ea7c5f152d20f2c93af4526df6538b5896ae16a46e98f1a37db6b29126",
+        "rtl/arm/zap_cache.sv": "98df34b78cd4cbdea5f4a6a24759d9b72e80758be389cf85a37ea975dbb158c4",
+        "rtl/arm/zap_core.sv": "a369c0ddca9a78e52e37184bfb7dcb077b1a193f9523872fc28a0eb8c79f11f4",
+        "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+        "rtl/arm/zap_data_completion.sv": "23fffb330dfbe7ea63b58bacdabe3432b4e2c500433b6c1d2cf9dbf916c2002f",
+        "rtl/arm/zap_dcache.sv": "9b234b29cf651f4a6712b1850f3f0bbfb57f49277ad1215926e60db26da323cb",
+        "rtl/arm/zap_decode.sv": "a1d689ab6aaeccf4c703aa55d9ca9d148c65881feaf9908ea9ac7bb39d34161f",
+        "rtl/arm/zap_decode_main.sv": "d903ec26929bec74af7e2a4b9d2c1524acc87a36d96b416a29d7c7a53a074eb4",
+        "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+        "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+        "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+        "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+        "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+        "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+        "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+        "rtl/arm/zap_issue_main.sv": "2715f61649181bdf85315a1dd12f85bf52bf5eb3257c16c60b0e5cf5192b6f78",
+        "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+        "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+        "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+        "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+        "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+        "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+        "rtl/arm/zap_postalu_main.sv": "e1f5f0333d53c91210323f7fabf259e5b9f19b30021acf82d1cd9332c6cfd5f6",
+        "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+        "rtl/arm/zap_predecode_main.sv": "f1703eb3c2ea401fbad76985c9a261ed9cb30558c2f35ff37627f1cc0025fd8a",
+        "rtl/arm/zap_predecode_uop_sequencer.sv": "02d52bc66c3c0f6366248e870038994516e678b31a40f90aab42ae2afd619935",
+        "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+        "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+        "rtl/arm/zap_shifter_main.sv": "db7214a422d9699762f54bc204f484044e320ad7c659d311fc8f3b1b3a5a9c29",
+        "rtl/arm/zap_shifter_multiply.sv": "56bc5ef9de54d036fb0267be6a876841491fae7994d154ff155d430d4c20b53f",
+        "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+        "rtl/arm/zap_sync_fifo.sv": "335eed7a3b189e81b822c4435b69a6871c9e3dc20192cedf48151bc0bd933c46",
+        "rtl/arm/zap_top.sv": "7a67addfd79fa3bfdd80ffe1eed855e3459548fbd664e848aca9f4b672162447",
+        "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+        "rtl/arm/zap_writeback.sv": "e8dea7ebd1fe1c6d8931c3bc8a5b76d8d96230044588860ef0545f008467a335",
+        "rtl/arm920/cache_access.sv": "5b7a2a184ba42356c966769305c52c283079be02fc207d9e632dbc0df100d2c6",
+        "rtl/arm920/cache_adapter.sv": "a3c4d551de4ad3b6c22088e97ac586977eab57e537ef255bed3e8e2bcb583e11",
+        "rtl/arm920/cache_bank.sv": "ee91240f1f70c0051f41a431870abb94e134871e01820dc09057337a259b3b8a",
+        "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+        "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+        "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+        "rtl/arm920/cache_tags.sv": "5dea4d0675955482657a81250625e4dbdae32868cafded1fd2152c52828da0f9",
+        "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+        "rtl/arm920/tlb.sv": "5bda63ef5b980bc952b43e10f6ad68962a759be295134facd9027578e708370b",
+        "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+        "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+        "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+        "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+        "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+        "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+        "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+        "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+        "rtl/sdram/jtframe_sdram64.v": "bbd4ca095a2456569e34873c2bbce1f6f9f79dbbfabd6f51acb74e52dd847322",
+        "rtl/sdram/jtframe_sdram64_bank.v": "5ddd6ac5528dae124ad22963b117a7faf7a9cdcaa289b0aa093a1ab228ee9ec2",
+        "rtl/sdram/jtframe_sdram64_init.v": "cc0bcd8f1e3851f21e2fd522f4b6a2fae331475e2e6c3db12f34a3bb4cce97a3",
+        "rtl/sdram/jtframe_sdram64_latch.v": "9ef2571ab02479a4982d77ebc263b6a037934401f18c0d6fdc605a170846a38d",
+        "rtl/sdram/jtframe_sdram64_rfsh.v": "5f9f2dda1927d85650e1389572e3975bac3ffb33b9fa3b8a1ecf7832294b4d12"
+      },
+      "has_line": true,
+      "kind": "working-tree",
+      "source_id": "6f2a7f96206cd9db12a7692b63308172733780e3afb20cd0ceccd85ecba7787c"
+    }
+  },
+  "meaning": "Fixed original-payload CPU/cache index; not official SPMark score or board FPS",
+  "qualification": [
+    {
+      "case": "matrix4",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "transpose4",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "triangle_edges",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill16_frame",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill16_tail",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill8_tail",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    }
+  ],
+  "rows": [
+    {
+      "body_cycles_median": 71119,
+      "case": "matrix4",
+      "cycles_per_operation": 4444.9375,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x10002640",
+        "executed_min": "0x100011c4",
+        "helper_instructions": 0,
+        "instructions": 14176,
+        "outputs": [
+          {
+            "address": "0x80003000",
+            "bytes": 1024,
+            "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+          }
+        ],
+        "payload_instructions": 14176,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 14176
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 936942,
+        "halfwords": 4064,
+        "lines": 254,
+        "reads": 33199,
+        "windows": 7,
+        "writes": 5653
+      },
+      "unit": "4x4 matrix products",
+      "windows": [
+        {
+          "cycles": 74845,
+          "halfwords": 1824,
+          "index": 0,
+          "lines": 114,
+          "reads": 369,
+          "retire_proxy": 14353,
+          "writes": 263
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 71119,
+      "case": "matrix4",
+      "cycles_per_operation": 4444.9375,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x10002640",
+        "executed_min": "0x100011c4",
+        "helper_instructions": 0,
+        "instructions": 14176,
+        "outputs": [
+          {
+            "address": "0x80003000",
+            "bytes": 1024,
+            "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+          }
+        ],
+        "payload_instructions": 14176,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 14176
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 1039475,
+        "halfwords": 4000,
+        "lines": 250,
+        "reads": 33190,
+        "windows": 7,
+        "writes": 5653
+      },
+      "unit": "4x4 matrix products",
+      "windows": [
+        {
+          "cycles": 76385,
+          "halfwords": 1760,
+          "index": 0,
+          "lines": 110,
+          "reads": 369,
+          "retire_proxy": 14353,
+          "writes": 263
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 71119,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 9164,
+      "case": "transpose4",
+      "cycles_per_operation": 286.375,
+      "deterministic_repeats": 2,
+      "operations": 32,
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 800
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+      "status": "PASS",
+      "throughput_ratio": 1.1152335224792667,
+      "total": {
+        "cycles": 572977,
+        "halfwords": 3360,
+        "lines": 210,
+        "reads": 32879,
+        "windows": 7,
+        "writes": 5126
+      },
+      "unit": "4x4 matrix transposes",
+      "windows": [
+        {
+          "cycles": 11374,
+          "halfwords": 1168,
+          "index": 0,
+          "lines": 73,
+          "reads": 49,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 9164,
+      "case": "transpose4",
+      "cycles_per_operation": 286.375,
+      "deterministic_repeats": 2,
+      "operations": 32,
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 800
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+      "status": "PASS",
+      "throughput_ratio": 1.1152335224792667,
+      "total": {
+        "cycles": 671808,
+        "halfwords": 3344,
+        "lines": 209,
+        "reads": 32870,
+        "windows": 7,
+        "writes": 5126
+      },
+      "unit": "4x4 matrix transposes",
+      "windows": [
+        {
+          "cycles": 11978,
+          "halfwords": 1152,
+          "index": 0,
+          "lines": 72,
+          "reads": 49,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 9164,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 40991,
+      "case": "triangle_edges",
+      "cycles_per_operation": 2561.9375,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x503a30b8",
+        "executed_min": "0x10002be0",
+        "helper_instructions": 1872,
+        "instructions": 8528,
+        "outputs": [
+          {
+            "address": "0x80000334",
+            "bytes": 12,
+            "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+          },
+          {
+            "address": "0x80007a04",
+            "bytes": 128,
+            "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+          }
+        ],
+        "payload_instructions": 6656,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 1872,
+          "index": 0,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 1,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 2,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 3,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 4,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 5,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 6,
+          "payload_retire_proxy": 6656
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+      "status": "PASS",
+      "throughput_ratio": 1.0097582396135738,
+      "total": {
+        "cycles": 466352,
+        "halfwords": 1600,
+        "lines": 100,
+        "reads": 33313,
+        "windows": 7,
+        "writes": 4473
+      },
+      "unit": "triangle edge setups",
+      "windows": [
+        {
+          "cycles": 43111,
+          "halfwords": 1065,
+          "index": 0,
+          "lines": 66,
+          "reads": 483,
+          "retire_proxy": 8657,
+          "writes": 216
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 40991,
+      "case": "triangle_edges",
+      "cycles_per_operation": 2561.9375,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x503a30b8",
+        "executed_min": "0x10002be0",
+        "helper_instructions": 1872,
+        "instructions": 8528,
+        "outputs": [
+          {
+            "address": "0x80000334",
+            "bytes": 12,
+            "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+          },
+          {
+            "address": "0x80007a04",
+            "bytes": 128,
+            "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+          }
+        ],
+        "payload_instructions": 6656,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 1872,
+          "index": 0,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 1,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 2,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 3,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 4,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 5,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 6,
+          "payload_retire_proxy": 6656
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+      "status": "PASS",
+      "throughput_ratio": 1.0097582396135738,
+      "total": {
+        "cycles": 562482,
+        "halfwords": 1504,
+        "lines": 94,
+        "reads": 33304,
+        "windows": 7,
+        "writes": 4473
+      },
+      "unit": "triangle edge setups",
+      "windows": [
+        {
+          "cycles": 44353,
+          "halfwords": 971,
+          "index": 0,
+          "lines": 60,
+          "reads": 483,
+          "retire_proxy": 8657,
+          "writes": 216
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 40991,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 183380,
+      "case": "fill16_frame",
+      "cycles_per_operation": 5.0092875874125875,
+      "deterministic_repeats": 2,
+      "operations": 36608,
+      "oracle": {
+        "executed_max": "0x10002b1c",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 22896,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 73232,
+            "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+          }
+        ],
+        "payload_instructions": 22896,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 22896
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 15655409,
+        "halfwords": 768704,
+        "lines": 48044,
+        "reads": 32887,
+        "windows": 7,
+        "writes": 260393
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 183620,
+          "halfwords": 122,
+          "index": 0,
+          "lines": 7,
+          "reads": 57,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 183380,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 183380,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 183380,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 183380,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 183380,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 183380,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 201344,
+      "case": "fill16_frame",
+      "cycles_per_operation": 5.5,
+      "deterministic_repeats": 2,
+      "operations": 36608,
+      "oracle": {
+        "executed_max": "0x10002b1c",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 22896,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 73232,
+            "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+          }
+        ],
+        "payload_instructions": 22896,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 22896
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 16084402,
+        "halfwords": 768672,
+        "lines": 48042,
+        "reads": 32878,
+        "windows": 7,
+        "writes": 260393
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 201958,
+          "halfwords": 92,
+          "index": 0,
+          "lines": 5,
+          "reads": 57,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 201344,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18297
+        },
+        {
+          "cycles": 201344,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18297
+        },
+        {
+          "cycles": 201344,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18297
+        },
+        {
+          "cycles": 201344,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18297
+        },
+        {
+          "cycles": 201344,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18297
+        },
+        {
+          "cycles": 201344,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18297
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 5228,
+      "case": "fill16_tail",
+      "cycles_per_operation": 5.110459433040078,
+      "deterministic_repeats": 2,
+      "operations": 1023,
+      "oracle": {
+        "executed_max": "0x10002b58",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 654,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2064,
+            "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+          }
+        ],
+        "payload_instructions": 654,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 654
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 548476,
+        "halfwords": 3408,
+        "lines": 213,
+        "reads": 32887,
+        "windows": 7,
+        "writes": 5647
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 5433,
+          "halfwords": 117,
+          "index": 0,
+          "lines": 7,
+          "reads": 57,
+          "retire_proxy": 663,
+          "writes": 513
+        },
+        {
+          "cycles": 5252,
+          "halfwords": 16,
+          "index": 1,
+          "lines": 1,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 5228,
+      "case": "fill16_tail",
+      "cycles_per_operation": 5.110459433040078,
+      "deterministic_repeats": 2,
+      "operations": 1023,
+      "oracle": {
+        "executed_max": "0x10002b58",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 654,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2064,
+            "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+          }
+        ],
+        "payload_instructions": 654,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 654
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 648145,
+        "halfwords": 3376,
+        "lines": 211,
+        "reads": 32878,
+        "windows": 7,
+        "writes": 5647
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 6241,
+          "halfwords": 87,
+          "index": 0,
+          "lines": 5,
+          "reads": 57,
+          "retire_proxy": 663,
+          "writes": 513
+        },
+        {
+          "cycles": 5254,
+          "halfwords": 16,
+          "index": 1,
+          "lines": 1,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 5228,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 5960,
+      "case": "fill8_tail",
+      "cycles_per_operation": 2.9058995611896634,
+      "deterministic_repeats": 2,
+      "operations": 2051,
+      "oracle": {
+        "executed_max": "0x10002a74",
+        "executed_min": "0x100029f8",
+        "helper_instructions": 0,
+        "instructions": 667,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2068,
+            "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+          }
+        ],
+        "payload_instructions": 667,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 667
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 554314,
+        "halfwords": 3376,
+        "lines": 211,
+        "reads": 32887,
+        "windows": 7,
+        "writes": 5654
+      },
+      "unit": "bytes",
+      "windows": [
+        {
+          "cycles": 6182,
+          "halfwords": 106,
+          "index": 0,
+          "lines": 6,
+          "reads": 57,
+          "retire_proxy": 676,
+          "writes": 515
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 5960,
+      "case": "fill8_tail",
+      "cycles_per_operation": 2.9058995611896634,
+      "deterministic_repeats": 2,
+      "operations": 2051,
+      "oracle": {
+        "executed_max": "0x10002a74",
+        "executed_min": "0x100029f8",
+        "helper_instructions": 0,
+        "instructions": 667,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2068,
+            "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+          }
+        ],
+        "payload_instructions": 667,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 667
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 653481,
+        "halfwords": 3376,
+        "lines": 211,
+        "reads": 32878,
+        "windows": 7,
+        "writes": 5654
+      },
+      "unit": "bytes",
+      "windows": [
+        {
+          "cycles": 6450,
+          "halfwords": 108,
+          "index": 0,
+          "lines": 6,
+          "reads": 57,
+          "retire_proxy": 676,
+          "writes": 515
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 5960,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        }
+      ]
+    }
+  ],
+  "status": "PASS"
+}

@@ -8,6 +8,8 @@ topic links before repeating research or simulations.
 | --- | --- |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
+| [cache-store-absence.md](cache-store-absence.md) | E0 store-miss shortcut, 5→2-clock cache response, full benchmark and CPU/buffer qualification |
+| [selected-way-pipeline-investigation.md](selected-way-pipeline-investigation.md) | Measured resident/absent lookup reuse, full-frame write-miss distinction and pipeline-compatible bank/owner contract |
 | [cache-load-optimization-plan.md](cache-load-optimization-plan.md) | Measured9→6clock handoff reduction, owned-admission fix, staged permission/response improvements and later pipelining |
 | [spmark-payload-profile.md](spmark-payload-profile.md) | Cycle-pressure profiling: internal data completion dominates, qualified observer and reordered optimization priority |
 | [spmark-payload-results.md](spmark-payload-results.md) | Comparison table of original-payload simulation results, starting with baseline |
