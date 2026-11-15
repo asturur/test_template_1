@@ -198,7 +198,11 @@ module jtframe_sdram64 #(
   // data mux makes Quartus infer clear/load controls that cannot pack into the
   // Cyclone V output IO cell. Data is sampled on the same edge as before; only
   // the registered enable controls whether those bits drive the shared pins.
-  reg [15:0] dq_pad;
+  // The bank-data mux may be remapped to synchronous clear/load controls even
+  // though this register has no RTL reset or enable. Cyclone V cannot pack
+  // that combination into its output IO register. Keep the mux on D and retain
+  // the pin register through physical synthesis; do not change its clock edge.
+  (* preserve, altera_attribute = "-name ALLOW_SYNCH_CTRL_USAGE OFF" *) reg [15:0] dq_pad;
   reg        dq_oe;
 `ifdef VERILATOR
   assign sdram_din = dq_pad;

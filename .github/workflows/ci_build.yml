@@ -82,7 +82,12 @@ jobs:
             --output output_files/timing/path-summary.md
           cat output_files/timing/path-summary.md >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Require SDRAM pin registers
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: python3 tools/check_sdram_io_registers.py output_files/Template.fit.rpt
+
       - name: Require passing timing
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
 
       # Keep an existing bitstream even if compile/STA or the timing gate

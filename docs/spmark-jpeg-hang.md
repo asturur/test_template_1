@@ -129,3 +129,63 @@ The builder uses the original local ROM/service files and cached extracted
 SPMark app; it prepares the guarded remote script but never connects/applies it.
 Unicorn tests require native JIT execution outside the macOS sandbox. Do not
 reuse the transient applied image as production firmware.
+
+## New RBF boot regression — 2026-11-15
+
+The50114ac/seed43 RBF cannot yet qualify JPEG. Direct automatic starts reach
+kernel startup and eventually PLAT0x1005B with `Notifer Secnot.dll failed to
+load`; fresh held starts reproducibly reach the low abort loop0000060C with
+FAR8AFFFxxx. A delayed MGL card launch fails before its card insertion, and a
+direct held/cardless start also fails. No MMC-format or card-image fix follows
+from these observations.
+
+The previous d4f2a8/seed44 image, staged in Linux RAM, passes automatic AND
+fresh held starts using the same C/PMM files and original firmware. ADSP42OK
+and the time/date prompt return. The installed SD RBF remains the newer image.
+Both firmware/control images use identical SDRAM source, but their fitter reports
+have materially different DQ placement:
+
+| Check | Previous working placement | New failing placement |
+| --- | ---: | ---: |
+| Input I/O registers |16/16|16/16|
+| Output I/O registers |16/16|0/16|
+| Output-enable I/O registers |16/16|16/16|
+| Clear/load output packing warnings |0|16|
+
+This is a concrete physical implementation regression and resembles the earlier
+[SDRAM investigation](sdram-early-boot-2026-11-13.md). It does not isolate all
+CPU changes or prove that poor pin packing causes every new failure. The new
+placement additionally misses78MHz setup on39reported paths (worst-0.586ns),
+including completion-to-cache-0.279ns; these remain separate qualification risks.
+The two board images also use different seeds. No F2 rollback was made.
+
+The narrow candidate preserves the existing dq_pad registers and disables
+synchronous control extraction for that vector only, keeping its data mux onD.
+The supported setting is described in the
+[Quartus Standard reference](https://docs.altera.com/r/docs/d815780/17.1/quartus-prime-standard-edition-settings-file-reference-manual/allow_synch_ctrl_usage?contentId=AMBYKRhHZgZlN3Ka97rkXg).
+No registers, request stages, timing exceptions or changed PLL are introduced.
+A new fit must prove the attribute achieves16/16output packing; simulation
+cannot establish this. The CI action now runs the existing pin-register checker
+as a distinct gate while preserving RBFs/reports after failed qualification.
+
+Four-state Micron tests pass all16full/production combinations at78/104MHz
+and modeled clock-pin delays0/.25/.5/1ns. Their deliberately wrong capture-edge
+case still fails. The report checker accepts the old actual report and rejects
+the new actual report. These establish model behavior/checker sensitivity,
+not a successful new fit or a passed native JPEG deadline. The716-word startup
+exit observer was applied only in verified fresh Hold and failed before its
+hooks; the subsequent stock-old reload removed it. No functional firmware
+patch, deadline change, disk write or save was used.
+
+Raw captures/reports/source/artifacts: `scratch/jpeg-f2-board-20261115/`.
+[Compact evidence](evidence/jpeg-f2-board-20261115.json).
+
+For future controlled card insertion, installed MiSTer_Zaparoo accepts one
+newline-terminated `/dev/MiSTer_cmd` command:
+`zaparoo_mount 3 /media/fat/games/NGage/spmark04.mmc`.
+The argument3 is the one-based declaration order of the three mountable slots,
+so it selects raw HPS slot2. It does not reload the core; the file-open control
+was verified. This is not proof native NEM-4 firmware supports runtime hot swap.
+MGL delay is measured in seconds, not milliseconds. Use the cached hardware
+control skill for ordinary inputs; do not rediscover the API or rely on screen
+captures to inspect OSD focus.

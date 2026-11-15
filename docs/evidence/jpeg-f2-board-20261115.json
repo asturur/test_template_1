@@ -1,0 +1,472 @@
+{
+  "scope": "New F2 RBF boot regression prevents native JPEG retest; SDRAM IO-packing candidate, no established F2 logic cause",
+  "current_commit": "50114ac30cbcfd412a0756919d6edf6174e8a142",
+  "run_id": 43763278613,
+  "seed": 43,
+  "rbf_sha256": "b5604323f3d96d28e8b8066b7da0fa393fd903df3e73ca36e11f900f172a3f1b",
+  "previous_commit": "d4f2a8a95aeceb83d09989d2f4f87def17d9d56d",
+  "previous_run_id": 43743437962,
+  "previous_seed": 44,
+  "previous_rbf_sha256": "8eb96c222da7b29964d73c956e791ca5b8f91ccd21116589b9049d015aa23883",
+  "save_enabled": false,
+  "sdcard_images_modified": false,
+  "installed_rbf_replaced": false,
+  "captures": {
+    "boot": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x50343874",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 7,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000f04"
+      },
+      "text_tail": "\ufffdTRtcQueue::Add: 2\ufffdTRtcQueue::Add: 4"
+    },
+    "card-boot": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x60c",
+      "first_fault_address": "0x8afff400",
+      "first_fault_pc": "0x16b0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 0,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": false,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000100"
+      },
+      "text_tail": ""
+    },
+    "auto-card-boot": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x60c",
+      "first_fault_address": "0x8afff3dc",
+      "first_fault_pc": "0xf84",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 0,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": false,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000100"
+      },
+      "text_tail": ""
+    },
+    "delayed-boot": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x60c",
+      "first_fault_address": "0x8afff360",
+      "first_fault_pc": "0x1d74",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 0,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": false,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000100"
+      },
+      "text_tail": ""
+    },
+    "direct-card-boot": {
+      "snapshots": 200,
+      "reset_generation": 1,
+      "last_pc": "0x60c",
+      "first_fault_address": "0x8afff640",
+      "first_fault_pc": "0x23a4",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 0,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": false,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000100"
+      },
+      "text_tail": ""
+    },
+    "plain-auto-retry": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x50345a98",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 7,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000f04"
+      },
+      "text_tail": "\ufffdTRtcQueue::Add: 2\ufffdTRtcQueue::Add: 4"
+    },
+    "late-mount": {
+      "snapshots": 140,
+      "reset_generation": 0,
+      "last_pc": "0x50345a90",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 7,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000f04"
+      },
+      "text_tail": "\ufffdTRtcQueue::Add: 2\ufffdTRtcQueue::Add: 4"
+    },
+    "current": {
+      "snapshots": 20,
+      "reset_generation": 0,
+      "last_pc": "0x50324294",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 7,
+        "payload_hex": "504c4154000000005b000100",
+        "reason": 65627
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 9,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51001304"
+      },
+      "text_tail": "\ufffdTRtcQueue::Add: 2\ufffdTRtcQueue::Add: 4\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdNotifer Secnot.dll failed to load"
+    },
+    "exit-traced-boot": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x60c",
+      "first_fault_address": "0x8afff640",
+      "first_fault_pc": "0x23a4",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 0,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": false,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51000100"
+      },
+      "text_tail": ""
+    },
+    "prior-control": {
+      "snapshots": 199,
+      "reset_generation": 0,
+      "last_pc": "0x5038a60c",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": false,
+      "save_queue": {
+        "count": 10,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51001504"
+      },
+      "text_tail": "HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdiChannelCount = 2 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdCSysApAppUi::ConstructL: Start listening\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdTRtcQueue::Add: 5\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    },
+    "prior-follow": {
+      "snapshots": 139,
+      "reset_generation": 0,
+      "last_pc": "0x503273b0",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": true,
+      "save_queue": {
+        "count": 30,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51003d04"
+      },
+      "text_tail": "hError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdStartupApp - iAnimationShowing changed from 0 to 1\ufffdStartupApp - iAnimationShowing changed from 1 to 0\ufffdStartupApp - iAnimationCancelled == 0 \ufffdNDE: In ConstructL\ufffd\ufffd\ufffdCContactDBObserver::NewL()\ufffd\ufffd\ufffdCContactDBObserver::ConstructL()\ufffd\ufffd\ufffd\ufffd**** CAccessoryButtonMonitor::CAccessoryModeMonitor() ****\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd"
+    },
+    "prior-held-boot": {
+      "snapshots": 200,
+      "reset_generation": 0,
+      "last_pc": "0x5033c8fc",
+      "first_fault_address": "0x0",
+      "first_fault_pc": "0x0",
+      "panic": {
+        "valid_mask": 0,
+        "payload_hex": "000000000000000000000000",
+        "reason": 0
+      },
+      "adsp_test42_ok": true,
+      "save_queue": {
+        "count": 27,
+        "initialized": true,
+        "fault": false,
+        "flush_error": false,
+        "flushing": false,
+        "in_flight": false,
+        "mark_pending": false,
+        "head_ready": true,
+        "overflow": false,
+        "invalid_sector": false,
+        "raw_hex": "0x51003704"
+      },
+      "text_tail": "eteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdTRtcQueue::Add: 5\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdStartupApp - iAnimationShowing changed from 0 to 1\ufffdStartupApp - iAnimationShowing changed from 1 to 0\ufffdStartupApp - iAnimationCancelled == 0 "
+    }
+  },
+  "caveats": [
+    "Two different commits and fitter seeds; does not isolate the CPU overlap logic",
+    "Pin-register constraint is a candidate until fitted report and native boot pass",
+    "39 failing setup paths remain in current placement; no relaxed clock or timing constraints",
+    "Observation-only exit tracer installed on a fresh held boot, 716 verified writes; boot aborted before those hooks. Removed by original-stock old-build reload."
+  ],
+  "current_sdram_io": {
+    "pass_": false,
+    "checker_output": "FAIL SDRAM I/O registers: SDRAM_DQ[0]: Output Register=no\nSDRAM_DQ[1]: Output Register=no\nSDRAM_DQ[2]: Output Register=no\nSDRAM_DQ[3]: Output Register=no\nSDRAM_DQ[4]: Output Register=no\nSDRAM_DQ[5]: Output Register=no\nSDRAM_DQ[6]: Output Register=no\nSDRAM_DQ[7]: Output Register=no\nSDRAM_DQ[8]: Output Register=no\nSDRAM_DQ[9]: Output Register=no\nSDRAM_DQ[10]: Output Register=no\nSDRAM_DQ[11]: Output Register=no\nSDRAM_DQ[12]: Output Register=no\nSDRAM_DQ[13]: Output Register=no\nSDRAM_DQ[14]: Output Register=no\nSDRAM_DQ[15]: Output Register=no\n",
+    "fit_report_sha256": "b5f88f982833147be1656e3a444d24ba48f6d76ff8dc200b597ad5a79500bfca"
+  },
+  "previous_sdram_io": {
+    "pass_": true,
+    "checker_output": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells\n",
+    "fit_report_sha256": "cfa4e255814ab6cdefccf7afe2b6bf3fbdc9b3a2c55d9fe17fff59397ba5794e"
+  },
+  "timing": {
+    "reported_paths": 1000,
+    "violated_paths": 39,
+    "worst_slack_ns": -0.586,
+    "worst_ten": [
+      {
+        "rank": "1",
+        "slack_ns": "-0.586",
+        "data_delay_ns": "12.634",
+        "logic_levels": "12",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|reset_drain~SynDup_75",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|probe_owner_tag[21]_OTERM4318"
+      },
+      {
+        "rank": "2",
+        "slack_ns": "-0.466",
+        "data_delay_ns": "12.460",
+        "logic_levels": "11",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|reset_drain~SynDup_75",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|line_result_replace"
+      },
+      {
+        "rank": "3",
+        "slack_ns": "-0.371",
+        "data_delay_ns": "12.408",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[34]_OTERM4110"
+      },
+      {
+        "rank": "4",
+        "slack_ns": "-0.279",
+        "data_delay_ns": "12.281",
+        "logic_levels": "10",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_data_completion:u_data_completion|o_valid",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|absent_store_owner"
+      },
+      {
+        "rank": "5",
+        "slack_ns": "-0.240",
+        "data_delay_ns": "12.279",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[50]_OTERM3936"
+      },
+      {
+        "rank": "6",
+        "slack_ns": "-0.237",
+        "data_delay_ns": "12.267",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[10]_OTERM3438"
+      },
+      {
+        "rank": "7",
+        "slack_ns": "-0.237",
+        "data_delay_ns": "12.269",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[18]_OTERM3502"
+      },
+      {
+        "rank": "8",
+        "slack_ns": "-0.226",
+        "data_delay_ns": "12.259",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[42]_OTERM4068"
+      },
+      {
+        "rank": "9",
+        "slack_ns": "-0.220",
+        "data_delay_ns": "12.257",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[58]_OTERM4026"
+      },
+      {
+        "rank": "10",
+        "slack_ns": "-0.213",
+        "data_delay_ns": "12.250",
+        "logic_levels": "9",
+        "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending",
+        "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[26]_OTERM3390"
+      }
+    ]
+  },
+  "candidate": {
+    "attribute": "preserve; ALLOW_SYNCH_CTRL_USAGE OFF on dq_pad only",
+    "logical_state_bits_added": 0,
+    "transaction_stages_added": 0,
+    "pll_changed": false,
+    "fitter_verification_pending": true,
+    "model_tests": "16 four-state Micron cases, 78/104MHz and modeled clock delays 0/.25/.5/1ns; wrong-edge control rejected",
+    "reference": "https://docs.altera.com/r/docs/d815780/17.1/quartus-prime-standard-edition-settings-file-reference-manual/allow_synch_ctrl_usage?contentId=AMBYKRhHZgZlN3Ka97rkXg"
+  }
+}

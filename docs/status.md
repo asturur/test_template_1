@@ -1,3 +1,36 @@
+## 2026-11-15: JPEG retest blocked by new SDRAM placement regression
+
+User loaded50114ac/run43763278613/seed43/debugOn; installed SHA b5604323...a3f1b
+matches artifact. Original ROM verified. Same saved C/PMM, saveOff, no image writes.
+New automatic boot reaches kernel then PLAT1005B (Secnot.dll load failure);
+fresh-Hold starts repeatedly abort at0000060C/FAR8AFFFxxx before NOS startup.
+Delayed MMC experiment also aborts before insertion: MMC causality disproved.
+Do not call this a JPEG result or a proven CPU/F2 logic defect.
+
+Controlled previous d4f2a8/run43743437962/seed44, SHA8eb96c22...23883, loaded from
+Linux /tmp without replacing installed RBF, passes both automatic and fresh-Hold
+starts, reaches date/time prompt and ADSP42OK. Same saved disks, original firmware.
+Its fit has16/16DQ input/output/OE registers packed; new fit has0/16DQ OUTPUT
+registers packed, all16clear/load packing warnings. Same SDRAM RTL in both.
+Synthesis remapping/placement is a concrete regression; not proof it causes every
+failure or that F2 logic is correct. New fit also has39negative setup paths,
+worst-0.586ns (reset_drain→Dcache owner); completion→cache-0.279ns.
+
+Candidate: preserve existing dq_pad and disable synchronous clear/load remapping
+on those16registers only. No functional/stage/state/PLL change. Four-state Micron
+suite passes16cases at78/104MHz with0/.25/.5/1ns modeled pin-clock delays;
+wrong-edge negative fails as required. Existing report checker accepts previous
+fit and rejects new fit. Added CI pin-packing gate; failed-timing RBF retention
+remains. Require a NEW fitted report and original native boot before any fix
+claim, then repeat SPMark system/JPEG tests unchanged. Actual78MHz/104MHz goal.
+
+716-word observation-only exit tracer was verified in fresh Hold, but boot
+aborted before it ran. Removed by stock previous-build reload; full original
+ROM verified before that control. SavedRunOn/saveOff restored. No disk repairs,
+firmware/deadline substitutions or other-thread simulation changes.
+[Details](spmark-jpeg-hang.md#new-rbf-boot-regression-2026-11-15),
+[evidence](evidence/jpeg-f2-board-20261115.json).
+
 ## 2026-11-15: Saved reboot still prompts; donor clock handoff identified
 
 User authorized saving current disks. Manual Flush drains38queuedsectors to0,
