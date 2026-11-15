@@ -1,0 +1,114 @@
+{
+  "scope": "Read-only hardware monitoring while user runs system tests; original-code software reproduction is separate from board ordering",
+  "identity": {
+    "rbf_sha256": "8eb96c222da7b29964d73c956e791ca5b8f91ccd21116589b9049d015aa23883",
+    "media": [
+      {
+        "pid": 6021,
+        "fd": 8,
+        "path": "/media/fat/games/ngage1/boot0.vhd",
+        "bytes": 4194304
+      },
+      {
+        "pid": 6021,
+        "fd": 9,
+        "path": "/media/fat/games/ngage1/boot1.vhd",
+        "bytes": 65536
+      },
+      {
+        "pid": 6021,
+        "fd": 14,
+        "path": "/media/fat/games/NGage/spmark04.mmc",
+        "bytes": 16773632
+      }
+    ],
+    "saved_cfg": "00000100000000000000000000000000"
+  },
+  "user_report": "Latest clock build, MMC mounted before CPU Hold released; date prompt still appeared",
+  "captures": [
+    {
+      "name": "capture-01",
+      "snapshots": 199,
+      "generations": [
+        1
+      ],
+      "errors": [
+        25
+      ],
+      "max_current_wait": 15,
+      "sticky_first_fault": false,
+      "panic_records": [],
+      "queue_fault": false,
+      "autosave": [
+        false
+      ],
+      "producer_drops": 0,
+      "reader_gaps": 0
+    },
+    {
+      "name": "capture-02",
+      "snapshots": 719,
+      "generations": [
+        1
+      ],
+      "errors": [
+        25
+      ],
+      "max_current_wait": 15,
+      "sticky_first_fault": false,
+      "panic_records": [],
+      "queue_fault": false,
+      "autosave": [
+        false
+      ],
+      "producer_drops": 0,
+      "reader_gaps": 0
+    },
+    {
+      "name": "capture-03",
+      "snapshots": 719,
+      "generations": [
+        1
+      ],
+      "errors": [
+        25
+      ],
+      "max_current_wait": 12,
+      "sticky_first_fault": false,
+      "panic_records": [],
+      "queue_fault": false,
+      "autosave": [
+        false
+      ],
+      "producer_drops": 0,
+      "reader_gaps": 0
+    }
+  ],
+  "observed": "Image scaling progresses, JPEG code executes, then JPEG screen remains with scheduler/background activity; no new bus-error count, sticky first fault, queue fault or panic record in captures02/03",
+  "hypothesis": "The app arms a ten-second RTimer. If it dispatches before ConvertComplete, original RunL closes timer without stopping nested scheduler; later callback calls Cancel on inactive object and cannot run DoCancel/Scheduler.Stop",
+  "not_yet_verified": "Specific loading/decoder/server/CPU cost attribution and actual JPEG compression performance; no RTL cause established",
+  "observer_ready": true,
+  "observer_cases": 216,
+  "timeout_reproduction_cases": 8,
+  "hardware_observer_applied": true,
+  "sampled_jpeg_span": {
+    "first_sequence": 2715284548,
+    "last_sequence": 2715284592,
+    "first_cycle": 3045679533,
+    "last_cycle": 3903679533,
+    "sampled_span_seconds": 11.0,
+    "jpeg_samples": 19,
+    "scope": "Span between first/last sampled MediaServerJpeg PCs, not request duration or continuous JPEG execution; same generation, modular32-bit cycle subtraction; less than one counter wrap"
+  },
+  "later_screen": "Clock screensaver at01/01/2003 9:07AM, without agent input; this does not establish SPMark completion or exit",
+  "hardware_ordering_confirmed": true,
+  "confirmed_ordering_file": "spmark-jpeg-confirmed-ordering-20261115.json",
+  "observer_removed": true,
+  "stock_verification": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "observer_removed": true,
+    "saved_cfg": "00000100000000000000000000000000",
+    "rbf_sha256": "8eb96c222da7b29964d73c956e791ca5b8f91ccd21116589b9049d015aa23883",
+    "mmc_sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919"
+  }
+}

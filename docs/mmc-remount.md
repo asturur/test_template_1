@@ -1,5 +1,14 @@
 # MMC insertion and application discovery
 
+## Accepted behavior and optional enhancement
+
+The user accepts current MMC behavior (2026-11-15): original N-Gage card changes
+required power-off and battery removal. The successful cold-mounted Sonic launch
+meets that usage model. Runtime replacement/application discovery is optional
+future work, not an active MMC defect or bring-up blocker. Compare QD firmware
+and its media-change path before deciding whether NEM-4 can support it too;
+the firmware explanation remains a hypothesis. See the [TODO](TODO.md#optional-mmc-hot-swapping-2026-11-15).
+
 ## Hardware observations, 2026-11-15
 
 Background save is **Off**, as the user confirmed. This setting is independent

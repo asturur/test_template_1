@@ -1,0 +1,66 @@
+{
+  "records": 223,
+  "observer_sha256": "21cda0a424db6ea0d17a40dfe208b35f0dbbafd27da1ba468b31ae5320423e87",
+  "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+  "instrumented_rom_sha256": "20754d2051c1fbb6abb956bf90eadd78de1b0d97eabc3ce136a07f60552729a8",
+  "stock_cpu_view_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+  "diagnostic_cpu_view_md5": "4929c1b9786ccca639cc7cf872033ef4",
+  "checksum_check_retained": true,
+  "slow_wait_trace": false,
+  "functional_startup_substitutions": false,
+  "scope": "SPMark JPEG-only original RTimer After/CActive Cancel/handle Close/scheduler Stop; observation only, no changed deadlines/results/firmware behavior",
+  "hooks": [
+    {
+      "name": "after",
+      "address": 1346057580,
+      "old": 3912056944,
+      "replay": "push {r4,r5,r6,lr}",
+      "callers": [
+        4293930156,
+        4293930268,
+        4293930408
+      ],
+      "arg": "ldr r2,[sp,#16]"
+    },
+    {
+      "name": "cancel",
+      "address": 1345952656,
+      "old": 3912056848,
+      "replay": "push {r4,lr}",
+      "callers": [
+        4293929828,
+        4293929984,
+        4293930536,
+        4293930744,
+        4293930824,
+        4293930864,
+        4293930944,
+        4293930980,
+        4293930996
+      ],
+      "arg": "ldr r2,[r1,#8]"
+    },
+    {
+      "name": "close",
+      "address": 1346073732,
+      "old": 3912056832,
+      "replay": "stmdb sp!,{lr}",
+      "callers": [
+        4293929992,
+        4293930024
+      ],
+      "arg": "ldr r2,[r1]"
+    },
+    {
+      "name": "stop",
+      "address": 1345954408,
+      "old": 3912056848,
+      "replay": "push {r4,lr}",
+      "callers": [
+        4293930028
+      ],
+      "arg": "ldr r2,[sp,#12]"
+    }
+  ],
+  "trace_base": 1360773120
+}

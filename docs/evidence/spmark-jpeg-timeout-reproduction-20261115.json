@@ -1,0 +1,84 @@
+{
+  "scope": "Original SPMark timer RunL/ConvertComplete and original EUSER CActive::Cancel; RTimer Cancel/Close, scheduler Stop and WaitForRequest spied; dispatch inactive state modeled; does not prove actual board callback ordering",
+  "app_sha256": "f4d3819d0d7c21f6f669835d03cf9fd8c8b50aa3e0bac6975c4cbaccb09b3a4e",
+  "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+  "cases": [
+    {
+      "timer_dispatched_before_callback": false,
+      "callback_error": 0,
+      "calls": [
+        "RTimer.Cancel",
+        "RTimer.Close",
+        "Scheduler.Stop",
+        "WaitForRequest"
+      ],
+      "scheduler_stop_count": 1
+    },
+    {
+      "timer_dispatched_before_callback": false,
+      "callback_error": -1,
+      "calls": [
+        "RTimer.Cancel",
+        "RTimer.Close",
+        "Scheduler.Stop",
+        "WaitForRequest"
+      ],
+      "scheduler_stop_count": 1
+    },
+    {
+      "timer_dispatched_before_callback": false,
+      "callback_error": -4,
+      "calls": [
+        "RTimer.Cancel",
+        "RTimer.Close",
+        "Scheduler.Stop",
+        "WaitForRequest"
+      ],
+      "scheduler_stop_count": 1
+    },
+    {
+      "timer_dispatched_before_callback": false,
+      "callback_error": -33,
+      "calls": [
+        "RTimer.Cancel",
+        "RTimer.Close",
+        "Scheduler.Stop",
+        "WaitForRequest"
+      ],
+      "scheduler_stop_count": 1
+    },
+    {
+      "timer_dispatched_before_callback": true,
+      "callback_error": 0,
+      "calls": [
+        "RTimer.Close"
+      ],
+      "scheduler_stop_count": 0
+    },
+    {
+      "timer_dispatched_before_callback": true,
+      "callback_error": -1,
+      "calls": [
+        "RTimer.Close"
+      ],
+      "scheduler_stop_count": 0
+    },
+    {
+      "timer_dispatched_before_callback": true,
+      "callback_error": -4,
+      "calls": [
+        "RTimer.Close"
+      ],
+      "scheduler_stop_count": 0
+    },
+    {
+      "timer_dispatched_before_callback": true,
+      "callback_error": -33,
+      "calls": [
+        "RTimer.Close"
+      ],
+      "scheduler_stop_count": 0
+    }
+  ],
+  "status": "PASS"
+}

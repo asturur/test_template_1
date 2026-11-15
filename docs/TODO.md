@@ -6,6 +6,44 @@ separately configurable; never describe a probe as authentic boot. See
 [flash-layout.md](flash-layout.md), and [uem-control-bus.md](uem-control-bus.md)
 for evidence and reproducible traces.
 
+## SPMark JPEG deadline blocker (2026-11-15)
+
+- [ ] Profile/reproduce input `test.jpg` loading and decode before selecting
+  another optimization. Native trace confirms successful completion at11.984s
+  after a10sdeadline; the app's timer RunL/late callback recovery leaves its
+  nested scheduler running. Actual JPEG compression has not begun. Separate
+  MMC/loading, decoder and server/scheduling cost; target under10s with margin
+  while preserving original app/firmware and native timer rates. Verify the
+  original System Tests advance through JPEG and produce results, with normal
+  cancellation/IRQs and existing CPU/cache regressions. No RTL culprit yet.
+  See [confirmed cause](spmark-jpeg-hang.md).
+
+## Clock startup prompt follow-up (2026-11-15)
+
+- [ ] User reports that the latest clock-enabled build still asks for the date
+  after boot. Timestamp-to-UEM time qualification did not establish PMM calendar
+  persistence or prompt removal. Verify supplied time, native validity/day/base
+  handling and saved PMM on a later dedicated run. JPEG hang takes priority.
+
+## Optional MMC hot swapping (2026-11-15)
+
+Current MMC behavior is accepted: the original N-Gage required power-off and
+battery removal to change cards. Sonic mounts, appears in Menu and launches
+when present before CPU startup. Runtime replacement is an enhancement, not
+a current MMC blocker.
+
+- [ ] Compare QD and NEM-4 firmware media-change detection, filesystem cache
+  invalidation and AppArc rescanning. Donor QD swaps work without its unused
+  card-present output; a firmware difference is a hypothesis, not yet traced.
+  Determine whether equivalent behavior is possible on NEM-4 while preserving
+  the unmodified-firmware requirement before proposing HDL changes.
+  Validate insertion after boot and Sonic/Bomberman replacement in both
+  directions: correct volume/free space, old icon removed, new icon visible,
+  game launches, and no stale sectors, unexpected reset or save corruption.
+  Retain cold-start mounting as a regression control. No implementation now.
+  See [hardware findings](mmc-remount.md) and donor
+  `docs/consults/2026-10-27-mmc-hot-swap.md`.
+
 ## Display output follow-up (2026-11-13)
 
 - [ ] Confirm corrected adjacent-column order on physical HDMI and CRT with

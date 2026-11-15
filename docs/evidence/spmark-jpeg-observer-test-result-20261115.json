@@ -1,0 +1,5 @@
+{
+  "status": "PASS",
+  "cases": 216,
+  "scope": "Exact state/stack/log/filter preservation; RDebug ABI spied; not hardware ordering"
+}

@@ -1,3 +1,53 @@
+## 2026-11-15: JPEG wait confirmed: input decode exceeds app deadline
+
+Authorized traced repeat confirms original SPMark app hangs while decoding
+its input test.jpg, BEFORE JPEG encoding starts.10sRTimer fires/dispatches at
+11.437s; RunL closes timer without stopping nested scheduler. Successful decode
+callback arrives11.984s, Cancel seesinactive and cannot invoke DoCancel/Stop.
+No JPEGencoderstart; noStopfor14.86saftercallback in completecapture.60normal
+scaling/image stops prove observercontrol.247events/zero gaps/drops/gen0/errors13
+unchanged/no stickyfault/panic/saveOff.8original-code paths/216tracer cases pass;
+no modified deadlines/results. This is a measured app timeout recovery defect,
+not proof all hardware is correct or which block makes decode slow. Request
+includes loading/codec/server/scheduling; about20%throughput plus margin needed
+to meet10s. Profile that path before more general optimization. No RTLchange.
+Stockreloadremovedobserver; complete originalROM88fd...58329verified, same
+RBF/MMC, restoredRunOn/saveOff and advancingCPU/gen0/no stickyfault.
+Date prompt remains separately recorded. Current MMC accepted; hot swapoptional.
+[Confirmed ordering](docs/spmark-jpeg-hang.md), [evidence](docs/evidence/spmark-jpeg-confirmed-ordering-20261115.json).
+
+## 2026-11-15: SPMark JPEG hang prioritized; timeout candidate prepared
+
+User reports latest clock build still requests date; noted separately in TODO.
+User controls hardware/tests; no input/reload/patch/save performed. Installed
+RBFfile SHA8eb96c22...23883 and SPMark MMC open recorded. Image/scaling progresses,
+JPEG runs then screen stays with mostly scheduler/background samples. Captures
+02/03 retain gen1/errors25/no stickyfault/panic/queuefault, saveOff. Initial
+capture was gen0 before user's test boot; no inferred JPEG reset. Older20261114
+JPEG stall predates latest optimizations. Optimization work paused.
+
+Original app's ten-second RTimer path is a candidate: dispatched RunL closes
+handle without stopping nested scheduler; later ConvertComplete Cancel sees
+inactive and cannot invoke DoCancel/Stop. Eight original-code cases confirm
+that path with modeled dispatch state and spied services; not board ordering.
+216exact preservation/filter cases qualify a narrow observer;223guarded writes,
+checksum retained, no changed deadline/result. Prepared only; asked user to
+coordinate fresh boot/repeat before interrupting their current session. No new
+RBF needed. JPEG output is128KiB RAM descriptor; test.jpg is input, not C:output.
+[Investigation](docs/spmark-jpeg-hang.md), [evidence](docs/evidence/spmark-jpeg-monitor-20261115.json).
+
+## 2026-11-15: Current MMC behavior accepted; hot swapping optional
+
+User confirms MMC is fine as implemented: original N-Gage required battery
+removal/power-off to change cards. Cold-mounted Sonic appears and launches;
+runtime replacement is not an active blocker. Previous runtime observations
+remain evidence for an optional enhancement, not a required fix. Added a TODO
+to compare QD/NEM-4 firmware notification, filesystem invalidation and AppArc
+rescanning, then assess feasibility under the unmodified-firmware requirement.
+Firmware differences are a lead, not a proven mechanism. No further hardware
+session, implementation or build requested for this item.
+[Optional work](docs/TODO.md#optional-mmc-hot-swapping-2026-11-15).
+
 ## 2026-11-15: MMC cold insertion works; runtime app discovery fails
 
 Background save is Off, confirmed by user and DDR. Both exact Sonic/Bomberman

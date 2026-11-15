@@ -1,0 +1,66 @@
+{
+  "status": "CONFIRMED",
+  "stage": "JPEG input-file load/decode before encoder loop",
+  "events": [
+    {
+      "event": "AFTER",
+      "obj": 4214968,
+      "value": 10000000,
+      "caller": 4293930156,
+      "cycle": 1014385015,
+      "generation": 0,
+      "sequence": 969453,
+      "reader_epoch": 0
+    },
+    {
+      "event": "CANCEL",
+      "obj": 4222764,
+      "value": 0,
+      "caller": 4293929984,
+      "cycle": 1906475378,
+      "generation": 0,
+      "sequence": 969462,
+      "reader_epoch": 0
+    },
+    {
+      "event": "CLOSE",
+      "obj": 4214968,
+      "value": 1081016345,
+      "caller": 4293929992,
+      "cycle": 1906521135,
+      "generation": 0,
+      "sequence": 969471,
+      "reader_epoch": 0
+    },
+    {
+      "event": "CANCEL",
+      "obj": 4222764,
+      "value": 0,
+      "caller": 4293930996,
+      "cycle": 1949146073,
+      "generation": 0,
+      "sequence": 969478,
+      "reader_epoch": 0
+    }
+  ],
+  "timer_requested_microseconds": 10000000,
+  "timer_dispatch_seconds": 11.437055935897435,
+  "successful_decode_callback_seconds": 11.984116128205129,
+  "no_stop_observed_after_callback_seconds_in_same_capture": 14.861063846153845,
+  "jpeg_encode_starts": 0,
+  "total_events": 247,
+  "normal_scheduler_stops": 60,
+  "reader_gaps": 0,
+  "producer_drops": 0,
+  "generations": [
+    0
+  ],
+  "bus_errors": [
+    13
+  ],
+  "first_faults": false,
+  "panic_records": [],
+  "functional_deadline_or_result_changes": false,
+  "minimum_throughput_gain_to_meet_10s_without_margin": 0.1984116128205129,
+  "scope": "Instrumented native run; observer overhead and OS scheduling included, not standalone codec performance or timing signoff"
+}
