@@ -225,6 +225,10 @@ module zap_alu_main #(
     // ALU stage output valid. CC success/interrupt tagged.
     output logic o_dav_ff,
 
+    // Decoded instruction ownership, including a failed condition. Unlike DAV,
+    // this is not an architectural result-valid indication.
+    output logic o_feedback_valid_ff,
+
     // Next version of the above to allow back-to-back execution.
     output logic o_dav_nxt,
 
@@ -460,6 +464,7 @@ module zap_alu_main #(
       o_swp_tag                         <= 0;
       o_clear_from_alu                  <= 0;
       o_dav_ff                          <= 0;
+      o_feedback_valid_ff               <= 0;
       o_alt_dav_ff                      <= 0;
       flags_ff                          <= CPSR_INIT;
       o_abt_ff                          <= 0;
@@ -494,6 +499,7 @@ module zap_alu_main #(
       o_swp_tag                         <= 0;
       o_clear_from_alu                  <= 0;
       o_dav_ff                          <= 0;
+      o_feedback_valid_ff               <= 0;
       o_alt_dav_ff                      <= 0;
       flags_ff                          <= i_cpsr_nxt;
       o_abt_ff                          <= 0;
@@ -528,6 +534,7 @@ module zap_alu_main #(
       o_swp_tag         <= 0;
       o_clear_from_alu  <= 0;
       o_dav_ff          <= 0;
+      o_feedback_valid_ff <= 0;
       o_alt_dav_ff      <= 0;
       o_abt_ff          <= 0;
       o_irq_ff          <= 0;
@@ -544,6 +551,7 @@ module zap_alu_main #(
       o_swp_tag         <= 0;
       o_clear_from_alu  <= 0;
       o_dav_ff          <= 0;
+      o_feedback_valid_ff <= 0;
       o_alt_dav_ff      <= 0;
       o_abt_ff          <= 0;
       o_irq_ff          <= 0;
@@ -564,6 +572,8 @@ module zap_alu_main #(
       o_alt_dav_ff <= valid_x;
 
       o_dav_ff <= o_dav_nxt;
+      o_feedback_valid_ff <= i_condition_code_ff != NV &&
+                             !i_irq_ff && !i_fiq_ff && !i_abt_ff;
       o_pc_plus_8_ff <= i_pc_plus_8_ff;
       o_destination_index_ff <= o_destination_index_nxt;
       flags_ff <= o_flags_nxt;
@@ -609,8 +619,10 @@ module zap_alu_main #(
     case (r_clear_from_alu)
       BRANCH_TARGET:     o_pc_from_alu = w_pc_from_alu_btarget;
       NEXT_INSTR_RESYNC: o_pc_from_alu = w_pc_from_alu_resync;
-      default:           o_pc_from_alu = 'dx;  // Synthesis will OPTIMIZE.
-                                               // OK to do for FPGA synthesis.
+      // Correct predictions still train the BTB. Preserve their actual target
+      // instead of writing a don't-care target on confirmation. PC redirection
+      // remains qualified by o_clear_from_alu.
+      default:           o_pc_from_alu = w_pc_from_alu_btarget;
     endcase
   end
 

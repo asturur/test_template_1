@@ -2,6 +2,17 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## Owned branch feedback and return targets (0065/0066)
+
+Register decoded ALU ownership independently of condition success; prevent
+bubbles/held/squashed outputs from erasing or training predictor entries. Keep
+failed-condition feedback and independent fetch holds. Fix MOV pc,lr recognition
+from Rm15 to14 and retain the existing computed target when a correct branch
+confirms without redirecting. One added owner bit; no RAM/target register/stage.
+Full-suite combined gain21.0121%/16.1110%, indices186.9337/167.8711.66CPU runs,
+44edge sweeps and directed units/controls pass; physical build remains a gate.
+[Implementation and qualification](cpu-branch-return.md).
+
 ## Precomputed FIFO boundaries (0064)
 
 Compute one-item/one-free comparisons independently of late fetch acceptance,

@@ -1,3 +1,42 @@
+## 2026-11-15: Branch feedback/returns complete; build requested after push
+
+User authorized steps1/2, rebench, commit/push, then a seed44 build while small
+follow-up fixes are supplied.0065 adds one decoded ALU ownership bit; bubbles,
+holds, writeback clear and older faults cannot mutate BTB entries. Failed
+conditions still train, and fetch hold does not block independent ALU feedback.
+0066 recognizes MOV pc,lr (Rm14 rather than15) and retains the existing computed
+target on correct branch confirmation. No new target register/RAM/stage or PLL
+change.78MHz remains active,104MHz the timing objective.
+
+Full six-payload suite, both profiles,12groups/84windows per repeat, two exact
+repeats and six wrong-output controls pass after each accepted step. Step1 gains
+11.9640%/7.8126%, indices172.9566/155.8735. Step2 including confirmed-target repair
+gains8.0813%/7.6970% more. Final indices **186.9337/167.8711**, versus prior
+154.4752/144.5781: **+21.0121%/+16.1110%**. Final compiled-source hashes match
+the checkout. These are synthetic offline kernels, not native SPMark scores.
+
+Matcher-only was deliberately not accepted alone: full payload counters equal
+step1, but32calls worsen1092→1185clocks. A bounded return trace shows correct
+RAS addresses followed by BTB target zero: successful ALU confirmations supplied
+a don't-care target. Retaining the existing target resolves this. Matched
+microbenchmarks:64-iteration branch1392→412,32calls1133→740; with the target fix
+but old matcher, calls take812. All20groups repeat every window/total exactly.
+
+Final66CPU runs,44IRQ/FIQ edge sweeps, BTB/ALU/RAS units and three broken controls
+pass. Directed guest includes nested ARM/Thumb calls, recursion beyond RAS depth,
+failed conditions and MOV pc,pc. All83pristine hashes/37ZAP token streams match
+through0066. Fixture path/instance-name mistakes were corrected and retained
+separately; no RTL failure is inferred from them. Other threads' simulations/
+checkpoints are untouched; no branches/worktrees, hardware/media/patch activity.
+
+Build gate: launch exact committed source after push, seed44, and record its
+immutable run/commit under scratch/branch-return-20261115/build.json. Physical
+fit/timing/native score for these changes remain unverified. Last measured
+hardware remains a745119/score119. Reprofile final CPU before choosing F2 credits/
+ordered completion versus further frontend/arithmetic work. Phase03 matcher/
+associated target metadata are addressed; full RAS rollback is still later10b.
+[Design/results](cpu-branch-return.md), [qualification](evidence/cpu-branch-return-20261115.json).
+
 ## 2026-11-15: Hardware score119; FIFO timing rewrite qualified locally
 
 Requested 50-minute build check completed at14:27UTC. Exact a745119 /

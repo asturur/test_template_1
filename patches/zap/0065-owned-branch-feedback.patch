@@ -1,0 +1,157 @@
+--- a/src/rtl/zap_alu_main.sv
++++ b/src/rtl/zap_alu_main.sv
+@@ -231,6 +231,11 @@
+         // ALU stage output valid. CC success/interrupt tagged.
+         output logic                              o_dav_ff,
+ 
++    // Decoded instruction ownership, including a failed condition. Unlike DAV,
++    // this is not an architectural result-valid indication.
++    output logic o_feedback_valid_ff
++,
++
+         // Next version of the above to allow back-to-back execution.
+         output logic                              o_dav_nxt,
+ 
+@@ -484,7 +489,8 @@
+                 o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+-                o_alt_dav_ff                     <= 0;
++                o_feedback_valid_ff               <= 0;
++o_alt_dav_ff                     <= 0;
+                 flags_ff                         <= CPSR_INIT;
+                 o_abt_ff                         <= 0;
+                 o_irq_ff                         <= 0;
+@@ -520,6 +526,8 @@
+                 o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
++      o_feedback_valid_ff
++<= 0;
+                 o_alt_dav_ff                     <= 0;
+                 flags_ff                         <= i_cpsr_nxt;
+                 o_abt_ff                         <= 0;
+@@ -556,7 +564,8 @@
+                 o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+-                o_alt_dav_ff                     <= 0;
++                o_feedback_valid_ff <= 0;
++o_alt_dav_ff                     <= 0;
+                 o_abt_ff                         <= 0;
+                 o_irq_ff                         <= 0;
+                 o_fiq_ff                         <= 0;
+@@ -574,7 +583,8 @@
+                 o_swp_tag <= 0;
+                 o_clear_from_alu                 <= 0;
+                 o_dav_ff                         <= 0;
+-                o_alt_dav_ff                     <= 0;
++                o_feedback_valid_ff <= 0;
++o_alt_dav_ff                     <= 0;
+                 o_abt_ff                         <= 0;
+                 o_irq_ff                         <= 0;
+                 o_fiq_ff                         <= 0;
+@@ -596,6 +606,9 @@
+                 o_alt_dav_ff                     <= valid_x;
+ 
+                 o_dav_ff                         <= o_dav_nxt;
++      o_feedback_valid_ff <= i_condition_code_ff != NV &&
++                             !i_irq_ff && !i_fiq_ff && !i_abt_ff
++;
+                 o_pc_plus_8_ff                   <= i_pc_plus_8_ff;
+                 o_destination_index_ff           <= o_destination_index_nxt;
+                 flags_ff                         <= o_flags_nxt;
+--- a/src/rtl/zap_btb.sv
++++ b/src/rtl/zap_btb.sv
+@@ -37,6 +37,14 @@
+         input logic         i_stall,
+         input logic         i_clear,
+ 
++    //////////////////////////
++    // Feedback path.
++    //////////////////////////
++
++    // Feedback status.
++    input logic i_fb_valid
++,
++
+         //////////////////////////
+         // Feedback path.
+         //////////////////////////
+@@ -113,7 +121,9 @@
+ } mem_wr_data, mem_rd_data;
+ 
+ // Update memory on any kind of feedback.
+-assign mem_wr_en   = i_fb_ok | i_fb_nok;
++assign mem_wr_en   = i_fb_valid && !i_reset && !i_clear && (
++i_fb_ok | i_fb_nok)
++;
+ 
+ // Read memory when no pipeline stall.
+ assign mem_rd_en = ~i_stall;
+@@ -157,7 +167,8 @@
+                 dav    <= '0;
+         end
+         else
+-        begin
++        if (i_fb_valid)
++begin
+                 dav[fb_src_addr.index] <= mem_wr_en;
+         end
+ end
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -417,6 +417,8 @@
+ logic                            alu_und_ff;
+ logic [31:0]                     alu_cpsr_nxt;
+ logic                            confirm_from_alu;
++  logic                         alu_feedback_valid_ff
++;
+ logic                            alu_sbyte_ff;
+ logic                            alu_ubyte_ff;
+ logic                            alu_shalf_ff;
+@@ -1294,7 +1296,9 @@
+          .o_flags_nxt                      (alu_cpsr_nxt),
+          .o_clear_from_alu                 (clear_from_alu),
+          .o_confirm_from_alu               (confirm_from_alu),
+-         .o_decompile                      (alu_decompile),
++         .o_feedback_valid_ff              (alu_feedback_valid_ff),
++      .
++o_decompile                      (alu_decompile),
+          .o_decompile_valid                (alu_decompile_valid),
+          .o_alu_result_ff                  (alu_alu_result_ff),
+          .o_und_ff                         (alu_und_ff),
+@@ -1634,7 +1638,10 @@
+         .i_cpu_pid              (o_pid[6:0]),
+ 
+         .i_confirm_from_alu     (confirm_from_alu),
+-        .i_alu_pc_ff            (alu_flags_ff[T] ? alu_pc_plus_8_ff - 32'd4 : alu_pc_plus_8_ff - 32'd8),
++        .i_alu_feedback_valid(alu_feedback_valid_ff && !data_stall &&
++                            !clear_from_writeback && !(|owned_data_fault)),
++      .
++i_alu_pc_ff            (alu_flags_ff[T] ? alu_pc_plus_8_ff - 32'd4 : alu_pc_plus_8_ff - 32'd8),
+         .i_taken                (alu_taken_ff),
+ 
+         .o_shelve               (shelve),
+--- a/src/rtl/zap_writeback.sv
++++ b/src/rtl/zap_writeback.sv
+@@ -61,6 +61,8 @@
+         input logic      [31:0]               i_pc_from_decode,
+         input logic                           i_clear_from_icache,
+         input logic                           i_confirm_from_alu,
++    input logic        i_alu_feedback_valid
++,
+         input logic [31:0]                    i_alu_pc_ff,
+         input logic [1:0]                     i_taken,
+ 
+@@ -531,7 +533,9 @@
+         .i_reset(i_reset),
+         .i_stall(i_code_stall),
+         .i_clear(i_clear_btb),
+-        .i_fb_ok(i_confirm_from_alu),
++        .i_fb_valid(i_alu_feedback_valid),
++      .
++i_fb_ok(i_confirm_from_alu),
+         .i_fb_nok(i_clear_from_alu),
+         .i_fb_branch_src_address(i_alu_pc_ff),
+         .i_fb_branch_dest_address(i_pc_from_alu),

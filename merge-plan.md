@@ -3571,3 +3571,21 @@ precomputing boundary compares before late ACK. No extra state/RAM/latency;
 62CPU runs, exhaustive boundaries and full payload counters pass unchanged.
 Combined physical fit/timing/boot remain a separate build gate.78MHz PLL remains,
 104MHz stays the target. [Timing step](docs/fifo-flag-timing.md).
+
+## 2026-11-15 branch/return CPU steps completed locally
+
+0065 qualifies BTB mutations with a registered decoded instruction owner;
+0066 corrects MOV pc,lr recognition and retains the computed target on correct
+branch confirmation. The matcher alone exposed a don't-care target defect and
+was not accepted without its associated metadata fix. One new owner bit, no
+new RAM/target register/stage; PLL78MHz, target104MHz.
+
+Separate full payload runs pass both profiles and exact repeats: indices
+154.4752/144.5781→172.9566/155.8735→186.9337/167.8711, combined+21.0121%/16.1110%.
+Final66CPU runs,44IRQ/FIQ edges, three units/three broken controls and20exactly
+repeated branch/call micro groups pass. Physical fit/timing/boot remain gates;
+native119 belongs to a745119. User requests a seed44 build after commit/push,
+then small follow-up fixes while it runs. Full speculative RAS recovery and F2
+pipeline credits/ordered completion remain separate work. Other simulations
+and the single integration branch/checkout are preserved.
+[Design/evidence](docs/cpu-branch-return.md).

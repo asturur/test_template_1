@@ -416,6 +416,7 @@ module zap_core #(
   logic                         alu_und_ff;
   logic [                 31:0] alu_cpsr_nxt;
   logic                         confirm_from_alu;
+  logic                         alu_feedback_valid_ff;
   logic                         alu_sbyte_ff;
   logic                         alu_ubyte_ff;
   logic                         alu_shalf_ff;
@@ -1307,6 +1308,7 @@ module zap_core #(
       .o_flags_nxt                      (alu_cpsr_nxt),
       .o_clear_from_alu                 (clear_from_alu),
       .o_confirm_from_alu               (confirm_from_alu),
+      .o_feedback_valid_ff              (alu_feedback_valid_ff),
       .o_decompile                      (alu_decompile),
       .o_decompile_valid                (alu_decompile_valid),
       .o_alu_result_ff                  (alu_alu_result_ff),
@@ -1644,6 +1646,8 @@ module zap_core #(
       .i_cpu_pid(o_pid[6:0]),
 
       .i_confirm_from_alu(confirm_from_alu),
+      .i_alu_feedback_valid(alu_feedback_valid_ff && !data_stall &&
+                            !clear_from_writeback && !(|owned_data_fault)),
       .i_alu_pc_ff       (alu_flags_ff[T] ? alu_pc_plus_8_ff - 32'd4 : alu_pc_plus_8_ff - 32'd8),
       .i_taken           (alu_taken_ff),
 

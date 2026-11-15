@@ -180,6 +180,17 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+Update2026-11-15: requested branch steps are simulation-qualified in0065/0066.
+Owned decoded feedback gains11.9640%/7.8126%; Rm14 MOV pc,lr recognition plus
+trace-proven confirmed-target retention gains8.0813%/7.6970% more. Cumulative
+indices186.9337/167.8711, +21.0121%/16.1110% over771be07.66CPU/44edge runs,
+three units/three controls, full12groups/both repeats and20repeated micro groups
+pass. Phase03 matcher and its associated target metadata gap are addressed;
+full speculative RAS rollback/recovery, broader10b, F2 and arithmetic work remain
+separate. Reprofile final sources before using older F1 occupancy to prioritize.
+Native119 is still predecessor a745119, not evidence of these new changes.
+[Contract, failed matcher-only attempt and results](cpu-branch-return.md).
+
 Read-only F1 frontend witness: many BTB valid bits clear while ALU dav is false,
 but dav also excludes failed conditions. First separate decoded validity from
 bubbles and preserve legitimate conditional feedback before testing any gate.

@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cpu-branch-return.md](cpu-branch-return.md) | Owned BTB feedback, corrected returns/confirmed targets, indices186.93/167.87 and matched branch/call controls |
 | [fifo-flag-timing.md](fifo-flag-timing.md) | Late-ACK FIFO flag rewrite, unchanged cycles, exhaustive boundaries and pending routed timing |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |

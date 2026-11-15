@@ -60,6 +60,7 @@ module zap_writeback #(
     input logic [31:0] i_pc_from_decode,
     input logic        i_clear_from_icache,
     input logic        i_confirm_from_alu,
+    input logic        i_alu_feedback_valid,
     input logic [31:0] i_alu_pc_ff,
     input logic [ 1:0] i_taken,
 
@@ -474,6 +475,7 @@ module zap_writeback #(
       .i_reset(i_reset),
       .i_stall(i_code_stall),
       .i_clear(i_clear_btb),
+      .i_fb_valid(i_alu_feedback_valid),
       .i_fb_ok(i_confirm_from_alu),
       .i_fb_nok(i_clear_from_alu),
       .i_fb_branch_src_address(i_alu_pc_ff),

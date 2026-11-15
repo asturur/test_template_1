@@ -1,0 +1,326 @@
+{
+  "benchmarks": {
+    "feedback_elapsed_seconds": 329.256,
+    "final_elapsed_seconds": 271.215,
+    "groups": 12,
+    "repeats": 2,
+    "windows_per_repeat": 84,
+    "wrong_output_controls_per_suite": 6
+  },
+  "clock_mhz": 78,
+  "combined_gain_percent_over_771be07": {
+    "0:0": 21.012094808541292,
+    "2:9": 16.110990944575864
+  },
+  "cpu": {
+    "extra-result.json": {
+      "path": "build/sim/branch-return-target-cpu-20261115/extra-result.json",
+      "programs": [
+        "branch_return",
+        "cache_drain",
+        "cache_instruction_associativity",
+        "cache_single_maintenance",
+        "icache_lockdown",
+        "icache_prefetch_lockdown",
+        "icache_prefetch_translated",
+        "icache_prefetch_uncached",
+        "icache_single_invalidate"
+      ],
+      "runs": 18,
+      "sha256": "a9575a5c116979d058bd96ed151c8be794e30548e38cfe91502ede5d74cf9770"
+    },
+    "result.json": {
+      "path": "build/sim/branch-return-target-cpu-20261115/result.json",
+      "programs": [
+        "alignment_cases",
+        "armv4t_profile",
+        "cache_disable_reenable",
+        "cache_irq_refill",
+        "cache_irq_writeback",
+        "cache_load_widths",
+        "cpu_timing",
+        "data_privilege_owner",
+        "fiq_flash_return",
+        "fiq_privileged_ldrt",
+        "fiq_privileged_store",
+        "fiq_store_return",
+        "ldm_base_smallpage",
+        "mmu_fcse",
+        "mmu_fetch",
+        "operand_timing",
+        "smoke",
+        "swp_basic",
+        "swp_cached_irq",
+        "swp_fiq",
+        "swp_irq_core",
+        "thumb_ldm_base_in_list",
+        "thumb_return_dependency"
+      ],
+      "runs": 46,
+      "sha256": "840927a0239863b824be4ea708e1b65a0b95c098e6c57759e634c88449c1e345"
+    }
+  },
+  "cpu_runs": 66,
+  "design_target_mhz": 104,
+  "failed_fixture_attempts": [
+    "Initial trace used wrong predecode instance name; fixed instance to u_zap_predecode",
+    "Initial micro replay passed a host absolute path as a container path; corrected using runner container_path, all20groups repeat exactly",
+    "Initial observer hook smoke fixture failed to relocate its program.hex path; corrected isolated fixture passes both delays, RTL unchanged, no shared output mutation"
+  ],
+  "fixture_formatting": {
+    "files": {
+      "tests/cpu/branch_feedback/alu.sv": {
+        "sha256": "f6e4f2b696f3696ca6a36a47cce0adb0abab3ddbe637c79f1fe97ace5c69d58a",
+        "tokens_identical": true
+      },
+      "tests/cpu/branch_feedback/owner.vh": {
+        "sha256": "0f851b4c867a8d57e08073c604d0451b4943188d83598a64f8febc1266cbf004",
+        "tokens_identical": true
+      },
+      "tests/cpu/branch_feedback/test.sv": {
+        "sha256": "d3bf67242f1ba915b127f1ac5dda0e24c8fedb3a14be25fab9ba9a8d23cd58c1",
+        "tokens_identical": true
+      },
+      "tests/cpu/return_predict/test.sv": {
+        "sha256": "597fa2d5effb34ce3a14d140d56d900f373010ca89922de90733d3277fd5a5aa",
+        "tokens_identical": true
+      }
+    },
+    "status": "PASS"
+  },
+  "frozen_final_sources_match_working_tree": true,
+  "implementation": {
+    "0065": "Decoded ALU feedback owner, includes failed conditions, suppresses bubbles/holds/clears/older faults",
+    "0066": "MOV pc,lr matcher Rm14 (not15) and existing registered actual target retained on confirmed branches"
+  },
+  "irq_fiq_sweeps": {
+    "runs": {
+      "fiq-0-0": [
+        "PASS: CPU test, memory delay 0, 298 cycles"
+      ],
+      "fiq-0-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-1-0": [
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "fiq-1-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-10-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-10-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-2-0": [
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "fiq-2-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-3-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-3-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-4-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-4-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-5-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-5-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-6-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-6-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-7-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-7-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-8-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-8-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-9-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-9-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-0-0": [
+        "PASS: CPU test, memory delay 0, 298 cycles"
+      ],
+      "irq-0-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-1-0": [
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "irq-1-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-10-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-10-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-2-0": [
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "irq-2-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-3-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-3-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-4-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-4-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-5-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-5-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-6-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-6-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-7-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-7-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-8-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-8-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-9-0": [
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-9-3": [
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ]
+    },
+    "status": "PASS"
+  },
+  "negative_controls": {
+    "controls": {
+      "bubble_guard": {
+        "diagnostic": "[80000] %Fatal: test.sv:35: Assertion failed in test.lookup: lookup 00001000 got taken=0 target=00002000 expected=1/00002000\n%Error: tests/cpu/branch_feedback/test.sv:35: Verilog $stop\nAborting...\n",
+        "rejected": true
+      },
+      "old_matcher": {
+        "diagnostic": [
+          "[161000] %Fatal: test.sv:41: Assertion failed in test.returns: return classification opcode=e1a0f00f previous=3 next=2"
+        ],
+        "rejected": true
+      },
+      "old_target": {
+        "diagnostic": [
+          "[20000] %Fatal: alu.sv:63: Assertion failed in test.check: ALU feedback owner=1 dav=1 confirm=1 redirect=0 target=00000000 expected=00002468"
+        ],
+        "rejected": true
+      }
+    },
+    "status": "PASS"
+  },
+  "new_declared_register_bits": 1,
+  "new_ram_bits": 0,
+  "owner_hook": {
+    "optional_observer_injection": true,
+    "original_core_fixture_unmodified": true,
+    "previous_hook_attempt": "Fixture copied without relocating its program.hex path; fixed here, no RTL change and no shared output write",
+    "runs": 2,
+    "status": "PASS"
+  },
+  "physical_fit_timing_and_native_spmark": "NOT_RUN; native119 remains a745119, not this change",
+  "prototype_disposition": {
+    "matcher_only": "Payload counters exactly identical to feedback-only; call_return1092->1185 slower. Not accepted alone. Bound return trace found confirmed target was zero/dont-care despite correct RAS address; associated target fix resolves this.",
+    "old_matcher_after_target_fix": "Performance control only, guest passes; call_return812 vs final740, proving useful matcher contribution after target repair."
+  },
+  "provenance": {
+    "lexically_matching_sv_svh": 37,
+    "new_patch_sha256": {
+      "0065-owned-branch-feedback.patch": "6aee0fd19db43185c87da3cf8953aaeee247dff9f902805ba486b8bdd86d1691",
+      "0066-recognize-mov-pc-lr.patch": "ba3ca6a47a89b9726e1f5507c1e69e36d4a4bd57f4782df21617d85bfa52b931"
+    },
+    "ordered_patch_count": 65,
+    "pristine_hashes": 83,
+    "status": "PASS",
+    "strict_byte_comparison": "Preexisting imported formatting/comment drift remains"
+  },
+  "remaining": [
+    "Physical fit and routed timing at78MHz/104MHz target",
+    "Full RAS wrong-path rollback/recovery is not implemented by matcher correction",
+    "Reprofile final CPU before selecting broader F2/branch/frontend/ALU work"
+  ],
+  "source_id": "7e2af0c9f8391dc5e2ccb1390a145b016d7881bda531c620b6331450a83cce92",
+  "stage_indices": {
+    "feedback": {
+      "0:0": 172.956592683733,
+      "2:9": 155.87349321215635
+    },
+    "final": {
+      "0:0": 186.93371504037123,
+      "2:9": 167.87108729793601
+    },
+    "matcher_only": {
+      "0:0": 172.956592683733,
+      "2:9": 155.87349321215635
+    }
+  },
+  "status": "PASS",
+  "units": {
+    "status": "PASS",
+    "units": {
+      "alu": {
+        "log": "build/sim/branch-return-final-units-20261115/alu.log",
+        "status": "PASS",
+        "summary": [
+          "PASS ALU feedback: 7 targets/conditions/holds, fault and exception ownership"
+        ]
+      },
+      "btb": {
+        "log": "build/sim/branch-return-final-units-20261115/btb.log",
+        "status": "PASS",
+        "summary": [
+          "PASS branch feedback: 11 lookups, bubbles, aliases, failed condition, fetch hold, clear/reset"
+        ]
+      },
+      "ras": {
+        "log": "build/sim/branch-return-final-units-20261115/ras.log",
+        "status": "PASS",
+        "summary": [
+          "PASS return predictor: 22 classifications, nested/circular stack, Thumb, holds and clears"
+        ]
+      }
+    }
+  }
+}

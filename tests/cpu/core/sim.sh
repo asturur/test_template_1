@@ -43,9 +43,19 @@ if [ -n "${CPU_REFERENCE_DIR:-}" ]; then
  extra_rtl="$selected_extra"
 fi
 if [ "${CPU_LOAD_FORWARD_CHECK:-0}" = 1 ]; then extra_define="$extra_define -DNGAGE_LOAD_FORWARD_CHECK"; fi
+testbench=tests/cpu/core/test.sv
+if [ "${CPU_BRANCH_OWNER_CHECK:-0}" = 1 ]; then
+ python3 - <<'PY'
+from pathlib import Path
+p = Path('tests/cpu/core/test.sv')
+text = p.read_text().replace('module test;', 'module test;\n`include "tests/cpu/branch_feedback/owner.vh"')
+Path('build/sim/unit-core/owner-test.sv').write_text(text)
+PY
+ testbench=build/sim/unit-core/owner-test.sv
+fi
 docker run --rm --network none --platform linux/arm64 -v "$root:/work" -w /work --entrypoint verilator jotego/simulator:arm64 \
  --binary --timing --assert $extra_define -DNGAGE_RUNTIME_TRACE -Wno-fatal -Wno-lint -Irtl/arm --top-module test --Mdir build/sim/unit-core \
- rtl/ngage_cpu.sv $arm_rtl $extra_rtl tests/cpu/core/test.sv > build/sim/unit-core/build.log 2>&1
+ rtl/ngage_cpu.sv $arm_rtl $extra_rtl "$testbench" > build/sim/unit-core/build.log 2>&1
 extra="${CPU_RUN_ARGS:-}"
 if [ "$program" = cpu_timing ] || [ "$program" = operand_timing ]; then
  first=$(arm-none-eabi-nm build/sim/unit-core/program.elf | awk '$3=="timing_first" {print $1}')

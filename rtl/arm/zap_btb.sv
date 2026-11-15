@@ -42,6 +42,7 @@ module zap_btb #(
     //////////////////////////
 
     // Feedback status.
+    input logic i_fb_valid,
     input logic i_fb_ok,
     input logic i_fb_nok,
 
@@ -115,7 +116,7 @@ module zap_btb #(
       mem_wr_data, mem_rd_data;
 
   // Update memory on any kind of feedback.
-  assign mem_wr_en = i_fb_ok | i_fb_nok;
+  assign mem_wr_en = i_fb_valid && !i_reset && !i_clear && (i_fb_ok | i_fb_nok);
 
   // Read memory when no pipeline stall.
   assign mem_rd_en = ~i_stall;
@@ -155,7 +156,7 @@ module zap_btb #(
       dav <= '0;
     end else if (i_clear) begin
       dav <= '0;
-    end else begin
+    end else if (i_fb_valid) begin
       dav[fb_src_addr.index] <= mem_wr_en;
     end
   end
