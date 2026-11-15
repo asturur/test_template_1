@@ -1,0 +1,739 @@
+{
+  "attempts": [
+    {
+      "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+      "rows": [
+        {
+          "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+          "body_cycles_median": 321,
+          "case": "load_dependent",
+          "cycles_per_operation": 10.03125,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0001/load_forward_base/line/load_dependent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 32,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "70d8cf77298691b4b3dd3f2bab371876ff49b9f7d1ccddbcea82fe52b6e8a5b5",
+          "status": "PASS",
+          "total": {
+            "cycles": 145760,
+            "halfwords": 256,
+            "lines": 16,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "load_forward_base",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 378,
+              "halfwords": 160,
+              "index": 0,
+              "lines": 10,
+              "reads": 1,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 4,
+              "index": 1,
+              "lines": 1,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            }
+          ]
+        },
+        {
+          "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+          "body_cycles_median": 579,
+          "case": "load_independent",
+          "cycles_per_operation": 4.5234375,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0001/load_forward_base/line/load_independent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 128,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "70d8cf77298691b4b3dd3f2bab371876ff49b9f7d1ccddbcea82fe52b6e8a5b5",
+          "status": "PASS",
+          "total": {
+            "cycles": 147340,
+            "halfwords": 432,
+            "lines": 27,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "load_forward_base",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 725,
+              "halfwords": 284,
+              "index": 0,
+              "lines": 18,
+              "reads": 1,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 1,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            }
+          ]
+        },
+        {
+          "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+          "body_cycles_median": 259,
+          "case": "load_dependent",
+          "cycles_per_operation": 8.09375,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0001/working/line/load_dependent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 32,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "08c3925aaa5fac34aff72ff05392c8f4ed8888dc8d19b07a348fd911a6b9dc50",
+          "status": "PASS",
+          "total": {
+            "cycles": 145502,
+            "halfwords": 256,
+            "lines": 16,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "working",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 371,
+              "halfwords": 154,
+              "index": 0,
+              "lines": 10,
+              "reads": 1,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 2,
+              "index": 1,
+              "lines": 1,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            }
+          ]
+        },
+        {
+          "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+          "body_cycles_median": 325,
+          "case": "load_independent",
+          "cycles_per_operation": 2.5390625,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0001/working/line/load_independent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 128,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "08c3925aaa5fac34aff72ff05392c8f4ed8888dc8d19b07a348fd911a6b9dc50",
+          "status": "PASS",
+          "total": {
+            "cycles": 146311,
+            "halfwords": 432,
+            "lines": 27,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "working",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 717,
+              "halfwords": 276,
+              "index": 0,
+              "lines": 18,
+              "reads": 1,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 1,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    },
+    {
+      "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+      "rows": [
+        {
+          "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+          "body_cycles_median": 321,
+          "case": "load_dependent",
+          "cycles_per_operation": 10.03125,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0002/load_forward_base/line/load_dependent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 32,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "70d8cf77298691b4b3dd3f2bab371876ff49b9f7d1ccddbcea82fe52b6e8a5b5",
+          "status": "PASS",
+          "total": {
+            "cycles": 145760,
+            "halfwords": 256,
+            "lines": 16,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "load_forward_base",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 378,
+              "halfwords": 160,
+              "index": 0,
+              "lines": 10,
+              "reads": 1,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 4,
+              "index": 1,
+              "lines": 1,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 321,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            }
+          ]
+        },
+        {
+          "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+          "body_cycles_median": 579,
+          "case": "load_independent",
+          "cycles_per_operation": 4.5234375,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0002/load_forward_base/line/load_independent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 128,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "70d8cf77298691b4b3dd3f2bab371876ff49b9f7d1ccddbcea82fe52b6e8a5b5",
+          "status": "PASS",
+          "total": {
+            "cycles": 147340,
+            "halfwords": 432,
+            "lines": 27,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "load_forward_base",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 725,
+              "halfwords": 284,
+              "index": 0,
+              "lines": 18,
+              "reads": 1,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 1,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 579,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            }
+          ]
+        },
+        {
+          "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+          "body_cycles_median": 259,
+          "case": "load_dependent",
+          "cycles_per_operation": 8.09375,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0002/working/line/load_dependent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 32,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "08c3925aaa5fac34aff72ff05392c8f4ed8888dc8d19b07a348fd911a6b9dc50",
+          "status": "PASS",
+          "total": {
+            "cycles": 145502,
+            "halfwords": 256,
+            "lines": 16,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "working",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 371,
+              "halfwords": 154,
+              "index": 0,
+              "lines": 10,
+              "reads": 1,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 2,
+              "index": 1,
+              "lines": 1,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            },
+            {
+              "cycles": 259,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 65,
+              "writes": 0
+            }
+          ]
+        },
+        {
+          "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+          "body_cycles_median": 325,
+          "case": "load_independent",
+          "cycles_per_operation": 2.5390625,
+          "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+          "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+          "jitter": 0,
+          "line_enabled": true,
+          "log": "build/sim/cpu-donor-import/f1-port-cpu-20261115/attempts/0002/working/line/load_independent/0-0/1/run.log",
+          "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+          "mode": "line",
+          "operations": 128,
+          "profile": "0:0",
+          "samples": 3,
+          "seed": 1,
+          "source_id": "08c3925aaa5fac34aff72ff05392c8f4ed8888dc8d19b07a348fd911a6b9dc50",
+          "status": "PASS",
+          "total": {
+            "cycles": 146311,
+            "halfwords": 432,
+            "lines": 27,
+            "reads": 32817,
+            "windows": 5,
+            "writes": 4101
+          },
+          "variant": "working",
+          "warmups": 2,
+          "windows": [
+            {
+              "cycles": 717,
+              "halfwords": 276,
+              "index": 0,
+              "lines": 18,
+              "reads": 1,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 1,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 2,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 3,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            },
+            {
+              "cycles": 325,
+              "halfwords": 0,
+              "index": 4,
+              "lines": 0,
+              "reads": 0,
+              "retire_proxy": 129,
+              "writes": 0
+            }
+          ]
+        }
+      ],
+      "status": "PASS"
+    }
+  ],
+  "exact_counters_repeat": true,
+  "scope": "Existing fixed dependent LDR/ADD and four-register independent load stream; synthetic backing and warmed cache. Not a pure cache initiation interval or hardware SPMark score.",
+  "software_oracle": {
+    "rows": [
+      {
+        "binary_sha256": "658bfca49c6db9ea07907678722d21633c35d945b9fe33d6d2c5cc4399bd0058",
+        "body_isa_instructions": 129,
+        "case": "add_dependent",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "5486a257fd7c3c33c1a8668511f48fcba7fb5482a7ae276b70ae9e0ce22fa540",
+        "body_isa_instructions": 129,
+        "case": "alu_independent",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "6b56e0b27a2e8cabcd20e64bbad9f0d8422e58f01a379d5ece6dc1840430ad20",
+        "body_isa_instructions": 129,
+        "case": "carry_flags",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "85681946357bc3287c752904a51603e06e1dd939a468f0276781098c89b81fcb",
+        "body_isa_instructions": 65,
+        "case": "shift_dependent",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "c8d9565715bf2fd0c52c8c5a4b92e1e327dd4a8318cc6340b5fc72716e954722",
+        "body_isa_instructions": 33,
+        "case": "multiply_accumulate",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "8b236baa1eb66bccdcc55946bac82e067e1d2afd346d2bf3df0ffd62ddb74b86",
+        "body_isa_instructions": 33,
+        "case": "multiply_long",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+        "body_isa_instructions": 65,
+        "case": "load_dependent",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+        "body_isa_instructions": 129,
+        "case": "load_independent",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "a99ed265bac47dbf15f65901af32c6c10897df3d179b37be86e943af8b5cfa21",
+        "body_isa_instructions": 129,
+        "case": "load_formats",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "0cde1e3605736945dd9b33bab9bdaf934c61c655544b1533c8de1e3a133ab5e9",
+        "body_isa_instructions": 97,
+        "case": "store_reload",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "bf9b2024cad7c34933ad98d7e923852715c4cc8f7eafcc5a0ead9b1ec71c79a7",
+        "body_isa_instructions": 33,
+        "case": "block_copy",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "a6c8d7e330e3d776abbcbda645fc3035429d3b7296ad46227a383acd9daf75e0",
+        "body_isa_instructions": 194,
+        "case": "direct_branch",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "da225e4d0fd2e2cd478a77d3fddbc807f7c1d936b50c70b7c02b2019c8bc8558",
+        "body_isa_instructions": 97,
+        "case": "call_return",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "07c9c6d49c73c444dddf2f5f080f686d6bf6abb2114a209b2df41f849d514390",
+        "body_isa_instructions": 65,
+        "case": "cp15_reads",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      },
+      {
+        "binary_sha256": "789f08f1672030554e0ebeaa0a0074f174b80f395062402a64c5d8b15e39a5af",
+        "body_isa_instructions": 66,
+        "case": "cache_line_stride",
+        "guest_assertion_negative_control": "PASS",
+        "status": "PASS"
+      }
+    ],
+    "scope": "software validation of kernels and guest checks; no HDL/timing/MMU claim",
+    "status": "PASS",
+    "unicorn_version": "2.1.4"
+  },
+  "status": "PASS"
+}

@@ -557,3 +557,11 @@ No new registers/RAM or clock change. Full six-kernel gain1.3900%/1.3899%;
 pass. All83pinned upstream file hashes and37reconstructed SV/SVH token streams
 match; strict byte comparison retains prior formatting drift.
 [Contract, timing limits and next dual-port work](cpu-load-forwarding.md).
+
+## Owned data probes (0063)
+
+Wire the D backend role to the existing P1 address/read qualifiers. The bridge
+pre-reads certified cache data on B while independent older data commits on A;
+actual P2 permissions/attributes/alignment/non-SWP class still gate completion.
+No core/interface-to-board or PLL change. Patch reconstructs matching ZAP tokens.
+[Full maintained-cache implementation and qualification](cache-data-probe.md).

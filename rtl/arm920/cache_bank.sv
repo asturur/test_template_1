@@ -16,6 +16,13 @@ module arm920_cache_bank #(
     input  wire         indexed_store,
     input  wire [  2:0] indexed_segment,
     input  wire [  5:0] indexed_way,
+    // Independent owned read-B address; write-A and dirty metadata retain
+    // their existing owner. The caller excludes mixed-port same-slot reads.
+    input  wire         data_probe,
+    input  wire [  2:0] data_probe_segment,
+    input  wire [  5:0] data_probe_way,
+    output wire         data_commit_valid,
+    output wire [  8:0] data_commit_index,
     output logic         hit,
     output logic [  5:0] hit_way,
     input  logic         read_victim,
@@ -61,6 +68,8 @@ module arm920_cache_bank #(
   reg [31:0] commit_enable;
   reg [255:0] commit_data;
   wire cancel_commit = reset || invalidate_all || lock_write || scan_clean || scan_invalidate;
+  assign data_commit_valid = |commit_enable && !cancel_commit;
+  assign data_commit_index = {commit_way, commit_segment};
   always @(posedge clk) begin
     commit_segment <= indexed_store ? indexed_segment : lookup_address[7:5];
     commit_way     <= write_way;
@@ -121,8 +130,8 @@ module arm920_cache_bank #(
   );
   arm920_cache_lines lines (
       .clk          (clk),
-      .read_segment (scan_read ? scan_segment : indexed_read ? indexed_segment : lookup_address[7:5]),
-      .read_way     (scan_read ? scan_way : indexed_read ? indexed_way : (read_victim ? victim_way : hit_way)),
+      .read_segment (data_probe ? data_probe_segment : scan_read ? scan_segment : indexed_read ? indexed_segment : lookup_address[7:5]),
+      .read_way     (data_probe ? data_probe_way : scan_read ? scan_way : indexed_read ? indexed_way : (read_victim ? victim_way : hit_way)),
       .read_line    (read_line),
       .write_segment(commit_segment),
       .write_way    (commit_way),
@@ -131,6 +140,10 @@ module arm920_cache_bank #(
   );
   // synthesis translate_off
 `ifndef SYNTHESIS
+  always @(posedge clk)
+    if (!reset && data_probe && (scan_read || read_victim ||
+        (data_commit_valid && data_commit_index == {data_probe_way, data_probe_segment})))
+      $fatal(1, "data probe collided with another RAM owner");
   always @(posedge clk)
     if (!reset && indexed_store) begin
       if (!store || refill || scan_read || scan_clean || scan_invalidate || read_victim)

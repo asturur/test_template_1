@@ -10,7 +10,18 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
-## Current checkpoint — CPU load-use overlap accepted; build next
+## Current checkpoint — F1 simulation-qualified while predecessor builds
+
+User authorized continuing during the pinned a745119/run43719932412 build.
+F1 now pre-reads a registered certified P1/current address using existing RAM B,
+overlapping independent A commits; P2 checks remain authoritative.68metadata
+bits/no new RAM/data copy. Full suite +2.1338%, original154.4752/144.5781;
+98CPU/44edge/20units/five controls and poisoned mixed-port RAM pass.
+Still one CPU request outstanding; F2 credits/ordered completion/global-hold
+relaxation remain separate. Scheduled hardware work tests a745119, not F1.
+[Contract, tests and next boundary](cache-data-probe.md).
+
+## Previous checkpoint — CPU load-use overlap accepted; build next
 
 Phase08's early/late producer availability now uses registered P2 aligned words
 and actual formatted Memory commits, without changing cache RAM/control.

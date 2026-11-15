@@ -286,7 +286,8 @@ module zap_dcache #(
   assign wb_adr[1] = '0;
   assign wb_cti[1] = '0;
   arm920_cache_adapter #(
-      .LINE_REFILL(LINE_REFILL)
+      .LINE_REFILL(LINE_REFILL),
+      .DATA_PROBE(1)
   ) cache_adapter (
       .line_req(line_req),
       .line_addr(line_addr),
@@ -319,8 +320,10 @@ module zap_dcache #(
       .translation_wait(translation_wait),
       .external_permit(1'b1),
       .write_buffer_empty(o_write_buffer_empty),
-      .fast_enable(1'b0),
+      .fast_enable(1'b1),
       .fast_next_address(32'b0),
+      .data_probe_valid(i_rd_check && !i_wr_check),
+      .data_probe_address(i_address_check),
       .cache_enable(i_cache_en),
       .cache_rr(i_cache_rr),
       .cache_lock_write(i_cache_lock_write),

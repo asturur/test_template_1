@@ -7,7 +7,8 @@
 // superseded by a queued redirect may discard a failed refill below.
 module arm920_cache_access #(
     parameter LINE_REFILL = 0,
-    parameter READ_ONLY   = 0
+    parameter READ_ONLY   = 0,
+    parameter DATA_PROBE  = 0
 ) (
 
     output wire line_req,
@@ -48,6 +49,8 @@ module arm920_cache_access #(
     output logic         write_buffer_error,
     input  logic         fast_lookup_enable,
     input  logic [ 31:0] fast_lookup_address,
+    input  wire          data_probe_valid,
+    input  wire [ 31:0] data_probe_address,
     output logic         fast_lookup_valid,
     output logic [ 31:0] fast_lookup_checked,
     output logic [255:0] fast_lookup_line,
@@ -165,6 +168,55 @@ module arm920_cache_access #(
                           result_known && result_present;
   wire use_indexed_store = ordinary_resident_request && req_write &&
                            result_known && result_present;
+  // D backend role: pre-read an owned certified line on RAM port B while an
+  // independent store commits on A. The BRAM output is the only line payload;
+  // these two records hold addresses/selectors, never copied data or permission.
+  reg probe_owner_valid, probe_result_valid;
+  reg [26:0] probe_owner_tag, probe_result_tag;
+  reg [5:0] probe_owner_way, probe_result_way;
+  wire data_commit_valid;
+  wire [8:0] data_commit_index;
+  wire probe_match0 = line_result_valid[0] && line_result_present[0] &&
+                      line_result_tag[0] == data_probe_address[31:5];
+  wire probe_match1 = line_result_valid[1] && line_result_present[1] &&
+                      line_result_tag[1] == data_probe_address[31:5];
+  wire probe_revoke = line_result_revoke || !fast_lookup_enable;
+  wire probe_port_free = state == IDLE || state == STORE_HIT || state == STORE_COMMIT ||
+                         state == BUFFER_STORE || (state == LOOKUP_CAPTURE && indexed_owner && wr);
+  wire probe_read_collision = data_commit_valid &&
+                              data_commit_index == {probe_owner_way, probe_owner_tag[2:0]};
+  wire probe_result_collision = data_commit_valid &&
+                                data_commit_index == {probe_result_way, probe_result_tag[2:0]};
+  wire probe_read = DATA_PROBE && !READ_ONLY && probe_owner_valid &&
+                    !probe_revoke && probe_port_free && !probe_read_collision;
+  wire probe_hit = probe_result_valid && !probe_result_collision &&
+                   probe_result_tag == req_mva[31:5];
+  always @(posedge clk) begin
+    if (reset) begin
+      probe_owner_valid <= 0;
+      probe_result_valid <= 0;
+      probe_owner_tag <= 0;
+      probe_result_tag <= 0;
+      probe_owner_way <= 0;
+      probe_result_way <= 0;
+    end else if (probe_revoke) begin
+      probe_owner_valid <= 0;
+      probe_result_valid <= 0;
+    end else begin
+      if (DATA_PROBE && !READ_ONLY && data_probe_valid && (probe_match0 || probe_match1)) begin
+        probe_owner_valid <= 1;
+        probe_owner_tag <= data_probe_address[31:5];
+        probe_owner_way <= probe_match0 ? line_result_way[0] : line_result_way[1];
+      end
+      // Every output token names the address actually read on this edge.
+      // Losing the read port or colliding with A kills it before use.
+      probe_result_valid <= probe_read;
+      if (probe_read) begin
+        probe_result_tag <= probe_owner_tag;
+        probe_result_way <= probe_owner_way;
+      end
+    end
+  end
   wire learn_match0 = line_result_valid[0] && line_result_tag[0] == mva[31:5];
   wire learn_match1 = line_result_valid[1] && line_result_tag[1] == mva[31:5];
   wire learn_slot = learn_match0 ? 1'b0 : learn_match1 ? 1'b1 :
@@ -197,12 +249,12 @@ module arm920_cache_access #(
   // The selector is captured with the accepted request. Never route the live
   // certificate comparator to a RAM address or completion payload.
   wire indexed_read = indexed_owner && (state == LOOKUP_CAPTURE || state == READ_LINE);
-  wire fast_read = fast_lookup_enable && state == IDLE && !req_valid &&
+  wire fast_read = !DATA_PROBE && fast_lookup_enable && state == IDLE && !req_valid &&
                      !maint_valid && !invalidate_all && !lock_write;
   wire capture_lookup = accept_maintenance || accept_demand || fast_read;
   wire [31:0] capture_lookup_mva = accept_maintenance ? maint_address :
                                    accept_demand ? req_mva : fast_lookup_address;
-  wire cancel_fast = !fast_lookup_enable || state != IDLE || accept_demand ||
+  wire cancel_fast = DATA_PROBE || !fast_lookup_enable || state != IDLE || accept_demand ||
                        maint_valid || invalidate_all || lock_write;
   wire change_epoch = accept_demand || accept_maintenance || invalidate_all ||
                         lock_write || (fast_enabled_q && !fast_lookup_enable);
@@ -245,15 +297,16 @@ module arm920_cache_access #(
   // Do not qualify this output with req_valid: the adapter derives req_valid
   // from !fast_hit, so that would introduce a combinational ACK loop.
   assign fast_lookup_valid=fast_lookup_enable && state==IDLE && !reset && !maint_valid &&
-                          !invalidate_all && !lock_write && (stream_hit || result_hit);
+                          !invalidate_all && !lock_write &&
+                          (DATA_PROBE ? (!probe_revoke && probe_hit) : (stream_hit || result_hit));
   assign fast_lookup_checked = req_mva;
-  assign fast_lookup_line = result_hit ? line : stream_line[req_mva[5]];
+  assign fast_lookup_line = DATA_PROBE ? line : result_hit ? line : stream_line[req_mva[5]];
   // Select words before the late hit/owner decision, keeping that decision
   // out of the wide line mux followed by the variable word mux.
   wire [31:0] result_word = line[req_mva[4:2]*32+:32];
   wire [31:0] stream_word0 = stream_line[0][req_mva[4:2]*32+:32];
   wire [31:0] stream_word1 = stream_line[1][req_mva[4:2]*32+:32];
-  assign fast_lookup_word = result_hit ? result_word : req_mva[5] ? stream_word1 : stream_word0;
+  assign fast_lookup_word = DATA_PROBE ? result_word : result_hit ? result_word : req_mva[5] ? stream_word1 : stream_word0;
   // synthesis translate_off
   always @(negedge clk)
     if (!reset && fast_lookup_valid && fast_lookup_word !== fast_lookup_line[req_mva[4:2]*32+:32])
@@ -295,7 +348,7 @@ module arm920_cache_access #(
       end
       // A serialized read seeds its own returned line, after all older
       // speculative tokens have been killed. Other stream slot stays dead.
-      if (state == READ_LINE && enabled && cacheable) begin
+      if (!DATA_PROBE && state == READ_LINE && enabled && cacheable) begin
         stream_valid[mva[5]] <= 1;
         stream_epoch[mva[5]] <= fast_epoch;
         stream_tag[mva[5]]   <= mva[31:5];
@@ -395,6 +448,11 @@ module arm920_cache_access #(
       .lookup_segment_select(lookup_owner_segment_select),
       .indexed_read         (indexed_read),
       .indexed_store        (indexed_owner && state == STORE_HIT),
+      .data_probe           (probe_read),
+      .data_probe_segment   (probe_owner_tag[2:0]),
+      .data_probe_way       (probe_owner_way),
+      .data_commit_valid    (data_commit_valid),
+      .data_commit_index    (data_commit_index),
       .indexed_segment      (mva[7:5]),
       .indexed_way          (indexed_way),
       .hit                  (hit),

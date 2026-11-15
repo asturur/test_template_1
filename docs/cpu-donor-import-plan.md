@@ -180,6 +180,15 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+F1 update2026-11-15: while pinned a745119 builds, owned RAM-B pre-read/independent
+RAM-A commit overlap qualifies separately. Full suite +2.1338%, indices154.4752/
+144.5781;98CPU/44edge/20units/five broken controls and poisoned RAM pass. Matched
+independent load stream579→325clocks, LDR+ADD loop321→259, exact repeats.
+Still one outstanding CPU memory request; F2 credits/precise ordered completion
+and global-hold relaxation remain. Do not attribute F1 to predecessor hardware.
+[Design and evidence](cache-data-probe.md).
+
+
 Update2026-11-15: phase08's P2 aligned-word/Memory-commit load-availability slice
 is jointly qualified, with paired producer priority. Full suite +1.3900%/+1.3899%
 over C, original indices151.2480/141.5576.98CPU/44edge runs, five units/four negative

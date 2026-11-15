@@ -8,6 +8,7 @@ topic links before repeating research or simulations.
 | --- | --- |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
+| [cache-data-probe.md](cache-data-probe.md) | F1 independent read-B/write-A overlap, owned pre-read, collision proof and indices154.48/144.58 |
 | [cpu-load-forwarding.md](cpu-load-forwarding.md) | Measured P2/Memory load-consumer overlap, producer priority, indices151.25/141.56 and next dual-port build gate |
 | [cache-two-mapping.md](cache-two-mapping.md) | Second shared-context 1KiB mapping, exact faults, architectural TLB lifetime and measured C experiment |
 | [cache-resident-way.md](cache-resident-way.md) | Independently measured indexed reads/stores, fresh dirty-RAM ownership and indices145.16/135.86 |

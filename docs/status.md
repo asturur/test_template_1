@@ -1,3 +1,43 @@
+## 2026-11-15: F1 data-port overlap qualified; a745119 hardware build scheduled
+
+User explicitly requested launching the committed build, continuing improvements,
+and checking/deploying/running native SPMark04 after50minutes. Run43719932412 is
+for a745119/seed44, created13:37:04UTC; one bounded follow-up is scheduled about
+14:27UTC (automation check-n-gage-build-and-run-spmark04, expires14:28:04UTC).
+Exact immutable build metadata is in scratch/load-forward-build-20261115/build.json.
+MiSTer helper SSH is ready; installed old RBF hash ef4a22... matches the prior
+native84-point baseline. Existing C/PMM and original MMC are preserved; launcher
+/tmp/ngage1-spmark04-delayed.mgl still exists. No new artifact deployed yet.
+Use mister-control; no credentials in reminders/files and no SD backups/patches.
+
+In parallel with that immutable build, F1 now independently qualifies in
+simulation. It captures P1/current-read tag/way, reads existing data RAM B while
+an independent store commits on A, and validates the actual P2 class/context
+before returning its raw word through the existing CPU completion register.
+Same-slot commits block/re-read; maintenance/fill/cache/lock/reset revoke tokens.
+68new metadata bits; no new RAM, line copy, dirty mirror or CPU outstanding slot.
+D role is wired on in0063, no OSD/build opt-in.78MHz PLL/104MHz objective retained;
+F1 fit/timing/boot remain unverified and are NOT tested by the a745119 RBF.
+
+Full12groups/84windows per repeat, two exact repeats and six wrong-output controls
+pass: matrix60094, transpose6420, triangle35982, frame135314/201317, tails4322/5046.
+Original indices154.4752/144.5781, +2.1338% over load-forward.98CPU regressions,
+44IRQ/FIQ/SWP edge sweeps,20related units, five broken controls and collision-
+poisoned RAM pass. The final fixture checks336transactions,8independent A/B
+clocks,122blocked collisions, allsegments/words/masks, dirty halves, high tags,
+permissions/SWP/translation and genuinely primed revoke cases. Fixture-only
+port/stale-RAM/vacuous-hot-setup failures were corrected; RTL stayed frozen.
+Matched load microkernels repeat exactly:128streamed words579→325clocks,
+32LDR+ADD iterations321→259. Warm operand load/use9→7, ADD still1clock.
+
+Focused math profile reconciles every original counter at both profiles, two
+repeats; no new six-case stall profile. All37ZAP token streams reconstruct through
+0063. Continue with scheduled hardware deployment/report on exact a745119,
+then select further F2 credits/precise completion or older CPU work from evidence.
+Do not mix local F1 gains into the native score of its predecessor. Other threads'
+simulations/checkpoints and the single integration branch/checkout are preserved.
+[Design/results](cache-data-probe.md), [qualification](evidence/cache-data-probe-20261115.json).
+
 ## 2026-11-15: CPU load-result overlap accepted; build gate next
 
 Patch0062 is the declared joint phase08 early/late load-availability step.

@@ -19,6 +19,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | resident-store | 66,031 / 66,031 | 7,786 / 7,786 | 39,005 / 39,005 | 135,327 / 201,330 | 4,334 / 4,334 | 5,058 / 5,058 | 145.1635 / 135.8637 | [JSON](evidence/spmark-payload-resident-store-20261115.json) |
 | two-mapping | 60,850 / 60,850 | 7,510 / 7,510 | 37,360 / 37,360 | 135,318 / 201,321 | 4,328 / 4,328 | 5,052 / 5,052 | 149.1744 / 139.6171 | [JSON](evidence/spmark-payload-two-mapping-20261115.json) |
 | load-forward | 60,784 / 60,784 | 7,060 / 7,060 | 36,686 / 36,686 | 135,314 / 201,317 | 4,324 / 4,324 | 5,048 / 5,048 | 151.2480 / 141.5576 | [JSON](evidence/spmark-payload-load-forward-20261115.json) |
+| data-probe | 60,094 / 60,094 | 6,420 / 6,420 | 35,982 / 35,982 | 135,314 / 201,317 | 4,322 / 4,322 | 5,046 / 5,046 | 154.4752 / 144.5781 | [JSON](evidence/spmark-payload-data-probe-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -113,3 +114,12 @@ sweeps, five related units and four negative controls pass. No new state/RAM;
 FPGA cost/timing/boot need the requested next build. The table keeps the original
 baseline100; the JSON explicitly records both original and predecessor indices.
 [Implementation and dual-port next step](cpu-load-forwarding.md).
+
+`data-probe` is F1: a registered address/way pre-read uses data RAM B while an
+independent older store commits on A, then actual P2 checks gate completion.
+Full original-byte suite passes both profiles/repeats/negative controls; +2.1338%
+over load-forward.98CPU/44edge runs,20related units, five broken controls and
+poisoned mixed-port RAM pass. Added68metadata bits, no line/dirty copy or new RAM.
+Matched microkernels separately improve579→325clocks/128streamed loads and
+321→259/32LDR+ADD iterations, two exact repeats. These are not hardware scores
+or a pure cache initiation interval. [Design/tests](cache-data-probe.md).

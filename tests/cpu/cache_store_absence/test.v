@@ -58,6 +58,8 @@ module test;
       .line_error(1'b0),
       .fast_lookup_enable(1'b0),
       .fast_lookup_address(32'b0),
+      .data_probe_valid(1'b0),
+      .data_probe_address(32'b0),
       .fast_lookup_valid(),
       .fast_lookup_checked(),
       .fast_lookup_line(),

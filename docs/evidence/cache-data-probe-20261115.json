@@ -1,0 +1,492 @@
+{
+  "added_declared_state_bits": 68,
+  "benchmark": {
+    "elapsed_seconds": 419.197,
+    "groups": 12,
+    "original_baseline_index_by_profile": {
+      "0:0": 154.47523269151526,
+      "2:9": 144.57811954948104
+    },
+    "path": "build/sim/spmark-payload/f1-data-probe-20261115",
+    "repeats": 2,
+    "step_index_by_profile": {
+      "0:0": 102.1337599490792,
+      "2:9": 102.1337599490792
+    },
+    "windows_per_repeat": 84,
+    "wrong_output_controls": 6
+  },
+  "blocked_collision_clocks": 122,
+  "build_under_test": {
+    "commit": "a745119d108a95e796e8b46637d190353c6b3276",
+    "run_id": 43719932412
+  },
+  "checked_transaction_calls": 336,
+  "cleanup": {
+    "bytes": 7451212810,
+    "files": 82,
+    "scope": "Only finished F1 experiment compiler headers, not executables/source/logs/checkpoints or other simulations"
+  },
+  "clock_pll_mhz": 78,
+  "cpu": {
+    "extra/result.json": {
+      "path": "build/sim/f1-data-probe-cpu-20261115/extra/result.json",
+      "programs": [
+        "cache_associativity",
+        "cache_drain",
+        "cache_external_abort",
+        "cache_fcse",
+        "cache_instruction_associativity",
+        "cache_lockdown",
+        "cache_page_external_abort",
+        "cache_single_maintenance",
+        "cache_tlb_write_order",
+        "cache_write_miss",
+        "cache_write_through",
+        "icache_lockdown",
+        "icache_prefetch_lockdown",
+        "icache_prefetch_translated",
+        "icache_prefetch_uncached",
+        "icache_single_invalidate",
+        "icache_tlb_write_order",
+        "ldm_base_cold_fault",
+        "swp_abort_irq",
+        "swp_mmu_abort",
+        "swp_read_abort",
+        "swp_write_abort",
+        "tlb_lockdown"
+      ],
+      "runs": 44,
+      "sha256": "dc525282d2a238972b5c9fa41e38ac0c90cb0f8150efda16cbd5cfb5ba8298a7",
+      "status": "PASS"
+    },
+    "permission-programs-result.json": {
+      "path": "build/sim/f1-data-probe-cpu-20261115/permission-programs-result.json",
+      "programs": [
+        "cache_store_absence",
+        "load_forward",
+        "tlb_permission_reuse",
+        "tlb_two_mapping"
+      ],
+      "runs": 8,
+      "sha256": "d661e4c6002767816f56670a74f43654253b6692a9a05d480b8598284186f3c6",
+      "status": "PASS"
+    },
+    "result.json": {
+      "path": "build/sim/f1-data-probe-cpu-20261115/result.json",
+      "programs": [
+        "alignment_cases",
+        "armv4t_profile",
+        "cache_disable_reenable",
+        "cache_irq_refill",
+        "cache_irq_writeback",
+        "cache_load_widths",
+        "cpu_timing",
+        "data_privilege_owner",
+        "fiq_flash_return",
+        "fiq_privileged_ldrt",
+        "fiq_privileged_store",
+        "fiq_store_return",
+        "ldm_base_smallpage",
+        "mmu_fcse",
+        "mmu_fetch",
+        "operand_timing",
+        "smoke",
+        "swp_basic",
+        "swp_cached_irq",
+        "swp_fiq",
+        "swp_irq_core",
+        "thumb_ldm_base_in_list",
+        "thumb_return_dependency"
+      ],
+      "runs": 46,
+      "sha256": "a21ec795dddd21893bcd4c001f3ba74cd850df9f20f8d16c701d269f11483bae",
+      "status": "PASS"
+    }
+  },
+  "cpu_outstanding_requests": 1,
+  "cpu_runs": 98,
+  "format_equivalence": {
+    "tests/cpu/cache_access/test.sv": {
+      "after_sha256": "a4262ce0713af27eec99fea9673ca99ae495704cc7850ce92d720cf4e0d2845d",
+      "before_sha256": "a4262ce0713af27eec99fea9673ca99ae495704cc7850ce92d720cf4e0d2845d",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_bank/test.sv": {
+      "after_sha256": "2db2bb35dd89df7481d848c5af6f0aaae49ee2344043612b9a7bd135e9b5ff0a",
+      "before_sha256": "2db2bb35dd89df7481d848c5af6f0aaae49ee2344043612b9a7bd135e9b5ff0a",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_buffer_integration/test.sv": {
+      "after_sha256": "b8dafa6249da70b475dda8c888d71c2eb4f50492a8d2c47a8c3b27ac58d49fbe",
+      "before_sha256": "b8dafa6249da70b475dda8c888d71c2eb4f50492a8d2c47a8c3b27ac58d49fbe",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_dirty_packed/access_equivalence.sv": {
+      "after_sha256": "caa3b2e4e95b177eb02f0ff6694d0a68071df36af73e2d4a0fbe678644ffc7fb",
+      "before_sha256": "caa3b2e4e95b177eb02f0ff6694d0a68071df36af73e2d4a0fbe678644ffc7fb",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_hit_response/test.v": {
+      "after_sha256": "42d365e4910297d922ff17ba424fa138c5841f2835b40d828217da9a3b490761",
+      "before_sha256": "42d365e4910297d922ff17ba424fa138c5841f2835b40d828217da9a3b490761",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_maintenance/test.sv": {
+      "after_sha256": "90f468a2f8c0189a3412c4967e6ce2f7de16d1beb9ba32f72fc675716a15bda8",
+      "before_sha256": "90f468a2f8c0189a3412c4967e6ce2f7de16d1beb9ba32f72fc675716a15bda8",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_probe/test.v": {
+      "after_sha256": "e3a36550ab7b638427a15d35b354abddb09bd0dab7f1550952e6d9e69db89260",
+      "before_sha256": "151062d3ce7181b193cb86b29295ed2b253fe25b019ec129e64f281d674f7b2b",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_refill/test.sv": {
+      "after_sha256": "2bef6e954c40aaf35d97d9ef4ba31c570c31dd715fa6de4c2192a8636c513115",
+      "before_sha256": "2bef6e954c40aaf35d97d9ef4ba31c570c31dd715fa6de4c2192a8636c513115",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_resident/test.v": {
+      "after_sha256": "587c4497d38ad6f8610b1a946d8d8e8a9a2419892797ad92ba509b8217aeab14",
+      "before_sha256": "587c4497d38ad6f8610b1a946d8d8e8a9a2419892797ad92ba509b8217aeab14",
+      "token_equivalent": true
+    },
+    "tests/cpu/cache_store_absence/test.v": {
+      "after_sha256": "db0cc6293f10a8bc4d1565c35ccd8ace495590a34c0400475a3b4d35649b0b2a",
+      "before_sha256": "db0cc6293f10a8bc4d1565c35ccd8ace495590a34c0400475a3b4d35649b0b2a",
+      "token_equivalent": true
+    },
+    "tests/cpu/demand_completion/test.sv": {
+      "after_sha256": "262c4cb09614952df4a9c91cac8de61b0150e9b1cd0aaca965da512bb2ad44b2",
+      "before_sha256": "0d2605a1fa62540d927a7e84b1fb118ed2046610145ff5d5bfeb01a4ee655ed5",
+      "token_equivalent": true
+    },
+    "tests/cpu/icache_discard/test.sv": {
+      "after_sha256": "afef0d66167ace7e65bff2a324a2439e09f6f0a4778ab6637d330bc2583d76cd",
+      "before_sha256": "1a97ee20840e1cddb5ec54ac6581abc6894809ff0966230929cc4a7e56e01ef6",
+      "token_equivalent": true
+    },
+    "tests/cpu/icache_read_only/test.v": {
+      "after_sha256": "94c4196d24f62c78d00fb99a430643386919df1b94d3430a4f9d2ab1cd24d97e",
+      "before_sha256": "94c4196d24f62c78d00fb99a430643386919df1b94d3430a4f9d2ab1cd24d97e",
+      "token_equivalent": true
+    }
+  },
+  "fpga_fit_timing_and_boot": "NOT_RUN for F1; scheduled build/deployment is a745119 predecessor",
+  "independent_A_write_B_read_clocks": 8,
+  "irq_fiq_sweeps": {
+    "runs": {
+      "fiq-0-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 298 cycles"
+      ],
+      "fiq-0-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-1-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "fiq-1-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-10-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-10-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-2-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "fiq-2-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-3-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-3-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-4-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-4-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-5-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-5-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-6-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-6-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-7-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-7-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-8-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-8-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "fiq-9-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "fiq-9-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-0-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 298 cycles"
+      ],
+      "irq-0-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-1-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "irq-1-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-10-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-10-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-2-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 314 cycles"
+      ],
+      "irq-2-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-3-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-3-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-4-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-4-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-5-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-5-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-6-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-6-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-7-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-7-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-8-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-8-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ],
+      "irq-9-0": [
+        "LOAD_FORWARD: early_issue=1 late_issue=0",
+        "PASS: CPU test, memory delay 0, 349 cycles"
+      ],
+      "irq-9-3": [
+        "LOAD_FORWARD: early_issue=0 late_issue=3",
+        "PASS: CPU test, memory delay 3, 470 cycles"
+      ]
+    },
+    "status": "PASS"
+  },
+  "known_fixture_corrections": [
+    "Frozen pre-packing reference has no new ports; only production instance gets explicit probe ties",
+    "Rewarming dirty A must expect cached data, not stale backing RAM",
+    "High-alias, lock/reset controls must prime again after maintenance/cache-disable; surviving broken control identified the vacuous setup"
+  ],
+  "microbench": {
+    "load_dependent": [
+      321,
+      259
+    ],
+    "load_independent": [
+      579,
+      325
+    ]
+  },
+  "microbench_repeats": 2,
+  "negative_controls": {
+    "controls": {
+      "ignore-collision": {
+        "exit": 1,
+        "failure": "[9275000] %Fatal: cache_bank.sv:146: Assertion failed in test.dut.cache.bank: data probe collided with another RAM owner",
+        "rejected": true
+      },
+      "ignore-permission": {
+        "exit": 1,
+        "failure": "[24482000] %Fatal: test.v:145: Assertion failed in test: permission bypass",
+        "rejected": true
+      },
+      "ignore-swp-class": {
+        "exit": 1,
+        "failure": "[24592000] %Fatal: test.v:72: Assertion failed in test.transaction: SWP used speculative data probe",
+        "rejected": true
+      },
+      "low-tag-alias": {
+        "exit": 1,
+        "failure": "[40912000] %Fatal: test.v:76: Assertion failed in test.transaction: wrong word VA=10003000 got=9876543d expect=51005000",
+        "rejected": true
+      },
+      "no-owned-read": {
+        "exit": 1,
+        "failure": "[1021000] %Fatal: test.v:89: Assertion failed in test.prepare: probe fixture was not primed VA=00003000",
+        "rejected": true
+      }
+    },
+    "status": "PASS"
+  },
+  "new_line_payload_or_dirty_copy": false,
+  "new_ram": false,
+  "poisoned_mixed_port_ram": {
+    "result": [
+      "PASS: 336 requests; 155 fast reads, 8 concurrent A/B clocks, 122 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+    ],
+    "scope": "Actual data RAM B output is zero on mixed-port same-slot writes; output tokens must be invalid then and later reads fresh",
+    "status": "PASS"
+  },
+  "probe_fast_reads": 155,
+  "provenance": {
+    "lexically_matching_sv_svh": 37,
+    "patch_sha256": "38822714da1d140f8dc53328aa1ff3a434707906b974a258d66d5abd337861a4",
+    "pristine_hashes_verified_by_predecessor": 83,
+    "status": "PASS",
+    "strict_byte_comparison": "Preexisting imported formatting/comment drift remains"
+  },
+  "scope": "F1 owned P1/current read probe, separate data-RAM read-B address and write-A commit; validated P2 fast response",
+  "source_files": 130,
+  "source_id": "08c3925aaa5fac34aff72ff05392c8f4ed8888dc8d19b07a348fd911a6b9dc50",
+  "source_matches_current": true,
+  "status": "PASS",
+  "timing_target_mhz": 104,
+  "units": {
+    "cache_access": [
+      "PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction"
+    ],
+    "cache_bank": [
+      "PASS: associative bank holds dirty victim until acknowledged and refills"
+    ],
+    "cache_buffer_integration": [
+      "PASS: asynchronous buffering, ordering, backpressure and bus-error behavior"
+    ],
+    "cache_dirty_packed": [
+      "PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction"
+    ],
+    "cache_hit_response": [
+      "PASS: hit response one clock earlier (3 vs 4), 17 exact-once requests; lanes/store/SWP-class/miss/uncached/reset"
+    ],
+    "cache_maintenance": [
+      "PASS: indexed clean, error retention and invalidate all"
+    ],
+    "cache_probe": [
+      "PASS: 268 requests; 131 fast reads, 1 concurrent A/B clocks, 122 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+    ],
+    "cache_refill": [
+      "PASS: cache bank replacement survives bus error and retries dirty victim"
+    ],
+    "cache_resident": [
+      "PASS: 92 resident requests; normal read 3 indexed 1, store 3; lanes/fresh stores/two slots/high tags/refill/class/cache/reset"
+    ],
+    "cache_store_absence": [
+      "PASS: 44 owned requests, 39 exact ordered posted writes; absence latency 2 vs 5, masks/refill/hit/dirty/alias/PA/class/invalidate/lock/full-buffer/retry/reset"
+    ],
+    "cache_tags": [
+      "PASS: 64-way tags, dirty halves, physical victim and lockdown"
+    ],
+    "cp15": [
+      "PASS: ARM920 CP15 type, reset, reserved bits, ARMv4 mode and drain"
+    ],
+    "demand_completion": [
+      "PASS: demand/housekeeping completion split, 4729 checked clocks, fault/walk matrix, waited transfers, exact-once clean/invalidate, lockdown/reset"
+    ],
+    "icache_discard": [
+      "PASS: live refill errors retry; discarded fetch completes; failed line is not installed"
+    ],
+    "icache_read_only": [
+      "PASS: read-only cache cycle equivalence (9416 cycles), capacity, streamed/word refill/hit, clean/invalidate, lockdown, lookahead, discard/errors/reset",
+      "PASS: read-only cache cycle equivalence (9440 cycles), capacity, streamed/word refill/hit, clean/invalidate, lockdown, lookahead, discard/errors/reset"
+    ],
+    "tlb64_bank": [
+      "PASS: all64 mixed-size entries,65th replacement, lockdown wrap, preserved/all/MVA invalidation, pipeline cancellation"
+    ],
+    "tlb_attributes": [
+      "PASS: four page sizes/CB, fine-table index, uncached fault retry, L1/L2 external aborts, permission oracle"
+    ],
+    "tlb_bus_gate": [
+      "PASS: TLB bus waits for older writes and retains an offered request"
+    ],
+    "tlb_lookup_owner": [
+      "PASS: TLB lookup ownership, exact two-beat miss, held refill, invalidation/TTBR cancellation, permission context, MMU disable"
+    ],
+    "write_buffer": [
+      "PASS: 16-word/4-address write buffer, stalls, ordering, error retention and simultaneous pop/push",
+      "PASS independent write-buffer FIFO/hazard scoreboard: 12021 cycles, 1347 enqueues, 328 merges, 496 crossings, 160 wraps, 1989 errors"
+    ]
+  }
+}

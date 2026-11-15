@@ -2,7 +2,8 @@
 // Production bridge from the CPU interface to the ARM920T cache.
 module arm920_cache_adapter #(
     parameter LINE_REFILL = 0,
-    parameter READ_ONLY   = 0
+    parameter READ_ONLY   = 0,
+    parameter DATA_PROBE  = 0
 ) (
 
     output wire line_req,
@@ -22,6 +23,8 @@ module arm920_cache_adapter #(
     output logic write_buffer_empty,
     input logic fast_enable,
     input logic [31:0] fast_next_address,
+    input wire data_probe_valid,
+    input wire [31:0] data_probe_address,
     input logic [31:0] address,
     physical,
     din,
@@ -98,7 +101,7 @@ module arm920_cache_adapter #(
   logic [31:0] bus_adr, bus_data;
   logic [3:0] bus_sel;
   wire request = (rd || wr) && !alignment_fault && !fault && !tlb_busy && !translation_wait;
-  wire fast_hit=fast_enable && rd && !wr && cache_enable && cacheable && fast_valid && fast_checked==address &&
+  wire fast_hit=fast_enable && rd && !wr && swp_tag == 2'd0 && cache_enable && cacheable && fast_valid && fast_checked==address &&
                !launched && !active_maint && !lock_pending && !cache_lock_write && !fault && !alignment_fault && !tlb_busy && !translation_wait && !cache_invalidate && !cache_clean;
   wire req_valid=request && !fast_hit && !launched && !cache_invalidate && !cache_clean && !lock_pending && !cache_lock_write;
   wire maint_valid=(cache_invalidate || cache_clean) && !launched && !active_maint && !lock_pending && !cache_lock_write;
@@ -170,7 +173,8 @@ module arm920_cache_adapter #(
   end
   arm920_cache_access #(
       .LINE_REFILL(LINE_REFILL),
-      .READ_ONLY  (READ_ONLY)
+      .READ_ONLY  (READ_ONLY),
+      .DATA_PROBE (DATA_PROBE)
   ) cache (
       .line_req(line_req),
       .line_addr(line_addr),
@@ -204,6 +208,14 @@ module arm920_cache_adapter #(
       .write_buffer_error(),
       .fast_lookup_enable(fast_enable),
       .fast_lookup_address(fast_next_address),
+      // Before admission, a current P2 read may overlap translation. Once
+      // launched or satisfied, pre-read the independent P1 address instead.
+      // Neither address probe launches a walk, refill, write or completion.
+      .data_probe_valid(DATA_PROBE && !READ_ONLY && !active_maint &&
+                        !cache_invalidate && !cache_clean && !lock_pending && !cache_lock_write &&
+                        ((rd && !wr && swp_tag == 2'd0 && !launched && !fast_hit) || data_probe_valid)),
+      .data_probe_address(rd && !wr && swp_tag == 2'd0 && !launched && !fast_hit ?
+                           address : data_probe_address),
       .fast_lookup_valid(fast_valid),
       .fast_lookup_checked(fast_checked),
       .fast_lookup_line(fast_line),

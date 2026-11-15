@@ -1,3 +1,19 @@
+# F1 owned RAM pre-read profile — 2026-11-15
+
+All six kernels/both profiles pass benchmark qualification. Focused math profiles
+also pass both profiles, exact repeats and every original counter unchanged.
+Data holds: matrix19.62%, transpose42.49%, triangle22.90%. Warm operand load/use
+issue gap9→7clocks, ADD remains1. Matched independent128word loads579→325clocks;
+32LDR+ADD iterations321→259, two exact repetitions with independent guest checks.
+These are whole kernel timings, not a pure cache initiation interval. CPU memory
+requests remain serialized; independent RAM-A/B overlap and P1 preparation are
+implemented, while F2 request credits/oldest faults/global-hold relaxation are not.
+No new six-case stall profile is claimed. Indices154.4752/144.5781, +2.1338%.
+Scheduled native hardware test is the preceding a745119 build, not this F1 source.
+[Contract](cache-data-probe.md),
+[profile evidence](evidence/spmark-payload-data-probe-profile-20261115.json).
+Older checkpoints follow.
+
 # CPU load-forwarding profile — 2026-11-15
 
 All six benchmark cases pass both memory profiles. Focused math profiles also

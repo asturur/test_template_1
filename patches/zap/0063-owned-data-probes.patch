@@ -1,0 +1,24 @@
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -263,7 +263,9 @@
+ assign o_reg_idx='0;
+ assign {wb_stb[1],wb_cyc[1],wb_wen[1]}='0;
+ assign wb_sel[1]='0;assign wb_dat[1]='0;assign wb_adr[1]='0;assign wb_cti[1]='0;
+-arm920_cache_adapter #(.LINE_REFILL(LINE_REFILL)) cache_adapter(
++arm920_cache_adapter #(.LINE_REFILL(LINE_REFILL),
++      .DATA_PROBE(1)
++  ) cache_adapter(
+ .line_req(line_req),.line_addr(line_addr),.line_ready(line_ready),
+     .line_reject(line_reject),.line_valid(line_valid),.line_data(line_data),
+     .line_wide(line_wide),.line_last(line_last),.line_error(line_error),
+@@ -276,7 +278,9 @@
+  .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
+  .translation_wait(translation_wait),
+  .external_permit(1'b1),.write_buffer_empty(o_write_buffer_empty),
+- .fast_enable(1'b0),.fast_next_address(32'b0),
++ .fast_enable(1'b1),.fast_next_address(32'b0),
++      .data_probe_valid(i_rd_check && !i_wr_check),
++      .data_probe_address(i_address_check),
+  .cache_enable(i_cache_en),.cache_rr(i_cache_rr),.cache_lock_write(i_cache_lock_write),.cache_lock_base(i_cache_lock_base),.cache_lock_done(o_cache_lock_done),
+  .cache_op_single(i_cache_op_single),.cache_op_by_mva(i_cache_op_by_mva),.cache_op_address(i_cache_op_address),.cacheable(pending_translation ? pending_cacheable : tlb_cacheable),
+  .bufferable(pending_translation ? pending_bufferable : tlb_bufferable),

@@ -60,6 +60,8 @@ module test;
       .write_buffer_error(wberror),
       .fast_lookup_enable(fast),
       .fast_lookup_address(fast_addr),
+      .data_probe_valid(1'b0),
+      .data_probe_address(32'b0),
       .fast_lookup_valid(fv),
       .fast_lookup_checked(fc),
       .fast_lookup_line(fl),

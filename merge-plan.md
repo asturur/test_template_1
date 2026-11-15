@@ -1,3 +1,15 @@
+## 2026-11-15: F1 qualified while immutable predecessor builds
+
+Requested run43719932412 builds a745119/seed44; about14:27UTC bounded follow-up
+checks/deploys that exact artifact and runs native SPMark04. Local F1 is separate:
+registered P1/current reads use RAM B during independent A commits, with P2
+checks and collision/mutation revocation.68metadata bits/no new RAM or line copy.
+Full suite +2.1338%, original indices154.4752/144.5781;98CPU/44edge/20units/five
+controls and poisoned RAM pass. Matched load-stream579→325clocks, dependent
+loop321→259, exact repeats.78MHz stays/104MHz target; F1 physical gates pending.
+F2 owner/credits/global-hold relaxation and older CPU work remain open.
+[Design/evidence](docs/cache-data-probe.md).
+
 ## 2026-11-15: CPU load-forwarding completed; next gate is a build
 
 Declared joint early P2 aligned-word and late Memory B-commit availability,
