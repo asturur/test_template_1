@@ -35,6 +35,7 @@ module arm920_cache_access #(
     // unsupported clients. Current permission/attribute checks still precede
     // admission, and this input alone cannot authorize an external write.
     input  wire          req_ordinary_store,
+    input  wire          req_resident_access,
     input  logic         req_cache_enable,
     input  logic         req_cacheable,
     input  logic         req_bufferable,
@@ -94,11 +95,15 @@ module arm920_cache_access #(
   } state_t;
   state_t state;
   reg response_valid_q, early_read_owner;
-  // Reusable tag fact, never a translation or a permission result. One entry
-  // covers a streaming nonallocating store line without another tag search.
-  reg absence_valid;
-  reg [26:0] absence_line;
-  reg ordinary_store_owner, absent_store_owner;
+  // Bounded reusable tag facts, never translation or permission results.
+  // Presence and selected way carry no copied cache-line data.
+  reg [1:0] line_result_valid, line_result_present;
+  reg [26:0] line_result_tag[0:1];
+  reg [5:0] line_result_way[0:1];
+  reg line_result_replace;
+  reg ordinary_lookup_owner, absent_store_owner;
+  reg indexed_owner;
+  reg [5:0] indexed_way;
   reg [31:0] response_data_q;
   // READ_LINE follows the registered way decision and synchronous line read.
   // The CPU completion register can capture this owned word directly. Keep
@@ -142,24 +147,56 @@ module arm920_cache_access #(
   wire accept_maintenance = maint_valid && maint_ready;
   wire ordinary_buffered_store = !READ_ONLY && req_ordinary_store && req_write &&
                                   req_cache_enable && req_cacheable && req_bufferable;
-  wire absence_revoke = reset || READ_ONLY || !req_cache_enable ||
+  wire line_result_revoke = reset || READ_ONLY || !req_cache_enable ||
                          invalidate_all || lock_write || maint_valid ||
                          maintenance_busy || scan_read || scan_clean || scan_invalidate ||
                          refill_busy || fill || state == WAIT_REFILL;
-  wire absence_known = absence_valid && !absence_revoke &&
-                       absence_line == req_mva[31:5];
-  wire use_absent_store = ordinary_buffered_store && absence_known;
-  wire checked_store_lookup = state == LOOKUP && ordinary_store_owner && wr &&
-                              enabled && cacheable && bufferable;
+  wire ordinary_resident_request = !READ_ONLY && req_resident_access &&
+                                     req_cache_enable && req_cacheable &&
+                                     ((!req_write && req_early_read) || ordinary_buffered_store);
+  wire result_match0 = line_result_valid[0] && line_result_tag[0] == req_mva[31:5];
+  wire result_match1 = line_result_valid[1] && line_result_tag[1] == req_mva[31:5];
+  wire result_slot = !result_match0 && result_match1;
+  wire result_known = !line_result_revoke && (result_match0 || result_match1);
+  wire result_present = result_slot ? line_result_present[1] : line_result_present[0];
+  wire [5:0] result_way = result_slot ? line_result_way[1] : line_result_way[0];
+  wire use_absent_store = ordinary_buffered_store && result_known && !result_present;
+  wire use_indexed_read = ordinary_resident_request && !req_write &&
+                          result_known && result_present;
+  wire use_indexed_store = ordinary_resident_request && req_write &&
+                           result_known && result_present;
+  wire learn_match0 = line_result_valid[0] && line_result_tag[0] == mva[31:5];
+  wire learn_match1 = line_result_valid[1] && line_result_tag[1] == mva[31:5];
+  wire learn_slot = learn_match0 ? 1'b0 : learn_match1 ? 1'b1 :
+                    !line_result_valid[0] ? 1'b0 : !line_result_valid[1] ? 1'b1 :
+                    line_result_replace;
+  wire checked_line_lookup = state == LOOKUP && ordinary_lookup_owner && enabled && cacheable;
+  integer result_index;
   always @(posedge clk) begin
-    if (absence_revoke) absence_valid <= 0;
-    else if (checked_store_lookup) absence_valid <= !hit;
-    // Only the one-bit validity depends on the late 64-way hit reduction.
-    // Capture the small tag under the already registered request/state owner,
-    // avoiding a global-hit enable cone across all 27 payload flops.
-    if (reset) absence_line <= 0;
-    else if (checked_store_lookup) absence_line <= mva[31:5];
+    if (line_result_revoke) line_result_valid <= 0;
+    else if (checked_line_lookup) begin
+      // Only these one-bit facts depend on the late global hit reduction.
+      // The tag/way payload uses the already registered lookup owner.
+      line_result_valid[learn_slot] <= hit || (wr && bufferable);
+      line_result_present[learn_slot] <= hit;
+    end
+    if (reset) begin
+      line_result_present <= 0;
+      line_result_replace <= 0;
+      for (result_index=0; result_index<2; result_index=result_index+1) begin
+        line_result_tag[result_index] <= 0;
+        line_result_way[result_index] <= 0;
+      end
+    end else if (checked_line_lookup && !line_result_revoke) begin
+      line_result_tag[learn_slot] <= mva[31:5];
+      line_result_way[learn_slot] <= hit_way;
+      line_result_replace <= !learn_slot;
+    end else if (accept_demand && (use_absent_store || use_indexed_read || use_indexed_store))
+      line_result_replace <= !result_slot;
   end
+  // The selector is captured with the accepted request. Never route the live
+  // certificate comparator to a RAM address or completion payload.
+  wire indexed_read = indexed_owner && (state == LOOKUP_CAPTURE || state == READ_LINE);
   wire fast_read = fast_lookup_enable && state == IDLE && !req_valid &&
                      !maint_valid && !invalidate_all && !lock_write;
   wire capture_lookup = accept_maintenance || accept_demand || fast_read;
@@ -356,6 +393,10 @@ module arm920_cache_access #(
       .reset                (reset),
       .mva                  (lookup_owner_mva),
       .lookup_segment_select(lookup_owner_segment_select),
+      .indexed_read         (indexed_read),
+      .indexed_store        (indexed_owner && state == STORE_HIT),
+      .indexed_segment      (mva[7:5]),
+      .indexed_way          (indexed_way),
       .hit                  (hit),
       .hit_way              (hit_way),
       .read_victim          (read_victim),
@@ -462,7 +503,9 @@ module arm920_cache_access #(
     if (reset) begin
       state                  <= IDLE;
       early_read_owner       <= 0;
-      ordinary_store_owner   <= 0;
+      ordinary_lookup_owner  <= 0;
+      indexed_owner          <= 0;
+      indexed_way            <= 0;
       absent_store_owner     <= 0;
       response_valid_q       <= 0;
       response_error         <= 0;
@@ -497,7 +540,9 @@ module arm920_cache_access #(
           saved_maint_segment    <= maint_segment;
           state                  <= maint_by_mva ? MAINT_CAPTURE : MAINT_WAIT;
         end else if (req_valid && req_ready) begin
-          ordinary_store_owner <= ordinary_buffered_store;
+          ordinary_lookup_owner <= ordinary_resident_request || ordinary_buffered_store;
+          indexed_owner <= use_indexed_read || use_indexed_store;
+          indexed_way <= result_way;
           absent_store_owner <= use_absent_store;
           early_read_owner <= req_early_read && !req_write &&
                               req_cache_enable && req_cacheable;
@@ -516,7 +561,7 @@ module arm920_cache_access #(
             state <= write_buffer_empty ? BYPASS : WAIT_DRAIN;
           else state <= req_cache_enable && req_cacheable ? LOOKUP_CAPTURE : LOOKUP_WAIT;
         end
-        LOOKUP_CAPTURE: state <= LOOKUP_WAIT;
+        LOOKUP_CAPTURE: state <= indexed_owner ? (wr ? STORE_HIT : READ_LINE) : LOOKUP_WAIT;
         MAINT_CAPTURE: state <= MAINT_WAIT;
         LOOKUP_WAIT: state <= LOOKUP;
         MAINT_WAIT: state <= MAINT_LOOKUP;

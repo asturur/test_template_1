@@ -1,11 +1,10 @@
 # Selected-way reuse and later execution overlap
 
-Current checkpoint: [E0 absent-line store reuse](cache-store-absence.md) is
-implemented and measured. The [full E0 profile](spmark-payload-profile.md) now
-selects the owned indexed resident bank path as the next larger priority:
-qualify resident reads first, then measure store acceleration independently.
-The investigation below is preserved as planning evidence; indexed access and
-execution overlap remain unimplemented. C remains open.
+Current checkpoint: [resident indexed reads/stores](cache-resident-way.md) now
+implement E1/E2 after E0 and independently measure the gain. The directory and
+indexed owner interface are present; P1/CPU execution overlap is not. The
+investigation below is historical planning evidence, with tests now addressed
+as recorded in the implementation document. C and F remain open.
 
 2026-11-15. Investigation on the original integration checkout, after accepted
 permission reuse B. No production RTL changes in this investigation. The next

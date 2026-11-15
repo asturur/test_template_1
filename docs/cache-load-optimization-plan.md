@@ -10,25 +10,22 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
-## Current checkpoint — full E0 reprofile chooses resident-way reuse next
+## Current checkpoint — resident indexed reads/stores accepted
 
-A/D, B and E0 are accepted and measured. Full current profiling passes all six
-kernels at both memory profiles, two exact repeats, 84 windows per repeat and
-unchanged original counters. Nine parser tests pass. Resident data holds remain
-54.10% transpose, 68.97% fill16 tail and 60.74% fill8 tail, with zero modeled
-external waits; their hot stores still hold 7 clocks. Next priority is the owned
-indexed bank path for resident-way reuse: qualify reads first, then measure
-stores independently without losing byte/dirty halves or adding line copies.
-P1/F overlap must retain that owner interface and remain a separate experiment.
+E1 jointly extends the result directory and adds indexed reads; E2 independently
+adds indexed ordinary WB stores. Full payload repeat/negative controls pass
+both stages, with92/94CPU runs and19unit suites each. The controller uses50more
+declared state bits than E0 and no new RAM or line/dirty copies. Common indexed
+cache responses improve reads3→1and stores5→3clocks; CPU holds are3/5versus5/7.
+Indices versus original baseline100 are145.1635/135.8637 (0:0/2:9), +11.2285%
+over E0. Current78MHz PLL/104MHz target; fitted cost/timing/boot unverified.
 
-C stays open (matrix translation holds 9.92%). Matrix/triangle empty-queue
-attribution stays open (32.67%/30.49%); raw fetch waits do not establish causation.
-The delayed full frame remains backend-limited, BUFFER_STORE 41.88% of clocks.
-A posted-reservation response-step reduction is a separately noted unimplemented
-hypothesis; preserve real resident data/dirty commits. Keep 78 MHz PLL and the
-104 MHz objective; FPGA fit/timing/boot are unverified.
-[Current profile and priority](spmark-payload-profile.md),
-[resident bank design/tests](selected-way-pipeline-investigation.md).
+The directory holds no permission or data results. Actual P2 checks precede
+admission; selectors and metadata travel with the owner. Existing M10K read,
+store capture and paired data/dirty commit boundaries remain. Later P1/F work
+must interlock/forward same-slot hazards and introduce ordered stage credits;
+C and CPU dependency/branch attribution stay open. Original9/11-clock latency
+below is historical starting evidence. [Implementation and tests](cache-resident-way.md).
 
 ## Measured current latency
 
@@ -243,6 +240,14 @@ latency. One eligibility bit and a32-bit selection are added, no BRAM/line copy.
 Fit/timing and phone boot remain unverified; no commit/push/CI/deployment.
 
 ## E — selected-way certificates before a larger pipelined interface
+
+E1/E2 are now implemented and independently measured. See
+[resident indexed access](cache-resident-way.md): two small line-result records,
+owned data read selection, fresh dirty RAM for indexed stores and paired commits.
+The tests prove all8segments/both dirty halves; assertions enforce current
+single-owner mutation exclusion. No P1 speculation/multi-request pipeline yet.
+The earlier investigation below remains planning evidence, not current status.
+
 
 E0 implementation checkpoint: [absent-line stores](cache-store-absence.md) now
 pass full simulation acceptance. One 28-bit line-result record and two owned

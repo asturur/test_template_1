@@ -15,7 +15,7 @@ s = Path('rtl/arm920/cache_adapter.sv').read_text()
 needle = 'module arm920_cache_adapter #('
 assert s.count(needle) == 1
 s = s.replace(needle, 'module reference_icache_adapter #(', 1)
-for port in ['req_early_read', 'req_ordinary_store']:
+for port in ['req_early_read', 'req_ordinary_store', 'req_resident_access']:
     needle = '.' + port + '(!READ_ONLY && swp_tag == 2\'d0),'
     assert s.count(needle) == 1, port
     s = s.replace(needle, '.' + port + '(1\'b0),', 1)

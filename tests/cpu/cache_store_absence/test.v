@@ -36,6 +36,7 @@ module test;
       .req_write(wr),
       .req_early_read(1'b1),
       .req_ordinary_store(ordinary),
+      .req_resident_access(1'b0),
       .req_cache_enable(enabled),
       .req_cacheable(cached),
       .req_bufferable(buffered),
@@ -261,7 +262,7 @@ module test;
     // Compare every MVA line bit, not only segment or low address bits.
     access (1, 'h20100, 'h6000, 'h22340000, 4'hf, 1, 0);
     access (1, 'h20104, 'h6004, 'h32340000, 4'hf, 1, 1);
-    access (1, 'h100, 'h100, 'h42340000, 4'hf, 1, 0);
+    access (1, 'h100, 'h100, 'h42340000, 4'hf, 1, 1);
     access (1, 'h104, 'h7004, 'h52340000, 4'hf, 1, 1);
     drain();
     // SWP/unsupported classes do not train or consume the directory.

@@ -23,6 +23,8 @@ module arm920_cache_tags #(
     input  logic        fill,
     input  logic [31:0] fill_physical,
     input  logic        write_hit,
+    input  wire         indexed_store,
+    input  wire [5:0]   indexed_way,
     input  logic        invalidate_line,
     input  logic        invalidate_all,
     input  logic        clean_hit,
@@ -181,14 +183,19 @@ module arm920_cache_tags #(
       match_bits[lookup_way] <= !reset && !invalidate_all &&
                 read_valid_bits[lookup_way] && tag_data[lookup_way] == read_mva[31:8];
     end
-    commit_dirty      <= hit_dirty;
-    commit_mva        <= lookup_mva;
+    // Indexed writes have already selected a validated resident way. Port B
+    // read that owner's segment on the preceding edge. Capture fresh dirty
+    // halves directly, not the older CAM/compare snapshot. Data and metadata
+    // commit together on the following edge through the existing write port.
+    commit_dirty      <= indexed_store ? packed_tag[indexed_way][25:24] : hit_dirty;
+    commit_mva        <= indexed_store ? mva : lookup_mva;
     commit_pa         <= fill_physical;
     commit_way        <= victim_way;
-    commit_selected   <= selected_ways;
+    for (lookup_way = 0; lookup_way < 64; lookup_way = lookup_way + 1)
+      commit_selected[lookup_way] <= indexed_store ? indexed_way == lookup_way : selected_ways[lookup_way];
     commit_rr         <= round_robin;
     commit_fill       <= commit_allowed && fill && !hit;
-    commit_write      <= commit_allowed && write_hit;
+    commit_write      <= commit_allowed && (write_hit || indexed_store);
     commit_clean      <= commit_allowed && clean_hit;
     commit_invalidate <= commit_allowed && invalidate_line;
   end
@@ -263,6 +270,16 @@ module arm920_cache_tags #(
     end
   endgenerate
   integer       i;
+  // synthesis translate_off
+`ifndef SYNTHESIS
+  always @(posedge clk)
+    if (!reset && indexed_store) begin
+      if (READ_ONLY || !valid[mva[7:5]][indexed_way] ||
+          packed_tag[indexed_way][23:0] != mva[31:8])
+        $fatal(1, "indexed store did not own a fresh resident tag/dirty read");
+    end
+`endif
+  // synthesis translate_on
   logic   [5:0] random_candidate;
   always_comb begin
     hit               = hit_tree[0];

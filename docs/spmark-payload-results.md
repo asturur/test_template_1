@@ -15,6 +15,8 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | early-hit-response | 71,119 / 71,119 | 10,220 / 10,220 | 41,391 / 41,391 | 183,380 / 201,344 | 5,228 / 5,228 | 5,960 / 5,960 | 121.6327 / 119.7529 | [JSON](evidence/spmark-payload-early-hit-response-20261115.json) |
 | permission-reuse | 71,119 / 71,119 | 9,164 / 9,164 | 40,991 / 40,991 | 183,380 / 201,344 | 5,228 / 5,228 | 5,960 / 5,960 | 124.0646 / 122.1471 | [JSON](evidence/spmark-payload-permission-reuse-20261115.json) |
 | store-absence | 71,119 / 71,119 | 9,164 / 9,164 | 40,991 / 40,991 | 135,329 / 201,332 | 5,228 / 5,228 | 5,960 / 5,960 | 130.5092 / 122.1483 | [JSON](evidence/spmark-payload-store-absence-20261115.json) |
+| resident-read | 66,253 / 66,253 | 8,522 / 8,522 | 40,317 / 40,317 | 135,327 / 201,330 | 5,226 / 5,226 | 5,958 / 5,958 | 134.0546 / 125.4664 | [JSON](evidence/spmark-payload-resident-read-20261115.json) |
+| resident-store | 66,031 / 66,031 | 7,786 / 7,786 | 39,005 / 39,005 | 135,327 / 201,330 | 4,334 / 4,334 | 5,058 / 5,058 | 145.1635 / 135.8637 | [JSON](evidence/spmark-payload-resident-store-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -75,3 +77,10 @@ counter unchanged. Nine profile-parser controls pass. No new performance row
 is added because this pass changes no CPU RTL or measured benchmark cycles.
 [Current attribution and chosen resident-way priority](spmark-payload-profile.md),
 [profile evidence](evidence/spmark-payload-cycle-profile-store-absence-20261115.json).
+
+`resident-read` is the declared joint two-result directory/indexed-read step:
++2.7165% throughput over E0. `resident-store` independently adds indexed WB
+stores: +8.2869% over E1, +11.2285% cumulative over E0. Both full suites pass
+all12groups/84windows, exact repeats and six wrong-output controls. E1 elapsed
+503.308s; E2 elapsed513.391s. Table indices retain the original baseline100.
+[Implementation, tests and CPU-owner timings](cache-resident-way.md).

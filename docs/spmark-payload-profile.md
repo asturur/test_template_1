@@ -1,3 +1,20 @@
+# Focused profile after resident indexed stores — 2026-11-15
+
+The complete E1/E2 benchmarks qualify all six kernels at both backing profiles.
+Only transpose/fill16tail were reprofiled afterward, with two exact repetitions,
+all seven windows and every accepted original counter unchanged. LDR owners at
+10002648/10002654 hold3clocks; STRs at1000264C/10002650 and fill16hot stores hold5,
+versus prior5/7. Transpose data holds54.10%→45.57%, fill16tail68.97%→62.48%.
+Transpose load-dependency occupancy is19.78%; it uses a shorter window and is
+not evidence of more absolute dependency clocks.
+
+LOOKUP_CAPTURE now also schedules the indexed data/dirty RAM read. Its occupancy
+must not be interpreted exclusively as CAM/tag work across these source versions.
+CPU-owner holds remain directly measured. Full old E0 profile below is retained
+as history; no unmeasured post-E2 six-case stall profile is claimed.
+[Implementation/results](cache-resident-way.md),
+[profile evidence](evidence/spmark-payload-resident-hot-profile-20261115.json).
+
 # Current full profile after absent-line stores — 2026-11-15
 
 Reprofiled all six accepted E0 kernels at both 0:0 and 2:9 profiles. All 12

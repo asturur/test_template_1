@@ -22,6 +22,7 @@ module test;
       .req_write(wr),
       .req_early_read(early),
       .req_ordinary_store(1'b0),
+      .req_resident_access(1'b0),
       .req_cache_enable(enabled),
       .req_cacheable(enabled),
       .req_bufferable(1'b1),

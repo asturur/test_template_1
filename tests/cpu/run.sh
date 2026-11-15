@@ -10,6 +10,7 @@ tests/cpu/operands/sim.sh
 tests/cpu/demand_completion/sim.sh
 sh tests/cpu/cache_hit_response/sim.sh
 sh tests/cpu/cache_store_absence/sim.sh
+sh tests/cpu/cache_resident/sim.sh
 sh tests/cpu/icache_discard/sim.sh
 tests/cpu/cp15/sim.sh
 tests/cpu/tlb_attributes/sim.sh

@@ -180,6 +180,15 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+E1/E2 update2026-11-15: indexed resident reads/stores are implemented, separately
+measured, and qualified with92/94CPU runs and19unit suites per stage. Combined
+kernel throughput improves11.2285%over E0; cumulative indices145.1635/135.8637.
+Selectors and fresh dirty commits are owned; the CPU is still blocking. C,
+load-consumer/forwarding, branch/fetch attribution and F overlap remain open;
+none of the broader donor/correctness/hardware gates is closed by these kernels.
+[Design and source-qualified evidence](cache-resident-way.md).
+
+
 Full-profile priority update 2026-11-15: after E0, choose resident-way reuse
 through owned indexed bank operations, including the store path. Transpose/
 small-fill data holds are 54.10%/68.97%/60.74%, with no modeled external waits.

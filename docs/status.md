@@ -1,3 +1,38 @@
+## 2026-11-15: Resident-way E1/E2 implemented and independently qualified
+
+E1 is a declared joint two-entry presence/way directory plus indexed-read step;
+E2 independently adds ordinary WB indexed stores. Known selectors are captured
+with the P2 request and read existing RAM. Stores capture fresh selected-way
+dirty halves (not stale CAM snapshots), current MVA/segment/data/byte enables
+and commit metadata/data together through existing write ports. No cache-line
+copies, dirty mirrors, new RAM, geometry or PLL changes. Current78MHz/104MHz
+target. Fifty additional declared controller state bits over E0; E2 adds no
+new state. FPGA fit/timing/boot remain unverified.
+
+Both full payload suites pass12groups/84windows, two identical repeats and all
+six wrong-output controls. E1 +2.7165% over E0; E2 +8.2869% over E1; combined
++11.2285%. Original-baseline indices now145.1635/135.8637 at0:0/2:9. Medians:
+matrix66031, transpose7786, triangle39005, full-frame135327/201330,
+fill16tail4334, fill8tail5058. The full-frame miss stream is unchanged by E2.
+
+E1 passes92CPU runs/19unit suites; E2 passes94/19. The final real-cache test
+passes92requests, all masks/word lanes, every segment and dirty halves through
+clean/physical writeback, aliases/refill/class/maintenance/reset. Negative
+controls reject both the predecessor without indexed reads and a lost-dirty-
+half prototype. Frozen RTL and test fixtures separate the stages. Focused
+transpose/fill16tail profiles repeat exactly and match accepted counters:
+actual LDRs hold3clocks, STRs5versus prior5/7; data holds45.57%/62.48%.
+
+The indexed bank interface retains the owner boundary for later P1/F overlap;
+current controller/CPU are still blocking. Assertions exclude pending same-slot
+writes and scan/refill conflicts; later overlap needs real interlocks/forwarding.
+C and fetch/branch/load-dependency work remain open. No new branch/worktree or
+hardware action. Source/executable/log/checkpoints retained after removing only
+this step's rebuildable compiler headers. Follow established commit/push-after-
+measurement workflow; no CI launch or monitoring.
+[Design/results/commands](cache-resident-way.md),
+[qualification](evidence/cache-resident-way-20261115.json).
+
 ## 2026-11-15: Full E0 profile complete; resident-way bank access chosen next
 
 All six kernels at 0:0/2:9, 12 groups/84 windows per repeat, two exact repeats

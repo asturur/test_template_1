@@ -48,6 +48,7 @@ module test;
 `ifndef NGAGE_CACHE_REFERENCE
       .req_early_read(1'b0),
       .req_ordinary_store(1'b0),
+      .req_resident_access(1'b0),
 `endif
       .req_cache_enable(en),
       .req_cacheable(c),

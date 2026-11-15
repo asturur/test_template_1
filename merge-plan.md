@@ -1,3 +1,15 @@
+## 2026-11-15: Resident indexed E1/E2 completed and independently measured
+
+Two line-result records and owned indexed reads (E1), then fresh-dirty indexed
+WB stores (E2). Reads3→1/store5→3cache clocks, actual CPU holds3/5. No line copies,
+dirty mirrors, extra RAM, clock or branch/worktree change; net50declared state
+bits over E0. Full original-payload repeat/negative controls,92/94CPU runs and
+19unit suites per stage pass;92-request segment/mask/dirty test and deliberate
+lost-dirty-half/predecessor controls pass. Cumulative index145.1635/135.8637,
++11.2285%over E0. Current78MHz/104MHz target; fit/timing/boot unverified.
+P1/F overlap and C/CPU dependency/branch work remain separate.
+[Design and evidence](docs/cache-resident-way.md).
+
 ## 2026-11-15: Full reprofile completed; next resident-way priority recorded
 
 All six E0 kernels/both profiles, exact repeats and every original counter pass;

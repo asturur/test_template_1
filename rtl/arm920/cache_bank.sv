@@ -10,6 +10,12 @@ module arm920_cache_bank #(
     input  logic         reset,
     input  logic [ 31:0] mva,
     input  logic [  7:0] lookup_segment_select,
+    // Registered, validated line-result owner. This selects the existing RAM
+    // read port; no speculative tag fact may perform a data/metadata mutation.
+    input  wire         indexed_read,
+    input  wire         indexed_store,
+    input  wire [  2:0] indexed_segment,
+    input  wire [  5:0] indexed_way,
     output logic         hit,
     output logic [  5:0] hit_way,
     input  logic         read_victim,
@@ -56,7 +62,7 @@ module arm920_cache_bank #(
   reg [255:0] commit_data;
   wire cancel_commit = reset || invalidate_all || lock_write || scan_clean || scan_invalidate;
   always @(posedge clk) begin
-    commit_segment <= lookup_address[7:5];
+    commit_segment <= indexed_store ? indexed_segment : lookup_address[7:5];
     commit_way     <= write_way;
     commit_enable  <= write_enable;
     commit_data    <= write_data;
@@ -68,13 +74,13 @@ module arm920_cache_bank #(
   // global hit. Metadata has fixed per-way matches and must not route that
   // global reduction back through every dirty flag's write enable.
   assign store_intent = store && !refill && !cancel_commit;
-  assign store_commit = store_intent && hit;
+  assign store_commit = store_intent && (indexed_store || hit);
   assign write_enable = fill_commit ? 32'hffffffff : (store_commit ? store_enable : 32'b0);
   assign write_data = refill ? refill_line : store_line;
-  assign write_way = refill ? victim_way : hit_way;
+  assign write_way = refill ? victim_way : indexed_store ? indexed_way : hit_way;
   always_ff @(posedge clk) begin
     if (reset || invalidate_all) read_valid <= 0;
-    else read_valid <= scan_read ? scan_valid : (read_victim ? victim_valid : hit);
+    else read_valid <= scan_read ? scan_valid : indexed_read ? 1'b1 : (read_victim ? victim_valid : hit);
   end
   arm920_cache_tags #(
       .READ_ONLY(READ_ONLY)
@@ -94,7 +100,9 @@ module arm920_cache_bank #(
       .victim_physical_line (victim_physical_line),
       .fill                 (fill_commit),
       .fill_physical        (refill_physical),
-      .write_hit            (store_intent && store_dirty && (|store_enable)),
+      .write_hit            (store_intent && !indexed_store && store_dirty && (|store_enable)),
+      .indexed_store        (store_intent && indexed_store && store_dirty && (|store_enable)),
+      .indexed_way          (indexed_way),
       .invalidate_line      (1'b0),
       .invalidate_all       (invalidate_all),
       .clean_hit            (1'b0),
@@ -113,8 +121,8 @@ module arm920_cache_bank #(
   );
   arm920_cache_lines lines (
       .clk          (clk),
-      .read_segment (scan_read ? scan_segment : lookup_address[7:5]),
-      .read_way     (scan_read ? scan_way : (read_victim ? victim_way : hit_way)),
+      .read_segment (scan_read ? scan_segment : indexed_read ? indexed_segment : lookup_address[7:5]),
+      .read_way     (scan_read ? scan_way : indexed_read ? indexed_way : (read_victim ? victim_way : hit_way)),
       .read_line    (read_line),
       .write_segment(commit_segment),
       .write_way    (commit_way),
@@ -123,6 +131,18 @@ module arm920_cache_bank #(
   );
   // synthesis translate_off
 `ifndef SYNTHESIS
+  always @(posedge clk)
+    if (!reset && indexed_store) begin
+      if (!store || refill || scan_read || scan_clean || scan_invalidate || read_victim)
+        $fatal(1, "indexed store overlapped another bank owner");
+      if (mva[7:5] != indexed_segment)
+        $fatal(1, "indexed data/metadata segment ownership differs");
+      // The current blocking controller drains this edge before another
+      // same-slot mutation. Future overlap must interlock or forward it.
+      if (|commit_enable && !cancel_commit && commit_segment == indexed_segment &&
+          commit_way == indexed_way)
+        $fatal(1, "indexed dirty read overlaps an uncommitted same-slot write");
+    end
   always @(posedge clk)
     if (!reset && READ_ONLY && store_intent)
       $fatal(1, "read-only instruction cache received a store intent");
