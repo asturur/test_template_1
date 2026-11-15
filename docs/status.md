@@ -1,3 +1,34 @@
+## 2026-11-15: Store completion accepted; MMC hardware debug requested
+
+User canceled debugger-off run43742647768 and started a debugger-on build.
+Do not launch another build or take the active hardware without the new MMC
+session instruction. Their current immutable build predates this CPU change.
+
+Full current branch-return profile:12groups/both profiles/two exact repeats,
+every original counter unchanged. Fills spend76.06–87.44% in data holds;
+transpose44.69%, matrix20.82% plus10.88%multiply. Acted on redundant ordinary
+write-back completion: posted misses reply after durable buffer reservation;
+resident stores reply on their existing data/dirty commit edge, without a second
+pulse. Unsupported/SWP/write-through boundaries remain. No state/RAM/stage/PLL
+added;78MHz active/104MHz goal. Single outstanding demand/global hold remains.
+
+Complete benchmark passes12groups/84windows per repeat, two exact repeats,
+six wrong-output controls. Indices **206.0389/179.2512**, +10.2203%/+6.7791% over
+branch-return186.9337/167.8711. Full-frame0:0 drops105589→87288; delayed frame
+201321→201316 remains backing-bound.78CPU/44IRQ-FIQ edges, ten unit groups,
+five broken controls and nine profiler parser controls pass. All133frozen
+candidate hashes match current sources. Initial CPU runner tried a generated
+ARMv4T program as a static file; no RTL execution failed, recovered list passes.
+Post-change full profiling is still running; focused math groups already match
+accepted counters. [Design/results](cache-store-completion.md),
+[evidence](evidence/cache-store-completion-20261115.json). Physical gates pending.
+
+User explicitly requested commit/push, then a live MMC remount debug session.
+Inspect current image/card/guest state before reset or changing media; prior
+clean boot exposed SPMark but never verified hot replacement. Use mister-control,
+keep firmware unmodified, no formatting or reproducible SD backups. Other threads'
+outputs/checkpoints remain untouched; no branches/worktrees or build monitoring.
+
 ## 2026-11-15: Unix RTC implemented; debugger compile flag qualified
 
 Clock/debugger code committed and pushed as **a45cb7e**. Seed44 build

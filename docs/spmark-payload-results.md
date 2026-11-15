@@ -23,6 +23,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | fifo-flags | 60,094 / 60,094 | 6,420 / 6,420 | 35,982 / 35,982 | 135,314 / 201,317 | 4,322 / 4,322 | 5,046 / 5,046 | 154.4752 / 144.5781 | [JSON](evidence/spmark-payload-fifo-flags-20261115.json) |
 | branch-owned | 63,972 / 63,972 | 6,372 / 6,372 | 35,328 / 35,328 | 107,865 / 201,312 | 3,591 / 3,591 | 3,728 / 3,728 | 172.9566 / 155.8735 | [JSON](evidence/spmark-payload-branch-owned-20261115.json) |
 | branch-return | 56,489 / 56,489 | 6,102 / 6,102 | 28,331 / 28,331 | 105,589 / 201,321 | 3,527 / 3,527 | 3,587 / 3,587 | 186.9337 / 167.8711 | [JSON](evidence/spmark-payload-branch-return-20261115.json) |
+| store-commit | 56,009 / 56,009 | 5,784 / 5,784 | 27,744 / 27,744 | 87,288 / 201,316 | 3,015 / 3,015 | 3,076 / 3,076 | 206.0389 / 179.2512 | [JSON](evidence/spmark-payload-store-commit-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -135,3 +136,8 @@ another8.0813%/7.6970%, combined21.0121%/16.1110% over fifo-flags. Matcher-only
 does not change these payload windows and was not accepted alone after a call
 microbenchmark regression. All final sources/repeats/controls pass; fitted
 timing/native score remain separate. [Contracts and controls](cpu-branch-return.md).
+
+`store-commit` removes redundant ordinary write-back completion waits. All12groups,
+84windows/repeat, two exact repeats and six wrong-output controls pass. Suite
+throughput adds10.2203%/6.7791%; no new state/RAM/stage or clock change.
+[Contract and qualification](cache-store-completion.md).

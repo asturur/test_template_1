@@ -110,10 +110,16 @@ module arm920_cache_access #(
   reg [31:0] response_data_q;
   // READ_LINE follows the registered way decision and synchronous line read.
   // The CPU completion register can capture this owned word directly. Keep
-  // the registered response for misses, SWP, stores and noncached requests.
+  // the registered response for misses, SWP and noncached requests.
   wire early_reply = early_read_owner && state == READ_LINE && !reset &&
                      !invalidate_all && !lock_write && !maint_valid;
-  assign response_valid = early_reply || response_valid_q;
+  // Ordinary write-back hits have already captured a data/dirty commit. The
+  // CPU samples this reply on that existing commit edge, rather than waiting
+  // another cycle for a copied pulse. SWP/write-through retain the old reply.
+  wire early_store_reply = ordinary_lookup_owner && wr && enabled && cacheable &&
+                           bufferable && state == STORE_COMMIT && !reset &&
+                           !invalidate_all && !lock_write;
+  assign response_valid = early_reply || early_store_reply || response_valid_q;
   assign response_data = early_reply ? line[mva[4:2]*32+:32] : response_data_q;
   logic [31:0] mva, pa, wdata;
   logic [3:0] ben;
@@ -647,10 +653,21 @@ module arm920_cache_access #(
         end
         STORE_HIT: state <= STORE_COMMIT;
         STORE_COMMIT: begin
-          response_valid_q <= 1;
+          response_valid_q <= !early_store_reply;
           state          <= IDLE;
         end
-        BUFFER_STORE: if (buffer_ready) state <= STORE_COMMIT;
+        BUFFER_STORE: if (buffer_ready) begin
+          // An ordinary cacheable write-back miss has no bank mutation. The
+          // posted buffer reserves capacity/hazards and captures its payload
+          // on this edge; its local commit is independent of the CPU owner.
+          // Keep the registered response, but remove the empty wait after that
+          // durable reservation. Resident RAM data/dirty commit and
+          // write-through/SWP completion boundaries remain independently owned.
+          if (ordinary_lookup_owner && bufferable) begin
+            response_valid_q <= 1;
+            state <= IDLE;
+          end else state <= STORE_COMMIT;
+        end
         WAIT_DRAIN:
         if (write_buffer_empty) state <= !wr && !(enabled && cacheable) ? BYPASS : LOOKUP;
         BYPASS:
@@ -697,6 +714,11 @@ module arm920_cache_access #(
         $fatal(1, "serialized cache lookup address changed");
       if (state == LOOKUP && enabled && cacheable && bank.lookup_address != mva)
         $fatal(1, "cache decision consumed another lookup address");
+      if (early_store_reply && |ben && !data_commit_valid)
+        $fatal(1, "ordinary store response preceded its owned RAM commit edge");
+      if (early_store_reply && (bank.commit_segment != mva[7:5] ||
+                               bank.commit_enable != store_mask))
+        $fatal(1, "ordinary store response consumed another RAM commit owner");
       if (absent_store_owner && (state == BUFFER_STORE || state == STORE_COMMIT) && store_request)
         $fatal(1, "absent store attempted a cache mutation");
       if (absent_store_owner && response_valid_q && !invalidate_all && !lock_write &&

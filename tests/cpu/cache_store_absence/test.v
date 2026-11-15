@@ -225,6 +225,13 @@ module test;
     cold_latency = latency;
     access (1, 'h104, 'h104, 'h55667788, 4'h5, 1, 1);
     hot_latency = latency;
+    if (hot_latency != 1 || cold_latency != 4)
+      $fatal(
+          1,
+          "posted store kept the redundant completion clock hot=%0d cold=%0d",
+          hot_latency,
+          cold_latency
+      );
     if (hot_latency + 3 != cold_latency) $fatal(1, "shortcut did not remove three lookup clocks");
     // All masks, all words and repeated writes remain nonallocating.
     for (i = 0; i < 16; i = i + 1)

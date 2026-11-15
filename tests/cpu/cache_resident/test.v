@@ -2,7 +2,7 @@
 module test;
   reg clk = 0, reset = 1, req = 0, wr = 0, early = 0, enabled = 1;
   reg [31:0] address = 0, din = 0;
-  reg resident = 1;
+  reg resident = 1, ordinary = 1;
   reg inv = 0, lock = 0, mv = 0, mc = 0, mi = 0;
   wire mr, md;
   reg pending_maintenance = 0;
@@ -29,7 +29,7 @@ module test;
       .req_physical(address),
       .req_write(wr),
       .req_early_read(early),
-      .req_ordinary_store(1'b1),
+      .req_ordinary_store(ordinary),
       .req_resident_access(resident),
       .req_cache_enable(enabled),
       .req_cacheable(enabled),
@@ -161,12 +161,21 @@ module test;
       access (0, 1, 32'h100 + 4 * i, 0, 4'hf, 1);
       if (result !== (32'h51000000 ^ (32'h100 + 4 * i))) $fatal(1, "word lane mismatch");
     end
-    // Partial cached stores keep their old responder and update the real RAM.
+    // Partial cached stores complete on their owned RAM commit edge.
     access (1, 1, 32'h104, 32'h11223344, 4'b0101, 0);
     resident_store = latency;
-    if (resident_store != (STORES ? 3 : 5)) $fatal(1, "indexed store latency %0d", resident_store);
+    if (resident_store != (STORES ? 2 : 4)) $fatal(1, "indexed store latency %0d", resident_store);
     access (0, 1, 32'h104, 0, 4'hf, 1);
     if (result !== 32'h51220144) $fatal(1, "partial store freshness %h", result);
+    // A maintenance offer cannot steal the accepted store's commit owner.
+    pending_maintenance = 1;
+    access (1, 1, 32'h104, 0, 4'h0, 0);
+    if (latency != (STORES ? 2 : 4)) $fatal(1, "maintenance stole store completion");
+    // An unsupported/SWP-class store retains the full registered responder.
+    ordinary = 0;
+    access (1, 1, 32'h104, 0, 4'h0, 0);
+    if (latency != 5) $fatal(1, "SWP-class store used ordinary completion");
+    ordinary = 1;
     // SWP-class callers withhold early delivery, including after earlier fast reads.
     access (0, 0, 32'h104, 0, 4'hf, 0);
     if (result !== 32'h51220144) $fatal(1, "legacy-after-early mismatch");
@@ -179,7 +188,7 @@ module test;
     for (j = 0; j < 16; j = j + 1) begin
       for (i = 0; i < 4; i = i + 1) if (j[i]) expected[j%8][i*8+:8] = (32'h81020304 ^ j) >> (i * 8);
       access (1, 1, 32'h100 + 4 * (j % 8), 32'h81020304 ^ j, j[3:0], 0);
-      if (latency != (STORES ? 3 : 5)) $fatal(1, "store reused a stale/unowned way");
+      if (latency != (STORES ? 2 : 4)) $fatal(1, "store reused a stale/unowned way");
       access (0, 1, 32'h100 + 4 * (j % 8), 0, 4'hf, 1);
       if (result !== expected[j%8]) $fatal(1, "indexed store/read mask freshness");
     end
@@ -207,7 +216,7 @@ module test;
     for (j = 0; j < 8; j = j + 1) begin
       access (0, 1, 32'h4000 + 32 * j + 16 * (j % 2), 0, 4'hf, 0);
       access (1, 1, 32'h4000 + 32 * j + 16 * (j % 2), 32'h82000000 | j, 4'hf, 0);
-      if (latency != (STORES ? 3 : 5)) $fatal(1, "indexed segment store latency");
+      if (latency != (STORES ? 2 : 4)) $fatal(1, "indexed segment store latency");
       access (0, 1, 32'h4000 + 32 * j + 16 * (j % 2), 0, 4'hf, 1);
       if (result !== (32'h82000000 | j)) $fatal(1, "indexed segment/half data mismatch");
     end

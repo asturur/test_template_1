@@ -1,0 +1,901 @@
+{
+  "after_profile": "IN_PROGRESS: build/sim/spmark-profile/store-commit-full-20261115",
+  "before_profile": "docs/evidence/spmark-payload-branch-final-profile-20261115.json",
+  "before_snapshot_scope": {
+    "commit": "d4f2a8a",
+    "compiled_files": [
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_bram.v",
+      "rtl/arm/zap_alu_main.sv",
+      "rtl/arm/zap_btb.sv",
+      "rtl/arm/zap_cache.sv",
+      "rtl/arm/zap_core.sv",
+      "rtl/arm/zap_cp15_cb.sv",
+      "rtl/arm/zap_data_completion.sv",
+      "rtl/arm/zap_dcache.sv",
+      "rtl/arm/zap_decode.sv",
+      "rtl/arm/zap_decode_main.sv",
+      "rtl/arm/zap_decompile.sv",
+      "rtl/arm/zap_dual_rank_synchronizer.sv",
+      "rtl/arm/zap_fetch_main.sv",
+      "rtl/arm/zap_fifo.sv",
+      "rtl/arm/zap_issue_main.sv",
+      "rtl/arm/zap_memory_main.sv",
+      "rtl/arm/zap_mode16_decoder.sv",
+      "rtl/arm/zap_mode16_decoder_main.sv",
+      "rtl/arm/zap_ones_counter.sv",
+      "rtl/arm/zap_operand_read.sv",
+      "rtl/arm/zap_postalu_main.sv",
+      "rtl/arm/zap_predecode_coproc.sv",
+      "rtl/arm/zap_predecode_main.sv",
+      "rtl/arm/zap_predecode_uop_sequencer.sv",
+      "rtl/arm/zap_ram_simple_nopipe.sv",
+      "rtl/arm/zap_register_file.sv",
+      "rtl/arm/zap_shifter_main.sv",
+      "rtl/arm/zap_shifter_multiply.sv",
+      "rtl/arm/zap_shifter_shift.sv",
+      "rtl/arm/zap_sync_fifo.sv",
+      "rtl/arm/zap_top.sv",
+      "rtl/arm/zap_wb_merger.sv",
+      "rtl/arm/zap_writeback.sv",
+      "rtl/arm920/cache_access.sv",
+      "rtl/arm920/cache_adapter.sv",
+      "rtl/arm920/cache_bank.sv",
+      "rtl/arm920/cache_lines.sv",
+      "rtl/arm920/cache_maintenance.sv",
+      "rtl/arm920/cache_refill.sv",
+      "rtl/arm920/cache_tags.sv",
+      "rtl/arm920/cache_transfer.sv",
+      "rtl/arm920/tlb.sv",
+      "rtl/arm920/tlb_bank.sv",
+      "rtl/arm920/tlb_bus_gate.sv",
+      "rtl/arm920/write_buffer.sv"
+    ],
+    "compiled_source_files_match_current": true,
+    "indices": {
+      "0:0": 186.933715,
+      "2:9": 167.8710873
+    },
+    "qualified_base": "build/sim/spmark-payload/branch-return-target-20261115",
+    "rows": [
+      {
+        "body_cycles_median": 56489,
+        "case": "matrix4",
+        "profile": "0:0"
+      },
+      {
+        "body_cycles_median": 56489,
+        "case": "matrix4",
+        "profile": "2:9"
+      },
+      {
+        "body_cycles_median": 6102,
+        "case": "transpose4",
+        "profile": "0:0"
+      },
+      {
+        "body_cycles_median": 6102,
+        "case": "transpose4",
+        "profile": "2:9"
+      },
+      {
+        "body_cycles_median": 28331,
+        "case": "triangle_edges",
+        "profile": "0:0"
+      },
+      {
+        "body_cycles_median": 28331,
+        "case": "triangle_edges",
+        "profile": "2:9"
+      },
+      {
+        "body_cycles_median": 105589,
+        "case": "fill16_frame",
+        "profile": "0:0"
+      },
+      {
+        "body_cycles_median": 201321,
+        "case": "fill16_frame",
+        "profile": "2:9"
+      },
+      {
+        "body_cycles_median": 3527,
+        "case": "fill16_tail",
+        "profile": "0:0"
+      },
+      {
+        "body_cycles_median": 3527,
+        "case": "fill16_tail",
+        "profile": "2:9"
+      },
+      {
+        "body_cycles_median": 3587,
+        "case": "fill8_tail",
+        "profile": "0:0"
+      },
+      {
+        "body_cycles_median": 3587,
+        "case": "fill8_tail",
+        "profile": "2:9"
+      }
+    ],
+    "snapshot_difference_outside_compile_closure": [
+      "Template.sv"
+    ],
+    "source_id": "7e2af0c9f8391dc5e2ccb1390a145b016d7881bda531c620b6331450a83cce92"
+  },
+  "benchmark_groups": 12,
+  "checks": {
+    "controls": {
+      "path": "build/sim/store-commit-controls-20261115/result.json",
+      "result": {
+        "controls": {
+          "ignore-capacity": {
+            "diagnostic": "full buffer did not hold",
+            "rejected": true
+          },
+          "old-posted": {
+            "diagnostic": "redundant completion clock",
+            "rejected": true
+          },
+          "old-resident": {
+            "diagnostic": "indexed store latency",
+            "rejected": true
+          },
+          "replay-response": {
+            "diagnostic": "duplicate/missing completion",
+            "rejected": true
+          },
+          "wrong-class": {
+            "diagnostic": "SWP-class store used ordinary completion",
+            "rejected": true
+          }
+        },
+        "status": "PASS"
+      },
+      "sha256": "9f2b3032cd797d109607c6de86d1d7ed14f4c7e1f193b7ada8902a56413c2f64"
+    },
+    "cpu": {
+      "path": "build/sim/store-commit-cpu-20261115/result.json",
+      "result": {
+        "programs": {
+          "branch_return": {
+            "0": [
+              "COUNTERS: fetch_response=21853 fetch_accept=13599 issue=13163 retire_uop_last=12931",
+              "LOAD_FORWARD: early_issue=64 late_issue=31",
+              "PASS: CPU test, memory delay 0, 98441 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13685 fetch_accept=13601 issue=13163 retire_uop_last=12931",
+              "LOAD_FORWARD: early_issue=64 late_issue=31",
+              "PASS: CPU test, memory delay 3, 152107 cycles"
+            ]
+          },
+          "cache_associativity": {
+            "0": [
+              "COUNTERS: fetch_response=20587 fetch_accept=12367 issue=12337 retire_uop_last=12335",
+              "LOAD_FORWARD: early_issue=9 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94701 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12386 fetch_accept=12358 issue=12336 retire_uop_last=12335",
+              "LOAD_FORWARD: early_issue=8 late_issue=7",
+              "PASS: CPU test, memory delay 3, 148271 cycles"
+            ]
+          },
+          "cache_disable_reenable": {
+            "0": [
+              "COUNTERS: fetch_response=20594 fetch_accept=12372 issue=12343 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=9 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94728 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12382 fetch_accept=12365 issue=12342 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=7 late_issue=7",
+              "PASS: CPU test, memory delay 3, 148233 cycles"
+            ]
+          },
+          "cache_drain": {
+            "0": [
+              "COUNTERS: fetch_response=20643 fetch_accept=12409 issue=12381 retire_uop_last=12379",
+              "LOAD_FORWARD: early_issue=18 late_issue=17",
+              "PASS: CPU test, memory delay 0, 94947 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12423 fetch_accept=12401 issue=12380 retire_uop_last=12379",
+              "LOAD_FORWARD: early_issue=18 late_issue=18",
+              "PASS: CPU test, memory delay 3, 148578 cycles"
+            ]
+          },
+          "cache_external_abort": {
+            "0": [
+              "COUNTERS: fetch_response=20582 fetch_accept=12366 issue=12337 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=6 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94684 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12371 fetch_accept=12357 issue=12336 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 3, 148170 cycles"
+            ]
+          },
+          "cache_fcse": {
+            "0": [
+              "COUNTERS: fetch_response=20669 fetch_accept=12412 issue=12370 retire_uop_last=12367",
+              "LOAD_FORWARD: early_issue=12 late_issue=8",
+              "PASS: CPU test, memory delay 0, 95022 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12454 fetch_accept=12406 issue=12369 retire_uop_last=12367",
+              "LOAD_FORWARD: early_issue=10 late_issue=11",
+              "PASS: CPU test, memory delay 3, 148785 cycles"
+            ]
+          },
+          "cache_instruction_associativity": {
+            "0": [
+              "COUNTERS: fetch_response=20617 fetch_accept=12400 issue=12340 retire_uop_last=12336",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94943 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12423 fetch_accept=12400 issue=12340 retire_uop_last=12336",
+              "LOAD_FORWARD: early_issue=5 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148596 cycles"
+            ]
+          },
+          "cache_irq_refill": {
+            "0": [
+              "COUNTERS: fetch_response=20606 fetch_accept=12388 issue=12356 retire_uop_last=12347",
+              "LOAD_FORWARD: early_issue=6 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94800 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12398 fetch_accept=12380 issue=12354 retire_uop_last=12347",
+              "LOAD_FORWARD: early_issue=4 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148395 cycles"
+            ]
+          },
+          "cache_irq_writeback": {
+            "0": [
+              "COUNTERS: fetch_response=21194 fetch_accept=12611 issue=12544 retire_uop_last=12537",
+              "LOAD_FORWARD: early_issue=69 late_issue=65",
+              "PASS: CPU test, memory delay 0, 97415 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13088 fetch_accept=12611 issue=12542 retire_uop_last=12537",
+              "LOAD_FORWARD: early_issue=65 late_issue=70",
+              "PASS: CPU test, memory delay 3, 154034 cycles"
+            ]
+          },
+          "cache_load_widths": {
+            "0": [
+              "COUNTERS: fetch_response=22041 fetch_accept=13688 issue=13114 retire_uop_last=13073",
+              "LOAD_FORWARD: early_issue=6 late_issue=35",
+              "PASS: CPU test, memory delay 0, 97847 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=14174 fetch_accept=13691 issue=13114 retire_uop_last=13073",
+              "LOAD_FORWARD: early_issue=4 late_issue=36",
+              "PASS: CPU test, memory delay 3, 152007 cycles"
+            ]
+          },
+          "cache_lockdown": {
+            "0": [
+              "COUNTERS: fetch_response=21175 fetch_accept=12594 issue=12536 retire_uop_last=12533",
+              "LOAD_FORWARD: early_issue=69 late_issue=65",
+              "PASS: CPU test, memory delay 0, 97331 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13071 fetch_accept=12592 issue=12535 retire_uop_last=12533",
+              "LOAD_FORWARD: early_issue=65 late_issue=70",
+              "PASS: CPU test, memory delay 3, 153891 cycles"
+            ]
+          },
+          "cache_page_external_abort": {
+            "0": [
+              "COUNTERS: fetch_response=20579 fetch_accept=12363 issue=12337 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=5 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94672 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12370 fetch_accept=12356 issue=12336 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=5 late_issue=5",
+              "PASS: CPU test, memory delay 3, 148152 cycles"
+            ]
+          },
+          "cache_single_maintenance": {
+            "0": [
+              "COUNTERS: fetch_response=20641 fetch_accept=12394 issue=12362 retire_uop_last=12360",
+              "LOAD_FORWARD: early_issue=15 late_issue=11",
+              "PASS: CPU test, memory delay 0, 94940 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12424 fetch_accept=12391 issue=12361 retire_uop_last=12360",
+              "LOAD_FORWARD: early_issue=13 late_issue=14",
+              "PASS: CPU test, memory delay 3, 148602 cycles"
+            ]
+          },
+          "cache_store_absence": {
+            "0": [
+              "COUNTERS: fetch_response=20884 fetch_accept=12619 issue=12531 retire_uop_last=12512",
+              "LOAD_FORWARD: early_issue=30 late_issue=4",
+              "PASS: CPU test, memory delay 0, 96121 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12636 fetch_accept=12591 issue=12524 retire_uop_last=12504",
+              "LOAD_FORWARD: early_issue=20 late_issue=12",
+              "PASS: CPU test, memory delay 3, 150387 cycles"
+            ]
+          },
+          "cache_tlb_write_order": {
+            "20": [
+              "COUNTERS: fetch_response=72 fetch_accept=66 issue=36 retire_uop_last=34",
+              "LOAD_FORWARD: early_issue=3 late_issue=3",
+              "PASS: CPU test, memory delay 20, 2359 cycles"
+            ]
+          },
+          "cache_write_miss": {
+            "0": [
+              "COUNTERS: fetch_response=20579 fetch_accept=12363 issue=12340 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=8 late_issue=7",
+              "PASS: CPU test, memory delay 0, 94703 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12383 fetch_accept=12363 issue=12339 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=7 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148222 cycles"
+            ]
+          },
+          "cache_write_through": {
+            "0": [
+              "COUNTERS: fetch_response=20631 fetch_accept=12399 issue=12372 retire_uop_last=12370",
+              "LOAD_FORWARD: early_issue=16 late_issue=15",
+              "PASS: CPU test, memory delay 0, 94899 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12415 fetch_accept=12393 issue=12371 retire_uop_last=12370",
+              "LOAD_FORWARD: early_issue=16 late_issue=16",
+              "PASS: CPU test, memory delay 3, 148523 cycles"
+            ]
+          },
+          "data_privilege_owner": {
+            "0": [
+              "COUNTERS: fetch_response=20634 fetch_accept=12426 issue=12364 retire_uop_last=12352",
+              "LOAD_FORWARD: early_issue=7 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94973 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12409 fetch_accept=12401 issue=12358 retire_uop_last=12351",
+              "LOAD_FORWARD: early_issue=4 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148540 cycles"
+            ]
+          },
+          "fiq_flash_return": {
+            "0": [
+              "COUNTERS: fetch_response=20596 fetch_accept=12376 issue=12347 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=8 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94770 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12379 fetch_accept=12365 issue=12344 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=5 late_issue=9",
+              "PASS: CPU test, memory delay 3, 148247 cycles"
+            ]
+          },
+          "fiq_privileged_store": {
+            "0": [
+              "COUNTERS: fetch_response=20563 fetch_accept=12353 issue=12324 retire_uop_last=12321",
+              "LOAD_FORWARD: early_issue=4 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94616 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12357 fetch_accept=12347 issue=12323 retire_uop_last=12321",
+              "LOAD_FORWARD: early_issue=3 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148071 cycles"
+            ]
+          },
+          "fiq_store_return": {
+            "0": [
+              "COUNTERS: fetch_response=20580 fetch_accept=12369 issue=12340 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94700 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12368 fetch_accept=12359 issue=12337 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=4 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148160 cycles"
+            ]
+          },
+          "icache_buffer_order": {
+            "0": [
+              "COUNTERS: fetch_response=20587 fetch_accept=12373 issue=12341 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94712 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12380 fetch_accept=12363 issue=12340 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=5 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148246 cycles"
+            ]
+          },
+          "icache_lockdown": {
+            "0": [
+              "COUNTERS: fetch_response=21506 fetch_accept=13223 issue=12730 retire_uop_last=12726",
+              "LOAD_FORWARD: early_issue=6 late_issue=4",
+              "PASS: CPU test, memory delay 0, 101179 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13238 fetch_accept=13154 issue=12728 retire_uop_last=12726",
+              "LOAD_FORWARD: early_issue=3 late_issue=6",
+              "PASS: CPU test, memory delay 3, 157899 cycles"
+            ]
+          },
+          "icache_tlb_write_order": {
+            "20": [
+              "COUNTERS: fetch_response=160 fetch_accept=117 issue=56 retire_uop_last=53",
+              "LOAD_FORWARD: early_issue=2 late_issue=2",
+              "PASS: CPU test, memory delay 20, 3663 cycles"
+            ]
+          },
+          "ldm_base_in_list": {
+            "0": [
+              "COUNTERS: fetch_response=33 fetch_accept=23 issue=22 retire_uop_last=17",
+              "LOAD_FORWARD: early_issue=3 late_issue=1",
+              "PASS: CPU test, memory delay 0, 151 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=25 fetch_accept=23 issue=21 retire_uop_last=17",
+              "LOAD_FORWARD: early_issue=2 late_issue=3",
+              "PASS: CPU test, memory delay 3, 231 cycles"
+            ]
+          },
+          "ldm_base_smallpage": {
+            "0": [
+              "COUNTERS: fetch_response=20654 fetch_accept=12418 issue=12382 retire_uop_last=12376",
+              "LOAD_FORWARD: early_issue=16 late_issue=12",
+              "PASS: CPU test, memory delay 0, 94956 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12427 fetch_accept=12410 issue=12380 retire_uop_last=12376",
+              "LOAD_FORWARD: early_issue=12 late_issue=10",
+              "PASS: CPU test, memory delay 3, 148577 cycles"
+            ]
+          },
+          "mmu_fcse": {
+            "0": [
+              "COUNTERS: fetch_response=20616 fetch_accept=12398 issue=12361 retire_uop_last=12358",
+              "LOAD_FORWARD: early_issue=10 late_issue=10",
+              "PASS: CPU test, memory delay 0, 94829 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12398 fetch_accept=12383 issue=12359 retire_uop_last=12358",
+              "LOAD_FORWARD: early_issue=7 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148341 cycles"
+            ]
+          },
+          "mmu_fetch": {
+            "0": [
+              "COUNTERS: fetch_response=20553 fetch_accept=12345 issue=12322 retire_uop_last=12319",
+              "LOAD_FORWARD: early_issue=5 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94563 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12346 fetch_accept=12337 issue=12321 retire_uop_last=12319",
+              "LOAD_FORWARD: early_issue=3 late_issue=7",
+              "PASS: CPU test, memory delay 3, 147972 cycles"
+            ]
+          },
+          "smoke": {
+            "0": [
+              "COUNTERS: fetch_response=96 fetch_accept=82 issue=64 retire_uop_last=59",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 451 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=80 fetch_accept=77 issue=62 retire_uop_last=59",
+              "LOAD_FORWARD: early_issue=4 late_issue=7",
+              "PASS: CPU test, memory delay 3, 705 cycles"
+            ]
+          },
+          "swp_basic": {
+            "0": [
+              "COUNTERS: fetch_response=45 fetch_accept=38 issue=38 retire_uop_last=30",
+              "LOAD_FORWARD: early_issue=5 late_issue=2",
+              "PASS: CPU test, memory delay 0, 219 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=38 fetch_accept=36 issue=37 retire_uop_last=30",
+              "LOAD_FORWARD: early_issue=3 late_issue=5",
+              "PASS: CPU test, memory delay 3, 349 cycles"
+            ]
+          },
+          "swp_bufferable": {
+            "0": [
+              "COUNTERS: fetch_response=20568 fetch_accept=12352 issue=12337 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=9 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94633 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12364 fetch_accept=12349 issue=12336 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=8 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148108 cycles"
+            ]
+          },
+          "swp_cached": {
+            "0": [
+              "COUNTERS: fetch_response=20597 fetch_accept=12372 issue=12344 retire_uop_last=12340",
+              "LOAD_FORWARD: early_issue=10 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94736 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12383 fetch_accept=12365 issue=12343 retire_uop_last=12340",
+              "LOAD_FORWARD: early_issue=8 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148248 cycles"
+            ]
+          },
+          "swp_cached_irq": {
+            "0": [
+              "COUNTERS: fetch_response=20642 fetch_accept=12424 issue=12373 retire_uop_last=12365",
+              "LOAD_FORWARD: early_issue=12 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94966 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12416 fetch_accept=12398 issue=12366 retire_uop_last=12361",
+              "LOAD_FORWARD: early_issue=6 late_issue=9",
+              "PASS: CPU test, memory delay 3, 148547 cycles"
+            ]
+          },
+          "swp_fiq": {
+            "0": [
+              "COUNTERS: fetch_response=60 fetch_accept=55 issue=38 retire_uop_last=32",
+              "LOAD_FORWARD: early_issue=1 late_issue=0",
+              "PASS: CPU test, memory delay 0, 303 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=44 fetch_accept=43 issue=32 retire_uop_last=28",
+              "LOAD_FORWARD: early_issue=0 late_issue=3",
+              "PASS: CPU test, memory delay 3, 408 cycles"
+            ]
+          },
+          "swp_irq_core": {
+            "0": [
+              "COUNTERS: fetch_response=69 fetch_accept=63 issue=42 retire_uop_last=35",
+              "LOAD_FORWARD: early_issue=1 late_issue=0",
+              "PASS: CPU test, memory delay 0, 349 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=50 fetch_accept=49 issue=35 retire_uop_last=31",
+              "LOAD_FORWARD: early_issue=0 late_issue=3",
+              "PASS: CPU test, memory delay 3, 470 cycles"
+            ]
+          },
+          "swp_mmu_abort": {
+            "0": [
+              "COUNTERS: fetch_response=20579 fetch_accept=12365 issue=12341 retire_uop_last=12337",
+              "LOAD_FORWARD: early_issue=6 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94676 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12375 fetch_accept=12358 issue=12340 retire_uop_last=12335",
+              "LOAD_FORWARD: early_issue=4 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148182 cycles"
+            ]
+          },
+          "swp_read_abort": {
+            "0": [
+              "COUNTERS: fetch_response=33 fetch_accept=28 issue=19 retire_uop_last=15",
+              "LOAD_FORWARD: early_issue=1 late_issue=0",
+              "PASS: CPU test, memory delay 0, 176 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=28 fetch_accept=27 issue=18 retire_uop_last=14",
+              "LOAD_FORWARD: early_issue=0 late_issue=2",
+              "PASS: CPU test, memory delay 3, 272 cycles"
+            ]
+          },
+          "swp_write_abort": {
+            "0": [
+              "COUNTERS: fetch_response=29 fetch_accept=23 issue=17 retire_uop_last=12",
+              "LOAD_FORWARD: early_issue=2 late_issue=1",
+              "PASS: CPU test, memory delay 0, 162 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=24 fetch_accept=24 issue=18 retire_uop_last=12",
+              "LOAD_FORWARD: early_issue=1 late_issue=4",
+              "PASS: CPU test, memory delay 3, 249 cycles"
+            ]
+          },
+          "thumb_ldm_base_in_list": {
+            "0": [
+              "COUNTERS: fetch_response=73 fetch_accept=58 issue=61 retire_uop_last=46",
+              "LOAD_FORWARD: early_issue=11 late_issue=3",
+              "PASS: CPU test, memory delay 0, 333 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=65 fetch_accept=57 issue=59 retire_uop_last=46",
+              "LOAD_FORWARD: early_issue=9 late_issue=6",
+              "PASS: CPU test, memory delay 3, 547 cycles"
+            ]
+          },
+          "thumb_return_dependency": {
+            "0": [
+              "COUNTERS: fetch_response=20651 fetch_accept=12422 issue=12346 retire_uop_last=12329",
+              "LOAD_FORWARD: early_issue=8 late_issue=6",
+              "PASS: CPU test, memory delay 0, 94829 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12470 fetch_accept=12417 issue=12345 retire_uop_last=12329",
+              "LOAD_FORWARD: early_issue=8 late_issue=7",
+              "PASS: CPU test, memory delay 3, 148380 cycles"
+            ]
+          }
+        },
+        "status": "PASS"
+      },
+      "sha256": "d99ea371de8e1869190e90bdf8077af98188f50a72186e5f1cfb8c2354d78dee"
+    },
+    "edges": {
+      "path": "build/sim/store-commit-cpu-20261115/edge-sweeps/result.json",
+      "result": {
+        "runs": {
+          "fiq-0-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 298 cycles"
+          ],
+          "fiq-0-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-1-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "fiq-1-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-10-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-10-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-2-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "fiq-2-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-3-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-3-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-4-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-4-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-5-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-5-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-6-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-6-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-7-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-7-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-8-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-8-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-9-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-9-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-0-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 298 cycles"
+          ],
+          "irq-0-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-1-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "irq-1-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-10-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-10-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-2-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "irq-2-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-3-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-3-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-4-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-4-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-5-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-5-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-6-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-6-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-7-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-7-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-8-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-8-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-9-0": [
+            "LOAD_FORWARD: early_issue=1 late_issue=0",
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-9-3": [
+            "LOAD_FORWARD: early_issue=0 late_issue=3",
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ]
+        },
+        "status": "PASS"
+      },
+      "sha256": "118c074b9c8c50ed8444b09a34d2c8beb0598339f54b918af7ed0d53221d46cf"
+    },
+    "units": {
+      "path": "build/sim/store-commit-units-20261115/result.json",
+      "result": {
+        "status": "PASS",
+        "tests": {
+          "cache_access": [
+            "PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction"
+          ],
+          "cache_buffer_integration": [
+            "PASS: asynchronous buffering, ordering, backpressure and bus-error behavior"
+          ],
+          "cache_dirty_packed": [
+            "PASS: serialized associative accesses, WB/WT hits, maintenance and 65th-way eviction"
+          ],
+          "cache_maintenance": [
+            "PASS: indexed clean, error retention and invalidate all"
+          ],
+          "cache_probe": [
+            "PASS: 336 requests; 155 fast reads, 8 concurrent A/B clocks, 122 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+          ],
+          "cache_resident": [
+            "PASS: 94 resident requests; normal read 3 indexed 1, store 2; lanes/fresh stores/two slots/high tags/refill/class/cache/reset"
+          ],
+          "cache_store_absence": [
+            "PASS: 44 owned requests, 39 exact ordered posted writes; absence latency 1 vs 4, masks/refill/hit/dirty/alias/PA/class/invalidate/lock/full-buffer/retry/reset"
+          ],
+          "demand_completion": [
+            "PASS: demand/housekeeping completion split, 4729 checked clocks, fault/walk matrix, waited transfers, exact-once clean/invalidate, lockdown/reset"
+          ],
+          "icache_read_only": [
+            "PASS: read-only cache cycle equivalence (9416 cycles), capacity, streamed/word refill/hit, clean/invalidate, lockdown, lookahead, discard/errors/reset",
+            "PASS: read-only cache cycle equivalence (9440 cycles), capacity, streamed/word refill/hit, clean/invalidate, lockdown, lookahead, discard/errors/reset"
+          ],
+          "write_buffer": [
+            "PASS: 16-word/4-address write buffer, stalls, ordering, error retention and simultaneous pop/push",
+            "PASS independent write-buffer FIFO/hazard scoreboard: 12021 cycles, 1347 enqueues, 328 merges, 496 crossings, 160 wraps, 1989 errors"
+          ]
+        }
+      },
+      "sha256": "174b8e64ceee281b1fa9c22d52a79462a7e51fb162a5c714ba9522861c0ecd42"
+    }
+  },
+  "clock_mhz": 78,
+  "cpu_runs": 78,
+  "design_target_mhz": 104,
+  "fixture_setup_failure": {
+    "missing": [
+      "armv4t_profile"
+    ],
+    "reason": "ARMv4T profile assembly is generated by its maintained profile runner; not a static sim/programs source",
+    "rtl_failure": false,
+    "status": "FIXTURE_SETUP_ERROR"
+  },
+  "frozen_source_hashes_match_current": true,
+  "gain_percent": {
+    "0:0": 10.220325611685155,
+    "2:9": 6.779069432354959
+  },
+  "indices": {
+    "0:0": 206.03894939551682,
+    "2:9": 179.25118486271234
+  },
+  "irq_fiq_edge_runs": 44,
+  "limits": [
+    "No hardware, media or build action during this CPU experiment",
+    "User canceled43742647768 and started a debugger-on build; that immutable build predates this change",
+    "Physical fit/timing/native SPMark speed remain unverified",
+    "Single outstanding CPU request/global hold remains; no F2 credits/ordered completion implementation"
+  ],
+  "negative_controls": 5,
+  "new_cpu_pipeline_stages": 0,
+  "new_ram_bits": 0,
+  "new_state_bits": 0,
+  "repeats": 2,
+  "source_id": "367fd374df9d437f7eb8d282e945202d012b3532ebfdb0664db706b899ff1c67",
+  "status": "PASS_OFFLINE_PHYSICAL_GATES_PENDING",
+  "unit_groups": 10,
+  "windows_per_repeat": 84,
+  "wrong_output_controls": 6
+}

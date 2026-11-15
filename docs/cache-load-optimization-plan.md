@@ -10,7 +10,14 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
-## Current checkpoint — F1 simulation-qualified while predecessor builds
+## Latest checkpoint — store completion accepted
+
+Ordinary posted/resident writes now complete at their durable reservation/commit
+boundaries. No extra state/RAM, full suite +10.2203%/6.7791%, indices206.0389/
+179.2512. F2 credits/precise ordered completion remain the next structural
+boundary, pending final profile attribution. [Contract](cache-store-completion.md).
+
+## Earlier checkpoint — F1 simulation-qualified while predecessor builds
 
 User authorized continuing during the pinned a745119/run43719932412 build.
 F1 now pre-reads a registered certified P1/current address using existing RAM B,
