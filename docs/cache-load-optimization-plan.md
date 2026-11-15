@@ -10,6 +10,16 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
+## Latest profiling checkpoint — JPEG bitmap conversion
+
+The JPEG deadline investigation adds a checked original Thumb error-diffusion
+workload. Current8x8case118705clocks:35.27%data completion,14.19%load dependency,
+19.79%empty operands; warm external wait0. Latest store change gains3.444%on
+this workload. F2's owned credits/completion/global-hold overlap remains first
+structural work, with explicit Thumb PUSH/POP/LDM/STM and dependent-load cases.
+Frontend/call-return is next. Existing A–F dependencies/tests remain; this does
+not authorize an unqualified memory or CPU replacement. [Profile/baseline](spmark-jpeg-profile.md).
+
 ## Latest checkpoint — store completion accepted
 
 Ordinary posted/resident writes now complete at their durable reservation/commit

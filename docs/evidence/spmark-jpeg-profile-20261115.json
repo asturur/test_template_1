@@ -1,0 +1,1919 @@
+{
+  "status": "PASS",
+  "source_commit": "f1791df2b5c48d22e7af4f71f7d158f55f07411d",
+  "source_id": "367fd374df9d437f7eb8d282e945202d012b3532ebfdb0664db706b899ff1c67",
+  "compiled_source_changes": [
+    "rtl/arm920/cache_access.sv"
+  ],
+  "native_request_pc_samples": {
+    "EUser.dll": 2,
+    "MediaServerVideo.dll": 30,
+    "MediaServerJpeg.dll": 14,
+    "kernel/other": 1,
+    "Gdi.dll": 1
+  },
+  "native_sample_count": 48,
+  "native_request_seconds": 11.984116128205129,
+  "rows": [
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "memory_profile": "0:0",
+      "current_cycles": 118705,
+      "pre_store_cycles": 122793,
+      "current_throughput_gain_percent": 3.443831346615567,
+      "raw_windows": [
+        {
+          "cycles": 120875,
+          "halfwords": 960,
+          "index": 0,
+          "lines": 60,
+          "reads": 338,
+          "retire_proxy": 22508,
+          "writes": 86
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1854.765625,
+      "native_instructions": 22500,
+      "buckets_percent": {
+        "advance_other": 20.246830377827386,
+        "data_completion_wait": 35.27062886988754,
+        "decode_sequencing": 6.9592687755359925,
+        "load_dependency": 14.194852786319027,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.786024177583084,
+        "redirect_event": 1.5155216713702033,
+        "shift_dependency": 2.02687334147677
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.831809949033318,
+        "LOOKUP": 2.8566614717155976,
+        "LOOKUP_CAPTURE": 6.526262583715934,
+        "LOOKUP_WAIT": 2.8566614717155976,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.85329177372478,
+        "STORE_COMMIT": 3.6729708099911544,
+        "STORE_HIT": 3.6729708099911544,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 118705,
+        "external_wait": 0,
+        "fetch_wait": 19638,
+        "read_wait": 21191,
+        "redirects": 2287,
+        "response_ack": 11577,
+        "retire": 22508,
+        "translation_wait": 3655,
+        "write_wait": 20677
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 11740,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 11200,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 7960,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 7040,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 6920,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 6880,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 6400,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 6080,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 5760,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348133504
+        },
+        {
+          "bucket": 0,
+          "cycles": 4840,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 4500,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 4480,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 4240,
+          "pc": 1348115132
+        },
+        {
+          "bucket": 0,
+          "cycles": 4160,
+          "pc": 1348116120
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "memory_profile": "2:9",
+      "current_cycles": 118705,
+      "pre_store_cycles": 122793,
+      "current_throughput_gain_percent": 3.443831346615567,
+      "raw_windows": [
+        {
+          "cycles": 122150,
+          "halfwords": 960,
+          "index": 0,
+          "lines": 60,
+          "reads": 338,
+          "retire_proxy": 22508,
+          "writes": 86
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 118705,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1854.765625,
+      "native_instructions": 22500,
+      "buckets_percent": {
+        "advance_other": 20.246830377827386,
+        "data_completion_wait": 35.27062886988754,
+        "decode_sequencing": 6.9592687755359925,
+        "load_dependency": 14.194852786319027,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.786024177583084,
+        "redirect_event": 1.5155216713702033,
+        "shift_dependency": 2.02687334147677
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.831809949033318,
+        "LOOKUP": 2.8566614717155976,
+        "LOOKUP_CAPTURE": 6.526262583715934,
+        "LOOKUP_WAIT": 2.8566614717155976,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.85329177372478,
+        "STORE_COMMIT": 3.6729708099911544,
+        "STORE_HIT": 3.6729708099911544,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 118705,
+        "external_wait": 0,
+        "fetch_wait": 19638,
+        "read_wait": 21191,
+        "redirects": 2287,
+        "response_ack": 11577,
+        "retire": 22508,
+        "translation_wait": 3655,
+        "write_wait": 20677
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 11740,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 11200,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 7960,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 7040,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 6920,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 6880,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 6400,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 6080,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 5760,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348133504
+        },
+        {
+          "bucket": 0,
+          "cycles": 4840,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 4500,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 4480,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 4240,
+          "pc": 1348115132
+        },
+        {
+          "bucket": 0,
+          "cycles": 4160,
+          "pc": 1348116120
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_random",
+      "memory_profile": "0:0",
+      "current_cycles": 118720,
+      "pre_store_cycles": 122808,
+      "current_throughput_gain_percent": 3.4433962264150964,
+      "raw_windows": [
+        {
+          "cycles": 120890,
+          "halfwords": 960,
+          "index": 0,
+          "lines": 60,
+          "reads": 338,
+          "retire_proxy": 22495,
+          "writes": 86
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1855.0,
+      "native_instructions": 22487,
+      "buckets_percent": {
+        "advance_other": 20.235849056603776,
+        "data_completion_wait": 35.26617250673855,
+        "decode_sequencing": 6.95838948787062,
+        "load_dependency": 14.191374663072775,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.808793800539085,
+        "redirect_event": 1.5161725067385445,
+        "shift_dependency": 2.0232479784366575
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.830188679245284,
+        "LOOKUP": 2.856300539083558,
+        "LOOKUP_CAPTURE": 6.525438005390835,
+        "LOOKUP_WAIT": 2.856300539083558,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.8529312668463613,
+        "STORE_COMMIT": 3.6725067385444747,
+        "STORE_HIT": 3.6725067385444747,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 118720,
+        "external_wait": 0,
+        "fetch_wait": 19648,
+        "read_wait": 21191,
+        "redirects": 2289,
+        "response_ack": 11577,
+        "retire": 22495,
+        "translation_wait": 3655,
+        "write_wait": 20677
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 11740,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 11200,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 7960,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 7040,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 6920,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 6880,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 6400,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 6080,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 5760,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348133504
+        },
+        {
+          "bucket": 0,
+          "cycles": 4840,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 4500,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 4480,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 4240,
+          "pc": 1348115132
+        },
+        {
+          "bucket": 0,
+          "cycles": 4160,
+          "pc": 1348116120
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_random",
+      "memory_profile": "2:9",
+      "current_cycles": 118720,
+      "pre_store_cycles": 122808,
+      "current_throughput_gain_percent": 3.4433962264150964,
+      "raw_windows": [
+        {
+          "cycles": 122165,
+          "halfwords": 960,
+          "index": 0,
+          "lines": 60,
+          "reads": 338,
+          "retire_proxy": 22495,
+          "writes": 86
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        },
+        {
+          "cycles": 118720,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22495,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1855.0,
+      "native_instructions": 22487,
+      "buckets_percent": {
+        "advance_other": 20.235849056603776,
+        "data_completion_wait": 35.26617250673855,
+        "decode_sequencing": 6.95838948787062,
+        "load_dependency": 14.191374663072775,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.808793800539085,
+        "redirect_event": 1.5161725067385445,
+        "shift_dependency": 2.0232479784366575
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.830188679245284,
+        "LOOKUP": 2.856300539083558,
+        "LOOKUP_CAPTURE": 6.525438005390835,
+        "LOOKUP_WAIT": 2.856300539083558,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.8529312668463613,
+        "STORE_COMMIT": 3.6725067385444747,
+        "STORE_HIT": 3.6725067385444747,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 118720,
+        "external_wait": 0,
+        "fetch_wait": 19648,
+        "read_wait": 21191,
+        "redirects": 2289,
+        "response_ack": 11577,
+        "retire": 22495,
+        "translation_wait": 3655,
+        "write_wait": 20677
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 11740,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 11200,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 7960,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 7040,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 6920,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 6880,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 6400,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 6080,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 5760,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348133504
+        },
+        {
+          "bucket": 0,
+          "cycles": 4840,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 4500,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 4480,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 4240,
+          "pc": 1348115132
+        },
+        {
+          "bucket": 0,
+          "cycles": 4160,
+          "pc": 1348116120
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m8_8x8_random",
+      "memory_profile": "0:0",
+      "current_cycles": 117760,
+      "pre_store_cycles": 121848,
+      "current_throughput_gain_percent": 3.4714673913043503,
+      "raw_windows": [
+        {
+          "cycles": 119976,
+          "halfwords": 976,
+          "index": 0,
+          "lines": 61,
+          "reads": 346,
+          "retire_proxy": 22316,
+          "writes": 86
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1840.0,
+      "native_instructions": 22308,
+      "buckets_percent": {
+        "advance_other": 20.246263586956523,
+        "data_completion_wait": 35.55366847826087,
+        "decode_sequencing": 7.015115489130435,
+        "load_dependency": 14.363111413043478,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.4140625,
+        "redirect_event": 1.473335597826087,
+        "shift_dependency": 1.9344429347826086
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.934782608695652,
+        "LOOKUP": 2.879585597826087,
+        "LOOKUP_CAPTURE": 6.5786345108695645,
+        "LOOKUP_WAIT": 2.879585597826087,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.876188858695652,
+        "STORE_COMMIT": 3.7024456521739126,
+        "STORE_HIT": 3.7024456521739126,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 117760,
+        "external_wait": 0,
+        "fetch_wait": 19353,
+        "read_wait": 21191,
+        "redirects": 2223,
+        "response_ack": 11577,
+        "retire": 22316,
+        "translation_wait": 3655,
+        "write_wait": 20677
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 11740,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 11200,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 7960,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 7040,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 6920,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 6880,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 6400,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 6080,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 5760,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348133480
+        },
+        {
+          "bucket": 0,
+          "cycles": 4840,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 4500,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 4480,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 4240,
+          "pc": 1348115132
+        },
+        {
+          "bucket": 0,
+          "cycles": 4160,
+          "pc": 1348116120
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m8_8x8_random",
+      "memory_profile": "2:9",
+      "current_cycles": 117760,
+      "pre_store_cycles": 121848,
+      "current_throughput_gain_percent": 3.4714673913043503,
+      "raw_windows": [
+        {
+          "cycles": 121269,
+          "halfwords": 976,
+          "index": 0,
+          "lines": 61,
+          "reads": 346,
+          "retire_proxy": 22316,
+          "writes": 86
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        },
+        {
+          "cycles": 117760,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22316,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1840.0,
+      "native_instructions": 22308,
+      "buckets_percent": {
+        "advance_other": 20.246263586956523,
+        "data_completion_wait": 35.55366847826087,
+        "decode_sequencing": 7.015115489130435,
+        "load_dependency": 14.363111413043478,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.4140625,
+        "redirect_event": 1.473335597826087,
+        "shift_dependency": 1.9344429347826086
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.934782608695652,
+        "LOOKUP": 2.879585597826087,
+        "LOOKUP_CAPTURE": 6.5786345108695645,
+        "LOOKUP_WAIT": 2.879585597826087,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.876188858695652,
+        "STORE_COMMIT": 3.7024456521739126,
+        "STORE_HIT": 3.7024456521739126,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 117760,
+        "external_wait": 0,
+        "fetch_wait": 19353,
+        "read_wait": 21191,
+        "redirects": 2223,
+        "response_ack": 11577,
+        "retire": 22316,
+        "translation_wait": 3655,
+        "write_wait": 20677
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 11740,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 11200,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 7960,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 7040,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 6920,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 6880,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 6400,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 6080,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 5760,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 5120,
+          "pc": 1348133480
+        },
+        {
+          "bucket": 0,
+          "cycles": 4840,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 4800,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 4500,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 4480,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 4240,
+          "pc": 1348115132
+        },
+        {
+          "bucket": 0,
+          "cycles": 4160,
+          "pc": 1348116120
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_16x8_jpeg",
+      "memory_profile": "0:0",
+      "current_cycles": 234273,
+      "pre_store_cycles": 242265,
+      "current_throughput_gain_percent": 3.411404643300764,
+      "raw_windows": [
+        {
+          "cycles": 236798,
+          "halfwords": 1136,
+          "index": 0,
+          "lines": 71,
+          "reads": 338,
+          "retire_proxy": 44524,
+          "writes": 150
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1830.2578125,
+      "native_instructions": 44516,
+      "buckets_percent": {
+        "advance_other": 20.29512577206934,
+        "data_completion_wait": 35.17776269565848,
+        "decode_sequencing": 6.941047410499716,
+        "load_dependency": 14.186013753185387,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.82942976783496,
+        "redirect_event": 1.5328270863479785,
+        "shift_dependency": 2.0377935144041355
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.785084068586649,
+        "LOOKUP": 2.84070294058641,
+        "LOOKUP_CAPTURE": 6.523585731176874,
+        "LOOKUP_WAIT": 2.84070294058641,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.8594844476316092,
+        "STORE_COMMIT": 3.664101283545266,
+        "STORE_HIT": 3.664101283545266,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 234273,
+        "external_wait": 0,
+        "fetch_wait": 38790,
+        "read_wait": 41799,
+        "redirects": 4463,
+        "response_ack": 22841,
+        "retire": 44524,
+        "translation_wait": 7111,
+        "write_wait": 40613
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 22620,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 22400,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 19200,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 15640,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 14080,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 13760,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 13320,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 12800,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 12160,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 11520,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 10240,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 10240,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 10240,
+          "pc": 1348133504
+        },
+        {
+          "bucket": 0,
+          "cycles": 9960,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 9140,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 8960,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 8320,
+          "pc": 1348116120
+        },
+        {
+          "bucket": 0,
+          "cycles": 8320,
+          "pc": 1348116144
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_16x8_jpeg",
+      "memory_profile": "2:9",
+      "current_cycles": 234273,
+      "pre_store_cycles": 242265,
+      "current_throughput_gain_percent": 3.411404643300764,
+      "raw_windows": [
+        {
+          "cycles": 238172,
+          "halfwords": 1136,
+          "index": 0,
+          "lines": 71,
+          "reads": 338,
+          "retire_proxy": 44524,
+          "writes": 150
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        },
+        {
+          "cycles": 234273,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 44524,
+          "writes": 0
+        }
+      ],
+      "cycles_per_pixel": 1830.2578125,
+      "native_instructions": 44516,
+      "buckets_percent": {
+        "advance_other": 20.29512577206934,
+        "data_completion_wait": 35.17776269565848,
+        "decode_sequencing": 6.941047410499716,
+        "load_dependency": 14.186013753185387,
+        "multiply_busy": 0.0,
+        "operand_queue_empty": 19.82942976783496,
+        "redirect_event": 1.5328270863479785,
+        "shift_dependency": 2.0377935144041355
+      },
+      "cache_state_percent_of_all_clocks": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 12.785084068586649,
+        "LOOKUP": 2.84070294058641,
+        "LOOKUP_CAPTURE": 6.523585731176874,
+        "LOOKUP_WAIT": 2.84070294058641,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 2.8594844476316092,
+        "STORE_COMMIT": 3.664101283545266,
+        "STORE_HIT": 3.664101283545266,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "raw": {
+        "cycles": 234273,
+        "external_wait": 0,
+        "fetch_wait": 38790,
+        "read_wait": 41799,
+        "redirects": 4463,
+        "response_ack": 22841,
+        "retire": 44524,
+        "translation_wait": 7111,
+        "write_wait": 40613
+      },
+      "hot_held_pc_words": [
+        {
+          "bucket": 0,
+          "cycles": 22620,
+          "pc": 1348115108
+        },
+        {
+          "bucket": 0,
+          "cycles": 22400,
+          "pc": 1348115172
+        },
+        {
+          "bucket": 0,
+          "cycles": 19200,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 0,
+          "cycles": 15640,
+          "pc": 1348115200
+        },
+        {
+          "bucket": 0,
+          "cycles": 14080,
+          "pc": 1348114904
+        },
+        {
+          "bucket": 0,
+          "cycles": 13760,
+          "pc": 1348116316
+        },
+        {
+          "bucket": 0,
+          "cycles": 13320,
+          "pc": 1348115128
+        },
+        {
+          "bucket": 0,
+          "cycles": 12800,
+          "pc": 1348116296
+        },
+        {
+          "bucket": 0,
+          "cycles": 12160,
+          "pc": 1348115140
+        },
+        {
+          "bucket": 0,
+          "cycles": 11520,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 0,
+          "cycles": 10240,
+          "pc": 1348116124
+        },
+        {
+          "bucket": 0,
+          "cycles": 10240,
+          "pc": 1348116136
+        },
+        {
+          "bucket": 0,
+          "cycles": 10240,
+          "pc": 1348133504
+        },
+        {
+          "bucket": 0,
+          "cycles": 9960,
+          "pc": 1348116104
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115180
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115184
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115188
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115216
+        },
+        {
+          "bucket": 2,
+          "cycles": 9600,
+          "pc": 1348115224
+        },
+        {
+          "bucket": 0,
+          "cycles": 9140,
+          "pc": 1348115208
+        },
+        {
+          "bucket": 0,
+          "cycles": 8960,
+          "pc": 1348115204
+        },
+        {
+          "bucket": 0,
+          "cycles": 8320,
+          "pc": 1348116120
+        },
+        {
+          "bucket": 0,
+          "cycles": 8320,
+          "pc": 1348116144
+        }
+      ]
+    }
+  ],
+  "qualification": {
+    "current_groups": 8,
+    "current_repeats": 2,
+    "windows_per_repeat": 7,
+    "unprofiled_counter_matches": 8,
+    "pre_store_groups": 8,
+    "pre_store_repeats": 2,
+    "wrong_object_state_controls": 4,
+    "wrong_pixel_controls": 4,
+    "original_instruction_counts_match_every_window": true
+  },
+  "inputs": {
+    "original_rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "rom505_sha256": "9b3a02f20b50071edc2b8eb195f513036984dcd68671bf72e7f4ef7f33578089",
+    "jpeg_sha256": "333e8e841fe8870a28959b4b0d80acf5e7500c9426bea8e31160a32c70bdfb47"
+  },
+  "raw_outputs": "build/sim/jpeg-payload/error-diffusion-20261115-v2",
+  "raw_result_sha256": "0ebdf0186ffc030304830a29fbf75a099ffc7b824cb73fd29e3aef0bb66d1eb9",
+  "raw_qualification_sha256": "17b09e165c9848e8ef31f425828231c03c23578672da1b2ce6331bfad2a86207",
+  "limits": [
+    "48 periodic native last-PC samples; coarse attribution, not exact service timing",
+    "Original colour/error-diffusion hotspot only, not full JPEG decode, OS, HPS or physical SDRAM",
+    "Real-JPEG test pixel inputs decoded independently with Pillow, not a captured native pixel buffer",
+    "Warm block memory profiles0:0/2:9 have zero external timed requests; no DRAM bandwidth conclusion",
+    "Profile priority buckets are distinct occupancy categories, not independently recoverable loss; raw signals overlap",
+    "Held-PC histograms group adjacent Thumb halfwords into four-byte words; held stage may be younger than the memory producer",
+    "No production HDL, clock, physical resource, SD, core reload or hardware state changes for profiling"
+  ]
+}

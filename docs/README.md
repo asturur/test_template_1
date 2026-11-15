@@ -9,6 +9,8 @@ topic links before repeating research or simulations.
 | [cache-store-completion.md](cache-store-completion.md) | Owned posted/resident store completion, no new state, indices206.04/179.25 and full qualification |
 | [cpu-branch-return.md](cpu-branch-return.md) | Owned BTB feedback, corrected returns/confirmed targets, indices186.93/167.87 and matched branch/call controls |
 | [fifo-flag-timing.md](fifo-flag-timing.md) | Late-ACK FIFO flag rewrite, unchanged cycles, exhaustive boundaries and pending routed timing |
+| [spmark-jpeg-profile.md](spmark-jpeg-profile.md) | Native pixel-conversion hotspot, checked Thumb RTL benchmark and F2 priority |
+| [spmark-jpeg-results.md](spmark-jpeg-results.md) | Dedicated original JPEG bitmap baseline table, separate from the six-kernel index |
 | [spmark-jpeg-hang.md](spmark-jpeg-hang.md) | Confirmed input-decode timeout/scheduler deadlock, original-code reproduction and native trace |
 | [mmc-remount.md](mmc-remount.md) | Accepted cold-mounted Sonic launch; optional QD-style hot-swap investigation |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |

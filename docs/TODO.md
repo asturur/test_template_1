@@ -8,8 +8,11 @@ for evidence and reproducible traces.
 
 ## SPMark JPEG deadline blocker (2026-11-15)
 
-- [ ] Profile/reproduce input `test.jpg` loading and decode before selecting
-  another optimization. Native trace confirms successful completion at11.984s
+- [x] Profile/reproduce the leading input-decode bitmap hotspot. Native48PC
+  samples place30in MediaServerVideo; checked original Thumb RTL cases and
+  pre-store comparison pass. See [profile](spmark-jpeg-profile.md).
+- [ ] Reduce end-to-end input preparation below10s with margin, starting with
+  owned CPU/cache completion overlap and Thumb stack/load consumers. Native trace confirms successful completion at11.984s
   after a10sdeadline; the app's timer RunL/late callback recovery leaves its
   nested scheduler running. Actual JPEG compression has not begun. Separate
   MMC/loading, decoder and server/scheduling cost; target under10s with margin

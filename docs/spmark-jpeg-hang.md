@@ -32,10 +32,11 @@ requested10seconds; slowing the phone's timers would change phone behavior.
 The under10-second requirement needs about20%greater end-to-end throughput
 relative to this11.984-second instrumented request, plus operating margin.
 That request includes input loading, decoder/server scheduling and observer
-cost; it is not a standalone JPEG throughput measurement. Next diagnosis is
-to separate those costs and profile/reproduce this actual path before selecting
-another CPU/cache improvement. Existing six-kernel SPMark tests do not cover
-JPEG. Compression performance/results remain unqualified.
+cost; it is not a standalone JPEG throughput measurement. The follow-up
+[profile and original-code benchmark](spmark-jpeg-profile.md) identifies bitmap
+conversion/error diffusion as the leading sampled cost and validates a Thumb
+workload for CPU/cache completion work. Existing six-kernel SPMark tests do not
+cover JPEG. Compression performance/results remain unqualified.
 
 ![Traced JPEG wait](evidence/spmark-jpeg-traced-wait-20261115.png)
 
@@ -49,7 +50,7 @@ does not identify an exact source commit.
 
 ## Observed on hardware
 
-Image rendering and scaling progress. JPEG encoding executes original
+Image rendering and scaling progress. JPEG input decode executes original
 MediaServerJpeg code, then the screen remains on JPEG Encoding Test with an
 empty progress bar. Subsequent samples mostly show scheduler and background
 code, not a single JPEG arithmetic loop or persistent memory-bus wait.

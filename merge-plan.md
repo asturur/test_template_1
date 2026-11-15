@@ -1,3 +1,30 @@
+## 2026-11-15: JPEG hotspot profiled on current RTL
+
+Full native timeout interval has48PC samples:30MediaServerVideo bitmap/error
+conversion,14JPEGcodec,4other. Coarse attribution, not exact I/O/server timing.
+Extracted original Thumb CMdaErrorDiffuser block505A9E0D with native colour
+converters/Gdi helpers; independently checked pixels, row/column error buffers,
+object/input/guards. Real-JPEG-derived8x8mode10 takes118705clocks/current CPU,
+versus122793pre-store (+3.444%throughput). No production RTL change.
+
+Current occupancy:35.27%data completion,14.19%load dependency,19.79%empty operand
+queue,6.96%decode. Zero multiply busy/external wait in measured warm windows;
+21,191read/20,677write hold clocks. CPU/cache handoff and Thumb stack/load-use
+work remain; F2 owned completion/global-hold overlap is the next structural
+candidate from the old plan, then frontend/call-return. Preserve precise faults,
+MMIO/SWP/CP15/IRQ and ALM/timing checks;78MHz actual/104MHz goal. Noimplementation
+selected silently. Original native JPEG deadline remains unpassed.
+
+Eight groups/two exact repeats/seven windows pass;8unprofiled runs match every
+counter,16pre-store comparisons and8broken output/state controls pass. Native
+instruction counts match independent execution plus8wrapperinstructions.
+Warm0:0/2:9medians equal, no physical DDR/OS claim. Snapshotf1791df CPU1abf0db;
+pre-stored4f2a8 differs onlycache_access.sv in compiled closure. New dedicated
+JPEGbaseline100 is separate from six-kernel206.0389/179.2512 (unchanged).
+No hardware/SD/build/CI/worktree/branch/other-simulation changes.
+[Profile](docs/spmark-jpeg-profile.md), [table](docs/spmark-jpeg-results.md),
+[evidence](docs/evidence/spmark-jpeg-profile-20261115.json).
+
 ## 2026-11-15: JPEG wait confirmed: input decode exceeds app deadline
 
 Authorized traced repeat confirms original SPMark app hangs while decoding
