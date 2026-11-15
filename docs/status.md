@@ -1,5 +1,11 @@
 ## 2026-11-15: Unix RTC implemented; debugger compile flag qualified
 
+Clock/debugger code committed and pushed as **a45cb7e**. Seed44 build
+[43742647768](https://github.com/asturur/test_template_1/actions/runs/43742647768)
+was dispatched once with `enable_debugger=false`; immutable head identity
+verified, no monitoring or deployment. Local manifest:
+`scratch/rtc-native-20261115/build.json`.
+
 User is running SPMark04 on MiSTer: hardware control is explicitly theirs.
 No reload, keys, deployment, remount, disk replacement or functional memory patch
 was performed during this work. MMC remount investigation remains paused; clean
