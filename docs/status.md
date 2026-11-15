@@ -1,3 +1,49 @@
+## 2026-11-15: Unix RTC implemented; debugger compile flag qualified
+
+User is running SPMark04 on MiSTer: hardware control is explicitly theirs.
+No reload, keys, deployment, remount, disk replacement or functional memory patch
+was performed during this work. MMC remount investigation remains paused; clean
+boot made SPMark visible, which does not prove native hot replacement is fixed.
+
+MiSTer's existing Unix TIMESTAMP now reaches D190. A small serial converter
+seeds native seconds/minutes/hours, advances at exactly78/104million clocks per
+second, and retains time/validity through phone reset/Hold. Native read aliases
+remain distinct from watchdog/vibrator writes; day writes and resync are
+supported. The nonzero calibration default appears only after a complete host
+sample, preserving guest calibration writes.138declared state bits, no new RAM,
+DSP multiplier, CPU handshake/stage or PLL change.78MHz active/104MHz objective.
+
+162epoch vectors/atomic update/rollover/reset/CBUS tests pass; both full-rate
+second intervals pass. Original unmodified ecust RTC reader, CBUS/HAL and
+constructor validity decision pass on current CPU with host sample absent/present
+and waits0/3. It reads12:34:56 and sets valid only with supplied time. Full top
+both debugger modes and production CPU/board regressions pass. This is not a
+full NOS boot or hardware proof. Absolute calendar still uses the native PMM
+base and8-bit elapsed-day counter; a fresh FPGA configuration starts day0.
+Offline days/stale PMM dates are NOT repaired, and repeat-prompt removal remains
+unverified until the next board build. [Clock contract/tests](mister-rtc.md),
+[evidence](evidence/rtc-unix-20261115.json).
+
+The complete DDR debugger now defaults to `ENABLE_DEBUGGER=0`; build action's
+unchecked `enable_debugger` checkbox selects1 and records it beside seed/commit.
+Off elaboration removes monitor/observation registers, NGD/text producers and
+diagnostic loader/arbitration. Functional ADSP startup responder stays. Loader
+bypass matches5000random cycles; enabled/disabled CPU/MMC tests have identical
+169107/169521cycles (normal/Hold), no real DDR-contention claim. Host metadata
+selector, CRT/HDMI source and enabled-board tests pass. Fitted ALM savings/timing
+and native performance remain unmeasured. See [DDR contract](ddr-diagnostics.md)
+and [evidence](evidence/debugger-switch-20261115.json). Run43735997597/c21dff7
+was dispatched before these changes; its immutable RBF lacks them.
+
+Other requested audits: output audio is explicitly tied to zero; donor HLE PCM
+requires a synthetic interface and cannot silently replace native audio. Live
+55-second BT capture had no new text, so old retained timeout lines do not prove
+constant current retries. GP timer26MHz andOS/NOS64Hz tests pass at78/104MHz;
+physical NOS comparator frequency remains unverified. No speculative BT or
+frequency change was made. Next hardware gate: Unix time/Startup/PMM calendar
+inspection after the user finishes SPMark, then separately reproduce MMC remount.
+Other simulations/checkpoints and the single integration branch are preserved.
+
 ## 2026-11-15: Branch feedback/returns complete; build requested after push
 
 User authorized steps1/2, rebench, commit/push, then a seed44 build while small

@@ -12,15 +12,16 @@
 */
 
 module ngage_mister #(
-    parameter LINE_REFILL        = 0,
-              UEM_POWERUP_STATUS = 2,
-              DIRECT_SDRAM       = 1,
-              DMA_LOCAL          = 1,
-              GENERAL_DMA        = 1,
-              TEST_SIM_ENABLE    = 1,
-              SYS_CLK_HZ         = 104000000,
-              TIMER_CLK_DIV      = 1,
-              NOS_TICK_HZ        = 1000
+    parameter integer ENABLE_DEBUGGER    = 0,
+    parameter         LINE_REFILL        = 0,
+                      UEM_POWERUP_STATUS = 2,
+                      DIRECT_SDRAM       = 1,
+                      DMA_LOCAL          = 1,
+                      GENERAL_DMA        = 1,
+                      TEST_SIM_ENABLE    = 1,
+                      SYS_CLK_HZ         = 104000000,
+                      TIMER_CLK_DIV      = 1,
+                      NOS_TICK_HZ        = 1000
 ) (
     output wire         ddram_line,
     input  wire         ddram_beat_valid,
@@ -32,6 +33,7 @@ module ngage_mister #(
     input  wire         ram_line_valid,
     input  wire [ 15:0] ram_line_data,
     input  wire         ram_line_last,
+    input  tri0 [ 32:0] host_timestamp,
     input  wire         clk_sys,              // CPU/bus clock domain
     input  wire         reset,
     input  wire         cold_reset,
@@ -213,6 +215,7 @@ module ngage_mister #(
         .GENERAL_DMA       (GENERAL_DMA),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
+        .host_timestamp       (host_timestamp),
         .line_req             (line_req),
         .line_addr            (line_addr),
         .line_ready           (line_ready),
@@ -571,123 +574,156 @@ module ngage_mister #(
     assign wb_err = !core_reset && (invalid_response || flash_error);
 
 
-    wire       diagnostic_fault = !core_reset && (board_fault || unclaimed_req || flash_error);
-    wire [2:0] diagnostic_reason = flash_error ? 3'd3 : unclaimed_req ? 3'd2 : 3'd1;
-    // Observe admission in a separate pipeline: the RAM grant drives only
-    // this one event FF, not a wide diagnostic packet's clock enables.
-    reg        ram_sample_valid = 0;
-    reg [31:0] ram_sample_address = 0, ram_sample_data = 0;
-    reg [3:0] ram_sample_be = 0;
-    reg ram_sample_write = 0, ram_sample_code = 0;
-    reg [31:0] ram_observed_address = 0, ram_observed_data = 0;
-    reg [3:0] ram_observed_be = 0;
-    reg ram_observed_write = 0, ram_observed_code = 0;
-    always @(posedge clk_sys) begin
-        ram_sample_valid   <= !core_reset && fast_ram_req && sdram_accept;
-        ram_sample_address <= fast_ram_address;
-        ram_sample_data    <= fast_ram_data;
-        ram_sample_be      <= fast_ram_be;
-        ram_sample_write   <= fast_ram_we;
-        ram_sample_code    <= fast_ram_code;
-        if (ram_sample_valid) begin
-            ram_observed_address <= ram_sample_address;
-            ram_observed_data    <= ram_sample_data;
-            ram_observed_be      <= ram_sample_be;
-            ram_observed_write   <= ram_sample_write;
-            ram_observed_code    <= ram_sample_code;
-        end
-    end
-    // Slow faults retain their own payload even while a RAM event is visible.
-    wire observe_ram = DIRECT_SDRAM && (fast_ram_req || fast_ram_pending) && !diagnostic_fault;
-    wire [31:0] observed_address = observe_ram ?
+    generate
+        if (ENABLE_DEBUGGER) begin : debugger
+            wire diagnostic_fault = !core_reset && (board_fault || unclaimed_req || flash_error);
+            wire [2:0] diagnostic_reason = flash_error ? 3'd3 : unclaimed_req ? 3'd2 : 3'd1;
+            // Observe admission in a separate pipeline: the RAM grant drives only
+            // this one event FF, not a wide diagnostic packet's clock enables.
+            reg ram_sample_valid = 0;
+            reg [31:0] ram_sample_address = 0, ram_sample_data = 0;
+            reg [3:0] ram_sample_be = 0;
+            reg ram_sample_write = 0, ram_sample_code = 0;
+            reg [31:0] ram_observed_address = 0, ram_observed_data = 0;
+            reg [3:0] ram_observed_be = 0;
+            reg ram_observed_write = 0, ram_observed_code = 0;
+            always @(posedge clk_sys) begin
+                ram_sample_valid   <= !core_reset && fast_ram_req && sdram_accept;
+                ram_sample_address <= fast_ram_address;
+                ram_sample_data    <= fast_ram_data;
+                ram_sample_be      <= fast_ram_be;
+                ram_sample_write   <= fast_ram_we;
+                ram_sample_code    <= fast_ram_code;
+                if (ram_sample_valid) begin
+                    ram_observed_address <= ram_sample_address;
+                    ram_observed_data    <= ram_sample_data;
+                    ram_observed_be      <= ram_sample_be;
+                    ram_observed_write   <= ram_sample_write;
+                    ram_observed_code    <= ram_sample_code;
+                end
+            end
+            // Slow faults retain their own payload even while a RAM event is visible.
+            wire observe_ram = DIRECT_SDRAM && (fast_ram_req || fast_ram_pending) && !diagnostic_fault;
+            wire [31:0] observed_address = observe_ram ?
         (fast_ram_pending ? (ram_sample_valid ? ram_sample_address : ram_observed_address) : fast_ram_address) : wb_adr;
-    wire [31:0] observed_data = observe_ram ?
+            wire [31:0] observed_data = observe_ram ?
         (fast_ram_pending ? (ram_sample_valid ? ram_sample_data : ram_observed_data) : fast_ram_data) : wb_dat_o;
-    wire [3:0] observed_be = observe_ram ?
+            wire [3:0] observed_be = observe_ram ?
         (fast_ram_pending ? (ram_sample_valid ? ram_sample_be : ram_observed_be) : fast_ram_be) : wb_sel;
-    wire observed_write = observe_ram ?
+            wire observed_write = observe_ram ?
         (fast_ram_pending ? (ram_sample_valid ? ram_sample_write : ram_observed_write) : fast_ram_we) : wb_we;
-    wire observed_code = observe_ram ?
+            wire observed_code = observe_ram ?
         (fast_ram_pending ? (ram_sample_valid ? ram_sample_code : ram_observed_code) : fast_ram_code) : wb_code;
-    wire observed_active = observe_ram || (wb_cyc && wb_stb);
-    wire observed_ack = observe_ram ? fast_ram_response : wb_ack;
-    wire observed_error = !observe_ram && wb_err;
-    wire [31:0] cpu_flags = {
-        1'b1,
-        6'b0,
-        bringup_status,
-        flash_busy,
-        flash_hit,
-        ram_hit || observe_ram,
-        mem_req || observe_ram,
-        brd_ready,
-        brd_claim,
-        fiq_line,
-        irq_line,
-        core_reset
-    };
-    wire [31:0] bus_flags = {
-        21'b0,
-        observed_be,
-        bus_lock,
-        observed_error,
-        observed_ack,
-        observed_code,
-        observed_write,
-        observed_active,
-        observed_active
-    };
-    wire [31:0] fault_flags = {
-        15'b0,
-        1'b1,
-        1'b0,
-        diagnostic_reason,
-        2'b0,
-        flash_error,
-        mem_req,
-        flash_hit,
-        ram_hit,
-        brd_unmodeled,
-        brd_ready,
-        dma_claim,
-        brd_claim,
-        wb_code,
-        wb_we
-    };
-    wire [767:0] diagnostic_values;
-    wire [98:0] panic_report;
-    ngage_debug_monitor monitor (
-        .clk           (clk_sys),
-        .cold_reset    (cold_reset),
-        .cpu_reset     (core_reset),
-        .pc            (cpu_pc),
-        .cpsr          (cpu_cpsr),
-        .instruction   (cpu_instruction),
-        .fetch         (cpu_fetch),
-        .bus_active    (observed_active),
-        .bus_ack       (observed_ack),
-        .bus_error     (observed_error),
-        .bus_address   (observed_address),
-        .bus_write_data(observed_data),
-        .bus_read_data (observe_ram ? sdram_dout : wb_dat_i),
-        .bus_write     (observed_write),
-        .bus_flags     (bus_flags),
-        .fault         (diagnostic_fault && !wb_code),
-        .fault_flags   (fault_flags),
-        .fault_reason  (diagnostic_reason),
-        .boot_flags    (diagnostic_status),
-        .cpu_flags     (cpu_flags),
-        .keys          (keys),
-        .values        (diagnostic_values)
-    );
-    // Capture committed debug59 bytes independently of recorder freeze/video.
-    assign debug_char_valid = board_trace_valid && board_trace_addr >= 32'h0de00000 &&
+            wire observed_active = observe_ram || (wb_cyc && wb_stb);
+            wire observed_ack = observe_ram ? fast_ram_response : wb_ack;
+            wire observed_error = !observe_ram && wb_err;
+            wire [31:0] cpu_flags = {
+                1'b1,
+                6'b0,
+                bringup_status,
+                flash_busy,
+                flash_hit,
+                ram_hit || observe_ram,
+                mem_req || observe_ram,
+                brd_ready,
+                brd_claim,
+                fiq_line,
+                irq_line,
+                core_reset
+            };
+            wire [31:0] bus_flags = {
+                21'b0,
+                observed_be,
+                bus_lock,
+                observed_error,
+                observed_ack,
+                observed_code,
+                observed_write,
+                observed_active,
+                observed_active
+            };
+            wire [31:0] fault_flags = {
+                15'b0,
+                1'b1,
+                1'b0,
+                diagnostic_reason,
+                2'b0,
+                flash_error,
+                mem_req,
+                flash_hit,
+                ram_hit,
+                brd_unmodeled,
+                brd_ready,
+                dma_claim,
+                brd_claim,
+                wb_code,
+                wb_we
+            };
+            wire [767:0] diagnostic_values;
+            wire [98:0] panic_report;
+            ngage_debug_monitor monitor (
+                .clk           (clk_sys),
+                .cold_reset    (cold_reset),
+                .cpu_reset     (core_reset),
+                .pc            (cpu_pc),
+                .cpsr          (cpu_cpsr),
+                .instruction   (cpu_instruction),
+                .fetch         (cpu_fetch),
+                .bus_active    (observed_active),
+                .bus_ack       (observed_ack),
+                .bus_error     (observed_error),
+                .bus_address   (observed_address),
+                .bus_write_data(observed_data),
+                .bus_read_data (observe_ram ? sdram_dout : wb_dat_i),
+                .bus_write     (observed_write),
+                .bus_flags     (bus_flags),
+                .fault         (diagnostic_fault && !wb_code),
+                .fault_flags   (fault_flags),
+                .fault_reason  (diagnostic_reason),
+                .boot_flags    (diagnostic_status),
+                .cpu_flags     (cpu_flags),
+                .keys          (keys),
+                .values        (diagnostic_values)
+            );
+            // Capture committed debug59 bytes independently of recorder freeze/video.
+            assign debug_char_valid = board_trace_valid && board_trace_addr >= 32'h0de00000 &&
         board_trace_addr < 32'h0de01000 &&
         (board_trace_sel == 1 || board_trace_sel == 2 || board_trace_sel == 4 || board_trace_sel == 8);
-    assign debug_char_data = board_trace_sel == 1 ? board_trace_data[7:0] :
+            assign debug_char_data = board_trace_sel == 1 ? board_trace_data[7:0] :
         board_trace_sel == 2 ? board_trace_data[15:8] :
         board_trace_sel == 4 ? board_trace_data[23:16] : board_trace_data[31:24];
-    assign debug_values = diagnostic_values;
+            assign debug_values = diagnostic_values;
+            wire panic_trace = board_trace_valid && (board_trace_addr == 32'h0c0047f0 ||
+                       board_trace_addr == 32'h0c0047f4 || board_trace_addr == 32'h0c0047f8);
+            wire lcd_trace_selected = lcd_unsupported_valid && !panic_trace;
+            ngage_diagnostics diagnostics (
+                .panic_report   (panic_report),
+                .clk            (clk_sys),
+                .cold_reset     (cold_reset),
+                .freeze_trace   (debug_freeze_trace),
+                .save_slot_error(diagnostic_status[31:30]),
+                .fault          (diagnostic_fault),
+                .fault_address  (wb_adr),
+                .fault_is_fetch (wb_code),
+                .fault_reason   (diagnostic_reason),
+                .trace_valid    (board_trace_valid || lcd_unsupported_valid),
+                .trace_lost     (board_trace_valid && lcd_unsupported_valid),
+                .trace_addr     (lcd_trace_selected ? 32'h0c121208 : board_trace_addr),
+                .trace_data     (lcd_trace_selected ? lcd_unsupported_data : board_trace_data),
+                .trace_sel      (lcd_trace_selected ? 4'hf : board_trace_sel),
+                .read_word      (debug_read_word),
+                .read_data      (debug_read_data),
+                .fault_seen     (debug_fault_seen)
+            );
+
+        end else begin : no_debugger
+            assign debug_char_valid = 1'b0;
+            assign debug_char_data  = 0;
+            assign debug_values     = 0;
+            assign debug_read_data  = 0;
+            assign debug_fault_seen = 0;
+        end
+    endgenerate
     // Phone-only video retains the existing one-clock RGB/control boundary.
     // The panel RAM reads ahead between CE pulses. Hold the sampled pixel
     // throughout its period: analog VGA consumes RGB on every system clock.
@@ -701,28 +737,5 @@ module ngage_mister #(
     end
     assign {ce_pix, hsync, vsync, hblank, vblank} = video_control[5:1];
     assign rgb444                                 = video_pixels;
-    wire panic_trace = board_trace_valid && (board_trace_addr == 32'h0c0047f0 ||
-                       board_trace_addr == 32'h0c0047f4 || board_trace_addr == 32'h0c0047f8);
-    wire lcd_trace_selected = lcd_unsupported_valid && !panic_trace;
-    ngage_diagnostics diagnostics (
-        .panic_report   (panic_report),
-        .clk            (clk_sys),
-        .cold_reset     (cold_reset),
-        .freeze_trace   (debug_freeze_trace),
-        .save_slot_error(diagnostic_status[31:30]),
-        .fault          (diagnostic_fault),
-        .fault_address  (wb_adr),
-        .fault_is_fetch (wb_code),
-        .fault_reason   (diagnostic_reason),
-        .trace_valid    (board_trace_valid || lcd_unsupported_valid),
-        .trace_lost     (board_trace_valid && lcd_unsupported_valid),
-        .trace_addr     (lcd_trace_selected ? 32'h0c121208 : board_trace_addr),
-        .trace_data     (lcd_trace_selected ? lcd_unsupported_data : board_trace_data),
-        .trace_sel      (lcd_trace_selected ? 4'hf : board_trace_sel),
-        .read_word      (debug_read_word),
-        .read_data      (debug_read_data),
-        .fault_seen     (debug_fault_seen)
-    );
-
     wire unused_unmodeled = brd_unmodeled;
 endmodule

@@ -8,9 +8,22 @@ status=0
 
 while IFS= read -r -d '' path; do
     case "$path" in
-        Template.sv|rtl/ngage*.v|rtl/ngage*.sv|tests/*.v|tests/*.sv|scratch/*.v|scratch/*.sv)
+        Template.sv|rtl/ngage*.v|rtl/ngage*.sv)
             git show ":$path" > "$temporary/source.v"
-            if ! "$formatter" --verify "$temporary/source.v"; then
+            # Match the documented phone rules, including Verilog-2001
+            # identifier handling, and check staged bytes rather than the
+            # possibly different working copy.
+            if ! python3 tools/format_phone_rtl.py --check --formatter "$formatter" \
+                "$temporary/source.v" > "$temporary/format.log" 2>&1; then
+                cat "$temporary/format.log" >&2
+                printf 'Formatting required: %s\n' "$path" >&2
+                status=1
+            fi
+            ;;
+        tests/*.v|tests/*.sv|scratch/*.v|scratch/*.sv)
+            git show ":$path" > "$temporary/source.v"
+            if ! "$formatter" --verify "$temporary/source.v" > "$temporary/format.log" 2>&1; then
+                cat "$temporary/format.log" >&2
                 printf 'Formatting required: %s\n' "$path" >&2
                 status=1
             fi

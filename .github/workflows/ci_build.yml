@@ -1,5 +1,5 @@
 name: CI Build
-run-name: ngage1 build (seed ${{ inputs.seed || '1' }})
+run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})
 
 on:
   workflow_dispatch:
@@ -9,6 +9,11 @@ on:
         required: false
         default: '1'
         type: string
+      enable_debugger:
+        description: Include DDR runtime debugger (uncheck to remove all recorder hardware)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -24,6 +29,11 @@ jobs:
         env:
           FITTER_SEED: ${{ inputs.seed || '1' }}
         run: python3 tools/set_quartus_seed.py Template.qsf --seed "$FITTER_SEED"
+
+      - name: Select and report DDR debugger
+        env:
+          DDR_DEBUG_ENABLED: ${{ inputs.enable_debugger }}
+        run: python3 tools/set_quartus_debug.py Template.qsf --enabled "$DDR_DEBUG_ENABLED"
 
       # Keep this directory runner-owned: Quartus runs as root in Docker,
       # while the host Python step must also write the Markdown summary.

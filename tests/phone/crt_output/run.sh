@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 source=Path(sys.argv[2]).read_text()
 start=source.index('    reg [ 5:0] video_control')
-end=source.index('    wire panic_trace',start)
+end=source.index(';',source.index('    assign rgb444',start))+1
 ports="""module production_video_boundary (
  input wire clk_sys, raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank,
  input wire [11:0] raw_rgb,

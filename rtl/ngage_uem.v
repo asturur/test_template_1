@@ -5,6 +5,7 @@ module ngage_uem #(
               POWERUP_STATUS   = 1,
               SYS_CLK_HZ       = 104000000
 ) (
+    input  tri0 [32:0] host_timestamp,
     input  wire        clk,
     input  wire        reset,
     input  wire        req,
@@ -34,6 +35,7 @@ module ngage_uem #(
         .POWER_KEY_ENABLE(POWER_KEY_ENABLE),
         .POWERUP_STATUS  (POWERUP_STATUS)
     ) cbus (
+        .host_timestamp       (host_timestamp),
         .power_pressed        (!pwronx),
         .clk                  (clk),
         .reset                (reset),

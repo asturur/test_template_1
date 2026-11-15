@@ -1,3 +1,21 @@
+## 2026-11-15: Unix RTC and optional DDR debugger
+
+Implemented host Unix-time→native UEM clock, atomic update, real-time ticking,
+reset retention and original-firmware read/validity tests.162epoch cases, exact
+78/104MHz seconds, both top modes and production CPU/board pass. No PLL change;
+138state bits/no RAM or DSP multiplier. Calendar base remains native PMM: no
+claim of correct full date across core reload or removed Startup prompts yet.
+[Contract/evidence](docs/mister-rtc.md).
+
+Complete DDR debugger defaults0; build checkbox enables1. Disabled hierarchy
+removes all five recorder/monitor/loader modules and observation state.5000cycle
+loader equivalence, CPU/MMC on/off exact counts, metadata/CRT/board checks pass.
+Physical resource/timing/native performance pending. Existing c21dff7 build
+predates these changes. User controls MiSTer for SPMark; remount investigation
+paused, no hardware action or media change. Audio/native PCM, BT qualification,
+physical NOS tick and full PMM calendar restoration remain open.
+[Status](docs/status.md), [debugger](docs/ddr-diagnostics.md).
+
 ## 2026-11-15: F1 qualified while immutable predecessor builds
 
 Requested run43719932412 builds a745119/seed44; about14:27UTC bounded follow-up

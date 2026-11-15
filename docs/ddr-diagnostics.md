@@ -277,3 +277,34 @@ profile captures have no reader gaps; the same dense-stream repeat is pending.
 A late attachment can still report an initial backlog gap. Do not equate zero
 producer drops with lossless capture, and reject latency pairs crossing gaps.
 See [Phone investigation](phone-profile-startup.md). No FPGA resources added.
+
+
+## Compile-time removal — 2026-11-15
+
+The entire DDR runtime recorder is opt-in: `ENABLE_DEBUGGER=0` is the source
+and CI default; compile with `ENABLE_DEBUGGER=1` to retain it. The build action
+has an unchecked **enable_debugger** checkbox. `tools/set_quartus_debug.py` writes
+the numeric Quartus macro and adds `enable_debugger`/`debugger_macro` to existing
+build-info metadata while preserving the seed/commit/run identity.
+
+The off hierarchy contains none of `ngage_debug_monitor`, `ngage_diagnostics`,
+`ngage_diag_ddr`, `ngage_diag_text_ddr` or `ngage_diag_loader_port`. It also removes
+the observation sample registers, committed-text capture and diagnostic DDR
+arbiter path. Firmware loading retains an equivalent single-outstanding DDR
+write path. The functional ADSP startup-test responder remains: it is required
+by the phone and is unrelated to runtime debugging. Video is unaffected.
+
+Both top configurations elaborate. The real loader-only block matches the old
+loader handshake over5000 randomized clocks, including reset and accept/done
+priority. CPU/MMC fixtures pass in both configurations with identical normal
+169107cycles/4reads and CPU-Hold169521cycles/5reads; the enabled production board
+fixture retains fault/panic/SIM/LCD/DMA/IRQ/FIQ coverage. This does not measure
+real-board DDR contention: snapshot traffic (~4KiB/s plus text/header writes)
+shares memory with firmware reads when enabled. There is no direct CPU stall
+stage, but contention and area/fanout may affect performance. No measured native
+score or fitted ALM saving is claimed yet.
+
+Old records can remain in DDR after an off build; a reader finding historical
+bytes is not proof of an active debugger. Hardware diagnostic sessions require
+a build explicitly compiled with the checkbox enabled. Previously dispatched
+c21dff7/run43735997597 predates this flag and cannot be changed by it.

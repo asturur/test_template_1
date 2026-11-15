@@ -1,0 +1,71 @@
+{
+  "status": "PASS_OFFLINE_HARDWARE_PENDING",
+  "date": "2026-11-15",
+  "default_enable_debugger": 0,
+  "ci_checkbox": "enable_debugger",
+  "enabled_macro": "ENABLE_DEBUGGER=1",
+  "hierarchy": {
+    "status": "PASS",
+    "modes": {
+      "0": {
+        "debugger_instances": [],
+        "all_cell_count": 335
+      },
+      "1": {
+        "debugger_instances": [
+          {
+            "name": "diagnostics",
+            "module": "ngage_diagnostics"
+          },
+          {
+            "name": "monitor",
+            "module": "ngage_debug_monitor"
+          },
+          {
+            "name": "runtime_text",
+            "module": "ngage_diag_text_ddr"
+          },
+          {
+            "name": "telemetry",
+            "module": "ngage_diag_ddr"
+          },
+          {
+            "name": "diagnostics_port",
+            "module": "ngage_diag_loader_port"
+          }
+        ],
+        "all_cell_count": 344
+      }
+    },
+    "scope": "Elaborated top hierarchy; no debugger monitor/recorder/loader instances when0. Functional ADSP startup diagnostic retained."
+  },
+  "cpu_mmc_modes": {
+    "status": "PASS",
+    "same_cycles_and_hps_reads": true,
+    "modes": {
+      "0": {
+        "run": "PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, full512-byte DMA/PIO sectors, ICU21/23/24, read-only rejection cycles=169107 HPSreads=4 hold=0",
+        "hold": "PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, full512-byte DMA/PIO sectors, ICU21/23/24, read-only rejection cycles=169521 HPSreads=5 hold=1"
+      },
+      "1": {
+        "run": "PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, full512-byte DMA/PIO sectors, ICU21/23/24, read-only rejection cycles=169107 HPSreads=4 hold=0",
+        "hold": "PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, full512-byte DMA/PIO sectors, ICU21/23/24, read-only rejection cycles=169521 HPSreads=5 hold=1"
+      }
+    },
+    "scope": "No DDR telemetry producer in this fixture; checks core observations do not change CPU/MMC timing. Full top removal structurally checked separately."
+  },
+  "loader_equivalence_cycles": 5000,
+  "host_selector_tests": 2,
+  "final_top_lint_modes": [
+    0,
+    1
+  ],
+  "final_board": "build/sim/rtc-board-20261115",
+  "crt": "scratch/runtime-fixes-20261115/crt.log",
+  "scope": "CPU/MMC exact-cycle measurements predate subsequent RTC addition; no physical fit/native score or real DDR-contention measurement",
+  "immutable_prior_build": {
+    "commit": "c21dff73fde7d8b17e6019cd7e7a9226aadcd0e7",
+    "run_id": "43735997597",
+    "includes_new_flag": false
+  }
+}

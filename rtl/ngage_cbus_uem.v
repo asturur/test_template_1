@@ -27,7 +27,8 @@ module ngage_cbus_uem #(
     output wire        cbus8d_written,
     input  wire        power_pressed,
     output wire        adsp_controls_written,
-    output wire [ 4:0] adsp_controls
+    output wire [ 4:0] adsp_controls,
+    input  tri0 [32:0] host_timestamp
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     reg [15:0] cfg, command, rtc_status;
@@ -53,6 +54,25 @@ module ngage_cbus_uem #(
     reg  [15:0] payload_value;
     wire        payload_write = !reset && commit && claim && !bad && we && a == 32'h0c150424;
     wire        command_write = commit && claim && !bad && we && a == 32'h0c150420 && sel == 12;
+    // Battery-backed domain: the running clock is independent of phone reset.
+    wire        rtc_valid;
+    wire [5:0] rtc_second, rtc_minute;
+    wire [4:0] rtc_hour;
+    wire [7:0] rtc_day;
+    wire       rtc_day_write = payload_write && cfg == 7 && regno == 8'h21;
+    ngage_uem_clock #(
+        .CLK_HZ(SECOND_TICKS)
+    ) clock_backend (
+        .clk           (clk),
+        .host_timestamp(host_timestamp),
+        .day_write     (rtc_day_write),
+        .day_data      (value[7:0]),
+        .valid         (rtc_valid),
+        .second        (rtc_second),
+        .minute        (rtc_minute),
+        .hour          (rtc_hour),
+        .day           (rtc_day)
+    );
     ngage_bram #(
         .AW         (8),
         .DW         (16),
@@ -137,7 +157,16 @@ module ngage_cbus_uem #(
                     read_value = ((key_released && !((POWER_KEY_ENABLE != 0) && power_pressed)) ?
                                   16'h0000 : 16'h0010) | 16'h0008 | rtc_status;
                 else if (regno == 8'h36 && !written[regno]) read_value = 0;
-                else if (cfg == 7 && regno >= 8'h31 && regno <= 8'h33) read_value = 0;
+                // Read aliases are counters, not the watchdog/vibrator payload
+                // stored by writes to these same CBUS addresses.
+                else if (cfg == 7 && regno == 8'h31) read_value = {10'b0, rtc_second};
+                else if (cfg == 7 && regno == 8'h32) read_value = {10'b0, rtc_minute};
+                else if (cfg == 7 && regno == 8'h33) read_value = {11'b0, rtc_hour};
+                else if (cfg == 7 && regno == 8'h21 && rtc_valid) read_value = {8'b0, rtc_day};
+                // Original ecust treats zero calibration as an unset RTC.
+                // Preserve explicit guest calibration writes. One is a neutral
+                // nonzero model default; physical calibration is unmeasured.
+                else if (regno == 8'h24 && !written[regno]) read_value = {15'b0, rtc_valid};
                 else if (is_input(regno) && !written[regno]) read_value = 0;
                 else if (regno == 8'h80) read_value = 16'h0400;
                 else if (regno == 8'h8d && !written[regno]) read_value = 0;
@@ -213,6 +242,112 @@ module ngage_cbus_uem #(
                     end
                 end
             end
+        end
+    end
+endmodule
+
+// MiSTer Unix-time adapter for D190's battery-backed RTC counters. No CPU
+// reset input: HPS sends time once at core load, possibly before CPU release.
+// Native firmware keeps the calendar base in PMM and resets its 8-bit day
+// counter. A new FPGA configuration starts day zero; warm resets retain it.
+// This does not invent a native full-calendar register or alter PMM bytes.
+module ngage_uem_clock #(
+    parameter integer CLK_HZ = 104000000
+) (
+    input  wire        clk,
+    input  wire [32:0] host_timestamp,
+    input  wire        day_write,
+    input  wire [ 7:0] day_data,
+    output reg         valid = 0,
+    output reg  [ 5:0] second = 0,
+    output reg  [ 5:0] minute = 0,
+    output reg  [ 4:0] hour = 0,
+    output reg  [ 7:0] day = 0
+);
+    localparam integer          PW          = CLK_HZ > 1 ? $clog2(CLK_HZ) : 1;
+    localparam         [   1:0] IDLE        = 0, DIVIDE = 1, HOURS = 2, MINUTES = 3;
+    localparam         [PW-1:0] LAST_SECOND = CLK_HZ - 1;
+    reg [PW-1:0] prescale = 0;
+    reg          toggle = 0;
+    reg [   1:0] state = IDLE;
+    reg [  31:0] work = 0;
+    reg [  16:0] remainder = 0;
+    reg [7:0] host_days = 0, running_days = 0;
+    reg  [ 5:0] bits_left = 0;
+    reg  [ 4:0] next_hour = 0;
+    reg  [ 5:0] next_minute = 0;
+    wire [17:0] shifted = {remainder, work[31]};
+    wire        take_bit = shifted >= 18'd86400;
+    wire [17:0] reduced = take_bit ? shifted - 18'd86400 : shifted;
+    wire        second_tick = valid && prescale == LAST_SECOND;
+
+    always @(posedge clk) begin
+        toggle <= host_timestamp[32];
+        if (valid) begin
+            if (second_tick) begin
+                prescale <= 0;
+                if (second != 59) second <= second + 1'b1;
+                else begin
+                    second <= 0;
+                    if (minute != 59) minute <= minute + 1'b1;
+                    else begin
+                        minute <= 0;
+                        if (hour != 23) hour <= hour + 1'b1;
+                        else begin
+                            hour         <= 0;
+                            running_days <= running_days + 1'b1;
+                            day          <= day + 1'b1;
+                        end
+                    end
+                end
+            end else prescale <= prescale + 1'b1;
+        end
+
+        // Serial constant division, once per host update. No wide combinational
+        // Unix/calendar divider in the CPU or CBUS response path.
+        case (state)
+            DIVIDE: begin
+                work      <= {work[30:0], 1'b0};
+                remainder <= reduced[16:0];
+                host_days <= {host_days[6:0], take_bit};
+                bits_left <= bits_left - 1'b1;
+                if (bits_left == 1) state <= HOURS;
+            end
+            HOURS: begin
+                if (remainder >= 3600) begin
+                    remainder <= remainder - 17'd3600;
+                    next_hour <= next_hour + 1'b1;
+                end else state <= MINUTES;
+            end
+            MINUTES: begin
+                if (remainder >= 60) begin
+                    remainder   <= remainder - 17'd60;
+                    next_minute <= next_minute + 1'b1;
+                end else begin
+                    valid        <= 1;
+                    prescale     <= 0;
+                    second       <= remainder[5:0];
+                    minute       <= next_minute;
+                    hour         <= next_hour;
+                    running_days <= host_days;
+                    // Retain the firmware's day/base relationship on resync.
+                    // If resync and midnight coincide, do not count it twice.
+                    if (valid) day <= day + host_days - running_days;
+                    else day <= 0;
+                    state <= IDLE;
+                end
+            end
+            default: ;
+        endcase
+        if (day_write) day <= day_data;
+        if (host_timestamp[32] != toggle) begin
+            work        <= host_timestamp[31:0];
+            host_days   <= 0;
+            remainder   <= 0;
+            bits_left   <= 32;
+            next_hour   <= 0;
+            next_minute <= 0;
+            state       <= DIVIDE;
         end
     end
 endmodule

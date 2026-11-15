@@ -20,6 +20,7 @@ module ngage_board #(
               NOS_TICK_HZ        = 1000
 ) (
 
+    input  tri0 [32:0] host_timestamp,
     input  wire        mmc_img_mounted,
     input  wire        mmc_img_readonly,
     input  wire [63:0] mmc_img_size,
@@ -532,6 +533,7 @@ module ngage_board #(
         .POWER_KEY_ENABLE(KEYPAD_ENABLE),
         .POWERUP_STATUS  (UEM_POWERUP_STATUS)
     ) uem (
+        .host_timestamp       (host_timestamp),
         .pwronx               (!keys[26]),
         .clk                  (clk),
         .reset                (rst),

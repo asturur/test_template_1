@@ -5,6 +5,10 @@
 //
 //============================================================================
 
+// DDR debugging is opt-in. CI selects ENABLE_DEBUGGER=1 only when requested.
+`ifndef ENABLE_DEBUGGER
+`define ENABLE_DEBUGGER 0
+`endif
 module emu (
     `include "sys/emu_ports.vh"
 );
@@ -84,6 +88,8 @@ module emu (
     wire [15:0] ioctl_index;
     wire        ioctl_wait;
 
+    wire [32:0] host_timestamp;
+
     hps_io #(
         .CONF_STR(CONF_STR),
         .WIDE    (1),
@@ -105,6 +111,7 @@ module emu (
             overlay_applied || overlay_busy || bt_busy
         }),
 
+        .TIMESTAMP (host_timestamp),
         .ps2_key   (ps2_key),
         .joystick_0(joystick_0),
 
@@ -518,71 +525,92 @@ module emu (
     wire service_valid, service_ready, service_write, service_done;
     wire [31:0] service_addr, service_data, service_rdata;
     wire [3:0] service_be;
-    ngage_ddr_arbiter diagnostic_arbiter (
-        .clk           (clk_sys),
-        .reset         (transport_reset),
-        .cpu_lock      (1'b0),
-        .l_bulk        (1'b0),
-        .c_bulk        (1'b0),
-        .req_bulk      (),
-        .c_line        (1'b0),
-        .req_line      (),
-        .rsp_beat_valid(1'b0),
-        .rsp_beat_data (64'b0),
-        .rsp_beat_last (1'b0),
-        .c_beat_valid  (),
-        .c_beat_data   (),
-        .c_beat_last   (),
-        .l_valid       (snapshot_valid),
-        .l_ready       (snapshot_ready),
-        .l_write       (snapshot_write),
-        .l_addr        (snapshot_addr),
-        .l_data        (snapshot_data),
-        .l_be          (4'hf),
-        .l_done        (snapshot_done),
-        .l_rdata       (snapshot_rdata),
-        .c_valid       (text_valid),
-        .c_ready       (text_ready),
-        .c_write       (text_write),
-        .c_addr        (text_addr),
-        .c_data        (text_data),
-        .c_be          (4'hf),
-        .c_done        (text_done),
-        .c_rdata       (text_rdata),
-        .req_valid     (telemetry_valid),
-        .req_ready     (telemetry_ready),
-        .req_write     (telemetry_write),
-        .req_addr      (telemetry_addr),
-        .req_data      (telemetry_data),
-        .req_be        (),
-        .rsp_valid     (telemetry_done),
-        .rsp_data      (telemetry_rdata)
-    );
-    ngage_diag_loader_port diagnostics_port (
-        .clk       (clk_sys),
-        .reset     (transport_reset),
-        .load_valid(load_req),
-        .load_ready(load_ready),
-        .load_addr (load_addr),
-        .load_data (load_data),
-        .load_be   (load_be),
-        .load_done (load_done),
-        .diag_valid(telemetry_valid),
-        .diag_ready(telemetry_ready),
-        .diag_write(telemetry_write),
-        .diag_addr (telemetry_addr),
-        .diag_data (telemetry_data),
-        .diag_done (telemetry_done),
-        .diag_rdata(telemetry_rdata),
-        .mem_valid (service_valid),
-        .mem_ready (service_ready),
-        .mem_write (service_write),
-        .mem_addr  (service_addr),
-        .mem_data  (service_data),
-        .mem_be    (service_be),
-        .mem_done  (service_done),
-        .mem_rdata (service_rdata)
-    );
+    generate
+        if (`ENABLE_DEBUGGER) begin : debugger_transport
+            ngage_ddr_arbiter diagnostic_arbiter (
+                .clk           (clk_sys),
+                .reset         (transport_reset),
+                .cpu_lock      (1'b0),
+                .l_bulk        (1'b0),
+                .c_bulk        (1'b0),
+                .req_bulk      (),
+                .c_line        (1'b0),
+                .req_line      (),
+                .rsp_beat_valid(1'b0),
+                .rsp_beat_data (64'b0),
+                .rsp_beat_last (1'b0),
+                .c_beat_valid  (),
+                .c_beat_data   (),
+                .c_beat_last   (),
+                .l_valid       (snapshot_valid),
+                .l_ready       (snapshot_ready),
+                .l_write       (snapshot_write),
+                .l_addr        (snapshot_addr),
+                .l_data        (snapshot_data),
+                .l_be          (4'hf),
+                .l_done        (snapshot_done),
+                .l_rdata       (snapshot_rdata),
+                .c_valid       (text_valid),
+                .c_ready       (text_ready),
+                .c_write       (text_write),
+                .c_addr        (text_addr),
+                .c_data        (text_data),
+                .c_be          (4'hf),
+                .c_done        (text_done),
+                .c_rdata       (text_rdata),
+                .req_valid     (telemetry_valid),
+                .req_ready     (telemetry_ready),
+                .req_write     (telemetry_write),
+                .req_addr      (telemetry_addr),
+                .req_data      (telemetry_data),
+                .req_be        (),
+                .rsp_valid     (telemetry_done),
+                .rsp_data      (telemetry_rdata)
+            );
+            ngage_diag_loader_port diagnostics_port (
+                .clk       (clk_sys),
+                .reset     (transport_reset),
+                .load_valid(load_req),
+                .load_ready(load_ready),
+                .load_addr (load_addr),
+                .load_data (load_data),
+                .load_be   (load_be),
+                .load_done (load_done),
+                .diag_valid(telemetry_valid),
+                .diag_ready(telemetry_ready),
+                .diag_write(telemetry_write),
+                .diag_addr (telemetry_addr),
+                .diag_data (telemetry_data),
+                .diag_done (telemetry_done),
+                .diag_rdata(telemetry_rdata),
+                .mem_valid (service_valid),
+                .mem_ready (service_ready),
+                .mem_write (service_write),
+                .mem_addr  (service_addr),
+                .mem_data  (service_data),
+                .mem_be    (service_be),
+                .mem_done  (service_done),
+                .mem_rdata (service_rdata)
+            );
+
+        end else begin : loader_only
+            // Only the firmware loader remains on this service port. Preserve its
+            // accepted-request owner until completion; no diagnostic arbitration.
+            reg loader_pending = 0;
+            assign service_valid = !transport_reset && !loader_pending && load_req;
+            assign service_write = 1'b1;
+            assign service_addr  = load_addr;
+            assign service_data  = load_data;
+            assign service_be    = load_be;
+            assign load_ready    = service_valid && service_ready;
+            assign load_done     = !transport_reset && loader_pending && service_done;
+            always @(posedge clk_sys) begin
+                if (transport_reset) loader_pending <= 0;
+                else if (service_done) loader_pending <= 0;
+                else if (load_ready) loader_pending <= 1;
+            end
+        end
+    endgenerate
 
     wire save_mounted, save_saving, save_saved, save_error, save_busy;
     // Do not replace backing memory while a save is mounted or being processed.
@@ -999,45 +1027,52 @@ module emu (
     wire [15:0] debug_read_data;
     wire        debug_fault_seen;
     wire        lcd_unsupported;
-    ngage_diag_ddr #(
-        .CLOCK_HZ (SYS_CLK_HZ),
-        .BUILD_TAG({16'b0, `BUILD_DATE})
-    ) telemetry (
-        .clk                   (clk_sys),
-        .reset                 (transport_reset),
-        .cpu_reset             (dma_reset),
-        .values                (diagnostic_values),
-        .save_observation      ({sd_lba[0], save_debug_state}),
-        .save_queue_observation(save_queue_state),
-        .capture_active        (telemetry_capture),
-        .debug_word            (telemetry_word),
-        .debug_data            (debug_read_data),
-        .req_valid             (snapshot_valid),
-        .req_ready             (snapshot_ready),
-        .req_write             (snapshot_write),
-        .req_addr              (snapshot_addr),
-        .req_data              (snapshot_data),
-        .rsp_valid             (snapshot_done),
-        .rsp_data              (snapshot_rdata)
-    );
-    ngage_diag_text_ddr #(
-        .CLOCK_HZ(SYS_CLK_HZ)
-    ) runtime_text (
-        .clk       (clk_sys),
-        .reset     (transport_reset),
-        .cpu_reset (dma_reset),
-        .char_valid(runtime_char_valid),
-        .char_data (runtime_char_data),
-        .cycles    (diagnostic_values[159:128]),
-        .dropped   (text_dropped),
-        .req_valid (text_valid),
-        .req_ready (text_ready),
-        .req_write (text_write),
-        .req_addr  (text_addr),
-        .req_data  (text_data),
-        .rsp_valid (text_done),
-        .rsp_data  (text_rdata)
-    );
+    generate
+        if (`ENABLE_DEBUGGER) begin : debugger_recorders
+            ngage_diag_ddr #(
+                .CLOCK_HZ (SYS_CLK_HZ),
+                .BUILD_TAG({16'b0, `BUILD_DATE})
+            ) telemetry (
+                .clk                   (clk_sys),
+                .reset                 (transport_reset),
+                .cpu_reset             (dma_reset),
+                .values                (diagnostic_values),
+                .save_observation      ({sd_lba[0], save_debug_state}),
+                .save_queue_observation(save_queue_state),
+                .capture_active        (telemetry_capture),
+                .debug_word            (telemetry_word),
+                .debug_data            (debug_read_data),
+                .req_valid             (snapshot_valid),
+                .req_ready             (snapshot_ready),
+                .req_write             (snapshot_write),
+                .req_addr              (snapshot_addr),
+                .req_data              (snapshot_data),
+                .rsp_valid             (snapshot_done),
+                .rsp_data              (snapshot_rdata)
+            );
+            ngage_diag_text_ddr #(
+                .CLOCK_HZ(SYS_CLK_HZ)
+            ) runtime_text (
+                .clk       (clk_sys),
+                .reset     (transport_reset),
+                .cpu_reset (dma_reset),
+                .char_valid(runtime_char_valid),
+                .char_data (runtime_char_data),
+                .cycles    (diagnostic_values[159:128]),
+                .dropped   (text_dropped),
+                .req_valid (text_valid),
+                .req_ready (text_ready),
+                .req_write (text_write),
+                .req_addr  (text_addr),
+                .req_data  (text_data),
+                .rsp_valid (text_done),
+                .rsp_data  (text_rdata)
+            );
+        end else begin : no_debugger_recorders
+            assign telemetry_capture = 1'b0;
+            assign telemetry_word    = 0;
+        end
+    endgenerate
     reg [1:0] osd_sync = 0;
     always @(posedge clk_sys) osd_sync <= {osd_sync[0], OSD_STATUS};
     ngage_keys key_input (
@@ -1052,6 +1087,7 @@ module emu (
     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
     // Synthetic no-PIN card supplies SIMIF bytes; no NOS/SIM-state override.
     ngage_mister #(
+        .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
         .LINE_REFILL    (1),
         .DMA_LOCAL      (1),
         .TEST_SIM_ENABLE(1),
@@ -1153,6 +1189,7 @@ module emu (
         .debug_char_data(runtime_char_data),
         .debug_fault_seen(debug_fault_seen),
         .lcd_unsupported(lcd_unsupported),
+        .host_timestamp(host_timestamp),
         .clk_sys(clk_sys),
         .reset(reset),
         .cold_reset(transport_reset),

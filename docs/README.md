@@ -69,7 +69,7 @@ topic links before repeating research or simulations.
 | [performance-path-retirement.md](performance-path-retirement.md) | Faster-path replacement policy, LCD switch retirement, next direct-SDRAM cleanup and measured DDR tradeoffs |
 | [peripheral-integration.md](peripheral-integration.md) | B1 SDRAM/local route, P1 IRQ ownership, P2 byte-count engine/original-driver tests and DMA/MMC integration gates |
 | [semi-real-nos.md](semi-real-nos.md) | N1/N2 original NOS ownership, ARM cancel/receive/charger fixtures and selective service boundaries |
-| [mister-rtc.md](mister-rtc.md) | Official MiSTer RTC transport, missing UEM wiring and native-clock integration tests |
+| [mister-rtc.md](mister-rtc.md) | MiSTer Unix-time UEM clock, original-firmware tests and remaining PMM calendar boundary |
 | [background-save.md](background-save.md) | S3 ordered C:/PMM queue, background scheduling, failure reporting and verification |
 | [ddr-bulk-persistence.md](ddr-bulk-persistence.md) | D3 sector snapshots, restores, ordering and 4 KiB host assessment |
 | [ddr-flash-cache.md](ddr-flash-cache.md) | D2 shared flash backing cache, writer ordering, sizing and tests |

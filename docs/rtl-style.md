@@ -39,3 +39,10 @@ Formatting changes source hashes. Existing simulation checkpoints remain
 bound to their saved compiled executable; use the documented `--use-saved-build`
 option rather than bypassing restore guards. The already-running frozen
 12B simulation is independent of edits to these source files.
+
+
+The staged-file pre-commit check uses this same formatter helper for maintained
+phone RTL. Tests/scratch retain their existing default Verible checks. Previously
+the hook used Verible defaults for phone modules, contradicting this documented
+four-space/alignment configuration and rejecting its clean output. Staged bytes
+are checked so unstaged edits cannot hide a formatting error.
