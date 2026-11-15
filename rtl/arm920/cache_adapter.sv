@@ -189,6 +189,7 @@ module arm920_cache_adapter #(
       .req_mva(address),
       .req_physical(physical),
       .req_write(wr),
+      .req_early_read(!READ_ONLY && swp_tag == 2'd0),
       .req_cache_enable(cache_enable),
       .req_cacheable(cacheable),
       .req_bufferable((swp_tag == 2 && !(cache_enable && cacheable)) ? 1'b0 : bufferable),

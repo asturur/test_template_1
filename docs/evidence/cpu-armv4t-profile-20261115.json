@@ -1,0 +1,534 @@
+{
+  "status": "PASS",
+  "scope": "ARM920T guest instruction profile and preserved production CPU paths; no FPGA fit/timing claim",
+  "acceptance": {
+    "status": "PASS",
+    "arm_cases": 4567,
+    "user_cp15_cases": 480,
+    "thumb_undefined_cases": 4,
+    "extensions": {
+      "clz": 3782151957,
+      "blx_register": 3778019125,
+      "bkpt": 3776970864,
+      "qadd": 3775201366,
+      "qsub": 3777298518,
+      "qdadd": 3779395670,
+      "qdsub": 3781492822,
+      "smul": 3781166725,
+      "smla": 3774875333,
+      "smlaw": 3776972453,
+      "smulw": 3776972421,
+      "smlal_half": 3779135205,
+      "ldrd": 3787718864,
+      "strd": 3787718896,
+      "cdp": 3992977408,
+      "ldc": 3969123584,
+      "undefined_transfer": 3858759696,
+      "absent_mrc": 3994027280,
+      "absent_mcr": 3992978704
+    },
+    "programs": {
+      "armv4t_profile": {
+        "0": [
+          "COUNTERS: fetch_response=272119 fetch_accept=241473 issue=217838 retire_uop_last=182143",
+          "PASS: CPU test, memory delay 0, 1243511 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=228664 fetch_accept=223613 issue=205045 retire_uop_last=182142",
+          "PASS: CPU test, memory delay 3, 1898884 cycles"
+        ]
+      },
+      "smoke": {
+        "0": [
+          "COUNTERS: fetch_response=96 fetch_accept=83 issue=65 retire_uop_last=59",
+          "PASS: CPU test, memory delay 0, 451 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=80 fetch_accept=77 issue=63 retire_uop_last=59",
+          "PASS: CPU test, memory delay 3, 705 cycles"
+        ]
+      },
+      "cpu_timing": {
+        "0": [
+          "STALL: ADD interval 32 cycles at PC 000000f8 sample 7 bus transfers 8",
+          "STALL: ADD interval 33 cycles at PC 000000fc sample 8 bus transfers 6",
+          "TIMING: ARM ADDs all: samples=150 min=1 max=33 total=213",
+          "TIMING: ARM ADDs after two passes: samples=120 min=1 max=1 total=120 (ARM920 normal ADD: 1 cycle)",
+          "INIT_EDGES: store_to_subs samples=4096 sum=16381 subs_to_branch samples=4096 sum=40953",
+          "PHASES: setup=143523 body=664 init_branch samples=4095 sum=86001 min=21 max=27",
+          "COUNTERS: fetch_response=28997 fetch_accept=20788 issue=12507 retire_uop_last=12496",
+          "PASS: CPU test, memory delay 0, 144187 cycles"
+        ],
+        "3": [
+          "STALL: ADD interval 57 cycles at PC 000000fc sample 8 bus transfers 8",
+          "TIMING: ARM ADDs all: samples=150 min=1 max=57 total=206",
+          "TIMING: ARM ADDs after two passes: samples=120 min=1 max=1 total=120 (ARM920 normal ADD: 1 cycle)",
+          "INIT_EDGES: store_to_subs samples=4096 sum=65539 subs_to_branch samples=4096 sum=32769",
+          "PHASES: setup=225621 body=749 init_branch samples=4095 sum=126945 min=31 max=31",
+          "COUNTERS: fetch_response=24899 fetch_accept=20788 issue=12507 retire_uop_last=12496",
+          "PASS: CPU test, memory delay 3, 226370 cycles"
+        ]
+      },
+      "operand_timing": {
+        "0": [
+          "STALL: ADD interval 32 cycles at PC 000000f8 sample 7 bus transfers 8",
+          "STALL: ADD interval 33 cycles at PC 000000fc sample 8 bus transfers 6",
+          "TIMING: ARM ADDs all: samples=150 min=1 max=33 total=213",
+          "TIMING: ARM ADDs after two passes: samples=120 min=1 max=1 total=120 (ARM920 normal ADD: 1 cycle)",
+          "INIT_EDGES: store_to_subs samples=4096 sum=16381 subs_to_branch samples=4096 sum=40953",
+          "PHASES: setup=143523 body=1391 init_branch samples=4095 sum=86001 min=21 max=27",
+          "METRICS: load_use samples=10 sum=221 min=19 max=50 branch_target samples=9 sum=216 min=19 max=43",
+          "COUNTERS: fetch_response=29511 fetch_accept=21079 issue=12658 retire_uop_last=12656",
+          "PASS: CPU test, memory delay 0, 144914 cycles"
+        ],
+        "3": [
+          "STALL: ADD interval 57 cycles at PC 000000fc sample 8 bus transfers 8",
+          "TIMING: ARM ADDs all: samples=150 min=1 max=57 total=206",
+          "TIMING: ARM ADDs after two passes: samples=120 min=1 max=1 total=120 (ARM920 normal ADD: 1 cycle)",
+          "INIT_EDGES: store_to_subs samples=4096 sum=65539 subs_to_branch samples=4096 sum=32769",
+          "PHASES: setup=225621 body=1524 init_branch samples=4095 sum=126945 min=31 max=31",
+          "METRICS: load_use samples=10 sum=263 min=19 max=92 branch_target samples=9 sum=230 min=14 max=64",
+          "COUNTERS: fetch_response=25380 fetch_accept=21065 issue=12658 retire_uop_last=12656",
+          "PASS: CPU test, memory delay 3, 227145 cycles"
+        ]
+      },
+      "thumb_return_dependency": {
+        "0": [
+          "COUNTERS: fetch_response=29043 fetch_accept=20634 issue=12346 retire_uop_last=12329",
+          "PASS: CPU test, memory delay 0, 144018 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=25015 fetch_accept=20617 issue=12345 retire_uop_last=12329",
+          "PASS: CPU test, memory delay 3, 226200 cycles"
+        ]
+      },
+      "thumb_ldm_base_in_list": {
+        "0": [
+          "COUNTERS: fetch_response=74 fetch_accept=58 issue=62 retire_uop_last=46",
+          "PASS: CPU test, memory delay 0, 332 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=65 fetch_accept=57 issue=60 retire_uop_last=46",
+          "PASS: CPU test, memory delay 3, 552 cycles"
+        ]
+      },
+      "swp_irq_core": {
+        "0": [
+          "COUNTERS: fetch_response=69 fetch_accept=63 issue=42 retire_uop_last=35",
+          "PASS: CPU test, memory delay 0, 349 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=50 fetch_accept=49 issue=35 retire_uop_last=31",
+          "PASS: CPU test, memory delay 3, 470 cycles"
+        ]
+      },
+      "swp_basic": {
+        "0": [
+          "COUNTERS: fetch_response=45 fetch_accept=39 issue=38 retire_uop_last=30",
+          "PASS: CPU test, memory delay 0, 223 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=38 fetch_accept=36 issue=37 retire_uop_last=30",
+          "PASS: CPU test, memory delay 3, 351 cycles"
+        ]
+      },
+      "swp_cached_irq": {
+        "0": [
+          "COUNTERS: fetch_response=28838 fetch_accept=20617 issue=12373 retire_uop_last=12365",
+          "PASS: CPU test, memory delay 0, 144112 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=24698 fetch_accept=20586 issue=12367 retire_uop_last=12361",
+          "PASS: CPU test, memory delay 3, 226333 cycles"
+        ]
+      },
+      "swp_fiq": {
+        "0": [
+          "COUNTERS: fetch_response=60 fetch_accept=55 issue=38 retire_uop_last=32",
+          "PASS: CPU test, memory delay 0, 303 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=44 fetch_accept=43 issue=32 retire_uop_last=28",
+          "PASS: CPU test, memory delay 3, 408 cycles"
+        ]
+      },
+      "fiq_flash_return": {
+        "0": [
+          "COUNTERS: fetch_response=28787 fetch_accept=20569 issue=12347 retire_uop_last=12341",
+          "PASS: CPU test, memory delay 0, 143911 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=24661 fetch_accept=20552 issue=12344 retire_uop_last=12341",
+          "PASS: CPU test, memory delay 3, 226029 cycles"
+        ]
+      },
+      "data_privilege_owner": {
+        "0": [
+          "COUNTERS: fetch_response=28824 fetch_accept=20614 issue=12364 retire_uop_last=12352",
+          "PASS: CPU test, memory delay 0, 144116 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=24693 fetch_accept=20590 issue=12358 retire_uop_last=12351",
+          "PASS: CPU test, memory delay 3, 226343 cycles"
+        ]
+      },
+      "mmu_fetch": {
+        "0": [
+          "COUNTERS: fetch_response=28741 fetch_accept=20533 issue=12323 retire_uop_last=12319",
+          "PASS: CPU test, memory delay 0, 143682 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=24626 fetch_accept=20524 issue=12321 retire_uop_last=12319",
+          "PASS: CPU test, memory delay 3, 225751 cycles"
+        ]
+      },
+      "cache_load_widths": {
+        "0": [
+          "COUNTERS: fetch_response=31405 fetch_accept=22687 issue=13154 retire_uop_last=13073",
+          "PASS: CPU test, memory delay 0, 147418 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=27666 fetch_accept=22687 issue=13154 retire_uop_last=13073",
+          "PASS: CPU test, memory delay 3, 230230 cycles"
+        ]
+      },
+      "cache_irq_refill": {
+        "0": [
+          "COUNTERS: fetch_response=28796 fetch_accept=20575 issue=12356 retire_uop_last=12347",
+          "PASS: CPU test, memory delay 0, 143916 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=24678 fetch_accept=20567 issue=12354 retire_uop_last=12347",
+          "PASS: CPU test, memory delay 3, 226166 cycles"
+        ]
+      },
+      "cache_irq_writeback": {
+        "0": [
+          "COUNTERS: fetch_response=29764 fetch_accept=21482 issue=12608 retire_uop_last=12537",
+          "PASS: CPU test, memory delay 0, 148048 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=25622 fetch_accept=21512 issue=12604 retire_uop_last=12537",
+          "PASS: CPU test, memory delay 3, 233966 cycles"
+        ]
+      }
+    }
+  },
+  "patch_reconstruction_execution": {
+    "status": "PASS",
+    "arm_cases": 4567,
+    "user_cp15_cases": 480,
+    "thumb_undefined_cases": 4,
+    "extensions": {
+      "clz": 3782151957,
+      "blx_register": 3778019125,
+      "bkpt": 3776970864,
+      "qadd": 3775201366,
+      "qsub": 3777298518,
+      "qdadd": 3779395670,
+      "qdsub": 3781492822,
+      "smul": 3781166725,
+      "smla": 3774875333,
+      "smlaw": 3776972453,
+      "smulw": 3776972421,
+      "smlal_half": 3779135205,
+      "ldrd": 3787718864,
+      "strd": 3787718896,
+      "cdp": 3992977408,
+      "ldc": 3969123584,
+      "undefined_transfer": 3858759696,
+      "absent_mrc": 3994027280,
+      "absent_mcr": 3992978704
+    },
+    "programs": {
+      "armv4t_profile": {
+        "0": [
+          "COUNTERS: fetch_response=272119 fetch_accept=241473 issue=217838 retire_uop_last=182143",
+          "PASS: CPU test, memory delay 0, 1243511 cycles"
+        ],
+        "3": [
+          "COUNTERS: fetch_response=228664 fetch_accept=223613 issue=205045 retire_uop_last=182142",
+          "PASS: CPU test, memory delay 3, 1898884 cycles"
+        ]
+      }
+    }
+  },
+  "provenance": {
+    "status": "PASS",
+    "upstream_commit": "fc7bd75f0e5049535f0774b3bd0ee20787f9a6fa",
+    "pristine_pinned_files": 83,
+    "patches": [
+      "0001-translate-cache-disabled-accesses.patch",
+      "0002-arm920t-alignment-faults.patch",
+      "0003-order-uncached-fetches-after-stores.patch",
+      "0004-optional-quiet-simulation-trace.patch",
+      "0005-transform-background-load-completions.patch",
+      "0006-qualify-branch-state-with-tag.patch",
+      "0007-preserve-fault-status-on-ack.patch",
+      "0008-thumb-sp-relative-ldr-str-add-offset.patch",
+      "0009-arm920t-cache-type-register.patch",
+      "0010-dcache-retain-translation-across-background-refill.patch",
+      "0011-thumb-hi-register-op-undefined-trap.patch",
+      "0012-silence-simulation-info-floods.patch",
+      "0013-quartus17-compatibility.patch",
+      "0014-byte-lane-cache-data-ram.patch",
+      "0015-arm920t-write-through.patch",
+      "0016-cp15-drain-write-buffer.patch",
+      "0017-arm920-control-register.patch",
+      "0018-arm920-identification.patch",
+      "0019-arm920-write-miss.patch",
+      "0020-preserve-disabled-cache.patch",
+      "0021-associative-experiment.patch",
+      "0022-cache-rr-control.patch",
+      "0023-cache-lockdown-control.patch",
+      "0024-associative-instruction-cache.patch",
+      "0025-cache-single-maintenance.patch",
+      "0026-cache-comment.patch",
+      "0027-lockdown-handshake.patch",
+      "0028-write-buffer-drain.patch",
+      "0029-external-fault-context.patch",
+      "0030-wait-for-interrupt.patch",
+      "0031-wfi-interrupt-order.patch",
+      "0032-instruction-prefetch.patch",
+      "0033-tlb-buffer-order.patch",
+      "0034-fast-instruction-cache.patch",
+      "0035-swp-metadata-and-lock.patch",
+      "0036-data-privilege-pipeline.patch",
+      "0037-hold-tlb-multi-load.patch",
+      "0038-bus-owner-diagnostics.patch",
+      "0039-bram-instruction-lookahead.patch",
+      "0040-board-debug-ports.patch",
+      "0041-cache-compare-lookahead.patch",
+      "0042-balanced-operand-selection.patch",
+      "0043-separate-demand-completion.patch",
+      "0044-quartus17-read-tree-genvars.patch",
+      "0045-owned-operand-read-stage.patch",
+      "0046-journal-operand-commits.patch",
+      "0047-owned-data-completion.patch",
+      "0048-stationary-operand-owners.patch",
+      "0050-owned-cache-lookahead-context.patch",
+      "0051-discard-abandoned-instruction-refill.patch",
+      "0052-own-mmu-lookup-and-refill.patch",
+      "0053-production-arm920-cache-and-tlb.patch",
+      "0054-own-data-request-privilege.patch",
+      "0055-stream-cache-line-refills.patch",
+      "0056-instruction-cache-read-only-metadata.patch",
+      "0057-mlab-register-file.patch",
+      "0058-direct-checked-translation-owner.patch",
+      "0059-thumb-ldmia-base-writeback.patch",
+      "0060-arm920t-instruction-profile.patch"
+    ],
+    "note": "Existing formatting drift prevents whole-tree byte identity; all SV/SVH lexical token streams match the pinned upstream plus complete series.",
+    "files": {
+      "zap_core.sv": {
+        "sha256": "a369c0ddca9a78e52e37184bfb7dcb077b1a193f9523872fc28a0eb8c79f11f4",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_top.sv": {
+        "sha256": "7a67addfd79fa3bfdd80ffe1eed855e3459548fbd664e848aca9f4b672162447",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_defines.svh": {
+        "sha256": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_issue_main.sv": {
+        "sha256": "2715f61649181bdf85315a1dd12f85bf52bf5eb3257c16c60b0e5cf5192b6f78",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_dual_rank_synchronizer.sv": {
+        "sha256": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_mode16_decoder_main.sv": {
+        "sha256": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_memory_main.sv": {
+        "sha256": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_operand_read.sv": {
+        "sha256": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_decompile.sv": {
+        "sha256": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_fetch_main.sv": {
+        "sha256": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_btb.sv": {
+        "sha256": "08b3c2ea7c5f152d20f2c93af4526df6538b5896ae16a46e98f1a37db6b29126",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_shifter_multiply.sv": {
+        "sha256": "56bc5ef9de54d036fb0267be6a876841491fae7994d154ff155d430d4c20b53f",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_shifter_main.sv": {
+        "sha256": "db7214a422d9699762f54bc204f484044e320ad7c659d311fc8f3b1b3a5a9c29",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_localparams.svh": {
+        "sha256": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_predecode_main.sv": {
+        "sha256": "f1703eb3c2ea401fbad76985c9a261ed9cb30558c2f35ff37627f1cc0025fd8a",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_functions.svh": {
+        "sha256": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_fifo.sv": {
+        "sha256": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_dcache.sv": {
+        "sha256": "b6b53552e6beaca95e43af7b20c76e06ccc53662f85eab8be20d37dc0cc721c7",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_writeback.sv": {
+        "sha256": "e8dea7ebd1fe1c6d8931c3bc8a5b76d8d96230044588860ef0545f008467a335",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_alu_main.sv": {
+        "sha256": "2afb4d3ce74481a9694cfd7b21e5c73b31d5e002a6b41167a6881cd77cade9f1",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_armv4t.svh": {
+        "sha256": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+        "byte_identical": true,
+        "tokens_identical": true
+      },
+      "zap_wb_merger.sv": {
+        "sha256": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_decompile.svh": {
+        "sha256": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_data_completion.sv": {
+        "sha256": "23fffb330dfbe7ea63b58bacdabe3432b4e2c500433b6c1d2cf9dbf916c2002f",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_ram_simple_nopipe.sv": {
+        "sha256": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_predecode_coproc.sv": {
+        "sha256": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_cp15_cb.sv": {
+        "sha256": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_cache.sv": {
+        "sha256": "98df34b78cd4cbdea5f4a6a24759d9b72e80758be389cf85a37ea975dbb158c4",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_postalu_main.sv": {
+        "sha256": "e1f5f0333d53c91210323f7fabf259e5b9f19b30021acf82d1cd9332c6cfd5f6",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_mode16_decoder.sv": {
+        "sha256": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_decode.sv": {
+        "sha256": "a1d689ab6aaeccf4c703aa55d9ca9d148c65881feaf9908ea9ac7bb39d34161f",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_register_file.sv": {
+        "sha256": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_ones_counter.sv": {
+        "sha256": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_shifter_shift.sv": {
+        "sha256": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_sync_fifo.sv": {
+        "sha256": "335eed7a3b189e81b822c4435b69a6871c9e3dc20192cedf48151bc0bd933c46",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_decode_main.sv": {
+        "sha256": "d903ec26929bec74af7e2a4b9d2c1524acc87a36d96b416a29d7c7a53a074eb4",
+        "byte_identical": false,
+        "tokens_identical": true
+      },
+      "zap_predecode_uop_sequencer.sv": {
+        "sha256": "02d52bc66c3c0f6366248e870038994516e678b31a40f90aab42ae2afd619935",
+        "byte_identical": false,
+        "tokens_identical": true
+      }
+    },
+    "patch_sha256": "fe8c8827bbe65543d6b67573cade23bad7ecb746c224bde15b3b7a3ca645761d"
+  },
+  "fixture_files": {
+    "build/sim/armv4t-acceptance-qualified-20261115/program.S": "512187191018d271b00f265707bc5f3eba96ab44dba5131db89aacf48f839f73",
+    "build/sim/armv4t-acceptance-qualified-20261115/cases.inc": "8ef57185ac0c758f25dbde08661837c440b6f369ee9155994acab8542a0da07a",
+    "build/sim/armv4t-acceptance-qualified-20261115/program.bin": "dcf739d717b6c99c32b7cb80b9ead5ef2fdc530218f4a1d1b8c43f600183d739",
+    "build/sim/armv4t-acceptance-qualified-20261115/test.sv": "bdf57fad581bffd5f163d64e74172abedb3ae3ad3d26835cc5b642216f27055c"
+  },
+  "negative_control": {
+    "status": "EXPECTED_FAIL",
+    "source": "preserved pre-change CPU sources",
+    "log": "build/sim/armv4t-profile-before/run-0.log",
+    "signature": "0x72: condition-true CLZ executed instead of UND"
+  },
+  "strict_byte_verification": {
+    "status": "FAIL_PREEXISTING_FORMATTING_DRIFT",
+    "log": "scratch/armv4t-profile-20261115/strict-verify.log",
+    "isolated_paths": true,
+    "semantic_reconstruction": "PASS: all37 SV/SVH lexical token streams match and reconstructed CPU profile guest passes at delays0/3"
+  },
+  "tool_image": "jotego/simulator:arm64",
+  "commands": [
+    "python3 tests/cpu/armv4t_profile/run.py --out build/sim/armv4t-acceptance-qualified-20261115",
+    "python3 tests/cpu/armv4t_profile/run.py --profile-only --reference-dir scratch/armv4t-profile-20261115/patch-verified/src/rtl --out build/sim/armv4t-patch-reconstruction-20261115"
+  ]
+}

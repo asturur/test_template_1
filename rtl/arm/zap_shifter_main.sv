@@ -298,30 +298,7 @@ module zap_shifter_main #(
                                                  i_alu_operation_ff == {1'd0, SMLALL} ||
                                                  i_alu_operation_ff == {1'd0, SMLALH}
                                                 ) ? {2'd0, MOV} :
-                                                (
-                                                i_alu_operation_ff == SMULW0     ||
-                                                i_alu_operation_ff == SMULW1     ||
-                                                i_alu_operation_ff == SMUL00     ||
-                                                i_alu_operation_ff == SMUL01     ||
-                                                i_alu_operation_ff == SMUL10     ||
-                                                i_alu_operation_ff == SMUL11     ||
-                                                i_alu_operation_ff == SMLA00     ||
-                                                i_alu_operation_ff == SMLA01     ||
-                                                i_alu_operation_ff == SMLA10     ||
-                                                i_alu_operation_ff == SMLA11     ||
-                                                i_alu_operation_ff == SMLAW0     ||
-                                                i_alu_operation_ff == SMLAW1     ||
-                                                i_alu_operation_ff == SMLAL00L   ||
-                                                i_alu_operation_ff == SMLAL01L   ||
-                                                i_alu_operation_ff == SMLAL10L   ||
-                                                i_alu_operation_ff == SMLAL11L   ||
-                                                i_alu_operation_ff == SMLAL00H   ||
-                                                i_alu_operation_ff == SMLAL01H   ||
-                                                i_alu_operation_ff == SMLAL10H   ||
-                                                i_alu_operation_ff == SMLAL11H
-                                                ) ?
-                                                 SAT_MOV :
-                                                 i_alu_operation_ff;
+                                                i_alu_operation_ff;
 
       o_flag_update_ff <= i_flag_update_ff;
       o_mem_srcdest_index_ff <= i_mem_srcdest_index_ff;
@@ -393,30 +370,8 @@ module zap_shifter_main #(
     if ( i_alu_operation_ff == {1'd0, UMLALL} ||
              i_alu_operation_ff == {1'd0, UMLALH} ||
              i_alu_operation_ff == {1'd0, SMLALL} ||
-             i_alu_operation_ff == {1'd0, SMLALH} ||
-             i_alu_operation_ff == SMULW0         ||
-             i_alu_operation_ff == SMULW1         ||
-             i_alu_operation_ff == SMUL00         ||
-             i_alu_operation_ff == SMUL01         ||
-             i_alu_operation_ff == SMUL10         ||
-             i_alu_operation_ff == SMUL11         ||
-             i_alu_operation_ff == SMLA00         ||
-             i_alu_operation_ff == SMLA01         ||
-             i_alu_operation_ff == SMLA10         ||
-             i_alu_operation_ff == SMLA11         ||
-             i_alu_operation_ff == SMLAW0         ||
-             i_alu_operation_ff == SMLAW1         ||
-             i_alu_operation_ff == SMLAL00L       ||
-             i_alu_operation_ff == SMLAL01L       ||
-             i_alu_operation_ff == SMLAL10L       ||
-             i_alu_operation_ff == SMLAL11L       ||
-             i_alu_operation_ff == SMLAL00H       ||
-             i_alu_operation_ff == SMLAL01H       ||
-             i_alu_operation_ff == SMLAL10H       ||
-             i_alu_operation_ff == SMLAL11H
-        )
-        begin
-      // Get result from multiplier.
+             i_alu_operation_ff == {1'd0, SMLALH}
+      ) begin
       rm = mult_out;
     end
         else if( shifter_enabled ) // Shifter enabled if valid shift is asked for.

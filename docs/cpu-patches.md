@@ -522,3 +522,26 @@ cases pass, alongside ARM LDM and throughput controls. Hardware3D qualification 
 0.27Mtexels/s FillRate and5.86Ktriangles/s PolyCount with original firmware.
 Delayed MMC insertion was needed;78MHz fit still fails setup−0.435ns. See
 [exact witness and limits](spmark04-benchmark.md).
+
+## ARM920T instruction profile (0060)
+
+Remove ARMv5/5TE-only decode, uop sequencing and ALU/shifter/multiply paths.
+Reject guest extension/coprocessor encodings before expansion or side effects,
+resolve conditional UND with late flags, preserve internal uops and Thumb BL,
+and correct Thumb SWI/UND links to the next halfword. Ordinary ARMv4 multiply
+schedule and memory interfaces remain.32 isolated CPU runs pass, including
+10,102 generated unsupported-instruction checks. NV UND is a deterministic
+policy for architecturally UNPREDICTABLE ARMv4 encodings. The full patch chain
+has matching lexical tokens; strict byte equality remains blocked by preexisting
+imported-source formatting drift. See [scope, tests and performance](cpu-armv4t-profile.md).
+
+## Owned translation admission (0061)
+
+Bypass the old D-cache pending/resync wait when the actual P2 request already
+owns a settled checked translation and no lookup/walk is busy. Retain adapter
+request capture, fault qualification, synchronous tag/data stages and registered
+CPU completion. No new state or RAM. Matching-load holds fall9→6; production
+60directed CPU runs and the full six-payload suite pass. Throughput index versus
+the immediate predecessor improves19.78%/17.93% at0:0/2:9 waits. FPGA timing,
+fit and boot remain unverified. See the
+[measured path and staged plan](cache-load-optimization-plan.md).

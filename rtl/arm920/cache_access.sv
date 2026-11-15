@@ -30,6 +30,7 @@ module arm920_cache_access #(
     input  logic [ 31:0] req_mva,
     input  logic [ 31:0] req_physical,
     input  logic         req_write,
+    input  wire          req_early_read,
     input  logic         req_cache_enable,
     input  logic         req_cacheable,
     input  logic         req_bufferable,
@@ -88,6 +89,15 @@ module arm920_cache_access #(
     MAINT_CAPTURE
   } state_t;
   state_t state;
+  reg response_valid_q, early_read_owner;
+  reg [31:0] response_data_q;
+  // READ_LINE follows the registered way decision and synchronous line read.
+  // The CPU completion register can capture this owned word directly. Keep
+  // the registered response for misses, SWP, stores and noncached requests.
+  wire early_reply = early_read_owner && state == READ_LINE && !reset &&
+                     !invalidate_all && !lock_write && !maint_valid;
+  assign response_valid = early_reply || response_valid_q;
+  assign response_data = early_reply ? line[mva[4:2]*32+:32] : response_data_q;
   logic [31:0] mva, pa, wdata;
   logic [3:0] ben;
   logic wr, enabled, cacheable, bufferable;
@@ -416,9 +426,10 @@ module arm920_cache_access #(
   always_ff @(posedge clk) begin
     if (reset) begin
       state                  <= IDLE;
-      response_valid         <= 0;
+      early_read_owner       <= 0;
+      response_valid_q       <= 0;
       response_error         <= 0;
-      response_data          <= 0;
+      response_data_q        <= 0;
       mva                    <= 0;
       pa                     <= 0;
       wdata                  <= 0;
@@ -435,7 +446,7 @@ module arm920_cache_access #(
       saved_maint_way        <= 0;
       saved_maint_segment    <= 0;
     end else begin
-      response_valid <= 0;
+      response_valid_q <= 0;
       response_error <= 0;
       case (state)
         IDLE:
@@ -449,6 +460,8 @@ module arm920_cache_access #(
           saved_maint_segment    <= maint_segment;
           state                  <= maint_by_mva ? MAINT_CAPTURE : MAINT_WAIT;
         end else if (req_valid && req_ready) begin
+          early_read_owner <= req_early_read && !req_write &&
+                              req_cache_enable && req_cacheable;
           mva        <= req_mva;
           pa         <= req_physical;
           wdata      <= req_wdata;
@@ -474,18 +487,24 @@ module arm920_cache_access #(
           else if (!write_buffer_empty) state <= WAIT_DRAIN;
           else state <= BYPASS;
         end else if (enabled && cacheable && hit) state <= READ_LINE;
-        else if (enabled && cacheable && !buffer_line_hazard) state <= WAIT_REFILL;
+        else if (enabled && cacheable && !buffer_line_hazard) begin
+          early_read_owner <= 0;
+          state <= WAIT_REFILL;
+        end
         else if (!write_buffer_empty) state <= WAIT_DRAIN;
-        else if (enabled && cacheable) state <= WAIT_REFILL;
+        else if (enabled && cacheable) begin
+          early_read_owner <= 0;
+          state <= WAIT_REFILL;
+        end
         else state <= BYPASS;
         READ_LINE: begin
-          response_data  <= line[mva[4:2]*32+:32];
-          response_valid <= 1;
+          response_data_q  <= line[mva[4:2]*32+:32];
+          response_valid_q <= !early_reply;
           state          <= IDLE;
         end
         STORE_HIT: state <= STORE_COMMIT;
         STORE_COMMIT: begin
-          response_valid <= 1;
+          response_valid_q <= 1;
           state          <= IDLE;
         end
         BUFFER_STORE: if (buffer_ready) state <= STORE_COMMIT;
@@ -493,9 +512,9 @@ module arm920_cache_access #(
         if (write_buffer_empty) state <= !wr && !(enabled && cacheable) ? BYPASS : LOOKUP;
         BYPASS:
         if ((bus_ack || bus_error) && !buffer_bus_valid) begin
-          response_data  <= bus_rdata;
+          response_data_q <= bus_rdata;
           response_error <= bus_error;
-          response_valid <= 1;
+          response_valid_q <= 1;
           state          <= IDLE;
         end
         MAINT_LOOKUP:
@@ -513,7 +532,7 @@ module arm920_cache_access #(
           // the CPU's registered shelve flag inhibits instruction acceptance.
           // Live cached demands and data accesses retain the retry policy.
           if (refill_error && discard_refill) begin
-            response_valid <= 1;
+            response_valid_q <= 1;
             state <= IDLE;
           end else state <= LOOKUP_WAIT;
         end

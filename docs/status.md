@@ -1,3 +1,158 @@
+## 2026-11-15: CPU performance delivery checkpoint
+
+User authorized commit and push of the benchmark/profiler, ARMv4T pruning and
+cache-latency changes on codex/ngage2-integration. Latest qualification remains
+84directed CPU runs plus response/legacy cache tests and full original-payload
+suite. Matching resident loads wait5vs9clocks; combined kernel throughput gain
+21.6%/19.7% versus ARMv4T-only at0:0/2:9 waits.78MHz PLL unchanged,104MHz target;
+FPGA timing/fit and phone boot remain unverified. No manual build/deploy/monitor.
+
+The local pre-commit hook requires formatting of touched tests. Four testbenches
+were formatted with identical lexical tokens. The benchmark harness remains
+byte-identical to preserve its measured hash: Verible cannot parse its existing
+conditional instance header and retains it through the configured failsafe
+fallback. It has already passed Verilator qualification. Other local hook/tool
+files and other threads' simulations are excluded from this change.
+[Formatting evidence](evidence/cpu-test-format-20261115.json),
+[measured results](spmark-payload-results.md).
+
+## 2026-11-15: Redundant cache waits removed; both independent measurements pass
+
+A: ZAP0061 skips legacy handoff only after the actual P2 translation is checked
+and settled, reducing a matching LDR9→6held clocks. D: ordinary non-SWP resident
+D reads bypass the extra cache word-response register into existing owned CPU
+completion, reducing6→5; local-token-change loads are8vsoriginal11. Tag read,
+registered compare, data M10K and CPU completion boundaries remain. Slow/SWP/
+I-side/store/miss/error responses retain their old path. One eligibility bit,
+no new BRAM/data-line copy;78MHz PLL/104MHz objective unchanged.
+
+Final D acceptance:84directed CPU runs (privilege/FIQ/force-user, SWP faults,
+MMU/cache toggles, cold aborts/alignment, CP15 drain/maintenance/translated
+prefetch/lockdown, IRQ/FIQ/masked WFI);17exact-once unit requests; legacy cache
+access/maintenance, packed-dirty cycle equivalence and write-buffer integration
+PASS. Full six-payload suite passes12groups/84windows, exact repeats and six
+negative controls. D alone adds1.5193% throughput over A. Combined A+D improves
+21.5989%/19.7196% over ARMv4T-only at0:0/2:9 waits. Table indices versus original
+baseline100 are121.6327/119.7529. Final medians: matrix71119, transpose10220,
+triangle41391, full-frame183380/201344, fill16tail5228, fill8tail5960.519.074s.
+
+A and D remain separate preserved evidence/source snapshots. D is maintained
+rtl/arm920, not upstream ZAP; all37ZAP token streams still reconstruct through
+0061 (preexisting strict-format drift persists). No commit/push/build/deploy,
+other threads' simulations untouched; FPGA fit/timing and board boot unverified.
+Next work is planned separately: local permission/mapping reuse and/or bounded
+lookup overlap, then a request pipeline with precise owner/fault/credit handling.
+[Results](spmark-payload-results.md), [stages/tests](cache-load-optimization-plan.md).
+
+## 2026-11-15: Removed redundant D-translation handoff; full simulation acceptance passes
+
+User chose unnecessary waits first, request pipelining later. Patch0061 now
+admits the actual P2 request as soon as its translation is checked/owned and
+lookup/walk is settled. It skips3legacy handoff clocks on a hot matching-token
+load (9→6), retains permission/fault guards and all tag/compare/data-RAM/CPU
+completion registers. No state or BRAM added;78MHz PLL/104MHz objective unchanged.
+Astra did planning review only; main agent implemented and verified.
+
+Production60directed CPU runs pass at0/3, including privilege/FIQ returns,
+force-user access, SWP faults/IRQ, cold aborts, MMU/cache toggles and alignment.
+Full original-payload suite passes12rows/84windows, exact repeats and all six
+negative controls. Matrix73391vs78336, transpose10636vs12589, triangle42175vs
+46592, full-frame183381/201345vs238223, fill16tail5229vs6763, fill8tail5961vs7507.
+Index versus the immediate ARMv4T predecessor119.7790/117.9279 (+19.78%/+17.93%
+throughput at0:0/2:9). Dedicated table uses original baseline100 for all rows:
+119.8124/117.9607 cumulative. Full run526.802s. Delayed full-frame writes now
+expose some external wait cost; these are simulation kernels, not board FPS.
+
+All37source token streams reconstruct through0061. Strict byte verifier still
+fails on preexisting formatting drift. Fit/timing/boot remain unmeasured; no
+commit/push/build/deploy and other thread simulations remain untouched.
+Next: separately remove the redundant ordinary-load response copy, preserving
+owned raw-word formatting/completion; then permission/mapping reuse and selected-
+way overlap before a multi-request pipeline. [Results](spmark-payload-results.md),
+[stage plan and exact qualification](cache-load-optimization-plan.md).
+
+## 2026-11-15: Cycle profiling identifies internal data completion as first bottleneck
+
+Simulation-only observer passes all six original payloads,0:0 waits, two exact
+repeats/42windows. Every original window/whole-run counter and payload/helper
+execution count matches the accepted uninstrumented run; nine parser controls
+pass and bucket/state/PC totals reconcile. Production HDL/hardware unchanged.
+
+Data-demand holds: matrix35.70%, transpose66.84%, triangle37.50%, full-frame
+fill76.91%,16-bit tail76.04%,8-bit tail68.82%. Hot non-frame windows have no
+external transactions; the full frame has posted writes but no external wait
+clocks at0:0. Transpose translation-readiness wait overlaps25.67% of all clocks;
+that includes ownership settling, not only TLB misses. Individual hot STRs hold
+for12clocks; streamed fill STRs10. Multiply busy is7.84% matrix/0.76% triangle.
+
+Prioritize the narrow phase07 D-hit/completion path, with phase12b translation
+reuse audited separately, before small ALU/multiply changes. Preserve request
+ownership, precise faults, registered timing and exactly-once stores. Empty
+queue time (29.35% matrix/26.31% triangle) still needs fetch/redirect attribution.
+Buckets measure blocking-signal occupancy, not additive recoverable loss.
+78MHz PLL and104MHz objective remain. Other thread simulations untouched.
+[Measured breakdown, commands and evidence](spmark-payload-profile.md).
+
+## 2026-11-15: First CPU optimization and complete payload remeasurement pass
+
+Patch0060 removes ARMv5/5TE-only BLX/CLZ/saturation/DSP-halfword/doubleword
+execution paths from ZAP. Guest classification traps under the original
+condition before side effects, while preserving internal uops and legal ARMv4
+multiplication/CP15/cache/MMU. Thumb SWI/UND links are corrected to PC+2.
+32 production CPU runs pass, including10,102 generated instruction-profile
+checks and legal multiply/Thumb calls, IRQ/FIQ/SWP, permission and cache controls.
+Warmed dependent ADD remains1clock. Reconstructed upstream+patches also passes
+the profile guest; all37 SV/SVH token streams match. The strict byte verifier
+still fails on preexisting formatting drift, explicitly recorded in evidence.
+
+Full original SPMark payload suite passes:12rows/84windows, two identical runs
+and six wrong-output controls. Index100.0279 in both memory profiles versus
+baseline100: effectively no cycle change. Fill16 frame238223 and tail6763 each
+save11cycles; matrix78336, transpose12589, triangle46592 and fill8-tail7507 are
+unchanged.565.406s total. Saved candidate row alongside unchanged `baseline` in
+[results table](spmark-payload-results.md), with exact hashes/windows/evidence.
+
+78MHz PLL unchanged;104MHz remains the objective. ALM/routed timing and phone
+boot require a future FPGA build; no Quartus/CI/deploy/commit/push this step.
+Other threads' simulations/checkpoints remain untouched. Full PSR masking and
+Thumb BL prefix/interrupt semantics are separate audits, not claimed complete.
+[Scope and correctness evidence](cpu-armv4t-profile.md).
+
+## 2026-11-15: Dedicated payload results table started
+
+Saved the measured six-kernel results as the `baseline` row in
+[spmark-payload-results.md](spmark-payload-results.md), with both memory profiles
+and index100. Existing evidence reused; no simulation or hardware rerun.
+
+## 2026-11-14: Original SPMark payload RTL baseline and reusable skill pass
+
+Six original matrix/transpose/GLES triangle-edge/fill kernels execute on frozen
+current CPU/cache/MMU RTL.12case/profile rows,84checked windows, two identical
+complete runs and six wrong-output controls pass. All payload/helper execution
+counts match independent original-byte ARM execution plus mathematical output
+models. Native signed divide stays on ARM, not a host stub. New baseline index
+100 for each synthetic0:0/2:9 profile; not the official SPMark score.
+
+Matrix16products78,336cycles;32transposes12,589;16triangle edge setups46,592;
+36,608pixel16-bit fill238,234; odd1023pixel fill6774;2051byte fill7507.
+Full suite526.698s. Three-case unchanged-build replay30.551s, index100.0;
+stale RTL reuse is rejected. Programmatic MMC extraction also passes. Installed
+$spmark-payload-bench; maintained runner/skill/docs are in this repository.
+No production HDL/FPGA/hardware/other-thread simulation change. Full shaded
+scene/Symbian benchmark is not implemented. See
+[baseline, exact limits and commands](spmark-payload-simulation.md).
+
+## 2026-11-14: SPMark payload simulation feasibility checked
+
+Exact APP/3DTEST/GLES payload extraction already exists.3DTEST has113import
+entries and GLES46, with Symbian heap/runtime/window dependencies; whole suite
+is not a flat standalone binary. Reuse original bounded renderer functions in
+CPU/cache Verilator benchmarks first, then a headless fixed rendering workload.
+No Quartus required per candidate, but changed RTL needs a new Verilator build;
+raw internal checkpoints are not portable across CPU changes. This is feasibility
+and a proposed harness, not an implemented/measured full SPMark simulation.
+[Details](spmark04-benchmark.md#simulation-reuse-feasibility--2026-11-14).
+
 ## 2026-11-14: SPMark 3D benchmark completed on unpatched firmware
 
 Native Run All returns3D score84, Game1.31fps, FillRate0.27Mtexels/s and

@@ -187,6 +187,15 @@ module zap_dcache #(
     else checked_request_prev <= checked_request && pending_request && !o_ack;
   end
   wire checked_owner;
+  // The current P2 request can already own a settled translation. Do not
+  // repeat the legacy pending/resync handoff in that case. Permission/fault
+  // selection still uses that same owner's result; the adapter retains its
+  // request and completion registers. A busy walk or changed context takes
+  // the existing retained-translation path.
+  wire translation_ready = checked_owner && !tlb_busy && !tlb_walk_pending;
+  wire translation_wait = ((pending_request && !pending_translation) ||
+                           (lookup_resync && !pending_request) ||
+                           (tlb_busy && !pending_translation)) && !translation_ready;
   assign checked_request = checked_owner;
   // synthesis translate_off
   wire checked_request_legacy = checked_va == i_address && checked_lookup == i_address && checked_rd == i_rd && checked_wr == i_wr &&
@@ -307,7 +316,7 @@ module zap_dcache #(
       .fsr_in(pending_translation ? pending_fsr : tlb_fsr),
       .external_fsr(pending_translation ? pending_external_fsr : tlb_external_fsr),
       .tlb_busy(pending_translation ? 1'b0 : tlb_busy),
-      .translation_wait((pending_request && !pending_translation) || (lookup_resync && !pending_request) || (tlb_busy && !pending_translation)),
+      .translation_wait(translation_wait),
       .external_permit(1'b1),
       .write_buffer_empty(o_write_buffer_empty),
       .fast_enable(1'b0),

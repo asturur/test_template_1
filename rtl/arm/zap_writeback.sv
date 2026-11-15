@@ -378,7 +378,7 @@ module zap_writeback #(
       `zap_chmod;
     end else if (i_swi) begin
       wen                       = 1;
-      wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff - 32'd4;
+      wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff - 32'd2;
       wa1                       = PHY_SVC_R14;
       wa2                       = PHY_SVC_SPSR;
       wdata2                    = cpsr_ff;
@@ -387,7 +387,7 @@ module zap_writeback #(
       `zap_chmod;
     end else if (i_und) begin
       wen                       = 1;
-      wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff - 32'd4;
+      wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff - 32'd2;
       wa1                       = PHY_UND_R14;
       wa2                       = PHY_UND_SPSR;
       wdata2                    = cpsr_ff;

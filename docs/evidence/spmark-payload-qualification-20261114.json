@@ -1,0 +1,68 @@
+{
+  "full_suite_output_controls": [
+    {
+      "case": "matrix4",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "transpose4",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "triangle_edges",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill16_frame",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill16_tail",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill8_tail",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    }
+  ],
+  "full_suite_rows": 12,
+  "checked_windows": 84,
+  "full_suite_wall_seconds": 526.698,
+  "oracle_retirement_postaudit": "all84 payload/helper totals match",
+  "quick_replay_status": "PASS",
+  "quick_replay_seconds": 30.551,
+  "quick_replay_index": {
+    "0:0": 100.0
+  },
+  "quick_replay_rows": [
+    {
+      "case": "matrix4",
+      "profile": "0:0",
+      "body_cycles_median": 78336,
+      "throughput_ratio": 1.0,
+      "deterministic_repeats": 2
+    },
+    {
+      "case": "transpose4",
+      "profile": "0:0",
+      "body_cycles_median": 12589,
+      "throughput_ratio": 1.0,
+      "deterministic_repeats": 2
+    },
+    {
+      "case": "triangle_edges",
+      "profile": "0:0",
+      "body_cycles_median": 46592,
+      "throughput_ratio": 1.0,
+      "deterministic_repeats": 2
+    }
+  ],
+  "stale_reuse_rejection": "build reuse refused: RTL snapshot differs",
+  "installed_skill": "/Users/andreabogazzi/.codex/skills/spmark-payload-bench/SKILL.md"
+}

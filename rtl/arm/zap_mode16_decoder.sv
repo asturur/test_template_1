@@ -139,11 +139,7 @@ module zap_mode16_decoder (
                 else if ( i_instruction[15:0] ==? T_BLX2 ) // T_BLX2
 
                         begin
-        o_instruction[34:0] = {
-          3'd0, 4'b1110, 4'b0001, 4'b0010, 4'b1111, 4'b1111, 4'b1111, 4'b0011, i_instruction[6:3]
-        };
-        o_irq = 1'd0;
-        o_fiq = 1'd0;
+        o_und = 1'b1; // BLX register is not in ARMv4T.
       end
 
 
@@ -160,28 +156,22 @@ module zap_mode16_decoder (
                 else if ( i_instruction[15:0] ==? T_BKPT ) // T_BKPT
 
                         begin: decodeBkPt
-        o_instruction[31:0] = 32'b1110_00010010_0000_0000_0000_0111_0000;
+        o_und = 1'b1; // BKPT is not in ARMv4T.
       end else begin
         casez (i_instruction[15:0])
           T_BLX1: begin
-            o_instruction[34:0] = 35'd0;  // Default value.
-
-            // Generate a BLX1. Subtract 1 to indicate relative to previous one.
-            o_instruction[31:25] = 7'b1111_101;  // BLX1 identifier.
-            o_instruction[24] = 1'd0;  // H - bit.
-            o_instruction[23:0] = (
-                $signed({offset_w[10], offset_w[10], offset_w[10:0], i_instruction[10:0]}));
-            o_instruction[23:0]--;
-            o_instruction[34] = 1'd1;
-            o_irq             = 1'd0;
-            o_fiq             = 1'd0;
+            o_und = 1'b1; // BLX immediate suffix is not in ARMv4T.
           end
 
 
           T_BRANCH_COND: begin
+            if (i_instruction[11:8] == 4'he) begin
+              o_und = 1'b1; // Reserved conditional branch, not an AL branch.
+            end else begin
             // An MSB of 1 indicates a left shift of 1 in the down stages.
             o_instruction[34:0] = {1'd1, 2'b0, i_instruction[11:8], 3'b101, 1'b0, 24'd0};
             o_instruction[23:0] = $signed({{16{i_instruction[7]}}, i_instruction[7:0]});
+            end
           end
 
 

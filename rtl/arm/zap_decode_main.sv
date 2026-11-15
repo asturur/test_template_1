@@ -348,7 +348,7 @@ module zap_decode_main #(
       o_swi_ff                          <= o_swi_nxt;
       o_abt_ff                          <= o_abt_nxt;
       o_und_ff                          <= o_und_nxt | i_mode16_und;
-      o_condition_code_ff               <= o_condition_code_nxt;
+      o_condition_code_ff               <= i_mode16_und ? AL : o_condition_code_nxt;
       o_destination_index_ff            <= o_destination_index_nxt;
       o_alu_source_ff                   <= o_alu_source_nxt;
       o_alu_operation_ff                <= o_alu_operation_nxt;

@@ -49,7 +49,7 @@ module zap_shifter_shift #(
   assign asr_res     = {i_source, i_carry};
   assign asr_res_fin = asr_res >>> i_amount;
 
-  assign o_sat       = i_shift_type == LSL_SAT ? (i_source[30] != i_source[31]) : 1'd0;
+  assign o_sat = 1'b0; // No ARMv5TE saturating shift in ARM920T.
 
   always_comb begin
     case (i_shift_type)
@@ -80,24 +80,6 @@ module zap_shifter_shift #(
 
       // ROR #0 becomes this.
       RRC: {o_result, o_carry} = {i_carry, i_source};
-
-      //
-      // LSL_SAT. Always #1 in length, to deal with * 2. Saturation
-      // that occurs is passed on to the ALU.
-      //
-      LSL_SAT: begin
-        o_carry = 1'd0;
-
-        if (o_sat) begin
-          if (i_source[31] == 1'd0) begin
-            o_result = {1'd0, {31{1'd1}}};  // Most +ve
-          end else begin
-            o_result = {1'd1, {31{1'd0}}};  // Most -ve
-          end
-        end else begin
-          o_result = i_source << 1;  // Multiply by 2.
-        end
-      end
 
       default: begin
         // Should never happen

@@ -1,0 +1,28 @@
+{
+  "tests/cpu/spmark_payload/tb.v": {
+    "old_sha256": "dc8d48f0cd2bd97e7cd591315e7ad5babfc6f9741dd683971dcaa22bc6070af7",
+    "formatted_sha256": "dc8d48f0cd2bd97e7cd591315e7ad5babfc6f9741dd683971dcaa22bc6070af7",
+    "tokens_identical": true
+  },
+  "tests/cpu/cache_hit_response/test.v": {
+    "old_sha256": "e65b429620391a6fc33e86179b0ad4a87a2fc3cc165cc66c1435716c5b9e4695",
+    "formatted_sha256": "76301cb29e0f9f778ebd6ef35a080ea122206d8ba5153af9163c4ce8b9f71c18",
+    "tokens_identical": true
+  },
+  "tests/cpu/cache_access/test.sv": {
+    "old_sha256": "a348c23c4a0fb9cc5c771c413451acbb3a7f4ada0d937d2bc984180be232a3e5",
+    "formatted_sha256": "521e3d1d80ff5316c732caba2cf31216bb823bddc7b1de3d5b1e7e4e7e660293",
+    "tokens_identical": true
+  },
+  "tests/cpu/cache_buffer_integration/test.sv": {
+    "old_sha256": "8c3776d7abf4dab9c345d3ffa9143c5a05cfff26bbcc42a9759dd61587d8a564",
+    "formatted_sha256": "86a076cb984b4c7f192c97ff595c0504f8e09dd78f33cf461e680890946a8beb",
+    "tokens_identical": true
+  },
+  "tests/cpu/cache_dirty_packed/access_equivalence.sv": {
+    "old_sha256": "4bbb703e4326eecd19f9f7d060e9a6d0384d13293ca697bb491120c94ca4836a",
+    "formatted_sha256": "e382ec138818963386004e6f409c58243775f07745a6e1dd97d1bf81bcc1790a",
+    "tokens_identical": true
+  },
+  "note": "Four unit-testbenches formatted. Original benchmark harness remains byte-identical: Verible cannot parse its existing conditional instance header and uses its configured failsafe fallback; Verilator previously qualified both source and outputs."
+}

@@ -213,11 +213,6 @@ module zap_alu_main #(
     // ALU result interface.
     // -----------------------------------------------------------------
 
-    //
-    // Note that these do not include CLZ/saturated values. That
-    // comes on the alternate port, partially.
-    //
-
     // Force align.
     output logic o_force32align_ff,
 
@@ -281,17 +276,9 @@ module zap_alu_main #(
     // Alternate result
     // ----------------------------------------------------------------
 
-    //
-    // Either CLZ data is presented here on the sign bit of the
-    // rm/rn registers.
-    //
+    // Retained interface; tied to zero in this ARMv4T profile so downstream
+    // ARMv5 alternate-result selection synthesizes away.
     output logic [31:0] o_alt_result_ff,
-
-    //
-    // 0x0 - Take from alu_result.
-    // 0x1 - CLZ output is presented on alt_result.
-    // 0x2 - Potential overflow (Sign bit is present on LSB of alt_result).
-    //       See o_flags_ff[27] for overflow.
     output logic [1:0] o_alt_dav_ff
 );
 
@@ -345,9 +332,6 @@ module zap_alu_main #(
   // values and not indices.
   //
   logic [31:0] rm, rn;
-
-  // clz_rm = CLZ (rm)
-  logic [                    5:0] clz_rm;
 
   // Destination index about to be output.
   logic [$clog2   (PHY_REGS)-1:0] o_destination_index_nxt;
@@ -445,14 +429,10 @@ module zap_alu_main #(
 
   assign {op1, op2, cin}
         = i_alu_operation_ff == {2'd0, ADD}     ? {rn,  rm, 1'd0}
-        : i_alu_operation_ff == {1'd0, OP_QADD} ? {rn,  rm, 1'd0}
-        : i_alu_operation_ff == {1'd0, OP_QDADD}? {rn,  rm, 1'd0}
         : i_alu_operation_ff == {2'd0, CMN}     ? {rn,  rm, 1'd0}
         : i_alu_operation_ff == {2'd0, ADC}     ? {rn,  rm, flags_ff[C]}
 
         : i_alu_operation_ff == {2'd0, SUB}     ? {rn, ~rm, 1'd1}
-        : i_alu_operation_ff == {1'd0, OP_QSUB} ? {rn, ~rm, 1'd1}
-        : i_alu_operation_ff == {1'd0, OP_QDSUB}? {rn, ~rm, 1'd1}
         : i_alu_operation_ff == {2'd0, CMP}     ? {rn, ~rm, 1'd1}
         : i_alu_operation_ff == {2'd0, SBC}     ? {rn, ~rm, flags_ff[C]}
 
@@ -472,53 +452,6 @@ module zap_alu_main #(
   // the same sign.
   //
   assign arith_overflow = (op1[31] == op2[31]) & (op1[31] != sum[31]);
-
-  // ----------------------------------------------------------------------------
-  // CLZ logic.
-  // ----------------------------------------------------------------------------
-
-  always_comb // CLZ implementation.
-begin
-    casez (rm)
-      32'b1???????????????????????????????: clz_rm = 6'd00;
-      32'b01??????????????????????????????: clz_rm = 6'd01;
-      32'b001?????????????????????????????: clz_rm = 6'd02;
-      32'b0001????????????????????????????: clz_rm = 6'd03;
-      32'b00001???????????????????????????: clz_rm = 6'd04;
-      32'b000001??????????????????????????: clz_rm = 6'd05;
-      32'b0000001?????????????????????????: clz_rm = 6'd06;
-      32'b00000001????????????????????????: clz_rm = 6'd07;
-      32'b000000001???????????????????????: clz_rm = 6'd08;
-      32'b0000000001??????????????????????: clz_rm = 6'd09;
-      32'b00000000001?????????????????????: clz_rm = 6'd10;
-      32'b000000000001????????????????????: clz_rm = 6'd11;
-      32'b0000000000001???????????????????: clz_rm = 6'd12;
-      32'b00000000000001??????????????????: clz_rm = 6'd13;
-      32'b000000000000001?????????????????: clz_rm = 6'd14;
-      32'b0000000000000001????????????????: clz_rm = 6'd15;
-      32'b00000000000000001???????????????: clz_rm = 6'd16;
-      32'b000000000000000001??????????????: clz_rm = 6'd17;
-      32'b0000000000000000001?????????????: clz_rm = 6'd18;
-      32'b00000000000000000001????????????: clz_rm = 6'd19;
-      32'b000000000000000000001???????????: clz_rm = 6'd20;
-      32'b0000000000000000000001??????????: clz_rm = 6'd21;
-      32'b00000000000000000000001?????????: clz_rm = 6'd22;
-      32'b000000000000000000000001????????: clz_rm = 6'd23;
-      32'b0000000000000000000000001???????: clz_rm = 6'd24;
-      32'b00000000000000000000000001??????: clz_rm = 6'd25;
-      32'b000000000000000000000000001?????: clz_rm = 6'd26;
-      32'b0000000000000000000000000001????: clz_rm = 6'd27;
-      32'b00000000000000000000000000001???: clz_rm = 6'd28;
-      32'b000000000000000000000000000001??: clz_rm = 6'd29;
-      32'b0000000000000000000000000000001?: clz_rm = 6'd30;
-      32'b00000000000000000000000000000001: clz_rm = 6'd31;
-      default:                              clz_rm = 6'd32;  // All zeros.
-    endcase
-  end
-
-  // -----------------------------------------------------------------------------
-  // Sequential logic.
-  // -----------------------------------------------------------------------------
 
   always_ff @(posedge i_clk) begin
     if (i_reset) begin
@@ -652,7 +585,7 @@ begin
       o_mem_unsigned_halfword_enable_ff <= i_mem_unsigned_halfword_enable_ff;
       o_mem_translate_ff <= i_mem_translate_ff;
       sleep_ff <= sleep_nxt;
-      o_und_ff <= i_und_ff;
+      o_und_ff <= i_und_ff && is_cc_satisfied(i_condition_code_ff, flags_ff[31:28]);
 
       o_clear_from_alu <= |w_clear_from_alu;
       r_clear_from_alu <= w_clear_from_alu;
@@ -785,7 +718,6 @@ begin
                 opcode == {2'd0, AND}     ||
                 opcode == {2'd0, EOR}     ||
                 opcode == {2'd0, MOV}     ||
-                opcode == {  SAT_MOV}     ||
                 opcode == {2'd0, MVN}     ||
                 opcode == {2'd0, BIC}     ||
                 opcode == {2'd0, ORR}     ||
@@ -799,20 +731,12 @@ begin
         rm,
         flags_ff[31:28],
         opcode,
-        opcode == SAT_MOV ? 1'd0 : i_flag_update_ff,
+        i_flag_update_ff,
         i_nozero_ff,
         i_shift_carry_ff
       );
 
-      //
-      // If SAT_MOV = 0x1
-      // Set only Q flag (27) from shift stage. Don't touch other Flags.
-      //
-      if (opcode == SAT_MOV) begin
-        tmp_flags[27:0] = {flags_ff[27] | i_shift_sat_ff, flags_ff[26:0]};  // Sticky 27.
-      end else begin
-        tmp_flags[27:0] = flags_ff[27:0];
-      end
+      tmp_flags[27:0] = flags_ff[27:0];
     end  //
          // Flag MOV(FMOV) i.e., MOV to CPSR and MMOV handler.
          // FMOV moves to CPSR and flushes the pipeline.
@@ -846,15 +770,7 @@ begin
         tmp_flags[31:28] = {sum[31], ~|sum[31:0], sum[32], arith_overflow};
         tmp_flags[26:0]  = flags_ff[26:0];
 
-        if ( opcode == {1'd0, OP_QADD } ||
-                             opcode == {1'd0, OP_QSUB } ||
-                             opcode == {1'd0, OP_QDADD} ||
-                             opcode == {1'd0, OP_QDSUB})
-                        begin
-          tmp_flags[27] = (arith_overflow || i_shift_sat_ff || flags_ff[27]);  // Sticky.
-        end else begin
-          tmp_flags[27] = flags_ff[27];
-        end
+        tmp_flags[27] = flags_ff[27];
       end else begin
         tmp_flags = flags_ff;
       end
@@ -865,31 +781,9 @@ begin
     o_alu_result_nxt = tmp_sum;
   end
 
-  //
-  // Partially handle CLZ and saturating operations.
-  //
-  always_comb begin
-    if (opcode == {1'd0, CLZ}) begin
-      tmp_sum_x = {26'd0, clz_rm};
-      valid_x   = 2'd1;
-    end
-        else if
-        (
-             opcode == {1'd0, OP_QADD } ||
-             opcode == {1'd0, OP_QSUB } ||
-             opcode == {1'd0, OP_QDADD} ||
-             opcode == {1'd0, OP_QDSUB}
-        )
-        begin
-      valid_x = 2'd2;
-      tmp_sum_x =  opcode == {1'd0, OP_QADD } ||
-                             opcode == {1'd0, OP_QDADD} ?
-                             {31'd0, rm[31]} : {31'd0, rn[31]};
-    end else begin
-      valid_x   = 2'd0;
-      tmp_sum_x = '0;
-    end
-  end
+  // ARMv4T has no alternate CLZ/saturation result path.
+  assign tmp_sum_x = 32'b0;
+  assign valid_x = 2'b0;
 
   // ----------------------------------------------------------------------------
   // Flag propagation and branch prediction feedback unit
@@ -899,12 +793,12 @@ begin
 
   assign o_dav_nxt = is_cc_satisfied(
       i_condition_code_ff, flags_ff[31:28]
-  ) || i_irq_ff || i_fiq_ff || i_abt_ff || i_und_ff;
+  ) || i_irq_ff || i_fiq_ff || i_abt_ff;
 
   assign  sleep_nxt  =    i_irq_ff   ||
                         i_fiq_ff   ||
                         i_abt_ff   ||
-                        i_und_ff   ||
+                        (i_und_ff && o_dav_nxt) ||
                         load_to_pc ||
                         (i_swi_ff && o_dav_nxt);
 
@@ -1055,7 +949,6 @@ begin
       {2'd0, EOR} : rd = RN ^ RM;
       {2'd0, BIC} : rd = RN & ~(RM);
       {2'd0, MOV} : rd = RM;
-      SAT_MOV:      rd = RM;
       {2'd0, MVN} : rd = ~(RM);
       {2'd0, ORR} : rd = RN | RM;
       {2'd0, TST} : rd = RN & RM;  // Target is not written.
@@ -1065,10 +958,8 @@ begin
 
     // Assign values to the flags only if an update is requested. Note that V
     // is not touched even if change is requested.
-    if ( flag_upd ) // 0x0 for SAT_MOV.
+    if ( flag_upd )
         begin
-      assert (op != SAT_MOV)
-      else $fatal(2, "Flag upd SBZ for SAT_MOV.");
 
       flags_out[_C] = shift_carry;
       flags_out[_Z] = nozero ? 1'd0 : (rd == 0);

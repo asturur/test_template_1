@@ -98,7 +98,6 @@ logic        store               ;
 logic          unused;
 logic  [11:0]  oc_offset;                  // Ones counter offset.
 logic  [15:0]  reglist_ff, reglist_nxt;    // Register list.
-logic  [31:0]  const_ff, const_nxt;        // For BLX - const reg.
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -108,28 +107,15 @@ assign unused = |{pre_index};
 
 ///////////////////////////////////////////////////////////////////////////////
 
-enum logic [20:0] {
-        IDLE            = 21'd1 << 0 ,
-        MEMOP           = 21'd1 << 1 ,
-        WRITE_PC        = 21'd1 << 2 ,
-        SWAP1           = 21'd1 << 3 ,
-        SWAP2           = 21'd1 << 4 ,
-        LMULT_BUSY      = 21'd1 << 5 ,
-        BL_S1           = 21'd1 << 6 ,
-        BLX1_STATE_S0   = 21'd1 << 7 ,
-        BLX1_STATE_S1   = 21'd1 << 8 ,
-        BLX1_STATE_S2   = 21'd1 << 9 ,
-        BLX1_STATE_S3   = 21'd1 << 10 ,
-        BLX1_STATE_S4   = 21'd1 << 11 ,
-        BLX1_STATE_S5   = 21'd1 << 12 ,
-        BLX2_STATE_S0   = 21'd1 << 13 ,
-        LDRD_STRD_S0    = 21'd1 << 14 ,
-        LDRD_STRD_S1    = 21'd1 << 15 ,
-        LDR_TO_PC_S0    = 21'd1 << 16 ,
-        DEP_WAIT        = 21'd1 << 17 ,
-        DEP_WAIT_1      = 21'd1 << 18 ,
-        DEP_WAIT_2      = 21'd1 << 19 ,
-        DEP_WAIT_3      = 21'd1 << 20 ,
+enum logic [7:0] {
+        IDLE             = 8'd1 << 0,
+        MEMOP            = 8'd1 << 1,
+        WRITE_PC         = 8'd1 << 2,
+        SWAP1            = 8'd1 << 3,
+        SWAP2            = 8'd1 << 4,
+        LMULT_BUSY       = 8'd1 << 5,
+        BL_S1            = 8'd1 << 6,
+        LDR_TO_PC_S0     = 8'd1 << 7,
         `ZAP_DEFAULT_XX
 } state_ff, state_nxt;
 
@@ -144,7 +130,6 @@ begin:next_state_logic_and_output_logic
         // (Done to avoid combo loops/incomplete assignments)
         // ========================================
 
-        const_nxt = const_ff;
 
         // Block interrupts by default.
         o_irq = 0;
@@ -181,345 +166,16 @@ begin:next_state_logic_and_output_logic
                         state_nxt = IDLE;
                 end
 
-                BLX1_STATE_S0: // SCONST = ($signed(constant) << 2) + ( H(i.e., [24]) << 1 ))
-                begin
-                        o_stall_from_decode = 1'd1;
-
-                        const_nxt = ( { {8{i_instruction[23]}} , i_instruction[23:0] } << 2 ) +
-                                    ( {31'd0, i_instruction[24]} << 1 );
-
-                        // MOV DUMMY0, SCONST[7:0] ror 0
-                        o_instruction[31:0] = {AL, 2'b00, 1'b1, MOV, 1'd0, 4'd0, 4'd0, 4'd0, const_nxt[7:0]};
-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
-
-                        state_nxt = BLX1_STATE_S1;
-                end
-
-                // The 3 states here try to build up a constant in the internal register using immediate+rotates.
-                // ROR x, y = x >> y | x << (32 - y)
-
-                BLX1_STATE_S1:
-                begin
-                        o_stall_from_decode = 1'd1;
-
-                        // ORR DUMMY0, DUMMY0, SCONST[15:8]  ror 12*2
-                        o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd12, const_nxt[15:8]};
-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
-
-                        state_nxt = BLX1_STATE_S2;
-                end
-
-                BLX1_STATE_S2:
-                begin
-                        o_stall_from_decode = 1'd1;
-
-                        // ORR DUMMY0, DUMMY0, SCONST[23:16] ror 8*2
-                         o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd8, const_nxt[23:16]};
-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
-
-                        state_nxt = BLX1_STATE_S3;
-                end
-
-                BLX1_STATE_S3:
-                begin
-                        o_stall_from_decode = 1'd1;
-
-                        // ORR DUMMY0, DUMMY0, SCONST[31:24] ror 4*2
-                         o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd4, const_nxt[31:24]};
-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
-
-                        state_nxt = BLX1_STATE_S4;
-                end
-
-                BLX1_STATE_S4:
-                begin
-                        o_stall_from_decode = 1'd1;
-
-                        // ORR DUMMY0, DUMMY0, 1 - Needed to indicate a switch
-                        // to mode16 if needed.
-                         o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd0, !i_cpsr_t ? 8'd1 : 8'd0};
-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
-
-                        state_nxt = BLX1_STATE_S5;
-                end
-
-                BLX1_STATE_S5:
-                begin
-                        // Remove stall.
-                        o_stall_from_decode = 1'd0;
-
-                        // BX DUMMY0
-                        o_instruction = {8'd0, 32'hE12FFF10};
-                        {o_instruction[ZAP_DP_RB_EXTEND], o_instruction[`ZAP_DP_RB]} = ARCH_DUMMY_REG0;
-
-                        state_nxt = IDLE;
-                end
-
-                BLX2_STATE_S0:
-                begin
-                        // Remove stall.
-                        o_stall_from_decode     = 1'd0;
-
-                        // BX Rm. Just remove the L bit. Conditional is passed
-                        // on.
-                        o_instruction           = {5'd0, i_instruction};
-                        o_instruction[5]        = 1'd0;
-
-                        state_nxt               = IDLE;
-                end
-
-                LDRD_STRD_S0:
-                begin
-                        o_stall_from_decode = 1'd0;
-
-                        o_instruction[31:28] = i_instruction[31:28];
-                        o_instruction[27:26] = 2'b01;
-                        o_instruction[15:12] = i_instruction[15:12] + 1;
-                        o_instruction[24:23] = i_instruction[24:23];
-                        o_instruction[19:16] = i_instruction[19:16];
-                        o_instruction[22]    = 1'd0;
-
-                        // If writeback was specified, generate LDR Rdata, [Raddress, #4] for the next load.
-                        // Make it pre-indexing without writeback in this case.
-                        if ( i_instruction[21] )
-                        begin
-                                o_instruction[11:0] = 12'd4;
-                                o_instruction[25]   = 1'd1;
-                                o_instruction[21]   = 1'd0;
-                        end
-                        else // No writeback.
-                        begin
-                                if ( i_instruction[22] )
-                                begin
-                                        // If no writeback was specified, issue +4 to immediate (for I mode) for the next
-                                        // address.
-                                        o_instruction[11:0]  = o_instruction[11:0] + 12'd4;
-                                        o_instruction[25]    = 1'd1;
-                                        state_nxt            = IDLE;
-                                end
-                                else
-                                begin
-
-                                        // If no writeback was specified and in register mode, issue + 4 to the register.
-                                        // This requires the register to be temporarily added by 4.
-                                        // 1.
-                                        // Generate ADDAL ARCH_DUMMY_REG0, Register, #4
-
-                                        o_instruction[31:0] =
-                                        {AL, 2'b00, 1'b1, ADD, 1'd0, 4'd0, i_instruction[19:16], 12'd4};
-
-                                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]}= ARCH_DUMMY_REG0;
-
-                                        state_nxt = LDRD_STRD_S1;
-
-                                        o_stall_from_decode = 1'd1;
-
-                                end
-                        end
-
-                        if ( i_instruction[6:5] == 2'b11 )
-                        begin
-                                o_instruction[20] = 1'd0;       // Store
-                        end
-                        else
-                        begin
-                                o_instruction[20] = 1'd1;       // Load
-                        end
-                end
-
-                LDRD_STRD_S1:
-                begin
-                        o_stall_from_decode  = 1'd0;
-                        o_instruction[31:28] = i_instruction[31:28];
-
-                        // Use arch dummy reg0 as the base address since it was incremented by 4.
-                        o_instruction[15:12] = i_instruction[15:12] + 1;
-                        o_instruction[27:26] = 2'b01;
-                        o_instruction[25]    = 1'd0;
-                        o_instruction[11:0]  = i_instruction[11:0];
-                        o_instruction[24:23] = i_instruction[24:23];
-                        o_instruction[22]    = 1'd0;
-                        o_instruction[21]    = i_instruction[21];
-                        o_instruction[15:12] = i_instruction[15:12];
-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
-
-                        if ( i_instruction[6:5] == 2'b11 )
-                        begin
-                                o_instruction[20] = 1'd0;       // Store
-                        end
-                        else
-                        begin
-                                o_instruction[20] = 1'd1;       // Load
-                        end
-
-                        state_nxt = IDLE;
-                end
-
-                // Issue ANDEQ R0, R0, R0 - block interrupts.
-                DEP_WAIT, DEP_WAIT_1, DEP_WAIT_2:
-                begin
-                        o_stall_from_decode = 1'd1;
-                        o_instruction       = '0;
-                        state_nxt           =
-                                state_ff == DEP_WAIT   ? DEP_WAIT_1 :
-                                state_ff == DEP_WAIT_1 ? DEP_WAIT_2 :
-                                state_ff == DEP_WAIT_2 ? DEP_WAIT_3 :
-                                state_ff;
-
-                end
-
-                // Issue ANDEQ R0, R0, R0 - block interrupts.
-                DEP_WAIT_3:
-                begin
-                        o_stall_from_decode = 1'd0;
-                        o_instruction       = '0;
-                        state_nxt           = IDLE;
-                end
-
                 IDLE:
                 begin
-                        // CLZ and saturating instruction - gap the issue.
-                        if (
-                               (i_instruction[31:0] ==? CLZ_INSTRUCTION ||
-                                i_instruction[31:0] ==? QADD            ||
-                                i_instruction[31:0] ==? QSUB            ||
-                                i_instruction[31:0] ==? QDADD           ||
-                                i_instruction[31:0] ==? QDSUB)          &&
-                                i_instruction_valid
-                        )
-                        begin
-                                state_nxt           = DEP_WAIT;
-                                o_stall_from_decode = 1'd1;
-                                o_instruction       = {5'd0, i_instruction};
-                                o_irq               = i_irq;
-                                o_fiq               = i_fiq;
-                        end
                         // Instruction in coprocessor space.
-                        else if (
-                             (i_instruction[31:0] ==? MRC   ||
-                              i_instruction[31:0] ==? MCR   ||
-                              i_instruction[31:0] ==? LDC   ||
-                              i_instruction[31:0] ==? STC   ||
-                              i_instruction[31:0] ==? CDP   ||
-                              i_instruction[31:0] ==? MCR2  ||
-                              i_instruction[31:0] ==? LDC2  ||
-                              i_instruction[31:0] ==? STC2) &&
+                        if (
+                             (i_instruction[31:0] ==? MRC ||
+                              i_instruction[31:0] ==? MCR) &&
                               i_instruction_valid
                         )
                         begin
                                 o_instruction_valid = 1'd0;
-                        end
-                        // LDRD and STRD. First reg should be EVEN.
-                        else if
-                            ( i_instruction[27:25] == 3'b000                                &&
-                             i_instruction[20]    == 1'd0                                   &&
-                             ( i_instruction[6:5] == 2'b10 || i_instruction[6:5] == 2'b11 ) &&
-                             i_instruction[12]    == 1'd0                                   &&
-                             i_instruction[7]     == 1'd1                                   &&
-                             i_instruction[4]     == 1'd1                                   &&
-                             i_instruction_valid )
-                        begin
-                                // If writeback is specified, the address of the second load is the writeback value
-                                // with 4 added to it. The written back value holds the result of executing the
-                                // first load.
-                                //
-                                // If writeback is not specified, the address of the second load is 4 more than the
-                                // address of the first load.
-
-                                o_stall_from_decode = 1'd1;
-
-                                o_instruction[27:26] = 2'b01;  // Make it an classic load-store.
-
-                                // Specify addressing mode.
-                                if ( i_instruction[22] ) // Immediate.
-                                begin
-                                        o_instruction[25]    = 1'd1;
-                                        o_instruction[11:0]  = $signed({i_instruction[11],
-                                                                        i_instruction[11],
-                                                                        i_instruction[11],
-                                                                        i_instruction[11],
-                                                                        i_instruction[11:8],
-                                                                        i_instruction[3:0]});
-                                end
-                                else
-                                begin
-                                        o_instruction[25]    = 1'd0;
-                                        o_instruction[11:0]  = i_instruction[11:0];
-                                end
-
-                                o_instruction[24:23] = i_instruction[24:23];
-                                o_instruction[22]    = 1'd0;
-                                o_instruction[21]    = i_instruction[21];
-
-                                // Load or Store.
-                                if ( i_instruction[6:5] == 2'b11 )
-                                begin
-                                        o_instruction[20] = 1'd0;       // Store
-                                end
-                                else
-                                begin
-                                        o_instruction[20] = 1'd1;       // Load
-                                end
-
-                                o_instruction[19:12] = i_instruction[19:12];
-
-                                state_nxt            = LDRD_STRD_S0;
-
-                                // Fine to give IRQs.
-                                o_irq = i_irq;
-                                o_fiq = i_fiq;
-                        end
-                        // BLX1 detected. Unconditional!!!
-                        // Immediate Offset.
-                        else if ( i_instruction[31:25] == BLX1[31:25] && i_instruction_valid )
-                        begin
-                                // We must generate a SUBAL LR,PC,4 ROR 0
-                                // This makes LR have the value
-                                // PC+8-4=PC+4 which is the address of
-                                // the next instruction. This is in 32bit mode.
-                                o_instruction[31:0]           = {AL, 2'b00, 1'b1, SUB, 1'd0, 4'd15, 4'd14, 12'd4};
-
-                                // In mode16 mode, we must generate PC+4-2. Modify it.
-                                if ( i_cpsr_t )
-                                begin
-                                        o_instruction[11:0] = 12'd2; // Modify the instruction.
-                                end
-
-                                o_stall_from_decode     = 1'd1; // Stall the core.
-                                state_nxt               = BLX1_STATE_S0;
-
-                                o_irq = i_irq;
-                                o_fiq = i_fiq;
-                        end
-                        // BLX2 detected. Register offset. CONDITIONAL.
-                        else if ( i_instruction[27:4] == BLX2[27:4] && i_instruction_valid )
-                        begin
-                                // Write address of next instruction to LR. Now this
-                                // depends on the mode we're in. Mode in the sense
-                                // 16/32bit. We need to look at i_cpsr_t.
-
-                                // We need to generate a SUBcc LR,PC,4 ROR 0
-                                // to store the next instruction address in
-                                // LR. This is in 32bit mode.
-                                o_instruction[31:0]     =
-                                {i_instruction[31:28], 2'b00, 1'b1, SUB, 1'd0, 4'd15, 4'd14, 12'd4};
-
-                                // In mode16 mode, we need to remove 2 from PC
-                                // instead of 4. Modify it.
-                                if ( i_cpsr_t )
-                                begin
-                                        o_instruction[11:0] = 12'd2; // modify instr.
-                                end
-
-                                o_stall_from_decode     = 1'd1; // Stall the core.
-                                state_nxt               = BLX2_STATE_S0;
-
-                                o_irq = i_irq;
-                                o_fiq = i_fiq;
                         end
                         // LDM/STM detected...
                         else if ( id == 3'b100 && i_instruction_valid )
@@ -586,19 +242,6 @@ begin:next_state_logic_and_output_logic
                                  o_fiq               = i_fiq;
                                  o_instruction       = {5'd0, i_instruction};
                                  o_instruction_valid = i_instruction_valid;
-                        end
-                        else if (  i_instruction[27:23] == 5'b00010 &&
-                                   i_instruction[22:21] == 2'b10    &&
-                                  !i_instruction[20]                &&
-                                   i_instruction[7] && i_instruction[4] )
-                        begin
-                                // LMULT
-                                state_nxt = LMULT_BUSY;
-                                o_stall_from_decode = 1'd1;
-                                o_irq = i_irq;
-                                o_fiq = i_fiq;
-                                o_instruction = {5'd0, i_instruction};
-                                o_instruction_valid = i_instruction_valid;
                         end
                         else if ( i_instruction[27:25] == 3'b101 &&
                                   i_instruction[24] && i_instruction_valid ) // BL.
@@ -801,8 +444,7 @@ begin:next_state_logic_and_output_logic
                 begin
                         state_nxt = XX;
 
-                        {const_nxt
-                        ,o_stall_from_decode
+                        {o_stall_from_decode
                         ,o_irq
                         ,o_fiq
                         ,o_instruction
@@ -911,7 +553,6 @@ begin
         begin
                 state_ff                <= IDLE;
                 reglist_ff              <= {16{1'dx}};
-                const_ff                <= {32{1'dx}};
         end
         else if
         (
@@ -922,13 +563,11 @@ begin
         begin
                 state_ff                <= IDLE;
                 reglist_ff              <= {16{1'dx}};
-                const_ff                <= {32{1'dx}};
         end
         else if ( !i_stall_from_shifter && !i_issue_stall && !i_data_stall )
         begin
                 state_ff   <= state_nxt;
                 reglist_ff <= reglist_nxt;
-                const_ff   <= const_nxt;
         end
 end
 

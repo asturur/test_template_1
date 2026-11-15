@@ -180,6 +180,28 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+User priority update2026-11-15: execute the guest ARMv4T pruning portion of02b
+first, before other imports, and remeasure original SPMark payloads. Patch0060
+implements that instruction-profile/execution-hardware portion and Thumb
+SWI/UND return-link correctness; PSR mask policy and the wider02a/02c audits
+remain separate. [Scope and evidence](cpu-armv4t-profile.md).
+
+Measured priority update2026-11-15: after instruction-profile pruning, the
+[qualified payload profiler](spmark-payload-profile.md) identifies data-demand
+completion holds as the largest bucket (35.70–76.91%). Execute the relevant
+narrow phase07 cached-hit completion work next, auditing the phase12b owned
+translation path as a separate change if necessary, before small04/05 ALU or
+multiply work. Empty-queue time remains a follow-up attribution task, not an
+assumed branch-only loss. Existing correctness/104MHz gates still apply.
+
+User update2026-11-15: remove unnecessary waits before introducing a pipelined
+request interface. [Measured staged plan](cache-load-optimization-plan.md)
+records the9→6clock owned-admission prototype and production0061. Remove the
+extra response copy next, then measure permission-token and selected-way
+experiments separately. Preserve
+synchronous RAM stages and104MHz timing boundaries. Full request pipelining
+comes after these controlled changes; no multi-load-per-clock claim yet.
+
 Each row is a separate measured change; lettered substeps stay separate too.
 Use the benchmark IDs above plus the explicit cases listed. A coupled change
 must be declared as such before editing, with its interaction test, rather than

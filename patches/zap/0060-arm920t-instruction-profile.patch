@@ -1,0 +1,1554 @@
+--- a/src/rtl/zap_alu_main.sv
++++ b/src/rtl/zap_alu_main.sv
+@@ -348,10 +348,7 @@
+ logic [31:0]                      rm, rn;
+ 
+ // clz_rm = CLZ (rm)
+-logic [5:0]                       clz_rm;
+-
+-// Destination index about to be output.
+-logic [$clog2   (PHY_REGS)-1:0]      o_destination_index_nxt;
++logic [  $clog2   (PHY_REGS)-1:0]      o_destination_index_nxt;
+ 
+ // Wires which connect to an adder.
+ logic [31:0]                      op1;
+@@ -444,14 +441,10 @@
+ 
+ assign {op1, op2, cin}
+         = i_alu_operation_ff == {2'd0, ADD}     ? {rn,  rm, 1'd0}
+-        : i_alu_operation_ff == {1'd0, OP_QADD} ? {rn,  rm, 1'd0}
+-        : i_alu_operation_ff == {1'd0, OP_QDADD}? {rn,  rm, 1'd0}
+-        : i_alu_operation_ff == {2'd0, CMN}     ? {rn,  rm, 1'd0}
++        : i_alu_operation_ff == {  2'd0, CMN}     ? {rn,  rm, 1'd0}
+         : i_alu_operation_ff == {2'd0, ADC}     ? {rn,  rm, flags_ff[C]}
+ 
+-        : i_alu_operation_ff == {2'd0, SUB}     ? {rn, ~rm, 1'd1}
+-        : i_alu_operation_ff == {1'd0, OP_QSUB} ? {rn, ~rm, 1'd1}
+-        : i_alu_operation_ff == {1'd0, OP_QDSUB}? {rn, ~rm, 1'd1}
++        : i_alu_operation_ff == {2'd0, SUB  }? {rn, ~rm, 1'd1}
+         : i_alu_operation_ff == {2'd0, CMP}     ? {rn, ~rm, 1'd1}
+         : i_alu_operation_ff == {2'd0, SBC}     ? {rn, ~rm, flags_ff[C]}
+ 
+@@ -476,44 +469,7 @@
+ // CLZ logic.
+ // ----------------------------------------------------------------------------
+ 
+-always_comb // CLZ implementation.
+-begin
+-        casez(rm)
+-        32'b1???????????????????????????????:   clz_rm = 6'd00;
+-        32'b01??????????????????????????????:   clz_rm = 6'd01;
+-        32'b001?????????????????????????????:   clz_rm = 6'd02;
+-        32'b0001????????????????????????????:   clz_rm = 6'd03;
+-        32'b00001???????????????????????????:   clz_rm = 6'd04;
+-        32'b000001??????????????????????????:   clz_rm = 6'd05;
+-        32'b0000001?????????????????????????:   clz_rm = 6'd06;
+-        32'b00000001????????????????????????:   clz_rm = 6'd07;
+-        32'b000000001???????????????????????:   clz_rm = 6'd08;
+-        32'b0000000001??????????????????????:   clz_rm = 6'd09;
+-        32'b00000000001?????????????????????:   clz_rm = 6'd10;
+-        32'b000000000001????????????????????:   clz_rm = 6'd11;
+-        32'b0000000000001???????????????????:   clz_rm = 6'd12;
+-        32'b00000000000001??????????????????:   clz_rm = 6'd13;
+-        32'b000000000000001?????????????????:   clz_rm = 6'd14;
+-        32'b0000000000000001????????????????:   clz_rm = 6'd15;
+-        32'b00000000000000001???????????????:   clz_rm = 6'd16;
+-        32'b000000000000000001??????????????:   clz_rm = 6'd17;
+-        32'b0000000000000000001?????????????:   clz_rm = 6'd18;
+-        32'b00000000000000000001????????????:   clz_rm = 6'd19;
+-        32'b000000000000000000001???????????:   clz_rm = 6'd20;
+-        32'b0000000000000000000001??????????:   clz_rm = 6'd21;
+-        32'b00000000000000000000001?????????:   clz_rm = 6'd22;
+-        32'b000000000000000000000001????????:   clz_rm = 6'd23;
+-        32'b0000000000000000000000001???????:   clz_rm = 6'd24;
+-        32'b00000000000000000000000001??????:   clz_rm = 6'd25;
+-        32'b000000000000000000000000001?????:   clz_rm = 6'd26;
+-        32'b0000000000000000000000000001????:   clz_rm = 6'd27;
+-        32'b00000000000000000000000000001???:   clz_rm = 6'd28;
+-        32'b000000000000000000000000000001??:   clz_rm = 6'd29;
+-        32'b0000000000000000000000000000001?:   clz_rm = 6'd30;
+-        32'b00000000000000000000000000000001:   clz_rm = 6'd31;
+-        default:                                clz_rm = 6'd32; // All zeros.
+-        endcase
+-end
++  
+ 
+ // -----------------------------------------------------------------------------
+ // Sequential logic.
+@@ -661,7 +617,7 @@
+                 o_mem_unsigned_halfword_enable_ff<= i_mem_unsigned_halfword_enable_ff;
+                 o_mem_translate_ff               <= i_mem_translate_ff;
+                 sleep_ff                         <= sleep_nxt;
+-                o_und_ff                         <= i_und_ff;
++                o_und_ff                         <= i_und_ff && is_cc_satisfied(i_condition_code_ff, flags_ff[31:28]) ;
+ 
+                 o_clear_from_alu                <= |w_clear_from_alu;
+                 r_clear_from_alu                <=  w_clear_from_alu;
+@@ -829,8 +785,7 @@
+                 opcode == {2'd0, AND}     ||
+                 opcode == {2'd0, EOR}     ||
+                 opcode == {2'd0, MOV}     ||
+-                opcode == {  SAT_MOV}     ||
+-                opcode == {2'd0, MVN}     ||
++                opcode == {    2'd0, MVN}     ||
+                 opcode == {2'd0, BIC}     ||
+                 opcode == {2'd0, ORR}     ||
+                 opcode == {2'd0, TST}     ||
+@@ -842,7 +797,7 @@
+                         rn,
+                         rm,
+                         flags_ff[31:28],
+-                        opcode, opcode == SAT_MOV ? 1'd0 : i_flag_update_ff,
++                        opcode,    i_flag_update_ff,
+                         i_nozero_ff,
+                         i_shift_carry_ff
+                 );
+@@ -851,14 +806,9 @@
+                 // If SAT_MOV = 0x1
+                 // Set only Q flag (27) from shift stage. Don't touch other Flags.
+                 //
+-                if ( opcode == SAT_MOV )
+-                begin
+-                    tmp_flags[27:0] = {flags_ff[27] | i_shift_sat_ff, flags_ff[26:0]}; // Sticky 27.
+-                end
+-                else
+-                begin
++                  
+                     tmp_flags[27:0] = flags_ff[27:0];
+-                end
++                  
+         end
+ 
+         //
+@@ -900,17 +850,9 @@
+                         tmp_flags[31:28] = {sum[31],~|sum[31:0],sum[32],arith_overflow};
+                         tmp_flags[26:0]  = flags_ff[26:0];
+ 
+-                        if ( opcode == {1'd0, OP_QADD } ||
+-                             opcode == {1'd0, OP_QSUB } ||
+-                             opcode == {1'd0, OP_QDADD} ||
+-                             opcode == {1'd0, OP_QDSUB})
+-                        begin
+-                            tmp_flags[27] = (arith_overflow || i_shift_sat_ff || flags_ff[27]); // Sticky.
+-                        end
+-                        else
+-                        begin
++                          
+                             tmp_flags[27] = flags_ff[27];
+-                        end
++                          
+                 end
+                 else
+                 begin
+@@ -926,32 +868,10 @@
+ //
+ // Partially handle CLZ and saturating operations.
+ //
+-always_comb
+-begin
+-        if ( opcode == {1'd0, CLZ} )
+-        begin
+-                tmp_sum_x = {26'd0, clz_rm};
+-                valid_x   = 2'd1;
+-        end
+-        else if
+-        (
+-             opcode == {1'd0, OP_QADD } ||
+-             opcode == {1'd0, OP_QSUB } ||
+-             opcode == {1'd0, OP_QDADD} ||
+-             opcode == {1'd0, OP_QDSUB}
+-        )
+-        begin
+-                valid_x   = 2'd2;
+-                tmp_sum_x =  opcode == {1'd0, OP_QADD } ||
+-                             opcode == {1'd0, OP_QDADD} ?
+-                             {31'd0, rm[31]} : {31'd0, rn[31]};
+-        end
+-        else
+-        begin
+-            valid_x   = 2'd0;
+-            tmp_sum_x = '0;
+-        end
+-end
++ assign 
++                tmp_sum_x =  32'b0 ;
++                 assign valid_x   =  2'b0 ;
++          
+ 
+ // ----------------------------------------------------------------------------
+ // Flag propagation and branch prediction feedback unit
+@@ -962,12 +882,12 @@
+                     i_mem_load_ff;
+ 
+ assign  o_dav_nxt  = is_cc_satisfied ( i_condition_code_ff, flags_ff[31:28] )
+-                     || i_irq_ff || i_fiq_ff || i_abt_ff || i_und_ff;
++                     || i_irq_ff || i_fiq_ff || i_abt_ff   ;
+ 
+ assign  sleep_nxt  =    i_irq_ff   ||
+                         i_fiq_ff   ||
+                         i_abt_ff   ||
+-                        i_und_ff   ||
++                         ( i_und_ff    && o_dav_nxt) ||
+                         load_to_pc ||
+                         (i_swi_ff && o_dav_nxt);
+ 
+@@ -1152,7 +1072,7 @@
+         {2'd0, EOR}: rd = RN ^   RM;
+         {2'd0, BIC}: rd = RN & ~(RM);
+         {2'd0, MOV}: rd =        RM;
+-            SAT_MOV: rd =        RM;
++              
+         {2'd0, MVN}: rd =      ~(RM);
+         {2'd0, ORR}: rd = RN |   RM;
+         {2'd0, TST}: rd = RN &   RM; // Target is not written.
+@@ -1164,7 +1084,7 @@
+         // is not touched even if change is requested.
+         if ( flag_upd ) // 0x0 for SAT_MOV.
+         begin
+-                assert(op != SAT_MOV) else $fatal(2, "Flag upd SBZ for SAT_MOV.");
++                  
+ 
+                 flags_out[_C] = shift_carry;
+                 flags_out[_Z] = nozero ? 1'd0 : (rd == 0);
+--- a/src/rtl/zap_decode.sv
++++ b/src/rtl/zap_decode.sv
+@@ -132,301 +132,19 @@
+         begin
+                 casez ( instruction[31:0] )
+ 
+-                PLD:
++                 32'b????_0111_1111_0000_0000_0000_1111_0000 :
+                 begin
+                         // Generate a NOP i.e., R0 = R0 & R0.
+-                        o_condition_code    = AL;
+-                        o_alu_operation     = {2'd0, AND};
+-                        o_alu_source        = 0;
++                         o_und = 1'b1; o_condition_code    =  instruction[31:28] ;
++                        o_alu_operation     = {2'd0,  SUB };
++                        o_alu_source        =  {29'd0, ARCH_PC} ;
+                         o_alu_source[32]    = INDEX_EN;
+-                        o_destination_index = 0;
+-                        o_shift_source      = 0;
+-                        o_shift_source[32]  = IMMED_EN;
+-                        o_shift_operation   = {1'd0, LSL};
+-                        o_shift_length      = 0;
+-                        o_shift_length[32]  = IMMED_EN;
+-                end
+-
+-                SMLAxy, SMLAWy,
+-                SMLALxy:
+-                begin: tskLDecodeMultDsp
+-
+-                        o_condition_code        =       instruction[31:28];
+-                        o_flag_update           =       1'd1;
+-
+-                        // mode32 rd.
+-                        o_destination_index     =       {instruction[ZAP_DP_RD_EXTEND],
+-                                                         instruction[19:16]};
+-
+-                        // For MUL, Rd and Rn are interchanged.
+-                        // For 64bit, this is normally high register.
+-
+-                        o_alu_source            =       {29'd0, instruction[11:8]}; // mode32 rs
+-                        o_alu_source[32]        =       INDEX_EN;
+-
+-                        o_shift_source          =       {28'd0, instruction[ZAP_DP_RB_EXTEND],
+-                                                         instruction[`ZAP_DP_RB]};
+-                        o_shift_source[32]      =       INDEX_EN;            // mode32 rm
+-
+-                        o_shift_length          =       // mode32 rn.
+-                                                        {28'd0, instruction[ZAP_DP_RA_EXTEND],
+-                                                         instruction[`ZAP_DP_RD]};
+-
+-                        o_shift_length[32]      =       INDEX_EN;
+-
+-
+-                        // We need to generate output code.
+-                        casez ( instruction[31:0] )
+-
+-                        SMLAxy:
+-                        begin
+-                                o_alu_operation     = instruction[6:5] == 2'b00 ? SMLA00 :
+-                                                      instruction[6:5] == 2'b01 ? SMLA01 :
+-                                                      instruction[6:5] == 2'b10 ? SMLA10 :
+-                                                                                  SMLA11 ;
+-
+-
+-                                o_mem_srcdest_index = RAZ_REGISTER; // rh.
+-                        end
+-
+-                        SMLAWy:
+-                        begin
+-                                o_alu_operation     = instruction[6] ? SMLAW1 : SMLAW0;
+-
+-                                o_mem_srcdest_index = {1'd0, instruction[19:16]}; // rh
+-                        end
+-
+-                        SMLALxy:
+-                        begin
+-                                o_alu_operation     = instruction[6:5] == 2'b00 ? SMLAL00H :
+-                                                      instruction[6:5] == 2'b01 ? SMLAL01H :
+-                                                      instruction[6:5] == 2'b10 ? SMLAL10H :
+-                                                      instruction[6:5] == 2'b11 ? SMLAL11H : SMLAL11H ;
+-
+-                                o_mem_srcdest_index = {1'd0, instruction[19:16]}; // rh
+-                        end
+-
+-                        default:
+-                        begin
+-                                // Synth will OPTIMIZE. OK to do for FPGA synthesis.
+-                                {o_alu_operation, o_mem_srcdest_index} = 'x;
+-                        end
+-
+-                        endcase
+-
+-                        // Detect a low request.
+-                        if
+-                        (
+-                                instruction[ZAP_OPCODE_EXTEND] == 1'd0 &&
+-                                instruction[31:0] ==? SMLALxy
+-                        )
+-                        begin
+-                                        o_destination_index = {1'd0, instruction[15:12]}; // Low register.
+-
+-                                        o_alu_operation =
+-                                        instruction[6:5] == 2'b00 ? SMLAL00L :
+-                                        instruction[6:5] == 2'b01 ? SMLAL01L :
+-                                        instruction[6:5] == 2'b10 ? SMLAL10L :
+-                                                                    SMLAL11L;
+-
+-                                        // Ensure low register operation.
+-                                        assert ( o_alu_operation[0] == 1'd0 ) else
+-                                        $fatal(2, "ALU low bit not set to zero.");
+-                        end
+-                end
+-
+-
+-
+-                SMULWy, SMULxy:
+-                begin
+-                        o_condition_code    = instruction[31:28];
+-                        o_flag_update       = 1'd1;
+-
+-                        o_alu_operation = ((instruction[22:21] == 2'b01) && instruction[5] && instruction[15:12] == 0) ?
+-                                          (instruction[6] ? OP_SMULW0 : OP_SMULW1) :
+-                                          (instruction[6:5] == 2'b00 ? OP_SMUL00 :
+-                                           instruction[6:5] == 2'b01 ? OP_SMUL01 :
+-                                           instruction[6:5] == 2'b10 ? OP_SMUL10 :
+-                                           instruction[6:5] == 2'b11 ? OP_SMUL11 : OP_SMUL11) ;
+-
+-                        // mode32 rd
+-                        o_destination_index = {instruction[ZAP_DP_RD_EXTEND], instruction[19:16]};
+-
+-                        // mode32 Rs.
+-                        o_alu_source = {29'd0, instruction[11:8]};
+-                        o_alu_source[32] = INDEX_EN;
+-
+-                        // mode32 rm
+-                        o_shift_source = {28'd0, instruction[ZAP_DP_RB_EXTEND], instruction[`ZAP_DP_RB]};
+-                        o_shift_source[32] = INDEX_EN;
+-
+-                        // mode32 rm=0
+-                        o_shift_length     = 33'd0;
+-                        o_shift_length[32] = INDEX_EN;
+-
+-                        // Set rh=0
+-                        o_mem_srcdest_index = RAZ_REGISTER;
+-                end
+-
+-
+-                QADD:
+-                begin
+-                        o_condition_code        = instruction[31:28];
+-                        o_flag_update           = 1'd1;
+-
+-                        case(instruction[22:21])
+-                        2'b00: o_alu_operation         = {1'd0, OP_QADD};
+-                        2'b01: o_alu_operation         = {1'd0, OP_QSUB};
+-                        2'b10: o_alu_operation         = {1'd0, OP_QDADD};
+-                        2'b11: o_alu_operation         = {1'd0, OP_QDSUB};
+-                      default: o_alu_operation         = 'x; // Propagate X;
+-                        endcase
+-
+-                        // Processor does Rn - Rm.
+-
+-                        // Rn
+-                        o_alu_source            = {29'd0, instruction[3:0]};
+-                        o_alu_source[32]        = INDEX_EN;
+-
+-                        // Rm
+-                        o_shift_source          = {29'd0, instruction[19:16]};
+-                        o_shift_source[32]      = INDEX_EN;
+-
+-                        // Rs
+-                        o_shift_operation       = LSL_SAT;
+-                        o_shift_length          = 1;
+-                        o_shift_length[32]      = IMMED_EN;
+-
+-                        // Destination index.
+-                        o_destination_index     = {1'd0, instruction[15:12]};
+-                end
+-
+-
+-                QSUB:
+-                begin
+-                        o_condition_code        = instruction[31:28];
+-                        o_flag_update           = 1'd1;
+-
+-                        case(instruction[22:21])
+-                        2'b00: o_alu_operation         = {1'd0, OP_QADD};
+-                        2'b01: o_alu_operation         = {1'd0, OP_QSUB};
+-                        2'b10: o_alu_operation         = {1'd0, OP_QDADD};
+-                        2'b11: o_alu_operation         = {1'd0, OP_QDSUB};
+-                      default: o_alu_operation         = 'x; // Propagate X;
+-                        endcase
+-
+-                        // Processor does Rn - Rm.
+-
+-                        // Rn
+-                        o_alu_source            = {29'd0, instruction[3:0]};
+-                        o_alu_source[32]        = INDEX_EN;
+-
+-                        // Rm
+-                        o_shift_source          = {29'd0, instruction[19:16]};
+-                        o_shift_source[32]      = INDEX_EN;
+-
+-                        // Rs
+-                        o_shift_operation       = LSL_SAT;
+-                        o_shift_length          = 1;
+-                        o_shift_length[32]      = IMMED_EN;
+-
+-                        // Destination index.
+-                        o_destination_index     = {1'd0, instruction[15:12]};
+-                end
+-
+-
+-                QDADD:
+-                begin
+-                        o_condition_code        = instruction[31:28];
+-                        o_flag_update           = 1'd1;
+-
+-                        case(instruction[22:21])
+-                        2'b00: o_alu_operation         = {1'd0, OP_QADD};
+-                        2'b01: o_alu_operation         = {1'd0, OP_QSUB};
+-                        2'b10: o_alu_operation         = {1'd0, OP_QDADD};
+-                        2'b11: o_alu_operation         = {1'd0, OP_QDSUB};
+-                      default: o_alu_operation         = 'x; // Propagate X;
+-                        endcase
+-
+-                        // Processor does Rn - Rm.
+-
+-                        // Rn
+-                        o_alu_source            = {29'd0, instruction[3:0]};
+-                        o_alu_source[32]        = INDEX_EN;
+-
+-                        // Rm
+-                        o_shift_source          = {29'd0, instruction[19:16]};
+-                        o_shift_source[32]      = INDEX_EN;
+-
+-                        // Rs
+-                        o_shift_operation       = LSL_SAT;
+-                        o_shift_length          = 1;
+-                        o_shift_length[32]      = IMMED_EN;
+-
+-                        // Destination index.
+-                        o_destination_index     = {1'd0, instruction[15:12]};
+-                end
+-
+-
+-                QDSUB:
+-                begin
+-                        o_condition_code        = instruction[31:28];
+-                        o_flag_update           = 1'd1;
+-
+-                        case(instruction[22:21])
+-                        2'b00: o_alu_operation         = {1'd0, OP_QADD};
+-                        2'b01: o_alu_operation         = {1'd0, OP_QSUB};
+-                        2'b10: o_alu_operation         = {1'd0, OP_QDADD};
+-                        2'b11: o_alu_operation         = {1'd0, OP_QDSUB};
+-                      default: o_alu_operation         = 'x; // Propagate X;
+-                        endcase
+-
+-                        // Processor does Rn - Rm.
+-
+-                        // Rn
+-                        o_alu_source            = {29'd0, instruction[3:0]};
+-                        o_alu_source[32]        = INDEX_EN;
+-
+-                        // Rm
+-                        o_shift_source          = {29'd0, instruction[19:16]};
+-                        o_shift_source[32]      = INDEX_EN;
+-
+-                        // Rs
+-                        o_shift_operation       = LSL_SAT;
+-                        o_shift_length          = 1;
+-                        o_shift_length[32]      = IMMED_EN;
+-
+-                        // Destination index.
+-                        o_destination_index     = {1'd0, instruction[15:12]};
+-                end
+-
+-
+-
+-                CLZ_INSTRUCTION:
+-                begin: tskDecodeClz
+-                        o_condition_code        =       instruction[31:28];
+-                        o_flag_update           =       1'd0; // Instruction does not update any flags.
+-                        o_alu_operation         =       {1'd0, CLZ};
+-
+-                        // Rn = 0.
+-                        o_alu_source            =       33'd0;
+-                        o_alu_source[32]        =       IMMED_EN;
+-
+-                        // Rm = register whose CLZ must be found.
+-                        o_shift_source          =       {28'd0, instruction[ZAP_DP_RB_EXTEND], instruction[`ZAP_DP_RB]}; // Rm
+-                        o_shift_source[32]      =       INDEX_EN;
++                        o_destination_index =  {1'd0, ARCH_LR} ;
++                        o_shift_source      =  33'd4 ;
++                        o_shift_source[32]  = IMMED_EN  ;
+                         o_shift_operation       =       {1'd0, LSL};
+                         o_shift_length          =       33'd0;
+-                        o_shift_length[32]      =       IMMED_EN; // Shift length is 0 of course.
+-
+-                        assert(o_shift_source != 'd15) else
+-                        $info("Warning: CLZ with source R15 is unpredictable.");
+-
+-                        // Destination index.
+-                        o_destination_index     =       {1'd0, instruction[15:12]};
+-
+-                        assert(o_destination_index != 'd15) else
+-                        $info("Warning: CLZ to destination R15 is unpredictable.");
++                        o_shift_length[32]      =       IMMED_EN  ;
+                 end
+ 
+ 
+@@ -829,7 +547,7 @@
+                     o_und = 1'd1;
+ 
+                     // Generate LR = PC - 4
+-                    o_condition_code    = AL;
++                    o_condition_code    =  instruction[31:28] ;
+                     o_alu_operation     = {2'd0, SUB};
+                     o_alu_source        = {29'd0, ARCH_PC};
+                     o_alu_source[32]    = INDEX_EN;
+--- a/src/rtl/zap_decode_main.sv
++++ b/src/rtl/zap_decode_main.sv
+@@ -348,7 +348,7 @@
+                 o_swi_ff                                <= o_swi_nxt;
+                 o_abt_ff                                <= o_abt_nxt;
+                 o_und_ff                                <= o_und_nxt | i_mode16_und;
+-                o_condition_code_ff                     <= o_condition_code_nxt;
++                o_condition_code_ff                     <=  i_mode16_und ? AL : o_condition_code_nxt;
+                 o_destination_index_ff                  <= o_destination_index_nxt;
+                 o_alu_source_ff                         <= o_alu_source_nxt;
+                 o_alu_operation_ff                      <= o_alu_operation_nxt;
+--- a/src/rtl/zap_fetch_main.sv
++++ b/src/rtl/zap_fetch_main.sv
+@@ -129,21 +129,7 @@
+                 o_taken         <= i_taken;
+ 
+                 // Detect breakpoint. These are unconditional.
+-                if ( (~i_cpsr_ff_t) & (i_instruction ==? BKPT) )
+-                begin
+-                        o_instr_abort <= 1'd1;
+-                end
+-                else if ( i_cpsr_ff_t )
+-                begin
+-                        if ( i_pc_ff[1] && i_instruction[31:16] ==? T_BKPT )
+-                        begin
+-                                o_instr_abort <= 1'd1;
+-                        end
+-                        else if ( !i_pc_ff[1] && i_instruction[15:0] ==? T_BKPT )
+-                        begin
+-                                o_instr_abort <= 1'd1;
+-                        end
+-                end
++                  
+ 
+                 // Put unit to sleep on an abort.
+                 sleep_ff        <= i_instr_abort;
+--- a/src/rtl/zap_mode16_decoder.sv
++++ b/src/rtl/zap_mode16_decoder.sv
+@@ -143,9 +143,7 @@
+                 else if ( i_instruction[15:0] ==? T_BLX2 ) // T_BLX2
+ 
+                         begin
+-                                o_instruction[34:0] = {3'd0, 4'b1110,4'b0001,4'b0010,4'b1111,4'b1111,4'b1111,4'b0011, i_instruction[6:3]};
+-                                o_irq         = 1'd0;
+-                                o_fiq         = 1'd0;
++                                 o_und  =  1'b1 ;
+                         end
+ 
+ 
+@@ -162,7 +160,7 @@
+                 else if ( i_instruction[15:0] ==? T_BKPT ) // T_BKPT
+ 
+                         begin: decodeBkPt
+-                                o_instruction[31:0] = 32'b1110_00010010_0000_0000_0000_0111_0000;
++                                 o_und  =  1'b1 ;
+                         end
+ 
+ 
+@@ -171,25 +169,19 @@
+                         casez ( i_instruction[15:0] )
+                         T_BLX1                  :
+                         begin
+-                                o_instruction[34:0] = 35'd0; // Default value.
+-
+-                                // Generate a BLX1. Subtract 1 to indicate relative to previous one.
+-                                o_instruction[31:25] =  7'b1111_101;    // BLX1 identifier.
+-                                o_instruction[24]    =  1'd0;           // H - bit.
+-                                o_instruction[23:0]  =  ($signed({offset_w[10], offset_w[10], offset_w[10:0], i_instruction[10:0]}));
+-                                o_instruction[23:0]--;
+-                                o_instruction[34]    =  1'd1;
+-                                o_irq                =  1'd0;
+-                                o_fiq                =  1'd0;
++                                 o_und  =  1'b1 ;
+                         end
+ 
+ 
+                         T_BRANCH_COND           :
+-                        begin
++                         begin
++            if (i_instruction[11:8] == 4'he) begin
++              o_und = 1'b1; // Reserved conditional branch, not an AL branch.
++            end else begin
+                                 // An MSB of 1 indicates a left shift of 1 in the down stages.
+                                 o_instruction[34:0]     = {1'd1, 2'b0, i_instruction[11:8], 3'b101, 1'b0, 24'd0};
+                                 o_instruction[23:0]     = $signed({{16{i_instruction[7]}}, i_instruction[7:0]});
+-                        end
++                         end end
+ 
+ 
+                         T_BRANCH_NOCOND         :
+--- a/src/rtl/zap_predecode_coproc.sv
++++ b/src/rtl/zap_predecode_coproc.sv
+@@ -130,7 +130,7 @@
+         IDLE:
+                 // Activate only if no 16-bit, not in USER mode and CP15 access is requested.
+                 casez ( (!i_cpsr_ff_t && (i_instruction[34:32] == 3'd0) && i_valid) ? i_instruction[31:0] : 32'd0 )
+-                MRC, MCR, LDC, STC, CDP, MRC2, MCR2, LDC2, STC2:
++                MRC, MCR  :
+                 begin
+                         if ( i_instruction[11:8] == 4'b1111 && i_cpsr_ff_mode != USR )  // CP15 and root access -- perfectly fine.
+                         begin
+--- a/src/rtl/zap_predecode_main.sv
++++ b/src/rtl/zap_predecode_main.sv
+@@ -322,7 +322,17 @@
+ end
+ 
+ // This unit handles coprocessor stuff.
+-zap_predecode_coproc
++ `include "zap_armv4t.svh"
++
++  // Reject guest-only extensions before they can issue memory/CP15 side effects.
++  // Preserve the original condition for late flags; Thumb UND is unconditional.
++  wire profile_und = skid_instruction_valid &&
++      (skid_und || (!i_cpu_mode_t && skid_instruction[34:32] == 3'd0 &&
++                    armv4t_unsupported(skid_instruction[31:0], i_cpu_mode_mode)));
++  wire [3:0] profile_condition = (skid_und || skid_instruction[31:28] == 4'hf) ?
++      AL : skid_instruction[31:28];
++  wire [34:0] profile_instruction = profile_und ?
++      {3'd0, profile_condition, 28'h7f000f0} : skid_instruction; zap_predecode_coproc
+ #(
+         .PHY_REGS(PHY_REGS)
+ )
+@@ -333,7 +343,7 @@
+         .i_reset(i_reset),
+         .i_irq(skid_irq),
+         .i_fiq(skid_fiq),
+-        .i_instruction(skid_instruction_valid ? skid_instruction : 35'd0),
++        .i_instruction(skid_instruction_valid ?  profile_instruction  : 35'd0),
+         .i_valid(skid_instruction_valid),
+         .i_cpsr_ff_t(i_cpu_mode_t),
+         .i_cpsr_ff_mode(i_cpu_mode_mode),
+--- a/src/rtl/zap_predecode_uop_sequencer.sv
++++ b/src/rtl/zap_predecode_uop_sequencer.sv
+@@ -98,7 +98,7 @@
+ logic          unused;
+ logic  [11:0]  oc_offset;                  // Ones counter offset.
+ logic  [15:0]  reglist_ff, reglist_nxt;    // Register list.
+-logic  [31:0]  const_ff, const_nxt;        // For BLX - const reg.
++          // For BLX - const reg.
+ 
+ ////////////////////////////////////////////////////////////////////////////////
+ 
+@@ -108,28 +108,15 @@
+ 
+ ///////////////////////////////////////////////////////////////////////////////
+ 
+-enum logic [20:0] {
+-        IDLE            = 21'd1 << 0 ,
+-        MEMOP           = 21'd1 << 1 ,
+-        WRITE_PC        = 21'd1 << 2 ,
+-        SWAP1           = 21'd1 << 3 ,
+-        SWAP2           = 21'd1 << 4 ,
+-        LMULT_BUSY      = 21'd1 << 5 ,
+-        BL_S1           = 21'd1 << 6 ,
+-        BLX1_STATE_S0   = 21'd1 << 7 ,
+-        BLX1_STATE_S1   = 21'd1 << 8 ,
+-        BLX1_STATE_S2   = 21'd1 << 9 ,
+-        BLX1_STATE_S3   = 21'd1 << 10 ,
+-        BLX1_STATE_S4   = 21'd1 << 11 ,
+-        BLX1_STATE_S5   = 21'd1 << 12 ,
+-        BLX2_STATE_S0   = 21'd1 << 13 ,
+-        LDRD_STRD_S0    = 21'd1 << 14 ,
+-        LDRD_STRD_S1    = 21'd1 << 15 ,
+-        LDR_TO_PC_S0    = 21'd1 << 16 ,
+-        DEP_WAIT        = 21'd1 << 17 ,
+-        DEP_WAIT_1      = 21'd1 << 18 ,
+-        DEP_WAIT_2      = 21'd1 << 19 ,
+-        DEP_WAIT_3      = 21'd1 << 20 ,
++enum logic [ 7 :0] {
++        IDLE            =  8'd1  << 0 ,
++        MEMOP           =  8'd1  << 1 ,
++        WRITE_PC        =  8'd1  << 2 ,
++        SWAP1           =  8'd1  << 3 ,
++        SWAP2           =  8'd1  << 4 ,
++        LMULT_BUSY      =  8'd1  << 5 ,
++        BL_S1           =  8'd1  << 6 ,
++         LDR_TO_PC_S0    =  8'd1  << 7    ,
+         `ZAP_DEFAULT_XX
+ } state_ff, state_nxt;
+ 
+@@ -144,7 +131,7 @@
+         // (Done to avoid combo loops/incomplete assignments)
+         // ========================================
+ 
+-        const_nxt = const_ff;
++          
+ 
+         // Block interrupts by default.
+         o_irq = 0;
+@@ -181,345 +168,18 @@
+                         state_nxt = IDLE;
+                 end
+ 
+-                BLX1_STATE_S0: // SCONST = ($signed(constant) << 2) + ( H(i.e., [24]) << 1 ))
+-                begin
+-                        o_stall_from_decode = 1'd1;
+-
+-                        const_nxt = ( { {8{i_instruction[23]}} , i_instruction[23:0] } << 2 ) +
+-                                    ( {31'd0, i_instruction[24]} << 1 );
+-
+-                        // MOV DUMMY0, SCONST[7:0] ror 0
+-                        o_instruction[31:0] = {AL, 2'b00, 1'b1, MOV, 1'd0, 4'd0, 4'd0, 4'd0, const_nxt[7:0]};
+-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
+-
+-                        state_nxt = BLX1_STATE_S1;
+-                end
+-
+-                // The 3 states here try to build up a constant in the internal register using immediate+rotates.
+-                // ROR x, y = x >> y | x << (32 - y)
+-
+-                BLX1_STATE_S1:
+-                begin
+-                        o_stall_from_decode = 1'd1;
+-
+-                        // ORR DUMMY0, DUMMY0, SCONST[15:8]  ror 12*2
+-                        o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd12, const_nxt[15:8]};
+-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
+-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
+-
+-                        state_nxt = BLX1_STATE_S2;
+-                end
+-
+-                BLX1_STATE_S2:
+-                begin
+-                        o_stall_from_decode = 1'd1;
+-
+-                        // ORR DUMMY0, DUMMY0, SCONST[23:16] ror 8*2
+-                         o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd8, const_nxt[23:16]};
+-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
+-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
+-
+-                        state_nxt = BLX1_STATE_S3;
+-                end
+-
+-                BLX1_STATE_S3:
+-                begin
+-                        o_stall_from_decode = 1'd1;
+-
+-                        // ORR DUMMY0, DUMMY0, SCONST[31:24] ror 4*2
+-                         o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd4, const_nxt[31:24]};
+-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
+-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
+-
+-                        state_nxt = BLX1_STATE_S4;
+-                end
+-
+-                BLX1_STATE_S4:
+-                begin
+-                        o_stall_from_decode = 1'd1;
+-
+-                        // ORR DUMMY0, DUMMY0, 1 - Needed to indicate a switch
+-                        // to mode16 if needed.
+-                         o_instruction[31:0] = {AL, 2'b00, 1'b1, ORR, 1'd0, 4'd0, 4'd0, 4'd0, !i_cpsr_t ? 8'd1 : 8'd0};
+-                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]} = ARCH_DUMMY_REG0;
+-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
+-
+-                        state_nxt = BLX1_STATE_S5;
+-                end
+-
+-                BLX1_STATE_S5:
+-                begin
+-                        // Remove stall.
+-                        o_stall_from_decode = 1'd0;
+-
+-                        // BX DUMMY0
+-                        o_instruction = {8'd0, 32'hE12FFF10};
+-                        {o_instruction[ZAP_DP_RB_EXTEND], o_instruction[`ZAP_DP_RB]} = ARCH_DUMMY_REG0;
+-
+-                        state_nxt = IDLE;
+-                end
+-
+-                BLX2_STATE_S0:
+-                begin
+-                        // Remove stall.
+-                        o_stall_from_decode     = 1'd0;
+-
+-                        // BX Rm. Just remove the L bit. Conditional is passed
+-                        // on.
+-                        o_instruction           = {5'd0, i_instruction};
+-                        o_instruction[5]        = 1'd0;
+-
+-                        state_nxt               = IDLE;
+-                end
+-
+-                LDRD_STRD_S0:
+-                begin
+-                        o_stall_from_decode = 1'd0;
+-
+-                        o_instruction[31:28] = i_instruction[31:28];
+-                        o_instruction[27:26] = 2'b01;
+-                        o_instruction[15:12] = i_instruction[15:12] + 1;
+-                        o_instruction[24:23] = i_instruction[24:23];
+-                        o_instruction[19:16] = i_instruction[19:16];
+-                        o_instruction[22]    = 1'd0;
+-
+-                        // If writeback was specified, generate LDR Rdata, [Raddress, #4] for the next load.
+-                        // Make it pre-indexing without writeback in this case.
+-                        if ( i_instruction[21] )
+-                        begin
+-                                o_instruction[11:0] = 12'd4;
+-                                o_instruction[25]   = 1'd1;
+-                                o_instruction[21]   = 1'd0;
+-                        end
+-                        else // No writeback.
+-                        begin
+-                                if ( i_instruction[22] )
+-                                begin
+-                                        // If no writeback was specified, issue +4 to immediate (for I mode) for the next
+-                                        // address.
+-                                        o_instruction[11:0]  = o_instruction[11:0] + 12'd4;
+-                                        o_instruction[25]    = 1'd1;
+-                                        state_nxt            = IDLE;
+-                                end
+-                                else
+-                                begin
+-
+-                                        // If no writeback was specified and in register mode, issue + 4 to the register.
+-                                        // This requires the register to be temporarily added by 4.
+-                                        // 1.
+-                                        // Generate ADDAL ARCH_DUMMY_REG0, Register, #4
+-
+-                                        o_instruction[31:0] =
+-                                        {AL, 2'b00, 1'b1, ADD, 1'd0, 4'd0, i_instruction[19:16], 12'd4};
+-
+-                                        {o_instruction[ZAP_DP_RD_EXTEND], o_instruction[`ZAP_DP_RD]}= ARCH_DUMMY_REG0;
+-
+-                                        state_nxt = LDRD_STRD_S1;
+-
+-                                        o_stall_from_decode = 1'd1;
+-
+-                                end
+-                        end
+-
+-                        if ( i_instruction[6:5] == 2'b11 )
+-                        begin
+-                                o_instruction[20] = 1'd0;       // Store
+-                        end
+-                        else
+-                        begin
+-                                o_instruction[20] = 1'd1;       // Load
+-                        end
+-                end
+-
+-                LDRD_STRD_S1:
+-                begin
+-                        o_stall_from_decode  = 1'd0;
+-                        o_instruction[31:28] = i_instruction[31:28];
+-
+-                        // Use arch dummy reg0 as the base address since it was incremented by 4.
+-                        o_instruction[15:12] = i_instruction[15:12] + 1;
+-                        o_instruction[27:26] = 2'b01;
+-                        o_instruction[25]    = 1'd0;
+-                        o_instruction[11:0]  = i_instruction[11:0];
+-                        o_instruction[24:23] = i_instruction[24:23];
+-                        o_instruction[22]    = 1'd0;
+-                        o_instruction[21]    = i_instruction[21];
+-                        o_instruction[15:12] = i_instruction[15:12];
+-                        {o_instruction[ZAP_DP_RA_EXTEND], o_instruction[`ZAP_DP_RA]} = ARCH_DUMMY_REG0;
+-
+-                        if ( i_instruction[6:5] == 2'b11 )
+-                        begin
+-                                o_instruction[20] = 1'd0;       // Store
+-                        end
+-                        else
+-                        begin
+-                                o_instruction[20] = 1'd1;       // Load
+-                        end
+-
+-                        state_nxt = IDLE;
+-                end
+-
+-                // Issue ANDEQ R0, R0, R0 - block interrupts.
+-                DEP_WAIT, DEP_WAIT_1, DEP_WAIT_2:
+-                begin
+-                        o_stall_from_decode = 1'd1;
+-                        o_instruction       = '0;
+-                        state_nxt           =
+-                                state_ff == DEP_WAIT   ? DEP_WAIT_1 :
+-                                state_ff == DEP_WAIT_1 ? DEP_WAIT_2 :
+-                                state_ff == DEP_WAIT_2 ? DEP_WAIT_3 :
+-                                state_ff;
+-
+-                end
+-
+-                // Issue ANDEQ R0, R0, R0 - block interrupts.
+-                DEP_WAIT_3:
+-                begin
+-                        o_stall_from_decode = 1'd0;
+-                        o_instruction       = '0;
+-                        state_nxt           = IDLE;
+-                end
++                  
+ 
+                 IDLE:
+                 begin
+                         // CLZ and saturating instruction - gap the issue.
+-                        if (
+-                               (i_instruction[31:0] ==? CLZ_INSTRUCTION ||
+-                                i_instruction[31:0] ==? QADD            ||
+-                                i_instruction[31:0] ==? QSUB            ||
+-                                i_instruction[31:0] ==? QDADD           ||
+-                                i_instruction[31:0] ==? QDSUB)          &&
+-                                i_instruction_valid
+-                        )
+-                        begin
+-                                state_nxt           = DEP_WAIT;
+-                                o_stall_from_decode = 1'd1;
+-                                o_instruction       = {5'd0, i_instruction};
+-                                o_irq               = i_irq;
+-                                o_fiq               = i_fiq;
+-                        end
+-                        // Instruction in coprocessor space.
+-                        else if (
++                           if (
+                              (i_instruction[31:0] ==? MRC   ||
+-                              i_instruction[31:0] ==? MCR   ||
+-                              i_instruction[31:0] ==? LDC   ||
+-                              i_instruction[31:0] ==? STC   ||
+-                              i_instruction[31:0] ==? CDP   ||
+-                              i_instruction[31:0] ==? MCR2  ||
+-                              i_instruction[31:0] ==? LDC2  ||
+-                              i_instruction[31:0] ==? STC2) &&
++                              i_instruction[31:0] ==? MCR     ) &&
+                               i_instruction_valid
+                         )
+                         begin
+-                                o_instruction_valid = 1'd0;
+-                        end
+-                        // LDRD and STRD. First reg should be EVEN.
+-                        else if
+-                            ( i_instruction[27:25] == 3'b000                                &&
+-                             i_instruction[20]    == 1'd0                                   &&
+-                             ( i_instruction[6:5] == 2'b10 || i_instruction[6:5] == 2'b11 ) &&
+-                             i_instruction[12]    == 1'd0                                   &&
+-                             i_instruction[7]     == 1'd1                                   &&
+-                             i_instruction[4]     == 1'd1                                   &&
+-                             i_instruction_valid )
+-                        begin
+-                                // If writeback is specified, the address of the second load is the writeback value
+-                                // with 4 added to it. The written back value holds the result of executing the
+-                                // first load.
+-                                //
+-                                // If writeback is not specified, the address of the second load is 4 more than the
+-                                // address of the first load.
+-
+-                                o_stall_from_decode = 1'd1;
+-
+-                                o_instruction[27:26] = 2'b01;  // Make it an classic load-store.
+-
+-                                // Specify addressing mode.
+-                                if ( i_instruction[22] ) // Immediate.
+-                                begin
+-                                        o_instruction[25]    = 1'd1;
+-                                        o_instruction[11:0]  = $signed({i_instruction[11],
+-                                                                        i_instruction[11],
+-                                                                        i_instruction[11],
+-                                                                        i_instruction[11],
+-                                                                        i_instruction[11:8],
+-                                                                        i_instruction[3:0]});
+-                                end
+-                                else
+-                                begin
+-                                        o_instruction[25]    = 1'd0;
+-                                        o_instruction[11:0]  = i_instruction[11:0];
+-                                end
+-
+-                                o_instruction[24:23] = i_instruction[24:23];
+-                                o_instruction[22]    = 1'd0;
+-                                o_instruction[21]    = i_instruction[21];
+-
+-                                // Load or Store.
+-                                if ( i_instruction[6:5] == 2'b11 )
+-                                begin
+-                                        o_instruction[20] = 1'd0;       // Store
+-                                end
+-                                else
+-                                begin
+-                                        o_instruction[20] = 1'd1;       // Load
+-                                end
+-
+-                                o_instruction[19:12] = i_instruction[19:12];
+-
+-                                state_nxt            = LDRD_STRD_S0;
+-
+-                                // Fine to give IRQs.
+-                                o_irq = i_irq;
+-                                o_fiq = i_fiq;
+-                        end
+-                        // BLX1 detected. Unconditional!!!
+-                        // Immediate Offset.
+-                        else if ( i_instruction[31:25] == BLX1[31:25] && i_instruction_valid )
+-                        begin
+-                                // We must generate a SUBAL LR,PC,4 ROR 0
+-                                // This makes LR have the value
+-                                // PC+8-4=PC+4 which is the address of
+-                                // the next instruction. This is in 32bit mode.
+-                                o_instruction[31:0]           = {AL, 2'b00, 1'b1, SUB, 1'd0, 4'd15, 4'd14, 12'd4};
+-
+-                                // In mode16 mode, we must generate PC+4-2. Modify it.
+-                                if ( i_cpsr_t )
+-                                begin
+-                                        o_instruction[11:0] = 12'd2; // Modify the instruction.
+-                                end
+-
+-                                o_stall_from_decode     = 1'd1; // Stall the core.
+-                                state_nxt               = BLX1_STATE_S0;
+-
+-                                o_irq = i_irq;
+-                                o_fiq = i_fiq;
+-                        end
+-                        // BLX2 detected. Register offset. CONDITIONAL.
+-                        else if ( i_instruction[27:4] == BLX2[27:4] && i_instruction_valid )
+-                        begin
+-                                // Write address of next instruction to LR. Now this
+-                                // depends on the mode we're in. Mode in the sense
+-                                // 16/32bit. We need to look at i_cpsr_t.
+-
+-                                // We need to generate a SUBcc LR,PC,4 ROR 0
+-                                // to store the next instruction address in
+-                                // LR. This is in 32bit mode.
+-                                o_instruction[31:0]     =
+-                                {i_instruction[31:28], 2'b00, 1'b1, SUB, 1'd0, 4'd15, 4'd14, 12'd4};
+-
+-                                // In mode16 mode, we need to remove 2 from PC
+-                                // instead of 4. Modify it.
+-                                if ( i_cpsr_t )
+-                                begin
+-                                        o_instruction[11:0] = 12'd2; // modify instr.
+-                                end
+-
+-                                o_stall_from_decode     = 1'd1; // Stall the core.
+-                                state_nxt               = BLX2_STATE_S0;
+-
+-                                o_irq = i_irq;
+-                                o_fiq = i_fiq;
++                                o_instruction_valid = 1'd0  ;
+                         end
+                         // LDM/STM detected...
+                         else if ( id == 3'b100 && i_instruction_valid )
+@@ -577,20 +237,7 @@
+                         end
+                         else if ( i_instruction[27:23] == 5'd1    &&
+                                   i_instruction[7:4]   == 4'b1001 &&
+-                                  i_instruction_valid )
+-                        begin
+-                                 // LMULT
+-                                 state_nxt           = LMULT_BUSY;
+-                                 o_stall_from_decode = 1'd1;
+-                                 o_irq               = i_irq;
+-                                 o_fiq               = i_fiq;
+-                                 o_instruction       = {5'd0, i_instruction};
+-                                 o_instruction_valid = i_instruction_valid;
+-                        end
+-                        else if (  i_instruction[27:23] == 5'b00010 &&
+-                                   i_instruction[22:21] == 2'b10    &&
+-                                  !i_instruction[20]                &&
+-                                   i_instruction[7] && i_instruction[4] )
++                                  i_instruction_valid    )
+                         begin
+                                 // LMULT
+                                 state_nxt = LMULT_BUSY;
+@@ -801,8 +448,7 @@
+                 begin
+                         state_nxt = XX;
+ 
+-                        {const_nxt
+-                        ,o_stall_from_decode
++                        {  o_stall_from_decode
+                         ,o_irq
+                         ,o_fiq
+                         ,o_instruction
+@@ -911,7 +557,7 @@
+         begin
+                 state_ff                <= IDLE;
+                 reglist_ff              <= {16{1'dx}};
+-                const_ff                <= {32{1'dx}};
++                  
+         end
+         else if
+         (
+@@ -922,13 +568,12 @@
+         begin
+                 state_ff                <= IDLE;
+                 reglist_ff              <= {16{1'dx}};
+-                const_ff                <= {32{1'dx}};
++                  
+         end
+         else if ( !i_stall_from_shifter && !i_issue_stall && !i_data_stall )
+         begin
+                 state_ff   <= state_nxt;
+-                reglist_ff <= reglist_nxt;
+-                const_ff   <= const_nxt;
++                reglist_ff <= reglist_nxt  ;
+         end
+ end
+ 
+--- a/src/rtl/zap_shifter_main.sv
++++ b/src/rtl/zap_shifter_main.sv
+@@ -309,29 +309,7 @@
+                                                  i_alu_operation_ff == {1'd0, SMLALL} ||
+                                                  i_alu_operation_ff == {1'd0, SMLALH}
+                                                 ) ? {2'd0, MOV} :
+-                                                (
+-                                                i_alu_operation_ff == SMULW0     ||
+-                                                i_alu_operation_ff == SMULW1     ||
+-                                                i_alu_operation_ff == SMUL00     ||
+-                                                i_alu_operation_ff == SMUL01     ||
+-                                                i_alu_operation_ff == SMUL10     ||
+-                                                i_alu_operation_ff == SMUL11     ||
+-                                                i_alu_operation_ff == SMLA00     ||
+-                                                i_alu_operation_ff == SMLA01     ||
+-                                                i_alu_operation_ff == SMLA10     ||
+-                                                i_alu_operation_ff == SMLA11     ||
+-                                                i_alu_operation_ff == SMLAW0     ||
+-                                                i_alu_operation_ff == SMLAW1     ||
+-                                                i_alu_operation_ff == SMLAL00L   ||
+-                                                i_alu_operation_ff == SMLAL01L   ||
+-                                                i_alu_operation_ff == SMLAL10L   ||
+-                                                i_alu_operation_ff == SMLAL11L   ||
+-                                                i_alu_operation_ff == SMLAL00H   ||
+-                                                i_alu_operation_ff == SMLAL01H   ||
+-                                                i_alu_operation_ff == SMLAL10H   ||
+-                                                i_alu_operation_ff == SMLAL11H
+-                                                ) ?
+-                                                 SAT_MOV :
++                                                  
+                                                  i_alu_operation_ff;
+ 
+            o_flag_update_ff                  <= i_flag_update_ff;
+@@ -402,27 +380,7 @@
+         if ( i_alu_operation_ff == {1'd0, UMLALL} ||
+              i_alu_operation_ff == {1'd0, UMLALH} ||
+              i_alu_operation_ff == {1'd0, SMLALL} ||
+-             i_alu_operation_ff == {1'd0, SMLALH} ||
+-             i_alu_operation_ff == SMULW0         ||
+-             i_alu_operation_ff == SMULW1         ||
+-             i_alu_operation_ff == SMUL00         ||
+-             i_alu_operation_ff == SMUL01         ||
+-             i_alu_operation_ff == SMUL10         ||
+-             i_alu_operation_ff == SMUL11         ||
+-             i_alu_operation_ff == SMLA00         ||
+-             i_alu_operation_ff == SMLA01         ||
+-             i_alu_operation_ff == SMLA10         ||
+-             i_alu_operation_ff == SMLA11         ||
+-             i_alu_operation_ff == SMLAW0         ||
+-             i_alu_operation_ff == SMLAW1         ||
+-             i_alu_operation_ff == SMLAL00L       ||
+-             i_alu_operation_ff == SMLAL01L       ||
+-             i_alu_operation_ff == SMLAL10L       ||
+-             i_alu_operation_ff == SMLAL11L       ||
+-             i_alu_operation_ff == SMLAL00H       ||
+-             i_alu_operation_ff == SMLAL01H       ||
+-             i_alu_operation_ff == SMLAL10H       ||
+-             i_alu_operation_ff == SMLAL11H
++             i_alu_operation_ff == {1'd0, SMLALH}   
+         )
+         begin
+                 // Get result from multiplier.
+--- a/src/rtl/zap_shifter_multiply.sv
++++ b/src/rtl/zap_shifter_multiply.sv
+@@ -63,15 +63,14 @@
+ 
+ // States
+ 
+-localparam [31:0] NUMBER_OF_STATES = 6;
++localparam [31:0] NUMBER_OF_STATES =  5 ;
+ 
+ typedef enum logic [NUMBER_OF_STATES-1:0] {
+-        IDLE          = 6'b000_001,
+-        POST_IDLE     = 6'b000_010,
+-        S1            = 6'b000_100,
+-        S2            = 6'b001_000,
+-        S3            = 6'b010_000,
+-        S4            = 6'b100_000,
++        IDLE          =  5'b00001 ,
++        POST_IDLE     =  5'b00010 ,
++        S1            =  5'b00100 ,
++        S2            =  5'b01000 ,
++        S3            =  5'b10000 ,
+         `ZAP_DEFAULT_XX
+ } t_state;
+ 
+@@ -85,11 +84,7 @@
+ 
+ // Set 1 to take upper 32-bit. See this instead of TAKE_UPPER.
+ assign higher =
+-                         i_alu_operation_ff[0] ||
+-                i_alu_operation_ff == SMLAL00H ||
+-                i_alu_operation_ff == SMLAL01H ||
+-                i_alu_operation_ff == SMLAL10H ||
+-                i_alu_operation_ff == SMLAL11H;
++                         i_alu_operation_ff[0]   ;
+ 
+ // 17-bit partial products.
+ logic signed [16:0] a;
+@@ -100,13 +95,7 @@
+ // Signed products.
+ logic signed [63:0] x_ff, x_nxt;
+ logic signed [33:0] xprod_ab, xprod_bc, xprod_ad, xprod_cd;
+-logic signed [63:0] prod_ab, prod_bc, prod_ad, prod_cd;
+-
+-//
+-// Indicates to take upper product. Discard lower 16-bits. NOT what it looks
+-// like. The one you're looking for is "higher".
+-//
+-logic               take_upper; // NOT WHAT IT LOOKS LIKE. NOT TO TAKE UPPER
++logic signed [63:0] prod_ab, prod_bc, prod_ad, prod_cd  ; // NOT WHAT IT LOOKS LIKE. NOT TO TAKE UPPER
+                                 // PRODUCT. THIS IS FOR DSP TO DISCARD LOWER
+                                 // 16 BIT OF 48-BIT PRODUCT.
+ 
+@@ -145,97 +134,7 @@
+                 b <= $signed({i_rs[31], i_rs[31:16]});
+                 d <= $signed({1'd0, i_rs[15:0]});
+ 
+-                take_upper <= 1'd0;
+-        end
+-        else if ( i_alu_operation_ff == OP_SMULW0 )
+-        begin
+-                // Signed RM x Lower RS
+-
+-                a <= $signed({i_rm[31], i_rm[31:16]});
+-                c <= $signed({1'd0, i_rm[15:0]});
+-
+-                b <= $signed({17{i_rs[15]}});
+-                d <= $signed({1'd0, i_rs[15:0]});
+-
+-                take_upper <= 1'd1;
+-        end
+-        else if ( i_alu_operation_ff == OP_SMULW1 )
+-        begin
+-                // Signed RM x Upper RS
+-
+-                a <= $signed({i_rm[31], i_rm[31:16]});
+-                c <= $signed({1'd0, i_rm[15:0]});
+-
+-                b <= $signed({17{i_rs[31]}});
+-                d <= $signed({1'd0, i_rs[31:16]});
+-
+-                take_upper <= 1'd1;
+-        end
+-        else if ( i_alu_operation_ff == OP_SMUL00   || i_alu_operation_ff == OP_SMLA00  ||
+-                  i_alu_operation_ff == OP_SMLAL00L || i_alu_operation_ff == OP_SMLAL00H )
+-        begin
+-                // lower RM x lower RS
+-
+-                a <= $signed({17{i_rm[15]}});
+-                c <= $signed({1'd0, i_rm[15:0]});
+-
+-                b <= $signed({17{i_rs[15]}});
+-                d <= $signed({1'd0, i_rs[15:0]});
+-
+-                take_upper <= 1'd0;
+-        end
+-        else if (  i_alu_operation_ff == OP_SMUL01   || i_alu_operation_ff == OP_SMLA01 ||
+-                   i_alu_operation_ff == OP_SMLAL01L || i_alu_operation_ff == OP_SMLAL01H )
+-        begin
+-                // lower RM x upper RS
+-
+-                a <= $signed({17{i_rm[15]}});         // x = 0 for Rm
+-                c <= $signed({1'd0, i_rm[15:0]});
+-
+-                b <= $signed({17{i_rs[16]}});        // y = 1 for Rs
+-                d <= $signed({1'd0, i_rs[31:16]});
+-
+-                if ( i_alu_operation_ff == OP_SMLAL01L || i_alu_operation_ff == OP_SMLAL01H )
+-                begin
+-                        take_upper <= 1'd1;
+-                end
+-                else
+-                begin
+-                        take_upper <= 1'd0;
+-                end
+-        end
+-        else if ( i_alu_operation_ff == OP_SMUL10   || i_alu_operation_ff == OP_SMLA10 ||
+-                  i_alu_operation_ff == OP_SMLAL10L || i_alu_operation_ff == OP_SMLAL10H )
+-        begin
+-                // upper RM x lower RS
+-
+-                a <= $signed({17{i_rm[31]}});       // x = 1 for Rm
+-                c <= $signed({1'd0, i_rm[31:16]});
+-
+-                b <= $signed({17{i_rs[15]}});           // y = 0 for Rs
+-                d <= $signed({1'd0, i_rs[15:0]});
+-
+-                if ( i_alu_operation_ff == OP_SMLAL10L || i_alu_operation_ff == OP_SMLAL10H )
+-                begin
+-                        take_upper <= 1'd1;
+-                end
+-                else
+-                begin
+-                        take_upper <= 1'd0;
+-                end
+-        end
+-        else if ( i_alu_operation_ff == OP_SMUL11   || i_alu_operation_ff == OP_SMLA11 ||
+-                  i_alu_operation_ff == OP_SMLAL11L || i_alu_operation_ff == OP_SMLAL11H)
+-        begin
+-                // upper RM x upper RS
+-
+-                a <= $signed({17{i_rm[31]}});
+-                c <= $signed({1'd0, i_rm[31:16]});
+-
+-                b <= $signed({17{i_rs[31]}});
+-                d <= $signed({1'd0, i_rs[31:16]});
+-
+-                take_upper <= 1'd0;
++                  
+         end
+         else
+         begin
+@@ -247,7 +146,7 @@
+                b <= $signed({1'd0, i_rs[31:16]});
+                d <= $signed({1'd0, i_rs[15:0]});
+ 
+-               take_upper <= 1'd0;
++                 
+         end
+ end
+ 
+@@ -261,7 +160,7 @@
+         // Local Variable Section
+         // --------------------------------------------------
+ 
+-        logic tmp_sat;
++          
+ 
+         // --------------------------------------------------
+         // Default Values Section
+@@ -274,8 +173,7 @@
+         o_rd           = 32'd0;
+         state_nxt      = state_ff;
+         x_nxt          = x_ff;
+-        o_sat          = 1'd0;
+-        tmp_sat        = 1'd0;
++        o_sat                    = 1'd0;
+ 
+         // --------------------------------------------------
+         // Main FSM code
+@@ -288,29 +186,7 @@
+                         if ( i_cc_satisfied && (i_alu_operation_ff == {1'd0, UMLALL} ||
+                                                 i_alu_operation_ff == {1'd0, UMLALH} ||
+                                                 i_alu_operation_ff == {1'd0, SMLALL} ||
+-                                                i_alu_operation_ff == {1'd0, SMLALH} ||
+-
+-                                                i_alu_operation_ff == OP_SMULW0 ||
+-                                                i_alu_operation_ff == OP_SMULW1 ||
+-                                                i_alu_operation_ff == OP_SMUL00 ||
+-                                                i_alu_operation_ff == OP_SMUL01 ||
+-                                                i_alu_operation_ff == OP_SMUL10 ||
+-                                                i_alu_operation_ff == OP_SMUL11 ||
+-
+-                                                i_alu_operation_ff == OP_SMLA00     ||
+-                                                i_alu_operation_ff == OP_SMLA01     ||
+-                                                i_alu_operation_ff == OP_SMLA10     ||
+-                                                i_alu_operation_ff == OP_SMLA11     ||
+-                                                i_alu_operation_ff == OP_SMLAW0     ||
+-                                                i_alu_operation_ff == OP_SMLAW1     ||
+-                                                i_alu_operation_ff == OP_SMLAL00L   ||
+-                                                i_alu_operation_ff == OP_SMLAL01L   ||
+-                                                i_alu_operation_ff == OP_SMLAL10L   ||
+-                                                i_alu_operation_ff == OP_SMLAL11L   ||
+-                                                i_alu_operation_ff == OP_SMLAL00H   ||
+-                                                i_alu_operation_ff == OP_SMLAL01H   ||
+-                                                i_alu_operation_ff == OP_SMLAL10H   ||
+-                                                i_alu_operation_ff == OP_SMLAL11H   )
++                                                i_alu_operation_ff == {1'd0, SMLALH}      )
+                         )
+                         begin
+                                 state_nxt = POST_IDLE;
+@@ -339,41 +215,16 @@
+                         x_nxt     = (x_ff[63:0]) + (prod_ab << 32'd32) + {i_rh, i_rn};
+ 
+                         // 64-bit MAC with saturation. For long DSP MAC.
+-                        if ( i_alu_operation_ff == OP_SMLAL00L   ||
+-                             i_alu_operation_ff == OP_SMLAL01L   ||
+-                             i_alu_operation_ff == OP_SMLAL10L   ||
+-                             i_alu_operation_ff == OP_SMLAL11L   ||
+-                             i_alu_operation_ff == OP_SMLAL00H   ||
+-                             i_alu_operation_ff == OP_SMLAL01H   ||
+-                             i_alu_operation_ff == OP_SMLAL10H   ||
+-                             i_alu_operation_ff == OP_SMLAL11H  )
+-                        begin
+-                                tmp_sat = ( x_nxt[63] != x_ff[63] && x_ff[63] != i_rh[31] ) ? 1'd1 : 1'd0;
+-                        end
+-                        else
+-                        begin
+-                                // Add sat. Short DSP MAC.
+-                                tmp_sat = ( x_nxt[31] != x_ff[31] && x_ff[31] == i_rn[31] ) ? 1'd1 : 1'd0;
+-                        end
+-
+-                        if ( tmp_sat )
+-                        begin
+-                                state_nxt = S4;
+-                        end
+-                        else
+-                        begin
++                          
+                                 state_nxt = S3;
+                         end
+-                end
+-
+-                S3, S4:
+-                begin
+-                        o_sat = state_nxt == S4 ? 1'd1 : 1'd0;
+-
+-                        state_nxt  = IDLE;
+-
+-                        // If take_upper=1, discard lower 16-bit.
+-                        x_nxt = take_upper ? x_ff >>> 32'd16 : x_ff;
++                  
++
++                S3  :
++                begin
++                        o_sat =  1'b0 ;
++
++                        state_nxt  = IDLE  ;
+ 
+                         // Is this the first or second portion of the long multiply.
+                         o_rd  = higher ? x_nxt[63:32] : x_nxt[31:0];
+@@ -409,8 +260,7 @@
+                         o_rd           = 'x;
+                         state_nxt      = XX;
+                         x_nxt          = 'x;
+-                        o_sat          = 'x;
+-                        tmp_sat        = 'x;
++                        o_sat                    = 'x;
+                 end
+         endcase
+ end
+--- a/src/rtl/zap_shifter_shift.sv
++++ b/src/rtl/zap_shifter_shift.sv
+@@ -51,7 +51,7 @@
+ assign asr_res     = {i_source, i_carry};
+ assign asr_res_fin = asr_res >>> i_amount;
+ 
+-assign o_sat = i_shift_type == LSL_SAT ? (i_source[30] != i_source[31]) : 1'd0;
++assign o_sat =  1'b0 ;
+ 
+ always_comb
+ begin
+@@ -91,26 +91,7 @@
+                 // LSL_SAT. Always #1 in length, to deal with * 2. Saturation
+                 // that occurs is passed on to the ALU.
+                 //
+-                LSL_SAT:
+-                begin
+-                        o_carry = 1'd0;
+-
+-                        if ( o_sat )
+-                        begin
+-                                if ( i_source[31] == 1'd0 )
+-                                begin
+-                                        o_result = {1'd0, {31{1'd1}}}; // Most +ve
+-                                end
+-                                else
+-                                begin
+-                                        o_result = {1'd1, {31{1'd0}}}; // Most -ve
+-                                end
+-                        end
+-                        else
+-                        begin
+-                            o_result = i_source << 1; // Multiply by 2.
+-                        end
+-                end
++                  
+ 
+                 default:
+                 begin
+--- a/src/rtl/zap_writeback.sv
++++ b/src/rtl/zap_writeback.sv
+@@ -427,7 +427,7 @@
+         else if ( i_swi )
+         begin
+                 wen                       = 1;
+-                wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff - 32'd4;
++                wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff -  32'd2 ;
+                 wa1                       = PHY_SVC_R14;
+                 wa2                       = PHY_SVC_SPSR;
+                 wdata2                    = cpsr_ff;
+@@ -438,7 +438,7 @@
+         else if ( i_und )
+         begin
+                 wen                       = 1;
+-                wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff - 32'd4;
++                wdata1                    = mode32 ? i_wr_data : i_pc_plus_8_buf_ff -  32'd2 ;
+                 wa1                       = PHY_UND_R14;
+                 wa2                       = PHY_UND_SPSR;
+                 wdata2                    = cpsr_ff;
+--- /dev/null
++++ b/src/rtl/zap_armv4t.svh
+@@ -0,0 +1,31 @@
++// ARM920T guest classification before any coprocessor or CISC expansion.
++// ARM DDI0151C2.2.2: extension spaces are undefined. Cond1111 is
++// architecturally UNPREDICTABLE on v4; this core chooses deterministic UND.
++// Internal ZAP/Thumb-expanded micro-operations bypass this guest classifier.
++function automatic armv4t_unsupported(input [31:0] ins, input [4:0] mode);
++    reg supported;
++    begin
++        supported = 1'b0;
++        if (ins[27:24] == 4'hf || ins[27:25] == 3'b101 || ins[27:25] == 3'b100)
++            supported = 1'b1; // SWI, B/BL, LDM/STM.
++        else if (ins[27:26] == 2'b01 && !(ins[25] && ins[4]))
++            supported = 1'b1; // ARMv4 single transfer, no register-shift extension.
++        else if ((ins & 32'h0fc000f0) == 32'h00000090 ||
++                 (ins & 32'h0f8000f0) == 32'h00800090 ||
++                 (ins & 32'h0fb00ff0) == 32'h01000090)
++            supported = 1'b1; // MUL/MLA, long multiply and SWP/B.
++        else if ((ins & 32'h0ffffff0) == 32'h012fff10 ||
++                 (ins & 32'h0fbf0fff) == 32'h010f0000 ||
++                 (ins & 32'h0fb0fff0) == 32'h0120f000 ||
++                 (ins & 32'h0fb0f000) == 32'h0320f000)
++            supported = 1'b1; // BX, MRS and register/immediate MSR.
++        else if (ins[27:24] == 4'he && ins[4] && ins[11:8] == 4'hf)
++            supported = mode != 5'h10; // Privileged CP15 MRC/MCR only.
++        else if (ins[27:25] == 3'b000 && ins[7] && ins[4] && ins[6:5] != 2'b00)
++            supported = ins[20] || !ins[6]; // STRH/LDRH/LDRSB/LDRSH; no LDRD/STRD.
++        else if (ins[27:26] == 2'b00 && !(ins[7] && ins[4] && !ins[25]) &&
++                 !(!ins[20] && ins[24:23] == 2'b10))
++            supported = 1'b1; // Ordinary data processing, excluding misc extension space.
++        armv4t_unsupported = !supported || ins[31:28] == 4'hf;
++    end
++endfunction

@@ -300,6 +300,18 @@ module zap_predecode_main #(
     end
   end
 
+  `include "zap_armv4t.svh"
+
+  // Reject guest-only extensions before they can issue memory/CP15 side effects.
+  // Preserve the original condition for late flags; Thumb UND is unconditional.
+  wire profile_und = skid_instruction_valid &&
+      (skid_und || (!i_cpu_mode_t && skid_instruction[34:32] == 3'd0 &&
+                    armv4t_unsupported(skid_instruction[31:0], i_cpu_mode_mode)));
+  wire [3:0] profile_condition = (skid_und || skid_instruction[31:28] == 4'hf) ?
+      AL : skid_instruction[31:28];
+  wire [34:0] profile_instruction = profile_und ?
+      {3'd0, profile_condition, 28'h7f000f0} : skid_instruction;
+
   // This unit handles coprocessor stuff.
   zap_predecode_coproc #(
       .PHY_REGS(PHY_REGS)
@@ -309,7 +321,7 @@ module zap_predecode_main #(
       .i_reset(i_reset),
       .i_irq(skid_irq),
       .i_fiq(skid_fiq),
-      .i_instruction(skid_instruction_valid ? skid_instruction : 35'd0),
+      .i_instruction(skid_instruction_valid ? profile_instruction : 35'd0),
       .i_valid(skid_instruction_valid),
       .i_cpsr_ff_t(i_cpu_mode_t),
       .i_cpsr_ff_mode(i_cpu_mode_mode),

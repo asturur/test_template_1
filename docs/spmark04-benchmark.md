@@ -189,3 +189,42 @@ verification fetches pristine upstream via gh into isolated output; all58 active
 patches apply and RTL lexical tokens match. Existing unrelated whitespace drift
 in the maintained ZAP tree prevents the old byte-identical provenance check;
 this was not repaired by reformatting the imported CPU.
+
+## Simulation reuse feasibility — 2026-11-14
+
+The application payload is already extracted and hashed from the exact card:
+SPMark.app75,676bytes/478imports,3DTEST.DLL965,584bytes/113imports and
+libGLES_CM.dll106,480bytes/46imports. Import counts are IAT entries, not
+necessarily unique functions.3DTEST depends on ESTLIB, EUSER, GLES and WS32;
+GLES also uses BITGDI, CONE and FBSCLI. A flat jump into the DLL is insufficient:
+loading/relocations, heap/TLS, imports and graphics-context/window expectations
+need a harness. Full Symbian boot is an alternative but remains very expensive.
+
+Recommended use in the existing CPU performance plan: first select bounded,
+original ARM/Thumb renderer/math/copy functions with explicit inputs and original
+helper code; run fixed work on production CPU/cache RTL in Verilator. The actual
+C903/1845 GLES sequence has already reproduced a CPU failure this way, but it is
+a correctness regression, not yet a representative SPMark performance workload.
+Then extend to a deterministic headless rendering workload using original
+3DTEST/GLES code, adapting platform setup only. Keep software rendering, math
+and memory work under test on the emulated CPU; do not replace timed work with
+host implementations. Check output buffers/registers against an independent
+oracle, pin inputs and addresses, bracket scored work, and measure cycles plus
+cache/memory/branch/load stalls. Distinguish cold and warm runs and validate
+memory-latency profiles before claiming physical board speed.
+
+Use the existing jotego/simulator:arm64 image and isolated build/scratch outputs.
+An RTL edit requires recompiling the Verilator executable, but no Quartus/RBF.
+A bounded fixed-work simulation can rank candidates without producing the
+phone's official SPMark score. Full original3D suite execution needs additional
+OS/harness work and may be slow; no runtime estimate or speedup is qualified.
+Raw --savable checkpoints remain tied to their exact RTL serialization and
+cannot serve as portable restart states across CPU changes. Define explicit
+architectural/setup inputs instead. Hardware fit/timing and occasional full
+SPMark reruns remain necessary. Standalone SPMark performance harness is not
+implemented; module inventory is in scratch/spmark-simulation-20261114.
+
+Simulation update: the six-kernel original-byte CPU/cache harness is now
+implemented and passing; see [measured baseline](spmark-payload-simulation.md).
+The earlier feasibility notes are historical. Full shaded-scene/Symbian SPMark
+execution remains unimplemented; the simulation index is not the native score.

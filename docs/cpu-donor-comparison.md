@@ -27,7 +27,7 @@ warmed dependent unshifted ADD throughput is already one per clock.
 | --- | --- | --- | --- |
 | Pipeline | ZAP integer pipeline with owned two-entry operand acquisition, commit journal, dedicated CP15 read and registered demand completion | F1/F2/D1/D2/S/A/M/W, distinct valid records, early/late dependencies and registered producer selection | Donor is a major rewrite, not a decode patch |
 | Basic ALU | Upstream operation implementation retained | Smaller ARMv4T ALU, one add/sub path, separate logical results and carry-independent arithmetic Z calculation | Local timing/area ideas; no automatic ordinary-ADD throughput improvement |
-| ARM instruction classification | Original ARMv5TE-capable ZAP decode remains active despite ARM920 identity | ARMv4T classifier rejects v5 encodings, invalid memory forms and privileged coprocessor accesses in User mode | Architectural-fidelity audit candidate; do not replace TI versus ARM920 CP15 identity |
+| ARM instruction classification | ARMv4T guest classifier and execution pruning now implemented in0060 | ARMv4T classifier rejects v5 encodings, invalid memory forms and privileged coprocessor accesses in User mode | Architectural-fidelity audit candidate; do not replace TI versus ARM920 CP15 identity |
 | Thumb | Existing ZAP ARM expansion with targeted compatibility fixes; stateful BL pair | Shared derived Thumb expansion plus explicit BL-prefix/suffix architectural records | Interrupt/suffix behavior deserves directed comparison first |
 | LDM/STM and SWP | Existing internal-uop expansion and conservative locks, with our accepted SWP ownership/metadata fixes | Precomputed D1 register-list count/offsets; sequenced block transfers, paired destinations and optimized final-word/PC pickup | Potentially useful for copies, stacks and graphics; precise abort/base restoration is essential |
 | Shift/forward | ZAP shift and wide existing producer network, isolated by operand ownership and refreshed queued values | Common rotate network; S handles early operands and A uses a small late M/W pickup | Avoids holding an unshifted consumer as long as a shifted one; not a drop-in issue-module change |
@@ -61,12 +61,12 @@ rather than new or faster individual ALU operations.
    predictor explicitly handles MOV pc,lr/BX lr and load-to-PC returns. A narrow
    matcher fix with prediction/collision/nesting tests is a smaller first task
    than transplanting the complete donor predictor. No gain is measured.
-3. **Strict ARMv4T undefined behavior.** Our raw decoder still recognizes
-   BLX, CLZ, saturating arithmetic, DSP multiplies and doubleword forms from
-   upstream. Donor traps unsupported encodings under the applicable condition
-   and preserves ARMv4T interworking/PSR rules. Test condition-failed cases and
-   existing internal uops before excluding instruction families; internal
-   encodings must not be mistaken for guest instructions.
+3. **ARMv4T guest profile (implemented2026-11-15).** Patch0060 removes BLX,
+   CLZ, saturation, halfword DSP multiply and doubleword execution paths, and
+   conditionally traps unsupported guest encodings before side effects. Internal
+   uops and legal ARMv4 multiplication remain. Generated condition/User/Thumb
+   tests and production CPU regressions pass; PSR masks and broader BL boundary
+   semantics remain separate. [Scope and results](cpu-armv4t-profile.md).
 
 Donor documents further upstream corner-case fixes, including Thumb exceptions,
 long multiply flags and aborted block-transfer base restoration. Some overlap

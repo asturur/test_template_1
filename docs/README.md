@@ -8,6 +8,10 @@ topic links before repeating research or simulations.
 | --- | --- |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
+| [cache-load-optimization-plan.md](cache-load-optimization-plan.md) | Measured9→6clock handoff reduction, owned-admission fix, staged permission/response improvements and later pipelining |
+| [spmark-payload-profile.md](spmark-payload-profile.md) | Cycle-pressure profiling: internal data completion dominates, qualified observer and reordered optimization priority |
+| [spmark-payload-results.md](spmark-payload-results.md) | Comparison table of original-payload simulation results, starting with baseline |
+| [spmark-payload-simulation.md](spmark-payload-simulation.md) | Original SPMark/GLES kernels on current CPU RTL, fixed-work baseline, validated runner and skill |
 | [spmark04-benchmark.md](spmark04-benchmark.md) | Completed native SPMark3D results, Thumb LDM CPU fix, delayed MMC insertion and timing/RTC limits |
 | [mmc-spmark04.md](mmc-spmark04.md) | SPMark04 hardware mount attempt, native corrupted-card result, image identity and remaining boundary |
 | [phone-functions.md](phone-functions.md) | Sequential on-hardware Calendar, Contacts, Profiles and remaining function verification, data readback and unresolved latency |
@@ -40,6 +44,7 @@ topic links before repeating research or simulations.
 | [timing-78-recovery.md](timing-78-recovery.md) | All1,000 paths from43083011635, four root-cause fixes, measured costs and ngage1 deployment |
 | [register-file-area-audit.md](register-file-area-audit.md) | Production RF cost/port ownership, safe area candidates and upcoming PCM audio headroom |
 | [lcd-dma-timing-recovery.md](lcd-dma-timing-recovery.md) | Successful fit/new setup failure, LCD header validation and local DMA response boundary;78 MHz operation/104 MHz objective |
+| [cpu-armv4t-profile.md](cpu-armv4t-profile.md) | First CPU optimization: remove ARMv5/5TE execution paths, conditional UND/Thumb links, regression and payload evidence |
 | [cpu-donor-import-plan.md](cpu-donor-import-plan.md) | Ordered benchmark-first CPU imports, full difference coverage, measurement/acceptance rules and Call of Duty validation |
 | [cpu-donor-baseline-results.md](cpu-donor-baseline-results.md) | First480 measured ARM baseline runs, deterministic/counter qualification, refill tradeoff and remaining phase00/01 gates |
 | [cpu-donor-comparison.md](cpu-donor-comparison.md) | Current ZAP versus donor ARM9V2 execution/decode, specific port candidates and benchmark limits |

@@ -1,0 +1,4 @@
+interface:
+  display_name: "SPMark Payload Bench"
+  short_description: "Compare original SPMark kernels on N-Gage CPU RTL"
+  default_prompt: "Use $spmark-payload-bench to measure the current N-Gage HDL against the saved SPMark payload baseline."

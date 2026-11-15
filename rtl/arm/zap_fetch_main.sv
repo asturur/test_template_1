@@ -117,16 +117,7 @@ module zap_fetch_main (
       // Taken
       o_taken       <= i_taken;
 
-      // Detect breakpoint. These are unconditional.
-      if ((~i_cpsr_ff_t) & (i_instruction ==? BKPT)) begin
-        o_instr_abort <= 1'd1;
-      end else if (i_cpsr_ff_t) begin
-        if (i_pc_ff[1] && i_instruction[31:16] ==? T_BKPT) begin
-          o_instr_abort <= 1'd1;
-        end else if (!i_pc_ff[1] && i_instruction[15:0] ==? T_BKPT) begin
-          o_instr_abort <= 1'd1;
-        end
-      end
+      // ARM920T has no ARMv5 BKPT instruction; decode takes UND instead.
 
       // Put unit to sleep on an abort.
       sleep_ff       <= i_instr_abort;

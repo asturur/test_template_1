@@ -63,15 +63,14 @@ module zap_shifter_multiply
 
 // States
 
-localparam [31:0] NUMBER_OF_STATES = 6;
+localparam [31:0] NUMBER_OF_STATES = 5;
 
 typedef enum logic [NUMBER_OF_STATES-1:0] {
-        IDLE          = 6'b000_001,
-        POST_IDLE     = 6'b000_010,
-        S1            = 6'b000_100,
-        S2            = 6'b001_000,
-        S3            = 6'b010_000,
-        S4            = 6'b100_000,
+        IDLE          = 5'b00001,
+        POST_IDLE     = 5'b00010,
+        S1            = 5'b00100,
+        S2            = 5'b01000,
+        S3            = 5'b10000,
         `ZAP_DEFAULT_XX
 } t_state;
 
@@ -83,13 +82,8 @@ logic         unused;
 
 assign unused = |{PHY_REGS};
 
-// Set 1 to take upper 32-bit. See this instead of TAKE_UPPER.
-assign higher =
-                         i_alu_operation_ff[0] ||
-                i_alu_operation_ff == SMLAL00H ||
-                i_alu_operation_ff == SMLAL01H ||
-                i_alu_operation_ff == SMLAL10H ||
-                i_alu_operation_ff == SMLAL11H;
+// Set 1 to select the upper 32-bit result of an ARMv4 long multiply.
+assign higher = i_alu_operation_ff[0];
 
 // 17-bit partial products.
 logic signed [16:0] a;
@@ -101,14 +95,6 @@ logic signed [16:0] d;
 logic signed [63:0] x_ff, x_nxt;
 logic signed [33:0] xprod_ab, xprod_bc, xprod_ad, xprod_cd;
 logic signed [63:0] prod_ab, prod_bc, prod_ad, prod_cd;
-
-//
-// Indicates to take upper product. Discard lower 16-bits. NOT what it looks
-// like. The one you're looking for is "higher".
-//
-logic               take_upper; // NOT WHAT IT LOOKS LIKE. NOT TO TAKE UPPER
-                                // PRODUCT. THIS IS FOR DSP TO DISCARD LOWER
-                                // 16 BIT OF 48-BIT PRODUCT.
 
 // State
 t_state state_ff, state_nxt;
@@ -145,97 +131,6 @@ begin
                 b <= $signed({i_rs[31], i_rs[31:16]});
                 d <= $signed({1'd0, i_rs[15:0]});
 
-                take_upper <= 1'd0;
-        end
-        else if ( i_alu_operation_ff == OP_SMULW0 )
-        begin
-                // Signed RM x Lower RS
-
-                a <= $signed({i_rm[31], i_rm[31:16]});
-                c <= $signed({1'd0, i_rm[15:0]});
-
-                b <= $signed({17{i_rs[15]}});
-                d <= $signed({1'd0, i_rs[15:0]});
-
-                take_upper <= 1'd1;
-        end
-        else if ( i_alu_operation_ff == OP_SMULW1 )
-        begin
-                // Signed RM x Upper RS
-
-                a <= $signed({i_rm[31], i_rm[31:16]});
-                c <= $signed({1'd0, i_rm[15:0]});
-
-                b <= $signed({17{i_rs[31]}});
-                d <= $signed({1'd0, i_rs[31:16]});
-
-                take_upper <= 1'd1;
-        end
-        else if ( i_alu_operation_ff == OP_SMUL00   || i_alu_operation_ff == OP_SMLA00  ||
-                  i_alu_operation_ff == OP_SMLAL00L || i_alu_operation_ff == OP_SMLAL00H )
-        begin
-                // lower RM x lower RS
-
-                a <= $signed({17{i_rm[15]}});
-                c <= $signed({1'd0, i_rm[15:0]});
-
-                b <= $signed({17{i_rs[15]}});
-                d <= $signed({1'd0, i_rs[15:0]});
-
-                take_upper <= 1'd0;
-        end
-        else if (  i_alu_operation_ff == OP_SMUL01   || i_alu_operation_ff == OP_SMLA01 ||
-                   i_alu_operation_ff == OP_SMLAL01L || i_alu_operation_ff == OP_SMLAL01H )
-        begin
-                // lower RM x upper RS
-
-                a <= $signed({17{i_rm[15]}});         // x = 0 for Rm
-                c <= $signed({1'd0, i_rm[15:0]});
-
-                b <= $signed({17{i_rs[16]}});        // y = 1 for Rs
-                d <= $signed({1'd0, i_rs[31:16]});
-
-                if ( i_alu_operation_ff == OP_SMLAL01L || i_alu_operation_ff == OP_SMLAL01H )
-                begin
-                        take_upper <= 1'd1;
-                end
-                else
-                begin
-                        take_upper <= 1'd0;
-                end
-        end
-        else if ( i_alu_operation_ff == OP_SMUL10   || i_alu_operation_ff == OP_SMLA10 ||
-                  i_alu_operation_ff == OP_SMLAL10L || i_alu_operation_ff == OP_SMLAL10H )
-        begin
-                // upper RM x lower RS
-
-                a <= $signed({17{i_rm[31]}});       // x = 1 for Rm
-                c <= $signed({1'd0, i_rm[31:16]});
-
-                b <= $signed({17{i_rs[15]}});           // y = 0 for Rs
-                d <= $signed({1'd0, i_rs[15:0]});
-
-                if ( i_alu_operation_ff == OP_SMLAL10L || i_alu_operation_ff == OP_SMLAL10H )
-                begin
-                        take_upper <= 1'd1;
-                end
-                else
-                begin
-                        take_upper <= 1'd0;
-                end
-        end
-        else if ( i_alu_operation_ff == OP_SMUL11   || i_alu_operation_ff == OP_SMLA11 ||
-                  i_alu_operation_ff == OP_SMLAL11L || i_alu_operation_ff == OP_SMLAL11H)
-        begin
-                // upper RM x upper RS
-
-                a <= $signed({17{i_rm[31]}});
-                c <= $signed({1'd0, i_rm[31:16]});
-
-                b <= $signed({17{i_rs[31]}});
-                d <= $signed({1'd0, i_rs[31:16]});
-
-                take_upper <= 1'd0;
         end
         else
         begin
@@ -247,7 +142,6 @@ begin
                b <= $signed({1'd0, i_rs[31:16]});
                d <= $signed({1'd0, i_rs[15:0]});
 
-               take_upper <= 1'd0;
         end
 end
 
@@ -261,7 +155,6 @@ begin
         // Local Variable Section
         // --------------------------------------------------
 
-        logic tmp_sat;
 
         // --------------------------------------------------
         // Default Values Section
@@ -275,7 +168,6 @@ begin
         state_nxt      = state_ff;
         x_nxt          = x_ff;
         o_sat          = 1'd0;
-        tmp_sat        = 1'd0;
 
         // --------------------------------------------------
         // Main FSM code
@@ -288,29 +180,7 @@ begin
                         if ( i_cc_satisfied && (i_alu_operation_ff == {1'd0, UMLALL} ||
                                                 i_alu_operation_ff == {1'd0, UMLALH} ||
                                                 i_alu_operation_ff == {1'd0, SMLALL} ||
-                                                i_alu_operation_ff == {1'd0, SMLALH} ||
-
-                                                i_alu_operation_ff == OP_SMULW0 ||
-                                                i_alu_operation_ff == OP_SMULW1 ||
-                                                i_alu_operation_ff == OP_SMUL00 ||
-                                                i_alu_operation_ff == OP_SMUL01 ||
-                                                i_alu_operation_ff == OP_SMUL10 ||
-                                                i_alu_operation_ff == OP_SMUL11 ||
-
-                                                i_alu_operation_ff == OP_SMLA00     ||
-                                                i_alu_operation_ff == OP_SMLA01     ||
-                                                i_alu_operation_ff == OP_SMLA10     ||
-                                                i_alu_operation_ff == OP_SMLA11     ||
-                                                i_alu_operation_ff == OP_SMLAW0     ||
-                                                i_alu_operation_ff == OP_SMLAW1     ||
-                                                i_alu_operation_ff == OP_SMLAL00L   ||
-                                                i_alu_operation_ff == OP_SMLAL01L   ||
-                                                i_alu_operation_ff == OP_SMLAL10L   ||
-                                                i_alu_operation_ff == OP_SMLAL11L   ||
-                                                i_alu_operation_ff == OP_SMLAL00H   ||
-                                                i_alu_operation_ff == OP_SMLAL01H   ||
-                                                i_alu_operation_ff == OP_SMLAL10H   ||
-                                                i_alu_operation_ff == OP_SMLAL11H   )
+                                                i_alu_operation_ff == {1'd0, SMLALH} )
                         )
                         begin
                                 state_nxt = POST_IDLE;
@@ -338,42 +208,15 @@ begin
                         // 3 input adder.
                         x_nxt     = (x_ff[63:0]) + (prod_ab << 32'd32) + {i_rh, i_rn};
 
-                        // 64-bit MAC with saturation. For long DSP MAC.
-                        if ( i_alu_operation_ff == OP_SMLAL00L   ||
-                             i_alu_operation_ff == OP_SMLAL01L   ||
-                             i_alu_operation_ff == OP_SMLAL10L   ||
-                             i_alu_operation_ff == OP_SMLAL11L   ||
-                             i_alu_operation_ff == OP_SMLAL00H   ||
-                             i_alu_operation_ff == OP_SMLAL01H   ||
-                             i_alu_operation_ff == OP_SMLAL10H   ||
-                             i_alu_operation_ff == OP_SMLAL11H  )
-                        begin
-                                tmp_sat = ( x_nxt[63] != x_ff[63] && x_ff[63] != i_rh[31] ) ? 1'd1 : 1'd0;
-                        end
-                        else
-                        begin
-                                // Add sat. Short DSP MAC.
-                                tmp_sat = ( x_nxt[31] != x_ff[31] && x_ff[31] == i_rn[31] ) ? 1'd1 : 1'd0;
-                        end
-
-                        if ( tmp_sat )
-                        begin
-                                state_nxt = S4;
-                        end
-                        else
-                        begin
-                                state_nxt = S3;
-                        end
+                        state_nxt = S3;
                 end
 
-                S3, S4:
+                S3:
                 begin
-                        o_sat = state_nxt == S4 ? 1'd1 : 1'd0;
+                        o_sat = 1'b0;
 
                         state_nxt  = IDLE;
 
-                        // If take_upper=1, discard lower 16-bit.
-                        x_nxt = take_upper ? x_ff >>> 32'd16 : x_ff;
 
                         // Is this the first or second portion of the long multiply.
                         o_rd  = higher ? x_nxt[63:32] : x_nxt[31:0];
@@ -410,7 +253,6 @@ begin
                         state_nxt      = XX;
                         x_nxt          = 'x;
                         o_sat          = 'x;
-                        tmp_sat        = 'x;
                 end
         endcase
 end
