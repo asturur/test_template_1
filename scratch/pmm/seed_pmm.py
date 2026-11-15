@@ -60,6 +60,17 @@ NOT PROVEN / uncertain:
 
 TTime VALUES (ecust 0x5034e138, PROVEN from the disassembly)
 -------------------------------------------------------------
+CORRECTION 2026-11-15: the argument-order inference below is superseded.
+Executing the original NOS forwarding chain proves that 514a4d64 rotates
+(rec2,rec0,rec1) to (rec0,rec1,rec2) at ecust. The acceptance guard requires
+rec0 == rec1 != 0; rec2 is the optional third argument. This is a legacy seed
+generator, not a repair tool for the current native PMM. Its implementation
+and historical output choices below are retained; see docs/mister-rtc.md and
+scratch/rtc-prompt-20261115/restore-oracle.py for the corrected proof.
+The legacy numerical 2000 epoch below is also 12 days early: original NEM-4
+EUser conversion verifies native 1970 epoch = 62168256000000000us. Do not use
+the historical ttime_us implementation as a new native calendar oracle.
+
   0x503502d8 -> 0x503a3d90 = TTime operator!= (returns 1 if differ);
   0x503502e4 -> 0x503a3d74 = TTime operator==.
   Accept requires  a == b  AND  a != TTime(0), where (dispatcher 0x5034e444

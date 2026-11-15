@@ -1,5 +1,80 @@
 # MiSTer RTC integration contract — 2026-11-14
 
+## 2026-11-15 follow-up: native calendar restore still rejects saved state
+
+Read-only board inspection finds Linux UTC correctly at2026-11-15T21:23:17Z,
+while the phone screensaver shows01/01/2003 10:44AM. This does not directly
+observe HPS delivery or the FPGA's `rtc_valid`. No reload, key, firmware change,
+save or disk write was performed. Background save isOff, with38queuedsectors.
+
+Stable live PMM and saved boot1.vhd captures both have unique F4 candidate
+records in active sector4000 for native calendar tableD4:
+
+| Record | Live and saved value |
+| --- | --- |
+|0 |2003-01-01 08:55:00 |
+|1 |2003-01-01 08:54:00 |
+|2 |TTime(0) |
+
+The native restore guard rejects records0and1 when unequal. The forwarding
+chain is now executed and checked, correcting the old seed script's argument
+order: NOS caller5159EC98 passes pointers(record2,record0,record1), but ARM
+wrapper514A4D64 rotates them. ecust5034E444/5034E138 therefore receives
+**(record0,record1,record2)**. Its comparison at5034E18C..1CC requires the first
+two values equal and nonzero. Zero record2 is the optional third argument and
+does not itself fail this guard.
+
+Five unchanged-code Unicorn cases pass: live and saved pairs reject, an equal
+nonzero pair accepts this guard, equal-zero rejects, and changing only the
+third value cannot repair the mismatched pair. Rejection clears object+3C and
+sets state9. The fixture models the unrelated service factory and stops before
+accepted-path calendar conversion; it is not a full native boot or proof that
+the captured records were the arguments consumed during this board boot.
+
+The user authorized saving and a shutdown test. Manual Flush drains38sectors
+to0, reports Saved with no slot/queue error or reset. Both synced files match
+two stable live DDR reads byte for byte. Two3second Power presses wake the
+screensaver but do not establish native shutdown. The user then explicitly
+requests immediate reboot. Reloading the same RBF with those saved images
+still asks for time (user confirmation). After startup the active calendar pair
+is again08:55/08:54 with the same values, appended at new offsets. Saving alone
+does not fix it. A clean native shutdown remains untested; do not confuse this
+saved cold reload with that lifecycle. No replacement records were injected.
+
+The original NEM-4 EUser TTime-to-calendar function also confirms the captured
+values are2003-01-01 08:55/08:54. Its1970epoch is62168256000000000us; the legacy
+seed script's numerical2000epoch is12daysearly. Historical generator output is
+retained, marked superseded; it is not a current image-repair procedure.
+
+### Current donor comparison
+
+Donor checkout0fe531f uses `rtl/mister/rtc_wall.sv`: MiSTer BCD RTC seeds a
+running clock with a full calendar and day counter. Its replacement NOS reads
+an invented full-date register at0C1F0100, converts midnight to native TTime in
+`nos_rtc_base`, and sends rtc.dll the same nonzero base twice, plus zero alarm.
+This directly satisfies the comparison our captured PMM pair fails. With a
+persisted FirstBoot.dat, later starts skip the first-boot questions; a fresh
+formatted C: still asks once. See donor `docs/NOS_STANDIN.md` Clock section and
+`firmware-patches/nos-stub/nos_isi.c`/`nos_stub.S`.
+
+That calendar handoff is replacement-NOS behavior, not a native UEM interface.
+Our existing Unix source is sufficient for time input, but the original NOS
+still needs a coherent PMM/battery-clock lifecycle. Copying the invented date
+register alone cannot supply it to unmodified NOS. The donor also avoids real
+NOS startup work and uses a different CPU. No measured split of our reported
+40second boot into CPU work, loading and protocol/timeouts exists yet; do not
+attribute that entire delay to the clock or promise a donor-like boot time.
+
+Separately, UEM status35 still unconditionally reports alarm bit3, and the old
+alarm implementation is a one-shot delay rather than comparison against the
+wall clock. These are established modeling limitations; their causal role in
+the date prompt is unverified. The8-bit day counter also cannot reconstruct an
+absolute calendar from a stale2003PMM base. The next functional correction must
+follow observed native persistence/RTC behavior, not a forced-valid flag.
+
+[Board captures and original-code controls](evidence/rtc-prompt-20261115.json).
+Reproducer: `scratch/rtc-prompt-20261115/restore-oracle.py`.
+
 Official developer reference:
 https://mister-devel.github.io/MkDocs_MiSTer/developer/hps_io/#rtc
 Hardware-board reference:

@@ -25,8 +25,17 @@ for evidence and reproducible traces.
 
 - [ ] User reports that the latest clock-enabled build still asks for the date
   after boot. Timestamp-to-UEM time qualification did not establish PMM calendar
-  persistence or prompt removal. Verify supplied time, native validity/day/base
-  handling and saved PMM on a later dedicated run. JPEG hang takes priority.
+  persistence or prompt removal. Dedicated read-only follow-up finds live and
+  saved calendar0/1 differ by60seconds. Original NOS forwarding/ROM guard rejects
+  that pair; zero record2 alone is not the cause. Corrected argument order is
+  documented in [mister-rtc.md](mister-rtc.md). Authorized manual save drains38
+  sectors and both files match DDR; user-requested cold reload still asks for
+  time. Pair values remain unequal at new offsets. Native power-off did not
+  complete before the requested reload, so clean-shutdown behavior is untested.
+  HPS arrival/current HDL validity and the cause of the mismatched pair remain
+  unverified. Donor supplies matching bases through replacement NOS/full-date
+  MMIO; copying it would violate original-firmware scope. Alarm35's forced
+  bit/one-shot and offline day/calendar restoration remain separate model gaps.
 
 ## Optional MMC hot swapping (2026-11-15)
 

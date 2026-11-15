@@ -1,3 +1,54 @@
+## 2026-11-15: Saved reboot still prompts; donor clock handoff identified
+
+User authorized saving current disks. Manual Flush drains38queuedsectors to0,
+Saved/no errors/reset/panic. Both synced saved files match stable live DDR:
+C828bcffa...7034d, PMM4e90c04b...69286. Background save remainsOff. Two3second
+Power inputs wake Phone but no native shutdown was observed. User then requests
+immediate reboot: same installed RBF8eb96c22...23883, saved RunOn, original
+firmware/no functional RAM patch. User confirms time prompt returns; subsequent
+screenshot is Phone idle after user advanced it. Postboot PMM0/1 still08:55/08:54,
+2zero, appended at5C6D/5C81/5CA9. Saving alone is not sufficient. Clean native
+power-down lifecycle remains untested; no claimed clock fix.
+
+Donor0fe531f has full MiSTer BCD RTC/calendar plus invented0C1F0100 date.
+Replacement NOS nos_rtc_base sends two matching nonzero calendar bases and a
+zero alarm to rtc.dll; FirstBoot.dat suppresses later first-boot questions.
+This bypasses native NOS calendar persistence and cannot silently replace our
+HDL-only/original-firmware path. Its calendar hardware is informative; its
+service handoff needs a native equivalent. Reported40second boot has no measured
+CPU-versus-protocol/load breakdown yet. Donor skips real NOS and has a different
+CPU; do not promise identical speed. No build/CI monitoring or HDL edits here.
+
+Five native forwarding/guard controls pass; four original EUser conversions
+confirm timestamps and expose the legacy seed's12day-early numerical epoch.
+Corrected legacy documentation only; no image was regenerated or injected.
+[Clock findings/donor comparison](mister-rtc.md),
+[evidence](evidence/rtc-prompt-20261115.json).
+
+## 2026-11-15: Recurring date prompt — native restore guard reproduced
+
+User is building50114ac; clock follow-up authorized while waiting. Read-only
+MiSTer screenshot shows01/01/2003 10:44AM; Linux UTC is2026-11-15T21:23:17Z.
+No reload/input/save/firmware or disk change. Current Run/saveOff,38queuedsectors,
+no panic/stickyfault, errors13/resetgen0. Correct Linux time does not directly
+prove HPS arrival/current FPGA rtc_valid.
+
+Stable live/saved PMM each have unique F4 calendar0=2003-01-01 08:55,
+1=08:54,2=0. Original NOS forwarding rotates(rec2,rec0,rec1) into ecust's
+(rec0,rec1,rec2), correcting the old seed script's obsolete inference. Original
+restore guard requires0==1!=0. Five Unicorn cases confirm both captured pairs
+clear driver+3C/state9, equal/nonzero passes this guard, equalzero and unrelated
+third-argument changes do not. Modeled service factory; not full boot/scanner
+or direct observation of this boot's actual arguments. No PMM injection.
+
+Saving alone cannot fix the live mismatch. Asked permission for saving current
+C:/PMM and a native clean shutdown/restart; request pending. Do not discard
+pendingwrites or enable save/reload before an answer. Investigate why native
+pair is not committed and whether retained-clock/clean-power lifecycle resolves
+it. Also unverified: forced UEM alarm35bit3/old one-shot comparator's role and
+absolute calendar/offline-day restoration. No speculative RTL clock fix.
+[Findings](mister-rtc.md), [evidence](evidence/rtc-prompt-20261115.json).
+
 ## 2026-11-15: First F2 completion/request overlap qualified
 
 Reused the registered completion credit: consume the old P2 owner while an
