@@ -1,0 +1,139 @@
+{
+  "status": "PASS",
+  "scope": "Cycle-equivalent FIFO flag computation targeting the three negative setup endpoints in a745119; no new clock, state, storage or pipeline latency",
+  "prior_build_run": 43719932412,
+  "prior_setup_slack_ns": -0.28,
+  "prior_failing_paths": [
+    {
+      "rank": "1",
+      "slack_ns": "-0.280",
+      "data_delay_ns": "12.375",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|prefetch_state.P_ISSUE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|empty_ff"
+    },
+    {
+      "rank": "2",
+      "slack_ns": "-0.274",
+      "data_delay_ns": "12.373",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|prefetch_state.P_ISSUE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|empty_ff~DUPLICATE"
+    },
+    {
+      "rank": "3",
+      "slack_ns": "-0.093",
+      "data_delay_ns": "12.197",
+      "logic_levels": "10",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|prefetch_state.P_ISSUE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|full_ff_OTERM1045"
+    }
+  ],
+  "source_id": "a683601d867cbb498cd15d5d343b129991215fd4d23ea9dcadb7d0411da969ab",
+  "post_freeze_metadata_change": "Only UPSTREAM.json added patch0064 after source freeze; every compiled RTL/harness file still matches. Frozen metadata/source_id retained, not rewritten.",
+  "formal_scope": "Exhaustive enumeration of reachable pointer/occupancy/control states; not a formal HDL solver",
+  "exhaustive": {
+    "status": "PASS",
+    "reachable_pointer_control_states": 2812480,
+    "depths": [
+      2,
+      4,
+      8,
+      16,
+      32,
+      64,
+      128,
+      256
+    ]
+  },
+  "unit_log": "PASS FIFO depth=64 clocks=100000 writes=46928 reads=45982 pairs=11328 wraps=691 empty_pairs=1378 full_pairs=368 clear=24 reset=28\nPASS FIFO depth=32 clocks=100000 writes=45280 reads=44840 pairs=10769 wraps=1378 empty_pairs=2191 full_pairs=723 clear=24 reset=24\nPASS FIFO depth=16 clocks=100000 writes=42641 reads=42402 pairs=10167 wraps=2629 empty_pairs=3167 full_pairs=1379 clear=27 reset=18\nPASS FIFO depth=8 clocks=100000 writes=38856 reads=38696 pairs=9456 wraps=4817 empty_pairs=4397 full_pairs=2517 clear=20 reset=30\nPASS FIFO depth=4 clocks=100000 writes=33791 reads=33717 pairs=8178 wraps=8411 empty_pairs=6175 full_pairs=4527 clear=24 reset=19\nPASS FIFO depth=2 clocks=100000 writes=27333 reads=27282 pairs=5463 wraps=13628 empty_pairs=8182 full_pairs=8212 clear=26 reset=25\nPASS FIFO occupancy and data ordering\n- tests/cpu/fifo_flags/test.sv:105: Verilog $finish\n- S i m u l a t i o n   R e p o r t: Verilator 5.050 2026-07-01\n- Verilator: $finish at 200us; walltime 0.156 s; speed 1.283 ms/s\n- Verilator: cpu 0.155 s on 1 threads; allocated 6 MB\n",
+  "negative_control": {
+    "status": "PASS",
+    "broken_read_last_flag_rejected": true,
+    "exit": 1,
+    "diagnostic": "[14000] %Fatal: test.sv:56: Assertion failed in test.d2: flags depth=2 step=6 count=0\n%Error: tests/cpu/fifo_flags/test.sv:56: Verilog $stop\nAborting...\n"
+  },
+  "cpu": {
+    "result.json": {
+      "path": "build/sim/fifo-flags-cpu-20261115/result.json",
+      "runs": 46,
+      "sha256": "a21ec795dddd21893bcd4c001f3ba74cd850df9f20f8d16c701d269f11483bae",
+      "programs": [
+        "alignment_cases",
+        "armv4t_profile",
+        "cache_disable_reenable",
+        "cache_irq_refill",
+        "cache_irq_writeback",
+        "cache_load_widths",
+        "cpu_timing",
+        "data_privilege_owner",
+        "fiq_flash_return",
+        "fiq_privileged_ldrt",
+        "fiq_privileged_store",
+        "fiq_store_return",
+        "ldm_base_smallpage",
+        "mmu_fcse",
+        "mmu_fetch",
+        "operand_timing",
+        "smoke",
+        "swp_basic",
+        "swp_cached_irq",
+        "swp_fiq",
+        "swp_irq_core",
+        "thumb_ldm_base_in_list",
+        "thumb_return_dependency"
+      ]
+    },
+    "prefetch-result.json": {
+      "path": "build/sim/fifo-flags-cpu-20261115/prefetch-result.json",
+      "runs": 16,
+      "sha256": "933a1de6ae6a6d5c6f82eb6110c9c25b6aef1933ca91cd7810591dc426784335",
+      "programs": [
+        "cache_drain",
+        "cache_instruction_associativity",
+        "cache_single_maintenance",
+        "icache_lockdown",
+        "icache_prefetch_lockdown",
+        "icache_prefetch_translated",
+        "icache_prefetch_uncached",
+        "icache_single_invalidate"
+      ]
+    }
+  },
+  "cpu_runs": 62,
+  "payload": {
+    "groups": 12,
+    "windows_per_repeat": 84,
+    "repeats": 2,
+    "wrong_output_controls": 6,
+    "all_windows_and_totals_identical_to_f1": true,
+    "original_baseline_index_by_profile": {
+      "0:0": 154.47523269151526,
+      "2:9": 144.57811954948104
+    },
+    "elapsed_seconds": 389.345
+  },
+  "provenance": {
+    "status": "PASS",
+    "pristine_hashes": 83,
+    "lexically_matching_sv_svh": 37,
+    "strict_byte_comparison": "Preexisting formatting/comment drift; modified FIFO tokens match",
+    "patch_sha256": "002466ceefdfaaf84d7f331f84b7bab30b19df9c470ed746c196b3373e0c5d03"
+  },
+  "physical_fit_timing_and_board": "NOT_RUN for combined F1/FIFO; no timing closure claim",
+  "clock_mhz": 78,
+  "target_mhz": 104,
+  "new_register_bits": 0,
+  "new_ram_bits": 0,
+  "test_fixture_formatting": {
+    "token_equivalent_to_tested_fixture": true,
+    "final_sha256": "6f8e6e4f19329c5d28149e78ef43ce3f9aa24873bcdf00e0fe36314a2aef8aca",
+    "note": "Tests use hook-default Verible style, outside maintained-phone flagfile scope"
+  }
+}

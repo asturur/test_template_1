@@ -1,4 +1,55 @@
-# SPMark04 benchmark diagnosis — 2026-11-14
+# SPMark04 hardware benchmarks
+
+## 2026-11-15: native score 119 at 78 MHz
+
+The exact a745119 artifact from run43719932412, seed44, completes the original
+SPMark04 Run All Tests graphics suite on MiSTer. The previous result and this
+run use the original card and autosaved C:/PMM; this is one run per build,
+not a statistical confidence interval or an isolated load-forwarding delta.
+
+| Native result | Previous build | a745119 | Change |
+| --- | ---: | ---: | ---: |
+| SPMark04 3D score | 84 | **119** | +41.7% |
+| Game | 1.31 fps | **1.82 fps** | +38.9% |
+| FillRate | 0.27 Mtexels/s | **0.40 Mtexels/s** | +48.1% |
+| PolyCount | 5.86 Ktriangles/s | **8.10 Ktriangles/s** | +38.2% |
+
+Both result pages were captured, including the scrolled PolyCount row. No
+system-suite score is claimed. This RBF precedes the F1 data-port overlap in
+680db21 and the FIFO flag rewrite; it cannot verify those later changes.
+
+Build run43719932412 compiled and fitted, but its timing gate failed: setup
+−0.280ns/TNS−0.647ns at78MHz, hold+0.243ns. It uses38,308/41,910ALMs and
+505/553RAM blocks, both91%. The retained RBF was deployed experimentally;
+successful benchmark execution does not establish timing closure. Its SHA256 is
+`0e3513d4bd67f88db059b356c8f24c2069edaee546735c40b3d64ecfdc0cef69`.
+
+One delayed-card MGL reload was used (slot2, delay200 seconds); no firmware,
+observer, RAM patch, card format or backing-image replacement. Saved CPU Run
+and Background save On were preserved. The actual18,612,224-byte decoded ROM
+in DDR exactly matches local core.bin (SHA256be8b2ecd…); this extent differs
+from the older full-image hash below. The MMC hash remains60d7c4aa… . Native
+Time confirmation was still needed once; RTC persistence is not qualified here.
+
+824 snapshots across bounded captures show generation0, zero sticky data fault,
+no captured panic and no save error. Each reader starts with a gap, so this is
+not continuous coverage of every transient. At the results screen both backing
+files exactly match two stable DDR reads. This verifies the observed autosave
+state, not power-loss durability.
+
+Input recipe: short Menu/Tab (about120ms) opens the app grid; a1second hold opens
+the task switcher. Pace navigation at180ms holds with1second gaps; quick tokens
+were missed here. Wait for the actual grid, select SPMark, F1→Run All Tests.
+Scroll down twice after completion to expose PolyCount. Screenshots omit MiSTer
+OSD, so do not infer OSD focus from the captured phone image.
+
+![119-point result](evidence/spmark04-load-forward-results-top.png)
+![Scrolled PolyCount result](evidence/spmark04-load-forward-results-bottom.png)
+
+[Machine evidence](evidence/spmark04-load-forward-board-20261115.json), local
+artifacts/raw reads in scratch/load-forward-build-20261115.
+
+## 2026-11-14: Thumb LDM qualification
 
 The Thumb LDM fix is now qualified by a completed native SPMark3D run on
 MiSTer: score84, Game1.31fps, FillRate0.27Mtexels/s, PolyCount5.86Ktriangles/s.

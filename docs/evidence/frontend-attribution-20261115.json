@@ -1,0 +1,40 @@
+{
+  "status": "PASS",
+  "scope": "Read-only frozen-F1 observer; all original counters and two repeats match; fetch/recent-redirect counts overlap and do not establish causation",
+  "rows": [
+    {
+      "empty": 105125,
+      "fetch_wait": 43095,
+      "recent_redirect12": 67540,
+      "overlap": 36855,
+      "other": 31345,
+      "bubble_btb_clear": 10475,
+      "valid_btb_clear": 25,
+      "case": "matrix4"
+    },
+    {
+      "empty": 6460,
+      "fetch_wait": 2510,
+      "recent_redirect12": 4260,
+      "overlap": 2200,
+      "other": 1890,
+      "bubble_btb_clear": 480,
+      "valid_btb_clear": 0,
+      "case": "transpose4"
+    },
+    {
+      "empty": 58485,
+      "fetch_wait": 21975,
+      "recent_redirect12": 39780,
+      "overlap": 19495,
+      "other": 16225,
+      "bubble_btb_clear": 4495,
+      "valid_btb_clear": 745,
+      "case": "triangle_edges"
+    }
+  ],
+  "base_source_id": "08c3925aaa5fac34aff72ff05392c8f4ed8888dc8d19b07a348fd911a6b9dc50",
+  "base_run": "build/sim/spmark-payload/f1-data-probe-20261115",
+  "observer_run": "build/sim/spmark-profile/f1-frontend-attribution-20261115",
+  "limits": "All counts across five scored windows. Recent redirect means age <=12, a correlation only. Bubble means ALU dav false, which also includes condition-failed instructions: decoded validity must be distinguished before changing BTB."
+}

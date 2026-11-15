@@ -180,6 +180,13 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+Read-only F1 frontend witness: many BTB valid bits clear while ALU dav is false,
+but dav also excludes failed conditions. First separate decoded validity from
+bubbles and preserve legitimate conditional feedback before testing any gate.
+Empty/fetch/recent-redirect bins overlap; no causal speedup claim. Native a745119
+build/deployment check takes priority. [Evidence](evidence/frontend-attribution-20261115.json).
+
+
 F1 update2026-11-15: while pinned a745119 builds, owned RAM-B pre-read/independent
 RAM-A commit overlap qualifies separately. Full suite +2.1338%, indices154.4752/
 144.5781;98CPU/44edge/20units/five broken controls and poisoned RAM pass. Matched

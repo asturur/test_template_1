@@ -1,3 +1,62 @@
+## 2026-11-15: Hardware score119; FIFO timing rewrite qualified locally
+
+Requested 50-minute build check completed at14:27UTC. Exact a745119 /
+run43719932412 / seed44 was downloaded, hash-verified and deployed once through
+the delayed200second MMC launcher. Unmodified firmware reaches native Menu and
+SPMark04 completes: **score119, Game1.82fps, FillRate0.40Mtexels/s,
+PolyCount8.10Ktriangles/s**. Previous score84→119 (+41.7%); one run each, aggregate
+build comparison. Both result pages are saved. No RAM/ROM patch, card format,
+backing replacement, manual Flush or SD backup. Existing Run/autosave On retained.
+One native Time confirmation was needed; RTC persistence remains unqualified.
+824bounded snapshots show generation0/no sticky fault/panic/save error; per-read
+gaps limit transient coverage. Both backing files match two stable DDR reads.
+Actual decoded ROM bytes match core.bin and MMC hash is unchanged.
+[Hardware evidence/results](spmark04-benchmark.md).
+
+This artifact fits38,308/41,910ALMs and505/553RAM blocks (both91%). Timing still
+fails:78MHz setup−0.280ns/TNS−0.647ns, hold+0.243ns. Three negative endpoints all
+run from I-cache prefetch P_ISSUE via ACK into instruction-FIFO empty/full flags.
+Successful benchmark does not prove closure. The one-shot follow-up automation
+was paused after the active chat handled deployment; no duplicate reload/watch.
+
+F1 was already committed/pushed as680db21 and is NOT in this hardware artifact.
+The next small timing candidate0064 precomputes FIFO boundary comparisons before
+late transfer enables. No added registers/RAM/latency or PLL change;78MHz retained,
+104MHz objective. Exhaustive2,812,480 reachable state/control cases,600,000queue-
+model clocks, a broken-control rejection and62CPU runs pass. All12payload groups,
+84windows per repeat, two exact repeats and six wrong-output controls pass;
+every raw window/total matches F1. Indices stay154.4752/144.5781. All83pristine
+hashes and37patched ZAP token streams reconstruct through0064. Only provenance
+metadata changed after the benchmark freeze; compiled RTL remains identical.
+Combined F1/FIFO physical fit/timing/boot remain unverified pending the next build.
+[FIFO contract/tests](fifo-flag-timing.md).
+
+The read-only frontend observer below remains useful but unimplemented. Next
+performance candidate is instruction-owned BTB feedback, preserving failed
+conditions and precise recovery, or F2 explicit credits/ordered completion after
+physical feedback. No subagents, branch/worktree changes or other-thread
+simulation/checkpoint mutations. Current board remains on a745119 results.
+
+## 2026-11-15: Read-only frontend witness after F1 (historical pre-deployment note)
+
+F1 is committed/pushed as680db21. Requested hardware run remains43719932412 /
+a745119 / seed44; exact metadata and deployment protocol are in
+scratch/load-forward-build-20261115/build.json. One bounded heartbeat is due
+about14:27UTC, expires14:28:04UTC. No artifact deployed yet; do not confuse the
+pushed F1 tip with the immutable build's source.
+
+A frozen F1 read-only observer on matrix/transpose/triangle0:0 passes two exact
+repeats and every original counter. Across five scored windows, matrix has
+105125empty-queue clocks,43095also fetch-waiting,67540within12clocks of a redirect
+(overlap36855), and10475BTB-valid clears with ALU dav false. Triangle has58485empty,
+21975fetch-wait,39780recent-redirect and4495ALU-dav-false valid clears. These are
+correlations, not recoverable-loss estimates. ALU dav false also includes failed
+conditions, so do NOT simply gate feedback by dav. Before changing the predictor,
+separate a decoded valid instruction from a bubble, preserve failed conditional
+branch feedback and check clear-under-hold/aliases/exception recovery. The old
+MOV pc,lr matcher gap remains separate phase03 work. No production change from
+this observer. [Evidence](evidence/frontend-attribution-20261115.json).
+
 ## 2026-11-15: F1 data-port overlap qualified; a745119 hardware build scheduled
 
 User explicitly requested launching the committed build, continuing improvements,

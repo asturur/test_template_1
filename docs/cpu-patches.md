@@ -2,6 +2,15 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## Precomputed FIFO boundaries (0064)
+
+Compute one-item/one-free comparisons independently of late fetch acceptance,
+then select next flags from accepted transfers. Same pointers/data/guards,
+no extra state or latency. Targets the three failing78MHz FIFO flag paths in
+run43719932412; mapped timing remains unverified.62CPU checks and the full
+six-payload suite pass with exactly unchanged F1 windows/counters.
+[Path, semantics and tests](fifo-flag-timing.md).
+
 ## Registered line-refill transport (0055)
 
 Patch0055 adds an optional post-MMU line channel to the existing cache wrappers

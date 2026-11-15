@@ -1,0 +1,660 @@
+{
+  "path": "/media/fat/_Console/ngage1.rbf",
+  "bytes": 4498108,
+  "sha256": "0e3513d4bd67f88db059b356c8f24c2069edaee546735c40b3d64ecfdc0cef69",
+  "card_backup_created": false,
+  "fitter_seed": 44,
+  "commit": "a745119d108a95e796e8b46637d190353c6b3276",
+  "run_id": "43719932412",
+  "timing_status": "Compilation/fit succeeded; setup timing gate failed (-0.280 ns); retained RBF used experimentally",
+  "fit_alms": 38308,
+  "fit_alms_total": 41910,
+  "fit_ram_blocks": 505,
+  "fit_ram_blocks_total": 553,
+  "core_clock_hz": 78000000,
+  "setup_slack_ns": -0.28,
+  "setup_tns_ns": -0.647,
+  "hold_slack_ns": 0.243,
+  "hardware_benchmark_verified": true,
+  "reload_requested_utc": "2026-11-15T14:30:01Z",
+  "launcher": "/tmp/ngage1-spmark04-delayed.mgl",
+  "mmc_delay_seconds": 200,
+  "saved_settings_hex": "00002100000000000000000000000000",
+  "results": {
+    "score": 119,
+    "game_fps": 1.82,
+    "fillrate_mtexels_s": 0.4,
+    "polycount_ktriangles_s": 8.1,
+    "previous": {
+      "score": 84,
+      "game_fps": 1.31,
+      "fillrate_mtexels_s": 0.27,
+      "polycount_ktriangles_s": 5.86
+    },
+    "score_gain_percent": 41.66666666666667,
+    "native_suite": "Run All Tests / 3D results",
+    "system_suite_score": null,
+    "repeats": 1
+  },
+  "original_identity": {
+    "_Console/ngage1.rbf": {
+      "bytes": 4498108,
+      "sha256": "0e3513d4bd67f88db059b356c8f24c2069edaee546735c40b3d64ecfdc0cef69"
+    },
+    "games/ngage/spmark04.mmc": {
+      "bytes": 16773632,
+      "sha256": "60d7c4aa989b2393cbeb8f2bbd563cbce0bad5b33d8bb9dac28d89660a772919"
+    },
+    "config/ngage1.CFG": {
+      "bytes": 16,
+      "sha256": "e82810c26935010bb4b21505d57a05293c40ef672affa6efec8b93b5d4bea07c",
+      "hex": "00002100000000000000000000000000"
+    },
+    "rom_bytes": 18612224,
+    "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+  },
+  "persistence_readback": {
+    "boot0.vhd": {
+      "ddr_stable": true,
+      "ddr_sha256": "1a32cc0aa7fe5a1bb3b7d5c923273e016d5f7e5d58f9176365021c8603d5912c",
+      "file_sha256": "1a32cc0aa7fe5a1bb3b7d5c923273e016d5f7e5d58f9176365021c8603d5912c",
+      "file_bytes": 4194304,
+      "file_matches_ddr": true
+    },
+    "boot1.vhd": {
+      "ddr_stable": true,
+      "ddr_sha256": "7299eaecdfb33e7c8552bd3f06dd3ec20487f2ad3435ab83f7e46e159fe8b89f",
+      "file_sha256": "7299eaecdfb33e7c8552bd3f06dd3ec20487f2ad3435ab83f7e46e159fe8b89f",
+      "file_bytes": 65536,
+      "file_matches_ddr": true
+    }
+  },
+  "observer_or_functional_patch": false,
+  "mmc_format_or_replacement": false,
+  "saved_settings_preserved": true,
+  "diagnostics": {
+    "boot-early": {
+      "snapshots": 59,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 0,
+          "flags_hex": "0x06006010",
+          "lba": 2627,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdiChannelCount = 1 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdRAdspServerSession::Construct\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdiChannelCount = 2 |\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdCSysApAppUi::ConstructL: Start listening\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdTRtcQueue::Add: 5\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdStartupApp - iAnimationShowing changed from 0 to 1\ufffdStartupApp - iAnimationShowing changed from 1 to 0\ufffdStartupApp - iAnimationCancelled == 0 \ufffdNDE: In ConstructL\ufffd\ufffd\ufffdCContactDBObserver::NewL()\ufffd\ufffd\ufffdCContactDBObserver::ConstructL()\ufffd\ufffd\ufffd\ufffd**** CAccessoryButtonMonitor::CAccessoryModeMonitor() ****\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd"
+    },
+    "boot-progress": {
+      "snapshots": 59,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 0,
+          "flags_hex": "0x06006010",
+          "lba": 2569,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "CBusSender ERROR -33\ufffdCSysApAppUi::ConstructL: Start listening\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdTRtcQueue::Add: 5\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdStartupApp - iAnimationShowing changed from 0 to 1\ufffdStartupApp - iAnimationShowing changed from 1 to 0\ufffdStartupApp - iAnimationCancelled == 0 \ufffdNDE: In ConstructL\ufffd\ufffd\ufffdCContactDBObserver::NewL()\ufffd\ufffd\ufffdCContactDBObserver::ConstructL()\ufffd\ufffd\ufffd\ufffd**** CAccessoryButtonMonitor::CAccessoryModeMonitor() ****\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd\ufffdNDE: In CNameDialerModel::ReadToneSequence\ufffd\ufffd"
+    },
+    "key-check": {
+      "snapshots": 31,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 0,
+          "flags_hex": "0x06006010",
+          "lba": 2570,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "lized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    },
+    "menu-opening": {
+      "snapshots": 59,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 0,
+          "flags_hex": "0x06006030",
+          "lba": 2570,
+          "mounted": true,
+          "saved": true,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "lized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    },
+    "spmark-startup": {
+      "snapshots": 119,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 0,
+          "flags_hex": "0x06006010",
+          "lba": 2570,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "lized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    },
+    "benchmark-01": {
+      "snapshots": 219,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 1,
+          "flags_hex": "0x06006018",
+          "lba": 11,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "lized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    },
+    "benchmark-02": {
+      "snapshots": 219,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 1,
+          "flags_hex": "0x06006018",
+          "lba": 11,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "lized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    },
+    "benchmark-complete": {
+      "snapshots": 59,
+      "reader_gaps": 1,
+      "generations": [
+        0
+      ],
+      "fault_reasons": [
+        0
+      ],
+      "last": {
+        "clock_hz": 78000000,
+        "reset_generation": 0,
+        "save_progress": {
+          "state": 0,
+          "slot": 1,
+          "flags_hex": "0x06006018",
+          "lba": 11,
+          "mounted": true,
+          "saved": false,
+          "saving": false,
+          "error": false,
+          "manual_batch": false,
+          "flush_pending": false,
+          "tracker_pending": false,
+          "tracker_flushing": false,
+          "tracker_valid": false,
+          "flash_quiescent": true,
+          "bridge_ready": true,
+          "bridge_done": false,
+          "bridge_error": false,
+          "host_ack": false,
+          "host_read_request": false,
+          "host_write_request": false,
+          "ddr_request": false,
+          "ddr_ready": false,
+          "ddr_done": false,
+          "tracker_error": false,
+          "tracker_fault": false,
+          "bundle_verified": true,
+          "autosave_enabled": true,
+          "autosave_paused": false,
+          "dirty_event": false
+        },
+        "save_queue": {
+          "count": 0,
+          "initialized": true,
+          "fault": false,
+          "flush_error": false,
+          "flushing": false,
+          "in_flight": false,
+          "mark_pending": false,
+          "head_ready": false,
+          "overflow": false,
+          "invalid_sector": false,
+          "raw_hex": "0x51000100"
+        },
+        "save_errors": {
+          "c": false,
+          "pmm": false
+        },
+        "panic": {
+          "valid_mask": 0,
+          "payload_hex": "000000000000000000000000",
+          "reason": 0
+        }
+      },
+      "text_tail": "lized\ufffdEPOC Monitor Server started succesfully\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33\ufffdBTLDD: CompleteWithError: 1 -33\ufffd[HCI]\tCHCTLCBusReceiver ERROR = -33 \ufffd[HCI]\tCHCTLCBusSender ERROR -33"
+    }
+  },
+  "observed_snapshots": 824,
+  "snapshot_coverage_limit": "Separate bounded reads, each starts with a reader gap; not a continuous proof of all transients",
+  "failing_setup_paths": [
+    {
+      "rank": "1",
+      "slack_ns": "-0.280",
+      "data_delay_ns": "12.375",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|prefetch_state.P_ISSUE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|empty_ff"
+    },
+    {
+      "rank": "2",
+      "slack_ns": "-0.274",
+      "data_delay_ns": "12.373",
+      "logic_levels": "11",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|prefetch_state.P_ISSUE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|empty_ff~DUPLICATE"
+    },
+    {
+      "rank": "3",
+      "slack_ns": "-0.093",
+      "data_delay_ns": "12.197",
+      "logic_levels": "10",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|prefetch_state.P_ISSUE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_fifo:U_ZAP_FIFO|zap_sync_fifo:u_zap_sync_fifo|full_ff_OTERM1045"
+    }
+  ],
+  "next_local_candidate": "680db21 F1 data probe is not in this RBF; later FIFO flag rewrite also not deployed",
+  "screenshots": {
+    "spmark04-load-forward-results-top.png": "375795de3ed4674565d64597add51f77ee77a0a5e4ca0d8a834f6dd319a6398e",
+    "spmark04-load-forward-results-bottom.png": "fb43884e81ff086d3242234d4bd77aabc8a14fd3914d2177fca1cfb39f747da3"
+  }
+}

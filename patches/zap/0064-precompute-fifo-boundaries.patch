@@ -1,0 +1,60 @@
+--- a/src/rtl/zap_sync_fifo.sv
++++ b/src/rtl/zap_sync_fifo.sv
+@@ -56,6 +56,8 @@
+ logic [WIDTH-1:0]   mem [DEPTH-1:0];
+ logic               write_ok;
+ logic               read_ok;
++logic [PTR_WDT-1:0] wptr_inc, rptr_inc;
++logic one_left, one_free;
+ 
+ // Drive outputs.
+ assign o_empty   = empty_ff;
+@@ -64,11 +66,32 @@
+ assign o_full    = full_ff;
+ assign  o_data   = mem[rptr_ff[PTR_WDT-2:0]];
+ 
+-// Flags
+-assign empty_nxt =   i_clear ? 1'd1 : (wptr_nxt == rptr_nxt);
+-assign full_nxt  =   i_clear ? 1'd0 :
+-                     (( wptr_nxt[PTR_WDT-2:0] == rptr_nxt[PTR_WDT-2:0] ) &
+-                      ( wptr_nxt[PTR_WDT-1]   != rptr_nxt[PTR_WDT-1]   ));
++  // Compare registered pointers before the late transfer enables arrive.
++  // A simultaneous accepted read/write preserves occupancy. At the empty/full
++  // boundary the existing guards admit only the legal transfer, as before.
++  assign wptr_inc = wptr_ff + 1'b1;
++  assign rptr_inc = rptr_ff + 1'b1;
++  assign one_left = wptr_ff == rptr_inc;
++  assign one_free = wptr_inc == {~rptr_ff[PTR_WDT-1], rptr_ff[PTR_WDT-2:0]};
++  always_comb begin
++    empty_nxt = empty_ff;
++    full_nxt = full_ff;
++    case ({write_ok, read_ok})
++      2'b10: begin
++        empty_nxt = 1'b0;
++        full_nxt = one_free;
++      end
++      2'b01: begin
++        empty_nxt = one_left;
++        full_nxt = 1'b0;
++      end
++      default: ;
++    endcase
++    if (i_clear) begin
++      empty_nxt = 1'b1;
++      full_nxt = 1'b0;
++    end
++  end
+ 
+ always_ff @ ( posedge i_clk )
+ begin
+@@ -98,8 +121,8 @@
+ end
+ 
+ // Pointer updates.
+-assign  wptr_nxt = i_clear ? 'd0 : (wptr_ff + (write_ok ? 'd1 : 'd0));
+-assign  rptr_nxt = i_clear ? 'd0 : (rptr_ff + (read_ok  ? 'd1 : 'd0));
++assign wptr_nxt = i_clear ? 'd0 : (write_ok ? wptr_inc : wptr_ff);
++assign rptr_nxt = i_clear ? 'd0 : (read_ok ? rptr_inc : rptr_ff);
+ 
+ always_ff @ (posedge i_clk)
+ begin

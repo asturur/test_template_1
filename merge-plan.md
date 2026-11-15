@@ -3553,3 +3553,21 @@ and uploads an existing ngage1.rbf even after timing failure. Timing failure
 still fails the job. Valid/invalid seeds, unchanged source QSF, newline handling,
 metadata, YAML/shell and synthetic failed-timing retention verified locally.
 No clock/RTL change, remote dispatch or build monitoring.
+
+## 2026-11-15 hardware/performance checkpoint
+
+The requested a745119 build/run43719932412, seed44, was checked after50minutes,
+deployed and completes native SPMark04 on unmodified firmware:119points,
+1.82fps Game,0.40Mtexels/s FillRate,8.10Ktriangles/s PolyCount. Both result pages
+captured. Previous native score84; new score+41.7%, aggregate build comparison.
+Autosaved C:/PMM match stable DDR; original MMC retained. Timing still fails
+at78MHz by0.280ns;91%ALM and91%RAM blocks. See
+[hardware evidence](docs/spmark04-benchmark.md).
+
+F1 dual-port owned data probes are committed in680db21, measured independently
+at+2.1338% over load-forward (indices154.4752/144.5781), and not present in that
+hardware artifact.0064 then targets all three failing FIFO flag endpoints by
+precomputing boundary compares before late ACK. No extra state/RAM/latency;
+62CPU runs, exhaustive boundaries and full payload counters pass unchanged.
+Combined physical fit/timing/boot remain a separate build gate.78MHz PLL remains,
+104MHz stays the target. [Timing step](docs/fifo-flag-timing.md).

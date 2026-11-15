@@ -20,6 +20,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | two-mapping | 60,850 / 60,850 | 7,510 / 7,510 | 37,360 / 37,360 | 135,318 / 201,321 | 4,328 / 4,328 | 5,052 / 5,052 | 149.1744 / 139.6171 | [JSON](evidence/spmark-payload-two-mapping-20261115.json) |
 | load-forward | 60,784 / 60,784 | 7,060 / 7,060 | 36,686 / 36,686 | 135,314 / 201,317 | 4,324 / 4,324 | 5,048 / 5,048 | 151.2480 / 141.5576 | [JSON](evidence/spmark-payload-load-forward-20261115.json) |
 | data-probe | 60,094 / 60,094 | 6,420 / 6,420 | 35,982 / 35,982 | 135,314 / 201,317 | 4,322 / 4,322 | 5,046 / 5,046 | 154.4752 / 144.5781 | [JSON](evidence/spmark-payload-data-probe-20261115.json) |
+| fifo-flags | 60,094 / 60,094 | 6,420 / 6,420 | 35,982 / 35,982 | 135,314 / 201,317 | 4,322 / 4,322 | 5,046 / 5,046 | 154.4752 / 144.5781 | [JSON](evidence/spmark-payload-fifo-flags-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
