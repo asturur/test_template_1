@@ -8,6 +8,7 @@ topic links before repeating research or simulations.
 | --- | --- |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
+| [cache-two-mapping.md](cache-two-mapping.md) | Second shared-context 1KiB mapping, exact faults, architectural TLB lifetime and measured C experiment |
 | [cache-resident-way.md](cache-resident-way.md) | Independently measured indexed reads/stores, fresh dirty-RAM ownership and indices145.16/135.86 |
 | [cache-store-absence.md](cache-store-absence.md) | E0 store-miss shortcut, 5→2-clock cache response, full benchmark and CPU/buffer qualification |
 | [selected-way-pipeline-investigation.md](selected-way-pipeline-investigation.md) | Measured resident/absent lookup reuse, full-frame write-miss distinction and pipeline-compatible bank/owner contract |

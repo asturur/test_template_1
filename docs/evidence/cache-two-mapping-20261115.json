@@ -1,0 +1,187 @@
+{
+  "added_declared_bits_across_I_D": 130,
+  "added_declared_bits_per_tlb": 65,
+  "benchmark": {
+    "elapsed_seconds": 440.557,
+    "groups": 12,
+    "original_baseline_index_by_profile": {
+      "0:0": 149.17439884039263,
+      "2:9": 139.61713169213755
+    },
+    "path": "build/sim/spmark-payload/two-mapping-final-20261115",
+    "repeats": 2,
+    "step_index_by_profile": {
+      "0:0": 102.76302149629429,
+      "2:9": 102.76264805510942
+    },
+    "windows_per_repeat": 84,
+    "wrong_output_controls": 6
+  },
+  "cleanup": {
+    "bytes": 5150595325,
+    "files": 58,
+    "scope": "Only this step\u2019s rebuildable compiler headers. Executables, frozen source, manifests, logs and checkpoints retained."
+  },
+  "clock_pll_mhz": 78,
+  "cpu": {
+    "extra/result.json": {
+      "path": "build/sim/two-mapping-final-cpu-20261115/extra/result.json",
+      "programs": [
+        "cache_associativity",
+        "cache_drain",
+        "cache_external_abort",
+        "cache_fcse",
+        "cache_instruction_associativity",
+        "cache_lockdown",
+        "cache_page_external_abort",
+        "cache_single_maintenance",
+        "cache_tlb_write_order",
+        "cache_write_miss",
+        "cache_write_through",
+        "icache_lockdown",
+        "icache_prefetch_lockdown",
+        "icache_prefetch_translated",
+        "icache_prefetch_uncached",
+        "icache_single_invalidate",
+        "icache_tlb_write_order",
+        "ldm_base_cold_fault",
+        "swp_abort_irq",
+        "swp_mmu_abort",
+        "swp_read_abort",
+        "swp_write_abort",
+        "tlb_lockdown"
+      ],
+      "runs": 44,
+      "sha256": "96a236a447dcda11c0b9f6b884be852123724042d322ef73d5eedc43d3f3155c",
+      "status": "PASS"
+    },
+    "permission-programs-result.json": {
+      "path": "build/sim/two-mapping-final-cpu-20261115/permission-programs-result.json",
+      "programs": [
+        "cache_store_absence",
+        "tlb_permission_reuse",
+        "tlb_two_mapping"
+      ],
+      "runs": 6,
+      "sha256": "7f1e1b09defcba47dbbfc1c4a433d78799bb17e6329c81fd9625e27637697933",
+      "status": "PASS"
+    },
+    "result.json": {
+      "path": "build/sim/two-mapping-final-cpu-20261115/result.json",
+      "programs": [
+        "alignment_cases",
+        "armv4t_profile",
+        "cache_disable_reenable",
+        "cache_irq_refill",
+        "cache_irq_writeback",
+        "cache_load_widths",
+        "cpu_timing",
+        "data_privilege_owner",
+        "fiq_flash_return",
+        "fiq_privileged_ldrt",
+        "fiq_privileged_store",
+        "fiq_store_return",
+        "ldm_base_smallpage",
+        "mmu_fcse",
+        "mmu_fetch",
+        "operand_timing",
+        "smoke",
+        "swp_basic",
+        "swp_cached_irq",
+        "swp_fiq",
+        "swp_irq_core",
+        "thumb_ldm_base_in_list",
+        "thumb_return_dependency"
+      ],
+      "runs": 46,
+      "sha256": "560e737a51e231fb684e54668476a328fa99330d6f79a7384059ec300caed8e0",
+      "status": "PASS"
+    }
+  },
+  "cpu_runs": 96,
+  "fpga_fit_timing_and_boot": "NOT_RUN",
+  "language_check": "iverilog -g2001 arm920_tlb and actual bank/BRAM: PASS",
+  "negative_controls": {
+    "controls": {
+      "predecessor": {
+        "exit": 1,
+        "failure": "[252000] %Fatal: test.sv:186: Assertion failed in test.hot_pair: two mappings repeated a lookup kind=0",
+        "rejected": true
+      },
+      "retain-across-fill": {
+        "exit": 1,
+        "failure": "[10882000] %Fatal: test.sv:341: Assertion failed in test: local mapping outlived main-table eviction",
+        "rejected": true
+      },
+      "unowned-checked-tuple": {
+        "exit": 1,
+        "failure": "[6262000] %Fatal: test.sv:316: Assertion failed in test: consumed primary fault reconstructed an unowned checked tuple",
+        "rejected": true
+      },
+      "wrong-secondary-permission": {
+        "exit": 1,
+        "failure": "[292000] %Fatal: test.sv:191: Assertion failed in test.hot_pair: mapping selected wrong direction permission/FSR",
+        "rejected": true
+      }
+    },
+    "status": "PASS"
+  },
+  "new_ram": false,
+  "production_files_changed": [
+    "rtl/arm920/tlb.sv"
+  ],
+  "profile": {
+    "after": {
+      "groups": 6,
+      "path": "build/sim/spmark-profile/two-mapping-after-20261115/result.json",
+      "repeats": 2,
+      "sha256": "17fb29b05cb6bee1032a8bc1ee604ccbd01b475d006a7560f3d554efe726ac69",
+      "tracked_evidence": "docs/evidence/spmark-payload-two-mapping-after-profile-20261115.json"
+    },
+    "before": {
+      "groups": 2,
+      "path": "build/sim/spmark-profile/two-mapping-before-retry-20261115/result.json",
+      "repeats": 2,
+      "sha256": "e988a979d0d538f28843f815af7a2f81d260dc1b7752bb278083fb3265d999dd",
+      "tracked_evidence": "docs/evidence/spmark-payload-two-mapping-before-profile-20261115.json"
+    },
+    "matrix_translation_wait_per_scored_window": {
+      "after": 2401,
+      "before": 7054
+    },
+    "scope": "Before: matrix only; after: matrix/transpose/triangle, both profiles. All original counters match accepted runs; not a full six-case post-C stall profile."
+  },
+  "prototype_owner_bug": "Unrelated secondary occupancy must not make a consumed primary checked tuple valid; dedicated failing reproducer and final negative control retained",
+  "scope": "C second shared-context checked mapping; primary exact faults remain separately owned",
+  "source_id": "f0e560d08eacd29c4075c8ed4d12ab495afce7507deb0fe9ba2638d62bd5283d",
+  "source_matches_current": true,
+  "status": "PASS",
+  "timing_target_mhz": 104,
+  "units": {
+    "source": "build/sim/spmark-payload/two-mapping-final-20261115/source",
+    "status": "PASS",
+    "tests": {
+      "cp15": [
+        "PASS: ARM920 CP15 type, reset, reserved bits, ARMv4 mode and drain"
+      ],
+      "tlb64_bank": [
+        "PASS: all64 mixed-size entries,65th replacement, lockdown wrap, preserved/all/MVA invalidation, pipeline cancellation"
+      ],
+      "tlb_attributes": [
+        "PASS: four page sizes/CB, fine-table index, uncached fault retry, L1/L2 external aborts, permission oracle"
+      ],
+      "tlb_bus_gate": [
+        "PASS: TLB bus waits for older writes and retains an offered request"
+      ],
+      "tlb_lookup_owner": [
+        "PASS: TLB lookup ownership, exact two-beat miss, held refill, invalidation/TTBR cancellation, permission context, MMU disable"
+      ],
+      "tlb_permission_reuse": [
+        "PASS: 3092 hot permission checks, all AP/domain/SR/User/SVC/FIQ/page classes, SWP direction, AP boundaries, context/invalidation/lock/MMU and exact walk-fault retry/idle ACK"
+      ],
+      "tlb_two_mapping": [
+        "PASS: 256 dual-slot hot checks; four page classes, independent PA/CB/permissions, contexts, exact faults, 65-entry replacement, preserved/all/MVA invalidation and reset"
+      ]
+    }
+  }
+}

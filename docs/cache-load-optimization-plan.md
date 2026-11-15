@@ -10,7 +10,20 @@ copy), then independently measured B/C (local permission/mapping reuse), E
 (selected-way overlap), F (request pipelining)**. Letter labels remain stable
 for dependencies and evidence; their section order is not the execution order.
 
-## Current checkpoint — resident indexed reads/stores accepted
+## Current checkpoint — C's second checked mapping accepted in simulation
+
+C now shares two 1KiB mappings under one context, retaining independent R/W
+permissions and exact primary fault ownership. Final full payload qualification,
+96CPU runs, seven relevant unit suites and four negative controls pass. Suite
+throughput improves2.7630%/2.7626% over E1/E2, original indices149.1744/139.6171.
+Only the TLB controller changes in the production source closure. Added state
+is65bits per I/D instance,130total; no RAM/PLL change or simultaneous requests.
+Current78MHz/104MHz objective remains; physical gates are unverified. Later P1
+probes must validate/capture current P2 permissions and PA with each owner;
+F credits/ordering, load dependencies and fetch attribution remain open.
+[Design, tests and rejected prototype](cache-two-mapping.md).
+
+## Previous checkpoint — resident indexed reads/stores accepted
 
 E1 jointly extends the result directory and adds indexed reads; E2 independently
 adds indexed ordinary WB stores. Full payload repeat/negative controls pass
@@ -174,7 +187,7 @@ latency and independent initiation interval separately. C remains an independent
 locality experiment; its results should decide whether an additional mapping
 slot is justified before any larger request queue.
 
-## C — two small fully associative local mapping slots
+## C — two small fully associative local mapping slots (simulation-qualified)
 
 Dependency: B independently measured. The matrix source arrays are4KiB apart;
 access-direction changes are not its main local-token miss cause. Retain two
@@ -182,7 +195,7 @@ access-direction changes are not its main local-token miss cause. Retain two
 per slot. Do not change the architectural64-entry TLB, page sizes or CP15
 replacement/lockdown semantics.
 
-A second slot is estimated at roughly55–65additional state bits before
+The implementation adds65declared state bits per I/D instance before
 synthesis, plus a22-bit comparison and selection. This is not an ALM estimate.
 Use fully associative lookup: choosing a slot from address bit10 would alias
 these two arrays. Reset/invalidation/lockdown/MMU disable and shared-context
@@ -194,6 +207,14 @@ Tests: alternate two virtual regions with equal low offsets, third-region
 replacement, aliases, permission differences, same/different context, CP15
 64/65-entry replacement and preserved slots, all page sizes and fault retry.
 Measure separately from B and from cache-line shortcuts.
+
+C final results: matrix66031→60850, transpose7786→7510,
+triangle39005→37360; fills improve by6–9cycles. All original bytes, outputs,
+payload/helper counts and repeat/negative controls pass. Main-bank fills revoke
+both old local records before publishing a new primary; publication otherwise
+retains the prior primary using FIFO, with no hit-time payload swap. The exact
+fault/checked-owner corner discovered in the prototype has its own test and
+negative control. [Complete evidence](evidence/cache-two-mapping-20261115.json).
 
 ## D — ordinary-load response copy bypassed (full simulation acceptance passes)
 

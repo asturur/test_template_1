@@ -15,6 +15,7 @@ sh tests/cpu/icache_discard/sim.sh
 tests/cpu/cp15/sim.sh
 tests/cpu/tlb_attributes/sim.sh
 sh tests/cpu/tlb_permission_reuse/sim.sh
+sh tests/cpu/tlb_two_mapping/sim.sh
 tests/cpu/tlb_lookup_owner/sim.sh
 tests/cpu/tlb64_bank/sim.sh
 tests/cpu/tlb_bus_gate/sim.sh
@@ -41,6 +42,7 @@ CPU_PROGRAM=fiq_privileged_ldrt tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_flash_sequence tests/cpu/core/sim.sh
 CPU_PROGRAM=data_privilege_owner tests/cpu/core/sim.sh
 CPU_PROGRAM=tlb_permission_reuse tests/cpu/core/sim.sh
+CPU_PROGRAM=tlb_two_mapping tests/cpu/core/sim.sh
 CPU_PROGRAM=cache_store_absence tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_store_return tests/cpu/core/sim.sh
 CPU_PROGRAM=swp_basic tests/cpu/core/sim.sh

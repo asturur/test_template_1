@@ -1,0 +1,6502 @@
+{
+  "base": "build/sim/spmark-payload/resident-store-20261115",
+  "base_result_sha256": "981df714c90b77004f420e61033ff0620ac048b28655bc0539eaa10cecf10646",
+  "executable_sha256": "35bba0102d6f91ebbaa4f2b00045b8174b6fa6580d6f3e206e6b9f86b2a577e5",
+  "harness_sha256": "d737de4134dbc66e87e166b1e88dbe5a9381728328b0f46e31d5c225367e78c2",
+  "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+  "input_sha256": {
+    "3DTEST.DLL.hex": "1eb5d727f971a0bfcd389dc7f40897f2745a5e181146bb6d7e89844a3eb1a01f",
+    "firmware.hex": "43940451437139663bb0b8c5c1cc06f1e2e600ac88d282c8c3cdfb40ad22e0ad",
+    "matrix4.bin": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+    "matrix4.hex": "4c1d9bd0e752ae541d6fb1cf1667a3390e47a1354ed2d805f488fd6c39309bc9"
+  },
+  "meaning": "blocking-signal occupancy; not additive causal loss",
+  "observer_sha256": "84c408c6e0d5071b7a12679f1fd3bfde72babdfd278333bef83cb60fc68a4c3f",
+  "repeat": 2,
+  "rows": [
+    {
+      "bucket_percentages": {
+        "advance_other": 20.494919053171994,
+        "data_completion_wait": 26.554194242098408,
+        "decode_sequencing": 3.489270191273796,
+        "load_dependency": 0.2968302766882222,
+        "multiply_busy": 9.304720510063454,
+        "operand_queue_empty": 31.986491193530313,
+        "redirect_event": 3.196983235147128,
+        "shift_dependency": 4.676591298026684
+      },
+      "cache_state_percent_of_all_cycles": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 15.092910905483787,
+        "LOOKUP": 1.5992488376671563,
+        "LOOKUP_CAPTURE": 3.8527358361981494,
+        "LOOKUP_WAIT": 1.5992488376671563,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 3.2954218473141403,
+        "STORE_COMMIT": 0.5573139888840091,
+        "STORE_HIT": 0.5573139888840091,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "case": "matrix4",
+      "memory_profile": "0:0",
+      "original_counters_identical": true,
+      "profile": {
+        "pcs": [
+          {
+            "bucket": 0,
+            "cycles": 3050,
+            "instruction": "push\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268444012
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444028
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444032
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444044
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444048
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444060
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444064
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444076
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444080
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl]",
+            "pc": 268444100
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444104
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444108
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444120
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444124
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444136
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444140
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444152
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444156
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #16]",
+            "pc": 268444176
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444180
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444184
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444196
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444200
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444212
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444216
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444228
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444232
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #32]",
+            "pc": 268444252
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444256
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444260
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444272
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444276
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444288
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444292
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444304
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444308
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #48]\t@ 0x30",
+            "pc": 268444328
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444332
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444336
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444348
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444352
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444364
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444368
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444380
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444384
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #4]",
+            "pc": 268444404
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444408
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444412
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444424
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444428
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444440
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444444
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444456
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444460
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #20]",
+            "pc": 268444480
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444484
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444488
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444500
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444504
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444516
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444520
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444532
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444536
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #36]\t@ 0x24",
+            "pc": 268444556
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444560
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444564
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444576
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444580
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444592
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444596
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444608
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444612
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #52]\t@ 0x34",
+            "pc": 268444632
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444636
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444640
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444652
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444656
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444668
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444672
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444684
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444688
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #8]",
+            "pc": 268444708
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444712
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444716
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444728
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444732
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444744
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444748
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444760
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444764
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #24]",
+            "pc": 268444784
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444788
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444792
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444804
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444808
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444820
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444824
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444836
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444840
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #40]\t@ 0x28",
+            "pc": 268444860
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444864
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444868
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444880
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444884
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444896
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444900
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444912
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444916
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #56]\t@ 0x38",
+            "pc": 268444936
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268444940
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444944
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268444956
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444960
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268444972
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444976
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268444988
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444992
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #12]",
+            "pc": 268445012
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445016
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268445020
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445032
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268445036
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445048
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268445052
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445064
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268445068
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #28]",
+            "pc": 268445088
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445092
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268445096
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445108
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268445112
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445124
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268445128
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445140
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268445144
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #44]\t@ 0x2c",
+            "pc": 268445164
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445168
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268445172
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445184
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268445188
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445200
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268445204
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445216
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268445220
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #60]\t@ 0x3c",
+            "pc": 268445240
+          },
+          {
+            "bucket": 0,
+            "cycles": 2080,
+            "instruction": "pop\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268445244
+          },
+          {
+            "bucket": 0,
+            "cycles": 615,
+            "instruction": "ldr\tip, [pc, #156]\t@ 0xb0",
+            "pc": 236
+          },
+          {
+            "bucket": 0,
+            "cycles": 5,
+            "instruction": "ldr\tr0, [pc, #116]\t@ 0xac",
+            "pc": 272
+          },
+          {
+            "bucket": 1,
+            "cycles": 30720,
+            "instruction": "smull\tr2, r3, r0, r1",
+            "pc": 268440008
+          },
+          {
+            "bucket": 2,
+            "cycles": 480,
+            "instruction": "bx\tlr",
+            "pc": 268445248
+          },
+          {
+            "bucket": 2,
+            "cycles": 480,
+            "instruction": "bx\tip",
+            "pc": 244
+          },
+          {
+            "bucket": 2,
+            "cycles": 20,
+            "instruction": "mov\tr2, #256\t@ 0x100",
+            "pc": 280
+          },
+          {
+            "bucket": 3,
+            "cycles": 5120,
+            "instruction": "lsr\tr3, r0, #16",
+            "pc": 268440020
+          },
+          {
+            "bucket": 3,
+            "cycles": 5120,
+            "instruction": "orr\tr0, r3, r1, lsl #16",
+            "pc": 268440024
+          },
+          {
+            "bucket": 3,
+            "cycles": 5120,
+            "instruction": "asr\tr1, r1, #16",
+            "pc": 268440028
+          },
+          {
+            "bucket": 3,
+            "cycles": 80,
+            "instruction": "bne\t0x0",
+            "pc": 264
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "sub\tsp, sp, #4",
+            "pc": 268440004
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "smull\tr2, r3, r0, r1",
+            "pc": 268440008
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "mov\tr1, r3",
+            "pc": 268440012
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "mov\tr0, r2",
+            "pc": 268440016
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "lsr\tr3, r0, #16",
+            "pc": 268440020
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "orr\tr0, r3, r1, lsl #16",
+            "pc": 268440024
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "asr\tr1, r1, #16",
+            "pc": 268440028
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "add\tsp, sp, #4",
+            "pc": 268440032
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "bx\tlr",
+            "pc": 268440036
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "push\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268444012
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tsl, r0",
+            "pc": 268444016
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr5, r1",
+            "pc": 268444020
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr6, r2",
+            "pc": 268444024
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444028
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444032
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444036
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444040
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444044
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444048
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444052
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444056
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444060
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444064
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444068
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444072
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444076
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444080
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444084
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444088
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444092
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444096
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl]",
+            "pc": 268444100
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444104
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444108
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444112
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444116
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444120
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444124
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444128
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444132
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444136
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444140
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444144
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444148
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444152
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444156
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444160
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444164
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444168
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444172
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #16]",
+            "pc": 268444176
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444180
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444184
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444188
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444192
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444196
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444200
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444204
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444208
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444212
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444216
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444220
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444224
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444228
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444232
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444236
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444240
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444244
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444248
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #32]",
+            "pc": 268444252
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444256
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444260
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444264
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444268
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444272
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444276
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444280
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444284
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444288
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444292
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444296
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444300
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444304
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444308
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444312
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444316
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444320
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444324
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #48]\t@ 0x30",
+            "pc": 268444328
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444332
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444336
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444340
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444344
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444348
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444352
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444356
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444360
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444364
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444368
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444372
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444376
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444380
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444384
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444388
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444392
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444396
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444400
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #4]",
+            "pc": 268444404
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444408
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444412
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444416
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444420
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444424
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444428
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444432
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444436
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444440
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444444
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444448
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444452
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444456
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444460
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444464
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444468
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444472
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444476
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #20]",
+            "pc": 268444480
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444484
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444488
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444492
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444496
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444500
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444504
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444508
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444512
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444516
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444520
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444524
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444528
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444532
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444536
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444540
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444544
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444548
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444552
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #36]\t@ 0x24",
+            "pc": 268444556
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444560
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444564
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444568
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444572
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444576
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444580
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444584
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444588
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444592
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444596
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444600
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444604
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444608
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444612
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444616
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444620
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444624
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444628
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #52]\t@ 0x34",
+            "pc": 268444632
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444636
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444640
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444644
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444648
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444652
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444656
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444660
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444664
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444668
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444672
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444676
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444680
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444684
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444688
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444692
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444696
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444700
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444704
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #8]",
+            "pc": 268444708
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444712
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444716
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444720
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444724
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444728
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444732
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444736
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444740
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444744
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444748
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444752
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444756
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444760
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444764
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444768
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444772
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444776
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444780
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #24]",
+            "pc": 268444784
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444788
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444792
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444796
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444800
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444804
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444808
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444812
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444816
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444820
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444824
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444828
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444832
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444836
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444840
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444844
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444848
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444852
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444856
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #40]\t@ 0x28",
+            "pc": 268444860
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444864
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444868
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444872
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444876
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444880
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444884
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444888
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444892
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444896
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444900
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444904
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444908
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444912
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444916
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444920
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444924
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444928
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444932
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #56]\t@ 0x38",
+            "pc": 268444936
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268444940
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444944
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444948
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444952
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268444956
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444960
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444964
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444968
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268444972
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444976
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444980
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444984
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268444988
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444992
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444996
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445000
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445004
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445008
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #12]",
+            "pc": 268445012
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445016
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268445020
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445024
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268445028
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445032
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268445036
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445040
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268445044
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445048
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268445052
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445056
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268445060
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445064
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268445068
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445072
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445076
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445080
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445084
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #28]",
+            "pc": 268445088
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445092
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268445096
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445100
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268445104
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445108
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268445112
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445116
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268445120
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445124
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268445128
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445132
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268445136
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445140
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268445144
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445148
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445152
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445156
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445160
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #44]\t@ 0x2c",
+            "pc": 268445164
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445168
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268445172
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445176
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268445180
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445184
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268445188
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445192
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268445196
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445200
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268445204
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445208
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268445212
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445216
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268445220
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445224
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445228
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445232
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445236
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #60]\t@ 0x3c",
+            "pc": 268445240
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "pop\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268445244
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bx\tlr",
+            "pc": 268445248
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr0, r4",
+            "pc": 224
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr1, r5",
+            "pc": 228
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr2, r6",
+            "pc": 232
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tip, [pc, #156]\t@ 0xb0",
+            "pc": 236
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tlr, pc",
+            "pc": 240
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bx\tip",
+            "pc": 244
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, #64\t@ 0x40",
+            "pc": 248
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr5, r5, #64\t@ 0x40",
+            "pc": 252
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr6, r6, #64\t@ 0x40",
+            "pc": 256
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "subs\tr8, r8, #1",
+            "pc": 260
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bne\t0x0",
+            "pc": 264
+          },
+          {
+            "bucket": 4,
+            "cycles": 5,
+            "instruction": "nop\t\t\t@ (mov r0, r0)",
+            "pc": 268
+          }
+        ],
+        "windows": [
+          {
+            "buckets": {
+              "advance_other": 13534,
+              "data_completion_wait": 19776,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 22979,
+              "redirect_event": 2111,
+              "shift_dependency": 3089
+            },
+            "cache_states": {
+              "BUFFER_STORE": 263,
+              "BYPASS": 0,
+              "IDLE": 10031,
+              "LOOKUP": 1169,
+              "LOOKUP_CAPTURE": 2538,
+              "LOOKUP_WAIT": 1169,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 105,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 1957
+            },
+            "raw": {
+              "cycles": 70133,
+              "external_wait": 1870,
+              "fetch_wait": 18876,
+              "read_wait": 16612,
+              "redirects": 4032,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3164
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          }
+        ]
+      },
+      "scored_cycles": 330155
+    },
+    {
+      "bucket_percentages": {
+        "advance_other": 20.494919053171994,
+        "data_completion_wait": 26.554194242098408,
+        "decode_sequencing": 3.489270191273796,
+        "load_dependency": 0.2968302766882222,
+        "multiply_busy": 9.304720510063454,
+        "operand_queue_empty": 31.986491193530313,
+        "redirect_event": 3.196983235147128,
+        "shift_dependency": 4.676591298026684
+      },
+      "cache_state_percent_of_all_cycles": {
+        "BUFFER_STORE": 0.0,
+        "BYPASS": 0.0,
+        "IDLE": 15.092910905483787,
+        "LOOKUP": 1.5992488376671563,
+        "LOOKUP_CAPTURE": 3.8527358361981494,
+        "LOOKUP_WAIT": 1.5992488376671563,
+        "MAINTAIN": 0.0,
+        "MAINT_CAPTURE": 0.0,
+        "MAINT_LOOKUP": 0.0,
+        "MAINT_WAIT": 0.0,
+        "READ_LINE": 3.2954218473141403,
+        "STORE_COMMIT": 0.5573139888840091,
+        "STORE_HIT": 0.5573139888840091,
+        "WAIT_DRAIN": 0.0,
+        "WAIT_REFILL": 0.0
+      },
+      "case": "matrix4",
+      "memory_profile": "2:9",
+      "original_counters_identical": true,
+      "profile": {
+        "pcs": [
+          {
+            "bucket": 0,
+            "cycles": 3050,
+            "instruction": "push\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268444012
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444028
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444032
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444044
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444048
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444060
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444064
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444076
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444080
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl]",
+            "pc": 268444100
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444104
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444108
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444120
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444124
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444136
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444140
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444152
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444156
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #16]",
+            "pc": 268444176
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444180
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444184
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444196
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444200
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444212
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444216
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444228
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444232
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #32]",
+            "pc": 268444252
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444256
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444260
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444272
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444276
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444288
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444292
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444304
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444308
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #48]\t@ 0x30",
+            "pc": 268444328
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444332
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444336
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444348
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444352
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444364
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444368
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444380
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444384
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #4]",
+            "pc": 268444404
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444408
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444412
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444424
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444428
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444440
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444444
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444456
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444460
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #20]",
+            "pc": 268444480
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444484
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444488
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444500
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444504
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444516
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444520
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444532
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444536
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #36]\t@ 0x24",
+            "pc": 268444556
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444560
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444564
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444576
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444580
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444592
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444596
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444608
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444612
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #52]\t@ 0x34",
+            "pc": 268444632
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444636
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444640
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444652
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444656
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444668
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444672
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444684
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444688
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #8]",
+            "pc": 268444708
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444712
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444716
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444728
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444732
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444744
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444748
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444760
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444764
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #24]",
+            "pc": 268444784
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444788
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444792
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444804
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444808
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444820
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444824
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444836
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444840
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #40]\t@ 0x28",
+            "pc": 268444860
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444864
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444868
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444880
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444884
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444896
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444900
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444912
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444916
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #56]\t@ 0x38",
+            "pc": 268444936
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268444940
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444944
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268444956
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444960
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268444972
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444976
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268444988
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444992
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #12]",
+            "pc": 268445012
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445016
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268445020
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445032
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268445036
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445048
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268445052
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445064
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268445068
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #28]",
+            "pc": 268445088
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445092
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268445096
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445108
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268445112
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445124
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268445128
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445140
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268445144
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #44]\t@ 0x2c",
+            "pc": 268445164
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445168
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268445172
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445184
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268445188
+          },
+          {
+            "bucket": 0,
+            "cycles": 640,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445200
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268445204
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445216
+          },
+          {
+            "bucket": 0,
+            "cycles": 480,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268445220
+          },
+          {
+            "bucket": 0,
+            "cycles": 800,
+            "instruction": "str\tr4, [sl, #60]\t@ 0x3c",
+            "pc": 268445240
+          },
+          {
+            "bucket": 0,
+            "cycles": 2080,
+            "instruction": "pop\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268445244
+          },
+          {
+            "bucket": 0,
+            "cycles": 615,
+            "instruction": "ldr\tip, [pc, #156]\t@ 0xb0",
+            "pc": 236
+          },
+          {
+            "bucket": 0,
+            "cycles": 5,
+            "instruction": "ldr\tr0, [pc, #116]\t@ 0xac",
+            "pc": 272
+          },
+          {
+            "bucket": 1,
+            "cycles": 30720,
+            "instruction": "smull\tr2, r3, r0, r1",
+            "pc": 268440008
+          },
+          {
+            "bucket": 2,
+            "cycles": 480,
+            "instruction": "bx\tlr",
+            "pc": 268445248
+          },
+          {
+            "bucket": 2,
+            "cycles": 480,
+            "instruction": "bx\tip",
+            "pc": 244
+          },
+          {
+            "bucket": 2,
+            "cycles": 20,
+            "instruction": "mov\tr2, #256\t@ 0x100",
+            "pc": 280
+          },
+          {
+            "bucket": 3,
+            "cycles": 5120,
+            "instruction": "lsr\tr3, r0, #16",
+            "pc": 268440020
+          },
+          {
+            "bucket": 3,
+            "cycles": 5120,
+            "instruction": "orr\tr0, r3, r1, lsl #16",
+            "pc": 268440024
+          },
+          {
+            "bucket": 3,
+            "cycles": 5120,
+            "instruction": "asr\tr1, r1, #16",
+            "pc": 268440028
+          },
+          {
+            "bucket": 3,
+            "cycles": 80,
+            "instruction": "bne\t0x0",
+            "pc": 264
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "sub\tsp, sp, #4",
+            "pc": 268440004
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "smull\tr2, r3, r0, r1",
+            "pc": 268440008
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "mov\tr1, r3",
+            "pc": 268440012
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "mov\tr0, r2",
+            "pc": 268440016
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "lsr\tr3, r0, #16",
+            "pc": 268440020
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "orr\tr0, r3, r1, lsl #16",
+            "pc": 268440024
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "asr\tr1, r1, #16",
+            "pc": 268440028
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "add\tsp, sp, #4",
+            "pc": 268440032
+          },
+          {
+            "bucket": 4,
+            "cycles": 5120,
+            "instruction": "bx\tlr",
+            "pc": 268440036
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "push\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268444012
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tsl, r0",
+            "pc": 268444016
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr5, r1",
+            "pc": 268444020
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr6, r2",
+            "pc": 268444024
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444028
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444032
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444036
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444040
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444044
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444048
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444052
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444056
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444060
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444064
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444068
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444072
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444076
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444080
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444084
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444088
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444092
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444096
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl]",
+            "pc": 268444100
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444104
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444108
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444112
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444116
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444120
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444124
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444128
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444132
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444136
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444140
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444144
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444148
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444152
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444156
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444160
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444164
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444168
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444172
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #16]",
+            "pc": 268444176
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444180
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444184
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444188
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444192
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444196
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444200
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444204
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444208
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444212
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444216
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444220
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444224
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444228
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444232
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444236
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444240
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444244
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444248
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #32]",
+            "pc": 268444252
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5]",
+            "pc": 268444256
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444260
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444264
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444268
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #16]",
+            "pc": 268444272
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444276
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444280
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444284
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #32]",
+            "pc": 268444288
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444292
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444296
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444300
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #48]\t@ 0x30",
+            "pc": 268444304
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444308
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444312
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444316
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444320
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444324
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #48]\t@ 0x30",
+            "pc": 268444328
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444332
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444336
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444340
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444344
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444348
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444352
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444356
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444360
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444364
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444368
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444372
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444376
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444380
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444384
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444388
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444392
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444396
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444400
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #4]",
+            "pc": 268444404
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444408
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444412
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444416
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444420
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444424
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444428
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444432
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444436
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444440
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444444
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444448
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444452
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444456
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444460
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444464
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444468
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444472
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444476
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #20]",
+            "pc": 268444480
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444484
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444488
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444492
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444496
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444500
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444504
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444508
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444512
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444516
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444520
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444524
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444528
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444532
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444536
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444540
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444544
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444548
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444552
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #36]\t@ 0x24",
+            "pc": 268444556
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #4]",
+            "pc": 268444560
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444564
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444568
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444572
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #20]",
+            "pc": 268444576
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444580
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444584
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444588
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #36]\t@ 0x24",
+            "pc": 268444592
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444596
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444600
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444604
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #52]\t@ 0x34",
+            "pc": 268444608
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444612
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444616
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444620
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444624
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444628
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #52]\t@ 0x34",
+            "pc": 268444632
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444636
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444640
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444644
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444648
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444652
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444656
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444660
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444664
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444668
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444672
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444676
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444680
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444684
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444688
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444692
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444696
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444700
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444704
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #8]",
+            "pc": 268444708
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444712
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268444716
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444720
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444724
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444728
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268444732
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444736
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444740
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444744
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268444748
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444752
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444756
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444760
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268444764
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444768
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444772
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444776
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444780
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #24]",
+            "pc": 268444784
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444788
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268444792
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444796
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444800
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444804
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268444808
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444812
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444816
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444820
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268444824
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444828
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444832
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444836
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268444840
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444844
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444848
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444852
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444856
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #40]\t@ 0x28",
+            "pc": 268444860
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #8]",
+            "pc": 268444864
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268444868
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444872
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444876
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #24]",
+            "pc": 268444880
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268444884
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444888
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444892
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #40]\t@ 0x28",
+            "pc": 268444896
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268444900
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444904
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444908
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #56]\t@ 0x38",
+            "pc": 268444912
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268444916
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444920
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268444924
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268444928
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268444932
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #56]\t@ 0x38",
+            "pc": 268444936
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268444940
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6]",
+            "pc": 268444944
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444948
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268444952
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268444956
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #4]",
+            "pc": 268444960
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444964
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268444968
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268444972
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #8]",
+            "pc": 268444976
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444980
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268444984
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268444988
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #12]",
+            "pc": 268444992
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268444996
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445000
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445004
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445008
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #12]",
+            "pc": 268445012
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445016
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #16]",
+            "pc": 268445020
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445024
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268445028
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445032
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #20]",
+            "pc": 268445036
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445040
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268445044
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445048
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #24]",
+            "pc": 268445052
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445056
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268445060
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445064
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #28]",
+            "pc": 268445068
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445072
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445076
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445080
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445084
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #28]",
+            "pc": 268445088
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445092
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #32]",
+            "pc": 268445096
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445100
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268445104
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445108
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #36]\t@ 0x24",
+            "pc": 268445112
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445116
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268445120
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445124
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #40]\t@ 0x28",
+            "pc": 268445128
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445132
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268445136
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445140
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #44]\t@ 0x2c",
+            "pc": 268445144
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445148
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445152
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445156
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445160
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #44]\t@ 0x2c",
+            "pc": 268445164
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #12]",
+            "pc": 268445168
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #48]\t@ 0x30",
+            "pc": 268445172
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445176
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr4, r0",
+            "pc": 268445180
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #28]",
+            "pc": 268445184
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #52]\t@ 0x34",
+            "pc": 268445188
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445192
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr8, r0",
+            "pc": 268445196
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #44]\t@ 0x2c",
+            "pc": 268445200
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #56]\t@ 0x38",
+            "pc": 268445204
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445208
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr7, r0",
+            "pc": 268445212
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr0, [r5, #60]\t@ 0x3c",
+            "pc": 268445216
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tr1, [r6, #60]\t@ 0x3c",
+            "pc": 268445220
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bl\t0xfffff0b4",
+            "pc": 268445224
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r8",
+            "pc": 268445228
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r7",
+            "pc": 268445232
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, r0",
+            "pc": 268445236
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "str\tr4, [sl, #60]\t@ 0x3c",
+            "pc": 268445240
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "pop\t{r4, r5, r6, r7, r8, sl, lr}",
+            "pc": 268445244
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bx\tlr",
+            "pc": 268445248
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr0, r4",
+            "pc": 224
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr1, r5",
+            "pc": 228
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tr2, r6",
+            "pc": 232
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "ldr\tip, [pc, #156]\t@ 0xb0",
+            "pc": 236
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "mov\tlr, pc",
+            "pc": 240
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bx\tip",
+            "pc": 244
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr4, r4, #64\t@ 0x40",
+            "pc": 248
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr5, r5, #64\t@ 0x40",
+            "pc": 252
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "add\tr6, r6, #64\t@ 0x40",
+            "pc": 256
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "subs\tr8, r8, #1",
+            "pc": 260
+          },
+          {
+            "bucket": 4,
+            "cycles": 80,
+            "instruction": "bne\t0x0",
+            "pc": 264
+          },
+          {
+            "bucket": 4,
+            "cycles": 5,
+            "instruction": "nop\t\t\t@ (mov r0, r0)",
+            "pc": 268
+          }
+        ],
+        "windows": [
+          {
+            "buckets": {
+              "advance_other": 13534,
+              "data_completion_wait": 20427,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 23857,
+              "redirect_event": 2111,
+              "shift_dependency": 3089
+            },
+            "cache_states": {
+              "BUFFER_STORE": 263,
+              "BYPASS": 0,
+              "IDLE": 10031,
+              "LOOKUP": 1169,
+              "LOOKUP_CAPTURE": 2538,
+              "LOOKUP_WAIT": 1169,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 105,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 2608
+            },
+            "raw": {
+              "cycles": 71662,
+              "external_wait": 5585,
+              "fetch_wait": 19847,
+              "read_wait": 17263,
+              "redirects": 4068,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3164
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          },
+          {
+            "buckets": {
+              "advance_other": 13533,
+              "data_completion_wait": 17534,
+              "decode_sequencing": 2304,
+              "load_dependency": 196,
+              "multiply_busy": 6144,
+              "operand_queue_empty": 21121,
+              "redirect_event": 2111,
+              "shift_dependency": 3088
+            },
+            "cache_states": {
+              "BUFFER_STORE": 0,
+              "BYPASS": 0,
+              "IDLE": 9966,
+              "LOOKUP": 1056,
+              "LOOKUP_CAPTURE": 2544,
+              "LOOKUP_WAIT": 1056,
+              "MAINTAIN": 0,
+              "MAINT_CAPTURE": 0,
+              "MAINT_LOOKUP": 0,
+              "MAINT_WAIT": 0,
+              "READ_LINE": 2176,
+              "STORE_COMMIT": 368,
+              "STORE_HIT": 368,
+              "WAIT_DRAIN": 0,
+              "WAIT_REFILL": 0
+            },
+            "raw": {
+              "cycles": 66031,
+              "external_wait": 0,
+              "fetch_wait": 16331,
+              "read_wait": 14364,
+              "redirects": 3983,
+              "response_ack": 2544,
+              "retire": 14353,
+              "translation_wait": 7054,
+              "write_wait": 3170
+            }
+          }
+        ]
+      },
+      "scored_cycles": 330155
+    }
+  ],
+  "source_id": "59be81b3adce7acd3d89b45685a8d711108968bc898fddcb3a01066cdfd75231",
+  "status": "PASS"
+}

@@ -1,3 +1,33 @@
+## 2026-11-15: C second checked mapping implemented and simulation-qualified
+
+One additional FIFO publication slot shares the existing mapping context and
+keeps its own PA/C/B/read/write/fault metadata. Exact walk faults remain primary
+request results. Both old mappings are revoked on main-table fill, invalidation,
+lockdown or MMU disable; context checks prevent permission reuse across owners.
+Only rtl/arm920/tlb.sv changes in the128-file production source closure. Added
+state65bits per instance,130across I/D; no new RAM/PLL/outstanding requests.
+Current78MHz/104MHz objective retained; fit/timing/board boot unverified.
+
+Final full suite passes12groups/84windows per repeat, two identical repeats and
+six wrong-output controls. Medians: matrix60850, transpose7510, triangle37360,
+frame135318/201321, tail16 4328, tail8 5052. Suite gain2.7630%/2.7626% over E1/E2;
+original-baseline indices149.1744/139.6171. Final96CPU runs, seven related units,
+3092primary/256dual-slot permission checks and four negative controls pass.
+A consumed-primary-fault checked-tuple bug in the initial prototype was caught
+by an expanded test, fixed, and all final-source qualification repeated.
+
+Focused post-C matrix/transpose/triangle profiles at both profiles repeat exactly
+and match every original counter. Matrix translation waits7054→2401; data holds
+26.55%→21.17%. Current transpose data44.85%, dependency20.51%; empty queues
+matrix33.84%/triangle30.88% need causal attribution. Raw counters overlap. This
+is not a new six-case stall profile. Older RAS/forwarding/F work and owned store
+completion remain open; current CPU/cache are still blocking.
+
+All work stays on original codex/ngage2-integration. Other threads' simulations
+and permanent checkpoints preserved. Follow standing commit/push-after-profiling
+instruction; no CI launch/monitoring, hardware, branch or worktree action.
+[Design/results](cache-two-mapping.md), [qualification](evidence/cache-two-mapping-20261115.json).
+
 ## 2026-11-15: Resident-way E1/E2 implemented and independently qualified
 
 E1 is a declared joint two-entry presence/way directory plus indexed-read step;

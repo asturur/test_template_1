@@ -17,6 +17,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | store-absence | 71,119 / 71,119 | 9,164 / 9,164 | 40,991 / 40,991 | 135,329 / 201,332 | 5,228 / 5,228 | 5,960 / 5,960 | 130.5092 / 122.1483 | [JSON](evidence/spmark-payload-store-absence-20261115.json) |
 | resident-read | 66,253 / 66,253 | 8,522 / 8,522 | 40,317 / 40,317 | 135,327 / 201,330 | 5,226 / 5,226 | 5,958 / 5,958 | 134.0546 / 125.4664 | [JSON](evidence/spmark-payload-resident-read-20261115.json) |
 | resident-store | 66,031 / 66,031 | 7,786 / 7,786 | 39,005 / 39,005 | 135,327 / 201,330 | 4,334 / 4,334 | 5,058 / 5,058 | 145.1635 / 135.8637 | [JSON](evidence/spmark-payload-resident-store-20261115.json) |
+| two-mapping | 60,850 / 60,850 | 7,510 / 7,510 | 37,360 / 37,360 | 135,318 / 201,321 | 4,328 / 4,328 | 5,052 / 5,052 | 149.1744 / 139.6171 | [JSON](evidence/spmark-payload-two-mapping-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -84,3 +85,19 @@ stores: +8.2869% over E1, +11.2285% cumulative over E0. Both full suites pass
 all12groups/84windows, exact repeats and six wrong-output controls. E1 elapsed
 503.308s; E2 elapsed513.391s. Table indices retain the original baseline100.
 [Implementation, tests and CPU-owner timings](cache-resident-way.md).
+
+`two-mapping` implements C as a second checked 1KiB mapping under shared
+context, with separate R/W permissions and exact primary walk faults. All 12
+groups/84 windows per repeat, two exact repetitions and six wrong-output
+controls pass on the final source (440.557s). Matrix throughput improves 8.51%,
+transpose 3.68%, triangle 4.40%; the suite improves 2.7630% / 2.7626% over
+resident-store. Table indices retain the original baseline100, independently
+computed from each original workload's cycles. The runner's normal comparison
+field uses the immediate predecessor, and the tracked JSON additionally names
+`original_baseline_index_by_profile` to keep these denominators explicit.
+
+Final acceptance includes 96 CPU runs, seven relevant unit suites and four
+negative controls, including a consumed-fault owner bug found in the initial
+prototype and corrected before the accepted benchmark. Added state is 65 bits
+per I/D controller, 130 total; no new RAM or PLL change. Fit/timing and phone
+boot remain unverified. [Design and qualification](cache-two-mapping.md).

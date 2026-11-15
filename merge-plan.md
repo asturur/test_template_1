@@ -1,3 +1,17 @@
+## 2026-11-15: C second checked mapping independently completed in simulation
+
+Two shared-context1KiB mappings preserve separate R/W permissions and exact
+primary walk faults.65additional state bits per I/D instance,130total; no new
+RAM or PLL change. Final96CPU runs, seven related units/four negative controls,
+all six payloads/both profiles/repeat/output controls pass. Caught and fixed a
+consumed-primary checked-owner prototype corner before full requalification.
+Suite gain2.7630%/2.7626%, original-baseline indices149.1744/139.6171. Focused
+math profiles confirm matrix translation waits7054→2401; overlapping counters
+still require care. P1/F execution overlap, forwarding and fetch/RAS attribution
+remain separate. Current78MHz/104MHz objective; fit/timing/boot unverified.
+Other simulations/checkpoints and original branch/checkout preserved.
+[Design and retained evidence](docs/cache-two-mapping.md).
+
 ## 2026-11-15: Resident indexed E1/E2 completed and independently measured
 
 Two line-result records and owned indexed reads (E1), then fresh-dirty indexed

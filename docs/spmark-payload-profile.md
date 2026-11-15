@@ -1,3 +1,33 @@
+# Profile after C's second checked mapping — 2026-11-15
+
+The final full benchmark qualifies all six kernels at both profiles. A separate
+post-change observer profiles matrix/transpose/triangle at 0:0 and 2:9, two exact
+repetitions, every original raw counter unchanged. This is a focused profile,
+not a new six-case stall profile. The pre-change matrix observer also qualifies
+against E1/E2 without changing its counters.
+
+Matrix translation waits drop from7,054/66,031clocks (10.68%) to2,401/60,850
+(3.95%). Its data holds fall26.55%→21.17%; overall throughput improves8.51%.
+Raw fetch waits also drop16,331→12,651, illustrating coupling/overlap; these
+figures must not be added as independent cycle savings.
+
+| Current workload | Data hold | Load dependency | Empty operand queue |
+| --- | ---: | ---: | ---: |
+| matrix4 |21.17% |0.32% |33.84% |
+| transpose4 |44.85% |20.51% |17.20% |
+| triangle_edges |24.02% |7.16% |30.88% |
+
+These warmed occupancies match across both synthetic backing profiles. Data
+completion remains significant; matrix/triangle empty queues still need causal
+fetch/redirect attribution. Percentage increases alone do not prove more
+absolute stalls. The older RAS/forwarding/F pipeline plan and owned ordinary
+store-completion opportunities remain open; C adds no execution overlap.
+Original-baseline indices now149.1744/139.6171, +2.7630%/+2.7626% over E1/E2.
+[Design and tests](cache-two-mapping.md),
+[before observer](evidence/spmark-payload-two-mapping-before-profile-20261115.json),
+[after observer](evidence/spmark-payload-two-mapping-after-profile-20261115.json).
+Older full/focused profiles below are historical checkpoints.
+
 # Focused profile after resident indexed stores — 2026-11-15
 
 The complete E1/E2 benchmarks qualify all six kernels at both backing profiles.

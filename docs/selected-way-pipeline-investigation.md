@@ -4,7 +4,8 @@ Current checkpoint: [resident indexed reads/stores](cache-resident-way.md) now
 implement E1/E2 after E0 and independently measure the gain. The directory and
 indexed owner interface are present; P1/CPU execution overlap is not. The
 investigation below is historical planning evidence, with tests now addressed
-as recorded in the implementation document. C and F remain open.
+as recorded in the implementation document. [C mapping reuse](cache-two-mapping.md)
+is now independently qualified; F execution overlap remains open.
 
 2026-11-15. Investigation on the original integration checkout, after accepted
 permission reuse B. No production RTL changes in this investigation. The next

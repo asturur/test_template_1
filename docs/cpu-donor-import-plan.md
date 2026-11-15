@@ -180,6 +180,16 @@ starts only after its relevant baseline results exist.
 
 ## Ordered imports and their decisions
 
+C update 2026-11-15: the second shared-context checked mapping is implemented
+and independently qualified on the original branch. All six payloads, both
+profiles, repeat/output controls,96CPU runs/seven unit suites/four negative
+controls pass. Indices149.1744/139.6171, +2.7630%/+2.7626% over E1/E2.
+No new RAM;130additional declared I/D state bits. Exact faults and main-table
+lifetime remain enforced. This closes C's simulation experiment, not physical
+fit/timing/boot or the older RAS/correctness/forwarding/F pipeline phases.
+[Implementation and evidence](cache-two-mapping.md).
+
+
 E1/E2 update2026-11-15: indexed resident reads/stores are implemented, separately
 measured, and qualified with92/94CPU runs and19unit suites per stage. Combined
 kernel throughput improves11.2285%over E0; cumulative indices145.1635/135.8637.
