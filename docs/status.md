@@ -1,3 +1,24 @@
+## 2026-11-15: Reconciled all saved work into the original integration branch
+
+There is one active checkout: `/Users/andreabogazzi/develop/NGage_MiSTer` on
+`codex/ngage2-integration`. The former detached worktree at
+`/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer` was clean,
+its908b2d3 commit was already an integration ancestor, and no running process
+used it. It is removed from Git worktrees; the old path is now a symlink to the
+same main checkout, so this chat cannot drift into the old detached copy.
+
+Recovered saved master commit d751692: memory-performance baseline/evidence,
+hardware-checkpoint notes and historical status/startup investigation. Current
+simulator C++/HDL remains byte-identical to194b51d: its checkpoint-safe key
+command interface supersedes the old direct-key pin implementation. All incoming
+status additions are preserved in [recovered notes](recovered-main-investigation-20261115.md),
+with their historical dates and source identities. Existing formatter/hook
+files are included with their checksum/license. AGENTS.md now requires this
+single checkout/branch and prohibits new branches/worktrees unless requested.
+
+No runtime RTL changed, simulations/checkpoints were not touched, and profiling
+remains stopped as requested. [Reconciliation evidence](evidence/workspace-reconciliation-20261115.json).
+
 ## 2026-11-15: CPU performance delivery checkpoint
 
 User authorized commit and push of the benchmark/profiler, ARMv4T pruning and

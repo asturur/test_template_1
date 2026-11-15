@@ -1,0 +1,900 @@
+{
+  "collected": "2026-11-11",
+  "baseline_branch": "master",
+  "baseline_head": "7f55e93982219b8ad5315b785e63be4d4532a756",
+  "memory_implementation_commit": "3f5e8aeae3260562a814eacdd8d8aa505c044af8",
+  "active_long_model": "6af112481fad51dde8dc0f8da9229438fda8c8ecbd62000ff2aa808096aa4330",
+  "clock_profile": {
+    "bringup_hz": 78000000,
+    "design_target_hz": 104000000,
+    "timer_hz": 26000000,
+    "nos_tick_hz": 64
+  },
+  "input_sha256": {
+    "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "cdrive": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+  },
+  "definitions": {
+    "clocks": "Design clock edges, not host elapsed seconds. Each profile specifies its start and end events.",
+    "rising_edges": "Isolated TLB counter includes the first request-capture edge. A 3-edge main hit is 2 full intervals after capture, visible post-edge.",
+    "historical_profiles": "Numbers belong to the named source and experiment. Native scalar, slice2 and line-refill values represent different integration stages.",
+    "mean_vs_median": "Both statistics are preserved explicitly. Refills use means, native clean misses and filesystem calls use medians."
+  },
+  "profiles": {
+    "isolated_tlb_current": {
+      "measured": "2026-11-11",
+      "run": "docs/evidence/memory-performance-baseline/run-tlb.sh",
+      "backend": "Existing tlb_attributes registered descriptor bus. No FPGA external memory; one L1 beat for section, two beats for page.",
+      "i_idle": true,
+      "table_entries": 64,
+      "measurements_include_request_capture_edge": true
+    },
+    "native_scalar_direct_route": {
+      "before_source": "docs/evidence/performance-subset-2026-11-09.json",
+      "boot_model": "ce5d0d3992dd6378bfe03695c70cd9a82cd8d77a83d3823259432aa5003710de",
+      "program_sha256": "0f99e5e2137fc05f5cdb8dd3528ffc419a0bd3a949b1cd7cd75ed7d8ff7070aa",
+      "fixture_sha256": "92528480328c768060dc10ec8dc7f4a49b1577939e4764f23e71edc1de2b7ddb",
+      "line_refill": false,
+      "memory": "Modeled native-program backend, includes I/D contention."
+    },
+    "native_scalar_legacy_route": {
+      "source": "docs/evidence/performance-subset-2026-11-09.json",
+      "direct_sdram": false,
+      "line_refill": false
+    },
+    "line_refill_before": {
+      "model": "5a5a4f90dd9ece26a8b8d6e05ecceac7ec2263a73cf9d5320f2f2aa53042ef78",
+      "begin": 4700000002,
+      "end": 4750000002,
+      "line_refill": false
+    },
+    "line_refill_after": {
+      "model": "5271ec5bedfe81c5fe2d5d8da04c6673f953e39a89022d0079528c970f92eb29",
+      "begin": 4700000002,
+      "end": 4750000002,
+      "line_refill": true,
+      "memory": "Fast phone backing arrays with modeled DDR. Physical SDRAM controller validated separately."
+    },
+    "filesystem_legacy": {
+      "model": "65ea564947bfe4e4",
+      "profile": {
+        "sys_clk_hz": 78000000,
+        "timer_clock": "26mhz",
+        "nos_tick_hz": 64,
+        "rom_cache_bits": 64,
+        "rom_cache_bytes": 1024,
+        "direct_sdram": true,
+        "firmware_overlays": false
+      },
+      "begin": 2000000000,
+      "end": 2050000000
+    },
+    "filesystem_handshake_fixed": {
+      "model": "8877b43014f2eba6ddadbe3300a23865b0f2e48d994d227d5f29333f82fb01bb",
+      "profile": {
+        "sys_clk_hz": 78000000,
+        "timer_clock": "26mhz",
+        "nos_tick_hz": 64,
+        "rom_cache_bits": 64,
+        "rom_cache_bytes": 1024,
+        "direct_sdram": true,
+        "firmware_overlays": false
+      },
+      "begin": 2000000000,
+      "end": 2050000000
+    },
+    "filesystem_tlb64": {
+      "model": "27535b46216966c062a03e1cee795b1abf511d3017da1c1eb5a49b420bd23efb",
+      "profile": {
+        "sys_clk_hz": 78000000,
+        "timer_clock": "26mhz",
+        "nos_tick_hz": 64,
+        "rom_cache_bits": 64,
+        "rom_cache_bytes": 1024,
+        "direct_sdram": true
+      },
+      "begin": 2000000027,
+      "end": 2050000027
+    },
+    "cache_lookup_slice2": {
+      "source": "docs/cache-lookup-stage-contract.md",
+      "scope": "Historical directed cache/CPU stage contract. Uniformly labeled post-edge or sampled endpoint."
+    },
+    "short_sdram_controller": {
+      "frequencies_hz": [
+        78000000,
+        104000000
+      ],
+      "line_refill": true,
+      "SHORT_READS_after": 1,
+      "pin_model": "Original Micron timing model and DDIO functional models;104MHz also +0.6ns pin delay.",
+      "commands_mixed": 600
+    },
+    "write_buffer_local": {
+      "source": "docs/write-buffer-stage-contract.md",
+      "scope": "Reservation/local-payload pipeline, not CPU store-use latency."
+    },
+    "uncached_rom_ddr_only": {
+      "source": "docs/uncached-fetch.md",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    },
+    "uncached_rom_rom_buffer": {
+      "source": "docs/uncached-fetch.md",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    },
+    "uncached_rom_uncached_lookup_fix": {
+      "source": "docs/uncached-fetch.md",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    },
+    "uncached_rom_resident_hit_fix": {
+      "source": "docs/uncached-fetch.md",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    },
+    "uncached_rom_registered_master": {
+      "source": "docs/uncached-fetch.md",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    },
+    "rom_buffer_handshake": {
+      "source": "docs/uncached-fetch.md",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    },
+    "fast_phone_harness": {
+      "source": "tests/phone/hardware_boot/tb.v",
+      "scope": "Historical stage or configured harness; see source and metric boundary."
+    }
+  },
+  "metrics": [
+    {
+      "id": "tlb_small_page_cold_walk",
+      "value": 10,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 2
+    },
+    {
+      "id": "tlb_permission_token_hit",
+      "value": 0,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 0
+    },
+    {
+      "id": "tlb_main_tlb_hit_other_1k",
+      "value": 3,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 0
+    },
+    {
+      "id": "tlb_main_tlb_hit_return_1k",
+      "value": 3,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 0
+    },
+    {
+      "id": "tlb_main_tlb_hit_context_change",
+      "value": 3,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 0
+    },
+    {
+      "id": "tlb_small_page_new_mapping",
+      "value": 10,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 2
+    },
+    {
+      "id": "tlb_section_cold_walk",
+      "value": 7,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 1
+    },
+    {
+      "id": "tlb_section_token_hit",
+      "value": 0,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 0
+    },
+    {
+      "id": "tlb_mmu_disabled_identity",
+      "value": 0,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "docs/evidence/memory-performance-baseline/tlb-latency.log",
+      "definition": "Request presented after falling edge through first settled !busy. Count includes capture edge. Token/identity can be ready before any edge.",
+      "descriptor_reads": 0
+    },
+    {
+      "id": "tlb_bank_result_pipeline",
+      "value": 2,
+      "unit": "rising_edges",
+      "profile": "isolated_tlb_current",
+      "source": "rtl/arm920/tlb_bank.sv",
+      "definition": "Lookup capture/CAM compare on first edge, grouped selection and synchronous BRAM result on second edge.",
+      "evidence_kind": "RTL_stage_count"
+    },
+    {
+      "id": "native_clean_dcache_miss_legacy_route",
+      "value": 159,
+      "unit": "clocks",
+      "profile": "native_scalar_legacy_route",
+      "source": "docs/evidence/performance-subset-2026-11-09.json",
+      "definition": "Accepted cache request through caller-sampled response, median 65 clean 32-byte misses with modeled instruction contention.",
+      "minimum": 159,
+      "maximum": 167,
+      "sample_count": 65
+    },
+    {
+      "id": "native_dirty_victim_miss_legacy_route",
+      "value": 108,
+      "unit": "clocks",
+      "profile": "native_scalar_legacy_route",
+      "source": "docs/evidence/performance-subset-2026-11-09.json",
+      "definition": "One dirty-victim example. Buffered writeback overlaps response and instruction traffic.",
+      "read_commands": 8,
+      "write_beats_before_response": 2
+    },
+    {
+      "id": "native_clean_dcache_miss_direct_route",
+      "value": 143,
+      "unit": "clocks",
+      "profile": "native_scalar_direct_route",
+      "source": "docs/evidence/performance-subset-2026-11-09.json",
+      "definition": "Accepted cache request through caller-sampled response, median 65 clean 32-byte misses with modeled instruction contention.",
+      "minimum": 143,
+      "maximum": 151,
+      "sample_count": 65
+    },
+    {
+      "id": "native_dirty_victim_miss_direct_route",
+      "value": 90,
+      "unit": "clocks",
+      "profile": "native_scalar_direct_route",
+      "source": "docs/evidence/performance-subset-2026-11-09.json",
+      "definition": "One dirty-victim example. Buffered writeback overlaps response and instruction traffic.",
+      "read_commands": 8,
+      "write_beats_before_response": 2
+    },
+    {
+      "id": "l1_data_hit_sampled",
+      "value": 5,
+      "unit": "clocks",
+      "profile": "native_scalar_direct_route",
+      "source": "docs/evidence/performance-subset-2026-11-09.json",
+      "definition": "Acceptance edge0 through caller sampling. Response visible post-edge4. External transfers zero."
+    },
+    {
+      "id": "cache_unit_read_hit_visible",
+      "value": 4,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cache_unit_store_hit_visible",
+      "value": 5,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cache_unit_clean_read_miss_immediate_visible",
+      "value": 23,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cache_unit_uncached_read_visible",
+      "value": 3,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cache_unit_mva_clean_visible",
+      "value": 12,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cache_unit_indexed_invalidate_visible",
+      "value": 5,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cache_unit_all_512_invalidate_visible",
+      "value": 1538,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Acceptance edge0 through visible post-edge response. Caller samples one edge later. Immediate-bus directed fixture; historical slice2 result."
+    },
+    {
+      "id": "cpu_load_issue_to_cache_accept",
+      "value": 11,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "cpu_cache_accept_to_sampled_response",
+      "value": 5,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "cpu_response_to_completion_owner",
+      "value": 1,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "cpu_completion_to_dependent_issue",
+      "value": 3,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "cpu_dependent_load_issue_gap",
+      "value": 20,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "cpu_warm_add_interval",
+      "value": 1,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "cpu_branch_minimum_gap",
+      "value": 14,
+      "unit": "clocks",
+      "profile": "cache_lookup_slice2",
+      "source": "docs/cache-lookup-stage-contract.md",
+      "definition": "Warm directed cpu_timing workload, measured phase boundary or issue spacing. Context in source document."
+    },
+    {
+      "id": "line_ic_refill_before",
+      "value": 137.3712882861819,
+      "unit": "mean_clocks",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Refill coordinator state occupancy divided by refill starts over matched 50M cache-active replay. Memory targets and workload mix included.",
+      "total_clocks": 19976258,
+      "refill_starts": 145418
+    },
+    {
+      "id": "line_dc_refill_before",
+      "value": 136.8379416747338,
+      "unit": "mean_clocks",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Refill coordinator state occupancy divided by refill starts over matched 50M cache-active replay. Memory targets and workload mix included.",
+      "total_clocks": 4523315,
+      "refill_starts": 33056
+    },
+    {
+      "id": "line_ddr_read_commands_before",
+      "value": 722967,
+      "unit": "count_per_50m",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_ddr_return_beats_before",
+      "value": 722967,
+      "unit": "count_per_50m",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_trace_uop_observations_before",
+      "value": 4119132,
+      "unit": "count_per_50m",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_code_stall_before",
+      "value": 36234874,
+      "unit": "count_per_50m",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_data_stall_before",
+      "value": 18352378,
+      "unit": "count_per_50m",
+      "profile": "line_refill_before",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_ic_refill_after",
+      "value": 22.873358193216035,
+      "unit": "mean_clocks",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Refill coordinator state occupancy divided by refill starts over matched 50M cache-active replay. Memory targets and workload mix included.",
+      "total_clocks": 5097305,
+      "refill_starts": 222849
+    },
+    {
+      "id": "line_dc_refill_after",
+      "value": 39.91839047142217,
+      "unit": "mean_clocks",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Refill coordinator state occupancy divided by refill starts over matched 50M cache-active replay. Memory targets and workload mix included.",
+      "total_clocks": 1514863,
+      "refill_starts": 37949
+    },
+    {
+      "id": "line_ddr_read_commands_after",
+      "value": 252294,
+      "unit": "count_per_50m",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_ddr_return_beats_after",
+      "value": 981072,
+      "unit": "count_per_50m",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_trace_uop_observations_after",
+      "value": 5824305,
+      "unit": "count_per_50m",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_code_stall_after",
+      "value": 28939276,
+      "unit": "count_per_50m",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "line_data_stall_after",
+      "value": 20336174,
+      "unit": "count_per_50m",
+      "profile": "line_refill_after",
+      "source": "docs/evidence/line-refill-2026-11-10.json",
+      "definition": "Matched 4,700,000,002 to 4,750,000,002 replay. Stall flags overlap; trace observations count micro-ops."
+    },
+    {
+      "id": "warm_rom_iteration_ddr_only",
+      "value": 1713,
+      "unit": "clocks",
+      "profile": "uncached_rom_ddr_only",
+      "source": "docs/uncached-fetch.md",
+      "definition": "One warm delay iteration with 79 retirements and 99 accepted fetches. For buffer-backed variants, no external DDR reads during the warm iteration.",
+      "fetch_issue": null,
+      "bus_service": null,
+      "return_to_cpu": null
+    },
+    {
+      "id": "warm_rom_iteration_rom_buffer",
+      "value": 1515,
+      "unit": "clocks",
+      "profile": "uncached_rom_rom_buffer",
+      "source": "docs/uncached-fetch.md",
+      "definition": "One warm delay iteration with 79 retirements and 99 accepted fetches. For buffer-backed variants, no external DDR reads during the warm iteration.",
+      "fetch_issue": 6,
+      "bus_service": 7,
+      "return_to_cpu": 2
+    },
+    {
+      "id": "warm_rom_iteration_uncached_lookup_fix",
+      "value": 1317,
+      "unit": "clocks",
+      "profile": "uncached_rom_uncached_lookup_fix",
+      "source": "docs/uncached-fetch.md",
+      "definition": "One warm delay iteration with 79 retirements and 99 accepted fetches. For buffer-backed variants, no external DDR reads during the warm iteration.",
+      "fetch_issue": 4,
+      "bus_service": 7,
+      "return_to_cpu": 2
+    },
+    {
+      "id": "warm_rom_iteration_resident_hit_fix",
+      "value": 1119,
+      "unit": "clocks",
+      "profile": "uncached_rom_resident_hit_fix",
+      "source": "docs/uncached-fetch.md",
+      "definition": "One warm delay iteration with 79 retirements and 99 accepted fetches. For buffer-backed variants, no external DDR reads during the warm iteration.",
+      "fetch_issue": 4,
+      "bus_service": 5,
+      "return_to_cpu": 2
+    },
+    {
+      "id": "warm_rom_iteration_registered_master",
+      "value": 1020,
+      "unit": "clocks",
+      "profile": "uncached_rom_registered_master",
+      "source": "docs/uncached-fetch.md",
+      "definition": "One warm delay iteration with 79 retirements and 99 accepted fetches. For buffer-backed variants, no external DDR reads during the warm iteration.",
+      "fetch_issue": 3,
+      "bus_service": 5,
+      "return_to_cpu": 2
+    },
+    {
+      "id": "ddr_rom_buffer_resident_lookup_before",
+      "value": 3,
+      "unit": "clocks",
+      "profile": "rom_buffer_handshake",
+      "source": "docs/uncached-fetch.md",
+      "definition": "Resident lookup inside 1KiB outer instruction buffer, distinct from ARM L1 hit and full CPU fetch."
+    },
+    {
+      "id": "ddr_rom_buffer_resident_lookup_after",
+      "value": 1,
+      "unit": "clocks",
+      "profile": "rom_buffer_handshake",
+      "source": "docs/uncached-fetch.md",
+      "definition": "Resident lookup inside 1KiB outer instruction buffer, distinct from ARM L1 hit and full CPU fetch."
+    },
+    {
+      "id": "ddr_model_first_beat",
+      "value": 3,
+      "unit": "clocks",
+      "profile": "fast_phone_harness",
+      "source": "tests/phone/hardware_boot/tb.v",
+      "definition": "Configured synthetic DDR response delay after accepted read. Following beats arrive every clock.",
+      "evidence_kind": "model_configuration"
+    },
+    {
+      "id": "ddr_line_read_beats",
+      "value": 4,
+      "unit": "64bit_beats",
+      "profile": "line_refill_after",
+      "source": "docs/cache-line-refill.md",
+      "definition": "One 32-byte L1 line transported by one DDR read command."
+    },
+    {
+      "id": "sdram_line_read_commands",
+      "value": 2,
+      "unit": "BL8_read_commands",
+      "profile": "short_sdram_controller",
+      "source": "docs/cache-line-refill.md",
+      "definition": "One 32-byte L1 line uses two native 128-bit transfers, 16 total halfwords."
+    },
+    {
+      "id": "sdram_short_read_halfwords_before",
+      "value": 8,
+      "unit": "halfwords",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/sdram-short-reads-2026-11-10.json",
+      "definition": "Synthetic physical-controller/Micron-model test. Mixed workload has 600 READ commands with short/long traffic, both banks and refresh."
+    },
+    {
+      "id": "sdram_short_read_halfwords_after",
+      "value": 2,
+      "unit": "halfwords",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/sdram-short-reads-2026-11-10.json",
+      "definition": "Synthetic physical-controller/Micron-model test. Mixed workload has 600 READ commands with short/long traffic, both banks and refresh."
+    },
+    {
+      "id": "sdram_mixed_clocks_before",
+      "value": 8920,
+      "unit": "clocks",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/sdram-short-reads-2026-11-10.json",
+      "definition": "Synthetic physical-controller/Micron-model test. Mixed workload has 600 READ commands with short/long traffic, both banks and refresh."
+    },
+    {
+      "id": "sdram_mixed_clocks_after",
+      "value": 8173,
+      "unit": "clocks",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/sdram-short-reads-2026-11-10.json",
+      "definition": "Synthetic physical-controller/Micron-model test. Mixed workload has 600 READ commands with short/long traffic, both banks and refresh."
+    },
+    {
+      "id": "sdram_mixed_halfwords_before",
+      "value": 4800,
+      "unit": "halfwords",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/sdram-short-reads-2026-11-10.json",
+      "definition": "Synthetic physical-controller/Micron-model test. Mixed workload has 600 READ commands with short/long traffic, both banks and refresh."
+    },
+    {
+      "id": "sdram_mixed_halfwords_after",
+      "value": 3000,
+      "unit": "halfwords",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/sdram-short-reads-2026-11-10.json",
+      "definition": "Synthetic physical-controller/Micron-model test. Mixed workload has 600 READ commands with short/long traffic, both banks and refresh."
+    },
+    {
+      "id": "sdram_scalar_test_mean_request_to_ack",
+      "value": 12.88495575221239,
+      "unit": "mean_clocks",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/memory-performance-baseline/sdram-short104.log",
+      "definition": "Sum of request-to-ACK loop counts over 113 ordinary reads in adapter+arbiter test. Includes row/refresh effects; no isolated scalar minimum.",
+      "sample_count": 113,
+      "total_clocks": 1456
+    },
+    {
+      "id": "sdram_first_read_controller_ack_to_rdy",
+      "value": 4,
+      "unit": "approx_clocks",
+      "profile": "short_sdram_controller",
+      "source": "docs/evidence/memory-performance-baseline/sdram-short104.log",
+      "definition": "Derived from rounded controller BA_ACK=107694ns to BA_RDY=107733ns at nominal104MHz. One directed read.",
+      "evidence_kind": "rounded_timestamp_derived"
+    },
+    {
+      "id": "filesystem_read_median_legacy",
+      "value": 16165,
+      "unit": "clocks",
+      "profile": "filesystem_legacy",
+      "source": "docs/evidence/mmu-handshake-2026-11-10.json",
+      "definition": "Whole firmware/kernel one-byte scan read call, excluding neither CPU nor filesystem work. 50M matched comparisons.",
+      "complete_reads": 2626,
+      "minimum": 15965,
+      "maximum": 40852
+    },
+    {
+      "id": "filesystem_read_median_handshake_fixed",
+      "value": 11430,
+      "unit": "clocks",
+      "profile": "filesystem_handshake_fixed",
+      "source": "docs/evidence/mmu-handshake-2026-11-10.json",
+      "definition": "Whole firmware/kernel one-byte scan read call, excluding neither CPU nor filesystem work. 50M matched comparisons.",
+      "complete_reads": 3748,
+      "minimum": 11300,
+      "maximum": 33835
+    },
+    {
+      "id": "filesystem_read_median_tlb64",
+      "value": 9512,
+      "unit": "clocks",
+      "profile": "filesystem_tlb64",
+      "source": "docs/evidence/tlb64-2026-11-10.json",
+      "definition": "Whole firmware/kernel one-byte scan read call, excluding neither CPU nor filesystem work. 50M matched comparisons.",
+      "complete_reads": 4484,
+      "minimum": 9389,
+      "maximum": 30618
+    },
+    {
+      "id": "tlb64_main_lookup_count_d",
+      "value": 1225255,
+      "unit": "count_per_50m",
+      "profile": "filesystem_tlb64",
+      "source": "docs/evidence/tlb64-2026-11-10.json",
+      "definition": "Main-table lookups over 50M scan replay, distinct from permission-token hits."
+    },
+    {
+      "id": "tlb64_main_lookup_count_i",
+      "value": 769505,
+      "unit": "count_per_50m",
+      "profile": "filesystem_tlb64",
+      "source": "docs/evidence/tlb64-2026-11-10.json",
+      "definition": "Main-table lookups over 50M scan replay."
+    },
+    {
+      "id": "tlb64_walk_count_d",
+      "value": 33,
+      "unit": "count_per_50m",
+      "profile": "filesystem_tlb64",
+      "source": "docs/evidence/tlb64-2026-11-10.json",
+      "definition": "Actual descriptor walks over 50M scan replay."
+    },
+    {
+      "id": "tlb64_walk_count_i",
+      "value": 24,
+      "unit": "count_per_50m",
+      "profile": "filesystem_tlb64",
+      "source": "docs/evidence/tlb64-2026-11-10.json",
+      "definition": "Actual descriptor walks over 50M scan replay."
+    },
+    {
+      "id": "write_buffer_reservation_to_payload",
+      "value": 1,
+      "unit": "clocks",
+      "profile": "write_buffer_local",
+      "source": "docs/write-buffer-stage-contract.md",
+      "definition": "Local write-buffer fixture with immediate sink; startup latency and sustained interval are separate measurements."
+    },
+    {
+      "id": "write_buffer_sustained_enqueue_interval",
+      "value": 1,
+      "unit": "clocks",
+      "profile": "write_buffer_local",
+      "source": "docs/write-buffer-stage-contract.md",
+      "definition": "Local write-buffer fixture with immediate sink; startup latency and sustained interval are separate measurements."
+    },
+    {
+      "id": "write_buffer_four_words_first_accept_to_last_ack",
+      "value": 5,
+      "unit": "clocks",
+      "profile": "write_buffer_local",
+      "source": "docs/write-buffer-stage-contract.md",
+      "definition": "Local write-buffer fixture with immediate sink; startup latency and sustained interval are separate measurements."
+    },
+    {
+      "id": "write_buffer_eight_words_first_accept_to_last_ack",
+      "value": 9,
+      "unit": "clocks",
+      "profile": "write_buffer_local",
+      "source": "docs/write-buffer-stage-contract.md",
+      "definition": "Local write-buffer fixture with immediate sink; startup latency and sustained interval are separate measurements."
+    }
+  ],
+  "rom_cache_matrix": [
+    {
+      "name": "rom-matrix-64-1024-50m",
+      "line_bits": 64,
+      "cache_bytes": 1024,
+      "delay_entry_cycle": 147802,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37852,
+      "ddr_commands": 1208,
+      "ddr_beats": 1208
+    },
+    {
+      "name": "rom-matrix-64-2048-50m",
+      "line_bits": 64,
+      "cache_bytes": 2048,
+      "delay_entry_cycle": 147186,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37853,
+      "ddr_commands": 1155,
+      "ddr_beats": 1155
+    },
+    {
+      "name": "rom-matrix-64-4096-50m",
+      "line_bits": 64,
+      "cache_bytes": 4096,
+      "delay_entry_cycle": 146990,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37853,
+      "ddr_commands": 1141,
+      "ddr_beats": 1141
+    },
+    {
+      "name": "rom-matrix-128-1024-50m",
+      "line_bits": 128,
+      "cache_bytes": 1024,
+      "delay_entry_cycle": 145252,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37854,
+      "ddr_commands": 841,
+      "ddr_beats": 1315
+    },
+    {
+      "name": "rom-matrix-128-2048-50m",
+      "line_bits": 128,
+      "cache_bytes": 2048,
+      "delay_entry_cycle": 144669,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37855,
+      "ddr_commands": 804,
+      "ddr_beats": 1241
+    },
+    {
+      "name": "rom-matrix-128-4096-50m",
+      "line_bits": 128,
+      "cache_bytes": 4096,
+      "delay_entry_cycle": 144498,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37855,
+      "ddr_commands": 795,
+      "ddr_beats": 1223
+    },
+    {
+      "name": "rom-matrix-256-1024-50m",
+      "line_bits": 256,
+      "cache_bytes": 1024,
+      "delay_entry_cycle": 144523,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37855,
+      "ddr_commands": 645,
+      "ddr_beats": 1479
+    },
+    {
+      "name": "rom-matrix-256-2048-50m",
+      "line_bits": 256,
+      "cache_bytes": 2048,
+      "delay_entry_cycle": 143798,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37855,
+      "ddr_commands": 618,
+      "ddr_beats": 1371
+    },
+    {
+      "name": "rom-matrix-256-4096-50m",
+      "line_bits": 256,
+      "cache_bytes": 4096,
+      "delay_entry_cycle": 143566,
+      "warm_iteration_cycles": 1317,
+      "boot_index": 37856,
+      "ddr_commands": 610,
+      "ddr_beats": 1339
+    }
+  ],
+  "evidence_sha256": {
+    "docs/cache-line-refill.md": "9fa7a339818117156553186403470d4ffefb93b2e1413a47cf0b253f891ecc4b",
+    "docs/cache-lookup-stage-contract.md": "231de10c84d40fbda774983d1068d4fb5b6cc5acbe69f48915578355bee01b36",
+    "docs/evidence/line-refill-2026-11-10.json": "3c1f6fe2a149e1906cf2413cee7c9675edd8636e059e28f8c5208d51c3357587",
+    "docs/evidence/memory-performance-baseline/tlb-latency.log": "0a28fa4d3535234262ff21316c224477883c504bda9b3b404b8c7eebbb06fbdb",
+    "docs/evidence/memory-performance-baseline/tlb_latency_tb.sv": "610064277250edc6774d7d140e1416cf2b75f2eedf1c520a11e8840d4d261f74",
+    "docs/evidence/mmu-handshake-2026-11-10.json": "e802ab63ea2e5d2a55e9796f916f613eeb05eea702d2b7a090f96440a126a3a2",
+    "docs/evidence/performance-subset-2026-11-09.json": "cb1c8f33acc1bca222fc6fdc42dd1758a660a1a0fd390f4f5efec51b2e7aac94",
+    "docs/evidence/sdram-short-reads-2026-11-10.json": "ada989e58ba225aea9604f5bacd4aa48851b3cf55246062128bcf46cee4318de",
+    "docs/evidence/tlb64-2026-11-10.json": "9310b483964b1cd3e5b158d6e64acf894c755c3b3c288c29c73e92fed586de78",
+    "docs/uncached-fetch.md": "90a5abaab4d6103764a4ccab5f72440ff93a9bb4f04f2d684e58b3910df2d0c5",
+    "docs/write-buffer-stage-contract.md": "56fbb5973800fc4d02c852ba1e57eb7b893fb108a1644caa3bd228f5a4421da1",
+    "rtl/arm920/tlb.sv": "84b66bbce35c2da1c7ab966a1f34c45a6c5605482cdb990fab60e0da4d713b6b",
+    "rtl/arm920/tlb_bank.sv": "b9be6836977579c98777e2ad14fa4f8a28b784b16712099ac3cfa21869091303",
+    "rtl/ngage_bram.v": "25b3bfbee6db4ece2145169d4afd298b6f7eac52d27baf1afde8692e98b4d215",
+    "scratch/short-reads/regression.log": "30371556241e07ec65e14c3e2edfa0e479867ae41927368db0c0d3d4b050e379",
+    "tests/phone/hardware_boot/tb.v": "013aec0cd7fb4cb952b7b4c358ae7272a6ff3acd4344e82b2a79b69c262c3b9a",
+    "docs/evidence/memory-performance-baseline/sdram-short104.log": "1cfad05afd9efc5b0d0571b79224a512dbde72e8afda913fa1c10a609631ba3b",
+    "docs/evidence/memory-performance-baseline/run-tlb.sh": "f0b97cca346ecfaaceca7ca73d328f08f98dc211c8eb6f1df6f2014be95e1514"
+  },
+  "comparison_gaps": [
+    "No measured board DDR round-trip latency. Three-cycle fast-harness latency is configured.",
+    "No isolated post-line-refill physical-SDRAM clean/dirty L1 miss cost.",
+    "No new-core numbers collected in this task.",
+    "104MHz is an engineering target; these cycle counts do not establish fitted timing closure."
+  ],
+  "candidate_measurements": []
+}

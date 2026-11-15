@@ -1,0 +1,7 @@
+{
+  "version": "v0.0-4298-g085eef05",
+  "platform": "macOS arm64",
+  "source_url": "https://github.com/chipsalliance/verible/releases/download/v0.0-4298-g085eef05/verible-v0.0-4298-g085eef05-macOS.tar.gz",
+  "archive_sha256": "260ff58d63188e175d2f63be2823a65dcea21383ee4a83f370fd3e1b05f0e977",
+  "formatter_sha256": "a3c282b5b381e20105c5d406d61b598f60add276b57855763e5539bb0fde8767"
+}

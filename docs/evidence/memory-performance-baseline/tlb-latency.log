@@ -1,0 +1,11 @@
+MEASURE name=small_page_cold_walk clocks=10 table_reads=2 physical=0a081868
+MEASURE name=permission_token_hit clocks=0 table_reads=0 physical=0a08186c
+MEASURE name=main_tlb_hit_other_1k clocks=3 table_reads=0 physical=0a081c00
+MEASURE name=main_tlb_hit_return_1k clocks=3 table_reads=0 physical=0a081868
+MEASURE name=main_tlb_hit_context_change clocks=3 table_reads=0 physical=0a081868
+MEASURE name=small_page_new_mapping clocks=10 table_reads=2 physical=0a081868
+MEASURE name=section_cold_walk clocks=7 table_reads=1 physical=0a000080
+MEASURE name=section_token_hit clocks=0 table_reads=0 physical=0a000084
+MEASURE name=mmu_disabled_identity clocks=0 table_reads=0 physical=0a000080
+PASS isolated production TLB latency measurements
+docs/evidence/memory-performance-baseline/tlb_latency_tb.sv:130: $finish called at 501000 (1ps)

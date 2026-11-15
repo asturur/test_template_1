@@ -312,3 +312,18 @@ remain mandatory. See [phone function results](phone-functions.md) and latest
 status before deploying any probe. Direct logging can interleave with native
 output and change timing; discard malformed/gapped messages rather than pairing
 them across gaps or claiming original-firmware latency from an instrumented run.
+
+### Reconciled historical keypad continuation
+
+Saved main-checkout commit `d751692` used a direct top-level27-bit `keys` pin
+and host `+key-mask`, `+key-start`, `+key-duration` arguments. That historical
+interface is preserved in Git history; it is superseded in the integration
+checkout by checkpoint-safe `ngage_sim_keys`, the host `+key-command` file and
+`tools/send_sim_key.py`. Use [current simulation input](sim-ui-run.md), rather
+than connecting the old C++ host to the new testbench. The fault-context build
+also retains its separate HDL `+key-at`/`+key-hold` pulse observer.
+
+The [recovered historical notes](recovered-main-investigation-20261115.md),
+[memory baseline](memory-performance-baseline.md) and
+[hardware checkpoint design](hardware-checkpoints.md) retain the saved work.
+They do not establish a new hardware checkpoint/export capability.

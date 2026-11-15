@@ -1,0 +1,4 @@
+TIMING ack=107694.0 ns
+TIMING rdy=107733.0 ns data=0000
+PASS SDRAM real controller and model, refreshes=351 checked_short_reads=113 halfwords=226 wait_clocks=1456
+tests/phone/sdram/tb.sv:152: $finish called at 198964656 (1ps)

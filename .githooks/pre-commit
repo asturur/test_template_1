@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+formatter="${VERIBLE_FORMATTER:-$PWD/tools/verible/macos/bin/verible-verilog-format}"
+temporary=$(mktemp -d)
+trap 'rm -rf "$temporary"' EXIT
+status=0
+
+while IFS= read -r -d '' path; do
+    case "$path" in
+        Template.sv|rtl/ngage*.v|rtl/ngage*.sv|tests/*.v|tests/*.sv|scratch/*.v|scratch/*.sv)
+            git show ":$path" > "$temporary/source.v"
+            if ! "$formatter" --verify "$temporary/source.v"; then
+                printf 'Formatting required: %s\n' "$path" >&2
+                status=1
+            fi
+            ;;
+    esac
+done < <(git diff --cached --name-only --diff-filter=ACMR -z)
+exit "$status"

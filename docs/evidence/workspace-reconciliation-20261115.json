@@ -1,0 +1,21 @@
+{
+  "branch": "codex/ngage2-integration",
+  "main_checkout": "/Users/andreabogazzi/develop/NGage_MiSTer",
+  "legacy_chat_path": "/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer",
+  "legacy_path_is_symlink": true,
+  "registered_worktrees": 1,
+  "previous_integration_head": "194b51d8866ff0b028f6ac71f6326d1a13d85130",
+  "recovered_main_commit": "d751692a10f5c1502b7c4dc08d2d32375eecb6b2",
+  "retired_detached_commit": "908b2d34d306ee08c6454583cc72eea12be9fbe0",
+  "retired_commit_already_ancestor": true,
+  "conflict_resolution": {
+    "docs/status.md": "retain current status; archive every incoming added status line in recovered-main-investigation-20261115.md",
+    "docs/bringup.md": "retain current kernel observation notes; preserve superseded key-pin protocol as historical and point to current checkpoint-safe command input",
+    "tests/phone/hardware_boot/logo_main.cpp": "byte-identical to prior integration HEAD; newer checkpoint-safe key-command host supersedes old direct keys pin",
+    "tests/phone/hardware_boot/tb.v": "byte-identical to prior integration HEAD; retain current DMA, reset and key-command interfaces"
+  },
+  "runtime_source_changes": false,
+  "simulations_started_or_stopped": false,
+  "profiling_remains_stopped": true,
+  "local_formatter_and_hook": "included with checksum/license/provenance"
+}

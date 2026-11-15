@@ -5,6 +5,17 @@
 - Keep maintained implementation files in their normal project directories. Standard generated build outputs may remain under `build/`.
 - `scratch/` is ignored by default. Selected small experimental source files are tracked for continuity; reference checkouts and generated outputs stay local.
 
+## Single working branch and checkout
+
+- The active development checkout is `/Users/andreabogazzi/develop/NGage_MiSTer`,
+  on the original `codex/ngage2-integration` branch.
+- The legacy chat path `/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer`
+  resolves to that same checkout. It must not become another worktree/copy.
+- Do not create or switch branches, create worktrees, or continue development
+  from a detached HEAD unless the user explicitly changes this instruction.
+- Reconcile work into the original integration branch. Preserve other threads'
+  running simulations and permanent checkpoints.
+
 ## Development continuity
 
 - On resuming N-Gage development, read `docs/status.md` first and use `docs/README.md` to find detailed evidence before repeating research or simulations.
