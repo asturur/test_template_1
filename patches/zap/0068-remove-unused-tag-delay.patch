@@ -1,0 +1,106 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -1361,75 +1361,35 @@
+ // Post ALU 0 stage. For tag RAM reads etc. The actual tag RAMs are outside
+ // the core.
+ //
+-zap_postalu_main #(
+-        .PHY_REGS(PHY_REGS),
+-        .FLAG_WDT(FLAG_WDT)
+-) u_zap_postalu0_main (
+-         .i_clk                            (i_clk),
+-         .i_reset                          (i_reset),
+-         .i_data_stall                     (data_stall),
+-         .i_clear_from_writeback           (clear_from_writeback),
+-         .i_data_mem_fault                 (|owned_data_fault),
+-
+-          .i_uop_last                      (alu_uop_last),
+-          .o_uop_last                      (postalu0_uop_last),
+-        .i_swp_tag(alu_swp_tag), .o_swp_tag(postalu0_swp_tag),
+-
+-         .i_decompile_valid                (alu_decompile_valid),
+-         .i_decompile                      (alu_decompile),
+-         .i_alu_result_ff                  (alu_x_ppr),
+-         .i_und_ff                         (alu_und_ff),
+-         .i_abt_ff                         (alu_abt_ff),
+-         .i_irq_ff                         (alu_irq_ff),
+-         .i_fiq_ff                         (alu_fiq_ff),
+-         .i_swi_ff                         (alu_swi_ff),
+-         .i_dav_ff                         (alu_dav_ff),
+-         .i_pc_plus_8_ff                   (alu_pc_plus_8_ff),
+-         .i_mem_address_ff                 (alu_force32align_ff ?
++assign postalu0_uop_last =alu_uop_last;
++  assign postalu0_swp_tag =alu_swp_tag;
++  assign postalu0_decompile = alu_decompile;
++  assign postalu0_decompile_valid =alu_decompile_valid;
++  assign postalu0_alu_result_ff =alu_x_ppr;
++  assign postalu0_und_ff =alu_und_ff;
++  assign postalu0_abt_ff =alu_abt_ff;
++  assign postalu0_irq_ff =alu_irq_ff;
++  assign postalu0_fiq_ff =alu_fiq_ff;
++  assign postalu0_swi_ff =alu_swi_ff;
++  assign postalu0_dav_ff =alu_dav_ff;
++  assign postalu0_pc_plus_8_ff =alu_pc_plus_8_ff;
++  assign postalu0_address_ff =alu_force32align_ff ?
+                                              (alu_address_ff & 32'hffff_fffc)
+-                                            : alu_address_ff),
+-         .i_destination_index_ff           (alu_destination_index_ff),
+-         .i_flags_ff                       (alu_flags_ff),
+-         .i_mem_srcdest_index_ff           (alu_mem_srcdest_index_ff),
+-         .i_mem_load_ff                    (alu_mem_load_ff),
+-         .i_mem_unsigned_byte_enable_ff    (alu_ubyte_ff),
+-         .i_mem_signed_byte_enable_ff      (alu_sbyte_ff),
+-         .i_mem_signed_halfword_enable_ff  (alu_shalf_ff),
+-         .i_mem_unsigned_halfword_enable_ff(alu_uhalf_ff),
+-         .i_mem_translate_ff               (alu_mem_translate_ff),
+-
+-         .i_data_wb_we_ff                  (alu_data_wb_we),
+-         .i_data_wb_cyc_ff                 (alu_data_wb_cyc),
+-         .i_data_wb_stb_ff                 (alu_data_wb_stb),
+-         .i_data_wb_dat_ff                 (alu_data_wb_dat),
+-         .i_data_wb_sel_ff                 (alu_data_wb_sel),
+-
+-         .o_decompile                      (postalu0_decompile),
+-         .o_decompile_valid                (postalu0_decompile_valid),
+-         .o_alu_result_ff                  (postalu0_alu_result_ff),
+-         .o_und_ff                         (postalu0_und_ff),
+-         .o_abt_ff                         (postalu0_abt_ff),
+-         .o_irq_ff                         (postalu0_irq_ff),
+-         .o_fiq_ff                         (postalu0_fiq_ff),
+-         .o_swi_ff                         (postalu0_swi_ff),
+-         .o_dav_ff                         (postalu0_dav_ff),
+-         .o_pc_plus_8_ff                   (postalu0_pc_plus_8_ff),
+-         .o_mem_address_ff                 (postalu0_address_ff),
+-         .o_destination_index_ff           (postalu0_destination_index_ff),
+-         .o_flags_ff                       (postalu0_flags_ff),
+-         .o_mem_srcdest_index_ff           (postalu0_mem_srcdest_index_ff),
+-         .o_mem_load_ff                    (postalu0_mem_load_ff),
+-         .o_mem_unsigned_byte_enable_ff    (postalu0_ubyte_ff),
+-         .o_mem_signed_byte_enable_ff      (postalu0_sbyte_ff),
+-         .o_mem_signed_halfword_enable_ff  (postalu0_shalf_ff),
+-         .o_mem_unsigned_halfword_enable_ff(postalu0_uhalf_ff),
+-         .o_mem_translate_ff               (postalu0_mem_translate_ff),
+-         .o_data_wb_we_ff                  (postalu0_data_wb_we),
+-         .o_data_wb_cyc_ff                 (postalu0_data_wb_cyc),
+-         .o_data_wb_stb_ff                 (postalu0_data_wb_stb),
+-         .o_data_wb_dat_ff                 (postalu0_data_wb_dat),
+-         .o_data_wb_sel_ff                 (postalu0_data_wb_sel)
+-);
++                                            : alu_address_ff;
++  assign postalu0_destination_index_ff =alu_destination_index_ff;
++  assign postalu0_flags_ff =alu_flags_ff;
++  assign postalu0_mem_srcdest_index_ff =alu_mem_srcdest_index_ff;
++  assign postalu0_mem_load_ff =alu_mem_load_ff;
++  assign postalu0_ubyte_ff =alu_ubyte_ff;
++  assign postalu0_sbyte_ff =alu_sbyte_ff;
++  assign postalu0_shalf_ff =alu_shalf_ff;
++  assign postalu0_uhalf_ff =alu_uhalf_ff;
++  assign postalu0_mem_translate_ff =alu_mem_translate_ff;
++  assign postalu0_data_wb_we =alu_data_wb_we;
++  assign postalu0_data_wb_cyc =alu_data_wb_cyc;
++  assign postalu0_data_wb_stb =alu_data_wb_stb;
++  assign postalu0_data_wb_dat =alu_data_wb_dat;
++  assign postalu0_data_wb_sel =alu_data_wb_sel;
+ 
+ //
+ // Post ALU 1 stage. Similar in purpose to the above. Helps deal with long

@@ -1,3 +1,31 @@
+## 2026-11-16: Legacy CPU delay removed; original index228.54/192.22
+
+User requested another CPU performance improvement while SDRAM build runs.
+Removed P0 copy stage;27complete ALU packet aliases feed existing registeredP1.
+Actual TLB/data probes already useP1, notP0. P2/completion/fault ownership stays.
+No new state/RAM/stage/PLL;708declared FFbits removed (513trace-only), fitted
+savings/timing unmeasured. Actual78MHz/104MHz objective retained.
+
+Full six-kernel indices228.5393/192.2189, +1.4988%/+1.4982% overF2. Full-frame
+barely changes; fill8tail regresses4cycles. Original JPEG4case suite gains3.5457%,
+8×8native block117970→113957. Data waits remain41008; load dependency16851→13161.
+32dependent LDR/ADD259→227;128independent loads235→203. No native deadline claim.
+
+92architectural/44IRQ-FIQ cases, full12payload groups/two exact repeats/six
+negative outputs, JPEG8groups/two repeats/8unprofiled matches/8object-pixel
+controls pass.83upstream hashes/37ZAP lexical streams reconstruct through0068.
+Final core bytes match full payload source; JPEG differs only in a comment.
+Initial port-count/path fixture errors did not reach RTL execution. No new
+full-six occupancy profile, hardware/media/firmware/deadline/clock change.
+
+ca5a9d0 and prior RTC findings1687d84 were published usinggh after user-approved
+workflow scope authorization. Build43771644419 was dispatched once, verified
+pinned ca5a9d0, seed43/debugOn; it EXCLUDES this CPU improvement. No monitoring.
+Installed new RBF/card files remain untouched; temporary previous working RBF
+is loaded for the boot control, originalROM88fd...58329verified, savedRunOn/saveOff.
+[Complete ledger and remaining small/heavy work](cpu-optimization-status.md),
+[evidence](evidence/cpu-postalu-trim-20261116.json).
+
 ## 2026-11-15: JPEG retest blocked by new SDRAM placement regression
 
 User loaded50114ac/run43763278613/seed43/debugOn; installed SHA b5604323...a3f1b

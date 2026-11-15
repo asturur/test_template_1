@@ -10,6 +10,7 @@ repeats per profile. See [profile and qualification](spmark-jpeg-profile.md).
 | --- | ---: | ---: | ---: | ---: | ---: |
 | baseline — current CPU1abf0db, snapshotf1791df | 118705 | 118720 | 117760 | 234273 |100 |
 | completion-overlap | 117970 | 117985 | 117025 | 232802 |100.6265 |
+| legacy-delay-removed | 113957 | 113973 | 112956 | 224845 |104.1944 |
 | pre-store reference — d4f2a8 | 122793 | 122808 | 121848 | 242265 |96.6720 |
 
 Mode10 is the original native12-bit RGB converter used by this path; mode8
@@ -26,3 +27,8 @@ images and complete counters stay in build/sim/jpeg-payload/error-diffusion-2026
 Completion overlap adds about0.63% in this suite. All8groups/two repeats,
 8unprofiled counter matches and8broken pixel/object controls pass. This does not
 establish a native deadline pass. [Evidence](evidence/spmark-jpeg-completion-overlap-20261115.json).
+
+Legacy P0 removal gains3.5457% over completion overlap, with all original
+outputs, exact repeats and unprofiled-counter controls accepted. This remains
+a bitmap-conversion kernel result; native JPEG deadline is unpassed.
+[Evidence](evidence/cpu-postalu-trim-20261116.json).

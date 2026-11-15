@@ -4,6 +4,10 @@
 core, in measured increments. This is an execution plan, not an implementation
 or a set of measured results. It follows [the source comparison](cpu-donor-comparison.md).
 
+Latest reconciled progress, remaining bounded changes and heavier work:
+[cpu-optimization-status.md](cpu-optimization-status.md), updated2026-11-16.
+The dated checkpoints below remain historical.
+
 ## Working agreement
 
 For every import: **write its tests and benchmarks, run the original, change
