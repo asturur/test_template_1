@@ -65,11 +65,13 @@ module test;
   if(dut.u_zap.u_zap_core.data_stall !==
      (dut.u_zap.u_zap_core.postalu_request_stb && dut.u_zap.u_zap_core.postalu_request_cyc && !dut.u_zap.u_zap_core.completion_valid))
    $fatal(1,"advance without an owned completion");
-  if(dut.u_zap.u_zap_core.completion_valid && dut.u_zap.cpu_dc_stb)
+  if(dut.u_zap.u_zap_core.completion_valid && dut.u_zap.cpu_dc_stb &&
+     !dut.u_zap.u_zap_core.completion_next)
    $fatal(1,"completed demand replayed to cache");
 `endif
  end
 `ifndef NGAGE_OPERAND_REFERENCE
+ `include "tests/cpu/completion_overlap/monitor.vh"
  always @(negedge clk)if(!reset)begin
   if(dut.u_zap.u_zap_core.u_zap_writeback.i_copro_reg_en &&
      dut.u_zap.u_zap_core.u_zap_issue_main.operand_push &&

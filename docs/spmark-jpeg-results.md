@@ -9,6 +9,7 @@ repeats per profile. See [profile and qualification](spmark-jpeg-profile.md).
 | Revision | 8×8 JPEG pixels, mode10 | 8×8 random, mode10 | 8×8 random, mode8 | 16×8 JPEG pixels, mode10 | Index |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | baseline — current CPU1abf0db, snapshotf1791df | 118705 | 118720 | 117760 | 234273 |100 |
+| completion-overlap | 117970 | 117985 | 117025 | 232802 |100.6265 |
 | pre-store reference — d4f2a8 | 122793 | 122808 | 121848 | 242265 |96.6720 |
 
 Mode10 is the original native12-bit RGB converter used by this path; mode8
@@ -21,3 +22,7 @@ Current throughput versus pre-store: diffuse_m10_8x8_jpeg +3.444%, diffuse_m10_8
 
 [Evidence](evidence/spmark-jpeg-profile-20261115.json). Raw generated binaries,
 images and complete counters stay in build/sim/jpeg-payload/error-diffusion-20261115-v2.
+
+Completion overlap adds about0.63% in this suite. All8groups/two repeats,
+8unprofiled counter matches and8broken pixel/object controls pass. This does not
+establish a native deadline pass. [Evidence](evidence/spmark-jpeg-completion-overlap-20261115.json).

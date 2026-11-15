@@ -228,7 +228,10 @@ module zap_core #(
   logic                        clear_from_writeback;
   // P2 owns the request until the registered completion is consumed.
   logic postalu_request_cyc, postalu_request_stb;
-  logic completion_valid, completion_offer;
+  logic completion_valid, completion_offer, completion_next;
+  logic postalu_data_wb_we;
+  logic [31:0] postalu_data_wb_dat;
+  logic [3:0] postalu_data_wb_sel;
   logic [31:0] completion_data, completion_fsr, completion_far;
   logic [1:0] completion_fault;
   wire  [1:0] owned_data_fault;
@@ -561,9 +564,13 @@ module zap_core #(
                  i_dc_reg_idx[63:PHY_REGS]};
 
   assign o_data_alignment_fault = alignment_en && o_data_wb_stb && o_data_wb_cyc && data_misaligned(
-      postalu_address_ff, postalu_ubyte_ff, postalu_sbyte_ff, postalu_uhalf_ff, postalu_shalf_ff
+      completion_next ? postalu1_address_ff : postalu_address_ff,
+      completion_next ? postalu1_ubyte_ff : postalu_ubyte_ff,
+      completion_next ? postalu1_sbyte_ff : postalu_sbyte_ff,
+      completion_next ? postalu1_uhalf_ff : postalu_uhalf_ff,
+      completion_next ? postalu1_shalf_ff : postalu_shalf_ff
   );
-  assign o_data_alignment_far = postalu_address_ff;
+  assign o_data_alignment_far = completion_next ? postalu1_address_ff : postalu_address_ff;
   assign alignment_check = alignment_en && data_misaligned(
       postalu1_address_ff,
       postalu1_ubyte_ff,
@@ -574,9 +581,14 @@ module zap_core #(
   assign o_cpsr = alu_flags_ff[ZAP_CPSR_MODE:0];
   // Address, direction, privilege and force-user must belong to the same P2
   // request. A following exception return can already restore user mode in P1.
-  assign o_data_cpsr = postalu_flags_ff[ZAP_CPSR_MODE:0];
-  assign o_data_swp_tag = postalu_swp_tag;
-  assign o_data_wb_adr = {postalu_address_ff[31:2], 2'd0};
+  assign o_data_cpsr = completion_next ? postalu1_flags_ff[ZAP_CPSR_MODE:0] :
+                                        postalu_flags_ff[ZAP_CPSR_MODE:0];
+  assign o_data_swp_tag = completion_next ? postalu1_swp_tag : postalu_swp_tag;
+  assign o_data_wb_adr = completion_next ? {postalu1_address_ff[31:2], 2'd0} :
+                                          {postalu_address_ff[31:2], 2'd0};
+  assign o_data_wb_we = completion_next ? postalu1_data_wb_we : postalu_data_wb_we;
+  assign o_data_wb_dat = completion_next ? postalu1_data_wb_dat : postalu_data_wb_dat;
+  assign o_data_wb_sel = completion_next ? postalu1_data_wb_sel : postalu_data_wb_sel;
   assign o_data_wb_adr_nxt = {alu_address_ff[31:2], 2'd0};
   assign o_instr_wb_we = 1'd0;
   assign o_instr_wb_sel = 4'b1111;
@@ -587,17 +599,32 @@ module zap_core #(
   // Fault/TLB/cache ACK terminates here, not in the global advance tree. Stall
   // asserts immediately from P2 ownership; only a complete registered response
   // releases it. No standalone delayed stall and no unowned payload are allowed.
+  // Reuse the completion credit while its fault-free ordinary P2 owner moves
+  // to M. P1 becomes P2 on that same edge; it is never issued on a stalled or
+  // killed edge. Exclude every older redirect/exception and both SWP halves.
+  // Address, direction, format, destination and privilege switch together.
+  wire completion_next_safe = completion_valid && completion_fault == 2'b00 &&
+      postalu_dav_ff && postalu_swp_tag == 2'b00 &&
+      !(postalu_irq_ff || postalu_fiq_ff || postalu_swi_ff || postalu_und_ff ||
+        postalu_abt_ff) && postalu_destination_index_ff != PHY_PC &&
+      postalu_mem_srcdest_index_ff != PHY_PC &&
+      postalu1_dav_ff && postalu1_data_wb_cyc && postalu1_data_wb_stb &&
+      postalu1_swp_tag == 2'b00 &&
+      !(postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff ||
+        postalu1_abt_ff);
   zap_data_completion u_data_completion (
       .i_clk(i_clk),
       .i_reset(reset),
       .i_kill(clear_from_writeback),
       .i_request(postalu_request_stb && postalu_request_cyc),
+      .i_next_request(completion_next_safe),
       .i_ack(i_data_wb_ack),
       .i_data(i_data_wb_dat),
       .i_fault({i_dcache_err2, i_data_wb_err}),
       .i_fsr(i_fsr),
       .i_far(i_far),
       .o_offer(completion_offer),
+      .o_next(completion_next),
       .o_valid(completion_valid),
       .o_data(completion_data),
       .o_fault(completion_fault),
@@ -658,7 +685,7 @@ module zap_core #(
                                   memory_dav_ff                      ||
                                   (|i_dc_lock);
 
-  assign o_mem_translate = postalu_mem_translate_ff;
+  assign o_mem_translate = completion_next ? postalu1_mem_translate_ff : postalu_mem_translate_ff;
 
   // With the instruction cache disabled, a redirected fetch must wait for
   // older stores to reach memory. Flash-ID/reset routines execute from RAM
@@ -668,7 +695,7 @@ module zap_core #(
                    (!o_icache_en && (
                      (postalu0_data_wb_cyc && postalu0_data_wb_stb && postalu0_data_wb_we) |
                      (postalu1_data_wb_cyc && postalu1_data_wb_stb && postalu1_data_wb_we) |
-                     (postalu_request_cyc && postalu_request_stb && o_data_wb_we))) |
+                     (postalu_request_cyc && postalu_request_stb && postalu_data_wb_we))) |
                    (o_instr_wb_stb & o_instr_wb_cyc & ~i_instr_wb_ack);
 
   assign o_data_wb_adr_check = {postalu1_address_ff[31:2], 2'd0};
@@ -678,13 +705,17 @@ module zap_core #(
 
   always_comb begin
     o_dc_reg_idx                               = 64'd0;
-    o_dc_reg_idx[postalu_mem_srcdest_index_ff] = 1'd1;
+    o_dc_reg_idx[completion_next ? postalu1_mem_srcdest_index_ff :
+                                  postalu_mem_srcdest_index_ff] = 1'd1;
   end
 
-  assign o_dc_reg_idx_bin = postalu_mem_srcdest_index_ff;
+  assign o_dc_reg_idx_bin = completion_next ? postalu1_mem_srcdest_index_ff : postalu_mem_srcdest_index_ff;
   // The nonblocking D-cache completion bypasses the ordinary memory-stage
   // narrowing/sign extension. Preserve the original load format with the miss.
-  assign o_dc_load_info = {
+  assign o_dc_load_info = completion_next ? {
+    postalu1_sbyte_ff, postalu1_ubyte_ff, postalu1_shalf_ff, postalu1_uhalf_ff,
+    postalu1_address_ff[1:0]
+  } : {
     postalu_sbyte_ff, postalu_ubyte_ff, postalu_shalf_ff, postalu_uhalf_ff, postalu_address_ff[1:0]
   };
 
@@ -1553,11 +1584,11 @@ module zap_core #(
       .o_mem_unsigned_halfword_enable_ff(postalu_uhalf_ff),
       .o_mem_translate_ff               (postalu_mem_translate_ff),
 
-      .o_data_wb_we_ff (o_data_wb_we),
+      .o_data_wb_we_ff (postalu_data_wb_we),
       .o_data_wb_cyc_ff(postalu_request_cyc),
       .o_data_wb_stb_ff(postalu_request_stb),
-      .o_data_wb_dat_ff(o_data_wb_dat),
-      .o_data_wb_sel_ff(o_data_wb_sel)
+      .o_data_wb_dat_ff(postalu_data_wb_dat),
+      .o_data_wb_sel_ff(postalu_data_wb_sel)
   );
 
   //
@@ -1600,7 +1631,7 @@ module zap_core #(
       .o_mem_fault  (memory_data_abt_ff[1:0]),
 
       // Can come in handy since this is reused for several other things.
-      .i_mem_srcdest_value_ff(o_data_wb_dat),
+      .i_mem_srcdest_value_ff(postalu_data_wb_dat),
 
       .o_alu_result_ff(memory_alu_result_ff),
       .o_flags_ff     (memory_flags_ff),

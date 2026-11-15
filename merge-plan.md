@@ -1,3 +1,36 @@
+## 2026-11-15: First F2 completion/request overlap qualified
+
+Reused the registered completion credit: consume the old P2 owner while an
+eligible P1 request starts and becomes P2. All request/context fields follow
+the same owner; old Memory/forwarding retain the old payload. Fault/redirect,
+SWP and kill guards remain. No new state, RAM, stage or PLL; 78MHz actual,
+104MHz objective. This is bounded parallelism, not the entire nonblocking F2:
+one unresolved cache demand/global hold remains. Physical gates pending.
+
+Full six-kernel indices **225.1646 / 189.3816**, +9.2825% / 5.6515% over
+store-commit at synthetic waits0:0/2:9. Independent128loads325→235clocks;
+dependent32load/ADD stays259. Matrix slightly regresses56009→56082; zero-wait
+frame87288→71269, delayed frame201316→201314. Original JPEG bitmap suite gains
+only0.6265%; real-pixel8x8case118705→117970. Native JPEG deadline still unresolved.
+
+78architectural runs with per-field owner checks,44IRQ/FIQ edges,10547-clock
+completion scoreboard/657overlaps, directed mixed-width/force-user/stack/PC
+checks and five exercised broken variants pass. Complete repeated payload/JPEG
+profiles retain all accepted counters; independent oracles/output controls pass.
+Patch0067 reconstructs37ZAPlexicalstreams from83verified pristine hashes.
+All compiled HDL matches the frozen benchmark; only noncompiled UPSTREAM.json
+was updated afterward. Failed fixture/configuration and unexercised redirect
+controls are recorded; no inflated guard-coverage claim.
+
+Next: physical fit/timing/native speed gate, then targeted Thumb load-use/
+frontend work for JPEG; deeper F2 requires additional owned credits before
+relaxing unresolved-request holds. Keep the older CPU/arithmetic/import plan.
+No build, deployment, hardware/media/firmware, branch/worktree or other-thread
+simulation changes. Single original integration branch.
+[Contract/results](docs/cache-completion-overlap.md),
+[qualification](docs/evidence/cache-completion-overlap-20261115.json),
+[payload table](docs/spmark-payload-results.md), [JPEG table](docs/spmark-jpeg-results.md).
+
 ## 2026-11-15: JPEG hotspot profiled on current RTL
 
 Full native timeout interval has48PC samples:30MediaServerVideo bitmap/error

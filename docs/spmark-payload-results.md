@@ -24,6 +24,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | branch-owned | 63,972 / 63,972 | 6,372 / 6,372 | 35,328 / 35,328 | 107,865 / 201,312 | 3,591 / 3,591 | 3,728 / 3,728 | 172.9566 / 155.8735 | [JSON](evidence/spmark-payload-branch-owned-20261115.json) |
 | branch-return | 56,489 / 56,489 | 6,102 / 6,102 | 28,331 / 28,331 | 105,589 / 201,321 | 3,527 / 3,527 | 3,587 / 3,587 | 186.9337 / 167.8711 | [JSON](evidence/spmark-payload-branch-return-20261115.json) |
 | store-commit | 56,009 / 56,009 | 5,784 / 5,784 | 27,744 / 27,744 | 87,288 / 201,316 | 3,015 / 3,015 | 3,076 / 3,076 | 206.0389 / 179.2512 | [JSON](evidence/spmark-payload-store-commit-20261115.json) |
+| completion-overlap | 56,082 / 56,082 | 5,719 / 5,719 | 27,667 / 27,667 | 71,269 / 201,314 | 2,574 / 2,574 | 2,624 / 2,624 | 225.1646 / 189.3816 | [JSON](evidence/spmark-payload-completion-overlap-20261115.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -141,3 +142,9 @@ timing/native score remain separate. [Contracts and controls](cpu-branch-return.
 84windows/repeat, two exact repeats and six wrong-output controls pass. Suite
 throughput adds10.2203%/6.7791%; no new state/RAM/stage or clock change.
 [Contract and qualification](cache-store-completion.md).
+
+`completion-overlap` reuses the registered response credit while its old P2 owner
+advances. Full-suite throughput +9.2825% /5.6515% over store-commit; matrix
+slightly regresses56009→56082 (+0.13%cycles). Full repeated profiles preserve
+every benchmark counter. This is bounded consume/admit parallelism; unresolved
+cache waits still hold the pipeline. [Contract/tests](cache-completion-overlap.md).

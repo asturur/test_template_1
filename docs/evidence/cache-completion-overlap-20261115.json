@@ -1,0 +1,1428 @@
+{
+  "benchmark_groups": 12,
+  "benchmark_repeats": 2,
+  "benchmark_windows_per_repeat": 84,
+  "checks": {
+    "cpu": {
+      "path": "build/sim/f2-owners-20261115/cpu/result.json",
+      "result": {
+        "programs": {
+          "branch_return": {
+            "0": [
+              "COUNTERS: fetch_response=21853 fetch_accept=13599 issue=13163 retire_uop_last=12931",
+              "LOAD_FORWARD: early_issue=64 late_issue=30",
+              "PASS: CPU test, memory delay 0, 98441 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13685 fetch_accept=13601 issue=13163 retire_uop_last=12931",
+              "LOAD_FORWARD: early_issue=64 late_issue=31",
+              "PASS: CPU test, memory delay 3, 152107 cycles"
+            ]
+          },
+          "cache_associativity": {
+            "0": [
+              "COUNTERS: fetch_response=20587 fetch_accept=12367 issue=12337 retire_uop_last=12335",
+              "LOAD_FORWARD: early_issue=9 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94704 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12386 fetch_accept=12358 issue=12336 retire_uop_last=12335",
+              "LOAD_FORWARD: early_issue=8 late_issue=7",
+              "PASS: CPU test, memory delay 3, 148271 cycles"
+            ]
+          },
+          "cache_disable_reenable": {
+            "0": [
+              "COUNTERS: fetch_response=20595 fetch_accept=12372 issue=12343 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=9 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94731 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12382 fetch_accept=12365 issue=12342 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=7 late_issue=7",
+              "PASS: CPU test, memory delay 3, 148232 cycles"
+            ]
+          },
+          "cache_drain": {
+            "0": [
+              "COUNTERS: fetch_response=20642 fetch_accept=12408 issue=12381 retire_uop_last=12379",
+              "LOAD_FORWARD: early_issue=18 late_issue=17",
+              "PASS: CPU test, memory delay 0, 94939 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12422 fetch_accept=12400 issue=12380 retire_uop_last=12379",
+              "LOAD_FORWARD: early_issue=18 late_issue=18",
+              "PASS: CPU test, memory delay 3, 148573 cycles"
+            ]
+          },
+          "cache_external_abort": {
+            "0": [
+              "COUNTERS: fetch_response=20583 fetch_accept=12367 issue=12337 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=5 late_issue=2",
+              "PASS: CPU test, memory delay 0, 94688 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12371 fetch_accept=12357 issue=12336 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 3, 148170 cycles"
+            ]
+          },
+          "cache_fcse": {
+            "0": [
+              "COUNTERS: fetch_response=20669 fetch_accept=12413 issue=12370 retire_uop_last=12367",
+              "LOAD_FORWARD: early_issue=13 late_issue=8",
+              "PASS: CPU test, memory delay 0, 95022 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12455 fetch_accept=12406 issue=12369 retire_uop_last=12367",
+              "LOAD_FORWARD: early_issue=10 late_issue=11",
+              "PASS: CPU test, memory delay 3, 148791 cycles"
+            ]
+          },
+          "cache_instruction_associativity": {
+            "0": [
+              "COUNTERS: fetch_response=20618 fetch_accept=12400 issue=12340 retire_uop_last=12336",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94947 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12423 fetch_accept=12400 issue=12340 retire_uop_last=12336",
+              "LOAD_FORWARD: early_issue=5 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148596 cycles"
+            ]
+          },
+          "cache_irq_refill": {
+            "0": [
+              "COUNTERS: fetch_response=20607 fetch_accept=12387 issue=12356 retire_uop_last=12347",
+              "LOAD_FORWARD: early_issue=6 late_issue=4",
+              "PASS: CPU test, memory delay 0, 94800 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12398 fetch_accept=12380 issue=12354 retire_uop_last=12347",
+              "LOAD_FORWARD: early_issue=4 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148395 cycles"
+            ]
+          },
+          "cache_irq_writeback": {
+            "0": [
+              "COUNTERS: fetch_response=21195 fetch_accept=12610 issue=12544 retire_uop_last=12537",
+              "LOAD_FORWARD: early_issue=69 late_issue=65",
+              "PASS: CPU test, memory delay 0, 97415 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13088 fetch_accept=12611 issue=12542 retire_uop_last=12537",
+              "LOAD_FORWARD: early_issue=65 late_issue=70",
+              "PASS: CPU test, memory delay 3, 154033 cycles"
+            ]
+          },
+          "cache_load_widths": {
+            "0": [
+              "COUNTERS: fetch_response=22042 fetch_accept=13687 issue=13114 retire_uop_last=13073",
+              "LOAD_FORWARD: early_issue=5 late_issue=35",
+              "PASS: CPU test, memory delay 0, 97845 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=14173 fetch_accept=13690 issue=13114 retire_uop_last=13073",
+              "LOAD_FORWARD: early_issue=4 late_issue=36",
+              "PASS: CPU test, memory delay 3, 152006 cycles"
+            ]
+          },
+          "cache_lockdown": {
+            "0": [
+              "COUNTERS: fetch_response=21176 fetch_accept=12594 issue=12536 retire_uop_last=12533",
+              "LOAD_FORWARD: early_issue=69 late_issue=65",
+              "PASS: CPU test, memory delay 0, 97335 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13071 fetch_accept=12592 issue=12535 retire_uop_last=12533",
+              "LOAD_FORWARD: early_issue=65 late_issue=70",
+              "PASS: CPU test, memory delay 3, 153890 cycles"
+            ]
+          },
+          "cache_page_external_abort": {
+            "0": [
+              "COUNTERS: fetch_response=20580 fetch_accept=12364 issue=12337 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=4 late_issue=2",
+              "PASS: CPU test, memory delay 0, 94676 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12370 fetch_accept=12356 issue=12336 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=5 late_issue=5",
+              "PASS: CPU test, memory delay 3, 148152 cycles"
+            ]
+          },
+          "cache_single_maintenance": {
+            "0": [
+              "COUNTERS: fetch_response=20640 fetch_accept=12393 issue=12362 retire_uop_last=12360",
+              "LOAD_FORWARD: early_issue=15 late_issue=11",
+              "PASS: CPU test, memory delay 0, 94936 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12424 fetch_accept=12391 issue=12361 retire_uop_last=12360",
+              "LOAD_FORWARD: early_issue=13 late_issue=14",
+              "PASS: CPU test, memory delay 3, 148600 cycles"
+            ]
+          },
+          "cache_store_absence": {
+            "0": [
+              "COUNTERS: fetch_response=20878 fetch_accept=12617 issue=12531 retire_uop_last=12512",
+              "LOAD_FORWARD: early_issue=29 late_issue=3",
+              "PASS: CPU test, memory delay 0, 96106 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12634 fetch_accept=12591 issue=12524 retire_uop_last=12504",
+              "LOAD_FORWARD: early_issue=20 late_issue=12",
+              "PASS: CPU test, memory delay 3, 150382 cycles"
+            ]
+          },
+          "cache_tlb_write_order": {
+            "20": [
+              "COUNTERS: fetch_response=72 fetch_accept=66 issue=36 retire_uop_last=34",
+              "LOAD_FORWARD: early_issue=3 late_issue=5",
+              "PASS: CPU test, memory delay 20, 2359 cycles"
+            ]
+          },
+          "cache_write_miss": {
+            "0": [
+              "COUNTERS: fetch_response=20580 fetch_accept=12363 issue=12340 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=8 late_issue=7",
+              "PASS: CPU test, memory delay 0, 94706 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12383 fetch_accept=12363 issue=12339 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=7 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148222 cycles"
+            ]
+          },
+          "cache_write_through": {
+            "0": [
+              "COUNTERS: fetch_response=20630 fetch_accept=12399 issue=12372 retire_uop_last=12370",
+              "LOAD_FORWARD: early_issue=16 late_issue=15",
+              "PASS: CPU test, memory delay 0, 94891 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12414 fetch_accept=12392 issue=12371 retire_uop_last=12370",
+              "LOAD_FORWARD: early_issue=16 late_issue=16",
+              "PASS: CPU test, memory delay 3, 148518 cycles"
+            ]
+          },
+          "data_privilege_owner": {
+            "0": [
+              "COUNTERS: fetch_response=20635 fetch_accept=12427 issue=12364 retire_uop_last=12352",
+              "LOAD_FORWARD: early_issue=7 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94977 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12409 fetch_accept=12401 issue=12358 retire_uop_last=12351",
+              "LOAD_FORWARD: early_issue=4 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148540 cycles"
+            ]
+          },
+          "fiq_flash_return": {
+            "0": [
+              "COUNTERS: fetch_response=20596 fetch_accept=12375 issue=12347 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=7 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94770 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12379 fetch_accept=12365 issue=12344 retire_uop_last=12341",
+              "LOAD_FORWARD: early_issue=5 late_issue=9",
+              "PASS: CPU test, memory delay 3, 148247 cycles"
+            ]
+          },
+          "fiq_privileged_store": {
+            "0": [
+              "COUNTERS: fetch_response=20563 fetch_accept=12352 issue=12324 retire_uop_last=12321",
+              "LOAD_FORWARD: early_issue=3 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94616 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12357 fetch_accept=12347 issue=12323 retire_uop_last=12321",
+              "LOAD_FORWARD: early_issue=3 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148071 cycles"
+            ]
+          },
+          "fiq_store_return": {
+            "0": [
+              "COUNTERS: fetch_response=20580 fetch_accept=12368 issue=12340 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=5 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94700 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12368 fetch_accept=12359 issue=12337 retire_uop_last=12334",
+              "LOAD_FORWARD: early_issue=4 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148160 cycles"
+            ]
+          },
+          "icache_buffer_order": {
+            "0": [
+              "COUNTERS: fetch_response=20588 fetch_accept=12372 issue=12341 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94714 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12380 fetch_accept=12363 issue=12340 retire_uop_last=12338",
+              "LOAD_FORWARD: early_issue=5 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148246 cycles"
+            ]
+          },
+          "icache_lockdown": {
+            "0": [
+              "COUNTERS: fetch_response=21507 fetch_accept=13223 issue=12730 retire_uop_last=12726",
+              "LOAD_FORWARD: early_issue=6 late_issue=4",
+              "PASS: CPU test, memory delay 0, 101183 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=13238 fetch_accept=13154 issue=12728 retire_uop_last=12726",
+              "LOAD_FORWARD: early_issue=3 late_issue=6",
+              "PASS: CPU test, memory delay 3, 157899 cycles"
+            ]
+          },
+          "icache_tlb_write_order": {
+            "20": [
+              "COUNTERS: fetch_response=160 fetch_accept=117 issue=56 retire_uop_last=53",
+              "LOAD_FORWARD: early_issue=2 late_issue=3",
+              "PASS: CPU test, memory delay 20, 3663 cycles"
+            ]
+          },
+          "ldm_base_in_list": {
+            "0": [
+              "COUNTERS: fetch_response=33 fetch_accept=23 issue=22 retire_uop_last=17",
+              "LOAD_FORWARD: early_issue=3 late_issue=1",
+              "PASS: CPU test, memory delay 0, 151 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=25 fetch_accept=23 issue=21 retire_uop_last=17",
+              "LOAD_FORWARD: early_issue=2 late_issue=3",
+              "PASS: CPU test, memory delay 3, 230 cycles"
+            ]
+          },
+          "ldm_base_smallpage": {
+            "0": [
+              "COUNTERS: fetch_response=20650 fetch_accept=12418 issue=12382 retire_uop_last=12376",
+              "LOAD_FORWARD: early_issue=16 late_issue=13",
+              "PASS: CPU test, memory delay 0, 94950 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12424 fetch_accept=12407 issue=12380 retire_uop_last=12376",
+              "LOAD_FORWARD: early_issue=11 late_issue=10",
+              "PASS: CPU test, memory delay 3, 148563 cycles"
+            ]
+          },
+          "mmu_fcse": {
+            "0": [
+              "COUNTERS: fetch_response=20614 fetch_accept=12398 issue=12361 retire_uop_last=12358",
+              "LOAD_FORWARD: early_issue=10 late_issue=10",
+              "PASS: CPU test, memory delay 0, 94819 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12395 fetch_accept=12381 issue=12359 retire_uop_last=12358",
+              "LOAD_FORWARD: early_issue=7 late_issue=7",
+              "PASS: CPU test, memory delay 3, 148330 cycles"
+            ]
+          },
+          "mmu_fetch": {
+            "0": [
+              "COUNTERS: fetch_response=20553 fetch_accept=12345 issue=12322 retire_uop_last=12319",
+              "LOAD_FORWARD: early_issue=5 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94563 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12346 fetch_accept=12337 issue=12321 retire_uop_last=12319",
+              "LOAD_FORWARD: early_issue=3 late_issue=7",
+              "PASS: CPU test, memory delay 3, 147972 cycles"
+            ]
+          },
+          "smoke": {
+            "0": [
+              "COUNTERS: fetch_response=96 fetch_accept=82 issue=64 retire_uop_last=59",
+              "LOAD_FORWARD: early_issue=6 late_issue=5",
+              "PASS: CPU test, memory delay 0, 451 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=80 fetch_accept=77 issue=62 retire_uop_last=59",
+              "LOAD_FORWARD: early_issue=4 late_issue=7",
+              "PASS: CPU test, memory delay 3, 705 cycles"
+            ]
+          },
+          "swp_basic": {
+            "0": [
+              "COUNTERS: fetch_response=45 fetch_accept=38 issue=38 retire_uop_last=30",
+              "LOAD_FORWARD: early_issue=5 late_issue=2",
+              "PASS: CPU test, memory delay 0, 222 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=38 fetch_accept=36 issue=37 retire_uop_last=30",
+              "LOAD_FORWARD: early_issue=3 late_issue=5",
+              "PASS: CPU test, memory delay 3, 349 cycles"
+            ]
+          },
+          "swp_bufferable": {
+            "0": [
+              "COUNTERS: fetch_response=20569 fetch_accept=12353 issue=12337 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=9 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94636 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12364 fetch_accept=12349 issue=12336 retire_uop_last=12333",
+              "LOAD_FORWARD: early_issue=8 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148108 cycles"
+            ]
+          },
+          "swp_cached": {
+            "0": [
+              "COUNTERS: fetch_response=20597 fetch_accept=12372 issue=12344 retire_uop_last=12340",
+              "LOAD_FORWARD: early_issue=10 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94738 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12383 fetch_accept=12365 issue=12343 retire_uop_last=12340",
+              "LOAD_FORWARD: early_issue=8 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148247 cycles"
+            ]
+          },
+          "swp_cached_irq": {
+            "0": [
+              "COUNTERS: fetch_response=20643 fetch_accept=12424 issue=12373 retire_uop_last=12365",
+              "LOAD_FORWARD: early_issue=12 late_issue=5",
+              "PASS: CPU test, memory delay 0, 94970 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12416 fetch_accept=12398 issue=12366 retire_uop_last=12361",
+              "LOAD_FORWARD: early_issue=6 late_issue=9",
+              "PASS: CPU test, memory delay 3, 148546 cycles"
+            ]
+          },
+          "swp_fiq": {
+            "0": [
+              "COUNTERS: fetch_response=60 fetch_accept=55 issue=38 retire_uop_last=32",
+              "LOAD_FORWARD: early_issue=1 late_issue=0",
+              "PASS: CPU test, memory delay 0, 303 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=44 fetch_accept=43 issue=32 retire_uop_last=28",
+              "LOAD_FORWARD: early_issue=0 late_issue=3",
+              "PASS: CPU test, memory delay 3, 408 cycles"
+            ]
+          },
+          "swp_irq_core": {
+            "0": [
+              "COUNTERS: fetch_response=69 fetch_accept=63 issue=42 retire_uop_last=35",
+              "LOAD_FORWARD: early_issue=1 late_issue=0",
+              "PASS: CPU test, memory delay 0, 349 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=50 fetch_accept=49 issue=35 retire_uop_last=31",
+              "LOAD_FORWARD: early_issue=0 late_issue=3",
+              "PASS: CPU test, memory delay 3, 470 cycles"
+            ]
+          },
+          "swp_mmu_abort": {
+            "0": [
+              "COUNTERS: fetch_response=20581 fetch_accept=12365 issue=12341 retire_uop_last=12337",
+              "LOAD_FORWARD: early_issue=6 late_issue=3",
+              "PASS: CPU test, memory delay 0, 94681 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12375 fetch_accept=12358 issue=12340 retire_uop_last=12335",
+              "LOAD_FORWARD: early_issue=4 late_issue=6",
+              "PASS: CPU test, memory delay 3, 148182 cycles"
+            ]
+          },
+          "swp_read_abort": {
+            "0": [
+              "COUNTERS: fetch_response=33 fetch_accept=28 issue=19 retire_uop_last=15",
+              "LOAD_FORWARD: early_issue=1 late_issue=0",
+              "PASS: CPU test, memory delay 0, 176 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=28 fetch_accept=27 issue=18 retire_uop_last=14",
+              "LOAD_FORWARD: early_issue=0 late_issue=2",
+              "PASS: CPU test, memory delay 3, 272 cycles"
+            ]
+          },
+          "swp_write_abort": {
+            "0": [
+              "COUNTERS: fetch_response=29 fetch_accept=23 issue=17 retire_uop_last=12",
+              "LOAD_FORWARD: early_issue=2 late_issue=1",
+              "PASS: CPU test, memory delay 0, 162 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=24 fetch_accept=24 issue=18 retire_uop_last=12",
+              "LOAD_FORWARD: early_issue=1 late_issue=4",
+              "PASS: CPU test, memory delay 3, 249 cycles"
+            ]
+          },
+          "thumb_ldm_base_in_list": {
+            "0": [
+              "COUNTERS: fetch_response=73 fetch_accept=58 issue=61 retire_uop_last=46",
+              "LOAD_FORWARD: early_issue=11 late_issue=3",
+              "PASS: CPU test, memory delay 0, 333 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=65 fetch_accept=57 issue=59 retire_uop_last=46",
+              "LOAD_FORWARD: early_issue=9 late_issue=6",
+              "PASS: CPU test, memory delay 3, 545 cycles"
+            ]
+          },
+          "thumb_return_dependency": {
+            "0": [
+              "COUNTERS: fetch_response=20642 fetch_accept=12416 issue=12346 retire_uop_last=12329",
+              "LOAD_FORWARD: early_issue=8 late_issue=7",
+              "PASS: CPU test, memory delay 0, 94821 cycles"
+            ],
+            "3": [
+              "COUNTERS: fetch_response=12467 fetch_accept=12414 issue=12345 retire_uop_last=12329",
+              "LOAD_FORWARD: early_issue=8 late_issue=8",
+              "PASS: CPU test, memory delay 3, 148375 cycles"
+            ]
+          }
+        },
+        "status": "PASS"
+      },
+      "sha256": "3c6501651b21ed276386e9e0267b5e468732646d5ebdc64718f5f6900277fdab"
+    },
+    "interrupt_edges": {
+      "path": "build/sim/f2-handoff-20261115/cpu/edge-sweeps/result.json",
+      "result": {
+        "runs": {
+          "fiq-0-0": [
+            "PASS: CPU test, memory delay 0, 298 cycles"
+          ],
+          "fiq-0-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-1-0": [
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "fiq-1-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-10-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-10-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-2-0": [
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "fiq-2-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-3-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-3-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-4-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-4-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-5-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-5-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-6-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-6-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-7-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-7-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-8-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-8-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "fiq-9-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "fiq-9-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-0-0": [
+            "PASS: CPU test, memory delay 0, 298 cycles"
+          ],
+          "irq-0-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-1-0": [
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "irq-1-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-10-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-10-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-2-0": [
+            "PASS: CPU test, memory delay 0, 314 cycles"
+          ],
+          "irq-2-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-3-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-3-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-4-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-4-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-5-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-5-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-6-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-6-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-7-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-7-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-8-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-8-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ],
+          "irq-9-0": [
+            "PASS: CPU test, memory delay 0, 349 cycles"
+          ],
+          "irq-9-3": [
+            "PASS: CPU test, memory delay 3, 470 cycles"
+          ]
+        },
+        "status": "PASS"
+      },
+      "sha256": "5a850377fb86c5fada9dff231dfefdfc612ff5f5768b14dad0a7171927b4e94b"
+    },
+    "microbenchmark": {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/f2-owned-handoff-20261115/microbench.json",
+      "result": {
+        "comparison": [
+          {
+            "candidate_cycles": 259,
+            "case": "load_dependent",
+            "cycles_saved": 0.0,
+            "jitter": 0,
+            "mode": "line",
+            "profile": "0:0",
+            "reference_cycles": 259,
+            "seed": 1,
+            "status": "PASS",
+            "throughput_gain": 0.0
+          },
+          {
+            "candidate_cycles": 259,
+            "case": "load_dependent",
+            "cycles_saved": 0.0,
+            "jitter": 0,
+            "mode": "line",
+            "profile": "2:9",
+            "reference_cycles": 259,
+            "seed": 1,
+            "status": "PASS",
+            "throughput_gain": 0.0
+          },
+          {
+            "candidate_cycles": 235,
+            "case": "load_independent",
+            "cycles_saved": 0.27692307692307694,
+            "jitter": 0,
+            "mode": "line",
+            "profile": "0:0",
+            "reference_cycles": 325,
+            "seed": 1,
+            "status": "PASS",
+            "throughput_gain": 0.38297872340425543
+          },
+          {
+            "candidate_cycles": 235,
+            "case": "load_independent",
+            "cycles_saved": 0.27692307692307694,
+            "jitter": 0,
+            "mode": "line",
+            "profile": "2:9",
+            "reference_cycles": 325,
+            "seed": 1,
+            "status": "PASS",
+            "throughput_gain": 0.38297872340425543
+          }
+        ],
+        "repeats": 2,
+        "rows": [
+          {
+            "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+            "body_cycles_median": 259,
+            "case": "load_dependent",
+            "cycles_per_operation": 8.09375,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/pre_f2/line/load_dependent/0-0/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 32,
+            "profile": "0:0",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "367fd374df9d437f7eb8d282e945202d012b3532ebfdb0664db706b899ff1c67",
+            "status": "PASS",
+            "total": {
+              "cycles": 96383,
+              "halfwords": 256,
+              "lines": 16,
+              "reads": 20540,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "pre_f2",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 371,
+                "halfwords": 154,
+                "index": 0,
+                "lines": 10,
+                "reads": 1,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 2,
+                "index": 1,
+                "lines": 1,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+            "body_cycles_median": 259,
+            "case": "load_dependent",
+            "cycles_per_operation": 8.09375,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/pre_f2/line/load_dependent/2-9/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 32,
+            "profile": "2:9",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "367fd374df9d437f7eb8d282e945202d012b3532ebfdb0664db706b899ff1c67",
+            "status": "PASS",
+            "total": {
+              "cycles": 145763,
+              "halfwords": 256,
+              "lines": 16,
+              "reads": 16438,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "pre_f2",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 405,
+                "halfwords": 152,
+                "index": 0,
+                "lines": 10,
+                "reads": 1,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 1,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+            "body_cycles_median": 325,
+            "case": "load_independent",
+            "cycles_per_operation": 2.5390625,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/pre_f2/line/load_independent/0-0/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 128,
+            "profile": "0:0",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "367fd374df9d437f7eb8d282e945202d012b3532ebfdb0664db706b899ff1c67",
+            "status": "PASS",
+            "total": {
+              "cycles": 97199,
+              "halfwords": 432,
+              "lines": 27,
+              "reads": 20540,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "pre_f2",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 717,
+                "halfwords": 276,
+                "index": 0,
+                "lines": 18,
+                "reads": 1,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+            "body_cycles_median": 325,
+            "case": "load_independent",
+            "cycles_per_operation": 2.5390625,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/pre_f2/line/load_independent/2-9/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 128,
+            "profile": "2:9",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "367fd374df9d437f7eb8d282e945202d012b3532ebfdb0664db706b899ff1c67",
+            "status": "PASS",
+            "total": {
+              "cycles": 146599,
+              "halfwords": 432,
+              "lines": 27,
+              "reads": 16438,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "pre_f2",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 767,
+                "halfwords": 274,
+                "index": 0,
+                "lines": 18,
+                "reads": 1,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 325,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+            "body_cycles_median": 259,
+            "case": "load_dependent",
+            "cycles_per_operation": 8.09375,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/working/line/load_dependent/0-0/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 32,
+            "profile": "0:0",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "27ef8a74426300139aebac800d8ba33ca8a6f681fb0f0db0a9343085734477c5",
+            "status": "PASS",
+            "total": {
+              "cycles": 96383,
+              "halfwords": 256,
+              "lines": 16,
+              "reads": 20541,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "working",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 371,
+                "halfwords": 154,
+                "index": 0,
+                "lines": 10,
+                "reads": 1,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 2,
+                "index": 1,
+                "lines": 1,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "5faccc59e38b58023d1da2c28e388d2dc65547589dfaf0bea36e5ffba3b6b27f",
+            "body_cycles_median": 259,
+            "case": "load_dependent",
+            "cycles_per_operation": 8.09375,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/working/line/load_dependent/2-9/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 32,
+            "profile": "2:9",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "27ef8a74426300139aebac800d8ba33ca8a6f681fb0f0db0a9343085734477c5",
+            "status": "PASS",
+            "total": {
+              "cycles": 145759,
+              "halfwords": 256,
+              "lines": 16,
+              "reads": 16438,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "working",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 405,
+                "halfwords": 152,
+                "index": 0,
+                "lines": 10,
+                "reads": 1,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 1,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              },
+              {
+                "cycles": 259,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 65,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+            "body_cycles_median": 235,
+            "case": "load_independent",
+            "cycles_per_operation": 1.8359375,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/working/line/load_independent/0-0/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 128,
+            "profile": "0:0",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "27ef8a74426300139aebac800d8ba33ca8a6f681fb0f0db0a9343085734477c5",
+            "status": "PASS",
+            "total": {
+              "cycles": 96851,
+              "halfwords": 432,
+              "lines": 27,
+              "reads": 20541,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "working",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 714,
+                "halfwords": 273,
+                "index": 0,
+                "lines": 18,
+                "reads": 1,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              }
+            ]
+          },
+          {
+            "binary_sha256": "967661c47c8935893a9c83424f8313990aaea05f95959bf62ada1183659ce0fa",
+            "body_cycles_median": 235,
+            "case": "load_independent",
+            "cycles_per_operation": 1.8359375,
+            "harness_sha256": "ee50353215144bf793e76118e81024318f8d4a1c5650183005bad08bf6adc391",
+            "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+            "jitter": 0,
+            "line_enabled": true,
+            "log": "build/sim/cpu-donor-import/f2-owned-loads-20261115/attempts/0001/working/line/load_independent/2-9/1/run.log",
+            "memory_model": "synthetic-scalar-line-v1-not-physical-sdram",
+            "mode": "line",
+            "operations": 128,
+            "profile": "2:9",
+            "samples": 3,
+            "seed": 1,
+            "source_id": "27ef8a74426300139aebac800d8ba33ca8a6f681fb0f0db0a9343085734477c5",
+            "status": "PASS",
+            "total": {
+              "cycles": 146247,
+              "halfwords": 432,
+              "lines": 27,
+              "reads": 16438,
+              "windows": 5,
+              "writes": 4101
+            },
+            "variant": "working",
+            "warmups": 2,
+            "windows": [
+              {
+                "cycles": 764,
+                "halfwords": 272,
+                "index": 0,
+                "lines": 18,
+                "reads": 1,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 1,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 2,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 3,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              },
+              {
+                "cycles": 235,
+                "halfwords": 0,
+                "index": 4,
+                "lines": 0,
+                "reads": 0,
+                "retire_proxy": 129,
+                "writes": 0
+              }
+            ]
+          }
+        ],
+        "status": "PASS"
+      },
+      "sha256": "12b5e2be40ae17dac5a434c2f36b1743dcd71a357bbdbbbadba47f88d93128e3"
+    },
+    "negative_controls": {
+      "path": "build/sim/f2-controls-recovered-20261115/result.json",
+      "result": {
+        "controls": {
+          "no-overlap": {
+            "diagnostic": "completion overlap coverage missing",
+            "rejected": true
+          },
+          "stale-address": {
+            "diagnostic": "completion overlap mixed request fields",
+            "rejected": true
+          },
+          "stale-data": {
+            "diagnostic": "completion overlap mixed request fields",
+            "rejected": true
+          },
+          "stale-force-user": {
+            "diagnostic": "completion overlap mixed request fields",
+            "rejected": true
+          },
+          "stale-format": {
+            "diagnostic": "completion overlap mixed request fields",
+            "rejected": true
+          }
+        },
+        "status": "PASS"
+      },
+      "sha256": "f978caa9741c82e33bfc55fc3b82b9299c6a85ad87542470b6ec4908d91ae3d7"
+    },
+    "provenance": {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/f2-owned-handoff-20261115/provenance.json",
+      "result": {
+        "lexically_matching_sv_svh": 37,
+        "patch_sha256": "4e4b53334c4352f1afbd7cb23c5bdea485b5f8f90f15affe9c0d74d8cadf8e00",
+        "pristine_hashes": 83,
+        "status": "PASS",
+        "strict_bytes": "Preexisting formatting/comment drift retained"
+      },
+      "sha256": "be82eb99ef241e64eb0ea24be17e79f007f29cce30528ab4891c2ff8159e5875"
+    }
+  },
+  "clock_mhz": 78,
+  "completion_unit_clocks": 10547,
+  "completion_unit_overlaps": 657,
+  "cpu_programs": 40,
+  "cpu_runs": 78,
+  "indices": {
+    "0:0": 225.16459623599144,
+    "2:9": 189.38164579162907
+  },
+  "irq_fiq_edge_runs": 44,
+  "jpeg_groups": 8,
+  "jpeg_indices": {
+    "0:0": 100.62648459334768,
+    "2:9": 100.62648459334768
+  },
+  "jpeg_repeats": 2,
+  "limits": [
+    "Overlap of registered completion consumption and next owned request only",
+    "One unresolved physical demand; global hold remains while it waits",
+    "No FPGA build, fitted ALM/timing, hardware speed or JPEG deadline claim",
+    "No branch, worktree, hardware, media, firmware or other-thread simulation changes"
+  ],
+  "logs": {
+    "completion_unit": {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/f2-owned-handoff-20261115/completion-final.log",
+      "sha256": "4001e29d6bb72d8caf9a630418b7b71c857a9b389442eddb774a9e042122c71a",
+      "summary": [
+        "PASS: completion owner 10547 clocks, 2259 captures, 2166 consumes, 282 kills; pulse, abort/retry, payload, reuse, reset, 657 consume/admit overlaps"
+      ]
+    },
+    "directed_entry": {
+      "path": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/f2-owned-handoff-20261115/maintained-entry.log",
+      "sha256": "af3fe26d3dac5bd4921cec26fce6aea2dddd79c5aceb90aed2afce43c93a8352",
+      "summary": [
+        "PASS: CPU test, memory delay 0, 98620 cycles",
+        "PASS: CPU test, memory delay 3, 152422 cycles"
+      ]
+    },
+    "directed_owners_delay0": {
+      "path": "build/sim/unit-completion-overlap/run-0.log",
+      "sha256": "6eee1969793d01aa357bce64ebf02b1044c62a1bf061b03c552d84180dee336a",
+      "summary": [
+        "LOAD_FORWARD: early_issue=266 late_issue=34",
+        "PASS: CPU test, memory delay 0, 98620 cycles",
+        "BRANCH_OWNER checks=98621 bubbles=83955 failed_condition=243 held=1321",
+        "COMPLETION_OVERLAP: total=426 read=265 write=161 immediate=10 narrow=100 force_user=20"
+      ]
+    },
+    "directed_owners_delay3": {
+      "path": "build/sim/unit-completion-overlap/run-3.log",
+      "sha256": "159295ce9bb4a404958e36a85ecdfdb67fd83026a71db3402bd797c3039f108b",
+      "summary": [
+        "LOAD_FORWARD: early_issue=265 late_issue=33",
+        "PASS: CPU test, memory delay 3, 152422 cycles",
+        "BRANCH_OWNER checks=152423 bubbles=137580 failed_condition=243 held=1498",
+        "COMPLETION_OVERLAP: total=422 read=261 write=161 immediate=8 narrow=100 force_user=20"
+      ]
+    }
+  },
+  "negative_controls": 5,
+  "new_pipeline_stages": 0,
+  "new_ram_bits": 0,
+  "new_state_bits": 0,
+  "production_changed_modules": [
+    "zap_core",
+    "zap_data_completion"
+  ],
+  "profile_groups": 12,
+  "profile_repeats": 2,
+  "rejected_or_limited_attempts": [
+    "Initial copied fixture loaded shared unit-core/program.hex; isolated SV and shell paths corrected; failure retained",
+    "A manually selected cache_external_abort run omitted CPU_FAULT_ADDR; replaced by accepted 40-case configuration list",
+    "Initial new guest mapped VA200 rather than VA800; identical FSR05 on pre-change CPU; corrected table index",
+    "Directed force-user request was initially not adjacent; required coverage caught omission, guest corrected",
+    "Redirect negative variants survived earlier pipeline cancellation; not counted as exercised negative controls; explicit conservative guards remain",
+    "Shared scratch/zap-upstream failed pristine hash; verified all83files from retained original archive in isolated scratch instead",
+    "First0067diff used formatted checkout context; regenerated against exact through0066 reconstruction and verified37lexical streams",
+    "Verible cannot parse preexisting core-fixture conditional fragments; same diagnostics/exit0 on unchanged HEAD; compiled Verilator assertions pass"
+  ],
+  "source_snapshot_match": {
+    "differences": [
+      "rtl/arm/UPSTREAM.json"
+    ],
+    "matching_current": 132,
+    "reason": "Noncompiled upstream patch manifest was updated after snapshot; all compiled HDL bytes match",
+    "total_files": 133
+  },
+  "status": "PASS_OFFLINE_PHYSICAL_GATES_PENDING",
+  "target_mhz": 104,
+  "throughput_gain_percent": {
+    "0:0": 9.282539489055836,
+    "2:9": 5.651544750834205
+  }
+}

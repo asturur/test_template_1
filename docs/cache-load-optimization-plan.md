@@ -1,5 +1,21 @@
 # Cache-load latency and pipelining plan
 
+## Latest checkpoint — first F2 handoff overlap qualified
+
+Registered completion consumption now overlaps admission of an eligible next
+P1 owner. No new state/RAM/stage; precise context and conservative fault/PC/SWP
+guards remain. Full-suite indices **225.1646 / 189.3816**, +9.2825% / 5.6515%
+over store-commit. Independent loads325→235 clocks; dependent loads stay259.
+JPEG hotspot gains only0.6265%; its native deadline remains unresolved.
+78architectural/44interrupt-edge runs, owner scoreboard, five exercised broken
+variants and complete repeated benchmark/profiles pass. Physical gates pending.
+
+This completes the first bounded F2 step. One unresolved demand/global hold
+remains: deeper miss overlap requires additional owned credits and precise
+ordered completion. Thumb load-use/frontend work remains especially relevant
+to JPEG; the older CPU/arithmetic plan is retained.
+[Contract, limits and evidence](cache-completion-overlap.md).
+
 The user selected removal of unnecessary waits before pipelining requests.
 Astra reviewed the design read-only; implementation and simulation were done
 by the main agent. No extra FPGA RAM, wider cache or clock increase is needed
