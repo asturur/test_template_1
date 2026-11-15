@@ -1,5 +1,7 @@
 {
-  "after_profile": "IN_PROGRESS: build/sim/spmark-profile/store-commit-full-20261115",
+  "after_profile": "docs/evidence/spmark-payload-store-commit-profile-20261115.json",
+  "after_profile_groups": 12,
+  "after_profile_repeats": 2,
   "before_profile": "docs/evidence/spmark-payload-branch-final-profile-20261115.json",
   "before_snapshot_scope": {
     "commit": "d4f2a8a",

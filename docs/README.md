@@ -9,6 +9,7 @@ topic links before repeating research or simulations.
 | [cache-store-completion.md](cache-store-completion.md) | Owned posted/resident store completion, no new state, indices206.04/179.25 and full qualification |
 | [cpu-branch-return.md](cpu-branch-return.md) | Owned BTB feedback, corrected returns/confirmed targets, indices186.93/167.87 and matched branch/call controls |
 | [fifo-flag-timing.md](fifo-flag-timing.md) | Late-ACK FIFO flag rewrite, unchanged cycles, exhaustive boundaries and pending routed timing |
+| [mmc-remount.md](mmc-remount.md) | Sonic native mount succeeds, missing app discovery and stale replacement volume; cold control |
 | [mmc-native-dma-control.md](mmc-native-dma-control.md) | Hardware-qualified R2 fix, original RX2 rejection, donor contract and small DMA correction |
 | [mmc-r2-order.md](mmc-r2-order.md) | Native CMD2 failure, donor comparison, original-driver reproduction and small long-response host correction |
 | [cache-data-probe.md](cache-data-probe.md) | F1 independent read-B/write-A overlap, owned pre-read, collision proof and indices154.48/144.58 |

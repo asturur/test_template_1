@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-15",
+  "scope": "Actual original NEM-4 firmware on MiSTer; passive MMC observer during late insertion; stock ROM verified after observer removal",
+  "rbf_sha256": "caafb5a06eba02b3058e82dd84e3cb97843040d6a662ad082610139da10627ee",
+  "background_save": false,
+  "sonic_image_sha256": "7fd800c9318ea86a3ba57b5ecd1189d2c3609c413358706b17a172c36d94733e",
+  "bomberman_image_sha256": "1bcb220afea6e7b593c8aad928de0d7b9974848febabc1a0c2573395855a3a60",
+  "fat_audits": {
+    "sonic": {
+      "errors": [],
+      "warnings": [],
+      "allocated_clusters": 2393,
+      "fat_mirrors_equal": true
+    },
+    "bomberman": {
+      "errors": [],
+      "warnings": [],
+      "allocated_clusters": 3630,
+      "fat_mirrors_equal": true
+    }
+  },
+  "observed": {
+    "replacement": "Native volume free1784KiB matches old Bomberman while Linux opens Sonic; stale guest volume at that point",
+    "fresh_late_insertion": "Successful native CMD1/2/3/9/13/7/16, single/multiple sector reads; native Memory reports Sonic6028KiBfree,5572KiBused; Menu still8built-in icons",
+    "native_command_arguments_hex": [
+      "CMD17 0",
+      "CMD17 4000",
+      "CMD18 4200",
+      "CMD18 5200"
+    ]
+  },
+  "discarded_hypothesis": "Retained cardless CMD1/CMD2 timeout text was initially attributed to insertion; subsequent successful enumeration disproves persistent readiness failure",
+  "cold_control": {
+    "pending": false,
+    "stock_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "media": [
+      {
+        "pid": 5485,
+        "fd": 8,
+        "path": "/media/fat/games/ngage1/boot0.vhd"
+      },
+      {
+        "pid": 5485,
+        "fd": 9,
+        "path": "/media/fat/games/ngage1/boot1.vhd"
+      },
+      {
+        "pid": 5485,
+        "fd": 14,
+        "path": "/media/fat/games/NGage/sonicn.mmc"
+      }
+    ],
+    "application_discovered": true,
+    "launch_pending": false,
+    "startup_prompts": "Existing Time/Date accepted via native UI; no new timestamp build deployed",
+    "background_save": false,
+    "application_launch": "Animated Sonic intro/Dr Eggman screen observed; gameplay/audio not qualified",
+    "reset_generations": [
+      0
+    ],
+    "autosave_enabled": false
+  },
+  "raw_evidence_directory": "scratch/mmc-remount-debug-20261115",
+  "final_preferences": {
+    "old": "00000000000000000000000000000000",
+    "saved": "00000100000000000000000000000000",
+    "run": true,
+    "autosave": false,
+    "scope": "Saved settings only; active CPU already Run/saveOff, no reload",
+    "rbf_sha256": "caafb5a06eba02b3058e82dd84e3cb97843040d6a662ad082610139da10627ee"
+  }
+}

@@ -78,11 +78,15 @@ unrelated generated profile and retains the actual memory/exception checks.
 No RTL fault or missing instruction-profile coverage is inferred from that
 fixture setup failure. Nine profiler parser controls also pass.
 
-Full post-change profiling is running under
-`build/sim/spmark-profile/store-commit-full-20261115`; its focused math groups
-already reconcile without changing accepted counters. Do not call that a full
-post-change profile until all12groups and repeats finish. Raw scripts and run
-identity live under `scratch/cpu-next-bottleneck-20261115/`.
+Full post-change profiling is complete: all12groups, both exact repeats and
+all original raw counters reconcile. Data holds fall transpose44.69→40.51%,
+triangle29.08→26.41%, zero-wait frame76.06→71.03%,16-bit tail76.62→72.60% and
+8-bit tail75.73→71.57%. Resident STORE_COMMIT still performs the same physical
+RAM commit; its extra CPU handoff wait shrinks. The delayed frame remains
+backing-bound. Matrix still has30.93% empty operand queue and10.97% multiplier
+busy; these are signal occupancies, not a complete causal frontend profile.
+Raw scripts and immutable inputs live under scratch/cpu-next-bottleneck-20261115.
+[Final profile](evidence/spmark-payload-store-commit-profile-20261115.json).
 
 [Qualification](evidence/cache-store-completion-20261115.json),
 [full benchmark](evidence/spmark-payload-store-commit-20261115.json),

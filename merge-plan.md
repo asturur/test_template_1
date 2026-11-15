@@ -1,3 +1,27 @@
+## 2026-11-15: MMC cold insertion works; runtime app discovery fails
+
+Background save is Off, confirmed by user and DDR. Both exact Sonic/Bomberman
+images audit clean. Replacement left native Memory showing Bomberman's1784KiB
+free while Linux opened Sonic. After fresh cardless boot + late Sonic insertion,
+original CMD1/2/3/9/13/7/16 and sector reads succeed; Memory correctly reports
+Sonic6028KiBfree/5572KiBused. Menu still has only8built-in icons. Retained cardless
+timeout text was initially misattributed; persistent CMD1 failure is disproved.
+
+Same-stock-RBF reload with Sonic mounted before CPU Run removes all observation
+hooks; complete original-ROM hash88fd596a...58329 verified. After existing Time/
+Date prompts, **SonicN appears as the ninth Menu icon**. This establishes a
+working startup control and narrows the failing path to runtime media changes/
+application discovery. Sonic also launches into its animated intro. Gameplay/audio and an HDL cause
+remain unverified.
+Donor QD hot swaps work, but original N-Gage manual requires power-off/battery
+removal. Do not invent a GPIO/IRQ or silently reset on mount. Next: trace original
+NEM-4 filesystem/AppArc media notification and safely retain a mounted card
+through a user-requested phone reset. No MMC RTL change, new build/deploy, card
+format, C:/PMM replacement or save. Keep RunOn/saveOff; user's Off instruction
+supersedes the saved On setting encountered at session start. Single original
+integration branch and other simulations remain untouched.
+[Findings/screens](docs/mmc-remount.md), [evidence](docs/evidence/mmc-remount-20261115.json).
+
 ## 2026-11-15: CPU store completion + MMC follow-up
 
 User canceled debugger-off run43742647768 and started a debugger-on build.
@@ -19,8 +43,8 @@ branch-return186.9337/167.8711. Full-frame0:0 drops105589→87288; delayed frame
 five broken controls and nine profiler parser controls pass. All133frozen
 candidate hashes match current sources. Initial CPU runner tried a generated
 ARMv4T program as a static file; no RTL execution failed, recovered list passes.
-Post-change full profiling is still running; focused math groups already match
-accepted counters. [Design/results](docs/cache-store-completion.md),
+Post-change full profiling passes all12groups/both profiles/two exact repeats
+with every accepted benchmark counter unchanged. CPU change1abf0db is pushed. [Design/results](docs/cache-store-completion.md),
 [evidence](docs/evidence/cache-store-completion-20261115.json). Physical gates pending.
 
 User explicitly requested commit/push, then a live MMC remount debug session.
