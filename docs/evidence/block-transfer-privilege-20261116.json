@@ -1,5 +1,5 @@
 {
-  "status": "ISOLATED_CORRECTION_TESTED_NOT_ADOPTED",
+  "status": "CORRECTED_0070_PLUS_0071_ADOPTED_PENDING_NATIVE",
   "date": "2026-11-16",
   "production_cpu": "6f3baa2 restored in11612f9",
   "native_fault": {
@@ -11,7 +11,7 @@
   },
   "cause": "P=0,W=1 forces user permissions; post-index writeback is implicit and W must be0",
   "corrected_patch": "patches/zap/0071-preserve-block-transfer-privilege.patch",
-  "production_changed": false,
+  "production_changed": true,
   "old_candidate_cpu_rejected": true,
   "old_candidate_unit_rejected": "block transfer changed memory privilege",
   "corrected_unit_sequences": 786896,
@@ -36,10 +36,14 @@
     "observer_removed": true
   },
   "pending": [
-    "full corrected candidate CPU/abort qualification",
-    "repeat benchmarks",
-    "native C save on11612f9 build",
-    "native corrected CPU boot",
-    "native JPEG from C"
-  ]
+    "native corrected CPU boot/JPEG",
+    "corrected CPU routed timing"
+  ],
+  "branch_cpu": "corrected0070+0071; current hardware11612f9 remains pre-fusion",
+  "corrected_architecture_runs": 92,
+  "corrected_irq_fiq_boundary_runs": 44,
+  "corrected_per_beat_aborts": 128,
+  "actual_branch_protected_page_runs": 8,
+  "patch0071_applies_exactly": true,
+  "compiled_sources_includes_byte_match": 46
 }

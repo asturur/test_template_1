@@ -1,3 +1,10 @@
+> **Corrected candidate re-adopted for native qualification (2026-11-16).**
+> Production branch now applies0070 **and0071 together** after the protected-page
+> regression and complete simulation/benchmark gates. Original0070 alone remains
+> rejected. Current hardware11612f9 still uses pre-fusion CPU; corrected native
+> boot/JPEG and routed timing are pending. Historical measurements below clearly
+> distinguish original and corrected candidates.
+
 > **Production adoption withdrawn — native boot regression (2026-11-16).**
 > Both ec6ef3c/seed43 and timing-closed cd858fd/seed43 reach the exact same early
 > data-abort loop0x60c, with24,651,807ACKs,12bus errors and last address0a077ffc.

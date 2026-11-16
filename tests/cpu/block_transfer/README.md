@@ -45,6 +45,7 @@ without enabling the operand-reference path or modifying the working CPU.
 
 The micro-op oracle additionally checks decoder force-user output. It rejects
 original0070 specifically for changing block-transfer memory privilege; corrected
-0070+0071 passes. Neither patch is active production yet. Maintained native
+0070+0071 passes. Both patches are now applied together on the integration branch; native
+corrected-CPU qualification remains pending. Original0070 alone is rejected. Maintained native
 observer tools and hardware evidence are described in
 [the topic document](../../../docs/block-transfer-sequencing.md).

@@ -1,3 +1,9 @@
+> **2026-11-16 corrected candidate:**0070+0071 are enabled together following
+> the exact native single-POP protected-page regression and complete simulation
+> gates. Original indices230.4602/193.8342, JPEG113.2493. The old0070 alone is
+> rejected; current hardware11612f9 still uses the previous CPU, with native C:
+> save now verified but JPEG still waiting. Corrected native/timing gates pending.
+
 > **2026-11-16 native gate correction:** block-transfer fusion0070 is
 > quarantined after an original-ROM boot regression on two placements, including
 > one with all timing checks passing. Production returns to the6f3baa2 CPU:

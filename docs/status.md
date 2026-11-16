@@ -1,3 +1,16 @@
+## 2026-11-16: Corrected block-transfer candidate re-adopted for native qualification
+
+0070+0071 enabled together after exact native AP1/domain1 privilege reproduction,
+8protected/control runs per variant,786896unit sequences,92architecture/44IRQ-FIQ
+boundary runs,128per-beat aborts, complete repeated six/JPEG suites and negative
+outputs. W cleared on single IA post-index memory micro-op; original permission
+checks remain. Decoder/sequencer byte-match both benchmark snapshots. No new
+RTL state/RAM/stage. Original indices230.4602/193.8342; JPEG113.2493 (+3.778% over
+current hardware CPU). Actual78MHz,104MHz design target. Native corrected-CPU
+boot/JPEG and routed timing are pending; do not deploy original0070 alone.
+Build to be dispatched after commit/push. Current MiSTer still11612f9 with working
+native C: save and JPEG-only wait; leave native stored C:/PMM intact on reload.
+
 ## 2026-11-16: Native C: erase/refill fix passes boot and autosave readback
 
 Build43806580928/11612f9/seed44/debugOn deployed, SHA322037ef…f2127d,

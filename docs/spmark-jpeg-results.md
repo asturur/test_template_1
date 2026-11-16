@@ -50,6 +50,6 @@ Admission-edge pre-read reuse gains2.3885% over Thumb target-address and removes
 2,973 data-wait clocks per8×8block. Native JPEG deadline remains unverified.
 [Evidence](evidence/cache-admission-probe-20261116.json).
 
-Corrected0071 remains isolated pending native qualification; its eight groups
+Corrected0070+0071 is adopted for the next build, pending native qualification; its eight groups
 repeat exactly, all eight unprofiled full-counter comparisons and eight bad
 object/pixel controls pass. [Evidence](evidence/block-transfer-privilege-performance-20261116.json).

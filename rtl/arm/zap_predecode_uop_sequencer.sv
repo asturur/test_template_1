@@ -98,6 +98,17 @@ logic        store               ;
 logic          unused;
 logic  [11:0]  oc_offset;                  // Ones counter offset.
 logic  [15:0]  reglist_ff, reglist_nxt;    // Register list.
+// Clear the lowest remaining register without encoding and decoding it again.
+wire [15:0] block_remaining = reglist_ff & (reglist_ff - 16'd1);
+// The last incrementing beat already computes the required final base. Reuse
+// the normal load/store writeback lane; decrementing/user/base-in-list cases
+// retain their separate restore operation and existing abort behavior.
+wire block_setup_fused = !s_bit && base != 4'd15 && reglist != 0 &&
+                         (!writeback || !reglist[base]);
+wire block_base_fused = up && writeback && !s_bit && base != 4'd15 && !reglist[base];
+wire block_short_tail = !s_bit && base != 4'd15 && reglist_ff != 0 &&
+                        block_remaining == 0 && (!writeback || block_base_fused);
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -205,8 +216,53 @@ begin:next_state_logic_and_output_logic
                                 o_instruction_valid = 1'd1;
                                 reglist_nxt         = reglist;
 
+                                // The first memory beat can also initialize the
+                                // private pointer. The existing writeback lane
+                                // updates DUMMY0, leaving architectural Rn intact.
+                                if (block_setup_fused)
+                                begin
+                                        o_instruction[33:0] = map(i_instruction[31:0], pri_enc(reglist), reglist);
+                                        o_instruction[ZAP_OPCODE_EXTEND] = 1'b1;
+                                        o_instruction[ZAP_DP_RA_EXTEND] = 1'b1;
+                                        {o_instruction[ZAP_BASE_EXTEND], o_instruction[`ZAP_BASE]} = {1'b0, base};
+                                        if (!up)
+                                        begin
+                                                // Lowest address first in both DA
+                                                // and DB; later beats increment.
+                                                o_instruction[23] = 1'b0;
+                                                o_instruction[24] = 1'b1;
+                                                o_instruction[21] = 1'b1;
+                                                o_instruction[11:0] = oc_offset - (pre_index ? 12'd0 : 12'd4);
+                                        end
+                                        o_align = 1'b1;
+                                        reglist_nxt = reglist & (reglist - 16'd1);
+                                        // A one-register incrementing transfer
+                                        // already has ordinary Rn writeback.
+                                        if (reglist_nxt == 0 && up)
+                                        begin
+                                                o_instruction[ZAP_OPCODE_EXTEND] = 1'b0;
+                                                o_instruction[ZAP_DP_RA_EXTEND] = 1'b0;
+                                                o_instruction[24] = 1'b1;
+                                                o_instruction[21] = writeback;
+                                                if (!pre_index && !writeback) o_instruction[11:0] = 12'd0;
+                                                if (!pre_index && writeback)
+                                                begin
+                                                        // Post-index writeback is implicit. W=1
+                                                        // would turn a privileged LDM/STM into
+                                                        // an unprivileged LDRT/STRT access.
+                                                        o_instruction[24] = 1'b0;
+                                                        o_instruction[21] = 1'b0;
+                                                end
+                                        end
+                                end
+
                                 state_nxt = MEMOP;
                                 o_stall_from_decode = 1'd1;
+                                if (block_setup_fused && reglist_nxt == 0 && (!writeback || up))
+                                begin
+                                        if (load && reglist[15]) state_nxt = WRITE_PC;
+                                        else begin state_nxt = IDLE; o_stall_from_decode = 1'b0; end
+                                end
 
                                 // Take interrupt on this.
                                 o_irq = i_irq;
@@ -376,7 +432,7 @@ begin:next_state_logic_and_output_logic
 
                         // Memory operations happen here.
 
-                        reglist_nxt = reglist_ff & ~(16'd1 << pri_enc(reglist_ff));
+                        reglist_nxt = block_remaining;
 
                         o_irq = 0;
                         o_fiq = 0;
@@ -386,12 +442,21 @@ begin:next_state_logic_and_output_logic
                         o_instruction[33:0] = map ( i_instruction[31:0], pri_enc(reglist_ff), reglist_ff );
                         o_instruction_valid = 1'd1;
 
+                        if (block_short_tail && block_base_fused)
+                        begin
+                                // Internal word-memory extension: read the old
+                                // dummy pointer, write the final address to Rn.
+                                // No early architectural base update is made.
+                                o_instruction[ZAP_OPCODE_EXTEND] = 1'b1;
+                                {o_instruction[ZAP_BASE_EXTEND], o_instruction[`ZAP_BASE]} = {1'b0, base};
+                        end
+
                         if ( o_instruction[27:26] == 2'b01 )
                         begin
                                 o_align = 1;
                         end
 
-                        if ( reglist_ff == 0 )
+                        if ( reglist_ff == 0 || block_short_tail )
                         begin
                                 if ( i_instruction[{2'd0, ARCH_PC}] && load )
                                 begin
@@ -486,6 +551,7 @@ begin
         map[`ZAP_BASE]}   = ARCH_DUMMY_REG0;  // Use as base register.
 
         map[24] ^= !up;     // If not up, then DA -> IB and DB -> IA.
+        if (block_setup_fused && !up) map[24] = 1'b1;
         map[21]  = map[24]; // If post index, writeback is implicit (map[21]=0).
 
         if ( list == 0 ) // Catch 0 list here itself...
@@ -613,24 +679,25 @@ endfunction : pri_enc
 
 always @ ( posedge i_clk ) // Assertion.
 begin
-        if ( state_ff == IDLE && state_nxt == MEMOP && !i_reset )
+        // Inspect the original list, before a fused first beat consumes its bit.
+        if ( state_ff == IDLE && id == 3'b100 && i_instruction_valid && !i_reset )
         begin
-                assert ( reglist_nxt != 'd0 ) else
+                assert ( reglist != 'd0 ) else
                 $info("Warning: Empty reglist leads to UNPREDICTABLE behavior.");
 
                 assert ( base != 'd15 ) else
                 $info("Warning: Using R15 as a base in LDM/STM leads to UNPREDICTABLE behavior.");
 
-                assert ( ~(!i_instruction[20] && reglist_nxt[15] ) ) else
+                assert ( ~(!i_instruction[20] && reglist[15] ) ) else
                 $info("Warning: Using R15 in the reglist of STM leads to IMPLEMENTATION DEFINED (PC + 8) value stored.");
 
                 for(int i=0;i<16;i++)
                 begin
                         // Get first register accessed.
-                        if( reglist_nxt[i] )
+                        if( reglist[i] )
                         begin
                                 // Never: HAVE BASE AS REGLIST && BASE NOT AS FIRST REGISTER.
-                                assert ( ~(reglist_nxt[base] && base != i[3:0]) ) else
+                                assert ( ~(reglist[base] && base != i[3:0]) ) else
                                 $info("Warning: Specifying base in non-trailing bit is UNPREDICTABLE.");
 
                                 break;
