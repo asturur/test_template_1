@@ -1,3 +1,20 @@
+## 2026-11-16: Confirmed deferred-erase/refill deadlock fixed
+
+Real CPU Verilator reproduction: erase30 leaves C: command pending/transport
+idle. The old router blocks independent ROM/RAM refills using user_idle, so a
+cold I/D line prevents the CPU reaching the poll/B0 that advances erase.
+Native stalled fetch50384d60 is a new32byte line, consistent with this cause;
+board verification remains pending. Refill now uses user_ready; reset retains
+unchanged stronger user_idle and accepted-erasure drain. No new storage/stage,
+no firmware patch, actual78MHz/104MHz target retained.
+
+Maintained regression:8 full64KiB erases, suspend/poll × buffered/unbuffered,
+cold I/D lines, D1/D2 and132,214 competing diagnostic reads. Pass3,086,012clocks,
+32backing writes. Old-gate control fails specifically with the reproduced
+circular-wait reason. Existing warm/cold/accepted program/erase/stale-response
+reset tests pass. No native JPEG or persistent installation pass yet.
+[Evidence and remaining board gate](installation-flash-stall.md).
+
 ## 2026-11-16: Native C: installation completes, then flash-context stall
 
 SPMark original SIS reports Installation complete on C:. The phone then stops

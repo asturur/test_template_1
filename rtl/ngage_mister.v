@@ -496,8 +496,12 @@ module ngage_mister #(
         line_pmm_hit
     );
     wire [1:0] line_die = line_addr < 32'h01000000 ? 0 : line_addr < 32'h04000000 ? 1 : 2;
+    // A deferred C: erase can advance only when the CPU polls or suspends it.
+    // Permit independent ROM/RAM refills while that command is pending but its
+    // backing interface is idle. user_idle includes the deferred erase and is
+    // intentionally stronger: reset must still drain every accepted mutation.
     assign line_ready = LINE_REFILL && !core_reset && line_state==LINE_IDLE &&
-                        code_idle && user_idle && !memory_req && !flash_issued;
+                        code_idle && user_ready && !memory_req && !flash_issued;
     wire line_ddr_offer = line_state == LINE_ROM_ISSUE && !core_reset;
     assign ddram_line = line_ddr_offer;
     assign ram_line_req = line_state == LINE_RAM_ISSUE && !core_reset;

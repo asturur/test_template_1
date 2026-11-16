@@ -70,11 +70,43 @@
     "Quartus source graph and maintained RTL formatting: PASS"
   ],
   "source_sha256": {
-    "rtl/ngage_mister.v": "388266714814108594fec66b436a79d8c06667bd3f83a2c3c09dd4b7da7fda23",
+    "rtl/ngage_mister.v": "721383fa344ad12d9241881a59b4e3ca9d62b530074e6d1ac5e8aaa4dff01e07",
     "rtl/ngage_cflash.sv": "9e13af37ca9c9d029c229556bc14daa4f0bc33762106026238003c5a228cc2e3",
     "rtl/ngage_codeflash.sv": "a5ec2621b41f9587b74b68ae0c7a6adffc04fa9c976ea710497efab524064fdb",
     "rtl/ngage_diag_ddr.v": "b688ec0ff38ec97fd2f91c1ae74b15089c9e959603f5abeb5cfbf19796718830",
     "Template.sv": "79de3a3ce87d2f2210ef0964bd68487e04fc5bce26c543c002391aa772d547e2",
-    "tools/ngage_runtime_diag.py": "53bac4c2903584cbfcdf344b78b362677f6f2400ac6ddbe74981b2b926376349"
+    "tools/ngage_runtime_diag.py": "53bac4c2903584cbfcdf344b78b362677f6f2400ac6ddbe74981b2b926376349",
+    "sim/programs/flash_refill_suspend.S": "db01f53d251beb2e5145180debcbd5b293c9ba075441f2bd5abec2fd048fe97f",
+    "tests/phone/flash_refill_suspend/tb.v": "14e721306a18897bd4ed5eb7916c2239c33af4aead7a921cadfb08f9fe2a9986",
+    "tests/phone/flash_refill_suspend/run.py": "3076c73b66b94c0a0b2ee82d49df11e2d4d94f9c0f400c7d97c57eca269798ff"
+  },
+  "diagnostic_build": {
+    "run": 43799401396,
+    "commit": "856f587f0d909f0a34f0e4feba7473105ac38545",
+    "created_utc": "2026-11-16T03:38:32Z",
+    "check_not_before_utc": "2026-11-16T04:18:32Z",
+    "debugger": true,
+    "seed": 43
+  },
+  "fix": {
+    "module": "rtl/ngage_mister.v",
+    "change": "Use user_ready rather than reset-drained user_idle for independent refill admission",
+    "reset_release_changed": false,
+    "new_storage_bits": 0,
+    "new_pipeline_stages": 0,
+    "board_verified": false,
+    "production_regression": {
+      "cycles": 3086012,
+      "diagnostic_reads": 132214,
+      "writes": 32,
+      "erases": 8,
+      "buffered": 4,
+      "unbuffered": 4,
+      "polling": 4,
+      "suspend": 4,
+      "result": "PASS"
+    },
+    "negative_control": "Old admission gate rejects with DEFERRED_ERASE_REFILL_DEADLOCK; generic timeout is not accepted",
+    "reset_regressions": "PASS warm/cold, accepted program/erase drain, stale response collision"
   }
 }

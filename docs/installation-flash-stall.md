@@ -35,3 +35,37 @@ RAM, reader marker/legacy/torn-record controls, disabled-debugger loader and
 integrated flash reset/program/erase/drain tests pass. Hardware gate pending.
 
 [Exact observations and limits](evidence/installation-flash-stall-20261116.json).
+
+## Confirmed circular wait and correction
+
+A new actual-CPU Verilator reproducer confirms a transaction-level deadlock.
+After an accepted30 erase command, the C: controller is IDLE with erase_pending
+set. The command model advances only on a later status poll or B0 suspend.
+`user_idle` intentionally includes !erase_pending for reset-drain correctness.
+The refill router also used this stronger predicate, blocking unrelated RAM/ROM
+lines. A cold instruction or struct-data load then prevents the CPU from issuing
+the progress command. The board stopping fetch50384d60 is itself32-byte aligned,
+consistent with the same blocked next-line fetch; hardware proof is still pending.
+
+Refill admission now uses `user_ready` (backing interface IDLE, reset inactive),
+while reset release still uses the unchanged stronger `user_idle`. An actively
+executing NOR backing operation still prevents a fresh line admission. Existing
+DDR ownership/arbitration serializes a subsequently accepted command and ROM
+line; no new physical NOR bank/timing behavior is claimed. The functional change
+removes one erase-pending condition, adds no storage/stage and retains78MHz with
+104MHz as timing objective.
+
+The maintained regression runs8 complete64KiB erases through the actual CPU,
+MMU/cache, C: NOR/router, D1/D2 and DDR arbiter: four suspend/four polling paths,
+four buffered/four unbuffered mappings, cold I/D refills and native status/data
+checks. Production passes in3,086,012clocks with132,214 competing diagnostic reads
+and32 physical backing writes. Its generated old-gate control must fail with
+DEFERRED_ERASE_REFILL_DEADLOCK, not a generic timeout; it does. Existing warm/cold
+reset, accepted program/erase drain and stale-response collision tests pass.
+An earlier frozen pre-fix real-CPU test also remained blocked through8Mclocks.
+
+This fixes the reproduced hardware-flow bug. It is not yet a board installation,
+autosave durability or native JPEG pass. The standalone forced-port prototype
+hit the same admission wait, but the real-CPU regression is the maintained
+acceptance evidence. No firmware/RAM patch or slower fallback was introduced.
+[Regression](../tests/phone/flash_refill_suspend/README.md).
