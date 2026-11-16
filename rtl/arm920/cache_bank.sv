@@ -9,6 +9,7 @@ module arm920_cache_bank #(
     input  logic         clk,
     input  logic         reset,
     input  logic [ 31:0] mva,
+    input wire [31:0] indexed_mva,
     input  logic [  7:0] lookup_segment_select,
     // Registered, validated line-result owner. This selects the existing RAM
     // read port; no speculative tag fact may perform a data/metadata mutation.
@@ -97,6 +98,7 @@ module arm920_cache_bank #(
       .clk                  (clk),
       .reset                (reset),
       .mva                  (mva),
+      .indexed_mva          (indexed_mva),
       .lookup_segment_select(lookup_segment_select),
       .lookup_address       (lookup_address),
       .hit                  (hit),
@@ -148,21 +150,21 @@ module arm920_cache_bank #(
     if (!reset && indexed_store) begin
       if (!store || refill || scan_read || scan_clean || scan_invalidate || read_victim)
         $fatal(1, "indexed store overlapped another bank owner");
-      if (mva[7:5] != indexed_segment)
+      if (indexed_mva[7:5] != indexed_segment)
         $fatal(1, "indexed data/metadata segment ownership differs");
-      // The current blocking controller drains this edge before another
-      // same-slot mutation. Future overlap must interlock or forward it.
-      if (|commit_enable && !cancel_commit && commit_segment == indexed_segment &&
-          commit_way == indexed_way)
-        $fatal(1, "indexed dirty read overlaps an uncommitted same-slot write");
+      // Same-slot overlap is legal: independent registered data owners and
+      // tag forwarding replace the former serialized same-slot prohibition.
+      if (commit_segment == indexed_segment && commit_way == indexed_way &&
+          data_commit_valid && !tags.forward_pending && !tags.forward_recent)
+        $fatal(1, "same-slot pipeline lacks dirty forwarding");
     end
   always @(posedge clk)
     if (!reset && READ_ONLY && store_intent)
       $fatal(1, "read-only instruction cache received a store intent");
   always @(posedge clk)
     if (!reset && store_commit && |store_enable) begin
-      if (mva[4] && |store_enable[15:0]) $fatal(1, "store crosses cache half boundary");
-      if (!mva[4] && |store_enable[31:16]) $fatal(1, "store crosses cache half boundary");
+      if ((indexed_store ? indexed_mva[4] : mva[4]) && |store_enable[15:0]) $fatal(1, "store crosses cache half boundary");
+      if (!(indexed_store ? indexed_mva[4] : mva[4]) && |store_enable[31:16]) $fatal(1, "store crosses cache half boundary");
     end
 `endif
   // synthesis translate_on

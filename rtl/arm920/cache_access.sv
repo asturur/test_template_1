@@ -120,14 +120,14 @@ module arm920_cache_access #(
   wire admitted_probe_reply = admitted_probe_owner && indexed_owner &&
                               state == LOOKUP_CAPTURE;
   wire early_reply = early_read_owner && (state == READ_LINE || admitted_probe_reply) && !reset &&
-                     !invalidate_all && !lock_write && !maint_valid;
+                     !apply_invalidate && !apply_lock && !maint_valid;
   // Ordinary write-back hits have already captured a data/dirty commit. The
   // CPU samples this reply on that existing commit edge, rather than waiting
   // another cycle for a copied pulse. SWP/write-through retain the old reply.
   wire early_store_reply = ordinary_lookup_owner && wr && enabled && cacheable &&
                            bufferable && state == STORE_COMMIT && !reset &&
-                           !invalidate_all && !lock_write;
-  assign response_valid = early_reply || early_store_reply || response_valid_q;
+                           !apply_invalidate && !apply_lock;
+  assign response_valid = early_reply || early_store_reply || response_valid_q || (pipe_commit && !reset);
   assign response_data = early_reply ? line[mva[4:2]*32+:32] : response_data_q;
   logic [31:0] mva, pa, wdata;
   logic [3:0] ben;
@@ -164,8 +164,8 @@ module arm920_cache_access #(
   wire accept_maintenance = maint_valid && maint_ready;
   wire ordinary_buffered_store = !READ_ONLY && req_ordinary_store && req_write &&
                                   req_cache_enable && req_cacheable && req_bufferable;
-  wire line_result_revoke = reset || READ_ONLY || !req_cache_enable ||
-                         invalidate_all || lock_write || maint_valid ||
+  wire line_result_revoke = reset || READ_ONLY || !req_cache_enable || control_wait ||
+                         apply_invalidate || apply_lock || maint_valid ||
                          maintenance_busy || scan_read || scan_clean || scan_invalidate ||
                          refill_busy || fill || state == WAIT_REFILL;
   wire ordinary_resident_request = !READ_ONLY && req_resident_access &&
@@ -191,6 +191,46 @@ module arm920_cache_access #(
                           result_known && result_present;
   wire use_indexed_store = ordinary_resident_request && req_write &&
                            result_known && result_present;
+  // Direct pulses have no ready source: retain their command/payload until
+  // earlier accepted data+dirty owners drain. Reset cancels both command bits.
+  reg pending_invalidate, pending_lock;
+  reg [5:0] pending_lock_base;
+  wire control_wait = invalidate_all || lock_write || pending_invalidate || pending_lock;
+  wire apply_invalidate = (pending_invalidate || invalidate_all) && !pipe_busy && state == IDLE && !reset;
+  wire apply_lock = (pending_lock || lock_write) && !pipe_busy && state == IDLE && !reset;
+  always @(posedge clk) begin
+    if (reset) begin pending_invalidate <= 0; pending_lock <= 0; end
+    else begin
+      if (invalidate_all) pending_invalidate <= 1;
+      if (lock_write) pending_lock <= 1;
+      if (apply_invalidate) pending_invalidate <= 0;
+      if (apply_lock) pending_lock <= 0;
+    end
+    if (lock_write) pending_lock_base <= lock_base_in;
+  end
+  // Isolated prototype: two local owner stages, no CPU completion feedback.
+  reg pipe_owner, pipe_commit;
+  reg [31:0] pipe_mva, pipe_data;
+  reg [5:0] pipe_way;
+  reg [3:0] pipe_mask;
+  wire pipe_busy = pipe_owner || pipe_commit;
+  wire pipe_eligible = use_indexed_store && (|req_byte_enable) && state == IDLE && !response_valid_q;
+  wire pipe_accept = req_valid && req_ready && pipe_eligible;
+  always @(posedge clk) begin
+    if (reset) begin
+      pipe_owner <= 0;
+      pipe_commit <= 0;
+    end else begin
+      pipe_owner <= pipe_accept;
+      pipe_commit <= pipe_owner;
+    end
+    if (pipe_accept) begin
+      pipe_mva <= req_mva;
+      pipe_data <= req_wdata;
+      pipe_way <= result_way;
+      pipe_mask <= req_byte_enable;
+    end
+  end
   // D backend role: pre-read an owned certified line on RAM port B while an
   // independent store commits on A. The BRAM output is the only line payload;
   // these two records hold addresses/selectors, never copied data or permission.
@@ -307,14 +347,14 @@ module arm920_cache_access #(
   // certificate comparator to a RAM address or completion payload.
   wire indexed_read = indexed_owner && (state == LOOKUP_CAPTURE || state == READ_LINE);
   wire fast_read = !DATA_PROBE && fast_lookup_enable && state == IDLE && !req_valid &&
-                     !maint_valid && !invalidate_all && !lock_write;
+                     !maint_valid && !apply_invalidate && !apply_lock;
   wire capture_lookup = accept_maintenance || accept_demand || fast_read;
   wire [31:0] capture_lookup_mva = accept_maintenance ? maint_address :
                                    accept_demand ? req_mva : fast_lookup_address;
-  wire cancel_fast = DATA_PROBE || !fast_lookup_enable || state != IDLE || accept_demand ||
-                       maint_valid || invalidate_all || lock_write;
-  wire change_epoch = accept_demand || accept_maintenance || invalidate_all ||
-                        lock_write || (fast_enabled_q && !fast_lookup_enable);
+  wire cancel_fast = DATA_PROBE || pipe_busy || control_wait || !fast_lookup_enable || state != IDLE || accept_demand ||
+                       maint_valid || apply_invalidate || apply_lock;
+  wire change_epoch = accept_demand || accept_maintenance || apply_invalidate ||
+                        apply_lock || (fast_enabled_q && !fast_lookup_enable);
   always @(posedge clk) begin
     if (reset) begin
       lookup_owner_valid <= 0;
@@ -353,8 +393,8 @@ module arm920_cache_access #(
                       fast_result_address[31:5] == req_mva[31:5];
   // Do not qualify this output with req_valid: the adapter derives req_valid
   // from !fast_hit, so that would introduce a combinational ACK loop.
-  assign fast_lookup_valid=fast_lookup_enable && state==IDLE && !reset && !maint_valid &&
-                          !invalidate_all && !lock_write &&
+  assign fast_lookup_valid=fast_lookup_enable && state==IDLE && !pipe_busy && !control_wait && !reset && !maint_valid &&
+                          !apply_invalidate && !apply_lock &&
                           (DATA_PROBE ? (!probe_revoke && probe_hit) : (stream_hit || result_hit));
   assign fast_lookup_checked = req_mva;
   assign fast_lookup_line = DATA_PROBE ? line : result_hit ? line : stream_line[req_mva[5]];
@@ -462,9 +502,9 @@ module arm920_cache_access #(
       .error_latched(write_buffer_error),
       .clear_error(1'b1)
   );
-  assign maint_ready = (state == IDLE) && write_buffer_empty && !invalidate_all && !lock_write;
+  assign maint_ready = !control_wait && !pipe_busy && (state == IDLE) && write_buffer_empty && !apply_invalidate && !apply_lock;
   // Cached CPU hits can proceed while buffered writes drain; maintenance waits.
-  assign req_ready = (state == IDLE) && !invalidate_all && !lock_write && !maint_valid;
+  assign req_ready = (state == IDLE) && !control_wait && !reset && !apply_invalidate && !apply_lock && !maint_valid && !response_valid_q && (!pipe_busy || pipe_eligible);
   // Offer a cache-store request independently of the live global hit tree.
   // Bank data writes and each metadata way apply their own hit validation.
   // A write-through miss still queues its bus write without allocating.
@@ -501,17 +541,18 @@ module arm920_cache_access #(
   ) bank (
       .clk                  (clk),
       .reset                (reset),
-      .mva                  (lookup_owner_mva),
+      .mva                  (pipe_accept ? req_mva : lookup_owner_mva),
+      .indexed_mva         (pipe_owner ? pipe_mva : lookup_owner_mva),
       .lookup_segment_select(lookup_owner_segment_select),
       .indexed_read         (indexed_read),
-      .indexed_store        (indexed_owner && state == STORE_HIT),
+      .indexed_store        (pipe_owner || (indexed_owner && state == STORE_HIT)),
       .data_probe           (probe_read),
       .data_probe_segment   (probe_owner_tag[2:0]),
       .data_probe_way       (probe_owner_way),
       .data_commit_valid    (data_commit_valid),
       .data_commit_index    (data_commit_index),
-      .indexed_segment      (mva[7:5]),
-      .indexed_way          (indexed_way),
+      .indexed_segment      (pipe_owner ? pipe_mva[7:5] : mva[7:5]),
+      .indexed_way          (pipe_owner ? pipe_way : indexed_way),
       .hit                  (hit),
       .hit_way              (hit_way),
       .read_victim          (read_victim),
@@ -526,13 +567,13 @@ module arm920_cache_access #(
       .refill_physical      (fill_pa),
       .refill_line          (fill_line),
       .refill_ready         (refill_ready),
-      .store                (store_request),
-      .store_dirty          (bufferable),
-      .store_enable         (store_mask),
-      .store_line           ({8{wdata}}),
-      .invalidate_all       (invalidate_all),
-      .lock_write           (lock_write),
-      .lock_base_in         (lock_base_in),
+      .store                (pipe_owner || store_request),
+      .store_dirty          (pipe_owner || bufferable),
+      .store_enable         (pipe_owner ? ({28'b0, pipe_mask} << {pipe_mva[4:2], 2'b00}) : store_mask),
+      .store_line           (pipe_owner ? {8{pipe_data}} : {8{wdata}}),
+      .invalidate_all       (apply_invalidate),
+      .lock_write           (apply_lock),
+      .lock_base_in         (lock_write ? lock_base_in : pending_lock_base),
       .lock_base            (lock_base),
       .round_robin          (round_robin),
       .scan_read            (scan_read),
@@ -656,7 +697,7 @@ module arm920_cache_access #(
           saved_maint_way        <= maint_way;
           saved_maint_segment    <= maint_segment;
           state                  <= maint_by_mva ? MAINT_CAPTURE : MAINT_WAIT;
-        end else if (req_valid && req_ready) begin
+        end else if (req_valid && req_ready && !pipe_accept) begin
           ordinary_lookup_owner <= ordinary_resident_request || ordinary_buffered_store;
           indexed_owner <= use_indexed_read || use_indexed_store;
           admitted_probe_owner <= DATA_PROBE && use_indexed_read && probe_read &&
@@ -763,6 +804,8 @@ module arm920_cache_access #(
 `ifndef SYNTHESIS
   always @(posedge clk) begin
     if (!reset) begin
+      if (pipe_commit && !data_commit_valid)
+        $fatal(1, "pipeline reply lost RAM commit");
       if (lookup_owner_valid && lookup_owner_segment_select != (8'b1 << lookup_owner_mva[7:5]))
         $fatal(1, "cache lookup segment/address owner mismatch");
       if (state != IDLE && (!lookup_owner_valid || lookup_owner_kind == LOOKUP_AHEAD))
@@ -783,7 +826,7 @@ module arm920_cache_access #(
         $fatal(1, "ordinary store response consumed another RAM commit owner");
       if (absent_store_owner && (state == BUFFER_STORE || state == STORE_COMMIT) && store_request)
         $fatal(1, "absent store attempted a cache mutation");
-      if (absent_store_owner && response_valid_q && !invalidate_all && !lock_write &&
+      if (absent_store_owner && response_valid_q && !apply_invalidate && !apply_lock &&
           bank.lookup_address[31:5] == mva[31:5] && hit)
         $fatal(1, "absent store certificate contradicted the settled tag lookup");
       if (state == MAINT_LOOKUP && saved_maint_by_mva && bank.lookup_address != saved_maint_address)
@@ -794,7 +837,7 @@ module arm920_cache_access #(
     end
   end
   always @(posedge clk)
-    if (!reset && state != IDLE && (invalidate_all || lock_write))
+    if (!reset && state != IDLE && (apply_invalidate || apply_lock))
       $fatal(1, "cache maintenance must not overlap an access");
 `endif
   // synthesis translate_on

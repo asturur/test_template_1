@@ -1,0 +1,16 @@
+{
+  "base": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+  "control_run": 43866215058,
+  "seed": 42,
+  "debugger": 1,
+  "tool": "Quartus 17.0.2",
+  "device": "5CSEBA6U23I7",
+  "actual_MHz": 78,
+  "analysis_MHz": 104,
+  "payloads": {
+    "rtl/arm920/cache_access.sv": "88cfb92a983388a02e9d75657fb648c402b290c2fea5b419346b010f4de46ef5",
+    "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f"
+  },
+  "production_bram_sha256": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71"
+}

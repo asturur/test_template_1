@@ -10,6 +10,7 @@ module arm920_cache_tags #(
     input  logic        clk,
     input  logic        reset,
     input  logic [31:0] mva,
+    input wire [31:0] indexed_mva,
     input  logic [ 7:0] lookup_segment_select,
     output logic [31:0] lookup_address,
     output logic        hit,
@@ -69,6 +70,22 @@ module arm920_cache_tags #(
   assign scan_valid         = valid[scan_segment][scan_way];
   assign scan_dirty         = READ_ONLY || !scan_valid ? 2'b00 : packed_tag[scan_way][25:24];
   assign scan_physical_line = {scan_pa_data, 5'b0};
+  // B read launches on acceptance. A write can collide with that read;
+  // bypass from pending metadata first, then the write on the read edge.
+  reg recent_valid;
+  reg [8:0] recent_slot;
+  reg [1:0] recent_dirty;
+  wire [8:0] indexed_slot = {indexed_way, indexed_mva[7:5]};
+  wire [1:0] pending_dirty = commit_dirty | (commit_mva[4] ? 2'b10 : 2'b01);
+  wire forward_pending = commit_allowed && commit_write &&
+             commit_selected[indexed_way] && commit_mva[7:5] == indexed_mva[7:5];
+  wire forward_recent = recent_valid && recent_slot == indexed_slot;
+  always @(posedge clk) begin
+    recent_valid <= commit_allowed && commit_write && !commit_fill;
+    recent_slot <= {commit_indexed_way, commit_mva[7:5]};
+    recent_dirty <= pending_dirty;
+  end
+  reg [5:0] commit_indexed_way;
   // All 64 ways are compared in parallel after one synchronous segment read.
   // Valid flags stay resettable; writable-cache dirty flags share tag RAM.
   wire [23:0] tag_data                                    [0:63];
@@ -187,8 +204,10 @@ module arm920_cache_tags #(
     // read that owner's segment on the preceding edge. Capture fresh dirty
     // halves directly, not the older CAM/compare snapshot. Data and metadata
     // commit together on the following edge through the existing write port.
-    commit_dirty      <= indexed_store ? packed_tag[indexed_way][25:24] : hit_dirty;
-    commit_mva        <= indexed_store ? mva : lookup_mva;
+    commit_dirty      <= indexed_store ? (forward_pending ? pending_dirty :
+                            forward_recent ? recent_dirty : packed_tag[indexed_way][25:24]) : hit_dirty;
+    commit_indexed_way <= indexed_way;
+    commit_mva        <= indexed_store ? indexed_mva : lookup_mva;
     commit_pa         <= fill_physical;
     commit_way        <= victim_way;
     for (lookup_way = 0; lookup_way < 64; lookup_way = lookup_way + 1)
@@ -274,8 +293,9 @@ module arm920_cache_tags #(
 `ifndef SYNTHESIS
   always @(posedge clk)
     if (!reset && indexed_store) begin
-      if (READ_ONLY || !valid[mva[7:5]][indexed_way] ||
-          packed_tag[indexed_way][23:0] != mva[31:8])
+      if (READ_ONLY || !valid[indexed_mva[7:5]][indexed_way] ||
+          (!forward_pending && !forward_recent &&
+           packed_tag[indexed_way][23:0] != indexed_mva[31:8]))
         $fatal(1, "indexed store did not own a fresh resident tag/dirty read");
     end
 `endif
