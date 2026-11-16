@@ -6,6 +6,8 @@ The production ARM920T instruction/data caches and64-entry mixed-page-size I/D T
 
 The suite covers:
 
+- [Block transfers](block_transfer/README.md): 786896decoded-semantics sequences, precise per-beat aborts, first/final fusion, condition/hold/interrupt/cancellation coverage.
+
 - Four asynchronous physical-register reads against an independent write scoreboard and operand priority oracle: all40 registers, all64 forwarding-valid combinations, immediate/PC/CPSR/RAZ overrides, banked/SPSR values, write-port collisions, reset, clear and pipeline stalls.
 
 - Separate demand and idle-housekeeping completions, exact global-stall equivalence on every CPU test cycle, waited transfers, maintenance exact-once handshakes and reset cancellation.

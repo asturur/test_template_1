@@ -1,0 +1,3058 @@
+{
+  "status": "PASS_OFFLINE_PHYSICAL_GATES_PENDING",
+  "date": "2026-11-16",
+  "baseline_commit": "6f3baa22d238167f2260a01e07ba8dfbe6a628bd",
+  "scope": "Fuse ordinary LDM/STM setup into first memory beat and eligible incrementing base writeback into last beat",
+  "new_state_ram_pipeline_stages": 0,
+  "actual_pll_hz": 78000000,
+  "timing_target_hz": 104000000,
+  "compiled_files_and_includes_byte_verified": 51,
+  "compiled_sha256": {
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+    "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+    "rtl/arm/zap_alu_main.sv": "fbed334e4ec21ed8520596a1d2d7b5553248a98c007a5e87fff88d9a81a465db",
+    "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+    "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+    "rtl/arm/zap_cache.sv": "98df34b78cd4cbdea5f4a6a24759d9b72e80758be389cf85a37ea975dbb158c4",
+    "rtl/arm/zap_core.sv": "597917616f1f69c5ea65003aa198c1801e20af90450db17325e81d30b6da32bc",
+    "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+    "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+    "rtl/arm/zap_dcache.sv": "a59df1e7941bb15c5f36f89936c5670e9b5c3d75bfa98e1f136c5b7c151cd6e7",
+    "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+    "rtl/arm/zap_decode_main.sv": "d903ec26929bec74af7e2a4b9d2c1524acc87a36d96b416a29d7c7a53a074eb4",
+    "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+    "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+    "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+    "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+    "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+    "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+    "rtl/arm/zap_issue_main.sv": "8aacc3363c87f91ceda2fffe701456f24dc131ff5c55c0f56af42dc455c00314",
+    "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+    "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+    "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+    "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+    "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+    "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+    "rtl/arm/zap_postalu_main.sv": "e1f5f0333d53c91210323f7fabf259e5b9f19b30021acf82d1cd9332c6cfd5f6",
+    "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+    "rtl/arm/zap_predecode_main.sv": "754c0d82a5bcca69b4e373882db0dc6c3328adadda1e8717aca28ef59eb8c432",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "e6dce6ad3b3d883cf09efe0cb03856ffa33e4f9cdae3891b559ca5379658fd2f",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+    "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+    "rtl/arm/zap_shifter_main.sv": "db7214a422d9699762f54bc204f484044e320ad7c659d311fc8f3b1b3a5a9c29",
+    "rtl/arm/zap_shifter_multiply.sv": "56bc5ef9de54d036fb0267be6a876841491fae7994d154ff155d430d4c20b53f",
+    "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+    "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+    "rtl/arm/zap_top.sv": "7a67addfd79fa3bfdd80ffe1eed855e3459548fbd664e848aca9f4b672162447",
+    "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+    "rtl/arm/zap_writeback.sv": "a416ad75c4d9f46e6866c5a65c211160c2717fee7854e1e9924ac54c583e5ecf",
+    "rtl/arm920/cache_access.sv": "88355ff6b818727f44c9c4285514345ba7ae467c062e685d631211bc667e4d18",
+    "rtl/arm920/cache_adapter.sv": "1c666c0c312d0537f94a4ed3eb9bed1f1318279ce64ea9baa8a79969cb1ede4b",
+    "rtl/arm920/cache_bank.sv": "c3ca3bc22cee86047c194a39d30be3ab14a9c49490842bac7b8be1a36bdadc16",
+    "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+    "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+    "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+    "rtl/arm920/cache_tags.sv": "75e409dff9abe245c584e40be4c400d492cde026bd64ba8d93b48fd3bcbf6df6",
+    "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+    "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+    "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+    "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+    "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7"
+  },
+  "architectural_runs": 92,
+  "interrupt_edge_runs": 44,
+  "per_beat_abort_runs": 128,
+  "unit": {
+    "sequences": 786896,
+    "ordered_words": 6163552,
+    "hold_checks": 18,
+    "interrupt_boundaries": 4,
+    "cancellations": 4,
+    "test_sha256": "ed2f121e789de43c101ee42ccd9890f57608855885fad53a1e7aaea839a75f27",
+    "log_sha256": "bbd0fb7c7e5646af683cf02163a5d13b0005292c1a9feac5f0e044c57ba9f987"
+  },
+  "negative": {
+    "status": "PASS",
+    "variants": [
+      {
+        "name": "no-first-fusion",
+        "status": "REJECTED",
+        "expected_failure": "wrong sequence length"
+      },
+      {
+        "name": "no-tail-fusion",
+        "status": "REJECTED",
+        "expected_failure": "wrong sequence length"
+      },
+      {
+        "name": "wrong-first-destination",
+        "status": "REJECTED",
+        "expected_failure": "wrong architectural register"
+      },
+      {
+        "name": "wrong-final-source",
+        "status": "REJECTED",
+        "expected_failure": "wrong address"
+      },
+      {
+        "name": "down-pointer-mode",
+        "status": "REJECTED",
+        "expected_failure": "wrong address"
+      },
+      {
+        "name": "single-ia-offset",
+        "status": "REJECTED",
+        "expected_failure": "wrong address"
+      }
+    ]
+  },
+  "provenance": {
+    "status": "PASS",
+    "pristine_hashes": 83,
+    "lexical_streams": 37,
+    "patch_sha256": "57cd85024c28c51195edaa8e9bb10ee461b76ac077eac2a31df5387a5eec7411",
+    "strict_byte_equality": false
+  },
+  "qualification_records": [
+    {
+      "path": "build/sim/block-transfer-final-cpu-20261116/cpu/result.json",
+      "sha256": "a81ac04044c5f0dbc44e2f170288eb7c3adec663913d738e398aaa17712e5dd7",
+      "status": "PASS"
+    },
+    {
+      "path": "build/sim/block-transfer-final-cpu-20261116/cpu/extras-result.json",
+      "sha256": "b75671e4a47ed4247cde9f50be67e70e04b1b1e009e5265eb23cc1a1dd86a863",
+      "status": "PASS"
+    },
+    {
+      "path": "build/sim/block-transfer-final-cpu-20261116/cpu/edge-sweeps/result.json",
+      "sha256": "1922b1de78ff7d9d75a467985eabbdd9d1eb41d9d5c1ee4d1211e243bd03c54c",
+      "status": "PASS"
+    },
+    {
+      "path": "build/sim/block-transfer-final-abort-20261116/cpu/result.json",
+      "sha256": "7107687a4b8a30f8f086134cea4757eca8815f0e552c7a64eebb7796efe77fcb",
+      "status": "PASS"
+    },
+    {
+      "path": "build/sim/jpeg-payload/block-transfer-final-20261116/qualification.json",
+      "sha256": "96fc3b82c9d6fad519f0f51f05d98fde356196784aefa1bb48b2557b34a3131b",
+      "status": "PASS"
+    },
+    {
+      "path": "build/sim/jpeg-payload/block-transfer-final-20261116/pixel-controls.json",
+      "sha256": "9d69fd4217c7b3ca875699a2fff54368879533b7bfa5eb901879eb8dd11a59e0",
+      "status": "PASS"
+    },
+    {
+      "path": "scratch/ldm-stm-20261116/negative.json",
+      "sha256": "d5d14ae93944a3f82fdf1433880a706722e7d61075ce9c7d8cfb1bb6db181671",
+      "status": "PASS"
+    },
+    {
+      "path": "scratch/ldm-stm-20261116/provenance.json",
+      "sha256": "36b9b7204d1d3cd717a6ccb13326df9ba787b4b50083e27d5535c90a142a6af4",
+      "status": "PASS"
+    }
+  ],
+  "original_six_kernel_index": {
+    "0:0": 230.32206381265712,
+    "2:9": 193.71805817165225
+  },
+  "predecessor_relative_index": {
+    "0:0": 100.12412095531256,
+    "2:9": 100.12412095531256
+  },
+  "six_kernel_rows": [
+    {
+      "body_cycles_median": 54394,
+      "case": "matrix4",
+      "cycles_per_operation": 3399.625,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x10002640",
+        "executed_min": "0x100011c4",
+        "helper_instructions": 0,
+        "instructions": 14176,
+        "outputs": [
+          {
+            "address": "0x80003000",
+            "bytes": 1024,
+            "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+          }
+        ],
+        "payload_instructions": 14176,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 14176
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+      "status": "PASS",
+      "throughput_ratio": 1.0008824502702505,
+      "total": {
+        "cycles": 579129,
+        "halfwords": 4016,
+        "lines": 251,
+        "reads": 20918,
+        "windows": 7,
+        "writes": 5653
+      },
+      "unit": "4x4 matrix products",
+      "windows": [
+        {
+          "cycles": 58507,
+          "halfwords": 1776,
+          "index": 0,
+          "lines": 111,
+          "reads": 369,
+          "retire_proxy": 14353,
+          "writes": 263
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 54394,
+      "case": "matrix4",
+      "cycles_per_operation": 3399.625,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x10002640",
+        "executed_min": "0x100011c4",
+        "helper_instructions": 0,
+        "instructions": 14176,
+        "outputs": [
+          {
+            "address": "0x80003000",
+            "bytes": 1024,
+            "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+          }
+        ],
+        "payload_instructions": 14176,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 14176
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+      "status": "PASS",
+      "throughput_ratio": 1.0008824502702505,
+      "total": {
+        "cycles": 653097,
+        "halfwords": 4000,
+        "lines": 250,
+        "reads": 12720,
+        "windows": 7,
+        "writes": 5653
+      },
+      "unit": "4x4 matrix products",
+      "windows": [
+        {
+          "cycles": 60082,
+          "halfwords": 1760,
+          "index": 0,
+          "lines": 110,
+          "reads": 369,
+          "retire_proxy": 14353,
+          "writes": 263
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        },
+        {
+          "cycles": 54394,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 14353,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 5337,
+      "case": "transpose4",
+      "cycles_per_operation": 166.78125,
+      "deterministic_repeats": 2,
+      "operations": 32,
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 800
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 252622,
+        "halfwords": 3344,
+        "lines": 209,
+        "reads": 20590,
+        "windows": 7,
+        "writes": 5126
+      },
+      "unit": "4x4 matrix transposes",
+      "windows": [
+        {
+          "cycles": 7623,
+          "halfwords": 1152,
+          "index": 0,
+          "lines": 72,
+          "reads": 41,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5331,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 5337,
+      "case": "transpose4",
+      "cycles_per_operation": 166.78125,
+      "deterministic_repeats": 2,
+      "operations": 32,
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 800
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 322839,
+        "halfwords": 3312,
+        "lines": 207,
+        "reads": 12392,
+        "windows": 7,
+        "writes": 5126
+      },
+      "unit": "4x4 matrix transposes",
+      "windows": [
+        {
+          "cycles": 8249,
+          "halfwords": 1120,
+          "index": 0,
+          "lines": 70,
+          "reads": 41,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5331,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        },
+        {
+          "cycles": 5337,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 1025,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 26739,
+      "case": "triangle_edges",
+      "cycles_per_operation": 1671.1875,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x503a30b8",
+        "executed_min": "0x10002be0",
+        "helper_instructions": 1872,
+        "instructions": 8528,
+        "outputs": [
+          {
+            "address": "0x80000334",
+            "bytes": 12,
+            "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+          },
+          {
+            "address": "0x80007a04",
+            "bytes": 128,
+            "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+          }
+        ],
+        "payload_instructions": 6656,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 1872,
+          "index": 0,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 1,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 2,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 3,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 4,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 5,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 6,
+          "payload_retire_proxy": 6656
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+      "status": "PASS",
+      "throughput_ratio": 1.006582145929167,
+      "total": {
+        "cycles": 300945,
+        "halfwords": 1520,
+        "lines": 95,
+        "reads": 21000,
+        "windows": 7,
+        "writes": 4473
+      },
+      "unit": "triangle edge setups",
+      "windows": [
+        {
+          "cycles": 29036,
+          "halfwords": 992,
+          "index": 0,
+          "lines": 62,
+          "reads": 451,
+          "retire_proxy": 8657,
+          "writes": 216
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 26739,
+      "case": "triangle_edges",
+      "cycles_per_operation": 1671.1875,
+      "deterministic_repeats": 2,
+      "operations": 16,
+      "oracle": {
+        "executed_max": "0x503a30b8",
+        "executed_min": "0x10002be0",
+        "helper_instructions": 1872,
+        "instructions": 8528,
+        "outputs": [
+          {
+            "address": "0x80000334",
+            "bytes": 12,
+            "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+          },
+          {
+            "address": "0x80007a04",
+            "bytes": 128,
+            "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+          }
+        ],
+        "payload_instructions": 6656,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 1872,
+          "index": 0,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 1,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 2,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 3,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 4,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 5,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 6,
+          "payload_retire_proxy": 6656
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+      "status": "PASS",
+      "throughput_ratio": 1.006582145929167,
+      "total": {
+        "cycles": 368352,
+        "halfwords": 1344,
+        "lines": 84,
+        "reads": 12802,
+        "windows": 7,
+        "writes": 4473
+      },
+      "unit": "triangle edge setups",
+      "windows": [
+        {
+          "cycles": 30159,
+          "halfwords": 816,
+          "index": 0,
+          "lines": 51,
+          "reads": 451,
+          "retire_proxy": 8657,
+          "writes": 216
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        },
+        {
+          "cycles": 26739,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 8657,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 71263,
+      "case": "fill16_frame",
+      "cycles_per_operation": 1.9466510052447552,
+      "deterministic_repeats": 2,
+      "operations": 36608,
+      "oracle": {
+        "executed_max": "0x10002b1c",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 22896,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 73232,
+            "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+          }
+        ],
+        "payload_instructions": 22896,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 22896
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 6053031,
+        "halfwords": 768672,
+        "lines": 48042,
+        "reads": 20598,
+        "windows": 7,
+        "writes": 260393
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 71603,
+          "halfwords": 96,
+          "index": 0,
+          "lines": 6,
+          "reads": 49,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 71261,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 71263,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 71261,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 71263,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 71261,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 71263,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18305
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 201306,
+      "case": "fill16_frame",
+      "cycles_per_operation": 5.498961975524476,
+      "deterministic_repeats": 2,
+      "operations": 36608,
+      "oracle": {
+        "executed_max": "0x10002b1c",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 22896,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 73232,
+            "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+          }
+        ],
+        "payload_instructions": 22896,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 22896
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 7237999,
+        "halfwords": 768672,
+        "lines": 48042,
+        "reads": 12400,
+        "windows": 7,
+        "writes": 260393
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 201900,
+          "halfwords": 96,
+          "index": 0,
+          "lines": 6,
+          "reads": 49,
+          "retire_proxy": 22905,
+          "writes": 18305
+        },
+        {
+          "cycles": 201304,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18295
+        },
+        {
+          "cycles": 201306,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18295
+        },
+        {
+          "cycles": 201304,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18295
+        },
+        {
+          "cycles": 201306,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18295
+        },
+        {
+          "cycles": 201304,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18295
+        },
+        {
+          "cycles": 201306,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22905,
+          "writes": 18295
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 2564,
+      "case": "fill16_tail",
+      "cycles_per_operation": 2.506353861192571,
+      "deterministic_repeats": 2,
+      "operations": 1023,
+      "oracle": {
+        "executed_max": "0x10002b58",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 654,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2064,
+            "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+          }
+        ],
+        "payload_instructions": 654,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 654
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 244368,
+        "halfwords": 3376,
+        "lines": 211,
+        "reads": 20606,
+        "windows": 7,
+        "writes": 5647
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 2423,
+          "halfwords": 80,
+          "index": 0,
+          "lines": 5,
+          "reads": 57,
+          "retire_proxy": 663,
+          "writes": 513
+        },
+        {
+          "cycles": 2574,
+          "halfwords": 16,
+          "index": 1,
+          "lines": 1,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2593,
+          "halfwords": 16,
+          "index": 2,
+          "lines": 1,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2554,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2564,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2554,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2564,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 2564,
+      "case": "fill16_tail",
+      "cycles_per_operation": 2.506353861192571,
+      "deterministic_repeats": 2,
+      "operations": 1023,
+      "oracle": {
+        "executed_max": "0x10002b58",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 654,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2064,
+            "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+          }
+        ],
+        "payload_instructions": 654,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 654
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 318343,
+        "halfwords": 3360,
+        "lines": 210,
+        "reads": 12408,
+        "windows": 7,
+        "writes": 5647
+      },
+      "unit": "pixels",
+      "windows": [
+        {
+          "cycles": 6173,
+          "halfwords": 64,
+          "index": 0,
+          "lines": 4,
+          "reads": 57,
+          "retire_proxy": 663,
+          "writes": 513
+        },
+        {
+          "cycles": 2576,
+          "halfwords": 16,
+          "index": 1,
+          "lines": 1,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2595,
+          "halfwords": 16,
+          "index": 2,
+          "lines": 1,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2554,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2564,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2554,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        },
+        {
+          "cycles": 2564,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 663,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 2629,
+      "case": "fill8_tail",
+      "cycles_per_operation": 1.2818137493905413,
+      "deterministic_repeats": 2,
+      "operations": 2051,
+      "oracle": {
+        "executed_max": "0x10002a74",
+        "executed_min": "0x100029f8",
+        "helper_instructions": 0,
+        "instructions": 667,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2068,
+            "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+          }
+        ],
+        "payload_instructions": 667,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 667
+        }
+      ],
+      "profile": "0:0",
+      "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 245124,
+        "halfwords": 3360,
+        "lines": 210,
+        "reads": 20606,
+        "windows": 7,
+        "writes": 5654
+      },
+      "unit": "bytes",
+      "windows": [
+        {
+          "cycles": 2572,
+          "halfwords": 96,
+          "index": 0,
+          "lines": 6,
+          "reads": 57,
+          "retire_proxy": 676,
+          "writes": 515
+        },
+        {
+          "cycles": 2642,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2629,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2627,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2629,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2627,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2629,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "body_cycles_median": 2629,
+      "case": "fill8_tail",
+      "cycles_per_operation": 1.2818137493905413,
+      "deterministic_repeats": 2,
+      "operations": 2051,
+      "oracle": {
+        "executed_max": "0x10002a74",
+        "executed_min": "0x100029f8",
+        "helper_instructions": 0,
+        "instructions": 667,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2068,
+            "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+          }
+        ],
+        "payload_instructions": 667,
+        "status": "PASS"
+      },
+      "payload_windows": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 667
+        }
+      ],
+      "profile": "2:9",
+      "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+      "status": "PASS",
+      "throughput_ratio": 1.0,
+      "total": {
+        "cycles": 319042,
+        "halfwords": 3360,
+        "lines": 210,
+        "reads": 12408,
+        "windows": 7,
+        "writes": 5654
+      },
+      "unit": "bytes",
+      "windows": [
+        {
+          "cycles": 6213,
+          "halfwords": 96,
+          "index": 0,
+          "lines": 6,
+          "reads": 57,
+          "retire_proxy": 676,
+          "writes": 507
+        },
+        {
+          "cycles": 2642,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2629,
+          "halfwords": 0,
+          "index": 2,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2627,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2629,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2627,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        },
+        {
+          "cycles": 2629,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 676,
+          "writes": 0
+        }
+      ]
+    }
+  ],
+  "six_kernel_output_controls": [
+    {
+      "case": "matrix4",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "transpose4",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "triangle_edges",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill16_frame",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill16_tail",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    },
+    {
+      "case": "fill8_tail",
+      "status": "PASS",
+      "wrong_output_rejected": true
+    }
+  ],
+  "jpeg_rows": [
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "profile": "0:0",
+      "before_cycles": 108853,
+      "observation": {
+        "body_cycles_median": 107047,
+        "cycles_per_operation": 1672.609375,
+        "status": "PASS",
+        "total": {
+          "cycles": 910128,
+          "halfwords": 2432,
+          "lines": 152,
+          "reads": 20889,
+          "windows": 7,
+          "writes": 4701
+        },
+        "windows": [
+          {
+            "cycles": 109205,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22508,
+            "writes": 86
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 24107,
+          "data_completion_wait": 39389,
+          "decode_sequencing": 4252,
+          "load_dependency": 13842,
+          "multiply_busy": 0,
+          "operand_queue_empty": 21565,
+          "redirect_event": 1486,
+          "shift_dependency": 2406
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 12626,
+          "LOOKUP": 3432,
+          "LOOKUP_CAPTURE": 9092,
+          "LOOKUP_WAIT": 3432,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 2087,
+          "STORE_COMMIT": 4360,
+          "STORE_HIT": 4360,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 107047,
+          "external_wait": 0,
+          "fetch_wait": 18858,
+          "read_wait": 20320,
+          "redirects": 1960,
+          "response_ack": 10854,
+          "retire": 22508,
+          "translation_wait": 6065,
+          "write_wait": 19069
+        }
+      }
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "profile": "2:9",
+      "before_cycles": 108853,
+      "observation": {
+        "body_cycles_median": 107047,
+        "cycles_per_operation": 1672.609375,
+        "status": "PASS",
+        "total": {
+          "cycles": 978858,
+          "halfwords": 2432,
+          "lines": 152,
+          "reads": 12691,
+          "windows": 7,
+          "writes": 4701
+        },
+        "windows": [
+          {
+            "cycles": 110495,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22508,
+            "writes": 86
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          },
+          {
+            "cycles": 107047,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22508,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 24107,
+          "data_completion_wait": 39389,
+          "decode_sequencing": 4252,
+          "load_dependency": 13842,
+          "multiply_busy": 0,
+          "operand_queue_empty": 21565,
+          "redirect_event": 1486,
+          "shift_dependency": 2406
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 12626,
+          "LOOKUP": 3432,
+          "LOOKUP_CAPTURE": 9092,
+          "LOOKUP_WAIT": 3432,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 2087,
+          "STORE_COMMIT": 4360,
+          "STORE_HIT": 4360,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 107047,
+          "external_wait": 0,
+          "fetch_wait": 18858,
+          "read_wait": 20320,
+          "redirects": 1960,
+          "response_ack": 10854,
+          "retire": 22508,
+          "translation_wait": 6065,
+          "write_wait": 19069
+        }
+      }
+    },
+    {
+      "case": "diffuse_m10_8x8_random",
+      "profile": "0:0",
+      "before_cycles": 108869,
+      "observation": {
+        "body_cycles_median": 107063,
+        "cycles_per_operation": 1672.859375,
+        "status": "PASS",
+        "total": {
+          "cycles": 910240,
+          "halfwords": 2432,
+          "lines": 152,
+          "reads": 20889,
+          "windows": 7,
+          "writes": 4701
+        },
+        "windows": [
+          {
+            "cycles": 109221,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22495,
+            "writes": 86
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 24097,
+          "data_completion_wait": 39389,
+          "decode_sequencing": 4252,
+          "load_dependency": 13841,
+          "multiply_busy": 0,
+          "operand_queue_empty": 21595,
+          "redirect_event": 1487,
+          "shift_dependency": 2402
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 12626,
+          "LOOKUP": 3432,
+          "LOOKUP_CAPTURE": 9092,
+          "LOOKUP_WAIT": 3432,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 2087,
+          "STORE_COMMIT": 4360,
+          "STORE_HIT": 4360,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 107063,
+          "external_wait": 0,
+          "fetch_wait": 18868,
+          "read_wait": 20320,
+          "redirects": 1962,
+          "response_ack": 10854,
+          "retire": 22495,
+          "translation_wait": 6065,
+          "write_wait": 19069
+        }
+      }
+    },
+    {
+      "case": "diffuse_m10_8x8_random",
+      "profile": "2:9",
+      "before_cycles": 108869,
+      "observation": {
+        "body_cycles_median": 107063,
+        "cycles_per_operation": 1672.859375,
+        "status": "PASS",
+        "total": {
+          "cycles": 978970,
+          "halfwords": 2432,
+          "lines": 152,
+          "reads": 12691,
+          "windows": 7,
+          "writes": 4701
+        },
+        "windows": [
+          {
+            "cycles": 110511,
+            "halfwords": 960,
+            "index": 0,
+            "lines": 60,
+            "reads": 338,
+            "retire_proxy": 22495,
+            "writes": 86
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          },
+          {
+            "cycles": 107063,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22495,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 24097,
+          "data_completion_wait": 39389,
+          "decode_sequencing": 4252,
+          "load_dependency": 13841,
+          "multiply_busy": 0,
+          "operand_queue_empty": 21595,
+          "redirect_event": 1487,
+          "shift_dependency": 2402
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 12626,
+          "LOOKUP": 3432,
+          "LOOKUP_CAPTURE": 9092,
+          "LOOKUP_WAIT": 3432,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 2087,
+          "STORE_COMMIT": 4360,
+          "STORE_HIT": 4360,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 107063,
+          "external_wait": 0,
+          "fetch_wait": 18868,
+          "read_wait": 20320,
+          "redirects": 1962,
+          "response_ack": 10854,
+          "retire": 22495,
+          "translation_wait": 6065,
+          "write_wait": 19069
+        }
+      }
+    },
+    {
+      "case": "diffuse_m8_8x8_random",
+      "profile": "0:0",
+      "before_cycles": 107724,
+      "observation": {
+        "body_cycles_median": 105742,
+        "cycles_per_operation": 1652.21875,
+        "status": "PASS",
+        "total": {
+          "cycles": 900997,
+          "halfwords": 2448,
+          "lines": 153,
+          "reads": 20897,
+          "windows": 7,
+          "writes": 4701
+        },
+        "windows": [
+          {
+            "cycles": 107952,
+            "halfwords": 976,
+            "index": 0,
+            "lines": 61,
+            "reads": 346,
+            "retire_proxy": 22316,
+            "writes": 86
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 23915,
+          "data_completion_wait": 39389,
+          "decode_sequencing": 4252,
+          "load_dependency": 13842,
+          "multiply_busy": 0,
+          "operand_queue_empty": 20644,
+          "redirect_event": 1422,
+          "shift_dependency": 2278
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 12626,
+          "LOOKUP": 3432,
+          "LOOKUP_CAPTURE": 9092,
+          "LOOKUP_WAIT": 3432,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 2087,
+          "STORE_COMMIT": 4360,
+          "STORE_HIT": 4360,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 105742,
+          "external_wait": 0,
+          "fetch_wait": 18573,
+          "read_wait": 20320,
+          "redirects": 1832,
+          "response_ack": 10854,
+          "retire": 22316,
+          "translation_wait": 6065,
+          "write_wait": 19069
+        }
+      }
+    },
+    {
+      "case": "diffuse_m8_8x8_random",
+      "profile": "2:9",
+      "before_cycles": 107724,
+      "observation": {
+        "body_cycles_median": 105742,
+        "cycles_per_operation": 1652.21875,
+        "status": "PASS",
+        "total": {
+          "cycles": 969679,
+          "halfwords": 2448,
+          "lines": 153,
+          "reads": 12699,
+          "windows": 7,
+          "writes": 4701
+        },
+        "windows": [
+          {
+            "cycles": 109260,
+            "halfwords": 976,
+            "index": 0,
+            "lines": 61,
+            "reads": 346,
+            "retire_proxy": 22316,
+            "writes": 86
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          },
+          {
+            "cycles": 105742,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22316,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 23915,
+          "data_completion_wait": 39389,
+          "decode_sequencing": 4252,
+          "load_dependency": 13842,
+          "multiply_busy": 0,
+          "operand_queue_empty": 20644,
+          "redirect_event": 1422,
+          "shift_dependency": 2278
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 12626,
+          "LOOKUP": 3432,
+          "LOOKUP_CAPTURE": 9092,
+          "LOOKUP_WAIT": 3432,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 2087,
+          "STORE_COMMIT": 4360,
+          "STORE_HIT": 4360,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 105742,
+          "external_wait": 0,
+          "fetch_wait": 18573,
+          "read_wait": 20320,
+          "redirects": 1832,
+          "response_ack": 10854,
+          "retire": 22316,
+          "translation_wait": 6065,
+          "write_wait": 19069
+        }
+      }
+    },
+    {
+      "case": "diffuse_m10_16x8_jpeg",
+      "profile": "0:0",
+      "before_cycles": 214749,
+      "observation": {
+        "body_cycles_median": 211231,
+        "cycles_per_operation": 1650.2421875,
+        "status": "PASS",
+        "total": {
+          "cycles": 1675066,
+          "halfwords": 3344,
+          "lines": 209,
+          "reads": 20889,
+          "windows": 7,
+          "writes": 5069
+        },
+        "windows": [
+          {
+            "cycles": 213757,
+            "halfwords": 1136,
+            "index": 0,
+            "lines": 71,
+            "reads": 338,
+            "retire_proxy": 44524,
+            "writes": 150
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 47707,
+          "data_completion_wait": 77485,
+          "decode_sequencing": 8348,
+          "load_dependency": 27282,
+          "multiply_busy": 0,
+          "operand_queue_empty": 42677,
+          "redirect_event": 2958,
+          "shift_dependency": 4774
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 24850,
+          "LOOKUP": 6728,
+          "LOOKUP_CAPTURE": 17924,
+          "LOOKUP_WAIT": 6728,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 4087,
+          "STORE_COMMIT": 8584,
+          "STORE_HIT": 8584,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 211231,
+          "external_wait": 0,
+          "fetch_wait": 37290,
+          "read_wait": 40016,
+          "redirects": 3816,
+          "response_ack": 21414,
+          "retire": 44524,
+          "translation_wait": 11889,
+          "write_wait": 37469
+        }
+      }
+    },
+    {
+      "case": "diffuse_m10_16x8_jpeg",
+      "profile": "2:9",
+      "before_cycles": 214749,
+      "observation": {
+        "body_cycles_median": 211231,
+        "cycles_per_operation": 1650.2421875,
+        "status": "PASS",
+        "total": {
+          "cycles": 1745343,
+          "halfwords": 3344,
+          "lines": 209,
+          "reads": 12691,
+          "windows": 7,
+          "writes": 5069
+        },
+        "windows": [
+          {
+            "cycles": 215146,
+            "halfwords": 1136,
+            "index": 0,
+            "lines": 71,
+            "reads": 338,
+            "retire_proxy": 44524,
+            "writes": 150
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          },
+          {
+            "cycles": 211231,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 44524,
+            "writes": 0
+          }
+        ]
+      },
+      "first_scored_profile": {
+        "buckets": {
+          "advance_other": 47707,
+          "data_completion_wait": 77485,
+          "decode_sequencing": 8348,
+          "load_dependency": 27282,
+          "multiply_busy": 0,
+          "operand_queue_empty": 42677,
+          "redirect_event": 2958,
+          "shift_dependency": 4774
+        },
+        "cache_states": {
+          "BUFFER_STORE": 0,
+          "BYPASS": 0,
+          "IDLE": 24850,
+          "LOOKUP": 6728,
+          "LOOKUP_CAPTURE": 17924,
+          "LOOKUP_WAIT": 6728,
+          "MAINTAIN": 0,
+          "MAINT_CAPTURE": 0,
+          "MAINT_LOOKUP": 0,
+          "MAINT_WAIT": 0,
+          "READ_LINE": 4087,
+          "STORE_COMMIT": 8584,
+          "STORE_HIT": 8584,
+          "WAIT_DRAIN": 0,
+          "WAIT_REFILL": 0
+        },
+        "raw": {
+          "cycles": 211231,
+          "external_wait": 0,
+          "fetch_wait": 37290,
+          "read_wait": 40016,
+          "redirects": 3816,
+          "response_ack": 21414,
+          "retire": 44524,
+          "translation_wait": 11889,
+          "write_wait": 37469
+        }
+      }
+    }
+  ],
+  "jpeg_throughput_gain_percent": 1.728418604392079,
+  "jpeg_original_index": 111.01290383174577,
+  "jpeg_output_controls": {
+    "controls": [
+      {
+        "case": "diffuse_m10_8x8_jpeg",
+        "corrupted_expected_address": "0x80003010",
+        "program_sha256": "5bbd2eb36930a92429394781b96588f205752daf7f65721808f9ea45940f3fc0",
+        "status": "REJECTED"
+      },
+      {
+        "case": "diffuse_m10_8x8_random",
+        "corrupted_expected_address": "0x80003010",
+        "program_sha256": "aad9670c3ebe4609a808a02ec0f5a9d3906e945981d2128a30f4a4eb39c19eeb",
+        "status": "REJECTED"
+      },
+      {
+        "case": "diffuse_m8_8x8_random",
+        "corrupted_expected_address": "0x80003010",
+        "program_sha256": "fe2457cb6e2617d71874d882f7f738efb5b1c38017dd5d243ef78619110a5852",
+        "status": "REJECTED"
+      },
+      {
+        "case": "diffuse_m10_16x8_jpeg",
+        "corrupted_expected_address": "0x80003010",
+        "program_sha256": "549719cbae33441a94af02936cda0207f5f622aaff544048eca6cef1d0244121",
+        "status": "REJECTED"
+      }
+    ],
+    "status": "PASS"
+  },
+  "psr_audit": {
+    "status": "READ_ONLY",
+    "scope": "PSR/CP15 serialization audit; no RTL changes",
+    "observed_jpeg_block": {
+      "mrs": 0,
+      "msr_cpsr": 0,
+      "msr_spsr": 0,
+      "psr_flush": 0,
+      "cp_commands": 0,
+      "cp_stall": 0,
+      "cp_drain": 0,
+      "all_original_guest_counters_match": true,
+      "log": "scratch/ldm-stm-20261116/psr-witness-v3.log"
+    },
+    "source_findings": [
+      "Flags-only MSR and unchanged low CPSR byte already continue without a resync in zap_alu_main flags_bp_feedback.",
+      "Real mode/state/IRQ-mask changes retain resync, which is needed for bank/interrupt visibility.",
+      "MRS is ordinary FADD, SPSR writes ordinary MMOV; neither uses the CP15 drain state.",
+      "Privileged MRC/MCR currently drain i_pipeline_dav before starting the CP15 transaction.",
+      "MRC ACTIVE can potentially combine its registered RF-write request and completion, but requires timing/IRQ/fault/dependency/handshake tests; not implemented."
+    ],
+    "limits": [
+      "The original bitmap converter has zero PSR/CP15 operations; this does not measure Symbian OS overhead or the rest of JPEG decode/encode.",
+      "Unverified proposal is not a measured performance improvement."
+    ]
+  },
+  "jpeg_instruction_mix": {
+    "status": "PASS",
+    "meaning": "Original 8x8 bitmap diffusion routine, not full JPEG codec",
+    "instructions": 22500,
+    "instructions_per_pixel": 351.5625,
+    "modes": {
+      "thumb": 22500
+    },
+    "mnemonics": {
+      "ldr": 5152,
+      "adds": 2579,
+      "str": 2360,
+      "lsls": 1424,
+      "ands": 1152,
+      "pop": 1107,
+      "bx": 1098,
+      "movs": 1042,
+      "mov": 976,
+      "bl": 905,
+      "lsrs": 640,
+      "cmp": 594,
+      "push": 586,
+      "orrs": 448,
+      "subs": 440,
+      "asrs": 384,
+      "add": 281,
+      "b": 257,
+      "blt": 256,
+      "ldm": 208,
+      "stm": 208,
+      "bgt": 192,
+      "bge": 81,
+      "ldrb": 64,
+      "ble": 64,
+      "sub": 1,
+      "beq": 1
+    },
+    "examples": {
+      "push": {
+        "pc": "0x505a9e0c",
+        "instruction": "push {r4, r5, r6, r7, lr}"
+      },
+      "mov": {
+        "pc": "0x505a9e0e",
+        "instruction": "mov r7, sl"
+      },
+      "sub": {
+        "pc": "0x505a9e16",
+        "instruction": "sub sp, #0x4c"
+      },
+      "adds": {
+        "pc": "0x505a9e18",
+        "instruction": "adds r7, r0, #0"
+      },
+      "str": {
+        "pc": "0x505a9e1a",
+        "instruction": "str r1, [sp, #0x34]"
+      },
+      "ldr": {
+        "pc": "0x505a9e1e",
+        "instruction": "ldr r1, [r7, #0x1c]"
+      },
+      "cmp": {
+        "pc": "0x505a9e22",
+        "instruction": "cmp r1, r0"
+      },
+      "beq": {
+        "pc": "0x505a9e24",
+        "instruction": "beq #0x505a9e38"
+      },
+      "bl": {
+        "pc": "0x505a9e42",
+        "instruction": "bl #0x505a99d0"
+      },
+      "movs": {
+        "pc": "0x505a99d0",
+        "instruction": "movs r1, #0"
+      },
+      "bx": {
+        "pc": "0x505a99d8",
+        "instruction": "bx lr"
+      },
+      "b": {
+        "pc": "0x505a9e50",
+        "instruction": "b #0x505a9f7e"
+      },
+      "bge": {
+        "pc": "0x505a9f84",
+        "instruction": "bge #0x505a9f88"
+      },
+      "lsls": {
+        "pc": "0x505a9e58",
+        "instruction": "lsls r0, r1, #1"
+      },
+      "add": {
+        "pc": "0x505a9e64",
+        "instruction": "add r0, sp, #0xc"
+      },
+      "pop": {
+        "pc": "0x505a9ac2",
+        "instruction": "pop {r4, r5}"
+      },
+      "ldm": {
+        "pc": "0x505a9e72",
+        "instruction": "ldm r0!, {r4, r5, r6}"
+      },
+      "stm": {
+        "pc": "0x505a9e74",
+        "instruction": "stm r1!, {r4, r5, r6}"
+      },
+      "ldrb": {
+        "pc": "0x505a99e2",
+        "instruction": "ldrb r1, [r7]"
+      },
+      "asrs": {
+        "pc": "0x505a99e6",
+        "instruction": "asrs r0, r0, #4"
+      },
+      "blt": {
+        "pc": "0x505a99ec",
+        "instruction": "blt #0x505a99fa"
+      },
+      "bgt": {
+        "pc": "0x505a99f0",
+        "instruction": "bgt #0x505a99f6"
+      },
+      "ands": {
+        "pc": "0x505a9a04",
+        "instruction": "ands r0, r3"
+      },
+      "lsrs": {
+        "pc": "0x505a9a06",
+        "instruction": "lsrs r0, r0, #8"
+      },
+      "orrs": {
+        "pc": "0x505a9a62",
+        "instruction": "orrs r0, r6"
+      },
+      "subs": {
+        "pc": "0x505a9a7a",
+        "instruction": "subs r3, r3, r4"
+      },
+      "ble": {
+        "pc": "0x505a9ecc",
+        "instruction": "ble #0x505a9ef0"
+      }
+    }
+  },
+  "physical_timing_boot_and_native_jpeg": "NOT_YET_QUALIFIED",
+  "other_simulations_and_checkpoints_touched": false,
+  "failed_fixture_approaches": [
+    "Initial abstract oracle checked an address from condition-failed uops; corrected to check only executed addresses.",
+    "Initial abort fixture used unencodable CMP immediate0x101; changed distinct test patterns to encodable small constants.",
+    "First negative-control expectation named wrong-address while the variant correctly failed earlier on an architectural register."
+  ],
+  "maintained_abort_runner": {
+    "status": "PASS",
+    "runs": 128,
+    "result": "build/sim/block-transfer-maintained-aborts-20261116/result.json"
+  }
+}

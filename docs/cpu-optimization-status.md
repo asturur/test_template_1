@@ -8,20 +8,16 @@ on MiSTer or closed at104MHz. Actual PLL remains78MHz.
 ## Measurements and current physical gate
 
 With the original six-kernel baseline defined as100, the latest implementation
-scores **230.0365 /193.4779** at synthetic I:D waits0:0/2:9. This is approximately
-2.300×/1.935× baseline kernel throughput, not whole-phone or donor-relative speed.
-The admission-edge pre-read improvement gains0.6551%/0.6550% over its predecessor
-and2.3885% on the four-case JPEG bitmap suite. The preceding Thumb-address fix
-gained2.2906% on JPEG; P0 removal gained1.4988%/1.4982% on the six kernels and
-3.5457% on JPEG. No native JPEG deadline pass is claimed.
+scores **230.3221 /193.7181** at synthetic I:D waits0:0/2:9. Block-transfer
+setup/final-writeback fusion gains0.1241% over admission-edge pre-read reuse,
+and1.7284% on the four-case JPEG bitmap suite. These are kernel throughput,
+not whole-phone or donor-relative speed. Native JPEG remains unqualified.
 
-The loaded50114ac/seed43 placement lost all16SDRAM output I/O registers and
-fails early boot; the previous d4f2a8/seed44 placement packs them and boots the
-same saved disks. ca5a9d0 protects the pin data registers and adds a CI check.
-Build[43771644419](https://github.com/asturur/test_template_1/actions/runs/43771644419)
-is pinned to that fix, seed43/debugOn. It excludes the newest CPU-stage removal.
-New fit/stock boot are required; pin packing is a concrete regression, not proof
-of the cause of every failure. [Board evidence](spmark-jpeg-hang.md#new-rbf-boot-regression-2026-11-15).
+The6f3baa2/seed43 build43785027340 packs all16SDRAM pin I/O registers and its
+78MHz CPU setup passes+0.037ns. HDMI setup-0.440ns still fails the timing gate.
+It fits38385ALMs/503M10Ks/42DSPs. It excludes the new block-transfer change.
+Native original-firmware boot and healthy autosave are observed on this build;
+new build/fit/timing/boot qualification is still required for patch0070.
 
 ## Implemented
 
@@ -43,6 +39,7 @@ of the cause of every failure. [Board evidence](spmark-jpeg-hang.md#new-rbf-boot
 |New: execution-stage latency | Remove legacy P0 register; preserve registered P1 TLB/probe and P2 demand/completion | Routed timing and board qualification pending |
 |New: Thumb prediction addresses | Canonical fetch targets avoid state-bit-only false redirects; raw BX mode changes retained | JPEG +2.2906%; full speculative RAS and general frontend gaps remain |
 |New: admission-edge read | Consume an already owned matching RAM-B result one clock earlier; one metadata bit | Other cache-hit waits and full multi-request overlap remain; physical timing pending |
+|09a/b, bounded block transfers | Fuse ordinary first-beat setup and incrementing final base writeback using existing lanes | No extra state/RAM; broader streaming/PC/abort optimizations remain separate |
 
 The historical BTB tag-collision correctness fix is also present; it is not a
 new performance gain to add to the table. See the [measured progression](spmark-payload-results.md).
@@ -55,13 +52,13 @@ correctness gaps when their fixtures reproduce an actual issue.
 
 | Suggested priority | Original items | Bounded experiment and reason |
 | --- | --- | --- |
-|1|10a, remaining06/08|Thumb calls/returns, fetch/decode bubbles, earlier safe direct branches and late operand pickup. The JPEG routine is call/stack/load heavy; current measured empty operand queue is21574/108853clocks. Classify actual gaps before changing FIFO depth or predictor size |
-|2|Remaining07/12b|The admission-edge pre-read is reused; audit other redundant short-hit/tag waits. JPEG still spends38035clocks waiting for data. Keep synchronous BRAM and precise fault capture; a full overlapped hit pipeline belongs to the heavier work below |
-|3|09a/09b|Precompute LDM/STM lists/counts/offsets; reduce PUSH/POP setup and last-word/load-PC overhead. Retain one ordered memory owner and precise per-beat abort/base restoration |
+|1|10a, remaining06/08|Thumb calls/returns, fetch/decode bubbles, earlier safe direct branches and late operand pickup. The JPEG routine is call/stack/load heavy; current measured empty operand queue is21565/107047clocks. Classify actual gaps before changing FIFO depth or predictor size |
+|2|Remaining07/12b|The admission-edge pre-read is reused; audit other redundant short-hit/tag waits. JPEG still spends39389clocks waiting for data. Keep synchronous BRAM and precise fault capture; a full overlapped hit pipeline belongs to the heavier work below |
+|3|09a/09b|First setup and eligible final base writeback are fused; consider remaining list/count and last-word/load-PC costs. Retain one ordered memory owner and precise per-beat abort/base restoration |
 |4|04a/04b|Improve MUL/MLA/long-multiply DSP mapping, schedule and reuse of full products. Matrix profiles show meaningful multiply occupancy; JPEG bitmap diffusion shows none |
 |5|05a/05b|Smaller shared ARMv4T ALU/flags and rotate/mask/carry logic. Primarily timing/area unless a measured shift/dependency wait disappears; ordinary dependent unshifted ADD is already one per clock |
 |6|Remaining08|Other formatted load classes and consumer-specific bypass. Keep earlier/late producers ordered. Byte loads are uncommon in the measured JPEG block, so do not assume this is its largest remaining gain |
-|7|09c|Avoid unnecessary serialization for safe PSR operations and CP15 reads; retain full fences for mode/MMU/cache changes and older fault-capable work. Measure actual instruction frequency first |
+|7|09c|Avoid unnecessary serialization for safe PSR operations and CP15 reads; retain full fences for mode/MMU/cache changes and older fault-capable work. Flags-only MSR already avoids resync; the measured JPEG converter has zero PSR/CP15 operations. Whole OS/codec costs are unmeasured |
 |Optional|12a/12c|Improve existing write-buffer organization and separately test cache size/associativity/banking. Extra BRAM is allowed; change geometry only if misses/ports justify it. Warm measured JPEG windows make no external requests, so larger capacity is not a demonstrated solution there |
 
 02a/02c and remaining02b still require their explicit correctness audit:
@@ -84,7 +81,9 @@ present or inapplicable. These are not promised performance optimizations.
 -14: native phone/game and cumulative fit/timing qualification. A full CPU
   replacement is an option after the smaller measured changes, not a prerequisite.
 
-Latest cache contract and measurements: [cache-admission-probe.md](cache-admission-probe.md).
+Latest block-transfer contract: [block-transfer-sequencing.md](block-transfer-sequencing.md).
+
+Previous cache contract and measurements: [cache-admission-probe.md](cache-admission-probe.md).
 
 Previous Thumb contract and measured witness: [thumb-prediction-address.md](thumb-prediction-address.md).
 

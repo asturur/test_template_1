@@ -1,3 +1,71 @@
+## 2026-11-16: Block-transfer fusion qualified; original indices230.32/193.72
+
+Patch0070 combines ordinary first memory beat with private-pointer setup, and
+eligible incrementing final base writeback with its last beat. PUSH/POP retain
+ordered memory, no early architectural base update, precise per-beat aborts,
+PC/SPSR handling and condition/interrupt boundaries. No added state/RAM/stage;
+existing extension bits and writeback lanes reused. Actual78MHz/104MHz target.
+
+Full six-kernel indices230.3221/193.7181, +0.1241%. Four-case JPEG+1.7284%,
+8×8mode10:108853→107047. Decode sequencing8405→4252, but data wait38035→39389
+and load dependency13161→13842: overlap shifts, so do not sum isolated budgets.
+51compiled files/includes byte-match both complete benchmark snapshots.
+
+786896sequences/6163552ordered words;18holds/four interrupt boundaries/four
+cancellations;92CPU/44IRQ-FIQ runs;128per-beat CPU aborts plus the maintained
+128case runner;6exercised negative controls; full original payload/JPEG repeats,
+output controls and unprofiled counter equality pass.83pristine hashes and
+37ZAP lexical streams reconstruct through0070. Physical gates pending.
+
+6f3baa2 remains the installed hardware baseline while native C: SIS installation
+completed; persistence and JPEG verification are in progress. Native App. manager sees SPMARK.SIS; memory chooser confirms
+phone3536KB/card15644KB. Native installer reports Installation complete on C:; persistence readback underway. Extras→Apps
+was the Java manager; use Tools→Manager for SIS. Numeric shortcut7 did not
+activate; paced180ms arrow navigation is verified. Saves currently healthy.
+[Contract](block-transfer-sequencing.md),
+[evidence](evidence/block-transfer-sequencing-20261116.json).
+
+## 2026-11-16: Live recovery and SPMark C: installation in progress
+
+User requests autonomous investigate/fix/build/install loop, now prioritizing
+SPMark installation and native JPEG. No functional firmware/RAM patches.
+Installed RBF6f3baa2/run43785027340/seed43/debugOn, SHAa5d2a2b1...0cf789.
+All16SDRAM pin I/O registers pass. Core78MHz setup+0.037ns; HDMI setup-0.440ns
+fails the overall timing gate.38,385ALMs/503M10Ks/42DSPs. Native timing remains
+experimental. No PLL change;104MHz target retained.
+
+Earlier Calendar run had an overflowed save queue, but the latest fresh boot
+is generation0, queue0, autosaveOn/saved, no C/PMM error or CPU fault. Do not
+attribute that old save failure to this healthy session. Calendar uses original
+CompleteWithAppPath (AVKON ordinal293) for agendata.dat beside its app and then
+mutates it; our production MMC is forced read-only. This is a concrete access
+incompatibility, not a captured Leave reason. User says stop Calendar research.
+JPEG was NOT selected in that Calendar run: no native JPEG pass follows.
+
+Original SIS now cold-mounted at games/ngage1/spmark-installer.mmc, SHA6329e3aa...
+627f9, using /tmp/ngage1-spmark-installer.mgl. MiSTer actual FD verifies this
+card and both VHDs opened. Native time/date prompts cleared by two Enter180ms,
+1.5s apart; Phone home verified. No app installed yet. First Menu is redrawing.
+The existing private installer/extracted payloads and FAT tools are maintained
+under runtime/mmc and tools/mmc-card; other chat work there must be preserved.
+
+User explicitly requests timed reboot automation: mister-control now routes to
+its ngage-reboot reference and tools/mister/ngage_boot.py. Initial60s silent
+prompt check,10s safety, exactly two confirms, final verification. Prompt image
+matching/timing history avoid conversation turns and blind unrelated clicks.
+No blanket authorization overrides an explicit no-reboot instruction.
+
+LDM/STM first/final-beat work is now promoted to production patch0070;
+commit/push/build pending. Original experiment: scratch/ldm-stm-20261116/candidate, patch0070 and build/sim snapshots.
+786896sequences/6163552words,92architectural/44IRQ-FIQ/128per-beat abort runs,
+6negative variants, full repeated benchmarks and JPEG output/counter controls
+pass. JPEG108853→107047; original six indices230.3221/193.7181. Sources, tests
+and results must be promoted before scratch cleanup. Do not discard this work.
+PSR audit: flags-only writes already avoid flush; measured original converter
+has zero PSR/CP15 instructions. Full OS/codec overhead remains unmeasured.
+Original converter executes22500Thumb instructions/64pixels, including5152LDR,
+2360STR,905BL,1107POP,586PUSH; no multiply. This is not a whole-JPEG profile.
+
 ## 2026-11-16: Admission-edge cache read saves2973 JPEG data waits
 
 User requested the remaining short-hit improvement, commit/push and build.
