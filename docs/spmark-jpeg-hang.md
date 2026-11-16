@@ -219,3 +219,15 @@ not yet been recaptured on this faster CPU, so distinguish the established
 older input-decode timeout from this newer visual wait. An encoder timeout is
 not excluded solely by the unchanged screen. Next metadata build and/or the
 already tested observation-only timeline will distinguish the remaining cost.
+
+## Native JPEG passes on b3131b5 — user hardware observation
+
+2026-11-16: the user reports JPEG Test passes on loaded b3131b5, followed by a
+Contacts pass. Disk Access appears to progress; completion is not confirmed.
+The user reports the installed SPMark edition cannot show results and will
+replace it with the full version themselves. No official score or exact current
+decode/callback elapsed time has been captured. This supersedes the earlier
+native JPEG-wait stopping point, not the documented older timeout mechanism.
+No observation/deadline patch was applied to this run. The b3131b5 artifact
+still fails78MHz setup by1.722ns; functional pass is not timing signoff. Its
+Calendar NOR correction is later80373af and not included in this passing build.

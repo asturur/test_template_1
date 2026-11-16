@@ -1,0 +1,169 @@
+{
+  "source_build": {
+    "commit": "b3131b5aae2ba9e16fdb6b32d8bdde4f7bd9d585",
+    "run": 43821270521,
+    "seed": 43,
+    "csv_sha256": "f3e115abbfe7f99802484538a6ca8c35880982cff2564bd4f6f0bc72944e8c3c",
+    "user_csv_matches_downloaded_artifact": true
+  },
+  "paths_exported": 1000,
+  "failing_exported_paths": 31,
+  "reset_origin_failing_paths": 28,
+  "groups": [
+    {
+      "from": "reset_drain",
+      "to": "probe_owner_way",
+      "count": 15,
+      "worst_slack_ns": -1.722
+    },
+    {
+      "from": "reset_drain",
+      "to": "probe_owner_tag",
+      "count": 2,
+      "worst_slack_ns": -0.732
+    },
+    {
+      "from": "reset_drain",
+      "to": "Equal0",
+      "count": 2,
+      "worst_slack_ns": -0.587
+    },
+    {
+      "from": "o_dav_ff",
+      "to": "o_alu_source_value_ff",
+      "count": 1,
+      "worst_slack_ns": -0.458
+    },
+    {
+      "from": "reset_drain",
+      "to": "admitted_probe_owner_OTERM4976_OTERM10959",
+      "count": 1,
+      "worst_slack_ns": -0.441
+    },
+    {
+      "from": "reset_drain",
+      "to": "ram_block1a0",
+      "count": 3,
+      "worst_slack_ns": -0.359
+    },
+    {
+      "from": "read_slot",
+      "to": "o_alu_source_value_ff",
+      "count": 1,
+      "worst_slack_ns": -0.294
+    },
+    {
+      "from": "reset_drain",
+      "to": "admitted_probe_owner_OTERM4976_OTERM10957",
+      "count": 1,
+      "worst_slack_ns": -0.287
+    },
+    {
+      "from": "o_dav_ff",
+      "to": "o_shift_source_value_ff",
+      "count": 1,
+      "worst_slack_ns": -0.172
+    },
+    {
+      "from": "reset_drain",
+      "to": "probe_owner_valid_OTERM155_OTERM5462",
+      "count": 1,
+      "worst_slack_ns": -0.117
+    },
+    {
+      "from": "reset_drain",
+      "to": "indexed_way",
+      "count": 1,
+      "worst_slack_ns": -0.082
+    },
+    {
+      "from": "reset_drain",
+      "to": "hit_vector",
+      "count": 1,
+      "worst_slack_ns": -0.028
+    },
+    {
+      "from": "reset_drain",
+      "to": "admitted_probe_owner_OTERM4976_OTERM10961",
+      "count": 1,
+      "worst_slack_ns": -0.012
+    }
+  ],
+  "worst": {
+    "slack_ns": -1.722,
+    "data_delay_ns": 13.812,
+    "cell_delay_ns": 5.071,
+    "routing_delay_ns": 8.74,
+    "clock_skew_ns": -0.43,
+    "logic_levels": 12
+  },
+  "implementation": {
+    "new_pipeline_stages": 0,
+    "new_registers": 0,
+    "new_ram": 0,
+    "existing_payload_bits_without_reset_clear": 66,
+    "lowest_slot_priority_preserved": true
+  },
+  "tests": {
+    "probe_requests": 402,
+    "fast_reads": 164,
+    "parallel_clocks": 8,
+    "blocked_collisions_default": 122,
+    "randomized_reset_seeds": [
+      13,
+      777,
+      9311
+    ],
+    "blocked_collisions_randomized": 121,
+    "certificate_requests": 146,
+    "certificate_short_revisits": 8,
+    "resident_requests": 94,
+    "admitted_short_reads": 256,
+    "absence_requests": 44,
+    "selector_exhaustive_cases": 16384,
+    "six_payload_groups": 12,
+    "jpeg_groups": 8,
+    "all_payload_raw_counters_equal_pre_fix": true,
+    "all_jpeg_raw_counters_equal_pre_fix": true,
+    "jpeg_unprofiled_counter_matches": 8,
+    "before_timing_jpeg_groups_repeated": 8,
+    "negative_pixel_outputs_rejected": 4,
+    "high_way_bit_coverage_assertion": "PASS"
+  },
+  "indices_original100": {
+    "six_zero_wait": 233.2707,
+    "six_delayed": 196.1981,
+    "jpeg": 121.2488
+  },
+  "limits": [
+    "No Quartus build of this timing change has been launched; actual routed improvement/area pending",
+    "Other failing reset/operand paths remain in old export",
+    "Four-state full-cache Icarus attempt could not elaborate existing forward declarations/enums; not counted as PASS",
+    "Randomized startup checks are two-state Verilator controls, not full X-propagation proof"
+  ],
+  "benchmark_source": [
+    {
+      "run": "build/sim/spmark-payload/probe-timing-20261116",
+      "compiled_sha256": "494494f8b0feaedcd1ea7e1559679f0a1ab4656753eac5978e250fe01b40998f",
+      "working_sha256": "5adec21a413466317259b02b3a482c2a525684bedd0d0397cc42c773ba7246df",
+      "difference_only_explanatory_comments": true,
+      "noncomment_tokens_match": true
+    },
+    {
+      "run": "build/sim/jpeg-payload/probe-timing-20261116",
+      "compiled_sha256": "494494f8b0feaedcd1ea7e1559679f0a1ab4656753eac5978e250fe01b40998f",
+      "working_sha256": "5adec21a413466317259b02b3a482c2a525684bedd0d0397cc42c773ba7246df",
+      "difference_only_explanatory_comments": true,
+      "noncomment_tokens_match": true
+    }
+  ],
+  "native_user_report": {
+    "loaded_commit": "b3131b5",
+    "jpeg": "PASS",
+    "contacts": "PASS",
+    "disk_access": "progressing, completion unconfirmed",
+    "official_score": null,
+    "edition": "User reports results unavailable and will install full version independently",
+    "routed_timing_signoff": false
+  }
+}

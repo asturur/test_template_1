@@ -1,3 +1,37 @@
+## 2026-11-16: User b3131b5 JPEG/Contacts PASS; phone installation handoff
+
+User confirms JPEG Test PASSES on b3131b5 and Contacts PASSES. Disk Access
+appears to progress; completion and official scores are unconfirmed. User says
+the installed SPMark edition cannot show results and is independently replacing
+it with the full version. Stop phone input/reload/deployment during this handoff.
+No deadline, result, startup or observation patch was applied to this passing run.
+This supersedes the prior JPEG-wait stopping point. Existing synthetic payload
+hashes/indices remain tied to their exact original modules, not a new edition.
+
+User-provided timing CSV exactly matches b3131b5/run43821270521:31failing paths
+in1,000endpoints,27fromreset_drain. Worst probe_owner_way-1.722ns/13.812ns data,
+12logic levels,8.740ns routing. Local rewrite preserves8records, lowest-slot
+priority and valid/collision/permission gates: parallel payload selection plus
+separate resettable validity and66unreset payload bits. No new FF/RAM/stage.
+402probe/146certificate/94resident/256admission/44absence requests and16,384
+selector combinations pass. Three randomized initialization seeds pass; a
+full-cache Icarus4-state attempt cannot elaborate existing unrelated code and
+is NOT qualification. Full12six/8JPEG groups repeat exactly; every raw counter
+matches b313. JPEG8unprofiled matches and8baseline groups also pass. Original
+indices unchanged233.2707/196.1981;JPEG121.2488. New actual routed slack remains
+unmeasured. No build of this rewrite started. Prior80373af Calendar-fix build
+43827186656 was already running before the timing request; no extra build sent.
+See cache-probe-timing.md and evidence. PLL78MHz,104MHz objective retained.
+
+## 2026-11-16: Calendar NOR fix80373af pushed; build43827186656 running
+
+Exact80373af6ad50e5ea7a9947e6e9008503d7b08b94 published on the existing
+integration branch. Build43827186656/seed43/debugOn created07:55:08UTC;
+40minute recovery due08:35:08UTC. Prior8record build was downloaded and not
+deployed after its-1.722ns setup result. Current Calendar fault state preserved.
+D3 snapshot-competition regression also passes unchanged1049519cycles/4084
+checked snapshots/32writes. Other chat's MMC tooling/status section unstaged.
+
 ## 2026-11-16: Calendar benchmark hits reproduced C: width fault; fix qualified in simulation
 
 Native00fbbea/C-installed SPMark Calendar stops,117/117PC samples503a7368 in

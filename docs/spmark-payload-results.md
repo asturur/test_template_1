@@ -1,7 +1,8 @@
-> **Native qualification update:** the block-transfer fusion0070 row is a
-> quarantined experiment after a repeatable original-ROM boot abort. Current
-> production CPU is restored to6f3baa2; all earlier rows remain applicable.
-> See [native gate failure](block-transfer-sequencing.md).
+> **Native qualification update:** original0070 alone is rejected;0070+0071
+> corrects the privilege fault and00fbbea boots stock firmware after delayed Run.
+> User reports b3131b5 passes native JPEG and Contacts; Disk Access is progressing.
+> Official scores are unavailable, and b3131b5 misses routed setup by1.722ns.
+> See [timing recovery](cache-probe-timing.md).
 
 # SPMark payload performance results
 
@@ -36,6 +37,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | block-transfer-fusion | 54,394 / 54,394 | 5,337 / 5,337 | 26,739 / 26,739 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.3221 / 193.7181 | [JSON](evidence/block-transfer-sequencing-20261116.json) |
 | block-transfer corrected0071 — isolated candidate | 54,394 / 54,394 | 5,337 / 5,337 | 26,643 / 26,643 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.4602 / 193.8342 | [JSON](evidence/block-transfer-privilege-performance-20261116.json) |
 | cache-certificate-eight — FPGA pending | 52,275 / 52,275 | 5,328 / 5,328 | 25,842 / 25,842 | 71,263 / 201,306 | 2,562 / 2,562 | 2,629 / 2,629 | 233.2707 / 196.1981 | [JSON](evidence/cache-certificate-capacity-20261116.json) |
+| probe-selector timing — routed result pending | 52,275 / 52,275 | 5,328 / 5,328 | 25,842 / 25,842 | 71,263 / 201,306 | 2,562 / 2,562 | 2,629 / 2,629 | 233.2707 / 196.1981 | [JSON](evidence/cache-probe-timing-20261116.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.

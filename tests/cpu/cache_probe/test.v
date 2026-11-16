@@ -114,7 +114,7 @@ module test;
       .line_last(1'b0),
       .line_error(1'b0)
   );
-  reg collision_seen;
+  reg collision_seen, high_way_seen = 0;
   always @(posedge clk)
     if (!reset) begin
       collision_seen=dut.cache.data_commit_valid &&
@@ -333,6 +333,26 @@ module test;
     reset = 0;
     #1;
     if (dut.cache.probe_result_valid) $fatal(1, "reset retained probe");
+    // Old RAM/payload contents must not become a new response after reset.
+    probe = 0;
+    mem[32'h3000>>2] = 32'h10293847;
+    transaction(0, 32'h3000, 32'h3000, 0, 32'h10293847, 15, 0);
+    prepare(32'h3000);
+    transaction(0, 32'h3000, 32'h3000, 0, 32'h10293847, 15, 1);
+    probe = 0;
+    // Populate enough real lines to exercise the high physical-way bits,
+    // then learn/revisit eight distinct records with independent RAM values.
+    for (j = 0; j < 48; j = j + 1)
+    transaction(0, 32'h6000 + 256 * j, 32'h6000 + 256 * j, 0, mem[(32'h6000+256*j)>>2], 15, 0);
+    for (j = 32; j < 40; j = j + 1)
+    transaction(0, 32'h6000 + 256 * j, 32'h6000 + 256 * j, 0, mem[(32'h6000+256*j)>>2], 15, 0);
+    for (j = 32; j < 40; j = j + 1) begin
+      prepare(32'h6000 + 256 * j + 4);
+      if (dut.cache.probe_owner_way[5]) high_way_seen = 1;
+      transaction(0, 32'h6000 + 256 * j + 4, 32'h6000 + 256 * j + 4, 0, mem[(32'h6000+256*j+4)>>2],
+                  15, 1);
+    end
+    if (!high_way_seen) $fatal(1, "high physical-way selector was not exercised");
     $display(
         "PASS: %0d requests; %0d fast reads, %0d concurrent A/B clocks, %0d blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset",
         checks, fast_reads, parallel, collisions);

@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cache-probe-timing.md](cache-probe-timing.md) | b313 worst-path analysis, parallel probe selection and reset payload separation with unchanged benchmark cycles |
 | [calendar-benchmark-flash.md](calendar-benchmark-flash.md) | Native C: block-read fault during deferred erase, bounded NOR width correction and CPU/save qualification |
 | [cache-certificate-capacity.md](cache-certificate-capacity.md) | Eight checked-line metadata records; JPEG +7.06%, precise ownership,212 bits and physical gate pending |
 | [block-transfer-sequencing.md](block-transfer-sequencing.md) | Quarantined block-transfer fusion; native privileged POP fault isolated and corrected candidate tested |

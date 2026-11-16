@@ -199,18 +199,26 @@ module arm920_cache_access #(
   reg [5:0] probe_owner_way, probe_result_way;
   wire data_commit_valid;
   wire [8:0] data_commit_index;
-  reg probe_match;
-  reg [RESULT_INDEX_W-1:0] probe_slot;
+  wire [RESULT_ENTRIES-1:0] probe_matches, probe_select;
+  wire probe_match = |probe_matches;
+  genvar probe_entry;
+  generate for (probe_entry=0; probe_entry<RESULT_ENTRIES; probe_entry=probe_entry+1) begin: probe_directory
+    assign probe_matches[probe_entry] = line_result_valid[probe_entry] &&
+        line_result_present[probe_entry] &&
+        line_result_tag[probe_entry] == data_probe_address[31:5];
+    // Keep the original lowest-slot priority even if duplicate tags appear.
+    // Parallel prefix reductions avoid an encoded index followed by a second
+    // eight-way selector on the tag-comparison-to-owner path.
+    if (probe_entry == 0) assign probe_select[probe_entry] = probe_matches[probe_entry];
+    else assign probe_select[probe_entry] = probe_matches[probe_entry] &&
+                                           !(|probe_matches[probe_entry-1:0]);
+  end endgenerate
+  reg [5:0] probe_way;
   integer probe_index;
   always @* begin
-    probe_match = 0;
-    probe_slot = 0;
-    for (probe_index=RESULT_ENTRIES-1; probe_index>=0; probe_index=probe_index-1)
-      if (line_result_valid[probe_index] && line_result_present[probe_index] &&
-          line_result_tag[probe_index] == data_probe_address[31:5]) begin
-        probe_match = 1;
-        probe_slot = probe_index[RESULT_INDEX_W-1:0];
-      end
+    probe_way = 0;
+    for (probe_index=0; probe_index<RESULT_ENTRIES; probe_index=probe_index+1)
+      probe_way = probe_way | ({6{probe_select[probe_index]}} & line_result_way[probe_index]);
   end
   wire probe_revoke = line_result_revoke || !fast_lookup_enable;
   wire probe_port_free = state == IDLE || state == STORE_HIT || state == STORE_COMMIT ||
@@ -227,26 +235,30 @@ module arm920_cache_access #(
     if (reset) begin
       probe_owner_valid <= 0;
       probe_result_valid <= 0;
-      probe_owner_tag <= 0;
-      probe_result_tag <= 0;
-      probe_owner_way <= 0;
-      probe_result_way <= 0;
     end else if (probe_revoke) begin
       probe_owner_valid <= 0;
       probe_result_valid <= 0;
     end else begin
       if (DATA_PROBE && !READ_ONLY && data_probe_valid && probe_match) begin
         probe_owner_valid <= 1;
-        probe_owner_tag <= data_probe_address[31:5];
-        probe_owner_way <= line_result_way[probe_slot];
       end
       // Every output token names the address actually read on this edge.
       // Losing the read port or colliding with A kills it before use.
       probe_result_valid <= probe_read;
-      if (probe_read) begin
-        probe_result_tag <= probe_owner_tag;
-        probe_result_way <= probe_owner_way;
-      end
+    end
+  end
+  // Payload is unobservable without its reset/revocation-qualified valid bit.
+  // Remove reset clears from these 66 data flops and keep the broad revoke
+  // cone out of owner capture. Result data still transfers with its owned read.
+  // Capture owner data on the same edge as before; no extra stage or token.
+  always @(posedge clk) begin
+    if (DATA_PROBE && !READ_ONLY && data_probe_valid && probe_match) begin
+      probe_owner_tag <= data_probe_address[31:5];
+      probe_owner_way <= probe_way;
+    end
+    if (probe_read) begin
+      probe_result_tag <= probe_owner_tag;
+      probe_result_way <= probe_owner_way;
     end
   end
   reg learn_match, learn_empty;

@@ -1,7 +1,8 @@
-> **Native qualification update:** the block-transfer fusion0070 row is a
-> quarantined experiment after a repeatable original-ROM boot abort. Current
-> production CPU is restored to6f3baa2; all earlier rows remain applicable.
-> See [native gate failure](block-transfer-sequencing.md).
+> **Native qualification update:** original0070 alone is rejected;0070+0071
+> corrects the privilege fault and00fbbea boots stock firmware after delayed Run.
+> User reports b3131b5 passes native JPEG and Contacts; Disk Access is progressing.
+> Official scores are unavailable, and b3131b5 misses routed setup by1.722ns.
+> See [timing recovery](cache-probe-timing.md).
 
 # JPEG bitmap hotspot performance baseline
 
@@ -21,6 +22,7 @@ repeats per profile. See [profile and qualification](spmark-jpeg-profile.md).
 | block-transfer-fusion | 107047 | 107063 | 105742 | 211231 |111.0129 |
 | block-transfer corrected0071 — isolated candidate | 104900 | 104916 | 103771 | 206956 |113.2493 |
 | cache-certificate-eight — FPGA pending | 98072 | 98088 | 96623 | 193536 |121.2488 |
+| probe-selector timing — routed result pending | 98072 | 98088 | 96623 | 193536 |121.2488 |
 | pre-store reference — d4f2a8 | 122793 | 122808 | 121848 | 242265 |96.6720 |
 
 Mode10 is the original native12-bit RGB converter used by this path; mode8
