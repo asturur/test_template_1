@@ -1,3 +1,40 @@
+## 2026-11-16: Date-prompt check clarified; second reboot cancelled
+
+The successful b707ebd Phone-home boot used two explicit Enter confirmations
+from the helper. This does NOT demonstrate that firmware clears the date/time
+prompts by itself; it still requested them. User briefly requested another
+reboot, then cancelled when clarifying that prompts must be observed without
+helper input. No second reload or key input was sent, only a read-only save
+preflight. Leave the current phone running; do not repeat the confirmation
+helper to claim this defect fixed. RTC/date persistence remains unresolved.
+
+## 2026-11-16: POP/BX b707ebd deployed; native Phone home reached
+
+Run 43835548057 / seed 43 / DDR debugger On is installed and readback-hash
+verified: fbc5ba96eaba51502cc73502ebf4bef8e1138e79e355ac15dc6b92c1a99ea46d.
+Fits at 38,781 ALMs (93%), 44,372 registers, 42 DSPs. All 16 SDRAM DQ
+input/output/OE registers packed. Timing FAILS: setup -2.087 ns, hold +0.192 ns;
+worst data-completion o_next → cache probe_owner_way, 15 levels/14.123 ns.
+The combined source delta saves 567 ALMs/549 registers relative to b313;
+this is not isolated attribution. Old reset-drain worst origin is displaced,
+but remaining admission path is worse: timing is NOT fixed. See physical
+follow-up in cache-probe-timing.md and evidence/pop-bx-build-20261116.json.
+
+Pre-unload save queue was zero/quiescent/error-free. Menu unload closed image
+handles; replacing RBF left C:/PMM bytes unchanged. No card backups created.
+Original current boot0 SHA 474160ae575d2d068014d48c24fe3e940862174a2e0296c1b8908a5c3d2dd92d;
+boot1 SHA 801d48b810f74dd926c9665b9426202ac95d0efb1c09c58bbbbc626a0c640bc3.
+Same /media/fat/games/NGage/spmark-full.mmc cold mounted before manual Run.
+Saved CFG remains Hold/save On; actual CPU is running. Time prompt matched,
+helper sent exactly two confirms; final image is normal Phone home. No firmware
+or RAM patches, fresh C: or old installation restore. Native JPEG/official
+benchmark score and Calendar regression are not measured on this build.
+
+DSP full-product candidate remains isolated, qualified locally and excluded from
+the deployed RBF; physical savings unknown. MMC write interface remains unmodified;
+bounded work and tests recorded in mmc-writes.md. Actual PLL 78 MHz, objective
+104 MHz. Other chat's source changes and simulations untouched.
+
 ## 2026-11-16: DSP mapping candidate qualified locally; physical gates open
 
 Private full-product candidate passes 2,048 independent arithmetic vectors,
