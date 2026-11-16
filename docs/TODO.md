@@ -412,3 +412,8 @@ See [ranked candidates](donor-resource-comparison.md#next-optimization-prioritie
   system/interrupt/timer behavior. Current synthetic run stops at
   0x0c1201c8=0x08000000; timer 0x0c120a10=0x632ea is accepted as a latch
   only and does not create a new IRQ.
+
+- Automatic CPU release:00fbbea cold autoRun/saveOn blacks at0x60c with first
+  fault0x23d8/0xfffffffc; same artifact/disks/saveOn delayed manualRun boots toUI.
+  Trace readiness/reset release before assuming block-transfer semantics or
+  adding a blind time delay. See status2026-11-16 and black-boot evidence.

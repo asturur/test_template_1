@@ -114,7 +114,8 @@ module tb;
       cmd(a, 16'h30);
     end
   endtask
-  integer i;
+  integer i, mask, lane;
+  reg [31:0] expected_status;
   initial begin
     for (i = 0; i < 1048576; i = i + 1) mem[i] = 32'hffffffff;
     tick();
@@ -140,18 +141,62 @@ module tb;
     if (result !== 1) $fatal(1, "manufacturer");
     transaction(0, 2, 0, 12, 0);
     if (result !== 32'h257e0000) $fatal(1, "device id");
+    transaction(0, 0, 0, 15, 1);
     cmd(0, 16'hf0);
     transaction(1, 22'h000120, 16'h1234, 1, 1);
     mem[22'h010000>>2] = 32'h12345678;
     mem[22'h01fffc>>2] = 32'habcdef01;
     mem[22'h020000>>2] = 32'h76543210;
     erase_start(22'h010000);
+    // An erase command does not turn ordinary array reads elsewhere into
+    // halfword-only commands. Exercise the native memcpy word/byte widths.
+    transaction(0, 22'h020000, 0, 15, 0);
+    if (result !== 32'h76543210) $fatal(1, "word read beside pending erase");
+    transaction(0, 22'h020000, 0, 1, 0);
+    if (result[7:0] !== 8'h10) $fatal(1, "byte read beside pending erase");
+    if (!dut.erase_pending || dut.erase_polled) $fatal(1, "adjacent array read advanced erase");
     transaction(0, 22'h010000, 0, 3, 0);
     if (result !== 8) $fatal(1, "erase busy");
+    transaction(0, 22'h020000, 0, 15, 0);
+    if (result !== 32'h76543210 || !dut.erase_pending)
+      $fatal(1, "polled erase changed adjacent word");
     transaction(0, 22'h010000, 0, 3, 0);
     if (result !== 32'h0000ffff) $fatal(1, "erase completed read");
     if(mem[22'h010000>>2]!==32'hffffffff || mem[22'h01fffc>>2]!==32'hffffffff || mem[22'h020000>>2]!==32'h76543210)
       $fatal(1, "64k erase range");
+    // Paired x16 status cells must answer a 32-bit bus read, not raise a
+    // CPU abort. This model retains one busy transaction before completion.
+    mem[22'h010000>>2] = 0;
+    erase_start(22'h010000);
+    transaction(0, 22'h010000, 0, 15, 0);
+    if (result !== 32'h00080008) $fatal(1, "paired erase busy status");
+    transaction(0, 22'h010000, 0, 15, 0);
+    if (result !== 32'hffffffff || dut.erase_pending) $fatal(1, "paired erase completion");
+    if (mem[22'h020000>>2] !== 32'h76543210) $fatal(1, "wide read erased adjacent sector");
+    // Every nonempty byte selection, including upper-cell byte lanes. Also
+    // distinguish adjacent top sectors and the same sector in the other bank.
+    mem[22'h1f4000>>2] = 32'h91827364;
+    mem[22'h3f8000>>2] = 32'h5a6b7c8d;
+    for (mask = 1; mask < 16; mask = mask + 1) begin
+      mem[22'h1f8000>>2] = 0;
+      erase_start(22'h1f8000);
+      transaction(0, 22'h1f4000, 0, mask, 0);
+      if (result !== 32'h91827364 || dut.erase_polled)
+        $fatal(1, "adjacent top sector read mask=%h", mask);
+      transaction(0, 22'h3f8000, 0, 15, 0);
+      if (result !== 32'h5a6b7c8d || dut.erase_polled) $fatal(1, "other bank read changed erase");
+      transaction(0, 22'h1f8000, 0, mask, 0);
+      expected_status = 0;
+      for (lane = 0; lane < 4; lane = lane + 1)
+      if (mask & (1 << lane)) expected_status[lane*8+:8] = lane[0] ? 0 : 8;
+      if (result !== expected_status || !dut.erase_pending)
+        $fatal(1, "busy byte selection mask=%h got=%h expected=%h", mask, result, expected_status);
+      transaction(0, 22'h1f8000, 0, 15, 0);
+      if (result !== 32'hffffffff || dut.erase_pending)
+        $fatal(1, "top sector completion mask=%h", mask);
+      if (mem[22'h1f4000>>2] !== 32'h91827364 || mem[22'h3f8000>>2] !== 32'h5a6b7c8d)
+        $fatal(1, "wide read crossed erase geometry");
+    end
     mem[22'h1f8000>>2] = 0;
     mem[22'h1fbffc>>2] = 0;
     mem[22'h1fc000>>2] = 32'h12345678;

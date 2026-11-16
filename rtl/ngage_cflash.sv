@@ -49,6 +49,12 @@ module ngage_cflash #(
         {half_off[21], 5'h1f, half_off[15:14], 14'b0} : {half_off[21:16], 16'b0};
     wire [21:0] erase_sector_last = erase_sector_base +
         ((half_off[20:16] == 5'h1f) ? 22'h003ffc : 22'h00fffc);
+    // Erase status belongs only to the selected sector. Ordinary array reads
+    // elsewhere retain all CPU byte widths while that erase is deferred.
+    // Match the fixed 64 KiB / top-16 KiB geometry with short equality tests,
+    // rather than adding two full-width comparators to read admission.
+    wire erase_read = erase_pending && req_offset[21:16] == erase_base[21:16] &&
+                      (erase_base[20:16] != 5'h1f || req_offset[15:14] == erase_base[15:14]);
     assign idle = (state == IDLE) && !erase_pending;
     assign
         pending = (state != IDLE) || program_pending || erase_pending || erase_armed || unlock != 0;
@@ -110,7 +116,7 @@ module ngage_cflash #(
                 IDLE:
                 if (req_valid && req_ready) begin
                     rsp_data <= 0;
-                    if (!req_write && !autoselect && unlock == 0 && !erase_pending) begin
+                    if (!req_write && !autoselect && unlock == 0 && !erase_read) begin
                         op         <= OP_READ;
                         array_read <= 1;
                         read_mask  <= req_be;
@@ -121,7 +127,7 @@ module ngage_cflash #(
                     end else if (req_write && req_be == 4'hf && !program_pending && unlock == 0 &&
                                  !autoselect && !erase_armed && !erase_pending) begin
                         rsp_valid <= 1;  // ordinary 32-bit write in read mode is ignored
-                    end else if (!half_ok) begin
+                    end else if (!half_ok && (req_write || autoselect || unlock != 0)) begin
                         rsp_valid <= 1;
                         rsp_error <= 1;
                     end else if (req_write) begin
@@ -191,12 +197,13 @@ module ngage_cflash #(
                             default: rsp_data <= 0;
                         endcase
                         rsp_valid <= 1;
-                    end else if (erase_pending && half_off >= erase_base &&
-                                 half_off <= erase_end + 3) begin
+                    end else if (erase_read) begin
                         if (!erase_polled) begin
                             erase_polled <= 1;
                             rsp_valid    <= 1;
-                            rsp_data     <= req_be == 12 ? 32'h00080000 : 32'h00000008;
+                            // Transaction-level paired x16 status, retaining
+                            // the existing one-busy-read progress shortcut.
+                            rsp_data     <= 32'h00080008 & mask_bytes(req_be);
                         end else begin
                             erase_cursor <= erase_base;
                             mem_addr     <= BASE + {10'b0, erase_base};
@@ -204,7 +211,7 @@ module ngage_cflash #(
                             mem_be       <= 15;
                             mem_write    <= 0;
                             op           <= OP_ERASE_READ;
-                            erase_result <= req_be == 12 ? 32'hffff0000 : 32'h0000ffff;
+                            erase_result <= mask_bytes(req_be);
                             state        <= ISSUE;
                         end
                     end else begin

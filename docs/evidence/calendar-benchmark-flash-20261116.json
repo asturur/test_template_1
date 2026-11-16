@@ -1,0 +1,58 @@
+{
+  "artifact_commit": "00fbbea",
+  "seed": 43,
+  "clock_hz": 78000000,
+  "screens": "build/sim/screens/calendar-hang-20261116",
+  "capture": "build/diagnostics/calendar-hang-20261116/runtime.jsonl",
+  "capture_sha256": "11e4ad5ff734e610af06cf2e41ecf41e9236beedbf119f732e9eddb162db44f3",
+  "snapshots": 117,
+  "first": {
+    "pc": "0x503a7368",
+    "fault_pc": "0x503a7340",
+    "fault_address": "0x2750fc0",
+    "reason": 3,
+    "acks": 123085636,
+    "errors": 418834321
+  },
+  "last": {
+    "pc": "0x503a7368",
+    "acks": 123085636,
+    "errors": 562646821,
+    "save_queue": {
+      "count": 254,
+      "initialized": true,
+      "fault": false,
+      "flush_error": false,
+      "flushing": false,
+      "in_flight": false,
+      "mark_pending": false,
+      "head_ready": true,
+      "overflow": false,
+      "invalid_sector": false,
+      "raw_hex": "0x5101fd04"
+    }
+  },
+  "resident_c_sha256": "a6ad30d39bf7d00cfae4366620cf54e62f23334ff8031a313332e24ca14d44e3",
+  "old_width_controls": {
+    "adjacent_sector": "FATAL offset020000 rsp1 err1",
+    "selected_sector": "FATAL offset010000 rsp1 err1"
+  },
+  "qualifications": {
+    "nor_lane_geometry": "PASS",
+    "native_ldmdb_cycles": 3087314,
+    "native_ldmdb_aux": 132272,
+    "native_ldmdb_writes": 32,
+    "unchanged_default_cycles": 3086012,
+    "unchanged_default_aux": 132214,
+    "unchanged_default_writes": 32,
+    "warm_cold_mutation_reset": "PASS",
+    "production_bulk_raw_save": "PASS"
+  },
+  "limits": [
+    "Snapshot does not expose selected erase address",
+    "Fetched PC is not retirement state",
+    "Current native failure reproduced at width/state boundary, corrected board Calendar/JPEG not tested",
+    "NOR status is transaction-level, no physical erase-time verification",
+    "Automatic CPU start failure remains separate"
+  ]
+}

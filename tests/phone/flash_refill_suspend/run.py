@@ -17,15 +17,19 @@ def main():
     modes.add_argument('--negative-control', action='store_true')
     modes.add_argument('--reset-overlap', action='store_true')
     modes.add_argument('--bulk-competition', action='store_true')
+    modes.add_argument('--wide-reads', action='store_true',
+                       help='Native memcpy LDMDB and byte/word reads during erase')
     args=parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     program=ROOT/'sim/programs/flash_refill_suspend.S'
-    call(['arm-none-eabi-gcc','-c','-mcpu=arm920t','-marm',str(program),'-o',str(OUT/'program.o')])
+    call(['arm-none-eabi-gcc','-c','-mcpu=arm920t','-marm',
+          *(['-DWIDE_ERASE_READS'] if args.wide_reads else []),
+          str(program),'-o',str(OUT/'program.o')])
     call(['arm-none-eabi-ld','-T','sim/programs/link.ld',str(OUT/'program.o'),'-o',str(OUT/'program.elf')])
     call(['arm-none-eabi-objcopy','-O','binary',str(OUT/'program.elf'),str(OUT/'program.bin')])
     binary=(OUT/'program.bin').read_bytes();binary+=bytes(-len(binary)%4)
     (OUT/'program.hex').write_text(''.join(f'{int.from_bytes(binary[i:i+4],"little"):08x}\n' for i in range(0,len(binary),4)))
-    mode='negative' if args.negative_control else 'reset' if args.reset_overlap else 'bulk' if args.bulk_competition else 'production'
+    mode='negative' if args.negative_control else 'reset' if args.reset_overlap else 'bulk' if args.bulk_competition else 'wide' if args.wide_reads else 'production'
     sources=re.findall(r'-name (?:SYSTEMVERILOG_FILE|VERILOG_FILE) (rtl/\S+)',(ROOT/'files.qip').read_text())
     if args.negative_control:
         text=(ROOT/'rtl/ngage_mister.v').read_text()

@@ -68,13 +68,42 @@ again:
  strh ip,[r2,r3]
  b erased
 poll_erase:
+#ifdef WIDE_ERASE_READS
+ // Ordinary full-word/byte reads outside the selected erase sector must not
+ // be decoded as command cycles. The fixture leaves this backing word erased.
+ ldr r0,[r8]
+ cmn r0,#1
+ bne fail
+ ldrb r0,[r8,#1]
+ cmp r0,#255
+ bne fail
+#endif
  ldrh r0,[r2,r3]
  cmp r0,#8
  bne fail
+#ifdef WIDE_ERASE_READS
+ // Native EUser memcpy shape: eight descending full-word reads. Preserve
+ // caller state and require every returned word to be erased array data.
+ push {r4-r10,lr}
+ add r1,r2,r3
+ add r1,r1,#32
+ ldmdb r1!,{r3-r10}
+ and r3,r3,r4
+ and r3,r3,r5
+ and r3,r3,r6
+ and r3,r3,r7
+ and r3,r3,r8
+ and r3,r3,r9
+ and r3,r3,r10
+ cmn r3,#1
+ pop {r4-r10,lr}
+ bne fail
+#else
  ldrh r0,[r2,r3]
  ldr r12,=0xffff
  cmp r0,r12
  bne fail
+#endif
 erased:
  ldr r1,[r4,#8]
  cmp r1,#0x20

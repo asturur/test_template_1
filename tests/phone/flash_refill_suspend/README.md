@@ -28,3 +28,9 @@ The local fix changes refill admission from C: reset-drained idle to transport
 ready. Reset still uses the stronger idle predicate. Existing reset program/
 erase/drain qualification remains required. Hardware installation/JPEG results
 and fitted78MHz/104MHz timing remain separate gates.
+
+`--wide-reads` additionally exercises ordinary byte/word array reads beside a
+pending erase and the original EUser eight-register `LDMDB` shape after the
+first busy poll. Every returned word must be erased data; the regular B0 cases
+remain in the same run. This reproduces the bus-width boundary seen when native
+SPMark Calendar stops, without changing firmware or deadlines.

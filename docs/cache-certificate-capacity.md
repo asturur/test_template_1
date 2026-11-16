@@ -71,3 +71,13 @@ Production adoption is simulation-qualified; native JPEG and fit/timing remain
 pending.00fbbea boots stock firmware cardless and saves C:, but its JPEG-only
 native test still waits. No deadline, result or firmware substitution was made.
 [Machine evidence](evidence/cache-certificate-capacity-20261116.json).
+
+## First physical build: not timing-qualified
+
+b3131b5/run43821270521/seed43/debugOn fits39,348ALMs(94%),44,921registers,
+503M10Ks and42DSPs. All16SDRAM DQ input/output/OE register packing checks pass.
+Core setup is-1.722ns; HDMI setup+0.120ns, worst hold+0.242ns. The worst
+1,000-path export includes32reset_drain→cache paths, ending at probe_owner_way,
+with up to13logic levels. This artifact has NOT been deployed. Eight records
+remain simulation-qualified only: physical timing/fanout needs attention, and
+the performance index is not a native hardware claim. No PLL change.

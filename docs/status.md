@@ -1,3 +1,79 @@
+## 2026-11-16: Calendar benchmark hits reproduced C: width fault; fix qualified in simulation
+
+Native00fbbea/C-installed SPMark Calendar stops,117/117PC samples503a7368 in
+EUser memory-copy; first full-word NOR error at02750fc0 from503a7340 LDMDB.
+ACKs frozen, errors grow, queue254; deferred/polled erase, no queue/save error.
+Read-only C: snapshot a6ad30d3…d44e3 captured locally with two equal reads.
+No reboot, save command, functional ROM/RAM patch or card replacement issued.
+
+Controller incorrectly rejected all non-halfword reads during ANY pending erase.
+Both adjacent-sector and selected-sector word accesses independently reproduce
+on old RTL. Fix retains ordinary array read widths outside selected sector and
+extends existing busy/completed x16 status to CPU byte lanes inside it. Commands
+stay halfword-only. No new state/RAM/stage;6/2bit geometry equality for104MHz.
+Unit all15masks/64K/16K/other-bank/invalid-command controls PASS. RealCPU native
+LDMDB/byte-word test3087314cycles/132272aux/32writes; default unchanged3086012/
+132214/32. Warm/cold/accepted program-erase reset and D3 raw-save tests PASS.
+See calendar-benchmark-flash.md. Board Calendar/JPEG gate remains pending build.
+Current board still original00fbbea frozen atCalendar, CPU Run/saveOn; saved CFG
+Hold/saveOn. Unsaved resident C: must be considered before eventual reload.
+
+Prior b3131b5 build43821270521 completes:94%ALMs,503M10Ks, pin packingPASS,
+core setup-1.722ns (reset_drain→probe_owner_way worst); NOT deployed and NOT
+physically qualified. Cache-capacity timing observation recorded in topic doc.
+
+## 2026-11-16: Cold automatic start fails; delayed CPU Run recovers
+
+User MiSTer reboot with00fbbea/seed43 and savedRun/saveOn produced black screen.
+Read-only snapshot PC0x60c, first fault PC0x23d8/address0xfffffffc/reason2,
+generation2,15bus errors; queue0, no save errors. Installed RBF SHA44dccb8c…905f689.
+Changed ONLY saved CPU Run bit16 to Hold (000020…); retained autosaveOn and
+other settings. Reloaded same RBF directly, without MMC or observer. After
+media load: zero CPU execution/fetch/ACK/error history, restore complete/queue0.
+Full live ROM stock88fd596a…58329 verified; old observer removed by reload.
+Manual delayed Run with verified six-Down OSD macro passes early boot toTime,
+then native Messaging screen. User confirms clearing date prompts themselves.
+Automatic versus delayed start is distinguished on same artifact/save setting;
+exact cause and repeatability remain unresolved. No HDL fix/timing signoff claimed.
+Startup helper sent zero confirmations; stopped to leave user testing undisturbed.
+Saved CFG remainsHold/saveOn for next reload; current CPU Run. No disk replacement
+or firmware patches. Evidence build/diagnostics/black-boot-20261116 and
+build/sim/screens/black-boot-20261116.
+
+## 2026-11-16: JPEG observer boot perturbs startup; no valid current timeline yet
+
+Applied tested223word JPEG observer to a proven fresh directHold/saveOff00fbbea
+boot; original/modified full-image hashes verified, checksumcheck retained.
+User CFGfile explicitly restored000021… while physical saveOff retained. OSD
+changes alone had NOT persisted the earlier temporary CFG; do not claim they do.
+Traced boot stays Nokia/ADSP42notseen, kernel alive, BT-33 retries, nofirstfault.
+This is NOT a native production boot result or current JPEG cause. No JPEG run
+or timer/callback sequence was captured. Need distinguish observer cost from
+saveOff/boot variability; neither causally isolated yet.
+
+A cheaper rejection path saves onlyR3/R12, filters caller4KiB range with flag-
+preserving arithmetic, then runs unchanged exact logger only for candidates.
+312Unicorn preservation/filter cases pass, including within-prefix nonmatches;
+no deadlines/results changed. It is prepared but not applied yet. Current FPGA
+still00fbbea/seed43 with old223word observer active; remove by reload before any
+ordinary boot and verify stock ROM88fd…58329. Actual BackgroundsaveOff, CPU Run;
+saved CFG000021… restores normalRun/saveOn nextreload. Experimentpath
+build/diagnostics/jpeg-corrected{,-fast-observer}-20261116.
+
+00fbbea/seed44 build43816750792 fits92%(38,547ALMs)/503M10Ks but setup-0.914ns;
+allSDRAMpinregs pass. Not deployed; seed43 timing-0.265ns is preferable.
+New b3131b5 metadata build43821270521/seed43 remains the next hardware candidate.
+
+## 2026-11-16:b3131b5 eight-record build43821270521 running
+
+Committed/pushed b3131b5. Build43821270521/seed43/debugOn created07:05:03UTC;
+40minute recovery due07:45:03UTC.00fbbea/seed44 run43816750792 has completed;
+reports are being downloaded. Current hardware remains00fbbea/seed43, original
+firmware, cardless, C: JPEG-only wait, saveOn. No observer has been applied yet.
+Prepared current-run copy of the previously qualified JPEG timeline observer,
+216local preservation/filter cases pass; it will distinguish input decode from
+encoder deadline under this faster CPU. No changed deadlines/results allowed.
+
 ## 2026-11-16: Eight checked-line records adopted after full qualification
 
 Native00fbbea cardless/C: JPEG-only remains waiting >95s; boot and normal saving
