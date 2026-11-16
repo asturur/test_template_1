@@ -1,6 +1,17 @@
 # Cache-load latency and pipelining plan
 
-## Latest checkpoint — first F2 handoff overlap qualified
+## Latest checkpoint — admission-edge read reused
+
+An ordinary checked indexed read now consumes the matching synchronous RAM-B
+result that finishes on its admission edge. One metadata bit, no new RAM or
+pipeline stage. JPEG data waits41008→38035; four-case gain2.3885%. Original
+six-kernel indices230.0365/193.4779 (+0.6551%/+0.6550%). Stores retain the fresh
+metadata capture. Other short-hit/tag waits and larger request pipelining remain.
+92CPU/44interrupt cases, cache units, poisoned collisions, complete benchmark
+repeats/output controls and unprofiled matches pass. Physical gates pending.
+Actual78MHz/104MHz target unchanged. [Contract and evidence](cache-admission-probe.md).
+
+## Earlier checkpoint — first F2 handoff overlap qualified
 
 Registered completion consumption now overlaps admission of an eligible next
 P1 owner. No new state/RAM/stage; precise context and conservative fault/PC/SWP

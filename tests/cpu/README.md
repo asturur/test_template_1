@@ -13,6 +13,7 @@ The suite covers:
 - TLB C/B attributes, domain/AP permissions, FCSE, page-table walks ordered behind buffered writes, and section/small-page external abort FSR/FAR.
 - Dual-direction permission reuse through real descriptor publication (3,092 hot checks), exact walk-fault ownership and idle ACKs; repeated CPU LDRT/read, denied STRT/write and read recovery with FSR/FAR and unchanged data.
 - Absent-line buffered stores: real-cache 44-request/39-packet ordering and mask/refill/dirty/queue/error/reset checks; CPU warmed-record privilege denial and resident refill recovery.
+- [Admission-edge pre-read](cache_admit_probe/README.md): 256 shortened resident reads, isolated full-line/way guards, exactly-once replies, fresh masked-store bytes, checked faults/translation waits, maintenance and reset.
 - Indexed resident reads/stores through existing RAM, exact owned selectors and fresh dirty halves: two-result capacity/aliases, every mask/word/segment, ordered clean/writeback, revocation/reset and deliberate stale-dirty rejection.
 - Cache tags, line storage, 64-way placement, dirty half-lines, write-back/through, no write allocation, cache disable/re-enable, MVA/index maintenance, lockdown, instruction prefetch (including unaligned MVA and nonidentity translation), instruction coherency and 65th-line eviction.
 - A four-address/16-word write buffer, grouping, full/backpressure, ordered reads and fills, transient bus errors, and IRQs during refill and dirty eviction.

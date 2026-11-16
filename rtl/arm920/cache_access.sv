@@ -98,6 +98,7 @@ module arm920_cache_access #(
   } state_t;
   state_t state;
   reg response_valid_q, early_read_owner;
+  reg admitted_probe_owner;
   // Bounded reusable tag facts, never translation or permission results.
   // Presence and selected way carry no copied cache-line data.
   reg [1:0] line_result_valid, line_result_present;
@@ -111,7 +112,12 @@ module arm920_cache_access #(
   // READ_LINE follows the registered way decision and synchronous line read.
   // The CPU completion register can capture this owned word directly. Keep
   // the registered response for misses, SWP and noncached requests.
-  wire early_reply = early_read_owner && state == READ_LINE && !reset &&
+  // A certified read-B operation may finish on the demand-admission edge.
+  // Capture that ownership as one bit, then consume the existing BRAM output
+  // with the registered request. No live request comparison feeds the reply.
+  wire admitted_probe_reply = admitted_probe_owner && indexed_owner &&
+                              state == LOOKUP_CAPTURE;
+  wire early_reply = early_read_owner && (state == READ_LINE || admitted_probe_reply) && !reset &&
                      !invalidate_all && !lock_write && !maint_valid;
   // Ordinary write-back hits have already captured a data/dirty commit. The
   // CPU samples this reply on that existing commit edge, rather than waiting
@@ -567,6 +573,7 @@ module arm920_cache_access #(
     if (reset) begin
       state                  <= IDLE;
       early_read_owner       <= 0;
+      admitted_probe_owner   <= 0;
       ordinary_lookup_owner  <= 0;
       indexed_owner          <= 0;
       indexed_way            <= 0;
@@ -592,6 +599,7 @@ module arm920_cache_access #(
     end else begin
       response_valid_q <= 0;
       response_error <= 0;
+      admitted_probe_owner <= 0;
       case (state)
         IDLE:
         if (maint_valid && maint_ready) begin
@@ -606,6 +614,9 @@ module arm920_cache_access #(
         end else if (req_valid && req_ready) begin
           ordinary_lookup_owner <= ordinary_resident_request || ordinary_buffered_store;
           indexed_owner <= use_indexed_read || use_indexed_store;
+          admitted_probe_owner <= DATA_PROBE && use_indexed_read && probe_read &&
+                                  probe_owner_tag == req_mva[31:5] &&
+                                  probe_owner_way == result_way;
           indexed_way <= result_way;
           absent_store_owner <= use_absent_store;
           early_read_owner <= req_early_read && !req_write &&
@@ -625,7 +636,9 @@ module arm920_cache_access #(
             state <= write_buffer_empty ? BYPASS : WAIT_DRAIN;
           else state <= req_cache_enable && req_cacheable ? LOOKUP_CAPTURE : LOOKUP_WAIT;
         end
-        LOOKUP_CAPTURE: state <= indexed_owner ? (wr ? STORE_HIT : READ_LINE) : LOOKUP_WAIT;
+        LOOKUP_CAPTURE:
+        if (early_reply) state <= IDLE;
+        else state <= indexed_owner ? (wr ? STORE_HIT : READ_LINE) : LOOKUP_WAIT;
         MAINT_CAPTURE: state <= MAINT_WAIT;
         LOOKUP_WAIT: state <= LOOKUP;
         MAINT_WAIT: state <= MAINT_LOOKUP;
@@ -714,6 +727,10 @@ module arm920_cache_access #(
         $fatal(1, "serialized cache lookup address changed");
       if (state == LOOKUP && enabled && cacheable && bank.lookup_address != mva)
         $fatal(1, "cache decision consumed another lookup address");
+      if (admitted_probe_owner && (!probe_result_valid ||
+          probe_result_tag != mva[31:5] || probe_result_way != indexed_way ||
+          probe_result_collision || !early_read_owner || wr))
+        $fatal(1, "admitted probe lost its synchronous RAM result owner");
       if (early_store_reply && |ben && !data_commit_valid)
         $fatal(1, "ordinary store response preceded its owned RAM commit edge");
       if (early_store_reply && (bank.commit_segment != mva[7:5] ||

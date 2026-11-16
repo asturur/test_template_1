@@ -12,6 +12,7 @@ repeats per profile. See [profile and qualification](spmark-jpeg-profile.md).
 | completion-overlap | 117970 | 117985 | 117025 | 232802 |100.6265 |
 | legacy-delay-removed | 113957 | 113973 | 112956 | 224845 |104.1944 |
 | thumb-target-address | 111449 | 111465 | 110320 | 219849 |106.5810 |
+| admission-pre-read | 108853 | 108869 | 107724 | 214749 |109.1267 |
 | pre-store reference — d4f2a8 | 122793 | 122808 | 121848 | 242265 |96.6720 |
 
 Mode10 is the original native12-bit RGB converter used by this path; mode8
@@ -37,3 +38,7 @@ a bitmap-conversion kernel result; native JPEG deadline is unpassed.
 Thumb target-address normalization gains2.2906% over P0 removal; all8groups,
 repeats, unprofiled matches and8output/object controls pass. Native JPEG deadline
 remains unverified. [Evidence](evidence/thumb-prediction-address-20261116.json).
+
+Admission-edge pre-read reuse gains2.3885% over Thumb target-address and removes
+2,973 data-wait clocks per8×8block. Native JPEG deadline remains unverified.
+[Evidence](evidence/cache-admission-probe-20261116.json).

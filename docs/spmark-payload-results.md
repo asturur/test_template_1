@@ -27,6 +27,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | completion-overlap | 56,082 / 56,082 | 5,719 / 5,719 | 27,667 / 27,667 | 71,269 / 201,314 | 2,574 / 2,574 | 2,624 / 2,624 | 225.1646 / 189.3816 | [JSON](evidence/spmark-payload-completion-overlap-20261115.json) |
 | legacy-delay-removed | 54,730 / 54,730 | 5,465 / 5,465 | 27,201 / 27,201 | 71,264 / 201,307 | 2,564 / 2,564 | 2,628 / 2,628 | 228.5393 / 192.2189 | [JSON](evidence/cpu-postalu-trim-20261116.json) |
 | thumb-target-address | 54,730 / 54,730 | 5,465 / 5,465 | 27,201 / 27,201 | 71,264 / 201,307 | 2,564 / 2,564 | 2,628 / 2,628 | 228.5393 / 192.2189 | [JSON](evidence/thumb-prediction-address-20261116.json) |
+| admission-pre-read | 54,442 / 54,442 | 5,337 / 5,337 | 26,915 / 26,915 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.0365 / 193.4779 | [JSON](evidence/cache-admission-probe-20261116.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.
@@ -158,3 +159,7 @@ fit/timing/native qualification remain. [Contract](cpu-optimization-status.md).
 Thumb target-address normalization leaves all six ARM-heavy kernels unchanged.
 Its separate original JPEG bitmap suite gains2.2906%; new Thumb call cases are
 not included in this index. [Contract](thumb-prediction-address.md).
+
+Admission-edge RAM pre-read reuse gains0.6551%/0.6550% over Thumb target-address.
+One metadata bit, no new RAM/stage; fill8-tail regresses one clock. Native phone
+and routed timing remain unverified. [Contract](cache-admission-probe.md).

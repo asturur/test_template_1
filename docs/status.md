@@ -1,3 +1,36 @@
+## 2026-11-16: Admission-edge cache read saves2973 JPEG data waits
+
+User requested the remaining short-hit improvement, commit/push and build.
+A checked resident read now consumes the exact RAM-B pre-read completed on its
+admission edge. One owned metadata bit; full-line/way match, free-port/collision
+and permission/translation guards remain. Captured MVA selects the reply word.
+Stores retain their fresh metadata read; SWP/uncached/misses keep old handling.
+No RAM/data copy/stage/new outstanding demand or PLL change. Actual78MHz;
+104MHz timing objective. Custom cache only; ZAP0069 unchanged.
+
+Original JPEG8×8mode10:111449→108853clocks, data waits41008→38035, loaddep13161
+unchanged, empty operands21245→21574. Four-case gain2.3885%, own index109.1267.
+Full six-kernel original indices230.0365/193.4779, +0.6551%/+0.6550%. Fill8-tail
+regresses one clock; other original outputs/workload membership unchanged.
+No native JPEG deadline, board speed or physical timing pass is claimed.
+
+92architectural/44IRQ-FIQ runs,10cache/buffer groups, poisoned mixed-port RAM,
+256new short reads/three mismatches, all masks/segments/words, faults/translation,
+SWP/maintenance/reset pass. Five exercised negative controls reject missing
+ownership/line/way, live next-word and duplicate replies. Initial fixture gaps
+were corrected and retained in scratch. Full six-kernel12groups/two repeats/six
+wrong-output controls; JPEG8groups/two repeats/8unprofiled full-counter matches/
+8wrong object-pixel controls pass. All46compiled source files byte-match both
+accepted benchmark snapshots. Quartus source graph passes178files/9QIPs.
+
+Publish on the same codex/ngage2-integration branch, then request seed43 with
+DDR debugger enabled; the new build includes the earlier SDRAM pin-register
+protection plus P0/Thumb changes. Fit, pin packing, stock boot and native JPEG
+remain the next physical gates. Other simulations/checkpoints/media untouched.
+[Contract](cache-admission-probe.md),
+[evidence](evidence/cache-admission-probe-20261116.json),
+[complete ledger](cpu-optimization-status.md).
+
 ## 2026-11-16: Thumb return prediction avoids257false redirects per JPEG block
 
 User authorized Thumb frontend/calls work, commit and push. Original-code RTL
