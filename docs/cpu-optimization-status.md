@@ -173,3 +173,13 @@ JPEG prototype gains4.2873%, reducing full lookups3552→1692 and data waits
 full qualification and physical cost/timing remain pending. Neither is active
 production or included in00fbbea's running build.
 [Profile evidence](evidence/block-transfer-privilege-profile-20261116.json).
+
+## DSP mapping audit follow-up
+
+The fitted core uses42/112DSPs: scaler23, audio8, LCD5, CPU4, YC2. All four CPU
+partial products already use registered hard multipliers. The remaining multiplier
+module is attributed106ALMs; no large soft multiplier was found there. First
+mapping experiment is its64bit recombination/accumulator with the existing cycle
+contract, then timing/area A/B. Main ALU mapping is separate and must preserve
+carry/flags/address latency. No directive/RTL/build change or saving claimed.
+See [audit and test gates](dsp-mapping-audit.md).

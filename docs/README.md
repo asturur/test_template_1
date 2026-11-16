@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [dsp-mapping-audit.md](dsp-mapping-audit.md) | Exact42/112DSP inventory, already-hard CPU products, remaining MAC/ALU opportunities and latency/fit gates |
 | [jpeg-next-performance.md](jpeg-next-performance.md) | Local branch attribution and isolated POP/BX return recognition: +9.40%, four state bits, not production-adopted |
 | [cache-probe-timing.md](cache-probe-timing.md) | b313 worst-path analysis, parallel probe selection and reset payload separation with unchanged benchmark cycles |
 | [calendar-benchmark-flash.md](calendar-benchmark-flash.md) | Native C: block-read fault during deferred erase, bounded NOR width correction and CPU/save qualification |

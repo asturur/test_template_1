@@ -1,3 +1,20 @@
+## 2026-11-16: DSP mapping audit complete; no mapping change/build
+
+Fitter b3131b5 exact inventory42/112physical DSPs: scaler23, audio8, LCD5, CPU4,
+YC2;70free. AutoDSP replacementOn/balancingAuto. All4CPU17x17products already
+map to hardDSPs with input/output registers. Multiplier106.1ALMs/88logicFFs;
+ALU355.8ALMs. Its DSP accumulator/adder-chain unused, but may require different
+DSP modes. Generic multstyle=dsp directs multiply inference; it does not move
+arbitraryadders/flags/control. No attribute-only saving is demonstrated.
+
+Prioritize an isolated inference-friendly CPU wide-sum/MAC experiment preserving
+busy/paired result/flags/reset/stall/flush contracts; then A/B fit/latency. Keep
+mainALU/adders separate and104MHz objective. JPEG bitmap has no MUL occupancy,
+so its measured next target remains POP/BX recognition (+9.40% local prototype,
+not adopted). No productionHDL, build, clock, phone or media change. Exact
+physical inventory, source accounting, official inference references and tests
+saved in dsp-mapping-audit.md/evidence.
+
 ## 2026-11-16: Local-only JPEG next target measured; DSP audit queued
 
 User explicitly says leave phone alone and profile locally. No further phone
