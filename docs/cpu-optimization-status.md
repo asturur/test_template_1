@@ -1,3 +1,9 @@
+> **Current branch:** eight checked-line metadata records are adopted after
+> complete simulation qualification: original indices233.2707/196.1981,
+> JPEG121.2488; +212declared metadata bits, no line-data RAM or stage. Physical
+> fit/timing/native JPEG pending. Current hardware00fbbea boots original firmware
+> cardless and saves C:, but JPEG still waits. See cache-certificate-capacity.md.
+
 > **2026-11-16 corrected candidate:**0070+0071 are enabled together following
 > the exact native single-POP protected-page regression and complete simulation
 > gates. Original indices230.4602/193.8342, JPEG113.2493. The old0070 alone is
@@ -144,3 +150,27 @@ Raw outputs remain under `build/sim/p0-trim-cpu-20261115/`,
 assertion and host/container absolute path) failed before RTL execution and
 are retained. Other simulations and checkpoints were untouched.
 [Qualification and counters](evidence/cpu-postalu-trim-20261116.json).
+
+## Corrected CPU profile follow-up
+
+All12 original six-kernel groups reconcile after corrected0070+0071, with
+both exact repeats and every original counter unchanged by the profiler.
+Matrix32.26% empty operands/17.71% data wait/11.30% multiply; transpose39.69%
+data wait; full fill64.53%/87.44% data wait at0:0/2:9. JPEG8×8 has36994data-wait,
+21813empty-operand,13842load-dependency and4252decode-sequencing clocks per104900.
+
+A new observation-only frontend split matches every raw JPEG counter. Of21813
+empty-operand clocks,5014occur1–5clocks after a redirect,6428at6–10,8496at11–20
+and1875later.3491coincide with retirement. There are860ALU and1100decode clears.
+These distances overlap other causes and do not prove each redirect was wrong,
+or make the entire empty bucket recoverable. RAS changes still need precise
+prediction/outcome attribution and speculative recovery; do not resize a FIFO
+based only on its emptiness.
+
+A bounded next experiment extends the two checked tag/way/absence metadata
+records to4or8, retaining owned requests and all revocations. Four-entry original
+JPEG prototype gains4.2873%, reducing full lookups3552→1692 and data waits
+36994→32015. No copied line data; +71declared metadata bits. Eight-entry results,
+full qualification and physical cost/timing remain pending. Neither is active
+production or included in00fbbea's running build.
+[Profile evidence](evidence/block-transfer-privilege-profile-20261116.json).

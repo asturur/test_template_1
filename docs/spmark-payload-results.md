@@ -35,6 +35,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | admission-pre-read | 54,442 / 54,442 | 5,337 / 5,337 | 26,915 / 26,915 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.0365 / 193.4779 | [JSON](evidence/cache-admission-probe-20261116.json) |
 | block-transfer-fusion | 54,394 / 54,394 | 5,337 / 5,337 | 26,739 / 26,739 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.3221 / 193.7181 | [JSON](evidence/block-transfer-sequencing-20261116.json) |
 | block-transfer corrected0071 — isolated candidate | 54,394 / 54,394 | 5,337 / 5,337 | 26,643 / 26,643 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.4602 / 193.8342 | [JSON](evidence/block-transfer-privilege-performance-20261116.json) |
+| cache-certificate-eight — FPGA pending | 52,275 / 52,275 | 5,328 / 5,328 | 25,842 / 25,842 | 71,263 / 201,306 | 2,562 / 2,562 | 2,629 / 2,629 | 233.2707 / 196.1981 | [JSON](evidence/cache-certificate-capacity-20261116.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.

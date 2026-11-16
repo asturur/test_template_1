@@ -208,3 +208,14 @@ passes simulation gates and improves the measured converter3.78% relative to
 this CPU, but has not yet been tested natively. No deadline or firmware patch.
 Captures: build/diagnostics/spmark-c-install-20261116/native-C-jpeg-only.jsonl;
 screens: build/sim/screens/spmark-C-{custom-last,jpeg-start,jpeg-after}-20261116.png.
+
+## Corrected CPU native C: repeat
+
+00fbbea/run43811564130/seed43 boots cardless to Phone with original firmware,
+no tracer applied, normal saveOn and healthy queue. Native custom selection
+explicitly retains JPEG and deselects all7other items. JPEG remains waiting
+through95s; no completion/result is claimed. Exact timer/callback ordering has
+not yet been recaptured on this faster CPU, so distinguish the established
+older input-decode timeout from this newer visual wait. An encoder timeout is
+not excluded solely by the unchanged screen. Next metadata build and/or the
+already tested observation-only timeline will distinguish the remaining cost.

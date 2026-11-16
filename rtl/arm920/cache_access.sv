@@ -101,10 +101,12 @@ module arm920_cache_access #(
   reg admitted_probe_owner;
   // Bounded reusable tag facts, never translation or permission results.
   // Presence and selected way carry no copied cache-line data.
-  reg [1:0] line_result_valid, line_result_present;
-  reg [26:0] line_result_tag[0:1];
-  reg [5:0] line_result_way[0:1];
-  reg line_result_replace;
+  localparam RESULT_ENTRIES = 8;
+  localparam RESULT_INDEX_W = $clog2(RESULT_ENTRIES);
+  reg [RESULT_ENTRIES-1:0] line_result_valid, line_result_present;
+  reg [26:0] line_result_tag[0:RESULT_ENTRIES-1];
+  reg [5:0] line_result_way[0:RESULT_ENTRIES-1];
+  reg [RESULT_INDEX_W-1:0] line_result_replace;
   reg ordinary_lookup_owner, absent_store_owner;
   reg indexed_owner;
   reg [5:0] indexed_way;
@@ -169,12 +171,21 @@ module arm920_cache_access #(
   wire ordinary_resident_request = !READ_ONLY && req_resident_access &&
                                      req_cache_enable && req_cacheable &&
                                      ((!req_write && req_early_read) || ordinary_buffered_store);
-  wire result_match0 = line_result_valid[0] && line_result_tag[0] == req_mva[31:5];
-  wire result_match1 = line_result_valid[1] && line_result_tag[1] == req_mva[31:5];
-  wire result_slot = !result_match0 && result_match1;
-  wire result_known = !line_result_revoke && (result_match0 || result_match1);
-  wire result_present = result_slot ? line_result_present[1] : line_result_present[0];
-  wire [5:0] result_way = result_slot ? line_result_way[1] : line_result_way[0];
+  reg result_match;
+  reg [RESULT_INDEX_W-1:0] result_slot;
+  integer match_index;
+  always @* begin
+    result_match = 0;
+    result_slot = 0;
+    for (match_index=RESULT_ENTRIES-1; match_index>=0; match_index=match_index-1)
+      if (line_result_valid[match_index] && line_result_tag[match_index] == req_mva[31:5]) begin
+        result_match = 1;
+        result_slot = match_index[RESULT_INDEX_W-1:0];
+      end
+  end
+  wire result_known = !line_result_revoke && result_match;
+  wire result_present = line_result_present[result_slot];
+  wire [5:0] result_way = line_result_way[result_slot];
   wire use_absent_store = ordinary_buffered_store && result_known && !result_present;
   wire use_indexed_read = ordinary_resident_request && !req_write &&
                           result_known && result_present;
@@ -188,10 +199,19 @@ module arm920_cache_access #(
   reg [5:0] probe_owner_way, probe_result_way;
   wire data_commit_valid;
   wire [8:0] data_commit_index;
-  wire probe_match0 = line_result_valid[0] && line_result_present[0] &&
-                      line_result_tag[0] == data_probe_address[31:5];
-  wire probe_match1 = line_result_valid[1] && line_result_present[1] &&
-                      line_result_tag[1] == data_probe_address[31:5];
+  reg probe_match;
+  reg [RESULT_INDEX_W-1:0] probe_slot;
+  integer probe_index;
+  always @* begin
+    probe_match = 0;
+    probe_slot = 0;
+    for (probe_index=RESULT_ENTRIES-1; probe_index>=0; probe_index=probe_index-1)
+      if (line_result_valid[probe_index] && line_result_present[probe_index] &&
+          line_result_tag[probe_index] == data_probe_address[31:5]) begin
+        probe_match = 1;
+        probe_slot = probe_index[RESULT_INDEX_W-1:0];
+      end
+  end
   wire probe_revoke = line_result_revoke || !fast_lookup_enable;
   wire probe_port_free = state == IDLE || state == STORE_HIT || state == STORE_COMMIT ||
                          state == BUFFER_STORE || (state == LOOKUP_CAPTURE && indexed_owner && wr);
@@ -215,10 +235,10 @@ module arm920_cache_access #(
       probe_owner_valid <= 0;
       probe_result_valid <= 0;
     end else begin
-      if (DATA_PROBE && !READ_ONLY && data_probe_valid && (probe_match0 || probe_match1)) begin
+      if (DATA_PROBE && !READ_ONLY && data_probe_valid && probe_match) begin
         probe_owner_valid <= 1;
         probe_owner_tag <= data_probe_address[31:5];
-        probe_owner_way <= probe_match0 ? line_result_way[0] : line_result_way[1];
+        probe_owner_way <= line_result_way[probe_slot];
       end
       // Every output token names the address actually read on this edge.
       // Losing the read port or colliding with A kills it before use.
@@ -229,11 +249,24 @@ module arm920_cache_access #(
       end
     end
   end
-  wire learn_match0 = line_result_valid[0] && line_result_tag[0] == mva[31:5];
-  wire learn_match1 = line_result_valid[1] && line_result_tag[1] == mva[31:5];
-  wire learn_slot = learn_match0 ? 1'b0 : learn_match1 ? 1'b1 :
-                    !line_result_valid[0] ? 1'b0 : !line_result_valid[1] ? 1'b1 :
-                    line_result_replace;
+  reg learn_match, learn_empty;
+  reg [RESULT_INDEX_W-1:0] learn_slot;
+  integer learn_index;
+  always @* begin
+    learn_match = 0;
+    learn_empty = 0;
+    learn_slot = line_result_replace;
+    for (learn_index=RESULT_ENTRIES-1; learn_index>=0; learn_index=learn_index-1)
+      if (!line_result_valid[learn_index]) begin
+        learn_slot = learn_index[RESULT_INDEX_W-1:0];
+        learn_empty = 1;
+      end
+    for (learn_index=RESULT_ENTRIES-1; learn_index>=0; learn_index=learn_index-1)
+      if (line_result_valid[learn_index] && line_result_tag[learn_index] == mva[31:5]) begin
+        learn_slot = learn_index[RESULT_INDEX_W-1:0];
+        learn_match = 1;
+      end
+  end
   wire checked_line_lookup = state == LOOKUP && ordinary_lookup_owner && enabled && cacheable;
   integer result_index;
   always @(posedge clk) begin
@@ -247,16 +280,16 @@ module arm920_cache_access #(
     if (reset) begin
       line_result_present <= 0;
       line_result_replace <= 0;
-      for (result_index=0; result_index<2; result_index=result_index+1) begin
+      for (result_index=0; result_index<RESULT_ENTRIES; result_index=result_index+1) begin
         line_result_tag[result_index] <= 0;
         line_result_way[result_index] <= 0;
       end
     end else if (checked_line_lookup && !line_result_revoke) begin
       line_result_tag[learn_slot] <= mva[31:5];
       line_result_way[learn_slot] <= hit_way;
-      line_result_replace <= !learn_slot;
+      line_result_replace <= learn_slot + 1'b1;
     end else if (accept_demand && (use_absent_store || use_indexed_read || use_indexed_store))
-      line_result_replace <= !result_slot;
+      line_result_replace <= result_slot + 1'b1;
   end
   // The selector is captured with the accepted request. Never route the live
   // certificate comparator to a RAM address or completion payload.

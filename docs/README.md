@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cache-certificate-capacity.md](cache-certificate-capacity.md) | Eight checked-line metadata records; JPEG +7.06%, precise ownership,212 bits and physical gate pending |
 | [block-transfer-sequencing.md](block-transfer-sequencing.md) | Quarantined block-transfer fusion; native privileged POP fault isolated and corrected candidate tested |
 | [cache-admission-probe.md](cache-admission-probe.md) | Reuse the admission-edge RAM pre-read; one metadata bit, JPEG +2.39%, original indices230.32/193.72 |
 | [thumb-prediction-address.md](thumb-prediction-address.md) | Removed false Thumb mode-bit redirects; original JPEG +2.29%, unchanged ARM suite, bounded ALU change |

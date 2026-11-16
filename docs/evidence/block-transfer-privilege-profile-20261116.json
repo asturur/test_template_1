@@ -1,0 +1,24 @@
+{
+  "status": "PASS",
+  "complete_profile": "build/sim/spmark-profile/block-privilege-corrected-20261116/result.json",
+  "groups": 12,
+  "source_id": "a17156cb13876e378553535bb2015a5d4a40b2b35cb407de6dde0d2310b176d5",
+  "base_result_sha256": "f880a45048cbe9a75361cfe9c35feb9e852065e89c7f311358d19e77e5922be2",
+  "repeat": 2,
+  "frontend": {
+    "base": "build/sim/jpeg-payload/block-privilege-corrected-20261116",
+    "raw_counters_match": true,
+    "rows": [
+      "FRONTEND index=0 empty=22952 age1to5=5034 age6to10=6467 age11to20=8591 age21plus=2860 concurrent_retire=3535 nofifo=16700 nomode=18155 nopre=19720 nodecode=21039 clear_alu=862 clear_wb=0 clear_decode=1103",
+      "FRONTEND index=1 empty=21813 age1to5=5014 age6to10=6428 age11to20=8496 age21plus=1875 concurrent_retire=3491 nofifo=15605 nomode=17043 nopre=18589 nodecode=19901 clear_alu=860 clear_wb=0 clear_decode=1100",
+      "FRONTEND index=2 empty=21813 age1to5=5014 age6to10=6428 age11to20=8496 age21plus=1875 concurrent_retire=3491 nofifo=15605 nomode=17043 nopre=18589 nodecode=19901 clear_alu=860 clear_wb=0 clear_decode=1100",
+      "FRONTEND index=3 empty=21813 age1to5=5014 age6to10=6428 age11to20=8496 age21plus=1875 concurrent_retire=3491 nofifo=15605 nomode=17043 nopre=18589 nodecode=19901 clear_alu=860 clear_wb=0 clear_decode=1100",
+      "FRONTEND index=4 empty=21813 age1to5=5014 age6to10=6428 age11to20=8496 age21plus=1875 concurrent_retire=3491 nofifo=15605 nomode=17043 nopre=18589 nodecode=19901 clear_alu=860 clear_wb=0 clear_decode=1100",
+      "FRONTEND index=5 empty=21813 age1to5=5014 age6to10=6428 age11to20=8496 age21plus=1875 concurrent_retire=3491 nofifo=15605 nomode=17043 nopre=18589 nodecode=19901 clear_alu=860 clear_wb=0 clear_decode=1100",
+      "FRONTEND index=6 empty=21813 age1to5=5014 age6to10=6428 age11to20=8496 age21plus=1875 concurrent_retire=3491 nofifo=15605 nomode=17043 nopre=18589 nodecode=19901 clear_alu=860 clear_wb=0 clear_decode=1100"
+    ],
+    "status": "PASS"
+  },
+  "meaning": "signal occupancy and distance from redirect, not additive causal loss or proven RAS fault",
+  "next_experiment": "isolated4/8 entry reuse of checked cache metadata; no copied line data, no changed permission policy; not active production"
+}

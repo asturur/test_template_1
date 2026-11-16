@@ -36,8 +36,9 @@
     "observer_removed": true
   },
   "pending": [
-    "native corrected CPU boot/JPEG",
-    "corrected CPU routed timing"
+    "routed timing signoff",
+    "native JPEG completion",
+    "MGL/MMC loading-path root cause"
   ],
   "branch_cpu": "corrected0070+0071; current hardware11612f9 remains pre-fusion",
   "corrected_architecture_runs": 92,
@@ -45,5 +46,17 @@
   "corrected_per_beat_aborts": 128,
   "actual_branch_protected_page_runs": 8,
   "patch0071_applies_exactly": true,
-  "compiled_sources_includes_byte_match": 46
+  "compiled_sources_includes_byte_match": 46,
+  "native_gate": {
+    "commit": "00fbbea",
+    "run": 43811564130,
+    "seed": 43,
+    "RBF_sha256": "44dccb8c95dfc40b791817c9bc089c0675a434350b58e2983efe9e18c905f689",
+    "stock_cardless_boot": "PASS Phone home, ADSP42OK, firstFault0/panic0/queue0, no observer ever applied",
+    "MGL_MMC_load": "fails early and yields inconsistent held history; root unresolved; do not attribute to second CPU semantic fault",
+    "single_push_call_pop_pc_simulation": "PASS delays0/3 in2699/4422clocks",
+    "timing": "setup-0.265ns; experimental, not signoff",
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "native_JPEG": "still waits after95s; exact current callback/timer ordering pending"
+  }
 }

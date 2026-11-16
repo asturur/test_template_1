@@ -1,3 +1,96 @@
+## 2026-11-16: Eight checked-line records adopted after full qualification
+
+Native00fbbea cardless/C: JPEG-only remains waiting >95s; boot and normal saving
+remain healthy, no observer or firmware modification. The8-record metadata
+experiment is now adopted for the next build. Original indices233.2707/196.1981;
+JPEG121.2488 (+7.0636% over00fbbea). Supplemental176x16 strip4511115→4231624.
+No line data/BRAM/queue/stage added; +212declared metadata bits, not fitted area.
+Actual78MHz/104MHz target. Full2repeat suites/negative outputs,92CPU/44IRQ-FIQ/
+128precise aborts/8protected controls, cache freshness/collision suites and all3
+flash erase/reset/DDR competition fixtures pass. New12line oracle passes146
+requests; deliberately broken selector fails exact data equality. Source byte-
+matches both complete measured snapshots. Physical fit/timing/nativeJPEG pending.
+See docs/cache-certificate-capacity.md and its machine evidence.
+
+## 2026-11-16:00fbbea native cardless boot PASSES, no observer or firmware patch
+
+Same seed43 RBF44dccb8c…905f689 loaded DIRECTLY, no MGL/MMC, CFGHold/saveOff
+while media finished. Original freshness predicateTRUE without relaxing it;
+cycles/fetches/ACKs/errors0. Only reserved debugger snapshot records313ff000..
+313ff7ff were cleared for a stale-payload experiment; no guest ROM/RAM or disk
+writes by the experiment. Newly written records retain unused first_data400000
+with reason0, but execution-history gates are now consistent. Observer NEVER
+applied. Baseline and direct00fbbea identity/full stock ROM SHA verified.
+
+Verified cached OSD order enabled saveOn and Run, restoring user000021… settings.
+Native00fbbea now passes early boot AND former kernel50003248 permission blocker,
+ADSP42OK, Phone home; no first fault/panic/queue error, generation0. Setup helper
+observes Time56.53s after manualRun, sends2confirms after safety, reaches home
+at76.56s. Native JPEG from persisted C: is next. This is functional evidence on
+setup-0.265ns artifact, not timing signoff. Seed44 same-code build remains useful.
+
+Earlier MGL+MMC load failed and produced impossible held history; root of that
+loading-path issue remains open. Do not claim a second CPU semantic bug or that
+setup timing alone caused it. Direct cardless boot is the verified workaround;
+C: SPMark needs no MMC. Preserve this distinction and avoid repeating unsafe
+freshness bypass proposals. All actual observer apply gates stayed intact.
+
+## 2026-11-16: Controlled placement retry; held-diagnostic A/B isolates artifact problem
+
+Same00fbbea code build43816750792/seed44/debugOn created06:26:24UTC;40minute
+check07:06:24UTC. Seed43 has failed core timing and inconsistent untouched
+held diagnostics: cycles0/ACK0/errors0/PC0 but fetchesbf100000 and nonzero unused
+first-fault fields. Exact11612f9 RBF with SAME CFGHold/saveOff, ROM and saved
+C:/PMM yields all-zero history and observer freshnessTRUE. Thus do not interpret
+seed43's odd fields as execution history or bypass the observer gate. Original
+ROM remains stock and observer has NEVER been applied in this new experiment.
+A direct cardless00fbbea Hold boot is being checked to exclude MGL/MMC loading.
+
+The exact native-shaped ARM single PUSH/call/POP-PC regression passes in the
+actual CPU at delays0/3 (2699/4422clocks). Source36bit instruction path confirmed;
+no proven second logical CPU bug yet. Seed43 native halt is real but cause remains
+unresolved; failed timing/diagnostic integrity prevents treating it as semantic
+proof. No source rollback yet, and no cache-capacity experiment has been adopted.
+User CFGoriginal000021… remains saved locally; temporary physical/savedHold is0.
+
+## 2026-11-16:00fbbea native boot rejected; first-abort capture not applied
+
+Build43811564130/seed43/debugOn fits38,800ALMs(93%)/44,368registers/503M10Ks/
+42DSPs; all16SDRAM pin registers pass. Setup-0.265ns (DMA worst, WB→Icache also
+-0.159), hold+0.250ns. RBF44dccb8c…905f689. Preserved native C:/PMM after
+verified queue0/quiescence. Original ROM SHA88fd…58329 verified.
+
+Native automatic boot hits0x60c, only5bus errors, before ADSP42. First bus fault
+shows POP-PC atphysical23d8, addressfffffffc, data1020, reason2. This differs
+from original0070 kernel permission fault50003248/FSR1f. Actual first architectural
+abort cause not captured yet; do not blame timing or assume the permission fix
+failed. Core helper sends0confirms and correctly fails on aborted screen.
+
+Fresh Hold/saveOff reload prepared, CFGtemporarily000000…; original000021… is
+recorded locally in build/diagnostics/corrected-CPU-first-abort-20261116/settings.json.
+Observer remains UNAPPLIED: freshness check sees cycles0/ACK0/errors0/PC0/resetHeld,
+but fetch counterbf100000 and unused first-fault fields inconsistent with no CPU
+history. Do not bypass this guard without explaining the discrepancy. Stock ROM
+remains unchanged. New exact single-register PUSH/call/POP-PC real-CPU repro is
+running. Captures corrected-CPU-native-boot.jsonl and held-preflight.jsonl.
+Restore user CFGand original firmware before ordinary boot; known-working11612f9
+RBF remains available locally. Current card holds00fbbea and physical CPU Hold.
+
+Cache4/8capacity experiments remain isolated, NOT production. Four gains4.29%
+JPEG; eight roughly7%; both output suites pass. Eight92architecture/44IRQ-FIQ,
+128per-beat aborts and730cache unit transactions pass; original C: erase/reset/
+bulk concurrency fixtures pass unchanged. Full profile12groups passes on00fbbea.
+No new cache hardware build authorized by this record; resolve native boot first.
+
+## 2026-11-16: Corrected CPU00fbbea build43811564130 running
+
+Pushed00fbbea. Build43811564130/seed43/debugOn created05:38:30UTC;40minute
+recovery due06:18:30UTC. Current hardware remains11612f9/C-save fix, native
+JPEG-only waiting. Clean reload/persistence passes: native Menu retains C: SPMark icon. Time/date
+still requested, despite successful save, and helper clears both automatically.
+Thus clock setup remains separate from the now-verified native C save fix. Preserve native saved disks.
+No corrected-CPU native boot or JPEG pass claimed yet.
+
 ## 2026-11-16: Corrected block-transfer candidate re-adopted for native qualification
 
 0070+0071 enabled together after exact native AP1/domain1 privilege reproduction,

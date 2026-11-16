@@ -17,6 +17,7 @@ tests/cpu/demand_completion/sim.sh
 sh tests/cpu/cache_hit_response/sim.sh
 sh tests/cpu/cache_store_absence/sim.sh
 sh tests/cpu/cache_resident/sim.sh
+sh tests/cpu/cache_certificate/run.sh
 sh tests/cpu/cache_probe/sim.sh
 sh tests/cpu/cache_admit_probe/sim.sh
 sh tests/cpu/icache_discard/sim.sh
