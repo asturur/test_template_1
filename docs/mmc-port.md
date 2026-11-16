@@ -1,5 +1,17 @@
 # MMC port: original contract, images and donor safety
 
+## Current write integration — 2026-11-16
+
+The production HPS adapter now supports owned single-sector writes using the
+existing card RAM/TX DMA, with Linux/CSD write protection and reset/ACK drain
+checks. Local direct, actual-HPS/card and host/production-DMA regressions pass.
+No RAM, DMA worker or FSM stage is added. A new FPGA build and native write
+persistence checks remain. Installed b707ebd still has the earlier read-only
+interface. Later read-only sections below describe the original P3 milestone.
+See [write implementation/tests](mmc-writes.md) and
+[the verified1GB SIS library](sis-library.md).
+
+
 P3.0 image preservation is implemented and tested on the host. P3.1 has
 reproduced donor write-loss, footer-version and CMD16-cache fixes on a separate branch.
 Host/card ports and read-only production wiring are verified locally in

@@ -1,0 +1,73 @@
+{
+  "status": "PASS_LOCAL_ONLY",
+  "direct_cases": 48,
+  "direct_clocks": 33287,
+  "actual_hps": {
+    "reads": 20,
+    "writes": 4,
+    "other_slot_reads": 2,
+    "bulk_reads": 2,
+    "delayed_tail_halfwords": 18,
+    "overlap_clocks": 2128,
+    "total_clocks": 604018
+  },
+  "host_cmd16_probes": 33,
+  "host_data_cases_per_profile": 28,
+  "host_profiles": [
+    "DIV4/FIFO16",
+    "DIV12/FIFO8"
+  ],
+  "production_mmio_cases": 30,
+  "production_dma_cases_per_selector": 98,
+  "native_rx_selectors": [
+    2,
+    3
+  ],
+  "Verilog_2001_lint": "PASS",
+  "new_control_bits": 2,
+  "new_RAMs": 0,
+  "new_DMA_engines": 0,
+  "new_FSM_stages": 0,
+  "CPU_clock_mhz": 78,
+  "timing_objective_mhz": 104,
+  "fit_timing": "unmeasured; prior b707 build setup -2.087 ns",
+  "native_phone_writes": "unverified; running phone untouched",
+  "sources": {
+    "rtl/ngage_mmc_hps.v": "9c5c8bd7678eda61001f7460542466391225e548867736c2c2f7296dfc66a1e0",
+    "Template.sv": "fbd55dc74048089517cb5cfd8488acea5b4a145366366f692e17762704a95cab",
+    "tests/phone/mmc_hps/tb.v": "b0b92c3773d3ef90cfc35a48009861400840b9fccc29a4133579515471bcdb78",
+    "tests/phone/mmc_hps/actual_tb.sv": "18388935b20bde7355fa4a9a2f1e92c67cba9c49c2b8c648243c5c06c110de0d"
+  },
+  "logs": {
+    "build/sim/mmc-writes-final-20261116.log": {
+      "sha256": "8879005b646981687860d700bdbd72e8d1476481d3ba64a59d1a6a3fe928927a",
+      "PASS_lines": [
+        "PASS MMC HPS direct cases=48 mounts=45 copies=13851 clocks=33287",
+        "PASS actual three-slot MMC HPS card_reads=20 writes=4 other_reads=2 bulk=2 delayed_tail_words=18 overlaps=2128 clocks=604018"
+      ]
+    },
+    "build/sim/mmc-writes-card-20261116.log": {
+      "sha256": "789badc76e09a3507173be54ee6f90113852f5f4198eed89b0f8dd3344940320",
+      "PASS_lines": [
+        "PASS MMC payload EOF wire protocol mounts=5 HPS_reads=4 HPS_writes=4 clocks=282492",
+        "PASS MMC footer version wire policy mounts=7 HPS_reads=11 HPS_writes=0 clocks=196894"
+      ]
+    },
+    "build/sim/mmc-writes-host-20261116.log": {
+      "sha256": "8ce66e975f3ba60e59a2cbf6cdb99fec6ad2332e8b09a8d607016bd9c4247b66",
+      "PASS_lines": [
+        "PASS CMD16 accepted-length cache: 33 pin-observed probes, R1 error bits, CRC/framing/type rejection, status-only success and reset in 126430 clocks",
+        "PASS MMC host data peer DIV=4 FIFO=16 cases=28 clocks=82004: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+        "PASS MMC host data peer DIV=12 FIFO=8 cases=28 clocks=244751: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering"
+      ]
+    },
+    "build/sim/mmc-writes-production-20261116.log": {
+      "sha256": "0dfd74b4a110b219b36f76045c15b7cbcd65f7335fe7bbefb6b1954d07b7f179",
+      "PASS_lines": [
+        "PASS MMC captured bus/pin peer DIV=4 FIFO=16 cases=30 clocks=132221: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset, final-block prefetch suppression through NRC/busy and 5/6/7/8/9/10 ordering",
+        "PASS MMC production UPP/DMA: all8 channels TX2/RX2 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=98 clocks=669385",
+        "PASS MMC production UPP/DMA: all8 channels TX2/RX3 selector2, 1/2/3/5/511/512, exact native bits and rounded4 tails, immutable selector, blocked-peer progress, owned stop/restart/reset, selector errors, ICU masking and channel ACK cases=98 clocks=669385"
+      ]
+    }
+  }
+}

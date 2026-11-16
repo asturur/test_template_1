@@ -1,4 +1,4 @@
-// Read-only production image admission and owned HPS transport for MMC slot 2.
+// Production image admission and owned read/write HPS transport for MMC slot 2.
 // The caller selects only slot 2 mount/ACK; the halfword buffer bus is shared.
 // This is a transaction-level backing-store adapter, not D550/AMA pin routing.
 // Advertised work survives resets until ACK and the hps_io write pipeline drain.
@@ -41,6 +41,7 @@ module ngage_mmc_hps (
     reg [1:0] quiet, tail;
     reg mount_known, mount_pending, admitted, cancelled;
     reg [63:0] image_size;
+    reg image_readonly, owned_write;
     reg [31:0] generation, request_generation;
     reg [31:0] owned_lba;
     reg [ 5:0] owned_count;
@@ -70,6 +71,8 @@ module ngage_mmc_hps (
         admitted           = 0;
         cancelled          = 0;
         image_size         = 0;
+        image_readonly     = 1;
+        owned_write        = 0;
         generation         = 0;
         request_generation = 0;
         owned_lba          = 0;
@@ -104,14 +107,23 @@ module ngage_mmc_hps (
                        (request_end <= {1'b0, image_size} &&
                         card_sd_lba == image_size[40:9] - 32'd1 && card_sd_blk_cnt == 0));
     wire owns_buffer = state == REQUEST || state == ACTIVE || state == TAIL;
-    wire selected_word = owns_buffer && (hps_sd_ack || ack_prev) && hps_buff_wr;
+    wire selected_word = owns_buffer && !owned_write && (hps_sd_ack || ack_prev) && hps_buff_wr;
     wire word_ok = {2'b0, hps_buff_addr} == received_words && received_words < expected_words;
+    // 0x18 advances the shared address after sampling each outgoing halfword.
+    // Observe that progress, rather than the incoming-only buffer-write pulse.
+    wire write_progress = owns_buffer && owned_write && (hps_sd_ack || ack_prev) &&
+                          {2'b0, hps_buff_addr} != received_words;
+    wire write_word_ok = {2'b0, hps_buff_addr} == received_words + 15'd1 &&
+                         received_words < expected_words;
     wire current_request = !cancelled && request_generation == generation;
     wire blocked = init_reset || guest_reset || hps_img_mounted ||
                    !mount_known || mount_pending || fault;
-    wire malformed_word = selected_word && !word_ok && current_request && !blocked;
+    wire malformed_word = ((selected_word && !word_ok) ||
+                           (write_progress && !write_word_ok) ||
+                           (owns_buffer && owned_write && (hps_sd_ack || ack_prev) && hps_buff_wr)) &&
+                          current_request && !blocked;
     assign card_reset = blocked || malformed_word;
-    assign card_img_readonly = 1'b1;
+    assign card_img_readonly = image_readonly;
     assign card_img_size = image_size;
     assign card_sd_ack = !card_reset && current_request &&
                          ((state == REQUEST && hps_sd_ack) || state == ACTIVE ||
@@ -121,9 +133,12 @@ module ngage_mmc_hps (
     assign card_sd_buff_wr = selected_word && word_ok && current_request && !card_reset;
     assign hps_sd_lba = owned_lba;
     assign hps_sd_blk_cnt = owned_count;
-    assign hps_sd_rd = state == REQUEST;
-    assign hps_sd_wr = 1'b0;
-    assign hps_buff_din = 16'hffff;
+    assign hps_sd_rd = state == REQUEST && !owned_write;
+    assign hps_sd_wr = state == REQUEST && owned_write;
+    // Retain the old sector during cancelled ACK drain too. The native card's
+    // HPS RAM-slot selector survives guest reset; no new mount is released
+    // until this owner has drained. No additional sector RAM is required.
+    assign hps_buff_din = owns_buffer && owned_write ? card_sd_buff_din : 16'hffff;
     assign busy = state != IDLE || mount_pending || hps_sd_ack || ack_prev || quiet != 3;
 
     function [6:0] crc7_byte;
@@ -168,10 +183,11 @@ module ngage_mmc_hps (
         end
         if (guest_event && mount_known && !fault && !init_event) mount_pending <= 1;
         if (mount_event) begin
-            image_size    <= hps_img_size;
-            mount_known   <= size_ok;
-            mount_pending <= size_ok;
-            fault         <= !size_ok && hps_img_size != 0;
+            image_size     <= hps_img_size;
+            image_readonly <= hps_img_readonly;
+            mount_known    <= size_ok;
+            mount_pending  <= size_ok;
+            fault          <= !size_ok && hps_img_size != 0;
         end
         if (malformed_word) begin
             fault     <= 1;
@@ -196,6 +212,10 @@ module ngage_mmc_hps (
                 endcase
             end
         end
+        if (write_progress && write_word_ok) received_words <= received_words + 1'b1;
+        // A card replacement during an advertised write is not atomic. Drain
+        // the old offer, quarantine the slot and require an explicit remount.
+        if (mount_event && owns_buffer && owned_write) fault <= 1;
         case (state)
             IDLE: begin
                 cancelled <= 0;
@@ -205,10 +225,13 @@ module ngage_mmc_hps (
                     card_img_mounted <= 1;
                 end else if (!card_reset && !changed && quiet == 3 && !hps_sd_ack && !ack_prev &&
                              (card_sd_rd || card_sd_wr)) begin
-                    if (card_sd_wr || !request_ok) fault <= 1;
+                    if (!request_ok || (card_sd_rd && card_sd_wr) ||
+                        (card_sd_wr && (!admitted || image_readonly || card_sd_blk_cnt != 0)))
+                        fault <= 1;
                     else begin
                         owned_lba          <= card_sd_lba;
                         owned_count        <= card_sd_blk_cnt;
+                        owned_write        <= card_sd_wr;
                         expected_words     <= {request_blocks, 8'd0};
                         received_words     <= 0;
                         request_generation <= generation;

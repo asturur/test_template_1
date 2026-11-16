@@ -7,7 +7,8 @@ topic links before repeating research or simulations.
 | Document | Purpose |
 | --- | --- |
 | [dsp-mapping-audit.md](dsp-mapping-audit.md) | DSP inventory, original instruction mix and a qualified isolated full-product candidate; physical savings unmeasured |
-| [mmc-writes.md](mmc-writes.md) | Writable MMC interface scope, existing TX/card support, ownership/reset dependencies and acceptance tests |
+| [mmc-writes.md](mmc-writes.md) | Implemented MMC write interface, RAM/ACK ownership and local protocol/DMA qualification; physical gates pending |
+| [sis-library.md](sis-library.md) | Verified 1 GB installer MMC with383 SIS packages, native Manager layout and internal C: limits |
 | [jpeg-next-performance.md](jpeg-next-performance.md) | POP/BX return recognition adopted in b707ebd: +9.40% local JPEG throughput, four state bits; physical/native gates pending |
 | [cache-probe-timing.md](cache-probe-timing.md) | b313 worst-path analysis, parallel probe selection and reset payload separation with unchanged benchmark cycles |
 | [calendar-benchmark-flash.md](calendar-benchmark-flash.md) | Native C: block-read fault during deferred erase, bounded NOR width correction and CPU/save qualification |

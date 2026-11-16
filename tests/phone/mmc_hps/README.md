@@ -1,109 +1,80 @@
 # Production MMC HPS transport
 
-`ngage_mmc_hps.v` owns the MMC slot's read transactions and admits manually
-mounted production images before the native card becomes present. Template
-must connect only slot 2 mount/ACK/request signals; the halfword buffer bus is
-shared. Slots 0/1 remain C:/PMM; MMC uses slot 2. The diagnostic disk
-slot was removed. The adapter contains no phone chip or D550/AMA wiring.
+`ngage_mmc_hps.v` owns slot2 read/write requests. The native card owns its
+sector RAM; this adapter connects it to the actual shared MiSTer HPS buffer
+bus. It is a backing-store adapter, not invented D550/AMA pin routing. C:/PMM
+remain slots0/1. No new RAM, DMA worker or FSM stage is added for writes.
 
-The actual local `sys/hps_io.sv` contract is WIDE=1, 13-bit halfword index,
-16-bit data, and a six-bit blocks-minus-one count. It supports up to 32 sectors
-(16 KiB). The pinned native card emits single-sector or up-to-eight-sector
-reads; the adapter preserves that 4 KiB bulk path and rejects larger native
-requests. It captures LBA/count before advertising work and holds them through
-HPS acceptance. An advertised request cannot be withdrawn safely because Main
-has no separate acceptance/cancellation channel; it drains through ACK fall and
-the known local HPS write pipeline even across reset or mount changes.
+## Admission and read path
 
-## Admission and read-only gate
+A mounted image must be512-byte aligned, at least1,024bytes and at most1GiB
+plus its512-byte footer. Zero size removes the image. The first request must
+read exactly the footer. All original identity bytes are retained: NGAGEMMC/v1,
+CID/CSD CRC7 and end bits, observed MMC3.1 CSD structure2/spec3/READ_BL_LEN9,
+byte-addressed OCR and decoded capacity covering the payload. No raw fallback
+or identity repair is allowed. ACK completion waits for all footer words and
+CRC/admission checks before the card can become present.
 
-A nonzero mounted image must be 512-byte aligned, at least 1,024 bytes and no
-larger than 1 GiB plus its 512-byte footer. Size zero is ordinary removal:
-quietly absent, with any old request drained. The native card's first request
-must fetch the last image sector, with a one-sector extent. There is no duplicate
-preflight read. Its original bytes must contain:
+Later reads fit the payload excluding the footer and use at most8sectors.
+Prefixes forward immediately; no full4KiB staging delay. Selected-slot ACK or
+its previous-cycle value qualifies incoming halfwords, preserving the last
+registered word and isolating the other slots. Exact order/count is checked;
+short, skipped, duplicated or extra data quarantines the card.
 
-- `NGAGEMMC` magic and byte-8 version 1.
-- Valid supplied CID and CSD CRC7/end bits. The production path does not repair
-  bad original identity bytes or synthesize a raw-image identity.
-- Supported CSD structure 2, specification version 3 and READ_BL_LEN 9; nonzero
-  decoded capacity covering the entire payload.
-- Byte-addressed OCR access bits `[30:29] == 0`. Other OCR bits remain opaque;
-  no extra voltage restriction is inferred from the local evidence.
+## Write path
 
-The first HPS read's words go to the loader cache as they arrive, but its ACK
-fall is held until complete ordered data and original-byte admission pass. On
-failure the adapter resets/quarantines the card before it can become present.
-Later requests must fit the payload, excluding the footer. Subsequent bulk
-prefixes forward immediately; no whole-4-KiB staging delay is introduced.
+Only the selected mount pulse captures image size/read-only. Shared metadata
+changes for other slots cannot alter the card. Native card CSD permanent/
+temporary write protection is retained. One-block writes capture direction,
+LBA/count and generation before advertisement; CMD25 still transfers one block
+at a time. Writes before admission, outside payload, to the footer, with both
+directions asserted or with unsupported counts are rejected.
 
-Every selected-slot transfer must contain exactly its captured extent in
-strictly increasing halfword order from index zero. Short, duplicate,
-out-of-range or extra words quarantine the card; a malformed word is never
-forwarded and a failed transfer never returns a live completion. Already
-forwarded prefixes can precede a later error and are provisional on cancellation.
-The shared write strobe is qualified by the owned slot's ACK or previous ACK,
-preserving the final pipelined word after ACK falls while isolating other slots.
-
-`card_img_readonly` is always one, even when Linux mounted the file writable.
-`hps_sd_wr` is always zero. An unexpected native write faults/resets the card
-without advertising a write or returning a fake ACK. Enabling writes requires
-a separate stable sector snapshot, retained HPS readback source and a defined
-media/HPS ownership policy across remount/reset; those are outside this gate.
+HPS0x18 reads the existing registered card RAM port. Its address advances after
+sampling each outgoing halfword, allowing the reused transfer counter to check
+exactly256ordered words. Incoming write strobes during outgoing traffic are
+invalid. The card's selected RAM slot and bytes remain stable until ACK/tail
+drain, even when the guest resets; the actual-card test verifies every word
+across that reset. No extra sector snapshot is necessary for this contract.
 
 ## Reset and media ownership
 
-`init_reset` is the cold/global transport initializer (`~pll_locked` in the
-production wiring). Its rising edge may forget retained media, but it still
-drains any already advertised transaction. Configuration-time initialization
-establishes the transport state; runtime reset does not erase owned HPS work.
-`guest_reset` covers ordinary Reset and CPU Hold. It retains the latest slot-2
-size and replays exactly one synthetic mount notification after old transport
-work and the HPS pipeline drain. A new mount supersedes old retained metadata.
-Generations plus sticky cancellation prevent old data or ACK from entering a
-reset/re-mounted card. Init takes precedence over guest-only replay; a genuine
-simultaneous new mount can supply fresh metadata.
+Configuration initialization is distinct from runtime init/guest resets.
+Advertised work drains because Main has no separate acceptance/cancellation
+channel. Guest reset suppresses obsolete completion, retains media and replays
+one mount after the drain. Init forgets retained media; a new selected mount
+supplies fresh metadata. Old read data cannot enter a remounted card.
 
-A fault remains quarantined until a new mount or init event. The adapter does
-not invent a timeout or success response if Main stops servicing its request.
-This read-only drain policy does not establish atomic writable hot replacement
-or durability on MiSTer Main. Physical native-card timing and routing remain
-unverified.
+A media replacement during an advertised write quarantines the card and
+requires a fresh mount after the old transaction drains. This cannot roll back
+an already advertised host write or establish atomic writable hot replacement.
+Do not replace a busy image. Cold mounting remains the established NEM-4 flow.
+The adapter does not invent a success or timeout if Main stops servicing it.
 
 ## Verification
 
-Run inside the installed offline image from the repository root:
+Run in the existing offline simulator image:
 
 ```sh
-MMC_HPS_OUT=scratch/ngage2-integration/p3-production/hps/pinned \
-  tests/phone/mmc_hps/run.sh
+MMC_HPS_OUT=build/sim/UNIQUE tests/phone/mmc_hps/run.sh
 ```
 
-The direct external-port fixture compiles with `iverilog -g2001` and passes
-36 cases in 24,435 clocks. It covers size and all identity/admission checks,
-minimum/maximum media geometry, source/count capture, 4-KiB streaming prefixes,
-metadata/payload boundaries, exact word count/order, unrelated bus strobes,
-ACK already high, delayed ACK, resets before ACK and during transfer, init plus
-guest reset, removal during ownership, repeated/latest remounts and write
-rejection. It checks that invalid metadata cannot produce a live ACK fall.
+Final2026-11-16 direct fixture:48cases/33,287clocks PASS. It covers original
+read/admission controls plus writable policy, immutable descriptors, exact
+outgoing extent, wrong-direction/short/skipped/extra words, footer/EOF,
+read-only capture, guest reset before ACK/during transfer, init reset and busy
+replacement quarantine.
 
-The second fixture runs the actual local three-slot `hps_io.sv`, the standalone
-native card and adapter. It passes in 265,094 clocks: nine card reads, two
-simultaneous other-slot reads, two 4-KiB reads, seven final halfwords captured
-after slot-2 ACK fell and 2,128 cycles of overlapping slot requests. A real
-1-bit MMC peer identifies the card, checks read data/CRC16, performs CMD18,
-CMD12 and verifies forced WP. The fixture checks other-slot mount isolation,
-guest reset during accepted HPS data, retained metadata reload, original-footer
-quarantine, short-transfer quarantine and valid remount recovery.
+The actual local three-slot hps_io/native card fixture passes604,018clocks:
+20reads,4persistedwrites,2other-slot reads,2bulk reads,18delayed tail halfwords
+and2,128overlapping-request clocks. Serial MMC peer checks CMD24, two CMD25
+blocks, independently expected HPS halfwords, readback after remount, CRC
+rejection, Linux and both CSD WP flags, EOF/footer and selected RAM-slot
+retention through guest reset. It retains metadata/short-transfer quarantine,
+other-slot isolation and the existing read/reset controls.
 
-`prepare_hps.py` makes the same PS/2 generated-scope naming compatibility copy
-used by existing HPS fixtures. It changes only PS/2 scope references, not the SD
-protocol. The actual module's command `16`, `0217`, mount `1c`, size `1d`, ACK
-and buffer-pipeline behavior are exercised. C:/PMM peers in this test are
-independent pending slot requests, not the complete save manager.
-
-Pinned Verible is idempotent. Strict 1364-2001 Verilator lint passes with only
-`UNUSEDSIGNAL` disabled for the intentionally ignored Linux readonly flag,
-unused card write data and opaque OCR bits. This does not establish synthesis,
-fit, complete firmware mounting or physical card operation. Evidence/source
-hashes are in `scratch/ngage2-integration/p3-production/hps/results.json`.
+prepare_hps.py changes only the existing PS/2 generated-scope names for simulator
+compatibility; the actual HPS SD protocol is unchanged. Strict1364-2001 lint
+passes. Existing card EOF/version, host and UPP/TX/RX DMA/IRQ tests pass too.
+Fitted area/timing, native phone writes and Linux reboot persistence remain
+unverified; see docs/mmc-writes.md and evidence/mmc-writes-20261116.json.

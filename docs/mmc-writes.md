@@ -1,9 +1,42 @@
 # Writable MMC production interface
 
-Requested 2026-11-16. Investigation only: production MMC remains read-only and
-this change is not included in the running b707ebd build.
+Requested 2026-11-16. Write integration is implemented and locally qualified
+below. The currently installed b707ebd RBF remains read-only; the new HDL needs
+a fresh FPGA build and native persistence testing.
 
-## Scope and existing implementation
+## Implemented and qualified locally
+
+The adapter latches the selected mount's read-only flag and captures write
+direction alongside LBA/count. CMD24/25 use the native card's existing one-sector
+RAM and TX DMA; two control bits are added, with no new RAM, DMA worker or FSM
+stage. The read streaming path and wait schedule are retained. Template's MMC
+menu no longer says read-only. Linux read-only and CSD permanent/temporary
+write protection remain enforced.
+
+HPS command0x18 reads the card's registered RAM port. Its advancing halfword
+address validates exactly256 outgoing words; incoming buffer-write strobes are
+rejected during a write. The held native RAM-slot selector remains stable
+through guest/init reset until old transport drains. Actual-HPS testing proves
+the entire selected sector remains correct after reset. A replacement during
+an advertised write is quarantined; no atomic hot replacement is promised.
+An already advertised host write cannot be rolled back. Wait for writes to
+finish before replacing media, and cold-mount cards as established for NEM-4.
+
+Final direct test:48 cases,33,287 clocks. Actual three-slot HPS/native-card test:
+20 reads,4 persisted writes,2 other-slot reads,2 bulk reads,18 delayed tail
+halfwords and2,128 overlapping-request clocks,604,018 clocks total. Checks cover
+CMD24, two CMD25 blocks, independent readback after remount, CRC rejection,
+Linux/CSD WP, EOF/footer exclusion, short/skipped/overlong/wrong-direction data,
+reset before ACK/during readout, init reset and busy replacement quarantine.
+Strict Verilog-2001 lint passes. Existing card EOF/version,33 CMD16 probes,
+28 host-data cases at each of two clock/FIFO profiles,30 MMIO/pin cases and
+98 DMA/IRQ cases for each native RX selector also pass. Private outputs are
+under build/sim/mmc-writes*-20261116*. No firmware, CPU clock or current phone
+session was changed; fitted ALMs/timing and native writes remain unverified.
+
+The following sections record the original scope and acceptance plan.
+
+## Original missing boundary
 
 The host already has transmit commands and TX DMA. The card already implements
 CMD24 and CMD25, data CRC checks, a write response token and busy handling.
@@ -11,9 +44,9 @@ Its write protection combines the mounted image's read-only flag with the
 permanent/temporary CSD write-protect bits. Game images can therefore stay
 protected while ordinary data cards are writable.
 
-The production backing-store adapter, `rtl/ngage_mmc_hps.v`, forces
-`card_img_readonly=1`, rejects `card_sd_wr`, drives `hps_sd_wr=0` and returns
-`ffff` for outgoing halfwords. This is the missing integration boundary, rather
+Before this change, the production backing-store adapter, `rtl/ngage_mmc_hps.v`, forced
+`card_img_readonly=1`, rejected `card_sd_wr`, drove `hps_sd_wr=0` and returned
+`ffff` for outgoing halfwords. This was the missing integration boundary, rather
 than a need for a new DMA engine or a new filesystem format. Linux sector writes
 would persist each accepted MMC write independently of C:/PMM Background save.
 

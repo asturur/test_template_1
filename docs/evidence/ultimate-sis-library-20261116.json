@@ -1,0 +1,43 @@
+{
+  "scope": "Offline image preparation/inspection only; no phone mount or install test",
+  "sis_packages": 383,
+  "loose_sis": 381,
+  "archived_sis": 2,
+  "archives_inspected": 8,
+  "sis_bytes": 222887296,
+  "image": {
+    "bytes": 1073480192,
+    "sha256": "5e9818892ef158161345a5cac186445994171ee4ca78d4f2a5323a0ab469bdbd"
+  },
+  "nominal_capacity": "1 GiB-class standard byte-addressed MMC",
+  "payload_bytes": 1073479680,
+  "free_bytes": 845217792,
+  "filesystem": {
+    "fat_bits": 16,
+    "bytes_per_sector": 512,
+    "sectors_per_cluster": 32,
+    "reserved": 1,
+    "fats": 2,
+    "root_entries": 512,
+    "sectors_per_fat": 256,
+    "total_sectors": 2093024,
+    "data_clusters": 65389
+  },
+  "files": 385,
+  "FAT_mirrors_equal": true,
+  "allocation_errors": [],
+  "allocation_warnings": [],
+  "full_file_readback": "PASS: every filename, directory and source byte compared",
+  "CSD_write_protected": false,
+  "current_b707_RBF_forces_readonly": true,
+  "layout": "383 original SIS payloads at root with uppercase 8.3 aliases; INDEX.TXT maps original names; README.TXT explains use",
+  "C_drive": "Unchanged 4 MiB; a 256 MiB file would not enlarge the phone filesystem",
+  "rebuild_source": "tools/mmc-card/build-sis-library.py",
+  "private_input_manifest": "runtime/mmc/ultimate-sis-1gb.json",
+  "generated_output": "build/mmc/ultimate-sis-1gb.mmc",
+  "phone_changed": false,
+  "failed_approaches": [
+    "mtools target names containing brackets are glob-sensitive; final layout uses uppercase 8.3 root aliases.",
+    "Donor usage estimator reserves LFN entries for uppercase short names; final builder checks exact root names and counts385 entries."
+  ]
+}

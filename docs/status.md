@@ -1,3 +1,29 @@
+## 2026-11-16: 1 GB SIS library complete; MMC writes qualified locally
+
+Latest capacity request is1GB, superseding256GB/512MB. Created and independently
+checked build/mmc/ultimate-sis-1gb.mmc:383 unchanged SIS packages (381loose+2
+archived),385files including index/readme,806.0625MiB free. FAT16/16KiB clusters,
+1,073,479,680payload bytes plus512footer, complete CSD capacity/CRC. Image SHA
+5e9818892ef158161345a5cac186445994171ee4ca78d4f2a5323a0ab469bdbd.
+Root-level uppercase8.3 aliases fit385/512 entries and follow the proven native
+Tools→Manager discovery layout; INDEX.TXT preserves original names. All source
+bytes and8archives unchanged; complete file readback and independent allocation
+checks pass with zero errors/warnings. Native1GB mount/install is untested.
+Raw .img duplicate removed; sources/manifests remain runtime/mmc. Rebuilder is
+new tools/mmc-card/build-sis-library.py and depends on the other chat's local
+uncommitted pinned mmc-card tools. Do not accidentally stage its unrelated work.
+
+User then authorized write support. Production adapter now routes native card
+RAM to HPS0x18, captures readonly/direction (2bits), validates outgoing word
+progress and drains old RAM ownership through reset. No RAM/DMA/stage added.
+Linux/CSD WP and footer/EOF preserved. Busy write replacement quarantines;
+already advertised host writes are uncertain, no atomic hot swap.48direct,
+actual3slot/card20reads/4writes, existing card/33CMD16/2x28host/30MMIO/2x98DMA
+cases PASS. StrictVerilog2001 lint PASS. See mmc-writes.md/evidence.
+Installed b707 RBF remains read-only; no phone input/media/reload in this work.
+New physical build/fit/timing and native persistence remain open. Actual78MHz,
+104MHz objective. C: stays4MiB; a256MB raw file cannot enlarge native flash.
+
 ## 2026-11-16: Date-prompt check clarified; second reboot cancelled
 
 The successful b707ebd Phone-home boot used two explicit Enter confirmations

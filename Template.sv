@@ -59,7 +59,7 @@ module emu (
         // "D1P1F4,NGO,Load Bluetooth Compatibility;",
         "S0,VHD,Mount C: raw image;",
         "S1,VHD,Mount PMM raw image;",
-        "S2,MMC,Mount MMC card (read only);",
+        "S2,MMC,Mount MMC card;",
         "T[14],Flush C:/PMM images;",
         "D2O[21],Background save,Off,On;",
         "O[16],CPU mode,Hold,Run;",
