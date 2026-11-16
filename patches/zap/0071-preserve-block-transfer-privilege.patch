@@ -1,0 +1,18 @@
+--- a/src/rtl/zap_predecode_uop_sequencer.sv
++++ b/src/rtl/zap_predecode_uop_sequencer.sv
+@@ -245,7 +245,14 @@
+                                                 o_instruction[24] = 1'b1;
+                                                 o_instruction[21] = writeback;
+                                                 if (!pre_index && !writeback) o_instruction[11:0] = 12'd0;
+-                                                if (!pre_index && writeback) o_instruction[24] = 1'b0;
++                                                if (!pre_index && writeback)
++                                                begin
++                                                        // Post-index writeback is implicit. W=1
++                                                        // would turn a privileged LDM/STM into
++                                                        // an unprivileged LDRT/STRT access.
++                                                        o_instruction[24] = 1'b0;
++                                                        o_instruction[21] = 1'b0;
++                                                end
+                                         end
+                                 end
+ 

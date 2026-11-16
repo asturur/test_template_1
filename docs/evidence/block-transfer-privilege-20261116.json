@@ -1,0 +1,45 @@
+{
+  "status": "ISOLATED_CORRECTION_TESTED_NOT_ADOPTED",
+  "date": "2026-11-16",
+  "production_cpu": "6f3baa2 restored in11612f9",
+  "native_fault": {
+    "instruction_pc": "50003248",
+    "instruction": "LDMIA SP!,{R1}",
+    "FAR": "80422350",
+    "FSR": "1f",
+    "SPSR_low": "53"
+  },
+  "cause": "P=0,W=1 forces user permissions; post-index writeback is implicit and W must be0",
+  "corrected_patch": "patches/zap/0071-preserve-block-transfer-privilege.patch",
+  "production_changed": false,
+  "old_candidate_cpu_rejected": true,
+  "old_candidate_unit_rejected": "block transfer changed memory privilege",
+  "corrected_unit_sequences": 786896,
+  "corrected_unit_ordered_words": 6163552,
+  "protected_page": "AP1/domain1 small page at80422350",
+  "permission_controls": [
+    "explicit LDRT must abort",
+    "explicit STRT must abort"
+  ],
+  "production_regression": "build/sim/block-privilege-production-20261116",
+  "corrected_regression": "build/sim/block-privilege-corrected-20261116-v2",
+  "logs": {
+    "build/sim/block-fusion-native-investigation-20261116/privileged-old.log": "32efffd37eac2090d0a1f3838aed97a4c04e7976633ca8a8900c954da1ad7c70",
+    "build/sim/block-fusion-native-investigation-20261116/unit-old-negative.log": "307379362e2194af14d01d5d65255361604552071544d6da3bb4c32460973de0",
+    "build/sim/block-fusion-native-investigation-20261116/unit-fixed.log": "524f7438284b94b919e173cd69d0865d59fab46c2da0794ff4b8cd3b999be476",
+    "build/sim/block-fusion-native-investigation-20261116/explicit-ldrt-fixed.log": "17695babdd3c0d797acb73ae8c541dc553bc9eeed22ada34270c379daa6b94f3",
+    "build/sim/block-fusion-native-investigation-20261116/explicit-strt-fixed.log": "679fc6fda02be415aa5b06ac80419abb549b2c91c0cf56859ace6ee63406e01a"
+  },
+  "native_observer_removed": {
+    "ROM_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "cfg": "00002100000000000000000000000000",
+    "observer_removed": true
+  },
+  "pending": [
+    "full corrected candidate CPU/abort qualification",
+    "repeat benchmarks",
+    "native C save on11612f9 build",
+    "native corrected CPU boot",
+    "native JPEG from C"
+  ]
+}

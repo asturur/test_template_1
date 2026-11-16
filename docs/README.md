@@ -6,7 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
-| [block-transfer-sequencing.md](block-transfer-sequencing.md) | Fuse ordinary block-transfer setup/final writeback, precise aborts, JPEG +1.73% and original indices230.32/193.72 |
+| [block-transfer-sequencing.md](block-transfer-sequencing.md) | Quarantined block-transfer fusion; native privileged POP fault isolated and corrected candidate tested |
 | [cache-admission-probe.md](cache-admission-probe.md) | Reuse the admission-edge RAM pre-read; one metadata bit, JPEG +2.39%, original indices230.32/193.72 |
 | [thumb-prediction-address.md](thumb-prediction-address.md) | Removed false Thumb mode-bit redirects; original JPEG +2.29%, unchanged ARM suite, bounded ALU change |
 | [cpu-optimization-status.md](cpu-optimization-status.md) | Complete implemented/remaining CPU-cache ledger; P0, Thumb and admission-read improvements; original indices230.04/193.48 |

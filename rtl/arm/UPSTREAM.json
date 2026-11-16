@@ -161,7 +161,12 @@
   "quarantined_patches": [
     {
       "path": "patches/zap/0070-fuse-block-transfer-setup-writeback.patch",
-      "reason": "Deterministic original-ROM early data-abort loop0x60c on both timing-closed cd858fd and ec6ef3c; pre-fusion6f3baa2 passes this point with identical media",
+      "reason": "Native LDMIA SP!,{R1} encoded as P=0,W=1 forces user permissions: original-ROM faultPC50003248/FAR80422350/FSR1f; withdrawn pending corrected candidate qualification",
+      "date": "2026-11-16"
+    },
+    {
+      "path": "patches/zap/0071-preserve-block-transfer-privilege.patch",
+      "reason": "Correction to quarantined0070: post-index writeback is implicit, W must be0; isolated CPU/MMU tests pass, not adopted in production",
       "date": "2026-11-16"
     }
   ]

@@ -1,3 +1,28 @@
+## 2026-11-16: First native CPU fault isolated; corrected candidate passes privilege test
+
+Production11612f9 retains known-booting6f3baa2 CPU and confirmed C: erase/refill
+fix. Build43806580928/seed44/debugOn still compiling at05:19UTC;40minute check
+05:31:31UTC. No native C: save or JPEG pass claimed.
+
+Rejected0070 first-abort breakpoint captured data abort at50003248:
+LDMIA SP!,{R1}, FAR80422350, FSR1f, SPSRlow53. Its single incrementing
+writeback encoding incorrectly sets P=0,W=1 (LDRT/STRT), forcing user permissions
+on a privileged kernel stack. Correct post-index encoding is P=0,W=0.
+Exact real-CPU/MMU AP1/domain1 reproducer rejects old candidate with the same
+FAR/FSR. Corrected isolated candidate passes privileged load/store at delays0/3
+(load94599/148056cycles, store94564/148019). Full unit oracle passes786896
+sequences/6163552words with new no-forced-user assertion. Explicit LDRT/STRT
+permission controls pass at delays0/3 on both production and candidate; the new
+unit assertion rejects old0070 for changing privilege. Isolated full six-kernel
+remeasurement started. Candidate is not production yet.
+
+Temporary26word terminal and first-abort observers are removed. Reload restored
+stock ROM SHA88fd…58329 and user CFG000021… (Run/saveOn). Board now runs
+6f3baa2 at expected old C: deferred-erase wait50384d60, with exact native
+installed C:74c37648…ed8f817 preserved. No private filesystem repair deployed.
+Observer builder/asm/tests retained;192Unicorn cases pass. First-breakpoint
+mode deliberately halts even normally recoverable aborts; no native boot claim.
+
 ## 2026-11-16: Native boot A/B rejects block-transfer0070; production restored
 
 Fixed erase/refill ec6ef3c/seed43 fit93%(38,801ALMs/503M10Ks) but missed core

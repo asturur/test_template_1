@@ -5,7 +5,8 @@
 > passes this point and reaches the expected50384d60deferred-erase wait.
 > Patch0070 is therefore quarantined. Its source patch, tests and experiments
 > remain; production decoder/sequencer are restored byte-for-byte to6f3baa2.
-> The active bounded tests missed this native case. Root cause is not yet isolated.
+> The active bounded tests missed the privileged single-register IA case.
+> Root cause and isolated correction are documented below.
 > The measurements below describe the experiment, not the shipping CPU.
 
 # LDM/STM and PUSH/POP sequencing — 2026-11-16
@@ -120,3 +121,39 @@ physical resource cost. Counts include synthesis/packing/placement effects.
 No104MHz closure or board benchmark pass is implied. The later erase/refill
 fix is required for native C: installation; this CPU-only artifact was retained
 for comparison rather than deployed with that known admission deadlock.
+
+## Native privilege fault and isolated correction
+
+A fresh-Hold, save-Off first-abort observer caught the original fault before
+its recursive terminal abort. Native PC50003248 is `LDMIA SP!,{R1}` in the
+kernel interrupt-enable helper, after PUSH/MRS/BIC/MSR. FAR80422350, FSR1f,
+SPSRlow53 identify a privileged access to a domain1 protected small page.
+The later low-vector faultPC23c8/FARfffffffc is recursive abort-stack failure,
+not the original cause. Observer was removed and full stock ROM hash verified.
+
+The fused one-register IA/writeback branch emitted P=0,W=1: the ARM LDRT/STRT
+encoding, which forces user permissions. Ordinary post-index writeback is
+implicit, so patch0071 clears W as well as P. This correction is retained as
+a **quarantined delta after0070**; neither patch is active production. No
+permission checks or TLB policy are weakened. No storage/stage is added.
+
+`sim/programs/block_transfer_privileged.S` reproduces the exact native instruction
+shape and virtual address using AP1/domain1 (privileged RW, user none). Original
+candidate fails with independently checked FAR80422350/FSR1f and exception LR.
+Corrected candidate passes load/store at delays0/3. Explicit LDRT and STRT to
+the same page must still generate that permission abort, and both do. A new
+unit assertion observes decoder force-user output: the original candidate fails
+specifically "block transfer changed memory privilege"; corrected786896sequence
+oracle passes. Earlier AP3/user-mode benchmark mappings could not reveal this.
+
+Use the isolated real-CPU regression without overwriting another core fixture:
+
+```sh
+python3 tests/cpu/block_transfer/privileged.py --name UNIQUE
+python3 tests/cpu/block_transfer/privileged.py --name UNIQUE-candidate \
+  --candidate build/sim/block-fusion-native-investigation-20261116/candidate-fixed
+```
+
+Full candidate architecture/abort suites, repeated benchmark measurements and
+original-firmware native boot remain required before re-adoption. Previously
+measured0070 performance and fitted area do not qualify corrected0071.

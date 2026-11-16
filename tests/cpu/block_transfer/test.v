@@ -12,7 +12,7 @@ module test;
   wire [32:0] source, shift_source, shift_length;
   wire [5:0] operation;
   wire [3:0] condition_code;
-  wire memory_load, memory_store, pre_index;
+  wire memory_load, memory_store, pre_index, force_user;
   reg [31:0] regs[0:31], expected[0:31], got_address[0:15], got_store[0:15];
   reg [4:0] got_reg[0:15];
   integer sequences = 0, transfers = 0, n, k, m, r, mode, b, received, cycles, ends;
@@ -61,7 +61,8 @@ module test;
       .o_mem_srcdest_index(memory_reg),
       .o_mem_load(memory_load),
       .o_mem_store(memory_store),
-      .o_mem_pre_index(pre_index)
+      .o_mem_pre_index(pre_index),
+      .o_mem_translate(force_user)
   );
   task tick;
     begin
@@ -130,6 +131,7 @@ module test;
           default: $fatal(1, "unexpected uop operation=%d", operation);
         endcase
         if (memory_load || memory_store) begin
+          if (force_user) $fatal(1, "block transfer changed memory privilege");
           if (!align_word) $fatal(1, "lost block word alignment");
           effective = pre_index ? result : left;
           if (pass_condition && effective !== first_address + received * 4)

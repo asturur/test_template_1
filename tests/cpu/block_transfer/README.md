@@ -32,3 +32,19 @@ program/build/log paths; existing unit-core and long simulations are untouched.
 For an isolated experiment, the unit runner accepts BLOCK_SEQUENCE_RTL and
 BLOCK_DECODE_RTL paths; aborts.py accepts --reference-dir for flat RTL overrides.
 These are simulation controls, not production feature switches.
+
+## Native privileged single-register regression
+
+`python3 tests/cpu/block_transfer/privileged.py --name UNIQUE` creates an isolated
+fixture under build/sim and runs privileged single IA load/store plus explicit
+LDRT/STRT controls, each with memory delays0/3. The exact native PUSH/MSR/POP
+shape uses protected AP1/domain1 page80422350. Ordinary block transfers must
+succeed; explicit user-access instructions must fault with FAR80422350/FSR1f
+and the correct abort LR. Optional `--candidate PATH` selects flat source files
+without enabling the operand-reference path or modifying the working CPU.
+
+The micro-op oracle additionally checks decoder force-user output. It rejects
+original0070 specifically for changing block-transfer memory privilege; corrected
+0070+0071 passes. Neither patch is active production yet. Maintained native
+observer tools and hardware evidence are described in
+[the topic document](../../../docs/block-transfer-sequencing.md).
