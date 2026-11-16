@@ -85,3 +85,42 @@ where they free ALMs or improve measured throughput within the latency/timing
 contract. Current106ALM multiplier attribution bounds the scale of the obvious
 local opportunity; no thousands-of-ALMs saving has been demonstrated.
 [Exact fitted inventory](evidence/dsp-mapping-audit-20261116.json).
+
+## Instruction mix and isolated full-product experiment
+
+The benchmark names describe software routines, not extra ARM instructions.
+An original-code instruction-hook audit, with independent output checks, visits
+1,024 SMULL instructions in `matrix4`, and 48 SMULL plus 16 MLA instructions in
+`triangle_edges`. `transpose4` and the fill routines contain no multiplication.
+These are visited-instruction counts, not a cycle profile or conditional
+retirement count. The JPEG bitmap converter's measured multiply occupancy is
+also zero. [Instruction evidence](evidence/dsp-instruction-mix-20261116.json).
+
+A private candidate replaces the four explicit 17-bit partial products and
+wide recombination sums with registered signed 33-bit factors and one inferred
+full product, annotated for DSP inference. The extra sign bit supports both
+unsigned and signed ARM operands. It preserves the existing state machine,
+low/high result ownership and busy schedule, and leaves accumulation as a
+separate stage. Its purpose is to expose recombination to the fitter; it makes
+no claim that the remaining accumulator is already inside a DSP.
+
+The isolated old/new comparison passes 2,048 independent integer-oracle vectors,
+4,096 ordered low/high results, signed/unsigned accumulation, paired zero flags,
+random data holds, failed conditions and 16 held writeback cancellations.
+This does not replace full CPU qualification, a fitted resource comparison or
+hardware testing. The initial payload-run adapter failed compilation because
+it omitted the renamed module's end label; its results are rejected. The
+corrected adapter passes all six original workloads in both memory profiles,
+with two exact repeats and wrong-output controls. All raw rows, including
+warm-up/scored windows and whole-run counters, exactly match production
+POP/BX; only the baseline report's derived throughput-ratio field is excluded.
+No speedup is expected or measured; the busy schedule is preserved. The
+broader CPU qualification passes 92 architecture runs and 44 IRQ/FIQ boundary
+runs. Fitted ALM/DSP allocation and routed timing remain unmeasured. Production RTL is unchanged, and this
+candidate is excluded from the already-running POP/BX build.
+
+[Candidate patch](evidence/dsp-full-product-candidate-20261116.patch),
+[experiment identities](evidence/dsp-full-product-experiment-20261116.json).
+Private sources and test vectors remain under
+`scratch/dsp-full-product-20261116/`; outputs under
+`build/sim/dsp-full-product-20261116/`.

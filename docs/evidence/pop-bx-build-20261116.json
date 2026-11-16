@@ -1,0 +1,40 @@
+{
+  "commit": "b707ebd4165a36f5508f4afa267c4f5b6ff01a5e",
+  "run": "43835548057",
+  "seed": 43,
+  "enable_debugger": true,
+  "actual_clock_mhz": 78,
+  "objective_clock_mhz": 104,
+  "ALMs": 38781,
+  "ALM_capacity": 41910,
+  "registers": 44372,
+  "block_memory_bits": 2760591,
+  "DSPs": 42,
+  "SDRAM_DQ_packing": "PASS all 16 input/output/OE",
+  "slack_ns": {
+    "setup": -2.087,
+    "hold": 0.192,
+    "recovery": 2.727,
+    "removal": 1.001,
+    "minimum_pulse_width": 0.641
+  },
+  "timing_signoff": false,
+  "worst_path": "zap_data_completion o_next -> cache probe_owner_way; 15 levels, 14.123 ns data delay",
+  "rbf_sha256": "fbc5ba96eaba51502cc73502ebf4bef8e1138e79e355ac15dc6b92c1a99ea46d",
+  "native_result": "PASS original-firmware Phone home after delayed manual CPU Run and matched two time/date confirmations; no memory patches",
+  "DSP_mapping_candidate_included": false,
+  "MMC_write_change_included": false,
+  "boot_report": "build/sim/screens/pop-bx-b707-20261116/result.json",
+  "deployment": {
+    "RBF_sha256": "fbc5ba96eaba51502cc73502ebf4bef8e1138e79e355ac15dc6b92c1a99ea46d",
+    "core_unloaded_images_closed": true,
+    "disks_unchanged": {
+      "/media/fat/games/ngage1/boot0.vhd": "474160ae575d2d068014d48c24fe3e940862174a2e0296c1b8908a5c3d2dd92d",
+      "/media/fat/games/ngage1/boot1.vhd": "801d48b810f74dd926c9665b9426202ac95d0efb1c09c58bbbbc626a0c640bc3"
+    },
+    "card_backups_created": false,
+    "synced": true
+  },
+  "MMC": "/media/fat/games/NGage/spmark-full.mmc, cold mounted before Run",
+  "native_benchmark_result": "not measured on this build"
+}

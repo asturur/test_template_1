@@ -1,0 +1,38 @@
+{
+  "status": "PASS_ISOLATED_ARITHMETIC_ONLY",
+  "production_adopted": false,
+  "results_checked": 4096,
+  "vectors": 2048,
+  "held_writeback_flushes": 16,
+  "clock_changes": false,
+  "busy_schedule": "unchanged in isolated comparison",
+  "physical_savings": "unmeasured",
+  "sources": {
+    "scratch/dsp-full-product-20261116/candidate.sv": "8c139bd98061e36c5b012f593b4da8d3a2d8aac87a359dca156b946039645a0c",
+    "scratch/dsp-full-product-20261116/tb.v": "ff3ff2ca04bc1a1e2bc2a6d000a998f72cde2d1e7f7e021f10cf0d9f6d60e35d",
+    "scratch/dsp-full-product-20261116/vectors.hex": "5f760cca27d49dd933568829fbd14d7955ecdc13a8887f471123d5824f799130",
+    "scratch/dsp-full-product-20261116/generate_vectors.py": "95e319ae818d73f9d913c234cdb03eab23bdcfeb7644391e4fe4f2d279c5c944",
+    "scratch/dsp-full-product-20261116/run.sh": "3317e6c218bebf08fa41b1725411930c94127846679e7cf1bf4585a0e469c3e4",
+    "scratch/dsp-full-product-20261116/run-payload.py": "699894d2e3a0b51718f507c41566f997096c87273008c6d415c001653287333a"
+  },
+  "log": "build/sim/dsp-full-product-repro-20261116/run.log",
+  "full_cpu_and_payload_qualification": "PASS; physical fit and board gates remain open",
+  "failed_run": "First payload adapter renamed the module declaration but omitted the end label. Compilation rejected it; no results used. Corrected private adapter is v2.",
+  "payload_qualification": {
+    "status": "PASS",
+    "groups": 12,
+    "repeats": 2,
+    "raw_counters": "all rows exactly equal to production POP/BX, excluding its derived throughput_ratio field",
+    "result": "build/sim/spmark-payload/dsp-full-product-v2-20261116/result.json",
+    "result_sha256": "259e86b14658594d7b56aaf542e0c560b3566364ba5eb777619564bcdc96f250",
+    "baseline": "build/sim/spmark-payload/pop-bx-production-20261116/result.json",
+    "baseline_sha256": "e59d8a128da0738b1af1b82a848da13e6cc19247e560098e8ab3fd41e8647e40"
+  },
+  "cpu_qualification": {
+    "status": "PASS",
+    "architecture_runs": 92,
+    "irq_fiq_boundary_runs": 44,
+    "root": "build/sim/dsp-full-product-cpu-20261116/cpu"
+  },
+  "reproducible_vectors": "Deterministic 16x16 edge pairs in both signed modes, then seeded random cases; independent Python integer expected values."
+}

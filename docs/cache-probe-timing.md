@@ -1,5 +1,27 @@
 # Cache probe selection timing recovery
 
+## Physical follow-up: b707ebd, seed 43
+
+Run 43835548057 includes the timing rewrite, Calendar NOR correction and
+POP/BX predictor. It fits at 38,781 ALMs (93%), 44,372 registers and 42 DSPs;
+all 16 SDRAM DQ input/output/OE registers are packed correctly. Relative to
+b313/seed43, total usage falls by 567 ALMs and 549 registers. These totals are
+for the combined source delta, not isolated attribution to one change.
+
+Timing still fails: setup is **-2.087 ns**, hold +0.192 ns. The worst of the
+1,000 exported endpoints is now `zap_data_completion.o_next` to the cache's
+`probe_owner_way` payload, with 15 levels and 14.123 ns data delay. The old
+reset-drain origin is no longer the reported worst path, but moving that
+pressure did not close the remaining request-admission path. No timing success
+or 104 MHz capability is established. The retained RBF is an explicitly
+experimental hardware test at the unchanged 78 MHz PLL.
+
+Next timing investigation should trace the data-completion → admission/owner
+capture dependency and routing, preserving consume/admit overlap and ownership.
+Do not mask the failing paths or add a CPU wait stage without measuring it.
+[Exact build evidence](evidence/pop-bx-build-20261116.json).
+
+
 The user-supplied timing export matches b3131b5/run43821270521/seed43 exactly.
 The exported1,000 setup paths contain31violations;27start at reset_drain.
 The worst is reset_drain→D-cache probe_owner_way at-1.722ns:13.812ns data,

@@ -417,3 +417,15 @@ See [ranked candidates](donor-resource-comparison.md#next-optimization-prioritie
   fault0x23d8/0xfffffffc; same artifact/disks/saveOn delayed manualRun boots toUI.
   Trace readiness/reset release before assuming block-transfer semantics or
   adding a blind time delay. See status2026-11-16 and black-boot evidence.
+
+## Writable MMC follow-up — 2026-11-16
+
+User requests normal writable data MMC support. Host types5/6/7, card CMD24/25
+and TX DMA already exist. ngage_mmc_hps currently forcescard_img_readonly=1,
+rejects card_sd_wr, fixes hps_sd_wr=0 and hps_buff_din=ffff. Extend ownership,
+outgoing read-port/ACK-tail handling and preserve Linux/CSD read-only and
+footer/actual-payload limits. Reuse current sector RAM/DMA. Require actual
+three-slot hps_io CMD24/25 persistence/reload, CRC rejection, WP, EOF/footer,
+late ACK and reset/media-change tests before native copy/create/delete checks.
+Separate from the running POP/BX build; no MMC write wiring changed yet.
+See [mmc-writes.md](mmc-writes.md) for ownership/reset dependencies and tests.

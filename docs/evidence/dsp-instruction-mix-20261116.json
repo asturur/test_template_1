@@ -1,0 +1,245 @@
+{
+  "status": "PASS_ORIGINAL_CODE_ORACLES",
+  "note": "Unicorn instruction hooks count visited instructions, not hardware stall cycles or conditional retirement. Inputs are existing fixed-work payload cases. No phone or HDL change.",
+  "rows": [
+    {
+      "case": "matrix4",
+      "instructions_hooked": 14176,
+      "multiply_count": 1024,
+      "mnemonics": {
+        "push": 16,
+        "mov": 2864,
+        "ldr": 2048,
+        "bl": 1024,
+        "sub": 1024,
+        "smull": 1024,
+        "lsr": 1024,
+        "orr": 1024,
+        "asr": 1024,
+        "add": 1792,
+        "bx": 1040,
+        "str": 256,
+        "pop": 16
+      },
+      "multiply_sites": [
+        {
+          "pc": "0x100011c8",
+          "mnemonic": "smull",
+          "operands": "r2, r3, r0, r1",
+          "count": 1024
+        }
+      ],
+      "verified_outputs": [
+        {
+          "address": "0x80003000",
+          "bytes": 1024,
+          "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+        }
+      ]
+    },
+    {
+      "case": "transpose4",
+      "instructions_hooked": 800,
+      "multiply_count": 0,
+      "mnemonics": {
+        "ldr": 384,
+        "str": 384,
+        "bx": 32
+      },
+      "multiply_sites": [],
+      "verified_outputs": [
+        {
+          "address": "0x80001000",
+          "bytes": 2048,
+          "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+        }
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "instructions_hooked": 8528,
+      "multiply_count": 64,
+      "mnemonics": {
+        "push": 16,
+        "mov": 288,
+        "add": 1504,
+        "ldr": 512,
+        "sub": 224,
+        "and": 48,
+        "lsr": 112,
+        "ldm": 80,
+        "asr": 576,
+        "str": 688,
+        "cmp": 848,
+        "movlt": 96,
+        "movgt": 64,
+        "movle": 16,
+        "lsl": 64,
+        "movge": 16,
+        "orr": 64,
+        "rsb": 432,
+        "bl": 64,
+        "b": 64,
+        "bx": 112,
+        "stmdb": 32,
+        "ands": 32,
+        "rsbmi": 64,
+        "eors": 32,
+        "rsbhs": 32,
+        "ldrls": 64,
+        "bxne": 32,
+        "lslls": 48,
+        "blo": 48,
+        "bhi": 128,
+        "adc": 256,
+        "subhs": 256,
+        "bne": 432,
+        "smull": 48,
+        "mla": 16,
+        "eor": 16,
+        "ble": 48,
+        "lsrhi": 16,
+        "adds": 16,
+        "addeq": 16,
+        "popeq": 16,
+        "bxeq": 16,
+        "beq": 128,
+        "bic": 384,
+        "subs": 384,
+        "asrs": 48,
+        "stm": 16,
+        "pop": 16
+      },
+      "multiply_sites": [
+        {
+          "pc": "0x10002d74",
+          "mnemonic": "smull",
+          "operands": "r2, r1, r3, r0",
+          "count": 16
+        },
+        {
+          "pc": "0x10002d8c",
+          "mnemonic": "mla",
+          "operands": "r2, r0, r1, r3",
+          "count": 16
+        },
+        {
+          "pc": "0x10002d90",
+          "mnemonic": "smull",
+          "operands": "ip, r1, lr, r0",
+          "count": 16
+        },
+        {
+          "pc": "0x10002e28",
+          "mnemonic": "smull",
+          "operands": "r2, r1, lr, r0",
+          "count": 16
+        }
+      ],
+      "verified_outputs": [
+        {
+          "address": "0x80000334",
+          "bytes": 12,
+          "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+        },
+        {
+          "address": "0x80007a04",
+          "bytes": 128,
+          "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+        }
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "instructions_hooked": 22896,
+      "multiply_count": 0,
+      "mnemonics": {
+        "cmp": 2,
+        "bxle": 1,
+        "add": 2,
+        "tst": 1,
+        "strh": 1,
+        "subne": 1,
+        "asr": 2,
+        "strhne": 1,
+        "subs": 2289,
+        "blo": 1,
+        "str": 18304,
+        "bhs": 2288,
+        "and": 1,
+        "addls": 1,
+        "bx": 1
+      },
+      "multiply_sites": [],
+      "verified_outputs": [
+        {
+          "address": "0x80004000",
+          "bytes": 73232,
+          "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+        }
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "instructions_hooked": 654,
+      "multiply_count": 0,
+      "mnemonics": {
+        "cmp": 2,
+        "bxle": 1,
+        "add": 2,
+        "tst": 1,
+        "strh": 1,
+        "subne": 1,
+        "asr": 2,
+        "strhne": 1,
+        "subs": 64,
+        "blo": 1,
+        "str": 511,
+        "bhs": 63,
+        "and": 1,
+        "addls": 1,
+        "b": 1,
+        "bx": 1
+      },
+      "multiply_sites": [],
+      "verified_outputs": [
+        {
+          "address": "0x80004000",
+          "bytes": 2064,
+          "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "instructions_hooked": 667,
+      "multiply_count": 0,
+      "mnemonics": {
+        "strb": 3,
+        "sub": 3,
+        "cmp": 4,
+        "tstne": 3,
+        "bne": 3,
+        "tst": 1,
+        "beq": 1,
+        "asr": 2,
+        "add": 2,
+        "subs": 65,
+        "blo": 1,
+        "str": 512,
+        "bhs": 64,
+        "and": 1,
+        "addls": 1,
+        "bx": 1
+      },
+      "multiply_sites": [],
+      "verified_outputs": [
+        {
+          "address": "0x80004000",
+          "bytes": 2068,
+          "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+        }
+      ]
+    }
+  ]
+}

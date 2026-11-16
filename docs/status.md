@@ -1,3 +1,35 @@
+## 2026-11-16: DSP mapping candidate qualified locally; physical gates open
+
+Private full-product candidate passes 2,048 independent arithmetic vectors,
+4,096 ordered low/high results, 92 CPU runs and 44 IRQ/FIQ boundary runs.
+All 12 original six-kernel groups, two repeats and wrong-output controls pass;
+raw rows exactly match production POP/BX (excluding its derived ratio field).
+No latency, clock or production RTL change. ALM/DSP savings and routed timing
+are unmeasured. Candidate patch, source hashes and reproducible private test
+sources retained; see dsp-mapping-audit.md. First private adapter failed on a
+module end-label mismatch and is rejected; corrected v2 qualifies.
+
+Instruction audit confirms matrix SMULL and triangle SMULL/MLA; transpose/fills
+have no multiply. Phone preflight is read-only: installed b313 RBF, queue zero,
+flash quiescent, autosave on/no errors, latest full SPMark card mounted. Saved
+CFG is CPU Hold/save On. Preserve current media and repeat safety checks at
+deployment. POP/BX build43835548057 remains running; nothing deployed yet.
+MMC write scope and reset/ownership tests recorded in mmc-writes.md; no write
+wiring changed and no new DMA is needed.
+
+## 2026-11-16: POP/BX b707ebd pushed; build43835548057 running
+
+Exact b707ebd4165a36f5508f4afa267c4f5b6ff01a5e pushed on original integration
+branch. Build43835548057/seed43/debugOn created08:57:51UTC;40minute check due
+09:37:51UTC. This includes cache timingecd018d and Calendar/C: NOR80373af.
+User authorizes deploy to MiSTer after build; preserve latest C:/PMM, inspect
+queue/quiescence before unloading, no firmware patch or SD backups. No native
+result claimed yet. User additionally asks MMC read/write feasibility: host/
+card CMD24/25 and TX DMA exist; read-only HPS wrapper is missing outgoing
+ownership/data/ACK support. Bounded separate change/tests, not in this build.
+Matrix and transpose benchmark names are routines, not CPU instructions; DSP
+instruction rewrite investigation remains queued after this deployment.
+
 ## 2026-11-16: POP/BX production adoption qualified; push/build/deploy authorized
 
 User explicitly requests put POP/BX in core, push and deploy to phone. This
