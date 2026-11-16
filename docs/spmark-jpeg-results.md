@@ -19,6 +19,7 @@ repeats per profile. See [profile and qualification](spmark-jpeg-profile.md).
 | thumb-target-address | 111449 | 111465 | 110320 | 219849 |106.5810 |
 | admission-pre-read | 108853 | 108869 | 107724 | 214749 |109.1267 |
 | block-transfer-fusion | 107047 | 107063 | 105742 | 211231 |111.0129 |
+| block-transfer corrected0071 — isolated candidate | 104900 | 104916 | 103771 | 206956 |113.2493 |
 | pre-store reference — d4f2a8 | 122793 | 122808 | 121848 | 242265 |96.6720 |
 
 Mode10 is the original native12-bit RGB converter used by this path; mode8
@@ -48,3 +49,7 @@ remains unverified. [Evidence](evidence/thumb-prediction-address-20261116.json).
 Admission-edge pre-read reuse gains2.3885% over Thumb target-address and removes
 2,973 data-wait clocks per8×8block. Native JPEG deadline remains unverified.
 [Evidence](evidence/cache-admission-probe-20261116.json).
+
+Corrected0071 remains isolated pending native qualification; its eight groups
+repeat exactly, all eight unprofiled full-counter comparisons and eight bad
+object/pixel controls pass. [Evidence](evidence/block-transfer-privilege-performance-20261116.json).

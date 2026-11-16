@@ -1,3 +1,29 @@
+## 2026-11-16: Native C: erase/refill fix passes boot and autosave readback
+
+Build43806580928/11612f9/seed44/debugOn deployed, SHA322037ef…f2127d,
+38,629ALMs(92%)/44,325registers/503M10Ks/42DSPs. All16SDRAM I/O/OE registers
+pack. Setup-0.832ns (request-stage→DMA worst; CPU paths also fail), hold+0.210;
+functional experimental hardware result, no timing signoff. PLL remains78MHz.
+
+With original firmware and exact native installed C: restored earlier, phone now
+passes old50384d60deadlock, boots home, and autosave queue drains to0 without
+fault/overflow/error. Initial hash while saves ran differed; subsequent TWO
+stable live/file comparisons match every C: sector, SHA156bfe03…6a152b. PMM
+live/file SHA beb6ac98…23a869 matches. ROM remains stock88fd…58329. No offline
+filesystem-repaired disk deployed, no new card backup. User settings Run/saveOn.
+Timed reboot helper observes Time at71.53s, adds10s safety, sends exactly2
+confirms1.5s apart, reaches Phone home at91.98s. Native Menu shows C: SPMark icon; app launches. Custom JPEG-only test
+(all7others deselected) remains waiting >60s with normal background execution,
+no first fault/panic/queue error; prior timer ordering not retraced. No JPEG pass. Captures build/diagnostics/spmark-c-install-20261116 and
+build/sim/screens/cflash-fixed-native-20261116.
+
+Corrected isolated0070+0071 passes12six-kernel groups and8JPEG groups, each two
+exact repeats, original outputs and negative controls;8unprofiled JPEG full-counter
+matches and128per-beat abort cases pass. Original indices230.4602/193.8342,
+JPEG113.2493. Corrected candidate92architecture/44IRQ-FIQ boundary cases also pass; native
+qualification and timing remain pending.
+Evidence docs/evidence/block-transfer-privilege-performance-20261116.json.
+
 ## 2026-11-16: First native CPU fault isolated; corrected candidate passes privilege test
 
 Production11612f9 retains known-booting6f3baa2 CPU and confirmed C: erase/refill

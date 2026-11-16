@@ -189,3 +189,22 @@ was verified. This is not proof native NEM-4 firmware supports runtime hot swap.
 MGL delay is measured in seconds, not milliseconds. Use the cached hardware
 control skill for ordinary inputs; do not rediscover the API or rely on screen
 captures to inspect OSD focus.
+
+## Native C: repeat — 2026-11-16
+
+With11612f9/run43806580928/seed44/debugOn, C: housekeeping and Background save
+now complete: stable live/file bytes match. SPMark launches from C: while the
+cold-mounted MMC contains only the installer. Native custom selection deselects
+all7other items and retains JPEG. It reaches JPEG Encoding Test and remains
+waiting after more than60s. Generation0,13unchanged bus errors, no sticky first
+fault/panic/queue fault; normal background code and ACKs continue. This isolates
+JPEG from Calendar and writable-installation problems. Exact timer/callback
+ordering was not retraced in this repeat; the earlier observer evidence remains
+the established mechanism, not a newly observed timing measurement.
+
+Current RBF misses setup0.832ns despite correct pin packing, so physical timing
+remains a separate qualification limit. The corrected block-transfer candidate
+passes simulation gates and improves the measured converter3.78% relative to
+this CPU, but has not yet been tested natively. No deadline or firmware patch.
+Captures: build/diagnostics/spmark-c-install-20261116/native-C-jpeg-only.jsonl;
+screens: build/sim/screens/spmark-C-{custom-last,jpeg-start,jpeg-after}-20261116.png.

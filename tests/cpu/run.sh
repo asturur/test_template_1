@@ -50,6 +50,7 @@ CPU_PROGRAM=fiq_privileged_store tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_privileged_ldrt tests/cpu/core/sim.sh
 CPU_PROGRAM=fiq_flash_sequence tests/cpu/core/sim.sh
 CPU_PROGRAM=data_privilege_owner tests/cpu/core/sim.sh
+python3 tests/cpu/block_transfer/privileged.py --name "block-privilege-$(date +%Y%m%d-%H%M%S)"
 CPU_PROGRAM=tlb_permission_reuse tests/cpu/core/sim.sh
 CPU_PROGRAM=tlb_two_mapping tests/cpu/core/sim.sh
 CPU_PROGRAM=cache_store_absence tests/cpu/core/sim.sh

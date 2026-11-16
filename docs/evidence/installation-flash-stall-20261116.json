@@ -33,11 +33,10 @@
     "PMM_file": "12bf28a2d135aea914b6b6bcbb4381c322f716bc7fbee5eab8198eb08f7c3cbc"
   },
   "limits": [
-    "No JPEG run or successful persisted installation is claimed.",
-    "Fetching PC is not a precise retirement PC.",
-    "The snapshot does not identify the internal controller/cache wait state.",
-    "Read-only directory listing succeeds; opening every file returns -26 in the private reader, also with mode0. This is not proof of image corruption or verified payload bytes.",
-    "The erased-sector suspend handler is implicated by the stopped fetch context; the exact hardware cause remains unknown."
+    "Functional native boot/autosave verified on a build that misses setup timing; not timing signoff.",
+    "Installed original payload hashes were verified in a private original-filesystem control; the private repaired image was never deployed.",
+    "No native JPEG completion or reload durability result yet.",
+    "One successful save drain does not prove every save workload."
   ],
   "next_build": {
     "run": 43797500563,
@@ -263,8 +262,28 @@
     },
     "original_rom_verified": true,
     "seed44_bad_cpu_retry_cancelled": 43804914230,
-    "next_action": "build known-working pre-fusion CPU plus the unchanged confirmed erase/refill correction",
-    "native_jpeg": "not run"
+    "next_action": "native JPEG-only test from installed C app, followed by reload durability",
+    "native_jpeg": "JPEG-only custom test from native C: app remains waiting after >60s; generation0, errors13 unchanged, firstFault0/panic0/queueFaultFalse; exact earlier callback/timer ordering not retraced",
+    "fixed_known_cpu": {
+      "run": 43806580928,
+      "commit": "11612f9",
+      "seed": 44,
+      "debugger": true,
+      "rbf_sha256": "322037ef26d2fded77923d1cac946fafbc78e574bf022a95b75c831dd7f2127d",
+      "alms": 38629,
+      "registers": 44325,
+      "m10ks": 503,
+      "dsps": 42,
+      "setup_ns": -0.832,
+      "hold_ns": 0.21,
+      "sdram_dq_registers": "PASS all16",
+      "result": "native housekeeping passes old50384d60 wait; home reached; autosave queue0/faultFalse/overflowFalse/errorFalse; two stable live/file C comparisons match every sector",
+      "C_sha256": "156bfe037968ce3b5cf25ec4857563024efcdd44a5841a4668bdce73016a152b",
+      "PMM_sha256": "beb6ac98656e9e4da456f43da99a9b1bb7def08c01509e7d05d44f731f23a869",
+      "ROM_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "manual_firmware_patch": false,
+      "private_repaired_image_deployed": false
+    }
   },
   "native_c_recovery": {
     "core_unloaded_images_closed": true,
@@ -276,5 +295,12 @@
     "card_backup_created": false,
     "synced": true
   },
-  "restored_cpu_plus_fixed_erase_regression": "PASS 3086012clocks,132214competing scalar reads,32writes"
+  "restored_cpu_plus_fixed_erase_regression": "PASS 3086012clocks,132214competing scalar reads,32writes",
+  "historical_initial_limits": [
+    "No JPEG run or successful persisted installation is claimed.",
+    "Fetching PC is not a precise retirement PC.",
+    "The snapshot does not identify the internal controller/cache wait state.",
+    "Read-only directory listing succeeds; opening every file returns -26 in the private reader, also with mode0. This is not proof of image corruption or verified payload bytes.",
+    "The erased-sector suspend handler is implicated by the stopped fetch context; the exact hardware cause remains unknown."
+  ]
 }

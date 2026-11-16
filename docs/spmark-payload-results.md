@@ -34,6 +34,7 @@ phone's official SPMark score. Keep workload membership and inputs fixed.
 | thumb-target-address | 54,730 / 54,730 | 5,465 / 5,465 | 27,201 / 27,201 | 71,264 / 201,307 | 2,564 / 2,564 | 2,628 / 2,628 | 228.5393 / 192.2189 | [JSON](evidence/thumb-prediction-address-20261116.json) |
 | admission-pre-read | 54,442 / 54,442 | 5,337 / 5,337 | 26,915 / 26,915 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.0365 / 193.4779 | [JSON](evidence/cache-admission-probe-20261116.json) |
 | block-transfer-fusion | 54,394 / 54,394 | 5,337 / 5,337 | 26,739 / 26,739 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.3221 / 193.7181 | [JSON](evidence/block-transfer-sequencing-20261116.json) |
+| block-transfer corrected0071 — isolated candidate | 54,394 / 54,394 | 5,337 / 5,337 | 26,643 / 26,643 | 71,263 / 201,306 | 2,564 / 2,564 | 2,629 / 2,629 | 230.4602 / 193.8342 | [JSON](evidence/block-transfer-privilege-performance-20261116.json) |
 
 Baseline measured2026-11-14, source HEAD555a510; exact frozen RTL, inputs,
 raw windows and qualification are preserved in the evidence.

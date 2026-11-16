@@ -109,3 +109,25 @@ with backpressured64beat C: snapshots through the production D3 DDR adapter.
 All4,084 snapshots check every data beat/last flag against independent backing
 bytes; CPU completes8 erases in1,049,519clocks/32writes. This covers DDR-side
 snapshot arbitration, not HPS file writes or ordered dirty-queue persistence.
+
+## Native fix verification
+
+Build43806580928/11612f9/seed44/debugOn boots through the old50384d60 stop
+with the pre-fusion known-working CPU and erase/refill fix. Original ROM SHA
+88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329 verified.
+Exact recovered native installation C: was used; private reader-repaired image
+was never deployed. Phone reaches home, native housekeeping proceeds and
+Background save drains the dirty queue to0 without queue fault/overflow/error.
+Two stable comparisons show zero differing C: sectors and live/file SHA
+156bfe037968ce3b5cf25ec4857563024efcdd44a5841a4668bdce73016a152b.
+PMM live/file also matches. An earlier compare during active saves differed;
+that transient mismatch was not a persistence failure. Logs and proofs:
+`build/diagnostics/spmark-c-install-20261116/known-cpu-flash-fixed-native.jsonl`,
+`fixed-native-persistence-stable.jsonl`, `fixed-native-persistence.json`.
+
+RBF322037ef26d2fded77923d1cac946fafbc78e574bf022a95b75c831dd7f2127d fits
+92%(38,629ALMs),503M10Ks,42DSPs, all16SDRAM pin registers pack. It misses
+setup by0.832ns, including core paths; this functional result is experimental,
+not timing qualification. Next gate is native installed application/JPEG and
+reload durability. Reboot helper automatically clears time/date after71.53s
+prompt detection plus10s safety; Phone home verified. No native JPEG claim.

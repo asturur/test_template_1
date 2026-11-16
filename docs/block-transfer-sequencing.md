@@ -157,3 +157,12 @@ python3 tests/cpu/block_transfer/privileged.py --name UNIQUE-candidate \
 Full candidate architecture/abort suites, repeated benchmark measurements and
 original-firmware native boot remain required before re-adoption. Previously
 measured0070 performance and fitted area do not qualify corrected0071.
+
+Corrected candidate remeasurement passes all12 six-kernel groups and8 JPEG
+groups with two exact repeats, original checked outputs, all bad-output controls
+and8 unprofiled JPEG full-counter comparisons. Original indices230.4602/193.8342;
+JPEG113.2493 (104900/104916/103771/206956clocks). The permission-bit fix also
+avoids unnecessary user-translation work; therefore prior0070 counts were not
+reused. All128 real-CPU per-beat abort cases pass again. These remain isolated
+candidate results, not production or native JPEG results.
+[Evidence](evidence/block-transfer-privilege-performance-20261116.json).
