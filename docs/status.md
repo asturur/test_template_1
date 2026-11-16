@@ -1,3 +1,27 @@
+## 2026-11-16: Native C: installation completes, then flash-context stall
+
+SPMark original SIS reports Installation complete on C:. The phone then stops
+responding: fresh10s captures show fetches/ACKs frozen at1028515054/1534042791,
+last instruction50384d5c (after B0 erase-suspend write), snapshots/cycles advancing.
+217pending save sectors, flash nonquiescent, idle save manager; no queue/save
+error or CPU first fault/panic. C: DDR/file stable hashes disagree; PMM agrees.
+No reboot yet. This supersedes the earlier "saves healthy" note for this session.
+Native JPEG has NOT run from C:; persisted installation is NOT verified.
+
+Private native-reader directory listing finds the app/help/install entries;
+all file opens return-26 even with a separate mode0 control. Do not claim
+payload byte verification or disk corruption from this reader limitation.
+
+CPU improvement committed/pushed ascd858fd (reboot helper3826ebe). Build43797500563
+seed43/debugOn started03:19:33UTC; check after03:59:33UTC. This physical build
+excludes the new passive flash-path observation being prepared now.
+
+Unused existing DDR words245..251 now observe the NOR/router wait states without
+new counters/state/RAM or functional changes. Writer/reader, physical DDR,
+collision-poison, disabled-debugger loader and integrated flash reset tests pass;
+hardware gate pending. Root cause remains open. No new firmware/RAM patches.
+[Details](installation-flash-stall.md).
+
 ## 2026-11-16: Block-transfer fusion qualified; original indices230.32/193.72
 
 Patch0070 combines ordinary first memory beat with private-pointer setup, and

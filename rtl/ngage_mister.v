@@ -90,6 +90,7 @@ module ngage_mister #(
     input  wire [ 10:0] debug_read_word,
     output wire [ 15:0] debug_read_data,
     output wire [767:0] debug_values,
+    output wire [223:0] debug_memory,
     output wire         debug_char_valid,
     output wire [  7:0] debug_char_data,
     output wire         debug_fault_seen,
@@ -397,6 +398,8 @@ module ngage_mister #(
     wire [31:0] code_data, cm_addr, cm_data;
     wire [ 3:0] cm_be;
     wire [13:0] code_dirty_sector;
+    wire [31:0] user_debug_state;
+    wire [63:0] code_debug_state;
     wire user_ready,user_rsp,user_err,um_valid,um_write,um_ready,um_done,user_dirty,user_pending;
     wire [31:0] user_data, um_addr, um_data;
     wire [ 3:0] um_be;
@@ -444,7 +447,8 @@ module ngage_mister #(
         .dirty_valid (code_dirty),
         .dirty_sector(code_dirty_sector),
         .pending     (code_pending),
-        .idle        (code_idle)
+        .idle        (code_idle),
+        .debug_state (code_debug_state)
     );
     ngage_cflash user_flash (
         .clk         (clk_sys),
@@ -470,7 +474,8 @@ module ngage_mister #(
         .dirty_valid (user_dirty),
         .dirty_sector(user_dirty_sector),
         .pending     (user_pending),
-        .idle        (user_idle)
+        .idle        (user_idle),
+        .debug_state (user_debug_state)
     );
     // Refill-only transport shortcut. MMU permission and cache-line ownership
     // were checked in UPP. Flash command/status still belongs to each NOR die;
@@ -545,6 +550,16 @@ module ngage_mister #(
     assign ddram_be = um_valid ? um_be : cm_be;
     assign ddram_wr = !line_ddr_offer && ((um_valid && um_write) || (cm_valid && cm_write));
     assign ddram_rd = line_ddr_offer || (um_valid && !um_write) || (cm_valid && !cm_write);
+    // Reserved DDR snapshot words, with no new live-path registers or storage.
+    // Router bits23:0, highest first: line FSM, WB owner, valid/issued,
+    // NOR pending/idle, backing valid/ready/done and line request/ready.
+    assign debug_memory = ENABLE_DEBUGGER ? {
+        line_addr, cm_addr, code_debug_state, um_addr, user_debug_state,
+        8'h4d, line_state, memory_owner, memory_owner_valid, flash_issued,
+        code_pending, user_pending, code_idle, user_idle,
+        cm_valid, cm_ready, cm_done, um_valid, um_ready, um_done,
+        mem_owner_line, mem_owner_user, line_req, line_ready, wb_cyc
+    } : 224'b0;
     assign flash_busy = flash_issued || code_pending || user_pending;
     assign flash_dirty = code_dirty || user_dirty;
     assign flash_dirty_sector = user_dirty ? {1'b0, user_dirty_sector} : code_dirty_sector;

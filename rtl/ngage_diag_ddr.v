@@ -13,6 +13,7 @@ module ngage_diag_ddr #(
     input  wire [767:0] values,
     input  wire [ 63:0] save_observation,
     input  wire [ 31:0] save_queue_observation,
+    input  wire [223:0] memory_observation,
     output wire         capture_active,
     output wire [ 10:0] debug_word,
     input  wire [ 15:0] debug_data,
@@ -72,6 +73,13 @@ module ngage_diag_ddr #(
                 242:     snapshot_data = save_observation[31:0];
                 243:     snapshot_data = save_observation[63:32];
                 244:     snapshot_data = save_queue_observation;
+                245:     snapshot_data = memory_observation[31:0];
+                246:     snapshot_data = memory_observation[63:32];
+                247:     snapshot_data = memory_observation[95:64];
+                248:     snapshot_data = memory_observation[127:96];
+                249:     snapshot_data = memory_observation[159:128];
+                250:     snapshot_data = memory_observation[191:160];
+                251:     snapshot_data = memory_observation[223:192];
                 default: snapshot_data = 0;
             endcase
         end

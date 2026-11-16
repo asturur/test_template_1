@@ -1,3 +1,24 @@
+## 2026-11-16: Passive memory-path wait observations
+
+Existing reserved snapshot words245..251 carry router and NOR state. No snapshot
+size, wire version, capture period, FIFO or live-path state changes. Older builds
+remain readable; `memory_path` appears only with all three explicit markers.
+
+Word245: marker4D in31:24; line FSM23:21; memory owner20:17; owner-valid16;
+flash-issued15; code/user pending14/13; code/user idle12/11; code backing
+valid/ready/done10/9/8; user backing valid/ready/done7/6/5; retained line/user
+response owner4/3; line request/ready2/1; WB cycle0.
+Word246: CF marker31:24, C: state13:12, operation11:9, unlock8:7,
+autoselect6, program5, erase-armed4, erase-pending3, polled2, valid1, write0.
+247=user backing address.248..249=64bit code state, CE marker63:56;
+target40:39, chip38:37, operation36:35, state34:33; three11bit die states32:0.
+250=code backing address;251=requested physical line address.
+
+These are periodic observations, not an atomic transaction trace. State2 means
+WAIT_MEM and1 ISSUE in each NOR controller. C: operations0=read,1=program-read,
+2=program-write,3=erase-read,4=erase-write. The local line FSM0=idle,1=ROM issue,
+2=ROM wait,3=RAM issue,4=RAM wait. New physical capture remains pending.
+
 ## 2026-11-14: Passive D550 and SIM observations
 
 CPU_FLAGS bit31 marks the new status extension, bits30:25 remain zero and

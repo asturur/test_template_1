@@ -28,7 +28,8 @@ module ngage_cflash #(
     output reg         dirty_valid,
     output reg  [12:0] dirty_sector,
     output wire        pending,
-    output wire        idle
+    output wire        idle,
+    output wire [31:0] debug_state
 );
     localparam IDLE = 0, ISSUE = 1, WAIT_MEM = 2;
     localparam OP_READ = 0,
@@ -51,6 +52,22 @@ module ngage_cflash #(
     assign idle = (state == IDLE) && !erase_pending;
     assign
         pending = (state != IDLE) || program_pending || erase_pending || erase_armed || unlock != 0;
+    // Passive controller state; unconnected in debugger-off production.
+    assign debug_state = {
+        8'hcf,
+        8'b0,
+        2'b0,
+        state,
+        op,
+        unlock,
+        autoselect,
+        program_pending,
+        erase_armed,
+        erase_pending,
+        erase_polled,
+        mem_valid,
+        mem_write
+    };
     assign req_ready = (state == IDLE) && !reset;
     assign mem_valid = (state == ISSUE);
     function automatic [31:0] mask_bytes(input [3:0] b);

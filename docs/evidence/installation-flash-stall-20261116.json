@@ -1,0 +1,80 @@
+{
+  "build": {
+    "commit": "6f3baa22d238167f2260a01e07ba8dfbe6a628bd",
+    "run": 43785027340,
+    "rbf_sha256": "a5d2a2b1692bdcad151718592a927f3e715e5179eceaea45f1026053af0cf789",
+    "clock_hz": 78000000
+  },
+  "observed": {
+    "native_installer_completion": true,
+    "installed_drive": "C:",
+    "live_lffs_spmark_entries": 11,
+    "last_fetch_pc": "0x50384d60",
+    "last_instruction_pc": "0x50384d5c",
+    "last_instruction": "0xe5941008",
+    "fetches_stopped_at": 1028515054,
+    "bus_acks_stopped_at": 1534042791,
+    "save_pending_sectors": 217,
+    "save_manager_state": 0,
+    "flash_quiescent": false,
+    "queue_fault": false,
+    "save_error": false,
+    "cpu_first_fault": false,
+    "panic": false,
+    "input_no_longer_changes_display": true
+  },
+  "persistence": {
+    "status": "MISMATCH",
+    "stable": true,
+    "attempt": 19,
+    "C_ddr": "74c37648337a8d7c88670672e92e4653628788cf18729773ff5506250ed8f817",
+    "C_file": "d9bcb59291483cb2d0883f0c1b22c528ea976ef3f6aeaa4421cc4e2798007af5",
+    "PMM_ddr": "12bf28a2d135aea914b6b6bcbb4381c322f716bc7fbee5eab8198eb08f7c3cbc",
+    "PMM_file": "12bf28a2d135aea914b6b6bcbb4381c322f716bc7fbee5eab8198eb08f7c3cbc"
+  },
+  "limits": [
+    "No JPEG run or successful persisted installation is claimed.",
+    "Fetching PC is not a precise retirement PC.",
+    "The snapshot does not identify the internal controller/cache wait state.",
+    "Read-only directory listing succeeds; opening every file returns -26 in the private reader, also with mode0. This is not proof of image corruption or verified payload bytes.",
+    "The erased-sector suspend handler is implicated by the stopped fetch context; the exact hardware cause remains unknown."
+  ],
+  "next_build": {
+    "run": 43797500563,
+    "commit": "cd858fdfa0b368302d3448ae35bb91f773171e07",
+    "seed": 43,
+    "debugger": true,
+    "created_utc": "2026-11-16T03:19:33Z",
+    "check_not_before_utc": "2026-11-16T03:59:33Z"
+  },
+  "new_observer": {
+    "words": [
+      245,
+      246,
+      247,
+      248,
+      249,
+      250,
+      251
+    ],
+    "new_state_bits": 0,
+    "new_snapshot_bytes": 0,
+    "debugger_off": "removed with existing ENABLE_DEBUGGER generate",
+    "purpose": "Distinguish NOR command setup, backing handshake and blocked line-refill router."
+  },
+  "qualification": [
+    "DDR snapshot/text scalar and physical transports, poison RAM, reader markers/legacy/torn records: PASS",
+    "Flash controller program/erase/reset integration: PASS",
+    "Debugger-disabled loader equivalence: PASS",
+    "Verilator Docker full phone top lint: PASS",
+    "Quartus source graph and maintained RTL formatting: PASS"
+  ],
+  "source_sha256": {
+    "rtl/ngage_mister.v": "388266714814108594fec66b436a79d8c06667bd3f83a2c3c09dd4b7da7fda23",
+    "rtl/ngage_cflash.sv": "9e13af37ca9c9d029c229556bc14daa4f0bc33762106026238003c5a228cc2e3",
+    "rtl/ngage_codeflash.sv": "a5ec2621b41f9587b74b68ae0c7a6adffc04fa9c976ea710497efab524064fdb",
+    "rtl/ngage_diag_ddr.v": "b688ec0ff38ec97fd2f91c1ae74b15089c9e959603f5abeb5cfbf19796718830",
+    "Template.sv": "79de3a3ce87d2f2210ef0964bd68487e04fc5bce26c543c002391aa772d547e2",
+    "tools/ngage_runtime_diag.py": "53bac4c2903584cbfcdf344b78b362677f6f2400ac6ddbe74981b2b926376349"
+  }
+}

@@ -55,6 +55,7 @@ topic links before repeating research or simulations.
 | [native-startup-hdl.md](native-startup-hdl.md) | Strictly original-firmware startup requirement, native RF/ADSP contracts and hardware qualification gates |
 | [menu-bringup-2026-11-12.md](menu-bringup-2026-11-12.md) | Live DDR C: capture, Phone exit, no-radio Bluetooth comparison and guarded exit tracing |
 | [ui-startup-processes.md](ui-startup-processes.md) | Frozen6B/7B process inventory, CPU ownership, waits and next Phone/EFile request trace |
+| [installation-flash-stall.md](installation-flash-stall.md) | Native SIS completion, stopped flash context,217 unsaved sectors and passive wait-state visibility |
 | [save-blockers-2026-11-12.md](save-blockers-2026-11-12.md) | Autosave/manual error isolation, Main ACK/file-write ordering and remaining stall evidence |
 | [ddr-diagnostics.md](ddr-diagnostics.md) | SSH runtime text/snapshots, DDR format, verification and deferred save/video defects |
 | [sim-ui-run.md](sim-ui-run.md) | Fresh frozen integration simulation, 1B/100M checkpoint schedule and live key commands |

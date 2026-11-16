@@ -522,6 +522,7 @@ module emu (
     wire         telemetry_capture;
     wire [ 10:0] telemetry_word;
     wire [767:0] diagnostic_values;
+    wire [223:0] diagnostic_memory;
     wire service_valid, service_ready, service_write, service_done;
     wire [31:0] service_addr, service_data, service_rdata;
     wire [3:0] service_be;
@@ -1039,6 +1040,7 @@ module emu (
                 .values                (diagnostic_values),
                 .save_observation      ({sd_lba[0], save_debug_state}),
                 .save_queue_observation(save_queue_state),
+                .memory_observation    (diagnostic_memory),
                 .capture_active        (telemetry_capture),
                 .debug_word            (telemetry_word),
                 .debug_data            (debug_read_data),
@@ -1185,6 +1187,7 @@ module emu (
         .debug_read_word(telemetry_word),
         .debug_read_data(debug_read_data),
         .debug_values(diagnostic_values),
+        .debug_memory(diagnostic_memory),
         .debug_char_valid(runtime_char_valid),
         .debug_char_data(runtime_char_data),
         .debug_fault_seen(debug_fault_seen),

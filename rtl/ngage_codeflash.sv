@@ -28,7 +28,8 @@ module ngage_codeflash #(
     output reg         dirty_valid,
     output reg  [13:0] dirty_sector,
     output wire        pending,
-    output wire        idle
+    output wire        idle,
+    output wire [63:0] debug_state
 );
     localparam IDLE       = 0, ISSUE = 1, WAIT_MEM = 2;
     localparam READ_ARRAY = 0, PROGRAM_READ = 1, PROGRAM_WRITE = 2, ERASE_WRITE = 3;
@@ -107,6 +108,10 @@ module ngage_codeflash #(
     assign idle = (state == IDLE);
     assign pending = (state != IDLE) || intel_program[0] || intel_program[1] || intel_program[2] ||
         (|erase_armed) || unlock[0] != 0 || unlock[1] != 0 || unlock[2] != 0;
+    // Existing die state only: this observation never changes NOR admission.
+    assign debug_state = {
+        8'hce, 15'b0, target, chip, operation, state, die_state[2], die_state[1], die_state[0]
+    };
     assign req_ready = state == IDLE && !reset;
     assign mem_valid = state == ISSUE;
     function automatic [31:0] mask32(input [3:0] be);

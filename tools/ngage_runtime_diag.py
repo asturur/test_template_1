@@ -155,6 +155,28 @@ class Reader:
                                               flags_hex=f'0x{w[242]:08x}', lba=w[243],
                                               **{name: bool(w[242] & (1 << bit))
                                                  for bit, name in enumerate(save_flags, 4)})
+                if w[245] >> 24 == 0x4d and w[246] >> 24 == 0xcf and w[249] >> 24 == 0xce:
+                    router = w[245]
+                    user = w[246]
+                    code = (w[249] << 32) | w[248]
+                    event['memory_path'] = dict(
+                        router_hex=f'0x{router:08x}',
+                        **{name: bool(router & (1 << bit)) for bit, name in enumerate(
+                            ('wb_cyc', 'line_ready', 'line_req', 'owner_user', 'owner_line',
+                             'user_done', 'user_ready', 'user_valid', 'code_done',
+                             'code_ready', 'code_valid', 'user_idle', 'code_idle',
+                             'user_pending', 'code_pending', 'flash_issued', 'memory_owner_valid'))},
+                        memory_owner=(router >> 17) & 15, line_state=(router >> 21) & 7,
+                        line_address=w[251],
+                        user=dict(state=(user >> 12) & 3, operation=(user >> 9) & 7,
+                                  unlock=(user >> 7) & 3, address=w[247],
+                                  **{name: bool(user & (1 << bit)) for bit, name in enumerate(
+                                      ('write', 'valid', 'erase_polled', 'erase_pending',
+                                       'erase_armed', 'program_pending', 'autoselect'))}),
+                        code=dict(state=(code >> 33) & 3, operation=(code >> 35) & 3,
+                                  chip=(code >> 37) & 3, target=(code >> 39) & 3,
+                                  dies=[(code >> (die * 11)) & 0x7ff for die in range(3)],
+                                  address=w[250]))
                 if w[244] >> 24 == 0x51:
                     q = w[244]
                     event['save_queue'] = dict(count=(q >> 9) & 0x7fff,

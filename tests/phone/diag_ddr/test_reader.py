@@ -22,6 +22,21 @@ for name in ('guard.bin', 'guard-wrap.bin'):
         fault=True, flush_error=True, flushing=False, in_flight=False,
         mark_pending=False, head_ready=False, overflow=True,
         invalid_sector=False, raw_hex='0x514101c2')
+    memory = snap[0]['memory_path']
+    assert memory['line_state'] == 1 and memory['line_ready'] and memory['code_valid']
+    assert memory['user_pending'] and not memory['wb_cyc']
+    assert memory['line_address'] == 0x00384d60
+    assert memory['user'] == dict(state=1, operation=2, unlock=0,
+        address=0x31440000, write=False, valid=True, erase_polled=True,
+        erase_pending=False, erase_armed=False, program_pending=False, autoselect=False)
+    assert memory['code'] == dict(state=0, operation=0, chip=0, target=0,
+                                  dies=[0,0,0], address=0x30001000)
+    for word in (245,246,249):
+        legacy_memory = bytearray(raw)
+        for offset in (0xF000,0xF400):
+            struct.pack_into('<I', legacy_memory, offset+word*4, 0)
+        decoded = [e for e in diag.Reader(legacy_memory).poll() if e['type']=='snapshot'][0]
+        assert 'memory_path' not in decoded
     # Decode passive production-chip status, gated by its explicit marker.
     observed = bytearray(raw)
     for pos in (0xF000+30*4, 0xF400+30*4):
