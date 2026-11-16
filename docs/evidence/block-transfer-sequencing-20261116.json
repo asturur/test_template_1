@@ -1,5 +1,5 @@
 {
-  "status": "PASS_OFFLINE_PHYSICAL_GATES_PENDING",
+  "status": "PASS_OFFLINE_AND_78MHZ_FIT_NATIVE_PENDING",
   "date": "2026-11-16",
   "baseline_commit": "6f3baa22d238167f2260a01e07ba8dfbe6a628bd",
   "scope": "Fuse ordinary LDM/STM setup into first memory beat and eligible incrementing base writeback into last beat",
@@ -3054,5 +3054,28 @@
     "status": "PASS",
     "runs": 128,
     "result": "build/sim/block-transfer-maintained-aborts-20261116/result.json"
+  },
+  "physical_gate": {
+    "run": 43797500563,
+    "commit": "cd858fdfa0b368302d3448ae35bb91f773171e07",
+    "seed": 43,
+    "debugger": true,
+    "clock_hz": 78000000,
+    "setup_ns": 0.197,
+    "hold_ns": 0.174,
+    "all_constrained_checks": "PASS",
+    "sdram_dq_io_registers": "PASS all16",
+    "alms": 38809,
+    "registers": 45220,
+    "m10ks": 503,
+    "dsp": 42,
+    "delta_vs_6f3baa2": {
+      "alms": 424,
+      "registers": 932,
+      "m10ks": 0,
+      "dsp": 0
+    },
+    "native_benchmark": "pending",
+    "104mhz": "unverified"
   }
 }

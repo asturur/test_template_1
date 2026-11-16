@@ -69,3 +69,43 @@ autosave durability or native JPEG pass. The standalone forced-port prototype
 hit the same admission wait, but the real-CPU regression is the maintained
 acceptance evidence. No firmware/RAM patch or slower fallback was introduced.
 [Regression](../tests/phone/flash_refill_suspend/README.md).
+
+## Payload verification and native-state recovery
+
+A separate writable **private copy** resolves the reader's-26 failures. Original
+file-server code makes5 C: writes, then all95 file opens succeed. All12 SPMark
+payloads match the original SIS sizes/SHA256, including TEST.JPG, SPMark.app,
+3dtest.dll and libGLES_CM.dll. This establishes complete installed payloads in
+the captured resident image. The source snapshot remains74c37648…ed8f817; the
+private emulator result44ec5479…5ca7c is analysis-only and must not be deployed.
+
+When the fix build43800659356 is ready, recover the exact native4MiB C: snapshot
+to boot0.vhd only after unloading the stalled core and verifying Main has closed
+the image. Verify hashes and sync before starting the new RBF. PMM already
+matches its file. This salvages native installer writes the stalled old core
+could not flush; it is not a firmware patch or an offline filesystem repair.
+Then validate actual native housekeeping, UI progress and queued save drain on
+the new HDL before reporting successful persistence or JPEG completion.
+
+The private filesystem changes all128 sectors at C: offset40000..4ffff and one
+sector at2d0a00. Its garbage-collection erase is therefore exactly the sector
+address seen in the stopped phone's last bus record02440000. This independently
+connects the native file-server housekeeping to the reproduced erase/refill wait;
+it still does not replace hardware verification of the new HDL.
+
+The superseded CPU-only build43797500563 passes all constrained timing checks:
+setup+0.197ns, hold+0.174ns, recovery+2.379ns, removal+0.878ns, pulse+0.641ns.
+38,809/41,910ALMs(93%),45,220registers,503M10Ks,42DSPs; all16SDRAM DQ pin input/
+output/OE registers pack. Artifacts/build-info exact commitcd858fd/seed43/debugOn
+verified. It was not deployed because its NOR admission still contains the bug.
+
+Additional changed-boundary test: `--reset-overlap` cancels an accepted cold RAM
+line while the erase command is deferred. The accepted mutation drains before
+CPU restart, which then completes the eight-erase test in3,470,671clocks with
+148,660diagnostic reads/36backing writes. No stale line response or data failure.
+
+Concurrent sector case: `--bulk-competition` replaces diagnostic scalar reads
+with backpressured64beat C: snapshots through the production D3 DDR adapter.
+All4,084 snapshots check every data beat/last flag against independent backing
+bytes; CPU completes8 erases in1,049,519clocks/32writes. This covers DDR-side
+snapshot arbitration, not HPS file writes or ordered dirty-queue persistence.

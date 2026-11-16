@@ -125,3 +125,14 @@ Image SHA remained60d7c4aa… before/after. This strengthens the evidence that
 damaged FAT allocation; it does not prove original-firmware mount compatibility
 or executable integrity. [Full audit](evidence/mmc-spmark04-fat-20261114.json);
 read-only source in scratch/mmc-native-20261114/audit-fat.py.
+
+## Native C: SIS installation (2026-11-16)
+
+Original installer-only MMC is recognized by **Tools→Manager**. Extras→Apps is
+the Java manager. The original SIS completes installation on C:; all12 payload
+hashes match the original in a private original-filesystem verification. The
+phone subsequently stalls during C: garbage collection, with217 unsaved sectors.
+A confirmed CPU/NOR/refill circular wait is fixed inec6ef3c; hardware qualification
+is pending. This is separate from MMC FAT/mount correctness. Keep native JPEG
+unqualified until it is actually run from C: on the fixed build.
+[Installation, save and regression evidence](installation-flash-stall.md).

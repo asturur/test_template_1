@@ -1,3 +1,40 @@
+## 2026-11-16: Reset over newly admitted deferred-erase refill passes
+
+Maintained `flash_refill_suspend --reset-overlap`: accept cold RAM line while
+C: erase is deferred, cancel via warm phone reset, require erase drain before
+CPU restart, then complete full8erase regression. Pass3,470,671clocks,
+148,660competing diagnostic reads,36backing writes; no stale response/data fault.
+No further functional HDL change. Main fix remains ec6ef3c/build43800659356.
+
+## 2026-11-16: CPU fit passes78MHz; native C: GC matches blocked sector
+
+CPU-only build43797500563/cd858fd/seed43/debugOn downloaded at40minute check.
+All constrained timing passes: setup+0.197ns,hold+0.174ns.38,809ALMs(93%),
+45,220registers,503M10Ks,42DSPs; all16SDRAM DQ I/O/OE registers pack. No
+104MHz closure claim. Retained for comparison, not deployed with its known
+old erase/refill gate. Fix43800659356 remains the next hardware image.
+
+Private original-filesystem housekeeping erases C: offset40000..4ffff and
+updates one sector2d0a00. That is the exact02440000 sector in the native stalled
+bus record. All12 installed original payload hashes verified after5 private
+writes; source/native data unchanged. [Evidence](installation-flash-stall.md).
+
+## 2026-11-16: Fix build and verified native installed payloads
+
+Fixec6ef3c pushed. DebugOn/seed43 build43800659356 started03:51:58UTC; check
+at04:31:58UTC. Superseded diagnostics-only43799401396 cancelled. Prior CPU-only
+43797500563 still has the old erase/refill bug; obtain its fit evidence at the
+40minute mark but deploy the fixed build for installation/JPEG verification.
+
+A writable private-copy control allowed5 original-filesystem writes, then95
+files opened and all12 installed SPMark payload hashes matched the original SIS.
+Earlier read-only-26 is therefore a reader/housekeeping limitation. No phone,
+card or source-image bytes changed. Preserve exact native resident C: snapshot
+74c37648…ed8f817 when switching cores; the private emulator-modified image is
+analysis-only. Unload core/close Main file before restoring those native bytes,
+verify/sync, then boot fixed HDL and check real save drain and native JPEG.
+No firmware/RAM patch or JPEG pass claimed. [Evidence](installation-flash-stall.md).
+
 ## 2026-11-16: Confirmed deferred-erase/refill deadlock fixed
 
 Real CPU Verilator reproduction: erase30 leaves C: command pending/transport
@@ -32,6 +69,9 @@ payload byte verification or disk corruption from this reader limitation.
 CPU improvement committed/pushed ascd858fd (reboot helper3826ebe). Build43797500563
 seed43/debugOn started03:19:33UTC; check after03:59:33UTC. This physical build
 excludes the new passive flash-path observation being prepared now.
+
+Passive diagnostics committed/pushed856f587; build43799401396 seed43/debugOn
+started03:38:32UTC, check after04:18:32UTC.
 
 Unused existing DDR words245..251 now observe the NOR/router wait states without
 new counters/state/RAM or functional changes. Writer/reader, physical DDR,

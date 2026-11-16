@@ -1,4 +1,11 @@
 module tb;
+  parameter RESET_OVERLAP = 0;
+  parameter BULK_COMPETITION = 0;
+  integer bulk_beats = 0, bulk_snapshots = 0;
+  wire arb_bulk, bulk_valid, bulk_last, bulk_error;
+  wire [63:0] bulk_data;
+  wire bulk_ready = cycles % 7 != 0;
+  reg reset_injected = 0;
   reg clk = 0, reset = 1, cold = 1;
   always #5 clk = ~clk;
   wire init_done;
@@ -80,11 +87,12 @@ module tb;
       .l_valid(aux),
       .l_ready(auxready),
       .l_done(auxdone),
-      .l_addr(32'h313f0010),
+      .l_addr(BULK_COMPETITION ? 32'h31440000 : 32'h313f0010),
       .l_data(32'b0),
       .l_be(4'hf),
       .l_write(1'b0),
-      .l_bulk(1'b0),
+      .l_bulk(BULK_COMPETITION != 0),
+      .req_bulk(arb_bulk),
       .c_bulk(1'b0),
       .c_valid(dr || dw),
       .c_ready(accept),
@@ -144,9 +152,13 @@ module tb;
       .rsp_beat_valid(obv),
       .rsp_beat_data(obeat),
       .rsp_beat_last(obl),
-      .req_bulk(1'b0),
+      .req_bulk(arb_bulk),
       .bulk_cancel(1'b0),
-      .bulk_read_ready(1'b1),
+      .bulk_read_ready(bulk_ready),
+      .bulk_read_valid(bulk_valid),
+      .bulk_read_data(bulk_data),
+      .bulk_read_last(bulk_last),
+      .bulk_error(bulk_error),
       .bulk_write_valid(1'b0),
       .bulk_write_data(64'b0),
       .bulk_write_last(1'b0),
@@ -176,9 +188,20 @@ module tb;
         );
     end else deferred_wait <= 0;
     if (!cold) begin
-      if (!aux && cycles % 13 == 3) aux <= 1;
+      if (!aux && cycles % (BULK_COMPETITION ? 257 : 13) == 3) aux <= 1;
       if (auxready) aux <= 0;
-      if (auxdone) auxcount <= auxcount + 1;
+      if (bulk_error) $fatal(1, "sector transfer error");
+      if (bulk_valid && bulk_ready) begin
+        if (bulk_data !== memory[bulk_beats] || bulk_last != (bulk_beats == 63))
+          $fatal(1, "sector snapshot data/extent %0d", bulk_beats);
+        bulk_beats <= bulk_beats + 1;
+      end
+      if (auxdone) begin
+        if (BULK_COMPETITION && bulk_beats != 64) $fatal(1, "short sector snapshot");
+        if (BULK_COMPETITION) bulk_snapshots <= bulk_snapshots + 1;
+        bulk_beats <= 0;
+        auxcount   <= auxcount + 1;
+      end
       if (dut.line_valid) begin
         linebeats <= linebeats + 1;
         if (dut.line_last) lines <= lines + 1;
@@ -231,6 +254,8 @@ module tb;
           for (integer lane = 0; lane < 4; lane = lane + 1)
           if (held_be[lane]) ram[held_addr>>2][lane*8+:8] <= held_data[lane*8+:8];
           if (held_addr == 25'h100) begin
+            if (BULK_COMPETITION && bulk_snapshots < 100) $fatal(1, "missing sector competition");
+            if (RESET_OVERLAP && !reset_injected) $fatal(1, "missing reset overlap");
             if (held_data !== 32'h50415353)
               $fatal(1, "CPU reported failure %h PC%h", held_data, dut.cpu_pc);
             if (memory[0] !== 64'hffffffffffffffff || memory[8191] !== 64'hffffffffffffffff)
@@ -277,8 +302,21 @@ module tb;
     repeat (3) @(negedge clk);
     reset = 0;
   end
+  // Cancel a cold data refill after acceptance while a deferred erase exists.
+  // The accepted mutation must drain before CPU restart; no stale line reply
+  // may be mistaken for the restarted request.
   initial begin
-    #60000000;
+    if (RESET_OVERLAP) begin
+      wait (!cold && !reset && dut.user_flash.erase_pending && rlreq && rlready);
+      @(negedge clk);
+      reset = 1;
+      reset_injected = 1;
+      repeat (2) @(negedge clk);
+      reset = 0;
+    end
+  end
+  initial begin
+    #120000000;
     $display(
         "DDR left%0d delay%0d ready%b pr%b busy%b burst%0d lineowner%b lineFSM%0d wordFSM%0d count%0d received%0d index%0d head%b cachebeat%0d",
         left, delay, ready, pr, busy, burst, adapter.transport.owner_line,

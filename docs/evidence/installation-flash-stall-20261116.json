@@ -77,8 +77,8 @@
     "Template.sv": "79de3a3ce87d2f2210ef0964bd68487e04fc5bce26c543c002391aa772d547e2",
     "tools/ngage_runtime_diag.py": "53bac4c2903584cbfcdf344b78b362677f6f2400ac6ddbe74981b2b926376349",
     "sim/programs/flash_refill_suspend.S": "db01f53d251beb2e5145180debcbd5b293c9ba075441f2bd5abec2fd048fe97f",
-    "tests/phone/flash_refill_suspend/tb.v": "14e721306a18897bd4ed5eb7916c2239c33af4aead7a921cadfb08f9fe2a9986",
-    "tests/phone/flash_refill_suspend/run.py": "3076c73b66b94c0a0b2ee82d49df11e2d4d94f9c0f400c7d97c57eca269798ff"
+    "tests/phone/flash_refill_suspend/tb.v": "6efa842816aaa06df647315ba6dbd535c380ffdcd2401324625548776f2e373b",
+    "tests/phone/flash_refill_suspend/run.py": "be27fee3f47c3f49d32e991face6f3cef8d3f5dfee09e76f8a6e87e08df9c797"
   },
   "diagnostic_build": {
     "run": 43799401396,
@@ -86,7 +86,8 @@
     "created_utc": "2026-11-16T03:38:32Z",
     "check_not_before_utc": "2026-11-16T04:18:32Z",
     "debugger": true,
-    "seed": 43
+    "seed": 43,
+    "cancelled_superseded": true
   },
   "fix": {
     "module": "rtl/ngage_mister.v",
@@ -107,6 +108,135 @@
       "result": "PASS"
     },
     "negative_control": "Old admission gate rejects with DEFERRED_ERASE_REFILL_DEADLOCK; generic timeout is not accepted",
-    "reset_regressions": "PASS warm/cold, accepted program/erase drain, stale response collision"
+    "reset_regressions": "PASS warm/cold, accepted program/erase drain, stale response collision",
+    "reset_overlap_regression": {
+      "result": "PASS",
+      "cycles": 3470671,
+      "diagnostic_reads": 148660,
+      "writes": 36,
+      "stimulus": "Cancel an accepted cold RAM line during a deferred erase; drain mutation before native CPU restart and run full test"
+    },
+    "sector_competition_regression": {
+      "result": "PASS",
+      "cycles": 1049519,
+      "sector_snapshots": 4084,
+      "backing_writes": 32,
+      "validation": "64 checked beats per C: snapshot, consumer backpressure, actual CPU eight-erase workload",
+      "limits": "No HPS disk or dirty queue in this fixture"
+    },
+    "final_harness_base_and_old_gate": "PASS repeated after adding optional reset/bulk cases; default counts unchanged"
+  },
+  "fix_build": {
+    "run": 43800659356,
+    "commit": "ec6ef3c97e5eb8b45103b32426959381bf2e7d1d",
+    "created_utc": "2026-11-16T03:51:58Z",
+    "check_not_before_utc": "2026-11-16T04:31:58Z",
+    "seed": 43,
+    "debugger": true
+  },
+  "private_filesystem_control": {
+    "original_c_sha256": "74c37648337a8d7c88670672e92e4653628788cf18729773ff5506250ed8f817",
+    "private_after_sha256": "44ec5479ebf990ca191a325cfb014437f92bde42fe62525ad93bc78937f5ca7c",
+    "guest_c_writes": 5,
+    "opened_files": 95,
+    "payloads": [
+      {
+        "file": "C:\\system\\Apps\\SPMark\\test.jpg",
+        "size": 34105,
+        "sha256": "333e8e841fe8870a28959b4b0d80acf5e7500c9426bea8e31160a32c70bdfb47",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\SPMark.rsc",
+        "size": 1129,
+        "sha256": "69276e046ec90bf45e0d31f28b02d8e7028f0f1f3736bf9baeb47821d2574331",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\SPMark_caption.rsc",
+        "size": 44,
+        "sha256": "4b051985c727ce8357b7c8fdf7f12acdf862c1cc8685f31d09ccf4df21859a22",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\SPMark.app",
+        "size": 75676,
+        "sha256": "f4d3819d0d7c21f6f669835d03cf9fd8c8b50aa3e0bac6975c4cbaccb09b3a4e",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\SPMark.aif",
+        "size": 2483,
+        "sha256": "4e021b131982e07f68a342d986bf8e1e58373ffd60404c1f91fe004d93893804",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\libGLES_CM.dll",
+        "size": 106480,
+        "sha256": "3008a3900a91471200ea00b26733066aad288d589a7f48cefbfc0c6b62ebad2b",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\Futuremarkx_ed.GIF",
+        "size": 28438,
+        "sha256": "88527759508913a810fa4266bf652684b5b06c4a9b5be004c0851aa27d8ea603",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\Futuremark.gif",
+        "size": 6910,
+        "sha256": "2410ed4c674ffc4d88c65abe29f449bcba1b74a3ccd027e1b70558531c2bb859",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\fm_txt.gif",
+        "size": 25524,
+        "sha256": "ca050b59bacf7d2cecd37a13566bb8b230e0d40e56386685d897fea1fffb97c7",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\agendata.dat",
+        "size": 1754,
+        "sha256": "c6527ad9769d8d9d743bc8dd1543fab8040f7622d8b1f8f9f291bb0d75b238ff",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\Apps\\SPMark\\3dtest.dll",
+        "size": 965584,
+        "sha256": "5b918e3d10a8b4e91265325649c98c72fba7260be6cab37a102d7f50cd7eebef",
+        "matches_original": true
+      },
+      {
+        "file": "C:\\system\\help\\SPMark.hlp",
+        "size": 14735,
+        "sha256": "296564a903605b74bf8f6820e4e5e2d99128eb66cccdfb15d21ee3e4195a296c",
+        "matches_original": true
+      }
+    ],
+    "original_unchanged": true,
+    "hardware_or_card_writes": false,
+    "applied_private_image": false,
+    "changed_sectors": 129,
+    "changed_sector_ranges": [
+      "0x40000..0x4ffff",
+      "0x2d0a00..0x2d0bff"
+    ],
+    "correlation": "Private original filesystem erases C offset0x40000, matching the last native C: bus address0x02440000"
+  },
+  "cpu_build_43797500563": {
+    "timing": "PASS all constrained checks",
+    "setup_ns": 0.197,
+    "hold_ns": 0.174,
+    "recovery_ns": 2.379,
+    "removal_ns": 0.878,
+    "pulse_width_ns": 0.641,
+    "alms": 38809,
+    "alm_capacity": 41910,
+    "registers": 45220,
+    "m10ks": 503,
+    "dsp": 42,
+    "sdram_dq_io_registers": "PASS all16",
+    "deployed": false,
+    "reason": "Superseded for hardware by erase/refill fix"
   }
 }

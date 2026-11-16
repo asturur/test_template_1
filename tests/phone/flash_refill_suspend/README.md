@@ -2,6 +2,12 @@
 
 Run `python3 tests/phone/flash_refill_suspend/run.py`, or add
 `--negative-control` to recreate the old admission gate in a generated source.
+Add `--reset-overlap` to cancel an accepted cold RAM refill during a deferred
+erase and require drained restart before the complete eight-erase test.
+Add `--bulk-competition` for backpressured64beat C: sector snapshots competing
+with CPU progress instead of scalar diagnostic reads. Every returned beat is
+checked against independently modeled backing bytes. This covers DDR snapshot
+transport, not HPS disk writeback or dirty-queue persistence.
 Requires the existing `jotego/simulator:arm64` image and local ARM GCC.
 Outputs are private to `build/sim/unit-flash-refill-suspend/`.
 

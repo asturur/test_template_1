@@ -13,7 +13,10 @@ def call(args, **kw):
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--negative-control', action='store_true')
+    modes=parser.add_mutually_exclusive_group()
+    modes.add_argument('--negative-control', action='store_true')
+    modes.add_argument('--reset-overlap', action='store_true')
+    modes.add_argument('--bulk-competition', action='store_true')
     args=parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     program=ROOT/'sim/programs/flash_refill_suspend.S'
@@ -22,7 +25,7 @@ def main():
     call(['arm-none-eabi-objcopy','-O','binary',str(OUT/'program.elf'),str(OUT/'program.bin')])
     binary=(OUT/'program.bin').read_bytes();binary+=bytes(-len(binary)%4)
     (OUT/'program.hex').write_text(''.join(f'{int.from_bytes(binary[i:i+4],"little"):08x}\n' for i in range(0,len(binary),4)))
-    mode='negative' if args.negative_control else 'production'
+    mode='negative' if args.negative_control else 'reset' if args.reset_overlap else 'bulk' if args.bulk_competition else 'production'
     sources=re.findall(r'-name (?:SYSTEMVERILOG_FILE|VERILOG_FILE) (rtl/\S+)',(ROOT/'files.qip').read_text())
     if args.negative_control:
         text=(ROOT/'rtl/ngage_mister.v').read_text()
@@ -33,6 +36,8 @@ def main():
     # Arguments are passed as an array, with no generated shell command.
     compile_args=['verilator','--binary','--timing','--assert','-j','4','-Wno-fatal','-Wno-lint',
                   '-Irtl/arm','--top-module','tb','--Mdir',str((OUT/('obj-'+mode)).relative_to(ROOT)),
+                  *(['-GRESET_OVERLAP=1'] if args.reset_overlap else []),
+                  *(['-GBULK_COMPETITION=1'] if args.bulk_competition else []),
                   *sources,'tests/phone/flash_refill_suspend/tb.v']
     runner="""import json,pathlib,subprocess,sys
 args=json.loads(sys.argv[1]);out=pathlib.Path(sys.argv[2]);mode=sys.argv[3]
