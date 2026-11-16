@@ -17,7 +17,7 @@
 // 02110-1301, USA.
 //
 // This unit handles 32x32=32/64 multiplication using an FSM using
-// a 17x17 signed array multiplier. Takes 5 cycles per 32x32+64 operation.
+// a DSP-inferred full product. Takes 5 cycles per 32x32+64 operation.
 //
 
 module zap_shifter_multiply
@@ -85,67 +85,19 @@ assign unused = |{PHY_REGS};
 // Set 1 to select the upper 32-bit result of an ARMv4 long multiply.
 assign higher = i_alu_operation_ff[0];
 
-// 17-bit partial products.
-logic signed [16:0] a;
-logic signed [16:0] b;
-logic signed [16:0] c;
-logic signed [16:0] d;
-
-// Signed products.
+// Signed 33-bit factors cover signed and unsigned ARM32 inputs exactly.
+// Preserve the existing operand/product registers and five-state busy schedule.
+logic signed [32:0] factor_a, factor_b;
+(* multstyle = "dsp" *) logic signed [65:0] full_product;
 logic signed [63:0] x_ff, x_nxt;
-logic signed [33:0] xprod_ab, xprod_bc, xprod_ad, xprod_cd;
-logic signed [63:0] prod_ab, prod_bc, prod_ad, prod_cd;
-
-// State
 t_state state_ff, state_nxt;
-
-///////////////////////////////////////////////////////////////////////////////
-
-// Precompute products using DSP 17x17 signed multipliers. Result is 34-bit.
-always_ff @ (posedge i_clk)
-begin
-        // Multiply 34 = 17 x 17.
-        xprod_ab[33:0] <= $signed(a[16:0]) * $signed(b[16:0]);
-        xprod_bc[33:0] <= $signed(b[16:0]) * $signed(c[16:0]);
-        xprod_ad[33:0] <= $signed(a[16:0]) * $signed(d[16:0]);
-        xprod_cd[33:0] <= $signed(c[16:0]) * $signed(d[16:0]);
+always_ff @(posedge i_clk) begin
+    factor_a <= $signed({((i_alu_operation_ff == {1'd0,SMLALL} ||
+                           i_alu_operation_ff == {1'd0,SMLALH}) && i_rm[31]),i_rm});
+    factor_b <= $signed({((i_alu_operation_ff == {1'd0,SMLALL} ||
+                           i_alu_operation_ff == {1'd0,SMLALH}) && i_rs[31]),i_rs});
+    full_product <= factor_a * factor_b;
 end
-
-///////////////////////////////////////////////////////////////////////////////
-
-// Sign Extend
-assign prod_ab = $signed({{30{xprod_ab[33]}},xprod_ab[33:0]});
-assign prod_bc = $signed({{30{xprod_bc[33]}},xprod_bc[33:0]});
-assign prod_cd = $signed({{30{xprod_cd[33]}},xprod_cd[33:0]});
-assign prod_ad = $signed({{30{xprod_ad[33]}},xprod_ad[33:0]});
-
-always_ff @ (posedge i_clk) // {ac} * {bd} = RM x RS
-begin
-        if ( i_alu_operation_ff == {1'd0, SMLALL} || i_alu_operation_ff == {1'd0, SMLALH} )
-        begin
-                // Signed RM x Signed RS
-
-                a <= $signed({i_rm[31], i_rm[31:16]});
-                c <= $signed({1'd0, i_rm[15:0]});
-
-                b <= $signed({i_rs[31], i_rs[31:16]});
-                d <= $signed({1'd0, i_rs[15:0]});
-
-        end
-        else
-        begin
-               // unsigned RM x RS
-
-               a <= $signed({1'd0, i_rm[31:16]});
-               c <= $signed({1'd0, i_rm[15:0]});
-
-               b <= $signed({1'd0, i_rs[31:16]});
-               d <= $signed({1'd0, i_rs[15:0]});
-
-        end
-end
-
-///////////////////////////////////////////////////////////////////////////////
 
 // STATE MACHINE ( Next State Logic )
 always_comb
@@ -198,15 +150,15 @@ begin
 
                 S1:
                 begin
-                        // 3 input adder.
-                        x_nxt     = (prod_cd <<  0) + (prod_bc << 32'd16) + (prod_ad << 32'd16);
+                        // Keep the low 64 bits, matching ARM long-product wraparound.
+                        x_nxt     = full_product[63:0];
                         state_nxt = S2;
                 end
 
                 S2:
                 begin
-                        // 3 input adder.
-                        x_nxt     = (x_ff[63:0]) + (prod_ab << 32'd32) + {i_rh, i_rn};
+                        // Preserve the separate accumulate stage and result ownership.
+                        x_nxt     = (x_ff[63:0]) + {i_rh, i_rn};
 
                         state_nxt = S3;
                 end

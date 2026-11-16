@@ -7,6 +7,7 @@ sh tests/cpu/branch_feedback/run.sh
 sh tests/cpu/branch_feedback/alu.sh
 sh tests/cpu/thumb_predict/alu.sh
 sh tests/cpu/return_predict/run.sh
+sh tests/cpu/multiply_mapping/run.sh
 sh tests/cpu/block_transfer/sim.sh
 sh tests/cpu/cp15_rf/sim.sh
 sh tests/cpu/completion_owner/sim.sh

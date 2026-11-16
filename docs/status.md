@@ -1,3 +1,20 @@
+## 2026-11-16: DSP full-product multiplier adopted in production
+
+User authorized production integration/push of the qualified candidate. The
+registered signed33x33-bit multiply now replaces the four17-bit partial products
+and soft recombination in zap_shifter_multiply; existing five-state busy schedule,
+separate accumulate and low/high ownership unchanged. Production tokens match
+the isolated qualified candidate except its module name/comments/whitespace.
+Added permanent independent arithmetic/schedule regression and CPU-suite entry.
+4096 result checks/2048 vectors/16 held cancellations PASS;92 CPU architecture
+runs and44 IRQ/FIQ boundary runs PASS against actual production sources. All12 original SPMark
+payload groups PASS with two exact repeats/wrong-output controls; raw counters
+match POP/BX baseline exactly (index100.0 in both memory profiles). Evidence in
+docs/evidence/dsp-full-product-production-20261116.json.
+Quartus ALM/DSP mapping and timing remain unmeasured. No physical build or board
+deployment in this step. Phone remains running b707ebd; actual78MHz/104MHz aim.
+Other chats' work and simulations preserved.
+
 ## 2026-11-16: 1 GB SIS library complete; MMC writes qualified locally
 
 Latest capacity request is1GB, superseding256GB/512MB. Created and independently

@@ -1,3 +1,29 @@
+## Production integration — 2026-11-16
+
+The user authorized adoption of the qualified full-product candidate. Production
+`rtl/arm/zap_shifter_multiply.sv` now infers a registered signed33x33-bit product
+with `multstyle = "dsp"`, retaining the existing five-state busy schedule,
+separate accumulator and ordered low/high result ownership. Only comments and
+whitespace differ from the previously qualified candidate after its module is
+renamed to the production name. No PLL or pipeline-latency change.
+
+A permanent regression lives in `tests/cpu/multiply_mapping/` and is included in
+`tests/cpu/run.sh`:2,048 independent arithmetic vectors,4,096 ordered results,
+random stalls, failed conditions and16 held writeback cancellations. Its frozen
+pre-change reference is test-only, never in the QIP. Production checks pass92 architecture runs and44 IRQ/FIQ boundary runs. All12
+original-payload workload/profile groups pass with two identical repeats and
+wrong-output controls. Every raw counter matches production POP/BX exactly
+(excluding its derived ratio field); both profile indices are100.0 relative
+to that baseline. Private outputs and source hashes are recorded in
+`evidence/dsp-full-product-production-20261116.json`.
+
+This is production source adoption for a physical experiment. Quartus resource
+mapping, net ALM savings, routed timing and native board qualification remain
+unmeasured. The loaded MiSTer RBF remains b707ebd, without this change. The
+actual PLL remains78MHz and the design objective104MHz. No build/deployment
+has been requested in this adoption step. Earlier isolated observations below
+are retained as historical evidence.
+
 # DSP use and ALM reduction audit
 
 Read-only source and b3131b5/run43821270521/seed43 Fitter audit. No mapping or

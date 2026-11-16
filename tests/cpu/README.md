@@ -6,6 +6,10 @@ The production ARM920T instruction/data caches and64-entry mixed-page-size I/D T
 
 The suite covers:
 
+- [DSP multiply mapping](multiply_mapping/README.md): independent signed/unsigned
+  integer products/accumulation, low/high ownership, flags, stalls, failed
+  conditions and held cancellation, compared with the frozen pre-change schedule.
+
 - [Block transfers](block_transfer/README.md): 786896decoded-semantics sequences, precise per-beat aborts, first/final fusion, condition/hold/interrupt/cancellation coverage.
 
 - Four asynchronous physical-register reads against an independent write scoreboard and operand priority oracle: all40 registers, all64 forwarding-valid combinations, immediate/PC/CPSR/RAZ overrides, banked/SPSR values, write-port collisions, reset, clear and pipeline stalls.

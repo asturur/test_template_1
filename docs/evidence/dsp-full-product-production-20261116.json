@@ -1,0 +1,40 @@
+{
+  "status": "PASS_PRODUCTION_FUNCTIONAL_PHYSICAL_BUILD_PENDING",
+  "production_adopted": true,
+  "quartus_built": false,
+  "deployed": false,
+  "physical_savings": "unmeasured",
+  "clock_changes": false,
+  "busy_schedule": "unchanged",
+  "arithmetic_vectors": 2048,
+  "ordered_results": 4096,
+  "held_writeback_flushes": 16,
+  "sources": {
+    "rtl/arm/zap_shifter_multiply.sv": "08eb62aa38d0fd17d8539045e4cbcb771abc100a6b078e3f84573cf3dff0f455",
+    "tests/cpu/multiply_mapping/reference.sv": "1fc512ad949354c4a2e52fcf7174aac71650e7097be59a74373478015f00fda7",
+    "tests/cpu/multiply_mapping/tb.v": "c7d9042336075f87d6ed35c004dd0f3bb2e81603bf2a8589b3dc8452eb58c9f2",
+    "tests/cpu/multiply_mapping/generate_vectors.py": "c80e19a3eca0a0a223a7b836a0aaa83cfa97b68d863c11be66aa8160b93d27bc",
+    "tests/cpu/multiply_mapping/run.sh": "116e23a207b16bd4ccce1e92f7a5f302f4cfeb2211bedec78a38c5932caf9a22"
+  },
+  "cpu_qualification": {
+    "status": "PASS",
+    "architecture_runs": 92,
+    "irq_fiq_boundary_runs": 44,
+    "root": "build/sim/dsp-full-product-production-20261116/cpu"
+  },
+  "arithmetic_qualification": "PASS: 4096 independent results, equivalent busy/flags,16 held cancellations",
+  "payload_qualification": {
+    "status": "PASS",
+    "groups": 12,
+    "repeats": 2,
+    "wrong_output_controls": "PASS",
+    "raw_counters": "exactly equal to production POP/BX baseline, excluding derived throughput_ratio field",
+    "result": "build/sim/spmark-payload/dsp-full-product-production-20261116/result.json",
+    "result_sha256": "4affff41db902b9aa0b27bd0c433c9ddc3cdc2c971e618ef80368a1d791bbdc6",
+    "baseline": "build/sim/spmark-payload/pop-bx-production-20261116/result.json",
+    "index_by_profile": {
+      "0:0": 100.0,
+      "2:9": 100.0
+    }
+  }
+}
