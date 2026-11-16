@@ -1,5 +1,5 @@
 {
-  "status": "PASS_OFFLINE_AND_78MHZ_FIT_NATIVE_PENDING",
+  "status": "QUARANTINED_NATIVE_EARLY_BOOT_ABORT",
   "date": "2026-11-16",
   "baseline_commit": "6f3baa22d238167f2260a01e07ba8dfbe6a628bd",
   "scope": "Fuse ordinary LDM/STM setup into first memory beat and eligible incrementing base writeback into last beat",
@@ -3077,5 +3077,20 @@
     },
     "native_benchmark": "pending",
     "104mhz": "unverified"
+  },
+  "native_failure": {
+    "original_rom_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+    "failed_builds": [
+      "cd858fd/43797500563/seed43 all timing PASS",
+      "ec6ef3c/43800659356/seed43 setup FAIL"
+    ],
+    "loop": "0x60c",
+    "cpsr": "0x400000d7",
+    "acks": 24651807,
+    "errors": 12,
+    "last_address": "0x0a077ffc",
+    "pre_fusion_control": "6f3baa2 passes early boot with same exact installed C:/PMM/MMC and reaches expected0x50384d60 deferred erase stall",
+    "production_action": "Restore both modified RTL files byte-for-byte to6f3baa2; retain patch/tests/results for repair",
+    "root_cause": "not isolated"
   }
 }

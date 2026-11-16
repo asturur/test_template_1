@@ -1,3 +1,22 @@
+## 2026-11-16: Native boot A/B rejects block-transfer0070; production restored
+
+Fixed erase/refill ec6ef3c/seed43 fit93%(38,801ALMs/503M10Ks) but missed core
+setup-0.518ns; all16DQ pin registers pack. Deployed experimentally after Menu
+unload/verified Main file close; exact native C:74c37648…ed8f817 recovered,
+PMM unchanged, no offline-repaired image or firmware patch. Boot aborts0x60c
+(CPSRd7), ACK24,651,807/errors12/last0a077ffc. Original ROM SHA matches stock.
+Timed helper correctly sends no keys to the blank/aborted screen.
+
+Timing-closed cd858fd control reproduces identical abort/counts/last address.
+Pre-fusion6f3baa2, identical C:/PMM/MMC, passes early boot and reaches50384d60
+expected C: deferred-erase deadlock. Board currently runs6f3baa2 at that stop.
+Thus0070 adoption is withdrawn. Decoder/sequencer restored byte-for-byte to
+6f3baa2; patch/test/results retained and removed from active provenance/suite.
+All earlier CPU/cache improvements remain. Current original indices return to
+230.0365/193.4779; JPEG109.1267. No native JPEG pass yet. No functional change
+to the confirmed erase/refill fix. Seed44retry of the bad CPU was cancelled.
+Next build combines known-working CPU with the erase/refill correction.
+
 ## 2026-11-16: Reset over newly admitted deferred-erase refill passes
 
 Maintained `flash_refill_suspend --reset-overlap`: accept cold RAM line while

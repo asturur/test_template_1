@@ -238,5 +238,43 @@
     "sdram_dq_io_registers": "PASS all16",
     "deployed": false,
     "reason": "Superseded for hardware by erase/refill fix"
-  }
+  },
+  "hardware_gate": {
+    "fixed_seed43": {
+      "run": 43800659356,
+      "rbf_sha256": "31cb51422fb26d3e2cf041bcfb3ea7b39e74cca655026b825a5201511f7033b1",
+      "alms": 38801,
+      "m10ks": 503,
+      "setup_ns": -0.518,
+      "hold_ns": 0.161,
+      "sdram_dq_registers": "PASS all16",
+      "result": "early native data abort0x60c before C access"
+    },
+    "timing_closed_cpu_control": {
+      "run": 43797500563,
+      "rbf_sha256": "53e3cc1fd47c7893ff8127036c31b58700dd768a0d4f04257a9dd80b290bf5b8",
+      "timing": "PASS",
+      "result": "identical data abort0x60c, ACK24651807/errors12/last0a077ffc"
+    },
+    "pre_fusion_control": {
+      "commit": "6f3baa2",
+      "rbf_sha256": "a5d2a2b1692bdcad151718592a927f3e715e5179eceaea45f1026053af0cf789",
+      "result": "passes early boot, reaches expected native deferred erase wait50384d60 with same installed C:/PMM/MMC"
+    },
+    "original_rom_verified": true,
+    "seed44_bad_cpu_retry_cancelled": 43804914230,
+    "next_action": "build known-working pre-fusion CPU plus the unchanged confirmed erase/refill correction",
+    "native_jpeg": "not run"
+  },
+  "native_c_recovery": {
+    "core_unloaded_images_closed": true,
+    "C_sha256": "74c37648337a8d7c88670672e92e4653628788cf18729773ff5506250ed8f817",
+    "RBF_sha256": "31cb51422fb26d3e2cf041bcfb3ea7b39e74cca655026b825a5201511f7033b1",
+    "PMM_sha256": "12bf28a2d135aea914b6b6bcbb4381c322f716bc7fbee5eab8198eb08f7c3cbc",
+    "C_source": "exact captured native installation",
+    "private_emulator_image_applied": false,
+    "card_backup_created": false,
+    "synced": true
+  },
+  "restored_cpu_plus_fixed_erase_regression": "PASS 3086012clocks,132214competing scalar reads,32writes"
 }

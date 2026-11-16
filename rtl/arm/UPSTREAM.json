@@ -71,8 +71,7 @@
     "patches/zap/0066-recognize-mov-pc-lr.patch",
     "patches/zap/0067-overlap-owned-completions.patch",
     "patches/zap/0068-remove-unused-tag-delay.patch",
-    "patches/zap/0069-normalize-prediction-address.patch",
-    "patches/zap/0070-fuse-block-transfer-setup-writeback.patch"
+    "patches/zap/0069-normalize-prediction-address.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",
@@ -158,5 +157,12 @@
     "src/ts/uart/uart.h": "eb8a52e5842d4d392cd248ac7db4eee25ac27ac3b1f599ad9f3d075afea08846",
     "src/ts/uart/uart.s": "f96f91ca849eec8c00e069dc3a5553ce25c712d2827cb8ad6ff6ac49162c455a",
     "src/ts/verwrap.pl": "3512391c87f48db8a821fcee47fffdd8ddcf6fa7ffbe5d384944f31f687fa323"
-  }
+  },
+  "quarantined_patches": [
+    {
+      "path": "patches/zap/0070-fuse-block-transfer-setup-writeback.patch",
+      "reason": "Deterministic original-ROM early data-abort loop0x60c on both timing-closed cd858fd and ec6ef3c; pre-fusion6f3baa2 passes this point with identical media",
+      "date": "2026-11-16"
+    }
+  ]
 }

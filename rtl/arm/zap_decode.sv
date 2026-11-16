@@ -302,12 +302,7 @@ module zap_decode #(
           o_alu_operation  = instruction[23] ? {2'd0, ADD} : {2'd0, SUB};
 
           // Pointer register.
-          // Internal block-transfer final beat: keep the owned dummy pointer
-          // as the address source while the encoded Rn receives writeback.
-          // Guest instructions always have this extension bit clear.
-          o_alu_source     = instruction[ZAP_OPCODE_EXTEND] && !instruction[ZAP_DP_RA_EXTEND] ?
-                             {28'd0, ARCH_DUMMY_REG0} :
-                             {28'd0, instruction[ZAP_BASE_EXTEND], instruction[`ZAP_BASE]};
+          o_alu_source     = {28'd0, instruction[ZAP_BASE_EXTEND], instruction[`ZAP_BASE]};
           o_alu_source[32] = INDEX_EN;
           o_mem_load       = instruction[20];
           o_mem_store      = !o_mem_load;
@@ -324,8 +319,7 @@ module zap_decode #(
           // If post-index is used or pre-index is used with writeback,
           // take is as a request to update the base register.
           o_destination_index = (instruction[21] || !o_mem_pre_index) ?
-                                                (instruction[ZAP_OPCODE_EXTEND] && instruction[ZAP_DP_RA_EXTEND] ?
-                                                 ARCH_DUMMY_REG0 : {instruction[ZAP_BASE_EXTEND], instruction[`ZAP_BASE]}) :
+                                                o_alu_source[4:0] :
                                                 RAZ_REGISTER; // Pointer register already added.
           o_mem_unsigned_byte_enable = instruction[22];
 

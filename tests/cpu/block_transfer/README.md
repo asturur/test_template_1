@@ -1,3 +1,10 @@
+> **Quarantined candidate, not production:** patch0070 passes these bounded
+> tests but causes a deterministic original-ROM early data abort on hardware.
+> Production restored the pre-fusion decoder/sequencer. The patch, test and
+> measured results remain for repair; do not run its shortened-count oracle
+> against the restored implementation or treat its pass as native boot proof.
+> Use BLOCK_SEQUENCE_RTL/BLOCK_DECODE_RTL with a privately reconstructed candidate.
+
 # Block-transfer sequencing
 
 ```sh

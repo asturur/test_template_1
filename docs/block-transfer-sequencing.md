@@ -1,3 +1,13 @@
+> **Production adoption withdrawn — native boot regression (2026-11-16).**
+> Both ec6ef3c/seed43 and timing-closed cd858fd/seed43 reach the exact same early
+> data-abort loop0x60c, with24,651,807ACKs,12bus errors and last address0a077ffc.
+> Original ROM SHA matches stock. Pre-fusion6f3baa2 with identical C:/PMM/MMC
+> passes this point and reaches the expected50384d60deferred-erase wait.
+> Patch0070 is therefore quarantined. Its source patch, tests and experiments
+> remain; production decoder/sequencer are restored byte-for-byte to6f3baa2.
+> The active bounded tests missed this native case. Root cause is not yet isolated.
+> The measurements below describe the experiment, not the shipping CPU.
+
 # LDM/STM and PUSH/POP sequencing — 2026-11-16
 
 Patch0070 reduces bookkeeping micro-ops for ordinary block transfers while

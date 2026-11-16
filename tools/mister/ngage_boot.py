@@ -19,8 +19,8 @@ def prompt_score(path):
     with Image.open(path) as frame, Image.open(REFERENCE) as reference:
         box = tuple(round(v*frame.size[i%2]/SIZE[i%2]) for i,v in enumerate(BOX))
         crop = frame.convert('RGB').crop(box).resize(reference.size)
-        a = [max(p)<90 for p in crop.getdata()]
-        b = [max(p)<90 for p in reference.convert('RGB').getdata()]
+        a = [max(p)<90 for p in crop.get_flattened_data()]
+        b = [max(p)<90 for p in reference.convert('RGB').get_flattened_data()]
         union = sum(x or y for x,y in zip(a,b))
         return sum(x and y for x,y in zip(a,b))/union if union else 0.0
 

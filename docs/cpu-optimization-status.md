@@ -1,3 +1,10 @@
+> **2026-11-16 native gate correction:** block-transfer fusion0070 is
+> quarantined after an original-ROM boot regression on two placements, including
+> one with all timing checks passing. Production returns to the6f3baa2 CPU:
+> measured six-kernel indices230.0365/193.4779 and JPEG index109.1267. All earlier
+> cache, Thumb, calls/returns and F2 improvements remain. The recorded0070
+> measurements below are experimental; see block-transfer-sequencing.md.
+
 # CPU/cache optimization ledger — 2026-11-16
 
 This reconciles the original [CPU import plan](cpu-donor-import-plan.md) with

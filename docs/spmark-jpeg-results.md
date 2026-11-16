@@ -1,3 +1,8 @@
+> **Native qualification update:** the block-transfer fusion0070 row is a
+> quarantined experiment after a repeatable original-ROM boot abort. Current
+> production CPU is restored to6f3baa2; all earlier rows remain applicable.
+> See [native gate failure](block-transfer-sequencing.md).
+
 # JPEG bitmap hotspot performance baseline
 
 These are fixed-work original-code RTL cycles, not SPMark points or whole-JPEG
