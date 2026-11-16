@@ -73,7 +73,8 @@
     "patches/zap/0068-remove-unused-tag-delay.patch",
     "patches/zap/0069-normalize-prediction-address.patch",
     "patches/zap/0070-fuse-block-transfer-setup-writeback.patch",
-    "patches/zap/0071-preserve-block-transfer-privilege.patch"
+    "patches/zap/0071-preserve-block-transfer-privilege.patch",
+    "patches/zap/0072-predict-thumb-pop-bx-returns.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

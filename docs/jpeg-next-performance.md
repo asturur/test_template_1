@@ -1,3 +1,14 @@
+## Production adoption — 2026-11-16
+
+User authorizes promote, push, build and MiSTer deployment. Patch0072 is now in
+production RTL.92actual CPU architecture runs and44IRQ/FIQ boundary runs pass;
+118predictor controls pass. Both complete production benchmark suites reproduce
+the isolated result exactly: six-kernel raw counters unchanged, JPEG +9.4036%,
+index132.6505. All compiled RTL files byte-match both frozen benchmark sources.
+83pristine upstream hashes and37reconstructed lexical streams pass. Actual78MHz,
+104MHz objective; four added hint bits, no new RAM/stage. Physical area/timing
+and native deployment remain pending; historical prototype notes follow.
+
 # Next JPEG CPU target: recognize Thumb POP/BX returns
 
 All work after the user's local-only direction runs on the Mac/offline existing

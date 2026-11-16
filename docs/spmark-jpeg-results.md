@@ -23,7 +23,7 @@ repeats per profile. See [profile and qualification](spmark-jpeg-profile.md).
 | block-transfer corrected0071 — isolated candidate | 104900 | 104916 | 103771 | 206956 |113.2493 |
 | cache-certificate-eight — FPGA pending | 98072 | 98088 | 96623 | 193536 |121.2488 |
 | probe-selector timing — routed result pending | 98072 | 98088 | 96623 | 193536 |121.2488 |
-| POP/BX return hint — local prototype, NOT adopted | 89610 | 89626 | 88518 | 176626 |132.6505 |
+| POP/BX return hint — adopted, FPGA pending | 89610 | 89626 | 88518 | 176626 |132.6505 |
 | pre-store reference — d4f2a8 | 122793 | 122808 | 121848 | 242265 |96.6720 |
 
 Mode10 is the original native12-bit RGB converter used by this path; mode8

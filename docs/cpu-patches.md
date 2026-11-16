@@ -2,6 +2,17 @@
 
 Current checkpoint and resume tasks: [status.md](status.md).
 
+## Thumb POP/BX returns (0072)
+
+Recognize a single low-register Thumb POP followed by BX to the same register.
+Four hint bits name the last accepted owner; intervening accepted instructions,
+older clears/reset and ARM mode revoke eligibility. Bubbles/holds retain it.
+Existing RAS predicts the caller early; the actual loaded branch target and
+state are still verified by ALU. No RAM, new predictor capacity or pipeline stage.
+Full production JPEG suite +9.4036%, original index132.6505; six-kernel cycles
+unchanged.92CPU/44IRQ-FIQ/118predictor checks and upstream lexical reconstruction
+pass; fitted/native gates pending. [Measured contract](jpeg-next-performance.md).
+
 ## Owned branch feedback and return targets (0065/0066)
 
 Register decoded ALU ownership independently of condition success; prevent

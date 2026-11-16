@@ -123,6 +123,27 @@ module test;
       checks = checks + 1;
     end
   endtask
+  integer return_reg;
+  task pop_hint(input integer r);
+    begin
+      reset = 1;
+      data_hold = 0;
+      issue_hold = 0;
+      shift_hold = 0;
+      valid = 0;
+      tick();
+      reset = 0;
+      thumb = 1;
+      drain();
+      push(32'ha000);
+      instruction = {3'd0, (32'he8bd0000 | (32'b1 << r))};
+      valid = 1;
+      pc = 32'hb000;
+      repeat (5) tick();
+      drain();
+      if (!dut.pop_return_valid) $fatal(1, "POP hint not learned r%0d", r);
+    end
+  endtask
   initial begin
     tick();
     reset = 0;
@@ -186,6 +207,33 @@ module test;
     data_hold = 1;
     tick();
     if (dut.ras_ptr_ff !== 0 || dut.ras_ff !== 0) $fatal(1, "reset under hold");
+    for (return_reg = 0; return_reg < 8; return_reg = return_reg + 1) begin
+      pop_hint(return_reg);
+      returns(32'he12fff10 | return_reg, 1, 32'ha002, 0);
+      pop_hint(return_reg);
+      returns(32'he12fff10 | ((return_reg + 1) % 8), 0, 0, 0);
+      pop_hint(return_reg);
+      instruction = 35'he1a00000;
+      valid = 1;
+      tick();
+      drain();
+      returns(32'he12fff10 | return_reg, 0, 0, 0);
+      pop_hint(return_reg);
+      wb_clear = 1;
+      tick();
+      wb_clear = 0;
+      drain();
+      returns(32'he12fff10 | return_reg, 0, 0, 0);
+      pop_hint(return_reg);
+      alu_clear = 1;
+      tick();
+      alu_clear = 0;
+      drain();
+      returns(32'he12fff10 | return_reg, 0, 0, 0);
+      pop_hint(return_reg);
+      thumb = 0;
+      returns(32'he12fff10 | return_reg, 0, 0, 0);
+    end
     $display(
         "PASS return predictor: %0d classifications, nested/circular stack, Thumb, holds and clears",
         checks);

@@ -1,5 +1,5 @@
 {
-  "status": "LOCAL_PROTOTYPE_NOT_ADOPTED",
+  "status": "ADOPTED_OFFLINE_QUALIFIED_PENDING_FPGA",
   "base_commit": "ecd018de78244d8e6979977bd250bdd67f90ae31",
   "source_differences": [
     "rtl/arm/zap_predecode_main.sv"
@@ -226,9 +226,35 @@
   "limits": [
     "Original ROM bitmap conversion/diffusion kernel, not full Symbian JPEG app or encoder",
     "No reproduction of the current full-phone hang; no new live deadline/callback observation",
-    "Timing, fitted ALM/FF counts and full CPU/interrupt/abort qualification pending",
     "Single-window trace is first scored window and may differ from warm median",
     "Redirect counts measure events/occupancy, not independent recoverable loss",
-    "No phone commands after user requested local-only work; no core build or production RTL change"
+    "No phone commands after user requested local-only work; no core build or production RTL change",
+    "Production CPU/IRQ regressions pass; fitted timing/area and native deployment remain pending"
+  ],
+  "active_patch": "patches/zap/0072-predict-thumb-pop-bx-returns.patch",
+  "production_source_sha256": "e82ffdfac630c533b26185905dec3c2bbd9d2633ee2530ebba36b931e5b8fb9f",
+  "production_qualification": {
+    "architectural_runs": 92,
+    "irq_fiq_runs": 44,
+    "return_predictor_checks": 118,
+    "six_groups": 12,
+    "jpeg_groups": 8,
+    "compiled_files_byte_match_both_production_benchmarks": 46,
+    "six_raw_counters_unchanged": true,
+    "jpeg_raw_counters_match_isolated_prototype": true,
+    "provenance": {
+      "status": "PASS",
+      "pristine_hashes": 83,
+      "lexically_matching_sv_svh": 37,
+      "strict_bytes": "Preexisting formatting/comment drift retained",
+      "patch_sha256": "2fb3c02e450a3f4f2ce61bab9a9664cfa63b7e45b4a43aebf336134248cdb3d8"
+    },
+    "architecture_directory": "build/sim/pop-bx-cpu-v2-20261116",
+    "six_directory": "build/sim/spmark-payload/pop-bx-production-20261116",
+    "jpeg_directory": "build/sim/jpeg-payload/pop-bx-production-20261116"
+  },
+  "fixture_failures": [
+    "First private CPU runner did not rewrite testbench readmemh path and loaded stale shared program; rejected all that run, including apparent IRQ passes",
+    "First upstream patch used formatted-tree context; regenerated against verified canonical predecessor, then83pristine hashes/37lexical streams pass"
   ]
 }

@@ -1,3 +1,7 @@
+> **POP/BX adopted:** patch0072 now passes92CPU/44IRQ-FIQ/118predictor controls,
+> full repeated six/JPEG suites and upstream reconstruction. JPEG132.6505
+> (+9.4036%); six-kernel233.2707/196.1981 unchanged. FPGA build/deploy follows.
+
 > **Current checkpoint:** ecd018d retains8checked-line records and the cache
 > probe timing rewrite; original six-kernel indices233.2707/196.1981 and
 > JPEG121.2488. User b3131b5 JPEG/Contacts pass, but its setup-1.722ns remains

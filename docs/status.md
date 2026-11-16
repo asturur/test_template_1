@@ -1,3 +1,28 @@
+## 2026-11-16: POP/BX production adoption qualified; push/build/deploy authorized
+
+User explicitly requests put POP/BX in core, push and deploy to phone. This
+supersedes the prior local-only handoff for this deployment. Active patch0072
+recognizes owned single-low-register Thumb POP/BX returns;4hint bits, no RAM/
+DSP/stage, actual78MHz/104MHz objective. Production JPEG8groups/2exact repeats/
+original outputs+negative controls matches prototype89610/89626/88518/176626,
+index132.6505 (+9.4036%). Full6kernel12groups raw counters unchanged, indices
+233.2707/196.1981.92CPU architecture and44IRQ/FIQ boundaries,118predictor checks
+PASS. Compiled RTL byte-matches both complete production benchmark snapshots;
+83pristine hashes/37upstream lexical reconstructions PASS. Calendar80373af and
+cache timingecd018d are included in the next build; physical/native gates open.
+
+First private CPU fixture loaded stale shared readmemh path; its failures AND
+apparent44IRQ passes are rejected. V2 uses private code paths throughout and
+passes all. Canonical patch context needed regeneration due existing formatting
+ drift; all lexical checks then pass. Other chat simulations/inputs untouched.
+
+After deploying, user requests DSP-focused instruction/multiplier rewrite audit.
+Matrix/transpose are payload routines, not ISA instructions. Matrix exercises
+ARM long multiply; transpose mainly loads/stores. DSP work targets MUL/MLA/
+UMULL/SMULL/UMLAL/SMLAL product/accumulation/schedule, not invented matrix ISA.
+Existing products already use4DSP; preserve flags/paired outputs/hold/kill and
+measure ALMs/latency/timing before adopting. No DSP functional change yet.
+
 ## 2026-11-16: DSP mapping audit complete; no mapping change/build
 
 Fitter b3131b5 exact inventory42/112physical DSPs: scaler23, audio8, LCD5, CPU4,
