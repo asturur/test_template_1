@@ -1,0 +1,234 @@
+{
+  "status": "LOCAL_PROTOTYPE_NOT_ADOPTED",
+  "base_commit": "ecd018de78244d8e6979977bd250bdd67f90ae31",
+  "source_differences": [
+    "rtl/arm/zap_predecode_main.sv"
+  ],
+  "prototype_sha256": "2b47b5b202a4ab207d3382273a593188c0a206d9e8134b8737866f7cd63f58df",
+  "patch": "docs/evidence/pop-bx-return-prototype-20261116.patch",
+  "added_declared_state_bits": 4,
+  "new_ram": 0,
+  "new_pipeline_stages": 0,
+  "rows": [
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "profile": "0:0",
+      "before": 98072,
+      "after": 89610,
+      "gain_percent": 9.443142506416692,
+      "range": [
+        89610,
+        89655
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "profile": "2:9",
+      "before": 98072,
+      "after": 89610,
+      "gain_percent": 9.443142506416692,
+      "range": [
+        89610,
+        89673
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_random",
+      "profile": "0:0",
+      "before": 98088,
+      "after": 89626,
+      "gain_percent": 9.441456720148178,
+      "range": [
+        89626,
+        89671
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_random",
+      "profile": "2:9",
+      "before": 98088,
+      "after": 89626,
+      "gain_percent": 9.441456720148178,
+      "range": [
+        89626,
+        89689
+      ]
+    },
+    {
+      "case": "diffuse_m8_8x8_random",
+      "profile": "0:0",
+      "before": 96623,
+      "after": 88518,
+      "gain_percent": 9.156329786032224,
+      "range": [
+        88518,
+        88518
+      ]
+    },
+    {
+      "case": "diffuse_m8_8x8_random",
+      "profile": "2:9",
+      "before": 96623,
+      "after": 88518,
+      "gain_percent": 9.156329786032224,
+      "range": [
+        88518,
+        88518
+      ]
+    },
+    {
+      "case": "diffuse_m10_16x8_jpeg",
+      "profile": "0:0",
+      "before": 193536,
+      "after": 176626,
+      "gain_percent": 9.573901917045058,
+      "range": [
+        176626,
+        176671
+      ]
+    },
+    {
+      "case": "diffuse_m10_16x8_jpeg",
+      "profile": "2:9",
+      "before": 193536,
+      "after": 176626,
+      "gain_percent": 9.573901917045058,
+      "range": [
+        176626,
+        176689
+      ]
+    }
+  ],
+  "jpeg_suite_gain_percent": 9.403601241904935,
+  "jpeg_original100_index": 132.65054985272397,
+  "baseline": {
+    "run": "build/sim/jpeg-payload/frontend-attribution-v3-20261116",
+    "extra_observer_matches_every_original_raw_counter_and_profile": true,
+    "trace": {
+      "name": "frontend-attribution-v3-20261116",
+      "status": "PASS",
+      "cycles": 98072,
+      "alu_outcomes": 2856,
+      "alu_classes": {
+        "other branch": 1758,
+        "BX LR": 321,
+        "POP low register; BX same register": 585,
+        "other indirect BX": 192
+      },
+      "alu_redirect_classes": {
+        "other branch": 19,
+        "POP low register; BX same register": 585,
+        "other indirect BX": 192,
+        "BX LR": 64
+      },
+      "alu_redirect_pcs": {
+        "0x160": 1,
+        "0x505a9e24": 1,
+        "0x505a9ac6": 136,
+        "0x505a9a6e": 64,
+        "0x505adef4": 128,
+        "0x505ae8fe": 64,
+        "0x505ae288": 64,
+        "0x505aec1a": 64,
+        "0x505a9aa4": 64,
+        "0x505a9ecc": 8,
+        "0x505a9b00": 192,
+        "0x505a9ae6": 64,
+        "0x505a9f6c": 8,
+        "0x505a9f84": 1,
+        "0x505a9faa": 1
+      },
+      "decode_events": 1428,
+      "decode_clears": 1028,
+      "frontend": [
+        {
+          "index": "2",
+          "empty": "22993",
+          "age1to5": "5182",
+          "age6to10": "7135",
+          "age11to20": "8863",
+          "age21plus": "1813",
+          "concurrent_retire": "3633",
+          "nofifo": "16564",
+          "nomode": "18215",
+          "nopre": "19802",
+          "nodecode": "21081",
+          "clear_alu": "860",
+          "clear_wb": "0",
+          "clear_decode": "1100",
+          "kind": "FRONTEND"
+        }
+      ]
+    }
+  },
+  "prototype": {
+    "run": "build/sim/jpeg-payload/pop-bx-return-full-20261116",
+    "first_case_trace": {
+      "name": "pop-bx-return-prototype-20261116",
+      "status": "PASS",
+      "cycles": 89610,
+      "alu_outcomes": 2856,
+      "alu_classes": {
+        "other branch": 1758,
+        "BX LR": 321,
+        "POP low register; BX same register": 585,
+        "other indirect BX": 192
+      },
+      "alu_redirect_classes": {
+        "other branch": 21,
+        "other indirect BX": 192,
+        "POP low register; BX same register": 65,
+        "BX LR": 62
+      },
+      "alu_redirect_pcs": {
+        "0x160": 1,
+        "0x505a9e24": 1,
+        "0x505adef4": 128,
+        "0x505ae288": 64,
+        "0x505aec1a": 64,
+        "0x505a9ecc": 8,
+        "0x505a9f6c": 10,
+        "0x505ae8fe": 62,
+        "0x505a9f84": 1,
+        "0x505a9faa": 1
+      },
+      "decode_events": 2016,
+      "decode_clears": 1497,
+      "frontend": [
+        {
+          "index": "2",
+          "empty": "15900",
+          "age1to5": "2590",
+          "age6to10": "4578",
+          "age11to20": "6945",
+          "age21plus": "1787",
+          "concurrent_retire": "3390",
+          "nofifo": "11063",
+          "nomode": "12267",
+          "nopre": "13490",
+          "nodecode": "14497",
+          "clear_alu": "340",
+          "clear_wb": "0",
+          "clear_decode": "1675",
+          "kind": "FRONTEND"
+        }
+      ]
+    }
+  },
+  "qualifications": {
+    "jpeg_groups": 8,
+    "exact_repeats_per_group": 2,
+    "windows_per_run": 7,
+    "negative_output_cases": 4,
+    "existing_return_matcher_tests": 22,
+    "extended_hint_classifications": 118
+  },
+  "limits": [
+    "Original ROM bitmap conversion/diffusion kernel, not full Symbian JPEG app or encoder",
+    "No reproduction of the current full-phone hang; no new live deadline/callback observation",
+    "Timing, fitted ALM/FF counts and full CPU/interrupt/abort qualification pending",
+    "Single-window trace is first scored window and may differ from warm median",
+    "Redirect counts measure events/occupancy, not independent recoverable loss",
+    "No phone commands after user requested local-only work; no core build or production RTL change"
+  ]
+}

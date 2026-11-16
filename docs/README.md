@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [jpeg-next-performance.md](jpeg-next-performance.md) | Local branch attribution and isolated POP/BX return recognition: +9.40%, four state bits, not production-adopted |
 | [cache-probe-timing.md](cache-probe-timing.md) | b313 worst-path analysis, parallel probe selection and reset payload separation with unchanged benchmark cycles |
 | [calendar-benchmark-flash.md](calendar-benchmark-flash.md) | Native C: block-read fault during deferred erase, bounded NOR width correction and CPU/save qualification |
 | [cache-certificate-capacity.md](cache-certificate-capacity.md) | Eight checked-line metadata records; JPEG +7.06%, precise ownership,212 bits and physical gate pending |

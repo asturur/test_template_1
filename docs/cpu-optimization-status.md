@@ -1,21 +1,9 @@
-> **Current branch:** eight checked-line metadata records are adopted after
-> complete simulation qualification: original indices233.2707/196.1981,
-> JPEG121.2488; +212declared metadata bits, no line-data RAM or stage. Physical
-> fit/timing/native JPEG pending. Current hardware00fbbea boots original firmware
-> cardless and saves C:, but JPEG still waits. See cache-certificate-capacity.md.
-
-> **2026-11-16 corrected candidate:**0070+0071 are enabled together following
-> the exact native single-POP protected-page regression and complete simulation
-> gates. Original indices230.4602/193.8342, JPEG113.2493. The old0070 alone is
-> rejected; current hardware11612f9 still uses the previous CPU, with native C:
-> save now verified but JPEG still waiting. Corrected native/timing gates pending.
-
-> **2026-11-16 native gate correction:** block-transfer fusion0070 is
-> quarantined after an original-ROM boot regression on two placements, including
-> one with all timing checks passing. Production returns to the6f3baa2 CPU:
-> measured six-kernel indices230.0365/193.4779 and JPEG index109.1267. All earlier
-> cache, Thumb, calls/returns and F2 improvements remain. The recorded0070
-> measurements below are experimental; see block-transfer-sequencing.md.
+> **Current checkpoint:** ecd018d retains8checked-line records and the cache
+> probe timing rewrite; original six-kernel indices233.2707/196.1981 and
+> JPEG121.2488. User b3131b5 JPEG/Contacts pass, but its setup-1.722ns remains
+> unqualified. A local-only POP/BX return prototype gains9.40% on the four-case
+> JPEG suite (index132.6505),4hint bits, no RAM/stage; not production-adopted.
+> See [next measured target](jpeg-next-performance.md) and docs/status.md.
 
 # CPU/cache optimization ledger — 2026-11-16
 
@@ -24,7 +12,7 @@ the [cache latency plan](cache-load-optimization-plan.md). Implemented below
 means present in our RTL and qualified in simulation, not automatically tested
 on MiSTer or closed at104MHz. Actual PLL remains78MHz.
 
-## Measurements and current physical gate
+## Prior measurement checkpoint
 
 With the original six-kernel baseline defined as100, the latest implementation
 scores **230.3221 /193.7181** at synthetic I:D waits0:0/2:9. Block-transfer
@@ -62,6 +50,17 @@ new build/fit/timing/boot qualification is still required for patch0070.
 
 The historical BTB tag-collision correctness fix is also present; it is not a
 new performance gain to add to the table. See the [measured progression](spmark-payload-results.md).
+
+## Newly measured next item
+
+Recognize the original Thumb `POP {rN}; BX rN` return shape. Current code misses
+585such returns per8x8 JPEG block. The isolated4-bit hint prototype reduces late
+ALU clears860→340 and improves the original four-case suite9.40%, all8groups/
+2exact repeats/output controls and118focused predictor classifications passing.
+It is not adopted or hardware-qualified. Full CPU/IRQ/abort and fitted timing
+checks are the next gate; then reprofile remaining data/store waits. DSP mapping
+is the user's following area/timing investigation, not a substitute for this
+converter's measured frontend work. [Evidence](jpeg-next-performance.md).
 
 ## Remaining work before a large parallel execution redesign
 

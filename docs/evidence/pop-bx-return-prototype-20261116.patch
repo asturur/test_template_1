@@ -1,0 +1,72 @@
+--- a/rtl/arm/zap_predecode_main.sv
++++ b/rtl/arm/zap_predecode_main.sv
+@@ -156,6 +156,26 @@
+   logic [$clog2(RAS_DEPTH)-1:0] ras_ptr_ff, ras_ptr_nxt;
+   logic align_nxt;
+   logic switch_nxt;
++  // Isolated local performance experiment; never selected by production QIP.
++  logic pop_return_valid;
++  logic [2:0] pop_return_register;
++  logic single_low_pop;
++  logic [2:0] low_pop_register;
++  always_comb begin
++    single_low_pop = 0;
++    low_pop_register = 0;
++    case (mode32_instruction[15:0])
++      16'h0001: begin single_low_pop=1; low_pop_register=0; end
++      16'h0002: begin single_low_pop=1; low_pop_register=1; end
++      16'h0004: begin single_low_pop=1; low_pop_register=2; end
++      16'h0008: begin single_low_pop=1; low_pop_register=3; end
++      16'h0010: begin single_low_pop=1; low_pop_register=4; end
++      16'h0020: begin single_low_pop=1; low_pop_register=5; end
++      16'h0040: begin single_low_pop=1; low_pop_register=6; end
++      16'h0080: begin single_low_pop=1; low_pop_register=7; end
++      default: begin end
++    endcase
++  end
+   logic stall;
+ 
+   assign stall = i_data_stall || i_stall_from_shifter || i_stall_from_issue;
+@@ -165,6 +185,8 @@
+     if (i_reset) begin
+       ras_ff                 <= '0;
+       ras_ptr_ff             <= '0;
++      pop_return_valid <= 0;
++      pop_return_register <= 0;
+       o_irq_ff               <= 0;
+       o_fiq_ff               <= 0;
+       o_abt_ff               <= 0;
+@@ -188,6 +210,7 @@
+         ||      ( i_clear_from_alu && !i_data_stall )
+         ||      ( o_clear_from_decode && !stall ))
+         begin
++      pop_return_valid <= 0;
+       o_irq_ff               <= 0;
+       o_fiq_ff               <= 0;
+       o_abt_ff               <= 0;
+@@ -224,6 +247,14 @@
+         o_ppc_ff            <= ppc_nxt;
+         ras_ff              <= ras_nxt;
+         ras_ptr_ff          <= ras_ptr_nxt;
++        if (mode32_instruction_valid) begin
++          pop_return_valid <= i_cpu_mode_t && !skid_irq && !skid_fiq && !skid_abt && !skid_und &&
++              mode32_instruction[27:25] == 3'b100 && mode32_instruction[24:23] == 2'b01 &&
++              mode32_instruction[21:20] == 2'b11 && mode32_instruction[19:16] == 4'd13 &&
++              single_low_pop;
++          pop_return_register <= low_pop_register;
++        end
++
+       end
+     end
+   end
+@@ -445,6 +476,10 @@
+                    mode32_instruction_valid
+                   )
+                   ||
++        // Speculative return hint only; ALU still validates the loaded target.
++        (pop_return_valid && i_cpu_mode_t && mode32_instruction_valid &&
++         mode32_instruction[31:0] ==? BX_INST &&
++         mode32_instruction[3:0] == {1'b0,pop_return_register}) ||
+         // As is MOV PC, LR
+         (
+                     (

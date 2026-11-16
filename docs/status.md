@@ -1,3 +1,24 @@
+## 2026-11-16: Local-only JPEG next target measured; DSP audit queued
+
+User explicitly says leave phone alone and profile locally. No further phone
+commands/captures/reloads/memory reads after that direction. Current HDL completes
+the extracted JPEG converter; no full-app hang reproduced by this harness.
+Baseline ecd018d8x8=98072cycles;28970datawait,22993empty operands,13834loaddep.
+Accepted branch attribution finds585POP-lowreg/BX returns, all late-corrected.
+
+Isolated predecode-only4-bit return hint gains9.4036% across four original cases:
+89610/89626/88518/176626cycles, experimental JPEG index132.6505 versus121.2488.
+8groups2exact repeats, original outputs/guards/retirement and4negative outputs
+pass;22existing/118extended return controls pass. Late ALU clears860→340,
+empty operands22993→15900 in first scored window; data waits essentially same.
+Production HDL is unchanged, no new core build. Prototype is NOT adoption or
+CPU/IRQ/abort/timing/area qualification. Selected delta is tracked as an evidence
+patch; raw/source/reproducers stay in project scratch/build. See jpeg-next-performance.md.
+
+User queues DSP mapping after this: inspect actual multiplier/arithmetic mapping,
+use DSPs where they reduce ALMs without adding unwanted latency or harming104MHz.
+No directive change or resource-saving claim yet. Phone remains user-controlled.
+
 ## 2026-11-16: User b3131b5 JPEG/Contacts PASS; phone installation handoff
 
 User confirms JPEG Test PASSES on b3131b5 and Contacts PASSES. Disk Access
