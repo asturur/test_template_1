@@ -1,0 +1,13 @@
+{
+  "base": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+  "payloads": {
+    "rtl/arm920/cache_access.sv": "15f2e214cecaa04801425900b1ced560759496b85383f198e3c908c681257c13",
+    "rtl/arm920/cache_adapter.sv": "c0fd8d256523241a0cbb98472434093bb85039243cfe06126c83eaf172c9bf78",
+    "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f"
+  },
+  "production_bram_sha256": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+  "experiment": "Stop 3D exact Stop 3C overlay",
+  "seed": 42,
+  "debugger": true
+}

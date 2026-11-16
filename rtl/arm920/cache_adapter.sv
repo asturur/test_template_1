@@ -171,6 +171,23 @@ module arm920_cache_adapter #(
       if (inflight && (wb_ack || wb_err)) inflight <= 0;
     end
   end
+  // Private pre-read scheduling: capture both raw address candidates without
+  // reset or clock enable. No fast ACK, fault, permission, launched or ready
+  // signal selects or enables these payload flops. P1 has priority; a raw held
+  // P2 read is the fallback. Consumer qualification above remains unchanged.
+  reg [26:0] probe_p1_tag_q, probe_p2_tag_q;
+  reg probe_p1_valid_q, probe_p2_valid_q;
+  always @(posedge clk) begin
+    probe_p1_tag_q <= data_probe_address[31:5];
+    probe_p2_tag_q <= address[31:5];
+    if (reset) begin
+      probe_p1_valid_q <= 0;
+      probe_p2_valid_q <= 0;
+    end else begin
+      probe_p1_valid_q <= DATA_PROBE && !READ_ONLY && data_probe_valid;
+      probe_p2_valid_q <= DATA_PROBE && !READ_ONLY && rd && !wr && swp_tag == 0;
+    end
+  end
   arm920_cache_access #(
       .LINE_REFILL(LINE_REFILL),
       .READ_ONLY  (READ_ONLY),
@@ -211,11 +228,8 @@ module arm920_cache_adapter #(
       // Before admission, a current P2 read may overlap translation. Once
       // launched or satisfied, pre-read the independent P1 address instead.
       // Neither address probe launches a walk, refill, write or completion.
-      .data_probe_valid(DATA_PROBE && !READ_ONLY && !active_maint &&
-                        !cache_invalidate && !cache_clean && !lock_pending && !cache_lock_write &&
-                        ((rd && !wr && swp_tag == 2'd0 && !launched && !fast_hit) || data_probe_valid)),
-      .data_probe_address(rd && !wr && swp_tag == 2'd0 && !launched && !fast_hit ?
-                           address : data_probe_address),
+      .data_probe_valid(probe_p1_valid_q || probe_p2_valid_q),
+      .data_probe_address({probe_p1_valid_q ? probe_p1_tag_q : probe_p2_tag_q, 5'b0}),
       .fast_lookup_valid(fast_valid),
       .fast_lookup_checked(fast_checked),
       .fast_lookup_line(fast_line),
