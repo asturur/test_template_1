@@ -1,3 +1,13 @@
+## 2026-11-17 — Step 5E started; whole-CPU comparison planned
+
+Mainline Sol is tracing call/return delivery on accepted 5D using matrix and
+Thumb JPEG. The completed ngage2 comparison used frozen 5C. Its call/return
+and post-indexed store schedules change the priority of the next investigation.
+The later donor sequence restores the historical 32 KiB I/D configuration on
+the measured donor revision, integrates its complete CPU/cache/MMU behind the
+NEM-4 board boundary, then compares the improved finalists. Only 5E is active.
+[Architecture, evidence and execution order](cpu-comparison-strategy.md).
+
 ## 2026-11-17 — Paired registered-product handoff accepted (Step5D)
 
 Exact accepted5C78d53d4 control; one multiplier state retains the existing

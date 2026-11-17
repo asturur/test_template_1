@@ -6,6 +6,8 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cpu-comparison-strategy.md](cpu-comparison-strategy.md) | Current CPU and whole ARM9V2 donor strategy, larger-cache experiments, board integration and final comparison |
+| [ngage2-vs-5c-benchmark.md](ngage2-vs-5c-benchmark.md) | Checked original workloads on both CPUs, cycle counts, memory traffic and call/return and post-indexed store schedules |
 | [cpu-paired-delivery.md](cpu-paired-delivery.md) | Step5D matrix47887→45736, actual paired writes/advancing consumers, bounded opportunity and complete offline qualification |
 | [cpu-5bc-summary.md](cpu-5bc-summary.md) | Accepted5B/5C sources, cycles vs redesign start, one matched fit, current limits and ranked next action |
 | [cpu-owner-split-fit.md](cpu-owner-split-fit.md) | Master5B seed42 RBF/source proof,319 fewer ALMs,78/104 setup gains and new private-probe feedback bottleneck |
