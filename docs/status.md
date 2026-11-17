@@ -1,3 +1,38 @@
+## 2026-11-17 — Owner split retained; product delivery accepted (Steps5B/5C)
+
+Master5B419471d5, one seed42/debug-on run44001480657, physical78MHz PLL:
+compile/source/eight-corner78+104 analysis/SDRAMpins/RBF uploadsPASS; timingFAIL.
+All178 selected hashes match5A plus four qualified RTL files; effectiveQSF/
+QIPs/SDCs/productionBRAM/PLL identical. Hot setup78−1.970→−1.258ns,
+104−5.175→−4.463ns; cold−1.121/−4.326ns. CPU TNS−304.683→−28.437ns.
+ALMs41147→40828(−319), placed40981→40814(−167), regs45095→45279(+184),
+M10Ks502/DSPs41 same. Packing4188/4191LABs:three free,one fewer. Retain5B:
+zero cycle cost and better setup/TNS/ALMs. All203 late-owner negative origins
+are gone; new worst private probe select→tag/way/collision/coverage→adapter
+feedback,13.679ns/12levels. Retime that bounded owner boundary for104MHz;
+no exceptions mask it. Local RBF4566388bytes SHA22aeed19b11f787816689b33be4b083e9f6a8c8706887b99f8deedd2b23a920d.
+5C one-file source bundle ddacc3a4 skips S2 only after S1's registered DSP
+product when both addend halves are zero; no new state/DSP arithmetic.
+Original matrix50033→47887(−2146,−4.2892%), transpose3591/JPEG84353/store71
+unchanged,both0:0/2:9/scored/repeat/output/negative checksPASS. All1024 actual
+SMULL products/paired writes/first-consumer inputs and14353 retirement PCs
+match; local delivery improvesone clock. Busy6144→5120; disjoint empty−1106/
+read−16 reconcile2146, not a6144-clock removal. Independent2048 vectors/
+4096 results+pairedflags/randomholds,16heldcancels,15owned-stage clear/reset,
+actual S1IRQ whole-destination-pair/predication/fallback, eightCPU diagnostics
+and held/fault/device/dirty/original memory oraclesPASS. Production's60CPU RTL
+inputs match qualified5C; pristine patches0075+0076 replayPASS. No5Cfit.
+Versus redesign start52275/5328/89610, accepted cycles47887/3591/84353.
+Next broader throughput: general paired result/operand delivery (2048 high-
+half busy,3072helper hold observations overlap;trace before claiming savings),
+then frontend replenishment (14765empty clocks,not an avoidable budget).
+[Compact combined report](cpu-5bc-summary.md) · [Fit/RBF](cpu-owner-split-fit.md) ·
+[5C schedules/evidence](cpu-product-bypass.md).
+Solemaster/history/fit-tags, unrelatedworkingstate/assets/runs/checkpoints
+preserved. Andrea personally reports core runs but still feels short of goal;
+no numeric board score. No deployment/phone commands/game extraction/newrefs
+or second fit. Stop after accepted5B/5C and report collection.
+
 ## 2026-11-17 — Cycle-preserving owner split qualified (Step5B)
 
 Exact published5A6ac7a9d control; four-file candidatef3f199d1 preselects private

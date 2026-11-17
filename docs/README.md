@@ -6,6 +6,9 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cpu-5bc-summary.md](cpu-5bc-summary.md) | Accepted5B/5C sources, cycles vs redesign start, one matched fit, current limits and ranked next action |
+| [cpu-owner-split-fit.md](cpu-owner-split-fit.md) | Master5B seed42 RBF/source proof,319 fewer ALMs,78/104 setup gains and new private-probe feedback bottleneck |
+| [cpu-product-bypass.md](cpu-product-bypass.md) | Step5C original matrix50033→47887, all1024 product/write/consumer schedules and paired/IRQ/hold qualification |
 | [cpu-owner-split.md](cpu-owner-split.md) | Step5B cycle-preserving private owner split, exact5A schedule audit and matched master fit |
 | [master-consolidation.md](master-consolidation.md) | Accepted5A source/history consolidation, sole master and limited owner-reported board observation |
 | [cpu-frontend-delivery-fit.md](cpu-frontend-delivery-fit.md) | Verified78MHz RBF, exact178-input audit, seed42 resources and actual78/104 timing; timing gate red |

@@ -77,7 +77,8 @@
     "patches/zap/0072-predict-thumb-pop-bx-returns.patch",
     "patches/zap/0073-reconcile-qualified-integration-baseline.patch",
     "patches/zap/0074-qualified-resident-cpu-pipeline.patch",
-    "patches/zap/0075-private-next-owner.patch"
+    "patches/zap/0075-private-next-owner.patch",
+    "patches/zap/0076-skip-zero-addend-hold.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

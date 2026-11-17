@@ -612,3 +612,8 @@ are preserved. [Qualified CPU work](cpu-frontend-delivery.md) ·
 Step5B patch0075 preselects private next-owner payloads from registered completion
 validity while preserving qualified offers, P2 SWP identity and exact5A cycles.
 See [the qualification and physical comparison](cpu-owner-split.md).
+
+Step5C patch0076 skips a redundant zero-addend hold after the registered full
+DSP product. Matrix50033→47887; transpose/JPEG/store unchanged. Full-product
+inference and paired destination/flags/hold/kill behavior remain qualified.
+See [the1024-owner schedule audit](cpu-product-bypass.md).

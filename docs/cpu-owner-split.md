@@ -50,3 +50,12 @@ Local storage exhaustion interrupted later test builds; only this experiment's
 rebuildable compiler files were removed. Docker retained deleted-file handles
 until its stalled application was restarted; no unrelated container was running.
 Executables, source hashes and evidence remain. No deployment/phone commands.
+
+## Physical result and retained source
+
+The single master run44001480657 passed compile/source audit/78+104 analysis/
+SDRAM pin registers and uploaded its RBF; only timing acceptance failed.
+Hot setup improves−1.970→−1.258ns at78 and−5.175→−4.463ns at104; ALMs
+41147→40828 with zero cycle cost. Retain5B. The worst path moves from late
+CPU owner selection to private probe tag/way/collision/coverage feedback.
+Packing remains tight (three empty LABs). [Full fit report](cpu-owner-split-fit.md).

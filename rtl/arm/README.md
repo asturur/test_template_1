@@ -24,3 +24,7 @@ legacy scratch upstream checkout is not modified by verification. See
 
 Patch0075 separates private owner payload selection from final demand qualification;
 see docs/cpu-owner-split.md. The private direction extension is in arm920/cache_adapter.sv.
+
+Patch0076 skips only the zero-addend accumulate hold after the registered DSP
+product capture; paired results/flags and accumulating fallback remain owned.
+See docs/cpu-product-bypass.md; the5B physical build predates this change.

@@ -152,7 +152,10 @@ begin
                 begin
                         // Keep the low 64 bits, matching ARM long-product wraparound.
                         x_nxt     = full_product[63:0];
-                        state_nxt = S2;
+                        // A zero addend cannot change this already registered product.
+                        // Keep the DSP pipeline and paired low/high owner intact;
+                        // only bypass the redundant accumulate hold, never S1.
+                        state_nxt = (i_rh == 0 && i_rn == 0) ? S3 : S2;
                 end
 
                 S2:
