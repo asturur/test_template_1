@@ -44,3 +44,6 @@ collision ownership remain. See docs/cpu-load-release.md for qualification.
 
 Patch0081 records the exact qualified 5l integration. See
 docs/cpu-late-operand.md.
+
+Patch0082 records the exact qualified banked integration. See
+docs/tlb-area.md.

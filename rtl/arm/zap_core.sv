@@ -157,6 +157,7 @@ module zap_core #(
     output logic        o_dtlb_lock_write,
     output logic        o_itlb_lock_write,
     output logic [31:0] o_tlb_lock_data,
+    input wire i_dtlb_mutation_busy, i_itlb_mutation_busy,
     input  wire  [31:0] i_dtlb_lock_read,
     input  wire  [31:0] i_itlb_lock_read,
 
@@ -1967,6 +1968,8 @@ module zap_core #(
       .o_itlb_lock_write(o_itlb_lock_write),
       .o_tlb_lock_data  (o_tlb_lock_data),
       .i_dtlb_lock_read (i_dtlb_lock_read),
+      .i_dtlb_mutation_busy(i_dtlb_mutation_busy),
+      .i_itlb_mutation_busy(i_itlb_mutation_busy),
       .i_itlb_lock_read (i_itlb_lock_read),
 
       .o_dcache_en           (o_dcache_en),

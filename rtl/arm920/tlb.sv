@@ -22,6 +22,7 @@ module arm920_tlb #(
     input wire i_lock_write,
     input wire [31:0] i_lock_data,
     output wire [31:0] o_lock_read,
+    output wire o_mutation_busy,
     input wire i_complete,
     input wire i_idle,
     output wire [31:0] o_phy_addr,
@@ -55,7 +56,7 @@ module arm920_tlb #(
     input wire i_wb_err
 );
   localparam IDLE=0, LOOKUP=1, L1_WAIT=2, L1_DECODE=3,
-               L2_WAIT=4, L2_DECODE=5, INSTALL=6;
+               L2_WAIT=4, L2_DECODE=5, INSTALL=6, INSTALL_WAIT=7;
   reg [2:0] state;
   reg token_valid, token_rd, token_wr;
   // A reusable mapping has separately checked direction permissions. Invalid
@@ -98,7 +99,9 @@ module arm920_tlb #(
   wire permission_denied = (i_request_rd && !read_allowed) ||
                            (i_request_wr && !write_allowed);
   wire [7:0] selected_fsr = use_second ? second_fsr : token_fsr;
-  wire bank_lookup = state == IDLE && i_mmu_en && i_idle && request && !owner && !mutation;
+  wire bank_busy;
+  assign o_mutation_busy = bank_busy || mutation;
+  wire bank_lookup = state == IDLE && i_mmu_en && i_idle && request && !owner && !mutation && !bank_busy;
   wire bank_valid, bank_hit;
   wire [37:0] bank_payload;
   wire obsolete = cancelled || mutation || !i_mmu_en || request_baddr != i_baddr;
@@ -106,6 +109,8 @@ module arm920_tlb #(
 
   arm920_tlb_bank bank (
       .clk(i_clk),
+      .busy(bank_busy),
+      .cancel_fill(state==INSTALL_WAIT && (!i_mmu_en || request_baddr!=i_baddr)),
       .reset(i_reset),
       .lookup(bank_lookup),
       .lookup_mva(i_address),
@@ -180,7 +185,7 @@ module arm920_tlb #(
       // Never let a local mapping outlive a main-table replacement or cross a
       // context boundary. A main-table hit may retain the prior primary mapping;
       // a fill drops both old records before publishing its new primary result.
-      if (bank_fill || token_cpsr != request_cpsr || token_sr != request_sr ||
+      if (bank_fill || state==INSTALL_WAIT || token_cpsr != request_cpsr || token_sr != request_sr ||
           token_dac != request_dac || token_baddr != request_baddr)
         second_valid <= 0;
       else if (token_valid && token_mapping) begin
@@ -236,7 +241,7 @@ module arm920_tlb #(
     end
   endtask
 
-  assign o_busy = i_mmu_en && i_idle && (state != IDLE || (request && !owner) || mutation);
+  assign o_busy = i_mmu_en && i_idle && (state != IDLE || bank_busy || (request && !owner) || mutation);
   // Waiting for translation does not architecturally restart an instruction.
   assign o_lookup_wait = o_busy;
   assign o_walk_pending = o_busy;
@@ -426,9 +431,15 @@ module arm920_tlb #(
           state <= INSTALL;
         end
         INSTALL: begin
-          if (!obsolete)
-            publish_mapping(fill_payload);
-          state <= IDLE;
+          // One fill pulse; publish only after overlap invalidation and RAM
+          // commit. CP15 mutations revoke this owner and drain after the fill.
+          state <= obsolete ? IDLE : INSTALL_WAIT;
+        end
+        INSTALL_WAIT: begin
+          if (!bank_busy) begin
+            if (!obsolete) publish_mapping(fill_payload);
+            state <= IDLE;
+          end
         end
         default: state <= IDLE;
       endcase

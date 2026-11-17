@@ -134,6 +134,7 @@ module zap_cp15_cb #(
     output logic        o_dtlb_lock_write,
     output logic        o_itlb_lock_write,
     output logic [31:0] o_tlb_lock_data,
+    input wire i_dtlb_mutation_busy, i_itlb_mutation_busy,
     input  wire  [31:0] i_dtlb_lock_read,
     input  wire  [31:0] i_itlb_lock_read,
 
@@ -203,6 +204,7 @@ module zap_cp15_cb #(
   localparam [3:0] DRAIN_WRITE_BUFFER      = 14;
   localparam [3:0] WAIT_FOR_INTERRUPT      = 15;
   localparam [4:0] ICACHE_PREFETCH         = 16;
+  localparam [4:0] WAIT_TLB_MUTATION = 17;
 
   // Register numbers.
   localparam [3:0] FSR_REG                 = 5;
@@ -462,12 +464,14 @@ module zap_cp15_cb #(
           end
 
           if (i_cp_word.ZAP_CRN == 10 && i_cp_word.ZAP_CRM == 0) begin
+            state <= WAIT_TLB_MUTATION;
             o_tlb_lock_data   <= i_reg_rd_data;
             o_dtlb_lock_write <= i_cp_word.ZAP_OPCODE_2 == 0;
             o_itlb_lock_write <= i_cp_word.ZAP_OPCODE_2 == 1;
           end
           if (i_cp_word.ZAP_CRN == TLB_REG  // TLB control.
               ) begin
+            state <= WAIT_TLB_MUTATION;
             o_tlb_inv_mva <= i_cp_word.ZAP_OPCODE_2[0];
             o_tlb_inv_address <= i_reg_rd_data;
             casez ({
@@ -621,6 +625,11 @@ module zap_cp15_cb #(
             wait_for_interrupt <= 1'b0;
             state <= DONE;
           end
+        end
+        WAIT_TLB_MUTATION: begin
+          // Includes the current registered request pulse, so the first edge
+          // cannot finish before the selected bank accepts its mutation.
+          if (!i_dtlb_mutation_busy && !i_itlb_mutation_busy) state <= DONE;
         end
         LOCK_D_CACHE: begin
           o_dcache_lock_write <= 1'b1;

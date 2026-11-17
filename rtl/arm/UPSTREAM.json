@@ -83,7 +83,8 @@
     "patches/zap/0078-admit-postindexed-word-stores.patch",
     "patches/zap/0079-size-multiply-state-encodings.patch",
     "patches/zap/0080-pipeline-load-lookup.patch",
-    "patches/zap/0081-late-arithmetic-operand.patch"
+    "patches/zap/0081-late-arithmetic-operand.patch",
+    "patches/zap/0082-bank-main-tlb-tags.patch"
   ],
   "files": {
     "LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",

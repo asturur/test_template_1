@@ -210,6 +210,7 @@ begin
   logic [31:0] dc_far;
   logic cpu_dc_en, cpu_ic_en;
   logic [1:0] cpu_sr;
+  wire dtlb_mutation_busy,itlb_mutation_busy;
   logic [31:0] cpu_baddr, cpu_dac_reg;
   logic cpu_dc_inv, cpu_ic_inv;
   logic cpu_dc_clean, cpu_ic_clean;
@@ -377,6 +378,8 @@ begin
       .o_itlb_lock_write     (cpu_itlb_lock_write),
       .o_tlb_lock_data       (cpu_tlb_lock_data),
       .i_dtlb_lock_read      (dtlb_lock_read),
+      .i_dtlb_mutation_busy(dtlb_mutation_busy),
+      .i_itlb_mutation_busy(itlb_mutation_busy),
       .i_itlb_lock_read      (itlb_lock_read),
       .o_dcache_en           (cpu_dc_en),
       .o_icache_en           (cpu_ic_en),
@@ -709,6 +712,7 @@ begin
           .i_tlb_lock_write    (cpu_dtlb_lock_write),
           .i_tlb_lock_data     (cpu_tlb_lock_data),
           .o_tlb_lock_read     (dtlb_lock_read),
+          .o_tlb_mutation_busy(dtlb_mutation_busy),
 
           .o_err2(dcache_err2),
 
@@ -801,6 +805,7 @@ begin
           .i_tlb_lock_write     (cpu_itlb_lock_write),
           .i_tlb_lock_data      (cpu_tlb_lock_data),
           .o_tlb_lock_read      (itlb_lock_read),
+          .o_tlb_mutation_busy(itlb_mutation_busy),
           .o_err2               (icache_err2),
 
           /* verilator lint_off PINCONNECTEMPTY */

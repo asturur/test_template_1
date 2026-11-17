@@ -1,0 +1,135 @@
+--- a/src/rtl/zap_cache.sv
++++ b/src/rtl/zap_cache.sv
+@@ -99,6 +99,7 @@
+     input  wire                i_tlb_lock_write,
+     input  wire  [       31:0] i_tlb_lock_data,
+     output wire  [       31:0] o_tlb_lock_read,
++    output wire o_tlb_mutation_busy,
+ 
+     // Wishbone. Signals from all 4 modules are ORed.
+     output logic        o_wb_stb,
+@@ -352,6 +353,7 @@
+       .i_lock_write    (i_tlb_lock_write),
+       .i_lock_data     (i_tlb_lock_data),
+       .o_lock_read     (o_tlb_lock_read),
++      .o_mutation_busy(o_tlb_mutation_busy),
+       .i_complete      (o_ack || (i_cache_prefetch && tlb_fault)),
+       .o_phy_addr      (tlb_phy_addr),
+       .o_fsr           (tlb_fsr),
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -157,6 +157,7 @@
+     output logic        o_dtlb_lock_write,
+     output logic        o_itlb_lock_write,
+     output logic [31:0] o_tlb_lock_data,
++    input wire i_dtlb_mutation_busy, i_itlb_mutation_busy,
+     input  wire  [31:0] i_dtlb_lock_read,
+     input  wire  [31:0] i_itlb_lock_read,
+ 
+@@ -1967,6 +1968,8 @@
+       .o_itlb_lock_write(o_itlb_lock_write),
+       .o_tlb_lock_data  (o_tlb_lock_data),
+       .i_dtlb_lock_read (i_dtlb_lock_read),
++      .i_dtlb_mutation_busy(i_dtlb_mutation_busy),
++      .i_itlb_mutation_busy(i_itlb_mutation_busy),
+       .i_itlb_lock_read (i_itlb_lock_read),
+ 
+       .o_dcache_en           (o_dcache_en),
+--- a/src/rtl/zap_cp15_cb.sv
++++ b/src/rtl/zap_cp15_cb.sv
+@@ -134,6 +134,7 @@
+     output logic        o_dtlb_lock_write,
+     output logic        o_itlb_lock_write,
+     output logic [31:0] o_tlb_lock_data,
++    input wire i_dtlb_mutation_busy, i_itlb_mutation_busy,
+     input  wire  [31:0] i_dtlb_lock_read,
+     input  wire  [31:0] i_itlb_lock_read,
+ 
+@@ -203,6 +204,7 @@
+   localparam [3:0] DRAIN_WRITE_BUFFER      = 14;
+   localparam [3:0] WAIT_FOR_INTERRUPT      = 15;
+   localparam [4:0] ICACHE_PREFETCH         = 16;
++  localparam [4:0] WAIT_TLB_MUTATION = 17;
+ 
+   // Register numbers.
+   localparam [3:0] FSR_REG                 = 5;
+@@ -462,12 +464,14 @@
+           end
+ 
+           if (i_cp_word.ZAP_CRN == 10 && i_cp_word.ZAP_CRM == 0) begin
++            state <= WAIT_TLB_MUTATION;
+             o_tlb_lock_data   <= i_reg_rd_data;
+             o_dtlb_lock_write <= i_cp_word.ZAP_OPCODE_2 == 0;
+             o_itlb_lock_write <= i_cp_word.ZAP_OPCODE_2 == 1;
+           end
+           if (i_cp_word.ZAP_CRN == TLB_REG  // TLB control.
+               ) begin
++            state <= WAIT_TLB_MUTATION;
+             o_tlb_inv_mva <= i_cp_word.ZAP_OPCODE_2[0];
+             o_tlb_inv_address <= i_reg_rd_data;
+             casez ({
+@@ -621,6 +625,11 @@
+             wait_for_interrupt <= 1'b0;
+             state <= DONE;
+           end
++        end
++        WAIT_TLB_MUTATION: begin
++          // Includes the current registered request pulse, so the first edge
++          // cannot finish before the selected bank accepts its mutation.
++          if (!i_dtlb_mutation_busy && !i_itlb_mutation_busy) state <= DONE;
+         end
+         LOCK_D_CACHE: begin
+           o_dcache_lock_write <= 1'b1;
+--- a/src/rtl/zap_dcache.sv
++++ b/src/rtl/zap_dcache.sv
+@@ -115,6 +115,7 @@
+     input  wire                i_tlb_lock_write,
+     input  wire  [       31:0] i_tlb_lock_data,
+     output wire  [       31:0] o_tlb_lock_read,
++    output wire o_tlb_mutation_busy,
+ 
+     // Wishbone. Signals from all 4 modules are ORed.
+     output logic        o_wb_stb,
+@@ -401,6 +402,7 @@
+       .i_lock_write    (i_tlb_lock_write),
+       .i_lock_data     (i_tlb_lock_data),
+       .o_lock_read     (o_tlb_lock_read),
++      .o_mutation_busy(o_tlb_mutation_busy),
+       .i_complete      (o_ack),
+       .o_phy_addr      (tlb_phy_addr),
+       .o_fsr           (tlb_fsr),
+--- a/src/rtl/zap_top.sv
++++ b/src/rtl/zap_top.sv
+@@ -210,6 +210,7 @@
+   logic [31:0] dc_far;
+   logic cpu_dc_en, cpu_ic_en;
+   logic [1:0] cpu_sr;
++  wire dtlb_mutation_busy,itlb_mutation_busy;
+   logic [31:0] cpu_baddr, cpu_dac_reg;
+   logic cpu_dc_inv, cpu_ic_inv;
+   logic cpu_dc_clean, cpu_ic_clean;
+@@ -377,6 +378,8 @@
+       .o_itlb_lock_write     (cpu_itlb_lock_write),
+       .o_tlb_lock_data       (cpu_tlb_lock_data),
+       .i_dtlb_lock_read      (dtlb_lock_read),
++      .i_dtlb_mutation_busy(dtlb_mutation_busy),
++      .i_itlb_mutation_busy(itlb_mutation_busy),
+       .i_itlb_lock_read      (itlb_lock_read),
+       .o_dcache_en           (cpu_dc_en),
+       .o_icache_en           (cpu_ic_en),
+@@ -709,6 +712,7 @@
+           .i_tlb_lock_write    (cpu_dtlb_lock_write),
+           .i_tlb_lock_data     (cpu_tlb_lock_data),
+           .o_tlb_lock_read     (dtlb_lock_read),
++          .o_tlb_mutation_busy(dtlb_mutation_busy),
+ 
+           .o_err2(dcache_err2),
+ 
+@@ -801,6 +805,7 @@
+           .i_tlb_lock_write     (cpu_itlb_lock_write),
+           .i_tlb_lock_data      (cpu_tlb_lock_data),
+           .o_tlb_lock_read      (itlb_lock_read),
++          .o_tlb_mutation_busy(itlb_mutation_busy),
+           .o_err2               (icache_err2),
+ 
+           /* verilator lint_off PINCONNECTEMPTY */

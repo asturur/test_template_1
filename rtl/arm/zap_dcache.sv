@@ -115,6 +115,7 @@ module zap_dcache #(
     input  wire                i_tlb_lock_write,
     input  wire  [       31:0] i_tlb_lock_data,
     output wire  [       31:0] o_tlb_lock_read,
+    output wire o_tlb_mutation_busy,
 
     // Wishbone. Signals from all 4 modules are ORed.
     output logic        o_wb_stb,
@@ -401,6 +402,7 @@ module zap_dcache #(
       .i_lock_write    (i_tlb_lock_write),
       .i_lock_data     (i_tlb_lock_data),
       .o_lock_read     (o_tlb_lock_read),
+      .o_mutation_busy(o_tlb_mutation_busy),
       .i_complete      (o_ack),
       .o_phy_addr      (tlb_phy_addr),
       .o_fsr           (tlb_fsr),
