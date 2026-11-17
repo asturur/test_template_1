@@ -617,3 +617,8 @@ Step5C patch0076 skips a redundant zero-addend hold after the registered full
 DSP product. Matrix50033→47887; transpose/JPEG/store unchanged. Full-product
 inference and paired destination/flags/hold/kill behavior remain qualified.
 See [the1024-owner schedule audit](cpu-product-bypass.md).
+
+Step5D patch0077 adds one paired-ready state and no payload flops. Original
+matrix47887→45736; transpose/JPEG/drained stores unchanged. All1024 paired
+writes/advancing consumers,14353 retirement PCs and existing instruction-profile
+checks pass. See [the elapsed opportunity and qualification](cpu-paired-delivery.md).

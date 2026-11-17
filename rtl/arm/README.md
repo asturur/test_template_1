@@ -28,3 +28,7 @@ see docs/cpu-owner-split.md. The private direction extension is in arm920/cache_
 Patch0076 skips only the zero-addend accumulate hold after the registered DSP
 product capture; paired results/flags and accumulating fallback remain owned.
 See docs/cpu-product-bypass.md; the5B physical build predates this change.
+
+Patch0077 retains the existing registered long-multiply result for an immediate
+high-half owner, removing its restart without a new payload/bypass network.
+See docs/cpu-paired-delivery.md; reset/kill/hold and expired-owner fallback remain.

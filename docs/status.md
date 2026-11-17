@@ -1,3 +1,32 @@
+## 2026-11-17 — Paired registered-product handoff accepted (Step5D)
+
+Exact accepted5C78d53d4 control; one multiplier state retains the existing
+registered product for the immediately following high micro-op. One declared
+logical state bit, no payload flops, DSP operation or wider bypass network.
+All1024 original helper schedules: high advance6→4, first real high consumer
+7→5, low physical write8 unchanged and high write11→9 (offsets from low start).
+The two high-restart busy clocks have zero explicit overlap with the three
+later shift holds. Direct target2048clocks=4.2767% of47887; their5120-clock
+union is not an achievable savings budget. Earlier5C consumer label clarified.
+Original matrix47887→45736(−2151,−4.4918%); transpose3591/JPEG84353/drained
+64stores71 unchanged, both0:0/2:9, scored windows/repeats/oracles/negativesPASS.
+Disjoint accounting: other−2048, empty−87, read−16; remaining buckets unchanged.
+All14353 retirement PCs,1024 exact products/ordered paired writes/advancing
+consumer values match. Independent2048 vectors/4096 outputs, pairedflags,
+randomholds,16heldkills,18reset/kill-state cases, actual S1/paired-ready IRQ,
+eight CPU diagnostics and existing memory/dirty/device/fault checksPASS.
+Existing ARMv4T profile alsoPASS at0/3 waits after the user restarted Docker;
+identical executable/program hashes, no rebuild. Initial unit failure was only
+a five-bit observer truncating the new state; widened fixture, unchanged DUT.
+Qualified bundle14dd1033; all60 compiled production CPU RTL files match,
+pristine patch0077 replayPASS. No5Dfit: last5B still only3freeLABs and red78/104
+timing; no physical closure inferred. Serial offline runs only, no new payload,
+CI/fit/branch/worktree/deployment/phone access. Other work/runs/checkpoints retained.
+Next research: general ALU→shift-operand handoff at11d4/11d8/11dc;3072 local
+holds=6.7168% of45736, not promised elapsed savings. Establish readiness and
+JPEG coverage before implementing. [Qualification and schedules](cpu-paired-delivery.md)
+· [Machine-readable evidence](evidence/cpu-paired-delivery-20261117.json).
+
 ## 2026-11-17 — Owner split retained; product delivery accepted (Steps5B/5C)
 
 Master5B419471d5, one seed42/debug-on run44001480657, physical78MHz PLL:

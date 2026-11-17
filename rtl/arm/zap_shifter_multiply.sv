@@ -63,7 +63,7 @@ module zap_shifter_multiply
 
 // States
 
-localparam [31:0] NUMBER_OF_STATES = 5;
+localparam [31:0] NUMBER_OF_STATES = 6;
 
 typedef enum logic [NUMBER_OF_STATES-1:0] {
         IDLE          = 5'b00001,
@@ -71,6 +71,7 @@ typedef enum logic [NUMBER_OF_STATES-1:0] {
         S1            = 5'b00100,
         S2            = 5'b01000,
         S3            = 5'b10000,
+        PAIRED_READY  = 6'b100000,
         `ZAP_DEFAULT_XX
 } t_state;
 
@@ -170,7 +171,10 @@ begin
                 begin
                         o_sat = 1'b0;
 
-                        state_nxt  = IDLE;
+                        // The complete registered product still owns its upper
+                        // half after the low result advances. Retain that owner
+                        // for the immediately following high micro-op.
+                        state_nxt  = higher ? IDLE : PAIRED_READY;
 
 
                         // Is this the first or second portion of the long multiply.
@@ -192,6 +196,30 @@ begin
                         if ( higher && old_nozero_ff )
                         begin
                                 o_nozero = 1'd1;
+                        end
+                end
+
+                PAIRED_READY:
+                begin
+                        // No payload copy or live-product bypass. Holds retain
+                        // this state; reset/older kills use the existing priority.
+                        // A bubble/unrelated instruction expires the fast owner;
+                        // later high requests retain the original serialized route.
+                        o_busy = 1'b0;
+                        state_nxt = IDLE;
+                        if (i_cc_satisfied &&
+                            (i_alu_operation_ff == {1'd0, UMLALH} ||
+                             i_alu_operation_ff == {1'd0, SMLALH}))
+                        begin
+                                o_rd = x_ff[63:32];
+                                o_nozero = old_nozero_ff;
+                        end
+                        else if (i_cc_satisfied &&
+                                 (i_alu_operation_ff == {1'd0, UMLALL} ||
+                                  i_alu_operation_ff == {1'd0, SMLALL}))
+                        begin
+                                o_busy = 1'b1;
+                                state_nxt = POST_IDLE;
                         end
                 end
 

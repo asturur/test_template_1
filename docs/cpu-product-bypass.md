@@ -22,7 +22,7 @@ The product atPOST_IDLE is still the preceding factors' product; the exact
 current product first exists inS1. Keeping that stage is required. The removed
 S2 adds zero to an already registered correct product. All1,024 independent
 Python signed products, low/high emitted data, actual register writes and first
-consumer inputs match between variants. All14,353 retirement PCs stay ordered.
+following low-consumer inputs match between variants. All14,353 retirement PCs stay ordered.
 
 First helper, relative to its actual low-owner start (control233955, candidate231081):
 
@@ -33,8 +33,8 @@ First helper, relative to its actual low-owner start (control233955, candidate23
 | High result available | 7 | 6 |
 | Actual low register write | 9 | 8 |
 | Actual high register write | 12 | 11 |
-| First consumer issue | 8 | 7 |
-| First consumer receives low result | 9 | 8 |
+| First high-half consumer issue (100011cc) | 8 | 7 |
+| Following low-half consumer operand (100011d0) | 9 | 8 |
 
 Example operandsfffd412f×fffcf9dc produce000000084d4ebb64; both write
 4d4ebb64/00000008 and forward the exact low word. Every local write/consumer
@@ -92,3 +92,9 @@ all1024 schedules; raw logs underbuild/sim are losslessly compressed with hashes
 payload is promoted on master with patch0076 and pristine upstream replay.
 Accepted5A/5B sources and artifacts remain preserved. The collected5B bitstream
 does not include5C; no second fit or deployment is performed.
+
+Observer clarification from [Step5D](cpu-paired-delivery.md): `spc` names the
+previous registered stage while `shsrc` belongs to the currently issued
+instruction. The low-word operand sample in this table belongs to100011d0;
+the first advancing dependent100011cc consumes the high half.5D records both
+PCs and actual advance qualifications explicitly.5C cycle/output results stand.

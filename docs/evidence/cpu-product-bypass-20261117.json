@@ -42124,5 +42124,11 @@
     "patch": "patches/zap/0076-skip-zero-addend-hold.patch",
     "physical_qualification": "5B only; 5C not fitted",
     "retained_5B_commit": "419471d5cf85d2ca9d4cf6ff68a9652a1253ffd1"
+  },
+  "trace_label_clarification": {
+    "reference": "cpu-paired-delivery-20261117.json",
+    "historical_consumer_field": "following low-half consumer100011d0",
+    "first_actual_dependent": "high-half consumer100011cc",
+    "cycle_measurements_unchanged": true
   }
 }
