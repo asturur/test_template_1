@@ -1,3 +1,18 @@
+## 2026-11-17 — Cycle-preserving owner split qualified (Step5B)
+
+Exact published5A6ac7a9d control; four-file candidatef3f199d1 preselects private
+P1 address/attributes with registered completion_valid, keeps P2 SWP tag and
+feeds private direction into resident readiness. Actual offer keeps all original
+late-data/fault/kill/reset checks. No state or cycle added. Exact retirement and
+accepted-memory schedules match5A; matrix50033/transpose3591/JPEG84353/drained
+stream71 unchanged at0:0/2:9, output/negative/repeat checksPASS. Sixteen actual
+SWP/completion cases, eight ARM/Thumb/FCSE/fetch diagnostics, held/fault/device/
+IRQ/abort/dirty bytes, randomized completion reset/cancel and old-DMA-under-lock
+checksPASS. Pristine patch0075 replay required before publication. One matched
+master seed42/debug-on78MHz full fit with104MHz routed analysis authorized next;
+no fit-only refs/deployment/phone commands. [Report](cpu-owner-split.md) ·
+[Qualification evidence](evidence/cpu-owner-split-20261117.json).
+
 ## 2026-11-17 — Master consolidation complete; limited board observation
 
 Published master6ac7a9d contains all accepted integration commits, the three

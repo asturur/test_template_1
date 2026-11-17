@@ -76,6 +76,19 @@ jobs:
             2>&1 | tee quartus_timing_details.log
           exit "${PIPESTATUS[0]}"
 
+      - name: Record effective master fit inputs
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl --list > output_files/source-graph.txt
+          python3 tools/record_fit_inputs.py
+
+      - name: Analyze routed design at 78 and 104 MHz
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          set -uo pipefail
+          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/probe_retime_fit/report.tcl 2>&1 | tee resident_fit_timing.log
+          exit "${PIPESTATUS[0]}"
+
       - name: Summarize path bottlenecks
         run: |
           python3 tools/summarize_quartus_paths.py output_files/timing/worst-setup.csv \
@@ -120,6 +133,9 @@ jobs:
             output_files/build-info.json
             quartus_build.log
             quartus_timing_details.log
+            resident_fit_timing.log
+            output_files/resident-fit-manifest.json
+            output_files/source-graph.txt
             output_files/timing/
             output_files/*.rpt
             output_files/*.summary

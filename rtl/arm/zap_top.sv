@@ -636,6 +636,7 @@ begin
     if (!ONLY_CORE) begin : l_generate_with_cache_mmu
 
       zap_dcache #(
+          .PRIVATE_OWNER(1),
           .LINE_REFILL (LINE_REFILL),
           .CACHE_SIZE  (DATA_CACHE_SIZE),
           .CACHE_LINE  (CODE_CACHE_LINE),
@@ -655,6 +656,7 @@ begin
           .i_stall          (1'd0),                      // For timing.
           .i_reset          (s_reset),
           .i_address        (cpu_daddr),
+          .i_write_class    (cpu_dc_we),
           .i_alignment_fault(cpu_alignment_fault),
           .i_alignment_far  (cpu_alignment_far),
           .i_address_nxt    (cpu_daddr_nxt),

@@ -21,3 +21,6 @@ formatting/full-product multiplier) so strict byte replay works. Patch0074 carri
 the exact qualified resident-store/CPU overlap/frontend payloads through5A. The
 legacy scratch upstream checkout is not modified by verification. See
 [5A source/build and timing](../../docs/cpu-frontend-delivery-fit.md).
+
+Patch0075 separates private owner payload selection from final demand qualification;
+see docs/cpu-owner-split.md. The private direction extension is in arm920/cache_adapter.sv.

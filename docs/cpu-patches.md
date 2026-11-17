@@ -608,3 +608,7 @@ ZAP file byte-for-byte. The helper uses a pinned build/tool-cache archive via gh
 and a unique temporary verification directory; modified legacy scratch caches
 are preserved. [Qualified CPU work](cpu-frontend-delivery.md) ·
 [Collected78MHz bitstream and actual timing](cpu-frontend-delivery-fit.md).
+
+Step5B patch0075 preselects private next-owner payloads from registered completion
+validity while preserving qualified offers, P2 SWP identity and exact5A cycles.
+See [the qualification and physical comparison](cpu-owner-split.md).

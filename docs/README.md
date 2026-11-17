@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cpu-owner-split.md](cpu-owner-split.md) | Step5B cycle-preserving private owner split, exact5A schedule audit and matched master fit |
 | [master-consolidation.md](master-consolidation.md) | Accepted5A source/history consolidation, sole master and limited owner-reported board observation |
 | [cpu-frontend-delivery-fit.md](cpu-frontend-delivery-fit.md) | Verified78MHz RBF, exact178-input audit, seed42 resources and actual78/104 timing; timing gate red |
 | [cpu-frontend-delivery.md](cpu-frontend-delivery.md) | Step5A matrix52125→50033 and ThumbJPEG86428→84353, zero added state, matched call/return ownership and failed/corrected traces |

@@ -2,6 +2,7 @@
 // Production bridge from the CPU interface to the ARM920T cache.
 module arm920_cache_adapter #(
     parameter LINE_REFILL = 0,
+    parameter PRIVATE_OWNER = 0,
     parameter READ_ONLY   = 0,
     parameter DATA_PROBE  = 0
 ) (
@@ -25,6 +26,7 @@ module arm920_cache_adapter #(
     input logic [31:0] fast_next_address,
     input wire store_overlap_enable,
     input wire load_pair_enable,
+    input wire private_write,
     input wire data_probe_valid,
     input wire [31:0] data_probe_address,
     input logic [31:0] address,
@@ -77,6 +79,12 @@ module arm920_cache_adapter #(
     wb_err,
     input logic [31:0] wb_rdata
 );
+  // PRIVATE_OWNER changes only idle payload selection. Every admitted packet
+  // must keep the exact direction that passed demand/permission qualification.
+`ifndef SYNTHESIS
+  always @(posedge clk) if (!reset && PRIVATE_OWNER && req_valid && private_write != wr)
+      $fatal(1,"private class differs from qualified demand");
+`endif
   logic launched, active_maint, inflight;
   // Three local credits (one spare), allocated only by the existing certified resident
   // pipe_accept. Its cache mutation cannot fault after admission. Registered
@@ -250,7 +258,10 @@ module arm920_cache_adapter #(
       .req_ready(req_ready),
       .req_mva(address),
       .req_physical(physical),
-      .req_write(wr),
+      // The payload class is preselected before final demand qualification.
+      // Admission, permission, probes, replies and external effects still use
+      // qualified rd/wr. Legacy clients retain their original selected class.
+      .req_write(PRIVATE_OWNER ? private_write : wr),
       .req_early_read(!READ_ONLY && swp_tag == 2'd0),
       .req_ordinary_store(!READ_ONLY && swp_tag == 2'd0),
       .req_resident_access(!READ_ONLY && swp_tag == 2'd0),

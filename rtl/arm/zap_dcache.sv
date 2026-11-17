@@ -23,6 +23,7 @@
 
 module zap_dcache #(
     parameter LINE_REFILL = 0,
+    parameter PRIVATE_OWNER = 0,
 
     parameter logic [31:0] CACHE_SIZE   = 32'd16384,
     parameter logic [31:0] CACHE_LINE   = 32'd32,
@@ -48,6 +49,7 @@ module zap_dcache #(
 
     // RAM stall.
     input logic i_stall,
+    input wire i_write_class,
 
     // Signals to check (Provide 1 cycle before TLB+cache access).
     input logic [31:0] i_address_check,
@@ -289,7 +291,8 @@ module zap_dcache #(
   assign wb_cti[1] = '0;
   arm920_cache_adapter #(
       .LINE_REFILL(LINE_REFILL),
-      .DATA_PROBE(1)
+      .DATA_PROBE(1),
+      .PRIVATE_OWNER(PRIVATE_OWNER)
   ) cache_adapter (
       .line_req(line_req),
       .line_addr(line_addr),
@@ -314,6 +317,7 @@ module zap_dcache #(
       .far_in(pending_translation ? pending_far : tlb_far),
       .rd(i_rd),
       .wr(i_wr),
+      .private_write(i_write_class),
       .ben(i_ben),
       .alignment_fault(i_alignment_fault),
       .alignment_far(i_alignment_far),

@@ -1,0 +1,104 @@
+{
+  "control_commit": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+  "source_id": "f3f199d1f9aa1eb0d995057d40be897c66caf399fc9378a41fdb9af255243181",
+  "overlay_sha256": {
+    "tests/cpu/cpu_owner_split/rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+    "tests/cpu/cpu_owner_split/rtl/arm/zap_core.sv": "a57d15464112e9a2e0f472d73afe5e8c99c4c0050df74e7814a7007e4e112573",
+    "tests/cpu/cpu_owner_split/rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+    "tests/cpu/cpu_owner_split/rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468"
+  },
+  "cycles": [
+    {
+      "case": "matrix4",
+      "profile": "0:0",
+      "cycles": 50033,
+      "retirements": 14353,
+      "exact_retirement_and_memory_schedule": true
+    },
+    {
+      "case": "matrix4",
+      "profile": "2:9",
+      "cycles": 50033,
+      "retirements": 14353,
+      "exact_retirement_and_memory_schedule": true
+    },
+    {
+      "case": "transpose4",
+      "profile": "0:0",
+      "cycles": 3591,
+      "retirements": 1025,
+      "exact_retirement_and_memory_schedule": true
+    },
+    {
+      "case": "transpose4",
+      "profile": "2:9",
+      "cycles": 3591,
+      "retirements": 1025,
+      "exact_retirement_and_memory_schedule": true
+    }
+  ],
+  "jpeg_cycles": 84353,
+  "drained_stream_cycles": 71,
+  "qualification": {
+    "safety-final-06": {
+      "status": "PASS",
+      "result_sha256": "3b62f4b86fb556bbe1ec67e5308154104d31879f0135849776bf68ed33e45361"
+    },
+    "safety-final-zero-08": {
+      "status": "PASS",
+      "result_sha256": "c952ba52b8bcd0fc4593f93f170d58df2568eb5d9527f2135eaf829b864bacfc"
+    },
+    "diagnostics-final-02": {
+      "status": "PASS",
+      "result_sha256": "f5ba3cb33c53ebdc3d4d18e58812d474d7c1e102181a9146bc1f04bf1eb1f731"
+    },
+    "core-final-04": {
+      "status": "PASS",
+      "result_sha256": "72358311f56bc4a15310d5d637d62a993e249354c968f600277373fca067457e"
+    }
+  },
+  "negative": {
+    "status": "EXPECTED_FAILURE",
+    "returncode": 1,
+    "log_sha256": "9dce0f8b80b0ebb3fda6a1431a0ac29d923f1f375a26eb9c43ef05736fba7490",
+    "reason": "deliberately wrong first expected physical byte rejected"
+  },
+  "old_fit": {
+    "negative_hot78_endpoints": 715,
+    "late_ready_negative_endpoints": 203,
+    "origins": {
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~0_OTERM5518": 203,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|wdata[23]_OTERM3684~DUPLICATE": 108,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|Equal38~0_OTERM137": 10,
+      "emu:emu|ngage_mister:core|reset_drain~SynDup_78": 60,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_data_completion:u_data_completion|o_next~11_OTERM3836DUPLICATE": 4,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|mva[21]_NEW2528_OTERM8774": 20,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_icache_prefetch": 145,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|line_result_tag[7][7]~DUPLICATE": 9,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[6]~DUPLICATE": 7,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_postalu_main:u_zap_postalu1_main|o_store_late~DUPLICATE": 13,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[18]": 40,
+      "emu:emu|ngage_mmc_hps:mmc_backing|generation[8]": 8,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending~DUPLICATE": 3,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_reg_en": 5,
+      "ascal:ascal|o_vcpt_pre3[1]": 11,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_shifter_main:u_zap_shifter_main|o_mem_srcdest_index_ff[4]": 1,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_tlb:u_zap_tlb|request_baddr[1]~DUPLICATE": 9,
+      "emu:emu|ngage_sdram_adapter:phone_sdram|address[23]": 1,
+      "emu:emu|ngage_ddr_flash_adapter:ddr_adapter|ngage_ddr_flash_cache:shared_cache.cache|rsp_data[27]~DUPLICATE": 20,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_predecode_main:u_zap_predecode|o_stall_from_decode": 5,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|select_probe_p1~2_OTERM13385": 3,
+      "emu:emu|ngage_ddr_flash_adapter:ddr_adapter|ngage_ddr_flash_cache:shared_cache.cache|rsp_data[0]": 14,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_writeback:u_zap_writeback|pc_del3_ff[14]": 3,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_memory_main:u_zap_memory_main|o_swi_ff": 1,
+      "emu:emu|ngage_sdram_adapter:phone_sdram|scrub_done": 1,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_writeback:u_zap_writeback|pc_del3_ff[4]": 1,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|remaining[15]_OTERM6848": 2,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_postalu_main:u_zap_postalu1_main|o_store_late": 6,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[8]": 1,
+      "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|Decoder10~1_OTERM3990": 1
+    }
+  },
+  "added_state_bits": 0,
+  "decision": "Qualified cycle-preserving bounded owner split; one master seed42/debug-on fit authorized; no deployment/phone commands"
+}
