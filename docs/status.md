@@ -1,3 +1,18 @@
+## 2026-11-17 — Master consolidation complete; limited board observation
+
+Published master6ac7a9d contains all accepted integration commits, the three
+snapshot histories and the exact15 qualified5A payloads at standard paths.
+Master is the sole local and remote branch; historical fit tags are retained.
+Pristine upstream+patch replay and178-input production source graph pass.
+Unrelated working changes, private assets, caches, runs and checkpoints remain.
+Andrea personally reports the newly built core runs on MiSTer, with perceived
+performance still short of the goal. No numeric board score was supplied.
+This is an owner-reported observation, not a controlled performance or timing
+qualification. Routed5A remains−1.970ns at78/−5.175ns at104 (hot).
+Next: bounded5B owner-split timing recovery followed by5C original SMULL
+throughput investigation; no deployment/phone commands or fit-only refs.
+[Consolidation receipt](master-consolidation.md).
+
 ## 2026-11-17 — Verified5A bitstream collected; master consolidation authorized
 
 Existing run43985572525/commit966270d9, seed42/debuggeron, generated4,600,916-byte

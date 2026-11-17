@@ -1,0 +1,49 @@
+{
+  "status": "PASS",
+  "accepted_merge": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+  "integration_parent": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+  "snapshot_parent": "22e5e14ffd56add5028907de94bcf4fd2bfa903c",
+  "sole_branch": "master",
+  "remote_retirement": [
+    {
+      "name": "codex/mmc-r2-716aaf9",
+      "old_sha": "199a9d5ad28d7e9d64963a9af93cc8daafed2596",
+      "published_master": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+      "verified_utc": "2026-11-17T01:23:37.762919+00:00"
+    },
+    {
+      "name": "codex/mmc-rx2-78bf39d",
+      "old_sha": "cd46abe439b2b3f71ff5770f054f4596d8bb4ec8",
+      "published_master": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+      "verified_utc": "2026-11-17T01:23:39.470320+00:00"
+    },
+    {
+      "name": "codex/ngage2-integration",
+      "old_sha": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+      "published_master": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+      "verified_utc": "2026-11-17T01:23:41.347749+00:00"
+    },
+    {
+      "name": "codex/thumb-ldm-1a1f8ad",
+      "old_sha": "22e5e14ffd56add5028907de94bcf4fd2bfa903c",
+      "published_master": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+      "verified_utc": "2026-11-17T01:23:43.418023+00:00"
+    }
+  ],
+  "local_retirement": {
+    "status": "PASS",
+    "sole_branch": "master",
+    "master": "6ac7a9d4c006d84667743bddec9c51a6eba95029",
+    "all_retired_tips_ancestor": true,
+    "shared_index_empty": true,
+    "unrelated_files_preserved": 24
+  },
+  "fit_tags_unchanged": true,
+  "hardware_observation": {
+    "source": "Andrea personal report",
+    "runs": true,
+    "perceived_performance": "still short of goal",
+    "numeric_score": null
+  },
+  "deployment_by_agent": false
+}
