@@ -41,3 +41,6 @@ remain unchanged. See docs/cpu-store-postindex.md for scope and qualification.
 Patch0080 starts eligible loads from registered P1 and prepares resident lines
 from the earlier registered ALU address. Existing completion, permission and
 collision ownership remain. See docs/cpu-load-release.md for qualification.
+
+Patch0081 records the exact qualified 5l integration. See
+docs/cpu-late-operand.md.

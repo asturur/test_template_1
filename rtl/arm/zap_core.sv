@@ -290,6 +290,7 @@ module zap_core #(
   logic        predecode_clear_btb;
   logic        predecode_uop_last;
   wire predecode_store_overlap, decode_store_overlap, issue_store_overlap, shifter_store_overlap, alu_store_overlap;
+  wire issue_late_rn, issue_late_rm;
   wire issue_store_late, shifter_store_late, alu_store_late;
   wire issue_store_second, shifter_store_second;
   // Registered owner identity travels in the otherwise unusable data lane.
@@ -1170,6 +1171,10 @@ module zap_core #(
       .i_load_pair_class(decode_load_pair_class),
       .o_swp_tag (issue_swp_tag),
       .o_store_overlap(issue_store_overlap),
+      .i_late_owner(p1_load_start),
+      .i_late_rd(postalu1_mem_srcdest_index_ff),
+      .o_late_rn(issue_late_rn),
+      .o_late_rm(issue_late_rm),
       .o_store_late(issue_store_late),
       .o_store_second(issue_store_second),
       .i_alu_owned_word(alu_load_pair_class && alu_dav_ff && alu_mem_load_ff &&
@@ -1390,8 +1395,8 @@ module zap_core #(
       .i_swi_ff                         (issue_swi_ff),
       .i_alu_source_ff                  (issue_alu_source_ff),
       .i_shift_source_ff                (issue_shift_source_ff),
-      .i_alu_source_value_ff            (issue_alu_source_value_ff),
-      .i_shift_source_value_ff          (issue_shift_source_value_ff),
+      .i_alu_source_value_ff            (issue_late_rn ? completion_data : issue_alu_source_value_ff),
+      .i_shift_source_value_ff          (issue_late_rm ? completion_data : issue_shift_source_value_ff),
       .i_shift_length_value_ff          (issue_shift_length_value_ff),
       .i_mem_srcdest_value_ff            (second_issue_ready ? second_issue_result[31:0] :
                                           issue_mem_srcdest_value_ff),
@@ -1451,6 +1456,16 @@ module zap_core #(
 
   //
   // ALU Stage.
+`ifndef SYNTHESIS
+  always @(posedge i_clk) begin
+      if (!reset && !clear_from_writeback && !clear_from_alu && !data_stall &&
+          (issue_late_rn || issue_late_rm)) begin
+          if ((!issue_word_load_ready && !(completion_valid && completion_fault != 0)) ||
+              postalu_mem_srcdest_index_ff != (issue_late_rn ? issue_alu_source_ff[5:0] : issue_shift_source_ff[5:0]))
+              $fatal(1, "late arithmetic operand lost P1/P2 owner");
+      end
+  end
+`endif
   //
   zap_alu_main #(
       .PHY_REGS (PHY_REGS),

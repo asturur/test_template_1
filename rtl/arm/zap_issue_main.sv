@@ -43,6 +43,10 @@ module zap_issue_main #(
     input logic i_clk,
     input logic i_reset,
 
+    input wire i_late_owner,
+    input wire [5:0] i_late_rd,
+    output reg o_late_rn,
+    output reg o_late_rm,
     // UOP
     input  logic       i_uop_last,
     input logic i_store_overlap,
@@ -837,7 +841,26 @@ module zap_issue_main #(
         (i_shifter_destination_index_ff == operand_mem_srcdest_index_ff ||
          (i_shifter_mem_load_ff && i_shifter_mem_srcdest_index_ff == operand_mem_srcdest_index_ff))) &&
       i_dc_lock == 0 && !clear && !i_reset;
-  assign load_lock = determine_load_lock(
+  wire late_rn_match = operand_alu_source_ff[32] != IMMED_EN && operand_alu_source_ff[5:0] == i_late_rd;
+  wire late_rm_match = operand_shift_source_ff[32] != IMMED_EN && operand_shift_source_ff[5:0] == i_late_rd;
+  wire late_eligible = i_late_owner && operand_condition_code_ff == AL &&
+      (operand_alu_operation_ff == ADD || operand_alu_operation_ff == CMP) &&
+      operand_is_lsl_0 && !operand_mem_load_ff && !operand_mem_store_ff &&
+      operand_destination_index_ff != PHY_PC && !operand_switch_ff &&
+      !(operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff) &&
+      (late_rn_match ^ late_rm_match) &&
+      !((o_condition_code_ff != NV) && (o_destination_index_ff == i_late_rd || (o_mem_load_ff && o_mem_srcdest_index_ff == i_late_rd))) &&
+      !((i_shifter_dav_ff) && (i_shifter_destination_index_ff == i_late_rd || (i_shifter_mem_load_ff && i_shifter_mem_srcdest_index_ff == i_late_rd))) &&
+      !((i_alu_dav_ff) && (i_alu_destination_index_ff == i_late_rd || (i_alu_mem_load_ff && i_alu_mem_srcdest_index_ff == i_late_rd))) &&
+      i_dc_lock == 0 && !clear && !i_reset;
+  always @(posedge i_clk) begin
+      if (i_reset || clear) begin o_late_rn <= 0; o_late_rm <= 0; end
+      else if (!stall) begin
+          o_late_rn <= !issue_block && late_eligible && late_rn_match;
+          o_late_rm <= !issue_block && late_eligible && late_rm_match;
+      end
+  end
+  assign load_lock = (!(late_eligible && late_rn_match) && determine_load_lock(
           operand_alu_source_ff,
           o_mem_srcdest_index_ff,
           o_condition_code_ff,
@@ -862,7 +885,7 @@ module zap_issue_main #(
           i_memory_dav_ff,
           i_dc_lock,
           operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
-      ) || determine_load_lock(
+      )) || (!(late_eligible && late_rm_match) && determine_load_lock(
           operand_shift_source_ff,
           o_mem_srcdest_index_ff,
           o_condition_code_ff,
@@ -887,7 +910,7 @@ module zap_issue_main #(
           i_memory_dav_ff,
           i_dc_lock,
           operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
-      ) || determine_load_lock(
+      )) || determine_load_lock(
           operand_shift_length_ff,
           o_mem_srcdest_index_ff,
           o_condition_code_ff,

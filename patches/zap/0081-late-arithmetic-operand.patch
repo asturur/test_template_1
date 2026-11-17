@@ -1,0 +1,108 @@
+--- a/src/rtl/zap_core.sv
++++ b/src/rtl/zap_core.sv
+@@ -290,6 +290,7 @@
+   logic        predecode_clear_btb;
+   logic        predecode_uop_last;
+   wire predecode_store_overlap, decode_store_overlap, issue_store_overlap, shifter_store_overlap, alu_store_overlap;
++  wire issue_late_rn, issue_late_rm;
+   wire issue_store_late, shifter_store_late, alu_store_late;
+   wire issue_store_second, shifter_store_second;
+   // Registered owner identity travels in the otherwise unusable data lane.
+@@ -1170,6 +1171,10 @@
+       .i_load_pair_class(decode_load_pair_class),
+       .o_swp_tag (issue_swp_tag),
+       .o_store_overlap(issue_store_overlap),
++      .i_late_owner(p1_load_start),
++      .i_late_rd(postalu1_mem_srcdest_index_ff),
++      .o_late_rn(issue_late_rn),
++      .o_late_rm(issue_late_rm),
+       .o_store_late(issue_store_late),
+       .o_store_second(issue_store_second),
+       .i_alu_owned_word(alu_load_pair_class && alu_dav_ff && alu_mem_load_ff &&
+@@ -1390,8 +1395,8 @@
+       .i_swi_ff                         (issue_swi_ff),
+       .i_alu_source_ff                  (issue_alu_source_ff),
+       .i_shift_source_ff                (issue_shift_source_ff),
+-      .i_alu_source_value_ff            (issue_alu_source_value_ff),
+-      .i_shift_source_value_ff          (issue_shift_source_value_ff),
++      .i_alu_source_value_ff            (issue_late_rn ? completion_data : issue_alu_source_value_ff),
++      .i_shift_source_value_ff          (issue_late_rm ? completion_data : issue_shift_source_value_ff),
+       .i_shift_length_value_ff          (issue_shift_length_value_ff),
+       .i_mem_srcdest_value_ff            (second_issue_ready ? second_issue_result[31:0] :
+                                           issue_mem_srcdest_value_ff),
+@@ -1451,6 +1456,16 @@
+ 
+   //
+   // ALU Stage.
++`ifndef SYNTHESIS
++  always @(posedge i_clk) begin
++      if (!reset && !clear_from_writeback && !clear_from_alu && !data_stall &&
++          (issue_late_rn || issue_late_rm)) begin
++          if ((!issue_word_load_ready && !(completion_valid && completion_fault != 0)) ||
++              postalu_mem_srcdest_index_ff != (issue_late_rn ? issue_alu_source_ff[5:0] : issue_shift_source_ff[5:0]))
++              $fatal(1, "late arithmetic operand lost P1/P2 owner");
++      end
++  end
++`endif
+   //
+   zap_alu_main #(
+       .PHY_REGS (PHY_REGS),
+--- a/src/rtl/zap_issue_main.sv
++++ b/src/rtl/zap_issue_main.sv
+@@ -43,6 +43,10 @@
+     input logic i_clk,
+     input logic i_reset,
+ 
++    input wire i_late_owner,
++    input wire [5:0] i_late_rd,
++    output reg o_late_rn,
++    output reg o_late_rm,
+     // UOP
+     input  logic       i_uop_last,
+     input logic i_store_overlap,
+@@ -837,7 +841,26 @@
+         (i_shifter_destination_index_ff == operand_mem_srcdest_index_ff ||
+          (i_shifter_mem_load_ff && i_shifter_mem_srcdest_index_ff == operand_mem_srcdest_index_ff))) &&
+       i_dc_lock == 0 && !clear && !i_reset;
+-  assign load_lock = determine_load_lock(
++  wire late_rn_match = operand_alu_source_ff[32] != IMMED_EN && operand_alu_source_ff[5:0] == i_late_rd;
++  wire late_rm_match = operand_shift_source_ff[32] != IMMED_EN && operand_shift_source_ff[5:0] == i_late_rd;
++  wire late_eligible = i_late_owner && operand_condition_code_ff == AL &&
++      (operand_alu_operation_ff == ADD || operand_alu_operation_ff == CMP) &&
++      operand_is_lsl_0 && !operand_mem_load_ff && !operand_mem_store_ff &&
++      operand_destination_index_ff != PHY_PC && !operand_switch_ff &&
++      !(operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff) &&
++      (late_rn_match ^ late_rm_match) &&
++      !((o_condition_code_ff != NV) && (o_destination_index_ff == i_late_rd || (o_mem_load_ff && o_mem_srcdest_index_ff == i_late_rd))) &&
++      !((i_shifter_dav_ff) && (i_shifter_destination_index_ff == i_late_rd || (i_shifter_mem_load_ff && i_shifter_mem_srcdest_index_ff == i_late_rd))) &&
++      !((i_alu_dav_ff) && (i_alu_destination_index_ff == i_late_rd || (i_alu_mem_load_ff && i_alu_mem_srcdest_index_ff == i_late_rd))) &&
++      i_dc_lock == 0 && !clear && !i_reset;
++  always @(posedge i_clk) begin
++      if (i_reset || clear) begin o_late_rn <= 0; o_late_rm <= 0; end
++      else if (!stall) begin
++          o_late_rn <= !issue_block && late_eligible && late_rn_match;
++          o_late_rm <= !issue_block && late_eligible && late_rm_match;
++      end
++  end
++  assign load_lock = (!(late_eligible && late_rn_match) && determine_load_lock(
+           operand_alu_source_ff,
+           o_mem_srcdest_index_ff,
+           o_condition_code_ff,
+@@ -862,7 +885,7 @@
+           i_memory_dav_ff,
+           i_dc_lock,
+           operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
+-      ) || determine_load_lock(
++      )) || (!(late_eligible && late_rm_match) && determine_load_lock(
+           operand_shift_source_ff,
+           o_mem_srcdest_index_ff,
+           o_condition_code_ff,
+@@ -887,7 +910,7 @@
+           i_memory_dav_ff,
+           i_dc_lock,
+           operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
+-      ) || determine_load_lock(
++      )) || determine_load_lock(
+           operand_shift_length_ff,
+           o_mem_srcdest_index_ff,
+           o_condition_code_ff,
