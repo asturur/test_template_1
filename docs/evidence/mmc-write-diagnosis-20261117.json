@@ -1,0 +1,165 @@
+{
+  "scope": "Offline authored ARM CMD24/TX2 DMA/full board/card/adapter with synthetic HPS backing; hardware failure unresolved",
+  "tests": [
+    {
+      "case": "normal",
+      "exit_code": 0,
+      "evidence": [
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=297511 reads=4 writes=1"
+      ]
+    },
+    {
+      "case": "corrupt-persist",
+      "exit_code": 1,
+      "evidence": [
+        "[2975155000] %Fatal: tb.v:152: Assertion failed in tb: independent persisted oracle mismatch halfword1023"
+      ]
+    }
+  ],
+  "compiled_source_hashes": {
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+    "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+    "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+    "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+    "rtl/arm/zap_core.sv": "3afb55df3789bb6aae0fd68dc8ca030745a44a47469db3adeb507e260fab91fa",
+    "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+    "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+    "rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468",
+    "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+    "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+    "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+    "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+    "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+    "rtl/arm/zap_issue_main.sv": "8807a20486123a15ea1c83ec9a253ce7e765d7dd131eb34771ae7857a2a0e81d",
+    "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+    "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+    "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+    "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+    "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+    "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+    "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+    "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+    "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+    "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+    "rtl/arm/zap_shifter_multiply.sv": "77cca1e0a72feab7e66564d1741626f410946f829949feaf3af483748ffcd286",
+    "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+    "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+    "rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+    "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+    "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+    "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+    "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+    "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+    "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+    "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+    "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+    "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+    "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+    "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+    "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+    "rtl/ngage_debug_font.v": "5636d8bd214efd6955d258281370979d0b39981b533618a8dd97d87cdd5c9815",
+    "rtl/ngage_debug_monitor.v": "fc4196902e92546921f24c6b594e8a2002e1dbbe739e6b90b16696527e414bca",
+    "rtl/ngage_debug_video.v": "9228ccca0615945d3c521788c43c5f4e7f80c83d71ef7d2db74ce62fc6648df9",
+    "rtl/ngage_mister.v": "721383fa344ad12d9241881a59b4e3ca9d62b530074e6d1ac5e8aaa4dff01e07",
+    "rtl/ngage_mmc_host.v": "ff1076b22ac08cecad58eb1447f5d42d96a293be3b9d5a3484e769963634ad71",
+    "rtl/ngage_mmc_card.v": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea",
+    "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87",
+    "rtl/ngage_mmc_hps.v": "9c5c8bd7678eda61001f7460542466391225e548867736c2c2f7296dfc66a1e0",
+    "rtl/ngage_lcd_display.v": "0a7fbe123e9a30d4ec660e8d28ff7bdb0f30355a8b20077346502b8c1199d1f5",
+    "rtl/ngage_lcd_dma.v": "4a2471ea9881e99d461dc46de6e252b39558011ac05b346b3b0f3b09e1c60581",
+    "rtl/ngage_keypad.v": "71bc5885794e2becda1a0123c3926ad748327d9f1bda5b613a62cdaedbb06708",
+    "rtl/ngage_diagnostics.v": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "rtl/ngage_dma_route.v": "cc4504be604fe2a3ba29cfd367368ad23a24963f6bc1b9d4c4d2a1e35281b68c",
+    "rtl/ngage_dma_channels.v": "508d43b2f3bd8a2bf9711294f6ebdf9c2b9b4476e4a6d9a99ef48bbf563bfca7",
+    "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+    "rtl/ngage_lcd_stream.v": "b5cdf3356c70fa44869fe9dfaab59af4e193bcc2ad755f3fa4ba7282298c7050",
+    "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+    "rtl/ngage_board.v": "99c4620b5ebcb653f8a6651f0f6a090d6b8856c1011822fbdce42509611cc19e",
+    "rtl/ngage_upp.v": "93092f2bfdea87ba5059fdc4ef612732f2e506ed89b422e7133ff61e8301914d",
+    "rtl/ngage_upp_peripherals.v": "e485c30c018627d295b19b31d3330ecc8fd7771aaf01077cb6d74810c466e518",
+    "rtl/ngage_upp_euart.v": "f52d6852879b9f68a122ad0300e710491a3bcf8a65255d0c37aad696aae2865c",
+    "rtl/ngage_simif.v": "ae20cccae97d52ecfdc4ffffee42217833dfb8bbc728c72ed7fd8edfbdaf7c1a",
+    "rtl/ngage_test_sim.v": "3366fc7e5db472175148842f222b34ce86d731bf7b101fbf92340ef67ca6896b",
+    "rtl/ngage_uem.v": "e27fba659d6369669666b1e2099f8dc929db668eb89e119f369a534279c2e881",
+    "rtl/ngage_adsp.v": "cc0c22c1bc73183fce35aec81ada3bd5d6f636b0ce91302b15c7cf0c0986ad3e",
+    "rtl/ngage_adsp_bootstrap_tx.v": "49b6971de6a93da0a72919577a77b96350d47d41c1801bf9f94a55ff64af6ed3",
+    "rtl/ngage_adsp_diagnostic.v": "a10d80f81abad438fcfdc2db6922d06355f16c5942317f0b636733f8a258d8aa",
+    "rtl/ngage_aic23.v": "701202c89384f1e66cc7a22b48ca34b3102b539e009764fb15391d3b1c78c053",
+    "rtl/ngage_lrb2.v": "973256fdbddf61f7ba5193c7c0b7f0ba90bc35cad978578ea657b32452e4a491",
+    "rtl/ngage_mjoelner.v": "f3d2bb926976f2c614481aad35030d203b9eac833512a91b3082325d182f14e4",
+    "rtl/ngage_bram_be.v": "dcae12f1ad8e90de5390c68f76a690dd492bdf64693d644b647c33340e233a10",
+    "rtl/ngage_sparse_regs.v": "cb44404346ce87f73b53fbdf1271b615cd81bd920294a34c6edfcb7fac7ab83a",
+    "rtl/ngage_icu.v": "ec99bcdabae6747ca5aae132f6552ffa72205cf91262cfb6f4606cbc806d7b96",
+    "rtl/ngage_icu_extra.v": "e4410e399ac35bc65193ec17fcc54bfa06e63d209ebe6e5b174688b7e2635cc9",
+    "rtl/ngage_timers.v": "c13e586583a5bf97c70869d3bfa29012f96cd1c7852e0044e679371abc5ab6b2",
+    "rtl/ngage_nos_io.v": "b689a18a878a8a8bc4cfa9059d7b82892b6185a198a4f291cdca376846246263",
+    "rtl/ngage_mdi_stub.v": "ff526b698b1042b7eda10a6088e78eb7305fed0b6e001a503ef195c08a651fcc",
+    "rtl/ngage_upp_dsp_peer.v": "b6ffdae6be3f8717ba15c63d1218850c0c747f3c246a0e264c4d3b5b2a19f08b",
+    "rtl/ngage_upp_mdi.v": "627cb0ed7dcdeaca19a70ab05c52a17864f7515922d3bf8299ed6fa71a786e07",
+    "rtl/ngage_cbus_uem.v": "cab94cb236535e9758503e72445e2bbc5e544c32bcf9759d89511b766ec22681",
+    "rtl/ngage_gpio_loopback.v": "243c4aeaca74ad440a68744f5371107e198b7301bd6d5092b2c5419cefb6c02b",
+    "rtl/ngage_boot_regs.v": "e3c63930e1b456e59ea82e5ace7978ba6ba2072f24054a516114f1058d226a9e",
+    "rtl/ngage_trace_sink.v": "0d3f17c3e3ad4d184c2b58c11dc1bf9b9c7b679f06c7100d5a0d3cdd662bae46",
+    "rtl/ngage_rom_map.sv": "637b93bbd30f16b955110fc4005f55e8572edb793e0cf6d568aa4cc161a35c25",
+    "rtl/ngage_am29n643_state.v": "c0a76a50385c6b0fb372d0fa5f734cde97d7d691622d0f089bafad48179340bb",
+    "rtl/ngage_codeflash.sv": "a5ec2621b41f9587b74b68ae0c7a6adffc04fa9c976ea710497efab524064fdb",
+    "rtl/ngage_cflash.sv": "73fee21fe467038938155b5b0b53d0ee02d410415e83ca705ac8f2d751435fd2",
+    "rtl/ngage_flash_read_decode.v": "eddf8b82bf930c898b518cdc66328083baace463bd859063dca9213d62206fac",
+    "rtl/ngage_descramble.v": "0971f194aa54309589c57be63973de2645b49c568837a24572584102a9a7d7a0",
+    "tests/phone/mmc_mister/tb.v": "cafafadbf911b0a9a400e012c9e2045af3bd4114c80ace8addb6e519ddff1a29",
+    "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+    "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+    "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+    "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+    "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a"
+  },
+  "generated_inputs": {
+    "program.S": "48befe91d0354ce710f059b8f2756999b74dbb66c0b9dd4cb145dec564f18359",
+    "program.bin": "a6b9bb7c7288e73904421d8370afac9717b335597d2d0dd1eb3515e244d66fe9",
+    "image.hex": "d83f0ff7094ffec74dca8f2030153f2af2d55661cfcd5ff9e0576759e1fbcf50",
+    "tb.v": "cafafadbf911b0a9a400e012c9e2045af3bd4114c80ace8addb6e519ddff1a29"
+  },
+  "test_sources": {
+    "tests/phone/mmc_write_diagnosis/run.py": "53b966b00fbbb19a06a330a7caa4f63779baa78f167e2ceb4c1a4db353b3e6a7",
+    "tests/phone/mmc_write_diagnosis/tx.S": "c56948015712298b25548553d895cc6abe25f678426b726858c20ee364efc26d"
+  },
+  "boundaries_not_tested": [
+    "original EPBUS write execution",
+    "Linux Main/file I/O persistence",
+    "installed RBF identity",
+    "current mounted-image policy",
+    "physical hardware timing"
+  ],
+  "historical_card_manifest": {
+    "path": "build/mmc/sis-group-1-128mb-ro.json",
+    "csd_write_protected": true,
+    "current_failure_identity_known": false
+  },
+  "image": "jotego/simulator:arm64",
+  "parallel_simulator_jobs": 1,
+  "logs": {
+    "run.log": {
+      "sha256": "89fd959dab8cad300d23a13e95cd0628b09a87d6ec495be4de51eeff6f0d7699",
+      "bytes": 2303306
+    },
+    "normal.log": {
+      "sha256": "f9dfc6dde7c6353defe064fe75ea9439dc4cda2b0ffc3b64a9edda0e90123078",
+      "bytes": 2303306
+    },
+    "corrupt-persist.log": {
+      "sha256": "de6412cfc9cc53feb62b3c75aa01a9051756e847b59159c77a5fdbb90f2b292d",
+      "bytes": 2303133
+    },
+    "build.log": {
+      "sha256": "ee09c01435d16ae3283e0d6f1238ce6420370c42d023e678733f1c9066ee3d21",
+      "bytes": 56051
+    }
+  }
+}

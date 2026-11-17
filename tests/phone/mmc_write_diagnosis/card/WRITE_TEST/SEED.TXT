@@ -1,0 +1,2 @@
+This file was present before the phone-side write test.
+You may edit, rename, copy or delete it.

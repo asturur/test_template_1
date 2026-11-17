@@ -1,0 +1,64 @@
+{
+  "status": "BUILT_VERIFIED_AWAITING_OPERATOR_TEST",
+  "nominal_capacity_mb": 128,
+  "local_image": "build/mmc/write-test-128mb.mmc",
+  "remote_image": "/media/fat/games/NGage/write-test-128mb.mmc",
+  "image": {
+    "bytes": 134185472,
+    "sha256": "a8cc5e20918aa1b54b92504f384a0ff5c29069e91e3b1a9823fe94e18bfe65d8"
+  },
+  "identity": {
+    "capacity_bytes": 134184960,
+    "card_type": "mmc-standard-observed-3.1",
+    "cid_hex": "0000005752495445541032a941b71613",
+    "csd_fields": {
+      "c_size": 4094,
+      "c_size_mult": 4,
+      "permanent_write_protect": false,
+      "read_bl_len": 9,
+      "spec_version": 3,
+      "structure": 2,
+      "temporary_write_protect": false
+    },
+    "csd_hex": "8c0f002a0179a3ffb6c201e18a4000cd",
+    "ocr_hex": "00ff8000",
+    "supported_profile": true
+  },
+  "extent": {
+    "complete_payload": true,
+    "note": "format/extent eligibility only; no hardware mount is verified",
+    "scope": "full-capacity",
+    "writable_mount_eligible": true
+  },
+  "filesystem": {
+    "fat_bits": 16,
+    "bytes_per_sector": 512,
+    "sectors_per_cluster": 8,
+    "reserved": 1,
+    "fats": 2,
+    "root_entries": 512,
+    "sectors_per_fat": 128,
+    "total_sectors": 261600,
+    "data_clusters": 32663
+  },
+  "fat_mirrors_equal": true,
+  "filesystem_errors": [],
+  "source_files": {
+    "tests/phone/mmc_write_diagnosis/card/README.TXT": "3cd43488e4b42f4b5320cd15e038a49e9019762560590737a0baa7311b49a395",
+    "tests/phone/mmc_write_diagnosis/card/WRITE_TEST/SEED.TXT": "72d789d14eedc295f535fbaa41bd104ed6319203c18999a9342837f3a4626113"
+  },
+  "mounted_by_agent": false,
+  "phone_input_sent": false,
+  "installed_core": {
+    "commit": "8e70b1ebc16486443d09f008384b4c0bc41c071c",
+    "rbf_sha256": "621ca811b2b701dbe5f23f0b71a110924a10b7f8674a8440a0d49c634a97255a",
+    "hps_adapter_matches_writable_implementation": true
+  },
+  "prior_active_image": {
+    "path": "/media/fat/games/NGage/sega-rally.mmc",
+    "open_mode": "O_RDWR",
+    "permanent_wp": false,
+    "temporary_wp": false
+  },
+  "remote_sha256_verified": true
+}

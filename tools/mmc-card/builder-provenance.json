@@ -1,0 +1,8 @@
+{
+  "mkcard_source": "/Users/andreabogazzi/develop/ngage2/tools/mkcard.py",
+  "mkcard_sha256": "89438ec7878a02856a80e1c9eba40b316ec81f82ced1064b80f311470679c0e6",
+  "audit_source": "Independent allocation auditor originally written in scratch/mmc-native-20261114/audit-fat.py; promoted to tools/mmc-card/audit-fat.py",
+  "mtools_source": "Ubuntu noble arm64 mtools package; disposable extraction at build/tools/mtools, restored by setup.command",
+  "container": "jotego/simulator:arm64",
+  "identity": "Synthetic folder-card CID and writable-capable CSD; current production core still forces read-only"
+}
