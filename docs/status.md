@@ -1,3 +1,10 @@
+## 2026-11-17 — Step 5F on the current CPU; donor work deferred
+
+5D remains the production CPU after the mixed 5E result. The mainline chat is
+investigating post-indexed store base updates in both original small fills.
+Andrea deferred the donor cache sweep and whole-CPU integration until current
+CPU work is finished. [Decision and comparison plan](cpu-comparison-strategy.md).
+
 ## 2026-11-17 — Step5E completed; BTB handoff prototype rejected
 
 Retain exact accepted5D CPU RTL258eed3. One serial zero-state prototype reused
