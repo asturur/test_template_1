@@ -1,3 +1,33 @@
+## 2026-11-17 — Step5E completed; BTB handoff prototype rejected
+
+Retain exact accepted5D CPU RTL258eed3. One serial zero-state prototype reused
+5A's registered CPU-target handoff for ready BTB predictions. It passed guest
+and focused correctness checks, but matrix45736→46932(+1196,+2.6150%);
+transpose3591→3537(−54), original Thumb JPEG84353→84014(−339), drained stores71
+unchanged, both0:0/2:9, repeats/scored/oracles/negative controlsPASS.
+All633 correct predicted matrix transfers and519 JPEG transfers request one
+clock earlier. That direct1.3840%/0.6153% local opportunity is not wall savings:
+stale return targets now become held wrong-path demands before RAS correction.
+First helper return correct request5→8, F9→12, useful issue15→18 from RAS-known;
+warm matrix has zero external traffic. Matrix empty+1164/read+32 reconciles1196;
+JPEG empty−339, other buckets unchanged. 5A CPU correction witnesses remain
+4/8/13/14 call and5/6/11/12 return through request/F/decode/actual issue.
+Matched1024 helper BL/BX pairs and905 JPEG BL/905 mapped returns by real dynamic
+occurrence; all14353/22508/1025 matrix/JPEG/transpose retirement PCs match.
+Thumb suffix PCs normalize to22500 original oracle instructions; extra130 RAS
+updates are excluded from retired-transfer counts. 38real-writeback priority/
+hold/ARM-Thumb/FCSE checks twice, eight CPU fault/alias/link checks, ordered448
+store mutations/completions/retirements and actual IRQ/abort/device/dirty-byte
+checksPASS; wrong physical byte rejected. Qualified rejected bundle70865ee7,
+controla70e107c; all60 production CPU RTL files still exact5D, patches through
+0077 untouched. No new timed payload, branch/worktree, cache resizing, donor
+import, fit/CI/deployment/hardware input. Physical PLL78MHz, design target104MHz.
+Next bounded question: useful corrected-target preparation versus disposable
+predicted-demand ownership, preserving held packets and registered boundaries.
+Separate overall two-CPU strategy/donor work preserved. Stop after this outcome.
+[Step5E report and replay](cpu-target-delivery.md) ·
+[Dynamic schedules and edge witnesses](evidence/cpu-target-delivery-20261117.json).
+
 ## 2026-11-17 — Step 5E started; whole-CPU comparison planned
 
 Mainline Sol is tracing call/return delivery on accepted 5D using matrix and
