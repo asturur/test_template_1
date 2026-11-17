@@ -599,17 +599,36 @@ module zap_core #(
                  predecode_inst[39:36],
                  i_dc_reg_idx[63:PHY_REGS]};
 
+  // Step 5J isolated prototype: P1 is already a registered, resolved owner.
+  // When older P2 has no memory action or possible redirect, P1 may offer its
+  // ordinary load while P2 advances. After this edge that same P1 packet is
+  // P2: either its registered response is ready, or it holds the unchanged
+  // demand until completion. No live ACK selects the owner or CPU advance.
+  wire p1_load_start = !completion_valid && !postalu_request_cyc &&
+      !postalu_request_stb && postalu_swp_tag == 0 &&
+      !(postalu_irq_ff || postalu_fiq_ff || postalu_swi_ff || postalu_und_ff || postalu_abt_ff) &&
+      (!postalu_dav_ff || (postalu_destination_index_ff != PHY_PC &&
+                          (!postalu_mem_load_ff || postalu_mem_srcdest_index_ff != PHY_PC))) &&
+      postalu1_load_pair_class && postalu1_dav_ff && postalu1_mem_load_ff &&
+      postalu1_data_wb_cyc && postalu1_data_wb_stb && !postalu1_data_wb_we &&
+      postalu1_swp_tag == 0 && postalu1_destination_index_ff == PHY_RAZ_REGISTER &&
+      postalu1_mem_srcdest_index_ff != PHY_PC && !postalu1_mem_translate_ff &&
+      !postalu1_flags_ff[5] && postalu1_address_ff[1:0] == 0 &&
+      !(postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff || postalu1_abt_ff) &&
+      !older_memory_exception && !clear_from_writeback && !reset;
+  wire data_select_p1 = completion_valid || p1_load_start;
+
   // A registered completed P2 cannot issue again. Preselect P1 payload now;
   // only completion_offer qualifies an architectural access. In particular,
   // late data readiness must not select the address/translation lookup cone.
   assign o_data_alignment_fault = alignment_en && o_data_wb_stb && o_data_wb_cyc && data_misaligned(
-      completion_valid ? postalu1_address_ff : postalu_address_ff,
-      completion_valid ? postalu1_ubyte_ff : postalu_ubyte_ff,
-      completion_valid ? postalu1_sbyte_ff : postalu_sbyte_ff,
-      completion_valid ? postalu1_uhalf_ff : postalu_uhalf_ff,
-      completion_valid ? postalu1_shalf_ff : postalu_shalf_ff
+      data_select_p1 ? postalu1_address_ff : postalu_address_ff,
+      data_select_p1 ? postalu1_ubyte_ff : postalu_ubyte_ff,
+      data_select_p1 ? postalu1_sbyte_ff : postalu_sbyte_ff,
+      data_select_p1 ? postalu1_uhalf_ff : postalu_uhalf_ff,
+      data_select_p1 ? postalu1_shalf_ff : postalu_shalf_ff
   );
-  assign o_data_alignment_far = completion_valid ? postalu1_address_ff : postalu_address_ff;
+  assign o_data_alignment_far = data_select_p1 ? postalu1_address_ff : postalu_address_ff;
   assign alignment_check = alignment_en && data_misaligned(
       postalu1_address_ff,
       postalu1_ubyte_ff,
@@ -620,14 +639,14 @@ module zap_core #(
   assign o_cpsr = alu_flags_ff[ZAP_CPSR_MODE:0];
   // Address, direction, privilege and force-user must belong to the same P2
   // request. A following exception return can already restore user mode in P1.
-  assign o_data_cpsr = completion_valid ? postalu1_flags_ff[ZAP_CPSR_MODE:0] :
+  assign o_data_cpsr = data_select_p1 ? postalu1_flags_ff[ZAP_CPSR_MODE:0] :
                                         postalu_flags_ff[ZAP_CPSR_MODE:0];
   // Both tags must be zero on a qualified handoff. Preserve the held P2
   // SWP identity even while the private payload preselects an ineligible P1.
   assign o_data_swp_tag = postalu_swp_tag;
-  assign o_data_wb_adr = completion_valid ? {postalu1_address_ff[31:2], 2'd0} :
+  assign o_data_wb_adr = data_select_p1 ? {postalu1_address_ff[31:2], 2'd0} :
                                           {postalu_address_ff[31:2], 2'd0};
-  assign o_data_wb_we = completion_valid ? postalu1_data_wb_we : postalu_data_wb_we;
+  assign o_data_wb_we = data_select_p1 ? postalu1_data_wb_we : postalu_data_wb_we;
   wire late_p1_ready = postalu1_store_late && postalu1_dav_ff &&
       issue_word_load_ready && postalu_pc_plus_8_ff + 32'd4 == postalu1_pc_plus_8_ff &&
       postalu_mem_srcdest_index_ff == postalu1_mem_srcdest_index_ff &&
@@ -640,20 +659,20 @@ module zap_core #(
       !older_memory_exception && !clear_from_writeback;
   wire [31:0] late_p1_data = completion_data;
   wire [31:0] late_p2_data = rf_wr_data_b;
-  assign o_data_wb_dat = completion_valid ?
+  assign o_data_wb_dat = data_select_p1 ?
       (late_p1_ready ? late_p1_data : postalu1_data_wb_dat) :
       (late_p2_ready ? late_p2_data : postalu_data_wb_dat);
-  assign o_data_wb_sel = completion_valid ? postalu1_data_wb_sel : postalu_data_wb_sel;
-  wire store_selected_class = completion_valid ? postalu1_store_overlap : postalu_store_overlap;
-  wire store_selected_valid = completion_valid ? postalu1_dav_ff : postalu_dav_ff;
-  wire store_selected_exception = completion_valid ?
+  assign o_data_wb_sel = data_select_p1 ? postalu1_data_wb_sel : postalu_data_wb_sel;
+  wire store_selected_class = data_select_p1 ? postalu1_store_overlap : postalu_store_overlap;
+  wire store_selected_valid = data_select_p1 ? postalu1_dav_ff : postalu_dav_ff;
+  wire store_selected_exception = data_select_p1 ?
       (postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff || postalu1_abt_ff) :
       (postalu_irq_ff || postalu_fiq_ff || postalu_swi_ff || postalu_und_ff || postalu_abt_ff);
   wire older_memory_exception = memory_irq_ff || memory_fiq_ff || memory_swi_ff ||
       memory_und_ff || memory_instr_abort_ff || (|memory_data_abt_ff) ||
       (memory_dav_ff && (memory_destination_index_ff == PHY_PC ||
        (memory_mem_load_ff && memory_mem_srcdest_index_ff == PHY_PC)));
-  wire store_selected_aligned = completion_valid ? postalu1_address_ff[1:0] == 0 : postalu_address_ff[1:0] == 0;
+  wire store_selected_aligned = data_select_p1 ? postalu1_address_ff[1:0] == 0 : postalu_address_ff[1:0] == 0;
   assign o_data_store_overlap = store_selected_class && store_selected_valid && store_selected_aligned &&
       !store_selected_exception && !older_memory_exception && !clear_from_writeback &&
       !reset && o_data_wb_we && o_data_wb_sel == 4'hf && !o_data_alignment_fault;
@@ -708,8 +727,8 @@ module zap_core #(
       .i_clk(i_clk),
       .i_reset(reset),
       .i_kill(clear_from_writeback),
-      .i_request(postalu_request_stb && postalu_request_cyc &&
-                 (!postalu_store_late || late_p2_ready)),
+      .i_request(p1_load_start || (postalu_request_stb && postalu_request_cyc &&
+                 (!postalu_store_late || late_p2_ready))),
       .i_next_request(completion_next_safe),
       .i_ack(i_data_wb_ack),
       .i_data(i_data_wb_dat),
@@ -792,7 +811,7 @@ module zap_core #(
                                   memory_dav_ff                      ||
                                   (|i_dc_lock);
 
-  assign o_mem_translate = completion_valid ? postalu1_mem_translate_ff : postalu_mem_translate_ff;
+  assign o_mem_translate = data_select_p1 ? postalu1_mem_translate_ff : postalu_mem_translate_ff;
 
   // With the instruction cache disabled, a redirected fetch must wait for
   // older stores to reach memory. Flash-ID/reset routines execute from RAM
@@ -805,21 +824,33 @@ module zap_core #(
                      (postalu_request_cyc && postalu_request_stb && postalu_data_wb_we))) |
                    (o_instr_wb_stb & o_instr_wb_cyc & ~i_instr_wb_ack);
 
-  assign o_data_wb_adr_check = {postalu1_address_ff[31:2], 2'd0};
-  assign o_data_wb_we_check = postalu1_data_wb_we && postalu1_data_wb_cyc && !alignment_check;
-  assign o_data_wb_re_check = !postalu1_data_wb_we && postalu1_data_wb_cyc && !alignment_check;
+  // Step 5K: prepare a resident line from the existing registered ALU EA.
+  // This interface is a private BRAM hint only, never a TLB walk or demand.
+  // Preserve a current P1 memory hint (including the existing load-pair path).
+  // Adapter hint flops still capture unconditionally; qualified demand alone
+  // checks permission and consumes its full-line/collision-validated result.
+  wire lookup_alu_hint = alu_load_pair_class && alu_dav_ff && alu_mem_load_ff &&
+      alu_data_wb_cyc && !alu_data_wb_we && alu_swp_tag == 0 &&
+      alu_address_ff[1:0] == 0 && !postalu1_data_wb_cyc &&
+      !(alu_irq_ff || alu_fiq_ff || alu_swi_ff || alu_und_ff || alu_abt_ff) &&
+      !data_stall && !clear_from_writeback && !clear_from_alu && !reset;
+  assign o_data_wb_adr_check = lookup_alu_hint ? {alu_address_ff[31:2], 2'd0} :
+                                               {postalu1_address_ff[31:2], 2'd0};
+  assign o_data_wb_we_check = !lookup_alu_hint && postalu1_data_wb_we && postalu1_data_wb_cyc && !alignment_check;
+  assign o_data_wb_re_check = lookup_alu_hint ||
+      (!postalu1_data_wb_we && postalu1_data_wb_cyc && !alignment_check);
   assign o_code_stall = code_stall;
 
   always_comb begin
     o_dc_reg_idx                               = 64'd0;
-    o_dc_reg_idx[completion_valid ? postalu1_mem_srcdest_index_ff :
+    o_dc_reg_idx[data_select_p1 ? postalu1_mem_srcdest_index_ff :
                                   postalu_mem_srcdest_index_ff] = 1'd1;
   end
 
-  assign o_dc_reg_idx_bin = completion_valid ? postalu1_mem_srcdest_index_ff : postalu_mem_srcdest_index_ff;
+  assign o_dc_reg_idx_bin = data_select_p1 ? postalu1_mem_srcdest_index_ff : postalu_mem_srcdest_index_ff;
   // The nonblocking D-cache completion bypasses the ordinary memory-stage
   // narrowing/sign extension. Preserve the original load format with the miss.
-  assign o_dc_load_info = completion_valid ? {
+  assign o_dc_load_info = data_select_p1 ? {
     postalu1_sbyte_ff, postalu1_ubyte_ff, postalu1_shalf_ff, postalu1_uhalf_ff,
     postalu1_address_ff[1:0]
   } : {

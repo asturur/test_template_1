@@ -37,3 +37,7 @@ Patch0078 admits ordinary unconditional immediate post-indexed word stores
 through existing resident credit, using the unchanged ALU/base feedback path.
 No added state; checked tails improve, frame/matrix/transpose/store regressions
 remain unchanged. See docs/cpu-store-postindex.md for scope and qualification.
+
+Patch0080 starts eligible loads from registered P1 and prepares resident lines
+from the earlier registered ALU address. Existing completion, permission and
+collision ownership remain. See docs/cpu-load-release.md for qualification.
