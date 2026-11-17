@@ -1,3 +1,21 @@
+## 2026-11-17 — Step 5F remaining regressions completed
+
+After disk cleanup and a user-authorized Docker restart, the installed offline
+image recovered without a download. Exact accepted5F bundle0db2f309 passed the
+remaining JPEG and eight real-CPU diagnostics. JPEG median84353 in both0:0/2:9;
+all five scored window records match5D exactly, with original oracle, seven
+windows, two repeats and wrong-output rejection. ARM/Thumb/link, MMU/FCSE,
+actual/discarded prefetch faults and trained return-alias guard pass at both
+latencies; the guard intentionally exits at unmapped0bad0000. All60 CPU RTL
+hashes still match5F. No RTL repair, fit, CI, donor job or hardware input.
+Retain5F and its fill16_tail2078→1332/fill8_tail2172→1647 gains. Next bounded
+question remains line-transition ownership and the exposed fill8 empty clocks.
+Only the two completed recovery runs' rebuildable trees/binaries were retired;
+compact logs, manifests, results and guest assembly remain. Original accepted
+qualification evidence is unchanged.
+[Completed assessment and replay](cpu-store-postindex.md) ·
+[Recovery evidence](evidence/cpu-store-postindex-recovery-20261117.json).
+
 ## 2026-11-17 — Post-indexed store admission retained (Step5F)
 
 Exact5D258eed3 control, 5E frontend rejected and excluded. Existing shifter/ALU

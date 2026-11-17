@@ -25,8 +25,14 @@ byte oracles using the identical executable.
 group schedules, disjoint cycle accounting and normal patch replay. Unique
 names refuse overwrite. Use the installed offline simulator, serial builds
 with one job. `storage.py` compresses only completed5F runs; rebuildable compiler
-files may be removed while retaining all frozen inputs/logs/executables.
+files are disposable after qualification.
 
-Extra JPEG build was not simulated after environment ENOSPC/image I/O failure;
-no new JPEG or additional diagnostic result is claimed. No donor/fit/CI/hardware.
+After disk cleanup and an authorized Docker restart, JPEG passed at84353 cycles
+in both profiles, with exact5D scored windows and original oracle/repeats/negative
+checks. All eight CPU smoke/FCSE/prefetch-fault/return-alias diagnostics passed
+their expected outcomes. No RTL correction was required. `finish.py --jpeg RUN
+--cpu RUN` audits fresh recovery runs, saves hashes/results and retires only
+their completed compiler/frozen-source trees and generated binaries. Retain
+manifests/results/assembly/compact logs; rebuild before repeating executable
+checks. No donor/fit/CI/hardware.
 [Results, limits, fixture repairs and replay](../../../docs/cpu-store-postindex.md).

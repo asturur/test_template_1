@@ -19,6 +19,7 @@ job or RTL import was used; larger-cache and whole-CPU work are deferred.
 | Full frame, 36,608 pixels, original window | 0:0 | 71,259 | 71,259 |
 | Full frame, original median / body+first-empty | 2:9 | 201,302 / 201,407 | 201,302 / 201,407 |
 | Warm 64 stores, first issue→last physical write inclusive | both | 71 | 71 |
+| Original Thumb JPEG, scored median | both | 84,353 | 84,353 |
 
 All original bytes, mathematical/Unicorn outputs, guards, saved registers/SP,
 seven windows, two repeats and wrong-output controls pass. Scored fill16_tail
@@ -172,13 +173,42 @@ of valid tag RAM, retaining physical way/mask/data and backing-byte checks.
 An assembly newline and an over-specified cold-load credit expectation were
 also corrected. **Prototype RTL did not change during these fixture fixes.**
 
-An extra JPEG build hit PCH disk exhaustion before simulation, after the
-required runs above had passed. Docker subsequently returned cached-image I/O
-errors. No new JPEG or additional eight-diagnostic result is claimed. Only
-this chat's rebuildable compiler intermediates were removed; frozen inputs,
-logs and completed executables remain. No Docker restart/prune, other-run
-cleanup or image download was performed. The installed offline image and
-single compiler job were used throughout.
+The extra JPEG build initially stopped at PCH disk exhaustion before
+simulation. After disk space was freed, Docker remained unresponsive. The
+user authorized restarting Docker; the normal restart timed out, and its
+supported force-stop/start recovered the identical installed offline image.
+No image was downloaded. Both recovery builds used one compiler job.
+
+The completed JPEG run retains the original guest, oracle, harness and observer.
+All five scored window records exactly match retained 5D: 0:0 has
+84399/84353/84353/84353/84353 and 2:9 has
+84417/84353/84353/84353/84353. Both medians are **84,353**; each window retires
+22,508 instructions. Seven windows, two repeats per profile, original output
+checks and the deliberately wrong-output rejection pass. Whole-run totals
+fall by 1,254 cycles in each profile (752058→750804 and 820786→819532), outside
+the scored Thumb JPEG body, where ARM setup/check stores benefit. This is
+not a JPEG hotspot improvement.
+
+All eight additional real-CPU diagnostics pass their expected outcomes:
+
+| Guest | Latency 0 cycles | Latency 3 cycles | Expected outcome |
+| --- | ---: | ---: | --- |
+| ARM/Thumb/link smoke | 433 | 585 | pass |
+| MMU/FCSE | 94,798 | 123,631 | pass |
+| Actual and discarded prefetch faults | 300 | 376 | pass |
+| Trained return-alias guard | 95,045 | 123,985 | unmapped access at `0x0bad0000` |
+
+The guard's two unmapped exits are intentional checks. All 60 compiled CPU RTL
+inputs still match accepted 5F exactly; no RTL repair was needed. The
+[recovery receipt](evidence/cpu-store-postindex-recovery-20261117.json) records
+input/executable hashes, complete diagnostic results and matched JPEG windows.
+After assessment, only these two completed runs' compiler/frozen-source trees
+and generated guest binaries were retired; manifests, results, guest assembly
+and compact logs remain. The original qualification receipt stays unchanged.
+
+**Decision: retain 5F.** The outstanding regression checks are complete. The
+next bounded performance investigation remains line-transition ownership and
+fill8 frontend replenishment. Physical timing is still unmeasured for 5F.
 
 ## Provenance and replay
 
@@ -201,10 +231,21 @@ python3 tests/cpu/cpu_store_postindex/classify.py CLASSIFY
 python3 tests/cpu/cpu_store_postindex/run.py MEMORY --safety --arg +i_wait=2 --arg +d_wait=9
 python3 tests/cpu/cpu_store_postindex/run.py ZERO --safety --reuse build/sim/cpu-store-postindex/MEMORY
 python3 tests/cpu/cpu_store_postindex/negative.py build/sim/cpu-store-postindex/ZERO
+python3 tests/cpu/cpu_store_postindex/jpeg.py --name postindex-jpeg-NEW
+python3 tests/cpu/cpu_store_postindex/diagnostics.py diagnostics-NEW \
+  --build build/sim/jpeg-payload/postindex-jpeg-NEW
+python3 tests/cpu/cpu_store_postindex/finish.py \
+  --jpeg build/sim/jpeg-payload/postindex-jpeg-NEW \
+  --cpu build/sim/cpu-store-postindex/diagnostics-NEW
 ```
 
 Final benchmarks: `build/sim/spmark-payload/postindex-{control-02,candidate-01}/`.
 Qualification: `build/sim/cpu-store-postindex/{classify-01,memory-07,memory-zero-01}/`.
-`analyze.py --production` audits these runs and writes the durable evidence.
-`storage.py` compacts only completed5F outputs. All software needed for replay
-is maintained outside disposable scratch space.
+`analyze.py --production` audits fresh complete runs and writes the original
+qualification evidence. Retired build trees require rebuilding before that
+audit. `storage.py` compacts completed 5F outputs. `finish.py` audits fresh JPEG
+and CPU diagnostic runs against the immutable accepted receipt and saved 5D
+JPEG results, writes the recovery receipt, then retires only their build trees.
+Recovery runs: `build/sim/jpeg-payload/postindex-jpeg-02/` and
+`build/sim/cpu-store-postindex/diagnostics-recovery-01/`. All software needed
+for replay is maintained outside disposable scratch space.
