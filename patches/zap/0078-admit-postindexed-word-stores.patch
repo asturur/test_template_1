@@ -1,0 +1,19 @@
+--- a/src/rtl/zap_predecode_main.sv
++++ b/src/rtl/zap_predecode_main.sv
+@@ -244,9 +244,14 @@
+       o_instruction_valid_ff <= o_instruction_valid_nxt;
+       o_uop_last             <= o_uop_last_nxt;
+       // Classify the original ARM instruction before macro-op expansion:
+-      // unconditional STR immediate, pre-index, no writeback, word, no PC.
++      // Unconditional immediate word STR, no PC/user override. Post-index
++      // already forwards its updated base through the ordinary ALU path;
++      // its current address still uses the old base. Keep equal base/data
++      // and pre-index writeback on the existing serialized fallback.
+       o_store_overlap <= mode32_instruction_valid && !i_cpu_mode_t &&
+-          (mode32_instruction[31:20] & 12'hff7) == 12'he50 &&
++          (((mode32_instruction[31:20] & 12'hff7) == 12'he50) ||
++           ((mode32_instruction[31:20] & 12'hff7) == 12'he40 &&
++            mode32_instruction[19:16] != mode32_instruction[15:12])) &&
+           mode32_instruction[19:16] != 4'd15 &&
+           mode32_instruction[15:12] != 4'd15 && swp_tag_nxt == 0;
+       o_load_pair_class <= mode32_instruction_valid && !i_cpu_mode_t &&

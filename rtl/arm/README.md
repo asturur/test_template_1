@@ -32,3 +32,8 @@ See docs/cpu-product-bypass.md; the5B physical build predates this change.
 Patch0077 retains the existing registered long-multiply result for an immediate
 high-half owner, removing its restart without a new payload/bypass network.
 See docs/cpu-paired-delivery.md; reset/kill/hold and expired-owner fallback remain.
+
+Patch0078 admits ordinary unconditional immediate post-indexed word stores
+through existing resident credit, using the unchanged ALU/base feedback path.
+No added state; checked tails improve, frame/matrix/transpose/store regressions
+remain unchanged. See docs/cpu-store-postindex.md for scope and qualification.

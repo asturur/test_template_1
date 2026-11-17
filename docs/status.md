@@ -1,3 +1,37 @@
+## 2026-11-17 — Post-indexed store admission retained (Step5F)
+
+Exact5D258eed3 control, 5E frontend rejected and excluded. Existing shifter/ALU
+feedback already computes the next post-store base correctly; completion waits
+were binding. One predecode class extension admits unconditional ARM immediate
+post-indexed word STR, W=0, non-PC and distinct base/data, through existing
+resident credit. Zero added state/address arithmetic/forwarding path. Original
+fill16_tail2078→1332(−746,−35.90%); fill8_tail2172→1647(−525,−24.17%), both0:0/2:9,
+original bytes/math/Unicorn/guards/scored/repeats/negative checksPASS. First8
+retirements0,3,6,9,12,15,18,24→0,1,2,3,4,5,6,14; first adjacent accept5/8→5/6,
+RAM7/10→7/8, base commit9/12→7/8 from first real issue. Current store uses old
+base; original feedback supplies the next base. Line crossing still costs.
+Disjoint tail changes: write−754/empty+8; write−772/empty+250/other−3. Matrix45736,
+transpose3591, full-frame71259(0:0)/201302(2:9) unchanged; frame+first-empty201407
+at2:9, all five scored samples. Frame has zero resident-credit accepts. Warm64
+stores retain71 clocks,448 ordered actual writes/completions/retirements and16
+independent dirty backing words. 12288 class vectors+118 existing hold/return
+checks,18 untimed post cases, actual faults/base preservation/FAR/FSR, predication,
+varied offsets, late data, device fallback and IRQ at pending2 PASS. IRQ prefix14
+accepted=14retired, base80001d78; prefix and zero suffix read back. Both independent
+wrong-physical-byte controls reject. Fixture failures/corrections retained,
+including stale result_way on fallback: expected slots now use valid tag RAM.
+Qualified bundle0db2f309; all60 compiled production CPU RTL inputs match. Patch
+0078 pristine replayPASS. PLL78MHz/registered104MHz target unchanged; no new fit,
+CI, branch/worktree, donor job, deployment/hardware input. Required5F checks
+complete. Extra JPEG build was not simulated: PCH ENOSPC then Docker cached-image
+I/O errors; no new JPEG/additional diagnostic claim. Only own rebuildable compiler
+files removed; no Docker restart/prune or other-run/checkpoint cleanup.
+Next current-CPU priority: line-transition completion/probe ownership and fill8
+frontend replenishment; quantify the exposed250 empty clocks before another change.
+Donor/cache-import work remains deferred. Stop after this bounded outcome.
+[Measured schedules, qualification and replay](cpu-store-postindex.md) ·
+[Machine evidence](evidence/cpu-store-postindex-20261117.json).
+
 ## 2026-11-17 — Step 5F on the current CPU; donor work deferred
 
 5D remains the production CPU after the mixed 5E result. The mainline chat is

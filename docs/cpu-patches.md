@@ -622,3 +622,9 @@ Step5D patch0077 adds one paired-ready state and no payload flops. Original
 matrix47887→45736; transpose/JPEG/drained stores unchanged. All1024 paired
 writes/advancing consumers,14353 retirement PCs and existing instruction-profile
 checks pass. See [the elapsed opportunity and qualification](cpu-paired-delivery.md).
+
+Step5F patch0078 extends the existing owned store class to unconditional ARM
+immediate post-indexed word STR with W=0, non-PC and distinct base/data.
+Original tails2078→1332 and2172→1647; frame+drain/matrix/transpose/store controls
+unchanged, both profiles. Zero added state or forwarding/address datapath.
+See [the physical/base/IRQ/fault qualification](cpu-store-postindex.md).
