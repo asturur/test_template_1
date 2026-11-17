@@ -1,0 +1,1877 @@
+{
+  "decision": "YES: this exact overlay merits a matched seed-42 measurement fit; no CI submitted or timing claim. Store-owner/certificate paths remain separate open timing work.",
+  "base": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+  "rtl_sha256": {
+    "tests/cpu/cache_probe_retime/rtl/cache_access.sv": "15f2e214cecaa04801425900b1ced560759496b85383f198e3c908c681257c13",
+    "tests/cpu/cache_probe_retime/rtl/cache_adapter.sv": "c0fd8d256523241a0cbb98472434093bb85039243cfe06126c83eaf172c9bf78",
+    "tests/cpu/cache_probe_retime/rtl/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "tests/cpu/cache_probe_retime/rtl/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "tests/cpu/cache_probe_retime/rtl/ngage_bram.v": "b8094d6f9d4b39a75ee6ba97520f663561757cf66bd9f1a2dcdeaed817b739a0"
+  },
+  "CPU_comparisons": [
+    {
+      "kind": "spmark-payload",
+      "case": "matrix4",
+      "profile": "0:0",
+      "control_cycles": 52164,
+      "candidate_cycles": 52917,
+      "delta_cycles": 753,
+      "delta_percent": 1.4435242696112294,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 52164,
+          "fast": 624,
+          "admitted": 1249,
+          "fallback": 303,
+          "read_accept": 1552,
+          "waits": 7521,
+          "probe_reads": 48932
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 52917,
+          "fast": 263,
+          "admitted": 1281,
+          "fallback": 632,
+          "read_accept": 1913,
+          "waits": 8389,
+          "probe_reads": 5214
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 753,
+        "fast": -361,
+        "admitted": 32,
+        "fallback": 329,
+        "read_accept": 361,
+        "waits": 868,
+        "probe_reads": -43718
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "matrix4",
+      "profile": "2:9",
+      "control_cycles": 52164,
+      "candidate_cycles": 52917,
+      "delta_cycles": 753,
+      "delta_percent": 1.4435242696112294,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 52164,
+          "fast": 624,
+          "admitted": 1249,
+          "fallback": 303,
+          "read_accept": 1552,
+          "waits": 7521,
+          "probe_reads": 48932
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 52917,
+          "fast": 263,
+          "admitted": 1281,
+          "fallback": 632,
+          "read_accept": 1913,
+          "waits": 8389,
+          "probe_reads": 5214
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 753,
+        "fast": -361,
+        "admitted": 32,
+        "fallback": 329,
+        "read_accept": 361,
+        "waits": 868,
+        "probe_reads": -43718
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "transpose4",
+      "profile": "0:0",
+      "control_cycles": 5130,
+      "candidate_cycles": 5130,
+      "delta_cycles": 0,
+      "delta_percent": 0.0,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 5130,
+          "fast": 97,
+          "admitted": 161,
+          "fallback": 158,
+          "read_accept": 319,
+          "waits": 1634,
+          "probe_reads": 4338
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 5130,
+          "fast": 97,
+          "admitted": 161,
+          "fallback": 158,
+          "read_accept": 319,
+          "waits": 1634,
+          "probe_reads": 677
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 0,
+        "fast": 0,
+        "admitted": 0,
+        "fallback": 0,
+        "read_accept": 0,
+        "waits": 0,
+        "probe_reads": -3661
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "transpose4",
+      "profile": "2:9",
+      "control_cycles": 5130,
+      "candidate_cycles": 5130,
+      "delta_cycles": 0,
+      "delta_percent": 0.0,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 5130,
+          "fast": 97,
+          "admitted": 161,
+          "fallback": 158,
+          "read_accept": 319,
+          "waits": 1634,
+          "probe_reads": 4338
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 5130,
+          "fast": 97,
+          "admitted": 161,
+          "fallback": 158,
+          "read_accept": 319,
+          "waits": 1634,
+          "probe_reads": 677
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 0,
+        "fast": 0,
+        "admitted": 0,
+        "fallback": 0,
+        "read_accept": 0,
+        "waits": 0,
+        "probe_reads": -3661
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "triangle_edges",
+      "profile": "0:0",
+      "control_cycles": 25431,
+      "candidate_cycles": 25332,
+      "delta_cycles": -99,
+      "delta_percent": -0.38928866344225543,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 25431,
+          "fast": 159,
+          "admitted": 449,
+          "fallback": 192,
+          "read_accept": 641,
+          "waits": 5352,
+          "probe_reads": 23544
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 25332,
+          "fast": 93,
+          "admitted": 500,
+          "fallback": 207,
+          "read_accept": 707,
+          "waits": 5251,
+          "probe_reads": 1369
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": -99,
+        "fast": -66,
+        "admitted": 51,
+        "fallback": 15,
+        "read_accept": 66,
+        "waits": -101,
+        "probe_reads": -22175
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "triangle_edges",
+      "profile": "2:9",
+      "control_cycles": 25431,
+      "candidate_cycles": 25332,
+      "delta_cycles": -99,
+      "delta_percent": -0.38928866344225543,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 25431,
+          "fast": 159,
+          "admitted": 449,
+          "fallback": 192,
+          "read_accept": 641,
+          "waits": 5352,
+          "probe_reads": 23544
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 25332,
+          "fast": 93,
+          "admitted": 500,
+          "fallback": 207,
+          "read_accept": 707,
+          "waits": 5251,
+          "probe_reads": 1369
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": -99,
+        "fast": -66,
+        "admitted": 51,
+        "fallback": 15,
+        "read_accept": 66,
+        "waits": -101,
+        "probe_reads": -22175
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "fill16_frame",
+      "profile": "0:0",
+      "control_cycles": 71263,
+      "candidate_cycles": 71263,
+      "delta_cycles": 0,
+      "delta_percent": 0.0,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 71261,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 45985,
+          "probe_reads": 64391
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 71261,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 45985,
+          "probe_reads": 2
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 0,
+        "fast": 0,
+        "admitted": 0,
+        "fallback": 0,
+        "read_accept": 0,
+        "waits": 0,
+        "probe_reads": -64389
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "fill16_frame",
+      "profile": "2:9",
+      "control_cycles": 201306,
+      "candidate_cycles": 201306,
+      "delta_cycles": 0,
+      "delta_percent": 0.0,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 201304,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 176028,
+          "probe_reads": 194434
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 201304,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 176028,
+          "probe_reads": 2
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 0,
+        "fast": 0,
+        "admitted": 0,
+        "fallback": 0,
+        "read_accept": 0,
+        "waits": 0,
+        "probe_reads": -194432
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "control_cycles": 2116,
+      "candidate_cycles": 2117,
+      "delta_cycles": 1,
+      "delta_percent": 0.04725897920605515,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 2106,
+          "fast": 1,
+          "admitted": 0,
+          "fallback": 0,
+          "read_accept": 0,
+          "waits": 1292,
+          "probe_reads": 1914
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 2107,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 1293,
+          "probe_reads": 2
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 1,
+        "fast": -1,
+        "admitted": 1,
+        "fallback": 0,
+        "read_accept": 1,
+        "waits": 1,
+        "probe_reads": -1912
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "control_cycles": 2116,
+      "candidate_cycles": 2117,
+      "delta_cycles": 1,
+      "delta_percent": 0.04725897920605515,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 2106,
+          "fast": 1,
+          "admitted": 0,
+          "fallback": 0,
+          "read_accept": 0,
+          "waits": 1292,
+          "probe_reads": 1914
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 2107,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 1293,
+          "probe_reads": 2
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 1,
+        "fast": -1,
+        "admitted": 1,
+        "fallback": 0,
+        "read_accept": 1,
+        "waits": 1,
+        "probe_reads": -1912
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "control_cycles": 2178,
+      "candidate_cycles": 2178,
+      "delta_cycles": 0,
+      "delta_percent": 0.0,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 2178,
+          "fast": 1,
+          "admitted": 0,
+          "fallback": 0,
+          "read_accept": 0,
+          "waits": 1303,
+          "probe_reads": 1983
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 2178,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 1304,
+          "probe_reads": 2
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 0,
+        "fast": -1,
+        "admitted": 1,
+        "fallback": 0,
+        "read_accept": 1,
+        "waits": 1,
+        "probe_reads": -1981
+      }
+    },
+    {
+      "kind": "spmark-payload",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "control_cycles": 2178,
+      "candidate_cycles": 2178,
+      "delta_cycles": 0,
+      "delta_percent": 0.0,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 2178,
+          "fast": 1,
+          "admitted": 0,
+          "fallback": 0,
+          "read_accept": 0,
+          "waits": 1303,
+          "probe_reads": 1983
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 2178,
+          "fast": 0,
+          "admitted": 1,
+          "fallback": 0,
+          "read_accept": 1,
+          "waits": 1304,
+          "probe_reads": 2
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 0,
+        "fast": -1,
+        "admitted": 1,
+        "fallback": 0,
+        "read_accept": 1,
+        "waits": 1,
+        "probe_reads": -1981
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m10_8x8_jpeg",
+      "profile": "0:0",
+      "control_cycles": 86720,
+      "candidate_cycles": 87618,
+      "delta_cycles": 898,
+      "delta_percent": 1.0355166051660536,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 86720,
+          "fast": 2676,
+          "admitted": 4032,
+          "fallback": 509,
+          "read_accept": 4541,
+          "waits": 24837,
+          "probe_reads": 79243
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 87618,
+          "fast": 1854,
+          "admitted": 4781,
+          "fallback": 582,
+          "read_accept": 5363,
+          "waits": 25863,
+          "probe_reads": 14429
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 898,
+        "fast": -822,
+        "admitted": 749,
+        "fallback": 73,
+        "read_accept": 822,
+        "waits": 1026,
+        "probe_reads": -64814
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 66,
+        "LOOKUP_CAPTURE": 821,
+        "LOOKUP_WAIT": 66,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 73,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m10_8x8_jpeg",
+      "profile": "2:9",
+      "control_cycles": 86720,
+      "candidate_cycles": 87618,
+      "delta_cycles": 898,
+      "delta_percent": 1.0355166051660536,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 86720,
+          "fast": 2676,
+          "admitted": 4032,
+          "fallback": 509,
+          "read_accept": 4541,
+          "waits": 24837,
+          "probe_reads": 79243
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 87618,
+          "fast": 1854,
+          "admitted": 4781,
+          "fallback": 582,
+          "read_accept": 5363,
+          "waits": 25863,
+          "probe_reads": 14429
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 898,
+        "fast": -822,
+        "admitted": 749,
+        "fallback": 73,
+        "read_accept": 822,
+        "waits": 1026,
+        "probe_reads": -64814
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 66,
+        "LOOKUP_CAPTURE": 821,
+        "LOOKUP_WAIT": 66,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 73,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m10_8x8_random",
+      "profile": "0:0",
+      "control_cycles": 86736,
+      "candidate_cycles": 87634,
+      "delta_cycles": 898,
+      "delta_percent": 1.0353255856852872,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 86736,
+          "fast": 2676,
+          "admitted": 4032,
+          "fallback": 509,
+          "read_accept": 4541,
+          "waits": 24837,
+          "probe_reads": 79259
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 87634,
+          "fast": 1854,
+          "admitted": 4781,
+          "fallback": 582,
+          "read_accept": 5363,
+          "waits": 25863,
+          "probe_reads": 14429
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 898,
+        "fast": -822,
+        "admitted": 749,
+        "fallback": 73,
+        "read_accept": 822,
+        "waits": 1026,
+        "probe_reads": -64830
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 66,
+        "LOOKUP_CAPTURE": 821,
+        "LOOKUP_WAIT": 66,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 73,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m10_8x8_random",
+      "profile": "2:9",
+      "control_cycles": 86736,
+      "candidate_cycles": 87634,
+      "delta_cycles": 898,
+      "delta_percent": 1.0353255856852872,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 86736,
+          "fast": 2676,
+          "admitted": 4032,
+          "fallback": 509,
+          "read_accept": 4541,
+          "waits": 24837,
+          "probe_reads": 79259
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 87634,
+          "fast": 1854,
+          "admitted": 4781,
+          "fallback": 582,
+          "read_accept": 5363,
+          "waits": 25863,
+          "probe_reads": 14429
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 898,
+        "fast": -822,
+        "admitted": 749,
+        "fallback": 73,
+        "read_accept": 822,
+        "waits": 1026,
+        "probe_reads": -64830
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 66,
+        "LOOKUP_CAPTURE": 821,
+        "LOOKUP_WAIT": 66,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 73,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m8_8x8_random",
+      "profile": "0:0",
+      "control_cycles": 85590,
+      "candidate_cycles": 86490,
+      "delta_cycles": 900,
+      "delta_percent": 1.051524710830698,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 85590,
+          "fast": 2675,
+          "admitted": 4033,
+          "fallback": 509,
+          "read_accept": 4542,
+          "waits": 24829,
+          "probe_reads": 78112
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 86490,
+          "fast": 1854,
+          "admitted": 4781,
+          "fallback": 582,
+          "read_accept": 5363,
+          "waits": 25854,
+          "probe_reads": 14420
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 900,
+        "fast": -821,
+        "admitted": 748,
+        "fallback": 73,
+        "read_accept": 821,
+        "waits": 1025,
+        "probe_reads": -63692
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 66,
+        "LOOKUP_CAPTURE": 820,
+        "LOOKUP_WAIT": 66,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 73,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m8_8x8_random",
+      "profile": "2:9",
+      "control_cycles": 85590,
+      "candidate_cycles": 86490,
+      "delta_cycles": 900,
+      "delta_percent": 1.051524710830698,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 85590,
+          "fast": 2675,
+          "admitted": 4033,
+          "fallback": 509,
+          "read_accept": 4542,
+          "waits": 24829,
+          "probe_reads": 78112
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 86490,
+          "fast": 1854,
+          "admitted": 4781,
+          "fallback": 582,
+          "read_accept": 5363,
+          "waits": 25854,
+          "probe_reads": 14420
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 900,
+        "fast": -821,
+        "admitted": 748,
+        "fallback": 73,
+        "read_accept": 821,
+        "waits": 1025,
+        "probe_reads": -63692
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 66,
+        "LOOKUP_CAPTURE": 820,
+        "LOOKUP_WAIT": 66,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 73,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m10_16x8_jpeg",
+      "profile": "0:0",
+      "control_cycles": 170976,
+      "candidate_cycles": 172730,
+      "delta_cycles": 1754,
+      "delta_percent": 1.0258749766049124,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 170976,
+          "fast": 5284,
+          "admitted": 8008,
+          "fallback": 965,
+          "read_accept": 8973,
+          "waits": 48749,
+          "probe_reads": 156371
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 172730,
+          "fast": 3670,
+          "admitted": 9485,
+          "fallback": 1102,
+          "read_accept": 10587,
+          "waits": 50759,
+          "probe_reads": 28581
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 1754,
+        "fast": -1614,
+        "admitted": 1477,
+        "fallback": 137,
+        "read_accept": 1614,
+        "waits": 2010,
+        "probe_reads": -127790
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 130,
+        "LOOKUP_CAPTURE": 1613,
+        "LOOKUP_WAIT": 130,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 137,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    },
+    {
+      "kind": "jpeg-payload",
+      "case": "diffuse_m10_16x8_jpeg",
+      "profile": "2:9",
+      "control_cycles": 170976,
+      "candidate_cycles": 172730,
+      "delta_cycles": 1754,
+      "delta_percent": 1.0258749766049124,
+      "metrics_window3": {
+        "control": {
+          "index": 3,
+          "cycles": 170976,
+          "fast": 5284,
+          "admitted": 8008,
+          "fallback": 965,
+          "read_accept": 8973,
+          "waits": 48749,
+          "probe_reads": 156371
+        },
+        "candidate": {
+          "index": 3,
+          "cycles": 172730,
+          "fast": 3670,
+          "admitted": 9485,
+          "fallback": 1102,
+          "read_accept": 10587,
+          "waits": 50759,
+          "probe_reads": 28581
+        }
+      },
+      "metric_delta_window3": {
+        "cycles": 1754,
+        "fast": -1614,
+        "admitted": 1477,
+        "fallback": 137,
+        "read_accept": 1614,
+        "waits": 2010,
+        "probe_reads": -127790
+      },
+      "wait_state_delta_window3": {
+        "BUFFER_STORE": 0,
+        "BYPASS": 0,
+        "IDLE": 2,
+        "LOOKUP": 130,
+        "LOOKUP_CAPTURE": 1613,
+        "LOOKUP_WAIT": 130,
+        "MAINTAIN": 0,
+        "MAINT_CAPTURE": 0,
+        "MAINT_LOOKUP": 0,
+        "MAINT_WAIT": 0,
+        "READ_LINE": 137,
+        "STORE_COMMIT": -1,
+        "STORE_HIT": -1,
+        "WAIT_DRAIN": 0,
+        "WAIT_REFILL": 0
+      }
+    }
+  ],
+  "throughput_indexes_control_100": {
+    "spmark-payload/0:0": 99.81843101928591,
+    "spmark-payload/2:9": 99.81843101928591,
+    "jpeg-payload/0:0": 98.97358449584326,
+    "jpeg-payload/2:9": 98.97358449584326
+  },
+  "CPU_runs": {
+    "spmark-payload/control": {
+      "directory": "build/sim/spmark-payload/probe-retime-control-20261116",
+      "manifest_sha256": "e999e929987c85b994ab9a4078737a0d1395eaef0aebb485f9b4a4ad7fcbff21",
+      "result_sha256": "aaefc22449b830d5771d6f5988adfef8dd743febcdc2d2553d9b8737a424a587",
+      "source_id": "ef13f492b2a93451d7bc33f6a9089aa656a4713a690c87e14360bdc67d8bd654"
+    },
+    "spmark-payload/candidate": {
+      "directory": "build/sim/spmark-payload/probe-retime-candidate-20261116",
+      "manifest_sha256": "f47307c071af06e22c12f201c99bef2ac7e9028f1864634c92f86032dfa3c92a",
+      "result_sha256": "238d0c0851c6ade1d21a2b01009cc6dc430ac2b7bc44aa9d7524c5f9ec3a0e2d",
+      "source_id": "18447080c84ed71db73ce42d5f65d0f44f61f162e3da08e0488c1624602a13ea"
+    },
+    "jpeg-payload/control": {
+      "directory": "build/sim/jpeg-payload/probe-retime-control-20261116",
+      "manifest_sha256": "a3119913d886d1b87ccb7189041469c27905d91da7c18d3a6f766d554669c656",
+      "result_sha256": "790788810c8337c2f5f6c29da3a4ea41d66baa7b8239785d3814e5ca06fbf52e",
+      "source_id": "ef13f492b2a93451d7bc33f6a9089aa656a4713a690c87e14360bdc67d8bd654"
+    },
+    "jpeg-payload/candidate": {
+      "directory": "build/sim/jpeg-payload/probe-retime-candidate-20261116",
+      "manifest_sha256": "eae621f303538cb579cd8572b6a85e4b26403d70676092679e5e5b992891c2bd",
+      "result_sha256": "c400cd835ecc90a33cf400725094154fc17f880c85f3033b51a720a5f13a91d1",
+      "source_id": "18447080c84ed71db73ce42d5f65d0f44f61f162e3da08e0488c1624602a13ea"
+    }
+  },
+  "units": {
+    "adapter": {
+      "directory": "build/sim/probe-retime-adapter-20261116-01",
+      "manifest_sha256": "c918c040b71769f7a03337f1a3f8b348ff92a4776c45127c221a2df8afb14511",
+      "result_sha256": "163de5f0d4f1de181b457bb93c2326dc8fc7d681fa5d97b5bd8848d8c2b2fa98",
+      "pass_lines": [
+        "PASS: 402 requests; 164 fast reads, 8 concurrent A/B clocks, 123 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+      ],
+      "run_log_sha256": "91b105b30eeb843ec6c75442241678ed7ce7a16b26c6e3d57a5548453a9d10fa"
+    },
+    "admit": {
+      "directory": "build/sim/probe-retime-admit-20261116-01",
+      "manifest_sha256": "0f92a3c4c2b5cc75466135a9cb608856c5ce78fbdeed36fb2856c8203b13c3fa",
+      "result_sha256": "970cf7f783f1b57ecbd5e75cc23529e510ca948db23b379e29ec958a5090e63d",
+      "pass_lines": [
+        "PASS admitted probe: 256 short reads, 3 mismatches, all segments/words/masks, faults, SWP, maintenance and reset"
+      ],
+      "run_log_sha256": "4cfb8fab26ac97f1f34553b4300d5e1d3db9927820f596cf15d7dd13bb70a4bb"
+    },
+    "qualification": {
+      "directory": "build/sim/probe-retime-qualification-20261116-01",
+      "manifest_sha256": "28a4a5d8a201bb0e6087fc4e41bc30e256747de0c5a9794dc978fed6fb180a80",
+      "result_sha256": "f4b7c17814fac421d1df5bf80a1c5f34d6614ec54a1d36928c300f3c644280a3",
+      "pass_lines": [
+        "PASS qualification lifecycle=35 probes=8 transfers=4"
+      ],
+      "run_log_sha256": "639e5c92edac1b70e881edbbc5a1e13dca67cb73b4fd14fd12968841b0ffd104"
+    },
+    "adapter_lock": {
+      "directory": "build/sim/probe-retime-adapter-lock-20261116-01",
+      "manifest_sha256": "25ffd89011a33567d7b5529da8d74047d419deeb143d3f6167c37185c1f5e9cb",
+      "result_sha256": "ff47b7c6b9097c5cbb505b3b7ca48b41efadd8400b9d0c743a80148df240f30c",
+      "pass_lines": [
+        "PASS adapter pulsed pending lock after live store: one done, correct following read",
+        "PASS: 407 requests; 164 fast reads, 8 concurrent A/B clocks, 125 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+      ],
+      "run_log_sha256": "ed9d24d04aafb2313b4324314c016d44ef7505d75df1859f251249458b20fdee"
+    },
+    "refill": {
+      "directory": "build/sim/probe-retime-refill-20261116-01",
+      "manifest_sha256": "192ef86ea154c39bc6fab45266722475df8cad5d3d3061b8d145cc18267c93c6",
+      "result_sha256": "f47988e8f1fa8e07a9c4340b946818fa523eeb78931387c9166e5cda7aef6916",
+      "pass_lines": [
+        "PASS: cache bank replacement survives bus error and retries dirty victim"
+      ],
+      "run_log_sha256": "9b748142fb6a109ef9d646f257866b91c86432ecebd9134986ac2cf2eaf9d6f8"
+    },
+    "maintenance": {
+      "directory": "build/sim/probe-retime-maintenance-20261116-01",
+      "manifest_sha256": "4a4f3c1b918da04e51d2e740f50891a550924275702172fcde5a6df989b507f6",
+      "result_sha256": "f3bb6aa37ab3c2b85804ba8b1fc331072158f7835d9dfe7da2838ce45e329cc3",
+      "pass_lines": [
+        "PASS: indexed clean, error retention and invalidate all"
+      ],
+      "run_log_sha256": "66c6eb2d27a7682f8ebde56a8eafe5817fe5c0d4afc0b0fbcce68ca4ad881372"
+    },
+    "schedule_control": {
+      "directory": "build/sim/probe-retime-schedule-control-20261116-02",
+      "manifest_sha256": "2dc1b983f51814202d5f253893afb172067ecffaec564ad27458dac71513f041",
+      "result_sha256": "1bf80ab06e7cff512ec736e065d0ddb32e840922094e0811aabec09937762ecb",
+      "pass_lines": [
+        "PASS registered probe schedule: P1/P2, held/back-to-back, translation hit/fault, store freshness, expiry and 16 stage revokes"
+      ],
+      "run_log_sha256": "ad776725cd45385e7856f47b8e9c635fd6897192cb1d2765456e283049df9a56",
+      "edge_sample": [
+        "SCHEDULE e=111 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=1 ack=1 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=112 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=113 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=1 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=114 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=115 phase=1 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=116 phase=1 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=117 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=118 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=119 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0"
+      ],
+      "case_lines": [
+        "CASE scheduled read phase=0 addr=00003000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=0 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=1 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=1 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=1 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=2 PASS",
+        "CASE delayed_translation_hit PASS",
+        "CASE delayed_translation_fault PASS",
+        "CASE same_slot_store_followed_load PASS",
+        "CASE scheduled read phase=4 addr=00003000 waits=4 PASS",
+        "CASE expired_token_fallback PASS",
+        "CASE scheduled read phase=5 addr=00009000 waits=40 PASS",
+        "CASE held_miss_changing_P1 PASS",
+        "CASE stage_revoke event=0 stage=0 PASS",
+        "CASE stage_revoke event=0 stage=1 PASS",
+        "CASE stage_revoke event=0 stage=2 PASS",
+        "CASE stage_revoke event=0 stage=3 PASS",
+        "CASE stage_revoke event=1 stage=0 PASS",
+        "CASE stage_revoke event=1 stage=1 PASS",
+        "CASE stage_revoke event=1 stage=2 PASS",
+        "CASE stage_revoke event=1 stage=3 PASS",
+        "CASE stage_revoke event=2 stage=0 PASS",
+        "CASE stage_revoke event=2 stage=1 PASS",
+        "CASE stage_revoke event=2 stage=2 PASS",
+        "CASE stage_revoke event=2 stage=3 PASS",
+        "CASE stage_revoke event=3 stage=0 PASS",
+        "CASE stage_revoke event=3 stage=1 PASS",
+        "CASE stage_revoke event=3 stage=2 PASS",
+        "CASE stage_revoke event=3 stage=3 PASS"
+      ],
+      "stage_edge_samples": {
+        "phase0/event0/stage0": [
+          "SCHEDULE e=103 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=104 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=105 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=106 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=107 phase=0 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=108 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=109 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=110 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase1/event0/stage0": [
+          "SCHEDULE e=111 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=1 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=112 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=113 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=1 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=114 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=127 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=128 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=129 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=130 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase2/event0/stage0": [
+          "SCHEDULE e=131 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=132 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=133 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=134 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=140 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=141 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=142 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=1 reset=0",
+          "SCHEDULE e=143 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase3/event0/stage0": [
+          "SCHEDULE e=144 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=145 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=146 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=147 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=0 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1692 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=511 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1693 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=511 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1694 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1695 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase4/event0/stage0": [
+          "SCHEDULE e=1696 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1697 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1698 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1699 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1704 phase=4 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1705 phase=4 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1706 phase=4 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1707 phase=4 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase5/event0/stage0": [
+          "SCHEDULE e=1708 phase=5 event=0 stage=0 p1=00003000 p2=00009000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1709 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1710 phase=5 event=0 stage=0 p1=00003000 p2=00009000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1711 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1746 phase=5 event=0 stage=0 p1=00003000 p2=00009000 hint=0000180 read=0 slot=16 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1747 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=16 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1748 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=16 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1749 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=16 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage0": [
+          "SCHEDULE e=1847 phase=6 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1848 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=1",
+          "SCHEDULE e=1849 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1850 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1888 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1889 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1890 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1891 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage1": [
+          "SCHEDULE e=1989 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1990 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1991 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=1",
+          "SCHEDULE e=1992 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2031 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2032 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2033 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2034 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage2": [
+          "SCHEDULE e=2132 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2133 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2134 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2135 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=1",
+          "SCHEDULE e=2175 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2176 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2177 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2178 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage3": [
+          "SCHEDULE e=2276 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2277 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2278 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2279 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2320 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2321 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2322 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2323 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage0": [
+          "SCHEDULE e=2421 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2422 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2423 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2424 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4001 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4002 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4003 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4004 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage1": [
+          "SCHEDULE e=4102 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4103 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4104 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4105 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5683 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5684 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5685 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5686 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage2": [
+          "SCHEDULE e=5784 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5785 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5786 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5787 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7366 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7367 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7368 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7369 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage3": [
+          "SCHEDULE e=7467 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7468 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7469 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7470 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9050 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9051 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9052 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9053 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage0": [
+          "SCHEDULE e=9151 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9152 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9153 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9154 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9157 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9158 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9159 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9160 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage1": [
+          "SCHEDULE e=9258 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9259 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9260 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9261 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9265 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9266 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9267 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9268 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage2": [
+          "SCHEDULE e=9366 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9367 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9368 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9369 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9374 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9375 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9376 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9377 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage3": [
+          "SCHEDULE e=9475 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9476 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9477 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9478 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9484 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9485 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9486 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9487 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage0": [
+          "SCHEDULE e=9585 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9586 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9587 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9588 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9590 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9591 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9592 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9593 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage1": [
+          "SCHEDULE e=9691 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9692 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9693 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9694 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9697 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9698 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9699 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9700 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage2": [
+          "SCHEDULE e=9798 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9799 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9800 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9801 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9805 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9806 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9807 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9808 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage3": [
+          "SCHEDULE e=9906 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9907 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9908 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9909 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9914 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9915 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9916 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9917 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ]
+      }
+    },
+    "schedule": {
+      "directory": "build/sim/probe-retime-schedule-20261116-02",
+      "manifest_sha256": "8d227b961afa3c985bf8be3b769c9b02d505d2ead90934fe5a708e5c948fe793",
+      "result_sha256": "691c74d5eebfeaef392f081663608dae09994f64b147921d4e8c98b37283c8df",
+      "pass_lines": [
+        "PASS registered probe schedule: P1/P2, held/back-to-back, translation hit/fault, store freshness, expiry and 16 stage revokes"
+      ],
+      "run_log_sha256": "3d7164b58c615ed8c079fcc7228849ae23a3f545db7ba5898ad5e31b93d241bd",
+      "edge_sample": [
+        "SCHEDULE e=111 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=1 ack=1 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=112 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=113 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=1 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=114 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=115 phase=1 event=0 stage=0 p1=00001000 p2=00001000 hint=0000180 read=0 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=116 phase=1 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=117 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=118 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=119 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0"
+      ],
+      "case_lines": [
+        "CASE scheduled read phase=0 addr=00003000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=0 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=1 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=1 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=1 PASS",
+        "CASE scheduled read phase=1 addr=00001000 waits=2 PASS",
+        "CASE scheduled read phase=1 addr=00003000 waits=2 PASS",
+        "CASE delayed_translation_hit PASS",
+        "CASE delayed_translation_fault PASS",
+        "CASE same_slot_store_followed_load PASS",
+        "CASE scheduled read phase=4 addr=00003000 waits=4 PASS",
+        "CASE expired_token_fallback PASS",
+        "CASE scheduled read phase=5 addr=00009000 waits=40 PASS",
+        "CASE held_miss_changing_P1 PASS",
+        "CASE stage_revoke event=0 stage=0 PASS",
+        "CASE stage_revoke event=0 stage=1 PASS",
+        "CASE stage_revoke event=0 stage=2 PASS",
+        "CASE stage_revoke event=0 stage=3 PASS",
+        "CASE stage_revoke event=1 stage=0 PASS",
+        "CASE stage_revoke event=1 stage=1 PASS",
+        "CASE stage_revoke event=1 stage=2 PASS",
+        "CASE stage_revoke event=1 stage=3 PASS",
+        "CASE stage_revoke event=2 stage=0 PASS",
+        "CASE stage_revoke event=2 stage=1 PASS",
+        "CASE stage_revoke event=2 stage=2 PASS",
+        "CASE stage_revoke event=2 stage=3 PASS",
+        "CASE stage_revoke event=3 stage=0 PASS",
+        "CASE stage_revoke event=3 stage=1 PASS",
+        "CASE stage_revoke event=3 stage=2 PASS",
+        "CASE stage_revoke event=3 stage=3 PASS"
+      ],
+      "stage_edge_samples": {
+        "phase0/event0/stage0": [
+          "SCHEDULE e=103 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=104 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=105 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=106 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=107 phase=0 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=108 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=109 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=110 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase1/event0/stage0": [
+          "SCHEDULE e=111 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=1 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=112 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=113 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=1 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=114 phase=1 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=127 phase=1 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=128 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=129 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=130 phase=1 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase2/event0/stage0": [
+          "SCHEDULE e=131 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=132 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=133 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=134 phase=2 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=140 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=141 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=1 fault=0 reset=0",
+          "SCHEDULE e=142 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=1 reset=0",
+          "SCHEDULE e=143 phase=2 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase3/event0/stage0": [
+          "SCHEDULE e=144 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=145 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=146 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=1 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=147 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=1 slot=0 result=0 result_tag=0000080 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1692 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=511 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1693 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=511 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1694 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1695 phase=3 event=0 stage=0 p1=00001000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase4/event0/stage0": [
+          "SCHEDULE e=1696 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000080 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1697 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1698 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1699 phase=4 event=0 stage=0 p1=00003000 p2=00001000 hint=0000180 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1704 phase=4 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1705 phase=4 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1706 phase=4 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1707 phase=4 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000080 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase5/event0/stage0": [
+          "SCHEDULE e=1708 phase=5 event=0 stage=0 p1=00003000 p2=00009000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1709 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1710 phase=5 event=0 stage=0 p1=00003000 p2=00009000 hint=0000080 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1711 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1746 phase=5 event=0 stage=0 p1=00003000 p2=00009000 hint=0000080 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1747 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1748 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000080 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1749 phase=5 event=0 stage=0 p1=00001000 p2=00009000 hint=0000080 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage0": [
+          "SCHEDULE e=1847 phase=6 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1848 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=1",
+          "SCHEDULE e=1849 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1850 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1888 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1889 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1890 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1891 phase=6 event=0 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage1": [
+          "SCHEDULE e=1989 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1990 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=1991 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=1",
+          "SCHEDULE e=1992 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2031 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2032 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2033 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2034 phase=6 event=0 stage=1 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage2": [
+          "SCHEDULE e=2132 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2133 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2134 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2135 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=1",
+          "SCHEDULE e=2175 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2176 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2177 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2178 phase=6 event=0 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event0/stage3": [
+          "SCHEDULE e=2276 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2277 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2278 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2279 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2320 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2321 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2322 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2323 phase=6 event=0 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=0 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage0": [
+          "SCHEDULE e=2421 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2422 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2423 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=2424 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4001 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4002 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4003 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4004 phase=6 event=1 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage1": [
+          "SCHEDULE e=4102 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4103 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4104 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=4105 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5683 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5684 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5685 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5686 phase=6 event=1 stage=1 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage2": [
+          "SCHEDULE e=5784 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5785 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5786 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=5787 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7366 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7367 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7368 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7369 phase=6 event=1 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event1/stage3": [
+          "SCHEDULE e=7467 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7468 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7469 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=7470 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9050 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9051 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9052 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9053 phase=6 event=1 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=16 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage0": [
+          "SCHEDULE e=9151 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9152 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9153 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9154 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9157 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9158 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9159 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9160 phase=6 event=2 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage1": [
+          "SCHEDULE e=9258 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9259 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9260 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9261 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9265 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9266 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9267 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9268 phase=6 event=2 stage=1 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage2": [
+          "SCHEDULE e=9366 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9367 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9368 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9369 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9374 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9375 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9376 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9377 phase=6 event=2 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event2/stage3": [
+          "SCHEDULE e=9475 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9476 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9477 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9478 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9484 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9485 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9486 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9487 phase=6 event=2 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage0": [
+          "SCHEDULE e=9585 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9586 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9587 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9588 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=1 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9590 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9591 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9592 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9593 phase=6 event=3 stage=0 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage1": [
+          "SCHEDULE e=9691 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9692 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9693 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9694 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9697 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9698 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9699 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9700 phase=6 event=3 stage=1 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage2": [
+          "SCHEDULE e=9798 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9799 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9800 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9801 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9805 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9806 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9807 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9808 phase=6 event=3 stage=2 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ],
+        "phase6/event3/stage3": [
+          "SCHEDULE e=9906 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9907 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9908 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9909 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9914 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9915 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9916 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=0 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=1 tlb_wait=0 fault=0 reset=0",
+          "SCHEDULE e=9917 phase=6 event=3 stage=3 p1=00003000 p2=00003000 hint=0000180 read=1 slot=8 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0"
+        ]
+      }
+    },
+    "negative": {
+      "directory": "build/sim/probe-retime-token-negative-20261116-02",
+      "manifest_sha256": "35593060b8b3a4e7fe7b29ac2e91d244315310c17f747cdf2d5fe1698ec0a00e",
+      "result_sha256": "716f7ed11a14005e8b198c848109860fe0f5264cddbade952aa4e303adca9375",
+      "pass_lines": [],
+      "run_log_sha256": "7e1afcaf41e1eac8c975b576e385b19063386deecf0d3bc6069c23adaf1b8ae4",
+      "failure_trace": [
+        "SCHEDULE e=103 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000180 read=0 slot=8 result=1 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "SCHEDULE e=104 phase=0 event=0 stage=0 p1=00001000 p2=00003000 hint=0000080 read=1 slot=0 result=0 result_tag=0000180 accept=0 admit=0 fast=0 ack=0 tlb_wait=0 fault=0 reset=0",
+        "[1036000] %Fatal: schedule.vh:26: Assertion failed in test: retimed result token identity mismatch against physical RAM read slot",
+        "%Error: tests/cpu/cache_probe_retime/schedule.vh:26: Verilog $stop",
+        "Aborting..."
+      ]
+    },
+    "stream_default": {
+      "directory": "build/sim/probe-retime-stream-default-20261116-01",
+      "manifest_sha256": "17287c5a9cb01ec88fbd6eed649bd1dbfcfc8b456c8e88b30fd23c7c1ff6f668",
+      "result_sha256": "ef113a0bdf1137aded78be5325e434f46a5d707e68765d21cb10e45b486e4a45",
+      "streams": [
+        {
+          "stream": 0,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 63,
+          "last_accept": 318,
+          "first_commit": 65,
+          "last_commit": 320,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "successive_words_both_halves",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=0 dirty0=11 dirty1=00 clean_words=8 second_clean_words=0"
+        },
+        {
+          "stream": 1,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 3478,
+          "last_accept": 3733,
+          "first_commit": 3480,
+          "last_commit": 3735,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "alternating_two_lines",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=1 dirty0=11 dirty1=11 clean_words=16 second_clean_words=0"
+        },
+        {
+          "stream": 2,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 6903,
+          "last_accept": 7158,
+          "first_commit": 6905,
+          "last_commit": 7160,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "same_word_partial_bytes",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=2 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 3,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 10314,
+          "last_accept": 10569,
+          "first_commit": 10316,
+          "last_commit": 10571,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "lower_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=3 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 4,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 13725,
+          "last_accept": 13980,
+          "first_commit": 13727,
+          "last_commit": 13982,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "upper_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=4 dirty0=10 dirty1=00 clean_words=4 second_clean_words=0"
+        }
+      ],
+      "repeat": "PASS: all events, edges, summaries and checks identical; exclude Verilator walltime footer",
+      "negative_control": "PASS: +corrupt_expected fails at first RAM commit with checker byte mismatch (negative control=1)"
+    },
+    "stream_integrated": {
+      "directory": "build/sim/probe-retime-stream-integrated-20261116-01",
+      "manifest_sha256": "f1b902deb9aab90c03b045c380e90d1a3e0456e846230095eaaa8d712a57e808",
+      "result_sha256": "2eda98a1ccb8a095528255692187a0c85d8fc91a836fe3fe2809f56d37c5da45",
+      "streams": [
+        {
+          "stream": 0,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 67,
+          "last_accept": 322,
+          "first_commit": 69,
+          "last_commit": 324,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "successive_words_both_halves",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=0 dirty0=11 dirty1=00 clean_words=8 second_clean_words=0"
+        },
+        {
+          "stream": 1,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 3482,
+          "last_accept": 3737,
+          "first_commit": 3484,
+          "last_commit": 3739,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "alternating_two_lines",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=1 dirty0=11 dirty1=11 clean_words=16 second_clean_words=0"
+        },
+        {
+          "stream": 2,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 6907,
+          "last_accept": 7162,
+          "first_commit": 6909,
+          "last_commit": 7164,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "same_word_partial_bytes",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=2 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 3,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 10318,
+          "last_accept": 10573,
+          "first_commit": 10320,
+          "last_commit": 10575,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "lower_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=3 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 4,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 13729,
+          "last_accept": 13984,
+          "first_commit": 13731,
+          "last_commit": 13986,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "upper_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=4 dirty0=10 dirty1=00 clean_words=4 second_clean_words=0"
+        }
+      ],
+      "repeat": "PASS: all events, edges, summaries and checks identical; exclude Verilator walltime footer",
+      "negative_control": "PASS: +corrupt_expected fails at first RAM commit with checker byte mismatch (negative control=1)"
+    }
+  },
+  "remaining_3B_paths_ns": {
+    "certificate_to_store_owner_104_hot": -1.168,
+    "reset_drain_to_store_payload_104_hot": -2.283
+  },
+  "new_routed_slack": "UNMEASURED"
+}

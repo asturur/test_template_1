@@ -1,3 +1,573 @@
+## 2026-11-17 — Verified5A bitstream collected; master consolidation authorized
+
+Existing run43985572525/commit966270d9, seed42/debuggeron, generated4,600,916-byte
+78MHz RBF SHA8940a35518d6a61b36fe45b08f6bcfb4c8a056c6daeb4d0a1653bccbde250068.
+All178 postcompile selected hashes equal3D plus15 qualified payloads; complete
+effectiveQSF/physicalPLL/constraints/productionBRAM match3D. Fullcompile,8corner
+78/104analysis,SDRAMpinregisters andbothuploadsPASS; onlytiminggateFAIL.
+ALMs41147(+1598vs3D), registers45095(−9), M10Ks502(−1), DSPs41(same);fourLABsfree.
+Hot/coldsetup78−1.970/−1.668ns;104−5.175/−4.873ns;normalHDMI−0.409ns.
+Worstlate_p1_ready→boardCPUexclusion,14.041ns/11levels;not timing-closed.
+[DirectRBF/reports and resource/timing comparison](cpu-frontend-delivery-fit.md) ·
+[All-input/artifact proof](evidence/cpu-frontend-delivery-fit-20261117.json).
+Owner explicitly authorized exact15-payload production promotion and sole-default-
+master consolidation once RBF/source/commit/78MHzPLL verified, even with redtiming.
+Working production now matches those15 hashes; pristineZAP replay repaired with
+0073(accepted9cbaseline) +0074(qualifiedpipeline), exactbytesPASS. Unrelatedworking
+files/privateassets/caches/runs/checkpoints preserved; sharedindex untouched while
+preparing. Publication/branch-retirement receipt follows after verification.
+No retry/build dispatch/deployment/phone access or5B.
+
+## 2026-11-17 — Registered target delivery measured (Step5A)
+
+Fixed4G7b9a7dd2; corrected isolated5A1ddc7653 changes one writeback file and adds
+zero state. Full matrix trace aligns1024 original BL/helper-BX pairs byPC/
+occurrence and14353 retirement events. BTB already gets633calls right; existing
+predecode computes391remaining calls and RAS all1024returns. No new predictor.
+1030decode corrections are frontend-ready,401held/stopped; neither event count
+nor17995empty clocks is a savings target. Disjoint known-target→actual-issue
+intervals contain5919call+9234return empty clocks, separate6463data holds and2048
+shift locks; all6144multiply-busy clocks lie outside. Existing4E only accelerated
+saved targets;5A hands a registered CPU target directly into the first ready PC
+stage and preserves its address withvalid0 in inactive stages for private I$
+lookahead. Held fetch/IRQ/abort/state/FCSE/link semantics and old priorities stay.
+**Matrix52125→50033 (−2092,−4.0134%)**, **transpose3625→3591 (−34,−0.9379%)**,
+**original ThumbJPEG86428→84353 (−2075,−2.4008%)**, **store stream71 unchanged**,
+both0:0/2:9, allscored/tworepeats/original outputs/retirement/negative checksPASS.
+Representative BL2194 correction→request4→3, fetch13→7, actualhelperissue19→13;
+followingBX return correction→issue12→11. Full matches include worse intervals.
+Matrix empty17995→15871,read+64,loadlock−32 reconcile2092; mult/shift counts stay.
+First attempt1b4eadbd was correct but matrix52285(+160): invalid PC stages zeroed
+address, I$lookahead followed00000010 then owned demand canceled a just-arriving
+target token. Read-only cache trace reproduced it. Retaining canonical target
+payload under valid0 fixes that failure; no cache/predictor/queue change.
+23actualWB held/state/FCSE/priority cases×2,8realCPU ARM/Thumb/link/FCSE/actual-
+prefetch-fault/return-alias diagnostics,448orderedstore/16dirtyword/olderIRQabort
+and wrong-byte rejectionPASS. Exactsources and all1024pair schedules audited.
+[Report, before/after and replay](cpu-frontend-delivery.md) ·
+[Evidence and failed/corrected traces](evidence/cpu-frontend-delivery-20261117.json).
+Next mainline: one bounded original-matrix SMULL start/result handoff experiment
+on exact5A;6144busy+3088shift-lock clocks remain evidence,not a deletion budget;
+retain JPEG non-regression. Target→FCSE/PC mux/fanout needs later104MHz physical
+qualification. Keep4Gintact; retain better isolated5A. Solo/offline; checkout/
+HEAD/index,production,physical78MHzPLL,phone,other runs/checkpoints untouched.
+No game payload,CI,fit,deployment. Stop after5A.
+
+## 2026-11-16 — Second store consumes its own older producer (Step4G)
+
+Fixed passing4F source0bf6550b; isolated candidate7b9a7dd2 changes three CPU
+files, adds two pending bits and no payload flops. Existing Issue/Shifter data
+lane carries the actual ALU load's full PC+8 until exact P2/B data replaces it;
+younger physical-Rd writers exclude older results. Existing stage owners hold
+both stores, and a held consumer saves a disappearing return. No new queue,
+cache/MMU/credit/writeback change, guest-PC/register/pattern specialization.
+Original **transpose4041→3625 (−416,−10.2945%)**, **matrix52125 unchanged**,
+**drained64-store stream71 unchanged**, both0:0/2:9, all scored samples/two repeats/
+original bytes/math+Unicorn/output/retirement/negative controls PASS. All192
+second owners have exact producer/data/address/admission;384 actual writes and
+1025 retirement events match order. Representative R3 completion=c: second
+issue−1→−11, address+2→0, admission+4→+1, physical write+6→+3; first admission0/
+write+2 unchanged. Following LDR issue0→−1: independent base still has R2 WAW.
+All192 store pairs accept/write one clock apart. Bucket changes read−64,
+write−192,loadlock−224,empty+64 reconcile416; local192×3 is not elapsed savings.
+Distinct/overwritten/committed/bankedFIQ sources, intervening load abort kills
+both effects, first-store AP fault kills second, redirect/no-effect, held offers,
+448store/16dirtyword oracle and eight reused CPU diagnostics PASS. Same-byte
+focused guest passes4F/4G; test-only128-clock Issue hold saves returned11223344
+for70 checked clocks before release. Earlier too-short hold and too-strict
+same-Rd observer expectations remain failed fixture evidence; DUT unchanged.
+[Report, schedules and replay](cpu-store-second.md) ·
+[Hashes, all192 transfers and qualification](evidence/cpu-store-second-20261116.json).
+Broader next target: matrix helper call/return target delivery/operand refill;
+17995/52125 empty clocks here and433 prior4E redirect handoffs motivate profiling,
+not a savings forecast. Comparator/forwarding fanout and ALU data mux need later
+104MHz physical qualification. Keep passing4F intact; retain better isolated4G.
+Solo/offline; integration checkout/HEAD/index, production,78MHz PLL,phone,other
+runs/checkpoints untouched. No CI,fit,deployment. Stop at4G.
+
+## 2026-11-16 — Early store address / late exact data measured (Step4F)
+
+Fixed corrected4E source9c2f022a; single candidate0bf6550b. Five CPU-only files
+carry five logical pending-data bits through existing issue/shifter/ALU/P1/P2
+store owners. Original unconditional immediate ARM word STR may defer only its
+data lock when the immediately preceding original LDR is its exact PC/Rd
+producer; base/shift hazards stay intact. Address work is private. P1 consumes
+matching registered successful aligned P2 data; formatting falls back to exact
+B commit in held P2. Real demand waits for data and its own permission/attributes.
+**Transpose4550→4041 (−509,−11.1868%)**, both0:0/2:9, allfive scored samples/two
+repeats/original bytes/math+Unicorn/800payload+1025retirement/wrong-output checks
+PASS. **Matrix52125→52125** (zero eligible stores). Drained64-store stream stays
+**71 at both0:0/2:9**, identical raw events,448 ordered accepts/writes/completions/retirements,
+16 backing words,63 one-clock gaps and wrong-physical-byte rejection PASS.
+All192 opportunities have exact address/data/producer ownership;384 accepted
+stores match384 actual RAM mutations, in order, no duplicates. First pair head
+ready0: 4E issue12/address15/accept17/write19;4F issue0/address3/accept12/write14.
+R3 returns12 in both; second RAM write20→18, next issue14→12. LSU stays with the
+older loads until success; private work creates no lookup/refill/device effect.
+Initial optimistic576-clock bound assumed a four-stage following-store handoff;
+actual five-stage path yields384 local clocks (192×2), not768 observed locks.
+First-store768 locks vanish but exposed second stores acquire384; total load
+locks863→479. Read737/write192/other locks64/advance1087 unchanged. Empty1607→1482
+adds125 return/fetch clocks (31×4+1), reconciling509. No cache fast-path change.
+Focused same-byte guest passes4E/4F:199 held private-address clocks, registered
+and formatted data, dependent-base serialization, older load fault/flush/no
+write, own store AP fault/no write, uncached source and exactly-once device.
+Actual IRQ/abort/order/dirty checks and8ARM/Thumb/FCSE/prefetch/BTB diagnostics PASS.
+Fixture warm-up/base-readiness corrections retained; candidate RTL unchanged
+since first prototype. New104MHz risks: identity/lock release, P1-ready→next-owner/
+32-bit data mux and formattedB→P2 refresh; no physical timing claim or fit.
+Single next architecture target: same owned preparation for the second STR's
+distinct older R2 producer, now exposing two locks and a four-clock admission gap.
+[Report, actual edges and replay](cpu-store-late.md) ·
+[Full192-pair evidence and qualification](evidence/cpu-store-late-20261116.json).
+Raw `build/sim/spmark-payload/store-late-{control,candidate}-final/`; focused
+`build/sim/cpu-store-late/`. Solo/offline; corrected4E/production,checkout/HEAD/
+index,actual78MHz PLL,phone and other runs/checkpoints untouched. No CI/fit/deploy.
+Stop after4F.
+
+## 2026-11-16 — Registered CPU redirect handoff measured (Step 4E)
+
+Fixed final4D source76d176e2. Full4C/4D transpose traces aligned by1025
+architectural PC/occurrences explain65 saved read clocks vs31 total: all65
+completion edges already issue the held dependent STR immediately; later
+return→caller000000cc intervals add34 empty clocks (30×1,1×4). No decoded
+packet waits behind an empty R queue during data stalls;97 normal decoded-to-R
+capture bubbles all push that edge. Fetch is draining wrong-path resident reads
+and restarting the saved redirect, not waiting for a queue enable or warm refill.
+One isolated CPUwriteback file now hands the registered pending target directly
+into the first PC stage on old-fetch drain. Ended/repeated strobes retain
+priority, held packets and FCSE/ARM/Thumb behavior; zero new state bits/cache
+changes. Corrected source9c2f022a: **transpose4613→4550 (−63,−1.3657%)**,
+**matrix52714→52125 (−589,−1.1174%)**, both0:0/2:9, original bytes/math+Unicorn/
+retirement/wrong-output controls,two repeats/allfive scored windows PASS.
+Transpose has64 handoffs; architectural intervals save31callee-entry+31caller-
+return+1exit clocks exactly. Empty1670→1607; read/write/load/other locks unchanged.
+Second-return drain→targetstrobe4→3 clocks, actual target issue16→15. Matrix
+433handoffs; readstall−96,empty−525,loadlock+32 reconcile589 saved clocks.
+Initial repeated-strobe-only gate measured4612/52510 but missed ended strobes;
+same mechanism corrected. FCSEboundary test then caught raw01fffffc/PID5
+successor02000000 vscontrol0c000000; incrementing mapped PC fixes it. Failed and
+corrected traces retained; allfinal tests rerun on exact corrected source.
+17focused owner/priority/FCSE-carry cases×2,8realCPU ARM/Thumb/FCSE/prefetch-fault/
+BTB-alias diagnostics,actual olderfault/IRQ/wrongpath guest PASS. Unchanged
+64-store stream stays**71**,448 ordered accepts/writes/completions/retirements,
+16backing words,63 one-clock gaps and wrong-physical-byte rejection PASS.
+Next CPUdependency:192first STRs wait only for loaded R3 data despite independent
+addresses (768of863 load-lock clocks outside data stalls); not a savings budget.
+No late store-data mechanism or uncertified-line optimization added.
+[Report and before/after trace](cpu-issue-recovery.md) ·
+[Hashes, causal accounting and qualification](evidence/cpu-issue-recovery-20261116.json).
+Raw `build/sim/spmark-payload/issue-recovery-{control-final,candidate-qualified}/`;
+focused checks `build/sim/cpu-issue-recovery/`. Solo/offline; originalcheckout/
+HEAD/index,4Dcontrol/production,physical78MHz PLL,phone and allother runs/checkpoints
+preserved. No CI/fit/deployment. Stop at this corrected measured improvement.
+
+## 2026-11-16 — Bounded independent ARM load-pair overlap (Step 4D)
+
+Fixed final4C source7f3ce0f6; final isolated4D source76d176e2. One original
+unconditional ARM immediate-word-LDR class bit follows existing stage/queue
+owners. With distinct registers/resolved addresses, matching privilege/1KiB
+subregion, no older exception/redirect and a certified collision-free line,
+private RAM-B reads may share the older ordinary hit's reply edge. Existing
+held P1 owns the address. No second demand queue, copied line, speculative
+external traffic, permission bypass or live-ACK global-stall change.
+**Transpose4644→4613 cycles (−31,−0.6675%)**, both0:0/2:9, original bytes,
+math/Unicorn output,800 payload instructions,2 repeats/5 scored samples and
+wrong-output rejection PASS. **Independent64-LDR-pair loop698→634 (−9.1691%)**,
+bothprofiles,3 warmups/5 scored/two repeats/checked checksum0x8140 PASS.
+Unchanged drained64-store loop stays**71**,448 ordered accepts/actual writes/
+completions/retirements,16 backing words,63 one-clock gaps/wrong-byte rejection.
+All192 transposepairs independent:96 already fast,65 gain one return clock,
+31 second lines remain uncertified. First pair ALUaddresses0/1, P1second2,
+firsttranslation5/tag+RAM8, new second-owner RAMread9 instead10; second ACK10
+instead11, registered completion11 instead12, first dependent STRissue11
+instead12. Actual R2/R3 writes stay ordered witha846e198/1b1ee3ff; STRs write
+correct swapped words. Readstalls802→737,empty1636→1670; other buckets unchanged:
+65 saved read clocks minus34 absorbed queue-empty clocks =31 actual gain.
+Remaining62 resident fallback reads, including31 uncertified second lines,
+plus true loaded-store-data dependency remain; no general queue attempted.
+Actual CPU same-Rd/address-dependent/same-address/LDM/writeback/failed-condition
+serialization, older unmapped-fault younger-LDR sentinel/no-effect and active-
+credit IRQ PASS. Real-cache pair/permission/translation/mismatch/alias/reset,
+old stale-A/full-credit/dirty tests,402-request probe/256-admission regressions
+PASS. [Report and exact first pair](cpu-load-overlap.md) ·
+[Hashes,65 changed owners and qualification](evidence/cpu-load-overlap-20261116.json).
+Final raw `build/sim/spmark-payload/load-overlap-{control-final,candidate-measured}/`;
+loops/store/safety/pressure `build/sim/cpu-load-overlap/`. Final4C/production,
+integration HEAD/index,physical78MHz PLL,phone,other runs/checkpoints untouched.
+Worked alone; no CI/fit/deployment. Stop at this measured intermediate result.
+
+## 2026-11-16 — Registered waiting-load delivery measured (Step 4C)
+
+One bounded offline scheduling experiment against fixed final4B sourceb104f42d.
+Final isolated `tests/cpu/cpu_load_delivery/rtl/arm920/` changes adapter/access
+only: one waiting-P2 register, temporary P2 probe priority until an existing
+registered RAM result covers its full line, then P1 lookahead resumes. Address
+payload capture, CPU stages, permissions, stores, tags/dirty and external paths
+unchanged. Coverage bit is private scheduling information, never permission/ACK.
+Original transpose **4676→4644 cycles (−32,−0.6843%)**, both0:0 and2:9,
+two repeats/allfive scored samples/original outputs/wrong-output checks PASS.
+Drained64-store loop stays **71 cycles**, one-clock63 accept/write gaps and
+448 ordered accepts/actual writes/CPU completions/retirements/16 backing words.
+Firstload10002644: ALUaddr149824/P1addr149825/P2offer149826, TLBbankhit149828,
+permittedmapping+cacheaccept149829, resident-tag hit/RAMread149832, ACK149833,
+registeredcompletion149834. NextLDR10002648 pre-reads/admit149834, ACK149835,
+completion+dependentSTRissue149836. Initial stall is token/certificate lookup,
+not an external miss. All416 scored reads have zero external transfers:
+354 initially certified,62 uncertified (60four-clock hits,2seven-clock hits
+including3-clock TLB-bank lookup). Coldwindow0 has actual71line/33scalar reads.
+Selected recurring delay:32 reads atPC10002654 are certified/permitted but P1
+points at next uncertified line as stores drain. New matching RAM-B read on
+admission removes oneclock each (offer→ACK4→3). Readstalls834→802, summed
+readlatency770→738; fast returns193 unchanged, short reads129→161, fallback94→62.
+First attempt omitted result-coverage guard: saved32 but displaced96 fast
+lookaheads, readstalls+64/empty+4, total4744(+68). Guard restores those returns;
+no broad rewrite. Final stale-A/new-A/competing-P1-B check returnsc0011234;
+older actual fault+IRQ atactive credits, probe pressure/reset/dirty checks,
+402-request probe suite,256 short-admission reads/3 mismatches and deliberate
+wrong-physical-byte rejection all PASS with repeats.
+Next cache-side blocker:62 uncertified but resident hits remain on normal
+certificate/tag acquisition; load operand waits863 and empty-operand1636 are
+unchanged (occupancy counts, not additive speedup forecasts).
+[Report and representative edges](cpu-load-delivery.md) ·
+[Source/classification/failed-attempt evidence](evidence/cpu-load-delivery-20261116.json).
+Raw workloads `build/sim/spmark-payload/load-delivery-{control,candidate}-final/`;
+loops/stress `build/sim/cpu-load-delivery/`. Preserve4B as control. No agent
+delegation, CI/fit, production/project/index/history/78MHz PLL change, phone
+access or changes to other runs/checkpoints. Stop at this measured result.
+
+## 2026-11-16 — Spare registered store credit measured (Step 4B)
+
+Single isolated offline experiment against fixed final4A control. New one-file
+overlay `tests/cpu/cpu_store_credit/rtl/arm920/cache_adapter.sv` permits count<3
+instead of<2; same two-bit registered counter, eligibility and CPU/cache payload
+owners. No same-edge returned-credit bypass or new live-response stall path.
+Byte-identical64-store ARM program, fresh controls reproduce4A102-cycle drain.
+Candidate **102→71 clocks (−30.39%)** first-issue→last physicalwrite;
+1.593750→1.109375 clocks/architectural store. Marked window123→92. All63 warm
+accept and actual RAM-write gaps1 (4A1:32+2:31); actual CPU issue1:62+2:1
+startup gap (control1:33+2:30). Natural outstanding peak2 in both; spare grants
+third store alongside first return, sustaining count2 without waiting a clock.
+PC18c/190/194 accept relative0/1/2, actualwrite2/3/4, ordered CPU completion1/2/3.
+All448 accept/write/complete/retire and independent16-word dirty oracle PASS;
+two repeats and wrong expected physical-byte rejection PASS.
+Peak CPU functional variant: actual IRQ injected atcount2, older unmapped load
+offered atcount2, following same-address load offered with activecredits;
+older data correct, forbidden younger STRs absent. Separate actual-adapter test
+delays only response publication4clocks (not measured performance): peak3,
+four full hold clocks/fourth request held, simultaneous alloc/return, six active
+valid-probe load clocks blocked, following fault/dirty writeback/reset atfull
+and fresh read all PASS with collision-poison RAM and exact repeats.
+**Original transpose plateaus4676→4676 cycles** at0:0 and2:9. Both have384
+qualified credits/192 overlapping accepts, identical original oracles/retirement,
+repeats/wrong-output gates and first-stall traces. Code is LDR/LDR/STR/STR:
+no third consecutive store. First LDR10002644 stalls149826–149833 withpending0;
+dependent STR1000264c waits for secondload completion149836. Next dependency is
+resident load/probe delivery, store→load drain and loaded store-data readiness.
+Priority buckets:834readstall,192writestall,863loadlock,64otherlock,1636empty,
+1087other =4676; occupancy attribution, not additive recoverable cycles.
+[Report, full histograms and replay](cpu-store-credit.md) ·
+[Hashes and edge/profile evidence](evidence/cpu-store-credit-20261116.json).
+Raw `build/sim/cpu-store-credit/{control-final,spare-final,control-peak-01,spare-peak-01,pressure-02}/`;
+workloads `build/sim/spmark-payload/store-credit-{control,spare}-01/`.
+Keep spare as a measured stream primitive; no transpose gain claimed. No further
+design variant, CI/fit, production RTL/project/index/history/78MHz PLL changes,
+phone access, or changes to4A/other chats' runs and checkpoints. Stop here.
+
+## 2026-11-16 — Real ARM store overlap measured (Step 4A)
+
+User-directed offline CPU experiment proceeds independently of Stop3D timing.
+Isolated `tests/cpu/cpu_store_overlap/rtl/` selects verified3C cache +production
+BRAM on exact9c948da8. A class bit follows original unconditional aligned ARM
+STR-immediate/no-writeback owners. Existing certified resident pipe_accept may
+allocate one of two local store credits; registered CPU completion advances
+while physical replies drain separately. Other accesses wait; no live ACK in
+global stall and no general eight-entry queue. Cache bank/tags/probe unchanged.
+First pair PC18c/190 accepted95174/95175 before first physicalwrite95176.
+Warm64-store first-issue→final physicalwrite **197→102 clocks (−48.22%)**,
+3.078125→1.593750 clocks/architectural store. Same marked window including
+following load/byte checks218→123(−43.58%). All five scored samples and two
+complete repeats match; zero warm external transfers. Actual acceptance gaps
+3:63 become1:32+2:31. Two-credit registered return is the next lost clock.
+Both variants:448 ordered accepts/actual writes/registered completions/retirements,
+independent16-word dirty backing oracle, correct byte transition and following
+load. Actual older abort+IRQ each occur once; forbidden younger STR PCs never
+accepted. Held packets stable,209 candidate target full-owner holds exercised.
+Deliberately wrong first expected physical byte rejected. Lifecycle35/probe8/
+transfer4 repeat suite and final actual-adapter402-request probe regression PASS.
+Original transpose: **5130→4676 cycles (−8.8499%,1.0971×)** at both0:0/2:9;
+same original instructions/oracles/payload retirement/repeats/wrong-output gates.
+Each scored window384stores all qualify;192 overlap an older live store.
+Final raw loops `build/sim/cpu-store-overlap/{control-final-02,candidate-final-02}/`;
+workloads `build/sim/spmark-payload/store-overlap-{control-01,candidate-final}/`.
+[Report, first pair and replay](cpu-store-overlap.md) ·
+[Hashes and measured evidence](evidence/cpu-store-overlap-20261116.json).
+Correct measured intermediate retained; one architectural store/clock remains
+unachieved. No Quartus/CI, production RTL/project/PLL/index/history changes,
+phone access or changes to other simulations/checkpoints. Physical PLL stays78MHz;
+104MHz design target and3D routed evidence remain separate later qualification.
+Stop after measured intermediate; next bounded candidate is spare-credit/return
+capacity, rechecking ordering/older exceptions rather than assuming eight slots.
+
+## 2026-11-16 — Retimed probe matched fit collected (Stop 3D)
+
+**Current mainline decision:** keep the 3C baseline and proceed with the
+[4A CPU store-overlap experiment](../scratch/handoffs/sol-high-04a-cpu-store-overlap.md).
+The fit's further-retiming recommendation below applies to physical timing
+qualification. CPU performance work proceeds independently. Use local
+registered admission state so extra store credits do not lengthen the
+measured completion → resident check → SWP exclusion path.
+
+One matched seed42/debug-on full-core fit of exact four-file Stop3C overlay,
+production BRAM and unchanged physical78MHz PLL. Fit-only commit418f6f82,
+tag `fit-only/probe-retime-3c-20261116-s42-01`,
+[run43906110604](https://github.com/asturur/test_template_1/actions/runs/43906110604).
+Compile, actual CI manifest, both routed scenarios, I/O packing and upload PASS;
+only normal timing gate red. Manifest178 inputs:177 match preflight exactly,
+QSF only tool-written Standard→Lite edition metadata; seed/debug/constraints
+unchanged. Direct tree comparison vs3B changes only access/adapter design RTL.
+39,549 needed ALMs(+14vs3B),45,104 registers(+352),503M10K/40MLAB/41DSP
+unchanged. CPU17,761.3 ALMs(−119.7). Planning headroom901 neededALMs/18M10K;
+placedALMs40,474(+130),nine emptyLABs: packing remains tight.
+Slow hot/cold78 setup−0.553/−0.306ns vs3B−1.326/−1.520;104−3.758/−3.511
+vs−4.531/−4.725. Same-corner gains+0.773/+1.214ns; stock78 reference−0.811.
+HDMI hot78+0.051ns. All hold/removal/minpulse positive; hot104 recovery−0.210ns
+phone_reset→reset_drain. Clock relationships/fanout/exceptions preserved;
+external SDRAM timing coverage remains incomplete. DQ input/output/OE packing PASS.
+New hint register inputs pass104; actual certificate→data RAM-B misses−2.705ns
+hot/−2.461cold, hints→RAM−2.342/−2.203, result payload qualification−1.712/−1.570.
+Reset still reaches RAM mux−0.308/−0.019; owner→RAM now+0.225/+0.397.
+New global: completion-next→demand certificate/result mux→accept_demand→existing
+SWP/CPU exclusion,12.651ns hotdata(3.647cell/9.005route),−3.758ns104.
+SWP owner→board/DMA also−3.535ns; general store payload−2.638ns,
+certificate→store owner−1.362ns. Dirty forwarding group+1.707ns; separate
+owner→dirty ingress−0.558ns. Empty completion→private probe group is not a pass.
+Timing review recommendation at completion: retain3C as useful isolated baseline at bounded worst+1.4435% CPU
+cycle cost, but NO CPU admission widening. Next isolate prequalified resident
+ingress before accept_demand/existing SWP ownership, local board grant/exclusion,
+and certified slot/read intent before RAM arbitration; one stage is not proven
+to close all families. No further implementation/seed, production/PLL/history/
+index/phone or other simulation/checkpoint changes. Raw `build/fit/probe-retime-20261116/`.
+[Comparison and exact paths](cache-probe-admission-retime-fit.md) ·
+[Measured evidence](evidence/cache-probe-admission-retime-fit-20261116.json) ·
+[Actual CI input proof](evidence/cache-probe-admission-retime-fit-inputs-20261116.json).
+Stop after reporting; production integration/deployment remain separate.
+
+## 2026-11-16 — Registered probe boundary measured offline (Stop 3C)
+
+New isolated `tests/cpu/cache_probe_retime/rtl/` derives from corrected Stop3A.
+Adapter unconditionally captures both raw27-bit P1/P2 tags and small raw valids;
+registered P1-first/P2-fallback scheduling no longer uses fast ACK, launched,
+ready or current translation/fault to select/enable payload capture. Cache fuses
+certificate/way selection into the next synchronous RAM-B read, retaining owned
+result identity and admission-edge latency. Single-demand CPU unchanged.
+Bank/tags/dirty forwarding unchanged; poisoned RAM in units, production RAM in CPU.
+All Stop3A gates PASS, plus actual-adapter before/after schedules, 16 new-stage
+revoke/reset cases, exactly-once held/back-to-back ACKs and physical-read token
+negative rejected. 256 short admission reads retained. Both five-store streams
+PASS:256 accepts/actual RAM writes/replies per stream, all255 gaps1, latency2,
+clean8/16/4/4/4, second-clean and measured external transfers0, exact repeats.
+Matched actual CPU vs fresh Stop3A control: all12six-kernel +8JPEG groups PASS,
+both profiles/two repeats/independent output and wrong-output oracles. Matrix
+52164→52917(+1.4435%); transpose5130 unchanged; triangle25431→25332; frame
+71263/201306 unchanged; fill16-tail2116→2117; fill8-tail2178 unchanged. JPEG
+86720→87618,86736→87634,85590→86490,170976→172730 (+1.0259–1.0515%).
+No case exceeds2% threshold. Control100 throughput indices99.81843six-kernel,
+98.97358JPEG in both profiles. Counters attribute regressions to fewer immediate
+fast edges/more admitted/fallback reads, not altered guest work/backing model.
+[Schedules, measurements, commands and structural audit](cache-probe-admission-retime.md) ·
+[Source hashes and compact evidence](evidence/cache-probe-admission-retime-20261116.json).
+Decision: YES to a matched seed42 measurement fit on this exact four-cache-file
+overlay +production BRAM; no routed slack measured here. Certificate→store owner
+−1.168ns and reset→store payload−2.283ns hot104 remain separate timing work.
+No CI/production/CPU admission/PLL/branch/history/phone or other-run changes.
+Stop before fit submission; retain Stop3A/3B as controls. Raw runs under
+`build/sim/probe-retime-*` and `{spmark-payload,jpeg-payload}/probe-retime-*`.
+
+**Current mainline priority:** [Step 4A — CPU admission for consecutive resident stores](../scratch/handoffs/sol-high-04a-cpu-store-overlap.md).
+Start from the verified 3C overlay and measure fewer clocks for the same ARM
+program. Stop 3D is optional timing evidence. If already running, retain its
+result independently. The PLL remains 78 MHz and 104 MHz remains the design
+target; timing closure is qualified later on an integrated candidate.
+
+## 2026-11-16 — Matched resident-store fit collected: retime before admission (Stop 3B)
+
+Fit-only tag `fit-only/resident-store-3a-20261116-s42-01`, commit7aa1a418,
+exact parent9c948da8, [run43886019102](https://github.com/asturur/test_template_1/actions/runs/43886019102).
+Quartus17.0.2/CycloneV/seed42/debugger on; only three qualified Stop3A cache
+substitutions, production BRAM/78MHz PLL/QIPs/SDCs unchanged. Successful full fit:
+39,535 ALMs (−59),44,752 registers(+70),503 M10Ks/40 MLABs/41 DSPs unchanged;
+4,179 occupied LABs(−12). Planning headroom915ALMs/18M10Ks.
+Matched slow100C78MHz CPU setup−1.326ns vs control−0.811ns; HDMI−0.101ns vs
++0.432ns. Cold slow extra corner setup−1.520ns. Same routed104MHz analysis
+clock/fanout/exception preservation validated: setup−4.531ns hot/−4.725ns cold,
+recovery−0.803ns hot. Hold/removal/minpulse positive across four corners.
+Missing external SDRAM I/O budgets/forwarded clock and hard-IP clock warnings
+remain explicit; no full104MHz signoff. DQ input/output/OE packing PASS.
+Worst path remains reset/completion/TLB/fastACK→probe owner (13.428ns hot).
+New owner→probe is−2.366ns at104; certificate→owner−1.168ns; dirty merge+2.568ns.
+Decision: register the shared qualified probe/admission boundary before CPU
+admission, then ingress/certificate qualification; do not retime dirty merge first.
+CI input-manifest helper had container/host path bug; fit and both STA scenarios
+completed. Recovered proof uses actual graph +177 verified remote blobs +effective
+seed/debug QSF; labeled reconstructed. No second fit. Raw outputs under
+`build/fit/resident-store-20261116/`. [Report](cache-resident-store-pipeline-fit.md) ·
+[Measured evidence](evidence/cache-resident-store-pipeline-fit-20261116.json) ·
+[Input proof](evidence/cache-resident-store-fit-inputs-20261116.json).
+HEAD/branch/index/shared production verified unchanged. No RBF installation,
+phone access, CPU admission change, second seed or DDR3 work. Stop after comparison.
+
+Next offline handoff: `scratch/handoffs/sol-high-03c-probe-admission-retime.md`.
+Compare the registered probe boundary against corrected Stop 3A on real CPU
+reads and the resident store stream before selecting the payload for another fit.
+
+The [November 16 donor area audit](donor-resource-comparison.md) compares the
+supplied ngage2 seed-60 fit with Stop 3B. Our cache/MMU subsystems use 5,730
+more ALMs and our execution core uses 2,731 fewer. Keep Stop 3C first. The next
+isolated area candidate is TLB lookup/maintenance comparator sharing, preserving
+all 64 entries, page sizes and lockdown behavior.
+
+## 2026-11-16 — Resident-store offline qualification complete (Stop 3A)
+
+Separate corrected overlay in `tests/cpu/cache_resident_qualification/rtl/`;
+Step 2 sources/evidence unchanged, production still 9c948da8. Reproduced direct
+invalidate reply-without-RAM-write and stale fast ACK while a store owner lives.
+Fix: capture direct invalidate/lock pulses and payload, block younger requests,
+drain older stores before physical control; suppress fast returns through store
+drain while retaining independent B-port probes. No bank/tag/poison change.
+Final primed-probe lifecycle sweep: 35 cases across empty/owner/adjacent intent/
+commit/post-drain, 8 sampled fast consumers, successful gapped 32-byte line,
+rejection/scalar fallback, reset-tail drain, distinct MVA/dirty saved-PA reuse.
+Full suite exact repeat PASS; existing admit/probe/refill/maintenance and actual
+adapter pending-lock regressions PASS. Both five-stream configurations retain
+256 accepts/replies/actual writes per stream, all gaps 1, latency 2; correct dirty
+halves/clean counts, no measured external traffic. Fresh same-runner control
+reproduces four-clock gaps; wrong-byte controls rejected. Final full raw output:
+`build/sim/resident-qual-full-20261116-05/`; all source hashes and failing/corrected
+traces in [qualification report](cache-resident-store-pipeline-qualification.md)
+and [compact evidence](evidence/cache-resident-store-pipeline-qualification-20261116.json).
+Decision: READY for matched full-core fit vs 9c948da8, debugger on, seed 42,
+actual 78MHz / analysis 104MHz. Added state estimate now ~102 FF, 70–210 ALMs,
+0 new RAM/DSP (pre-fit); pipe_busy→fast ACK gating touches existing probe cone.
+No fit submitted, CI/PLL/production/CPU adapter/history/phone/other runs untouched.
+Stop before matched fit submission; no physical or workload claim.
+
+Next Sol handoff: `scratch/handoffs/sol-high-03b-resident-store-matched-fit.md`.
+Match the 78 MHz seed-42 control, then analyze the same routed candidate at
+104 MHz. Select only the three qualified cache RTL files and the production BRAM.
+
+## 2026-11-16 — Isolated resident-store pipeline prototype verified (Stop 2)
+
+Production 9c948da8 unchanged. Durable explicit overlay and runner in
+`tests/cpu/cache_resident_pipeline/`; exploration only under scratch.
+Default and integrated DATA_PROBE=1/LINE_REFILL=1 with idle probes both PASS:
+five 256-store streams, every one of 255 accept and actual RAM-commit gaps one
+clock, latency two rising edges (baseline four-clock gaps/three latency).
+Independent Step 1 bytes/slots, responses, actual tag dirty halves, ordinary
+readback and clean counts 8/16/4/4/4 pass; second cleans and measured external
+traffic zero. Same-slot opposite halves produce actual 01→11 even with poisoned
+mixed-port reads; pending/recent dirty forwarding also passes interleaved ways
+and bubble. After a six-store burst, the held following read/miss waits two clocks for
+the final owners to drain and gets its own correct completion. Both deterministic repeats and wrong-byte controls
+PASS; baseline mode also reproduced. Integrated fixture accepts/rejects line
+requests to scalar refill; successful line transport/active probes not qualified.
+Final runs: `build/sim/resident-pipeline-20261116-04/`,
+`build/sim/resident-pipeline-integrated-20261116-03/`, control
+`build/sim/resident-pipeline-control-20261116-01/`.
+[Report, commands, pre-fit estimates and failed attempts](cache-resident-store-pipeline-prototype.md) ·
+[Hashes and full tables](evidence/cache-resident-store-pipeline-prototype-20261116.json).
+No production RTL, project/clock, CI, history, other simulations or phone changes.
+Stop here: CPU adapter, full reset/probe/maintenance, fit and workloads remain later.
+
+Next CPU handoff: qualify active probes, successful line refill and live
+store ownership across reset, maintenance and lock before a matched fit.
+Independent deferred task: [test DDR3 backing for the two UPP banks](upp-ddr3-backing-handoff.md).
+
+## 2026-11-16 — Resident-store streaming measurement seam verified (Step 1)
+
+On unchanged production RTL at 9c948da8, added an offline sibling fixture in
+`tests/cpu/cache_resident_stream/` with an independent acceptance-driven
+store generator and golden byte model; all hierarchy taps are isolated.
+Five 256-store streams PASS actual RAM slot/word/mask/data and post-write bytes,
+ordered exactly-once responses, tag dirty halves, ordinary readback and clean
+backing bytes. Both/lower/upper dirty-half controls write 8/4/4 words as expected;
+alternating lines write 16; repeated partial bytes write 4; second cleans write 0.
+All streams accept and commit every four clocks, latency three rising edges,
+0.25 stores/clock, with zero measured external transfers. This matches the
+review's 44/48→47/51 witness; legacy task's reported latency 2 observes valid
+before its sampling edge. First blocker: LOOKUP_CAPTURE deasserts req_ready.
+Unchanged 94-request resident fixture PASS; new fixture's deterministic repeat
+matches every event, and deliberate wrong expected byte is rejected. Final raw
+outputs: `build/sim/resident-store-baseline-20261116-03/`; earlier attempt 01
+compared variable walltime footers, 02 rejected source edits during build.
+[Measured handoff and commands](cache-resident-stream-baseline.md) ·
+[Source identity, table and controls](evidence/cache-resident-stream-baseline-20261116.json).
+Existing six-kernel/JPEG evidence reused; no payload rerun or performance claim.
+Production RTL/settings, Git history, CI, phone and other simulations untouched.
+Stop at the measurement seam; one-store/clock production pipeline remains separate.
+
+## 2026-11-16 — Exact-head DSP fit updates the pipeline budget
+
+User-supplied reports identify 9c948da8, run 43866215058, seed 42, debugger on.
+The CPU full product uses three DSPs vs four previously; one DSP sums two 18×18
+products. Multiply latency and qualified payload cycles stay unchanged.
+Whole design uses 39,594 ALMs, 44,682 registers, 503 M10Ks and 41 DSPs.
+All 4,191 LABs are at least partly occupied. CPU setup is −0.811 ns at 78 MHz.
+The worst reset-drain path runs through completion-next and the D-cache probe
+way, with 8.703 ns routing in 13.236 ns data delay. Keep cache/LSU first and
+qualify reset/owner admission in its first fit. The 40,450-ALM design stop now
+allows 856 net additional ALMs. The comparison fit b707ebd used seed 43 and
+also predates the MMC change. This review used supplied reports only.
+[Updated plan](cpu-pipeline-architecture-review.md#cyclone-v-budget-and-timing-gates) ·
+[Multiplier mapping](dsp-mapping-audit.md) · [Fitter evidence](evidence/dsp-full-product-fit-43866215058.json).
+
+The [fitted M10K breakdown and flash-cache decision](ddr-flash-cache.md#fitted-cost-and-bypass-decision)
+accounts for all 503 blocks. The old JTFRAME ROM cache is already disabled.
+The active 8 KiB shared flash cache accounts for eight M10Ks and 176.2
+hierarchy-attributed ALMs. Firmware performance and net savings with that
+cache bypassed remain unmeasured on this revision.
+
+The [UPP RAM ownership audit](peripheral-ownership.md#firmware-use-and-the-two-64-kib-allocations)
+places every retained inventory address in the NOS window inside the dedicated
+MDI bank. Generic tail traffic remains unmeasured. The internal DSP upload
+reconstruction matches 36,248 bytes of decoded flash in the main upload window.
+
+## 2026-11-16 — CPU pipeline architecture review complete
+
+The [architecture review](cpu-pipeline-architecture-review.md) recommends single
+architectural issue, a dedicated address adder, pipelined cache-hit acceptance
+and eight ordered completion records. Retain 16 KiB per cache, 64 ways, 32-byte
+lines and 64-entry I/D TLBs. Start with the four-clock resident-store recurrence
+and demonstrate one accepted and committed warm hit per clock under safe conditions.
+Production implementation awaits selection.
+
+An observation-only offline replay of 9c948da matched all 84 original six-kernel
+windows and all 12 whole-run records. The independent JPEG oracle counted 2,372
+adjacent scalar-load dependencies among 22,500 instructions. Its optimistic
+four-clock load-use issue model caps same-clock gain near 3.03×. The six-kernel
+single-issue ceilings are 3.91× at 0:0 and about 3.29× at 2:9 with the observed
+scalar writes. These are bounds, not candidate performance. The last locally
+retained full fit had 50 spare M10Ks, 15 empty LABs and setup −2.087 ns at 78 MHz.
+The review defines the 104 MHz timing, resource, precise-exception and workload
+gates. Actual PLL remains 78 MHz. Review work was offline; no production RTL,
+hardware, FPGA run or saved simulation checkpoint was changed.
+[Trace samples and counters](evidence/cpu-pipeline-review-20261116.json).
+
+## 2026-11-16: Astra pipeline-review handoff prepared; DSP build already running
+
+User requests a focused new-chat Astra architecture review targeting roughly4x
+further performance, one architectural instruction/clock in favorable cases,
+CPU/cache/LSU concurrency, branches/prediction, BRAM over ALMs and credible104MHz
+closure. Major CPU-path/interface rewrites are explicitly allowed as proposals;
+initial scope is review/plan, not unreviewed RTL implementation. Extra registered
+latency is acceptable when throughput/timing improves; actual PLL remains78MHz.
+Detailed copyable handoff: scratch/handoffs/astra-cpu-pipeline-review-20261116.md
+(OS-temp copy also supplied). Includes current sources/metrics, dated-plan caveats,
+precise ordering/exception contracts, resource budgets and phased validation.
+Single gh query confirmed run43866215058 already in progress on exact9c948da;
+no duplicate build, monitoring, deployment or hardware access performed here.
+No CPU code changes from this review-preparation request.
+
 ## 2026-11-16: DSP full-product multiplier adopted in production
 
 User authorized production integration/push of the qualified candidate. The

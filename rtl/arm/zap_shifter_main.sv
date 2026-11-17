@@ -34,8 +34,18 @@ module zap_shifter_main #(
     output logic [64*8-1:0] o_decompile,
 
     input  logic       i_uop_last,
+    input logic i_store_overlap,
+    input logic i_store_late,
+    input wire i_store_second,
+    input wire i_store_second_ready,
+    input wire [31:0] i_store_second_value,
+    output logic o_store_second,
+    input logic i_load_pair_class,
     input  logic [1:0] i_swp_tag,
     output logic       o_uop_last,
+    output logic o_store_overlap,
+    output logic o_store_late,
+    output logic o_load_pair_class,
     output logic [1:0] o_swp_tag,
 
     // Clock and reset.
@@ -229,6 +239,10 @@ module zap_shifter_main #(
       o_swi_ff                          <= 0;
       o_und_ff                          <= 0;
       o_uop_last                        <= 0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_store_second <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
 
       o_destination_index_ff            <= 'x;  //
@@ -263,6 +277,10 @@ module zap_shifter_main #(
       o_swi_ff                          <= 0;
       o_und_ff                          <= 0;
       o_uop_last                        <= 0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_store_second <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
 
       o_destination_index_ff            <= 'x;  //
@@ -315,7 +333,7 @@ module zap_shifter_main #(
       o_abt_ff <= o_stall_from_shifter ? '0 : i_abt_ff;
       o_swi_ff <= o_stall_from_shifter ? '0 : i_swi_ff;
       o_pc_plus_8_ff <= i_pc_plus_8_ff;
-      o_mem_srcdest_value_ff <= mem_srcdest_value;
+      o_mem_srcdest_value_ff <= i_store_second ? i_mem_srcdest_value_ff : mem_srcdest_value;
       o_alu_source_value_ff <= rn;
       o_shifted_source_value_ff <= rm;
       o_shift_carry_ff <= shift_carry_nxt;
@@ -331,7 +349,14 @@ module zap_shifter_main #(
       // For debug
       o_decompile <= i_decompile;
       o_uop_last <= i_uop_last;
+      o_store_overlap <= i_store_overlap;
+      o_store_late <= i_store_late;
+      o_store_second <= i_store_second;
+      o_load_pair_class <= i_load_pair_class;
       o_swp_tag <= i_swp_tag;
+    end else if (o_store_second && i_store_second_ready) begin
+      o_mem_srcdest_value_ff <= i_store_second_value;
+      o_store_second <= 1'b0;
     end
   end
 

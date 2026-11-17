@@ -1,4 +1,10 @@
-## Production integration — 2026-11-16
+## Production fitted result, 16 November 2026
+
+Run 43866215058 on exact `9c948da8`, seed 42 with debugger on, maps the CPU's 33×33 product to three physical DSP blocks. One uses “Sum of two 18x18” mode and two use “Two Independent 18x18” mode. Input and output registers are packed. All three report the dedicated output adder chain and output accumulator unused. The separate architectural accumulate stage and five-state schedule remain. The preceding b707ebd/seed-43 CPU already multiplied in four DSPs. The new inference saves one physical DSP and includes one partial-product sum in hard logic.
+
+For the multiplier hierarchy, Quartus reports 106.9→100.8 **ALMs needed**, 94.8→98.7 **ALMs used in final placement**, 186→197 combinational ALUTs and 91→93 dedicated logic registers. There is no measured large fabric saving or fixed-work speedup. Full-chip ALMs needed rise by 813 to 39,594. That comparison also spans the MMC-write change and a different fitter seed. The new placement has CPU setup −0.811 ns at 78 MHz, with its critical path in cache admission. Keep the product mapping and prioritize the cache/LSU work. [Fitter extracts and hashes](evidence/dsp-full-product-fit-43866215058.json) · [Revised architecture budget](cpu-pipeline-architecture-review.md#cyclone-v-budget-and-timing-gates).
+
+## Production integration before the fit — 2026-11-16
 
 The user authorized adoption of the qualified full-product candidate. Production
 `rtl/arm/zap_shifter_multiply.sv` now infers a registered signed33x33-bit product

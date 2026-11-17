@@ -80,6 +80,8 @@ module zap_core #(
     output logic        o_data_wb_cyc,
     output logic        o_data_wb_stb,
     output logic [ 1:0] o_data_swp_tag,
+    output wire o_data_store_overlap,
+    output wire o_data_load_pair,
     output logic [31:0] o_data_wb_adr,
     output logic        o_data_alignment_fault,
     output logic [31:0] o_data_alignment_far,
@@ -287,6 +289,40 @@ module zap_core #(
   logic [31:0] predecode_ppc_ff;
   logic        predecode_clear_btb;
   logic        predecode_uop_last;
+  wire predecode_store_overlap, decode_store_overlap, issue_store_overlap, shifter_store_overlap, alu_store_overlap;
+  wire issue_store_late, shifter_store_late, alu_store_late;
+  wire issue_store_second, shifter_store_second;
+  // Registered owner identity travels in the otherwise unusable data lane.
+  // Younger matching loads block older same-PC iterations from satisfying it.
+  function automatic [32:0] second_store_result(input [31:0] producer_pc,
+                                               input [5:0] rd);
+    reg before_p2;
+    begin
+      before_p2 = (alu_dav_ff && alu_mem_load_ff && alu_mem_srcdest_index_ff == rd) ||
+          (postalu1_dav_ff && postalu1_mem_load_ff && postalu1_mem_srcdest_index_ff == rd);
+      second_store_result = 33'd0;
+      if (!before_p2 && !older_memory_exception && !clear_from_writeback && !reset) begin
+        if (issue_word_load_ready && postalu_pc_plus_8_ff == producer_pc &&
+            postalu_mem_srcdest_index_ff == rd)
+          second_store_result = {1'b1, completion_data};
+        else if (!(postalu_dav_ff && postalu_mem_load_ff && postalu_mem_srcdest_index_ff == rd) &&
+                 memory_dav_ff && memory_mem_load_ff && memory_pc_plus_8_ff == producer_pc &&
+                 memory_mem_srcdest_index_ff == rd && rf_wen && rf_wr_addr_b == rd)
+          second_store_result = {1'b1, rf_wr_data_b};
+      end
+    end
+  endfunction
+  wire [32:0] second_issue_result = second_store_result(issue_mem_srcdest_value_ff,
+                                                       issue_mem_srcdest_index_ff);
+  wire [32:0] second_shift_result = second_store_result(shifter_mem_srcdest_value_ff,
+                                                       shifter_mem_srcdest_index_ff);
+  wire second_issue_ready = issue_store_second && second_issue_result[32];
+  wire second_shift_ready = shifter_store_second && second_shift_result[32];
+
+  wire predecode_load_pair_class, decode_load_pair_class, issue_load_pair_class, shifter_load_pair_class, alu_load_pair_class;
+  wire postalu0_store_overlap, postalu1_store_overlap, postalu_store_overlap;
+  wire postalu0_store_late, postalu1_store_late, postalu_store_late;
+  wire postalu0_load_pair_class, postalu1_load_pair_class, postalu_load_pair_class;
   logic [1:0] predecode_swp_tag, decode_swp_tag, issue_swp_tag, shifter_swp_tag;
   logic [1:0] alu_swp_tag, postalu0_swp_tag, postalu1_swp_tag, postalu_swp_tag;
   logic                         predecode_switch;
@@ -587,8 +623,58 @@ module zap_core #(
   assign o_data_wb_adr = completion_next ? {postalu1_address_ff[31:2], 2'd0} :
                                           {postalu_address_ff[31:2], 2'd0};
   assign o_data_wb_we = completion_next ? postalu1_data_wb_we : postalu_data_wb_we;
-  assign o_data_wb_dat = completion_next ? postalu1_data_wb_dat : postalu_data_wb_dat;
+  wire late_p1_ready = postalu1_store_late && postalu1_dav_ff &&
+      issue_word_load_ready && postalu_pc_plus_8_ff + 32'd4 == postalu1_pc_plus_8_ff &&
+      postalu_mem_srcdest_index_ff == postalu1_mem_srcdest_index_ff &&
+      !older_memory_exception && !clear_from_writeback;
+  wire late_p2_ready = postalu_store_late && postalu_dav_ff &&
+      memory_dav_ff && memory_mem_load_ff &&
+      memory_pc_plus_8_ff + 32'd4 == postalu_pc_plus_8_ff &&
+      memory_mem_srcdest_index_ff == postalu_mem_srcdest_index_ff &&
+      rf_wen && rf_wr_addr_b == postalu_mem_srcdest_index_ff &&
+      !older_memory_exception && !clear_from_writeback;
+  wire [31:0] late_p1_data = completion_data;
+  wire [31:0] late_p2_data = rf_wr_data_b;
+  assign o_data_wb_dat = completion_next ?
+      (late_p1_ready ? late_p1_data : postalu1_data_wb_dat) :
+      (late_p2_ready ? late_p2_data : postalu_data_wb_dat);
   assign o_data_wb_sel = completion_next ? postalu1_data_wb_sel : postalu_data_wb_sel;
+  wire store_selected_class = completion_next ? postalu1_store_overlap : postalu_store_overlap;
+  wire store_selected_valid = completion_next ? postalu1_dav_ff : postalu_dav_ff;
+  wire store_selected_exception = completion_next ?
+      (postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff || postalu1_abt_ff) :
+      (postalu_irq_ff || postalu_fiq_ff || postalu_swi_ff || postalu_und_ff || postalu_abt_ff);
+  wire older_memory_exception = memory_irq_ff || memory_fiq_ff || memory_swi_ff ||
+      memory_und_ff || memory_instr_abort_ff || (|memory_data_abt_ff) ||
+      (memory_dav_ff && (memory_destination_index_ff == PHY_PC ||
+       (memory_mem_load_ff && memory_mem_srcdest_index_ff == PHY_PC)));
+  wire store_selected_aligned = completion_next ? postalu1_address_ff[1:0] == 0 : postalu_address_ff[1:0] == 0;
+  assign o_data_store_overlap = store_selected_class && store_selected_valid && store_selected_aligned &&
+      !store_selected_exception && !older_memory_exception && !clear_from_writeback &&
+      !reset && o_data_wb_we && o_data_wb_sel == 4'hf && !o_data_alignment_fault;
+  // Both addresses have passed the issue scoreboard and ALU independently.
+  // This private pair permission never advances P1 or completes a request.
+  assign o_data_load_pair = postalu_load_pair_class && postalu1_load_pair_class &&
+      postalu_dav_ff && postalu1_dav_ff &&
+      postalu_mem_load_ff && postalu1_mem_load_ff &&
+      postalu_request_cyc && postalu1_data_wb_cyc &&
+      !postalu_data_wb_we && !postalu1_data_wb_we &&
+      postalu_swp_tag == 0 && postalu1_swp_tag == 0 &&
+      postalu_destination_index_ff == PHY_RAZ_REGISTER &&
+      postalu1_destination_index_ff == PHY_RAZ_REGISTER &&
+      postalu_mem_srcdest_index_ff != PHY_PC && postalu1_mem_srcdest_index_ff != PHY_PC &&
+      postalu_mem_srcdest_index_ff != postalu1_mem_srcdest_index_ff &&
+      !postalu_flags_ff[5] && !postalu1_flags_ff[5] &&
+      postalu_flags_ff[ZAP_CPSR_MODE:0] == postalu1_flags_ff[ZAP_CPSR_MODE:0] &&
+      !postalu_mem_translate_ff && !postalu1_mem_translate_ff &&
+      !(postalu_ubyte_ff || postalu_sbyte_ff || postalu_uhalf_ff || postalu_shalf_ff ||
+        postalu1_ubyte_ff || postalu1_sbyte_ff || postalu1_uhalf_ff || postalu1_shalf_ff) &&
+      postalu_address_ff[1:0] == 0 && postalu1_address_ff[1:0] == 0 &&
+      postalu_address_ff != postalu1_address_ff &&
+      postalu_address_ff[31:10] == postalu1_address_ff[31:10] &&
+      !(postalu_irq_ff || postalu_fiq_ff || postalu_swi_ff || postalu_und_ff || postalu_abt_ff ||
+        postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff || postalu1_abt_ff) &&
+      !older_memory_exception && !clear_from_writeback && !reset && !completion_valid;
   assign o_data_wb_adr_nxt = {alu_address_ff[31:2], 2'd0};
   assign o_instr_wb_we = 1'd0;
   assign o_instr_wb_sel = 4'b1111;
@@ -609,6 +695,7 @@ module zap_core #(
         postalu_abt_ff) && postalu_destination_index_ff != PHY_PC &&
       postalu_mem_srcdest_index_ff != PHY_PC &&
       postalu1_dav_ff && postalu1_data_wb_cyc && postalu1_data_wb_stb &&
+      (!postalu1_store_late || late_p1_ready) &&
       postalu1_swp_tag == 2'b00 &&
       !(postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff ||
         postalu1_abt_ff);
@@ -616,7 +703,8 @@ module zap_core #(
       .i_clk(i_clk),
       .i_reset(reset),
       .i_kill(clear_from_writeback),
-      .i_request(postalu_request_stb && postalu_request_cyc),
+      .i_request(postalu_request_stb && postalu_request_cyc &&
+                 (!postalu_store_late || late_p2_ready)),
       .i_next_request(completion_next_safe),
       .i_ack(i_data_wb_ack),
       .i_data(i_data_wb_dat),
@@ -634,6 +722,20 @@ module zap_core #(
   assign o_data_wb_stb = completion_offer;
   assign o_data_wb_cyc = completion_offer;
   assign data_stall = postalu_request_stb && postalu_request_cyc && !completion_valid;
+`ifndef SYNTHESIS
+  always @(posedge i_clk) if (!reset && !clear_from_writeback) begin
+    if (completion_offer && !completion_next && postalu_store_late && !late_p2_ready)
+      $fatal(1, "store demand offered before exact producer data");
+    if (completion_next && postalu1_store_late && !late_p1_ready)
+      $fatal(1, "next store offered before exact producer data");
+  end
+`endif
+`ifndef SYNTHESIS
+  always @(posedge i_clk) if (!reset && !clear_from_writeback && !data_stall &&
+      !clear_from_alu && !(|owned_data_fault) && shifter_store_second &&
+      shifter_condition_code_ff != NV && !second_shift_ready)
+    $fatal(1, "second-store producer not resolved at ALU transfer");
+`endif
   assign owned_data = completion_data;
   assign owned_data_fault = completion_valid ? completion_fault : 2'd0;
   // CP15 receives the FSR/FAR of this exact completed owner, including an abort.
@@ -932,7 +1034,9 @@ module zap_core #(
       .o_ppc_ff  (predecode_ppc_ff),
 
       .o_uop_last(predecode_uop_last),
-      .o_swp_tag (predecode_swp_tag)
+      .o_swp_tag (predecode_swp_tag),
+      .o_load_pair_class(predecode_load_pair_class),
+      .o_store_overlap(predecode_store_overlap)
       // Asserted to indicate last instruction of sequence.
   );
 
@@ -950,7 +1054,11 @@ module zap_core #(
       .i_uop_last (predecode_uop_last),
       .o_uop_last (decode_uop_last),
       .i_swp_tag  (predecode_swp_tag),
+      .i_store_overlap(predecode_store_overlap),
+      .i_load_pair_class(predecode_load_pair_class),
       .o_swp_tag  (decode_swp_tag),
+      .o_store_overlap(decode_store_overlap),
+      .o_load_pair_class(decode_load_pair_class),
 
       // Input.
       .i_clk  (i_clk),
@@ -1022,7 +1130,19 @@ module zap_core #(
       .i_uop_last(decode_uop_last),
       .o_uop_last(issue_uop_last),
       .i_swp_tag (decode_swp_tag),
+      .i_store_overlap(decode_store_overlap),
+      .i_load_pair_class(decode_load_pair_class),
       .o_swp_tag (issue_swp_tag),
+      .o_store_overlap(issue_store_overlap),
+      .o_store_late(issue_store_late),
+      .o_store_second(issue_store_second),
+      .i_alu_owned_word(alu_load_pair_class && alu_dav_ff && alu_mem_load_ff &&
+          alu_address_ff[1:0] == 0 && alu_destination_index_ff == PHY_RAZ_REGISTER &&
+          !(alu_irq_ff || alu_fiq_ff || alu_abt_ff || alu_swi_ff || alu_und_ff)),
+      .i_alu_producer_pc(alu_pc_plus_8_ff),
+      .i_store_second_ready(second_issue_ready),
+      .i_store_second_value(second_issue_result[31:0]),
+      .o_load_pair_class(issue_load_pair_class),
 
       .i_decompile(decode_decompile),
       .o_decompile(issue_decompile),
@@ -1179,7 +1299,17 @@ module zap_core #(
       .i_uop_last(issue_uop_last),
       .o_uop_last(shifter_uop_last),
       .i_swp_tag (issue_swp_tag),
+      .i_store_overlap(issue_store_overlap),
+      .i_store_late(issue_store_late),
+      .i_store_second(issue_store_second && !second_issue_ready),
+      .i_store_second_ready(second_shift_ready),
+      .i_store_second_value(second_shift_result[31:0]),
+      .o_store_second(shifter_store_second),
+      .i_load_pair_class(issue_load_pair_class),
       .o_swp_tag (shifter_swp_tag),
+      .o_store_overlap(shifter_store_overlap),
+      .o_store_late(shifter_store_late),
+      .o_load_pair_class(shifter_load_pair_class),
 
       .i_decompile(issue_decompile),
       .o_decompile(shifter_decompile),
@@ -1227,7 +1357,8 @@ module zap_core #(
       .i_alu_source_value_ff            (issue_alu_source_value_ff),
       .i_shift_source_value_ff          (issue_shift_source_value_ff),
       .i_shift_length_value_ff          (issue_shift_length_value_ff),
-      .i_mem_srcdest_value_ff           (issue_mem_srcdest_value_ff),
+      .i_mem_srcdest_value_ff            (second_issue_ready ? second_issue_result[31:0] :
+                                          issue_mem_srcdest_value_ff),
       .i_pc_plus_8_ff                   (issue_pc_plus_8_ff),
       .i_disable_shifter_ff             (issue_shifter_disable_ff),
 
@@ -1292,7 +1423,13 @@ module zap_core #(
   ) u_zap_alu_main (
       .i_uop_last                       (shifter_uop_last),
       .i_swp_tag                        (shifter_swp_tag),
+      .i_store_overlap(shifter_store_overlap),
+      .i_store_late(shifter_store_late),
+      .i_load_pair_class(shifter_load_pair_class),
       .o_swp_tag                        (alu_swp_tag),
+      .o_store_overlap(alu_store_overlap),
+      .o_store_late(alu_store_late),
+      .o_load_pair_class(alu_load_pair_class),
       .i_clk                            (i_clk),
       .i_reset                          (reset),
       .i_decompile                      (shifter_decompile),
@@ -1308,7 +1445,8 @@ module zap_core #(
       .i_flag_update_ff                 (shifter_flag_update_ff),
       .i_switch_ff                      (shifter_switch_ff),
       .i_force32align_ff                (shifter_force32_ff),
-      .i_mem_srcdest_value_ff           (shifter_mem_srcdest_value_ff),
+      .i_mem_srcdest_value_ff           (second_shift_ready ? second_shift_result[31:0] :
+                                         shifter_mem_srcdest_value_ff),
       .i_alu_source_value_ff            (shifter_alu_source_value_ff),
       .i_shifted_source_value_ff        (shifter_shifted_source_value_ff),
       .i_shift_carry_ff                 (shifter_shift_carry_ff),
@@ -1376,6 +1514,9 @@ module zap_core #(
   // are ALU aliases, not another in-flight owner. P1 remains registered.
   assign postalu0_uop_last = alu_uop_last;
   assign postalu0_swp_tag = alu_swp_tag;
+  assign postalu0_store_overlap = alu_store_overlap;
+  assign postalu0_store_late = alu_store_late;
+  assign postalu0_load_pair_class = alu_load_pair_class;
   assign postalu0_decompile = alu_decompile;
   assign postalu0_decompile_valid = alu_decompile_valid;
   assign postalu0_alu_result_ff = alu_x_ppr;
@@ -1419,7 +1560,15 @@ module zap_core #(
       .i_uop_last(postalu0_uop_last),
       .o_uop_last(postalu1_uop_last),
       .i_swp_tag (postalu0_swp_tag),
+      .i_store_overlap(postalu0_store_overlap),
+      .i_store_late(postalu0_store_late),
+      .i_store_data_ready(1'b0),
+      .i_store_data_value(32'd0),
+      .i_load_pair_class(postalu0_load_pair_class),
       .o_swp_tag (postalu1_swp_tag),
+      .o_store_overlap(postalu1_store_overlap),
+      .o_store_late(postalu1_store_late),
+      .o_load_pair_class(postalu1_load_pair_class),
 
       .i_decompile                      (postalu0_decompile),
       .i_decompile_valid                (postalu0_decompile_valid),
@@ -1492,7 +1641,15 @@ module zap_core #(
       .i_uop_last(postalu1_uop_last),
       .o_uop_last(postalu_uop_last),
       .i_swp_tag (postalu1_swp_tag),
+      .i_store_overlap(postalu1_store_overlap),
+      .i_store_late(postalu1_store_late && !late_p1_ready),
+      .i_store_data_ready(late_p2_ready),
+      .i_store_data_value(late_p2_data),
+      .i_load_pair_class(postalu1_load_pair_class),
       .o_swp_tag (postalu_swp_tag),
+      .o_store_overlap(postalu_store_overlap),
+      .o_store_late(postalu_store_late),
+      .o_load_pair_class(postalu_load_pair_class),
 
       .i_decompile                      (postalu1_decompile),
       .i_decompile_valid                (postalu1_decompile_valid),
@@ -1517,7 +1674,7 @@ module zap_core #(
       .i_data_wb_we_ff                  (postalu1_data_wb_we),
       .i_data_wb_cyc_ff                 (postalu1_data_wb_cyc),
       .i_data_wb_stb_ff                 (postalu1_data_wb_stb),
-      .i_data_wb_dat_ff                 (postalu1_data_wb_dat),
+      .i_data_wb_dat_ff                 (late_p1_ready ? late_p1_data : postalu1_data_wb_dat),
       .i_data_wb_sel_ff                 (postalu1_data_wb_sel),
 
       .o_decompile                      (postalu_decompile),

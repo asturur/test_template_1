@@ -1,0 +1,5460 @@
+{
+  "decision": "Keep one spare credit as a measured store-stream primitive: 102 -> 71 cycles, no additional state bits. Transpose remains 4676; next workload dependency is serialized read availability/load-to-store dependency, not more store credits. No fit or production adoption.",
+  "base": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+  "fixed_4A_source_id": "dcbc85875b34ffaeafe289cea6ecd6e806ec37878fdbb5a8c85f7ded0c93edcb",
+  "candidate_source_id": "b104f42d3e661c9a8832e8d928babca8ac872dd67f76bdcfbfaa5f60626d6094",
+  "only_design_change": [
+    "rtl/arm920/cache_adapter.sv"
+  ],
+  "candidate_adapter_sha256": "45a62bd72e69107037cad296e380a23a850de5525465fb8282df2e23484619e9",
+  "guest_sha256": "eec49a2e426c6d55c96c3a39dad5a2f6fe70cd7a3a1773d7293402ee7aa0e594",
+  "harness_sha256": "36f4349fec1dca00ee3a52733e68120e5e67f938e07ac5d6ad4c9954ebbd5043",
+  "observer_sha256": "d5cd3c8c74a060a31c60b3b8c53000b08f80ed3710b11268765973910553caf5",
+  "control": {
+    "WINDOW": [
+      {
+        "index": 0,
+        "cycles": 389,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 8,
+        "halfwords": 133
+      },
+      {
+        "index": 1,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 2,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 3,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 4,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 5,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 6,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      }
+    ],
+    "OVERLAP_SUMMARY": [
+      {
+        "window": 0,
+        "stores": 64,
+        "first_issue": 95169,
+        "first_accept": 95174,
+        "last_accept": 95511,
+        "first_write": 95176,
+        "last_write": 95513,
+        "issue_through_drain": 345,
+        "accept_through_drain": 340
+      },
+      {
+        "window": 1,
+        "stores": 64,
+        "first_issue": 95580,
+        "first_accept": 95585,
+        "last_accept": 95679,
+        "first_write": 95587,
+        "last_write": 95681,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 2,
+        "stores": 64,
+        "first_issue": 95726,
+        "first_accept": 95731,
+        "last_accept": 95825,
+        "first_write": 95733,
+        "last_write": 95827,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 3,
+        "stores": 64,
+        "first_issue": 95853,
+        "first_accept": 95858,
+        "last_accept": 95952,
+        "first_write": 95860,
+        "last_write": 95954,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 4,
+        "stores": 64,
+        "first_issue": 95980,
+        "first_accept": 95985,
+        "last_accept": 96079,
+        "first_write": 95987,
+        "last_write": 96081,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 5,
+        "stores": 64,
+        "first_issue": 96107,
+        "first_accept": 96112,
+        "last_accept": 96206,
+        "first_write": 96114,
+        "last_write": 96208,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 6,
+        "stores": 64,
+        "first_issue": 96234,
+        "first_accept": 96239,
+        "last_accept": 96333,
+        "first_write": 96241,
+        "last_write": 96335,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      }
+    ],
+    "OVERLAP_HIST": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 2,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 3,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 4,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 5,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 6,
+        "gap": 2,
+        "count": 31
+      }
+    ],
+    "OVERLAP_COMMIT_HIST": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 2,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 3,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 4,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 5,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 6,
+        "gap": 2,
+        "count": 31
+      }
+    ],
+    "OVERLAP_ISSUE_HIST": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 33
+      },
+      {
+        "window": 2,
+        "gap": 2,
+        "count": 30
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 33
+      },
+      {
+        "window": 3,
+        "gap": 2,
+        "count": 30
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 33
+      },
+      {
+        "window": 4,
+        "gap": 2,
+        "count": 30
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 33
+      },
+      {
+        "window": 5,
+        "gap": 2,
+        "count": 30
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 33
+      },
+      {
+        "window": 6,
+        "gap": 2,
+        "count": 30
+      }
+    ],
+    "OVERLAP_EDGE": [
+      {
+        "kind": "issue",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95726
+      },
+      {
+        "kind": "issue",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95727
+      },
+      {
+        "kind": "issue",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95728
+      },
+      {
+        "kind": "issue",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95729
+      },
+      {
+        "kind": "issue",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95730
+      },
+      {
+        "kind": "accept",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95731,
+        "outstanding": 0
+      },
+      {
+        "kind": "issue",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95732
+      },
+      {
+        "kind": "accept",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95732,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95732
+      },
+      {
+        "kind": "issue",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95733
+      },
+      {
+        "kind": "write",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95733
+      },
+      {
+        "kind": "complete",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95733
+      },
+      {
+        "kind": "retire",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95733
+      },
+      {
+        "kind": "accept",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95734,
+        "outstanding": 1
+      },
+      {
+        "kind": "write",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95734
+      },
+      {
+        "kind": "retire",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95734
+      },
+      {
+        "kind": "issue",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95735
+      },
+      {
+        "kind": "accept",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95735,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95735
+      },
+      {
+        "kind": "write",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95736
+      },
+      {
+        "kind": "complete",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95736
+      },
+      {
+        "kind": "retire",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95736
+      },
+      {
+        "kind": "accept",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95737,
+        "outstanding": 1
+      },
+      {
+        "kind": "write",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95737
+      },
+      {
+        "kind": "retire",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95737
+      },
+      {
+        "kind": "accept",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95738,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95738
+      },
+      {
+        "kind": "write",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95739
+      },
+      {
+        "kind": "complete",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95739
+      },
+      {
+        "kind": "retire",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95739
+      },
+      {
+        "kind": "accept",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95740,
+        "outstanding": 1
+      },
+      {
+        "kind": "write",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95740
+      },
+      {
+        "kind": "retire",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95740
+      },
+      {
+        "kind": "accept",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95741,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95741
+      },
+      {
+        "kind": "write",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95742
+      },
+      {
+        "kind": "complete",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95742
+      },
+      {
+        "kind": "retire",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95742
+      },
+      {
+        "kind": "write",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95743
+      },
+      {
+        "kind": "retire",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95743
+      }
+    ],
+    "OVERLAP_CREDIT": [
+      {
+        "edge": 95680,
+        "count": 2,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 652,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95681,
+        "count": 1,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 652,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95682,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 652,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95683,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 652,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95684,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 652,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95685,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 656,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95686,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 656,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95687,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 660,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95688,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 660,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95697,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 672,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95698,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 672,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95731,
+        "count": 0,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 396,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95732,
+        "count": 1,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 400,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95733,
+        "count": 2,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 404,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95734,
+        "count": 1,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 404,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95735,
+        "count": 1,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 408,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95736,
+        "count": 2,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 412,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95737,
+        "count": 1,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 412,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95738,
+        "count": 1,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 416,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95739,
+        "count": 2,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 420,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95740,
+        "count": 1,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 420,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95741,
+        "count": 1,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 424,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95742,
+        "count": 2,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 428,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95743,
+        "count": 1,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 428,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      }
+    ],
+    "OVERLAP_CREDIT_SUMMARY": [
+      {
+        "peak": 2,
+        "simultaneous": 209,
+        "returns": 448,
+        "at_count3": 0
+      }
+    ],
+    "OVERLAP_BOUNDARY": [
+      {
+        "irq": 1,
+        "abort": 1,
+        "held_store_clocks": 20757,
+        "full_owner_holds": 216,
+        "target_holds": 209,
+        "target_full_holds": 209,
+        "following_load": "PASS",
+        "byte_transition": "PASS"
+      }
+    ],
+    "OVERLAP_PEAK_IRQ": [],
+    "OVERLAP_PEAK_CASES": [
+      {
+        "stress": 0,
+        "irq_count": 0,
+        "fault_offer": 0,
+        "active_load": 0,
+        "active_probe_load": 0
+      }
+    ],
+    "RESULT": [
+      {
+        "windows": 7,
+        "cycles": 99558,
+        "reads": 20550,
+        "writes": 4118,
+        "lines": 28,
+        "halfwords": 448
+      }
+    ],
+    "pass_line": "PASS overlap accepted_issue=448 accepted=448 physical_writes=448 completions=448 retired=448 independent_backing_words=16 overlapping_accepts=433",
+    "log_sha256": "1ad96805750d7a04302be745195c11573240ba976b07dae40df2aeaf8ac60d69",
+    "repeat_sha256": "982832335ea4fe1c7d5ad3786e18ecf1b9b656f1c85822fd14b7dcba82141dfa"
+  },
+  "candidate": {
+    "WINDOW": [
+      {
+        "index": 0,
+        "cycles": 389,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 8,
+        "halfwords": 133
+      },
+      {
+        "index": 1,
+        "cycles": 92,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 2,
+        "cycles": 92,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 3,
+        "cycles": 92,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 4,
+        "cycles": 92,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 5,
+        "cycles": 92,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 6,
+        "cycles": 92,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      }
+    ],
+    "OVERLAP_SUMMARY": [
+      {
+        "window": 0,
+        "stores": 64,
+        "first_issue": 95169,
+        "first_accept": 95174,
+        "last_accept": 95510,
+        "first_write": 95176,
+        "last_write": 95512,
+        "issue_through_drain": 344,
+        "accept_through_drain": 339
+      },
+      {
+        "window": 1,
+        "stores": 64,
+        "first_issue": 95580,
+        "first_accept": 95585,
+        "last_accept": 95648,
+        "first_write": 95587,
+        "last_write": 95650,
+        "issue_through_drain": 71,
+        "accept_through_drain": 66
+      },
+      {
+        "window": 2,
+        "stores": 64,
+        "first_issue": 95695,
+        "first_accept": 95700,
+        "last_accept": 95763,
+        "first_write": 95702,
+        "last_write": 95765,
+        "issue_through_drain": 71,
+        "accept_through_drain": 66
+      },
+      {
+        "window": 3,
+        "stores": 64,
+        "first_issue": 95791,
+        "first_accept": 95796,
+        "last_accept": 95859,
+        "first_write": 95798,
+        "last_write": 95861,
+        "issue_through_drain": 71,
+        "accept_through_drain": 66
+      },
+      {
+        "window": 4,
+        "stores": 64,
+        "first_issue": 95887,
+        "first_accept": 95892,
+        "last_accept": 95955,
+        "first_write": 95894,
+        "last_write": 95957,
+        "issue_through_drain": 71,
+        "accept_through_drain": 66
+      },
+      {
+        "window": 5,
+        "stores": 64,
+        "first_issue": 95983,
+        "first_accept": 95988,
+        "last_accept": 96051,
+        "first_write": 95990,
+        "last_write": 96053,
+        "issue_through_drain": 71,
+        "accept_through_drain": 66
+      },
+      {
+        "window": 6,
+        "stores": 64,
+        "first_issue": 96079,
+        "first_accept": 96084,
+        "last_accept": 96147,
+        "first_write": 96086,
+        "last_write": 96149,
+        "issue_through_drain": 71,
+        "accept_through_drain": 66
+      }
+    ],
+    "OVERLAP_HIST": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 63
+      }
+    ],
+    "OVERLAP_COMMIT_HIST": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 63
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 63
+      }
+    ],
+    "OVERLAP_ISSUE_HIST": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 62
+      },
+      {
+        "window": 2,
+        "gap": 2,
+        "count": 1
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 62
+      },
+      {
+        "window": 3,
+        "gap": 2,
+        "count": 1
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 62
+      },
+      {
+        "window": 4,
+        "gap": 2,
+        "count": 1
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 62
+      },
+      {
+        "window": 5,
+        "gap": 2,
+        "count": 1
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 62
+      },
+      {
+        "window": 6,
+        "gap": 2,
+        "count": 1
+      }
+    ],
+    "OVERLAP_EDGE": [
+      {
+        "kind": "issue",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95695
+      },
+      {
+        "kind": "issue",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95696
+      },
+      {
+        "kind": "issue",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95697
+      },
+      {
+        "kind": "issue",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95698
+      },
+      {
+        "kind": "issue",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95699
+      },
+      {
+        "kind": "accept",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95700,
+        "outstanding": 0
+      },
+      {
+        "kind": "issue",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95701
+      },
+      {
+        "kind": "accept",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95701,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95701
+      },
+      {
+        "kind": "issue",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95702
+      },
+      {
+        "kind": "accept",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95702,
+        "outstanding": 2
+      },
+      {
+        "kind": "write",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95702
+      },
+      {
+        "kind": "complete",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95702
+      },
+      {
+        "kind": "retire",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95702
+      },
+      {
+        "kind": "issue",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95703
+      },
+      {
+        "kind": "accept",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95703,
+        "outstanding": 2
+      },
+      {
+        "kind": "write",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95703
+      },
+      {
+        "kind": "complete",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95703
+      },
+      {
+        "kind": "retire",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95703
+      },
+      {
+        "kind": "accept",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95704,
+        "outstanding": 2
+      },
+      {
+        "kind": "write",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95704
+      },
+      {
+        "kind": "complete",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95704
+      },
+      {
+        "kind": "retire",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95704
+      },
+      {
+        "kind": "accept",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95705,
+        "outstanding": 2
+      },
+      {
+        "kind": "write",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95705
+      },
+      {
+        "kind": "complete",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95705
+      },
+      {
+        "kind": "retire",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95705
+      },
+      {
+        "kind": "accept",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95706,
+        "outstanding": 2
+      },
+      {
+        "kind": "write",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95706
+      },
+      {
+        "kind": "complete",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95706
+      },
+      {
+        "kind": "retire",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95706
+      },
+      {
+        "kind": "accept",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95707,
+        "outstanding": 2
+      },
+      {
+        "kind": "write",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95707
+      },
+      {
+        "kind": "complete",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95707
+      },
+      {
+        "kind": "retire",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95707
+      },
+      {
+        "kind": "write",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95708
+      },
+      {
+        "kind": "complete",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95708
+      },
+      {
+        "kind": "retire",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95708
+      },
+      {
+        "kind": "write",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95709
+      },
+      {
+        "kind": "retire",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95709
+      }
+    ],
+    "OVERLAP_CREDIT": [
+      {
+        "edge": 95649,
+        "count": 2,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 652,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95650,
+        "count": 1,
+        "allocate": 0,
+        "return": 1,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 652,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95651,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 652,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95652,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 652,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95653,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 1,
+        "pc": 652,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95654,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 656,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95655,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 656,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95656,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 660,
+        "ack": 0,
+        "stall": 0,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95657,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 660,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95666,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 672,
+        "ack": 0,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95667,
+        "count": 0,
+        "allocate": 0,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 672,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 1,
+        "fast": 0
+      },
+      {
+        "edge": 95700,
+        "count": 0,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 0,
+        "pipe_commit": 0,
+        "pc": 396,
+        "ack": 1,
+        "stall": 1,
+        "issue_pop": 0,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95701,
+        "count": 1,
+        "allocate": 1,
+        "return": 0,
+        "pipe_owner": 1,
+        "pipe_commit": 0,
+        "pc": 400,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95702,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 404,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95703,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 408,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95704,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 412,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95705,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 416,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95706,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 420,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95707,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 424,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      },
+      {
+        "edge": 95708,
+        "count": 2,
+        "allocate": 1,
+        "return": 1,
+        "pipe_owner": 1,
+        "pipe_commit": 1,
+        "pc": 428,
+        "ack": 1,
+        "stall": 0,
+        "issue_pop": 1,
+        "probe_valid": 0,
+        "fast": 0
+      }
+    ],
+    "OVERLAP_CREDIT_SUMMARY": [
+      {
+        "peak": 2,
+        "simultaneous": 418,
+        "returns": 448,
+        "at_count3": 0
+      }
+    ],
+    "OVERLAP_BOUNDARY": [
+      {
+        "irq": 1,
+        "abort": 1,
+        "held_store_clocks": 20548,
+        "full_owner_holds": 7,
+        "target_holds": 0,
+        "target_full_holds": 0,
+        "following_load": "PASS",
+        "byte_transition": "PASS"
+      }
+    ],
+    "OVERLAP_PEAK_IRQ": [],
+    "OVERLAP_PEAK_CASES": [
+      {
+        "stress": 0,
+        "irq_count": 0,
+        "fault_offer": 0,
+        "active_load": 0,
+        "active_probe_load": 0
+      }
+    ],
+    "RESULT": [
+      {
+        "windows": 7,
+        "cycles": 99372,
+        "reads": 20550,
+        "writes": 4118,
+        "lines": 28,
+        "halfwords": 448
+      }
+    ],
+    "pass_line": "PASS overlap accepted_issue=448 accepted=448 physical_writes=448 completions=448 retired=448 independent_backing_words=16 overlapping_accepts=433",
+    "log_sha256": "56b9af6923935a6ed676333dccc635d7846db4e8e4db3e77836373d050c9c595",
+    "repeat_sha256": "470f1d6082f39a56917c89d6a6f558d4ca4915c4fa4547f57fcb3e18ab1b21d1"
+  },
+  "loop_comparison": {
+    "stores": 64,
+    "control_cycles": 102,
+    "candidate_cycles": 71,
+    "delta": -31,
+    "cycle_reduction_percent": 30.3921568627451,
+    "control_cycles_per_store": 1.59375,
+    "candidate_cycles_per_store": 1.109375,
+    "whole_marked_window": {
+      "control": 123,
+      "candidate": 92
+    }
+  },
+  "peak_CPU_cases": {
+    "control-peak-01": {
+      "WINDOW": [
+        {
+          "index": 0,
+          "cycles": 408,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 9,
+          "halfwords": 156
+        },
+        {
+          "index": 1,
+          "cycles": 133,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 2,
+          "cycles": 133,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 3,
+          "cycles": 133,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 4,
+          "cycles": 133,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 5,
+          "cycles": 133,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 6,
+          "cycles": 133,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        }
+      ],
+      "OVERLAP_SUMMARY": [
+        {
+          "window": 0,
+          "stores": 64,
+          "first_issue": 95236,
+          "first_accept": 95241,
+          "last_accept": 95587,
+          "first_write": 95243,
+          "last_write": 95589,
+          "issue_through_drain": 354,
+          "accept_through_drain": 349
+        },
+        {
+          "window": 1,
+          "stores": 64,
+          "first_issue": 95687,
+          "first_accept": 95692,
+          "last_accept": 95786,
+          "first_write": 95694,
+          "last_write": 95788,
+          "issue_through_drain": 102,
+          "accept_through_drain": 97
+        },
+        {
+          "window": 2,
+          "stores": 64,
+          "first_issue": 95843,
+          "first_accept": 95848,
+          "last_accept": 95942,
+          "first_write": 95850,
+          "last_write": 95944,
+          "issue_through_drain": 102,
+          "accept_through_drain": 97
+        },
+        {
+          "window": 3,
+          "stores": 64,
+          "first_issue": 95980,
+          "first_accept": 95985,
+          "last_accept": 96079,
+          "first_write": 95987,
+          "last_write": 96081,
+          "issue_through_drain": 102,
+          "accept_through_drain": 97
+        },
+        {
+          "window": 4,
+          "stores": 64,
+          "first_issue": 96117,
+          "first_accept": 96122,
+          "last_accept": 96216,
+          "first_write": 96124,
+          "last_write": 96218,
+          "issue_through_drain": 102,
+          "accept_through_drain": 97
+        },
+        {
+          "window": 5,
+          "stores": 64,
+          "first_issue": 96254,
+          "first_accept": 96259,
+          "last_accept": 96353,
+          "first_write": 96261,
+          "last_write": 96355,
+          "issue_through_drain": 102,
+          "accept_through_drain": 97
+        },
+        {
+          "window": 6,
+          "stores": 64,
+          "first_issue": 96391,
+          "first_accept": 96396,
+          "last_accept": 96490,
+          "first_write": 96398,
+          "last_write": 96492,
+          "issue_through_drain": 102,
+          "accept_through_drain": 97
+        }
+      ],
+      "OVERLAP_HIST": [
+        {
+          "window": 2,
+          "gap": 1,
+          "count": 32
+        },
+        {
+          "window": 2,
+          "gap": 2,
+          "count": 31
+        },
+        {
+          "window": 3,
+          "gap": 1,
+          "count": 32
+        },
+        {
+          "window": 3,
+          "gap": 2,
+          "count": 31
+        },
+        {
+          "window": 4,
+          "gap": 1,
+          "count": 32
+        },
+        {
+          "window": 4,
+          "gap": 2,
+          "count": 31
+        },
+        {
+          "window": 5,
+          "gap": 1,
+          "count": 32
+        },
+        {
+          "window": 5,
+          "gap": 2,
+          "count": 31
+        },
+        {
+          "window": 6,
+          "gap": 1,
+          "count": 32
+        },
+        {
+          "window": 6,
+          "gap": 2,
+          "count": 31
+        }
+      ],
+      "OVERLAP_COMMIT_HIST": [],
+      "OVERLAP_ISSUE_HIST": [],
+      "OVERLAP_EDGE": [
+        {
+          "kind": "issue",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95843
+        },
+        {
+          "kind": "issue",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95844
+        },
+        {
+          "kind": "issue",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95845
+        },
+        {
+          "kind": "issue",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95846
+        },
+        {
+          "kind": "issue",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95847
+        },
+        {
+          "kind": "accept",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95848,
+          "outstanding": 0
+        },
+        {
+          "kind": "issue",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95849
+        },
+        {
+          "kind": "accept",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95849,
+          "outstanding": 1
+        },
+        {
+          "kind": "complete",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95849
+        },
+        {
+          "kind": "issue",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95850
+        },
+        {
+          "kind": "write",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95850
+        },
+        {
+          "kind": "complete",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95850
+        },
+        {
+          "kind": "retire",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95850
+        },
+        {
+          "kind": "accept",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95851,
+          "outstanding": 1
+        },
+        {
+          "kind": "write",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95851
+        },
+        {
+          "kind": "retire",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95851
+        },
+        {
+          "kind": "issue",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95852
+        },
+        {
+          "kind": "accept",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95852,
+          "outstanding": 1
+        },
+        {
+          "kind": "complete",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95852
+        },
+        {
+          "kind": "write",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95853
+        },
+        {
+          "kind": "complete",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95853
+        },
+        {
+          "kind": "retire",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95853
+        },
+        {
+          "kind": "accept",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95854,
+          "outstanding": 1
+        },
+        {
+          "kind": "write",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95854
+        },
+        {
+          "kind": "retire",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95854
+        },
+        {
+          "kind": "accept",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95855,
+          "outstanding": 1
+        },
+        {
+          "kind": "complete",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95855
+        },
+        {
+          "kind": "write",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95856
+        },
+        {
+          "kind": "complete",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95856
+        },
+        {
+          "kind": "retire",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95856
+        },
+        {
+          "kind": "accept",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95857,
+          "outstanding": 1
+        },
+        {
+          "kind": "write",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95857
+        },
+        {
+          "kind": "retire",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95857
+        },
+        {
+          "kind": "accept",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95858,
+          "outstanding": 1
+        },
+        {
+          "kind": "complete",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95858
+        },
+        {
+          "kind": "write",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95859
+        },
+        {
+          "kind": "complete",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95859
+        },
+        {
+          "kind": "retire",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95859
+        },
+        {
+          "kind": "write",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95860
+        },
+        {
+          "kind": "retire",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95860
+        }
+      ],
+      "OVERLAP_CREDIT": [
+        {
+          "edge": 95787,
+          "count": 2,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 712,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95788,
+          "count": 1,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 712,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95789,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 712,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95790,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 712,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95799,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 724,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95800,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 724,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95801,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 724,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95802,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 728,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95803,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 728,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95804,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 732,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95805,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 732,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95814,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 744,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95815,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 744,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95848,
+          "count": 0,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 456,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95849,
+          "count": 1,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 460,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95850,
+          "count": 2,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 464,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95851,
+          "count": 1,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 464,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95852,
+          "count": 1,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 468,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95853,
+          "count": 2,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 472,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95854,
+          "count": 1,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 472,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95855,
+          "count": 1,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 476,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95856,
+          "count": 2,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 480,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95857,
+          "count": 1,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 480,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95858,
+          "count": 1,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 484,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95859,
+          "count": 2,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 488,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95860,
+          "count": 1,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 488,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        }
+      ],
+      "OVERLAP_CREDIT_SUMMARY": [
+        {
+          "peak": 2,
+          "simultaneous": 210,
+          "returns": 452,
+          "at_count3": 0
+        }
+      ],
+      "OVERLAP_BOUNDARY": [
+        {
+          "irq": 1,
+          "abort": 1,
+          "held_store_clocks": 20744,
+          "full_owner_holds": 210,
+          "target_holds": 210,
+          "target_full_holds": 210,
+          "following_load": "PASS",
+          "byte_transition": "PASS"
+        }
+      ],
+      "OVERLAP_PEAK_IRQ": [
+        {
+          "edge": 94974,
+          "count": 2
+        }
+      ],
+      "OVERLAP_PEAK_CASES": [
+        {
+          "stress": 1,
+          "irq_count": 2,
+          "fault_offer": 1,
+          "active_load": 14,
+          "active_probe_load": 1
+        }
+      ],
+      "RESULT": [
+        {
+          "windows": 7,
+          "cycles": 99725,
+          "reads": 20550,
+          "writes": 4118,
+          "lines": 30,
+          "halfwords": 480
+        }
+      ],
+      "pass_line": "PASS overlap accepted_issue=448 accepted=448 physical_writes=448 completions=448 retired=448 independent_backing_words=16 overlapping_accepts=433",
+      "log_sha256": "b0bccaef66adfed1e7a33dab9105c43dcce5c4a867fd3d64e6023a65464601d3",
+      "repeat_sha256": "e1979315167790dff98266fa971bf0161a98a5f22b0f0f8051fc2ccf171ccb27"
+    },
+    "spare-peak-01": {
+      "WINDOW": [
+        {
+          "index": 0,
+          "cycles": 408,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 9,
+          "halfwords": 156
+        },
+        {
+          "index": 1,
+          "cycles": 102,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 2,
+          "cycles": 102,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 3,
+          "cycles": 102,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 4,
+          "cycles": 102,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 5,
+          "cycles": 102,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        },
+        {
+          "index": 6,
+          "cycles": 102,
+          "retire_proxy": 76,
+          "reads": 0,
+          "writes": 0,
+          "lines": 0,
+          "halfwords": 0
+        }
+      ],
+      "OVERLAP_SUMMARY": [
+        {
+          "window": 0,
+          "stores": 64,
+          "first_issue": 95236,
+          "first_accept": 95241,
+          "last_accept": 95586,
+          "first_write": 95243,
+          "last_write": 95588,
+          "issue_through_drain": 353,
+          "accept_through_drain": 348
+        },
+        {
+          "window": 1,
+          "stores": 64,
+          "first_issue": 95687,
+          "first_accept": 95692,
+          "last_accept": 95755,
+          "first_write": 95694,
+          "last_write": 95757,
+          "issue_through_drain": 71,
+          "accept_through_drain": 66
+        },
+        {
+          "window": 2,
+          "stores": 64,
+          "first_issue": 95812,
+          "first_accept": 95817,
+          "last_accept": 95880,
+          "first_write": 95819,
+          "last_write": 95882,
+          "issue_through_drain": 71,
+          "accept_through_drain": 66
+        },
+        {
+          "window": 3,
+          "stores": 64,
+          "first_issue": 95918,
+          "first_accept": 95923,
+          "last_accept": 95986,
+          "first_write": 95925,
+          "last_write": 95988,
+          "issue_through_drain": 71,
+          "accept_through_drain": 66
+        },
+        {
+          "window": 4,
+          "stores": 64,
+          "first_issue": 96024,
+          "first_accept": 96029,
+          "last_accept": 96092,
+          "first_write": 96031,
+          "last_write": 96094,
+          "issue_through_drain": 71,
+          "accept_through_drain": 66
+        },
+        {
+          "window": 5,
+          "stores": 64,
+          "first_issue": 96130,
+          "first_accept": 96135,
+          "last_accept": 96198,
+          "first_write": 96137,
+          "last_write": 96200,
+          "issue_through_drain": 71,
+          "accept_through_drain": 66
+        },
+        {
+          "window": 6,
+          "stores": 64,
+          "first_issue": 96236,
+          "first_accept": 96241,
+          "last_accept": 96304,
+          "first_write": 96243,
+          "last_write": 96306,
+          "issue_through_drain": 71,
+          "accept_through_drain": 66
+        }
+      ],
+      "OVERLAP_HIST": [
+        {
+          "window": 2,
+          "gap": 1,
+          "count": 63
+        },
+        {
+          "window": 3,
+          "gap": 1,
+          "count": 63
+        },
+        {
+          "window": 4,
+          "gap": 1,
+          "count": 63
+        },
+        {
+          "window": 5,
+          "gap": 1,
+          "count": 63
+        },
+        {
+          "window": 6,
+          "gap": 1,
+          "count": 63
+        }
+      ],
+      "OVERLAP_COMMIT_HIST": [],
+      "OVERLAP_ISSUE_HIST": [],
+      "OVERLAP_EDGE": [
+        {
+          "kind": "issue",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95812
+        },
+        {
+          "kind": "issue",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95813
+        },
+        {
+          "kind": "issue",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95814
+        },
+        {
+          "kind": "issue",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95815
+        },
+        {
+          "kind": "issue",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95816
+        },
+        {
+          "kind": "accept",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95817,
+          "outstanding": 0
+        },
+        {
+          "kind": "issue",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95818
+        },
+        {
+          "kind": "accept",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95818,
+          "outstanding": 1
+        },
+        {
+          "kind": "complete",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95818
+        },
+        {
+          "kind": "issue",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95819
+        },
+        {
+          "kind": "accept",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95819,
+          "outstanding": 2
+        },
+        {
+          "kind": "write",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95819
+        },
+        {
+          "kind": "complete",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95819
+        },
+        {
+          "kind": "retire",
+          "seq": 128,
+          "pc": 456,
+          "edge": 95819
+        },
+        {
+          "kind": "issue",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95820
+        },
+        {
+          "kind": "accept",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95820,
+          "outstanding": 2
+        },
+        {
+          "kind": "write",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95820
+        },
+        {
+          "kind": "complete",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95820
+        },
+        {
+          "kind": "retire",
+          "seq": 129,
+          "pc": 460,
+          "edge": 95820
+        },
+        {
+          "kind": "accept",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95821,
+          "outstanding": 2
+        },
+        {
+          "kind": "write",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95821
+        },
+        {
+          "kind": "complete",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95821
+        },
+        {
+          "kind": "retire",
+          "seq": 130,
+          "pc": 464,
+          "edge": 95821
+        },
+        {
+          "kind": "accept",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95822,
+          "outstanding": 2
+        },
+        {
+          "kind": "write",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95822
+        },
+        {
+          "kind": "complete",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95822
+        },
+        {
+          "kind": "retire",
+          "seq": 131,
+          "pc": 468,
+          "edge": 95822
+        },
+        {
+          "kind": "accept",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95823,
+          "outstanding": 2
+        },
+        {
+          "kind": "write",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95823
+        },
+        {
+          "kind": "complete",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95823
+        },
+        {
+          "kind": "retire",
+          "seq": 132,
+          "pc": 472,
+          "edge": 95823
+        },
+        {
+          "kind": "accept",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95824,
+          "outstanding": 2
+        },
+        {
+          "kind": "write",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95824
+        },
+        {
+          "kind": "complete",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95824
+        },
+        {
+          "kind": "retire",
+          "seq": 133,
+          "pc": 476,
+          "edge": 95824
+        },
+        {
+          "kind": "write",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95825
+        },
+        {
+          "kind": "complete",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95825
+        },
+        {
+          "kind": "retire",
+          "seq": 134,
+          "pc": 480,
+          "edge": 95825
+        },
+        {
+          "kind": "write",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95826
+        },
+        {
+          "kind": "retire",
+          "seq": 135,
+          "pc": 484,
+          "edge": 95826
+        }
+      ],
+      "OVERLAP_CREDIT": [
+        {
+          "edge": 95756,
+          "count": 2,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 712,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95757,
+          "count": 1,
+          "allocate": 0,
+          "return": 1,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 712,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95758,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 712,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95759,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 712,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95768,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 724,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95769,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 724,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95770,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 1,
+          "pc": 724,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95771,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 728,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95772,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 728,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95773,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 732,
+          "ack": 0,
+          "stall": 0,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95774,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 732,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95783,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 744,
+          "ack": 0,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95784,
+          "count": 0,
+          "allocate": 0,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 744,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 1,
+          "fast": 0
+        },
+        {
+          "edge": 95817,
+          "count": 0,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 0,
+          "pipe_commit": 0,
+          "pc": 456,
+          "ack": 1,
+          "stall": 1,
+          "issue_pop": 0,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95818,
+          "count": 1,
+          "allocate": 1,
+          "return": 0,
+          "pipe_owner": 1,
+          "pipe_commit": 0,
+          "pc": 460,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95819,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 464,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95820,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 468,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95821,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 472,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95822,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 476,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95823,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 480,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95824,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 484,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        },
+        {
+          "edge": 95825,
+          "count": 2,
+          "allocate": 1,
+          "return": 1,
+          "pipe_owner": 1,
+          "pipe_commit": 1,
+          "pc": 488,
+          "ack": 1,
+          "stall": 0,
+          "issue_pop": 1,
+          "probe_valid": 0,
+          "fast": 0
+        }
+      ],
+      "OVERLAP_CREDIT_SUMMARY": [
+        {
+          "peak": 2,
+          "simultaneous": 418,
+          "returns": 452,
+          "at_count3": 0
+        }
+      ],
+      "OVERLAP_BOUNDARY": [
+        {
+          "irq": 1,
+          "abort": 1,
+          "held_store_clocks": 20534,
+          "full_owner_holds": 0,
+          "target_holds": 0,
+          "target_full_holds": 0,
+          "following_load": "PASS",
+          "byte_transition": "PASS"
+        }
+      ],
+      "OVERLAP_PEAK_IRQ": [
+        {
+          "edge": 94974,
+          "count": 2
+        }
+      ],
+      "OVERLAP_PEAK_CASES": [
+        {
+          "stress": 1,
+          "irq_count": 2,
+          "fault_offer": 1,
+          "active_load": 14,
+          "active_probe_load": 0
+        }
+      ],
+      "RESULT": [
+        {
+          "windows": 7,
+          "cycles": 99539,
+          "reads": 20550,
+          "writes": 4118,
+          "lines": 30,
+          "halfwords": 480
+        }
+      ],
+      "pass_line": "PASS overlap accepted_issue=448 accepted=448 physical_writes=448 completions=448 retired=448 independent_backing_words=16 overlapping_accepts=433",
+      "log_sha256": "010cc9b8b056296ab2063f0c171d0264b613ab7e9b45b24c01452671effd1e32",
+      "repeat_sha256": "51a3bc1c5f00458a1e40098d3b41dc6fcbbcbacff0f8ed9e9b0af5f3d627d839"
+    }
+  },
+  "forced_pressure": {
+    "reason": "Test-only four-clock physical-response publication delay; actual RAM writes remain real, mixed-port collisions poisoned; not a timed memory-model change",
+    "result": {
+      "status": "PASS",
+      "events": [
+        "PRESSURE_CASE reserve_full simultaneous_return held_fourth active_probe_read same_address_read PASS",
+        "PRESSURE_CASE following_fault_after_full no_younger_write PASS",
+        "PRESSURE_CASE reset_at_full fresh_read no_stale_reply PASS",
+        "PASS pressure peak=3 full_hold_clocks=4 simultaneous=1 active_probed_load_clocks=6"
+      ],
+      "source": {
+        "build/sim/cpu-store-credit/pressure-02/source/cache_access.sv": "62212f8ab7d3496f0efce42aa69825119999df7807ff80bdcd33704838fc9c0e",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_adapter.sv": "45a62bd72e69107037cad296e380a23a850de5525465fb8282df2e23484619e9",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+        "build/sim/cpu-store-credit/pressure-02/source/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+        "build/sim/cpu-store-credit/pressure-02/source/ngage_bram.v": "b8094d6f9d4b39a75ee6ba97520f663561757cf66bd9f1a2dcdeaed817b739a0",
+        "build/sim/cpu-store-credit/pressure-02/source/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+        "build/sim/cpu-store-credit/pressure-02/source/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+        "build/sim/cpu-store-credit/pressure-02/source/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+        "build/sim/cpu-store-credit/pressure-02/source/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+        "build/sim/cpu-store-credit/pressure-02/test.v": "471618a1f8a404819ba676541b0eaab2df07f5a3b558ec2600342feaa613a25c"
+      }
+    }
+  },
+  "wrong_byte": {
+    "status": "EXPECTED_FAILURE",
+    "returncode": 1,
+    "log_sha256": "b4d644589d5cab33b26a7bb14dbaf81f30a0eb178d1420ada1a4bdfcaf06a075",
+    "reason": "deliberately wrong first expected physical byte rejected"
+  },
+  "workloads": [
+    {
+      "case": "transpose4",
+      "profile": "0:0",
+      "control_cycles": 4676,
+      "candidate_cycles": 4676,
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "trace_and_profile": {
+        "STORE_METRIC": [
+          {
+            "index": 0,
+            "accepted": 384,
+            "resident_pipe": 352,
+            "admission_credit": 352,
+            "overlap": 160
+          },
+          {
+            "index": 1,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 2,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 3,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 4,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 5,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 6,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          }
+        ],
+        "PROBE_METRIC": [
+          {
+            "index": 0,
+            "cycles": 7060,
+            "fast": 224,
+            "admitted": 65,
+            "fallback": 127,
+            "read_accept": 192,
+            "waits": 3337,
+            "probe_reads": 673
+          },
+          {
+            "index": 1,
+            "cycles": 4679,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 2,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 3,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 4,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 5,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 6,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          }
+        ],
+        "CREDIT_WORK_PROFILE": [
+          {
+            "index": 0,
+            "read_stall": 2985,
+            "write_stall": 352,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1703,
+            "other": 1093
+          },
+          {
+            "index": 1,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1639,
+            "other": 1087
+          },
+          {
+            "index": 2,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 3,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 4,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 5,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 6,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          }
+        ],
+        "CREDIT_WORK_TRACE": [
+          {
+            "t": 0,
+            "edge": 149826,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 1,
+            "edge": 149827,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 2,
+            "edge": 149828,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 3,
+            "edge": 149829,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 4,
+            "edge": 149830,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 5,
+            "edge": 149831,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 10,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 6,
+            "edge": 149832,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 1,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 7,
+            "edge": 149833,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 2,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 8,
+            "edge": 149834,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487760,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 9,
+            "edge": 149835,
+            "p2": 10002648,
+            "p1": "1000264c",
+            "addr": 2147487760,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 1,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445252
+          },
+          {
+            "t": 10,
+            "edge": 149836,
+            "p2": 10002648,
+            "p1": "1000264c",
+            "addr": 2147487760,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445252
+          },
+          {
+            "t": 11,
+            "edge": 149837,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 1,
+            "fast": 0,
+            "issue_pc": 268445264,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 1,
+            "retire_pc": 268445256
+          },
+          {
+            "t": 12,
+            "edge": 149838,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445268,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 13,
+            "edge": 149839,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445272,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 14,
+            "edge": 149840,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 15,
+            "edge": 149841,
+            "p2": "1000264c",
+            "p1": 10002650,
+            "addr": 2147487748,
+            "write": 1,
+            "pending": 0,
+            "alloc": 1,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 16,
+            "edge": 149842,
+            "p2": "1000264c",
+            "p1": 10002650,
+            "addr": 2147487760,
+            "write": 1,
+            "pending": 1,
+            "alloc": 1,
+            "ret": 0,
+            "ack": 1,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 17,
+            "edge": 149843,
+            "p2": 10002650,
+            "p1": 10002654,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 2,
+            "alloc": 0,
+            "ret": 1,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 18,
+            "edge": 149844,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 1,
+            "alloc": 0,
+            "ret": 1,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 19,
+            "edge": 149845,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 20,
+            "edge": 149846,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 21,
+            "edge": 149847,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 2,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 22,
+            "edge": 149848,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 23,
+            "edge": 149849,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 24,
+            "edge": 149850,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 10,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 25,
+            "edge": 149851,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 1,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 26,
+            "edge": 149852,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 2,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 27,
+            "edge": 149853,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 28,
+            "edge": 149854,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 1,
+            "fast": 0,
+            "issue_pc": 268445280,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 1,
+            "retire_pc": 268445272
+          },
+          {
+            "t": 29,
+            "edge": 149855,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445284,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445276
+          },
+          {
+            "t": 30,
+            "edge": 149856,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445288,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445276
+          },
+          {
+            "t": 31,
+            "edge": 149857,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445292,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445276
+          },
+          {
+            "t": 32,
+            "edge": 149858,
+            "p2": "1000265c",
+            "p1": 10002660,
+            "addr": 2147487752,
+            "write": 1,
+            "pending": 0,
+            "alloc": 1,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445292,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445276
+          }
+        ]
+      },
+      "negative_control": [
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ],
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ]
+      ]
+    },
+    {
+      "case": "transpose4",
+      "profile": "2:9",
+      "control_cycles": 4676,
+      "candidate_cycles": 4676,
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "trace_and_profile": {
+        "STORE_METRIC": [
+          {
+            "index": 0,
+            "accepted": 384,
+            "resident_pipe": 352,
+            "admission_credit": 352,
+            "overlap": 160
+          },
+          {
+            "index": 1,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 2,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 3,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 4,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 5,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          },
+          {
+            "index": 6,
+            "accepted": 384,
+            "resident_pipe": 384,
+            "admission_credit": 384,
+            "overlap": 192
+          }
+        ],
+        "PROBE_METRIC": [
+          {
+            "index": 0,
+            "cycles": 7718,
+            "fast": 224,
+            "admitted": 65,
+            "fallback": 127,
+            "read_accept": 192,
+            "waits": 3924,
+            "probe_reads": 673
+          },
+          {
+            "index": 1,
+            "cycles": 4679,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 2,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 3,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 4,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 5,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          },
+          {
+            "index": 6,
+            "cycles": 4676,
+            "fast": 193,
+            "admitted": 129,
+            "fallback": 94,
+            "read_accept": 223,
+            "waits": 1026,
+            "probe_reads": 646
+          }
+        ],
+        "CREDIT_WORK_PROFILE": [
+          {
+            "index": 0,
+            "read_stall": 3572,
+            "write_stall": 352,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1774,
+            "other": 1093
+          },
+          {
+            "index": 1,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1639,
+            "other": 1087
+          },
+          {
+            "index": 2,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 3,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 4,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 5,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          },
+          {
+            "index": 6,
+            "read_stall": 834,
+            "write_stall": 192,
+            "load_lock": 863,
+            "other_lock": 64,
+            "empty": 1636,
+            "other": 1087
+          }
+        ],
+        "CREDIT_WORK_TRACE": [
+          {
+            "t": 0,
+            "edge": 216472,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 1,
+            "edge": 216473,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 2,
+            "edge": 216474,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 3,
+            "edge": 216475,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 4,
+            "edge": 216476,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 5,
+            "edge": 216477,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 10,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 6,
+            "edge": 216478,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 1,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 7,
+            "edge": 216479,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 2,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 8,
+            "edge": 216480,
+            "p2": 10002644,
+            "p1": 10002648,
+            "addr": 2147487760,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 212
+          },
+          {
+            "t": 9,
+            "edge": 216481,
+            "p2": 10002648,
+            "p1": "1000264c",
+            "addr": 2147487760,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 1,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445252
+          },
+          {
+            "t": 10,
+            "edge": 216482,
+            "p2": 10002648,
+            "p1": "1000264c",
+            "addr": 2147487760,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445260,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445252
+          },
+          {
+            "t": 11,
+            "edge": 216483,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 1,
+            "fast": 0,
+            "issue_pc": 268445264,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 1,
+            "retire_pc": 268445256
+          },
+          {
+            "t": 12,
+            "edge": 216484,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445268,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 13,
+            "edge": 216485,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445272,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 14,
+            "edge": 216486,
+            "p2": "1000264c",
+            "p1": "1000264c",
+            "addr": 2147487748,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 15,
+            "edge": 216487,
+            "p2": "1000264c",
+            "p1": 10002650,
+            "addr": 2147487748,
+            "write": 1,
+            "pending": 0,
+            "alloc": 1,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 16,
+            "edge": 216488,
+            "p2": "1000264c",
+            "p1": 10002650,
+            "addr": 2147487760,
+            "write": 1,
+            "pending": 1,
+            "alloc": 1,
+            "ret": 0,
+            "ack": 1,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 17,
+            "edge": 216489,
+            "p2": 10002650,
+            "p1": 10002654,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 2,
+            "alloc": 0,
+            "ret": 1,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445260
+          },
+          {
+            "t": 18,
+            "edge": 216490,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 1,
+            "alloc": 0,
+            "ret": 1,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 19,
+            "edge": 216491,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 20,
+            "edge": 216492,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 21,
+            "edge": 216493,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 2,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 22,
+            "edge": 216494,
+            "p2": 10002654,
+            "p1": 10002658,
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445264
+          },
+          {
+            "t": 23,
+            "edge": 216495,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 13,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 1,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 24,
+            "edge": 216496,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 10,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 25,
+            "edge": 216497,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 1,
+            "state": 1,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 26,
+            "edge": 216498,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 2,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 27,
+            "edge": 216499,
+            "p2": 10002658,
+            "p1": "1000265c",
+            "addr": 2147487776,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 1,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445276,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445268
+          },
+          {
+            "t": 28,
+            "edge": 216500,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 1,
+            "fast": 0,
+            "issue_pc": 268445280,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 1,
+            "retire_pc": 268445272
+          },
+          {
+            "t": 29,
+            "edge": 216501,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445284,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445276
+          },
+          {
+            "t": 30,
+            "edge": 216502,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445288,
+            "issue_pop": 1,
+            "lock": 0,
+            "loadlock": 0,
+            "retire": 0,
+            "retire_pc": 268445276
+          },
+          {
+            "t": 31,
+            "edge": 216503,
+            "p2": "1000265c",
+            "p1": "1000265c",
+            "addr": 2147487752,
+            "write": 0,
+            "pending": 0,
+            "alloc": 0,
+            "ret": 0,
+            "ack": 0,
+            "completion": 0,
+            "stall": 0,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445292,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445276
+          },
+          {
+            "t": 32,
+            "edge": 216504,
+            "p2": "1000265c",
+            "p1": 10002660,
+            "addr": 2147487752,
+            "write": 1,
+            "pending": 0,
+            "alloc": 1,
+            "ret": 0,
+            "ack": 1,
+            "completion": 0,
+            "stall": 1,
+            "state": 0,
+            "probe": 0,
+            "fast": 0,
+            "issue_pc": 268445292,
+            "issue_pop": 0,
+            "lock": 1,
+            "loadlock": 1,
+            "retire": 0,
+            "retire_pc": 268445276
+          }
+        ]
+      },
+      "negative_control": [
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ],
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ]
+      ]
+    }
+  ],
+  "raw_outputs": {
+    "loop_control": "build/sim/cpu-store-credit/control-final",
+    "loop_candidate": "build/sim/cpu-store-credit/spare-final",
+    "CPU_stress": [
+      "build/sim/cpu-store-credit/control-peak-01",
+      "build/sim/cpu-store-credit/spare-peak-01"
+    ],
+    "pressure": "build/sim/cpu-store-credit/pressure-02",
+    "workload": [
+      "build/sim/spmark-payload/store-credit-control-01",
+      "build/sim/spmark-payload/store-credit-spare-01"
+    ]
+  }
+}

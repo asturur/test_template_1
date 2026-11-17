@@ -38,8 +38,12 @@ module zap_decode_main #(
 ) (
     output logic [64*8-1:0] o_decompile,  // For debug purposes.
     input  logic            i_uop_last,
+    input logic i_store_overlap,
+    input logic i_load_pair_class,
     input  logic [     1:0] i_swp_tag,
     output logic            o_uop_last,
+    output logic o_store_overlap,
+    output logic o_load_pair_class,
     output logic [     1:0] o_swp_tag,
 
     // -------------------
@@ -307,6 +311,8 @@ module zap_decode_main #(
       o_und_ff                          <= 0;
       o_taken_ff                        <= 0;
       o_uop_last                        <= 0;
+      o_store_overlap <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
     end else if (i_clear_from_writeback || (i_clear_from_alu && !i_data_stall)) begin
       o_irq_ff                          <= 0;
@@ -317,6 +323,8 @@ module zap_decode_main #(
       o_und_ff                          <= 0;
       o_taken_ff                        <= 0;
       o_uop_last                        <= 0;
+      o_store_overlap <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
       o_destination_index_ff            <= 'x;
       o_alu_source_ff                   <= 'x;
@@ -373,6 +381,8 @@ module zap_decode_main #(
       o_ppc_ff                          <= i_ppc_ff;
       o_decompile                       <= decompile_tmp;
       o_uop_last                        <= i_uop_last;
+      o_store_overlap <= i_store_overlap;
+      o_load_pair_class <= i_load_pair_class;
       o_swp_tag                         <= i_swp_tag;
     end
   end

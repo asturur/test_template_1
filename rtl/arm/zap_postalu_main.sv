@@ -39,6 +39,11 @@ module zap_postalu_main #(
     // -----------------------------------------------------------------
 
     input logic i_uop_last,
+    input logic i_store_overlap,
+    input logic i_store_late,
+    input wire i_store_data_ready,
+    input wire [31:0] i_store_data_value,
+    input logic i_load_pair_class,
     input logic [1:0] i_swp_tag,
     input logic [64*8-1:0] i_decompile,
     input logic i_decompile_valid,
@@ -71,6 +76,9 @@ module zap_postalu_main #(
     // -----------------------------------------------------------------
 
     output logic o_uop_last,
+    output logic o_store_overlap,
+    output logic o_store_late,
+    output logic o_load_pair_class,
     output logic [1:0] o_swp_tag,
     output logic [64*8-1:0] o_decompile,  // Debugging output.
     output logic o_decompile_valid,  // Decompile EXCL valid.
@@ -107,6 +115,9 @@ module zap_postalu_main #(
       o_dav_ff                          <= '0;
       o_decompile_valid                 <= '0;
       o_uop_last                        <= '0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
       o_abt_ff                          <= '0;
       o_irq_ff                          <= '0;
@@ -136,6 +147,9 @@ module zap_postalu_main #(
       o_dav_ff                          <= '0;
       o_decompile_valid                 <= '0;
       o_uop_last                        <= '0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
       o_mem_load_ff                     <= '0;
       o_dav_ff                          <= '0;
@@ -172,6 +186,9 @@ module zap_postalu_main #(
         o_dav_ff                          <= '0;
         o_decompile_valid                 <= '0;
         o_uop_last                        <= '0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
         o_swp_tag                         <= 0;
         o_abt_ff                          <= '0;
         o_irq_ff                          <= '0;
@@ -202,6 +219,9 @@ module zap_postalu_main #(
         o_decompile                       <= i_decompile;
         o_decompile_valid                 <= i_decompile_valid;
         o_uop_last                        <= i_uop_last;
+      o_store_overlap <= i_store_overlap;
+      o_store_late <= i_store_late;
+      o_load_pair_class <= i_load_pair_class;
         o_swp_tag                         <= i_swp_tag;
         o_alu_result_ff                   <= i_alu_result_ff;
         o_dav_ff                          <= i_dav_ff;
@@ -227,6 +247,11 @@ module zap_postalu_main #(
         o_data_wb_dat_ff                  <= i_data_wb_dat_ff;
         o_data_wb_sel_ff                  <= i_data_wb_sel_ff;
       end
+    end
+    if (!i_reset && !i_clear_from_writeback && !i_data_mem_fault &&
+        i_data_stall && o_dav_ff && o_store_late && i_store_data_ready) begin
+      o_data_wb_dat_ff <= i_store_data_value;
+      o_store_late <= 1'b0;
     end
   end
 

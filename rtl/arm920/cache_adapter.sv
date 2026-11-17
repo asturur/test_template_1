@@ -23,6 +23,8 @@ module arm920_cache_adapter #(
     output logic write_buffer_empty,
     input logic fast_enable,
     input logic [31:0] fast_next_address,
+    input wire store_overlap_enable,
+    input wire load_pair_enable,
     input wire data_probe_valid,
     input wire [31:0] data_probe_address,
     input logic [31:0] address,
@@ -76,6 +78,30 @@ module arm920_cache_adapter #(
     input logic [31:0] wb_rdata
 );
   logic launched, active_maint, inflight;
+  // Three local credits (one spare), allocated only by the existing certified resident
+  // pipe_accept. Its cache mutation cannot fault after admission. Registered
+  // CPU completion may advance while the physical replies drain in order.
+  // Every other operation waits for all those replies; they cannot complete
+  // a younger load, fault or device access. No live ACK enters CPU stall.
+  reg [1:0] store_pending;
+  wire store_credit_accept;
+  wire store_response = response_valid && store_pending != 0;
+  wire owned_response = response_valid && store_pending == 0;
+  wire overlap_offer = store_overlap_enable && wr && !rd && store_pending < 3;
+  always @(posedge clk) begin
+      if (reset) store_pending <= 0;
+      else case ({store_credit_accept,store_response})
+          2'b10: store_pending <= store_pending + 1'b1;
+          2'b01: store_pending <= store_pending - 1'b1;
+          default: begin end
+      endcase
+  end
+`ifndef SYNTHESIS
+  always @(posedge clk) if (!reset) begin
+      if (store_credit_accept && store_pending >= 3) $fatal(1,"store credit overflow");
+      if (store_response && response_error) $fatal(1,"resident accepted store faulted after credit");
+  end
+`endif
   logic swp_read_abort, swp_lock_active;
   wire swp_uncached_begin = req_valid && req_ready && swp_tag == 1 && !(cache_enable && cacheable);
   // req_valid/req_ready admits the SWP before cache_access can issue its bus
@@ -101,23 +127,23 @@ module arm920_cache_adapter #(
   logic [31:0] bus_adr, bus_data;
   logic [3:0] bus_sel;
   wire request = (rd || wr) && !alignment_fault && !fault && !tlb_busy && !translation_wait;
-  wire fast_hit=fast_enable && rd && !wr && swp_tag == 2'd0 && cache_enable && cacheable && fast_valid && fast_checked==address &&
+  wire fast_hit=(store_pending == 0) && fast_enable && rd && !wr && swp_tag == 2'd0 && cache_enable && cacheable && fast_valid && fast_checked==address &&
                !launched && !active_maint && !lock_pending && !cache_lock_write && !fault && !alignment_fault && !tlb_busy && !translation_wait && !cache_invalidate && !cache_clean;
-  wire req_valid=request && !fast_hit && !launched && !cache_invalidate && !cache_clean && !lock_pending && !cache_lock_write;
+  wire req_valid=request && (store_pending == 0 || overlap_offer) && !fast_hit && !launched && !cache_invalidate && !cache_clean && !lock_pending && !cache_lock_write;
   wire maint_valid=(cache_invalidate || cache_clean) && !launched && !active_maint && !lock_pending && !cache_lock_write;
   assign idle = !launched && !active_maint;
   assign hold = (launched && !response_valid) || (request && !response_valid && !fast_hit);
   assign data = fast_hit ? fast_word : response_data;
   assign fsr=alignment_fault ? 8'h01 : response_valid && swp_tag==2 && swp_read_abort ? swp_abort_fsr : response_valid && response_error ? saved_external_fsr : fsr_in;
   assign far=alignment_fault ? alignment_far : response_valid && swp_tag==2 && swp_read_abort ? swp_abort_far : response_valid && response_error ? saved_external_far : far_in;
-  assign err=((rd || wr) && (alignment_fault || fault)) ||
-            (response_valid && ((response_error && swp_tag!=1) || (swp_tag==2 && swp_read_abort)));
-  assign err2 = (rd || wr) && tlb_busy && !translation_wait && !launched;
+  assign err=(store_pending == 0) && (((rd || wr) && (alignment_fault || fault)) ||
+            (response_valid && ((response_error && swp_tag!=1) || (swp_tag==2 && swp_read_abort))));
+  assign err2 = (store_pending == 0) && (rd || wr) && tlb_busy && !translation_wait && !launched;
   // Demand completion is distinct from the legacy idle/housekeeping ACK.
   // A strobed data request cannot use the idle term; exposing that fact here
   // keeps maintenance ownership out of the CPU-wide stall fanout. Completion
   // and its data/fault controls stay in the same cycle (no delayed stall).
-  assign request_ack=((rd || wr) && (alignment_fault || fault)) || err2 || response_valid || fast_hit;
+  assign request_ack=store_credit_accept || (store_pending == 0 && (((rd || wr) && (alignment_fault || fault)) || err2 || owned_response || fast_hit));
   assign ack=!(rd || wr) && !active_maint && !cache_invalidate && !cache_clean ? 1'b1 : request_ack;
   assign cache_inv_done = mdone && cache_invalidate;
   assign cache_clean_done = mdone && cache_clean;
@@ -159,16 +185,48 @@ module arm920_cache_adapter #(
         pending_lock_base <= cache_lock_base;
       end
       if (apply_lock) lock_pending <= 0;
-      if (req_valid && req_ready) begin
+      if (req_valid && req_ready && !store_credit_accept) begin
         launched <= 1;
         saved_external_fsr <= external_fsr;
         saved_external_far <= address;
       end
-      if (response_valid) launched <= 0;
+      if (owned_response) launched <= 0;
       if (maint_valid && mready) active_maint <= 1;
       if (mdone) active_maint <= 0;
       if (wb_stb && !inflight) inflight <= 1;
       if (inflight && (wb_ack || wb_err)) inflight <= 0;
+    end
+  end
+  // Private pre-read scheduling: capture both raw address candidates without
+  // reset or clock enable. No fast ACK, fault, permission, launched or ready
+  // signal selects or enables these payload flops. P1 has priority; a raw held
+  // P2 read is the fallback. Consumer qualification above remains unchanged.
+  reg [26:0] probe_p1_tag_q, probe_p2_tag_q;
+  reg probe_p1_valid_q, probe_p2_valid_q;
+  // A stalled, unlaunched P2 read owns no cache transaction yet. Remember
+  // its need privately; payload addresses still capture unconditionally.
+  // This small registered control cannot publish data or external effects.
+  reg probe_p2_wait_q;
+  reg probe_pair_q;
+  wire probe_wait_covered;
+  // The current load consumes the existing RAM output while port B prepares
+  // P1. Do not re-read P2 after its registered result already names that line.
+  wire prefer_waiting_p2 = probe_p2_wait_q && probe_p2_valid_q &&
+                           !launched && !probe_wait_covered;
+  wire select_probe_p1 = probe_p1_valid_q && !prefer_waiting_p2;
+  always @(posedge clk) begin
+    probe_p1_tag_q <= data_probe_address[31:5];
+    probe_p2_tag_q <= address[31:5];
+    if (reset) begin
+      probe_p1_valid_q <= 0;
+      probe_p2_valid_q <= 0;
+      probe_p2_wait_q <= 0;
+      probe_pair_q <= 0;
+    end else begin
+      probe_pair_q <= load_pair_enable;
+      probe_p2_wait_q <= DATA_PROBE && !READ_ONLY && rd && !wr && swp_tag == 0 && !launched && !request_ack;
+      probe_p1_valid_q <= DATA_PROBE && !READ_ONLY && data_probe_valid;
+      probe_p2_valid_q <= DATA_PROBE && !READ_ONLY && rd && !wr && swp_tag == 0;
     end
   end
   arm920_cache_access #(
@@ -211,11 +269,13 @@ module arm920_cache_adapter #(
       // Before admission, a current P2 read may overlap translation. Once
       // launched or satisfied, pre-read the independent P1 address instead.
       // Neither address probe launches a walk, refill, write or completion.
-      .data_probe_valid(DATA_PROBE && !READ_ONLY && !active_maint &&
-                        !cache_invalidate && !cache_clean && !lock_pending && !cache_lock_write &&
-                        ((rd && !wr && swp_tag == 2'd0 && !launched && !fast_hit) || data_probe_valid)),
-      .data_probe_address(rd && !wr && swp_tag == 2'd0 && !launched && !fast_hit ?
-                           address : data_probe_address),
+      .req_store_credit_enable(store_overlap_enable && store_pending < 3),
+      .store_credit_accept(store_credit_accept),
+      .data_probe_pair(probe_pair_q && select_probe_p1),
+      .data_probe_wait_tag(probe_p2_tag_q),
+      .data_probe_wait_covered(probe_wait_covered),
+      .data_probe_valid(probe_p1_valid_q || probe_p2_valid_q),
+      .data_probe_address({select_probe_p1 ? probe_p1_tag_q : probe_p2_tag_q, 5'b0}),
       .fast_lookup_valid(fast_valid),
       .fast_lookup_checked(fast_checked),
       .fast_lookup_line(fast_line),

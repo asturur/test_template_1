@@ -1,0 +1,1271 @@
+{
+  "decision": "Working measured intermediate: preserve isolated two-credit candidate; no production/CI/deployment or timing claim. Next measured dependency is registered credit return: 32 one-clock and 31 two-clock gaps per warmed 64-store sequence.",
+  "base": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+  "overlay_sha256": {
+    "tests/cpu/cpu_store_overlap/rtl/arm920/cache_adapter.sv": "50bbdfe8736d79a995c3fe3575ac7da34d8fc4f1ef67e684ec5028213f14f0b3",
+    "tests/cpu/cpu_store_overlap/rtl/arm920/cache_access.sv": "62212f8ab7d3496f0efce42aa69825119999df7807ff80bdcd33704838fc9c0e",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_core.sv": "189d2740798566c5ca8ae2e6efd65d44aca0e4c2a560c91160924c790db579ad",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_top.sv": "412cd7acf70aa11203f9c7e52acfb7accb467d6ab1db99103d4b8c7494b7271a",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_issue_main.sv": "4292bd62dbdd16481ed2816baad831937e027776a8a86c5d746d963288ee7821",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_shifter_main.sv": "76cb7da8c8906e1ce7359de9011d388d87bb8a581893443e4d03c395746e6e27",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_predecode_main.sv": "f60991a02a0b51eadfffa3a8cd24351c9a8d78acde327cead640672b90d78330",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_dcache.sv": "989989bdcc3ce101e300b9e0c299f5667917243bb7ff2528bdc374980cf7459b",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_alu_main.sv": "377adcc791bdb9df1a33bb0ae3e622c6aaba1ef9f025174aeec2c1b3d34ca69e",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_cache.sv": "5806078d5f5b8f105ef47b2b5206310dbc71d59ca085a3ccdd88e3dbb40beb24",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_postalu_main.sv": "9899389bb02c38877f48039dc8210027f54985fc083aaa67158eac9d5cb2f1b8",
+    "tests/cpu/cpu_store_overlap/rtl/arm/zap_decode_main.sv": "eedc782a8c2fcdbbe3023bb3fa2d075d46b64c61c6de495fe88c2032006130de"
+  },
+  "control_source_id": "18447080c84ed71db73ce42d5f65d0f44f61f162e3da08e0488c1624602a13ea",
+  "candidate_source_id": "dcbc85875b34ffaeafe289cea6ecd6e806ec37878fdbb5a8c85f7ded0c93edcb",
+  "same_loop_guest_sha256": "eec49a2e426c6d55c96c3a39dad5a2f6fe70cd7a3a1773d7293402ee7aa0e594",
+  "same_loop_harness_sha256": "5e06e5909ded31e9b53d794e24296adaae3218844d4e9b9c88d6b881ec50efd2",
+  "same_loop_observer_sha256": "f4ad44883947bce7029b0d379e1d24a88b0d4c42a43954aaf516612b041955b3",
+  "control": {
+    "windows": [
+      {
+        "index": 0,
+        "cycles": 389,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 8,
+        "halfwords": 133
+      },
+      {
+        "index": 1,
+        "cycles": 218,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 2,
+        "cycles": 218,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 3,
+        "cycles": 218,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 4,
+        "cycles": 218,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 5,
+        "cycles": 218,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 6,
+        "cycles": 218,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      }
+    ],
+    "segments": [
+      {
+        "window": 0,
+        "stores": 64,
+        "first_issue": 95169,
+        "first_accept": 95174,
+        "last_accept": 95516,
+        "first_write": 95176,
+        "last_write": 95518,
+        "issue_through_drain": 350,
+        "accept_through_drain": 345
+      },
+      {
+        "window": 1,
+        "stores": 64,
+        "first_issue": 95580,
+        "first_accept": 95585,
+        "last_accept": 95774,
+        "first_write": 95587,
+        "last_write": 95776,
+        "issue_through_drain": 197,
+        "accept_through_drain": 192
+      },
+      {
+        "window": 2,
+        "stores": 64,
+        "first_issue": 95821,
+        "first_accept": 95826,
+        "last_accept": 96015,
+        "first_write": 95828,
+        "last_write": 96017,
+        "issue_through_drain": 197,
+        "accept_through_drain": 192
+      },
+      {
+        "window": 3,
+        "stores": 64,
+        "first_issue": 96043,
+        "first_accept": 96048,
+        "last_accept": 96237,
+        "first_write": 96050,
+        "last_write": 96239,
+        "issue_through_drain": 197,
+        "accept_through_drain": 192
+      },
+      {
+        "window": 4,
+        "stores": 64,
+        "first_issue": 96265,
+        "first_accept": 96270,
+        "last_accept": 96459,
+        "first_write": 96272,
+        "last_write": 96461,
+        "issue_through_drain": 197,
+        "accept_through_drain": 192
+      },
+      {
+        "window": 5,
+        "stores": 64,
+        "first_issue": 96487,
+        "first_accept": 96492,
+        "last_accept": 96681,
+        "first_write": 96494,
+        "last_write": 96683,
+        "issue_through_drain": 197,
+        "accept_through_drain": 192
+      },
+      {
+        "window": 6,
+        "stores": 64,
+        "first_issue": 96709,
+        "first_accept": 96714,
+        "last_accept": 96903,
+        "first_write": 96716,
+        "last_write": 96905,
+        "issue_through_drain": 197,
+        "accept_through_drain": 192
+      }
+    ],
+    "histograms": [
+      {
+        "window": 2,
+        "gap": 3,
+        "count": 63
+      },
+      {
+        "window": 3,
+        "gap": 3,
+        "count": 63
+      },
+      {
+        "window": 4,
+        "gap": 3,
+        "count": 63
+      },
+      {
+        "window": 5,
+        "gap": 3,
+        "count": 63
+      },
+      {
+        "window": 6,
+        "gap": 3,
+        "count": 63
+      }
+    ],
+    "boundary": [
+      {
+        "irq": 1,
+        "abort": 1,
+        "held_store_clocks": 21430,
+        "full_owner_holds": 0,
+        "target_holds": 896,
+        "target_full_holds": 0,
+        "following_load": "PASS",
+        "byte_transition": "PASS"
+      }
+    ],
+    "edges": [
+      {
+        "kind": "issue",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95821
+      },
+      {
+        "kind": "issue",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95822
+      },
+      {
+        "kind": "issue",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95823
+      },
+      {
+        "kind": "issue",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95824
+      },
+      {
+        "kind": "issue",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95825
+      },
+      {
+        "kind": "accept",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95826,
+        "outstanding": 0
+      },
+      {
+        "kind": "write",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95828
+      },
+      {
+        "kind": "issue",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95829
+      },
+      {
+        "kind": "accept",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95829,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95829
+      },
+      {
+        "kind": "retire",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95830
+      },
+      {
+        "kind": "write",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95831
+      },
+      {
+        "kind": "issue",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95832
+      },
+      {
+        "kind": "accept",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95832,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95832
+      },
+      {
+        "kind": "retire",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95833
+      },
+      {
+        "kind": "write",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95834
+      },
+      {
+        "kind": "issue",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95835
+      },
+      {
+        "kind": "accept",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95835,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95835
+      },
+      {
+        "kind": "retire",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95836
+      },
+      {
+        "kind": "write",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95837
+      },
+      {
+        "kind": "accept",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95838,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95838
+      },
+      {
+        "kind": "retire",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95839
+      },
+      {
+        "kind": "write",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95840
+      },
+      {
+        "kind": "accept",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95841,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95841
+      },
+      {
+        "kind": "retire",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95842
+      },
+      {
+        "kind": "write",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95843
+      },
+      {
+        "kind": "accept",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95844,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95844
+      },
+      {
+        "kind": "retire",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95845
+      },
+      {
+        "kind": "write",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95846
+      },
+      {
+        "kind": "accept",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95847,
+        "outstanding": 0
+      },
+      {
+        "kind": "complete",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95847
+      },
+      {
+        "kind": "retire",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95848
+      },
+      {
+        "kind": "write",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95849
+      },
+      {
+        "kind": "complete",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95850
+      },
+      {
+        "kind": "retire",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95851
+      }
+    ],
+    "first_pair": [],
+    "pass_line": "PASS overlap accepted_issue=448 accepted=448 physical_writes=448 completions=448 retired=448 independent_backing_words=16 overlapping_accepts=0",
+    "total": [
+      {
+        "windows": 7,
+        "cycles": 100128,
+        "reads": 20550,
+        "writes": 4118,
+        "lines": 28,
+        "halfwords": 448
+      }
+    ],
+    "log_sha256": "cf71c0f0fef13e5bb794e05fd94a5cd0d418f2be4e1bc794d11782b064fa9ac3",
+    "repeat_sha256": "14c19705cc348b59c5e29c7ea1d46882edce04192a5cab27d84afaf6d3e15a0b"
+  },
+  "candidate": {
+    "windows": [
+      {
+        "index": 0,
+        "cycles": 389,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 8,
+        "halfwords": 133
+      },
+      {
+        "index": 1,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 2,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 3,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 4,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 5,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      },
+      {
+        "index": 6,
+        "cycles": 123,
+        "retire_proxy": 73,
+        "reads": 0,
+        "writes": 0,
+        "lines": 0,
+        "halfwords": 0
+      }
+    ],
+    "segments": [
+      {
+        "window": 0,
+        "stores": 64,
+        "first_issue": 95169,
+        "first_accept": 95174,
+        "last_accept": 95511,
+        "first_write": 95176,
+        "last_write": 95513,
+        "issue_through_drain": 345,
+        "accept_through_drain": 340
+      },
+      {
+        "window": 1,
+        "stores": 64,
+        "first_issue": 95580,
+        "first_accept": 95585,
+        "last_accept": 95679,
+        "first_write": 95587,
+        "last_write": 95681,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 2,
+        "stores": 64,
+        "first_issue": 95726,
+        "first_accept": 95731,
+        "last_accept": 95825,
+        "first_write": 95733,
+        "last_write": 95827,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 3,
+        "stores": 64,
+        "first_issue": 95853,
+        "first_accept": 95858,
+        "last_accept": 95952,
+        "first_write": 95860,
+        "last_write": 95954,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 4,
+        "stores": 64,
+        "first_issue": 95980,
+        "first_accept": 95985,
+        "last_accept": 96079,
+        "first_write": 95987,
+        "last_write": 96081,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 5,
+        "stores": 64,
+        "first_issue": 96107,
+        "first_accept": 96112,
+        "last_accept": 96206,
+        "first_write": 96114,
+        "last_write": 96208,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      },
+      {
+        "window": 6,
+        "stores": 64,
+        "first_issue": 96234,
+        "first_accept": 96239,
+        "last_accept": 96333,
+        "first_write": 96241,
+        "last_write": 96335,
+        "issue_through_drain": 102,
+        "accept_through_drain": 97
+      }
+    ],
+    "histograms": [
+      {
+        "window": 2,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 2,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 3,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 3,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 4,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 4,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 5,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 5,
+        "gap": 2,
+        "count": 31
+      },
+      {
+        "window": 6,
+        "gap": 1,
+        "count": 32
+      },
+      {
+        "window": 6,
+        "gap": 2,
+        "count": 31
+      }
+    ],
+    "boundary": [
+      {
+        "irq": 1,
+        "abort": 1,
+        "held_store_clocks": 20757,
+        "full_owner_holds": 216,
+        "target_holds": 209,
+        "target_full_holds": 209,
+        "following_load": "PASS",
+        "byte_transition": "PASS"
+      }
+    ],
+    "edges": [
+      {
+        "kind": "issue",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95726
+      },
+      {
+        "kind": "issue",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95727
+      },
+      {
+        "kind": "issue",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95728
+      },
+      {
+        "kind": "issue",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95729
+      },
+      {
+        "kind": "issue",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95730
+      },
+      {
+        "kind": "accept",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95731,
+        "outstanding": 0
+      },
+      {
+        "kind": "issue",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95732
+      },
+      {
+        "kind": "accept",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95732,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95732
+      },
+      {
+        "kind": "issue",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95733
+      },
+      {
+        "kind": "write",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95733
+      },
+      {
+        "kind": "complete",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95733
+      },
+      {
+        "kind": "retire",
+        "seq": 128,
+        "pc": 396,
+        "edge": 95733
+      },
+      {
+        "kind": "accept",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95734,
+        "outstanding": 1
+      },
+      {
+        "kind": "write",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95734
+      },
+      {
+        "kind": "retire",
+        "seq": 129,
+        "pc": 400,
+        "edge": 95734
+      },
+      {
+        "kind": "issue",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95735
+      },
+      {
+        "kind": "accept",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95735,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95735
+      },
+      {
+        "kind": "write",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95736
+      },
+      {
+        "kind": "complete",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95736
+      },
+      {
+        "kind": "retire",
+        "seq": 130,
+        "pc": 404,
+        "edge": 95736
+      },
+      {
+        "kind": "accept",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95737,
+        "outstanding": 1
+      },
+      {
+        "kind": "write",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95737
+      },
+      {
+        "kind": "retire",
+        "seq": 131,
+        "pc": 408,
+        "edge": 95737
+      },
+      {
+        "kind": "accept",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95738,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95738
+      },
+      {
+        "kind": "write",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95739
+      },
+      {
+        "kind": "complete",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95739
+      },
+      {
+        "kind": "retire",
+        "seq": 132,
+        "pc": 412,
+        "edge": 95739
+      },
+      {
+        "kind": "accept",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95740,
+        "outstanding": 1
+      },
+      {
+        "kind": "write",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95740
+      },
+      {
+        "kind": "retire",
+        "seq": 133,
+        "pc": 416,
+        "edge": 95740
+      },
+      {
+        "kind": "accept",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95741,
+        "outstanding": 1
+      },
+      {
+        "kind": "complete",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95741
+      },
+      {
+        "kind": "write",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95742
+      },
+      {
+        "kind": "complete",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95742
+      },
+      {
+        "kind": "retire",
+        "seq": 134,
+        "pc": 420,
+        "edge": 95742
+      },
+      {
+        "kind": "write",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95743
+      },
+      {
+        "kind": "retire",
+        "seq": 135,
+        "pc": 424,
+        "edge": 95743
+      }
+    ],
+    "first_pair": [
+      {
+        "older_seq": 0,
+        "older_pc": 396,
+        "older_accept": 95174,
+        "younger_seq": 1,
+        "younger_pc": 400,
+        "younger_accept": 95175,
+        "physical_write_now": 0
+      }
+    ],
+    "pass_line": "PASS overlap accepted_issue=448 accepted=448 physical_writes=448 completions=448 retired=448 independent_backing_words=16 overlapping_accepts=433",
+    "total": [
+      {
+        "windows": 7,
+        "cycles": 99558,
+        "reads": 20550,
+        "writes": 4118,
+        "lines": 28,
+        "halfwords": 448
+      }
+    ],
+    "log_sha256": "ab8b0acd2d79f298c065d497e99d434ce66bca9b0dde2b1cc65219ca0509f243",
+    "repeat_sha256": "e3d633144f7ea57fa6579ced6286f9500a3f14a9bed1dac153b15736292aa7a4"
+  },
+  "loop_comparison": {
+    "stores": 64,
+    "issue_through_drained_write": {
+      "control": 197,
+      "candidate": 102,
+      "cycle_reduction_percent": 48.223350253807105,
+      "control_cycles_per_store": 3.078125,
+      "candidate_cycles_per_store": 1.59375
+    },
+    "marked_window_including_following_load_and_byte_checks": {
+      "control": 218,
+      "candidate": 123,
+      "cycle_reduction_percent": 43.57798165137615
+    }
+  },
+  "workloads": [
+    {
+      "case": "transpose4",
+      "profile": "0:0",
+      "control_cycles": 5130,
+      "candidate_cycles": 4676,
+      "cycle_delta": -454,
+      "cycle_change_percent": -8.849902534113063,
+      "control_store_metrics": [
+        {
+          "index": 0,
+          "accepted": 384,
+          "resident_pipe": 352,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 1,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 2,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 3,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 4,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 5,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 6,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        }
+      ],
+      "candidate_store_metrics": [
+        {
+          "index": 0,
+          "accepted": 384,
+          "resident_pipe": 352,
+          "admission_credit": 352,
+          "overlap": 160
+        },
+        {
+          "index": 1,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 2,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 3,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 4,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 5,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 6,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        }
+      ],
+      "wrong_output_controls": [
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ],
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ]
+      ],
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      }
+    },
+    {
+      "case": "transpose4",
+      "profile": "2:9",
+      "control_cycles": 5130,
+      "candidate_cycles": 4676,
+      "cycle_delta": -454,
+      "cycle_change_percent": -8.849902534113063,
+      "control_store_metrics": [
+        {
+          "index": 0,
+          "accepted": 384,
+          "resident_pipe": 352,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 1,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 2,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 3,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 4,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 5,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        },
+        {
+          "index": 6,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 0,
+          "overlap": 0
+        }
+      ],
+      "candidate_store_metrics": [
+        {
+          "index": 0,
+          "accepted": 384,
+          "resident_pipe": 352,
+          "admission_credit": 352,
+          "overlap": 160
+        },
+        {
+          "index": 1,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 2,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 3,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 4,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 5,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        },
+        {
+          "index": 6,
+          "accepted": 384,
+          "resident_pipe": 384,
+          "admission_credit": 384,
+          "overlap": 192
+        }
+      ],
+      "wrong_output_controls": [
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ],
+        [
+          {
+            "case": "transpose4",
+            "status": "PASS",
+            "wrong_output_rejected": true
+          }
+        ]
+      ],
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      }
+    }
+  ],
+  "negative_control": {
+    "status": "EXPECTED_FAILURE",
+    "returncode": 1,
+    "log_sha256": "c8a4c276cc5d40adecd2b38b7f076cdfeb633f5a8a015828b74cfc80d153a755",
+    "reason": "deliberately wrong first expected physical byte rejected"
+  },
+  "compatibility": {
+    "qualification": "build/sim/store-overlap-qualification-01/result.json",
+    "probe": "build/sim/store-overlap-probe-final/result.json"
+  },
+  "raw_outputs": {
+    "loop_control": "build/sim/cpu-store-overlap/control-final-02",
+    "loop_candidate": "build/sim/cpu-store-overlap/candidate-final-02",
+    "workload_control": "build/sim/spmark-payload/store-overlap-control-01",
+    "workload_candidate": "build/sim/spmark-payload/store-overlap-candidate-final"
+  }
+}

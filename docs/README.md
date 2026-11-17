@@ -6,7 +6,23 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
-| [dsp-mapping-audit.md](dsp-mapping-audit.md) | DSP inventory, original instruction mix and a qualified isolated full-product candidate; physical savings unmeasured |
+| [cpu-frontend-delivery-fit.md](cpu-frontend-delivery-fit.md) | Verified78MHz RBF, exact178-input audit, seed42 resources and actual78/104 timing; timing gate red |
+| [cpu-frontend-delivery.md](cpu-frontend-delivery.md) | Step5A matrix52125→50033 and ThumbJPEG86428→84353, zero added state, matched call/return ownership and failed/corrected traces |
+| [cpu-store-second.md](cpu-store-second.md) | Step4G two pending bits, transpose4041→3625, exact4F comparison and held/fault/banked ownership |
+| [cpu-store-late.md](cpu-store-late.md) | Step4F private early store address, exact late data,192-pair/384-write ledger, transpose gain and fault/permission/MMIO qualification |
+| [cpu-issue-recovery.md](cpu-issue-recovery.md) | Step 4E exact 65-load/34-clock causal accounting, registered CPU redirect handoff, original transpose/matrix gains, FCSE correction and focused hazards |
+| [cpu-load-overlap.md](cpu-load-overlap.md) | Step 4D independent ARM load-pair qualification, actual reply-edge RAM work, ordered register/store traces, pair-loop/transpose gains and preserved store stream |
+| [cpu-load-delivery.md](cpu-load-delivery.md) | Step 4C registered waiting-load probe choice, exact 32-cycle transpose gain, first-load classification, stale/fault checks and preserved 71-cycle stores |
+| [cpu-store-credit.md](cpu-store-credit.md) | Step 4B spare registered credit, one-clock store acceptance/write stream, peak-pressure/reset checks and transpose's remaining load dependency |
+| [cpu-store-overlap.md](cpu-store-overlap.md) | Step 4A real ARM store overlap, first instruction pair, ordered memory/exception checks and loop/transpose cycle gains |
+| [cache-probe-admission-retime-fit.md](cache-probe-admission-retime-fit.md) | Stop 3D matched seed-42 fit, actual input audit, new probe/RAM endpoints, 78/104 MHz corner comparison and remaining admission/exclusion retiming |
+| [cache-probe-admission-retime.md](cache-probe-admission-retime.md) | Stop 3C registered probe scheduling, preserved store/admission gates, actual CPU cost and next-fit decision |
+| [cache-resident-store-pipeline-fit.md](cache-resident-store-pipeline-fit.md) | Matched seed-42 full-core resources, 78/104 MHz routed analysis, input audit and retiming decision |
+| [cache-resident-store-pipeline-qualification.md](cache-resident-store-pipeline-qualification.md) | Stop 3A lifecycle/probe/refill qualification, corrected pulse/fast-return ownership, failing traces and matched-fit decision |
+| [cache-resident-store-pipeline-prototype.md](cache-resident-store-pipeline-prototype.md) | Isolated Step 2 store pipeline, one-clock acceptance/actual commit, dirty forwarding and replayable source overlay |
+| [cache-resident-stream-baseline.md](cache-resident-stream-baseline.md) | Verified Step 1 cache-port streaming fixture, actual RAM/dirty-half checks, four-clock baseline and implementation handoff |
+| [cpu-pipeline-architecture-review.md](cpu-pipeline-architecture-review.md) | Current CPU/cache cycle traces, same-clock speed limits, recommended pipeline, resource budgets and ordered qualification plan |
+| [dsp-mapping-audit.md](dsp-mapping-audit.md) | Fitted CPU full-product mapping, DSP inventory, original instruction mix and workload qualification |
 | [mmc-writes.md](mmc-writes.md) | Implemented MMC write interface, RAM/ACK ownership and local protocol/DMA qualification; physical gates pending |
 | [sis-library.md](sis-library.md) | Verified 1 GB installer MMC with383 SIS packages, native Manager layout and internal C: limits |
 | [jpeg-next-performance.md](jpeg-next-performance.md) | POP/BX return recognition adopted in b707ebd: +9.40% local JPEG throughput, four state bits; physical/native gates pending |

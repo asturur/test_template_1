@@ -1,0 +1,575 @@
+{
+  "decision": "READY for a matched full-core fit; no fit submitted",
+  "match": {
+    "revision": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+    "debugger": true,
+    "seed": 42,
+    "actual_MHz": 78,
+    "analysis_target_MHz": 104
+  },
+  "candidate_sha256": {
+    "tests/cpu/cache_resident_qualification/rtl/cache_access.sv": "88cfb92a983388a02e9d75657fb648c402b290c2fea5b419346b010f4de46ef5",
+    "tests/cpu/cache_resident_qualification/rtl/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "tests/cpu/cache_resident_qualification/rtl/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "tests/cpu/cache_resident_qualification/rtl/ngage_bram.v": "b8094d6f9d4b39a75ee6ba97520f663561757cf66bd9f1a2dcdeaed817b739a0"
+  },
+  "runs": {
+    "full": {
+      "directory": "build/sim/resident-qual-full-20261116-05",
+      "manifest_sha256": "9f9c45d7af45e464934da5d077de1999f951bdcfebe4e03e72102480e5493e35",
+      "result_sha256": "359905081e9626dfa114a5b65010fc8b010ec9f7964978680eed30abfcf680df",
+      "pass_lines": [
+        "PASS qualification lifecycle=35 probes=8 transfers=4"
+      ],
+      "run_sha256": "25ff19d3935f1cc4b9228502e6dc56599409060d4d159eb8c32a629687d36a91",
+      "repeat_sha256": "8b23da4a4e057c35c61c26d4ff9c58eaf7d35ede52ac90595e9df7689d5f0d15"
+    },
+    "admit": {
+      "directory": "build/sim/resident-qual-admit-20261116-01",
+      "manifest_sha256": "b3baf257f8abd93b6a86d0c4151ba58a394498fc3031bdedd203600b753f5982",
+      "result_sha256": "7df25c13adeb263ee69cb62ebeac1d867b44a413533547e336dc60abde15f940",
+      "pass_lines": [
+        "PASS admitted probe: 256 short reads, 3 mismatches, all segments/words/masks, faults, SWP, maintenance and reset"
+      ],
+      "run_sha256": "e3a9cbbe2f21c5fdf5d635b13c0b8169b0a45c0db7e98c395c0e4a93f72525aa"
+    },
+    "probe": {
+      "directory": "build/sim/resident-qual-probe-20261116-01",
+      "manifest_sha256": "823b9402a93a4aa679dfd59dbecb508be85745387e5000da191b7219f7b83631",
+      "result_sha256": "fc4a663ae83808406e645b8f3dce08a1fe4cc6ba85ec3349bc5523278b522b80",
+      "pass_lines": [
+        "PASS: 402 requests; 164 fast reads, 8 concurrent A/B clocks, 122 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+      ],
+      "run_sha256": "32145b2b61ab39f022dbcfbcf90561c67819cc13d2713a5d09a2eec03416ac63"
+    },
+    "adapter_lock": {
+      "directory": "build/sim/resident-qual-adapter-lock-20261116-01",
+      "manifest_sha256": "a00a2893db4adeee5e1b19bda0ab080c986d323c44512167a12657f4ee69310f",
+      "result_sha256": "f7974eb02e9faa9fa9a62bfaf9a21d1b4576e1731dd32ff355187f8df55e390c",
+      "pass_lines": [
+        "PASS adapter pulsed pending lock after live store: one done, correct following read",
+        "PASS: 407 requests; 164 fast reads, 9 concurrent A/B clocks, 122 blocked collisions; all words/masks/dirty halves, permission/alignment/translation/SWP/uncached/revocation/reset"
+      ],
+      "run_sha256": "cb5bf9e40bc80e11ef2fb4fbaf7d3ce7702d3a2645d36544002ec5abd0ddfd1f"
+    },
+    "refill": {
+      "directory": "build/sim/resident-qual-refill-20261116-01",
+      "manifest_sha256": "ea5107e8ff4002e50eedeb24bfa1c79cb99aed5713c1b68cb4966293c14c63c2",
+      "result_sha256": "e800f8c68f67e507110dd1429224773b53a180a99bd290c756429b335b2de5a7",
+      "pass_lines": [
+        "PASS: cache bank replacement survives bus error and retries dirty victim"
+      ],
+      "run_sha256": "74a72dbbdf319d5c05db7e9a40f0809bb84b191477e3c6da631cc35777cb9e02"
+    },
+    "maintenance": {
+      "directory": "build/sim/resident-qual-maintenance-20261116-01",
+      "manifest_sha256": "dc6dd4343a7e0c707dbfcb8f8e6be1662ecf64cde2021327b760b978590ac265",
+      "result_sha256": "e89a14d13ab53de672076197e76ae35a359e7f15f14fd91b5ac4e364e9b2a370",
+      "pass_lines": [
+        "PASS: indexed clean, error retention and invalidate all"
+      ],
+      "run_sha256": "a9a1e9750bcad49cb3f954e36ad3d9ed49ed80e41479f11baf91394028a63d74"
+    },
+    "baseline": {
+      "directory": "build/sim/resident-qual-stream-control-20261116-01",
+      "manifest_sha256": "c29af8e5d14634375edb50ec842d069a9c3be8ea1d0acb7e6d1e8f9bb590a2a5",
+      "result_sha256": "5ac3a8790a80618b9f98c9fc21301db7d1c25b4b7314b7f50f21ea4a0721e1d5",
+      "streams": [
+        {
+          "stream": 0,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 63,
+          "last_accept": 1083,
+          "first_commit": 66,
+          "last_commit": 1086,
+          "latency": 3,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "successive_words_both_halves",
+          "offered_edges": 1021,
+          "backpressured_offer_edges": 765,
+          "accept_intervals": {
+            "4": 255
+          },
+          "commit_intervals": {
+            "4": 255
+          },
+          "accept_stores_per_clock": 0.25,
+          "commit_stores_per_clock": 0.25,
+          "dirty_verification": "VERIFIED stream=0 dirty0=11 dirty1=00 clean_words=8 second_clean_words=0"
+        },
+        {
+          "stream": 1,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 4244,
+          "last_accept": 5264,
+          "first_commit": 4247,
+          "last_commit": 5267,
+          "latency": 3,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "alternating_two_lines",
+          "offered_edges": 1021,
+          "backpressured_offer_edges": 765,
+          "accept_intervals": {
+            "4": 255
+          },
+          "commit_intervals": {
+            "4": 255
+          },
+          "accept_stores_per_clock": 0.25,
+          "commit_stores_per_clock": 0.25,
+          "dirty_verification": "VERIFIED stream=1 dirty0=11 dirty1=11 clean_words=16 second_clean_words=0"
+        },
+        {
+          "stream": 2,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 8435,
+          "last_accept": 9455,
+          "first_commit": 8438,
+          "last_commit": 9458,
+          "latency": 3,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "same_word_partial_bytes",
+          "offered_edges": 1021,
+          "backpressured_offer_edges": 765,
+          "accept_intervals": {
+            "4": 255
+          },
+          "commit_intervals": {
+            "4": 255
+          },
+          "accept_stores_per_clock": 0.25,
+          "commit_stores_per_clock": 0.25,
+          "dirty_verification": "VERIFIED stream=2 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 3,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 12612,
+          "last_accept": 13632,
+          "first_commit": 12615,
+          "last_commit": 13635,
+          "latency": 3,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "lower_half_only",
+          "offered_edges": 1021,
+          "backpressured_offer_edges": 765,
+          "accept_intervals": {
+            "4": 255
+          },
+          "commit_intervals": {
+            "4": 255
+          },
+          "accept_stores_per_clock": 0.25,
+          "commit_stores_per_clock": 0.25,
+          "dirty_verification": "VERIFIED stream=3 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 4,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 16789,
+          "last_accept": 17809,
+          "first_commit": 16792,
+          "last_commit": 17812,
+          "latency": 3,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "upper_half_only",
+          "offered_edges": 1021,
+          "backpressured_offer_edges": 765,
+          "accept_intervals": {
+            "4": 255
+          },
+          "commit_intervals": {
+            "4": 255
+          },
+          "accept_stores_per_clock": 0.25,
+          "commit_stores_per_clock": 0.25,
+          "dirty_verification": "VERIFIED stream=4 dirty0=10 dirty1=00 clean_words=4 second_clean_words=0"
+        }
+      ],
+      "repeat": "PASS: all events, edges, summaries and checks identical; exclude Verilator walltime footer",
+      "negative_control": "PASS: +corrupt_expected fails at first RAM commit with checker byte mismatch (negative control=1)"
+    },
+    "stream_default": {
+      "directory": "build/sim/resident-qual-stream-default-20261116-01",
+      "manifest_sha256": "baea5b01fd7e73972c988471fd6c08017c29ee94a1f3334a34258ea5f817ea19",
+      "result_sha256": "5ef4beed337ef4230076f7c69db977d02803a2a74c9f1efebe260282725c7c39",
+      "streams": [
+        {
+          "stream": 0,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 63,
+          "last_accept": 318,
+          "first_commit": 65,
+          "last_commit": 320,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "successive_words_both_halves",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=0 dirty0=11 dirty1=00 clean_words=8 second_clean_words=0"
+        },
+        {
+          "stream": 1,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 3478,
+          "last_accept": 3733,
+          "first_commit": 3480,
+          "last_commit": 3735,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "alternating_two_lines",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=1 dirty0=11 dirty1=11 clean_words=16 second_clean_words=0"
+        },
+        {
+          "stream": 2,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 6903,
+          "last_accept": 7158,
+          "first_commit": 6905,
+          "last_commit": 7160,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "same_word_partial_bytes",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=2 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 3,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 10314,
+          "last_accept": 10569,
+          "first_commit": 10316,
+          "last_commit": 10571,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "lower_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=3 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 4,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 13725,
+          "last_accept": 13980,
+          "first_commit": 13727,
+          "last_commit": 13982,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "upper_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=4 dirty0=10 dirty1=00 clean_words=4 second_clean_words=0"
+        }
+      ],
+      "repeat": "PASS: all events, edges, summaries and checks identical; exclude Verilator walltime footer",
+      "negative_control": "PASS: +corrupt_expected fails at first RAM commit with checker byte mismatch (negative control=1)"
+    },
+    "stream_integrated": {
+      "directory": "build/sim/resident-qual-stream-integrated-20261116-01",
+      "manifest_sha256": "148251ef3c556deb01d69a467e45ed3e34edb191baf64a0e8c2f126c2b4f728a",
+      "result_sha256": "68aed9ad9ed7f24155b045575ea8b47f993220f594013065f27062074f4bf887",
+      "streams": [
+        {
+          "stream": 0,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 67,
+          "last_accept": 322,
+          "first_commit": 69,
+          "last_commit": 324,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "successive_words_both_halves",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=0 dirty0=11 dirty1=00 clean_words=8 second_clean_words=0"
+        },
+        {
+          "stream": 1,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 3482,
+          "last_accept": 3737,
+          "first_commit": 3484,
+          "last_commit": 3739,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "alternating_two_lines",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=1 dirty0=11 dirty1=11 clean_words=16 second_clean_words=0"
+        },
+        {
+          "stream": 2,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 6907,
+          "last_accept": 7162,
+          "first_commit": 6909,
+          "last_commit": 7164,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "same_word_partial_bytes",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=2 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 3,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 10318,
+          "last_accept": 10573,
+          "first_commit": 10320,
+          "last_commit": 10575,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "lower_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=3 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+        },
+        {
+          "stream": 4,
+          "accepted": 256,
+          "committed": 256,
+          "responses": 256,
+          "first_accept": 13729,
+          "last_accept": 13984,
+          "first_commit": 13731,
+          "last_commit": 13986,
+          "latency": 2,
+          "ext_reads": 0,
+          "ext_writes": 0,
+          "name": "upper_half_only",
+          "offered_edges": 256,
+          "backpressured_offer_edges": 0,
+          "accept_intervals": {
+            "1": 255
+          },
+          "commit_intervals": {
+            "1": 255
+          },
+          "accept_stores_per_clock": 1.0,
+          "commit_stores_per_clock": 1.0,
+          "dirty_verification": "VERIFIED stream=4 dirty0=10 dirty1=00 clean_words=4 second_clean_words=0"
+        }
+      ],
+      "repeat": "PASS: all events, edges, summaries and checks identical; exclude Verilator walltime footer",
+      "negative_control": "PASS: +corrupt_expected fails at first RAM commit with checker byte mismatch (negative control=1)"
+    },
+    "invalidate_negative": {
+      "directory": "build/sim/resident-qual-first-failure-20261116-01",
+      "manifest_sha256": "1ae23f61839ca60a4846618d54e2abdabce4a32f63eb522be3a69f6f167fd588",
+      "run_sha256": "25f153a64d109c232209c882d1d68cbfb363007791d8b97a3034c82b32730394",
+      "expected_failure": true
+    },
+    "fast_negative": {
+      "directory": "build/sim/resident-qual-stale-fast-20261116-01",
+      "manifest_sha256": "073299a72bbb864c6a271c3a9aa9b5d80953ac7653f7a815e0ebd04da59fbaa2",
+      "run_sha256": "673e1ffed70cd67d201d35d9ed80606f7d57029e92b25d3332bef6f0d08af7a9",
+      "expected_failure": true
+    }
+  },
+  "traces": {
+    "invalidate_failing": [
+      "EDGE e=66 event=1 stage=2 req=1 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0",
+      "EDGE e=67 event=1 stage=2 req=1 ready=1 owner=1 intent=1 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0",
+      "EDGE e=68 event=1 stage=2 req=0 ready=0 owner=1 intent=0 commit=0 reply=1 inv=1 lock=0 reset=0 fast=0",
+      "[675000] %Fatal: test.v:121: Assertion failed in test: reply without physical commit"
+    ],
+    "invalidate_corrected": [
+      "EDGE e=1074 event=1 stage=2 req=1 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=1075 event=1 stage=2 req=1 ready=1 owner=1 intent=1 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=1076 event=1 stage=2 req=0 ready=0 owner=1 intent=1 commit=1 reply=1 inv=1 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=1077 event=1 stage=2 req=0 ready=0 owner=0 intent=0 commit=1 reply=1 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=1078 event=1 stage=2 req=0 ready=0 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=1 apply_lock=0",
+      "EDGE e=1079 event=1 stage=2 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=1080 event=1 stage=2 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0"
+    ],
+    "fast_failing": [
+      "EDGE e=113 event=8 stage=0 req=1 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "STALE_FAST e=113 target=00000100 word=51000100 commits=0 accepts=1",
+      "[1131000] %Fatal: test.v:231: Assertion failed in test.probes: fast ACK before older store drain"
+    ],
+    "fast_corrected": [
+      "EDGE e=27495 event=8 stage=0 req=1 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27496 event=8 stage=0 req=0 ready=0 owner=1 intent=1 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=27497 event=8 stage=0 req=0 ready=0 owner=0 intent=0 commit=1 reply=1 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=27498 event=8 stage=0 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=27499 event=8 stage=0 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27500 event=8 stage=0 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27501 event=8 stage=0 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27502 event=8 stage=0 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27503 event=8 stage=0 req=0 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27618 event=8 stage=0 req=1 ready=1 owner=0 intent=0 commit=0 reply=0 inv=0 lock=0 reset=0 fast=1 apply_inv=0 apply_lock=0",
+      "EDGE e=27619 event=8 stage=0 req=1 ready=1 owner=1 intent=1 commit=0 reply=0 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0",
+      "EDGE e=27620 event=8 stage=0 req=0 ready=0 owner=1 intent=1 commit=1 reply=1 inv=0 lock=0 reset=0 fast=0 apply_inv=0 apply_lock=0"
+    ]
+  },
+  "cases": [
+    "CASE reset stage=0 accepted=0 precommitted=0 canceled=0",
+    "CASE reset stage=1 accepted=1 precommitted=0 canceled=1",
+    "CASE reset stage=2 accepted=2 precommitted=0 canceled=2",
+    "CASE reset stage=3 accepted=2 precommitted=1 canceled=1",
+    "CASE reset stage=4 accepted=2 precommitted=2 canceled=0",
+    "CASE pulse event=1 stage=0 accepts=0 commits=0 replies=0 applications=1",
+    "CASE pulse event=1 stage=1 accepts=1 commits=1 replies=1 applications=1",
+    "CASE pulse event=1 stage=2 accepts=2 commits=2 replies=2 applications=1",
+    "CASE pulse event=1 stage=3 accepts=2 commits=2 replies=2 applications=1",
+    "CASE pulse event=1 stage=4 accepts=2 commits=2 replies=2 applications=1",
+    "CASE pulse event=2 stage=0 accepts=0 commits=0 replies=0 applications=1",
+    "CASE pulse event=2 stage=1 accepts=1 commits=1 replies=1 applications=1",
+    "CASE pulse event=2 stage=2 accepts=2 commits=2 replies=2 applications=1",
+    "CASE pulse event=2 stage=3 accepts=2 commits=2 replies=2 applications=1",
+    "CASE pulse event=2 stage=4 accepts=2 commits=2 replies=2 applications=1",
+    "CASE maintenance event=3 stage=0 accepts=0 commits=0 replies=0",
+    "CASE maintenance event=3 stage=1 accepts=1 commits=1 replies=1",
+    "CASE maintenance event=3 stage=2 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=3 stage=3 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=3 stage=4 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=4 stage=0 accepts=0 commits=0 replies=0",
+    "CASE maintenance event=4 stage=1 accepts=1 commits=1 replies=1",
+    "CASE maintenance event=4 stage=2 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=4 stage=3 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=4 stage=4 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=5 stage=0 accepts=0 commits=0 replies=0",
+    "CASE maintenance event=5 stage=1 accepts=1 commits=1 replies=1",
+    "CASE maintenance event=5 stage=2 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=5 stage=3 accepts=2 commits=2 replies=2",
+    "CASE maintenance event=5 stage=4 accepts=2 commits=2 replies=2",
+    "CASE disable stage=0 accepts=0 commits=0 replies=0",
+    "CASE disable stage=1 accepts=1 commits=1 replies=1",
+    "CASE disable stage=2 accepts=2 commits=2 replies=2",
+    "CASE disable stage=3 accepts=2 commits=2 replies=2",
+    "CASE disable stage=4 accepts=2 commits=2 replies=2",
+    "CASE probes relation=0 adjacent=1 commits=1 replies=1 fast_word=51a10103 PASS",
+    "CASE probes relation=0 adjacent=2 commits=2 replies=2 fast_word=51a10103 PASS",
+    "CASE probes relation=1 adjacent=1 commits=1 replies=1 fast_word=81003b10 PASS",
+    "CASE probes relation=1 adjacent=2 commits=2 replies=2 fast_word=81003b10 PASS",
+    "CASE probes relation=2 adjacent=1 commits=1 replies=1 fast_word=51001100 PASS",
+    "CASE probes relation=2 adjacent=2 commits=2 replies=2 fast_word=51001100 PASS",
+    "CASE probes relation=3 adjacent=1 commits=1 replies=1 fast_word=51000120 PASS",
+    "CASE probes relation=3 adjacent=2 commits=2 replies=2 fast_word=51000120 PASS",
+    "FAST_CONSUMERS sampled=8",
+    "CASE successful_line beats=4 wide=64 gaps=2 PASS",
+    "CASE rejection scalar_fallback PASS",
+    "CASE line_reset accepted_tail_drained no_stale_restart PASS",
+    "CASE dirty_replacement mva=00010100 saved_pa=00005000 words=8 masks=full original_partial_masks=5/a PASS"
+  ],
+  "production_diff": ""
+}

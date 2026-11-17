@@ -1,21 +1,21 @@
 # Project workspace rules
 
-- Use the repository's `scratch/` folder as the persistent kitchen sink for reference checkouts, experiments, staging copies, reproducers, and working notes.
+- Treat `scratch/` as disposable: its contents must be safe to trash. Use it for temporary reference checkouts, experiments, staging copies, reproducers, and working notes.
 - Do not keep project work only in `/tmp` or another OS temporary directory. Create new scratch work under this repository instead.
-- Keep maintained implementation files in their normal project directories. Standard generated build outputs may remain under `build/`.
-- `scratch/` is ignored by default. Selected small experimental source files are tracked for continuity; reference checkouts and generated outputs stay local.
+- Keep reusable software and helpers in `tools/` or their normal implementation directories, permanent tests in `tests/`, durable runtime inputs in `runtime/`, and useful findings in `docs/`. Promote useful experiments before relying on them; do not leave their only copy in `scratch/`.
+- Keep reproducible generated outputs and downloaded tool caches under `build/`. `scratch/` is ignored by default; historical tracked exceptions do not make it a permanent home for useful software or tests.
 
 ## Single working branch and checkout
 
 - The active development checkout is `/Users/andreabogazzi/develop/NGage_MiSTer`,
-  on the original `codex/ngage2-integration` branch.
+  on the existing default `master` branch.
 - The legacy chat path `/Users/andreabogazzi/.codex/worktrees/ngage2-integration/NGage_MiSTer`
   is an empty compatibility directory for this chat sandbox. Always set the
   working directory to the active checkout above; do not develop in the legacy
   path or turn it into another worktree/copy. A symlink there breaks the sandbox.
-- Do not create or switch branches, create worktrees, or continue development
+- Use `master` for future builds. Do not create or switch to another branch, create worktrees, or continue development
   from a detached HEAD unless the user explicitly changes this instruction.
-- Reconcile work into the original integration branch. Preserve other threads'
+- Reconcile accepted work onto `master`. Keep it as the sole local and remote branch; preserve historical fit tags as build provenance. Preserve other threads'
   running simulations and permanent checkpoints.
 
 ## Development continuity

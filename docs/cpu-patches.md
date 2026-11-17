@@ -596,3 +596,15 @@ pre-reads certified cache data on B while independent older data commits on A;
 actual P2 permissions/attributes/alignment/non-SWP class still gate completion.
 No core/interface-to-board or PLL change. Patch reconstructs matching ZAP tokens.
 [Full maintained-cache implementation and qualification](cache-data-probe.md).
+
+## Exact integration replay and qualified CPU pipeline (0073–0074)
+
+0073 reconciles the already-accepted9c948da integration baseline, including prior
+formatting drift and its registered full-product multiplier. It changes replay
+metadata, not that implementation.0074 applies the exact qualified eleven ZAP
+payloads through5A; four maintained ARM920 backend payloads live at their normal
+project paths. Full pristine-upstream plus0001–0074 now reproduces every maintained
+ZAP file byte-for-byte. The helper uses a pinned build/tool-cache archive via gh
+and a unique temporary verification directory; modified legacy scratch caches
+are preserved. [Qualified CPU work](cpu-frontend-delivery.md) ·
+[Collected78MHz bitstream and actual timing](cpu-frontend-delivery-fit.md).

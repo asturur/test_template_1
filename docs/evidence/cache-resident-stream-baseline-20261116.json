@@ -1,0 +1,224 @@
+{
+  "source": {
+    "revision": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+    "branch": "codex/ngage2-integration",
+    "working_tree": "M .gitignore\n M AGENTS.md\n M docs/README.md\n M docs/dsp-mapping-audit.md\n M docs/mister-rtc.md\n M docs/mmc-spmark04.md\n M docs/sis-library.md\n M docs/status.md\n M tests/tools/test_prepare_native_observer.py\n M tools/prepare_native_observer.py\n?? docs/cpu-pipeline-architecture-review.md\n?? docs/evidence/cpu-pipeline-review-20261116.json\n?? docs/evidence/dsp-full-product-fit-43866215058.json\n?? docs/mmc-large-card-crash.md\n?? runtime/mmc/\n?? sim/programs/block_transfer_frame.S\n?? tests/cpu/cache_resident_stream/\n?? tests/tools/mmc_folder/\n?? tools/mmc-card/",
+    "production_diff": "",
+    "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "sha256": {
+      "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+      "rtl/arm920/cache_access.sv": "5adec21a413466317259b02b3a482c2a525684bedd0d0397cc42c773ba7246df",
+      "rtl/arm920/cache_adapter.sv": "1c666c0c312d0537f94a4ed3eb9bed1f1318279ce64ea9baa8a79969cb1ede4b",
+      "rtl/arm920/cache_bank.sv": "c3ca3bc22cee86047c194a39d30be3ab14a9c49490842bac7b8be1a36bdadc16",
+      "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+      "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+      "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+      "rtl/arm920/cache_tags.sv": "75e409dff9abe245c584e40be4c400d492cde026bd64ba8d93b48fd3bcbf6df6",
+      "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+      "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+      "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+      "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+      "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+      "tests/cpu/cache_resident_stream/observe.vh": "c1ae16d832e04fd5ec9ac010796da14d94e024f3a79f0575a78c7264da192500",
+      "tests/cpu/cache_resident_stream/report.py": "b7a207485a2f7019e02cc4c76053c87410dbcb237fda45420c087bb9fd300c39",
+      "tests/cpu/cache_resident_stream/sim.sh": "63a8bcafa1bd8acc527f503b10f3ad262daa1d9437942d7d9c41c133ffa385e5",
+      "tests/cpu/cache_resident_stream/test.v": "2725adefffb3cf5cfcd6533cfc2bca20f3b8b649f8b6d6843503d90b98a8c1f7",
+      "tests/cpu/cache_resident/test.v": "76d492ef5b39d3b58f456366f0862e4a6c16d26ef2e9c1b9eaad6c223299a50c",
+      "tests/cpu/cache_resident/sim.sh": "4ac2bc9a31356d8da07ad80768e13e559df52c96390d9d677a40d3e551d5d32b"
+    }
+  },
+  "raw_output": "build/sim/resident-store-baseline-20261116-03",
+  "edge_convention": "Edge 1 is first clock posedge. Offer/ready/response/data-RAM write ports sampled before NBA; RAM and tag bytes checked at +1ns. Driver changes at negedge.",
+  "streams": [
+    {
+      "stream": 0,
+      "accepted": 256,
+      "committed": 256,
+      "responses": 256,
+      "first_accept": 63,
+      "last_accept": 1083,
+      "first_commit": 66,
+      "last_commit": 1086,
+      "latency": 3,
+      "ext_reads": 0,
+      "ext_writes": 0,
+      "name": "successive_words_both_halves",
+      "offered_edges": 1021,
+      "backpressured_offer_edges": 765,
+      "accept_intervals": {
+        "4": 255
+      },
+      "commit_intervals": {
+        "4": 255
+      },
+      "accept_stores_per_clock": 0.25,
+      "commit_stores_per_clock": 0.25,
+      "dirty_verification": "VERIFIED stream=0 dirty0=11 dirty1=00 clean_words=8 second_clean_words=0"
+    },
+    {
+      "stream": 1,
+      "accepted": 256,
+      "committed": 256,
+      "responses": 256,
+      "first_accept": 4244,
+      "last_accept": 5264,
+      "first_commit": 4247,
+      "last_commit": 5267,
+      "latency": 3,
+      "ext_reads": 0,
+      "ext_writes": 0,
+      "name": "alternating_two_lines",
+      "offered_edges": 1021,
+      "backpressured_offer_edges": 765,
+      "accept_intervals": {
+        "4": 255
+      },
+      "commit_intervals": {
+        "4": 255
+      },
+      "accept_stores_per_clock": 0.25,
+      "commit_stores_per_clock": 0.25,
+      "dirty_verification": "VERIFIED stream=1 dirty0=11 dirty1=11 clean_words=16 second_clean_words=0"
+    },
+    {
+      "stream": 2,
+      "accepted": 256,
+      "committed": 256,
+      "responses": 256,
+      "first_accept": 8435,
+      "last_accept": 9455,
+      "first_commit": 8438,
+      "last_commit": 9458,
+      "latency": 3,
+      "ext_reads": 0,
+      "ext_writes": 0,
+      "name": "same_word_partial_bytes",
+      "offered_edges": 1021,
+      "backpressured_offer_edges": 765,
+      "accept_intervals": {
+        "4": 255
+      },
+      "commit_intervals": {
+        "4": 255
+      },
+      "accept_stores_per_clock": 0.25,
+      "commit_stores_per_clock": 0.25,
+      "dirty_verification": "VERIFIED stream=2 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+    },
+    {
+      "stream": 3,
+      "accepted": 256,
+      "committed": 256,
+      "responses": 256,
+      "first_accept": 12612,
+      "last_accept": 13632,
+      "first_commit": 12615,
+      "last_commit": 13635,
+      "latency": 3,
+      "ext_reads": 0,
+      "ext_writes": 0,
+      "name": "lower_half_only",
+      "offered_edges": 1021,
+      "backpressured_offer_edges": 765,
+      "accept_intervals": {
+        "4": 255
+      },
+      "commit_intervals": {
+        "4": 255
+      },
+      "accept_stores_per_clock": 0.25,
+      "commit_stores_per_clock": 0.25,
+      "dirty_verification": "VERIFIED stream=3 dirty0=01 dirty1=00 clean_words=4 second_clean_words=0"
+    },
+    {
+      "stream": 4,
+      "accepted": 256,
+      "committed": 256,
+      "responses": 256,
+      "first_accept": 16789,
+      "last_accept": 17809,
+      "first_commit": 16792,
+      "last_commit": 17812,
+      "latency": 3,
+      "ext_reads": 0,
+      "ext_writes": 0,
+      "name": "upper_half_only",
+      "offered_edges": 1021,
+      "backpressured_offer_edges": 765,
+      "accept_intervals": {
+        "4": 255
+      },
+      "commit_intervals": {
+        "4": 255
+      },
+      "accept_stores_per_clock": 0.25,
+      "commit_stores_per_clock": 0.25,
+      "dirty_verification": "VERIFIED stream=4 dirty0=10 dirty1=00 clean_words=4 second_clean_words=0"
+    }
+  ],
+  "correctness": "PASS: ordered exactly-once responses and actual RAM writes, slot/word/mask/enabled bytes, full post-write word, dirty tag halves, ordinary readback and clean backing bytes; second clean produces zero writes",
+  "repeat": "PASS: all events, edges, summaries and checks identical; exclude Verilator walltime footer",
+  "negative_control": "PASS: +corrupt_expected fails at first RAM commit with checker byte mismatch (negative control=1)",
+  "logs_sha256": {
+    "normal.log": "6b18487f0de1417dcb672f4fa740a042ec0f055557c1e2f5a7516a0c5a170288",
+    "repeat.log": "55b11d1cee7a00c6e58ef7fd8514c51ea2f90051688f72d527a62b10321d4a1f",
+    "negative.log": "649efc0048815b495b915124efac2a3e527b9664fe4110db6769b5d5e64bb114"
+  },
+  "adjacent_trace": [
+    "EDGE stream=0 edge=63 offer=1 ready=1 accept=1 response=0 mutation=0 state=0 addr=00000100",
+    "EDGE stream=0 edge=64 offer=1 ready=0 accept=0 response=0 mutation=0 state=13 addr=00000104",
+    "EDGE stream=0 edge=65 offer=1 ready=0 accept=0 response=0 mutation=0 state=3 addr=00000104",
+    "EDGE stream=0 edge=66 offer=1 ready=0 accept=0 response=1 mutation=1 state=12 addr=00000104",
+    "EDGE stream=0 edge=67 offer=1 ready=1 accept=1 response=0 mutation=0 state=0 addr=00000104",
+    "EDGE stream=0 edge=68 offer=1 ready=0 accept=0 response=0 mutation=0 state=13 addr=00000108",
+    "EDGE stream=0 edge=69 offer=1 ready=0 accept=0 response=0 mutation=0 state=3 addr=00000108",
+    "EDGE stream=0 edge=70 offer=1 ready=0 accept=0 response=1 mutation=1 state=12 addr=00000108"
+  ],
+  "rerun_commands": [
+    "sh tests/cpu/cache_resident/sim.sh build/sim/resident-store-legacy-rerun",
+    "sh tests/cpu/cache_resident_stream/sim.sh build/sim/resident-store-stream-rerun"
+  ],
+  "legacy_fixture": {
+    "result": "PASS: 94 resident requests; normal read 3 indexed 1, store 2 (task latency, not sampled-edge latency)",
+    "raw_output": "build/sim/resident-store-legacy-20261116-01",
+    "log_sha256": "bbbb5c3ac091748de9e289ff3b79d5624a55b1775da43e3dfc6159d2a20aa869"
+  },
+  "first_backpressure": {
+    "edge": 64,
+    "state": "LOOKUP_CAPTURE (13)",
+    "signal": "req_ready=0; admission requires state==IDLE",
+    "sequence": [
+      "63 accept in IDLE",
+      "64 LOOKUP_CAPTURE",
+      "65 STORE_HIT",
+      "66 STORE_COMMIT: sampled response and actual mutation",
+      "67 next acceptance in IDLE"
+    ]
+  },
+  "review_crosscheck": {
+    "source": "docs/evidence/cpu-pipeline-review-20261116.json",
+    "transpose_accept": [
+      44,
+      48
+    ],
+    "transpose_commit": [
+      47,
+      51
+    ],
+    "standalone_accept": [
+      63,
+      67
+    ],
+    "standalone_commit": [
+      66,
+      70
+    ],
+    "conclusion": "Same +3 rising-edge latency and four-clock recurrence; different warm-up/window origin. Legacy task observes post-edge combinational valid one edge before sampling."
+  },
+  "reused_workload_evidence": {
+    "docs/evidence/cpu-pipeline-review-20261116.json": "e98add55c5e68ba890b8e6597d77ea0101aa0e3c261e78d3cae06b35a3fa03d1",
+    "build/sim/spmark-payload/dsp-full-product-production-20261116/result.json": "4affff41db902b9aa0b27bd0c433c9ddc3cdc2c971e618ef80368a1d791bbdc6",
+    "build/sim/jpeg-payload/pop-bx-production-20261116/result.json": "6cc09642c2d0f33fc0ddd3beef0dcc5715d2f37c89cc0b9880b03667ee0bca73"
+  },
+  "handoff": "docs/cache-resident-stream-baseline.md"
+}

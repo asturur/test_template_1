@@ -30,6 +30,8 @@ module zap_predecode_main #(
 
     // UOP
     output logic       o_uop_last,
+    output logic o_store_overlap,
+    output logic o_load_pair_class,
     output logic [1:0] o_swp_tag,
 
     // L4
@@ -198,6 +200,8 @@ module zap_predecode_main #(
       o_instruction_ff       <= 0;
       o_instruction_valid_ff <= 0;
       o_uop_last             <= 0;
+      o_store_overlap <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag              <= 0;
       o_ppc_ff               <= 0;
       o_clear_from_decode    <= 0;
@@ -218,6 +222,8 @@ module zap_predecode_main #(
       o_taken_ff             <= 0;
       o_instruction_valid_ff <= 0;
       o_uop_last             <= 0;
+      o_store_overlap <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag              <= 0;
       o_clear_from_decode    <= 0;
       o_force32align_ff      <= 0;
@@ -237,6 +243,16 @@ module zap_predecode_main #(
       o_instruction_ff       <= o_instruction_nxt;
       o_instruction_valid_ff <= o_instruction_valid_nxt;
       o_uop_last             <= o_uop_last_nxt;
+      // Classify the original ARM instruction before macro-op expansion:
+      // unconditional STR immediate, pre-index, no writeback, word, no PC.
+      o_store_overlap <= mode32_instruction_valid && !i_cpu_mode_t &&
+          (mode32_instruction[31:20] & 12'hff7) == 12'he50 &&
+          mode32_instruction[19:16] != 4'd15 &&
+          mode32_instruction[15:12] != 4'd15 && swp_tag_nxt == 0;
+      o_load_pair_class <= mode32_instruction_valid && !i_cpu_mode_t &&
+          (mode32_instruction[31:20] & 12'hff7) == 12'he51 &&
+          mode32_instruction[19:16] != 4'd15 &&
+          mode32_instruction[15:12] != 4'd15 && swp_tag_nxt == 0;
       o_swp_tag              <= swp_tag_nxt;
       o_copro_dav_ff         <= copro_dav_nxt;
       o_copro_word_ff        <= copro_word_nxt;

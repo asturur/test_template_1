@@ -1,0 +1,147 @@
+{
+  "build": {
+    "fitter_seed": 42,
+    "commit": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
+    "run_id": "43866215058",
+    "timing_status": "consult job timing gate and reports",
+    "enable_debugger": true,
+    "debugger_macro": "ENABLE_DEBUGGER=1"
+  },
+  "reference": {
+    "commit": "b707ebd4165a36f5508f4afa267c4f5b6ff01a5e",
+    "run_id": "43835548057",
+    "fitter_seed": 43,
+    "enable_debugger": true
+  },
+  "fitter_summary": [
+    "Fitter Status : Successful - Mon Nov 16 12:54:57 2026",
+    "Quartus Prime Version : 17.0.2 Build 602 07/19/2017 SJ Lite Edition",
+    "Revision Name : Template",
+    "Top-level Entity Name : sys_top",
+    "Family : Cyclone V",
+    "Device : 5CSEBA6U23I7",
+    "Timing Models : Final",
+    "Logic utilization (in ALMs) : 39,594 / 41,910 ( 94 % )",
+    "Total registers : 44682",
+    "Total pins : 145 / 314 ( 46 % )",
+    "Total virtual pins : 0",
+    "Total block memory bits : 2,760,591 / 5,662,720 ( 49 % )",
+    "Total RAM Blocks : 503 / 553 ( 91 % )",
+    "Total DSP Blocks : 41 / 112 ( 37 % )",
+    "Total HSSI RX PCSs : 0",
+    "Total HSSI PMA RX Deserializers : 0",
+    "Total HSSI TX PCSs : 0",
+    "Total HSSI PMA TX Serializers : 0",
+    "Total PLLs : 3 / 6 ( 50 % )",
+    "Total DLLs : 0 / 4 ( 0 % )"
+  ],
+  "current_multiplier": {
+    "needed_alm": 100.8,
+    "placed_alm": 98.7,
+    "combinational_aluts": 197,
+    "dedicated_logic_registers": 93,
+    "dsp_blocks": [
+      {
+        "mode": "Two Independent 18x18",
+        "location": "DSP_X20_Y30_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      },
+      {
+        "mode": "Sum of two 18x18",
+        "location": "DSP_X20_Y26_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      },
+      {
+        "mode": "Two Independent 18x18",
+        "location": "DSP_X20_Y28_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      }
+    ]
+  },
+  "previous_multiplier": {
+    "needed_alm": 106.9,
+    "placed_alm": 94.8,
+    "combinational_aluts": 186,
+    "dedicated_logic_registers": 91,
+    "dsp_blocks": [
+      {
+        "mode": "Two Independent 18x18",
+        "location": "DSP_X20_Y28_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      },
+      {
+        "mode": "Two Independent 18x18",
+        "location": "DSP_X20_Y26_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      },
+      {
+        "mode": "Two Independent 18x18",
+        "location": "DSP_X20_Y24_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      },
+      {
+        "mode": "Two Independent 18x18",
+        "location": "DSP_X20_Y22_N0",
+        "output_register": "yes",
+        "dedicated_output_adder_chain": "no",
+        "dedicated_output_accumulator": "no"
+      }
+    ]
+  },
+  "current_physical": {
+    "occupied_labs": 4191,
+    "available_labs": 4191,
+    "memory_labs": 40,
+    "average_interconnect_percent": 51.6,
+    "peak_vertical_interconnect_percent": 83.7
+  },
+  "timing": {
+    "clock_mhz": 78.0,
+    "setup_wns_ns": -0.811,
+    "setup_tns_ns": -13.752,
+    "core_hold_wns_ns": 0.251,
+    "hdmi_setup_wns_ns": 0.432,
+    "core_slow_corner_fmax_mhz": 73.36,
+    "rank1": {
+      "rank": "1",
+      "slack_ns": "-0.811",
+      "data_delay_ns": "13.236",
+      "logic_levels": "10",
+      "from_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "to_clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+      "from_node": "emu:emu|ngage_mister:core|reset_drain~SynDup_77DUPLICATE",
+      "to_node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|probe_owner_way[5]_OTERM89_OTERM6162_OTERM12415"
+    },
+    "rank1_route_ns": 8.703,
+    "rank1_cell_ns": 4.531,
+    "rank1_ic_ns": 0.002,
+    "exported_endpoints": 1000,
+    "violating_endpoint_origins": {
+      "reset_drain": 31,
+      "pc_del3_ff[5]": 14,
+      "o_stall_from_decode": 10
+    },
+    "violating_endpoints": 55
+  },
+  "report_sha256": {
+    "build-info.json": "f8529fcc27bd846a556bb634cb5235d6093683a137ae55a5c1eba2645a8f5691",
+    "Template.fit.summary": "e4575c7f40176746dfdf7fa90bf58e1af32a3498a62ecad64a076a2b3d2a4c38",
+    "Template.fit.rpt": "e1d7ef034735b21ec8e732ac13fd4bd56cc94335f92fc656f1d875855ef85249",
+    "Template.sta.summary": "22c53a76fff559ee76516396cb8eb3c8961ac565dd572c3a54c4d8e9762fc0e2",
+    "timing/worst-setup.csv": "a94f9a1d3ccd9e7a95cd6a521fe37ea959fc7c12522de59911a9f75192b63b68",
+    "timing/worst-setup-full.rpt": "5425255f896f42787499f215e54cad98b7435816ab2e6a417688a15ff60ea73e",
+    "timing/operand-stages/summary.csv": "9241a5b251a72e6ad27975b7d60db5d8c6b446d88596102de231a46caca2eec8"
+  }
+}

@@ -41,7 +41,7 @@ c5_pin_model_dump.txt
 # N-Gage CPU simulation outputs
 /build/
 
-# Persistent local experiments and reference checkouts
+# Disposable local experiments and reference checkouts
 /scratch/*
 !/scratch/current-boot/
 !/scratch/simif-board/
@@ -66,3 +66,7 @@ __pycache__/
 # Private prepared runtime overlays; keep only their maintained instructions
 /runtime/overlays/*
 !/runtime/overlays/README.md
+
+# Private MMC installer and extracted application inputs
+/runtime/mmc/*
+!/runtime/mmc/README.md

@@ -222,6 +222,28 @@ module zap_writeback #(
   // Combinational Logic
   // ----------------------------------------------------------------------------
 
+  // CPU redirects are registered at their source. Once the old fetch drains,
+  // hand the selected target directly to the first PC stage. A held fetch
+  // keeps its packet and saves the target through the existing pending owner.
+  // Higher-priority fault/interrupt and changed targets keep the normal tree.
+  // This creates no response bypass and never changes a held fetch packet.
+  task resume_registered_redirect;
+    input [31:0] target;
+    reg [31:0] mapped;
+    begin
+      mapped = target;
+      if (target[31:25] == 0) mapped[31:25] = i_cpu_pid;
+      mapped[0] = 1'b0;
+      pc_del_nxt = {1'b1, mapped};
+      // Inactive stages may prepare the known target's resident lookahead.
+      // Valid remains clear: this launches no fetch and cannot change a hold.
+      pc_del2_nxt = {1'b0, mapped};
+      pc_del3_nxt = {1'b0, mapped};
+      pc_nxt_tmp = {1'b1, mapped + (i_mode16 ? 32'd2 : 32'd4)};
+      shelve_nxt = 1'b0;
+    end
+  endtask
+
   // PC control tree.
   always_comb begin : pc_control_tree
 
@@ -274,20 +296,22 @@ module zap_writeback #(
     end else if (i_valid && i_mem_load_ff && i_wr_index_1 == {2'd0, ARCH_PC}) begin
       `zap_pc_shelve(i_wr_data_1);
     end else if (i_clear_from_alu) begin
-      `zap_pc_shelve(i_pc_from_alu);
+      if (!i_code_stall)
+        resume_registered_redirect(i_pc_from_alu);
+      else `zap_pc_shelve(i_pc_from_alu);
     end else if (i_clear_from_decode) begin
-      `zap_pc_shelve(i_pc_from_decode);
+      if (!i_code_stall)
+        resume_registered_redirect(i_pc_from_decode);
+      else `zap_pc_shelve(i_pc_from_decode);
     end else if (i_code_stall) begin
       pc_nxt_tmp  = pc_ff;
       pc_del_nxt  = pc_del_ff;
       pc_del2_nxt = pc_del2_ff;
       pc_del3_nxt = pc_del3_ff;
     end else if (shelve_ff) begin
-      pc_nxt_tmp  = {1'd1, pc_shelve_ff[31:0]};
-      pc_del_nxt  = 33'd0;
-      pc_del2_nxt = 33'd0;
-      pc_del3_nxt = 33'd0;
-      shelve_nxt  = 1'd0;
+      // The original redirect strobe may have ended before the fetch drains.
+      // The registered pending owner is sufficient; no new CPU event is needed.
+      resume_registered_redirect(pc_shelve_ff);
     end else if (i_clear_from_icache) begin
       `zap_pc_shelve(pc_del3_ff[31:0]);
     end else if (clear_from_btb && pc_del3_ff[32]) begin

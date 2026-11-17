@@ -1,0 +1,154 @@
+name: CI Build
+run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      seed:
+        description: Quartus fitter seed (1..2147483647)
+        required: false
+        default: '1'
+        type: string
+      enable_debugger:
+        description: Include DDR runtime debugger (uncheck to remove all recorder hardware)
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select and report fitter seed
+        env:
+          FITTER_SEED: ${{ inputs.seed || '1' }}
+        run: python3 tools/set_quartus_seed.py Template.qsf --seed "$FITTER_SEED"
+
+      - name: Select and report DDR debugger
+        env:
+          DDR_DEBUG_ENABLED: ${{ inputs.enable_debugger }}
+        run: python3 tools/set_quartus_debug.py Template.qsf --enabled "$DDR_DEBUG_ENABLED"
+
+      # Keep this directory runner-owned: Quartus runs as root in Docker,
+      # while the host Python step must also write the Markdown summary.
+      - name: Prepare timing report directory
+        run: mkdir -p output_files/timing
+
+      - name: Check Quartus source manifest
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl
+
+      # Quartus 17.0.2 (Cyclone V) in a container — same toolchain the .qsf
+      # records (LAST_QUARTUS_VERSION "17.0.2"). Revision = Template (Template.qpf).
+      # Tee the console so we keep the full log even when the compile fails;
+      # PIPESTATUS preserves the real quartus_sh exit code through the pipe.
+      - name: Build with Quartus 17.0.2
+        id: compile
+        run: |
+          set -uo pipefail
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sh --flow compile Template \
+            2>&1 | tee quartus_build.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Export worst 1000 timing paths
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          set -uo pipefail
+          docker run --rm \
+            -v "${{ github.workspace }}:/project" \
+            -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/report_quartus_timing.tcl Template 1000 \
+            2>&1 | tee quartus_timing_details.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Record actual isolated fit inputs
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl --list > output_files/source-graph.txt
+          python3 tools/resident_store_fit/manifest.py
+
+      - name: Analyze retimed probe fit at 78 and 104 MHz
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: |
+          set -uo pipefail
+          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/resident_store_fit/report.tcl 2>&1 | tee resident_fit_timing.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: Summarize path bottlenecks
+        run: |
+          python3 tools/summarize_quartus_paths.py output_files/timing/worst-setup.csv \
+            --output output_files/timing/path-summary.md
+          cat output_files/timing/path-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Require SDRAM pin registers
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: python3 tools/check_sdram_io_registers.py output_files/Template.fit.rpt
+
+      - name: Require passing timing
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
+
+      # Keep an existing bitstream even if compile/STA or the timing gate
+      # failed. Missing RBFs (e.g. a failed fit) cannot be recovered here.
+      - name: Prepare ngage1 build output
+        if: ${{ !cancelled() && hashFiles('output_files/Template.rbf') != '' }}
+        run: |
+          test -f output_files/Template.rbf
+          cp output_files/Template.rbf output_files/ngage1.rbf
+
+      # Show the errors inline in the job log on failure, so the cause is
+      # visible without downloading the artifact.
+      - name: Print errors on failure
+        if: failure()
+        run: |
+          echo "::group::Quartus errors and critical warnings"
+          grep -hE "Error|Critical Warning" quartus_build.log output_files/*.rpt 2>/dev/null | head -500 || true
+          echo "::endgroup::"
+          echo "::group::Full build log (last 300 lines)"
+          tail -300 quartus_build.log 2>/dev/null || true
+          echo "::endgroup::"
+
+      # Always keep the logs/reports (success: timing/fit review; failure: debug).
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quartus-logs
+          path: |
+            output_files/build-info.json
+            quartus_build.log
+            quartus_timing_details.log
+            resident_fit_timing.log
+            output_files/resident-fit-manifest.json
+            output_files/source-graph.txt
+            output_files/timing/
+            output_files/*.rpt
+            output_files/*.summary
+            output_files/*.smsg
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload RBF (including failed timing)
+        if: ${{ !cancelled() && hashFiles('output_files/ngage1.rbf') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ngage1-rbf
+          path: |
+            output_files/ngage1.rbf
+            output_files/build-info.json
+          if-no-files-found: error

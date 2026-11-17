@@ -286,6 +286,7 @@ begin
 
 `endif
 
+  wire cpu_store_overlap, cpu_load_pair;
   zap_core #(
       .CP15_L4_DEFAULT(CP15_L4_DEFAULT),
       .BP_ENTRIES(BP_ENTRIES),
@@ -342,6 +343,8 @@ begin
       /* verilator lint_on PINCONNECTEMPTY */
       .o_data_wb_stb(cpu_dc_stb),
       .o_data_swp_tag(cpu_dc_swp_tag),
+      .o_data_store_overlap(cpu_store_overlap),
+      .o_data_load_pair(cpu_load_pair),
       .i_data_wb_dat(!ONLY_CORE ? dc_data : BE_32_ENABLE ? be_32(i_wb_dat, o_wb_sel) : i_wb_dat),
       // Swap data into CPU based on current o_wb_sel.
 
@@ -659,6 +662,8 @@ begin
           .i_wr_check       (cpu_dwe_check),
           .i_rd_check       (cpu_dre_check),
           .i_swp_tag        (cpu_dc_swp_tag),
+      .i_store_overlap(cpu_store_overlap),
+      .i_load_pair(cpu_load_pair),
           .o_swp_bus_lock   (cpu_dc_swp_lock),
           .i_rd             (!cpu_dc_we && cpu_dc_stb),
           .i_wr             (cpu_dc_we && cpu_dc_stb),

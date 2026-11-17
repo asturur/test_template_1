@@ -1,6 +1,98 @@
-# Why our integration costs more than the donor (2026-11-11)
+# N-Gage fitted resource comparison
 
-## Scope and comparison limits
+## 2026-11-16 — Which costs are worth investigating
+
+The supplied ngage2 release fit and our Stop 3B fit both use Quartus
+17.0.2 and 5CSEBA6U23I7. The donor used seed 60, selected after a 16-seed
+sweep, and targeted 104 MHz in the fitter. Ours used seed 42, DDR debugger on,
+and a 78 MHz fit followed by same-placement 104 MHz analysis. The donor's
+release record associates the matching seed, slack pair and RAM count with
+`ed143ca` hardware. The fitted map parameters independently confirm 16 KiB I,
+8 KiB D, two ways and 16-byte lines. Our contract stays 16 KiB I and D,
+64 ways, 32-byte lines, two separate 64-entry fully associative TLBs, and our
+existing DSP, NOS and Bluetooth behavior. The two projects model different phones.
+
+Quartus **ALMs needed**, inclusive entity rows, rounded to the nearest ALM.
+Delta is ours less ngage2. Subtotals are labeled to avoid double counting.
+
+| Fitted scope | Stop 3B | ngage2 | Delta |
+|---|---:|---:|---:|
+| Instruction cache subsystem including I-TLB | 4,825 | 2,339 | +2,486 |
+| Data cache subsystem including D-TLB | 6,818 | 3,574 | +3,244 |
+| Execution core including register file | 5,995 | 8,726 | −2,731 |
+| Remaining CPU logic (residual) | 243 | 113 | +129 |
+| **CPU subtotal** | **17,881** | **14,753** | **+3,129** |
+| Everything outside the CPU (residual) | 21,654 | 19,362 | +2,292 |
+| **Whole design** | **39,535** | **34,115** | **+5,420** |
+
+Rounding can move subtotals by one. The I/D subsystems together cost 5,730
+additional ALMs. Of this, **2,335** is the difference in the two inclusive TLB
+rows (4,749 vs 2,414); **3,395** is the remainder. CPU M10Ks are 168 vs 65,
+while whole-design M10Ks are 503 vs 479. Outside the CPU the donor actually
+uses 79 more M10Ks. Total registers are 44,752 vs 39,671; physical DSP blocks
+41 vs 42. Those DSP counts neither describe phone DSP behavior nor price a
+change to our multiplier or peripheral constraints. Our production control at
+9c948da8 used 39,594 ALMs; the cross-project gap predates the store prototype.
+
+**First two experiments, in order**
+
+1. Keep Stop 3C on the registered pre-read/admission boundary. Our hot 104 MHz
+   critical path ends at probe-owner way with −4.531 ns. The donor hot path
+   starts at D-cache `tr_cache_word[6]` and ends at dirty metadata
+   `dirty_initialized_q`, 10.601 ns of data delay and −1.597 ns slack.
+   Cold-corner setup is −4.725 vs −1.553 ns. Both violate setup. The donor
+   eight-stage pipeline's registered effective address and RAM/TLB overlap
+   are useful scheduling comparisons. Test our own ownership and warm-load
+   cycles; a smaller comparator count in another cache gives no ALM or cycle
+   entitlement in ours. [Stop 3B path evidence](cache-resident-store-pipeline-fit.md)
+2. Test **sharing the TLB address comparators across lookup and maintenance**.
+   Today each of 64 entries evaluates page coverage for normal lookup,
+   invalidate-by-MVA and overlap removal on fill (both directions).
+   Payloads already reside in BRAM. First measure normal lookups, token hits,
+   fills and invalidations in fixed work. Prototype sharing the compare input
+   and using a registered maintenance phase, or scanning groups for rare
+   mutations. Keep normal hot lookup throughput; block publication until
+   overlap removal completes. Differentially verify all four page sizes,
+   overlapping smaller/larger mappings, invalidate, lockdown, preserved
+   entries, permissions, walked faults and reset during maintenance. Compare
+   fixed-work cycles and matched-seed routed area/timing against the same
+   baseline. Quartus may already share some logic; only the net fit measures
+   savings. [Current TLB bank](../rtl/arm920/tlb_bank.sv) · [TLB contract](arm920-tlb.md)
+
+The four named debugger instances in our instrumented fit total about
+1,696 ALMs (DDR telemetry, text FIFO/recorder, monitor and diagnostics).
+A same-source debugger-off fit can price the release configuration. Keep
+debugger on for CPU A/B comparisons. It would be misleading to attribute the
+entire non-CPU gap to instrumentation or to NOS/BT. Likewise the current RF is
+959 ALMs vs the donor's 1,614, so the older RF savings estimate below is stale.
+The older DMA storage recommendation has also been implemented: live source,
+destination and count share RAM banks with the immutable snapshots. Repeating
+that migration would save nothing. [Current DMA storage](../rtl/ngage_dma_channels.v)
+The existing UPP external-backing proposal targets physical RAM blocks primarily.
+Keep it independent. [DDR3 experiment](upp-ddr3-backing-handoff.md)
+
+**How much faster?** The donor's seed-60 release log records 8.86 fps Game,
+1.73 Mtexels/s FillRate and 28.41 Ktriangles/s PolyCount. Our recorded 78 MHz
+`a745119` board build produced 1.82, 0.40 and 8.10 respectively. Those ratios
+are **4.87×, 4.33× and 3.51×**, across different firmware/builds. Our board
+numbers predate several CPU changes and Stop 3B. The frequency ratio alone
+is 1.33×. For CPU attribution, run the same original binary/inputs and
+output checks on both models with equal external wait profiles. Split warm
+hit loops from cold fills, record cycles per completed work, load-use and
+store spacing, branch recovery and external beats. Boot or QD versus NEM-4
+wall time alone cannot assign the difference to the CPU. [Our native results](spmark04-benchmark.md)
+
+Source locators: supplied `~/Downloads/ngage2/output_files/NGage.fit.rpt`
+(SHA256 `f5371c69121469a0f14990f43fa83bafa5dc0ae33e7ef7e855eed4bd96ccf6f7`),
+`NGage.map.rpt`, `build/timing-corners.tsv`, `build/critical-paths.rpt`;
+our `build/fit/resident-store-20261116/candidate/output_files/Template.fit.rpt`
+(SHA256 `e1340eef062952f2061236ad66893aaa998e782ec271415ea427149ebdee3a10`).
+Use “Fitter Resource Utilization by Entity” in each report. Donor board and
+seed provenance: sibling `docs/PROGRESS-LOG.md`, “the second release of the
+day: the phone's cache sizes, seed 60”. The November 11 comparison below
+records different revisions.
+
+## 2026-11-11 scope and comparison limits
 
 The integration checkout remains `codex/ngage2-integration` at840e3d4. Donor
 checkout was already restored to `codex/mmc-payload-eof-fix`; current donor master
