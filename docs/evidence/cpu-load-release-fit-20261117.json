@@ -1,0 +1,392 @@
+{
+  "status": "PASS artifact and source verification",
+  "source_commit": "ccba54f60a2c6f4741e74428b3306a19717ea58d",
+  "run_url": "https://github.com/asturur/test_template_1/actions/runs/44123116917",
+  "rbf_url": "https://github.com/asturur/test_template_1/actions/runs/44123116917/artifacts/14348463483",
+  "rbf_bytes": 4565516,
+  "rbf_sha256": "fc70703be9cbb41f16e1f644fd35adcf85ab68d301dce6644b418402d53ad1e0",
+  "seed": 42,
+  "debugger": true,
+  "physical_PLL_MHz": 78,
+  "design_target_MHz": 104,
+  "all178selected_input_hashes_verified": true,
+  "physical_PLL_and_BRAM_match_5F": true,
+  "SDRAM_IO": "PASS 16 input/output/OE registers",
+  "qualification": {
+    "status": "PASS",
+    "compiled_RTL_sha256": {
+      "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+      "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+      "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+      "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+      "rtl/arm/zap_core.sv": "3fa40060bd3b7be4b10376b9d5feb686bda675e433f8d76551d180734c4f9126",
+      "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+      "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+      "rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468",
+      "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+      "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+      "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+      "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+      "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+      "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+      "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+      "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+      "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+      "rtl/arm/zap_issue_main.sv": "2f59c2bbbf88ed070565d33c16c410a19b47afdcb315bda180604845a1f63c86",
+      "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+      "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+      "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+      "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+      "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+      "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+      "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+      "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+      "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+      "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+      "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+      "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+      "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+      "rtl/arm/zap_shifter_multiply.sv": "77cca1e0a72feab7e66564d1741626f410946f829949feaf3af483748ffcd286",
+      "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+      "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+      "rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+      "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+      "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+      "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+      "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+      "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+      "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+      "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+      "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+      "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+      "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+      "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+      "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+      "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+      "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+      "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+      "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+      "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+      "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+      "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+      "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+      "rtl/sdram/jtframe_sdram64.v": "7817f27e9fd134a3ea853179cfdbc95d7f931ed097e85e86363efc6219153b30",
+      "rtl/sdram/jtframe_sdram64_bank.v": "5ddd6ac5528dae124ad22963b117a7faf7a9cdcaa289b0aa093a1ab228ee9ec2",
+      "rtl/sdram/jtframe_sdram64_init.v": "cc0bcd8f1e3851f21e2fd522f4b6a2fae331475e2e6c3db12f34a3bb4cce97a3",
+      "rtl/sdram/jtframe_sdram64_latch.v": "9ef2571ab02479a4982d77ebc263b6a037934401f18c0d6fdc605a170846a38d",
+      "rtl/sdram/jtframe_sdram64_rfsh.v": "5f9f2dda1927d85650e1389572e3975bac3ffb33b9fa3b8a1ecf7832294b4d12"
+    },
+    "kernel_rows": [
+      {
+        "case": "matrix4",
+        "profile": "0:0",
+        "five_f": 45736,
+        "combined": 45073
+      },
+      {
+        "case": "matrix4",
+        "profile": "2:9",
+        "five_f": 45736,
+        "combined": 45073
+      },
+      {
+        "case": "transpose4",
+        "profile": "0:0",
+        "five_f": 3591,
+        "combined": 3560
+      },
+      {
+        "case": "transpose4",
+        "profile": "2:9",
+        "five_f": 3591,
+        "combined": 3560
+      },
+      {
+        "case": "triangle_edges",
+        "profile": "0:0",
+        "five_f": 23790,
+        "combined": 23568
+      },
+      {
+        "case": "triangle_edges",
+        "profile": "2:9",
+        "five_f": 23790,
+        "combined": 23568
+      },
+      {
+        "case": "fill16_frame",
+        "profile": "0:0",
+        "five_f": 71259,
+        "combined": 71259
+      },
+      {
+        "case": "fill16_frame",
+        "profile": "2:9",
+        "five_f": 201302,
+        "combined": 201302
+      },
+      {
+        "case": "fill16_tail",
+        "profile": "0:0",
+        "five_f": 1332,
+        "combined": 1332
+      },
+      {
+        "case": "fill16_tail",
+        "profile": "2:9",
+        "five_f": 1332,
+        "combined": 1332
+      },
+      {
+        "case": "fill8_tail",
+        "profile": "0:0",
+        "five_f": 1647,
+        "combined": 1647
+      },
+      {
+        "case": "fill8_tail",
+        "profile": "2:9",
+        "five_f": 1647,
+        "combined": 1647
+      }
+    ],
+    "jpeg": [
+      {
+        "profile": "0:0",
+        "cycles": 84353
+      },
+      {
+        "profile": "2:9",
+        "cycles": 84353
+      }
+    ],
+    "reused_5K_evidence_sha256": "c513a657a8cd5430b5010af27778bbd9aaa610e8cbc65b5b881b8457d262ac1e",
+    "kernel_result_sha256": "3b70c350f008ab4a4481cd53452769a50be9de22022d6e8012dace90e464c278",
+    "jpeg_result_sha256": "e1e9813e14dab29a1ce5937b819c9c0021922dfae3ad27b07e34943969981407",
+    "six_case_geometric_throughput": 1.0054561594701288
+  },
+  "resources": {
+    "ALMs": 40834,
+    "registers": 45605,
+    "M10Ks": 502,
+    "DSPs": 41,
+    "block_memory_bits": 2760495,
+    "occupied_LABs": 4190,
+    "MLABs": 40,
+    "placed_ALMs": 40883,
+    "routing_registers": 3254,
+    "design_registers": 42232
+  },
+  "baseline_resources": {
+    "ALMs": 40012,
+    "registers": 45173,
+    "M10Ks": 502,
+    "DSPs": 41,
+    "block_memory_bits": 2760495,
+    "occupied_LABs": 4190,
+    "MLABs": 40,
+    "placed_ALMs": 40832,
+    "routing_registers": 3184,
+    "design_registers": 41870
+  },
+  "corners": [
+    {
+      "MHz": 78,
+      "condition": "name: 7_slow_1100mv_100c\ndisplay_name: Slow 1100mV 100C Model\nmodel: slow\ntemperature: 100\nvoltage: 1100\n",
+      "setup": -1.069,
+      "hold": 0.249,
+      "setup_delta": -0.565,
+      "hold_delta": 0.0010000000000000009,
+      "worst_path": {
+        "From Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[16]~DUPLICATE",
+        "To Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~9_OTERM19055",
+        "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Slack": "-1.069 (VIOLATED)",
+        "Data Delay": "13.073",
+        "logic_levels": "11",
+        "data_IC": "0.001",
+        "data_Cell": "4.764",
+        "data_Routing Element": "8.308",
+        "control_hops": {
+          "u_data_completion": [
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_data_completion|o_far[0]~1|combout                                                                              ",
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_data_completion|o_far[0]~1|dataf                                                                                "
+          ],
+          "fast_hit": [
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|combout                                                      ",
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|datab                                                        "
+          ]
+        }
+      }
+    },
+    {
+      "MHz": 78,
+      "condition": "name: 7_slow_1100mv_-40c\ndisplay_name: Slow 1100mV -40C Model\nmodel: slow\ntemperature: -40\nvoltage: 1100\n",
+      "setup": -1.019,
+      "hold": 0.209,
+      "setup_delta": -0.46899999999999986,
+      "hold_delta": 0.06,
+      "worst_path": {
+        "From Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[16]~DUPLICATE",
+        "To Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.block_cpu~0_OTERM7679",
+        "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Slack": "-1.019 (VIOLATED)",
+        "Data Delay": "13.037",
+        "logic_levels": "10",
+        "data_IC": "-0.002",
+        "data_Cell": "5.620",
+        "data_Routing Element": "7.419",
+        "control_hops": {
+          "fast_hit": [
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|combout                                                      ",
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|datab                                                        "
+          ]
+        }
+      }
+    },
+    {
+      "MHz": 78,
+      "condition": "name: MIN_fast_1100mv_100c\ndisplay_name: Fast 1100mV 100C Model\nmodel: fast\ntemperature: 100\nvoltage: 1100\n",
+      "setup": 2.801,
+      "hold": 0.133,
+      "setup_delta": 0.10600000000000032,
+      "hold_delta": -0.0010000000000000009,
+      "worst_path": {
+        "From Node": "ascal:ascal|o_vfrac[11]",
+        "To Node": "ascal:ascal|o_vpixq_pre[3].g[2]",
+        "Launch Clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+        "Latch Clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+        "Slack": "2.801",
+        "Data Delay": "3.674",
+        "logic_levels": "2",
+        "data_IC": "-0.001",
+        "data_Cell": "0.512",
+        "data_Routing Element": "3.163",
+        "control_hops": {}
+      }
+    },
+    {
+      "MHz": 78,
+      "condition": "name: MIN_fast_1100mv_-40c\ndisplay_name: Fast 1100mV -40C Model\nmodel: fast\ntemperature: -40\nvoltage: 1100\n",
+      "setup": 3.341,
+      "hold": 0.107,
+      "setup_delta": 0.12200000000000033,
+      "hold_delta": -0.009000000000000008,
+      "worst_path": {
+        "From Node": "shadowmask:HDMI_shadowmask|altshift_taps:vid_rtl_0|shift_taps_0vu:auto_generated|altsyncram_pr91:altsyncram4|ram_block5a0",
+        "To Node": "osd:hdmi_osd|dsp_width[16]",
+        "Launch Clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+        "Latch Clock": "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk",
+        "Slack": "3.341",
+        "Data Delay": "2.768",
+        "logic_levels": "1",
+        "data_IC": "0.000",
+        "data_Cell": "0.419",
+        "data_Routing Element": "2.349",
+        "control_hops": {}
+      }
+    },
+    {
+      "MHz": 104,
+      "condition": "name: 7_slow_1100mv_100c\ndisplay_name: Slow 1100mV 100C Model\nmodel: slow\ntemperature: 100\nvoltage: 1100\n",
+      "setup": -4.274,
+      "hold": 0.249,
+      "setup_delta": -0.565,
+      "hold_delta": 0.0010000000000000009,
+      "worst_path": {
+        "From Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[16]~DUPLICATE",
+        "To Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~9_OTERM19055",
+        "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Slack": "-4.274 (VIOLATED)",
+        "Data Delay": "13.073",
+        "logic_levels": "11",
+        "data_IC": "0.001",
+        "data_Cell": "4.764",
+        "data_Routing Element": "8.308",
+        "control_hops": {
+          "u_data_completion": [
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_data_completion|o_far[0]~1|combout                                                                              ",
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_data_completion|o_far[0]~1|dataf                                                                                "
+          ],
+          "fast_hit": [
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|combout                                                      ",
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|datab                                                        "
+          ]
+        }
+      }
+    },
+    {
+      "MHz": 104,
+      "condition": "name: 7_slow_1100mv_-40c\ndisplay_name: Slow 1100mV -40C Model\nmodel: slow\ntemperature: -40\nvoltage: 1100\n",
+      "setup": -4.224,
+      "hold": 0.209,
+      "setup_delta": -0.4690000000000003,
+      "hold_delta": 0.06,
+      "worst_path": {
+        "From Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[16]~DUPLICATE",
+        "To Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.block_cpu~0_OTERM7679",
+        "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Slack": "-4.224 (VIOLATED)",
+        "Data Delay": "13.037",
+        "logic_levels": "10",
+        "data_IC": "-0.002",
+        "data_Cell": "5.620",
+        "data_Routing Element": "7.419",
+        "control_hops": {
+          "fast_hit": [
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|combout                                                      ",
+            " emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|datab                                                        "
+          ]
+        }
+      }
+    },
+    {
+      "MHz": 104,
+      "condition": "name: MIN_fast_1100mv_100c\ndisplay_name: Fast 1100mV 100C Model\nmodel: fast\ntemperature: 100\nvoltage: 1100\n",
+      "setup": 1.783,
+      "hold": 0.133,
+      "setup_delta": 0.7979999999999999,
+      "hold_delta": -0.0010000000000000009,
+      "worst_path": {
+        "From Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[19]~DUPLICATE",
+        "To Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_cache:l_generate_with_cache_mmu.u_code_cache|arm920_tlb:u_zap_tlb|arm920_tlb_bank:bank|tags[13][17]",
+        "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Slack": "1.783",
+        "Data Delay": "7.338",
+        "logic_levels": "7",
+        "data_IC": "-0.003",
+        "data_Cell": "1.189",
+        "data_Routing Element": "6.152",
+        "control_hops": {}
+      }
+    },
+    {
+      "MHz": 104,
+      "condition": "name: MIN_fast_1100mv_-40c\ndisplay_name: Fast 1100mV -40C Model\nmodel: fast\ntemperature: -40\nvoltage: 1100\n",
+      "setup": 2.53,
+      "hold": 0.107,
+      "setup_delta": -0.242,
+      "hold_delta": -0.009000000000000008,
+      "worst_path": {
+        "From Node": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+        "To Node": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank1|st[7]",
+        "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk (INVERTED)",
+        "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+        "Slack": "2.530",
+        "Data Delay": "1.943",
+        "logic_levels": "1",
+        "data_IC": "0.000",
+        "data_Cell": "0.387",
+        "data_Routing Element": "1.556",
+        "control_hops": {}
+      }
+    }
+  ],
+  "timing_gate": "failure",
+  "no_hardware_deployment": true
+}
