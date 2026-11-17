@@ -1,0 +1,19 @@
+--- a/src/rtl/zap_shifter_multiply.sv
++++ b/src/rtl/zap_shifter_multiply.sv
+@@ -66,11 +66,11 @@
+ localparam [31:0] NUMBER_OF_STATES = 6;
+ 
+ typedef enum logic [NUMBER_OF_STATES-1:0] {
+-        IDLE          = 5'b00001,
+-        POST_IDLE     = 5'b00010,
+-        S1            = 5'b00100,
+-        S2            = 5'b01000,
+-        S3            = 5'b10000,
++        IDLE          = 6'b000001,
++        POST_IDLE     = 6'b000010,
++        S1            = 6'b000100,
++        S2            = 6'b001000,
++        S3            = 6'b010000,
+         PAIRED_READY  = 6'b100000,
+         `ZAP_DEFAULT_XX
+ } t_state;
