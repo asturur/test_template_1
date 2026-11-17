@@ -49,6 +49,11 @@ module arm920_cache_access #(
     output logic         write_buffer_error,
     input  logic         fast_lookup_enable,
     input  logic [ 31:0] fast_lookup_address,
+    input wire req_store_credit_enable,
+    output wire store_credit_accept,
+    input wire data_probe_pair,
+    input wire [26:0] data_probe_wait_tag,
+    output wire data_probe_wait_covered,
     input  wire          data_probe_valid,
     input  wire [ 31:0] data_probe_address,
     output logic         fast_lookup_valid,
@@ -215,6 +220,7 @@ module arm920_cache_access #(
   reg [3:0] pipe_mask;
   wire pipe_busy = pipe_owner || pipe_commit;
   wire pipe_eligible = use_indexed_store && (|req_byte_enable) && state == IDLE && !response_valid_q;
+  assign store_credit_accept = pipe_accept && req_store_credit_enable;
   wire pipe_accept = req_valid && req_ready && pipe_eligible;
   always @(posedge clk) begin
     if (reset) begin
@@ -243,6 +249,11 @@ module arm920_cache_access #(
   reg probe_result_valid;
   reg [26:0] probe_result_tag;
   reg [5:0] probe_result_way;
+  // Scheduling hint only: this names an existing registered RAM result for
+  // the adapter's registered P2 line. It grants neither permission nor ACK;
+  // collision, revocation and current-demand checks remain at consumption.
+  assign data_probe_wait_covered = probe_result_valid &&
+                                  probe_result_tag == data_probe_wait_tag;
   wire data_commit_valid;
   wire [8:0] data_commit_index;
   wire [RESULT_ENTRIES-1:0] probe_matches, probe_select;
@@ -267,7 +278,12 @@ module arm920_cache_access #(
       probe_way = probe_way | ({6{probe_select[probe_index]}} & line_result_way[probe_index]);
   end
   wire probe_revoke = line_result_revoke || !fast_lookup_enable;
-  wire probe_port_free = state == IDLE || state == STORE_HIT || state == STORE_COMMIT ||
+  // On the older ordinary hit's reply edge, the CPU samples the OLD RAM
+  // output. B can synchronously read a certified younger line for next edge.
+  // There is no second demand, copied payload, lookup, refill or early ACK.
+  wire pair_read_slot = data_probe_pair && early_reply && !wr && enabled && cacheable &&
+                        !pipe_busy && !response_error;
+  wire probe_port_free = pair_read_slot || state == IDLE || state == STORE_HIT || state == STORE_COMMIT ||
                          state == BUFFER_STORE || (state == LOOKUP_CAPTURE && indexed_owner && wr);
   wire probe_read_collision = data_commit_valid &&
                               data_commit_index == {probe_owner_way, probe_owner_tag[2:0]};

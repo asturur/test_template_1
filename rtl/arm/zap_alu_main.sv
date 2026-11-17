@@ -43,8 +43,14 @@ module zap_alu_main #(
 
     // Last uop indication interface.
     input  logic       i_uop_last,
+    input logic i_store_overlap,
+    input logic i_store_late,
+    input logic i_load_pair_class,
     input  logic [1:0] i_swp_tag,
     output logic       o_uop_last,
+    output logic o_store_overlap,
+    output logic o_store_late,
+    output logic o_load_pair_class,
     output logic [1:0] o_swp_tag,
 
     // ------------------------------------------------------------------
@@ -461,6 +467,9 @@ module zap_alu_main #(
     if (i_reset) begin
       o_decompile_valid                 <= 1'd0;
       o_uop_last                        <= 1'd0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
       o_clear_from_alu                  <= 0;
       o_dav_ff                          <= 0;
@@ -496,6 +505,9 @@ module zap_alu_main #(
       // Clear but take CPSR from writeback.
       o_decompile_valid                 <= 1'd0;
       o_uop_last                        <= 1'd0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag                         <= 0;
       o_clear_from_alu                  <= 0;
       o_dav_ff                          <= 0;
@@ -531,6 +543,9 @@ module zap_alu_main #(
       // Clear and preserve flags. Keep sleeping.
       o_decompile_valid <= 1'd0;
       o_uop_last        <= 1'd0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag         <= 0;
       o_clear_from_alu  <= 0;
       o_dav_ff          <= 0;
@@ -548,6 +563,9 @@ module zap_alu_main #(
       // Clear and preserve flags. Wake up from sleep.
       o_decompile_valid <= 1'd0;
       o_uop_last        <= 1'd0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_load_pair_class <= 1'b0;
       o_swp_tag         <= 0;
       o_clear_from_alu  <= 0;
       o_dav_ff          <= 0;
@@ -609,6 +627,9 @@ module zap_alu_main #(
       o_decompile <= i_decompile;
       o_decompile_valid <= o_decompile_valid_nxt;
       o_uop_last <= o_uop_last_nxt;
+      o_store_overlap <= i_store_overlap && o_dav_nxt && !i_irq_ff && !i_fiq_ff && !i_abt_ff && !i_und_ff;
+      o_store_late <= i_store_late && o_dav_nxt && !i_irq_ff && !i_fiq_ff && !i_abt_ff && !i_und_ff;
+      o_load_pair_class <= i_load_pair_class && o_dav_nxt && !i_irq_ff && !i_fiq_ff && !i_abt_ff && !i_und_ff;
       o_swp_tag <= (o_dav_nxt && is_cc_satisfied(
           i_condition_code_ff, flags_ff[31:28]
       ) && !i_irq_ff && !i_fiq_ff && !i_abt_ff && !i_und_ff) ? i_swp_tag : 2'd0;

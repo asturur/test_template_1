@@ -45,8 +45,18 @@ module zap_issue_main #(
 
     // UOP
     input  logic       i_uop_last,
+    input logic i_store_overlap,
+    input logic i_load_pair_class,
     input  logic [1:0] i_swp_tag,
     output logic       o_uop_last,
+    output logic o_store_overlap,
+    output logic o_store_late,
+    output logic o_store_second,
+    input wire i_alu_owned_word,
+    input wire [31:0] i_alu_producer_pc,
+    input wire i_store_second_ready,
+    input wire [31:0] i_store_second_value,
+    output logic o_load_pair_class,
     output logic [1:0] o_swp_tag,
 
     // MISC signals.
@@ -283,7 +293,7 @@ module zap_issue_main #(
       o_shift_length_value_nxt,
       o_mem_srcdest_value_nxt;
 
-  localparam CONTROL_W = 32 + 32 + 1 + 2 + 64 * 8 + 1 + 4 + $clog2(
+  localparam CONTROL_W = 2 + 32 + 32 + 1 + 2 + 64 * 8 + 1 + 4 + $clog2(
       PHY_REGS
   ) + 33 + $clog2(
       ALU_OPS
@@ -318,6 +328,8 @@ module zap_issue_main #(
   logic [                  1:0] operand_taken_ff;
   logic [             64*8-1:0] operand_decompile;
   logic                         operand_uop_last;
+  logic operand_store_overlap;
+  logic operand_load_pair_class;
   logic [                  1:0] operand_swp_tag;
   logic [                  3:0] operand_condition_code_ff;
   logic [$clog2(PHY_REGS )-1:0] operand_destination_index_ff;
@@ -363,6 +375,10 @@ module zap_issue_main #(
 
       o_swp_tag                         <= 0;
       o_uop_last                        <= 0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_store_second <= 1'b0;
+      o_load_pair_class <= 1'b0;
 
       o_destination_index_ff            <= 'x;
       o_alu_operation_ff                <= 'x;
@@ -401,6 +417,10 @@ module zap_issue_main #(
 
       o_swp_tag                         <= 0;
       o_uop_last                        <= 0;
+      o_store_overlap <= 1'b0;
+      o_store_late <= 1'b0;
+      o_store_second <= 1'b0;
+      o_load_pair_class <= 1'b0;
 
       o_destination_index_ff            <= 'x;
       o_alu_operation_ff                <= 'x;
@@ -454,7 +474,10 @@ module zap_issue_main #(
       o_alu_source_value_ff             <= o_alu_source_value_nxt;
       o_shift_source_value_ff           <= o_shift_source_value_nxt;
       o_shift_length_value_ff           <= o_shift_length_value_nxt;
-      o_mem_srcdest_value_ff            <= o_mem_srcdest_value_nxt;
+      // While pending, this existing data lane holds the producer PC+8.
+      // No consumer can observe it as data until exact successful resolution.
+      o_mem_srcdest_value_ff            <= second_store_eligible ?
+          i_alu_producer_pc : o_mem_srcdest_value_nxt;
       o_switch_ff                       <= operand_switch_ff;
       o_force32align_ff                 <= operand_force32align_ff;
       o_und_ff                          <= issue_block ? 1'd0 : operand_und_ff;
@@ -463,8 +486,15 @@ module zap_issue_main #(
       o_pc_ff                           <= operand_pc_ff;
       o_decompile                       <= operand_decompile;
       o_uop_last                        <= issue_block ? 1'd0 : operand_uop_last;
+      o_store_overlap <= !issue_block && operand_store_overlap;
+      o_store_late <= !issue_block && late_store_eligible;
+      o_store_second <= !issue_block && second_store_eligible;
+      o_load_pair_class <= !issue_block && operand_load_pair_class;
       o_swp_tag                         <= issue_block ? 2'd0 : operand_swp_tag;
-
+    end else if (o_store_second && i_store_second_ready) begin
+      // A held owner must retain a result even if its completion disappears.
+      o_mem_srcdest_value_ff <= i_store_second_value;
+      o_store_second <= 1'b0;
     end
   end
 
@@ -495,6 +525,8 @@ module zap_issue_main #(
         i_taken_ff,
         i_decompile,
         i_uop_last,
+        i_store_overlap,
+        i_load_pair_class,
         i_swp_tag,
         i_condition_code_ff,
         i_destination_index_ff,
@@ -691,6 +723,8 @@ module zap_issue_main #(
                  operand_taken_ff,
                  operand_decompile,
                  operand_uop_last,
+                 operand_store_overlap,
+                 operand_load_pair_class,
                  operand_swp_tag,
                  operand_condition_code_ff,
                  operand_destination_index_ff,
@@ -777,6 +811,32 @@ module zap_issue_main #(
   // remove or redirect B; earlier load stages and background locks still hold.
   wire memory_load_committing = i_memory_dav_ff && i_memory_mem_load_ff && i_rf_wen &&
                                 i_rf_wr_addr_b == i_memory_mem_srcdest_index_ff;
+  // Only a directly preceding original unconditional word LDR may supply
+  // this original unconditional immediate STR's missing DATA. Address and
+  // shift locks are unchanged. Exact producer identity is (store PC-4, Rd),
+  // carried implicitly by the existing store owner; all kills clear the bit.
+  wire late_store_eligible = operand_store_overlap && operand_mem_store_ff &&
+      !operand_mem_load_ff && operand_swp_tag == 0 &&
+      !(operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff) &&
+      o_load_pair_class && o_condition_code_ff == AL && o_mem_load_ff &&
+      o_mem_srcdest_index_ff == operand_mem_srcdest_index_ff &&
+      o_pc_plus_8_ff + 32'd4 == operand_pc_plus_8_ff &&
+      !(o_irq_ff || o_fiq_ff || o_abt_ff || o_swi_ff || o_und_ff) &&
+      i_dc_lock == 0 && !clear && !i_reset;
+  // An actual ordinary ALU load may be older than intervening operations.
+  // Do not cross any younger writer of this physical source (including B).
+  // Other sources keep their complete existing scoreboard checks.
+  wire second_store_eligible = operand_store_overlap && operand_mem_store_ff &&
+      !operand_mem_load_ff && operand_swp_tag == 0 && !late_store_eligible &&
+      !(operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff) &&
+      i_alu_owned_word && i_alu_mem_srcdest_index_ff == operand_mem_srcdest_index_ff &&
+      !(o_condition_code_ff != NV &&
+        (o_destination_index_ff == operand_mem_srcdest_index_ff ||
+         (o_mem_load_ff && o_mem_srcdest_index_ff == operand_mem_srcdest_index_ff))) &&
+      !(i_shifter_dav_ff &&
+        (i_shifter_destination_index_ff == operand_mem_srcdest_index_ff ||
+         (i_shifter_mem_load_ff && i_shifter_mem_srcdest_index_ff == operand_mem_srcdest_index_ff))) &&
+      i_dc_lock == 0 && !clear && !i_reset;
   assign load_lock = determine_load_lock(
           operand_alu_source_ff,
           o_mem_srcdest_index_ff,
@@ -852,7 +912,7 @@ module zap_issue_main #(
           i_memory_dav_ff,
           i_dc_lock,
           operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
-      ) || determine_load_lock(
+      ) || (!(late_store_eligible || second_store_eligible) && determine_load_lock(
           {27'd0, operand_mem_srcdest_index_ff},
           o_mem_srcdest_index_ff,
           o_condition_code_ff,
@@ -877,7 +937,7 @@ module zap_issue_main #(
           i_memory_dav_ff,
           i_dc_lock,
           operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff
-      ) ||
+      )) ||
       //
       // If a register is locked by load, don't issue an instruction that
       // writes to that register. Assert load lock. Else, background

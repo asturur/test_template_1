@@ -1,13 +1,25 @@
 {
   "base": "9c948da8da413a882e0fe8e559c380ea0cadabf4",
   "payloads": {
-    "rtl/arm920/cache_access.sv": "15f2e214cecaa04801425900b1ced560759496b85383f198e3c908c681257c13",
-    "rtl/arm920/cache_adapter.sv": "c0fd8d256523241a0cbb98472434093bb85039243cfe06126c83eaf172c9bf78",
+    "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+    "rtl/arm920/cache_adapter.sv": "0ab5832487bf9b22d3c5c9ff7d5c29da771d25ee4246c096a78f5e704375e9bf",
     "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
-    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f"
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+    "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+    "rtl/arm/zap_core.sv": "08fc38c7eb8b26b31ed0d9ef010195d35fbec8c22fc556ea0692659d40ca9b60",
+    "rtl/arm/zap_dcache.sv": "3221ef3be4b10f4d94628968bb0e96082d9b9fe2f6d1c7d38f74b23975c961cc",
+    "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+    "rtl/arm/zap_issue_main.sv": "2f59c2bbbf88ed070565d33c16c410a19b47afdcb315bda180604845a1f63c86",
+    "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+    "rtl/arm/zap_predecode_main.sv": "dd707c2aa0f87bc94498b9b10cdbfc37a04564deb5f4262b78dc17431a645103",
+    "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+    "rtl/arm/zap_top.sv": "6cfd12cc902f2b7c15f88d0cfd3e6eb74cfe2d61b0f3611176d06596a0ff621e",
+    "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235"
   },
   "production_bram_sha256": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
-  "experiment": "Stop 3D exact Stop 3C overlay",
+  "experiment": "Corrected Step 5A full-core hardware build",
   "seed": 42,
-  "debugger": true
+  "debugger": true,
+  "candidate_source_id": "1ddc7653903458d33e765e26bad69e1c8d817b2cab0920320b48d251ab2cb643"
 }

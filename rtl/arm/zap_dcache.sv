@@ -65,6 +65,8 @@ module zap_dcache #(
     input logic [31:0] i_alignment_far,
 
     // Other control signals from/to processor.
+    input wire i_store_overlap,
+    input wire i_load_pair,
     input  logic [ 1:0] i_swp_tag,
     output logic        o_swp_bus_lock,
     input  logic        i_rd,
@@ -305,6 +307,8 @@ module zap_dcache #(
       .address(i_address),
       .physical(pending_translation ? pending_pa : tlb_phy_addr),
       .swp_tag(i_swp_tag),
+      .store_overlap_enable(i_store_overlap),
+      .load_pair_enable(i_load_pair),
       .swp_bus_lock(o_swp_bus_lock),
       .din(i_dat),
       .far_in(pending_translation ? pending_far : tlb_far),

@@ -255,6 +255,8 @@ module zap_cache #(  // INSTRUCTION CACHE
       .address(prefetch_address_selected ? i_cache_op_address : i_address),
       .physical(tlb_phy_addr),
       .swp_tag(2'b0),
+      .store_overlap_enable(1'b0),
+      .load_pair_enable(1'b0),
       .swp_bus_lock(),
       .din(i_dat),
       .far_in(tlb_far),
