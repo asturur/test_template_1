@@ -10,6 +10,7 @@ module ngage_board #(
               KEYPAD_ENABLE      = 0,
               LCD_ENABLE         = 0,
               GENERAL_DMA        = 0,
+              GAME_PCM           = 0,
               MMC_ENABLE         = GENERAL_DMA,
               MMC_CLK_DIV        = 4,
               MMC_TIMEOUT_LOG2   = 23,
@@ -129,6 +130,7 @@ module ngage_board #(
     input  wire        cfg_keypad,             // keypad-gpio option
     input  wire        cfg_clocks,             // ideal-clocks option
     input  wire        dma_irq_pending,
+    input  wire        pcm_irq,
     input  wire        sim_fiq_pending,
     output wire        dma_irq_clear,
     // service
@@ -362,6 +364,7 @@ module ngage_board #(
         end
     endgenerate
     ngage_upp #(
+        .GAME_PCM        (GAME_PCM),
         .LINE_REFILL     (LINE_REFILL),
         .SYS_CLK_HZ      (SYS_CLK_HZ),
         .TIMER_CLK_DIV   (TIMER_CLK_DIV),
@@ -491,6 +494,7 @@ module ngage_board #(
         .cfg_keypad          (cfg_keypad),
         .cfg_clocks          (cfg_clocks),
         .dma_irq_pending     (dma_irq_pending),
+        .pcm_irq             (pcm_irq),
         .sim_fiq_pending     (sim_fiq_pending),
         .dma_irq_clear       (dma_irq_clear),
         .claim               (claim),

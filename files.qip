@@ -34,6 +34,8 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_dma_engine.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_channels.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_stream.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_ram_mux.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_game_pcm.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_diag_pcm_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_host.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_card.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_mmc_dpram.v

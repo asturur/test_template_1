@@ -39,6 +39,7 @@
 
 module ngage_upp_peripherals #(
     parameter GENERAL_DMA        = 0,
+              GAME_PCM           = 0,
               MMC_ENABLE         = 0,
               MMC_CLK_DIV        = 4,
               MMC_TIMEOUT_LOG2   = 23,
@@ -66,6 +67,7 @@ module ngage_upp_peripherals #(
     input  wire        cfg_keypad,            // keypad-gpio option
     input  wire        cfg_clocks,            // ideal-clocks option
     input  wire        dma_irq_pending,
+    input  wire        pcm_irq,
     input  wire [ 7:0] general_dma_irq,
     input  wire        sim_fiq_pending,
     input  wire [25:0] keys,
@@ -285,7 +287,8 @@ module ngage_upp_peripherals #(
         17'b0,
         dma_irq_pending,
         1'b0,
-        timer_pending[5:2],
+        (timer_pending[5] || (GAME_PCM && pcm_irq)),
+        timer_pending[4:2],
         (timer_pending[1] || cbus_irq),
         timer_pending[0]
     };

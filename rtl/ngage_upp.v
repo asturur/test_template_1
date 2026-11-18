@@ -9,6 +9,7 @@ module ngage_upp #(
               SIMIF_ENABLE     = 0,
               KEYPAD_ENABLE    = 0,
               GENERAL_DMA      = 0,
+              GAME_PCM         = 0,
               MMC_ENABLE       = GENERAL_DMA,
               MMC_CLK_DIV      = 4,
               MMC_TIMEOUT_LOG2 = 23,
@@ -129,6 +130,7 @@ module ngage_upp #(
     input  wire        cfg_keypad,
     input  wire        cfg_clocks,
     input  wire        dma_irq_pending,
+    input  wire        pcm_irq,
     input  wire        sim_fiq_pending,
     output wire        dma_irq_clear,
     output wire        claim,
@@ -558,6 +560,7 @@ module ngage_upp #(
         end
     endgenerate
     ngage_upp_peripherals #(
+        .GAME_PCM          (GAME_PCM),
         .GENERAL_DMA       (GENERAL_DMA),
         .MMC_ENABLE        (MMC_ENABLE),
         .MMC_CLK_DIV       (MMC_CLK_DIV),
@@ -608,6 +611,7 @@ module ngage_upp #(
         .cfg_keypad          (cfg_keypad),
         .cfg_clocks          (cfg_clocks),
         .dma_irq_pending     (dma_irq_pending || internal_dma_irq),
+        .pcm_irq             (pcm_irq),
         .general_dma_irq     (general_dma_irq),
         .sim_fiq_pending     (sim_fiq_pending),
         .dma_irq_clear       (dma_irq_clear),

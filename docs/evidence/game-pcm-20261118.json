@@ -1,0 +1,122 @@
+{
+  "events": {
+    "20": 1,
+    "23": 1,
+    "27": 954
+  },
+  "frames": 686890,
+  "nonzero_frames": 312364,
+  "first_audible_frame": 217453,
+  "wav_sha256": "da8535cda88518c3d27a06133359d0c6817079d56c77659abd82a3b3f7d44011",
+  "standalone_rtl_summary": "43278 frames checked, 40 dropped at restarts, 26 interrupts, 1158 register reads, 40421 bus reads, 118423 output samples",
+  "wav_48k_sha256": "f720fc6bc1b81a3639887330a35efdfc7b934e9bb97834e742f0956e4d1a9b9b",
+  "rtl_input_samples_from_game": 32000,
+  "clock_hz": 78000000,
+  "donor_revision": "6e806600f8c997d889e454fd0464edde04700e24",
+  "native_irq_and_sample_check": [
+    "PASS signed game PCM: 64 reads, 1 during MMC, DONE IRQ observed",
+    "PASS authored ARM production MMC identify/exact CID, DMA5+3padding, odd PIO, full512-byte DMA/PIO sectors, ICU21/23/24, read-only rejection cycles=172958 HPSreads=4 hold=0"
+  ],
+  "guest_scope": {
+    "source": "Original Sega Rally and original NEM-4 SoundDevice under the NGVM reference kernel",
+    "first_receive": "[  6.711 s] [audio-channel] receive handle=65b00 proc=MediaServerStub",
+    "first_stream_start": "[ 10.615 s] [audio-channel] send handle=65b00 resource=e8 cmd=20 src=4c proc=MediaServerStub",
+    "native_nos_completion_abi_unverified": true
+  },
+  "fit_or_board_audio_measured": false,
+  "sources_sha256": {
+    "Template.sv": "5246c612dad4cf57fbbf1c1c3dc64728243d10c1db3ad524e49badbefab4ad61",
+    "files.qip": "bd95da2247990a5efc4f99fadd2958e821135e2c19a93001a89e8abaa93722f2",
+    "rtl/ngage_game_pcm.v": "23d3068c149ef6a96d789ca376324df28a68a9a821f6799895696b59119c084e",
+    "rtl/ngage_dma_ram_mux.v": "f4a18d296834985166650a6cc4c5c0a357fa22a07168bb0fd089ae4019a5f468",
+    "rtl/ngage_mister.v": "93ee9f6ffd1c556057a444d1d67d51b798c03525c530b781218dc9da76433282",
+    "rtl/ngage_board.v": "c7a75fe9b227c3033bd7c4dc1af4f0e80bf667062b3505e5f327ff380d92533b",
+    "rtl/ngage_upp.v": "77a1620ecf8495a5948cff8464ecdc619a523852d82ffd41e2107f0101ce9fab",
+    "rtl/ngage_upp_peripherals.v": "ed3e7898b745ae7917794f1ddd39f8dce16d624c50e85da46141ddf17fb1a957",
+    "tests/phone/game_pcm/finish.S": "95eecce46e21956df2f9eb8a42706c83d2bdebb1b1a7974f6c5945c794595e86",
+    "tests/phone/game_pcm/integration.py": "9926648a33e4163e913f953c91c9b23aa4ed8a17fe7f818f856683af35761e88",
+    "tests/phone/game_pcm/replay.py": "4c31047fc9405e816c3aa5e5267472407a6ede0bf131d5a0077f8299c452a4f8",
+    "tests/phone/game_pcm/start.S": "e8488823de71dd6e9e4bf4c7520c0b5276edc6079f295770990013c9bfef3afa"
+  },
+  "native_bridge": {
+    "patch": {
+      "original_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "patched_sha256": "54e10c8070371ccb844203045a82cc25b62e3589e95cacff46b61f79bdf4f489",
+      "payload_sha256": "c48ff1be74f9fa90fe1d5c51c91c0bf5ad340eaa170535c2ec6700ab7d103d60",
+      "payload_bytes": 2352,
+      "original_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+      "patched_md5": "a78c23ff1b7245dc8bb79b34837c0407",
+      "checksum_bounds_retained": true
+    },
+    "stock_router_word_va": "0x516c7ac0",
+    "pcm_caller_return_va": "0x514a17d0",
+    "native_work_fixture": "PASS original send callback, reply router to NOS task 0x2c, TDfc Add, work ring, stop/restart and channel closure",
+    "native_work_fixture_boundaries": [
+      "NOS pool",
+      "NOS task enqueue",
+      "IRQ registration",
+      "IRQ return scheduling"
+    ],
+    "stock_abi_wait_cycles": {
+      "0": 105275,
+      "3": 166443
+    },
+    "stock_abi_checks": [
+      "cancel",
+      "retained short-descriptor reply",
+      "retry",
+      "charger"
+    ],
+    "reference_lifecycle": {
+      "events": {
+        "20": 2,
+        "23": 2,
+        "27": 1542
+      },
+      "lifecycle": [
+        [
+          "10.595",
+          "21",
+          "0"
+        ],
+        [
+          "57.088",
+          "2b",
+          "1432"
+        ],
+        [
+          "66.093",
+          "21",
+          "0"
+        ]
+      ],
+      "frames": 1110153,
+      "nonzero_frames": 631490,
+      "first_audible_frame": 218893,
+      "wav_sha256": "55e8938afc9c933c84eec0a98814fcb37a99ef147a613ae497f4e01bc2fea696"
+    },
+    "reference_audible_virtual_seconds": [
+      24.217,
+      80.214
+    ],
+    "rtl_replay": "43278 frames checked, 40 dropped at restarts, 26 interrupts, 1159 register reads, 40421 bus reads, 118423 output samples",
+    "rtl_48khz_sha256": "5a318d3fca43224336e19f68252a1c950d929f78f430a6c0cc2fbd6cdd5dea43",
+    "board_recorder_fixture": "PASS ring wrap, signed channels, overlap and dropped-frame detection during a stalled write",
+    "tested_source_sha256": {
+      "Template.sv": "465b59d66253167f35c6845d94ee2e887a61def32ef49413e26da4b000dd859b",
+      "files.qip": "1577aad679bc677c7a91403b6c8b411f25e20c6a2306900cec4a4c6b4d376312",
+      "rtl/ngage_game_pcm.v": "2a658e69945168ecf2d6f09a189ddb206813c8c219368fd15a3438407f99ede9",
+      "rtl/ngage_diag_pcm_ddr.v": "ebf67a98d7447a71987920656084d08b973a51b9c8821d38d48ede3289d4bf78",
+      "rtl/ngage_dma_ram_mux.v": "f4a18d296834985166650a6cc4c5c0a357fa22a07168bb0fd089ae4019a5f468",
+      "rtl/ngage_mister.v": "1fc9ff655d1eb887f17b704d7ff0a70e962c409cb91e097f3891426fbe2a0f34",
+      "rtl/ngage_board.v": "c7a75fe9b227c3033bd7c4dc1af4f0e80bf667062b3505e5f327ff380d92533b",
+      "rtl/ngage_upp.v": "77a1620ecf8495a5948cff8464ecdc619a523852d82ffd41e2107f0101ce9fab",
+      "rtl/ngage_upp_peripherals.v": "ed3e7898b745ae7917794f1ddd39f8dce16d624c50e85da46141ddf17fb1a957",
+      "firmware_overlays/game_pcm/entry.S": "9c422c9d03ed67a1998d6b74fa96b46a28802eb8e2c1a40d8b3fe79b12b1fc8a",
+      "firmware_overlays/game_pcm/native.c": "640ee03099f5c76e0c458f361ec1b87c18fe2a2cd181dc45b401f61f540e7901",
+      "firmware_overlays/game_pcm/native.ld": "b05ff5fe61ef2a9c4383bb11d80bbf1bc2e007714c44ec868a269669f2eebf63",
+      "firmware_overlays/game_pcm/stream.c": "8d67efee46e8baf3ffb5c223e0e01504c2edc1972f8ab85d9aa853261171fd4b",
+      "firmware_overlays/game_pcm/stream.h": "2febec0d92f503b6410af26cd70291861f7ec526d90f6635cc7330905e74d0b9"
+    }
+  }
+}
