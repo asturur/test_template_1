@@ -18,11 +18,23 @@ DROP_MASK = 0x3fffffff
 
 
 def read_ring(memory, length):
-    before = struct.unpack_from('<I', memory, 0)[0]
-    time.sleep(0.03)
-    end, status = struct.unpack_from('<II', memory, 0)
-    if end <= before or end < length or end & 255:
-        raise ValueError('PCM monitor is inactive, reset or warming up')
+    base, base_status = struct.unpack_from('<II', memory, 0)
+    before = base
+    deadline = time.monotonic() + 2 * length / RATE + 0.25
+    while time.monotonic() < deadline:
+        time.sleep(0.005)
+        end, status = struct.unpack_from('<II', memory, 0)
+        if end < base or end & 255:
+            raise ValueError('PCM monitor reset or published a malformed head')
+        if (base_status ^ status) & DROP_MASK:
+            base, base_status = end, status
+        if end - base >= length:
+            break
+    else:
+        if end == before:
+            raise ValueError('PCM monitor is inactive')
+        raise ValueError('PCM monitor did not publish enough consecutive frames')
+
     start = (end - length) % FRAMES
     first = min(length, FRAMES - start)
     data = memory[RING + start*4:RING + (start+first)*4]
@@ -31,8 +43,8 @@ def read_ring(memory, length):
     last, final_status = struct.unpack_from('<II', memory, 0)
     if last < end or last - end + length + 256 >= FRAMES:
         raise ValueError('PCM ring changed faster than it could be copied')
-    if (status | final_status) & DROP_MASK:
-        raise ValueError('PCM monitor dropped frames during this core session')
+    if (status ^ final_status) & DROP_MASK:
+        raise ValueError('PCM monitor reported a frame loss while copying')
     return data, end, status
 
 

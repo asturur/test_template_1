@@ -23,7 +23,7 @@
     "first_stream_start": "[ 10.615 s] [audio-channel] send handle=65b00 resource=e8 cmd=20 src=4c proc=MediaServerStub",
     "native_nos_completion_abi_unverified": true
   },
-  "fit_or_board_audio_measured": false,
+  "fit_or_board_audio_measured": true,
   "sources_sha256": {
     "Template.sv": "5246c612dad4cf57fbbf1c1c3dc64728243d10c1db3ad524e49badbefab4ad61",
     "files.qip": "bd95da2247990a5efc4f99fadd2958e821135e2c19a93001a89e8abaa93722f2",
@@ -50,12 +50,12 @@
     },
     "stock_router_word_va": "0x516c7ac0",
     "pcm_caller_return_va": "0x514a17d0",
-    "native_work_fixture": "PASS original send callback, reply router to NOS task 0x2c, TDfc Add, work ring, stop/restart and channel closure",
+    "native_work_fixture": "PASS original send callback, reply router to task 0x2c, stock EKern IRQ Bind/Enable, ICU5 dispatch, TDfc Add and native work ring; stop/restart, ownership and combined DONE",
     "native_work_fixture_boundaries": [
       "NOS pool",
       "NOS task enqueue",
-      "IRQ registration",
-      "IRQ return scheduling"
+      "IRQ-return scheduling",
+      "boot-created IRQ registry initialized by fixture"
     ],
     "stock_abi_wait_cycles": {
       "0": 105275,
@@ -117,6 +117,442 @@
       "firmware_overlays/game_pcm/native.ld": "b05ff5fe61ef2a9c4383bb11d80bbf1bc2e007714c44ec868a269669f2eebf63",
       "firmware_overlays/game_pcm/stream.c": "8d67efee46e8baf3ffb5c223e0e01504c2edc1972f8ab85d9aa853261171fd4b",
       "firmware_overlays/game_pcm/stream.h": "2febec0d92f503b6410af26cd70291861f7ec526d90f6635cc7330905e74d0b9"
+    },
+    "patch_followup": {
+      "original_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "patched_sha256": "6354dff6819a9c5194864b015cbee56a3639f007924c0899700b104a36d43414",
+      "payload_sha256": "bc4e1a5a7aa5afdfb15c88b8608f3248524c41b0498b2b8e0cfef456e3607d2d",
+      "payload_bytes": 2508,
+      "original_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+      "patched_md5": "a78c23ff1b7245dc8bb79b34837c0407",
+      "checksum_bounds_retained": true
+    },
+    "followup_sha256": {
+      "firmware_overlays/game_pcm/native.c": "fab8bc883b14b23daec3777eef7d025a4a8c50c3d4e89b0e9a3bb7a27c0b426f",
+      "firmware_overlays/game_pcm/stream.c": "62833353a90d8911d30d7d65705ac071d00fbc34ce9b620930d8d2a9b6af4245",
+      "tests/phone/game_pcm/native_abi.py": "05acb1ad2d1917c26f31090b2013569a7c2130c71597652b131b23d166940a5f",
+      "tools/mister/capture_game_pcm.py": "1aae12908d1231ffa39f0545d30cfd9535a4d870bf8e1845c42d848f5e99d589"
+    },
+    "patch_shared_timer": {
+      "original_sha256": "88fd596a23269ecb0d9f7544d540c59010d276574dbe3d0262c870c429e58329",
+      "patched_sha256": "11a729dc1854685d03c92913aa70550fcba4bad7304b54f07e85dc9961e4f0b7",
+      "payload_sha256": "805c1819a85570488fd7d1ba7691224381516d3bf44226671f688d79c033c562",
+      "payload_bytes": 2620,
+      "original_md5": "2c09c86ff047484fdcc0e226f49c44a9",
+      "patched_md5": "a78c23ff1b7245dc8bb79b34837c0407",
+      "checksum_bounds_retained": true
+    },
+    "shared_timer_fixture": "PASS timer-only acknowledgement, unchanged pollable status, FIQ ownership guard and IRQ enable on next start"
+  },
+  "mister_transport_control": {
+    "unmodified_send": {
+      "observed_packets": {
+        "20": 1,
+        "2a": 1
+      },
+      "reply_results": {},
+      "first_by_id": {
+        "20": [
+          "14",
+          "00",
+          "00",
+          "00",
+          "e8",
+          "12",
+          "00",
+          "00",
+          "4c",
+          "00",
+          "20",
+          "82",
+          "02",
+          "15",
+          "e0",
+          "0a",
+          "06",
+          "10",
+          "00",
+          "0a",
+          "06",
+          "3b",
+          "c0",
+          "00",
+          "46"
+        ],
+        "2a": [
+          "14",
+          "00",
+          "00",
+          "00",
+          "e8",
+          "04",
+          "00",
+          "00",
+          "4c",
+          "00",
+          "2a"
+        ]
+      }
+    },
+    "stock_reply": {
+      "observed_packets": {
+        "20": 119,
+        "23": 119,
+        "2a": 118
+      },
+      "reply_results": {
+        "21 00": 119,
+        "2b 00": 118
+      },
+      "first_by_id": {
+        "20": [
+          "14",
+          "00",
+          "00",
+          "00",
+          "e8",
+          "12",
+          "00",
+          "00",
+          "4c",
+          "00",
+          "20",
+          "82",
+          "02",
+          "15",
+          "e0",
+          "0a",
+          "06",
+          "10",
+          "00",
+          "0a",
+          "06",
+          "3b",
+          "c0",
+          "00",
+          "46"
+        ],
+        "23": [
+          "14",
+          "00",
+          "00",
+          "00",
+          "e8",
+          "08",
+          "00",
+          "00",
+          "4c",
+          "00",
+          "23",
+          "00",
+          "02",
+          "02",
+          "d0"
+        ],
+        "2a": [
+          "14",
+          "00",
+          "00",
+          "00",
+          "e8",
+          "04",
+          "00",
+          "00",
+          "4c",
+          "00",
+          "2a"
+        ]
+      }
+    },
+    "core_sha256": "110ae84d226bf0a6cd5e963cb8b884a72df4d9de44ed8b0d18391a3e96047ded",
+    "wave_output_used": false
+  },
+  "routed_fit_runs": {
+    "commit": "3449395e57670d7377e4ffca02a3d2a893913ee1",
+    "off": 44324809548,
+    "on": 44324813605
+  },
+  "routed_fit": {
+    "commit": "3449395e57670d7377e4ffca02a3d2a893913ee1",
+    "off": {
+      "run": "https://github.com/asturur/test_template_1/actions/runs/44324809548",
+      "fit": "success",
+      "artifact": "build/fit/game-pcm-20261118/off-rbf/ngage1.rbf",
+      "sha256": "f7b12935317b383301a4176215f8127e3cf48aa84bb5289f29599023d0aece0e",
+      "timing_gate": "failure",
+      "resources": {
+        "ALMs": 37647,
+        "placed_ALMs": 39259,
+        "occupied_LABs": 4142,
+        "registers": 42423,
+        "M10Ks": 514,
+        "DSPs": 41
+      },
+      "corners": [
+        {
+          "MHz": 78,
+          "condition": "name: 7_slow_1100mv_100c\ndisplay_name: Slow 1100mV 100C Model\nmodel: slow\ntemperature: 100\nvoltage: 1100\n",
+          "setup": -0.791,
+          "hold": 0.247,
+          "recovery": 2.916,
+          "removal": 0.909,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 78,
+          "condition": "name: 7_slow_1100mv_-40c\ndisplay_name: Slow 1100mV -40C Model\nmodel: slow\ntemperature: -40\nvoltage: 1100\n",
+          "setup": -0.868,
+          "hold": 0.138,
+          "recovery": 3.274,
+          "removal": 0.856,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 78,
+          "condition": "name: MIN_fast_1100mv_100c\ndisplay_name: Fast 1100mV 100C Model\nmodel: fast\ntemperature: 100\nvoltage: 1100\n",
+          "setup": 3.139,
+          "hold": 0.131,
+          "recovery": 5.04,
+          "removal": 0.458,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 78,
+          "condition": "name: MIN_fast_1100mv_-40c\ndisplay_name: Fast 1100mV -40C Model\nmodel: fast\ntemperature: -40\nvoltage: 1100\n",
+          "setup": 3.533,
+          "hold": 0.096,
+          "recovery": 5.33,
+          "removal": 0.38,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 104,
+          "condition": "name: 7_slow_1100mv_100c\ndisplay_name: Slow 1100mV 100C Model\nmodel: slow\ntemperature: 100\nvoltage: 1100\n",
+          "setup": -3.996,
+          "hold": 0.247,
+          "recovery": -0.289,
+          "removal": 0.909,
+          "min-pulse": 0.48
+        },
+        {
+          "MHz": 104,
+          "condition": "name: 7_slow_1100mv_-40c\ndisplay_name: Slow 1100mV -40C Model\nmodel: slow\ntemperature: -40\nvoltage: 1100\n",
+          "setup": -4.073,
+          "hold": 0.138,
+          "recovery": 0.069,
+          "removal": 0.856,
+          "min-pulse": 0.48
+        },
+        {
+          "MHz": 104,
+          "condition": "name: MIN_fast_1100mv_100c\ndisplay_name: Fast 1100mV 100C Model\nmodel: fast\ntemperature: 100\nvoltage: 1100\n",
+          "setup": 1.909,
+          "hold": 0.131,
+          "recovery": 4.101,
+          "removal": 0.458,
+          "min-pulse": 0.48
+        },
+        {
+          "MHz": 104,
+          "condition": "name: MIN_fast_1100mv_-40c\ndisplay_name: Fast 1100mV -40C Model\nmodel: fast\ntemperature: -40\nvoltage: 1100\n",
+          "setup": 3.012,
+          "hold": 0.096,
+          "recovery": 5.021,
+          "removal": 0.38,
+          "min-pulse": 0.48
+        }
+      ]
+    },
+    "on": {
+      "run": "https://github.com/asturur/test_template_1/actions/runs/44324813605",
+      "fit": "success",
+      "artifact": "build/fit/game-pcm-20261118/on-rbf/ngage1.rbf",
+      "sha256": "2065648b91baa3f8af32b7f3f045eb57e0b44fad03fe56a7baa4e1523afda998",
+      "timing_gate": "failure",
+      "resources": {
+        "ALMs": 38057,
+        "placed_ALMs": 39558,
+        "occupied_LABs": 4149,
+        "registers": 42915,
+        "M10Ks": 514,
+        "DSPs": 46
+      },
+      "corners": [
+        {
+          "MHz": 78,
+          "condition": "name: 7_slow_1100mv_100c\ndisplay_name: Slow 1100mV 100C Model\nmodel: slow\ntemperature: 100\nvoltage: 1100\n",
+          "setup": -1.598,
+          "hold": 0.237,
+          "recovery": 2.384,
+          "removal": 1.094,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 78,
+          "condition": "name: 7_slow_1100mv_-40c\ndisplay_name: Slow 1100mV -40C Model\nmodel: slow\ntemperature: -40\nvoltage: 1100\n",
+          "setup": -1.384,
+          "hold": 0.116,
+          "recovery": 2.727,
+          "removal": 1.043,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 78,
+          "condition": "name: MIN_fast_1100mv_100c\ndisplay_name: Fast 1100mV 100C Model\nmodel: fast\ntemperature: 100\nvoltage: 1100\n",
+          "setup": 3.05,
+          "hold": 0.131,
+          "recovery": 4.941,
+          "removal": 0.514,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 78,
+          "condition": "name: MIN_fast_1100mv_-40c\ndisplay_name: Fast 1100mV -40C Model\nmodel: fast\ntemperature: -40\nvoltage: 1100\n",
+          "setup": 3.504,
+          "hold": 0.106,
+          "recovery": 5.255,
+          "removal": 0.451,
+          "min-pulse": 0.641
+        },
+        {
+          "MHz": 104,
+          "condition": "name: 7_slow_1100mv_100c\ndisplay_name: Slow 1100mV 100C Model\nmodel: slow\ntemperature: 100\nvoltage: 1100\n",
+          "setup": -4.803,
+          "hold": 0.237,
+          "recovery": -0.821,
+          "removal": 1.094,
+          "min-pulse": 0.48
+        },
+        {
+          "MHz": 104,
+          "condition": "name: 7_slow_1100mv_-40c\ndisplay_name: Slow 1100mV -40C Model\nmodel: slow\ntemperature: -40\nvoltage: 1100\n",
+          "setup": -4.589,
+          "hold": 0.116,
+          "recovery": -0.478,
+          "removal": 1.043,
+          "min-pulse": 0.48
+        },
+        {
+          "MHz": 104,
+          "condition": "name: MIN_fast_1100mv_100c\ndisplay_name: Fast 1100mV 100C Model\nmodel: fast\ntemperature: 100\nvoltage: 1100\n",
+          "setup": 1.547,
+          "hold": 0.131,
+          "recovery": 3.608,
+          "removal": 0.514,
+          "min-pulse": 0.48
+        },
+        {
+          "MHz": 104,
+          "condition": "name: MIN_fast_1100mv_-40c\ndisplay_name: Fast 1100mV -40C Model\nmodel: fast\ntemperature: -40\nvoltage: 1100\n",
+          "setup": 2.757,
+          "hold": 0.106,
+          "recovery": 4.573,
+          "removal": 0.451,
+          "min-pulse": 0.48
+        }
+      ]
     }
+  },
+  "mister_playback": {
+    "playback_verified": true,
+    "sample_path": "Signed 48 kHz stereo on the FPGA core output before HDMI and DAC",
+    "bitstream": "2065648b91baa3f8af32b7f3f045eb57e0b44fad03fe56a7baa4e1523afda998",
+    "physical_clock_hz": 78000000,
+    "patch_install": {
+      "fresh_held": true,
+      "applied": true,
+      "patched_sha256": "11a729dc1854685d03c92913aa70550fcba4bad7304b54f07e85dc9961e4f0b7",
+      "words": 660
+    },
+    "initial_failure": {
+      "scene": "Sega Rally legal splash",
+      "snapshots": 35,
+      "icu_current": 6,
+      "pcm_done": 0,
+      "recovery": "Preserve timer-5 status while acknowledging its pending latch when FIQ 5 is masked"
+    },
+    "captures": {
+      "menu": {
+        "sample_end": 19479040,
+        "frames": 48000,
+        "nonzero_frames": 42226,
+        "min_left": -13758,
+        "max_left": 15645,
+        "min_right": -13758,
+        "max_right": 15645,
+        "nonzero_pcm_overlapped_mmc": false,
+        "nonzero_pcm_overlapped_lcd_dma": true,
+        "sha256": "6d7887a6146c3c7ed00ba31d520df405315f6e34b6caa9e2cb4ae405ad163b85"
+      },
+      "desert_countdown": {
+        "sample_end": 35133952,
+        "frames": 48000,
+        "nonzero_frames": 20962,
+        "min_left": -11679,
+        "max_left": 11904,
+        "min_right": -11679,
+        "max_right": 11904,
+        "nonzero_pcm_overlapped_mmc": false,
+        "nonzero_pcm_overlapped_lcd_dma": true,
+        "sha256": "f92bb7d9f86743721b002def5c3f9da7fe7fc1d154a3fc10f5335b3cef152647"
+      },
+      "race_underway": {
+        "sample_end": 40065024,
+        "frames": 48000,
+        "nonzero_frames": 19446,
+        "min_left": -11852,
+        "max_left": 11902,
+        "min_right": -11852,
+        "max_right": 11902,
+        "nonzero_pcm_overlapped_mmc": false,
+        "nonzero_pcm_overlapped_lcd_dma": true,
+        "sha256": "d74583ed6b93ca85b13d813ebaff5a287d2e9e4ee31b03f32daeb1b9e262cfa5"
+      },
+      "switched_out": {
+        "sample_end": 42629888,
+        "frames": 48000,
+        "nonzero_frames": 0,
+        "min_left": 0,
+        "max_left": 0,
+        "min_right": 0,
+        "max_right": 0,
+        "nonzero_pcm_overlapped_mmc": false,
+        "nonzero_pcm_overlapped_lcd_dma": true,
+        "sha256": "ede1f6dd33abfce7bb3a45ba79b0ab5f8baae692709dd32214a41da9af55ab13"
+      },
+      "task_exited": {
+        "sample_end": 81582336,
+        "frames": 48000,
+        "nonzero_frames": 0,
+        "min_left": 0,
+        "max_left": 0,
+        "min_right": 0,
+        "max_right": 0,
+        "nonzero_pcm_overlapped_mmc": false,
+        "nonzero_pcm_overlapped_lcd_dma": true,
+        "sha256": "ede1f6dd33abfce7bb3a45ba79b0ab5f8baae692709dd32214a41da9af55ab13"
+      },
+      "same_boot_relaunch": {
+        "sample_end": 88785664,
+        "frames": 48000,
+        "nonzero_frames": 39839,
+        "min_left": -19114,
+        "max_left": 16844,
+        "min_right": -19114,
+        "max_right": 16844,
+        "nonzero_pcm_overlapped_mmc": false,
+        "nonzero_pcm_overlapped_lcd_dma": true,
+        "sha256": "4bc79ad4241af57663238d677e88ab10f9518250c70dc61f5d06378b3754cb45"
+      }
+    },
+    "mmc_copy": {
+      "bytes": 1316762,
+      "sha256": "c3317f2f4ea90da4c18732d36159023b60fa8b38779e40e262aa253f7d9b8da1",
+      "exact_copy_on_readback": true,
+      "matching_fats": true,
+      "physical_nonzero_mmc_overlap": false,
+      "test_card_sha256_after": "43504bdb8ac8b184c61ccae529677fb46b1553553b37db7914bdff04072a80f0"
+    },
+    "game_stop_restart_verified": true
   }
 }

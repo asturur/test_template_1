@@ -17,8 +17,13 @@ STACK = 0x801f0000
 INPUT = 0x80110000
 CHANNEL = 0x80110100
 MMIO = 0x581f0000
-UNIT = 7
+UNIT = 20
 OBJECT = 0x4c
+IRQ_ID = 98
+IRQ_REGISTRY = 0x80113000
+FIQ_ENABLE = 0x581201c8
+IRQ_DISABLE = 0x5812010c
+TIMER5_STATUS = 0x58120aa8
 REGS = (UC_ARM_REG_R0, UC_ARM_REG_R1, UC_ARM_REG_R2, UC_ARM_REG_R3)
 
 
@@ -40,6 +45,8 @@ class Fixture:
         self.map(RAM, 0x200000)
         self.map(SENTINEL, 4096)
         self.map(MMIO, 4096)
+        self.map(0x58120000, 4096)
+        self.prepare_interrupts()
         self.write32(0x8000c724 + UNIT * 4, CHANNEL)
         self.cpu.mem_write(0x800c828c, bytes([0x60]))
         self.write32(0x80006bb8, 0x80006bb8)
@@ -50,12 +57,12 @@ class Fixture:
         self.packets = []
         self.forwarded = []
         self.queued = 0
+        self.timer_acknowledgements = 0
         self.stubs = {
             0x516c74fc: lambda: 0,              # Stack frame is outside NOS pool.
             0x516c750c: self.allocate,          # Use distinct guarded fixture blocks.
             0x516c751c: self.deliver_to_task,
-            0x50331c2c: self.bind_interrupt,    # Platform IRQ registry boundary.
-            0x50331bf8: self.enable_interrupt,
+            0x50331bf8: self.observe_interrupt_enable,
             0x514a1880: self.wake,
             0x516c7bfc: lambda: 0,              # Stock DOS event publication boundary.
             0x516c7bf0: lambda: 0,              # Stock DOS event acknowledgment.
@@ -65,6 +72,21 @@ class Fixture:
         self.cpu.hook_add(UC_HOOK_CODE, self.code)
         self.cpu.hook_add(UC_HOOK_MEM_READ, self.mmio_read, begin=MMIO, end=MMIO+51)
         self.cpu.hook_add(UC_HOOK_MEM_WRITE, self.mmio_write, begin=MMIO, end=MMIO+51)
+        self.cpu.hook_add(UC_HOOK_MEM_WRITE, self.timer_ack,
+                          begin=TIMER5_STATUS, end=TIMER5_STATUS)
+
+    def prepare_interrupts(self):
+        # Runtime tables normally created by the kernel boot code. Seed the
+        # ROM name and an empty registry, then run the real Bind and Enable.
+        self.write32(0x800066e4, 0xba)
+        self.write32(0x800066e0, IRQ_REGISTRY)
+        self.write32(0x80114000, 0x10000000)
+        timer5_name = 0x503467b0
+        assert self.cpu.mem_read(timer5_name, 9) == b'IrqTimer5'
+        self.write32(0x80000828, 0x10000009)
+        self.write32(0x8000082c, timer5_name)
+        for i in range(IRQ_ID + 1):
+            self.write32(0x80000020 + i*4, 0x80000828 if i == IRQ_ID else 0x80114000)
 
     def map(self, address, size, contents=b''):
         self.cpu.mem_map(address, size)
@@ -107,6 +129,10 @@ class Fixture:
                 self.registers[8] |= ready
         self.registers[i] = value
 
+    def timer_ack(self, cpu, access, address, size, value, data):
+        assert size == 4 and value == self.read32(TIMER5_STATUS)
+        self.timer_acknowledgements += 1
+
     def call(self, address, *args, return_to=SENTINEL):
         self.cpu.reg_write(UC_ARM_REG_CPSR, 0x13)
         self.cpu.reg_write(UC_ARM_REG_SP, STACK)
@@ -122,19 +148,11 @@ class Fixture:
         self.allocations += 1
         return 0x80120000 + self.allocations * 256
 
-    def bind_interrupt(self):
-        irq, des = self.reg(0), self.reg(1)
-        assert self.interrupt == 0 and self.read32(irq) == 255
-        assert self.read32(des) == 0x10000009
-        assert self.cpu.mem_read(self.read32(des+4), 9) == b'IrqTimer5'
-        self.write32(irq, 98)
+    def observe_interrupt_enable(self):
+        irq = self.reg(0)
+        assert self.interrupt in (0, irq) and self.read32(irq) == IRQ_ID
+        assert self.read32(IRQ_REGISTRY + IRQ_ID*4) == irq
         self.interrupt = irq
-        return 0
-
-    def enable_interrupt(self):
-        assert self.reg(0) == self.interrupt
-        self.write32(self.interrupt + 4, 1)
-        return 0
 
     def original_router(self):
         address = self.reg(0)
@@ -168,8 +186,7 @@ class Fixture:
     def complete(self, halves, *, deliver=True):
         self.registers[8] &= ~(halves << 4)
         self.registers[8] |= halves
-        vtable = self.read32(self.interrupt+16)
-        self.call(self.read32(vtable + 8), self.interrupt)
+        self.call(0x5032e6ec, IRQ_ID)
         assert self.registers[8] & 3 == 0
         if deliver:
             self.drain()
@@ -197,9 +214,25 @@ def verify(f):
 
     f.send(0x20, 10, start, unit=UNIT+1)
     assert len(f.forwarded) == 3 and not f.interrupt
+    f.send(0x2a, 9)
+    f.expect([9, 0x2b, 0, 0])
+    assert f.allocations == 1 and not f.interrupt
+    f.write32(FIQ_ENABLE, 1 << 5)
+    f.send(0x20, 10, start)
+    assert len(f.forwarded) == 4 and not f.interrupt
+    f.write32(FIQ_ENABLE, 0)
     f.send(0x20, 10, start)
     f.expect([10, 0x21, 0, 0])
     assert f.registers[3:6] == [16000, 0x0a061000, 0x0a063bc0]
+    assert f.read32(0x58120108) == 1 << 5
+    f.write32(TIMER5_STATUS, 1)
+    f.call(0x5032e6ec, IRQ_ID)
+    assert f.timer_acknowledgements == 1 and f.read32(TIMER5_STATUS) == 1
+    assert f.read32(0x80006bb8) == 0x80006bb8   # Timer only: no PCM DFC queued.
+    f.write32(0x8000c724 + (UNIT+1) * 4, CHANNEL+0x100)
+    f.send(0x20, 99, start, unit=UNIT+1)
+    f.expect()
+    assert len(f.forwarded) == 5         # Another client cannot steal this stream.
     f.send(0x23, 11, filled)
     f.expect([11, 0x24, 0, 0], [0, 0x26, 0, 1])
     f.send(0x27, 12, filled)
@@ -231,8 +264,30 @@ def verify(f):
     f.complete(1)
     f.expect()                         # Closed channel receives no new request.
     assert f.registers[1] == 0
+    f.write32(0x8000c724 + UNIT * 4, CHANNEL)
+    f.send(0x20, 19, start)
+    f.expect([19, 0x21, 0, 0])
+    f.send(0x23, 20, filled)
+    f.expect([20, 0x24, 0, 0], [0, 0x26, 0, 1])
+    f.send(0x27, 21, filled)
+    f.expect([21, 0x28, 0, 0])
+    f.complete(3)
+    f.expect([0, 0x26, 0, 0])
+    f.send(0x27, 22, filled)
+    f.expect([22, 0x28, 0, 0], [0, 0x26, 0, 1])
+    f.send(0x27, 23, filled)
+    f.expect([23, 0x28, 0, 0])
+    acknowledgements = f.timer_acknowledgements
+    f.write32(FIQ_ENABLE, 1 << 5)
+    f.call(0x5032e6ec, IRQ_ID)
+    assert f.read32(IRQ_DISABLE) == 1 << 5 and f.timer_acknowledgements == acknowledgements
+    f.write32(FIQ_ENABLE, 0)
+    f.write32(0x58120108, 0)
+    f.send(0x20, 24, start)
+    f.expect([24, 0x21, 0, 0])
+    assert f.read32(0x58120108) == 1 << 5
     print('PASS native send closure, original NOS reply routing, IRQ/DFC and work ring,'
-          ' STOP/restart and closed-channel cleanup')
+          ' STOP/restart, coalesced completions and shared timer/FIQ')
 
 
 if __name__ == '__main__':

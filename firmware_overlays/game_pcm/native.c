@@ -7,6 +7,10 @@
 #define PCM_CONTEXT  (0x30 / 4)
 #define NOS_CHANNELS ((void *const volatile *)0x8000c724u)
 #define NOS_DEVICE   (*(volatile uint8_t *)0x800c828cu)
+#define TIMER5_STATUS (*(volatile uint32_t *)0x58120aa8u)
+#define IRQ_DISABLE   (*(volatile uint32_t *)0x5812010cu)
+#define FIQ_ENABLE    (*(volatile uint32_t *)0x581201c8u)
+#define TIMER5_MASK   (1u << 5)
 
 #define NOS_ROUTE    ((unsigned (*)(const uint8_t *))0x514bce39u)
 #define NOS_ALLOC    ((void *(*)(unsigned, const char *, unsigned))0x516c750du)
@@ -29,6 +33,7 @@ struct native_pcm {
     void *channel;
     unsigned unit;
     unsigned queued;
+    volatile unsigned irq_suppressed;
 };
 
 static const char owner[] = "GamePcm";
@@ -100,6 +105,15 @@ static void defer_to_nos(void *context)
 static void pcm_irq(void *object)
 {
     struct native_pcm *pcm = object; /* irq is the first member. */
+    /* The fitted line also sees the legacy timer's pending latch. Keep
+     * its pollable status and acknowledge only while FIQ 5 is masked. */
+    if (FIQ_ENABLE & TIMER5_MASK) {
+        IRQ_DISABLE = TIMER5_MASK;
+        pcm->irq_suppressed = 1;
+        return;
+    }
+    TIMER5_STATUS = TIMER5_STATUS;
+
     unsigned done = PCM_MMIO[PCM_STATUS] & PCM_DONE;
     PCM_MMIO[PCM_STATUS] = done;
     if (done) {
@@ -136,6 +150,19 @@ static struct native_pcm *bind_pcm(void)
     return pcm;
 }
 
+static unsigned reply_idle_stop(const uint8_t *frame, unsigned unit, void *channel)
+{
+    struct native_pcm idle;
+    idle.channel = channel;
+    idle.unit = unit;
+    idle.stream.registers = PCM_MMIO;
+    idle.stream.reply = reply;
+    idle.stream.client = &idle;
+    idle.stream.open = 0;
+    pcm_request(&idle.stream, frame, 10);
+    return 0;
+}
+
 /* Entry for the original ARM DoControl(4) router thunk. It passes the stock
  * receive unit in r2 and retains ownership of the outgoing descriptor. */
 unsigned native_pcm_route(const uint8_t *frame, unsigned unused, unsigned unit)
@@ -152,7 +179,12 @@ unsigned native_pcm_route(const uint8_t *frame, unsigned unused, unsigned unit)
         return NOS_ROUTE(frame);
     struct native_pcm *pcm = (void *)(uintptr_t)PCM_MMIO[PCM_CONTEXT];
 
+    if (frame[9] == 0x2a && bytes == 10 && (!pcm || !pcm->stream.open))
+        return reply_idle_stop(frame, unit, channel);
+
     if (pcm_accepts_start(frame, bytes)) {
+        if (FIQ_ENABLE & TIMER5_MASK)
+            return NOS_ROUTE(frame);
         if (pcm && pcm->stream.open && pcm->channel != channel &&
             NOS_CHANNELS[pcm->unit] == pcm->channel)
             return NOS_ROUTE(frame);
@@ -172,6 +204,10 @@ unsigned native_pcm_route(const uint8_t *frame, unsigned unused, unsigned unit)
         unsigned old = lock_irqs();
         pcm->events = 0;
         unlock_irqs(old);
+    }
+    if (frame[9] == 0x20 && pcm->irq_suppressed) {
+        pcm->irq_suppressed = 0;
+        IRQ_ENABLE(pcm->irq);
     }
     return 0;
 }

@@ -66,10 +66,11 @@ work to the stock NOS work ring. The playback bridge runs this work in the
 same NOS context as send callbacks.
 
 The exact-ROM ARM fixture executes the send callback, the original reply
-router through the local task dispatch, the kernel TDfc Add and the native
-work-ring dispatcher. Pool allocation, IRQ registration and task enqueue
-are fixture boundaries. It checks reinjection headers, one passthrough
-from the other thunk caller, refills, explicit stop/restart, final-buffer
+router through local task dispatch, original kernel IRQ binding and
+dispatch, TDfc Add, and the native work-ring dispatcher. The fixture seeds
+the boot-created interrupt name table and registry. Pool allocation, task
+enqueue and IRQ-return scheduling are fixture boundaries. It checks reply
+headers, the other thunk caller, coalesced refills, stop/restart, final-buffer
 stop and closed-channel cleanup. The separate stock ABI fixture executes
 the original mailbox pump, short-descriptor retry and cancel.
 
@@ -77,8 +78,21 @@ Sega Rally ran the same stream state machine with its original MediaServer
 and SoundDevice under NGVM. Its Exit produced a final buffer and stop
 response. A scheduled AppRun relaunched the original game in the same guest,
 and both launches produced nonzero PCM. That test uses NGVM's audio FIFO
-and completion transport. Full native firmware boot and the physical
-playback run are still to be checked.
+and completion transport.
+
+A physical control on the installed `1928aee` bitstream observed the
+original game send `0xe8/20` and `0xe8/2a` through this callback on unit
+`0x14`, sender object `0x4c`. It confirmed the 16 kHz start format,
+two exact SDRAM addresses and native little-endian message length.
+The bridge acknowledges a correctly formed idle stop with zero bytes
+and leaves the interrupt unbound until a supported start.
+
+A second control returned only start and stop replies through the
+original NOS route. The real SoundDevice submitted **119 first buffers**
+after 119 start replies. Every first buffer described 720 samples.
+The 118 stop replies also returned success from the stock router. This
+control used the installed bitstream and exercised guest receive delivery.
+It had no PCM engine or output capture.
 
 The private patch builder verifies both original service inputs and the
 primary MD5, changes the pointer and a formerly erased payload page, and
@@ -98,7 +112,60 @@ and a loss count. It separately latches whether any nonzero output sample
 coincided with MMC activity and LCD DMA. These are whole-session flags.
 Take a screen capture at each game transition to identify the rendered scene.
 The ring is nonblocking and its reader rejects overwrites and dropped frames.
-Run matching 78 MHz seed 42 fits with the game PCM option off and on.
+
+Both fits used the same `3449395` source, Quartus 17.0.2, seed 42, DDR debug,
+the physical 78 MHz PLL, and the same production BRAM. The PCM macro is the
+only effective configuration difference. Both pass the 16 SDRAM DQ
+input/output/output-enable register checks.
+
+| Fitted result | PCM off | PCM on |
+| --- | ---: | ---: |
+| ALMs | 37,647 | 38,057 |
+| Placed ALMs | 39,259 | 39,558 |
+| Occupied LABs | 4,142 | 4,149 |
+| Registers | 42,423 | 42,915 |
+| M10Ks | 514 | 514 |
+| DSPs | 41 | 46 |
+| Worst setup at 78 MHz | −0.868 ns | −1.598 ns |
+| Worst setup at 104 MHz | −4.073 ns | −4.803 ns |
+
+The 104 MHz figures reuse the routed netlists with an alternate constraint.
+The worst 78 MHz PCM-on path launches from the CPU memory address register
+into UPP CPU block control. Both builds miss the 78 MHz timing gate. The
+PCM-on archive is available for diagnostic use.
+[PCM off fit](https://github.com/asturur/test_template_1/actions/runs/44324809548) ·
+[PCM on fit](https://github.com/asturur/test_template_1/actions/runs/44324813605).
+
+On the first fitted-board run, Sega Rally stalled at its legal splash. PC
+samples alternated between the original interrupt dispatcher and the PCM ISR.
+ICU current returned 6 (source 5) while the PCM DONE register returned zero.
+The fitted source combines the legacy timer-5 pending latch with PCM DONE.
+The bridge now acknowledges that latch by writing back the read timer status,
+which retains the value read by polling firmware. It leaves the latch to a
+FIQ user if FIQ 5 is enabled and suppresses its IRQ until the next supported
+start. The ARM fixture checks the timer-only path, combined completion,
+FIQ ownership and restart after the mask clears. This is a firmware change
+on the same fitted RTL.
+
+The corrected native firmware booted and played the original Sega Rally
+menu and Desert race on the PCM-on artifact. The 48 kHz menu recording has
+42,226 nonzero frames out of 48,000, with signed values from −13,758 to
+15,645. The first race countdown recording has 20,962 nonzero frames.
+The LCD DMA overlap flag was set. The recorded signal is the core's digital
+output before the HDMI and analog paths.
+
+The original task switcher closed Sega Rally. A one-second capture after
+its exit contained 48,000 zero frames. Relaunching the original game on the
+same running core gave 39,839 nonzero frames in the mode menu. The recorder's
+sample index advanced through exit and relaunch without a core reload.
+
+FExplorer copied the 1,316,762-byte replay sound asset on the separate
+test card. Linux FAT readback found the exact bytes and matching FAT copies.
+The game went silent when switched out. The physical recorder did not
+observe nonzero PCM overlapping external MMC traffic in these runs.
+The production-RTL ARM fixture still confirms one PCM SDRAM read during
+active MMC.
+
 [Machine evidence](evidence/game-pcm-20261118.json).
 
 ## Reproduction
