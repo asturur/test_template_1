@@ -1,3 +1,12 @@
+## 2026-11-19 — v5 restores the 32 KiB flash backing cache
+
+The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC
+backing cache with the 39 MHz MMC bus and the folded data section TLB
+index. The 32 KiB unit case passes 3,991 ordered transactions and the
+integrated directed guest passes with divider two. The prior 32 KiB
+placement missed 78 MHz setup by 0.268 ns on the pre-XOR source.
+The combined configuration has simulation evidence.
+
 ## 2026-11-19 — v5 enables the folded data section TLB index
 
 The default v5 netlist uses `VA[25:20] ^ VA[31:26]` for data-side
