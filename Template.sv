@@ -974,7 +974,7 @@ module emu (
     wire core_ddr_fetch;
     // D1 streaming and the shared D2 flash backing cache.
     localparam D1_STREAM_TRANSPORT  = 1;
-    localparam D2_FLASH_CACHE_BYTES = 8192;
+    localparam D2_FLASH_CACHE_BYTES = 32768;
     ngage_ddr_flash_adapter #(
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
