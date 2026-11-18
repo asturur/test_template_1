@@ -1,5 +1,9 @@
 # Benchmark-only ngage2 versus exact5C
 
+The `ngage-v5` experiment also uses this driver. Its matched legs are
+`--cpu base`, `--cpu arm9v2`, and `--cpu ngage2 --scalar-refills`.
+See [ARM9V2 phone replay](../arm9v2_board/README.md) for that configuration.
+
 Read `docs/ngage2-vs-5c-benchmark.md` for qualified results and limitations.
 Run from the repository with existing original local payload/ROM inputs,
 Unicorn, ARM GNU binutils and installed offline `jotego/simulator:arm64`.

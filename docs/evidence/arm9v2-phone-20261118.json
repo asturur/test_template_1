@@ -57,6 +57,120 @@
         "unsupported": 1
       }
     },
+    "v5-arm9v2-digest01": {
+      "checkpoint_400m_framebuffer": {
+        "observation": "Nokia startup logo",
+        "path": "build/sim/screens/v5-arm9v2-digest01-checkpoints/checkpoint-400000000-framebuffer.png",
+        "sha256": "b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab"
+      },
+      "first_owner_events": [
+        "REACHED owner=nos_io cycle=290166940 addr=0c150010 write=1 data=80008000",
+        "REACHED owner=icu_extra cycle=290284709 addr=0c120074 write=1 data=00000003",
+        "REACHED owner=trace cycle=291520049 addr=0de00000 write=1 data=c0c0c0c0",
+        "REACHED owner=mdi cycle=293290760 addr=0c14b004 write=1 data=002a002a",
+        "REACHED owner=d_space cycle=294162294 addr=0d010000 write=1 data=00000000",
+        "REACHED owner=simif cycle=297022804 addr=0c150804 write=1 data=007c007c"
+      ],
+      "manifest_sha256": "eee88be0e040c52f8708473bb582bbe3ed9f3f74739c62876378c4548500bedb",
+      "result": {
+        "boot_index": 0,
+        "boot_limit": 0,
+        "bus_errors": 3,
+        "cycle": 700000000,
+        "data_errors": 0,
+        "ddr_beats": 0,
+        "ddr_commands": 0,
+        "display_on": 1,
+        "frame_complete": 1,
+        "interrupted": false,
+        "lcd_words": 36689,
+        "outputs": {
+          "build/sim/runs/v5-arm9v2-digest01/framebuffer.bin": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+          "build/sim/screens/v5-arm9v2-digest01/framebuffer.png": "b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab",
+          "build/sim/screens/v5-arm9v2-digest01/scanout.png": "b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab"
+        },
+        "pc": 1345496688,
+        "retired": 310309543,
+        "seconds": 892.621,
+        "stop_after_lcd_words": 0,
+        "stopped_at_lcd_limit": false,
+        "stopped_on_kernel_panic": false,
+        "unsupported": 1
+      }
+    },
+    "v5-arm9v2-nos64": {
+      "checkpoint": {
+        "checkpoint": "build/sim/runs/v5-arm9v2-nos64/checkpoint-1000000000",
+        "checkpoint_sha256": {
+          ".cpu": "119232ca0e0992c3f485b6c5ddd7f8a061b2aa761cb731929f20be398d16f422",
+          ".host": "388aeff1f7115dedb0b29d8e6ac45b54ace91ae2d1098fa3f94b504f2db5630f"
+        },
+        "cycle_low32": 1000000000,
+        "cycles": 1000000000,
+        "display_on": 1,
+        "frame_complete": 1,
+        "host_ticks": 1000016390,
+        "observer_sha256": "0e059e1660e21d931170767f289288985f8e9502ec6fb41e16da9c1e488ca1ec",
+        "source_identity": "8518172050be51377b9f516f88e88f506846f54edc76eb13b5cdb5f5475fdb45"
+      },
+      "clock_configuration": {
+        "cpu_hz": 78000000,
+        "nos_tick_hz": 64,
+        "timer_hz": 26000000
+      },
+      "first_owner_events": [
+        "REACHED owner=flash cycle=17 addr=00000000 write=0 data=ea0000c9",
+        "REACHED owner=boot_regs cycle=590 addr=08000000 write=1 data=7037f800",
+        "REACHED owner=gpio_ram_regs cycle=1035 addr=0c150004 write=1 data=00800080",
+        "REACHED owner=sdram cycle=3704 addr=0a000000 write=0 data=00000000",
+        "REACHED owner=clock_regs cycle=43084 addr=0c120004 write=1 data=0000000c",
+        "REACHED owner=gpio_loop cycle=54945 addr=0c15020c write=0 data=00000000",
+        "REACHED owner=lcd cycle=55548 addr=0c121204 write=1 data=00000002",
+        "REACHED owner=cbus_uem cycle=35125994 addr=0c150420 write=1 data=00100010",
+        "REACHED owner=nos_ram_regs cycle=35126914 addr=0c0047fc write=0 data=00000000",
+        "REACHED owner=timers cycle=35134222 addr=0c120a04 write=1 data=00000002",
+        "REACHED owner=icu cycle=35134414 addr=0c120108 write=1 data=00000001",
+        "REACHED owner=nos_io cycle=290166940 addr=0c150010 write=1 data=80008000",
+        "REACHED owner=icu_extra cycle=290284709 addr=0c120074 write=1 data=00000003",
+        "REACHED owner=trace cycle=291520049 addr=0de00000 write=1 data=c0c0c0c0",
+        "REACHED owner=mdi cycle=293290760 addr=0c14b004 write=1 data=002a002a",
+        "REACHED owner=d_space cycle=294162294 addr=0d010000 write=1 data=00000000",
+        "REACHED owner=simif cycle=297022804 addr=0c150804 write=1 data=007c007c",
+        "REACHED owner=lcd_dma cycle=988370634 addr=0c120068 write=1 data=000000f0"
+      ],
+      "inputs": {
+        "cdrive": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482",
+        "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+      },
+      "manifest_sha256": "ec9a880f92a479f6f73b9c583d5853d58c74a20bc30c5b33735597131bb7042b",
+      "result": {
+        "boot_index": 0,
+        "boot_limit": 0,
+        "bus_errors": 3,
+        "cycle": 1000000000,
+        "data_errors": 0,
+        "ddr_beats": 0,
+        "ddr_commands": 0,
+        "display_on": 1,
+        "frame_complete": 1,
+        "interrupted": false,
+        "lcd_words": 36760,
+        "outputs": {
+          "build/sim/runs/v5-arm9v2-nos64/framebuffer.bin": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+          "build/sim/screens/v5-arm9v2-nos64/framebuffer.png": "b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab",
+          "build/sim/screens/v5-arm9v2-nos64/scanout.png": "b15a3e464a03347bc02d591964dacce5b8ae0326b775f4b4c5fdd6fe0d1694ab"
+        },
+        "pc": 1345483680,
+        "retired": 488528200,
+        "seconds": 1843.89,
+        "stop_after_lcd_words": 0,
+        "stopped_at_lcd_limit": false,
+        "stopped_on_kernel_panic": false,
+        "unsupported": 1
+      },
+      "screen_observation": "Nokia startup logo"
+    },
     "v5-zap-cold02": {
       "manifest_sha256": "cfe47b167ced14b71888d6bdd7c0e2c30bcc88822d8f18d0da43ee484647e9a3",
       "result": {
@@ -108,7 +222,2446 @@
       "sha256": "4a5dde0ec2ab3d845b797bd7232a5b88bcd267a82fa3e2d386eeb42cc3748a77"
     }
   },
+  "contract_extended": {
+    "0": {
+      "events": [
+        "DATA_FAULT cycle=176 address=0c000020",
+        "REFILL_FAULT cycle=1011 address=00001008 good_words=2",
+        "REFILL_FAULT cycle=1029 address=00001008 good_words=4",
+        "PASS cycles=1101 scalar_wait_cycles=475 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "log": "build/sim/arm9v2/contract-v5-identity/wait-0.log",
+      "sha256": "378c55c850cc1ae7f851fd8003946a019fb052634e5135bc2d39f4bc236e512c"
+    },
+    "5": {
+      "events": [
+        "DATA_FAULT cycle=349 address=0c000020",
+        "REFILL_FAULT cycle=1926 address=00001008 good_words=2",
+        "REFILL_FAULT cycle=1969 address=00001008 good_words=4",
+        "PASS cycles=2090 scalar_wait_cycles=1539 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "log": "build/sim/arm9v2/contract-v5-identity/wait-5.log",
+      "sha256": "efc9b62fefe1460cc7e05d3b99170101e72a7baf175072a35a5b9a19b58879ef"
+    }
+  },
   "phone_netlist_sha256": "875dd8d0bc84c9fffa50a31211e23961b946b87ed7933744e6f00edfcf497074",
+  "quartus_ci": {
+    "branch": "ngage-v5",
+    "commit": "af7909de738f63c0b0647221e8b9d5fc1bdbe992",
+    "compile": "PASS",
+    "conclusion": "timing-gate-failed",
+    "debugger": true,
+    "input_audit": {
+      "base": 178,
+      "changed_shared": [
+        "files.qip",
+        "rtl/ngage_cpu.sv"
+      ],
+      "new": 132,
+      "new_cpu_source": "rtl/arm9v2/arm925t_phone.v",
+      "physical_pll_sha256": "86310df314e368b9ecd31bc29de72d6361633dd107acdf11d72e7a2beebcc80e",
+      "production_bram_sha256": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+      "qsf_matches": true,
+      "removed_reference_cpu_sources": [
+        "rtl/arm/zap_alu_main.sv",
+        "rtl/arm/zap_armv4t.svh",
+        "rtl/arm/zap_btb.sv",
+        "rtl/arm/zap_cache.sv",
+        "rtl/arm/zap_core.sv",
+        "rtl/arm/zap_cp15_cb.sv",
+        "rtl/arm/zap_data_completion.sv",
+        "rtl/arm/zap_dcache.sv",
+        "rtl/arm/zap_decode.sv",
+        "rtl/arm/zap_decode_main.sv",
+        "rtl/arm/zap_defines.svh",
+        "rtl/arm/zap_dual_rank_synchronizer.sv",
+        "rtl/arm/zap_fetch_main.sv",
+        "rtl/arm/zap_fifo.sv",
+        "rtl/arm/zap_functions.svh",
+        "rtl/arm/zap_issue_main.sv",
+        "rtl/arm/zap_localparams.svh",
+        "rtl/arm/zap_memory_main.sv",
+        "rtl/arm/zap_mode16_decoder.sv",
+        "rtl/arm/zap_mode16_decoder_main.sv",
+        "rtl/arm/zap_ones_counter.sv",
+        "rtl/arm/zap_operand_read.sv",
+        "rtl/arm/zap_postalu_main.sv",
+        "rtl/arm/zap_predecode_coproc.sv",
+        "rtl/arm/zap_predecode_main.sv",
+        "rtl/arm/zap_predecode_uop_sequencer.sv",
+        "rtl/arm/zap_ram_simple_nopipe.sv",
+        "rtl/arm/zap_register_file.sv",
+        "rtl/arm/zap_shifter_main.sv",
+        "rtl/arm/zap_shifter_multiply.sv",
+        "rtl/arm/zap_shifter_shift.sv",
+        "rtl/arm/zap_sync_fifo.sv",
+        "rtl/arm/zap_top.sv",
+        "rtl/arm/zap_wb_merger.sv",
+        "rtl/arm/zap_writeback.sv",
+        "rtl/arm920/cache_access.sv",
+        "rtl/arm920/cache_adapter.sv",
+        "rtl/arm920/cache_bank.sv",
+        "rtl/arm920/cache_lines.sv",
+        "rtl/arm920/cache_maintenance.sv",
+        "rtl/arm920/cache_refill.sv",
+        "rtl/arm920/cache_tags.sv",
+        "rtl/arm920/cache_transfer.sv",
+        "rtl/arm920/tlb.sv",
+        "rtl/arm920/tlb_bank.sv",
+        "rtl/arm920/tlb_bus_gate.sv",
+        "rtl/arm920/write_buffer.sv"
+      ],
+      "selected_source_manifest_sha256": "3166e7ee7b1b58de6be9149b50a96863a2236e972ede2fa234da9b3a0a67dda7",
+      "shared": 131
+    },
+    "rbf": {
+      "bytes": 4304336,
+      "path": "build/fit/arm9v2-20261118/ngage1-rbf/ngage1.rbf",
+      "sha256": "86ffc8d565d4a4e2f4d192daf6c05b816af3f585c50ee9a583462a1d8adbfaf9"
+    },
+    "resources": {
+      "arm9v2": {
+        "alms": 35362,
+        "block_memory_bits": 2837775,
+        "dsps": 41,
+        "m10ks": 411,
+        "occupied_labs": 4093,
+        "registers": 40035
+      },
+      "base": {
+        "alms": 37529,
+        "block_memory_bits": 2763567,
+        "dsps": 41,
+        "m10ks": 514,
+        "occupied_labs": 4165,
+        "registers": 42138
+      }
+    },
+    "run": 44273812397,
+    "sdram_io": "PASS 16 DQ input/output/OE pins",
+    "seed": 42,
+    "timing": {
+      "arm9v2": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "13.474",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "11",
+            "slack_ns": "-1.371",
+            "to": "emu:emu|ngage_diag_ddr:debugger_recorders.telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg6"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.191,
+            "recovery": 2.74,
+            "removal": 1.064,
+            "setup": -1.371
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "13.183",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "11",
+            "slack_ns": "-1.029",
+            "to": "emu:emu|ngage_diag_ddr:debugger_recorders.telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg6"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.181,
+            "recovery": 3.178,
+            "removal": 1.006,
+            "setup": -1.029
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "3.152",
+            "from": "ascal:ascal|o_reset_na",
+            "logic_levels": "2",
+            "slack_ns": "3.361",
+            "to": "ascal:ascal|o_off[0][1]"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.131,
+            "recovery": 5.054,
+            "removal": 0.548,
+            "setup": 3.361
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "1.731",
+            "from": "ascal:ascal|altsyncram:o_linf3[0].r[7]__9|altsyncram_m6n1:auto_generated|ram_block1a0~PORT_B_WRITE_ENABLE_REG",
+            "logic_levels": "2",
+            "slack_ns": "3.754",
+            "to": "ascal:ascal|o_vpix_inner[0].r[7]"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.099,
+            "recovery": 5.346,
+            "removal": 0.462,
+            "setup": 3.754
+          }
+        },
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "13.474",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "11",
+            "slack_ns": "-4.576",
+            "to": "emu:emu|ngage_diag_ddr:debugger_recorders.telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg6"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.191,
+            "recovery": -0.465,
+            "removal": 1.064,
+            "setup": -4.576
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "13.183",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "11",
+            "slack_ns": "-4.234",
+            "to": "emu:emu|ngage_diag_ddr:debugger_recorders.telemetry|ngage_bram:snapshot|altsyncram:ram|altsyncram_pms2:auto_generated|ram_block1a0~porta_datain_reg6"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.181,
+            "recovery": -0.027,
+            "removal": 1.006,
+            "setup": -4.234
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "7.149",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_fsr[3]",
+            "logic_levels": "8",
+            "slack_ns": "1.991",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[6]"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.131,
+            "recovery": 3.997,
+            "removal": 0.548,
+            "setup": 1.991
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "1.721",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "slack_ns": "2.850",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank0|st[6]"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.099,
+            "recovery": 4.878,
+            "removal": 0.462,
+            "setup": 2.85
+          }
+        }
+      ],
+      "base": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "12.831",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_78DUPLICATE",
+            "logic_levels": "11",
+            "slack_ns": "-0.743",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|mva[25]~DUPLICATE"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.198,
+            "recovery": 2.923,
+            "removal": 1.094,
+            "setup": -0.743
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "12.555",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_postalu_main:u_zap_postalu1_main|o_destination_index_ff[2]",
+            "logic_levels": "11",
+            "slack_ns": "-0.547",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~12_OTERM14132"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.079,
+            "recovery": 3.26,
+            "removal": 1.028,
+            "setup": -0.547
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "3.209",
+            "from": "ascal:ascal|o_r[0]",
+            "logic_levels": "0",
+            "slack_ns": "3.013",
+            "to": "shadowmask:HDMI_shadowmask|r1[0]"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.131,
+            "recovery": 5.113,
+            "removal": 0.552,
+            "setup": 3.013
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "2.861",
+            "from": "vga_out:vga_scaler_out|altshift_taps:din1_rtl_0|shift_taps_quu:auto_generated|altsyncram_dr91:altsyncram4|ram_block5a12",
+            "logic_levels": "3",
+            "slack_ns": "3.478",
+            "to": "vga_out:vga_scaler_out|pb_1r[15]"
+          },
+          "mhz": 78,
+          "slack_ns": {
+            "hold": 0.06,
+            "recovery": 5.381,
+            "removal": 0.467,
+            "setup": 3.478
+          }
+        },
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "12.831",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_78DUPLICATE",
+            "logic_levels": "11",
+            "slack_ns": "-3.948",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_dcache:l_generate_with_cache_mmu.u_data_cache|arm920_cache_adapter:cache_adapter|arm920_cache_access:cache|mva[25]~DUPLICATE"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.198,
+            "recovery": -0.282,
+            "removal": 1.094,
+            "setup": -3.948
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "12.555",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_postalu_main:u_zap_postalu1_main|o_destination_index_ff[2]",
+            "logic_levels": "11",
+            "slack_ns": "-3.752",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~12_OTERM14132"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.079,
+            "recovery": 0.055,
+            "removal": 1.028,
+            "setup": -3.752
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "7.123",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_78DUPLICATE",
+            "logic_levels": "11",
+            "slack_ns": "1.963",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.block_cpu~0_OTERM8625DUPLICATE"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.131,
+            "recovery": 4.144,
+            "removal": 0.552,
+            "setup": 1.963
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "critical_setup_path": {
+            "data_delay_ns": "1.448",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "slack_ns": "2.955",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank1|row[7]"
+          },
+          "mhz": 104,
+          "slack_ns": {
+            "hold": 0.06,
+            "recovery": 5.007,
+            "removal": 0.467,
+            "setup": 2.955
+          }
+        }
+      ]
+    },
+    "timing_analysis": "PASS"
+  },
+  "real_sdram_shell": {
+    "configuration": {
+      "cpu_hz": 78000000,
+      "ddr_model": "legacy",
+      "line_channel_enabled": true,
+      "short_reads": true
+    },
+    "model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+    "result": "PASS bounded hardware-bound boot cycles=5000000 bus=5588 errors=3 data_errors=0 lcd_words=0 DDR_writes=0 pc=00006168 bus_pc=0000616c last_fetch_age=1",
+    "run_log": "build/sim/unit-hardware-boot-real-sdram/run.log",
+    "run_sha256": "bc5369a614c5d8b100655b549c90eee95b0bdb11f2bb8e9489b92d88162ef225"
+  },
+  "sega_full_scan": {
+    "operations": 36608,
+    "rows": {
+      "arm9v2": {
+        "0:0": {
+          "body_cycles_median": 3426522,
+          "case": "sega-scan",
+          "cpu": "arm9v2",
+          "cycles_per_operation": 93.60036057692308,
+          "guest": {
+            "begin_pc": 284,
+            "end_pc": 304,
+            "name": "sega-scan",
+            "payload_sha256": "02012393286c46e2f2e2ac034e1b12f46b91d5696f1bdfcf395428aa437009eb",
+            "program_sha256": "b5a56fce502a20d387ed22918a7655dcb9b91fcc067399c63f77c441834b7a6d"
+          },
+          "operations": 36608,
+          "oracle": {
+            "helper_instructions": 787302,
+            "loop_sha256": "3608001d927335f1b383538245f8328ae76bb05bcc3121e505f412f5260cf2e2",
+            "memory_writes": 146481,
+            "native_exports": {
+              "105": "0x5055d2b1",
+              "62": "0x5055d3bd"
+            },
+            "outputs": [
+              {
+                "address": "0x8001ffe0",
+                "bytes": 73280,
+                "sha256": "2e29351b73242f73afe0ad2ed16b2b0cb1a2f1f0182bec13a48bee13bf7c0df7"
+              },
+              {
+                "address": "0x80003fe0",
+                "bytes": 73280,
+                "sha256": "9303c1eae54db0b169b20699e0fa473d6775f5497bd8dee858d0620777fdb1f4"
+              },
+              {
+                "address": "0x800007e0",
+                "bytes": 104,
+                "sha256": "f428e98534009c045288eecc1450634f78d3a01a7d9780b62cd666a3487faf39"
+              },
+              {
+                "address": "0x80017fd8",
+                "bytes": 72,
+                "sha256": "8e37c2ecd79ef9af2c99bce6324877dad1df178b83da98065153c97630797b8d"
+              }
+            ],
+            "payload_instructions": 640676,
+            "status": "PASS",
+            "thumb_bl_suffixes": {},
+            "written_pixels": 18316
+          },
+          "profile": "0:0",
+          "repeats": 2,
+          "status": "PASS",
+          "total": {
+            "cycles": 38151575,
+            "halfwords": 2527248,
+            "lines": 315906,
+            "reads": 1808519,
+            "windows": 7,
+            "writes": 353995
+          },
+          "traffic": [
+            {
+              "code_read_words": "123",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "0",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "2",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "1",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "2",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "2",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "2",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "3",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "2",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "4",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "2",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "5",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "2",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "6",
+              "pending_bus": "0",
+              "pending_write": "0"
+            }
+          ],
+          "windows": [
+            {
+              "cycles": 3426651,
+              "halfwords": 67564,
+              "index": 0,
+              "lines": 8445,
+              "reads": 109856,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 1,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 2,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 3,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 4,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 5,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 6,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            }
+          ],
+          "wrong_output_rejected": true
+        },
+        "2:9": {
+          "body_cycles_median": 4677108,
+          "case": "sega-scan",
+          "cpu": "arm9v2",
+          "cycles_per_operation": 127.76190996503496,
+          "guest": {
+            "begin_pc": 284,
+            "end_pc": 304,
+            "name": "sega-scan",
+            "payload_sha256": "02012393286c46e2f2e2ac034e1b12f46b91d5696f1bdfcf395428aa437009eb",
+            "program_sha256": "b5a56fce502a20d387ed22918a7655dcb9b91fcc067399c63f77c441834b7a6d"
+          },
+          "operations": 36608,
+          "oracle": {
+            "helper_instructions": 787302,
+            "loop_sha256": "3608001d927335f1b383538245f8328ae76bb05bcc3121e505f412f5260cf2e2",
+            "memory_writes": 146481,
+            "native_exports": {
+              "105": "0x5055d2b1",
+              "62": "0x5055d3bd"
+            },
+            "outputs": [
+              {
+                "address": "0x8001ffe0",
+                "bytes": 73280,
+                "sha256": "2e29351b73242f73afe0ad2ed16b2b0cb1a2f1f0182bec13a48bee13bf7c0df7"
+              },
+              {
+                "address": "0x80003fe0",
+                "bytes": 73280,
+                "sha256": "9303c1eae54db0b169b20699e0fa473d6775f5497bd8dee858d0620777fdb1f4"
+              },
+              {
+                "address": "0x800007e0",
+                "bytes": 104,
+                "sha256": "f428e98534009c045288eecc1450634f78d3a01a7d9780b62cd666a3487faf39"
+              },
+              {
+                "address": "0x80017fd8",
+                "bytes": 72,
+                "sha256": "8e37c2ecd79ef9af2c99bce6324877dad1df178b83da98065153c97630797b8d"
+              }
+            ],
+            "payload_instructions": 640676,
+            "status": "PASS",
+            "thumb_bl_suffixes": {},
+            "written_pixels": 18316
+          },
+          "profile": "2:9",
+          "repeats": 2,
+          "status": "PASS",
+          "total": {
+            "cycles": 62947982,
+            "halfwords": 2527208,
+            "lines": 315901,
+            "reads": 1808504,
+            "windows": 7,
+            "writes": 353995
+          },
+          "traffic": [
+            {
+              "code_read_words": "112",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "0",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "3",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "1",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "3",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "2",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "3",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "3",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "3",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "4",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "3",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "5",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "3",
+              "code_write_words": "0",
+              "data_read_words": "143514",
+              "data_write_words": "13344",
+              "index": "6",
+              "pending_bus": "0",
+              "pending_write": "0"
+            }
+          ],
+          "windows": [
+            {
+              "cycles": 4677469,
+              "halfwords": 67542,
+              "index": 0,
+              "lines": 8442,
+              "reads": 109856,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 1,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 2,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 3,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 4,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 5,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 6,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            }
+          ],
+          "wrong_output_rejected": true
+        }
+      },
+      "base": {
+        "0:0": {
+          "body_cycles_median": 8290663,
+          "case": "sega-scan",
+          "cpu": "base",
+          "cycles_per_operation": 226.4713450611888,
+          "guest": {
+            "begin_pc": 284,
+            "end_pc": 304,
+            "name": "sega-scan",
+            "payload_sha256": "02012393286c46e2f2e2ac034e1b12f46b91d5696f1bdfcf395428aa437009eb",
+            "program_sha256": "b5a56fce502a20d387ed22918a7655dcb9b91fcc067399c63f77c441834b7a6d"
+          },
+          "operations": 36608,
+          "oracle": {
+            "helper_instructions": 787302,
+            "loop_sha256": "3608001d927335f1b383538245f8328ae76bb05bcc3121e505f412f5260cf2e2",
+            "memory_writes": 146481,
+            "native_exports": {
+              "105": "0x5055d2b1",
+              "62": "0x5055d3bd"
+            },
+            "outputs": [
+              {
+                "address": "0x8001ffe0",
+                "bytes": 73280,
+                "sha256": "2e29351b73242f73afe0ad2ed16b2b0cb1a2f1f0182bec13a48bee13bf7c0df7"
+              },
+              {
+                "address": "0x80003fe0",
+                "bytes": 73280,
+                "sha256": "9303c1eae54db0b169b20699e0fa473d6775f5497bd8dee858d0620777fdb1f4"
+              },
+              {
+                "address": "0x800007e0",
+                "bytes": 104,
+                "sha256": "f428e98534009c045288eecc1450634f78d3a01a7d9780b62cd666a3487faf39"
+              },
+              {
+                "address": "0x80017fd8",
+                "bytes": 72,
+                "sha256": "8e37c2ecd79ef9af2c99bce6324877dad1df178b83da98065153c97630797b8d"
+              }
+            ],
+            "payload_instructions": 640676,
+            "status": "PASS",
+            "thumb_bl_suffixes": {},
+            "written_pixels": 18316
+          },
+          "profile": "0:0",
+          "repeats": 2,
+          "status": "PASS",
+          "total": {
+            "cycles": 69377176,
+            "halfwords": 2004960,
+            "lines": 125310,
+            "reads": 21760,
+            "windows": 7,
+            "writes": 343646
+          },
+          "traffic": [
+            {
+              "code_read_words": "138",
+              "code_write_words": "0",
+              "data_read_words": "153",
+              "data_write_words": "10366",
+              "index": "0",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "1",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "2",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "3",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "4",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "5",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "6",
+              "pending_bus": "0",
+              "pending_write": "0"
+            }
+          ],
+          "windows": [
+            {
+              "cycles": 8291276,
+              "halfwords": 66528,
+              "index": 0,
+              "lines": 4158,
+              "reads": 291,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8290663,
+              "halfwords": 66272,
+              "index": 1,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8290663,
+              "halfwords": 66272,
+              "index": 2,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8290663,
+              "halfwords": 66272,
+              "index": 3,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8290663,
+              "halfwords": 66272,
+              "index": 4,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8290663,
+              "halfwords": 66272,
+              "index": 5,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8290663,
+              "halfwords": 66272,
+              "index": 6,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            }
+          ],
+          "wrong_output_rejected": true
+        },
+        "2:9": {
+          "body_cycles_median": 8422080,
+          "case": "sega-scan",
+          "cpu": "base",
+          "cycles_per_operation": 230.0611888111888,
+          "guest": {
+            "begin_pc": 284,
+            "end_pc": 304,
+            "name": "sega-scan",
+            "payload_sha256": "02012393286c46e2f2e2ac034e1b12f46b91d5696f1bdfcf395428aa437009eb",
+            "program_sha256": "b5a56fce502a20d387ed22918a7655dcb9b91fcc067399c63f77c441834b7a6d"
+          },
+          "operations": 36608,
+          "oracle": {
+            "helper_instructions": 787302,
+            "loop_sha256": "3608001d927335f1b383538245f8328ae76bb05bcc3121e505f412f5260cf2e2",
+            "memory_writes": 146481,
+            "native_exports": {
+              "105": "0x5055d2b1",
+              "62": "0x5055d3bd"
+            },
+            "outputs": [
+              {
+                "address": "0x8001ffe0",
+                "bytes": 73280,
+                "sha256": "2e29351b73242f73afe0ad2ed16b2b0cb1a2f1f0182bec13a48bee13bf7c0df7"
+              },
+              {
+                "address": "0x80003fe0",
+                "bytes": 73280,
+                "sha256": "9303c1eae54db0b169b20699e0fa473d6775f5497bd8dee858d0620777fdb1f4"
+              },
+              {
+                "address": "0x800007e0",
+                "bytes": 104,
+                "sha256": "f428e98534009c045288eecc1450634f78d3a01a7d9780b62cd666a3487faf39"
+              },
+              {
+                "address": "0x80017fd8",
+                "bytes": 72,
+                "sha256": "8e37c2ecd79ef9af2c99bce6324877dad1df178b83da98065153c97630797b8d"
+              }
+            ],
+            "payload_instructions": 640676,
+            "status": "PASS",
+            "thumb_bl_suffixes": {},
+            "written_pixels": 18316
+          },
+          "profile": "2:9",
+          "repeats": 2,
+          "status": "PASS",
+          "total": {
+            "cycles": 70872179,
+            "halfwords": 2004928,
+            "lines": 125308,
+            "reads": 13561,
+            "windows": 7,
+            "writes": 343646
+          },
+          "traffic": [
+            {
+              "code_read_words": "138",
+              "code_write_words": "0",
+              "data_read_words": "153",
+              "data_write_words": "10366",
+              "index": "0",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "1",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "2",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "3",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "4",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "5",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "0",
+              "code_write_words": "0",
+              "data_read_words": "152",
+              "data_write_words": "10366",
+              "index": "6",
+              "pending_bus": "0",
+              "pending_write": "0"
+            }
+          ],
+          "windows": [
+            {
+              "cycles": 8422947,
+              "halfwords": 66496,
+              "index": 0,
+              "lines": 4156,
+              "reads": 291,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8422080,
+              "halfwords": 66272,
+              "index": 1,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8422080,
+              "halfwords": 66272,
+              "index": 2,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8422080,
+              "halfwords": 66272,
+              "index": 3,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8422080,
+              "halfwords": 66272,
+              "index": 4,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8422080,
+              "halfwords": 66272,
+              "index": 5,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            },
+            {
+              "cycles": 8422080,
+              "halfwords": 66272,
+              "index": 6,
+              "lines": 4142,
+              "reads": 152,
+              "retire_proxy": 1427984,
+              "writes": 10366
+            }
+          ],
+          "wrong_output_rejected": true
+        }
+      },
+      "ngage2": {
+        "0:0": {
+          "body_cycles_median": 3426522,
+          "case": "sega-scan",
+          "cpu": "ngage2",
+          "cycles_per_operation": 93.60036057692308,
+          "guest": {
+            "begin_pc": 284,
+            "end_pc": 304,
+            "name": "sega-scan",
+            "payload_sha256": "02012393286c46e2f2e2ac034e1b12f46b91d5696f1bdfcf395428aa437009eb",
+            "program_sha256": "b5a56fce502a20d387ed22918a7655dcb9b91fcc067399c63f77c441834b7a6d"
+          },
+          "operations": 36608,
+          "oracle": {
+            "helper_instructions": 787302,
+            "loop_sha256": "3608001d927335f1b383538245f8328ae76bb05bcc3121e505f412f5260cf2e2",
+            "memory_writes": 146481,
+            "native_exports": {
+              "105": "0x5055d2b1",
+              "62": "0x5055d3bd"
+            },
+            "outputs": [
+              {
+                "address": "0x8001ffe0",
+                "bytes": 73280,
+                "sha256": "2e29351b73242f73afe0ad2ed16b2b0cb1a2f1f0182bec13a48bee13bf7c0df7"
+              },
+              {
+                "address": "0x80003fe0",
+                "bytes": 73280,
+                "sha256": "9303c1eae54db0b169b20699e0fa473d6775f5497bd8dee858d0620777fdb1f4"
+              },
+              {
+                "address": "0x800007e0",
+                "bytes": 104,
+                "sha256": "f428e98534009c045288eecc1450634f78d3a01a7d9780b62cd666a3487faf39"
+              },
+              {
+                "address": "0x80017fd8",
+                "bytes": 72,
+                "sha256": "8e37c2ecd79ef9af2c99bce6324877dad1df178b83da98065153c97630797b8d"
+              }
+            ],
+            "payload_instructions": 640676,
+            "status": "PASS",
+            "thumb_bl_suffixes": {},
+            "written_pixels": 18316
+          },
+          "profile": "0:0",
+          "repeats": 2,
+          "status": "PASS",
+          "total": {
+            "cycles": 38151575,
+            "halfwords": 2527248,
+            "lines": 315906,
+            "reads": 1808519,
+            "windows": 7,
+            "writes": 353995
+          },
+          "traffic": [
+            {
+              "code_read_words": "677",
+              "code_write_words": "0",
+              "data_read_words": "142960",
+              "data_write_words": "13344",
+              "index": "0",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142956",
+              "data_write_words": "13344",
+              "index": "1",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142956",
+              "data_write_words": "13344",
+              "index": "2",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142956",
+              "data_write_words": "13344",
+              "index": "3",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142956",
+              "data_write_words": "13344",
+              "index": "4",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142956",
+              "data_write_words": "13344",
+              "index": "5",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142956",
+              "data_write_words": "13344",
+              "index": "6",
+              "pending_bus": "0",
+              "pending_write": "0"
+            }
+          ],
+          "windows": [
+            {
+              "cycles": 3426651,
+              "halfwords": 67564,
+              "index": 0,
+              "lines": 8445,
+              "reads": 109856,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 1,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 2,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 3,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 4,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 5,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 3426522,
+              "halfwords": 67328,
+              "index": 6,
+              "lines": 8416,
+              "reads": 109852,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            }
+          ],
+          "wrong_output_rejected": true
+        },
+        "2:9": {
+          "body_cycles_median": 4677108,
+          "case": "sega-scan",
+          "cpu": "ngage2",
+          "cycles_per_operation": 127.76190996503496,
+          "guest": {
+            "begin_pc": 284,
+            "end_pc": 304,
+            "name": "sega-scan",
+            "payload_sha256": "02012393286c46e2f2e2ac034e1b12f46b91d5696f1bdfcf395428aa437009eb",
+            "program_sha256": "b5a56fce502a20d387ed22918a7655dcb9b91fcc067399c63f77c441834b7a6d"
+          },
+          "operations": 36608,
+          "oracle": {
+            "helper_instructions": 787302,
+            "loop_sha256": "3608001d927335f1b383538245f8328ae76bb05bcc3121e505f412f5260cf2e2",
+            "memory_writes": 146481,
+            "native_exports": {
+              "105": "0x5055d2b1",
+              "62": "0x5055d3bd"
+            },
+            "outputs": [
+              {
+                "address": "0x8001ffe0",
+                "bytes": 73280,
+                "sha256": "2e29351b73242f73afe0ad2ed16b2b0cb1a2f1f0182bec13a48bee13bf7c0df7"
+              },
+              {
+                "address": "0x80003fe0",
+                "bytes": 73280,
+                "sha256": "9303c1eae54db0b169b20699e0fa473d6775f5497bd8dee858d0620777fdb1f4"
+              },
+              {
+                "address": "0x800007e0",
+                "bytes": 104,
+                "sha256": "f428e98534009c045288eecc1450634f78d3a01a7d9780b62cd666a3487faf39"
+              },
+              {
+                "address": "0x80017fd8",
+                "bytes": 72,
+                "sha256": "8e37c2ecd79ef9af2c99bce6324877dad1df178b83da98065153c97630797b8d"
+              }
+            ],
+            "payload_instructions": 640676,
+            "status": "PASS",
+            "thumb_bl_suffixes": {},
+            "written_pixels": 18316
+          },
+          "profile": "2:9",
+          "repeats": 2,
+          "status": "PASS",
+          "total": {
+            "cycles": 62947982,
+            "halfwords": 2527208,
+            "lines": 315901,
+            "reads": 1808504,
+            "windows": 7,
+            "writes": 353995
+          },
+          "traffic": [
+            {
+              "code_read_words": "666",
+              "code_write_words": "0",
+              "data_read_words": "142960",
+              "data_write_words": "13344",
+              "index": "0",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142957",
+              "data_write_words": "13344",
+              "index": "1",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142957",
+              "data_write_words": "13344",
+              "index": "2",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142957",
+              "data_write_words": "13344",
+              "index": "3",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142957",
+              "data_write_words": "13344",
+              "index": "4",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142957",
+              "data_write_words": "13344",
+              "index": "5",
+              "pending_bus": "0",
+              "pending_write": "0"
+            },
+            {
+              "code_read_words": "560",
+              "code_write_words": "0",
+              "data_read_words": "142957",
+              "data_write_words": "13344",
+              "index": "6",
+              "pending_bus": "0",
+              "pending_write": "0"
+            }
+          ],
+          "windows": [
+            {
+              "cycles": 4677469,
+              "halfwords": 67542,
+              "index": 0,
+              "lines": 8442,
+              "reads": 109856,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 1,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 2,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 3,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 4,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 5,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            },
+            {
+              "cycles": 4677108,
+              "halfwords": 67328,
+              "index": 6,
+              "lines": 8416,
+              "reads": 109853,
+              "retire_proxy": 1427984,
+              "writes": 13344
+            }
+          ],
+          "wrong_output_rejected": true
+        }
+      }
+    },
+    "runs": {
+      "arm9v2": {
+        "build": {
+          "scan_executable_sha256": "39ad001d5bebc90c6e0ace92980ea4d231f9e105d903cc641c000a9b5ec7c682",
+          "scan_harness_sha256": "bebcf2e3b85c353e08a3080b720eacefce23c8a7661f876888e6a646b17b3c66"
+        },
+        "receipt": "build/sim/arm9v2/v5-sega-scan-01/result.json",
+        "receipt_sha256": "7daae477c21f6075130a1f91dd3de1c2673d28e99905ded235a3ad2bf7508e4e"
+      },
+      "base": {
+        "build": {
+          "scan_executable_sha256": "3492deb86559b2d155bd0605d9e16dfb86f97b11323e6afc0c8e72bc7b03845f",
+          "scan_harness_sha256": "0e53459b15d4210cf80761993d321e4a2ad9c4ea62497a9bfaf40001ace6f3e9"
+        },
+        "receipt": "build/sim/arm9v2/v5-sega-scan-base-02/result.json",
+        "receipt_sha256": "3f8f9e2c31f75f4f928b381fd62efe026085818997f9501a144175273bf5e2ee"
+      },
+      "ngage2": {
+        "build": {
+          "scan_executable_sha256": "b9c03d484a20f7535f3d1b8ce449b462b8da6653eb3dead0e367b29f81636997",
+          "scan_harness_sha256": "ff30d03fcc81f8cb994401b687cc62bc90dc60a39cb653a661fab4eb30d70ae7"
+        },
+        "receipt": "build/sim/arm9v2/v5-sega-scan-ngage2-02/result.json",
+        "receipt_sha256": "298c18efcda0653efc4fd6314182b28ad4fba7aa424a478209c641470fd8291a"
+      }
+    },
+    "written_pixels": 18316
+  },
+  "standalone_stream_comparison": {
+    "rows": [
+      {
+        "body_cycles_median": 23675,
+        "case": "matrix4",
+        "profile": "0:0",
+        "windows": [
+          {
+            "cycles": 24491,
+            "halfwords": 6338,
+            "index": 0,
+            "lines": 792,
+            "reads": 97,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 1,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 2,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 3,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 4,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 5,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 6,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 35925,
+        "case": "matrix4",
+        "profile": "2:9",
+        "windows": [
+          {
+            "cycles": 37196,
+            "halfwords": 6346,
+            "index": 0,
+            "lines": 793,
+            "reads": 96,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 1,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 2,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 3,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 4,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 5,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 6,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 1910,
+        "case": "transpose4",
+        "profile": "0:0",
+        "windows": [
+          {
+            "cycles": 2019,
+            "halfwords": 86,
+            "index": 0,
+            "lines": 10,
+            "reads": 194,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 1,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 2,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 3,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 4,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 5,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 6,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 3484,
+        "case": "transpose4",
+        "profile": "2:9",
+        "windows": [
+          {
+            "cycles": 3614,
+            "halfwords": 78,
+            "index": 0,
+            "lines": 9,
+            "reads": 194,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 1,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 2,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 3,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 4,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 5,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 6,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 12634,
+        "case": "triangle_edges",
+        "profile": "0:0",
+        "windows": [
+          {
+            "cycles": 13530,
+            "halfwords": 754,
+            "index": 0,
+            "lines": 94,
+            "reads": 165,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 13844,
+        "case": "triangle_edges",
+        "profile": "2:9",
+        "windows": [
+          {
+            "cycles": 15012,
+            "halfwords": 744,
+            "index": 0,
+            "lines": 93,
+            "reads": 162,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 105069,
+        "case": "fill16_frame",
+        "profile": "0:0",
+        "windows": [
+          {
+            "cycles": 105165,
+            "halfwords": 36702,
+            "index": 0,
+            "lines": 4587,
+            "reads": 5,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 1,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 2,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 3,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 4,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 5,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 6,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 275892,
+        "case": "fill16_frame",
+        "profile": "2:9",
+        "windows": [
+          {
+            "cycles": 275992,
+            "halfwords": 36696,
+            "index": 0,
+            "lines": 4587,
+            "reads": 5,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 1,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 2,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 3,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 4,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 5,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 6,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 707,
+        "case": "fill16_tail",
+        "profile": "0:0",
+        "windows": [
+          {
+            "cycles": 835,
+            "halfwords": 102,
+            "index": 0,
+            "lines": 12,
+            "reads": 5,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 760,
+        "case": "fill16_tail",
+        "profile": "2:9",
+        "windows": [
+          {
+            "cycles": 904,
+            "halfwords": 104,
+            "index": 0,
+            "lines": 13,
+            "reads": 5,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 717,
+        "case": "fill8_tail",
+        "profile": "0:0",
+        "windows": [
+          {
+            "cycles": 844,
+            "halfwords": 86,
+            "index": 0,
+            "lines": 10,
+            "reads": 5,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ]
+      },
+      {
+        "body_cycles_median": 743,
+        "case": "fill8_tail",
+        "profile": "2:9",
+        "windows": [
+          {
+            "cycles": 911,
+            "halfwords": 88,
+            "index": 0,
+            "lines": 11,
+            "reads": 5,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ]
+      }
+    ],
+    "run": "build/sim/spmark-payload/v5-spmark-ngage2-stream-01/result.json",
+    "sha256": "87a016c02d5f274619f94bb7fa6a434897244b5850ca6689242bf685825afc65"
+  },
   "stock_donor": "a182204f87642d434bce5a27bacfda602c505192",
   "stock_netlist_sha256": "087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c",
   "suites": {

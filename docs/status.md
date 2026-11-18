@@ -2,13 +2,19 @@
 
 This branch selects ngage2 `a182204` with stock 16 KiB I and 8 KiB D caches.
 Exact `a2c5863` mainline is the control. Both donor legs match on six SPMark
-kernels, original Thumb JPEG and seven original game loops. The six-kernel
-speedup is 1.732× at 0:0 and 1.210× at 2:9. At 2:9 the donor's full-frame fill
-takes 371,988 versus 201,302 mainline clocks. The real RTL bus test passes
-SWPB, IRQ/FIQ, external data and late refill faults and dirty maintenance at
-both delays. The donor firmware clears the ROM digest and enters the kernel
-at about 290M clocks. Startup continuation and a branch-only fit are the next
-gates. [Results and replay](arm9v2-phone.md).
+kernels, original Thumb JPEG, seven original game loops and the full Sega
+Rally scan with native FbsCli. The six-kernel speedup is 1.732× at 0:0 and
+1.210× at 2:9. The delayed Sega scan is 1.801× faster, while the full-frame
+fill takes 371,988 versus 201,302 mainline clocks. Scalar RTL bus tests pass
+SWPB, IRQ/FIQ, external data and translation faults, late refill abort and
+dirty maintenance. The SDRAM pin-model boot passes. The 78 MHz production
+64 Hz NOS boot reaches kernel, Nokia logo and LCD DMA by 1B clocks with zero
+data errors. The full checkpoint pair is retained. Interactive home-screen
+completion remains open. Seed-42 debug-on fit `44273812397` uses 35,362 ALMs
+and 411 M10Ks, passes the SDRAM pins and produces an RBF. It misses setup by
+1.371 ns at 78 MHz and 4.576 ns at 104 MHz. Retain the branch candidate and
+measure donor-width memory service and cache policy next.
+[Results and replay](arm9v2-phone.md).
 
 ## 2026-11-17 — Step 5F remaining regressions completed
 

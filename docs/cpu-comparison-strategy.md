@@ -1,5 +1,9 @@
 # NEM-4 CPU strategy and comparison plan
 
+Andrea authorized the stock whole-subsystem experiment on `ngage-v5`. The
+branch starts with the donor's stock cache geometry and has its own measured
+board and payload results. [Branch integration and evidence](arm9v2-phone.md).
+
 ## Decision on 17 November 2026
 
 Retain the ARM920-compatible 5D CPU on `master` as the current production reference. Andrea has allocated the available tokens to finishing this CPU first. Only the mainline chat is active. After this CPU is finished, the second candidate will be ngage2's **complete ARM9V2 CPU, caches and MMU**. At that point measure the historical larger cache, integrate the donor behind the NEM-4 board boundary and compare the best qualified version of each. The completed stock-donor benchmark remains available throughout the mainline work. [Mainline chat](codex://threads/01a1e481-765c-7d51-9047-e6629ac6c0ec) · [Deferred donor chat](codex://threads/01a1e881-f8b0-7dd3-bb3d-f64b97bf4230)

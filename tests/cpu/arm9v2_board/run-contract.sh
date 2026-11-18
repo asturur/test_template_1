@@ -1,7 +1,11 @@
 #!/bin/sh
 set -eu
 
-out=build/sim/arm9v2/contract-"${1:?specify a fresh run name}"
+name=${1:?specify a fresh run name}
+case "$name" in
+    *[!A-Za-z0-9_.-]*) echo "Invalid run name: $name" >&2; exit 2 ;;
+esac
+out=build/sim/arm9v2/contract-"$name"
 mkdir -p build/sim/arm9v2
 mkdir "$out"
 fixture=tests/cpu/arm9v2_board

@@ -14,6 +14,15 @@ _start:
     b fiq_handler
 
 start:
+    mrc p15,0,r4,c0,c0,0
+    ldr r5,=0x54029252
+    cmp r4,r5
+    bne fail
+    mrc p15,0,r4,c0,c0,1
+    ldr r5,=0x05109149
+    cmp r4,r5
+    bne fail
+
     ldr r8,=0x0a000000
     ldr r7,=0x0c000000
     ldr r4,=0x11223344
@@ -85,6 +94,19 @@ wait_fiq:
     mcr p15,0,r8,c7,c6,1
     ldr r5,[r8]
     cmp r5,r4
+    bne fail
+
+    mov r6,#0
+    mov r9,#0x0b000000
+    ldr r5,[r9]
+    cmp r6,#1
+    bne fail
+    mrc p15,0,r4,c5,c0,0
+    and r4,r4,#15
+    cmp r4,#5
+    bne fail
+    mrc p15,0,r4,c6,c0,0
+    cmp r4,r9
     bne fail
 
     mov r6,#0

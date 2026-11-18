@@ -58,6 +58,7 @@ memory service costs in the full-board run.
 | Monkey Ball reverse span, 512 pixels | 31,058 / 31,058 | 16,530 / 17,032 |
 | Sega Rally textured span, 512 pixels | 32,908 / 32,908 | 15,965 / 16,237 |
 | Sega Rally solid fill, 512 pixels | 9,311 / 9,311 | 2,596 / 2,628 |
+| Sega Rally full-screen scan with native FbsCli, 36,608 pixels | 8,290,663 / 8,422,080 | 3,426,522 / 4,677,108 |
 | Asphalt table, 512 pixels visited | 41,169 / 41,169 | 21,806 / 24,385 |
 | Asphalt double lookup, 512 pixels visited | 18,441 / 18,441 | 12,639 / 17,415 |
 | Asphalt single lookup, 512 pixels visited | 12,731 / 12,731 | 8,287 / 8,908 |
@@ -67,6 +68,15 @@ equal clocks. JPEG is a separate 2.294× / 2.242×. The seven game-loop mean is
 1.956× / 1.787×. Game timing includes the same marker, entry and return shims on
 all three CPUs. The JPEG check accounts for the donor's separate Thumb BL
 suffix retirements and checks the full scored payload PC histogram.
+
+Sega Rally's full-screen scan is 2.419× / 1.801× faster. It independently
+checks both guarded buffers, the bitmap cursor, stack and the 18,316 pixels
+selected for writes. The original FbsCli `IncXPos` and `SetPixel` routines
+execute with an independently initialized bitmap cursor. In the delayed
+profile, the first scored donor window has 143,517 read words and 13,344
+write words. Mainline has 33,288 read words and 10,366 write words in that
+window, including its 32-byte fills. The smaller donor D-cache puts more
+work on the memory bus even though this kernel still spends fewer clocks.
 
 At `2:9` the matrix has 694 donor read fills (2,776 words), 94 other reads
 and 1,280 writes in the first scored window. The mainline matrix sends zero
@@ -78,25 +88,41 @@ external requests on the mainline. That drops its speedup from 1.459× at
 `0:0` to 1.059× at `2:9`. These counts measure traffic and wait sensitivity.
 They cannot determine physical SDRAM latency or overlap from synthetic waits.
 
+The same standalone donor also passed the earlier 16-bit burst-responder
+contract with early instruction delivery enabled. At `2:9`, matrix drops
+from 47,637 to 35,925 clocks and full-frame fill from 371,988 to 275,892.
+At `0:0` burst framing adds transfer clocks and moves those cases in the
+opposite direction, to 23,675 and 105,069. This comparison changes service
+framing and the early delivery guarantee together. The results motivate a
+donor-width board refill path that preserves late fault handling.
+
 The PLL setting is 78 MHz, and 104 MHz is the routed-analysis target. For
 example, 36,991 clocks corresponds to 474 µs at 78 MHz or 356 µs at 104 MHz.
 The reported phone index of about 224 already includes 104 MHz. Reaching 500
 at the same clock would require 2.23× throughput on the actual measured workload.
-The timing tables cover kernels. Official SPMark04 scores, full-game FPS and
-the performance of Sega Rally's full-screen native FbsCli path remain open.
+The timing tables cover fixed work. Official SPMark04 scores and full-game
+FPS remain open.
 
 ## Board checks and firmware
 
 The focused RTL test uses the production scalar memory route, registered UPP
 bridge and request stage. At both zero and five added wait clocks, the guest
-checks SWPB byte lanes and uninterrupted lock, external data abort FSR/FAR,
-IRQ/FIQ entry and return, MMU activation, dirty clean-by-MVA through to backing
-RAM, invalidate and reload, and a prefetch abort on the third word of a line
-after two good words. The test observes two failed fill attempts and the
-guest reaches the abort handler. Total/pending-bus clocks are 941/411 and
-1,778/1,315 at the two delays. The early fixture assumed one fault packet and
-placed the completion mailbox descriptor at the wrong offset. Both fixture
-errors were corrected without changing the CPU.
+checks CP15 ID and cache type, SWPB byte lanes and uninterrupted lock,
+IRQ/FIQ entry and return, MMU activation, external and section translation
+data aborts with FSR/FAR, dirty clean-by-MVA through to backing RAM, invalidate
+and reload, and a prefetch abort on the third word of a line after two good
+words. The faulting virtual address never reaches the physical device bus.
+Both runs observe two failed fill attempts and one architectural prefetch
+abort. Total/pending-bus clocks are 1,101/475 and 2,090/1,539 at the two delays.
+The early fixture assumed one fault packet and placed the completion mailbox
+descriptor at the wrong offset. Both corrections were confined to the fixture.
+
+A separate 78 MHz, five-million-clock firmware test used the actual
+`jtframe_sdram64` controller, SDRAM adapter, forwarded clock and local SDRAM
+chip model. It passed with 5,588 transactions, three discarded instruction
+bus errors and zero data bus errors. The test reached the first LCD command
+and ended in the startup delay loop. This bounded test uses the harness's
+legacy DDR model on the flash side.
 
 Matched cold five-million-clock boots used unmodified factory core and
 extension, freshly formatted 4 MiB C:, normal power-up, the production DDR
@@ -109,11 +135,60 @@ which the donor observer includes and ZAP's ordinary-retirement observer omits.
 Both reached LCD and RAM with zero data bus errors. The pre-MMU speculative
 instruction reads that raised board errors were discarded by both pipelines.
 
-The donor continued from its own checkpoint, initialized the LCD and passed
+The donor continued from its own checkpoints, initialized the LCD and passed
 the factory ROM digest. It reached kernel code by 290 million clocks and
-exercised timer, ICU, NOS, UEM, SIM and MDI register traffic. It was still
-progressing through application/UI startup at the 380-million-clock sample.
-The continuation beyond that point and physical qualification are pending.
+exercised timer, ICU, NOS, UEM, SIM and MDI register traffic. The Nokia startup
+logo was visible by 400 million clocks. At 700 million the display had a valid
+frame, 36,689 pixel words and the same logo. The trace had three discarded
+pre-MMU instruction bus errors, zero data bus errors and a sticky unsupported
+LCD command flag from the [modeled panel's initialization traffic](lcd-command-evidence.md).
+The cold comparison used a 1 kHz NOS timer. A separate cold donor boot used
+the production 64 Hz setting, reached the LCD DMA registers at 988,370,634
+clocks and completed the billion-clock run with zero data bus errors and
+three discarded instruction bus errors. The retained checkpoint pair still
+shows the Nokia startup logo. Interactive home-screen completion and
+physical qualification remain open.
+
+## Quartus fit
+
+Quartus 17.0.2 fitted `af7909d` with seed 42 and DDR debugger enabled.
+Compilation, effective-source verification, routed analysis, all 16 SDRAM
+DQ register checks and upload passed. The timing gate failed. The branch has
+132 selected files. Among the 131 shared paths, only `files.qip` and the
+CPU wrapper differ. The 47 reference CPU inputs give way to the selected
+donor netlist. The board source hashes, effective QSF, physical 78 MHz PLL
+and production BRAM match the banked third-slot reference.
+[ARM9V2 run](https://github.com/asturur/test_template_1/actions/runs/44273812397) ·
+[Mainline run](https://github.com/asturur/test_template_1/actions/runs/44258633306).
+
+| Metric | Mainline | ARM9V2 | Change |
+| --- | ---: | ---: | ---: |
+| ALMs | 37,529 | 35,362 | −2,167 |
+| Occupied LABs | 4,165 | 4,093 | −72 |
+| Registers | 42,138 | 40,035 | −2,103 |
+| M10Ks | 514 | 411 | −103 |
+| DSPs | 41 | 41 | 0 |
+| Worst 78 MHz setup | −0.743 ns | −1.371 ns | −0.628 ns |
+| Worst 104 MHz analysis setup | −3.948 ns | −4.576 ns | −0.628 ns |
+
+The worst path runs from the donor bus merger's registered address bit 25
+to the DDR debugger snapshot BRAM. At the worst corner it takes 13.474 ns
+across 11 levels. The export also shows a −0.831 ns internal path from the
+donor TLB check into execute at 78 MHz. Worst hold is +0.099 ns, and 104 MHz
+recovery slack reaches −0.465 ns. The generated 4,304,336-byte RBF is archived
+with this timing result. SHA-256
+`86ffc8d565d4a4e2f4d192daf6c05b816af3f585c50ee9a583462a1d8adbfaf9`.
+
+## Recommendation
+
+Keep ARM9V2 as the second CPU candidate. Its execution advantage survives
+the board wrapper and helps all measured game loops, including the native
+Sega scan. Memory traffic limits the gain in the delayed profile. The next
+measurements should price native 16-byte bursts through the real memory
+ports, then test donor D-cache capacity and write-allocation behavior against
+matrix and full-frame fill at the same clock and with the same checks.
+The fit leaves 98 LABs and 142 M10Ks free. Timing work should address the
+board observation path and measure the remaining native TLB-to-execute path.
 
 ## Replay
 

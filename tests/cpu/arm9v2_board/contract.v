@@ -136,6 +136,7 @@ module contract;
   integer cycle = 0, slow_delay = 0, ram_delay = 0, wait_words = 0;
   integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
   integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
+  integer translation_walks = 0, prefetch_aborts = 0;
   reg ram_pending = 0, ram_saved_write;
   reg [12:0] ram_index;
   reg [31:0] ram_saved_data;
@@ -157,6 +158,9 @@ module contract;
       if (cycle == 30000) $fatal(1, "Watchdog PC=%h", pc);
       if (line) $fatal(1, "Unexpected 32-byte line request");
       if (cyc && stb && !ack && !error) wait_words <= wait_words + 1;
+      if (cpu.u_arm925t.dbg_wb_pabt) prefetch_aborts <= prefetch_aborts + 1;
+      if (device_cyc && device_address == 32'h0b000000)
+        $fatal(1, "Faulting VA reached the physical device bus");
 
       if (device_cyc && !ready) slow_delay <= slow_delay + 1;
       else slow_delay <= 0;
@@ -188,6 +192,7 @@ module contract;
           end
           32'hf0000000: begin
             if (device_wdata != 32'h50415353 || scalar_faults != 1 || refill_faults == 0 ||
+                prefetch_aborts != 1 || translation_walks == 0 ||
                         irq_writes != 2 || fiq_writes != 2 || swap_beats != 2 || clean_writes != 1 ||
                         ram[0] != 32'h55667788)
               $fatal(
@@ -202,8 +207,9 @@ module contract;
                   clean_writes,
                   ram[0]
               );
-            $display("PASS cycles=%0d scalar_wait_cycles=%0d swp_beats=%0d clean_writes=%0d",
-                     cycle, wait_words, swap_beats, clean_writes);
+            $display(
+                "PASS cycles=%0d scalar_wait_cycles=%0d swp_beats=%0d clean_writes=%0d walks=%0d prefetch_aborts=%0d",
+                cycle, wait_words, swap_beats, clean_writes, translation_walks, prefetch_aborts);
             $finish;
           end
           default: $fatal(1, "Unexpected device write %h", device_address);
@@ -212,6 +218,7 @@ module contract;
 
       if (swap_beats == 1 && !lock) $fatal(1, "SWPB lock dropped between beats");
       if (ram_accept) begin
+        if (!ram_write && ram_address == 32'h0a0042c0) translation_walks <= translation_walks + 1;
         if (lock) begin
           if (ram_address[31:2] != 30'h02800000 || (ram_write != (swap_beats == 1)) ||
                     (ram_write && (ram_be != 4'b0010 || ram_wdata[15:8] != 8'haa)))
