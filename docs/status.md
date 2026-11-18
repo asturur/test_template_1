@@ -1,3 +1,15 @@
+## 2026-11-19 — v5 enables the folded data section TLB index
+
+The default v5 netlist uses `VA[25:20] ^ VA[31:26]` for data-side
+section lookups and refills. It is byte-identical to the verified
+simulation candidate. The full-phone Sega Rally frame falls from
+3,975,090 to 2,383,065 clocks at 39 MHz MMC and 64 Hz NOS. The six
+SPMark kernels gain 9.37% geometric throughput at `2:9`, and all 15
+payloads pass. Both 400M stock-firmware runs yield the same Nokia logo
+framebuffer with zero data-bus errors. The section contract observes
+two reads after a cold access and after CP15 invalidation.
+[Section index results and regression](arm9v2-section-xor.md).
+
 ## 2026-11-18 — Stock-ROM game PCM through the UPP DSP
 
 Original NOS routes E8 to internal DSP device 0x7c, object 1. The native

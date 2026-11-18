@@ -139,6 +139,8 @@ module contract;
   integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
   integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
   integer translation_walks = 0, prefetch_aborts = 0;
+  integer expected_section_reads = 0, section_reads = 0, section_checks = 0;
+  reg observe_sections = 0;
   reg ram_pending = 0, ram_saved_write;
   reg [13:0] ram_index;
   reg [31:0] ram_saved_data;
@@ -234,7 +236,23 @@ module contract;
             verify_resident  <= device_wdata[0];
             capacity_markers <= capacity_markers + 1;
           end
+          32'h0c000010: begin
+            if (expected_section_reads == 0 || device_wdata[0] == observe_sections)
+              $fatal(1, "Unexpected section index marker");
+            observe_sections <= device_wdata[0];
+            if (device_wdata[0]) section_reads <= 0;
+            else begin
+              if (section_reads != expected_section_reads)
+                $fatal(
+                    1, "Section table reads=%0d expected=%0d", section_reads, expected_section_reads
+                );
+              section_checks <= section_checks + 1;
+              $display("SECTION pass=%0d table_reads=%0d", section_checks + 1, section_reads);
+            end
+          end
           32'hf0000000: begin
+            if (expected_section_reads != 0 && section_checks != 2)
+              $fatal(1, "Both section-index phases must complete");
             if (capacity_markers != 2 || ram[14'h2400] != 32'h0a009000)
               $fatal(
                   1,
@@ -273,6 +291,8 @@ module contract;
 
       if (swap_beats == 1 && !lock) $fatal(1, "SWPB lock dropped between beats");
       if (ram_accept) begin
+        if (observe_sections && !ram_write && (ram_address == 32'h0a004400 || ram_address == 32'h0a006000))
+          section_reads <= section_reads + 1;
         if (verify_resident && !ram_write)
           $fatal(1, "Capacity check accessed scalar RAM at %h PC=%h", ram_address, pc);
         if (!ram_write && ram_address == 32'h0a0042c0) translation_walks <= translation_walks + 1;
@@ -310,6 +330,7 @@ module contract;
     if (!$value$plusargs("program=%s", program_file) || !$value$plusargs("wait=%d", wait_cycles))
       $fatal(1, "Specify the guest image and wait profile");
     if (!$value$plusargs("burst=%d", burst_enable)) burst_enable = 1;
+    if (!$value$plusargs("section-reads=%d", expected_section_reads)) expected_section_reads = 0;
     $readmemh(program_file, rom);
     repeat (4) @(negedge clk);
     reset = 0;

@@ -78,6 +78,38 @@ def expose(source):
             types.sub(r'\1ngage2_\2', ''.join(modules)))
 
 
+def fold_section_index(phone):
+    """Fold the D-side section index while retaining the original tag bits."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    data_cache = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_zap_dcache ('))
+    tlb = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_zap_tlb ('))
+    parts[data_cache] = edit(parts[data_cache], '\t\t.CHECK_WALK(1\'b1),',
+                             '\t\t.CHECK_WALK(1\'b1),\n\t\t.SECTION_INDEX_XOR(1\'b1),')
+    section_memory = '\tngage2_zap_mem_inv_block #(\n\t\t.WIDTH(44 - $clog2(SECTION_TLB_ENTRIES)),'
+    parts[tlb] = edit(parts[tlb], section_memory, '''
+    localparam integer SECTION_INDEX_WIDTH = $clog2(SECTION_TLB_ENTRIES);
+
+    // The stored section tag is unchanged. Given that tag, the low page
+    // bits can be recovered from the index by applying the same XOR again.
+    function [SECTION_INDEX_WIDTH-1:0] section_index;
+        input [11:0] section_page;
+        reg [11:0] shifted_page;
+        begin
+            shifted_page = section_page >> SECTION_INDEX_WIDTH;
+            section_index = section_page[SECTION_INDEX_WIDTH-1:0];
+            if (SECTION_INDEX_XOR)
+                section_index = section_index ^ shifted_page[SECTION_INDEX_WIDTH-1:0];
+        end
+    endfunction
+''' + section_memory)
+    parts[tlb] = edit(parts[tlb], "\tparameter [0:0] CHECK_WALK = 1'b0;",
+                      "\tparameter [0:0] CHECK_WALK = 1'b0;\n\tparameter SECTION_INDEX_XOR = 1'b0;")
+    for port, address in (('raddr', 'i_address_nxt'), ('waddr', 'tlb_address')):
+        parts[tlb] = edit(parts[tlb], f'.i_{port}({address}[(20 + $clog2(SECTION_TLB_ENTRIES)) - 1:20])',
+                          f'.i_{port}(section_index({address}[31:20]))')
+    return ''.join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -95,7 +127,7 @@ def main():
     if hashlib.sha256(stock).hexdigest() != STOCK_SHA:
         raise ValueError('Donor netlist differs from pinned Quartus input')
     output = VENDOR / 'arm925t_phone.v'
-    generated = expose(stock.decode())
+    generated = fold_section_index(expose(stock.decode()))
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

@@ -9,7 +9,17 @@ out=build/sim/arm9v2/contract-"$name"
 mkdir -p build/sim/arm9v2
 mkdir "$out"
 fixture=tests/cpu/arm9v2_board
-arm-none-eabi-gcc -c -mcpu=arm920t -marm "$fixture/contract.S" -o "$out/guest.o"
+netlist=${ARM9V2_NETLIST:-rtl/arm9v2/arm925t_phone.v}
+section_reads=
+case "${ARM9V2_SECTION_INDEX:-}" in
+    direct) section_reads=8 ;;
+    xor) section_reads=2 ;;
+    '') ;;
+    *) echo 'ARM9V2_SECTION_INDEX must be direct or xor' >&2; exit 2 ;;
+esac
+set --
+if [ -n "$section_reads" ]; then set -- "$@" -DSECTION_INDEX_TEST; fi
+arm-none-eabi-gcc -c -mcpu=arm920t -marm "$@" "$fixture/contract.S" -o "$out/guest.o"
 arm-none-eabi-ld -T sim/programs/link.ld "$out/guest.o" -o "$out/guest.elf"
 arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
 python3 - "$out" <<'PY'
@@ -28,12 +38,14 @@ simulation() {
 }
 simulation verilator "$image" --binary --timing --assert -j 2 \
     -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
-    rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
+    rtl/ngage_cpu.sv rtl/ngage_upp.v "$netlist" \
     rtl/arm9v2/upstream/sim/stubs/*.sv "$fixture/contract.v" > "$out/build.log" 2>&1
 for burst in 0 1; do
     for wait in 0 5; do
         log="$out/burst-$burst-wait-$wait.log"
-        simulation "/work/$out/obj/Vcontract" "$image" "+program=$out/guest.hex" "+wait=$wait" "+burst=$burst" > "$log" 2>&1
-        grep -E '^(PASS|LINES) ' "$log"
+        set --
+        if [ -n "$section_reads" ]; then set -- "$@" "+section-reads=$section_reads"; fi
+        simulation "/work/$out/obj/Vcontract" "$image" "+program=$out/guest.hex" "+wait=$wait" "+burst=$burst" "$@" > "$log" 2>&1
+        grep -E '^(PASS|LINES|SECTION) ' "$log"
     done
 done

@@ -69,6 +69,12 @@ wait_fiq:
     str r5,[r4,#0x280]
     ldr r5,=0x0c000c02
     str r5,[r4,#0x300]
+#ifdef SECTION_INDEX_TEST
+    add r6,r4,#0x2000
+    str r5,[r6]                   // VA 80000000 -> uncached device.
+    ldr r5,=0x0a000c02
+    str r5,[r4,#0x400]           // VA 10000000 -> uncached RAM.
+#endif
     ldr r5,=0xf0000c02
     add r6,r4,#0x3c00
     str r5,[r6]
@@ -83,6 +89,29 @@ wait_fiq:
     nop
     nop
     nop
+
+#ifdef SECTION_INDEX_TEST
+    mov r9,#0x10000000
+    mov r10,#0x80000000
+    ldr r3,=0x1122aa44
+    .macro section_pair
+    mov r4,#1
+    str r4,[r7,#16]
+    mov r6,#4
+1:  ldr r4,[r9]
+    cmp r4,r3
+    bne fail
+    ldr r4,[r10]
+    cmp r4,#0
+    bne fail
+    subs r6,r6,#1
+    bne 1b
+    str r4,[r7,#16]
+    .endm
+    section_pair
+    mcr p15,0,r4,c8,c6,0         // Invalidate the D-side translations.
+    section_pair
+#endif
 
     ldr r5,[r8]
     ldr r4,=0x1122aa44

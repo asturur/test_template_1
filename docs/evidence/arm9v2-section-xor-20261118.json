@@ -1,0 +1,902 @@
+{
+  "base_commit": "2a84b50bcb86a6f69c825a26428aed192a5c4008",
+  "systems": {
+    "i_cache_bytes": 16384,
+    "d_cache_bytes": 16384,
+    "ways": 2,
+    "line_bytes": 32,
+    "system_hz": 78000000,
+    "mmc_hz": 39000000,
+    "nos_hz": 64,
+    "flash_cache_bytes": 8192
+  },
+  "netlist_sha256": {
+    "direct": "1b3c0c51d8ec09d5baca98f1355ce521289a07c4695e7d85ca4a9d63e780bb51",
+    "xor": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac"
+  },
+  "section_tag_bijection": {
+    "3": 4096,
+    "6": 4096
+  },
+  "benchmarks": {
+    "spmark": {
+      "receipts": {
+        "direct": "build/sim/spmark-payload/v5-section-xor-control/result.json",
+        "xor": "build/sim/spmark-payload/v5-section-xor/result.json"
+      },
+      "rows": [
+        {
+          "case": "matrix4",
+          "profile": "0:0",
+          "direct_cycles": 17437,
+          "xor_cycles": 17271,
+          "cycle_savings_percent": 0.9519986236164457
+        },
+        {
+          "case": "matrix4",
+          "profile": "2:9",
+          "direct_cycles": 17793,
+          "xor_cycles": 17382,
+          "cycle_savings_percent": 2.3098971505648325
+        },
+        {
+          "case": "transpose4",
+          "profile": "0:0",
+          "direct_cycles": 1899,
+          "xor_cycles": 1620,
+          "cycle_savings_percent": 14.691943127962082
+        },
+        {
+          "case": "transpose4",
+          "profile": "2:9",
+          "direct_cycles": 2583,
+          "xor_cycles": 1803,
+          "cycle_savings_percent": 30.19744483159117
+        },
+        {
+          "case": "triangle_edges",
+          "profile": "0:0",
+          "direct_cycles": 12634,
+          "xor_cycles": 11832,
+          "cycle_savings_percent": 6.347949976254553
+        },
+        {
+          "case": "triangle_edges",
+          "profile": "2:9",
+          "direct_cycles": 13430,
+          "xor_cycles": 11931,
+          "cycle_savings_percent": 11.161578555472818
+        },
+        {
+          "case": "fill16_frame",
+          "profile": "0:0",
+          "direct_cycles": 92612,
+          "xor_cycles": 92605,
+          "cycle_savings_percent": 0.007558415756059311
+        },
+        {
+          "case": "fill16_frame",
+          "profile": "2:9",
+          "direct_cycles": 237167,
+          "xor_cycles": 237155,
+          "cycle_savings_percent": 0.005059725847189611
+        },
+        {
+          "case": "fill16_tail",
+          "profile": "0:0",
+          "direct_cycles": 707,
+          "xor_cycles": 696,
+          "cycle_savings_percent": 1.555869872701554
+        },
+        {
+          "case": "fill16_tail",
+          "profile": "2:9",
+          "direct_cycles": 724,
+          "xor_cycles": 702,
+          "cycle_savings_percent": 3.038674033149169
+        },
+        {
+          "case": "fill8_tail",
+          "profile": "0:0",
+          "direct_cycles": 716,
+          "xor_cycles": 717,
+          "cycle_savings_percent": -0.13966480446927498
+        },
+        {
+          "case": "fill8_tail",
+          "profile": "2:9",
+          "direct_cycles": 727,
+          "xor_cycles": 723,
+          "cycle_savings_percent": 0.5502063273727598
+        }
+      ],
+      "throughput_index": {
+        "0:0": 104.22709551493034,
+        "2:9": 109.37451417881259
+      }
+    },
+    "short_games": {
+      "receipts": {
+        "direct": "build/sim/arm9v2/v5-section-xor-control-games/result.json",
+        "xor": "build/sim/arm9v2/v5-section-xor-games/result.json"
+      },
+      "rows": [
+        {
+          "case": "monkey-forward",
+          "profile": "0:0",
+          "direct_cycles": 16413,
+          "xor_cycles": 16413,
+          "cycle_savings_percent": 0.0
+        },
+        {
+          "case": "monkey-forward",
+          "profile": "2:9",
+          "direct_cycles": 16424,
+          "xor_cycles": 16419,
+          "cycle_savings_percent": 0.030443253774958823
+        },
+        {
+          "case": "monkey-reverse",
+          "profile": "0:0",
+          "direct_cycles": 16413,
+          "xor_cycles": 16413,
+          "cycle_savings_percent": 0.0
+        },
+        {
+          "case": "monkey-reverse",
+          "profile": "2:9",
+          "direct_cycles": 16424,
+          "xor_cycles": 16419,
+          "cycle_savings_percent": 0.030443253774958823
+        },
+        {
+          "case": "sega-span",
+          "profile": "0:0",
+          "direct_cycles": 15912,
+          "xor_cycles": 15906,
+          "cycle_savings_percent": 0.037707390648566985
+        },
+        {
+          "case": "sega-span",
+          "profile": "2:9",
+          "direct_cycles": 15932,
+          "xor_cycles": 15912,
+          "cycle_savings_percent": 0.1255335174491612
+        },
+        {
+          "case": "sega-fill",
+          "profile": "0:0",
+          "direct_cycles": 2596,
+          "xor_cycles": 2592,
+          "cycle_savings_percent": 0.15408320493066618
+        },
+        {
+          "case": "sega-fill",
+          "profile": "2:9",
+          "direct_cycles": 2616,
+          "xor_cycles": 2598,
+          "cycle_savings_percent": 0.6880733944954143
+        },
+        {
+          "case": "asphalt-table",
+          "profile": "0:0",
+          "direct_cycles": 21717,
+          "xor_cycles": 21706,
+          "cycle_savings_percent": 0.05065156329142617
+        },
+        {
+          "case": "asphalt-table",
+          "profile": "2:9",
+          "direct_cycles": 22005,
+          "xor_cycles": 21979,
+          "cycle_savings_percent": 0.11815496478073673
+        },
+        {
+          "case": "asphalt-double",
+          "profile": "0:0",
+          "direct_cycles": 12392,
+          "xor_cycles": 12388,
+          "cycle_savings_percent": 0.032278889606196515
+        },
+        {
+          "case": "asphalt-double",
+          "profile": "2:9",
+          "direct_cycles": 12644,
+          "xor_cycles": 12626,
+          "cycle_savings_percent": 0.14236001265421905
+        },
+        {
+          "case": "asphalt-single",
+          "profile": "0:0",
+          "direct_cycles": 8250,
+          "xor_cycles": 8238,
+          "cycle_savings_percent": 0.1454545454545486
+        },
+        {
+          "case": "asphalt-single",
+          "profile": "2:9",
+          "direct_cycles": 8269,
+          "xor_cycles": 8244,
+          "cycle_savings_percent": 0.3023340186237733
+        }
+      ],
+      "throughput_index": {
+        "0:0": 100.06007882095771,
+        "2:9": 100.20598871207129
+      }
+    },
+    "sega_frame": {
+      "receipts": {
+        "direct": "build/sim/arm9v2/v5-section-xor-control-sega/result.json",
+        "xor": "build/sim/arm9v2/v5-section-xor-sega/result.json"
+      },
+      "rows": [
+        {
+          "case": "sega-scan",
+          "profile": "0:0",
+          "direct_cycles": 3461218,
+          "xor_cycles": 2360190,
+          "cycle_savings_percent": 31.810420493595025,
+          "scored_cache_windows": {
+            "direct": [
+              {
+                "index": 2,
+                "i_responses": 3363877,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 300096,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 3,
+                "i_responses": 3363877,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 300096,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 4,
+                "i_responses": 3363877,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 300096,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 5,
+                "i_responses": 3363877,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 300096,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 6,
+                "i_responses": 3363877,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 300096,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              }
+            ],
+            "xor": [
+              {
+                "index": 2,
+                "i_responses": 2263568,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 80396,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 3,
+                "i_responses": 2263568,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 80396,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 4,
+                "i_responses": 2263568,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 80396,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 5,
+                "i_responses": 2263568,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 80396,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 6,
+                "i_responses": 2263568,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 80396,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              }
+            ]
+          }
+        },
+        {
+          "case": "sega-scan",
+          "profile": "2:9",
+          "direct_cycles": 4502989,
+          "xor_cycles": 2441229,
+          "cycle_savings_percent": 45.78647649372451,
+          "scored_cache_windows": {
+            "direct": [
+              {
+                "index": 2,
+                "i_responses": 4405645,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 668520,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 3,
+                "i_responses": 4405645,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 668520,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 4,
+                "i_responses": 4405645,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 668520,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 5,
+                "i_responses": 4405645,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 668520,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              },
+              {
+                "index": 6,
+                "i_responses": 4405645,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 668520,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 2,
+                "dtlb": 109850
+              }
+            ],
+            "xor": [
+              {
+                "index": 2,
+                "i_responses": 2344601,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 144165,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 3,
+                "i_responses": 2344601,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 144165,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 4,
+                "i_responses": 2344601,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 144165,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 5,
+                "i_responses": 2344601,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 144165,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              },
+              {
+                "index": 6,
+                "i_responses": 2344601,
+                "d_responses": 622534,
+                "i_fills": 0,
+                "d_fills": 4633,
+                "dirty_evictions": 2137,
+                "wb_words": 17096,
+                "i_wait": 0,
+                "d_wait": 144165,
+                "cp15": 0,
+                "empty_groups": 0,
+                "itlb": 4,
+                "dtlb": 0
+              }
+            ]
+          }
+        }
+      ],
+      "throughput_index": {
+        "0:0": 146.6499730953864,
+        "2:9": 184.45582122775045
+      }
+    },
+    "jpeg": {
+      "receipts": {
+        "direct": "build/sim/jpeg-payload/v5-section-xor-control-jpeg/result.json",
+        "xor": "build/sim/jpeg-payload/v5-section-xor-jpeg/result.json"
+      },
+      "rows": [
+        {
+          "case": "diffuse_m10_8x8_jpeg",
+          "profile": "0:0",
+          "direct_cycles": 35913,
+          "xor_cycles": 35903,
+          "cycle_savings_percent": 0.027845070030352304
+        },
+        {
+          "case": "diffuse_m10_8x8_jpeg",
+          "profile": "2:9",
+          "direct_cycles": 35921,
+          "xor_cycles": 35903,
+          "cycle_savings_percent": 0.05010996353108643
+        }
+      ],
+      "throughput_index": {
+        "0:0": 100.02785282566917,
+        "2:9": 100.0501350862045
+      }
+    }
+  },
+  "contracts": {
+    "direct": {
+      "0:0": {
+        "section_reads": [
+          8,
+          8
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-control/burst-0-wait-0.log"
+      },
+      "0:5": {
+        "section_reads": [
+          8,
+          8
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-control/burst-0-wait-5.log"
+      },
+      "1:0": {
+        "section_reads": [
+          8,
+          8
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-control/burst-1-wait-0.log"
+      },
+      "1:5": {
+        "section_reads": [
+          8,
+          8
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-control/burst-1-wait-5.log"
+      }
+    },
+    "xor": {
+      "0:0": {
+        "section_reads": [
+          2,
+          2
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-folded/burst-0-wait-0.log"
+      },
+      "0:5": {
+        "section_reads": [
+          2,
+          2
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-folded/burst-0-wait-5.log"
+      },
+      "1:0": {
+        "section_reads": [
+          2,
+          2
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-folded/burst-1-wait-0.log"
+      },
+      "1:5": {
+        "section_reads": [
+          2,
+          2
+        ],
+        "log": "build/sim/arm9v2/contract-v5-section-xor-folded/burst-1-wait-5.log"
+      }
+    }
+  },
+  "full_phone_sega_frame": {
+    "runs": {
+      "direct": {
+        "receipt": "build/sim/payload-clocks/v5-section-xor-control-phone/result.json",
+        "good_flash_sha256": "3bc9754e3ee7bfa616a0dad319f503344bca3827b883f44d4fcfe5be80a48e3c",
+        "bad_flash_sha256": "6d843aac08cdf2100db13bcd492ebf2717f3e121a0218c90d74bb9e836bc316f",
+        "case": "sega-scan",
+        "mmc_hz": 39000000,
+        "nos_hz": 64,
+        "windows": [
+          {
+            "window": 0,
+            "cycles": 3975454,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 16,
+            "nos_ticks": 3,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 1,
+            "cycles": 3975090,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 3,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 2,
+            "cycles": 3975090,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 4,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 3,
+            "cycles": 3975090,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 3,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 4,
+            "cycles": 3975090,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 3,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 5,
+            "cycles": 3975090,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 3,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 6,
+            "cycles": 3975090,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 4,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          }
+        ],
+        "total": {
+          "cycles": 49075846,
+          "nos_ticks": 40,
+          "nos_matches": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0,
+          "ddr_reads": 64327,
+          "d2_lines": 256
+        },
+        "median_clocks": 3975090
+      },
+      "xor": {
+        "receipt": "build/sim/payload-clocks/v5-section-xor-folded-phone/result.json",
+        "good_flash_sha256": "3bc9754e3ee7bfa616a0dad319f503344bca3827b883f44d4fcfe5be80a48e3c",
+        "bad_flash_sha256": "6d843aac08cdf2100db13bcd492ebf2717f3e121a0218c90d74bb9e836bc316f",
+        "case": "sega-scan",
+        "mmc_hz": 39000000,
+        "nos_hz": 64,
+        "windows": [
+          {
+            "window": 0,
+            "cycles": 2383434,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 14,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 1,
+            "cycles": 2383065,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 2,
+            "cycles": 2383065,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 3,
+            "cycles": 2383065,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 4,
+            "cycles": 2383065,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 5,
+            "cycles": 2383065,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          {
+            "window": 6,
+            "cycles": 2383065,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          }
+        ],
+        "total": {
+          "cycles": 23516913,
+          "nos_ticks": 19,
+          "nos_matches": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0,
+          "ddr_reads": 64326,
+          "d2_lines": 256
+        },
+        "median_clocks": 2383065
+      }
+    },
+    "cycle_savings_percent": 40.050036602944836
+  },
+  "stock_firmware_boot": {
+    "direct": {
+      "receipt": "build/sim/runs/v5-section-xor-boot-control/result.json",
+      "manifest": "build/sim/runs/v5-section-xor-boot-control/manifest.json",
+      "inputs": {
+        "core": {
+          "path": "build/firmware/nem4-factory/core.bin",
+          "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+        },
+        "extension": {
+          "path": "build/firmware/nem4-factory/extension.bin",
+          "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+        },
+        "cdrive": {
+          "path": "/Users/andreabogazzi/develop/NGage_MiSTer/build/firmware/thc/cdrive-formatted-4mib.img",
+          "sha256": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482"
+        }
+      },
+      "terminal_cycle": 400000000,
+      "data_errors": 0,
+      "bus_errors": 3,
+      "unsupported_lcd_seen": 1,
+      "lcd_words": 36689,
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "display_checkpoint": {
+        "cycle": 295684044,
+        "words": 36689,
+        "ddr_reads": 670833,
+        "ddr_beats": 2683332
+      }
+    },
+    "xor": {
+      "receipt": "build/sim/runs/v5-section-xor-boot-folded/result.json",
+      "manifest": "build/sim/runs/v5-section-xor-boot-folded/manifest.json",
+      "inputs": {
+        "core": {
+          "path": "build/firmware/nem4-factory/core.bin",
+          "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+        },
+        "extension": {
+          "path": "build/firmware/nem4-factory/extension.bin",
+          "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+        },
+        "cdrive": {
+          "path": "/Users/andreabogazzi/develop/NGage_MiSTer/build/firmware/thc/cdrive-formatted-4mib.img",
+          "sha256": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482"
+        }
+      },
+      "terminal_cycle": 400000000,
+      "data_errors": 0,
+      "bus_errors": 3,
+      "unsupported_lcd_seen": 1,
+      "lcd_words": 36689,
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "display_checkpoint": {
+        "cycle": 295687101,
+        "words": 36689,
+        "ddr_reads": 670901,
+        "ddr_beats": 2683604
+      }
+    }
+  }
+}

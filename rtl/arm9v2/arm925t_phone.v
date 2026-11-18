@@ -11431,6 +11431,7 @@ module ngage2_zap_dcache (
 	endgenerate
 	ngage2_zap_tlb #(
 		.CHECK_WALK(1'b1),
+		.SECTION_INDEX_XOR(1'b1),
 		.LPAGE_TLB_ENTRIES(LPAGE_TLB_ENTRIES),
 		.SPAGE_TLB_ENTRIES(SPAGE_TLB_ENTRIES),
 		.SPAGE_TLB_WAYS(SPAGE_TLB_WAYS),
@@ -13981,6 +13982,7 @@ module ngage2_zap_tlb (
 	parameter [31:0] CPSR_MODE = 32'd4;
 	parameter [31:0] SPAGE_TLB_WAYS = 32'd1;
 	parameter [0:0] CHECK_WALK = 1'b0;
+	parameter SECTION_INDEX_XOR = 1'b0;
 	parameter [0:0] MMU_OFF_CACHEABLE = 1'd0;
 	input wire i_clk;
 	input wire i_reset;
@@ -14412,6 +14414,21 @@ module ngage2_zap_tlb (
 	endgenerate
 	localparam [31:0] W = max(20 + $clog2(SECTION_TLB_ENTRIES), 16 + $clog2(LPAGE_TLB_ENTRIES), 12 + $clog2(SPAGE_TLB_ENTRIES), 10 + $clog2(FPAGE_TLB_ENTRIES));
 	assign unused = |{i_address_nxt[9:0], tlb_address[9:0], i_address_nxt[31:W], tlb_address[31:W], u0, u1, u2, u3, u4, u5, setlb_rdata, sptlb_rdata, lptlb_rdata, fptlb_rdata, setlb_ren, sptlb_ren, lptlb_ren, fptlb_ren};
+
+    localparam integer SECTION_INDEX_WIDTH = $clog2(SECTION_TLB_ENTRIES);
+
+    // The stored section tag is unchanged. Given that tag, the low page
+    // bits can be recovered from the index by applying the same XOR again.
+    function [SECTION_INDEX_WIDTH-1:0] section_index;
+        input [11:0] section_page;
+        reg [11:0] shifted_page;
+        begin
+            shifted_page = section_page >> SECTION_INDEX_WIDTH;
+            section_index = section_page[SECTION_INDEX_WIDTH-1:0];
+            if (SECTION_INDEX_XOR)
+                section_index = section_index ^ shifted_page[SECTION_INDEX_WIDTH-1:0];
+        end
+    endfunction
 	ngage2_zap_mem_inv_block #(
 		.WIDTH(44 - $clog2(SECTION_TLB_ENTRIES)),
 		.DEPTH(SECTION_TLB_ENTRIES),
@@ -14423,8 +14440,8 @@ module ngage2_zap_tlb (
 		.i_wdata(setlb_wdata),
 		.i_wen(setlb_wen),
 		.i_inv(i_inv | !i_mmu_en),
-		.i_raddr(i_address_nxt[(20 + $clog2(SECTION_TLB_ENTRIES)) - 1:20]),
-		.i_waddr(tlb_address[(20 + $clog2(SECTION_TLB_ENTRIES)) - 1:20]),
+		.i_raddr(section_index(i_address_nxt[31:20])),
+		.i_waddr(section_index(tlb_address[31:20])),
 		.o_rdata(setlb_rdata),
 		.o_rdav(setlb_ren),
 		.o_rdata_pre(setlb_rdata_pre),
