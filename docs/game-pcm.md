@@ -1,5 +1,36 @@
 # ARM game PCM
 
+## Stock firmware over the UPP DSP link
+
+Game PCM resource `0xe8` belongs to the UPP's internal DSP at Phonet device
+`0x7c`, object 1. The separate D550 music DSP uses device `0x78` on the
+MADI serial transport. The original NOS router learns the internal route
+from the MDI `0xd0/04` announcement and selects media `0x12`. Its
+`0x515bf06c` callback queues the captured Sega Rally start, first-buffer
+and stop frames for native MDI send task 4. The TX task swaps the Phonet
+length to big-endian before publishing the frame to the shared ring.
+
+With the experimental game PCM build option, the UPP MDI responder now
+accepts those stock frames. It validates the two nonoverlapping SDRAM
+halves within the pages mapped by `audio.ldd`, hands their addresses and
+frame lengths to the existing PCM player, and sends start, refill and stop
+responses through the native D2M ring and IRQ10. The 8 and 16 kHz mono
+stream uses the same 48 kHz output and SDRAM arbiter as the diagnostic
+player. The diagnostic register interface remains available for its
+existing test. Native playback completion uses the MDI link.
+
+`tests/phone/game_pcm/stock_route.py` runs the original name lookup, D0
+registration, off-device route, MDI send callback and original return
+route to task `0x2c`. The media pointer array, scheduler and pool are
+fixture boundaries. `tests/phone/native_mdi/run.sh` runs the original ARM
+ring write, receive and availability routines on the HDL CPU. Its authored
+caller exercises signed playback from both halves, reply framing, stop,
+restart and the RF request on the same link. Both wait profiles passed,
+at 78,933 and 90,585 CPU clocks for wait 0 and 3. The production PCM/MMC
+fixture passed with 64 sample reads, including one while MMC was active.
+Routed timing and a full Sega Rally run on MiSTer with the original firmware
+are still unverified.
+
 ## Original NEM-4 stream
 
 Sega Rally ran from a private copy of its 16 MB card under the reference
@@ -176,6 +207,10 @@ Logs, game media and generated WAVs stay under ignored `build/sim/`.
 
 ```sh
 python3 tests/phone/game_pcm/integration.py game-pcm-board
+sh tests/phone/native_mdi/run.sh
+docker run --rm --pull never --network none --platform linux/arm64 \
+  -v "$PWD:/work" -w /work -e PYTHONPATH=/work/build/tool-cache/linux-unicorn/site \
+  --entrypoint python3 jotego/simulator:arm64 -B tests/phone/game_pcm/stock_route.py
 python3 tests/phone/game_pcm/replay.py game-pcm-sega --mmc /path/to/sega-rally.mmc
 python3 -B tools/build_game_pcm.py build/firmware-overlays/game-pcm
 docker run --rm --pull never --network none --platform linux/arm64 \

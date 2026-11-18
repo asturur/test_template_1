@@ -71,7 +71,7 @@ def run(out):
     raw = (FIXTURE / 'run.sh').read_text().split("-c '", 1)[1].split(' > build/sim/unit-mmc-mister/build.log', 1)[0]
     sources = [o for o in shlex.split(raw) if o.endswith(('.v', '.sv'))]
     sources.remove('tests/phone/mmc_mister/tb.v')
-    sources.extend(('rtl/ngage_game_pcm.v', f'{sim_path}/tb.v'))
+    sources.extend(('rtl/ngage_game_pcm.v', 'rtl/ngage_upp_dsp_pcm.v', f'{sim_path}/tb.v'))
     source_args = ' '.join(shlex.quote(x) if '*' not in x else x for x in sources)
     step = ('verilator --binary --timing --assert -j 3 -Wno-fatal -Wno-lint '
             f'-Irtl/arm --top-module tb --Mdir {sim_path}/obj '

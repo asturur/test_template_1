@@ -178,7 +178,10 @@ module ngage_mister #(
     wire [31:0] dma_reg_data, dma_lcd_data;
     wire [14:0] dma_lcd_addr;
     wire [31:0] brd_dout;
-    wire        pcm_irq;
+    wire pcm_irq, pcm_mdi_link, pcm_mdi_write;
+    wire [ 7:0] pcm_mdi_offset;
+    wire [20:0] pcm_mdi_status;
+    wire [31:0] pcm_mdi_data;
     wire        lcd_unsupported_valid;
     wire [31:0] lcd_unsupported_data;
     wire        board_trace_valid;
@@ -351,6 +354,11 @@ module ngage_mister #(
         .cfg_clocks           (1'b1),
         .dma_irq_pending      (1'b0),
         .pcm_irq              (pcm_irq),
+        .pcm_mdi_status       (pcm_mdi_status),
+        .pcm_mdi_link         (pcm_mdi_link),
+        .pcm_mdi_write        (pcm_mdi_write),
+        .pcm_mdi_offset       (pcm_mdi_offset),
+        .pcm_mdi_data         (pcm_mdi_data),
         .sim_fiq_pending      (1'b0),
         .dma_irq_clear        (),
         .claim                (brd_claim),
@@ -369,50 +377,60 @@ module ngage_mister #(
     // --- physical address decode --------------------------------------------
     wire [31:0] pa = {wb_adr[31:2], 2'b00};
 
-    // The game playback window is a software interface, separate from UPP.
-    wire pcm_claim = GAME_PCM && pa[31:8] == 24'h0c1f00;
-    wire pcm_access = !core_reset && wb_cyc && wb_stb && pcm_claim;
-    wire pcm_bad = pcm_access && (wb_code || wb_sel != 4'b1111);
+    // The diagnostic register window and the native UPP DSP peer share playback.
+    wire        pcm_claim = GAME_PCM && pa[31:8] == 24'h0c1f00;
+    wire        pcm_access = !core_reset && wb_cyc && wb_stb && pcm_claim;
+    wire        pcm_bad = pcm_access && (wb_code || wb_sel != 4'b1111);
     wire [31:0] pcm_data;
     generate
         if (GAME_PCM) begin : game_pcm
             wire        read_request;
             wire [31:0] read_address;
             wire        ram_address = read_address[31:24] == 8'h0a;
-            assign pcm_sdram_req  = read_request && ram_address && !core_reset;
+            reg         native_owner;
+            always @(posedge clk_sys) begin
+                if (core_reset || !pcm_mdi_link) native_owner <= 0;
+                else if (pcm_mdi_write) native_owner <= 1;
+            end
+            wire player_reset = core_reset || (native_owner && !pcm_mdi_link);
+            assign pcm_sdram_req  = read_request && ram_address && !player_reset;
             assign pcm_sdram_addr = read_address[24:0];
 
-            ngage_game_pcm #(.CLK_HZ(SYS_CLK_HZ)) player (
-                .clk     (clk_sys),
-                .reset   (core_reset),
-                .acc     (pcm_access && !pcm_bad),
-                .wr      (pcm_access && !pcm_bad && wb_we),
-                .off     (pa[7:0]),
-                .wdata   (wb_dat_o),
-                .rmask   (),
-                .rdata   (pcm_data),
-                .irq     (pcm_irq),
-                .m_cyc   (read_request),
-                .m_stb   (),
-                .m_we    (),
-                .m_adr   (read_address),
-                .m_dat_o (),
-                .m_sel   (),
-                .m_ack   (pcm_sdram_ack),
-                .m_err   (read_request && !ram_address),
-                .m_dat_i (pcm_sdram_data),
-                .out_l   (pcm_left),
-                .out_r   (pcm_right),
-                .out_valid(pcm_valid),
-                .frame_we(),
-                .frame_l (),
-                .frame_r ()
+            ngage_game_pcm #(
+                .CLK_HZ(SYS_CLK_HZ)
+            ) player (
+                .clk          (clk_sys),
+                .reset        (player_reset),
+                .acc          (pcm_access && !pcm_bad),
+                .wr           (pcm_mdi_write || (pcm_access && !pcm_bad && wb_we)),
+                .off          (pcm_mdi_write ? pcm_mdi_offset : pa[7:0]),
+                .wdata        (pcm_mdi_write ? pcm_mdi_data : wb_dat_o),
+                .rmask        (),
+                .rdata        (pcm_data),
+                .irq          (pcm_irq),
+                .stream_status(pcm_mdi_status),
+                .m_cyc        (read_request),
+                .m_stb        (),
+                .m_we         (),
+                .m_adr        (read_address),
+                .m_dat_o      (),
+                .m_sel        (),
+                .m_ack        (pcm_sdram_ack),
+                .m_err        (read_request && !ram_address),
+                .m_dat_i      (pcm_sdram_data),
+                .out_l        (pcm_left),
+                .out_r        (pcm_right),
+                .out_valid    (pcm_valid),
+                .frame_we     (),
+                .frame_l      (),
+                .frame_r      ()
             );
         end else begin : no_game_pcm
             assign pcm_sdram_req  = 1'b0;
             assign pcm_sdram_addr = 25'd0;
             assign pcm_data       = 32'd0;
             assign pcm_irq        = 1'b0;
+            assign pcm_mdi_status = 21'd0;
             assign pcm_left       = 16'd0;
             assign pcm_right      = 16'd0;
             assign pcm_valid      = 1'b0;

@@ -59,136 +59,139 @@ module ngage_game_pcm #(
     parameter integer CLK_HZ = 104_000_000,
     parameter integer OUT_HZ = 48_000
 ) (
-    input  wire         clk,
-    input  wire         reset,
+    input wire clk,
+    input wire reset,
 
     // Software playback registers
-    input  wire         acc,
-    input  wire         wr,
-    input  wire  [7:0]  off,          // byte offset in the window
-    input  wire  [31:0] wdata,
-    output reg   [31:0] rmask,
-    output reg   [31:0] rdata,
+    input  wire        acc,
+    input  wire        wr,
+    input  wire [ 7:0] off,    // byte offset in the window
+    input  wire [31:0] wdata,
+    output reg  [31:0] rmask,
+    output reg  [31:0] rdata,
 
-    output wire         irq,
+    output wire        irq,
+    output wire [20:0] stream_status,
 
     // sample reads (Wishbone B3 classic)
-    output reg          m_cyc,
-    output wire         m_stb,
-    output wire         m_we,
-    output reg   [31:0] m_adr,
-    output wire  [31:0] m_dat_o,
-    output wire  [3:0]  m_sel,
-    input  wire         m_ack,
-    input  wire         m_err,
-    input  wire  [31:0] m_dat_i,
+    output reg         m_cyc,
+    output wire        m_stb,
+    output wire        m_we,
+    output reg  [31:0] m_adr,
+    output wire [31:0] m_dat_o,
+    output wire [ 3:0] m_sel,
+    input  wire        m_ack,
+    input  wire        m_err,
+    input  wire [31:0] m_dat_i,
 
     // the output, signed, at OUT_HZ
-    output reg   [15:0] out_l,
-    output reg   [15:0] out_r,
-    output reg          out_valid,
+    output reg [15:0] out_l,
+    output reg [15:0] out_r,
+    output reg        out_valid,
 
     // for the bench: each frame as its samples arrive
-    output reg          frame_we,
-    output wire  [15:0] frame_l,
-    output wire  [15:0] frame_r
+    output reg         frame_we,
+    output wire [15:0] frame_l,
+    output wire [15:0] frame_r
 );
 
     function integer clog2;
         input [63:0] value;
-        reg   [63:0] n;
+        reg [63:0] n;
         begin
             n = value - 64'd1;
-            for (clog2 = 0; n != 0; clog2 = clog2 + 1)
-                n = n >> 1;
+            for (clog2 = 0; n != 0; clog2 = clog2 + 1) n = n >> 1;
         end
     endfunction
 
-    localparam [63:0] CLOCK_64 = {32'd0, CLK_HZ};
-    localparam [63:0] OUT_RATE_64 = {32'd0, OUT_HZ};
-    localparam integer FW = clog2(CLOCK_64 + 64'd48001);
-    localparam integer OW = clog2(CLOCK_64 + OUT_RATE_64 + 64'd1);
+    localparam         [  63:0] CLOCK_64     = {32'd0, CLK_HZ};
+    localparam         [  63:0] OUT_RATE_64  = {32'd0, OUT_HZ};
+    localparam integer          FW           = clog2(CLOCK_64 + 64'd48001);
+    localparam integer          OW           = clog2(CLOCK_64 + OUT_RATE_64 + 64'd1);
     // 2^40 / CLK_HZ: the frame phase (0 to CLK_HZ - 1) as 16 bits
-    localparam [63:0] PK = (64'd1 << 40) / CLOCK_64;
-    localparam integer KW = clog2(PK + 64'd1);
-    localparam [FW-1:0] FRAME_CLOCK = CLOCK_64[FW-1:0];
-    localparam [OW-1:0] OUTPUT_CLOCK = CLOCK_64[OW-1:0];
-    localparam [OW-1:0] OUTPUT_RATE = OUT_RATE_64[OW-1:0];
+    localparam         [  63:0] PK           = (64'd1 << 40) / CLOCK_64;
+    localparam integer          KW           = clog2(PK + 64'd1);
+    localparam         [FW-1:0] FRAME_CLOCK  = CLOCK_64                              [FW-1:0];
+    localparam         [OW-1:0] OUTPUT_CLOCK = CLOCK_64                              [OW-1:0];
+    localparam         [OW-1:0] OUTPUT_RATE  = OUT_RATE_64                           [OW-1:0];
 
     // ------------------------------------------------------------------
     // Registers
     // ------------------------------------------------------------------
-    reg [31:0]   ctrl, addr0, addr1, len0, len1, pos, played;
-    reg [31:0]   firmware_context;
-    reg [15:0]   rate;
-    reg [8:0]    volume;
-    reg          stereo, cur, starved;
-    reg [1:0]    full, done;
+    reg [31:0] ctrl, addr0, addr1, len0, len1, pos, played;
+    reg [31:0] firmware_context;
+    reg [15:0] rate;
+    reg [ 8:0] volume;
+    reg stereo, cur, starved;
+    reg [1:0] full, done;
     reg [FW-1:0] facc;
 
     wire run = ctrl[0];
-    assign irq = ctrl[1] && done != 2'b00;
+    assign irq           = ctrl[1] && done != 2'b00;
+    assign stream_status = {done, full, run, pos[15:0]};
 
     always @* begin
         rmask = acc ? 32'hFFFF_FFFF : 32'd0;
         rdata = 32'd0;
         if (acc) begin
             case (off)
-                8'h00: rdata = 32'h4155_4431;
-                8'h04: rdata = ctrl;
-                8'h08: rdata = {31'd0, stereo};
-                8'h0C: rdata = {16'd0, rate};
-                8'h10: rdata = addr0;
-                8'h14: rdata = addr1;
-                8'h18: rdata = len0;
-                8'h1C: rdata = len1;
-                8'h20: rdata = {21'd0, starved, cur, run, 2'b00, full, 2'b00, done};
-                8'h24: rdata = pos;
-                8'h28: rdata = {23'd0, volume};
-                8'h2C: rdata = played;
-                8'h30: rdata = firmware_context;
+                8'h00:   rdata = 32'h4155_4431;
+                8'h04:   rdata = ctrl;
+                8'h08:   rdata = {31'd0, stereo};
+                8'h0C:   rdata = {16'd0, rate};
+                8'h10:   rdata = addr0;
+                8'h14:   rdata = addr1;
+                8'h18:   rdata = len0;
+                8'h1C:   rdata = len1;
+                8'h20:   rdata = {21'd0, starved, cur, run, 2'b00, full, 2'b00, done};
+                8'h24:   rdata = pos;
+                8'h28:   rdata = {23'd0, volume};
+                8'h2C:   rdata = played;
+                8'h30:   rdata = firmware_context;
                 default: rdata = 32'd0;
             endcase
         end
     end
 
     // the frame clock
-    wire [FW-1:0] fsum = facc + {{(FW-16){1'b0}}, rate};
+    wire [FW-1:0] fsum = facc + {{(FW - 16) {1'b0}}, rate};
     wire          tick = run && fsum >= FRAME_CLOCK;
 
     // the frame the tick plays
-    wire        sw     = !full[cur] && full[!cur];
-    wire        b      = sw ? !cur : cur;
-    wire [31:0] p      = sw ? 32'd0 : pos;
-    wire        play   = full[b];
-    wire [31:0] p1     = p + 32'd1;
-    wire [31:0] blen   = b ? len1 : len0;
+    wire        sw = !full[cur] && full[!cur];
+    wire        b = sw ? !cur : cur;
+    wire [31:0] p = sw ? 32'd0 : pos;
+    wire        play = full[b];
+    wire [31:0] p1 = p + 32'd1;
+    wire [31:0] blen = b ? len1 : len0;
     // p1 >= blen without p1's carry chain in front of the compare: the
     // length minus one and its zero flag are registers, set with the length
     // (p + 1 >= blen is blen == 0, or p >= blen - 1 unless p + 1 wraps).
     reg [31:0] len0m1, len1m1;
-    reg        len0z, len1z;
-    wire        ends   = (b ? len1z : len0z) || (p >= (b ? len1m1 : len0m1) && p != 32'hFFFF_FFFF);
+    reg len0z, len1z;
+    wire ends = (b ? len1z : len0z) || (p >= (b ? len1m1 : len0m1) && p != 32'hFFFF_FFFF);
 `ifndef SYNTHESIS
-    always @(posedge clk) if (!reset) if (ends != (p1 >= blen)) begin
-        $display("haudio buffer end");
-        $stop;
-    end
+    always @(posedge clk)
+        if (!reset)
+            if (ends != (p1 >= blen)) begin
+                $display("haudio buffer end");
+                $stop;
+            end
 `endif
-    wire [31:1] fadr   = (b ? addr1[31:1] : addr0[31:1]) + (stereo ? {p[29:0], 1'b0} : p[30:0]);
+    wire [31:1] fadr = (b ? addr1[31:1] : addr0[31:1]) + (stereo ? {p[29:0], 1'b0} : p[30:0]);
 
-    wire        run_set = wr && off == 8'h04 && wdata[0] && !ctrl[0];
+    wire run_set = wr && off == 8'h04 && wdata[0] && !ctrl[0];
     wire [15:0] rate_w = (wdata < 32'd4000) ? 16'd4000 : (wdata > 32'd48000) ? 16'd48000 : wdata[15:0];
 
     // the sample-read request: one deep, the latest frame
-    reg        rq_v, rq_play, rq_st;
-    reg [31:1] rq_adr;               // halfword address
-    reg [8:0]  rq_vol;
-    reg        start;                // in the clock after a RUN 0 -> 1 write
+    reg rq_v, rq_play, rq_st;
+    reg [31:1] rq_adr;  // halfword address
+    reg [ 8:0] rq_vol;
+    reg        start;  // in the clock after a RUN 0 -> 1 write
 
     localparam [1:0] F_IDLE = 2'd0, F_L = 2'd1, F_R = 2'd2;
-    reg [1:0] fst;
-    wire         f_take = fst == F_IDLE && rq_v && !start;
+    reg  [1:0] fst;
+    wire       f_take = fst == F_IDLE && rq_v && !start;
 
     always @(posedge clk) begin
         start <= 1'b0;
@@ -233,67 +236,67 @@ module ngage_game_pcm #(
                         done <= 2'b00;
                     end
                 end
-                8'h08: stereo <= wdata[0];
+                8'h08:   stereo <= wdata[0];
                 8'h0C: begin
                     if (rate_w != rate && run) facc <= {FW{1'b0}};
                     rate <= rate_w;
                 end
-                8'h10: addr0 <= {wdata[31:1], 1'b0};
-                8'h14: addr1 <= {wdata[31:1], 1'b0};
+                8'h10:   addr0 <= {wdata[31:1], 1'b0};
+                8'h14:   addr1 <= {wdata[31:1], 1'b0};
                 8'h18: begin
-                    len0 <= wdata;
-                    len0m1 <= wdata - 32'd1;
-                    len0z <= wdata == 32'd0;
+                    len0    <= wdata;
+                    len0m1  <= wdata - 32'd1;
+                    len0z   <= wdata == 32'd0;
                     full[0] <= wdata != 32'd0;
                 end
                 8'h1C: begin
-                    len1 <= wdata;
-                    len1m1 <= wdata - 32'd1;
-                    len1z <= wdata == 32'd0;
+                    len1    <= wdata;
+                    len1m1  <= wdata - 32'd1;
+                    len1z   <= wdata == 32'd0;
                     full[1] <= wdata != 32'd0;
                 end
                 8'h20: begin
                     if (wdata[0]) done[0] <= 1'b0;
                     if (wdata[1]) done[1] <= 1'b0;
                 end
-                8'h28: volume <= (wdata > 32'h100) ? 9'h100 : wdata[8:0];
-                8'h30: firmware_context <= wdata;
+                8'h28:   volume <= (wdata > 32'h100) ? 9'h100 : wdata[8:0];
+                8'h30:   firmware_context <= wdata;
                 default: ;
             endcase
         end
 
         if (reset) begin
-            ctrl    <= 32'd0;
-            stereo  <= 1'b0;
-            rate    <= 16'd16000;
-            addr0   <= 32'd0;
-            addr1   <= 32'd0;
-            len0    <= 32'd0;
-            len1    <= 32'd0;
-            len0m1  <= 32'hFFFF_FFFF;
-            len1m1  <= 32'hFFFF_FFFF;
-            len0z   <= 1'b1;
-            len1z   <= 1'b1;
-            full    <= 2'b00;
-            done    <= 2'b00;
-            cur     <= 1'b0;
-            pos     <= 32'd0;
-            played  <= 32'd0;
+            ctrl             <= 32'd0;
+            stereo           <= 1'b0;
+            rate             <= 16'd16000;
+            addr0            <= 32'd0;
+            addr1            <= 32'd0;
+            len0             <= 32'd0;
+            len1             <= 32'd0;
+            len0m1           <= 32'hFFFF_FFFF;
+            len1m1           <= 32'hFFFF_FFFF;
+            len0z            <= 1'b1;
+            len1z            <= 1'b1;
+            full             <= 2'b00;
+            done             <= 2'b00;
+            cur              <= 1'b0;
+            pos              <= 32'd0;
+            played           <= 32'd0;
             firmware_context <= 32'd0;
-            starved <= 1'b0;
-            volume  <= 9'h100;
-            facc    <= {FW{1'b0}};
-            rq_v    <= 1'b0;
-            start   <= 1'b0;
+            starved          <= 1'b0;
+            volume           <= 9'h100;
+            facc             <= {FW{1'b0}};
+            rq_v             <= 1'b0;
+            start            <= 1'b0;
         end
     end
 
     // ------------------------------------------------------------------
     // Sample reads
     // ------------------------------------------------------------------
-    reg        w_st, w_hi, drop;
-    reg [29:0] w_nxt;                // the word after the first
-    reg [8:0]  w_vol;
+    reg w_st, w_hi, drop;
+    reg [29:0] w_nxt;  // the word after the first
+    reg [ 8:0] w_vol;
     // The frame's samples as read: the products are formed after these
     // registers, in the clock of frame_we (w_vol changes at the earliest at
     // the end of it), so the multipliers' inputs are this block's registers.
@@ -302,12 +305,12 @@ module ngage_game_pcm #(
     reg [15:0] r_l, r_r;
 
     function [15:0] gain;
-        input        [15:0] sample;
-        input        [ 8:0] gain_value;
-        reg   signed [25:0] product;
+        input [15:0] sample;
+        input [8:0] gain_value;
+        reg signed [25:0] product;
         begin
             product = $signed(sample) * $signed({1'b0, gain_value});
-            gain = product[23:8];
+            gain    = product[23:8];
         end
     endfunction
 
@@ -328,7 +331,8 @@ module ngage_game_pcm #(
     always @(posedge clk) begin
         frame_we <= 1'b0;
         case (fst)
-            F_IDLE: if (f_take) begin
+            F_IDLE:
+            if (f_take) begin
                 w_st  <= rq_st;
                 w_nxt <= rq_adr[31:2] + 30'd1;
                 w_vol <= rq_vol;
@@ -343,10 +347,11 @@ module ngage_game_pcm #(
                     r_r      <= 16'd0;
                 end
             end
-            F_L: if (bus_end) begin
+            F_L:
+            if (bus_end) begin
                 r_l <= w_hi ? hi : lo;
                 if (w_st && w_hi) begin
-                    m_adr <= {w_nxt, 2'b00};        // R in the next word
+                    m_adr <= {w_nxt, 2'b00};  // R in the next word
                     fst   <= F_R;
                 end else begin
                     m_cyc    <= 1'b0;
@@ -355,7 +360,8 @@ module ngage_game_pcm #(
                     r_r      <= w_st ? hi : (w_hi ? hi : lo);
                 end
             end
-            F_R: if (bus_end) begin
+            F_R:
+            if (bus_end) begin
                 m_cyc    <= 1'b0;
                 fst      <= F_IDLE;
                 frame_we <= !drop && !start;
@@ -377,22 +383,22 @@ module ngage_game_pcm #(
     // ------------------------------------------------------------------
     // The output: linear interpolation at OUT_HZ
     // ------------------------------------------------------------------
-    reg [15:0]   fr_l, fr_r, o0_l, o0_r, o1_l, o1_r;
+    reg [15:0] fr_l, fr_r, o0_l, o0_r, o1_l, o1_r;
     reg [OW-1:0] oacc;
-    reg          ot1, ot2;
-    reg [15:0]   frac;
+    reg ot1, ot2;
+    reg [15:0] frac;
     reg signed [16:0] d_l, d_r;
     reg signed [15:0] b_l, b_r;
     reg signed [33:0] x_l, x_r;
 
-    wire [OW-1:0] osum = oacc + OUTPUT_RATE;
-    wire          otick = osum >= OUTPUT_CLOCK;
+    wire [   OW-1:0] osum = oacc + OUTPUT_RATE;
+    wire             otick = osum >= OUTPUT_CLOCK;
     wire [FW+KW-1:0] ph = facc * PK[KW-1:0];
 
     always @(posedge clk) begin
-        oacc <= otick ? osum - OUTPUT_CLOCK : osum;
-        ot1  <= otick;
-        ot2  <= ot1;
+        oacc      <= otick ? osum - OUTPUT_CLOCK : osum;
+        ot1       <= otick;
+        ot2       <= ot1;
         out_valid <= ot2;
 
         if (frame_we) begin
@@ -438,17 +444,17 @@ module ngage_game_pcm #(
         end
 
         if (reset) begin
-            oacc  <= {OW{1'b0}};
-            ot1   <= 1'b0;
-            ot2   <= 1'b0;
-            fr_l  <= 16'd0;
-            fr_r  <= 16'd0;
-            o0_l  <= 16'd0;
-            o0_r  <= 16'd0;
-            o1_l  <= 16'd0;
-            o1_r  <= 16'd0;
-            out_l <= 16'd0;
-            out_r <= 16'd0;
+            oacc      <= {OW{1'b0}};
+            ot1       <= 1'b0;
+            ot2       <= 1'b0;
+            fr_l      <= 16'd0;
+            fr_r      <= 16'd0;
+            o0_l      <= 16'd0;
+            o0_r      <= 16'd0;
+            o1_l      <= 16'd0;
+            o1_r      <= 16'd0;
+            out_l     <= 16'd0;
+            out_r     <= 16'd0;
             out_valid <= 1'b0;
         end
     end

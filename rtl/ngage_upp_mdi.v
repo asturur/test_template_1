@@ -3,7 +3,8 @@
 // only after payload stores. Serial DSP instructions/electrical timing are
 // outside this synthetic protocol model. Original firmware remains unchanged.
 module ngage_upp_mdi #(
-    parameter integer ANNOUNCE_TICKS = 20
+    parameter integer ANNOUNCE_TICKS = 20,
+    parameter integer GAME_PCM       = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -19,7 +20,12 @@ module ngage_upp_mdi #(
     output wire        bad,
     output wire        ready,
     output reg  [31:0] dout,
-    output reg  [15:0] irq_events
+    output reg  [15:0] irq_events,
+    input  wire [20:0] pcm_status,
+    output wire        pcm_link_up,
+    output wire        pcm_write,
+    output wire [ 7:0] pcm_offset,
+    output wire [31:0] pcm_data
 );
     localparam IDLE=0, READ_WORD=1, TAKE_WORD=2, RX_HIGH=3, RX_LOW=4,
                TX_HIGH=5, TX_LOW=6, TX_WRITE=7, ANN_WRITE=8;
@@ -62,22 +68,58 @@ module ngage_upp_mdi #(
     wire       peer_rx_valid = state == RX_HIGH || state == RX_LOW;
     wire       peer_rx_last = word_index >= 2 && byte_index + 17'd1 == frame_bytes;
     wire [7:0] peer_rx_data = state == RX_HIGH ? incoming_word[15:8] : incoming_word[7:0];
-    wire peer_rx_ready, peer_tx_valid, peer_tx_last;
-    wire [7:0] peer_tx_data;
+    wire rf_rx_ready, rf_tx_valid, rf_tx_last, pcm_rx_ready, pcm_tx_valid, pcm_tx_last;
+    wire [7:0] rf_tx_data, pcm_tx_data;
     wire       peer_tx_ready = state == TX_HIGH || state == TX_LOW;
+    wire       peer_rx_ready = rf_rx_ready && pcm_rx_ready;
+    wire       peer_tx_valid = rf_tx_valid || pcm_tx_valid;
+    reg        tx_pcm;
+    wire       tx_valid = tx_pcm ? pcm_tx_valid : rf_tx_valid;
+    wire       tx_last = tx_pcm ? pcm_tx_last : rf_tx_last;
+    wire [7:0] tx_data = tx_pcm ? pcm_tx_data : rf_tx_data;
     ngage_upp_dsp_peer peer (
         .clk        (clk),
         .reset      (reset || !running),
-        .rx_valid   (peer_rx_valid),
-        .rx_ready   (peer_rx_ready),
+        .rx_valid   (peer_rx_valid && pcm_rx_ready),
+        .rx_ready   (rf_rx_ready),
         .rx_data    (peer_rx_data),
         .rx_last    (peer_rx_last),
-        .tx_valid   (peer_tx_valid),
-        .tx_ready   (peer_tx_ready),
-        .tx_data    (peer_tx_data),
-        .tx_last    (peer_tx_last),
+        .tx_valid   (rf_tx_valid),
+        .tx_ready   (peer_tx_ready && !tx_pcm),
+        .tx_data    (rf_tx_data),
+        .tx_last    (rf_tx_last),
         .unsupported()
     );
+    assign pcm_link_up = running && !reset;
+    generate
+        if (GAME_PCM) begin : game_pcm
+            ngage_upp_dsp_pcm stream (
+                .clk       (clk),
+                .reset     (!pcm_link_up),
+                .rx_valid  (peer_rx_valid && rf_rx_ready),
+                .rx_ready  (pcm_rx_ready),
+                .rx_data   (peer_rx_data),
+                .rx_last   (peer_rx_last),
+                .idle_slot (state == IDLE && producer == consumer),
+                .tx_valid  (pcm_tx_valid),
+                .tx_ready  (peer_tx_ready && tx_pcm),
+                .tx_data   (pcm_tx_data),
+                .tx_last   (pcm_tx_last),
+                .pcm_status(pcm_status),
+                .pcm_write (pcm_write),
+                .pcm_offset(pcm_offset),
+                .pcm_data  (pcm_data)
+            );
+        end else begin : no_game_pcm
+            assign pcm_rx_ready = 1'b1;
+            assign pcm_tx_valid = 1'b0;
+            assign pcm_tx_last  = 1'b0;
+            assign pcm_tx_data  = 8'd0;
+            assign pcm_write    = 1'b0;
+            assign pcm_offset   = 8'd0;
+            assign pcm_data     = 32'd0;
+        end
+    endgenerate
     wire [8:0] output_half_address = 9'd250 + {1'b0, write_index};
     wire [7:0] engine_address = (state == TX_WRITE || state == ANN_WRITE) ?
         output_half_address[8:1] : {1'b0,consumer[7:1]};
@@ -147,6 +189,7 @@ module ngage_upp_mdi #(
             write_index    <= 0;
             high_byte      <= 0;
             reply_end      <= 0;
+            tx_pcm         <= 0;
             announce_index <= 0;
             irq_events     <= 0;
         end else begin
@@ -186,8 +229,10 @@ module ngage_upp_mdi #(
                                 state          <= ANN_WRITE;
                             end else if (peer_tx_valid && output_free >= 8) begin
                                 write_index <= output_producer;
+                                tx_pcm      <= !rf_tx_valid;
                                 state       <= TX_HIGH;
-                            end else if (!peer_tx_valid && producer != consumer) state <= READ_WORD;
+                            end else if (peer_rx_ready && !peer_tx_valid && producer != consumer)
+                                state <= READ_WORD;
                         end
                         READ_WORD: state <= TAKE_WORD;
                         TAKE_WORD: begin
@@ -211,14 +256,14 @@ module ngage_upp_mdi #(
                             end else state <= RX_LOW;
                         end
                         TX_HIGH:
-                        if (peer_tx_valid) begin
-                            high_byte <= peer_tx_data;
+                        if (tx_valid) begin
+                            high_byte <= tx_data;
                             state     <= TX_LOW;
                         end
                         TX_LOW:
-                        if (peer_tx_valid) begin
-                            outgoing_word <= {high_byte, peer_tx_data};
-                            reply_end     <= peer_tx_last;
+                        if (tx_valid) begin
+                            outgoing_word <= {high_byte, tx_data};
+                            reply_end     <= tx_last;
                             state         <= TX_WRITE;
                         end
                         TX_WRITE: begin

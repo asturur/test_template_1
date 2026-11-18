@@ -1,3 +1,20 @@
+## 2026-11-18 — Stock-ROM game PCM through the UPP DSP
+
+Original NOS routes E8 to internal DSP device 0x7c, object 1. The native
+MDI startup announcement registers media 0x12, and the actual sender
+queues Sega Rally's captured start, submit and stop for MDI task 4.
+The original ingress accepts the replies for task 0x2c. External D550
+uses 0x78 on MADI. The previous attribution to the generic NOS task
+doorbell was incorrect.
+
+The game PCM build option now includes a mono 8/16 kHz stream responder on
+the UPP's MDI rings. It shares the playback engine and SDRAM port from the
+diagnostic build, and delivers completion through native IRQ10. The
+original ARM MDI driver and NOS routing fixtures run without changes to
+their ROM inputs. A full-game run on the fitted MiSTer core with the
+factory ROM is the remaining qualification.
+[Protocol and reproduction](game-pcm.md#stock-firmware-over-the-upp-dsp-link).
+
 ## 2026-11-18 — ngage-v5 adopts 16 KiB I/D and 32-byte fills
 
 The phone CPU now uses v4's capacity and line width, retaining the donor's

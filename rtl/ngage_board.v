@@ -131,6 +131,11 @@ module ngage_board #(
     input  wire        cfg_clocks,             // ideal-clocks option
     input  wire        dma_irq_pending,
     input  wire        pcm_irq,
+    input  wire [20:0] pcm_mdi_status,
+    output wire        pcm_mdi_link,
+    output wire        pcm_mdi_write,
+    output wire [ 7:0] pcm_mdi_offset,
+    output wire [31:0] pcm_mdi_data,
     input  wire        sim_fiq_pending,
     output wire        dma_irq_clear,
     // service
@@ -562,7 +567,9 @@ module ngage_board #(
     );
     // UPP's internal DSP link is distinct from external D550 audio DSP.
     // This remains a transaction model; no DSP instruction execution is claimed.
-    ngage_upp_mdi upp_mdi (
+    ngage_upp_mdi #(
+        .GAME_PCM(GAME_PCM)
+    ) upp_mdi (
         .clk            (clk),
         .reset          (rst),
         .tick           (adsp_tick),
@@ -577,7 +584,12 @@ module ngage_board #(
         .bad            (mdi_bad),
         .ready          (mdi_ready),
         .dout           (mdi_data),
-        .irq_events     (mdi_events)
+        .irq_events     (mdi_events),
+        .pcm_status     (pcm_mdi_status),
+        .pcm_link_up    (pcm_mdi_link),
+        .pcm_write      (pcm_mdi_write),
+        .pcm_offset     (pcm_mdi_offset),
+        .pcm_data       (pcm_mdi_data)
     );
     // D550/N501 boot-only byte/control model. No DSP CPU or sample engine.
     // ADSP_EXTERNAL is a fixture-only transport override; production uses this
