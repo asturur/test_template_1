@@ -129,3 +129,6 @@ The original warmed workloads, JPEG, spans and 224-start/224-clock load stream r
 | banked | 4,512,724 | `61a12540fbe3891eb8196bb94cf8035e394e95cc212349be995a85fd55dc43de` |
 
 Full source manifests, artifact paths, eight timing corners, RAM rows and resource values are in [machine evidence](evidence/tlb-matched-fit-20261117.json). Complete downloaded reports and bitstreams remain under `build/fit/tlb-matched-20261117/{5l,banked}/`. Reusable preparation/publication/collection helpers are in `tools/tlb_matched_fit/`. No 5M or unrelated optimization was included.
+
+The published banked third-slot fit follows the same seed and clock
+settings. [Third-slot resource and timing delta](tlb-banked-third-fit.md)

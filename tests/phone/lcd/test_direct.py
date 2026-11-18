@@ -1,7 +1,7 @@
 from pathlib import Path
 import sys
 root=Path(__file__).resolve().parents[3]
-sys.path.insert(0,str(root/'scratch/current-boot'))
+sys.path.insert(0,str(root/'tests/phone/reference/current-boot'))
 from direct_lcd import DirectLCD
 class Stub:
  def __init__(self):self.calls=[]

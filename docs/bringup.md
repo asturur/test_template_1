@@ -22,7 +22,7 @@ The stock MiSTer `sys/` files are unchanged.
 GPL-3.0-or-later license, and an `UPSTREAM.json` pin (hashes of the pristine
 upstream files). Quartus and all simulators compile `rtl/arm/` directly. The
 original upstream is not kept in the repository; `patches/zap/verify.sh` and
-`--cpu-variant upstream` download it to `scratch/zap-upstream/` on demand. Patch provenance
+`--cpu-variant upstream` download it to `build/tool-cache/zap-upstream-<commit>/` on demand. Patch provenance
 and the measured fixes are described in [cpu-patches.md](cpu-patches.md).
 
 `rtl/ngage_cpu.sv` exposes clock, reset, IRQ/FIQ, and a 32-bit little-endian
@@ -67,7 +67,7 @@ uses serialized 64-bit host ticks to extend the HDL observation counter across
 its 32-bit rollover; device counters retain their actual HDL widths. Manifests record source/executable,
 container and input hashes, profile and restore ancestry. CPU/host checkpoint
 pairs include the testbench memories and HDL display state. Earlier observer builds
-save every 100M cycles; current defaults are recorded above. Billion-cycle pairs are retained permanently. Terminal framebuffer and sampled scanout PNGs are written under
+save every 100M cycles; current defaults are recorded above. On 17 November 2026 the owner retired the saved checkpoints, including billion-cycle pairs. Start a fresh run for future measurements. Terminal framebuffer and sampled scanout PNGs are written under
 `build/sim/screens/<name>/`; `result.json` contains validity/display-on flags
 and hashes. A generated PNG does not by itself establish a logo or a valid frame.
 The five-million-cycle save/restore check matched an uninterrupted run byte for
@@ -94,8 +94,7 @@ The runner retains a bounded live `run.log` and a small `progress.log`; complete
 console output is losslessly streamed to `run.log.gz`. Large compiler `.gch`
 caches are discarded after building. Cleanup inventories and archive hashes are
 under `scratch/cleanup-2026-11-06/` and `scratch/cleanup-deep-2026-11-06/`.
-The unused SDK extraction is archived as `build/sdk-extract.tar.gz`; restore it
-with `tar -xzf build/sdk-extract.tar.gz -C build` if a research tool needs it.
+The SDK installer inputs remain under `firmware/`; unpack them on demand.
 
 Requirements: Python 3, Docker, Make, and host `arm-none-eabi-gcc`, `ld`, `objcopy`,
 and `objdump`. ARM diagnostics target `-mcpu=arm920t`. The simulator uses the

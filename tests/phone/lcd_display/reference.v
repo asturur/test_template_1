@@ -1,7 +1,7 @@
 // Frozen pre-timing-recovery controller at c8add13.
 // Transaction-level LCD controller: native 176x208 phone video,
 // with a separate 320x240 diagnostic active area. The LCD
-// header/RGB444 assumptions follow scratch/current-boot/direct_lcd.py; these
+// header/RGB444 assumptions follow tests/phone/reference/current-boot/direct_lcd.py; these
 // signals do not model the physical LCD serial bus or verified scan timing.
 module ngage_lcd_display_reference #(
     parameter integer PIXEL_DIV = 16

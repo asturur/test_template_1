@@ -15,7 +15,7 @@ The first command uses host Icarus in strict `-g2001` mode. The second repeats
 the same tests in the existing offline `jotego/simulator:arm64` image, checks
 the pinned Verible format and runs Verilator with `--language 1364-2001`.
 The pinned formatter is the existing local executable at
-`scratch/ngage2-integration/tools/verible-verilog-format`; no tool is downloaded.
+`tools/verible/macos/bin/verible-verilog-format`; no tool is downloaded.
 Generated binaries/logs live in `build/sim/unit-mmc-host/`.
 
 ## Ported behavior and observed results

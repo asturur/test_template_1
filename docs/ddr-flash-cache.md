@@ -1,8 +1,9 @@
 # D2 coherent flash backing cache
 
 The optional shared cache runs after DDR arbitration in the MiSTer top. Build
-with `D2_FLASH_CACHE_BYTES` set to 8192, 16384 or 32768. The default value 0
-selects the existing instruction ROM cache and DDR adapter. The D1 transport
+with `D2_FLASH_CACHE_BYTES` set to 8192, 16384 or 32768. The integration top at
+`9c948da8` selects 8192 and explicitly sets `ROM_CACHE=0`. Setting the shared
+cache size to zero in that top selects direct scalar/line DDR transport. The D1 transport
 has its own build option. D2 can use either transport and shares one tag and
 data array between scalar reads and eligible instruction/data line refills.
 
@@ -42,8 +43,42 @@ command handling use their existing upstream contracts.
 | 16 KiB | 512 | 131,072 | 9,728 |
 | 32 KiB | 1,024 | 262,144 | 18,432 |
 
-These are RTL array sizes. Fitted block counts and clock timing require a
-Quartus build.
+These are RTL array sizes. The 8 KiB integration fit is detailed below.
+
+## Fitted cost and bypass decision
+
+Quartus run 43866215058, commit `9c948da8`, seed 42, debugger enabled.
+In `Template.fit.rpt`, “Fitter Resource Utilization by Entity”, the
+`shared_cache.cache` row reports 176.2 ALMs needed and eight M10Ks (seven
+data, one tag). The parent DDR adapter reports 520.9 ALMs and 20 M10Ks
+including the cache. Its scalar, line and sector transport engines use four
+M10Ks apiece. The earlier JTFRAME instruction cache has no fitted instance.
+
+The following non-overlapping groups reconcile to the 503 M10Ks in the fit.
+The device has 553. Quartus reports 2,760,591 of 5,662,720 available memory bits
+and 39,594 of 41,910 ALMs. Individually addressed shallow memories, particularly
+the parallel cache tag banks, require separate RAM ports and use only part of
+a block's bit capacity.
+
+| Fitted owner | M10Ks | Breakdown |
+|---|---:|---|
+| ARM CPU | 168 | I-side 78, D-side 83, remaining core 7. Within I/D, line data uses 13/16 and tag hierarchies use 64/66. |
+| UPP peripheral subsystem | 161 | 64 upload RAM, 64 NOS memory, 16 auxiliary RAM, 4 GPIO15, 4 NOS4K, 9 other. Upload and NOS memory are each 64 KiB. |
+| Display and MiSTer video | 110 | 53 phone LCD framebuffer, 43 scaler, 8 HDMI/VGA OSD, 4 shadow mask, 2 VGA output paths. |
+| C:/PMM persistence | 21 | 20 ordered dirty queue, 1 sector bridge. |
+| DDR adapter | 20 | 8 shared flash cache, 12 transport. |
+| MMC card buffer | 8 | Card-side dual-port RAM. |
+| Diagnostics | 6 | 3 core trace, 2 runtime text FIFO, 1 telemetry snapshot. |
+| Other phone logic | 9 | 5 general DMA, 2 MDI shared ring, 1 test SIM FIFO, 1 UEM. |
+| **Total** | **503** | **50 free.** |
+
+The shared cache is an optional performance feature. Its removal is worth a
+matched experiment if the pipeline needs the space. Preserve line refill,
+D1 streaming and D3 bulk persistence, and compare normal boot to the same
+milestone plus a flash-heavy ROM or C: workload at equal completed work.
+Record cycles, scalar/line traffic and DDR beats. Check NOR and restore
+readback and run a matched fit before crediting net ALMs or 104 MHz timing.
+The reuse and scan probes below give opposite performance outcomes.
 
 ## Results
 

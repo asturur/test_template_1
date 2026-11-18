@@ -3,7 +3,7 @@
 # are deliberately isolated: never restore them over the working tree.
 set -eu
 out=${SDRAM_LATENCY_OUT:-build/sim/unit-sdram-latency}
-legacy=${SDRAM_LEGACY_DIR:-scratch/sdram-specialize-20261112/before}
+legacy=${SDRAM_LEGACY_DIR:-tests/phone/sdram/legacy}
 mkdir -p "$out"
 for version in legacy native; do
  if [ "$version" = legacy ]; then
@@ -19,7 +19,7 @@ for version in legacy native; do
   iverilog -g2012 $owner_define -s latency_tb -Platency_tb.NATIVE="$native" -Platency_tb.SYS_CLK_HZ="$hz" \
    -o "$out/$version-$hz" $sources rtl/ngage_sdram_clock.v tests/phone/sdram/ddio_model.v \
    rtl/ngage_sdram_arbiter.v rtl/sdram/jtframe_sdram64_latch.v rtl/sdram/jtframe_sdram64_rfsh.v \
-   scratch/sdram-reference/mt48lc16m16a2.v tests/phone/sdram/latency_tb.sv
+   tests/phone/sdram/model/mt48lc16m16a2.v tests/phone/sdram/latency_tb.sv
   if ! vvp "$out/$version-$hz" > "$out/$version-$hz.log" 2>&1; then
    cat "$out/$version-$hz.log";exit 1
   fi

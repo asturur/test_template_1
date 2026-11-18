@@ -1,0 +1,2175 @@
+{
+  "analyzer_sha256": "e5adcb0b60bf27bf4be5506674021b8d2f891b3c28ff64e7b6293b74c7b1e725",
+  "compiler_read_rtl_header_sha256": {
+    "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+    "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+    "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+    "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+    "rtl/arm/zap_core.sv": "a57d15464112e9a2e0f472d73afe5e8c99c4c0050df74e7814a7007e4e112573",
+    "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+    "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+    "rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468",
+    "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+    "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+    "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+    "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+    "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+    "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+    "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+    "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+    "rtl/arm/zap_issue_main.sv": "2f59c2bbbf88ed070565d33c16c410a19b47afdcb315bda180604845a1f63c86",
+    "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+    "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+    "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+    "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+    "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+    "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+    "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+    "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+    "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+    "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+    "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+    "rtl/arm/zap_shifter_multiply.sv": "77cca1e0a72feab7e66564d1741626f410946f829949feaf3af483748ffcd286",
+    "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+    "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+    "rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+    "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+    "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+    "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+    "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+    "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+    "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+    "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+    "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+    "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+    "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+    "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+    "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb"
+  },
+  "compressed_events_sha256": "bebb0409296b345764076093a55683b3ba9acae32d01e741e4f3f109ec8a551e",
+  "frozen_rtl_header_count": 60,
+  "frozen_rtl_headers_match_current_master": true,
+  "manifest": {
+    "app_sha256": "d43052bebaed6401bd8a1482b5a2072022b2d0ff3ac7d6f538be860f0d5ddd77",
+    "boundary": "first loop operand_pop edge to final original BLT retirement edge; delta end-start",
+    "executable_sha256": "ccb88b2beed11347e02addffdbdef605bedf55da991a94a0f521ed21c36dae31",
+    "harness_sha256": "aefad09186f086ee23e48333768a86b3e1b13ded5e7da7c989035df142832eba",
+    "image_id": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "input_generator_sha256": "af2b2bb8d7c2c5e3fc9e7e70395b724c4c25a838e431be916d7cd4467455c545",
+    "loop_sha256": "4f5c950f223ca5bad77acc85c59acf825d7eeb0a2cfe02684d57f3301c1ba7c1",
+    "observer_sha256": "7e4073c28795ea8305688df8ee7f2e550ae25ce014eed62e12efc4f1fb58c833",
+    "original_bytes": 80,
+    "pixels": 512,
+    "programs": {
+      "forward": "9a635ff7177d933adbc1c9755fdfb86156b6a1f35e25816ee8a2cbb13f5feaa1",
+      "forward-wrong": "213ca82f86ea0838841d0582e27310ad289b24a3634741b815bceb592297fd6a",
+      "reverse": "b73b4ff6deff7dfbd29369ed119e96a05e5c9d6a0df2256715039b952b580dd8",
+      "reverse-wrong": "3480b45dfe0180e097709a4aea8cf4297eb971c74b71c5327598bcda5fbd2610"
+    },
+    "repeats": 2,
+    "revision": "8e70b1ebc16486443d09f008384b4c0bc41c071c",
+    "runner_sha256": "fa8d15316f59cded7a953b374c024b3cdc3d8ddbb1b3193a373ed14c0d2490af",
+    "samples": 5,
+    "source": {
+      "commit": "8e70b1ebc16486443d09f008384b4c0bc41c071c",
+      "files": {
+        "Template.sv": "fbd55dc74048089517cb5cfd8488acea5b4a145366366f692e17762704a95cab",
+        "files.qip": "17933841df1db6141029c0bc0f94d6e4cc4f1c7694531fcfb09cd545d05370f8",
+        "patches/zap/0001-translate-cache-disabled-accesses.patch": "3916b4c2d90b855c882df349f0e6608eaaf1499b53475f2716779419ff4df0b9",
+        "patches/zap/0002-arm920t-alignment-faults.patch": "b887d6e551c17b55af7c287da7fdb7b2e33e71640cf5337d1f5e344bedb39575",
+        "patches/zap/0003-order-uncached-fetches-after-stores.patch": "14b996b2a231e760bd0432a76ce01b71186aafb37feee6453dd23171ce0e1fa8",
+        "patches/zap/0004-optional-quiet-simulation-trace.patch": "cd7eb2867b98b1928f3d9167d3bce25960a95179862200fde71fe18a373f2b4f",
+        "patches/zap/0005-transform-background-load-completions.patch": "f6080d56e87e5707872713de5fdee3e1f060e927b29bdf5975f593483e61f765",
+        "patches/zap/0006-qualify-branch-state-with-tag.patch": "da071614387fc1d2089ecdfa69e83aa8bf27f5edf05a5cea84d594a47ea8f71b",
+        "patches/zap/0007-preserve-fault-status-on-ack.patch": "367c2e8a583013ba63287cac7e2e4d63993e0cca227367ba74fea26fafdb492b",
+        "patches/zap/0008-thumb-sp-relative-ldr-str-add-offset.patch": "6a49b0ee83965258c10eedd79b57dfa28bee7b7f9ada17e1b443ec6df83690dc",
+        "patches/zap/0009-arm920t-cache-type-register.patch": "8e343142c959615b49fabbfcc7aff37c5d452c11388a4f78a854d56468aea056",
+        "patches/zap/0010-dcache-retain-translation-across-background-refill.patch": "ad9dfb3b67ed5e77625884726602485264650de59cafee126d87349089393215",
+        "patches/zap/0011-thumb-hi-register-op-undefined-trap.patch": "6b32cd0a215a780facb8cb94eb09a2352de4127d451e031b244ad81bd0776d48",
+        "patches/zap/0012-silence-simulation-info-floods.patch": "634d14d644ff85a055e2f16f1279e2aedd6985f6183e1c9903c4159ec5a78aeb",
+        "patches/zap/0013-quartus17-compatibility.patch": "0db5648347de9a9557cce2468bef24e611ad83f6d132353257932660b0db9f5d",
+        "patches/zap/0014-byte-lane-cache-data-ram.patch": "6ac01c779e82cea035b76e712943bdfbc4853668c55321d8459cd3d895b2b8bf",
+        "patches/zap/0015-arm920t-write-through.patch": "4972f88b0665b504996e7ac426742a50c99221c37a7f15896b31da56c2f5497d",
+        "patches/zap/0016-cp15-drain-write-buffer.patch": "bdf38ae32447ae65ad06d8f5f2c74c92347ef9514de9e6c4c7242585a0f0038d",
+        "patches/zap/0017-arm920-control-register.patch": "11206b6b9e911bf737d420e5d1f41f1dc7c9e1374e9fb9acbb6a681de3e764de",
+        "patches/zap/0018-arm920-identification.patch": "91345669a47e0c6a3359ad0f24204cbb9bd9e1f9f1010d6c7bcfc80462fcdd0c",
+        "patches/zap/0019-arm920-write-miss.patch": "ad60517e88937d4bf7ac8ba8a1c3a84d81d3d0cf211947bf26019366b055e54d",
+        "patches/zap/0020-preserve-disabled-cache.patch": "a9bf8ffe9a506bdeba10a2e7ebd872a53d951f9d96d6b930f63e9bdce70c3ecb",
+        "patches/zap/0021-associative-experiment.patch": "254b9c317b4bcdb359960af237d720ff7551fe52eec4eb361bcfa2bfbaf851a5",
+        "patches/zap/0022-cache-rr-control.patch": "e2e7f100c6f7f4845e18e72d8103fc5129f4e36f412b13f3997e896cd97ffa35",
+        "patches/zap/0023-cache-lockdown-control.patch": "783b4700b3436c4efb009e4bda5b6c871395490bd91680ed4611f6b08478667d",
+        "patches/zap/0024-associative-instruction-cache.patch": "de7236528d2ab3a9bb4ccf5bdb2d160df0c3f23d65077459a911770ff1cf8c2a",
+        "patches/zap/0025-cache-single-maintenance.patch": "9a9cf7624948280051f2aa77f04bc5238c0d37c2a38a9fc6939b1b3c40bca8a7",
+        "patches/zap/0026-cache-comment.patch": "b0138e904f3fdcde4b23bafc87e8b65f19a3fd4e5d89fa7fb2fd8dd42890de18",
+        "patches/zap/0027-lockdown-handshake.patch": "f9b8240f143afcd48499a5cb9cc9ba89678d448ae17b6e2db2f2971325da04ee",
+        "patches/zap/0028-write-buffer-drain.patch": "89c057266f9de58c3f57ec0969c34b1267f44bc44e27d186ca673bf010463214",
+        "patches/zap/0029-external-fault-context.patch": "8f4417565d6b2e6be7af26e7e58a5ae0cc6e468410b3b373d543d09c66e935c0",
+        "patches/zap/0030-wait-for-interrupt.patch": "bffbae61da8f973d25ff739384a9261f0c6e88eb9d89efa6f94d4f6b2bc102bf",
+        "patches/zap/0031-wfi-interrupt-order.patch": "f6cd4318549150e5c7b77ee5a3e34283adda0dbcf78018f3fb9e6a60a6cb86e9",
+        "patches/zap/0032-instruction-prefetch.patch": "4c55e4c6a7ccab01a8759ccc7527130272056d263ce01296cda3cfbe6f9116e6",
+        "patches/zap/0033-tlb-buffer-order.patch": "2a3a96c5c5df955829d5323a40fd47a6591836ee05b1fe0859c1093b24791a93",
+        "patches/zap/0034-fast-instruction-cache.patch": "dedbaf90869666e3dd178328388c1b6e2390ec83487cdd0dc213a45113108b1d",
+        "patches/zap/0035-swp-metadata-and-lock.patch": "b41d3bf6752031c29586869c61124eabfe0285058c601d73ad49a7d63e8d93d5",
+        "patches/zap/0036-data-privilege-pipeline.patch": "7cfb4a8aa81baec6b12f1b8540fa6d6bdf038b13d1e76b794da0a08e7e40b20f",
+        "patches/zap/0037-hold-tlb-multi-load.patch": "354352303cb4f7c1aad886c3fe622c0cab045da8c30bb16be0ec59e8d5b813b1",
+        "patches/zap/0038-bus-owner-diagnostics.patch": "d8b140a1f37237a33f0b59317fc2916b9188378fbb0157dc45f0e7a837aef203",
+        "patches/zap/0039-bram-instruction-lookahead.patch": "6568bc8e0d4ecd4e77ea1319e367735484d6728627604410d24b6dff342876bd",
+        "patches/zap/0040-board-debug-ports.patch": "eab6c8e6c0c4cb82a30c788c639e974f37a1c81cff051e4194a0c0db1936f82b",
+        "patches/zap/0041-cache-compare-lookahead.patch": "74b9a39664d3fa163b956d9b6f717041af21078c8fc651547bd03448637900c3",
+        "patches/zap/0042-balanced-operand-selection.patch": "c599d3e61c083743d31d658660cac29aacb433ed3daa11f117eceac9441708bd",
+        "patches/zap/0043-separate-demand-completion.patch": "38bff07381a48f9ec9ade91340b3a54e5fe7526a3f09eb5dcd37c9f58417aa8f",
+        "patches/zap/0044-quartus17-read-tree-genvars.patch": "a635dbda4b747140bbfbc15a512a1336df3645282061955ea895948a69b55c3c",
+        "patches/zap/0045-owned-operand-read-stage.patch": "23c4f5541c2143bdfd50318b0e5a2db63c7bf0915bfef2776ffc3447a561aee4",
+        "patches/zap/0046-journal-operand-commits.patch": "2fb15ffe50358cb2ff8f5ba98c449704a69be992549d384888bbdb3084ef9f18",
+        "patches/zap/0047-owned-data-completion.patch": "73120312f40c63dd95afc72df6972ec81519a0158085ecb6504dd37fb2f7efb7",
+        "patches/zap/0048-stationary-operand-owners.patch": "1d8586f6531c709ab5e137fd136844266aaa2a3da1e5a85bd6b2d5bb4fbf1934",
+        "patches/zap/0050-owned-cache-lookahead-context.patch": "35f4eff6abe2da73148caba043c95fe94f12cd73a18864670b21140e657464e5",
+        "patches/zap/0051-discard-abandoned-instruction-refill.patch": "2807352a61f6a6053e85573fe07eebfe52e7ebfa541436b31f1174d63bb7be01",
+        "patches/zap/0052-own-mmu-lookup-and-refill.patch": "07a06708addecffd4d3ca4d3eb0682d72d02e262d3c6e5488c14b7d727119b90",
+        "patches/zap/0053-production-arm920-cache-and-tlb.patch": "03c4e902b4787d6c2369b81517e1c15bb19b526a0cab15afecee76e84f8542a4",
+        "patches/zap/0054-own-data-request-privilege.patch": "01b118383e5c26c5b205b30c29843bdb981faf479483c56e1611ddc52581177f",
+        "patches/zap/0055-stream-cache-line-refills.patch": "edbdb537250d720e60f4513230999e5b6bdc6a1cf1a3e5acbf3056e738962f88",
+        "patches/zap/0056-instruction-cache-read-only-metadata.patch": "b8fb22dff4290ccb0fcde80f03a8bf065a2e6a48a8a6300945cd333563a659d4",
+        "patches/zap/0057-mlab-register-file.patch": "f7303e8d1b9e402f765f1cdc5a4427ef41a840dd23871c4f8b0265539ff6fa31",
+        "patches/zap/0058-direct-checked-translation-owner.patch": "e7ed92b10573479ad8cd6c82c564ddcc1847209180ef14f091e4b4f76f4a2c72",
+        "patches/zap/0059-thumb-ldmia-base-writeback.patch": "022aa14e0e9eb5892dd5247ca77da4063276684a95941369c077409ad053a1de",
+        "patches/zap/0060-arm920t-instruction-profile.patch": "fe8c8827bbe65543d6b67573cade23bad7ecb746c224bde15b3b7a3ca645761d",
+        "patches/zap/0061-owned-translation-admission.patch": "b05949ffa3b650a215ed0dd7f78741a056f87add0297ad8b4c44842f02fc074a",
+        "patches/zap/0062-owned-load-forwarding.patch": "8001b895d310a8aeef272bd8e5f3090cf9244426b8ce5a77a92e806ab749c008",
+        "patches/zap/0063-owned-data-probes.patch": "38822714da1d140f8dc53328aa1ff3a434707906b974a258d66d5abd337861a4",
+        "patches/zap/0064-precompute-fifo-boundaries.patch": "002466ceefdfaaf84d7f331f84b7bab30b19df9c470ed746c196b3373e0c5d03",
+        "patches/zap/0065-owned-branch-feedback.patch": "6aee0fd19db43185c87da3cf8953aaeee247dff9f902805ba486b8bdd86d1691",
+        "patches/zap/0066-recognize-mov-pc-lr.patch": "ba3ca6a47a89b9726e1f5507c1e69e36d4a4bd57f4782df21617d85bfa52b931",
+        "patches/zap/0067-overlap-owned-completions.patch": "4e4b53334c4352f1afbd7cb23c5bdea485b5f8f90f15affe9c0d74d8cadf8e00",
+        "patches/zap/0068-remove-unused-tag-delay.patch": "f8dae5b00cff18fd420d1b0703863921f4a1524cacb7da1cd1949aabebdf88b8",
+        "patches/zap/0069-normalize-prediction-address.patch": "070db995145e82f4df1c6e169e7d32484fba3df1d72bea5ef8358a1deb2c69fb",
+        "patches/zap/0070-fuse-block-transfer-setup-writeback.patch": "57cd85024c28c51195edaa8e9bb10ee461b76ac077eac2a31df5387a5eec7411",
+        "patches/zap/0071-preserve-block-transfer-privilege.patch": "381cac11059970783eda165622830eff11c99dd6145f90daaa5b80cbb2627070",
+        "patches/zap/0072-predict-thumb-pop-bx-returns.patch": "2fb3c02e450a3f4f2ce61bab9a9664cfa63b7e45b4a43aebf336134248cdb3d8",
+        "patches/zap/0073-reconcile-qualified-integration-baseline.patch": "54c10f5e5d977ed8aeff0d444c77aa27d5b7eef625ea47978ac9a4053d201a66",
+        "patches/zap/0074-qualified-resident-cpu-pipeline.patch": "4329c55186ee30b0a66d9c79f2a509dd13ee43e9437b7f420e008989e4934280",
+        "patches/zap/0075-private-next-owner.patch": "85c8b429f402b4d499682591124a6007b9158d9d9adfc5cff42e1087ccd21c78",
+        "patches/zap/0076-skip-zero-addend-hold.patch": "86f3bdc0541606b9acf715a93fe5b286fce97634c161ed7e9abba30f5b29569a",
+        "patches/zap/0077-retain-paired-multiply-result.patch": "eb97d0267089fea79dc5d40c5398e570914c19c34f6645808ba7cb84f287c89e",
+        "patches/zap/0078-admit-postindexed-word-stores.patch": "c30602449a0fe44e322c1aacbdbe3f308b79321b8e2bb88e7dc744a6e702f4c9",
+        "patches/zap/0079-size-multiply-state-encodings.patch": "e3f18a405e9b07f382fd548acd4da929a269f7649ee9cc9075e9f920abf2d6a5",
+        "patches/zap/rejected/0049-late-owner-forwarding.patch": "d9466926153496e40d0dcd6feffb6b0f7dada968ec3854a9c1e01fc11035499a",
+        "patches/zap/rejected/README.md": "d3cfc927f5b8bcc3192aebb71b25a5a6ff8643e9ce17341c0ef61dc980add373",
+        "patches/zap/verify.sh": "caee84944e10e87e744c85a9f343b48cb70dadc2c8c8ec64ebd8e518776a907c",
+        "rtl/arm/LICENSE": "f891e12d75c1d914547a88ca8914530c7c89d5088e0adac37f06da85439be987",
+        "rtl/arm/README.md": "3d7e52bcb780f539d0e916759a743531b2f44edb1451a91ac2b585b034fef1fe",
+        "rtl/arm/UPSTREAM.json": "0625bf45b71550d1022f329d4347a199c13705b8341deb902c4bbe0a3bee3bc9",
+        "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+        "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+        "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+        "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+        "rtl/arm/zap_core.sv": "a57d15464112e9a2e0f472d73afe5e8c99c4c0050df74e7814a7007e4e112573",
+        "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+        "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+        "rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468",
+        "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+        "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+        "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+        "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+        "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+        "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+        "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+        "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+        "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+        "rtl/arm/zap_issue_main.sv": "2f59c2bbbf88ed070565d33c16c410a19b47afdcb315bda180604845a1f63c86",
+        "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+        "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+        "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+        "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+        "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+        "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+        "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+        "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+        "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+        "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+        "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+        "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+        "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+        "rtl/arm/zap_shifter_multiply.sv": "77cca1e0a72feab7e66564d1741626f410946f829949feaf3af483748ffcd286",
+        "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+        "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+        "rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+        "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+        "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+        "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+        "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+        "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+        "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+        "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+        "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+        "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+        "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+        "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+        "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+        "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+        "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+        "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+        "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+        "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+        "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+        "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+        "rtl/sdram/jtframe_sdram64.v": "7817f27e9fd134a3ea853179cfdbc95d7f931ed097e85e86363efc6219153b30",
+        "rtl/sdram/jtframe_sdram64_bank.v": "5ddd6ac5528dae124ad22963b117a7faf7a9cdcaa289b0aa093a1ab228ee9ec2",
+        "rtl/sdram/jtframe_sdram64_init.v": "cc0bcd8f1e3851f21e2fd522f4b6a2fae331475e2e6c3db12f34a3bb4cce97a3",
+        "rtl/sdram/jtframe_sdram64_latch.v": "9ef2571ab02479a4982d77ebc263b6a037934401f18c0d6fdc605a170846a38d",
+        "rtl/sdram/jtframe_sdram64_rfsh.v": "5f9f2dda1927d85650e1389572e3975bac3ffb33b9fa3b8a1ecf7832294b4d12"
+      },
+      "has_line": true,
+      "kind": "git",
+      "source_id": "2db0dcdf53a9f0e06194986f45c7ae7877af4204108c0e2e6bb3dd091c23debf"
+    },
+    "warmups": 2
+  },
+  "meaning": "Original loop fixed-work CPU/cache simulation, no FPS inference",
+  "negatives": [
+    {
+      "pattern": "forward",
+      "profile": "0:0",
+      "wrong_actual_pixel_rejected": true
+    },
+    {
+      "pattern": "forward",
+      "profile": "2:9",
+      "wrong_actual_pixel_rejected": true
+    },
+    {
+      "pattern": "reverse",
+      "profile": "0:0",
+      "wrong_actual_pixel_rejected": true
+    },
+    {
+      "pattern": "reverse",
+      "profile": "2:9",
+      "wrong_actual_pixel_rejected": true
+    }
+  ],
+  "oracle": {
+    "forward": {
+      "destination_lines": 33,
+      "instructions": 10240,
+      "negative_bytes_rejected": [
+        38,
+        0,
+        1087
+      ],
+      "output_sha256": "ba7dfbb3ae8f487e4af523de233e587ced12ac89c05401a495cb79ef01137183",
+      "source_lines": 64,
+      "source_unique_halfwords": 64,
+      "status": "PASS",
+      "stores": 512
+    },
+    "reverse": {
+      "destination_lines": 33,
+      "instructions": 10240,
+      "negative_bytes_rejected": [
+        38,
+        0,
+        1087
+      ],
+      "output_sha256": "784184da544f8c204c074218a2566f1e988ea42fcd124c439c384ba0cdadc2db",
+      "source_lines": 49,
+      "source_unique_halfwords": 49,
+      "status": "PASS",
+      "stores": 512
+    }
+  },
+  "recommendation": {
+    "conditional_percent": 1.3451383233060978,
+    "experiment": "Capture registered DSP product plus nonzero addend in S1, skip S2",
+    "exposed_s2_clocks": 512,
+    "not_measured_gain": true
+  },
+  "representatives": [
+    {
+      "cycles": 73,
+      "exclusive_buckets": {
+        "load_lock": 25,
+        "other": 20,
+        "read_stall": 15,
+        "shift_lock": 7,
+        "write_stall": 6
+      },
+      "issues": [
+        {
+          "offset": 0,
+          "t": 0
+        },
+        {
+          "offset": 4,
+          "t": 7
+        },
+        {
+          "offset": 8,
+          "t": 9
+        },
+        {
+          "offset": 12,
+          "t": 10
+        },
+        {
+          "offset": 16,
+          "t": 11
+        },
+        {
+          "offset": 20,
+          "t": 12
+        },
+        {
+          "offset": 24,
+          "t": 19
+        },
+        {
+          "offset": 28,
+          "t": 25
+        },
+        {
+          "offset": 32,
+          "t": 26
+        },
+        {
+          "offset": 36,
+          "t": 33
+        },
+        {
+          "offset": 40,
+          "t": 34
+        },
+        {
+          "offset": 44,
+          "t": 35
+        },
+        {
+          "offset": 48,
+          "t": 45
+        },
+        {
+          "offset": 52,
+          "t": 46
+        },
+        {
+          "offset": 56,
+          "t": 47
+        },
+        {
+          "offset": 60,
+          "t": 61
+        },
+        {
+          "offset": 64,
+          "t": 62
+        },
+        {
+          "offset": 68,
+          "t": 63
+        },
+        {
+          "offset": 72,
+          "t": 70
+        },
+        {
+          "offset": 76,
+          "t": 72
+        }
+      ],
+      "mla": [
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 1,
+          "t": 19
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 1,
+          "t": 20
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 2,
+          "t": 21
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 4,
+          "t": 22
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 8,
+          "t": 23
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 16,
+          "t": 24
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 32,
+          "t": 25
+        }
+      ],
+      "next_iteration": 599,
+      "pixel": 7,
+      "ram": [
+        {
+          "mask": "0x300000",
+          "t": 56
+        }
+      ],
+      "requests": [
+        {
+          "accepts": [
+            5
+          ],
+          "acks": [
+            6
+          ],
+          "first_offer": 5,
+          "key": [
+            0,
+            1,
+            0,
+            "0x80008000"
+          ]
+        },
+        {
+          "accepts": [
+            16
+          ],
+          "acks": [
+            17
+          ],
+          "first_offer": 16,
+          "key": [
+            16,
+            1,
+            0,
+            "0x80008020"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            18
+          ],
+          "first_offer": 18,
+          "key": [
+            20,
+            1,
+            0,
+            "0x80008004"
+          ]
+        },
+        {
+          "accepts": [
+            31
+          ],
+          "acks": [
+            32
+          ],
+          "first_offer": 31,
+          "key": [
+            32,
+            1,
+            0,
+            "0x8000802c"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            42
+          ],
+          "first_offer": 39,
+          "key": [
+            40,
+            1,
+            0,
+            "0x80001028"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            43
+          ],
+          "first_offer": 43,
+          "key": [
+            44,
+            1,
+            0,
+            "0x80001028"
+          ]
+        },
+        {
+          "accepts": [
+            54
+          ],
+          "acks": [
+            56
+          ],
+          "first_offer": 51,
+          "key": [
+            52,
+            0,
+            1,
+            "0x80004014"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            60
+          ],
+          "first_offer": 57,
+          "key": [
+            56,
+            1,
+            0,
+            "0x80008014"
+          ]
+        },
+        {
+          "accepts": [
+            68
+          ],
+          "acks": [
+            69
+          ],
+          "first_offer": 68,
+          "key": [
+            68,
+            1,
+            0,
+            "0x80008068"
+          ]
+        }
+      ],
+      "start": 526
+    },
+    {
+      "cycles": 78,
+      "exclusive_buckets": {
+        "load_lock": 25,
+        "other": 20,
+        "read_stall": 20,
+        "shift_lock": 7,
+        "write_stall": 6
+      },
+      "issues": [
+        {
+          "offset": 0,
+          "t": 0
+        },
+        {
+          "offset": 4,
+          "t": 7
+        },
+        {
+          "offset": 8,
+          "t": 9
+        },
+        {
+          "offset": 12,
+          "t": 10
+        },
+        {
+          "offset": 16,
+          "t": 11
+        },
+        {
+          "offset": 20,
+          "t": 12
+        },
+        {
+          "offset": 24,
+          "t": 19
+        },
+        {
+          "offset": 28,
+          "t": 25
+        },
+        {
+          "offset": 32,
+          "t": 26
+        },
+        {
+          "offset": 36,
+          "t": 33
+        },
+        {
+          "offset": 40,
+          "t": 34
+        },
+        {
+          "offset": 44,
+          "t": 35
+        },
+        {
+          "offset": 48,
+          "t": 50
+        },
+        {
+          "offset": 52,
+          "t": 51
+        },
+        {
+          "offset": 56,
+          "t": 52
+        },
+        {
+          "offset": 60,
+          "t": 66
+        },
+        {
+          "offset": 64,
+          "t": 67
+        },
+        {
+          "offset": 68,
+          "t": 68
+        },
+        {
+          "offset": 72,
+          "t": 75
+        },
+        {
+          "offset": 76,
+          "t": 77
+        }
+      ],
+      "mla": [
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 1,
+          "t": 19
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 1,
+          "t": 20
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 2,
+          "t": 21
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 4,
+          "t": 22
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 8,
+          "t": 23
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 16,
+          "t": 24
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 32,
+          "t": 25
+        }
+      ],
+      "next_iteration": 677,
+      "pixel": 8,
+      "ram": [
+        {
+          "mask": "0xc00000",
+          "t": 61
+        }
+      ],
+      "requests": [
+        {
+          "accepts": [
+            5
+          ],
+          "acks": [
+            6
+          ],
+          "first_offer": 5,
+          "key": [
+            0,
+            1,
+            0,
+            "0x80008000"
+          ]
+        },
+        {
+          "accepts": [
+            16
+          ],
+          "acks": [
+            17
+          ],
+          "first_offer": 16,
+          "key": [
+            16,
+            1,
+            0,
+            "0x80008020"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            18
+          ],
+          "first_offer": 18,
+          "key": [
+            20,
+            1,
+            0,
+            "0x80008004"
+          ]
+        },
+        {
+          "accepts": [
+            31
+          ],
+          "acks": [
+            32
+          ],
+          "first_offer": 31,
+          "key": [
+            32,
+            1,
+            0,
+            "0x8000802c"
+          ]
+        },
+        {
+          "accepts": [
+            42
+          ],
+          "acks": [
+            46
+          ],
+          "first_offer": 39,
+          "key": [
+            40,
+            1,
+            0,
+            "0x80001048"
+          ]
+        },
+        {
+          "accepts": [
+            47
+          ],
+          "acks": [
+            48
+          ],
+          "first_offer": 47,
+          "key": [
+            44,
+            1,
+            0,
+            "0x80001048"
+          ]
+        },
+        {
+          "accepts": [
+            59
+          ],
+          "acks": [
+            61
+          ],
+          "first_offer": 56,
+          "key": [
+            52,
+            0,
+            1,
+            "0x80004014"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            65
+          ],
+          "first_offer": 62,
+          "key": [
+            56,
+            1,
+            0,
+            "0x80008014"
+          ]
+        },
+        {
+          "accepts": [
+            73
+          ],
+          "acks": [
+            74
+          ],
+          "first_offer": 73,
+          "key": [
+            68,
+            1,
+            0,
+            "0x80008068"
+          ]
+        }
+      ],
+      "start": 599
+    },
+    {
+      "cycles": 76,
+      "exclusive_buckets": {
+        "load_lock": 25,
+        "other": 20,
+        "read_stall": 15,
+        "shift_lock": 7,
+        "write_stall": 9
+      },
+      "issues": [
+        {
+          "offset": 0,
+          "t": 0
+        },
+        {
+          "offset": 4,
+          "t": 7
+        },
+        {
+          "offset": 8,
+          "t": 9
+        },
+        {
+          "offset": 12,
+          "t": 10
+        },
+        {
+          "offset": 16,
+          "t": 11
+        },
+        {
+          "offset": 20,
+          "t": 12
+        },
+        {
+          "offset": 24,
+          "t": 19
+        },
+        {
+          "offset": 28,
+          "t": 25
+        },
+        {
+          "offset": 32,
+          "t": 26
+        },
+        {
+          "offset": 36,
+          "t": 33
+        },
+        {
+          "offset": 40,
+          "t": 34
+        },
+        {
+          "offset": 44,
+          "t": 35
+        },
+        {
+          "offset": 48,
+          "t": 45
+        },
+        {
+          "offset": 52,
+          "t": 46
+        },
+        {
+          "offset": 56,
+          "t": 47
+        },
+        {
+          "offset": 60,
+          "t": 64
+        },
+        {
+          "offset": 64,
+          "t": 65
+        },
+        {
+          "offset": 68,
+          "t": 66
+        },
+        {
+          "offset": 72,
+          "t": 73
+        },
+        {
+          "offset": 76,
+          "t": 75
+        }
+      ],
+      "mla": [
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 1,
+          "t": 19
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 1,
+          "t": 20
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 2,
+          "t": 21
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 4,
+          "t": 22
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 8,
+          "t": 23
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 16,
+          "t": 24
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 32,
+          "t": 25
+        }
+      ],
+      "next_iteration": 1045,
+      "pixel": 13,
+      "ram": [
+        {
+          "mask": "0x3",
+          "t": 59
+        }
+      ],
+      "requests": [
+        {
+          "accepts": [
+            5
+          ],
+          "acks": [
+            6
+          ],
+          "first_offer": 5,
+          "key": [
+            0,
+            1,
+            0,
+            "0x80008000"
+          ]
+        },
+        {
+          "accepts": [
+            16
+          ],
+          "acks": [
+            17
+          ],
+          "first_offer": 16,
+          "key": [
+            16,
+            1,
+            0,
+            "0x80008020"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            18
+          ],
+          "first_offer": 18,
+          "key": [
+            20,
+            1,
+            0,
+            "0x80008004"
+          ]
+        },
+        {
+          "accepts": [
+            31
+          ],
+          "acks": [
+            32
+          ],
+          "first_offer": 31,
+          "key": [
+            32,
+            1,
+            0,
+            "0x8000802c"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            42
+          ],
+          "first_offer": 39,
+          "key": [
+            40,
+            1,
+            0,
+            "0x80001048"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            43
+          ],
+          "first_offer": 43,
+          "key": [
+            44,
+            1,
+            0,
+            "0x80001048"
+          ]
+        },
+        {
+          "accepts": [
+            54
+          ],
+          "acks": [
+            59
+          ],
+          "first_offer": 51,
+          "key": [
+            52,
+            0,
+            1,
+            "0x80004020"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            63
+          ],
+          "first_offer": 60,
+          "key": [
+            56,
+            1,
+            0,
+            "0x80008014"
+          ]
+        },
+        {
+          "accepts": [
+            71
+          ],
+          "acks": [
+            72
+          ],
+          "first_offer": 71,
+          "key": [
+            68,
+            1,
+            0,
+            "0x80008068"
+          ]
+        }
+      ],
+      "start": 969
+    },
+    {
+      "cycles": 81,
+      "exclusive_buckets": {
+        "load_lock": 25,
+        "other": 20,
+        "read_stall": 20,
+        "shift_lock": 7,
+        "write_stall": 9
+      },
+      "issues": [
+        {
+          "offset": 0,
+          "t": 0
+        },
+        {
+          "offset": 4,
+          "t": 7
+        },
+        {
+          "offset": 8,
+          "t": 9
+        },
+        {
+          "offset": 12,
+          "t": 10
+        },
+        {
+          "offset": 16,
+          "t": 11
+        },
+        {
+          "offset": 20,
+          "t": 12
+        },
+        {
+          "offset": 24,
+          "t": 19
+        },
+        {
+          "offset": 28,
+          "t": 25
+        },
+        {
+          "offset": 32,
+          "t": 26
+        },
+        {
+          "offset": 36,
+          "t": 33
+        },
+        {
+          "offset": 40,
+          "t": 34
+        },
+        {
+          "offset": 44,
+          "t": 35
+        },
+        {
+          "offset": 48,
+          "t": 50
+        },
+        {
+          "offset": 52,
+          "t": 51
+        },
+        {
+          "offset": 56,
+          "t": 52
+        },
+        {
+          "offset": 60,
+          "t": 69
+        },
+        {
+          "offset": 64,
+          "t": 70
+        },
+        {
+          "offset": 68,
+          "t": 71
+        },
+        {
+          "offset": 72,
+          "t": 78
+        },
+        {
+          "offset": 76,
+          "t": 80
+        }
+      ],
+      "mla": [
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 1,
+          "t": 19
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 1,
+          "t": 20
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 2,
+          "t": 21
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 4,
+          "t": 22
+        },
+        {
+          "busy": 1,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 8,
+          "t": 23
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 1,
+          "state": 16,
+          "t": 24
+        },
+        {
+          "busy": 0,
+          "data_stall": 0,
+          "dependency": 0,
+          "state": 32,
+          "t": 25
+        }
+      ],
+      "next_iteration": 1126,
+      "pixel": 14,
+      "ram": [
+        {
+          "mask": "0xc",
+          "t": 64
+        }
+      ],
+      "requests": [
+        {
+          "accepts": [
+            5
+          ],
+          "acks": [
+            6
+          ],
+          "first_offer": 5,
+          "key": [
+            0,
+            1,
+            0,
+            "0x80008000"
+          ]
+        },
+        {
+          "accepts": [
+            16
+          ],
+          "acks": [
+            17
+          ],
+          "first_offer": 16,
+          "key": [
+            16,
+            1,
+            0,
+            "0x80008020"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            18
+          ],
+          "first_offer": 18,
+          "key": [
+            20,
+            1,
+            0,
+            "0x80008004"
+          ]
+        },
+        {
+          "accepts": [
+            31
+          ],
+          "acks": [
+            32
+          ],
+          "first_offer": 31,
+          "key": [
+            32,
+            1,
+            0,
+            "0x8000802c"
+          ]
+        },
+        {
+          "accepts": [
+            42
+          ],
+          "acks": [
+            46
+          ],
+          "first_offer": 39,
+          "key": [
+            40,
+            1,
+            0,
+            "0x80001048"
+          ]
+        },
+        {
+          "accepts": [
+            47
+          ],
+          "acks": [
+            48
+          ],
+          "first_offer": 47,
+          "key": [
+            44,
+            1,
+            0,
+            "0x80001048"
+          ]
+        },
+        {
+          "accepts": [
+            59
+          ],
+          "acks": [
+            64
+          ],
+          "first_offer": 56,
+          "key": [
+            52,
+            0,
+            1,
+            "0x80004020"
+          ]
+        },
+        {
+          "accepts": [],
+          "acks": [
+            68
+          ],
+          "first_offer": 65,
+          "key": [
+            56,
+            1,
+            0,
+            "0x80008014"
+          ]
+        },
+        {
+          "accepts": [
+            76
+          ],
+          "acks": [
+            77
+          ],
+          "first_offer": 76,
+          "key": [
+            68,
+            1,
+            0,
+            "0x80008068"
+          ]
+        }
+      ],
+      "start": 1045
+    }
+  ],
+  "rows": [
+    {
+      "cycles_median": 38063,
+      "cycles_per_pixel": 74.341796875,
+      "pattern": "forward",
+      "pixels": 512,
+      "profile": "0:0",
+      "repeats_equal": 2,
+      "windows": [
+        {
+          "accepts": 512,
+          "beats": 1152,
+          "cycles": 40842,
+          "empty": 68,
+          "index": 0,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": -1,
+          "last_store_retire": 40822,
+          "lines": 72,
+          "load_lock": 12789,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10242,
+          "ram_writes": 0,
+          "read_stall": 10796,
+          "reads": 40,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 0,
+          "store_retires": 512,
+          "write_stall": 3363,
+          "writes": 512
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 1,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 2,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 3,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 4,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 5,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 6,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "cycles_median": 38063,
+      "cycles_per_pixel": 74.341796875,
+      "pattern": "forward",
+      "pixels": 512,
+      "profile": "2:9",
+      "repeats_equal": 2,
+      "windows": [
+        {
+          "accepts": 512,
+          "beats": 1120,
+          "cycles": 41464,
+          "empty": 100,
+          "index": 0,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": -1,
+          "last_store_retire": 41444,
+          "lines": 70,
+          "load_lock": 12789,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10242,
+          "ram_writes": 0,
+          "read_stall": 11386,
+          "reads": 40,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 0,
+          "store_retires": 512,
+          "write_stall": 3363,
+          "writes": 512
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 1,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 2,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 3,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 4,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 5,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 38063,
+          "empty": 18,
+          "index": 6,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 38041,
+          "last_store_retire": 38043,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8160,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "cycles_median": 37988,
+      "cycles_per_pixel": 74.1953125,
+      "pattern": "reverse",
+      "pixels": 512,
+      "profile": "0:0",
+      "repeats_equal": 2,
+      "windows": [
+        {
+          "accepts": 512,
+          "beats": 912,
+          "cycles": 40107,
+          "empty": 68,
+          "index": 0,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": -1,
+          "last_store_retire": 40087,
+          "lines": 57,
+          "load_lock": 12789,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10242,
+          "ram_writes": 0,
+          "read_stall": 10106,
+          "reads": 40,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 0,
+          "store_retires": 512,
+          "write_stall": 3318,
+          "writes": 512
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 1,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 2,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 3,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 4,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 5,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 6,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        }
+      ]
+    },
+    {
+      "cycles_median": 37988,
+      "cycles_per_pixel": 74.1953125,
+      "pattern": "reverse",
+      "pixels": 512,
+      "profile": "2:9",
+      "repeats_equal": 2,
+      "windows": [
+        {
+          "accepts": 512,
+          "beats": 880,
+          "cycles": 40594,
+          "empty": 100,
+          "index": 0,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": -1,
+          "last_store_retire": 40574,
+          "lines": 55,
+          "load_lock": 12789,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10242,
+          "ram_writes": 0,
+          "read_stall": 10561,
+          "reads": 40,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 0,
+          "store_retires": 512,
+          "write_stall": 3318,
+          "writes": 512
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 1,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 2,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 3,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 4,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 5,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        },
+        {
+          "accepts": 512,
+          "beats": 0,
+          "cycles": 37988,
+          "empty": 18,
+          "index": 6,
+          "instructions": 10240,
+          "issues": 10241,
+          "last_ram": 37966,
+          "last_store_retire": 37968,
+          "lines": 0,
+          "load_lock": 12794,
+          "mla_busy": 2048,
+          "mla_s2_exposed": 512,
+          "other": 10240,
+          "ram_writes": 512,
+          "read_stall": 8085,
+          "reads": 0,
+          "shift_lock": 3584,
+          "store_credit": 0,
+          "store_pipe": 447,
+          "store_retires": 512,
+          "write_stall": 3267,
+          "writes": 0
+        }
+      ]
+    }
+  ],
+  "run": "build/sim/super-monkey-ball/step5i-5f-05",
+  "status": "PASS",
+  "trace_edges": 1355,
+  "trace_text_sha256": "f3123267accdf5643c827ce815a89c13f1328f793d0a25b7af170f61391af22a"
+}

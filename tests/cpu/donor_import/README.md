@@ -113,7 +113,7 @@ Compiles/runs use only `jotego/simulator:arm64` with `--pull=never` and no netwo
 No Docker access produces a BLOCKED report before any compilation. Existing
 long simulations, media, production source and checkpoints are not modified.
 
-Snapshots: `scratch/cpu-donor-import/<name>/`.
+Snapshots: `build/sim/cpu-donor-sources/<name>/`.
 Binaries/manifests/results: `build/sim/cpu-donor-import/<name>/`.
 The full 15-case/four-variant/two-mode matrix takes multiple CPU builds; begin
 with the smoke test, and keep failures/diagnostics intact before broadening it.

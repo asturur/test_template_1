@@ -1,0 +1,151 @@
+--- a/rtl/arm920/tlb.sv
++++ b/rtl/arm920/tlb.sv
+@@ -4,7 +4,8 @@
+ // pair serves adjacent reads/writes without another CAM/BRAM lookup. The minimum
+ // ARM920 permission granule is 1KiB (small-page AP quarters and tiny pages).
+ module arm920_tlb #(
+-    parameter CPSR_MODE = 4
++    parameter CPSR_MODE = 4,
++    parameter THIRD_MAPPING = 0
+ ) (
+     input wire i_clk,
+     input wire i_reset,
+@@ -74,6 +75,13 @@
+   reg [1:0] second_cb;
+   reg second_read_allowed, second_write_allowed;
+   reg [7:0] second_fsr, second_external_fsr;
++  // Older FIFO record, enabled only in the data controller. Like the second
++  // record it can hold a checked mapping, never an exact walk fault.
++  reg third_valid;
++  reg [21:0] third_va, third_pa;
++  reg [1:0] third_cb;
++  reg third_read_allowed, third_write_allowed;
++  reg [7:0] third_fsr, third_external_fsr;
+   reg [31:0] request_va, request_dac, request_baddr;
+   reg [CPSR_MODE:0] request_cpsr;
+   reg [1:0] request_sr;
+@@ -91,13 +99,16 @@
+                (token_va[9:0] == i_address[9:0] &&
+                 token_rd == i_request_rd && token_wr == i_request_wr));
+   wire second_match = second_valid && second_va == i_address[31:10] && shared_context;
++  wire third_match = THIRD_MAPPING && third_valid &&
++                     third_va == i_address[31:10] && shared_context;
++  wire use_third = !primary_match && !second_match && third_match;
+   wire use_second = !primary_match && second_match;
+-  wire owner = request && (primary_match || second_match);
+-  wire read_allowed = use_second ? second_read_allowed : token_read_allowed;
+-  wire write_allowed = use_second ? second_write_allowed : token_write_allowed;
++  wire owner = request && (primary_match || second_match || third_match);
++  wire read_allowed = use_third ? third_read_allowed : use_second ? second_read_allowed : token_read_allowed;
++  wire write_allowed = use_third ? third_write_allowed : use_second ? second_write_allowed : token_write_allowed;
+   wire permission_denied = (i_request_rd && !read_allowed) ||
+                            (i_request_wr && !write_allowed);
+-  wire [7:0] selected_fsr = use_second ? second_fsr : token_fsr;
++  wire [7:0] selected_fsr = use_third ? third_fsr : use_second ? second_fsr : token_fsr;
+   wire bank_lookup = state == IDLE && i_mmu_en && i_idle && request && !owner && !mutation;
+   wire bank_valid, bank_hit;
+   wire [37:0] bank_payload;
+@@ -179,11 +190,22 @@
+     begin
+       // Never let a local mapping outlive a main-table replacement or cross a
+       // context boundary. A main-table hit may retain the prior primary mapping;
+-      // a fill drops both old records before publishing its new primary result.
++      // a fill drops all older records before publishing its new primary result.
+       if (bank_fill || token_cpsr != request_cpsr || token_sr != request_sr ||
+-          token_dac != request_dac || token_baddr != request_baddr)
++          token_dac != request_dac || token_baddr != request_baddr) begin
+         second_valid <= 0;
+-      else if (token_valid && token_mapping) begin
++        third_valid <= 0;
++      end else if (token_valid && token_mapping) begin
++        if (THIRD_MAPPING) begin
++          third_valid <= second_valid;
++          third_va <= second_va;
++          third_pa <= second_pa;
++          third_cb <= second_cb;
++          third_read_allowed <= second_read_allowed;
++          third_write_allowed <= second_write_allowed;
++          third_fsr <= second_fsr;
++          third_external_fsr <= second_external_fsr;
++        end
+         second_valid <= 1;
+         second_va <= token_va[31:10];
+         second_pa <= token_pa;
+@@ -240,15 +262,15 @@
+   // Waiting for translation does not architecturally restart an instruction.
+   assign o_lookup_wait = o_busy;
+   assign o_walk_pending = o_busy;
+-  assign o_phy_addr = i_mmu_en ? {use_second ? second_pa : token_pa, i_address[9:0]} : i_address;
++  assign o_phy_addr = i_mmu_en ? {use_third ? third_pa : use_second ? second_pa : token_pa, i_address[9:0]} : i_address;
+   assign o_fault = i_mmu_en && owner && state == IDLE && !mutation &&
+-                   (use_second || token_mapping ? permission_denied : |token_fsr);
++                   (use_third || use_second || token_mapping ? permission_denied : |token_fsr);
+   assign o_fsr = o_fault ? selected_fsr : 0;
+   assign o_far = o_fault ? i_address : 0;
+   assign o_external_fsr = i_mmu_en && owner ?
+-                         (use_second ? second_external_fsr : token_external_fsr) : 8'h08;
+-  assign o_cacheable = i_mmu_en && owner && (use_second ? second_cb[1] : token_cb[1]);
+-  assign o_bufferable = i_mmu_en && owner && (use_second ? second_cb[0] : token_cb[0]);
++                         (use_third ? third_external_fsr : use_second ? second_external_fsr : token_external_fsr) : 8'h08;
++  assign o_cacheable = i_mmu_en && owner && (use_third ? third_cb[1] : use_second ? second_cb[1] : token_cb[1]);
++  assign o_bufferable = i_mmu_en && owner && (use_third ? third_cb[0] : use_second ? second_cb[0] : token_cb[0]);
+   // Exact ownership predicate for consumers. Avoid selecting a checked VA
+   // through owner and comparing the selected address back to the request.
+   assign o_checked_owner = !i_mmu_en || owner;
+@@ -256,7 +278,7 @@
+   assign o_checked_lookup = o_checked_va;
+   assign o_checked_rd = !i_mmu_en || owner ? i_request_rd : token_rd;
+   assign o_checked_wr = !i_mmu_en || owner ? i_request_wr : token_wr;
+-  assign o_checked_mmu = i_mmu_en && (token_valid || use_second);
++  assign o_checked_mmu = i_mmu_en && (token_valid || use_second || use_third);
+   assign o_checked_cpsr = !i_mmu_en ? i_cpsr : token_cpsr;
+   assign o_checked_sr = !i_mmu_en ? i_sr : token_sr;
+   assign o_checked_dac = !i_mmu_en ? i_dac_reg : token_dac;
+@@ -294,6 +316,14 @@
+       second_write_allowed <= 0;
+       second_fsr <= 0;
+       second_external_fsr <= 0;
++      third_valid <= 0;
++      third_va <= 0;
++      third_pa <= 0;
++      third_cb <= 0;
++      third_read_allowed <= 0;
++      third_write_allowed <= 0;
++      third_fsr <= 0;
++      third_external_fsr <= 0;
+       request_va <= 0;
+       request_rd <= 0;
+       request_wr <= 0;
+@@ -312,10 +342,11 @@
+       // Legacy completion ACKs also occur while no request is live. Only a
+       // consumed exact walk fault is discarded; denied directions do not evict
+       // the reusable mapping or its independent opposite-direction permission.
+-      if (i_complete && o_fault && !use_second && !token_mapping) token_valid <= 0;
++      if (i_complete && o_fault && !use_third && !use_second && !token_mapping) token_valid <= 0;
+       if (mutation || !i_mmu_en) begin
+         token_valid <= 0;
+         second_valid <= 0;
++        third_valid <= 0;
+       end
+       if (state != IDLE && (mutation || !i_mmu_en || request_baddr != i_baddr)) cancelled <= 1;
+       case (state)
+@@ -327,6 +358,7 @@
+           if (!shared_context) begin
+             token_valid <= 0;
+             second_valid <= 0;
++            third_valid <= 0;
+           end else if (!token_mapping) token_valid <= 0;
+           request_va <= i_address;
+           request_rd <= i_request_rd;
+--- a/rtl/arm/zap_dcache.sv
++++ b/rtl/arm/zap_dcache.sv
+@@ -382,7 +382,8 @@
+ 
+   // ARM920T translation controller and table-walk bus.
+   arm920_tlb #(
+-      .CPSR_MODE(CPSR_MODE)
++      .CPSR_MODE(CPSR_MODE),
++      .THIRD_MAPPING(1)
+   ) u_zap_tlb (
+       .i_clk           (i_clk),
+       .i_reset         (i_reset),

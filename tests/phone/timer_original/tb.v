@@ -58,9 +58,9 @@ end
 initial begin
  for(i=0;i<2048;i=i+1)program_words[i]=0;
  for(i=0;i<32768;i=i+1)ram[i]=0;
- $readmemh("scratch/ngage2-integration/timer-flow-2026-11-11/original/program.hex",program_words);
- $readmemh("scratch/ngage2-integration/timer-flow-2026-11-11/original/app.hex",app_words);
- $readmemh("scratch/ngage2-integration/timer-flow-2026-11-11/original/boot.hex",boot_words);
+ $readmemh("build/sim/phone-tests/timer-flow-2026-11-11/original/program.hex",program_words);
+ $readmemh("build/sim/phone-tests/timer-flow-2026-11-11/original/app.hex",app_words);
+ $readmemh("build/sim/phone-tests/timer-flow-2026-11-11/original/boot.hex",boot_words);
  if($value$plusargs("wait=%d",wait_cycles))begin end
  repeat(4)@(negedge clk);reset=0;
 end

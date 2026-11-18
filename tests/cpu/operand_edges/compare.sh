@@ -4,7 +4,7 @@
 set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
 cd "$root"
-evidence=scratch/timing-closure/slice1-operand
+evidence=build/sim/slice1-operand
 sh tests/cpu/operands/reference.sh
 for version in reference candidate; do
  directory="$evidence/$version"

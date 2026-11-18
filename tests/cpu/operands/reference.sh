@@ -4,7 +4,7 @@
 set -eu
 root=$(CDPATH= cd -- "$(dirname -- "$0")/../../.." && pwd)
 cd "$root"
-ref=scratch/timing-closure/slice1-operand/reference
+ref=build/sim/slice1-operand/reference
 mkdir -p "$ref" build/sim/unit-operands-reference
 for source in zap_core.sv zap_writeback.sv zap_issue_main.sv zap_register_file.sv; do
  git show ef9b7621fa2ca90af250ce8d988260ebbc5e59d6:rtl/arm/$source > "$ref/$source"

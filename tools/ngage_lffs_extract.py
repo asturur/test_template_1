@@ -91,7 +91,7 @@ def main():
     ap.add_argument('--out', required=True, type=Path)
     ap.add_argument('--rom', type=Path, default=ROOT/'firmware/SYM.ROM')
     ap.add_argument('--reference', type=Path,
-                    default=ROOT/'scratch/fresh-c-investigation/ngvm4')
+                    default=ROOT/'build/tool-cache/ngvm4')
     ap.add_argument('--all-files', action='store_true', help='extract all files, not just logs/text')
     ap.add_argument('--reuse-work', type=Path, help='reuse a validated private reader build from an earlier extraction')
     args = ap.parse_args()

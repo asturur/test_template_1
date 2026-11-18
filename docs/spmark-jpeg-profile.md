@@ -101,9 +101,9 @@ Reproduce from the active integration checkout with the existing offline Docker
 image and native Unicorn/binutils. Use a fresh unique output name:
 
 ```sh
-python3 scratch/spmark-jpeg-profile-20261115/run.py --name jpeg-NEW
-python3 scratch/spmark-jpeg-profile-20261115/qualify.py --base build/sim/jpeg-payload/jpeg-NEW
-python3 scratch/spmark-jpeg-profile-20261115/pixel-controls.py --base build/sim/jpeg-payload/jpeg-NEW
+python3 tests/cpu/jpeg_profile/run.py --name jpeg-NEW
+python3 tests/cpu/jpeg_profile/qualify.py --base build/sim/jpeg-payload/jpeg-NEW
+python3 tests/cpu/jpeg_profile/pixel-controls.py --base build/sim/jpeg-payload/jpeg-NEW
 ```
 
 Unicorn native JIT and the Docker socket need the previously documented sandbox
@@ -112,7 +112,7 @@ Original ROM/game assets remain local. [Evidence](evidence/spmark-jpeg-profile-2
 pins source, input and raw-result hashes. Full generated files remain under
 build/sim/jpeg-payload/error-diffusion-20261115-v2.
 
-Fixture corrections retained in scratch: native factory mode9 correctly returns
+The archived investigation records the fixture corrections: native factory mode9 correctly returns
 null; use tested modes8/10. The independent model initially needed the native
 first-column and cross-row error-carry rules. The first RTL observer rejected
 505xxxxx PCs because its old payload map only covered100xxxxx; v2 fixes only

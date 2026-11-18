@@ -1,0 +1,6 @@
+Critical Warning (332148): Timing requirements not met
+Info (332146): Worst-case setup slack is -43.702
+Info (332146): Worst-case hold slack is 0.183
+Info (332146): Worst-case recovery slack is 3.607
+Info (332146): Worst-case removal slack is 1.029
+Info (332146): Worst-case minimum pulse width slack is 0.961

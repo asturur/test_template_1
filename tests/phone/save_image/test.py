@@ -1,7 +1,7 @@
 import hashlib,importlib.util,subprocess,sys,tempfile
 from pathlib import Path
 root=Path.cwd(); spec=importlib.util.spec_from_file_location('save',root/'tools/prepare_mister_save.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
-with tempfile.TemporaryDirectory(prefix='save-test-',dir=root/'scratch') as d:
+with tempfile.TemporaryDirectory(prefix='save-test-') as d:
  p=Path(d); bundle=p/'test.bundle'; save=p/'test.save'
  subprocess.run([sys.executable,'tools/prepare_mister_images.py','--profile','diagnostic-erased-pmm','--output',str(bundle)],check=True,stdout=subprocess.DEVNULL)
  subprocess.run([sys.executable,'tools/prepare_mister_save.py','create',str(bundle),str(save)],check=True,stdout=subprocess.DEVNULL)

@@ -1,5 +1,26 @@
 # Writable MMC production interface
 
+## Current hardware outcome, 17 November 2026
+
+The operator reports that MMC writes still do not work. Installed-build
+identity, the failing operation and the first failing boundary have yet to be
+correlated. The passing offline tests below remain valid within their modeled
+coverage. Native create/write/readback and persistence are unresolved.
+Diagnose the existing path before changing MMC stream-tag storage for area.
+
+The [17 November diagnosis](mmc-write-diagnosis.md) confirms the actual-HPS
+fixture checks every outgoing halfword and independent modeled persistence
+after remount. A new authored-ARM CMD24/TX2-DMA/full-board/card/adapter probe
+passes297,511 clocks,512 persisted modeled bytes and PIO readback; intentional
+last-halfword persistence corruption is rejected. It uses a synthetic HPS peer,
+not Linux file I/O or original EPBUS. No production RTL defect or hardware
+cause is established. The historical installer-card manifest is explicitly
+CSD-protected; its identity is not correlated to the current failure. Next
+correlate installed RBF/image/operation and observe the first failing CMD24/25
+R1 response before selecting the next boundary. No hardware/card changes.
+
+## Historical implementation status
+
 Requested 2026-11-16. Write integration is implemented and locally qualified
 below. The currently installed b707ebd RBF remains read-only; the new HDL needs
 a fresh FPGA build and native persistence testing.

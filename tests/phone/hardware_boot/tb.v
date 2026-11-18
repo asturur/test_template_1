@@ -478,7 +478,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   for(i=0;i<65536;i=i+1)ddr[25165824+i]=8'hff;
   core_path="build/firmware/nem4-factory/core.bin";
   extension_path="build/firmware/nem4-factory/extension.bin";
-  cdrive_path="scratch/overnight/cdrive-11b.img";
+  cdrive_path="runtime/boot/cdrive-11b.img";
   if($value$plusargs("core=%s",core_path))begin end
   if($value$plusargs("extension=%s",extension_path))begin end
   if($value$plusargs("cdrive=%s",cdrive_path))begin end

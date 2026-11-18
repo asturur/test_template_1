@@ -189,7 +189,7 @@ def compare_rows(rows, reference, candidate):
 def locations(name):
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}", name) or name in {".", ".."}:
         raise ValueError("invalid experiment name")
-    return (ROOT / "scratch/cpu-donor-import" / name,
+    return (ROOT / "build/sim/cpu-donor-sources" / name,
             ROOT / "build/sim/cpu-donor-import" / name)
 
 
@@ -210,7 +210,7 @@ def prepare(args):
     variants["working"] = snapshot(working)
     variants["working"]["directory"] = str(working.relative_to(ROOT))
     control = scratch / "working_previous_sdram"
-    previous = ROOT / "scratch/sdram-specialize-20261112/before"
+    previous = ROOT / "tests/phone/sdram/legacy"
     details = old_controller_control(working, control, previous)
     if details["status"] == "PREPARED":
         variants["working_previous_sdram"] = source_manifest(control, variants["working"]["commit"], "matched-override")

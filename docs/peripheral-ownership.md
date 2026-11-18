@@ -10,7 +10,7 @@ in their existing modules. No new clock or timing exception is introduced.
 | Storage window | Local exclusions | Preserved behavior |
 | --- | --- | --- |
 | `0c03xxxx` upload | None | Keypad configuration gates access; legal GPIO byte lanes |
-| `0c10xxxx` NOS/shared | MDI claim | MDI owns `01f4`, `01f8`, `03e8`, `03ec` |
+| `0c10xxxx` NOS/shared | MDI claim | MDI owns ring bytes at offsets `0000..03e7` and pointer words at `03e8`, `03ec` |
 | `0c150xxx` GPIO/SIM | SIMIF, NOS, GPIO loopback claims | Original `000..5ff` and `800..8ff` windows; `420/424` excluded in range decode for CBUS |
 | `0c06ffxx` auxiliary upload | None | Existing auxiliary index, independent of upload/NOS/GPIO storage |
 | `0c14xxxx` auxiliary windows | MDI claim | Existing `f0xx`, and first32 bytes of `2/8/a/b/c` pages; MDI at `b004` |
@@ -18,6 +18,61 @@ in their existing modules. No new clock or timing exception is introduced.
 | `0c004xxx` NOS4K | Boot scratch claim | 45 latches at `4748..47f8`; remaining words use BRAM, including `47fc` |
 | `0c000xxx` ASIC stub | Read-only | Existing `47704770` return; writes fault |
 | `0dxxxxxx` sparse | Trace claim | Trace pages never allocate sparse entries |
+
+### Firmware use and the two 64 KiB allocations
+
+The [native NOS](semi-real-nos.md) includes ARM-side startup, channel
+registration, scheduling and message delivery. Its executable image is backed
+by flash. The name `nosmem_ram` identifies the generic backing in the UPP I/O
+window. Original driver routines and the [MDI implementation](native-startup-hdl.md#native-rf-provider-and-upp-internal-dsp-link-2026-11-12)
+establish two 250-halfword rings (MCU to DSP and DSP to MCU) plus two pointer
+words at the start of that window. A dedicated two-M10K ring and pointer
+registers serve those requests. All seven `0c10xxxx` addresses in the
+[retained address inventory](../tests/phone/board_inventory/addresses.tsv)
+fall inside this dedicated owner. The inventory samples four traces and leaves
+the need for generic backing at offsets `03f0..ffff` unresolved.
+
+Firmware startup writes an internal UPP DSP program through `0c03xxxx` and
+an auxiliary window at `0c06ff00`. The modeled DSP peer exchanges messages
+through MDI without fetching instructions from the upload bank. The
+[boot record](status.md) identifies the source table at flash physical
+`0xa000`; the external D550 audio DSP has a separate firmware package.
+A read-only comparison of the retained upload reconstruction
+(`scratch/dsp/dsp-ram-0c030000.bin`, SHA-256
+`5f1e791a6a8b2b3eb51625f7c3caf05a7b09f7e06fd3592f0022905eac83552a`)
+matched all 36,248 bytes at offsets `0100..8e97` against the decoded flash
+window at offsets `0104..8e9b` after swapping the two halfwords of each
+32-bit reconstruction word. This establishes the reconstructed image's size
+and source. Runtime coverage, readback and the highest offset used over all
+boots still require bus observations. A directed board test writes and executes
+ARM instructions at `0c030220`, and a separate test verifies warm retention
+and cold clearing. These are deliberate model contracts.
+
+Prioritize measuring the generic `0c10xxxx` tail. For both banks count only
+accepted accesses by owner and offset, with byte enables and caller PC where
+available. Separate reads, writes and instruction fetches, and exclude the
+cold scrub. Cover native boot through Menu, service activity and warm reset.
+If broad writable upload storage is required, compare full-address external
+backing with the local bank, preserving readback, reset and byte-lane
+behavior. Each current bank accounts for 64 M10Ks in the November 16 fit.
+
+For an external-backing prototype, prefer two private 64 KiB regions in HPS
+DDR3. The diagnostic writers already use the shared DDR arbiter independently
+of the phone's NOR controllers. Pick a disjoint allocation against the core
+and MiSTer framework maps; the ROM/C: guard already hosts diagnostics. Decode
+the original guest addresses, keep MDI rings/pointers local, and send only
+generic bank transactions through a registered scalar requester. Preserve
+byte enables, ordered completion and instruction readback. Zero the regions
+at cold initialization and retain them across phone reset. Compare upload and
+boot cycles including contention for flash reads. This could displace 128
+M10Ks gross; net logic, block count and timing need a fit.
+
+External module SDRAM is another option: the present controller enables two
+banks for the full 16 MiB of guest RAM. Hidden backing would need additional
+bank access or a revised physical map preserving those 16 MiB. Aliasing the
+firmware image would require reproducing address-dependent flash decoding,
+upload formatting, visibility before upload, and later independent writes.
+Storing the actual guest write payload in DDR3 covers those cases directly.
 
 ICU, timers, extra ICU/config registers and trace sinks do not overlap the
 regional RAM windows above. Their claims therefore do not qualify RAM writes.

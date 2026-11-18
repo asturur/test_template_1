@@ -202,8 +202,8 @@ module tb;
 
     reg [4095:0] program_path, app_path;
     initial begin
-        program_path = "scratch/ngage2-integration/lcd-handover/isr/program.hex";
-        app_path = "scratch/ngage2-integration/lcd-handover/isr/app.hex";
+        program_path = "build/sim/phone-tests/lcd-handover/isr/program.hex";
+        app_path = "build/sim/phone-tests/lcd-handover/isr/app.hex";
         if ($value$plusargs("program=%s", program_path)) begin end
         if ($value$plusargs("app=%s", app_path)) begin end
         if (!$value$plusargs("wait=%d", wait_cycles)) wait_cycles = 0;

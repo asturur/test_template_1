@@ -153,6 +153,4 @@ candidate is excluded from the already-running POP/BX build.
 
 [Candidate patch](evidence/dsp-full-product-candidate-20261116.patch),
 [experiment identities](evidence/dsp-full-product-experiment-20261116.json).
-Private sources and test vectors remain under
-`scratch/dsp-full-product-20261116/`; outputs under
-`build/sim/dsp-full-product-20261116/`.
+The [DSP candidate and vector generator](../tests/cpu/dsp_full_product/) reproduce the comparison. The runner writes vectors and compiler outputs under `build/sim/dsp-full-product-repro-20261116/`.

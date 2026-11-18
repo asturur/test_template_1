@@ -1,5 +1,11 @@
 # SPMark04 hardware benchmarks
 
+## 2026-11-17: user-reported 5F game result
+
+Andrea reports the original SPMark04 3D Game running a little above **2.16 fps** on MiSTer with 5F. At 2.16 fps this is about 463 ms per frame. The earlier documented 1.82 fps run used `a745119` on November 15. The two readings imply roughly 19% higher game FPS across builds. The change attributable to 5F alone is unmeasured. This observation has no accompanying screenshot, repeat series, FillRate or PolyCount reading.
+
+The [5F scorecard](cpu-integrated-5f.md) gives equal weight to six selected functions. Its two largest gains are on short fills. The suite does not time an entire textured game frame. To select a representative next payload, identify where the original game spends its frame time before assigning an FPS contribution to any one kernel.
+
 ## 2026-11-15: native score 119 at 78 MHz
 
 The exact a745119 artifact from run43719932412, seed44, completes the original

@@ -1,5 +1,11 @@
 # CPU load-result availability and forwarding
 
+Follow-up on accepted 5F: [Step 5J](cpu-load-pipeline.md) measures one isolated
+P1 load-start interface. Favorable independent issue reaches one instruction
+per clock, while the original span's dependent load-use distance stays seven
+clocks because its BRAM read does not advance. The historical qualification
+and forwarding contract below remain the basis of that comparison.
+
 Patch0062 implements a declared joint phase08 change: early aligned-word P2
 load forwarding and late formatted Memory-commit availability, including correct
 paired base/load producer priority. It is a CPU instruction scheduling change;

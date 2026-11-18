@@ -74,7 +74,7 @@ def main():
     p.add_argument('--key-hold',type=int,default=0,help='diagnostic key hold in CPU clocks')
     p.add_argument('--early-boot-trace',action='store_true',help='bounded delay/caller observer for independent short investigations')
     p.add_argument('--sys-clk-hz',type=int,default=104000000,help='phone clock/timebase parameter; requires a new checkpoint lineage when changed')
-    p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
+    p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('runtime/boot/cdrive-11b.img'))
     a=p.parse_args();assert Path.cwd()==ROOT and 0<a.cycles<2**63 and '/' not in a.name and a.name not in ('.','..')
     if not (0<a.checkpoint_before<2**63 and 0<a.checkpoint_after<2**63 and 0<=a.checkpoint_switch<2**63):
         p.error('checkpoint periods must be positive 64-bit cycle counts; switch must be nonnegative')

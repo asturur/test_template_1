@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 import sys
 ROOT = Path(__file__).resolve().parents[3]
-PATHS = [*sorted((ROOT / 'scratch/current-boot/board').glob('*')),
-         *sorted((ROOT / 'scratch/simif-board/board').glob('*')),
-         ROOT / 'scratch/live-controls/boot_profile.cpp',
-         ROOT / 'scratch/live-controls/boot_profile.h',
-         ROOT / 'scratch/simif-investigation/test_card.h',
-         ROOT / 'scratch/simif-board/run.py',
-         ROOT / 'scratch/simif-board/build.py']
+PATHS = [*sorted((ROOT / 'tests/phone/reference/current-boot/board').glob('*')),
+         *sorted((ROOT / 'tests/phone/reference/simif-board/board').glob('*')),
+         ROOT / 'tests/phone/reference/live-controls/boot_profile.cpp',
+         ROOT / 'tests/phone/reference/live-controls/boot_profile.h',
+         ROOT / 'tests/phone/reference/simif-investigation/test_card.h',
+         ROOT / 'tests/phone/reference/simif-board/run.py',
+         ROOT / 'tests/phone/reference/simif-board/build.py']
 manifest = ROOT / 'tests/phone/fixtures/source-hashes.json'
 actual = {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
           for p in PATHS if p.is_file()}

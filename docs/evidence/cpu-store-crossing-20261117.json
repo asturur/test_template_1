@@ -1,0 +1,4547 @@
+{
+  "status": "PASS_AUDIT_REJECT_CANDIDATE",
+  "control_commit": "8e70b1ebc16486443d09f008384b4c0bc41c071c",
+  "control_source_id": "2db0dcdf53a9f0e06194986f45c7ae7877af4204108c0e2e6bb3dd091c23debf",
+  "candidate_source_id": "12cb8b7b111b6a1425f996834ccb107eddecd39550cb71f9e21c5eed3c361959",
+  "changed_isolated_files": [
+    "rtl/arm920/cache_access.sv"
+  ],
+  "production_RTL_changed": false,
+  "rows": [
+    {
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "control": 1332,
+      "candidate": 1264,
+      "retention_maximum": 1278,
+      "meets_threshold": true,
+      "control_scored": [
+        1332,
+        1341,
+        1332,
+        1341,
+        1332
+      ],
+      "candidate_scored": [
+        1264,
+        1273,
+        1264,
+        1273,
+        1264
+      ],
+      "disjoint_bucket_deltas": [
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        }
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "control": 1332,
+      "candidate": 1264,
+      "retention_maximum": 1278,
+      "meets_threshold": true,
+      "control_scored": [
+        1332,
+        1341,
+        1332,
+        1341,
+        1332
+      ],
+      "candidate_scored": [
+        1264,
+        1273,
+        1264,
+        1273,
+        1264
+      ],
+      "disjoint_bucket_deltas": [
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -96,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 29,
+          "other": -1
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "control": 1647,
+      "candidate": 1646,
+      "retention_maximum": 1581,
+      "meets_threshold": false,
+      "control_scored": [
+        1647,
+        1645,
+        1647,
+        1645,
+        1647
+      ],
+      "candidate_scored": [
+        1646,
+        1644,
+        1646,
+        1644,
+        1646
+      ],
+      "disjoint_bucket_deltas": [
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "control": 1647,
+      "candidate": 1646,
+      "retention_maximum": 1581,
+      "meets_threshold": false,
+      "control_scored": [
+        1647,
+        1645,
+        1647,
+        1645,
+        1647
+      ],
+      "candidate_scored": [
+        1646,
+        1644,
+        1646,
+        1644,
+        1646
+      ],
+      "disjoint_bucket_deltas": [
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        },
+        {
+          "read_stall": 0,
+          "write_stall": -124,
+          "load_lock": 0,
+          "other_lock": 0,
+          "empty": 123,
+          "other": 0
+        }
+      ]
+    }
+  ],
+  "windows": [
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 2,
+      "cycles": 1332,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 67,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "f7333dffcbc5672f6fed910c102a7c1376256aa098a4c8cb1fdabdc4c0b7fd57",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 144677,
+        "address": 144680,
+        "offer": 144681,
+        "accept": 144683,
+        "tag_validation": 144686,
+        "probe_available": null,
+        "ram_write": 144688,
+        "retire": 144690,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 145865,
+        "address": 145868,
+        "offer": 145869,
+        "accept": 145871,
+        "tag_validation": 145874,
+        "probe_available": null,
+        "ram_write": 145876,
+        "retire": 145878,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 3,
+      "cycles": 1341,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 75,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "c990b44347477b7c1c32de5fa56567928ba19ef5e8909dfb1566bda1e383d012",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 162650,
+        "address": 162653,
+        "offer": 162654,
+        "accept": 162656,
+        "tag_validation": 162659,
+        "probe_available": null,
+        "ram_write": 162661,
+        "retire": 162663,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 163838,
+        "address": 163841,
+        "offer": 163842,
+        "accept": 163844,
+        "tag_validation": 163847,
+        "probe_available": null,
+        "ram_write": 163849,
+        "retire": 163851,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 4,
+      "cycles": 1332,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 67,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "3a99c9a383fa155882c004753d4eb2edd5b8042693c686cdd5a068a3112b0d06",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 180632,
+        "address": 180635,
+        "offer": 180636,
+        "accept": 180638,
+        "tag_validation": 180641,
+        "probe_available": null,
+        "ram_write": 180643,
+        "retire": 180645,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 181820,
+        "address": 181823,
+        "offer": 181824,
+        "accept": 181826,
+        "tag_validation": 181829,
+        "probe_available": null,
+        "ram_write": 181831,
+        "retire": 181833,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 5,
+      "cycles": 1341,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 75,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "ccd527909a290b44af18aa8fb2bb01cf11471ad11266b91b5341ca414dab98e0",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 198605,
+        "address": 198608,
+        "offer": 198609,
+        "accept": 198611,
+        "tag_validation": 198614,
+        "probe_available": null,
+        "ram_write": 198616,
+        "retire": 198618,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 199793,
+        "address": 199796,
+        "offer": 199797,
+        "accept": 199799,
+        "tag_validation": 199802,
+        "probe_available": null,
+        "ram_write": 199804,
+        "retire": 199806,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 6,
+      "cycles": 1332,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 67,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "d1223e96fc2c4855c8e58ec2809dd53b7886d2381068948701cd4fe2e8a6d77e",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 216587,
+        "address": 216590,
+        "offer": 216591,
+        "accept": 216593,
+        "tag_validation": 216596,
+        "probe_available": null,
+        "ram_write": 216598,
+        "retire": 216600,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 217775,
+        "address": 217778,
+        "offer": 217779,
+        "accept": 217781,
+        "tag_validation": 217784,
+        "probe_available": null,
+        "ram_write": 217786,
+        "retire": 217788,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 2,
+      "cycles": 1264,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 96,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "2ece8cd0215337d13cd4da3951512b474576432493b9c95c8c2a38375f1675c0",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 144609,
+        "address": 144612,
+        "offer": 144613,
+        "accept": 144613,
+        "tag_validation": 144616,
+        "probe_available": null,
+        "ram_write": 144618,
+        "retire": 144620,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 145736,
+        "address": 145739,
+        "offer": 145740,
+        "accept": 145740,
+        "tag_validation": 145743,
+        "probe_available": null,
+        "ram_write": 145745,
+        "retire": 145747,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 3,
+      "cycles": 1273,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 104,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "859435efab8ec79e5c83e6532ba9a39b559f0b1532606660d4d020ad6f2f4cd0",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 162514,
+        "address": 162517,
+        "offer": 162518,
+        "accept": 162518,
+        "tag_validation": 162521,
+        "probe_available": null,
+        "ram_write": 162523,
+        "retire": 162525,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 163641,
+        "address": 163644,
+        "offer": 163645,
+        "accept": 163645,
+        "tag_validation": 163648,
+        "probe_available": null,
+        "ram_write": 163650,
+        "retire": 163652,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 4,
+      "cycles": 1264,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 96,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "bee97fc103a6874e0a11c0cdfd4746ccd0460db2c6b778672b8d3b26df33b432",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 180428,
+        "address": 180431,
+        "offer": 180432,
+        "accept": 180432,
+        "tag_validation": 180435,
+        "probe_available": null,
+        "ram_write": 180437,
+        "retire": 180439,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 181555,
+        "address": 181558,
+        "offer": 181559,
+        "accept": 181559,
+        "tag_validation": 181562,
+        "probe_available": null,
+        "ram_write": 181564,
+        "retire": 181566,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 5,
+      "cycles": 1273,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 104,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "beb2ee6572a05965f981b4a5ff726dcfcfbde387056a87f134cd3bb0ce225520",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 198333,
+        "address": 198336,
+        "offer": 198337,
+        "accept": 198337,
+        "tag_validation": 198340,
+        "probe_available": null,
+        "ram_write": 198342,
+        "retire": 198344,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 199460,
+        "address": 199463,
+        "offer": 199464,
+        "accept": 199464,
+        "tag_validation": 199467,
+        "probe_available": null,
+        "ram_write": 199469,
+        "retire": 199471,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "window": 6,
+      "cycles": 1264,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 96,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "a3ca75ee48fcaf1505c10f66242e6c18107144d513b4f67efdd5a3602a228581",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 216247,
+        "address": 216250,
+        "offer": 216251,
+        "accept": 216251,
+        "tag_validation": 216254,
+        "probe_available": null,
+        "ram_write": 216256,
+        "retire": 216258,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 217374,
+        "address": 217377,
+        "offer": 217378,
+        "accept": 217378,
+        "tag_validation": 217381,
+        "probe_available": null,
+        "ram_write": 217383,
+        "retire": 217385,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 2,
+      "cycles": 1332,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 67,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "d935ae3c7859a218eb93b6941b6ea1edef73abdaa960cd6a556a71d0b78c23b8",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 214988,
+        "address": 214991,
+        "offer": 214992,
+        "accept": 214994,
+        "tag_validation": 214997,
+        "probe_available": null,
+        "ram_write": 214999,
+        "retire": 215001,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 216176,
+        "address": 216179,
+        "offer": 216180,
+        "accept": 216182,
+        "tag_validation": 216185,
+        "probe_available": null,
+        "ram_write": 216187,
+        "retire": 216189,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 3,
+      "cycles": 1341,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 75,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "06fc2a2bc7fa17a84c46b4c608a33143e5dd4e3cef7b3c0f9c4e1611d1432798",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 232961,
+        "address": 232964,
+        "offer": 232965,
+        "accept": 232967,
+        "tag_validation": 232970,
+        "probe_available": null,
+        "ram_write": 232972,
+        "retire": 232974,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 234149,
+        "address": 234152,
+        "offer": 234153,
+        "accept": 234155,
+        "tag_validation": 234158,
+        "probe_available": null,
+        "ram_write": 234160,
+        "retire": 234162,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 4,
+      "cycles": 1332,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 67,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "c319f48b815a74379995077621ca8bc6661e556a76d95f871d8ee7dedca969e8",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 250943,
+        "address": 250946,
+        "offer": 250947,
+        "accept": 250949,
+        "tag_validation": 250952,
+        "probe_available": null,
+        "ram_write": 250954,
+        "retire": 250956,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 252131,
+        "address": 252134,
+        "offer": 252135,
+        "accept": 252137,
+        "tag_validation": 252140,
+        "probe_available": null,
+        "ram_write": 252142,
+        "retire": 252144,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 5,
+      "cycles": 1341,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 75,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "f01f612f18cd9fdcd890395b1f90c8b362f4d390a08f40976a9af2f29cd2be5b",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 268916,
+        "address": 268919,
+        "offer": 268920,
+        "accept": 268922,
+        "tag_validation": 268925,
+        "probe_available": null,
+        "ram_write": 268927,
+        "retire": 268929,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 270104,
+        "address": 270107,
+        "offer": 270108,
+        "accept": 270110,
+        "tag_validation": 270113,
+        "probe_available": null,
+        "ram_write": 270115,
+        "retire": 270117,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 6,
+      "cycles": 1332,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 522,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 67,
+        "other": 666
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 3,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "2": 63
+      },
+      "movable_accept_clocks": 126,
+      "crossing_issue_to_accept_histogram": {
+        "6": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "19": 58,
+        "20": 1,
+        "22": 1,
+        "23": 1
+      },
+      "interloop_empty_clocks": 8,
+      "per_loop_empty_histogram": {
+        "0": 58,
+        "1": 2,
+        "2": 1,
+        "4": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "7cdb4d40b5504e3510568b0e448cd70855a22c8dc23f76894229e5308841a1c6",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 286898,
+        "address": 286901,
+        "offer": 286902,
+        "accept": 286904,
+        "tag_validation": 286907,
+        "probe_available": null,
+        "ram_write": 286909,
+        "retire": 286911,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 288086,
+        "address": 288089,
+        "offer": 288090,
+        "accept": 288092,
+        "tag_validation": 288095,
+        "probe_available": null,
+        "ram_write": 288097,
+        "retire": 288099,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 2,
+      "cycles": 1264,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 96,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "26a1df681e4542acd0f6c62527777200cab6caac82637afdaa76bb79b94a1f92",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 214920,
+        "address": 214923,
+        "offer": 214924,
+        "accept": 214924,
+        "tag_validation": 214927,
+        "probe_available": null,
+        "ram_write": 214929,
+        "retire": 214931,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 216047,
+        "address": 216050,
+        "offer": 216051,
+        "accept": 216051,
+        "tag_validation": 216054,
+        "probe_available": null,
+        "ram_write": 216056,
+        "retire": 216058,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 3,
+      "cycles": 1273,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 104,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "7b4b61fbef38cdda943b9670267787445b4b95edd66631f7096fb5b3dc2bacf8",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 232825,
+        "address": 232828,
+        "offer": 232829,
+        "accept": 232829,
+        "tag_validation": 232832,
+        "probe_available": null,
+        "ram_write": 232834,
+        "retire": 232836,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 233952,
+        "address": 233955,
+        "offer": 233956,
+        "accept": 233956,
+        "tag_validation": 233959,
+        "probe_available": null,
+        "ram_write": 233961,
+        "retire": 233963,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 4,
+      "cycles": 1264,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 96,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "6350245c3ca8a5d9875c98e6eb31f15053d5b75705de0d94abb5122023289d1c",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 250739,
+        "address": 250742,
+        "offer": 250743,
+        "accept": 250743,
+        "tag_validation": 250746,
+        "probe_available": null,
+        "ram_write": 250748,
+        "retire": 250750,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 251866,
+        "address": 251869,
+        "offer": 251870,
+        "accept": 251870,
+        "tag_validation": 251873,
+        "probe_available": null,
+        "ram_write": 251875,
+        "retire": 251877,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 5,
+      "cycles": 1273,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 70,
+        "empty": 104,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "f03ff46d151f7cf11f7d6015403da5602ae0dba9ee213866378ed91e61055114",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 268644,
+        "address": 268647,
+        "offer": 268648,
+        "accept": 268648,
+        "tag_validation": 268651,
+        "probe_available": null,
+        "ram_write": 268653,
+        "retire": 268655,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 269771,
+        "address": 269774,
+        "offer": 269775,
+        "accept": 269775,
+        "tag_validation": 269778,
+        "probe_available": null,
+        "ram_write": 269780,
+        "retire": 269782,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "candidate",
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "window": 6,
+      "cycles": 1264,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 426,
+        "load_lock": 5,
+        "other_lock": 69,
+        "empty": 96,
+        "other": 665
+      },
+      "main_word_stores": 504,
+      "extra_operand_dequeues_not_retired": 2,
+      "crossing_count": 63,
+      "blocked_ready_histogram": {
+        "0": 63
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 63
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 63
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 63
+      },
+      "loop_issue_spacing": {
+        "14": 1,
+        "17": 28,
+        "18": 1,
+        "19": 29,
+        "20": 2,
+        "23": 1
+      },
+      "interloop_empty_clocks": 41,
+      "per_loop_empty_histogram": {
+        "0": 28,
+        "1": 31,
+        "2": 2,
+        "6": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "cb65f0505638cc8cf4e6341f0d5cb7092657674c9fcc315839b102391ff3085d",
+      "full_crossing_schedule_sha256": "9d48b17710551021d4fe7d6137c400a7183cf03851bd16b8b6ed359b785ddcb0",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 15
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002b00",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 286558,
+        "address": 286561,
+        "offer": 286562,
+        "accept": 286562,
+        "tag_validation": 286565,
+        "probe_available": null,
+        "ram_write": 286567,
+        "retire": 286569,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 503,
+        "pc": "10002b00",
+        "va": "800047e0",
+        "pa": "0a0047e0",
+        "way": 35,
+        "issue": 287685,
+        "address": 287688,
+        "offer": 287689,
+        "accept": 287689,
+        "tag_validation": 287692,
+        "probe_available": null,
+        "ram_write": 287694,
+        "retire": 287696,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "800047dc",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "all_retirement_PC_sha256": "6c122819726d563cec31b434aeb1afa19144ba8c5e5bff75f920e53280725289"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 2,
+      "cycles": 1647,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 360,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "7d9aa3036cd6e08640d7555c52db3c65b18114bb3b847ea6d39799138d435c10",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 145249,
+        "address": 145252,
+        "offer": 145253,
+        "accept": 145255,
+        "tag_validation": 145258,
+        "probe_available": null,
+        "ram_write": 145260,
+        "retire": 145262,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 146704,
+        "address": 146707,
+        "offer": 146711,
+        "accept": 146711,
+        "tag_validation": 146714,
+        "probe_available": null,
+        "ram_write": 146716,
+        "retire": 146718,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 3,
+      "cycles": 1645,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 357,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "108124ac4b17df6baa350b68929182eabb91c827e067be93c0cbf5b81f73fe44",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 163568,
+        "address": 163571,
+        "offer": 163572,
+        "accept": 163574,
+        "tag_validation": 163577,
+        "probe_available": null,
+        "ram_write": 163579,
+        "retire": 163581,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 165023,
+        "address": 165026,
+        "offer": 165030,
+        "accept": 165030,
+        "tag_validation": 165033,
+        "probe_available": null,
+        "ram_write": 165035,
+        "retire": 165037,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 4,
+      "cycles": 1647,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 360,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "24b0ded2ae0c0b76cdf1e8cbf7a6d4be9f4d583ddb157770f0b686c6701a197d",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 181885,
+        "address": 181888,
+        "offer": 181889,
+        "accept": 181891,
+        "tag_validation": 181894,
+        "probe_available": null,
+        "ram_write": 181896,
+        "retire": 181898,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 183340,
+        "address": 183343,
+        "offer": 183347,
+        "accept": 183347,
+        "tag_validation": 183350,
+        "probe_available": null,
+        "ram_write": 183352,
+        "retire": 183354,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 5,
+      "cycles": 1645,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 357,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "cc5fcb46017a9020686eb8e1494bd4b40280e48367fc521f1fc00115168567d9",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 200204,
+        "address": 200207,
+        "offer": 200208,
+        "accept": 200210,
+        "tag_validation": 200213,
+        "probe_available": null,
+        "ram_write": 200215,
+        "retire": 200217,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 201659,
+        "address": 201662,
+        "offer": 201666,
+        "accept": 201666,
+        "tag_validation": 201669,
+        "probe_available": null,
+        "ram_write": 201671,
+        "retire": 201673,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 6,
+      "cycles": 1647,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 360,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "a471cedb0101e0408176eb1ddbef29d73431e4cf29c169735997d4eb578ca429",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 218521,
+        "address": 218524,
+        "offer": 218525,
+        "accept": 218527,
+        "tag_validation": 218530,
+        "probe_available": null,
+        "ram_write": 218532,
+        "retire": 218534,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 219976,
+        "address": 219979,
+        "offer": 219983,
+        "accept": 219983,
+        "tag_validation": 219986,
+        "probe_available": null,
+        "ram_write": 219988,
+        "retire": 219990,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 2,
+      "cycles": 1646,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 483,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "e98b12bdeda961cf664116b166badda05279186d915f722487e18ea400ec3f26",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 145248,
+        "address": 145251,
+        "offer": 145252,
+        "accept": 145252,
+        "tag_validation": 145255,
+        "probe_available": null,
+        "ram_write": 145257,
+        "retire": 145259,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 146702,
+        "address": 146705,
+        "offer": 146709,
+        "accept": 146709,
+        "tag_validation": 146712,
+        "probe_available": null,
+        "ram_write": 146714,
+        "retire": 146716,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 3,
+      "cycles": 1644,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 480,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "07abcf19a25e918c19f247a220340771a698b6655afe6f9b9ff6579fb2ed9a64",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 163566,
+        "address": 163569,
+        "offer": 163570,
+        "accept": 163570,
+        "tag_validation": 163573,
+        "probe_available": null,
+        "ram_write": 163575,
+        "retire": 163577,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 165020,
+        "address": 165023,
+        "offer": 165027,
+        "accept": 165027,
+        "tag_validation": 165030,
+        "probe_available": null,
+        "ram_write": 165032,
+        "retire": 165034,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 4,
+      "cycles": 1646,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 483,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "560bc83554fb7bdec01d3ab22c832fa55a04cd344e0466d073268e81d9188a0d",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 181882,
+        "address": 181885,
+        "offer": 181886,
+        "accept": 181886,
+        "tag_validation": 181889,
+        "probe_available": null,
+        "ram_write": 181891,
+        "retire": 181893,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 183336,
+        "address": 183339,
+        "offer": 183343,
+        "accept": 183343,
+        "tag_validation": 183346,
+        "probe_available": null,
+        "ram_write": 183348,
+        "retire": 183350,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 5,
+      "cycles": 1644,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 480,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "fc946ed22f06865c19bfe88a4c30fafcbdfe530b355d0ed514e0e676046f6445",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 200200,
+        "address": 200203,
+        "offer": 200204,
+        "accept": 200204,
+        "tag_validation": 200207,
+        "probe_available": null,
+        "ram_write": 200209,
+        "retire": 200211,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 201654,
+        "address": 201657,
+        "offer": 201661,
+        "accept": 201661,
+        "tag_validation": 201664,
+        "probe_available": null,
+        "ram_write": 201666,
+        "retire": 201668,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "window": 6,
+      "cycles": 1646,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 483,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "4ec300c528c1a5b9f3def1a6a867f0b0e983939ae76d3bef6b140d54f8e16a87",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 218516,
+        "address": 218519,
+        "offer": 218520,
+        "accept": 218520,
+        "tag_validation": 218523,
+        "probe_available": null,
+        "ram_write": 218525,
+        "retire": 218527,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 219970,
+        "address": 219973,
+        "offer": 219977,
+        "accept": 219977,
+        "tag_validation": 219980,
+        "probe_available": null,
+        "ram_write": 219982,
+        "retire": 219984,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 2,
+      "cycles": 1647,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 360,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "1207589594634a7cf23294def813f479c7d7241bc1bac8dcb57fc056bd5ea163",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 215488,
+        "address": 215491,
+        "offer": 215492,
+        "accept": 215494,
+        "tag_validation": 215497,
+        "probe_available": null,
+        "ram_write": 215499,
+        "retire": 215501,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 216943,
+        "address": 216946,
+        "offer": 216950,
+        "accept": 216950,
+        "tag_validation": 216953,
+        "probe_available": null,
+        "ram_write": 216955,
+        "retire": 216957,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 3,
+      "cycles": 1645,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 357,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "2048fd9dfa7e64185fff31c4e6ecbb64a272ad3a9b64ee0fbca033a1350819d0",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 233807,
+        "address": 233810,
+        "offer": 233811,
+        "accept": 233813,
+        "tag_validation": 233816,
+        "probe_available": null,
+        "ram_write": 233818,
+        "retire": 233820,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 235262,
+        "address": 235265,
+        "offer": 235269,
+        "accept": 235269,
+        "tag_validation": 235272,
+        "probe_available": null,
+        "ram_write": 235274,
+        "retire": 235276,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 4,
+      "cycles": 1647,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 360,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "e9e0f700d9e1a7d57811cc21880fabce17c8a278992197b68fbe28b5279daa21",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 252124,
+        "address": 252127,
+        "offer": 252128,
+        "accept": 252130,
+        "tag_validation": 252133,
+        "probe_available": null,
+        "ram_write": 252135,
+        "retire": 252137,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 253579,
+        "address": 253582,
+        "offer": 253586,
+        "accept": 253586,
+        "tag_validation": 253589,
+        "probe_available": null,
+        "ram_write": 253591,
+        "retire": 253593,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 5,
+      "cycles": 1645,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 357,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "a88c2ccd4c620c2876c19f8c93f790ef3095bd9ff74cf5f9c25a4eec33e6171f",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 270443,
+        "address": 270446,
+        "offer": 270447,
+        "accept": 270449,
+        "tag_validation": 270452,
+        "probe_available": null,
+        "ram_write": 270454,
+        "retire": 270456,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 271898,
+        "address": 271901,
+        "offer": 271905,
+        "accept": 271905,
+        "tag_validation": 271908,
+        "probe_available": null,
+        "ram_write": 271910,
+        "retire": 271912,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "control",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 6,
+      "cycles": 1647,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 529,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 360,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 2,
+        "2": 62
+      },
+      "movable_accept_clocks": 124,
+      "crossing_issue_to_accept_histogram": {
+        "6": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "11": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "13": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "23": 61,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 257,
+      "per_loop_empty_histogram": {
+        "4": 62,
+        "9": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "a2787050868d39a75ab74a07e721f33dd6737ec528663d49c41dbe7b30b1034e",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 6,
+        "tag_validation": 9,
+        "probe_available": null,
+        "ram_write": 11,
+        "retire": 13,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 288760,
+        "address": 288763,
+        "offer": 288764,
+        "accept": 288766,
+        "tag_validation": 288769,
+        "probe_available": null,
+        "ram_write": 288771,
+        "retire": 288773,
+        "blocked_ready": 2,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 290215,
+        "address": 290218,
+        "offer": 290222,
+        "accept": 290222,
+        "tag_validation": 290225,
+        "probe_available": null,
+        "ram_write": 290227,
+        "retire": 290229,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 2,
+      "cycles": 1646,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 483,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "15bba709c21b56b11493d5fb0a722b2714d801bab9e3896667197c943817e689",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 215487,
+        "address": 215490,
+        "offer": 215491,
+        "accept": 215491,
+        "tag_validation": 215494,
+        "probe_available": null,
+        "ram_write": 215496,
+        "retire": 215498,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 216941,
+        "address": 216944,
+        "offer": 216948,
+        "accept": 216948,
+        "tag_validation": 216951,
+        "probe_available": null,
+        "ram_write": 216953,
+        "retire": 216955,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 3,
+      "cycles": 1644,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 480,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "5893795977248c4a0171198cdc8b8385b7e32a09e7423fae383590438ed2f024",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 233805,
+        "address": 233808,
+        "offer": 233809,
+        "accept": 233809,
+        "tag_validation": 233812,
+        "probe_available": null,
+        "ram_write": 233814,
+        "retire": 233816,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 235259,
+        "address": 235262,
+        "offer": 235266,
+        "accept": 235266,
+        "tag_validation": 235269,
+        "probe_available": null,
+        "ram_write": 235271,
+        "retire": 235273,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 4,
+      "cycles": 1646,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 483,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "dfe00398a84366006d5440e69696ec8850b69086b7636fcd009cc112c576789d",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 252121,
+        "address": 252124,
+        "offer": 252125,
+        "accept": 252125,
+        "tag_validation": 252128,
+        "probe_available": null,
+        "ram_write": 252130,
+        "retire": 252132,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 253575,
+        "address": 253578,
+        "offer": 253582,
+        "accept": 253582,
+        "tag_validation": 253585,
+        "probe_available": null,
+        "ram_write": 253587,
+        "retire": 253589,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 5,
+      "cycles": 1644,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 75,
+        "empty": 480,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "a3a6b7bef5ca5648102708726ad6d330fa14d92bf60a95fc1db3ca6e1e166e11",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 270439,
+        "address": 270442,
+        "offer": 270443,
+        "accept": 270443,
+        "tag_validation": 270446,
+        "probe_available": null,
+        "ram_write": 270448,
+        "retire": 270450,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 271893,
+        "address": 271896,
+        "offer": 271900,
+        "accept": 271900,
+        "tag_validation": 271903,
+        "probe_available": null,
+        "ram_write": 271905,
+        "retire": 271907,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    },
+    {
+      "version": "candidate",
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "window": 6,
+      "cycles": 1646,
+      "buckets": {
+        "read_stall": 3,
+        "write_stall": 405,
+        "load_lock": 4,
+        "other_lock": 74,
+        "empty": 483,
+        "other": 677
+      },
+      "main_word_stores": 512,
+      "extra_operand_dequeues_not_retired": 0,
+      "crossing_count": 64,
+      "blocked_ready_histogram": {
+        "0": 64
+      },
+      "movable_accept_clocks": 0,
+      "crossing_issue_to_accept_histogram": {
+        "4": 62,
+        "7": 2
+      },
+      "crossing_issue_to_ram_histogram": {
+        "9": 62,
+        "12": 2
+      },
+      "crossing_issue_to_retire_histogram": {
+        "11": 62,
+        "14": 2
+      },
+      "loop_issue_spacing": {
+        "22": 1,
+        "23": 60,
+        "24": 1,
+        "28": 1
+      },
+      "interloop_empty_clocks": 380,
+      "per_loop_empty_histogram": {
+        "4": 1,
+        "5": 1,
+        "6": 60,
+        "11": 1
+      },
+      "ordered_memory_and_base_sequence_sha256": "c79a6a834ef179b8958065da5cdccea0eefc5442d062fc06e72788878d61f75f",
+      "full_crossing_schedule_sha256": "16cf7bc5bc60f78028d3a07dce059fe38f5988d6424a471fc37b661119b89d9b",
+      "first_crossing": {
+        "issue": 0,
+        "address": 3,
+        "offer": 4,
+        "accept": 4,
+        "tag_validation": 7,
+        "probe_available": null,
+        "ram_write": 9,
+        "retire": 11,
+        "next_committed_loop_issue": 20
+      },
+      "first_crossing_absolute": {
+        "n": 7,
+        "pc": "10002a58",
+        "va": "80004020",
+        "pa": "0a004020",
+        "way": 12,
+        "issue": 288755,
+        "address": 288758,
+        "offer": 288759,
+        "accept": 288759,
+        "tag_validation": 288762,
+        "probe_available": null,
+        "ram_write": 288764,
+        "retire": 288766,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 2,
+        "credit": 0,
+        "old_pipe_mva": "8000401c",
+        "old_pipe": 1,
+        "old_commit": 1
+      },
+      "last_crossing_absolute": {
+        "n": 511,
+        "pc": "10002a58",
+        "va": "80004800",
+        "pa": "0a004800",
+        "way": 40,
+        "issue": 290209,
+        "address": 290212,
+        "offer": 290216,
+        "accept": 290216,
+        "tag_validation": 290219,
+        "probe_available": null,
+        "ram_write": 290221,
+        "retire": 290223,
+        "blocked_ready": 0,
+        "certificate": 0,
+        "pending_at_accept": 0,
+        "credit": 0,
+        "old_pipe_mva": "800047fc",
+        "old_pipe": 0,
+        "old_commit": 0
+      },
+      "all_retirement_PC_sha256": "630dae7d1f7fd98a1f69c4cdc7b362b5e231f5f90803346d2cf431e398d396d3"
+    }
+  ],
+  "compiled_control_RTL_sha256": {
+    "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+    "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+    "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+    "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+    "rtl/arm/zap_core.sv": "a57d15464112e9a2e0f472d73afe5e8c99c4c0050df74e7814a7007e4e112573",
+    "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+    "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+    "rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468",
+    "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+    "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+    "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+    "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+    "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+    "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+    "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+    "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+    "rtl/arm/zap_issue_main.sv": "2f59c2bbbf88ed070565d33c16c410a19b47afdcb315bda180604845a1f63c86",
+    "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+    "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+    "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+    "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+    "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+    "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+    "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+    "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+    "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+    "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+    "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+    "rtl/arm/zap_shifter_multiply.sv": "77cca1e0a72feab7e66564d1741626f410946f829949feaf3af483748ffcd286",
+    "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+    "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+    "rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+    "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+    "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+    "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+    "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+    "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+    "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+    "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+    "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+    "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+    "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+    "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+    "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+    "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+    "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+    "rtl/sdram/jtframe_sdram64.v": "7817f27e9fd134a3ea853179cfdbc95d7f931ed097e85e86363efc6219153b30",
+    "rtl/sdram/jtframe_sdram64_bank.v": "5ddd6ac5528dae124ad22963b117a7faf7a9cdcaa289b0aa093a1ab228ee9ec2",
+    "rtl/sdram/jtframe_sdram64_init.v": "cc0bcd8f1e3851f21e2fd522f4b6a2fae331475e2e6c3db12f34a3bb4cce97a3",
+    "rtl/sdram/jtframe_sdram64_latch.v": "9ef2571ab02479a4982d77ebc263b6a037934401f18c0d6fdc605a170846a38d",
+    "rtl/sdram/jtframe_sdram64_rfsh.v": "5f9f2dda1927d85650e1389572e3975bac3ffb33b9fa3b8a1ecf7832294b4d12"
+  },
+  "candidate_overlay_sha256": "d2bcb59e05f593eef08499d5d4fd9809ad60933c451c5ab10e142b2d5b1f58d3",
+  "helper_sha256": {
+    "tests/cpu/cpu_store_crossing/setup.py": "8c7775d1195fe1384558d19302b2049adbb546088b1b8d3ffe5a93c9b76d0b70",
+    "tests/cpu/cpu_store_crossing/bench.py": "86ddea240d4e3ab493343e553bbe9ca6299702895742adbb7374851510824f25",
+    "tests/cpu/cpu_store_crossing/analyze.py": "bd71dd833208374809565975b5924d7a6c820a76db3df5581c548c1ee94d18c0"
+  },
+  "completed_build_trees_retired": true,
+  "raw_trace_sha256": {
+    "build/sim/spmark-payload/crossing-control-02/fill16_tail-0-0-0.log": "b67ff36013b797c3ce49780393f50c03398a2e218734e706edf755454f566d4b",
+    "build/sim/spmark-payload/crossing-candidate-01/fill16_tail-0-0-0.log": "f70a1b8f8e35d70de4e154c92fd54a7bdff9d4673385be7bc84e672c577a7bd9",
+    "build/sim/spmark-payload/crossing-control-02/fill16_tail-2-9-0.log": "7505f7ffd838b3dc9e32901847e72749a9eeef711fe671aa238e54423e8e1e63",
+    "build/sim/spmark-payload/crossing-candidate-01/fill16_tail-2-9-0.log": "90b9cfe7d1338343ba26c4005c57036c75784aca2ecb0991a211a4dc46860c99",
+    "build/sim/spmark-payload/crossing-control-02/fill8_tail-0-0-0.log": "21c24685bc6e7424ed43facf426d2710fd5b2065d46ebfc89c5e390080e6ab3d",
+    "build/sim/spmark-payload/crossing-candidate-01/fill8_tail-0-0-0.log": "f16f58881e96d15ff9a90a1c547dd062c068bee70ec79efc74b23bdd14f15d36",
+    "build/sim/spmark-payload/crossing-control-02/fill8_tail-2-9-0.log": "1215f17c21e73407534a112fce1384c6baef9176c991f9cd64b6817136ec7f91",
+    "build/sim/spmark-payload/crossing-candidate-01/fill8_tail-2-9-0.log": "93f93f302f42aa54b4a6d7869107ffb5bf9f18acb4a9d0f9f0763b886b2474d8"
+  },
+  "run_receipt_sha256": {
+    "build/sim/spmark-payload/crossing-control-02/manifest.json": "7c4e05e1f433e60bd87a7fb32cb43d024bff0f9bd03ca91eda6709a4c04b1837",
+    "build/sim/spmark-payload/crossing-control-02/result.json": "3ad3569c8cf1a1e77fa3b2c4a4985ec5cc701bc25a8d0e988fb88ad6d8c96faa",
+    "build/sim/spmark-payload/crossing-control-02/fixture.json": "1f6b60627d0d8419813aab02df3ed97c6e1af2479da4aba02c7402af7d350239",
+    "build/sim/spmark-payload/crossing-control-02/oracle.json": "c7f07a99e2e4259986be3c652278e379e0ebdccd08c1551777a64a477d22dcd7",
+    "build/sim/spmark-payload/crossing-candidate-01/manifest.json": "11ac709344b3334caa1fdae4baf90947e143645108ac92d2a66dbaa52e6f0549",
+    "build/sim/spmark-payload/crossing-candidate-01/result.json": "4f53398ca258a17dd6a3e265db9b2e80ba5530fa25671772d6d389e201da6894",
+    "build/sim/spmark-payload/crossing-candidate-01/fixture.json": "1f6b60627d0d8419813aab02df3ed97c6e1af2479da4aba02c7402af7d350239",
+    "build/sim/spmark-payload/crossing-candidate-01/oracle.json": "c7f07a99e2e4259986be3c652278e379e0ebdccd08c1551777a64a477d22dcd7"
+  },
+  "historical_5F_fill8_bucket_delta": {
+    "read_stall": 0,
+    "write_stall": -772,
+    "load_lock": 0,
+    "other_lock": 0,
+    "empty": 250,
+    "other": -3
+  },
+  "historical_5F_evidence_sha256": "08549d5af8205fff5eff04144b870214657464a5cbb6277f5eae3760e99db3d6",
+  "resource_estimate": {
+    "added_state_bits": 0,
+    "added_RAM_ports": 0,
+    "added_RAM_blocks": 0,
+    "added_DSPs": 0,
+    "added_cache_tag_comparators": 0,
+    "added_logic": "existing qualification plus segment inequality and ready OR; packing/timing unmeasured"
+  },
+  "qualification": {
+    "tail_original_byte_math_Unicorn_guards_and_all_output_checks": "PASS",
+    "seven_windows_two_exact_repeats_and_wrong_output_controls": "PASS",
+    "all_scored_independent_physical_slot_mask_data_base_and_retirement_checks": "PASS",
+    "broader_candidate_warm64_IRQ_fault_alias_permission_JPEG_and_other_kernels": "NOT RUN: byte-tail retention gate fails; no candidate qualified or adopted"
+  },
+  "excluded_observer_attempt": {
+    "status": "EXCLUDED_OBSERVER",
+    "reason": "Raw physical backing tag RAM observer used way/segment instead of segment/way. No DUT/input/result failure. Corrected before final control and prototype; preliminary scheduling gate did not use the incorrect tagpa field.",
+    "first_crossing_example": {
+      "VA": "80004020",
+      "expected_PA_line": "0a004020",
+      "incorrect_observer_PA_line": "00000720",
+      "corrected_observer_PA_line": "0a004020",
+      "physical_way": 12
+    },
+    "original_raw_log_sha256": "726d7b1134cd856a7c5f339ea2990f3292d71ed6b6e034b7c1711b0c4afd9db7"
+  },
+  "decision": "Reject sole prototype: halfword tail saves68 clocks, byte tail saves1; keep pinned5F production and stop without another design/fit.",
+  "physical_PLL_MHz": 78,
+  "fit_CI_donor_hardware_or_deployment": false
+}

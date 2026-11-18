@@ -16,7 +16,7 @@ TOOL = ROOT / 'tools/ngage_mmc_image.py'
 spec = importlib.util.spec_from_file_location('ngage_mmc_image', TOOL)
 mmc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mmc)
-WORK = ROOT / 'scratch/ngage2-integration/p3-images'
+WORK = ROOT / 'build/sim/phone-tests/p3-images'
 
 
 def polynomial_crc7(data):

@@ -13,7 +13,7 @@ for config in baseline short78 short104 short104delay; do
     iverilog -g2012 -s tb -Ptb.INVERTED_CLOCK=1 -Ptb.CAPTURE_NEGEDGE=1 $settings \
         -o "$out/$config" rtl/ngage_sdram_clock.v tests/phone/sdram/ddio_model.v \
         rtl/ngage_sdram_adapter.v rtl/ngage_sdram_arbiter.v rtl/ngage_dma_route.v rtl/sdram/jtframe_sdram64*.v \
-        scratch/sdram-reference/mt48lc16m16a2.v tests/phone/sdram/tb.sv
+        tests/phone/sdram/model/mt48lc16m16a2.v tests/phone/sdram/tb.sv
     vvp "$out/$config" > "$out/$config.log"
     if grep -E 'ERROR:|FATAL:' "$out/$config.log"; then exit 1; fi
     grep '^PASS' "$out/$config.log"
@@ -23,7 +23,7 @@ for hz in 78000000 104000000; do
 for short in 0 1; do
     iverilog -g2012 -s tb -Ptb.SYS_CLK_HZ="$hz" -Ptb.SHORT_READS="$short" -Ptb.NATIVE="$native" -o "$out/concurrent-$native-$hz-$short" \
         rtl/ngage_sdram_clock.v tests/phone/sdram/ddio_model.v rtl/sdram/jtframe_sdram64*.v \
-        scratch/sdram-reference/mt48lc16m16a2.v tests/phone/sdram/short_concurrent_tb.sv
+        tests/phone/sdram/model/mt48lc16m16a2.v tests/phone/sdram/short_concurrent_tb.sv
     vvp "$out/concurrent-$native-$hz-$short" > "$out/concurrent-$native-$hz-$short.log"
     if grep -E 'ERROR:|FATAL:' "$out/concurrent-$native-$hz-$short.log"; then exit 1; fi
     grep '^PASS' "$out/concurrent-$native-$hz-$short.log"

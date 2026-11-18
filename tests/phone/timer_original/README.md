@@ -4,7 +4,7 @@ Run `sh tests/phone/timer_original/run.sh /path/to/original/nem4-rom.dmp`.
 The extractor rejects any ROM other than SHA-256
 `26ca1dd937e299fd4ec3ad65a25d395743ae2149311c3d753cbeb5437673dbc5`.
 Private ROM words and generated outputs stay under the ignored
-`scratch/ngage2-integration/timer-flow-2026-11-11/original/` directory.
+`build/sim/phone-tests/timer-flow-2026-11-11/original/` directory.
 The existing `jotego/simulator:arm64` image is used, without network access.
 
 The ZAP CPU executes unchanged original instructions for:

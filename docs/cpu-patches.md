@@ -628,3 +628,10 @@ immediate post-indexed word STR with W=0, non-PC and distinct base/data.
 Original tails2078→1332 and2172→1647; frame+drain/matrix/transpose/store controls
 unchanged, both profiles. Zero added state or forwarding/address datapath.
 See [the physical/base/IRQ/fault qualification](cpu-store-postindex.md).
+
+Step5F build patch0079 spells the five older one-hot multiplier state constants
+with the six-bit width of the paired-delivery enum. Quartus 17 rejected the
+five-bit literals in run 44081035391. Their numeric values remain 1, 2, 4, 8
+and 16. The production-source regression checked 4,096 ordered low/high results
+and 18 cancellation/reset cases. The separate 5G probe experiment is recorded
+in the [line-crossing results](cpu-store-crossing.md).

@@ -1,5 +1,7 @@
 # Fresh integration UI investigation
 
+The owner retired this run's saved state and frozen executable on 17 November 2026. The following dates, paths and hashes document the historical run.
+
 **Stopped at user request on 2026-11-12**, at10,107,094,767 cycles. Handled SIGTERM saved
 a final CPU/host pair under `checkpoint-10107094767` in the run directory; container
 exit confirmed. No automatic restart. Exact hashes and final result are recorded
@@ -32,7 +34,7 @@ saves at a terminal stop, even if that cycle falls between scheduled saves.
 Every save is a paired `.cpu` and `.host`; partial writes are not resumable.
 The schedule lives in the run manifest and can be overridden for bounded
 control tests through `--checkpoint-before`, `--checkpoint-switch` and
-`--checkpoint-after`. Billion-cycle history must remain permanently retained.
+`--checkpoint-after`. The billion-cycle pairs from this investigation were retired in the November cleanup.
 Checkpoint-triggered screenshot extraction is automatic, not an agent polling
 loop. Native images go to `build/sim/screens/<run>-checkpoints/`.
 

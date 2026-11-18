@@ -2,8 +2,9 @@
 
 The optional `ROM_CACHE=1` path in `ngage_ddr_adapter` uses JTFRAME's LARGE
 ROM request cache: configurable 1/2/4 KiB with 64/128/256-bit lines, 32-bit
-client and synchronous BRAM tags (`TAG_RAM=1`). Template currently enables
-64-bit lines and 1 KiB, retained after the nine-way benchmark. It is an implementation
+client and synchronous BRAM tags (`TAG_RAM=1`). The historical nine-way benchmark
+retained 64-bit lines and 1 KiB. The integration top at `9c948da8` disables
+this path and uses the [8 KiB shared flash cache](ddr-flash-cache.md#fitted-cost-and-bypass-decision). It is an implementation
 buffer for raw backing bytes, independent of the ARM's architectural I-cache.
 It does not model the flash device's specified access/burst timing yet.
 

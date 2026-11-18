@@ -1,0 +1,3477 @@
+{
+  "status": "PASS",
+  "accepted_CPU_commit": "fae40167654949f9530e75eecd6d58c4fc74d013",
+  "source_id": "0db2f3095ddf7e92003ebaa52ca5673266a49cbe96de6c47571240e8b0a812c0",
+  "triangle_freezer_source_id": "e93e13bf4c148513719c6e0a4c287a2dd3d0a67af29332cd48fc179d239da2c8",
+  "metadata_only_source_bundle_differences": [
+    "patches/zap/0078-admit-postindexed-word-stores.patch",
+    "rtl/arm/README.md",
+    "rtl/arm/UPSTREAM.json"
+  ],
+  "compiled_RTL_sha256": {
+    "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+    "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+    "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+    "rtl/arm/zap_cache.sv": "93db6d723bb4e4bc465d397ed286b98dd68f8700efc2a45fc0d7839b96bf8c26",
+    "rtl/arm/zap_core.sv": "a57d15464112e9a2e0f472d73afe5e8c99c4c0050df74e7814a7007e4e112573",
+    "rtl/arm/zap_cp15_cb.sv": "363c635741245c197b711d6871a9fcb81353c9aa5abc0aa7f31e0861cab19b04",
+    "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+    "rtl/arm/zap_dcache.sv": "d0988b4812b31de564c17bdc2f97ef766520651dc553a2f774aa6dcf8dff3468",
+    "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+    "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+    "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+    "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+    "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+    "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+    "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+    "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+    "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+    "rtl/arm/zap_issue_main.sv": "2f59c2bbbf88ed070565d33c16c410a19b47afdcb315bda180604845a1f63c86",
+    "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+    "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+    "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+    "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+    "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+    "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+    "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+    "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+    "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+    "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+    "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+    "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+    "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+    "rtl/arm/zap_shifter_multiply.sv": "9647242d28f349563856964552faf301b896e4b496e8ce94369288c553dd56f4",
+    "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+    "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+    "rtl/arm/zap_top.sv": "91817b7be9acac7a5ba1eac50282e534a8cc21b9647f5a5e85f9daeadbd51edb",
+    "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+    "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+    "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+    "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+    "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+    "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+    "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+    "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+    "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+    "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+    "rtl/arm920/tlb.sv": "c631d3b9078082131493c2f4655f39477798c975c48b12c0cabf7dd8283621ef",
+    "rtl/arm920/tlb_bank.sv": "4d9e2ceb411b54e3793b73e9a796265d7771fefc1eb9a218a4b9a5233fdc70cd",
+    "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+    "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+    "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+    "rtl/ngage_cpu.sv": "9299f5c653b6ebd42f51c62c2f10496d751fc6e4c31fba15b7e84f5e7febdbeb",
+    "rtl/ngage_dma_ram_mux.v": "384b2e365356e89cf37f4a77409c41ddee086351588cb96c2dd2485c1e26ba42",
+    "rtl/ngage_sdram_adapter.v": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+    "rtl/ngage_sdram_arbiter.v": "dbb3cb0b8db9acba2212aaa5601c3cf8dbbb38dc3df058ba9d3777f66fbf200c",
+    "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+    "rtl/sdram/jtframe_sdram64.v": "7817f27e9fd134a3ea853179cfdbc95d7f931ed097e85e86363efc6219153b30",
+    "rtl/sdram/jtframe_sdram64_bank.v": "5ddd6ac5528dae124ad22963b117a7faf7a9cdcaa289b0aa093a1ab228ee9ec2",
+    "rtl/sdram/jtframe_sdram64_init.v": "cc0bcd8f1e3851f21e2fd522f4b6a2fae331475e2e6c3db12f34a3bb4cce97a3",
+    "rtl/sdram/jtframe_sdram64_latch.v": "9ef2571ab02479a4982d77ebc263b6a037934401f18c0d6fdc605a170846a38d",
+    "rtl/sdram/jtframe_sdram64_rfsh.v": "5f9f2dda1927d85650e1389572e3975bac3ffb33b9fa3b8a1ecf7832294b4d12"
+  },
+  "rows": [
+    {
+      "case": "matrix4",
+      "profile": "0:0",
+      "cycles": {
+        "review": 52275,
+        "5f": 45736,
+        "ngage2": 23675
+      },
+      "saved_cycles": 6539,
+      "review_over_5f": 1.1429727129613434,
+      "ngage2_over_5f": 0.5176447437467203,
+      "operations": 16,
+      "unit": "4x4 matrix products",
+      "cycles_per_operation": 2858.5,
+      "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+      "oracle": {
+        "executed_max": "0x10002640",
+        "executed_min": "0x100011c4",
+        "helper_instructions": 0,
+        "instructions": 14176,
+        "outputs": [
+          {
+            "address": "0x80003000",
+            "bytes": 1024,
+            "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+          }
+        ],
+        "payload_instructions": 14176,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 54959,
+            "halfwords": 1712,
+            "index": 0,
+            "lines": 107,
+            "reads": 369,
+            "retire_proxy": 14353,
+            "writes": 263
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 48870,
+            "halfwords": 1760,
+            "index": 0,
+            "lines": 110,
+            "reads": 369,
+            "retire_proxy": 14353,
+            "writes": 263
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 24491,
+            "halfwords": 6338,
+            "index": 0,
+            "lines": 792,
+            "reads": 97,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 1,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 2,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 3,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 4,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 5,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 23675,
+            "halfwords": 5552,
+            "index": 6,
+            "lines": 694,
+            "reads": 95,
+            "retire_proxy": 14353,
+            "writes": 1280
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 14176
+        }
+      ]
+    },
+    {
+      "case": "matrix4",
+      "profile": "2:9",
+      "cycles": {
+        "review": 52275,
+        "5f": 45736,
+        "ngage2": 35925
+      },
+      "saved_cycles": 6539,
+      "review_over_5f": 1.1429727129613434,
+      "ngage2_over_5f": 0.7854862690222144,
+      "operations": 16,
+      "unit": "4x4 matrix products",
+      "cycles_per_operation": 2858.5,
+      "program_sha256": "248618b2535a27c1e6e3f91979a74803391ddc32c91410316d8881f2e849d9f9",
+      "oracle": {
+        "executed_max": "0x10002640",
+        "executed_min": "0x100011c4",
+        "helper_instructions": 0,
+        "instructions": 14176,
+        "outputs": [
+          {
+            "address": "0x80003000",
+            "bytes": 1024,
+            "sha256": "b3500b31037519d0f90ea1cf713dabb4fb3f0f30f8f6ae24661ccc1cfc7c0060"
+          }
+        ],
+        "payload_instructions": 14176,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 56521,
+            "halfwords": 1696,
+            "index": 0,
+            "lines": 106,
+            "reads": 369,
+            "retire_proxy": 14353,
+            "writes": 263
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 52275,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 50394,
+            "halfwords": 1712,
+            "index": 0,
+            "lines": 107,
+            "reads": 369,
+            "retire_proxy": 14353,
+            "writes": 263
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          },
+          {
+            "cycles": 45736,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 14353,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 37196,
+            "halfwords": 6346,
+            "index": 0,
+            "lines": 793,
+            "reads": 96,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 1,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 2,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 3,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 4,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 5,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          },
+          {
+            "cycles": 35925,
+            "halfwords": 5552,
+            "index": 6,
+            "lines": 694,
+            "reads": 94,
+            "retire_proxy": 14353,
+            "writes": 1280
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 14176
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 14176
+        }
+      ]
+    },
+    {
+      "case": "transpose4",
+      "profile": "0:0",
+      "cycles": {
+        "review": 5328,
+        "5f": 3591,
+        "ngage2": 1910
+      },
+      "saved_cycles": 1737,
+      "review_over_5f": 1.4837092731829573,
+      "ngage2_over_5f": 0.531885268727374,
+      "operations": 32,
+      "unit": "4x4 matrix transposes",
+      "cycles_per_operation": 112.21875,
+      "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 7623,
+            "halfwords": 1152,
+            "index": 0,
+            "lines": 72,
+            "reads": 41,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5322,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 6000,
+            "halfwords": 1120,
+            "index": 0,
+            "lines": 70,
+            "reads": 33,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 2019,
+            "halfwords": 86,
+            "index": 0,
+            "lines": 10,
+            "reads": 194,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 1,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 2,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 3,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 4,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 5,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 1910,
+            "halfwords": 8,
+            "index": 6,
+            "lines": 1,
+            "reads": 192,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 800
+        }
+      ]
+    },
+    {
+      "case": "transpose4",
+      "profile": "2:9",
+      "cycles": {
+        "review": 5328,
+        "5f": 3591,
+        "ngage2": 3484
+      },
+      "saved_cycles": 1737,
+      "review_over_5f": 1.4837092731829573,
+      "ngage2_over_5f": 0.9702032859927596,
+      "operations": 32,
+      "unit": "4x4 matrix transposes",
+      "cycles_per_operation": 112.21875,
+      "program_sha256": "bca3fd29ca48b8214137a10a2a1cbd367ea4acd9edba729089c4d8854249e118",
+      "oracle": {
+        "executed_max": "0x100026a4",
+        "executed_min": "0x10002644",
+        "helper_instructions": 0,
+        "instructions": 800,
+        "outputs": [
+          {
+            "address": "0x80001000",
+            "bytes": 2048,
+            "sha256": "ebfe239b2a964064eb2556d23d86a1e69b04f0ae63503374d1e696af2c7dc2bd"
+          }
+        ],
+        "payload_instructions": 800,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 8249,
+            "halfwords": 1120,
+            "index": 0,
+            "lines": 70,
+            "reads": 41,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5322,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 5328,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 6661,
+            "halfwords": 1104,
+            "index": 0,
+            "lines": 69,
+            "reads": 41,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3591,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 3614,
+            "halfwords": 78,
+            "index": 0,
+            "lines": 9,
+            "reads": 194,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 1,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 2,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 3,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 4,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 5,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          },
+          {
+            "cycles": 3484,
+            "halfwords": 8,
+            "index": 6,
+            "lines": 1,
+            "reads": 193,
+            "retire_proxy": 1025,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 800
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 800
+        }
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "profile": "0:0",
+      "cycles": {
+        "review": 25842,
+        "5f": 23790,
+        "ngage2": 12634
+      },
+      "saved_cycles": 2052,
+      "review_over_5f": 1.0862547288776796,
+      "ngage2_over_5f": 0.5310634720470786,
+      "operations": 16,
+      "unit": "triangle edge setups",
+      "cycles_per_operation": 1486.875,
+      "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+      "oracle": {
+        "executed_max": "0x503a30b8",
+        "executed_min": "0x10002be0",
+        "helper_instructions": 1872,
+        "instructions": 8528,
+        "outputs": [
+          {
+            "address": "0x80000334",
+            "bytes": 12,
+            "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+          },
+          {
+            "address": "0x80007a04",
+            "bytes": 128,
+            "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+          }
+        ],
+        "payload_instructions": 6656,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 28203,
+            "halfwords": 992,
+            "index": 0,
+            "lines": 62,
+            "reads": 451,
+            "retire_proxy": 8657,
+            "writes": 216
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 26270,
+            "halfwords": 992,
+            "index": 0,
+            "lines": 62,
+            "reads": 451,
+            "retire_proxy": 8657,
+            "writes": 216
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 13530,
+            "halfwords": 754,
+            "index": 0,
+            "lines": 94,
+            "reads": 165,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 12634,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 161,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 1872,
+          "index": 0,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 1,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 2,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 3,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 4,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 5,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 6,
+          "payload_retire_proxy": 6656
+        }
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "profile": "2:9",
+      "cycles": {
+        "review": 25842,
+        "5f": 23790,
+        "ngage2": 13844
+      },
+      "saved_cycles": 2052,
+      "review_over_5f": 1.0862547288776796,
+      "ngage2_over_5f": 0.5819251786464901,
+      "operations": 16,
+      "unit": "triangle edge setups",
+      "cycles_per_operation": 1486.875,
+      "program_sha256": "9690866aa8ef0f33c75c781055d739dd0a97384602e1b2a938208a3a291fc395",
+      "oracle": {
+        "executed_max": "0x503a30b8",
+        "executed_min": "0x10002be0",
+        "helper_instructions": 1872,
+        "instructions": 8528,
+        "outputs": [
+          {
+            "address": "0x80000334",
+            "bytes": 12,
+            "sha256": "950d777086cb3c95717d49717836e9ce0eef5ebac5e4f96cba176710d1c46399"
+          },
+          {
+            "address": "0x80007a04",
+            "bytes": 128,
+            "sha256": "fcb62bc75479341e3d75261cb90ab1484f806ad4e902cce247e7e290bbd7e02e"
+          }
+        ],
+        "payload_instructions": 6656,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 29326,
+            "halfwords": 816,
+            "index": 0,
+            "lines": 51,
+            "reads": 451,
+            "retire_proxy": 8657,
+            "writes": 216
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 25842,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 27394,
+            "halfwords": 816,
+            "index": 0,
+            "lines": 51,
+            "reads": 451,
+            "retire_proxy": 8657,
+            "writes": 216
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 23790,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 15012,
+            "halfwords": 744,
+            "index": 0,
+            "lines": 93,
+            "reads": 162,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          },
+          {
+            "cycles": 13844,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 158,
+            "retire_proxy": 8657,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 1872,
+          "index": 0,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 1,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 2,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 3,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 4,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 5,
+          "payload_retire_proxy": 6656
+        },
+        {
+          "helper_retire_proxy": 1872,
+          "index": 6,
+          "payload_retire_proxy": 6656
+        }
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "profile": "0:0",
+      "cycles": {
+        "review": 71263,
+        "5f": 71259,
+        "ngage2": 105069
+      },
+      "saved_cycles": 4,
+      "review_over_5f": 1.0000561332603601,
+      "ngage2_over_5f": 1.474466383193702,
+      "operations": 36608,
+      "unit": "pixels",
+      "cycles_per_operation": 1.9465417395104896,
+      "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+      "oracle": {
+        "executed_max": "0x10002b1c",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 22896,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 73232,
+            "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+          }
+        ],
+        "payload_instructions": 22896,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 71603,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 49,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71261,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71263,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71261,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71263,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71261,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71263,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 71600,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 49,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71259,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71259,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71259,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71259,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71259,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 71259,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18305
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 105165,
+            "halfwords": 36702,
+            "index": 0,
+            "lines": 4587,
+            "reads": 5,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 1,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 2,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 3,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 4,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 5,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 105069,
+            "halfwords": 36616,
+            "index": 6,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 22896
+        }
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "profile": "2:9",
+      "cycles": {
+        "review": 201306,
+        "5f": 201302,
+        "ngage2": 275892
+      },
+      "saved_cycles": 4,
+      "review_over_5f": 1.0000198706421197,
+      "ngage2_over_5f": 1.3705377989289724,
+      "operations": 36608,
+      "unit": "pixels",
+      "cycles_per_operation": 5.49885270979021,
+      "program_sha256": "7fbc4a29b22c78669159620ad19000bf9b0b37756d3745a26bcf4616c9e176d0",
+      "oracle": {
+        "executed_max": "0x10002b1c",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 22896,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 73232,
+            "sha256": "efef0520f264bc414a26a07d1c2774c582c80465c96b0a65e1ff6844b5555a59"
+          }
+        ],
+        "payload_instructions": 22896,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 201900,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 49,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 201304,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201306,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201304,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201306,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201304,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201306,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 201896,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 49,
+            "retire_proxy": 22905,
+            "writes": 18305
+          },
+          {
+            "cycles": 201300,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201302,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201300,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201302,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201300,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          },
+          {
+            "cycles": 201302,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 22905,
+            "writes": 18295
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 275992,
+            "halfwords": 36696,
+            "index": 0,
+            "lines": 4587,
+            "reads": 5,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 1,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 2,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 3,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 4,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 5,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          },
+          {
+            "cycles": 275892,
+            "halfwords": 36616,
+            "index": 6,
+            "lines": 4577,
+            "reads": 7,
+            "retire_proxy": 22905,
+            "writes": 17280
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 22896
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 22896
+        }
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "profile": "0:0",
+      "cycles": {
+        "review": 2562,
+        "5f": 1332,
+        "ngage2": 707
+      },
+      "saved_cycles": 1230,
+      "review_over_5f": 1.9234234234234233,
+      "ngage2_over_5f": 0.5307807807807807,
+      "operations": 1023,
+      "unit": "pixels",
+      "cycles_per_operation": 1.3020527859237536,
+      "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+      "oracle": {
+        "executed_max": "0x10002b58",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 654,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2064,
+            "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+          }
+        ],
+        "payload_instructions": 654,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 2423,
+            "halfwords": 80,
+            "index": 0,
+            "lines": 5,
+            "reads": 57,
+            "retire_proxy": 663,
+            "writes": 513
+          },
+          {
+            "cycles": 2572,
+            "halfwords": 16,
+            "index": 1,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2591,
+            "halfwords": 16,
+            "index": 2,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2552,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2562,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2552,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2562,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 2437,
+            "halfwords": 80,
+            "index": 0,
+            "lines": 5,
+            "reads": 57,
+            "retire_proxy": 663,
+            "writes": 513
+          },
+          {
+            "cycles": 1341,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1332,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1341,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1332,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1341,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1332,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 835,
+            "halfwords": 102,
+            "index": 0,
+            "lines": 12,
+            "reads": 5,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 707,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 654
+        }
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "profile": "2:9",
+      "cycles": {
+        "review": 2562,
+        "5f": 1332,
+        "ngage2": 760
+      },
+      "saved_cycles": 1230,
+      "review_over_5f": 1.9234234234234233,
+      "ngage2_over_5f": 0.5705705705705706,
+      "operations": 1023,
+      "unit": "pixels",
+      "cycles_per_operation": 1.3020527859237536,
+      "program_sha256": "ae2d401681f50348314894a00629f34ed926abe4fefa082bdf252a86783541d7",
+      "oracle": {
+        "executed_max": "0x10002b58",
+        "executed_min": "0x10002ab4",
+        "helper_instructions": 0,
+        "instructions": 654,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2064,
+            "sha256": "8e152baac5157e1dc9f95c8bbcb5d30b775239f37da14531f0aa6ee14fcec846"
+          }
+        ],
+        "payload_instructions": 654,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 6173,
+            "halfwords": 64,
+            "index": 0,
+            "lines": 4,
+            "reads": 57,
+            "retire_proxy": 663,
+            "writes": 513
+          },
+          {
+            "cycles": 2574,
+            "halfwords": 16,
+            "index": 1,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2593,
+            "halfwords": 16,
+            "index": 2,
+            "lines": 1,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2552,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2562,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2552,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 2562,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 6169,
+            "halfwords": 64,
+            "index": 0,
+            "lines": 4,
+            "reads": 57,
+            "retire_proxy": 663,
+            "writes": 513
+          },
+          {
+            "cycles": 1341,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1332,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1341,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1332,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1341,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 1332,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 904,
+            "halfwords": 104,
+            "index": 0,
+            "lines": 13,
+            "reads": 5,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          },
+          {
+            "cycles": 760,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 6,
+            "retire_proxy": 663,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 654
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 654
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "profile": "0:0",
+      "cycles": {
+        "review": 2629,
+        "5f": 1647,
+        "ngage2": 717
+      },
+      "saved_cycles": 982,
+      "review_over_5f": 1.5962355798421373,
+      "ngage2_over_5f": 0.4353369763205829,
+      "operations": 2051,
+      "unit": "bytes",
+      "cycles_per_operation": 0.803022915650902,
+      "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+      "oracle": {
+        "executed_max": "0x10002a74",
+        "executed_min": "0x100029f8",
+        "helper_instructions": 0,
+        "instructions": 667,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2068,
+            "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+          }
+        ],
+        "payload_instructions": 667,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 2572,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 57,
+            "retire_proxy": 676,
+            "writes": 515
+          },
+          {
+            "cycles": 2642,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2629,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2627,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2629,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2627,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2629,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 2562,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 57,
+            "retire_proxy": 676,
+            "writes": 515
+          },
+          {
+            "cycles": 1660,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1647,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1645,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1647,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1645,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1647,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 844,
+            "halfwords": 86,
+            "index": 0,
+            "lines": 10,
+            "reads": 5,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 717,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 667
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "profile": "2:9",
+      "cycles": {
+        "review": 2629,
+        "5f": 1647,
+        "ngage2": 743
+      },
+      "saved_cycles": 982,
+      "review_over_5f": 1.5962355798421373,
+      "ngage2_over_5f": 0.45112325440194295,
+      "operations": 2051,
+      "unit": "bytes",
+      "cycles_per_operation": 0.803022915650902,
+      "program_sha256": "dbeebe6db38014d2bff314fcbd17e95a7a0ab0cb3d4374034580dcf011f2e3f7",
+      "oracle": {
+        "executed_max": "0x10002a74",
+        "executed_min": "0x100029f8",
+        "helper_instructions": 0,
+        "instructions": 667,
+        "outputs": [
+          {
+            "address": "0x80004000",
+            "bytes": 2068,
+            "sha256": "ca46efca3947c25e905175f77f17ddf5578e619c46bcd6fc958f82cf58cb8f3d"
+          }
+        ],
+        "payload_instructions": 667,
+        "status": "PASS"
+      },
+      "windows": {
+        "review": [
+          {
+            "cycles": 6213,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 57,
+            "retire_proxy": 676,
+            "writes": 507
+          },
+          {
+            "cycles": 2642,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2629,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2627,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2629,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2627,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 2629,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ],
+        "5f": [
+          {
+            "cycles": 6203,
+            "halfwords": 96,
+            "index": 0,
+            "lines": 6,
+            "reads": 57,
+            "retire_proxy": 676,
+            "writes": 507
+          },
+          {
+            "cycles": 1660,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1647,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1645,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1647,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1645,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 1647,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 0,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ],
+        "ngage2": [
+          {
+            "cycles": 911,
+            "halfwords": 88,
+            "index": 0,
+            "lines": 11,
+            "reads": 5,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 1,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 2,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 3,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 4,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 5,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          },
+          {
+            "cycles": 743,
+            "halfwords": 0,
+            "index": 6,
+            "lines": 0,
+            "reads": 3,
+            "retire_proxy": 676,
+            "writes": 0
+          }
+        ]
+      },
+      "original_payload_and_helper_counts": [
+        {
+          "helper_retire_proxy": 0,
+          "index": 0,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 1,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 2,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 3,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 4,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 5,
+          "payload_retire_proxy": 667
+        },
+        {
+          "helper_retire_proxy": 0,
+          "index": 6,
+          "payload_retire_proxy": 667
+        }
+      ]
+    }
+  ],
+  "geometric_throughput_by_profile": {
+    "0:0": {
+      "5f_throughput_relative_to_review": 1.3348079043876226,
+      "ngage2_throughput_relative_to_review": 2.200510605987063,
+      "ngage2_throughput_relative_to_5f": 1.6485597656065751
+    },
+    "2:9": {
+      "5f_throughput_relative_to_review": 1.3347998374469818,
+      "ngage2_throughput_relative_to_review": 1.81839738109574,
+      "ngage2_throughput_relative_to_5f": 1.3622996722667537
+    }
+  },
+  "separate_JPEG": [
+    {
+      "profile": "0:0",
+      "review": 89610,
+      "accepted_5f": 84353,
+      "stock_ngage2": 36251,
+      "review_over_5f": 1.062321434922291,
+      "windows": [
+        {
+          "cycles": 86673,
+          "halfwords": 976,
+          "index": 0,
+          "lines": 61,
+          "reads": 322,
+          "retire_proxy": 22508,
+          "writes": 86
+        },
+        {
+          "cycles": 84277,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84399,
+          "halfwords": 16,
+          "index": 2,
+          "lines": 1,
+          "reads": 8,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        }
+      ],
+      "excluded_from_six_kernel_index": true
+    },
+    {
+      "profile": "2:9",
+      "review": 89610,
+      "accepted_5f": 84353,
+      "stock_ngage2": 36631,
+      "review_over_5f": 1.062321434922291,
+      "windows": [
+        {
+          "cycles": 87942,
+          "halfwords": 976,
+          "index": 0,
+          "lines": 61,
+          "reads": 322,
+          "retire_proxy": 22508,
+          "writes": 86
+        },
+        {
+          "cycles": 84277,
+          "halfwords": 0,
+          "index": 1,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84417,
+          "halfwords": 16,
+          "index": 2,
+          "lines": 1,
+          "reads": 8,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 3,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 4,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 5,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        },
+        {
+          "cycles": 84353,
+          "halfwords": 0,
+          "index": 6,
+          "lines": 0,
+          "reads": 0,
+          "retire_proxy": 22508,
+          "writes": 0
+        }
+      ],
+      "excluded_from_six_kernel_index": true
+    }
+  ],
+  "input_receipt_sha256": {
+    "docs/evidence/cpu-pipeline-review-20261116.json": "e98add55c5e68ba890b8e6597d77ea0101aa0e3c261e78d3cae06b35a3fa03d1",
+    "docs/evidence/cpu-store-postindex-20261117.json": "08549d5af8205fff5eff04144b870214657464a5cbb6277f5eae3760e99db3d6",
+    "docs/evidence/cpu-store-postindex-recovery-20261117.json": "8d19fcd5365e1176074e2ff353a4f0ad4d99f52a6d1061d047e0437323c84904",
+    "docs/evidence/ngage2-vs-5c-20261117.json": "081340642acd4d2dbafb4c94c5801b961bb8a315337e3048b76da74bca53f025",
+    "docs/evidence/cpu-target-delivery-20261117.json": "9d74046121fa8d0613669eb34bf21a0d967019ae072678a7c058cc94235ab1fd",
+    "docs/evidence/cpu-paired-delivery-20261117.json": "92ef2e3b05cd89663ce8f2ab6c44725e10d499dc96978987c874f92d18951aa9",
+    "build/sim/spmark-payload/dsp-full-product-production-20261116/manifest.json": "29eaea2458e7971015819baa77ca65901d28cc4fd35e6657928b21a70a94adff",
+    "build/sim/spmark-payload/dsp-full-product-production-20261116/result.json": "4affff41db902b9aa0b27bd0c433c9ddc3cdc2c971e618ef80368a1d791bbdc6",
+    "build/sim/spmark-payload/postindex-candidate-01/manifest.json": "081246ab3ae2a53e650bd003251a52d7d61cf78700b9a5e535769ed2bfd03667",
+    "build/sim/spmark-payload/postindex-candidate-01/result.json": "f1052bdf0c8a3329e2b889953f62fe479c42a27d5736f1da180a37a406f68355",
+    "build/sim/spmark-payload/integrated-5f-triangle-01/manifest.json": "1861814aa45a9e57fbac89d06a7cf2b6a128e93aa6d40b2d6339a9b33dcb25f6",
+    "build/sim/spmark-payload/integrated-5f-triangle-01/result.json": "2eb867782a4587f7b04af62733b0aaf68b64f009c616723579e4c7da6d74368a",
+    "build/sim/spmark-payload/ngage2-vs5c-donor06/manifest.json": "3008dfc6931ebb497a6e76f2d862867abb3878b3fe66db6b0e7bf72323ec06e0",
+    "build/sim/spmark-payload/ngage2-vs5c-donor06/result.json": "3172f6e0b1be638d5ebab9d96b14cc47cd5fad6e56d6a9c70b6aa122a5d56223",
+    "build/sim/jpeg-payload/postindex-jpeg-02/manifest.json": "10d047df00236338d5eac1f4fdb16e89a8942b2a6d59091fd046a318ec4f617f",
+    "build/sim/jpeg-payload/postindex-jpeg-02/result.json": "114a86ac0577f107817f732772779a98b4bbbc6e67b3ba8b3240ee91f6192be6"
+  },
+  "source_runs": {
+    "review": "build/sim/spmark-payload/dsp-full-product-production-20261116",
+    "5f": "build/sim/spmark-payload/postindex-candidate-01",
+    "triangle": "build/sim/spmark-payload/integrated-5f-triangle-01",
+    "donor": "build/sim/spmark-payload/ngage2-vs5c-donor06"
+  },
+  "new_run_executable_sha256": "45deb8107e165e579781e2687fde7b29bf553935901f7d680c61fe617ffa3f8d",
+  "new_run_build_trees_retired": true,
+  "qualification": "Original bytes/math/Unicorn/guards, seven windows, five scored, two exact repeats and wrong-output rejection for every row.",
+  "harness_comparability": "5F payload_tb adds passive post/metrics/drain observers to the maintained tb; unchanged scalar/line responder and marker boundaries. Donor uses its separately qualified observer and asymmetric matched backend contract.",
+  "frame_drain_5f_2_9": [
+    201407,
+    201407,
+    201407,
+    201407,
+    201407
+  ],
+  "limitations": [
+    "Offline fixed-work CPU/cache throughput, not full SPMark points or phone speed.",
+    "JPEG separate from six-case equal-weight geometric means.",
+    "Stock donor JPEG reused from qualified archived receipt; its raw manifest was retired, so no fresh donor source/input re-audit is claimed.",
+    "Donor selected top has 16/8KiB I/D versus 16/16KiB here; different associativity, TLB and miss policy.",
+    "No new physical fit or frequency scaling included; pending-write first-empty is not a full cache clean."
+  ],
+  "next_experiment": {
+    "name": "Warm resident line-transition probe ownership",
+    "direct_acceptance_stage_targets": {
+      "fill16_tail": 126,
+      "fill8_tail": 128
+    },
+    "target_is_conditional_not_measured_savings": true,
+    "retention": "At least4% fewer median cycles in each original tail at both profiles, no >0.5% other median regression, 71-cycle warm stores retained, all ordering/fault/IRQ/negative gates pass; exact cycle attribution and first issue/accept/RAM/retire traces required."
+  },
+  "no_RTL_fit_CI_donor_or_hardware_changes": true
+}

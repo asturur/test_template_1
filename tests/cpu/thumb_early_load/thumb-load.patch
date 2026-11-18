@@ -1,0 +1,49 @@
+--- a/rtl/arm/zap_predecode_main.sv
++++ b/rtl/arm/zap_predecode_main.sv
+@@ -254,7 +254,14 @@
+             mode32_instruction[19:16] != mode32_instruction[15:12])) &&
+           mode32_instruction[19:16] != 4'd15 &&
+           mode32_instruction[15:12] != 4'd15 && swp_tag_nxt == 0;
+-      o_load_pair_class <= mode32_instruction_valid && !i_cpu_mode_t &&
++      // Thumb immediate and SP-relative word loads normalize to AL LDR.
++      // Reject pseudo-ops, PC literals, high registers and macro expansion.
++      o_load_pair_class <= mode32_instruction_valid &&
++          (!i_cpu_mode_t || (o_uop_last_nxt && skid_instruction == mode32_instruction &&
++           mode32_instruction[34:20] == 15'h0e59 &&
++           ((mode32_instruction[19:16] < 8 && mode32_instruction[11:7] == 0) ||
++            (mode32_instruction[19:16] == 13 && mode32_instruction[11:10] == 0)) &&
++           mode32_instruction[15:12] < 8 && mode32_instruction[1:0] == 0)) &&
+           (mode32_instruction[31:20] & 12'hff7) == 12'he51 &&
+           mode32_instruction[19:16] != 4'd15 &&
+           mode32_instruction[15:12] != 4'd15 && swp_tag_nxt == 0;
+--- a/rtl/arm/zap_core.sv
++++ b/rtl/arm/zap_core.sv
+@@ -614,7 +614,7 @@
+       postalu1_data_wb_cyc && postalu1_data_wb_stb && !postalu1_data_wb_we &&
+       postalu1_swp_tag == 0 && postalu1_destination_index_ff == PHY_RAZ_REGISTER &&
+       postalu1_mem_srcdest_index_ff != PHY_PC && !postalu1_mem_translate_ff &&
+-      !postalu1_flags_ff[5] && postalu1_address_ff[1:0] == 0 &&
++      postalu1_address_ff[1:0] == 0 &&
+       !(postalu1_irq_ff || postalu1_fiq_ff || postalu1_swi_ff || postalu1_und_ff || postalu1_abt_ff) &&
+       !older_memory_exception && !clear_from_writeback && !reset;
+   wire data_select_p1 = completion_valid || p1_load_start;
+@@ -1177,7 +1177,7 @@
+       .o_late_rm(issue_late_rm),
+       .o_store_late(issue_store_late),
+       .o_store_second(issue_store_second),
+-      .i_alu_owned_word(alu_load_pair_class && alu_dav_ff && alu_mem_load_ff &&
++      .i_alu_owned_word(!alu_flags_ff[5] && alu_load_pair_class && alu_dav_ff && alu_mem_load_ff &&
+           alu_address_ff[1:0] == 0 && alu_destination_index_ff == PHY_RAZ_REGISTER &&
+           !(alu_irq_ff || alu_fiq_ff || alu_abt_ff || alu_swi_ff || alu_und_ff)),
+       .i_alu_producer_pc(alu_pc_plus_8_ff),
+--- a/rtl/arm/zap_issue_main.sv
++++ b/rtl/arm/zap_issue_main.sv
+@@ -822,7 +822,7 @@
+   wire late_store_eligible = operand_store_overlap && operand_mem_store_ff &&
+       !operand_mem_load_ff && operand_swp_tag == 0 &&
+       !(operand_irq_ff || operand_fiq_ff || operand_abt_ff || operand_swi_ff || operand_und_ff) &&
+-      o_load_pair_class && o_condition_code_ff == AL && o_mem_load_ff &&
++      !i_cpu_mode[5] && o_load_pair_class && o_condition_code_ff == AL && o_mem_load_ff &&
+       o_mem_srcdest_index_ff == operand_mem_srcdest_index_ff &&
+       o_pc_plus_8_ff + 32'd4 == operand_pc_plus_8_ff &&
+       !(o_irq_ff || o_fiq_ff || o_abt_ff || o_swi_ff || o_und_ff) &&

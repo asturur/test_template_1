@@ -39,7 +39,7 @@ these three focused checks without Docker.
 These are bounded model tests, not original firmware execution or physical
 phone/FPGA timing validation. Original driver/ISR fixtures remain separate.
 Logs and ARM images live in `build/sim/unit-dma-handover/`; retained A/B results
-are under `scratch/ngage2-integration/lcd-handover/`.
+are under `build/sim/phone-tests/lcd-handover/`.
 
 ## Recorded verification, 2026-11-11
 
@@ -47,10 +47,10 @@ The fast and generic full CPU fixtures both passed their normal, held-queue,
 queued-reset and logical CPU Hold reset runs before the final transport-gate
 refinement. Their retained logs are respectively:
 
-- `scratch/ngage2-integration/lcd-handover/fast/`: normal 151,093 clocks;
+- `build/sim/phone-tests/lcd-handover/fast/`: normal 151,093 clocks;
   held queue 151,174 clocks; complete-frame interval 130,685 clocks,
   7.139696 clocks per word.
-- `scratch/ngage2-integration/lcd-handover/generic/`: normal 333,523 clocks;
+- `build/sim/phone-tests/lcd-handover/generic/`: normal 333,523 clocks;
   held queue 333,632 clocks; complete-frame interval 306,802 clocks,
   16.761473 clocks per word.
 
@@ -72,7 +72,7 @@ Docker recovery, both historical profiles pass all four modes with the final
 1,376-byte program and pinned formatter. Fast normal/held totals are
 152,456/152,537 clocks; general totals are 334,970/335,072. Frame intervals
 remain 130,685/306,802. Evidence is under
-`scratch/ngage2-integration/lcd-handover/final-pinned/`.
+`build/sim/phone-tests/lcd-handover/final-pinned/`.
 
 The production slow-LCD switch has since been removed. Run
 `sh tests/phone/dma_handover/run.sh` for the single production path. The

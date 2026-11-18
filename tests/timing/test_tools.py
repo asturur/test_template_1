@@ -30,12 +30,13 @@ class TimingTools(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Timing requirements not met'):
             GATE.check(report()+'\nCritical Warning (332148): Timing requirements not met')
     def test_actual_board_build_is_rejected(self):
-        path=ROOT/'scratch/hardware-bringup/build-d068883/output_files/Template.sta.rpt'
-        if not path.exists():self.skipTest('local board report not available')
-        with self.assertRaises(ValueError):GATE.check(path.read_text())
+        # Verbatim TimeQuest lines from CI run 42368700686, 0_build.txt.
+        path=ROOT/'tests/timing/fixtures/failed-board-timing.txt'
+        with self.assertRaisesRegex(ValueError,'Timing requirements not met'):
+            GATE.check(path.read_text())
     def test_grouping_sorting_and_quoted_nodes(self):
         # Distinct data endpoints, intentionally out of slack order.
-        with tempfile.TemporaryDirectory(dir=ROOT/'scratch') as d:
+        with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'paths.csv'
             with path.open('w',newline='') as f:
                 w=csv.writer(f);w.writerow(['slack_ns','data_delay_ns','logic_levels','from_node','to_node'])
@@ -49,7 +50,7 @@ class TimingTools(unittest.TestCase):
         # Mock only the unavailable Quartus API, not timing computation.
         # This tests Tcl flow, filenames, limits and CSV escaping; it is NOT
         # validation of a real fitted netlist or the vendor API implementation.
-        with tempfile.TemporaryDirectory(dir=ROOT/'scratch') as d:
+        with tempfile.TemporaryDirectory() as d:
             script=Path(d)/'mock.tcl'
             script.write_text('''
 package provide ::quartus::project 1.0

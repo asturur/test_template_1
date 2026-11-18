@@ -13,7 +13,7 @@ Pinned source is ngage2 `rtl/board/mmc_card.sv`, SHA256
 Both retain their GPL-2.0-or-later SPDX notice. The card snapshot includes the
 reviewed payload-EOF and footer-version fixes. The source conversion and
 pinned reference snapshots are retained under
-`scratch/ngage2-integration/p3-native-card/` for this integration session.
+`build/sim/phone-tests/p3-native-card/` for this integration session.
 
 The public interface preserves the donor's 1-bit native CLK/CMD/DAT0 peer and
 MiSTer WIDE=1 HPS backing interface. Defaults, identity/footer parsing, CRC7 and
@@ -27,7 +27,7 @@ returns, sized casts expressed as bit slices, and separate loop indices.
 From the repository root inside the installed offline simulator image:
 
 ```sh
-MMC_CARD_OUT=scratch/ngage2-integration/p3-native-card/logs/pinned \
+MMC_CARD_OUT=build/sim/phone-tests/p3-native-card/logs/pinned \
   tests/phone/mmc_card/run.sh
 ```
 
@@ -42,7 +42,7 @@ comparison, from the host:
 
 ```sh
 NGAGE2_DONOR=/path/to/pinned/ngage2 \
-  MMC_CARD_DONOR_OUT=scratch/ngage2-integration/p3-native-card/donor-suite \
+  MMC_CARD_DONOR_OUT=build/sim/phone-tests/p3-native-card/donor-suite \
   tests/phone/mmc_card/run-donor.sh
 ```
 

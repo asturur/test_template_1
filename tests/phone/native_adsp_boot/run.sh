@@ -2,7 +2,7 @@
 set -eu
 out=build/sim/unit-native-adsp-boot
 mkdir -p "$out"
-docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint sh -e PYTHONPATH=/work/scratch/profile-records-20261113/linux-unicorn/site jotego/simulator:arm64 -c 'python3 tests/tools/test_native_adsp_boot_protocol.py --emit build/sim/unit-native-adsp-boot'
+docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint sh -e PYTHONPATH=/work/build/tool-cache/linux-unicorn/site jotego/simulator:arm64 -c 'python3 tests/tools/test_native_adsp_boot_protocol.py --emit build/sim/unit-native-adsp-boot'
 
 arm-none-eabi-gcc -c -mcpu=arm920t -marm tests/phone/native_adsp_boot/program.S -o "$out/program.o"
 arm-none-eabi-ld -T sim/programs/link.ld "$out/program.o" -o "$out/program.elf"
@@ -22,5 +22,5 @@ for rate in 78 104; do
   grep "^PASS" "$out/run-$rate-$wait.log"
  done
 done'
-docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint sh -e PYTHONPATH=/work/scratch/profile-records-20261113/linux-unicorn/site jotego/simulator:arm64 -c 'python3 tests/tools/test_native_adsp_boot_protocol.py --capture build/sim/unit-native-adsp-boot/run-78-0.log'
+docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" -w /work --entrypoint sh -e PYTHONPATH=/work/build/tool-cache/linux-unicorn/site jotego/simulator:arm64 -c 'python3 tests/tools/test_native_adsp_boot_protocol.py --capture build/sim/unit-native-adsp-boot/run-78-0.log'
 

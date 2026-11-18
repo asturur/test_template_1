@@ -6,6 +6,25 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [cpu-icache-strh.md](cpu-icache-strh.md) | Matched STRH interaction on the refined I-cache, 4,200-clock Sega fill and fault/ordering qualification |
+| [cpu-icache-stream.md](cpu-icache-stream.md) | Isolated resident instruction-line retention, wrong-path lookahead correction and the 9,311-to-4,805-clock original Sega fill |
+| [cpu-sega-fill-fetch.md](cpu-sega-fill-fetch.md) | Exact 18-versus-5 cycle recurrence in Sega fill, two resident I-cache waits and a late predicted target launch |
+| [cpu-sega-fill-store.md](cpu-sega-fill-store.md) | Original five-instruction Sega fill, rejected indexed STRH credit and measured backedge delivery gap |
+| [cpu-state-tagged-fetch.md](cpu-state-tagged-fetch.md) | Combined baseline, stock donor clock attribution, 33% Sega scan gain and original-workload 2× budgets |
+| [cpu-speed-review-5l.md](cpu-speed-review-5l.md) | Measured translation stalls in the pixel span, Thumb word-load opportunities in JPEG and proposed experiments after the matched fits |
+| [cpu-thumb-early-load.md](cpu-thumb-early-load.md) | Ordinary Thumb word-load qualification, matched JPEG/games and useful dependent timing |
+| [cpu-third-data-mapping.md](cpu-third-data-mapping.md) | Third checked D-side slot, exact 5L qualification and matched SPMark, JPEG and original game replays |
+| [gba-cpu-ideas.md](gba-cpu-ideas.md) | Pinned GBA CPU comparison: physical-clock sequencing, overlap/DSP/RF limits and a deferred shifter area screen |
+| [tlb-banked-third-fit.md](tlb-banked-third-fit.md) | Exact banked and third-slot routed comparison, fitted cost, eight timing corners and RBF identity |
+| [tlb-area.md](tlb-area.md) | ALM investigation: actual resource leaves, main-TLB frequency/row audit, full64-entry BRAM bank prototype, matched performance and physical-fit plan |
+| [cpu-load-admission.md](cpu-load-admission.md) | Step5L broad qualification and rejected5M registered-demand permission boundary, routed path trace, measured stream/span costs and context negatives |
+| [cpu-late-operand.md](cpu-late-operand.md) | Step5L early ADD/CMP acceptance and registered operand pickup, measured span−1533 clocks, precise faults/flags/retry, offline retain decision |
+| [cpu-load-lookup.md](cpu-load-lookup.md) | Step5K earlier registered ALU probe, real span consumer7→6 and ~4% elapsed gain, preserved one-clock starts, multi-line throughput and safety |
+| [cpu-load-pipeline.md](cpu-load-pipeline.md) | Step5J isolated P1 load start, one-clock favorable initiation, unchanged dependent span latency, full schedules/guards/safety and deeper lookup decision |
+| [super-monkey-ball-span.md](super-monkey-ball-span.md) | Step5I original 16-bit span replay, checked 512-pixel warm scores, load/store/MLA schedules and one conditional accumulation experiment |
+| [cpu-useful-target.md](cpu-useful-target.md) | Step5H frozen5F successor knowledge, actual target dequeue, one registered word-delivery model, exposed-clock screen and research-only stop |
+| [cpu-store-crossing.md](cpu-store-crossing.md) | Step5G rejected line-crossing lookup overlap, all-scored physical owners, halfword gain, byte empty-clock absorption and bounded stop |
+| [cpu-integrated-5f.md](cpu-integrated-5f.md) | All six accepted5F kernels and separate JPEG versus the review and stock ngage2, audited geometric indices, remaining opportunities and one bounded next experiment |
 | [cpu-store-postindex.md](cpu-store-postindex.md) | Step5F original tail gains, unchanged base forwarding, resident admission, precise IRQ/fault/RAM proof and zero-state patch0078 |
 | [cpu-target-delivery.md](cpu-target-delivery.md) | Step5E exact5D call/return timelines, rejected zero-state BTB handoff, mixed cycles and wrong-path drain evidence |
 | [cpu-comparison-strategy.md](cpu-comparison-strategy.md) | Current CPU and whole ARM9V2 donor strategy, larger-cache experiments, board integration and final comparison |
@@ -34,7 +53,8 @@ topic links before repeating research or simulations.
 | [cpu-pipeline-architecture-review.md](cpu-pipeline-architecture-review.md) | Current CPU/cache cycle traces, same-clock speed limits, recommended pipeline, resource budgets and ordered qualification plan |
 | [dsp-mapping-audit.md](dsp-mapping-audit.md) | Fitted CPU full-product mapping, DSP inventory, original instruction mix and workload qualification |
 | [mmc-writes.md](mmc-writes.md) | Implemented MMC write interface, RAM/ACK ownership and local protocol/DMA qualification; physical gates pending |
-| [sis-library.md](sis-library.md) | Verified 1 GB installer MMC with383 SIS packages, native Manager layout and internal C: limits |
+| [mmc-large-card-crash.md](mmc-large-card-crash.md) | Populated installer-card boot errors, capacity/layout/protection controls and DDR evidence |
+| [sis-library.md](sis-library.md) | Permanent four installer groups, verified128MB Group1 MMC and internal C: limits |
 | [jpeg-next-performance.md](jpeg-next-performance.md) | POP/BX return recognition adopted in b707ebd: +9.40% local JPEG throughput, four state bits; physical/native gates pending |
 | [cache-probe-timing.md](cache-probe-timing.md) | b313 worst-path analysis, parallel probe selection and reset payload separation with unchanged benchmark cycles |
 | [calendar-benchmark-flash.md](calendar-benchmark-flash.md) | Native C: block-read fault during deferred erase, bounded NOR width correction and CPU/save qualification |
@@ -108,6 +128,7 @@ topic links before repeating research or simulations.
 | [fit-recovery.md](fit-recovery.md) | Failed integration fit attribution, BRAM/register recovery, DMA worker measurements and verification |
 | [irq-timer-keypad-flow.md](irq-timer-keypad-flow.md) | Original NEM-4 IRQ pending/current, programmable timers, configured keypad edges and combined verification |
 | [general-timers.md](general-timers.md) | Six parallel programmable counters, original timer routines, reprogram/ACK semantics and 78/104 MHz rate evidence |
+| [game-pcm.md](game-pcm.md) | Original NEM-4 game buffer submissions, 78 MHz playback candidate and shared-memory checks |
 | [lcd-dma-handover.md](lcd-dma-handover.md) | Production DMA/IRQ ownership, fast LCD stream, matched speed results, row bands, reset and remaining verification |
 | [mmc-port.md](mmc-port.md) | Read-only production MMC slot, native host/card, FIFO/DMA/IRQ and HPS ownership tests, image tooling and remaining driver/hardware gates |
 | [performance-path-retirement.md](performance-path-retirement.md) | Faster-path replacement policy, LCD switch retirement, next direct-SDRAM cleanup and measured DDR tradeoffs |
@@ -163,16 +184,14 @@ topic links before repeating research or simulations.
 | [boot-model.md](boot-model.md) | Physical map, flash/register experiments, strict limits and assumptions |
 | [software-reference.md](software-reference.md) | EKA2L1 findings, executable software comparison and LCD trace |
 | [references.md](references.md) | Pinned sources, physical versus virtual maps and dump provenance |
-| [modem-model.md](modem-model.md) | Reversed ISI/Phonet protocol and NOS servers (energy, phone-info, SIM); spec for scratch/modem + rtl/ngage_modem.v |
+| [modem-model.md](modem-model.md) | Reversed ISI/Phonet protocol and NOS servers (energy, phone-info, SIM); spec for tests/phone/reference/modem + rtl/ngage_modem.v |
 | [sdram-104mhz-ddio.md](sdram-104mhz-ddio.md) | 104 MHz DDIO clock/read-capture fix, timing-model evidence and remaining hardware gates |
 | [mister-review-2026-11-06.md](mister-review-2026-11-06.md) | Independent milestones 0–5 review, reproduced reset bug, validation and revised next steps |
 | [service-firmware-loader-plan.md](service-firmware-loader-plan.md) | Original boot.rom/boot1.rom service files, order-independent overlays and separate raw C:/PMM implementation plan |
 | [mister-implementation-plan.md](mister-implementation-plan.md) | Code-audited migration plan, image inventory, persistence, controls and hardware validation gates |
 | [hdl-migration.md](hdl-migration.md) | C++ board model -> rtl/ngage_board.v plan, migrated devices, what is still C++-only |
 
-ARM reference manuals are local PDFs in this folder. Reference checkouts and
-supporting research are retained under project `scratch/`; generated traces and
-result/provenance JSON are under `build/`.
+ARM reference manuals are local PDFs in this folder. Maintained bench inputs and reference models live under `tests/`. Current investigation notes live under `scratch/`. See the [historical fixture and capture locations](../tests/historical/README.md) for older paths. Generated traces and results live under `build/`.
 
 When development advances, update the relevant topic document and `status.md`.
 Record the exact firmware/profile, changed assumption, result path and next unknown.

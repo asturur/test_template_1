@@ -1,0 +1,254 @@
+{
+  "control_commit": "ccba54f60a2c6f4741e74428b3306a19717ea58d",
+  "fit_run": "44123116917",
+  "summary_sha256": "c5c859e59c8cf49eabad6502cfd89932e954aad46f4a0ca27c66659e568c5628",
+  "global_worst_path": {
+    "From Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[16]~DUPLICATE",
+    "To Node": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~9_OTERM19055",
+    "Launch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+    "Latch Clock": "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+    "Slack": "-1.069 (VIOLATED)",
+    "Data Delay": "13.073",
+    "logic_levels": "11",
+    "data_IC": "0.001",
+    "data_Cell": "4.764",
+    "data_Routing Element": "8.308"
+  },
+  "arrival_rows": [
+    {
+      "total_ns": "8.683",
+      "increment_ns": "0.000",
+      "edge": "",
+      "type": "uTco",
+      "fanout": "1",
+      "location": "FF_X35_Y18_N47",
+      "element": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|zap_cp15_cb:u_zap_cp15_cb|o_baddr[16]~DUPLICATE"
+    },
+    {
+      "total_ns": "8.683",
+      "increment_ns": "0.000",
+      "edge": "RR",
+      "type": "CELL",
+      "fanout": "5",
+      "location": "FF_X35_Y18_N47",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_zap_cp15_cb|o_baddr[16]~DUPLICATE|q"
+    },
+    {
+      "total_ns": "8.986",
+      "increment_ns": "0.303",
+      "edge": "RR",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X35_Y18_N3",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|shared_context~24|datab"
+    },
+    {
+      "total_ns": "9.564",
+      "increment_ns": "0.578",
+      "edge": "RF",
+      "type": "CELL",
+      "fanout": "1",
+      "location": "LABCELL_X35_Y18_N3",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|shared_context~24|combout"
+    },
+    {
+      "total_ns": "10.338",
+      "increment_ns": "0.774",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "MLABCELL_X34_Y19_N18",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|shared_context~31|datab"
+    },
+    {
+      "total_ns": "10.897",
+      "increment_ns": "0.559",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "1",
+      "location": "MLABCELL_X34_Y19_N18",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|shared_context~31|combout"
+    },
+    {
+      "total_ns": "12.138",
+      "increment_ns": "1.241",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "MLABCELL_X52_Y19_N42",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|shared_context|datad"
+    },
+    {
+      "total_ns": "12.652",
+      "increment_ns": "0.514",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "4",
+      "location": "MLABCELL_X52_Y19_N42",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|shared_context|combout"
+    },
+    {
+      "total_ns": "12.876",
+      "increment_ns": "0.224",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "MLABCELL_X52_Y19_N36",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|second_match|datab"
+    },
+    {
+      "total_ns": "13.435",
+      "increment_ns": "0.559",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "17",
+      "location": "MLABCELL_X52_Y19_N36",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|second_match|combout"
+    },
+    {
+      "total_ns": "14.382",
+      "increment_ns": "0.947",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X56_Y19_N30",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|o_busy~1|dataf"
+    },
+    {
+      "total_ns": "14.475",
+      "increment_ns": "0.093",
+      "edge": "FR",
+      "type": "CELL",
+      "fanout": "5",
+      "location": "LABCELL_X56_Y19_N30",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|o_busy~1|combout"
+    },
+    {
+      "total_ns": "14.838",
+      "increment_ns": "0.363",
+      "edge": "RR",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X56_Y19_N12",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|o_busy~3|dataa"
+    },
+    {
+      "total_ns": "15.431",
+      "increment_ns": "0.593",
+      "edge": "RF",
+      "type": "CELL",
+      "fanout": "2",
+      "location": "LABCELL_X56_Y19_N12",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_tlb|o_busy~3|combout"
+    },
+    {
+      "total_ns": "15.628",
+      "increment_ns": "0.197",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X56_Y19_N3",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|datab"
+    },
+    {
+      "total_ns": "16.194",
+      "increment_ns": "0.566",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "56",
+      "location": "LABCELL_X56_Y19_N3",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|fast_hit~4|combout"
+    },
+    {
+      "total_ns": "17.511",
+      "increment_ns": "1.317",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X53_Y23_N24",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|request_ack~0|datae"
+    },
+    {
+      "total_ns": "17.739",
+      "increment_ns": "0.228",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "8",
+      "location": "LABCELL_X53_Y23_N24",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|l_generate_with_cache_mmu.u_data_cache|cache_adapter|request_ack~0|combout"
+    },
+    {
+      "total_ns": "18.735",
+      "increment_ns": "0.996",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "MLABCELL_X52_Y21_N18",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_data_completion|o_far[0]~1|dataf"
+    },
+    {
+      "total_ns": "18.822",
+      "increment_ns": "0.087",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "31",
+      "location": "MLABCELL_X52_Y21_N18",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|u_data_completion|o_far[0]~1|combout"
+    },
+    {
+      "total_ns": "20.010",
+      "increment_ns": "1.188",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X57_Y19_N12",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|late_p1_ready~6|datae"
+    },
+    {
+      "total_ns": "20.231",
+      "increment_ns": "0.221",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "2",
+      "location": "LABCELL_X57_Y19_N12",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|late_p1_ready~6|combout"
+    },
+    {
+      "total_ns": "20.990",
+      "increment_ns": "0.759",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "LABCELL_X56_Y17_N0",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|late_p1_ready~9|datad"
+    },
+    {
+      "total_ns": "21.494",
+      "increment_ns": "0.504",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "1",
+      "location": "LABCELL_X56_Y17_N0",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|late_p1_ready~9|combout"
+    },
+    {
+      "total_ns": "21.494",
+      "increment_ns": "0.000",
+      "edge": "FF",
+      "type": "IC",
+      "fanout": "1",
+      "location": "FF_X56_Y17_N2",
+      "element": "emu|core|board|upp|cpu_inside.cpu|u_zap|u_zap_core|late_p1_ready~9_NEW_REG19054|d"
+    },
+    {
+      "total_ns": "21.756",
+      "increment_ns": "0.262",
+      "edge": "FF",
+      "type": "CELL",
+      "fanout": "1",
+      "location": "FF_X56_Y17_N2",
+      "element": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|zap_top:u_zap|zap_core:u_zap_core|late_p1_ready~9_OTERM19055"
+    }
+  ],
+  "interpretation": "Logical CP15 table-base context -> TLB owner/busy -> resident fast_hit -> request_ack -> completion capture/retimed late_p1_ready register. Original RTL completion is registered; physical endpoint is Quartus-created. Current permission will be registered with request ownership before ACK selection; revocation must use a registered context-change event, not live wide context comparison."
+}

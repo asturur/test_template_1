@@ -51,7 +51,7 @@ def main():
     # Verify all other serializers byte for byte, including array loops.
     for f in ob.glob('*.cpp'):
         if f.name not in files and '__Vserialize' in f.read_text():assert f.read_bytes()==(nb/f.name).read_bytes(),f.name
-    work=Path('scratch/logo-bringup/state-migration');work.mkdir(exist_ok=True)
+    work=Path('build/sim/state-migration');work.mkdir(parents=True,exist_ok=True)
     a.output.mkdir(parents=True,exist_ok=False)
     cycle=int(a.old_prefix.name.rsplit('-',1)[1]);dest=a.output/('checkpoint-'+str(cycle))
     docker=['docker','run','--rm','--network','none','--platform','linux/arm64','-v',str(Path.cwd())+':/work','-w','/work','--entrypoint']

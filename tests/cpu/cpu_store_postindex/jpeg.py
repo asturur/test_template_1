@@ -16,7 +16,7 @@ def support():
  b.snapshot=snapshot;return b
 common.support=support
 path=ROOT/'tests/cpu/cache_probe_retime/jpeg_run.py'
-text=path.read_text().replace("sys.path.insert(0,str(ROOT/'scratch/spmark-jpeg-profile-20261115'))", "sys.path.insert(0,str(ROOT/'tests/cpu/cache_probe_retime'))")
+text=path.read_text()
 text=text.replace("'-j','3'","'-j','1'")
 text=text.replace('def cases():return all_cases()', 'def cases():return all_cases()[:1]')
 sys.argv=[str(path),*rest]

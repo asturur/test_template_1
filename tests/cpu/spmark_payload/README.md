@@ -32,8 +32,10 @@ Changed RTL is recompiled in Verilator; no RBF build is needed. For unchanged
 RTL, --reuse-build RUN_DIRECTORY validates all source/harness/container/binary
 hashes before reusing its executable. It refuses reuse after an RTL change.
 
-The payload directory defaults to the prior read-only card extraction under
-scratch/spmark-benchmark-20261114/files/System/Apps/SPMark. Use --payload-dir
+Place the locally extracted `3DTEST.DLL`, `libGLES_CM.dll` and original
+`TEST.JPG` in the Git-ignored `tests/cpu/spmark_payload/local/` directory.
+The historical timeout test also reads `SPMark.app` here.
+The JPEG fixture has SHA-256 `333e8e841fe8870a28959b4b0d80acf5e7500c9426bea8e31160a32c70bdfb47`. Use --payload-dir
 for another local copy, or --mmc LOCAL_IMAGE to extract just the two qualified
 modules into the new output directory. Original hashes are required. The ROM
 is build/firmware/nem4-factory/core.bin, or --rom PATH. Binaries and extracted
@@ -120,3 +122,13 @@ blocking signals, not additive recoverable loss, and raw bus/fetch counters can
 overlap. Cache-state labels and ZAP hierarchy are checked/adapted rather than
 assumed portable. This currently profiles the qualified ARM kernels.
 [First measured bottlenecks and optimization priority](../../../docs/spmark-payload-profile.md).
+
+## Accepted 5F integrated scorecard
+
+`python3 tests/cpu/spmark_payload/scorecard_5f.py` audits saved qualified5F,
+review and stock-ngage2 results, the newly measured triangle and separateJPEG.
+Use `--triangle RUN_DIRECTORY` to select a fresh qualified triangle replay.
+It checks all60 compiled RTL hashes against acceptedfae4016, original inputs,
+outputs, counts, repeats and negative receipts, then writes the durable
+[machine scorecard](../../../docs/evidence/cpu-integrated-5f-20261117.json).
+[Assessment and limits](../../../docs/cpu-integrated-5f.md).

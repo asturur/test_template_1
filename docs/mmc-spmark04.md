@@ -126,6 +126,62 @@ damaged FAT allocation; it does not prove original-firmware mount compatibility
 or executable integrity. [Full audit](evidence/mmc-spmark04-fat-20261114.json);
 read-only source in scratch/mmc-native-20261114/audit-fat.py.
 
+## Offline SIS and reusable FAT12 media (2026-11-16)
+
+The supplied `SPMark04_v1.10_business_S6.x_cracked-spaces.im.sis` is672632bytes,
+SHA256 `36bb9f7dc511b1215380106e54b7d472e5bd0d1d553a7d493ab53c2965423393`.
+Its14simple records contain12ordinary application/help files and2installer
+text messages. All compressed streams finish cleanly and match declared lengths.
+Text messages were preserved as data, not treated as instructions or run.
+
+Generated images and reports are under `build/mmc/`; durable local input
+folders are under `runtime/mmc/`. Reusable software is maintained in
+[`tools/mmc-card/`](../tools/mmc-card/README.md).
+
+| Image stem | Contents/source folder |
+| --- | --- |
+| `spmark-ready` |12extracted files in `extracted-files/`, original install destinations mapped to E: |
+| `spmark-installer` |Unchanged SIS as `files/SPMARK.SIS`, visible at E:\SPMARK.SIS |
+| `blank-fat12` |Empty filesystem, editable source folder `empty-files/` |
+
+Each has a raw `.img` and core-ready `.mmc` with512byte NGAGEMMC footer.
+All use32760payload sectors, partition LBA32/32672sectors, FAT12,8sectors per
+cluster, two12sector FATs and512root entries. Ready/installer/blank free space
+is15032/15644/16304KiB. Identities are synthetic folder-card identities, not a
+claim of a physical original card. Current production HDL still forces read-only.
+
+The frozen `mkcard.py`, `build-card.py`, `extract-spmark.py`, independent
+`audit-fat.py`, provenance and `rebuild.command` live in `tools/mmc-card/`.
+Add files under `runtime/mmc/files/` or `runtime/mmc/empty-files/` and run
+`tools/mmc-card/rebuild.command` to regenerate all cards under `build/mmc/`.
+The wrapper mounts the repository and uses the existing `jotego/simulator:arm64`
+image. Its disposable mtools cache is `build/tools/mtools/`; the maintained
+`setup.command` restores it after cleanup. Native Python/mtools can also run
+`python3 tools/mmc-card/build-card.py SOURCE_FOLDER OUTPUT_STEM`.
+Private runtime payloads are ignored by Git; `runtime/mmc/README.md` is maintained.
+
+Every copied file was read back and compared. A separately implemented FAT
+allocation audit passes all3cards with no errors or warnings; the maintained
+MMC inspector validates footer/register CRCs/full CSD extent. The ready app's
+hash equals the previously tested SPMark.app above. Moving and rebuilding the
+cards retained all original image hashes. Reports are `build/mmc/*-fat-audit.json`
+and `*-inspect.json`; extraction hashes are `runtime/mmc/extraction.json`.
+
+The permanent long-filename, nested-directory and multi-cluster integration check
+is `tests/tools/mmc_folder/check.py`; it passes with generated fixtures/images
+under `build/mmc-tests/`, which are removed after use. Its summary remains in
+`build/mmc-tests/result.json`. The original dated card experiment folder has been
+removed from scratch. `AGENTS.md` explicitly requires scratch to stay disposable;
+reusable software, permanent tests and useful runtime data belong elsewhere.
+
+These newly generated images have not been booted or installed on hardware.
+The ready image copies files without generating installer registration records.
+Normal installation from the SIS card is a separate pending check; with current
+read-only MMC, it would need internal C: if offered by the native installer.
+Established app discovery requires the card mounted before a fresh phone boot;
+runtime replacement remains unreliable. No phone session/media/save state, HDL,
+firmware, build/CI or other simulation was changed during this preparation.
+
 ## Native C: SIS installation (2026-11-16)
 
 Original installer-only MMC is recognized by **Tools→Manager**. Extras→Apps is

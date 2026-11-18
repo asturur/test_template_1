@@ -14,9 +14,7 @@ from inventory_firmware import rom_tree
 class ExtensionChecks(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        scratch = extension.ROOT/'scratch'
-        scratch.mkdir(exist_ok=True)
-        cls.workspace = tempfile.TemporaryDirectory(prefix='extension-checks-',dir=scratch)
+        cls.workspace = tempfile.TemporaryDirectory(prefix='extension-checks-')
         cls.directory = Path(cls.workspace.name)
         cls.payload = cls.directory/'extension.bin'
         with contextlib.redirect_stdout(io.StringIO()):

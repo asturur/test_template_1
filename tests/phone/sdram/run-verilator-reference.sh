@@ -5,7 +5,7 @@ set -eu
 mkdir -p build/sim/milestone7
 python3 - <<'PY'
 from pathlib import Path
-s=Path('scratch/sdram-reference/mt48lc16m16a2.v').read_text(encoding='latin-1')
+s=Path('tests/phone/sdram/model/mt48lc16m16a2.v').read_text(encoding='latin-1')
 old="if (Dqm[0] === 1'bx || Dqm[1]== 1'bx) begin"
 assert s.count(old)==1
 s=s.replace(old,"if (1'b0) begin")

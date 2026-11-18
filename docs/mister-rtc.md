@@ -1,5 +1,18 @@
 # MiSTer RTC integration contract — 2026-11-14
 
+## 2026-11-16: User reports Unix-time boot without setup prompts
+
+User reports the latest phone startup picked up the Unix timestamp and asked
+for neither date nor time. No agent confirmation helper or key input was sent
+for this reported boot. This is a successful user-observed prompt-free boot,
+superseding the assumption that every startup necessarily asks. Exact loaded
+RBF, save lineage and cold/warm reset type were not independently recaptured;
+no new hardware access was performed. Repeated cold-boot reliability and the
+cause of the difference from earlier prompted boots remain unverified. Keep
+the working session intact and observe the next ordinary boot before injecting
+any setup confirmations. No additional clock patch follows from this report.
+
+
 ## 2026-11-15 follow-up: native calendar restore still rejects saved state
 
 Read-only board inspection finds Linux UTC correctly at2026-11-15T21:23:17Z,

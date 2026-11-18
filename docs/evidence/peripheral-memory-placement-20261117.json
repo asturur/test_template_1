@@ -1,0 +1,285 @@
+{
+  "fit_path": "build/fit/combined-5jk-20261117/quartus-logs-44123116917/output_files/Template.fit.rpt",
+  "fit_sha256": "3f95b5c0bc0d7c906c1b73e4a9cd0eb20a191476fd9999eea1f471f84b514b03",
+  "fit_commit": "ccba54f60a2c6f4741e74428b3306a19717ea58d",
+  "seed": 42,
+  "debugger": true,
+  "resources": {
+    "ALMs": 40834,
+    "registers": 45605,
+    "M10Ks": 502,
+    "occupied_LABs": 4190
+  },
+  "independent_subtrees": [
+    {
+      "node": "ngage_mmc_card:mmc_shortcut.card",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_mmc_card:mmc_shortcut.card",
+      "alm_inclusive": 2137.0,
+      "alm_direct": 2137.0,
+      "registers_inclusive": 2009,
+      "registers_direct": 2009,
+      "memory_bits": 65536,
+      "m10ks": 8
+    },
+    {
+      "node": "ngage_cbus_uem:cbus",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_uem:uem|ngage_cbus_uem:cbus",
+      "alm_inclusive": 495.6,
+      "alm_direct": 389.5,
+      "registers_inclusive": 550,
+      "registers_direct": 390,
+      "memory_bits": 4096,
+      "m10ks": 1
+    },
+    {
+      "node": "ngage_boot_regs:boot_regs",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_boot_regs:boot_regs",
+      "alm_inclusive": 381.3,
+      "alm_direct": 380.8,
+      "registers_inclusive": 343,
+      "registers_direct": 343,
+      "memory_bits": 2048,
+      "m10ks": 1
+    },
+    {
+      "node": "ngage_bram_be:aux_ram",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_bram_be:aux_ram",
+      "alm_inclusive": 0.7,
+      "alm_direct": 0.0,
+      "registers_inclusive": 0,
+      "registers_direct": 0,
+      "memory_bits": 131072,
+      "m10ks": 16
+    },
+    {
+      "node": "ngage_bram_be:gpio15_ram",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_bram_be:gpio15_ram",
+      "alm_inclusive": 0.3,
+      "alm_direct": 0.0,
+      "registers_inclusive": 0,
+      "registers_direct": 0,
+      "memory_bits": 32768,
+      "m10ks": 4
+    },
+    {
+      "node": "ngage_bram_be:nos4k_ram_i",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_bram_be:nos4k_ram_i",
+      "alm_inclusive": 0.3,
+      "alm_direct": 0.0,
+      "registers_inclusive": 0,
+      "registers_direct": 0,
+      "memory_bits": 32768,
+      "m10ks": 4
+    },
+    {
+      "node": "ngage_bram_be:nosmem_ram",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_bram_be:nosmem_ram",
+      "alm_inclusive": 1.4,
+      "alm_direct": 0.0,
+      "registers_inclusive": 1,
+      "registers_direct": 0,
+      "memory_bits": 524288,
+      "m10ks": 64
+    },
+    {
+      "node": "ngage_bram_be:upload_ram",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_bram_be:upload_ram",
+      "alm_inclusive": 1.4,
+      "alm_direct": 0.0,
+      "registers_inclusive": 2,
+      "registers_direct": 0,
+      "memory_bits": 524288,
+      "m10ks": 64
+    },
+    {
+      "node": "ngage_icu_extra:extra_regs",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_icu_extra:extra_regs",
+      "alm_inclusive": 205.1,
+      "alm_direct": 205.1,
+      "registers_inclusive": 223,
+      "registers_direct": 223,
+      "memory_bits": 6144,
+      "m10ks": 3
+    },
+    {
+      "node": "ngage_mmc_host:mmc_enabled.host",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host",
+      "alm_inclusive": 799.2,
+      "alm_direct": 799.2,
+      "registers_inclusive": 790,
+      "registers_direct": 790,
+      "memory_bits": 0,
+      "m10ks": 0
+    },
+    {
+      "node": "ngage_simif:simif_enabled.simif",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_simif:simif_enabled.simif",
+      "alm_inclusive": 97.8,
+      "alm_direct": 97.8,
+      "registers_inclusive": 146,
+      "registers_direct": 146,
+      "memory_bits": 0,
+      "m10ks": 0
+    },
+    {
+      "node": "ngage_sparse_regs:d_regs",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_sparse_regs:d_regs",
+      "alm_inclusive": 173.9,
+      "alm_direct": 173.4,
+      "registers_inclusive": 197,
+      "registers_direct": 197,
+      "memory_bits": 4096,
+      "m10ks": 2
+    },
+    {
+      "node": "ngage_upp_euart:euart1",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_upp_euart:euart1",
+      "alm_inclusive": 124.2,
+      "alm_direct": 124.2,
+      "registers_inclusive": 159,
+      "registers_direct": 159,
+      "memory_bits": 256,
+      "m10ks": 2
+    },
+    {
+      "node": "ngage_upp_mdi:upp_mdi",
+      "hierarchy": "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp_mdi:upp_mdi",
+      "alm_inclusive": 298.0,
+      "alm_direct": 230.7,
+      "registers_inclusive": 357,
+      "registers_direct": 249,
+      "memory_bits": 8192,
+      "m10ks": 2
+    }
+  ],
+  "sources": {
+    "Template.sv": {
+      "sha256": "fbd55dc74048089517cb5cfd8488acea5b4a145366366f692e17762704a95cab",
+      "matches_fit": true
+    },
+    "rtl/ngage_upp_peripherals.v": {
+      "sha256": "e485c30c018627d295b19b31d3330ecc8fd7771aaf01077cb6d74810c466e518",
+      "matches_fit": true
+    },
+    "rtl/ngage_bram.v": {
+      "sha256": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+      "matches_fit": true
+    },
+    "rtl/ngage_bram_be.v": {
+      "sha256": "dcae12f1ad8e90de5390c68f76a690dd492bdf64693d644b647c33340e233a10",
+      "matches_fit": true
+    },
+    "rtl/ngage_upp_mdi.v": {
+      "sha256": "627cb0ed7dcdeaca19a70ab05c52a17864f7515922d3bf8299ed6fa71a786e07",
+      "matches_fit": true
+    },
+    "rtl/ngage_boot_regs.v": {
+      "sha256": "e3c63930e1b456e59ea82e5ace7978ba6ba2072f24054a516114f1058d226a9e",
+      "matches_fit": true
+    },
+    "rtl/ngage_icu_extra.v": {
+      "sha256": "e4410e399ac35bc65193ec17fcc54bfa06e63d209ebe6e5b174688b7e2635cc9",
+      "matches_fit": true
+    },
+    "rtl/ngage_cbus_uem.v": {
+      "sha256": "cab94cb236535e9758503e72445e2bbc5e544c32bcf9759d89511b766ec22681",
+      "matches_fit": true
+    },
+    "rtl/ngage_sparse_regs.v": {
+      "sha256": "cb44404346ce87f73b53fbdf1271b615cd81bd920294a34c6edfcb7fac7ab83a",
+      "matches_fit": true
+    },
+    "rtl/ngage_upp_euart.v": {
+      "sha256": "f52d6852879b9f68a122ad0300e710491a3bcf8a65255d0c37aad696aae2865c",
+      "matches_fit": true
+    },
+    "rtl/ngage_mmc_card.v": {
+      "sha256": "fe68cfbc640a0e33f5bc2556bd34c701afc887cf487787aeadc388d2d00661ea",
+      "matches_fit": true
+    },
+    "rtl/ngage_mmc_host.v": {
+      "sha256": "ff1076b22ac08cecad58eb1447f5d42d96a293be3b9d5a3484e769963634ad71",
+      "matches_fit": true
+    },
+    "rtl/ngage_simif.v": {
+      "sha256": "ae20cccae97d52ecfdc4ffffee42217833dfb8bbc728c72ed7fd8edfbdaf7c1a",
+      "matches_fit": true
+    },
+    "rtl/ngage_sdram_adapter.v": {
+      "sha256": "76276f951784ddef95429741344b4b1f7ee032d75cb7d1cf2a0a3c635b4ec86f",
+      "matches_fit": true
+    }
+  },
+  "retained_inventory": {
+    "nos_addresses": [
+      "0c100014",
+      "0c100018",
+      "0c10001c",
+      "0c100020",
+      "0c100024",
+      "0c100028",
+      "0c1003e8"
+    ],
+    "generic_tail_addresses": 0,
+    "runtime_access_counts_available": false
+  },
+  "two_banks": {
+    "m10ks": 128,
+    "alm_inclusive": 2.8
+  },
+  "tlb_reservation": {
+    "unfitted_extra_m10ks": [
+      10,
+      16
+    ],
+    "remaining_after_reservation": [
+      35,
+      41
+    ]
+  },
+  "baseline_tests": [
+    {
+      "test": "regional_ownership",
+      "exit_code": 0,
+      "seconds": 6.348,
+      "runner_sha256": "fb85c32b8aa6624fb9b57a9ff6783f4ffbde273be9db94aa25474bc5bf846627",
+      "pass_lines": [
+        "PASS regional ownership: exhaustive windows and overlap/lane/config cases"
+      ],
+      "log_sha256": "b936cf1904ecca9fd1a43338d14db5f966c994ba3ba98a9e154b69eea6642564",
+      "log_bytes": 303,
+      "fixture_sha256": "fc2c0a3f5f6a6445c9f7d6c5a74f2453b161b1e912306b10d0c33aca7a8d92f1"
+    },
+    {
+      "test": "board_wrapper",
+      "exit_code": 0,
+      "seconds": 1.464,
+      "runner_sha256": "24509364f9b8a05870e900bf8f8e508197c64cded9f345f3b4c5c5e84b308ab6",
+      "pass_lines": [
+        "PASS board sparse waits, cancel, overflow, trace exclusion and warm retention",
+        "PASS board adapter ownership and warm/cold RAM reset"
+      ],
+      "log_sha256": "2919f6fb103239eb96fc93e25ec1b4959485d5eb1ac04db41eb3768f2f977feb",
+      "log_bytes": 355,
+      "fixture_sha256": "133026a9903568c744c518a6e430dc3f45e41d393c18cb2dd94a8749425d251e"
+    },
+    {
+      "test": "board_inventory",
+      "exit_code": 0,
+      "seconds": 0.827,
+      "runner_sha256": "c80185a31aa4175c7089712857163e895e965d0f1e4fc5dd93410afc85ceb15e",
+      "pass_lines": [
+        "PASS ownership of 132 retained-trace device/address pairs"
+      ],
+      "log_sha256": "c750f10be9997355be787c7c1f44b6046c528bac744244c38811ae536c0a37e5",
+      "log_bytes": 284,
+      "fixture_sha256": "cdaed25c49a5bf6412193c5b27015452e1e3b120f6daea85da18cba0bf30544d"
+    }
+  ],
+  "test_environment": {
+    "image": "jotego/simulator:arm64",
+    "network": "none",
+    "parallel_jobs": 1,
+    "candidate_rtl_tested": false
+  }
+}

@@ -3,7 +3,7 @@ import struct,random,hashlib,json
 from PIL import Image
 BASE=0x50500000
 ROM_SHA='be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524'
-JPEG=Path('scratch/spmark-benchmark-20261114/files/System/Apps/SPMark/TEST.JPG')
+JPEG=Path(__file__).resolve().parents[3]/'tests/cpu/spmark_payload/local/TEST.JPG'
 def words(v):return struct.pack('<%dI'%len(v),*(x&0xffffffff for x in v))
 def make(mode=10,width=8,height=8,random_input=False):
  obj,conv,err,extra,src,dst=0x80000100,0x80000200,0x80001000,0x80002000,0x80004000,0x80003000
@@ -59,4 +59,5 @@ if __name__=='__main__':
  rom=Path('build/firmware/nem4-factory/core.bin').read_bytes();assert hashlib.sha256(rom).hexdigest()==ROM_SHA
  out={}
  for c in cases():out[c['id']]=oracle(c,rom);print('PASS',c['id'],out[c['id']]['instructions'],flush=True)
- Path(__file__).with_name('oracle.json').write_text(json.dumps(out,indent=2)+'\n')
+ dest=Path('build/sim/jpeg-profile');dest.mkdir(exist_ok=True,parents=True)
+ (dest/'oracle.json').write_text(json.dumps(out,indent=2)+'\n')

@@ -65,11 +65,11 @@ def environment():
 
 # rtl/arm is the patched CPU (upstream + patches/zap, checked by
 # patches/zap/verify.sh). The original upstream is only downloaded, to
-# scratch/zap-upstream (shared with verify.sh), for the unmodified comparison
+# the pinned build/tool-cache directory shared with verify.sh, for the unmodified comparison
 # and for the upstream regression bench (Makefile, testbench, test programs).
 def pristine_zap():
     metadata = json.loads((ARM / "UPSTREAM.json").read_text())
-    target = ROOT / "scratch" / "zap-upstream"
+    target = ROOT / "build/tool-cache" / ("zap-upstream-" + metadata["commit"])
     stamp = target / ".commit"
     if not stamp.exists() or stamp.read_text().strip() != metadata["commit"]:
         shutil.rmtree(target, ignore_errors=True)

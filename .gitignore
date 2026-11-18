@@ -42,19 +42,13 @@ c5_pin_model_dump.txt
 /build/
 
 # Disposable local experiments and reference checkouts
-/scratch/*
-!/scratch/current-boot/
-!/scratch/simif-board/
-!/scratch/simif-investigation/
-/scratch/simif-board/__pycache__/
-/scratch/simif-investigation/__pycache__/
-!/scratch/rf-timeout-20261113/
-/scratch/rf-timeout-20261113/*
-!/scratch/rf-timeout-20261113/README.md
-!/scratch/rf-timeout-20261113/trace.S
-!/scratch/rf-timeout-20261113/build_probe.py
-!/scratch/rf-timeout-20261113/run.sh
-/scratch/current-boot/__pycache__/
+/scratch/
+/tests/cpu/spmark_payload/local/
+/tests/cpu/jpeg_observer/local/
+/tests/historical/local/
+/tests/phone/fixtures/local/
+/runtime/boot/
+/docs/evidence/local/
 
 # Local firmware dumps and extracted phone data
 /firmware/

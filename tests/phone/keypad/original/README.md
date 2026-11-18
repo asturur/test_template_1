@@ -4,7 +4,7 @@
 extracts stock private original instructions, validates the ROM hash and executes
 unmodified `ekeyb.dll` GPIO dispatcher `5041a3cc`, scan helper `5041aa0c` and
 acknowledgement `5041ac84` on ZAP against the actual board/UPP/keypad modules.
-The default output is `scratch/ngage2-integration/keypad-flow-2026-11-11/`.
+The default output is `build/sim/phone-tests/keypad-flow-2026-11-11/`.
 The existing pinned simulator image runs with the network disabled.
 
 The authored caller exercises data clear/set, input/output direction, per-pin

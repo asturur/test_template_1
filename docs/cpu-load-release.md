@@ -100,3 +100,14 @@ was implemented in this release step.
 The requested 78MHz-configured artifact is retained with its timing violations
 reported explicitly; it is not described as timing-closed. No hardware was
 loaded. [Compact regression, source and fit receipt](evidence/cpu-load-release-fit-20261117.json).
+
+## Follow-up offline investigation
+
+The exact retained5L overlay subsequently passed all six original kernels:
+five unchanged and triangle23,568→23,520, with original hashes/oracles,
+retirements, repeated windows and negatives. The proposed registered-admission
+boundary was then implemented once as5M. Its source cut isolates the identified
+CP15/data ACK cone, but measured span and stream costs reject that boundary:
+34,995/34,920→39,214/39,289 clocks, and224starts224→336clocks.
+[Independent qualification, traced path and decision](cpu-load-admission.md).
+Neither offline overlay changes this public5K release or its fit artifact.

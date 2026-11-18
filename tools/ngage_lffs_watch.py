@@ -46,7 +46,7 @@ def main():
     ap.add_argument('--interval', type=float, default=10)
     ap.add_argument('--count', type=int, default=0, help='number of polls;0 means until interrupted')
     ap.add_argument('--rom', type=Path, default=ROOT/'firmware/SYM.ROM')
-    ap.add_argument('--reference', type=Path, default=ROOT/'scratch/fresh-c-investigation/ngvm4')
+    ap.add_argument('--reference', type=Path, default=ROOT/'build/tool-cache/ngvm4')
     args = ap.parse_args()
     if args.interval < 1 or args.count < 0:
         ap.error('interval must be at least1 second; count must be non-negative')
