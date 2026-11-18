@@ -54,6 +54,13 @@ static void stop(struct pcm_stream *stream)
     stream->free_halves = 0;
 }
 
+static void set_destination(struct pcm_stream *stream, const uint8_t *frame)
+{
+    stream->media = frame[0];
+    stream->destination = frame[2];
+    stream->object = frame[7];
+}
+
 static void request_half(struct pcm_stream *stream)
 {
     if (stream->last == PCM_NO_HALF && stream->requested == PCM_NO_HALF &&
@@ -77,9 +84,7 @@ int pcm_request(struct pcm_stream *stream, const uint8_t *frame,
         if (!pcm_accepts_start(frame, bytes))
             return 0;
         stop(stream);
-        stream->media = frame[0];
-        stream->destination = frame[2];
-        stream->object = frame[7];
+        set_destination(stream, frame);
         stream->capacity = be16(frame + 12);
         reg[PCM_FORMAT] = 0;
         reg[PCM_RATE] = frame[23] == 0x32 ? 8000 : 16000;
@@ -87,6 +92,14 @@ int pcm_request(struct pcm_stream *stream, const uint8_t *frame,
         reg[PCM_ADDRESS1] = be32(frame + 18);
         stream->open = 1;
         send(stream, frame[8], 0x21, 0);
+        return 1;
+    }
+
+    /* MediaServer can request cleanup when no stream has opened.
+     * There are no samples to account for. */
+    if (id == 0x2a && bytes == 10 && !stream->open) {
+        set_destination(stream, frame);
+        send(stream, frame[8], 0x2b, 0);
         return 1;
     }
 
