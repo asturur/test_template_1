@@ -38,7 +38,11 @@ module test;
     end
   end
 
-  arm920_tlb dut (
+  arm920_tlb
+`ifdef TEST_THIRD_MAPPING
+      #(.THIRD_MAPPING(1))
+`endif
+      dut (
       .i_clk(clk),
       .i_reset(reset),
       .i_address(va),
@@ -202,8 +206,169 @@ module test;
     end
   endtask
 
+`ifdef TEST_THIRD_MAPPING
+  localparam [31:0] A=32'h80000044, B=32'h80100044,
+                    C=32'h80200044, D=32'h80300044;
+
+  task warm_three;
+    begin
+      reset_core();
+      rd=1;
+      va=A;
+      l1=32'h100008ca;  // Domain 6, AP2 user reads only, C=1 B=0.
+      settle();
+      va=B;
+      l1=32'h10100cce;  // Domain 6, AP3 read and write.
+      settle();
+      va=C;
+      l1=32'h10200cce;
+      settle();
+      va=D;
+      l1=32'h10300cce;
+      settle();
+      // Four fills left D as primary. A, B then C put A in the oldest slot.
+      va=A; settle();
+      va=B; settle();
+      va=C; settle();
+      va=A;
+      #1;
+      if (busy || !owner || !dut.use_third) $fatal(1, "third slot did not hit");
+    end
+  endtask
+
+  task third_checks;
+    integer c, prior_lookups, prior_beats;
+    begin
+      warm_three();
+      prior_lookups=lookups;
+      prior_beats=beats;
+      va=A+32'h34;
+      #1;
+      if (busy || !owner || !dut.use_third || fault || physical!=32'h10000078 ||
+          !cb_cache || cb_buffer || external_fsr!=8'h68)
+        $fatal(1, "third-slot read tuple corrupted");
+      rd=0;
+      wr=1;
+      #1;
+      if (busy || !owner || !fault || fsr!=8'h6d || far_address!=A+32'h34)
+        $fatal(1, "third-slot write denial lost exact FSR/FAR");
+      complete=1;
+      tick();
+      complete=0;
+      rd=1; wr=0;
+      #1;
+      if (busy || !owner || fault || !dut.use_third)
+        $fatal(1, "permission denial revoked opposite-direction grant");
+      va=B;
+      rd=0; wr=1;
+      #1;
+      if (busy || !owner || fault) $fatal(1, "neighbor write denied");
+      tick();
+      if (lookups!=prior_lookups || beats!=prior_beats)
+        $fatal(1, "hot third-slot access performed hidden lookup");
+
+      // A hit did not refresh A's age. Fourth resident lookup evicts A only.
+      va=D;
+      settle();
+      va=A;
+      #1;
+      if (!busy || owner) $fatal(1, "fourth region failed to evict oldest slot");
+      settle();
+      if (beats!=prior_beats) $fatal(1, "FIFO evicted a main-table entry");
+
+      for (c=0; c<8; c=c+1) begin
+        warm_three();
+        rd=0;
+        case (c)
+          0: mode_bits=5'h13;
+          1: sr=1;
+          2: dac=32'h00003000;
+          3: ttbr=32'h0a070000;
+          4: mmu=0;
+          5: begin inv=1; inv_mva=1; invalidate_address=B; end
+          6: inv=1;
+          7: lock_write=1;
+        endcase
+        tick();
+        inv=0; inv_mva=0; lock_write=0; mmu=1;
+        va=C;
+        rd=1;
+        settle();
+        mode_bits=5'h10; sr=0; dac=32'h00001000; ttbr=32'h0a074000;
+        va=A;
+        #1;
+        if (!busy || owner || dut.use_third) $fatal(1, "third slot survived context/mutation %0d",c);
+        settle();
+      end
+
+      // An unrelated exact walk fault ages checked records normally. A
+      // third-slot permission denial must not consume that primary fault.
+      warm_three();
+      va=D; settle();
+      va=A; settle();
+      va=B; settle();
+      va=32'h90000044;
+      l1=0;
+      settle();
+      if (!fault || fsr!=8'h05 || far_address!=va) $fatal(1, "walk fault tuple");
+      va=A+8;
+      rd=0; wr=1;
+      #1;
+      if (!dut.use_third || !fault || fsr!=8'h6d || far_address!=va)
+        $fatal(1, "third-slot denied write while an exact fault is pending");
+      complete=1;
+      tick();
+      complete=0;
+      va=32'h90000044;
+      rd=1; wr=0;
+      #1;
+      if (!fault || fsr!=8'h05 || far_address!=va)
+        $fatal(1, "third-slot ACK consumed the primary walk fault");
+      va=32'h90000048;
+      #1;
+      if (owner || !busy || fault) $fatal(1, "walk fault reused for another offset");
+      va=32'h90000044;
+      rd=0; wr=1;
+      #1;
+      if (owner || !busy || fault) $fatal(1, "walk fault reused in another direction");
+
+      // Keep entry zero (A) locally as slot three while main-table capacity
+      // wraps. Change its descriptor after a new section evicts entry zero.
+      reset_core();
+      rd=1;
+      for (c=0; c<64; c=c+1) begin
+        va=A+(c<<20);
+        l1=(32'h10000000+(c<<20))|32'h00000cce;
+        settle();
+      end
+      va=A; settle();
+      va=B; settle();
+      va=C; settle();
+      va=A;
+      #1;
+      if (busy || !owner || !dut.use_third)
+        $fatal(1, "victim was not in third slot before main-table wrap");
+      va=32'h84000044;
+      l1=32'h24000cce;
+      settle();
+      prior_beats=beats;
+      va=A;
+      l1=32'h30000cce;
+      #1;
+      if (!busy || owner) $fatal(1, "stale third-slot grant after main-table replacement");
+      settle();
+      if (beats!=prior_beats+1 || physical!=32'h30000044)
+        $fatal(1, "replacement failed to reread A's new physical mapping");
+      $display("PASS: third slot, FIFO eviction, read/write/FAR/FSR, eight revocations and main-table wrap");
+    end
+  endtask
+`endif
+
   initial begin
     repeat (4) tick();
+`ifdef TEST_THIRD_MAPPING
+    third_checks();
+`endif
     for (kind = 0; kind < 4; kind = kind + 1) begin
       prepare_pair(kind);
       hot_pair(kind);
@@ -236,7 +401,12 @@ module test;
       $fatal(1, "third publication lost retained mapping or current offset");
     va = second_address;
     #1;
+`ifdef TEST_THIRD_MAPPING
+    if (busy || !owner || !dut.use_second)
+      $fatal(1, "hit on oldest mapping unexpectedly updated FIFO age");
+`else
     if (!busy || owner) $fatal(1, "third publication did not evict oldest local mapping");
+`endif
     settle();
     if (beats != before_beats) $fatal(1, "local replacement discarded main-table mapping");
 
