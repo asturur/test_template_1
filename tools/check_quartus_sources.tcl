@@ -86,10 +86,10 @@ while {[llength $queue]} {
         if {!$found} {lappend failures "Missing HDL include $include from $path"}
     }
 }
-# The production cache/TLB must be present; no legacy cache selector exists.
+# ngage-v5 selects the complete donor subsystem through the CPU wrapper.
 set f [open files.qip];set manifest [read $f];close $f
-foreach required_source {rtl/arm920/cache_adapter.sv rtl/arm920/tlb.sv rtl/arm920/tlb_bank.sv} {
-    if {![string match "*$required_source*" $manifest]} {lappend failures "Missing production cache/MMU source $required_source"}
+foreach selection {NGAGE_ARM9V2=1 rtl/arm9v2/arm925t_phone.v} {
+    if {![string match "*$selection*" $manifest]} {lappend failures "Missing ARM9V2 selection $selection"}
 }
 # GUI metadata must not contradict the maintained two-output PLL HDL.
 set f [open rtl/pll.qip];set pll_qip [read $f];close $f

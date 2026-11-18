@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [arm9v2-phone.md](arm9v2-phone.md) | ngage-v5 stock donor, NEM-4 bus and firmware qualification, checked SPMark and game loop comparisons |
 | [cpu-store-postindex.md](cpu-store-postindex.md) | Step5F original tail gains, unchanged base forwarding, resident admission, precise IRQ/fault/RAM proof and zero-state patch0078 |
 | [cpu-target-delivery.md](cpu-target-delivery.md) | Step5E exact5D call/return timelines, rejected zero-state BTB handoff, mixed cycles and wrong-path drain evidence |
 | [cpu-comparison-strategy.md](cpu-comparison-strategy.md) | Current CPU and whole ARM9V2 donor strategy, larger-cache experiments, board integration and final comparison |

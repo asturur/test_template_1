@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// N-Gage CPU integration boundary. This is a ZAP-based ARMv4T/ARM920T
-// compatibility configuration; board clocks, SDRAM and peripherals belong
-// outside this module. Use the pinned source plus patches/zap/ fixes.
+// N-Gage CPU integration boundary. Board clocks, SDRAM and peripherals
+// belong outside this module. The reference build uses patched ZAP ARM920T.
 module ngage_cpu #(
     parameter LINE_REFILL = 0
 ) (
@@ -38,12 +37,49 @@ module ngage_cpu #(
     output wire  [31:0] debug_instruction,
     output wire         debug_fetch
 );
-`ifdef NGAGE_NO_CPU_DEBUG
-    assign debug_pc          = 0;
-    assign debug_cpsr        = 0;
-    assign debug_instruction = 0;
-    assign debug_fetch       = 0;
+`ifdef NGAGE_ARM9V2
+    wire [31:0] donor_pc, donor_cpsr, donor_instruction;
+    wire donor_fetch;
+
+    // A donor refill is a wrapped sequence of four owned 32-bit beats.
+    // Use the board's normal word path so every beat can return its own error.
+    // The separate 32-byte line channel has different alignment and framing.
+    assign line_req  = 1'b0;
+    assign line_addr = 32'b0;
+    assign wb_stb    = wb_cyc;
+
+`ifndef NGAGE_NO_CPU_DEBUG
+    assign debug_pc          = donor_pc;
+    assign debug_cpsr        = donor_cpsr;
+    assign debug_instruction = donor_instruction;
+    assign debug_fetch       = donor_fetch;
 `endif
+
+    ngage2_arm925t u_arm925t (
+        .clk              (clk),
+        .reset            (reset),
+        .irq              (irq),
+        .fiq              (fiq),
+        .bus_req          (wb_cyc),
+        .bus_lock         (wb_lock),
+        .bus_code         (wb_code),
+        .bus_addr         (wb_address),
+        .bus_we           (wb_write),
+        .bus_wdata        (wb_write_data),
+        .bus_be           (wb_byte_enable),
+        .bus_cti          (wb_cycle_type),
+        .bus_bte          (wb_burst_type),
+        .bus_burst        (),
+        .bus_ack          (wb_ack),
+        .bus_err          (wb_error),
+        .bus_rdata        (wb_read_data),
+        .bus_no_late_error(1'b0),
+        .dbg_pc           (donor_pc),
+        .dbg_wb_cpsr      (donor_cpsr),
+        .dbg_instruction  (donor_instruction),
+        .dbg_fetch_valid  (donor_fetch)
+    );
+`else
     zap_top #(
         .LINE_REFILL    (LINE_REFILL),
         .CP15_L4_DEFAULT(1'b1),
@@ -88,4 +124,11 @@ module ngage_cpu #(
         .i_wb_dat           (wb_read_data),
         .i_wb_err           (wb_error)
     );
+`endif
+`ifdef NGAGE_NO_CPU_DEBUG
+    assign debug_pc          = 0;
+    assign debug_cpsr        = 0;
+    assign debug_instruction = 0;
+    assign debug_fetch       = 0;
+`endif
 endmodule

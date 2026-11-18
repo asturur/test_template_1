@@ -1,8 +1,5 @@
 # N-Gage MiSTer core — Quartus source file list
 
-# Header includes used by the patched ZAP sources.
-set_global_assignment -name SEARCH_PATH rtl/arm
-
 # Top-level
 set_global_assignment -name SYSTEMVERILOG_FILE Template.sv
 set_global_assignment -name SDC_FILE Template.sdc
@@ -98,55 +95,9 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
 # Temporarily disabled compatibility packages. Re-enable with the QSF macro.
 # set_global_assignment -name VERILOG_FILE rtl/ngage_nos_overlay.v
 
-# Production ARM920T cache and 64-entry instruction/data TLBs.
-# ARM920T cache/MMU RTL.
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb_bank.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/tlb_bus_gate.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/write_buffer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_tags.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_lines.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_bank.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_transfer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_refill.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_maintenance.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_access.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm920/cache_adapter.sv
-
-# ZAP ARM920T CPU: patched copy in rtl/arm (upstream + patches/zap, see rtl/arm/README.md)
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_top.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_core.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_fetch_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_predecode_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_predecode_uop_sequencer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_predecode_coproc.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decode_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decode.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_issue_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_operand_read.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_data_completion.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_shifter_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_shifter_multiply.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_shifter_shift.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_alu_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_postalu_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_memory_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_writeback.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_register_file.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cp15_cb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_mode16_decoder_main.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_mode16_decoder.sv
-# Simulation-only CPU disassembler.
-# set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_decompile.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_btb.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_cache.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_dcache.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_wb_merger.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_sync_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_ram_simple_nopipe.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_dual_rank_synchronizer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE rtl/arm/zap_ones_counter.sv
+# Stock ngage2 ARM9V2 core, caches and MMU with NEM-4 interface signals.
+set_global_assignment -name VERILOG_MACRO "NGAGE_ARM9V2=1"
+set_global_assignment -name VERILOG_FILE rtl/arm9v2/arm925t_phone.v
 
 # SDRAM controller (jtframe_sdram64, self-contained)
 set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64.v

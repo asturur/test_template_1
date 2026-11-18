@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmark only: exact5C or QIP-selected ngage2, unchanged original guests.
-
-Uses the maintained payload runner/oracles. Donor RTL is read in place through
-an explicitly read-only Docker mount, never copied into this repository.
-"""
+"""Run unchanged checked payloads on ZAP, standalone ngage2, or the phone CPU."""
 import argparse, hashlib, json, re, subprocess, sys
 from pathlib import Path
 
@@ -11,11 +7,13 @@ ROOT=Path(__file__).resolve().parents[3]
 HERE=Path(__file__).resolve().parent
 DONOR=Path('/Users/andreabogazzi/develop/ngage2')
 REV='78d53d4c129e761d979794c38398aa72ecf87f87'
+ARM9V2_FILES = ['rtl/ngage_cpu.sv', 'rtl/arm9v2/arm925t_phone.v'] + sorted(
+    str(p.relative_to(ROOT)) for p in (ROOT/'rtl/arm9v2/upstream/sim/stubs').glob('*.sv'))
 sys.path.insert(0,str(ROOT/'tests/cpu/spmark_payload'))
 import run as payload
 
 
-def donor_tb(text):
+def donor_tb(text, integrated=False, scalar=False):
     a=text.index('`ifdef BENCH_HAS_LINE')
     b=text.index('    function [31:0] load_word',a)
     text=text[:a]+'''    assign line_req=0;
@@ -37,9 +35,10 @@ def donor_tb(text):
     );
     assign stb=cyc;
     assign lock=0;
-    assign code=address<32'h40000 ||
+    wire code_region=address<32'h40000 ||
         (address>=32'h10000000 && address<32'h10100000) ||
         (address>=32'h50300000 && address<32'h50400000);
+    assign code=code_region;
     // Read fills: four 32-bit wrap beats over a 16-bit/cycle backend.
     // Every write beat uses the original scalar32 per-word wait contract,
     // including burst writebacks; burst framing never discounts a write.
@@ -57,8 +56,39 @@ def donor_tb(text):
     wire [31:0] retire_pc=dpc-(cpsr[5]?32'd4:32'd8);
     wire retire=(dv||dcfail)&&last&&!(|dabt)&&!pabt&&!und&&!swi&&!irq&&!fiq;
     assign ack=cyc&&stb&&waited>= (is_line ?
-        (in_burst?1:(code?i_wait:d_wait)+3) : (code?i_wait:d_wait));
+        (in_burst?1:(code_region?i_wait:d_wait)+3) : (code_region?i_wait:d_wait));
 ''' + text[b:]
+    if integrated or scalar:
+        text=text.replace('.bus_no_late_error(1\'b1)', '.bus_no_late_error(1\'b0)')
+        text=text.replace('waited>= (is_line ?\n        (in_burst?1:(code_region?i_wait:d_wait)+3) : (code_region?i_wait:d_wait));',
+                          'waited >= (code_region ? i_wait : d_wait);')
+    if integrated:
+        a=text.index('    arm925t dut (')
+        b=text.index('    // Read fills:', a)
+        text=text[:a]+'''    ngage_cpu #(.LINE_REFILL(1)) dut (
+        .clk(clk),.reset(reset),.irq(1'b0),.fiq(1'b0),
+        .line_req(),.line_addr(),.line_ready(1'b0),.line_reject(1'b0),
+        .line_valid(1'b0),.line_data(64'b0),.line_wide(1'b0),
+        .line_last(1'b0),.line_error(1'b0),
+        .wb_cyc(cyc),.wb_stb(stb),.wb_code(code),.wb_lock(lock),.wb_write(we),
+        .wb_address(address),.wb_byte_enable(be),.wb_write_data(wdata),
+        .wb_cycle_type(native_cti),.wb_burst_type(bte),.wb_read_data(rdata),
+        .wb_ack(ack),.wb_error(1'b0)
+    );
+    wire [2:0] native_cti;
+    assign burst=native_cti==3'b010;
+    assign dv=dut.u_arm925t.dbg_wb_valid;
+    assign dcfail=dut.u_arm925t.dbg_wb_dvalid;
+    assign last=dut.u_arm925t.dbg_wb_uop_last;
+    assign dabt=dut.u_arm925t.dbg_wb_dabt;
+    assign pabt=dut.u_arm925t.dbg_wb_pabt;
+    assign und=dut.u_arm925t.dbg_wb_und;
+    assign swi=dut.u_arm925t.dbg_wb_swi;
+    assign irq=dut.u_arm925t.dbg_wb_irq;
+    assign fiq=dut.u_arm925t.dbg_wb_fiq;
+    assign dpc=dut.u_arm925t.dbg_wb_pc;
+    assign cpsr=dut.u_arm925t.dbg_wb_cpsr;
+''' + text[text.index('    wire code_region=', a):b].replace('    assign code=code_region;\n', '')+text[b:]
     text=text.replace('            if(ack) begin','''            if(retire && retire_pc==begin_pc) begin
                 if(!dut.u_zap.cpu_mmu_en || !dut.u_zap.cpu_dc_en || !dut.u_zap.cpu_ic_en)
                     $fatal(1,"MMU/cache not enabled");
@@ -75,10 +105,36 @@ def donor_tb(text):
     return text
 
 
+def observe_cpu(tb, cpu, scalar=False):
+    from observe import observe
+    if cpu in ('ngage2', 'arm9v2'):
+        tb=donor_tb(tb, integrated=cpu=='arm9v2', scalar=scalar)
+    tb=observe(tb, cpu in ('ngage2', 'arm9v2'))
+    if cpu=='arm9v2':
+        tb=tb.replace('dut.u_zap.', 'dut.u_arm925t.u_zap.').replace('dut.dbg_d_', 'dut.u_arm925t.dbg_d_')
+    return tb
+
+
+def integrated_snapshot(destination):
+    hashes={}
+    for name in ARM9V2_FILES:
+        target=destination/name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        data=(ROOT/name).read_bytes()
+        target.write_bytes(data)
+        hashes[name]=payload.sha(data)
+    for directory in ('rtl/arm', 'rtl/arm920'):
+        (destination/directory).mkdir()
+    return dict(commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
+                kind='phone-arm9v2', files=hashes,
+                source_id=payload.sha(json.dumps(hashes, sort_keys=True).encode()), has_line=False)
+
+
 def main():
     p=argparse.ArgumentParser(add_help=False)
     p.add_argument('--trace',action='store_true')
-    p.add_argument('--cpu',choices=['5c','ngage2'],required=True)
+    p.add_argument('--cpu',choices=['5c','base','ngage2','arm9v2'],required=True)
+    p.add_argument('--scalar-refills',action='store_true',help='standalone donor control with the phone CPU responder contract')
     a,rest=p.parse_known_args()
     original_support=payload.support
     def support():
@@ -86,6 +142,10 @@ def main():
         snap=b.snapshot
         if a.cpu=='5c':
             b.snapshot=lambda destination:snap(destination,revision=REV)
+        elif a.cpu=='base':
+            b.snapshot=lambda destination:snap(destination,revision='a2c5863')
+        elif a.cpu=='arm9v2':
+            b.snapshot=integrated_snapshot
         else:
             def donor_snapshot(destination):
                 destination.mkdir(parents=True)
@@ -108,10 +168,7 @@ def main():
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,63}',name):raise ValueError('invalid output name')
     stage=ROOT/'build/sim/ngage2-compare-fixtures'/name
     stage.mkdir(parents=True,exist_ok=False)
-    tb=tb_path.read_text()
-    if a.cpu=='ngage2':tb=donor_tb(tb)
-    from observe import observe
-    tb=observe(tb,a.cpu=='ngage2')
+    tb=observe_cpu(tb_path.read_text(), a.cpu, a.scalar_refills)
     (stage/'tb.v').write_text(tb)
     payload.__file__=str(stage/'run.py')
     def run_command(args,log):
@@ -122,6 +179,9 @@ def main():
                 ix=args.index('--Mdir')+2
                 # Replace the original CPU source closure and include path.
                 args=args[:ix]+['/donor/rtl/cpu/arm925t_gen.v','/donor/sim/stubs/altsyncram.sv','/donor/sim/stubs/altdpram.sv',payload.cpath(log.parent/'tb.v')]
+        if args[0]=='docker' and a.cpu=='arm9v2' and 'verilator' in args:
+            ix=args.index('--Mdir')+2
+            args=args[:ix]+['-DNGAGE_ARM9V2']+[payload.cpath(log.parent/'source'/f) for f in ARM9V2_FILES]+[payload.cpath(log.parent/'tb.v')]
         if a.trace and args[0]=='docker' and 'verilator' not in args:args=list(args)+['+compare_trace=1']
         command(args,log)
     payload.command=run_command

@@ -114,7 +114,7 @@ module tb(input wire clk,reset,cold,
    if(cycles%100000==0)$display("BOOT_PROFILE cycle=%0d delay_retired=%0d fetches=%0d r0=%0d r1=%0d r4=%0d r5=%0d",cycles,delay_retired,delay_fetches,delay_r0,delay_r1,delay_r4,delay_r5);
  end
 `else
- assign boot_index=0;assign boot_limit=0;assign retired_count=0;assign ddr_command_count=0;assign ddr_beat_count=0;
+ assign boot_index=0;assign boot_limit=0;assign retired_count=boot_retired;assign ddr_command_count=0;assign ddr_beat_count=0;
 `endif
 
 `ifdef NGAGE_NOS_OVERLAY_RUN
@@ -123,7 +123,7 @@ module tb(input wire clk,reset,cold,
  assign ready=init_done;
 `endif
  assign cycle_count=cycles;
- assign pc=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
+ assign pc=fetch_pc;
  wire [23:0] observed_pixels=dut.board.display.lcd.framebuffer.memory[frame_index];
  assign frame_word={4'b0,observed_pixels[23:12],4'b0,observed_pixels[11:0]};
  assign scan_x=dut.board.display.lcd.scan_x-9'd72;assign scan_y=dut.board.display.lcd.scan_y-9'd16;
@@ -227,10 +227,41 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  // actual F-stage acceptance for bounded-run liveness, not an arbitrary edge.
  reg [31:0] last_fetch_pc=0;
  integer last_fetch_cycle=-10000;
+`ifdef NGAGE_ARM9V2
+ wire [31:0] fetch_pc = dut.cpu_pc;
+ wire accepted_fetch = dut.cpu_fetch;
+ `define BOOT_CPU dut.board.upp.cpu_inside.cpu.u_arm925t
+ wire [31:0] retire_pc = `BOOT_CPU.dbg_wb_pc - (`BOOT_CPU.dbg_wb_cpsr[5] ? 4 : 8);
+ wire [6:0] exceptions = {`BOOT_CPU.dbg_wb_dabt,`BOOT_CPU.dbg_wb_pabt,
+  `BOOT_CPU.dbg_wb_und,`BOOT_CPU.dbg_wb_swi,`BOOT_CPU.dbg_wb_irq,`BOOT_CPU.dbg_wb_fiq};
+ wire retire = (`BOOT_CPU.dbg_wb_valid || `BOOT_CPU.dbg_wb_dvalid) &&
+  `BOOT_CPU.dbg_wb_uop_last && !(|exceptions);
+ `undef BOOT_CPU
+`else
+ wire [31:0] fetch_pc = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
  wire accepted_fetch = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.i_valid &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.code_stall && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.sleep_ff &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_writeback && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_alu &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_decode;
+ `define BOOT_WB dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback
+ wire [31:0] retire_pc = `BOOT_WB.i_pc_plus_8_buf_ff - (dut.cpu_cpsr[5] ? 4 : 8);
+ wire [6:0] exceptions = {`BOOT_WB.i_data_abt,`BOOT_WB.i_instr_abt,
+  `BOOT_WB.i_und,`BOOT_WB.i_swi,`BOOT_WB.i_irq,`BOOT_WB.i_fiq};
+ wire retire = (`BOOT_WB.i_valid || `BOOT_WB.i_decompile_valid) &&
+  `BOOT_WB.i_uop_last && !(|exceptions);
+ `undef BOOT_WB
+`endif
+ integer boot_retired=0, boot_exceptions=0;
+ always @(posedge clk) if (!reset) begin
+  if (retire) begin
+   if (boot_retired < 512) $display("BOOT_RETIRE index=%0d cycle=%0d pc=%h",boot_retired,cycles,retire_pc);
+   boot_retired <= boot_retired + 1;
+  end
+  if ((|exceptions) && boot_exceptions < 32) begin
+   $display("BOOT_EXCEPTION cycle=%0d pc=%h exceptions=%b",cycles,retire_pc,exceptions);
+   boot_exceptions <= boot_exceptions + 1;
+  end
+ end
  integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;reg [7:0] ddr_remaining=0;
  integer owner_counts[0:17]; integer owner; integer k; integer memory_samples=0;
  task report_owner;
@@ -238,7 +269,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   input [127:0] name;
   begin
    owner_counts[id]=owner_counts[id]+1;
-   if(owner_counts[id]==1) $display("REACHED owner=%0s cycle=%0d addr=%h write=%b data=%h",name,cycles,dut.observed_address,dut.observed_write,dut.observed_write ? dut.observed_data : (dut.observe_ram ? csr : dut.wb_dat_i));
+   if(owner_counts[id]==1) $display("REACHED owner=%0s cycle=%0d addr=%h write=%b data=%h",name,cycles,dut.debugger.observed_address,dut.debugger.observed_write,dut.debugger.observed_write ? dut.debugger.observed_data : (dut.debugger.observe_ram ? csr : dut.wb_dat_i));
   end
  endtask
  reg spending=0;reg [24:0] saddr=0;reg [31:0] swdata=0;reg [3:0] sbe=0;reg swrite=0;integer n;
@@ -403,10 +434,10 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   if(reset) dma_errors_seen<=0;
   if(!reset)begin
    if (|(dma_error_pending & ~dma_errors_seen))
-    $display("DMA_ERROR cycle=%0d channels=%h pc=%h",cycles,dma_error_pending,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);
+    $display("DMA_ERROR cycle=%0d channels=%h pc=%h",cycles,dma_error_pending,fetch_pc);
    dma_errors_seen<=dma_errors_seen | dma_error_pending;
    cycles<=cycles+1;
-   if(accepted_fetch)begin last_fetch_pc<=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;last_fetch_cycle<=cycles;end
+   if(accepted_fetch)begin last_fetch_pc<=fetch_pc;last_fetch_cycle<=cycles;end
    if(board_log && (dut.wb_ack || dut.wb_err) && (dut.brd_claim || dut.dma_claim))
     $fdisplay(board_log,"%0d\t%s\t0x%08h\t0x%01h\t0x%08h\t%b\t%b\t%b",cycles,dut.wb_we ? "WRITE" : "READ",dut.pa,dut.wb_sel,dut.wb_we ? dut.wb_dat_o : dut.wb_dat_i,dut.wb_err,dut.irq_line,dut.fiq_line);
    if(dut.fast_ram_response)begin
@@ -445,16 +476,16 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    if(dut.wb_ack && dut.wb_we && dut.pa==32'h0c121208)lcd_writes<=lcd_writes+1;
 `ifdef NGAGE_LOGO_RUN
    if(dut.wb_ack && dut.wb_we && dut.pa>=32'h0c121200 && dut.pa<=32'h0c121208 && (dut.pa!=32'h0c121208 || dut.board.display.lcd.header[31:16]!=16'h8924))
-    $display("LCD cycle=%0d addr=%h data=%h pc=%h",cycles,dut.pa,dut.wb_dat_o,pc);
+    $display("LCD cycle=%0d addr=%h data=%h pc=%h",cycles,dut.pa,dut.wb_dat_o,fetch_pc);
    if(dut.board.display.lcd.unsupported_valid && lcd_unknown_prints<32)begin
     lcd_unknown_prints<=lcd_unknown_prints+1;
-    $display("LCD_UNKNOWN cycle=%0d header=%h command=%h data=%h pc=%h",cycles,dut.board.display.lcd.unsupported_header,dut.board.display.lcd.unsupported_command,dut.board.display.lcd.unsupported_data,pc);
+    $display("LCD_UNKNOWN cycle=%0d header=%h command=%h data=%h pc=%h",cycles,dut.board.display.lcd.unsupported_header,dut.board.display.lcd.unsupported_command,dut.board.display.lcd.unsupported_data,fetch_pc);
    end
 `else
    if(cycles==BOUNDED_CYCLES)begin
-    if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.debugger.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.debugger.diagnostics.fetch_seen,dut.debug_fault_seen,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);end
+    if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.debugger.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.debugger.diagnostics.fetch_seen,dut.debug_fault_seen,fetch_pc);end
     for(k=0;k<18;k=k+1)if(owner_counts[k]!=0)$display("OWNER id=%0d count=%0d",k,owner_counts[k]);
-    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr,cycles-last_fetch_cycle);$finish;
+    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,fetch_pc,cycles-last_fetch_cycle);$finish;
    end
 `endif
   end

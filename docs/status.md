@@ -1,3 +1,15 @@
+## 2026-11-18 — ngage-v5 stock ARM9V2 phone experiment
+
+This branch selects ngage2 `a182204` with stock 16 KiB I and 8 KiB D caches.
+Exact `a2c5863` mainline is the control. Both donor legs match on six SPMark
+kernels, original Thumb JPEG and seven original game loops. The six-kernel
+speedup is 1.732× at 0:0 and 1.210× at 2:9. At 2:9 the donor's full-frame fill
+takes 371,988 versus 201,302 mainline clocks. The real RTL bus test passes
+SWPB, IRQ/FIQ, external data and late refill faults and dirty maintenance at
+both delays. The donor firmware clears the ROM digest and enters the kernel
+at about 290M clocks. Startup continuation and a branch-only fit are the next
+gates. [Results and replay](arm9v2-phone.md).
+
 ## 2026-11-17 — Step 5F remaining regressions completed
 
 After disk cleanup and a user-authorized Docker restart, the installed offline
