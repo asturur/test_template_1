@@ -1,7 +1,9 @@
 # Benchmark-only ngage2 versus exact5C
 
-The `ngage-v5` experiment also uses this driver. Its matched legs are
-`--cpu base`, `--cpu arm9v2`, and `--cpu ngage2 --scalar-refills`.
+The `ngage-v5` experiment also uses this driver. The 32-byte comparison runs
+`--cpu base`, `--cpu arm9v2`, and `--cpu ngage2`. Use `--scalar-refills` to
+isolate the resized v5 CPU's scalar path or reproduce the standalone scalar
+control from the stock-geometry experiment.
 See [ARM9V2 phone replay](../arm9v2_board/README.md) for that configuration.
 
 Read `docs/ngage2-vs-5c-benchmark.md` for qualified results and limitations.

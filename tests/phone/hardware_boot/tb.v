@@ -206,7 +206,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(
  .owner_ready(sdram_owner_ready),.clk(clk),.rst(cold),.phone_reset(dma_reset || cold),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
  .ba_addr(ba_addr),.ba_din(ba_din),.ba_dsn(ba_dsn),.rd(rd),.wr(wr),.ba_ack(ba_ack),.ba_dst(ba_dst),.ba_rdy(ba_rdy),.ba_dout(ba_dout),.rfsh(rfsh),
- .line_req(ram_line_req),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
+ .line_req(ram_line_req && !lock),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
  jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(1),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(256),.BA1_LEN(256),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
   .line_read(ba_line),.rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
   .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
@@ -263,6 +263,13 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   end
  end
  integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;reg [7:0] ddr_remaining=0;
+`ifndef NGAGE_LOGO_RUN
+ integer ram_lines=0, rom_lines=0;
+ always @(posedge clk) if(!reset) begin
+  if(ram_line_req && ram_line_ready && !lock) ram_lines<=ram_lines+1;
+  if(ddr_line && accept) rom_lines<=rom_lines+1;
+ end
+`endif
  integer owner_counts[0:17]; integer owner; integer k; integer memory_samples=0;
  task report_owner;
   input integer id;
@@ -485,7 +492,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    if(cycles==BOUNDED_CYCLES)begin
     if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.debugger.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.debugger.diagnostics.fetch_seen,dut.debug_fault_seen,fetch_pc);end
     for(k=0;k<18;k=k+1)if(owner_counts[k]!=0)$display("OWNER id=%0d count=%0d",k,owner_counts[k]);
-    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,fetch_pc,cycles-last_fetch_cycle);$finish;
+    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d ram_lines=%0d rom_lines=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,fetch_pc,cycles-last_fetch_cycle,ram_lines,rom_lines);$finish;
    end
 `endif
   end

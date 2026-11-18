@@ -30,7 +30,10 @@ simulation verilator "$image" --binary --timing --assert -j 2 \
     -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
     rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
     rtl/arm9v2/upstream/sim/stubs/*.sv "$fixture/contract.v" > "$out/build.log" 2>&1
-for wait in 0 5; do
-    simulation "/work/$out/obj/Vcontract" "$image" "+program=$out/guest.hex" "+wait=$wait" > "$out/wait-$wait.log" 2>&1
-    grep '^PASS ' "$out/wait-$wait.log"
+for burst in 0 1; do
+    for wait in 0 5; do
+        log="$out/burst-$burst-wait-$wait.log"
+        simulation "/work/$out/obj/Vcontract" "$image" "+program=$out/guest.hex" "+wait=$wait" "+burst=$burst" > "$log" 2>&1
+        grep -E '^(PASS|LINES) ' "$log"
+    done
 done

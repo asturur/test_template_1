@@ -1,3 +1,18 @@
+## 2026-11-18 — ngage-v5 adopts 16 KiB I/D and 32-byte fills
+
+The phone CPU now uses v4's capacity and line width, retaining the donor's
+two ways. It streams aligned fills over the existing SDRAM and DDR line
+interfaces. Full 16 KiB D-cache residency, upper-set maintenance, both line
+widths, fallback, IRQ/FIQ, SWPB and fault checks pass. The pin-model smoke
+and 12 SDRAM controller configurations pass. The resized factory firmware
+reaches kernel and Nokia logo by 400M clocks with zero data-bus errors.
+At 2:9 waits, the six SPMark kernels are 1.643× versus v4 and 1.232× versus
+original ngage2. Matrix improves 47,637→17,793 compared with previous v5,
+while the resized frame fill improves 356,202→237,167 when using bursts.
+The delayed full Sega scan takes 4,502,989 clocks versus 4,503,455 on original
+ngage2 and 8,422,080 on v4. Routed timing for the resized design is pending.
+[Full comparison and replay](arm9v2-cache32.md).
+
 ## 2026-11-18 — ngage-v5 stock ARM9V2 phone experiment
 
 This branch selects ngage2 `a182204` with stock 16 KiB I and 8 KiB D caches.

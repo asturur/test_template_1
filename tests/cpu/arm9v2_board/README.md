@@ -15,7 +15,7 @@ sh tests/cpu/arm9v2_board/run-contract.sh fresh-bus
 
 python3 tests/cpu/ngage2_compare/run.py --cpu base --name fresh-base --trace --payload-dir "$NGAGE_FIXTURES/spmark_payload/local"
 python3 tests/cpu/ngage2_compare/run.py --cpu arm9v2 --name fresh-phone --trace --payload-dir "$NGAGE_FIXTURES/spmark_payload/local"
-python3 tests/cpu/ngage2_compare/run.py --cpu ngage2 --scalar-refills --name fresh-donor --trace --payload-dir "$NGAGE_FIXTURES/spmark_payload/local"
+python3 tests/cpu/ngage2_compare/run.py --cpu ngage2 --name fresh-donor --trace --payload-dir "$NGAGE_FIXTURES/spmark_payload/local"
 
 python3 tests/cpu/arm9v2_board/games.py --name fresh-games --fixtures "$NGAGE_FIXTURES" \
   --leg base=fresh-base --leg arm9v2=fresh-phone --leg ngage2=fresh-donor
@@ -34,8 +34,9 @@ PHONE_SDRAM_MODEL="$NGAGE_FIXTURES/../phone/sdram/model/mt48lc16m16a2.v" \
   sh tests/phone/hardware_boot/run-real-sdram.sh
 ```
 
-Use `--cpu base` and `--cpu ngage2 --scalar-refills` for the matching JPEG
-legs. Use `--cpu zap` for a cold mainline phone control. Boot checkpoints
+Use `--cpu base` and `--cpu ngage2` for the matching JPEG legs. Add
+`--scalar-refills` to the `arm9v2` payload run for the resized scalar control.
+Use `--cpu zap` for a cold mainline phone control. Boot checkpoints
 require the same CPU, build, settings and firmware lineage on restore.
 
 The games runner uses the exact compiled SPMark binaries after verifying
@@ -54,5 +55,5 @@ checks in parallel when the simulator has enough CPU cores.
 
 The standalone donor leg reads `/Users/andreabogazzi/develop/ngage2` inside
 a read-only mount. Match the donor revision in the
-[experiment record](../../../docs/arm9v2-phone.md) before comparing with
+[experiment record](../../../docs/arm9v2-cache32.md) before comparing with
 published results.

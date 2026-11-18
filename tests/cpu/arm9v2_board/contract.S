@@ -19,7 +19,7 @@ start:
     cmp r4,r5
     bne fail
     mrc p15,0,r4,c0,c0,1
-    ldr r5,=0x05109149
+    ldr r5,=0x0514a14a
     cmp r4,r5
     bne fail
 
@@ -115,6 +115,33 @@ wait_fiq:
 after_prefetch:
     cmp r6,#2
     bne fail
+
+    // Read-allocate both ways before dirtying them. With W enabled the
+    // donor can post a store miss without installing a line.
+    ldr r11,=0x0a008000
+    add r12,r11,#0x4000
+    mov r10,r11
+warm_capacity:
+    ldr r4,[r10]
+    str r10,[r10]
+    add r10,r10,#32
+    cmp r10,r12
+    bne warm_capacity
+    mov r5,#1
+    str r5,[r7,#8]
+    mov r10,r11
+check_capacity:
+    ldr r4,[r10]
+    cmp r4,r10
+    bne fail
+    add r10,r10,#32
+    cmp r10,r12
+    bne check_capacity
+    mov r5,#0
+    str r5,[r7,#8]
+    add r10,r11,#0x1000
+    mcr p15,0,r10,c7,c14,2          // Clean and invalidate upper-half set by index.
+
     ldr r0,=0x50415353
     b finish
 fail:

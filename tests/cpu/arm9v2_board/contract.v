@@ -5,8 +5,10 @@ module contract;
 
   wire cyc, stb, write, code, lock, ack, error, line;
   wire [31:0] address, wdata, rdata, pc;
-  wire [3:0] be;
-  wire [2:0] cti;
+  wire [ 3:0] be;
+  wire [ 2:0] cti;
+  wire [31:0] line_addr;
+  reg line_reject = 0, line_active = 0;
   reg irq = 0, fiq = 0;
   ngage_cpu #(
       .LINE_REFILL(1)
@@ -29,14 +31,14 @@ module contract;
       .wb_error(error),
       .wb_read_data(rdata),
       .line_req(line),
-      .line_addr(),
-      .line_ready(1'b0),
-      .line_reject(1'b0),
-      .line_valid(1'b0),
-      .line_data(64'b0),
-      .line_wide(1'b0),
-      .line_last(1'b0),
-      .line_error(1'b0),
+      .line_addr(line_addr),
+      .line_ready(!line_active),
+      .line_reject(line_reject),
+      .line_valid(line_valid),
+      .line_data(line_data),
+      .line_wide(line_wide),
+      .line_last(line_last),
+      .line_error(line_error),
       .debug_pc(pc),
       .debug_cpsr(),
       .debug_instruction(),
@@ -132,16 +134,32 @@ module contract;
       .out_sel(device_be)
   );
 
-  reg [31:0] rom[0:2047], ram[0:8191];
+  reg [31:0] rom[0:2047], ram[0:16383];
   integer cycle = 0, slow_delay = 0, ram_delay = 0, wait_words = 0;
   integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
   integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
   integer translation_walks = 0, prefetch_aborts = 0;
   reg ram_pending = 0, ram_saved_write;
-  reg [12:0] ram_index;
+  reg [13:0] ram_index;
   reg [31:0] ram_saved_data;
   reg [ 3:0] ram_saved_be;
   integer lane, wait_cycles;
+  integer burst_enable, line_wait = 0, half_index = 0;
+  integer ram_lines = 0, rom_lines = 0, rejected_lines = 0;
+  integer capacity_markers = 0;
+  reg verify_resident = 0;
+  reg [31:0] saved_line;
+  wire line_ram = saved_line[31:24] == 8'h0a;
+  wire line_wide = !line_ram && saved_line != 32'h1000;
+  wire line_valid = line_active && line_wait == 0;
+  wire line_error = line_valid && saved_line == 32'h1000 && half_index == 4;
+  wire line_last = half_index == (line_wide ? 12 : 15) || line_error;
+  wire [31:0] beat_address = saved_line + 2 * half_index;
+  wire [31:0] ram_word = ram[beat_address[15:2]];
+  wire [31:0] rom_word = rom[beat_address[12:2]];
+  wire [31:0] narrow_word = line_ram ? ram_word : rom_word;
+  wire [63:0] line_data = line_wide ? {rom[beat_address[12:2]+1'b1], rom_word} :
+                          {48'b0, beat_address[1] ? narrow_word[31:16] : narrow_word[15:0]};
   reg [4095:0] program_file;
   wire fault_address = device_address == 32'h0c000020 || device_address == 32'h00001008;
   wire ready = device_cyc && device_stb && slow_delay == wait_cycles;
@@ -155,8 +173,30 @@ module contract;
   always @(posedge clk)
     if (!reset) begin
       cycle <= cycle + 1;
-      if (cycle == 30000) $fatal(1, "Watchdog PC=%h", pc);
-      if (line) $fatal(1, "Unexpected 32-byte line request");
+      if (cycle == 180000) $fatal(1, "Watchdog PC=%h", pc);
+      line_reject <= 0;
+      if (line && !line_active) begin
+        if (line_addr[4:0] != 0 || cyc) $fatal(1, "Bad line offer");
+        if (burst_enable != 0) begin
+          saved_line  <= line_addr;
+          line_active <= 1;
+          half_index  <= 0;
+          line_wait   <= wait_cycles;
+          if (line_addr[31:24] == 8'h0a) begin
+            if (verify_resident) $fatal(1, "Capacity check missed in D-cache");
+            ram_lines <= ram_lines + 1;
+          end else rom_lines <= rom_lines + 1;
+        end else begin
+          line_reject <= 1;
+          rejected_lines <= rejected_lines + 1;
+        end
+      end
+      if (line_active && line_wait != 0) line_wait <= line_wait - 1;
+      if (line_valid) begin
+        if (line_last) line_active <= 0;
+        half_index <= half_index + (line_wide ? 4 : 1);
+        if (line_error) refill_faults <= refill_faults + 1;
+      end
       if (cyc && stb && !ack && !error) wait_words <= wait_words + 1;
       if (cpu.u_arm925t.dbg_wb_pabt) prefetch_aborts <= prefetch_aborts + 1;
       if (device_cyc && device_address == 32'h0b000000)
@@ -190,7 +230,20 @@ module contract;
             fiq <= device_wdata[0];
             fiq_writes <= fiq_writes + 1;
           end
+          32'h0c000008: begin
+            verify_resident  <= device_wdata[0];
+            capacity_markers <= capacity_markers + 1;
+          end
           32'hf0000000: begin
+            if (capacity_markers != 2 || ram[14'h2400] != 32'h0a009000)
+              $fatal(
+                  1,
+                  "D-cache capacity/upper index clean failed, RAM=%h markers=%d",
+                  ram[14'h2400],
+                  capacity_markers
+              );
+            if (burst_enable != 0 ? ram_lines < 512 || rom_lines == 0 : rejected_lines == 0)
+              $fatal(1, "Line transport was not exercised");
             if (device_wdata != 32'h50415353 || scalar_faults != 1 || refill_faults == 0 ||
                 prefetch_aborts != 1 || translation_walks == 0 ||
                         irq_writes != 2 || fiq_writes != 2 || swap_beats != 2 || clean_writes != 1 ||
@@ -210,6 +263,8 @@ module contract;
             $display(
                 "PASS cycles=%0d scalar_wait_cycles=%0d swp_beats=%0d clean_writes=%0d walks=%0d prefetch_aborts=%0d",
                 cycle, wait_words, swap_beats, clean_writes, translation_walks, prefetch_aborts);
+            $display("LINES ram=%0d rom=%0d rejected=%0d resident_capacity_bytes=16384", ram_lines,
+                     rom_lines, rejected_lines);
             $finish;
           end
           default: $fatal(1, "Unexpected device write %h", device_address);
@@ -218,6 +273,8 @@ module contract;
 
       if (swap_beats == 1 && !lock) $fatal(1, "SWPB lock dropped between beats");
       if (ram_accept) begin
+        if (verify_resident && !ram_write)
+          $fatal(1, "Capacity check accessed scalar RAM at %h PC=%h", ram_address, pc);
         if (!ram_write && ram_address == 32'h0a0042c0) translation_walks <= translation_walks + 1;
         if (lock) begin
           if (ram_address[31:2] != 30'h02800000 || (ram_write != (swap_beats == 1)) ||
@@ -234,7 +291,7 @@ module contract;
         end
         ram_pending <= 1;
         ram_delay <= wait_cycles + 1;
-        ram_index <= ram_address[14:2];
+        ram_index <= ram_address[15:2];
         ram_saved_write <= ram_write;
         ram_saved_data <= ram_wdata;
         ram_saved_be <= ram_be;
@@ -252,6 +309,7 @@ module contract;
   initial begin
     if (!$value$plusargs("program=%s", program_file) || !$value$plusargs("wait=%d", wait_cycles))
       $fatal(1, "Specify the guest image and wait profile");
+    if (!$value$plusargs("burst=%d", burst_enable)) burst_enable = 1;
     $readmemh(program_file, rom);
     repeat (4) @(negedge clk);
     reset = 0;

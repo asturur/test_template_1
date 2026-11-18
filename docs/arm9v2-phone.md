@@ -1,5 +1,9 @@
 # Stock ARM9V2 on the NEM-4 board
 
+This report archives the stock-geometry experiment at `af7909d` and `1b48db8`.
+The current branch configuration and updated comparison are in
+[the 32-byte refill report](arm9v2-cache32.md).
+
 `ngage-v5` starts from `a2c5863b1c01600ea1b0286097509ed0b401f772`. Its normal
 `Template` project selects ngage2's full ARM925T subsystem at
 `a182204f87642d434bce5a27bacfda602c505192`. The donor's Quartus QIP selects

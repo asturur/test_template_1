@@ -13,7 +13,7 @@ sys.path.insert(0,str(ROOT/'tests/cpu/spmark_payload'))
 import run as payload
 
 
-def donor_tb(text, integrated=False, scalar=False):
+def donor_tb(text, scalar=False):
     a=text.index('`ifdef BENCH_HAS_LINE')
     b=text.index('    function [31:0] load_word',a)
     text=text[:a]+'''    assign line_req=0;
@@ -58,37 +58,10 @@ def donor_tb(text, integrated=False, scalar=False):
     assign ack=cyc&&stb&&waited>= (is_line ?
         (in_burst?1:(code_region?i_wait:d_wait)+3) : (code_region?i_wait:d_wait));
 ''' + text[b:]
-    if integrated or scalar:
+    if scalar:
         text=text.replace('.bus_no_late_error(1\'b1)', '.bus_no_late_error(1\'b0)')
         text=text.replace('waited>= (is_line ?\n        (in_burst?1:(code_region?i_wait:d_wait)+3) : (code_region?i_wait:d_wait));',
                           'waited >= (code_region ? i_wait : d_wait);')
-    if integrated:
-        a=text.index('    arm925t dut (')
-        b=text.index('    // Read fills:', a)
-        text=text[:a]+'''    ngage_cpu #(.LINE_REFILL(1)) dut (
-        .clk(clk),.reset(reset),.irq(1'b0),.fiq(1'b0),
-        .line_req(),.line_addr(),.line_ready(1'b0),.line_reject(1'b0),
-        .line_valid(1'b0),.line_data(64'b0),.line_wide(1'b0),
-        .line_last(1'b0),.line_error(1'b0),
-        .wb_cyc(cyc),.wb_stb(stb),.wb_code(code),.wb_lock(lock),.wb_write(we),
-        .wb_address(address),.wb_byte_enable(be),.wb_write_data(wdata),
-        .wb_cycle_type(native_cti),.wb_burst_type(bte),.wb_read_data(rdata),
-        .wb_ack(ack),.wb_error(1'b0)
-    );
-    wire [2:0] native_cti;
-    assign burst=native_cti==3'b010;
-    assign dv=dut.u_arm925t.dbg_wb_valid;
-    assign dcfail=dut.u_arm925t.dbg_wb_dvalid;
-    assign last=dut.u_arm925t.dbg_wb_uop_last;
-    assign dabt=dut.u_arm925t.dbg_wb_dabt;
-    assign pabt=dut.u_arm925t.dbg_wb_pabt;
-    assign und=dut.u_arm925t.dbg_wb_und;
-    assign swi=dut.u_arm925t.dbg_wb_swi;
-    assign irq=dut.u_arm925t.dbg_wb_irq;
-    assign fiq=dut.u_arm925t.dbg_wb_fiq;
-    assign dpc=dut.u_arm925t.dbg_wb_pc;
-    assign cpsr=dut.u_arm925t.dbg_wb_cpsr;
-''' + text[text.index('    wire code_region=', a):b].replace('    assign code=code_region;\n', '')+text[b:]
     text=text.replace('            if(ack) begin','''            if(retire && retire_pc==begin_pc) begin
                 if(!dut.u_zap.cpu_mmu_en || !dut.u_zap.cpu_dc_en || !dut.u_zap.cpu_ic_en)
                     $fatal(1,"MMU/cache not enabled");
@@ -105,10 +78,33 @@ def donor_tb(text, integrated=False, scalar=False):
     return text
 
 
+def phone_tb(text, scalar):
+    if scalar:
+        text=text.replace('.LINE_REFILL(LINE_ENABLE)', '.LINE_REFILL(0)')
+    start=text.index('    wire [31:0] retire_pc=')
+    end=text.index('    assign ack=', start)
+    return text[:start]+'''    wire dv=dut.u_arm925t.dbg_wb_valid;
+    wire dcfail=dut.u_arm925t.dbg_wb_dvalid;
+    wire last=dut.u_arm925t.dbg_wb_uop_last;
+    wire [1:0] dabt=dut.u_arm925t.dbg_wb_dabt;
+    wire pabt=dut.u_arm925t.dbg_wb_pabt;
+    wire und=dut.u_arm925t.dbg_wb_und;
+    wire swi=dut.u_arm925t.dbg_wb_swi;
+    wire irq=dut.u_arm925t.dbg_wb_irq;
+    wire fiq=dut.u_arm925t.dbg_wb_fiq;
+    wire [31:0] dpc=dut.u_arm925t.dbg_wb_pc;
+    wire [31:0] cpsr=dut.u_arm925t.dbg_wb_cpsr;
+    wire [31:0] retire_pc=dpc-(cpsr[5]?32'd4:32'd8);
+    wire retire=(dv||dcfail)&&last&&!(|dabt)&&!pabt&&!und&&!swi&&!irq&&!fiq;
+''' + text[end:]
+
+
 def observe_cpu(tb, cpu, scalar=False):
     from observe import observe
-    if cpu in ('ngage2', 'arm9v2'):
-        tb=donor_tb(tb, integrated=cpu=='arm9v2', scalar=scalar)
+    if cpu=='ngage2':
+        tb=donor_tb(tb, scalar=scalar)
+    elif cpu=='arm9v2':
+        tb=phone_tb(tb, scalar)
     tb=observe(tb, cpu in ('ngage2', 'arm9v2'))
     if cpu=='arm9v2':
         tb=tb.replace('dut.u_zap.', 'dut.u_arm925t.u_zap.').replace('dut.dbg_d_', 'dut.u_arm925t.dbg_d_')
@@ -127,14 +123,14 @@ def integrated_snapshot(destination):
         (destination/directory).mkdir()
     return dict(commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
                 kind='phone-arm9v2', files=hashes,
-                source_id=payload.sha(json.dumps(hashes, sort_keys=True).encode()), has_line=False)
+                source_id=payload.sha(json.dumps(hashes, sort_keys=True).encode()), has_line=True)
 
 
 def main():
     p=argparse.ArgumentParser(add_help=False)
     p.add_argument('--trace',action='store_true')
     p.add_argument('--cpu',choices=['5c','base','ngage2','arm9v2'],required=True)
-    p.add_argument('--scalar-refills',action='store_true',help='standalone donor control with the phone CPU responder contract')
+    p.add_argument('--scalar-refills',action='store_true',help='use per-word refills on the original donor or the enlarged phone CPU')
     a,rest=p.parse_known_args()
     original_support=payload.support
     def support():

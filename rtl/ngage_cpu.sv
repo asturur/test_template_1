@@ -40,13 +40,40 @@ module ngage_cpu #(
 `ifdef NGAGE_ARM9V2
     wire [31:0] donor_pc, donor_cpsr, donor_instruction;
     wire donor_fetch;
+    wire donor_cyc, donor_lock, donor_ack, donor_error;
+    wire [31:0] donor_read_data;
+    assign wb_stb = wb_cyc;
 
-    // A donor refill is a wrapped sequence of four owned 32-bit beats.
-    // Use the board's normal word path so every beat can return its own error.
-    // The separate 32-byte line channel has different alignment and framing.
-    assign line_req  = 1'b0;
-    assign line_addr = 32'b0;
-    assign wb_stb    = wb_cyc;
+    ngage_arm9v2_refill #(
+        .ENABLE(LINE_REFILL)
+    ) refill (
+        .clk        (clk),
+        .reset      (reset),
+        .cpu_cyc    (donor_cyc),
+        .cpu_lock   (donor_lock),
+        .cpu_address(wb_address),
+        .cpu_write  (wb_write),
+        .cpu_sel    (wb_byte_enable),
+        .cpu_cti    (wb_cycle_type),
+        .cpu_bte    (wb_burst_type),
+        .cpu_ack    (donor_ack),
+        .cpu_error  (donor_error),
+        .cpu_data   (donor_read_data),
+        .wb_cyc     (wb_cyc),
+        .wb_lock    (wb_lock),
+        .wb_ack     (wb_ack),
+        .wb_error   (wb_error),
+        .wb_data    (wb_read_data),
+        .line_req   (line_req),
+        .line_addr  (line_addr),
+        .line_ready (line_ready),
+        .line_reject(line_reject),
+        .line_valid (line_valid),
+        .line_data  (line_data),
+        .line_wide  (line_wide),
+        .line_last  (line_last),
+        .line_error (line_error)
+    );
 
 `ifndef NGAGE_NO_CPU_DEBUG
     assign debug_pc          = donor_pc;
@@ -60,8 +87,8 @@ module ngage_cpu #(
         .reset            (reset),
         .irq              (irq),
         .fiq              (fiq),
-        .bus_req          (wb_cyc),
-        .bus_lock         (wb_lock),
+        .bus_req          (donor_cyc),
+        .bus_lock         (donor_lock),
         .bus_code         (wb_code),
         .bus_addr         (wb_address),
         .bus_we           (wb_write),
@@ -70,9 +97,9 @@ module ngage_cpu #(
         .bus_cti          (wb_cycle_type),
         .bus_bte          (wb_burst_type),
         .bus_burst        (),
-        .bus_ack          (wb_ack),
-        .bus_err          (wb_error),
-        .bus_rdata        (wb_read_data),
+        .bus_ack          (donor_ack),
+        .bus_err          (donor_error),
+        .bus_rdata        (donor_read_data),
         .bus_no_late_error(1'b0),
         .dbg_pc           (donor_pc),
         .dbg_wb_cpsr      (donor_cpsr),
@@ -131,4 +158,127 @@ module ngage_cpu #(
     assign debug_instruction = 0;
     assign debug_fetch       = 0;
 `endif
+endmodule
+
+// Convert a linear eight-word donor read burst to one board line request.
+// The board can send 16-bit SDRAM or 64-bit DDR beats without backpressure.
+// Deliver each registered word in order while the rest of the line arrives.
+module ngage_arm9v2_refill #(
+    parameter ENABLE = 0
+) (
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        cpu_cyc,
+    input  wire        cpu_lock,
+    input  wire [31:0] cpu_address,
+    input  wire        cpu_write,
+    input  wire [ 3:0] cpu_sel,
+    input  wire [ 2:0] cpu_cti,
+    input  wire [ 1:0] cpu_bte,
+    output wire        cpu_ack,
+    output wire        cpu_error,
+    output wire [31:0] cpu_data,
+    output wire        wb_cyc,
+    output wire        wb_lock,
+    input  wire        wb_ack,
+    input  wire        wb_error,
+    input  wire [31:0] wb_data,
+    output wire        line_req,
+    output wire [31:0] line_addr,
+    input  wire        line_ready,
+    input  wire        line_reject,
+    input  wire        line_valid,
+    input  wire [63:0] line_data,
+    input  wire        line_wide,
+    input  wire        line_last,
+    input  wire        line_error
+);
+    localparam       IDLE  = 2'd0, LINE = 2'd1, SCALAR = 2'd2;
+    localparam [2:0] BURST = 3'b010, END_BEAT = 3'b111;
+    reg [ 1:0] state;
+    reg [ 4:0] received;
+    reg [ 2:0] consumed;
+    reg        failed;
+    reg [15:0] low_half;
+    reg [31:0] words    [0:7];
+
+    wire burst = cpu_cti == BURST;
+    wire line_target = cpu_address[31:24] == 8'h0a || cpu_address < 32'h007f0000 ||
+                       (cpu_address >= 32'h02000000 && cpu_address < 32'h02400000) ||
+                       (cpu_address >= 32'h04000000 && cpu_address < 32'h04800000);
+    assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
+                       !cpu_write && cpu_sel == 4'hf && burst && cpu_bte == 0 &&
+                       cpu_address[4:0] == 0 && line_target;
+    assign line_addr = cpu_address;
+    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
+    // A younger SWP cannot reach the bus before this older refill retires.
+    // Its lock must not prevent SDRAM from accepting the owned line request.
+    assign wb_lock = !reset && cpu_lock && state != LINE;
+    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : wb_cyc && wb_ack;
+    assign cpu_error = state == LINE ? cpu_cyc && failed : wb_cyc && wb_error;
+    assign cpu_data = state == LINE ? words[consumed] : wb_data;
+
+    always @(posedge clk) begin
+        if (reset) begin
+            state    <= IDLE;
+            received <= 0;
+            consumed <= 0;
+            failed   <= 0;
+        end else begin
+            case (state)
+                IDLE: begin
+                    if (line_req && line_ready) begin
+                        state    <= LINE;
+                        received <= 0;
+                        consumed <= 0;
+                        failed   <= 0;
+                    end else if (wb_cyc && burst) state <= SCALAR;
+                end
+                LINE: begin
+                    if (line_reject) state <= SCALAR;
+                    if (line_valid && received < 16) begin
+                        received <= received + (line_wide ? 5'd4 : 5'd1);
+                        if (line_error) failed <= 1;
+                    end
+                    if (cpu_ack || cpu_error) begin
+                        consumed <= consumed + 1'b1;
+                        if (consumed == 7) state <= IDLE;
+                    end
+                end
+                SCALAR:  if (wb_cyc && !burst && (wb_ack || wb_error)) state <= IDLE;
+                default: state <= IDLE;
+            endcase
+        end
+    end
+
+    always @(posedge clk)
+        if (state == LINE && line_valid && !line_wide && !received[0])
+            low_half <= line_data[15:0];
+
+    genvar slot;
+    generate
+        for (slot = 0; slot < 8; slot = slot + 1) begin : line_word
+            always @(posedge clk) begin
+                if (state == LINE && line_valid && received < 16) begin
+                    if (line_wide && received[3:2] == slot >> 1)
+                        words[slot] <= line_data[(slot%2)*32+:32];
+                    else if (!line_wide && received[0] && received[3:1] == slot)
+                        words[slot] <= {line_data[15:0], low_half};
+                end
+            end
+        end
+    endgenerate
+
+    // synthesis translate_off
+    always @(posedge clk)
+        if (!reset && state == LINE) begin
+            if (!cpu_cyc || cpu_write || cpu_address[4:0] != {consumed, 2'b00} ||
+            cpu_cti != (consumed == 7 ? END_BEAT : BURST))
+                $fatal(1, "Donor changed the owned line burst");
+            if (line_reject && received != 0) $fatal(1, "Line rejected after data");
+            if (line_valid && (received >= 16 || (line_wide && received[1:0] != 0) ||
+            (!line_error && line_last != (received + (line_wide ? 5'd4 : 5'd1) == 16))))
+                $fatal(1, "Bad board line framing");
+        end
+    // synthesis translate_on
 endmodule

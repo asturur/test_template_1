@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Expose the pinned stock ARM925T netlist's NEM-4 board signals."""
+"""Configure the pinned stock ARM925T netlist for the NEM-4 phone board."""
 
 import argparse
 import hashlib
@@ -43,6 +43,14 @@ def expose(source):
         .o_dbg_fetch_valid(dbg_fetch_valid),'''.lstrip('\n'))
     modules[top] = edit(modules[top], '\tassign bus_req',
                         '\tassign bus_cti = wb_cti;\n\tassign bus_req')
+    # Match the phone's 16 KiB per cache and 32-byte transport. Keep two ways
+    # and publish the actual geometry in the TI cache-type register.
+    modules[top] = edit(modules[top], 'CACHE_LINE = 16;', 'CACHE_LINE = 32;')
+    modules[top] = edit(modules[top], 'DCACHE_SIZE = 8192;', 'DCACHE_SIZE = 16384;')
+    modules[top] = edit(modules[top], '.CP15_CTYPE(32\'h05109149)', '.CP15_CTYPE(32\'h0514a14a)')
+    dcache = next(i for i, part in enumerate(modules) if part.startswith('module zap_dcache ('))
+    modules[dcache] = edit(modules[dcache], '.INDEX_SIZE(((WAYS == 2) && (CACHE_SIZE > 8192) ? 32\'d8192 : CACHE_SIZE))',
+                           '.INDEX_SIZE(CACHE_SIZE)')
     modules[system] = ports(modules[system], 'i_wb_no_late_error', [
         'output wire o_wb_code', 'output wire o_wb_lock',
         'output wire o_dbg_fetch_valid', 'output wire [31:0] o_dbg_instruction',

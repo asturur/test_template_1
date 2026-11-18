@@ -107,7 +107,7 @@ module ngage2_arm925t (
 	localparam [0:0] HIVECS = 1'b0;
 	localparam signed [31:0] ICACHE_WAYS = 2;
 	localparam signed [31:0] DCACHE_WAYS = 2;
-	localparam signed [31:0] CACHE_LINE = 16;
+	localparam signed [31:0] CACHE_LINE = 32;
 	localparam signed [31:0] DTLB_SPAGE_WAYS = 2;
 	localparam signed [31:0] DTLB_SPAGE_SETS = 256;
 	localparam signed [31:0] ITLB_SPAGE_WAYS = 2;
@@ -117,11 +117,11 @@ module ngage2_arm925t (
 	wire wb_stb;
 	wire [2:0] wb_cti;
 	localparam signed [31:0] ICACHE_SIZE = 16384;
-	localparam signed [31:0] DCACHE_SIZE = 8192;
+	localparam signed [31:0] DCACHE_SIZE = 16384;
 	ngage2_zap_top #(
 		.ARM9_PREDICTOR(ARM9_PREDICTOR),
 		.CP15_ID(32'h54029252),
-		.CP15_CTYPE(32'h05109149),
+		.CP15_CTYPE(32'h0514a14a),
 		.HIVECS(HIVECS),
 		.RESET_VECTOR(RESET_VECTOR),
 		.CODE_CACHE_SIZE(ICACHE_SIZE),
@@ -11249,7 +11249,7 @@ module ngage2_zap_dcache (
 		.WAYS(WAYS),
 		.REG_COLLISION(REG_COLLISION),
 		.ACCEPTED_HIT_UPDATE(1'b1),
-		.INDEX_SIZE(((WAYS == 2) && (CACHE_SIZE > 8192) ? 32'd8192 : CACHE_SIZE))
+		.INDEX_SIZE(CACHE_SIZE)
 	) u_zap_cache_tag_ram(
 		.i_clk(i_clk),
 		.i_reset(i_reset),
