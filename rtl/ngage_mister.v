@@ -20,6 +20,7 @@ module ngage_mister #(
                       GENERAL_DMA        = 1,
                       GAME_PCM           = 0,
                       TEST_SIM_ENABLE    = 1,
+                      MMC_CLK_DIV        = 4,
                       SYS_CLK_HZ         = 104000000,
                       TIMER_CLK_DIV      = 1,
                       NOS_TICK_HZ        = 1000
@@ -227,6 +228,7 @@ module ngage_mister #(
         .LCD_DMA_ENABLE    (1),
         .GENERAL_DMA       (GENERAL_DMA),
         .GAME_PCM          (GAME_PCM),
+        .MMC_CLK_DIV       (MMC_CLK_DIV),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
         .host_timestamp       (host_timestamp),

@@ -142,7 +142,8 @@ module emu (
 
     ///////////////////////   CLOCKS   ///////////////////////////////
 
-    localparam integer SYS_CLK_HZ = 78000000;
+    localparam integer SYS_CLK_HZ  = 78000000;
+    localparam integer MMC_CLK_DIV = 2;
     wire clk_sys;  // 78 MHz — CPU, bus, board devices, SDRAM logic
     wire pll_locked;
 
@@ -973,7 +974,7 @@ module emu (
     wire core_ddr_fetch;
     // D1 streaming and the shared D2 flash backing cache.
     localparam D1_STREAM_TRANSPORT  = 1;
-    localparam D2_FLASH_CACHE_BYTES = 32768;
+    localparam D2_FLASH_CACHE_BYTES = 8192;
     ngage_ddr_flash_adapter #(
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
@@ -1156,6 +1157,7 @@ module emu (
         .LINE_REFILL    (1),
         .DMA_LOCAL      (1),
         .GAME_PCM       (1),
+        .MMC_CLK_DIV    (MMC_CLK_DIV),
         .TEST_SIM_ENABLE(1),
         .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
         .NOS_TICK_HZ    (64),

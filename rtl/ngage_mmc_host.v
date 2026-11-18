@@ -300,11 +300,14 @@ module ngage_mmc_host #(
     // ------------------------------------------------------------------
     // The bus clock: periods of DIV clocks, run while an engine needs them
     // ------------------------------------------------------------------
-    reg  [PHW-1:0] ph;
-    reg            run;  // this period is clocked
-    wire           fall = run && ph == {PHW{1'b0}};
-    wire           rise = run && ph == HALF[PHW-1:0];
+    reg [PHW-1:0] ph;
+    reg           run;  // this period is clocked
     reg cmd_need, dat_need, dat_hold;
+    wire clock_needed = (cmd_need || dat_need) && !dat_hold;
+    // With DIV=2 the receive sample and period-end decision share an
+    // edge. Recheck the updated FIFO/state before starting the next bit.
+    wire fall = run && ph == {PHW{1'b0}} && (DIV != 2 || clock_needed);
+    wire rise = run && ph == HALF[PHW-1:0];
 
     assign mmc_clk = run && ph >= HALF[PHW-1:0];
 
@@ -365,8 +368,8 @@ module ngage_mmc_host #(
         pbyte = 8'd0;
 
         // ---- the clock ----
-        if (run) ph <= (ph == LAST_PHASE[PHW-1:0]) ? {PHW{1'b0}} : ph + 1'd1;
-        if ((run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= (cmd_need || dat_need) && !dat_hold;
+        if (run) ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? {PHW{1'b0}} : ph + 1'd1;
+        if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
 
         // ---- register writes ----
         if (wr) begin
