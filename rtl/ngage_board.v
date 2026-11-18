@@ -173,7 +173,8 @@ module ngage_board #(
 );
     // Named transaction shortcut: the physical D550/AMA-WD2 path remains
     // unimplemented. These resolved CLK/CMD/DAT0 levels model no pin timing,
-    // open-drain arbitration or electrical behavior.
+    // open-drain arbitration or electrical behavior. At divider 1
+    // mmc_clk is a shared serial-bit enable in the system clock domain.
     wire mmc_clk, host_cmd_o, host_cmd_oe, host_dat_o, host_dat_oe;
     wire mmc_prefetch_stop;
     wire card_cmd_o, card_cmd_oe, card_dat_o, card_dat_oe;
@@ -181,7 +182,9 @@ module ngage_board #(
     wire mmc_dat_line = host_dat_oe ? host_dat_o : card_dat_oe ? card_dat_o : 1'b1;
     generate
         if (MMC_ENABLE) begin : mmc_shortcut
-            ngage_mmc_card card (
+            ngage_mmc_card #(
+                .BIT_ENABLE(MMC_CLK_DIV == 1)
+            ) card (
                 .clk            (clk),
                 .reset          (rst || mmc_card_reset),
                 .mmc_clk        (mmc_clk),

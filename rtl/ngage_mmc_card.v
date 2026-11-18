@@ -37,9 +37,9 @@
 // OUT_OF_RANGE; reads past the end of the file read zeros. Writes must fit
 // the mounted data payload as well: the sidecar and padding are not writable.
 //
-// Timing: everything runs on clk; CLK is the host's, sampled in clk, and
-// must stay high and low for at least two clk cycles each. The card samples
-// CMD and DAT0 when CLK rises and changes its outputs when it falls. A
+// Timing: everything runs on clk. In pin mode the card samples CMD and
+// DAT0 when CLK rises and changes its outputs when it falls. In BIT_ENABLE
+// mode both endpoints share clk and use mmc_clk as a serial-bit enable. A
 // response starts NCR clocks after the command's end bit (NID for CMD1 and
 // CMD2); read data at least NAC clocks after the response, once the blocks
 // are in the buffer (a read waits for the HPS, so the host's read timeout
@@ -65,7 +65,8 @@ module ngage_mmc_card #(
     parameter integer         CMD1_BUSY   = 1,
     parameter         [ 31:0] OCR_DEFAULT = 32'h00FF8000,
     // MID, OID, PNM, PRV, PSN, MDT: the CID without its CRC byte
-    parameter         [119:0] CID_DEFAULT = {8'h00, 16'h0000, "MiSTer", 8'h10, 32'h00000001, 8'h17}
+    parameter         [119:0] CID_DEFAULT = {8'h00, 16'h0000, "MiSTer", 8'h10, 32'h00000001, 8'h17},
+    parameter                 BIT_ENABLE  = 0
 ) (
     input wire clk,
     input wire reset,
@@ -172,8 +173,10 @@ module ngage_mmc_card #(
     // ------------------------------------------------------------------
     reg ck_q;
     always @(posedge clk) ck_q <= mmc_clk;
-    wire rise = mmc_clk & ~ck_q;
-    wire fall = ~mmc_clk & ck_q;
+    // A local bit enable presents the old bit to both receivers while
+    // both transmitters update their registers for the next bit.
+    wire rise = BIT_ENABLE ? mmc_clk : mmc_clk & ~ck_q;
+    wire fall = BIT_ENABLE ? mmc_clk : ~mmc_clk & ck_q;
 
     // ------------------------------------------------------------------
     // State

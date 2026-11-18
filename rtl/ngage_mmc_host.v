@@ -68,6 +68,8 @@
 //
 // Bus: CLK = clk / DIV, low at rest; the host changes CMD/DAT0 as CLK falls
 // and samples them as it rises (as rtl/board/mmc_card.sv expects). [assumed]
+// DIV = 1 uses a shared bit enable with the on-FPGA card in the same clock
+// domain. Both ends sample the previous bit and launch the next on each enable.
 // DIV = 4 (26 MHz; 12 is the phone's own rate, the service manual's 8.66 MHz,
 // for an accuracy build); time-outs: 64 clocks to a response start bit (NCR
 // max), 2^TIMEOUT_LOG2 clocks (~323 ms at 26 MHz; 21 at DIV = 12) to a read
@@ -118,7 +120,7 @@ module ngage_mmc_host #(
         end
     endfunction
 
-    localparam integer                    PHW              = clog2(DIV);
+    localparam integer                    PHW              = DIV == 1 ? 1 : clog2(DIV);
     localparam integer                    FAW              = clog2(FIFO_DEPTH);
     localparam integer                    HALF             = DIV / 2;
     localparam integer                    LAST_PHASE       = DIV - 1;
@@ -298,7 +300,7 @@ module ngage_mmc_host #(
     end
 
     // ------------------------------------------------------------------
-    // The bus clock: periods of DIV clocks, run while an engine needs them
+    // Clock or bit enable, active while an engine needs it
     // ------------------------------------------------------------------
     reg [PHW-1:0] ph;
     reg           run;  // this period is clocked
@@ -306,10 +308,12 @@ module ngage_mmc_host #(
     wire clock_needed = (cmd_need || dat_need) && !dat_hold;
     // With DIV=2 the receive sample and period-end decision share an
     // edge. Recheck the updated FIFO/state before starting the next bit.
-    wire fall = run && ph == {PHW{1'b0}} && (DIV != 2 || clock_needed);
-    wire rise = run && ph == HALF[PHW-1:0];
+    // At DIV=1 the on-FPGA card consumes a bit enable. Both ends sample
+    // the previous registered bit and launch the next bit on that edge.
+    wire fall = DIV == 1 ? mmc_clk : run && ph == {PHW{1'b0}} && (DIV != 2 || clock_needed);
+    wire rise = DIV == 1 ? mmc_clk : run && ph == HALF[PHW-1:0];
 
-    assign mmc_clk = run && ph >= HALF[PHW-1:0];
+    assign mmc_clk = DIV == 1 ? clock_needed && !reset : run && ph >= HALF[PHW-1:0];
 
     // ------------------------------------------------------------------
     // The engines
