@@ -383,7 +383,8 @@ module zap_dcache #(
 
   // ARM920T translation controller and table-walk bus.
   arm920_tlb #(
-      .CPSR_MODE(CPSR_MODE)
+      .CPSR_MODE(CPSR_MODE),
+      .THIRD_MAPPING(1)
   ) u_zap_tlb (
       .i_clk           (i_clk),
       .i_reset         (i_reset),

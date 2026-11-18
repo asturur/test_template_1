@@ -47,3 +47,5 @@ docs/cpu-late-operand.md.
 
 Patch0082 records the exact qualified banked integration. See
 docs/tlb-area.md.
+
+Patch0083 enables the third checked translation mapping on the D side.
