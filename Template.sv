@@ -142,8 +142,8 @@ module emu (
 
     ///////////////////////   CLOCKS   ///////////////////////////////
 
-    localparam integer SYS_CLK_HZ = 78000000;
-    localparam integer MMC_CLK_DIV = 1;  // On-FPGA MMC link: one serial bit per system clock.
+    localparam integer SYS_CLK_HZ  = 78000000;
+    localparam integer MMC_CLK_DIV = 2;
     wire clk_sys;  // 78 MHz — CPU, bus, board devices, SDRAM logic
     wire pll_locked;
 
