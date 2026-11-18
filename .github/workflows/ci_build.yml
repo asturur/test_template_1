@@ -1,5 +1,5 @@
 name: CI Build
-run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }}, game PCM ${{ inputs.enable_game_pcm && 'on' || 'off' }})
+run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})
 
 on:
   workflow_dispatch:
@@ -11,11 +11,6 @@ on:
         type: string
       enable_debugger:
         description: Include DDR runtime debugger (uncheck to remove all recorder hardware)
-        required: false
-        default: false
-        type: boolean
-      enable_game_pcm:
-        description: Include experimental game PCM playback and, with DDR debug, its audio monitor
         required: false
         default: false
         type: boolean
@@ -39,10 +34,6 @@ jobs:
         env:
           DDR_DEBUG_ENABLED: ${{ inputs.enable_debugger }}
         run: python3 tools/set_quartus_debug.py Template.qsf --enabled "$DDR_DEBUG_ENABLED"
-
-      - name: Select experimental game PCM
-        if: ${{ inputs.enable_game_pcm }}
-        run: printf '%s\n' 'set_global_assignment -name VERILOG_MACRO "NGAGE_GAME_PCM=1"' >> Template.qsf
 
       # Keep this directory runner-owned: Quartus runs as root in Docker,
       # while the host Python step must also write the Markdown summary.
