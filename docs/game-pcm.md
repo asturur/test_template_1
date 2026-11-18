@@ -10,8 +10,8 @@ from the MDI `0xd0/04` announcement and selects media `0x12`. Its
 and stop frames for native MDI send task 4. The TX task swaps the Phonet
 length to big-endian before publishing the frame to the shared ring.
 
-With the experimental game PCM build option, the UPP MDI responder now
-accepts those stock frames. It validates the two nonoverlapping SDRAM
+The MiSTer core includes the UPP MDI responder and accepts those stock frames.
+The responder validates the two nonoverlapping SDRAM
 halves within the pages mapped by `audio.ldd`, hands their addresses and
 frame lengths to the existing PCM player, and sends start, refill and stop
 responses through the native D2M ring and IRQ10. The 8 and 16 kHz mono
@@ -135,8 +135,8 @@ under `build/`.
 
 ## Fit and board capture
 
-The CI option **Include experimental game PCM** selects
-`NGAGE_GAME_PCM` during elaboration. With the DDR debugger enabled, a
+The historical comparison below used an opt-in game PCM build. Current
+builds always include playback. With the DDR debugger enabled, a
 65,536-frame ring records the signed stereo core output at 48 kHz, before
 the MiSTer HDMI and analog paths. The ring publishes its completed head
 and a loss count. It separately latches whether any nonzero output sample

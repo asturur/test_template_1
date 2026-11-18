@@ -28,12 +28,7 @@ module emu (
     assign HDMI_BLACKOUT  = 0;
     assign HDMI_BOB_DEINT = 0;
 
-`ifdef NGAGE_GAME_PCM
-    localparam GAME_PCM = 1;
-`else
-    localparam GAME_PCM = 0;
-`endif
-    assign AUDIO_S   = GAME_PCM;
+    assign AUDIO_S   = 1'b1;
     assign AUDIO_MIX = 0;
 
     assign LED_DISK  = 0;
@@ -541,70 +536,60 @@ module emu (
         if (`ENABLE_DEBUGGER) begin : debugger_transport
             wire message_valid, message_ready, message_write, message_done;
             wire [31:0] message_addr, message_data, message_rdata;
-            if (GAME_PCM) begin : pcm_recorder
-                wire pcm_valid_req, pcm_ready_req, pcm_done_req;
-                wire [31:0] pcm_addr_req, pcm_data_req;
-                ngage_diag_pcm_ddr audio (
-                    .clk         (clk_sys),
-                    .reset       (transport_reset),
-                    .sample_valid(pcm_valid),
-                    .sample      ({AUDIO_R, AUDIO_L}),
-                    .activity    ({lcd_dma_req, mmc_active}),
-                    .req_valid   (pcm_valid_req),
-                    .req_ready   (pcm_ready_req),
-                    .req_addr    (pcm_addr_req),
-                    .req_data    (pcm_data_req),
-                    .rsp_valid   (pcm_done_req)
-                );
-                ngage_ddr_arbiter audio_and_text (
-                    .clk           (clk_sys),
-                    .reset         (transport_reset),
-                    .cpu_lock      (1'b0),
-                    .l_bulk        (1'b0),
-                    .c_bulk        (1'b0),
-                    .req_bulk      (),
-                    .c_line        (1'b0),
-                    .req_line      (),
-                    .rsp_beat_valid(1'b0),
-                    .rsp_beat_data (64'b0),
-                    .rsp_beat_last (1'b0),
-                    .c_beat_valid  (),
-                    .c_beat_data   (),
-                    .c_beat_last   (),
-                    .l_valid       (pcm_valid_req),
-                    .l_ready       (pcm_ready_req),
-                    .l_write       (1'b1),
-                    .l_addr        (pcm_addr_req),
-                    .l_data        (pcm_data_req),
-                    .l_be          (4'hf),
-                    .l_done        (pcm_done_req),
-                    .l_rdata       (),
-                    .c_valid       (text_valid),
-                    .c_ready       (text_ready),
-                    .c_write       (text_write),
-                    .c_addr        (text_addr),
-                    .c_data        (text_data),
-                    .c_be          (4'hf),
-                    .c_done        (text_done),
-                    .c_rdata       (text_rdata),
-                    .req_valid     (message_valid),
-                    .req_ready     (message_ready),
-                    .req_write     (message_write),
-                    .req_addr      (message_addr),
-                    .req_data      (message_data),
-                    .req_be        (),
-                    .rsp_valid     (message_done),
-                    .rsp_data      (message_rdata)
-                );
-            end else begin : text_only
-                assign message_valid = text_valid;
-                assign text_ready    = message_ready;
-                assign message_write = text_write;
-                assign message_addr  = text_addr;
-                assign message_data  = text_data;
-                assign text_done     = message_done;
-                assign text_rdata    = message_rdata;
-            end
+            wire pcm_valid_req, pcm_ready_req, pcm_done_req;
+            wire [31:0] pcm_addr_req, pcm_data_req;
+            ngage_diag_pcm_ddr audio (
+                .clk         (clk_sys),
+                .reset       (transport_reset),
+                .sample_valid(pcm_valid),
+                .sample      ({AUDIO_R, AUDIO_L}),
+                .activity    ({lcd_dma_req, mmc_active}),
+                .req_valid   (pcm_valid_req),
+                .req_ready   (pcm_ready_req),
+                .req_addr    (pcm_addr_req),
+                .req_data    (pcm_data_req),
+                .rsp_valid   (pcm_done_req)
+            );
+            ngage_ddr_arbiter audio_and_text (
+                .clk           (clk_sys),
+                .reset         (transport_reset),
+                .cpu_lock      (1'b0),
+                .l_bulk        (1'b0),
+                .c_bulk        (1'b0),
+                .req_bulk      (),
+                .c_line        (1'b0),
+                .req_line      (),
+                .rsp_beat_valid(1'b0),
+                .rsp_beat_data (64'b0),
+                .rsp_beat_last (1'b0),
+                .c_beat_valid  (),
+                .c_beat_data   (),
+                .c_beat_last   (),
+                .l_valid       (pcm_valid_req),
+                .l_ready       (pcm_ready_req),
+                .l_write       (1'b1),
+                .l_addr        (pcm_addr_req),
+                .l_data        (pcm_data_req),
+                .l_be          (4'hf),
+                .l_done        (pcm_done_req),
+                .l_rdata       (),
+                .c_valid       (text_valid),
+                .c_ready       (text_ready),
+                .c_write       (text_write),
+                .c_addr        (text_addr),
+                .c_data        (text_data),
+                .c_be          (4'hf),
+                .c_done        (text_done),
+                .c_rdata       (text_rdata),
+                .req_valid     (message_valid),
+                .req_ready     (message_ready),
+                .req_write     (message_write),
+                .req_addr      (message_addr),
+                .req_data      (message_data),
+                .req_be        (),
+                .rsp_valid     (message_done),
+                .rsp_data      (message_rdata)
+            );
 
             ngage_ddr_arbiter diagnostic_arbiter (
                 .clk           (clk_sys),
@@ -1170,7 +1155,7 @@ module emu (
         .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
         .LINE_REFILL    (1),
         .DMA_LOCAL      (1),
-        .GAME_PCM       (GAME_PCM),
+        .GAME_PCM       (1),
         .TEST_SIM_ENABLE(1),
         .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
         .NOS_TICK_HZ    (64),

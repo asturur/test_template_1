@@ -7,8 +7,8 @@ The original ingress accepts the replies for task 0x2c. External D550
 uses 0x78 on MADI. The previous attribution to the generic NOS task
 doorbell was incorrect.
 
-The game PCM build option now includes a mono 8/16 kHz stream responder on
-the UPP's MDI rings. It shares the playback engine and SDRAM port from the
+Every MiSTer build includes a mono 8/16 kHz stream responder on the UPP's
+MDI rings. It shares the playback engine and SDRAM port from the
 diagnostic build, and delivers completion through native IRQ10. The
 original ARM MDI driver and NOS routing fixtures run without changes to
 their ROM inputs. A full-game run on the fitted MiSTer core with the
