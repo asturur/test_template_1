@@ -18,6 +18,7 @@ module ngage_mister #(
                       DIRECT_SDRAM       = 1,
                       DMA_LOCAL          = 1,
                       GENERAL_DMA        = 1,
+                      GAME_PCM           = 0,
                       TEST_SIM_ENABLE    = 1,
                       SYS_CLK_HZ         = 104000000,
                       TIMER_CLK_DIV      = 1,
@@ -62,6 +63,13 @@ module ngage_mister #(
     output wire [ 24:0] dma_sdram_addr,
     input  wire         dma_sdram_ack,
     input  wire [ 31:0] dma_sdram_data,
+    output wire         pcm_sdram_req,
+    output wire [ 24:0] pcm_sdram_addr,
+    input  wire         pcm_sdram_ack,
+    input  wire [ 31:0] pcm_sdram_data,
+    output wire [ 15:0] pcm_left,
+    output wire [ 15:0] pcm_right,
+    output wire         pcm_valid,
     output wire [  7:0] dma_error_pending,
     output wire         dma_cmd_valid,
     input  wire         dma_cmd_ready,
@@ -170,6 +178,7 @@ module ngage_mister #(
     wire [31:0] dma_reg_data, dma_lcd_data;
     wire [14:0] dma_lcd_addr;
     wire [31:0] brd_dout;
+    wire        pcm_irq;
     wire        lcd_unsupported_valid;
     wire [31:0] lcd_unsupported_data;
     wire        board_trace_valid;
@@ -214,6 +223,7 @@ module ngage_mister #(
         .LCD_ENABLE        (1),
         .LCD_DMA_ENABLE    (1),
         .GENERAL_DMA       (GENERAL_DMA),
+        .GAME_PCM          (GAME_PCM),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
         .host_timestamp       (host_timestamp),
@@ -340,6 +350,7 @@ module ngage_mister #(
         .cfg_keypad           (1'b1),
         .cfg_clocks           (1'b1),
         .dma_irq_pending      (1'b0),
+        .pcm_irq              (pcm_irq),
         .sim_fiq_pending      (1'b0),
         .dma_irq_clear        (),
         .claim                (brd_claim),
@@ -357,6 +368,56 @@ module ngage_mister #(
 
     // --- physical address decode --------------------------------------------
     wire [31:0] pa = {wb_adr[31:2], 2'b00};
+
+    // The game playback window is a software interface, separate from UPP.
+    wire pcm_claim = GAME_PCM && pa[31:8] == 24'h0c1f00;
+    wire pcm_access = !core_reset && wb_cyc && wb_stb && pcm_claim;
+    wire pcm_bad = pcm_access && (wb_code || wb_sel != 4'b1111);
+    wire [31:0] pcm_data;
+    generate
+        if (GAME_PCM) begin : game_pcm
+            wire        read_request;
+            wire [31:0] read_address;
+            wire        ram_address = read_address[31:24] == 8'h0a;
+            assign pcm_sdram_req  = read_request && ram_address && !core_reset;
+            assign pcm_sdram_addr = read_address[24:0];
+
+            ngage_game_pcm #(.CLK_HZ(SYS_CLK_HZ)) player (
+                .clk     (clk_sys),
+                .reset   (core_reset),
+                .acc     (pcm_access && !pcm_bad),
+                .wr      (pcm_access && !pcm_bad && wb_we),
+                .off     (pa[7:0]),
+                .wdata   (wb_dat_o),
+                .rmask   (),
+                .rdata   (pcm_data),
+                .irq     (pcm_irq),
+                .m_cyc   (read_request),
+                .m_stb   (),
+                .m_we    (),
+                .m_adr   (read_address),
+                .m_dat_o (),
+                .m_sel   (),
+                .m_ack   (pcm_sdram_ack),
+                .m_err   (read_request && !ram_address),
+                .m_dat_i (pcm_sdram_data),
+                .out_l   (pcm_left),
+                .out_r   (pcm_right),
+                .out_valid(pcm_valid),
+                .frame_we(),
+                .frame_l (),
+                .frame_r ()
+            );
+        end else begin : no_game_pcm
+            assign pcm_sdram_req  = 1'b0;
+            assign pcm_sdram_addr = 25'd0;
+            assign pcm_data       = 32'd0;
+            assign pcm_irq        = 1'b0;
+            assign pcm_left       = 16'd0;
+            assign pcm_right      = 16'd0;
+            assign pcm_valid      = 1'b0;
+        end
+    endgenerate
 
     // Decode the same nonoverlapping banks as the software reference.
     wire ram_hit, rom_hit, cdrive_hit, pmm_hit;
@@ -389,7 +450,7 @@ module ngage_mister #(
     wire memory_owned = memory_owner_valid && (|memory_owner);
     wire memory_req = wb_cyc && wb_stb && memory_owned;
     wire unclaimed_req = wb_cyc && wb_stb && memory_owner_valid &&
-                         !(|memory_owner) && !brd_claim && !dma_claim;
+                         !(|memory_owner) && !brd_claim && !dma_claim && !pcm_claim;
     // Keep the observation bit's original meaning: an access not routed to a
     // board register, including unmapped accesses reported as decode faults.
     wire mem_req = memory_req || unclaimed_req;
@@ -576,8 +637,8 @@ module ngage_mister #(
     wire mem_ack = memory_owner[0] ? sdram_ack : (flash_response && !flash_error);
     // Register board/decode faults so Wishbone STB suppression on ERR cannot
     // form a combinational loop. No invalid access is acknowledged as success.
-    wire board_fault = !memory_owned && ((dma_claim && dma_bad) ||
-                       (!dma_claim && brd_claim && brd_ready && brd_unmodeled));
+    wire board_fault = pcm_bad || (!memory_owned && ((dma_claim && dma_bad) ||
+                       (!dma_claim && brd_claim && brd_ready && brd_unmodeled)));
     reg invalid_response = 0;
     always @(posedge clk_sys) begin
         if (core_reset) invalid_response <= 0;
@@ -585,11 +646,12 @@ module ngage_mister #(
     end
     wire lcd_write_collision = dma_lcd_valid && wb_cyc && wb_stb && wb_we && pa == 32'h0c121208;
     assign wb_ack = core_reset ? 1'b0 : memory_owned ? mem_ack :
+                    pcm_claim ? pcm_access && !pcm_bad :
                     lcd_write_collision ? 1'b0 : dma_claim ? (dma_ready && !dma_bad) :
                     brd_claim ? (brd_ready && !brd_unmodeled) : 1'b0;
     assign wb_dat_i = memory_owned ? (memory_owner[0] ? sdram_dout :
                                      memory_owner[2] ? user_data : code_data) :
-                     dma_claim ? dma_reg_data : brd_dout;
+                     pcm_claim ? pcm_data : dma_claim ? dma_reg_data : brd_dout;
     assign wb_err = !core_reset && (invalid_response || flash_error);
 
 

@@ -7,6 +7,10 @@ module capture_tb;
     reg [24:0] lcd_addr=25'h100, dma_addr=25'h200;
     reg [31:0] dma_data=32'h12345678;
     reg [3:0] dma_be=4'h5;
+    reg pcm_req = 0;
+    reg [24:0] pcm_addr = 25'h300;
+    wire pcm_ack;
+    wire [31:0] pcm_rdata;
     wire lcd_accept, lcd_ack, dma_ack, req, we, accept, ack;
     wire [24:0] addr, physical_addr;
     wire [31:0] data, rdata, physical_data;
@@ -15,11 +19,13 @@ module capture_tb;
     integer n;
     reg [24:0] expected_addr;
     reg [31:0] expected_data;
+    reg expected_pcm, expected_lcd, expected_dma;
     ngage_dma_ram_mux mux (
         .clk(clk),.reset(reset),.lcd_req(lcd_req),.lcd_addr(lcd_addr),
         .lcd_accept(lcd_accept),.lcd_ack(lcd_ack),.lcd_rdata(),
         .dma_req(dma_req),.dma_write(dma_write),.dma_addr(dma_addr),
         .dma_data(dma_data),.dma_be(dma_be),.dma_ack(dma_ack),.dma_rdata(),
+        .pcm_req(pcm_req),.pcm_addr(pcm_addr),.pcm_ack(pcm_ack),.pcm_rdata(pcm_rdata),
         .mem_req(req),.mem_write(we),.mem_addr(addr),.mem_data(data),.mem_be(be),
         .mem_accept(accept),.mem_ack(ack),.mem_rdata(rdata)
     );
@@ -61,10 +67,42 @@ module capture_tb;
             @(negedge clk);
             complete=0;dma_be=4'h5;dma_write=1;
         end
-        lcd_req=0;dma_req=0;
+        // Model a PCM word arriving while LCD fetches and MMC DMA are live.
+        // The next two non-PCM responses still alternate LCD then general DMA.
+        pcm_req = 1;
+        for (n = 0; n < 12; n = n + 1) begin
+            lcd_addr = 25'h100 + n;
+            dma_addr = 25'h200 + n;
+            pcm_addr = 25'h300 + n;
+            expected_pcm = !n[0];
+            expected_lcd = n[1:0] == 2'd1;
+            expected_dma = n[1:0] == 2'd3;
+            expected_addr = expected_pcm ? pcm_addr : expected_lcd ? lcd_addr : dma_addr;
+            #1;
+            if (!accept || lcd_accept !== expected_lcd)
+                $fatal(1, "three-way admission %0d", n);
+            @(negedge clk);
+            pcm_addr = 25'h999;
+            repeat (3) begin
+                #1;
+                if (!physical_req || physical_addr !== expected_addr ||
+                    physical_we !== expected_dma || physical_be !== (expected_dma ? 4'h5 : 4'hf) ||
+                    accept || lcd_accept || pcm_ack || lcd_ack || dma_ack)
+                    $fatal(1, "three-way captured request %0d", n);
+                @(negedge clk);
+            end
+            complete = 1;
+            #1;
+            if (pcm_ack !== expected_pcm || lcd_ack !== expected_lcd || dma_ack !== expected_dma ||
+                pcm_rdata !== 32'hcafef00d)
+                $fatal(1, "three-way response ownership %0d", n);
+            @(negedge clk);
+            complete = 0;
+        end
+        lcd_req=0;dma_req=0;pcm_req=0;
         #1;
-        if(physical_req || lcd_ack || dma_ack) $fatal(1,"ghost owner");
-        $display("PASS DMA RAM mux outer packet retention, 32 alternating requests and response ownership");
+        if(physical_req || lcd_ack || dma_ack || pcm_ack) $fatal(1,"ghost owner");
+        $display("PASS DMA RAM mux outer packet retention, 32 alternating and 12 three-source requests");
         $finish;
     end
     initial begin
