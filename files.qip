@@ -64,6 +64,7 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_nos_io.v
 # Legacy announcement-only comparison; not in production.
 # set_global_assignment -name VERILOG_FILE rtl/ngage_mdi_stub.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp_dsp_peer.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_upp_dsp_pcm.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp_mdi.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_upp_euart.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_cbus_uem.v

@@ -228,7 +228,7 @@ against the routing table's u16 `dev<<8|obj` entries (0x51530c40-0x51530c6c).
   completion signal. LDD `0x511b41e8` forwards the number to endpoint
   `0x514a183c`, which validates channel state. See [semi-real NOS](semi-real-nos.md).
 
-### 2.4 NOS task send primitive and the DSP hardware mailbox (read from code)
+### 2.4 NOS task send primitive (read from code)
 
 `os_send(task_id, msgptr)` = **0x514a77f8**:
 - task_id ≤ 0x2D: per-task ring: array base [global], entry 12 bytes
@@ -237,8 +237,9 @@ against the routing table's u16 `dev<<8|obj` entries (0x51530c40-0x51530c6c).
 - task_id > 0x2D (and the wake path at 0x514a7814): the message pointer is
   written to a **hardware FIFO at 0x58210000** with a tag sequence (halfword:
   byte from global; bytes 0x36, 0x8C/0x83/0x9E; word task_id; word msgptr;
-  word 0), then **strb 0x10 to 0x58200000** triggers the doorbell. This is the
-  MCU→DSP mailbox of the NEM-4 (addresses are physical MMIO; HDL-relevant).
+  word 0), then **strb 0x10 to 0x58200000** triggers the doorbell. These are
+  virtual addresses at physical `0x0d010000` and `0x0d000000`. The
+  verified game PCM route uses the separate UPP MDI shared ring.
 - The work queue id used by the Symbian bridge closures is **0x21**
   (0x514a1d18: `mov r0,#0x21; bl 0x514a77f8`).
 
@@ -266,7 +267,8 @@ Boot-gating mappings: **energy mgmt 0x17 → obj 0x1F; phone info 0x1B → obj
 0x02 → obj 0x42**. **SIM (0x09) is NOT in the static table** — the SIM server
 registers its name at runtime into the RAM bank (name-service resource 0x10,
 handler 0x515305c4, "name add" msg 0x10). Audio resources 0xE8/0xF0-0xF3
-route to device 0x7C (the ADSP), not to an MCU object.
+route to device 0x7C, the UPP's internal DSP. The external D550 MADI device
+uses 0x78.
 
 ### 2.6 Object → NOS task (read from code)
 
@@ -604,7 +606,7 @@ with code but not byte-verified.
 | phone info 0x1B | 0x00, target 0x41 | `{utid, 0x01, 0x00(ok), 1}` + sb `{0x41, 0x14, 0x00, 0x10, 16-char IMEI}`; other targets 0x42..0x5A via table 0x5164bc14 | 0x51591bd0, 0x5164bbd8, 0x5164bc80 | read |
 | accessory 0x1C | 0x10, 0x12 | resp ids 0x11/0x13? (mgr consumes 0x1C11/0x1C12); body unverified | 0x515953c4 | partial |
 | tones 0x1F | — | served by MCU task 0x22 (obj 0x2F), NOT the DSP | 0x516f49e0 | read (routing) |
-| PCM 0xE8, audio 0xF0-0xF3 | — | routed to device 0x7C (ADSP) via the HW mailbox 0x58210000/0x58200000 | name table 0x516f4bdc+, 0x514a77f8 | read (routing) |
+| PCM 0xE8, audio 0xF0-0xF3 | — | routed to 0x7C by the name table. E8 uses media 0x12 and the UPP MDI rings at 0x0c100000 | name table, stock router, 0x515bf06c MDI callback | original-instruction E8 fixture |
 
 ## 5. Diffs vs the ngvm oracle (sw/kernel/chan.c)
 
