@@ -1,0 +1,98 @@
+{
+  "schema": 1,
+  "hardware": {
+    "status": "PASS",
+    "image_before": "a8cc5e20918aa1b54b92504f384a0ff5c29069e91e3b1a9823fe94e18bfe65d8",
+    "image_after": "384d06740880f3cc99dab7d49b96682a1b61a713f958c0dc6742c67da4ffcc9a",
+    "changed_lbas": [
+      33,
+      161,
+      321,
+      345
+    ],
+    "file": {
+      "path": "/WRITE_~1/README.TXT",
+      "bytes": 374,
+      "clusters": 1,
+      "sha256": "3cd43488e4b42f4b5320cd15e038a49e9019762560590737a0baa7311b49a395"
+    },
+    "preserved_files": [
+      {
+        "path": "/WRITE_~1/SEED.TXT",
+        "bytes": 97,
+        "clusters": 1,
+        "sha256": "72d789d14eedc295f535fbaa41bd104ed6319203c18999a9342837f3a4626113"
+      },
+      {
+        "path": "/README.TXT",
+        "bytes": 374,
+        "clusters": 1,
+        "sha256": "3cd43488e4b42f4b5320cd15e038a49e9019762560590737a0baa7311b49a395"
+      }
+    ],
+    "fat_mirrors_equal": true,
+    "rbf_sha256": "110ae84d226bf0a6cd5e963cb8b884a72df4d9de44ed8b0d18391a3e96047ded",
+    "revision": "1928aeef68cbd65699014854326c38101f5249a7",
+    "quartus_run": 44258633306,
+    "clock_hz": 78000000,
+    "fd_before": "/proc/12976/fd/14",
+    "fd_reopened": "/proc/15057/fd/14",
+    "open_flags_octal": "06410002",
+    "backing_path": "/media/fat/games/NGage/write-test-128mb.mmc",
+    "after_guest_reopen_sha256": "384d06740880f3cc99dab7d49b96682a1b61a713f958c0dc6742c67da4ffcc9a",
+    "guest_cold_readback": "FExplorer opened the copied README.TXT and displayed its text",
+    "boot_note": "Saved CPU Hold required one verified live switch to Run after reload",
+    "captures": {
+      "dest-before.png": "e71407cb5df45ece086b7547c35160ef7b57cdba8b6837811b0aa5d8e98f56c0",
+      "dest-after.png": "8c730a9e6c9cb7687efb292927ddf6c7085db61a16a57828e99218c1af7b9fb8",
+      "cold-folder.png": "983f0dd85df2b301fb7e1475f8aefbdaba22d10a45b31e4856c83d714ab4fc2b",
+      "cold-readback.png": "cb8ed632f404f88f286cbd79331b36b7f51db4d276516e725473d874a278292f"
+    }
+  },
+  "original_filesystem_replay": {
+    "status": "PASS",
+    "image_before": "a8cc5e20918aa1b54b92504f384a0ff5c29069e91e3b1a9823fe94e18bfe65d8",
+    "image_after": "f3a0ddb1c46f260c1dcc1ff396c6a1be4caaa1039454031670a71646d6fa42b9",
+    "changed_lbas": [
+      33,
+      161,
+      321,
+      345,
+      346,
+      347,
+      348
+    ],
+    "file": {
+      "path": "/WRITE_~1/ROUNDTRP.BIN",
+      "bytes": 1739,
+      "clusters": 1,
+      "sha256": "f57cd31000ae2621b93d0cf689dc055d84b8c36b017dc24e74f75b5d0f0640ec"
+    },
+    "preserved_files": [
+      {
+        "path": "/WRITE_~1/SEED.TXT",
+        "bytes": 97,
+        "clusters": 1,
+        "sha256": "72d789d14eedc295f535fbaa41bd104ed6319203c18999a9342837f3a4626113"
+      },
+      {
+        "path": "/README.TXT",
+        "bytes": 374,
+        "clusters": 1,
+        "sha256": "3cd43488e4b42f4b5320cd15e038a49e9019762560590737a0baa7311b49a395"
+      }
+    ],
+    "fat_mirrors_equal": true,
+    "writes": 6,
+    "written_bytes": 4299,
+    "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "readback_bytes": 1739,
+    "readonly_write_status": -21,
+    "readonly_backing_writes": 0,
+    "negative_controls": {
+      "corrupt_file_lba": 345,
+      "neighbor_lba": 344,
+      "rejected": true
+    }
+  }
+}

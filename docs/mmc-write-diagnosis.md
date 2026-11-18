@@ -1,14 +1,50 @@
-# MMC write failure audit — 17 November 2026
+# MMC write diagnosis and persistence
 
-## Current operator test card
+## 18 November — native file copy survives a cold remount on master
+
+The installed 78 MHz RBF matches the archived `1928aee` fit from run
+`44258633306`. MiSTer Main had the designated 128 MB image open read/write.
+Its initial SHA-256 matched the local fixture. The original guest took one
+FExplorer Copy/Paste from `E:\README.TXT` to `E:\WRITE_TEST\README.TXT`.
+The destination initially held only `SEED.TXT`. FExplorer reported Paste
+completion and listed the new 374-byte file.
+
+An independent read of the Linux backing file found the complete new file
+with the source SHA-256, matching FAT copies and all three allocated file
+chains. Exactly LBAs 33, 161, 321 and 345 changed. The image's footer,
+partition, neighboring sectors and original two files passed the checks.
+A fresh Main process reopened the same image with the post-write hash.
+After resuming CPU Run from the saved Hold setting, the freshly booted
+guest opened the copied file and displayed its text. The final Linux file
+hash matched the pre-remount capture. This run observed a working native
+guest-to-Linux write and cold readback on the exact fitted revision.
+
+The separate original FileServer replay creates and flushes a 1,739-byte
+file under the reference kernel. The host syncs and closes the disposable
+image. A new guest reads all bytes, and a read-only run rejects the write
+with `-21` and issues no backing writes. All four file-data sectors and
+the expected FAT and directory sectors changed. The checker rejects a
+modified data byte and a change in an adjacent sector. The reference local
+drive needs the FAT partition view starting at LBA 32. An early open before
+EStart completed returned `-18`. Passing the MBR to the mounted FAT volume
+after EStart returned `-20`.
+
+The tested hardware write completed with the existing production transport.
+No MMC RTL correction is required by this reproduction. Routed timing is
+recorded in the original fit report, which missed the 78 MHz timing gate.
+[Machine evidence](evidence/mmc-file-roundtrip-20261118.json) ·
+[Reproducer](../tests/phone/mmc_file_roundtrip/README.md) ·
+[Exact board fit](tlb-banked-third-fit.md).
+
+## 17 November — original operator test card
 
 The operator requested a fresh **128 MB writable card** for manual testing.
 `build/mmc/write-test-128mb.mmc` is full-capacity FAT16 with two verified
 files, matching FAT mirrors, no allocation errors, class4 writes enabled,
 WRITE_BL_LEN9, valid register/footer CRCs and both protection bits clear.
 Its target path is`/media/fat/games/NGage/write-test-128mb.mmc`.
-The agent does not mount it or send phone input; native write testing remains
-with the operator. Fixed synthetic inputs are retained under
+The original audit left native write testing with the operator. Fixed
+synthetic inputs are retained under
 `tests/phone/mmc_write_diagnosis/card/`.
 [Card manifest](evidence/mmc-write-test-card-20261117.json).
 
