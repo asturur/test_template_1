@@ -1,3 +1,41 @@
+## 2026-11-19 — v5 SDRAM and flash cache change reaches the logo on a board
+
+The seed-43 fit of the ngage2 SDRAM service with the 64 KiB flash cache
+boots the unchanged 4.03 service files to the Nokia logo on a DE10-Nano.
+With erased C: and PMM images it stays there, and so does `8546db1`'s CI RBF
+on the same board; the two captures are byte-identical. The menu, SPMark04
+and games still need a run with an initialized C: and PMM. In simulation
+`run-real-sdram.sh` passes its 5M-clock bound and a 400M-clock run with the
+production settings (zero data errors, 18,353 LCD data writes, 72,474 RAM
+line reads), and `raw_save/run-nor.sh` passes at 65536.
+[Verification and limits](ngage2-sdram.md#verification).
+
+## 2026-11-19 — v5 selects a 64 KiB flash backing cache
+
+`ngage_ddr_flash_cache` accepts 65536 and 131072 bytes and the v5 build
+selects 65536. On `tests/phone/membench` at 78 MHz a second pass over
+64 KiB of flash data costs 21 % fewer clocks and four passes over 96 KiB of
+flash code 16 % fewer (48 % fewer with 128 KiB). Seed 43 at 64 KiB meets
+78 MHz timing (+0.227 ns worst slow corner, 471 M10K); 128 KiB missed on
+seeds 43 and 44 (−0.199 and −0.737 ns, 539 M10K). The unit test covers both
+new sizes. Simulation and fit only.
+[Sizes, clocks and fits](ddr-flash-cache.md#64-and-128-kib-2026-11-19).
+
+## 2026-11-19 — v5 phone RAM on ngage2's SDRAM controller
+
+`ngage_sdram_fast` and ngage2's open-row controller replace
+`ngage_sdram_adapter` and `jtframe_sdram64` in the v5 build. A posted word
+store took 13 clocks on the old path and takes 3; a 32-byte line read is one
+chained burst. The whole-board `tests/phone/membench` (a firmware-free
+guest, real SDRAM service and chip model, production DDR flash path) falls
+from 70.8 to 59.0 ms at 78 MHz: word fills −69 %, halfword fills −77 %,
+copies −51 %, line fills −2 to −4 %. `memtest` and the new unit test pass at
+78 and 104 MHz. Seed 43 at 78 MHz meets timing (+0.432 ns worst slow
+corner, 36,249 ALMs, 437 M10K, DQ registers in the I/O cells).
+At a 104 MHz PLL the design misses by 3.4 to 3.5 ns with either SDRAM
+controller. No board has run this build.
+[Measurements, fit and limits](ngage2-sdram.md).
+
 ## 2026-11-19 — v5 restores the 32 KiB flash backing cache
 
 The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC

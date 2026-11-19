@@ -27,7 +27,6 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_diag_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diag_text_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_clock.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_adapter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_route.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_engine.v
@@ -102,12 +101,10 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
 set_global_assignment -name VERILOG_MACRO "NGAGE_ARM9V2=1"
 set_global_assignment -name VERILOG_FILE rtl/arm9v2/arm925t_phone.v
 
-# SDRAM controller (jtframe_sdram64, self-contained)
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_bank.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_init.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_latch.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_rfsh.v
+# SDRAM: ngage2's open-row controller behind the phone's request ports
+# Replaced: rtl/ngage_sdram_adapter.v and rtl/sdram/jtframe_sdram64*.v (kept for their unit tests).
+set_global_assignment -name SYSTEMVERILOG_FILE rtl/sdram/ngage2_sdram.sv
+set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_fast.v
 
 # Inactive instruction-only DDR cache (replaced by the shared flash cache).
 # set_global_assignment -name VERILOG_FILE rtl/jtframe/ngage_jtframe_romrq_lcache.v

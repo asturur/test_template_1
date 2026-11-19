@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [ngage2-sdram.md](ngage2-sdram.md) | v5 phone RAM on ngage2's open-row SDRAM controller: per-access clocks, whole-board membench before and after, unit test, 78 MHz fit and the 104 MHz chain |
 | [arm9v2-cache32.md](arm9v2-cache32.md) | v5 16 KiB per cache and native 32-byte board bursts, with v4 and original ngage2 measurements |
 | [arm9v2-phone.md](arm9v2-phone.md) | ngage-v5 stock donor, NEM-4 bus and firmware qualification, checked SPMark and game loop comparisons |
 | [cpu-store-postindex.md](cpu-store-postindex.md) | Step5F original tail gains, unchanged base forwarding, resident admission, precise IRQ/fault/RAM proof and zero-state patch0078 |

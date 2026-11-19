@@ -227,20 +227,17 @@ module emu (
 
     ///////////////////////   SDRAM   ////////////////////////////////
 
-    // SDRAM: phone RAM 16MB at PA 0x0a000000, split across BA0 (low 8MB)
-    // and BA1 (high 8MB). AW=22 matches DE10 SDRAM geometry (8MB/bank).
-    // 78 MHz system clock, inverted DDIO output to SDRAM chip pin.
-    // Forward the 78 MHz system clock through the output IO register. The
-    // inverted pin clock is paired with falling-edge read capture in sdram_ctrl.
+    // SDRAM: phone RAM 16MB at PA 0x0a000000, in the first 16 MB of the module.
+    // The system clock leaves inverted through an output IO register; the
+    // controller captures read data in the DQ input registers on rising edges.
     ngage_sdram_clock sdram_clock (
         .clk      (clk_sys),
         .sdram_clk(SDRAM_CLK)
     );
 
-    // CPU → SDRAM address/data decode
+    // CPU → SDRAM request
     // ngage_mister outputs: sdram_addr[24:0], sdram_din[31:0], sdram_be[3:0],
     //                       sdram_we, sdram_req
-    // Phone PA bit 23 (= sdram_addr[23]) selects BA0 vs BA1.
     wire [24:0] cpu_sdram_addr;
     wire [31:0] cpu_sdram_din;
     wire [ 3:0] cpu_sdram_be;
@@ -249,13 +246,8 @@ module emu (
     // Retain the CPU bus reservation across the read and write of an atomic swap.
     wire        cpu_bus_lock;
 
-    // The adapter owns an entire 32-bit access, including both halfwords.
     // Cold-start RAM scrub proceeds while the phone CPU remains held in reset.
-    wire [21:0] sdram_haddr;
-    wire [15:0] sdram_wdata, sdram_dout_16;
-    wire [1:0] sdram_dsn;
-    wire [3:0] sdram_rd_banks, sdram_wr_banks, sdram_ack_banks, sdram_rdy_banks;
-    wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack, cpu_sdram_accept;
+    wire sdram_init, sdram_scrub_done, sdram_ack, cpu_sdram_accept;
     wire [31:0] sdram_dout;
     wire mem_req, mem_we, mem_ack;
     wire [7:0] dma_error_pending;
@@ -378,24 +370,16 @@ module emu (
         .mem_ack   (mem_ack),
         .mem_rdata (mem_rdata)
     );
-    wire [3:0] sdram_dst_banks;
     wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
     wire [24:0] ram_line_addr;
     wire [15:0] ram_line_data;
-    wire [ 1:0] sdram_line_banks;
 
-    ngage_sdram_adapter #(
-        .LINE_REFILL   (1),
-        .REFRESH_PERIOD((64'd6800 * SYS_CLK_HZ) / 104000000)
+    // ngage2's open-row controller behind the same request and line ports.
+    wire [15:0] sdram_dq_o, sdram_dq_oe;
+    ngage_sdram_fast #(
+        .CLK_HZ     (SYS_CLK_HZ),
+        .LINE_REFILL(1)
     ) phone_sdram (
-        .owner_ready(sdram_owner_ready),
-        .line_req   (ram_line_req && !cpu_bus_lock),
-        .line_addr  (ram_line_addr),
-        .line_ready (ram_line_ready),
-        .line_valid (ram_line_valid),
-        .line_data  (ram_line_data),
-        .line_last  (ram_line_last),
-        .ba_line    (sdram_line_banks),
         .clk        (clk_sys),
         .rst        (transport_reset),
         .phone_reset(dma_reset || transport_reset),
@@ -407,95 +391,33 @@ module emu (
         .be         (mem_be),
         .ack        (mem_ack),
         .dout       (mem_rdata),
+        .line_req   (ram_line_req && !cpu_bus_lock),
+        .line_addr  (ram_line_addr),
+        .line_ready (ram_line_ready),
+        .line_valid (ram_line_valid),
+        .line_data  (ram_line_data),
+        .line_last  (ram_line_last),
         .scrub_done (sdram_scrub_done),
-        .ba_addr    (sdram_haddr),
-        .ba_din     (sdram_wdata),
-        .ba_dsn     (sdram_dsn),
-        .rd         (sdram_rd_banks),
-        .wr         (sdram_wr_banks),
-        .ba_ack     (sdram_ack_banks),
-        .ba_dst     (sdram_dst_banks),
-        .ba_rdy     (sdram_rdy_banks),
-        .ba_dout    (sdram_dout_16),
-        .rfsh       (sdram_rfsh)
+        .owner_ready(sdram_owner_ready),
+        .sdram_cke  (SDRAM_CKE),
+        .sdram_cs_n (SDRAM_nCS),
+        .sdram_ras_n(SDRAM_nRAS),
+        .sdram_cas_n(SDRAM_nCAS),
+        .sdram_we_n (SDRAM_nWE),
+        .sdram_ba   (SDRAM_BA),
+        .sdram_a    (SDRAM_A),
+        .sdram_dqml (SDRAM_DQML),
+        .sdram_dqmh (SDRAM_DQMH),
+        .sdram_dq_o (sdram_dq_o),
+        .sdram_dq_oe(sdram_dq_oe),
+        .sdram_dq_i (SDRAM_DQ)
     );
-
-    jtframe_sdram64 #(
-        .BANKS               (2),
-        .PROG_ENABLE         (0),
-        .SHORT_READS         (1),
-        .DYNAMIC_LINE        (1),
-        .AW                  (22),
-        .HF                  (1),    // 78 MHz > 66 MHz → HF mode
-        .READ_CAPTURE_NEGEDGE(1),    // paired with the inverted DDIO pin clock
-        .BA0_LEN             (256),  // One logical service schedules two physical BL8s
-        .BA1_LEN             (256),
-        .BA2_LEN             (16),
-        .BA3_LEN             (16),
-        .PROG_LEN            (16),   // unused programming port; no longer than physical burst
-        .BA0_WEN             (1),    // phone RAM is read+write
-        .BA1_WEN             (1),
-        .BA2_WEN             (0),
-        .BA3_WEN             (0)
-    ) sdram_ctrl (
-        .line_read(sdram_line_banks),
-        .rst      (transport_reset),
-        .clk      (clk_sys),
-        .init     (sdram_init),
-
-        // BA0: phone RAM low 8MB
-        .ba0_addr(sdram_haddr),
-        .ba0_din (sdram_wdata),
-        .ba0_dsn (sdram_dsn),
-
-        // BA1: phone RAM high 8MB
-        .ba1_addr(sdram_haddr),
-        .ba1_din (sdram_wdata),
-        .ba1_dsn (sdram_dsn),
-
-        // BA2/BA3: unused
-        .ba2_addr(22'd0),
-        .ba2_din (16'd0),
-        .ba2_dsn (2'b11),
-        .ba3_addr(22'd0),
-        .ba3_din (16'd0),
-        .ba3_dsn (2'b11),
-
-        .rd  (sdram_rd_banks),
-        .wr  (sdram_wr_banks),
-        .rfsh(sdram_rfsh),
-
-        .ack (sdram_ack_banks),
-        .dst (sdram_dst_banks),
-        .dok (),
-        .rdy (sdram_rdy_banks),
-        .dout(sdram_dout_16),
-
-        // programming port (unused — ROM goes via DDR3)
-        .prog_en  (1'b0),
-        .prog_addr(22'd0),
-        .prog_rd  (1'b0),
-        .prog_wr  (1'b0),
-        .prog_din (16'd0),
-        .prog_dsn (2'b11),
-        .prog_ba  (2'd0),
-        .prog_dst (),
-        .prog_dok (),
-        .prog_rdy (),
-        .prog_ack (),
-
-        // SDRAM chip pins
-        .sdram_dq  (SDRAM_DQ),
-        .sdram_a   (SDRAM_A),
-        .sdram_dqml(SDRAM_DQML),
-        .sdram_dqmh(SDRAM_DQMH),
-        .sdram_ba  (SDRAM_BA),
-        .sdram_nwe (SDRAM_nWE),
-        .sdram_ncas(SDRAM_nCAS),
-        .sdram_nras(SDRAM_nRAS),
-        .sdram_ncs (SDRAM_nCS),
-        .sdram_cke (SDRAM_CKE)
-    );
+    genvar dq_bit;
+    generate
+        for (dq_bit = 0; dq_bit < 16; dq_bit = dq_bit + 1) begin : sdram_dq_pad
+            assign SDRAM_DQ[dq_bit] = sdram_dq_oe[dq_bit] ? sdram_dq_o[dq_bit] : 1'bZ;
+        end
+    endgenerate
 
     ///////////////////////   DDR3 firmware transport   ////////////////
     // Installed Linux reserves0x1ff00000..0x3fffffff (2026-11-12 SSH audit).
@@ -974,7 +896,7 @@ module emu (
     wire core_ddr_fetch;
     // D1 streaming and the shared D2 flash backing cache.
     localparam D1_STREAM_TRANSPORT  = 1;
-    localparam D2_FLASH_CACHE_BYTES = 32768;
+    localparam D2_FLASH_CACHE_BYTES = 65536;
     ngage_ddr_flash_adapter #(
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),

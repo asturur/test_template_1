@@ -10,7 +10,8 @@ BLOCKS = ('arm920_cache_tags', 'arm920_cache_bank', 'arm920_cache_access',
           'arm920_write_buffer', 'ngage_boot_regs', 'ngage_timers',
           'ngage_sparse_regs', 'ngage_icu', 'ngage_upp_peripherals', 'ngage_debug_video',
           'ngage_debug_monitor', 'ngage_loader', 'ngage_save_manager',
-          'ngage_diagnostics', 'ngage_sdram_adapter', 'jtframe_sdram64')
+          'ngage_diagnostics', 'ngage_sdram_adapter', 'jtframe_sdram64',
+          'ngage_sdram_fast', 'ngage2_sdram')
 
 def block(node):
     for name in BLOCKS:
