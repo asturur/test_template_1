@@ -238,6 +238,25 @@ def schedule_early_smull(phone):
                 '\t\t\t\tmultiply_product_ready <= launch_smull;\n\t\t\t\ta[515-:32]')
 
 
+def direct_accumulate(phone):
+    """Use the registered DSP result directly for multiply-accumulate."""
+    start = phone.index('module ngage2_arm9v2_execute (')
+    end = phone.index('\nendmodule', start)
+    execute = phone[start:end]
+    # The product holds until the next multiply. The copy register and
+    # its extra wait state have no separate consumer.
+    obsolete = ('reg multiply_accumulate;', 'reg [63:0] product_saved;', 'wire mac_phase;',
+                'assign mac_phase =', 'multiply_accumulate <= 0;', 'product_saved <= 0;')
+    execute = ''.join(line for line in execute.splitlines(keepends=True)
+                      if not any(removed in line for removed in obsolete))
+    execute = edit(execute, '\t\t\tif (mac_phase) begin\n\t\t\t\tproduct_saved <= product;\n'
+                   '\t\t\t\tmultiply_accumulate <= 1;\n\t\t\tend\n', '')
+    if execute.count('product_saved') != 3 or execute.count('mac_phase') != 3:
+        raise ValueError('Unexpected multiply-accumulate consumers')
+    execute = execute.replace('product_saved', 'product').replace(' && !mac_phase', '').replace(' || mac_phase', '')
+    return phone[:start] + execute + phone[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -258,6 +277,7 @@ def main():
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
     generated = schedule_ready_register_shift(generated)
     generated = schedule_early_smull(generated)
+    generated = direct_accumulate(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

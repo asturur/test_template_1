@@ -3279,7 +3279,6 @@ module ngage2_arm9v2_execute (
 	(* dont_retime *) reg a_valid;
 	(* dont_retime *) reg prepared;
 	(* dont_retime *) reg holding;
-	(* dont_retime *) reg multiply_accumulate;
 	(* dont_retime *) reg multiply_product_ready;
 	(* dont_retime *) reg [3:0] flags;
 	(* dont_retime *) reg [1:0] interrupt_mask;
@@ -3299,7 +3298,6 @@ module ngage2_arm9v2_execute (
 	reg signed [33:0] lh;
 	reg signed [33:0] hl;
 	reg signed [33:0] hh;
-	(* dont_retime *) reg [63:0] product_saved;
 	wire [127:0] forwarded;
 	reg [127:0] operand;
 	(* dont_retime *) reg [3:0] s_pending;
@@ -3385,7 +3383,6 @@ module ngage2_arm9v2_execute (
 	reg [3:0] next_flags;
 	wire space;
 	wire product_phase;
-	wire mac_phase;
 	reg will_write_flags;
 	wire [1:0] planned_writes;
 	reg [1:0] planned_writes_ref;
@@ -3692,7 +3689,7 @@ module ngage2_arm9v2_execute (
     end
 `endif
 	assign product = full_product[63:0];
-	assign mac_result = product_saved + (a[327-:4] == MULL ? {left_a, store_a} : {32'd0, store_a});
+	assign mac_result = product + (a[327-:4] == MULL ? {left_a, store_a} : {32'd0, store_a});
 	assign mult_result = (a[473] ? mac_result : product);
 	function automatic zero_sum32;
 		input reg [31:0] x;
@@ -3704,25 +3701,24 @@ module ngage2_arm9v2_execute (
 		input reg [63:0] y;
 		zero_sum64 = (x ^ y) == {x[62:0] | y[62:0], 1'b0};
 	endfunction
-	wire mul_z32 = (a[473] ? zero_sum32(product_saved[31:0], store_a) : product[31:0] == 0);
-	wire mul_z64 = (a[473] ? zero_sum64(product_saved, {left_a, store_a}) : product == 0);
+	wire mul_z32 = (a[473] ? zero_sum32(product[31:0], store_a) : product[31:0] == 0);
+	wire mul_z64 = (a[473] ? zero_sum64(product, {left_a, store_a}) : product == 0);
 	assign product_phase = (a_valid && ((a[327-:4] == MUL) || (a[327-:4] == MULL))) && !multiply_product_ready;
-	assign mac_phase = (((a_valid && ((a[327-:4] == MUL) || (a[327-:4] == MULL))) && multiply_product_ready) && a[473]) && !multiply_accumulate;
 	assign space = !a_valid || finish;
 
     wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
                             && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
 
     assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
-	assign o_multiply_wait = product_phase || mac_phase;
+	assign o_multiply_wait = product_phase;
 	assign o_ready_payload = (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))) && !o_shift_wait;
 	assign o_ready = (o_ready_payload && !i_flush) && !o_redirect;
 	assign accept = i_valid && o_ready;
-	assign o_valid = ((((a_valid && !(|a_wait)) && !product_phase) && !mac_phase) && !i_flush) && !o_redirect;
+	assign o_valid = ((((a_valid && !(|a_wait)) && !product_phase)) && !i_flush) && !o_redirect;
 	assign finish = o_valid && i_ready;
 	assign o_a_valid = a_valid;
 	assign o_a_can_finish = finish;
-	assign o_a_can_finish_nohit = (((((a_valid && !(|a_wait_nohit)) && !product_phase) && !mac_phase) && !i_flush) && !o_redirect) && i_ready;
+	assign o_a_can_finish_nohit = (((((a_valid && !(|a_wait_nohit)) && !product_phase)) && !i_flush) && !o_redirect) && i_ready;
 	assign o_a_cond_al = a[323-:4] == 4'he;
 	wire [1:0] writes_lanes = {((i_kind == MULL) || (i_kind == MEM)) || (i_kind == BLOCK), ((((((i_kind == DP) || (i_kind == MRS)) || (i_kind == MUL)) || (i_kind == MULL)) || (i_kind == BR)) || (i_kind == PREFIX)) || (i_kind == SUFFIX)};
 	assign planned_writes = (WRITES_PRE ? i_writes & writes_lanes : planned_writes_ref);
@@ -3930,7 +3926,6 @@ module ngage2_arm9v2_execute (
 			holding <= 0;
 			prepared <= 0;
 			s_pending <= 0;
-			multiply_accumulate <= 0;
 			multiply_product_ready <= 0;
 			o_redirect <= 0;
 			o_btb_pc <= 0;
@@ -3956,7 +3951,6 @@ module ngage2_arm9v2_execute (
 				hl <= 0;
 				hh <= 0;
 			end
-			product_saved <= 0;
 			o_redirect_thumb <= 0;
 			o_redirect_target <= 0;
 			o_redirect_link <= 0;
@@ -4057,10 +4051,6 @@ module ngage2_arm9v2_execute (
 				hh <= $signed({((a[327-:4] == MULL) && a[474]) && a[249], a[249:234]}) * $signed({((a[327-:4] == MULL) && a[474]) && a[185], a[185:170]});
 				multiply_product_ready <= 1;
 			end
-			if (mac_phase) begin
-				product_saved <= product;
-				multiply_accumulate <= 1;
-			end
 			if (finish) begin
 				a_valid <= 0;
 				flags <= next_flags;
@@ -4088,7 +4078,6 @@ module ngage2_arm9v2_execute (
 				holding <= 0;
 				prepared <= 0;
 				s_pending <= 0;
-				multiply_accumulate <= 0;
 				multiply_product_ready <= launch_smull;
 				a[515-:32] <= i_pc;
 				a[483-:32] <= i_instruction;
@@ -4207,7 +4196,6 @@ module ngage2_arm9v2_execute (
 				holding <= 0;
 				prepared <= 0;
 				s_pending <= 0;
-				multiply_accumulate <= 0;
 				multiply_product_ready <= 0;
 				o_redirect <= 0;
 				o_btb_update <= 0;
