@@ -1,3 +1,18 @@
+## 2026-11-19 — v5 phone RAM on ngage2's SDRAM controller
+
+`ngage_sdram_fast` and ngage2's open-row controller replace
+`ngage_sdram_adapter` and `jtframe_sdram64` in the v5 build. A posted word
+store took 13 clocks on the old path and takes 3; a 32-byte line read is one
+chained burst. The whole-board `tests/phone/membench` (a firmware-free
+guest, real SDRAM service and chip model, production DDR flash path) falls
+from 70.8 to 59.0 ms at 78 MHz: word fills −69 %, halfword fills −77 %,
+copies −51 %, line fills −2 to −4 %. `memtest` and the new unit test pass at
+78 and 104 MHz. Seed 43 at 78 MHz meets timing (+0.432 ns worst slow
+corner, 36,249 ALMs, 437 M10K, DQ registers in the I/O cells).
+At a 104 MHz PLL the design misses by 3.4 to 3.5 ns with either SDRAM
+controller. No board has run this build.
+[Measurements, fit and limits](ngage2-sdram.md).
+
 ## 2026-11-19 — v5 restores the 32 KiB flash backing cache
 
 The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC

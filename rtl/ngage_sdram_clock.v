@@ -1,7 +1,8 @@
 // Forward the system clock through a Cyclone V output IO register, as in
 // JTFRAME's MiSTer 180SHIFT path. Output rises at the falling system edge.
-// Pair with jtframe_sdram64 READ_CAPTURE_NEGEDGE=1. Simulation of the ideal
-// primitive does not establish fitted clock/data delays or board timing.
+// ngage2's controller captures read data on rising edges, CAS + 1 clocks
+// after the READ edge. Simulation of the ideal primitive does not establish
+// fitted clock/data delays or board timing.
 module ngage_sdram_clock (
     input  wire clk,
     output wire sdram_clk
