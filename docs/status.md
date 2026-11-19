@@ -1,3 +1,18 @@
+## 2026-11-19 — A blank C: boots: the PMM's AUX startup reason
+
+A blank C: stopped at the logo because the stock firmware formats C: only
+when NOS answers EStart's `auxstart` query with 105, and NOS reads that
+answer from PMM group 212, record 3 (100 when the record is missing). With
+100, C: becomes a RAM drive, Starter runs its short list, finds no backup
+server and faults in its own clean-up: the `503AD63C / E59FF044` stop of
+2026-11-11. `tools/ngage_factory_images.py` writes a blank C: and a 64 KiB
+PMM with that one record. On a DE10-Nano the unchanged CI RBFs of
+`8546db1`, `dfe4bc1` and `70b8ef3` then format C:, replace the record with
+100 themselves and reach the Time dialog, the idle screen, Menu and a
+complete SPMark04 run: 3D Game 5.79 fps on `8546db1` and 6.59 fps on the two
+later commits, FillRate 1.13 and 1.26-1.27 Mtexels/s. No RTL change.
+[Cause, record format, board runs and all nine tests](factory-first-boot.md).
+
 ## 2026-11-19 — v5 enables committed D2 update-on-hit
 
 The 32 KiB flash cache updates resident bytes after DDR write completion.
@@ -147,6 +162,7 @@ requested snapshot, the 32/64-way half-line Sega suites were still
 running. Keep the fitted two-way control with 39 MHz MMC.
 [Associativity scorecard](arm9v2-associativity.md).
 
+||||||| base
 ## 2026-11-19 — v5 restores the 32 KiB flash backing cache
 
 The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC
