@@ -1,3 +1,14 @@
+## 2026-11-19 — v5 selects a 64 KiB flash backing cache
+
+`ngage_ddr_flash_cache` accepts 65536 and 131072 bytes and the v5 build
+selects 65536. On `tests/phone/membench` at 78 MHz a second pass over
+64 KiB of flash data costs 21 % fewer clocks and four passes over 96 KiB of
+flash code 16 % fewer (48 % fewer with 128 KiB). Seed 43 at 64 KiB meets
+78 MHz timing (+0.227 ns worst slow corner, 471 M10K); 128 KiB missed on
+seeds 43 and 44 (−0.199 and −0.737 ns, 539 M10K). The unit test covers both
+new sizes. Simulation and fit only.
+[Sizes, clocks and fits](ddr-flash-cache.md#64-and-128-kib-2026-11-19).
+
 ## 2026-11-19 — v5 phone RAM on ngage2's SDRAM controller
 
 `ngage_sdram_fast` and ngage2's open-row controller replace

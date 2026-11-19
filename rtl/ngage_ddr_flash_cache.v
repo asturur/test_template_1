@@ -32,7 +32,8 @@ module ngage_ddr_flash_cache #(
     input  wire [63:0] mem_beat_data,
     input  wire        mem_beat_last
 );
-    localparam integer INDEX_BITS = CACHE_BYTES == 32768 ? 10 : CACHE_BYTES == 16384 ? 9 : 8;
+    localparam integer INDEX_BITS = CACHE_BYTES == 131072 ? 12 : CACHE_BYTES == 65536 ? 11 :
+                                    CACHE_BYTES == 32768 ? 10 : CACHE_BYTES == 16384 ? 9 : 8;
     localparam integer TAG_BITS = 27 - INDEX_BITS;
     localparam         CLEAR      = 0, IDLE = 1, LOOKUP = 2, HIT_LINE = 3, ISSUE = 4, WAIT_MEM = 5, CLEAR_SECTOR = 6;
     reg [           2:0] state = CLEAR;
@@ -195,7 +196,8 @@ module ngage_ddr_flash_cache #(
 
     // synthesis translate_off
     initial
-        if (CACHE_BYTES != 8192 && CACHE_BYTES != 16384 && CACHE_BYTES != 32768)
+        if (CACHE_BYTES != 8192 && CACHE_BYTES != 16384 && CACHE_BYTES != 32768 &&
+            CACHE_BYTES != 65536 && CACHE_BYTES != 131072)
             $fatal(1, "unsupported flash cache size");
     always @(posedge clk) begin
         if (!reset && state == WAIT_MEM && fill) begin

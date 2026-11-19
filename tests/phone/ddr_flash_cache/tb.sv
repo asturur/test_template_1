@@ -16,7 +16,7 @@ reg [63:0] phy_read = 0;
 reg phy_valid = 0, pause_beats = 0;
 integer cycle = 0, reads = 0, writes = 0, remaining = 0;
 reg [28:0] next_beat;
-reg [31:0] dram [0:65535], reference [0:65535];
+reg [31:0] dram [0:262143], reference [0:262143];
 integer completed = 0, clocks = 0, count = 0, index;
 integer word_hit_clocks = 0, word_miss_clocks = 0, word_hits = 0, word_misses = 0;
 reg measure = 0;
@@ -36,13 +36,13 @@ ngage_ddr_flash_adapter #(
 function automatic integer word_index(input [31:0] a);
     // Nonoverlapping fixture windows with room for the largest tag alias.
     if (a >= TRACE || (a >= 32'h313f0000 && a < C))
-        word_index = 49152 + int'(a[15:2]);
+        word_index = 196608 + int'(a[17:2]);
     else if (a >= PMM)
-        word_index = 32768 + int'(a[15:2]);
+        word_index = 131072 + int'(a[17:2]);
     else if (a >= C)
-        word_index = 16384 + int'(a[15:2]);
+        word_index = 65536 + int'(a[17:2]);
     else
-        word_index = int'(a[15:2]);
+        word_index = int'(a[17:2]);
 endfunction
 
 always @(posedge clk) begin
@@ -144,7 +144,7 @@ task automatic read_line(input [31:0] a, input bit hit);
 endtask
 
 initial begin
-    for (integer k = 0; k < 65536; k++) begin
+    for (integer k = 0; k < 262144; k++) begin
         reference[k] = 32'h172a00e3 ^ (32'h035df928 * k);
         dram[k] = reference[k];
     end
@@ -238,7 +238,7 @@ initial begin
         for (integer pass = 0; pass < 2; pass++)
             for (integer k = 0; k < 768; k++) begin
                 expected = 1;
-                if (pass == 1 && (CACHE_BYTES == 32768 ||
+                if (pass == 1 && (CACHE_BYTES >= 32768 ||
                     (CACHE_BYTES == 16384 && k >= 256 && k < 512)))
                     expected = 0;
                 access(0,0,ROM+32768+32*k,0,15,expected);

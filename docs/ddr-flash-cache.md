@@ -1,7 +1,7 @@
 # D2 coherent flash backing cache
 
 The optional shared cache runs after DDR arbitration in the MiSTer top. Build
-with `D2_FLASH_CACHE_BYTES` set to 8192, 16384 or 32768. The default value 0
+with `D2_FLASH_CACHE_BYTES` set to 8192, 16384, 32768, 65536 or 131072. The default value 0
 selects the existing instruction ROM cache and DDR adapter. The D1 transport
 has its own build option. D2 can use either transport and shares one tag and
 data array between scalar reads and eligible instruction/data line refills.
@@ -95,3 +95,32 @@ integration worktree's stock firmware fixture. The packages exercise the
 actual HPS transport, shared checksum ownership, apply/undo and all four
 overlay combinations. The fixture generator, exact inputs and logs are under
 `scratch/ngage2-integration/d2/`.
+
+## 64 and 128 KiB (2026-11-19)
+
+The index width follows the size up to 131072 bytes, and the unit test's
+memory windows grew to 256 KiB so that the largest tag alias is a distinct
+word; all eight modes pass. `Template.sv` selects 65536.
+
+Whole-board `tests/phone/membench`, 78 MHz, CPU clocks of the loop's second
+run, on the SDRAM change of [ngage2-sdram.md](ngage2-sdram.md):
+
+| Loop | 32 KiB | 64 KiB | 128 KiB |
+| --- | ---: | ---: | ---: |
+| `frd`, 64 KiB of flash read as data | 137,256 | 108,584 | 108,584 |
+| `fcode24`, 24 KiB of flash code, 8 passes | 92,868 | 92,448 | 92,448 |
+| `fcode96`, 96 KiB of flash code, 4 passes | 356,735 | 299,405 | 184,856 |
+| All 31 loops, ms | 59.0 | 57.9 | 56.4 |
+
+Fits at 78 MHz, DDR debugger off, worst setup at slow 100C / −40C:
+
+| Size | Seed | Setup | M10K |
+| --- | ---: | ---: | ---: |
+| 32 KiB | 43 | +0.586 / +0.432 ns | 437 |
+| 64 KiB | 43 | +0.227 / +0.533 ns | 471 |
+| 128 KiB | 43 | −0.199 / −0.011 ns | 539 |
+| 128 KiB | 44 | −0.697 / −0.737 ns | 539 |
+
+128 KiB takes 97 % of the block RAM and missed timing on both seeds tried.
+One seed each is not a distribution; 64 KiB is selected because its one fit
+passes. No board has run either size.
