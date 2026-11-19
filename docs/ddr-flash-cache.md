@@ -123,4 +123,8 @@ Fits at 78 MHz, DDR debugger off, worst setup at slow 100C / −40C:
 
 128 KiB takes 97 % of the block RAM and missed timing on both seeds tried.
 One seed each is not a distribution; 64 KiB is selected because its one fit
-passes. No board has run either size.
+passes. `FLASH_CACHE_BYTES=65536 STREAM_TRANSPORT=1 sh
+tests/phone/raw_save/run-nor.sh` passes with `BULK_PERSISTENCE` 0 and 1, as
+it does at 32768. On a board the 64 KiB fit has booted to the Nokia logo and
+no further ([ngage2-sdram.md](ngage2-sdram.md#verification)); no board has
+run 128 KiB.

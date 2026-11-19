@@ -4,8 +4,9 @@ Phone RAM is served by ngage2's open-row SDRAM controller
 (`rtl/sdram/ngage2_sdram.sv`, from ngage2 `f74148c`) behind
 `rtl/ngage_sdram_fast.v`, which keeps the request and line ports of
 `ngage_sdram_adapter`. `jtframe_sdram64` and the old adapter are no longer in
-`files.qip`; their sources and unit tests remain. Everything here is
-simulation and fit evidence. No board has run this build.
+`files.qip`; their sources and unit tests remain. The clock counts are
+simulation and the timing is one fit. On a board the fit has booted the stock
+firmware to the Nokia logo and no further (see Limits).
 
 ## Why
 
@@ -62,6 +63,13 @@ The same guest on ngage2's whole-core bench (104 MHz, 16 KiB I, 8 KiB D)
 takes 47.8 ms. The register-only loops take the same clocks on both cores,
 so v5 is 1.33 times slower there by its clock alone.
 
+For scale, ngage2 itself at both clocks on one DE10-Nano, SPMark04 Run Set
+with all nine tests, one pass each (QD firmware 4.10, so the figures show
+what the clock is worth and are no forecast for NEM-4): the 78 MHz build of
+its `test-78` branch gives 3D Game 6.65 fps, FillRate 1.27 Mtexels/s and
+PolyCount 21.47 Ktriangles/s against 8.88, 1.73 and 28.41 at 104 MHz
+(`f74148c`), 0.73 to 0.76 of the faster build.
+
 ## Fit
 
 Quartus 17.0.2, seed 43, DDR debugger off, PLL 78 MHz, the CI flow's
@@ -70,13 +78,14 @@ Quartus 17.0.2, seed 43, DDR debugger off, PLL 78 MHz, the CI flow's
 | | `8546db1` (CI run 44419903846) | This change |
 | --- | ---: | ---: |
 | Worst setup, slow 100C / −40C | −0.185 ns (worst corner) | +0.586 / +0.432 ns |
-| Worst hold | +0.248 ns | +0.243 ns |
+| Worst hold, slow 100C | +0.248 ns | +0.243 ns |
 | ALMs | 36,309 | 36,249 |
 | M10K | 437 | 437 |
 
 `tools/check_quartus_timing.py` and `tools/check_sdram_io_registers.py` pass
 on this fit's reports: all 16 DQ pins keep their input, output and enable
-registers in the I/O cells. The previous worst path was inside
+registers in the I/O cells. Over all four corners the worst hold slack is
++0.113 ns (fast −40C). The previous worst path was inside
 `jtframe_sdram64` (13.25 ns); the worst paths are now from the D-side TLB
 check into the bus merger and from the merger into the peripheral bridge.
 
@@ -97,13 +106,26 @@ CPU's bus address through `ngage_arm9v2_refill.line_target`,
 - `tests/phone/membench/run.sh`: `memtest` (word, byte and halfword stores,
   cached and uncached, dirty lines written back on eviction, line reads of
   known data) and all 31 `membench` loops on the whole board, zero bus errors.
-- `tests/phone/hardware_boot/tb.v` and `run-real-sdram.sh` use the new
-  service. The firmware boots of those scripts were not rerun here.
+- `tests/phone/hardware_boot/run-real-sdram.sh`, its Verilator command run
+  outside the container with the production settings (78 MHz, line refills,
+  short reads), the audited 4.03 core and extension images and an erased C:.
+  It passes its 5M-clock bound, and a 400M-clock run ends with
+  `bus=4845138 errors=3 data_errors=0 lcd_words=18353 ram_lines=72474
+  rom_lines=1586246` at PC `514af610`: 72,474 RAM line reads through the
+  new service and 18,353 writes to the LCD data register.
+- Board: one DE10-Nano, the seed-43 fit with the 64 KiB flash cache,
+  unchanged `nem440.3c1` and `nem440.326`, erased C: and PMM images, the
+  SPMark04 card in slot 2. The Nokia logo appears and stays. `8546db1`'s CI
+  RBF does the same on that board with the same files, and the two captures
+  are byte-identical. Neither build passes the logo from an erased C:, the
+  stop [symbian-startup.md](symbian-startup.md) records.
 
 ## Limits
 
-- Not run on hardware. ngage2 runs this controller at 104 MHz on DE10-Nano
-  SDRAM modules, and its 78 MHz build ran a full SPMark04 pass on one board.
+- On hardware only as far as the Nokia logo. The menu, SPMark04 and games
+  have not run on this change: they need an initialized C: and PMM. ngage2
+  runs this controller at 104 MHz on DE10-Nano SDRAM modules, and its 78 MHz
+  build ran a full SPMark04 pass on the board used here.
 - The capture point is fixed in clocks. At 78 MHz the rising edge three
   clocks after READ lies about 0.6 ns before the worst-case end of the chip's
   data window by the controller's own bound (its header, with 4.5 to 7 ns of

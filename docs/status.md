@@ -1,3 +1,15 @@
+## 2026-11-19 — v5 SDRAM and flash cache change reaches the logo on a board
+
+The seed-43 fit of the ngage2 SDRAM service with the 64 KiB flash cache
+boots the unchanged 4.03 service files to the Nokia logo on a DE10-Nano.
+With erased C: and PMM images it stays there, and so does `8546db1`'s CI RBF
+on the same board; the two captures are byte-identical. The menu, SPMark04
+and games still need a run with an initialized C: and PMM. In simulation
+`run-real-sdram.sh` passes its 5M-clock bound and a 400M-clock run with the
+production settings (zero data errors, 18,353 LCD data writes, 72,474 RAM
+line reads), and `raw_save/run-nor.sh` passes at 65536.
+[Verification and limits](ngage2-sdram.md#verification).
+
 ## 2026-11-19 — v5 selects a 64 KiB flash backing cache
 
 `ngage_ddr_flash_cache` accepts 65536 and 131072 bytes and the v5 build
