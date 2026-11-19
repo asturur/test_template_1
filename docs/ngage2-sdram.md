@@ -5,8 +5,9 @@ Phone RAM is served by ngage2's open-row SDRAM controller
 `rtl/ngage_sdram_fast.v`, which keeps the request and line ports of
 `ngage_sdram_adapter`. `jtframe_sdram64` and the old adapter are no longer in
 `files.qip`; their sources and unit tests remain. The clock counts are
-simulation and the timing is one fit. On a board the fit has booted the stock
-firmware to the Nokia logo and no further (see Limits).
+simulation and the timing is one fit. On a board the fit boots the stock
+firmware from a blank C: to the menu and completes SPMark04, 1 to 15 %
+faster than `8546db1` with both changes (3D Game +11 %; see On a board).
 
 ## Why
 
@@ -70,6 +71,36 @@ its `test-78` branch gives 3D Game 6.65 fps, FillRate 1.27 Mtexels/s and
 PolyCount 21.47 Ktriangles/s against 8.88, 1.73 and 28.41 at 104 MHz
 (`f74148c`), 0.73 to 0.76 of the faster build.
 
+## On a board
+
+One DE10-Nano, unchanged `nem440.3c1` and `nem440.326`, each run a first boot
+from an erased C: with a PMM whose AUX startup reason record is 105 (the
+stock firmware then formats C: itself), the SPMark04 card cold-mounted, the
+images in the MiSTer's RAM disk, Background save Off. SPMark04 Run Set,
+Custom, all nine tests, one pass per build; the figures are from the
+`Result.txt` the phone saves on the card.
+
+| Test | `8546db1` (CI run 44419903846) | This change | With the 64 KiB flash cache |
+| --- | ---: | ---: | ---: |
+| 3D Game, fps | 5.79 | 6.42 | 6.43 |
+| 3D FillRate, Mtexels/s | 1.13 | 1.20 | 1.27 |
+| 3D PolyCount, Ktriangles/s | 18.96 | 20.76 | 20.84 |
+| 2D Image, fps | 27.86 | 29.43 | 29.54 |
+| Image Scaling, bitmaps/s | 1.29 | 1.32 | 1.34 |
+| JPEG Encoding, Kpixels/s | 122.19 | 123.61 | 123.65 |
+| Contacts, contacts/s | 2.48 | 2.67 | 2.71 |
+| Calendar, events/s | 5.11 | 5.40 | 5.54 |
+| Disk Access, files/s | 13.53 | 15.02 | 15.53 |
+
+All three are seed-43 fits. A second pass of `8546db1` gave 5.79, 1.13,
+19.06, 27.68, 1.29, 121.85, 2.49, 5.10 and 13.68, so a pass repeats within
+about 1 %. FillRate is counted in whole seconds and moves in steps of about
+0.07. On the same board ngage2's 78 MHz build gives 6.65, 1.27, 21.47,
+30.88, 1.42, 125.15, 2.92, 5.57 and 16.33 (QD firmware 4.10).
+
+The Time dialog appeared 75 s after the core load on `8546db1` and 68 s with
+both changes; the nine tests took about 250 s and 239 s.
+
 ## Fit
 
 Quartus 17.0.2, seed 43, DDR debugger off, PLL 78 MHz, the CI flow's
@@ -113,19 +144,16 @@ CPU's bus address through `ngage_arm9v2_refill.line_target`,
   `bus=4845138 errors=3 data_errors=0 lcd_words=18353 ram_lines=72474
   rom_lines=1586246` at PC `514af610`: 72,474 RAM line reads through the
   new service and 18,353 writes to the LCD data register.
-- Board: one DE10-Nano, the seed-43 fit with the 64 KiB flash cache,
-  unchanged `nem440.3c1` and `nem440.326`, erased C: and PMM images, the
-  SPMark04 card in slot 2. The Nokia logo appears and stays. `8546db1`'s CI
-  RBF does the same on that board with the same files, and the two captures
-  are byte-identical. Neither build passes the logo from an erased C:, the
-  stop [symbian-startup.md](symbian-startup.md) records.
+- Board: both seed-43 fits boot from an erased C: to the Time dialog, the
+  idle screen and Menu, and complete SPMark04 (On a board). With an erased
+  PMM as well they stop after the logo exactly as `8546db1` does, the stop
+  [symbian-startup.md](symbian-startup.md) records.
 
 ## Limits
 
-- On hardware only as far as the Nokia logo. The menu, SPMark04 and games
-  have not run on this change: they need an initialized C: and PMM. ngage2
-  runs this controller at 104 MHz on DE10-Nano SDRAM modules, and its 78 MHz
-  build ran a full SPMark04 pass on the board used here.
+- One board and one SPMark04 pass per build. Games, MMC writes and
+  Background save have not run on this change. ngage2 runs this controller
+  at 104 MHz on DE10-Nano SDRAM modules.
 - The capture point is fixed in clocks. At 78 MHz the rising edge three
   clocks after READ lies about 0.6 ns before the worst-case end of the chip's
   data window by the controller's own bound (its header, with 4.5 to 7 ns of

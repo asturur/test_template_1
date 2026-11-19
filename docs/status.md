@@ -1,3 +1,14 @@
+## 2026-11-19 — v5 SDRAM and flash cache change: SPMark04 on a board
+
+Both seed-43 fits boot the unchanged 4.03 service files on a DE10-Nano from
+a blank C: (PMM AUX startup reason 105, so the firmware formats C: itself)
+and complete SPMark04 with all nine tests. Against `8546db1`'s CI RBF on
+the same board: 3D Game 5.79 to 6.43 fps, FillRate 1.13 to 1.27 Mtexels/s,
+PolyCount 18.96 to 20.84 Ktriangles/s, 2D Image 27.86 to 29.54 fps, Disk
+Access 13.53 to 15.53 files/s. One pass per build; a second pass of
+`8546db1` repeats within about 1 %.
+[All nine tests and the conditions](ngage2-sdram.md#on-a-board).
+
 ## 2026-11-19 — v5 SDRAM and flash cache change reaches the logo on a board
 
 The seed-43 fit of the ngage2 SDRAM service with the 64 KiB flash cache

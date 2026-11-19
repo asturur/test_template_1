@@ -125,6 +125,8 @@ Fits at 78 MHz, DDR debugger off, worst setup at slow 100C / −40C:
 One seed each is not a distribution; 64 KiB is selected because its one fit
 passes. `FLASH_CACHE_BYTES=65536 STREAM_TRANSPORT=1 sh
 tests/phone/raw_save/run-nor.sh` passes with `BULK_PERSISTENCE` 0 and 1, as
-it does at 32768. On a board the 64 KiB fit has booted to the Nokia logo and
-no further ([ngage2-sdram.md](ngage2-sdram.md#verification)); no board has
-run 128 KiB.
+it does at 32768. On a board the 64 KiB fit boots from a blank C: and
+completes SPMark04 ([ngage2-sdram.md](ngage2-sdram.md#on-a-board)); against
+the same fit with 32 KiB, FillRate reads 1.27 for 1.20 Mtexels/s and Disk
+Access 15.53 for 15.02 files/s, the other tests within 1 to 3 %. No board
+has run 128 KiB.
