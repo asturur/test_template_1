@@ -3466,6 +3466,11 @@ module ngage2_arm9v2_execute (
 			shift_register = ref_register;
 			shift_rot = (ref_type == 0 ? -ref_amount[4:0] : ref_amount[4:0]);
 		end
+
+        if (direct_reg_shift) begin
+            shift_amount = operand[71:64];
+            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
+        end
 		planned_writes_ref = 0;
 		case (i_kind)
 			DP: planned_writes_ref[0] = i_instruction[24:23] != 2'b10;
@@ -3681,7 +3686,11 @@ module ngage2_arm9v2_execute (
 	assign product_phase = (a_valid && ((a[327-:4] == MUL) || (a[327-:4] == MULL))) && !multiply_product_ready;
 	assign mac_phase = (((a_valid && ((a[327-:4] == MUL) || (a[327-:4] == MULL))) && multiply_product_ready) && a[473]) && !multiply_accumulate;
 	assign space = !a_valid || finish;
-	assign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;
+
+    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
+
+    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
 	assign o_multiply_wait = product_phase || mac_phase;
 	assign o_ready_payload = (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))) && !o_shift_wait;
 	assign o_ready = (o_ready_payload && !i_flush) && !o_redirect;

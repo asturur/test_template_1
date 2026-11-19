@@ -171,6 +171,29 @@ def expose_block_writeback(phone):
     return ''.join(parts)
 
 
+def schedule_ready_register_shift(phone):
+    """Use the forwarded ARM shift count when Rs is already ready."""
+    start = phone.index('module ngage2_arm9v2_execute (')
+    end = phone.index('\nendmodule', start)
+    execute = phone[start:end]
+    if 'wire direct_reg_shift =' in execute:
+        raise ValueError('The ready register shift is already enabled in this netlist')
+    execute = edit(execute, '\tassign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;', '''
+    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
+
+    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;''')
+    # Scaled memory addressing still uses the prepared offset.
+    execute = edit(execute, '\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)', '''
+        if (direct_reg_shift) begin
+            shift_amount = operand[71:64];
+            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
+        end
+\t\tplanned_writes_ref = 0;
+\t\tcase (i_kind)''')
+    return phone[:start] + execute + phone[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -189,6 +212,7 @@ def main():
         raise ValueError('Donor netlist differs from pinned Quartus input')
     output = VENDOR / 'arm925t_phone.v'
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
+    generated = schedule_ready_register_shift(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
