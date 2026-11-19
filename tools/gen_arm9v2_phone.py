@@ -194,6 +194,50 @@ def schedule_ready_register_shift(phone):
     return phone[:start] + execute + phone[end:]
 
 
+def schedule_early_smull(phone):
+    """Launch ready unconditional ARM SMULL on the S-to-A edge."""
+    target = '\t(* multstyle = "dsp" *) reg signed [65:0] full_product;\n'
+    start = phone.index(target)
+    end = phone.index('\tassign product =', start)
+    if 'wire launch_smull =' in phone:
+        raise ValueError('Early SMULL is already enabled in this netlist')
+    if 'if (product_phase)' not in phone[start:end]:
+        raise ValueError('Expected the original multiply product register')
+    # Accept waits for forwarded multiplicands. Keep the same product
+    # register and use the original clock phase for other multiplies.
+    product = '''
+    wire launch_smull = accept && i_kind == MULL && i_instruction[22] && !i_instruction[21]
+                        && i_condition == 4'he && !i_fault && !i_thumb
+                        && i_early[1] && i_early[2] && !s_wait[1] && !s_wait[2];
+    wire signed_product = a[327-:4] == MULL && a[474];
+    wire signed [32:0] product_left = launch_smull ? {shifted[31], shifted} :
+                       {signed_product && a[249], a[249-:32]};
+    wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
+                        {signed_product && a[185], a[185-:32]};
+    (* multstyle = "dsp" *) reg signed [65:0] full_product;
+    always @(posedge i_clk)
+        if (launch_smull || product_phase)
+            full_product <= product_left * product_right;
+
+`ifndef SYNTHESIS
+    reg launched_smull;
+    wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
+    always @(posedge i_clk) begin
+        if (i_reset || i_flush) launched_smull <= 0;
+        else if (accept) launched_smull <= launch_smull;
+        else if (finish) launched_smull <= 0;
+        if (!i_reset && finish && launched_smull && product !== check_smull) begin
+            $display("Incorrect early SMULL operands at %h", a[515-:32]);
+            $stop;
+        end
+    end
+`endif
+'''
+    phone = phone[:start] + product + phone[end:]
+    return edit(phone, '\t\t\t\tmultiply_product_ready <= 0;\n\t\t\t\ta[515-:32]',
+                '\t\t\t\tmultiply_product_ready <= launch_smull;\n\t\t\t\ta[515-:32]')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -213,6 +257,7 @@ def main():
     output = VENDOR / 'arm925t_phone.v'
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
     generated = schedule_ready_register_shift(generated)
+    generated = schedule_early_smull(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

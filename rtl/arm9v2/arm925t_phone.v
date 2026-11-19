@@ -3664,10 +3664,33 @@ module ngage2_arm9v2_execute (
 	wire [63:0] twos0 = (((pp0 & pp1) | (pp1 & pp2)) | (pp0 & pp2)) << 1;
 	wire [63:0] ones1 = (ones0 ^ twos0) ^ pp3;
 	wire [63:0] twos1 = (((ones0 & twos0) | (ones0 & pp3)) | (twos0 & pp3)) << 1;
-	(* multstyle = "dsp" *) reg signed [65:0] full_product;
-	always @(posedge i_clk)
-		if (product_phase)
-			full_product <= $signed({((a[327-:4] == MULL) && a[474]) && a[249], a[249-:32]}) * $signed({((a[327-:4] == MULL) && a[474]) && a[185], a[185-:32]});
+
+    wire launch_smull = accept && i_kind == MULL && i_instruction[22] && !i_instruction[21]
+                        && i_condition == 4'he && !i_fault && !i_thumb
+                        && i_early[1] && i_early[2] && !s_wait[1] && !s_wait[2];
+    wire signed_product = a[327-:4] == MULL && a[474];
+    wire signed [32:0] product_left = launch_smull ? {shifted[31], shifted} :
+                       {signed_product && a[249], a[249-:32]};
+    wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
+                        {signed_product && a[185], a[185-:32]};
+    (* multstyle = "dsp" *) reg signed [65:0] full_product;
+    always @(posedge i_clk)
+        if (launch_smull || product_phase)
+            full_product <= product_left * product_right;
+
+`ifndef SYNTHESIS
+    reg launched_smull;
+    wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
+    always @(posedge i_clk) begin
+        if (i_reset || i_flush) launched_smull <= 0;
+        else if (accept) launched_smull <= launch_smull;
+        else if (finish) launched_smull <= 0;
+        if (!i_reset && finish && launched_smull && product !== check_smull) begin
+            $display("Incorrect early SMULL operands at %h", a[515-:32]);
+            $stop;
+        end
+    end
+`endif
 	assign product = full_product[63:0];
 	assign mac_result = product_saved + (a[327-:4] == MULL ? {left_a, store_a} : {32'd0, store_a});
 	assign mult_result = (a[473] ? mac_result : product);
@@ -4066,7 +4089,7 @@ module ngage2_arm9v2_execute (
 				prepared <= 0;
 				s_pending <= 0;
 				multiply_accumulate <= 0;
-				multiply_product_ready <= 0;
+				multiply_product_ready <= launch_smull;
 				a[515-:32] <= i_pc;
 				a[483-:32] <= i_instruction;
 				a[451-:32] <= i_next_pc;
