@@ -18,8 +18,9 @@ case "${ARM9V2_SECTION_INDEX:-}" in
     *) echo 'ARM9V2_SECTION_INDEX must be direct or xor' >&2; exit 2 ;;
 esac
 set --
+if [ -n "${ARM9V2_ASSOC_WAYS:-}" ]; then set -- "$@" "-DASSOC_WAYS=$ARM9V2_ASSOC_WAYS"; fi
 if [ -n "$section_reads" ]; then set -- "$@" -DSECTION_INDEX_TEST; fi
-arm-none-eabi-gcc -c -mcpu=arm920t -marm "$@" "$fixture/contract.S" -o "$out/guest.o"
+arm-none-eabi-gcc -c -mcpu=arm920t -marm "-DEXPECTED_CTYPE=${ARM9V2_CTYPE:-0x0514a14a}" "$@" "$fixture/contract.S" -o "$out/guest.o"
 arm-none-eabi-ld -T sim/programs/link.ld "$out/guest.o" -o "$out/guest.elf"
 arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
 python3 - "$out" <<'PY'
@@ -44,8 +45,9 @@ for burst in 0 1; do
     for wait in 0 5; do
         log="$out/burst-$burst-wait-$wait.log"
         set --
+        if [ "${ARM9V2_HALF_WRITEBACK:-0}" = 1 ]; then set -- +half-writeback; fi
         if [ -n "$section_reads" ]; then set -- "$@" "+section-reads=$section_reads"; fi
         simulation "/work/$out/obj/Vcontract" "$image" "+program=$out/guest.hex" "+wait=$wait" "+burst=$burst" "$@" > "$log" 2>&1
-        grep -E '^(PASS|LINES|SECTION) ' "$log"
+        grep -E '^(PASS|LINES|ASSOC|SECTION) ' "$log"
     done
 done

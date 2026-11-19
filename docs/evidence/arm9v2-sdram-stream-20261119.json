@@ -1,0 +1,1172 @@
+{
+  "v5_baseline": "8546db172cf518391ab6a91e764da79faecf03bf",
+  "donor_source": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+  "clock_hz": 78000000,
+  "measured_proxy": "Original GLES 176x208 16-bit fill and checked original payloads",
+  "native_board_fps_measured": false,
+  "stock_ngage2_fill_clocks": 149869,
+  "production_source_sha256": {
+    "Template.sv": "b71163bd21b9889e2a9994d7e98bbed79e4f0a6949d63e6214cc2c3f35862d6a",
+    "files.qip": "ef700025b3b6269c438989fa481aef927f68e3566b3caf50bacee5665dabf7ae",
+    "rtl/ngage_sdram_stream.v": "a84ddde01d484fdcc8d1c62fd63997d8088f7322d61e88b0c4c67f222450a6b6",
+    "rtl/sdram/ngage_sdram_scheduler.v": "4e1b1b6c954b622dac8ab9c899b411074734763eb6e2637edbcabcc3d02cf940"
+  },
+  "results": {
+    "v5_jtframe": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-base-retained/result.json",
+      "cpu_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+      "pin_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+      "cases": {
+        "matrix4": {
+          "median_clocks": 18138,
+          "scored_clocks": [
+            18135,
+            18138,
+            18138,
+            18135,
+            18138
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 66,
+            "writes": 0,
+            "lines": 0,
+            "wait": 776,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 33,
+            "pre": 32,
+            "refresh": 40
+          }
+        },
+        "transpose4": {
+          "median_clocks": 3384,
+          "scored_clocks": [
+            3384,
+            3384,
+            3384,
+            3387,
+            3396
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 131,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1572,
+            "itlb": 131,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 66,
+            "pre": 65,
+            "refresh": 0
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 12695,
+          "scored_clocks": [
+            12689,
+            12704,
+            12695,
+            12689,
+            12695
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 66,
+            "writes": 0,
+            "lines": 0,
+            "wait": 782,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 35,
+            "pre": 35,
+            "refresh": 30
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 299252,
+          "scored_clocks": [
+            299285,
+            299252,
+            299257,
+            299250,
+            299247
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 188624,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4483,
+            "pre": 4482,
+            "refresh": 533
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 747,
+          "scored_clocks": [
+            747,
+            747,
+            747,
+            747,
+            747
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 768,
+          "scored_clocks": [
+            768,
+            768,
+            768,
+            768,
+            768
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16464,
+          "scored_clocks": [
+            16464,
+            16464,
+            16464,
+            16464,
+            16464
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 45,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16464,
+          "scored_clocks": [
+            16464,
+            16464,
+            16464,
+            16464,
+            16464
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 45,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15954,
+          "scored_clocks": [
+            15954,
+            15957,
+            15954,
+            15954,
+            15954
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 3,
+            "refresh": 30
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2643,
+          "scored_clocks": [
+            2640,
+            2643,
+            2643,
+            2643,
+            2640
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 10
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 22093,
+          "scored_clocks": [
+            22133,
+            22113,
+            22093,
+            22092,
+            22086
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 536,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 33,
+            "pre": 33,
+            "refresh": 39
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 12770,
+          "scored_clocks": [
+            12767,
+            12770,
+            12767,
+            12770,
+            12770
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 504,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 12,
+            "pre": 12,
+            "refresh": 20
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8286,
+          "scored_clocks": [
+            8286,
+            8286,
+            8286,
+            8286,
+            8286
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 2,
+            "refresh": 20
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2466436,
+          "scored_clocks": [
+            2466306,
+            2466436,
+            2466464,
+            2466504,
+            2466409
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 198016,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6599,
+            "pre": 6599,
+            "refresh": 4786
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 7,
+            "refresh": 70
+          }
+        }
+      }
+    },
+    "ngage2_controller_behind_v5": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-donor-sdram/result.json",
+      "cpu_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+      "pin_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 135528,
+          "scored_clocks": [
+            135528,
+            135560,
+            135525,
+            135576,
+            135528
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 7,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 16377,
+            "itlb": 8,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 3786,
+            "pre": 3741,
+            "refresh": 239
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2419482,
+          "scored_clocks": [
+            2419482,
+            2419482,
+            2419482,
+            2419482,
+            2419482
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 14852,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6722,
+            "pre": 6395,
+            "refresh": 4295
+          }
+        }
+      }
+    },
+    "ngage2_controller_with_native_32_byte_fill": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-donor-wide/result.json",
+      "cpu_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+      "pin_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+      "cases": {
+        "matrix4": {
+          "median_clocks": 17835,
+          "scored_clocks": [
+            17844,
+            17835,
+            17835,
+            17835,
+            17835
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 67,
+            "writes": 0,
+            "lines": 0,
+            "wait": 512,
+            "itlb": 67,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 34,
+            "pre": 49,
+            "refresh": 32
+          }
+        },
+        "transpose4": {
+          "median_clocks": 2772,
+          "scored_clocks": [
+            2772,
+            2772,
+            2772,
+            2772,
+            2772
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 130,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1040,
+            "itlb": 129,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 66,
+            "pre": 66,
+            "refresh": 5
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 12389,
+          "scored_clocks": [
+            12395,
+            12380,
+            12389,
+            12380,
+            12395
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 67,
+            "writes": 0,
+            "lines": 0,
+            "wait": 514,
+            "itlb": 67,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 36,
+            "pre": 39,
+            "refresh": 22
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 124998,
+          "scored_clocks": [
+            124998,
+            124998,
+            124998,
+            124998,
+            124998
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 7,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 15667,
+            "itlb": 8,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 3653,
+            "pre": 3610,
+            "refresh": 220
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 726,
+          "scored_clocks": [
+            726,
+            726,
+            726,
+            726,
+            726
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 1
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 747,
+          "scored_clocks": [
+            747,
+            747,
+            747,
+            747,
+            747
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 1
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16446,
+          "scored_clocks": [
+            16446,
+            16446,
+            16446,
+            16446,
+            16452
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 29,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 31,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16446,
+          "scored_clocks": [
+            16446,
+            16446,
+            16446,
+            16446,
+            16452
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 29,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 31,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15936,
+          "scored_clocks": [
+            15936,
+            15936,
+            15936,
+            15936,
+            15936
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 29,
+            "refresh": 29
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2622,
+          "scored_clocks": [
+            2622,
+            2622,
+            2622,
+            2622,
+            2622
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 4
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 21900,
+          "scored_clocks": [
+            21902,
+            21900,
+            21900,
+            21900,
+            21900
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 58,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 28,
+            "pre": 42,
+            "refresh": 40
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 12486,
+          "scored_clocks": [
+            12486,
+            12498,
+            12486,
+            12492,
+            12486
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 60,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 8,
+            "pre": 24,
+            "refresh": 22
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8268,
+          "scored_clocks": [
+            8268,
+            8268,
+            8274,
+            8268,
+            8268
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 15,
+            "refresh": 15
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2399797,
+          "scored_clocks": [
+            2399797,
+            2399797,
+            2399797,
+            2399797,
+            2399797
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 14958,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6597,
+            "pre": 6367,
+            "refresh": 4320
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 64,
+            "refresh": 64
+          }
+        }
+      }
+    },
+    "v5_production_stream": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-stream-production/result.json",
+      "cpu_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+      "pin_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+      "cases": {
+        "matrix4": {
+          "median_clocks": 17835,
+          "scored_clocks": [
+            17844,
+            17835,
+            17835,
+            17835,
+            17835
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 67,
+            "writes": 0,
+            "lines": 0,
+            "wait": 512,
+            "itlb": 67,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 34,
+            "pre": 49,
+            "refresh": 32
+          }
+        },
+        "transpose4": {
+          "median_clocks": 2772,
+          "scored_clocks": [
+            2772,
+            2772,
+            2772,
+            2772,
+            2772
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 130,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1040,
+            "itlb": 129,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 66,
+            "pre": 66,
+            "refresh": 5
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 12389,
+          "scored_clocks": [
+            12395,
+            12380,
+            12389,
+            12380,
+            12395
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 67,
+            "writes": 0,
+            "lines": 0,
+            "wait": 514,
+            "itlb": 67,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 36,
+            "pre": 39,
+            "refresh": 22
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 124998,
+          "scored_clocks": [
+            124998,
+            124998,
+            124998,
+            124998,
+            124998
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 7,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 15667,
+            "itlb": 8,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 3653,
+            "pre": 3610,
+            "refresh": 220
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 726,
+          "scored_clocks": [
+            726,
+            726,
+            726,
+            726,
+            726
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 1
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 747,
+          "scored_clocks": [
+            747,
+            747,
+            747,
+            747,
+            747
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 1
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16446,
+          "scored_clocks": [
+            16446,
+            16446,
+            16446,
+            16446,
+            16452
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 29,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 31,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16446,
+          "scored_clocks": [
+            16446,
+            16446,
+            16446,
+            16446,
+            16452
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 29,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 31,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15936,
+          "scored_clocks": [
+            15936,
+            15936,
+            15936,
+            15936,
+            15936
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 29,
+            "refresh": 29
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2622,
+          "scored_clocks": [
+            2622,
+            2622,
+            2622,
+            2622,
+            2622
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 4
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 21900,
+          "scored_clocks": [
+            21902,
+            21900,
+            21900,
+            21900,
+            21900
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 58,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 28,
+            "pre": 42,
+            "refresh": 40
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 12486,
+          "scored_clocks": [
+            12486,
+            12498,
+            12486,
+            12492,
+            12486
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 60,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 8,
+            "pre": 24,
+            "refresh": 22
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8268,
+          "scored_clocks": [
+            8268,
+            8268,
+            8274,
+            8268,
+            8268
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 28,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 15,
+            "refresh": 15
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2399797,
+          "scored_clocks": [
+            2399797,
+            2399797,
+            2399797,
+            2399797,
+            2399797
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 14958,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6597,
+            "pre": 6367,
+            "refresh": 4320
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 64,
+            "refresh": 64
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,260 @@
+{
+  "fixed_traces": {
+    "v5": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 284450,
+        "act": 4472,
+        "pre": 4472,
+        "refresh": 504,
+        "reads": 4583,
+        "writes": 32512,
+        "same_row_consecutive_pairs": 13841,
+        "median_clocks": {
+          "request_to_first_pin_write": 5,
+          "first_to_second_pin_write": 1,
+          "second_pin_write_to_ack": 5,
+          "previous_ack_to_request": 2,
+          "word_to_word": 13
+        },
+        "word_cadences": {
+          "13": 13841
+        }
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 360587,
+        "act": 6667,
+        "pre": 6667,
+        "refresh": 639,
+        "reads": 9265,
+        "writes": 34192,
+        "same_row_consecutive_pairs": 14525,
+        "median_clocks": {
+          "request_to_first_pin_write": 5,
+          "first_to_second_pin_write": 1,
+          "second_pin_write_to_ack": 5,
+          "previous_ack_to_request": 2,
+          "word_to_word": 13
+        },
+        "word_cadences": {
+          "13": 14525
+        }
+      }
+    },
+    "ngage2": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 134704,
+        "act": 3657,
+        "pre": 3610,
+        "refresh": 238,
+        "reads": 4583,
+        "writes": 32512,
+        "same_row_consecutive_pairs": 14202,
+        "median_clocks": {
+          "request_to_first_pin_write": 4.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": -4.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 3.0
+        },
+        "word_cadences": {
+          "3": 14202
+        }
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 215532,
+        "act": 5002,
+        "pre": 4660,
+        "refresh": 380,
+        "reads": 9265,
+        "writes": 34192,
+        "same_row_consecutive_pairs": 14888,
+        "median_clocks": {
+          "request_to_first_pin_write": 3.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": -3.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 3.0
+        },
+        "word_cadences": {
+          "3": 14888
+        }
+      }
+    },
+    "interleaved": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 282462,
+        "act": 3995,
+        "pre": 3968,
+        "refresh": 495,
+        "reads": 4583,
+        "writes": 32512,
+        "same_row_consecutive_pairs": 13846,
+        "median_clocks": {
+          "request_to_first_pin_write": 5.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": 5.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 13.0
+        },
+        "word_cadences": {
+          "13": 13846
+        }
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 353932,
+        "act": 5058,
+        "pre": 4966,
+        "refresh": 621,
+        "reads": 9265,
+        "writes": 34192,
+        "same_row_consecutive_pairs": 14528,
+        "median_clocks": {
+          "request_to_first_pin_write": 5.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": 5.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 13.0
+        },
+        "word_cadences": {
+          "13": 14528
+        }
+      }
+    },
+    "early_completion": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 268494,
+        "act": 4451,
+        "pre": 4451,
+        "refresh": 477,
+        "reads": 4583,
+        "writes": 32512,
+        "same_row_consecutive_pairs": 13860,
+        "median_clocks": {
+          "request_to_first_pin_write": 5.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": 4.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 12.0
+        },
+        "word_cadences": {
+          "12": 13860
+        }
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 343844,
+        "act": 6656,
+        "pre": 6656,
+        "refresh": 612,
+        "reads": 9265,
+        "writes": 34192,
+        "same_row_consecutive_pairs": 14530,
+        "median_clocks": {
+          "request_to_first_pin_write": 5.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": 4.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 12.0
+        },
+        "word_cadences": {
+          "12": 14530
+        }
+      }
+    },
+    "early_scalar_admission": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 252476,
+        "act": 4422,
+        "pre": 4422,
+        "refresh": 441,
+        "reads": 4583,
+        "writes": 32512,
+        "same_row_consecutive_pairs": 13888,
+        "median_clocks": {
+          "request_to_first_pin_write": 4.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": 4.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 11.0
+        },
+        "word_cadences": {
+          "11": 13888
+        }
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 327110,
+        "act": 6653,
+        "pre": 6653,
+        "refresh": 576,
+        "reads": 9265,
+        "writes": 34192,
+        "same_row_consecutive_pairs": 14540,
+        "median_clocks": {
+          "request_to_first_pin_write": 4.0,
+          "first_to_second_pin_write": 1.0,
+          "second_pin_write_to_ack": 4.0,
+          "previous_ack_to_request": 2.0,
+          "word_to_word": 11.0
+        },
+        "word_cadences": {
+          "11": 14540
+        }
+      }
+    }
+  },
+  "full_phone": {
+    "v5": {
+      "fill16_frame": {
+        "median_clocks": 299252,
+        "scored_clocks": [
+          299285,
+          299252,
+          299257,
+          299250,
+          299247
+        ]
+      },
+      "sega-scan": {
+        "median_clocks": 2466436,
+        "scored_clocks": [
+          2466306,
+          2466436,
+          2466464,
+          2466504,
+          2466409
+        ]
+      }
+    },
+    "early_scalar_admission": {
+      "fill16_frame": {
+        "median_clocks": 267360,
+        "scored_clocks": [
+          267363,
+          267360,
+          267352,
+          267440,
+          267348
+        ]
+      },
+      "sega-scan": {
+        "median_clocks": 2457047,
+        "scored_clocks": [
+          2457036,
+          2456895,
+          2457082,
+          2457047,
+          2457243
+        ]
+      }
+    }
+  }
+}

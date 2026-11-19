@@ -11,7 +11,8 @@ import jpeg_workload
 from jpeg_workload import make,oracle,ROM_SHA,BASE
 from importlib.util import spec_from_file_location,module_from_spec
 spec=spec_from_file_location('compare_driver',HERE/'run.py');driver=module_from_spec(spec);spec.loader.exec_module(driver)
-p=argparse.ArgumentParser();p.add_argument('--cpu',choices=['5c','base','ngage2','arm9v2'],required=True);p.add_argument('--name',required=True);p.add_argument('--scalar-refills',action='store_true');p.add_argument('--jpeg',type=Path,default=jpeg_workload.JPEG);a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--cpu',choices=['5c','base','ngage2','arm9v2'],required=True);p.add_argument('--name',required=True);p.add_argument('--scalar-refills',action='store_true');p.add_argument('--jpeg',type=Path,default=jpeg_workload.JPEG);p.add_argument('--arm9v2-netlist',type=Path);a=p.parse_args()
+if a.arm9v2_netlist and a.cpu!='arm9v2':p.error('--arm9v2-netlist requires --cpu arm9v2')
 jpeg_workload.JPEG=a.jpeg
 donor=a.cpu in ('ngage2','arm9v2')
 import re
@@ -40,7 +41,7 @@ try:
   for directory in ['rtl/arm','rtl/arm920']:rtl+=sorted(x for x in (source/directory).iterdir() if x.suffix in ['.sv','.v'])
   inputs=[common.cpath(x) for x in rtl]
  elif a.cpu=='arm9v2':
-  frozen=driver.integrated_snapshot(source)
+  frozen=driver.integrated_snapshot(source,a.arm9v2_netlist)
   inputs=['-DNGAGE_ARM9V2']+[common.cpath(source/x) for x in driver.ARM9V2_FILES]
  else:
   names=['rtl/cpu/arm925t_gen.v','sim/stubs/altsyncram.sv','sim/stubs/altdpram.sv']
@@ -55,6 +56,7 @@ try:
   common.hexfile(out/(n+'.hex'),(out/(n+'.bin')).read_bytes());programs[n]=dict(bench.symbols(subprocess.check_output(['arm-none-eabi-nm',out/(n+'.elf')],text=True)),sha256=common.sha((out/(n+'.bin')).read_bytes()))
  tb=(ROOT/'tests/cpu/spmark_payload/tb.v').read_text()
  tb=driver.observe_cpu(tb,a.cpu,a.scalar_refills).replace("32'h10000000","32'h50500000").replace("32'h10100000","32'h50600000")
+ if a.arm9v2_netlist:tb=driver.observe_cache_metrics(tb)
  (out/'tb.v').write_text(tb)
  docker=['docker','run','--rm','--pull=never','--network','none','--platform','linux/arm64','-v',str(ROOT)+':/work']
  if a.cpu=='ngage2':docker+=['-v',str(driver.DONOR)+':/donor:ro']

@@ -7,6 +7,10 @@ import re
 from pathlib import Path
 s='\n'.join(line for line in Path('files.qip').read_text().splitlines() if not line.lstrip().startswith('#'))
 p=[m.group(1) for m in re.finditer(r'-name (?:SYSTEMVERILOG_FILE|VERILOG_FILE) (\S+)',s)]
+defines = re.findall(r'-name VERILOG_MACRO "([^"]+)"', s)
+p = ['+define+' + define for define in defines] + p
+if any(define.startswith('NGAGE_ARM9V2=') for define in defines):
+    p += sorted(str(path) for path in Path('rtl/arm9v2/upstream/sim/stubs').glob('*.sv'))
 p += ['tests/phone/sdram/ddio_model.v','tests/phone/mister_transport/hps_stub.sv','tests/phone/mister_transport/pll_stub.sv']
 Path('build/sim/unit/mister-lint.f').write_text('\n'.join(p)+'\n')
 PY

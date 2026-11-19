@@ -110,6 +110,67 @@ def fold_section_index(phone):
     return ''.join(parts)
 
 
+def expose_block_writeback(phone):
+    """Carry each captured 16-byte RAM victim half beside its bus request."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    pins = ['input wire i_block_enable', 'output wire o_write_block', 'output wire [127:0] o_block_data']
+    index = {name: next(i for i, part in enumerate(parts) if part.startswith(f'module ngage2_{name} ('))
+             for name in ('arm925t', 'zap_top', 'zap_dcache', 'zap_dcache_fsm')}
+    top = ports(parts[index['arm925t']], 'dbg_instruction', [
+        'input tri0 block_enable', 'output wire bus_write_block', 'output wire [127:0] bus_block_data'])
+    parts[index['arm925t']] = edit(top, '\t\t.i_clk(clk),', '''		.i_block_enable(block_enable),
+		.o_write_block(bus_write_block),
+		.o_block_data(bus_block_data),
+		.i_clk(clk),''')
+
+    zap = ports(parts[index['zap_top']], 'o_dbg_instruction', pins)
+    zap = edit(zap, '\t\t\t) u_data_cache(', '''			) u_data_cache(
+				.i_block_enable(i_block_enable),
+				.o_write_block(dc_write_block),
+				.o_block_data(o_block_data),
+				.o_block_address(dc_block_address),''')
+    zap = edit(zap, '\twire dc_writeback_busy;', '''	wire dc_writeback_busy, dc_write_block;
+	wire [31:0] dc_block_address;''')
+    parts[index['zap_top']] = edit(zap, '\t\t\tassign o_wb_we = wb_we;', '''			assign o_wb_we = wb_we;
+			assign o_write_block = dbg_data_owner && wb_stb && wb_we && dc_write_block && wb_adr == dc_block_address;''')
+
+    cache_pins = pins + ['output wire [31:0] o_block_address']
+    cache = ports(parts[index['zap_dcache']], 'i_wb_err', cache_pins)
+    cache = edit(cache, '\t) u_zap_cache_fsm(', '''	) u_zap_cache_fsm(
+		.i_block_enable(i_block_enable),
+		.o_write_block(victim_write_block),
+		.o_block_data(o_block_data),
+		.o_block_address(o_block_address),''')
+    parts[index['zap_dcache']] = edit(cache, '\twire victim_writeback_busy;', '''	wire victim_writeback_busy, victim_write_block;
+	assign o_write_block = state_ff == SELECT_CCH && victim_write_block;''')
+
+    fsm = ports(parts[index['zap_dcache_fsm']], 'i_wb_err', cache_pins)
+    fsm = edit(fsm, "\tassign adr_ctr_inc = adr_ctr_ff + {{$clog2(CACHE_LINE / 4) {1'd0}}, 1'd1};", '''
+	// Wait for one acknowledgement per half of the captured RAM victim.
+	wire block_target = i_block_enable && CACHE_LINE == 32 && wb_adr_cur[31:24] == 8'h0a;
+	wire block_beat = block_target && state_ff[CLEAN_SINGLE];
+	assign adr_ctr_inc = adr_ctr_ff + (block_beat ? 4'd4 : 4'd1);
+	assign o_write_block = block_beat && o_wb_stb_ff && o_wb_adr_ff == wb_adr_cur;
+	assign o_block_address = wb_adr_cur;
+	assign o_block_data = cache_line[(wb_adr_cur[4] ? 128 : 0)+:128];''')
+    if 'wire writeback_next_valid' in fsm:
+        fsm = edit(fsm, '\twire writeback_next_valid = (take ? adr_ctr_inc : adr_ctr_ff) <= last_evict_word;', '''	localparam integer EVICT_INDEX_BITS = $clog2(CACHE_LINE / 4) + 1;
+	wire [EVICT_INDEX_BITS-1:0] last_block_word = last_evict_word - 4'd3;
+	wire [EVICT_INDEX_BITS-1:0] last_writeback_word = block_target ? last_block_word : last_evict_word;
+	wire writeback_next_valid = (take ? adr_ctr_inc : adr_ctr_ff) <= last_writeback_word;''')
+        fsm = edit(fsm, '(take ? adr_ctr_inc : adr_ctr_ff) == last_evict_word',
+                   '(take ? adr_ctr_inc : adr_ctr_ff) == last_writeback_word')
+        start = fsm.index('state_ff[UNLOCK_REG]: begin')
+        fsm = fsm[:start] + edit(fsm[start:], 'o_wb_cti_nxt = CTI_BURST;',
+                                 'o_wb_cti_nxt = block_target && first_evict_word == last_block_word ? CTI_EOB : CTI_BURST;')
+    else:
+        for counter in ('ff', 'inc'):
+            fsm = edit(fsm, f'adr_ctr_{counter}}} != ((CACHE_LINE / 4) - 1)',
+                       f'adr_ctr_{counter}}} != ((CACHE_LINE / 4) - (block_beat ? 4 : 1))')
+    parts[index['zap_dcache_fsm']] = fsm
+    return ''.join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -127,7 +188,7 @@ def main():
     if hashlib.sha256(stock).hexdigest() != STOCK_SHA:
         raise ValueError('Donor netlist differs from pinned Quartus input')
     output = VENDOR / 'arm925t_phone.v'
-    generated = fold_section_index(expose(stock.decode()))
+    generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

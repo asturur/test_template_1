@@ -149,6 +149,15 @@ module contract;
   integer burst_enable, line_wait = 0, half_index = 0;
   integer ram_lines = 0, rom_lines = 0, rejected_lines = 0;
   integer capacity_markers = 0;
+  integer assoc_phase = 0, assoc_started, assoc_words, assoc_fills, assoc_empty_groups;
+  integer assoc_slot;
+  localparam [13:0] PROBE_LOW = 14'h2010, PROBE_HIGH = 14'h2014;
+  wire [31:0] assoc_ways = cpu.u_arm925t.DCACHE_WAYS;
+  wire [31:0] assoc_stride = 32'd16384 / assoc_ways;
+  wire half_writeback = $test$plusargs("half-writeback");
+  wire empty_clean_group =
+      cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache.u_zap_cache_tag_ram.state_ff == 13'd2 &&
+      cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache.u_zap_cache_tag_ram.dirty_scan == 0;
   reg verify_resident = 0;
   reg [31:0] saved_line;
   wire line_ram = saved_line[31:24] == 8'h0a;
@@ -178,6 +187,9 @@ module contract;
       if (cycle == 180000) $fatal(1, "Watchdog PC=%h", pc);
       line_reject <= 0;
       if (line && !line_active) begin
+        if (assoc_phase >= 6 && line_addr >= 32'h0a008000 && line_addr < 32'h0a010000 &&
+            (assoc_phase < 9 || (line_addr & (assoc_stride-1)) == assoc_stride-32))
+          assoc_fills <= assoc_fills + 1;
         if (line_addr[4:0] != 0 || cyc) $fatal(1, "Bad line offer");
         if (burst_enable != 0) begin
           saved_line  <= line_addr;
@@ -200,6 +212,7 @@ module contract;
         if (line_error) refill_faults <= refill_faults + 1;
       end
       if (cyc && stb && !ack && !error) wait_words <= wait_words + 1;
+      if (assoc_phase && empty_clean_group) assoc_empty_groups <= assoc_empty_groups + 1;
       if (cpu.u_arm925t.dbg_wb_pabt) prefetch_aborts <= prefetch_aborts + 1;
       if (device_cyc && device_address == 32'h0b000000)
         $fatal(1, "Faulting VA reached the physical device bus");
@@ -248,6 +261,75 @@ module contract;
                 );
               section_checks <= section_checks + 1;
               $display("SECTION pass=%0d table_reads=%0d", section_checks + 1, section_reads);
+            end
+          end
+          32'h0c00000c: begin
+            assoc_phase <= device_wdata;
+            if (device_wdata != 0) begin
+              assoc_started <= cycle;
+              assoc_words <= 0;
+              assoc_fills <= 0;
+              assoc_empty_groups <= 0;
+              if (device_wdata == 3) ram[PROBE_HIGH] <= 32'h89abcdef;
+              if (device_wdata == 4) ram[PROBE_LOW] <= 32'h76543210;
+            end else begin
+              case (assoc_phase)
+                1: begin
+                  if (assoc_words != (512 - assoc_ways) * (half_writeback ? 4 : 8))
+                    $fatal(
+                        1, "Dirty full clean wrote %0d words with %0d ways", assoc_words, assoc_ways
+                    );
+                  for (assoc_slot = 0; assoc_slot < 512; assoc_slot = assoc_slot + 1)
+                  if (ram[8192+8*assoc_slot] != 32'h0a008000 + 32 * assoc_slot)
+                    $fatal(1, "Whole clean missed resident slot %0d", assoc_slot);
+                end
+                2:
+                if (assoc_words != 0 || assoc_empty_groups != 32)
+                  $fatal(1, "Empty clean groups=%0d writes=%0d", assoc_empty_groups, assoc_words);
+                3:
+                if (assoc_words != (half_writeback ? 4:8) || ram[PROBE_LOW] != 32'h33008040 ||
+                       ram[PROBE_HIGH] != (half_writeback ? 32'h89abcdef : 32'd0))
+                  $fatal(
+                      1,
+                      "Low dirty half writes=%0d data=%h/%h",
+                      assoc_words,
+                      ram[PROBE_LOW],
+                      ram[PROBE_HIGH]
+                  );
+                4:
+                if (assoc_words != (half_writeback ? 4:8) || ram[PROBE_HIGH] != 32'h66000000 ||
+                       ram[PROBE_LOW] != (half_writeback ? 32'h76543210 : 32'h33008040))
+                  $fatal(
+                      1,
+                      "High dirty half writes=%0d data=%h/%h",
+                      assoc_words,
+                      ram[PROBE_LOW],
+                      ram[PROBE_HIGH]
+                  );
+                5:
+                if (assoc_words != 8 || ram[PROBE_LOW] != 32'h44008040 || ram[PROBE_HIGH] != 32'h55000000)
+                  $fatal(
+                      1,
+                      "Both dirty halves writes=%0d data=%h/%h",
+                      assoc_words,
+                      ram[PROBE_LOW],
+                      ram[PROBE_HIGH]
+                  );
+                6, 9:
+                if (assoc_fills != assoc_ways)
+                  $fatal(1, "Conflict warm phase %0d filled %0d lines", assoc_phase, assoc_fills);
+                7, 10:
+                if (assoc_fills != 0)
+                  $fatal(1, "Resident phase %0d refilled %0d lines", assoc_phase, assoc_fills);
+                8, 11:
+                if (assoc_fills != 2)
+                  $fatal(1, "Overflow phase %0d refilled %0d lines", assoc_phase, assoc_fills);
+                default: $fatal(1, "Unexpected cache diagnostic phase");
+              endcase
+              $display(
+                  "ASSOC phase=%0d ways=%0d clocks=%0d write_words=%0d fills=%0d empty_groups=%0d",
+                  assoc_phase, assoc_ways, cycle - assoc_started, assoc_words, assoc_fills,
+                  assoc_empty_groups);
             end
           end
           32'hf0000000: begin
@@ -318,6 +400,10 @@ module contract;
       end else if (ram_ack) begin
         ram_pending <= 0;
         if (ram_saved_write) begin
+          if (assoc_phase && assoc_phase <= 5) begin
+            assoc_words <= assoc_words + 1;
+            if (ram_saved_be != 15) $fatal(1, "Writeback used partial byte lanes");
+          end
           for (lane = 0; lane < 4; lane = lane + 1)
           if (ram_saved_be[lane]) ram[ram_index][lane*8+:8] <= ram_saved_data[lane*8+:8];
           if (ram_index == 0 && ram_saved_data == 32'h55667788 && ram_saved_be == 15)

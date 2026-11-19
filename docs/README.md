@@ -6,7 +6,12 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [game-pcm.md](game-pcm.md) | Shared game audio bridge, native playback evidence, and v5 audio/MMC/LCD qualification |
+| [arm9v2-sdram-stream.md](arm9v2-sdram-stream.md) | Production SDRAM scheduler, 32-byte refill and checked original-code speedup |
+| [arm9v2-sdram-handoff.md](arm9v2-sdram-handoff.md) | Pin-level SDRAM write cadence, faster scalar handoff and checked CPU replays |
+| [arm9v2-donor-frame-gap.md](arm9v2-donor-frame-gap.md) | Same-stream SDRAM timing, v5/ngage2 frame proxies and SPMark guest-time audit |
 | [arm9v2-cache32.md](arm9v2-cache32.md) | v5 16 KiB per cache and native 32-byte board bursts, with v4 and original ngage2 measurements |
+| [arm9v2-associativity.md](arm9v2-associativity.md) | v5 fixed-capacity cache associativity and half-line writeback payload comparison |
 | [arm9v2-phone.md](arm9v2-phone.md) | ngage-v5 stock donor, NEM-4 bus and firmware qualification, checked SPMark and game loop comparisons |
 | [cpu-store-postindex.md](cpu-store-postindex.md) | Step5F original tail gains, unchanged base forwarding, resident admission, precise IRQ/fault/RAM proof and zero-state patch0078 |
 | [cpu-target-delivery.md](cpu-target-delivery.md) | Step5E exact5D call/return timelines, rejected zero-state BTB handoff, mixed cycles and wrong-path drain evidence |

@@ -7,7 +7,7 @@ set_global_assignment -name SDC_FILE Template.sdc
 # PLL (78 MHz system; SDRAM pin clock is forwarded through DDIO)
 set_global_assignment -name QIP_FILE rtl/pll.qip
 
-# Request IO-cell placement for the falling-edge SDRAM input capture.
+# Request IO-cell placement for the SDRAM input capture.
 # Actual placement and setup/hold closure must be checked in Fitter/TimeQuest.
 set_instance_assignment -name FAST_INPUT_REGISTER ON -to {SDRAM_DQ[*]}
 
@@ -27,12 +27,13 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_diag_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diag_text_ddr.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_reset_gate.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_clock.v
-set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_adapter.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_stream.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_arbiter.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_route.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_engine.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_channels.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_lcd_stream.v
+set_global_assignment -name VERILOG_FILE rtl/ngage_sdram_line_mux.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_dma_ram_mux.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_game_pcm.v
 set_global_assignment -name VERILOG_FILE rtl/ngage_diag_pcm_ddr.v
@@ -100,14 +101,11 @@ set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
 
 # Stock ngage2 ARM9V2 core, caches and MMU with NEM-4 interface signals.
 set_global_assignment -name VERILOG_MACRO "NGAGE_ARM9V2=1"
+set_global_assignment -name VERILOG_MACRO "NGAGE_BLOCK_WRITEBACK=1"
 set_global_assignment -name VERILOG_FILE rtl/arm9v2/arm925t_phone.v
 
-# SDRAM controller (jtframe_sdram64, self-contained)
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_bank.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_init.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_latch.v
-set_global_assignment -name VERILOG_FILE rtl/sdram/jtframe_sdram64_rfsh.v
+# Ordered SDRAM command scheduler with native 32-byte v5 refills.
+set_global_assignment -name VERILOG_FILE rtl/sdram/ngage_sdram_scheduler.v
 
 # Inactive instruction-only DDR cache (replaced by the shared flash cache).
 # set_global_assignment -name VERILOG_FILE rtl/jtframe/ngage_jtframe_romrq_lcache.v

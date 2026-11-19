@@ -139,6 +139,7 @@ module tb;
 parameter integer OVERLAY_COMPONENT=1;
 parameter integer SYS_CLK_HZ=104000000;
 parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
+parameter integer FLASH_CACHE_BYTES=8192, MMC_CLK_DIV=4, GAME_PCM=0;
 parameter integer ROM_CACHE=0;
 parameter integer DIRECT_SDRAM=1;
 parameter integer LINE_REFILL=0;
@@ -263,6 +264,37 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   end
  end
  integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;reg [7:0] ddr_remaining=0;
+`ifdef NGAGE_NOS_TIMING_STATS
+ `define NOS_TIMER dut.board.upp.peripherals.nos_timer
+ wire gpt_pending = dut.board.upp.peripherals.timer0_pending;
+ wire nos_timer_pending = `NOS_TIMER.status_reg[7] && `NOS_TIMER.enable_bits[7];
+ wire in_irq_mode = dut.cpu_cpsr[4:0] == 5'h12;
+ reg previous_gpt=0,previous_nos=0,previous_irq_mode=0;
+ reg [63:0] nos_elapsed=0,nos_ticks=0,nos_programs=0,nos_matches=0,nos_timer_assertions=0;
+ reg [63:0] gpt_assertions=0,irq_entries=0,irq_clocks=0;
+ task report_nos_timing;
+  begin
+   $display("NOS_TIMING cycles=%0d ticks=%0d programs=%0d matches=%0d timer_assertions=%0d gpt_assertions=%0d irq_entries=%0d irq_clocks=%0d",
+      nos_elapsed,nos_ticks,nos_programs,nos_matches,nos_timer_assertions,gpt_assertions,irq_entries,irq_clocks);
+  end
+ endtask
+ always @(posedge clk) if(!reset) begin
+  nos_elapsed<=nos_elapsed+1;
+  if(`NOS_TIMER.nos_tick) nos_ticks<=nos_ticks+1;
+  if(`NOS_TIMER.compare_written) nos_programs<=nos_programs+1;
+  if(`NOS_TIMER.timer_match) nos_matches<=nos_matches+1;
+  if(nos_timer_pending && !previous_nos) nos_timer_assertions<=nos_timer_assertions+1;
+  if(gpt_pending && !previous_gpt) gpt_assertions<=gpt_assertions+1;
+  if(in_irq_mode && !previous_irq_mode) irq_entries<=irq_entries+1;
+  if(in_irq_mode) irq_clocks<=irq_clocks+1;
+  previous_nos<=nos_timer_pending;
+  previous_gpt<=gpt_pending;
+  previous_irq_mode<=in_irq_mode;
+  if(nos_elapsed!=0 && nos_elapsed%20000000==0) report_nos_timing();
+ end
+ final report_nos_timing();
+ `undef NOS_TIMER
+`endif
 `ifndef NGAGE_LOGO_RUN
  integer ram_lines=0, rom_lines=0;
  always @(posedge clk) if(!reset) begin
@@ -287,7 +319,9 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  localparam UEM_POWERUP_STATUS=1;
 `endif
  wire cpu_ram_accept;
- ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(
+ wire cpu_write_block, mem_write_block;
+ wire [127:0] cpu_block_data, mem_block_data;
+ ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
 .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
@@ -299,6 +333,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `endif
  ),.diagnostic_status(8'b0),.debug_freeze_trace(1'b0),.debug_read_word(11'b0),.board_init_done(init_done),.bus_lock(lock),
   .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
+  .sdram_write_block(cpu_write_block),.sdram_block_data(cpu_block_data),
   .dma_reset(dma_reset),.dma_sdram_accept(lcd_fast_accept),
   .dma_sdram_req(lcd_fast_req),.dma_sdram_addr(lcd_fast_addr),.dma_sdram_ack(lcd_fast_ack),.dma_sdram_data(lcd_fast_data),
   .dma_error_pending(dma_error_pending),
@@ -333,7 +368,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .mem_req(shared_dma_req),.mem_write(shared_dma_write),.mem_addr(shared_dma_addr),.mem_data(shared_dma_data),.mem_be(shared_dma_be),
   .mem_accept(shared_dma_accept),.mem_ack(shared_dma_ack),.mem_rdata(shared_dma_rdata)
  );
- ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+ ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+  .cpu_write_block(cpu_write_block),.cpu_block_data(cpu_block_data),.mem_write_block(mem_write_block),.mem_block_data(mem_block_data),
   .dma_req(shared_dma_req && sdram_owner_ready),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
 `ifdef NGAGE_NOS_OVERLAY_RUN
  // Separate experiment: exercise the real staged loader and shared DDR path,
@@ -396,14 +432,23 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `ifdef NGAGE_PRODUCTION_DDR
  // Selected Template transport/cache. HPS sector traffic remains absent in
  // this phone harness; the bulk engine is instantiated but not requested.
- ngage_ddr_flash_adapter #(.FLASH_CACHE_BYTES(8192),.STREAM_TRANSPORT(1),.BULK_PERSISTENCE(1),.LINE_REFILL(LINE_REFILL)) adapter(
+ ngage_ddr_flash_adapter #(.FLASH_CACHE_BYTES(FLASH_CACHE_BYTES),.STREAM_TRANSPORT(1),.BULK_PERSISTENCE(1),.LINE_REFILL(LINE_REFILL)) adapter(
   .req_bulk(1'b0),.bulk_cancel(1'b0),.bulk_write_valid(1'b0),
   .bulk_write_data(64'b0),.bulk_write_last(1'b0),.bulk_read_ready(1'b1),
 .req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
+`ifdef NGAGE_ARM9V2
+`include "tests/phone/hardware_boot/d2_measure.vh"
+`endif
 `else
  ngage_ddr_adapter #(.LINE_REFILL(LINE_REFILL),.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
+`endif
+ wire d2_hold_tail;
+`ifdef NGAGE_D2_DIRECTED
+`include "tests/phone/ddr_flash_cache/trace_observe.vh"
+`else
+ assign d2_hold_tail=1'b0;
 `endif
  always @(posedge clk)begin
   phyready<=0;
@@ -411,7 +456,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   sack_model<=0;
 `endif
   if(pr && ddelay==0)begin read_addr<={pa,3'b000}-32'h30000000;ddelay<=3;ddr_remaining<=ddr_burst;end
-  else if(ddelay!=0)begin ddelay<=ddelay-1'b1;if(ddelay==1)begin
+  else if(ddelay!=0 && !d2_hold_tail)begin ddelay<=ddelay-1'b1;if(ddelay==1)begin
    if(read_addr+7>=25231360)begin $fatal(1,"DDR read out of range %h",read_addr);end
    for(n=0;n<8;n=n+1)phydata[n*8+:8]<=ddr[read_addr+n];phyready<=1;
    if(ddr_remaining>1)begin
@@ -506,7 +551,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   board_log=0;
   if(!$test$plusargs("no-board-log")) board_log=$fopen("build/sim/unit-hardware-boot-real-sdram/board.tsv","w");
 `else
-  board_log=$fopen("build/sim/unit-hardware-boot/board.tsv","w");
+  board_log=0;
+  if(!$test$plusargs("no-board-log")) board_log=$fopen("build/sim/unit-hardware-boot/board.tsv","w");
 `endif
   if(!board_log && !$test$plusargs("no-board-log")) $fatal(1,"cannot open board trace");
   if(board_log) $fdisplay(board_log,"cycle\top\taddress\tmask\tdata\terror\tirq\tfiq");

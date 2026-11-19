@@ -15,27 +15,29 @@ module ngage_cpu #(
     input  wire        line_last,
     input  wire        line_error,
 
-    input  logic        clk,
-    input  logic        reset,
-    input  logic        irq,
-    input  logic        fiq,
-    output logic        wb_cyc,
-    output logic        wb_lock,
-    output wire         wb_code,
-    output logic        wb_stb,
-    output logic [31:0] wb_address,
-    output logic        wb_write,
-    output logic [31:0] wb_write_data,
-    output logic [ 3:0] wb_byte_enable,
-    output logic [ 2:0] wb_cycle_type,
-    output logic [ 1:0] wb_burst_type,
-    input  logic        wb_ack,
-    input  logic        wb_error,
-    input  logic [31:0] wb_read_data,
-    output wire  [31:0] debug_pc,
-    output wire  [31:0] debug_cpsr,
-    output wire  [31:0] debug_instruction,
-    output wire         debug_fetch
+    input  logic         clk,
+    input  logic         reset,
+    input  logic         irq,
+    input  logic         fiq,
+    output logic         wb_cyc,
+    output logic         wb_lock,
+    output wire          wb_code,
+    output logic         wb_stb,
+    output logic [ 31:0] wb_address,
+    output logic         wb_write,
+    output logic [ 31:0] wb_write_data,
+    output wire          wb_write_block,
+    output wire  [127:0] wb_block_data,
+    output logic [  3:0] wb_byte_enable,
+    output logic [  2:0] wb_cycle_type,
+    output logic [  1:0] wb_burst_type,
+    input  logic         wb_ack,
+    input  logic         wb_error,
+    input  logic [ 31:0] wb_read_data,
+    output wire  [ 31:0] debug_pc,
+    output wire  [ 31:0] debug_cpsr,
+    output wire  [ 31:0] debug_instruction,
+    output wire          debug_fetch
 );
 `ifdef NGAGE_ARM9V2
     wire [31:0] donor_pc, donor_cpsr, donor_instruction;
@@ -93,6 +95,11 @@ module ngage_cpu #(
         .bus_addr         (wb_address),
         .bus_we           (wb_write),
         .bus_wdata        (wb_write_data),
+`ifdef NGAGE_BLOCK_WRITEBACK
+        .block_enable     (1'b1),
+        .bus_write_block  (wb_write_block),
+        .bus_block_data   (wb_block_data),
+`endif
         .bus_be           (wb_byte_enable),
         .bus_cti          (wb_cycle_type),
         .bus_bte          (wb_burst_type),
@@ -151,6 +158,10 @@ module ngage_cpu #(
         .i_wb_dat           (wb_read_data),
         .i_wb_err           (wb_error)
     );
+`endif
+`ifndef NGAGE_BLOCK_WRITEBACK
+    assign wb_write_block = 1'b0;
+    assign wb_block_data  = 128'b0;
 `endif
 `ifdef NGAGE_NO_CPU_DEBUG
     assign debug_pc          = 0;

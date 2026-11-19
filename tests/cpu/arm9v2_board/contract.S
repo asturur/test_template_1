@@ -19,7 +19,10 @@ start:
     cmp r4,r5
     bne fail
     mrc p15,0,r4,c0,c0,1
-    ldr r5,=0x0514a14a
+#ifndef EXPECTED_CTYPE
+#define EXPECTED_CTYPE 0x0514a14a
+#endif
+    ldr r5,=EXPECTED_CTYPE
     cmp r4,r5
     bne fail
 
@@ -170,6 +173,10 @@ check_capacity:
     str r5,[r7,#8]
     add r10,r11,#0x1000
     mcr p15,0,r10,c7,c14,2          // Clean and invalidate upper-half set by index.
+
+#ifdef ASSOC_WAYS
+#include "contract_associativity.inc"
+#endif
 
     ldr r0,=0x50415353
     b finish

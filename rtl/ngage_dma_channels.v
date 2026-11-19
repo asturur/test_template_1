@@ -5,8 +5,9 @@
 // success IRQ: the original ISR returns a constant success status. This is
 // an explicit model diagnostic, not an invented guest-visible error register.
 module ngage_dma_channels #(
-    parameter ENGINES    = 3,
-              PRODUCTION = 0
+    parameter ENGINES        = 3,
+              PRODUCTION     = 0,
+              LCD_LINE_BYTES = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -24,6 +25,12 @@ module ngage_dma_channels #(
     output wire [ 7:0] active_channels,
     output wire        lcd_mem_req,
     output wire [24:0] lcd_mem_addr,
+    output wire        lcd_line_req,
+    output wire [24:0] lcd_line_addr,
+    input  wire        lcd_line_ready,
+    input  wire        lcd_line_valid,
+    input  wire [15:0] lcd_line_data,
+    input  wire        lcd_line_last,
     input  wire        lcd_mem_accept,
     input  wire        lcd_mem_ack,
     input  wire [31:0] lcd_mem_data,
@@ -317,7 +324,9 @@ module ngage_dma_channels #(
         ((start_write || stop_write) && ch == fast_channel));
     generate
         if (PRODUCTION) begin : fast_lcd
-            ngage_lcd_stream stream (
+            ngage_lcd_stream #(
+                .LINE_BYTES(LCD_LINE_BYTES)
+            ) stream (
                 .clk           (clk),
                 .reset         (reset),
                 .transfer_valid(fast_dispatch),
@@ -334,6 +343,12 @@ module ngage_dma_channels #(
                 .mem_accept    (lcd_mem_accept),
                 .mem_ack       (lcd_mem_ack),
                 .mem_data      (lcd_mem_data),
+                .line_req      (lcd_line_req),
+                .line_addr     (lcd_line_addr),
+                .line_ready    (lcd_line_ready),
+                .line_valid    (lcd_line_valid),
+                .line_data     (lcd_line_data),
+                .line_last     (lcd_line_last),
                 .pixel_valid   (lcd_pixel_valid),
                 .pixel_data    (lcd_pixel_data),
                 .pixel_ready   (lcd_pixel_ready),
@@ -345,6 +360,8 @@ module ngage_dma_channels #(
             assign fast_done       = 0;
             assign fast_error      = 0;
             assign fast_aborted    = 0;
+            assign lcd_line_req    = 0;
+            assign lcd_line_addr   = 0;
             assign lcd_mem_req     = 0;
             assign lcd_mem_addr    = 0;
             assign lcd_pixel_valid = 0;

@@ -58,8 +58,14 @@ module ngage2_arm925t (
 	bus_lock,
 	bus_cti,
 	dbg_fetch_valid,
-	dbg_instruction
+	dbg_instruction,
+	block_enable,
+	bus_write_block,
+	bus_block_data
 );
+	input tri0 block_enable;
+	output wire bus_write_block;
+	output wire [127:0] bus_block_data;
 	output wire bus_code;
 	output wire bus_lock;
 	output wire [2:0] bus_cti;
@@ -135,6 +141,9 @@ module ngage2_arm925t (
 		.CODE_SPAGE_TLB_ENTRIES(ITLB_SPAGE_SETS),
 		.CODE_SPAGE_TLB_WAYS(ITLB_SPAGE_WAYS)
 	) u_zap(
+		.i_block_enable(block_enable),
+		.o_write_block(bus_write_block),
+		.o_block_data(bus_block_data),
 		.i_clk(clk),
 		.i_reset(reset),
 		.i_irq(irq),
@@ -9313,8 +9322,16 @@ module ngage2_zap_dcache_fsm (
 	o_wb_bte_nxt,
 	i_wb_ack,
 	i_wb_dat,
-	i_wb_err
+	i_wb_err,
+	i_block_enable,
+	o_write_block,
+	o_block_data,
+	o_block_address
 );
+	input wire i_block_enable;
+	output wire o_write_block;
+	output wire [127:0] o_block_data;
+	output wire [31:0] o_block_address;
 	reg _sv2v_0;
 	parameter [0:0] FLAT_ACK = 1'b0;
 	parameter [0:0] LOCK_SPLIT = 1'b0;
@@ -9898,11 +9915,18 @@ module ngage2_zap_dcache_fsm (
 	wire [$clog2(CACHE_LINE / 4) - 1:0] fetch_word_cur;
 	wire [$clog2(CACHE_LINE / 4) - 1:0] fetch_word_inc;
 	assign take = o_wb_stb_ff && (i_wb_ack | i_wb_err);
-	assign adr_ctr_inc = adr_ctr_ff + {{$clog2(CACHE_LINE / 4) {1'd0}}, 1'd1};
+
+	// Wait for one acknowledgement per half of the captured RAM victim.
+	wire block_target = i_block_enable && CACHE_LINE == 32 && wb_adr_cur[31:24] == 8'h0a;
+	wire block_beat = block_target && state_ff[CLEAN_SINGLE];
+	assign adr_ctr_inc = adr_ctr_ff + (block_beat ? 4'd4 : 4'd1);
+	assign o_write_block = block_beat && o_wb_stb_ff && o_wb_adr_ff == wb_adr_cur;
+	assign o_block_address = wb_adr_cur;
+	assign o_block_data = cache_line[(wb_adr_cur[4] ? 128 : 0)+:128];
 	assign beat_cur_ok = {{ADR_PAD {1'd0}}, adr_ctr_ff} <= ((CACHE_LINE / 4) - 1);
 	assign beat_inc_ok = {{ADR_PAD {1'd0}}, adr_ctr_inc} <= ((CACHE_LINE / 4) - 1);
-	assign cti_cur = ({{ADR_PAD {1'd0}}, adr_ctr_ff} != ((CACHE_LINE / 4) - 1) ? CTI_BURST : CTI_EOB);
-	assign cti_inc = ({{ADR_PAD {1'd0}}, adr_ctr_inc} != ((CACHE_LINE / 4) - 1) ? CTI_BURST : CTI_EOB);
+	assign cti_cur = ({{ADR_PAD {1'd0}}, adr_ctr_ff} != ((CACHE_LINE / 4) - (block_beat ? 4 : 1)) ? CTI_BURST : CTI_EOB);
+	assign cti_inc = ({{ADR_PAD {1'd0}}, adr_ctr_inc} != ((CACHE_LINE / 4) - (block_beat ? 4 : 1)) ? CTI_BURST : CTI_EOB);
 	assign wb_adr_cur = {cache_tag[(31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1):((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1], {$clog2(CACHE_LINE) {1'd0}}} + {{ADR_PAD_MINUS_2 {1'd0}}, adr_ctr_ff, 2'd0};
 	assign wb_adr_inc = {cache_tag[(31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1):((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1], {$clog2(CACHE_LINE) {1'd0}}} + {{ADR_PAD_MINUS_2 {1'd0}}, adr_ctr_inc, 2'd0};
 	assign fetch_word_cur = adr_ctr_ff[$clog2(CACHE_LINE / 4) - 1:0] + (CACHE_LINE == 16 ? address[$clog2(CACHE_LINE) - 1:2] : {$clog2(CACHE_LINE / 4) {1'sb0}});
@@ -10637,8 +10661,16 @@ module ngage2_zap_dcache (
 	o_wb_bte_nxt,
 	i_wb_dat,
 	i_wb_ack,
-	i_wb_err
+	i_wb_err,
+	i_block_enable,
+	o_write_block,
+	o_block_data,
+	o_block_address
 );
+	input wire i_block_enable;
+	output wire o_write_block;
+	output wire [127:0] o_block_data;
+	output wire [31:0] o_block_address;
 	reg _sv2v_0;
 	parameter [0:0] WAY_FORMAT = 1'b0;
 	parameter [0:0] REG_COLLISION = 1'b0;
@@ -11109,7 +11141,8 @@ module ngage2_zap_dcache (
 	assign unused = |{wb_err[1]};
 	wire post_full;
 	wire post_push;
-	wire victim_writeback_busy;
+	wire victim_writeback_busy, victim_write_block;
+	assign o_write_block = state_ff == SELECT_CCH && victim_write_block;
 	ngage2_zap_dcache_fsm #(
 		.CACHE_SIZE(CACHE_SIZE),
 		.CACHE_LINE(CACHE_LINE),
@@ -11119,6 +11152,10 @@ module ngage2_zap_dcache (
 		.FLAT_ACK(FLAT_ACK),
 		.LOCK_SPLIT(LOCK_SPLIT)
 	) u_zap_cache_fsm(
+		.i_block_enable(i_block_enable),
+		.o_write_block(victim_write_block),
+		.o_block_data(o_block_data),
+		.o_block_address(o_block_address),
 		.i_clk(i_clk),
 		.i_reset(i_reset),
 		.i_address(i_address),
@@ -14696,8 +14733,14 @@ module ngage2_zap_top (
 	o_wb_code,
 	o_wb_lock,
 	o_dbg_fetch_valid,
-	o_dbg_instruction
+	o_dbg_instruction,
+	i_block_enable,
+	o_write_block,
+	o_block_data
 );
+	input wire i_block_enable;
+	output wire o_write_block;
+	output wire [127:0] o_block_data;
 	output wire o_wb_code;
 	output wire o_wb_lock;
 	output wire o_dbg_fetch_valid;
@@ -15330,7 +15373,8 @@ module ngage2_zap_top (
 		.i_async({i_fiq, i_irq}),
 		.o_sync({s_fiq, s_irq})
 	);
-	wire dc_writeback_busy;
+	wire dc_writeback_busy, dc_write_block;
+	wire [31:0] dc_block_address;
 	generate
 		if (1) begin : g_arm9
 			ngage2_arm9v2_core #(
@@ -15520,6 +15564,10 @@ module ngage2_zap_top (
 				.BE_32_ENABLE(BE_32_ENABLE),
 				.EXT_ABORT_FS(4'b1000)
 			) u_data_cache(
+				.i_block_enable(i_block_enable),
+				.o_write_block(dc_write_block),
+				.o_block_data(o_block_data),
+				.o_block_address(dc_block_address),
 				.o_dbg_dcache(o_dbg_dcache),
 				.o_dbg_tlb(dbg_dtlb),
 				.i_clk(i_clk),
@@ -15674,6 +15722,7 @@ module ngage2_zap_top (
 			assign o_wb_cyc = wb_cyc;
 			assign o_wb_stb = wb_stb;
 			assign o_wb_we = wb_we;
+			assign o_write_block = dbg_data_owner && wb_stb && wb_we && dc_write_block && wb_adr == dc_block_address;
 			assign o_wb_sel = wb_sel;
 			assign o_wb_dat = wb_idat;
 			assign o_wb_adr = wb_adr;

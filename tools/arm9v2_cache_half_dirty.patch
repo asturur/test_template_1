@@ -1,0 +1,438 @@
+--- a/rtl/cpu/arm925t.sv
++++ b/rtl/cpu/arm925t.sv
+@@ -100,6 +100,7 @@
+ 	// (docs/CPU.md); the sizes are below.
+ 	localparam int ICACHE_WAYS = 2;
+ 	localparam int DCACHE_WAYS = 2;
++	localparam bit HALF_WRITEBACK = 1'b0;
+ 	localparam int CACHE_LINE  = 16;
+ 	// The small-page TLBs: two ways of 256 entries each, indexed by the
+ 	// page number's low bits. The ARM925T's TLBs are 64-entry and fully
+@@ -138,6 +139,7 @@
+ 		.DATA_CACHE_SIZE     (32'(DCACHE_SIZE)),
+ 		.DATA_CACHE_LINE     (32'(CACHE_LINE)),
+ 		.DATA_CACHE_WAYS     (32'(DCACHE_WAYS)),
++		.HALF_WRITEBACK      (HALF_WRITEBACK),
+ 		.DATA_SPAGE_TLB_ENTRIES (32'(DTLB_SPAGE_SETS)),
+ 		.DATA_SPAGE_TLB_WAYS    (32'(DTLB_SPAGE_WAYS)),
+ 		.CODE_SPAGE_TLB_ENTRIES (32'(ITLB_SPAGE_SETS)),
+--- a/rtl/cpu/zap/zap_cache.sv
++++ b/rtl/cpu/zap/zap_cache.sv
+@@ -257,6 +257,9 @@
+         .o_cache_hit            (raw_cache_hit),
+         /* verilator lint_off PINCONNECTEMPTY */
+         .o_cache_hit_dirty      (),                     // never dirty
++        .o_cache_victim_halves  (),
++        .o_cache_hit_halves     (),
++        .i_cache_dirty_halves   (2'b0),
+         .o_cache_way_line       (),                     // the D-cache's
+         .o_cache_way_tag        (),
+         .o_cache_victim         (),
+--- a/rtl/cpu/zap/zap_cache_tag_ram.sv
++++ b/rtl/cpu/zap/zap_cache_tag_ram.sv
+@@ -65,6 +65,8 @@
+ // ARM9V2: the read/write set collision as a register loaded on
+ // the RAM address registers' own edge, not compared after them.
+ parameter logic REG_COLLISION = 1'b0,
++parameter logic HALF_METADATA = 1'b0,
++parameter logic HALF_WRITEBACK = 1'b0,
+ parameter logic TRACK_DIRTY = 1'b1, // The instruction cache is read-only.
+ parameter logic [31:0] CACHE_SIZE = 32'd1024, // Bytes, all ways together.
+ parameter logic [31:0] CACHE_LINE = 32'd8,
+@@ -124,6 +126,8 @@
+ input   logic                             i_idle,
+ output  logic                             o_cache_hit,
+ output  logic                             o_cache_hit_dirty,
++input logic [1:0] i_cache_dirty_halves,
++output logic [1:0] o_cache_victim_halves, o_cache_hit_halves,
+ output  logic    [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] o_cache_way,
+ input   logic    [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] i_cache_way,
+ 
+@@ -221,7 +225,15 @@
+ logic [SET_W-1:0] valid_write_set;
+ logic [WAYS-1:0] valid_write_way;
+ logic valid_write_data;
++localparam integer DIRTY_BITS = HALF_METADATA ? 2 : 1;
+ logic dirty_write_en, dirty_write_data;
++logic [DIRTY_BITS-1:0] dirty_write_mask, pend_dirty_mask, meta_now_mask;
++logic [WAYS-1:0][DIRTY_BITS-1:0] dirty_masks_raw, dirty_masks;
++logic clean_high_ff;
++wire clean_high = !HALF_WRITEBACK || clean_high_ff;
++wire [$clog2(CACHE_LINE/4):0] last_clean_word = clean_high ? CACHE_LINE/4-1 : CACHE_LINE/8-1;
++assign o_cache_victim_halves = 2'(dirty_masks[victim]);
++assign o_cache_hit_halves = 2'(dirty_masks[o_cache_word_sel]);
+ logic [SET_W-1:0] dirty_write_set;
+ logic [WAYS-1:0] dirty_write_way;
+ logic [DIRTY_GROUP_W-1:0] dirty_read_group;
+@@ -670,6 +682,7 @@
+         pend_addr  <= tag_ram_wr_addr;
+         pend_sel   <= wr_sel;
+         pend_dirty <= i_cache_tag_dirty;
++        pend_dirty_mask <= HALF_METADATA ? DIRTY_BITS'(i_cache_dirty_halves) : DIRTY_BITS'(i_cache_tag_dirty);
+ end
+ 
+ // ARM925T: valid bits are four interleaved RAM banks per way. One live
+@@ -691,10 +704,12 @@
+         dirty_write_set = pend_addr;
+         dirty_write_way = pend_sel;
+         dirty_write_data = pend_dirty;
++        dirty_write_mask = pend_dirty_mask;
+         if (tag_ram_clean || line_clear) begin
+                 dirty_write_set = rd_flat_ff[SET_W-1:0];
+                 for (int w=0; w<WAYS; w++) dirty_write_way[w] = rd_way == WAY_W'(w);
+                 dirty_write_data = 1'b0;
++                dirty_write_mask = '0;
+         end
+         dirty_read_group = DIRTY_GROUP_W'(rd_set >> DIRTY_BIT_W);
+         if (state_ff == IDLE && i_cache_clean_req) dirty_read_group = '0;
+@@ -732,6 +747,7 @@
+             meta_now_d_read<=rd_set;meta_now_d_write<=tag_ram_wr_addr;
+             meta_now_d_en<=wr_sel&{WAYS{tag_ram_wr_en}};
+             meta_now_dirty<=i_cache_tag_dirty;
++            meta_now_mask<=HALF_METADATA ? DIRTY_BITS'(i_cache_dirty_halves) : DIRTY_BITS'(i_cache_tag_dirty);
+         end
+         if (i_reset) begin meta_now_v_en<=0;meta_now_d_en<=0;meta_pending_en<=0;end
+     end
+@@ -798,9 +814,10 @@
+                 if (i_reset) dirty_update_q<=0;
+                 if (i_reset) dirty_initialized_q <= 1'b0;
+         end
+-        logic [DIRTY_LANES-1:0] dirty_lane_we, dirty_lane_wd, dirty_lane_q;
++        logic [DIRTY_LANES-1:0] dirty_lane_we;
++        logic [DIRTY_LANES-1:0][DIRTY_BITS-1:0] dirty_lane_wd, dirty_lane_q, mask_group_q;
+         if (1) begin : g_dirty_lanes
+-                zap_cache_metadata_lanes #(.DEPTH(DIRTY_GROUPS), .LANES(DIRTY_LANES)) dirty_rams (
++                zap_cache_metadata_lanes #(.DEPTH(DIRTY_GROUPS), .LANES(DIRTY_LANES), .BITS(DIRTY_BITS)) dirty_rams (
+                         .i_clk(i_clk), .i_read_en(!i_hold || tag_ram_clean || line_clear),
+                         .i_write_en(dirty_lane_we), .i_write_data(dirty_lane_wd),
+                         .i_read_address(dirty_read_group),
+@@ -809,30 +826,37 @@
+         end : g_dirty_lanes
+         if (DIRTY_LANES < 16) assign dirty_group_q[w][15:DIRTY_LANES] = 0;
+         for (genvar b=0; b<DIRTY_LANES; b++) begin : g_bank
+-                logic read_bit, collision, forward_bit;
++                logic [DIRTY_BITS-1:0] read_mask, forward_mask;
++                logic collision;
+                 wire write_bank = dirty_write_en && dirty_write_way[w] &&
+                     (!dirty_initialized[update_group] || dirty_write_set[DIRTY_BIT_W-1:0] == b[DIRTY_BIT_W-1:0]);
+-                wire write_bit = dirty_write_set[DIRTY_BIT_W-1:0] == b[DIRTY_BIT_W-1:0] && dirty_write_data;
++                wire [DIRTY_BITS-1:0] write_mask = dirty_write_set[DIRTY_BIT_W-1:0] == b[DIRTY_BIT_W-1:0] ?
++                                                        dirty_write_mask : '0;
+                 if (1) begin : g_packed
+-                        assign dirty_lane_we[b] = write_bank; assign dirty_lane_wd[b] = write_bit;
+-                        assign read_bit = dirty_lane_q[b];
++                        assign dirty_lane_we[b] = write_bank; assign dirty_lane_wd[b] = write_mask;
++                        assign read_mask = dirty_lane_q[b];
+                 end : g_packed
+                 always_ff @(posedge i_clk) begin
+                         if (!i_hold || tag_ram_clean || line_clear) begin
+                                 collision <= write_bank;
+-                                forward_bit <= write_bit;
++                                forward_mask <= write_mask;
+                         end
+                 end
+-                assign dirty_group_q[w][b] = (dirty_initialized_q || (dirty_update_q && captured_group==meta_d_read)) &&
+-                    (collision && captured_group==meta_d_read ? forward_bit : read_bit);
+-        end
++                assign mask_group_q[b] = dirty_initialized_q || (dirty_update_q && captured_group==meta_d_read) ?
++                    (collision && captured_group==meta_d_read ? forward_mask : read_mask) : '0;
++                assign dirty_group_q[w][b] = |mask_group_q[b];
++        end
++        assign dirty_masks_raw[w] = mask_group_q[dirty_read_bit_ff];
+         end else begin : g_read_only
+                 assign dirty_group_q[w] = 16'b0;
++                assign dirty_masks_raw[w] = '0;
+         end
+         assign dirty_s1_raw[w] = dirty_group_q[w][dirty_read_bit_ff];
+         if (1) begin : g_short
+                 assign valid_q[w] = (meta_now_v_en[w] && meta_now_v_write==meta_now_v_read) || valid_s1_raw[w];
+-                assign dirty_q[w] = meta_now_d_en[w] && meta_now_d_write==meta_now_d_read ? meta_now_dirty : dirty_s1_raw[w];
++                assign dirty_masks[w] = meta_now_d_en[w] && meta_now_d_write==meta_now_d_read ? meta_now_mask : dirty_masks_raw[w];
++                assign dirty_q[w] = HALF_METADATA ? (|dirty_masks[w]) :
++                        (meta_now_d_en[w] && meta_now_d_write==meta_now_d_read ? meta_now_dirty : dirty_s1_raw[w]);
+         end : g_short
+ end
+ 
+@@ -860,9 +884,12 @@
+ 
+                 // STATE
+                 state_ff                <= IDLE;
++                clean_high_ff           <= 1'b0;
+         end
+         else
+         begin
++                if (state_ff != CACHE_CLEAN_WRITE && state_nxt == CACHE_CLEAN_WRITE)
++                        clean_high_ff <= (dirty_masks[WAY_W'(rd_flat_nxt >> SET_W)] >> 1) != 0;
+                 o_wb_cyc_ff             <= o_wb_cyc_nxt;
+                 o_wb_stb_ff             <= o_wb_stb_nxt;
+                 o_wb_wen_ff             <= o_wb_wen_nxt;
+@@ -897,10 +924,10 @@
+ // the current beat and the next, both formed from registers (timing).
+ assign take        = i_wb_ack && o_wb_stb_ff;
+ assign adr_ctr_inc = adr_ctr_ff + {{(ZERO_WDT-1){1'd0}}, 1'd1};
+-assign beat_cur_ok = {{ADR_CTR_PAD{1'd0}}, adr_ctr_ff}  <= ((CACHE_LINE/4) - 1);
+-assign beat_inc_ok = {{ADR_CTR_PAD{1'd0}}, adr_ctr_inc} <= ((CACHE_LINE/4) - 1);
+-assign cti_cur     = ({{ADR_CTR_PAD{1'd0}}, adr_ctr_ff}  != (CACHE_LINE/4)-1) ? CTI_BURST : CTI_EOB;
+-assign cti_inc     = ({{ADR_CTR_PAD{1'd0}}, adr_ctr_inc} != (CACHE_LINE/4)-1) ? CTI_BURST : CTI_EOB;
++assign beat_cur_ok = adr_ctr_ff  <= last_clean_word;
++assign beat_inc_ok = adr_ctr_inc <= last_clean_word;
++assign cti_cur     = (adr_ctr_ff  != last_clean_word) ? CTI_BURST : CTI_EOB;
++assign cti_inc     = (adr_ctr_inc != last_clean_word) ? CTI_BURST : CTI_EOB;
+ assign wb_adr_cur  = {walk_tag[`ZAP_CACHE_TAG__PA], {$clog2(CACHE_LINE){1'd0}}} + ({{(ADR_CTR_PAD-2){1'd0}}, adr_ctr_ff,  2'd0});
+ assign wb_adr_inc  = {walk_tag[`ZAP_CACHE_TAG__PA], {$clog2(CACHE_LINE){1'd0}}} + ({{(ADR_CTR_PAD-2){1'd0}}, adr_ctr_inc, 2'd0});
+ assign wb_word_cur = walk_line[32 * adr_ctr_ff[$clog2(CACHE_LINE/4)-1:0]  +: 32];
+@@ -1020,6 +1047,8 @@
+                 if ( i_line_op[0] && line_hit_nxt && dirty_q[WAY_W'(rd_flat_nxt >> SET_W)] )
+                 begin
+                         // Write the line back (CACHE_CLEAN_WRITE returns to LINE_INV).
++                        if (HALF_WRITEBACK && !(dirty_masks[WAY_W'(rd_flat_nxt >> SET_W)] & 1))
++                                adr_ctr_nxt = CACHE_LINE/8;
+                         state_nxt = CACHE_CLEAN_WRITE;
+                 end
+                 else
+@@ -1083,6 +1112,7 @@
+ 
+         CACHE_CLEAN_WRITE_PRE: // Since RAM is pipelined.
+         begin
++                if (HALF_WRITEBACK && !(dirty_masks[rd_way] & 1)) adr_ctr_nxt = CACHE_LINE/8;
+                 state_nxt       = CACHE_CLEAN_WRITE;
+         end
+ 
+@@ -1208,18 +1238,19 @@
+ // unused bits of each byte are written zero.
+ module zap_cache_metadata_lanes #(
+         parameter integer DEPTH = 32,
+-        parameter integer LANES = 4
++        parameter integer LANES = 4,
++        parameter integer BITS = 1
+ ) (
+         input logic i_clk,
+         input logic i_read_en,
+         input logic [LANES-1:0] i_write_en,
+-        input logic [LANES-1:0] i_write_data,
++        input logic [LANES-1:0][BITS-1:0] i_write_data,
+         input logic [(DEPTH > 1 ? $clog2(DEPTH) : 1)-1:0] i_read_address,
+         input logic [(DEPTH > 1 ? $clog2(DEPTH) : 1)-1:0] i_write_address,
+-        output logic [LANES-1:0] o_data
++        output logic [LANES-1:0][BITS-1:0] o_data
+ );
+         if (DEPTH == 1) begin : g_one_group
+-                logic [LANES-1:0] state;
++                logic [LANES-1:0][BITS-1:0] state;
+                 always_ff @(posedge i_clk) begin
+                         for (int l = 0; l < LANES; l++)
+                                 if (i_write_en[l]) state[l] <= i_write_data[l];
+@@ -1227,8 +1258,8 @@
+                 end
+         end else begin : g_ram
+         logic [LANES-1:0][7:0] wdata, q;
+-        always_comb for (int l = 0; l < LANES; l++) wdata[l] = {7'd0, i_write_data[l]};
+-        always_comb for (int l = 0; l < LANES; l++) o_data[l] = q[l][0];
++        always_comb for (int l = 0; l < LANES; l++) wdata[l] = {{(8-BITS){1'b0}}, i_write_data[l]};
++        always_comb for (int l = 0; l < LANES; l++) o_data[l] = q[l][BITS-1:0];
+ `ifdef SYNTHESIS
+         // Intel's primitive directly (see zap_ram_bytes): four lanes per M10K.
+         localparam integer W = 8*LANES, BYTES = LANES;
+--- a/rtl/cpu/zap/zap_dcache.sv
++++ b/rtl/cpu/zap/zap_dcache.sv
+@@ -28,6 +28,7 @@
+ // ARM9V2: format each way's word, and its store-collision
+ // merge, before the hit selects a way (WAY_FORMAT); register the short RAMs'
+ // read/write set collision on the RAMs' own edge (REG_COLLISION).
++parameter logic HALF_WRITEBACK = 1'b0,
+ parameter logic WAY_FORMAT = 1'b0,
+ parameter logic REG_COLLISION = 1'b0,
+ // ARM9V2: the short hit takes the TLB's unretimed hit_ok copy.
+@@ -185,6 +186,7 @@
+ logic                            tr_cache_hit, tr_cache_hit_dirty; // ARM925T
+ logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] tr_cache_way, cf_cache_way; // ARM925T
+ logic                            tr_cache_tag_dirty, cf_cache_tag_dirty;
++logic [1:0] raw_victim_halves, raw_hit_halves, tr_victim_halves, tr_hit_halves, cf_dirty_halves;
+ logic [CACHE_LINE*8-1:0] raw_cache_line, merged_line;
+ logic [WAYS-1:0][CACHE_LINE*8-1:0] raw_way_line, way_line_ff;
+ logic [WAYS-1:0] fwd_way, fwd_way_ff;
+@@ -257,7 +259,7 @@
+ assign unused = |{wb_err[1]};
+ 
+ // Basic cache FSM - serves as manager 0.
+-zap_dcache_fsm #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE),
++zap_dcache_fsm #(.HALF_WRITEBACK(HALF_WRITEBACK), .CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .BE_32_ENABLE(BE_32_ENABLE),
+                  .EXT_ABORT_FS(EXT_ABORT_FS), .WAYS(WAYS), .FLAT_ACK(FLAT_ACK), .LOCK_SPLIT(LOCK_SPLIT)) u_zap_cache_fsm (
+         .i_clk                  (i_clk),
+         .i_reset                (i_reset),
+@@ -298,6 +300,9 @@
+         .o_line_req             (cf_line_req),
+         .i_line_done_tr         (tr_line_done),
+         .i_cache_line           (tr_cache_line),
++        .i_cache_victim_halves  (tr_victim_halves),
++        .i_cache_hit_halves     (tr_hit_halves),
++        .o_cache_dirty_halves   (cf_dirty_halves),
+         .i_cache_word           (tr_cache_word),
+         .i_cache_tag_dirty      (tr_cache_tag_dirty),
+         .i_cache_tag            (tr_cache_tag),
+@@ -391,7 +396,8 @@
+ // for index maintenance. The tag manager visits all physical set colours.
+ zap_cache_tag_ram #(.CACHE_SIZE(CACHE_SIZE), .CACHE_LINE(CACHE_LINE), .WAYS(WAYS),
+                    .REG_COLLISION(REG_COLLISION),
+-                   .ACCEPTED_HIT_UPDATE(1'b1),
++                   .ACCEPTED_HIT_UPDATE(1'b1), .HALF_METADATA(1'b1),
++                   .HALF_WRITEBACK(HALF_WRITEBACK),
+                    .INDEX_SIZE((WAYS == 2 && CACHE_SIZE > 8192) ? 32'd8192 : CACHE_SIZE)) u_zap_cache_tag_ram (
+         .i_clk                  (i_clk),
+         .i_reset                (i_reset),
+@@ -409,6 +415,9 @@
+         .i_idle                 (1'b0),
+         .o_cache_hit            (raw_cache_hit),
+         .o_cache_hit_dirty      (raw_cache_hit_dirty),
++        .o_cache_victim_halves  (raw_victim_halves),
++        .o_cache_hit_halves     (raw_hit_halves),
++        .i_cache_dirty_halves   (cf_dirty_halves),
+         .o_cache_way            (raw_cache_way),
+         .i_cache_way            (cache_write_way),
+         .i_hold                 (hold || i_stall),
+@@ -574,6 +583,9 @@
+             tr_cache_way <= raw_cache_way;
+             tr_cache_hit_dirty <= raw_cache_hit_dirty ||
+                 (forward_store && raw_cache_hit && raw_cache_way == cache_write_way);
++            tr_victim_halves <= forward_victim ? cf_dirty_halves : raw_victim_halves;
++            tr_hit_halves <= forward_store && raw_cache_hit && raw_cache_way == cache_write_way ?
++                             cf_dirty_halves : raw_hit_halves;
+             tr_cache_word <= formatted;
+         end
+     end
+--- a/rtl/cpu/zap/zap_dcache_fsm.sv
++++ b/rtl/cpu/zap/zap_dcache_fsm.sv
+@@ -39,6 +39,7 @@
+         // upstream's "terminal exception" 0b0010, or the ARM925T's 0b1000
+         // (external abort on a non-cacheable access, section).
+         parameter logic [3:0]  EXT_ABORT_FS  = 4'b0010,
++        parameter logic HALF_WRITEBACK = 1'b0,
+         parameter logic [31:0] WAYS          = 32'd1      // ARM925T: ways (zap_cache_tag_ram).
+ )
+ 
+@@ -126,6 +127,8 @@
+ // ARM925T: the tag RAM's hit and way of interest for i_address; the way a
+ // tag or line write goes to (the lookup's way, kept across a fill).
+ input   logic                           i_cache_hit,
++input logic [1:0] i_cache_victim_halves, i_cache_hit_halves,
++output logic [1:0] o_cache_dirty_halves,
+ input   logic                           i_cache_hit_dirty,   // the hit way's dirty bit
+ input   logic  [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] i_cache_way,
+ output  logic  [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] o_cache_way,
+@@ -263,6 +266,8 @@
+ assign beat_inc_ok   = {{ADR_PAD{1'd0}}, adr_ctr_inc} <= ((CACHE_LINE/4) - 1);
+ assign cti_cur       = ({{ADR_PAD{1'd0}}, adr_ctr_ff}  != ((CACHE_LINE/4) - 1)) ? CTI_BURST : CTI_EOB;
+ assign cti_inc       = ({{ADR_PAD{1'd0}}, adr_ctr_inc} != ((CACHE_LINE/4) - 1)) ? CTI_BURST : CTI_EOB;
++wire [$clog2(CACHE_LINE/4):0] first_evict_word = HALF_WRITEBACK && !victim_halves[0] ? CACHE_LINE/8 : 0;
++wire [$clog2(CACHE_LINE/4):0] last_evict_word = HALF_WRITEBACK && !victim_halves[1] ? CACHE_LINE/8-1 : CACHE_LINE/4-1;
+ assign wb_adr_cur    = {cache_tag[`ZAP_CACHE_TAG__PA], {$clog2(CACHE_LINE){1'd0}}} + ({{ADR_PAD_MINUS_2{1'd0}}, adr_ctr_ff,  2'd0});
+ assign wb_adr_inc    = {cache_tag[`ZAP_CACHE_TAG__PA], {$clog2(CACHE_LINE){1'd0}}} + ({{ADR_PAD_MINUS_2{1'd0}}, adr_ctr_inc, 2'd0});
+ assign fetch_word_cur = adr_ctr_ff[$clog2(CACHE_LINE/4)-1:0] +
+@@ -300,6 +305,7 @@
+ end
+ `endif
+ logic                                     victim_valid;
++logic [1:0] victim_halves, wt_halves;
+ logic                                     wt_hit, wt_dirty; // ARM925T: write-through store.
+ logic    [5:0]                            ldfmt;            // ARM925T: format of a background load.
+ logic    [31:0]                           unc_dat_ff;       // ARM925T: registered bus response
+@@ -436,6 +442,8 @@
+                 ldfmt           <= i_ldfmt;
+                 wt_hit          <= i_wr && i_wt && i_cacheable && i_cache_hit;
+                 wt_dirty        <= i_cache_hit_dirty;
++                wt_halves       <= i_cache_hit_halves;
++                victim_halves   <= i_cache_victim_halves;
+                 uncached_ff     <= !i_cache_en || !i_cacheable;
+         end
+ end
+@@ -722,6 +730,11 @@
+ assign fill_write = state_ff[UNLOCK_REG];
+ assign saved_write = state_ff[UNC_DONE] && !unc_err_ff && wt_hit;
+ assign o_cache_tag_wr_en = live_write || fill_write || saved_write;
++wire [1:0] live_half = i_address[$clog2(CACHE_LINE)-1] ? 2'b10 : 2'b01;
++wire [1:0] fill_half = address[$clog2(CACHE_LINE)-1] ? 2'b10 : 2'b01;
++assign o_cache_dirty_halves = live_write ? (i_cache_hit_halves | (i_wt || !(|i_ben) ? 2'b0 : live_half)) :
++                              fill_write && wr && (|ben) ? fill_half :
++                              saved_write ? wt_halves : 2'b0;
+ assign o_cache_tag_dirty = (live_write && (!i_wt || cache_dirty)) || (fill_write && wr) ||
+                           (saved_write && wt_dirty);
+ assign o_address = o_live_lookup ? i_address : address;
+@@ -757,12 +770,14 @@
+ // ARM925T: only these states can own a bus strobe. All other states
+ // enter with STB low, an invariant of the FSM. Decode requests in parallel
+ // so maintenance/relookup state bits do not reach the merger's next owner.
++wire writeback_next_valid = (take ? adr_ctr_inc : adr_ctr_ff) <= last_evict_word;
+ assign o_wb_stb_nxt =
+         (state_ff[IDLE] && (i_rd || i_wr) && !i_align_fault && !i_fault && !i_busy && !i_cache_en && !(i_wr && post_stream)) ||
+         state_ff[UNCACHEABLE_PREPARE] ||
+         (state_ff[UNLOCK_REG] && o_writeback_busy) ||
+         (state_ff[UNCACHEABLE] && o_wb_stb_ff && !(i_wb_ack || i_wb_err)) ||
+-        ((state_ff[CLEAN_SINGLE] || state_ff[FETCH_SINGLE]) && (take ? beat_inc_ok : beat_cur_ok));
++        (state_ff[CLEAN_SINGLE] && writeback_next_valid) ||
++        (state_ff[FETCH_SINGLE] && (take ? beat_inc_ok : beat_cur_ok));
+ assign o_wb_cyc_nxt = o_wb_stb_nxt;
+ 
+ // Payload clearing is independent of the parallel request control above.
+@@ -991,7 +1006,7 @@
+                                         if ( cache_dirty && victim_alias )
+                                         begin
+                                                 // Set up counter
+-                                                adr_ctr_nxt = 0;
++                                                adr_ctr_nxt = HALF_WRITEBACK && !i_cache_victim_halves[0] ? CACHE_LINE/8 : 0;
+ 
+                                                 // A physical synonym must clean before reading.
+                                                 state_nxt[IDLE] = 1'd0;
+@@ -1109,13 +1124,13 @@
+                 // Generate address
+                 adr_ctr_nxt = take ? adr_ctr_inc : adr_ctr_ff;
+ 
+-                if ( take ? beat_inc_ok : beat_cur_ok )
++                if ( writeback_next_valid )
+                 begin
+                         // Sync up with memory. Use PA in cache tag itself.
+                         o_wb_wen_nxt = 1'd1;
+                         o_wb_dat_nxt = take ? clean_single_d(cache_line, adr_ctr_inc) : clean_single_d(cache_line, adr_ctr_ff);
+                         o_wb_adr_nxt = take ? wb_adr_inc : wb_adr_cur;
+-                       o_wb_cti_nxt = take ? cti_inc : cti_cur;
++                        o_wb_cti_nxt = (take ? adr_ctr_inc : adr_ctr_ff) == last_evict_word ? CTI_EOB : CTI_BURST;
+                        o_wb_sel_nxt =  4'b1111;
+                 end
+                 else
+@@ -1178,14 +1193,15 @@
+                 if (o_writeback_busy) begin
+                         // Fill first, then drain the immutable saved victim.
+                         // No cache read or write port is needed by the drain.
+-                        adr_ctr_nxt = 0;
++                        adr_ctr_nxt = first_evict_word;
+                         state_nxt[CLEAN_SINGLE] = 1'b1;
+-                        // Launch beat zero on the installation edge. The
++                        // Launch the first dirty word on the installation edge. The
+                         // line and PA come from the saved victim registers;
+                         // there is no RAM port collision or extra bus bubble.
+                         o_wb_wen_nxt = 1'b1;
+-                        o_wb_dat_nxt = cache_line[31:0];
+-                        o_wb_adr_nxt = {cache_tag[`ZAP_CACHE_TAG__PA], {$clog2(CACHE_LINE){1'b0}}};
++                        o_wb_dat_nxt = clean_single_d(cache_line, first_evict_word);
++                        o_wb_adr_nxt = {cache_tag[`ZAP_CACHE_TAG__PA], {$clog2(CACHE_LINE){1'b0}}} +
++                                       (32'(first_evict_word) << 2);
+                         o_wb_sel_nxt = 4'b1111;
+                         o_wb_cti_nxt = CTI_BURST;
+                 end else begin
+--- a/rtl/cpu/zap/zap_top.sv
++++ b/rtl/cpu/zap/zap_top.sv
+@@ -81,6 +81,7 @@
+ parameter logic [31:0] DATA_FPAGE_TLB_ENTRIES   =  32'd64,   // Tiny page TLB entries.
+ parameter logic [31:0] DATA_CACHE_SIZE          =  32'd8192, // Cache size in bytes.
+ parameter logic [31:0] DATA_CACHE_LINE          =  32'd64,   // Cache line size in bytes.
++parameter logic HALF_WRITEBACK = 1'b0,
+ parameter logic [31:0] DATA_CACHE_WAYS          =  32'd1,    // ARM925T: 1 or 2.
+ 
+ // ----------------------------------
+@@ -508,6 +509,7 @@
+         .CACHE_LINE(DATA_CACHE_LINE), // ARM925T: upstream passed CODE_CACHE_LINE.
+         .WAYS(DATA_CACHE_WAYS),
+         .WAY_FORMAT(1'b1),
++        .HALF_WRITEBACK(HALF_WRITEBACK),
+         .REG_COLLISION(1'b1),
+         .HIT_FF(1'b1),
+         .FLAT_ACK(1'b1),

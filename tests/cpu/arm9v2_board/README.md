@@ -57,3 +57,55 @@ The standalone donor leg reads `/Users/andreabogazzi/develop/ngage2` inside
 a read-only mount. Match the donor revision in the
 [experiment record](../../../docs/arm9v2-cache32.md) before comparing with
 published results.
+
+## Replay the payloads with the phone's MMC and NOS clocks
+
+`payload_clocks.py` uses the accepted, hash-checked v5 SPMark, game, Sega
+scan and JPEG archives named in the runner. It maps the same linked
+payloads and firmware helpers into the full phone's flash, preserving
+their virtual addresses and the guest's timed code and output checks.
+It runs a configurable D2 cache and 32-byte refills at a 78 MHz system
+clock with modeled SDRAM and DDR backing. For each profile it checks two
+repeats, both original-code retirement counts, and rejection of a guest
+with a bad expected output. It observes MMC activity, NOS ticks and IRQ
+occupancy during the workload.
+
+```sh
+python3 -B tests/cpu/arm9v2_board/payload_clocks.py --name fresh-payload-clocks
+```
+
+Use `--case matrix4` to select a single workload. The default uses 39 MHz
+MMC with both NOS rates. Replaying the 78 MHz MMC profiles (`--config 1:64`
+or `--config 1:128`) requires the experimental RTL from `893b109`.
+Logs and raw windows are under `build/sim/payload-clocks/NAME/`.
+
+For the physical SDRAM cache-writeback comparison, prepare the pin model
+with `sh tests/phone/sdram/run-stream.sh writeback-model` and run both
+legs at the same clocks. Omit `--case` to cover all 15 retained workloads.
+
+```sh
+python3 -B tests/cpu/arm9v2_board/payload_clocks.py --name writeback-scalar \
+    --config 2:64 --flash-cache-bytes 32768 --stream-sdram \
+    --sdram-model build/sim/writeback-model/mt48lc16m16a2.v
+python3 -B tests/cpu/arm9v2_board/payload_clocks.py --name writeback-block16 \
+    --config 2:64 --flash-cache-bytes 32768 --stream-sdram --block-writeback \
+    --sdram-model build/sim/writeback-model/mt48lc16m16a2.v
+```
+
+The production path sends each dirty 32-byte victim as two 16-byte requests from
+the captured victim buffer. The runner counts these separately from scalar
+writes. The existing SDRAM scheduler drives eight single-location WRITE
+commands per block. Explicit cache maintenance uses its existing path.
+
+To compare true half-line dirty tracking, generate the two-way netlist
+with `sv2v` on `PATH` and add it to the block-writeback run. Use `--dirty
+packed` for the matched metadata control, which writes both halves.
+
+```sh
+python3 tools/gen_arm9v2_cache_experiment.py --iways 2 --dways 2 --dirty half \
+    --stream-writeback --output build/arm9v2-writeback/half.v
+python3 -B tests/cpu/arm9v2_board/payload_clocks.py --name writeback-half-dirty \
+    --config 2:64 --flash-cache-bytes 32768 --stream-sdram --block-writeback \
+    --arm9v2-netlist build/arm9v2-writeback/half.v \
+    --sdram-model build/sim/writeback-model/mt48lc16m16a2.v
+```

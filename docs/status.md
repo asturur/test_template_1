@@ -1,3 +1,131 @@
+## 2026-11-19 — v5 production block writeback and half-line replay
+
+The production QIP, CPU bus, SDRAM arbiter and controller carry
+16-byte victim writebacks. The full-frame GLES fill matches the
+112,705-clock prototype. True half-line dirty tracking gives 112,702
+clocks on GLES and reduces the Sega scan from 2,391,228 to 2,389,563
+clocks while dropping its block count from 4,274 to 3,358. The other 13
+medians match. The build selects line-wide dirtiness, 32-byte CPU
+refills and 16-byte LCD reads. Structural elaboration and the SDRAM
+pin test pass. FPGA fitting and native 3DMark remain unmeasured.
+[Production wiring and comparison](arm9v2-sdram-stream.md#production-block-writeback-and-the-half-line-comparison).
+
+## 2026-11-19 — 16-byte SDRAM writeback benchmark
+
+The simulation-only v5 candidate sends a dirty 32-byte cache victim
+as two 16-byte requests. All 15 retained payloads pass on both paths.
+At 78 MHz the GLES fill drops from 124,998 to 112,705 clocks (9.83%)
+and the Sega scan from 2,399,797 to 2,391,228 (0.36%). The other 13
+change by at most 0.14%. Write addresses match after expanding the
+blocks. On-board 3DMark FPS remains unmeasured.
+[Full writeback comparison](arm9v2-sdram-stream.md#initial-16-byte-dirty-line-writeback-experiment).
+
+## 2026-11-19 — 16-byte LCD reads reduce CPU wait
+
+V5 now selects 16-byte LCD DMA reads and retains 32-byte CPU cache
+refills. A full-frame upload takes 69,761 clocks at 78 MHz versus
+148,836 for scalar and 53,548 for 32-byte LCD reads. Under the heavier
+scheduled CPU load the worst read wait is 27 clocks versus 43 with
+32-byte LCD reads. The lighter load is 25 versus 35 clocks, and the
+worst CPU line refill is 42 versus 50 clocks. All checked upload,
+cancellation, CPU refill and lock tests pass. The GLES full-frame fill
+still takes 124,998 CPU clocks. On-board 3DMark FPS remains unmeasured.
+[LCD width comparison](lcd-dma-handover.md).
+
+## 2026-11-19 — v5 LCD DMA uses 32-byte SDRAM reads
+
+The initial burst LCD path shared 32-byte SDRAM reads with CPU refills
+and keeps the ordered 32-bit LCD pixel interface. A full-frame upload
+takes 53,548 clocks at 78 MHz, down from 148,836 with scalar reads.
+With 1,024 competing CPU reads every 24 clocks the upload falls from
+165,251 to 63,487 clocks. The pin-model compare also passes unaligned
+uploads, cancel/restart, concurrent CPU refills and lock exclusion.
+Native FPS and board timing remain open.
+[LCD DMA timing](lcd-dma-handover.md#2026-11-19--sdram-line-reads-for-lcd-dma).
+
+## 2026-11-19 — v5 adopts the ngage2 SDRAM scheduler
+
+The production top uses the donor's four-bank open-page SDRAM scheduler
+with v5's 32-byte refills and a retained posted scalar write. The
+checked 78 MHz GLES fill is 124,998 clocks, down from 299,252 and
+ahead of stock ngage2's 149,869. Sega scan falls from 2,466,436 to
+2,399,797. All 15 original payloads pass, and the top level elaborates.
+The physical model checks back-to-back BL8 refills, a full 16 MiB cold
+scrub, DMA and SWP ordering and logical-reset drain. Board fit, physical
+I/O and native FPS remain unmeasured.
+[Streaming SDRAM controller](arm9v2-sdram-stream.md).
+
+## 2026-11-19 — SDRAM scalar handoff
+
+The fixed GLES trace shows a 13-clock write cadence on v5 and three
+clocks on ngage2 for adjacent writes to the same open row. Earlier
+scalar request launch and immediate completion on controller ready
+reduce v5's cadence to 11 clocks and the trace from 284,450 to 252,476.
+The checked full CPU fill falls from 299,252 to 267,360 clocks. The
+pin, DMA, lock, write-mask and reset-drain checks pass. Queueing the
+next controller request during drain is the next point to measure.
+[Scalar handoff comparison](arm9v2-sdram-handoff.md).
+
+## 2026-11-19 — v5 and ngage2 SDRAM frame-path comparison
+
+The user reports 5.79 fps on v5 and 6.62 fps on standalone ngage2.
+At 78 MHz this implies 1.69M extra clocks per native Game frame.
+The same 18,550 captured GLES requests and SDRAM READ/WRITE command
+counts take 284,450 clocks on v5 and 134,704 on ngage2. Posting
+and interleaving save 5,914 clocks on the checked v5 GLES fill and
+pass the retained 15 cases at production pin timing and with added memory waits. Early restart
+saves 47–52 clocks on cold NOR branches whose requested word arrives
+before the delayed tail and has no effect on the two warm replays.
+The standalone Sega result falls from 4,456,598 to 2,440,099 clocks
+with the v5 section XOR alone. SPMark's score uses Symbian elapsed
+wall time. The installed v5 RBF matches CI's `8546db1` artifact
+exactly, and the installed factory firmware pairs are NEM-4 4.03
+and RH-29 4.10. The standalone RBF hash differs from the archived
+78 MHz archive. The user confirmed the current 78 MHz branch tips,
+`8546db1` and `ff6dcff`, which match the simulation sources.
+Independent native render, presentation and guest timing remain open.
+[Frame-path comparison](arm9v2-donor-frame-gap.md).
+
+## 2026-11-19 — v5 restores the 32 KiB flash backing cache
+
+The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC
+backing cache with the 39 MHz MMC bus and the folded data section TLB
+index. The 32 KiB unit case passes 3,991 ordered transactions and the
+integrated directed guest passes with divider two. The prior 32 KiB
+placement missed 78 MHz setup by 0.268 ns on the pre-XOR source.
+The combined configuration has simulation evidence.
+
+## 2026-11-19 — v5 enables the folded data section TLB index
+
+The default v5 netlist uses `VA[25:20] ^ VA[31:26]` for data-side
+section lookups and refills. It is byte-identical to the verified
+simulation candidate. The full-phone Sega Rally frame falls from
+3,975,090 to 2,383,065 clocks at 39 MHz MMC and 64 Hz NOS. The six
+SPMark kernels gain 9.37% geometric throughput at `2:9`, and all 15
+payloads pass. Both 400M stock-firmware runs yield the same Nokia logo
+framebuffer with zero data-bus errors. The section contract observes
+two reads after a cold access and after CP15 invalidation.
+[Section index results and regression](arm9v2-section-xor.md).
+
+## 2026-11-18 — ARM9V2 cache associativity sweep
+
+The fitted two-way control reproduced all 15 retained payloads and the
+bus/cache contract. The experimental generator retains 16 KiB per side
+and 32-byte lines while selecting 2 to 64 ways. The generalized two-way
+line-dirty control reproduces the archived cycles and raw windows. The
+first four-way frame exposed a one-bit saved-victim selector. Widening
+it restored exact frame output at both memory profiles. The half-line
+trial exposed a final-beat strobe using the old eight-word bound. The
+shared writeback bound fixed the stalled-bus replay. The two-way
+dirty-clean check now verifies the clean half's backing bytes directly.
+All twelve geometry and writeback combinations pass SPMark, JPEG, the
+seven short game loops, and the directed contracts. The delayed SPMark
+geometric mean improves by at most 0.0072%. Eight-way half-line writes
+give the best completed delayed Sega frame at 1.42% fewer cycles. At the
+requested snapshot, the 32/64-way half-line Sega suites were still
+running. Keep the fitted two-way control with 39 MHz MMC.
+[Associativity scorecard](arm9v2-associativity.md).
+
 ## 2026-11-19 — v5 restores the 32 KiB flash backing cache
 
 The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC

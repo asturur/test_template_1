@@ -111,12 +111,18 @@ def observe_cpu(tb, cpu, scalar=False):
     return tb
 
 
-def integrated_snapshot(destination):
+def observe_cache_metrics(tb):
+    body, end = tb.rsplit('endmodule', 1)
+    return body + (HERE/'observe_cache.vh').read_text() + '\nendmodule' + end
+
+
+def integrated_snapshot(destination, netlist=None):
     hashes={}
     for name in ARM9V2_FILES:
         target=destination/name
         target.parent.mkdir(parents=True, exist_ok=True)
-        data=(ROOT/name).read_bytes()
+        path = netlist if netlist is not None and name == 'rtl/arm9v2/arm925t_phone.v' else ROOT/name
+        data=path.read_bytes()
         target.write_bytes(data)
         hashes[name]=payload.sha(data)
     for directory in ('rtl/arm', 'rtl/arm920'):
@@ -131,7 +137,10 @@ def main():
     p.add_argument('--trace',action='store_true')
     p.add_argument('--cpu',choices=['5c','base','ngage2','arm9v2'],required=True)
     p.add_argument('--scalar-refills',action='store_true',help='use per-word refills on the original donor or the enlarged phone CPU')
+    p.add_argument('--arm9v2-netlist', type=Path, help='generated phone CPU for an isolated geometry trial')
     a,rest=p.parse_known_args()
+    if a.arm9v2_netlist and a.cpu != 'arm9v2':
+        p.error('--arm9v2-netlist requires --cpu arm9v2')
     original_support=payload.support
     def support():
         b=original_support()
@@ -141,7 +150,7 @@ def main():
         elif a.cpu=='base':
             b.snapshot=lambda destination:snap(destination,revision='a2c5863')
         elif a.cpu=='arm9v2':
-            b.snapshot=integrated_snapshot
+            b.snapshot=lambda destination: integrated_snapshot(destination, a.arm9v2_netlist)
         else:
             def donor_snapshot(destination):
                 destination.mkdir(parents=True)
@@ -165,6 +174,8 @@ def main():
     stage=ROOT/'build/sim/ngage2-compare-fixtures'/name
     stage.mkdir(parents=True,exist_ok=False)
     tb=observe_cpu(tb_path.read_text(), a.cpu, a.scalar_refills)
+    if a.arm9v2_netlist:
+        tb=observe_cache_metrics(tb)
     (stage/'tb.v').write_text(tb)
     payload.__file__=str(stage/'run.py')
     def run_command(args,log):
