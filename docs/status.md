@@ -1,3 +1,24 @@
+## 2026-11-19 — v5 enables committed D2 update-on-hit
+
+The 32 KiB flash cache updates resident bytes after DDR write completion.
+The current production source matches all six earlier update-on-hit
+simulations, including the 116,936-clock 25-file NOR proxy. The cache,
+DDR ordering, actual-HPS C:/PMM persistence, v5 CPU refill and top-level
+checks pass. FPGA fitting and on-board Disk Access remain unmeasured.
+[D2 write handling and test results](ddr-flash-cache.md#2026-11-19--v5-updates-resident-data-on-committed-writes).
+
+## 2026-11-19 — SPMark Disk Access and storage simulations
+
+Original EFile resolves SPMark's 25 relative test files to C: in the
+private NEM-4 replay, with four verified rounds and no observed erase.
+Against `dfe4bc1`, the 78 MHz NOR proxy falls from 175,437 to 116,936
+clocks with committed D2 update-on-hit. Final host ACK and cold reopen
+are matched with autosave off. An isolated erase falls to 48,850
+clocks with update-on-hit plus line inspection. Full 4 KiB buffered
+restore reduces host requests from 8,320 to 1,040 and pays off above
+roughly 293 modeled startup clocks. Production remains at `dfe4bc1`.
+[Disk Access scorecard](spmark-disk-access-v5.md).
+
 ## 2026-11-19 — v5 production block writeback and half-line replay
 
 The production QIP, CPU bus, SDRAM arbiter and controller carry

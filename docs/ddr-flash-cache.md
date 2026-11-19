@@ -1,5 +1,31 @@
 # D2 coherent flash backing cache
 
+## 2026-11-19 — v5 updates resident data on committed writes
+
+The v5 build's 32 KiB D2 cache updates the enabled bytes of a resident
+64-bit beat when the backing write completes. The hit is captured at
+lookup. A write miss leaves the resident tag and data alone. The data
+RAM uses native byte enables. D3 restore still clears the affected
+indices, and transport reset clears tags through the existing sweep.
+
+At 78 MHz the production RTL matches every interval and counter of the
+six earlier update-on-hit runs across three host delays and two autosave
+settings. The 25-file NOR proxy falls from 175,437 to 116,936 clocks,
+with 5,625 to 375 DDR reads during create and write. The final host ACK
+and cold reopen match the baseline with autosave off. The 32 KiB cache
+contract passes 3,994 transactions, including a held masked write. The
+actual-HPS NOR save/reload and D3 ownership checks pass, as do the
+v5 CPU delayed-refill guest and MiSTer top elaboration. FPGA fitting
+and on-board Disk Access are unmeasured.
+
+To replay the same cache source as the MiSTer build, run:
+
+```sh
+python3 tests/phone/disk_access/run.py --name d2-production-new --policy production --autosave
+```
+
+[Disk Access comparison](spmark-disk-access-v5.md).
+
 The optional shared cache runs after DDR arbitration in the MiSTer top. Build
 with `D2_FLASH_CACHE_BYTES` set to 8192, 16384 or 32768. The default value 0
 selects the existing instruction ROM cache and DDR adapter. The D1 transport
@@ -23,9 +49,9 @@ until the full burst completes. The tag becomes valid on terminal completion
 with all four beats received.
 
 The shared arbiter places firmware loading, NOS/BT writes and undo, C:/PMM
-restore, and NOR program/erase on the same request path. An accepted masked
-write invalidates its matching resident tag during lookup, before the DDR
-write is offered. The next request waits for DDR acceptance and completion.
+restore, and NOR program/erase on the same request path. The original cache
+invalidates the matching resident tag during a masked write's lookup, ahead
+of the DDR write. The next request waits for DDR acceptance and completion.
 A write to a different tag at the same index, a zero-byte mask, or an address
 outside the cached spans leaves the existing entry valid. A read that has
 returned its word early still holds the fill descriptor and blocks new

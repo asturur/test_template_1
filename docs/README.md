@@ -6,6 +6,7 @@ topic links before repeating research or simulations.
 
 | Document | Purpose |
 | --- | --- |
+| [spmark-disk-access-v5.md](spmark-disk-access-v5.md) | Original EFile drive verification, C: NOR A/B, host ACK and 4 KiB restore timings |
 | [game-pcm.md](game-pcm.md) | Shared game audio bridge, native playback evidence, and v5 audio/MMC/LCD qualification |
 | [arm9v2-sdram-stream.md](arm9v2-sdram-stream.md) | Production SDRAM scheduler, 32-byte refill and checked original-code speedup |
 | [arm9v2-sdram-handoff.md](arm9v2-sdram-handoff.md) | Pin-level SDRAM write cadence, faster scalar handoff and checked CPU replays |
