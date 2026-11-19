@@ -7,6 +7,32 @@ was clarified during [LCD/DMA timing recovery](lcd-dma-timing-recovery.md).
 
 # Phone clocks and slower interfaces
 
+## EKA2L1 timing comparison
+
+At EKA2L1 revision `4dfaf5060e3bbb4b7e7bbc26f8ec7ffc2b959bc3`, the
+Symbian tick queue, timer HAL and EKA1 wall-clock rounding use 64 Hz
+(15,625 µs). EKA1's emulated `TickCount()` clears its low bit for
+compatibility, so the API can repeat a value across two ticks. The tick
+queue still works at 64 Hz. The NEM-4 factory core separately contains
+15,625 at `0x50348e40` and programs timer 0 reload 406,250 at
+`0x503226f0`. That reload gives 64 Hz at the NEM-4 timer model's 26 MHz.
+[EKA2L1 constants](https://github.com/EKA2L1/EKA2L1/blob/4dfaf5060e3bbb4b7e7bbc26f8ec7ffc2b959bc3/src/emu/common/include/common/common.h#L25-L29) · [Counter APIs](https://github.com/EKA2L1/EKA2L1/blob/4dfaf5060e3bbb4b7e7bbc26f8ec7ffc2b959bc3/src/emu/kernel/src/svc.cpp#L3005-L3033) · [NEM-4 timer paths](general-timers.md).
+
+EKA2L1's 1 kHz nanokernel timebase is used by `NTickCount()` and its
+high-resolution deadline helper. Its 32,768 Hz `FastCounter()` constant
+uses integer microseconds, so the implementation divides host time by 30 µs.
+Its guest VSync defaults to 60 Hz and can be configured. These host-side
+services supply no rate for the physical NOS counter. [Timer deadlines](https://github.com/EKA2L1/EKA2L1/blob/4dfaf5060e3bbb4b7e7bbc26f8ec7ffc2b959bc3/src/emu/kernel/include/kernel/timer_deadline.h#L29-L78) · [VSync implementation](https://github.com/EKA2L1/EKA2L1/blob/4dfaf5060e3bbb4b7e7bbc26f8ec7ffc2b959bc3/src/emu/services/src/window/screen.cpp#L849-L863).
+
+The MiSTer core currently models the NOS count at 64 Hz, separate from
+timer 0. Firmware reads its 16-bit count at physical `0x0c150116`
+and sets a deadline at `0x0c150118`. A match can raise CTSI IRQ25.
+The earlier 1 kHz model remains a separate experiment. No physical NOS
+rate follows from either model. To measure it, read the counter from
+privileged code at two UEM RTC second boundaries on a stock NEM-4 and
+take the difference modulo 65,536. The nearby calibration counter at
+`0x0c150112` is a separate register.
+
 ## Requested26MHz/64Hz spin (2026-11-09)
 
 Implemented parameterized general-timer enables, divider3 at78MHz and4 at104MHz,
