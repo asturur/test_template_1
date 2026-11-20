@@ -212,7 +212,11 @@ def schedule_early_smull(phone):
                         && i_condition == 4'he && !i_fault && !i_thumb
                         && i_early[1] && i_early[2] && !s_wait[1] && !s_wait[2];
     wire signed_product = a[327-:4] == MULL && a[474];
-    wire signed [32:0] product_left = launch_smull ? {shifted[31], shifted} :
+    // SMULL uses an unshifted operand. Keep writeback forwarding and
+    // its load selection, without routing through the DP barrel shifter.
+    wire [31:0] smull_multiplicand = w_take ? i_w_load_data :
+                                   (W_ROTATE ? shift_input_nw : shift_input);
+    wire signed [32:0] product_left = launch_smull ? {smull_multiplicand[31], smull_multiplicand} :
                        {signed_product && a[249], a[249-:32]};
     wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
                         {signed_product && a[185], a[185-:32]};
@@ -221,10 +225,13 @@ def schedule_early_smull(phone):
         if (launch_smull || product_phase)
             full_product <= product_left * product_right;
 
+    // synthesis translate_off
 `ifndef SYNTHESIS
     reg launched_smull;
     wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
     always @(posedge i_clk) begin
+        if (!i_reset && launch_smull && smull_multiplicand !== shifted)
+            $fatal(1, "Early SMULL bypass changed its operand at %h", i_pc);
         if (i_reset || i_flush) launched_smull <= 0;
         else if (accept) launched_smull <= launch_smull;
         else if (finish) launched_smull <= 0;
@@ -234,6 +241,7 @@ def schedule_early_smull(phone):
         end
     end
 `endif
+    // synthesis translate_on
 '''
     phone = phone[:start] + product + phone[end:]
     return edit(phone, '\t\t\t\tmultiply_product_ready <= 0;\n\t\t\t\ta[515-:32]',
