@@ -2722,9 +2722,10 @@ module ngage2_arm9v2_decode (
 	end
     wire [5:0] m_load_tag = i_load_tag[18+:6];
     reg reads_m_load;
-    always @(*) begin
+    always @(*) begin : check_m_load_read
+        integer src;
         reads_m_load = 0;
-        for (integer src = 0; src < 4; src += 1)
+        for (src = 0; src < 4; src = src + 1)
             if (d2[96+src] && d2[100+6*src+:6] == m_load_tag) reads_m_load = 1;
     end
     wire advance_load_writer = i_m_simple_load && i_load_valid[3] && !reads_m_load &&
