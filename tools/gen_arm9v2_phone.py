@@ -319,6 +319,29 @@ def resident_during_fill(source):
     return source[:start] + cache + source[end:]
 
 
+def xor_btb(netlist):
+    """Fold ARM and Thumb PC bits into the existing predictor index."""
+    start = netlist.index('module ngage2_arm9v2_predict (')
+    end = netlist.index('\nendmodule', start)
+    predictor = netlist[start:end]
+    index_inputs = ('i_pc', 'i_update_pc', 'i_pc_redirect', 'o_target', 'i_pc_sequential')
+    for name in index_inputs:
+        old = f'{name}[INDEX_W:1]'
+        assert predictor.count(old) == (2 if name in index_inputs[2:] else 1), name
+        predictor = predictor.replace(old, f'btb_index({name})')
+    marker = '\n\twire write_enable ='
+    assert predictor.count(marker) == 1
+    predictor = predictor.replace(marker, '''
+    // ARM word alignment otherwise leaves half the direct-mapped table unused.
+    // The high bits remain in the tag, so a folded index cannot create a false hit.
+    function automatic [INDEX_W-1:0] btb_index;
+        input [31:0] pc;
+        btb_index = pc[INDEX_W:1] ^ pc[2*INDEX_W:INDEX_W+1];
+    endfunction
+''' + marker)
+    return netlist[:start] + predictor + netlist[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -341,6 +364,7 @@ def main():
     generated = schedule_early_smull(generated)
     generated = restart_streamed_icache(direct_accumulate(generated))
     generated = resident_during_fill(generated)
+    generated = xor_btb(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

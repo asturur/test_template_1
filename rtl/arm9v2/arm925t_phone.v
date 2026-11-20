@@ -5062,9 +5062,16 @@ module ngage2_arm9v2_predict (
 	(* dont_retime *) reg [31:0] ras_top;
 	wire [31:0] call_link = (read_pc + (read_thumb ? 32'd2 : 32'd4)) | {31'd0, read_thumb};
 	reg [1:0] update_state;
+    // ARM word alignment otherwise leaves half the direct-mapped table unused.
+    // The high bits remain in the tag, so a folded index cannot create a false hit.
+    function automatic [INDEX_W-1:0] btb_index;
+        input [31:0] pc;
+        btb_index = pc[INDEX_W:1] ^ pc[2*INDEX_W:INDEX_W+1];
+    endfunction
+
 	wire write_enable = (i_update && !i_reset) && !i_clear;
-	wire [INDEX_W - 1:0] rd_index = i_pc[INDEX_W:1];
-	wire [INDEX_W - 1:0] wr_index = i_update_pc[INDEX_W:1];
+	wire [INDEX_W - 1:0] rd_index = btb_index(i_pc);
+	wire [INDEX_W - 1:0] wr_index = btb_index(i_update_pc);
 	wire unused = &{1'b0, i_pc[0], i_update_pc[0], i_pc_redirect[31:INDEX_W + 1], i_pc_redirect[0], i_pc_sequential[31:INDEX_W + 1], i_pc_sequential[0]};
 	always @(*) begin
 		if (_sv2v_0)
@@ -5115,9 +5122,9 @@ module ngage2_arm9v2_predict (
 		end
 	end
 	(* dont_retime *) reg read_valid_bit;
-	wire valid_redirect = valid[i_pc_redirect[INDEX_W:1]] || (write_enable && (wr_index == i_pc_redirect[INDEX_W:1]));
-	wire valid_predicted = valid[o_target[INDEX_W:1]] || (write_enable && (wr_index == o_target[INDEX_W:1]));
-	wire valid_sequential = valid[i_pc_sequential[INDEX_W:1]] || (write_enable && (wr_index == i_pc_sequential[INDEX_W:1]));
+	wire valid_redirect = valid[btb_index(i_pc_redirect)] || (write_enable && (wr_index == btb_index(i_pc_redirect)));
+	wire valid_predicted = valid[btb_index(o_target)] || (write_enable && (wr_index == btb_index(o_target)));
+	wire valid_sequential = valid[btb_index(i_pc_sequential)] || (write_enable && (wr_index == btb_index(i_pc_sequential)));
 	wire valid_launch = (i_sel_redirect ? valid_redirect : (i_sel_predicted ? valid_predicted : valid_sequential));
 	always @(posedge i_clk)
 		if (i_reset || i_clear)
