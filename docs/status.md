@@ -1,3 +1,31 @@
+## 2026-11-20 — UEM alarm acknowledgement works in v5 RTL
+
+Removed the constant alarm bit from UEM status `0x35`. The firmware's
+write-one-to-clear now clears the reported flag. The staged startup alarm
+event remains in the model. The focused CBUS regression fails on the old read
+and passes on the candidate, including a later periodic IRQ with the alarm
+still clear. The candidate has not been fitted or run on MiSTer.
+
+Disassembled the installed Bomberman `6R29.APP` and its card libraries.
+Relative to the checked Sega Rally binary, Bomberman uses System Agent state
+and ships a GameUtils/LightDrv path to DOS backlight control. Neither its
+direct imports nor the checked helper imports contain a phone reset or
+power-off call. The observed MTC shutdown request is still unattributed.
+[Binary and RTC findings](ddr-diagnostics.md#bomberman-binary-and-uem-alarm)
+
+## 2026-11-20 — Bomberman session ended in the NOS hardware-reset loop
+
+The live MiSTer capture shows the guest shutdown sequence, the NOS
+`hw_reset_generate` trace, and a write of `0x0004` to physical `0x0c150000`.
+The CPU parks at `0x514c11b2` with interrupts masked and the display on the
+Nokia logo. The FPGA reset generation stays at zero. A same-core
+instrumented repeat identifies `HW_RESET_POWER_OFF_RTC` (reason `0x15`).
+The UEM alarm bit is forced high and satisfies the stock shutdown
+callback even with no alarm scheduled. In a second repeat, the MTC
+power-off transition and CPU park predate the keypad-5 press. The
+requester upstream of that transition is still unidentified.
+[DDR evidence](ddr-diagnostics.md#2026-11-20-bomberman-session-hardware-reset)
+
 ## 2026-11-19 — v5 enables committed D2 update-on-hit
 
 The 32 KiB flash cache updates resident bytes after DDR write completion.
