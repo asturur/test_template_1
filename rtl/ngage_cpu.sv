@@ -44,7 +44,7 @@ module ngage_cpu #(
 );
 `ifdef NGAGE_ARM9V2
     wire [31:0] donor_pc, donor_cpsr, donor_instruction;
-    wire donor_fetch;
+    wire donor_fetch, donor_line_candidate;
     wire donor_cyc, donor_lock, donor_ack, donor_error, donor_no_late_error;
     wire [31:0] donor_read_data;
     assign wb_stb = wb_cyc;
@@ -56,6 +56,7 @@ module ngage_cpu #(
         .reset             (reset),
         .cpu_cyc           (donor_cyc),
         .cpu_lock          (donor_lock),
+        .cpu_line_candidate(donor_line_candidate),
         .cpu_address       (wb_address),
         .cpu_write         (wb_write),
         .cpu_sel           (wb_byte_enable),
@@ -90,33 +91,34 @@ module ngage_cpu #(
 `endif
 
     ngage2_arm925t u_arm925t (
-        .clk              (clk),
-        .reset            (reset),
-        .irq              (irq),
-        .fiq              (fiq),
-        .bus_req          (donor_cyc),
-        .bus_lock         (donor_lock),
-        .bus_code         (wb_code),
-        .bus_addr         (wb_address),
-        .bus_we           (wb_write),
-        .bus_wdata        (wb_write_data),
+        .clk               (clk),
+        .reset             (reset),
+        .irq               (irq),
+        .fiq               (fiq),
+        .bus_req           (donor_cyc),
+        .bus_lock          (donor_lock),
+        .bus_line_candidate(donor_line_candidate),
+        .bus_code          (wb_code),
+        .bus_addr          (wb_address),
+        .bus_we            (wb_write),
+        .bus_wdata         (wb_write_data),
 `ifdef NGAGE_BLOCK_WRITEBACK
-        .block_enable     (1'b1),
-        .bus_write_block  (wb_write_block),
-        .bus_block_data   (wb_block_data),
+        .block_enable      (1'b1),
+        .bus_write_block   (wb_write_block),
+        .bus_block_data    (wb_block_data),
 `endif
-        .bus_be           (wb_byte_enable),
-        .bus_cti          (wb_cycle_type),
-        .bus_bte          (wb_burst_type),
-        .bus_burst        (),
-        .bus_ack          (donor_ack),
-        .bus_err          (donor_error),
-        .bus_rdata        (donor_read_data),
-        .bus_no_late_error(donor_no_late_error),
-        .dbg_pc           (donor_pc),
-        .dbg_wb_cpsr      (donor_cpsr),
-        .dbg_instruction  (donor_instruction),
-        .dbg_fetch_valid  (donor_fetch)
+        .bus_be            (wb_byte_enable),
+        .bus_cti           (wb_cycle_type),
+        .bus_bte           (wb_burst_type),
+        .bus_burst         (),
+        .bus_ack           (donor_ack),
+        .bus_err           (donor_error),
+        .bus_rdata         (donor_read_data),
+        .bus_no_late_error (donor_no_late_error),
+        .dbg_pc            (donor_pc),
+        .dbg_wb_cpsr       (donor_cpsr),
+        .dbg_instruction   (donor_instruction),
+        .dbg_fetch_valid   (donor_fetch)
     );
 `else
     zap_top #(
@@ -186,6 +188,7 @@ module ngage_arm9v2_refill #(
     input  wire        reset,
     input  wire        cpu_cyc,
     input  wire        cpu_lock,
+    input  wire        cpu_line_candidate,
     input  wire [31:0] cpu_address,
     input  wire        cpu_write,
     input  wire [ 3:0] cpu_sel,
@@ -221,12 +224,8 @@ module ngage_arm9v2_refill #(
     reg [31:0] words    [0:7];
 
     wire burst = cpu_cti == BURST;
-    wire line_target = cpu_address[31:24] == 8'h0a || cpu_address < 32'h007f0000 ||
-                       (cpu_address >= 32'h02000000 && cpu_address < 32'h02400000) ||
-                       (cpu_address >= 32'h04000000 && cpu_address < 32'h04800000);
     assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
-                       !cpu_write && cpu_sel == 4'hf && burst && cpu_bte == 0 &&
-                       cpu_address[4:0] == 0 && line_target;
+                       cpu_line_candidate;
     assign line_addr = cpu_address;
     assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
     // A younger SWP cannot reach the bus before this older refill retires.
@@ -293,6 +292,15 @@ module ngage_arm9v2_refill #(
     endgenerate
 
     // synthesis translate_off
+    wire line_target = cpu_address[31:24] == 8'h0a || cpu_address < 32'h007f0000 ||
+                       (cpu_address >= 32'h02000000 && cpu_address < 32'h02400000) ||
+                       (cpu_address >= 32'h04000000 && cpu_address < 32'h04800000);
+    wire reference_candidate = !cpu_write && cpu_sel == 4'hf && burst && cpu_bte == 0 &&
+                               cpu_address[4:0] == 0 && line_target;
+    always @(posedge clk)
+        if (!reset && cpu_cyc && cpu_line_candidate !== reference_candidate)
+            $fatal(1, "Refill classifier disagrees for active packet at %h", cpu_address);
+
     always @(posedge clk)
         if (!reset && state == LINE) begin
             if (!cpu_cyc || cpu_write || cpu_address[4:0] != {consumed, 2'b00} ||

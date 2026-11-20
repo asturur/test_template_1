@@ -57,6 +57,7 @@ module ngage2_arm925t (
 	bus_code,
 	bus_lock,
 	bus_cti,
+	bus_line_candidate,
 	dbg_fetch_valid,
 	dbg_instruction,
 	block_enable,
@@ -69,6 +70,7 @@ module ngage2_arm925t (
 	output wire bus_code;
 	output wire bus_lock;
 	output wire [2:0] bus_cti;
+	output wire bus_line_candidate;
 	output wire dbg_fetch_valid;
 	output wire [31:0] dbg_instruction;
 	input wire clk;
@@ -179,6 +181,7 @@ module ngage2_arm925t (
 		.o_wb_sel(bus_be),
         .o_wb_cti(wb_cti),
         .o_wb_code(bus_code),
+        .o_wb_line_candidate(bus_line_candidate),
         .o_wb_lock(bus_lock),
         .o_dbg_instruction(dbg_instruction),
         .o_dbg_fetch_valid(dbg_fetch_valid),
@@ -15072,6 +15075,7 @@ module ngage2_zap_top (
 	i_wb_no_late_error,
 	o_wb_code,
 	o_wb_lock,
+	o_wb_line_candidate,
 	o_dbg_fetch_valid,
 	o_dbg_instruction,
 	i_block_enable,
@@ -15083,6 +15087,7 @@ module ngage2_zap_top (
 	output wire [127:0] o_block_data;
 	output wire o_wb_code;
 	output wire o_wb_lock;
+	output wire o_wb_line_candidate;
 	output wire o_dbg_fetch_valid;
 	output wire [31:0] o_dbg_instruction;
 	parameter [0:0] ARM9_PREDICTOR = 1'b1;
@@ -15885,6 +15890,7 @@ module ngage2_zap_top (
 				.o_wb_sel(wb_sel),
 				.o_wb_dat(wb_idat),
 				.o_wb_adr(wb_adr),
+				.o_wb_line_candidate(o_wb_line_candidate),
 				.o_wb_cti(wb_cti),
 				.o_wb_bte(o_wb_bte),
 				.i_wb_ack(wb_ack),
@@ -16122,6 +16128,7 @@ module ngage2_zap_wb_merger (
 	o_wb_sel,
 	o_wb_dat,
 	o_wb_adr,
+	o_wb_line_candidate,
 	o_wb_cti,
 	o_wb_bte,
 	i_wb_ack,
@@ -16159,6 +16166,7 @@ module ngage2_zap_wb_merger (
 	output reg [3:0] o_wb_sel;
 	output wire [31:0] o_wb_dat;
 	(* dont_retime *) output reg [31:0] o_wb_adr;
+	(* dont_retime *) output reg o_wb_line_candidate;
 	output reg [2:0] o_wb_cti;
 	output reg [1:0] o_wb_bte;
 	input wire i_wb_ack;
@@ -16439,6 +16447,26 @@ module ngage2_zap_wb_merger (
 	(* preserve, dont_retime *) reg state_ff;
 	reg state_nxt;
 	wire switch;
+	// Classify each request before arbitration. The board still owns
+	// the live request, lock, readiness and scalar fallback gates.
+	function automatic line_candidate;
+		input [31:0] addr;
+		input write;
+		input [3:0] sel;
+		input [2:0] cti;
+		input [1:0] bte;
+		begin
+			line_candidate = !write && sel == 4'hf && cti == CTI_BURST &&
+				bte == 0 && addr[4:0] == 0 &&
+				(addr[31:24] == 8'h0a || addr < 32'h007f0000 ||
+				 (addr >= 32'h02000000 && addr < 32'h02400000) ||
+				 (addr >= 32'h04000000 && addr < 32'h04800000));
+		end
+	endfunction
+	wire code_line_candidate = line_candidate(i_c_wb_adr, i_c_wb_wen, i_c_wb_sel,
+		i_c_wb_cti, i_c_wb_bte);
+	wire data_line_candidate = line_candidate(i_d_wb_adr, i_d_wb_wen, i_d_wb_sel,
+		i_d_wb_cti, i_d_wb_bte);
 	assign o_dbg_data_owner = state_ff == 1'd1;
 	assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
 	always @(*) begin
@@ -16496,6 +16524,7 @@ module ngage2_zap_wb_merger (
 					o_wb_wen <= 0;
 					o_wb_sel <= 0;
 					o_wb_adr <= 0;
+					o_wb_line_candidate <= 1'b0;
 					o_wb_cti <= CTI_EOB;
 					o_wb_bte <= 2'b00;
 				end
@@ -16505,6 +16534,7 @@ module ngage2_zap_wb_merger (
 					o_wb_wen <= i_c_wb_wen;
 					o_wb_sel <= i_c_wb_sel;
 					o_wb_adr <= i_c_wb_adr;
+					o_wb_line_candidate <= code_line_candidate;
 					o_wb_cti <= i_c_wb_cti;
 					o_wb_bte <= i_c_wb_bte;
 				end
@@ -16514,6 +16544,7 @@ module ngage2_zap_wb_merger (
 					o_wb_wen <= i_d_wb_wen;
 					o_wb_sel <= i_d_wb_sel;
 					o_wb_adr <= i_d_wb_adr;
+					o_wb_line_candidate <= data_line_candidate;
 					o_wb_cti <= i_d_wb_cti;
 					o_wb_bte <= i_d_wb_bte;
 				end
