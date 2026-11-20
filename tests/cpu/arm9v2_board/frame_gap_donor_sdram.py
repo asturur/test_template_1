@@ -22,7 +22,7 @@ BRIDGE = ''' wire scrub_done, sdr_ready;
  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(memclk));
  assign #5.5 sdr_dq = memory.Dq_reg;
  ngage_sdram_stream #(.WIDE_PORT(0), .SCRUB_BYTES(25'd32)) sadapter(
-  .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(lock),.owner_ready(sdram_owner_ready),
+  .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(mem_lock),.owner_ready(sdram_owner_ready),
   .req(sreq),.we(swe),.write_block(mem_write_block),.block_data(mem_block_data),
   .addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),
   .line_req(ram_line_req && !lock),.line_short(1'b0),.line_addr(ram_line_addr),.line_ready(ram_line_ready),
@@ -63,6 +63,10 @@ def generate(out, bench, wide=False, production=False):
         (out / 'donor_sdram.sv').write_bytes(controller)
     if wide or production:
         ports = ports.replace('.WIDE_PORT(0)', '.WIDE_PORT(1)')
+    bench = swap(bench, ' wire cpu_write_block, mem_write_block;',
+                 ' wire cpu_write_block, mem_write_block, mem_lock;')
+    bench = swap(bench, '.mem_req(sreq),.mem_we(swe),.mem_addr(sa)',
+                 '.mem_req(sreq),.mem_we(swe),.mem_lock(mem_lock),.mem_addr(sa)')
     start = bench.index(' wire scrub_done,mem_init;')
     end = bench.index(' mt48lc16m16a2 memory(', start)
     return swap(bench, bench[start:end], ports)

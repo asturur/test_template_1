@@ -13,9 +13,9 @@ module stream_tb;
   reg cpu_write_block = 0;
   reg [127:0] cpu_block_data = 0;
   reg [3:0] cpu_mask = 0, dma_mask = 0;
-  wire cpu_ack, dma_ack, owner_ready;
+  wire cpu_ack, dma_ack, owner_ready, cpu_grant, dma_grant;
   wire [31:0] cpu_out, dma_out;
-  wire req, we, ack;
+  wire req, we, ack, packet_lock;
   wire [24:0] addr;
   wire [31:0] write_data, read_data;
   wire write_block;
@@ -46,6 +46,7 @@ module stream_tb;
       .dma_rdata(dma_out),
       .mem_req(req),
       .mem_we(we),
+      .mem_lock(packet_lock),
       .mem_addr(addr),
       .mem_data(write_data),
       .mem_be(mask),
@@ -53,8 +54,8 @@ module stream_tb;
       .mem_block_data(block_data),
       .mem_ack(ack),
       .mem_rdata(read_data),
-      .cpu_accept(),
-      .dma_accept()
+      .cpu_accept(cpu_grant),
+      .dma_accept(dma_grant)
   );
 
   reg line_req = 0;
@@ -69,7 +70,7 @@ module stream_tb;
       .clk(clk),
       .cold(cold),
       .phone_reset(phone_reset),
-      .lock(lock),
+      .lock(packet_lock),
       .owner_ready(owner_ready),
       .req(req),
       .we(we),
@@ -291,6 +292,99 @@ module stream_tb;
     repeat (3) @(negedge clk);
     phone_reset = 0;
     cpu_transfer(0, BASE + 4, 0, 0, 32'h13579bdf);
+    // An older CPU write accepted with the reservation clear also keeps
+    // its posted completion when a younger SWP starts.
+    @(negedge clk);
+    cpu_req  = 1;
+    cpu_we   = 1;
+    cpu_addr = BASE;
+    cpu_data = 32'hba12ca34;
+    cpu_mask = 4'hf;
+    do @(posedge clk); while (!cpu_grant);
+    @(negedge clk);
+    lock = 1;
+    @(posedge clk);
+    if (packet_lock || !cpu_ack || dma_ack)
+      $fatal(1, "Older CPU write lost posted ownership when SWP locked");
+    @(negedge clk);
+    cpu_req = 0;
+    cpu_transfer(0, BASE, 0, 0, 32'hba12ca34);
+    lock = 0;
+
+    // Post a full four-word block. Grant an older DMA byte write while
+    // the pins are still busy, then raise the CPU lock before it can post.
+    cpu_write_block = 1;
+    cpu_block_data = 128'hffeeddcc_88776655_66554433_11223344;
+    cpu_transfer(1, BASE, cpu_block_data[31:0], 4'hf, 0);
+    cpu_write_block = 0;
+    dma_req = 1;
+    dma_we = 1;
+    dma_addr = BASE;
+    dma_data = 32'haabbccdd;
+    dma_mask = 4'b0101;
+    do @(posedge clk); while (!dma_grant);
+    @(negedge clk);
+    lock = 1;
+    @(posedge clk);
+    if (!busy_mem || !dma_ack || cpu_ack || packet_lock)
+      $fatal(1, "Older DMA byte write lost posted ownership when SWP locked");
+    @(negedge clk);
+    dma_req = 0;
+    dma_we  = 0;
+
+    // The swap must read the block followed by the queued DMA lanes. A DMA
+    // read requesting the same address cannot enter the read/write gap.
+    cpu_transfer(0, BASE, 0, 0, 32'h11bb33dd);
+    dma_req = 1;
+    repeat (4) begin
+      @(posedge clk);
+      if (dma_grant || dma_ack) $fatal(1, "DMA entered the locked SWP gap");
+    end
+    @(negedge clk);
+    cpu_req  = 1;
+    cpu_we   = 1;
+    cpu_addr = BASE;
+    cpu_data = 32'h44000099;
+    cpu_mask = 4'b1001;
+    do @(posedge clk); while (!cpu_grant);
+    @(negedge clk);
+    if (!packet_lock || cpu_ack) $fatal(1, "Locked write received posted acknowledgement");
+    do begin
+      @(posedge clk);
+      if (dma_grant || dma_ack) $fatal(1, "DMA passed an owned SWP write");
+    end while (!cpu_ack);
+    if (busy_mem) $fatal(1, "Locked write acknowledged before pin completion");
+    @(negedge clk);
+    cpu_req = 0;
+    lock = 0;
+    do @(posedge clk); while (!dma_ack);
+    if (dma_out !== 32'h44bb3399) $fatal(1, "DMA saw stale data after locked byte write");
+    @(negedge clk);
+    dma_req = 0;
+    for (integer word = 1; word < 4; word++)
+    cpu_transfer(0, BASE + 25'(word * 4), 0, 0, cpu_block_data[word*32+:32]);
+
+    // Once a CPU write is granted, it cannot become posted if the live
+    // reservation is withdrawn before stream admission.
+    @(negedge clk);
+    lock = 1;
+    cpu_req = 1;
+    cpu_we = 1;
+    cpu_addr = BASE;
+    cpu_data = 32'h7685abcd;
+    cpu_mask = 4'hf;
+    do @(posedge clk); while (!cpu_grant);
+    @(negedge clk);
+    lock = 0;
+    @(posedge clk);
+    if (!packet_lock || cpu_ack) $fatal(1, "Held locked write became posted");
+    do @(posedge clk); while (!cpu_ack);
+    if (busy_mem) $fatal(1, "Held write acknowledged before pin completion");
+    @(negedge clk);
+    cpu_req = 0;
+    cpu_transfer(0, BASE, 0, 0, 32'h7685abcd);
+    $display(
+        "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion");
     $display("PASS stream masks, physical burst shape, DMA/SWP order and logical reset drain");
     $finish;
   end

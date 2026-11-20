@@ -149,6 +149,7 @@ module physical_lcd_stream_tb #(
       .ram_valid(ram_valid),
       .ram_last(ram_last)
   );
+  wire packet_lock;
   ngage_sdram_arbiter arbiter (
       .clk(clk),
       .reset(panel_reset),
@@ -171,6 +172,7 @@ module physical_lcd_stream_tb #(
       .dma_accept(dma_grant),
       .mem_req(scalar_req),
       .mem_we(),
+      .mem_lock(packet_lock),
       .mem_addr(scalar_addr),
       .mem_data(),
       .mem_be(),
@@ -189,7 +191,7 @@ module physical_lcd_stream_tb #(
       .clk(clk),
       .cold(cold),
       .phone_reset(panel_reset),
-      .lock(cpu_lock),
+      .lock(packet_lock),
       .owner_ready(owner_ready),
       .req(scalar_req),
       .we(1'b0),

@@ -7,6 +7,7 @@ module ngage_sdram_stream #(
     input  wire         clk,
     input  wire         cold,
     input  wire         phone_reset,
+    // Lock sampled with this scalar packet by the bus owner.
     input  wire         lock,
     output wire         owner_ready,
     input  wire         req,

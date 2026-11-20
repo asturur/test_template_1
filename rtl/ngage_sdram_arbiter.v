@@ -33,11 +33,16 @@ module ngage_sdram_arbiter #(
     input  wire          mem_ack,
     input  wire [  31:0] mem_rdata,
     output wire          cpu_accept,
-    output wire          dma_accept
+    output wire          dma_accept,
+    output wire          mem_lock
 );
     localparam FREE = 0, ACTIVE = 1;
     reg [1:0] state = FREE;
     reg owner = 0, prefer_dma = 0;
+    // This bit follows the accepted scalar packet. The live CPU lock only
+    // arbitrates future grants and holds the reservation between SWP beats.
+    (* dont_retime *) reg packet_lock = 0;
+    assign mem_lock = packet_lock;
     wire choose_cpu = cpu_req && (cpu_lock || !dma_req || !prefer_dma);
     wire choose_dma = dma_req && !cpu_lock && !choose_cpu;
     assign cpu_accept = !reset && state == FREE && choose_cpu;
@@ -49,15 +54,17 @@ module ngage_sdram_arbiter #(
     assign dma_rdata  = mem_rdata;
     always @(posedge clk) begin
         if (reset) begin
-            state      <= FREE;
-            owner      <= 0;
-            prefer_dma <= 0;
+            state       <= FREE;
+            owner       <= 0;
+            prefer_dma  <= 0;
+            packet_lock <= 0;
         end else
             case (state)
                 FREE:
                 if (choose_cpu || choose_dma) begin
                     owner           <= choose_dma;
                     prefer_dma      <= !choose_dma;
+                    packet_lock     <= choose_cpu && cpu_lock;
                     mem_we          <= choose_dma ? dma_we : cpu_we;
                     mem_addr        <= choose_dma ? dma_addr : cpu_addr;
                     mem_data        <= choose_dma ? dma_data : cpu_data;

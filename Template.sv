@@ -246,7 +246,7 @@ module emu (
 
     wire sdram_scrub_done, sdram_ack, cpu_sdram_accept;
     wire [31:0] sdram_dout;
-    wire mem_req, mem_we, mem_ack;
+    wire mem_req, mem_we, mem_ack, mem_lock;
     wire [7:0] dma_error_pending;
     wire dma_cmd_valid, dma_cmd_ready, dma_cmd_write;
     wire [31:0] dma_cmd_addr, dma_cmd_data;
@@ -365,6 +365,7 @@ module emu (
         .dma_rdata      (shared_dma_rdata),
         .mem_req        (mem_req),
         .mem_we         (mem_we),
+        .mem_lock       (mem_lock),
         .mem_addr       (mem_addr),
         .mem_data       (mem_wdata),
         .mem_write_block(mem_write_block),
@@ -420,7 +421,7 @@ module emu (
         .clk        (clk_sys),
         .cold       (transport_reset),
         .phone_reset(dma_reset || transport_reset),
-        .lock       (cpu_bus_lock),
+        .lock       (mem_lock),
         .owner_ready(sdram_owner_ready),
         .req        (mem_req),
         .we         (mem_we),
