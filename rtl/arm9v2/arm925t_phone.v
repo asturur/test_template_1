@@ -1445,6 +1445,7 @@ module ngage2_arm9v2_core (
          d_kind == MSR || d_kind == CP);
     wire predicate_stable = !s_may_write_flags && !(a_a_valid && a_write_flags) && !w_serial_continue;
 
+    // synthesis translate_off
 `ifndef SYNTHESIS
     // A fused pair and a collapsed failed predicate can both be first/last.
     // Track the actual collapse across the two handoffs for this assertion.
@@ -1465,6 +1466,7 @@ module ngage2_arm9v2_core (
             if (a_condition_pass || a_memory || |a_write)
                 $fatal(1, "Collapsed block transfer passed at %h", a_pc);
 `endif
+    // synthesis translate_on
 	wire unused = &{1'b0, LOAD_FORMATTED, BP_ENTRIES, FIFO_DEPTH, RAS_DEPTH, CP, UND, SWI, MRS, BR, PREFIX, MUL, MULL, i_instr_data_early, i_instr_hit, cp_seen, d_ready, d_raw, d_mode, d_reg_count, d_transfer_reg, d_pred_kind, a_flags, a_write_flags, a_store, a_btb_kind, a_predicted, a_psr_source, a_saved_psr, a_spsr_tag, d_early, data_pc8, pc, ins, ex_result, load_capture, load_commit, load_value};
     localparam [3:0] LDM_PAIR = 4'd15;
     wire paired_ldm_w = w[541] && w[8-:4] == LDM_PAIR;

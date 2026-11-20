@@ -189,7 +189,8 @@ def check_collapsed_packets(source, edit):
         if (!i_reset && a_valid && a_kind == BLOCK && a_first && a_last && !a_thumb && predicate_multiple)
             if (a_condition_pass || a_memory || |a_write)
                 $fatal(1, "Collapsed block transfer passed at %h", a_pc);
-`endif''', '''`ifndef SYNTHESIS
+`endif''', '''    // synthesis translate_off
+`ifndef SYNTHESIS
     // A fused pair and a collapsed failed predicate can both be first/last.
     // Track the actual collapse across the two handoffs for this assertion.
     reg collapsed_s;
@@ -208,4 +209,5 @@ def check_collapsed_packets(source, edit):
         if (!i_reset && a_valid && collapsed_a)
             if (a_condition_pass || a_memory || |a_write)
                 $fatal(1, "Collapsed block transfer passed at %h", a_pc);
-`endif''')
+`endif
+    // synthesis translate_on''')
