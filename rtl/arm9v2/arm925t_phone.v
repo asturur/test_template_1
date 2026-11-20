@@ -1411,6 +1411,20 @@ module ngage2_arm9v2_core (
     wire s_held_load_writer = d_valid && d_advanced_load_writer &&
         (m_same_writer || skid_same_writer || locked[s_writer_tag] ||
          (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
+    wire s_may_write_flags = d_valid && !d_fault &&
+        ((d_instruction[20] && (d_kind == DP || d_kind == MUL || d_kind == MULL)) ||
+         d_kind == MSR || d_kind == CP);
+    wire predicate_stable = !s_may_write_flags && !(a_a_valid && a_write_flags) && !w_serial_continue;
+
+`ifndef SYNTHESIS
+    // A collapsed list must still fail in execute, with no memory or GPR effects.
+    wire [15:0] predicate_list = a_instruction[15:0];
+    wire predicate_multiple = |(predicate_list & (predicate_list - 16'd1));
+    always @(posedge i_clk)
+        if (!i_reset && a_valid && a_kind == BLOCK && a_first && a_last && !a_thumb && predicate_multiple)
+            if (a_condition_pass || a_memory || |a_write)
+                $fatal(1, "Collapsed block transfer passed at %h", a_pc);
+`endif
 	wire unused = &{1'b0, LOAD_FORMATTED, BP_ENTRIES, FIFO_DEPTH, RAS_DEPTH, CP, UND, SWI, MRS, BR, PREFIX, MUL, MULL, i_instr_data_early, i_instr_hit, cp_seen, d_ready, d_raw, d_mode, d_reg_count, d_transfer_reg, d_pred_kind, a_flags, a_write_flags, a_store, a_btb_kind, a_predicted, a_psr_source, a_saved_psr, a_spsr_tag, d_early, data_pc8, pc, ins, ex_result, load_capture, load_commit, load_value};
 	wire load_trust = (TRUST_FF ? i_data_short_trust : i_data_short_live && !fill_end_raw);
 	wire w_hit = (TRUST_FF ? w_hit_candidate : w[535] && !w_waited);
@@ -1458,6 +1472,8 @@ module ngage2_arm9v2_core (
 		.i_wr_addr_c(wc),
         .i_m_simple_load(m_simple_load),
         .o_advanced_load_writer(d_advanced_load_writer),
+    .i_predicate_flags(a_flags),
+        .i_predicate_stable(predicate_stable),
 		.i_locked(locked),
 		.i_rf_value(rf_value),
 		.o_rf_tag(rf_tag),
@@ -1822,6 +1838,8 @@ module ngage2_arm9v2_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+    i_predicate_flags,
+    i_predicate_stable,
     i_m_simple_load,
     o_advanced_load_writer,
 	i_early_tag,
@@ -1936,6 +1954,8 @@ module ngage2_arm9v2_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+    input wire [3:0] i_predicate_flags;
+    input wire i_predicate_stable;
     input wire i_m_simple_load;
     output reg o_advanced_load_writer;
 	input wire [23:0] i_early_tag;
@@ -2652,10 +2672,33 @@ module ngage2_arm9v2_decode (
 	assign o_ready = (count < 2) && !kill_younger;
 	assign accept = i_valid && o_ready;
 	assign fast_select = ((count == 0) && !i_fault) && (i_thumb ? raw_word[15:11] == 5'b11100 : i_word[31:25] == 7'b1110101);
-	assign shortcut = (accept && fast_select) && (!d2_valid || (step && d2[42]));
+    function predicate_pass;
+        input [3:0] condition;
+        input [3:0] nzcv;
+        reg positive;
+        begin
+            case (condition[3:1])
+                0: positive = nzcv[2];
+                1: positive = nzcv[1];
+                2: positive = nzcv[3];
+                3: positive = nzcv[0];
+                4: positive = nzcv[1] && !nzcv[2];
+                5: positive = nzcv[3] == nzcv[0];
+                6: positive = !nzcv[2] && nzcv[3] == nzcv[0];
+                default: positive = 1'b1;
+            endcase
+            predicate_pass = positive ^ condition[0];
+        end
+    endfunction
+
+    wire collapse_failed_list = i_predicate_stable && d2[131-:4] == K_BLOCK &&
+        d2[43] && !d2[42] && !d2[150] && !d2[149] && d2[127-:4] < 14 &&
+        !predicate_pass(d2[127-:4], i_predicate_flags);
+    wire predicate_last = d2[42] || collapse_failed_list;
+	assign shortcut = (accept && fast_select) && (!d2_valid || (step && predicate_last));
 	assign push = accept && !shortcut;
 	wire step_raw = ((d2_valid && (!out_valid || i_ready_payload)) && !o_hazard) && (!redirect_ff[74] || redirect_in_d2);
-	wire d2_load = (PAYLOAD_FREE ? ((count != 0) || ((i_valid && (count < 2)) && fast_select)) && (!d2_valid || (step_raw && d2[42])) : new_d2);
+	wire d2_load = (PAYLOAD_FREE ? ((count != 0) || ((i_valid && (count < 2)) && fast_select)) && (!d2_valid || (step_raw && predicate_last)) : new_d2);
 	wire payload_en = !out_valid || (PAYLOAD_FREE ? i_ready_payload : i_ready);
 	wire d1_load = (PAYLOAD_FREE ? count < 2 : push);
 	assign new_d2 = pop || shortcut;
@@ -2719,7 +2762,7 @@ module ngage2_arm9v2_decode (
 	end
 	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && i_locked[d2[100+:6]])) || (d2[97] && i_locked[d2[106+:6]])) || (d2[98] && i_locked[d2[112+:6]])) || (d2[99] && i_locked[d2[118+:6]])) || |early_hazard);
 	assign step = (((d2_valid && (!out_valid || i_ready)) && !o_hazard) && !i_flush) && (!redirect_ff[74] || redirect_in_d2);
-	assign pop = ((count != 0) && (!d2_valid || (step && d2[42]))) && !kill_younger;
+	assign pop = ((count != 0) && (!d2_valid || (step && predicate_last))) && !kill_younger;
 	assign o_rf_tag = d2[123-:24];
 	assign raw_values = i_rf_value;
 	function automatic [15:0] shift_controls;
@@ -2806,7 +2849,7 @@ module ngage2_arm9v2_decode (
 				if (d2_load)
 					d2_q <= admitted;
 				if (payload_en) begin
-					issued <= d2;
+					issued <= {d2[372:43], predicate_last, d2[41:0]};
 					values <= raw_values;
 					self_dep <= d2_self_dep;
 					begin : sv2v_autoblock_29
@@ -2870,7 +2913,7 @@ module ngage2_arm9v2_decode (
 					;
 			endcase
 			if (payload_en) begin
-				issued <= d2;
+				issued <= {d2[372:43], predicate_last, d2[41:0]};
 				values <= raw_values;
 				self_dep <= d2_self_dep;
 				begin : sv2v_autoblock_31
@@ -2894,7 +2937,7 @@ module ngage2_arm9v2_decode (
 				end
 			end
 			if (step) begin
-				if (((((((((d2[131-:4] == K_CP) && ((!d2[329] || (d2[328:325] == 7)) || (d2[324:321] == 15))) || ((d2[131-:4] == K_MSR) && (d2[331] || d2[325]))) || (d2[131-:4] == K_SWP)) || (d2[131-:4] == K_SWI)) || (d2[131-:4] == K_UND)) || d2[149]) || (((d2[131-:4] == K_DP) && d2[329]) && (d2[80+:6] == 15))) || (((((d2[131-:4] == K_BLOCK) && d2[331]) && d2[329]) && d2[196]) && d2[42]))
+				if (((((((((d2[131-:4] == K_CP) && ((!d2[329] || (d2[328:325] == 7)) || (d2[324:321] == 15))) || ((d2[131-:4] == K_MSR) && (d2[331] || d2[325]))) || (d2[131-:4] == K_SWP)) || (d2[131-:4] == K_SWI)) || (d2[131-:4] == K_UND)) || d2[149]) || (((d2[131-:4] == K_DP) && d2[329]) && (d2[80+:6] == 15))) || (((((d2[131-:4] == K_BLOCK) && d2[331]) && d2[329]) && d2[196]) && predicate_last))
 					fenced <= 1;
 				out_valid <= 1;
 				if (d2[131-:4] == K_BL_PREFIX) begin
@@ -2904,7 +2947,7 @@ module ngage2_arm9v2_decode (
 				end
 				else
 					prefix_valid <= 0;
-				if (d2[42])
+				if (predicate_last)
 					d2_valid <= 0;
 				else begin
 					d2_q[43] <= 0;
@@ -4596,6 +4639,8 @@ module ngage2_arm9v2_front_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+    i_predicate_flags,
+    i_predicate_stable,
     i_m_simple_load,
     o_advanced_load_writer,
 	i_early_tag,
@@ -4728,6 +4773,8 @@ module ngage2_arm9v2_front_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+    input wire [3:0] i_predicate_flags;
+    input wire i_predicate_stable;
     input wire i_m_simple_load;
     output wire o_advanced_load_writer;
 	input wire [23:0] i_early_tag;
@@ -4934,6 +4981,8 @@ module ngage2_arm9v2_front_decode (
 		.i_wr_addr_c(i_wr_addr_c),
         .i_m_simple_load(i_m_simple_load),
         .o_advanced_load_writer(o_advanced_load_writer),
+        .i_predicate_flags(i_predicate_flags),
+        .i_predicate_stable(i_predicate_stable),
 		.i_locked(i_locked),
 		.i_early_tag(i_early_tag),
 		.i_early_valid(i_early_valid),

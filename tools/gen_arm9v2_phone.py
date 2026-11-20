@@ -399,6 +399,81 @@ def advance_while_m(decode):
                 '\t\tif (advance_load_writer) producer_hazard[3] = 0;\n\t\tload_hazard = (|producer_hazard')
 
 
+def predicate_block(source):
+    """Stop a failed ARM list at its first packet when NZCV is stable."""
+    # A owns the current speculative NZCV. Fence/flush handling already
+    # orders CPSR restoration and MRC-to-PC, and refresh can replace NZCV.
+    source = edit(source, '\t\t.i_locked(locked),', '''    .i_predicate_flags(a_flags),
+        .i_predicate_stable(predicate_stable),
+\t\t.i_locked(locked),''')
+    source = edit(source, '\twire unused = &{1\'b0, LOAD_FORMATTED,', '''    wire s_may_write_flags = d_valid && !d_fault &&
+        ((d_instruction[20] && (d_kind == DP || d_kind == MUL || d_kind == MULL)) ||
+         d_kind == MSR || d_kind == CP);
+    wire predicate_stable = !s_may_write_flags && !(a_a_valid && a_write_flags) && !w_serial_continue;
+
+`ifndef SYNTHESIS
+    // A collapsed list must still fail in execute, with no memory or GPR effects.
+    wire [15:0] predicate_list = a_instruction[15:0];
+    wire predicate_multiple = |(predicate_list & (predicate_list - 16'd1));
+    always @(posedge i_clk)
+        if (!i_reset && a_valid && a_kind == BLOCK && a_first && a_last && !a_thumb && predicate_multiple)
+            if (a_condition_pass || a_memory || |a_write)
+                $fatal(1, "Collapsed block transfer passed at %h", a_pc);
+`endif
+\twire unused = &{1'b0, LOAD_FORMATTED,''')
+
+    for name in ('decode', 'front_decode'):
+        start = source.index(f'module ngage2_arm9v2_{name} (')
+        end = source.index('\nendmodule', start)
+        module = source[start:end]
+        module = edit(module, '\ti_locked,', '\ti_locked,\n    i_predicate_flags,\n    i_predicate_stable,')
+        module = edit(module, '\tinput wire [39:0] i_locked;', '''\tinput wire [39:0] i_locked;
+    input wire [3:0] i_predicate_flags;
+    input wire i_predicate_stable;''')
+        if name == 'front_decode':
+            module = edit(module, '\t\t.i_locked(i_locked),', '''        .i_predicate_flags(i_predicate_flags),
+        .i_predicate_stable(i_predicate_stable),
+\t\t.i_locked(i_locked),''')
+        else:
+            module = mark_failed_list_last(module)
+        source = source[:start] + module + source[end:]
+    return source
+
+
+def mark_failed_list_last(decode):
+    decode = edit(decode, '\tassign shortcut =', '''    function predicate_pass;
+        input [3:0] condition;
+        input [3:0] nzcv;
+        reg positive;
+        begin
+            case (condition[3:1])
+                0: positive = nzcv[2];
+                1: positive = nzcv[1];
+                2: positive = nzcv[3];
+                3: positive = nzcv[0];
+                4: positive = nzcv[1] && !nzcv[2];
+                5: positive = nzcv[3] == nzcv[0];
+                6: positive = !nzcv[2] && nzcv[3] == nzcv[0];
+                default: positive = 1'b1;
+            endcase
+            predicate_pass = positive ^ condition[0];
+        end
+    endfunction
+
+    wire collapse_failed_list = i_predicate_stable && d2[131-:4] == K_BLOCK &&
+        d2[43] && !d2[42] && !d2[150] && !d2[149] && d2[127-:4] < 14 &&
+        !predicate_pass(d2[127-:4], i_predicate_flags);
+    wire predicate_last = d2[42] || collapse_failed_list;
+\tassign shortcut =''')
+    # Include the normal refill, head pop and architectural serial fence.
+    decode = decode.replace('step && d2[42]', 'step && predicate_last')
+    decode = edit(decode, 'step_raw && d2[42]', 'step_raw && predicate_last')
+    decode = edit(decode, '&& d2[196]) && d2[42]', '&& d2[196]) && predicate_last')
+    decode = edit(decode, 'if (d2[42])', 'if (predicate_last)')
+    decode = decode.replace('issued <= d2;', 'issued <= {d2[372:43], predicate_last, d2[41:0]};')
+    return decode
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -423,6 +498,7 @@ def main():
     generated = resident_during_fill(generated)
     generated = xor_btb(generated)
     generated = load_waw_overlay(generated)
+    generated = predicate_block(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
