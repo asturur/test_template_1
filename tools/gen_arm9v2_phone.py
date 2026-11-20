@@ -573,6 +573,8 @@ def keep_wishbone_request_boundary(phone):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+    parser.add_argument('--hinted-ldm', action='store_true',
+                        help='Enable the two-word ARM LDM issue experiment')
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
     if args.stock:
@@ -596,7 +598,8 @@ def main():
     generated = load_waw_overlay(generated)
     generated = predicate_block(generated)
     generated = half_dirty_writeback(generated)
-    generated = issue_hinted_ldm(generated, edit)
+    if args.hinted_ldm:
+        generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
     if args.check:
         if output.read_text() != generated:
