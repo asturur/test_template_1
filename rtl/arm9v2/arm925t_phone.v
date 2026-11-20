@@ -16124,8 +16124,8 @@ module ngage2_zap_wb_merger (
 	input wire [1:0] i_d_wb_bte;
 	output wire o_d_wb_ack;
 	output wire o_d_wb_err;
-	output reg o_wb_cyc;
-	output reg o_wb_stb;
+	(* dont_retime *) output reg o_wb_cyc;
+	(* dont_retime *) output reg o_wb_stb;
 	output reg o_wb_wen;
 	output reg [3:0] o_wb_sel;
 	output wire [31:0] o_wb_dat;

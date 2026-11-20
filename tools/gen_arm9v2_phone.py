@@ -519,6 +519,16 @@ def half_dirty_writeback(phone):
     return f'{phone}\n{private_tags}{private_metadata}'
 
 
+def keep_wishbone_request_boundary(phone):
+    """Keep request control registered with the selected I/D packet."""
+    start = phone.index('module ngage2_zap_wb_merger (')
+    end = phone.index('\nendmodule', start)
+    merger = edit(phone[start:end], '\toutput reg o_wb_cyc;\n\toutput reg o_wb_stb;',
+                  '\t(* dont_retime *) output reg o_wb_cyc;\n'
+                  '\t(* dont_retime *) output reg o_wb_stb;')
+    return phone[:start] + merger + phone[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -546,6 +556,7 @@ def main():
     generated = predicate_block(generated)
     generated = half_dirty_writeback(generated)
     generated = issue_hinted_ldm(generated, edit)
+    generated = keep_wishbone_request_boundary(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
