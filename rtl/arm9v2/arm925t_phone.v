@@ -1400,6 +1400,17 @@ module ngage2_arm9v2_core (
 	wire load_capture = |i_dc_reg_idx;
 	wire [63:0] load_commit = 0;
 	wire [31:0] load_value = load_data;
+    wire d_advanced_load_writer;
+    wire [5:0] s_writer_tag = d_dest[0+:6];
+    wire m_simple_load = m[541] && m[527] && m[8:5] == MEM && !m[27];
+    wire m_same_writer = m[541] && m[527] && m[92+:6] == s_writer_tag;
+    wire w_same_writer = w[541] && w[527] && w[92+:6] == s_writer_tag;
+    wire skid_same_writer = skid[541] && skid[527] && skid[92+:6] == s_writer_tag;
+    // S can own the younger packet early. A cannot execute it while an
+    // older result can still arrive, including fill/miss and abort paths.
+    wire s_held_load_writer = d_valid && d_advanced_load_writer &&
+        (m_same_writer || skid_same_writer || locked[s_writer_tag] ||
+         (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
 	wire unused = &{1'b0, LOAD_FORMATTED, BP_ENTRIES, FIFO_DEPTH, RAS_DEPTH, CP, UND, SWI, MRS, BR, PREFIX, MUL, MULL, i_instr_data_early, i_instr_hit, cp_seen, d_ready, d_raw, d_mode, d_reg_count, d_transfer_reg, d_pred_kind, a_flags, a_write_flags, a_store, a_btb_kind, a_predicted, a_psr_source, a_saved_psr, a_spsr_tag, d_early, data_pc8, pc, ins, ex_result, load_capture, load_commit, load_value};
 	wire load_trust = (TRUST_FF ? i_data_short_trust : i_data_short_live && !fill_end_raw);
 	wire w_hit = (TRUST_FF ? w_hit_candidate : w[535] && !w_waited);
@@ -1445,6 +1456,8 @@ module ngage2_arm9v2_core (
 		.i_wr_pair(wb_pair),
 		.i_wr_addr_b(wb),
 		.i_wr_addr_c(wc),
+        .i_m_simple_load(m_simple_load),
+        .o_advanced_load_writer(d_advanced_load_writer),
 		.i_locked(locked),
 		.i_rf_value(rf_value),
 		.o_rf_tag(rf_tag),
@@ -1554,7 +1567,7 @@ module ngage2_arm9v2_core (
 	) u_execute(
 		.i_pending(d_pending),
 		.i_admit(backend_ready),
-		.i_load_wait(d_load_wait),
+		.i_load_wait(d_load_wait || s_held_load_writer),
 		.i_load_owner({w[527], m[527]}),
 		.i_next_load_owner(forward_load),
 		.i_load_hit(w_hit && i_data_short_hit),
@@ -1809,6 +1822,8 @@ module ngage2_arm9v2_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+    i_m_simple_load,
+    o_advanced_load_writer,
 	i_early_tag,
 	i_early_valid,
 	i_early_agu,
@@ -1921,6 +1936,8 @@ module ngage2_arm9v2_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+    input wire i_m_simple_load;
+    output reg o_advanced_load_writer;
 	input wire [23:0] i_early_tag;
 	input wire [3:0] i_early_valid;
 	input wire [3:0] i_early_agu;
@@ -2660,6 +2677,20 @@ module ngage2_arm9v2_decode (
 				end
 		end
 	end
+    wire [5:0] m_load_tag = i_load_tag[18+:6];
+    reg reads_m_load;
+    always @(*) begin
+        reads_m_load = 0;
+        for (integer src = 0; src < 4; src += 1)
+            if (d2[96+src] && d2[100+6*src+:6] == m_load_tag) reads_m_load = 1;
+    end
+    wire advance_load_writer = i_m_simple_load && i_load_valid[3] && !reads_m_load &&
+        d2[131:128] == K_MEM && d2[329] && !d2[149] && d2[78] && !d2[79] &&
+        d2[80+:6] == m_load_tag && m_load_tag != 15;
+    always @(posedge i_clk) begin
+        if (i_reset || i_flush) o_advanced_load_writer <= 0;
+        else if (step) o_advanced_load_writer <= advance_load_writer;
+    end
 	reg [5:0] producer_hazard;
 	always @(*) begin : sv2v_autoblock_23
 		reg [3:0] reads;
@@ -2683,6 +2714,7 @@ module ngage2_arm9v2_decode (
 					producer_hazard[pending] = i_load_valid[pending] && (!i_load_speculate[pending] || (pending == 0) ? |reads || |writes : ((pending == 1) && |(reads & d2[95-:4])) || ((|writes && !(|reads)) && !((pending == 4) && i_w_load_hit)));
 				end
 		end
+		if (advance_load_writer) producer_hazard[3] = 0;
 		load_hazard = (|producer_hazard || (d2[78] && i_locked[d2[80+:6]])) || (d2[79] && i_locked[d2[86+:6]]);
 	end
 	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && i_locked[d2[100+:6]])) || (d2[97] && i_locked[d2[106+:6]])) || (d2[98] && i_locked[d2[112+:6]])) || (d2[99] && i_locked[d2[118+:6]])) || |early_hazard);
@@ -4564,6 +4596,8 @@ module ngage2_arm9v2_front_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+    i_m_simple_load,
+    o_advanced_load_writer,
 	i_early_tag,
 	i_early_valid,
 	i_early_agu,
@@ -4694,6 +4728,8 @@ module ngage2_arm9v2_front_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+    input wire i_m_simple_load;
+    output wire o_advanced_load_writer;
 	input wire [23:0] i_early_tag;
 	input wire [3:0] i_early_valid;
 	input wire [3:0] i_early_agu;
@@ -4896,6 +4932,8 @@ module ngage2_arm9v2_front_decode (
 		.i_wr_addr_a(i_wr_addr_a),
 		.i_wr_addr_b(i_wr_addr_b),
 		.i_wr_addr_c(i_wr_addr_c),
+        .i_m_simple_load(i_m_simple_load),
+        .o_advanced_load_writer(o_advanced_load_writer),
 		.i_locked(i_locked),
 		.i_early_tag(i_early_tag),
 		.i_early_valid(i_early_valid),
