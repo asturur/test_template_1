@@ -264,6 +264,61 @@ def restart_streamed_icache(phone):
                 '((CACHE_LINE == 32 || (CACHE_LINE == 16 && fetch_wrap_ff)) && i_wb_no_late_error) && !i_wb_err')
 
 
+def resident_during_fill(source):
+    """Use a checked resident word while a trusted fill owns the bus."""
+    start = source.index('module ngage2_zap_cache_fsm (')
+    end = source.index('\nendmodule', start)
+    fsm = source[start:end]
+    fsm = edit(fsm, '\ti_wb_no_late_error\n', '\ti_wb_no_late_error,\n\ti_resident_fill_ok\n')
+    fsm = edit(fsm, '\tinput wire i_wb_no_late_error;',
+               '\tinput wire i_wb_no_late_error;\n\tinput wire i_resident_fill_ok;')
+    marker = '\tassign o_dat ='
+    fsm = edit(fsm, marker, '''    wire fill_open = state_ff == FETCH_SINGLE && fill_no_late_error_ff &&
+                     !fill_fault_ff && i_cache_en && !i_cache_inv && !i_cache_clean;
+    wire fill_set_conflict =
+        i_address[$clog2(CACHE_SIZE / WAYS)-1:$clog2(CACHE_LINE)] ==
+          address[$clog2(CACHE_SIZE / WAYS)-1:$clog2(CACHE_LINE)] && i_cache_way == way;
+    // Commit occupies its original cycle. The live refill owns its victim
+    // until then, so a hit to the old victim falls back to the serial path.
+    wire resident_fill_hit = fill_open && i_rd && !i_wr && !wr &&
+                             i_resident_fill_ok && !fill_set_conflict &&
+                             i_address[31:$clog2(CACHE_LINE)] != address[31:$clog2(CACHE_LINE)];
+    wire [31:0] resident_word =
+        i_cache_words[(i_cache_word_sel ? (WAYS-1)*32 : 0)+:32];
+    // With no demand the fetch stage can retire its canceled F2 and install
+    // the redirect. No bus acknowledgements or refill ownership change.
+    wire discard_fetch = fill_open && !i_rd && !i_wr;
+\tassign o_dat = resident_fill_hit ? resident_word :''')
+    old = next(line for line in fsm.splitlines() if line.startswith('\t\t\tFETCH_SINGLE: o_ack ='))
+    fsm = edit(fsm, old, old.removesuffix(';') + ' || resident_fill_hit || discard_fetch;')
+    source = source[:start] + fsm + source[end:]
+
+    start = source.index('module ngage2_zap_cache (')
+    end = source.index('\nendmodule', start)
+    cache = source[start:end]
+    marker = '\tngage2_zap_cache_fsm #('
+    cache = edit(cache, marker, '''    localparam integer PAGE_BITS = 32 - $clog2(CACHE_LINE);
+    localparam integer VTAG_BITS = 32 - $clog2(CACHE_SIZE / WAYS);
+    localparam integer LINE_TAG_BITS = PAGE_BITS + VTAG_BITS;
+    wire [WAYS * LINE_TAG_BITS-1:0] lookup_tags;
+    wire lookup_translation_ok;
+    reg [PAGE_BITS-1:0] checked_physical_tag;
+    reg [31:0] checked_lookup_address;
+    wire resident_fill_ok = tr_cache_hit && lookup_translation_ok && !tlb_busy &&
+                            !i_tlb_inv && i_address == checked_lookup_address &&
+                            checked_physical_tag == tlb_phy_addr[31:$clog2(CACHE_LINE)];
+\tngage2_zap_cache_fsm #(''')
+    cache = edit(cache, '.i_wb_no_late_error(i_wb_no_late_error)\n',
+                 '.i_wb_no_late_error(i_wb_no_late_error),\n\t\t.i_resident_fill_ok(resident_fill_ok)\n')
+    cache = edit(cache, '.o_cache_way_tag(),', '.o_cache_way_tag(lookup_tags),')
+    cache = edit(cache, '\t\t.o_hit_ok(),', '\t\t.o_hit_ok(lookup_translation_ok),')
+    cache = edit(cache, '\t\t\t\t\ttr_cache_hit <= raw_cache_hit;', '''\t\t\t\t\ttr_cache_hit <= raw_cache_hit;
+                    checked_lookup_address <= i_address_check;
+                    checked_physical_tag <=
+                        lookup_tags[(raw_cache_word_sel ? (WAYS-1)*LINE_TAG_BITS : 0)+VTAG_BITS+:PAGE_BITS];''')
+    return source[:start] + cache + source[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -285,6 +340,7 @@ def main():
     generated = schedule_ready_register_shift(generated)
     generated = schedule_early_smull(generated)
     generated = restart_streamed_icache(direct_accumulate(generated))
+    generated = resident_during_fill(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

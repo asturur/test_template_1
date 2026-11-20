@@ -5355,7 +5355,8 @@ module ngage2_zap_cache_fsm (
 	i_wb_ack,
 	i_wb_dat,
 	i_wb_err,
-	i_wb_no_late_error
+	i_wb_no_late_error,
+	i_resident_fill_ok
 );
 	reg _sv2v_0;
 	parameter [31:0] CACHE_SIZE = 32'd1024;
@@ -5431,6 +5432,7 @@ module ngage2_zap_cache_fsm (
 	input wire [31:0] i_wb_dat;
 	input wire i_wb_err;
 	input wire i_wb_no_late_error;
+	input wire i_resident_fill_ok;
 	localparam [1:0] SECTION_ID = 2'b10;
 	localparam [1:0] PAGE_ID = 2'b01;
 	localparam [1:0] FINE_ID = 2'b11;
@@ -5861,7 +5863,22 @@ module ngage2_zap_cache_fsm (
 		if ((state_ff == UNCACHEABLE) && (i_wb_ack || i_wb_err))
 			unc_err_ff <= i_wb_err;
 	always @(posedge i_clk) o_idle <= ~(|state_nxt);
-	assign o_dat = (((state_ff == UNC_DONE) || (state_ff == FETCH_SINGLE)) || (state_ff == FILL_COMPLETE) ? response_dat_ff : (i_cache_word_sel ? i_cache_words[(WAYS > 1 ? 1 : 0) * 32+:32] : i_cache_words[0+:32]));
+    wire fill_open = state_ff == FETCH_SINGLE && fill_no_late_error_ff &&
+                     !fill_fault_ff && i_cache_en && !i_cache_inv && !i_cache_clean;
+    wire fill_set_conflict =
+        i_address[$clog2(CACHE_SIZE / WAYS)-1:$clog2(CACHE_LINE)] ==
+          address[$clog2(CACHE_SIZE / WAYS)-1:$clog2(CACHE_LINE)] && i_cache_way == way;
+    // Commit occupies its original cycle. The live refill owns its victim
+    // until then, so a hit to the old victim falls back to the serial path.
+    wire resident_fill_hit = fill_open && i_rd && !i_wr && !wr &&
+                             i_resident_fill_ok && !fill_set_conflict &&
+                             i_address[31:$clog2(CACHE_LINE)] != address[31:$clog2(CACHE_LINE)];
+    wire [31:0] resident_word =
+        i_cache_words[(i_cache_word_sel ? (WAYS-1)*32 : 0)+:32];
+    // With no demand the fetch stage can retire its canceled F2 and install
+    // the redirect. No bus acknowledgements or refill ownership change.
+    wire discard_fetch = fill_open && !i_rd && !i_wr;
+	assign o_dat = resident_fill_hit ? resident_word : (((state_ff == UNC_DONE) || (state_ff == FETCH_SINGLE)) || (state_ff == FILL_COMPLETE) ? response_dat_ff : (i_cache_word_sel ? i_cache_words[(WAYS > 1 ? 1 : 0) * 32+:32] : i_cache_words[0+:32]));
 	always @(*) begin : ack_comb
 		if (_sv2v_0)
 			;
@@ -5882,7 +5899,7 @@ module ngage2_zap_cache_fsm (
 					o_ack = 1'd0;
 			UNCACHEABLE_PREPARE, UNCACHEABLE, INVALIDATE, CLEAN: o_ack = 1'd0;
 			UNC_DONE, CLEAN_SINGLE, FILL_COMPLETE: o_ack = 1'd1;
-			FETCH_SINGLE: o_ack = (((((((((i_rd && !i_wr) && !wr) && fill_ready_ff) && !fill_fault_ff) && !i_busy) && !i_fault) && i_cache_en) && i_cacheable) && !i_cache_inv) && !i_cache_clean;
+			FETCH_SINGLE: o_ack = (((((((((i_rd && !i_wr) && !wr) && fill_ready_ff) && !fill_fault_ff) && !i_busy) && !i_fault) && i_cache_en) && i_cacheable) && !i_cache_inv) && !i_cache_clean || resident_fill_hit || discard_fetch;
 			default: o_ack = 1'sbx;
 		endcase
 	end
@@ -7944,6 +7961,16 @@ module ngage2_zap_cache (
 	assign o_dbg_icache[3] = (((state_ff == SELECT_TLB) && o_wb_cyc) && o_wb_stb) && (i_wb_ack || i_wb_err);
 	assign wb_cti[2] = CTI_EOB;
 	assign unused = |{wb_err[1]};
+    localparam integer PAGE_BITS = 32 - $clog2(CACHE_LINE);
+    localparam integer VTAG_BITS = 32 - $clog2(CACHE_SIZE / WAYS);
+    localparam integer LINE_TAG_BITS = PAGE_BITS + VTAG_BITS;
+    wire [WAYS * LINE_TAG_BITS-1:0] lookup_tags;
+    wire lookup_translation_ok;
+    reg [PAGE_BITS-1:0] checked_physical_tag;
+    reg [31:0] checked_lookup_address;
+    wire resident_fill_ok = tr_cache_hit && lookup_translation_ok && !tlb_busy &&
+                            !i_tlb_inv && i_address == checked_lookup_address &&
+                            checked_physical_tag == tlb_phy_addr[31:$clog2(CACHE_LINE)];
 	ngage2_zap_cache_fsm #(
 		.CACHE_SIZE(CACHE_SIZE),
 		.CACHE_LINE(CACHE_LINE),
@@ -8018,7 +8045,8 @@ module ngage2_zap_cache (
 		.i_wb_dat(i_wb_dat),
 		.i_wb_ack(wb_ack[0]),
 		.i_wb_err(wb_err[0]),
-		.i_wb_no_late_error(i_wb_no_late_error)
+		.i_wb_no_late_error(i_wb_no_late_error),
+		.i_resident_fill_ok(resident_fill_ok)
 	);
 	localparam [31:0] sv2v_uu_u_zap_cache_tag_ram_WAYS = WAYS;
 	localparam [(sv2v_uu_u_zap_cache_tag_ram_WAYS > 1 ? $clog2(sv2v_uu_u_zap_cache_tag_ram_WAYS) : 1) - 1:0] sv2v_uu_u_zap_cache_tag_ram_ext_i_accepted_way_0 = 1'sb0;
@@ -8043,7 +8071,7 @@ module ngage2_zap_cache (
 		.o_cache_hit(raw_cache_hit),
 		.o_cache_hit_dirty(),
 		.o_cache_way_line(),
-		.o_cache_way_tag(),
+		.o_cache_way_tag(lookup_tags),
 		.o_cache_victim(),
 		.o_cache_way(raw_cache_way),
 		.i_cache_way(cf_cache_way),
@@ -8099,6 +8127,9 @@ module ngage2_zap_cache (
 					tr_cache_tag <= raw_cache_tag;
 					tr_cache_tag_valid <= raw_cache_tag_valid;
 					tr_cache_hit <= raw_cache_hit;
+                    checked_lookup_address <= i_address_check;
+                    checked_physical_tag <=
+                        lookup_tags[(raw_cache_word_sel ? (WAYS-1)*LINE_TAG_BITS : 0)+VTAG_BITS+:PAGE_BITS];
 					tr_cache_way <= raw_cache_way;
 					tr_cache_tag_dirty <= raw_cache_tag_dirty;
 				end
@@ -8136,7 +8167,7 @@ module ngage2_zap_cache (
 		.o_fault(tlb_fault),
 		.o_wt(),
 		.o_bufferable(),
-		.o_hit_ok(),
+		.o_hit_ok(lookup_translation_ok),
 		.o_hit_ok_short(),
 		.o_cacheable(tlb_cacheable),
 		.o_busy(tlb_busy),
