@@ -195,6 +195,9 @@ module ngage_upp #(
             wire [3:0] master_sel;
             wire       master_write_block;
             ngage_cpu #(
+`ifdef NGAGE_ARM9V2
+                .REGISTERED_SCALAR_PEER (1),
+`endif
                 .LINE_REFILL            (LINE_REFILL),
                 .EXPLICIT_LINE_GUARANTEE(1)
             ) cpu (
@@ -349,7 +352,10 @@ module ngage_upp #(
             end
 
             ngage_cpu_memory_route #(
-                .DIRECT_SDRAM(DIRECT_SDRAM)
+`ifdef NGAGE_ARM9V2
+                .CPU_OWNS_SCALAR_REPLY(1),
+`endif
+                .DIRECT_SDRAM         (DIRECT_SDRAM)
             ) memory_route (
                 .clk           (clk),
                 .reset         (rst),
@@ -799,7 +805,9 @@ endmodule
 // Arbitration retains the accepted payload, so cancelled reads/writes drain
 // without borrowing the next CPU packet or returning a stale completion.
 module ngage_cpu_memory_route #(
-    parameter DIRECT_SDRAM = 1
+    parameter DIRECT_SDRAM          = 1,
+    // The ARM9V2 refill adapter checks raw CYC and scalar reply ownership.
+    parameter CPU_OWNS_SCALAR_REPLY = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -842,8 +850,12 @@ module ngage_cpu_memory_route #(
     assign ram_be = master_sel;
     assign slow_cyc = !reset && !ram_pending && !target_ram && master_cyc;
     assign slow_stb = slow_cyc && master_stb;
-    assign ram_response = !reset && ram_pending && !cancelled && master_cyc && ram_ack;
-    assign master_ack = ram_response || (!reset && !ram_pending && slow_ack);
+    wire ram_completion = !reset && ram_pending && !cancelled && ram_ack;
+    assign ram_response = master_cyc && ram_completion;
+    // Keep scalar offer classification out of the response to the adapter.
+    // A cancellation sampled on an earlier edge still suppresses completion.
+    assign master_ack = (CPU_OWNS_SCALAR_REPLY ? ram_completion : ram_response) ||
+                        (!reset && !ram_pending && slow_ack);
     assign master_error = !reset && !ram_pending && slow_error;
     // ram_ack/data already come from the registered SDRAM response and owner.
     // Keep the cache's completion register; do not forward controller pins.

@@ -3,7 +3,8 @@
 // belong outside this module. The reference build uses patched ZAP ARM920T.
 module ngage_cpu #(
     parameter LINE_REFILL             = 0,
-    parameter EXPLICIT_LINE_GUARANTEE = 0
+    parameter EXPLICIT_LINE_GUARANTEE = 0,
+    parameter REGISTERED_SCALAR_PEER  = 0
 ) (
 
     output wire        line_req,
@@ -50,7 +51,8 @@ module ngage_cpu #(
     assign wb_stb = wb_cyc;
 
     ngage_arm9v2_refill #(
-        .ENABLE(LINE_REFILL)
+        .ENABLE                (LINE_REFILL),
+        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER)
     ) refill (
         .clk               (clk),
         .reset             (reset),
@@ -182,7 +184,8 @@ endmodule
 // The board can send 16-bit SDRAM or 64-bit DDR beats without backpressure.
 // Deliver each registered word in order while the rest of the line arrives.
 module ngage_arm9v2_refill #(
-    parameter ENABLE = 0
+    parameter ENABLE                 = 0,
+    parameter REGISTERED_SCALAR_PEER = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -231,8 +234,16 @@ module ngage_arm9v2_refill #(
     // A younger SWP cannot reach the bus before this older refill retires.
     // Its lock must not prevent SDRAM from accepting the owned line request.
     assign wb_lock = !reset && cpu_lock && state != LINE;
-    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : wb_cyc && wb_ack;
-    assign cpu_error = state == LINE ? cpu_cyc && failed : wb_cyc && wb_error;
+    // The UPP route returns a scalar reply only after capturing its owner.
+    // Remember that we offered this beat. A dropped donor CYC masks the
+    // reply immediately, and a later request must establish its own owner.
+    // A same-edge responder still uses the current scalar offer.
+    (* dont_retime *)reg  scalar_offered;
+    wire scalar_reply = REGISTERED_SCALAR_PEER ? !reset && cpu_cyc && scalar_offered : wb_cyc;
+    always @(posedge clk) scalar_offered <= wb_cyc && !(scalar_offered && (wb_ack || wb_error));
+
+    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : scalar_reply && wb_ack;
+    assign cpu_error = state == LINE ? cpu_cyc && failed : scalar_reply && wb_error;
     // A scalar fallback never grants the promise, including a line rejected
     // before its first beat. The cache samples this alongside the first ACK.
     assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
@@ -267,7 +278,7 @@ module ngage_arm9v2_refill #(
                         if (consumed == 7) state <= IDLE;
                     end
                 end
-                SCALAR:  if (wb_cyc && !burst && (wb_ack || wb_error)) state <= IDLE;
+                SCALAR:  if (scalar_reply && !burst && (wb_ack || wb_error)) state <= IDLE;
                 default: state <= IDLE;
             endcase
         end
