@@ -38,6 +38,7 @@ module ngage_upp #(
     input  wire         line_wide,
     input  wire         line_last,
     input  wire         line_error,
+    input  wire         line_no_late_error,
     input  wire         clk,
     input  wire         rst,
     input  wire         init_rst,
@@ -194,17 +195,19 @@ module ngage_upp #(
             wire [3:0] master_sel;
             wire       master_write_block;
             ngage_cpu #(
-                .LINE_REFILL(LINE_REFILL)
+                .LINE_REFILL            (LINE_REFILL),
+                .EXPLICIT_LINE_GUARANTEE(1)
             ) cpu (
-                .line_req   (line_req),
-                .line_addr  (line_addr),
-                .line_ready (line_ready),
-                .line_reject(line_reject),
-                .line_valid (line_valid),
-                .line_data  (line_data),
-                .line_wide  (line_wide),
-                .line_last  (line_last),
-                .line_error (line_error),
+                .line_req          (line_req),
+                .line_addr         (line_addr),
+                .line_ready        (line_ready),
+                .line_reject       (line_reject),
+                .line_valid        (line_valid),
+                .line_data         (line_data),
+                .line_wide         (line_wide),
+                .line_last         (line_last),
+                .line_error        (line_error),
+                .line_no_late_error(line_no_late_error),
 
                 .debug_pc         (debug_pc),
                 .debug_cpsr       (debug_cpsr),

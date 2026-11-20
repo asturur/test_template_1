@@ -5778,7 +5778,7 @@ module ngage2_zap_cache_fsm (
 		if (i_reset || (state_nxt == IDLE))
 			fill_no_late_error_ff <= 1'b0;
 		else if (((state_ff == FETCH_SINGLE) && take) && (adr_ctr_ff == 0))
-			fill_no_late_error_ff <= (((CACHE_LINE == 16) && fetch_wrap_ff) && i_wb_no_late_error) && !i_wb_err;
+			fill_no_late_error_ff <= ((CACHE_LINE == 32 || (CACHE_LINE == 16 && fetch_wrap_ff)) && i_wb_no_late_error) && !i_wb_err;
 	always @(posedge i_clk)
 		if (((!i_reset && (state_ff == FETCH_SINGLE)) && fill_no_late_error_ff) && take)
 			;

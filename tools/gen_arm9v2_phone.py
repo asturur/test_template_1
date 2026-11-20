@@ -257,6 +257,13 @@ def direct_accumulate(phone):
     return phone[:start] + execute + phone[end:]
 
 
+def restart_streamed_icache(phone):
+    """Release buffered 32-byte reads only with a backend guarantee."""
+    return edit(phone,
+                '(((CACHE_LINE == 16) && fetch_wrap_ff) && i_wb_no_late_error) && !i_wb_err',
+                '((CACHE_LINE == 32 || (CACHE_LINE == 16 && fetch_wrap_ff)) && i_wb_no_late_error) && !i_wb_err')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -277,7 +284,7 @@ def main():
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
     generated = schedule_ready_register_shift(generated)
     generated = schedule_early_smull(generated)
-    generated = direct_accumulate(generated)
+    generated = restart_streamed_icache(direct_accumulate(generated))
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

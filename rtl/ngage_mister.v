@@ -202,6 +202,7 @@ module ngage_mister #(
     wire cpu_fetch;
     wire raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank;
     wire [11:0] raw_rgb;
+    wire        line_no_late_error;
     wire line_req, line_ready, line_valid, line_wide, line_last, line_error;
     wire [31:0] line_addr;
     wire [63:0] line_data;
@@ -251,6 +252,7 @@ module ngage_mister #(
         .line_wide            (line_wide),
         .line_last            (line_last),
         .line_error           (line_error),
+        .line_no_late_error   (line_no_late_error),
         .debug_pc             (cpu_pc),
         .debug_cpsr           (cpu_cpsr),
         .debug_instruction    (cpu_instruction),
@@ -601,6 +603,11 @@ module ngage_mister #(
     // intentionally stronger: reset must still drain every accepted mutation.
     assign line_ready = LINE_REFILL && !core_reset && line_state==LINE_IDLE &&
                         code_idle && user_ready && !memory_req && !flash_issued;
+    // Explicit promise on accepted backing-array reads. Reject/fallback
+    // and reset are outside this transport contract.
+    wire line_ram_eligible = line_ram_hit && DIRECT_SDRAM;
+    wire line_rom_eligible = line_rom_hit && !line_c_hit && !line_pmm_hit && code_array_mode[line_die];
+    assign line_no_late_error = line_ready && (line_ram_eligible || line_rom_eligible);
     wire line_ddr_offer = line_state == LINE_ROM_ISSUE && !core_reset;
     assign ddram_line = line_ddr_offer;
     assign ram_line_req = line_state == LINE_RAM_ISSUE && !core_reset;
@@ -619,10 +626,10 @@ module ngage_mister #(
                 LINE_IDLE:
                 if (line_req && line_ready) begin
                     line_decode_address <= line_addr;
-                    if (line_ram_hit && DIRECT_SDRAM) begin
+                    if (line_ram_eligible) begin
                         line_ram_address <= line_addr[24:0];
                         line_state       <= LINE_RAM_ISSUE;
-                    end else if(line_rom_hit && !line_c_hit && !line_pmm_hit && code_array_mode[line_die])begin
+                    end else if (line_rom_eligible) begin
                         line_backing <= 32'h30000000 + {line_rom_offset[24:5], 5'b0};
                         line_state   <= LINE_ROM_ISSUE;
                     end else line_reject <= 1;

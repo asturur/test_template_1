@@ -2,7 +2,8 @@
 // N-Gage CPU integration boundary. Board clocks, SDRAM and peripherals
 // belong outside this module. The reference build uses patched ZAP ARM920T.
 module ngage_cpu #(
-    parameter LINE_REFILL = 0
+    parameter LINE_REFILL             = 0,
+    parameter EXPLICIT_LINE_GUARANTEE = 0
 ) (
 
     output wire        line_req,
@@ -14,6 +15,8 @@ module ngage_cpu #(
     input  wire        line_wide,
     input  wire        line_last,
     input  wire        line_error,
+    // Missing guarantee holds fetched instruction words until line completion.
+    input  wire        line_no_late_error,
 
     input  logic         clk,
     input  logic         reset,
@@ -42,39 +45,41 @@ module ngage_cpu #(
 `ifdef NGAGE_ARM9V2
     wire [31:0] donor_pc, donor_cpsr, donor_instruction;
     wire donor_fetch;
-    wire donor_cyc, donor_lock, donor_ack, donor_error;
+    wire donor_cyc, donor_lock, donor_ack, donor_error, donor_no_late_error;
     wire [31:0] donor_read_data;
     assign wb_stb = wb_cyc;
 
     ngage_arm9v2_refill #(
         .ENABLE(LINE_REFILL)
     ) refill (
-        .clk        (clk),
-        .reset      (reset),
-        .cpu_cyc    (donor_cyc),
-        .cpu_lock   (donor_lock),
-        .cpu_address(wb_address),
-        .cpu_write  (wb_write),
-        .cpu_sel    (wb_byte_enable),
-        .cpu_cti    (wb_cycle_type),
-        .cpu_bte    (wb_burst_type),
-        .cpu_ack    (donor_ack),
-        .cpu_error  (donor_error),
-        .cpu_data   (donor_read_data),
-        .wb_cyc     (wb_cyc),
-        .wb_lock    (wb_lock),
-        .wb_ack     (wb_ack),
-        .wb_error   (wb_error),
-        .wb_data    (wb_read_data),
-        .line_req   (line_req),
-        .line_addr  (line_addr),
-        .line_ready (line_ready),
-        .line_reject(line_reject),
-        .line_valid (line_valid),
-        .line_data  (line_data),
-        .line_wide  (line_wide),
-        .line_last  (line_last),
-        .line_error (line_error)
+        .clk               (clk),
+        .reset             (reset),
+        .cpu_cyc           (donor_cyc),
+        .cpu_lock          (donor_lock),
+        .cpu_address       (wb_address),
+        .cpu_write         (wb_write),
+        .cpu_sel           (wb_byte_enable),
+        .cpu_cti           (wb_cycle_type),
+        .cpu_bte           (wb_burst_type),
+        .cpu_ack           (donor_ack),
+        .cpu_error         (donor_error),
+        .cpu_no_late_error (donor_no_late_error),
+        .line_no_late_error(EXPLICIT_LINE_GUARANTEE && line_no_late_error),
+        .cpu_data          (donor_read_data),
+        .wb_cyc            (wb_cyc),
+        .wb_lock           (wb_lock),
+        .wb_ack            (wb_ack),
+        .wb_error          (wb_error),
+        .wb_data           (wb_read_data),
+        .line_req          (line_req),
+        .line_addr         (line_addr),
+        .line_ready        (line_ready),
+        .line_reject       (line_reject),
+        .line_valid        (line_valid),
+        .line_data         (line_data),
+        .line_wide         (line_wide),
+        .line_last         (line_last),
+        .line_error        (line_error)
     );
 
 `ifndef NGAGE_NO_CPU_DEBUG
@@ -107,7 +112,7 @@ module ngage_cpu #(
         .bus_ack          (donor_ack),
         .bus_err          (donor_error),
         .bus_rdata        (donor_read_data),
-        .bus_no_late_error(1'b0),
+        .bus_no_late_error(donor_no_late_error),
         .dbg_pc           (donor_pc),
         .dbg_wb_cpsr      (donor_cpsr),
         .dbg_instruction  (donor_instruction),
@@ -188,6 +193,8 @@ module ngage_arm9v2_refill #(
     input  wire [ 1:0] cpu_bte,
     output wire        cpu_ack,
     output wire        cpu_error,
+    output wire        cpu_no_late_error,
+    input  wire        line_no_late_error,
     output wire [31:0] cpu_data,
     output wire        wb_cyc,
     output wire        wb_lock,
@@ -206,10 +213,10 @@ module ngage_arm9v2_refill #(
 );
     localparam       IDLE  = 2'd0, LINE = 2'd1, SCALAR = 2'd2;
     localparam [2:0] BURST = 3'b010, END_BEAT = 3'b111;
-    reg [ 1:0] state;
-    reg [ 4:0] received;
-    reg [ 2:0] consumed;
-    reg        failed;
+    reg [1:0] state;
+    reg [4:0] received;
+    reg [2:0] consumed;
+    reg failed, guaranteed;
     reg [15:0] low_half;
     reg [31:0] words    [0:7];
 
@@ -227,22 +234,27 @@ module ngage_arm9v2_refill #(
     assign wb_lock = !reset && cpu_lock && state != LINE;
     assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : wb_cyc && wb_ack;
     assign cpu_error = state == LINE ? cpu_cyc && failed : wb_cyc && wb_error;
+    // A scalar fallback never grants the promise, including a line rejected
+    // before its first beat. The cache samples this alongside the first ACK.
+    assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
     assign cpu_data = state == LINE ? words[consumed] : wb_data;
 
     always @(posedge clk) begin
         if (reset) begin
-            state    <= IDLE;
-            received <= 0;
-            consumed <= 0;
-            failed   <= 0;
+            state      <= IDLE;
+            received   <= 0;
+            consumed   <= 0;
+            failed     <= 0;
+            guaranteed <= 0;
         end else begin
             case (state)
                 IDLE: begin
                     if (line_req && line_ready) begin
-                        state    <= LINE;
-                        received <= 0;
-                        consumed <= 0;
-                        failed   <= 0;
+                        state      <= LINE;
+                        received   <= 0;
+                        consumed   <= 0;
+                        failed     <= 0;
+                        guaranteed <= line_no_late_error;
                     end else if (wb_cyc && burst) state <= SCALAR;
                 end
                 LINE: begin
@@ -286,6 +298,8 @@ module ngage_arm9v2_refill #(
             if (!cpu_cyc || cpu_write || cpu_address[4:0] != {consumed, 2'b00} ||
             cpu_cti != (consumed == 7 ? END_BEAT : BURST))
                 $fatal(1, "Donor changed the owned line burst");
+            if (line_valid && line_error && guaranteed)
+                $fatal(1, "Guaranteed line returned an error");
             if (line_reject && received != 0) $fatal(1, "Line rejected after data");
             if (line_valid && (received >= 16 || (line_wide && received[1:0] != 0) ||
             (!line_error && line_last != (received + (line_wide ? 5'd4 : 5'd1) == 16))))
