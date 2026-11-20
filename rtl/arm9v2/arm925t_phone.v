@@ -279,6 +279,8 @@ module ngage2_arm9v2_core (
 	i_data_wb_err,
 	i_data_wb_dat,
 	i_data_short_data,
+    i_data_short_next_word,
+    i_data_short_next_valid,
 	i_data_short_hit,
 	i_data_short_live,
 	i_data_ack_fast,
@@ -439,6 +441,8 @@ module ngage2_arm9v2_core (
 	input wire i_data_wb_err;
 	input wire [31:0] i_data_wb_dat;
 	input wire [31:0] i_data_short_data;
+    input wire [31:0] i_data_short_next_word;
+    input wire i_data_short_next_valid;
 	input wire i_data_short_hit;
 	input wire i_data_short_live;
 	input wire i_data_ack_fast;
@@ -851,7 +855,7 @@ module ngage2_arm9v2_core (
 	assign locked = i_dc_lock[39:0];
 	assign mw_tag = {w[103-:12], m[103-:12]};
 	assign mw_value[0+:64] = m[91-:64];
-	assign mw_value[64+:64] = {w[60+:32], (w[527] ? (FREE_SELECT || i_data_short_hit ? i_data_short_data : 32'd0) : w[28+:32])};
+	assign mw_value[64+:64] = {paired_ldm ? i_data_short_next_word : w[60+:32], (w[527] ? (FREE_SELECT || i_data_short_hit ? i_data_short_data : 32'd0) : w[28+:32])};
 	assign mw_write[0+:2] = m[27-:2] | {1'b0, m[527]};
 	assign mw_write[2+:2] = w[27-:2] | {1'b0, w[527]};
 	(* keep, maxfan = 32 *) reg [2:0] complete_class;
@@ -878,7 +882,9 @@ module ngage2_arm9v2_core (
 						complete_class[consumer] = !w[535] || ((request_done && !retry) && (COMPLETE_FLAT ? (resp_err || w_mem_immediate) || fast_pc_hit : !defer_load));
 				end
 				if ((request_done && resp_err) && w_blkwb)
-					complete_class[consumer] = 0;
+                complete_class[consumer] = 0;
+            if (consumer != 0 && paired_ldm_split)
+                complete_class[consumer] = 0;
 			end
 	end
 	wire [23:0] advance_tag;
@@ -954,7 +960,8 @@ module ngage2_arm9v2_core (
 		input_record[541] = a_valid && backend_ready;
 		input_record[526-:32] = a_pc;
 		input_record[494-:32] = a_instruction;
-		input_record[8-:4] = a_kind;
+		input_record[8-:4] =
+            (a_kind == BLOCK && a_first && a_last && a_write[1] && !a_instruction[21]) ? 4'd15 : a_kind;
 		input_record[540] = a_condition_pass;
 		input_record[539] = a_thumb;
 		input_record[538] = a_fault;
@@ -1106,6 +1113,19 @@ module ngage2_arm9v2_core (
 			memory_state_next = 4'd6;
 		if ((request_done && resp_err) && w_blkwb)
 			memory_state_next = 4'd9;
+        if (paired_ldm_split) begin
+            // The first request completed in order. Retain the instruction
+            // in W and use the ordinary memory path for the second address.
+            w_next = w;
+            w_next[366-:32] = w[366-:32] + 32'd4;
+            w_next[398-:32] = w[398-:32] + 32'd4;
+            w_next[92+:6] = w[98+:6];
+            w_next[98+:6] = 6'd16;
+            w_next[537] = 0;
+            w_next[27-:2] = 0;
+            w_cls_next = w_cls_of(w_next);
+            memory_state_next = 4'd5;
+        end
 		if (wb_flush) begin
 			m_next[541] = 0;
 			w_next[541] = 0;
@@ -1143,7 +1163,10 @@ module ngage2_arm9v2_core (
 		end
 	assign check_record = (((memory_state == 4'd1) || (memory_state == 4'd5)) || (memory_state == 4'd8) ? w : m);
 	assign check_enable = ((((memory_state == 4'd0) || (memory_state == 4'd1)) || (memory_state == 4'd3)) || (memory_state == 4'd5)) || (memory_state == 4'd8);
-	wire [31:2] lookup_address = (memory_state == 4'd2 ? m[398:369] : (memory_state == 4'd3 ? skid[398:369] : (((((memory_state == 4'd1) || (memory_state == 4'd4)) || (memory_state == 4'd5)) || (memory_state == 4'd7)) || (memory_state == 4'd8) ? w[398:369] : a_data_address[31:2])));
+	wire [31:2] nominal_lookup_address = (memory_state == 4'd2 ? m[398:369] : (memory_state == 4'd3 ? skid[398:369] : (((((memory_state == 4'd1) || (memory_state == 4'd4)) || (memory_state == 4'd5)) || (memory_state == 4'd7)) || (memory_state == 4'd8) ? w[398:369] : a_data_address[31:2])));
+    // Point the D-cache RAM at the second word on the split edge. Its
+    // registered tag/data then align with the second request's check address.
+    wire [31:2] lookup_address = paired_ldm_split ? w[398:369] + 30'd1 : nominal_lookup_address;
 	assign o_data_wb_adr_nxt = {(lookup_address[31:25] == 0 ? o_pid[6:0] : lookup_address[31:25]), lookup_address[24:2], 2'b00};
 	assign o_data_wb_adr_check = check_ff[45-:32];
 	assign o_data_wb_adr = {w[366:337], 2'b00};
@@ -1234,7 +1257,7 @@ module ngage2_arm9v2_core (
 		wb_exception = ((((wb_dabt || wb_fiq) || wb_irq) || wb_pabt) || wb_swi) || wb_und;
 		wb_valid = ((wb_complete && w[540]) && !wb_exception) || wb_restore;
 		wb_cfail = (wb_complete && !w[540]) && !wb_exception;
-		wb_last = w[536] && !wb_restore;
+		wb_last = w[536] && !wb_restore && !paired_ldm_split;
 		wb_flags = w[430-:32];
 		wb_tag0 = (w[26] ? w[92+:6] : 6'd16);
 		wb_data0 = w[28+:32];
@@ -1256,6 +1279,10 @@ module ngage2_arm9v2_core (
 			if ((((w[8-:4] == BLOCK) && w[485]) && w[483]) && (w[92+:6] == 15))
 				wb_flags = w[238-:32] & 32'hf00000ff;
 		end
+        if (paired_ldm_w) begin
+            wb_tag0 = paired_ldm ? w[98+:6] : 6'd16;
+            wb_data0 = i_data_short_next_word;
+        end
 		if ((w[8-:4] == BX) && w[540])
 			wb_flags[5] = w[110];
 		if (((w[8-:4] == DP) && w[533]) && w[483])
@@ -1364,6 +1391,8 @@ module ngage2_arm9v2_core (
 				w_load_select <= 64'd1 << m[92+:6];
 				w_waited <= 0;
 			end
+            if (paired_ldm_split)
+                w_load_select <= 64'd1 << w[98+:6];
 			m <= m_next;
 			w <= w_next;
 			skid <= skid_next;
@@ -1417,15 +1446,53 @@ module ngage2_arm9v2_core (
     wire predicate_stable = !s_may_write_flags && !(a_a_valid && a_write_flags) && !w_serial_continue;
 
 `ifndef SYNTHESIS
-    // A collapsed list must still fail in execute, with no memory or GPR effects.
-    wire [15:0] predicate_list = a_instruction[15:0];
-    wire predicate_multiple = |(predicate_list & (predicate_list - 16'd1));
+    // A fused pair and a collapsed failed predicate can both be first/last.
+    // Track the actual collapse across the two handoffs for this assertion.
+    reg collapsed_s;
+    reg collapsed_a;
     always @(posedge i_clk)
-        if (!i_reset && a_valid && a_kind == BLOCK && a_first && a_last && !a_thumb && predicate_multiple)
+        if (i_reset || wb_flush) begin
+            collapsed_s <= 0;
+            collapsed_a <= 0;
+        end else begin
+            if (u_front_decode.u_decode.step)
+                collapsed_s <= u_front_decode.u_decode.collapse_failed_list;
+            if (u_execute.accept)
+                collapsed_a <= collapsed_s;
+        end
+    always @(posedge i_clk)
+        if (!i_reset && a_valid && collapsed_a)
             if (a_condition_pass || a_memory || |a_write)
                 $fatal(1, "Collapsed block transfer passed at %h", a_pc);
 `endif
 	wire unused = &{1'b0, LOAD_FORMATTED, BP_ENTRIES, FIFO_DEPTH, RAS_DEPTH, CP, UND, SWI, MRS, BR, PREFIX, MUL, MULL, i_instr_data_early, i_instr_hit, cp_seen, d_ready, d_raw, d_mode, d_reg_count, d_transfer_reg, d_pred_kind, a_flags, a_write_flags, a_store, a_btb_kind, a_predicted, a_psr_source, a_saved_psr, a_spsr_tag, d_early, data_pc8, pc, ins, ex_result, load_capture, load_commit, load_value};
+    localparam [3:0] LDM_PAIR = 4'd15;
+    wire paired_ldm_w = w[541] && w[8-:4] == LDM_PAIR;
+    wire paired_ldm_first = paired_ldm_w && w[537];
+    wire paired_ldm_response = paired_ldm_first && !wb_flush && !w_exception &&
+        request_done && !retry && !resp_err && (memory_state == 0 || memory_state == 1);
+    wire paired_ldm = paired_ldm_response && ack_now && w[336:335] == 0 &&
+        w[339:337] != 7 && w_load_hit && i_data_short_next_valid && !i_dc_lock_any;
+    wire paired_ldm_split = paired_ldm_response && !paired_ldm;
+    wire paired_ldm_shape = paired_ldm_first;
+    wire decoded_ldm_pair = d_valid && d_kind == BLOCK && d_first && d_last &&
+        d_reg_count == 2 && d_writes[1] && !d_instruction[21];
+    wire execute_ldm_pair = a_a_valid && a_kind == BLOCK && a_first && a_last &&
+        a_a_write[1] && !a_instruction[21];
+    function automatic [15:0] pair_destinations;
+        input valid;
+        input [11:0] tags;
+        begin
+            pair_destinations = valid ? (16'h1 << tags[5:0]) | (16'h1 << tags[11:6]) : 16'b0;
+        end
+    endfunction
+    // Keep dependent readers out of issue until both tags have data. A live
+    // paired completion can use the normal same-edge register write-through.
+    wire [15:0] pair_dependencies = pair_destinations(decoded_ldm_pair, d_dest) |
+        pair_destinations(execute_ldm_pair, a_a_dest) |
+        pair_destinations(m[541] && m[8-:4] == LDM_PAIR, m[103-:12]) |
+        pair_destinations(skid[541] && skid[8-:4] == LDM_PAIR, skid[103-:12]) |
+        pair_destinations(paired_ldm_w && !paired_ldm, w[103-:12]);
 	wire load_trust = (TRUST_FF ? i_data_short_trust : i_data_short_live && !fill_end_raw);
 	wire w_hit = (TRUST_FF ? w_hit_candidate : w[535] && !w_waited);
 	wire w_load_hit = (w_hit && i_data_short_hit) && load_trust;
@@ -1475,6 +1542,7 @@ module ngage2_arm9v2_core (
     .i_predicate_flags(a_flags),
         .i_predicate_stable(predicate_stable),
 		.i_locked(locked),
+        .i_pair_dependencies(pair_dependencies),
 		.i_rf_value(rf_value),
 		.o_rf_tag(rf_tag),
 		.i_load_tag(load_tag),
@@ -1838,6 +1906,7 @@ module ngage2_arm9v2_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+    i_pair_dependencies,
     i_predicate_flags,
     i_predicate_stable,
     i_m_simple_load,
@@ -1954,6 +2023,7 @@ module ngage2_arm9v2_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+    input wire [15:0] i_pair_dependencies;
     input wire [3:0] i_predicate_flags;
     input wire i_predicate_stable;
     input wire i_m_simple_load;
@@ -2062,6 +2132,8 @@ module ngage2_arm9v2_decode (
 	(* dont_retime *) reg [372:0] d2_q;
 	(* dont_retime *) reg [372:0] issued;
 	reg [372:0] d2;
+    wire [4:0] base_address_hint = i_wen && i_wr_pair && i_wr_tag_b == d2_q[100+:6] ? i_wr_data_b[4:0] :
+        i_wen && i_wr_tag_a == d2_q[100+:6] ? i_wr_data_a[4:0] : i_rf_value[4:0];
 	(* dont_retime *) reg [240:0] d2_bank [0:1];
 	(* dont_retime, maxfan = 32 *) reg d2_owner;
 	always @(*) begin
@@ -2070,6 +2142,13 @@ module ngage2_arm9v2_decode (
 		d2 = d2_q;
 		if (D2_BANKS)
 			d2[372-:241] = d2_bank[d2_owner];
+        // Use the low bits of the base available in decode as a hint only.
+        // W rechecks the effective address after operand forwarding.
+        if (d2[131-:4] == K_BLOCK && d2[43] && d2[42] && d2[40-:5] == 2 &&
+            d2[79] && (base_address_hint[1:0] != 0 || base_address_hint[4:2] == 7)) begin
+            d2[42] = 0;
+            d2[79] = 0;
+        end
 	end
 	wire [372:0] admitted;
 	always @(posedge i_clk)
@@ -2446,6 +2525,13 @@ module ngage2_arm9v2_decode (
 				decoded[96] = 1;
 				decoded[99] = !front[197];
 				decoded[42] = front[27-:5] == 1;
+                // ARM LDMIA with two ordinary destinations and no base writeback.
+                if (!front[18] && !front[17] && front[201:197] == 5'b01001 &&
+                    front[27-:5] == 2 && !front[64] && front[196:193] != 15 &&
+                    decoded[80+:6] < 15 && bank({1'b0, first16(front[47:33])}, transfer_mode) < 15) begin
+                    decoded[42] = 1;
+                    decoded[86+:6] = bank({1'b0, first16(front[47:33])}, transfer_mode);
+                end
 				decoded[98] = ((front[197] && front[199]) && decoded[42]) && (front[22-:4] == 15);
 			end
 			K_CP: decoded[99] = !front[197];
@@ -2473,7 +2559,10 @@ module ngage2_arm9v2_decode (
 			K_MULL: decoded[79-:2] = 3;
 			K_BRANCH: decoded[78] = front[201];
 			K_MEM: decoded[79-:2] = {front[198] || !front[201], front[197]};
-			K_BLOCK: decoded[79-:2] = {(decoded[42] && front[198]) && !(front[197] && front[49 + front[196:193]]), front[197]};
+			K_BLOCK: begin
+                decoded[79-:2] = {(decoded[42] && front[198]) && !(front[197] && front[49 + front[196:193]]), front[197]};
+                if (decoded[42] && front[27-:5] == 2) decoded[79] = 1;
+            end
 			K_SWP: decoded[78] = 1;
 			K_CP: decoded[78] = front[197] && (front[192:189] != 15);
 			K_MSR:
@@ -2761,7 +2850,15 @@ module ngage2_arm9v2_decode (
 		if (advance_load_writer) producer_hazard[3] = 0;
 		load_hazard = (|producer_hazard || (d2[78] && i_locked[d2[80+:6]])) || (d2[79] && i_locked[d2[86+:6]]);
 	end
-	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && i_locked[d2[100+:6]])) || (d2[97] && i_locked[d2[106+:6]])) || (d2[98] && i_locked[d2[112+:6]])) || (d2[99] && i_locked[d2[118+:6]])) || |early_hazard);
+    reg pair_dependency;
+    always @(*) begin : check_pair_dependency
+        integer src;
+        pair_dependency = 0;
+        for (src = 0; src < 4; src = src + 1)
+            if (d2[96+src] && d2[100+6*src+:6] < 16)
+                pair_dependency = pair_dependency | i_pair_dependencies[d2[100+6*src+:4]];
+    end
+	assign o_hazard = d2_valid && (pair_dependency || ((((((load_hazard || fenced) || (d2[96] && i_locked[d2[100+:6]])) || (d2[97] && i_locked[d2[106+:6]])) || (d2[98] && i_locked[d2[112+:6]])) || (d2[99] && i_locked[d2[118+:6]])) || |early_hazard));
 	assign step = (((d2_valid && (!out_valid || i_ready)) && !o_hazard) && !i_flush) && (!redirect_ff[74] || redirect_in_d2);
 	assign pop = ((count != 0) && (!d2_valid || (step && predicate_last))) && !kill_younger;
 	assign o_rf_tag = d2[123-:24];
@@ -4640,6 +4737,7 @@ module ngage2_arm9v2_front_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+    i_pair_dependencies,
     i_predicate_flags,
     i_predicate_stable,
     i_m_simple_load,
@@ -4774,6 +4872,7 @@ module ngage2_arm9v2_front_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+    input wire [15:0] i_pair_dependencies;
     input wire [3:0] i_predicate_flags;
     input wire i_predicate_stable;
     input wire i_m_simple_load;
@@ -4985,6 +5084,7 @@ module ngage2_arm9v2_front_decode (
         .i_predicate_flags(i_predicate_flags),
         .i_predicate_stable(i_predicate_stable),
 		.i_locked(i_locked),
+        .i_pair_dependencies(i_pair_dependencies),
 		.i_early_tag(i_early_tag),
 		.i_early_valid(i_early_valid),
 		.i_early_agu(i_early_agu),
@@ -10766,6 +10866,8 @@ module ngage2_zap_dcache (
 	i_ldfmt,
 	i_ldfmt_check,
 	o_short_data,
+    o_short_next_word,
+    o_short_next_valid,
 	o_short_hit,
 	o_short_live,
 	o_short_trust,
@@ -10877,6 +10979,8 @@ module ngage2_zap_dcache (
 	input wire [5:0] i_ldfmt;
 	input wire [5:0] i_ldfmt_check;
 	output wire [31:0] o_short_data;
+    output reg [31:0] o_short_next_word;
+    output wire o_short_next_valid;
 	output wire o_short_hit;
 	output wire o_short_live;
 	output wire o_short_trust;
@@ -11531,6 +11635,24 @@ module ngage2_zap_dcache (
 		.i_wb_dat(i_wb_dat),
 		.i_wb_ack(wb_ack[1])
 	);
+    localparam integer WORD_INDEX_WIDTH = LINE_W - 2;
+    wire [WORD_INDEX_WIDTH-1:0] next_word = compare_address[LINE_W-1:2] + 1'b1;
+    wire [CACHE_LINE*8-1:0] short_hit_line = raw_way_line[(raw_cache_word_sel && WAYS > 1) * CACHE_LINE*8 +: CACHE_LINE*8];
+    reg [31:0] short_next_word;
+    reg [31:0] short_pair_address;
+    always @(*) begin : forward_pair_store
+        integer lane;
+        short_next_word = short_hit_line[32*next_word +: 32];
+        if (forward_store && cache_write_way == (raw_cache_word_sel && WAYS > 1) &&
+            i_address[LINE_W-1:2] == next_word)
+            for (lane = 0; lane < 4; lane = lane + 1)
+                if (i_ben[lane]) short_next_word[8*lane +: 8] = i_dat[8*lane +: 8];
+    end
+    always @(posedge i_clk) if (!hold && !i_stall) begin
+        o_short_next_word <= short_next_word;
+        short_pair_address <= compare_address;
+    end
+    assign o_short_next_valid = o_short_hit && live_trust && short_pair_address == i_address;
 	assign compare_address = i_address_check;
 	assign cache_write_way = (live_lookup ? tr_cache_way : cf_cache_way);
 	assign ram_write = !live_lookup || tr_cache_hit;
@@ -15483,6 +15605,8 @@ module ngage2_zap_top (
 	wire instr_err;
 	wire [31:0] ic_data;
 	wire [31:0] dc_short_data;
+    wire [31:0] dc_short_next_word;
+    wire dc_short_next_valid;
 	wire dc_short_hit;
 	wire dc_short_live;
 	wire dc_short_trust;
@@ -15628,6 +15752,8 @@ module ngage2_zap_top (
 				.o_pid(),
 				.o_data_wb_stb(cpu_dc_stb),
 				.i_data_short_data(dc_short_data),
+                .i_data_short_next_word(dc_short_next_word),
+                .i_data_short_next_valid(dc_short_next_valid),
 				.i_data_short_hit(dc_short_hit),
 				.i_data_short_live(dc_short_live),
 				.i_data_short_trust(dc_short_trust),
@@ -15787,6 +15913,8 @@ module ngage2_zap_top (
 				.i_reg_idx(dc_rreg_idx),
 				.i_reg_idx_bin(dc_rreg_idx_bin),
 				.o_short_data(dc_short_data),
+                .o_short_next_word(dc_short_next_word),
+                .o_short_next_valid(dc_short_next_valid),
 				.o_short_hit(dc_short_hit),
 				.o_short_live(dc_short_live),
 				.o_short_trust(dc_short_trust),

@@ -8,6 +8,8 @@ import re
 import subprocess
 import tempfile
 
+from arm9v2_issue_ldm import issue_hinted_ldm
+
 
 ROOT = Path(__file__).resolve().parents[1]
 VENDOR = ROOT / 'rtl/arm9v2'
@@ -535,6 +537,7 @@ def main():
     generated = load_waw_overlay(generated)
     generated = predicate_block(generated)
     generated = half_dirty_writeback(generated)
+    generated = issue_hinted_ldm(generated, edit)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
