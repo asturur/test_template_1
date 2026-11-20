@@ -37,7 +37,7 @@ module ngage_dma_route #(
     localparam [31:0] LCD_FIFO = 32'h0c121208;
     reg [ 2:0] state = IDLE;
     reg        local_response_error = 0;
-    reg [31:0] local_response_data = 0;
+    (* dont_retime *)reg [31:0] local_response_data = 0;
 
     wire legal_word = cmd_addr[1:0] == 0 && cmd_be != 0;
     wire ram_hit = cmd_addr[31:24] == 8'h0a;
@@ -78,8 +78,9 @@ module ngage_dma_route #(
     wire local_response = (take_local || state == LOCAL_ACTIVE) && local_done;
     assign rsp_valid = !reset && ((state == RAM && ram_ack) || state == LOCAL_RESPONSE || state == REJECT);
     assign rsp_error = rsp_valid && (state == REJECT || (state == LOCAL_RESPONSE && local_response_error));
-    assign rsp_data  = state == RAM ? ram_rdata :
-        state == LOCAL_RESPONSE ? local_response_data : local_rdata;
+    // Only the sampled local payload drives the engine data path. Outside
+    // a valid reply the data is ignored, including on a rejected command.
+    assign rsp_data = state == RAM ? ram_rdata : local_response_data;
 
     always @(posedge clk) begin
         if (reset) begin
