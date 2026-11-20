@@ -475,6 +475,40 @@ def mark_failed_list_last(decode):
     return decode
 
 
+def half_dirty_writeback(phone):
+    """Apply the qualified D-cache overlay without changing the I-cache RAMs."""
+    cache, controller, tags, metadata = (
+        'ngage2_zap_dcache', 'ngage2_zap_dcache_fsm',
+        'ngage2_zap_cache_tag_ram', 'ngage2_zap_cache_metadata_lanes',
+    )
+
+    def module(source, name):
+        matches = re.findall(rf'^module {name} \(.*?^endmodule\n', source, re.M | re.S)
+        if len(matches) != 1:
+            raise ValueError(f'Expected one {name} module')
+        return matches[0]
+
+    originals = [module(phone, name) for name in (cache, controller, tags, metadata)]
+    original = ''.join(originals).encode()
+    # This generated overlay uses zero context, so require its exact input.
+    if hashlib.sha256(original).hexdigest() != '2681a2527dbb21d268f9fc48fff0f0f316d5a5eb04f815c11f920e5479804210':
+        raise ValueError('D-cache modules differ from the qualified half-dirty overlay input')
+    overlay = ROOT / 'tools/arm9v2_half_dirty_v5.patch'
+    build = ROOT / 'build'
+    build.mkdir(exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=build) as temporary:
+        chunk = Path(temporary) / 'dcache.v'
+        chunk.write_bytes(original)
+        subprocess.run(['patch', '-s', '-F', '0', '-i', overlay, chunk], check=True)
+        patched = chunk.read_text()
+
+    phone = edit(phone, originals[0], module(patched, cache))
+    phone = edit(phone, originals[1], module(patched, controller))
+    private_tags = module(patched, 'ngage2_zap_dcache_half_tag_ram')
+    private_metadata = module(patched, 'ngage2_zap_dcache_half_metadata_lanes')
+    return f'{phone}\n{private_tags}{private_metadata}'
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -500,6 +534,7 @@ def main():
     generated = xor_btb(generated)
     generated = load_waw_overlay(generated)
     generated = predicate_block(generated)
+    generated = half_dirty_writeback(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
