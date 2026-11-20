@@ -4,6 +4,7 @@ set -eu
 name="${1:?provide a fresh run name}"
 case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
 out="build/sim/$name"
+hz="${PHONE_SDRAM_SYS_HZ:-78000000}"
 model="${PHONE_SDRAM_MODEL:-build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v}"
 mkdir "$out"
 cp "$model" "$out/mt48lc16m16a2.v"
@@ -18,7 +19,7 @@ run() {
     burst=$1
     image=jotego/simulator:arm64
     simulate verilator "$image" --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
-        --top-module physical_lcd_stream_tb "-GLCD_LINE_BYTES=$burst" --Mdir "$out/obj-$burst" \
+        --top-module physical_lcd_stream_tb "-GSYS_HZ=$hz" "-GLCD_LINE_BYTES=$burst" --Mdir "$out/obj-$burst" \
         -DNGAGE_ARM9V2 -Irtl/arm -f "$out/rtl.f" tests/phone/sdram/ddio_model.v \
         tests/phone/lcd_stream/physical_tb.sv "$out/mt48lc16m16a2.v" > "$out/build-$burst.log" 2>&1
     exe="/work/$out/obj-$burst/Vphysical_lcd_stream_tb"

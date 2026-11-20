@@ -67,8 +67,9 @@
 // NOPs, PRECHARGE ALL, INIT_REFRESHES refreshes, mode register, then tMRD.
 //
 // Port (one clock domain with the requester):
-//   A request is taken at an edge where req is high and busy is low; addr,
-//   we, line, wdata and wbe must be valid then and are latched. A read
+//   A request is captured when req and cmd_ready are high. The port can
+//   hold one queued command behind an active operation. Busy includes both
+//   stages and indicates physical drain, including refresh. A read
 //   returns its words on rvalid/rword/rdata, one every other clock, in the
 //   chip's order (from addr's word, wrapping in the 16-byte block); rdata
 //   is driven straight from the DQ input registers and is valid only while
@@ -102,6 +103,7 @@ module ngage_sdram_scheduler #(
 
     input  wire          req,
     output wire          busy,
+    output wire          cmd_ready,
     input  wire          we,
     input  wire          line,      // 1: read a line or write 16 bytes
     input  wire          read_short, // aligned 16-byte line instead of 32-byte line
@@ -264,7 +266,7 @@ module ngage_sdram_scheduler #(
     reg [12:0]    op_row;
     reg           op_we, op_line, op_wide;
     reg [TW-1:0]  t;
-    reg [TW-1:0]  t_end;
+    reg [TW-1:0]  last_access_clock;
     reg [1:0]     op_ba = 2'b00;
     reg [8:0]     op_col;
     reg [127:0]   wsh;                  // write halfwords, next at the bottom
@@ -276,8 +278,42 @@ module ngage_sdram_scheduler #(
     reg           ref_due = 1'b0;
     reg           ready_q = 1'b0;
 
-    wire idle = state == IDLE || (state == ACCESS && t == t_end) ||
-                (state == REF_WAIT && t == access_counter(RFC));
+    // A one-entry, ordered command slot isolates the request mux from
+    // row selection and lets a command queue behind physical activity.
+    (* dont_retime *) reg        cmd_valid = 0;
+    (* dont_retime *) reg [24:2] cmd_addr;
+    (* dont_retime *) reg        cmd_we, cmd_line, cmd_short;
+    (* dont_retime *) reg [127:0] cmd_data;
+    (* dont_retime *) reg [15:0] cmd_be;
+    (* dont_retime *) reg active = 0;
+    wire idle = !active;
+    wire take = !init && ready_q && idle && !ref_due && cmd_valid;
+    wire start_refresh = !init && ready_q && idle && ref_due;
+    wire access_done = state == ACCESS && t == last_access_clock;
+    wire refresh_done = (state == REF_WAIT && t == access_counter(RFC - 1)) ||
+                        (RFC == 1 && state == REF_RP && t == access_counter(RP));
+
+    always @(posedge clk) begin
+        if (init) begin
+            cmd_valid <= 0;
+            active <= 0;
+        end else begin
+            if (req && cmd_ready) begin
+                cmd_valid <= 1;
+                cmd_addr <= addr;
+                cmd_we <= we;
+                cmd_line <= line;
+                cmd_short <= read_short;
+                cmd_data <= wdata;
+                cmd_be <= wbe;
+            end else if (take) cmd_valid <= 0;
+
+            // Advance the activity bit on the edge entering the first
+            // available cycle. Do not export the live timing comparison.
+            if (take || start_refresh) active <= 1;
+            else if (access_done || refresh_done) active <= 0;
+        end
+    end
 
     // the output stage (see Clocking): the schedule sets these, the I/O
     // registers take them a clock later
@@ -301,7 +337,8 @@ module ngage_sdram_scheduler #(
 
     assign ready     = ready_q;
     assign rvalid    = rvalid_q;
-    assign busy      = !ready_q || !idle || ref_due;
+    assign busy      = !ready_q || cmd_valid || active || ref_due;
+    assign cmd_ready = ready_q && !cmd_valid && !init;
     assign sdram_cke = 1'b1;
     assign sdram_cs_n = 1'b0;
 
@@ -315,17 +352,17 @@ module ngage_sdram_scheduler #(
     // Physical halfword address: column 8:0, row 21:9, bank 23:22.
     // Move logical byte bits 13:12 to the bank; preserve every other bit.
     // This is a bijective remap of all 32 MB; port addresses stay unchanged.
-    wire [23:0] h = {addr[13:12], addr[24:14], addr[11:10], addr[9:2], 1'b0};
-    wire take = ready_q && idle && !ref_due && req;
+    wire [23:0] h = {cmd_addr[13:12], cmd_addr[24:14], cmd_addr[11:10],
+                     cmd_addr[9:2], 1'b0};
     wire hit = row_open[h[23:22]] && row_addr[h[23:22]] == h[21:9];
     wire hit_start = take && hit;
-    wire [8:0] req_col = we && line ? {h[8:3], 3'b000} : h[8:0];
-    wire [127:0] req_wsh = line ? wdata : {96'd0, wdata[32 * addr[3:2] +: 32]};
-    wire [15:0] req_mask = line ? ~wbe : {12'hFFF, ~wbe[4 * addr[3:2] +: 4]};
+    wire [8:0] req_col = cmd_we && cmd_line ? {h[8:3], 3'b000} : h[8:0];
+    wire [127:0] req_wsh = cmd_line ? cmd_data : {96'd0, cmd_data[32 * cmd_addr[3:2] +: 32]};
+    wire [15:0] req_mask = cmd_line ? ~cmd_be : {12'hFFF, ~cmd_be[4 * cmd_addr[3:2] +: 4]};
     wire second_burst = state == ACCESS && !idle && !op_we && op_wide && t == access_counter(RCD + 8);
-    wire read_now = second_burst || (hit_start && !we) ||
+    wire read_now = second_burst || (hit_start && !cmd_we) ||
                     (state == ACCESS && !idle && !op_we && t == access_counter(RCD));
-    wire write_now = (hit_start && we) || (state == ACCESS && !idle && op_we &&
+    wire write_now = (hit_start && cmd_we) || (state == ACCESS && !idle && op_we &&
                       t >= access_counter(RCD) && t < access_counter(RCD) + (op_line ? access_counter(8) : access_counter(2)));
     wire [8:0] col_now = hit_start ? req_col : op_col;
     wire [127:0] wsh_now = hit_start ? req_wsh : wsh;
@@ -473,17 +510,19 @@ module ngage_sdram_scheduler #(
                     state <= REF_RP;
                     t <= access_counter(1);
                 end
-            end else if (req) begin
+            end else if (take) begin
                 p_ba     <= h[23:22];
                 op_ba    <= h[23:22];
                 op_row   <= h[21:9];
-                op_we    <= we;
-                op_line  <= line;
-                op_wide  <= line && !read_short;
-                if (we) t_end <= line ? access_counter(END_WL) : access_counter(END_WW);
-                else if (!line) t_end <= access_counter(END_RW);
-                else t_end <= read_short ? access_counter(END_RS) : access_counter(END_RL);
-                word     <= addr[3:2];
+                op_we    <= cmd_we;
+                op_line  <= cmd_line;
+                op_wide  <= cmd_line && !cmd_short;
+                if (cmd_we)
+                    last_access_clock <= cmd_line ? access_counter(END_WL - 1) : access_counter(END_WW - 1);
+                else if (!cmd_line) last_access_clock <= access_counter(END_RW - 1);
+                else
+                    last_access_clock <= cmd_short ? access_counter(END_RS - 1) : access_counter(END_RL - 1);
+                word     <= cmd_addr[3:2];
                 op_col   <= req_col;
                 wsh      <= req_wsh;
                 wmask    <= req_mask;
@@ -514,7 +553,7 @@ module ngage_sdram_scheduler #(
             end
         end
 
-        // A hit uses the request directly for its first column command;
+        // A hit uses the queued command for its first column command;
         // later beats and misses use the latched operands. These muxes end
         // at p_*, preserving the logic-free I/O register stage.
         if (read_now) begin

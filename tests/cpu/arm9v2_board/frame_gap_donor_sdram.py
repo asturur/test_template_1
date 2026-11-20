@@ -9,7 +9,7 @@ DONOR = Path('/Users/andreabogazzi/develop/ngage2')
 REVISION = 'ff6dcff7f92a8ce999f2e89fdc08b873b5172404'
 
 BRIDGE = ''' wire scrub_done, sdr_ready;
- wire sdr_req,sdr_we,sdr_line,sdr_busy,sdr_rvalid;
+ wire sdr_req,sdr_we,sdr_line,sdr_busy,sdr_rvalid,sdr_cmd_ready;
  wire [24:2] sdr_addr;
  wire [127:0] sdr_wdata;
  wire [15:0] sdr_wbe,sdr_dq;
@@ -23,12 +23,13 @@ BRIDGE = ''' wire scrub_done, sdr_ready;
  assign #5.5 sdr_dq = memory.Dq_reg;
  ngage_sdram_stream #(.WIDE_PORT(0), .SCRUB_BYTES(25'd32)) sadapter(
   .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(mem_lock),.owner_ready(sdram_owner_ready),
+  .grant_read(1'b0),.grant_addr(25'd0),
   .req(sreq),.we(swe),.write_block(mem_write_block),.block_data(mem_block_data),
   .addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),
   .line_req(ram_line_req && !lock),.line_short(1'b0),.line_addr(ram_line_addr),.line_ready(ram_line_ready),
   .line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),
   .mem_req(sdr_req),.mem_we(sdr_we),.mem_line(sdr_line),.mem_addr(sdr_addr),
-  .mem_wdata(sdr_wdata),.mem_wbe(sdr_wbe),.scrub_done(scrub_done),.mem_ready(sdr_ready),.mem_busy(sdr_busy),
+  .mem_wdata(sdr_wdata),.mem_wbe(sdr_wbe),.scrub_done(scrub_done),.mem_ready(sdr_ready),.mem_cmd_ready(sdr_cmd_ready),.mem_busy(sdr_busy),
   .mem_valid(sdr_rvalid),.mem_rdata(sdr_rdata));
  sdram #(.CLK_HZ(SYS_CLK_HZ)) ctrl(
   .clk(clk),.init(cold),.ready(sdr_ready),.req(sdr_req),.busy(sdr_busy),.we(sdr_we),
@@ -54,13 +55,20 @@ def wide_read_port(controller):
 def generate(out, bench, wide=False, production=False):
     ports = BRIDGE
     if production:
+        bench = swap(bench, 'ngage_mister #(.ENABLE_DEBUGGER(1),',
+                     'ngage_mister #(.ENABLE_DEBUGGER(1),.RAM_LINE_EARLY(1),')
         ports = ports.replace("sdram #(", "ngage_sdram_scheduler #(").replace(
-            ".line(sdr_line)", ".line(sdr_line),.read_short(1'b0)")
+            ".line(sdr_line)", ".line(sdr_line),.read_short(1'b0),.cmd_ready(sdr_cmd_ready)")
+        ports = ports.replace(
+            ".grant_read(1'b0),.grant_addr(25'd0)",
+            ".grant_read((cpu_ram_accept && !cswe) || (shared_dma_accept && !shared_dma_write)),"
+            ".grant_addr(cpu_ram_accept ? csa : shared_dma_addr)")
     else:
         controller = subprocess.check_output(['git', '-C', DONOR, 'show', f'{REVISION}:rtl/mem/sdram.sv'])
         if wide:
             controller = wide_read_port(controller.decode()).encode()
         (out / 'donor_sdram.sv').write_bytes(controller)
+        ports += " assign sdr_cmd_ready = !sdr_busy;\n"
     if wide or production:
         ports = ports.replace('.WIDE_PORT(0)', '.WIDE_PORT(1)')
     bench = swap(bench, ' wire cpu_write_block, mem_write_block;',

@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 module physical_lcd_stream_tb #(
-    parameter LCD_LINE_BYTES = 0
+    parameter LCD_LINE_BYTES = 0,
+    parameter integer SYS_HZ = 78000000
 );
-  localparam integer SYS_HZ = 78000000;
   localparam integer PIXEL_WORDS = 18304;
   localparam integer CPU_READS = 1024;
   localparam integer CPU_LINES = 256;
@@ -180,7 +180,7 @@ module physical_lcd_stream_tb #(
       .mem_rdata(scalar_data)
   );
 
-  wire pin_request, pin_write_op, pin_line, mem_ready, mem_busy, mem_valid;
+  wire pin_request, pin_write_op, pin_line, mem_ready, mem_cmd_ready, mem_busy, mem_valid;
   wire [ 24:2] mem_addr;
   wire [127:0] mem_write_data;
   wire [ 15:0] mem_mask;
@@ -193,6 +193,8 @@ module physical_lcd_stream_tb #(
       .phone_reset(panel_reset),
       .lock(packet_lock),
       .owner_ready(owner_ready),
+      .grant_read(cpu_accept || dma_grant),
+      .grant_addr(cpu_accept ? cpu_addr : dma_addr),
       .req(scalar_req),
       .we(1'b0),
       .write_block(1'b0),
@@ -218,6 +220,7 @@ module physical_lcd_stream_tb #(
       .mem_wbe(mem_mask),
       .scrub_done(scrub_done),
       .mem_ready(mem_ready),
+      .mem_cmd_ready(mem_cmd_ready),
       .mem_busy(mem_busy),
       .mem_valid(mem_valid),
       .mem_rdata(mem_read_data)
@@ -240,6 +243,7 @@ module physical_lcd_stream_tb #(
       .ready(mem_ready),
       .req(pin_request),
       .busy(mem_busy),
+      .cmd_ready(mem_cmd_ready),
       .we(pin_write_op),
       .line(pin_line),
       .read_short(mem_short),

@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
 
-module stream_tb;
-  localparam integer SYS_HZ = 78000000;
+module stream_tb #(
+    parameter integer SYS_HZ = 78000000
+);
   localparam [24:0] BASE = 25'h37fe0;
   reg clk = 0;
   always #(500000000.0 / SYS_HZ) clk = ~clk;
@@ -61,7 +62,7 @@ module stream_tb;
   reg line_req = 0;
   wire line_ready, line_valid, line_last, scrub_done;
   wire [15:0] line_data;
-  wire req_mem, we_mem, line_mem, ready_mem, busy_mem, valid_mem;
+  wire req_mem, we_mem, line_mem, ready_mem, cmd_ready_mem, busy_mem, valid_mem;
   wire [ 24:2] addr_mem;
   wire [127:0] data_mem;
   wire [ 15:0] be_mem;
@@ -72,6 +73,8 @@ module stream_tb;
       .phone_reset(phone_reset),
       .lock(packet_lock),
       .owner_ready(owner_ready),
+      .grant_read((cpu_grant && !cpu_we) || (dma_grant && !dma_we)),
+      .grant_addr(cpu_grant ? cpu_addr : dma_addr),
       .req(req),
       .we(we),
       .write_block(write_block),
@@ -96,6 +99,7 @@ module stream_tb;
       .mem_wbe(be_mem),
       .scrub_done(scrub_done),
       .mem_ready(ready_mem),
+      .mem_cmd_ready(cmd_ready_mem),
       .mem_busy(busy_mem),
       .mem_valid(valid_mem),
       .mem_rdata(rdata_mem)
@@ -119,6 +123,7 @@ module stream_tb;
       .ready(ready_mem),
       .req(req_mem),
       .busy(busy_mem),
+      .cmd_ready(cmd_ready_mem),
       .we(we_mem),
       .line(line_mem),
       .read_short(1'b0),
@@ -158,6 +163,40 @@ module stream_tb;
       .frame_cnt(32'b0)
   );
 
+  // Compare each admitted packet with the one presented to the scheduler,
+  // including packets accepted while the previous pin operation is active.
+  integer accepted = 0, issued = 0, accepted_while_busy = 0, grant_reads = 0;
+  bit queued = 0;
+  reg [168:0] queued_packet;
+  always @(posedge clk)
+    if (!cold) begin
+      if (stream.grant_read_word) begin
+        if (!req_mem || we_mem || line_mem || !(cpu_grant || dma_grant))
+          $fatal(1, "Early scalar read did not take both grants");
+        grant_reads <= grant_reads + 1;
+      end
+      if (req_mem) begin
+        if (!cmd_ready_mem || queued) $fatal(1, "Stream overwrote the queued SDRAM command");
+        queued_packet <= {addr_mem, we_mem, line_mem, data_mem, be_mem};
+        queued <= 1;
+        accepted <= accepted + 1;
+        if (busy_mem) accepted_while_busy <= accepted_while_busy + 1;
+      end
+      if (controller.take) begin
+        if (!queued || {controller.cmd_addr, controller.cmd_we, controller.cmd_line,
+                      controller.cmd_data, controller.cmd_be} !== queued_packet ||
+          controller.cmd_short)
+          $fatal(1, "Wrong SDRAM packet issued from command slot");
+        queued <= 0;
+        issued <= issued + 1;
+      end
+    end
+
+  localparam integer REFRESH_LIMIT = 7812000 / (1000000000 / (SYS_HZ / 1000));
+  integer refresh_count = 0, previous_refresh = 0, refresh_max = 0;
+  integer block_beats = 0, previous_block_beat = 0;
+  bit watch_block = 0;
+
   integer writes_by_bank[0:3] = '{default: 0};
   integer pin_cycle = 0, first_line_read = 0, line_reads = 0;
   bit watch_line = 0;
@@ -166,11 +205,28 @@ module stream_tb;
     case ({
       cs_n, ras_n, cas_n, we_n
     })
-      4'b0100:
-      if (!scrub_done) begin
-        writes_by_bank[pin_bank]++;
-        if (pin_write !== 16'b0 || {dqmh, dqml} !== 2'b0)
-          $fatal(1, "Cold scrub wrote nonzero data or used a write mask");
+      4'b0001:
+      if (ready_mem) begin
+        refresh_count++;
+        if (previous_refresh != 0) begin
+          if (pin_cycle - previous_refresh > REFRESH_LIMIT) $fatal(1, "Refresh deadline exceeded");
+          if (pin_cycle - previous_refresh > refresh_max)
+            refresh_max = pin_cycle - previous_refresh;
+        end
+        previous_refresh = pin_cycle;
+      end
+      4'b0100: begin
+        if (!scrub_done) begin
+          writes_by_bank[pin_bank]++;
+          if (pin_write !== 16'b0 || {dqmh, dqml} !== 2'b0)
+            $fatal(1, "Cold scrub wrote nonzero data or used a write mask");
+        end
+        if (watch_block && block_beats < 8) begin
+          if (block_beats != 0 && pin_cycle != previous_block_beat + 1)
+            $fatal(1, "16-byte write contained gaps between pin beats");
+          previous_block_beat = pin_cycle;
+          block_beats++;
+        end
       end
       4'b0101:
       if (watch_line) begin
@@ -314,6 +370,7 @@ module stream_tb;
     // Post a full four-word block. Grant an older DMA byte write while
     // the pins are still busy, then raise the CPU lock before it can post.
     cpu_write_block = 1;
+    watch_block = 1;
     cpu_block_data = 128'hffeeddcc_88776655_66554433_11223344;
     cpu_transfer(1, BASE, cpu_block_data[31:0], 4'hf, 0);
     cpu_write_block = 0;
@@ -335,6 +392,8 @@ module stream_tb;
     // The swap must read the block followed by the queued DMA lanes. A DMA
     // read requesting the same address cannot enter the read/write gap.
     cpu_transfer(0, BASE, 0, 0, 32'h11bb33dd);
+    if (block_beats != 8) $fatal(1, "16-byte write did not issue eight pin beats");
+    watch_block = 0;
     dma_req = 1;
     repeat (4) begin
       @(posedge clk);
@@ -383,8 +442,67 @@ module stream_tb;
     @(negedge clk);
     cpu_req = 0;
     cpu_transfer(0, BASE, 0, 0, 32'h7685abcd);
+
+    // A simultaneous line wins the command slot. The scalar owner holds
+    // its address and issues exactly once after the line's last beat.
+    wait (stream.drained);
+    @(negedge clk);
+    line_req = 1;
+    cpu_req  = 1;
+    cpu_we   = 0;
+    cpu_addr = BASE + 4;
+    @(posedge clk);
+    if (!cpu_grant || !line_ready || !stream.first_line || stream.grant_read_word)
+      $fatal(1, "The line failed to win a simultaneous scalar read grant");
+    @(negedge clk);
+    line_req = 0;
+    cpu_addr = BASE;
+    do begin
+      @(posedge clk);
+      if (cpu_ack) $fatal(1, "Scalar ACK arrived during the line");
+    end while (!line_last);
+    @(posedge clk);
+    if (!stream.scalar_read || !req_mem || addr_mem !== (BASE[24:2] + 23'd1))
+      $fatal(1, "The held scalar read lost its granted address");
+    do @(posedge clk); while (!cpu_ack);
+    if (cpu_out !== cpu_block_data[63:32]) $fatal(1, "Wrong held scalar response");
+    @(negedge clk);
+    cpu_req = 0;
+
+    // Cancel an accepted fast read before its pin response. A new owner
+    // may request memory immediately, but must receive its own result.
+    wait (stream.drained);
+    @(negedge clk);
+    cpu_addr = BASE;
+    cpu_req  = 1;
+    @(posedge clk);
+    if (!cpu_grant || !stream.grant_read_word)
+      $fatal(1, "Cancellation test missed grant-edge read admission");
+    @(negedge clk);
+    cpu_req = 0;
+    phone_reset = 1;
+    repeat (2) @(negedge clk);
+    phone_reset = 0;
+    dma_addr = BASE + 8;
+    dma_req = 1;
+    do begin
+      @(posedge clk);
+      if (cpu_ack) $fatal(1, "Cancelled scalar read acknowledged after reset");
+    end while (!dma_ack);
+    if (dma_out !== cpu_block_data[95:64]) $fatal(1, "New owner read a cancelled response");
+    @(negedge clk);
+    dma_req = 0;
+    $display("PASS stream grant-edge read, held fallback and cancelled response");
     $display(
         "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion");
+    while (busy_mem) @(negedge clk);
+    if (queued || accepted != issued || accepted_while_busy == 0 || grant_reads == 0)
+      $fatal(1, "Lost, duplicate, or uncovered command slot case");
+    if (refresh_count < 2 || refresh_max == 0) $fatal(1, "Refresh interval was not exercised");
+    $display("REFRESH PASS hz=%0d count=%0d max_interval_clocks=%0d limit=%0d", SYS_HZ,
+             refresh_count, refresh_max, REFRESH_LIMIT);
+    $display("PASS stream command slot: accepted=%0d issued=%0d while_busy=%0d grant_reads=%0d",
+             accepted, issued, accepted_while_busy, grant_reads);
     $display("PASS stream masks, physical burst shape, DMA/SWP order and logical reset drain");
     $finish;
   end

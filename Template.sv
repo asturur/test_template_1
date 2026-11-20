@@ -383,7 +383,7 @@ module emu (
     wire shared_line_req, shared_line_ready, shared_line_valid, shared_line_last;
     wire shared_line_short, sdr_read_short;
     wire [24:0] shared_line_addr;
-    wire sdr_req, sdr_we, sdr_line, sdr_ready, sdr_busy, sdr_valid;
+    wire sdr_req, sdr_we, sdr_line, sdr_ready, sdr_cmd_ready, sdr_busy, sdr_valid;
     wire [ 24:2] sdr_addr;
     wire [127:0] sdr_wdata;
     wire [15:0] sdr_wbe, sdram_dq_o, sdram_dq_oe;
@@ -417,40 +417,46 @@ module emu (
         .ram_last      (shared_line_last)
     );
 
+    wire         sdram_read_grant = (cpu_sdram_accept && !cpu_sdram_we) ||
+                                     (shared_dma_accept && !shared_dma_write);
+    wire [24:0] sdram_grant_addr = cpu_sdram_accept ? cpu_sdram_addr : shared_dma_addr;
     ngage_sdram_stream phone_sdram (
-        .clk        (clk_sys),
-        .cold       (transport_reset),
-        .phone_reset(dma_reset || transport_reset),
-        .lock       (mem_lock),
-        .owner_ready(sdram_owner_ready),
-        .req        (mem_req),
-        .we         (mem_we),
-        .write_block(mem_write_block),
-        .block_data (mem_block_data),
-        .addr       (mem_addr),
-        .din        (mem_wdata),
-        .be         (mem_be),
-        .ack        (mem_ack),
-        .dout       (mem_rdata),
-        .line_req   (shared_line_req),
-        .line_short (shared_line_short),
-        .line_addr  (shared_line_addr),
-        .line_ready (shared_line_ready),
-        .line_valid (shared_line_valid),
-        .line_data  (ram_line_data),
-        .line_last  (shared_line_last),
-        .scrub_done (sdram_scrub_done),
-        .mem_req    (sdr_req),
-        .mem_we     (sdr_we),
-        .mem_line   (sdr_line),
-        .mem_short  (sdr_read_short),
-        .mem_addr   (sdr_addr),
-        .mem_wdata  (sdr_wdata),
-        .mem_wbe    (sdr_wbe),
-        .mem_ready  (sdr_ready),
-        .mem_busy   (sdr_busy),
-        .mem_valid  (sdr_valid),
-        .mem_rdata  (sdr_rdata)
+        .clk          (clk_sys),
+        .cold         (transport_reset),
+        .phone_reset  (dma_reset || transport_reset),
+        .lock         (mem_lock),
+        .owner_ready  (sdram_owner_ready),
+        .grant_read   (sdram_read_grant),
+        .grant_addr   (sdram_grant_addr),
+        .req          (mem_req),
+        .we           (mem_we),
+        .write_block  (mem_write_block),
+        .block_data   (mem_block_data),
+        .addr         (mem_addr),
+        .din          (mem_wdata),
+        .be           (mem_be),
+        .ack          (mem_ack),
+        .dout         (mem_rdata),
+        .line_req     (shared_line_req),
+        .line_short   (shared_line_short),
+        .line_addr    (shared_line_addr),
+        .line_ready   (shared_line_ready),
+        .line_valid   (shared_line_valid),
+        .line_data    (ram_line_data),
+        .line_last    (shared_line_last),
+        .scrub_done   (sdram_scrub_done),
+        .mem_req      (sdr_req),
+        .mem_we       (sdr_we),
+        .mem_line     (sdr_line),
+        .mem_short    (sdr_read_short),
+        .mem_addr     (sdr_addr),
+        .mem_wdata    (sdr_wdata),
+        .mem_wbe      (sdr_wbe),
+        .mem_ready    (sdr_ready),
+        .mem_cmd_ready(sdr_cmd_ready),
+        .mem_busy     (sdr_busy),
+        .mem_valid    (sdr_valid),
+        .mem_rdata    (sdr_rdata)
     );
 
     ngage_sdram_scheduler #(
@@ -461,6 +467,7 @@ module emu (
         .ready      (sdr_ready),
         .req        (sdr_req),
         .busy       (sdr_busy),
+        .cmd_ready  (sdr_cmd_ready),
         .we         (sdr_we),
         .line       (sdr_line),
         .read_short (sdr_read_short),
@@ -1149,6 +1156,7 @@ module emu (
     ngage_mister #(
         .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
         .LINE_REFILL    (1),
+        .RAM_LINE_EARLY (1),
         .LCD_LINE_BYTES (LCD_LINE_BYTES),
         .DMA_LOCAL      (1),
         .GAME_PCM       (1),

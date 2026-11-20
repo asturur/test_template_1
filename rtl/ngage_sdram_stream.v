@@ -10,6 +10,9 @@ module ngage_sdram_stream #(
     // Lock sampled with this scalar packet by the bus owner.
     input  wire         lock,
     output wire         owner_ready,
+    // Read-only offer from this clock's irrevocable scalar arbiter grant.
+    input  wire         grant_read,
+    input  wire [ 24:0] grant_addr,
     input  wire         req,
     input  wire         we,
     input  wire         write_block,
@@ -35,6 +38,7 @@ module ngage_sdram_stream #(
     output wire [ 15:0] mem_wbe,
     output reg          scrub_done = 0,
     input  wire         mem_ready,
+    input  wire         mem_cmd_ready,
     input  wire         mem_busy,
     input  wire         mem_valid,
     input  wire [ 31:0] mem_rdata
@@ -56,19 +60,23 @@ module ngage_sdram_stream #(
     reg  [24:0] scrub_address = 0;
     reg         scrub_last_issued = 0;
     // Scrub the full guest RAM while the phone is still held in reset.
-    wire        scrub = mem_ready && !cold && !scrub_last_issued && !mem_busy;
+    wire        scrub = mem_ready && !cold && !scrub_last_issued && mem_cmd_ready;
 
     assign owner_ready = scrub_done && mem_ready && !cold && !phone_reset && !discard;
     wire idle = state == IDLE && owner_ready;
     wire scalar = idle && req && !seen;
-    wire take_pending = pending && !mem_busy;
+    wire take_pending = pending && mem_cmd_ready;
     wire post = scalar && we && !lock && (!pending || take_pending);
-    wire direct_post = post && !pending && !mem_busy;
-    wire read_word = scalar && !we && !pending && !mem_busy;
-    wire lock_write = scalar && we && lock && !pending && !mem_busy;
-    assign line_ready = idle && !req && !pending && !mem_busy;
+    wire direct_post = post && !pending && mem_cmd_ready;
+    wire scalar_read = scalar && !we && !pending && mem_cmd_ready;
+    wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
+    assign line_ready = idle && !req && !pending && mem_cmd_ready;
     wire first_line = line_req && line_ready;
-    wire line_follow = state == LINE && second_line && !mem_busy;
+    // The arbiter captures the owner on this same edge. If a line or an
+    // older packet owns the slot, the arbiter's held read can issue later.
+    wire grant_read_word = idle && !req && !pending && mem_cmd_ready && grant_read && !first_line;
+    wire read_word = scalar_read || grant_read_word;
+    wire line_follow = state == LINE && second_line && mem_cmd_ready;
 
     assign mem_req = scrub || take_pending || direct_post || read_word || lock_write || first_line || line_follow;
     assign mem_we = scrub || take_pending || direct_post || lock_write;
@@ -79,7 +87,8 @@ module ngage_sdram_stream #(
     assign mem_addr = scrub ? scrub_address[24:2] :
                       take_pending ? pending_addr :
                       first_line ? first_addr :
-                      line_follow ? {saved_line, 3'b100} : addr[24:2];
+                      line_follow ? {saved_line, 3'b100} :
+                      grant_read_word ? grant_addr[24:2] : addr[24:2];
     assign mem_wdata = scrub ? 128'b0 :
                        block_write ? (take_pending ? pending_block_data : block_data) :
                        {4{take_pending ? pending_data : din}};

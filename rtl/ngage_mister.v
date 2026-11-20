@@ -24,7 +24,8 @@ module ngage_mister #(
                       MMC_CLK_DIV        = 4,
                       SYS_CLK_HZ         = 104000000,
                       TIMER_CLK_DIV      = 1,
-                      NOS_TICK_HZ        = 1000
+                      NOS_TICK_HZ        = 1000,
+                      RAM_LINE_EARLY     = 0
 ) (
     output wire         ddram_line,
     input  wire         ddram_beat_valid,
@@ -610,8 +611,12 @@ module ngage_mister #(
     assign line_no_late_error = line_ready && (line_ram_eligible || line_rom_eligible);
     wire line_ddr_offer = line_state == LINE_ROM_ISSUE && !core_reset;
     assign ddram_line = line_ddr_offer;
-    assign ram_line_req = line_state == LINE_RAM_ISSUE && !core_reset;
-    assign ram_line_addr = line_ram_address;
+    // With the queued SDRAM port, offer the RAM command on the same edge
+    // that accepts its upstream line. Keep the saved address if the RAM
+    // arbiter cannot take it on that edge.
+    wire ram_line_preview = RAM_LINE_EARLY && line_req && line_ready && line_ram_eligible;
+    assign ram_line_req = !core_reset && (line_state == LINE_RAM_ISSUE || ram_line_preview);
+    assign ram_line_addr = ram_line_preview ? line_addr[24:0] : line_ram_address;
     assign line_valid = !core_reset && ((line_state==LINE_ROM_WAIT && ddram_beat_valid) ||
                                        (line_state==LINE_RAM_WAIT && ram_line_valid));
     assign line_data = line_state==LINE_RAM_WAIT ? {48'b0,ram_line_data} : {line_decoded_high,line_decoded_low};
@@ -628,7 +633,7 @@ module ngage_mister #(
                     line_decode_address <= line_addr;
                     if (line_ram_eligible) begin
                         line_ram_address <= line_addr[24:0];
-                        line_state       <= LINE_RAM_ISSUE;
+                        line_state       <= ram_line_preview && ram_line_ready ? LINE_RAM_WAIT : LINE_RAM_ISSUE;
                     end else if (line_rom_eligible) begin
                         line_backing <= 32'h30000000 + {line_rom_offset[24:5], 5'b0};
                         line_state   <= LINE_ROM_ISSUE;
