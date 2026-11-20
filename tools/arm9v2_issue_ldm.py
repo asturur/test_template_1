@@ -90,15 +90,14 @@ def issue_decode_overlay(decode, edit):
 
 def avoid_known_crossings(decode, edit):
     return edit(decode, '\t\t\td2[372-:241] = d2_bank[d2_owner];', '''\t\t\td2[372-:241] = d2_bank[d2_owner];
-        // Use the low bits of the base available in decode as a hint only.
+        // Use the register file's latest clocked base as an admission hint.
         // W rechecks the effective address after operand forwarding.
         if (d2[131-:4] == K_BLOCK && d2[43] && d2[42] && d2[40-:5] == 2 &&
             d2[79] && (base_address_hint[1:0] != 0 || base_address_hint[4:2] == 7)) begin
             d2[42] = 0;
             d2[79] = 0;
         end''').replace('reg [372:0] d2;', '''reg [372:0] d2;
-    wire [4:0] base_address_hint = i_wen && i_wr_pair && i_wr_tag_b == d2_q[100+:6] ? i_wr_data_b[4:0] :
-        i_wen && i_wr_tag_a == d2_q[100+:6] ? i_wr_data_a[4:0] : i_rf_value[4:0];''')
+    wire [4:0] base_address_hint = i_rf_value[4:0];''')
 
 
 def issue_core_overlay(core, edit):
