@@ -281,6 +281,7 @@ module ngage2_arm9v2_core (
 	i_data_short_data,
     i_data_short_next_word,
     i_data_short_next_valid,
+    o_dc_pair_m_address,
 	i_data_short_hit,
 	i_data_short_live,
 	i_data_ack_fast,
@@ -443,6 +444,8 @@ module ngage2_arm9v2_core (
 	input wire [31:0] i_data_short_data;
     input wire [31:0] i_data_short_next_word;
     input wire i_data_short_next_valid;
+    output wire [31:0] o_dc_pair_m_address;
+    assign o_dc_pair_m_address = {m[366:337], 2'b00};
 	input wire i_data_short_hit;
 	input wire i_data_short_live;
 	input wire i_data_ack_fast;
@@ -10878,6 +10881,7 @@ module ngage2_zap_dcache (
 	o_short_data,
     o_short_next_word,
     o_short_next_valid,
+    i_pair_m_address,
 	o_short_hit,
 	o_short_live,
 	o_short_trust,
@@ -10991,6 +10995,7 @@ module ngage2_zap_dcache (
 	output wire [31:0] o_short_data;
     output reg [31:0] o_short_next_word;
     output wire o_short_next_valid;
+    input wire [31:0] i_pair_m_address;
 	output wire o_short_hit;
 	output wire o_short_live;
 	output wire o_short_trust;
@@ -11650,6 +11655,12 @@ module ngage2_zap_dcache (
     wire [CACHE_LINE*8-1:0] short_hit_line = raw_way_line[(raw_cache_word_sel && WAYS > 1) * CACHE_LINE*8 +: CACHE_LINE*8];
     reg [31:0] short_next_word;
     reg [31:0] short_pair_address;
+    (* dont_retime *) reg short_pair_matches_w;
+    wire sample_pair = !hold && !i_stall;
+    wire [31:0] pair_sample_address = sample_pair ? compare_address : short_pair_address;
+    wire pair_matches_m = pair_sample_address == i_pair_m_address;
+    wire pair_matches_w = pair_sample_address == i_address;
+
     always @(*) begin : forward_pair_store
         integer lane;
         short_next_word = short_hit_line[32*next_word +: 32];
@@ -11658,11 +11669,17 @@ module ngage2_zap_dcache (
             for (lane = 0; lane < 4; lane = lane + 1)
                 if (i_ben[lane]) short_next_word[8*lane +: 8] = i_dat[8*lane +: 8];
     end
-    always @(posedge i_clk) if (!hold && !i_stall) begin
-        o_short_next_word <= short_next_word;
-        short_pair_address <= compare_address;
+    always @(posedge i_clk) begin
+        if (sample_pair) begin
+            o_short_next_word <= short_next_word;
+            short_pair_address <= compare_address;
+        end
+        // A held cache sample can outlive its original W owner. Select the
+        // incoming M address on the same edge that advances W. A split
+        // instead leaves a second beat in W, which cannot merge a pair.
+        short_pair_matches_w <= i_lock_owner_move ? pair_matches_m : pair_matches_w;
     end
-    assign o_short_next_valid = o_short_hit && live_trust && short_pair_address == i_address;
+    assign o_short_next_valid = o_short_hit && live_trust && short_pair_matches_w;
 	assign compare_address = i_address_check;
 	assign cache_write_way = (live_lookup ? tr_cache_way : cf_cache_way);
 	assign ram_write = !live_lookup || tr_cache_hit;
@@ -15617,6 +15634,7 @@ module ngage2_zap_top (
 	wire [31:0] dc_short_data;
     wire [31:0] dc_short_next_word;
     wire dc_short_next_valid;
+    wire [31:0] dc_pair_m_address;
 	wire dc_short_hit;
 	wire dc_short_live;
 	wire dc_short_trust;
@@ -15764,6 +15782,7 @@ module ngage2_zap_top (
 				.i_data_short_data(dc_short_data),
                 .i_data_short_next_word(dc_short_next_word),
                 .i_data_short_next_valid(dc_short_next_valid),
+                .o_dc_pair_m_address(dc_pair_m_address),
 				.i_data_short_hit(dc_short_hit),
 				.i_data_short_live(dc_short_live),
 				.i_data_short_trust(dc_short_trust),
@@ -15925,6 +15944,7 @@ module ngage2_zap_top (
 				.o_short_data(dc_short_data),
                 .o_short_next_word(dc_short_next_word),
                 .o_short_next_valid(dc_short_next_valid),
+                .i_pair_m_address(dc_pair_m_address),
 				.o_short_hit(dc_short_hit),
 				.o_short_live(dc_short_live),
 				.o_short_trust(dc_short_trust),
@@ -15982,6 +16002,15 @@ module ngage2_zap_top (
 				.o_wb_bte_nxt(d_wb_bte),
 				.o_wb_cti_nxt(d_wb_cti)
 			);
+            // synthesis translate_off
+`ifndef SYNTHESIS
+            always @(posedge i_clk)
+                if (!s_reset && g_arm9.u_arm9_core.paired_ldm_first)
+                    if (u_data_cache.short_pair_matches_w !=
+                        (u_data_cache.short_pair_address == cpu_daddr))
+                        $fatal(1, "Retimed LDM cache address match diverged at %h", cpu_daddr);
+`endif
+            // synthesis translate_on
 			ngage2_zap_cache #(
 				.CACHE_SIZE(CODE_CACHE_SIZE),
 				.SPAGE_TLB_ENTRIES(CODE_SPAGE_TLB_ENTRIES),

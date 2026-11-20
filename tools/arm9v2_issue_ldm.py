@@ -32,13 +32,28 @@ def wire_paired_load_data(source, edit):
     source = source[:start] + cache_overlay(source[start:end], edit) + source[end:]
     source = edit(source, '\twire [31:0] dc_short_data;', '''\twire [31:0] dc_short_data;
     wire [31:0] dc_short_next_word;
-    wire dc_short_next_valid;''')
+    wire dc_short_next_valid;
+    wire [31:0] dc_pair_m_address;''')
     source = edit(source, '.i_data_short_data(dc_short_data),', '''.i_data_short_data(dc_short_data),
                 .i_data_short_next_word(dc_short_next_word),
-                .i_data_short_next_valid(dc_short_next_valid),''')
-    return edit(source, '.o_short_data(dc_short_data),', '''.o_short_data(dc_short_data),
+                .i_data_short_next_valid(dc_short_next_valid),
+                .o_dc_pair_m_address(dc_pair_m_address),''')
+    source = edit(source, '.o_short_data(dc_short_data),', '''.o_short_data(dc_short_data),
                 .o_short_next_word(dc_short_next_word),
-                .o_short_next_valid(dc_short_next_valid),''')
+                .o_short_next_valid(dc_short_next_valid),
+                .i_pair_m_address(dc_pair_m_address),''')
+    return edit(source, '\t\t\tngage2_zap_cache #(\n\t\t\t\t.CACHE_SIZE(CODE_CACHE_SIZE),', '''
+            // synthesis translate_off
+`ifndef SYNTHESIS
+            always @(posedge i_clk)
+                if (!s_reset && g_arm9.u_arm9_core.paired_ldm_first)
+                    if (u_data_cache.short_pair_matches_w !=
+                        (u_data_cache.short_pair_address == cpu_daddr))
+                        $fatal(1, "Retimed LDM cache address match diverged at %h", cpu_daddr);
+`endif
+            // synthesis translate_on
+\t\t\tngage2_zap_cache #(
+\t\t\t\t.CACHE_SIZE(CODE_CACHE_SIZE),'''.lstrip('\n'))
 
 
 def pair_dependency_port(module, edit):
@@ -87,10 +102,12 @@ def avoid_known_crossings(decode, edit):
 
 
 def issue_core_overlay(core, edit):
-    core = edit(core, '\ti_data_short_data,', '\ti_data_short_data,\n    i_data_short_next_word,\n    i_data_short_next_valid,')
+    core = edit(core, '\ti_data_short_data,', '\ti_data_short_data,\n    i_data_short_next_word,\n    i_data_short_next_valid,\n    o_dc_pair_m_address,')
     core = edit(core, '\tinput wire [31:0] i_data_short_data;', '''\tinput wire [31:0] i_data_short_data;
     input wire [31:0] i_data_short_next_word;
-    input wire i_data_short_next_valid;''')
+    input wire i_data_short_next_valid;
+    output wire [31:0] o_dc_pair_m_address;
+    assign o_dc_pair_m_address = {m[366:337], 2'b00};''')
     core = edit(core, '\twire load_trust =', '''    localparam [3:0] LDM_PAIR = 4'd15;
     wire paired_ldm_w = w[541] && w[8-:4] == LDM_PAIR;
     wire paired_ldm_first = paired_ldm_w && w[537];
@@ -155,15 +172,22 @@ def issue_core_overlay(core, edit):
 
 
 def cache_overlay(cache, edit):
-    cache = edit(cache, '\to_short_data,', '\to_short_data,\n    o_short_next_word,\n    o_short_next_valid,')
+    cache = edit(cache, '\to_short_data,', '\to_short_data,\n    o_short_next_word,\n    o_short_next_valid,\n    i_pair_m_address,')
     cache = edit(cache, '\toutput wire [31:0] o_short_data;', '''\toutput wire [31:0] o_short_data;
     output reg [31:0] o_short_next_word;
-    output wire o_short_next_valid;''')
+    output wire o_short_next_valid;
+    input wire [31:0] i_pair_m_address;''')
     return edit(cache, '\tassign compare_address = i_address_check;', '''    localparam integer WORD_INDEX_WIDTH = LINE_W - 2;
     wire [WORD_INDEX_WIDTH-1:0] next_word = compare_address[LINE_W-1:2] + 1'b1;
     wire [CACHE_LINE*8-1:0] short_hit_line = raw_way_line[(raw_cache_word_sel && WAYS > 1) * CACHE_LINE*8 +: CACHE_LINE*8];
     reg [31:0] short_next_word;
     reg [31:0] short_pair_address;
+    (* dont_retime *) reg short_pair_matches_w;
+    wire sample_pair = !hold && !i_stall;
+    wire [31:0] pair_sample_address = sample_pair ? compare_address : short_pair_address;
+    wire pair_matches_m = pair_sample_address == i_pair_m_address;
+    wire pair_matches_w = pair_sample_address == i_address;
+
     always @(*) begin : forward_pair_store
         integer lane;
         short_next_word = short_hit_line[32*next_word +: 32];
@@ -172,11 +196,17 @@ def cache_overlay(cache, edit):
             for (lane = 0; lane < 4; lane = lane + 1)
                 if (i_ben[lane]) short_next_word[8*lane +: 8] = i_dat[8*lane +: 8];
     end
-    always @(posedge i_clk) if (!hold && !i_stall) begin
-        o_short_next_word <= short_next_word;
-        short_pair_address <= compare_address;
+    always @(posedge i_clk) begin
+        if (sample_pair) begin
+            o_short_next_word <= short_next_word;
+            short_pair_address <= compare_address;
+        end
+        // A held cache sample can outlive its original W owner. Select the
+        // incoming M address on the same edge that advances W. A split
+        // instead leaves a second beat in W, which cannot merge a pair.
+        short_pair_matches_w <= i_lock_owner_move ? pair_matches_m : pair_matches_w;
     end
-    assign o_short_next_valid = o_short_hit && live_trust && short_pair_address == i_address;
+    assign o_short_next_valid = o_short_hit && live_trust && short_pair_matches_w;
 \tassign compare_address = i_address_check;''')
 
 
