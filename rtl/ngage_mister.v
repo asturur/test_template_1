@@ -26,7 +26,7 @@ module ngage_mister #(
                       TIMER_CLK_DIV      = 1,
                       NOS_TICK_HZ        = 1000,
                       RAM_LINE_EARLY     = 0,
-                      MMC_CLK_FRAC_3_8   = 0
+                      ANALOG_LINE_PIXELS = 400
 ) (
     output wire         ddram_line,
     input  wire         ddram_beat_valid,
@@ -240,9 +240,9 @@ module ngage_mister #(
         .LCD_DMA_ENABLE    (1),
         .GENERAL_DMA       (GENERAL_DMA),
         .LCD_LINE_BYTES    (LCD_LINE_BYTES),
+        .ANALOG_LINE_PIXELS(ANALOG_LINE_PIXELS),
         .GAME_PCM          (GAME_PCM),
         .MMC_CLK_DIV       (MMC_CLK_DIV),
-        .MMC_CLK_FRAC_3_8  (MMC_CLK_FRAC_3_8),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
         .host_timestamp       (host_timestamp),

@@ -1,5 +1,5 @@
 `timescale 1ns / 1ps
-module frac_clock_tb;
+module integer_clock_tb;
   reg clk = 0;
   always #4.808 clk = ~clk;
   reg reset = 1;
@@ -10,7 +10,7 @@ module frac_clock_tb;
   wire [3:0] irq;
 
   ngage_mmc_host #(
-      .FRAC_3_8(1)
+      .DIV(3)
   ) dut (
       .clk(clk),
       .reset(reset),
@@ -36,9 +36,10 @@ module frac_clock_tb;
       .dat_i(1'b1)
   );
 
-  integer clocks = 0, rises = 0, falls = 0, first_rise = 0;
-  integer last_rise = 0, last_fall = 0, high_sum = 0;
+  integer clocks = 0, rises = 0, falls = 0;
+  integer last_rise = 0, last_fall = 0;
   integer pulses_in_command = 0, commands = 0;
+  integer iteration;
   reg last_clk = 0;
   reg [47:0] command;
 
@@ -48,22 +49,15 @@ module frac_clock_tb;
       clocks = clocks + 1;
       if (dut.rise !== (mmc_clk && !last_clk)) $fatal(1, "Host and peer sample at different edges");
       if (mmc_clk && !last_clk) begin
-        if (pulses_in_command == 0) first_rise = clocks;
-        else if (clocks - last_rise < 2 || clocks - last_rise > 3 ||
-                         clocks - last_fall < 1 || clocks - last_fall > 2)
+        if (pulses_in_command != 0 && (clocks - last_rise != 3 || clocks - last_fall != 1))
           $fatal(1, "Illegal MMC rising/low interval");
-        if (pulses_in_command == 3 && clocks - first_rise != 8)
-          $fatal(1, "Expected three MMC periods in eight system clocks");
         last_rise = clocks;
         pulses_in_command = pulses_in_command + 1;
         rises = rises + 1;
         if (cmd_oe) command = {command[46:0], cmd_o};
       end
       if (!mmc_clk && last_clk) begin
-        if (clocks - last_rise < 1 || clocks - last_rise > 2)
-          $fatal(1, "Illegal MMC high interval");
-        if (pulses_in_command <= 3) high_sum = high_sum + clocks - last_rise;
-        if (pulses_in_command == 3 && high_sum != 4) $fatal(1, "Expected equal high and low time");
+        if (clocks - last_rise != 2) $fatal(1, "Illegal MMC high interval");
         last_fall = clocks;
         falls = falls + 1;
       end
@@ -71,10 +65,10 @@ module frac_clock_tb;
     end
 
   task command_zero;
+    input integer idle_clocks;
     begin
       @(negedge clk);
       pulses_in_command = 0;
-      high_sum = 0;
       command = 0;
       wr = 1;
       off = 6'h04;
@@ -84,7 +78,7 @@ module frac_clock_tb;
       wait (!irq[2]);
       wait (irq[2]);
       repeat (3) @(negedge clk);
-      repeat (12) begin
+      repeat (idle_clocks) begin
         @(negedge clk);
         if (mmc_clk) $fatal(1, "MMC clock kept running while idle");
       end
@@ -105,15 +99,13 @@ module frac_clock_tb;
     off = 6'h20;
     @(negedge clk);
     wr = 0;
-    command_zero;
-    command_zero;
-    $display("PASS MMC fractional 3/8 clock: CMD0=%0d, rises=%0d, falls=%0d", commands, rises,
-             falls);
+    for (iteration = 0; iteration < 12; iteration = iteration + 1) command_zero(iteration + 1);
+    $display("PASS MMC integer /3 clock: CMD0=%0d, rises=%0d, falls=%0d", commands, rises, falls);
     $finish;
   end
 
   initial begin
     #50000;
-    $fatal(1, "MMC fractional clock test timed out");
+    $fatal(1, "MMC integer clock test timed out");
   end
 endmodule

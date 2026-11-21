@@ -20,7 +20,7 @@ module ngage_board #(
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
               NOS_TICK_HZ        = 1000,
-              MMC_CLK_FRAC_3_8   = 0
+              ANALOG_LINE_PIXELS = 400
 ) (
 
     input  tri0 [ 32:0] host_timestamp,
@@ -328,7 +328,8 @@ module ngage_board #(
                 .out_data (queued_data)
             );
             ngage_lcd_display #(
-                .PIXEL_DIV(SYS_CLK_HZ / 6500000)
+                .PIXEL_DIV  (SYS_CLK_HZ / 6500000),
+                .LINE_PIXELS(ANALOG_LINE_PIXELS)
             ) lcd (
                 .clk              (clk),
                 .reset            (rst),
@@ -394,7 +395,6 @@ module ngage_board #(
         .LCD_LINE_BYTES  (LCD_LINE_BYTES),
         .MMC_ENABLE      (MMC_ENABLE),
         .MMC_CLK_DIV     (MMC_CLK_DIV),
-        .MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),
         .MMC_TIMEOUT_LOG2(MMC_TIMEOUT_LOG2),
         .LCD_QUEUE_ENABLE(LCD_ENABLE)
     ) upp (

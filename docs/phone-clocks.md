@@ -10,21 +10,28 @@ its nominal −90° phase. SDRAM initialization, refresh and pin command
 spacing derive from the physical system frequency. The controller
 keeps its 200 µs power-up interval, CAS latency and pin capture scheme.
 
-The modeled MMC host and card stay in the system domain. In the 104 MHz
-build the host schedules 3 bits per 8 clocks with low/high lengths
-(2,1), (1,2), (1,1). Both polarities have 2- or 3-clock intervals
-while continuously active, and the average is 39 MHz with 50% duty.
+The modeled MMC host and card stay in the system domain. The integer
+divide-by-three in the 104 MHz build gives 34.6667 MHz while active.
+It holds the clock low for one system clock and high for two.
 Both peers sample on the first system edge of the high phase. FIFO
-backpressure holds the clock low and preserves the scheduler's phase.
-The 64-edge response start and 2²³-edge data/busy limits retain their
-39 MHz active-clock intervals, about 1.64 µs and 215 ms respectively.
+backpressure holds the clock low between complete bits. The 64-edge
+response start and 2²³-edge data/busy limits are about 1.846 µs and
+241.979 ms of active MMC clocks.
+
+At 6.5 MHz pixel enable, the analog source raster has 414 pixels by
+262 lines, yielding 15.7005 kHz horizontal and 59.9255 Hz vertical.
+The extra 14 pixels extend the trailing horizontal blank. The 176×208
+phone and 320×240 diagnostic active rectangles and sync positions and
+widths are preserved. This is the source raster for MiSTer's direct
+video path. The scaler can supply its own sync timing.
 
 The general timer keeps its 26 MHz enable through divide-by-four.
-Timer0's stock reload and the production NOS counter both yield 64 Hz.
-LCD pixel and diagnostic SIM enables retain 6.5 MHz and 3.25 MHz.
+Timer0's stock reload and the production NOS counter both yield 64 Hz,
+independent of the analog raster. Diagnostic SIM retains 3.25 MHz.
 The approximate 32.768 kHz counter uses divisor 3174. UEM wall time,
 save/SD timeouts and PCM input/output phase use the system rate.
-DMA arbitration continues at system speed. PCM output remains 48 kHz.
+Guest LCD uploads and DMA arbitration continue at system speed. PCM
+output remains 48 kHz.
 
 CI checks the TimeQuest PLL against the selected source and records the
 actual native period. The physical 104 MHz report uses the routed
@@ -33,6 +40,14 @@ allow a separate diagnostic 104 MHz report. Native timing coverage
 requires setup, hold, recovery, removal and pulse width at four
 operating corners, with 1,000 exported setup paths per corner.
 The physical 78 MHz sign-off is preserved at `7b10754`, seed 43.
+
+Simulation checked the full normal and diagnostic source rasters, exact
+guest timer periods, MMC pin restart and CRC, a 64-sector CMD18/CMD12
+read, and persistent CMD24 write/readback alongside PCM and LCD DMA.
+The physical SDRAM pin model passed full scrub, byte masks, SWP order,
+competing LCD/DMA requests and refresh at 104 MHz. Fifteen fixed CPU
+payloads and all four native PolyCount frames matched the preceding
+104 MHz baseline. These observations use simulation and modeled media.
 
 ## Requested26MHz/64Hz spin (2026-11-09)
 
