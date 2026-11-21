@@ -314,10 +314,12 @@ def schedule_early_smull(phone):
     // its load selection, without routing through the DP barrel shifter.
     wire [31:0] smull_multiplicand = w_take ? i_w_load_data :
                                    (W_ROTATE ? shift_input_nw : shift_input);
-    wire signed [32:0] product_left = launch_smull ? {smull_multiplicand[31], smull_multiplicand} :
-                       {signed_product && a[249], a[249-:32]};
-    wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
-                        {signed_product && a[185], a[185-:32]};
+    // A's pending product excludes S admission. Select that owner before
+    // the admission handshake, which still qualifies the DSP write edge.
+    wire signed [32:0] product_left = product_phase ? {signed_product && a[249], a[249-:32]} :
+                                     {smull_multiplicand[31], smull_multiplicand};
+    wire signed [32:0] product_right = product_phase ? {signed_product && a[185], a[185-:32]} :
+                                      {operand[95], operand[95:64]};
     (* multstyle = "dsp" *) reg signed [65:0] full_product;
     always @(posedge i_clk)
         if (launch_smull || product_phase)
@@ -328,6 +330,8 @@ def schedule_early_smull(phone):
     reg launched_smull;
     wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
     always @(posedge i_clk) begin
+        if (!i_reset && launch_smull && product_phase)
+            $fatal(1, "Two multiply owners on one DSP write edge");
         if (!i_reset && launch_smull && smull_multiplicand !== shifted)
             $fatal(1, "Early SMULL bypass changed its operand at %h", i_pc);
         if (i_reset || i_flush) launched_smull <= 0;
@@ -686,6 +690,81 @@ endmodule
     return ''.join(parts)
 
 
+def register_background_load_tag(phone):
+    """Use the D-cache's single owned fill tag for frontend interlocks."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
+
+    def add_tag_port(part, existing, new):
+        return edit(part, f'\t{existing},\n', f'\t{existing},\n\t{new},\n')
+
+    fsm = index['ngage2_zap_dcache_fsm']
+    parts[fsm] = add_tag_port(parts[fsm], 'o_lock_any', 'o_lock_tag')
+    parts[fsm] = edit(parts[fsm], '\t(* dont_retime *) output reg o_lock_any;\n',
+                      '\t(* dont_retime *) output reg o_lock_any;\n'
+                      '\t(* dont_retime *) output reg [5:0] o_lock_tag;\n')
+    parts[fsm] = edit(parts[fsm], '\t\t\to_lock_any <= 0;\n',
+                      '\t\t\to_lock_any <= 0;\n\t\t\to_lock_tag <= 0;\n')
+    parts[fsm] = edit(parts[fsm], '\t\t\to_lock_any <= |lock_nxt;\n', '''
+\t\t\to_lock_any <= |lock_nxt;
+            // Only IDLE can install a new background read lock. The
+            // bitmap's registered nonempty bit qualifies the held tag.
+            if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
+'''.lstrip('\n'))
+    parts[fsm] = edit(parts[fsm], 'endmodule\n', '''
+    // synthesis translate_off
+    always @(posedge i_clk)
+        if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
+            $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
+    // synthesis translate_on
+endmodule
+'''.lstrip('\n'))
+
+    cache = index['ngage2_zap_dcache']
+    parts[cache] = add_tag_port(parts[cache], 'o_lock_any', 'o_lock_tag')
+    parts[cache] = edit(parts[cache], '\toutput wire o_lock_any;\n',
+                        '\toutput wire o_lock_any;\n\toutput wire [5:0] o_lock_tag;\n')
+    parts[cache] = edit(parts[cache], '\t\t.o_lock_any(o_lock_any),\n',
+                        '\t\t.o_lock_any(o_lock_any),\n\t\t.o_lock_tag(o_lock_tag),\n')
+
+    top = index['ngage2_zap_top']
+    parts[top] = edit(parts[top], '\twire dc_lock_any;\n',
+                      '\twire dc_lock_any;\n\twire [5:0] dc_lock_tag;\n')
+    parts[top] = edit(parts[top], '\t\t\t\t.i_dc_lock_any(dc_lock_any),\n',
+                      '\t\t\t\t.i_dc_lock_any(dc_lock_any),\n'
+                      '\t\t\t\t.i_dc_lock_tag(dc_lock_tag),\n')
+    parts[top] = edit(parts[top], '\t\t\t\t.o_lock_any(dc_lock_any),\n',
+                      '\t\t\t\t.o_lock_any(dc_lock_any),\n'
+                      '\t\t\t\t.o_lock_tag(dc_lock_tag),\n')
+
+    core = index['ngage2_arm9v2_core']
+    parts[core] = add_tag_port(parts[core], 'i_dc_lock_any', 'i_dc_lock_tag')
+    parts[core] = edit(parts[core], '\tinput wire i_dc_lock_any;\n',
+                       '\tinput wire i_dc_lock_any;\n\tinput wire [5:0] i_dc_lock_tag;\n')
+    parts[core] = edit(parts[core], 'locked[s_writer_tag]',
+                       '(i_dc_lock_any && i_dc_lock_tag == s_writer_tag)')
+    parts[core] = edit(parts[core], '\t\t.i_locked(locked),\n',
+                       '\t\t.i_locked(locked),\n\t\t.i_lock_valid(i_dc_lock_any),\n'
+                       '\t\t.i_lock_tag(i_dc_lock_tag),\n')
+
+    for name in ('front_decode', 'decode'):
+        decoder = index[f'ngage2_arm9v2_{name}']
+        part = edit(parts[decoder], '\ti_locked,\n', '\ti_locked,\n\ti_lock_valid,\n\ti_lock_tag,\n')
+        part = edit(part, '\tinput wire [39:0] i_locked;\n',
+                    '\tinput wire [39:0] i_locked;\n\tinput wire i_lock_valid;\n'
+                    '\tinput wire [5:0] i_lock_tag;\n')
+        if name == 'front_decode':
+            part = edit(part, '\t\t.i_locked(i_locked),\n',
+                        '\t\t.i_locked(i_locked),\n\t\t.i_lock_valid(i_lock_valid),\n'
+                        '\t\t.i_lock_tag(i_lock_tag),\n')
+        else:
+            for offset in (80, 86, 100, 106, 112, 118):
+                part = edit(part, f'i_locked[d2[{offset}+:6]]',
+                            f'(i_lock_valid && i_lock_tag == d2[{offset}+:6])')
+        parts[decoder] = part
+    return ''.join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -715,6 +794,7 @@ def main():
     generated = predicate_block(generated)
     generated = predecode_refill_candidates(half_dirty_writeback(generated))
     generated = predecode_dcache_write_enable(generated)
+    generated = register_background_load_tag(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)

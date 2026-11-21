@@ -109,6 +109,22 @@ installed simulator image. It compares the generated controller and RAM
 against the original mask-derived enable and a byte-by-byte oracle. The
 16- and 32-byte tests cover 163,848 cases and 47,352 read/write collisions.
 
+### Background load owner and multiply launch
+
+The D-cache captures the background load's destination tag on the same
+edge that installs its sole fill lock. Decode and the held load-writer
+interlock compare register tags against that owner. The registered valid
+bit follows the original lock bitmap, including clear on critical-word
+return. The DSP selects the pending A product ahead of S admission.
+The original launch enable still determines when the DSP samples its
+operands.
+
+Run `sh tests/cpu/arm9v2_board/run-background-load-lock.sh` inside the
+simulator image. It checks all 64 encoded tags, including zero, with
+chained fills, hits under miss, aborts and mid-fill reset. The matched
+CPU contract with `ARM9V2_SMULL_COVERAGE=1` checks launch counts,
+writeback operands and cycle counts.
+
 To compare true half-line dirty tracking, generate the two-way netlist
 with `sv2v` on `PATH` and add it to the block-writeback run. Use `--dirty
 packed` for the matched metadata control, which writes both halves.

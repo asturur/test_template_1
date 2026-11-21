@@ -358,6 +358,7 @@ module ngage2_arm9v2_core (
 	i_dc_reg_dat,
 	i_dc_lock,
 	i_dc_lock_any,
+	i_dc_lock_tag,
 	i_dc_lock_owner,
 	i_dc_lock_return,
 	o_dc_lock_owner_hold,
@@ -518,6 +519,7 @@ module ngage2_arm9v2_core (
 	input wire [31:0] i_dc_reg_dat;
 	input wire [63:0] i_dc_lock;
 	input wire i_dc_lock_any;
+	input wire [5:0] i_dc_lock_tag;
 	input wire i_dc_lock_owner;
 	input wire i_dc_lock_return;
 	output wire [5:0] o_dc_lock_owner_hold;
@@ -1412,7 +1414,7 @@ module ngage2_arm9v2_core (
     // S can own the younger packet early. A cannot execute it while an
     // older result can still arrive, including fill/miss and abort paths.
     wire s_held_load_writer = d_valid && d_advanced_load_writer &&
-        (m_same_writer || skid_same_writer || locked[s_writer_tag] ||
+        (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag) ||
          (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
     wire s_may_write_flags = d_valid && !d_fault &&
         ((d_instruction[20] && (d_kind == DP || d_kind == MUL || d_kind == MULL)) ||
@@ -1478,6 +1480,8 @@ module ngage2_arm9v2_core (
     .i_predicate_flags(a_flags),
         .i_predicate_stable(predicate_stable),
 		.i_locked(locked),
+		.i_lock_valid(i_dc_lock_any),
+		.i_lock_tag(i_dc_lock_tag),
 		.i_rf_value(rf_value),
 		.o_rf_tag(rf_tag),
 		.i_load_tag(load_tag),
@@ -1841,6 +1845,8 @@ module ngage2_arm9v2_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+	i_lock_valid,
+	i_lock_tag,
     i_predicate_flags,
     i_predicate_stable,
     i_m_simple_load,
@@ -1957,6 +1963,8 @@ module ngage2_arm9v2_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+	input wire i_lock_valid;
+	input wire [5:0] i_lock_tag;
     input wire [3:0] i_predicate_flags;
     input wire i_predicate_stable;
     input wire i_m_simple_load;
@@ -2762,9 +2770,9 @@ module ngage2_arm9v2_decode (
 				end
 		end
 		if (advance_load_writer) producer_hazard[3] = 0;
-		load_hazard = (|producer_hazard || (d2[78] && i_locked[d2[80+:6]])) || (d2[79] && i_locked[d2[86+:6]]);
+		load_hazard = (|producer_hazard || (d2[78] && (i_lock_valid && i_lock_tag == d2[80+:6]))) || (d2[79] && (i_lock_valid && i_lock_tag == d2[86+:6]));
 	end
-	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && i_locked[d2[100+:6]])) || (d2[97] && i_locked[d2[106+:6]])) || (d2[98] && i_locked[d2[112+:6]])) || (d2[99] && i_locked[d2[118+:6]])) || |early_hazard);
+	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && (i_lock_valid && i_lock_tag == d2[100+:6]))) || (d2[97] && (i_lock_valid && i_lock_tag == d2[106+:6]))) || (d2[98] && (i_lock_valid && i_lock_tag == d2[112+:6]))) || (d2[99] && (i_lock_valid && i_lock_tag == d2[118+:6]))) || |early_hazard);
 	assign step = (((d2_valid && (!out_valid || i_ready)) && !o_hazard) && !i_flush) && (!redirect_ff[74] || redirect_in_d2);
 	assign pop = ((count != 0) && (!d2_valid || (step && predicate_last))) && !kill_younger;
 	assign o_rf_tag = d2[123-:24];
@@ -3749,10 +3757,12 @@ module ngage2_arm9v2_execute (
     // its load selection, without routing through the DP barrel shifter.
     wire [31:0] smull_multiplicand = w_take ? i_w_load_data :
                                    (W_ROTATE ? shift_input_nw : shift_input);
-    wire signed [32:0] product_left = launch_smull ? {smull_multiplicand[31], smull_multiplicand} :
-                       {signed_product && a[249], a[249-:32]};
-    wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
-                        {signed_product && a[185], a[185-:32]};
+    // A's pending product excludes S admission. Select that owner before
+    // the admission handshake, which still qualifies the DSP write edge.
+    wire signed [32:0] product_left = product_phase ? {signed_product && a[249], a[249-:32]} :
+                                     {smull_multiplicand[31], smull_multiplicand};
+    wire signed [32:0] product_right = product_phase ? {signed_product && a[185], a[185-:32]} :
+                                      {operand[95], operand[95:64]};
     (* multstyle = "dsp" *) reg signed [65:0] full_product;
     always @(posedge i_clk)
         if (launch_smull || product_phase)
@@ -3763,6 +3773,8 @@ module ngage2_arm9v2_execute (
     reg launched_smull;
     wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
     always @(posedge i_clk) begin
+        if (!i_reset && launch_smull && product_phase)
+            $fatal(1, "Two multiply owners on one DSP write edge");
         if (!i_reset && launch_smull && smull_multiplicand !== shifted)
             $fatal(1, "Early SMULL bypass changed its operand at %h", i_pc);
         if (i_reset || i_flush) launched_smull <= 0;
@@ -4651,6 +4663,8 @@ module ngage2_arm9v2_front_decode (
 	i_wr_addr_b,
 	i_wr_addr_c,
 	i_locked,
+	i_lock_valid,
+	i_lock_tag,
     i_predicate_flags,
     i_predicate_stable,
     i_m_simple_load,
@@ -4785,6 +4799,8 @@ module ngage2_arm9v2_front_decode (
 	input wire [39:0] i_wr_addr_b;
 	input wire [39:0] i_wr_addr_c;
 	input wire [39:0] i_locked;
+	input wire i_lock_valid;
+	input wire [5:0] i_lock_tag;
     input wire [3:0] i_predicate_flags;
     input wire i_predicate_stable;
     input wire i_m_simple_load;
@@ -4996,6 +5012,8 @@ module ngage2_arm9v2_front_decode (
         .i_predicate_flags(i_predicate_flags),
         .i_predicate_stable(i_predicate_stable),
 		.i_locked(i_locked),
+		.i_lock_valid(i_lock_valid),
+		.i_lock_tag(i_lock_tag),
 		.i_early_tag(i_early_tag),
 		.i_early_valid(i_early_valid),
 		.i_early_agu(i_early_agu),
@@ -9424,6 +9442,7 @@ module ngage2_zap_dcache_fsm (
 	i_lock_owner_advance,
 	i_lock_owner_move,
 	o_lock_any,
+	o_lock_tag,
 	o_lock_owner,
 	o_lock_return,
 	o_ack_fast,
@@ -9549,6 +9568,7 @@ module ngage2_zap_dcache_fsm (
 	input wire [5:0] i_lock_owner_advance;
 	input wire i_lock_owner_move;
 	(* dont_retime *) output reg o_lock_any;
+	(* dont_retime *) output reg [5:0] o_lock_tag;
 	(* dont_retime *) output reg o_lock_owner;
 	(* dont_retime *) output reg o_lock_return;
 	output wire o_ack_fast;
@@ -10274,6 +10294,7 @@ module ngage2_zap_dcache_fsm (
 			adr_ctr_ff <= 0;
 			lock_ff <= 64'd0;
 			o_lock_any <= 0;
+			o_lock_tag <= 0;
 			o_lock_owner <= 0;
 			o_lock_return <= 0;
 			state_ff <= 0;
@@ -10293,6 +10314,9 @@ module ngage2_zap_dcache_fsm (
 			adr_ctr_ff <= adr_ctr_nxt;
 			lock_ff <= lock_nxt;
 			o_lock_any <= |lock_nxt;
+            // Only IDLE can install a new background read lock. The
+            // bitmap's registered nonempty bit qualifies the held tag.
+            if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
 			o_lock_owner <= (i_lock_owner_move ? owner_advance_locked : owner_held_locked);
 			o_lock_return <= owner_held_locked;
 			state_ff <= state_nxt;
@@ -10799,6 +10823,11 @@ module ngage2_zap_dcache_fsm (
 		endcase
 	end
 	initial _sv2v_0 = 0;
+    // synthesis translate_off
+    always @(posedge i_clk)
+        if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
+            $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
+    // synthesis translate_on
 endmodule
 module ngage2_zap_dcache (
 	i_clk,
@@ -10838,6 +10867,7 @@ module ngage2_zap_dcache (
 	i_lock_owner_advance,
 	i_lock_owner_move,
 	o_lock_any,
+	o_lock_tag,
 	o_lock_owner,
 	o_lock_return,
 	o_ack_fast,
@@ -10950,6 +10980,7 @@ module ngage2_zap_dcache (
 	input wire [5:0] i_lock_owner_advance;
 	input wire i_lock_owner_move;
 	output wire o_lock_any;
+	output wire [5:0] o_lock_tag;
 	output wire o_lock_owner;
 	output wire o_lock_return;
 	output wire o_ack_fast;
@@ -11470,6 +11501,7 @@ module ngage2_zap_dcache (
 		.i_lock_owner_advance(i_lock_owner_advance),
 		.i_lock_owner_move(i_lock_owner_move),
 		.o_lock_any(o_lock_any),
+		.o_lock_tag(o_lock_tag),
 		.o_lock_owner(o_lock_owner),
 		.o_lock_return(o_lock_return),
 		.o_ack_fast(o_ack_fast),
@@ -15605,6 +15637,7 @@ module ngage2_zap_top (
 	wire [5:0] dc_rreg_idx_bin;
 	wire [63:0] dc_lock;
 	wire dc_lock_any;
+	wire [5:0] dc_lock_tag;
 	wire dc_lock_owner;
 	wire dc_lock_return;
 	wire dc_ack_fast;
@@ -15759,6 +15792,7 @@ module ngage2_zap_top (
 				.i_dc_reg_idx(dc_wreg_idx),
 				.i_dc_lock(dc_lock),
 				.i_dc_lock_any(dc_lock_any),
+				.i_dc_lock_tag(dc_lock_tag),
 				.i_dc_lock_owner(dc_lock_owner),
 				.i_dc_lock_return(dc_lock_return),
 				.i_data_ack_fast(dc_ack_fast),
@@ -15885,6 +15919,7 @@ module ngage2_zap_top (
 				.i_lock_owner_advance(dc_lock_owner_advance),
 				.i_lock_owner_move(dc_lock_owner_move),
 				.o_lock_any(dc_lock_any),
+				.o_lock_tag(dc_lock_tag),
 				.o_lock_owner(dc_lock_owner),
 				.o_lock_return(dc_lock_return),
 				.o_ack_fast(dc_ack_fast),
