@@ -9471,6 +9471,7 @@ module ngage2_zap_dcache_fsm (
 	o_cache_tag_wr_en,
 	o_cache_line,
 	o_cache_line_ben,
+	o_cache_line_write,
 	o_cache_clean_req,
 	i_cache_clean_done,
 	o_cache_inv_req,
@@ -9595,6 +9596,7 @@ module ngage2_zap_dcache_fsm (
 	output wire o_cache_tag_wr_en;
 	output wire [(CACHE_LINE * 8) - 1:0] o_cache_line;
 	output wire [CACHE_LINE - 1:0] o_cache_line_ben;
+	output wire o_cache_line_write;
 	output wire o_cache_clean_req;
 	input wire i_cache_clean_done;
 	output wire o_cache_inv_req;
@@ -10462,6 +10464,9 @@ module ngage2_zap_dcache_fsm (
 			ben_comp = {{CACHE_LINE - 32'd4 {1'd0}}, bv} << shamt;
 		end
 	endfunction
+    // A word lane shift within a power-of-two line preserves a nonempty mask.
+    assign o_cache_line_write = fill_write || (live_write && (|i_ben)) ||
+                                (saved_write && (|ben));
 	assign o_cache_line_ben = ((ben_comp(i_address[$clog2(CACHE_LINE) - 1:2], i_ben) & {CACHE_LINE {live_write}}) | (ben_comp(address[$clog2(CACHE_LINE) - 1:2], ben) & {CACHE_LINE {saved_write}})) | {CACHE_LINE {fill_write}};
 	always @(posedge i_clk) o_idle <= state_nxt[IDLE];
 	localparam integer EVICT_INDEX_BITS = $clog2(CACHE_LINE / 4) + 1;
@@ -11294,6 +11299,7 @@ module ngage2_zap_dcache (
 	(* dont_retime *) reg [31:0] tr_cache_word;
 	wire [(CACHE_LINE * 8) - 1:0] cf_cache_line;
 	wire [CACHE_LINE - 1:0] cf_cache_line_ben;
+	wire cf_cache_line_write;
 	wire cf_cache_tag_wr_en;
 	reg [((31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1)) + 0:0] tr_cache_tag;
 	wire [((31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1)) + 0:0] cf_cache_tag;
@@ -11439,6 +11445,7 @@ module ngage2_zap_dcache (
 		.o_cache_tag_wr_en(cf_cache_tag_wr_en),
 		.o_cache_line(cf_cache_line),
 		.o_cache_line_ben(cf_cache_line_ben),
+		.o_cache_line_write(cf_cache_line_write),
 		.o_cache_clean_req(cf_cache_clean_req),
 		.i_cache_clean_done(tr_cache_clean_done),
 		.o_cache_inv_req(cf_cache_inv_req),
@@ -11550,6 +11557,7 @@ module ngage2_zap_dcache (
 		.o_cache_words(raw_cache_words),
 		.o_cache_word_sel(raw_cache_word_sel),
 		.i_cache_line_ben(cf_cache_line_ben & {CACHE_LINE {ram_write}}),
+		.i_cache_line_write(cf_cache_line_write && ram_write),
 		.i_cache_tag_wr_en(cf_cache_tag_wr_en && ram_write),
 		.i_cache_tag(cf_cache_tag),
 		.i_cache_tag_dirty(cf_cache_tag_dirty),
@@ -12675,10 +12683,13 @@ module ngage2_zap_ram_bytes (
 	i_wr_data,
 	i_wr_addr,
 	i_rd_addr,
-	o_rd_data
+	o_rd_data,
+	i_write_enable
 );
+	input wire i_write_enable;
 	parameter integer BYTES = 16;
 	parameter integer DEPTH = 32;
+	parameter EXPLICIT_WRITE_ENABLE = 0;
 	input wire i_clk;
 	input wire i_clken;
 	input wire [BYTES - 1:0] i_wr_en;
@@ -12715,7 +12726,7 @@ module ngage2_zap_ram_bytes (
 	) u_ram(
 		.clock0(i_clk),
 		.clocken0(i_clken),
-		.wren_a(|i_wr_en),
+		.wren_a(EXPLICIT_WRITE_ENABLE ? i_write_enable : |i_wr_en),
 		.address_a(i_wr_addr_x),
 		.data_a(i_wr_data),
 		.byteena_a(i_wr_en),
@@ -12723,6 +12734,11 @@ module ngage2_zap_ram_bytes (
 		.rden_b(1'b1),
 		.q_b(o_rd_data)
 	);
+    // synthesis translate_off
+    always @(posedge i_clk)
+        if (EXPLICIT_WRITE_ENABLE && i_clken && i_write_enable !== (|i_wr_en))
+            $fatal(1, "Packed D-cache write enable differs from the byte mask");
+    // synthesis translate_on
 endmodule
 module ngage2_zap_register_file (
 	i_clk,
@@ -17004,6 +17020,7 @@ module ngage2_zap_dcache_half_tag_ram (
 	i_cache_en,
 	i_cache_line,
 	i_cache_line_ben,
+	i_cache_line_write,
 	o_cache_line,
 	o_cache_words,
 	o_cache_word_sel,
@@ -17076,6 +17093,7 @@ module ngage2_zap_dcache_half_tag_ram (
 	input wire i_cache_en;
 	input wire [(CACHE_LINE * 8) - 1:0] i_cache_line;
 	input wire [CACHE_LINE - 1:0] i_cache_line_ben;
+	input wire i_cache_line_write;
 	output reg [(CACHE_LINE * 8) - 1:0] o_cache_line;
 	output reg [(WAYS * 32) - 1:0] o_cache_words;
 	output wire [(WAYS > 1 ? $clog2(WAYS) : 1) - 1:0] o_cache_word_sel;
@@ -17569,11 +17587,13 @@ module ngage2_zap_dcache_half_tag_ram (
 				if (DATA_PACK) begin : g_packed_data
 					ngage2_zap_ram_bytes #(
 						.BYTES(CACHE_LINE),
-						.DEPTH(LINES)
+						.DEPTH(LINES),
+						.EXPLICIT_WRITE_ENABLE((CACHE_LINE & (CACHE_LINE - 1)) == 0)
 					) u_data(
 						.i_clk(i_clk),
 						.i_clken(!i_hold),
 						.i_wr_en(i_cache_line_ben & {CACHE_LINE {wr_sel[w]}}),
+						.i_write_enable(i_cache_line_write && wr_sel[w]),
 						.i_wr_data(i_cache_line),
 						.i_wr_addr(tag_ram_wr_addr),
 						.i_rd_addr(rd_set),

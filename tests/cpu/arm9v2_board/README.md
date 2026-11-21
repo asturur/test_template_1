@@ -97,6 +97,18 @@ the captured victim buffer. The runner counts these separately from scalar
 writes. The existing SDRAM scheduler drives eight single-location WRITE
 commands per block. Explicit cache maintenance uses its existing path.
 
+### Packed D-cache write enables
+
+The packed way's M10K write enable comes from the selected way and write
+operation. Live and saved stores test their four byte enables before the
+word-lane shift. A refill writes the entire line. The original byte mask,
+mixed-port `OLD_DATA` setting and forwarding remain in use.
+
+Run `sh tests/cpu/arm9v2_board/run-packed-write-enable.sh` inside the
+installed simulator image. It compares the generated controller and RAM
+against the original mask-derived enable and a byte-by-byte oracle. The
+16- and 32-byte tests cover 163,848 cases and 47,352 read/write collisions.
+
 To compare true half-line dirty tracking, generate the two-way netlist
 with `sv2v` on `PATH` and add it to the block-writeback run. Use `--dirty
 packed` for the matched metadata control, which writes both halves.

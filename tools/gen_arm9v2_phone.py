@@ -627,6 +627,65 @@ def keep_wishbone_request_boundary(phone):
     return phone[:start] + merger + phone[end:]
 
 
+def predecode_dcache_write_enable(phone):
+    """Drive packed data RAM WREN independently of the byte lane shifter."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
+
+    fsm = index['ngage2_zap_dcache_fsm']
+    parts[fsm] = edit(parts[fsm], '\to_cache_line_ben,\n',
+                      '\to_cache_line_ben,\n\to_cache_line_write,\n')
+    parts[fsm] = edit(parts[fsm], '\toutput wire [CACHE_LINE - 1:0] o_cache_line_ben;\n',
+                      '\toutput wire [CACHE_LINE - 1:0] o_cache_line_ben;\n'
+                      '\toutput wire o_cache_line_write;\n')
+    parts[fsm] = edit(parts[fsm], '\tassign o_cache_line_ben =', '''
+    // A word lane shift within a power-of-two line preserves a nonempty mask.
+    assign o_cache_line_write = fill_write || (live_write && (|i_ben)) ||
+                                (saved_write && (|ben));
+\tassign o_cache_line_ben ='''.lstrip('\n'))
+
+    cache = index['ngage2_zap_dcache']
+    parts[cache] = edit(parts[cache], '\twire [CACHE_LINE - 1:0] cf_cache_line_ben;\n',
+                        '\twire [CACHE_LINE - 1:0] cf_cache_line_ben;\n'
+                        '\twire cf_cache_line_write;\n')
+    parts[cache] = edit(parts[cache], '\t\t.o_cache_line_ben(cf_cache_line_ben),\n',
+                        '\t\t.o_cache_line_ben(cf_cache_line_ben),\n'
+                        '\t\t.o_cache_line_write(cf_cache_line_write),\n')
+    parts[cache] = edit(parts[cache], '\t\t.i_cache_line_ben(cf_cache_line_ben & {CACHE_LINE {ram_write}}),\n',
+                        '\t\t.i_cache_line_ben(cf_cache_line_ben & {CACHE_LINE {ram_write}}),\n'
+                        '\t\t.i_cache_line_write(cf_cache_line_write && ram_write),\n')
+
+    tag = index['ngage2_zap_dcache_half_tag_ram']
+    parts[tag] = edit(parts[tag], '\ti_cache_line_ben,\n',
+                      '\ti_cache_line_ben,\n\ti_cache_line_write,\n')
+    parts[tag] = edit(parts[tag], '\tinput wire [CACHE_LINE - 1:0] i_cache_line_ben;\n',
+                      '\tinput wire [CACHE_LINE - 1:0] i_cache_line_ben;\n'
+                      '\tinput wire i_cache_line_write;\n')
+    parts[tag] = edit(parts[tag], '\t\t\t\t\t\t.BYTES(CACHE_LINE),\n\t\t\t\t\t\t.DEPTH(LINES)\n',
+                      '\t\t\t\t\t\t.BYTES(CACHE_LINE),\n\t\t\t\t\t\t.DEPTH(LINES),\n'
+                      '\t\t\t\t\t\t.EXPLICIT_WRITE_ENABLE((CACHE_LINE & (CACHE_LINE - 1)) == 0)\n')
+    parts[tag] = edit(parts[tag], '\t\t\t\t\t\t.i_wr_en(i_cache_line_ben & {CACHE_LINE {wr_sel[w]}}),\n',
+                      '\t\t\t\t\t\t.i_wr_en(i_cache_line_ben & {CACHE_LINE {wr_sel[w]}}),\n'
+                      '\t\t\t\t\t\t.i_write_enable(i_cache_line_write && wr_sel[w]),\n')
+
+    ram = index['ngage2_zap_ram_bytes']
+    parts[ram] = ports(parts[ram], 'o_rd_data', ['input wire i_write_enable'])
+    parts[ram] = edit(parts[ram], '\tparameter integer DEPTH = 32;\n',
+                      '\tparameter integer DEPTH = 32;\n'
+                      '\tparameter EXPLICIT_WRITE_ENABLE = 0;\n')
+    parts[ram] = edit(parts[ram], '\t\t.wren_a(|i_wr_en),',
+                      '\t\t.wren_a(EXPLICIT_WRITE_ENABLE ? i_write_enable : |i_wr_en),')
+    parts[ram] = edit(parts[ram], 'endmodule\n', '''
+    // synthesis translate_off
+    always @(posedge i_clk)
+        if (EXPLICIT_WRITE_ENABLE && i_clken && i_write_enable !== (|i_wr_en))
+            $fatal(1, "Packed D-cache write enable differs from the byte mask");
+    // synthesis translate_on
+endmodule
+'''.lstrip('\n'))
+    return ''.join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -655,6 +714,7 @@ def main():
     generated = load_waw_overlay(generated)
     generated = predicate_block(generated)
     generated = predecode_refill_candidates(half_dirty_writeback(generated))
+    generated = predecode_dcache_write_enable(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
