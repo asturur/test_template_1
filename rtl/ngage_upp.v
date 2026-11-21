@@ -237,10 +237,10 @@ module ngage_upp #(
                 .wb_error         (master_error)
             );
             assign ram_write_block = ram_req && master_write_block;
-            wire slow_master_cyc, slow_master_stb;
+            wire slow_master_stb;
             wire slow_ack, slow_error, slow_idle;
             wire [31:0] slow_read_data;
-            wire cpu_bus_cyc, cpu_bus_stb, cpu_bus_we, cpu_bus_code;
+            wire cpu_bus_cyc, cpu_bus_stb, cpu_bus_live, cpu_bus_we, cpu_bus_code;
             wire [31:0] cpu_bus_adr, cpu_bus_din;
             wire [3:0] cpu_bus_sel;
             reg dma_local_active = 0, dma_local_gap = 0, prefer_dma = 0;
@@ -281,8 +281,9 @@ module ngage_upp #(
             // readiness. Live MMC decode must not fan out into CPU CYC and
             // every peripheral write/diagnostic observation. Actual acceptance
             // still requires the endpoint's CURRENT readiness.
-            wire block_cpu = generic_cpu_exclusion || dma_local_active || dma_local_gap ||
+            wire cpu_suspended = dma_local_active || dma_local_gap ||
                 ((lcd_reserved || mmc_reserved) && !cpu_lock);
+            wire block_cpu = generic_cpu_exclusion || cpu_suspended;
 `ifndef ALTERA_RESERVED_QIS
 `ifndef SYNTHESIS
             always @(posedge clk) begin
@@ -300,11 +301,14 @@ module ngage_upp #(
             // Hold the selected packet before regional decode. Neither owner
             // selection nor its wide address/lane mux crosses device command
             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
-            ngage_upp_request_stage request_stage (
+            ngage_upp_request_stage #(
+                .EXPLICIT_LIVE(1)
+            ) request_stage (
                 .clk        (clk),
                 .reset      (rst),
                 .in_cyc     (dma_bus_active || cpu_bus_cyc),
                 .in_stb     (dma_bus_active || cpu_bus_stb),
+                .in_live    (dma_bus_active || cpu_bus_live),
                 .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
                 .in_code    (!dma_bus_active && cpu_bus_code),
                 .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
@@ -331,12 +335,12 @@ module ngage_upp #(
                     // cycle. Leave that cycle before handing the bus back.
                     dma_local_gap <= dma_local_done;
                     if (MMC_ENABLE && !cpu_lock && mmc_waiting && !lcd_reserved &&
-                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_cyc)))
+                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_live)))
                         mmc_reserved <= 1;
                     if (!mmc_waiting || (dma_local_done && dma_addr == 32'h0c120624))
                         mmc_reserved <= 0;
                     if (GENERAL_DMA && !mmc_reserved && !mmc_waiting && !cpu_lock && lcd_waiting && lcd_queue_empty &&
-                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_cyc)))
+                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_live)))
                         lcd_reserved <= 1;
                     if ((dma_local_done && dma_lcd) || !lcd_waiting) lcd_reserved <= 0;
                     if (dma_local_done) dma_local_active <= 0;
@@ -369,7 +373,7 @@ module ngage_upp #(
                 .master_ack    (master_ack),
                 .master_error  (master_error),
                 .master_rdata  (master_read_data),
-                .slow_cyc      (slow_master_cyc),
+                .slow_cyc      (),
                 .slow_stb      (slow_master_stb),
                 .slow_idle     (slow_idle),
                 .slow_ack      (slow_ack),
@@ -392,12 +396,14 @@ module ngage_upp #(
             // response/idle bubbles between the two halves of an atomic SWP.
             // ZAP's I/D merger already registers and holds the complete beat.
             // Reuse that request boundary; retain the registered response.
+            // The route qualifies admission through STB. Once active, CYC
+            // follows requester withdrawal and the existing DMA exclusion.
             ngage_upp_bus_bridge #(
                 .REGISTERED_MASTER(1)
             ) bridge (
                 .clk             (clk),
                 .reset           (rst),
-                .master_cyc      (slow_master_cyc && !block_cpu),
+                .master_cyc      (master_cyc && !cpu_suspended),
                 .master_stb      (slow_master_stb && !block_cpu),
                 .master_we       (master_we),
                 .master_code     (master_code),
@@ -409,6 +415,7 @@ module ngage_upp #(
                 .master_read_data(slow_read_data),
                 .bus_cyc         (cpu_bus_cyc),
                 .bus_stb         (cpu_bus_stb),
+                .bus_live        (cpu_bus_live),
                 .bus_we          (cpu_bus_we),
                 .bus_code        (cpu_bus_code),
                 .bus_address     (cpu_bus_adr),
@@ -723,10 +730,11 @@ module ngage_upp_bus_bridge #(
     input  wire        bus_ack,
     input  wire        bus_error,
     input  wire [31:0] bus_read_data,
-    output wire        idle
+    output wire        idle,
+    output wire        bus_live
 );
     localparam IDLE = 2'd0, ACTIVE = 2'd1, RESPONSE = 2'd2;
-    reg [1:0] state;
+    (* dont_retime *)reg [1:0] state;
     reg       response_error;
     reg request_we, request_code;
     reg [31:0] request_address, request_data;
@@ -743,7 +751,8 @@ module ngage_upp_bus_bridge #(
     assign bus_address  = REGISTERED_MASTER ? master_address : request_address;
     assign bus_data     = REGISTERED_MASTER ? master_data : request_data;
     assign bus_sel      = REGISTERED_MASTER ? master_sel : request_sel;
-    assign bus_cyc      = !reset && master_cyc && (state == ACTIVE || (REGISTERED_MASTER && start));
+    assign bus_live     = !reset && state == ACTIVE && master_cyc;
+    assign bus_cyc      = bus_live || (!reset && REGISTERED_MASTER && start);
     assign bus_stb      = bus_cyc;
     assign master_ack   = !reset && state == RESPONSE && !response_error;
     assign master_error = !reset && state == RESPONSE && response_error;
@@ -890,11 +899,14 @@ endmodule
 // One held request per CYC/STB assertion; the existing CPU response phase and
 // DMA gap provide the request-low edge. Cancellation immediately suppresses
 // side effects, while an already captured downstream transaction may drain.
-module ngage_upp_request_stage (
+module ngage_upp_request_stage #(
+    parameter EXPLICIT_LIVE = 0
+) (
     input  wire        clk,
     input  wire        reset,
     input  wire        in_cyc,
     input  wire        in_stb,
+    input  tri0        in_live,
     input  wire        in_we,
     input  wire        in_code,
     input  wire [31:0] in_address,
@@ -908,9 +920,12 @@ module ngage_upp_request_stage (
     output reg  [31:0] out_data,
     output reg  [ 3:0] out_sel
 );
-    reg  valid = 0;
+    (* dont_retime *)reg  valid = 0;
     wire offered = in_cyc && in_stb;
-    assign out_cyc = !reset && valid && offered;
+    // The admission pulse selects and samples the packet. The owner supplies
+    // cancellation and retirement independently once that capture is live.
+    wire live = EXPLICIT_LIVE ? in_live : offered;
+    assign out_cyc = !reset && valid && live;
     assign out_stb = out_cyc;
     always @(posedge clk) begin
         if (reset) begin
@@ -920,8 +935,9 @@ module ngage_upp_request_stage (
             out_address <= 0;
             out_data    <= 0;
             out_sel     <= 0;
-        end else if (!offered) valid <= 0;
-        else if (!valid) begin
+        end else if (valid) begin
+            if (!live) valid <= 0;
+        end else if (offered) begin
             valid       <= 1;
             out_we      <= in_we;
             out_code    <= in_code;

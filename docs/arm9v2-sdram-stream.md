@@ -147,6 +147,24 @@ The scalar-only LCD control takes 11.66–12.87% more clocks. The separate
 mixed pin replay with scalar LCD changes by 0.038% and checks an exact
 MMC sector write/readback, 18,304 LCD words and playback without underflow.
 
+### Slow bus ownership after capture
+
+The CPU address decode selects the direct RAM or slow UPP route when a
+packet enters the bus. The existing UPP bridge and shared request stage
+capture the slow owner and packet on that edge. For an owned CPU packet,
+the bridge keeps it live from its active state, the requester's CYC and
+DMA exclusion. For local DMA, the held DMA owner keeps the packet live.
+The shared stage drops the packet on cancellation or retirement. This
+keeps the live address decode off the slow request's commit and memory
+ownership path, which can otherwise feed the next RAM refill offer.
+
+A matched test compares adjacent RAM and slow packets under continuous
+CYC, late replies after cancellation, errors, and local DMA reservation
+and lock handoffs. Both designs deliver 162 replies and 32 errors on the
+same cycles. The 18 LCD pin cases and the mixed 104 MHz MMC, PCM and LCD
+replay have identical timing records and outputs. All 15 fixed payloads
+and all four native PolyCount frames also match cycle for cycle.
+
 ## Verify in simulation
 
 ```sh
