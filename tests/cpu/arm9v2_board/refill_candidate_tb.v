@@ -13,8 +13,24 @@ module refill_candidate_tb;
   wire [ 2:0] cti;
   wire [ 1:0] selected_bte;
   reg lock = 0, scalar_ack = 0, line_ready = 0, line_reject = 0;
+  reg guarantee = 1, line_valid = 0, line_last = 0, line_error = 0;
+  reg  [63:0] line_data = 0;
+  wire [31:0] cpu_data;
   wire cpu_ack, cpu_error, cpu_no_late_error;
   wire scalar, scalar_lock, line_req;
+
+  wire code_mapped, data_mapped;
+  ngage2_refill_region code_region (
+      code_addr[31:16],
+      code_mapped
+  );
+  ngage2_refill_region data_region (
+      data_addr[31:16],
+      data_mapped
+  );
+  wire line_read = !write && sel == 4'hf && bte == 0;
+  wire code_first = line_read && code_cti == 3'b010 && code_addr[4:0] == 0 && code_mapped;
+  wire data_first = line_read && data_cti == 3'b010 && data_addr[4:0] == 0 && data_mapped;
 
   ngage2_zap_wb_merger merger (
       .i_clk(clk),
@@ -25,6 +41,7 @@ module refill_candidate_tb;
       .i_c_wb_sel(sel),
       .i_c_wb_dat(32'd0),
       .i_c_wb_adr(code_addr),
+      .i_c_line_candidate(code_first),
       .i_c_wb_cti(code_cti),
       .i_c_wb_bte(bte),
       .i_d_wb_stb(data_request),
@@ -33,6 +50,7 @@ module refill_candidate_tb;
       .i_d_wb_sel(sel),
       .i_d_wb_dat(32'd0),
       .i_d_wb_adr(data_addr),
+      .i_d_line_candidate(data_first),
       .i_d_wb_cti(data_cti),
       .i_d_wb_bte(bte),
       .o_wb_cyc(cyc),
@@ -65,7 +83,8 @@ module refill_candidate_tb;
       .cpu_ack(cpu_ack),
       .cpu_error(cpu_error),
       .cpu_no_late_error(cpu_no_late_error),
-      .line_no_late_error(1'b1),
+      .cpu_data(cpu_data),
+      .line_no_late_error(guarantee),
       .wb_cyc(scalar),
       .wb_lock(scalar_lock),
       .wb_ack(scalar_ack),
@@ -74,11 +93,11 @@ module refill_candidate_tb;
       .line_req(line_req),
       .line_ready(line_ready),
       .line_reject(line_reject),
-      .line_valid(1'b0),
-      .line_data(64'd0),
-      .line_wide(1'b0),
-      .line_last(1'b0),
-      .line_error(1'b0)
+      .line_valid(line_valid),
+      .line_data(line_data),
+      .line_wide(1'b1),
+      .line_last(line_last),
+      .line_error(line_error)
   );
 
   task tick;
@@ -111,7 +130,26 @@ module refill_candidate_tb;
     end
   endtask
 
-  integer owner;
+  reg [15:0] region_prefix = 0;
+  wire [31:0] prefix_base = {region_prefix, 16'h0000};
+  wire [31:0] prefix_end = {region_prefix, 16'hffff};
+  wire region_mapped;
+  ngage2_refill_region prefix_range (
+      region_prefix,
+      region_mapped
+  );
+
+  function old_region;
+    input [31:0] address;
+    begin
+      old_region = address[31:24] == 8'h0a || address < 32'h007f0000 ||
+                   (address >= 32'h02000000 && address < 32'h02400000) ||
+                   (address >= 32'h04000000 && address < 32'h04800000);
+    end
+  endfunction
+
+  integer owner, prefix, beat, word;
+  localparam [31:0] LINE_BASE = 32'h02000000;
   initial begin
     for (owner = 0; owner < 2; owner = owner + 1) begin
       check_packet(owner[0], 32'h00000000, 1);
@@ -190,7 +228,60 @@ module refill_candidate_tb;
       $fatal(1, "Rejected line did not fall back to an ordinary scalar acknowledgement");
     scalar_ack = 0;
 
-    $display("PASS range edges, owner handoff, cancellation, lock and scalar fallback");
+    // The live guarantee is saved when the board accepts the line. Words
+    // arrive in order even if the input guarantee changes or SWP locks.
+    check_packet(1, LINE_BASE, 1);
+    line_ready = 1;
+    tick;
+    line_ready = 0;
+    guarantee = 0;
+    lock = 1;
+    for (beat = 0; beat < 4; beat = beat + 1) begin
+      line_valid = 1;
+      line_last = beat == 3;
+      line_data[31:0] = 2 * beat;
+      line_data[63:32] = 2 * beat + 1;
+      tick;
+      line_valid = 0;
+      for (word = 0; word < 2; word = word + 1) begin
+        if (!cpu_ack || cpu_error || !cpu_no_late_error || cpu_data != 2 * beat + word ||
+            scalar || scalar_lock || line_req)
+          $fatal(1, "Guaranteed line changed at word %0d", 2 * beat + word);
+        data_addr = data_addr + 4;
+        data_request = !(beat == 3 && word == 1);
+        data_cti = beat == 3 && word == 0 ? 3'b111 : 3'b010;
+        tick;
+      end
+    end
+    if (cpu_ack || cpu_error || cpu_no_late_error || scalar || line_req)
+      $fatal(1, "Finished line leaked a reply or another request");
+    lock = 0;
+    code_cti = 3'b010;
+
+    check_packet(0, LINE_BASE, 1);
+    line_ready = 1;
+    tick;
+    line_ready = 0;
+    line_valid = 1;
+    line_last  = 1;
+    line_error = 1;
+    tick;
+    line_valid = 0;
+    line_error = 0;
+    if (!cpu_error || cpu_ack || cpu_no_late_error || scalar || line_req)
+      $fatal(1, "Fallible line returned a promised ACK");
+
+    reset = 1;
+    tick;
+    for (prefix = 0; prefix < 65536; prefix = prefix + 1) begin
+      region_prefix = prefix[15:0];
+      #1;
+      if (region_mapped !== old_region(prefix_base) || region_mapped !== old_region(prefix_end))
+        $fatal(1, "Physical region prefix %h disagrees", region_prefix);
+    end
+
+    $display("PASS 65536 range prefixes, owner handoff, cancellation, lock and scalar fallback");
+    $display("PASS guaranteed line under lock and fallible line without promise");
     $finish;
   end
 endmodule

@@ -5458,6 +5458,7 @@ module ngage2_zap_cache_fsm (
 	o_wb_cti_ff,
 	o_wb_cti_nxt,
 	o_wb_bte_nxt,
+    o_wb_line_candidate_nxt,
 	i_wb_ack,
 	i_wb_dat,
 	i_wb_err,
@@ -5534,6 +5535,7 @@ module ngage2_zap_cache_fsm (
 	output reg [2:0] o_wb_cti_ff;
 	output reg [2:0] o_wb_cti_nxt;
 	output wire [1:0] o_wb_bte_nxt;
+    output wire o_wb_line_candidate_nxt;
 	input wire i_wb_ack;
 	input wire [31:0] i_wb_dat;
 	input wire i_wb_err;
@@ -5845,6 +5847,14 @@ module ngage2_zap_cache_fsm (
 	reg [((31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1)) + 0:0] cache_tag;
 	reg [31:0] phy_addr;
 	wire take;
+    wire live_fill_region;
+    (* dont_retime *) reg saved_fill_region;
+    ngage2_refill_region refill_region(i_phy_addr[31:16], live_fill_region);
+    // Only the first word of a linear 32-byte fill is aligned. The ACK
+    // advances the word, so it invalidates this flag without decoding
+    // the next address, byte enables or burst type after their muxes.
+    assign o_wb_line_candidate_nxt = CACHE_LINE == 32 &&
+        (state_ff == FETCH_SINGLE) && saved_fill_region && adr_ctr_ff == 0 && !take;
 	wire [$clog2(CACHE_LINE / 4):0] adr_ctr_inc;
 	wire beat_cur_ok;
 	wire beat_inc_ok;
@@ -5926,6 +5936,7 @@ module ngage2_zap_cache_fsm (
 			cache_line <= i_cache_line;
 			cache_tag <= i_cache_tag;
 			phy_addr <= i_phy_addr;
+            saved_fill_region <= live_fill_region;
 			way <= i_cache_way;
 		end
 	always @(posedge i_clk)
@@ -7670,6 +7681,7 @@ module ngage2_zap_cache (
 	o_wb_cti_nxt,
 	o_wb_bte,
 	o_wb_bte_nxt,
+    o_wb_line_candidate_nxt,
 	i_wb_dat,
 	i_wb_ack,
 	i_wb_err,
@@ -7736,6 +7748,7 @@ module ngage2_zap_cache (
 	output reg [2:0] o_wb_cti_nxt;
 	output reg [1:0] o_wb_bte;
 	output wire [1:0] o_wb_bte_nxt;
+    output wire o_wb_line_candidate_nxt;
 	input wire [31:0] i_wb_dat;
 	input wire i_wb_ack;
 	input wire i_wb_err;
@@ -8020,6 +8033,7 @@ module ngage2_zap_cache (
 	wire [2:0] wb_wen;
 	wire [3:0] wb_sel [2:0];
 	wire [31:0] wb_dat [2:0];
+    wire cache_line_candidate;
 	wire [31:0] wb_adr [2:0];
 	wire [2:0] wb_cti [2:0];
 	wire [1:0] cache_bte;
@@ -8148,6 +8162,7 @@ module ngage2_zap_cache (
 		.o_wb_wen_nxt(wb_wen[0]),
 		.o_wb_cti_nxt(wb_cti[0]),
 		.o_wb_bte_nxt(cache_bte),
+        .o_wb_line_candidate_nxt(cache_line_candidate),
 		.i_wb_dat(i_wb_dat),
 		.i_wb_ack(wb_ack[0]),
 		.i_wb_err(wb_err[0]),
@@ -8334,6 +8349,17 @@ module ngage2_zap_cache (
 			default: {wb_err, wb_ack} = {6 {1'bx}};
 		endcase
 	end
+    generate
+        if (CACHE_LINE == 32) begin : g_early_fill_candidate
+            assign o_wb_line_candidate_nxt = state_nxt == SELECT_CCH && cache_line_candidate;
+        end else begin : g_generic_fill_candidate
+            wire mapped;
+            ngage2_refill_region refill_region(o_wb_adr_nxt[31:16], mapped);
+            assign o_wb_line_candidate_nxt = mapped && o_wb_adr_nxt[4:0] == 0 &&
+                !o_wb_wen_nxt && o_wb_sel_nxt == 4'hf &&
+                o_wb_cti_nxt == CTI_BURST && o_wb_bte_nxt == 0;
+        end
+    endgenerate
 	assign o_wb_cyc_nxt = (!o_wb_stb || ((o_wb_stb && (i_wb_ack || i_wb_err)) && (o_wb_cti == CTI_EOB)) ? |wb_cyc : |(state_ff & wb_cyc));
 	assign o_wb_stb_nxt = ((!o_wb_stb || (o_wb_stb && i_wb_ack)) && |wb_cyc ? ((wb_cyc[2] && wb_stb[2]) || ((!wb_cyc[2] && wb_cyc[1]) && wb_stb[1])) || (((!wb_cyc[2] && !wb_cyc[1]) && wb_cyc[0]) && wb_stb[0]) : |(state_ff & wb_stb));
 	assign o_wb_bte_nxt = (state_nxt == SELECT_CCH ? cache_bte : 2'b00);
@@ -9480,6 +9506,7 @@ module ngage2_zap_dcache_fsm (
 	o_wb_cti_ff,
 	o_wb_cti_nxt,
 	o_wb_bte_nxt,
+    o_wb_line_candidate_nxt,
 	i_wb_ack,
 	i_wb_dat,
 	i_wb_err,
@@ -9603,6 +9630,7 @@ module ngage2_zap_dcache_fsm (
 	output reg [2:0] o_wb_cti_ff;
 	output reg [2:0] o_wb_cti_nxt;
 	output wire [1:0] o_wb_bte_nxt;
+    output wire o_wb_line_candidate_nxt;
 	input wire i_wb_ack;
 	input wire [31:0] i_wb_dat;
 	input wire i_wb_err;
@@ -10067,6 +10095,14 @@ module ngage2_zap_dcache_fsm (
 	reg [((31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1)) + 0:0] cache_tag;
 	reg [31:0] phy_addr;
 	wire take;
+    wire live_fill_region;
+    (* dont_retime *) reg saved_fill_region;
+    ngage2_refill_region refill_region(i_phy_addr[31:16], live_fill_region);
+    // Only the first word of a linear 32-byte fill is aligned. The ACK
+    // advances the word, so it invalidates this flag without decoding
+    // the next address, byte enables or burst type after their muxes.
+    assign o_wb_line_candidate_nxt = CACHE_LINE == 32 &&
+        (state_ff[FETCH_SINGLE]) && saved_fill_region && adr_ctr_ff == 0 && !take;
 	wire [$clog2(CACHE_LINE / 4):0] adr_ctr_inc;
 	wire beat_cur_ok;
 	wire beat_inc_ok;
@@ -10202,6 +10238,7 @@ module ngage2_zap_dcache_fsm (
 			cache_tag <= i_cache_tag;
 			victim_valid <= i_cache_tag_valid;
 			phy_addr <= i_phy_addr;
+            saved_fill_region <= live_fill_region;
 			way <= i_cache_way;
 			reg_idx <= i_reg_idx;
 			ldfmt <= i_ldfmt;
@@ -10840,6 +10877,7 @@ module ngage2_zap_dcache (
 	o_wb_cti_nxt,
 	o_wb_bte,
 	o_wb_bte_nxt,
+    o_wb_line_candidate_nxt,
 	i_wb_dat,
 	i_wb_ack,
 	i_wb_err,
@@ -10951,6 +10989,7 @@ module ngage2_zap_dcache (
 	output reg [2:0] o_wb_cti_nxt;
 	output reg [1:0] o_wb_bte;
 	output reg [1:0] o_wb_bte_nxt;
+    output wire o_wb_line_candidate_nxt;
 	input wire [31:0] i_wb_dat;
 	input wire i_wb_ack;
 	input wire i_wb_err;
@@ -11236,6 +11275,7 @@ module ngage2_zap_dcache (
 	wire [3:0] wb_wen;
 	wire [3:0] wb_sel [3:0];
 	wire [31:0] wb_dat [3:0];
+    wire cache_line_candidate;
 	wire [31:0] wb_adr [3:0];
 	wire [2:0] wb_cti [3:0];
 	wire [1:0] fill_bte;
@@ -11446,6 +11486,7 @@ module ngage2_zap_dcache (
 		.o_wb_wen_nxt(wb_wen[0]),
 		.o_wb_cti_nxt(wb_cti[0]),
 		.o_wb_bte_nxt(fill_bte),
+        .o_wb_line_candidate_nxt(cache_line_candidate),
 		.i_wb_dat(i_wb_dat),
 		.i_wb_ack(wb_ack[0]),
 		.i_wb_err(wb_err[0])
@@ -11770,6 +11811,17 @@ module ngage2_zap_dcache (
 			default: {wb_err, wb_ack} = {8 {1'bx}};
 		endcase
 	end
+    generate
+        if (CACHE_LINE == 32) begin : g_early_fill_candidate
+            assign o_wb_line_candidate_nxt = state_nxt == SELECT_CCH && cache_line_candidate;
+        end else begin : g_generic_fill_candidate
+            wire mapped;
+            ngage2_refill_region refill_region(o_wb_adr_nxt[31:16], mapped);
+            assign o_wb_line_candidate_nxt = mapped && o_wb_adr_nxt[4:0] == 0 &&
+                !o_wb_wen_nxt && o_wb_sel_nxt == 4'hf &&
+                o_wb_cti_nxt == CTI_BURST && o_wb_bte_nxt == 0;
+        end
+    endgenerate
 	assign o_wb_cyc_nxt = (!o_wb_stb || (o_wb_stb && (i_wb_ack || i_wb_err)) ? |eligible_cyc : |(state_ff & wb_cyc));
 	assign o_wb_stb_nxt = ((!o_wb_stb || i_wb_ack) || i_wb_err ? (((eligible_cyc[3] && wb_stb[3]) || ((!eligible_cyc[3] && eligible_cyc[2]) && wb_stb[2])) || (((!eligible_cyc[3] && !eligible_cyc[2]) && eligible_cyc[1]) && wb_stb[1])) || ((((!eligible_cyc[3] && !eligible_cyc[2]) && !eligible_cyc[1]) && eligible_cyc[0]) && wb_stb[0]) : |(state_ff & wb_stb));
 	always @(*) begin
@@ -15515,6 +15567,7 @@ module ngage2_zap_top (
 	wire [3:0] c_wb_sel;
 	wire [31:0] c_wb_dat;
 	wire [31:0] c_wb_adr;
+    wire c_line_candidate;
 	wire [2:0] c_wb_cti;
 	wire [1:0] c_wb_bte;
 	wire c_wb_ack;
@@ -15526,6 +15579,7 @@ module ngage2_zap_top (
 	wire [3:0] d_wb_sel;
 	wire [31:0] d_wb_dat;
 	wire [31:0] d_wb_adr;
+    wire d_line_candidate;
 	wire [2:0] d_wb_cti;
 	wire [1:0] d_wb_bte;
 	wire d_wb_ack;
@@ -15721,6 +15775,7 @@ module ngage2_zap_top (
 				.i_c_wb_sel(c_wb_sel),
 				.i_c_wb_dat(c_wb_dat),
 				.i_c_wb_adr(c_wb_adr),
+                .i_c_line_candidate(c_line_candidate),
 				.i_c_wb_cti(c_wb_cti),
 				.i_c_wb_bte(c_wb_bte),
 				.o_c_wb_ack(c_wb_ack),
@@ -15733,6 +15788,7 @@ module ngage2_zap_top (
 				.i_d_wb_sel(d_wb_sel),
 				.i_d_wb_dat(d_wb_dat),
 				.i_d_wb_adr(d_wb_adr),
+                .i_d_line_candidate(d_line_candidate),
 				.i_d_wb_cti(d_wb_cti),
 				.i_d_wb_bte(d_wb_bte),
 				.o_d_wb_ack(d_wb_ack),
@@ -15855,6 +15911,7 @@ module ngage2_zap_top (
 				.o_wb_sel_nxt(d_wb_sel),
 				.o_wb_dat_nxt(d_wb_dat),
 				.o_wb_adr_nxt(d_wb_adr),
+                .o_wb_line_candidate_nxt(d_line_candidate),
 				.o_wb_bte_nxt(d_wb_bte),
 				.o_wb_cti_nxt(d_wb_cti)
 			);
@@ -15922,6 +15979,7 @@ module ngage2_zap_top (
 				.o_wb_sel_nxt(c_wb_sel),
 				.o_wb_dat_nxt(c_wb_dat),
 				.o_wb_adr_nxt(c_wb_adr),
+                .o_wb_line_candidate_nxt(c_line_candidate),
 				.o_wb_cti_nxt(c_wb_cti)
 			);
 			assign o_wb_cyc = wb_cyc;
@@ -15947,6 +16005,7 @@ module ngage2_zap_wb_merger (
 	i_c_wb_sel,
 	i_c_wb_dat,
 	i_c_wb_adr,
+	i_c_line_candidate,
 	i_c_wb_cti,
 	i_c_wb_bte,
 	o_c_wb_ack,
@@ -15959,6 +16018,7 @@ module ngage2_zap_wb_merger (
 	i_d_wb_sel,
 	i_d_wb_dat,
 	i_d_wb_adr,
+	i_d_line_candidate,
 	i_d_wb_cti,
 	i_d_wb_bte,
 	o_d_wb_ack,
@@ -15985,6 +16045,7 @@ module ngage2_zap_wb_merger (
 	input wire [3:0] i_c_wb_sel;
 	input wire [31:0] i_c_wb_dat;
 	input wire [31:0] i_c_wb_adr;
+	input wire i_c_line_candidate;
 	input wire [2:0] i_c_wb_cti;
 	input wire [1:0] i_c_wb_bte;
 	output wire o_c_wb_ack;
@@ -15997,6 +16058,7 @@ module ngage2_zap_wb_merger (
 	input wire [3:0] i_d_wb_sel;
 	input wire [31:0] i_d_wb_dat;
 	input wire [31:0] i_d_wb_adr;
+	input wire i_d_line_candidate;
 	input wire [2:0] i_d_wb_cti;
 	input wire [1:0] i_d_wb_bte;
 	output wire o_d_wb_ack;
@@ -16288,26 +16350,6 @@ module ngage2_zap_wb_merger (
 	(* preserve, dont_retime *) reg state_ff;
 	reg state_nxt;
 	wire switch;
-	// Classify each request before arbitration. The board still owns
-	// the live request, lock, readiness and scalar fallback gates.
-	function automatic line_candidate;
-		input [31:0] addr;
-		input write;
-		input [3:0] sel;
-		input [2:0] cti;
-		input [1:0] bte;
-		begin
-			line_candidate = !write && sel == 4'hf && cti == CTI_BURST &&
-				bte == 0 && addr[4:0] == 0 &&
-				(addr[31:24] == 8'h0a || addr < 32'h007f0000 ||
-				 (addr >= 32'h02000000 && addr < 32'h02400000) ||
-				 (addr >= 32'h04000000 && addr < 32'h04800000));
-		end
-	endfunction
-	wire code_line_candidate = line_candidate(i_c_wb_adr, i_c_wb_wen, i_c_wb_sel,
-		i_c_wb_cti, i_c_wb_bte);
-	wire data_line_candidate = line_candidate(i_d_wb_adr, i_d_wb_wen, i_d_wb_sel,
-		i_d_wb_cti, i_d_wb_bte);
 	assign o_dbg_data_owner = state_ff == 1'd1;
 	assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
 	always @(*) begin
@@ -16375,7 +16417,7 @@ module ngage2_zap_wb_merger (
 					o_wb_wen <= i_c_wb_wen;
 					o_wb_sel <= i_c_wb_sel;
 					o_wb_adr <= i_c_wb_adr;
-					o_wb_line_candidate <= code_line_candidate;
+					o_wb_line_candidate <= i_c_line_candidate;
 					o_wb_cti <= i_c_wb_cti;
 					o_wb_bte <= i_c_wb_bte;
 				end
@@ -16385,7 +16427,7 @@ module ngage2_zap_wb_merger (
 					o_wb_wen <= i_d_wb_wen;
 					o_wb_sel <= i_d_wb_sel;
 					o_wb_adr <= i_d_wb_adr;
-					o_wb_line_candidate <= data_line_candidate;
+					o_wb_line_candidate <= i_d_line_candidate;
 					o_wb_cti <= i_d_wb_cti;
 					o_wb_bte <= i_d_wb_bte;
 				end
@@ -18458,4 +18500,14 @@ module ngage2_zap_dcache_half_metadata_lanes (
 		end
 	endgenerate
 	initial _sv2v_0 = 0;
+endmodule
+
+// The physical range boundaries all fall on 64 KiB boundaries.
+module ngage2_refill_region (
+    input wire [15:0] address_hi,
+    output wire mapped
+);
+    assign mapped = address_hi[15:8] == 8'h0a || address_hi < 16'h007f ||
+                    (address_hi >= 16'h0200 && address_hi < 16'h0240) ||
+                    (address_hi >= 16'h0400 && address_hi < 16'h0480);
 endmodule

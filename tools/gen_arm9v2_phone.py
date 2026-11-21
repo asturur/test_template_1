@@ -92,33 +92,90 @@ def register_line_candidate(merger):
     merger = edit(merger, '\toutput reg [2:0] o_wb_cti;',
                   '\t(* dont_retime *) output reg o_wb_line_candidate;\n'
                   '\toutput reg [2:0] o_wb_cti;')
-    merger = edit(merger, '\tassign o_dbg_data_owner =', '''\t// Classify each request before arbitration. The board still owns
-\t// the live request, lock, readiness and scalar fallback gates.
-\tfunction automatic line_candidate;
-\t\tinput [31:0] addr;
-\t\tinput write;
-\t\tinput [3:0] sel;
-\t\tinput [2:0] cti;
-\t\tinput [1:0] bte;
-\t\tbegin
-\t\t\tline_candidate = !write && sel == 4'hf && cti == CTI_BURST &&
-\t\t\t\tbte == 0 && addr[4:0] == 0 &&
-\t\t\t\t(addr[31:24] == 8'h0a || addr < 32'h007f0000 ||
-\t\t\t\t (addr >= 32'h02000000 && addr < 32'h02400000) ||
-\t\t\t\t (addr >= 32'h04000000 && addr < 32'h04800000));
-\t\tend
-\tendfunction
-\twire code_line_candidate = line_candidate(i_c_wb_adr, i_c_wb_wen, i_c_wb_sel,
-\t\ti_c_wb_cti, i_c_wb_bte);
-\twire data_line_candidate = line_candidate(i_d_wb_adr, i_d_wb_wen, i_d_wb_sel,
-\t\ti_d_wb_cti, i_d_wb_bte);
-\tassign o_dbg_data_owner =''')
-    for address, candidate in (('0', "1'b0"), ('i_c_wb_adr', 'code_line_candidate'),
-                               ('i_d_wb_adr', 'data_line_candidate')):
+    for port in ('c', 'd'):
+        merger = edit(merger, f'\ti_{port}_wb_adr,', f'\ti_{port}_wb_adr,\n\ti_{port}_line_candidate,')
+        merger = edit(merger, f'\tinput wire [31:0] i_{port}_wb_adr;',
+                      f'\tinput wire [31:0] i_{port}_wb_adr;\n\tinput wire i_{port}_line_candidate;')
+    for address, candidate in (('0', "1'b0"), ('i_c_wb_adr', 'i_c_line_candidate'),
+                               ('i_d_wb_adr', 'i_d_line_candidate')):
         merger = edit(merger, f'\t\t\t\t\to_wb_adr <= {address};',
                       f'\t\t\t\t\to_wb_adr <= {address};\n'
                       f'\t\t\t\t\to_wb_line_candidate <= {candidate};')
     return merger
+
+
+def predecode_refill_candidates(phone):
+    """Carry the physical region and first-beat flag through both arbiters."""
+    modules = re.split(r'(?=^module )', phone, flags=re.M)
+    index = {part.split()[1]: i for i, part in enumerate(modules) if part.startswith('module ')}
+    top = modules[index['ngage2_zap_top']]
+    for owner, cache, bte, filling in (
+        ('c', 'cache', 'cache_bte', 'state_ff == FETCH_SINGLE'),
+        ('d', 'dcache', 'fill_bte', 'state_ff[FETCH_SINGLE]'),
+    ):
+        fsm_index = index[f'ngage2_zap_{cache}_fsm']
+        fsm = refill_candidate_port(modules[fsm_index])
+        fsm = edit(fsm, '\twire take;', f'''
+\twire take;
+    wire live_fill_region;
+    (* dont_retime *) reg saved_fill_region;
+    ngage2_refill_region refill_region(i_phy_addr[31:16], live_fill_region);
+    // Only the first word of a linear 32-byte fill is aligned. The ACK
+    // advances the word, so it invalidates this flag without decoding
+    // the next address, byte enables or burst type after their muxes.
+    assign o_wb_line_candidate_nxt = CACHE_LINE == 32 &&
+        ({filling}) && saved_fill_region && adr_ctr_ff == 0 && !take;'''.lstrip('\n'))
+        fsm = edit(fsm, '\t\t\tphy_addr <= i_phy_addr;',
+                   '\t\t\tphy_addr <= i_phy_addr;\n            saved_fill_region <= live_fill_region;')
+        modules[fsm_index] = fsm
+
+        cache_index = index[f'ngage2_zap_{cache}']
+        bus = refill_candidate_port(modules[cache_index])
+        bus = edit(bus, '\twire [31:0] wb_adr', '    wire cache_line_candidate;\n\twire [31:0] wb_adr')
+        bus = edit(bus, f'\t\t.o_wb_bte_nxt({bte}),',
+                   f'\t\t.o_wb_bte_nxt({bte}),\n        .o_wb_line_candidate_nxt(cache_line_candidate),')
+        bus = edit(bus, '\tassign o_wb_cyc_nxt =', '''
+    generate
+        if (CACHE_LINE == 32) begin : g_early_fill_candidate
+            assign o_wb_line_candidate_nxt = state_nxt == SELECT_CCH && cache_line_candidate;
+        end else begin : g_generic_fill_candidate
+            wire mapped;
+            ngage2_refill_region refill_region(o_wb_adr_nxt[31:16], mapped);
+            assign o_wb_line_candidate_nxt = mapped && o_wb_adr_nxt[4:0] == 0 &&
+                !o_wb_wen_nxt && o_wb_sel_nxt == 4'hf &&
+                o_wb_cti_nxt == CTI_BURST && o_wb_bte_nxt == 0;
+        end
+    endgenerate
+\tassign o_wb_cyc_nxt ='''.lstrip('\n'))
+        modules[cache_index] = bus
+
+        top = edit(top, f'\twire [31:0] {owner}_wb_adr;',
+                   f'\twire [31:0] {owner}_wb_adr;\n    wire {owner}_line_candidate;')
+        top = edit(top, f'\t\t\t\t.i_{owner}_wb_adr({owner}_wb_adr),',
+                   f'\t\t\t\t.i_{owner}_wb_adr({owner}_wb_adr),\n'
+                   f'                .i_{owner}_line_candidate({owner}_line_candidate),')
+        top = edit(top, f'\t\t\t\t.o_wb_adr_nxt({owner}_wb_adr),',
+                   f'\t\t\t\t.o_wb_adr_nxt({owner}_wb_adr),\n'
+                   f'                .o_wb_line_candidate_nxt({owner}_line_candidate),')
+    modules[index['ngage2_zap_top']] = top
+    return ''.join(modules) + '''
+// The physical range boundaries all fall on 64 KiB boundaries.
+module ngage2_refill_region (
+    input wire [15:0] address_hi,
+    output wire mapped
+);
+    assign mapped = address_hi[15:8] == 8'h0a || address_hi < 16'h007f ||
+                    (address_hi >= 16'h0200 && address_hi < 16'h0240) ||
+                    (address_hi >= 16'h0400 && address_hi < 16'h0480);
+endmodule
+'''
+
+
+def refill_candidate_port(module):
+    module = edit(module, '\to_wb_bte_nxt,',
+                  '\to_wb_bte_nxt,\n    o_wb_line_candidate_nxt,')
+    bte_declaration = re.search(r'^\toutput (?:reg|wire) \[1:0\] o_wb_bte_nxt;$', module, re.M)[0]
+    return edit(module, bte_declaration, bte_declaration + '\n    output wire o_wb_line_candidate_nxt;')
 
 
 def fold_section_index(phone):
@@ -597,7 +654,7 @@ def main():
     generated = xor_btb(generated)
     generated = load_waw_overlay(generated)
     generated = predicate_block(generated)
-    generated = half_dirty_writeback(generated)
+    generated = predecode_refill_candidates(half_dirty_writeback(generated))
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
