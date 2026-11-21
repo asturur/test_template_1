@@ -105,6 +105,24 @@ module stream_tb #(
       .mem_rdata(rdata_mem)
   );
 
+  reg capture_pending = 0;
+  reg [31:0] capture_data;
+  always @(posedge clk) begin
+    if (cold || phone_reset) begin
+      capture_pending <= 0;
+      if (cpu_ack || dma_ack) $fatal(1, "Scalar reply escaped reset");
+    end else begin
+      capture_pending <= stream.word_done && owner_ready;
+      if (stream.word_done && owner_ready) begin
+        capture_data <= rdata_mem;
+        if (ack) $fatal(1, "Pin read completion bypassed the scalar reply register");
+      end
+      if (stream.read_reply != capture_pending) $fatal(1, "Wrong scalar reply cycle");
+      if (capture_pending && (!req || cpu_ack == dma_ack || read_data !== capture_data))
+        $fatal(1, "Registered scalar reply lost data or owner");
+    end
+  end
+
   wire pin_clk, cke, cs_n, ras_n, cas_n, we_n, dqml, dqmh;
   wire [ 1:0] pin_bank;
   wire [12:0] pin_addr;
@@ -493,6 +511,45 @@ module stream_tb #(
     @(negedge clk);
     dma_req = 0;
     $display("PASS stream grant-edge read, held fallback and cancelled response");
+
+    // The reply can retire on the same edge that the next line is admitted.
+    wait (stream.drained);
+    @(negedge clk);
+    cpu_addr = BASE + 8;
+    cpu_req  = 1;
+    do @(posedge clk); while (!cpu_grant);
+    @(negedge clk);
+    line_req = 1;
+    do @(posedge clk); while (!cpu_ack);
+    if (!line_ready || !stream.first_line || cpu_out !== cpu_block_data[95:64])
+      $fatal(1, "Line admission did not overlap the registered scalar reply");
+    @(negedge clk);
+    cpu_req  = 0;
+    line_req = 0;
+    do @(posedge clk); while (!line_last);
+
+    // Reset again after the pin word is captured but before the CPU sees ACK.
+    wait (stream.drained);
+    @(negedge clk);
+    cpu_addr = BASE;
+    cpu_req  = 1;
+    wait (stream.read_reply);
+    @(negedge clk);
+    cpu_req = 0;
+    phone_reset = 1;
+    @(negedge clk);
+    phone_reset = 0;
+    dma_addr = BASE + 8;
+    dma_req = 1;
+    do begin
+      @(posedge clk);
+      if (cpu_ack) $fatal(1, "Buffered scalar reply escaped reset");
+    end while (!dma_ack);
+    if (dma_out !== cpu_block_data[95:64]) $fatal(1, "DMA received a canceled CPU word");
+    @(negedge clk);
+    dma_req = 0;
+    $display(
+        "PASS stream scalar reply latency, concurrent line admission and buffered cancellation");
     $display(
         "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion");
     while (busy_mem) @(negedge clk);

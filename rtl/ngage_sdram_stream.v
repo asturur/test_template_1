@@ -56,6 +56,8 @@ module ngage_sdram_stream #(
     reg [24:5] saved_line;
     reg [3:0] words_seen = 0, line_words = 0;
     reg [15:0] high_data;
+    (* dont_retime *)reg        read_reply = 0;
+    (* dont_retime *)reg [31:0] read_data;
 
     reg  [24:0] scrub_address = 0;
     reg         scrub_last_issued = 0;
@@ -70,7 +72,9 @@ module ngage_sdram_stream #(
     wire direct_post = post && !pending && mem_cmd_ready;
     wire scalar_read = scalar && !we && !pending && mem_cmd_ready;
     wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
-    assign line_ready = idle && !req && !pending && mem_cmd_ready;
+    // A scalar reply retires to the held arbiter owner while an independent
+    // line can take the command slot. The scalar grant still waits for !req.
+    assign line_ready = idle && (!req || read_reply) && !pending && mem_cmd_ready;
     wire first_line = line_req && line_ready;
     // The arbiter captures the owner on this same edge. If a line or an
     // older packet owns the slot, the arbiter's held read can issue later.
@@ -95,16 +99,20 @@ module ngage_sdram_stream #(
     wire [3:0] write_mask = take_pending ? pending_be : be;
     assign mem_wbe = (scrub || block_write) ? 16'hffff : {12'b0, write_mask} << {mem_addr[3:2], 2'b00};
 
-    assign dout = mem_rdata;
+    assign dout = read_data;
     wire word_done = state == READ_WORD && mem_valid;
     wire locked_done = state == WRITE_LOCKED && !mem_busy;
-    assign ack = owner_ready && (post || word_done || locked_done);
+    assign ack = owner_ready && (post || read_reply || locked_done);
 
     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
     assign line_data  = high_word ? high_data : mem_rdata[15:0];
     assign line_last  = line_valid && high_word && words_seen == line_words;
     wire scalar_accept = post || read_word || lock_write;
     wire drained = state == IDLE && !pending && !mem_busy;
+
+    // Sample data and its reply on the same edge. ACK qualifies which data
+    // belongs to a scalar read; lines retain their early halfword path.
+    always @(posedge clk) read_data <= mem_rdata;
 
     always @(posedge clk) begin
         if (cold) begin
@@ -115,10 +123,12 @@ module ngage_sdram_stream #(
             seen              <= 0;
             discard           <= 0;
             pending           <= 0;
+            read_reply        <= 0;
             second_line       <= 0;
             high_word         <= 0;
             words_seen        <= 0;
         end else begin
+            read_reply <= word_done && owner_ready;
             if (scrub) begin
                 if (scrub_address + 25'd16 >= SCRUB_BYTES) scrub_last_issued <= 1;
                 else scrub_address <= scrub_address + 25'd16;

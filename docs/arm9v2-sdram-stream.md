@@ -124,6 +124,29 @@ donor capture-edge arrangement, with 5.5 ns of modeled DQ return
 delay. Physical I/O closure and the native SPMark Game FPS after the
 change still require a board build and run.
 
+## Registered scalar reply at 104 MHz
+
+The stream captures the scalar read word and reply together. The arbiter
+keeps the CPU or DMA owner through that reply clock. A waiting line can
+take the command slot on the reply edge, and its first halfword still
+follows the early line path. Posted writes and locked write completion
+keep their original timing. Reset suppresses a captured reply and the
+pin transaction drains before admitting another owner.
+
+Both pin tests passed, with maximum refresh intervals of 563 clocks at
+78 MHz and 758 at 104 MHz. Their checks cover a canceled pin read,
+reset after reply capture, and simultaneous scalar retirement and line
+admission. At 104 MHz the 15 fixed payloads pass with at most 0.038%
+more clocks. The native PolyCount replay preserves the guest output and
+retired work for all four frames. Its warm median changes from
+14,345,830 to 14,346,201 clocks.
+
+The 16-byte LCD path matches the original aligned and refill-only cases.
+Its largest change is 1.47% more clocks with periodic scalar contention.
+The scalar-only LCD control takes 11.66–12.87% more clocks. The separate
+mixed pin replay with scalar LCD changes by 0.038% and checks an exact
+MMC sector write/readback, 18,304 LCD words and playback without underflow.
+
 ## Verify in simulation
 
 ```sh
