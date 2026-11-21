@@ -10,6 +10,12 @@ models no LCD pin timing.
 The descriptor accepts a literal 33-bit positive word count. Source plus byte
 extent uses 36 bits, including the carry from a maximum 35-bit extent, and must
 end at or before `0b000000`. Inputs can change after descriptor acceptance.
+The accepted count fits in 23 bits because the source window is 16 MiB.
+Two registered flags track whether words remain and whether a full line
+fits. They update with the count on descriptor acceptance, scalar response,
+line acceptance and terminal cancellation. Request arbitration uses the
+flags directly.
+
 `mem_addr` is the low 25-bit byte address, not a word index. `mem_accept` captures
 a level request, which stays asserted with immutable address through its owned
 ACK. Unowned ACKs are ignored; acceptance and ACK on the same edge are legal.
@@ -40,6 +46,13 @@ With continuously ready pixels, direct latency-one/three memory takes
 36,609/73,217 clocks for 18,304 words (approximately two/four per word). The
 actual native arbiter adds its grant clock: 54,913/91,521 (three/five per word).
 These synthetic measurements do not measure physical SDRAM or phone boot speed.
+
+The registered eligibility update was compared cycle by cycle with the
+original counter-based implementation across 1,952 descriptors in scalar,
+16-byte and 32-byte configurations. The cases covered held requests,
+mixed line and scalar tails, overflow rejection, and cancellation on the
+final SDRAM response. All 18 physical SDRAM LCD cases at 104 MHz matched
+the original request counts, transfer clocks and contention metrics.
 
 ## Matched legacy comparison
 

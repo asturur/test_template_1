@@ -32,12 +32,16 @@ module ngage_lcd_stream #(
     input  wire        pixel_ready,
     input  wire        pixel_error
 );
-    localparam         [32:0] LINE_WORDS      = LINE_BYTES == 16 ? 33'd4 : 33'd8;
+    localparam         [22:0] LINE_WORDS      = LINE_BYTES == 16 ? 23'd4 : 23'd8;
     localparam         [ 3:0] LINE_LAST_BEAT  = LINE_BYTES == 16 ? 4'd7 : 4'd15;
     localparam integer        LINE_INDEX_BITS = LINE_BYTES == 16 ? 2 : 3;
     wire        line_enabled = LINE_BYTES != 0;
     reg  [24:0] next_addr;
-    reg  [32:0] remaining;
+    // A validated descriptor fits within 16 MiB (at most 2^22 words).
+    reg  [22:0] remaining;
+    // Update eligibility with the count so request arbitration sees only flops.
+    (* dont_retime *)reg         words_available;
+    (* dont_retime *)reg         line_available;
     reg         owned;
     reg         skid_valid;
     reg  [31:0] skid_data;
@@ -61,11 +65,11 @@ module ngage_lcd_stream #(
     assign pixel_data     = skid_data;
     wire pixel_take = pixel_valid && pixel_ready;
     wire sink_failed = pixel_take && pixel_error;
-    wire offer = busy && !cancelling && !stop && !sink_failed && remaining != 0 &&
+    wire offer = busy && !cancelling && !stop && !sink_failed && words_available &&
                  (!skid_valid || pixel_take);
     wire buffer_pending = line_enabled && words_received != words_emitted;
     wire line_aligned = next_addr[3:0] == 0 && (LINE_BYTES == 16 || !next_addr[4]);
-    wire choose_line = line_enabled && line_aligned && remaining >= LINE_WORDS;
+    wire choose_line = line_enabled && line_aligned && line_available;
     wire buffer_take = buffer_pending && (!skid_valid || pixel_take);
     assign line_req = line_enabled && !reset && offer && choose_line &&
                       !owned && !line_owned && !buffer_pending;
@@ -79,21 +83,23 @@ module ngage_lcd_stream #(
 
     always @(posedge clk) begin
         if (reset) begin
-            busy           <= 0;
-            done           <= 0;
-            error          <= 0;
-            aborted        <= 0;
-            next_addr      <= 0;
-            remaining      <= 0;
-            owned          <= 0;
-            skid_valid     <= 0;
-            skid_data      <= 0;
-            cancel_abort   <= 0;
-            cancel_error   <= 0;
-            line_owned     <= 0;
-            line_beat      <= 0;
-            words_received <= 0;
-            words_emitted  <= 0;
+            busy            <= 0;
+            done            <= 0;
+            error           <= 0;
+            aborted         <= 0;
+            next_addr       <= 0;
+            remaining       <= 0;
+            words_available <= 0;
+            line_available  <= 0;
+            owned           <= 0;
+            skid_valid      <= 0;
+            skid_data       <= 0;
+            cancel_abort    <= 0;
+            cancel_error    <= 0;
+            line_owned      <= 0;
+            line_beat       <= 0;
+            words_received  <= 0;
+            words_emitted   <= 0;
         end else begin
             done    <= 0;
             error   <= 0;
@@ -102,23 +108,27 @@ module ngage_lcd_stream #(
                 if (transfer_valid && transfer_ready) begin
                     if (!descriptor_ok) error <= 1;
                     else begin
-                        busy         <= 1;
-                        next_addr    <= source_addr[24:0];
-                        remaining    <= transfer_words;
-                        owned        <= 0;
-                        skid_valid   <= 0;
-                        cancel_abort <= 0;
-                        cancel_error <= 0;
+                        busy            <= 1;
+                        next_addr       <= source_addr[24:0];
+                        remaining       <= transfer_words[22:0];
+                        words_available <= 1;
+                        line_available  <= transfer_words[22:0] >= LINE_WORDS;
+                        owned           <= 0;
+                        skid_valid      <= 0;
+                        cancel_abort    <= 0;
+                        cancel_error    <= 0;
                     end
                 end
             end else begin
                 if (take_line) begin
-                    line_owned     <= 1;
-                    line_beat      <= 0;
-                    words_received <= 0;
-                    words_emitted  <= 0;
-                    next_addr      <= next_addr + LINE_BYTES[24:0];
-                    remaining      <= remaining - LINE_WORDS;
+                    line_owned      <= 1;
+                    line_beat       <= 0;
+                    words_received  <= 0;
+                    words_emitted   <= 0;
+                    next_addr       <= next_addr + LINE_BYTES[24:0];
+                    remaining       <= remaining - LINE_WORDS;
+                    words_available <= remaining != LINE_WORDS;
+                    line_available  <= remaining >= (LINE_WORDS << 1);
                 end
                 if (line_enabled && line_owned && line_valid) begin
                     line_beat <= line_beat + 1'b1;
@@ -131,9 +141,11 @@ module ngage_lcd_stream #(
                 end
                 if (accepted) owned <= 1;
                 if (response) begin
-                    owned     <= 0;
-                    next_addr <= next_addr + 25'd4;
-                    remaining <= remaining - 1'b1;
+                    owned           <= 0;
+                    next_addr       <= next_addr + 25'd4;
+                    remaining       <= remaining - 1'b1;
+                    words_available <= remaining != 23'd1;
+                    line_available  <= remaining > LINE_WORDS;
                 end
 
                 // Stop wins over the last pixel and the last memory response.
@@ -146,10 +158,12 @@ module ngage_lcd_stream #(
                     words_emitted  <= 0;
                     if (((!owned && !accepted) || response) &&
                         (!(line_owned || take_line) || line_finished)) begin
-                        busy         <= 0;
-                        remaining    <= 0;
-                        cancel_abort <= 0;
-                        cancel_error <= 0;
+                        busy            <= 0;
+                        remaining       <= 0;
+                        words_available <= 0;
+                        line_available  <= 0;
+                        cancel_abort    <= 0;
+                        cancel_error    <= 0;
                         if (stop || cancel_abort) aborted <= 1;
                         else error <= 1;
                     end
@@ -164,7 +178,7 @@ module ngage_lcd_stream #(
                         skid_data     <= line_words[words_emitted[LINE_INDEX_BITS-1:0]];
                         words_emitted <= words_emitted + 1'b1;
                     end
-                    if (pixel_take && remaining == 0 && !owned && !line_owned && !buffer_pending) begin
+                    if (pixel_take && !words_available && !owned && !line_owned && !buffer_pending) begin
                         busy <= 0;
                         done <= 1;
                     end
@@ -173,8 +187,13 @@ module ngage_lcd_stream #(
         end
     end
     // synthesis translate_off
-    always @(posedge clk)
-        if (line_enabled && !reset && line_owned && line_valid && line_last != (line_beat == LINE_LAST_BEAT))
-            $fatal(1, "LCD line ended at the wrong halfword");
+    always @(posedge clk) begin
+        if (!reset) begin
+            if (words_available != (remaining != 0) || line_available != (remaining >= LINE_WORDS))
+                $fatal(1, "LCD request eligibility disagrees with the remaining count");
+            if (line_enabled && line_owned && line_valid && line_last != (line_beat == LINE_LAST_BEAT))
+                $fatal(1, "LCD line ended at the wrong halfword");
+        end
+    end
     // synthesis translate_on
 endmodule
