@@ -62,7 +62,8 @@ module ngage_sdram_stream #(
     reg  [24:0] scrub_address = 0;
     reg         scrub_last_issued = 0;
     // Scrub the full guest RAM while the phone is still held in reset.
-    wire        scrub = mem_ready && !cold && !scrub_last_issued && mem_cmd_ready;
+    wire        scrub_packet = !scrub_last_issued;
+    wire        scrub = mem_ready && !cold && scrub_packet && mem_cmd_ready;
 
     assign owner_ready = scrub_done && mem_ready && !cold && !phone_reset && !discard;
     wire idle = state == IDLE && owner_ready;
@@ -74,30 +75,35 @@ module ngage_sdram_stream #(
     wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
     // A scalar reply retires to the held arbiter owner while an independent
     // line can take the command slot. The scalar grant still waits for !req.
-    assign line_ready = idle && (!req || read_reply) && !pending && mem_cmd_ready;
+    wire scalar_port_free = !req || read_reply;
+    assign line_ready = idle && scalar_port_free && !pending && mem_cmd_ready;
     wire first_line = line_req && line_ready;
     // The arbiter captures the owner on this same edge. If a line or an
     // older packet owns the slot, the arbiter's held read can issue later.
     wire grant_read_word = idle && !req && !pending && mem_cmd_ready && grant_read && !first_line;
     wire read_word = scalar_read || grant_read_word;
-    wire line_follow = state == LINE && second_line && mem_cmd_ready;
+    wire line_owned = state == LINE;
+    wire line_follow = line_owned && second_line && mem_cmd_ready;
 
     assign mem_req = scrub || take_pending || direct_post || read_word || lock_write || first_line || line_follow;
     assign mem_we = scrub || take_pending || direct_post || lock_write;
-    wire block_write = take_pending ? pending_block : (direct_post || lock_write) && write_block;
-    assign mem_line  = scrub || first_line || line_follow || block_write;
+    wire write_is_block = pending ? pending_block : write_block;
+    assign mem_line  = scrub || first_line || line_follow || (mem_we && write_is_block);
     assign mem_short = first_line && line_short;
+    // Select packet fields from their owner while arbitration decides
+    // whether they can be captured. A read address never selects write lanes.
     wire [24:2] first_addr = line_short ? {line_addr[24:4], 2'b00} : {line_addr[24:5], 3'b000};
-    assign mem_addr = scrub ? scrub_address[24:2] :
-                      take_pending ? pending_addr :
-                      first_line ? first_addr :
-                      line_follow ? {saved_line, 3'b100} :
-                      grant_read_word ? grant_addr[24:2] : addr[24:2];
-    assign mem_wdata = scrub ? 128'b0 :
-                       block_write ? (take_pending ? pending_block_data : block_data) :
-                       {4{take_pending ? pending_data : din}};
-    wire [3:0] write_mask = take_pending ? pending_be : be;
-    assign mem_wbe = (scrub || block_write) ? 16'hffff : {12'b0, write_mask} << {mem_addr[3:2], 2'b00};
+    assign mem_addr = scrub_packet ? scrub_address[24:2] :
+                      pending ? pending_addr :
+                      line_owned ? {saved_line, 3'b100} :
+                      (scalar_port_free && line_req) ? first_addr :
+                      req ? addr[24:2] : grant_addr[24:2];
+    wire [ 31:0] word_data = pending ? pending_data : din;
+    wire [127:0] line_write_data = pending ? pending_block_data : block_data;
+    assign mem_wdata = scrub_packet ? 128'b0 : write_is_block ? line_write_data : {4{word_data}};
+    wire [3:0] write_mask = pending ? pending_be : be;
+    wire [1:0] write_lane = pending ? pending_addr[3:2] : addr[3:2];
+    assign mem_wbe = (scrub_packet || write_is_block) ? 16'hffff : {12'b0, write_mask} << {write_lane, 2'b00};
 
     assign dout = read_data;
     wire word_done = state == READ_WORD && mem_valid;

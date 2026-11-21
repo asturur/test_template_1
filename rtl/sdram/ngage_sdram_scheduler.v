@@ -293,20 +293,26 @@ module ngage_sdram_scheduler #(
     wire refresh_done = (state == REF_WAIT && t == access_counter(RFC - 1)) ||
                         (RFC == 1 && state == REF_RP && t == access_counter(RP));
 
+    // The empty slot can sample a tentative packet. Only admission makes
+    // it valid, and it stays immutable until the scheduler consumes it.
+    always @(posedge clk) begin
+        if (!cmd_valid) begin
+            cmd_addr  <= addr;
+            cmd_we    <= we;
+            cmd_line  <= line;
+            cmd_short <= read_short;
+            cmd_data  <= wdata;
+            cmd_be    <= wbe;
+        end
+    end
+
     always @(posedge clk) begin
         if (init) begin
             cmd_valid <= 0;
             active <= 0;
         end else begin
-            if (req && cmd_ready) begin
-                cmd_valid <= 1;
-                cmd_addr <= addr;
-                cmd_we <= we;
-                cmd_line <= line;
-                cmd_short <= read_short;
-                cmd_data <= wdata;
-                cmd_be <= wbe;
-            end else if (take) cmd_valid <= 0;
+            if (req && cmd_ready) cmd_valid <= 1;
+            else if (take) cmd_valid <= 0;
 
             // Advance the activity bit on the edge entering the first
             // available cycle. Do not export the live timing comparison.

@@ -616,7 +616,7 @@ module ngage_mister #(
     // arbiter cannot take it on that edge.
     wire ram_line_preview = RAM_LINE_EARLY && line_req && line_ready && line_ram_eligible;
     assign ram_line_req = !core_reset && (line_state == LINE_RAM_ISSUE || ram_line_preview);
-    assign ram_line_addr = ram_line_preview ? line_addr[24:0] : line_ram_address;
+    assign ram_line_addr = line_state == LINE_RAM_ISSUE ? line_ram_address : line_addr[24:0];
     assign line_valid = !core_reset && ((line_state==LINE_ROM_WAIT && ddram_beat_valid) ||
                                        (line_state==LINE_RAM_WAIT && ram_line_valid));
     assign line_data = line_state==LINE_RAM_WAIT ? {48'b0,ram_line_data} : {line_decoded_high,line_decoded_low};

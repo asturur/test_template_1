@@ -165,6 +165,30 @@ same cycles. The 18 LCD pin cases and the mixed 104 MHz MMC, PCM and LCD
 replay have identical timing records and outputs. All 15 fixed payloads
 and all four native PolyCount frames also match cycle for cycle.
 
+### SDRAM packet fields and admission
+
+DMA can offer a legal RAM word while a local endpoint is stalled. A live
+MMC command still waits for local-ready before acceptance. The SDRAM
+stream forms write data and byte enables from the accepted scalar or
+queued write. The lane comes from that write's address, independently of
+any competing read or refill.
+
+While the scheduler command slot is empty, it samples the candidate
+fields. Admission sets the valid bit on that same edge. The slot holds
+the packet until the scheduler takes it, including while an older pin
+transaction or refresh is active. A candidate sampled without admission
+has no effect on SDRAM. This removes late admission from the wide packet
+register enable without adding a request clock.
+
+The pin tests at 78 and 104 MHz each accept and issue 1,048,650 commands,
+including the full cold scrub, with the same burst and refresh records as
+before. A side-by-side 104 MHz test against `ff8becc` matches handshakes,
+accepted addresses and write masks, and returned data cycle for cycle.
+All 18 LCD pin cases and the mixed 104 MHz MMC, PCM and LCD replay match
+their prior results, including the 512-byte persisted sector and
+readback. The four ARM contracts, 15 fixed payloads and all four native
+PolyCount frames also match their previous cycle counts and outputs.
+
 ## Verify in simulation
 
 ```sh

@@ -58,16 +58,18 @@ module ngage_dma_route #(
     assign local_be    = live_mmc ? cmd_be : held_be;
     wire local_hit = LOCAL_ENABLE && (chip_ram_hit || (lcd_hit && cmd_write && cmd_be == 4'hf));
 
-    assign cmd_ready = !reset && !cpu_lock && state == IDLE && (!mmc_offer || local_ready);
+    wire route_available = !reset && !cpu_lock && state == IDLE;
+    assign cmd_ready = route_available && (!mmc_offer || local_ready);
     wire accept = cmd_valid && cmd_ready;
-    // Launch on the capture edge to keep the existing LCD read latency.
-    // A grant that waits for the outer SDRAM arbiter uses the held packet.
-    wire start_ram = accept && legal_word && ram_hit;
+    // RAM never uses local_ready. It can launch on the capture edge, with
+    // the route's held packet supplying any later grant.
+    wire start_ram = route_available && cmd_valid && legal_word && ram_hit;
+    wire ram_owned = state == RAM;
     assign ram_req   = !reset && (start_ram || state == RAM);
-    assign ram_write = start_ram ? cmd_write : local_write;
-    assign ram_addr  = start_ram ? cmd_addr[24:0] : local_addr[24:0];
-    assign ram_data  = start_ram ? cmd_data : local_data;
-    assign ram_be    = start_ram ? cmd_be : local_be;
+    assign ram_write = ram_owned ? held_write : cmd_write;
+    assign ram_addr  = ram_owned ? held_addr[24:0] : cmd_addr[24:0];
+    assign ram_data  = ram_owned ? held_data : cmd_data;
+    assign ram_be    = ram_owned ? held_be : cmd_be;
 
     assign local_valid   = !reset && !cpu_lock && (state == LOCAL_WAIT || (live_mmc && cmd_valid));
     // Generic local admission derives only from the captured request state.
