@@ -3,8 +3,7 @@
 // header/RGB444 assumptions follow scratch/current-boot/direct_lcd.py; these
 // signals do not model the physical LCD serial bus or verified scan timing.
 module ngage_lcd_display #(
-    parameter integer PIXEL_DIV   = 16,
-    parameter integer LINE_PIXELS = 400
+    parameter integer PIXEL_DIV = 16
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -133,8 +132,7 @@ module ngage_lcd_display #(
         ce_pix            <= div == 0;
         unsupported_valid <= 0;
         if (div == 0) begin
-            // Extend the trailing blank only when the board selects a longer line.
-            if (x == LINE_PIXELS - 1) begin
+            if (x == 399) begin
                 x <= 0;
                 if (y == 261) y <= 0;
                 else y <= y + 1'b1;

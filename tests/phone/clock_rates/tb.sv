@@ -7,14 +7,12 @@ module clock_case #(
     output reg  done = 0
 );
   localparam PIX = HZ / 6500000, SIM = HZ / 3250000, FAST = (HZ + 16384) / 32768;
-  localparam LINE_PIXELS = HZ == 104000000 ? 414 : 400;
   localparam REFRESH = (64'd6800 * HZ) / 104000000;
   wire ce, rfsh;
   ngage_board #(
-      .SYS_CLK_HZ(HZ),
-      .LCD_ENABLE(1),
-      .SIMIF_ENABLE(1),
-      .ANALOG_LINE_PIXELS(LINE_PIXELS)
+      .SYS_CLK_HZ  (HZ),
+      .LCD_ENABLE  (1),
+      .SIMIF_ENABLE(1)
   ) dut (
       .clk(clk),
       .rst(reset),
@@ -100,8 +98,7 @@ module clock_case #(
     if(dut.uem.cbus.SECOND_TICKS!=HZ || dut.uem.cbus.ALARM_TICKS!=(64'd7995392*HZ)/104000000 ||
      dut.uem.cbus.ALARM_INTERVAL!=(64'd65536*HZ)/104000000)
       $fatal(1, "UEM wall-time parameters");
-    if(dut.display.lcd.PIXEL_DIV!=PIX || dut.display.lcd.LINE_PIXELS!=LINE_PIXELS ||
-     dut.test_card.card.CLOCK_DIV!=SIM)
+    if (dut.display.lcd.PIXEL_DIV != PIX || dut.test_card.card.CLOCK_DIV != SIM)
       $fatal(1, "clock propagation changed");
     if (pixels < 19000 || sim_ticks < 9000 || refreshes < 40) $fatal(1, "missing clock events");
     $display(

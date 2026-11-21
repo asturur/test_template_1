@@ -1,7 +1,8 @@
 `timescale 1ns / 1ps
 // Check the actual CE/DE stream, not a host crop of a padded screenshot.
 module tb;
-  parameter PIXEL_DIV = 16, LINE_PIXELS = 400, SYS_HZ = 104000000;
+  parameter  PIXEL_DIV   = 16, SYS_HZ = 104000000;
+  localparam LINE_PIXELS = 400;
   reg clk = 0, reset = 1, diagnostic = 0, wv = 0, dv = 0, full = 0;
   reg [31:0] wa = 0, wd = 0, dd = 0;
   reg [14:0] da = 0;
@@ -15,8 +16,7 @@ module tb;
   always #(500000000.0 / SYS_HZ) clk = ~clk;
   always @(posedge clk) sys_clock = sys_clock + 1;
   ngage_lcd_display #(
-      .PIXEL_DIV  (PIXEL_DIV),
-      .LINE_PIXELS(LINE_PIXELS)
+      .PIXEL_DIV(PIXEL_DIV)
   ) dut (
       .clk(clk),
       .reset(reset),

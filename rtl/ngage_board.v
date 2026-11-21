@@ -19,8 +19,7 @@ module ngage_board #(
               UEM_POWERUP_STATUS = 1,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
-              NOS_TICK_HZ        = 1000,
-              ANALOG_LINE_PIXELS = 400
+              NOS_TICK_HZ        = 1000
 ) (
 
     input  tri0 [ 32:0] host_timestamp,
@@ -328,8 +327,7 @@ module ngage_board #(
                 .out_data (queued_data)
             );
             ngage_lcd_display #(
-                .PIXEL_DIV  (SYS_CLK_HZ / 6500000),
-                .LINE_PIXELS(ANALOG_LINE_PIXELS)
+                .PIXEL_DIV(SYS_CLK_HZ / 6500000)
             ) lcd (
                 .clk              (clk),
                 .reset            (rst),

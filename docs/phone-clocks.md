@@ -18,12 +18,12 @@ backpressure holds the clock low between complete bits. The 64-edge
 response start and 2²³-edge data/busy limits are about 1.846 µs and
 241.979 ms of active MMC clocks.
 
-At 6.5 MHz pixel enable, the analog source raster has 414 pixels by
-262 lines, yielding 15.7005 kHz horizontal and 59.9255 Hz vertical.
-The extra 14 pixels extend the trailing horizontal blank. The 176×208
-phone and 320×240 diagnostic active rectangles and sync positions and
-widths are preserved. This is the source raster for MiSTer's direct
-video path. The scaler can supply its own sync timing.
+The 78 and 104 MHz builds both use a 6.5 MHz pixel enable and the
+same 400×262 source raster, yielding 16.250 kHz horizontal and
+62.0229 Hz vertical. The 176×208 phone and 320×240 diagnostic active
+rectangles have identical sync positions, widths and blanking at both
+system rates. This is the source raster for MiSTer's direct video
+path. The scaler can supply its own sync timing.
 
 The general timer keeps its 26 MHz enable through divide-by-four.
 Timer0's stock reload and the production NOS counter both yield 64 Hz,

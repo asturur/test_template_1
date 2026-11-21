@@ -161,7 +161,7 @@ def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_mod
                        '-DNGAGE_POWERUP_NORMAL', '-Wno-fatal', '-Wno-lint', '-Irtl/arm',
                        '--top-module', 'tb', '--Mdir', container_path(obj), '-GLINE_REFILL=1',
                        f'-GSYS_CLK_HZ={sys_clk_hz}', f'-GTIMER_CLK_DIV={sys_clk_hz // 26_000_000}',
-                       f'-GANALOG_LINE_PIXELS={414 if sys_clk_hz == 104_000_000 else 400}', '-GGAME_PCM=1',
+                       '-GGAME_PCM=1',
                        f'-GFLASH_CACHE_BYTES={flash_cache_bytes}', '-GBOUNDED_CYCLES=120000000', *real_sdram,
                        f'-GNOS_TICK_HZ={hz}', f'-GMMC_CLK_DIV={divider}', *rtl],
                        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)

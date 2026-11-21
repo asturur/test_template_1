@@ -1154,18 +1154,17 @@ module emu (
     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
     // Synthetic no-PIN card supplies SIMIF bytes; no NOS/SIM-state override.
     ngage_mister #(
-        .ENABLE_DEBUGGER   (`ENABLE_DEBUGGER),
-        .LINE_REFILL       (1),
-        .RAM_LINE_EARLY    (1),
-        .LCD_LINE_BYTES    (LCD_LINE_BYTES),
-        .DMA_LOCAL         (1),
-        .GAME_PCM          (1),
-        .MMC_CLK_DIV       (MMC_CLK_DIV),
-        .ANALOG_LINE_PIXELS(414),
-        .TEST_SIM_ENABLE   (1),
-        .TIMER_CLK_DIV     (SYS_CLK_HZ / 26000000),
-        .NOS_TICK_HZ       (64),
-        .SYS_CLK_HZ        (SYS_CLK_HZ)
+        .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
+        .LINE_REFILL    (1),
+        .RAM_LINE_EARLY (1),
+        .LCD_LINE_BYTES (LCD_LINE_BYTES),
+        .DMA_LOCAL      (1),
+        .GAME_PCM       (1),
+        .MMC_CLK_DIV    (MMC_CLK_DIV),
+        .TEST_SIM_ENABLE(1),
+        .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
+        .NOS_TICK_HZ    (64),
+        .SYS_CLK_HZ     (SYS_CLK_HZ)
     ) core (
         .ddram_line(core_ddr_line),
         .ddram_beat_valid(core_beat_valid),
