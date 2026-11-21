@@ -121,7 +121,7 @@ def arrange_flash(path, wrapper, case, original, rule):
         f.write(case['payload'])
 
 
-def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_model, cpu_wrapper, posted_writes, interleave, pin_waits, handoff, donor_sdram, stream_sdram, block_writeback):
+def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_model, cpu_wrapper, posted_writes, interleave, pin_waits, handoff, donor_sdram, stream_sdram, block_writeback, *, sys_clk_hz=78_000_000):
     source = ROOT / 'tests/phone/hardware_boot/run.sh'
     raw = source.read_text().split('--Mdir build/sim/unit-hardware-boot/obj ', 1)[1].split(' > build/', 1)[0]
     rtl = [name for pattern in raw.split() for name in sorted(glob.glob(pattern))
@@ -160,7 +160,8 @@ def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_mod
                        '-DNGAGE_RUNTIME_TRACE', '-DNGAGE_ARM9V2', '-DNGAGE_PRODUCTION_DDR',
                        '-DNGAGE_POWERUP_NORMAL', '-Wno-fatal', '-Wno-lint', '-Irtl/arm',
                        '--top-module', 'tb', '--Mdir', container_path(obj), '-GLINE_REFILL=1',
-                       '-GSYS_CLK_HZ=78000000', '-GTIMER_CLK_DIV=3', '-GGAME_PCM=1',
+                       f'-GSYS_CLK_HZ={sys_clk_hz}', f'-GTIMER_CLK_DIV={sys_clk_hz // 26_000_000}',
+                       f'-GMMC_CLK_FRAC_3_8={int(sys_clk_hz == 104_000_000)}', '-GGAME_PCM=1',
                        f'-GFLASH_CACHE_BYTES={flash_cache_bytes}', '-GBOUNDED_CYCLES=120000000', *real_sdram,
                        f'-GNOS_TICK_HZ={hz}', f'-GMMC_CLK_DIV={divider}', *rtl],
                        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
@@ -227,6 +228,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--name', required=True)
     parser.add_argument('--case', action='append')
+    parser.add_argument('--sys-clk-hz', choices=(78_000_000, 104_000_000), type=int,
+                        default=78_000_000, help='System rate for the phone and physical SDRAM model')
     parser.add_argument('--config', action='append', choices=('2:64', '1:64', '2:128', '1:128'))
     parser.add_argument('--arm9v2-netlist', type=Path, default=ROOT / 'rtl/arm9v2/arm925t_phone.v')
     parser.add_argument('--flash-cache-bytes', type=int, choices=(8192, 32768), default=8192)
@@ -273,6 +276,8 @@ def main():
         cpu_wrapper.write_bytes(args.cpu_wrapper.read_bytes())
     configs = args.config or ('2:64', '2:128')
     profile = [tuple(map(int, pair.split(':'))) for pair in configs]
+    if args.sys_clk_hz == 104_000_000 and any(divider != 2 for divider, _ in profile):
+        parser.error('104 MHz uses the fractional 39 MHz MMC profile, select 2:64 or 2:128')
     all_cases = [case for case in qualified_inputs() if not args.case or case['name'] in args.case]
     assert all_cases and (not args.case or len(all_cases) == len(set(args.case)))
     original = (FIRMWARE / 'core.bin').read_bytes()
@@ -313,14 +318,16 @@ def main():
     (out / 'tb.v').write_text(text.rsplit('endmodule', 1)[0] + '\n' + observe + '\nendmodule\n')
     with ThreadPoolExecutor(max_workers=4) as pool:
         compiles = {(div, hz): pool.submit(compile_phone, out, div, hz, frozen_netlist,
-                                           args.flash_cache_bytes, sdram_model, cpu_wrapper, args.posted_writes, args.interleave, args.pin_waits, args.handoff, args.donor_sdram, args.stream_sdram, args.block_writeback)
+                                           args.flash_cache_bytes, sdram_model, cpu_wrapper, args.posted_writes, args.interleave, args.pin_waits, args.handoff, args.donor_sdram, args.stream_sdram, args.block_writeback,
+                                           sys_clk_hz=args.sys_clk_hz)
                     for div, hz in profile}
         rule = rules()
         for case in all_cases:
             for bad in (False, True):
                 arrange_flash(out / f'{case["name"]}-{bad}.bin', case['bad' if bad else 'good'], case, original, rule)
         exes = {key: future.result() for key, future in compiles.items()}
-        result = dict(status='RUNNING', configs=configs, netlist_sha256=digest(frozen_netlist.read_bytes()),
+        result = dict(status='RUNNING', configs=configs, sys_clk_hz=args.sys_clk_hz,
+                      netlist_sha256=digest(frozen_netlist.read_bytes()),
                       flash_cache_bytes=args.flash_cache_bytes, posted_writes=args.posted_writes, interleave=args.interleave, pin_waits=args.pin_waits, handoff=args.handoff, donor_sdram=args.donor_sdram, donor_wide=args.donor_wide, stream_sdram=args.stream_sdram,
                       sdram_model_sha256=digest(sdram_model.read_bytes()) if sdram_model else None, rows=[])
         if args.block_writeback:
@@ -332,8 +339,10 @@ def main():
             for (div, hz), futures in jobs.items():
                 first, repeat, bad = [future.result() for future in futures]
                 assert first == repeat and bad is None
-                print(case['name'], f'MMC={78 // div} MHz NOS={hz} Hz', first['median_clocks'], flush=True)
-                result['rows'].append(dict(case=case['name'], mmc_hz=78000000 // div, nos_hz=hz, **first))
+                mmc_hz = 39_000_000 if args.sys_clk_hz == 104_000_000 else args.sys_clk_hz // div
+                print(case['name'], f'MMC={mmc_hz // 1_000_000} MHz NOS={hz} Hz',
+                      first['median_clocks'], flush=True)
+                result['rows'].append(dict(case=case['name'], mmc_hz=mmc_hz, nos_hz=hz, **first))
             (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
     result['status'] = 'PASS'
     (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')

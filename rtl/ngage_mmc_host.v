@@ -66,7 +66,7 @@
 // the next (CMD18 then waits on the card's side), so no data is ever lost.
 // The DMA is paced by rx_ready / tx_ready (upp_dma).
 //
-// Bus: CLK = clk / DIV, low at rest; the host changes CMD/DAT0 as CLK falls
+// Bus: CLK = clk / DIV, or 3 * clk / 8 with FRAC_3_8, low at rest. CMD/DAT0 change as CLK falls
 // and samples them as it rises (as rtl/board/mmc_card.sv expects). [assumed]
 // DIV = 4 (26 MHz; 12 is the phone's own rate, the service manual's 8.66 MHz,
 // for an accuracy build); time-outs: 64 clocks to a response start bit (NCR
@@ -76,7 +76,8 @@ module ngage_mmc_host #(
     parameter integer DIV = 4,  // 12 (8.66 MHz, the service manual's rate) for an accuracy build
     parameter integer RESP_WAIT = 64,
     parameter integer TIMEOUT_LOG2 = 23,  // ~323 ms at DIV = 4 (21 at DIV = 12)
-    parameter integer FIFO_DEPTH = 16
+    parameter integer FIFO_DEPTH = 16,
+    parameter FRAC_3_8 = 0
 ) (
     input wire clk,
     input wire reset,
@@ -118,7 +119,7 @@ module ngage_mmc_host #(
         end
     endfunction
 
-    localparam integer                    PHW              = clog2(DIV);
+    localparam integer                    PHW              = clog2(FRAC_3_8 ? 3 : DIV);
     localparam integer                    FAW              = clog2(FIFO_DEPTH);
     localparam integer                    HALF             = DIV / 2;
     localparam integer                    LAST_PHASE       = DIV - 1;
@@ -298,18 +299,54 @@ module ngage_mmc_host #(
     end
 
     // ------------------------------------------------------------------
-    // The bus clock: periods of DIV clocks, run while an engine needs them
+    // Generate complete bus bits while an engine needs them.
     // ------------------------------------------------------------------
     reg [PHW-1:0] ph;
     reg           run;  // this period is clocked
     reg cmd_need, dat_need, dat_hold;
     wire clock_needed = (cmd_need || dat_need) && !dat_hold;
-    // With DIV=2 the receive sample and period-end decision share an
-    // edge. Recheck the updated FIFO/state before starting the next bit.
-    wire fall = run && ph == {PHW{1'b0}} && (DIV != 2 || clock_needed);
-    wire rise = run && ph == HALF[PHW-1:0];
+    wire fall, rise;
+    generate
+        if (FRAC_3_8) begin : fractional_clock
+            // Low/high lengths of (2,1), (1,2), (1,1) clocks deliver
+            // three bits per eight clocks and equal high and low time.
+            // Keep phase across idle gaps and sample on the first high clock.
+            reg  [1:0] bit_slot;
+            wire [1:0] first_high = bit_slot == 0 ? 2'd2 : 2'd1;
+            wire [1:0] last_high = bit_slot == 2 ? 2'd1 : 2'd2;
+            assign fall    = run && ph == 0 && clock_needed;
+            assign rise    = run && ph == first_high;
+            assign mmc_clk = run && ph >= first_high;
 
-    assign mmc_clk = run && ph >= HALF[PHW-1:0];
+            always @(posedge clk)
+                if (reset) begin
+                    run      <= 0;
+                    ph       <= 0;
+                    bit_slot <= 0;
+                end else if (!run || (ph == 0 && !clock_needed)) begin
+                    run <= clock_needed;
+                    ph  <= 0;
+                end else if (ph == last_high) begin
+                    ph       <= 0;
+                    bit_slot <= bit_slot == 2 ? 2'd0 : bit_slot + 1'b1;
+                end else ph <= ph + 1'b1;
+        end else begin : integer_clock
+            // With DIV=2 the receive sample and period end share an
+            // edge. Recheck the updated FIFO before starting the next bit.
+            assign fall    = run && ph == 0 && (DIV != 2 || clock_needed);
+            assign rise    = run && ph == HALF[PHW-1:0];
+            assign mmc_clk = run && ph >= HALF[PHW-1:0];
+            always @(posedge clk)
+                if (reset) begin
+                    run <= 0;
+                    ph  <= 0;
+                end else begin
+                    if (run)
+                        ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? 0 : ph + 1'b1;
+                    if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
+                end
+        end
+    endgenerate
 
     // ------------------------------------------------------------------
     // The engines
@@ -366,10 +403,6 @@ module ngage_mmc_host #(
         push1 = 1'b0;
         pop1  = 1'b0;
         pbyte = 8'd0;
-
-        // ---- the clock ----
-        if (run) ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? {PHW{1'b0}} : ph + 1'd1;
-        if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
 
         // ---- register writes ----
         if (wr) begin
@@ -688,8 +721,6 @@ module ngage_mmc_host #(
         end
 
         if (reset) begin
-            run        <= 1'b0;
-            ph         <= {PHW{1'b0}};
             cstate     <= C_IDLE;
             dstate     <= D_IDLE;
             blk_done   <= 1'b0;

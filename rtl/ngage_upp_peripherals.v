@@ -49,7 +49,8 @@ module ngage_upp_peripherals #(
               REGISTER_RESPONSES = 0,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
-              NOS_TICK_HZ        = 1000
+              NOS_TICK_HZ        = 1000,
+              MMC_CLK_FRAC_3_8   = 0
 ) (
     input  wire        rst,
     input  wire        init_rst,
@@ -187,6 +188,7 @@ module ngage_upp_peripherals #(
         if (MMC_ENABLE) begin : mmc_enabled
             ngage_mmc_host #(
                 .DIV         (MMC_CLK_DIV),
+                .FRAC_3_8    (MMC_CLK_FRAC_3_8),
                 .TIMEOUT_LOG2(MMC_TIMEOUT_LOG2)
             ) host (
                 .clk     (clk),

@@ -18,7 +18,8 @@ module ngage_upp #(
               LCD_QUEUE_ENABLE = 0,
               SYS_CLK_HZ       = 104000000,
               TIMER_CLK_DIV    = 1,
-              NOS_TICK_HZ      = 1000
+              NOS_TICK_HZ      = 1000,
+              MMC_CLK_FRAC_3_8 = 0
 ) (
 
     output wire         mmc_prefetch_stop,
@@ -597,6 +598,7 @@ module ngage_upp #(
         .GENERAL_DMA       (GENERAL_DMA),
         .MMC_ENABLE        (MMC_ENABLE),
         .MMC_CLK_DIV       (MMC_CLK_DIV),
+        .MMC_CLK_FRAC_3_8  (MMC_CLK_FRAC_3_8),
         .MMC_TIMEOUT_LOG2  (MMC_TIMEOUT_LOG2),
         .SYS_CLK_HZ        (SYS_CLK_HZ),
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),

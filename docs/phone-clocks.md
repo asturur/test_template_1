@@ -1,11 +1,38 @@
-## Current clock policy — 2026-11-11
-
-The actual PLL and production SYS_CLK_HZ remain78 MHz. Design RTL stage depth
-and fanout toward104 MHz (9.615 ns) and keep104 MHz logical/SDRAM tests, but do
-not change the operating PLL without explicit user authorization. This policy
-was clarified during [LCD/DMA timing recovery](lcd-dma-timing-recovery.md).
-
 # Phone clocks and slower interfaces
+
+## Physical 104 MHz v5 baseline — 2026-11-21
+
+The v5 PLL requests 104 MHz from the 50 MHz MiSTer reference. CPU, bus,
+DDR transport and SDRAM controller share that clock. The SDRAM pin
+clock remains the 180° DDIO-forwarded system clock, so the controller
+and memory stay synchronous at 1:1. The unused PLL output retains
+its nominal −90° phase. SDRAM initialization, refresh and pin command
+spacing derive from the physical system frequency. The controller
+keeps its 200 µs power-up interval, CAS latency and pin capture scheme.
+
+The modeled MMC host and card stay in the system domain. In the 104 MHz
+build the host schedules 3 bits per 8 clocks with low/high lengths
+(2,1), (1,2), (1,1). Both polarities have 2- or 3-clock intervals
+while continuously active, and the average is 39 MHz with 50% duty.
+Both peers sample on the first system edge of the high phase. FIFO
+backpressure holds the clock low and preserves the scheduler's phase.
+The 64-edge response start and 2²³-edge data/busy limits retain their
+39 MHz active-clock intervals, about 1.64 µs and 215 ms respectively.
+
+The general timer keeps its 26 MHz enable through divide-by-four.
+Timer0's stock reload and the production NOS counter both yield 64 Hz.
+LCD pixel and diagnostic SIM enables retain 6.5 MHz and 3.25 MHz.
+The approximate 32.768 kHz counter uses divisor 3174. UEM wall time,
+save/SD timeouts and PCM input/output phase use the system rate.
+DMA arbitration continues at system speed. PCM output remains 48 kHz.
+
+CI checks the TimeQuest PLL against the selected source and records the
+actual native period. The physical 104 MHz report uses the routed
+clock without an override. Historical physical 78 MHz fits still
+allow a separate diagnostic 104 MHz report. Native timing coverage
+requires setup, hold, recovery, removal and pulse width at four
+operating corners, with 1,000 exported setup paths per corner.
+The physical 78 MHz sign-off is preserved at `7b10754`, seed 43.
 
 ## Requested26MHz/64Hz spin (2026-11-09)
 

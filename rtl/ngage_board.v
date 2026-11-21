@@ -19,7 +19,8 @@ module ngage_board #(
               UEM_POWERUP_STATUS = 1,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
-              NOS_TICK_HZ        = 1000
+              NOS_TICK_HZ        = 1000,
+              MMC_CLK_FRAC_3_8   = 0
 ) (
 
     input  tri0 [ 32:0] host_timestamp,
@@ -393,6 +394,7 @@ module ngage_board #(
         .LCD_LINE_BYTES  (LCD_LINE_BYTES),
         .MMC_ENABLE      (MMC_ENABLE),
         .MMC_CLK_DIV     (MMC_CLK_DIV),
+        .MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),
         .MMC_TIMEOUT_LOG2(MMC_TIMEOUT_LOG2),
         .LCD_QUEUE_ENABLE(LCD_ENABLE)
     ) upp (

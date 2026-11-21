@@ -140,6 +140,7 @@ parameter integer OVERLAY_COMPONENT=1;
 parameter integer SYS_CLK_HZ=104000000;
 parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
 parameter integer FLASH_CACHE_BYTES=8192, MMC_CLK_DIV=4, GAME_PCM=0;
+parameter integer MMC_CLK_FRAC_3_8=0;
 parameter integer ROM_CACHE=0;
 parameter integer DIRECT_SDRAM=1;
 parameter integer LINE_REFILL=0;
@@ -321,7 +322,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  wire cpu_ram_accept;
  wire cpu_write_block, mem_write_block;
  wire [127:0] cpu_block_data, mem_block_data;
- ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
+ ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),.GAME_PCM(GAME_PCM)) dut(
   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
 .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),

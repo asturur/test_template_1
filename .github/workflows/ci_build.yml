@@ -76,17 +76,18 @@ jobs:
             2>&1 | tee quartus_timing_details.log
           exit "${PIPESTATUS[0]}"
 
-      - name: Record effective master fit inputs
+      - name: Record effective fit inputs
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         run: |
           docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl --list > output_files/source-graph.txt
           python3 tools/record_fit_inputs.py
 
-      - name: Analyze routed design at 78 and 104 MHz
+      - name: Analyze native routed timing and legacy diagnostic target
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         run: |
           set -uo pipefail
-          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/probe_retime_fit/report.tcl 2>&1 | tee resident_fit_timing.log
+          native_mhz=$(python3 -c 'import json; print(json.load(open("output_files/resident-fit-manifest.json"))["physical_cpu_mhz"])') || exit
+          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/probe_retime_fit/report.tcl "$native_mhz" 2>&1 | tee resident_fit_timing.log
           exit "${PIPESTATUS[0]}"
 
       - name: Summarize path bottlenecks
@@ -101,7 +102,10 @@ jobs:
 
       - name: Require passing timing
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
-        run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
+        run: |
+          python3 tools/check_quartus_timing.py output_files/Template.sta.rpt \
+            --native-corners output_files/timing/resident-store \
+            --fit-manifest output_files/resident-fit-manifest.json
 
       # Keep an existing bitstream even if compile/STA or the timing gate
       # failed. Missing RBFs (e.g. a failed fit) cannot be recovered here.

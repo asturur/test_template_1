@@ -38,8 +38,9 @@
 // the mounted data payload as well: the sidecar and padding are not writable.
 //
 // Timing: everything runs on clk; CLK is the host's, sampled in clk, and
-// must stay high and low for at least two clk cycles each. The card samples
-// CMD and DAT0 when CLK rises and changes its outputs when it falls. A
+// must stay high and low for at least one clk cycle each. The card samples
+// CMD and DAT0 on the first clk edge while CLK is high and changes its
+// outputs on the first clk edge while CLK is low. A
 // response starts NCR clocks after the command's end bit (NID for CMD1 and
 // CMD2); read data at least NAC clocks after the response, once the blocks
 // are in the buffer (a read waits for the HPS, so the host's read timeout
