@@ -3,8 +3,8 @@
 The v5 production build maps the DSP upload and generic NOS banks to
 `0x31820000–0x3183FFFF` in HPS DDR. Cold start waits for both banks to clear.
 Warm reset drains the active request and retains data. Local tests cover
-byte lanes, SWP and reset. The physical 104 MHz fit and hardware measurements
-are pending. [Implementation and checks](peripheral-ram-ddr-assessment.md#integrated-ddr-backing)
+byte lanes, SWP and reset. All three 104 MHz fits freed 128 M10Ks, leaving
+243 free. Seed 43 is best at −2.809 ns. Board testing is pending. [Implementation and checks](peripheral-ram-ddr-assessment.md#integrated-ddr-backing)
 
 ## 2026-11-22 — moving DSP upload and generic NOS RAM to DDR
 

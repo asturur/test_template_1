@@ -1,6 +1,6 @@
 # Reclaiming the two large UPP RAM banks on ngage-v5
 
-The retained production fit at `5f8fae0` uses 438 of 553 M10Ks. The same production RTL is present at `53b707b`. Quartus assigns 64 M10Ks each to the 64 KiB DSP upload bank and the generic 64 KiB NOS bank. Moving both to HPS DDR3 removes 128 blocks gross, increasing the available count from 115 to 243 before accounting for the implementation. The integrated fitted count and timing are pending. [Retained fit](https://github.com/asturur/test_template_1/actions/runs/45043488050)
+The retained production fit at `5f8fae0` uses 438 of 553 M10Ks. The same production RTL is present at `53b707b`. Quartus assigns 64 M10Ks each to the 64 KiB DSP upload bank and the generic 64 KiB NOS bank. Moving both to HPS DDR3 removes 128 blocks gross, increasing the available count from 115 to 243 before accounting for the implementation. [Retained fit](https://github.com/asturur/test_template_1/actions/runs/45043488050) · [Production fit results](#production-fits-at-104-mhz)
 
 ## What would move
 
@@ -49,4 +49,17 @@ Cold initialization zeros both banks in 256 chunks of 512 bytes through the shar
 
 The cold-gate test drives all 16,384 zero writes through the real `emu` logic with modeled HPS backpressure and a stub PLL. The shared-port test covers masks, SWP exclusion, flash persistence and reset drain. The ARM9V2 replay verifies SWP in each bank while LCD DMA waits, executes instructions from both banks, and checks PCM samples, the LCD frame and MMC writeback against the existing oracles. [Cold gate](../tests/phone/upp_ddr_top/) · [Shared-port test](../tests/phone/upp_ddr_transport/) · [ARM9V2 replay](../tests/phone/upp_ddr_ram/)
 
-The integrated physical 104 MHz fit will use DDR debugging off. Seed 43 is the matched comparison against the retained image. Seeds 13 and 31337 sample additional placements. After fitting, use Quartus's actual M10K count and check boot time, audio and the same fixed scene on hardware.
+### Production fits at 104 MHz
+
+All three builds of `61d51fe` reclaimed exactly 128 M10Ks. Use fell from 438 to 310 of 553, leaving 243 free. The UPP peripheral hierarchy fell from 161 to 33 M10Ks. The LCD framebuffer still uses 53, auxiliary RAM 16, and MDI 2. The CPU hierarchy retains its 82 blocks. Seed 43 has the best worst-corner setup slack among the three new images. All three produced bitstreams and passed hold, recovery, removal and minimum pulse width across the four timing corners. All three missed setup at 104 MHz. Physical boot and game audio on these images await a board test.
+
+| Fitter seed | Worst core setup, ns | Fitted ALMs | RBF build |
+| --- | ---: | ---: | --- |
+| 43, previous BRAM build | −2.543 | 37,452 | [Retained reference](https://github.com/asturur/test_template_1/actions/runs/45043488050) |
+| 43, HPS DDR | −2.809 | 38,017 | [Hardware test image](https://github.com/asturur/test_template_1/actions/runs/45072531740) |
+| 13, HPS DDR | −3.282 | 37,927 | [Alternate](https://github.com/asturur/test_template_1/actions/runs/45072535827) |
+| 31337, HPS DDR | −2.919 | 37,931 | [Alternate](https://github.com/asturur/test_template_1/actions/runs/45072539647) |
+
+The locally archived RBFs and their build manifests are under `build/fit/v5-104mhz-61d51fe-seed<seed>/`. Seed 43's RBF SHA-256 is `2ff393f497a8166712744f163403930ccd65c37d686dda5078c622335f2cee5a`.
+
+The matched seed gained 565 ALMs. Quartus attributes about 410 of that difference to the CPU fetch block's direct logic (599.5 to 1,009.8 ALMs). Its source hash matches. The synthesis reports show nearly identical direct combinational ALUT counts for fetch (1,022 to 1,019), while the fitted counts rise from 1,022 to 1,899. This points to the fitting stage as the first place to investigate the additional logic. It does not establish a particular duplication or routing cause.
