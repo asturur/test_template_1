@@ -1,17 +1,7 @@
 `timescale 1ns / 1ps
-module background_load_lock_tb #(
-    parameter OWNED = 0
-);
+module background_load_lock_tb;
   reg clk = 0, reset = 1;
   reg read = 0, hit = 0, fault = 0, cacheable = 1;
-  // Supply the two D-cache views exactly as a checked lookup register
-  // does. The original path sees Q, the new authorization sees its D.
-  reg  [2:0] checked;
-  wire [2:0] checked_next = reset ? 3'b100 : {cacheable, fault, hit};
-  always @(posedge clk) checked <= checked_next;
-  wire permit = checked[2] && !checked[1];
-  wire permit_next = checked_next[2] && !checked_next[1];
-  wire fast;
   reg wb_ack = 0, wb_error = 0;
   reg [31:0] address = 0, next_address = 0, wb_data = 0;
   reg [5:0] destination = 0;
@@ -26,17 +16,14 @@ module background_load_lock_tb #(
       .CACHE_LINE(32),
       .WAYS(2),
       .FLAT_ACK(1),
-      .LOCK_SPLIT(1),
-      .OWNED_FAST_ACK(OWNED)
+      .LOCK_SPLIT(1)
   ) cache (
       .i_clk(clk),
       .i_reset(reset),
       .i_address(address),
       .i_address_check(next_address),
-      .i_cache_hit_early(checked[0]),
-      .i_cache_hit_early_next(checked_next[0]),
-      .i_hit_ok(permit),
-      .i_hit_ok_next(permit_next),
+      .i_cache_hit_early(hit),
+      .i_hit_ok(cacheable && !fault),
       .i_rd(read),
       .i_wr(1'b0),
       .i_din(32'b0),
@@ -61,7 +48,6 @@ module background_load_lock_tb #(
       .i_bufferable(1'b0),
       .i_swp(1'b0),
       .i_post_full(1'b0),
-      .i_post_full_next(1'b0),
       .i_cache_inv(1'b0),
       .i_cache_clean(1'b0),
       .i_line_req(1'b0),
@@ -71,7 +57,7 @@ module background_load_lock_tb #(
       .i_cache_tag_dirty(1'b0),
       .i_cache_tag(46'b0),
       .i_cache_tag_valid(1'b0),
-      .i_cache_hit(checked[0]),
+      .i_cache_hit(hit),
       .i_cache_victim_halves(2'b0),
       .i_cache_hit_halves(2'b0),
       .i_cache_hit_dirty(1'b0),
@@ -81,13 +67,11 @@ module background_load_lock_tb #(
       .i_phy_addr(address),
       .i_fsr(8'h0f),
       .i_far(address),
-      .i_fault(checked[1]),
-      .i_cacheable(checked[2]),
+      .i_fault(fault),
+      .i_cacheable(cacheable),
       .i_wt(1'b0),
       .i_busy(1'b0),
-      .i_tlb_hit_ready(permit),
-      .i_tlb_ready_next(permit_next),
-      .o_ack_fast(fast),
+      .i_tlb_hit_ready(cacheable && !fault),
       .o_idle(idle),
       .o_fill_busy(fill),
       .o_wb_stb_ff(wb_stb),
@@ -118,11 +102,10 @@ module background_load_lock_tb #(
       address = base + 4 * critical;
       next_address = base + 32'h1000;
       destination = tag;
-      hit = 0;
-      tick;
       read = 1;
+      hit = 0;
       #1;
-      if (!ack || !fast || error) $fatal(1, "Read miss was not accepted");
+      if (!ack || error) $fatal(1, "Read miss was not accepted");
       tick;
       if (!fill || !lock_valid || lock_tag !== tag || bitmap !== (64'd1 << tag))
         $fatal(1, "Wrong miss owner %0d", tag);
@@ -164,10 +147,9 @@ module background_load_lock_tb #(
       address = next_address;
       destination = tag[5:0] ^ 6'h3f;
       hit = 1;
-      tick;
       read = 1;
       #1;
-      if (!ack || !fast || !fill || !lock_valid || lock_tag !== tag[5:0])
+      if (!ack || !fill || !lock_valid || lock_tag !== tag[5:0])
         $fatal(1, "Hit under miss did not preserve the fill owner");
       tick;
       hits = hits + 1;
@@ -177,24 +159,21 @@ module background_load_lock_tb #(
     end
 
     fault = 1;
-    tick;
     read = 1;
     destination = 0;
     #1;
-    if (!ack || !error || fast) $fatal(1, "Fault did not terminate the read");
+    if (!ack || !error) $fatal(1, "Fault did not terminate the read");
     tick;
     if (lock_valid || returned) $fatal(1, "Fault installed a background lock");
     read = 0;
     fault = 0;
 
     cacheable = 0;
-    tick;
     read = 1;
     while (!wb_stb) tick;
     wb_error = 1;
     tick;
-    if (!ack || !error || !fast || lock_valid || returned)
-      $fatal(1, "Uncached abort leaked a lock");
+    if (!ack || !error || lock_valid || returned) $fatal(1, "Uncached abort leaked a lock");
     read = 0;
     wb_error = 0;
     cacheable = 1;

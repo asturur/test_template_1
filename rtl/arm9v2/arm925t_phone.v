@@ -9579,16 +9579,8 @@ module ngage2_zap_dcache_fsm (
 	i_block_enable,
 	o_write_block,
 	o_block_data,
-	o_block_address,
-    i_hit_ok_next,
-    i_tlb_ready_next,
-    i_cache_hit_early_next,
-    i_post_full_next
+	o_block_address
 );
-    input wire i_post_full_next;
-    input wire i_cache_hit_early_next;
-    input wire i_tlb_ready_next;
-    input wire i_hit_ok_next;
 	input wire i_block_enable;
 	output wire o_write_block;
 	output wire [127:0] o_block_data;
@@ -9602,7 +9594,6 @@ module ngage2_zap_dcache_fsm (
 	parameter [3:0] EXT_ABORT_FS = 4'b0010;
 	parameter [0:0] HALF_WRITEBACK = 1'b0;
 	parameter [31:0] WAYS = 32'd1;
-    parameter [0:0] OWNED_FAST_ACK = 1'b0;
 	input wire i_clk;
 	input wire i_reset;
 	input wire [31:0] i_address;
@@ -10500,33 +10491,7 @@ module ngage2_zap_dcache_fsm (
 	assign o_ack = (FLAT_ACK ? (ack_idle_flat || state_ff[UNC_DONE]) || hum_ack : idle_ack || hum_ack);
 	assign o_err = (FLAT_ACK ? err_flat : err_case);
 	assign o_err2 = (FLAT_ACK ? err2_flat : err2_case);
-    // Use the next values of the actual lookup and owner registers.
-    // IDLE may retire a permitted, cacheable miss by installing its lock.
-    // The hit bit is required for a second access during a background fill.
-    wire idle_fast_next = state_nxt[IDLE] && i_hit_ok_next && i_tlb_ready_next;
-    wire hum_fast_next = hum_slot_nxt && i_hit_ok_next && i_cache_hit_early_next;
-    (* dont_retime *) reg read_fast;
-    (* dont_retime *) reg write_fast;
-    always @(posedge i_clk)
-        if (i_reset) begin
-            read_fast <= 0;
-            write_fast <= 0;
-        end else begin
-            read_fast <= idle_fast_next || hum_fast_next;
-            write_fast <= (idle_fast_next && !i_post_full_next) || hum_fast_next;
-        end
-    // Device completion already belongs to UNC_DONE. Cache enable and W's
-    // alignment remain live at use, including CP15 or exception transitions.
-    wire ref_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];
-    wire owned_fast = (i_cache_en && !i_align_fault && (i_wr ? write_fast : read_fast)) ||
-                      state_ff[UNC_DONE];
-    assign o_ack_fast = OWNED_FAST_ACK ? owned_fast : ref_fast;
-
-    // synthesis translate_off
-    always @(posedge i_clk)
-        if (OWNED_FAST_ACK && !i_reset && access_now && owned_fast !== ref_fast)
-            $fatal(1, "Registered cache response changed owned acceptance");
-    // synthesis translate_on
+	assign o_ack_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];
 	assign o_err_fast = state_ff[UNC_DONE] && unc_err_ff;
 	assign o_fill_busy_nxt = fill_busy_nxt;
 	assign fill_busy_nxt = (((((state_nxt[CLEAN_SINGLE] || state_nxt[FETCH_SINGLE]) || state_nxt[UNLOCK_REG]) || state_nxt[UNLOCK_WR]) || state_nxt[RELOOKUP0]) || state_nxt[RELOOKUP1]) || state_nxt[RELOOKUP2];
@@ -11485,12 +11450,10 @@ module ngage2_zap_dcache (
 	assign wb_cti[2] = CTI_EOB;
 	assign unused = |{wb_err[1]};
 	wire post_full;
-    wire tlb_hit_ok_next, tlb_ready_next, cache_hit_early_next, post_full_next;
 	wire post_push;
 	wire victim_writeback_busy, victim_write_block;
 	assign o_write_block = state_ff == SELECT_CCH && victim_write_block;
 	ngage2_zap_dcache_fsm #(
-        .OWNED_FAST_ACK(1'b1),
 		.HALF_WRITEBACK(HALF_WRITEBACK),
 		.CACHE_SIZE(CACHE_SIZE),
 		.CACHE_LINE(CACHE_LINE),
@@ -11509,9 +11472,7 @@ module ngage2_zap_dcache (
 		.i_address(i_address),
 		.i_address_check(i_address_check),
 		.i_hit_ok(tlb_hit_ok),
-        .i_hit_ok_next(tlb_hit_ok_next),
 		.i_cache_hit_early(tr_cache_hit_early),
-        .i_cache_hit_early_next(cache_hit_early_next),
 		.i_rd(i_rd),
 		.i_wr(i_wr),
 		.i_din(i_dat),
@@ -11535,7 +11496,6 @@ module ngage2_zap_dcache (
 		.i_bufferable(tlb_bufferable),
 		.i_swp(i_swp),
 		.i_post_full(post_full),
-        .i_post_full_next(post_full_next),
 		.o_post_push(post_push),
 		.i_cache_inv(i_cache_inv_req),
 		.i_cache_clean(i_cache_clean_req),
@@ -11575,7 +11535,6 @@ module ngage2_zap_dcache (
 		.i_wt(tlb_wt),
 		.i_busy(tlb_busy),
 		.i_tlb_hit_ready(tlb_hit_ready),
-        .i_tlb_ready_next(tlb_ready_next),
 		.o_err2(o_err2),
 		.o_dbg_dcache(cf_dbg_dcache),
 		.o_address(cache_address),
@@ -11631,7 +11590,6 @@ module ngage2_zap_dcache (
 		.i_data(i_dat),
 		.i_ben((BE_32_ENABLE ? {i_ben[0], i_ben[1], i_ben[2], i_ben[3]} : i_ben)),
 		.o_full(post_full),
-        .o_full_next(post_full_next),
 		.o_busy(post_busy),
 		.o_cyc_nxt(wb_cyc[3]),
 		.o_address_nxt(wb_adr[3]),
@@ -11655,7 +11613,6 @@ module ngage2_zap_dcache (
 		.i_address(cache_address),
 		.i_lookup_address(compare_address),
 		.o_cache_hit_early(tr_cache_hit_early),
-        .o_cache_hit_early_next(cache_hit_early_next),
 		.i_access((i_rd_check || i_wr_check) && idle),
 		.i_accepted_hit((((((i_rd || i_wr) && o_ack) && !o_err) && !o_err2) && live_lookup) && tr_cache_hit),
 		.i_accepted_address(i_address),
@@ -11873,9 +11830,7 @@ module ngage2_zap_dcache (
 		.o_bufferable(tlb_bufferable),
 		.o_busy(tlb_busy),
 		.o_hit_ready(tlb_hit_ready),
-        .o_hit_ready_next(tlb_ready_next),
 		.o_hit_ok(tlb_hit_ok),
-        .o_hit_ok_next(tlb_hit_ok_next),
 		.o_hit_ok_short(tlb_hit_ok_short),
 		.o_wb_stb_nxt(wb_stb[2]),
 		.o_wb_cyc_nxt(wb_cyc[2]),
@@ -13164,10 +13119,8 @@ module ngage2_zap_store_queue (
 	o_cyc_nxt,
 	o_address_nxt,
 	o_data_nxt,
-	o_ben_nxt,
-    o_full_next
+	o_ben_nxt
 );
-    output wire o_full_next;
 	reg _sv2v_0;
 	parameter integer AW = 2;
 	input wire i_clk;
@@ -13194,7 +13147,6 @@ module ngage2_zap_store_queue (
 	assign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];
 	assign o_cyc_nxt = count > {{AW {1'b0}}, i_take};
 	assign o_busy = count != 0;
-    assign o_full_next = !i_reset && count_nxt == DEPTH;
 	always @(*) begin
 		if (_sv2v_0)
 			;
@@ -13215,7 +13167,7 @@ module ngage2_zap_store_queue (
 		end
 		else begin
 			count <= count_nxt;
-			o_full <= o_full_next;
+			o_full <= count_nxt == DEPTH;
 			if (i_push) begin
 				entries[tail] <= {i_address, i_data, i_ben};
 				tail <= tail + 1'b1;
@@ -13252,10 +13204,8 @@ module ngage2_zap_tlb_check (
 	o_cacheable,
 	o_bufferable,
 	o_wt,
-	o_phy_addr,
-    o_hit_ok_next
+	o_phy_addr
 );
-    output wire o_hit_ok_next;
 	reg _sv2v_0;
 	parameter [31:0] LPAGE_TLB_ENTRIES = 32'd8;
 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
@@ -13643,10 +13593,7 @@ module ngage2_zap_tlb_check (
 	reg walk_nxt;
 	reg cacheable_nxt;
 	reg wt_nxt;
-    reg bufferable_nxt;
-    // This is the permission register's D value including its real hold.
-    wire permit_lookup = !walk_nxt && !(|fsr_nxt[3:0]) && cacheable_nxt && !(i_wr && wt_nxt);
-    assign o_hit_ok_next = i_clkena ? permit_lookup : o_hit_ok;
+	reg bufferable_nxt;
 	reg dummy_nxt;
 	always @(posedge i_clk)
 		if (i_clkena) begin
@@ -13659,8 +13606,8 @@ module ngage2_zap_tlb_check (
 			o_wt <= wt_nxt;
 			o_bufferable <= bufferable_nxt;
 			dummy <= dummy_nxt;
-			o_hit_ok <= permit_lookup;
-			o_hit_ok_short <= permit_lookup;
+			o_hit_ok <= ((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);
+			o_hit_ok_short <= ((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);
 		end
 	function automatic [7:0] get_fsr_fpage;
 		input user;
@@ -13846,10 +13793,8 @@ module ngage2_zap_tlb_fsm (
 	o_wb_adr,
 	i_wb_dat,
 	i_wb_ack,
-	i_wb_err,
-    o_hit_ready_next
+	i_wb_err
 );
-    output wire o_hit_ready_next;
 	reg _sv2v_0;
 	parameter [31:0] LPAGE_TLB_ENTRIES = 32'd8;
 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
@@ -14342,8 +14287,7 @@ module ngage2_zap_tlb_fsm (
 		if (i_reset)
 			o_hit_ready <= 1'b1;
 		else
-			o_hit_ready <= o_hit_ready_next;
-    assign o_hit_ready_next = i_reset || state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];
+			o_hit_ready <= state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];
 	always @(posedge i_clk)
 		if (i_reset) begin
 			state_ff <= 1;
@@ -14414,12 +14358,8 @@ module ngage2_zap_tlb (
 	i_wb_dat,
 	o_wb_dat_nxt,
 	i_wb_ack,
-	i_wb_err,
-    o_hit_ok_next,
-    o_hit_ready_next
+	i_wb_err
 );
-    output wire o_hit_ready_next;
-    output wire o_hit_ok_next;
 	parameter [31:0] LPAGE_TLB_ENTRIES = 32'd8;
 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
 	parameter [31:0] SECTION_TLB_ENTRIES = 32'd8;
@@ -15031,7 +14971,6 @@ module ngage2_zap_tlb (
 		.o_walk(walk),
 		.o_walk_va(walk_va),
 		.o_hit_ok(o_hit_ok),
-        .o_hit_ok_next(o_hit_ok_next),
 		.o_hit_ok_short(o_hit_ok_short),
 		.o_fsr(fsr),
 		.o_far(far),
@@ -15067,7 +15006,6 @@ module ngage2_zap_tlb (
 		.o_cacheable(o_cacheable),
 		.o_busy(fsm_busy),
 		.o_hit_ready(o_hit_ready),
-        .o_hit_ready_next(o_hit_ready_next),
 		.o_setlb_wdata(setlb_wdata),
 		.o_setlb_wen(setlb_wen),
 		.o_sptlb_wdata(sptlb_wdata),
@@ -17215,10 +17153,8 @@ module ngage2_zap_dcache_half_tag_ram (
 	o_wb_cti_ff,
 	o_wb_cti_nxt,
 	i_wb_dat,
-	i_wb_ack,
-    o_cache_hit_early_next
+	i_wb_ack
 );
-    output wire o_cache_hit_early_next;
 	reg _sv2v_0;
 	parameter [0:0] ACCEPTED_HIT_UPDATE = 1'b0;
 	parameter [0:0] REG_COLLISION = 1'b0;
@@ -17802,9 +17738,7 @@ module ngage2_zap_dcache_half_tag_ram (
 		if (i_reset)
 			o_cache_hit_early <= 1'b0;
 		else if (!i_hold)
-			o_cache_hit_early <= o_cache_hit_early_next;
-    assign o_cache_hit_early_next = !i_reset &&
-        (!i_hold ? |hit : o_cache_hit_early);
+			o_cache_hit_early <= |hit;
 	assign o_cache_way_line = line_q;
 	assign o_cache_way_tag = tag_q;
 	assign o_cache_victim = victim;
