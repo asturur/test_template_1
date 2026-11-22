@@ -554,7 +554,7 @@ module ngage2_arm9v2_core (
 	wire d_fault;
 	wire d_force_align;
 	wire d_reg_shift;
-	wire [19:0] d_shift_pre;
+	wire [18:0] d_shift_pre;
 	wire [3:0] d_kind;
 	wire [3:0] d_condition;
 	wire [23:0] d_tag;
@@ -2024,7 +2024,7 @@ module ngage2_arm9v2_decode (
 	output wire o_force_align;
 	output wire o_reg_shift;
 	output wire [7:0] o_tag_class;
-	output wire [19:0] o_shift_pre;
+	output wire [18:0] o_shift_pre;
 	output wire [3:0] o_kind;
 	output wire [3:0] o_condition;
 	output wire [23:0] o_tag;
@@ -2818,14 +2818,10 @@ module ngage2_arm9v2_decode (
 		input reg [372:0] r;
 		op1_class = {((r[131-:4] == K_DP) || (r[131-:4] == K_MSR)) && r[334], r[106+:6] == 15, r[106+:6] == 17};
 	endfunction
-	(* dont_retime *) reg [19:0] shift_pre_ff;
-    // D2 fields are the register-shift flag, Thumb mode, early Rs use,
-    // and the banked Rs tag. Capture this beside the other shifter controls.
-    wire direct_shift_class = d2[44] && d2[131-:4] == K_DP && !d2[150] &&
-        d2[94] && d2[112+:6] != 15 && d2[112+:6] != 17;
+	(* dont_retime *) reg [18:0] shift_pre_ff;
 	(* dont_retime *) reg [7:0] tag_class_ff;
 	assign o_tag_class = tag_class_ff;
-	assign o_shift_pre = {shift_pre_ff[19:16], (SHIFT_PRE ? shift_pre_ff[15:0] : 16'd0)};
+	assign o_shift_pre = {shift_pre_ff[18:16], (SHIFT_PRE ? shift_pre_ff[15:0] : 16'd0)};
 	reg [3:0] wt_hit_a;
 	reg [3:0] wt_hit_b;
 	always @(*) begin : sv2v_autoblock_27
@@ -2883,7 +2879,7 @@ module ngage2_arm9v2_decode (
 						for (n = 0; n < 4; n = n + 1)
 							tag_class_ff[n * 2+:2] <= {d2[100 + (n * 6)+:6] == 32'sd17, d2[100 + (n * 6)+:6] == 32'sd15};
 					end
-					shift_pre_ff <= {direct_shift_class, op1_class(d2), shift_controls(d2)};
+					shift_pre_ff <= {op1_class(d2), shift_controls(d2)};
 					write_through_data <= {i_wr_data_c, i_wr_data_b, i_wr_data_a};
 					begin : sv2v_autoblock_30
 						reg signed [31:0] n;
@@ -2947,7 +2943,7 @@ module ngage2_arm9v2_decode (
 					for (n = 0; n < 4; n = n + 1)
 						tag_class_ff[n * 2+:2] <= {d2[100 + (n * 6)+:6] == 32'sd17, d2[100 + (n * 6)+:6] == 32'sd15};
 				end
-				shift_pre_ff <= {direct_shift_class, op1_class(d2), shift_controls(d2)};
+				shift_pre_ff <= {op1_class(d2), shift_controls(d2)};
 				write_through_data <= {i_wr_data_c, i_wr_data_b, i_wr_data_a};
 				begin : sv2v_autoblock_32
 					reg signed [31:0] n;
@@ -3266,7 +3262,7 @@ module ngage2_arm9v2_execute (
 	input wire i_reg_shift;
 	input wire i_first;
 	input wire i_last;
-	input wire [19:0] i_shift_pre;
+	input wire [18:0] i_shift_pre;
 	input wire [3:0] i_kind;
 	input wire [3:0] i_condition;
 	input wire [1:0] i_writes;
@@ -3823,29 +3819,12 @@ module ngage2_arm9v2_execute (
 	assign product_phase = (a_valid && ((a[327-:4] == MUL) || (a[327-:4] == MULL))) && !multiply_product_ready;
 	assign space = !a_valid || finish;
 
-    wire direct_reg_shift = i_shift_pre[19] && !prepared;
-    wire prepare_shift = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
-    // The early-operand interlock already prevents an unavailable Rs from
-    // issuing. Preserve the separate stall observation for diagnostics.
-    assign o_shift_wait = prepare_shift || (i_valid && direct_reg_shift && s_wait[2]);
+    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
 
-    // synthesis translate_off
-    wire direct_class_ref = i_reg_shift && i_kind == DP && !i_thumb &&
-        i_early[2] && !tag_pc[2] && !tag_psr[2];
-    wire direct_ready_ref = direct_class_ref && !prepared && !s_wait[2];
-    wire shift_wait_ref = i_valid && ((i_reg_shift && !direct_ready_ref) || agu_scaled) && !prepared;
-    always @(posedge i_clk)
-        if (!i_reset && i_valid) begin
-            if (i_shift_pre[19] !== direct_class_ref || o_shift_wait !== shift_wait_ref)
-                $fatal(1, "Registered shift shape or observable stall changed at %h", i_pc);
-            if (o_ready_payload !== (i_admit && space && !i_load_wait && !(|(s_wait & i_early)) && !shift_wait_ref))
-                $fatal(1, "Register shift admission changed at %h", i_pc);
-            if (accept && direct_reg_shift && !direct_ready_ref)
-                $fatal(1, "Accepted shift with an unresolved Rs at %h", i_pc);
-        end
-    // synthesis translate_on
+    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
 	assign o_multiply_wait = product_phase;
-	assign o_ready_payload = (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))) && !prepare_shift;
+	assign o_ready_payload = (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))) && !o_shift_wait;
 	assign o_ready = (o_ready_payload && !i_flush) && !o_redirect;
 	assign accept = i_valid && o_ready;
 	assign o_valid = ((((a_valid && !(|a_wait)) && !product_phase)) && !i_flush) && !o_redirect;
@@ -4917,7 +4896,7 @@ module ngage2_arm9v2_front_decode (
 	output wire o_force_align;
 	output wire o_reg_shift;
 	output wire [7:0] o_tag_class;
-	output wire [19:0] o_shift_pre;
+	output wire [18:0] o_shift_pre;
 	output wire [3:0] o_kind;
 	output wire [3:0] o_condition;
 	output wire [23:0] o_tag;
