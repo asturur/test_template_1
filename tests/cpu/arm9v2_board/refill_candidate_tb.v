@@ -3,15 +3,19 @@ module refill_candidate_tb;
   reg reset = 1;
   reg code_request = 0, data_request = 0;
   reg [31:0] code_addr = 0, data_addr = 0;
-  reg write = 0;
+  reg [31:0] code_write_data = 32'h1cb13100, data_write = 32'h7ec70000;
+  reg  [1:0] data_source = 0;
+  wire [3:0] data_payload_owner = 4'b0001 << data_source;
+  wire [127:0] data_addresses, data_write_data;
+  reg       write = 0;
   reg [3:0] sel = 4'hf;
   reg [2:0] code_cti = 3'b010, data_cti = 3'b010;
   reg [1:0] bte = 0;
   wire cyc, stb, selected_write, candidate, data_owner;
-  wire [31:0] addr;
-  wire [ 3:0] selected_sel;
-  wire [ 2:0] cti;
-  wire [ 1:0] selected_bte;
+  wire [31:0] addr, packet_data;
+  wire [3:0] selected_sel;
+  wire [2:0] cti;
+  wire [1:0] selected_bte;
   reg lock = 0, scalar_ack = 0, line_ready = 0, line_reject = 0;
   reg guarantee = 1, line_valid = 0, line_last = 0, line_error = 0;
   reg  [63:0] line_data = 0;
@@ -32,72 +36,86 @@ module refill_candidate_tb;
   wire code_first = line_read && code_cti == 3'b010 && code_addr[4:0] == 0 && code_mapped;
   wire data_first = line_read && data_cti == 3'b010 && data_addr[4:0] == 0 && data_mapped;
 
+  genvar source;
+  generate
+    for (source = 0; source < 4; source = source + 1) begin : g_payload
+      assign data_addresses[source*32+:32] = data_payload_owner[source] ? data_addr :
+                                              (~data_addr ^ source);
+      assign data_write_data[source*32+:32] = data_payload_owner[source] ? data_write :
+                                               (~data_write ^ source);
+    end
+  endgenerate
+
   ngage2_zap_wb_merger merger (
-      .i_clk(clk),
-      .i_reset(reset),
-      .i_c_wb_stb(code_request),
-      .i_c_wb_cyc(code_request),
-      .i_c_wb_wen(write),
-      .i_c_wb_sel(sel),
-      .i_c_wb_dat(32'd0),
-      .i_c_wb_adr(code_addr),
-      .i_c_line_candidate(code_first),
-      .i_c_wb_cti(code_cti),
-      .i_c_wb_bte(bte),
-      .i_d_wb_stb(data_request),
-      .i_d_wb_cyc(data_request),
-      .i_d_wb_wen(write),
-      .i_d_wb_sel(sel),
-      .i_d_wb_dat(32'd0),
-      .i_d_wb_adr(data_addr),
-      .i_d_line_candidate(data_first),
-      .i_d_wb_cti(data_cti),
-      .i_d_wb_bte(bte),
-      .o_wb_cyc(cyc),
-      .o_wb_stb(stb),
-      .o_wb_wen(selected_write),
-      .o_wb_sel(selected_sel),
-      .o_wb_adr(addr),
-      .o_wb_cti(cti),
-      .o_wb_bte(selected_bte),
-      .o_wb_line_candidate(candidate),
-      .o_dbg_data_owner(data_owner),
-      .i_wb_ack(cpu_ack),
-      .i_wb_err(cpu_error),
-      .i_wb_no_late_error(cpu_no_late_error)
+      .i_clk                    (clk),
+      .i_reset                  (reset),
+      .i_c_wb_stb               (code_request),
+      .i_c_wb_cyc               (code_request),
+      .i_c_wb_wen               (write),
+      .i_c_wb_sel               (sel),
+      .i_c_wb_dat               (code_write_data),
+      .i_c_wb_adr               (code_addr),
+      .i_c_line_candidate       (code_first),
+      .i_c_wb_cti               (code_cti),
+      .i_c_wb_bte               (bte),
+      .i_d_wb_stb               (data_request),
+      .i_d_wb_cyc               (data_request),
+      .i_d_wb_wen               (write),
+      .i_d_wb_sel               (sel),
+      .i_d_wb_dat               (data_write),
+      .i_d_wb_adr               (data_addr),
+      .i_d_wb_payload_owner     (data_payload_owner),
+      .i_d_wb_payload_addresses (data_addresses),
+      .i_d_wb_payload_write_data(data_write_data),
+      .i_d_line_candidate       (data_first),
+      .i_d_wb_cti               (data_cti),
+      .i_d_wb_bte               (bte),
+      .o_wb_cyc                 (cyc),
+      .o_wb_stb                 (stb),
+      .o_wb_wen                 (selected_write),
+      .o_wb_sel                 (selected_sel),
+      .o_wb_adr                 (addr),
+      .o_wb_dat                 (packet_data),
+      .o_wb_cti                 (cti),
+      .o_wb_bte                 (selected_bte),
+      .o_wb_line_candidate      (candidate),
+      .o_dbg_data_owner         (data_owner),
+      .i_wb_ack                 (cpu_ack),
+      .i_wb_err                 (cpu_error),
+      .i_wb_no_late_error       (cpu_no_late_error)
   );
 
   ngage_arm9v2_refill #(
       .ENABLE(1)
   ) refill (
-      .clk(clk),
-      .reset(reset),
-      .cpu_cyc(cyc && stb),
-      .cpu_lock(lock),
+      .clk               (clk),
+      .reset             (reset),
+      .cpu_cyc           (cyc && stb),
+      .cpu_lock          (lock),
       .cpu_line_candidate(candidate),
-      .cpu_address(addr),
-      .cpu_write(selected_write),
-      .cpu_sel(selected_sel),
-      .cpu_cti(cti),
-      .cpu_bte(selected_bte),
-      .cpu_ack(cpu_ack),
-      .cpu_error(cpu_error),
-      .cpu_no_late_error(cpu_no_late_error),
-      .cpu_data(cpu_data),
+      .cpu_address       (addr),
+      .cpu_write         (selected_write),
+      .cpu_sel           (selected_sel),
+      .cpu_cti           (cti),
+      .cpu_bte           (selected_bte),
+      .cpu_ack           (cpu_ack),
+      .cpu_error         (cpu_error),
+      .cpu_no_late_error (cpu_no_late_error),
+      .cpu_data          (cpu_data),
       .line_no_late_error(guarantee),
-      .wb_cyc(scalar),
-      .wb_lock(scalar_lock),
-      .wb_ack(scalar_ack),
-      .wb_error(1'b0),
-      .wb_data(32'd0),
-      .line_req(line_req),
-      .line_ready(line_ready),
-      .line_reject(line_reject),
-      .line_valid(line_valid),
-      .line_data(line_data),
-      .line_wide(1'b1),
-      .line_last(line_last),
-      .line_error(line_error)
+      .wb_cyc            (scalar),
+      .wb_lock           (scalar_lock),
+      .wb_ack            (scalar_ack),
+      .wb_error          (1'b0),
+      .wb_data           (32'd0),
+      .line_req          (line_req),
+      .line_ready        (line_ready),
+      .line_reject       (line_reject),
+      .line_valid        (line_valid),
+      .line_data         (line_data),
+      .line_wide         (1'b1),
+      .line_last         (line_last),
+      .line_error        (line_error)
   );
 
   task tick;
@@ -115,25 +133,27 @@ module refill_candidate_tb;
     begin
       reset = 1;
       tick;
-      if (candidate || scalar || line_req || cyc || stb)
+      if (candidate || scalar || line_req || cyc || stb || addr != 0 || packet_data != 0)
         $fatal(1, "Unexpected request during reset");
-      reset = 0;
+      reset        = 0;
       code_request = !data;
       data_request = data;
-      code_addr = data ? 32'h0c000000 : address;
-      data_addr = data ? address : 32'h0c000000;
+      code_addr    = data ? 32'h0c000000 : address;
+      data_addr    = data ? address : 32'h0c000000;
       tick;
       if (data_owner !== data || !cyc || !stb || addr !== address)
         $fatal(1, "Wrong arbitration packet for %h owner=%b", address, data);
+      if (packet_data !== (data ? data_write : code_write_data))
+        $fatal(1, "Wrong write data for %h owner=%b source=%0d", address, data, data_source);
       if (candidate !== expected || line_req !== expected || scalar !== !expected)
         $fatal(1, "Wrong classification at %h owner=%b", address, data);
     end
   endtask
 
-  reg [15:0] region_prefix = 0;
+  reg  [15:0] region_prefix = 0;
   wire [31:0] prefix_base = {region_prefix, 16'h0000};
   wire [31:0] prefix_end = {region_prefix, 16'hffff};
-  wire region_mapped;
+  wire        region_mapped;
   ngage2_refill_region prefix_range (
       region_prefix,
       region_mapped
@@ -148,7 +168,7 @@ module refill_candidate_tb;
     end
   endfunction
 
-  integer owner, prefix, beat, word;
+  integer owner, prefix, beat, word, lane;
   localparam [31:0] LINE_BASE = 32'h02000000;
   initial begin
     for (owner = 0; owner < 2; owner = owner + 1) begin
@@ -178,7 +198,7 @@ module refill_candidate_tb;
       sel = 4'hf;
       bte = 2'd1;
       check_packet(owner[0], 32'h0a000000, 0);
-      bte = 0;
+      bte      = 0;
       code_cti = 3'b111;
       data_cti = 3'b111;
       check_packet(owner[0], 32'h0a000000, 0);
@@ -186,12 +206,38 @@ module refill_candidate_tb;
       data_cti = 3'b010;
     end
 
+    // Both I/D sources request service while an EOB code packet is stalled.
+    // Changing the speculative D packet must take effect on the ACK edge only.
+    for (lane = 0; lane < 4; lane = lane + 1) begin
+      code_cti = 3'b111;
+      data_cti = 3'b111;
+      write    = 1;
+      sel      = 4'b0001 << lane;
+      check_packet(0, 32'h0c000010, 0);
+      data_request = 1;
+      data_source  = lane[1:0];
+      data_addr    = 32'h02000100 + (4 * lane);
+      data_write   = 32'h01020304 ^ lane;
+      tick;
+      if (data_owner || !cyc || !stb || addr != code_addr || packet_data != code_write_data)
+        $fatal(1, "Stalled code packet selected data source %0d before ACK", lane);
+      scalar_ack = 1;
+      tick;
+      scalar_ack = 0;
+      if (!data_owner || !cyc || !stb || addr != data_addr || packet_data != data_write ||
+          !selected_write || selected_sel != sel || cti != 3'b111)
+        $fatal(1, "ACK edge mixed packet fields for data source %0d", lane);
+    end
+    write    = 0;
+    sel      = 4'hf;
+    data_cti = 3'b010;
+
     // A scalar final acknowledgement changes owner and classifier together.
     code_cti = 3'b111;
     check_packet(0, 32'h0a000000, 0);
-    data_addr = 32'h02000020;
+    data_addr    = 32'h02000020;
     data_request = 1;
-    scalar_ack = 1;
+    scalar_ack   = 1;
     tick;
     scalar_ack = 0;
     if (!data_owner || addr != data_addr || !candidate || !line_req || scalar)
@@ -234,12 +280,12 @@ module refill_candidate_tb;
     line_ready = 1;
     tick;
     line_ready = 0;
-    guarantee = 0;
-    lock = 1;
+    guarantee  = 0;
+    lock       = 1;
     for (beat = 0; beat < 4; beat = beat + 1) begin
-      line_valid = 1;
-      line_last = beat == 3;
-      line_data[31:0] = 2 * beat;
+      line_valid       = 1;
+      line_last        = beat == 3;
+      line_data[31:0]  = 2 * beat;
       line_data[63:32] = 2 * beat + 1;
       tick;
       line_valid = 0;
@@ -247,15 +293,15 @@ module refill_candidate_tb;
         if (!cpu_ack || cpu_error || !cpu_no_late_error || cpu_data != 2 * beat + word ||
             scalar || scalar_lock || line_req)
           $fatal(1, "Guaranteed line changed at word %0d", 2 * beat + word);
-        data_addr = data_addr + 4;
+        data_addr    = data_addr + 4;
         data_request = !(beat == 3 && word == 1);
-        data_cti = beat == 3 && word == 0 ? 3'b111 : 3'b010;
+        data_cti     = beat == 3 && word == 0 ? 3'b111 : 3'b010;
         tick;
       end
     end
     if (cpu_ack || cpu_error || cpu_no_late_error || scalar || line_req)
       $fatal(1, "Finished line leaked a reply or another request");
-    lock = 0;
+    lock     = 0;
     code_cti = 3'b010;
 
     check_packet(0, LINE_BASE, 1);
@@ -280,7 +326,8 @@ module refill_candidate_tb;
         $fatal(1, "Physical region prefix %h disagrees", region_prefix);
     end
 
-    $display("PASS 65536 range prefixes, owner handoff, cancellation, lock and scalar fallback");
+    $display(
+        "PASS 65536 range prefixes, all four data packets, stalled owner handoff, cancellation, lock and scalar fallback");
     $display("PASS guaranteed line under lock and fallible line without promise");
     $finish;
   end

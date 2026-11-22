@@ -10953,6 +10953,9 @@ module ngage2_zap_dcache (
 	o_wb_dat,
 	o_wb_dat_nxt,
 	o_wb_adr,
+	o_wb_payload_owner_nxt,
+	o_wb_payload_addresses_nxt,
+	o_wb_payload_write_data_nxt,
 	o_wb_adr_nxt,
 	o_wb_cti,
 	o_wb_cti_nxt,
@@ -11066,6 +11069,9 @@ module ngage2_zap_dcache (
 	output reg [31:0] o_wb_dat;
 	output reg [31:0] o_wb_dat_nxt;
 	output reg [31:0] o_wb_adr;
+	output wire [3:0] o_wb_payload_owner_nxt;
+	output wire [127:0] o_wb_payload_addresses_nxt;
+	output wire [127:0] o_wb_payload_write_data_nxt;
 	output reg [31:0] o_wb_adr_nxt;
 	output reg [2:0] o_wb_cti;
 	output reg [2:0] o_wb_cti_nxt;
@@ -11908,6 +11914,10 @@ module ngage2_zap_dcache (
                 o_wb_cti_nxt == CTI_BURST && o_wb_bte_nxt == 0;
         end
     endgenerate
+    // Match the SELECT_* one-hot order: posted, TLB, tag maintenance, cache.
+    assign o_wb_payload_owner_nxt = state_nxt;
+    assign o_wb_payload_addresses_nxt = {wb_adr[3], wb_adr[2], wb_adr[1], wb_adr[0]};
+    assign o_wb_payload_write_data_nxt = {wb_dat[3], wb_dat[2], wb_dat[1], wb_dat[0]};
 	assign o_wb_cyc_nxt = (!o_wb_stb || (o_wb_stb && (i_wb_ack || i_wb_err)) ? |eligible_cyc : |(state_ff & wb_cyc));
 	assign o_wb_stb_nxt = ((!o_wb_stb || i_wb_ack) || i_wb_err ? (((eligible_cyc[3] && wb_stb[3]) || ((!eligible_cyc[3] && eligible_cyc[2]) && wb_stb[2])) || (((!eligible_cyc[3] && !eligible_cyc[2]) && eligible_cyc[1]) && wb_stb[1])) || ((((!eligible_cyc[3] && !eligible_cyc[2]) && !eligible_cyc[1]) && eligible_cyc[0]) && wb_stb[0]) : |(state_ff & wb_stb));
 	always @(*) begin
@@ -15672,6 +15682,9 @@ module ngage2_zap_top (
 	wire d_wb_wen;
 	wire [3:0] d_wb_sel;
 	wire [31:0] d_wb_dat;
+	wire [3:0] d_wb_payload_owner;
+	wire [127:0] d_wb_payload_addresses;
+	wire [127:0] d_wb_payload_write_data;
 	wire [31:0] d_wb_adr;
     wire d_line_candidate;
 	wire [2:0] d_wb_cti;
@@ -15883,6 +15896,9 @@ module ngage2_zap_top (
 				.i_d_wb_wen(d_wb_wen),
 				.i_d_wb_sel(d_wb_sel),
 				.i_d_wb_dat(d_wb_dat),
+				.i_d_wb_payload_owner(d_wb_payload_owner),
+				.i_d_wb_payload_addresses(d_wb_payload_addresses),
+				.i_d_wb_payload_write_data(d_wb_payload_write_data),
 				.i_d_wb_adr(d_wb_adr),
                 .i_d_line_candidate(d_line_candidate),
 				.i_d_wb_cti(d_wb_cti),
@@ -16007,6 +16023,9 @@ module ngage2_zap_top (
 				.o_wb_wen_nxt(d_wb_wen),
 				.o_wb_sel_nxt(d_wb_sel),
 				.o_wb_dat_nxt(d_wb_dat),
+				.o_wb_payload_owner_nxt(d_wb_payload_owner),
+				.o_wb_payload_addresses_nxt(d_wb_payload_addresses),
+				.o_wb_payload_write_data_nxt(d_wb_payload_write_data),
 				.o_wb_adr_nxt(d_wb_adr),
                 .o_wb_line_candidate_nxt(d_line_candidate),
 				.o_wb_bte_nxt(d_wb_bte),
@@ -16114,6 +16133,9 @@ module ngage2_zap_wb_merger (
 	i_d_wb_wen,
 	i_d_wb_sel,
 	i_d_wb_dat,
+	i_d_wb_payload_owner,
+	i_d_wb_payload_addresses,
+	i_d_wb_payload_write_data,
 	i_d_wb_adr,
 	i_d_line_candidate,
 	i_d_wb_cti,
@@ -16154,6 +16176,9 @@ module ngage2_zap_wb_merger (
 	input wire i_d_wb_wen;
 	input wire [3:0] i_d_wb_sel;
 	input wire [31:0] i_d_wb_dat;
+	input wire [3:0] i_d_wb_payload_owner;
+	input wire [127:0] i_d_wb_payload_addresses;
+	input wire [127:0] i_d_wb_payload_write_data;
 	input wire [31:0] i_d_wb_adr;
 	input wire i_d_line_candidate;
 	input wire [2:0] i_d_wb_cti;
@@ -16165,7 +16190,7 @@ module ngage2_zap_wb_merger (
 	output reg o_wb_wen;
 	output reg [3:0] o_wb_sel;
 	output wire [31:0] o_wb_dat;
-	(* dont_retime *) output reg [31:0] o_wb_adr;
+	output wire [31:0] o_wb_adr;
 	(* dont_retime *) output reg o_wb_line_candidate;
 	output reg [2:0] o_wb_cti;
 	output reg [1:0] o_wb_bte;
@@ -16482,28 +16507,54 @@ module ngage2_zap_wb_merger (
 	assign o_d_wb_err = (state_ff == 1'd1) & i_wb_err;
 	generate
 		if (1) begin : l_genblk1
-			(* dont_retime *) reg [31:0] code_data_ff;
-			(* dont_retime *) reg [31:0] data_data_ff;
-			(* preserve, dont_retime *) reg data_owner_ff;
-			always @(posedge i_clk)
-				if (i_reset) begin
-					code_data_ff <= 32'b00000000000000000000000000000000;
-					data_data_ff <= 32'b00000000000000000000000000000000;
-					data_owner_ff <= 1'd0;
-				end
-				else begin
-					code_data_ff <= i_c_wb_dat;
-					data_data_ff <= i_d_wb_dat;
-					data_owner_ff <= state_nxt;
-				end
-			assign o_wb_dat = (data_owner_ff == 1'd0 ? code_data_ff : data_data_ff);
+            // Sample every source at the existing request edge. Only the
+            // selector depends on the final D-cache and I/D arbitration.
+            (* dont_retime *) reg [159:0] addresses_ff;
+            (* dont_retime *) reg [159:0] write_data_ff;
+            (* dont_retime *) reg [4:0] payload_owner_ff;
+
+            function [31:0] select_payload;
+                input [159:0] data;
+                input [4:0] owner;
+                begin
+                    select_payload = (data[31:0] & {32{owner[0]}}) |
+                                     (data[63:32] & {32{owner[1]}}) |
+                                     (data[95:64] & {32{owner[2]}}) |
+                                     (data[127:96] & {32{owner[3]}}) |
+                                     (data[159:128] & {32{owner[4]}});
+                end
+            endfunction
+
+            always @(posedge i_clk) begin
+                addresses_ff <= {i_c_wb_adr, i_d_wb_payload_addresses};
+                write_data_ff <= {i_c_wb_dat, i_d_wb_payload_write_data};
+                if (i_reset)
+                    payload_owner_ff <= 5'b00000;
+                else
+                    payload_owner_ff <= state_nxt ? {1'b0, i_d_wb_payload_owner} : 5'b10000;
+            end
+            assign o_wb_adr = select_payload(addresses_ff, payload_owner_ff);
+            assign o_wb_dat = select_payload(write_data_ff, payload_owner_ff);
+
+`ifndef SYNTHESIS
+            reg [31:0] reference_address;
+            reg [31:0] reference_data;
+            always @(posedge i_clk) begin
+                if (!i_reset && o_wb_cyc && o_wb_stb) begin
+                    if (payload_owner_ff == 0 || (payload_owner_ff & (payload_owner_ff - 5'd1)) != 0 ||
+                        o_wb_adr !== reference_address || o_wb_dat !== reference_data)
+                        $fatal(1, "Wishbone packet differs from the selected request");
+                end
+                reference_address <= state_nxt ? i_d_wb_adr : i_c_wb_adr;
+                reference_data <= state_nxt ? i_d_wb_dat : i_c_wb_dat;
+            end
+`endif
 			always @(posedge i_clk)
 				if (i_reset) begin
 					o_wb_cyc <= 0;
 					o_wb_stb <= 0;
 					o_wb_wen <= 0;
 					o_wb_sel <= 0;
-					o_wb_adr <= 0;
 					o_wb_line_candidate <= 1'b0;
 					o_wb_cti <= CTI_EOB;
 					o_wb_bte <= 2'b00;
@@ -16513,7 +16564,6 @@ module ngage2_zap_wb_merger (
 					o_wb_stb <= i_c_wb_stb;
 					o_wb_wen <= i_c_wb_wen;
 					o_wb_sel <= i_c_wb_sel;
-					o_wb_adr <= i_c_wb_adr;
 					o_wb_line_candidate <= i_c_line_candidate;
 					o_wb_cti <= i_c_wb_cti;
 					o_wb_bte <= i_c_wb_bte;
@@ -16523,7 +16573,6 @@ module ngage2_zap_wb_merger (
 					o_wb_stb <= i_d_wb_stb;
 					o_wb_wen <= i_d_wb_wen;
 					o_wb_sel <= i_d_wb_sel;
-					o_wb_adr <= i_d_wb_adr;
 					o_wb_line_candidate <= i_d_line_candidate;
 					o_wb_cti <= i_d_wb_cti;
 					o_wb_bte <= i_d_wb_bte;

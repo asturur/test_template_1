@@ -631,6 +631,92 @@ def keep_wishbone_request_boundary(phone):
     return phone[:start] + merger + phone[end:]
 
 
+def split_wishbone_payload(phone):
+    """Capture unselected D-cache payloads with their final one-hot owner."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
+    cache = index['ngage2_zap_dcache']
+    top = index['ngage2_zap_top']
+    merger = index['ngage2_zap_wb_merger']
+
+    fields = [('owner', '[3:0]'), ('addresses', '[127:0]'), ('write_data', '[127:0]')]
+    for field, width in fields:
+        output = f'o_wb_payload_{field}_nxt'
+        connection = f'd_wb_payload_{field}'
+        port = f'i_d_wb_payload_{field}'
+        parts[cache] = edit(parts[cache], '\to_wb_adr_nxt,\n',
+                            f'\t{output},\n\to_wb_adr_nxt,\n')
+        parts[cache] = edit(parts[cache], '\toutput reg [31:0] o_wb_adr_nxt;',
+                            f'\toutput wire {width} {output};\n\toutput reg [31:0] o_wb_adr_nxt;')
+        parts[top] = edit(parts[top], '\twire [31:0] d_wb_adr;',
+                          f'\twire {width} {connection};\n\twire [31:0] d_wb_adr;')
+        parts[top] = edit(parts[top], '\t\t\t\t.o_wb_adr_nxt(d_wb_adr),',
+                          f'\t\t\t\t.{output}({connection}),\n\t\t\t\t.o_wb_adr_nxt(d_wb_adr),')
+        parts[top] = edit(parts[top], '\t\t\t\t.i_d_wb_adr(d_wb_adr),',
+                          f'\t\t\t\t.{port}({connection}),\n\t\t\t\t.i_d_wb_adr(d_wb_adr),')
+        parts[merger] = edit(parts[merger], '\ti_d_wb_adr,\n',
+                             f'\t{port},\n\ti_d_wb_adr,\n')
+        parts[merger] = edit(parts[merger], '\tinput wire [31:0] i_d_wb_adr;',
+                             f'\tinput wire {width} {port};\n\tinput wire [31:0] i_d_wb_adr;')
+
+    parts[cache] = edit(parts[cache], '\tassign o_wb_cyc_nxt =', '''
+    // Match the SELECT_* one-hot order: posted, TLB, tag maintenance, cache.
+    assign o_wb_payload_owner_nxt = state_nxt;
+    assign o_wb_payload_addresses_nxt = {wb_adr[3], wb_adr[2], wb_adr[1], wb_adr[0]};
+    assign o_wb_payload_write_data_nxt = {wb_dat[3], wb_dat[2], wb_dat[1], wb_dat[0]};
+\tassign o_wb_cyc_nxt ='''.lstrip('\n'))
+    body = edit(parts[merger], '\t(* dont_retime *) output reg [31:0] o_wb_adr;',
+                '\toutput wire [31:0] o_wb_adr;')
+    start = body.index('\t\t\t(* dont_retime *) reg [31:0] code_data_ff;')
+    end = body.index('\n', body.index('\t\t\tassign o_wb_dat =', start))
+    body = body[:start] + '''            // Sample every source at the existing request edge. Only the
+            // selector depends on the final D-cache and I/D arbitration.
+            (* dont_retime *) reg [159:0] addresses_ff;
+            (* dont_retime *) reg [159:0] write_data_ff;
+            (* dont_retime *) reg [4:0] payload_owner_ff;
+
+            function [31:0] select_payload;
+                input [159:0] data;
+                input [4:0] owner;
+                begin
+                    select_payload = (data[31:0] & {32{owner[0]}}) |
+                                     (data[63:32] & {32{owner[1]}}) |
+                                     (data[95:64] & {32{owner[2]}}) |
+                                     (data[127:96] & {32{owner[3]}}) |
+                                     (data[159:128] & {32{owner[4]}});
+                end
+            endfunction
+
+            always @(posedge i_clk) begin
+                addresses_ff <= {i_c_wb_adr, i_d_wb_payload_addresses};
+                write_data_ff <= {i_c_wb_dat, i_d_wb_payload_write_data};
+                if (i_reset)
+                    payload_owner_ff <= 5'b00000;
+                else
+                    payload_owner_ff <= state_nxt ? {1'b0, i_d_wb_payload_owner} : 5'b10000;
+            end
+            assign o_wb_adr = select_payload(addresses_ff, payload_owner_ff);
+            assign o_wb_dat = select_payload(write_data_ff, payload_owner_ff);
+
+`ifndef SYNTHESIS
+            reg [31:0] reference_address;
+            reg [31:0] reference_data;
+            always @(posedge i_clk) begin
+                if (!i_reset && o_wb_cyc && o_wb_stb) begin
+                    if (payload_owner_ff == 0 || (payload_owner_ff & (payload_owner_ff - 5'd1)) != 0 ||
+                        o_wb_adr !== reference_address || o_wb_dat !== reference_data)
+                        $fatal(1, "Wishbone packet differs from the selected request");
+                end
+                reference_address <= state_nxt ? i_d_wb_adr : i_c_wb_adr;
+                reference_data <= state_nxt ? i_d_wb_dat : i_c_wb_dat;
+            end
+`endif''' + body[end:]
+    for address in ('0', 'i_c_wb_adr', 'i_d_wb_adr'):
+        body = edit(body, f'\t\t\t\t\to_wb_adr <= {address};\n', '')
+    parts[merger] = body
+    return ''.join(parts)
+
+
 def predecode_dcache_write_enable(phone):
     """Drive packed data RAM WREN independently of the byte lane shifter."""
     parts = re.split(r'(?=^module )', phone, flags=re.M)
@@ -896,7 +982,7 @@ def main():
     generated = resolve_execute_forward_candidates(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
-    generated = keep_wishbone_request_boundary(generated)
+    generated = split_wishbone_payload(keep_wishbone_request_boundary(generated))
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

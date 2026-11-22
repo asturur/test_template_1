@@ -60,6 +60,35 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
+## Capture Wishbone payload sources before selection
+
+The `75186be` physical 104 MHz fits exposed two paths through D-cache
+arbitration at the Wishbone merger. At slow 0 °C, seed 42's locked SDRAM
+write response passed through cache arbitration into the merger's write-data
+register, with −3.130 ns slack. At slow 100 °C, seed 44's physical TLB
+address passed through cache eligibility into the merger's address register,
+with −2.632 ns slack.
+
+The merger captures cache, tag-maintenance, TLB and posted-store payloads
+alongside the I-cache payload. A separate one-hot register records the combined
+D-cache and I/D arbitration decision on the existing request edge. The
+captured owner selects the address and data after that edge. Request control,
+refill classification and response ownership use the existing arbitration.
+This moves selection out of the path into each payload register and places
+it on the registered address and data outputs.
+
+The packet assertion compares each emitted address and data with the original
+selected request. The refill fixture covers all four D-cache sources, a
+stalled I/D handover, cancellation, line rejection and SWP lock. The physical
+SDRAM mixed fixture matches at 1,189,662 cycles, with 4,576 LCD lines and 128
+PCM reads. It checks MMC persistence against an independent oracle.
+The four CPU contract modes and all 15 fixed workloads match `75186be`
+cycle for cycle. The fixed workloads also produce identical request traces.
+The four native PolyCount frames match at 57,514,786 clocks and produce
+identical rendered output. The mixed fixture uses an authored guest and
+modeled DDR backing with CPU line transport disabled. The fixed and native
+benchmarks exercise CPU refills against the SDRAM pin model.
+
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
