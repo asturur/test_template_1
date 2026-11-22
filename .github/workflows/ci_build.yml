@@ -1,5 +1,5 @@
 name: CI Build
-run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})
+run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})${{ inputs.fit_scope && inputs.fit_scope != 'production' && format(' [{0}]', inputs.fit_scope) || '' }}
 
 on:
   workflow_dispatch:
@@ -15,11 +15,30 @@ on:
         default: false
         type: boolean
 
+      fit_scope:
+        description: Production build or diagnostic-only timing isolation
+        required: false
+        default: production
+        type: choice
+        options:
+          - production
+          - cpu-only
+          - board-only
+
 permissions:
   contents: read
 
 jobs:
+  isolation:
+    if: ${{ inputs.fit_scope == 'cpu-only' || inputs.fit_scope == 'board-only' }}
+    uses: ./.github/workflows/timing_isolation.yml
+    with:
+      mode: ${{ inputs.fit_scope }}
+      seed: ${{ inputs.seed || '1' }}
+      debugger: ${{ inputs.enable_debugger }}
+
   build:
+    if: ${{ !inputs.fit_scope || inputs.fit_scope == 'production' }}
     runs-on: ubuntu-latest
 
     steps:

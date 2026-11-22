@@ -1,0 +1,100 @@
+name: Isolated timing diagnostic
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        type: string
+        required: true
+      seed:
+        type: string
+        required: true
+      debugger:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  fit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: build/isolated-project
+    env:
+      MODE: ${{ inputs.mode }}
+      SEED: ${{ inputs.seed }}
+      DEBUGGER: ${{ inputs.debugger }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare archived diagnostic sources
+        working-directory: .
+        run: |
+          test "$DEBUGGER" = false
+          mkdir -p build/isolated-project
+          git archive HEAD | tar -x -C build/isolated-project
+          python3 tools/fit_isolation/prepare.py --project build/isolated-project --mode "$MODE"
+          cd build/isolated-project
+          python3 tools/set_quartus_seed.py Template.qsf --seed "$SEED"
+          python3 tools/set_quartus_debug.py Template.qsf --enabled false
+          mkdir -p output_files/timing
+          docker run --rm -v "$PWD:/project" -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl --list \
+            > output_files/source-graph.txt
+
+      - name: Fit diagnostic with Quartus 17.0.2
+        id: fit
+        run: |
+          docker run --rm -v "$PWD:/project" -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sh --flow compile Template \
+            2>&1 | tee quartus_build.log
+
+      - name: Record effective diagnostic sources
+        if: ${{ !cancelled() && steps.fit.outcome == 'success' }}
+        run: python3 tools/record_fit_inputs.py
+
+      - name: Export physical 104 MHz timing by operating corner
+        if: ${{ !cancelled() && steps.fit.outcome == 'success' }}
+        run: |
+          docker run --rm -v "$PWD:/project" -w /project \
+            theypsilon/quartus-lite-c5:17.0.2.docker0 \
+            /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/fit_isolation/report.tcl "$MODE" \
+            2>&1 | tee isolation_sta.log
+
+      - name: Verify timing export and fitted hierarchy
+        if: ${{ !cancelled() && steps.fit.outcome == 'success' }}
+        run: python3 tools/fit_isolation/verify_reports.py "$MODE"
+
+      - name: Verify physical SDRAM I/O registers
+        if: ${{ !cancelled() && steps.fit.outcome == 'success' && inputs.mode == 'board-only' }}
+        run: python3 tools/check_sdram_io_registers.py output_files/Template.fit.rpt | tee output_files/sdram-io-check.txt
+
+      - name: Describe the measurement scope
+        if: always()
+        working-directory: .
+        run: |
+          echo "Fit-only diagnostic: $MODE, seed $SEED, physical 104 MHz, DDR debugger off." >> "$GITHUB_STEP_SUMMARY"
+          echo "Negative slack is recorded as measured. No diagnostic bitstreams are published." >> "$GITHUB_STEP_SUMMARY"
+          echo "For CPU-only, SDRAM and the platform pin groups are absent by design." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload diagnostic reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isolation-${{ inputs.mode }}-seed-${{ inputs.seed }}
+          path: |
+            build/isolated-project/quartus_build.log
+            build/isolated-project/isolation_sta.log
+            build/isolated-project/output_files/*.json
+            build/isolated-project/output_files/*.txt
+            build/isolated-project/output_files/*.rpt
+            build/isolated-project/output_files/*.summary
+            build/isolated-project/output_files/*.smsg
+            build/isolated-project/output_files/timing/
+          if-no-files-found: warn
+          retention-days: 14
