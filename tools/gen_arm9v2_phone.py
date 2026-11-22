@@ -271,160 +271,27 @@ def expose_block_writeback(phone):
     return ''.join(parts)
 
 
-def split_register_shifts(phone):
-    """Put an edge after two mux levels in the register-count barrel."""
-    begin = phone.index("module ngage2_arm9v2_execute (")
-    end = phone.index("\nendmodule", begin)
-    execute = phone[begin:end]
-    # Only the decoded constant amounts reach the single-cycle barrels.
-    execute = edit(execute, "(prepared && i_reg_shift ? held_amount : {3'd0, i_instruction[11:7]})",
-                   "{3'd0, i_instruction[11:7]}")
-    execute = edit(execute, "(prepared && i_reg_shift ? held_amount : i_shift_pre[13:6])",
-                   "i_shift_pre[13:6]")
-    execute = edit(execute, "(prepared && i_reg_shift ? held_rot : i_shift_pre[5:1])",
-                   "i_shift_pre[5:1]")
-    execute = edit(execute, '\tassign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;',
-                   '\n    assign o_shift_wait = i_valid && (i_reg_shift || agu_scaled) && !prepared;')
-    execute = edit(execute, '\n\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)',
-                   '\n\n\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)')
-    for instance in ("u_rotate", "u_rotate_w"):
-        execute = edit(execute, f"{instance}(\n", f"{instance}(\n        .i_clk(1'b0),\n        .i_capture(1'b0),\n")
-    execute = edit(execute, """
-\tassign shifted = (w_take ? shifted_w : shifted_main);
-\tassign shift_carry = (w_take ? carry_w : carry_main);
-\tassign carry_preserve = (w_take ? preserve_w : preserve_main);
-\tassign rrx = (w_take ? rrx_w : rrx_main);""", """
-    wire [31:0] variable_operand = w_take ? i_w_load_data :
-                                  (W_ROTATE ? shift_input_nw : shift_input);
-    wire [7:0] variable_count = operand[71:64];
-    wire [4:0] variable_rot = shift_type == 0 ? -variable_count[4:0] : variable_count[4:0];
-    wire [31:0] variable_shifted;
-    wire variable_carry, variable_preserve;
-    // The captured data belongs to the S operation marked prepared. Before
-    // that edge speculative samples are disposable, including on redirects.
-    // Retain the sample while A is unavailable. The existing accept/flush
-    // protocol releases the owner. RRX is only an immediate shift.
-    ngage2_arm9v2_rotate #(.PRE_ROT(1'b1), .REGISTER_STAGE(1'b1)) u_rotate_register(
-        .i_clk(i_clk),
-        .i_capture(!prepared),
-        .i_value(variable_operand),
-        .i_amount(variable_count),
-        .i_type(shift_type),
-        .i_rot(variable_rot),
-        .i_register(1'b1),
-        .i_carry(1'b0),
-        .o_value(variable_shifted),
-        .o_carry(variable_carry),
-        .o_preserve(variable_preserve),
-        .o_rrx()
-    );
-    assign shifted = i_reg_shift ? variable_shifted : (w_take ? shifted_w : shifted_main);
-    assign shift_carry = i_reg_shift ? variable_carry : (w_take ? carry_w : carry_main);
-    assign carry_preserve = i_reg_shift ? variable_preserve : (w_take ? preserve_w : preserve_main);
-    assign rrx = !i_reg_shift && (w_take ? rrx_w : rrx_main);
+def schedule_ready_register_shift(phone):
+    """Use the forwarded ARM shift count when Rs is already ready."""
+    start = phone.index('module ngage2_arm9v2_execute (')
+    end = phone.index('\nendmodule', start)
+    execute = phone[start:end]
+    if 'wire direct_reg_shift =' in execute:
+        raise ValueError('The ready register shift is already enabled in this netlist')
+    execute = edit(execute, '\tassign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;', '''
+    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
 
-    // synthesis translate_off
-    reg [7:0] prepared_count;
-    wire [31:0] register_ref_value;
-    wire register_ref_carry, register_ref_preserve;
-    always @(posedge i_clk)
-        if (!prepared) prepared_count <= variable_count;
-    ngage2_arm9v2_rotate u_rotate_ref(
-        .i_clk(1'b0), .i_capture(1'b0),
-        .i_value(variable_operand),
-        .i_amount(prepared_count),
-        .i_type(shift_type),
-        .i_rot(5'd0),
-        .i_register(1'b1), .i_carry(1'b0),
-        .o_value(register_ref_value), .o_carry(register_ref_carry),
-        .o_preserve(register_ref_preserve), .o_rrx()
-    );
-    always @(posedge i_clk)
-        if (!i_reset && !i_fault && accept && i_reg_shift &&
-            (!prepared || {variable_shifted, variable_carry, variable_preserve} !==
-                          {register_ref_value, register_ref_carry, register_ref_preserve}))
-            $fatal(1, "Prepared shift differs from the selected operand at %h", i_pc);
-    // synthesis translate_on""")
-    for held, width in (("held_amount", 8), ("held_rot", 5)):
-        execute = edit(execute, f"\t(* dont_retime *) reg [{width-1}:0] {held};\n", "")
-        execute = edit(execute, f"\t\t\t{held} <= 0;\n", "")
-    execute = edit(execute, """
-\t\t\t\tif (i_reg_shift) begin
-\t\t\t\t\theld_amount <= operand[71-:8];
-\t\t\t\t\theld_rot <= (shift_type == 0 ? -operand[68-:5] : operand[68-:5]);
-\t\t\t\tend
-""", "\n")
-    phone = phone[:begin] + execute + phone[end:]
-
-    begin = phone.index("module ngage2_arm9v2_rotate (")
-    end = phone.index("\nendmodule", begin)
-    rotate = phone[begin:end]
-    rotate = edit(rotate, "\to_rrx\n);", "\to_rrx,\n    i_clk,\n    i_capture\n);")
-    rotate = edit(rotate, "\tparameter [0:0] PRE_ROT = 0;", """\tparameter [0:0] PRE_ROT = 0;
-    parameter [0:0] REGISTER_STAGE = 0;
-    input wire i_clk;
-    input wire i_capture;""")
-    rotate = edit(rotate, "\tassign stage[0] = i_value;", """\tassign stage[0] = i_value;
-    wire [31:0] stage_two;
-    wire [2:0] upper_amount;
-    wire [7:0] count;
-    wire [1:0] kind;
-    wire sign_bit, low_bit, is_register, incoming_carry;
-    generate
-        if (REGISTER_STAGE) begin : g_cut
-            (* dont_retime *) reg [31:0] rotated;
-            (* dont_retime *) reg [2:0] high;
-            (* dont_retime *) reg [7:0] count_ff;
-            (* dont_retime *) reg [1:0] type_ff;
-            (* dont_retime *) reg sign_ff, low_ff, register_ff, carry_ff;
-            always @(posedge i_clk)
-                if (i_capture) begin
-                    rotated <= stage[2];
-                    high <= amount[4:2];
-                    count_ff <= i_amount;
-                    type_ff <= i_type;
-                    sign_ff <= i_value[31];
-                    low_ff <= i_value[0];
-                    register_ff <= i_register;
-                    carry_ff <= i_carry;
-                end
-            assign stage_two = rotated;
-            assign upper_amount = high;
-            assign count = count_ff;
-            assign kind = type_ff;
-            assign sign_bit = sign_ff;
-            assign low_bit = low_ff;
-            assign is_register = register_ff;
-            assign incoming_carry = carry_ff;
-        end else begin : g_comb
-            assign stage_two = stage[2];
-            assign upper_amount = amount[4:2];
-            assign count = i_amount;
-            assign kind = i_type;
-            assign sign_bit = i_value[31];
-            assign low_bit = i_value[0];
-            assign is_register = i_register;
-            assign incoming_carry = i_carry;
+    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;''')
+    # Scaled memory addressing still uses the prepared offset.
+    execute = edit(execute, '\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)', '''
+        if (direct_reg_shift) begin
+            shift_amount = operand[71:64];
+            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
         end
-    endgenerate
-    wire [4:0] controls = {upper_amount, amount[1:0]};""")
-    rotate = edit(rotate, "\t\t\tlocalparam sa_rot_stage = _gv_sa_rot_stage_1;",
-                   "\t\t\tlocalparam sa_rot_stage = _gv_sa_rot_stage_1;\n"
-                   "            wire [31:0] previous = sa_rot_stage == 2 ? stage_two : stage[sa_rot_stage];")
-    rotate = edit(rotate, "(amount[sa_rot_stage] ? stage[sa_rot_stage][(sa_rot_bit + (1 << sa_rot_stage)) % 32] : stage[sa_rot_stage][sa_rot_bit])",
-                  "(controls[sa_rot_stage] ? previous[(sa_rot_bit + (1 << sa_rot_stage)) % 32] : previous[sa_rot_bit])")
-    end_rotate = rotate.index("\twire [31:0] left_mask")
-    tail = rotate[end_rotate:]
-    for old, new in (
-        ("i_value[31]", "sign_bit"), ("i_value[0]", "low_bit"), ("i_type", "kind"),
-        ("i_amount", "count"), ("i_carry", "incoming_carry"), ("i_register", "is_register")
-    ):
-        tail = tail.replace(old, new)
-    tail = edit(tail, "o_value = i_value;", "o_value = REGISTER_STAGE ? stage[5] : i_value;")
-    # The two-cycle caller uses register semantics, so this immediate-only
-    # expression is optimized out of its cone. Keep the non-staged contract.
-    rotate = rotate[:end_rotate] + tail
-    return phone[:begin] + rotate + phone[end:]
+\t\tplanned_writes_ref = 0;
+\t\tcase (i_kind)''')
+    return phone[:start] + execute + phone[end:]
 
 
 def schedule_early_smull(phone):
@@ -1016,7 +883,7 @@ def main():
         raise ValueError('Donor netlist differs from pinned Quartus input')
     output = VENDOR / 'arm925t_phone.v'
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
-    generated = split_register_shifts(generated)
+    generated = schedule_ready_register_shift(generated)
     generated = schedule_early_smull(generated)
     generated = restart_streamed_icache(direct_accumulate(generated))
     generated = resident_during_fill(generated)

@@ -60,27 +60,6 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
-## Split the register-count barrel shifter
-
-On round-three seed 44 at 104 MHz, the worst slow-corner path used a
-forwarded register shift count to drive the barrel and missed setup
-by 2.689 ns. The register-count lane now captures the operand after
-the first two rotation mux levels at the existing S preparation edge.
-The remaining three levels use the captured shift amount and type.
-Immediate shifts and scaled address calculations use the decoded
-constant path. Ready ARM register-count shifts gain one clock of
-latency. Thumb register-count shifts already used the preparation edge.
-
-The directed tests check all 256 count values across four shift types
-and 16 operand patterns. They also check forwarded count and data,
-a held stage, immediate RRX and a flush or reset with a prepared
-shift. The four CPU contract profiles and mixed LCD, MMC and PCM
-replay pass. At physical 104 MHz all 15 fixed payloads pass their output
-checks and 11 have unchanged median runtime. The largest increase is
-6.68% on Asphalt's single lookup. Four native PolyCount frames have
-the same rendered digest and take 58,674,183 clocks, up 2.02% from
-57,514,786. The routed timing comparison is pending.
-
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
