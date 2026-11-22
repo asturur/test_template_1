@@ -1,6 +1,4 @@
-module refill_candidate_tb #(
-    parameter BUFFER_COMPLETION = 0
-);
+module refill_candidate_tb;
   reg clk = 0;
   reg reset = 1;
   reg code_request = 0, data_request = 0;
@@ -70,9 +68,7 @@ module refill_candidate_tb #(
   );
 
   ngage_arm9v2_refill #(
-      .ENABLE(1),
-      .REGISTERED_SCALAR_PEER(BUFFER_COMPLETION),
-      .REGISTER_COMPLETION(BUFFER_COMPLETION)
+      .ENABLE(1)
   ) refill (
       .clk(clk),
       .reset(reset),
@@ -195,15 +191,9 @@ module refill_candidate_tb #(
     check_packet(0, 32'h0a000000, 0);
     data_addr = 32'h02000020;
     data_request = 1;
-    if (BUFFER_COMPLETION) tick;
     scalar_ack = 1;
     tick;
     scalar_ack = 0;
-    if (BUFFER_COMPLETION) begin
-      if (data_owner || addr != code_addr || !cpu_ack || scalar || line_req)
-        $fatal(1, "Pending scalar completion changed owner before the consume edge");
-      tick;
-    end
     if (!data_owner || addr != data_addr || !candidate || !line_req || scalar)
       $fatal(1, "Candidate did not advance with the data owner");
 
@@ -232,16 +222,10 @@ module refill_candidate_tb #(
     line_reject = 1;
     tick;
     line_reject = 0;
-    if (BUFFER_COMPLETION) tick;
-    scalar_ack = 1;
+    scalar_ack  = 1;
     #1;
-    if (!scalar || cpu_ack !== !BUFFER_COMPLETION || line_req || cpu_no_late_error)
+    if (!scalar || !cpu_ack || line_req || cpu_no_late_error)
       $fatal(1, "Rejected line did not fall back to an ordinary scalar acknowledgement");
-    if (BUFFER_COMPLETION) begin
-      tick;
-      if (scalar || !cpu_ack || line_req || cpu_no_late_error)
-        $fatal(1, "Buffered fallback response lost scalar ownership");
-    end
     scalar_ack = 0;
 
     // The live guarantee is saved when the board accepts the line. Words

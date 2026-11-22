@@ -189,47 +189,10 @@ their prior results, including the 512-byte persisted sector and
 readback. The four ARM contracts, 15 fixed payloads and all four native
 PolyCount frames also match their previous cycle counts and outputs.
 
-### Owned completion at the CPU Wishbone boundary
-
-The 104 MHz seed 42 and 43 paths from `6c569de` ran from board reset or
-scalar acceptance through the reply, cache request logic, and the next
-Wishbone packet's address. The refill adapter captures scalar writes,
-slow reads, and errors with their returned data. It suppresses external
-CYC while the donor consumes the captured reply, keeping the previous
-address from issuing twice. The donor's CYC and reset still qualify the
-reply, and SWP keeps its reservation across both beats.
-
-An owned SDRAM read can use the stream's existing reply register directly.
-The independent pulse travels with the registered CPU owner and the
-route's outstanding transaction. The combined board ACK, including posted
-acceptance, reaches the donor through the completion register. For native line
-reads, lookahead registers each word's availability on its original clock.
-A simulation assertion compares line availability and errors against the
-previous reply logic on every active clock.
-
-At 104 MHz, buffering every scalar reply increased transpose by 8.065%.
-The owned SDRAM read path restores 2,976 clocks. Nine of the 15 fixed
-payload medians match `6c569de`, four improve, the full-frame dirty
-writeback takes 0.031% more clocks, and Sega scan takes 0.086% more. Four
-native PolyCount frames take 57,522,526 clocks, up 0.0135%, with identical
-retired work and output. The
-forced scalar-only CPU contract takes 19.138% and 9.855% more clocks at
-its zero- and five-clock wait settings. The line-enabled variants take
-1.440% and 1.345% more. These tests include rejected lines, page walks,
-and abort recovery. The mixed scalar-LCD and MMC-polling pin replay takes
-7.266% more clocks. Its 512-byte persisted write and readback match, and
-audio playback completes without an underrun.
-
-The 78 and 104 MHz pin tests match the original SDRAM command ordering,
-pin beats, and refresh intervals. The focused Wishbone tests check two
-same-address MMIO writes, held I/D arbitration, reply cancellation and
-reset, SWP, rejected lines, and consecutive, gapped, and fallible bursts.
-
 ## Verify in simulation
 
 ```sh
 sh tests/phone/sdram/run-stream.sh fresh-stream-contract
-sh tests/cpu/arm9v2_board/run-wb-completion.sh fresh-wb-completion
 python3 tests/cpu/arm9v2_board/payload_clocks.py --name fresh-stream-payloads \
   --config 2:64 --flash-cache-bytes 32768 --stream-sdram \
   --sdram-model build/sim/fresh-stream-contract/mt48lc16m16a2.v

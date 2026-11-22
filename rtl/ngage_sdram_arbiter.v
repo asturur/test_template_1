@@ -15,7 +15,6 @@ module ngage_sdram_arbiter #(
     input  wire [ 127:0] cpu_block_data,
     input  wire [   3:0] cpu_be,
     output wire          cpu_ack,
-    output wire          cpu_read_ack,
     output wire [  31:0] cpu_rdata,
     input  wire          dma_req,
     input  wire          dma_we,
@@ -32,7 +31,6 @@ module ngage_sdram_arbiter #(
     output reg  [ 127:0] mem_block_data,
     output reg  [   3:0] mem_be,
     input  wire          mem_ack,
-    input  wire          mem_read_ack,
     input  wire [  31:0] mem_rdata,
     output wire          cpu_accept,
     output wire          dma_accept,
@@ -47,15 +45,13 @@ module ngage_sdram_arbiter #(
     assign mem_lock = packet_lock;
     wire choose_cpu = cpu_req && (cpu_lock || !dma_req || !prefer_dma);
     wire choose_dma = dma_req && !cpu_lock && !choose_cpu;
-    assign cpu_accept   = !reset && state == FREE && choose_cpu;
-    assign dma_accept   = !reset && state == FREE && choose_dma;
-    assign mem_req      = (state == ACTIVE);
-    assign cpu_ack      = mem_req && !owner && mem_ack && !reset;
-    // The consuming CPU port supplies the cancellation and reset gate.
-    assign cpu_read_ack = mem_req && !owner && mem_read_ack;
-    assign dma_ack      = mem_req && owner && mem_ack && !reset;
-    assign cpu_rdata    = mem_rdata;
-    assign dma_rdata    = mem_rdata;
+    assign cpu_accept = !reset && state == FREE && choose_cpu;
+    assign dma_accept = !reset && state == FREE && choose_dma;
+    assign mem_req    = (state == ACTIVE);
+    assign cpu_ack    = mem_req && !owner && mem_ack && !reset;
+    assign dma_ack    = mem_req && owner && mem_ack && !reset;
+    assign cpu_rdata  = mem_rdata;
+    assign dma_rdata  = mem_rdata;
     always @(posedge clk) begin
         if (reset) begin
             state       <= FREE;

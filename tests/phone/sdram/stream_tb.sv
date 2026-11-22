@@ -14,9 +14,9 @@ module stream_tb #(
   reg cpu_write_block = 0;
   reg [127:0] cpu_block_data = 0;
   reg [3:0] cpu_mask = 0, dma_mask = 0;
-  wire cpu_ack, cpu_read_ack, dma_ack, owner_ready, cpu_grant, dma_grant;
+  wire cpu_ack, dma_ack, owner_ready, cpu_grant, dma_grant;
   wire [31:0] cpu_out, dma_out;
-  wire req, we, ack, read_ack, packet_lock;
+  wire req, we, ack, packet_lock;
   wire [24:0] addr;
   wire [31:0] write_data, read_data;
   wire write_block;
@@ -35,7 +35,6 @@ module stream_tb #(
       .cpu_data(cpu_data),
       .cpu_be(cpu_mask),
       .cpu_ack(cpu_ack),
-      .cpu_read_ack(cpu_read_ack),
       .cpu_rdata(cpu_out),
       .cpu_write_block(cpu_write_block),
       .cpu_block_data(cpu_block_data),
@@ -55,7 +54,6 @@ module stream_tb #(
       .mem_write_block(write_block),
       .mem_block_data(block_data),
       .mem_ack(ack),
-      .mem_read_ack(read_ack),
       .mem_rdata(read_data),
       .cpu_accept(cpu_grant),
       .dma_accept(dma_grant)
@@ -85,7 +83,6 @@ module stream_tb #(
       .din(write_data),
       .be(mask),
       .ack(ack),
-      .read_ack(read_ack),
       .dout(read_data),
       .line_req(line_req && !lock),
       .line_short(1'b0),
@@ -115,8 +112,6 @@ module stream_tb #(
       capture_pending <= 0;
       if (cpu_ack || dma_ack) $fatal(1, "Scalar reply escaped reset");
     end else begin
-      if (cpu_read_ack !== (cpu_ack && !we))
-        $fatal(1, "CPU read sideband changed owner or acknowledged a write");
       capture_pending <= stream.word_done && owner_ready;
       if (stream.word_done && owner_ready) begin
         capture_data <= rdata_mem;

@@ -36,7 +36,6 @@ module ngage_cpu #(
     output logic [  2:0] wb_cycle_type,
     output logic [  1:0] wb_burst_type,
     input  logic         wb_ack,
-    input  wire          wb_read_ack,
     input  logic         wb_error,
     input  logic [ 31:0] wb_read_data,
     output wire  [ 31:0] debug_pc,
@@ -53,8 +52,7 @@ module ngage_cpu #(
 
     ngage_arm9v2_refill #(
         .ENABLE                (LINE_REFILL),
-        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER),
-        .REGISTER_COMPLETION   (REGISTERED_SCALAR_PEER)
+        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER)
     ) refill (
         .clk               (clk),
         .reset             (reset),
@@ -74,7 +72,6 @@ module ngage_cpu #(
         .wb_cyc            (wb_cyc),
         .wb_lock           (wb_lock),
         .wb_ack            (wb_ack),
-        .wb_read_ack       (wb_read_ack),
         .wb_error          (wb_error),
         .wb_data           (wb_read_data),
         .line_req          (line_req),
@@ -188,8 +185,7 @@ endmodule
 // Deliver each registered word in order while the rest of the line arrives.
 module ngage_arm9v2_refill #(
     parameter ENABLE                 = 0,
-    parameter REGISTERED_SCALAR_PEER = 0,
-    parameter REGISTER_COMPLETION    = 0
+    parameter REGISTERED_SCALAR_PEER = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -209,7 +205,6 @@ module ngage_arm9v2_refill #(
     output wire        wb_cyc,
     output wire        wb_lock,
     input  wire        wb_ack,
-    input  wire        wb_read_ack,
     input  wire        wb_error,
     input  wire [31:0] wb_data,
     output wire        line_req,
@@ -232,13 +227,10 @@ module ngage_arm9v2_refill #(
     reg [31:0] words    [0:7];
 
     wire burst = cpu_cti == BURST;
-    wire scalar_acknowledge, scalar_error, scalar_return_pending;
-    wire line_acknowledge, line_response_error;
-    wire [31:0] scalar_data;
     assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
                        cpu_line_candidate;
     assign line_addr = cpu_address;
-    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req && !scalar_return_pending;
+    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
     // A younger SWP cannot reach the bus before this older refill retires.
     // Its lock must not prevent SDRAM from accepting the owned line request.
     assign wb_lock = !reset && cpu_lock && state != LINE;
@@ -250,74 +242,12 @@ module ngage_arm9v2_refill #(
     wire scalar_reply = REGISTERED_SCALAR_PEER ? !reset && cpu_cyc && scalar_offered : wb_cyc;
     always @(posedge clk) scalar_offered <= wb_cyc && !(scalar_offered && (wb_ack || wb_error));
 
-    wire line_receiving = state == LINE && line_valid && received < 16;
-    wire line_consuming = cpu_cyc && (line_acknowledge || line_response_error);
-    generate
-        if (REGISTER_COMPLETION) begin : g_completion
-            // Only the outstanding scalar beat can reach these registers.
-            // Hold its external CYC low until the donor samples the reply;
-            // the original address is still at the donor during that clock.
-            (* dont_retime *) reg scalar_ack_ff, scalar_error_ff;
-            (* dont_retime *) reg [31:0] scalar_data_ff;
-            // This read pulse comes from the SDRAM reply register and the
-            // registered scalar owners. The combined board ACK can still
-            // include same-cycle posted writes, so only the pulse bypasses.
-            // Other memory back ends can omit the independent read pulse.
-            wire read_ack = scalar_reply && (wb_read_ack === 1'b1);
-            wire capture_scalar = wb_cyc && scalar_reply && !read_ack && (wb_ack || wb_error);
-            always @(posedge clk) begin
-                scalar_ack_ff   <= capture_scalar && wb_ack;
-                scalar_error_ff <= capture_scalar && wb_error;
-                if (capture_scalar) scalar_data_ff <= wb_data;
-            end
-            assign scalar_return_pending = scalar_ack_ff || scalar_error_ff;
-            assign scalar_acknowledge    = scalar_ack_ff || read_ack;
-            assign scalar_error          = scalar_error_ff;
-            assign scalar_data           = scalar_return_pending ? scalar_data_ff : wb_data;
-
-            // Register the next available word on the same edge as its data
-            // or the previous word's retirement. Line responses keep all
-            // their existing clocks, including consecutive queued words.
-            (* dont_retime *) reg line_ack_ff, line_error_ff;
-            wire [4:0] received_next = received + (line_receiving ? (line_wide ? 5'd4 : 5'd1) : 5'd0);
-            wire [3:0] consumed_next = {1'b0, consumed} + {3'b0, line_consuming};
-            wire next_error = line_error_ff || (line_receiving && line_error);
-            always @(posedge clk) begin
-                if (reset || state != LINE || line_reject || (line_consuming && consumed == 7)) begin
-                    line_ack_ff   <= 0;
-                    line_error_ff <= 0;
-                end else begin
-                    line_ack_ff   <= !next_error && received_next[4:1] > consumed_next;
-                    line_error_ff <= next_error;
-                end
-            end
-            assign line_acknowledge    = line_ack_ff;
-            assign line_response_error = line_error_ff;
-            // synthesis translate_off
-            always @(posedge clk)
-                if (!reset) begin
-                    if (read_ack && (!wb_ack || wb_error || !wb_cyc || scalar_return_pending))
-                        $fatal(1, "Fast read reply does not match the live scalar completion");
-                    if ({line_ack_ff, line_error_ff} !==
-                        {state == LINE && !failed && received[4:1] > {1'b0, consumed}, state == LINE && failed})
-                        $fatal(1, "Registered line credit changed the line reply cycle");
-                end
-            // synthesis translate_on
-        end else begin : g_immediate_completion
-            assign scalar_return_pending = 0;
-            assign scalar_acknowledge = state != LINE && scalar_reply && wb_ack;
-            assign scalar_error = state != LINE && scalar_reply && wb_error;
-            assign scalar_data = wb_data;
-            assign line_acknowledge = state == LINE && !failed && received[4:1] > {1'b0, consumed};
-            assign line_response_error = state == LINE && failed;
-        end
-    endgenerate
-    assign cpu_ack           = !reset && cpu_cyc && (line_acknowledge || scalar_acknowledge);
-    assign cpu_error         = !reset && cpu_cyc && (line_response_error || scalar_error);
+    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : scalar_reply && wb_ack;
+    assign cpu_error = state == LINE ? cpu_cyc && failed : scalar_reply && wb_error;
     // A scalar fallback never grants the promise, including a line rejected
     // before its first beat. The cache samples this alongside the first ACK.
-    assign cpu_no_late_error = guaranteed && line_acknowledge && cpu_ack;
-    assign cpu_data          = state == LINE ? words[consumed] : scalar_data;
+    assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
+    assign cpu_data = state == LINE ? words[consumed] : wb_data;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -339,18 +269,16 @@ module ngage_arm9v2_refill #(
                 end
                 LINE: begin
                     if (line_reject) state <= SCALAR;
-                    if (line_receiving) begin
+                    if (line_valid && received < 16) begin
                         received <= received + (line_wide ? 5'd4 : 5'd1);
                         if (line_error) failed <= 1;
                     end
-                    if (line_consuming) begin
+                    if (cpu_ack || cpu_error) begin
                         consumed <= consumed + 1'b1;
                         if (consumed == 7) state <= IDLE;
                     end
                 end
-                SCALAR:
-                if ((!burst && (cpu_ack || cpu_error)) || (REGISTER_COMPLETION && !cpu_cyc))
-                    state <= IDLE;
+                SCALAR:  if (scalar_reply && !burst && (wb_ack || wb_error)) state <= IDLE;
                 default: state <= IDLE;
             endcase
         end

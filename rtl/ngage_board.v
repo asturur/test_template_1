@@ -69,7 +69,6 @@ module ngage_board #(
     // Dedicated transaction-level SDRAM interface, not physical pin timing.
     input  wire         ram_accept,
     input  wire         ram_ack,
-    input  wire         ram_read_ack,
     input  wire [ 31:0] ram_rdata,
     output wire         ram_req,
     output wire         ram_we,
@@ -422,7 +421,6 @@ module ngage_board #(
         .debug_fetch         (debug_fetch),
         .ram_accept          (ram_accept),
         .ram_ack             (ram_ack),
-        .ram_read_ack        (ram_read_ack),
         .ram_rdata           (ram_rdata),
         .ram_req             (ram_req),
         .ram_we              (ram_we),
