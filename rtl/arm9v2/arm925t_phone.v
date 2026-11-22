@@ -4404,7 +4404,6 @@ module ngage2_arm9v2_fetch (
 	parameter [0:0] RAS_TOP_FF = 1'b1;
 	parameter [0:0] VALID_BIT = 1'b1;
 	parameter [0:0] HEAD_FF = 1'b1;
-    parameter [0:0] BRAM_QUEUE = 1'b1;
 	input wire i_clk;
 	input wire i_reset;
 	input wire i_redirect;
@@ -4461,6 +4460,7 @@ module ngage2_arm9v2_fetch (
 	(* dont_retime *) reg [2:0] tail;
 	(* dont_retime *) reg [7:0] head_select;
 	(* dont_retime *) reg [3:0] count;
+	reg [113:0] queue [0:7];
 	wire [113:0] head_packet;
 	wire [44:0] prediction;
 	wire predicted;
@@ -4487,85 +4487,26 @@ module ngage2_arm9v2_fetch (
 	assign advance = !o_stall;
 	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect;
 	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch);
-    reg [113:0] pushed;
-    reg [113:0] head_next;
-    (* dont_retime *) reg [113:0] head_ff;
-    wire [113:0] head_select_packet, next_packet, restart_packet;
-    wire push_at_head;
-    genvar slot;
-    generate
-        if (HEAD_FF && BRAM_QUEUE) begin : g_fetch_ram
-            (* dont_retime *) reg [2:0] head;
-            wire [2:0] following_slot = head + 3'd1;
-            wire [2:0] next_head = pop ? following_slot : head;
-            // Read the slot behind the head that will exist after this
-            // edge. A following pop can copy it without waiting for RAM.
-            wire [2:0] prefetch_slot = i_redirect || i_reset ? 3'd1 :
-                                       pop ? head + 3'd2 : following_slot;
-            always @(posedge i_clk)
-                if (i_reset || i_redirect) head <= 0;
-                else head <= next_head;
-
-            (* ramstyle = "M10K, no_rw_check" *) reg [111:0] payload [0:7];
-            reg [111:0] prefetched, bypass_data;
-            (* dont_retime *) reg bypass_prefetch;
-            wire [111:0] write_data = {pushed[113:49], pushed[46:0]};
-            always @(posedge i_clk) begin
-                if (push) begin
-                    payload[tail] <= write_data;
-                    bypass_data <= write_data;
-                end
-                prefetched <= payload[prefetch_slot];
-                bypass_prefetch <= push && tail == prefetch_slot;
-            end
-            // In a read/write collision the registered push supplies the
-            // prefetched entry, regardless of the RAM's collision output.
-            wire [111:0] next_data = bypass_prefetch ? bypass_data : prefetched;
-
-            // A fill can finish for several queued instructions together.
-            // Keep the two broadcast-updated status bits out of block RAM.
-            reg [1:0] fill_status [0:7];
-            for (slot = 0; slot < 8; slot = slot + 1) begin : g_fill_status
-                always @(posedge i_clk)
-                    if (push && tail == slot) fill_status[slot] <= pushed[48:47];
-                    else if (i_fill_done) begin
-                        if (fill_status[slot][0] && i_fill_fault) fill_status[slot][1] <= 1;
-                        fill_status[slot][0] <= 0;
-                    end
-            end
-            assign next_packet = {next_data[111:47], fill_status[following_slot], next_data[46:0]};
-            assign push_at_head = push && tail == next_head;
-            // Redirect/reset clear the count. The first new push supplies
-            // the visible head directly, even if its RAM slot holds old data.
-            assign restart_packet = head_ff;
-            assign head_select_packet = head_ff;
-        end else begin : g_fetch_regs
-            reg [113:0] queue [0:7];
-            reg [113:0] selected, following;
-            wire [7:0] next_select = {head_select[6:0], head_select[7]};
-            integer entry;
-            always @(*) begin
-                selected = 0;
-                following = 0;
-                for (entry = 0; entry < 8; entry = entry + 1) begin
-                    selected = selected | (queue[entry] & {114{head_select[entry]}});
-                    following = following | (queue[entry] & {114{next_select[entry]}});
-                end
-            end
-            for (slot = 0; slot < 8; slot = slot + 1) begin : g_queue
-                always @(posedge i_clk)
-                    if (push && tail == slot) queue[slot] <= pushed;
-                    else if (i_fill_done) begin
-                        if (queue[slot][47] && i_fill_fault) queue[slot][48] <= 1;
-                        queue[slot][47] <= 0;
-                    end
-            end
-            assign head_select_packet = selected;
-            assign next_packet = following;
-            assign restart_packet = queue[0];
-            assign push_at_head = push && (pop ? next_select[tail] : head_select[tail]);
-        end
-    endgenerate
+	reg [113:0] head_select_packet;
+	reg [113:0] next_packet;
+	reg [113:0] pushed;
+	reg [113:0] head_next;
+	(* dont_retime *) reg [113:0] head_ff;
+	wire [7:0] next_select = {head_select[6:0], head_select[7]};
+	always @(*) begin
+		if (_sv2v_0)
+			;
+		head_select_packet = 114'd0;
+		next_packet = 114'd0;
+		begin : sv2v_autoblock_1
+			reg signed [31:0] q;
+			for (q = 0; q < 8; q = q + 1)
+				begin
+					head_select_packet = head_select_packet | (queue[q] & {114 {head_select[q]}});
+					next_packet = next_packet | (queue[q] & {114 {next_select[q]}});
+				end
+		end
+	end
 	assign head_packet = (HEAD_FF ? head_ff : head_select_packet);
 	always @(*) begin
 		if (_sv2v_0)
@@ -4581,8 +4522,8 @@ module ngage2_arm9v2_fetch (
 	always @(*) begin
 		if (_sv2v_0)
 			;
-		head_next = (i_redirect ? restart_packet : (pop ? next_packet : head_ff));
-		if (!i_redirect && push_at_head)
+		head_next = (i_redirect ? queue[0] : (pop ? next_packet : head_ff));
+		if ((!i_redirect && push) && (pop ? next_select[tail] : head_select[tail]))
 			head_next = pushed;
 		else if (i_fill_done) begin
 			if (head_next[47])
@@ -4645,6 +4586,20 @@ module ngage2_arm9v2_fetch (
 		end
 		else begin : g_no_predictor
 			assign prediction = 45'd0;
+		end
+	endgenerate
+	genvar _gv_q_1;
+	generate
+		for (_gv_q_1 = 0; _gv_q_1 < 8; _gv_q_1 = _gv_q_1 + 1) begin : g_queue
+			localparam q = _gv_q_1;
+			always @(posedge i_clk)
+				if (push && (tail == q))
+					queue[q] <= pushed;
+				else if (i_fill_done) begin
+					queue[q][47] <= 0;
+					if (queue[q][47])
+						queue[q][48] <= queue[q][48] || i_fill_fault;
+				end
 		end
 	endgenerate
 	always @(posedge i_clk)

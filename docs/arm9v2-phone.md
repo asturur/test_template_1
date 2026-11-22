@@ -60,32 +60,6 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
-## Fetch queue backing RAM
-
-The 104 MHz round-three fits place the fetch block's payload storage in
-logic. The fetch block alone uses 853–858 ALMs and 1,209–1,211 registers.
-The two M10Ks reported under fetch belong to its branch predictor.
-
-The eight-entry queue keeps the head register that feeds decode. On each
-clock, synchronous RAM prefetches the packet behind the next head. A pop
-can copy that packet to the head register on the original edge. An empty
-queue and a one-entry pop with a simultaneous push still take the new
-packet directly. If a push writes the prefetched slot, the saved push
-data supplies the next packet independently of RAM read-during-write
-behavior. Pending-fill and fault bits stay in registers so a single fill
-completion can update several entries.
-
-The queue requests M10K storage for its 112-bit payload per slot. The
-register implementation remains available for the comparison test. Run
-the test with `sh tests/cpu/arm9v2_board/run-fetch-ram.sh fresh-fetch-ram`.
-It compares 8,504 cycles, including full queues, wraparound, prefetch
-collisions, faults, retries, and stalled redirects.
-
-The 15 fixed workloads, four native PolyCount frames, 12 CPU contract
-modes and mixed LCD, MMC and PCM pin replay match `6c569de` cycle for
-cycle. The native replay completes in 57,514,786 clocks with the same
-output. Quartus fits will verify the physical memory mapping and timing.
-
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
