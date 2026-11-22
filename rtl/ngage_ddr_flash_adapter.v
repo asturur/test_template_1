@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Shared flash backing cache in front of the scalar/line transport.
 module ngage_ddr_flash_adapter #(
-    parameter integer FLASH_CACHE_BYTES = 0,
-    parameter integer BULK_PERSISTENCE  = 0,
-    parameter         STREAM_TRANSPORT  = 0,
-                      ROM_CACHE         = 0,
-                      ROM_CACHE_BITS    = 64,
-                      ROM_CACHE_BYTES   = 1024,
-                      LINE_REFILL       = 0
+    parameter integer        FLASH_CACHE_BYTES = 0,
+    parameter integer        BULK_PERSISTENCE  = 0,
+    parameter         [31:0] UPP_RAM_BASE      = 0,
+    parameter                STREAM_TRANSPORT  = 0,
+                             ROM_CACHE         = 0,
+                             ROM_CACHE_BITS    = 64,
+                             ROM_CACHE_BYTES   = 1024,
+                             LINE_REFILL       = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -78,38 +79,49 @@ module ngage_ddr_flash_adapter #(
 
     generate
         if (BULK_PERSISTENCE != 0) begin : sector_port
-            reg active = 0;
+            reg active = 0, clear_active = 0;
             wire engine_idle, cancelled, failed;
+            wire save_read_valid, save_write_ready;
+            // Only a bulk write into the UPP range requests a zero fill.
+            wire clear_offer = UPP_RAM_BASE != 0 && req_write &&
+                req_addr[31:17] == UPP_RAM_BASE[31:17];
             wire accept_sector = req_valid && req_ready && bulk_offer;
             // The mux owner survives transport reset until accepted DDR
             // activity has drained. No bulk return can feed the scalar path.
             always @(posedge clk) begin
-                if (accept_sector) active <= 1;
-                else if (engine_idle) active <= 0;
+                if (accept_sector) begin
+                    active       <= 1;
+                    clear_active <= clear_offer;
+                end else if (engine_idle) active <= 0;
             end
             assign sector_active     = active;
-            assign bulk_error        = failed || cancelled;
-            assign invalidate_sector = accept_sector && req_write;
-            ngage_ddr_stream engine (
+            assign bulk_error        = !clear_active && (failed || cancelled);
+            assign bulk_read_valid   = !clear_active && save_read_valid;
+            assign bulk_write_ready  = !clear_active && save_write_ready;
+            assign invalidate_sector = accept_sector && req_write && !clear_offer;
+            ngage_ddr_stream #(
+                .WRITE_FILL(UPP_RAM_BASE != 0)
+            ) engine (
                 .clk                (clk),
                 .transport_reset    (reset),
                 .phone_reset        (bulk_cancel),
                 .req_valid          (accept_sector),
                 .req_ready          (sector_ready),
                 .req_owner          (2'b0),
-                .req_cancel_on_phone(1'b1),
+                .req_cancel_on_phone(!clear_offer),
                 .req_write          (req_write),
-                .req_stream         (req_write),
+                .req_stream         (req_write && !clear_offer),
+                .req_fill           (clear_offer),
                 .req_addr           (req_addr),
                 .req_count          (7'd64),
                 .req_data           (64'b0),
                 .req_be             (8'hff),
                 .write_valid        (bulk_write_valid),
-                .write_ready        (bulk_write_ready),
+                .write_ready        (save_write_ready),
                 .write_data         (bulk_write_data),
                 .write_be           (8'hff),
                 .write_last         (bulk_write_last),
-                .read_valid         (bulk_read_valid),
+                .read_valid         (save_read_valid),
                 .read_ready         (bulk_read_ready),
                 .read_owner         (),
                 .read_data          (bulk_read_data),
@@ -132,7 +144,8 @@ module ngage_ddr_flash_adapter #(
             // synthesis translate_off
             always @(posedge clk)
                 if (req_valid && req_ready && bulk_offer)
-                    if (req_addr[8:0] != 0 || req_addr < 32'h31400000 || req_addr >= 32'h31810000)
+                    if (req_addr[8:0] != 0 ||
+                        (!clear_offer && (req_addr < 32'h31400000 || req_addr >= 32'h31810000)))
                         $fatal(1, "invalid bulk DDR admission");
             // synthesis translate_on
         end else begin : no_sector_port

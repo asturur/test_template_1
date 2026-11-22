@@ -502,7 +502,9 @@ module emu (
     // Installed Linux reserves0x1ff00000..0x3fffffff (2026-11-12 SSH audit).
     // Core ROM/C:/PMM occupy0x30000000..0x3180ffff. Diagnostics use the unused
     // ROM/C: guard at0x313f0000 (text ring and two1KiB snapshots).
-    // Optional PCM diagnostic output uses its own DDR span at 0x31900000.
+    // UPP upload and NOS RAM use the 128 KiB gap after PMM and before PCM.
+    // Optional PCM diagnostics occupy a header at 0x31900000 and ring at 0x31940000.
+    localparam [31:0] UPP_RAM_BASE = 32'h31820000;
     assign DDRAM_CLK = clk_sys;
     // DDR burst count is owned by the ROM-cache/backend transaction.
     wire loader_valid, loader_failed, loader_known_firmware;
@@ -932,18 +934,96 @@ module emu (
     );
     wire core_ddr_line, arb_line, core_beat_valid, core_beat_last, arb_beat_valid, arb_beat_last;
     wire [63:0] core_beat_data, arb_beat_data;
+    wire upp_ddr_req, upp_ddr_we, upp_ddr_ack, upp_ddr_clear, upp_ddr_clear_done;
+    wire [16:2] upp_ddr_addr;
+    wire [31:0] upp_ddr_wdata, upp_ddr_rdata;
+    wire [3:0] upp_ddr_be;
+    wire upp_mem_valid, upp_mem_ready, upp_mem_bulk, upp_mem_write, upp_mem_done;
+    wire [31:0] upp_mem_addr, upp_mem_data, upp_mem_rdata;
+    wire [3:0] upp_mem_be;
+    ngage_upp_ddr_port #(
+        .BASE(UPP_RAM_BASE)
+    ) upp_ram_port (
+        .clk       (clk_sys),
+        .reset     (transport_reset),
+        .upp_req   (upp_ddr_req),
+        .upp_we    (upp_ddr_we),
+        .upp_addr  (upp_ddr_addr),
+        .upp_wdata (upp_ddr_wdata),
+        .upp_be    (upp_ddr_be),
+        .upp_ack   (upp_ddr_ack),
+        .upp_rdata (upp_ddr_rdata),
+        .clear     (upp_ddr_clear),
+        .clear_done(upp_ddr_clear_done),
+        .req_valid (upp_mem_valid),
+        .req_ready (upp_mem_ready),
+        .req_bulk  (upp_mem_bulk),
+        .req_write (upp_mem_write),
+        .req_addr  (upp_mem_addr),
+        .req_data  (upp_mem_data),
+        .req_be    (upp_mem_be),
+        .rsp_valid (upp_mem_done),
+        .rsp_data  (upp_mem_rdata)
+    );
+    wire phone_mem_valid, phone_mem_ready, phone_mem_write, phone_mem_done;
+    wire phone_mem_bulk, phone_mem_line, phone_beat_valid, phone_beat_last;
+    wire [31:0] phone_mem_addr, phone_mem_data, phone_mem_rdata;
+    wire [63:0] phone_beat_data;
+    wire [ 3:0] phone_mem_be;
+    // A locked guest access can target either UPP RAM or phone flash. They
+    // share the CPU side of the outer lock, which excludes the HPS clients.
+    ngage_ddr_arbiter phone_ddr_arbiter (
+        .l_bulk        (upp_mem_bulk),
+        .c_bulk        (1'b0),
+        .req_bulk      (phone_mem_bulk),
+        .c_line        (core_ddr_line),
+        .req_line      (phone_mem_line),
+        .rsp_beat_valid(phone_beat_valid),
+        .rsp_beat_data (phone_beat_data),
+        .rsp_beat_last (phone_beat_last),
+        .c_beat_valid  (core_beat_valid),
+        .c_beat_data   (core_beat_data),
+        .c_beat_last   (core_beat_last),
+        .clk           (clk_sys),
+        .reset         (transport_reset),
+        .cpu_lock      (1'b0),
+        .l_valid       (upp_mem_valid),
+        .l_ready       (upp_mem_ready),
+        .l_addr        (upp_mem_addr),
+        .l_data        (upp_mem_data),
+        .l_be          (upp_mem_be),
+        .l_done        (upp_mem_done),
+        .l_write       (upp_mem_write),
+        .l_rdata       (upp_mem_rdata),
+        .c_valid       (core_ddr_rd || core_ddr_wr),
+        .c_ready       (core_accept),
+        .c_write       (core_ddr_wr),
+        .c_addr        (core_ddr_addr),
+        .c_data        (core_ddr_din),
+        .c_be          (core_ddr_be),
+        .c_done        (core_ddr_ready),
+        .c_rdata       (core_ddr_dout),
+        .req_valid     (phone_mem_valid),
+        .req_ready     (phone_mem_ready),
+        .req_write     (phone_mem_write),
+        .req_addr      (phone_mem_addr),
+        .req_data      (phone_mem_data),
+        .req_be        (phone_mem_be),
+        .rsp_valid     (phone_mem_done),
+        .rsp_data      (phone_mem_rdata)
+    );
     ngage_ddr_arbiter ddr_arbiter (
         .l_bulk        (aux_bulk),
-        .c_bulk        (1'b0),
+        .c_bulk        (phone_mem_bulk),
         .req_bulk      (arb_bulk),
-        .c_line        (core_ddr_line),
+        .c_line        (phone_mem_line),
         .req_line      (arb_line),
         .rsp_beat_valid(arb_beat_valid),
         .rsp_beat_data (arb_beat_data),
         .rsp_beat_last (arb_beat_last),
-        .c_beat_valid  (core_beat_valid),
-        .c_beat_data   (core_beat_data),
-        .c_beat_last   (core_beat_last),
+        .c_beat_valid  (phone_beat_valid),
+        .c_beat_data   (phone_beat_data),
+        .c_beat_last   (phone_beat_last),
         .clk           (clk_sys),
         .reset         (transport_reset),
         .cpu_lock      (cpu_bus_lock && !reset),
@@ -955,14 +1035,14 @@ module emu (
         .l_done        (aux_done),
         .l_write       (aux_write),
         .l_rdata       (aux_rdata),
-        .c_valid       (core_ddr_rd || core_ddr_wr),
-        .c_ready       (core_accept),
-        .c_write       (core_ddr_wr),
-        .c_addr        (core_ddr_addr),
-        .c_data        (core_ddr_din),
-        .c_be          (core_ddr_be),
-        .c_done        (core_ddr_ready),
-        .c_rdata       (core_ddr_dout),
+        .c_valid       (phone_mem_valid),
+        .c_ready       (phone_mem_ready),
+        .c_write       (phone_mem_write),
+        .c_addr        (phone_mem_addr),
+        .c_data        (phone_mem_data),
+        .c_be          (phone_mem_be),
+        .c_done        (phone_mem_done),
+        .c_rdata       (phone_mem_rdata),
         .req_valid     (arb_valid),
         .req_ready     (arb_ready),
         .req_write     (arb_write),
@@ -979,6 +1059,7 @@ module emu (
     ngage_ddr_flash_adapter #(
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
+        .UPP_RAM_BASE     (UPP_RAM_BASE),
         .STREAM_TRANSPORT (D1_STREAM_TRANSPORT),
         // The shared flash cache replaces the old instruction-only ROM cache.
         .ROM_CACHE        (0),
@@ -1160,12 +1241,22 @@ module emu (
         .LCD_LINE_BYTES (LCD_LINE_BYTES),
         .DMA_LOCAL      (1),
         .GAME_PCM       (1),
+        .DDR_UPP_RAM    (1),
         .MMC_CLK_DIV    (MMC_CLK_DIV),
         .TEST_SIM_ENABLE(1),
         .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
         .NOS_TICK_HZ    (64),
         .SYS_CLK_HZ     (SYS_CLK_HZ)
     ) core (
+        .upp_ddr_req(upp_ddr_req),
+        .upp_ddr_we(upp_ddr_we),
+        .upp_ddr_addr(upp_ddr_addr),
+        .upp_ddr_wdata(upp_ddr_wdata),
+        .upp_ddr_be(upp_ddr_be),
+        .upp_ddr_ack(upp_ddr_ack),
+        .upp_ddr_rdata(upp_ddr_rdata),
+        .upp_ddr_clear(upp_ddr_clear),
+        .upp_ddr_clear_done(upp_ddr_clear_done),
         .ddram_line(core_ddr_line),
         .ddram_beat_valid(core_beat_valid),
         .ddram_beat_data(core_beat_data),

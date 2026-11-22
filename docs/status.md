@@ -1,3 +1,11 @@
+## 2026-11-22 — both UPP RAM banks backed by HPS DDR
+
+The v5 production build maps the DSP upload and generic NOS banks to
+`0x31820000–0x3183FFFF` in HPS DDR. Cold start waits for both banks to clear.
+Warm reset drains the active request and retains data. Local tests cover
+byte lanes, SWP and reset. The physical 104 MHz fit and hardware measurements
+are pending. [Implementation and checks](peripheral-ram-ddr-assessment.md#integrated-ddr-backing)
+
 ## 2026-11-22 — moving DSP upload and generic NOS RAM to DDR
 
 Move generic NOS backing first and DSP upload second to reclaim up to 128

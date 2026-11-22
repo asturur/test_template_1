@@ -1,6 +1,6 @@
 # Reclaiming the two large UPP RAM banks on ngage-v5
 
-The retained production fit at `5f8fae0` uses 438 of 553 M10Ks. The same production RTL is present at `53b707b`. Quartus assigns 64 M10Ks each to the 64 KiB DSP upload bank and the generic 64 KiB NOS bank. Moving both to HPS DDR3 would free 128 blocks gross, increasing the available count from 115 to 243 before accounting for the implementation. This is a capacity decision. There is no routed timing result for the change. [Retained fit](https://github.com/asturur/test_template_1/actions/runs/45043488050)
+The retained production fit at `5f8fae0` uses 438 of 553 M10Ks. The same production RTL is present at `53b707b`. Quartus assigns 64 M10Ks each to the 64 KiB DSP upload bank and the generic 64 KiB NOS bank. Moving both to HPS DDR3 removes 128 blocks gross, increasing the available count from 115 to 243 before accounting for the implementation. The integrated fitted count and timing are pending. [Retained fit](https://github.com/asturur/test_template_1/actions/runs/45043488050)
 
 ## What would move
 
@@ -41,4 +41,12 @@ The v5 mixed SDRAM-pin replay with PCM, LCD and MMC took 1,189,662 clocks with e
 
 Reclaim the generic NOS bank first, then the DSP upload bank on the same DDR client. Keep their guest address mappings independent and leave MDI ring/pointer traffic local. The NOS step has the smaller traffic cost. The upload step adds a predictable sequence of cold halfword writes. Simple scalar writes are sufficient for the first implementation. The observations preserve the reason for full writable backing of both windows, even on a title where play never reads them.
 
-Before spending the recovered blocks, fit the integrated implementation and use Quartus's actual M10K count. Check cold clear and warm-reset retention, byte writes and read-after-write ordering under flash traffic. On hardware, compare time to the first playable scene, game audio and the same fixed scene against the retained image. These tests and traces are assessment artifacts. Production still uses both BRAM banks.
+## Integrated DDR backing
+
+The production `Template` maps DSP upload to HPS DDR byte addresses `0x31820000–0x3182FFFF` and generic NOS RAM to `0x31830000–0x3183FFFF`. The allocation sits between the PMM and diagnostic PCM ranges, within the DDR space reserved by the installed MiSTer Linux. Existing guest addresses and MDI claims stay in the UPP decoder. Partially enabled writes use the original byte lanes, and ordinary bank accesses bypass the flash cache. [Production wiring](../Template.sv) · [DDR memory audit](ddr-diagnostics.md#memory-and-reader)
+
+Cold initialization zeros both banks in 256 chunks of 512 bytes through the shared DDR transport. Each 64-bit write advances only when the HPS port accepts it. Arbitration can serve other clients between chunks. The UPP waits for local initialization and DDR clear before reporting readiness. The clear can run while firmware loading or image mounting holds the phone in reset. A warm reset retains both banks, suppresses cancelled CPU replies, and allows the transport to drain the outstanding operation before releasing the CPU. The UPP and phone flash share the CPU side of the DDR reservation, so a guest SWP still has access to its target while auxiliary traffic is excluded. [UPP RAM handshake](../rtl/ngage_upp_peripherals.v) · [DDR request client](../rtl/ngage_upp_ddr_port.v)
+
+The cold-gate test drives all 16,384 zero writes through the real `emu` logic with modeled HPS backpressure and a stub PLL. The shared-port test covers masks, SWP exclusion, flash persistence and reset drain. The ARM9V2 replay verifies SWP in each bank while LCD DMA waits, executes instructions from both banks, and checks PCM samples, the LCD frame and MMC writeback against the existing oracles. [Cold gate](../tests/phone/upp_ddr_top/) · [Shared-port test](../tests/phone/upp_ddr_transport/) · [ARM9V2 replay](../tests/phone/upp_ddr_ram/)
+
+The integrated physical 104 MHz fit will use DDR debugging off. Seed 43 is the matched comparison against the retained image. Seeds 13 and 31337 sample additional placements. After fitting, use Quartus's actual M10K count and check boot time, audio and the same fixed scene on hardware.

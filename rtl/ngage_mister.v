@@ -20,6 +20,7 @@ module ngage_mister #(
                       GENERAL_DMA        = 1,
                       LCD_LINE_BYTES     = 0,
                       GAME_PCM           = 0,
+                      DDR_UPP_RAM        = 0,
                       TEST_SIM_ENABLE    = 1,
                       MMC_CLK_DIV        = 4,
                       SYS_CLK_HZ         = 104000000,
@@ -41,6 +42,16 @@ module ngage_mister #(
     input  wire         clk_sys,              // CPU/bus clock domain
     input  wire         reset,
     input  wire         cold_reset,
+    // Private volatile RAM client on the HPS DDR3 transport.
+    output wire         upp_ddr_req,
+    output wire         upp_ddr_we,
+    output wire [ 16:2] upp_ddr_addr,
+    output wire [ 31:0] upp_ddr_wdata,
+    output wire [  3:0] upp_ddr_be,
+    input  wire         upp_ddr_ack,
+    input  wire [ 31:0] upp_ddr_rdata,
+    output wire         upp_ddr_clear,
+    input  wire         upp_ddr_clear_done,
     input  wire         sim_present,
     output wire         dma_reset,
     // X553 backing interface. The board's direct native-MMC connection is a
@@ -163,10 +174,11 @@ module ngage_mister #(
     wire [3:0] fast_ram_be;
     wire irq_line, fiq_line;
 
-    // Keep the CPU in reset until any accepted flash transaction has drained.
+    // Keep the CPU in reset until accepted flash and private RAM requests drain.
     // Command state is cleared while draining; pending command setup alone must
     // not prevent release. Cold reset cancels controller state with the transport.
-    wire code_idle, user_idle;
+    wire code_idle, user_idle, upp_ddr_idle;
+    wire upp_startup_ready = !DDR_UPP_RAM || (board_init_done && upp_ddr_idle);
     // Assert cancellation immediately, but release only on a clock edge after
     // both flash engines have drained. The registered output, rather than a
     // live OR of loader/readiness flags, drives the phone reset tree. Quartus
@@ -176,7 +188,7 @@ module ngage_mister #(
     (* maxfan = 128, preserve *)reg  reset_drain = 1'b1;
     always @(posedge clk_sys or posedge reset_request) begin
         if (reset_request) reset_drain <= 1'b1;
-        else if (reset_drain && code_idle && user_idle) reset_drain <= 1'b0;
+        else if (reset_drain && code_idle && user_idle && upp_startup_ready) reset_drain <= 1'b0;
     end
     wire core_reset = reset_drain;
     // All external DMA routing/arbitration/adapters share this cancellation
@@ -240,6 +252,7 @@ module ngage_mister #(
         .GENERAL_DMA       (GENERAL_DMA),
         .LCD_LINE_BYTES    (LCD_LINE_BYTES),
         .GAME_PCM          (GAME_PCM),
+        .DDR_UPP_RAM       (DDR_UPP_RAM),
         .MMC_CLK_DIV       (MMC_CLK_DIV),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
@@ -353,6 +366,16 @@ module ngage_mister #(
         .mmc_active           (mmc_active),
         .rst                  (core_reset),
         .init_rst             (cold_reset),
+        .upp_ddr_req          (upp_ddr_req),
+        .upp_ddr_we           (upp_ddr_we),
+        .upp_ddr_addr         (upp_ddr_addr),
+        .upp_ddr_wdata        (upp_ddr_wdata),
+        .upp_ddr_be           (upp_ddr_be),
+        .upp_ddr_ack          (upp_ddr_ack),
+        .upp_ddr_rdata        (upp_ddr_rdata),
+        .upp_ddr_clear        (upp_ddr_clear),
+        .upp_ddr_clear_done   (upp_ddr_clear_done),
+        .upp_ddr_idle         (upp_ddr_idle),
         .clk                  (clk_sys),
         .cyc                  (1'b0),
         .stb                  (1'b0),
