@@ -1,5 +1,7 @@
 # CPU and platform timing isolation
 
+The [round-three isolation results](../../docs/v5-timing-isolation.md) compare all six diagnostic fits with the integrated core.
+
 The **CI Build** workflow accepts `fit_scope=cpu-only` and
 `fit_scope=board-only`. Both select the existing Quartus 17.0.2
 Cyclone V project, fitter settings, physical 104 MHz PLL and fitter
