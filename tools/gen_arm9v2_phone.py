@@ -863,6 +863,114 @@ def resolve_execute_forward_candidates(phone):
     return ''.join(parts)
 
 
+def register_dcache_authorization(source):
+    """Capture the exact D-cache fast acknowledgement qualifiers at lookup."""
+    def add_port(source, kind, name):
+        return edit(source, '\n);\n', f',\n    {name}\n);\n    {kind} wire {name};\n')
+
+    def connect(source, old, new, wire):
+        return edit(source, f'{old},', f'{old},\n        .{new}({wire}),')
+
+    parts = re.split(r'(?=^module )', source, flags=re.M)
+    pos = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
+
+    checker = pos['ngage2_zap_tlb_check']
+    check = add_port(parts[checker], 'output', 'o_hit_ok_next')
+    check = edit(check, '\treg bufferable_nxt;', '''    reg bufferable_nxt;
+    // This is the permission register's D value including its real hold.
+    wire permit_lookup = !walk_nxt && !(|fsr_nxt[3:0]) && cacheable_nxt && !(i_wr && wt_nxt);
+    assign o_hit_ok_next = i_clkena ? permit_lookup : o_hit_ok;''')
+    old_expr = '((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);'
+    for output in ('o_hit_ok', 'o_hit_ok_short'):
+        check = edit(check, f'{output} <= {old_expr}', f'{output} <= permit_lookup;')
+    parts[checker] = check
+
+    walker = pos['ngage2_zap_tlb_fsm']
+    walk = add_port(parts[walker], 'output', 'o_hit_ready_next')
+    walk = edit(walk, '\t\t\to_hit_ready <= state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];',
+                '\t\t\to_hit_ready <= o_hit_ready_next;\n'
+                '    assign o_hit_ready_next = i_reset || state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];')
+    parts[walker] = walk
+
+    tlb_i = pos['ngage2_zap_tlb']
+    tlb = add_port(parts[tlb_i], 'output', 'o_hit_ok_next')
+    tlb = add_port(tlb, 'output', 'o_hit_ready_next')
+    tlb = connect(tlb, '.o_hit_ok(o_hit_ok)', 'o_hit_ok_next', 'o_hit_ok_next')
+    tlb = connect(tlb, '.o_hit_ready(o_hit_ready)', 'o_hit_ready_next', 'o_hit_ready_next')
+    parts[tlb_i] = tlb
+
+    tags_i = pos['ngage2_zap_dcache_half_tag_ram']
+    tags = add_port(parts[tags_i], 'output', 'o_cache_hit_early_next')
+    tags = edit(tags, '\t\t\to_cache_hit_early <= |hit;',
+                '\t\t\to_cache_hit_early <= o_cache_hit_early_next;\n'
+                '    assign o_cache_hit_early_next = !i_reset &&\n'
+                '        (!i_hold ? |hit : o_cache_hit_early);')
+    parts[tags_i] = tags
+
+    queue_i = pos['ngage2_zap_store_queue']
+    queue = add_port(parts[queue_i], 'output', 'o_full_next')
+    queue = edit(queue, 'o_full <= count_nxt == DEPTH;', 'o_full <= o_full_next;')
+    queue = edit(queue, '\tassign o_busy = count != 0;',
+                 '\tassign o_busy = count != 0;\n    assign o_full_next = !i_reset && count_nxt == DEPTH;')
+    parts[queue_i] = queue
+
+    fsm_i = pos['ngage2_zap_dcache_fsm']
+    fsm = parts[fsm_i]
+    for name in ('i_hit_ok_next', 'i_tlb_ready_next', 'i_cache_hit_early_next', 'i_post_full_next'):
+        fsm = add_port(fsm, 'input', name)
+    fsm = edit(fsm, '\tinput wire i_clk;',
+               "    parameter [0:0] OWNED_FAST_ACK = 1'b0;\n\tinput wire i_clk;")
+    ack_ref = ('((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) '
+               '&& i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE]')
+    fsm = edit(fsm, f'\tassign o_ack_fast = {ack_ref};', f'''    // Use the next values of the actual lookup and owner registers.
+    // IDLE may retire a permitted, cacheable miss by installing its lock.
+    // The hit bit is required for a second access during a background fill.
+    wire idle_fast_next = state_nxt[IDLE] && i_hit_ok_next && i_tlb_ready_next;
+    wire hum_fast_next = hum_slot_nxt && i_hit_ok_next && i_cache_hit_early_next;
+    (* dont_retime *) reg read_fast;
+    (* dont_retime *) reg write_fast;
+    always @(posedge i_clk)
+        if (i_reset) begin
+            read_fast <= 0;
+            write_fast <= 0;
+        end else begin
+            read_fast <= idle_fast_next || hum_fast_next;
+            write_fast <= (idle_fast_next && !i_post_full_next) || hum_fast_next;
+        end
+    // Device completion already belongs to UNC_DONE. Cache enable and W's
+    // alignment remain live at use, including CP15 or exception transitions.
+    wire ref_fast = {ack_ref};
+    wire owned_fast = (i_cache_en && !i_align_fault && (i_wr ? write_fast : read_fast)) ||
+                      state_ff[UNC_DONE];
+    assign o_ack_fast = OWNED_FAST_ACK ? owned_fast : ref_fast;
+
+    // synthesis translate_off
+    always @(posedge i_clk)
+        if (OWNED_FAST_ACK && !i_reset && access_now && owned_fast !== ref_fast)
+            $fatal(1, "Registered cache response changed owned acceptance");
+    // synthesis translate_on''')
+    parts[fsm_i] = fsm
+
+    dc_i = pos['ngage2_zap_dcache']
+    dc = edit(parts[dc_i], '\twire post_full;',
+              '\twire post_full;\n    wire tlb_hit_ok_next, tlb_ready_next, cache_hit_early_next, post_full_next;')
+    dc = edit(dc, '\tngage2_zap_dcache_fsm #(\n',
+              "\tngage2_zap_dcache_fsm #(\n        .OWNED_FAST_ACK(1'b1),\n")
+    for old, new, wire in (
+        ('.o_hit_ok(tlb_hit_ok)', 'o_hit_ok_next', 'tlb_hit_ok_next'),
+        ('.o_hit_ready(tlb_hit_ready)', 'o_hit_ready_next', 'tlb_ready_next'),
+        ('.o_cache_hit_early(tr_cache_hit_early)', 'o_cache_hit_early_next', 'cache_hit_early_next'),
+        ('.o_full(post_full)', 'o_full_next', 'post_full_next'),
+        ('.i_hit_ok(tlb_hit_ok)', 'i_hit_ok_next', 'tlb_hit_ok_next'),
+        ('.i_tlb_hit_ready(tlb_hit_ready)', 'i_tlb_ready_next', 'tlb_ready_next'),
+        ('.i_cache_hit_early(tr_cache_hit_early)', 'i_cache_hit_early_next', 'cache_hit_early_next'),
+        ('.i_post_full(post_full)', 'i_post_full_next', 'post_full_next'),
+    ):
+        dc = connect(dc, old, new, wire)
+    parts[dc_i] = dc
+    return ''.join(parts)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -897,6 +1005,7 @@ def main():
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
+    generated = register_dcache_authorization(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

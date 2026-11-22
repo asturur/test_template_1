@@ -60,6 +60,25 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
+## Register fast D-cache authorization
+
+The D-cache now captures read and write authorization alongside the TLB
+permission, lookup readiness, early tag result, posted queue status and
+cache FSM state. A permitted cacheable miss in IDLE can still install a
+background fill lock. A second access during that fill still requires a
+resident hit. The current cache enable, alignment check and uncached
+completion remain at the point of use. A simulation invariant compares
+the registered decision with the original logic on every active request.
+
+Against round three (`6c569de`), all 15 fixed payloads and four native
+PolyCount frames matched cycle for cycle at 104 MHz. The ARM differential
+covered CP15 domain permission, TTBR and TLB invalidation, cacheability,
+held lookups and full posted queues under four memory response profiles.
+The directed background-load test compares both decision paths through
+64 warm hits during fills, cache and bus aborts, and reset with a canceled
+fill and late bus response. Mixed LCD, MMC and PCM replay matched the
+reference. Routed timing is pending.
+
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
