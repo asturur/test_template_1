@@ -1,3 +1,11 @@
+## 2026-11-22 — moving DSP upload and generic NOS RAM to DDR
+
+Move generic NOS backing first and DSP upload second to reclaim up to 128
+M10Ks gross. Both were cold-boot traffic in two calibrated game runs. V5
+mixed RTL checks retained the PCM sample hash and timing under modeled
+waits. HPS DDR hardware performance and the integrated fit remain open.
+[Per-bank evidence and decision](peripheral-ram-ddr-assessment.md)
+
 ## 2026-11-22 — v5 Wishbone trial and upstream timing comparison
 
 Retained the LCD baseline on ngage-v5. The Wishbone payload trial matched

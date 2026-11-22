@@ -1,0 +1,156 @@
+--- tests/phone/mmc_mister/program.S
++++ build/sim/v5-104-wb-request-banks-native-mixed-parent-arm9v2-div3-pcm-lcd/program.S
+@@ -166,14 +166,6 @@
+  bne fail
+  put r10,12,0x01800000
+  mov r12,#6
+- // Read-only production media rejects writes with R1 WP_VIOLATION.
+- mov r0,#24
+- mov r1,#0
+- mov r2,#5
+- bl command
+- ldr r4,[r8,#0x20]
+- tst r4,#0x04000000
+- beq fail
+  // Filesystem sector reads: short transfer success is insufficient.
+  mov r12,#7
+  mov r0,#16
+@@ -244,6 +236,138 @@
+  ldr r4,[r8,#0x18]
+  tst r4,#4
+  bne sector_pio_idle
++ // Authored synthetic CMD24/TX-DMA probe; no phone firmware or user data.
++ mov r12,#9
++ ldr r0,=0x0a002000
++ mov r5,#0
++ mov r6,#0x69
++fill_tx:
++ strb r6,[r0,r5]
++ add r6,r6,#37
++ add r5,r5,#1
++ cmp r5,#512
++ blo fill_tx
++
++ ldr r0,=0x0a004000
++ ldr r4,=18304
++ ldr r5,=0x0abc0123
++lcd_fill:
++ str r5,[r0],#4
++ subs r4,r4,#1
++ bne lcd_fill
++ // Stereo with distinct negative left and positive right samples.
++ mov r12,#70
++ ldr r0,=0x0c1f0000
++ ldr r1,[r0]
++ ldr r2,=0x41554431
++ cmp r1,r2
++ bne fail
++ ldr r1,=0x0a001c00
++ ldr r2,=0x0800f000
++ mov r4,#128
++pcm_pattern:
++ str r2,[r1],#4
++ subs r4,r4,#1
++ bne pcm_pattern
++ put r0,0x08,1
++ put r0,0x0c,48000
++ put r0,0x10,0x0a001c00
++ put r0,0x18,128
++ put r0,0x04,3
++
++ mov r0,#24
++ mov r1,#1536
++ mov r2,#21
++ bl command
++ bl response_ok
++ put r9,4,1
++ put r9,0x14,0x0a002000
++ put r9,0x18,1
++ put r9,0x1c,32
++ put r9,0x20,0x10120624
++ put r9,0x24,0
++ put r9,0x28,8
++ put r9,0x2c,511
++ put r9,8,2
++write_dma_wait:
++ ldr r4,[r9,#8]
++ cmp r4,#0
++ bne write_dma_wait
++
++ ldr r0,=0x0c121200
++ put r0,4,1
++ put r0,0,0x09200000
++ put r0,8,0x5c
++ put r0,0,0x8924d67f
++ ldr r0,=0x0c120064
++ put r0,4,0xf0
++ put r0,0,0x70
++ ldr r0,=0x0c120340
++ put r0,4,1
++ put r0,0x14,0x0a004000
++ put r0,0x18,1
++ put r0,0x1c,32
++ put r0,0x20,0x10121208
++ put r0,0x24,0
++ put r0,0x28,32
++ put r0,0x2c,18303
++ put r0,8,2
++
++write_card_wait:
++ ldr r4,[r8,#0x18]
++ tst r4,#4
++ bne write_card_wait
++ ldr r3,=0x4e3
++ tst r4,r3
++ bne fail
++ put r9,4,0
++ // Read back through actual card/host byte FIFO after backing completion.
++ mov r12,#10
++ mov r0,#17
++ mov r1,#1536
++ mov r2,#33
++ bl command
++ bl response_ok
++ mov r5,#0
++ mov r6,#0x69
++write_verify:
++ ldrb r4,[r8,#0x24]
++ and r3,r6,#255
++ cmp r4,r3
++ bne fail
++ add r6,r6,#37
++ add r5,r5,#1
++ cmp r5,#512
++ blo write_verify
++write_read_idle:
++ ldr r4,[r8,#0x18]
++ tst r4,#4
++ bne write_read_idle
++ // The guest observes and acknowledges buffer 0 completion, then silences it.
++ mov r12,#71
++ ldr r0,=0x0c1f0000
++pcm_done:
++ ldr r1,[r0,#0x20]
++ tst r1,#1
++ beq pcm_done
++ ldr r2,=0x0c120110
++ ldr r1,[r2]
++ tst r1,#0x20
++ beq fail
++ put r0,0x20,1
++ ldr r1,[r0,#0x20]
++ tst r1,#1
++ bne fail
++ ldr r1,[r2]
++ tst r1,#0x20
++ bne fail
++ put r0,0x04,0
++
++ ldr r0,=0x0c120348
++lcd_done:
++ ldr r1,[r0]
++ cmp r1,#0
++ bne lcd_done
+  ldr r0,=0x0a000100
+  put r0,0,0x50415353
+ park: b park

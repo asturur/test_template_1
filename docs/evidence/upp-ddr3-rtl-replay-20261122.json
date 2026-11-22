@@ -1,0 +1,752 @@
+{
+  "baseline": "53b707b94efc667d9f8e562b92ce7bc293a083af",
+  "test_files": {
+    "mixed-observe.vh": "0ff7add102f383d178a2e1f2b7cb78fec7c18d62addbfe83293992df42c275fb",
+    "mixed-program.S.patch": "f9ec33500d35f338687fd5b7c080e5b2f083be1fd16f6b0d27a98966e5877f3d",
+    "mixed-tb.v.patch": "e2b8dcd11ac994231d12f727962164da42a685cc00d1957d39634504ff71d562",
+    "observe.vh": "a50f2a426cf421674b8df04acedba47f6c9f7c1a7989784c65cdd933688c952e",
+    "prepare.py": "427438ebc09bf39cf9c2fbb4247ed60efd3e95e798e27ba580334150b20a6a2c",
+    "raw_wait.vh": "bb5d92f0fa150e4789007fadf464b061f5afc2ea43d1430373191f9520c7887f",
+    "reset_tb.v": "c5b784dfd30e567746210461a5a9981fb99945bcf3f4ae85fabeaa42ad0824c2",
+    "run-matrix.sh": "58216e101bdb6f4233f22f5168bf87eedecd18800c15a4ef08f76c0d02f849b4",
+    "stress.S": "d1f684be42bfd0b5bf31f8a7e7b6f9d89cdd234b96d8846711da66f804b84050"
+  },
+  "mixed": {
+    "results_directory": "build/sim/upp-ddr3-impact/mixed",
+    "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+    "model": "Dedicated 64-bit shadow memory with fixed scalar waits and otherwise unchanged flash peer",
+    "source_sha256": {
+      "rtl/ngage_cpu.sv": "fc1da44e0f5b7f678a51b4e5bb322c38d985a7d868608f8d33a0b86814070b46",
+      "rtl/arm/zap_alu_main.sv": "15231caa6ebaaeaff04244f950b021f36bc19fde820a582c614a134dd306696f",
+      "rtl/arm/zap_btb.sv": "75d19a84716cf96b057c9f916be37e3ffef3a22fa5125af94f4bec2f44fe45a4",
+      "rtl/arm/zap_cache.sv": "80a026a025e0e49e21669411f91551323f5b0b387ad4e0bb82713ccc57d71bf1",
+      "rtl/arm/zap_core.sv": "852f92eff57f67a69f79bb00b7334402ca6bf4686e2377f6999431303de06ce9",
+      "rtl/arm/zap_cp15_cb.sv": "8abe0eb39e5353e45433ffa946c42616e1eab57891249bb6e174bdf0eaa7e564",
+      "rtl/arm/zap_data_completion.sv": "9feda29a46e597a587fa4fcec301c16b252df4dec8a2de3696ec401acf8f6fd7",
+      "rtl/arm/zap_dcache.sv": "5c5e855d3d31edb6d8fd25ce97da75d415aace10d5329a842d2ec20cef94db46",
+      "rtl/arm/zap_decode.sv": "1213db9b69395602955fc906d511c3e7bf75e92b7f14e0d83ddfd6a6d323b978",
+      "rtl/arm/zap_decode_main.sv": "84687b6072492366ef6d7949230c3640ecf65ede148ebcf1799ebe58244f0ba9",
+      "rtl/arm/zap_decompile.sv": "54e1fa34080ab216ee5de85b879c7817ce00c21723be6b64894483b210e73f57",
+      "rtl/arm/zap_dual_rank_synchronizer.sv": "25d33c8083207b5d6872f752a23721faa7d6a253dee86c96c41bfc3d2b13b6d6",
+      "rtl/arm/zap_fetch_main.sv": "725f23d8aadd045d5852d0a115533d8c43aea4788348105eb2f2bd9528ce56c6",
+      "rtl/arm/zap_fifo.sv": "2908a337a62c1e9ee9384a6d58025386ff8266d7f4e00580c1f150875488d33d",
+      "rtl/arm/zap_issue_main.sv": "8807a20486123a15ea1c83ec9a253ce7e765d7dd131eb34771ae7857a2a0e81d",
+      "rtl/arm/zap_memory_main.sv": "a66ff8af8dc4a9304d40e9860545d4c7f9a9091f1f64303554c571b688edf437",
+      "rtl/arm/zap_mode16_decoder.sv": "f2e8d3d78234f4fec837d69b0784441f901a4bf06a8918df8a058cf60a9d06f1",
+      "rtl/arm/zap_mode16_decoder_main.sv": "aa2fc82b3ea52c650ad30ec474255b494b7814214227860fac5eee26eee9227d",
+      "rtl/arm/zap_ones_counter.sv": "5fa59d05657e80778e4e6b7fe2056cb335c1f102aa530422f97cfa780dd53826",
+      "rtl/arm/zap_operand_read.sv": "ad28909b0de669b88a79920021f3ee54a24d096decda97a92bd29a081ad913c7",
+      "rtl/arm/zap_postalu_main.sv": "a57d951277cc59fcb13ef4160109ac4616fced5ccf720773ef9a91c0c6434c2e",
+      "rtl/arm/zap_predecode_coproc.sv": "9e163dff8c871119ac95d2fc5c0d0b805580ad3ac8c8f36c3d714899fa2f2829",
+      "rtl/arm/zap_predecode_main.sv": "5a7c2ca12c144c262f1866e78e6d5a8e0ee8b123abdbbe3a3bc793d600c8c618",
+      "rtl/arm/zap_predecode_uop_sequencer.sv": "ed2b0f413dd132a528f0ca2c3b249488533241ca14782e19db672efcd4b96a48",
+      "rtl/arm/zap_ram_simple_nopipe.sv": "00238105e33b34aa8b3b3e4641b7db1002e6816efec83ccde70bff4f47f57125",
+      "rtl/arm/zap_register_file.sv": "9dbbd907966aafe43e41acdd09b505b77dcb8263f695c130b2436a44864bc733",
+      "rtl/arm/zap_shifter_main.sv": "45df088a113890096fed4c42148c1b0b111f3dcfc1f90793e01dbde14849c4e5",
+      "rtl/arm/zap_shifter_multiply.sv": "77cca1e0a72feab7e66564d1741626f410946f829949feaf3af483748ffcd286",
+      "rtl/arm/zap_shifter_shift.sv": "0f77748cc427bb6b6288538e8788fbe400d00277ca2814e1e6476927f9a2c2b3",
+      "rtl/arm/zap_sync_fifo.sv": "0699ae440eafe1548e938ccdf13bd7480192c94697d44ce737c1e696cb10e29a",
+      "rtl/arm/zap_top.sv": "01bb2903124db3b25806f85563a5d0798a8ceb1fd6b54ea970c910aa1f7dca1d",
+      "rtl/arm/zap_wb_merger.sv": "c6936eb8b40fe9b890690c8d6cf467751b15d2192408ec2fec4e2687adcf6d21",
+      "rtl/arm/zap_writeback.sv": "288aecb5dbd30ea4b99a65084f3c09da2141375ebe0dedcb68e540feb45d6235",
+      "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+      "rtl/arm920/cache_access.sv": "119e7687c4cae9d3763d11ebf6b9a8fb5abf362a396d94abfd2c7007c2184590",
+      "rtl/arm920/cache_adapter.sv": "732af84d06ccf00c52dc49dc18b5818722eb13efe35ce4e9a333750d53af87af",
+      "rtl/arm920/cache_bank.sv": "010b7e116a5651442c2fcfc05e8a4f931c07238728ae706e0bc2c95bbf6d70b7",
+      "rtl/arm920/cache_lines.sv": "d94e4e4650047679360c0ed024e0f05306488a540f747410e4ec8e89badf048d",
+      "rtl/arm920/cache_maintenance.sv": "d086e38e7e80b00b6e4db294371dcce7ae89e46a9b746155acefcb1669ce1817",
+      "rtl/arm920/cache_refill.sv": "9db80d84274de97a774c0ac0a30cf6ab85b42f7771d39243d7199f9f97fd8d5c",
+      "rtl/arm920/cache_tags.sv": "0291d169a7cd4a1e9a332ed652e5c9d5428ee1ad0bf3898ff154f3a44a274c3f",
+      "rtl/arm920/cache_transfer.sv": "e77e81996e5d6c295bd83b673ac91fc1976ab0abac1c907eb0ee9db4cc8f8679",
+      "rtl/arm920/tlb.sv": "b0e800e4534c880f9afce0f6b405097ee77776f6a2ecd3f3232b81e672f1c5f0",
+      "rtl/arm920/tlb_bank.sv": "952a5a9bebabe610d6ef3b07ccd9df4abc2b63aa0fa72ddb6d828f12f5b1eec3",
+      "rtl/arm920/tlb_bus_gate.sv": "beba3d2f94a09b580ae16e37bc72599dcfb0ab55ac7073612a4df6692b4d690e",
+      "rtl/arm920/write_buffer.sv": "a0d9a0742be1af6dd100306b7e4e10ad2c3de6f4a81f20438e69395ea4b7a2a7",
+      "rtl/ngage_debug_font.v": "5636d8bd214efd6955d258281370979d0b39981b533618a8dd97d87cdd5c9815",
+      "rtl/ngage_debug_monitor.v": "fc4196902e92546921f24c6b594e8a2002e1dbbe739e6b90b16696527e414bca",
+      "rtl/ngage_debug_video.v": "9228ccca0615945d3c521788c43c5f4e7f80c83d71ef7d2db74ce62fc6648df9",
+      "rtl/ngage_mister.v": "18fd387ae78d2acabef627dcf569a628d2e6b43e0cde074173e59fa261023424",
+      "rtl/ngage_mmc_host.v": "ab08844346ddfd6b7246a8b08ead7030de88d9cbbe8d46832ccdb9ee0204be31",
+      "rtl/ngage_mmc_card.v": "e937a123e4b83b9c096ca64b65f69f60ab594248eb4d35671c69b787657f86cb",
+      "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87",
+      "rtl/ngage_mmc_hps.v": "9c5c8bd7678eda61001f7460542466391225e548867736c2c2f7296dfc66a1e0",
+      "rtl/ngage_lcd_display.v": "0a7fbe123e9a30d4ec660e8d28ff7bdb0f30355a8b20077346502b8c1199d1f5",
+      "rtl/ngage_lcd_dma.v": "4a2471ea9881e99d461dc46de6e252b39558011ac05b346b3b0f3b09e1c60581",
+      "rtl/ngage_keypad.v": "71bc5885794e2becda1a0123c3926ad748327d9f1bda5b613a62cdaedbb06708",
+      "rtl/ngage_diagnostics.v": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c",
+      "rtl/ngage_sdram_arbiter.v": "acaac005cee798fc83b08c9dc857f6209cd8d664f40c95550f53630435bfc7ae",
+      "rtl/ngage_dma_route.v": "36c3180d605b31576965eab61e688e3dd4747e036235d72d033236cf31d965a6",
+      "rtl/ngage_dma_channels.v": "632678ed5a8cbba9527bdb4544d95d575a754b70036d88ce0e8c322d164fe611",
+      "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+      "rtl/ngage_lcd_stream.v": "6594b1ea02a467c9145e693e3c9347cb1329d03020edc2cba6c716ae4992367e",
+      "rtl/ngage_dma_ram_mux.v": "f4a18d296834985166650a6cc4c5c0a357fa22a07168bb0fd089ae4019a5f468",
+      "rtl/ngage_board.v": "bad28c3d702b68fc70b8df45970276f4d36bc26e82b7576811e5953aaf2d2c5f",
+      "rtl/ngage_upp.v": "f12b7eb0d5e132bb50702d6a63ea0deb9e7d20c3f8564234227de4eebd071509",
+      "rtl/ngage_upp_peripherals.v": "049905c3c4f26d084010784b3df314d7c9f40000e54fc687602d7ba9fefe0398",
+      "rtl/ngage_upp_euart.v": "f52d6852879b9f68a122ad0300e710491a3bcf8a65255d0c37aad696aae2865c",
+      "rtl/ngage_simif.v": "ae20cccae97d52ecfdc4ffffee42217833dfb8bbc728c72ed7fd8edfbdaf7c1a",
+      "rtl/ngage_test_sim.v": "3366fc7e5db472175148842f222b34ce86d731bf7b101fbf92340ef67ca6896b",
+      "rtl/ngage_uem.v": "e27fba659d6369669666b1e2099f8dc929db668eb89e119f369a534279c2e881",
+      "rtl/ngage_adsp.v": "cc0c22c1bc73183fce35aec81ada3bd5d6f636b0ce91302b15c7cf0c0986ad3e",
+      "rtl/ngage_adsp_bootstrap_tx.v": "49b6971de6a93da0a72919577a77b96350d47d41c1801bf9f94a55ff64af6ed3",
+      "rtl/ngage_adsp_diagnostic.v": "a10d80f81abad438fcfdc2db6922d06355f16c5942317f0b636733f8a258d8aa",
+      "rtl/ngage_aic23.v": "701202c89384f1e66cc7a22b48ca34b3102b539e009764fb15391d3b1c78c053",
+      "rtl/ngage_lrb2.v": "973256fdbddf61f7ba5193c7c0b7f0ba90bc35cad978578ea657b32452e4a491",
+      "rtl/ngage_mjoelner.v": "f3d2bb926976f2c614481aad35030d203b9eac833512a91b3082325d182f14e4",
+      "rtl/ngage_bram_be.v": "dcae12f1ad8e90de5390c68f76a690dd492bdf64693d644b647c33340e233a10",
+      "rtl/ngage_sparse_regs.v": "cb44404346ce87f73b53fbdf1271b615cd81bd920294a34c6edfcb7fac7ab83a",
+      "rtl/ngage_icu.v": "ec99bcdabae6747ca5aae132f6552ffa72205cf91262cfb6f4606cbc806d7b96",
+      "rtl/ngage_icu_extra.v": "e4410e399ac35bc65193ec17fcc54bfa06e63d209ebe6e5b174688b7e2635cc9",
+      "rtl/ngage_timers.v": "c13e586583a5bf97c70869d3bfa29012f96cd1c7852e0044e679371abc5ab6b2",
+      "rtl/ngage_nos_io.v": "b689a18a878a8a8bc4cfa9059d7b82892b6185a198a4f291cdca376846246263",
+      "rtl/ngage_mdi_stub.v": "ff526b698b1042b7eda10a6088e78eb7305fed0b6e001a503ef195c08a651fcc",
+      "rtl/ngage_upp_dsp_peer.v": "b6ffdae6be3f8717ba15c63d1218850c0c747f3c246a0e264c4d3b5b2a19f08b",
+      "rtl/ngage_upp_mdi.v": "5c6e9a005347ab349c62c4afe52da6801bd7bc71dec5a20025e564fe68aa8732",
+      "rtl/ngage_cbus_uem.v": "11f9d9b45113f044dacb81f773825b4f8de14c38875272156813bb55e937d70f",
+      "rtl/ngage_gpio_loopback.v": "243c4aeaca74ad440a68744f5371107e198b7301bd6d5092b2c5419cefb6c02b",
+      "rtl/ngage_boot_regs.v": "e3c63930e1b456e59ea82e5ace7978ba6ba2072f24054a516114f1058d226a9e",
+      "rtl/ngage_trace_sink.v": "0d3f17c3e3ad4d184c2b58c11dc1bf9b9c7b679f06c7100d5a0d3cdd662bae46",
+      "rtl/ngage_rom_map.sv": "637b93bbd30f16b955110fc4005f55e8572edb793e0cf6d568aa4cc161a35c25",
+      "rtl/ngage_am29n643_state.v": "c0a76a50385c6b0fb372d0fa5f734cde97d7d691622d0f089bafad48179340bb",
+      "rtl/ngage_codeflash.sv": "a5ec2621b41f9587b74b68ae0c7a6adffc04fa9c976ea710497efab524064fdb",
+      "rtl/ngage_cflash.sv": "73fee21fe467038938155b5b0b53d0ee02d410415e83ca705ac8f2d751435fd2",
+      "rtl/ngage_flash_read_decode.v": "eddf8b82bf930c898b518cdc66328083baace463bd859063dca9213d62206fac",
+      "rtl/ngage_descramble.v": "0971f194aa54309589c57be63973de2645b49c568837a24572584102a9a7d7a0",
+      "tests/phone/mmc_mister/tb.v": "64f9e0208c6d5ec054a8dd617f36e30087f69fdfd1828d271e9fc895e880ef2e",
+      "rtl/ngage_game_pcm.v": "586f3e2195a7cb8d39299574d81a9a2e90e7a76485c2eeb8e4f83a6633e1d6bc",
+      "rtl/ngage_upp_dsp_pcm.v": "d2fb3bec63752120fae4d02bd313b9a6a00de3b4ed28ddb0e9299ede92825ac6",
+      "rtl/arm9v2/arm925t_phone.v": "4ee8595eeb9625f713e21ee866fccb779c033e7d5c6ff7a89eb89c6ef12c3c66",
+      "rtl/arm9v2/upstream/sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+      "rtl/arm9v2/upstream/sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+      "rtl/ngage_sdram_stream.v": "955ab9528865341c478ba0634e9f843d2a1708c0bc9ab00cb2b0cbbe451d377f",
+      "rtl/ngage_sdram_line_mux.v": "813a68e6db617e9faac76085968eac772150a48017b1f76d95cde7710c491664",
+      "rtl/sdram/ngage_sdram_scheduler.v": "74d1cfd3e2f0cd6469ffca3330467b073b7ef59a55423a033c75cb36cf092e3a",
+      "rtl/ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+      "tests/phone/sdram/ddio_model.v": "772b6aebc138a6cc698b70ccb01038cf07bdde65c780bd19e315f34b12f5033f",
+      "build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+      "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+      "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+      "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+      "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+      "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a"
+    },
+    "input_sha256": {
+      "program.hex": "a1249a1ae5bce00ffab092f6a2dcd0a794455e19dd08c8dfd19d40da3ca8bd76",
+      "stress.hex": "0bfa921ea47ff5ae01c8e34aba8db44eeec973c2d4787a5283f55df10a2355c7",
+      "image.hex": "d83f0ff7094ffec74dca8f2030153f2af2d55661cfcd5ff9e0576759e1fbcf50"
+    },
+    "testcases": {
+      "baseline-idle": {
+        "coverage": {
+          "upload_reads": 0,
+          "upload_writes": 0,
+          "upload_bytes": 0,
+          "upload_wait": 0,
+          "nos_reads": 0,
+          "nos_writes": 0,
+          "nos_bytes": 0,
+          "nos_wait": 0,
+          "mdi_reads": 0,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": -1,
+          "last": -1,
+          "pcm_live": 0,
+          "mmc_write_live": 0,
+          "lcd_live": 0,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 0,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 88460
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 0
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189662,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "f4cfa26601e23761e15216cbbfda993856a90a8602d4a8cf9a58cdc1bff2c4e2"
+      },
+      "upload-idle": {
+        "coverage": {
+          "upload_reads": 0,
+          "upload_writes": 0,
+          "upload_bytes": 0,
+          "upload_wait": 0,
+          "nos_reads": 0,
+          "nos_writes": 0,
+          "nos_bytes": 0,
+          "nos_wait": 0,
+          "mdi_reads": 0,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": -1,
+          "last": -1,
+          "pcm_live": 0,
+          "mmc_write_live": 0,
+          "lcd_live": 0,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 0,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 88460
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 8196
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189662,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "a7d772b291cd40ee92ea0b0dfd6d3df4ae65b15bdc4d077500f7718ff44a0c9d"
+      },
+      "nos-idle": {
+        "coverage": {
+          "upload_reads": 0,
+          "upload_writes": 0,
+          "upload_bytes": 0,
+          "upload_wait": 0,
+          "nos_reads": 0,
+          "nos_writes": 0,
+          "nos_bytes": 0,
+          "nos_wait": 0,
+          "mdi_reads": 0,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": -1,
+          "last": -1,
+          "pcm_live": 0,
+          "mmc_write_live": 0,
+          "lcd_live": 0,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 0,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 88460
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 8196
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189662,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "cdc3d12dc76defbe2b29d5faa9d8f8956c551d078e7f520888de80041f4bd0fb"
+      },
+      "baseline-stress": {
+        "coverage": {
+          "upload_reads": 256,
+          "upload_writes": 256,
+          "upload_bytes": 640,
+          "upload_wait": 0,
+          "nos_reads": 256,
+          "nos_writes": 256,
+          "nos_bytes": 768,
+          "nos_wait": 0,
+          "mdi_reads": 1,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": 925515,
+          "last": 964083,
+          "pcm_live": 1024,
+          "mmc_write_live": 74,
+          "lcd_live": 1024,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 0,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 88383
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 0
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189648,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "fa529789e6105aa8fe835b44536e6d27904225fca351d0da3fd8cc6739e25e55"
+      },
+      "upload-8-4": {
+        "coverage": {
+          "upload_reads": 256,
+          "upload_writes": 256,
+          "upload_bytes": 640,
+          "upload_wait": 3072,
+          "nos_reads": 256,
+          "nos_writes": 256,
+          "nos_bytes": 768,
+          "nos_wait": 0,
+          "mdi_reads": 1,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": 925522,
+          "last": 966899,
+          "pcm_live": 1024,
+          "mmc_write_live": 71,
+          "lcd_live": 1024,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 3,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 88173
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 8196
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189664,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "c2c5b9762633edd52239eb8fbe3f907011ff22caedaa6a12f156abdceff0e008"
+      },
+      "nos-8-4": {
+        "coverage": {
+          "upload_reads": 256,
+          "upload_writes": 256,
+          "upload_bytes": 640,
+          "upload_wait": 0,
+          "nos_reads": 256,
+          "nos_writes": 256,
+          "nos_bytes": 768,
+          "nos_wait": 3072,
+          "mdi_reads": 1,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": 925515,
+          "last": 966899,
+          "pcm_live": 1024,
+          "mmc_write_live": 71,
+          "lcd_live": 1024,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 2,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 88173
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 8196
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189664,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "23ad2b118ed4ff95ded2aa05f79cae3e32b6d2e807edaee3f8ffe03186240c2b"
+      },
+      "upload-48-24": {
+        "coverage": {
+          "upload_reads": 256,
+          "upload_writes": 256,
+          "upload_bytes": 640,
+          "upload_wait": 18432,
+          "nos_reads": 256,
+          "nos_writes": 256,
+          "nos_bytes": 768,
+          "nos_wait": 0,
+          "mdi_reads": 1,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": 925562,
+          "last": 982259,
+          "pcm_live": 1024,
+          "mmc_write_live": 50,
+          "lcd_live": 1024,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 8,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 87021
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 8196
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189664,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "5797edfe180412690de81e922b524ee6ec309925ed756f1360fb1bc2d077246d"
+      },
+      "nos-48-24": {
+        "coverage": {
+          "upload_reads": 256,
+          "upload_writes": 256,
+          "upload_bytes": 640,
+          "upload_wait": 0,
+          "nos_reads": 256,
+          "nos_writes": 256,
+          "nos_bytes": 768,
+          "nos_wait": 18432,
+          "mdi_reads": 1,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": 925515,
+          "last": 982259,
+          "pcm_live": 1024,
+          "mmc_write_live": 50,
+          "lcd_live": 1024,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 9,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 87021
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 8196
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189664,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "461adae86859da264e590570946e57dbea2f04eedce13078a2cf47234bd5acf1"
+      },
+      "both-48-24": {
+        "coverage": {
+          "upload_reads": 256,
+          "upload_writes": 256,
+          "upload_bytes": 640,
+          "upload_wait": 18432,
+          "nos_reads": 256,
+          "nos_writes": 256,
+          "nos_bytes": 768,
+          "nos_wait": 18432,
+          "mdi_reads": 1,
+          "mdi_writes": 0
+        },
+        "overlap": {
+          "first": 925562,
+          "last": 1000435,
+          "pcm_live": 1024,
+          "mmc_write_live": 39,
+          "lcd_live": 1024,
+          "sample_ticks": 128,
+          "first_sample": 914114,
+          "last_sample": 1189281,
+          "sample_while_waiting": 17,
+          "pcm_hash": "175ee178",
+          "ddr_flash_reads": 85659
+        },
+        "clearing_counter": {
+          "upload_words": 16388,
+          "nos_words": 16388,
+          "modeled_beats": 16388
+        },
+        "pcm_lcd": {
+          "reads": 128,
+          "words": 726,
+          "ticks": 1,
+          "underflows": 0,
+          "overwritten": 0
+        },
+        "mmc": {
+          "cycles": 1189680,
+          "reads": 4,
+          "writes": 1
+        },
+        "log_sha256": "9273ad60ee71f6f15c6d38d228d5ec9f436d0a3c819bdd74c9777f5650b57741"
+      }
+    },
+    "registered_reset_checks": {
+      "bram": {
+        "pass_line": "PASS upload and NOS lanes, bank/beat isolation, MDI/aux exclusion, warm retain, and cold re-clear",
+        "log_sha256": "f8b43052c1c45f53454a7d7afe2e199e133130c71c8ddfb25218f28e593421d7"
+      },
+      "upload": {
+        "pass_line": "PASS upload and NOS lanes, bank/beat isolation, MDI/aux exclusion, warm retain, and cold re-clear",
+        "log_sha256": "49a46384b2ba9617920de54110b4c5eaf1dd9084d1dfe3f1789c7c47ba5234aa"
+      },
+      "nos": {
+        "pass_line": "PASS upload and NOS lanes, bank/beat isolation, MDI/aux exclusion, warm retain, and cold re-clear",
+        "log_sha256": "1f1d91d929f2a03007dc889a123896748e9bf785a649b3d7aebae22101f5bf3e"
+      },
+      "both": {
+        "pass_line": "PASS upload and NOS lanes, bank/beat isolation, MDI/aux exclusion, warm retain, and cold re-clear",
+        "log_sha256": "952c9e7b1607703d52ab4840a893d30da41c301a457a44dfedb60299936ef11a"
+      }
+    }
+  },
+  "stock_cold_boot": {
+    "results_directory": "build/sim/runs/upp-ddr3-impact-cold-104",
+    "scope": "Stock ARM9V2 HDL boot prefix using modeled backing memories. Endpoint remains in firmware MD5 transform.",
+    "accepted_raw_upload": {
+      "reads": 0,
+      "writes": 0
+    },
+    "accepted_raw_nos": {
+      "reads": 0,
+      "writes": 0
+    },
+    "accepted_mdi": {
+      "reads": 0,
+      "writes": 0
+    },
+    "lcd_frame": {
+      "cycle": 32622444,
+      "words": 18353,
+      "reads": 334,
+      "beats": 1336,
+      "hits": 37487,
+      "misses": 334,
+      "scalar_wait": 186837,
+      "line_wait": 3378,
+      "sweep": 1024
+    },
+    "log_sha256": "0beaaecab4a401ee4b97f6197e1218f5b7e2fba9c54ecf8c4941138e75856a0f",
+    "manifest": {
+      "cpu": "arm9v2",
+      "production_ddr": true,
+      "fault_context": false,
+      "key_pulse": [
+        0,
+        0,
+        0
+      ],
+      "refill_stats": false,
+      "line_refill": true,
+      "timer_clock": "26mhz",
+      "nos_tick_hz": 64,
+      "direct_sdram": true,
+      "rom_cache_bits": 64,
+      "rom_cache_bytes": 1024,
+      "rom_cache": false,
+      "sys_clk_hz": 104000000,
+      "powerup": "normal",
+      "source_identity": "1077efe4de148f4923acb6dad6f1d574e4e90da87529eea9c6dfe62e441c738d",
+      "sources": {
+        "rtl/ngage_cpu.sv": "fc1da44e0f5b7f678a51b4e5bb322c38d985a7d868608f8d33a0b86814070b46",
+        "rtl/ngage_bram.v": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "rtl/ngage_debug_font.v": "5636d8bd214efd6955d258281370979d0b39981b533618a8dd97d87cdd5c9815",
+        "rtl/ngage_debug_monitor.v": "fc4196902e92546921f24c6b594e8a2002e1dbbe739e6b90b16696527e414bca",
+        "rtl/ngage_debug_video.v": "9228ccca0615945d3c521788c43c5f4e7f80c83d71ef7d2db74ce62fc6648df9",
+        "rtl/ngage_mister.v": "18fd387ae78d2acabef627dcf569a628d2e6b43e0cde074173e59fa261023424",
+        "rtl/ngage_lcd_display.v": "0a7fbe123e9a30d4ec660e8d28ff7bdb0f30355a8b20077346502b8c1199d1f5",
+        "rtl/ngage_lcd_dma.v": "4a2471ea9881e99d461dc46de6e252b39558011ac05b346b3b0f3b09e1c60581",
+        "rtl/ngage_dma_channels.v": "632678ed5a8cbba9527bdb4544d95d575a754b70036d88ce0e8c322d164fe611",
+        "rtl/ngage_dma_engine.v": "6f3866521f00e9c97d14ad4b035cfed7aa9d09549bdb1ca4ee5d2079d43a20c7",
+        "rtl/ngage_dma_route.v": "36c3180d605b31576965eab61e688e3dd4747e036235d72d033236cf31d965a6",
+        "rtl/ngage_lcd_stream.v": "6594b1ea02a467c9145e693e3c9347cb1329d03020edc2cba6c716ae4992367e",
+        "rtl/ngage_dma_ram_mux.v": "f4a18d296834985166650a6cc4c5c0a357fa22a07168bb0fd089ae4019a5f468",
+        "rtl/ngage_keypad.v": "71bc5885794e2becda1a0123c3926ad748327d9f1bda5b613a62cdaedbb06708",
+        "rtl/ngage_diagnostics.v": "a90692e6d953d3483424fe43872918974bf49a4cbe30aad28e4284739578fc1c",
+        "rtl/ngage_sdram_arbiter.v": "acaac005cee798fc83b08c9dc857f6209cd8d664f40c95550f53630435bfc7ae",
+        "rtl/ngage_ddr_arbiter.v": "4a6a11fc9f4af47981a702d649ec5beff2e39e631f67b379e6ae0e066e40c2b7",
+        "rtl/ngage_ddr_adapter.v": "1244770bfefff5c71258dac5476870449923631193f7cbe3fe3f746a44d52484",
+        "rtl/ngage_ddr_stream.v": "d226f29f25c37b714acdf3086f897fbed70865c8d52bbc7488d87162b716089f",
+        "rtl/ngage_ddr_stream_legacy.v": "19c41165e2b94c488582283c5c19a240272ce83283d942b6c531208eab665e75",
+        "rtl/ngage_ddr_lanes.sv": "b65c6fd0b2d6715895fc115c885541c15ceddda4cb64dd17c7a97b421e979f4d",
+        "rtl/ngage_simif.v": "ae20cccae97d52ecfdc4ffffee42217833dfb8bbc728c72ed7fd8edfbdaf7c1a",
+        "rtl/ngage_test_sim.v": "3366fc7e5db472175148842f222b34ce86d731bf7b101fbf92340ef67ca6896b",
+        "rtl/ngage_mmc_host.v": "ab08844346ddfd6b7246a8b08ead7030de88d9cbbe8d46832ccdb9ee0204be31",
+        "rtl/ngage_mmc_card.v": "e937a123e4b83b9c096ca64b65f69f60ab594248eb4d35671c69b787657f86cb",
+        "rtl/ngage_mmc_dpram.v": "0989b734114d0e6aecaab56df0a20a399e51fef68b11790320e64d13cc692c87",
+        "rtl/ngage_board.v": "bad28c3d702b68fc70b8df45970276f4d36bc26e82b7576811e5953aaf2d2c5f",
+        "rtl/ngage_upp.v": "f12b7eb0d5e132bb50702d6a63ea0deb9e7d20c3f8564234227de4eebd071509",
+        "rtl/ngage_upp_peripherals.v": "ed3e7898b745ae7917794f1ddd39f8dce16d624c50e85da46141ddf17fb1a957",
+        "rtl/ngage_upp_euart.v": "f52d6852879b9f68a122ad0300e710491a3bcf8a65255d0c37aad696aae2865c",
+        "rtl/ngage_uem.v": "e27fba659d6369669666b1e2099f8dc929db668eb89e119f369a534279c2e881",
+        "rtl/ngage_adsp.v": "cc0c22c1bc73183fce35aec81ada3bd5d6f636b0ce91302b15c7cf0c0986ad3e",
+        "rtl/ngage_adsp_bootstrap_tx.v": "49b6971de6a93da0a72919577a77b96350d47d41c1801bf9f94a55ff64af6ed3",
+        "rtl/ngage_adsp_diagnostic.v": "a10d80f81abad438fcfdc2db6922d06355f16c5942317f0b636733f8a258d8aa",
+        "rtl/ngage_aic23.v": "701202c89384f1e66cc7a22b48ca34b3102b539e009764fb15391d3b1c78c053",
+        "rtl/ngage_lrb2.v": "973256fdbddf61f7ba5193c7c0b7f0ba90bc35cad978578ea657b32452e4a491",
+        "rtl/ngage_mjoelner.v": "f3d2bb926976f2c614481aad35030d203b9eac833512a91b3082325d182f14e4",
+        "rtl/ngage_bram_be.v": "dcae12f1ad8e90de5390c68f76a690dd492bdf64693d644b647c33340e233a10",
+        "rtl/ngage_sparse_regs.v": "cb44404346ce87f73b53fbdf1271b615cd81bd920294a34c6edfcb7fac7ab83a",
+        "rtl/ngage_icu.v": "ec99bcdabae6747ca5aae132f6552ffa72205cf91262cfb6f4606cbc806d7b96",
+        "rtl/ngage_icu_extra.v": "e4410e399ac35bc65193ec17fcc54bfa06e63d209ebe6e5b174688b7e2635cc9",
+        "rtl/ngage_timers.v": "c13e586583a5bf97c70869d3bfa29012f96cd1c7852e0044e679371abc5ab6b2",
+        "rtl/ngage_nos_io.v": "b689a18a878a8a8bc4cfa9059d7b82892b6185a198a4f291cdca376846246263",
+        "rtl/ngage_mdi_stub.v": "ff526b698b1042b7eda10a6088e78eb7305fed0b6e001a503ef195c08a651fcc",
+        "rtl/ngage_upp_dsp_peer.v": "b6ffdae6be3f8717ba15c63d1218850c0c747f3c246a0e264c4d3b5b2a19f08b",
+        "rtl/ngage_upp_mdi.v": "5c6e9a005347ab349c62c4afe52da6801bd7bc71dec5a20025e564fe68aa8732",
+        "rtl/ngage_cbus_uem.v": "11f9d9b45113f044dacb81f773825b4f8de14c38875272156813bb55e937d70f",
+        "rtl/ngage_gpio_loopback.v": "243c4aeaca74ad440a68744f5371107e198b7301bd6d5092b2c5419cefb6c02b",
+        "rtl/ngage_boot_regs.v": "e3c63930e1b456e59ea82e5ace7978ba6ba2072f24054a516114f1058d226a9e",
+        "rtl/ngage_trace_sink.v": "0d3f17c3e3ad4d184c2b58c11dc1bf9b9c7b679f06c7100d5a0d3cdd662bae46",
+        "rtl/ngage_rom_map.sv": "637b93bbd30f16b955110fc4005f55e8572edb793e0cf6d568aa4cc161a35c25",
+        "rtl/ngage_am29n643_state.v": "c0a76a50385c6b0fb372d0fa5f734cde97d7d691622d0f089bafad48179340bb",
+        "rtl/ngage_codeflash.sv": "a5ec2621b41f9587b74b68ae0c7a6adffc04fa9c976ea710497efab524064fdb",
+        "rtl/ngage_cflash.sv": "73fee21fe467038938155b5b0b53d0ee02d410415e83ca705ac8f2d751435fd2",
+        "rtl/ngage_flash_read_decode.v": "eddf8b82bf930c898b518cdc66328083baace463bd859063dca9213d62206fac",
+        "rtl/ngage_descramble.v": "0971f194aa54309589c57be63973de2645b49c568837a24572584102a9a7d7a0",
+        "scratch/upp-ddr3-impact/boot_tb.v": "87736e891977624e3ef7a2a471449e28ffbe264509aed40285a25048bde0ecae",
+        "rtl/ngage_ddr_rom_cache.v": "af1d0e25ccbee08950fc2c0881746cdb34a90356f4fdaa56067f1c80e60a0420",
+        "rtl/jtframe/ngage_jtframe_romrq_lcache.v": "fd47f56d71e662fc13a950f2c57b1090dcc676345ab0a38a0eed4df3e94c0c70",
+        "tests/phone/hardware_boot/key_input.v": "d83d4cf5938dd740464344b36a5e2f49de62120ca673410f9f3ca84f7bb0ac73",
+        "rtl/ngage_ddr_flash_adapter.v": "b62c2eb56aff1629117f1b480df986aae1e6530de4e4f73a5c459e63ce321f22",
+        "rtl/ngage_ddr_flash_cache.v": "70c9e8eb6515a7821b0448f1267b71f5c57c1a70743122318561b4c1ae197910",
+        "rtl/ngage_game_pcm.v": "586f3e2195a7cb8d39299574d81a9a2e90e7a76485c2eeb8e4f83a6633e1d6bc",
+        "rtl/ngage_upp_dsp_pcm.v": "d2fb3bec63752120fae4d02bd313b9a6a00de3b4ed28ddb0e9299ede92825ac6",
+        "rtl/arm9v2/arm925t_phone.v": "4ee8595eeb9625f713e21ee866fccb779c033e7d5c6ff7a89eb89c6ef12c3c66",
+        "rtl/arm9v2/upstream/sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+        "rtl/arm9v2/upstream/sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+        "rtl/arm/zap_armv4t.svh": "a1b49373a0352dffaf38c0acfdcfbe33c39639016831891772c0e3ac34f1b313",
+        "rtl/arm/zap_decompile.svh": "a075f4e20d88829058431119e5d1988d56e63f86aa369145c7e6cab7f889a216",
+        "rtl/arm/zap_defines.svh": "1234d7b10bb0337c46c3a008e6dba365c3e5486a369687d42fe9084f984458b2",
+        "rtl/arm/zap_functions.svh": "4ecc2d646beb9b1cd2ebf41f2ffa555df1c218b733c73d253855b0350f822176",
+        "rtl/arm/zap_localparams.svh": "53a2f8bfa8ca0fa82fe01f2482e6285a6b962f65fd694e41e9f342967fede10a",
+        "rtl/arm9v2/upstream/rtl/cpu/zap/zap_defines.svh": "60080995e22abfe8d55b0dd70c3ce27842cd621417057492c13196afb06b2441",
+        "rtl/arm9v2/upstream/rtl/cpu/zap/zap_functions.svh": "98e0e0754ca91002bc0a901219c72fe2dad063464b183ce63f21534c98d884dc",
+        "rtl/arm9v2/upstream/rtl/cpu/zap/zap_load_format.svh": "952f200bcacfe6f6dbd8e476edbe6f395ea96c3b993240f453d09d4552a0f07b",
+        "rtl/arm9v2/upstream/rtl/cpu/zap/zap_localparams.svh": "4a2834d59f367ca5b374d96317168eaf882df288a849a9cac929fcc9a339b4a7",
+        "tests/phone/hardware_boot/fault_context_watch.vh": "1bd884012c96e9fac7bc9e6303031e6ef7280d7639d021f381a03d86d9e18090",
+        "tests/phone/hardware_boot/d2_measure.vh": "432ca1b1fb6050e31b89c5e6f27f011320e70ad4b2c25965f1ac9f45e937f2d4",
+        "rtl/ngage_debug_font.hex": "0f6bf44b38133883d1866b2cb09df129daffe26e4d7459d3313eae15ded75fc0",
+        "rtl/ngage_debug_font.mif": "c4238e46e699efb8a0dfd4bfbd19c85721c7cd5f5e4d0fc9e9454481564b3328",
+        "tests/phone/hardware_boot/logo_main.cpp": "9c84f8693d65214099441249b8175243354c58eff0e66f1d8c18aa1d6770b18b",
+        "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/upp-ddr3-impact/run-logo.py": "eb27ffcf7f95acf12c77bc7d2638d19acf14398bd0eccc80cb5c6d57474f6dba"
+      },
+      "binary_sha256": "07c64b8ff61fb73c744d9e00996ab839eaaa38467e3531d2b470f3d055ef4135",
+      "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d",
+      "inputs": {
+        "core": {
+          "path": "build/firmware/nem4-factory/core.bin",
+          "sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+        },
+        "extension": {
+          "path": "build/firmware/nem4-factory/extension.bin",
+          "sha256": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+        },
+        "cdrive": {
+          "path": "runtime/boot/cdrive-11b.img",
+          "sha256": "af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47"
+        }
+      },
+      "cycles_target": 100000000,
+      "restore": null,
+      "profile": "no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness",
+      "interactive_keys": true,
+      "stop_after_lcd_words": 0,
+      "flash_cache_bytes": 32768,
+      "mmc_clk_div": 4,
+      "stock_game_pcm": true,
+      "stop_on_kernel_panic": false,
+      "checkpoint_schedule": {
+        "through_cycle": 10000000000,
+        "period_through": 1000000000,
+        "period_after": 100000000
+      }
+    },
+    "result": {
+      "boot_index": 0,
+      "boot_limit": 0,
+      "retired": 80097104,
+      "ddr_commands": 0,
+      "ddr_beats": 0,
+      "cycle": 100000000,
+      "pc": 1342193700,
+      "lcd_words": 18353,
+      "frame_complete": 1,
+      "display_on": 1,
+      "unsupported": 1,
+      "bus_errors": 3,
+      "data_errors": 0,
+      "seconds": 255.792,
+      "stop_after_lcd_words": 0,
+      "stopped_on_kernel_panic": false,
+      "stopped_at_lcd_limit": false,
+      "interrupted": false,
+      "outputs": {
+        "build/sim/runs/upp-ddr3-impact-cold-104/framebuffer.bin": "a6ac971983eafa81f81f3a5e97f4ba9da46f28c8af7ef5ba1b68aaa3a9d7bb43",
+        "build/sim/screens/upp-ddr3-impact-cold-104/scanout.png": "34277c9f6a340dd0772eeedb757e2f48f8c9c575c3f086c35a0d9454c8c27dfe",
+        "build/sim/screens/upp-ddr3-impact-cold-104/framebuffer.png": "34277c9f6a340dd0772eeedb757e2f48f8c9c575c3f086c35a0d9454c8c27dfe"
+      }
+    }
+  }
+}
