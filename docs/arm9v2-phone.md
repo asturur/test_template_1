@@ -60,6 +60,29 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
+## Separate register-shift data from readiness
+
+In the `6c569de` fit at 104 MHz, seed 44's slow −40 °C path ran from
+D-cache load trust through the operand wait and register-shift select,
+then through the barrel shifter to the A operand register. It missed
+setup by 2.653 ns. Seed 43 also routed the Rs tag class through that
+shift select.
+
+Decode carries the ARM register-shift class into S alongside the other
+shifter controls. S can form the forwarded count before Rs is ready.
+The existing early-operand interlock still blocks issue until the count
+is usable. Thumb shifts and scaled memory addresses retain their
+prepared count and offset paths. Simulation assertions check the
+registered class, visible stall reason, and admission against the
+original equations.
+
+The focused test exercises a warm forwarded Rs, a cold count load, an
+aborted translation followed by replay, and Thumb shifts. Its four modes
+match the parent, alongside all 15 fixed payloads and four native PolyCount
+frames. The native replay still takes 57,514,786 clocks and produces the
+same output. The mixed LCD, MMC, and PCM pin replay matches its previous
+cycles and verified sector readback.
+
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.

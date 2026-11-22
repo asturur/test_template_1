@@ -273,16 +273,55 @@ def expose_block_writeback(phone):
 
 def schedule_ready_register_shift(phone):
     """Use the forwarded ARM shift count when Rs is already ready."""
+    # Carry the direct-shift class with the decode payload. Rs readiness
+    # still guards issue but need not select a count ahead of the barrel.
+    phone = edit(phone, 'wire [18:0] d_shift_pre;', 'wire [19:0] d_shift_pre;')
+    phone = edit(phone, 'input wire [18:0] i_shift_pre;', 'input wire [19:0] i_shift_pre;')
+    phone = edit(phone, 'reg [18:0] shift_pre_ff;', '''reg [19:0] shift_pre_ff;
+    // D2 fields are the register-shift flag, Thumb mode, early Rs use,
+    // and the banked Rs tag. Capture this beside the other shifter controls.
+    wire direct_shift_class = d2[44] && d2[131-:4] == K_DP && !d2[150] &&
+        d2[94] && d2[112+:6] != 15 && d2[112+:6] != 17;''')
+    phone = edit(phone, 'assign o_shift_pre = {shift_pre_ff[18:16],',
+                 'assign o_shift_pre = {shift_pre_ff[19:16],')
+    for old, new in (
+        ('output wire [18:0] o_shift_pre;', 'output wire [19:0] o_shift_pre;'),
+        ('shift_pre_ff <= {op1_class(d2), shift_controls(d2)};',
+         'shift_pre_ff <= {direct_shift_class, op1_class(d2), shift_controls(d2)};'),
+    ):
+        if phone.count(old) != 2:
+            raise ValueError(f'Expected two occurrences of {old!r}')
+        phone = phone.replace(old, new)
+
     start = phone.index('module ngage2_arm9v2_execute (')
     end = phone.index('\nendmodule', start)
     execute = phone[start:end]
     if 'wire direct_reg_shift =' in execute:
         raise ValueError('The ready register shift is already enabled in this netlist')
     execute = edit(execute, '\tassign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;', '''
-    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
-                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
+    wire direct_reg_shift = i_shift_pre[19] && !prepared;
+    wire prepare_shift = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
+    // The early-operand interlock already prevents an unavailable Rs from
+    // issuing. Preserve the separate stall observation for diagnostics.
+    assign o_shift_wait = prepare_shift || (i_valid && direct_reg_shift && s_wait[2]);
 
-    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;''')
+    // synthesis translate_off
+    wire direct_class_ref = i_reg_shift && i_kind == DP && !i_thumb &&
+        i_early[2] && !tag_pc[2] && !tag_psr[2];
+    wire direct_ready_ref = direct_class_ref && !prepared && !s_wait[2];
+    wire shift_wait_ref = i_valid && ((i_reg_shift && !direct_ready_ref) || agu_scaled) && !prepared;
+    always @(posedge i_clk)
+        if (!i_reset && i_valid) begin
+            if (i_shift_pre[19] !== direct_class_ref || o_shift_wait !== shift_wait_ref)
+                $fatal(1, "Registered shift shape or observable stall changed at %h", i_pc);
+            if (o_ready_payload !== (i_admit && space && !i_load_wait && !(|(s_wait & i_early)) && !shift_wait_ref))
+                $fatal(1, "Register shift admission changed at %h", i_pc);
+            if (accept && direct_reg_shift && !direct_ready_ref)
+                $fatal(1, "Accepted shift with an unresolved Rs at %h", i_pc);
+        end
+    // synthesis translate_on''')
+    execute = edit(execute, '&& !(|(s_wait & i_early))) && !o_shift_wait;',
+                   '&& !(|(s_wait & i_early))) && !prepare_shift;')
     # Scaled memory addressing still uses the prepared offset.
     execute = edit(execute, '\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)', '''
         if (direct_reg_shift) begin
