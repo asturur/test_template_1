@@ -245,6 +245,7 @@ module emu (
     wire       cpu_bus_lock;
 
     wire sdram_scrub_done, sdram_ack, cpu_sdram_accept;
+    wire mem_read_ack, sdram_read_ack;
     wire [31:0] sdram_dout;
     wire mem_req, mem_we, mem_ack, mem_lock;
     wire [7:0] dma_error_pending;
@@ -353,6 +354,7 @@ module emu (
         .cpu_block_data (cpu_block_data),
         .cpu_be         (cpu_sdram_be),
         .cpu_ack        (sdram_ack),
+        .cpu_read_ack   (sdram_read_ack),
         .cpu_accept     (cpu_sdram_accept),
         .cpu_rdata      (sdram_dout),
         .dma_req        (shared_dma_req && sdram_owner_ready && !hold_sdram_scalar),
@@ -372,6 +374,7 @@ module emu (
         .mem_block_data (mem_block_data),
         .mem_be         (mem_be),
         .mem_ack        (mem_ack),
+        .mem_read_ack   (mem_read_ack),
         .mem_rdata      (mem_rdata)
     );
     wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
@@ -436,6 +439,7 @@ module emu (
         .din          (mem_wdata),
         .be           (mem_be),
         .ack          (mem_ack),
+        .read_ack     (mem_read_ack),
         .dout         (mem_rdata),
         .line_req     (shared_line_req),
         .line_short   (shared_line_short),
@@ -1291,6 +1295,7 @@ module emu (
         .sdram_we         (cpu_sdram_we),
         .sdram_req        (cpu_sdram_req),
         .sdram_ack        (sdram_ack),
+        .sdram_read_ack   (sdram_read_ack),
         .sdram_accept     (cpu_sdram_accept),
 
         // DDR3 (flash reads)

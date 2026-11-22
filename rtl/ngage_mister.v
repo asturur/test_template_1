@@ -125,6 +125,7 @@ module ngage_mister #(
     output wire         sdram_write_block,
     output wire [127:0] sdram_block_data,
     input  wire         sdram_ack,
+    input  wire         sdram_read_ack,
     input  wire         sdram_accept,
 
     // DDR3 port (ROM + C: drive — mostly read, HPS-loaded)
@@ -265,6 +266,7 @@ module ngage_mister #(
         .save_state           (save_state),
         .ram_accept           (DIRECT_SDRAM && sdram_accept),
         .ram_ack              (sdram_ack),
+        .ram_read_ack         (sdram_read_ack),
         .ram_rdata            (sdram_dout),
         .ram_req              (fast_ram_req),
         .ram_we               (fast_ram_we),

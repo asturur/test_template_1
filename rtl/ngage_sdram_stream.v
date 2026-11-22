@@ -21,6 +21,7 @@ module ngage_sdram_stream #(
     input  wire [ 31:0] din,
     input  wire [  3:0] be,
     output wire         ack,
+    output wire         read_ack,
     output wire [ 31:0] dout,
     input  wire         line_req,
     input  wire         line_short,
@@ -108,7 +109,10 @@ module ngage_sdram_stream #(
     assign dout = read_data;
     wire word_done = state == READ_WORD && mem_valid;
     wire locked_done = state == WRITE_LOCKED && !mem_busy;
-    assign ack = owner_ready && (post || read_reply || locked_done);
+    assign ack      = owner_ready && (post || read_reply || locked_done);
+    // The CPU route pairs this clocked pulse with its retained owner and
+    // cancellation. Posted writes and pin timing do not feed the pulse.
+    assign read_ack = read_reply;
 
     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
     assign line_data  = high_word ? high_data : mem_rdata[15:0];

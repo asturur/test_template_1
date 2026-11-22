@@ -64,6 +64,7 @@ module ngage_upp #(
     // Dedicated transaction-level SDRAM interface, not physical pin timing.
     input  wire         ram_accept,
     input  wire         ram_ack,
+    input  wire         ram_read_ack,
     input  wire [ 31:0] ram_rdata,
     output wire         ram_req,
     output wire         ram_we,
@@ -190,7 +191,7 @@ module ngage_upp #(
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
-            wire master_ack, master_error;
+            wire master_ack, master_read_ack, master_error;
             wire [31:0] master_address, master_data, master_read_data;
             wire [3:0] master_sel;
             wire       master_write_block;
@@ -233,6 +234,7 @@ module ngage_upp #(
                 .wb_cycle_type    (),
                 .wb_burst_type    (),
                 .wb_ack           (master_ack),
+                .wb_read_ack      (master_read_ack),
                 .wb_read_data     (master_read_data),
                 .wb_error         (master_error)
             );
@@ -361,35 +363,37 @@ module ngage_upp #(
 `endif
                 .DIRECT_SDRAM         (DIRECT_SDRAM)
             ) memory_route (
-                .clk           (clk),
-                .reset         (rst),
-                .master_cyc    (master_cyc),
-                .master_stb    (master_stb),
-                .master_we     (master_we),
-                .master_code   (master_code),
-                .master_address(master_address),
-                .master_data   (master_data),
-                .master_sel    (master_sel),
-                .master_ack    (master_ack),
-                .master_error  (master_error),
-                .master_rdata  (master_read_data),
-                .slow_cyc      (),
-                .slow_stb      (slow_master_stb),
-                .slow_idle     (slow_idle),
-                .slow_ack      (slow_ack),
-                .slow_error    (slow_error),
-                .slow_rdata    (slow_read_data),
-                .ram_req       (ram_req),
-                .ram_we        (ram_we),
-                .ram_code      (ram_code),
-                .ram_address   (ram_address),
-                .ram_wdata     (ram_wdata),
-                .ram_be        (ram_be),
-                .ram_accept    (ram_accept),
-                .ram_ack       (ram_ack),
-                .ram_rdata     (ram_rdata),
-                .ram_pending   (ram_pending),
-                .ram_response  (ram_response)
+                .clk            (clk),
+                .reset          (rst),
+                .master_cyc     (master_cyc),
+                .master_stb     (master_stb),
+                .master_we      (master_we),
+                .master_code    (master_code),
+                .master_address (master_address),
+                .master_data    (master_data),
+                .master_sel     (master_sel),
+                .master_ack     (master_ack),
+                .master_read_ack(master_read_ack),
+                .master_error   (master_error),
+                .master_rdata   (master_read_data),
+                .slow_cyc       (),
+                .slow_stb       (slow_master_stb),
+                .slow_idle      (slow_idle),
+                .slow_ack       (slow_ack),
+                .slow_error     (slow_error),
+                .slow_rdata     (slow_read_data),
+                .ram_req        (ram_req),
+                .ram_we         (ram_we),
+                .ram_code       (ram_code),
+                .ram_address    (ram_address),
+                .ram_wdata      (ram_wdata),
+                .ram_be         (ram_be),
+                .ram_accept     (ram_accept),
+                .ram_ack        (ram_ack),
+                .ram_read_ack   (ram_read_ack),
+                .ram_rdata      (ram_rdata),
+                .ram_pending    (ram_pending),
+                .ram_response   (ram_response)
             );
             // A transaction-level UPP boundary, not the physical phone bus.
             // LOCK bypasses the beat pipeline and remains asserted through
@@ -828,6 +832,7 @@ module ngage_cpu_memory_route #(
     input  wire [31:0] master_data,
     input  wire [ 3:0] master_sel,
     output wire        master_ack,
+    output wire        master_read_ack,
     output wire        master_error,
     output wire [31:0] master_rdata,
     output wire        slow_cyc,
@@ -844,6 +849,7 @@ module ngage_cpu_memory_route #(
     output wire [ 3:0] ram_be,
     input  wire        ram_accept,
     input  wire        ram_ack,
+    input  wire        ram_read_ack,
     input  wire [31:0] ram_rdata,
     output reg         ram_pending = 0,
     output wire        ram_response
@@ -865,6 +871,9 @@ module ngage_cpu_memory_route #(
     // A cancellation sampled on an earlier edge still suppresses completion.
     assign master_ack = (CPU_OWNS_SCALAR_REPLY ? ram_completion : ram_response) ||
                         (!reset && !ram_pending && slow_ack);
+    // Only the SDRAM read reply FF can take the CPU's immediate path.
+    // The refill adapter gates its own CYC and reset at the destination.
+    assign master_read_ack = ram_pending && !cancelled && ram_read_ack;
     assign master_error = !reset && !ram_pending && slow_error;
     // ram_ack/data already come from the registered SDRAM response and owner.
     // Keep the cache's completion register; do not forward controller pins.

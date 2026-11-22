@@ -63,6 +63,20 @@ def generate(out, bench, wide=False, production=False):
             ".grant_read(1'b0),.grant_addr(25'd0)",
             ".grant_read((cpu_ram_accept && !cswe) || (shared_dma_accept && !shared_dma_write)),"
             ".grant_addr(cpu_ram_accept ? csa : shared_dma_addr)")
+        ports = swap(ports, ".ack(sack),.dout(sdata)", ".ack(sack),.read_ack(mem_read_ack),.dout(sdata)")
+        bench = swap(bench, ' wire cpu_ram_accept;',
+                     ' wire cpu_ram_accept, mem_read_ack, cpu_ram_read_ack;')
+        bench = swap(bench, '.sdram_ack(csack),', '.sdram_ack(csack),.sdram_read_ack(cpu_ram_read_ack),')
+        bench = swap(bench, '.cpu_ack(csack),', '.cpu_ack(csack),.cpu_read_ack(cpu_ram_read_ack),')
+        bench = swap(bench, '.mem_ack(sack),', '.mem_ack(sack),.mem_read_ack(mem_read_ack),')
+        ports += """
+`ifdef NGAGE_ARM9V2
+ always @(posedge clk)
+  if (!dma_reset && DIRECT_SDRAM && csack && !cswe && dut.fast_ram_response &&
+      !dut.board.upp.cpu_inside.cpu.refill.g_completion.read_ack)
+   $fatal(1, "A physical CPU read missed the owned fast completion path");
+`endif
+"""
     else:
         controller = subprocess.check_output(['git', '-C', DONOR, 'show', f'{REVISION}:rtl/mem/sdram.sv'])
         if wide:
