@@ -1,3 +1,11 @@
+## 2026-11-22 — ngage-v5 integrated 104 MHz timing experiment
+
+Retained the LCD packet reservation and restored the round-three CPU.
+The best full-core result improved from −2.689 to −2.543 ns on seed 43.
+Two of three seeds improved. All three missed 104 MHz setup. The isolated
+CPU interlock experiment regressed timing on every seed. [Matched fits
+and simulation results](v5-timing-isolation.md#full-core-decision-at-104-mhz)
+
 ## 2026-11-20 — UEM alarm acknowledgement works in v5 RTL
 
 Removed the constant alarm bit from UEM status `0x35`. The firmware's
