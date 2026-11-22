@@ -1,3 +1,11 @@
+## 2026-11-22 — v5 Wishbone trial and upstream timing comparison
+
+Retained the LCD baseline on ngage-v5. The Wishbone payload trial matched
+all 15 workloads and four PolyCount frames, but median setup at 104 MHz
+worsened from −2.632 to −2.884 ns. Trial seed 43 is archived separately.
+Jake’s release reached −1.321 ns worst corner over 16 seeds. [Fit results
+and upstream comparison](v5-timing-isolation.md#comparing-jakes-master-with-v5)
+
 ## 2026-11-22 — ngage-v5 integrated 104 MHz timing experiment
 
 Retained the LCD packet reservation and restored the round-three CPU.

@@ -56,3 +56,45 @@ Keep the LCD reservation with the round-three CPU. Worst setup slack across all 
 Seed 43 at `5f8fae0` is the best of these full-core fits. Quartus reports 82.25 MHz for its core clock at the limiting slow 100 °C corner. The seed spread and different endpoints make this a modest timing gain. A future experiment could register the CPU-facing memory response or request at the Wishbone merger. First measure the resulting cycles on cache hits, refills and mixed DMA, since the seed 43 hot path stays within the CPU.
 
 The integrated simulation also exercised the LCD's native 16-byte reads with scalar CPU traffic and a modeled SDRAM. Both RTL versions completed 4,576 native requests, matched all 18,304 checked words, observed 726 LCD/MMC overlaps and served 128 PCM reads without underrun. MMC write/readback passed and deliberate corruption was detected. The comparison is in `build/sim/v5-104-lcd-integrated-comparison.json`. These are simulation results. The 104 MHz bitstream has no hardware validation in this experiment.
+
+### Comparing Jake's master with v5
+
+Upstream release `9210fa2` reached −1.148 ns at slow 100 °C and −1.321 ns at slow −40 °C. Its CI accepted −2.0 ns. The subsequent master commits changed a board tool and then CI and documentation. At master `09837fe`, the published release is still the relevant RTL measurement. [Release fit](https://github.com/jakesjews/NGage_MiSTer/actions/runs/44777214314) · [Strict CI change](https://github.com/jakesjews/NGage_MiSTer/commit/09837fe597)
+
+| At physical 104 MHz | Jake's release | v5 with LCD reservation |
+| --- | ---: | ---: |
+| Best worst-corner setup | −1.321 ns | −2.543 ns |
+| Median worst-corner setup | −1.572 ns (16 seeds) | −2.632 ns (3 seeds) |
+| Core-clock total negative setup slack in the selected STA summary | −179.142 ns | −7,902.842 ns |
+| ALMs in the selected fit | 33,938 (81%) | 37,452 (89%) |
+| M10Ks in the selected fit | 490 (89%) | 438 (79%) |
+| D-cache / I-cache | 8 / 16 KiB | 16 / 16 KiB |
+
+The last upstream release changed the seed with the same RTL. Its predecessor at seed 5 reached −1.478 ns worst corner. Across the November 20 sweep the worst corners spanned −1.321 to −1.988 ns. Jake's separate four-seed trial with a 16 KiB D-cache on an earlier netlist reported −1.923, −2.335, −1.644 and −1.855 ns. Cache size, seed sets and board integration differ. Utilization alone cannot assign a timing penalty to any one difference. [Upstream sweep](https://github.com/jakesjews/NGage_MiSTer/commit/9210fa2620) · [16 KiB D-cache trial](https://github.com/jakesjews/NGage_MiSTer/commit/e810dddf6f)
+
+Quartus attributes about 15,094 ALMs to the v5 CPU including caches and 14,157 to Jake’s, a difference of 937 out of the 3,514 total. The execution core itself is 8,629 versus 8,719. Most of the whole-chip difference therefore sits outside the CPU/cache hierarchy. The per-entity ALM numbers are fitter estimates with shared logic apportioned across hierarchy.
+
+Several upstream changes are present in the fitted v5 design, including placement effort 4, generation-based TLB validity, victim-line selection and store merging after registers, and compact held-write flags and indices in the register file. The upstream placement change gained 0.263 ns on the eight-seed mean. Upstream's later SDRAM read-ahead raised measured board PolyCount from 28.41 to 29.67 Ktriangles/s by serving adjacent fills sooner. [Placement measurements](https://github.com/jakesjews/NGage_MiSTer/commit/b18f27a9e3) · [Timing RTL](https://github.com/jakesjews/NGage_MiSTer/commit/a182204f87) · [SDRAM read-ahead](https://github.com/jakesjews/NGage_MiSTer/commit/5473d464b4)
+
+Jake's merger also registers each source's write data and selects between them by registered ownership. Eighteen of his 30 detailed hot paths go from the D-cache to that merger. His worst hot path has seven logic levels and 6.622 ns of interconnect. In v5 seed 44, a TLB-to-merger address path has ten levels and 7.555 ns of routing. In seed 43, the internal decode-to-execute path has nine levels and 9.371 ns of routing. This supports testing a local change at the merger while tracking the CPU forwarding paths across all three seeds. Upstream's diagnostic removal of cache-response timing paths left several other failing CPU stages. [Upstream diagnostic](https://github.com/jakesjews/NGage_MiSTer/commit/f560481594)
+
+Upstream also used a two-cycle constraint from registered peripheral payloads to specific interrupt-enable and audio registers. Its peripheral write strobe cannot fire on the first clock of that transaction. This removed 103 reported failing endpoints on a historical seed. It does not apply to the same-cycle CPU or Wishbone paths above. Any equivalent exception on v5 would need the same timing guarantee in the v5 peripheral RTL. [Upstream peripheral timing rationale](https://github.com/jakesjews/NGage_MiSTer/commit/282a9e949d)
+
+The memory target provides another architectural difference. Jake's `upp_bus` registers ACK, error and read data **in the target**. Its two-master arbiter routes the registered reply by its saved grant. The target anticipates incrementing bursts and begins fetching the next beat while answering the current one. In v5, the scalar locked-write response depends on the SDRAM stream state and memory busy in the same cycle, which put a board-to-CPU path first on seed 42. Our earlier experiment `d4edf9b` added a completion stage, increased mixed replay clocks by 7.27%, and worsened median slack. A closer analogue to Jake's design would generate completion at the memory target on the existing response edge and preserve the overlap. [Upstream target](https://github.com/jakesjews/NGage_MiSTer/blob/9210fa2620/rtl/upp/upp_bus.sv) · [Upstream arbiter](https://github.com/jakesjews/NGage_MiSTer/blob/9210fa2620/rtl/upp/wb_arb2.sv)
+
+### Wishbone address and write-data experiment
+
+Candidate `9d2e76c` captures the instruction, D-cache, tag-maintenance, TLB and posted-store payloads on the existing request edge. A registered owner selects the output address and data. The retained build uses the LCD reservation and selects the final address before that edge. The three production trials used a physical 104 MHz clock, both 16 KiB caches, DDR debugging off, and the original bus, raster and guest timer settings.
+
+| Seed | Retained setup | Trial setup | Difference | ALMs, retained → trial | Limiting trial path at worst corner |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 42 | −3.130 ns | [−2.884 ns](https://github.com/asturur/test_template_1/actions/runs/45057263937) | +0.246 ns | 37,517 → 37,128 | CPU flush to Wishbone cycle |
+| 43 | −2.543 ns | [−2.496 ns](https://github.com/asturur/test_template_1/actions/runs/45057266581) | +0.047 ns | 37,452 → 37,186 | Board reset drain to LCD stream ownership |
+| 44 | −2.632 ns | [−2.985 ns](https://github.com/asturur/test_template_1/actions/runs/45057269463) | −0.353 ns | 37,493 → 37,213 | Multiply result to the CPU memory-stage register |
+| Median | −2.632 ns | −2.884 ns | −0.252 ns | | |
+
+The full-core median regressed despite two improving seeds and lower ALM use on every seed. Seed 44's core-clock total negative setup slack at the hot corner grew from −6,161 to −10,257 ns. All three remained at 438 M10Ks and passed hold, recovery, removal and minimum pulse width. The new selection logic exposed downstream paths. Seed 42's registered source address to boot-register decode ranked 10th at 100 °C (−2.527 ns). Seed 43's registered payload owner to bridge read data ranked 27th there (−2.128 ns). The LCD accept/response logic was on the worst path on seed 43 at both slow corners and on seed 44 at the hot corner. The best single trial gained just 0.047 ns. Retain the original LCD baseline on the branch and preserve the new seed 43 RBF separately as a measured alternative. Neither image meets 104 MHz setup.
+
+All 15 fixed workloads and their request traces matched the baseline. The four native PolyCount frames matched output and elapsed time (57,514,786 cycles). Four CPU contract modes, 256 D-cache arbitration combinations and the mixed SDRAM-pin replay also passed. The mixed replay took 1,189,662 clocks on both versions. The comparison is saved in `build/sim/v5-104-wb-request-banks-comparison.json`. The two seed 43 bitstreams are archived under `build/fit/v5-104mhz-5f8fae0-seed43/` and `build/fit/v5-104mhz-9d2e76c-seed43/`. The trial was verified in simulation and static timing only.
+
+The next experiment worth testing on the retained branch is a grant and response owned by the SDRAM target. Start with scalar locked writes and the competing LCD request. Establish when the target knows completion and ownership, then test whether it can generate the existing reply edge locally. Measure scalar latency, burst spacing, locking and mixed DMA before fitting. A further cycle on every scalar reply was already measured and rejected.
