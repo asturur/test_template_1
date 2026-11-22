@@ -861,7 +861,15 @@ module ngage2_arm9v2_core (
 	assign mw_write[2+:2] = w[27-:2] | {1'b0, w[527]};
 	(* keep, maxfan = 32 *) reg [2:0] complete_class;
 	(* keep, maxfan = 32 *) wire done_forward = !w[541] || complete_class[2];
-	wire quick_forward = (((memory_state == 4'd1) && done_forward) && !(m[541] && m[535])) && !(skid[541] && skid[535]);
+    wire held_can_advance = !(m[541] && m[535]) && !(skid[541] && skid[535]);
+    wire quick_forward = memory_state == 4'd1 && done_forward && held_can_advance;
+    wire forward_retire_w = done_forward && (
+        (memory_state == 4'd1 && !held_can_advance) || memory_state == 4'd10 ||
+        (memory_state == 4'd6 && !w_locked && w[8-:4] != SWP));
+    wire advance_uses_skid = memory_state == 4'd3 || memory_state == 4'd1;
+    wire [1:0] advance_m_write = advance_uses_skid ?
+        (skid[27-:2] | {1'b0, skid[527]}) : (input_record[27-:2] | {1'b0, input_record[527]});
+    wire [3:0] advance_write = {mw_write[0+:2], advance_m_write};
 	wire fast_pc_hit = (w_pc_load && i_data_short_hit) && !w_waited;
 	always @(*) begin : sv2v_autoblock_1
 		reg signed [31:0] consumer;
@@ -909,7 +917,7 @@ module ngage2_arm9v2_core (
 			forward_tag[12+:12] = m[103-:12];
 			forward_write[2+:2] = m[27-:2] | {1'b0, m[527]};
 		end
-		if (((((memory_state == 4'd1) && done_forward) && !quick_forward) || ((memory_state == 4'd10) && done_forward)) || ((((memory_state == 4'd6) && !w_locked) && (w[8-:4] != SWP)) && done_forward)) begin
+		if (forward_retire_w) begin
 			forward_write[2+:2] = 0;
 			forward_load[1] = 0;
 		end
@@ -1609,7 +1617,9 @@ module ngage2_arm9v2_core (
 		.i_next_advance(forward_advance),
 		.i_advance_a_tag(input_record[103-:12]),
 		.i_advance_skid_tag(skid[103-:12]),
-		.i_advance_skid((memory_state == 4'd3) || (memory_state == 4'd1)),
+        .i_advance_skid(advance_uses_skid),
+        .i_advance_write(advance_write),
+        .i_retire_w(forward_retire_w),
 		.i_next_write(forward_write),
 		.i_next_write_hold(forward_write_hold),
 		.i_early(d_early),
@@ -3122,6 +3132,8 @@ module ngage2_arm9v2_execute (
 	i_advance_skid,
 	i_next_write,
 	i_next_write_hold,
+	i_advance_write,
+	i_retire_w,
 	i_value,
 	i_dest,
 	i_offset,
@@ -3267,7 +3279,9 @@ module ngage2_arm9v2_execute (
 	input wire [11:0] i_advance_skid_tag;
 	input wire i_advance_skid;
 	input wire [3:0] i_next_write;
-	input wire [3:0] i_next_write_hold;
+    input wire [3:0] i_next_write_hold;
+    input wire [3:0] i_advance_write;
+    input wire i_retire_w;
 	input wire [127:0] i_value;
 	input wire [11:0] i_dest;
 	input wire signed [7:0] i_offset;
@@ -3979,26 +3993,58 @@ module ngage2_arm9v2_execute (
 					end
 			end
 	end
-	reg [15:0] late_hold;
-	reg [15:0] late_accept;
-	always @(*) begin : sv2v_autoblock_15
-		reg signed [31:0] src;
-		if (_sv2v_0)
-			;
-		for (src = 0; src < 4; src = src + 1)
-			begin : sv2v_autoblock_16
-				reg signed [31:0] prod;
-				for (prod = 0; prod < 2; prod = prod + 1)
-					begin : sv2v_autoblock_17
-						reg signed [31:0] lane;
-						for (lane = 0; lane < 2; lane = lane + 1)
-							begin
-								late_hold[(((src * 2) + prod) * 2) + lane] = (a[101 + src] && (LATE_HOLD_STATIC ? i_next_write_hold[(prod * 2) + lane] : i_next_write[(prod * 2) + lane])) && a_candidate_match[(((((i_next_advance * 4) + src) * 2) + prod) * 2) + lane];
-								late_accept[(((src * 2) + prod) * 2) + lane] = ((((i_used[src] && !i_early[src]) && !tag_pc[src]) && !tag_psr[src]) && i_next_write[(prod * 2) + lane]) && s_candidate_match[(((((i_next_advance * 4) + src) * 2) + prod) * 2) + lane];
-							end
-					end
-			end
-	end
+    // Age, writer masks and lane priority settle for each possible M/W
+    // layout while W completion is still in flight. The layout decision
+    // selects finished grants, alongside the full matches for load waits.
+    wire [15:0] late_hold, late_accept;
+    wire [23:0] take_hold, take_accept;
+    wire stay_mw = !i_next_advance && !i_retire_w;
+    wire [3:0] advance_hold = LATE_HOLD_STATIC && !i_advance_skid ?
+        {i_advance_write[3:2], 2'b00} : i_advance_write;
+    genvar late_src;
+    generate for (late_src = 0; late_src < 4; late_src = late_src + 1) begin : g_late_forward
+        localparam MATCH = 4 * late_src;
+        localparam TAKE = 6 * late_src;
+        wire s_used = i_used[late_src] && !i_early[late_src] && !tag_pc[late_src] && !tag_psr[late_src];
+        wire a_used = a[101 + late_src];
+        wire s_block = late_src == 0 && i_kind == BLOCK && !i_first;
+        wire a_block = late_src == 0 && a[327-:4] == BLOCK && !a[317];
+        wire [3:0] s_stay = s_candidate_match[MATCH+:4] & i_mw_valid & {4{s_used}};
+        wire [3:0] a_stay = a_candidate_match[MATCH+:4] & i_mw_valid & {4{a_used}};
+        wire [3:0] s_advance = s_candidate_match[16+MATCH+:4] & i_advance_write & {4{s_used}};
+        wire [3:0] a_advance = a_candidate_match[16+MATCH+:4] & advance_hold & {4{a_used}};
+        wire [3:0] s_retire = {2'b00, s_stay[1:0]};
+        wire [3:0] a_retire = {2'b00, a_stay[1:0]};
+        (* keep *) wire [5:0] s_take_stay = take_of(s_stay, s_block);
+        (* keep *) wire [5:0] a_take_stay = take_of(a_stay, a_block);
+        (* keep *) wire [5:0] s_take_advance = take_of(s_advance, s_block);
+        (* keep *) wire [5:0] a_take_advance = take_of(a_advance, a_block);
+        (* keep *) wire [5:0] s_take_retire = take_of(s_retire, s_block);
+        (* keep *) wire [5:0] a_take_retire = take_of(a_retire, a_block);
+        assign late_accept[MATCH+:4] = (s_stay & {4{stay_mw}}) |
+            (s_advance & {4{i_next_advance}}) | (s_retire & {4{i_retire_w}});
+        assign late_hold[MATCH+:4] = (a_stay & {4{stay_mw}}) |
+            (a_advance & {4{i_next_advance}}) | (a_retire & {4{i_retire_w}});
+        assign take_accept[TAKE+:6] = (s_take_stay & {6{stay_mw}}) |
+            (s_take_advance & {6{i_next_advance}}) | (s_take_retire & {6{i_retire_w}});
+        assign take_hold[TAKE+:6] = (a_take_stay & {6{stay_mw}}) |
+            (a_take_advance & {6{i_next_advance}}) | (a_take_retire & {6{i_retire_w}});
+
+`ifndef SYNTHESIS
+        wire [3:0] s_ref = {4{s_used}} & i_next_write &
+            s_candidate_match[16*i_next_advance+MATCH+:4];
+        wire [3:0] a_ref = {4{a_used}} & (LATE_HOLD_STATIC ? i_next_write_hold : i_next_write) &
+            a_candidate_match[16*i_next_advance+MATCH+:4];
+        always @(posedge i_clk) if (!i_reset && !i_flush) begin
+            if (i_next_advance && i_retire_w)
+                $fatal(1, "Two operand producer layouts selected simultaneously");
+            if (accept && (late_accept[MATCH+:4] !== s_ref || take_accept[TAKE+:6] !== take_of(s_ref, s_block)))
+                $fatal(1, "A-entry operand forwarding differs from selected producer masks");
+            if (a_valid && !accept && (late_hold[MATCH+:4] !== a_ref || take_hold[TAKE+:6] !== take_of(a_ref, a_block)))
+                $fatal(1, "Held A operand forwarding differs from selected producer masks");
+        end
+`endif
+    end endgenerate
 	always @(*) begin : sv2v_autoblock_18
 		reg signed [31:0] src;
 		if (_sv2v_0)
@@ -4140,7 +4186,7 @@ module ngage2_arm9v2_execute (
 				begin : sv2v_autoblock_30
 					reg signed [31:0] src;
 					for (src = 0; src < 4; src = src + 1)
-						a[0 + (src * 6)+:6] <= take_of(late_hold[2 * (src * 2)+:4], ((src == 0) && (a[327-:4] == BLOCK)) && !a[317]);
+						a[0 + (src * 6)+:6] <= take_hold[src * 6+:6];
 				end
 			end
 			if (product_phase) begin
@@ -4237,7 +4283,7 @@ module ngage2_arm9v2_execute (
 											a[129 + ((((src * 2) + prod) * 2) + lane)] <= late_accept[(((src * 2) + prod) * 2) + lane];
 									end
 							end
-							a[0 + (src * 6)+:6] <= take_of(late_accept[2 * (src * 2)+:4], ((src == 0) && (i_kind == BLOCK)) && !i_first);
+							a[0 + (src * 6)+:6] <= take_accept[src * 6+:6];
 						end
 				end
 				if (i_kind == MEM) begin

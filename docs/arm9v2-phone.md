@@ -36,6 +36,30 @@ reconstructs the wrapper-facing netlist byte for byte from the pinned artifact.
 Omit `--stock` to regenerate from the included SystemVerilog using sv2v 0.0.13.
 The imported source and generated source use the donor's formatting.
 
+## Resolve A forwarding before writeback completion
+
+At 104 MHz on `c90ea0f`, seed 42's slow 100 °C path ran from W's
+alignment flag through D-cache acknowledgement, writeback completion,
+the next producer masks, and A's operand priority encoder to its grant
+register. The path missed setup by 2.856 ns. Seed 43 had a related path
+from D-cache state through completion and the held-A match mask, with
+2.734 ns of negative slack.
+
+Execute now prepares A-entry and held-A matches for three outcomes in
+parallel. M and W can stay in place, the next records can promote into
+both slots, or W can retire while M stays. Each candidate resolves writer
+masks and lane priority independently of writeback completion. Completion
+selects the finished result. A retains the same newest-writer priority,
+block base, and load-wait behavior on the existing pipeline edge.
+Simulation assertions compare both the accepted and held A matches and
+grants to the original equations on every relevant edge.
+
+The four CPU contract groups and the directed alignment-abort replay
+match the parent at both scalar wait settings, with and without line
+transport. At physical 104 MHz the 15 fixed payloads and four native
+PolyCount frames match the parent cycle for cycle. PolyCount completes
+in 57,514,786 clocks with the same rendered output.
+
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
