@@ -455,22 +455,20 @@ def xor_btb(netlist):
 
 
 def load_waw_overlay(source):
-    """Reserve S for an independent load to an older writer's register."""
+    """Admit a younger scalar load while its older destination is in M."""
     source = edit(source, '\twire unused = &{1\'b0, LOAD_FORMATTED,', '''    wire d_advanced_load_writer;
     wire [5:0] s_writer_tag = d_dest[0+:6];
     wire m_simple_load = m[541] && m[527] && m[8:5] == MEM && !m[27];
-    wire w_simple_load = w[541] && w[527] && w[8:5] == MEM && !w[27];
     wire m_same_writer = m[541] && m[527] && m[92+:6] == s_writer_tag;
     wire w_same_writer = w[541] && w[527] && w[92+:6] == s_writer_tag;
     wire skid_same_writer = skid[541] && skid[527] && skid[92+:6] == s_writer_tag;
-    // S can hold the younger load while the older owner moves through M/W.
-    // Release it from the registered owners. On a miss, the fill lock keeps
-    // the interlock active after W leaves. Abort/IRQ still flush the packet.
+    // S can own the younger packet early. A cannot execute it while an
+    // older result can still arrive, including fill/miss and abort paths.
     wire s_held_load_writer = d_valid && d_advanced_load_writer &&
-        (m_same_writer || skid_same_writer || locked[s_writer_tag] || w_same_writer);
+        (m_same_writer || skid_same_writer || locked[s_writer_tag] ||
+         (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
 \twire unused = &{1'b0, LOAD_FORMATTED,''')
     source = edit(source, '\t\t.i_locked(locked),', '''        .i_m_simple_load(m_simple_load),
-        .i_w_simple_load(w_simple_load),
         .o_advanced_load_writer(d_advanced_load_writer),
 \t\t.i_locked(locked),''')
     source = edit(source, '.i_load_wait(d_load_wait),', '.i_load_wait(d_load_wait || s_held_load_writer),')
@@ -478,60 +476,40 @@ def load_waw_overlay(source):
         start = source.index(f'module ngage2_arm9v2_{name} (')
         end = source.index('\nendmodule', start)
         module = source[start:end]
-        module = edit(module, '\ti_locked,', '\ti_locked,\n    i_m_simple_load,\n    i_w_simple_load,\n    o_advanced_load_writer,')
+        module = edit(module, '\ti_locked,', '\ti_locked,\n    i_m_simple_load,\n    o_advanced_load_writer,')
         port_type = 'reg' if name == 'decode' else 'wire'
         module = edit(module, '\tinput wire [39:0] i_locked;', f'''\tinput wire [39:0] i_locked;
     input wire i_m_simple_load;
-    input wire i_w_simple_load;
     output {port_type} o_advanced_load_writer;''')
         if name == 'front_decode':
             module = edit(module, '\t\t.i_locked(i_locked),', '''        .i_m_simple_load(i_m_simple_load),
-        .i_w_simple_load(i_w_simple_load),
         .o_advanced_load_writer(o_advanced_load_writer),
 \t\t.i_locked(i_locked),''')
         else:
-            module = advance_repeated_load_writer(module)
+            module = advance_while_m(module)
         source = source[:start] + module + source[end:]
     return source
 
 
-def advance_repeated_load_writer(decode):
-    # Permit early S admission for eligible M or W ownership using only
-    # registered tags. A retains the actual retirement and fill-lock fence.
+def advance_while_m(decode):
     decode = edit(decode, '\treg [5:0] producer_hazard;', '''    wire [5:0] m_load_tag = i_load_tag[18+:6];
-    wire [5:0] w_load_tag = i_load_tag[24+:6];
-    reg reads_m_load, reads_w_load;
-    always @(*) begin : check_older_load_reads
+    reg reads_m_load;
+    always @(*) begin : check_m_load_read
         integer src;
         reads_m_load = 0;
-        reads_w_load = 0;
         for (src = 0; src < 4; src = src + 1)
-            if (d2[96+src]) begin
-                if (d2[100+6*src+:6] == m_load_tag) reads_m_load = 1;
-                if (d2[100+6*src+:6] == w_load_tag) reads_w_load = 1;
-            end
+            if (d2[96+src] && d2[100+6*src+:6] == m_load_tag) reads_m_load = 1;
     end
-    wire scalar_load_writer = d2[131:128] == K_MEM && d2[329] && !d2[149] &&
-        d2[78] && d2[80+:6] != 15;
-    wire single_load_writer = scalar_load_writer && !d2[79];
-    wire advance_load_writer_m = single_load_writer && i_m_simple_load && i_load_valid[3] &&
-        !reads_m_load && d2[80+:6] == m_load_tag;
-    wire advance_load_writer_w = single_load_writer && i_w_simple_load && i_load_valid[4] &&
-        !reads_w_load && d2[80+:6] == w_load_tag;
+    wire advance_load_writer = i_m_simple_load && i_load_valid[3] && !reads_m_load &&
+        d2[131:128] == K_MEM && d2[329] && !d2[149] && d2[78] && !d2[79] &&
+        d2[80+:6] == m_load_tag && m_load_tag != 15;
     always @(posedge i_clk) begin
         if (i_reset || i_flush) o_advanced_load_writer <= 0;
-        else if (step) o_advanced_load_writer <= advance_load_writer_m || advance_load_writer_w;
+        else if (step) o_advanced_load_writer <= advance_load_writer;
     end
-    wire younger_w_load_writer = scalar_load_writer && d2[80+:6] == w_load_tag;
 \treg [5:0] producer_hazard;''')
-    # A same-destination load outside early S admission still waits for W.
-    # Keep the live write-only bypass for the other instruction classes.
-    decode = edit(decode, '!((pending == 4) && i_w_load_hit)',
-                  '!((pending == 4) && !younger_w_load_writer && i_w_load_hit)')
     return edit(decode, '\t\tload_hazard = (|producer_hazard',
-                '\t\tif (advance_load_writer_m) producer_hazard[3] = 0;\n'
-                '\t\tif (advance_load_writer_w) producer_hazard[4] = 0;\n'
-                '\t\tload_hazard = (|producer_hazard')
+                '\t\tif (advance_load_writer) producer_hazard[3] = 0;\n\t\tload_hazard = (|producer_hazard')
 
 
 def predicate_block(source):
