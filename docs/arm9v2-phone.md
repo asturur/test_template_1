@@ -60,6 +60,26 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
+## Release repeated load writers from registered ownership
+
+A younger scalar load that writes the older load's destination waits
+for the registered W owner to leave before entering execute. The M,
+skid and background fill owners still hold the younger load as
+needed. A load with no read dependency can reserve the S seat while
+the older scalar load is in M or W. Other instruction classes retain
+their existing forwarding and write-only bypasses.
+
+The 32-load resident stress sequence takes 128 clocks versus 104 at
+round three in all four burst and wait modes. Keeping the younger load
+in decode until W left took 135 clocks. Directed tests cover data abort,
+hit under miss and an IRQ while the younger writer is held. The
+standard and ordinary load-use contracts pass.
+
+At physical 104 MHz, 12 of 15 payload medians match. Triangle edges
+uses 0.21% more clocks, JPEG uses 0.93% more and Asphalt's table lookup
+uses 1.19% more. Four native PolyCount frames retain the same rendered
+output and take 57,572,942 clocks, up 0.10%. CPU-only timing is pending.
+
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
