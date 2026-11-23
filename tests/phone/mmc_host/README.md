@@ -93,3 +93,17 @@ idle before reading all four. Two added probes verify R2 CRC errors and missing
 responses release busy and leave the accepted CMD16 length intact. The33
 cache probes pass126430clocks; both28-case data suites retain82004/244751clocks.
 The separate native_mmc test reproduces the original driver failure and fix.
+
+## Production FIFO banks
+
+The 16-byte host FIFO uses four 4×8 M10Ks. Each bank samples the row for
+the next FIFO head on the existing dequeue edge. A per-bank forwarding
+register supplies a byte written on that same edge, including when the
+FIFO crosses a row boundary or wraps. Other FIFO depths use the
+register-backed implementation.
+
+Run `sh tests/phone/mmc_host/run-fifo.sh` for pin and register lockstep
+against `739d3bd` at dividers 2, 3, 4 and 12. A directed check covers all
+16 guest byte masks, wrap, concurrent CPU and serial transfers, and
+forces unknown RAM data on mixed-port collisions. The tests compare
+live bytes and the bus and serial output on every clock.

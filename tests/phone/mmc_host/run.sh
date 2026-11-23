@@ -2,12 +2,12 @@
 set -eu
 out=build/sim/unit-mmc-host
 mkdir -p "$out"
-iverilog -g2001 -Wall -s ngage_mmc_host -o "$out/strict" rtl/ngage_mmc_host.v > "$out/strict.log" 2>&1
-iverilog -g2001 -s tb -o "$out/cmd16" rtl/ngage_mmc_host.v tests/phone/mmc_host/cmd16_tb.v > "$out/cmd16-build.log" 2>&1
+iverilog -g2001 -Wall -s ngage_mmc_host -o "$out/strict" rtl/ngage_bram.v rtl/ngage_mmc_host.v > "$out/strict.log" 2>&1
+iverilog -g2001 -s tb -o "$out/cmd16" rtl/ngage_bram.v rtl/ngage_mmc_host.v tests/phone/mmc_host/cmd16_tb.v > "$out/cmd16-build.log" 2>&1
 vvp "$out/cmd16" > "$out/cmd16.log" 2>&1
 grep '^PASS CMD16 ' "$out/cmd16.log"
 iverilog -g2001 -s integer_clock_tb -o "$out/integer-clock" \
-    rtl/ngage_mmc_host.v tests/phone/mmc_host/integer_clock_tb.v
+    rtl/ngage_bram.v rtl/ngage_mmc_host.v tests/phone/mmc_host/integer_clock_tb.v
 vvp "$out/integer-clock" > "$out/integer-clock.log" 2>&1
 grep '^PASS MMC integer ' "$out/integer-clock.log"
 for config in '4 16' '3 16' '12 8'; do
@@ -16,7 +16,7 @@ for config in '4 16' '3 16' '12 8'; do
     depth=$2
     stem="$out/data-$divider-$depth"
     iverilog -g2001 -s tb -Ptb.DIV="$divider" -Ptb.FIFO_DEPTH="$depth" -o "$stem" \
-        rtl/ngage_mmc_host.v tests/phone/mmc_host/data_tb.v > "$stem-build.log" 2>&1
+        rtl/ngage_bram.v rtl/ngage_mmc_host.v tests/phone/mmc_host/data_tb.v > "$stem-build.log" 2>&1
     vvp "$stem" > "$stem.log" 2>&1
     grep '^PASS MMC host data ' "$stem.log"
 done
