@@ -1,0 +1,136 @@
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index 2d322d7dea3c251c6c136bd28801956b1fa3bd3b..64bf37da0b80ab23b3d3f1ab2fe3427cea2274ac 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -56,6 +56,8 @@ module ngage_sdram_stream #(
+     reg [24:5] saved_line;
+     reg [3:0] words_seen = 0, line_words = 0;
+     reg [15:0] high_data;
++    (* dont_retime *)reg        read_reply = 0;
++    (* dont_retime *)reg [31:0] read_data;
+ 
+     reg  [24:0] scrub_address = 0;
+     reg         scrub_last_issued = 0;
+@@ -70,7 +72,9 @@ module ngage_sdram_stream #(
+     wire direct_post = post && !pending && mem_cmd_ready;
+     wire scalar_read = scalar && !we && !pending && mem_cmd_ready;
+     wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
+-    assign line_ready = idle && !req && !pending && mem_cmd_ready;
++    // A scalar reply retires to the held arbiter owner while an independent
++    // line can take the command slot. The scalar grant still waits for !req.
++    assign line_ready = idle && (!req || read_reply) && !pending && mem_cmd_ready;
+     wire first_line = line_req && line_ready;
+     // The arbiter captures the owner on this same edge. If a line or an
+     // older packet owns the slot, the arbiter's held read can issue later.
+@@ -95,10 +99,10 @@ module ngage_sdram_stream #(
+     wire [3:0] write_mask = take_pending ? pending_be : be;
+     assign mem_wbe = (scrub || block_write) ? 16'hffff : {12'b0, write_mask} << {mem_addr[3:2], 2'b00};
+ 
+-    assign dout = mem_rdata;
++    assign dout = read_data;
+     wire word_done = state == READ_WORD && mem_valid;
+     wire locked_done = state == WRITE_LOCKED && !mem_busy;
+-    assign ack = owner_ready && (post || word_done || locked_done);
++    assign ack = owner_ready && (post || read_reply || locked_done);
+ 
+     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
+     assign line_data  = high_word ? high_data : mem_rdata[15:0];
+@@ -106,6 +110,10 @@ module ngage_sdram_stream #(
+     wire scalar_accept = post || read_word || lock_write;
+     wire drained = state == IDLE && !pending && !mem_busy;
+ 
++    // Sample data and its reply on the same edge. ACK qualifies which data
++    // belongs to a scalar read; lines retain their early halfword path.
++    always @(posedge clk) read_data <= mem_rdata;
++
+     always @(posedge clk) begin
+         if (cold) begin
+             scrub_done        <= 0;
+@@ -115,10 +123,12 @@ module ngage_sdram_stream #(
+             seen              <= 0;
+             discard           <= 0;
+             pending           <= 0;
++            read_reply        <= 0;
+             second_line       <= 0;
+             high_word         <= 0;
+             words_seen        <= 0;
+         end else begin
++            read_reply <= word_done && owner_ready;
+             if (scrub) begin
+                 if (scrub_address + 25'd16 >= SCRUB_BYTES) scrub_last_issued <= 1;
+                 else scrub_address <= scrub_address + 25'd16;
+diff --git a/tests/phone/sdram/stream_tb.sv b/tests/phone/sdram/stream_tb.sv
+index 3f486d7c821ff9eef02a75669aa8354ca06b879d..3981c52b9c4aa5a89cb0367ddd92a6d0b03588f1 100644
+--- a/tests/phone/sdram/stream_tb.sv
++++ b/tests/phone/sdram/stream_tb.sv
+@@ -105,6 +105,24 @@ module stream_tb #(
+       .mem_rdata(rdata_mem)
+   );
+ 
++  reg capture_pending = 0;
++  reg [31:0] capture_data;
++  always @(posedge clk) begin
++    if (cold || phone_reset) begin
++      capture_pending <= 0;
++      if (cpu_ack || dma_ack) $fatal(1, "Scalar reply escaped reset");
++    end else begin
++      capture_pending <= stream.word_done && owner_ready;
++      if (stream.word_done && owner_ready) begin
++        capture_data <= rdata_mem;
++        if (ack) $fatal(1, "Pin read completion bypassed the scalar reply register");
++      end
++      if (stream.read_reply != capture_pending) $fatal(1, "Wrong scalar reply cycle");
++      if (capture_pending && (!req || cpu_ack == dma_ack || read_data !== capture_data))
++        $fatal(1, "Registered scalar reply lost data or owner");
++    end
++  end
++
+   wire pin_clk, cke, cs_n, ras_n, cas_n, we_n, dqml, dqmh;
+   wire [ 1:0] pin_bank;
+   wire [12:0] pin_addr;
+@@ -493,6 +511,45 @@ module stream_tb #(
+     @(negedge clk);
+     dma_req = 0;
+     $display("PASS stream grant-edge read, held fallback and cancelled response");
++
++    // The reply can retire on the same edge that the next line is admitted.
++    wait (stream.drained);
++    @(negedge clk);
++    cpu_addr = BASE + 8;
++    cpu_req  = 1;
++    do @(posedge clk); while (!cpu_grant);
++    @(negedge clk);
++    line_req = 1;
++    do @(posedge clk); while (!cpu_ack);
++    if (!line_ready || !stream.first_line || cpu_out !== cpu_block_data[95:64])
++      $fatal(1, "Line admission did not overlap the registered scalar reply");
++    @(negedge clk);
++    cpu_req  = 0;
++    line_req = 0;
++    do @(posedge clk); while (!line_last);
++
++    // Reset again after the pin word is captured but before the CPU sees ACK.
++    wait (stream.drained);
++    @(negedge clk);
++    cpu_addr = BASE;
++    cpu_req  = 1;
++    wait (stream.read_reply);
++    @(negedge clk);
++    cpu_req = 0;
++    phone_reset = 1;
++    @(negedge clk);
++    phone_reset = 0;
++    dma_addr = BASE + 8;
++    dma_req = 1;
++    do begin
++      @(posedge clk);
++      if (cpu_ack) $fatal(1, "Buffered scalar reply escaped reset");
++    end while (!dma_ack);
++    if (dma_out !== cpu_block_data[95:64]) $fatal(1, "DMA received a canceled CPU word");
++    @(negedge clk);
++    dma_req = 0;
++    $display(
++        "PASS stream scalar reply latency, concurrent line admission and buffered cancellation");
+     $display(
+         "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion");
+     while (busy_mem) @(negedge clk);

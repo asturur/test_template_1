@@ -1,0 +1,38 @@
+--- /dev/null
++++ b/scratch/v5-ipc-overlap/profile.py
+@@ -0,0 +1,35 @@
++"""Run the matched parent and registered-reply profiles on 104 MHz pin RTL."""
++import inspect
++import importlib.util
++from pathlib import Path
++import sys
++
++
++root = Path.cwd()
++leg, workload = sys.argv[1:3]
++assert leg in {'parent', 'candidate'} and workload in {'payloads', 'native'}
++profile = 'v5-104-all-four-ipc-store-census'
++netlist = 'scratch/v5-ipc-overlap/base.v'
++pin = 'build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v'
++payloads = root / 'tests/cpu/arm9v2_board/payload_clocks.py'
++sys.path.insert(0, str(payloads.parent))
++
++if workload == 'payloads':
++    source = payloads.read_text()
++    sys.argv = [str(payloads), '--name', profile, '--store-list-counts', '--cpu-wrapper','scratch/v5-ipc-overlap/ngage_cpu.sv', '--sys-clk-hz', '104000000', '--config', '3:64',
++                '--arm9v2-netlist', netlist, '--flash-cache-bytes', '32768', '--stream-sdram', '--block-writeback', '--sdram-model', pin]
++    exec(compile(source, str(payloads), 'exec'), {'__file__': str(payloads), '__name__': '__main__'})
++else:
++    native_dir = root / 'tests/cpu/polycount_v5'
++    sys.path.insert(0, str(native_dir))
++    import payload_clocks
++    native_spec = importlib.util.spec_from_file_location('native_polycount', native_dir / 'run.py')
++    run = importlib.util.module_from_spec(native_spec)
++    native_spec.loader.exec_module(run)
++
++    original_compile = run.compile_phone
++    run.compile_phone = lambda *args, **kwargs: original_compile(
++        *args, **(kwargs | {'sys_clk_hz': 104_000_000, 'divider': 3}))
++    sys.argv = [str(native_dir / 'run.py'), '--name', profile, '--store-list-counts', '--cpu-wrapper','scratch/v5-ipc-overlap/ngage_cpu.sv', '--legs', 'i16',
++                '--netlist', netlist, '--capture', 'build/sim/polycount-v5/native-qualified', '--pin-model', pin]
++    run.main()

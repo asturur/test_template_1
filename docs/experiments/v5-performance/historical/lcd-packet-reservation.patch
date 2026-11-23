@@ -1,0 +1,211 @@
+diff --git a/rtl/ngage_lcd_stream.v b/rtl/ngage_lcd_stream.v
+index 50eca868135e1afedc069bf1673b4d759e679bf1..fa2c315abb82f720e77ccb8c6b81576b460b3885 100644
+--- a/rtl/ngage_lcd_stream.v
++++ b/rtl/ngage_lcd_stream.v
+@@ -39,10 +39,14 @@ module ngage_lcd_stream #(
+     reg  [24:0] next_addr;
+     // A validated descriptor fits within 16 MiB (at most 2^22 words).
+     reg  [22:0] remaining;
+-    // Update eligibility with the count so request arbitration sees only flops.
++    // The count excludes the packet in the reservation and any issued read.
+     (* dont_retime *)reg         words_available;
+     (* dont_retime *)reg         line_available;
++    (* dont_retime *)reg         reserved;
++    (* dont_retime *)reg         reserved_line;
++    (* dont_retime *)reg  [24:0] reserved_addr;
+     reg         owned;
++    reg  [24:0] owned_addr;
+     reg         skid_valid;
+     reg  [31:0] skid_data;
+     reg         cancel_abort;
+@@ -65,19 +69,23 @@ module ngage_lcd_stream #(
+     assign pixel_data     = skid_data;
+     wire pixel_take = pixel_valid && pixel_ready;
+     wire sink_failed = pixel_take && pixel_error;
+-    wire offer = busy && !cancelling && !stop && !sink_failed && words_available &&
++    wire offer = busy && reserved && !cancelling && !stop && !sink_failed &&
+                  (!skid_valid || pixel_take);
+     wire buffer_pending = line_enabled && words_received != words_emitted;
+-    wire line_aligned = next_addr[3:0] == 0 && (LINE_BYTES == 16 || !next_addr[4]);
+-    wire choose_line = line_enabled && line_aligned && line_available;
++    function aligned_line;
++        input [24:0] address;
++        aligned_line = line_enabled && address[3:0] == 0 && (LINE_BYTES == 16 || !address[4]);
++    endfunction
++    wire first_line = aligned_line(source_addr[24:0]) && transfer_words[22:0] >= LINE_WORDS;
++    wire next_line = aligned_line(next_addr) && line_available;
+     wire buffer_take = buffer_pending && (!skid_valid || pixel_take);
+-    assign line_req = line_enabled && !reset && offer && choose_line &&
++    assign line_req = line_enabled && !reset && offer && reserved_line &&
+                       !owned && !line_owned && !buffer_pending;
+-    assign line_addr = next_addr;
++    assign line_addr = reserved_addr;
+     wire take_line = line_req && line_ready;
+     wire line_finished = line_enabled && line_owned && line_valid && line_last;
+-    assign mem_req = !reset && (owned || (offer && !choose_line && !line_owned && !buffer_pending));
+-    assign mem_addr = next_addr;
++    assign mem_req = !reset && (owned || (offer && !reserved_line && !line_owned && !buffer_pending));
++    assign mem_addr = owned ? owned_addr : reserved_addr;
+     wire accepted = mem_req && !owned && mem_accept;
+     wire response = mem_ack && (owned || accepted);
+ 
+@@ -91,7 +99,11 @@ module ngage_lcd_stream #(
+             remaining       <= 0;
+             words_available <= 0;
+             line_available  <= 0;
++            reserved        <= 0;
++            reserved_line   <= 0;
++            reserved_addr   <= 0;
+             owned           <= 0;
++            owned_addr      <= 0;
+             skid_valid      <= 0;
+             skid_data       <= 0;
+             cancel_abort    <= 0;
+@@ -108,27 +120,39 @@ module ngage_lcd_stream #(
+                 if (transfer_valid && transfer_ready) begin
+                     if (!descriptor_ok) error <= 1;
+                     else begin
+-                        busy            <= 1;
+-                        next_addr       <= source_addr[24:0];
+-                        remaining       <= transfer_words[22:0];
+-                        words_available <= 1;
+-                        line_available  <= transfer_words[22:0] >= LINE_WORDS;
+-                        owned           <= 0;
+-                        skid_valid      <= 0;
+-                        cancel_abort    <= 0;
+-                        cancel_error    <= 0;
++                        busy <= 1;
++                        reserved <= 1;
++                        reserved_line <= first_line;
++                        reserved_addr <= source_addr[24:0];
++                        next_addr <= source_addr[24:0] + (first_line ? LINE_BYTES[24:0] : 25'd4);
++                        remaining <= transfer_words[22:0] - (first_line ? LINE_WORDS : 23'd1);
++                        words_available <= transfer_words[22:0] != (first_line ? LINE_WORDS : 23'd1);
++                        line_available  <= first_line ? transfer_words[22:0] >= (LINE_WORDS << 1) :
++                                                         transfer_words[22:0] > LINE_WORDS;
++                        owned <= 0;
++                        skid_valid <= 0;
++                        cancel_abort <= 0;
++                        cancel_error <= 0;
+                     end
+                 end
+             end else begin
++                // Reserve ahead while the preceding read drains. This count
++                // update depends only on local state, even under contention.
++                if (!reserved && words_available) begin
++                    reserved <= 1;
++                    reserved_line <= next_line;
++                    reserved_addr <= next_addr;
++                    next_addr <= next_addr + (next_line ? LINE_BYTES[24:0] : 25'd4);
++                    remaining <= remaining - (next_line ? LINE_WORDS : 23'd1);
++                    words_available <= remaining != (next_line ? LINE_WORDS : 23'd1);
++                    line_available  <= next_line ? remaining >= (LINE_WORDS << 1) : remaining > LINE_WORDS;
++                end
+                 if (take_line) begin
+-                    line_owned      <= 1;
+-                    line_beat       <= 0;
+-                    words_received  <= 0;
+-                    words_emitted   <= 0;
+-                    next_addr       <= next_addr + LINE_BYTES[24:0];
+-                    remaining       <= remaining - LINE_WORDS;
+-                    words_available <= remaining != LINE_WORDS;
+-                    line_available  <= remaining >= (LINE_WORDS << 1);
++                    reserved       <= 0;
++                    line_owned     <= 1;
++                    line_beat      <= 0;
++                    words_received <= 0;
++                    words_emitted  <= 0;
+                 end
+                 if (line_enabled && line_owned && line_valid) begin
+                     line_beat <= line_beat + 1'b1;
+@@ -139,31 +163,30 @@ module ngage_lcd_stream #(
+                     end
+                     if (line_last) line_owned <= 0;
+                 end
+-                if (accepted) owned <= 1;
+-                if (response) begin
+-                    owned           <= 0;
+-                    next_addr       <= next_addr + 25'd4;
+-                    remaining       <= remaining - 1'b1;
+-                    words_available <= remaining != 23'd1;
+-                    line_available  <= remaining > LINE_WORDS;
++                if (accepted) begin
++                    reserved   <= 0;
++                    owned      <= 1;
++                    owned_addr <= reserved_addr;
+                 end
++                if (response) owned <= 0;
+ 
+                 // Stop wins over the last pixel and the last memory response.
+                 // An accepted read drains before either cancellation terminal.
+                 if (stop || cancelling || sink_failed) begin
+-                    skid_valid <= 0;
++                    skid_valid      <= 0;
++                    reserved        <= 0;
++                    remaining       <= 0;
++                    words_available <= 0;
++                    line_available  <= 0;
+                     if (stop) cancel_abort <= 1;
+                     if (sink_failed) cancel_error <= 1;
+                     words_received <= 0;
+                     words_emitted  <= 0;
+                     if (((!owned && !accepted) || response) &&
+                         (!(line_owned || take_line) || line_finished)) begin
+-                        busy            <= 0;
+-                        remaining       <= 0;
+-                        words_available <= 0;
+-                        line_available  <= 0;
+-                        cancel_abort    <= 0;
+-                        cancel_error    <= 0;
++                        busy         <= 0;
++                        cancel_abort <= 0;
++                        cancel_error <= 0;
+                         if (stop || cancel_abort) aborted <= 1;
+                         else error <= 1;
+                     end
+@@ -178,7 +201,8 @@ module ngage_lcd_stream #(
+                         skid_data     <= line_words[words_emitted[LINE_INDEX_BITS-1:0]];
+                         words_emitted <= words_emitted + 1'b1;
+                     end
+-                    if (pixel_take && !words_available && !owned && !line_owned && !buffer_pending) begin
++                    if (pixel_take && !words_available && !reserved &&
++                        !owned && !line_owned && !buffer_pending) begin
+                         busy <= 0;
+                         done <= 1;
+                     end
+diff --git a/tests/phone/lcd_stream/README.md b/tests/phone/lcd_stream/README.md
+index 04b3e95ee5b10fc9224245511c55e38624ba9fa6..1d1a0d952577dd2dec7c842efd7d7aa77b70ffc4 100644
+--- a/tests/phone/lcd_stream/README.md
++++ b/tests/phone/lcd_stream/README.md
+@@ -11,10 +11,13 @@ The descriptor accepts a literal 33-bit positive word count. Source plus byte
+ extent uses 36 bits, including the carry from a maximum 35-bit extent, and must
+ end at or before `0b000000`. Inputs can change after descriptor acceptance.
+ The accepted count fits in 23 bits because the source window is 16 MiB.
+-Two registered flags track whether words remain and whether a full line
+-fits. They update with the count on descriptor acceptance, scalar response,
+-line acceptance and terminal cancellation. Request arbitration uses the
+-flags directly.
++Two registered flags track the unreserved words and whether a full line
++fits. The first packet is reserved at descriptor acceptance. One reserve
++slot can prepare the following packet while an accepted scalar or line
++read drains. Reserving the address and size consumes the count locally.
++The shared arbiter only grants the reserved packet. The scalar owner keeps
++its accepted address until ACK. Stop discards an unaccepted reservation
++while an accepted read drains.
+ 
+ `mem_addr` is the low 25-bit byte address, not a word index. `mem_accept` captures
+ a level request, which stays asserted with immutable address through its owned
+@@ -54,6 +57,13 @@ mixed line and scalar tails, overflow rejection, and cancellation on the
+ final SDRAM response. All 18 physical SDRAM LCD cases at 104 MHz matched
+ the original request counts, transfer clocks and contention metrics.
+ 
++The reservation matched round three in all 18 physical 104 MHz cases,
++including 16-byte production lines, scalar and 32-byte modes. Frame clocks,
++SDRAM traffic, upload words and contention metrics matched. The LCD, MMC
++and PCM pin replay retained its 1,189,662 clocks and all checked outputs.
++The separate analog display test retained both native and diagnostic sync
++timing at 6.5 MHz.
++
+ ## Matched legacy comparison
+ 
+ Run `tests/phone/lcd_stream/run-comparison.sh` in the same image to compare the

@@ -1,0 +1,212 @@
+{
+  "parent": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+  "physical_mhz": 104,
+  "mmc_divider": 3,
+  "nos_hz": 64,
+  "patch_sha256": "fec610d1864120876cacb5407e2abeb3eb05df7a2c10e2a9863faecfb8ebb554",
+  "netlist_sha256": "d55c8a3c53cebd9f41d20aa5a406f8d0cd8e858a212dcd621b287dba4f5c4d84",
+  "fixed": {
+    "sega-scan": {
+      "clocks": {
+        "control": 2395767,
+        "thumb": 2377506,
+        "candidate": 2395766
+      },
+      "vs_all_four_pct": -4.1740286094160695e-05,
+      "vs_old_thumb_pct": 0.7680317105403622
+    },
+    "matrix4": {
+      "clocks": {
+        "control": 16946,
+        "thumb": 16946,
+        "candidate": 16946
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "transpose4": {
+      "clocks": {
+        "control": 2976,
+        "thumb": 2976,
+        "candidate": 2976
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "triangle_edges": {
+      "clocks": {
+        "control": 12226,
+        "thumb": 12226,
+        "candidate": 12226
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "fill16_frame": {
+      "clocks": {
+        "control": 122402,
+        "thumb": 122402,
+        "candidate": 122402
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "fill16_tail": {
+      "clocks": {
+        "control": 725,
+        "thumb": 725,
+        "candidate": 725
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "fill8_tail": {
+      "clocks": {
+        "control": 753,
+        "thumb": 753,
+        "candidate": 753
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "monkey-forward": {
+      "clocks": {
+        "control": 15940,
+        "thumb": 15940,
+        "candidate": 15940
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "monkey-reverse": {
+      "clocks": {
+        "control": 15940,
+        "thumb": 15940,
+        "candidate": 15940
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "sega-span": {
+      "clocks": {
+        "control": 15430,
+        "thumb": 15430,
+        "candidate": 15430
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "sega-fill": {
+      "clocks": {
+        "control": 2628,
+        "thumb": 2628,
+        "candidate": 2628
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "asphalt-table": {
+      "clocks": {
+        "control": 21163,
+        "thumb": 21163,
+        "candidate": 21163
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "asphalt-double": {
+      "clocks": {
+        "control": 11974,
+        "thumb": 11974,
+        "candidate": 11974
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "asphalt-single": {
+      "clocks": {
+        "control": 7753,
+        "thumb": 7753,
+        "candidate": 7753
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    },
+    "diffuse_m10_8x8_jpeg": {
+      "clocks": {
+        "control": 35324,
+        "thumb": 35324,
+        "candidate": 35324
+      },
+      "vs_all_four_pct": 0.0,
+      "vs_old_thumb_pct": 0.0
+    }
+  },
+  "frames": {
+    "control": 57508371,
+    "thumb": 57508371,
+    "candidate": 57508371
+  },
+  "native_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+  "ordered_execution_and_data_digests_match": true,
+  "board_contracts": {
+    "burst-0-wait-0": {
+      "architecture": "293 ordered branch identities and 21 exact MMIO records",
+      "cpu_contract": "PASS cycles=24732 scalar_wait_cycles=9365 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "baseline_contract": [
+        "PASS cycles=24732 scalar_wait_cycles=9365 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "thumb_contract": [
+        "PASS cycles=24732 scalar_wait_cycles=9365 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ]
+    },
+    "burst-0-wait-5": {
+      "architecture": "293 ordered branch identities and 21 exact MMIO records",
+      "cpu_contract": "PASS cycles=47922 scalar_wait_cycles=32647 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "baseline_contract": [
+        "PASS cycles=47922 scalar_wait_cycles=32647 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "thumb_contract": [
+        "PASS cycles=47922 scalar_wait_cycles=32647 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ]
+    },
+    "burst-1-wait-0": {
+      "architecture": "293 ordered branch identities and 21 exact MMIO records",
+      "cpu_contract": "PASS cycles=19969 scalar_wait_cycles=437 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "baseline_contract": [
+        "PASS cycles=19969 scalar_wait_cycles=437 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "thumb_contract": [
+        "PASS cycles=19969 scalar_wait_cycles=437 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ]
+    },
+    "burst-1-wait-5": {
+      "architecture": "293 ordered branch identities and 21 exact MMIO records",
+      "cpu_contract": "PASS cycles=23609 scalar_wait_cycles=1399 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "baseline_contract": [
+        "PASS cycles=23609 scalar_wait_cycles=1399 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "thumb_contract": [
+        "PASS cycles=23609 scalar_wait_cycles=1399 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ]
+    }
+  },
+  "mixed": [
+    "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+    "PASS native LCD grants=4576 completed=4576",
+    "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+    "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+  ],
+  "directed": {
+    "thumb": [
+      "PASS Thumb recovery cycles=213 recovered=6 rejected=20"
+    ],
+    "fetch_queue": [
+      "PASS fetch RAM equivalence cycles=8504 empty=87 turns=96 full=2401 wraps=233 bypass=172 fills=354 faults=715 redirect_stalls=44 retries=94"
+    ]
+  },
+  "source_records": {
+    "fixed": "scratch/v5-fit-loop/thumb-redirect-independent/replay/fixed.json",
+    "native": "scratch/v5-fit-loop/thumb-redirect-independent/replay/native.json"
+  }
+}

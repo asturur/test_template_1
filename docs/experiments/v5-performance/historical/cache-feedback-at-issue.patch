@@ -1,0 +1,585 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index f765d4ace438e2b033d1f7b17632f296449ff19d..dfc5b464c85a8b4122dd7a7e17b0014be517503a 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -358,6 +358,7 @@ module ngage2_arm9v2_core (
+ 	i_dc_reg_dat,
+ 	i_dc_lock,
+ 	i_dc_lock_any,
++	i_dc_lock_tag,
+ 	i_dc_lock_owner,
+ 	i_dc_lock_return,
+ 	o_dc_lock_owner_hold,
+@@ -518,6 +519,7 @@ module ngage2_arm9v2_core (
+ 	input wire [31:0] i_dc_reg_dat;
+ 	input wire [63:0] i_dc_lock;
+ 	input wire i_dc_lock_any;
++	input wire [5:0] i_dc_lock_tag;
+ 	input wire i_dc_lock_owner;
+ 	input wire i_dc_lock_return;
+ 	output wire [5:0] o_dc_lock_owner_hold;
+@@ -1412,7 +1414,7 @@ module ngage2_arm9v2_core (
+     // S can own the younger packet early. A cannot execute it while an
+     // older result can still arrive, including fill/miss and abort paths.
+     wire s_held_load_writer = d_valid && d_advanced_load_writer &&
+-        (m_same_writer || skid_same_writer || locked[s_writer_tag] ||
++        (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag) ||
+          (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
+     wire s_may_write_flags = d_valid && !d_fault &&
+         ((d_instruction[20] && (d_kind == DP || d_kind == MUL || d_kind == MULL)) ||
+@@ -1478,6 +1480,8 @@ module ngage2_arm9v2_core (
+     .i_predicate_flags(a_flags),
+         .i_predicate_stable(predicate_stable),
+ 		.i_locked(locked),
++		.i_lock_valid(i_dc_lock_any),
++		.i_lock_tag(i_dc_lock_tag),
+ 		.i_rf_value(rf_value),
+ 		.o_rf_tag(rf_tag),
+ 		.i_load_tag(load_tag),
+@@ -1841,6 +1845,8 @@ module ngage2_arm9v2_decode (
+ 	i_wr_addr_b,
+ 	i_wr_addr_c,
+ 	i_locked,
++	i_lock_valid,
++	i_lock_tag,
+     i_predicate_flags,
+     i_predicate_stable,
+     i_m_simple_load,
+@@ -1957,6 +1963,8 @@ module ngage2_arm9v2_decode (
+ 	input wire [39:0] i_wr_addr_b;
+ 	input wire [39:0] i_wr_addr_c;
+ 	input wire [39:0] i_locked;
++	input wire i_lock_valid;
++	input wire [5:0] i_lock_tag;
+     input wire [3:0] i_predicate_flags;
+     input wire i_predicate_stable;
+     input wire i_m_simple_load;
+@@ -2762,9 +2770,9 @@ module ngage2_arm9v2_decode (
+ 				end
+ 		end
+ 		if (advance_load_writer) producer_hazard[3] = 0;
+-		load_hazard = (|producer_hazard || (d2[78] && i_locked[d2[80+:6]])) || (d2[79] && i_locked[d2[86+:6]]);
++		load_hazard = (|producer_hazard || (d2[78] && (i_lock_valid && i_lock_tag == d2[80+:6]))) || (d2[79] && (i_lock_valid && i_lock_tag == d2[86+:6]));
+ 	end
+-	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && i_locked[d2[100+:6]])) || (d2[97] && i_locked[d2[106+:6]])) || (d2[98] && i_locked[d2[112+:6]])) || (d2[99] && i_locked[d2[118+:6]])) || |early_hazard);
++	assign o_hazard = d2_valid && ((((((load_hazard || fenced) || (d2[96] && (i_lock_valid && i_lock_tag == d2[100+:6]))) || (d2[97] && (i_lock_valid && i_lock_tag == d2[106+:6]))) || (d2[98] && (i_lock_valid && i_lock_tag == d2[112+:6]))) || (d2[99] && (i_lock_valid && i_lock_tag == d2[118+:6]))) || |early_hazard);
+ 	assign step = (((d2_valid && (!out_valid || i_ready)) && !o_hazard) && !i_flush) && (!redirect_ff[74] || redirect_in_d2);
+ 	assign pop = ((count != 0) && (!d2_valid || (step && predicate_last))) && !kill_younger;
+ 	assign o_rf_tag = d2[123-:24];
+@@ -3749,10 +3757,12 @@ module ngage2_arm9v2_execute (
+     // its load selection, without routing through the DP barrel shifter.
+     wire [31:0] smull_multiplicand = w_take ? i_w_load_data :
+                                    (W_ROTATE ? shift_input_nw : shift_input);
+-    wire signed [32:0] product_left = launch_smull ? {smull_multiplicand[31], smull_multiplicand} :
+-                       {signed_product && a[249], a[249-:32]};
+-    wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
+-                        {signed_product && a[185], a[185-:32]};
++    // A's pending product excludes S admission. Select that owner before
++    // the admission handshake, which still qualifies the DSP write edge.
++    wire signed [32:0] product_left = product_phase ? {signed_product && a[249], a[249-:32]} :
++                                     {smull_multiplicand[31], smull_multiplicand};
++    wire signed [32:0] product_right = product_phase ? {signed_product && a[185], a[185-:32]} :
++                                      {operand[95], operand[95:64]};
+     (* multstyle = "dsp" *) reg signed [65:0] full_product;
+     always @(posedge i_clk)
+         if (launch_smull || product_phase)
+@@ -3763,6 +3773,8 @@ module ngage2_arm9v2_execute (
+     reg launched_smull;
+     wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
+     always @(posedge i_clk) begin
++        if (!i_reset && launch_smull && product_phase)
++            $fatal(1, "Two multiply owners on one DSP write edge");
+         if (!i_reset && launch_smull && smull_multiplicand !== shifted)
+             $fatal(1, "Early SMULL bypass changed its operand at %h", i_pc);
+         if (i_reset || i_flush) launched_smull <= 0;
+@@ -4651,6 +4663,8 @@ module ngage2_arm9v2_front_decode (
+ 	i_wr_addr_b,
+ 	i_wr_addr_c,
+ 	i_locked,
++	i_lock_valid,
++	i_lock_tag,
+     i_predicate_flags,
+     i_predicate_stable,
+     i_m_simple_load,
+@@ -4785,6 +4799,8 @@ module ngage2_arm9v2_front_decode (
+ 	input wire [39:0] i_wr_addr_b;
+ 	input wire [39:0] i_wr_addr_c;
+ 	input wire [39:0] i_locked;
++	input wire i_lock_valid;
++	input wire [5:0] i_lock_tag;
+     input wire [3:0] i_predicate_flags;
+     input wire i_predicate_stable;
+     input wire i_m_simple_load;
+@@ -4996,6 +5012,8 @@ module ngage2_arm9v2_front_decode (
+         .i_predicate_flags(i_predicate_flags),
+         .i_predicate_stable(i_predicate_stable),
+ 		.i_locked(i_locked),
++		.i_lock_valid(i_lock_valid),
++		.i_lock_tag(i_lock_tag),
+ 		.i_early_tag(i_early_tag),
+ 		.i_early_valid(i_early_valid),
+ 		.i_early_agu(i_early_agu),
+@@ -9424,6 +9442,7 @@ module ngage2_zap_dcache_fsm (
+ 	i_lock_owner_advance,
+ 	i_lock_owner_move,
+ 	o_lock_any,
++	o_lock_tag,
+ 	o_lock_owner,
+ 	o_lock_return,
+ 	o_ack_fast,
+@@ -9549,6 +9568,7 @@ module ngage2_zap_dcache_fsm (
+ 	input wire [5:0] i_lock_owner_advance;
+ 	input wire i_lock_owner_move;
+ 	(* dont_retime *) output reg o_lock_any;
++	(* dont_retime *) output reg [5:0] o_lock_tag;
+ 	(* dont_retime *) output reg o_lock_owner;
+ 	(* dont_retime *) output reg o_lock_return;
+ 	output wire o_ack_fast;
+@@ -10274,6 +10294,7 @@ module ngage2_zap_dcache_fsm (
+ 			adr_ctr_ff <= 0;
+ 			lock_ff <= 64'd0;
+ 			o_lock_any <= 0;
++			o_lock_tag <= 0;
+ 			o_lock_owner <= 0;
+ 			o_lock_return <= 0;
+ 			state_ff <= 0;
+@@ -10293,6 +10314,9 @@ module ngage2_zap_dcache_fsm (
+ 			adr_ctr_ff <= adr_ctr_nxt;
+ 			lock_ff <= lock_nxt;
+ 			o_lock_any <= |lock_nxt;
++            // Only IDLE can install a new background read lock. The
++            // bitmap's registered nonempty bit qualifies the held tag.
++            if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
+ 			o_lock_owner <= (i_lock_owner_move ? owner_advance_locked : owner_held_locked);
+ 			o_lock_return <= owner_held_locked;
+ 			state_ff <= state_nxt;
+@@ -10799,6 +10823,11 @@ module ngage2_zap_dcache_fsm (
+ 		endcase
+ 	end
+ 	initial _sv2v_0 = 0;
++    // synthesis translate_off
++    always @(posedge i_clk)
++        if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
++            $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
++    // synthesis translate_on
+ endmodule
+ module ngage2_zap_dcache (
+ 	i_clk,
+@@ -10838,6 +10867,7 @@ module ngage2_zap_dcache (
+ 	i_lock_owner_advance,
+ 	i_lock_owner_move,
+ 	o_lock_any,
++	o_lock_tag,
+ 	o_lock_owner,
+ 	o_lock_return,
+ 	o_ack_fast,
+@@ -10950,6 +10980,7 @@ module ngage2_zap_dcache (
+ 	input wire [5:0] i_lock_owner_advance;
+ 	input wire i_lock_owner_move;
+ 	output wire o_lock_any;
++	output wire [5:0] o_lock_tag;
+ 	output wire o_lock_owner;
+ 	output wire o_lock_return;
+ 	output wire o_ack_fast;
+@@ -11470,6 +11501,7 @@ module ngage2_zap_dcache (
+ 		.i_lock_owner_advance(i_lock_owner_advance),
+ 		.i_lock_owner_move(i_lock_owner_move),
+ 		.o_lock_any(o_lock_any),
++		.o_lock_tag(o_lock_tag),
+ 		.o_lock_owner(o_lock_owner),
+ 		.o_lock_return(o_lock_return),
+ 		.o_ack_fast(o_ack_fast),
+@@ -15605,6 +15637,7 @@ module ngage2_zap_top (
+ 	wire [5:0] dc_rreg_idx_bin;
+ 	wire [63:0] dc_lock;
+ 	wire dc_lock_any;
++	wire [5:0] dc_lock_tag;
+ 	wire dc_lock_owner;
+ 	wire dc_lock_return;
+ 	wire dc_ack_fast;
+@@ -15759,6 +15792,7 @@ module ngage2_zap_top (
+ 				.i_dc_reg_idx(dc_wreg_idx),
+ 				.i_dc_lock(dc_lock),
+ 				.i_dc_lock_any(dc_lock_any),
++				.i_dc_lock_tag(dc_lock_tag),
+ 				.i_dc_lock_owner(dc_lock_owner),
+ 				.i_dc_lock_return(dc_lock_return),
+ 				.i_data_ack_fast(dc_ack_fast),
+@@ -15885,6 +15919,7 @@ module ngage2_zap_top (
+ 				.i_lock_owner_advance(dc_lock_owner_advance),
+ 				.i_lock_owner_move(dc_lock_owner_move),
+ 				.o_lock_any(dc_lock_any),
++				.o_lock_tag(dc_lock_tag),
+ 				.o_lock_owner(dc_lock_owner),
+ 				.o_lock_return(dc_lock_return),
+ 				.o_ack_fast(dc_ack_fast),
+diff --git a/tests/cpu/arm9v2_board/README.md b/tests/cpu/arm9v2_board/README.md
+index ca10e644579f213d54340ba94f512689c6fe990c..2c3ccb6224dc8f5a3ec6ee0e8be1a96721944350 100644
+--- a/tests/cpu/arm9v2_board/README.md
++++ b/tests/cpu/arm9v2_board/README.md
+@@ -109,6 +109,22 @@ installed simulator image. It compares the generated controller and RAM
+ against the original mask-derived enable and a byte-by-byte oracle. The
+ 16- and 32-byte tests cover 163,848 cases and 47,352 read/write collisions.
+ 
++### Background load owner and multiply launch
++
++The D-cache captures the background load's destination tag on the same
++edge that installs its sole fill lock. Decode and the held load-writer
++interlock compare register tags against that owner. The registered valid
++bit follows the original lock bitmap, including clear on critical-word
++return. The DSP selects the pending A product ahead of S admission.
++The original launch enable still determines when the DSP samples its
++operands.
++
++Run `sh tests/cpu/arm9v2_board/run-background-load-lock.sh` inside the
++simulator image. It checks all 64 encoded tags, including zero, with
++chained fills, hits under miss, aborts and mid-fill reset. The matched
++CPU contract with `ARM9V2_SMULL_COVERAGE=1` checks launch counts,
++writeback operands and cycle counts.
++
+ To compare true half-line dirty tracking, generate the two-way netlist
+ with `sv2v` on `PATH` and add it to the block-writeback run. Use `--dirty
+ packed` for the matched metadata control, which writes both halves.
+diff --git a/tests/cpu/arm9v2_board/background_load_lock_tb.v b/tests/cpu/arm9v2_board/background_load_lock_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..e1af8d1870549a33bd24cf9abfecc8b2f5b91493
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/background_load_lock_tb.v
+@@ -0,0 +1,201 @@
++`timescale 1ns / 1ps
++module background_load_lock_tb;
++  reg clk = 0, reset = 1;
++  reg read = 0, hit = 0, fault = 0, cacheable = 1;
++  reg wb_ack = 0, wb_error = 0;
++  reg [31:0] address = 0, next_address = 0, wb_data = 0;
++  reg [5:0] destination = 0;
++  wire idle, fill, ack, error, lock_valid, wb_stb;
++  wire [ 5:0] lock_tag;
++  wire [31:0] returned_data;
++  wire [63:0] bitmap, returned;
++  integer tag, hits = 0, fills = 0, returns = 0;
++
++  ngage2_zap_dcache_fsm #(
++      .CACHE_SIZE(16384),
++      .CACHE_LINE(32),
++      .WAYS(2),
++      .FLAT_ACK(1),
++      .LOCK_SPLIT(1)
++  ) cache (
++      .i_clk(clk),
++      .i_reset(reset),
++      .i_address(address),
++      .i_address_check(next_address),
++      .i_cache_hit_early(hit),
++      .i_hit_ok(cacheable && !fault),
++      .i_rd(read),
++      .i_wr(1'b0),
++      .i_din(32'b0),
++      .i_ben(4'hf),
++      .i_align_fault(1'b0),
++      .i_va(address),
++      .i_ldfmt(6'b0),
++      .i_reg_idx(64'd1 << destination),
++      .i_reg_idx_bin(destination),
++      .o_lock(bitmap),
++      .i_lock_owner_hold(destination),
++      .i_lock_owner_advance(destination),
++      .i_lock_owner_move(1'b0),
++      .o_lock_any(lock_valid),
++      .o_lock_tag(lock_tag),
++      .o_reg_dat(returned_data),
++      .o_reg_idx(returned),
++      .o_ack(ack),
++      .o_err(error),
++      .i_cache_en(1'b1),
++      .i_writebuffer_en(1'b0),
++      .i_bufferable(1'b0),
++      .i_swp(1'b0),
++      .i_post_full(1'b0),
++      .i_cache_inv(1'b0),
++      .i_cache_clean(1'b0),
++      .i_line_req(1'b0),
++      .i_line_done_tr(1'b0),
++      .i_cache_line(256'b0),
++      .i_cache_word(32'h55667788),
++      .i_cache_tag_dirty(1'b0),
++      .i_cache_tag(46'b0),
++      .i_cache_tag_valid(1'b0),
++      .i_cache_hit(hit),
++      .i_cache_victim_halves(2'b0),
++      .i_cache_hit_halves(2'b0),
++      .i_cache_hit_dirty(1'b0),
++      .i_cache_way(1'b0),
++      .i_cache_clean_done(1'b0),
++      .i_cache_inv_done(1'b0),
++      .i_phy_addr(address),
++      .i_fsr(8'h0f),
++      .i_far(address),
++      .i_fault(fault),
++      .i_cacheable(cacheable),
++      .i_wt(1'b0),
++      .i_busy(1'b0),
++      .i_tlb_hit_ready(cacheable && !fault),
++      .o_idle(idle),
++      .o_fill_busy(fill),
++      .o_wb_stb_ff(wb_stb),
++      .i_wb_ack(wb_ack),
++      .i_wb_dat(wb_data),
++      .i_wb_err(wb_error),
++      .i_block_enable(1'b0)
++  );
++
++  always #5 clk = !clk;
++  always @(posedge clk)
++    if (!reset && bitmap !== (lock_valid ? 64'd1 << lock_tag : 64'b0))
++      $fatal(1, "Visible lock token and bitmap diverged");
++
++  task tick;
++    begin
++      @(negedge clk);
++      #1;
++    end
++  endtask
++
++  task start_miss;
++    input [5:0] tag;
++    input [31:0] base;
++    input [2:0] critical;
++    begin
++      while (!idle) tick;
++      address = base + 4 * critical;
++      next_address = base + 32'h1000;
++      destination = tag;
++      read = 1;
++      hit = 0;
++      #1;
++      if (!ack || error) $fatal(1, "Read miss was not accepted");
++      tick;
++      if (!fill || !lock_valid || lock_tag !== tag || bitmap !== (64'd1 << tag))
++        $fatal(1, "Wrong miss owner %0d", tag);
++      read = 0;
++    end
++  endtask
++
++  task drain_fill;
++    input [5:0] tag;
++    input [2:0] critical;
++    integer beat;
++    begin
++      for (beat = 0; beat < 8; beat = beat + 1) begin
++        while (!wb_stb) tick;
++        wb_data = 32'h12340000 + beat;
++        wb_ack  = 1;
++        tick;
++        if (beat == critical) begin
++          if (returned !== (64'd1 << tag) || returned_data !== wb_data || !lock_valid)
++            $fatal(1, "Critical word lost the original owner %0d", tag);
++          returns = returns + 1;
++        end else if (returned !== 0) $fatal(1, "Premature or repeated return");
++        wb_ack = 0;
++        tick;
++        if (lock_valid !== (beat < critical)) $fatal(1, "Wrong lock release edge");
++      end
++      while (!idle) tick;
++      fills = fills + 1;
++    end
++  endtask
++
++  initial begin
++    repeat (2) tick;
++    reset = 0;
++    for (tag = 0; tag < 64; tag = tag + 1) begin
++      start_miss(tag[5:0], 32'h0a010000 + 32 * tag, tag[2:0]);
++      // A hit to the prechecked disjoint line must leave the older
++      // miss's return owner intact, even with a different destination.
++      address = next_address;
++      destination = tag[5:0] ^ 6'h3f;
++      hit = 1;
++      read = 1;
++      #1;
++      if (!ack || !fill || !lock_valid || lock_tag !== tag[5:0])
++        $fatal(1, "Hit under miss did not preserve the fill owner");
++      tick;
++      hits = hits + 1;
++      read = 0;
++      hit  = 0;
++      drain_fill(tag[5:0], tag[2:0]);
++    end
++
++    fault = 1;
++    read = 1;
++    destination = 0;
++    #1;
++    if (!ack || !error) $fatal(1, "Fault did not terminate the read");
++    tick;
++    if (lock_valid || returned) $fatal(1, "Fault installed a background lock");
++    read = 0;
++    fault = 0;
++
++    cacheable = 0;
++    read = 1;
++    while (!wb_stb) tick;
++    wb_error = 1;
++    tick;
++    if (!ack || !error || lock_valid || returned) $fatal(1, "Uncached abort leaked a lock");
++    read = 0;
++    wb_error = 0;
++    cacheable = 1;
++    tick;
++
++    start_miss(6'd0, 32'h0a040000, 3'd7);
++    reset = 1;
++    tick;
++    reset  = 0;
++    wb_ack = 1;
++    tick;
++    if (lock_valid || bitmap || returned) $fatal(1, "Reset retained a canceled fill owner");
++    wb_ack = 0;
++    start_miss(6'd39, 32'h0a050000, 3'd0);
++    drain_fill(6'd39, 3'd0);
++    $display("PASS background load tags fills=%0d returns=%0d hits_under_miss=%0d aborts=2 reset=1",
++             fills, returns, hits);
++    $finish;
++  end
++
++  initial begin
++    #1000000;
++    $fatal(1, "Background load lock watchdog expired");
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-background-load-lock.sh b/tests/cpu/arm9v2_board/run-background-load-lock.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..9bd79ecd253a999fdb7118d4cf6359a331fb523c
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-background-load-lock.sh
+@@ -0,0 +1,10 @@
++#!/bin/sh
++# Run inside the installed jotego/simulator:arm64 image.
++set -eu
++out=${BACKGROUND_LOCK_OUT:-build/sim/unit-arm9v2-background-lock}
++mkdir -p "$out"
++iverilog -g2001 -s background_load_lock_tb -o "$out/test" \
++    rtl/arm9v2/arm925t_phone.v tests/cpu/arm9v2_board/background_load_lock_tb.v
++vvp "$out/test" > "$out/run.log"
++cat "$out/run.log"
++grep -q '^PASS background load tags ' "$out/run.log"
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 2bcf8e864c3f36eb0e67139e582916acc1ce666c..48c4813bb70622c47239d9cfec8b3eda5e14fb7d 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -314,10 +314,12 @@ def schedule_early_smull(phone):
+     // its load selection, without routing through the DP barrel shifter.
+     wire [31:0] smull_multiplicand = w_take ? i_w_load_data :
+                                    (W_ROTATE ? shift_input_nw : shift_input);
+-    wire signed [32:0] product_left = launch_smull ? {smull_multiplicand[31], smull_multiplicand} :
+-                       {signed_product && a[249], a[249-:32]};
+-    wire signed [32:0] product_right = launch_smull ? {operand[95], operand[95:64]} :
+-                        {signed_product && a[185], a[185-:32]};
++    // A's pending product excludes S admission. Select that owner before
++    // the admission handshake, which still qualifies the DSP write edge.
++    wire signed [32:0] product_left = product_phase ? {signed_product && a[249], a[249-:32]} :
++                                     {smull_multiplicand[31], smull_multiplicand};
++    wire signed [32:0] product_right = product_phase ? {signed_product && a[185], a[185-:32]} :
++                                      {operand[95], operand[95:64]};
+     (* multstyle = "dsp" *) reg signed [65:0] full_product;
+     always @(posedge i_clk)
+         if (launch_smull || product_phase)
+@@ -328,6 +330,8 @@ def schedule_early_smull(phone):
+     reg launched_smull;
+     wire signed [63:0] check_smull = $signed(right_a) * $signed(special_a);
+     always @(posedge i_clk) begin
++        if (!i_reset && launch_smull && product_phase)
++            $fatal(1, "Two multiply owners on one DSP write edge");
+         if (!i_reset && launch_smull && smull_multiplicand !== shifted)
+             $fatal(1, "Early SMULL bypass changed its operand at %h", i_pc);
+         if (i_reset || i_flush) launched_smull <= 0;
+@@ -686,6 +690,81 @@ endmodule
+     return ''.join(parts)
+ 
+ 
++def register_background_load_tag(phone):
++    """Use the D-cache's single owned fill tag for frontend interlocks."""
++    parts = re.split(r'(?=^module )', phone, flags=re.M)
++    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
++
++    def add_tag_port(part, existing, new):
++        return edit(part, f'\t{existing},\n', f'\t{existing},\n\t{new},\n')
++
++    fsm = index['ngage2_zap_dcache_fsm']
++    parts[fsm] = add_tag_port(parts[fsm], 'o_lock_any', 'o_lock_tag')
++    parts[fsm] = edit(parts[fsm], '\t(* dont_retime *) output reg o_lock_any;\n',
++                      '\t(* dont_retime *) output reg o_lock_any;\n'
++                      '\t(* dont_retime *) output reg [5:0] o_lock_tag;\n')
++    parts[fsm] = edit(parts[fsm], '\t\t\to_lock_any <= 0;\n',
++                      '\t\t\to_lock_any <= 0;\n\t\t\to_lock_tag <= 0;\n')
++    parts[fsm] = edit(parts[fsm], '\t\t\to_lock_any <= |lock_nxt;\n', '''
++\t\t\to_lock_any <= |lock_nxt;
++            // Only IDLE can install a new background read lock. The
++            // bitmap's registered nonempty bit qualifies the held tag.
++            if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
++'''.lstrip('\n'))
++    parts[fsm] = edit(parts[fsm], 'endmodule\n', '''
++    // synthesis translate_off
++    always @(posedge i_clk)
++        if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
++            $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
++    // synthesis translate_on
++endmodule
++'''.lstrip('\n'))
++
++    cache = index['ngage2_zap_dcache']
++    parts[cache] = add_tag_port(parts[cache], 'o_lock_any', 'o_lock_tag')
++    parts[cache] = edit(parts[cache], '\toutput wire o_lock_any;\n',
++                        '\toutput wire o_lock_any;\n\toutput wire [5:0] o_lock_tag;\n')
++    parts[cache] = edit(parts[cache], '\t\t.o_lock_any(o_lock_any),\n',
++                        '\t\t.o_lock_any(o_lock_any),\n\t\t.o_lock_tag(o_lock_tag),\n')
++
++    top = index['ngage2_zap_top']
++    parts[top] = edit(parts[top], '\twire dc_lock_any;\n',
++                      '\twire dc_lock_any;\n\twire [5:0] dc_lock_tag;\n')
++    parts[top] = edit(parts[top], '\t\t\t\t.i_dc_lock_any(dc_lock_any),\n',
++                      '\t\t\t\t.i_dc_lock_any(dc_lock_any),\n'
++                      '\t\t\t\t.i_dc_lock_tag(dc_lock_tag),\n')
++    parts[top] = edit(parts[top], '\t\t\t\t.o_lock_any(dc_lock_any),\n',
++                      '\t\t\t\t.o_lock_any(dc_lock_any),\n'
++                      '\t\t\t\t.o_lock_tag(dc_lock_tag),\n')
++
++    core = index['ngage2_arm9v2_core']
++    parts[core] = add_tag_port(parts[core], 'i_dc_lock_any', 'i_dc_lock_tag')
++    parts[core] = edit(parts[core], '\tinput wire i_dc_lock_any;\n',
++                       '\tinput wire i_dc_lock_any;\n\tinput wire [5:0] i_dc_lock_tag;\n')
++    parts[core] = edit(parts[core], 'locked[s_writer_tag]',
++                       '(i_dc_lock_any && i_dc_lock_tag == s_writer_tag)')
++    parts[core] = edit(parts[core], '\t\t.i_locked(locked),\n',
++                       '\t\t.i_locked(locked),\n\t\t.i_lock_valid(i_dc_lock_any),\n'
++                       '\t\t.i_lock_tag(i_dc_lock_tag),\n')
++
++    for name in ('front_decode', 'decode'):
++        decoder = index[f'ngage2_arm9v2_{name}']
++        part = edit(parts[decoder], '\ti_locked,\n', '\ti_locked,\n\ti_lock_valid,\n\ti_lock_tag,\n')
++        part = edit(part, '\tinput wire [39:0] i_locked;\n',
++                    '\tinput wire [39:0] i_locked;\n\tinput wire i_lock_valid;\n'
++                    '\tinput wire [5:0] i_lock_tag;\n')
++        if name == 'front_decode':
++            part = edit(part, '\t\t.i_locked(i_locked),\n',
++                        '\t\t.i_locked(i_locked),\n\t\t.i_lock_valid(i_lock_valid),\n'
++                        '\t\t.i_lock_tag(i_lock_tag),\n')
++        else:
++            for offset in (80, 86, 100, 106, 112, 118):
++                part = edit(part, f'i_locked[d2[{offset}+:6]]',
++                            f'(i_lock_valid && i_lock_tag == d2[{offset}+:6])')
++        parts[decoder] = part
++    return ''.join(parts)
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -715,6 +794,7 @@ def main():
+     generated = predicate_block(generated)
+     generated = predecode_refill_candidates(half_dirty_writeback(generated))
+     generated = predecode_dcache_write_enable(generated)
++    generated = register_background_load_tag(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)

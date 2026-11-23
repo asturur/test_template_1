@@ -1,0 +1,454 @@
+--- /dev/null
++++ b/scratch/refill-issue-739d3bd/prepare.py
+@@ -0,0 +1,68 @@
++from pathlib import Path
++import hashlib
++import subprocess
++
++root = Path(__file__).resolve().parent
++repo = root.parents[1]
++out = root / "leg"
++frozen = repo / "build/sim"
++paths = {
++    "payload": frozen / "payload-clocks/v5-104-all-four-ram-candidate",
++    "native": frozen / "polycount/v5-104-all-four-ram-candidate/i16",
++}
++
++def edit(text, before, after):
++    assert text.count(before) == 1, before
++    return text.replace(before, after)
++
++wrapper = out / "rtl/ngage_cpu.sv"
++source = subprocess.check_output(["git", "show", "739d3bd:rtl/ngage_cpu.sv"], cwd=repo, text=True)
++source = edit(source, "        .cpu_cyc           (donor_cyc),",
++              "        .study_cpu_code    (wb_code),\n        .cpu_cyc           (donor_cyc),")
++index = source.index("module ngage_arm9v2_refill #(")
++a, b = source[:index], source[index:]
++b = edit(b, "    input  wire        cpu_cyc,", "    input  wire        study_cpu_code,\n    input  wire        cpu_cyc,")
++b = edit(b, """    assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
++                       cpu_line_candidate;
++    assign line_addr = cpu_address;
++    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;""",
++"""    wire study_offer = ENABLE && !reset && state == IDLE && cpu_cyc &&
++                       !cpu_lock && cpu_line_candidate;
++    reg study_delay;
++    reg study_pending = 0;
++    reg [31:0] study_address;
++    initial study_delay = $test$plusargs("delay_d_refill");
++    wire study_stage_hold = study_delay && study_offer && !study_cpu_code && !study_pending;
++    always @(posedge clk) begin
++        if (reset) study_pending <= 0;
++        else if (study_stage_hold) begin
++            study_pending <= 1;
++            study_address <= cpu_address;
++        end else if (study_pending) begin
++            if (!study_offer || study_cpu_code || cpu_address != study_address)
++                $fatal(1, "D refill changed while held in the additional admission stage");
++            if (line_req && line_ready) study_pending <= 0;
++        end
++    end
++    assign line_req = study_offer && !study_stage_hold;
++    assign line_addr = study_pending ? study_address : cpu_address;
++    assign wb_cyc = !reset && cpu_cyc && state != LINE && !study_offer;""")
++wrapper.write_text(a+b)
++
++hook = (root / "refill_observe.vh").read_text()
++for flavor, path in paths.items():
++    body = (path / "tb.v").read_text()
++    if flavor == "payload":
++        body = edit(body, "        first_clock = cycles;", "        first_clock = cycles;\n        reset_refill_measurement();")
++        body = edit(body, "    if (first_clock >= 0) begin", "    if (first_clock >= 0 && cycles != first_clock) observe_refill();\n    if (first_clock >= 0) begin")
++        body = edit(body, '            $display("PAYLOAD_RESULT', '            report_refill(window);\n            $display("PAYLOAD_RESULT')
++    else:
++        body = edit(body, "        start_clock = cycles;", "        start_clock = cycles;\n        reset_refill_measurement();")
++        body = edit(body, "    end else if (start_clock >= 0) begin", "    end else if (start_clock >= 0) begin\n        observe_refill();")
++        body = edit(body, '            $display("POLY_FRAME', '            report_refill(int\'(frame));\n            $display("POLY_FRAME')
++    assert body.count("endmodule") >= 1
++    (out / f"{flavor}.sv").write_text(body.rsplit("endmodule", 1)[0] + hook + "\nendmodule\n")
++
++commit_path = out / "rtl/arm9v2/arm925t_phone.v"
++assert hashlib.sha256(commit_path.read_bytes()).hexdigest() == (
++    "01088c86f4c9f14ce36b71f2ba1ab0fbf5c491de2b0664ab2121f9a7be370b4f")
+--- /dev/null
++++ b/scratch/refill-issue-739d3bd/refill_observe.vh
+@@ -0,0 +1,61 @@
++`define RF_CORE dut.board.upp.cpu_inside.cpu
++`define RF_DONOR `RF_CORE.u_arm925t
++`define RF_BRIDGE `RF_CORE.refill
++`define RF_ZAP `RF_DONOR.u_zap
++reg rf_instruction = 0, rf_wide = 0;
++reg [31:0] rf_lines [0:1];
++reg [31:0] rf_delayed;
++reg [31:0] rf_pairs [0:7], rf_exposed [0:7], rf_word_acks [0:7];
++wire rf_older_work = retire || `RF_DONOR.dbg_wb_valid || `RF_DONOR.dbg_wb_dvalid;
++wire rf_data_demand = `RF_DONOR.dbg_stall[0] || `RF_ZAP.g_arm9.u_arm9_core.request;
++wire rf_d_exposed = !rf_older_work && rf_data_demand &&
++    !`RF_ZAP.l_generate_with_cache_mmu.u_data_cache.tlb_busy;
++wire rf_i_exposed = !rf_older_work && !rf_data_demand && !(|`RF_DONOR.dbg_stall[7:3]) &&
++    `RF_DONOR.dbg_stall[2] && `RF_DONOR.dbg_icache[5] &&
++    !`RF_ZAP.l_generate_with_cache_mmu.u_code_cache.tlb_busy;
++wire [2:0] rf_bucket = {rf_instruction, `RF_BRIDGE.guaranteed, rf_wide};
++wire [4:0] rf_pair_end = {2'b0, `RF_BRIDGE.consumed} + 5'd2;
++
++always @(posedge clk) begin
++    if (`RF_BRIDGE.line_req && `RF_BRIDGE.line_ready) begin
++        rf_instruction <= `RF_CORE.wb_code;
++        rf_wide <= 0;
++    end else if (`RF_BRIDGE.state == 1 && `RF_BRIDGE.line_valid && `RF_BRIDGE.line_wide)
++        rf_wide <= 1;
++end
++
++task automatic reset_refill_measurement;
++    rf_delayed = 0;
++    for (integer i = 0; i < 2; i++) rf_lines[i] = 0;
++    for (integer i = 0; i < 8; i++) begin
++        rf_word_acks[i] = 0;
++        rf_pairs[i] = 0;
++        rf_exposed[i] = 0;
++    end
++endtask
++
++task automatic observe_refill;
++    if (`RF_BRIDGE.line_req && `RF_BRIDGE.line_ready)
++        rf_lines[`RF_CORE.wb_code]++;
++    if (`RF_BRIDGE.study_stage_hold)
++        rf_delayed++;
++    if (`RF_BRIDGE.state == 1 && `RF_BRIDGE.cpu_ack) begin
++        rf_word_acks[rf_bucket]++;
++        // Both aligned words must already be buffered before the ACK edge.
++        // Even consumer indices partition the burst into four disjoint pairs.
++        if (!`RF_BRIDGE.consumed[0] && `RF_BRIDGE.received[4:1] >= rf_pair_end) begin
++            rf_pairs[rf_bucket]++;
++            if (rf_instruction ? rf_i_exposed : rf_d_exposed)
++                rf_exposed[rf_bucket]++;
++        end
++    end
++endtask
++
++task automatic report_refill(input integer interval);
++    $display("REFILL_ADMIT interval=%0d data=%0d code=%0d held=%0d",
++        interval, rf_lines[0], rf_lines[1], rf_delayed);
++    for (integer i = 0; i < 8; i++)
++        if (rf_word_acks[i])
++            $display("REFILL_DELIVERY interval=%0d code=%0d guarantee=%0d wide=%0d words=%0d pairs=%0d exposed=%0d",
++                interval, (i >> 2) & 1, (i >> 1) & 1, i & 1, rf_word_acks[i], rf_pairs[i], rf_exposed[i]);
++endtask
+--- /dev/null
++++ b/scratch/refill-issue-739d3bd/run.py
+@@ -0,0 +1,114 @@
++from concurrent.futures import ThreadPoolExecutor
++import hashlib
++import json
++from pathlib import Path
++import re
++import shlex
++import subprocess
++import sys
++
++root = Path(__file__).resolve().parent
++repo = root.parents[1]
++leg = root / "leg"
++frozen = repo / "build/sim"
++paths = {
++    "payload": frozen / "payload-clocks/v5-104-all-four-ram-candidate",
++    "native": frozen / "polycount/v5-104-all-four-ram-candidate/i16",
++}
++image = "jotego/simulator:arm64"
++docker = ["docker", "run", "--rm", "--pull=never", "--network", "none", "--platform", "linux/arm64",
++          "-v", f"{leg}:/work", "-v", f"{repo}:/frozen:ro", "-w", "/work", "--entrypoint"]
++
++def frozen_path(path):
++    return "/frozen/" + str(path.relative_to(repo))
++
++def run(args, operation, log):
++    with log.open("w") as handle:
++        return subprocess.run(docker + [operation, image] + args, stdout=handle, stderr=subprocess.STDOUT,
++                              check=True)
++
++def compile_kind(kind):
++    profile = paths[kind]
++    command = next(line for line in (profile / "mmc3-nos64/Vtb__verFiles.dat").read_text().splitlines()
++                   if line.startswith("C "))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    for index, argument in enumerate(options):
++        if argument.startswith("/work/") and argument.endswith("/tb.v"):
++            options[index] = kind + ".sv"
++        elif argument.startswith("/work/") and argument.endswith((".v", ".sv")):
++            options[index] = argument.replace("/work/", "/frozen/", 1)
++    options[options.index("--Mdir") + 1] = f"obj-{kind}"
++    run(options, "verilator", root / f"build-{kind}.log")
++
++def parse_log(log, prefix):
++    return [{key: int(value) for key, value in re.findall(r"(\w+)=(-?\d+)", line)}
++            for line in log.read_text().splitlines() if line.startswith(prefix)]
++
++def sha(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++def payload_case(case, delay):
++    name = case["name"]
++    src = paths["payload"]
++    log = root / f"payload-{name}-{delay}.log"
++    options = [
++        "+ngage-compact-trace", "+no-board-log",
++        "+core=" + frozen_path(src / f"{name}-False.bin"),
++        "+extension=/frozen/build/firmware/nem4-factory/extension.bin",
++        "+cdrive=" + frozen_path(src / "cdrive.bin"),
++        f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++        f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    trace = f"payload-{name}-{delay}-requests.txt"
++    options += ["+sdram-trace=/work/" + trace]
++    if delay:
++        options += ["+delay_d_refill"]
++    run(options, "/work/obj-payload/Vtb", log)
++    results = parse_log(log, "PAYLOAD_RESULT ")
++    admitted = parse_log(log, "REFILL_ADMIT ")
++    delivery = parse_log(log, "REFILL_DELIVERY ")
++    passed, = parse_log(log, "PAYLOAD_PASS ")
++    assert len(results) == len(admitted) == 7
++    for row, expected in zip(results, case["windows"], strict=True):
++        assert row["payload_ops"] == expected["payload_retire_proxy"]
++        assert row["helper_ops"] == expected["helper_retire_proxy"]
++    return name, delay, dict(windows=results, admit=admitted, delivery=delivery, passed=passed,
++                             trace_hash=sha(leg / trace), input_hash=sha(src / f"{name}-False.bin"))
++
++def native_case(delay):
++    src = paths["native"].parent
++    log = root / f"native-{delay}.log"
++    args = ["+ngage-compact-trace", "+no-board-log",
++            "+core=" + frozen_path(src / "core.bin"),
++            "+extension=/frozen/build/firmware/nem4-factory/extension.bin",
++            "+cdrive=" + frozen_path(src / "cdrive.bin"),
++            "+snapshot=" + frozen_path(src / "snapshot.bin"),
++            f"+results=/work/native-{delay}",
++            "+begin_pc=68", "+end_pc=6c", "+done_pc=80", "+fail_pc=84"]
++    if delay:
++        args += ["+delay_d_refill"]
++    run(args, "/work/obj-native/Vtb", log)
++    frames = parse_log(log, "POLY_FRAME ")
++    admitted = parse_log(log, "REFILL_ADMIT ")
++    delivery = parse_log(log, "REFILL_DELIVERY ")
++    passed, = parse_log(log, "PASS_POLYCOUNT ")
++    assert len(frames) == len(admitted) == 4
++    assert sha(leg / f"native-{delay}.bin") == sha(paths["native"] / "result.bin")
++    return dict(frames=frames, admit=admitted, delivery=delivery, passed=passed,
++                output_hash=sha(leg / f"native-{delay}.bin"))
++
++kind = sys.argv[1]
++assert kind in paths
++compile_kind(kind)
++if kind == "native":
++    with ThreadPoolExecutor(max_workers=2) as pool:
++        rows = list(pool.map(native_case, (0, 1)))
++else:
++    sys.path.insert(0, str(repo / "tests/cpu/arm9v2_board"))
++    from payload_clocks import qualified_inputs
++    cases = list(qualified_inputs())
++    assert len(cases) == 15
++    with ThreadPoolExecutor(max_workers=4) as pool:
++        futures = [pool.submit(payload_case, case, delay) for case in cases for delay in (0, 1)]
++        rows = [future.result() for future in futures]
++(root / f"{kind}.json").write_text(json.dumps(rows, indent=2) + "\n")
++print(f"PASS {kind} paired measurements on 739d3bd")
+--- /dev/null
++++ b/scratch/refill-issue-739d3bd/stage_tb.sv
+@@ -0,0 +1,92 @@
++`timescale 1ns/1ps
++
++module stage_tb;
++    reg clk = 0, reset = 1, request = 0, code = 0, candidate = 0;
++    reg [31:0] address = 0;
++    reg [2:0] cti = 0;
++    reg valid = 0, last = 0;
++    reg [63:0] data = 0;
++    always #5 clk = !clk;
++    wire accepted, error, trusted, scalar, line_req;
++    wire [31:0] delivered, line_addr;
++    ngage_arm9v2_refill #(.ENABLE(1)) dut (
++        .clk(clk), .reset(reset), .study_cpu_code(code), .cpu_cyc(request),
++        .cpu_lock(1'b0), .cpu_line_candidate(candidate), .cpu_address(address),
++        .cpu_write(1'b0), .cpu_sel(4'hf), .cpu_cti(cti), .cpu_bte(2'b0),
++        .cpu_ack(accepted), .cpu_error(error), .cpu_no_late_error(trusted),
++        .cpu_data(delivered), .wb_cyc(scalar), .wb_ack(1'b1), .wb_error(1'b0),
++        .wb_data(32'haaaa5555), .line_req(line_req), .line_addr(line_addr),
++        .line_ready(1'b1), .line_reject(1'b0), .line_valid(valid),
++        .line_data(data), .line_wide(1'b1), .line_last(last), .line_error(1'b0),
++        .line_no_late_error(1'b1)
++    );
++    integer clocks = 0;
++    always @(posedge clk) clocks <= clocks+1;
++    task automatic burst(input bit fetch, input int base);
++        int delay, grant, first;
++        @(negedge clk);
++        candidate = 1;
++        request = 1;
++        code = fetch;
++        address = base;
++        cti = 3'b010;
++        delay = 0;
++        forever begin
++            @(posedge clk);
++            if (scalar || accepted || error) $fatal(1, "line admission leaked to scalar");
++            if (line_req) begin
++                if (line_addr != base) $fatal(1, "wrong line address");
++                break;
++            end
++            delay++;
++        end
++        if (delay != (($test$plusargs("delay_d_refill") && !fetch) ? 1 : 0))
++            $fatal(1, "D-only stage had wrong cost code=%0d delay=%0d", fetch, delay);
++        grant = clocks;
++        fork
++            begin
++                for (integer i = 0; i < 4; i++) begin
++                    @(negedge clk);
++                    valid = 1;
++                    data = {32'(32'h12340001 + 2*i), 32'(32'h12340000 + 2*i)};
++                    last = i == 3;
++                end
++                @(negedge clk);
++                valid = 0;
++                last = 0;
++            end
++            begin
++                for (integer i = 0; i < 8; i++) begin
++                    do @(posedge clk); while (!accepted);
++                    if (i == 0) first = clocks-grant;
++                    if (clocks-grant != 2+i || delivered !== 32'h12340000 + i || !trusted)
++                        $fatal(1, "critical/return cadence changed at word %0d", i);
++                    @(negedge clk);
++                    address = address + 4;
++                    candidate = 0;
++                    cti = i == 6 ? 3'b111 : 3'b010;
++                end
++            end
++        join
++        request = 0;
++        $display("STAGE code=%0d offer_wait=%0d first_after_grant=%0d", fetch, delay, first);
++    endtask
++
++    initial begin
++        repeat (3) @(negedge clk);
++        reset = 0;
++        burst(0, 'h0a000000);
++        burst(1, 'h200);
++        @(negedge clk);
++        request = 1;
++        address = 'h0c120400;
++        candidate= 0;
++        cti = 0;
++        @(posedge clk);
++        if (!scalar || !accepted || line_req || trusted || delivered != 'haaaa5555)
++            $fatal(1, "scalar/MMIO response timing changed");
++        $display("PASS D-only admission and unchanged scalar and refill cadence");
++        $finish;
++    end
++    initial begin #5000; $fatal(1, "stage watchdog"); end
++endmodule
+--- /dev/null
++++ b/scratch/refill-issue-739d3bd/summarize.py
+@@ -0,0 +1,104 @@
++from collections import Counter
++import hashlib
++import json
++from pathlib import Path
++from statistics import median
++import subprocess
++
++root = Path(__file__).resolve().parent
++repo = root.parents[1]
++base_revision = "739d3bdb6a10ad975df500576bbde39f7676ff47"
++
++def read_json(path):
++    return json.loads(path.read_text())
++
++def hash_file(path):
++    return hashlib.sha256(path.read_bytes()).hexdigest()
++
++def aggregate(rows):
++    sums = {}
++    for row in rows:
++        key = (("I" if row["code"] else "D") + "_" +
++               ("guaranteed" if row["guarantee"] else "untrusted") + "_" +
++               ("wide" if row["wide"] else "narrow"))
++        counters = sums.setdefault(key, Counter())
++        counters.update({field: row[field] for field in ("words", "pairs", "exposed")})
++    return sums
++
++def case_result(baseline, delayed, windows, field):
++    a = [row[field] for row in baseline[windows]]
++    b = [row[field] for row in delayed[windows]]
++    held = sum(row["held"] for row in delayed["admit"])
++    assert sum(row["held"] for row in baseline["admit"]) == 0
++    assert all(row["held"] == row["data"] for row in delayed["admit"])
++    return {
++        "baseline_cycles": a,
++        "delayed_cycles": b,
++        "elapsed_delta": [new-old for old, new in zip(a, b, strict=True)],
++        "delta_clocks": sum(b) - sum(a),
++        "delta_pct": (sum(b)-sum(a)) * 100 / sum(a),
++        "held_D_offers": held,
++        "baseline_admissions": baseline["admit"],
++        "delayed_admissions": delayed["admit"],
++        "baseline_delivery": baseline["delivery"],
++        "delayed_delivery": delayed["delivery"],
++    }
++
++payload_path = repo / "build/sim/payload-clocks/v5-104-all-four-ram-candidate"
++native_path = repo / "build/sim/polycount/v5-104-all-four-ram-candidate"
++payload_ref = {row["case"]: row for row in read_json(payload_path / "result.json")["rows"]}
++both = {delay: {} for delay in (0, 1)}
++for name, delay, measure in read_json(root / "payload.json"):
++    both[delay][name] = measure
++assert both[0].keys() == both[1].keys() == payload_ref.keys() and len(both[0]) == 15
++result = {
++    "base_revision": base_revision,
++    "system_clock_hz": 104_000_000,
++    "netlist_sha256": hash_file(root / "leg/rtl/arm9v2/arm925t_phone.v"),
++    "base_cpu_wrapper_sha256": hashlib.sha256(subprocess.check_output(
++        ["git", "show", f"{base_revision}:rtl/ngage_cpu.sv"], cwd=repo)).hexdigest(),
++    "simulation_cpu_wrapper_sha256": hash_file(root / "leg/rtl/ngage_cpu.sv"),
++    "pin_model_sha256": hash_file(payload_path / "mt48lc16m16a2.v"),
++    "observer_sha256": hash_file(root / "refill_observe.vh"),
++    "metric_note": "Pairs are disjoint aligned even-head ACKs with two buffered words; exposed is the existing CPU wait bucket on the first ACK edge, not an IPC estimate.",
++    "payloads": {},
++}
++print("case all7_delta_pct warm_median_before/after held_D same_SDRAM_trace")
++for name in both[0]:
++    old, new = both[0][name], both[1][name]
++    assert old["windows"] == payload_ref[name]["windows"], name
++    ref_trace = payload_path / f"{name}-3-64-requests.txt"
++    assert old["trace_hash"] == hash_file(ref_trace), name
++    assert old["input_hash"] == new["input_hash"]
++    assert all(all(a[k] == b[k] for k in ("window", "payload_ops", "helper_ops"))
++               for a, b in zip(old["windows"], new["windows"], strict=True))
++    row = case_result(old, new, "windows", "cycles")
++    row["warm_median"] = [median(row["baseline_cycles"][2:]), median(row["delayed_cycles"][2:])]
++    row["input_sha256"] = old["input_hash"]
++    row["sdram_trace_sha256"] = [old["trace_hash"], new["trace_hash"]]
++    result["payloads"][name] = row
++    print(name, f'{row["delta_pct"]:+.4f}%', row["warm_median"], row["held_D_offers"],
++          old["trace_hash"] == new["trace_hash"])
++result["payload_baseline_delivery"] = aggregate(row for measure in both[0].values() for row in measure["delivery"])
++print("Payload delivery", result["payload_baseline_delivery"])
++
++if (root / "native.json").exists():
++    original, delayed = read_json(root / "native.json")
++    old = read_json(native_path / "result.json")["results"]["i16"]
++    assert original["frames"] == old["frames"]
++    assert original["passed"] == old["completion"]
++    assert original["output_hash"] == delayed["output_hash"] == old["output_sha"]
++    for a, b in zip(original["frames"], delayed["frames"], strict=True):
++        assert all(a[k] == b[k] for k in ("frame", "retired", "uops", "draws", "swaps"))
++    native = case_result(original, delayed, "frames", "clocks")
++    native["output_sha256"] = original["output_hash"]
++    native["baseline_total_cycles"] = original["passed"]["cycles"]
++    native["delayed_total_cycles"] = delayed["passed"]["cycles"]
++    native["baseline_delivery_total"] = aggregate(original["delivery"])
++    native["input_sha256"] = {name: hash_file(native_path / name)
++                              for name in ("core.bin", "snapshot.bin", "cdrive.bin")}
++    result["native"] = native
++    print("Native", native["baseline_cycles"], native["elapsed_delta"],
++          f'{native["delta_pct"]:+.4f}%', native["held_D_offers"], native["baseline_delivery_total"])
++
++(root / "comparison.json").write_text(json.dumps(result, indent=2) + "\n")

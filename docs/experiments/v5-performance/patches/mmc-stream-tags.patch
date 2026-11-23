@@ -1,0 +1,701 @@
+diff --git a/rtl/ngage_mmc_card.v b/rtl/ngage_mmc_card.v
+index 2c3325839247749391153c6c9f3fb4d284dfe5c8..4e8bd47b1438f72b139354da05154ad8928c3395 100644
+--- a/rtl/ngage_mmc_card.v
++++ b/rtl/ngage_mmc_card.v
+@@ -284,7 +284,7 @@ module ngage_mmc_card #(
+     // buffer: 8 KB (16 x 512-byte sector slots):
+     //   slots  0..11: three 2 KB (4-sector) quarters for aligned 4 KB streaming chunks
+     //   slots 12..15: four 512-byte slots reserved for CMD17 metadata, writes, and sidecar
+-    reg [22:0] tag[0:15];
++    reg [22:0] metadata_tag[12:15];
+     reg [15:0] tvalid, tzero;
+     reg [1:0] m_repl;  // round-robin index (0..3) for metadata slots 12..15
+     reg [1:0] w_m_idx;  // metadata slot (0..3) used by the active write
+@@ -375,8 +375,9 @@ module ngage_mmc_card #(
+     // pipelined across four lightweight register stages so that no path from a
+     // tag or slot register passes through an adder and a compare in one clock:
+     //   stage 0 (s0_*): candidate sector numbers (adders only)
+-    //   stage 1 (s1_*): modulo-3 slot indices and per-slot tag compares in parallel
+-    //   stage 2 (s2_*): 1-bit slot-hit muxes and miss priority selection
++    //   stage 1 (s1_*): stream tag RAM reads at modulo-3 slot indices,
++    //                    in parallel with associative metadata tag compares
++    //   stage 2 (s2_*): selected stream tag compares and miss priority selection
+     //   stage 3 (want*): HPS request parameters (chunk quarters and block count)
+     // The results are used only once the inputs have stayed the same for all
+     // four stages (settle == 0).
+@@ -386,8 +387,9 @@ module ngage_mmc_card #(
+     reg [22:0] s1_rlo, s1_rhi, s1_pchunk;
+     reg [3:0] s1_srlo, s1_srhi, s1_spchunk;
+     reg s1_act, s1_multi, s1_pc_win, s1_pc_in;
+-    reg [15:0] s1_eq_lo, s1_eq_hi;
+-    reg [11:0] s1_eq_pc;
++    reg [15:12] s1_eq_lo, s1_eq_hi;
++    reg [11:0] s1_stream_valid;
++    reg [2:0] s1_forward, s1_forward_match;
+ 
+     reg have_lo, have_hi;
+     reg [3:0] slot_lo, slot_hi;
+@@ -425,15 +427,56 @@ module ngage_mmc_card #(
+     wire [22:0] w_rhi = sec_of(d_addr + {23'd0, bl} - 33'd1);
+     wire [22:0] w_pchunk = {w_rlo[22:3] + 20'd1, 3'b000};
+ 
+-    wire s2_slo_ok = s1_eq_lo[s1_srlo];
++    wire [3:0] stream_read_slot[0:2];
++    wire [22:0] stream_read_sector[0:2], stream_read_tag[0:2];
++    wire [2:0] stream_tag_match;
++    assign stream_read_sector[0] = s0_rlo;
++    assign stream_read_sector[1] = s0_rhi;
++    assign stream_read_sector[2] = s0_pchunk;
++
++    // Publish tags logically on the original edge. The physical write is
++    // delayed one clock, so a simultaneous lookup forwards that pending
++    // tag and never depends on the RAM's mixed-port collision data.
++    reg        stream_write_pending = 0;
++    reg [ 3:0] stream_write_slot;
++    reg [22:0] stream_write_tag;
++    wire stream_publish, stream_zero, book_request;
++
++    genvar stream_port;
++    generate
++        for (stream_port = 0; stream_port < 3; stream_port = stream_port + 1) begin : stream_tags
++            assign stream_read_slot[stream_port] = s_slot(stream_read_sector[stream_port]);
++            ngage_bram #(
++                .AW         (4),
++                .DW         (23),
++                .READ_ONLY_B(1)
++            ) tags (
++                .clk   (clk),
++                .addr_a(stream_write_slot),
++                .data_a(stream_write_tag),
++                .we_a  (stream_write_pending),
++                .q_a   (),
++                .addr_b(stream_read_slot[stream_port]),
++                .data_b(23'b0),
++                .we_b  (1'b0),
++                .q_b   (stream_read_tag[stream_port])
++            );
++        end
++    endgenerate
++
++    assign stream_tag_match[0] = s1_forward[0] ? s1_forward_match[0] : stream_read_tag[0] == s1_rlo;
++    assign stream_tag_match[1] = s1_forward[1] ? s1_forward_match[1] : stream_read_tag[1] == s1_rhi;
++    assign stream_tag_match[2] = s1_forward[2] ? s1_forward_match[2] : stream_read_tag[2] == s1_pchunk;
++
++    wire s2_slo_ok = s1_stream_valid[s1_srlo] && stream_tag_match[0];
+     wire s2_mlo_ok = |s1_eq_lo[15:12];
+     wire s2_has_lo = s1_multi ? s2_slo_ok : (s2_slo_ok || s2_mlo_ok);
+ 
+-    wire s2_shi_ok = s1_eq_hi[s1_srhi];
++    wire s2_shi_ok = s1_stream_valid[s1_srhi] && stream_tag_match[1];
+     wire s2_mhi_ok = |s1_eq_hi[15:12];
+     wire s2_has_hi = s1_multi ? s2_shi_ok : (s2_shi_ok || s2_mhi_ok);
+ 
+-    wire s2_spc_ok = s1_eq_pc[s1_spchunk];
++    wire s2_spc_ok = s1_stream_valid[s1_spchunk] && stream_tag_match[2];
+ 
+     // From s2_want_slot[3:2] = mod3(s2_want[22:2]) and s2_want[2], derive the
+     // two quarters of the aligned 4 KB chunk {s2_want[22:3], 3'b000} without
+@@ -453,23 +496,25 @@ module ngage_mmc_card #(
+         s0_act    <= d_state != D_IDLE;
+         s0_multi  <= d_multi;
+ 
+-        // stage 1: modulo-3 slot indices and per-slot tag compares in parallel
++        // stage 1: clock selected stream tags and compare all metadata tags
+         s1_rlo <= s0_rlo;
+         s1_rhi <= s0_rhi;
+         s1_pchunk <= s0_pchunk;
+-        s1_srlo <= s_slot(s0_rlo);
+-        s1_srhi <= s_slot(s0_rhi);
+-        s1_spchunk <= s_slot(s0_pchunk);
++        s1_srlo <= stream_read_slot[0];
++        s1_srhi <= stream_read_slot[1];
++        s1_spchunk <= stream_read_slot[2];
+         s1_act <= s0_act;
+         s1_multi <= s0_multi;
+         s1_pc_win  <= s0_multi && s0_rlo[2] && (s0_rhi[22:2] == s0_rlo[22:2]) && (s0_rlo[2:0] != 3'd7);
+         s1_pc_in <= ({9'd0, s0_pchunk} < nblk);
+-        for (pipe_i = 0; pipe_i < 16; pipe_i = pipe_i + 1) begin
+-            s1_eq_lo[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_rlo);
+-            s1_eq_hi[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_rhi);
++        s1_stream_valid <= tvalid[11:0];
++        for (pipe_i = 0; pipe_i < 3; pipe_i = pipe_i + 1) begin
++            s1_forward[pipe_i] <= stream_write_pending && stream_read_slot[pipe_i] == stream_write_slot;
++            s1_forward_match[pipe_i] <= stream_write_tag == stream_read_sector[pipe_i];
+         end
+-        for (pipe_i = 0; pipe_i < 12; pipe_i = pipe_i + 1) begin
+-            s1_eq_pc[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_pchunk);
++        for (pipe_i = 12; pipe_i < 16; pipe_i = pipe_i + 1) begin
++            s1_eq_lo[pipe_i] <= tvalid[pipe_i] && (metadata_tag[pipe_i] == s0_rlo);
++            s1_eq_hi[pipe_i] <= tvalid[pipe_i] && (metadata_tag[pipe_i] == s0_rhi);
+         end
+ 
+         // stage 2: 1-bit slot-hit muxes and miss priority selection
+@@ -605,6 +650,21 @@ module ngage_mmc_card #(
+     wire [22:0] w_sec = sec_of(w_addr);
+     wire [40:0] file_bytes = {nblk, 9'd0};
+     wire [22:0] h_stream_sec = {h_lba[22:3], sd_buff_addr[10:8]};
++    assign stream_publish = sd_buff_wr && h_state != H_IDLE && !h_wr && !h_meta &&
++                            sd_buff_addr[12:11] == 2'b00 && sd_buff_addr[7:0] == 8'hFF;
++    assign book_request = d_state != D_IDLE && bk_ok && want_v && allow_fetch &&
++                          h_state == H_IDLE && !h_done && l_state == L_READY;
++    assign stream_zero = book_request && want_oor && d_multi;
++    always @(posedge clk) begin
++        stream_write_pending <= stream_publish || stream_zero;
++        if (stream_zero) begin
++            stream_write_slot <= want_slot;
++            stream_write_tag  <= want;
++        end else if (stream_publish) begin
++            stream_write_slot <= h_cur_slot;
++            stream_write_tag  <= h_stream_sec;
++        end
++    end
+ 
+     // Precomputed read byte offsets, write slot/quarter indices, and HPS
+     // metadata invalidation matches (all inputs are stable at least several
+@@ -624,8 +684,8 @@ module ngage_mmc_card #(
+         w_q       <= mod3(w_sec[22:2]);
+         w_in_file <= !w_addr[32] && ({8'd0, w_addr} + 41'd512 <= file_bytes);
+         for (pre_m = 0; pre_m < 4; pre_m = pre_m + 1) begin
+-            w_m_hit[pre_m]   <= tvalid[12+pre_m] && (tag[12+pre_m] == w_sec);
+-            h_m_match[pre_m] <= (tag[12+pre_m] == h_stream_sec);
++            w_m_hit[pre_m]   <= tvalid[12+pre_m] && (metadata_tag[12+pre_m] == w_sec);
++            h_m_match[pre_m] <= (metadata_tag[12+pre_m] == h_stream_sec);
+         end
+     end
+ 
+@@ -697,8 +757,7 @@ module ngage_mmc_card #(
+         bk_touch <= 1'b0;
+ 
+         // ---------------- HPS transfers ----------------
+-        if (sd_buff_wr && (h_state != H_IDLE) && !h_wr && !h_meta && sd_buff_addr[12:11] == 2'b00 && sd_buff_addr[7:0] == 8'hFF) begin
+-            tag[h_cur_slot]    <= h_stream_sec;
++        if (stream_publish) begin
+             tvalid[h_cur_slot] <= 1'b1;
+             tzero[h_cur_slot]  <= 1'b0;
+             for (main_m = 0; main_m < 4; main_m = main_m + 1)
+@@ -717,10 +776,10 @@ module ngage_mmc_card #(
+                 h_state <= H_IDLE;
+                 h_done  <= 1'b1;
+                 if (!h_wr && h_meta) begin
+-                    tag[{2'b11, h_m_idx}]    <= h_lba[22:0];
+-                    tvalid[{2'b11, h_m_idx}] <= 1'b1;
+-                    tzero[{2'b11, h_m_idx}]  <= 1'b0;
+-                    bk_touch                 <= 1'b1;
++                    metadata_tag[{2'b11, h_m_idx}] <= h_lba[22:0];
++                    tvalid[{2'b11, h_m_idx}]       <= 1'b1;
++                    tzero[{2'b11, h_m_idx}]        <= 1'b0;
++                    bk_touch                       <= 1'b1;
+                 end
+             end
+             default: ;
+@@ -865,18 +924,17 @@ module ngage_mmc_card #(
+         end
+         // aligned 4 KB chunks for CMD18 (clamped to nblk), single sectors in
+         // reserved metadata slots 12..15 for CMD17
+-        if (d_state != D_IDLE && bk_ok && want_v && allow_fetch && h_state == H_IDLE && !h_done && l_state == L_READY) begin
++        if (book_request) begin
+             bk_touch <= 1'b1;
+             if (want_oor) begin
+                 if (d_multi) begin
+-                    tag[want_slot]    <= want;
+                     tvalid[want_slot] <= 1'b1;
+                     tzero[want_slot]  <= 1'b1;
+                 end else begin
+-                    tag[{2'b11, m_repl}]    <= want;
+-                    tvalid[{2'b11, m_repl}] <= 1'b1;
+-                    tzero[{2'b11, m_repl}]  <= 1'b1;
+-                    m_repl                  <= m_repl + 2'd1;
++                    metadata_tag[{2'b11, m_repl}] <= want;
++                    tvalid[{2'b11, m_repl}]       <= 1'b1;
++                    tzero[{2'b11, m_repl}]        <= 1'b1;
++                    m_repl                        <= m_repl + 2'd1;
+                 end
+             end else if (d_multi) begin
+                 h_state   <= H_REQ;
+@@ -1093,12 +1151,12 @@ module ngage_mmc_card #(
+                 end
+                 // Never turn a lost payload bound into successful programming.
+                 if ((w_issued && h_done) || !w_in_file) begin
+-                    w_issued                 <= 1'b0;
+-                    dat_oe                   <= 1'b0;
+-                    tag[{2'b11, w_m_idx}]    <= w_sec;
+-                    tvalid[{2'b11, w_m_idx}] <= w_in_file;
+-                    tzero[{2'b11, w_m_idx}]  <= 1'b0;
+-                    bk_touch                 <= 1'b1;
++                    w_issued                       <= 1'b0;
++                    dat_oe                         <= 1'b0;
++                    metadata_tag[{2'b11, w_m_idx}] <= w_sec;
++                    tvalid[{2'b11, w_m_idx}]       <= w_in_file;
++                    tzero[{2'b11, w_m_idx}]        <= 1'b0;
++                    bk_touch                       <= 1'b1;
+                     if (!w_in_file) err[E_OUT_OF_RANGE] <= 1'b1;
+                     if (!w_multi || w_stop12) begin
+                         w_state  <= W_OFF;
+diff --git a/tests/phone/mmc_card/README.md b/tests/phone/mmc_card/README.md
+index 54597b31e957e7e952df9183db358380e6fa1241..f7bcbdff19e24c22ca1fd75dabe9e00f9775941c 100644
+--- a/tests/phone/mmc_card/README.md
++++ b/tests/phone/mmc_card/README.md
+@@ -92,3 +92,24 @@ No width, truncation, blocking-sequential or other warning is suppressed.
+   limit; the tested write guard prevents rollover writes from aliasing LBA 0.
+ - No whole-firmware card mount, boot, UI, physical hardware, synthesis/fit or
+   production HPS connection claim is made. No user card/image was modified.
++
++## Stream tag RAM
++
++`tests/phone/mmc_card/run-stream-tags.sh` compares the three selected stream
++hits and public pins against the register-backed card at `29479fe`. It reruns
++the EOF and footer wire fixtures and exercises all twelve stream slots in a
++directed test. Its RAM model returns X on mixed-port collisions. The test
++checks 24 coincident hits across the independent low, high and prefetch
++ports, including replacement of occupied slots.
++
++The card samples three replicated M10K tag stores at its original slot-index
++edge. It compares the returned tags during the existing miss-selection
++stage. The logical tag write remains on its original edge and forwards to
++the physical read when the delayed RAM write collides. The four associative
++metadata tags stay in registers.
++
++At 104 MHz, the actual `hps_io` lockstep replay matched at modeled host
++delays of 13, 256 and 4,096 clocks. The original Sega Rally 64-sector CMD18
++replay matched the 32 KiB output and transfer counters at 830,761 transfer
++clocks and 852,184 total clocks. The mixed ARM9V2, SDRAM-pin, LCD, PCM and
++MMC replay still completed in 1,201,547 clocks.
+diff --git a/tests/phone/mmc_card/equivalence.v b/tests/phone/mmc_card/equivalence.v
+index 44891bc8b940e0df91b0161e6f6cb92019b60d19..0fbdea8ec44898ac4299ae6bde11687182428437 100644
+--- a/tests/phone/mmc_card/equivalence.v
++++ b/tests/phone/mmc_card/equivalence.v
+@@ -18,7 +18,7 @@ module mmc_card_equivalence (
+     input wire img_readonly,
+     input wire [63:0] img_size,
+     output wire [31:0] sd_lba,
+-    output wire [ 5:0] sd_blk_cnt,
++    output wire [5:0] sd_blk_cnt,
+     output wire sd_rd,
+     output wire sd_wr,
+     input wire sd_ack,
+@@ -27,110 +27,124 @@ module mmc_card_equivalence (
+     output wire [15:0] sd_buff_din,
+     input wire sd_buff_wr
+ );
+-    wire reference_cmd_o;
+-    wire reference_cmd_oe;
+-    wire reference_dat_o;
+-    wire reference_dat_oe;
+-    wire reference_present;
+-    wire reference_write_protected;
+-    wire reference_active;
+-    wire [31:0] reference_sd_lba;
+-    wire [ 5:0] reference_sd_blk_cnt;
+-    wire reference_sd_rd;
+-    wire reference_sd_wr;
+-    wire [15:0] reference_sd_buff_din;
+-    ngage_mmc_card ported (
+-        .clk(clk),
+-        .reset(reset),
+-        .mmc_clk(mmc_clk),
+-        .cmd_i(cmd_i),
+-        .cmd_o(cmd_o),
+-        .cmd_oe(cmd_oe),
+-        .dat_i(dat_i),
+-        .dat_o(dat_o),
+-        .dat_oe(dat_oe),
+-        .stop_queued(stop_queued),
+-        .present(present),
+-        .write_protected(write_protected),
+-        .active(active),
+-        .img_mounted(img_mounted),
+-        .img_readonly(img_readonly),
+-        .img_size(img_size),
+-        .sd_lba(sd_lba),
+-        .sd_blk_cnt(sd_blk_cnt),
+-        .sd_rd(sd_rd),
+-        .sd_wr(sd_wr),
+-        .sd_ack(sd_ack),
+-        .sd_buff_addr(sd_buff_addr),
+-        .sd_buff_dout(sd_buff_dout),
+-        .sd_buff_din(sd_buff_din),
+-        .sd_buff_wr(sd_buff_wr)
+-    );
+-    mmc_card reference (
+-        .clk(clk),
+-        .reset(reset),
+-        .mmc_clk(mmc_clk),
+-        .cmd_i(cmd_i),
+-        .cmd_o(reference_cmd_o),
+-        .cmd_oe(reference_cmd_oe),
+-        .dat_i(dat_i),
+-        .dat_o(reference_dat_o),
+-        .dat_oe(reference_dat_oe),
+-        .stop_queued(stop_queued),
+-        .present(reference_present),
+-        .write_protected(reference_write_protected),
+-        .active(reference_active),
+-        .img_mounted(img_mounted),
+-        .img_readonly(img_readonly),
+-        .img_size(img_size),
+-        .sd_lba(reference_sd_lba),
+-        .sd_blk_cnt(reference_sd_blk_cnt),
+-        .sd_rd(reference_sd_rd),
+-        .sd_wr(reference_sd_wr),
+-        .sd_ack(sd_ack),
+-        .sd_buff_addr(sd_buff_addr),
+-        .sd_buff_dout(sd_buff_dout),
+-        .sd_buff_din(reference_sd_buff_din),
+-        .sd_buff_wr(sd_buff_wr)
+-    );
+-    reg hps_write = 0;
+-    always @(posedge clk) begin
+-        if (reset) hps_write <= 0;
+-        else begin
+-            if (sd_wr) hps_write <= 1;
+-            if (sd_rd) hps_write <= 0;
+-            if (present !== reference_present) begin
+-                $display("FAIL MMC donor/port lockstep: presence");
+-                $finish(1);
+-            end
+-            if (active !== reference_active) begin
+-                $display("FAIL MMC donor/port lockstep: active");
+-                $finish(1);
+-            end
+-            if (present && write_protected !== reference_write_protected) begin
+-                $display("FAIL MMC donor/port lockstep: write protection");
+-                $finish(1);
+-            end
+-            if (cmd_oe !== reference_cmd_oe || (cmd_oe && cmd_o !== reference_cmd_o)) begin
+-                $display("FAIL MMC donor/port lockstep: CMD wire");
+-                $finish(1);
+-            end
+-            if (dat_oe !== reference_dat_oe || (dat_oe && dat_o !== reference_dat_o)) begin
+-                $display("FAIL MMC donor/port lockstep: DAT wire");
+-                $finish(1);
+-            end
+-            if (sd_rd !== reference_sd_rd || sd_wr !== reference_sd_wr) begin
+-                $display("FAIL MMC donor/port lockstep: HPS request");
+-                $finish(1);
+-            end
+-            if ((sd_rd || sd_wr) && (sd_lba !== reference_sd_lba || sd_blk_cnt !== reference_sd_blk_cnt)) begin
+-                $display("FAIL MMC donor/port lockstep: HPS extent");
+-                $finish(1);
+-            end
+-            if (active && sd_ack && hps_write && sd_buff_din !== reference_sd_buff_din) begin
+-                $display("FAIL MMC donor/port lockstep: HPS write bytes");
+-                $finish(1);
+-            end
+-        end
++  wire reference_cmd_o;
++  wire reference_cmd_oe;
++  wire reference_dat_o;
++  wire reference_dat_oe;
++  wire reference_present;
++  wire reference_write_protected;
++  wire reference_active;
++  wire [31:0] reference_sd_lba;
++  wire [5:0] reference_sd_blk_cnt;
++  wire reference_sd_rd;
++  wire reference_sd_wr;
++  wire [15:0] reference_sd_buff_din;
++  ngage_mmc_card ported (
++      .clk(clk),
++      .reset(reset),
++      .mmc_clk(mmc_clk),
++      .cmd_i(cmd_i),
++      .cmd_o(cmd_o),
++      .cmd_oe(cmd_oe),
++      .dat_i(dat_i),
++      .dat_o(dat_o),
++      .dat_oe(dat_oe),
++      .stop_queued(stop_queued),
++      .present(present),
++      .write_protected(write_protected),
++      .active(active),
++      .img_mounted(img_mounted),
++      .img_readonly(img_readonly),
++      .img_size(img_size),
++      .sd_lba(sd_lba),
++      .sd_blk_cnt(sd_blk_cnt),
++      .sd_rd(sd_rd),
++      .sd_wr(sd_wr),
++      .sd_ack(sd_ack),
++      .sd_buff_addr(sd_buff_addr),
++      .sd_buff_dout(sd_buff_dout),
++      .sd_buff_din(sd_buff_din),
++      .sd_buff_wr(sd_buff_wr)
++  );
++  mmc_card reference (
++      .clk(clk),
++      .reset(reset),
++      .mmc_clk(mmc_clk),
++      .cmd_i(cmd_i),
++      .cmd_o(reference_cmd_o),
++      .cmd_oe(reference_cmd_oe),
++      .dat_i(dat_i),
++      .dat_o(reference_dat_o),
++      .dat_oe(reference_dat_oe),
++      .stop_queued(stop_queued),
++      .present(reference_present),
++      .write_protected(reference_write_protected),
++      .active(reference_active),
++      .img_mounted(img_mounted),
++      .img_readonly(img_readonly),
++      .img_size(img_size),
++      .sd_lba(reference_sd_lba),
++      .sd_blk_cnt(reference_sd_blk_cnt),
++      .sd_rd(reference_sd_rd),
++      .sd_wr(reference_sd_wr),
++      .sd_ack(sd_ack),
++      .sd_buff_addr(sd_buff_addr),
++      .sd_buff_dout(sd_buff_dout),
++      .sd_buff_din(reference_sd_buff_din),
++      .sd_buff_wr(sd_buff_wr)
++  );
++`ifdef NGAGE_TEST_MMC_STREAM_TAGS
++  integer colliding_hits = 0;
++  always @(posedge clk) begin
++    if (!reset && present) begin
++      if ({ported.s2_slo_ok, ported.s2_shi_ok, ported.s2_spc_ok} !==
++                {reference.s2_slo_ok, reference.s2_shi_ok, reference.s2_spc_ok})
++        $fatal(1, "MMC selected stream tag mismatch");
++      if (|(ported.s1_forward &{reference.s2_spc_ok, reference.s2_shi_ok, reference.s2_slo_ok}))
++        colliding_hits <= colliding_hits + 1;
+     end
++  end
++  final $display("MMC stream tags colliding_hits=%0d", colliding_hits);
++`endif
++
++  reg hps_write = 0;
++  always @(posedge clk) begin
++    if (reset) hps_write <= 0;
++    else begin
++      if (sd_wr) hps_write <= 1;
++      if (sd_rd) hps_write <= 0;
++      if (present !== reference_present) begin
++        $display("FAIL MMC donor/port lockstep: presence");
++        $finish(1);
++      end
++      if (active !== reference_active) begin
++        $display("FAIL MMC donor/port lockstep: active");
++        $finish(1);
++      end
++      if (present && write_protected !== reference_write_protected) begin
++        $display("FAIL MMC donor/port lockstep: write protection");
++        $finish(1);
++      end
++      if (cmd_oe !== reference_cmd_oe || (cmd_oe && cmd_o !== reference_cmd_o)) begin
++        $display("FAIL MMC donor/port lockstep: CMD wire");
++        $finish(1);
++      end
++      if (dat_oe !== reference_dat_oe || (dat_oe && dat_o !== reference_dat_o)) begin
++        $display("FAIL MMC donor/port lockstep: DAT wire");
++        $finish(1);
++      end
++      if (sd_rd !== reference_sd_rd || sd_wr !== reference_sd_wr) begin
++        $display("FAIL MMC donor/port lockstep: HPS request");
++        $finish(1);
++      end
++      if ((sd_rd || sd_wr) && (sd_lba !== reference_sd_lba || sd_blk_cnt !== reference_sd_blk_cnt)) begin
++        $display("FAIL MMC donor/port lockstep: HPS extent");
++        $finish(1);
++      end
++      if (active && sd_ack && hps_write && sd_buff_din !== reference_sd_buff_din) begin
++        $display("FAIL MMC donor/port lockstep: HPS write bytes");
++        $finish(1);
++      end
++    end
++  end
+ endmodule
+diff --git a/tests/phone/mmc_card/run-donor.sh b/tests/phone/mmc_card/run-donor.sh
+index 8635531d29c04787b4ffa2c68087d1f13a24b171..2be897b261dd7c31de6d4f96a2f7e73cc0061b70 100755
+--- a/tests/phone/mmc_card/run-donor.sh
++++ b/tests/phone/mmc_card/run-donor.sh
+@@ -32,11 +32,11 @@ for version in donor port equivalence; do
+         top=mmc_card_equivalence
+         language=1800-2017
+         set -- /donor/rtl/board/tdp_ram.sv /donor/rtl/board/mmc_card.sv \
+-            rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v
++            rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v
+     else
+         top=ngage_mmc_card
+         language=1364-2001
+-        set -- rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v
++        set -- rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v
+     fi
+     verilator --cc --exe --build -j 4 -O3 --x-assign unique --x-initial unique \
+         -Wno-fatal -Wno-lint -Wno-style -Wno-MULTIDRIVEN \
+@@ -53,7 +53,7 @@ for test in eof version; do
+     sed "s/ngage_mmc_card dut(/mmc_card_equivalence dut(/" "tests/phone/mmc_card/${test}_tb.v" > "$out/${test}_tb.v"
+     iverilog -g2012 -s "${test}_tb" -o "$out/$test" \
+         /donor/rtl/board/tdp_ram.sv /donor/rtl/board/mmc_card.sv \
+-        rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v \
++        rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v \
+         "$out/${test}_tb.v" > "$out/$test-build.log" 2>&1
+     vvp "$out/$test" > "$out/$test.log"
+     cat "$out/$test.log"
+diff --git a/tests/phone/mmc_card/run-stream-tags.sh b/tests/phone/mmc_card/run-stream-tags.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..a47edba6d6fb542748a023ba18fbb30bf7a3d7b3
+--- /dev/null
++++ b/tests/phone/mmc_card/run-stream-tags.sh
+@@ -0,0 +1,41 @@
++#!/bin/sh
++# Compare the three selected tag hits and public pins against the FF baseline.
++set -eu
++cd "$(dirname "$0")/../../.."
++out=${MMC_TAG_OUT:-build/sim/mmc-stream-tags}
++mkdir -p "$out"
++
++git show 29479fe:rtl/ngage_mmc_card.v |
++    sed 's/^module ngage_mmc_card #(/module mmc_card #(/' > "$out/reference.v"
++python3 - "$out" <<'PY'
++import sys
++from pathlib import Path
++
++# The hardware ignores read data on a mixed-port read/write collision. A
++# coincident hit must use the pending logical tag, even against an X payload.
++source = Path("rtl/ngage_bram.v").read_text()
++old = "b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= we_b[lane] ?"
++new = (
++    "b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= "
++    "(we_a[lane] && addr_a == addr_b) ? {BYTE_WIDTH{1'bx}} : we_b[lane] ?"
++)
++assert source.count(old) == 1
++Path(sys.argv[1], "poison_bram.v").write_text(source.replace(old, new))
++PY
++
++for test in eof version; do
++    sed 's/ngage_mmc_card dut(/mmc_card_equivalence dut(/' \
++        "tests/phone/mmc_card/${test}_tb.v" > "$out/${test}_tb.v"
++    iverilog -g2012 -DNGAGE_TEST_MMC_STREAM_TAGS -s "${test}_tb" -o "$out/$test" \
++        "$out/reference.v" "$out/poison_bram.v" rtl/ngage_mmc_dpram.v \
++        rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v "$out/${test}_tb.v"
++    vvp "$out/$test" > "$out/$test.log"
++    cat "$out/$test.log"
++    grep -q '^PASS MMC ' "$out/$test.log"
++done
++iverilog -g2012 -DNGAGE_TEST_MMC_STREAM_TAGS -s stream_lookup_tb -o "$out/ports" \
++    "$out/reference.v" "$out/poison_bram.v" rtl/ngage_mmc_dpram.v \
++    rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v tests/phone/mmc_card/stream_lookup_tb.sv
++vvp "$out/ports" > "$out/ports.log"
++cat "$out/ports.log"
++grep -q '^PASS MMC all 12 stream slots' "$out/ports.log"
+diff --git a/tests/phone/mmc_card/run.sh b/tests/phone/mmc_card/run.sh
+index e8510a3f83cab58136bf79b700de95299cfce8c1..d08f88fa074997139a2aa4d55258138f9ad8c757 100755
+--- a/tests/phone/mmc_card/run.sh
++++ b/tests/phone/mmc_card/run.sh
+@@ -3,7 +3,7 @@ set -eu
+ out=${MMC_CARD_OUT:-build/sim/unit-mmc-card}
+ mkdir -p "$out"
+ for test in eof version; do
+-    iverilog -g2001 -s "${test}_tb" -o "$out/$test" rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v "tests/phone/mmc_card/${test}_tb.v" > "$out/$test-build.log" 2>&1
++    iverilog -g2001 -s "${test}_tb" -o "$out/$test" rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v "tests/phone/mmc_card/${test}_tb.v" > "$out/$test-build.log" 2>&1
+     vvp "$out/$test" > "$out/$test.log"
+     cat "$out/$test.log"
+     grep -q '^PASS MMC ' "$out/$test.log"
+diff --git a/tests/phone/mmc_card/stream_lookup_tb.sv b/tests/phone/mmc_card/stream_lookup_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..5fe24abe0de5a1c66bcb972eede0d9b218564d96
+--- /dev/null
++++ b/tests/phone/mmc_card/stream_lookup_tb.sv
+@@ -0,0 +1,90 @@
++`timescale 1ns / 1ps
++
++// Focused internal schedule for three simultaneous lookups with a pending
++// publication. Public command and HPS protocol are covered by the wire tests.
++module stream_lookup_tb;
++  reg clk = 0, reset = 1, publish = 0;
++  always #5 clk = !clk;
++  reg [3:0] slot = 0;
++  reg [22:0] sector = 0, low = 0, high = 0, prefetch = 0;
++  wire present;
++
++  mmc_card_equivalence dut (
++      .clk(clk),
++      .reset(reset),
++      .mmc_clk(1'b0),
++      .cmd_i(1'b1),
++      .dat_i(1'b1),
++      .stop_queued(1'b0),
++      .img_mounted(1'b0),
++      .img_readonly(1'b0),
++      .img_size(64'b0),
++      .sd_ack(1'b1),
++      .sd_buff_wr(publish),
++      .sd_buff_addr(13'h0ff),
++      .sd_buff_dout(16'b0),
++      .present(present)
++  );
++
++  // Drive both implementations from the same deliberately concurrent
++  // lookup and publication schedule. No private tag storage is initialized.
++  initial begin
++    force dut.ported.s0_rlo = low;
++    force dut.reference.s0_rlo = low;
++    force dut.ported.s0_rhi = high;
++    force dut.reference.s0_rhi = high;
++    force dut.ported.s0_pchunk = prefetch;
++    force dut.reference.s0_pchunk = prefetch;
++    repeat (4) @(negedge clk);
++    reset = 0;
++    force dut.ported.present = 1;
++    force dut.reference.present = 1;
++    force dut.ported.h_state = 2'd2;
++    force dut.reference.h_state = 2'd2;
++    force dut.ported.h_meta = 0;
++    force dut.reference.h_meta = 0;
++    force dut.ported.h_wr = 0;
++    force dut.reference.h_wr = 0;
++    force dut.ported.h_cur_slot = slot;
++    force dut.reference.h_cur_slot = slot;
++    force dut.ported.h_stream_sec = sector;
++    force dut.reference.h_stream_sec = sector;
++
++    // Fill all four lanes of each modulo-three quarter. Every port
++    // receives a separate publication collision against the poisoned RAM.
++    for (integer index = 0; index < 12; index++) begin
++      slot = index[3:0];
++      sector = 23'(index);
++      low = 23'(index);
++      high = 23'((index + 11) % 12);
++      prefetch = 23'((index + 10) % 12);
++      publish = 1;
++      @(negedge clk);
++      publish = 0;
++      @(negedge clk);
++      if (dut.ported.s1_forward !== 3'b001 || !dut.ported.s2_slo_ok)
++        $fatal(1, "low slot %0d bypass missed", index);
++    end
++    for (integer index = 0; index < 12; index++) begin
++      // Replace occupied slots with sectors 12–23, which map to the
++      // original physical addresses. The untouched ports retain hits.
++      slot = index[3:0];
++      sector = 23'(index + 12);
++      low = 23'((index + 11) % 12);
++      high = index[0] ? sector : 23'((index + 10) % 12);
++      prefetch = index[0] ? 23'((index + 10) % 12) : sector;
++      publish = 1;
++      @(negedge clk);
++      publish = 0;
++      @(negedge clk);
++      if (dut.ported.s1_forward !== (index[0] ? 3'b010 : 3'b100) ||
++                !(index[0] ? dut.ported.s2_shi_ok : dut.ported.s2_spc_ok))
++        $fatal(1, "high/prefetch slot %0d bypass missed", index);
++    end
++    repeat (3) @(negedge clk);
++    if (dut.colliding_hits != 24)
++      $fatal(1, "expected 24 observed collision hits, got %0d", dut.colliding_hits);
++    $display("PASS MMC all 12 stream slots and three poisoned lookup ports");
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/mmc_hps/run.sh b/tests/phone/mmc_hps/run.sh
+index a16308409bc80c25d936e19565b6518cbe309132..1eeef7631b912a1760fa3d962c7f8e77878cd4f7 100755
+--- a/tests/phone/mmc_hps/run.sh
++++ b/tests/phone/mmc_hps/run.sh
+@@ -7,7 +7,7 @@ vvp "$out/direct" > "$out/direct.log"
+ cat "$out/direct.log"
+ grep -q '^PASS MMC HPS direct' "$out/direct.log"
+ MMC_HPS_OUT="$out" python3 tests/phone/mmc_hps/prepare_hps.py
+-verilator --binary --timing --assert -j 3 -Wno-fatal -Wno-lint --top-module actual_tb --Mdir "$out/obj" "$out/hps-compat.sv" rtl/ngage_mmc_hps.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v tests/phone/mmc_hps/actual_tb.sv > "$out/actual-build.log" 2>&1
++verilator --binary --timing --assert -j 3 -Wno-fatal -Wno-lint --top-module actual_tb --Mdir "$out/obj" "$out/hps-compat.sv" rtl/ngage_mmc_hps.v rtl/ngage_mmc_card.v rtl/ngage_bram.v rtl/ngage_mmc_dpram.v tests/phone/mmc_hps/actual_tb.sv > "$out/actual-build.log" 2>&1
+ "$out/obj/Vactual_tb" > "$out/actual.log" 2>&1
+ cat "$out/actual.log"
+ grep -q '^PASS actual three-slot MMC HPS' "$out/actual.log"

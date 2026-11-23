@@ -1,0 +1,1003 @@
+diff --git a/Template.sv b/Template.sv
+index 1a09baae7d7dd39cafad2d85827799fa7a9fa6d3..82ff793b9ec32d2ad3ee45d97411d0071f78c84c 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -142,7 +142,8 @@ module emu (
+ 
+     ///////////////////////   CLOCKS   ///////////////////////////////
+ 
+-    localparam integer SYS_CLK_HZ = 104000000;
++    localparam integer SYS_CLK_HZ  = 104000000;
++    localparam integer MMC_CLK_DIV = 3;
+     wire clk_sys;  // 104 MHz — CPU, bus, board devices, SDRAM logic
+     wire pll_locked;
+ 
+@@ -1153,17 +1154,18 @@ module emu (
+     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
+     // Synthetic no-PIN card supplies SIMIF bytes; no NOS/SIM-state override.
+     ngage_mister #(
+-        .ENABLE_DEBUGGER (`ENABLE_DEBUGGER),
+-        .LINE_REFILL     (1),
+-        .RAM_LINE_EARLY  (1),
+-        .LCD_LINE_BYTES  (LCD_LINE_BYTES),
+-        .DMA_LOCAL       (1),
+-        .GAME_PCM        (1),
+-        .MMC_CLK_FRAC_3_8(1),
+-        .TEST_SIM_ENABLE (1),
+-        .TIMER_CLK_DIV   (SYS_CLK_HZ / 26000000),
+-        .NOS_TICK_HZ     (64),
+-        .SYS_CLK_HZ      (SYS_CLK_HZ)
++        .ENABLE_DEBUGGER   (`ENABLE_DEBUGGER),
++        .LINE_REFILL       (1),
++        .RAM_LINE_EARLY    (1),
++        .LCD_LINE_BYTES    (LCD_LINE_BYTES),
++        .DMA_LOCAL         (1),
++        .GAME_PCM          (1),
++        .MMC_CLK_DIV       (MMC_CLK_DIV),
++        .ANALOG_LINE_PIXELS(414),
++        .TEST_SIM_ENABLE   (1),
++        .TIMER_CLK_DIV     (SYS_CLK_HZ / 26000000),
++        .NOS_TICK_HZ       (64),
++        .SYS_CLK_HZ        (SYS_CLK_HZ)
+     ) core (
+         .ddram_line(core_ddr_line),
+         .ddram_beat_valid(core_beat_valid),
+diff --git a/rtl/ngage_board.v b/rtl/ngage_board.v
+index 2b6a4ab218b4af88525a635e6f0f68df13b36cb5..0efde1248066dcb38cd302910c1f2b7787590e9f 100644
+--- a/rtl/ngage_board.v
++++ b/rtl/ngage_board.v
+@@ -20,7 +20,7 @@ module ngage_board #(
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+               NOS_TICK_HZ        = 1000,
+-              MMC_CLK_FRAC_3_8   = 0
++              ANALOG_LINE_PIXELS = 400
+ ) (
+ 
+     input  tri0 [ 32:0] host_timestamp,
+@@ -328,7 +328,8 @@ module ngage_board #(
+                 .out_data (queued_data)
+             );
+             ngage_lcd_display #(
+-                .PIXEL_DIV(SYS_CLK_HZ / 6500000)
++                .PIXEL_DIV  (SYS_CLK_HZ / 6500000),
++                .LINE_PIXELS(ANALOG_LINE_PIXELS)
+             ) lcd (
+                 .clk              (clk),
+                 .reset            (rst),
+@@ -394,7 +395,6 @@ module ngage_board #(
+         .LCD_LINE_BYTES  (LCD_LINE_BYTES),
+         .MMC_ENABLE      (MMC_ENABLE),
+         .MMC_CLK_DIV     (MMC_CLK_DIV),
+-        .MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),
+         .MMC_TIMEOUT_LOG2(MMC_TIMEOUT_LOG2),
+         .LCD_QUEUE_ENABLE(LCD_ENABLE)
+     ) upp (
+diff --git a/rtl/ngage_lcd_display.v b/rtl/ngage_lcd_display.v
+index af213dc68ba85c814e0d56ca94e52186498024ff..8cc37863ff2b9a40ebc96fcd6d686e2971af81fe 100644
+--- a/rtl/ngage_lcd_display.v
++++ b/rtl/ngage_lcd_display.v
+@@ -3,7 +3,8 @@
+ // header/RGB444 assumptions follow scratch/current-boot/direct_lcd.py; these
+ // signals do not model the physical LCD serial bus or verified scan timing.
+ module ngage_lcd_display #(
+-    parameter integer PIXEL_DIV = 16
++    parameter integer PIXEL_DIV   = 16,
++    parameter integer LINE_PIXELS = 400
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -132,7 +133,8 @@ module ngage_lcd_display #(
+         ce_pix            <= div == 0;
+         unsupported_valid <= 0;
+         if (div == 0) begin
+-            if (x == 399) begin
++            // Extend the trailing blank only when the board selects a longer line.
++            if (x == LINE_PIXELS - 1) begin
+                 x <= 0;
+                 if (y == 261) y <= 0;
+                 else y <= y + 1'b1;
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index 3b142e7825f57e342fa8c24cc7bb92bb629ec81e..c386894c99921e04c7d5fe87094c75901d9fbc46 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -26,7 +26,7 @@ module ngage_mister #(
+                       TIMER_CLK_DIV      = 1,
+                       NOS_TICK_HZ        = 1000,
+                       RAM_LINE_EARLY     = 0,
+-                      MMC_CLK_FRAC_3_8   = 0
++                      ANALOG_LINE_PIXELS = 400
+ ) (
+     output wire         ddram_line,
+     input  wire         ddram_beat_valid,
+@@ -240,9 +240,9 @@ module ngage_mister #(
+         .LCD_DMA_ENABLE    (1),
+         .GENERAL_DMA       (GENERAL_DMA),
+         .LCD_LINE_BYTES    (LCD_LINE_BYTES),
++        .ANALOG_LINE_PIXELS(ANALOG_LINE_PIXELS),
+         .GAME_PCM          (GAME_PCM),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
+-        .MMC_CLK_FRAC_3_8  (MMC_CLK_FRAC_3_8),
+         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
+     ) board (
+         .host_timestamp       (host_timestamp),
+diff --git a/rtl/ngage_mmc_host.v b/rtl/ngage_mmc_host.v
+index cb8df9dd9fed0c92352cf42d7b52dc3f96862d17..d6a7913eeea75fa44acd85fa3e0e1b00ad0b9f09 100644
+--- a/rtl/ngage_mmc_host.v
++++ b/rtl/ngage_mmc_host.v
+@@ -66,7 +66,7 @@
+ // the next (CMD18 then waits on the card's side), so no data is ever lost.
+ // The DMA is paced by rx_ready / tx_ready (upp_dma).
+ //
+-// Bus: CLK = clk / DIV, or 3 * clk / 8 with FRAC_3_8, low at rest. CMD/DAT0 change as CLK falls
++// Bus: CLK = clk / DIV, low at rest; the host changes CMD/DAT0 as CLK falls
+ // and samples them as it rises (as rtl/board/mmc_card.sv expects). [assumed]
+ // DIV = 4 (26 MHz; 12 is the phone's own rate, the service manual's 8.66 MHz,
+ // for an accuracy build); time-outs: 64 clocks to a response start bit (NCR
+@@ -76,8 +76,7 @@ module ngage_mmc_host #(
+     parameter integer DIV = 4,  // 12 (8.66 MHz, the service manual's rate) for an accuracy build
+     parameter integer RESP_WAIT = 64,
+     parameter integer TIMEOUT_LOG2 = 23,  // ~323 ms at DIV = 4 (21 at DIV = 12)
+-    parameter integer FIFO_DEPTH = 16,
+-    parameter FRAC_3_8 = 0
++    parameter integer FIFO_DEPTH = 16
+ ) (
+     input wire clk,
+     input wire reset,
+@@ -119,7 +118,7 @@ module ngage_mmc_host #(
+         end
+     endfunction
+ 
+-    localparam integer                    PHW              = clog2(FRAC_3_8 ? 3 : DIV);
++    localparam integer                    PHW              = clog2(DIV);
+     localparam integer                    FAW              = clog2(FIFO_DEPTH);
+     localparam integer                    HALF             = DIV / 2;
+     localparam integer                    LAST_PHASE       = DIV - 1;
+@@ -299,54 +298,18 @@ module ngage_mmc_host #(
+     end
+ 
+     // ------------------------------------------------------------------
+-    // Generate complete bus bits while an engine needs them.
++    // The bus clock: periods of DIV clocks, run while an engine needs them
+     // ------------------------------------------------------------------
+     reg [PHW-1:0] ph;
+     reg           run;  // this period is clocked
+     reg cmd_need, dat_need, dat_hold;
+     wire clock_needed = (cmd_need || dat_need) && !dat_hold;
+-    wire fall, rise;
+-    generate
+-        if (FRAC_3_8) begin : fractional_clock
+-            // Low/high lengths of (2,1), (1,2), (1,1) clocks deliver
+-            // three bits per eight clocks and equal high and low time.
+-            // Keep phase across idle gaps and sample on the first high clock.
+-            reg  [1:0] bit_slot;
+-            wire [1:0] first_high = bit_slot == 0 ? 2'd2 : 2'd1;
+-            wire [1:0] last_high = bit_slot == 2 ? 2'd1 : 2'd2;
+-            assign fall    = run && ph == 0 && clock_needed;
+-            assign rise    = run && ph == first_high;
+-            assign mmc_clk = run && ph >= first_high;
+-
+-            always @(posedge clk)
+-                if (reset) begin
+-                    run      <= 0;
+-                    ph       <= 0;
+-                    bit_slot <= 0;
+-                end else if (!run || (ph == 0 && !clock_needed)) begin
+-                    run <= clock_needed;
+-                    ph  <= 0;
+-                end else if (ph == last_high) begin
+-                    ph       <= 0;
+-                    bit_slot <= bit_slot == 2 ? 2'd0 : bit_slot + 1'b1;
+-                end else ph <= ph + 1'b1;
+-        end else begin : integer_clock
+-            // With DIV=2 the receive sample and period end share an
+-            // edge. Recheck the updated FIFO before starting the next bit.
+-            assign fall    = run && ph == 0 && (DIV != 2 || clock_needed);
+-            assign rise    = run && ph == HALF[PHW-1:0];
+-            assign mmc_clk = run && ph >= HALF[PHW-1:0];
+-            always @(posedge clk)
+-                if (reset) begin
+-                    run <= 0;
+-                    ph  <= 0;
+-                end else begin
+-                    if (run)
+-                        ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? 0 : ph + 1'b1;
+-                    if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
+-                end
+-        end
+-    endgenerate
++    // With DIV=2 the receive sample and period-end decision share an
++    // edge. Recheck the updated FIFO/state before starting the next bit.
++    wire fall = run && ph == {PHW{1'b0}} && (DIV != 2 || clock_needed);
++    wire rise = run && ph == HALF[PHW-1:0];
++
++    assign mmc_clk = run && ph >= HALF[PHW-1:0];
+ 
+     // ------------------------------------------------------------------
+     // The engines
+@@ -404,6 +367,10 @@ module ngage_mmc_host #(
+         pop1  = 1'b0;
+         pbyte = 8'd0;
+ 
++        // ---- the clock ----
++        if (run) ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? {PHW{1'b0}} : ph + 1'd1;
++        if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
++
+         // ---- register writes ----
+         if (wr) begin
+             case (off)
+@@ -721,6 +688,8 @@ module ngage_mmc_host #(
+         end
+ 
+         if (reset) begin
++            run        <= 1'b0;
++            ph         <= {PHW{1'b0}};
+             cstate     <= C_IDLE;
+             dstate     <= D_IDLE;
+             blk_done   <= 1'b0;
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 8a279e3d25e1f6de8fce2f5273ccfcf711223c86..9aa43dbb67a6114036345bd5611cf3a5965b6ce1 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -18,8 +18,7 @@ module ngage_upp #(
+               LCD_QUEUE_ENABLE = 0,
+               SYS_CLK_HZ       = 104000000,
+               TIMER_CLK_DIV    = 1,
+-              NOS_TICK_HZ      = 1000,
+-              MMC_CLK_FRAC_3_8 = 0
++              NOS_TICK_HZ      = 1000
+ ) (
+ 
+     output wire         mmc_prefetch_stop,
+@@ -598,7 +597,6 @@ module ngage_upp #(
+         .GENERAL_DMA       (GENERAL_DMA),
+         .MMC_ENABLE        (MMC_ENABLE),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
+-        .MMC_CLK_FRAC_3_8  (MMC_CLK_FRAC_3_8),
+         .MMC_TIMEOUT_LOG2  (MMC_TIMEOUT_LOG2),
+         .SYS_CLK_HZ        (SYS_CLK_HZ),
+         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+diff --git a/rtl/ngage_upp_peripherals.v b/rtl/ngage_upp_peripherals.v
+index ca6d54e815859e52bc01fb0ab55293d88edb696d..7ab7158c7bcd2dabc0907cfee9f9a55f03628257 100644
+--- a/rtl/ngage_upp_peripherals.v
++++ b/rtl/ngage_upp_peripherals.v
+@@ -49,8 +49,7 @@ module ngage_upp_peripherals #(
+               REGISTER_RESPONSES = 0,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+-              NOS_TICK_HZ        = 1000,
+-              MMC_CLK_FRAC_3_8   = 0
++              NOS_TICK_HZ        = 1000
+ ) (
+     input  wire        rst,
+     input  wire        init_rst,
+@@ -188,7 +187,6 @@ module ngage_upp_peripherals #(
+         if (MMC_ENABLE) begin : mmc_enabled
+             ngage_mmc_host #(
+                 .DIV         (MMC_CLK_DIV),
+-                .FRAC_3_8    (MMC_CLK_FRAC_3_8),
+                 .TIMEOUT_LOG2(MMC_TIMEOUT_LOG2)
+             ) host (
+                 .clk     (clk),
+diff --git a/tests/cpu/arm9v2_board/payload_clocks.py b/tests/cpu/arm9v2_board/payload_clocks.py
+index 445e597967f76fc0f710d26183a62438d9deda30..0f072c66edaf6b69ed19650468dc2665afef1835 100644
+--- a/tests/cpu/arm9v2_board/payload_clocks.py
++++ b/tests/cpu/arm9v2_board/payload_clocks.py
+@@ -161,7 +161,7 @@ def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_mod
+                        '-DNGAGE_POWERUP_NORMAL', '-Wno-fatal', '-Wno-lint', '-Irtl/arm',
+                        '--top-module', 'tb', '--Mdir', container_path(obj), '-GLINE_REFILL=1',
+                        f'-GSYS_CLK_HZ={sys_clk_hz}', f'-GTIMER_CLK_DIV={sys_clk_hz // 26_000_000}',
+-                       f'-GMMC_CLK_FRAC_3_8={int(sys_clk_hz == 104_000_000)}', '-GGAME_PCM=1',
++                       f'-GANALOG_LINE_PIXELS={414 if sys_clk_hz == 104_000_000 else 400}', '-GGAME_PCM=1',
+                        f'-GFLASH_CACHE_BYTES={flash_cache_bytes}', '-GBOUNDED_CYCLES=120000000', *real_sdram,
+                        f'-GNOS_TICK_HZ={hz}', f'-GMMC_CLK_DIV={divider}', *rtl],
+                        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+@@ -230,7 +230,7 @@ def main():
+     parser.add_argument('--case', action='append')
+     parser.add_argument('--sys-clk-hz', choices=(78_000_000, 104_000_000), type=int,
+                         default=78_000_000, help='System rate for the phone and physical SDRAM model')
+-    parser.add_argument('--config', action='append', choices=('2:64', '1:64', '2:128', '1:128'))
++    parser.add_argument('--config', action='append', choices=('2:64', '1:64', '3:64', '2:128', '1:128', '3:128'))
+     parser.add_argument('--arm9v2-netlist', type=Path, default=ROOT / 'rtl/arm9v2/arm925t_phone.v')
+     parser.add_argument('--flash-cache-bytes', type=int, choices=(8192, 32768), default=8192)
+     parser.add_argument('--sdram-model', type=Path, help='Verilator pin model prepared by run-real-sdram.sh')
+@@ -274,10 +274,9 @@ def main():
+     if args.cpu_wrapper:
+         cpu_wrapper = out / 'ngage_cpu.sv'
+         cpu_wrapper.write_bytes(args.cpu_wrapper.read_bytes())
+-    configs = args.config or ('2:64', '2:128')
++    native_div = 3 if args.sys_clk_hz == 104_000_000 else 2
++    configs = args.config or (f'{native_div}:64', f'{native_div}:128')
+     profile = [tuple(map(int, pair.split(':'))) for pair in configs]
+-    if args.sys_clk_hz == 104_000_000 and any(divider != 2 for divider, _ in profile):
+-        parser.error('104 MHz uses the fractional 39 MHz MMC profile, select 2:64 or 2:128')
+     all_cases = [case for case in qualified_inputs() if not args.case or case['name'] in args.case]
+     assert all_cases and (not args.case or len(all_cases) == len(set(args.case)))
+     original = (FIRMWARE / 'core.bin').read_bytes()
+@@ -339,8 +338,8 @@ def main():
+             for (div, hz), futures in jobs.items():
+                 first, repeat, bad = [future.result() for future in futures]
+                 assert first == repeat and bad is None
+-                mmc_hz = 39_000_000 if args.sys_clk_hz == 104_000_000 else args.sys_clk_hz // div
+-                print(case['name'], f'MMC={mmc_hz // 1_000_000} MHz NOS={hz} Hz',
++                mmc_hz = args.sys_clk_hz / div
++                print(case['name'], f'MMC={mmc_hz / 1_000_000:.3f} MHz NOS={hz} Hz',
+                       first['median_clocks'], flush=True)
+                 result['rows'].append(dict(case=case['name'], mmc_hz=mmc_hz, nos_hz=hz, **first))
+             (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+diff --git a/tests/phone/clock_rates/run.sh b/tests/phone/clock_rates/run.sh
+index 06a6016a646a300b0c9ae120a32b65ae5a76c442..c15cbe66a9dc2579e44accdde8b7bae245ef3811 100644
+--- a/tests/phone/clock_rates/run.sh
++++ b/tests/phone/clock_rates/run.sh
+@@ -1,7 +1,7 @@
+ #!/bin/sh
+ # Run inside the existing jotego/simulator:arm64 image.
+ set -eu
+-out=build/sim/unit-clock-rates
++out=${PHONE_TEST_OUT:-build/sim/unit-clock-rates}
+ mkdir -p "$out"
+ python3 - <<'PY'
+ from pathlib import Path
+@@ -10,16 +10,20 @@ assert 'SYS_CLK_HZ=104000000' in s
+ assert p.count('104.000000 MHz')==2 and '.phase_shift1("-2404ps")' in ''.join(p.split())
+ assert '.SD_TIMEOUT(SYS_CLK_HZ)' in s
+ assert '.SYS_CLK_HZ(SYS_CLK_HZ)' in s and '.outclk_1()' in s
+-assert '.MMC_CLK_FRAC_3_8(1)' in s
++assert 'MMC_CLK_DIV=3;' in s and '.MMC_CLK_DIV(MMC_CLK_DIV)' in s
++assert '.ANALOG_LINE_PIXELS(414)' in s and 'assignVGA_HS=core_hsync;' in s and 'assignVGA_VS=core_vsync;' in s
++assert '.TIMER_CLK_DIV(SYS_CLK_HZ/26000000)' in s and '.NOS_TICK_HZ(64)' in s
+ assert 'ngage_sdram_clock' in s and '.sdram_clk(SDRAM_CLK)' in s
+ assert '.CLK_HZ(SYS_CLK_HZ)' in s
+-print('PASS physical 104 MHz PLL, DDIO, fractional MMC, SDRAM and timeout selection')
++print('PASS physical 104 MHz PLL, DDIO, integer MMC, 64 Hz timers and source raster selection')
+ PY
+ iverilog -g2012 -s tb -o "$out/test" rtl/ngage_simif.v rtl/ngage_test_sim.v rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_board.v rtl/ngage_upp.v rtl/ngage_upp_peripherals.v rtl/ngage_upp_euart.v rtl/ngage_uem.v rtl/ngage_adsp.v rtl/ngage_adsp_bootstrap_tx.v rtl/ngage_adsp_diagnostic.v rtl/ngage_aic23.v rtl/ngage_lrb2.v rtl/ngage_mjoelner.v rtl/ngage_bram.v rtl/ngage_bram_be.v rtl/ngage_sparse_regs.v rtl/ngage_icu.v rtl/ngage_icu_extra.v rtl/ngage_timers.v rtl/ngage_nos_io.v rtl/ngage_mdi_stub.v rtl/ngage_upp_dsp_peer.v rtl/ngage_upp_mdi.v rtl/ngage_cbus_uem.v rtl/ngage_gpio_loopback.v rtl/ngage_boot_regs.v rtl/ngage_trace_sink.v rtl/ngage_lcd_display.v rtl/ngage_sdram_adapter.v tests/phone/clock_rates/tb.sv
+ vvp "$out/test"
+ 
+-for divider in 16 12; do
+- iverilog -g2005 -s tb -Ptb.PIXEL_DIV="$divider" -o "$out/video" rtl/ngage_bram.v rtl/ngage_lcd_display.v tests/phone/lcd_display/native_tb.v
+- vvp "$out/video" > "$out/video-$divider.log"
+- cat "$out/video-$divider.log"
++for config in '104000000 16 414' '78000000 12 400'; do
++ set -- $config
++ iverilog -g2005 -s tb -Ptb.SYS_HZ="$1" -Ptb.PIXEL_DIV="$2" -Ptb.LINE_PIXELS="$3" \
++    -o "$out/video" rtl/ngage_bram.v rtl/ngage_lcd_display.v tests/phone/lcd_display/native_tb.v
++ vvp "$out/video" > "$out/video-$2.log"
++ cat "$out/video-$2.log"
+ done
+diff --git a/tests/phone/clock_rates/tb.sv b/tests/phone/clock_rates/tb.sv
+index f8024282251b847f8dfed5c285b2e6da3d1d07a1..e33c758ca1058e4d5af6497475562201a0e58b38 100644
+--- a/tests/phone/clock_rates/tb.sv
++++ b/tests/phone/clock_rates/tb.sv
+@@ -1,52 +1,137 @@
+-`timescale 1ns/1ps
+-module clock_case #(parameter integer HZ=104000000)(input wire clk,reset,output reg done=0);
+- localparam PIX=HZ/6500000, SIM=HZ/3250000, FAST=(HZ+16384)/32768;
+- localparam REFRESH=(64'd6800*HZ)/104000000;
+- wire ce,rfsh;
+- ngage_board #(.SYS_CLK_HZ(HZ),.LCD_ENABLE(1),.SIMIF_ENABLE(1)) dut(
+-  .clk(clk),.rst(reset),.init_rst(reset),.cyc(1'b0),.stb(1'b0),.we(1'b0),.commit(1'b0),
+-  .adr(32'b0),.din(32'b0),.sel(4'hf),.keys(27'b0),.sim_present(1'b0),
+-  .diagnostic_video(1'b1),.diagnostic_status(8'b0),.save_state(3'b0),
+-  .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),.dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),
+-  .cpu_ack(1'b0),.cpu_err(1'b0),.cpu_rdata(32'b0),.dma_mem_ack(1'b0),.dma_mem_data(32'b0),.video_ce(ce));
+- ngage_sdram_adapter #(.RAM_BYTES(32),.REFRESH_PERIOD(REFRESH)) refresh_check(
+-  .clk(clk),.rst(reset),.phone_reset(1'b1),.init(1'b0),.req(1'b0),.we(1'b0),
+-  .addr(25'b0),.din(32'b0),.be(4'b0),.ba_ack(4'b0),.ba_dst(4'b0),.ba_rdy(4'b0),.ba_dout(16'b0),.rfsh(rfsh));
+- integer cycles=0,last_pixel=-1,last_sim=-1,last_refresh=-1,pixels=0,sim_ticks=0,refreshes=0;
+- always @(posedge clk)if(!reset)begin
+-  cycles++;
+-  if(ce)begin
+-   if(last_pixel>=0 && cycles-last_pixel!=PIX)$fatal(1,"pixel interval HZ=%0d",HZ);
+-   last_pixel=cycles;pixels++;
+-  end
+-  if(dut.test_card.card.cen)begin
+-   if(last_sim>=0 && cycles-last_sim!=SIM)$fatal(1,"SIM interval HZ=%0d",HZ);
+-   last_sim=cycles;sim_ticks++;
+-  end
+-  if(rfsh)begin
+-   if(last_refresh>=0 && cycles-last_refresh!=REFRESH)$fatal(1,"refresh interval HZ=%0d",HZ);
+-   last_refresh=cycles;refreshes++;
+-  end
+- end
+- initial begin
+-  wait(!reset);repeat(312000)@(negedge clk);
+-  if(dut.upp.peripherals.nos_timer.counter!==312000/(HZ/1000) ||
++`timescale 1ns / 1ps
++module clock_case #(
++    parameter integer HZ = 104000000
++) (
++    input  wire clk,
++    reset,
++    output reg  done = 0
++);
++  localparam PIX = HZ / 6500000, SIM = HZ / 3250000, FAST = (HZ + 16384) / 32768;
++  localparam LINE_PIXELS = HZ == 104000000 ? 414 : 400;
++  localparam REFRESH = (64'd6800 * HZ) / 104000000;
++  wire ce, rfsh;
++  ngage_board #(
++      .SYS_CLK_HZ(HZ),
++      .LCD_ENABLE(1),
++      .SIMIF_ENABLE(1),
++      .ANALOG_LINE_PIXELS(LINE_PIXELS)
++  ) dut (
++      .clk(clk),
++      .rst(reset),
++      .init_rst(reset),
++      .cyc(1'b0),
++      .stb(1'b0),
++      .we(1'b0),
++      .commit(1'b0),
++      .adr(32'b0),
++      .din(32'b0),
++      .sel(4'hf),
++      .keys(27'b0),
++      .sim_present(1'b0),
++      .diagnostic_video(1'b1),
++      .diagnostic_status(8'b0),
++      .save_state(3'b0),
++      .cfg_lcd(1'b1),
++      .cfg_keypad(1'b1),
++      .cfg_clocks(1'b1),
++      .dma_irq_pending(1'b0),
++      .sim_fiq_pending(1'b0),
++      .cpu_ack(1'b0),
++      .cpu_err(1'b0),
++      .cpu_rdata(32'b0),
++      .dma_mem_ack(1'b0),
++      .dma_mem_data(32'b0),
++      .video_ce(ce)
++  );
++  ngage_sdram_adapter #(
++      .RAM_BYTES(32),
++      .REFRESH_PERIOD(REFRESH)
++  ) refresh_check (
++      .clk(clk),
++      .rst(reset),
++      .phone_reset(1'b1),
++      .init(1'b0),
++      .req(1'b0),
++      .we(1'b0),
++      .addr(25'b0),
++      .din(32'b0),
++      .be(4'b0),
++      .ba_ack(4'b0),
++      .ba_dst(4'b0),
++      .ba_rdy(4'b0),
++      .ba_dout(16'b0),
++      .rfsh(rfsh)
++  );
++  integer
++      cycles = 0,
++      last_pixel = -1,
++      last_sim = -1,
++      last_refresh = -1,
++      pixels = 0,
++      sim_ticks = 0,
++      refreshes = 0;
++  always @(posedge clk)
++    if (!reset) begin
++      cycles++;
++      if (ce) begin
++        if (last_pixel >= 0 && cycles - last_pixel != PIX) $fatal(1, "pixel interval HZ=%0d", HZ);
++        last_pixel = cycles;
++        pixels++;
++      end
++      if (dut.test_card.card.cen) begin
++        if (last_sim >= 0 && cycles - last_sim != SIM) $fatal(1, "SIM interval HZ=%0d", HZ);
++        last_sim = cycles;
++        sim_ticks++;
++      end
++      if (rfsh) begin
++        if (last_refresh >= 0 && cycles - last_refresh != REFRESH)
++          $fatal(1, "refresh interval HZ=%0d", HZ);
++        last_refresh = cycles;
++        refreshes++;
++      end
++    end
++  initial begin
++    wait (!reset);
++    repeat (312000) @(negedge clk);
++    if(dut.upp.peripherals.nos_timer.counter!==312000/(HZ/1000) ||
+      dut.upp.peripherals.nos_timer.fast_counter!==312000/FAST ||
+-     dut.upp.peripherals.fcnt!==312000/FAST)$fatal(1,"NOS/fcnt rate HZ=%0d",HZ);
+-  if(dut.uem.cbus.SECOND_TICKS!=HZ || dut.uem.cbus.ALARM_TICKS!=(64'd7995392*HZ)/104000000 ||
+-     dut.uem.cbus.ALARM_INTERVAL!=(64'd65536*HZ)/104000000)$fatal(1,"UEM wall-time parameters");
+-  if(dut.display.lcd.PIXEL_DIV!=PIX || dut.test_card.card.CLOCK_DIV!=SIM)
+-   $fatal(1,"clock propagation changed");
+-  if(pixels<19000 || sim_ticks<9000 || refreshes<40)$fatal(1,"missing clock events");
+-  $display("PASS clock rates HZ=%0d pixel_div=%0d SIM_div=%0d NOS_div=%0d fast_div=%0d refresh=%0d",HZ,PIX,SIM,HZ/1000,FAST,REFRESH);
+-  done=1;
+- end
++     dut.upp.peripherals.fcnt!==312000/FAST)
++      $fatal(1, "NOS/fcnt rate HZ=%0d", HZ);
++    if(dut.uem.cbus.SECOND_TICKS!=HZ || dut.uem.cbus.ALARM_TICKS!=(64'd7995392*HZ)/104000000 ||
++     dut.uem.cbus.ALARM_INTERVAL!=(64'd65536*HZ)/104000000)
++      $fatal(1, "UEM wall-time parameters");
++    if(dut.display.lcd.PIXEL_DIV!=PIX || dut.display.lcd.LINE_PIXELS!=LINE_PIXELS ||
++     dut.test_card.card.CLOCK_DIV!=SIM)
++      $fatal(1, "clock propagation changed");
++    if (pixels < 19000 || sim_ticks < 9000 || refreshes < 40) $fatal(1, "missing clock events");
++    $display(
++        "PASS clock rates HZ=%0d pixel_div=%0d SIM_div=%0d NOS_div=%0d fast_div=%0d refresh=%0d",
++        HZ, PIX, SIM, HZ / 1000, FAST, REFRESH);
++    done = 1;
++  end
+ endmodule
+ module tb;
+- reg clk=0,reset=1;always #5 clk=~clk;
+- wire a,b;
+- clock_case #(104000000) reference_rate(clk,reset,a);
+- clock_case #(78000000) hardware_rate(clk,reset,b);
+- initial begin repeat(4)@(negedge clk);reset=0;wait(a&&b);$finish;end
+- initial begin #4000000;$fatal(1,"clock-rate timeout");end
++  reg clk = 0, reset = 1;
++  always #5 clk = ~clk;
++  wire a, b;
++  clock_case #(104000000) reference_rate (
++      clk,
++      reset,
++      a
++  );
++  clock_case #(78000000) hardware_rate (
++      clk,
++      reset,
++      b
++  );
++  initial begin
++    repeat (4) @(negedge clk);
++    reset = 0;
++    wait (a && b);
++    $finish;
++  end
++  initial begin
++    #4000000;
++    $fatal(1, "clock-rate timeout");
++  end
+ endmodule
+diff --git a/tests/phone/hardware_boot/tb.v b/tests/phone/hardware_boot/tb.v
+index af7b569383fd870c8100899b5fcf8d80f7491a9c..43c8436df9d3ce2121ac2cad1848f123b682a1ac 100644
+--- a/tests/phone/hardware_boot/tb.v
++++ b/tests/phone/hardware_boot/tb.v
+@@ -140,7 +140,7 @@ parameter integer OVERLAY_COMPONENT=1;
+ parameter integer SYS_CLK_HZ=104000000;
+ parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
+ parameter integer FLASH_CACHE_BYTES=8192, MMC_CLK_DIV=4, GAME_PCM=0;
+-parameter integer MMC_CLK_FRAC_3_8=0;
++parameter integer ANALOG_LINE_PIXELS=400;
+ parameter integer ROM_CACHE=0;
+ parameter integer DIRECT_SDRAM=1;
+ parameter integer LINE_REFILL=0;
+@@ -322,7 +322,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
+  wire cpu_ram_accept;
+  wire cpu_write_block, mem_write_block;
+  wire [127:0] cpu_block_data, mem_block_data;
+- ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),.GAME_PCM(GAME_PCM)) dut(
++ ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.ANALOG_LINE_PIXELS(ANALOG_LINE_PIXELS),.GAME_PCM(GAME_PCM)) dut(
+   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
+   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
+ .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
+diff --git a/tests/phone/lcd_display/native_tb.v b/tests/phone/lcd_display/native_tb.v
+index 2486ddbf9530adffd7c8a4bf9d84e3ba7525e537..85fd067de974bda782e24a4738f289f354ecc5b5 100644
+--- a/tests/phone/lcd_display/native_tb.v
++++ b/tests/phone/lcd_display/native_tb.v
+@@ -1,71 +1,183 @@
+-`timescale 1ns/1ps
++`timescale 1ns / 1ps
+ // Check the actual CE/DE stream, not a host crop of a padded screenshot.
+ module tb;
+-parameter PIXEL_DIV=16;
+-reg clk=0,reset=1,diagnostic=0,wv=0,dv=0,full=0;reg [31:0] wa=0,wd=0,dd=0;reg [14:0] da=0;
+-wire ce,hb,vb,hs,vs,complete,unsupported;wire [11:0] rgb;
+-integer i,x,y,pattern=0,active,hticks,vticks,total,fd;reg begun;reg [1023:0] picture_path,hex_path;
+-reg [31:0] picture[0:18303];reg replay=0;
+-always #5 clk=~clk;
+-ngage_lcd_display #(.PIXEL_DIV(PIXEL_DIV)) dut(.clk(clk),.reset(reset),.diagnostic(diagnostic),.status(8'h80),.save_state(3'b0),.write_valid(wv),.write_addr(wa),.write_data(wd),.dma_valid(dv),.dma_frame_full(full),.dma_word_addr(da),.dma_data(dd),.ce_pix(ce),.hsync(hs),.vsync(vs),.hblank(hb),.vblank(vb),.rgb(rgb),.frame_complete(complete),.unsupported(unsupported));
+-function [11:0] expected;
+- input integer xx,yy;
+- reg [31:0] pair;
+- begin
+-  if(replay)begin pair=picture[(yy*176+xx)/2];expected=xx%2 ? pair[27:16] : pair[11:0];end
+-  else if(pattern==0)expected=(xx<<4)|(yy&15);
+-  else expected=(yy<<4)|(xx&15);
+- end
+-endfunction
+-task wr;input [31:0] a,d;begin @(negedge clk);wv=1;wa=a;wd=d;@(negedge clk);wv=0;end endtask
+-task capture;
+- begin
+-  active=0;total=0;hticks=0;vticks=0;begun=0;
+-  begin: raster
+-   while(1)begin
+-    @(negedge clk);
+-    if(ce)begin
+-     x=dut.scan_x;y=dut.scan_y;
+-     if(x==0 && y==0)begin if(begun)disable raster;begun=1;end
+-     if(begun)begin
+-      total=total+1;if(!hs)hticks=hticks+1;if(!vs)vticks=vticks+1;
+-      if(!hb && !vb)begin
+-       if(x<72 || x>=248 || y<16 || y>=224)$fatal(1,"border included in phone DE %0d,%0d",x,y);
+-       if(rgb!==expected(x-72,y-16))$fatal(1,"pixel mismatch pattern %0d at %0d,%0d: %h want %h",pattern,x,y,rgb,expected(x-72,y-16));
+-       active=active+1;
+-       if(fd)$fwrite(fd,"%c%c%c",{rgb[11:8],rgb[11:8]},{rgb[7:4],rgb[7:4]},{rgb[3:0],rgb[3:0]});
++  parameter PIXEL_DIV = 16, LINE_PIXELS = 400, SYS_HZ = 104000000;
++  reg clk = 0, reset = 1, diagnostic = 0, wv = 0, dv = 0, full = 0;
++  reg [31:0] wa = 0, wd = 0, dd = 0;
++  reg [14:0] da = 0;
++  wire ce, hb, vb, hs, vs, complete, unsupported;
++  wire [11:0] rgb;
++  integer i, x, y, pattern = 0, active, hticks, vticks, total, fd, sys_clock = 0, frame_start;
++  reg begun;
++  reg [1023:0] picture_path, hex_path;
++  reg [31:0] picture[0:18303];
++  reg replay = 0;
++  always #(500000000.0 / SYS_HZ) clk = ~clk;
++  always @(posedge clk) sys_clock = sys_clock + 1;
++  ngage_lcd_display #(
++      .PIXEL_DIV  (PIXEL_DIV),
++      .LINE_PIXELS(LINE_PIXELS)
++  ) dut (
++      .clk(clk),
++      .reset(reset),
++      .diagnostic(diagnostic),
++      .status(8'h80),
++      .save_state(3'b0),
++      .write_valid(wv),
++      .write_addr(wa),
++      .write_data(wd),
++      .dma_valid(dv),
++      .dma_frame_full(full),
++      .dma_word_addr(da),
++      .dma_data(dd),
++      .ce_pix(ce),
++      .hsync(hs),
++      .vsync(vs),
++      .hblank(hb),
++      .vblank(vb),
++      .rgb(rgb),
++      .frame_complete(complete),
++      .unsupported(unsupported)
++  );
++  function [11:0] expected;
++    input integer xx, yy;
++    reg [31:0] pair;
++    begin
++      if (replay) begin
++        pair = picture[(yy*176+xx)/2];
++        expected = xx % 2 ? pair[27:16] : pair[11:0];
++      end else if (pattern == 0) expected = (xx << 4) | (yy & 15);
++      else expected = (yy << 4) | (xx & 15);
++    end
++  endfunction
++  task wr;
++    input [31:0] a, d;
++    begin
++      @(negedge clk);
++      wv = 1;
++      wa = a;
++      wd = d;
++      @(negedge clk);
++      wv = 0;
++    end
++  endtask
++  task capture;
++    begin
++      active = 0;
++      total  = 0;
++      hticks = 0;
++      vticks = 0;
++      begun  = 0;
++      begin : raster
++        while (1) begin
++          @(negedge clk);
++          if (ce) begin
++            x = dut.scan_x;
++            y = dut.scan_y;
++            if (x == 0 && y == 0) begin
++              if (begun) disable raster;
++              begun = 1;
++              frame_start = sys_clock;
++            end
++            if (begun) begin
++              if(x!=total%LINE_PIXELS || y!=total/LINE_PIXELS ||
++         hs!==!(x>=336 && x<368) || vs!==!(y>=244 && y<247))
++                $fatal(1, "raster position or sync moved");
++              total = total + 1;
++              if (!hs) hticks = hticks + 1;
++              if (!vs) vticks = vticks + 1;
++              if (!hb && !vb) begin
++                if (!diagnostic && rgb !== expected(x - 72, y - 16))
++                  $fatal(
++                      1,
++                      "pixel mismatch pattern %0d at %0d,%0d: %h want %h",
++                      pattern,
++                      x,
++                      y,
++                      rgb,
++                      expected(
++                          x - 72, y - 16
++                      )
++                  );
++                active = active + 1;
++                if (fd)
++                  $fwrite(
++                      fd,
++                      "%c%c%c",
++                      {
++                        rgb[11:8], rgb[11:8]
++                      },
++                      {
++                        rgb[7:4], rgb[7:4]
++                      },
++                      {
++                        rgb[3:0], rgb[3:0]
++                      }
++                  );
++              end
++              if ((hb || vb) && rgb !== 0) $fatal(1, "analog padding is not black");
++              if(hb!==(diagnostic ? x>=320 : !(x>=72 && x<248)) ||
++         vb!==(diagnostic ? y>=240 : !(y>=16 && y<224)))
++                $fatal(1, "analog blanking mismatch");
++            end
++          end
++        end
++      end
++      if(active!=(diagnostic ? 320*240 : 176*208) || total!=LINE_PIXELS*262 ||
++     hticks!=32*262 || vticks!=3*LINE_PIXELS || sys_clock-frame_start!=PIXEL_DIV*LINE_PIXELS*262)
++        $fatal(
++            1, "raster totals active=%0d total=%0d hs=%0d vs=%0d", active, total, hticks, vticks
++        );
++    end
++  endtask
++  initial begin
++    fd = 0;
++    if ($value$plusargs("FRAME=%s", hex_path)) begin
++      $readmemh(hex_path, picture);
++      replay = 1;
++    end
++    repeat (2) @(negedge clk);
++    reset = 0;
++    // Even an unknown panel opcode must not paint a diagnostic stripe into
++    // the phone's real pixels. The diagnostic/export flag remains asserted.
++    wr('h0c121200, 'h09200000);
++    wr('h0c121208, 'hfe);
++    wr('h0c121208, 'haf);
++    for (pattern = 0; pattern < (replay ? 1 : 2); pattern = pattern + 1) begin
++      for (i = 0; i < 18304; i = i + 1) begin
++        @(negedge clk);
++        dv = 1;
++        da = i;
++        x  = (i % 88) * 2;
++        y  = i / 88;
++        dd = {4'b0, expected(x + 1, y), 4'b0, expected(x, y)};
++      end
++      @(negedge clk);
++      dv = 0;
++      if (complete || !unsupported)
++        $fatal(1, "unexpected transfer-complete event or missing diagnostic flag");
++      if (replay && $value$plusargs("PPM=%s", picture_path)) begin
++        fd = $fopen(picture_path, "wb");
++        if (!fd) $fatal(1, "open PPM");
++        $fwrite(fd, "P6\n176 208\n255\n");
++      end
++      capture();
++      if (fd) begin
++        $fclose(fd);
++        fd = 0;
+       end
+-      if((hb || vb) && rgb!==0)$fatal(1,"analog padding is not black");
+-      if(hb!==!(x>=72 && x<248) || vb!==!(y>=16 && y<224))$fatal(1,"native blanking mismatch");
+-     end
+     end
+-   end
++    // Diagnostic page retains its own 320x240 active area.
++    diagnostic = 1;
++    capture();
++    $display(
++        "PASS native 176x208 and diagnostic 320x240 within %0dx262 raster, HS=%0.3f Hz VS=%0.5f Hz",
++        LINE_PIXELS, (1.0 * SYS_HZ) / PIXEL_DIV / LINE_PIXELS,
++        (1.0 * SYS_HZ) / PIXEL_DIV / LINE_PIXELS / 262);
++    $finish;
+   end
+-  if(active!=176*208 || total!=400*262 || hticks!=32*262 || vticks!=3*400)
+-   $fatal(1,"raster totals active=%0d total=%0d hs=%0d vs=%0d",active,total,hticks,vticks);
+- end
+-endtask
+-initial begin
+- fd=0;
+- if($value$plusargs("FRAME=%s",hex_path))begin $readmemh(hex_path,picture);replay=1;end
+- repeat(2)@(negedge clk);reset=0;
+- // Even an unknown panel opcode must not paint a diagnostic stripe into
+- // the phone's real pixels. The diagnostic/export flag remains asserted.
+- wr('h0c121200,'h09200000);wr('h0c121208,'hfe);wr('h0c121208,'haf);
+- for(pattern=0;pattern<(replay?1:2);pattern=pattern+1)begin
+-  for(i=0;i<18304;i=i+1)begin
+-   @(negedge clk);dv=1;da=i;x=(i%88)*2;y=i/88;
+-   dd={4'b0,expected(x+1,y),4'b0,expected(x,y)};
++  initial begin
++    #150000000;
++    $fatal(1, "native raster timeout");
+   end
+-  @(negedge clk);dv=0;if(complete || !unsupported)$fatal(1,"unexpected transfer-complete event or missing diagnostic flag");
+-  if(replay && $value$plusargs("PPM=%s",picture_path))begin fd=$fopen(picture_path,"wb");if(!fd)$fatal(1,"open PPM");$fwrite(fd,"P6\n176 208\n255\n");end
+-  capture();if(fd)begin $fclose(fd);fd=0;end
+- end
+- // Diagnostic page retains its own 320x240 active area.
+- diagnostic=1;
+- @(negedge clk);dut.scan_x=319;dut.scan_y=239;#1;if(hb || vb)$fatal(1,"diagnostic active area shrank");
+- dut.scan_x=320;dut.scan_y=240;#1;if(!hb || !vb)$fatal(1,"diagnostic blanking");
+- $display("PASS native 176x208 CE/DE pixels, sync, diagnostics and zero baked-in borders");$finish;
+-end
+-initial begin #150000000;$fatal(1,"native raster timeout");end
+ endmodule
+diff --git a/tests/phone/mmc_host/data_tb.v b/tests/phone/mmc_host/data_tb.v
+index 03f1fa8dedf475605f58033c95d783ce9b959271..f34d264843436de1b3ecce26defc9011875b868a 100644
+--- a/tests/phone/mmc_host/data_tb.v
++++ b/tests/phone/mmc_host/data_tb.v
+@@ -106,12 +106,15 @@ module tb;
+         reg [39:0] head;
+         integer bit_index;
+         begin
+-            wait(cmd_oe);
++            // OE can become active on the first visible pin edge.
++            @(posedge mmc_clk);
++            while(!cmd_oe) @(posedge mmc_clk);
+             if(ordering==1&&!rx_finished)$fatal(1,"type10 command preceded final RX end bit");
+             if(ordering==2&&!tx_finished)$fatal(1,"type7 command preceded TX busy release");
+             packet=0;
+             for(bit_index=0;bit_index<48;bit_index=bit_index+1)begin
+-                @(posedge mmc_clk);packet={packet[46:0],cmd_o};
++                packet={packet[46:0],cmd_o};
++                if(bit_index!=47) @(posedge mmc_clk);
+             end
+             if(packet[47:46]!==2'b01||packet[45:40]!==command[5:0]||packet[39:8]!==32'h12340000||
+                 packet[7:1]!==crc7(packet[47:8])||!packet[0])$fatal(1,"command wire frame %h",packet);
+@@ -190,10 +193,13 @@ module tb;
+         reg [4:0] token;
+         integer n,i,k;
+         begin
+-            wait(dat_oe);bits=0;n=0;tx_seen=0;
++            bits=0;n=0;tx_seen=0;
++            // Check OE at each pin edge, including the first data bit.
++            @(posedge mmc_clk);
++            while(!dat_oe) @(posedge mmc_clk);
+             while(dat_oe)begin
++                bits={bits[8190:0],dat_o};n=n+1;tx_seen=n;
+                 @(posedge mmc_clk);
+-                if(dat_oe)begin bits={bits[8190:0],dat_o};n=n+1;tx_seen=n;end
+             end
+             if(n!=count*8+18||bits[n-1]!==0||bits[0]!==1)$fatal(1,"TX logical length%0d wirebits%0d",count,n);
+             for(k=0;k<count;k=k+1)if(bits[n-2-k*8-:8]!==pattern(k,tag))$fatal(1,"TX data/padding changed byte%0d",k);
+diff --git a/tests/phone/mmc_host/integer_clock_tb.v b/tests/phone/mmc_host/integer_clock_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..e389c1c446331f426630cd3c4f54fd49d08eda9f
+--- /dev/null
++++ b/tests/phone/mmc_host/integer_clock_tb.v
+@@ -0,0 +1,111 @@
++`timescale 1ns / 1ps
++module integer_clock_tb;
++  reg clk = 0;
++  always #4.808 clk = ~clk;
++  reg reset = 1;
++  reg wr = 0;
++  reg [5:0] off = 0;
++  reg [31:0] wdata = 0;
++  wire mmc_clk, cmd_o, cmd_oe;
++  wire [3:0] irq;
++
++  ngage_mmc_host #(
++      .DIV(3)
++  ) dut (
++      .clk(clk),
++      .reset(reset),
++      .acc(wr),
++      .we(wr),
++      .wr(wr),
++      .rd(1'b0),
++      .off(off),
++      .be(4'hf),
++      .wdata(wdata),
++      .rmask(),
++      .rdata(),
++      .busy(),
++      .rx_ready(),
++      .tx_ready(),
++      .irq(irq),
++      .mmc_clk(mmc_clk),
++      .cmd_o(cmd_o),
++      .cmd_oe(cmd_oe),
++      .cmd_i(1'b1),
++      .dat_o(),
++      .dat_oe(),
++      .dat_i(1'b1)
++  );
++
++  integer clocks = 0, rises = 0, falls = 0;
++  integer last_rise = 0, last_fall = 0;
++  integer pulses_in_command = 0, commands = 0;
++  integer iteration;
++  reg last_clk = 0;
++  reg [47:0] command;
++
++  // Sample on the host and card's shared clock, before NB updates.
++  always @(posedge clk)
++    if (!reset) begin
++      clocks = clocks + 1;
++      if (dut.rise !== (mmc_clk && !last_clk)) $fatal(1, "Host and peer sample at different edges");
++      if (mmc_clk && !last_clk) begin
++        if (pulses_in_command != 0 && (clocks - last_rise != 3 || clocks - last_fall != 1))
++          $fatal(1, "Illegal MMC rising/low interval");
++        last_rise = clocks;
++        pulses_in_command = pulses_in_command + 1;
++        rises = rises + 1;
++        if (cmd_oe) command = {command[46:0], cmd_o};
++      end
++      if (!mmc_clk && last_clk) begin
++        if (clocks - last_rise != 2) $fatal(1, "Illegal MMC high interval");
++        last_fall = clocks;
++        falls = falls + 1;
++      end
++      last_clk = mmc_clk;
++    end
++
++  task command_zero;
++    input integer idle_clocks;
++    begin
++      @(negedge clk);
++      pulses_in_command = 0;
++      command = 0;
++      wr = 1;
++      off = 6'h04;
++      wdata = 1;
++      @(negedge clk);
++      wr = 0;
++      wait (!irq[2]);
++      wait (irq[2]);
++      repeat (3) @(negedge clk);
++      repeat (idle_clocks) begin
++        @(negedge clk);
++        if (mmc_clk) $fatal(1, "MMC clock kept running while idle");
++      end
++      if (command !== 48'h400000000095 || pulses_in_command < 48 || rises != falls)
++        $fatal(1, "CMD0 frame or pulse accounting failed: %h", command);
++      commands = commands + 1;
++    end
++  endtask
++
++  initial begin
++    repeat (4) @(negedge clk);
++    reset = 0;
++    @(negedge clk);
++    wr = 1;
++    off = 6'h1c;
++    wdata = 0;
++    @(negedge clk);
++    off = 6'h20;
++    @(negedge clk);
++    wr = 0;
++    for (iteration = 0; iteration < 12; iteration = iteration + 1) command_zero(iteration + 1);
++    $display("PASS MMC integer /3 clock: CMD0=%0d, rises=%0d, falls=%0d", commands, rises, falls);
++    $finish;
++  end
++
++  initial begin
++    #50000;
++    $fatal(1, "MMC integer clock test timed out");
++  end
++endmodule
+diff --git a/tests/phone/mmc_host/run.sh b/tests/phone/mmc_host/run.sh
+index 6ba9f9de66f13393d432d6cf2cbd5010405958a8..45562c262bccebba6028e161a91a4c5efb76d079 100644
+--- a/tests/phone/mmc_host/run.sh
++++ b/tests/phone/mmc_host/run.sh
+@@ -6,7 +6,11 @@ iverilog -g2001 -Wall -s ngage_mmc_host -o "$out/strict" rtl/ngage_mmc_host.v >
+ iverilog -g2001 -s tb -o "$out/cmd16" rtl/ngage_mmc_host.v tests/phone/mmc_host/cmd16_tb.v > "$out/cmd16-build.log" 2>&1
+ vvp "$out/cmd16" > "$out/cmd16.log" 2>&1
+ grep '^PASS CMD16 ' "$out/cmd16.log"
+-for config in '4 16' '12 8'; do
++iverilog -g2001 -s integer_clock_tb -o "$out/integer-clock" \
++    rtl/ngage_mmc_host.v tests/phone/mmc_host/integer_clock_tb.v
++vvp "$out/integer-clock" > "$out/integer-clock.log" 2>&1
++grep '^PASS MMC integer ' "$out/integer-clock.log"
++for config in '4 16' '3 16' '12 8'; do
+     set -- $config
+     divider=$1
+     depth=$2

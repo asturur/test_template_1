@@ -1,0 +1,714 @@
+diff --git a/Template.sv b/Template.sv
+index 2ab0ba3bbb3c268547d636bca62e3038328d587c..12bbdb19d5fa9dc1d76427e7e1b03b208f0d0798 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -383,7 +383,7 @@ module emu (
+     wire shared_line_req, shared_line_ready, shared_line_valid, shared_line_last;
+     wire shared_line_short, sdr_read_short;
+     wire [24:0] shared_line_addr;
+-    wire sdr_req, sdr_we, sdr_line, sdr_ready, sdr_busy, sdr_valid;
++    wire sdr_req, sdr_we, sdr_line, sdr_ready, sdr_cmd_ready, sdr_busy, sdr_valid;
+     wire [ 24:2] sdr_addr;
+     wire [127:0] sdr_wdata;
+     wire [15:0] sdr_wbe, sdram_dq_o, sdram_dq_oe;
+@@ -417,40 +417,46 @@ module emu (
+         .ram_last      (shared_line_last)
+     );
+ 
++    wire         sdram_read_grant = (cpu_sdram_accept && !cpu_sdram_we) ||
++                                     (shared_dma_accept && !shared_dma_write);
++    wire [24:0] sdram_grant_addr = cpu_sdram_accept ? cpu_sdram_addr : shared_dma_addr;
+     ngage_sdram_stream phone_sdram (
+-        .clk        (clk_sys),
+-        .cold       (transport_reset),
+-        .phone_reset(dma_reset || transport_reset),
+-        .lock       (mem_lock),
+-        .owner_ready(sdram_owner_ready),
+-        .req        (mem_req),
+-        .we         (mem_we),
+-        .write_block(mem_write_block),
+-        .block_data (mem_block_data),
+-        .addr       (mem_addr),
+-        .din        (mem_wdata),
+-        .be         (mem_be),
+-        .ack        (mem_ack),
+-        .dout       (mem_rdata),
+-        .line_req   (shared_line_req),
+-        .line_short (shared_line_short),
+-        .line_addr  (shared_line_addr),
+-        .line_ready (shared_line_ready),
+-        .line_valid (shared_line_valid),
+-        .line_data  (ram_line_data),
+-        .line_last  (shared_line_last),
+-        .scrub_done (sdram_scrub_done),
+-        .mem_req    (sdr_req),
+-        .mem_we     (sdr_we),
+-        .mem_line   (sdr_line),
+-        .mem_short  (sdr_read_short),
+-        .mem_addr   (sdr_addr),
+-        .mem_wdata  (sdr_wdata),
+-        .mem_wbe    (sdr_wbe),
+-        .mem_ready  (sdr_ready),
+-        .mem_busy   (sdr_busy),
+-        .mem_valid  (sdr_valid),
+-        .mem_rdata  (sdr_rdata)
++        .clk          (clk_sys),
++        .cold         (transport_reset),
++        .phone_reset  (dma_reset || transport_reset),
++        .lock         (mem_lock),
++        .owner_ready  (sdram_owner_ready),
++        .grant_read   (sdram_read_grant),
++        .grant_addr   (sdram_grant_addr),
++        .req          (mem_req),
++        .we           (mem_we),
++        .write_block  (mem_write_block),
++        .block_data   (mem_block_data),
++        .addr         (mem_addr),
++        .din          (mem_wdata),
++        .be           (mem_be),
++        .ack          (mem_ack),
++        .dout         (mem_rdata),
++        .line_req     (shared_line_req),
++        .line_short   (shared_line_short),
++        .line_addr    (shared_line_addr),
++        .line_ready   (shared_line_ready),
++        .line_valid   (shared_line_valid),
++        .line_data    (ram_line_data),
++        .line_last    (shared_line_last),
++        .scrub_done   (sdram_scrub_done),
++        .mem_req      (sdr_req),
++        .mem_we       (sdr_we),
++        .mem_line     (sdr_line),
++        .mem_short    (sdr_read_short),
++        .mem_addr     (sdr_addr),
++        .mem_wdata    (sdr_wdata),
++        .mem_wbe      (sdr_wbe),
++        .mem_ready    (sdr_ready),
++        .mem_cmd_ready(sdr_cmd_ready),
++        .mem_busy     (sdr_busy),
++        .mem_valid    (sdr_valid),
++        .mem_rdata    (sdr_rdata)
+     );
+ 
+     ngage_sdram_scheduler #(
+@@ -461,6 +467,7 @@ module emu (
+         .ready      (sdr_ready),
+         .req        (sdr_req),
+         .busy       (sdr_busy),
++        .cmd_ready  (sdr_cmd_ready),
+         .we         (sdr_we),
+         .line       (sdr_line),
+         .read_short (sdr_read_short),
+@@ -1149,6 +1156,7 @@ module emu (
+     ngage_mister #(
+         .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
+         .LINE_REFILL    (1),
++        .RAM_LINE_EARLY (1),
+         .LCD_LINE_BYTES (LCD_LINE_BYTES),
+         .DMA_LOCAL      (1),
+         .GAME_PCM       (1),
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index 14de383e3826ae4eb5acbec536ab238f366c176d..a720c3fc3552750df43901a0321acea27f015e94 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -24,7 +24,8 @@ module ngage_mister #(
+                       MMC_CLK_DIV        = 4,
+                       SYS_CLK_HZ         = 104000000,
+                       TIMER_CLK_DIV      = 1,
+-                      NOS_TICK_HZ        = 1000
++                      NOS_TICK_HZ        = 1000,
++                      RAM_LINE_EARLY     = 0
+ ) (
+     output wire         ddram_line,
+     input  wire         ddram_beat_valid,
+@@ -610,8 +611,12 @@ module ngage_mister #(
+     assign line_no_late_error = line_ready && (line_ram_eligible || line_rom_eligible);
+     wire line_ddr_offer = line_state == LINE_ROM_ISSUE && !core_reset;
+     assign ddram_line = line_ddr_offer;
+-    assign ram_line_req = line_state == LINE_RAM_ISSUE && !core_reset;
+-    assign ram_line_addr = line_ram_address;
++    // With the queued SDRAM port, offer the RAM command on the same edge
++    // that accepts its upstream line. Keep the saved address if the RAM
++    // arbiter cannot take it on that edge.
++    wire ram_line_preview = RAM_LINE_EARLY && line_req && line_ready && line_ram_eligible;
++    assign ram_line_req = !core_reset && (line_state == LINE_RAM_ISSUE || ram_line_preview);
++    assign ram_line_addr = ram_line_preview ? line_addr[24:0] : line_ram_address;
+     assign line_valid = !core_reset && ((line_state==LINE_ROM_WAIT && ddram_beat_valid) ||
+                                        (line_state==LINE_RAM_WAIT && ram_line_valid));
+     assign line_data = line_state==LINE_RAM_WAIT ? {48'b0,ram_line_data} : {line_decoded_high,line_decoded_low};
+@@ -628,7 +633,7 @@ module ngage_mister #(
+                     line_decode_address <= line_addr;
+                     if (line_ram_eligible) begin
+                         line_ram_address <= line_addr[24:0];
+-                        line_state       <= LINE_RAM_ISSUE;
++                        line_state       <= ram_line_preview && ram_line_ready ? LINE_RAM_WAIT : LINE_RAM_ISSUE;
+                     end else if (line_rom_eligible) begin
+                         line_backing <= 32'h30000000 + {line_rom_offset[24:5], 5'b0};
+                         line_state   <= LINE_ROM_ISSUE;
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index f850fb6bcdbe7157f6e4d48881759d87d5ca1b56..2d322d7dea3c251c6c136bd28801956b1fa3bd3b 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -10,6 +10,9 @@ module ngage_sdram_stream #(
+     // Lock sampled with this scalar packet by the bus owner.
+     input  wire         lock,
+     output wire         owner_ready,
++    // Read-only offer from this clock's irrevocable scalar arbiter grant.
++    input  wire         grant_read,
++    input  wire [ 24:0] grant_addr,
+     input  wire         req,
+     input  wire         we,
+     input  wire         write_block,
+@@ -35,6 +38,7 @@ module ngage_sdram_stream #(
+     output wire [ 15:0] mem_wbe,
+     output reg          scrub_done = 0,
+     input  wire         mem_ready,
++    input  wire         mem_cmd_ready,
+     input  wire         mem_busy,
+     input  wire         mem_valid,
+     input  wire [ 31:0] mem_rdata
+@@ -56,19 +60,23 @@ module ngage_sdram_stream #(
+     reg  [24:0] scrub_address = 0;
+     reg         scrub_last_issued = 0;
+     // Scrub the full guest RAM while the phone is still held in reset.
+-    wire        scrub = mem_ready && !cold && !scrub_last_issued && !mem_busy;
++    wire        scrub = mem_ready && !cold && !scrub_last_issued && mem_cmd_ready;
+ 
+     assign owner_ready = scrub_done && mem_ready && !cold && !phone_reset && !discard;
+     wire idle = state == IDLE && owner_ready;
+     wire scalar = idle && req && !seen;
+-    wire take_pending = pending && !mem_busy;
++    wire take_pending = pending && mem_cmd_ready;
+     wire post = scalar && we && !lock && (!pending || take_pending);
+-    wire direct_post = post && !pending && !mem_busy;
+-    wire read_word = scalar && !we && !pending && !mem_busy;
+-    wire lock_write = scalar && we && lock && !pending && !mem_busy;
+-    assign line_ready = idle && !req && !pending && !mem_busy;
++    wire direct_post = post && !pending && mem_cmd_ready;
++    wire scalar_read = scalar && !we && !pending && mem_cmd_ready;
++    wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
++    assign line_ready = idle && !req && !pending && mem_cmd_ready;
+     wire first_line = line_req && line_ready;
+-    wire line_follow = state == LINE && second_line && !mem_busy;
++    // The arbiter captures the owner on this same edge. If a line or an
++    // older packet owns the slot, the arbiter's held read can issue later.
++    wire grant_read_word = idle && !req && !pending && mem_cmd_ready && grant_read && !first_line;
++    wire read_word = scalar_read || grant_read_word;
++    wire line_follow = state == LINE && second_line && mem_cmd_ready;
+ 
+     assign mem_req = scrub || take_pending || direct_post || read_word || lock_write || first_line || line_follow;
+     assign mem_we = scrub || take_pending || direct_post || lock_write;
+@@ -79,7 +87,8 @@ module ngage_sdram_stream #(
+     assign mem_addr = scrub ? scrub_address[24:2] :
+                       take_pending ? pending_addr :
+                       first_line ? first_addr :
+-                      line_follow ? {saved_line, 3'b100} : addr[24:2];
++                      line_follow ? {saved_line, 3'b100} :
++                      grant_read_word ? grant_addr[24:2] : addr[24:2];
+     assign mem_wdata = scrub ? 128'b0 :
+                        block_write ? (take_pending ? pending_block_data : block_data) :
+                        {4{take_pending ? pending_data : din}};
+diff --git a/rtl/sdram/ngage_sdram_scheduler.v b/rtl/sdram/ngage_sdram_scheduler.v
+index 569626a6db9271bcf260b997fd2238850b7db87e..eaad23c5f08953e772558d8467fc50ee7af8d5d0 100644
+--- a/rtl/sdram/ngage_sdram_scheduler.v
++++ b/rtl/sdram/ngage_sdram_scheduler.v
+@@ -67,8 +67,9 @@
+ // NOPs, PRECHARGE ALL, INIT_REFRESHES refreshes, mode register, then tMRD.
+ //
+ // Port (one clock domain with the requester):
+-//   A request is taken at an edge where req is high and busy is low; addr,
+-//   we, line, wdata and wbe must be valid then and are latched. A read
++//   A request is captured when req and cmd_ready are high. The port can
++//   hold one queued command behind an active operation. Busy includes both
++//   stages and indicates physical drain, including refresh. A read
+ //   returns its words on rvalid/rword/rdata, one every other clock, in the
+ //   chip's order (from addr's word, wrapping in the 16-byte block); rdata
+ //   is driven straight from the DQ input registers and is valid only while
+@@ -102,6 +103,7 @@ module ngage_sdram_scheduler #(
+ 
+     input  wire          req,
+     output wire          busy,
++    output wire          cmd_ready,
+     input  wire          we,
+     input  wire          line,      // 1: read a line or write 16 bytes
+     input  wire          read_short, // aligned 16-byte line instead of 32-byte line
+@@ -264,7 +266,7 @@ module ngage_sdram_scheduler #(
+     reg [12:0]    op_row;
+     reg           op_we, op_line, op_wide;
+     reg [TW-1:0]  t;
+-    reg [TW-1:0]  t_end;
++    reg [TW-1:0]  last_access_clock;
+     reg [1:0]     op_ba = 2'b00;
+     reg [8:0]     op_col;
+     reg [127:0]   wsh;                  // write halfwords, next at the bottom
+@@ -276,8 +278,42 @@ module ngage_sdram_scheduler #(
+     reg           ref_due = 1'b0;
+     reg           ready_q = 1'b0;
+ 
+-    wire idle = state == IDLE || (state == ACCESS && t == t_end) ||
+-                (state == REF_WAIT && t == access_counter(RFC));
++    // A one-entry, ordered command slot isolates the request mux from
++    // row selection and lets a command queue behind physical activity.
++    (* dont_retime *) reg        cmd_valid = 0;
++    (* dont_retime *) reg [24:2] cmd_addr;
++    (* dont_retime *) reg        cmd_we, cmd_line, cmd_short;
++    (* dont_retime *) reg [127:0] cmd_data;
++    (* dont_retime *) reg [15:0] cmd_be;
++    (* dont_retime *) reg active = 0;
++    wire idle = !active;
++    wire take = !init && ready_q && idle && !ref_due && cmd_valid;
++    wire start_refresh = !init && ready_q && idle && ref_due;
++    wire access_done = state == ACCESS && t == last_access_clock;
++    wire refresh_done = (state == REF_WAIT && t == access_counter(RFC - 1)) ||
++                        (RFC == 1 && state == REF_RP && t == access_counter(RP));
++
++    always @(posedge clk) begin
++        if (init) begin
++            cmd_valid <= 0;
++            active <= 0;
++        end else begin
++            if (req && cmd_ready) begin
++                cmd_valid <= 1;
++                cmd_addr <= addr;
++                cmd_we <= we;
++                cmd_line <= line;
++                cmd_short <= read_short;
++                cmd_data <= wdata;
++                cmd_be <= wbe;
++            end else if (take) cmd_valid <= 0;
++
++            // Advance the activity bit on the edge entering the first
++            // available cycle. Do not export the live timing comparison.
++            if (take || start_refresh) active <= 1;
++            else if (access_done || refresh_done) active <= 0;
++        end
++    end
+ 
+     // the output stage (see Clocking): the schedule sets these, the I/O
+     // registers take them a clock later
+@@ -301,7 +337,8 @@ module ngage_sdram_scheduler #(
+ 
+     assign ready     = ready_q;
+     assign rvalid    = rvalid_q;
+-    assign busy      = !ready_q || !idle || ref_due;
++    assign busy      = !ready_q || cmd_valid || active || ref_due;
++    assign cmd_ready = ready_q && !cmd_valid && !init;
+     assign sdram_cke = 1'b1;
+     assign sdram_cs_n = 1'b0;
+ 
+@@ -315,17 +352,17 @@ module ngage_sdram_scheduler #(
+     // Physical halfword address: column 8:0, row 21:9, bank 23:22.
+     // Move logical byte bits 13:12 to the bank; preserve every other bit.
+     // This is a bijective remap of all 32 MB; port addresses stay unchanged.
+-    wire [23:0] h = {addr[13:12], addr[24:14], addr[11:10], addr[9:2], 1'b0};
+-    wire take = ready_q && idle && !ref_due && req;
++    wire [23:0] h = {cmd_addr[13:12], cmd_addr[24:14], cmd_addr[11:10],
++                     cmd_addr[9:2], 1'b0};
+     wire hit = row_open[h[23:22]] && row_addr[h[23:22]] == h[21:9];
+     wire hit_start = take && hit;
+-    wire [8:0] req_col = we && line ? {h[8:3], 3'b000} : h[8:0];
+-    wire [127:0] req_wsh = line ? wdata : {96'd0, wdata[32 * addr[3:2] +: 32]};
+-    wire [15:0] req_mask = line ? ~wbe : {12'hFFF, ~wbe[4 * addr[3:2] +: 4]};
++    wire [8:0] req_col = cmd_we && cmd_line ? {h[8:3], 3'b000} : h[8:0];
++    wire [127:0] req_wsh = cmd_line ? cmd_data : {96'd0, cmd_data[32 * cmd_addr[3:2] +: 32]};
++    wire [15:0] req_mask = cmd_line ? ~cmd_be : {12'hFFF, ~cmd_be[4 * cmd_addr[3:2] +: 4]};
+     wire second_burst = state == ACCESS && !idle && !op_we && op_wide && t == access_counter(RCD + 8);
+-    wire read_now = second_burst || (hit_start && !we) ||
++    wire read_now = second_burst || (hit_start && !cmd_we) ||
+                     (state == ACCESS && !idle && !op_we && t == access_counter(RCD));
+-    wire write_now = (hit_start && we) || (state == ACCESS && !idle && op_we &&
++    wire write_now = (hit_start && cmd_we) || (state == ACCESS && !idle && op_we &&
+                       t >= access_counter(RCD) && t < access_counter(RCD) + (op_line ? access_counter(8) : access_counter(2)));
+     wire [8:0] col_now = hit_start ? req_col : op_col;
+     wire [127:0] wsh_now = hit_start ? req_wsh : wsh;
+@@ -473,17 +510,19 @@ module ngage_sdram_scheduler #(
+                     state <= REF_RP;
+                     t <= access_counter(1);
+                 end
+-            end else if (req) begin
++            end else if (take) begin
+                 p_ba     <= h[23:22];
+                 op_ba    <= h[23:22];
+                 op_row   <= h[21:9];
+-                op_we    <= we;
+-                op_line  <= line;
+-                op_wide  <= line && !read_short;
+-                if (we) t_end <= line ? access_counter(END_WL) : access_counter(END_WW);
+-                else if (!line) t_end <= access_counter(END_RW);
+-                else t_end <= read_short ? access_counter(END_RS) : access_counter(END_RL);
+-                word     <= addr[3:2];
++                op_we    <= cmd_we;
++                op_line  <= cmd_line;
++                op_wide  <= cmd_line && !cmd_short;
++                if (cmd_we)
++                    last_access_clock <= cmd_line ? access_counter(END_WL - 1) : access_counter(END_WW - 1);
++                else if (!cmd_line) last_access_clock <= access_counter(END_RW - 1);
++                else
++                    last_access_clock <= cmd_short ? access_counter(END_RS - 1) : access_counter(END_RL - 1);
++                word     <= cmd_addr[3:2];
+                 op_col   <= req_col;
+                 wsh      <= req_wsh;
+                 wmask    <= req_mask;
+@@ -514,7 +553,7 @@ module ngage_sdram_scheduler #(
+             end
+         end
+ 
+-        // A hit uses the request directly for its first column command;
++        // A hit uses the queued command for its first column command;
+         // later beats and misses use the latched operands. These muxes end
+         // at p_*, preserving the logic-free I/O register stage.
+         if (read_now) begin
+diff --git a/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py b/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
+index c1de91b2d525a2793882efdcd24b5b8716daf5e7..89be34770d64f4dafcb54f487c644ffcc0c58f4b 100644
+--- a/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
++++ b/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
+@@ -9,7 +9,7 @@ DONOR = Path('/Users/andreabogazzi/develop/ngage2')
+ REVISION = 'ff6dcff7f92a8ce999f2e89fdc08b873b5172404'
+ 
+ BRIDGE = ''' wire scrub_done, sdr_ready;
+- wire sdr_req,sdr_we,sdr_line,sdr_busy,sdr_rvalid;
++ wire sdr_req,sdr_we,sdr_line,sdr_busy,sdr_rvalid,sdr_cmd_ready;
+  wire [24:2] sdr_addr;
+  wire [127:0] sdr_wdata;
+  wire [15:0] sdr_wbe,sdr_dq;
+@@ -23,12 +23,13 @@ BRIDGE = ''' wire scrub_done, sdr_ready;
+  assign #5.5 sdr_dq = memory.Dq_reg;
+  ngage_sdram_stream #(.WIDE_PORT(0), .SCRUB_BYTES(25'd32)) sadapter(
+   .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(mem_lock),.owner_ready(sdram_owner_ready),
++  .grant_read(1'b0),.grant_addr(25'd0),
+   .req(sreq),.we(swe),.write_block(mem_write_block),.block_data(mem_block_data),
+   .addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),
+   .line_req(ram_line_req && !lock),.line_short(1'b0),.line_addr(ram_line_addr),.line_ready(ram_line_ready),
+   .line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),
+   .mem_req(sdr_req),.mem_we(sdr_we),.mem_line(sdr_line),.mem_addr(sdr_addr),
+-  .mem_wdata(sdr_wdata),.mem_wbe(sdr_wbe),.scrub_done(scrub_done),.mem_ready(sdr_ready),.mem_busy(sdr_busy),
++  .mem_wdata(sdr_wdata),.mem_wbe(sdr_wbe),.scrub_done(scrub_done),.mem_ready(sdr_ready),.mem_cmd_ready(sdr_cmd_ready),.mem_busy(sdr_busy),
+   .mem_valid(sdr_rvalid),.mem_rdata(sdr_rdata));
+  sdram #(.CLK_HZ(SYS_CLK_HZ)) ctrl(
+   .clk(clk),.init(cold),.ready(sdr_ready),.req(sdr_req),.busy(sdr_busy),.we(sdr_we),
+@@ -54,13 +55,20 @@ def wide_read_port(controller):
+ def generate(out, bench, wide=False, production=False):
+     ports = BRIDGE
+     if production:
++        bench = swap(bench, 'ngage_mister #(.ENABLE_DEBUGGER(1),',
++                     'ngage_mister #(.ENABLE_DEBUGGER(1),.RAM_LINE_EARLY(1),')
+         ports = ports.replace("sdram #(", "ngage_sdram_scheduler #(").replace(
+-            ".line(sdr_line)", ".line(sdr_line),.read_short(1'b0)")
++            ".line(sdr_line)", ".line(sdr_line),.read_short(1'b0),.cmd_ready(sdr_cmd_ready)")
++        ports = ports.replace(
++            ".grant_read(1'b0),.grant_addr(25'd0)",
++            ".grant_read((cpu_ram_accept && !cswe) || (shared_dma_accept && !shared_dma_write)),"
++            ".grant_addr(cpu_ram_accept ? csa : shared_dma_addr)")
+     else:
+         controller = subprocess.check_output(['git', '-C', DONOR, 'show', f'{REVISION}:rtl/mem/sdram.sv'])
+         if wide:
+             controller = wide_read_port(controller.decode()).encode()
+         (out / 'donor_sdram.sv').write_bytes(controller)
++        ports += " assign sdr_cmd_ready = !sdr_busy;\n"
+     if wide or production:
+         ports = ports.replace('.WIDE_PORT(0)', '.WIDE_PORT(1)')
+     bench = swap(bench, ' wire cpu_write_block, mem_write_block;',
+diff --git a/tests/phone/lcd_stream/physical_tb.sv b/tests/phone/lcd_stream/physical_tb.sv
+index e1a604a5b972630b979b1a37771dc986c0896002..fcf597badd56987d58a203c9b602bc43695973ab 100644
+--- a/tests/phone/lcd_stream/physical_tb.sv
++++ b/tests/phone/lcd_stream/physical_tb.sv
+@@ -1,8 +1,8 @@
+ `timescale 1ns / 1ps
+ module physical_lcd_stream_tb #(
+-    parameter LCD_LINE_BYTES = 0
++    parameter LCD_LINE_BYTES = 0,
++    parameter integer SYS_HZ = 78000000
+ );
+-  localparam integer SYS_HZ = 78000000;
+   localparam integer PIXEL_WORDS = 18304;
+   localparam integer CPU_READS = 1024;
+   localparam integer CPU_LINES = 256;
+@@ -180,7 +180,7 @@ module physical_lcd_stream_tb #(
+       .mem_rdata(scalar_data)
+   );
+ 
+-  wire pin_request, pin_write_op, pin_line, mem_ready, mem_busy, mem_valid;
++  wire pin_request, pin_write_op, pin_line, mem_ready, mem_cmd_ready, mem_busy, mem_valid;
+   wire [ 24:2] mem_addr;
+   wire [127:0] mem_write_data;
+   wire [ 15:0] mem_mask;
+@@ -193,6 +193,8 @@ module physical_lcd_stream_tb #(
+       .phone_reset(panel_reset),
+       .lock(packet_lock),
+       .owner_ready(owner_ready),
++      .grant_read(cpu_accept || dma_grant),
++      .grant_addr(cpu_accept ? cpu_addr : dma_addr),
+       .req(scalar_req),
+       .we(1'b0),
+       .write_block(1'b0),
+@@ -218,6 +220,7 @@ module physical_lcd_stream_tb #(
+       .mem_wbe(mem_mask),
+       .scrub_done(scrub_done),
+       .mem_ready(mem_ready),
++      .mem_cmd_ready(mem_cmd_ready),
+       .mem_busy(mem_busy),
+       .mem_valid(mem_valid),
+       .mem_rdata(mem_read_data)
+@@ -240,6 +243,7 @@ module physical_lcd_stream_tb #(
+       .ready(mem_ready),
+       .req(pin_request),
+       .busy(mem_busy),
++      .cmd_ready(mem_cmd_ready),
+       .we(pin_write_op),
+       .line(pin_line),
+       .read_short(mem_short),
+diff --git a/tests/phone/lcd_stream/run-physical.sh b/tests/phone/lcd_stream/run-physical.sh
+index db59fa8a3c2330cfc14f9753f5cefc4328ba69f5..f6816aa14137289b144981a8cde44e3b3453c42f 100644
+--- a/tests/phone/lcd_stream/run-physical.sh
++++ b/tests/phone/lcd_stream/run-physical.sh
+@@ -4,6 +4,7 @@ set -eu
+ name="${1:?provide a fresh run name}"
+ case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
+ out="build/sim/$name"
++hz="${PHONE_SDRAM_SYS_HZ:-78000000}"
+ model="${PHONE_SDRAM_MODEL:-build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v}"
+ mkdir "$out"
+ cp "$model" "$out/mt48lc16m16a2.v"
+@@ -18,7 +19,7 @@ run() {
+     burst=$1
+     image=jotego/simulator:arm64
+     simulate verilator "$image" --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
+-        --top-module physical_lcd_stream_tb "-GLCD_LINE_BYTES=$burst" --Mdir "$out/obj-$burst" \
++        --top-module physical_lcd_stream_tb "-GSYS_HZ=$hz" "-GLCD_LINE_BYTES=$burst" --Mdir "$out/obj-$burst" \
+         -DNGAGE_ARM9V2 -Irtl/arm -f "$out/rtl.f" tests/phone/sdram/ddio_model.v \
+         tests/phone/lcd_stream/physical_tb.sv "$out/mt48lc16m16a2.v" > "$out/build-$burst.log" 2>&1
+     exe="/work/$out/obj-$burst/Vphysical_lcd_stream_tb"
+diff --git a/tests/phone/sdram/run-stream.sh b/tests/phone/sdram/run-stream.sh
+index 7926f75114711ed255be5f476ba4ecd7ea232815..d954c493a8ed0a5069620996c5396fe0593df994 100644
+--- a/tests/phone/sdram/run-stream.sh
++++ b/tests/phone/sdram/run-stream.sh
+@@ -4,17 +4,18 @@ set -eu
+ name="${1:?provide a fresh run name}"
+ case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
+ out="build/sim/$name"
++hz="${PHONE_SDRAM_SYS_HZ:-78000000}"
+ model="${PHONE_SDRAM_MODEL:-build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v}"
+ mkdir "$out"
+ cp "$model" "$out/mt48lc16m16a2.v"
+ 
+ docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
+     -w /work --entrypoint verilator jotego/simulator:arm64 --binary --timing --assert -j 2 \
+-    -Wno-fatal -Wno-lint --top-module stream_tb --Mdir "$out/obj" \
++    -Wno-fatal -Wno-lint --top-module stream_tb "-GSYS_HZ=$hz" --Mdir "$out/obj" \
+     rtl/ngage_sdram_stream.v rtl/sdram/ngage_sdram_scheduler.v rtl/ngage_sdram_arbiter.v \
+     rtl/ngage_sdram_clock.v tests/phone/sdram/ddio_model.v tests/phone/sdram/stream_tb.sv \
+     "$out/mt48lc16m16a2.v" > "$out/build.log" 2>&1
+ docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
+     -w /work --entrypoint "/work/$out/obj/Vstream_tb" jotego/simulator:arm64 > "$out/run.log" 2>&1
+ if rg '^(ERROR:|FATAL:)' "$out/run.log"; then exit 1; fi
+-rg '^SCRUB PASS|^PASS stream' "$out/run.log"
++rg '^SCRUB PASS|^REFRESH PASS|^PASS stream' "$out/run.log"
+diff --git a/tests/phone/sdram/stream_tb.sv b/tests/phone/sdram/stream_tb.sv
+index b3b57f33401696c40059a3ef3d36b4acf7d1dc65..3f486d7c821ff9eef02a75669aa8354ca06b879d 100644
+--- a/tests/phone/sdram/stream_tb.sv
++++ b/tests/phone/sdram/stream_tb.sv
+@@ -1,7 +1,8 @@
+ `timescale 1ns / 1ps
+ 
+-module stream_tb;
+-  localparam integer SYS_HZ = 78000000;
++module stream_tb #(
++    parameter integer SYS_HZ = 78000000
++);
+   localparam [24:0] BASE = 25'h37fe0;
+   reg clk = 0;
+   always #(500000000.0 / SYS_HZ) clk = ~clk;
+@@ -61,7 +62,7 @@ module stream_tb;
+   reg line_req = 0;
+   wire line_ready, line_valid, line_last, scrub_done;
+   wire [15:0] line_data;
+-  wire req_mem, we_mem, line_mem, ready_mem, busy_mem, valid_mem;
++  wire req_mem, we_mem, line_mem, ready_mem, cmd_ready_mem, busy_mem, valid_mem;
+   wire [ 24:2] addr_mem;
+   wire [127:0] data_mem;
+   wire [ 15:0] be_mem;
+@@ -72,6 +73,8 @@ module stream_tb;
+       .phone_reset(phone_reset),
+       .lock(packet_lock),
+       .owner_ready(owner_ready),
++      .grant_read((cpu_grant && !cpu_we) || (dma_grant && !dma_we)),
++      .grant_addr(cpu_grant ? cpu_addr : dma_addr),
+       .req(req),
+       .we(we),
+       .write_block(write_block),
+@@ -96,6 +99,7 @@ module stream_tb;
+       .mem_wbe(be_mem),
+       .scrub_done(scrub_done),
+       .mem_ready(ready_mem),
++      .mem_cmd_ready(cmd_ready_mem),
+       .mem_busy(busy_mem),
+       .mem_valid(valid_mem),
+       .mem_rdata(rdata_mem)
+@@ -119,6 +123,7 @@ module stream_tb;
+       .ready(ready_mem),
+       .req(req_mem),
+       .busy(busy_mem),
++      .cmd_ready(cmd_ready_mem),
+       .we(we_mem),
+       .line(line_mem),
+       .read_short(1'b0),
+@@ -158,6 +163,40 @@ module stream_tb;
+       .frame_cnt(32'b0)
+   );
+ 
++  // Compare each admitted packet with the one presented to the scheduler,
++  // including packets accepted while the previous pin operation is active.
++  integer accepted = 0, issued = 0, accepted_while_busy = 0, grant_reads = 0;
++  bit queued = 0;
++  reg [168:0] queued_packet;
++  always @(posedge clk)
++    if (!cold) begin
++      if (stream.grant_read_word) begin
++        if (!req_mem || we_mem || line_mem || !(cpu_grant || dma_grant))
++          $fatal(1, "Early scalar read did not take both grants");
++        grant_reads <= grant_reads + 1;
++      end
++      if (req_mem) begin
++        if (!cmd_ready_mem || queued) $fatal(1, "Stream overwrote the queued SDRAM command");
++        queued_packet <= {addr_mem, we_mem, line_mem, data_mem, be_mem};
++        queued <= 1;
++        accepted <= accepted + 1;
++        if (busy_mem) accepted_while_busy <= accepted_while_busy + 1;
++      end
++      if (controller.take) begin
++        if (!queued || {controller.cmd_addr, controller.cmd_we, controller.cmd_line,
++                      controller.cmd_data, controller.cmd_be} !== queued_packet ||
++          controller.cmd_short)
++          $fatal(1, "Wrong SDRAM packet issued from command slot");
++        queued <= 0;
++        issued <= issued + 1;
++      end
++    end
++
++  localparam integer REFRESH_LIMIT = 7812000 / (1000000000 / (SYS_HZ / 1000));
++  integer refresh_count = 0, previous_refresh = 0, refresh_max = 0;
++  integer block_beats = 0, previous_block_beat = 0;
++  bit watch_block = 0;
++
+   integer writes_by_bank[0:3] = '{default: 0};
+   integer pin_cycle = 0, first_line_read = 0, line_reads = 0;
+   bit watch_line = 0;
+@@ -166,11 +205,28 @@ module stream_tb;
+     case ({
+       cs_n, ras_n, cas_n, we_n
+     })
+-      4'b0100:
+-      if (!scrub_done) begin
+-        writes_by_bank[pin_bank]++;
+-        if (pin_write !== 16'b0 || {dqmh, dqml} !== 2'b0)
+-          $fatal(1, "Cold scrub wrote nonzero data or used a write mask");
++      4'b0001:
++      if (ready_mem) begin
++        refresh_count++;
++        if (previous_refresh != 0) begin
++          if (pin_cycle - previous_refresh > REFRESH_LIMIT) $fatal(1, "Refresh deadline exceeded");
++          if (pin_cycle - previous_refresh > refresh_max)
++            refresh_max = pin_cycle - previous_refresh;
++        end
++        previous_refresh = pin_cycle;
++      end
++      4'b0100: begin
++        if (!scrub_done) begin
++          writes_by_bank[pin_bank]++;
++          if (pin_write !== 16'b0 || {dqmh, dqml} !== 2'b0)
++            $fatal(1, "Cold scrub wrote nonzero data or used a write mask");
++        end
++        if (watch_block && block_beats < 8) begin
++          if (block_beats != 0 && pin_cycle != previous_block_beat + 1)
++            $fatal(1, "16-byte write contained gaps between pin beats");
++          previous_block_beat = pin_cycle;
++          block_beats++;
++        end
+       end
+       4'b0101:
+       if (watch_line) begin
+@@ -314,6 +370,7 @@ module stream_tb;
+     // Post a full four-word block. Grant an older DMA byte write while
+     // the pins are still busy, then raise the CPU lock before it can post.
+     cpu_write_block = 1;
++    watch_block = 1;
+     cpu_block_data = 128'hffeeddcc_88776655_66554433_11223344;
+     cpu_transfer(1, BASE, cpu_block_data[31:0], 4'hf, 0);
+     cpu_write_block = 0;
+@@ -335,6 +392,8 @@ module stream_tb;
+     // The swap must read the block followed by the queued DMA lanes. A DMA
+     // read requesting the same address cannot enter the read/write gap.
+     cpu_transfer(0, BASE, 0, 0, 32'h11bb33dd);
++    if (block_beats != 8) $fatal(1, "16-byte write did not issue eight pin beats");
++    watch_block = 0;
+     dma_req = 1;
+     repeat (4) begin
+       @(posedge clk);
+@@ -383,8 +442,67 @@ module stream_tb;
+     @(negedge clk);
+     cpu_req = 0;
+     cpu_transfer(0, BASE, 0, 0, 32'h7685abcd);
++
++    // A simultaneous line wins the command slot. The scalar owner holds
++    // its address and issues exactly once after the line's last beat.
++    wait (stream.drained);
++    @(negedge clk);
++    line_req = 1;
++    cpu_req  = 1;
++    cpu_we   = 0;
++    cpu_addr = BASE + 4;
++    @(posedge clk);
++    if (!cpu_grant || !line_ready || !stream.first_line || stream.grant_read_word)
++      $fatal(1, "The line failed to win a simultaneous scalar read grant");
++    @(negedge clk);
++    line_req = 0;
++    cpu_addr = BASE;
++    do begin
++      @(posedge clk);
++      if (cpu_ack) $fatal(1, "Scalar ACK arrived during the line");
++    end while (!line_last);
++    @(posedge clk);
++    if (!stream.scalar_read || !req_mem || addr_mem !== (BASE[24:2] + 23'd1))
++      $fatal(1, "The held scalar read lost its granted address");
++    do @(posedge clk); while (!cpu_ack);
++    if (cpu_out !== cpu_block_data[63:32]) $fatal(1, "Wrong held scalar response");
++    @(negedge clk);
++    cpu_req = 0;
++
++    // Cancel an accepted fast read before its pin response. A new owner
++    // may request memory immediately, but must receive its own result.
++    wait (stream.drained);
++    @(negedge clk);
++    cpu_addr = BASE;
++    cpu_req  = 1;
++    @(posedge clk);
++    if (!cpu_grant || !stream.grant_read_word)
++      $fatal(1, "Cancellation test missed grant-edge read admission");
++    @(negedge clk);
++    cpu_req = 0;
++    phone_reset = 1;
++    repeat (2) @(negedge clk);
++    phone_reset = 0;
++    dma_addr = BASE + 8;
++    dma_req = 1;
++    do begin
++      @(posedge clk);
++      if (cpu_ack) $fatal(1, "Cancelled scalar read acknowledged after reset");
++    end while (!dma_ack);
++    if (dma_out !== cpu_block_data[95:64]) $fatal(1, "New owner read a cancelled response");
++    @(negedge clk);
++    dma_req = 0;
++    $display("PASS stream grant-edge read, held fallback and cancelled response");
+     $display(
+         "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion");
++    while (busy_mem) @(negedge clk);
++    if (queued || accepted != issued || accepted_while_busy == 0 || grant_reads == 0)
++      $fatal(1, "Lost, duplicate, or uncovered command slot case");
++    if (refresh_count < 2 || refresh_max == 0) $fatal(1, "Refresh interval was not exercised");
++    $display("REFRESH PASS hz=%0d count=%0d max_interval_clocks=%0d limit=%0d", SYS_HZ,
++             refresh_count, refresh_max, REFRESH_LIMIT);
++    $display("PASS stream command slot: accepted=%0d issued=%0d while_busy=%0d grant_reads=%0d",
++             accepted, issued, accepted_while_busy, grant_reads);
+     $display("PASS stream masks, physical burst shape, DMA/SWP order and logical reset drain");
+     $finish;
+   end

@@ -1,0 +1,381 @@
+--- /dev/null
++++ b/scratch/v5-frontend-redirect-census/rescue_observe.vh
+@@ -0,0 +1,188 @@
++localparam integer REC_SAMEWORD = 0, REC_SAMEWORD_ANY = 1,
++                   REC_HEAD = 2, REC_NEXT = 3, REC_DEEP = 4, REC_REPLY = 5,
++                   REC_DECODE = 6, REC_ANY_READY = 7, REC_A_DIRECT = 8,
++                   REC_A_FALL = 9, REC_I_LINE = 10, REC_I_LINE_ANY = 11,
++                   REC_KINDS = 12;
++typedef struct packed {
++    reg [REC_KINDS-1:0] flags;
++    integer clock, issue_total, refill_total, walk_total, backend_total, front_total;
++} rescue_stamp;
++rescue_stamp rec_samples[int];
++
++reg [113:0] rec_queue[0:7];
++reg [31:0] rec_latest_half, rec_latest_line;
++reg rec_latest_half_valid = 0, rec_latest_line_valid = 0;
++bit rec_half_seen[bit [31:0]], rec_line_seen[bit [31:0]];
++reg [255:0] rec_ic_line;
++reg rec_ic_owned = 0;
++integer rec_sources[0:2], rec_raw[0:REC_KINDS-1], rec_retired[0:REC_KINDS-1];
++integer rec_exposed[0:REC_KINDS-1], rec_front_only[0:REC_KINDS-1];
++integer rec_front[0:REC_KINDS-1], rec_elapsed[0:REC_KINDS-1];
++integer rec_span[0:REC_KINDS-1];
++integer rec_half_accept, rec_line_accept;
++reg [31:0] rec_a_pc, rec_a_target;
++reg rec_a_thumb, rec_a_fall, rec_a_direct;
++
++task automatic rescue_reset();
++    rec_half_accept = 0;
++    rec_line_accept = 0;
++    foreach (rec_sources[i]) rec_sources[i] = 0;
++    foreach (rec_raw[i]) begin
++        rec_raw[i] = 0;
++        rec_retired[i] = 0;
++        rec_exposed[i] = 0;
++        rec_front_only[i] = 0;
++        rec_front[i] = 0;
++        rec_elapsed[i] = 0;
++        rec_span[i] = 0;
++    end
++endtask
++
++task automatic rescue_score(input flow_stamp successor);
++    rescue_stamp sample;
++    integer key, elapsed, issued, backend, refill, walk, front;
++    key = flow_branch.resolved;
++    if ((flow_branch.redirect || flow_w_redirect) && rec_samples.exists(key)) begin
++        sample = rec_samples[key];
++        rec_samples.delete(key);
++        elapsed = successor.issued - sample.clock;
++        if (elapsed >= 0) begin
++            issued = successor.issued_total - sample.issue_total;
++            backend = successor.backend_total - sample.backend_total;
++            refill = successor.refill_total - sample.refill_total;
++            walk = successor.walk_total - sample.walk_total;
++            front = successor.front_total - sample.front_total;
++            if (issued + backend + refill + walk + front != elapsed)
++                $fatal(1, "Redirect interval does not partition");
++            foreach (rec_raw[i]) if (sample.flags[i]) begin
++                rec_retired[i]++;
++                rec_exposed[i] += int'(front > 0);
++                rec_front_only[i] += int'(front > 0 && issued + backend + refill + walk == 0);
++                rec_front[i] += front;
++                rec_elapsed[i] += elapsed;
++                // At most two stages removed by avoiding a prepared
++                // packet's two-stage I-cache access.
++                rec_span[i] += (front >= 2 ? 2 : front);
++            end
++        end
++    end
++endtask
++
++task automatic rescue_report(input integer window);
++    $display("RESCUE_WINDOW window=%0d decode=%0d alu=%0d wb=%0d half_accept=%0d line_accept=%0d",
++             window, rec_sources[0], rec_sources[1], rec_sources[2], rec_half_accept, rec_line_accept);
++    foreach (rec_raw[i]) if (rec_raw[i] != 0 || rec_retired[i] != 0)
++        $display("RESCUE_KIND window=%0d kind=%0d raw=%0d retired=%0d exposed=%0d front_only=%0d front=%0d elapsed=%0d span2=%0d",
++                 window, i, rec_raw[i], rec_retired[i], rec_exposed[i], rec_front_only[i],
++                 rec_front[i], rec_elapsed[i], rec_span[i]);
++endtask
++
++task automatic observe_rescue(input integer clock);
++    rescue_stamp sample;
++    integer source, entry, offset, key;
++    reg [31:0] target, fetch_pc;
++    reg thumb_mode;
++    reg [113:0] packet;
++    reg arm_cond, thumb_cond, warm_line;
++    fetch_pc = `FLOW_F.f2[31:0];
++    if (`FLOW_F.i_redirect && !`FLOW_F.i_reset) begin
++        source = `FLOW_CORE.wb_flush ? 2 : (`FLOW_CORE.a_redirect ? 1 : 0);
++        target = {`FLOW_F.i_redirect_target[31:1], 1'b0};
++        thumb_mode = `FLOW_F.i_redirect_thumb;
++        sample = '0;
++        sample.clock = clock;
++        sample.issue_total = flow_issue_total;
++        sample.refill_total = flow_refill_total;
++        sample.walk_total = flow_walk_total;
++        sample.backend_total = flow_backend_total;
++        sample.front_total = flow_front_total;
++        if (!`FLOW_F.i_predictor_clear) begin
++            if (source == 1 && rec_a_target == target && rec_a_thumb == thumb_mode) begin
++                sample.flags[REC_A_DIRECT] = rec_a_direct;
++                sample.flags[REC_A_FALL] = rec_a_fall;
++                sample.flags[REC_SAMEWORD] = rec_a_fall && thumb_mode &&
++                    rec_latest_half_valid && rec_latest_half == rec_a_pc;
++                sample.flags[REC_SAMEWORD_ANY] = rec_a_fall && thumb_mode && rec_half_seen.exists(rec_a_pc);
++                sample.flags[REC_I_LINE] = rec_a_fall && rec_latest_line_valid && rec_latest_line == rec_a_pc;
++                sample.flags[REC_I_LINE_ANY] = rec_a_fall && rec_line_seen.exists(rec_a_pc);
++            end
++            sample.flags[REC_HEAD] = `FLOW_F.o_valid && !`FLOW_F.o_fault &&
++                                     `FLOW_F.o_pc == target && `FLOW_F.o_thumb == thumb_mode;
++            packet = `FLOW_F.next_packet;
++            sample.flags[REC_NEXT] = `FLOW_F.count > 1 && !packet[48] && !packet[47] &&
++                packet[46:45] == `FLOW_F.epoch && packet[81:50] == target && packet[49] == thumb_mode;
++            for (offset = 2; offset < int'(`FLOW_F.count); offset++) begin
++                entry = (int'(`FLOW_F.tail) - int'(`FLOW_F.count) + offset) & 7;
++                packet = rec_queue[entry];
++                sample.flags[REC_DEEP] |= !packet[48] && !packet[47] &&
++                    packet[46:45] == `FLOW_F.epoch && packet[81:50] == target && packet[49] == thumb_mode;
++            end
++            sample.flags[REC_REPLY] = `FLOW_F.f2[35] && `FLOW_F.i_ack && !`FLOW_F.i_retry &&
++                !`FLOW_F.killed && `FLOW_F.f2[33:32] == `FLOW_F.epoch && !`FLOW_F.pushed[48] &&
++                !`FLOW_F.pushed[47] && fetch_pc == target && `FLOW_F.f2[34] == thumb_mode;
++            sample.flags[REC_DECODE] = `FLOW_CORE.d_valid && `FLOW_CORE.d_pc == target &&
++                                       `FLOW_CORE.d_thumb == thumb_mode;
++            sample.flags[REC_ANY_READY] = |sample.flags[REC_DECODE:REC_HEAD];
++        end
++        if (flow_active) begin
++            rec_sources[source]++;
++            foreach (rec_raw[i]) rec_raw[i] += int'(sample.flags[i]);
++            if (source != 0 && |sample.flags) begin
++                key = (source == 1 ? clock - 1 : clock);
++                rec_samples[key] = sample;
++            end
++        end
++    end
++
++    if (`FLOW_F.i_reset || `FLOW_F.i_redirect || `FLOW_F.retry || `FLOW_F.i_predictor_clear ||
++        `FLOW_IC.i_tlb_inv || `FLOW_IC.i_cache_inv_req) begin
++        rec_latest_half_valid = 0;
++        rec_latest_line_valid = 0;
++        rec_half_seen.delete();
++        rec_line_seen.delete();
++    end else if (`FLOW_F.push && `FLOW_F.f2_prediction[44] &&
++                 !`FLOW_F.pushed[48] && !`FLOW_F.pushed[47]) begin
++        arm_cond = !`FLOW_F.f2[34] && `FLOW_F.i_data[27:25] == 3'b101 &&
++                   `FLOW_F.i_data[31:28] < 4'he;
++        thumb_cond = `FLOW_F.f2[34] && !fetch_pc[1] && `FLOW_F.i_data[15:12] == 4'hd &&
++                     `FLOW_F.i_data[11:8] < 4'he;
++        if (thumb_cond) begin
++            rec_latest_half_valid = 1;
++            rec_latest_half = fetch_pc;
++            rec_half_seen[fetch_pc] = 1;
++            if (flow_active) rec_half_accept++;
++        end
++        // A resident branch's matched way already exposes a complete
++        // 32-byte row. Verify the latched row against the acknowledged word.
++        warm_line = arm_cond && fetch_pc[4:2] != 7 && rec_ic_owned &&
++                    `FLOW_IC.o_hit &&
++                    `FLOW_IC.i_address == `FLOW_IC.checked_lookup_address &&
++                    rec_ic_line[32 * int'(fetch_pc[4:2])+:32] == `FLOW_F.i_data;
++        if (warm_line) begin
++            rec_latest_line_valid = 1;
++            rec_latest_line = fetch_pc;
++            rec_line_seen[fetch_pc] = 1;
++            if (flow_active) rec_line_accept++;
++        end
++    end
++    for (entry = 0; entry < 8; entry++)
++        if (`FLOW_F.push && int'(`FLOW_F.tail) == entry)
++            rec_queue[entry] = `FLOW_F.pushed;
++        else if (`FLOW_F.i_fill_done) begin
++            if (rec_queue[entry][47] && `FLOW_F.i_fill_fault) rec_queue[entry][48] = 1;
++            rec_queue[entry][47] = 0;
++        end
++    if (!`FLOW_IC.hold && !`FLOW_IC.i_stall) begin
++        rec_ic_owned = `FLOW_IC.raw_cache_hit;
++        rec_ic_line = `FLOW_IC.u_zap_cache_tag_ram.line_q[
++                          256 * int'(`FLOW_IC.raw_cache_word_sel)+:256];
++    end
++
++    if (`FLOW_A.finish) begin
++        rec_a_pc = flow_a.pc;
++        rec_a_thumb = flow_a.thumb;
++        rec_a_target = `FLOW_A.actual_target;
++        rec_a_direct = `FLOW_CORE.a_kind == 3;
++        rec_a_fall = rec_a_direct && !`FLOW_CORE.a_condition_pass && `FLOW_CORE.a_predicted;
++    end
++endtask
+--- /dev/null
++++ b/scratch/v5-frontend-redirect-census/run_profile.py
+@@ -0,0 +1,65 @@
++"""Inject a passive redirect census into the checked 104 MHz runners."""
++import importlib.util
++import sys
++from pathlib import Path
++
++
++root = Path.cwd()
++stage = Path(__file__).resolve().parent
++mode = sys.argv[1]
++run_name = 'v5-104-front-rescue-census'
++pin = 'build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v'
++base = str(stage / 'base.v')
++wrapper = str(stage / 'ngage_cpu.sv')
++payload = root / 'tests/cpu/arm9v2_board'
++native = root / 'tests/cpu/polycount_v5'
++sys.path.insert(0, str(payload))
++
++
++def load(name, path):
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++def instrument(compile_phone, native_run=False):
++    def compile(out, *args, **kwargs):
++        fixture = out / 'tb.v'
++        source = fixture.read_text()
++        for before, after in (
++            ('task automatic reset_control_flow();',
++             (stage / 'rescue_observe.vh').read_text() + '\ntask automatic reset_control_flow();\n    rescue_reset();'),
++            ('    flow_matches += 1;', '    rescue_score(successor);\n    flow_matches += 1;'),
++            ('    refill_busy = `FLOW_IC.o_fill_pending', '    observe_rescue(clock);\n    refill_busy = `FLOW_IC.o_fill_pending'),
++            ('task automatic report_control_flow(input integer window);',
++             'task automatic report_control_flow(input integer window);\n    rescue_report(window);'),
++        ):
++            assert source.count(before) == 1, before
++            source = source.replace(before, after)
++        fixture.write_text(source)
++        if native_run:
++            kwargs.update(sys_clk_hz=104_000_000, divider=3)
++        return compile_phone(out, *args, **kwargs)
++    return compile
++
++
++match mode:
++    case 'fixed':
++        run = load('payload_clocks', payload / 'payload_clocks.py')
++        run.compile_phone = instrument(run.compile_phone)
++        sys.argv = [str(payload / 'payload_clocks.py'), '--name', run_name, '--sys-clk-hz', '104000000',
++                    '--config', '3:64', '--arm9v2-netlist', base, '--cpu-wrapper', wrapper,
++                    '--flash-cache-bytes', '32768', '--stream-sdram', '--block-writeback',
++                    '--control-flow-counts', '--sdram-model', pin, *sys.argv[2:]]
++        run.main()
++    case 'native':
++        sys.path.insert(0, str(native))
++        run = load('native_polycount', native / 'run.py')
++        run.compile_phone = instrument(run.compile_phone, native_run=True)
++        sys.argv = [str(native / 'run.py'), '--name', run_name, '--legs', 'i16', '--netlist', base,
++                    '--cpu-wrapper', wrapper, '--capture', 'build/sim/polycount-v5/native-qualified',
++                    '--control-flow-counts', '--pin-model', pin, *sys.argv[2:]]
++        run.main()
++    case _:
++        raise ValueError(mode)
+--- /dev/null
++++ b/scratch/v5-frontend-redirect-census/score.py
+@@ -0,0 +1,119 @@
++"""Verify the passive observer against the all-four control and summarize opportunities."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++
++root = Path.cwd()
++stage = Path(__file__).resolve().parent
++all_four = 'v5-104-all-four-ram-candidate'
++observed = 'v5-104-front-rescue-census'
++out = root / 'build/sim'
++names = ('one_thumb', 'any_thumb', 'head', 'next', 'deeper', 'reply', 'decode', 'any_ready',
++         'direct_a', 'fall_a', 'one_line', 'any_line')
++ref_sha = sha256((stage / 'base.v').read_bytes()).hexdigest()
++
++
++def load_result(path):
++    document = json.loads((path / 'result.json').read_text())
++    assert document['status'] == 'PASS', path
++    return document
++
++
++def records(path):
++    windows = {}
++    for line in path.read_text().splitlines():
++        prefix = line.split(' ', 1)[0]
++        if prefix in ('RESCUE_WINDOW', 'RESCUE_KIND'):
++            row = {key: int(value) for key, value in re.findall(r'(\w+)=(-?\d+)', line)}
++            index = row.pop('window')
++            if prefix == 'RESCUE_WINDOW':
++                assert index not in windows
++                windows[index] = row | {'opportunities': {}}
++            else:
++                windows[index]['opportunities'][names[row.pop('kind')]] = row
++    for window in windows.values():
++        for effect in window['opportunities'].values():
++            assert 0 <= effect['front_only'] <= effect['exposed'] <= effect['retired'] <= effect['raw']
++            assert effect['front'] <= effect['elapsed']
++            assert effect['exposed'] <= effect['span2'] <= 2 * effect['exposed']
++    return windows
++
++
++def strip_profile(row):
++    return {key: val for key, val in row.items() if key != 'control_flow'}
++
++
++payload_ref_dir = out / 'payload-clocks' / all_four
++payload_dir = out / 'payload-clocks' / observed
++payload_ref, payload = [load_result(path) for path in (payload_ref_dir, payload_dir)]
++assert payload_ref['netlist_sha256'] == payload['netlist_sha256'] == ref_sha
++assert {key: val for key, val in payload_ref.items() if key != 'rows'} == {
++    key: val for key, val in payload.items() if key != 'rows'}
++assert len(payload['rows']) == len(payload_ref['rows']) == 15
++
++fixed = []
++for reference, row in zip(payload_ref['rows'], payload['rows'], strict=True):
++    assert reference == strip_profile(row), row['case']
++    case = row['case']
++    window = next(index for index in range(2, 7) if row['windows'][index]['cycles'] == row['median_clocks'])
++    log = payload_dir / f'{case}-3-64-0.log'
++    observed_windows = records(log)
++    assert observed_windows.keys() == set(range(7))
++    assert observed_windows == records(payload_dir / f'{case}-3-64-1.log')
++    traces = f'{case}-3-64-requests.txt'
++    trace_digest = sha256((payload_dir / traces).read_bytes()).hexdigest()
++    assert sha256((payload_ref_dir / traces).read_bytes()).hexdigest() == trace_digest
++    checked_inputs = {}
++    for alternative in (False, True):
++        image = f'{case}-{alternative}.bin'
++        image_digest = sha256((payload_dir / image).read_bytes()).hexdigest()
++        assert sha256((payload_ref_dir / image).read_bytes()).hexdigest() == image_digest
++        checked_inputs['bad' if alternative else 'checked'] = image_digest
++    fixed.append(dict(case=case, clocks=row['median_clocks'], selected_window=window,
++                      trace_sha256=trace_digest, input_sha256=checked_inputs, windows=observed_windows))
++
++native_ref_path = out / 'polycount' / all_four
++native_path = out / 'polycount' / observed
++native_ref, native = [load_result(path) for path in (native_ref_path, native_path)]
++for key in ('snapshot_sha', 'pin_model_sha'):
++    assert native_ref[key] == native[key]
++assert native.get('base_netlist_sha', native['results']['i16']['netlist_sha']) == ref_sha
++frames = native['results']['i16']
++assert native_ref['results']['i16'] == strip_profile(frames)
++native_windows = records(native_path / 'i16/run.log')
++assert native_windows.keys() == set(range(4))
++for frame in frames['frames']:
++    native_windows[frame['frame']]['clocks'] = frame['clocks']
++    native_windows[frame['frame']]['retired'] = frame['retired']
++native_n = sum(w['clocks'] for w in native_windows.values())
++native_totals = {
++    name: {key: sum(w['opportunities'].get(name, {}).get(key, 0) for w in native_windows.values())
++           for key in ('raw', 'retired', 'exposed', 'front_only', 'front', 'elapsed', 'span2')}
++    for name in names
++}
++evidence = dict(base='739d3bd', netlist_sha256=ref_sha,
++                cpu_wrapper_sha256=sha256((stage / 'ngage_cpu.sv').read_bytes()).hexdigest(),
++                sys_clk_hz=104_000_000, fixed=fixed,
++                native=dict(clocks=native_n, windows=native_windows, opportunities=native_totals,
++                            output_sha256=frames['output_sha']),
++                controls=dict(fixed_inputs=True, fixed_cycles_and_retired_counts=True, fixed_request_traces=True,
++                              observer_repeats_equal=True, negative_output_checks=True, native_snapshot=True,
++                              native_counters_and_frames=True, native_binary_output=True))
++(stage / 'score.json').write_text(json.dumps(evidence, separators=(',', ':')) + '\n')
++
++
++def summary(label, clocks, chances):
++    def get(name, field):
++        return chances.get(name, {}).get(field, 0)
++    print(f'{label:24s} {clocks:9,d} '
++          f"{get('one_thumb','exposed'):6,d} {get('one_line','exposed'):7,d} "
++          f"{get('any_line','exposed'):7,d} {get('any_ready','raw'):7,d} "
++          f"{get('any_ready','exposed'):7,d} {get('direct_a','exposed'):7,d} "
++          f"{get('one_line','span2') * 100 / clocks:6.3f}% {get('direct_a','exposed') * 100 / clocks:6.3f}%")
++
++
++print('Workload                    Clocks  Thumb  1 ARM   Any ARM   Ready   A/W ready  Direct A  ARM×2   A×1')
++for row in fixed:
++    summary(row['case'], row['clocks'], row['windows'][row['selected_window']]['opportunities'])
++summary('Native PolyCount (4)', native_n, native_totals)

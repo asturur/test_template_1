@@ -1,0 +1,527 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index de46982fea89edad60c146599b4f78a0baff918e..1b1c92872a664394038497e9d0608a2556b2c7c6 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -57,6 +57,7 @@ module ngage2_arm925t (
+ 	bus_code,
+ 	bus_lock,
+ 	bus_cti,
++	bus_line_candidate,
+ 	dbg_fetch_valid,
+ 	dbg_instruction,
+ 	block_enable,
+@@ -69,6 +70,7 @@ module ngage2_arm925t (
+ 	output wire bus_code;
+ 	output wire bus_lock;
+ 	output wire [2:0] bus_cti;
++	output wire bus_line_candidate;
+ 	output wire dbg_fetch_valid;
+ 	output wire [31:0] dbg_instruction;
+ 	input wire clk;
+@@ -179,6 +181,7 @@ module ngage2_arm925t (
+ 		.o_wb_sel(bus_be),
+         .o_wb_cti(wb_cti),
+         .o_wb_code(bus_code),
++        .o_wb_line_candidate(bus_line_candidate),
+         .o_wb_lock(bus_lock),
+         .o_dbg_instruction(dbg_instruction),
+         .o_dbg_fetch_valid(dbg_fetch_valid),
+@@ -15072,6 +15075,7 @@ module ngage2_zap_top (
+ 	i_wb_no_late_error,
+ 	o_wb_code,
+ 	o_wb_lock,
++	o_wb_line_candidate,
+ 	o_dbg_fetch_valid,
+ 	o_dbg_instruction,
+ 	i_block_enable,
+@@ -15083,6 +15087,7 @@ module ngage2_zap_top (
+ 	output wire [127:0] o_block_data;
+ 	output wire o_wb_code;
+ 	output wire o_wb_lock;
++	output wire o_wb_line_candidate;
+ 	output wire o_dbg_fetch_valid;
+ 	output wire [31:0] o_dbg_instruction;
+ 	parameter [0:0] ARM9_PREDICTOR = 1'b1;
+@@ -15885,6 +15890,7 @@ module ngage2_zap_top (
+ 				.o_wb_sel(wb_sel),
+ 				.o_wb_dat(wb_idat),
+ 				.o_wb_adr(wb_adr),
++				.o_wb_line_candidate(o_wb_line_candidate),
+ 				.o_wb_cti(wb_cti),
+ 				.o_wb_bte(o_wb_bte),
+ 				.i_wb_ack(wb_ack),
+@@ -16122,6 +16128,7 @@ module ngage2_zap_wb_merger (
+ 	o_wb_sel,
+ 	o_wb_dat,
+ 	o_wb_adr,
++	o_wb_line_candidate,
+ 	o_wb_cti,
+ 	o_wb_bte,
+ 	i_wb_ack,
+@@ -16159,6 +16166,7 @@ module ngage2_zap_wb_merger (
+ 	output reg [3:0] o_wb_sel;
+ 	output wire [31:0] o_wb_dat;
+ 	(* dont_retime *) output reg [31:0] o_wb_adr;
++	(* dont_retime *) output reg o_wb_line_candidate;
+ 	output reg [2:0] o_wb_cti;
+ 	output reg [1:0] o_wb_bte;
+ 	input wire i_wb_ack;
+@@ -16439,6 +16447,26 @@ module ngage2_zap_wb_merger (
+ 	(* preserve, dont_retime *) reg state_ff;
+ 	reg state_nxt;
+ 	wire switch;
++	// Classify each request before arbitration. The board still owns
++	// the live request, lock, readiness and scalar fallback gates.
++	function automatic line_candidate;
++		input [31:0] addr;
++		input write;
++		input [3:0] sel;
++		input [2:0] cti;
++		input [1:0] bte;
++		begin
++			line_candidate = !write && sel == 4'hf && cti == CTI_BURST &&
++				bte == 0 && addr[4:0] == 0 &&
++				(addr[31:24] == 8'h0a || addr < 32'h007f0000 ||
++				 (addr >= 32'h02000000 && addr < 32'h02400000) ||
++				 (addr >= 32'h04000000 && addr < 32'h04800000));
++		end
++	endfunction
++	wire code_line_candidate = line_candidate(i_c_wb_adr, i_c_wb_wen, i_c_wb_sel,
++		i_c_wb_cti, i_c_wb_bte);
++	wire data_line_candidate = line_candidate(i_d_wb_adr, i_d_wb_wen, i_d_wb_sel,
++		i_d_wb_cti, i_d_wb_bte);
+ 	assign o_dbg_data_owner = state_ff == 1'd1;
+ 	assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
+ 	always @(*) begin
+@@ -16496,6 +16524,7 @@ module ngage2_zap_wb_merger (
+ 					o_wb_wen <= 0;
+ 					o_wb_sel <= 0;
+ 					o_wb_adr <= 0;
++					o_wb_line_candidate <= 1'b0;
+ 					o_wb_cti <= CTI_EOB;
+ 					o_wb_bte <= 2'b00;
+ 				end
+@@ -16505,6 +16534,7 @@ module ngage2_zap_wb_merger (
+ 					o_wb_wen <= i_c_wb_wen;
+ 					o_wb_sel <= i_c_wb_sel;
+ 					o_wb_adr <= i_c_wb_adr;
++					o_wb_line_candidate <= code_line_candidate;
+ 					o_wb_cti <= i_c_wb_cti;
+ 					o_wb_bte <= i_c_wb_bte;
+ 				end
+@@ -16514,6 +16544,7 @@ module ngage2_zap_wb_merger (
+ 					o_wb_wen <= i_d_wb_wen;
+ 					o_wb_sel <= i_d_wb_sel;
+ 					o_wb_adr <= i_d_wb_adr;
++					o_wb_line_candidate <= data_line_candidate;
+ 					o_wb_cti <= i_d_wb_cti;
+ 					o_wb_bte <= i_d_wb_bte;
+ 				end
+diff --git a/rtl/ngage_cpu.sv b/rtl/ngage_cpu.sv
+index 891cf18d780e6c6545447314e0ba2b3c8e258a00..153fe434011979f1d0751393c05c46efae9b098e 100644
+--- a/rtl/ngage_cpu.sv
++++ b/rtl/ngage_cpu.sv
+@@ -44,7 +44,7 @@ module ngage_cpu #(
+ );
+ `ifdef NGAGE_ARM9V2
+     wire [31:0] donor_pc, donor_cpsr, donor_instruction;
+-    wire donor_fetch;
++    wire donor_fetch, donor_line_candidate;
+     wire donor_cyc, donor_lock, donor_ack, donor_error, donor_no_late_error;
+     wire [31:0] donor_read_data;
+     assign wb_stb = wb_cyc;
+@@ -56,6 +56,7 @@ module ngage_cpu #(
+         .reset             (reset),
+         .cpu_cyc           (donor_cyc),
+         .cpu_lock          (donor_lock),
++        .cpu_line_candidate(donor_line_candidate),
+         .cpu_address       (wb_address),
+         .cpu_write         (wb_write),
+         .cpu_sel           (wb_byte_enable),
+@@ -90,33 +91,34 @@ module ngage_cpu #(
+ `endif
+ 
+     ngage2_arm925t u_arm925t (
+-        .clk              (clk),
+-        .reset            (reset),
+-        .irq              (irq),
+-        .fiq              (fiq),
+-        .bus_req          (donor_cyc),
+-        .bus_lock         (donor_lock),
+-        .bus_code         (wb_code),
+-        .bus_addr         (wb_address),
+-        .bus_we           (wb_write),
+-        .bus_wdata        (wb_write_data),
++        .clk               (clk),
++        .reset             (reset),
++        .irq               (irq),
++        .fiq               (fiq),
++        .bus_req           (donor_cyc),
++        .bus_lock          (donor_lock),
++        .bus_line_candidate(donor_line_candidate),
++        .bus_code          (wb_code),
++        .bus_addr          (wb_address),
++        .bus_we            (wb_write),
++        .bus_wdata         (wb_write_data),
+ `ifdef NGAGE_BLOCK_WRITEBACK
+-        .block_enable     (1'b1),
+-        .bus_write_block  (wb_write_block),
+-        .bus_block_data   (wb_block_data),
++        .block_enable      (1'b1),
++        .bus_write_block   (wb_write_block),
++        .bus_block_data    (wb_block_data),
+ `endif
+-        .bus_be           (wb_byte_enable),
+-        .bus_cti          (wb_cycle_type),
+-        .bus_bte          (wb_burst_type),
+-        .bus_burst        (),
+-        .bus_ack          (donor_ack),
+-        .bus_err          (donor_error),
+-        .bus_rdata        (donor_read_data),
+-        .bus_no_late_error(donor_no_late_error),
+-        .dbg_pc           (donor_pc),
+-        .dbg_wb_cpsr      (donor_cpsr),
+-        .dbg_instruction  (donor_instruction),
+-        .dbg_fetch_valid  (donor_fetch)
++        .bus_be            (wb_byte_enable),
++        .bus_cti           (wb_cycle_type),
++        .bus_bte           (wb_burst_type),
++        .bus_burst         (),
++        .bus_ack           (donor_ack),
++        .bus_err           (donor_error),
++        .bus_rdata         (donor_read_data),
++        .bus_no_late_error (donor_no_late_error),
++        .dbg_pc            (donor_pc),
++        .dbg_wb_cpsr       (donor_cpsr),
++        .dbg_instruction   (donor_instruction),
++        .dbg_fetch_valid   (donor_fetch)
+     );
+ `else
+     zap_top #(
+@@ -186,6 +188,7 @@ module ngage_arm9v2_refill #(
+     input  wire        reset,
+     input  wire        cpu_cyc,
+     input  wire        cpu_lock,
++    input  wire        cpu_line_candidate,
+     input  wire [31:0] cpu_address,
+     input  wire        cpu_write,
+     input  wire [ 3:0] cpu_sel,
+@@ -221,12 +224,8 @@ module ngage_arm9v2_refill #(
+     reg [31:0] words    [0:7];
+ 
+     wire burst = cpu_cti == BURST;
+-    wire line_target = cpu_address[31:24] == 8'h0a || cpu_address < 32'h007f0000 ||
+-                       (cpu_address >= 32'h02000000 && cpu_address < 32'h02400000) ||
+-                       (cpu_address >= 32'h04000000 && cpu_address < 32'h04800000);
+     assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
+-                       !cpu_write && cpu_sel == 4'hf && burst && cpu_bte == 0 &&
+-                       cpu_address[4:0] == 0 && line_target;
++                       cpu_line_candidate;
+     assign line_addr = cpu_address;
+     assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
+     // A younger SWP cannot reach the bus before this older refill retires.
+@@ -293,6 +292,15 @@ module ngage_arm9v2_refill #(
+     endgenerate
+ 
+     // synthesis translate_off
++    wire line_target = cpu_address[31:24] == 8'h0a || cpu_address < 32'h007f0000 ||
++                       (cpu_address >= 32'h02000000 && cpu_address < 32'h02400000) ||
++                       (cpu_address >= 32'h04000000 && cpu_address < 32'h04800000);
++    wire reference_candidate = !cpu_write && cpu_sel == 4'hf && burst && cpu_bte == 0 &&
++                               cpu_address[4:0] == 0 && line_target;
++    always @(posedge clk)
++        if (!reset && cpu_cyc && cpu_line_candidate !== reference_candidate)
++            $fatal(1, "Refill classifier disagrees for active packet at %h", cpu_address);
++
+     always @(posedge clk)
+         if (!reset && state == LINE) begin
+             if (!cpu_cyc || cpu_write || cpu_address[4:0] != {consumed, 2'b00} ||
+diff --git a/tests/cpu/arm9v2_board/refill_candidate_tb.v b/tests/cpu/arm9v2_board/refill_candidate_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..61f0d397219a29ae48ac72d09c3d8bb42490ebe5
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/refill_candidate_tb.v
+@@ -0,0 +1,196 @@
++module refill_candidate_tb;
++  reg clk = 0;
++  reg reset = 1;
++  reg code_request = 0, data_request = 0;
++  reg [31:0] code_addr = 0, data_addr = 0;
++  reg write = 0;
++  reg [3:0] sel = 4'hf;
++  reg [2:0] code_cti = 3'b010, data_cti = 3'b010;
++  reg [1:0] bte = 0;
++  wire cyc, stb, selected_write, candidate, data_owner;
++  wire [31:0] addr;
++  wire [ 3:0] selected_sel;
++  wire [ 2:0] cti;
++  wire [ 1:0] selected_bte;
++  reg lock = 0, scalar_ack = 0, line_ready = 0, line_reject = 0;
++  wire cpu_ack, cpu_error, cpu_no_late_error;
++  wire scalar, scalar_lock, line_req;
++
++  ngage2_zap_wb_merger merger (
++      .i_clk(clk),
++      .i_reset(reset),
++      .i_c_wb_stb(code_request),
++      .i_c_wb_cyc(code_request),
++      .i_c_wb_wen(write),
++      .i_c_wb_sel(sel),
++      .i_c_wb_dat(32'd0),
++      .i_c_wb_adr(code_addr),
++      .i_c_wb_cti(code_cti),
++      .i_c_wb_bte(bte),
++      .i_d_wb_stb(data_request),
++      .i_d_wb_cyc(data_request),
++      .i_d_wb_wen(write),
++      .i_d_wb_sel(sel),
++      .i_d_wb_dat(32'd0),
++      .i_d_wb_adr(data_addr),
++      .i_d_wb_cti(data_cti),
++      .i_d_wb_bte(bte),
++      .o_wb_cyc(cyc),
++      .o_wb_stb(stb),
++      .o_wb_wen(selected_write),
++      .o_wb_sel(selected_sel),
++      .o_wb_adr(addr),
++      .o_wb_cti(cti),
++      .o_wb_bte(selected_bte),
++      .o_wb_line_candidate(candidate),
++      .o_dbg_data_owner(data_owner),
++      .i_wb_ack(cpu_ack),
++      .i_wb_err(cpu_error),
++      .i_wb_no_late_error(cpu_no_late_error)
++  );
++
++  ngage_arm9v2_refill #(
++      .ENABLE(1)
++  ) refill (
++      .clk(clk),
++      .reset(reset),
++      .cpu_cyc(cyc && stb),
++      .cpu_lock(lock),
++      .cpu_line_candidate(candidate),
++      .cpu_address(addr),
++      .cpu_write(selected_write),
++      .cpu_sel(selected_sel),
++      .cpu_cti(cti),
++      .cpu_bte(selected_bte),
++      .cpu_ack(cpu_ack),
++      .cpu_error(cpu_error),
++      .cpu_no_late_error(cpu_no_late_error),
++      .line_no_late_error(1'b1),
++      .wb_cyc(scalar),
++      .wb_lock(scalar_lock),
++      .wb_ack(scalar_ack),
++      .wb_error(1'b0),
++      .wb_data(32'd0),
++      .line_req(line_req),
++      .line_ready(line_ready),
++      .line_reject(line_reject),
++      .line_valid(1'b0),
++      .line_data(64'd0),
++      .line_wide(1'b0),
++      .line_last(1'b0),
++      .line_error(1'b0)
++  );
++
++  task tick;
++    begin
++      #1 clk = 1;
++      #1 clk = 0;
++      #1;
++    end
++  endtask
++
++  task check_packet;
++    input data;
++    input [31:0] address;
++    input expected;
++    begin
++      reset = 1;
++      tick;
++      if (candidate || scalar || line_req || cyc || stb)
++        $fatal(1, "Unexpected request during reset");
++      reset = 0;
++      code_request = !data;
++      data_request = data;
++      code_addr = data ? 32'h0c000000 : address;
++      data_addr = data ? address : 32'h0c000000;
++      tick;
++      if (data_owner !== data || !cyc || !stb || addr !== address)
++        $fatal(1, "Wrong arbitration packet for %h owner=%b", address, data);
++      if (candidate !== expected || line_req !== expected || scalar !== !expected)
++        $fatal(1, "Wrong classification at %h owner=%b", address, data);
++    end
++  endtask
++
++  integer owner;
++  initial begin
++    for (owner = 0; owner < 2; owner = owner + 1) begin
++      check_packet(owner[0], 32'h00000000, 1);
++      check_packet(owner[0], 32'h007effe0, 1);
++      check_packet(owner[0], 32'h007f0000, 0);
++      check_packet(owner[0], 32'h01ffffe0, 0);
++      check_packet(owner[0], 32'h02000000, 1);
++      check_packet(owner[0], 32'h023fffe0, 1);
++      check_packet(owner[0], 32'h02400000, 0);
++      check_packet(owner[0], 32'h03ffffe0, 0);
++      check_packet(owner[0], 32'h04000000, 1);
++      check_packet(owner[0], 32'h047fffe0, 1);
++      check_packet(owner[0], 32'h04800000, 0);
++      check_packet(owner[0], 32'h09ffffe0, 0);
++      check_packet(owner[0], 32'h0a000000, 1);
++      check_packet(owner[0], 32'h0affffe0, 1);
++      check_packet(owner[0], 32'h0b000000, 0);
++      check_packet(owner[0], 32'hffffffe0, 0);
++      check_packet(owner[0], 32'h0a000004, 0);
++
++      write = 1;
++      check_packet(owner[0], 32'h0a000000, 0);
++      write = 0;
++      sel   = 4'h7;
++      check_packet(owner[0], 32'h0a000000, 0);
++      sel = 4'hf;
++      bte = 2'd1;
++      check_packet(owner[0], 32'h0a000000, 0);
++      bte = 0;
++      code_cti = 3'b111;
++      data_cti = 3'b111;
++      check_packet(owner[0], 32'h0a000000, 0);
++      code_cti = 3'b010;
++      data_cti = 3'b010;
++    end
++
++    // A scalar final acknowledgement changes owner and classifier together.
++    code_cti = 3'b111;
++    check_packet(0, 32'h0a000000, 0);
++    data_addr = 32'h02000020;
++    data_request = 1;
++    scalar_ack = 1;
++    tick;
++    scalar_ack = 0;
++    if (!data_owner || addr != data_addr || !candidate || !line_req || scalar)
++      $fatal(1, "Candidate did not advance with the data owner");
++
++    // Before readiness, cancelling the client's request drops the offer.
++    code_request = 0;
++    data_request = 0;
++    tick;
++    if (cyc || stb || scalar || line_req)
++      $fatal(1, "Cancelled request reached the line or scalar peer");
++
++    check_packet(1, 32'h0a000000, 1);
++    lock = 1;
++    #1;
++    if (line_req || !scalar || !scalar_lock)
++      $fatal(1, "A live lock must send the request to the scalar peer");
++    tick;
++    lock = 0;
++    #1;
++    if (line_req || !scalar) $fatal(1, "A locked burst must keep scalar ownership");
++
++    check_packet(1, 32'h04000000, 1);
++    line_ready = 1;
++    tick;
++    line_ready = 0;
++    if (line_req || scalar || cpu_ack) $fatal(1, "Accepted line leaked a scalar request");
++    line_reject = 1;
++    tick;
++    line_reject = 0;
++    scalar_ack  = 1;
++    #1;
++    if (!scalar || !cpu_ack || line_req || cpu_no_late_error)
++      $fatal(1, "Rejected line did not fall back to an ordinary scalar acknowledgement");
++    scalar_ack = 0;
++
++    $display("PASS range edges, owner handoff, cancellation, lock and scalar fallback");
++    $finish;
++  end
++endmodule
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 282d82b3ed6fa6f04eee5f64075aed4e21906fe2..6beda0fb7d34238d88c6bd9972a850e9620eb67c 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -30,16 +30,18 @@ def ports(source, last, declarations):
+ 
+ def expose(source):
+     header, *modules = re.split(r'(?=^module )', source, flags=re.M)
+-    top, core, system = (next(i for i, part in enumerate(modules)
++    top, core, system, merger = (next(i for i, part in enumerate(modules)
+                               if part.startswith(f'module {name} ('))
+-                         for name in ('arm925t', 'arm9v2_core', 'zap_top'))
++                         for name in ('arm925t', 'arm9v2_core', 'zap_top', 'zap_wb_merger'))
+     modules[top] = ports(modules[top], 'dbg_d_rdata', [
+         'output wire bus_code', 'output wire bus_lock', 'output wire [2:0] bus_cti',
++        'output wire bus_line_candidate',
+         'output wire dbg_fetch_valid', 'output wire [31:0] dbg_instruction',
+     ])
+     modules[top] = edit(modules[top], '\t\t.o_wb_cti(wb_cti),', '''
+         .o_wb_cti(wb_cti),
+         .o_wb_code(bus_code),
++        .o_wb_line_candidate(bus_line_candidate),
+         .o_wb_lock(bus_lock),
+         .o_dbg_instruction(dbg_instruction),
+         .o_dbg_fetch_valid(dbg_fetch_valid),'''.lstrip('\n'))
+@@ -54,7 +56,7 @@ def expose(source):
+     modules[dcache] = edit(modules[dcache], '.INDEX_SIZE(((WAYS == 2) && (CACHE_SIZE > 8192) ? 32\'d8192 : CACHE_SIZE))',
+                            '.INDEX_SIZE(CACHE_SIZE)')
+     modules[system] = ports(modules[system], 'i_wb_no_late_error', [
+-        'output wire o_wb_code', 'output wire o_wb_lock',
++        'output wire o_wb_code', 'output wire o_wb_lock', 'output wire o_wb_line_candidate',
+         'output wire o_dbg_fetch_valid', 'output wire [31:0] o_dbg_instruction',
+     ])
+     modules[system] = edit(modules[system], '\twire dbg_data_owner;', '''
+@@ -71,6 +73,10 @@ def expose(source):
+     assign o_data_wb_swp = w_swp;
+     // W owns both phases of SWP, including the clocks between bus beats.
+     assign o_swp_lock = !i_reset && w[541] && w_swp;'''.lstrip('\n'))
++    modules[system] = edit(modules[system], '\t\t\t\t.o_wb_adr(wb_adr),',
++                           '\t\t\t\t.o_wb_adr(wb_adr),\n'
++                           '\t\t\t\t.o_wb_line_candidate(o_wb_line_candidate),')
++    modules[merger] = register_line_candidate(modules[merger])
+     # Keep the mainline CPU available to reference simulations. Rename module
+     # declarations and instance types only, leaving hierarchy and logic intact.
+     names = [re.match(r'module (\w+)', part)[1] for part in modules]
+@@ -80,6 +86,41 @@ def expose(source):
+             types.sub(r'\1ngage2_\2', ''.join(modules)))
+ 
+ 
++def register_line_candidate(merger):
++    """Register the phone refill classifier with the selected Wishbone packet."""
++    merger = edit(merger, '\to_wb_adr,', '\to_wb_adr,\n\to_wb_line_candidate,')
++    merger = edit(merger, '\toutput reg [2:0] o_wb_cti;',
++                  '\t(* dont_retime *) output reg o_wb_line_candidate;\n'
++                  '\toutput reg [2:0] o_wb_cti;')
++    merger = edit(merger, '\tassign o_dbg_data_owner =', '''\t// Classify each request before arbitration. The board still owns
++\t// the live request, lock, readiness and scalar fallback gates.
++\tfunction automatic line_candidate;
++\t\tinput [31:0] addr;
++\t\tinput write;
++\t\tinput [3:0] sel;
++\t\tinput [2:0] cti;
++\t\tinput [1:0] bte;
++\t\tbegin
++\t\t\tline_candidate = !write && sel == 4'hf && cti == CTI_BURST &&
++\t\t\t\tbte == 0 && addr[4:0] == 0 &&
++\t\t\t\t(addr[31:24] == 8'h0a || addr < 32'h007f0000 ||
++\t\t\t\t (addr >= 32'h02000000 && addr < 32'h02400000) ||
++\t\t\t\t (addr >= 32'h04000000 && addr < 32'h04800000));
++\t\tend
++\tendfunction
++\twire code_line_candidate = line_candidate(i_c_wb_adr, i_c_wb_wen, i_c_wb_sel,
++\t\ti_c_wb_cti, i_c_wb_bte);
++\twire data_line_candidate = line_candidate(i_d_wb_adr, i_d_wb_wen, i_d_wb_sel,
++\t\ti_d_wb_cti, i_d_wb_bte);
++\tassign o_dbg_data_owner =''')
++    for address, candidate in (('0', "1'b0"), ('i_c_wb_adr', 'code_line_candidate'),
++                               ('i_d_wb_adr', 'data_line_candidate')):
++        merger = edit(merger, f'\t\t\t\t\to_wb_adr <= {address};',
++                      f'\t\t\t\t\to_wb_adr <= {address};\n'
++                      f'\t\t\t\t\to_wb_line_candidate <= {candidate};')
++    return merger
++
++
+ def fold_section_index(phone):
+     """Fold the D-side section index while retaining the original tag bits."""
+     parts = re.split(r'(?=^module )', phone, flags=re.M)

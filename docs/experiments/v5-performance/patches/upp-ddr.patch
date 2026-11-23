@@ -1,0 +1,1808 @@
+diff --git a/Template.sv b/Template.sv
+index 9910937a8e47df31677492d651654471e58372e2..7958c010bc924ebeaa780298fc9add2e841f3f86 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -502,7 +502,9 @@ module emu (
+     // Installed Linux reserves0x1ff00000..0x3fffffff (2026-11-12 SSH audit).
+     // Core ROM/C:/PMM occupy0x30000000..0x3180ffff. Diagnostics use the unused
+     // ROM/C: guard at0x313f0000 (text ring and two1KiB snapshots).
+-    // Optional PCM diagnostic output uses its own DDR span at 0x31900000.
++    // UPP upload and NOS RAM use the 128 KiB gap after PMM and before PCM.
++    // Optional PCM diagnostics occupy a header at 0x31900000 and ring at 0x31940000.
++    localparam [31:0] UPP_RAM_BASE = 32'h31820000;
+     assign DDRAM_CLK = clk_sys;
+     // DDR burst count is owned by the ROM-cache/backend transaction.
+     wire loader_valid, loader_failed, loader_known_firmware;
+@@ -932,18 +934,96 @@ module emu (
+     );
+     wire core_ddr_line, arb_line, core_beat_valid, core_beat_last, arb_beat_valid, arb_beat_last;
+     wire [63:0] core_beat_data, arb_beat_data;
++    wire upp_ddr_req, upp_ddr_we, upp_ddr_ack, upp_ddr_clear, upp_ddr_clear_done;
++    wire [16:2] upp_ddr_addr;
++    wire [31:0] upp_ddr_wdata, upp_ddr_rdata;
++    wire [3:0] upp_ddr_be;
++    wire upp_mem_valid, upp_mem_ready, upp_mem_bulk, upp_mem_write, upp_mem_done;
++    wire [31:0] upp_mem_addr, upp_mem_data, upp_mem_rdata;
++    wire [3:0] upp_mem_be;
++    ngage_upp_ddr_port #(
++        .BASE(UPP_RAM_BASE)
++    ) upp_ram_port (
++        .clk       (clk_sys),
++        .reset     (transport_reset),
++        .upp_req   (upp_ddr_req),
++        .upp_we    (upp_ddr_we),
++        .upp_addr  (upp_ddr_addr),
++        .upp_wdata (upp_ddr_wdata),
++        .upp_be    (upp_ddr_be),
++        .upp_ack   (upp_ddr_ack),
++        .upp_rdata (upp_ddr_rdata),
++        .clear     (upp_ddr_clear),
++        .clear_done(upp_ddr_clear_done),
++        .req_valid (upp_mem_valid),
++        .req_ready (upp_mem_ready),
++        .req_bulk  (upp_mem_bulk),
++        .req_write (upp_mem_write),
++        .req_addr  (upp_mem_addr),
++        .req_data  (upp_mem_data),
++        .req_be    (upp_mem_be),
++        .rsp_valid (upp_mem_done),
++        .rsp_data  (upp_mem_rdata)
++    );
++    wire phone_mem_valid, phone_mem_ready, phone_mem_write, phone_mem_done;
++    wire phone_mem_bulk, phone_mem_line, phone_beat_valid, phone_beat_last;
++    wire [31:0] phone_mem_addr, phone_mem_data, phone_mem_rdata;
++    wire [63:0] phone_beat_data;
++    wire [ 3:0] phone_mem_be;
++    // A locked guest access can target either UPP RAM or phone flash. They
++    // share the CPU side of the outer lock, which excludes the HPS clients.
++    ngage_ddr_arbiter phone_ddr_arbiter (
++        .l_bulk        (upp_mem_bulk),
++        .c_bulk        (1'b0),
++        .req_bulk      (phone_mem_bulk),
++        .c_line        (core_ddr_line),
++        .req_line      (phone_mem_line),
++        .rsp_beat_valid(phone_beat_valid),
++        .rsp_beat_data (phone_beat_data),
++        .rsp_beat_last (phone_beat_last),
++        .c_beat_valid  (core_beat_valid),
++        .c_beat_data   (core_beat_data),
++        .c_beat_last   (core_beat_last),
++        .clk           (clk_sys),
++        .reset         (transport_reset),
++        .cpu_lock      (1'b0),
++        .l_valid       (upp_mem_valid),
++        .l_ready       (upp_mem_ready),
++        .l_addr        (upp_mem_addr),
++        .l_data        (upp_mem_data),
++        .l_be          (upp_mem_be),
++        .l_done        (upp_mem_done),
++        .l_write       (upp_mem_write),
++        .l_rdata       (upp_mem_rdata),
++        .c_valid       (core_ddr_rd || core_ddr_wr),
++        .c_ready       (core_accept),
++        .c_write       (core_ddr_wr),
++        .c_addr        (core_ddr_addr),
++        .c_data        (core_ddr_din),
++        .c_be          (core_ddr_be),
++        .c_done        (core_ddr_ready),
++        .c_rdata       (core_ddr_dout),
++        .req_valid     (phone_mem_valid),
++        .req_ready     (phone_mem_ready),
++        .req_write     (phone_mem_write),
++        .req_addr      (phone_mem_addr),
++        .req_data      (phone_mem_data),
++        .req_be        (phone_mem_be),
++        .rsp_valid     (phone_mem_done),
++        .rsp_data      (phone_mem_rdata)
++    );
+     ngage_ddr_arbiter ddr_arbiter (
+         .l_bulk        (aux_bulk),
+-        .c_bulk        (1'b0),
++        .c_bulk        (phone_mem_bulk),
+         .req_bulk      (arb_bulk),
+-        .c_line        (core_ddr_line),
++        .c_line        (phone_mem_line),
+         .req_line      (arb_line),
+         .rsp_beat_valid(arb_beat_valid),
+         .rsp_beat_data (arb_beat_data),
+         .rsp_beat_last (arb_beat_last),
+-        .c_beat_valid  (core_beat_valid),
+-        .c_beat_data   (core_beat_data),
+-        .c_beat_last   (core_beat_last),
++        .c_beat_valid  (phone_beat_valid),
++        .c_beat_data   (phone_beat_data),
++        .c_beat_last   (phone_beat_last),
+         .clk           (clk_sys),
+         .reset         (transport_reset),
+         .cpu_lock      (cpu_bus_lock && !reset),
+@@ -955,14 +1035,14 @@ module emu (
+         .l_done        (aux_done),
+         .l_write       (aux_write),
+         .l_rdata       (aux_rdata),
+-        .c_valid       (core_ddr_rd || core_ddr_wr),
+-        .c_ready       (core_accept),
+-        .c_write       (core_ddr_wr),
+-        .c_addr        (core_ddr_addr),
+-        .c_data        (core_ddr_din),
+-        .c_be          (core_ddr_be),
+-        .c_done        (core_ddr_ready),
+-        .c_rdata       (core_ddr_dout),
++        .c_valid       (phone_mem_valid),
++        .c_ready       (phone_mem_ready),
++        .c_write       (phone_mem_write),
++        .c_addr        (phone_mem_addr),
++        .c_data        (phone_mem_data),
++        .c_be          (phone_mem_be),
++        .c_done        (phone_mem_done),
++        .c_rdata       (phone_mem_rdata),
+         .req_valid     (arb_valid),
+         .req_ready     (arb_ready),
+         .req_write     (arb_write),
+@@ -979,6 +1059,7 @@ module emu (
+     ngage_ddr_flash_adapter #(
+         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
+         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
++        .UPP_RAM_BASE     (UPP_RAM_BASE),
+         .STREAM_TRANSPORT (D1_STREAM_TRANSPORT),
+         // The shared flash cache replaces the old instruction-only ROM cache.
+         .ROM_CACHE        (0),
+@@ -1160,12 +1241,22 @@ module emu (
+         .LCD_LINE_BYTES (LCD_LINE_BYTES),
+         .DMA_LOCAL      (1),
+         .GAME_PCM       (1),
++        .DDR_UPP_RAM    (1),
+         .MMC_CLK_DIV    (MMC_CLK_DIV),
+         .TEST_SIM_ENABLE(1),
+         .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
+         .NOS_TICK_HZ    (64),
+         .SYS_CLK_HZ     (SYS_CLK_HZ)
+     ) core (
++        .upp_ddr_req(upp_ddr_req),
++        .upp_ddr_we(upp_ddr_we),
++        .upp_ddr_addr(upp_ddr_addr),
++        .upp_ddr_wdata(upp_ddr_wdata),
++        .upp_ddr_be(upp_ddr_be),
++        .upp_ddr_ack(upp_ddr_ack),
++        .upp_ddr_rdata(upp_ddr_rdata),
++        .upp_ddr_clear(upp_ddr_clear),
++        .upp_ddr_clear_done(upp_ddr_clear_done),
+         .ddram_line(core_ddr_line),
+         .ddram_beat_valid(core_beat_valid),
+         .ddram_beat_data(core_beat_data),
+diff --git a/files.qip b/files.qip
+index 3571d22f6a1d421f4c4e0a64284c0a6bd068d769..73951630f626d469b803af6e8a3f827bacbe5ee9 100644
+--- a/files.qip
++++ b/files.qip
+@@ -95,6 +95,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_rom_map.sv
+ # set_global_assignment -name SYSTEMVERILOG_FILE rtl/ngage_ddr_lanes.sv
+ set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_adapter.v
+ set_global_assignment -name VERILOG_FILE rtl/ngage_ddr_arbiter.v
++set_global_assignment -name VERILOG_FILE rtl/ngage_upp_ddr_port.v
+ set_global_assignment -name VERILOG_FILE rtl/ngage_service_loader.v
+ # Temporarily disabled compatibility packages. Re-enable with the QSF macro.
+ # set_global_assignment -name VERILOG_FILE rtl/ngage_nos_overlay.v
+diff --git a/rtl/ngage_board.v b/rtl/ngage_board.v
+index 7c1970542d07745565495999fd8856ef3535f5c5..f7e669fbc03bfa0615a605f05594ed8d59651614 100644
+--- a/rtl/ngage_board.v
++++ b/rtl/ngage_board.v
+@@ -12,6 +12,7 @@ module ngage_board #(
+               GENERAL_DMA        = 0,
+               LCD_LINE_BYTES     = 0,
+               GAME_PCM           = 0,
++              DDR_UPP_RAM        = 0,
+               MMC_ENABLE         = GENERAL_DMA,
+               MMC_CLK_DIV        = 4,
+               MMC_TIMEOUT_LOG2   = 23,
+@@ -51,6 +52,16 @@ module ngage_board #(
+     input  wire         line_no_late_error,
+     input  wire         rst,
+     input  wire         init_rst,
++    output wire         upp_ddr_req,
++    output wire         upp_ddr_we,
++    output wire [ 16:2] upp_ddr_addr,
++    output wire [ 31:0] upp_ddr_wdata,
++    output wire [  3:0] upp_ddr_be,
++    input  wire         upp_ddr_ack,
++    input  wire [ 31:0] upp_ddr_rdata,
++    output wire         upp_ddr_clear,
++    input  wire         upp_ddr_clear_done,
++    output wire         upp_ddr_idle,
+     input  wire         clk,
+     // CPU wishbone request (held stable while pending)
+     input  wire         cyc,
+@@ -380,6 +391,7 @@ module ngage_board #(
+     endgenerate
+     ngage_upp #(
+         .GAME_PCM        (GAME_PCM),
++        .DDR_UPP_RAM     (DDR_UPP_RAM),
+         .LINE_REFILL     (LINE_REFILL),
+         .SYS_CLK_HZ      (SYS_CLK_HZ),
+         .TIMER_CLK_DIV   (TIMER_CLK_DIV),
+@@ -495,6 +507,16 @@ module ngage_board #(
+         .card_tx_data        (card_tx_data),
+         .rst                 (rst),
+         .init_rst            (init_rst),
++        .upp_ddr_req         (upp_ddr_req),
++        .upp_ddr_we          (upp_ddr_we),
++        .upp_ddr_addr        (upp_ddr_addr),
++        .upp_ddr_wdata       (upp_ddr_wdata),
++        .upp_ddr_be          (upp_ddr_be),
++        .upp_ddr_ack         (upp_ddr_ack),
++        .upp_ddr_rdata       (upp_ddr_rdata),
++        .upp_ddr_clear       (upp_ddr_clear),
++        .upp_ddr_clear_done  (upp_ddr_clear_done),
++        .upp_ddr_idle        (upp_ddr_idle),
+         .clk                 (clk),
+         .ext_cyc             (cyc),
+         .ext_stb             (stb),
+diff --git a/rtl/ngage_ddr_flash_adapter.v b/rtl/ngage_ddr_flash_adapter.v
+index eb70c42cc2431823fcc1482e547b9facd681790c..bc821ab434e0285fd355f8ffad6c2638c6c836d2 100644
+--- a/rtl/ngage_ddr_flash_adapter.v
++++ b/rtl/ngage_ddr_flash_adapter.v
+@@ -1,13 +1,14 @@
+ // SPDX-License-Identifier: GPL-3.0-or-later
+ // Shared flash backing cache in front of the scalar/line transport.
+ module ngage_ddr_flash_adapter #(
+-    parameter integer FLASH_CACHE_BYTES = 0,
+-    parameter integer BULK_PERSISTENCE  = 0,
+-    parameter         STREAM_TRANSPORT  = 0,
+-                      ROM_CACHE         = 0,
+-                      ROM_CACHE_BITS    = 64,
+-                      ROM_CACHE_BYTES   = 1024,
+-                      LINE_REFILL       = 0
++    parameter integer        FLASH_CACHE_BYTES = 0,
++    parameter integer        BULK_PERSISTENCE  = 0,
++    parameter         [31:0] UPP_RAM_BASE      = 0,
++    parameter                STREAM_TRANSPORT  = 0,
++                             ROM_CACHE         = 0,
++                             ROM_CACHE_BITS    = 64,
++                             ROM_CACHE_BYTES   = 1024,
++                             LINE_REFILL       = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -78,38 +79,49 @@ module ngage_ddr_flash_adapter #(
+ 
+     generate
+         if (BULK_PERSISTENCE != 0) begin : sector_port
+-            reg active = 0;
++            reg active = 0, clear_active = 0;
+             wire engine_idle, cancelled, failed;
++            wire save_read_valid, save_write_ready;
++            // Only a bulk write into the UPP range requests a zero fill.
++            wire clear_offer = UPP_RAM_BASE != 0 && req_write &&
++                req_addr[31:17] == UPP_RAM_BASE[31:17];
+             wire accept_sector = req_valid && req_ready && bulk_offer;
+             // The mux owner survives transport reset until accepted DDR
+             // activity has drained. No bulk return can feed the scalar path.
+             always @(posedge clk) begin
+-                if (accept_sector) active <= 1;
+-                else if (engine_idle) active <= 0;
++                if (accept_sector) begin
++                    active       <= 1;
++                    clear_active <= clear_offer;
++                end else if (engine_idle) active <= 0;
+             end
+             assign sector_active     = active;
+-            assign bulk_error        = failed || cancelled;
+-            assign invalidate_sector = accept_sector && req_write;
+-            ngage_ddr_stream engine (
++            assign bulk_error        = !clear_active && (failed || cancelled);
++            assign bulk_read_valid   = !clear_active && save_read_valid;
++            assign bulk_write_ready  = !clear_active && save_write_ready;
++            assign invalidate_sector = accept_sector && req_write && !clear_offer;
++            ngage_ddr_stream #(
++                .WRITE_FILL(UPP_RAM_BASE != 0)
++            ) engine (
+                 .clk                (clk),
+                 .transport_reset    (reset),
+                 .phone_reset        (bulk_cancel),
+                 .req_valid          (accept_sector),
+                 .req_ready          (sector_ready),
+                 .req_owner          (2'b0),
+-                .req_cancel_on_phone(1'b1),
++                .req_cancel_on_phone(!clear_offer),
+                 .req_write          (req_write),
+-                .req_stream         (req_write),
++                .req_stream         (req_write && !clear_offer),
++                .req_fill           (clear_offer),
+                 .req_addr           (req_addr),
+                 .req_count          (7'd64),
+                 .req_data           (64'b0),
+                 .req_be             (8'hff),
+                 .write_valid        (bulk_write_valid),
+-                .write_ready        (bulk_write_ready),
++                .write_ready        (save_write_ready),
+                 .write_data         (bulk_write_data),
+                 .write_be           (8'hff),
+                 .write_last         (bulk_write_last),
+-                .read_valid         (bulk_read_valid),
++                .read_valid         (save_read_valid),
+                 .read_ready         (bulk_read_ready),
+                 .read_owner         (),
+                 .read_data          (bulk_read_data),
+@@ -132,7 +144,8 @@ module ngage_ddr_flash_adapter #(
+             // synthesis translate_off
+             always @(posedge clk)
+                 if (req_valid && req_ready && bulk_offer)
+-                    if (req_addr[8:0] != 0 || req_addr < 32'h31400000 || req_addr >= 32'h31810000)
++                    if (req_addr[8:0] != 0 ||
++                        (!clear_offer && (req_addr < 32'h31400000 || req_addr >= 32'h31810000)))
+                         $fatal(1, "invalid bulk DDR admission");
+             // synthesis translate_on
+         end else begin : no_sector_port
+diff --git a/rtl/ngage_ddr_stream.v b/rtl/ngage_ddr_stream.v
+index 0d2178bbde17dbb2cef96f029583a67a4925bd9c..129d919c08e811795efaef990d1125a5bd309245 100644
+--- a/rtl/ngage_ddr_stream.v
++++ b/rtl/ngage_ddr_stream.v
+@@ -4,7 +4,10 @@
+ // Addresses are aligned byte addresses; count is 1..64 64-bit beats. Reads
+ // reserve the entire BRAM before issue because physical DDR cannot be stalled.
+ // Writes use individually accepted burstcount=1 commands, never write bursts.
+-module ngage_ddr_stream (
++// A constant-data fill keeps the offer active and advances once per acceptance.
++module ngage_ddr_stream #(
++    parameter WRITE_FILL = 0
++) (
+     input  wire        clk,
+     input  wire        transport_reset,
+     input  wire        phone_reset,
+@@ -14,6 +17,7 @@ module ngage_ddr_stream (
+     input  wire        req_cancel_on_phone,
+     input  wire        req_write,
+     input  wire        req_stream,
++    input  wire        req_fill,
+     input  wire [31:0] req_addr,
+     input  wire [ 6:0] req_count,
+     input  wire [63:0] req_data,
+@@ -47,7 +51,7 @@ module ngage_ddr_stream (
+         WRITE_NEED=5, WRITE_ISSUE=6;
+     reg [2:0] state = IDLE;
+     reg [1:0] owner = 0;
+-    reg cancel_on_phone = 0, discard = 0, stream_op = 0;
++    reg cancel_on_phone = 0, discard = 0, stream_op = 0, fill_op = 0;
+     reg [28:0] address = 0;
+     reg [6:0] count = 0, received = 0, index = 0;
+     reg [63:0] data = 0;
+@@ -58,8 +62,9 @@ module ngage_ddr_stream (
+     wire read_active = state == READ_ISSUE || state == READ_WAIT || state == READ_FINISH;
+     wire cancel_now = transport_reset || (phone_reset && cancel_on_phone);
+     wire [32:0] request_end = {1'b0, req_addr} + ({26'b0, req_count} << 3);
++    wire offer_fill = WRITE_FILL && req_fill;
+     wire valid_request = req_count != 0 && req_count <= 64 && req_addr[2:0] == 0 &&
+-        request_end <= 33'h100000000 && (!req_write || req_stream || req_count == 1);
++        request_end <= 33'h100000000 && (!req_write || req_stream || offer_fill || req_count == 1);
+     assign idle           = state == IDLE;
+     assign req_ready      = idle && !transport_reset;
+     assign ddr_addr       = address;
+@@ -113,6 +118,7 @@ module ngage_ddr_stream (
+                 owner           <= req_owner;
+                 cancel_on_phone <= req_cancel_on_phone;
+                 stream_op       <= req_stream;
++                fill_op         <= offer_fill;
+                 address         <= req_addr[31:3];
+                 count           <= req_count;
+                 received        <= 0;
+@@ -194,13 +200,13 @@ module ngage_ddr_stream (
+                         done      <= 1;
+                         cancelled <= 1;
+                         state     <= IDLE;
+-                    end else if (!stream_op || index + 1'b1 == count) begin
++                    end else if ((!stream_op && !fill_op) || index + 1'b1 == count) begin
+                         done  <= 1;
+                         state <= IDLE;
+                     end else begin
+                         index   <= index + 1'b1;
+                         address <= address + 1'b1;
+-                        state   <= WRITE_NEED;
++                        state   <= fill_op ? WRITE_ISSUE : WRITE_NEED;
+                     end
+                 end
+             end
+diff --git a/rtl/ngage_ddr_stream_legacy.v b/rtl/ngage_ddr_stream_legacy.v
+index 95390952fce68cb3e08e17e3481e5678c9642f3f..51b65f5b96029adcff1a82ae0dade97ab0cb6f5b 100644
+--- a/rtl/ngage_ddr_stream_legacy.v
++++ b/rtl/ngage_ddr_stream_legacy.v
+@@ -65,6 +65,7 @@ module ngage_ddr_stream_legacy #(
+         .req_cancel_on_phone(1'b0),
+         .req_write          (req_write),
+         .req_stream         (1'b0),
++        .req_fill           (1'b0),
+         .req_addr           ({req_addr[31:3], 3'b0}),
+         .req_count          (count),
+         .req_data           ({req_wdata, req_wdata}),
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index c20ced8d480a241fcba141e02872d0c7f48e7399..056b7cd65ed2841ce98909dc466fe97ba28ec27a 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -20,6 +20,7 @@ module ngage_mister #(
+                       GENERAL_DMA        = 1,
+                       LCD_LINE_BYTES     = 0,
+                       GAME_PCM           = 0,
++                      DDR_UPP_RAM        = 0,
+                       TEST_SIM_ENABLE    = 1,
+                       MMC_CLK_DIV        = 4,
+                       SYS_CLK_HZ         = 104000000,
+@@ -41,6 +42,16 @@ module ngage_mister #(
+     input  wire         clk_sys,              // CPU/bus clock domain
+     input  wire         reset,
+     input  wire         cold_reset,
++    // Private volatile RAM client on the HPS DDR3 transport.
++    output wire         upp_ddr_req,
++    output wire         upp_ddr_we,
++    output wire [ 16:2] upp_ddr_addr,
++    output wire [ 31:0] upp_ddr_wdata,
++    output wire [  3:0] upp_ddr_be,
++    input  wire         upp_ddr_ack,
++    input  wire [ 31:0] upp_ddr_rdata,
++    output wire         upp_ddr_clear,
++    input  wire         upp_ddr_clear_done,
+     input  wire         sim_present,
+     output wire         dma_reset,
+     // X553 backing interface. The board's direct native-MMC connection is a
+@@ -163,10 +174,11 @@ module ngage_mister #(
+     wire [3:0] fast_ram_be;
+     wire irq_line, fiq_line;
+ 
+-    // Keep the CPU in reset until any accepted flash transaction has drained.
++    // Keep the CPU in reset until accepted flash and private RAM requests drain.
+     // Command state is cleared while draining; pending command setup alone must
+     // not prevent release. Cold reset cancels controller state with the transport.
+-    wire code_idle, user_idle;
++    wire code_idle, user_idle, upp_ddr_idle;
++    wire upp_startup_ready = !DDR_UPP_RAM || (board_init_done && upp_ddr_idle);
+     // Assert cancellation immediately, but release only on a clock edge after
+     // both flash engines have drained. The registered output, rather than a
+     // live OR of loader/readiness flags, drives the phone reset tree. Quartus
+@@ -176,7 +188,7 @@ module ngage_mister #(
+     (* maxfan = 128, preserve *)reg  reset_drain = 1'b1;
+     always @(posedge clk_sys or posedge reset_request) begin
+         if (reset_request) reset_drain <= 1'b1;
+-        else if (reset_drain && code_idle && user_idle) reset_drain <= 1'b0;
++        else if (reset_drain && code_idle && user_idle && upp_startup_ready) reset_drain <= 1'b0;
+     end
+     wire core_reset = reset_drain;
+     // All external DMA routing/arbitration/adapters share this cancellation
+@@ -240,6 +252,7 @@ module ngage_mister #(
+         .GENERAL_DMA       (GENERAL_DMA),
+         .LCD_LINE_BYTES    (LCD_LINE_BYTES),
+         .GAME_PCM          (GAME_PCM),
++        .DDR_UPP_RAM       (DDR_UPP_RAM),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
+         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
+     ) board (
+@@ -353,6 +366,16 @@ module ngage_mister #(
+         .mmc_active           (mmc_active),
+         .rst                  (core_reset),
+         .init_rst             (cold_reset),
++        .upp_ddr_req          (upp_ddr_req),
++        .upp_ddr_we           (upp_ddr_we),
++        .upp_ddr_addr         (upp_ddr_addr),
++        .upp_ddr_wdata        (upp_ddr_wdata),
++        .upp_ddr_be           (upp_ddr_be),
++        .upp_ddr_ack          (upp_ddr_ack),
++        .upp_ddr_rdata        (upp_ddr_rdata),
++        .upp_ddr_clear        (upp_ddr_clear),
++        .upp_ddr_clear_done   (upp_ddr_clear_done),
++        .upp_ddr_idle         (upp_ddr_idle),
+         .clk                  (clk_sys),
+         .cyc                  (1'b0),
+         .stb                  (1'b0),
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 0d346fd0cb5a08987c6984a1511705c1e0bf3abc..ebd9bf5a0eac62913c71d8b6d1e5e49351688c79 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -11,6 +11,7 @@ module ngage_upp #(
+               GENERAL_DMA      = 0,
+               LCD_LINE_BYTES   = 0,
+               GAME_PCM         = 0,
++              DDR_UPP_RAM      = 0,
+               MMC_ENABLE       = GENERAL_DMA,
+               MMC_CLK_DIV      = 4,
+               MMC_TIMEOUT_LOG2 = 23,
+@@ -42,6 +43,16 @@ module ngage_upp #(
+     input  wire         clk,
+     input  wire         rst,
+     input  wire         init_rst,
++    output wire         upp_ddr_req,
++    output wire         upp_ddr_we,
++    output wire [ 16:2] upp_ddr_addr,
++    output wire [ 31:0] upp_ddr_wdata,
++    output wire [  3:0] upp_ddr_be,
++    input  wire         upp_ddr_ack,
++    input  wire [ 31:0] upp_ddr_rdata,
++    output wire         upp_ddr_clear,
++    input  wire         upp_ddr_clear_done,
++    output wire         upp_ddr_idle,
+     input  wire         ext_cyc,
+     input  wire         ext_stb,
+     input  wire         ext_we,
+@@ -601,6 +612,7 @@ module ngage_upp #(
+     endgenerate
+     ngage_upp_peripherals #(
+         .GAME_PCM          (GAME_PCM),
++        .DDR_UPP_RAM       (DDR_UPP_RAM),
+         .GENERAL_DMA       (GENERAL_DMA),
+         .MMC_ENABLE        (MMC_ENABLE),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
+@@ -636,6 +648,16 @@ module ngage_upp #(
+         .card_tx_data        (card_tx_data),
+         .rst                 (rst),
+         .init_rst            (init_rst),
++        .upp_ddr_req         (upp_ddr_req),
++        .upp_ddr_we          (upp_ddr_we),
++        .upp_ddr_addr        (upp_ddr_addr),
++        .upp_ddr_wdata       (upp_ddr_wdata),
++        .upp_ddr_be          (upp_ddr_be),
++        .upp_ddr_ack         (upp_ddr_ack),
++        .upp_ddr_rdata       (upp_ddr_rdata),
++        .upp_ddr_clear       (upp_ddr_clear),
++        .upp_ddr_clear_done  (upp_ddr_clear_done),
++        .upp_ddr_idle        (upp_ddr_idle),
+         .clk                 (clk),
+         .cyc                 (bus_cyc),
+         .stb                 (bus_stb),
+diff --git a/rtl/ngage_upp_ddr_port.v b/rtl/ngage_upp_ddr_port.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..6dcec055b9a097b3933c193560230a646c5c0a82
+--- /dev/null
++++ b/rtl/ngage_upp_ddr_port.v
+@@ -0,0 +1,65 @@
++// SPDX-License-Identifier: GPL-3.0-or-later
++// Held UPP requests and cold zeroing share the phone's DDR client.
++module ngage_upp_ddr_port #(
++    parameter [31:0] BASE = 32'h31820000
++) (
++    input  wire        clk,
++    input  wire        reset,
++    input  wire        upp_req,
++    input  wire        upp_we,
++    input  wire [16:2] upp_addr,
++    input  wire [31:0] upp_wdata,
++    input  wire [ 3:0] upp_be,
++    output wire        upp_ack,
++    output wire [31:0] upp_rdata,
++    input  wire        clear,
++    output reg         clear_done = 0,
++
++    output wire        req_valid,
++    input  wire        req_ready,
++    output wire        req_bulk,
++    output wire        req_write,
++    output wire [31:0] req_addr,
++    output wire [31:0] req_data,
++    output wire [ 3:0] req_be,
++    input  wire        rsp_valid,
++    input  wire [31:0] rsp_data
++);
++    reg waiting = 0, owner_clear = 0, wait_request_drop = 0;
++    reg [7:0] clear_block = 0;
++
++    assign req_valid = !reset && !waiting && (clear ? !clear_done : upp_req && !wait_request_drop);
++    assign req_bulk  = clear;
++    assign req_write = clear || upp_we;
++    assign req_addr  = {BASE[31:17], clear ? {clear_block, 9'b0} : {upp_addr, 2'b0}};
++    assign req_data  = upp_wdata;
++    assign req_be    = upp_be;
++    assign upp_ack   = !reset && waiting && !owner_clear && rsp_valid;
++    assign upp_rdata = rsp_data;
++
++    always @(posedge clk) begin
++        if (reset) begin
++            waiting           <= 0;
++            wait_request_drop <= 0;
++            clear_block       <= 0;
++            clear_done        <= 0;
++        end else begin
++            if (!upp_req) wait_request_drop <= 0;
++            if (!clear) begin
++                clear_block <= 0;
++                clear_done  <= 0;
++            end
++            if (req_valid && req_ready) begin
++                waiting     <= 1;
++                owner_clear <= clear;
++            end
++            if (waiting && rsp_valid) begin
++                waiting <= 0;
++                if (owner_clear) begin
++                    if (&clear_block) clear_done <= 1;
++                    else clear_block <= clear_block + 1'b1;
++                end else wait_request_drop <= 1;
++            end
++        end
++    end
++endmodule
+diff --git a/rtl/ngage_upp_peripherals.v b/rtl/ngage_upp_peripherals.v
+index 7ab7158c7bcd2dabc0907cfee9f9a55f03628257..101f51b1afa8d41011c1dcee2c03a5e9a7112809 100644
+--- a/rtl/ngage_upp_peripherals.v
++++ b/rtl/ngage_upp_peripherals.v
+@@ -47,6 +47,7 @@ module ngage_upp_peripherals #(
+               KEYPAD_ENABLE      = 0,
+               LCD_QUEUE_ENABLE   = 0,
+               REGISTER_RESPONSES = 0,
++              DDR_UPP_RAM        = 0,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+               NOS_TICK_HZ        = 1000
+@@ -54,6 +55,17 @@ module ngage_upp_peripherals #(
+     input  wire        rst,
+     input  wire        init_rst,
+     input  wire        clk,
++    // Private DDR backing for the two raw windows at 0x0c03 and 0x0c10.
++    output wire        upp_ddr_req,
++    output wire        upp_ddr_we,
++    output wire [16:2] upp_ddr_addr,
++    output wire [31:0] upp_ddr_wdata,
++    output wire [ 3:0] upp_ddr_be,
++    input  wire        upp_ddr_ack,
++    input  wire [31:0] upp_ddr_rdata,
++    output wire        upp_ddr_clear,
++    input  wire        upp_ddr_clear_done,
++    output wire        upp_ddr_idle,
+     // CPU wishbone request (held stable while pending)
+     input  wire        cyc,
+     input  wire        stb,
+@@ -89,7 +101,7 @@ module ngage_upp_peripherals #(
+     output reg         unmodeled,
+     output wire        irq,
+     output wire        fiq,
+-    output reg         init_done,
++    output wire        init_done,
+     output wire        trace_valid,
+     output wire [31:0] trace_addr,
+     output wire [31:0] trace_data,
+@@ -142,6 +154,7 @@ module ngage_upp_peripherals #(
+ 
+     wire extra_ready;
+     wire icu_ready, timer_ready;
++    wire ddr_access, ddr_response, ddr_initialized;
+     wire local_access = commit && init_done && cyc && stb && !response_pending;
+     wire uart_claim, uart_bad, uart_ready, uart_fiq;
+     wire [31:0] uart_data;
+@@ -571,13 +584,15 @@ module ngage_upp_peripherals #(
+     wire [31:0] upload_q, nosmem_q, gpio15_q, aux_q;
+     wire [31:0] gpr_q=upload_hit?upload_q:nosmem_hit?nosmem_q:gpio15_hit?gpio15_q:aux_q;
+     reg [14:0] init_index = 0;
+-    wire clearing = !init_done;
++    reg local_init_done = 0;
++    wire clearing = !local_init_done;
++    assign init_done = local_init_done && ddr_initialized;
+     always @(posedge clk) begin
+         if (init_rst) begin
+-            init_index <= 0;
+-            init_done  <= 0;
+-        end else if (!init_done) begin
+-            if (init_index == 15'd16383) init_done <= 1;
++            init_index      <= 0;
++            local_init_done <= 0;
++        end else if (clearing) begin
++            if (init_index == 15'd16383) local_init_done <= 1;
+             else init_index <= init_index + 1'b1;
+         end
+     end
+@@ -624,26 +639,94 @@ module ngage_upp_peripherals #(
+     // NOS4K retains its existing unrestricted byte-mask write semantics.
+     wire nos4k_write = local_access && we && nos4k_ram;
+ 
+-    ngage_bram_be #(
+-        .AW(14)
+-    ) upload_ram (
+-        .clk  (clk),
+-        .raddr(a[15:2]),
+-        .rdata(upload_q),
+-        .waddr(clearing ? init_index[13:0] : a[15:2]),
+-        .we   (clearing ? 4'hf : ((upload_selected && ram_write) ? sel : 4'd0)),
+-        .wdata(clearing ? 32'b0 : din)
+-    );
+-    ngage_bram_be #(
+-        .AW(14)
+-    ) nosmem_ram (
+-        .clk  (clk),
+-        .raddr(a[15:2]),
+-        .rdata(nosmem_q),
+-        .waddr(clearing ? init_index[13:0] : a[15:2]),
+-        .we   (clearing ? 4'hf : ((nosmem_selected && ram_write) ? sel : 4'd0)),
+-        .wdata(clearing ? 32'b0 : din)
+-    );
++    generate
++        if (DDR_UPP_RAM) begin : external_raw_ram
++            reg pending = 0, cancelled = 0, response = 0, cleared = 0;
++            reg        write_op;
++            reg [16:2] address;
++            reg [31:0] write_data, read_data;
++            reg [3:0] byte_enable;
++
++            assign ddr_access      = valid_lanes && (upload_selected || nosmem_selected);
++            assign ddr_response    = response;
++            assign ddr_initialized = cleared;
++            assign upp_ddr_req     = pending && !init_rst;
++            assign upp_ddr_we      = write_op;
++            assign upp_ddr_addr    = address;
++            assign upp_ddr_wdata   = write_data;
++            assign upp_ddr_be      = byte_enable;
++            assign upp_ddr_clear   = !init_rst && !cleared;
++            assign upp_ddr_idle    = !pending && !upp_ddr_ack;
++            assign upload_q        = read_data;
++            assign nosmem_q        = read_data;
++
++            always @(posedge clk) begin
++                if (init_rst) begin
++                    pending   <= 0;
++                    cancelled <= 0;
++                    response  <= 0;
++                    cleared   <= 0;
++                end else begin
++                    if (upp_ddr_clear && upp_ddr_clear_done) cleared <= 1;
++                    if (rst || !req) response <= 0;
++
++                    // The transport owns a launched request through ACK,
++                    // even if a warm reset or withdrawn bus request cancels
++                    // its guest response. Cold reset also resets transport
++                    // ownership and the transport drains before clearing.
++                    if (pending) begin
++                        if (rst || !req) cancelled <= 1;
++                        if (upp_ddr_ack) begin
++                            pending <= 0;
++                            if (!cancelled && !rst && req) begin
++                                read_data <= upp_ddr_rdata;
++                                response  <= 1;
++                            end
++                        end
++                    end else if (!rst && local_access && ddr_access && !response && !upp_ddr_ack) begin
++                        pending     <= 1;
++                        cancelled   <= 0;
++                        write_op    <= we;
++                        address     <= {nosmem_selected, a[15:2]};
++                        write_data  <= din;
++                        byte_enable <= sel;
++                    end
++                end
++            end
++        end else begin : local_raw_ram
++            assign ddr_access      = 0;
++            assign ddr_response    = 0;
++            assign ddr_initialized = 1;
++            assign upp_ddr_req     = 0;
++            assign upp_ddr_we      = 0;
++            assign upp_ddr_addr    = 0;
++            assign upp_ddr_wdata   = 0;
++            assign upp_ddr_be      = 0;
++            assign upp_ddr_clear   = 0;
++            assign upp_ddr_idle    = 1;
++
++            ngage_bram_be #(
++                .AW(14)
++            ) upload_ram (
++                .clk  (clk),
++                .raddr(a[15:2]),
++                .rdata(upload_q),
++                .waddr(clearing ? init_index[13:0] : a[15:2]),
++                .we   (clearing ? 4'hf : ((upload_selected && ram_write) ? sel : 4'd0)),
++                .wdata(clearing ? 32'b0 : din)
++            );
++            ngage_bram_be #(
++                .AW(14)
++            ) nosmem_ram (
++                .clk  (clk),
++                .raddr(a[15:2]),
++                .rdata(nosmem_q),
++                .waddr(clearing ? init_index[13:0] : a[15:2]),
++                .we   (clearing ? 4'hf : ((nosmem_selected && ram_write) ? sel : 4'd0)),
++                .wdata(clearing ? 32'b0 : din)
++            );
++        end
++    endgenerate
+     ngage_bram_be #(
+         .AW(10)
+     ) gpio15_ram (
+@@ -706,7 +789,7 @@ module ngage_upp_peripherals #(
+         (!boot_claim || boot_ready) && (!mdi_claim || mdi_ready) &&
+         (!icu_claim || icu_bad || icu_ready) && (!timer_claim || timer_bad || timer_ready) && passive_ready &&
+         (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
+-                   (!ram_read || (rd_vld && rd_adr == a));
++                   (ddr_access ? ddr_response : (!ram_read || (rd_vld && rd_adr == a)));
+ 
+     always @(posedge clk) begin
+         if (rst || (local_access && ready) || !req) rd_vld <= 1'b0;
+@@ -721,7 +804,7 @@ module ngage_upp_peripherals #(
+     reg [11:0] fcnt_div;
+ 
+     wire gpio_access = local_access && gpio_selected && valid_lanes &&
+-                       (we || (rd_vld && rd_adr == a));
++                       (ddr_access ? ddr_response : (we || (rd_vld && rd_adr == a)));
+     // Keypad configuration/status overlays share accepted transactions with
+     // GPIO loopback and NOS. Each owner retains its independent state.
+     wire keypad_access = gpio_access ||
+diff --git a/tests/phone/upp_ddr_ram/README.md b/tests/phone/upp_ddr_ram/README.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..32eb68ee669c2b962c84eb2b47a08571231335e7
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/README.md
+@@ -0,0 +1,28 @@
++# Production UPP DDR endpoint checks
++
++Run from the project root with the local ARM assembler and the existing offline
++simulator image. The mixed case reuses the adapted Micron model documented in
++[the retained latency replay](../../../docs/upp-ddr3-rtl-replay.md#reproduction).
++
++```sh
++sh tests/phone/upp_ddr_ram/run.sh
++```
++
++The registered board test checks authorization, held completions, every legal
++byte mask, invalid-mask rejection, distinct addresses and 32-bit lanes, and
++MDI, auxiliary and NOS4K ownership. It replaces an in-flight read with a read
++to the other bank and verifies that the first result cannot complete the
++second. A warm reset drains an accepted write without clearing memory. The
++next cold reset clears both banks again and keeps initialization incomplete
++until the DDR peer and local RAM sweep finish.
++
++The mixed case runs ARM9V2 with both production UPP DDR windows enabled.
++The guest checks raw reads and masked writes, executes an ARM `SWP` in each
++window with LCD DMA waiting and fetches instructions from each window. It also
++checks a full pin-level LCD transfer, an MMC write and readback, and the
++128-sample signed PCM hash and cadence. The tests use a byte-enabled delayed
++DDR endpoint peer. The
++[transport regression](../upp_ddr_transport/) exercises the production HPS
++transport and arbiter separately.
++
++Logs and the mixed source manifest are under `build/sim/upp-ddr-ram/`.
+diff --git a/tests/phone/upp_ddr_ram/atomic.S b/tests/phone/upp_ddr_ram/atomic.S
+new file mode 100644
+index 0000000000000000000000000000000000000000..c541065c1e5662d19320abe7e625ce6c6fd7ab3f
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/atomic.S
+@@ -0,0 +1,40 @@
++ // ARM SWP on both raw DDR banks with the LCD transfer active.
++ mov r12,#81
++ ldr r0,=0x0c038000
++ ldr r1,=0x0c108000
++ mov r2,#0x5a
++ mov r3,#0x9c
++ str r2,[r0]
++ str r2,[r1]
++ swp r10,r3,[r0]
++ cmp r10,r2
++ bne fail
++ swp r10,r3,[r1]
++ cmp r10,r2
++ bne fail
++ ldr r10,[r0]
++ cmp r10,r3
++ bne fail
++ ldr r10,[r1]
++ cmp r10,r3
++ bne fail
++
++ // Both ranges retain ordinary instruction readback. The first word
++ // updates a scratch register and the second returns to code flash.
++ mov r12,#82
++ ldr r2,=0xe3a0a05a
++ ldr r3,=0xe12fff1e
++ str r2,[r0]
++ str r3,[r0,#4]
++ str r2,[r1]
++ str r3,[r1,#4]
++ mov r10,#0
++ mov lr,pc
++ bx r0
++ cmp r10,#0x5a
++ bne fail
++ mov r10,#0
++ mov lr,pc
++ bx r1
++ cmp r10,#0x5a
++ bne fail
+diff --git a/tests/phone/upp_ddr_ram/mixed.vh b/tests/phone/upp_ddr_ram/mixed.vh
+new file mode 100644
+index 0000000000000000000000000000000000000000..d5b84fac3345a336a3cb9b4bbca80a9aefd5993e
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/mixed.vh
+@@ -0,0 +1,57 @@
++ wire ddr_req, ddr_we, ddr_ack, ddr_clear, ddr_clear_done;
++ wire [16:2] ddr_addr;
++ wire [31:0] ddr_wdata, ddr_rdata;
++ wire [3:0] ddr_be;
++ upp_ddr_test_peer upp_ddr (
++     .clk(clk), .cold(cold), .complete(1'b1), .req(ddr_req), .we(ddr_we),
++     .addr(ddr_addr), .wdata(ddr_wdata), .be(ddr_be), .ack(ddr_ack), .rdata(ddr_rdata),
++     .clear(ddr_clear), .clear_done(ddr_clear_done), .pending()
++ );
++
++ integer ddr_writes[0:1], ddr_reads[0:1];
++ reg [1:0] atomic_read=0, atomic_write=0, instruction_read=0, atomic_dma_overlap=0;
++ integer sample_count=0, first_sample=-1, last_sample=-1;
++ reg [31:0] sample_hash=32'h811c9dc5;
++ integer ram_bank;
++ initial begin
++     for (ram_bank=0; ram_bank<2; ram_bank=ram_bank+1) begin
++         ddr_writes[ram_bank]=0;
++         ddr_reads[ram_bank]=0;
++     end
++ end
++
++ always @(posedge clk) begin
++     if (ddr_req && ddr_ack) begin
++         if (ddr_we) ddr_writes[ddr_addr[16]] <= ddr_writes[ddr_addr[16]] + 1;
++         else ddr_reads[ddr_addr[16]] <= ddr_reads[ddr_addr[16]] + 1;
++         if (bus_lock) begin
++             if (ddr_we) atomic_write[ddr_addr[16]] <= 1;
++             else atomic_read[ddr_addr[16]] <= 1;
++             if (lcd_line_req && !lcd_line_ready) atomic_dma_overlap[ddr_addr[16]] <= 1;
++         end
++         if (!ddr_we && dut.wb_code) instruction_read[ddr_addr[16]] <= 1;
++     end
++     if (dut.game_pcm.player.tick && dut.game_pcm.player.play && !done_irq) begin
++         sample_count <= sample_count+1;
++         if (first_sample<0) first_sample <= cycles;
++         last_sample <= cycles;
++         sample_hash <= (sample_hash ^ {pcm_l,pcm_r}) * 32'd16777619;
++     end
++ end
++
++ task check_upp_ddr;
++     begin
++         if (atomic_read !== 2'b11 || atomic_write !== 2'b11 || atomic_dma_overlap !== 2'b11 ||
++             instruction_read !== 2'b11 || upp_ddr.clear_count != 1 ||
++             ddr_writes[0] != 260 || ddr_writes[1] != 260 || ddr_reads[0] < 260 || ddr_reads[1] < 260)
++             $fatal(1,"DDR owner counts upload=%0d/%0d NOS=%0d/%0d SWP=%b/%b with DMA=%b fetch=%b clears=%0d",
++                    ddr_reads[0],ddr_writes[0],ddr_reads[1],ddr_writes[1],
++                    atomic_read,atomic_write,atomic_dma_overlap,instruction_read,upp_ddr.clear_count);
++         if (sample_count != 128 || sample_hash !== 32'h175ee178 || last_sample-first_sample != 275167)
++             $fatal(1,"PCM samples=%0d hash=%h first=%0d last=%0d",
++                    sample_count,sample_hash,first_sample,last_sample);
++         $display("PASS production UPP DDR RAM upload=%0d/%0d NOS=%0d/%0d SWP with LCD DMA waiting=%b fetch=%b PCM hash=%h",
++                  ddr_reads[0],ddr_writes[0],ddr_reads[1],ddr_writes[1],
++                  atomic_dma_overlap,instruction_read,sample_hash);
++     end
++ endtask
+diff --git a/tests/phone/upp_ddr_ram/peer.v b/tests/phone/upp_ddr_ram/peer.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..78bd159774552ee9e79b0fa1d49762bba29635cb
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/peer.v
+@@ -0,0 +1,90 @@
++// Delayed, byte-enabled DDR transport peer. The transport's physical reset
++// drain is tested separately; this peer cancels logical ownership on cold.
++module upp_ddr_test_peer (
++    input  wire        clk,
++    input  wire        cold,
++    input  wire        complete,
++    input  wire        req,
++    input  wire        we,
++    input  wire [16:2] addr,
++    input  wire [31:0] wdata,
++    input  wire [ 3:0] be,
++    output reg         ack = 0,
++    output reg  [31:0] rdata = 0,
++    input  wire        clear,
++    output reg         clear_done = 0,
++    output reg         pending = 0
++);
++  reg [63:0] memory[0:16383];
++  reg [16:2] saved_addr;
++  reg [31:0] saved_data;
++  reg [3:0] saved_be;
++  reg saved_we;
++  reg [2:0] countdown;
++  reg [13:0] scrub_index = 0;
++  reg scrub_phase = 0;
++  integer byte_lane;
++  integer initial_index;
++  integer clear_count = 0;
++  integer accepted = 0;
++
++  initial begin
++    for (initial_index = 0; initial_index < 16384; initial_index = initial_index + 1)
++    memory[initial_index] = 64'hdeadbeefbadf00d;
++  end
++
++  always @(posedge clk) begin
++    if (cold) begin
++      ack         <= 0;
++      pending     <= 0;
++      clear_done  <= 0;
++      scrub_index <= 0;
++      scrub_phase <= 0;
++    end else begin
++      if (!clear) clear_done <= 0;
++      else if (!clear_done) begin
++        if (req || pending || ack) $fatal(1, "DDR clear collided with a live raw request");
++        // Make the DDR sweep finish after the local scrub to test
++        // that init_done waits for both.
++        scrub_phase <= !scrub_phase;
++        if (scrub_phase) begin
++          memory[scrub_index] <= 0;
++          if (&scrub_index) begin
++            clear_count <= clear_count + 1;
++            clear_done  <= 1;
++            scrub_index <= 0;
++          end else scrub_index <= scrub_index + 1'b1;
++        end
++      end
++
++      if (ack) begin
++        if (!req) ack <= 0;
++      end else if (pending) begin
++        if (!req || {addr, we, wdata, be} !== {saved_addr, saved_we, saved_data, saved_be})
++          $fatal(1, "UPP changed a request before completion");
++        if (complete && countdown != 0) countdown <= countdown - 1'b1;
++        if (complete && countdown == 0) begin
++          if (saved_we) begin
++            for (byte_lane = 0; byte_lane < 4; byte_lane = byte_lane + 1)
++            if (saved_be[byte_lane])
++              memory[saved_addr[16:3]][{saved_addr[2], 5'b0} + byte_lane*8 +: 8] <=
++                                    saved_data[byte_lane*8 +: 8];
++          end else begin
++            rdata <= saved_addr[2] ? memory[saved_addr[16:3]][63:32] :
++                                                memory[saved_addr[16:3]][31:0];
++          end
++          pending <= 0;
++          ack <= 1;
++        end
++      end else if (req) begin
++        saved_addr <= addr;
++        saved_data <= wdata;
++        saved_be   <= be;
++        saved_we   <= we;
++        countdown  <= 3'd5;
++        pending    <= 1;
++        accepted   <= accepted + 1;
++      end
++    end
++  end
++endmodule
+diff --git a/tests/phone/upp_ddr_ram/peripherals_tb.v b/tests/phone/upp_ddr_ram/peripherals_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..742389fade4b03a90b869f7079c73e0f1b65618e
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/peripherals_tb.v
+@@ -0,0 +1,246 @@
++`timescale 1ns / 1ps
++module tb;
++  reg clk = 0;
++  always #5 clk = ~clk;
++
++  localparam UPLOAD = 32'h0c0303f0;
++  localparam NOS = 32'h0c1003f0;
++  localparam UPLOAD_END = 32'h0c03fffc;
++  localparam NOS_END = 32'h0c10fffc;
++  localparam MDI_PTR = 32'h0c1003e8;
++  localparam MDI_RING = 32'h0c1003e4;
++  localparam AUX = 32'h0c06ff00;
++  localparam NOS4K = 32'h0c0047fc;
++
++  reg rst = 1, cold = 1, req = 0, wr = 0, authorize = 0, complete = 1;
++  reg [31:0] adr = 0, data = 0;
++  reg [3:0] lanes = 15;
++  wire claim, ready, bad, init_done;
++  wire [31:0] result;
++  wire ddr_req, ddr_we, ddr_ack, ddr_clear, ddr_clear_done, ddr_idle, ddr_pending;
++  wire [16:2] ddr_addr;
++  wire [31:0] ddr_wdata, ddr_rdata;
++  wire [3:0] ddr_be;
++
++  ngage_board #(
++      .DDR_UPP_RAM(1)
++  ) dut (
++      .clk(clk),
++      .rst(rst),
++      .init_rst(cold),
++      .cyc(req),
++      .stb(req),
++      .we(wr),
++      .adr(adr),
++      .din(data),
++      .sel(lanes),
++      .commit(authorize && !rst),
++      .cfg_lcd(1'b1),
++      .cfg_keypad(1'b1),
++      .cfg_clocks(1'b1),
++      .keys(27'd0),
++      .sim_present(1'b0),
++      .dma_irq_pending(1'b0),
++      .sim_fiq_pending(1'b0),
++      .claim(claim),
++      .ready(ready),
++      .unmodeled(bad),
++      .dout(result),
++      .init_done(init_done),
++      .upp_ddr_req(ddr_req),
++      .upp_ddr_we(ddr_we),
++      .upp_ddr_addr(ddr_addr),
++      .upp_ddr_wdata(ddr_wdata),
++      .upp_ddr_be(ddr_be),
++      .upp_ddr_ack(ddr_ack),
++      .upp_ddr_rdata(ddr_rdata),
++      .upp_ddr_clear(ddr_clear),
++      .upp_ddr_clear_done(ddr_clear_done),
++      .upp_ddr_idle(ddr_idle)
++  );
++  defparam dut.upp.peripherals.REGISTER_RESPONSES = 1;
++
++  upp_ddr_test_peer peer (
++      .clk(clk),
++      .cold(cold),
++      .complete(complete),
++      .req(ddr_req),
++      .we(ddr_we),
++      .addr(ddr_addr),
++      .wdata(ddr_wdata),
++      .be(ddr_be),
++      .ack(ddr_ack),
++      .rdata(ddr_rdata),
++      .clear(ddr_clear),
++      .clear_done(ddr_clear_done),
++      .pending(ddr_pending)
++  );
++
++  task step;
++    begin
++      @(negedge clk);
++      #1;
++    end
++  endtask
++
++  task start;
++    input write_op;
++    input [31:0] address, value;
++    input [3:0] mask;
++    begin
++      req = 1;
++      wr = write_op;
++      adr = address;
++      data = value;
++      lanes = mask;
++    end
++  endtask
++
++  task read_or_write;
++    input write_op, expect_bad, external_access;
++    input [31:0] address, value, expect_read;
++    input [3:0] mask;
++    integer count_before;
++    reg [31:0] held_result;
++    begin
++      step();
++      count_before = peer.accepted;
++      authorize = 0;
++      start(write_op, address, value, mask);
++      repeat (3) step();
++      if (ddr_req || ready) $fatal(1, "Completion or DDR request before authorization");
++      authorize = 1;
++      while (!ready) step();
++      if (!claim || bad !== expect_bad || (!write_op && result !== expect_read))
++        $fatal(1, "Bad result @%h: %h vs %h, error=%b", address, result, expect_read, bad);
++      held_result = result;
++      repeat (3) begin
++        step();
++        if (!ready || result !== held_result) $fatal(1, "Response changed while held");
++      end
++      if (peer.accepted != count_before + external_access)
++        $fatal(1, "Wrong DDR launch count @%h", address);
++      req = 0;
++      authorize = 0;
++      step();
++    end
++  endtask
++
++  task put;
++    input [31:0] addr, value;
++    input [3:0] mask;
++    input external_access;
++    begin
++      read_or_write(1, 0, external_access, addr, value, 0, mask);
++    end
++  endtask
++
++  task get;
++    input [31:0] addr, value;
++    input external_access;
++    begin
++      read_or_write(0, 0, external_access, addr, 0, value, 15);
++    end
++  endtask
++
++  initial begin
++    repeat (4) step();
++    cold = 0;
++    repeat (16395) step();
++    if (init_done || peer.clear_count != 0) $fatal(1, "CPU release raced slow DDR initialization");
++    wait (init_done);
++    step();
++    rst = 0;
++    get(UPLOAD, 0, 1);
++    get(NOS, 0, 1);
++    get(UPLOAD_END, 0, 1);
++    get(NOS_END, 0, 1);
++    put(UPLOAD, 32'h12345678, 15, 1);
++    put(NOS, 32'h87654321, 15, 1);
++    put(NOS, 32'h0000aabb, 3, 1);
++    put(NOS, 32'hccdd0000, 12, 1);
++    put(UPLOAD, 32'h23, 1, 1);
++    put(UPLOAD, 32'hff00, 2, 1);
++    put(UPLOAD, 32'h110000, 4, 1);
++    put(UPLOAD, 32'h07000000, 8, 1);
++    put(UPLOAD + 4, 32'h8300face, 15, 1);
++    put(NOS + 4, 32'h8300bead, 15, 1);
++    put(UPLOAD_END, 32'h01234567, 15, 1);
++    put(NOS_END, 32'h89abcdef, 15, 1);
++    read_or_write(1, 1, 0, NOS, 0, 0, 5);
++    get(UPLOAD, 32'h0711ff23, 1);
++    get(NOS, 32'hccddaabb, 1);
++    get(UPLOAD + 4, 32'h8300face, 1);
++    get(NOS + 4, 32'h8300bead, 1);
++    put(MDI_PTR, 32'h00030002, 15, 0);
++    get(MDI_PTR, 32'h00030002, 0);
++    put(MDI_RING, 32'h10203040, 15, 0);
++    get(MDI_RING, 32'h10203040, 0);
++    put(AUX, 32'h01020304, 15, 0);
++    put(NOS4K, 32'h05060708, 15, 0);
++
++    // Withdraw an authorized read in flight. Its replacement cannot
++    // use the stale completion, even when requesting the other bank.
++    complete  = 0;
++    authorize = 1;
++    start(0, UPLOAD, 0, 15);
++    wait (ddr_pending);
++    step();
++    req = 0;
++    step();
++    start(0, NOS, 0, 15);
++    complete = 1;
++    while (!ready) step();
++    if (result !== 32'hccddaabb) $fatal(1, "Stale DDR result completed a new request");
++    req = 0;
++    step();
++
++    // A warm reset suppresses the guest's result but retains accepted
++    // write data and keeps transport ownership until ACK.
++    complete = 0;
++    start(1, NOS_END, 32'hff000000, 8);
++    wait (ddr_pending);
++    step();
++    rst = 1;
++    req = 0;
++    repeat (4) begin
++      step();
++      if (ddr_idle || ready || !ddr_req || ddr_clear)
++        $fatal(1, "Warm reset dropped a live command or restarted clear");
++    end
++    complete = 1;
++    wait (ddr_idle);
++    step();
++    rst = 0;
++    get(UPLOAD_END, 32'h01234567, 1);
++    get(NOS_END, 32'hffabcdef, 1);
++    get(MDI_PTR, 0, 0);
++    get(AUX, 32'h01020304, 0);
++    get(NOS4K, 32'h05060708, 0);
++    if (peer.clear_count != 1) $fatal(1, "Warm reset cleared DDR");
++
++    step();
++    rst  = 1;
++    cold = 1;
++    step();
++    cold = 0;
++    wait (init_done);
++    step();
++    rst = 0;
++    get(UPLOAD, 0, 1);
++    get(NOS, 0, 1);
++    get(UPLOAD_END, 0, 1);
++    get(NOS_END, 0, 1);
++    get(AUX, 0, 0);
++    get(NOS4K, 0, 0);
++    if (peer.clear_count != 2) $fatal(1, "Expected one completed clear per cold reset");
++    $display(
++        "PASS UPP DDR owner, all legal lanes and invalid mask, exactly-once handshakes, warm drain, cold clear");
++    $finish;
++  end
++
++  initial begin
++    #2000000;
++    $fatal(1, "Timeout");
++  end
++endmodule
+diff --git a/tests/phone/upp_ddr_ram/prepare.py b/tests/phone/upp_ddr_ram/prepare.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..e9cac4215d63969e4db01dea51fa91a21eac5c7c
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/prepare.py
+@@ -0,0 +1,71 @@
++#!/usr/bin/env python3
++"""Prepare UPP ownership and mixed ARM/PCM tests with current production RTL."""
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import shlex
++import shutil
++
++HERE = Path(__file__).resolve().parent
++OUT = Path('build/sim/upp-ddr-ram')
++FIXTURE = Path('tests/phone/upp_ddr_ram')
++REFERENCE = HERE.parent / 'upp_ddr3_impact'
++
++
++def prepare_owner():
++    maintained = Path('tests/phone/peripheral_response/run.sh').read_text().splitlines()[3]
++    sources = [name for name in shlex.split(maintained)[6:] if name.startswith('rtl/')]
++    command = ['iverilog', '-g2012', '-s', 'tb', '-o', str(OUT / 'peripherals.vvp'),
++               *sources, str(FIXTURE / 'peer.v'), str(FIXTURE / 'peripherals_tb.v')]
++    (OUT / 'peripherals.sh').write_text('set -eu\n' + shlex.join(command) +
++                                       f'\nvvp {OUT}/peripherals.vvp > {OUT}/peripherals.log\n'
++                                       f'grep "^PASS" {OUT}/peripherals.log\n')
++
++
++def prepare_mixed():
++    # Build the unchanged MMC media and pin harness from the retained replay.
++    spec = importlib.util.spec_from_file_location('replay', REFERENCE / 'prepare.py')
++    replay = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(replay)
++    replay.OUT = OUT / 'mixed'
++    replay.prepare_mixed(replay.SDRAM_MODEL)
++    mixed = replay.OUT
++
++    testbench = mixed / 'source/tests/phone/mmc_mister/tb.v'
++    source = replay.replace(testbench.read_text(), (REFERENCE / 'mixed-observe.vh').read_text(),
++                            (HERE / 'mixed.vh').read_text())
++    source = replay.replace(source, 'report_upp_impact();', 'check_upp_ddr();')
++    source = replay.replace(source, '.GAME_PCM(1)', '.GAME_PCM(1),.DDR_UPP_RAM(1)')
++    source = replay.replace(source, '.cold_reset(cold),.dma_reset(dma_reset)', '''.cold_reset(cold),.dma_reset(dma_reset),
++  .upp_ddr_req(ddr_req),.upp_ddr_we(ddr_we),.upp_ddr_addr(ddr_addr),
++  .upp_ddr_wdata(ddr_wdata),.upp_ddr_be(ddr_be),.upp_ddr_ack(ddr_ack),.upp_ddr_rdata(ddr_rdata),
++  .upp_ddr_clear(ddr_clear),.upp_ddr_clear_done(ddr_clear_done)''')
++    testbench.write_text(source)
++
++    stress = (mixed / 'stress.S').read_text()
++    replay.build_guest('stress', replay.replace(stress, 'write_card_wait:',
++                                                (HERE / 'atomic.S').read_text() + '\nwrite_card_wait:'))
++    source_root = mixed / 'source'
++    for frozen in sorted((source_root / 'rtl').rglob('*')):
++        if frozen.is_file():
++            shutil.copyfile(frozen.relative_to(source_root), frozen)
++    hashes = {str(path.relative_to(source_root)): hashlib.sha256(path.read_bytes()).hexdigest()
++              for path in sorted(source_root.rglob('*')) if path.is_file()}
++    hashes[str(FIXTURE / 'peer.v')] = hashlib.sha256((HERE / 'peer.v').read_bytes()).hexdigest()
++    (mixed / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++    build = mixed / 'build.sh'
++    contents = build.read_text()
++    build.write_text(replay.replace(contents, ' > ', f' {FIXTURE / "peer.v"} > '))
++
++
++def main():
++    if Path.cwd() != HERE.parents[2]:
++        raise SystemExit('Run from the N-Gage project root')
++    OUT.mkdir(parents=True, exist_ok=True)
++    prepare_owner()
++    prepare_mixed()
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/tests/phone/upp_ddr_ram/run.sh b/tests/phone/upp_ddr_ram/run.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..a204b2b5e9e0a639acb0370caab41c9032a9378d
+--- /dev/null
++++ b/tests/phone/upp_ddr_ram/run.sh
+@@ -0,0 +1,15 @@
++#!/bin/sh
++set -eu
++python3 -B tests/phone/upp_ddr_ram/prepare.py
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint /bin/sh jotego/simulator:arm64 -ec '
++    out=build/sim/upp-ddr-ram
++    sh "$out/peripherals.sh"
++    sh "$out/mixed/build.sh"
++    ulimit -c 0
++    if ! "$out/mixed/obj/Vtb" +upp_stress > "$out/mixed/production.log" 2>&1; then
++        cat "$out/mixed/production.log"
++        exit 1
++    fi
++    grep "^PASS" "$out/mixed/production.log"
++'
+diff --git a/tests/phone/upp_ddr_top/run.sh b/tests/phone/upp_ddr_top/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..3a613e9413d4bb00910d1122c2f3640919574763
+--- /dev/null
++++ b/tests/phone/upp_ddr_top/run.sh
+@@ -0,0 +1,19 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=build/sim/upp-ddr-top/source
++mkdir -p "$out"
++for path in rtl sys tests Template.sv files.qip; do
++    ln -sfn "../../../../$path" "$out/$path"
++done
++printf '`define BUILD_DATE "sim-upp-ddr"\n' > "$out/build_id.v"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w "/work/$out" --entrypoint sh jotego/simulator:arm64 -ec '
++        sh tests/phone/mister_transport/lint-top.sh
++        verilator --binary --timing -j 2 --assert --top-module cold_top -I. -Irtl/arm \
++            --bbox-unsup --bbox-sys -Wno-fatal -f build/sim/unit/mister-lint.f \
++            --Mdir ../obj tests/phone/upp_ddr_top/tb.sv > ../build.log 2>&1
++        ../obj/Vcold_top > ../run.log 2>&1
++        grep "^PASS" ../run.log
++    '
+diff --git a/tests/phone/upp_ddr_top/tb.sv b/tests/phone/upp_ddr_top/tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..6e17a8317e3fc50d3f97b5f8293351783c8b421f
+--- /dev/null
++++ b/tests/phone/upp_ddr_top/tb.sv
+@@ -0,0 +1,91 @@
++`timescale 1ns / 1ps
++module cold_top;
++  // DDRAM_ADDR counts 64-bit beats. The byte reservation starts at 0x31820000.
++  localparam [28:0] BASE  = 29'h06304000;
++  localparam [28:0] BEATS = 29'd16384;
++  reg clk = 0;
++  reg warm_reset = 0;
++  integer cycles = 0;
++  integer accepted = 0;
++  integer busy_clocks = 0;
++  integer last_beat_at = 0;
++  reg expected_ready = 0;
++  wire [28:0] addr;
++  wire [63:0] data;
++  wire [7:0] be, burst;
++  wire rd, we;
++  reg busy = 1;
++  reg [16383:0] seen = 0;
++  tri [45:0] hps;
++  tri [15:0] sdram_data;
++
++  always #4.808 clk = !clk;
++  emu dut (
++      .CLK_50M(clk),
++      .RESET(warm_reset),
++      .HPS_BUS(hps),
++      .SDRAM_DQ(sdram_data),
++      .DDRAM_BUSY(busy),
++      .DDRAM_ADDR(addr),
++      .DDRAM_DOUT(64'b0),
++      .DDRAM_DOUT_READY(1'b0),
++      .DDRAM_DIN(data),
++      .DDRAM_BE(be),
++      .DDRAM_BURSTCNT(burst),
++      .DDRAM_RD(rd),
++      .DDRAM_WE(we)
++  );
++
++  always @(negedge clk) begin
++    // Vary backpressure independently of the offered command.
++    busy = (cycles % 19 < 7) || (cycles >= 20 && cycles < 63);
++  end
++
++  always @(posedge clk) begin
++    cycles = cycles + 1;
++    if (we && busy) busy_clocks = busy_clocks + 1;
++    if (we && !busy) begin
++      if (addr < BASE || addr >= BASE + BEATS)
++        $fatal(1, "DDR scrub escaped reservation at %h", addr);
++      if (data != 0 || be != 8'hff || burst != 1)
++        $fatal(1, "DDR scrub offered bad beat %h : %h mask %h burst %d", addr, data, be, burst);
++      if (seen[14'(addr-BASE)]) $fatal(1, "Duplicate scrub beat %h", addr);
++      seen[14'(addr-BASE)] = 1;
++      accepted = accepted + 1;
++      last_beat_at = cycles;
++    end
++    if (rd) $fatal(1, "Unexpected DDR read before firmware load");
++    if (dut.board_init_done && accepted != BEATS)
++      $fatal(1, "Board released init while %0d of %0d DDR beats had been written", accepted, BEATS);
++    if (!dut.reset || dut.loader_valid || dut.save_mounted)
++      $fatal(1, "Fixture accidentally let firmware or mount gate pass");
++    if (expected_ready && !dut.board_init_done)
++      $fatal(1, "Warm reset unexpectedly discarded scrub state");
++    if (cycles > 200000)
++      $fatal(1, "DDR cold initialization timeout with %0d beats accepted", accepted);
++  end
++
++  initial begin
++    force dut.pll_locked = 0;
++    repeat (8) @(negedge clk);
++    release dut.pll_locked;
++    wait (accepted > 200);
++    @(negedge clk);
++    warm_reset = 1;
++    repeat (16) @(negedge clk);
++    warm_reset = 0;
++    wait (dut.board_init_done);
++    @(negedge clk);
++    if (~&seen) $fatal(1, "DDR scrub left an address uncleared");
++    if (busy_clocks == 0) $fatal(1, "DDR scrub did not encounter backpressure");
++    $display("PASS cold scrub %0d exactly-once beats across board initialization, last at %0d",
++             accepted, last_beat_at);
++    expected_ready = 1;
++    warm_reset = 1;
++    repeat (16) @(negedge clk);
++    warm_reset = 0;
++    repeat (16) @(negedge clk);
++    $display("PASS warm reset retains both scrubbed banks, CPU waits for external boot gates");
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/upp_ddr_transport/run.sh b/tests/phone/upp_ddr_transport/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..9d323bcf7dbc13f4595e48decddd7420698c2093
+--- /dev/null
++++ b/tests/phone/upp_ddr_transport/run.sh
+@@ -0,0 +1,15 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=build/sim/upp-ddr-transport
++mkdir -p "$out"
++
++# Test the production bind points, including which side owns the SWP lock.
++sed -n -e '/^    localparam .*UPP_RAM_BASE/p' \
++    -e '/^    wire .*core_ddr_addr;/,/^    \/\/ Raw media has no embedded firmware identity\./p' Template.sv > "$out/route.vh"
++iverilog -g2012 -I"$out" -s tb -o "$out/bench" \
++    rtl/ngage_bram.v rtl/ngage_ddr_lanes.sv rtl/ngage_ddr_stream.v \
++    rtl/ngage_ddr_stream_legacy.v rtl/ngage_ddr_adapter.v rtl/ngage_ddr_flash_cache.v \
++    rtl/ngage_ddr_flash_adapter.v rtl/ngage_ddr_arbiter.v rtl/ngage_upp_ddr_port.v \
++    tests/phone/upp_ddr_transport/tb.sv
++vvp "$out/bench"
+diff --git a/tests/phone/upp_ddr_transport/tb.sv b/tests/phone/upp_ddr_transport/tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d1e0b61e852b72875294942acf8dc0eaeafd401
+--- /dev/null
++++ b/tests/phone/upp_ddr_transport/tb.sv
+@@ -0,0 +1,254 @@
++`timescale 1ns / 1ps
++
++module tb;
++  localparam [31:0] FLASH = 32'h30000000;
++  localparam [31:0] SAVE  = 32'h31400020;
++  reg clk_sys = 0;
++  always #5 clk_sys = !clk_sys;
++
++  reg transport_reset = 1, reset = 1, cpu_bus_lock = 0;
++  reg [16:2] guest_word = 0;
++  reg guest_req = 0, guest_write = 0, guest_clear = 0;
++  reg [31:0] guest_data = 0;
++  reg [ 3:0] guest_be = 0;
++
++  reg firmware_aux_valid = 0, firmware_aux_write = 0;
++  reg [31:0] firmware_aux_addr = SAVE, firmware_aux_data = 0;
++  reg [3:0] firmware_aux_be = 4'hf;
++  wire firmware_aux_ready, firmware_aux_done;
++  wire [31:0] firmware_aux_rdata;
++  reg core_flash = 0;
++  reg [31:0] flash_addr = FLASH;
++
++  wire [28:0] DDRAM_ADDR;
++  wire [63:0] DDRAM_DIN;
++  wire [7:0] DDRAM_BE, DDRAM_BURSTCNT;
++  wire DDRAM_RD, DDRAM_WE;
++  reg [63:0] DDRAM_DOUT = 0;
++  reg DDRAM_DOUT_READY = 0;
++  reg force_busy = 0, periodic_busy = 1;
++  integer cycles = 0;
++  wire DDRAM_BUSY = force_busy || (periodic_busy && cycles % 17 < 6);
++
++  `include "route.vh"
++
++  assign upp_ddr_req = guest_req;
++  assign upp_ddr_we = guest_write;
++  assign upp_ddr_addr = guest_word;
++  assign upp_ddr_wdata = guest_data;
++  assign upp_ddr_be = guest_be;
++  assign upp_ddr_clear = guest_clear;
++  assign core_ddr_addr = flash_addr;
++  assign core_ddr_rd = core_flash;
++  assign core_ddr_wr = 0;
++  assign core_ddr_din = 0;
++  assign core_ddr_be = 4'hf;
++  assign core_ddr_line = 1'b0;
++  assign core_ddr_fetch = 1'b0;
++  assign save_mem_valid = 1'b0;
++  assign bulk_cancel = reset;
++  assign bulk_read_ready = 1'b0;
++  assign bulk_write_valid = 1'b0;
++  assign bulk_write_data = 64'b0;
++  assign bulk_write_last = 1'b0;
++
++  wire [31:0] physical = {DDRAM_ADDR, 3'b0};
++  wire is_upp = physical >= UPP_RAM_BASE && physical < UPP_RAM_BASE + 131072;
++  reg [63:0] contents[0:16383];
++  reg [63:0] save_word = 64'h8c785634ab23def0;
++  reg [31:0] read_cursor = 0;
++  integer read_pending = 0, flash_reads = 0, save_reads = 0, guest_reads = 0, guest_writes = 0;
++  integer scrub_count = 0;
++  reg check_scrub = 0;
++  reg held_write = 0;
++  reg [28:0] held_addr;
++  reg [63:0] held_data;
++  reg [7:0] held_be;
++
++  always @(posedge clk_sys) begin
++    cycles <= cycles + 1;
++    if (cycles > 100000) $fatal(1, "transport timeout");
++    if (cpu_bus_lock && !reset && (firmware_aux_ready || firmware_aux_done))
++      $fatal(1, "loader-side traffic escaped SWP lock");
++
++    if (held_write && (!DDRAM_WE || DDRAM_ADDR !== held_addr ||
++            DDRAM_DIN !== held_data || DDRAM_BE !== held_be))
++      $fatal(1, "physical write changed under waitrequest");
++    held_write <= DDRAM_WE && DDRAM_BUSY;
++    if (DDRAM_WE && DDRAM_BUSY) begin
++      held_addr <= DDRAM_ADDR;
++      held_data <= DDRAM_DIN;
++      held_be   <= DDRAM_BE;
++    end
++
++    if (guest_clear && (bulk_read_valid || bulk_write_ready || bulk_error))
++      $fatal(1, "UPP scrub used persistence's stream sidebands");
++    if (DDRAM_WE && !DDRAM_BUSY) begin
++      if (DDRAM_BURSTCNT != 1 || !is_upp || DDRAM_RD)
++        $fatal(1, "unexpected physical write at %08x", physical);
++      for (integer lane = 0; lane < 8; lane++)
++      if (DDRAM_BE[lane]) contents[(physical-UPP_RAM_BASE)>>3][8*lane+:8] <= DDRAM_DIN[8*lane+:8];
++      if (check_scrub) begin
++        if (physical != UPP_RAM_BASE + scrub_count * 8 || DDRAM_DIN != 0 || DDRAM_BE != 8'hff)
++          $fatal(1, "bad scrub write at beat %0d addr %08x", scrub_count, physical);
++        scrub_count <= scrub_count + 1;
++      end else guest_writes <= guest_writes + 1;
++    end
++
++    DDRAM_DOUT_READY <= 0;
++    if (DDRAM_RD && !DDRAM_BUSY) begin
++      if (read_pending || (DDRAM_BURSTCNT != (is_upp ? 1 : 4)))
++        $fatal(1, "invalid physical read at %08x", physical);
++      read_cursor  <= physical;
++      read_pending <= DDRAM_BURSTCNT;
++      if (is_upp) guest_reads <= guest_reads + 1;
++      else if (physical == SAVE) save_reads <= save_reads + 1;
++      else if (physical == FLASH) flash_reads <= flash_reads + 1;
++      else $fatal(1, "unexpected physical read at %08x", physical);
++    end
++    if (read_pending != 0 && cycles % 3 == 0) begin
++      DDRAM_DOUT_READY <= 1;
++      if (read_cursor >= UPP_RAM_BASE && read_cursor < UPP_RAM_BASE + 131072)
++        DDRAM_DOUT <= contents[(read_cursor-UPP_RAM_BASE)>>3];
++      else if (read_cursor >= SAVE) DDRAM_DOUT <= save_word;
++      else DDRAM_DOUT <= 64'h10203040aabbccdd;
++      read_pending <= read_pending - 1;
++      read_cursor  <= read_cursor + 8;
++    end
++  end
++
++  task automatic guest_access(input bit writing, input logic [16:2] word_offset,
++                              input logic [3:0] enables, input logic [31:0] data,
++                              input logic [31:0] expected);
++    guest_req = 1;
++    guest_write = writing;
++    guest_word = word_offset;
++    guest_be = enables;
++    guest_data = data;
++    do @(posedge clk_sys); while (!upp_ddr_ack);
++    if (!writing && upp_ddr_rdata !== expected)
++      $fatal(1, "UPP read returned %08x, expected %08x", upp_ddr_rdata, expected);
++    // Hold beyond ACK to catch duplicate admissions.
++    repeat (4) begin
++      @(posedge clk_sys);
++      if (upp_ddr_ack) $fatal(1, "duplicate UPP ACK");
++    end
++    @(negedge clk_sys);
++    guest_req = 0;
++    @(negedge clk_sys);
++  endtask
++
++  task automatic flash_read;
++    core_flash = 1;
++    do @(posedge clk_sys); while (!core_accept);
++    @(negedge clk_sys);
++    core_flash = 0;
++    do @(posedge clk_sys); while (!core_ddr_ready);
++    if (core_ddr_dout !== 32'haabbccdd) $fatal(1, "lost core flash response");
++    @(negedge clk_sys);
++  endtask
++
++  task automatic wait_scrub;
++    while (!upp_ddr_clear_done) @(negedge clk_sys);
++    if (scrub_count != 16384) $fatal(1, "scrub completed at %0d/16384 beats", scrub_count);
++    for (integer i = 0; i < 16384; i++)
++      if (contents[i] !== 0) $fatal(1, "scrub did not clear word %0d", i);
++    guest_clear = 0;
++    check_scrub = 0;
++    @(negedge clk_sys);
++    if (upp_ddr_clear_done) $fatal(1, "clear acknowledgement stayed high");
++  endtask
++
++  initial begin
++    for (integer i = 0; i < 16384; i++) contents[i] = 64'hfbbe093712ab9835;
++    repeat (4) @(negedge clk_sys);
++    guest_clear = 1;
++    check_scrub = 1;
++    transport_reset = 0;
++    // Test ordinary flash and loader-side traffic while a cold scrub
++    // keeps requesting chunks, with phone reset still asserted.
++    fork
++      begin
++        wait_scrub();
++        if (!flash_reads || !save_reads) $fatal(1, "scrub starved another requester");
++      end
++      begin
++        flash_read();
++      end
++      begin
++        repeat (8000) @(negedge clk_sys);
++        firmware_aux_valid = 1;
++        do @(posedge clk_sys); while (!firmware_aux_ready);
++        @(negedge clk_sys);
++        firmware_aux_valid = 0;
++        do @(posedge clk_sys); while (!firmware_aux_done);
++        if (firmware_aux_rdata !== save_word[31:0]) $fatal(1, "lost loader-side response");
++      end
++    join
++    reset = 0;
++    flash_read();
++    if (flash_reads != 1) $fatal(1, "scrub invalidated the flash cache");
++    // Emulate CPU SWP across the two operations with a competing
++    // outer client. That client must stay parked until lock release.
++    cpu_bus_lock = 1;
++    firmware_aux_valid = 1;
++    guest_access(0, 15'h0000, 4'hf, 0, 0);
++    guest_access(1, 15'h0000, 4'hf, 32'h10203040, 0);
++    firmware_aux_valid = 0;
++    cpu_bus_lock = 0;
++    guest_access(1, 15'h4000, 4'b0100, 32'h00ab0000, 0);
++    guest_access(1, 15'h4001, 4'b1100, 32'h13570000, 0);
++    guest_access(0, 15'h0000, 4'hf, 0, 32'h10203040);
++    guest_access(0, 15'h4000, 4'hf, 0, 32'h00ab0000);
++    guest_access(0, 15'h4001, 4'hf, 0, 32'h13570000);
++
++    // Warm reset must drain the already held physical command and
++    // acknowledge it without starting another scrub.
++    force_busy = 1;
++    fork
++      begin
++        guest_access(1, 15'h7fff, 4'b0011, 32'h0000ab57, 0);
++      end
++      begin
++        wait (DDRAM_WE);
++        repeat (3) @(negedge clk_sys);
++        reset = 1;
++        repeat (4) @(negedge clk_sys);
++        force_busy = 0;
++      end
++    join
++    reset = 0;
++    guest_access(0, 15'h7fff, 4'hf, 0, 32'h0000ab57);
++    if (guest_reads != 5 || guest_writes != 4)
++      $fatal(1, "scalar transactions repeated or went missing");
++
++    // A cold reset retires logical ownership, while allowing the DDR
++    // endpoint to accept the already held command before the new scrub.
++    force_busy = 1;
++    guest_req = 1;
++    guest_write = 1;
++    guest_word = 15'h0002;
++    guest_be = 4'hf;
++    guest_data = 32'hfeedbeef;
++    wait (DDRAM_WE);
++    repeat (3) @(negedge clk_sys);
++    transport_reset = 1;
++    reset = 1;
++    guest_req = 0;
++    repeat (4) @(negedge clk_sys);
++    transport_reset = 0;
++    guest_clear = 1;
++    force_busy = 0;
++    wait (guest_writes == 5);
++    @(negedge clk_sys);
++    scrub_count = 0;
++    check_scrub = 1;
++    wait_scrub();
++    reset = 0;
++    guest_access(0, 15'h0002, 4'hf, 0, 0);
++
++    $display(
++        "PASS production UPP DDR route, byte lanes, both banks, full scrubs, contention, SWP and reset drain");
++    $finish;
++  end
++endmodule

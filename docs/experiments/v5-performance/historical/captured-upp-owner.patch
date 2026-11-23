@@ -1,0 +1,328 @@
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 9aa43dbb67a6114036345bd5611cf3a5965b6ce1..0d346fd0cb5a08987c6984a1511705c1e0bf3abc 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -237,10 +237,10 @@ module ngage_upp #(
+                 .wb_error         (master_error)
+             );
+             assign ram_write_block = ram_req && master_write_block;
+-            wire slow_master_cyc, slow_master_stb;
++            wire slow_master_stb;
+             wire slow_ack, slow_error, slow_idle;
+             wire [31:0] slow_read_data;
+-            wire cpu_bus_cyc, cpu_bus_stb, cpu_bus_we, cpu_bus_code;
++            wire cpu_bus_cyc, cpu_bus_stb, cpu_bus_live, cpu_bus_we, cpu_bus_code;
+             wire [31:0] cpu_bus_adr, cpu_bus_din;
+             wire [3:0] cpu_bus_sel;
+             reg dma_local_active = 0, dma_local_gap = 0, prefer_dma = 0;
+@@ -281,8 +281,9 @@ module ngage_upp #(
+             // readiness. Live MMC decode must not fan out into CPU CYC and
+             // every peripheral write/diagnostic observation. Actual acceptance
+             // still requires the endpoint's CURRENT readiness.
+-            wire block_cpu = generic_cpu_exclusion || dma_local_active || dma_local_gap ||
++            wire cpu_suspended = dma_local_active || dma_local_gap ||
+                 ((lcd_reserved || mmc_reserved) && !cpu_lock);
++            wire block_cpu = generic_cpu_exclusion || cpu_suspended;
+ `ifndef ALTERA_RESERVED_QIS
+ `ifndef SYNTHESIS
+             always @(posedge clk) begin
+@@ -300,11 +301,14 @@ module ngage_upp #(
+             // Hold the selected packet before regional decode. Neither owner
+             // selection nor its wide address/lane mux crosses device command
+             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
+-            ngage_upp_request_stage request_stage (
++            ngage_upp_request_stage #(
++                .EXPLICIT_LIVE(1)
++            ) request_stage (
+                 .clk        (clk),
+                 .reset      (rst),
+                 .in_cyc     (dma_bus_active || cpu_bus_cyc),
+                 .in_stb     (dma_bus_active || cpu_bus_stb),
++                .in_live    (dma_bus_active || cpu_bus_live),
+                 .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
+                 .in_code    (!dma_bus_active && cpu_bus_code),
+                 .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
+@@ -331,12 +335,12 @@ module ngage_upp #(
+                     // cycle. Leave that cycle before handing the bus back.
+                     dma_local_gap <= dma_local_done;
+                     if (MMC_ENABLE && !cpu_lock && mmc_waiting && !lcd_reserved &&
+-                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_cyc)))
++                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_live)))
+                         mmc_reserved <= 1;
+                     if (!mmc_waiting || (dma_local_done && dma_addr == 32'h0c120624))
+                         mmc_reserved <= 0;
+                     if (GENERAL_DMA && !mmc_reserved && !mmc_waiting && !cpu_lock && lcd_waiting && lcd_queue_empty &&
+-                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_cyc)))
++                        ((slow_idle && !slow_master_stb) || (!slow_idle && !cpu_bus_live)))
+                         lcd_reserved <= 1;
+                     if ((dma_local_done && dma_lcd) || !lcd_waiting) lcd_reserved <= 0;
+                     if (dma_local_done) dma_local_active <= 0;
+@@ -369,7 +373,7 @@ module ngage_upp #(
+                 .master_ack    (master_ack),
+                 .master_error  (master_error),
+                 .master_rdata  (master_read_data),
+-                .slow_cyc      (slow_master_cyc),
++                .slow_cyc      (),
+                 .slow_stb      (slow_master_stb),
+                 .slow_idle     (slow_idle),
+                 .slow_ack      (slow_ack),
+@@ -392,12 +396,14 @@ module ngage_upp #(
+             // response/idle bubbles between the two halves of an atomic SWP.
+             // ZAP's I/D merger already registers and holds the complete beat.
+             // Reuse that request boundary; retain the registered response.
++            // The route qualifies admission through STB. Once active, CYC
++            // follows requester withdrawal and the existing DMA exclusion.
+             ngage_upp_bus_bridge #(
+                 .REGISTERED_MASTER(1)
+             ) bridge (
+                 .clk             (clk),
+                 .reset           (rst),
+-                .master_cyc      (slow_master_cyc && !block_cpu),
++                .master_cyc      (master_cyc && !cpu_suspended),
+                 .master_stb      (slow_master_stb && !block_cpu),
+                 .master_we       (master_we),
+                 .master_code     (master_code),
+@@ -409,6 +415,7 @@ module ngage_upp #(
+                 .master_read_data(slow_read_data),
+                 .bus_cyc         (cpu_bus_cyc),
+                 .bus_stb         (cpu_bus_stb),
++                .bus_live        (cpu_bus_live),
+                 .bus_we          (cpu_bus_we),
+                 .bus_code        (cpu_bus_code),
+                 .bus_address     (cpu_bus_adr),
+@@ -723,10 +730,11 @@ module ngage_upp_bus_bridge #(
+     input  wire        bus_ack,
+     input  wire        bus_error,
+     input  wire [31:0] bus_read_data,
+-    output wire        idle
++    output wire        idle,
++    output wire        bus_live
+ );
+     localparam IDLE = 2'd0, ACTIVE = 2'd1, RESPONSE = 2'd2;
+-    reg [1:0] state;
++    (* dont_retime *)reg [1:0] state;
+     reg       response_error;
+     reg request_we, request_code;
+     reg [31:0] request_address, request_data;
+@@ -743,7 +751,8 @@ module ngage_upp_bus_bridge #(
+     assign bus_address  = REGISTERED_MASTER ? master_address : request_address;
+     assign bus_data     = REGISTERED_MASTER ? master_data : request_data;
+     assign bus_sel      = REGISTERED_MASTER ? master_sel : request_sel;
+-    assign bus_cyc      = !reset && master_cyc && (state == ACTIVE || (REGISTERED_MASTER && start));
++    assign bus_live     = !reset && state == ACTIVE && master_cyc;
++    assign bus_cyc      = bus_live || (!reset && REGISTERED_MASTER && start);
+     assign bus_stb      = bus_cyc;
+     assign master_ack   = !reset && state == RESPONSE && !response_error;
+     assign master_error = !reset && state == RESPONSE && response_error;
+@@ -890,11 +899,14 @@ endmodule
+ // One held request per CYC/STB assertion; the existing CPU response phase and
+ // DMA gap provide the request-low edge. Cancellation immediately suppresses
+ // side effects, while an already captured downstream transaction may drain.
+-module ngage_upp_request_stage (
++module ngage_upp_request_stage #(
++    parameter EXPLICIT_LIVE = 0
++) (
+     input  wire        clk,
+     input  wire        reset,
+     input  wire        in_cyc,
+     input  wire        in_stb,
++    input  tri0        in_live,
+     input  wire        in_we,
+     input  wire        in_code,
+     input  wire [31:0] in_address,
+@@ -908,9 +920,12 @@ module ngage_upp_request_stage (
+     output reg  [31:0] out_data,
+     output reg  [ 3:0] out_sel
+ );
+-    reg  valid = 0;
++    (* dont_retime *)reg  valid = 0;
+     wire offered = in_cyc && in_stb;
+-    assign out_cyc = !reset && valid && offered;
++    // The admission pulse selects and samples the packet. The owner supplies
++    // cancellation and retirement independently once that capture is live.
++    wire live = EXPLICIT_LIVE ? in_live : offered;
++    assign out_cyc = !reset && valid && live;
+     assign out_stb = out_cyc;
+     always @(posedge clk) begin
+         if (reset) begin
+@@ -920,8 +935,9 @@ module ngage_upp_request_stage (
+             out_address <= 0;
+             out_data    <= 0;
+             out_sel     <= 0;
+-        end else if (!offered) valid <= 0;
+-        else if (!valid) begin
++        end else if (valid) begin
++            if (!live) valid <= 0;
++        end else if (offered) begin
+             valid       <= 1;
+             out_we      <= in_we;
+             out_code    <= in_code;
+diff --git a/tests/phone/upp_request_stage/run.sh b/tests/phone/upp_request_stage/run.sh
+index d6c534418ccaa8d0a711c94e88c9501a04990a16..b82e4f7ee15a7457c17da8fdf39fa11e180018cf 100755
+--- a/tests/phone/upp_request_stage/run.sh
++++ b/tests/phone/upp_request_stage/run.sh
+@@ -1,6 +1,9 @@
+ #!/bin/sh
+ set -eu
+-out=build/sim/unit-upp-request-stage
++out=${UPP_STAGE_OUT:-build/sim/unit-upp-request-stage}
+ mkdir -p "$out"
+-iverilog -g2001 -s tb -o "$out/test" rtl/ngage_upp.v tests/phone/upp_request_stage/tb.v
+-vvp "$out/test"
++for mode in 0 1; do
++    iverilog -g2001 -s tb -Ptb.EXPLICIT_LIVE="$mode" -o "$out/test-$mode" \
++        rtl/ngage_upp.v tests/phone/upp_request_stage/tb.v
++    vvp "$out/test-$mode"
++done
+diff --git a/tests/phone/upp_request_stage/tb.v b/tests/phone/upp_request_stage/tb.v
+index d8bed53327524db7ead57643b50a3b03b053c9f4..f4ce95d25d187725ee4d56158a6dee13ff33f2f5 100644
+--- a/tests/phone/upp_request_stage/tb.v
++++ b/tests/phone/upp_request_stage/tb.v
+@@ -1,33 +1,117 @@
+-`timescale 1ns/1ps
++`timescale 1ns / 1ps
+ module tb;
+-    reg clk=0, reset=1, cyc=0, stb=0, we=0, code=0;
+-    reg [31:0] address=0, data=0;
+-    reg [3:0] sel=0;
+-    wire oc, os, ow, oi;
+-    wire [31:0] oa, od;
+-    wire [3:0] ob;
+-    integer n;
+-    ngage_upp_request_stage dut (
+-        .clk(clk),.reset(reset),.in_cyc(cyc),.in_stb(stb),.in_we(we),.in_code(code),
+-        .in_address(address),.in_data(data),.in_sel(sel),
+-        .out_cyc(oc),.out_stb(os),.out_we(ow),.out_code(oi),.out_address(oa),.out_data(od),.out_sel(ob)
+-    );
+-    task tick; begin #2;clk=1;#2;clk=0;#2;end endtask
+-    initial begin
+-        tick;reset=0;cyc=1;stb=1;we=1;code=0;address=32'h0c120308;data=2;sel=15;#1;
+-        if(oc || os)$fatal(1,"packet reached decode before capture");
+-        tick;
+-        if(!oc || !os || {ow,oi,oa,od,ob} !== {1'b1,1'b0,32'h0c120308,32'd2,4'hf})$fatal(1,"packet capture");
+-        // Downstream waits; subsequent upstream changes cannot borrow payload.
+-        we=0;code=1;address=32'hffffffff;data=32'h12345678;sel=3;
+-        for(n=0;n<5;n=n+1)begin tick;if({ow,oi,oa,od,ob} !== {1'b1,1'b0,32'h0c120308,32'd2,4'hf})$fatal(1,"held packet changed");end
+-        cyc=0;#1;if(oc || os)$fatal(1,"CYC cancellation was delayed");tick;
+-        cyc=1;stb=1;#1;if(oc)$fatal(1,"canceled packet replay");tick;
+-        if({ow,oi,oa,od,ob} !== {1'b0,1'b1,32'hffffffff,32'h12345678,4'h3})$fatal(1,"next packet identity");
+-        stb=0;#1;if(os)$fatal(1,"STB withdrawal delayed");tick;
+-        stb=1;#1;if(oc)$fatal(1,"withdrawn packet replay");tick;
+-        reset=1;#1;if(oc || os)$fatal(1,"reset suppression delayed");tick;cyc=0;stb=0;reset=0;tick;
+-        if(oc || os)$fatal(1,"reset replay");
+-        $display("PASS UPP request stage: sample latency, held payload, CYC/STB cancellation, next owner and reset");$finish;
++  parameter EXPLICIT_LIVE = 0;
++  reg clk = 0, reset = 1, cyc = 0, stb = 0, we = 0, code = 0;
++  reg live = 0;
++  reg [31:0] address = 0, data = 0;
++  reg [3:0] sel = 0;
++  wire oc, os, ow, oi;
++  wire [31:0] oa, od;
++  wire [3:0] ob;
++  integer n;
++  ngage_upp_request_stage #(
++      .EXPLICIT_LIVE(EXPLICIT_LIVE)
++  ) dut (
++      .clk(clk),
++      .reset(reset),
++      .in_cyc(cyc),
++      .in_stb(stb),
++      .in_live(live),
++      .in_we(we),
++      .in_code(code),
++      .in_address(address),
++      .in_data(data),
++      .in_sel(sel),
++      .out_cyc(oc),
++      .out_stb(os),
++      .out_we(ow),
++      .out_code(oi),
++      .out_address(oa),
++      .out_data(od),
++      .out_sel(ob)
++  );
++  task tick;
++    begin
++      #2;
++      clk = 1;
++      #2;
++      clk = 0;
++      #2;
+     end
++  endtask
++  initial begin
++    tick;
++    reset = 0;
++    cyc = 1;
++    stb = 1;
++    we = 1;
++    code = 0;
++    address = 32'h0c120308;
++    data = 2;
++    sel = 15;
++    #1;
++    if (oc || os) $fatal(1, "packet reached decode before capture");
++    tick;
++    live = 1;
++    #1;
++    if (!oc || !os || {ow, oi, oa, od, ob} !== {1'b1, 1'b0, 32'h0c120308, 32'd2, 4'hf})
++      $fatal(1, "packet capture");
++    // Downstream waits; subsequent upstream changes cannot borrow payload.
++    we = 0;
++    code = 1;
++    address = 32'hffffffff;
++    data = 32'h12345678;
++    sel = 3;
++    if (EXPLICIT_LIVE) begin
++      cyc = 0;
++      stb = 0;
++    end
++    for (n = 0; n < 5; n = n + 1) begin
++      tick;
++      if (!oc || !os || {ow, oi, oa, od, ob} !== {1'b1, 1'b0, 32'h0c120308, 32'd2, 4'hf})
++        $fatal(1, "held packet changed");
++    end
++    cyc  = 0;
++    live = 0;
++    #1;
++    if (oc || os) $fatal(1, "owner cancellation was delayed");
++    tick;
++    cyc = 1;
++    stb = 1;
++    #1;
++    if (oc) $fatal(1, "canceled packet replay");
++    tick;
++    live = 1;
++    #1;
++    if ({ow, oi, oa, od, ob} !== {1'b0, 1'b1, 32'hffffffff, 32'h12345678, 4'h3})
++      $fatal(1, "next packet identity");
++    // Keep the next admission asserted while the old owner retires. The
++    // stage must drop its old packet before sampling the new one.
++    if (!EXPLICIT_LIVE) stb = 0;
++    live = 0;
++    address = 32'h0c120624;
++    #1;
++    if (os) $fatal(1, "retirement was delayed");
++    tick;
++    stb  = 1;
++    live = 1;
++    #1;
++    if (oc) $fatal(1, "retired packet replay");
++    tick;
++    if (!oc || oa !== 32'h0c120624) $fatal(1, "new admission lost after retirement");
++    reset = 1;
++    #1;
++    if (oc || os) $fatal(1, "reset suppression delayed");
++    tick;
++    cyc   = 0;
++    stb   = 0;
++    live  = 0;
++    reset = 0;
++    tick;
++    if (oc || os) $fatal(1, "reset replay");
++    $display(
++        "PASS UPP request stage mode=%0d: sample latency, held payload, cancellation, next owner and reset",
++        EXPLICIT_LIVE);
++    $finish;
++  end
+ endmodule

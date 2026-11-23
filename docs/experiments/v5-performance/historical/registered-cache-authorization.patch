@@ -1,0 +1,548 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index c9d7653e3f7af4021979274f2a3e023c750ed25f..0a6c408d98609784a6da83bffa7f52053c5d55a6 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -9579,8 +9579,16 @@ module ngage2_zap_dcache_fsm (
+ 	i_block_enable,
+ 	o_write_block,
+ 	o_block_data,
+-	o_block_address
++	o_block_address,
++    i_hit_ok_next,
++    i_tlb_ready_next,
++    i_cache_hit_early_next,
++    i_post_full_next
+ );
++    input wire i_post_full_next;
++    input wire i_cache_hit_early_next;
++    input wire i_tlb_ready_next;
++    input wire i_hit_ok_next;
+ 	input wire i_block_enable;
+ 	output wire o_write_block;
+ 	output wire [127:0] o_block_data;
+@@ -9594,6 +9602,7 @@ module ngage2_zap_dcache_fsm (
+ 	parameter [3:0] EXT_ABORT_FS = 4'b0010;
+ 	parameter [0:0] HALF_WRITEBACK = 1'b0;
+ 	parameter [31:0] WAYS = 32'd1;
++    parameter [0:0] OWNED_FAST_ACK = 1'b0;
+ 	input wire i_clk;
+ 	input wire i_reset;
+ 	input wire [31:0] i_address;
+@@ -10491,7 +10500,33 @@ module ngage2_zap_dcache_fsm (
+ 	assign o_ack = (FLAT_ACK ? (ack_idle_flat || state_ff[UNC_DONE]) || hum_ack : idle_ack || hum_ack);
+ 	assign o_err = (FLAT_ACK ? err_flat : err_case);
+ 	assign o_err2 = (FLAT_ACK ? err2_flat : err2_case);
+-	assign o_ack_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];
++    // Use the next values of the actual lookup and owner registers.
++    // IDLE may retire a permitted, cacheable miss by installing its lock.
++    // The hit bit is required for a second access during a background fill.
++    wire idle_fast_next = state_nxt[IDLE] && i_hit_ok_next && i_tlb_ready_next;
++    wire hum_fast_next = hum_slot_nxt && i_hit_ok_next && i_cache_hit_early_next;
++    (* dont_retime *) reg read_fast;
++    (* dont_retime *) reg write_fast;
++    always @(posedge i_clk)
++        if (i_reset) begin
++            read_fast <= 0;
++            write_fast <= 0;
++        end else begin
++            read_fast <= idle_fast_next || hum_fast_next;
++            write_fast <= (idle_fast_next && !i_post_full_next) || hum_fast_next;
++        end
++    // Device completion already belongs to UNC_DONE. Cache enable and W's
++    // alignment remain live at use, including CP15 or exception transitions.
++    wire ref_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];
++    wire owned_fast = (i_cache_en && !i_align_fault && (i_wr ? write_fast : read_fast)) ||
++                      state_ff[UNC_DONE];
++    assign o_ack_fast = OWNED_FAST_ACK ? owned_fast : ref_fast;
++
++    // synthesis translate_off
++    always @(posedge i_clk)
++        if (OWNED_FAST_ACK && !i_reset && access_now && owned_fast !== ref_fast)
++            $fatal(1, "Registered cache response changed owned acceptance");
++    // synthesis translate_on
+ 	assign o_err_fast = state_ff[UNC_DONE] && unc_err_ff;
+ 	assign o_fill_busy_nxt = fill_busy_nxt;
+ 	assign fill_busy_nxt = (((((state_nxt[CLEAN_SINGLE] || state_nxt[FETCH_SINGLE]) || state_nxt[UNLOCK_REG]) || state_nxt[UNLOCK_WR]) || state_nxt[RELOOKUP0]) || state_nxt[RELOOKUP1]) || state_nxt[RELOOKUP2];
+@@ -11450,10 +11485,12 @@ module ngage2_zap_dcache (
+ 	assign wb_cti[2] = CTI_EOB;
+ 	assign unused = |{wb_err[1]};
+ 	wire post_full;
++    wire tlb_hit_ok_next, tlb_ready_next, cache_hit_early_next, post_full_next;
+ 	wire post_push;
+ 	wire victim_writeback_busy, victim_write_block;
+ 	assign o_write_block = state_ff == SELECT_CCH && victim_write_block;
+ 	ngage2_zap_dcache_fsm #(
++        .OWNED_FAST_ACK(1'b1),
+ 		.HALF_WRITEBACK(HALF_WRITEBACK),
+ 		.CACHE_SIZE(CACHE_SIZE),
+ 		.CACHE_LINE(CACHE_LINE),
+@@ -11472,7 +11509,9 @@ module ngage2_zap_dcache (
+ 		.i_address(i_address),
+ 		.i_address_check(i_address_check),
+ 		.i_hit_ok(tlb_hit_ok),
++        .i_hit_ok_next(tlb_hit_ok_next),
+ 		.i_cache_hit_early(tr_cache_hit_early),
++        .i_cache_hit_early_next(cache_hit_early_next),
+ 		.i_rd(i_rd),
+ 		.i_wr(i_wr),
+ 		.i_din(i_dat),
+@@ -11496,6 +11535,7 @@ module ngage2_zap_dcache (
+ 		.i_bufferable(tlb_bufferable),
+ 		.i_swp(i_swp),
+ 		.i_post_full(post_full),
++        .i_post_full_next(post_full_next),
+ 		.o_post_push(post_push),
+ 		.i_cache_inv(i_cache_inv_req),
+ 		.i_cache_clean(i_cache_clean_req),
+@@ -11535,6 +11575,7 @@ module ngage2_zap_dcache (
+ 		.i_wt(tlb_wt),
+ 		.i_busy(tlb_busy),
+ 		.i_tlb_hit_ready(tlb_hit_ready),
++        .i_tlb_ready_next(tlb_ready_next),
+ 		.o_err2(o_err2),
+ 		.o_dbg_dcache(cf_dbg_dcache),
+ 		.o_address(cache_address),
+@@ -11590,6 +11631,7 @@ module ngage2_zap_dcache (
+ 		.i_data(i_dat),
+ 		.i_ben((BE_32_ENABLE ? {i_ben[0], i_ben[1], i_ben[2], i_ben[3]} : i_ben)),
+ 		.o_full(post_full),
++        .o_full_next(post_full_next),
+ 		.o_busy(post_busy),
+ 		.o_cyc_nxt(wb_cyc[3]),
+ 		.o_address_nxt(wb_adr[3]),
+@@ -11613,6 +11655,7 @@ module ngage2_zap_dcache (
+ 		.i_address(cache_address),
+ 		.i_lookup_address(compare_address),
+ 		.o_cache_hit_early(tr_cache_hit_early),
++        .o_cache_hit_early_next(cache_hit_early_next),
+ 		.i_access((i_rd_check || i_wr_check) && idle),
+ 		.i_accepted_hit((((((i_rd || i_wr) && o_ack) && !o_err) && !o_err2) && live_lookup) && tr_cache_hit),
+ 		.i_accepted_address(i_address),
+@@ -11830,7 +11873,9 @@ module ngage2_zap_dcache (
+ 		.o_bufferable(tlb_bufferable),
+ 		.o_busy(tlb_busy),
+ 		.o_hit_ready(tlb_hit_ready),
++        .o_hit_ready_next(tlb_ready_next),
+ 		.o_hit_ok(tlb_hit_ok),
++        .o_hit_ok_next(tlb_hit_ok_next),
+ 		.o_hit_ok_short(tlb_hit_ok_short),
+ 		.o_wb_stb_nxt(wb_stb[2]),
+ 		.o_wb_cyc_nxt(wb_cyc[2]),
+@@ -13119,8 +13164,10 @@ module ngage2_zap_store_queue (
+ 	o_cyc_nxt,
+ 	o_address_nxt,
+ 	o_data_nxt,
+-	o_ben_nxt
++	o_ben_nxt,
++    o_full_next
+ );
++    output wire o_full_next;
+ 	reg _sv2v_0;
+ 	parameter integer AW = 2;
+ 	input wire i_clk;
+@@ -13147,6 +13194,7 @@ module ngage2_zap_store_queue (
+ 	assign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];
+ 	assign o_cyc_nxt = count > {{AW {1'b0}}, i_take};
+ 	assign o_busy = count != 0;
++    assign o_full_next = !i_reset && count_nxt == DEPTH;
+ 	always @(*) begin
+ 		if (_sv2v_0)
+ 			;
+@@ -13167,7 +13215,7 @@ module ngage2_zap_store_queue (
+ 		end
+ 		else begin
+ 			count <= count_nxt;
+-			o_full <= count_nxt == DEPTH;
++			o_full <= o_full_next;
+ 			if (i_push) begin
+ 				entries[tail] <= {i_address, i_data, i_ben};
+ 				tail <= tail + 1'b1;
+@@ -13204,8 +13252,10 @@ module ngage2_zap_tlb_check (
+ 	o_cacheable,
+ 	o_bufferable,
+ 	o_wt,
+-	o_phy_addr
++	o_phy_addr,
++    o_hit_ok_next
+ );
++    output wire o_hit_ok_next;
+ 	reg _sv2v_0;
+ 	parameter [31:0] LPAGE_TLB_ENTRIES = 32'd8;
+ 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
+@@ -13593,7 +13643,10 @@ module ngage2_zap_tlb_check (
+ 	reg walk_nxt;
+ 	reg cacheable_nxt;
+ 	reg wt_nxt;
+-	reg bufferable_nxt;
++    reg bufferable_nxt;
++    // This is the permission register's D value including its real hold.
++    wire permit_lookup = !walk_nxt && !(|fsr_nxt[3:0]) && cacheable_nxt && !(i_wr && wt_nxt);
++    assign o_hit_ok_next = i_clkena ? permit_lookup : o_hit_ok;
+ 	reg dummy_nxt;
+ 	always @(posedge i_clk)
+ 		if (i_clkena) begin
+@@ -13606,8 +13659,8 @@ module ngage2_zap_tlb_check (
+ 			o_wt <= wt_nxt;
+ 			o_bufferable <= bufferable_nxt;
+ 			dummy <= dummy_nxt;
+-			o_hit_ok <= ((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);
+-			o_hit_ok_short <= ((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);
++			o_hit_ok <= permit_lookup;
++			o_hit_ok_short <= permit_lookup;
+ 		end
+ 	function automatic [7:0] get_fsr_fpage;
+ 		input user;
+@@ -13793,8 +13846,10 @@ module ngage2_zap_tlb_fsm (
+ 	o_wb_adr,
+ 	i_wb_dat,
+ 	i_wb_ack,
+-	i_wb_err
++	i_wb_err,
++    o_hit_ready_next
+ );
++    output wire o_hit_ready_next;
+ 	reg _sv2v_0;
+ 	parameter [31:0] LPAGE_TLB_ENTRIES = 32'd8;
+ 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
+@@ -14287,7 +14342,8 @@ module ngage2_zap_tlb_fsm (
+ 		if (i_reset)
+ 			o_hit_ready <= 1'b1;
+ 		else
+-			o_hit_ready <= state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];
++			o_hit_ready <= o_hit_ready_next;
++    assign o_hit_ready_next = i_reset || state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];
+ 	always @(posedge i_clk)
+ 		if (i_reset) begin
+ 			state_ff <= 1;
+@@ -14358,8 +14414,12 @@ module ngage2_zap_tlb (
+ 	i_wb_dat,
+ 	o_wb_dat_nxt,
+ 	i_wb_ack,
+-	i_wb_err
++	i_wb_err,
++    o_hit_ok_next,
++    o_hit_ready_next
+ );
++    output wire o_hit_ready_next;
++    output wire o_hit_ok_next;
+ 	parameter [31:0] LPAGE_TLB_ENTRIES = 32'd8;
+ 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
+ 	parameter [31:0] SECTION_TLB_ENTRIES = 32'd8;
+@@ -14971,6 +15031,7 @@ module ngage2_zap_tlb (
+ 		.o_walk(walk),
+ 		.o_walk_va(walk_va),
+ 		.o_hit_ok(o_hit_ok),
++        .o_hit_ok_next(o_hit_ok_next),
+ 		.o_hit_ok_short(o_hit_ok_short),
+ 		.o_fsr(fsr),
+ 		.o_far(far),
+@@ -15006,6 +15067,7 @@ module ngage2_zap_tlb (
+ 		.o_cacheable(o_cacheable),
+ 		.o_busy(fsm_busy),
+ 		.o_hit_ready(o_hit_ready),
++        .o_hit_ready_next(o_hit_ready_next),
+ 		.o_setlb_wdata(setlb_wdata),
+ 		.o_setlb_wen(setlb_wen),
+ 		.o_sptlb_wdata(sptlb_wdata),
+@@ -17153,8 +17215,10 @@ module ngage2_zap_dcache_half_tag_ram (
+ 	o_wb_cti_ff,
+ 	o_wb_cti_nxt,
+ 	i_wb_dat,
+-	i_wb_ack
++	i_wb_ack,
++    o_cache_hit_early_next
+ );
++    output wire o_cache_hit_early_next;
+ 	reg _sv2v_0;
+ 	parameter [0:0] ACCEPTED_HIT_UPDATE = 1'b0;
+ 	parameter [0:0] REG_COLLISION = 1'b0;
+@@ -17738,7 +17802,9 @@ module ngage2_zap_dcache_half_tag_ram (
+ 		if (i_reset)
+ 			o_cache_hit_early <= 1'b0;
+ 		else if (!i_hold)
+-			o_cache_hit_early <= |hit;
++			o_cache_hit_early <= o_cache_hit_early_next;
++    assign o_cache_hit_early_next = !i_reset &&
++        (!i_hold ? |hit : o_cache_hit_early);
+ 	assign o_cache_way_line = line_q;
+ 	assign o_cache_way_tag = tag_q;
+ 	assign o_cache_victim = victim;
+diff --git a/tests/cpu/arm9v2_board/background_load_lock_tb.v b/tests/cpu/arm9v2_board/background_load_lock_tb.v
+index e1af8d1870549a33bd24cf9abfecc8b2f5b91493..2d55951c6c1d03330ac862490c0c130973a28df7 100644
+--- a/tests/cpu/arm9v2_board/background_load_lock_tb.v
++++ b/tests/cpu/arm9v2_board/background_load_lock_tb.v
+@@ -1,7 +1,17 @@
+ `timescale 1ns / 1ps
+-module background_load_lock_tb;
++module background_load_lock_tb #(
++    parameter OWNED = 0
++);
+   reg clk = 0, reset = 1;
+   reg read = 0, hit = 0, fault = 0, cacheable = 1;
++  // Supply the two D-cache views exactly as a checked lookup register
++  // does. The original path sees Q, the new authorization sees its D.
++  reg  [2:0] checked;
++  wire [2:0] checked_next = reset ? 3'b100 : {cacheable, fault, hit};
++  always @(posedge clk) checked <= checked_next;
++  wire permit = checked[2] && !checked[1];
++  wire permit_next = checked_next[2] && !checked_next[1];
++  wire fast;
+   reg wb_ack = 0, wb_error = 0;
+   reg [31:0] address = 0, next_address = 0, wb_data = 0;
+   reg [5:0] destination = 0;
+@@ -16,14 +26,17 @@ module background_load_lock_tb;
+       .CACHE_LINE(32),
+       .WAYS(2),
+       .FLAT_ACK(1),
+-      .LOCK_SPLIT(1)
++      .LOCK_SPLIT(1),
++      .OWNED_FAST_ACK(OWNED)
+   ) cache (
+       .i_clk(clk),
+       .i_reset(reset),
+       .i_address(address),
+       .i_address_check(next_address),
+-      .i_cache_hit_early(hit),
+-      .i_hit_ok(cacheable && !fault),
++      .i_cache_hit_early(checked[0]),
++      .i_cache_hit_early_next(checked_next[0]),
++      .i_hit_ok(permit),
++      .i_hit_ok_next(permit_next),
+       .i_rd(read),
+       .i_wr(1'b0),
+       .i_din(32'b0),
+@@ -48,6 +61,7 @@ module background_load_lock_tb;
+       .i_bufferable(1'b0),
+       .i_swp(1'b0),
+       .i_post_full(1'b0),
++      .i_post_full_next(1'b0),
+       .i_cache_inv(1'b0),
+       .i_cache_clean(1'b0),
+       .i_line_req(1'b0),
+@@ -57,7 +71,7 @@ module background_load_lock_tb;
+       .i_cache_tag_dirty(1'b0),
+       .i_cache_tag(46'b0),
+       .i_cache_tag_valid(1'b0),
+-      .i_cache_hit(hit),
++      .i_cache_hit(checked[0]),
+       .i_cache_victim_halves(2'b0),
+       .i_cache_hit_halves(2'b0),
+       .i_cache_hit_dirty(1'b0),
+@@ -67,11 +81,13 @@ module background_load_lock_tb;
+       .i_phy_addr(address),
+       .i_fsr(8'h0f),
+       .i_far(address),
+-      .i_fault(fault),
+-      .i_cacheable(cacheable),
++      .i_fault(checked[1]),
++      .i_cacheable(checked[2]),
+       .i_wt(1'b0),
+       .i_busy(1'b0),
+-      .i_tlb_hit_ready(cacheable && !fault),
++      .i_tlb_hit_ready(permit),
++      .i_tlb_ready_next(permit_next),
++      .o_ack_fast(fast),
+       .o_idle(idle),
+       .o_fill_busy(fill),
+       .o_wb_stb_ff(wb_stb),
+@@ -102,10 +118,11 @@ module background_load_lock_tb;
+       address = base + 4 * critical;
+       next_address = base + 32'h1000;
+       destination = tag;
+-      read = 1;
+       hit = 0;
++      tick;
++      read = 1;
+       #1;
+-      if (!ack || error) $fatal(1, "Read miss was not accepted");
++      if (!ack || !fast || error) $fatal(1, "Read miss was not accepted");
+       tick;
+       if (!fill || !lock_valid || lock_tag !== tag || bitmap !== (64'd1 << tag))
+         $fatal(1, "Wrong miss owner %0d", tag);
+@@ -147,9 +164,10 @@ module background_load_lock_tb;
+       address = next_address;
+       destination = tag[5:0] ^ 6'h3f;
+       hit = 1;
++      tick;
+       read = 1;
+       #1;
+-      if (!ack || !fill || !lock_valid || lock_tag !== tag[5:0])
++      if (!ack || !fast || !fill || !lock_valid || lock_tag !== tag[5:0])
+         $fatal(1, "Hit under miss did not preserve the fill owner");
+       tick;
+       hits = hits + 1;
+@@ -159,21 +177,24 @@ module background_load_lock_tb;
+     end
+ 
+     fault = 1;
++    tick;
+     read = 1;
+     destination = 0;
+     #1;
+-    if (!ack || !error) $fatal(1, "Fault did not terminate the read");
++    if (!ack || !error || fast) $fatal(1, "Fault did not terminate the read");
+     tick;
+     if (lock_valid || returned) $fatal(1, "Fault installed a background lock");
+     read = 0;
+     fault = 0;
+ 
+     cacheable = 0;
++    tick;
+     read = 1;
+     while (!wb_stb) tick;
+     wb_error = 1;
+     tick;
+-    if (!ack || !error || lock_valid || returned) $fatal(1, "Uncached abort leaked a lock");
++    if (!ack || !error || !fast || lock_valid || returned)
++      $fatal(1, "Uncached abort leaked a lock");
+     read = 0;
+     wb_error = 0;
+     cacheable = 1;
+diff --git a/tests/cpu/arm9v2_board/run-background-load-lock.sh b/tests/cpu/arm9v2_board/run-background-load-lock.sh
+index 9bd79ecd253a999fdb7118d4cf6359a331fb523c..ffd5d8e4147e57e0c56f10814a4a8f2eb002e7ab 100755
+--- a/tests/cpu/arm9v2_board/run-background-load-lock.sh
++++ b/tests/cpu/arm9v2_board/run-background-load-lock.sh
+@@ -3,8 +3,11 @@
+ set -eu
+ out=${BACKGROUND_LOCK_OUT:-build/sim/unit-arm9v2-background-lock}
+ mkdir -p "$out"
+-iverilog -g2001 -s background_load_lock_tb -o "$out/test" \
+-    rtl/arm9v2/arm925t_phone.v tests/cpu/arm9v2_board/background_load_lock_tb.v
+-vvp "$out/test" > "$out/run.log"
+-cat "$out/run.log"
+-grep -q '^PASS background load tags ' "$out/run.log"
++for owned in 0 1; do
++    iverilog -g2001 -s background_load_lock_tb -Pbackground_load_lock_tb.OWNED="$owned" \
++        -o "$out/test-$owned" rtl/arm9v2/arm925t_phone.v \
++        tests/cpu/arm9v2_board/background_load_lock_tb.v
++    vvp "$out/test-$owned" > "$out/run-$owned.log"
++    grep '^PASS background load tags ' "$out/run-$owned.log"
++done
++cmp "$out/run-0.log" "$out/run-1.log"
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index d47facb7c76c9f59ef6effcd2580a022475f19cf..2a170b7879423864eac188a8cf0bfb2279d5a261 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -863,6 +863,114 @@ def resolve_execute_forward_candidates(phone):
+     return ''.join(parts)
+ 
+ 
++def register_dcache_authorization(source):
++    """Capture the exact D-cache fast acknowledgement qualifiers at lookup."""
++    def add_port(source, kind, name):
++        return edit(source, '\n);\n', f',\n    {name}\n);\n    {kind} wire {name};\n')
++
++    def connect(source, old, new, wire):
++        return edit(source, f'{old},', f'{old},\n        .{new}({wire}),')
++
++    parts = re.split(r'(?=^module )', source, flags=re.M)
++    pos = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
++
++    checker = pos['ngage2_zap_tlb_check']
++    check = add_port(parts[checker], 'output', 'o_hit_ok_next')
++    check = edit(check, '\treg bufferable_nxt;', '''    reg bufferable_nxt;
++    // This is the permission register's D value including its real hold.
++    wire permit_lookup = !walk_nxt && !(|fsr_nxt[3:0]) && cacheable_nxt && !(i_wr && wt_nxt);
++    assign o_hit_ok_next = i_clkena ? permit_lookup : o_hit_ok;''')
++    old_expr = '((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);'
++    for output in ('o_hit_ok', 'o_hit_ok_short'):
++        check = edit(check, f'{output} <= {old_expr}', f'{output} <= permit_lookup;')
++    parts[checker] = check
++
++    walker = pos['ngage2_zap_tlb_fsm']
++    walk = add_port(parts[walker], 'output', 'o_hit_ready_next')
++    walk = edit(walk, '\t\t\to_hit_ready <= state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];',
++                '\t\t\to_hit_ready <= o_hit_ready_next;\n'
++                '    assign o_hit_ready_next = i_reset || state_nxt[IDLE] || state_nxt[TRANSLATION_FAULT];')
++    parts[walker] = walk
++
++    tlb_i = pos['ngage2_zap_tlb']
++    tlb = add_port(parts[tlb_i], 'output', 'o_hit_ok_next')
++    tlb = add_port(tlb, 'output', 'o_hit_ready_next')
++    tlb = connect(tlb, '.o_hit_ok(o_hit_ok)', 'o_hit_ok_next', 'o_hit_ok_next')
++    tlb = connect(tlb, '.o_hit_ready(o_hit_ready)', 'o_hit_ready_next', 'o_hit_ready_next')
++    parts[tlb_i] = tlb
++
++    tags_i = pos['ngage2_zap_dcache_half_tag_ram']
++    tags = add_port(parts[tags_i], 'output', 'o_cache_hit_early_next')
++    tags = edit(tags, '\t\t\to_cache_hit_early <= |hit;',
++                '\t\t\to_cache_hit_early <= o_cache_hit_early_next;\n'
++                '    assign o_cache_hit_early_next = !i_reset &&\n'
++                '        (!i_hold ? |hit : o_cache_hit_early);')
++    parts[tags_i] = tags
++
++    queue_i = pos['ngage2_zap_store_queue']
++    queue = add_port(parts[queue_i], 'output', 'o_full_next')
++    queue = edit(queue, 'o_full <= count_nxt == DEPTH;', 'o_full <= o_full_next;')
++    queue = edit(queue, '\tassign o_busy = count != 0;',
++                 '\tassign o_busy = count != 0;\n    assign o_full_next = !i_reset && count_nxt == DEPTH;')
++    parts[queue_i] = queue
++
++    fsm_i = pos['ngage2_zap_dcache_fsm']
++    fsm = parts[fsm_i]
++    for name in ('i_hit_ok_next', 'i_tlb_ready_next', 'i_cache_hit_early_next', 'i_post_full_next'):
++        fsm = add_port(fsm, 'input', name)
++    fsm = edit(fsm, '\tinput wire i_clk;',
++               "    parameter [0:0] OWNED_FAST_ACK = 1'b0;\n\tinput wire i_clk;")
++    ack_ref = ('((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) '
++               '&& i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE]')
++    fsm = edit(fsm, f'\tassign o_ack_fast = {ack_ref};', f'''    // Use the next values of the actual lookup and owner registers.
++    // IDLE may retire a permitted, cacheable miss by installing its lock.
++    // The hit bit is required for a second access during a background fill.
++    wire idle_fast_next = state_nxt[IDLE] && i_hit_ok_next && i_tlb_ready_next;
++    wire hum_fast_next = hum_slot_nxt && i_hit_ok_next && i_cache_hit_early_next;
++    (* dont_retime *) reg read_fast;
++    (* dont_retime *) reg write_fast;
++    always @(posedge i_clk)
++        if (i_reset) begin
++            read_fast <= 0;
++            write_fast <= 0;
++        end else begin
++            read_fast <= idle_fast_next || hum_fast_next;
++            write_fast <= (idle_fast_next && !i_post_full_next) || hum_fast_next;
++        end
++    // Device completion already belongs to UNC_DONE. Cache enable and W's
++    // alignment remain live at use, including CP15 or exception transitions.
++    wire ref_fast = {ack_ref};
++    wire owned_fast = (i_cache_en && !i_align_fault && (i_wr ? write_fast : read_fast)) ||
++                      state_ff[UNC_DONE];
++    assign o_ack_fast = OWNED_FAST_ACK ? owned_fast : ref_fast;
++
++    // synthesis translate_off
++    always @(posedge i_clk)
++        if (OWNED_FAST_ACK && !i_reset && access_now && owned_fast !== ref_fast)
++            $fatal(1, "Registered cache response changed owned acceptance");
++    // synthesis translate_on''')
++    parts[fsm_i] = fsm
++
++    dc_i = pos['ngage2_zap_dcache']
++    dc = edit(parts[dc_i], '\twire post_full;',
++              '\twire post_full;\n    wire tlb_hit_ok_next, tlb_ready_next, cache_hit_early_next, post_full_next;')
++    dc = edit(dc, '\tngage2_zap_dcache_fsm #(\n',
++              "\tngage2_zap_dcache_fsm #(\n        .OWNED_FAST_ACK(1'b1),\n")
++    for old, new, wire in (
++        ('.o_hit_ok(tlb_hit_ok)', 'o_hit_ok_next', 'tlb_hit_ok_next'),
++        ('.o_hit_ready(tlb_hit_ready)', 'o_hit_ready_next', 'tlb_ready_next'),
++        ('.o_cache_hit_early(tr_cache_hit_early)', 'o_cache_hit_early_next', 'cache_hit_early_next'),
++        ('.o_full(post_full)', 'o_full_next', 'post_full_next'),
++        ('.i_hit_ok(tlb_hit_ok)', 'i_hit_ok_next', 'tlb_hit_ok_next'),
++        ('.i_tlb_hit_ready(tlb_hit_ready)', 'i_tlb_ready_next', 'tlb_ready_next'),
++        ('.i_cache_hit_early(tr_cache_hit_early)', 'i_cache_hit_early_next', 'cache_hit_early_next'),
++        ('.i_post_full(post_full)', 'i_post_full_next', 'post_full_next'),
++    ):
++        dc = connect(dc, old, new, wire)
++    parts[dc_i] = dc
++    return ''.join(parts)
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -897,6 +1005,7 @@ def main():
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)
++    generated = register_dcache_authorization(generated)
+     if args.check:
+         if output.read_text() != generated:
+             raise ValueError('Phone netlist is out of date')

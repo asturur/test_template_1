@@ -1,0 +1,541 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 7ac65e2fe9194a1f2409d2a6a9f30889b589cb24..38860fd154c52957099b3ca0d77d292f1e733c4c 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -13166,14 +13166,61 @@ module ngage2_zap_store_queue (
+ 	output wire [31:0] o_data_nxt;
+ 	output wire [3:0] o_ben_nxt;
+ 	localparam integer DEPTH = 1 << AW;
+-	reg [67:0] entries [0:DEPTH - 1];
+ 	reg [AW - 1:0] head;
+ 	reg [AW - 1:0] tail;
+-	wire [AW - 1:0] read_index;
+ 	reg [AW:0] count;
+ 	reg [AW:0] count_nxt;
+-	assign read_index = head + {{AW - 1 {1'b0}}, i_take};
+-	assign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];
++    localparam integer ROWS = DEPTH / 2;
++    localparam integer ROW_W = AW > 1 ? AW - 1 : 1;
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_even [0:ROWS - 1];
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_odd [0:ROWS - 1];
++    wire [ROW_W - 1:0] even_row, odd_row, write_row;
++    wire push_even = !i_reset && i_push && !tail[0];
++    wire push_odd = !i_reset && i_push && tail[0];
++    wire [67:0] push_payload = {i_address, i_data, i_ben};
++    reg [67:0] even_payload, odd_payload, bypass_payload;
++    reg bypass_even, bypass_odd;
++
++    // After this edge the head is head + i_take. Its two adjacent slots
++    // always have opposite parity. Their read rows round up for even and
++    // down for odd. Reset instead prepares slots zero and one.
++    generate
++        if (AW > 1) begin : g_rows
++            wire [ROW_W - 1:0] head_row = head[AW - 1:1];
++            assign even_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] | i_take};
++            assign odd_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] & i_take};
++            assign write_row = tail[AW - 1:1];
++        end else begin : g_one_row
++            assign even_row = 1'b0;
++            assign odd_row = 1'b0;
++            assign write_row = 1'b0;
++        end
++    endgenerate
++
++    always @(posedge i_clk) begin
++        if (push_even)
++            entries_even[write_row] <= push_payload;
++        if (push_odd)
++            entries_odd[write_row] <= push_payload;
++        even_payload <= entries_even[even_row];
++        odd_payload <= entries_odd[odd_row];
++
++        // A push that fills either prepared slot supplies its registered
++        // data independently of the RAM's mixed-port collision output.
++        if (push_even || push_odd)
++            bypass_payload <= push_payload;
++        bypass_even <= push_even && write_row == even_row;
++        bypass_odd <= push_odd && write_row == odd_row;
++    end
++
++    // ACK can still choose the already prepared successor in this cycle.
++    // The unchanged CYC expression below excludes pushes on this edge.
++    wire select_odd = head[0] ^ i_take;
++    wire select_bypass = select_odd ? bypass_odd : bypass_even;
++    assign {o_address_nxt, o_data_nxt, o_ben_nxt} =
++        select_bypass ? bypass_payload : (select_odd ? odd_payload : even_payload);
+ 	assign o_cyc_nxt = count > {{AW {1'b0}}, i_take};
+ 	assign o_busy = count != 0;
+ 	always @(*) begin
+@@ -13198,7 +13245,6 @@ module ngage2_zap_store_queue (
+ 			count <= count_nxt;
+ 			o_full <= count_nxt == DEPTH;
+ 			if (i_push) begin
+-				entries[tail] <= {i_address, i_data, i_ben};
+ 				tail <= tail + 1'b1;
+ 			end
+ 			if (i_take)
+diff --git a/tests/cpu/arm9v2_store_queue/ordering.patch b/tests/cpu/arm9v2_store_queue/ordering.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..ebfc2c16ddf5c9569f89f379552e70956f71116c
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/ordering.patch
+@@ -0,0 +1,78 @@
++--- a/tests/cpu/arm9v2_board/contract.S
+++++ b/tests/cpu/arm9v2_board/contract.S
++@@ -148,6 +148,27 @@
++     cmp r6,#2
++     bne fail
++ 
+++    // Post a sequence of mixed-width stores to a cold line. A dependent
+++    // load must wait for them before starting its line refill.
+++    ldr r11,=0x0a006400
+++    ldr r4,=0x11223344
+++    mov r5,#0xa8
+++    mov r6,#0x3c
+++    str r4,[r11]
+++    strb r5,[r11,#2]
+++    strh r6,[r11]
+++    ldr r9,[r11]
+++    ldr r10,=0x11a8003c
+++    cmp r9,r10
+++    bne fail
+++
+++    // Drain a pending write to a second cold line using CP15's barrier.
+++    str r4,[r11,#32]
+++    mcr p15,0,r4,c7,c10,4
+++    ldr r9,[r11,#32]
+++    cmp r9,r4
+++    bne fail
+++
++     // Read-allocate both ways before dirtying them. With W enabled the
++     // donor can post a store miss without installing a line.
++     ldr r11,=0x0a008000
++--- a/tests/cpu/arm9v2_board/contract.v
+++++ b/tests/cpu/arm9v2_board/contract.v
++@@ -136,6 +136,36 @@
++ 
++   reg [31:0] rom[0:2047], ram[0:16383];
++   integer cycle = 0, slow_delay = 0, ram_delay = 0, wait_words = 0;
+++`define POST_CACHE cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache
+++  integer post_accepts = 0, post_drains = 0;
+++  reg posted_refill_first = 0, posted_refill_second = 0;
+++  always @(posedge clk) if (!reset) begin
+++    if (!posted_refill_first && ((line && line_addr == 32'h0a006400) ||
+++        (ram_accept && !ram_write && ram_address == 32'h0a006400))) begin
+++      if (post_drains != 3) $fatal(1, "Dependent refill overtook %0d posted writes", 3-post_drains);
+++      posted_refill_first <= 1;
+++      $display("POST refill cycle=%0d address=0a006400 drained=%0d", cycle, post_drains);
+++    end
+++    if (!posted_refill_second && ((line && line_addr == 32'h0a006420) ||
+++        (ram_accept && !ram_write && ram_address == 32'h0a006420))) begin
+++      if (post_drains != 4) $fatal(1, "Refill before posted write barrier drained");
+++      posted_refill_second <= 1;
+++      $display("POST refill cycle=%0d address=0a006420 drained=%0d", cycle, post_drains);
+++    end
+++    if (`POST_CACHE.post_push && `POST_CACHE.tlb_phy_addr[31:8] == 24'h0a0064) begin
+++      post_accepts <= post_accepts + 1;
+++      $display("POST push cycle=%0d address=%08h data=%08h ben=%01h",
+++               cycle, `POST_CACHE.tlb_phy_addr, `POST_CACHE.i_dat, `POST_CACHE.i_ben);
+++    end
+++    if ((`POST_CACHE.wb_ack[3] || `POST_CACHE.wb_err[3]) &&
+++        `POST_CACHE.o_wb_adr[31:8] == 24'h0a0064) begin
+++      post_drains <= post_drains + 1;
+++      $display("POST take cycle=%0d address=%08h data=%08h ben=%01h error=%0d",
+++               cycle, `POST_CACHE.o_wb_adr, `POST_CACHE.o_wb_dat,
+++               `POST_CACHE.o_wb_sel, `POST_CACHE.wb_err[3]);
+++    end
+++  end
+++`undef POST_CACHE
++   integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
++   integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
++   integer translation_walks = 0, prefetch_aborts = 0;
++@@ -333,6 +363,8 @@
++             end
++           end
++           32'hf0000000: begin
+++            if (post_accepts != 4 || post_drains != 4 || !posted_refill_first || !posted_refill_second)
+++              $fatal(1, "Posted store coverage accepts=%d drains=%d", post_accepts, post_drains);
++             if (expected_section_reads != 0 && section_checks != 2)
++               $fatal(1, "Both section-index phases must complete");
++             if (capacity_markers != 2 || ram[14'h2400] != 32'h0a009000)
+diff --git a/tests/cpu/arm9v2_store_queue/run-ordering.sh b/tests/cpu/arm9v2_store_queue/run-ordering.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..86323a94d9dcb9af826ef38f9fb405389bf5d172
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/run-ordering.sh
+@@ -0,0 +1,27 @@
++#!/bin/bash
++set -eu
++cd "$(dirname "$0")/../../.."
++root="$PWD"
++base=341a45421019398c2a44bf6f9ce79d312e0cdbac
++output=build/sim/arm9v2-store-ordering
++mkdir -p "$output"
++run_dir=$(mktemp -d "$output/run.XXXXXX")
++git archive "$base" rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/upstream/sim/stubs \
++    sim/programs/link.ld tests/cpu/arm9v2_board | tar -xf - -C "$run_dir"
++git show "$base:rtl/arm9v2/arm925t_phone.v" > "$run_dir/parent.v"
++cp rtl/arm9v2/arm925t_phone.v "$run_dir/candidate.v"
++
++cd "$run_dir"
++patch -s -p1 < "$root/tests/cpu/arm9v2_store_queue/ordering.patch"
++for leg in parent candidate; do
++    ARM9V2_NETLIST="$leg.v" ARM9V2_HALF_WRITEBACK=1 \
++        sh tests/cpu/arm9v2_board/run-contract.sh "$leg" > "contract-$leg.log" 2>&1
++done
++for case in burst-0-wait-0 burst-0-wait-5 burst-1-wait-0 burst-1-wait-5; do
++    reference="build/sim/arm9v2/contract-parent/$case.log"
++    candidate="build/sim/arm9v2/contract-candidate/$case.log"
++    test "$(grep -c '^POST ' "$candidate")" -eq 10
++    diff -u <(grep -E '^(POST|PASS) ' "$reference") <(grep -E '^(POST|PASS) ' "$candidate")
++    grep '^PASS ' "$candidate"
++done
++printf 'PASS posted-store issue and drain ordering in %s\n' "$run_dir"
+diff --git a/tests/cpu/arm9v2_store_queue/run.sh b/tests/cpu/arm9v2_store_queue/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..6b767630bfbd46f0268e6758893b345fe16ec5d0
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/run.sh
+@@ -0,0 +1,44 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=build/sim/arm9v2-store-queue
++mkdir -p "$out"
++module=ngage2_zap_store_queue
++git show 341a45421019398c2a44bf6f9ce79d312e0cdbac:rtl/arm9v2/arm925t_phone.v |
++    awk -v name="$module" '
++        $1 == "module" && $2 == name { active = 1; sub(name, "queue_reference") }
++        active { print }
++        active && /^endmodule/ { exit }
++    ' > "$out/reference.v"
++grep -q '^module queue_reference' "$out/reference.v"
++awk -v name="$module" '
++    $1 == "module" && $2 == name { active = 1 }
++    active { print }
++    active && /^endmodule/ { exit }
++' rtl/arm9v2/arm925t_phone.v > "$out/candidate.v"
++grep -q '^module ngage2_zap_store_queue' "$out/candidate.v"
++
++python3 - "$out" <<'PY'
++from pathlib import Path
++import sys
++
++out = Path(sys.argv[1])
++source = (out / 'candidate.v').read_text()
++for bank in ('even', 'odd'):
++    expression = f'{bank}_payload <= entries_{bank}[{bank}_row];'
++    assert source.count(expression) == 1
++    source = source.replace(expression, f'{bank}_payload <= push_{bank} && write_row == {bank}_row'
++                            f" ? 68'bx : entries_{bank}[{bank}_row];")
++(out / 'collision.v').write_text(source)
++PY
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec '
++        out=build/sim/arm9v2-store-queue
++        for model in candidate collision; do
++            iverilog -g2005 -s queue_tb -o "$out/$model" \
++                "$out/reference.v" "$out/$model.v" tests/cpu/arm9v2_store_queue/tb.v
++            vvp "$out/$model" > "$out/$model.log"
++            grep "^PASS AW=" "$out/$model.log"
++        done
++    '
+diff --git a/tests/cpu/arm9v2_store_queue/tb.v b/tests/cpu/arm9v2_store_queue/tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..fe1abfd50e79431b9207c7fe3ea9576798aa3a58
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/tb.v
+@@ -0,0 +1,207 @@
++`timescale 1ns / 1ps
++
++module queue_case #(
++    parameter AW = 2,
++    parameter RANDOM_CYCLES = 100000
++) (
++    output reg done = 0
++);
++  localparam DEPTH = 1 << AW;
++
++  reg clk = 0, reset = 1, push = 0, take = 0;
++  reg [67:0] input_payload;
++  wire full_ref, busy_ref, cyc_ref;
++  wire full_ram, busy_ram, cyc_ram;
++  wire [67:0] payload_ref, payload_ram;
++
++  queue_reference #(
++      .AW(AW)
++  ) ref_queue (
++      .i_clk(clk),
++      .i_reset(reset),
++      .i_push(push),
++      .i_take(take),
++      .i_address(input_payload[67:36]),
++      .i_data(input_payload[35:4]),
++      .i_ben(input_payload[3:0]),
++      .o_full(full_ref),
++      .o_busy(busy_ref),
++      .o_cyc_nxt(cyc_ref),
++      .o_address_nxt(payload_ref[67:36]),
++      .o_data_nxt(payload_ref[35:4]),
++      .o_ben_nxt(payload_ref[3:0])
++  );
++  ngage2_zap_store_queue #(
++      .AW(AW)
++  ) ram_queue (
++      .i_clk(clk),
++      .i_reset(reset),
++      .i_push(push),
++      .i_take(take),
++      .i_address(input_payload[67:36]),
++      .i_data(input_payload[35:4]),
++      .i_ben(input_payload[3:0]),
++      .o_full(full_ram),
++      .o_busy(busy_ram),
++      .o_cyc_nxt(cyc_ram),
++      .o_address_nxt(payload_ram[67:36]),
++      .o_data_nxt(payload_ram[35:4]),
++      .o_ben_nxt(payload_ram[3:0])
++  );
++
++  reg [67:0] scoreboard[0:DEPTH-1];
++  integer pending = 0;
++  integer cycle = 0;
++  integer checks = 0;
++  integer resets_nonempty = 0;
++  integer both_count = 0;
++  integer even_collision_count = 0;
++  integer odd_collision_count = 0;
++  integer seed = 32'h0010_6a11 ^ AW;
++
++  task compare;
++    begin
++      checks = checks + 1;
++      if ({full_ram, busy_ram, cyc_ram, payload_ram} !== {full_ref, busy_ref, cyc_ref, payload_ref})
++        $fatal(
++            1,
++            "AW=%0d cycle=%0d pending=%0d reset/push/take=%b%b%b RAM=%b%b%b:%h REF=%b%b%b:%h",
++            AW,
++            cycle,
++            pending,
++            reset,
++            push,
++            take,
++            full_ram,
++            busy_ram,
++            cyc_ram,
++            payload_ram,
++            full_ref,
++            busy_ref,
++            cyc_ref,
++            payload_ref
++        );
++      if ({full_ram, busy_ram, cyc_ram} !==
++                {pending == DEPTH, pending != 0, pending > (take ? 1 : 0)})
++        $fatal(1, "AW=%0d cycle=%0d full/busy/cyc differs from scoreboard", AW, cycle);
++      if (cyc_ram && payload_ram !== scoreboard[take ? 1 : 0])
++        $fatal(1, "AW=%0d cycle=%0d ordered store payload differs from scoreboard", AW, cycle);
++    end
++  endtask
++
++  task step;
++    input rst, enq, ack;
++    integer slot;
++    begin
++      reset = rst;
++      push = enq;
++      input_payload = {$random(seed), $random(seed), 4'b0} | (cycle & 15);
++      // Exercise even a late change of ACK without another memory clock.
++      take = 0;
++      #1;
++      if (cycle != 0) compare();
++      take = 1;
++      #1;
++      if (cycle != 0) compare();
++      take = ack;
++      #1;
++      if (cycle != 0) compare();
++
++      if (rst) begin
++        if (pending != 0) resets_nonempty = resets_nonempty + 1;
++        pending = 0;
++      end else begin
++        if ((enq && pending == DEPTH) || (ack && pending == 0))
++          $fatal(1, "illegal sampled FIFO inputs in test");
++        if (enq && ack) both_count = both_count + 1;
++        if (ack) begin
++          for (slot = 0; slot < DEPTH - 1; slot = slot + 1) scoreboard[slot] = scoreboard[slot+1];
++          pending = pending - 1;
++        end
++        if (enq) begin
++          scoreboard[pending] = input_payload;
++          pending = pending + 1;
++        end
++      end
++
++      clk   = 1;
++      cycle = cycle + 1;
++      #1;
++      if (ram_queue.bypass_even) even_collision_count = even_collision_count + 1;
++      if (ram_queue.bypass_odd) odd_collision_count = odd_collision_count + 1;
++      compare();
++      take = !ack;
++      #1;
++      compare();
++      clk = 0;
++      #1;
++    end
++  endtask
++
++  integer head_slot, occupancy, action, slot, random_control;
++  initial begin
++    // Test every legal sampled transition at each head index and occupancy.
++    // Populate distinct old slot values before resetting back to index zero.
++    for (head_slot = 0; head_slot < DEPTH; head_slot = head_slot + 1)
++    for (occupancy = 0; occupancy <= DEPTH; occupancy = occupancy + 1)
++    for (action = 0; action < 5; action = action + 1) begin
++      if (!(occupancy == 0 && (action == 1 || action == 3)) &&
++                        !(occupancy == DEPTH && (action == 2 || action == 3))) begin
++        step(1, 0, 0);
++        repeat (DEPTH) step(0, 1, 0);
++        repeat (DEPTH) step(0, 0, 1);
++        repeat (head_slot) begin
++          step(0, 1, 0);
++          step(0, 0, 1);
++        end
++        repeat (occupancy) step(0, 1, 0);
++        if (action == 4) step(1, 1, 1);
++        else step(0, action[1], action[0]);
++        // Carry on immediately, including after a full reset or
++        // a final take/new push that must leave a bubble.
++        step(0, pending < DEPTH, pending != 0);
++      end
++    end
++
++    // Cover backpressure, multi-entry queues, wrap and repeated warm resets.
++    repeat (RANDOM_CYCLES) begin
++      random_control = $random(seed);
++      if (random_control[9:2] == 0) step(1, random_control[1], random_control[0]);
++      else step(0, random_control[1] && pending < DEPTH, random_control[0] && pending != 0);
++    end
++    while (pending != 0) step(0, 0, 1);
++    if (resets_nonempty == 0 || both_count == 0 ||
++            even_collision_count == 0 || odd_collision_count == 0)
++      $fatal(1, "missing coverage");
++    $display(
++        "PASS AW=%0d cycles=%0d comparisons=%0d simultaneous=%0d nonempty_resets=%0d even_collisions=%0d odd_collisions=%0d",
++        AW, cycle, checks, both_count, resets_nonempty, even_collision_count, odd_collision_count);
++    done = 1;
++  end
++endmodule
++
++module queue_tb;
++  wire done1, done2, done3;
++  queue_case #(
++      .AW(1),
++      .RANDOM_CYCLES(25000)
++  ) small_queue (
++      done1
++  );
++  queue_case #(
++      .AW(2),
++      .RANDOM_CYCLES(250000)
++  ) production (
++      done2
++  );
++  queue_case #(
++      .AW(3),
++      .RANDOM_CYCLES(25000)
++  ) large_queue (
++      done3
++  );
++  initial begin
++    wait (done1 && done2 && done3);
++    $finish;
++  end
++endmodule
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 3a57198005c3f01bffbbcda325caf6422c30dc08..67eb1862d18b9769c59e7db444b7c4dc1b94099d 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -271,6 +271,70 @@ def expose_block_writeback(phone):
+     return ''.join(parts)
+ 
+ 
++def move_posted_store_payload_to_ram(phone):
++    """Read the post-edge head and successor out of opposite RAM banks."""
++    start = phone.index('module ngage2_zap_store_queue (')
++    end = phone.index('\nendmodule', start)
++    queue = phone[start:end]
++    queue = edit(queue, '\treg [67:0] entries [0:DEPTH - 1];\n', '')
++    queue = edit(queue, '\twire [AW - 1:0] read_index;\n', '')
++    queue = edit(queue, """\tassign read_index = head + {{AW - 1 {1'b0}}, i_take};
++\tassign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];""", """    localparam integer ROWS = DEPTH / 2;
++    localparam integer ROW_W = AW > 1 ? AW - 1 : 1;
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_even [0:ROWS - 1];
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_odd [0:ROWS - 1];
++    wire [ROW_W - 1:0] even_row, odd_row, write_row;
++    wire push_even = !i_reset && i_push && !tail[0];
++    wire push_odd = !i_reset && i_push && tail[0];
++    wire [67:0] push_payload = {i_address, i_data, i_ben};
++    reg [67:0] even_payload, odd_payload, bypass_payload;
++    reg bypass_even, bypass_odd;
++
++    // After this edge the head is head + i_take. Its two adjacent slots
++    // always have opposite parity. Their read rows round up for even and
++    // down for odd. Reset instead prepares slots zero and one.
++    generate
++        if (AW > 1) begin : g_rows
++            wire [ROW_W - 1:0] head_row = head[AW - 1:1];
++            assign even_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] | i_take};
++            assign odd_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] & i_take};
++            assign write_row = tail[AW - 1:1];
++        end else begin : g_one_row
++            assign even_row = 1'b0;
++            assign odd_row = 1'b0;
++            assign write_row = 1'b0;
++        end
++    endgenerate
++
++    always @(posedge i_clk) begin
++        if (push_even)
++            entries_even[write_row] <= push_payload;
++        if (push_odd)
++            entries_odd[write_row] <= push_payload;
++        even_payload <= entries_even[even_row];
++        odd_payload <= entries_odd[odd_row];
++
++        // A push that fills either prepared slot supplies its registered
++        // data independently of the RAM's mixed-port collision output.
++        if (push_even || push_odd)
++            bypass_payload <= push_payload;
++        bypass_even <= push_even && write_row == even_row;
++        bypass_odd <= push_odd && write_row == odd_row;
++    end
++
++    // ACK can still choose the already prepared successor in this cycle.
++    // The unchanged CYC expression below excludes pushes on this edge.
++    wire select_odd = head[0] ^ i_take;
++    wire select_bypass = select_odd ? bypass_odd : bypass_even;
++    assign {o_address_nxt, o_data_nxt, o_ben_nxt} =
++        select_bypass ? bypass_payload : (select_odd ? odd_payload : even_payload);
++""".rstrip())
++    queue = edit(queue, '\t\t\t\tentries[tail] <= {i_address, i_data, i_ben};\n', '')
++    return phone[:start] + queue + phone[end:]
++
++
+ def schedule_ready_register_shift(phone):
+     """Use the forwarded ARM shift count when Rs is already ready."""
+     start = phone.index('module ngage2_arm9v2_execute (')
+@@ -948,6 +1012,7 @@ def main():
+         raise ValueError('Donor netlist differs from pinned Quartus input')
+     output = VENDOR / 'arm925t_phone.v'
+     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
++    generated = move_posted_store_payload_to_ram(generated)
+     generated = schedule_ready_register_shift(generated)
+     generated = schedule_early_smull(generated)
+     generated = restart_streamed_icache(direct_accumulate(generated))

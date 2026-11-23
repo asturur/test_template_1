@@ -1,0 +1,639 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index c9d7653e3f7af4021979274f2a3e023c750ed25f..a0038d20202c070974c13b2ad50e1e22637e6750 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -3391,8 +3391,6 @@ module ngage2_arm9v2_execute (
+ 	wire finish;
+ 	assign next_interrupt_mask = (((((((finish && (a[327-:4] == MSR)) && !a[474]) && a[468]) && condition_pass) && !a[318]) && (a[332:328] != 5'h10)) && msr_same_mode ? right_a[7:6] : interrupt_mask);
+ 	(* dont_retime *) reg [127:0] held;
+-	(* dont_retime *) reg [7:0] held_amount;
+-	(* dont_retime *) reg [4:0] held_rot;
+ 	(* dont_retime *) reg [31:0] held_offset;
+ 	(* dont_retime *) reg [31:0] block_base;
+ 	reg signed [33:0] ll;
+@@ -3534,7 +3532,7 @@ module ngage2_arm9v2_execute (
+ 		end
+ 		shift_input = operand[32+:32];
+ 		ref_type = i_instruction[6:5];
+-		ref_amount = (prepared && i_reg_shift ? held_amount : {3'd0, i_instruction[11:7]});
++		ref_amount = {3'd0, i_instruction[11:7]};
+ 		ref_register = i_reg_shift;
+ 		if (((i_kind == DP) || (i_kind == MSR)) && i_instruction[25]) begin
+ 			shift_input = {24'd0, i_instruction[7:0]};
+@@ -3555,8 +3553,8 @@ module ngage2_arm9v2_execute (
+ 		if (SHIFT_PRE) begin
+ 			shift_type = i_shift_pre[15:14];
+ 			shift_register = i_shift_pre[0];
+-			shift_amount = (prepared && i_reg_shift ? held_amount : i_shift_pre[13:6]);
+-			shift_rot = (prepared && i_reg_shift ? held_rot : i_shift_pre[5:1]);
++			shift_amount = i_shift_pre[13:6];
++			shift_rot = i_shift_pre[5:1];
+ 		end
+ 		else begin
+ 			shift_type = ref_type;
+@@ -3565,10 +3563,6 @@ module ngage2_arm9v2_execute (
+ 			shift_rot = (ref_type == 0 ? -ref_amount[4:0] : ref_amount[4:0]);
+ 		end
+ 
+-        if (direct_reg_shift) begin
+-            shift_amount = operand[71:64];
+-            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
+-        end
+ 		planned_writes_ref = 0;
+ 		case (i_kind)
+ 			DP: planned_writes_ref[0] = i_instruction[24:23] != 2'b10;
+@@ -3613,6 +3607,8 @@ module ngage2_arm9v2_execute (
+ 	wire preserve_w;
+ 	wire rrx_w;
+ 	ngage2_arm9v2_rotate #(.PRE_ROT(SHIFT_PRE)) u_rotate(
++        .i_clk(1'b0),
++        .i_capture(1'b0),
+ 		.i_value((W_ROTATE ? shift_input_nw : shift_input)),
+ 		.i_amount(shift_amount),
+ 		.i_type(shift_type),
+@@ -3625,6 +3621,8 @@ module ngage2_arm9v2_execute (
+ 		.o_rrx(rrx_main)
+ 	);
+ 	ngage2_arm9v2_rotate #(.PRE_ROT(SHIFT_PRE)) u_rotate_w(
++        .i_clk(1'b0),
++        .i_capture(1'b0),
+ 		.i_value(i_w_load_data),
+ 		.i_amount(shift_amount),
+ 		.i_type(shift_type),
+@@ -3636,10 +3634,57 @@ module ngage2_arm9v2_execute (
+ 		.o_preserve(preserve_w),
+ 		.o_rrx(rrx_w)
+ 	);
+-	assign shifted = (w_take ? shifted_w : shifted_main);
+-	assign shift_carry = (w_take ? carry_w : carry_main);
+-	assign carry_preserve = (w_take ? preserve_w : preserve_main);
+-	assign rrx = (w_take ? rrx_w : rrx_main);
++    wire [31:0] variable_operand = w_take ? i_w_load_data :
++                                  (W_ROTATE ? shift_input_nw : shift_input);
++    wire [7:0] variable_count = operand[71:64];
++    wire [4:0] variable_rot = shift_type == 0 ? -variable_count[4:0] : variable_count[4:0];
++    wire [31:0] variable_shifted;
++    wire variable_carry, variable_preserve;
++    // The captured data belongs to the S operation marked prepared. Before
++    // that edge speculative samples are disposable, including on redirects.
++    // Retain the sample while A is unavailable. The existing accept/flush
++    // protocol releases the owner. RRX is only an immediate shift.
++    ngage2_arm9v2_rotate #(.PRE_ROT(1'b1), .REGISTER_STAGE(1'b1)) u_rotate_register(
++        .i_clk(i_clk),
++        .i_capture(!prepared),
++        .i_value(variable_operand),
++        .i_amount(variable_count),
++        .i_type(shift_type),
++        .i_rot(variable_rot),
++        .i_register(1'b1),
++        .i_carry(1'b0),
++        .o_value(variable_shifted),
++        .o_carry(variable_carry),
++        .o_preserve(variable_preserve),
++        .o_rrx()
++    );
++    assign shifted = i_reg_shift ? variable_shifted : (w_take ? shifted_w : shifted_main);
++    assign shift_carry = i_reg_shift ? variable_carry : (w_take ? carry_w : carry_main);
++    assign carry_preserve = i_reg_shift ? variable_preserve : (w_take ? preserve_w : preserve_main);
++    assign rrx = !i_reg_shift && (w_take ? rrx_w : rrx_main);
++
++    // synthesis translate_off
++    reg [7:0] prepared_count;
++    wire [31:0] register_ref_value;
++    wire register_ref_carry, register_ref_preserve;
++    always @(posedge i_clk)
++        if (!prepared) prepared_count <= variable_count;
++    ngage2_arm9v2_rotate u_rotate_ref(
++        .i_clk(1'b0), .i_capture(1'b0),
++        .i_value(variable_operand),
++        .i_amount(prepared_count),
++        .i_type(shift_type),
++        .i_rot(5'd0),
++        .i_register(1'b1), .i_carry(1'b0),
++        .o_value(register_ref_value), .o_carry(register_ref_carry),
++        .o_preserve(register_ref_preserve), .o_rrx()
++    );
++    always @(posedge i_clk)
++        if (!i_reset && !i_fault && accept && i_reg_shift &&
++            (!prepared || {variable_shifted, variable_carry, variable_preserve} !==
++                          {register_ref_value, register_ref_carry, register_ref_preserve}))
++            $fatal(1, "Prepared shift differs from the selected operand at %h", i_pc);
++    // synthesis translate_on
+ 	wire agu_scaled = (((S_AGU && (i_kind == MEM)) && (i_instruction[27:26] == 1)) && i_instruction[25]) && (i_instruction[11:4] != 0);
+ 	reg agu_forward;
+ 	reg agu_sub;
+@@ -3819,10 +3864,7 @@ module ngage2_arm9v2_execute (
+ 	assign product_phase = (a_valid && ((a[327-:4] == MUL) || (a[327-:4] == MULL))) && !multiply_product_ready;
+ 	assign space = !a_valid || finish;
+ 
+-    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+-                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
+-
+-    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
++    assign o_shift_wait = i_valid && (i_reg_shift || agu_scaled) && !prepared;
+ 	assign o_multiply_wait = product_phase;
+ 	assign o_ready_payload = (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))) && !o_shift_wait;
+ 	assign o_ready = (o_ready_payload && !i_flush) && !o_redirect;
+@@ -4086,8 +4128,6 @@ module ngage2_arm9v2_execute (
+ 			o_serial_continue <= 0;
+ 			a <= 516'd0;
+ 			held <= 0;
+-			held_amount <= 0;
+-			held_rot <= 0;
+ 			held_offset <= 0;
+ 			block_base <= 0;
+ 			if (!DSP_PRODUCT) begin
+@@ -4140,10 +4180,6 @@ module ngage2_arm9v2_execute (
+ 			if ((((((i_valid && i_admit) && space) && !i_load_wait) && !(|(s_wait & i_early))) && (i_reg_shift || agu_scaled)) && !prepared)
+ 				prepared <= 1;
+ 			if ((i_valid && !prepared) && (HELD_FREE || (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))))) begin
+-				if (i_reg_shift) begin
+-					held_amount <= operand[71-:8];
+-					held_rot <= (shift_type == 0 ? -operand[68-:5] : operand[68-:5]);
+-				end
+ 				if (agu_scaled)
+ 					held_offset <= shifted;
+ 			end
+@@ -5369,10 +5405,15 @@ module ngage2_arm9v2_rotate (
+ 	o_value,
+ 	o_carry,
+ 	o_preserve,
+-	o_rrx
++	o_rrx,
++    i_clk,
++    i_capture
+ );
+ 	reg _sv2v_0;
+ 	parameter [0:0] PRE_ROT = 0;
++    parameter [0:0] REGISTER_STAGE = 0;
++    input wire i_clk;
++    input wire i_capture;
+ 	input wire [31:0] i_value;
+ 	input wire [7:0] i_amount;
+ 	input wire [1:0] i_type;
+@@ -5386,25 +5427,69 @@ module ngage2_arm9v2_rotate (
+ 	wire [4:0] amount = (PRE_ROT ? i_rot : (i_type == 0 ? -i_amount[4:0] : i_amount[4:0]));
+ 	wire [31:0] stage [0:5];
+ 	assign stage[0] = i_value;
++    wire [31:0] stage_two;
++    wire [2:0] upper_amount;
++    wire [7:0] count;
++    wire [1:0] kind;
++    wire sign_bit, low_bit, is_register, incoming_carry;
++    generate
++        if (REGISTER_STAGE) begin : g_cut
++            (* dont_retime *) reg [31:0] rotated;
++            (* dont_retime *) reg [2:0] high;
++            (* dont_retime *) reg [7:0] count_ff;
++            (* dont_retime *) reg [1:0] type_ff;
++            (* dont_retime *) reg sign_ff, low_ff, register_ff, carry_ff;
++            always @(posedge i_clk)
++                if (i_capture) begin
++                    rotated <= stage[2];
++                    high <= amount[4:2];
++                    count_ff <= i_amount;
++                    type_ff <= i_type;
++                    sign_ff <= i_value[31];
++                    low_ff <= i_value[0];
++                    register_ff <= i_register;
++                    carry_ff <= i_carry;
++                end
++            assign stage_two = rotated;
++            assign upper_amount = high;
++            assign count = count_ff;
++            assign kind = type_ff;
++            assign sign_bit = sign_ff;
++            assign low_bit = low_ff;
++            assign is_register = register_ff;
++            assign incoming_carry = carry_ff;
++        end else begin : g_comb
++            assign stage_two = stage[2];
++            assign upper_amount = amount[4:2];
++            assign count = i_amount;
++            assign kind = i_type;
++            assign sign_bit = i_value[31];
++            assign low_bit = i_value[0];
++            assign is_register = i_register;
++            assign incoming_carry = i_carry;
++        end
++    endgenerate
++    wire [4:0] controls = {upper_amount, amount[1:0]};
+ 	genvar _gv_sa_rot_stage_1;
+ 	generate
+ 		for (_gv_sa_rot_stage_1 = 0; _gv_sa_rot_stage_1 < 5; _gv_sa_rot_stage_1 = _gv_sa_rot_stage_1 + 1) begin : g_rotate
+ 			localparam sa_rot_stage = _gv_sa_rot_stage_1;
++            wire [31:0] previous = sa_rot_stage == 2 ? stage_two : stage[sa_rot_stage];
+ 			genvar _gv_sa_rot_bit_1;
+ 			for (_gv_sa_rot_bit_1 = 0; _gv_sa_rot_bit_1 < 32; _gv_sa_rot_bit_1 = _gv_sa_rot_bit_1 + 1) begin : g_bit
+ 				localparam sa_rot_bit = _gv_sa_rot_bit_1;
+-				assign stage[sa_rot_stage + 1][sa_rot_bit] = (amount[sa_rot_stage] ? stage[sa_rot_stage][(sa_rot_bit + (1 << sa_rot_stage)) % 32] : stage[sa_rot_stage][sa_rot_bit]);
++				assign stage[sa_rot_stage + 1][sa_rot_bit] = (controls[sa_rot_stage] ? previous[(sa_rot_bit + (1 << sa_rot_stage)) % 32] : previous[sa_rot_bit]);
+ 			end
+ 		end
+ 	endgenerate
+-	wire [31:0] left_mask = 32'hffffffff << i_amount[4:0];
+-	wire [31:0] right_mask = 32'hffffffff >> i_amount[4:0];
++	wire [31:0] left_mask = 32'hffffffff << count[4:0];
++	wire [31:0] right_mask = 32'hffffffff >> count[4:0];
+ 	always @(*) begin
+ 		if (_sv2v_0)
+ 			;
+ 		o_preserve = 0;
+ 		o_rrx = 0;
+-		case (i_type)
++		case (kind)
+ 			0: begin
+ 				o_value = stage[5] & left_mask;
+ 				o_carry = stage[5][0];
+@@ -5414,7 +5499,7 @@ module ngage2_arm9v2_rotate (
+ 				o_carry = stage[5][31];
+ 			end
+ 			2: begin
+-				o_value = (stage[5] & right_mask) | ({32 {i_value[31]}} & ~right_mask);
++				o_value = (stage[5] & right_mask) | ({32 {sign_bit}} & ~right_mask);
+ 				o_carry = stage[5][31];
+ 			end
+ 			default: begin
+@@ -5422,25 +5507,25 @@ module ngage2_arm9v2_rotate (
+ 				o_carry = stage[5][31];
+ 			end
+ 		endcase
+-		if (i_amount == 0) begin
+-			o_value = i_value;
+-			o_carry = i_carry;
++		if (count == 0) begin
++			o_value = REGISTER_STAGE ? stage[5] : i_value;
++			o_carry = incoming_carry;
+ 			o_preserve = 1;
+-			if (!i_register)
+-				case (i_type)
++			if (!is_register)
++				case (kind)
+ 					1: begin
+ 						o_value = 0;
+-						o_carry = i_value[31];
++						o_carry = sign_bit;
+ 						o_preserve = 0;
+ 					end
+ 					2: begin
+-						o_value = {32 {i_value[31]}};
+-						o_carry = i_value[31];
++						o_value = {32 {sign_bit}};
++						o_carry = sign_bit;
+ 						o_preserve = 0;
+ 					end
+ 					3: begin
+-						o_value = {i_carry, i_value[31:1]};
+-						o_carry = i_value[0];
++						o_value = {incoming_carry, i_value[31:1]};
++						o_carry = low_bit;
+ 						o_preserve = 0;
+ 						o_rrx = 1;
+ 					end
+@@ -5448,9 +5533,9 @@ module ngage2_arm9v2_rotate (
+ 						;
+ 				endcase
+ 		end
+-		else if ((i_type != 3) && |i_amount[7:5]) begin
+-			o_value = (i_type == 2 ? {32 {i_value[31]}} : 32'd0);
+-			o_carry = (i_type == 2 ? i_value[31] : (i_amount == 32 ? (i_type == 0 ? i_value[0] : i_value[31]) : 1'b0));
++		else if ((kind != 3) && |count[7:5]) begin
++			o_value = (kind == 2 ? {32 {sign_bit}} : 32'd0);
++			o_carry = (kind == 2 ? sign_bit : (count == 32 ? (kind == 0 ? low_bit : sign_bit) : 1'b0));
+ 		end
+ 	end
+ 	initial _sv2v_0 = 0;
+diff --git a/tests/cpu/arm9v2_board/register_shift_tb.v b/tests/cpu/arm9v2_board/register_shift_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..626fdedcb5816832767b4cb2783d5c29510a7e1a
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/register_shift_tb.v
+@@ -0,0 +1,118 @@
++`timescale 1ns / 1ps
++
++module shift_pipeline_tb;
++  reg clk = 0;
++  always #5 clk = !clk;
++  reg [31:0] operand;
++  reg [1:0] kind;
++  reg [7:0] count;
++  reg capture = 0;
++  reg is_register, carry_in;
++  wire [4:0] amount = kind == 0 ? -count[4:0] : count[4:0];
++  wire [34:0] combined, split;
++  reg [34:0] expected;
++  integer shift_type, shift_count, pattern, directed = 0;
++
++  // Independent one-bit steps also cover counts above the word size.
++  function [34:0] reference;
++    input reg [31:0] value;
++    input reg [1:0] shift_kind;
++    input reg [7:0] shift_count;
++    input reg register_shift, in_carry;
++    reg [31:0] result;
++    reg carry, preserve, rrx;
++    integer steps, bit_index;
++    begin
++      result = value;
++      carry = in_carry;
++      preserve = 0;
++      rrx = 0;
++      steps = shift_count;
++      if (steps == 0)
++        if (register_shift || shift_kind == 0) preserve = 1;
++        else if (shift_kind == 3) begin
++          {carry, result} = {value[0], in_carry, value[31:1]};
++          rrx = 1;
++        end else steps = 32;
++      for (bit_index = 0; bit_index < steps; bit_index = bit_index + 1)
++      case (shift_kind)
++        0: {carry, result} = {result, 1'b0};
++        1: {carry, result} = {result[0], 1'b0, result[31:1]};
++        2: {carry, result} = {result[0], result[31], result[31:1]};
++        3: {carry, result} = {result[0], result[0], result[31:1]};
++      endcase
++      reference = {result, carry, preserve, rrx};
++    end
++  endfunction
++  ngage2_arm9v2_rotate #(
++      .PRE_ROT(1)
++  ) same_cycle (
++      .i_clk(1'b0),
++      .i_capture(1'b0),
++      .i_value(operand),
++      .i_type(kind),
++      .i_amount(count),
++      .i_rot(amount),
++      .i_register(is_register),
++      .i_carry(carry_in),
++      .o_value(combined[34:3]),
++      .o_carry(combined[2]),
++      .o_preserve(combined[1]),
++      .o_rrx(combined[0])
++  );
++  ngage2_arm9v2_rotate #(
++      .PRE_ROT(1),
++      .REGISTER_STAGE(1)
++  ) two_cycle (
++      .i_clk(clk),
++      .i_capture(capture),
++      .i_value(operand),
++      .i_type(kind),
++      .i_amount(count),
++      .i_rot(amount),
++      .i_register(1'b1),
++      .i_carry(carry_in),
++      .o_value(split[34:3]),
++      .o_carry(split[2]),
++      .o_preserve(split[1]),
++      .o_rrx(split[0])
++  );
++
++  initial begin
++    for (shift_type = 0; shift_type < 4; shift_type = shift_type + 1) begin
++      for (shift_count = 0; shift_count < 256; shift_count = shift_count + 1) begin
++        for (pattern = 0; pattern < 16; pattern = pattern + 1) begin
++          @(negedge clk);
++          count = shift_count[7:0];
++          kind = shift_type[1:0];
++          operand = (32'h923f7ca1 * pattern) ^ (32'h81a16573 * shift_count);
++          is_register = 1;
++          carry_in = pattern[1];
++          capture = 1;
++          #1;
++          expected = reference(operand, kind, count, is_register, carry_in);
++          if (combined !== expected) $fatal(1, "Common register shift disagrees");
++          @(negedge clk);
++          capture = 0;
++          if (split !== expected)
++            $fatal(1, "Registered shift mismatch type=%0d count=%0d", shift_type, shift_count);
++          is_register = 0;
++          if (shift_count < 32) begin
++            #1;
++            if (combined !== reference(operand, kind, count, is_register, carry_in))
++              $fatal(1, "Immediate shift or RRX disagrees");
++          end
++          count = ~count;
++          kind = ~kind;
++          operand = ~operand;
++          carry_in = ~carry_in;
++          @(negedge clk);
++          if (split !== expected) $fatal(1, "Held result followed a later input");
++          directed = directed + 1;
++        end
++      end
++    end
++    $display("PASS rotate: %0d staged register/hold cases and 2048 immediate cases", directed);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-register-shift.sh b/tests/cpu/arm9v2_board/run-register-shift.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..5dceb869ec7efe7594edabc4640a5f97e3f80208
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-register-shift.sh
+@@ -0,0 +1,10 @@
++#!/bin/sh
++# Run inside the installed jotego/simulator:arm64 image.
++set -eu
++out=build/sim/unit-arm9v2-register-shift
++mkdir -p "$out"
++iverilog -g2001 -s shift_pipeline_tb -o "$out/test" \
++    rtl/arm9v2/arm925t_phone.v tests/cpu/arm9v2_board/register_shift_tb.v
++vvp "$out/test" > "$out/run.log"
++cat "$out/run.log"
++grep -q '^PASS rotate:' "$out/run.log"
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index d47facb7c76c9f59ef6effcd2580a022475f19cf..9dbebac28d613793dc42c51e2fa49781bd37279a 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -271,27 +271,160 @@ def expose_block_writeback(phone):
+     return ''.join(parts)
+ 
+ 
+-def schedule_ready_register_shift(phone):
+-    """Use the forwarded ARM shift count when Rs is already ready."""
+-    start = phone.index('module ngage2_arm9v2_execute (')
+-    end = phone.index('\nendmodule', start)
+-    execute = phone[start:end]
+-    if 'wire direct_reg_shift =' in execute:
+-        raise ValueError('The ready register shift is already enabled in this netlist')
+-    execute = edit(execute, '\tassign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;', '''
+-    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+-                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];
+-
+-    assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;''')
+-    # Scaled memory addressing still uses the prepared offset.
+-    execute = edit(execute, '\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)', '''
+-        if (direct_reg_shift) begin
+-            shift_amount = operand[71:64];
+-            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
++def split_register_shifts(phone):
++    """Put an edge after two mux levels in the register-count barrel."""
++    begin = phone.index("module ngage2_arm9v2_execute (")
++    end = phone.index("\nendmodule", begin)
++    execute = phone[begin:end]
++    # Only the decoded constant amounts reach the single-cycle barrels.
++    execute = edit(execute, "(prepared && i_reg_shift ? held_amount : {3'd0, i_instruction[11:7]})",
++                   "{3'd0, i_instruction[11:7]}")
++    execute = edit(execute, "(prepared && i_reg_shift ? held_amount : i_shift_pre[13:6])",
++                   "i_shift_pre[13:6]")
++    execute = edit(execute, "(prepared && i_reg_shift ? held_rot : i_shift_pre[5:1])",
++                   "i_shift_pre[5:1]")
++    execute = edit(execute, '\tassign o_shift_wait = (i_valid && (i_reg_shift || agu_scaled)) && !prepared;',
++                   '\n    assign o_shift_wait = i_valid && (i_reg_shift || agu_scaled) && !prepared;')
++    execute = edit(execute, '\n\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)',
++                   '\n\n\t\tplanned_writes_ref = 0;\n\t\tcase (i_kind)')
++    for instance in ("u_rotate", "u_rotate_w"):
++        execute = edit(execute, f"{instance}(\n", f"{instance}(\n        .i_clk(1'b0),\n        .i_capture(1'b0),\n")
++    execute = edit(execute, """
++\tassign shifted = (w_take ? shifted_w : shifted_main);
++\tassign shift_carry = (w_take ? carry_w : carry_main);
++\tassign carry_preserve = (w_take ? preserve_w : preserve_main);
++\tassign rrx = (w_take ? rrx_w : rrx_main);""", """
++    wire [31:0] variable_operand = w_take ? i_w_load_data :
++                                  (W_ROTATE ? shift_input_nw : shift_input);
++    wire [7:0] variable_count = operand[71:64];
++    wire [4:0] variable_rot = shift_type == 0 ? -variable_count[4:0] : variable_count[4:0];
++    wire [31:0] variable_shifted;
++    wire variable_carry, variable_preserve;
++    // The captured data belongs to the S operation marked prepared. Before
++    // that edge speculative samples are disposable, including on redirects.
++    // Retain the sample while A is unavailable. The existing accept/flush
++    // protocol releases the owner. RRX is only an immediate shift.
++    ngage2_arm9v2_rotate #(.PRE_ROT(1'b1), .REGISTER_STAGE(1'b1)) u_rotate_register(
++        .i_clk(i_clk),
++        .i_capture(!prepared),
++        .i_value(variable_operand),
++        .i_amount(variable_count),
++        .i_type(shift_type),
++        .i_rot(variable_rot),
++        .i_register(1'b1),
++        .i_carry(1'b0),
++        .o_value(variable_shifted),
++        .o_carry(variable_carry),
++        .o_preserve(variable_preserve),
++        .o_rrx()
++    );
++    assign shifted = i_reg_shift ? variable_shifted : (w_take ? shifted_w : shifted_main);
++    assign shift_carry = i_reg_shift ? variable_carry : (w_take ? carry_w : carry_main);
++    assign carry_preserve = i_reg_shift ? variable_preserve : (w_take ? preserve_w : preserve_main);
++    assign rrx = !i_reg_shift && (w_take ? rrx_w : rrx_main);
++
++    // synthesis translate_off
++    reg [7:0] prepared_count;
++    wire [31:0] register_ref_value;
++    wire register_ref_carry, register_ref_preserve;
++    always @(posedge i_clk)
++        if (!prepared) prepared_count <= variable_count;
++    ngage2_arm9v2_rotate u_rotate_ref(
++        .i_clk(1'b0), .i_capture(1'b0),
++        .i_value(variable_operand),
++        .i_amount(prepared_count),
++        .i_type(shift_type),
++        .i_rot(5'd0),
++        .i_register(1'b1), .i_carry(1'b0),
++        .o_value(register_ref_value), .o_carry(register_ref_carry),
++        .o_preserve(register_ref_preserve), .o_rrx()
++    );
++    always @(posedge i_clk)
++        if (!i_reset && !i_fault && accept && i_reg_shift &&
++            (!prepared || {variable_shifted, variable_carry, variable_preserve} !==
++                          {register_ref_value, register_ref_carry, register_ref_preserve}))
++            $fatal(1, "Prepared shift differs from the selected operand at %h", i_pc);
++    // synthesis translate_on""")
++    for held, width in (("held_amount", 8), ("held_rot", 5)):
++        execute = edit(execute, f"\t(* dont_retime *) reg [{width-1}:0] {held};\n", "")
++        execute = edit(execute, f"\t\t\t{held} <= 0;\n", "")
++    execute = edit(execute, """
++\t\t\t\tif (i_reg_shift) begin
++\t\t\t\t\theld_amount <= operand[71-:8];
++\t\t\t\t\theld_rot <= (shift_type == 0 ? -operand[68-:5] : operand[68-:5]);
++\t\t\t\tend
++""", "\n")
++    phone = phone[:begin] + execute + phone[end:]
++
++    begin = phone.index("module ngage2_arm9v2_rotate (")
++    end = phone.index("\nendmodule", begin)
++    rotate = phone[begin:end]
++    rotate = edit(rotate, "\to_rrx\n);", "\to_rrx,\n    i_clk,\n    i_capture\n);")
++    rotate = edit(rotate, "\tparameter [0:0] PRE_ROT = 0;", """\tparameter [0:0] PRE_ROT = 0;
++    parameter [0:0] REGISTER_STAGE = 0;
++    input wire i_clk;
++    input wire i_capture;""")
++    rotate = edit(rotate, "\tassign stage[0] = i_value;", """\tassign stage[0] = i_value;
++    wire [31:0] stage_two;
++    wire [2:0] upper_amount;
++    wire [7:0] count;
++    wire [1:0] kind;
++    wire sign_bit, low_bit, is_register, incoming_carry;
++    generate
++        if (REGISTER_STAGE) begin : g_cut
++            (* dont_retime *) reg [31:0] rotated;
++            (* dont_retime *) reg [2:0] high;
++            (* dont_retime *) reg [7:0] count_ff;
++            (* dont_retime *) reg [1:0] type_ff;
++            (* dont_retime *) reg sign_ff, low_ff, register_ff, carry_ff;
++            always @(posedge i_clk)
++                if (i_capture) begin
++                    rotated <= stage[2];
++                    high <= amount[4:2];
++                    count_ff <= i_amount;
++                    type_ff <= i_type;
++                    sign_ff <= i_value[31];
++                    low_ff <= i_value[0];
++                    register_ff <= i_register;
++                    carry_ff <= i_carry;
++                end
++            assign stage_two = rotated;
++            assign upper_amount = high;
++            assign count = count_ff;
++            assign kind = type_ff;
++            assign sign_bit = sign_ff;
++            assign low_bit = low_ff;
++            assign is_register = register_ff;
++            assign incoming_carry = carry_ff;
++        end else begin : g_comb
++            assign stage_two = stage[2];
++            assign upper_amount = amount[4:2];
++            assign count = i_amount;
++            assign kind = i_type;
++            assign sign_bit = i_value[31];
++            assign low_bit = i_value[0];
++            assign is_register = i_register;
++            assign incoming_carry = i_carry;
+         end
+-\t\tplanned_writes_ref = 0;
+-\t\tcase (i_kind)''')
+-    return phone[:start] + execute + phone[end:]
++    endgenerate
++    wire [4:0] controls = {upper_amount, amount[1:0]};""")
++    rotate = edit(rotate, "\t\t\tlocalparam sa_rot_stage = _gv_sa_rot_stage_1;",
++                   "\t\t\tlocalparam sa_rot_stage = _gv_sa_rot_stage_1;\n"
++                   "            wire [31:0] previous = sa_rot_stage == 2 ? stage_two : stage[sa_rot_stage];")
++    rotate = edit(rotate, "(amount[sa_rot_stage] ? stage[sa_rot_stage][(sa_rot_bit + (1 << sa_rot_stage)) % 32] : stage[sa_rot_stage][sa_rot_bit])",
++                  "(controls[sa_rot_stage] ? previous[(sa_rot_bit + (1 << sa_rot_stage)) % 32] : previous[sa_rot_bit])")
++    end_rotate = rotate.index("\twire [31:0] left_mask")
++    tail = rotate[end_rotate:]
++    for old, new in (
++        ("i_value[31]", "sign_bit"), ("i_value[0]", "low_bit"), ("i_type", "kind"),
++        ("i_amount", "count"), ("i_carry", "incoming_carry"), ("i_register", "is_register")
++    ):
++        tail = tail.replace(old, new)
++    tail = edit(tail, "o_value = i_value;", "o_value = REGISTER_STAGE ? stage[5] : i_value;")
++    # The two-cycle caller uses register semantics, so this immediate-only
++    # expression is optimized out of its cone. Keep the non-staged contract.
++    rotate = rotate[:end_rotate] + tail
++    return phone[:begin] + rotate + phone[end:]
+ 
+ 
+ def schedule_early_smull(phone):
+@@ -883,7 +1016,7 @@ def main():
+         raise ValueError('Donor netlist differs from pinned Quartus input')
+     output = VENDOR / 'arm925t_phone.v'
+     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
+-    generated = schedule_ready_register_shift(generated)
++    generated = split_register_shifts(generated)
+     generated = schedule_early_smull(generated)
+     generated = restart_streamed_icache(direct_accumulate(generated))
+     generated = resident_during_fill(generated)

@@ -1,0 +1,517 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 7ac65e2fe9194a1f2409d2a6a9f30889b589cb24..3784a372ed8cdd83a4c7a1c4195a0d2b20ae1d9a 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -4404,6 +4404,7 @@ module ngage2_arm9v2_fetch (
+ 	parameter [0:0] RAS_TOP_FF = 1'b1;
+ 	parameter [0:0] VALID_BIT = 1'b1;
+ 	parameter [0:0] HEAD_FF = 1'b1;
++    parameter [0:0] BRAM_QUEUE = 1'b1;
+ 	input wire i_clk;
+ 	input wire i_reset;
+ 	input wire i_redirect;
+@@ -4460,7 +4461,6 @@ module ngage2_arm9v2_fetch (
+ 	(* dont_retime *) reg [2:0] tail;
+ 	(* dont_retime *) reg [7:0] head_select;
+ 	(* dont_retime *) reg [3:0] count;
+-	reg [113:0] queue [0:7];
+ 	wire [113:0] head_packet;
+ 	wire [44:0] prediction;
+ 	wire predicted;
+@@ -4487,26 +4487,85 @@ module ngage2_arm9v2_fetch (
+ 	assign advance = !o_stall;
+ 	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect;
+ 	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch);
+-	reg [113:0] head_select_packet;
+-	reg [113:0] next_packet;
+-	reg [113:0] pushed;
+-	reg [113:0] head_next;
+-	(* dont_retime *) reg [113:0] head_ff;
+-	wire [7:0] next_select = {head_select[6:0], head_select[7]};
+-	always @(*) begin
+-		if (_sv2v_0)
+-			;
+-		head_select_packet = 114'd0;
+-		next_packet = 114'd0;
+-		begin : sv2v_autoblock_1
+-			reg signed [31:0] q;
+-			for (q = 0; q < 8; q = q + 1)
+-				begin
+-					head_select_packet = head_select_packet | (queue[q] & {114 {head_select[q]}});
+-					next_packet = next_packet | (queue[q] & {114 {next_select[q]}});
+-				end
+-		end
+-	end
++    reg [113:0] pushed;
++    reg [113:0] head_next;
++    (* dont_retime *) reg [113:0] head_ff;
++    wire [113:0] head_select_packet, next_packet, restart_packet;
++    wire push_at_head;
++    genvar slot;
++    generate
++        if (HEAD_FF && BRAM_QUEUE) begin : g_fetch_ram
++            (* dont_retime *) reg [2:0] head;
++            wire [2:0] following_slot = head + 3'd1;
++            wire [2:0] next_head = pop ? following_slot : head;
++            // Read the slot behind the head that will exist after this
++            // edge. A following pop can copy it without waiting for RAM.
++            wire [2:0] prefetch_slot = i_redirect || i_reset ? 3'd1 :
++                                       pop ? head + 3'd2 : following_slot;
++            always @(posedge i_clk)
++                if (i_reset || i_redirect) head <= 0;
++                else head <= next_head;
++
++            (* ramstyle = "M10K, no_rw_check" *) reg [111:0] payload [0:7];
++            reg [111:0] prefetched, bypass_data;
++            (* dont_retime *) reg bypass_prefetch;
++            wire [111:0] write_data = {pushed[113:49], pushed[46:0]};
++            always @(posedge i_clk) begin
++                if (push) begin
++                    payload[tail] <= write_data;
++                    bypass_data <= write_data;
++                end
++                prefetched <= payload[prefetch_slot];
++                bypass_prefetch <= push && tail == prefetch_slot;
++            end
++            // In a read/write collision the registered push supplies the
++            // prefetched entry, regardless of the RAM's collision output.
++            wire [111:0] next_data = bypass_prefetch ? bypass_data : prefetched;
++
++            // A fill can finish for several queued instructions together.
++            // Keep the two broadcast-updated status bits out of block RAM.
++            reg [1:0] fill_status [0:7];
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_fill_status
++                always @(posedge i_clk)
++                    if (push && tail == slot) fill_status[slot] <= pushed[48:47];
++                    else if (i_fill_done) begin
++                        if (fill_status[slot][0] && i_fill_fault) fill_status[slot][1] <= 1;
++                        fill_status[slot][0] <= 0;
++                    end
++            end
++            assign next_packet = {next_data[111:47], fill_status[following_slot], next_data[46:0]};
++            assign push_at_head = push && tail == next_head;
++            // Redirect/reset clear the count. The first new push supplies
++            // the visible head directly, even if its RAM slot holds old data.
++            assign restart_packet = head_ff;
++            assign head_select_packet = head_ff;
++        end else begin : g_fetch_regs
++            reg [113:0] queue [0:7];
++            reg [113:0] selected, following;
++            wire [7:0] next_select = {head_select[6:0], head_select[7]};
++            integer entry;
++            always @(*) begin
++                selected = 0;
++                following = 0;
++                for (entry = 0; entry < 8; entry = entry + 1) begin
++                    selected = selected | (queue[entry] & {114{head_select[entry]}});
++                    following = following | (queue[entry] & {114{next_select[entry]}});
++                end
++            end
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_queue
++                always @(posedge i_clk)
++                    if (push && tail == slot) queue[slot] <= pushed;
++                    else if (i_fill_done) begin
++                        if (queue[slot][47] && i_fill_fault) queue[slot][48] <= 1;
++                        queue[slot][47] <= 0;
++                    end
++            end
++            assign head_select_packet = selected;
++            assign next_packet = following;
++            assign restart_packet = queue[0];
++            assign push_at_head = push && (pop ? next_select[tail] : head_select[tail]);
++        end
++    endgenerate
+ 	assign head_packet = (HEAD_FF ? head_ff : head_select_packet);
+ 	always @(*) begin
+ 		if (_sv2v_0)
+@@ -4522,8 +4581,8 @@ module ngage2_arm9v2_fetch (
+ 	always @(*) begin
+ 		if (_sv2v_0)
+ 			;
+-		head_next = (i_redirect ? queue[0] : (pop ? next_packet : head_ff));
+-		if ((!i_redirect && push) && (pop ? next_select[tail] : head_select[tail]))
++		head_next = (i_redirect ? restart_packet : (pop ? next_packet : head_ff));
++		if (!i_redirect && push_at_head)
+ 			head_next = pushed;
+ 		else if (i_fill_done) begin
+ 			if (head_next[47])
+@@ -4588,20 +4647,6 @@ module ngage2_arm9v2_fetch (
+ 			assign prediction = 45'd0;
+ 		end
+ 	endgenerate
+-	genvar _gv_q_1;
+-	generate
+-		for (_gv_q_1 = 0; _gv_q_1 < 8; _gv_q_1 = _gv_q_1 + 1) begin : g_queue
+-			localparam q = _gv_q_1;
+-			always @(posedge i_clk)
+-				if (push && (tail == q))
+-					queue[q] <= pushed;
+-				else if (i_fill_done) begin
+-					queue[q][47] <= 0;
+-					if (queue[q][47])
+-						queue[q][48] <= queue[q][48] || i_fill_fault;
+-				end
+-		end
+-	endgenerate
+ 	always @(posedge i_clk)
+ 		if (i_reset) begin
+ 			f1 <= 36'd0;
+diff --git a/tests/cpu/arm9v2_board/fetch_ram_tb.sv b/tests/cpu/arm9v2_board/fetch_ram_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..0e8230891508b80d34c124e6929278fe72ec4d91
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/fetch_ram_tb.sv
+@@ -0,0 +1,193 @@
++`timescale 1ns / 1ps
++
++module fetch_ram_tb;
++  reg clk = 0, reset = 1;
++  reg ack = 0, error = 0, retry = 0, ready = 0;
++  reg fill_pending = 0, fill_done = 0, fill_fault = 0;
++  reg redirect = 0, redirect_thumb = 0;
++  reg [31:0] redirect_target = 0;
++  reg [31:0] data = 0;
++  reg update = 0;
++  reg [31:0] update_pc = 0, update_target = 0;
++  reg update_taken = 0;
++  reg [1:0] update_kind = 0;
++
++  wire [102:0] fetch_state[0:1];
++  for (genvar leg = 0; leg < 2; leg++) begin : g_fetch
++    ngage2_arm9v2_fetch #(
++        .BRAM_QUEUE(leg == 1)
++    ) dut (
++        .i_clk(clk),
++        .i_reset(reset),
++        .i_redirect(redirect),
++        .i_redirect_thumb(redirect_thumb),
++        .i_redirect_target(redirect_target),
++        .i_redirect_pointer(3'd0),
++        .i_redirect_count(4'd0),
++        .i_redirect_action(2'd0),
++        .i_redirect_link(32'd0),
++        .i_predictor_clear(1'b0),
++        .i_update(update),
++        .i_update_pc(update_pc),
++        .i_update_target(update_target),
++        .i_update_thumb(redirect_thumb),
++        .i_update_taken(update_taken),
++        .i_update_hit(1'b0),
++        .i_update_state(2'd1),
++        .i_update_kind(update_kind),
++        .i_data(data),
++        .i_ack(ack),
++        .i_error(error),
++        .i_retry(retry),
++        .i_fill_pending(fill_pending),
++        .i_fill_done(fill_done),
++        .i_fill_fault(fill_fault),
++        .i_ready(ready),
++        .o_address_nxt(fetch_state[leg][102:71]),
++        .o_address_check(fetch_state[leg][70:39]),
++        .o_address(fetch_state[leg][38:7]),
++        .o_request(fetch_state[leg][6]),
++        .o_stall(fetch_state[leg][5]),
++        .o_dbg_fetch(fetch_state[leg][4:3]),
++        .o_valid(fetch_state[leg][2]),
++        .o_thumb(fetch_state[leg][1]),
++        .o_fault(fetch_state[leg][0])
++    );
++  end
++
++  integer cycles = 0;
++  integer empty_pushes = 0, one_entry_turns = 0, full_stalls = 0, wrapped_pushes = 0;
++  integer bypassed_reads = 0, fault_responses = 0, fills = 0;
++  integer redirect_stalls = 0, retry_responses = 0;
++  wire [3:0] count = g_fetch[1].dut.count;
++  wire push = g_fetch[1].dut.push;
++  wire pop = g_fetch[1].dut.pop;
++  always @(posedge clk) begin
++    cycles <= cycles + 1;
++    if (!reset) begin
++      // The word and metadata are architecturally visible only while
++      // owned. Include a pending head in the comparison before it can pop.
++      if (fetch_state[0][102:2] !== fetch_state[1][102:2] ||
++          {g_fetch[0].dut.count, g_fetch[0].dut.push, g_fetch[0].dut.pop} !==
++          {count, push, pop})
++        $fatal(1, "Fetch request, admission or dequeue changed at cycle %0d", cycles);
++      if (count != 0 && g_fetch[0].dut.head_packet !== g_fetch[1].dut.head_packet)
++        $fatal(1, "Owned fetch packet changed at cycle %0d", cycles);
++      if (count == 0 && push) empty_pushes <= empty_pushes + 1;
++      if (count == 1 && push && pop) one_entry_turns <= one_entry_turns + 1;
++      if (count == 8 && !ready) full_stalls <= full_stalls + 1;
++      if (push && g_fetch[1].dut.tail == 7) wrapped_pushes <= wrapped_pushes + 1;
++      if (g_fetch[1].dut.g_fetch_ram.bypass_prefetch && count > 1)
++        bypassed_reads <= bypassed_reads + 1;
++      if (pop && fetch_state[1][0]) fault_responses <= fault_responses + 1;
++      if (fill_done && count > 1) fills <= fills + 1;
++      if (redirect && fetch_state[1][5]) redirect_stalls <= redirect_stalls + 1;
++      if (g_fetch[1].dut.retry) retry_responses <= retry_responses + 1;
++    end
++  end
++
++  task step;
++    data = data + 32'h01011001;
++    #1 clk = 1;
++    #1 clk = 0;
++    #1;
++  endtask
++
++  task empty_queue;
++    ack   = 0;
++    ready = 1;
++    repeat (12) step();
++    if (count != 0) $fatal(1, "Queue did not drain");
++  endtask
++
++  task redirect_to(input logic thumb, input logic [31:0] target);
++    redirect = 1;
++    redirect_thumb = thumb;
++    redirect_target = target;
++    step();
++    redirect = 0;
++    if (count != 0) $fatal(1, "Redirect left old queue entries visible");
++  endtask
++
++  reg [31:0] pattern = 32'h7ae128fd;
++  initial begin
++    step();
++    reset = 0;
++    ack   = 1;
++    ready = 0;
++    repeat (56) step();
++    if (count != 8) $fatal(1, "Fetch queue capacity changed");
++    ready = 1;
++    repeat (96) step();
++
++    // Sustained turns with one and two entries exercise both bypass paths.
++    empty_queue();
++    ack = 1;
++    repeat (36) step();
++    if (count != 1) $fatal(1, "One-entry fall-through changed cadence");
++    ready = 0;
++    step();
++    ready = 1;
++    repeat (48) step();
++    if (count != 2) $fatal(1, "Concurrent pop/push changed cadence");
++
++    // Broadcast fill completion to several pending heads, including
++    // a new push on the same edge, then consume all faulted packets.
++    empty_queue();
++    fill_pending = 1;
++    ready = 0;
++    ack = 1;
++    repeat (4) step();
++    fill_done  = 1;
++    fill_fault = 1;
++    step();
++    fill_pending = 0;
++    fill_done = 0;
++    fill_fault = 0;
++    empty_queue();
++
++    // Wrap the fetch epoch repeatedly while an old F2 response is stalled.
++    ack = 0;
++    repeat (7) begin
++      redirect_to(1, 32'h0a008002 + 4 * cycles);
++      repeat (3) step();
++    end
++    ack = 1;
++    repeat (4) step();
++    retry = 1;
++    step();
++    retry = 0;
++
++    // Deterministic ARM/Thumb, predictor and bus activity with variable
++    // consumer and cache stalls. Redirect and retry remain order-sensitive.
++    repeat (8192) begin
++      pattern = {pattern[30:0], pattern[31] ^ pattern[21] ^ pattern[1] ^ pattern[0]};
++      ack = |pattern[1:0];
++      ready = &pattern[4:2] || pattern[19];
++      retry = &pattern[9:5];
++      error = &pattern[14:10];
++      redirect = &pattern[20:15];
++      redirect_thumb = pattern[22];
++      redirect_target = {pattern[31:1], 1'b0};
++      fill_pending = pattern[27];
++      fill_done = &pattern[26:23];
++      fill_fault = pattern[28];
++      update = &pattern[31:29];
++      update_pc = fetch_state[0][38:7];
++      update_target = {pattern[30:0], redirect_thumb};
++      update_taken = pattern[22];
++      update_kind = pattern[11:10];
++      step();
++    end
++
++    if (empty_pushes == 0 || one_entry_turns < 30 || full_stalls < 40 || wrapped_pushes < 16 ||
++        bypassed_reads < 32 || fills == 0 || fault_responses < 4 ||
++        redirect_stalls < 7 || retry_responses == 0)
++      $fatal(1, "Missing fetch queue coverage");
++    $display(
++        "PASS fetch RAM equivalence cycles=%0d empty=%0d turns=%0d full=%0d wraps=%0d bypass=%0d fills=%0d faults=%0d redirect_stalls=%0d retries=%0d",
++        cycles, empty_pushes, one_entry_turns, full_stalls, wrapped_pushes, bypassed_reads, fills,
++        fault_responses, redirect_stalls, retry_responses);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-fetch-ram.sh b/tests/cpu/arm9v2_board/run-fetch-ram.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..3a09506d65d17b9bfd90dbd2c991560a59ade1ce
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-fetch-ram.sh
+@@ -0,0 +1,19 @@
++#!/bin/sh
++set -eu
++name="${1:?provide a fresh run name}"
++case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
++out="build/sim/$name"
++mkdir "$out"
++
++simulate() {
++    entrypoint=$1
++    shift
++    docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++        -w /work --entrypoint "$entrypoint" jotego/simulator:arm64 "$@"
++}
++
++simulate verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++    --top-module fetch_ram_tb --Mdir "$out/obj" rtl/arm9v2/arm925t_phone.v \
++    rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/fetch_ram_tb.sv > "$out/build.log" 2>&1
++simulate "/work/$out/obj/Vfetch_ram_tb" > "$out/run.log" 2>&1
++rg '^PASS fetch RAM equivalence' "$out/run.log"
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 3a57198005c3f01bffbbcda325caf6422c30dc08..21d8f2e08974e753b26f8e279432a7ce6c20c9e1 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -928,6 +928,122 @@ def resolve_execute_forward_candidates(phone):
+     return ''.join(parts)
+ 
+ 
++def move_fetch_payload_to_ram(phone):
++    """Give the fetch queue a synchronous backing store behind its head FF."""
++    start = phone.index('module ngage2_arm9v2_fetch (')
++    end = phone.index('\nendmodule', start)
++    fetch = phone[start:end]
++    fetch = edit(fetch, "\tparameter [0:0] HEAD_FF = 1'b1;",
++                 "\tparameter [0:0] HEAD_FF = 1'b1;\n    parameter [0:0] BRAM_QUEUE = 1'b1;")
++    fetch = edit(fetch, '\treg [113:0] queue [0:7];\n', '')
++    fetch = edit(fetch, '''\treg [113:0] head_select_packet;
++\treg [113:0] next_packet;
++\treg [113:0] pushed;
++\treg [113:0] head_next;
++\t(* dont_retime *) reg [113:0] head_ff;
++\twire [7:0] next_select = {head_select[6:0], head_select[7]};
++\talways @(*) begin
++\t\tif (_sv2v_0)
++\t\t\t;
++\t\thead_select_packet = 114'd0;
++\t\tnext_packet = 114'd0;
++\t\tbegin : sv2v_autoblock_1
++\t\t\treg signed [31:0] q;
++\t\t\tfor (q = 0; q < 8; q = q + 1)
++\t\t\t\tbegin
++\t\t\t\t\thead_select_packet = head_select_packet | (queue[q] & {114 {head_select[q]}});
++\t\t\t\t\tnext_packet = next_packet | (queue[q] & {114 {next_select[q]}});
++\t\t\t\tend
++\t\tend
++\tend''', '''    reg [113:0] pushed;
++    reg [113:0] head_next;
++    (* dont_retime *) reg [113:0] head_ff;
++    wire [113:0] head_select_packet, next_packet, restart_packet;
++    wire push_at_head;
++    genvar slot;
++    generate
++        if (HEAD_FF && BRAM_QUEUE) begin : g_fetch_ram
++            (* dont_retime *) reg [2:0] head;
++            wire [2:0] following_slot = head + 3'd1;
++            wire [2:0] next_head = pop ? following_slot : head;
++            // Read the slot behind the head that will exist after this
++            // edge. A following pop can copy it without waiting for RAM.
++            wire [2:0] prefetch_slot = i_redirect || i_reset ? 3'd1 :
++                                       pop ? head + 3'd2 : following_slot;
++            always @(posedge i_clk)
++                if (i_reset || i_redirect) head <= 0;
++                else head <= next_head;
++
++            (* ramstyle = "M10K, no_rw_check" *) reg [111:0] payload [0:7];
++            reg [111:0] prefetched, bypass_data;
++            (* dont_retime *) reg bypass_prefetch;
++            wire [111:0] write_data = {pushed[113:49], pushed[46:0]};
++            always @(posedge i_clk) begin
++                if (push) begin
++                    payload[tail] <= write_data;
++                    bypass_data <= write_data;
++                end
++                prefetched <= payload[prefetch_slot];
++                bypass_prefetch <= push && tail == prefetch_slot;
++            end
++            // In a read/write collision the registered push supplies the
++            // prefetched entry, regardless of the RAM's collision output.
++            wire [111:0] next_data = bypass_prefetch ? bypass_data : prefetched;
++
++            // A fill can finish for several queued instructions together.
++            // Keep the two broadcast-updated status bits out of block RAM.
++            reg [1:0] fill_status [0:7];
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_fill_status
++                always @(posedge i_clk)
++                    if (push && tail == slot) fill_status[slot] <= pushed[48:47];
++                    else if (i_fill_done) begin
++                        if (fill_status[slot][0] && i_fill_fault) fill_status[slot][1] <= 1;
++                        fill_status[slot][0] <= 0;
++                    end
++            end
++            assign next_packet = {next_data[111:47], fill_status[following_slot], next_data[46:0]};
++            assign push_at_head = push && tail == next_head;
++            // Redirect/reset clear the count. The first new push supplies
++            // the visible head directly, even if its RAM slot holds old data.
++            assign restart_packet = head_ff;
++            assign head_select_packet = head_ff;
++        end else begin : g_fetch_regs
++            reg [113:0] queue [0:7];
++            reg [113:0] selected, following;
++            wire [7:0] next_select = {head_select[6:0], head_select[7]};
++            integer entry;
++            always @(*) begin
++                selected = 0;
++                following = 0;
++                for (entry = 0; entry < 8; entry = entry + 1) begin
++                    selected = selected | (queue[entry] & {114{head_select[entry]}});
++                    following = following | (queue[entry] & {114{next_select[entry]}});
++                end
++            end
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_queue
++                always @(posedge i_clk)
++                    if (push && tail == slot) queue[slot] <= pushed;
++                    else if (i_fill_done) begin
++                        if (queue[slot][47] && i_fill_fault) queue[slot][48] <= 1;
++                        queue[slot][47] <= 0;
++                    end
++            end
++            assign head_select_packet = selected;
++            assign next_packet = following;
++            assign restart_packet = queue[0];
++            assign push_at_head = push && (pop ? next_select[tail] : head_select[tail]);
++        end
++    endgenerate''')
++    fetch = edit(fetch, 'i_redirect ? queue[0] : (pop ? next_packet : head_ff)',
++                 'i_redirect ? restart_packet : (pop ? next_packet : head_ff)')
++    fetch = edit(fetch, 'if ((!i_redirect && push) && (pop ? next_select[tail] : head_select[tail]))',
++                 'if (!i_redirect && push_at_head)')
++    queue_start = fetch.index('\tgenvar _gv_q_1;')
++    queue_end = fetch.index('\talways @(posedge i_clk)\n\t\tif (i_reset)', queue_start)
++    fetch = fetch[:queue_start] + fetch[queue_end:]
++    return phone[:start] + fetch + phone[end:]
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -959,6 +1075,7 @@ def main():
+     generated = predecode_dcache_write_enable(generated)
+     generated = register_background_load_tag(generated)
+     generated = resolve_execute_forward_candidates(generated)
++    generated = move_fetch_payload_to_ram(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)

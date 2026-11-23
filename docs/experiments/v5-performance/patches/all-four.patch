@@ -1,0 +1,2105 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index c9d7653e3f7af4021979274f2a3e023c750ed25f..f80ff8eddecbab74d7030252a6014fc7c986d650 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -4404,6 +4404,7 @@ module ngage2_arm9v2_fetch (
+ 	parameter [0:0] RAS_TOP_FF = 1'b1;
+ 	parameter [0:0] VALID_BIT = 1'b1;
+ 	parameter [0:0] HEAD_FF = 1'b1;
++    parameter [0:0] BRAM_QUEUE = 1'b1;
+ 	input wire i_clk;
+ 	input wire i_reset;
+ 	input wire i_redirect;
+@@ -4460,7 +4461,6 @@ module ngage2_arm9v2_fetch (
+ 	(* dont_retime *) reg [2:0] tail;
+ 	(* dont_retime *) reg [7:0] head_select;
+ 	(* dont_retime *) reg [3:0] count;
+-	reg [113:0] queue [0:7];
+ 	wire [113:0] head_packet;
+ 	wire [44:0] prediction;
+ 	wire predicted;
+@@ -4487,26 +4487,85 @@ module ngage2_arm9v2_fetch (
+ 	assign advance = !o_stall;
+ 	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect;
+ 	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch);
+-	reg [113:0] head_select_packet;
+-	reg [113:0] next_packet;
+-	reg [113:0] pushed;
+-	reg [113:0] head_next;
+-	(* dont_retime *) reg [113:0] head_ff;
+-	wire [7:0] next_select = {head_select[6:0], head_select[7]};
+-	always @(*) begin
+-		if (_sv2v_0)
+-			;
+-		head_select_packet = 114'd0;
+-		next_packet = 114'd0;
+-		begin : sv2v_autoblock_1
+-			reg signed [31:0] q;
+-			for (q = 0; q < 8; q = q + 1)
+-				begin
+-					head_select_packet = head_select_packet | (queue[q] & {114 {head_select[q]}});
+-					next_packet = next_packet | (queue[q] & {114 {next_select[q]}});
+-				end
+-		end
+-	end
++    reg [113:0] pushed;
++    reg [113:0] head_next;
++    (* dont_retime *) reg [113:0] head_ff;
++    wire [113:0] head_select_packet, next_packet, restart_packet;
++    wire push_at_head;
++    genvar slot;
++    generate
++        if (HEAD_FF && BRAM_QUEUE) begin : g_fetch_ram
++            (* dont_retime *) reg [2:0] head;
++            wire [2:0] following_slot = head + 3'd1;
++            wire [2:0] next_head = pop ? following_slot : head;
++            // Read the slot behind the head that will exist after this
++            // edge. A following pop can copy it without waiting for RAM.
++            wire [2:0] prefetch_slot = i_redirect || i_reset ? 3'd1 :
++                                       pop ? head + 3'd2 : following_slot;
++            always @(posedge i_clk)
++                if (i_reset || i_redirect) head <= 0;
++                else head <= next_head;
++
++            (* ramstyle = "M10K, no_rw_check" *) reg [111:0] payload [0:7];
++            reg [111:0] prefetched, bypass_data;
++            (* dont_retime *) reg bypass_prefetch;
++            wire [111:0] write_data = {pushed[113:49], pushed[46:0]};
++            always @(posedge i_clk) begin
++                if (push) begin
++                    payload[tail] <= write_data;
++                    bypass_data <= write_data;
++                end
++                prefetched <= payload[prefetch_slot];
++                bypass_prefetch <= push && tail == prefetch_slot;
++            end
++            // In a read/write collision the registered push supplies the
++            // prefetched entry, regardless of the RAM's collision output.
++            wire [111:0] next_data = bypass_prefetch ? bypass_data : prefetched;
++
++            // A fill can finish for several queued instructions together.
++            // Keep the two broadcast-updated status bits out of block RAM.
++            reg [1:0] fill_status [0:7];
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_fill_status
++                always @(posedge i_clk)
++                    if (push && tail == slot) fill_status[slot] <= pushed[48:47];
++                    else if (i_fill_done) begin
++                        if (fill_status[slot][0] && i_fill_fault) fill_status[slot][1] <= 1;
++                        fill_status[slot][0] <= 0;
++                    end
++            end
++            assign next_packet = {next_data[111:47], fill_status[following_slot], next_data[46:0]};
++            assign push_at_head = push && tail == next_head;
++            // Redirect/reset clear the count. The first new push supplies
++            // the visible head directly, even if its RAM slot holds old data.
++            assign restart_packet = head_ff;
++            assign head_select_packet = head_ff;
++        end else begin : g_fetch_regs
++            reg [113:0] queue [0:7];
++            reg [113:0] selected, following;
++            wire [7:0] next_select = {head_select[6:0], head_select[7]};
++            integer entry;
++            always @(*) begin
++                selected = 0;
++                following = 0;
++                for (entry = 0; entry < 8; entry = entry + 1) begin
++                    selected = selected | (queue[entry] & {114{head_select[entry]}});
++                    following = following | (queue[entry] & {114{next_select[entry]}});
++                end
++            end
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_queue
++                always @(posedge i_clk)
++                    if (push && tail == slot) queue[slot] <= pushed;
++                    else if (i_fill_done) begin
++                        if (queue[slot][47] && i_fill_fault) queue[slot][48] <= 1;
++                        queue[slot][47] <= 0;
++                    end
++            end
++            assign head_select_packet = selected;
++            assign next_packet = following;
++            assign restart_packet = queue[0];
++            assign push_at_head = push && (pop ? next_select[tail] : head_select[tail]);
++        end
++    endgenerate
+ 	assign head_packet = (HEAD_FF ? head_ff : head_select_packet);
+ 	always @(*) begin
+ 		if (_sv2v_0)
+@@ -4522,8 +4581,8 @@ module ngage2_arm9v2_fetch (
+ 	always @(*) begin
+ 		if (_sv2v_0)
+ 			;
+-		head_next = (i_redirect ? queue[0] : (pop ? next_packet : head_ff));
+-		if ((!i_redirect && push) && (pop ? next_select[tail] : head_select[tail]))
++		head_next = (i_redirect ? restart_packet : (pop ? next_packet : head_ff));
++		if (!i_redirect && push_at_head)
+ 			head_next = pushed;
+ 		else if (i_fill_done) begin
+ 			if (head_next[47])
+@@ -4588,20 +4647,6 @@ module ngage2_arm9v2_fetch (
+ 			assign prediction = 45'd0;
+ 		end
+ 	endgenerate
+-	genvar _gv_q_1;
+-	generate
+-		for (_gv_q_1 = 0; _gv_q_1 < 8; _gv_q_1 = _gv_q_1 + 1) begin : g_queue
+-			localparam q = _gv_q_1;
+-			always @(posedge i_clk)
+-				if (push && (tail == q))
+-					queue[q] <= pushed;
+-				else if (i_fill_done) begin
+-					queue[q][47] <= 0;
+-					if (queue[q][47])
+-						queue[q][48] <= queue[q][48] || i_fill_fault;
+-				end
+-		end
+-	endgenerate
+ 	always @(posedge i_clk)
+ 		if (i_reset) begin
+ 			f1 <= 36'd0;
+@@ -5221,8 +5266,7 @@ module ngage2_arm9v2_predict (
+ 	(* dont_retime *) reg [31:0] read_pc;
+ 	(* dont_retime *) reg [2:0] pointer;
+ 	(* dont_retime *) reg [3:0] count;
+-	reg [31:0] stack [0:7];
+-	(* dont_retime *) reg [31:0] ras_top;
++	wire [31:0] ras_top;
+ 	wire [31:0] call_link = (read_pc + (read_thumb ? 32'd2 : 32'd4)) | {31'd0, read_thumb};
+ 	reg [1:0] update_state;
+     // ARM word alignment otherwise leaves half the direct-mapped table unused.
+@@ -5296,15 +5340,52 @@ module ngage2_arm9v2_predict (
+ 			read_valid_bit <= valid_launch;
+ 	assign o_hit = ((VALID_BIT ? read_valid_bit : read_valid[read_pc[INDEX_W:1]]) && (read_entry[TAG_W + 36-:((TAG_W + 36) >= 37 ? TAG_W + 0 : 38 - (TAG_W + 36))] == read_pc[31:INDEX_W + 1])) && (read_entry[36] == read_thumb);
+ 	assign o_taken = o_hit && read_entry[3];
+-	assign o_target = ((read_entry[1-:2] == RETURN) && (count != 0) ? (RAS_TOP_FF ? ras_top : stack[pointer - 1'b1]) : read_entry[35-:32]);
++	assign o_target = ((read_entry[1-:2] == RETURN) && (count != 0) ? ras_top : read_entry[35-:32]);
+ 	assign o_state = (o_hit ? read_entry[3-:2] : 2'b01);
+ 	assign o_kind = read_entry[1-:2];
+ 	assign o_pointer = pointer;
+ 	assign o_count = count;
+-	function automatic [2:0] sv2v_cast_3;
+-		input reg [2:0] inp;
+-		sv2v_cast_3 = inp;
+-	endfunction
++
++    wire restore = !i_reset && i_repair;
++    wire speculate = !i_reset && !i_repair && !i_clear && i_accept && o_taken;
++    wire push_stack = (restore && i_repair_action == CALL) ||
++                      (speculate && o_kind == CALL);
++    wire repair_pop = i_repair_action == RETURN && i_repair_count != 0;
++    wire read_stack = (restore && i_repair_action != CALL) ||
++                      (speculate && o_kind == RETURN && count != 0);
++    wire [2:0] stack_write_address = i_repair ? i_repair_pointer : pointer;
++    wire [2:0] stack_read_address = i_repair ?
++        i_repair_pointer - (repair_pop ? 3'd2 : 3'd1) : pointer - 3'd2;
++    wire [31:0] stack_link = i_repair ? i_repair_link : call_link;
++
++    generate
++        if (RAS_TOP_FF) begin : g_m10k_ras
++            (* ramstyle = "M10K" *) reg [31:0] stack [0:7];
++            reg [31:0] read_top;
++            (* dont_retime *) reg [31:0] link_top;
++            (* dont_retime *) reg use_link;
++
++            // A push supplies the new top directly. A pop or repair reads
++            // the backing stack on the edge that used to register ras_top.
++            always @(posedge i_clk) begin
++                if (push_stack) begin
++                    stack[stack_write_address] <= stack_link;
++                    link_top <= stack_link;
++                    use_link <= 1'b1;
++                end else if (read_stack) begin
++                    read_top <= stack[stack_read_address];
++                    use_link <= 1'b0;
++                end
++            end
++            assign ras_top = use_link ? link_top : read_top;
++        end else begin : g_async_ras
++            reg [31:0] stack [0:7];
++            always @(posedge i_clk)
++                if (push_stack)
++                    stack[stack_write_address] <= stack_link;
++            assign ras_top = stack[pointer - 1'b1];
++        end
++    endgenerate
+ 	always @(posedge i_clk)
+ 		if (i_reset) begin
+ 			pointer <= 0;
+@@ -5313,17 +5394,13 @@ module ngage2_arm9v2_predict (
+ 		else if (i_repair) begin
+ 			pointer <= i_repair_pointer;
+ 			count <= i_repair_count;
+-			ras_top <= stack[i_repair_pointer - 1'b1];
+ 			case (i_repair_action)
+ 				CALL: begin
+-					stack[i_repair_pointer] <= i_repair_link;
+-					ras_top <= i_repair_link;
+ 					pointer <= i_repair_pointer + 1'b1;
+ 					count <= (i_repair_count == 8 ? 4'd8 : i_repair_count + 1'b1);
+ 				end
+ 				RETURN:
+ 					if (i_repair_count != 0) begin
+-						ras_top <= stack[sv2v_cast_3(i_repair_pointer - 2'd2)];
+ 						pointer <= i_repair_pointer - 1'b1;
+ 						count <= i_repair_count - 1'b1;
+ 					end
+@@ -5342,15 +5419,12 @@ module ngage2_arm9v2_predict (
+ 		else if (i_accept && o_taken)
+ 			case (read_entry[1-:2])
+ 				CALL: begin
+-					stack[pointer] <= call_link;
+-					ras_top <= call_link;
+ 					pointer <= pointer + 1'b1;
+ 					if (count != 8)
+ 						count <= count + 1'b1;
+ 				end
+ 				RETURN:
+ 					if (count != 0) begin
+-						ras_top <= stack[sv2v_cast_3(pointer - 2'd2)];
+ 						pointer <= pointer - 1'b1;
+ 						count <= count - 1'b1;
+ 					end
+@@ -13137,14 +13211,61 @@ module ngage2_zap_store_queue (
+ 	output wire [31:0] o_data_nxt;
+ 	output wire [3:0] o_ben_nxt;
+ 	localparam integer DEPTH = 1 << AW;
+-	reg [67:0] entries [0:DEPTH - 1];
+ 	reg [AW - 1:0] head;
+ 	reg [AW - 1:0] tail;
+-	wire [AW - 1:0] read_index;
+ 	reg [AW:0] count;
+ 	reg [AW:0] count_nxt;
+-	assign read_index = head + {{AW - 1 {1'b0}}, i_take};
+-	assign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];
++    localparam integer ROWS = DEPTH / 2;
++    localparam integer ROW_W = AW > 1 ? AW - 1 : 1;
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_even [0:ROWS - 1];
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_odd [0:ROWS - 1];
++    wire [ROW_W - 1:0] even_row, odd_row, write_row;
++    wire push_even = !i_reset && i_push && !tail[0];
++    wire push_odd = !i_reset && i_push && tail[0];
++    wire [67:0] push_payload = {i_address, i_data, i_ben};
++    reg [67:0] even_payload, odd_payload, bypass_payload;
++    reg bypass_even, bypass_odd;
++
++    // After this edge the head is head + i_take. Its two adjacent slots
++    // always have opposite parity. Their read rows round up for even and
++    // down for odd. Reset instead prepares slots zero and one.
++    generate
++        if (AW > 1) begin : g_rows
++            wire [ROW_W - 1:0] head_row = head[AW - 1:1];
++            assign even_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] | i_take};
++            assign odd_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] & i_take};
++            assign write_row = tail[AW - 1:1];
++        end else begin : g_one_row
++            assign even_row = 1'b0;
++            assign odd_row = 1'b0;
++            assign write_row = 1'b0;
++        end
++    endgenerate
++
++    always @(posedge i_clk) begin
++        if (push_even)
++            entries_even[write_row] <= push_payload;
++        if (push_odd)
++            entries_odd[write_row] <= push_payload;
++        even_payload <= entries_even[even_row];
++        odd_payload <= entries_odd[odd_row];
++
++        // A push that fills either prepared slot supplies its registered
++        // data independently of the RAM's mixed-port collision output.
++        if (push_even || push_odd)
++            bypass_payload <= push_payload;
++        bypass_even <= push_even && write_row == even_row;
++        bypass_odd <= push_odd && write_row == odd_row;
++    end
++
++    // ACK can still choose the already prepared successor in this cycle.
++    // The unchanged CYC expression below excludes pushes on this edge.
++    wire select_odd = head[0] ^ i_take;
++    wire select_bypass = select_odd ? bypass_odd : bypass_even;
++    assign {o_address_nxt, o_data_nxt, o_ben_nxt} =
++        select_bypass ? bypass_payload : (select_odd ? odd_payload : even_payload);
+ 	assign o_cyc_nxt = count > {{AW {1'b0}}, i_take};
+ 	assign o_busy = count != 0;
+ 	always @(*) begin
+@@ -13169,7 +13290,6 @@ module ngage2_zap_store_queue (
+ 			count <= count_nxt;
+ 			o_full <= count_nxt == DEPTH;
+ 			if (i_push) begin
+-				entries[tail] <= {i_address, i_data, i_ben};
+ 				tail <= tail + 1'b1;
+ 			end
+ 			if (i_take)
+diff --git a/rtl/ngage_mmc_card.v b/rtl/ngage_mmc_card.v
+index 2c3325839247749391153c6c9f3fb4d284dfe5c8..4e8bd47b1438f72b139354da05154ad8928c3395 100644
+--- a/rtl/ngage_mmc_card.v
++++ b/rtl/ngage_mmc_card.v
+@@ -284,7 +284,7 @@ module ngage_mmc_card #(
+     // buffer: 8 KB (16 x 512-byte sector slots):
+     //   slots  0..11: three 2 KB (4-sector) quarters for aligned 4 KB streaming chunks
+     //   slots 12..15: four 512-byte slots reserved for CMD17 metadata, writes, and sidecar
+-    reg [22:0] tag[0:15];
++    reg [22:0] metadata_tag[12:15];
+     reg [15:0] tvalid, tzero;
+     reg [1:0] m_repl;  // round-robin index (0..3) for metadata slots 12..15
+     reg [1:0] w_m_idx;  // metadata slot (0..3) used by the active write
+@@ -375,8 +375,9 @@ module ngage_mmc_card #(
+     // pipelined across four lightweight register stages so that no path from a
+     // tag or slot register passes through an adder and a compare in one clock:
+     //   stage 0 (s0_*): candidate sector numbers (adders only)
+-    //   stage 1 (s1_*): modulo-3 slot indices and per-slot tag compares in parallel
+-    //   stage 2 (s2_*): 1-bit slot-hit muxes and miss priority selection
++    //   stage 1 (s1_*): stream tag RAM reads at modulo-3 slot indices,
++    //                    in parallel with associative metadata tag compares
++    //   stage 2 (s2_*): selected stream tag compares and miss priority selection
+     //   stage 3 (want*): HPS request parameters (chunk quarters and block count)
+     // The results are used only once the inputs have stayed the same for all
+     // four stages (settle == 0).
+@@ -386,8 +387,9 @@ module ngage_mmc_card #(
+     reg [22:0] s1_rlo, s1_rhi, s1_pchunk;
+     reg [3:0] s1_srlo, s1_srhi, s1_spchunk;
+     reg s1_act, s1_multi, s1_pc_win, s1_pc_in;
+-    reg [15:0] s1_eq_lo, s1_eq_hi;
+-    reg [11:0] s1_eq_pc;
++    reg [15:12] s1_eq_lo, s1_eq_hi;
++    reg [11:0] s1_stream_valid;
++    reg [2:0] s1_forward, s1_forward_match;
+ 
+     reg have_lo, have_hi;
+     reg [3:0] slot_lo, slot_hi;
+@@ -425,15 +427,56 @@ module ngage_mmc_card #(
+     wire [22:0] w_rhi = sec_of(d_addr + {23'd0, bl} - 33'd1);
+     wire [22:0] w_pchunk = {w_rlo[22:3] + 20'd1, 3'b000};
+ 
+-    wire s2_slo_ok = s1_eq_lo[s1_srlo];
++    wire [3:0] stream_read_slot[0:2];
++    wire [22:0] stream_read_sector[0:2], stream_read_tag[0:2];
++    wire [2:0] stream_tag_match;
++    assign stream_read_sector[0] = s0_rlo;
++    assign stream_read_sector[1] = s0_rhi;
++    assign stream_read_sector[2] = s0_pchunk;
++
++    // Publish tags logically on the original edge. The physical write is
++    // delayed one clock, so a simultaneous lookup forwards that pending
++    // tag and never depends on the RAM's mixed-port collision data.
++    reg        stream_write_pending = 0;
++    reg [ 3:0] stream_write_slot;
++    reg [22:0] stream_write_tag;
++    wire stream_publish, stream_zero, book_request;
++
++    genvar stream_port;
++    generate
++        for (stream_port = 0; stream_port < 3; stream_port = stream_port + 1) begin : stream_tags
++            assign stream_read_slot[stream_port] = s_slot(stream_read_sector[stream_port]);
++            ngage_bram #(
++                .AW         (4),
++                .DW         (23),
++                .READ_ONLY_B(1)
++            ) tags (
++                .clk   (clk),
++                .addr_a(stream_write_slot),
++                .data_a(stream_write_tag),
++                .we_a  (stream_write_pending),
++                .q_a   (),
++                .addr_b(stream_read_slot[stream_port]),
++                .data_b(23'b0),
++                .we_b  (1'b0),
++                .q_b   (stream_read_tag[stream_port])
++            );
++        end
++    endgenerate
++
++    assign stream_tag_match[0] = s1_forward[0] ? s1_forward_match[0] : stream_read_tag[0] == s1_rlo;
++    assign stream_tag_match[1] = s1_forward[1] ? s1_forward_match[1] : stream_read_tag[1] == s1_rhi;
++    assign stream_tag_match[2] = s1_forward[2] ? s1_forward_match[2] : stream_read_tag[2] == s1_pchunk;
++
++    wire s2_slo_ok = s1_stream_valid[s1_srlo] && stream_tag_match[0];
+     wire s2_mlo_ok = |s1_eq_lo[15:12];
+     wire s2_has_lo = s1_multi ? s2_slo_ok : (s2_slo_ok || s2_mlo_ok);
+ 
+-    wire s2_shi_ok = s1_eq_hi[s1_srhi];
++    wire s2_shi_ok = s1_stream_valid[s1_srhi] && stream_tag_match[1];
+     wire s2_mhi_ok = |s1_eq_hi[15:12];
+     wire s2_has_hi = s1_multi ? s2_shi_ok : (s2_shi_ok || s2_mhi_ok);
+ 
+-    wire s2_spc_ok = s1_eq_pc[s1_spchunk];
++    wire s2_spc_ok = s1_stream_valid[s1_spchunk] && stream_tag_match[2];
+ 
+     // From s2_want_slot[3:2] = mod3(s2_want[22:2]) and s2_want[2], derive the
+     // two quarters of the aligned 4 KB chunk {s2_want[22:3], 3'b000} without
+@@ -453,23 +496,25 @@ module ngage_mmc_card #(
+         s0_act    <= d_state != D_IDLE;
+         s0_multi  <= d_multi;
+ 
+-        // stage 1: modulo-3 slot indices and per-slot tag compares in parallel
++        // stage 1: clock selected stream tags and compare all metadata tags
+         s1_rlo <= s0_rlo;
+         s1_rhi <= s0_rhi;
+         s1_pchunk <= s0_pchunk;
+-        s1_srlo <= s_slot(s0_rlo);
+-        s1_srhi <= s_slot(s0_rhi);
+-        s1_spchunk <= s_slot(s0_pchunk);
++        s1_srlo <= stream_read_slot[0];
++        s1_srhi <= stream_read_slot[1];
++        s1_spchunk <= stream_read_slot[2];
+         s1_act <= s0_act;
+         s1_multi <= s0_multi;
+         s1_pc_win  <= s0_multi && s0_rlo[2] && (s0_rhi[22:2] == s0_rlo[22:2]) && (s0_rlo[2:0] != 3'd7);
+         s1_pc_in <= ({9'd0, s0_pchunk} < nblk);
+-        for (pipe_i = 0; pipe_i < 16; pipe_i = pipe_i + 1) begin
+-            s1_eq_lo[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_rlo);
+-            s1_eq_hi[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_rhi);
++        s1_stream_valid <= tvalid[11:0];
++        for (pipe_i = 0; pipe_i < 3; pipe_i = pipe_i + 1) begin
++            s1_forward[pipe_i] <= stream_write_pending && stream_read_slot[pipe_i] == stream_write_slot;
++            s1_forward_match[pipe_i] <= stream_write_tag == stream_read_sector[pipe_i];
+         end
+-        for (pipe_i = 0; pipe_i < 12; pipe_i = pipe_i + 1) begin
+-            s1_eq_pc[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_pchunk);
++        for (pipe_i = 12; pipe_i < 16; pipe_i = pipe_i + 1) begin
++            s1_eq_lo[pipe_i] <= tvalid[pipe_i] && (metadata_tag[pipe_i] == s0_rlo);
++            s1_eq_hi[pipe_i] <= tvalid[pipe_i] && (metadata_tag[pipe_i] == s0_rhi);
+         end
+ 
+         // stage 2: 1-bit slot-hit muxes and miss priority selection
+@@ -605,6 +650,21 @@ module ngage_mmc_card #(
+     wire [22:0] w_sec = sec_of(w_addr);
+     wire [40:0] file_bytes = {nblk, 9'd0};
+     wire [22:0] h_stream_sec = {h_lba[22:3], sd_buff_addr[10:8]};
++    assign stream_publish = sd_buff_wr && h_state != H_IDLE && !h_wr && !h_meta &&
++                            sd_buff_addr[12:11] == 2'b00 && sd_buff_addr[7:0] == 8'hFF;
++    assign book_request = d_state != D_IDLE && bk_ok && want_v && allow_fetch &&
++                          h_state == H_IDLE && !h_done && l_state == L_READY;
++    assign stream_zero = book_request && want_oor && d_multi;
++    always @(posedge clk) begin
++        stream_write_pending <= stream_publish || stream_zero;
++        if (stream_zero) begin
++            stream_write_slot <= want_slot;
++            stream_write_tag  <= want;
++        end else if (stream_publish) begin
++            stream_write_slot <= h_cur_slot;
++            stream_write_tag  <= h_stream_sec;
++        end
++    end
+ 
+     // Precomputed read byte offsets, write slot/quarter indices, and HPS
+     // metadata invalidation matches (all inputs are stable at least several
+@@ -624,8 +684,8 @@ module ngage_mmc_card #(
+         w_q       <= mod3(w_sec[22:2]);
+         w_in_file <= !w_addr[32] && ({8'd0, w_addr} + 41'd512 <= file_bytes);
+         for (pre_m = 0; pre_m < 4; pre_m = pre_m + 1) begin
+-            w_m_hit[pre_m]   <= tvalid[12+pre_m] && (tag[12+pre_m] == w_sec);
+-            h_m_match[pre_m] <= (tag[12+pre_m] == h_stream_sec);
++            w_m_hit[pre_m]   <= tvalid[12+pre_m] && (metadata_tag[12+pre_m] == w_sec);
++            h_m_match[pre_m] <= (metadata_tag[12+pre_m] == h_stream_sec);
+         end
+     end
+ 
+@@ -697,8 +757,7 @@ module ngage_mmc_card #(
+         bk_touch <= 1'b0;
+ 
+         // ---------------- HPS transfers ----------------
+-        if (sd_buff_wr && (h_state != H_IDLE) && !h_wr && !h_meta && sd_buff_addr[12:11] == 2'b00 && sd_buff_addr[7:0] == 8'hFF) begin
+-            tag[h_cur_slot]    <= h_stream_sec;
++        if (stream_publish) begin
+             tvalid[h_cur_slot] <= 1'b1;
+             tzero[h_cur_slot]  <= 1'b0;
+             for (main_m = 0; main_m < 4; main_m = main_m + 1)
+@@ -717,10 +776,10 @@ module ngage_mmc_card #(
+                 h_state <= H_IDLE;
+                 h_done  <= 1'b1;
+                 if (!h_wr && h_meta) begin
+-                    tag[{2'b11, h_m_idx}]    <= h_lba[22:0];
+-                    tvalid[{2'b11, h_m_idx}] <= 1'b1;
+-                    tzero[{2'b11, h_m_idx}]  <= 1'b0;
+-                    bk_touch                 <= 1'b1;
++                    metadata_tag[{2'b11, h_m_idx}] <= h_lba[22:0];
++                    tvalid[{2'b11, h_m_idx}]       <= 1'b1;
++                    tzero[{2'b11, h_m_idx}]        <= 1'b0;
++                    bk_touch                       <= 1'b1;
+                 end
+             end
+             default: ;
+@@ -865,18 +924,17 @@ module ngage_mmc_card #(
+         end
+         // aligned 4 KB chunks for CMD18 (clamped to nblk), single sectors in
+         // reserved metadata slots 12..15 for CMD17
+-        if (d_state != D_IDLE && bk_ok && want_v && allow_fetch && h_state == H_IDLE && !h_done && l_state == L_READY) begin
++        if (book_request) begin
+             bk_touch <= 1'b1;
+             if (want_oor) begin
+                 if (d_multi) begin
+-                    tag[want_slot]    <= want;
+                     tvalid[want_slot] <= 1'b1;
+                     tzero[want_slot]  <= 1'b1;
+                 end else begin
+-                    tag[{2'b11, m_repl}]    <= want;
+-                    tvalid[{2'b11, m_repl}] <= 1'b1;
+-                    tzero[{2'b11, m_repl}]  <= 1'b1;
+-                    m_repl                  <= m_repl + 2'd1;
++                    metadata_tag[{2'b11, m_repl}] <= want;
++                    tvalid[{2'b11, m_repl}]       <= 1'b1;
++                    tzero[{2'b11, m_repl}]        <= 1'b1;
++                    m_repl                        <= m_repl + 2'd1;
+                 end
+             end else if (d_multi) begin
+                 h_state   <= H_REQ;
+@@ -1093,12 +1151,12 @@ module ngage_mmc_card #(
+                 end
+                 // Never turn a lost payload bound into successful programming.
+                 if ((w_issued && h_done) || !w_in_file) begin
+-                    w_issued                 <= 1'b0;
+-                    dat_oe                   <= 1'b0;
+-                    tag[{2'b11, w_m_idx}]    <= w_sec;
+-                    tvalid[{2'b11, w_m_idx}] <= w_in_file;
+-                    tzero[{2'b11, w_m_idx}]  <= 1'b0;
+-                    bk_touch                 <= 1'b1;
++                    w_issued                       <= 1'b0;
++                    dat_oe                         <= 1'b0;
++                    metadata_tag[{2'b11, w_m_idx}] <= w_sec;
++                    tvalid[{2'b11, w_m_idx}]       <= w_in_file;
++                    tzero[{2'b11, w_m_idx}]        <= 1'b0;
++                    bk_touch                       <= 1'b1;
+                     if (!w_in_file) err[E_OUT_OF_RANGE] <= 1'b1;
+                     if (!w_multi || w_stop12) begin
+                         w_state  <= W_OFF;
+diff --git a/tests/cpu/arm9v2_board/fetch_ram_tb.sv b/tests/cpu/arm9v2_board/fetch_ram_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..0e8230891508b80d34c124e6929278fe72ec4d91
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/fetch_ram_tb.sv
+@@ -0,0 +1,193 @@
++`timescale 1ns / 1ps
++
++module fetch_ram_tb;
++  reg clk = 0, reset = 1;
++  reg ack = 0, error = 0, retry = 0, ready = 0;
++  reg fill_pending = 0, fill_done = 0, fill_fault = 0;
++  reg redirect = 0, redirect_thumb = 0;
++  reg [31:0] redirect_target = 0;
++  reg [31:0] data = 0;
++  reg update = 0;
++  reg [31:0] update_pc = 0, update_target = 0;
++  reg update_taken = 0;
++  reg [1:0] update_kind = 0;
++
++  wire [102:0] fetch_state[0:1];
++  for (genvar leg = 0; leg < 2; leg++) begin : g_fetch
++    ngage2_arm9v2_fetch #(
++        .BRAM_QUEUE(leg == 1)
++    ) dut (
++        .i_clk(clk),
++        .i_reset(reset),
++        .i_redirect(redirect),
++        .i_redirect_thumb(redirect_thumb),
++        .i_redirect_target(redirect_target),
++        .i_redirect_pointer(3'd0),
++        .i_redirect_count(4'd0),
++        .i_redirect_action(2'd0),
++        .i_redirect_link(32'd0),
++        .i_predictor_clear(1'b0),
++        .i_update(update),
++        .i_update_pc(update_pc),
++        .i_update_target(update_target),
++        .i_update_thumb(redirect_thumb),
++        .i_update_taken(update_taken),
++        .i_update_hit(1'b0),
++        .i_update_state(2'd1),
++        .i_update_kind(update_kind),
++        .i_data(data),
++        .i_ack(ack),
++        .i_error(error),
++        .i_retry(retry),
++        .i_fill_pending(fill_pending),
++        .i_fill_done(fill_done),
++        .i_fill_fault(fill_fault),
++        .i_ready(ready),
++        .o_address_nxt(fetch_state[leg][102:71]),
++        .o_address_check(fetch_state[leg][70:39]),
++        .o_address(fetch_state[leg][38:7]),
++        .o_request(fetch_state[leg][6]),
++        .o_stall(fetch_state[leg][5]),
++        .o_dbg_fetch(fetch_state[leg][4:3]),
++        .o_valid(fetch_state[leg][2]),
++        .o_thumb(fetch_state[leg][1]),
++        .o_fault(fetch_state[leg][0])
++    );
++  end
++
++  integer cycles = 0;
++  integer empty_pushes = 0, one_entry_turns = 0, full_stalls = 0, wrapped_pushes = 0;
++  integer bypassed_reads = 0, fault_responses = 0, fills = 0;
++  integer redirect_stalls = 0, retry_responses = 0;
++  wire [3:0] count = g_fetch[1].dut.count;
++  wire push = g_fetch[1].dut.push;
++  wire pop = g_fetch[1].dut.pop;
++  always @(posedge clk) begin
++    cycles <= cycles + 1;
++    if (!reset) begin
++      // The word and metadata are architecturally visible only while
++      // owned. Include a pending head in the comparison before it can pop.
++      if (fetch_state[0][102:2] !== fetch_state[1][102:2] ||
++          {g_fetch[0].dut.count, g_fetch[0].dut.push, g_fetch[0].dut.pop} !==
++          {count, push, pop})
++        $fatal(1, "Fetch request, admission or dequeue changed at cycle %0d", cycles);
++      if (count != 0 && g_fetch[0].dut.head_packet !== g_fetch[1].dut.head_packet)
++        $fatal(1, "Owned fetch packet changed at cycle %0d", cycles);
++      if (count == 0 && push) empty_pushes <= empty_pushes + 1;
++      if (count == 1 && push && pop) one_entry_turns <= one_entry_turns + 1;
++      if (count == 8 && !ready) full_stalls <= full_stalls + 1;
++      if (push && g_fetch[1].dut.tail == 7) wrapped_pushes <= wrapped_pushes + 1;
++      if (g_fetch[1].dut.g_fetch_ram.bypass_prefetch && count > 1)
++        bypassed_reads <= bypassed_reads + 1;
++      if (pop && fetch_state[1][0]) fault_responses <= fault_responses + 1;
++      if (fill_done && count > 1) fills <= fills + 1;
++      if (redirect && fetch_state[1][5]) redirect_stalls <= redirect_stalls + 1;
++      if (g_fetch[1].dut.retry) retry_responses <= retry_responses + 1;
++    end
++  end
++
++  task step;
++    data = data + 32'h01011001;
++    #1 clk = 1;
++    #1 clk = 0;
++    #1;
++  endtask
++
++  task empty_queue;
++    ack   = 0;
++    ready = 1;
++    repeat (12) step();
++    if (count != 0) $fatal(1, "Queue did not drain");
++  endtask
++
++  task redirect_to(input logic thumb, input logic [31:0] target);
++    redirect = 1;
++    redirect_thumb = thumb;
++    redirect_target = target;
++    step();
++    redirect = 0;
++    if (count != 0) $fatal(1, "Redirect left old queue entries visible");
++  endtask
++
++  reg [31:0] pattern = 32'h7ae128fd;
++  initial begin
++    step();
++    reset = 0;
++    ack   = 1;
++    ready = 0;
++    repeat (56) step();
++    if (count != 8) $fatal(1, "Fetch queue capacity changed");
++    ready = 1;
++    repeat (96) step();
++
++    // Sustained turns with one and two entries exercise both bypass paths.
++    empty_queue();
++    ack = 1;
++    repeat (36) step();
++    if (count != 1) $fatal(1, "One-entry fall-through changed cadence");
++    ready = 0;
++    step();
++    ready = 1;
++    repeat (48) step();
++    if (count != 2) $fatal(1, "Concurrent pop/push changed cadence");
++
++    // Broadcast fill completion to several pending heads, including
++    // a new push on the same edge, then consume all faulted packets.
++    empty_queue();
++    fill_pending = 1;
++    ready = 0;
++    ack = 1;
++    repeat (4) step();
++    fill_done  = 1;
++    fill_fault = 1;
++    step();
++    fill_pending = 0;
++    fill_done = 0;
++    fill_fault = 0;
++    empty_queue();
++
++    // Wrap the fetch epoch repeatedly while an old F2 response is stalled.
++    ack = 0;
++    repeat (7) begin
++      redirect_to(1, 32'h0a008002 + 4 * cycles);
++      repeat (3) step();
++    end
++    ack = 1;
++    repeat (4) step();
++    retry = 1;
++    step();
++    retry = 0;
++
++    // Deterministic ARM/Thumb, predictor and bus activity with variable
++    // consumer and cache stalls. Redirect and retry remain order-sensitive.
++    repeat (8192) begin
++      pattern = {pattern[30:0], pattern[31] ^ pattern[21] ^ pattern[1] ^ pattern[0]};
++      ack = |pattern[1:0];
++      ready = &pattern[4:2] || pattern[19];
++      retry = &pattern[9:5];
++      error = &pattern[14:10];
++      redirect = &pattern[20:15];
++      redirect_thumb = pattern[22];
++      redirect_target = {pattern[31:1], 1'b0};
++      fill_pending = pattern[27];
++      fill_done = &pattern[26:23];
++      fill_fault = pattern[28];
++      update = &pattern[31:29];
++      update_pc = fetch_state[0][38:7];
++      update_target = {pattern[30:0], redirect_thumb};
++      update_taken = pattern[22];
++      update_kind = pattern[11:10];
++      step();
++    end
++
++    if (empty_pushes == 0 || one_entry_turns < 30 || full_stalls < 40 || wrapped_pushes < 16 ||
++        bypassed_reads < 32 || fills == 0 || fault_responses < 4 ||
++        redirect_stalls < 7 || retry_responses == 0)
++      $fatal(1, "Missing fetch queue coverage");
++    $display(
++        "PASS fetch RAM equivalence cycles=%0d empty=%0d turns=%0d full=%0d wraps=%0d bypass=%0d fills=%0d faults=%0d redirect_stalls=%0d retries=%0d",
++        cycles, empty_pushes, one_entry_turns, full_stalls, wrapped_pushes, bypassed_reads, fills,
++        fault_responses, redirect_stalls, retry_responses);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-fetch-ram.sh b/tests/cpu/arm9v2_board/run-fetch-ram.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..3a09506d65d17b9bfd90dbd2c991560a59ade1ce
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-fetch-ram.sh
+@@ -0,0 +1,19 @@
++#!/bin/sh
++set -eu
++name="${1:?provide a fresh run name}"
++case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
++out="build/sim/$name"
++mkdir "$out"
++
++simulate() {
++    entrypoint=$1
++    shift
++    docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++        -w /work --entrypoint "$entrypoint" jotego/simulator:arm64 "$@"
++}
++
++simulate verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++    --top-module fetch_ram_tb --Mdir "$out/obj" rtl/arm9v2/arm925t_phone.v \
++    rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/fetch_ram_tb.sv > "$out/build.log" 2>&1
++simulate "/work/$out/obj/Vfetch_ram_tb" > "$out/run.log" 2>&1
++rg '^PASS fetch RAM equivalence' "$out/run.log"
+diff --git a/tests/cpu/arm9v2_ras/run.sh b/tests/cpu/arm9v2_ras/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..f5af48a0f9899df53744a327f46dca6e0d8fb504
+--- /dev/null
++++ b/tests/cpu/arm9v2_ras/run.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=build/sim/arm9v2-ras
++mkdir -p "$out"
++
++git show 29479fecc32fe8a787378222f1ac2010a0eaf8a7:rtl/arm9v2/arm925t_phone.v | awk '
++    /^module ngage2_arm9v2_predict / { active = 1; sub(/ngage2_arm9v2_predict/, "reference_predict") }
++    active { print }
++    active && /^endmodule/ { exit }
++' > "$out/reference.v"
++grep -q '^module reference_predict' "$out/reference.v"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec '
++        src=tests/cpu/arm9v2_ras
++        out=build/sim/arm9v2-ras
++        for mode in 1 0; do
++            verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint --top-module tb \
++                -GTOP_REGISTER="$mode" --Mdir "$out/obj-$mode" rtl/arm9v2/arm925t_phone.v \
++                "$out/reference.v" "$src/tb.sv" > "$out/build-$mode.log" 2>&1
++            "$out/obj-$mode/Vtb" > "$out/run-$mode.log" 2>&1
++            grep "^PASS" "$out/run-$mode.log"
++        done
++    '
+diff --git a/tests/cpu/arm9v2_ras/tb.sv b/tests/cpu/arm9v2_ras/tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..ea4ae643a9224ce388463fc7e9fbcf2bf0d01d7c
+--- /dev/null
++++ b/tests/cpu/arm9v2_ras/tb.sv
+@@ -0,0 +1,138 @@
++module tb;
++  parameter TOP_REGISTER = 1;
++  localparam [1:0] CALL = 1, RETURN = 2;
++  reg clk = 0, reset = 0, clear = 0;
++  reg lookup = 0, thumb = 0, accept = 0;
++  reg update = 0, repair = 0;
++  reg [31:0] pc = 0, repair_link = 0;
++  reg [2:0] repair_pointer = 0;
++  reg [3:0] repair_count = 0;
++  reg [1:0] kind = 0, action = 0;
++
++  wire [44:0] actual, expected;
++  `define PREDICT_PORTS(result) \
++    .i_clk(clk), .i_reset(reset), .i_clear(clear), .i_lookup(lookup), \
++    .i_pc(pc), .i_pc_redirect(pc), .i_pc_sequential(pc), \
++    .i_sel_redirect(1'b0), .i_sel_predicted(1'b0), .i_thumb(thumb), .i_accept(accept), \
++    .i_update(update), .i_update_pc(pc), .i_update_target(32'hd00df000), \
++    .i_update_thumb(thumb), .i_update_taken(1'b1), .i_update_hit(1'b0), \
++    .i_update_state(2'b10), .i_update_kind(kind), \
++    .i_repair(repair), .i_repair_pointer(repair_pointer), .i_repair_count(repair_count), \
++    .i_repair_action(action), .i_repair_link(repair_link), \
++    .o_hit(result[44]), .o_taken(result[43]), .o_target(result[42:11]), \
++    .o_state(result[10:9]), .o_kind(result[8:7]), \
++    .o_pointer(result[6:4]), .o_count(result[3:0])
++
++  ngage2_arm9v2_predict #(
++      .RAS_TOP_FF(TOP_REGISTER)
++  ) candidate (
++      `PREDICT_PORTS(actual)
++  );
++  reference_predict #(
++      .RAS_TOP_FF(TOP_REGISTER)
++  ) original (
++      `PREDICT_PORTS(expected)
++  );
++  `undef PREDICT_PORTS
++
++  integer edges = 0;
++  integer i, p, n, a, c;
++
++  task tick;
++    begin
++      #1 clk = 1;
++      #1 clk = 0;
++      #1;
++      edges = edges + 1;
++      if (actual !== expected)
++        $fatal(1, "edge %0d predicted %h, expected %h", edges, actual, expected);
++      if (TOP_REGISTER && actual[3:0] != 0 && candidate.ras_top !== original.ras_top)
++        $fatal(1, "edge %0d top %h, expected %h", edges, candidate.ras_top, original.ras_top);
++    end
++  endtask
++
++  task select_branch;
++    input take_return, is_thumb;
++    begin
++      thumb = is_thumb;
++      pc = take_return ? (is_thumb ? 32'h402 : 32'h300) : (is_thumb ? 32'h202 : 32'h100);
++      kind = take_return ? RETURN : CALL;
++    end
++  endtask
++
++  task train;
++    begin
++      update = 1;
++      lookup = 1;
++      for (i = 0; i < 4; i = i + 1) begin
++        select_branch(i[1], i[0]);
++        tick;
++      end
++      update = 0;
++    end
++  endtask
++
++  initial begin
++    reset = 1;
++    tick;
++    reset = 0;
++    train;
++    // Saturation and underflow with consecutive ARM/Thumb calls and returns.
++    for (i = 0; i < 32; i = i + 1) begin
++      select_branch(i[4], i[0]);
++      lookup = 1;
++      tick;
++      lookup = 0;
++      accept = 1;
++      tick;
++      accept = 0;
++      if (i == 15 && actual[3:0] != 8 || i == 31 && actual[3:0] != 0)
++        $fatal(1, "Depth did not saturate/empty at edge %0d", edges);
++    end
++
++    // Advance a new lookup on every cycle while accepting the previous one.
++    lookup = 1;
++    for (i = 0; i < 32; i = i + 1) begin
++      select_branch(i[4], i[0]);
++      accept = i != 0;
++      tick;
++    end
++    lookup = 0;
++    accept = 1;
++    tick;
++    accept = 0;
++    if (actual[3:0] != 0) $fatal(1, "Consecutive returns failed to empty stack");
++
++    // Every pointer, depth, repair action, and simultaneous control combination.
++    // Insert known nonidentical entries before repairs to make addressing errors visible.
++    for (p = 0; p < 8; p = p + 1)
++    for (n = 0; n <= 8; n = n + 1)
++    for (a = 0; a < 4; a = a + 1)
++    for (c = 0; c < 32; c = c + 1) begin
++      for (i = 0; i < 8; i = i + 1) begin
++        repair = 1;
++        action = CALL;
++        repair_pointer = i[2:0];
++        repair_count = {1'b0, i[2:0]};
++        repair_link = 32'hf1000000 + 32'(i * 4) + 32'(i[0]);
++        tick;
++      end
++      select_branch(1, c[0]);
++      lookup = 1;
++      tick;
++      {reset, clear, repair, accept, lookup} = c[4:0];
++      action = a[1:0];
++      repair_pointer = p[2:0];
++      repair_count = n[3:0];
++      repair_link = 32'hdec0dead ^ edges;
++      tick;
++      {reset, clear, repair, accept, lookup} = 0;
++      tick;
++      if (c[4] || c[3]) train;
++    end
++    $display(
++        "PASS RAS registered mode=%0d, %0d matched edges, all repair pointers/depths/actions and control priorities",
++        TOP_REGISTER, edges);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_store_queue/ordering.patch b/tests/cpu/arm9v2_store_queue/ordering.patch
+new file mode 100644
+index 0000000000000000000000000000000000000000..ebfc2c16ddf5c9569f89f379552e70956f71116c
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/ordering.patch
+@@ -0,0 +1,78 @@
++--- a/tests/cpu/arm9v2_board/contract.S
+++++ b/tests/cpu/arm9v2_board/contract.S
++@@ -148,6 +148,27 @@
++     cmp r6,#2
++     bne fail
++ 
+++    // Post a sequence of mixed-width stores to a cold line. A dependent
+++    // load must wait for them before starting its line refill.
+++    ldr r11,=0x0a006400
+++    ldr r4,=0x11223344
+++    mov r5,#0xa8
+++    mov r6,#0x3c
+++    str r4,[r11]
+++    strb r5,[r11,#2]
+++    strh r6,[r11]
+++    ldr r9,[r11]
+++    ldr r10,=0x11a8003c
+++    cmp r9,r10
+++    bne fail
+++
+++    // Drain a pending write to a second cold line using CP15's barrier.
+++    str r4,[r11,#32]
+++    mcr p15,0,r4,c7,c10,4
+++    ldr r9,[r11,#32]
+++    cmp r9,r4
+++    bne fail
+++
++     // Read-allocate both ways before dirtying them. With W enabled the
++     // donor can post a store miss without installing a line.
++     ldr r11,=0x0a008000
++--- a/tests/cpu/arm9v2_board/contract.v
+++++ b/tests/cpu/arm9v2_board/contract.v
++@@ -136,6 +136,36 @@
++ 
++   reg [31:0] rom[0:2047], ram[0:16383];
++   integer cycle = 0, slow_delay = 0, ram_delay = 0, wait_words = 0;
+++`define POST_CACHE cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache
+++  integer post_accepts = 0, post_drains = 0;
+++  reg posted_refill_first = 0, posted_refill_second = 0;
+++  always @(posedge clk) if (!reset) begin
+++    if (!posted_refill_first && ((line && line_addr == 32'h0a006400) ||
+++        (ram_accept && !ram_write && ram_address == 32'h0a006400))) begin
+++      if (post_drains != 3) $fatal(1, "Dependent refill overtook %0d posted writes", 3-post_drains);
+++      posted_refill_first <= 1;
+++      $display("POST refill cycle=%0d address=0a006400 drained=%0d", cycle, post_drains);
+++    end
+++    if (!posted_refill_second && ((line && line_addr == 32'h0a006420) ||
+++        (ram_accept && !ram_write && ram_address == 32'h0a006420))) begin
+++      if (post_drains != 4) $fatal(1, "Refill before posted write barrier drained");
+++      posted_refill_second <= 1;
+++      $display("POST refill cycle=%0d address=0a006420 drained=%0d", cycle, post_drains);
+++    end
+++    if (`POST_CACHE.post_push && `POST_CACHE.tlb_phy_addr[31:8] == 24'h0a0064) begin
+++      post_accepts <= post_accepts + 1;
+++      $display("POST push cycle=%0d address=%08h data=%08h ben=%01h",
+++               cycle, `POST_CACHE.tlb_phy_addr, `POST_CACHE.i_dat, `POST_CACHE.i_ben);
+++    end
+++    if ((`POST_CACHE.wb_ack[3] || `POST_CACHE.wb_err[3]) &&
+++        `POST_CACHE.o_wb_adr[31:8] == 24'h0a0064) begin
+++      post_drains <= post_drains + 1;
+++      $display("POST take cycle=%0d address=%08h data=%08h ben=%01h error=%0d",
+++               cycle, `POST_CACHE.o_wb_adr, `POST_CACHE.o_wb_dat,
+++               `POST_CACHE.o_wb_sel, `POST_CACHE.wb_err[3]);
+++    end
+++  end
+++`undef POST_CACHE
++   integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
++   integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
++   integer translation_walks = 0, prefetch_aborts = 0;
++@@ -333,6 +363,8 @@
++             end
++           end
++           32'hf0000000: begin
+++            if (post_accepts != 4 || post_drains != 4 || !posted_refill_first || !posted_refill_second)
+++              $fatal(1, "Posted store coverage accepts=%d drains=%d", post_accepts, post_drains);
++             if (expected_section_reads != 0 && section_checks != 2)
++               $fatal(1, "Both section-index phases must complete");
++             if (capacity_markers != 2 || ram[14'h2400] != 32'h0a009000)
+diff --git a/tests/cpu/arm9v2_store_queue/run-ordering.sh b/tests/cpu/arm9v2_store_queue/run-ordering.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..86323a94d9dcb9af826ef38f9fb405389bf5d172
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/run-ordering.sh
+@@ -0,0 +1,27 @@
++#!/bin/bash
++set -eu
++cd "$(dirname "$0")/../../.."
++root="$PWD"
++base=341a45421019398c2a44bf6f9ce79d312e0cdbac
++output=build/sim/arm9v2-store-ordering
++mkdir -p "$output"
++run_dir=$(mktemp -d "$output/run.XXXXXX")
++git archive "$base" rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/upstream/sim/stubs \
++    sim/programs/link.ld tests/cpu/arm9v2_board | tar -xf - -C "$run_dir"
++git show "$base:rtl/arm9v2/arm925t_phone.v" > "$run_dir/parent.v"
++cp rtl/arm9v2/arm925t_phone.v "$run_dir/candidate.v"
++
++cd "$run_dir"
++patch -s -p1 < "$root/tests/cpu/arm9v2_store_queue/ordering.patch"
++for leg in parent candidate; do
++    ARM9V2_NETLIST="$leg.v" ARM9V2_HALF_WRITEBACK=1 \
++        sh tests/cpu/arm9v2_board/run-contract.sh "$leg" > "contract-$leg.log" 2>&1
++done
++for case in burst-0-wait-0 burst-0-wait-5 burst-1-wait-0 burst-1-wait-5; do
++    reference="build/sim/arm9v2/contract-parent/$case.log"
++    candidate="build/sim/arm9v2/contract-candidate/$case.log"
++    test "$(grep -c '^POST ' "$candidate")" -eq 10
++    diff -u <(grep -E '^(POST|PASS) ' "$reference") <(grep -E '^(POST|PASS) ' "$candidate")
++    grep '^PASS ' "$candidate"
++done
++printf 'PASS posted-store issue and drain ordering in %s\n' "$run_dir"
+diff --git a/tests/cpu/arm9v2_store_queue/run.sh b/tests/cpu/arm9v2_store_queue/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..6b767630bfbd46f0268e6758893b345fe16ec5d0
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/run.sh
+@@ -0,0 +1,44 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=build/sim/arm9v2-store-queue
++mkdir -p "$out"
++module=ngage2_zap_store_queue
++git show 341a45421019398c2a44bf6f9ce79d312e0cdbac:rtl/arm9v2/arm925t_phone.v |
++    awk -v name="$module" '
++        $1 == "module" && $2 == name { active = 1; sub(name, "queue_reference") }
++        active { print }
++        active && /^endmodule/ { exit }
++    ' > "$out/reference.v"
++grep -q '^module queue_reference' "$out/reference.v"
++awk -v name="$module" '
++    $1 == "module" && $2 == name { active = 1 }
++    active { print }
++    active && /^endmodule/ { exit }
++' rtl/arm9v2/arm925t_phone.v > "$out/candidate.v"
++grep -q '^module ngage2_zap_store_queue' "$out/candidate.v"
++
++python3 - "$out" <<'PY'
++from pathlib import Path
++import sys
++
++out = Path(sys.argv[1])
++source = (out / 'candidate.v').read_text()
++for bank in ('even', 'odd'):
++    expression = f'{bank}_payload <= entries_{bank}[{bank}_row];'
++    assert source.count(expression) == 1
++    source = source.replace(expression, f'{bank}_payload <= push_{bank} && write_row == {bank}_row'
++                            f" ? 68'bx : entries_{bank}[{bank}_row];")
++(out / 'collision.v').write_text(source)
++PY
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec '
++        out=build/sim/arm9v2-store-queue
++        for model in candidate collision; do
++            iverilog -g2005 -s queue_tb -o "$out/$model" \
++                "$out/reference.v" "$out/$model.v" tests/cpu/arm9v2_store_queue/tb.v
++            vvp "$out/$model" > "$out/$model.log"
++            grep "^PASS AW=" "$out/$model.log"
++        done
++    '
+diff --git a/tests/cpu/arm9v2_store_queue/tb.v b/tests/cpu/arm9v2_store_queue/tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..fe1abfd50e79431b9207c7fe3ea9576798aa3a58
+--- /dev/null
++++ b/tests/cpu/arm9v2_store_queue/tb.v
+@@ -0,0 +1,207 @@
++`timescale 1ns / 1ps
++
++module queue_case #(
++    parameter AW = 2,
++    parameter RANDOM_CYCLES = 100000
++) (
++    output reg done = 0
++);
++  localparam DEPTH = 1 << AW;
++
++  reg clk = 0, reset = 1, push = 0, take = 0;
++  reg [67:0] input_payload;
++  wire full_ref, busy_ref, cyc_ref;
++  wire full_ram, busy_ram, cyc_ram;
++  wire [67:0] payload_ref, payload_ram;
++
++  queue_reference #(
++      .AW(AW)
++  ) ref_queue (
++      .i_clk(clk),
++      .i_reset(reset),
++      .i_push(push),
++      .i_take(take),
++      .i_address(input_payload[67:36]),
++      .i_data(input_payload[35:4]),
++      .i_ben(input_payload[3:0]),
++      .o_full(full_ref),
++      .o_busy(busy_ref),
++      .o_cyc_nxt(cyc_ref),
++      .o_address_nxt(payload_ref[67:36]),
++      .o_data_nxt(payload_ref[35:4]),
++      .o_ben_nxt(payload_ref[3:0])
++  );
++  ngage2_zap_store_queue #(
++      .AW(AW)
++  ) ram_queue (
++      .i_clk(clk),
++      .i_reset(reset),
++      .i_push(push),
++      .i_take(take),
++      .i_address(input_payload[67:36]),
++      .i_data(input_payload[35:4]),
++      .i_ben(input_payload[3:0]),
++      .o_full(full_ram),
++      .o_busy(busy_ram),
++      .o_cyc_nxt(cyc_ram),
++      .o_address_nxt(payload_ram[67:36]),
++      .o_data_nxt(payload_ram[35:4]),
++      .o_ben_nxt(payload_ram[3:0])
++  );
++
++  reg [67:0] scoreboard[0:DEPTH-1];
++  integer pending = 0;
++  integer cycle = 0;
++  integer checks = 0;
++  integer resets_nonempty = 0;
++  integer both_count = 0;
++  integer even_collision_count = 0;
++  integer odd_collision_count = 0;
++  integer seed = 32'h0010_6a11 ^ AW;
++
++  task compare;
++    begin
++      checks = checks + 1;
++      if ({full_ram, busy_ram, cyc_ram, payload_ram} !== {full_ref, busy_ref, cyc_ref, payload_ref})
++        $fatal(
++            1,
++            "AW=%0d cycle=%0d pending=%0d reset/push/take=%b%b%b RAM=%b%b%b:%h REF=%b%b%b:%h",
++            AW,
++            cycle,
++            pending,
++            reset,
++            push,
++            take,
++            full_ram,
++            busy_ram,
++            cyc_ram,
++            payload_ram,
++            full_ref,
++            busy_ref,
++            cyc_ref,
++            payload_ref
++        );
++      if ({full_ram, busy_ram, cyc_ram} !==
++                {pending == DEPTH, pending != 0, pending > (take ? 1 : 0)})
++        $fatal(1, "AW=%0d cycle=%0d full/busy/cyc differs from scoreboard", AW, cycle);
++      if (cyc_ram && payload_ram !== scoreboard[take ? 1 : 0])
++        $fatal(1, "AW=%0d cycle=%0d ordered store payload differs from scoreboard", AW, cycle);
++    end
++  endtask
++
++  task step;
++    input rst, enq, ack;
++    integer slot;
++    begin
++      reset = rst;
++      push = enq;
++      input_payload = {$random(seed), $random(seed), 4'b0} | (cycle & 15);
++      // Exercise even a late change of ACK without another memory clock.
++      take = 0;
++      #1;
++      if (cycle != 0) compare();
++      take = 1;
++      #1;
++      if (cycle != 0) compare();
++      take = ack;
++      #1;
++      if (cycle != 0) compare();
++
++      if (rst) begin
++        if (pending != 0) resets_nonempty = resets_nonempty + 1;
++        pending = 0;
++      end else begin
++        if ((enq && pending == DEPTH) || (ack && pending == 0))
++          $fatal(1, "illegal sampled FIFO inputs in test");
++        if (enq && ack) both_count = both_count + 1;
++        if (ack) begin
++          for (slot = 0; slot < DEPTH - 1; slot = slot + 1) scoreboard[slot] = scoreboard[slot+1];
++          pending = pending - 1;
++        end
++        if (enq) begin
++          scoreboard[pending] = input_payload;
++          pending = pending + 1;
++        end
++      end
++
++      clk   = 1;
++      cycle = cycle + 1;
++      #1;
++      if (ram_queue.bypass_even) even_collision_count = even_collision_count + 1;
++      if (ram_queue.bypass_odd) odd_collision_count = odd_collision_count + 1;
++      compare();
++      take = !ack;
++      #1;
++      compare();
++      clk = 0;
++      #1;
++    end
++  endtask
++
++  integer head_slot, occupancy, action, slot, random_control;
++  initial begin
++    // Test every legal sampled transition at each head index and occupancy.
++    // Populate distinct old slot values before resetting back to index zero.
++    for (head_slot = 0; head_slot < DEPTH; head_slot = head_slot + 1)
++    for (occupancy = 0; occupancy <= DEPTH; occupancy = occupancy + 1)
++    for (action = 0; action < 5; action = action + 1) begin
++      if (!(occupancy == 0 && (action == 1 || action == 3)) &&
++                        !(occupancy == DEPTH && (action == 2 || action == 3))) begin
++        step(1, 0, 0);
++        repeat (DEPTH) step(0, 1, 0);
++        repeat (DEPTH) step(0, 0, 1);
++        repeat (head_slot) begin
++          step(0, 1, 0);
++          step(0, 0, 1);
++        end
++        repeat (occupancy) step(0, 1, 0);
++        if (action == 4) step(1, 1, 1);
++        else step(0, action[1], action[0]);
++        // Carry on immediately, including after a full reset or
++        // a final take/new push that must leave a bubble.
++        step(0, pending < DEPTH, pending != 0);
++      end
++    end
++
++    // Cover backpressure, multi-entry queues, wrap and repeated warm resets.
++    repeat (RANDOM_CYCLES) begin
++      random_control = $random(seed);
++      if (random_control[9:2] == 0) step(1, random_control[1], random_control[0]);
++      else step(0, random_control[1] && pending < DEPTH, random_control[0] && pending != 0);
++    end
++    while (pending != 0) step(0, 0, 1);
++    if (resets_nonempty == 0 || both_count == 0 ||
++            even_collision_count == 0 || odd_collision_count == 0)
++      $fatal(1, "missing coverage");
++    $display(
++        "PASS AW=%0d cycles=%0d comparisons=%0d simultaneous=%0d nonempty_resets=%0d even_collisions=%0d odd_collisions=%0d",
++        AW, cycle, checks, both_count, resets_nonempty, even_collision_count, odd_collision_count);
++    done = 1;
++  end
++endmodule
++
++module queue_tb;
++  wire done1, done2, done3;
++  queue_case #(
++      .AW(1),
++      .RANDOM_CYCLES(25000)
++  ) small_queue (
++      done1
++  );
++  queue_case #(
++      .AW(2),
++      .RANDOM_CYCLES(250000)
++  ) production (
++      done2
++  );
++  queue_case #(
++      .AW(3),
++      .RANDOM_CYCLES(25000)
++  ) large_queue (
++      done3
++  );
++  initial begin
++    wait (done1 && done2 && done3);
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/mmc_card/README.md b/tests/phone/mmc_card/README.md
+index 54597b31e957e7e952df9183db358380e6fa1241..f7bcbdff19e24c22ca1fd75dabe9e00f9775941c 100644
+--- a/tests/phone/mmc_card/README.md
++++ b/tests/phone/mmc_card/README.md
+@@ -92,3 +92,24 @@ No width, truncation, blocking-sequential or other warning is suppressed.
+   limit; the tested write guard prevents rollover writes from aliasing LBA 0.
+ - No whole-firmware card mount, boot, UI, physical hardware, synthesis/fit or
+   production HPS connection claim is made. No user card/image was modified.
++
++## Stream tag RAM
++
++`tests/phone/mmc_card/run-stream-tags.sh` compares the three selected stream
++hits and public pins against the register-backed card at `29479fe`. It reruns
++the EOF and footer wire fixtures and exercises all twelve stream slots in a
++directed test. Its RAM model returns X on mixed-port collisions. The test
++checks 24 coincident hits across the independent low, high and prefetch
++ports, including replacement of occupied slots.
++
++The card samples three replicated M10K tag stores at its original slot-index
++edge. It compares the returned tags during the existing miss-selection
++stage. The logical tag write remains on its original edge and forwards to
++the physical read when the delayed RAM write collides. The four associative
++metadata tags stay in registers.
++
++At 104 MHz, the actual `hps_io` lockstep replay matched at modeled host
++delays of 13, 256 and 4,096 clocks. The original Sega Rally 64-sector CMD18
++replay matched the 32 KiB output and transfer counters at 830,761 transfer
++clocks and 852,184 total clocks. The mixed ARM9V2, SDRAM-pin, LCD, PCM and
++MMC replay still completed in 1,201,547 clocks.
+diff --git a/tests/phone/mmc_card/equivalence.v b/tests/phone/mmc_card/equivalence.v
+index 44891bc8b940e0df91b0161e6f6cb92019b60d19..0fbdea8ec44898ac4299ae6bde11687182428437 100644
+--- a/tests/phone/mmc_card/equivalence.v
++++ b/tests/phone/mmc_card/equivalence.v
+@@ -18,7 +18,7 @@ module mmc_card_equivalence (
+     input wire img_readonly,
+     input wire [63:0] img_size,
+     output wire [31:0] sd_lba,
+-    output wire [ 5:0] sd_blk_cnt,
++    output wire [5:0] sd_blk_cnt,
+     output wire sd_rd,
+     output wire sd_wr,
+     input wire sd_ack,
+@@ -27,110 +27,124 @@ module mmc_card_equivalence (
+     output wire [15:0] sd_buff_din,
+     input wire sd_buff_wr
+ );
+-    wire reference_cmd_o;
+-    wire reference_cmd_oe;
+-    wire reference_dat_o;
+-    wire reference_dat_oe;
+-    wire reference_present;
+-    wire reference_write_protected;
+-    wire reference_active;
+-    wire [31:0] reference_sd_lba;
+-    wire [ 5:0] reference_sd_blk_cnt;
+-    wire reference_sd_rd;
+-    wire reference_sd_wr;
+-    wire [15:0] reference_sd_buff_din;
+-    ngage_mmc_card ported (
+-        .clk(clk),
+-        .reset(reset),
+-        .mmc_clk(mmc_clk),
+-        .cmd_i(cmd_i),
+-        .cmd_o(cmd_o),
+-        .cmd_oe(cmd_oe),
+-        .dat_i(dat_i),
+-        .dat_o(dat_o),
+-        .dat_oe(dat_oe),
+-        .stop_queued(stop_queued),
+-        .present(present),
+-        .write_protected(write_protected),
+-        .active(active),
+-        .img_mounted(img_mounted),
+-        .img_readonly(img_readonly),
+-        .img_size(img_size),
+-        .sd_lba(sd_lba),
+-        .sd_blk_cnt(sd_blk_cnt),
+-        .sd_rd(sd_rd),
+-        .sd_wr(sd_wr),
+-        .sd_ack(sd_ack),
+-        .sd_buff_addr(sd_buff_addr),
+-        .sd_buff_dout(sd_buff_dout),
+-        .sd_buff_din(sd_buff_din),
+-        .sd_buff_wr(sd_buff_wr)
+-    );
+-    mmc_card reference (
+-        .clk(clk),
+-        .reset(reset),
+-        .mmc_clk(mmc_clk),
+-        .cmd_i(cmd_i),
+-        .cmd_o(reference_cmd_o),
+-        .cmd_oe(reference_cmd_oe),
+-        .dat_i(dat_i),
+-        .dat_o(reference_dat_o),
+-        .dat_oe(reference_dat_oe),
+-        .stop_queued(stop_queued),
+-        .present(reference_present),
+-        .write_protected(reference_write_protected),
+-        .active(reference_active),
+-        .img_mounted(img_mounted),
+-        .img_readonly(img_readonly),
+-        .img_size(img_size),
+-        .sd_lba(reference_sd_lba),
+-        .sd_blk_cnt(reference_sd_blk_cnt),
+-        .sd_rd(reference_sd_rd),
+-        .sd_wr(reference_sd_wr),
+-        .sd_ack(sd_ack),
+-        .sd_buff_addr(sd_buff_addr),
+-        .sd_buff_dout(sd_buff_dout),
+-        .sd_buff_din(reference_sd_buff_din),
+-        .sd_buff_wr(sd_buff_wr)
+-    );
+-    reg hps_write = 0;
+-    always @(posedge clk) begin
+-        if (reset) hps_write <= 0;
+-        else begin
+-            if (sd_wr) hps_write <= 1;
+-            if (sd_rd) hps_write <= 0;
+-            if (present !== reference_present) begin
+-                $display("FAIL MMC donor/port lockstep: presence");
+-                $finish(1);
+-            end
+-            if (active !== reference_active) begin
+-                $display("FAIL MMC donor/port lockstep: active");
+-                $finish(1);
+-            end
+-            if (present && write_protected !== reference_write_protected) begin
+-                $display("FAIL MMC donor/port lockstep: write protection");
+-                $finish(1);
+-            end
+-            if (cmd_oe !== reference_cmd_oe || (cmd_oe && cmd_o !== reference_cmd_o)) begin
+-                $display("FAIL MMC donor/port lockstep: CMD wire");
+-                $finish(1);
+-            end
+-            if (dat_oe !== reference_dat_oe || (dat_oe && dat_o !== reference_dat_o)) begin
+-                $display("FAIL MMC donor/port lockstep: DAT wire");
+-                $finish(1);
+-            end
+-            if (sd_rd !== reference_sd_rd || sd_wr !== reference_sd_wr) begin
+-                $display("FAIL MMC donor/port lockstep: HPS request");
+-                $finish(1);
+-            end
+-            if ((sd_rd || sd_wr) && (sd_lba !== reference_sd_lba || sd_blk_cnt !== reference_sd_blk_cnt)) begin
+-                $display("FAIL MMC donor/port lockstep: HPS extent");
+-                $finish(1);
+-            end
+-            if (active && sd_ack && hps_write && sd_buff_din !== reference_sd_buff_din) begin
+-                $display("FAIL MMC donor/port lockstep: HPS write bytes");
+-                $finish(1);
+-            end
+-        end
++  wire reference_cmd_o;
++  wire reference_cmd_oe;
++  wire reference_dat_o;
++  wire reference_dat_oe;
++  wire reference_present;
++  wire reference_write_protected;
++  wire reference_active;
++  wire [31:0] reference_sd_lba;
++  wire [5:0] reference_sd_blk_cnt;
++  wire reference_sd_rd;
++  wire reference_sd_wr;
++  wire [15:0] reference_sd_buff_din;
++  ngage_mmc_card ported (
++      .clk(clk),
++      .reset(reset),
++      .mmc_clk(mmc_clk),
++      .cmd_i(cmd_i),
++      .cmd_o(cmd_o),
++      .cmd_oe(cmd_oe),
++      .dat_i(dat_i),
++      .dat_o(dat_o),
++      .dat_oe(dat_oe),
++      .stop_queued(stop_queued),
++      .present(present),
++      .write_protected(write_protected),
++      .active(active),
++      .img_mounted(img_mounted),
++      .img_readonly(img_readonly),
++      .img_size(img_size),
++      .sd_lba(sd_lba),
++      .sd_blk_cnt(sd_blk_cnt),
++      .sd_rd(sd_rd),
++      .sd_wr(sd_wr),
++      .sd_ack(sd_ack),
++      .sd_buff_addr(sd_buff_addr),
++      .sd_buff_dout(sd_buff_dout),
++      .sd_buff_din(sd_buff_din),
++      .sd_buff_wr(sd_buff_wr)
++  );
++  mmc_card reference (
++      .clk(clk),
++      .reset(reset),
++      .mmc_clk(mmc_clk),
++      .cmd_i(cmd_i),
++      .cmd_o(reference_cmd_o),
++      .cmd_oe(reference_cmd_oe),
++      .dat_i(dat_i),
++      .dat_o(reference_dat_o),
++      .dat_oe(reference_dat_oe),
++      .stop_queued(stop_queued),
++      .present(reference_present),
++      .write_protected(reference_write_protected),
++      .active(reference_active),
++      .img_mounted(img_mounted),
++      .img_readonly(img_readonly),
++      .img_size(img_size),
++      .sd_lba(reference_sd_lba),
++      .sd_blk_cnt(reference_sd_blk_cnt),
++      .sd_rd(reference_sd_rd),
++      .sd_wr(reference_sd_wr),
++      .sd_ack(sd_ack),
++      .sd_buff_addr(sd_buff_addr),
++      .sd_buff_dout(sd_buff_dout),
++      .sd_buff_din(reference_sd_buff_din),
++      .sd_buff_wr(sd_buff_wr)
++  );
++`ifdef NGAGE_TEST_MMC_STREAM_TAGS
++  integer colliding_hits = 0;
++  always @(posedge clk) begin
++    if (!reset && present) begin
++      if ({ported.s2_slo_ok, ported.s2_shi_ok, ported.s2_spc_ok} !==
++                {reference.s2_slo_ok, reference.s2_shi_ok, reference.s2_spc_ok})
++        $fatal(1, "MMC selected stream tag mismatch");
++      if (|(ported.s1_forward &{reference.s2_spc_ok, reference.s2_shi_ok, reference.s2_slo_ok}))
++        colliding_hits <= colliding_hits + 1;
+     end
++  end
++  final $display("MMC stream tags colliding_hits=%0d", colliding_hits);
++`endif
++
++  reg hps_write = 0;
++  always @(posedge clk) begin
++    if (reset) hps_write <= 0;
++    else begin
++      if (sd_wr) hps_write <= 1;
++      if (sd_rd) hps_write <= 0;
++      if (present !== reference_present) begin
++        $display("FAIL MMC donor/port lockstep: presence");
++        $finish(1);
++      end
++      if (active !== reference_active) begin
++        $display("FAIL MMC donor/port lockstep: active");
++        $finish(1);
++      end
++      if (present && write_protected !== reference_write_protected) begin
++        $display("FAIL MMC donor/port lockstep: write protection");
++        $finish(1);
++      end
++      if (cmd_oe !== reference_cmd_oe || (cmd_oe && cmd_o !== reference_cmd_o)) begin
++        $display("FAIL MMC donor/port lockstep: CMD wire");
++        $finish(1);
++      end
++      if (dat_oe !== reference_dat_oe || (dat_oe && dat_o !== reference_dat_o)) begin
++        $display("FAIL MMC donor/port lockstep: DAT wire");
++        $finish(1);
++      end
++      if (sd_rd !== reference_sd_rd || sd_wr !== reference_sd_wr) begin
++        $display("FAIL MMC donor/port lockstep: HPS request");
++        $finish(1);
++      end
++      if ((sd_rd || sd_wr) && (sd_lba !== reference_sd_lba || sd_blk_cnt !== reference_sd_blk_cnt)) begin
++        $display("FAIL MMC donor/port lockstep: HPS extent");
++        $finish(1);
++      end
++      if (active && sd_ack && hps_write && sd_buff_din !== reference_sd_buff_din) begin
++        $display("FAIL MMC donor/port lockstep: HPS write bytes");
++        $finish(1);
++      end
++    end
++  end
+ endmodule
+diff --git a/tests/phone/mmc_card/run-donor.sh b/tests/phone/mmc_card/run-donor.sh
+index 8635531d29c04787b4ffa2c68087d1f13a24b171..2be897b261dd7c31de6d4f96a2f7e73cc0061b70 100755
+--- a/tests/phone/mmc_card/run-donor.sh
++++ b/tests/phone/mmc_card/run-donor.sh
+@@ -32,11 +32,11 @@ for version in donor port equivalence; do
+         top=mmc_card_equivalence
+         language=1800-2017
+         set -- /donor/rtl/board/tdp_ram.sv /donor/rtl/board/mmc_card.sv \
+-            rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v
++            rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v
+     else
+         top=ngage_mmc_card
+         language=1364-2001
+-        set -- rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v
++        set -- rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v
+     fi
+     verilator --cc --exe --build -j 4 -O3 --x-assign unique --x-initial unique \
+         -Wno-fatal -Wno-lint -Wno-style -Wno-MULTIDRIVEN \
+@@ -53,7 +53,7 @@ for test in eof version; do
+     sed "s/ngage_mmc_card dut(/mmc_card_equivalence dut(/" "tests/phone/mmc_card/${test}_tb.v" > "$out/${test}_tb.v"
+     iverilog -g2012 -s "${test}_tb" -o "$out/$test" \
+         /donor/rtl/board/tdp_ram.sv /donor/rtl/board/mmc_card.sv \
+-        rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v \
++        rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v \
+         "$out/${test}_tb.v" > "$out/$test-build.log" 2>&1
+     vvp "$out/$test" > "$out/$test.log"
+     cat "$out/$test.log"
+diff --git a/tests/phone/mmc_card/run-stream-tags.sh b/tests/phone/mmc_card/run-stream-tags.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..a47edba6d6fb542748a023ba18fbb30bf7a3d7b3
+--- /dev/null
++++ b/tests/phone/mmc_card/run-stream-tags.sh
+@@ -0,0 +1,41 @@
++#!/bin/sh
++# Compare the three selected tag hits and public pins against the FF baseline.
++set -eu
++cd "$(dirname "$0")/../../.."
++out=${MMC_TAG_OUT:-build/sim/mmc-stream-tags}
++mkdir -p "$out"
++
++git show 29479fe:rtl/ngage_mmc_card.v |
++    sed 's/^module ngage_mmc_card #(/module mmc_card #(/' > "$out/reference.v"
++python3 - "$out" <<'PY'
++import sys
++from pathlib import Path
++
++# The hardware ignores read data on a mixed-port read/write collision. A
++# coincident hit must use the pending logical tag, even against an X payload.
++source = Path("rtl/ngage_bram.v").read_text()
++old = "b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= we_b[lane] ?"
++new = (
++    "b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= "
++    "(we_a[lane] && addr_a == addr_b) ? {BYTE_WIDTH{1'bx}} : we_b[lane] ?"
++)
++assert source.count(old) == 1
++Path(sys.argv[1], "poison_bram.v").write_text(source.replace(old, new))
++PY
++
++for test in eof version; do
++    sed 's/ngage_mmc_card dut(/mmc_card_equivalence dut(/' \
++        "tests/phone/mmc_card/${test}_tb.v" > "$out/${test}_tb.v"
++    iverilog -g2012 -DNGAGE_TEST_MMC_STREAM_TAGS -s "${test}_tb" -o "$out/$test" \
++        "$out/reference.v" "$out/poison_bram.v" rtl/ngage_mmc_dpram.v \
++        rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v "$out/${test}_tb.v"
++    vvp "$out/$test" > "$out/$test.log"
++    cat "$out/$test.log"
++    grep -q '^PASS MMC ' "$out/$test.log"
++done
++iverilog -g2012 -DNGAGE_TEST_MMC_STREAM_TAGS -s stream_lookup_tb -o "$out/ports" \
++    "$out/reference.v" "$out/poison_bram.v" rtl/ngage_mmc_dpram.v \
++    rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v tests/phone/mmc_card/stream_lookup_tb.sv
++vvp "$out/ports" > "$out/ports.log"
++cat "$out/ports.log"
++grep -q '^PASS MMC all 12 stream slots' "$out/ports.log"
+diff --git a/tests/phone/mmc_card/run.sh b/tests/phone/mmc_card/run.sh
+index e8510a3f83cab58136bf79b700de95299cfce8c1..d08f88fa074997139a2aa4d55258138f9ad8c757 100755
+--- a/tests/phone/mmc_card/run.sh
++++ b/tests/phone/mmc_card/run.sh
+@@ -3,7 +3,7 @@ set -eu
+ out=${MMC_CARD_OUT:-build/sim/unit-mmc-card}
+ mkdir -p "$out"
+ for test in eof version; do
+-    iverilog -g2001 -s "${test}_tb" -o "$out/$test" rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v "tests/phone/mmc_card/${test}_tb.v" > "$out/$test-build.log" 2>&1
++    iverilog -g2001 -s "${test}_tb" -o "$out/$test" rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v "tests/phone/mmc_card/${test}_tb.v" > "$out/$test-build.log" 2>&1
+     vvp "$out/$test" > "$out/$test.log"
+     cat "$out/$test.log"
+     grep -q '^PASS MMC ' "$out/$test.log"
+diff --git a/tests/phone/mmc_card/stream_lookup_tb.sv b/tests/phone/mmc_card/stream_lookup_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..5fe24abe0de5a1c66bcb972eede0d9b218564d96
+--- /dev/null
++++ b/tests/phone/mmc_card/stream_lookup_tb.sv
+@@ -0,0 +1,90 @@
++`timescale 1ns / 1ps
++
++// Focused internal schedule for three simultaneous lookups with a pending
++// publication. Public command and HPS protocol are covered by the wire tests.
++module stream_lookup_tb;
++  reg clk = 0, reset = 1, publish = 0;
++  always #5 clk = !clk;
++  reg [3:0] slot = 0;
++  reg [22:0] sector = 0, low = 0, high = 0, prefetch = 0;
++  wire present;
++
++  mmc_card_equivalence dut (
++      .clk(clk),
++      .reset(reset),
++      .mmc_clk(1'b0),
++      .cmd_i(1'b1),
++      .dat_i(1'b1),
++      .stop_queued(1'b0),
++      .img_mounted(1'b0),
++      .img_readonly(1'b0),
++      .img_size(64'b0),
++      .sd_ack(1'b1),
++      .sd_buff_wr(publish),
++      .sd_buff_addr(13'h0ff),
++      .sd_buff_dout(16'b0),
++      .present(present)
++  );
++
++  // Drive both implementations from the same deliberately concurrent
++  // lookup and publication schedule. No private tag storage is initialized.
++  initial begin
++    force dut.ported.s0_rlo = low;
++    force dut.reference.s0_rlo = low;
++    force dut.ported.s0_rhi = high;
++    force dut.reference.s0_rhi = high;
++    force dut.ported.s0_pchunk = prefetch;
++    force dut.reference.s0_pchunk = prefetch;
++    repeat (4) @(negedge clk);
++    reset = 0;
++    force dut.ported.present = 1;
++    force dut.reference.present = 1;
++    force dut.ported.h_state = 2'd2;
++    force dut.reference.h_state = 2'd2;
++    force dut.ported.h_meta = 0;
++    force dut.reference.h_meta = 0;
++    force dut.ported.h_wr = 0;
++    force dut.reference.h_wr = 0;
++    force dut.ported.h_cur_slot = slot;
++    force dut.reference.h_cur_slot = slot;
++    force dut.ported.h_stream_sec = sector;
++    force dut.reference.h_stream_sec = sector;
++
++    // Fill all four lanes of each modulo-three quarter. Every port
++    // receives a separate publication collision against the poisoned RAM.
++    for (integer index = 0; index < 12; index++) begin
++      slot = index[3:0];
++      sector = 23'(index);
++      low = 23'(index);
++      high = 23'((index + 11) % 12);
++      prefetch = 23'((index + 10) % 12);
++      publish = 1;
++      @(negedge clk);
++      publish = 0;
++      @(negedge clk);
++      if (dut.ported.s1_forward !== 3'b001 || !dut.ported.s2_slo_ok)
++        $fatal(1, "low slot %0d bypass missed", index);
++    end
++    for (integer index = 0; index < 12; index++) begin
++      // Replace occupied slots with sectors 12–23, which map to the
++      // original physical addresses. The untouched ports retain hits.
++      slot = index[3:0];
++      sector = 23'(index + 12);
++      low = 23'((index + 11) % 12);
++      high = index[0] ? sector : 23'((index + 10) % 12);
++      prefetch = index[0] ? 23'((index + 10) % 12) : sector;
++      publish = 1;
++      @(negedge clk);
++      publish = 0;
++      @(negedge clk);
++      if (dut.ported.s1_forward !== (index[0] ? 3'b010 : 3'b100) ||
++                !(index[0] ? dut.ported.s2_shi_ok : dut.ported.s2_spc_ok))
++        $fatal(1, "high/prefetch slot %0d bypass missed", index);
++    end
++    repeat (3) @(negedge clk);
++    if (dut.colliding_hits != 24)
++      $fatal(1, "expected 24 observed collision hits, got %0d", dut.colliding_hits);
++    $display("PASS MMC all 12 stream slots and three poisoned lookup ports");
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/mmc_hps/run.sh b/tests/phone/mmc_hps/run.sh
+index a16308409bc80c25d936e19565b6518cbe309132..1eeef7631b912a1760fa3d962c7f8e77878cd4f7 100755
+--- a/tests/phone/mmc_hps/run.sh
++++ b/tests/phone/mmc_hps/run.sh
+@@ -7,7 +7,7 @@ vvp "$out/direct" > "$out/direct.log"
+ cat "$out/direct.log"
+ grep -q '^PASS MMC HPS direct' "$out/direct.log"
+ MMC_HPS_OUT="$out" python3 tests/phone/mmc_hps/prepare_hps.py
+-verilator --binary --timing --assert -j 3 -Wno-fatal -Wno-lint --top-module actual_tb --Mdir "$out/obj" "$out/hps-compat.sv" rtl/ngage_mmc_hps.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v tests/phone/mmc_hps/actual_tb.sv > "$out/actual-build.log" 2>&1
++verilator --binary --timing --assert -j 3 -Wno-fatal -Wno-lint --top-module actual_tb --Mdir "$out/obj" "$out/hps-compat.sv" rtl/ngage_mmc_hps.v rtl/ngage_mmc_card.v rtl/ngage_bram.v rtl/ngage_mmc_dpram.v tests/phone/mmc_hps/actual_tb.sv > "$out/actual-build.log" 2>&1
+ "$out/obj/Vactual_tb" > "$out/actual.log" 2>&1
+ cat "$out/actual.log"
+ grep -q '^PASS actual three-slot MMC HPS' "$out/actual.log"
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index d47facb7c76c9f59ef6effcd2580a022475f19cf..777f9d6e14b2418c28c2af7601a0f0aba290497c 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -271,6 +271,70 @@ def expose_block_writeback(phone):
+     return ''.join(parts)
+ 
+ 
++def move_posted_store_payload_to_ram(phone):
++    """Read the post-edge head and successor out of opposite RAM banks."""
++    start = phone.index('module ngage2_zap_store_queue (')
++    end = phone.index('\nendmodule', start)
++    queue = phone[start:end]
++    queue = edit(queue, '\treg [67:0] entries [0:DEPTH - 1];\n', '')
++    queue = edit(queue, '\twire [AW - 1:0] read_index;\n', '')
++    queue = edit(queue, """\tassign read_index = head + {{AW - 1 {1'b0}}, i_take};
++\tassign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];""", """    localparam integer ROWS = DEPTH / 2;
++    localparam integer ROW_W = AW > 1 ? AW - 1 : 1;
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_even [0:ROWS - 1];
++    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_odd [0:ROWS - 1];
++    wire [ROW_W - 1:0] even_row, odd_row, write_row;
++    wire push_even = !i_reset && i_push && !tail[0];
++    wire push_odd = !i_reset && i_push && tail[0];
++    wire [67:0] push_payload = {i_address, i_data, i_ben};
++    reg [67:0] even_payload, odd_payload, bypass_payload;
++    reg bypass_even, bypass_odd;
++
++    // After this edge the head is head + i_take. Its two adjacent slots
++    // always have opposite parity. Their read rows round up for even and
++    // down for odd. Reset instead prepares slots zero and one.
++    generate
++        if (AW > 1) begin : g_rows
++            wire [ROW_W - 1:0] head_row = head[AW - 1:1];
++            assign even_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] | i_take};
++            assign odd_row = i_reset ? {ROW_W{1'b0}} :
++                head_row + {{(ROW_W - 1){1'b0}}, head[0] & i_take};
++            assign write_row = tail[AW - 1:1];
++        end else begin : g_one_row
++            assign even_row = 1'b0;
++            assign odd_row = 1'b0;
++            assign write_row = 1'b0;
++        end
++    endgenerate
++
++    always @(posedge i_clk) begin
++        if (push_even)
++            entries_even[write_row] <= push_payload;
++        if (push_odd)
++            entries_odd[write_row] <= push_payload;
++        even_payload <= entries_even[even_row];
++        odd_payload <= entries_odd[odd_row];
++
++        // A push that fills either prepared slot supplies its registered
++        // data independently of the RAM's mixed-port collision output.
++        if (push_even || push_odd)
++            bypass_payload <= push_payload;
++        bypass_even <= push_even && write_row == even_row;
++        bypass_odd <= push_odd && write_row == odd_row;
++    end
++
++    // ACK can still choose the already prepared successor in this cycle.
++    // The unchanged CYC expression below excludes pushes on this edge.
++    wire select_odd = head[0] ^ i_take;
++    wire select_bypass = select_odd ? bypass_odd : bypass_even;
++    assign {o_address_nxt, o_data_nxt, o_ben_nxt} =
++        select_bypass ? bypass_payload : (select_odd ? odd_payload : even_payload);
++""".rstrip())
++    queue = edit(queue, '\t\t\t\tentries[tail] <= {i_address, i_data, i_ben};\n', '')
++    return phone[:start] + queue + phone[end:]
++
++
+ def schedule_ready_register_shift(phone):
+     """Use the forwarded ARM shift count when Rs is already ready."""
+     start = phone.index('module ngage2_arm9v2_execute (')
+@@ -454,6 +518,71 @@ def xor_btb(netlist):
+     return netlist[:start] + predictor + netlist[end:]
+ 
+ 
++def bank_return_stack(phone):
++    """Read the saved return address on the existing top-of-stack edge."""
++    start = phone.index('module ngage2_arm9v2_predict (')
++    end = phone.index('\nendmodule', start)
++    predictor = phone[start:end]
++    predictor = edit(predictor, '\treg [31:0] stack [0:7];\n\t(* dont_retime *) reg [31:0] ras_top;',
++                     '\twire [31:0] ras_top;')
++    predictor = edit(predictor, '(RAS_TOP_FF ? ras_top : stack[pointer - 1\'b1])', 'ras_top')
++    predictor = edit(predictor, '''\tfunction automatic [2:0] sv2v_cast_3;
++\t\tinput reg [2:0] inp;
++\t\tsv2v_cast_3 = inp;
++\tendfunction
++''', '''
++    wire restore = !i_reset && i_repair;
++    wire speculate = !i_reset && !i_repair && !i_clear && i_accept && o_taken;
++    wire push_stack = (restore && i_repair_action == CALL) ||
++                      (speculate && o_kind == CALL);
++    wire repair_pop = i_repair_action == RETURN && i_repair_count != 0;
++    wire read_stack = (restore && i_repair_action != CALL) ||
++                      (speculate && o_kind == RETURN && count != 0);
++    wire [2:0] stack_write_address = i_repair ? i_repair_pointer : pointer;
++    wire [2:0] stack_read_address = i_repair ?
++        i_repair_pointer - (repair_pop ? 3'd2 : 3'd1) : pointer - 3'd2;
++    wire [31:0] stack_link = i_repair ? i_repair_link : call_link;
++
++    generate
++        if (RAS_TOP_FF) begin : g_m10k_ras
++            (* ramstyle = "M10K" *) reg [31:0] stack [0:7];
++            reg [31:0] read_top;
++            (* dont_retime *) reg [31:0] link_top;
++            (* dont_retime *) reg use_link;
++
++            // A push supplies the new top directly. A pop or repair reads
++            // the backing stack on the edge that used to register ras_top.
++            always @(posedge i_clk) begin
++                if (push_stack) begin
++                    stack[stack_write_address] <= stack_link;
++                    link_top <= stack_link;
++                    use_link <= 1'b1;
++                end else if (read_stack) begin
++                    read_top <= stack[stack_read_address];
++                    use_link <= 1'b0;
++                end
++            end
++            assign ras_top = use_link ? link_top : read_top;
++        end else begin : g_async_ras
++            reg [31:0] stack [0:7];
++            always @(posedge i_clk)
++                if (push_stack)
++                    stack[stack_write_address] <= stack_link;
++            assign ras_top = stack[pointer - 1'b1];
++        end
++    endgenerate
++''')
++    for indent, line in ((3, "ras_top <= stack[i_repair_pointer - 1'b1];"),
++                         (5, "stack[i_repair_pointer] <= i_repair_link;"),
++                         (5, "ras_top <= i_repair_link;"),
++                         (6, "ras_top <= stack[sv2v_cast_3(i_repair_pointer - 2'd2)];"),
++                         (5, "stack[pointer] <= call_link;"),
++                         (5, "ras_top <= call_link;"),
++                         (6, "ras_top <= stack[sv2v_cast_3(pointer - 2'd2)];")):
++        predictor = edit(predictor, '\t' * indent + line + '\n', '')
++    return phone[:start] + predictor + phone[end:]
++
++
+ def load_waw_overlay(source):
+     """Admit a younger scalar load while its older destination is in M."""
+     source = edit(source, '\twire unused = &{1\'b0, LOAD_FORMATTED,', '''    wire d_advanced_load_writer;
+@@ -863,6 +992,122 @@ def resolve_execute_forward_candidates(phone):
+     return ''.join(parts)
+ 
+ 
++def move_fetch_payload_to_ram(phone):
++    """Give the fetch queue a synchronous backing store behind its head FF."""
++    start = phone.index('module ngage2_arm9v2_fetch (')
++    end = phone.index('\nendmodule', start)
++    fetch = phone[start:end]
++    fetch = edit(fetch, "\tparameter [0:0] HEAD_FF = 1'b1;",
++                 "\tparameter [0:0] HEAD_FF = 1'b1;\n    parameter [0:0] BRAM_QUEUE = 1'b1;")
++    fetch = edit(fetch, '\treg [113:0] queue [0:7];\n', '')
++    fetch = edit(fetch, '''\treg [113:0] head_select_packet;
++\treg [113:0] next_packet;
++\treg [113:0] pushed;
++\treg [113:0] head_next;
++\t(* dont_retime *) reg [113:0] head_ff;
++\twire [7:0] next_select = {head_select[6:0], head_select[7]};
++\talways @(*) begin
++\t\tif (_sv2v_0)
++\t\t\t;
++\t\thead_select_packet = 114'd0;
++\t\tnext_packet = 114'd0;
++\t\tbegin : sv2v_autoblock_1
++\t\t\treg signed [31:0] q;
++\t\t\tfor (q = 0; q < 8; q = q + 1)
++\t\t\t\tbegin
++\t\t\t\t\thead_select_packet = head_select_packet | (queue[q] & {114 {head_select[q]}});
++\t\t\t\t\tnext_packet = next_packet | (queue[q] & {114 {next_select[q]}});
++\t\t\t\tend
++\t\tend
++\tend''', '''    reg [113:0] pushed;
++    reg [113:0] head_next;
++    (* dont_retime *) reg [113:0] head_ff;
++    wire [113:0] head_select_packet, next_packet, restart_packet;
++    wire push_at_head;
++    genvar slot;
++    generate
++        if (HEAD_FF && BRAM_QUEUE) begin : g_fetch_ram
++            (* dont_retime *) reg [2:0] head;
++            wire [2:0] following_slot = head + 3'd1;
++            wire [2:0] next_head = pop ? following_slot : head;
++            // Read the slot behind the head that will exist after this
++            // edge. A following pop can copy it without waiting for RAM.
++            wire [2:0] prefetch_slot = i_redirect || i_reset ? 3'd1 :
++                                       pop ? head + 3'd2 : following_slot;
++            always @(posedge i_clk)
++                if (i_reset || i_redirect) head <= 0;
++                else head <= next_head;
++
++            (* ramstyle = "M10K, no_rw_check" *) reg [111:0] payload [0:7];
++            reg [111:0] prefetched, bypass_data;
++            (* dont_retime *) reg bypass_prefetch;
++            wire [111:0] write_data = {pushed[113:49], pushed[46:0]};
++            always @(posedge i_clk) begin
++                if (push) begin
++                    payload[tail] <= write_data;
++                    bypass_data <= write_data;
++                end
++                prefetched <= payload[prefetch_slot];
++                bypass_prefetch <= push && tail == prefetch_slot;
++            end
++            // In a read/write collision the registered push supplies the
++            // prefetched entry, regardless of the RAM's collision output.
++            wire [111:0] next_data = bypass_prefetch ? bypass_data : prefetched;
++
++            // A fill can finish for several queued instructions together.
++            // Keep the two broadcast-updated status bits out of block RAM.
++            reg [1:0] fill_status [0:7];
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_fill_status
++                always @(posedge i_clk)
++                    if (push && tail == slot) fill_status[slot] <= pushed[48:47];
++                    else if (i_fill_done) begin
++                        if (fill_status[slot][0] && i_fill_fault) fill_status[slot][1] <= 1;
++                        fill_status[slot][0] <= 0;
++                    end
++            end
++            assign next_packet = {next_data[111:47], fill_status[following_slot], next_data[46:0]};
++            assign push_at_head = push && tail == next_head;
++            // Redirect/reset clear the count. The first new push supplies
++            // the visible head directly, even if its RAM slot holds old data.
++            assign restart_packet = head_ff;
++            assign head_select_packet = head_ff;
++        end else begin : g_fetch_regs
++            reg [113:0] queue [0:7];
++            reg [113:0] selected, following;
++            wire [7:0] next_select = {head_select[6:0], head_select[7]};
++            integer entry;
++            always @(*) begin
++                selected = 0;
++                following = 0;
++                for (entry = 0; entry < 8; entry = entry + 1) begin
++                    selected = selected | (queue[entry] & {114{head_select[entry]}});
++                    following = following | (queue[entry] & {114{next_select[entry]}});
++                end
++            end
++            for (slot = 0; slot < 8; slot = slot + 1) begin : g_queue
++                always @(posedge i_clk)
++                    if (push && tail == slot) queue[slot] <= pushed;
++                    else if (i_fill_done) begin
++                        if (queue[slot][47] && i_fill_fault) queue[slot][48] <= 1;
++                        queue[slot][47] <= 0;
++                    end
++            end
++            assign head_select_packet = selected;
++            assign next_packet = following;
++            assign restart_packet = queue[0];
++            assign push_at_head = push && (pop ? next_select[tail] : head_select[tail]);
++        end
++    endgenerate''')
++    fetch = edit(fetch, 'i_redirect ? queue[0] : (pop ? next_packet : head_ff)',
++                 'i_redirect ? restart_packet : (pop ? next_packet : head_ff)')
++    fetch = edit(fetch, 'if ((!i_redirect && push) && (pop ? next_select[tail] : head_select[tail]))',
++                 'if (!i_redirect && push_at_head)')
++    queue_start = fetch.index('\tgenvar _gv_q_1;')
++    queue_end = fetch.index('\talways @(posedge i_clk)\n\t\tif (i_reset)', queue_start)
++    fetch = fetch[:queue_start] + fetch[queue_end:]
++    return phone[:start] + fetch + phone[end:]
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -883,17 +1128,19 @@ def main():
+         raise ValueError('Donor netlist differs from pinned Quartus input')
+     output = VENDOR / 'arm925t_phone.v'
+     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
++    generated = move_posted_store_payload_to_ram(generated)
+     generated = schedule_ready_register_shift(generated)
+     generated = schedule_early_smull(generated)
+     generated = restart_streamed_icache(direct_accumulate(generated))
+     generated = resident_during_fill(generated)
+-    generated = xor_btb(generated)
++    generated = bank_return_stack(xor_btb(generated))
+     generated = load_waw_overlay(generated)
+     generated = predicate_block(generated)
+     generated = predecode_refill_candidates(half_dirty_writeback(generated))
+     generated = predecode_dcache_write_enable(generated)
+     generated = register_background_load_tag(generated)
+     generated = resolve_execute_forward_candidates(generated)
++    generated = move_fetch_payload_to_ram(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)

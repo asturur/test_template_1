@@ -1,0 +1,905 @@
+diff --git a/Template.sv b/Template.sv
+index 9910937a8e47df31677492d651654471e58372e2..80f87975c0643fd46f27667ea06ec60b586ca810 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -245,6 +245,7 @@ module emu (
+     wire       cpu_bus_lock;
+ 
+     wire sdram_scrub_done, sdram_ack, cpu_sdram_accept;
++    wire mem_read_ack, sdram_read_ack;
+     wire [31:0] sdram_dout;
+     wire mem_req, mem_we, mem_ack, mem_lock;
+     wire [7:0] dma_error_pending;
+@@ -353,6 +354,7 @@ module emu (
+         .cpu_block_data (cpu_block_data),
+         .cpu_be         (cpu_sdram_be),
+         .cpu_ack        (sdram_ack),
++        .cpu_read_ack   (sdram_read_ack),
+         .cpu_accept     (cpu_sdram_accept),
+         .cpu_rdata      (sdram_dout),
+         .dma_req        (shared_dma_req && sdram_owner_ready && !hold_sdram_scalar),
+@@ -372,6 +374,7 @@ module emu (
+         .mem_block_data (mem_block_data),
+         .mem_be         (mem_be),
+         .mem_ack        (mem_ack),
++        .mem_read_ack   (mem_read_ack),
+         .mem_rdata      (mem_rdata)
+     );
+     wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
+@@ -436,6 +439,7 @@ module emu (
+         .din          (mem_wdata),
+         .be           (mem_be),
+         .ack          (mem_ack),
++        .read_ack     (mem_read_ack),
+         .dout         (mem_rdata),
+         .line_req     (shared_line_req),
+         .line_short   (shared_line_short),
+@@ -1291,6 +1295,7 @@ module emu (
+         .sdram_we         (cpu_sdram_we),
+         .sdram_req        (cpu_sdram_req),
+         .sdram_ack        (sdram_ack),
++        .sdram_read_ack   (sdram_read_ack),
+         .sdram_accept     (cpu_sdram_accept),
+ 
+         // DDR3 (flash reads)
+diff --git a/rtl/ngage_board.v b/rtl/ngage_board.v
+index 7c1970542d07745565495999fd8856ef3535f5c5..d914f4eb6798166fda8c1cf6e135fe9480aa84b0 100644
+--- a/rtl/ngage_board.v
++++ b/rtl/ngage_board.v
+@@ -69,6 +69,7 @@ module ngage_board #(
+     // Dedicated transaction-level SDRAM interface, not physical pin timing.
+     input  wire         ram_accept,
+     input  wire         ram_ack,
++    input  wire         ram_read_ack,
+     input  wire [ 31:0] ram_rdata,
+     output wire         ram_req,
+     output wire         ram_we,
+@@ -421,6 +422,7 @@ module ngage_board #(
+         .debug_fetch         (debug_fetch),
+         .ram_accept          (ram_accept),
+         .ram_ack             (ram_ack),
++        .ram_read_ack        (ram_read_ack),
+         .ram_rdata           (ram_rdata),
+         .ram_req             (ram_req),
+         .ram_we              (ram_we),
+diff --git a/rtl/ngage_cpu.sv b/rtl/ngage_cpu.sv
+index 834b9a171e16d0981f4e35c8019cdd17853be8dc..41f14fb5b5705a3cb6f32f758590c00795a3011a 100644
+--- a/rtl/ngage_cpu.sv
++++ b/rtl/ngage_cpu.sv
+@@ -36,6 +36,7 @@ module ngage_cpu #(
+     output logic [  2:0] wb_cycle_type,
+     output logic [  1:0] wb_burst_type,
+     input  logic         wb_ack,
++    input  wire          wb_read_ack,
+     input  logic         wb_error,
+     input  logic [ 31:0] wb_read_data,
+     output wire  [ 31:0] debug_pc,
+@@ -52,7 +53,8 @@ module ngage_cpu #(
+ 
+     ngage_arm9v2_refill #(
+         .ENABLE                (LINE_REFILL),
+-        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER)
++        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER),
++        .REGISTER_COMPLETION   (REGISTERED_SCALAR_PEER)
+     ) refill (
+         .clk               (clk),
+         .reset             (reset),
+@@ -72,6 +74,7 @@ module ngage_cpu #(
+         .wb_cyc            (wb_cyc),
+         .wb_lock           (wb_lock),
+         .wb_ack            (wb_ack),
++        .wb_read_ack       (wb_read_ack),
+         .wb_error          (wb_error),
+         .wb_data           (wb_read_data),
+         .line_req          (line_req),
+@@ -185,7 +188,8 @@ endmodule
+ // Deliver each registered word in order while the rest of the line arrives.
+ module ngage_arm9v2_refill #(
+     parameter ENABLE                 = 0,
+-    parameter REGISTERED_SCALAR_PEER = 0
++    parameter REGISTERED_SCALAR_PEER = 0,
++    parameter REGISTER_COMPLETION    = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -205,6 +209,7 @@ module ngage_arm9v2_refill #(
+     output wire        wb_cyc,
+     output wire        wb_lock,
+     input  wire        wb_ack,
++    input  wire        wb_read_ack,
+     input  wire        wb_error,
+     input  wire [31:0] wb_data,
+     output wire        line_req,
+@@ -227,10 +232,13 @@ module ngage_arm9v2_refill #(
+     reg [31:0] words    [0:7];
+ 
+     wire burst = cpu_cti == BURST;
++    wire scalar_acknowledge, scalar_error, scalar_return_pending;
++    wire line_acknowledge, line_response_error;
++    wire [31:0] scalar_data;
+     assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
+                        cpu_line_candidate;
+     assign line_addr = cpu_address;
+-    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
++    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req && !scalar_return_pending;
+     // A younger SWP cannot reach the bus before this older refill retires.
+     // Its lock must not prevent SDRAM from accepting the owned line request.
+     assign wb_lock = !reset && cpu_lock && state != LINE;
+@@ -242,12 +250,74 @@ module ngage_arm9v2_refill #(
+     wire scalar_reply = REGISTERED_SCALAR_PEER ? !reset && cpu_cyc && scalar_offered : wb_cyc;
+     always @(posedge clk) scalar_offered <= wb_cyc && !(scalar_offered && (wb_ack || wb_error));
+ 
+-    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : scalar_reply && wb_ack;
+-    assign cpu_error = state == LINE ? cpu_cyc && failed : scalar_reply && wb_error;
++    wire line_receiving = state == LINE && line_valid && received < 16;
++    wire line_consuming = cpu_cyc && (line_acknowledge || line_response_error);
++    generate
++        if (REGISTER_COMPLETION) begin : g_completion
++            // Only the outstanding scalar beat can reach these registers.
++            // Hold its external CYC low until the donor samples the reply;
++            // the original address is still at the donor during that clock.
++            (* dont_retime *) reg scalar_ack_ff, scalar_error_ff;
++            (* dont_retime *) reg [31:0] scalar_data_ff;
++            // This read pulse comes from the SDRAM reply register and the
++            // registered scalar owners. The combined board ACK can still
++            // include same-cycle posted writes, so only the pulse bypasses.
++            // Other memory back ends can omit the independent read pulse.
++            wire read_ack = scalar_reply && (wb_read_ack === 1'b1);
++            wire capture_scalar = wb_cyc && scalar_reply && !read_ack && (wb_ack || wb_error);
++            always @(posedge clk) begin
++                scalar_ack_ff   <= capture_scalar && wb_ack;
++                scalar_error_ff <= capture_scalar && wb_error;
++                if (capture_scalar) scalar_data_ff <= wb_data;
++            end
++            assign scalar_return_pending = scalar_ack_ff || scalar_error_ff;
++            assign scalar_acknowledge    = scalar_ack_ff || read_ack;
++            assign scalar_error          = scalar_error_ff;
++            assign scalar_data           = scalar_return_pending ? scalar_data_ff : wb_data;
++
++            // Register the next available word on the same edge as its data
++            // or the previous word's retirement. Line responses keep all
++            // their existing clocks, including consecutive queued words.
++            (* dont_retime *) reg line_ack_ff, line_error_ff;
++            wire [4:0] received_next = received + (line_receiving ? (line_wide ? 5'd4 : 5'd1) : 5'd0);
++            wire [3:0] consumed_next = {1'b0, consumed} + {3'b0, line_consuming};
++            wire next_error = line_error_ff || (line_receiving && line_error);
++            always @(posedge clk) begin
++                if (reset || state != LINE || line_reject || (line_consuming && consumed == 7)) begin
++                    line_ack_ff   <= 0;
++                    line_error_ff <= 0;
++                end else begin
++                    line_ack_ff   <= !next_error && received_next[4:1] > consumed_next;
++                    line_error_ff <= next_error;
++                end
++            end
++            assign line_acknowledge    = line_ack_ff;
++            assign line_response_error = line_error_ff;
++            // synthesis translate_off
++            always @(posedge clk)
++                if (!reset) begin
++                    if (read_ack && (!wb_ack || wb_error || !wb_cyc || scalar_return_pending))
++                        $fatal(1, "Fast read reply does not match the live scalar completion");
++                    if ({line_ack_ff, line_error_ff} !==
++                        {state == LINE && !failed && received[4:1] > {1'b0, consumed}, state == LINE && failed})
++                        $fatal(1, "Registered line credit changed the line reply cycle");
++                end
++            // synthesis translate_on
++        end else begin : g_immediate_completion
++            assign scalar_return_pending = 0;
++            assign scalar_acknowledge = state != LINE && scalar_reply && wb_ack;
++            assign scalar_error = state != LINE && scalar_reply && wb_error;
++            assign scalar_data = wb_data;
++            assign line_acknowledge = state == LINE && !failed && received[4:1] > {1'b0, consumed};
++            assign line_response_error = state == LINE && failed;
++        end
++    endgenerate
++    assign cpu_ack           = !reset && cpu_cyc && (line_acknowledge || scalar_acknowledge);
++    assign cpu_error         = !reset && cpu_cyc && (line_response_error || scalar_error);
+     // A scalar fallback never grants the promise, including a line rejected
+     // before its first beat. The cache samples this alongside the first ACK.
+-    assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
+-    assign cpu_data = state == LINE ? words[consumed] : wb_data;
++    assign cpu_no_late_error = guaranteed && line_acknowledge && cpu_ack;
++    assign cpu_data          = state == LINE ? words[consumed] : scalar_data;
+ 
+     always @(posedge clk) begin
+         if (reset) begin
+@@ -269,16 +339,18 @@ module ngage_arm9v2_refill #(
+                 end
+                 LINE: begin
+                     if (line_reject) state <= SCALAR;
+-                    if (line_valid && received < 16) begin
++                    if (line_receiving) begin
+                         received <= received + (line_wide ? 5'd4 : 5'd1);
+                         if (line_error) failed <= 1;
+                     end
+-                    if (cpu_ack || cpu_error) begin
++                    if (line_consuming) begin
+                         consumed <= consumed + 1'b1;
+                         if (consumed == 7) state <= IDLE;
+                     end
+                 end
+-                SCALAR:  if (scalar_reply && !burst && (wb_ack || wb_error)) state <= IDLE;
++                SCALAR:
++                if ((!burst && (cpu_ack || cpu_error)) || (REGISTER_COMPLETION && !cpu_cyc))
++                    state <= IDLE;
+                 default: state <= IDLE;
+             endcase
+         end
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index c20ced8d480a241fcba141e02872d0c7f48e7399..60519155c422a11dfafdc1c402cabfb730496885 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -125,6 +125,7 @@ module ngage_mister #(
+     output wire         sdram_write_block,
+     output wire [127:0] sdram_block_data,
+     input  wire         sdram_ack,
++    input  wire         sdram_read_ack,
+     input  wire         sdram_accept,
+ 
+     // DDR3 port (ROM + C: drive — mostly read, HPS-loaded)
+@@ -265,6 +266,7 @@ module ngage_mister #(
+         .save_state           (save_state),
+         .ram_accept           (DIRECT_SDRAM && sdram_accept),
+         .ram_ack              (sdram_ack),
++        .ram_read_ack         (sdram_read_ack),
+         .ram_rdata            (sdram_dout),
+         .ram_req              (fast_ram_req),
+         .ram_we               (fast_ram_we),
+diff --git a/rtl/ngage_sdram_arbiter.v b/rtl/ngage_sdram_arbiter.v
+index ec2fd0fb901cf8109381f8446949c0581610cfc1..e0f246adbdf79f86da8592d8b308d5234578bc01 100644
+--- a/rtl/ngage_sdram_arbiter.v
++++ b/rtl/ngage_sdram_arbiter.v
+@@ -15,6 +15,7 @@ module ngage_sdram_arbiter #(
+     input  wire [ 127:0] cpu_block_data,
+     input  wire [   3:0] cpu_be,
+     output wire          cpu_ack,
++    output wire          cpu_read_ack,
+     output wire [  31:0] cpu_rdata,
+     input  wire          dma_req,
+     input  wire          dma_we,
+@@ -31,6 +32,7 @@ module ngage_sdram_arbiter #(
+     output reg  [ 127:0] mem_block_data,
+     output reg  [   3:0] mem_be,
+     input  wire          mem_ack,
++    input  wire          mem_read_ack,
+     input  wire [  31:0] mem_rdata,
+     output wire          cpu_accept,
+     output wire          dma_accept,
+@@ -45,13 +47,15 @@ module ngage_sdram_arbiter #(
+     assign mem_lock = packet_lock;
+     wire choose_cpu = cpu_req && (cpu_lock || !dma_req || !prefer_dma);
+     wire choose_dma = dma_req && !cpu_lock && !choose_cpu;
+-    assign cpu_accept = !reset && state == FREE && choose_cpu;
+-    assign dma_accept = !reset && state == FREE && choose_dma;
+-    assign mem_req    = (state == ACTIVE);
+-    assign cpu_ack    = mem_req && !owner && mem_ack && !reset;
+-    assign dma_ack    = mem_req && owner && mem_ack && !reset;
+-    assign cpu_rdata  = mem_rdata;
+-    assign dma_rdata  = mem_rdata;
++    assign cpu_accept   = !reset && state == FREE && choose_cpu;
++    assign dma_accept   = !reset && state == FREE && choose_dma;
++    assign mem_req      = (state == ACTIVE);
++    assign cpu_ack      = mem_req && !owner && mem_ack && !reset;
++    // The consuming CPU port supplies the cancellation and reset gate.
++    assign cpu_read_ack = mem_req && !owner && mem_read_ack;
++    assign dma_ack      = mem_req && owner && mem_ack && !reset;
++    assign cpu_rdata    = mem_rdata;
++    assign dma_rdata    = mem_rdata;
+     always @(posedge clk) begin
+         if (reset) begin
+             state       <= FREE;
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index 9e7c339e59fe1cd17e407d27f983f43116e6bb0c..38693274286acd38099a451e3f515cb60fd64690 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -21,6 +21,7 @@ module ngage_sdram_stream #(
+     input  wire [ 31:0] din,
+     input  wire [  3:0] be,
+     output wire         ack,
++    output wire         read_ack,
+     output wire [ 31:0] dout,
+     input  wire         line_req,
+     input  wire         line_short,
+@@ -108,7 +109,10 @@ module ngage_sdram_stream #(
+     assign dout = read_data;
+     wire word_done = state == READ_WORD && mem_valid;
+     wire locked_done = state == WRITE_LOCKED && !mem_busy;
+-    assign ack = owner_ready && (post || read_reply || locked_done);
++    assign ack      = owner_ready && (post || read_reply || locked_done);
++    // The CPU route pairs this clocked pulse with its retained owner and
++    // cancellation. Posted writes and pin timing do not feed the pulse.
++    assign read_ack = read_reply;
+ 
+     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
+     assign line_data  = high_word ? high_data : mem_rdata[15:0];
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 0d346fd0cb5a08987c6984a1511705c1e0bf3abc..421ef7c82880a5a96a40cbfb345243b1e805cb92 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -64,6 +64,7 @@ module ngage_upp #(
+     // Dedicated transaction-level SDRAM interface, not physical pin timing.
+     input  wire         ram_accept,
+     input  wire         ram_ack,
++    input  wire         ram_read_ack,
+     input  wire [ 31:0] ram_rdata,
+     output wire         ram_req,
+     output wire         ram_we,
+@@ -190,7 +191,7 @@ module ngage_upp #(
+     generate
+         if (INTERNAL_CPU) begin : cpu_inside
+             wire master_cyc, master_stb, master_we, master_code;
+-            wire master_ack, master_error;
++            wire master_ack, master_read_ack, master_error;
+             wire [31:0] master_address, master_data, master_read_data;
+             wire [3:0] master_sel;
+             wire       master_write_block;
+@@ -233,6 +234,7 @@ module ngage_upp #(
+                 .wb_cycle_type    (),
+                 .wb_burst_type    (),
+                 .wb_ack           (master_ack),
++                .wb_read_ack      (master_read_ack),
+                 .wb_read_data     (master_read_data),
+                 .wb_error         (master_error)
+             );
+@@ -361,35 +363,37 @@ module ngage_upp #(
+ `endif
+                 .DIRECT_SDRAM         (DIRECT_SDRAM)
+             ) memory_route (
+-                .clk           (clk),
+-                .reset         (rst),
+-                .master_cyc    (master_cyc),
+-                .master_stb    (master_stb),
+-                .master_we     (master_we),
+-                .master_code   (master_code),
+-                .master_address(master_address),
+-                .master_data   (master_data),
+-                .master_sel    (master_sel),
+-                .master_ack    (master_ack),
+-                .master_error  (master_error),
+-                .master_rdata  (master_read_data),
+-                .slow_cyc      (),
+-                .slow_stb      (slow_master_stb),
+-                .slow_idle     (slow_idle),
+-                .slow_ack      (slow_ack),
+-                .slow_error    (slow_error),
+-                .slow_rdata    (slow_read_data),
+-                .ram_req       (ram_req),
+-                .ram_we        (ram_we),
+-                .ram_code      (ram_code),
+-                .ram_address   (ram_address),
+-                .ram_wdata     (ram_wdata),
+-                .ram_be        (ram_be),
+-                .ram_accept    (ram_accept),
+-                .ram_ack       (ram_ack),
+-                .ram_rdata     (ram_rdata),
+-                .ram_pending   (ram_pending),
+-                .ram_response  (ram_response)
++                .clk            (clk),
++                .reset          (rst),
++                .master_cyc     (master_cyc),
++                .master_stb     (master_stb),
++                .master_we      (master_we),
++                .master_code    (master_code),
++                .master_address (master_address),
++                .master_data    (master_data),
++                .master_sel     (master_sel),
++                .master_ack     (master_ack),
++                .master_read_ack(master_read_ack),
++                .master_error   (master_error),
++                .master_rdata   (master_read_data),
++                .slow_cyc       (),
++                .slow_stb       (slow_master_stb),
++                .slow_idle      (slow_idle),
++                .slow_ack       (slow_ack),
++                .slow_error     (slow_error),
++                .slow_rdata     (slow_read_data),
++                .ram_req        (ram_req),
++                .ram_we         (ram_we),
++                .ram_code       (ram_code),
++                .ram_address    (ram_address),
++                .ram_wdata      (ram_wdata),
++                .ram_be         (ram_be),
++                .ram_accept     (ram_accept),
++                .ram_ack        (ram_ack),
++                .ram_read_ack   (ram_read_ack),
++                .ram_rdata      (ram_rdata),
++                .ram_pending    (ram_pending),
++                .ram_response   (ram_response)
+             );
+             // A transaction-level UPP boundary, not the physical phone bus.
+             // LOCK bypasses the beat pipeline and remains asserted through
+@@ -828,6 +832,7 @@ module ngage_cpu_memory_route #(
+     input  wire [31:0] master_data,
+     input  wire [ 3:0] master_sel,
+     output wire        master_ack,
++    output wire        master_read_ack,
+     output wire        master_error,
+     output wire [31:0] master_rdata,
+     output wire        slow_cyc,
+@@ -844,6 +849,7 @@ module ngage_cpu_memory_route #(
+     output wire [ 3:0] ram_be,
+     input  wire        ram_accept,
+     input  wire        ram_ack,
++    input  wire        ram_read_ack,
+     input  wire [31:0] ram_rdata,
+     output reg         ram_pending = 0,
+     output wire        ram_response
+@@ -865,6 +871,9 @@ module ngage_cpu_memory_route #(
+     // A cancellation sampled on an earlier edge still suppresses completion.
+     assign master_ack = (CPU_OWNS_SCALAR_REPLY ? ram_completion : ram_response) ||
+                         (!reset && !ram_pending && slow_ack);
++    // Only the SDRAM read reply FF can take the CPU's immediate path.
++    // The refill adapter gates its own CYC and reset at the destination.
++    assign master_read_ack = ram_pending && !cancelled && ram_read_ack;
+     assign master_error = !reset && !ram_pending && slow_error;
+     // ram_ack/data already come from the registered SDRAM response and owner.
+     // Keep the cache's completion register; do not forward controller pins.
+diff --git a/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py b/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
+index 89be34770d64f4dafcb54f487c644ffcc0c58f4b..f1eda644148969a1994f4dda20696ef9cf6860bd 100644
+--- a/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
++++ b/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
+@@ -63,6 +63,20 @@ def generate(out, bench, wide=False, production=False):
+             ".grant_read(1'b0),.grant_addr(25'd0)",
+             ".grant_read((cpu_ram_accept && !cswe) || (shared_dma_accept && !shared_dma_write)),"
+             ".grant_addr(cpu_ram_accept ? csa : shared_dma_addr)")
++        ports = swap(ports, ".ack(sack),.dout(sdata)", ".ack(sack),.read_ack(mem_read_ack),.dout(sdata)")
++        bench = swap(bench, ' wire cpu_ram_accept;',
++                     ' wire cpu_ram_accept, mem_read_ack, cpu_ram_read_ack;')
++        bench = swap(bench, '.sdram_ack(csack),', '.sdram_ack(csack),.sdram_read_ack(cpu_ram_read_ack),')
++        bench = swap(bench, '.cpu_ack(csack),', '.cpu_ack(csack),.cpu_read_ack(cpu_ram_read_ack),')
++        bench = swap(bench, '.mem_ack(sack),', '.mem_ack(sack),.mem_read_ack(mem_read_ack),')
++        ports += """
++`ifdef NGAGE_ARM9V2
++ always @(posedge clk)
++  if (!dma_reset && DIRECT_SDRAM && csack && !cswe && dut.fast_ram_response &&
++      !dut.board.upp.cpu_inside.cpu.refill.g_completion.read_ack)
++   $fatal(1, "A physical CPU read missed the owned fast completion path");
++`endif
++"""
+     else:
+         controller = subprocess.check_output(['git', '-C', DONOR, 'show', f'{REVISION}:rtl/mem/sdram.sv'])
+         if wide:
+diff --git a/tests/cpu/arm9v2_board/refill_candidate_tb.v b/tests/cpu/arm9v2_board/refill_candidate_tb.v
+index db7efcfc71334ad2db67e0337c947e66b7b76957..bc575f065d8954965bd74bc70d9d73dd169b1d1d 100644
+--- a/tests/cpu/arm9v2_board/refill_candidate_tb.v
++++ b/tests/cpu/arm9v2_board/refill_candidate_tb.v
+@@ -1,4 +1,6 @@
+-module refill_candidate_tb;
++module refill_candidate_tb #(
++    parameter BUFFER_COMPLETION = 0
++);
+   reg clk = 0;
+   reg reset = 1;
+   reg code_request = 0, data_request = 0;
+@@ -68,7 +70,9 @@ module refill_candidate_tb;
+   );
+ 
+   ngage_arm9v2_refill #(
+-      .ENABLE(1)
++      .ENABLE(1),
++      .REGISTERED_SCALAR_PEER(BUFFER_COMPLETION),
++      .REGISTER_COMPLETION(BUFFER_COMPLETION)
+   ) refill (
+       .clk(clk),
+       .reset(reset),
+@@ -191,9 +195,15 @@ module refill_candidate_tb;
+     check_packet(0, 32'h0a000000, 0);
+     data_addr = 32'h02000020;
+     data_request = 1;
++    if (BUFFER_COMPLETION) tick;
+     scalar_ack = 1;
+     tick;
+     scalar_ack = 0;
++    if (BUFFER_COMPLETION) begin
++      if (data_owner || addr != code_addr || !cpu_ack || scalar || line_req)
++        $fatal(1, "Pending scalar completion changed owner before the consume edge");
++      tick;
++    end
+     if (!data_owner || addr != data_addr || !candidate || !line_req || scalar)
+       $fatal(1, "Candidate did not advance with the data owner");
+ 
+@@ -222,10 +232,16 @@ module refill_candidate_tb;
+     line_reject = 1;
+     tick;
+     line_reject = 0;
+-    scalar_ack  = 1;
++    if (BUFFER_COMPLETION) tick;
++    scalar_ack = 1;
+     #1;
+-    if (!scalar || !cpu_ack || line_req || cpu_no_late_error)
++    if (!scalar || cpu_ack !== !BUFFER_COMPLETION || line_req || cpu_no_late_error)
+       $fatal(1, "Rejected line did not fall back to an ordinary scalar acknowledgement");
++    if (BUFFER_COMPLETION) begin
++      tick;
++      if (scalar || !cpu_ack || line_req || cpu_no_late_error)
++        $fatal(1, "Buffered fallback response lost scalar ownership");
++    end
+     scalar_ack = 0;
+ 
+     // The live guarantee is saved when the board accepts the line. Words
+diff --git a/tests/cpu/arm9v2_board/run-wb-completion.sh b/tests/cpu/arm9v2_board/run-wb-completion.sh
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf5ed0d01360032740d3291a432211e3a167873e
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-wb-completion.sh
+@@ -0,0 +1,19 @@
++#!/bin/sh
++set -eu
++name="${1:?provide a fresh run name}"
++case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
++out="build/sim/$name"
++mkdir "$out"
++
++simulate() {
++    entrypoint=$1
++    shift
++    docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++        -w /work --entrypoint "$entrypoint" jotego/simulator:arm64 "$@"
++}
++
++simulate verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++    --top-module wb_completion_tb --Mdir "$out/obj" rtl/ngage_cpu.sv rtl/ngage_upp.v \
++    tests/cpu/arm9v2_board/wb_completion_tb.sv > "$out/build.log" 2>&1
++simulate "/work/$out/obj/Vwb_completion_tb" > "$out/run.log" 2>&1
++rg '^PASS owned Wishbone completion' "$out/run.log"
+diff --git a/tests/cpu/arm9v2_board/wb_completion_tb.sv b/tests/cpu/arm9v2_board/wb_completion_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..0458b487428798a6c9693fc94a0f011f5fbc03d4
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/wb_completion_tb.sv
+@@ -0,0 +1,305 @@
++`timescale 1ns / 1ps
++
++module wb_completion_tb;
++  localparam [2:0] BURST = 3'b010, END_BEAT = 3'b111;
++  reg clk = 0, reset = 1;
++  reg cyc = 0, lock = 0, write_word = 0, candidate = 0;
++  reg [31:0] address = 0, write_data = 0;
++  reg [2:0] cti = END_BEAT;
++  wire ack, error, guarantee, wb_cyc, wb_lock, line_req;
++  wire [31:0] data, wb_data;
++  wire wb_ack, wb_error, wb_read_ack;
++  reg line_ready = 0, reject_line = 0, line_valid = 0, line_wide = 0;
++  reg line_last = 0, line_error = 0, promise_line = 1;
++  reg [63:0] line_data = 0;
++  reg ram_ack = 0, ram_read_ack = 0;
++  reg [31:0] ram_data = 0;
++  wire ram_req, ram_pending, slow_stb, slow_idle, slow_ack, slow_error;
++  wire [31:0] slow_rdata;
++
++  ngage_arm9v2_refill #(
++      .ENABLE(1),
++      .REGISTERED_SCALAR_PEER(1),
++      .REGISTER_COMPLETION(1)
++  ) refill (
++      .clk(clk),
++      .reset(reset),
++      .cpu_cyc(cyc),
++      .cpu_lock(lock),
++      .cpu_line_candidate(candidate),
++      .cpu_address(address),
++      .cpu_write(write_word),
++      .cpu_cti(cti),
++      .cpu_bte(2'b00),
++      .cpu_sel(4'b1111),
++      .cpu_ack(ack),
++      .cpu_error(error),
++      .cpu_no_late_error(guarantee),
++      .cpu_data(data),
++      .wb_cyc(wb_cyc),
++      .wb_lock(wb_lock),
++      .wb_ack(wb_ack),
++      .wb_error(wb_error),
++      .wb_read_ack(wb_read_ack),
++      .wb_data(wb_data),
++      .line_req(line_req),
++      .line_ready(line_ready),
++      .line_reject(reject_line),
++      .line_valid(line_valid),
++      .line_wide(line_wide),
++      .line_last(line_last),
++      .line_error(line_error),
++      .line_no_late_error(promise_line),
++      .line_data(line_data)
++  );
++
++  ngage_cpu_memory_route #(
++      .CPU_OWNS_SCALAR_REPLY(1)
++  ) route (
++      .clk(clk),
++      .reset(reset),
++      .master_cyc(wb_cyc),
++      .master_stb(wb_cyc),
++      .master_we(write_word),
++      .master_code(1'b0),
++      .master_address(address),
++      .master_data(write_data),
++      .master_sel(4'hf),
++      .master_ack(wb_ack),
++      .master_error(wb_error),
++      .master_read_ack(wb_read_ack),
++      .master_rdata(wb_data),
++      .slow_stb(slow_stb),
++      .slow_idle(slow_idle),
++      .slow_ack(slow_ack),
++      .slow_error(slow_error),
++      .slow_rdata(slow_rdata),
++      .ram_req(ram_req),
++      .ram_pending(ram_pending),
++      .ram_accept(ram_req),
++      .ram_ack(ram_ack),
++      .ram_read_ack(ram_read_ack),
++      .ram_rdata(ram_data)
++  );
++
++  wire bus_cyc, bus_we;
++  wire [31:0] bus_address, bus_data;
++  reg device_ready = 0, device_error = 0;
++  wire device_done = bus_cyc && device_ready;
++  ngage_upp_bus_bridge #(
++      .REGISTERED_MASTER(1)
++  ) bridge (
++      .clk(clk),
++      .reset(reset),
++      .master_cyc(slow_stb),
++      .master_stb(slow_stb),
++      .master_we(write_word),
++      .master_code(1'b0),
++      .master_address(address),
++      .master_data(write_data),
++      .master_sel(4'hf),
++      .master_ack(slow_ack),
++      .master_error(slow_error),
++      .master_read_data(slow_rdata),
++      .bus_cyc(bus_cyc),
++      .bus_we(bus_we),
++      .bus_address(bus_address),
++      .bus_data(bus_data),
++      .bus_ack(device_done && !device_error),
++      .bus_error(device_done && device_error),
++      .bus_read_data(32'habc0def0),
++      .idle(slow_idle)
++  );
++
++  integer side_effects = 0;
++  always @(posedge clk)
++    if (device_done && bus_we && !device_error) begin
++      if (bus_address != 32'h0c120624 || bus_data != 32'h12340000 + side_effects)
++        $fatal(1, "Wrong MMIO side-effect packet");
++      side_effects <= side_effects + 1;
++    end
++
++  task tick;
++    #1 clk = 1;
++    #1 clk = 0;
++    #1;
++  endtask
++
++  task check_reply(input logic expect_ack, expect_error, present_offer,
++                   input logic [31:0] expected_data);
++    if ({ack, error, guarantee, wb_cyc} !== {expect_ack, expect_error, 1'b0, present_offer})
++      $fatal(1, "Wrong scalar response or request owner");
++    if ((expect_ack || expect_error) && data !== expected_data)
++      $fatal(1, "Wrong scalar reply data");
++  endtask
++
++  task ram_return(input logic fast, input logic [31:0] value);
++    ram_ack = 1;
++    ram_read_ack = fast;
++    ram_data = value;
++    #1;
++    if (fast) begin
++      check_reply(1, 0, 1, value);
++      tick;
++    end else begin
++      check_reply(0, 0, 1, 0);
++      tick;
++      ram_data = 32'hdeaddead;
++      check_reply(1, 0, 0, value);
++      tick;
++    end
++    ram_ack = 0;
++    ram_read_ack = 0;
++  endtask
++
++  task slow_return(input logic err);
++    device_ready = 0;
++    device_error = err;
++    repeat (3) begin
++      tick;
++      if (!bus_cyc || ack || error) $fatal(1, "Held slow MMIO packet lost");
++    end
++    device_ready = 1;
++    tick;
++    check_reply(0, 0, 1, 0);
++    tick;
++    check_reply(!err, err, 0, 32'habc0def0);
++    tick;
++    device_ready = 0;
++  endtask
++
++  // Drive a native burst with continuous or intentionally gapped input.
++  // The same-edge reference assertion inside the adapter checks every beat.
++  task native_line(input logic wide, inject_error);
++    integer beat;
++    integer taken;
++    cyc = 1;
++    address = 32'h0a000080;
++    candidate = 1;
++    cti = BURST;
++    promise_line = !inject_error;
++    line_wide = wide;
++    repeat (2) begin
++      tick;
++      if (!line_req || ack || error || wb_cyc) $fatal(1, "Waiting line borrowed a scalar reply");
++    end
++    line_ready = 1;
++    tick;
++    line_ready = 0;
++    taken = 0;
++    for (beat = 0; taken < 8 && beat < 120; beat++) begin
++      line_valid = inject_error ? beat == 0 : wide ? beat < 4 : beat < 48 && beat % 3 == 0;
++      line_last  = !inject_error && (wide ? beat == 3 : beat == 45);
++      line_error = inject_error && beat == 0;
++      if (wide) line_data = {32'h11220001 + 2 * beat, 32'h11220000 + 2 * beat};
++      else line_data = beat % 6 == 0 ? 64'(beat / 6) : 64'h1122;
++      #1;
++      if (ack || error) begin
++        if (ack == inject_error || error != inject_error || guarantee == inject_error ||
++            (!inject_error && data !== 32'h11220000 + taken))
++          $fatal(1, "Native line changed data, error or guarantee at word %0d", taken);
++        tick;
++        taken++;
++        address += 4;
++        candidate = 0;
++        if (taken == 7) cti = END_BEAT;
++      end else tick;
++    end
++    if (taken != 8) $fatal(1, "Native line did not terminate");
++    cyc = 0;
++    line_valid = 0;
++    line_last = 0;
++    line_error = 0;
++    tick;
++  endtask
++
++  initial begin
++    tick;
++    reset = 0;
++
++    // Same-address MMIO writes under continuous donor CYC must each commit once.
++    cyc = 1;
++    address = 32'h0c120624;
++    write_word = 1;
++    write_data = 32'h12340000;
++    slow_return(0);
++    write_data = 32'h12340001;
++    slow_return(0);
++    if (side_effects != 2) $fatal(1, "Lost or duplicated an MMIO write");
++    write_word = 0;
++    slow_return(1);
++
++    // Keep SWP lock live during a same-edge RAM read and a buffered write reply.
++    lock = 1;
++    address = 32'h0a000004;
++    tick;
++    ram_return(1, 32'h76301234);
++    write_word = 1;
++    tick;
++    if (!wb_lock || !ram_pending) $fatal(1, "SWP write lost its reservation");
++    ram_return(0, 32'h22222222);
++    if (!wb_lock) $fatal(1, "SWP lock dropped while returning the write");
++    lock = 0;
++    write_word = 0;
++
++    // Cancel an old read while it is owned; a younger scalar cannot take its ACK.
++    address = 32'h0a000010;
++    tick;
++    cyc = 0;
++    tick;
++    address = 32'h0a000014;
++    cyc = 1;
++    ram_ack = 1;
++    ram_read_ack = 1;
++    #1;
++    if (ram_req || ack || error) $fatal(1, "Cancelled read acknowledged the next command");
++    tick;
++    ram_ack = 0;
++    ram_read_ack = 0;
++    tick;
++    ram_return(1, 32'h33334444);
++
++    // A line rejected before its first word remains scalar until the end beat.
++    address = 32'h0a000040;
++    candidate = 1;
++    cti = BURST;
++    line_ready = 1;
++    tick;
++    line_ready  = 0;
++    reject_line = 1;
++    tick;
++    reject_line = 0;
++    #1;
++    if (!ram_req || line_req || guarantee) $fatal(1, "Rejected line did not fall back to scalar");
++    tick;
++    ram_return(1, 32'h55556666);
++    address = address + 4;
++    candidate = 0;
++    cti = END_BEAT;
++    tick;
++    ram_return(1, 32'h77778888);
++
++    // Reset kills a captured, still unconsumed MMIO completion.
++    address = 32'h0c120624;
++    device_error = 0;
++    device_ready = 1;
++    tick;
++    tick;
++    check_reply(1, 0, 0, 32'habc0def0);
++    reset = 1;
++    #1;
++    if (ack || error || wb_cyc || line_req) $fatal(1, "Old reply escaped reset");
++    cyc = 0;
++    tick;
++    reset = 0;
++    device_ready = 0;
++    tick;
++
++    native_line(1, 0);
++    native_line(0, 0);
++    native_line(1, 1);
++    $display(
++        "PASS owned Wishbone completion, scalar bypass, MMIO once, cancel/reset, and exact line credits");
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/sdram/stream_tb.sv b/tests/phone/sdram/stream_tb.sv
+index 3981c52b9c4aa5a89cb0367ddd92a6d0b03588f1..2abb742831c03c0b0c2595db6914b8e0fa87ebca 100644
+--- a/tests/phone/sdram/stream_tb.sv
++++ b/tests/phone/sdram/stream_tb.sv
+@@ -14,9 +14,9 @@ module stream_tb #(
+   reg cpu_write_block = 0;
+   reg [127:0] cpu_block_data = 0;
+   reg [3:0] cpu_mask = 0, dma_mask = 0;
+-  wire cpu_ack, dma_ack, owner_ready, cpu_grant, dma_grant;
++  wire cpu_ack, cpu_read_ack, dma_ack, owner_ready, cpu_grant, dma_grant;
+   wire [31:0] cpu_out, dma_out;
+-  wire req, we, ack, packet_lock;
++  wire req, we, ack, read_ack, packet_lock;
+   wire [24:0] addr;
+   wire [31:0] write_data, read_data;
+   wire write_block;
+@@ -35,6 +35,7 @@ module stream_tb #(
+       .cpu_data(cpu_data),
+       .cpu_be(cpu_mask),
+       .cpu_ack(cpu_ack),
++      .cpu_read_ack(cpu_read_ack),
+       .cpu_rdata(cpu_out),
+       .cpu_write_block(cpu_write_block),
+       .cpu_block_data(cpu_block_data),
+@@ -54,6 +55,7 @@ module stream_tb #(
+       .mem_write_block(write_block),
+       .mem_block_data(block_data),
+       .mem_ack(ack),
++      .mem_read_ack(read_ack),
+       .mem_rdata(read_data),
+       .cpu_accept(cpu_grant),
+       .dma_accept(dma_grant)
+@@ -83,6 +85,7 @@ module stream_tb #(
+       .din(write_data),
+       .be(mask),
+       .ack(ack),
++      .read_ack(read_ack),
+       .dout(read_data),
+       .line_req(line_req && !lock),
+       .line_short(1'b0),
+@@ -112,6 +115,8 @@ module stream_tb #(
+       capture_pending <= 0;
+       if (cpu_ack || dma_ack) $fatal(1, "Scalar reply escaped reset");
+     end else begin
++      if (cpu_read_ack !== (cpu_ack && !we))
++        $fatal(1, "CPU read sideband changed owner or acknowledged a write");
+       capture_pending <= stream.word_done && owner_ready;
+       if (stream.word_done && owner_ready) begin
+         capture_data <= rdata_mem;

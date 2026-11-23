@@ -1,0 +1,1059 @@
+[
+  {
+    "id": "upp-ddr",
+    "kind": "design",
+    "base": "87b076a944631e87ed62b3548006a88c62cf998f",
+    "target": "61d51feb871a31c92d49957c048129de44a442e0",
+    "patches": [
+      "patches/upp-ddr.patch"
+    ],
+    "sha256": [
+      "883cc3f5ec8b32afb755a96662a3a7af317d7ec173ccba630250271f4567d100"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "files.qip",
+      "rtl/ngage_board.v",
+      "rtl/ngage_ddr_flash_adapter.v",
+      "rtl/ngage_ddr_stream.v",
+      "rtl/ngage_ddr_stream_legacy.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_ddr_port.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/upp_ddr_ram/README.md",
+      "tests/phone/upp_ddr_ram/atomic.S",
+      "tests/phone/upp_ddr_ram/mixed.vh",
+      "tests/phone/upp_ddr_ram/peer.v",
+      "tests/phone/upp_ddr_ram/peripherals_tb.v",
+      "tests/phone/upp_ddr_ram/prepare.py",
+      "tests/phone/upp_ddr_ram/run.sh",
+      "tests/phone/upp_ddr_top/run.sh",
+      "tests/phone/upp_ddr_top/tb.sv",
+      "tests/phone/upp_ddr_transport/run.sh",
+      "tests/phone/upp_ddr_transport/tb.sv"
+    ]
+  },
+  {
+    "id": "ras-m10k",
+    "kind": "design",
+    "base": "29479fecc32fe8a787378222f1ac2010a0eaf8a7",
+    "target": "09653728f301c2c1732d6559465d7d509c2efdfc",
+    "patches": [
+      "patches/ras-m10k.patch"
+    ],
+    "sha256": [
+      "8bda96a3b7c47f5ee0e9e7376ade5283a132c4e621bfac5974470236360a2d3b"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_ras/run.sh",
+      "tests/cpu/arm9v2_ras/tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "mmc-stream-tags",
+    "kind": "design",
+    "base": "09653728f301c2c1732d6559465d7d509c2efdfc",
+    "target": "341a45421019398c2a44bf6f9ce79d312e0cdbac",
+    "patches": [
+      "patches/mmc-stream-tags.patch"
+    ],
+    "sha256": [
+      "777f6bfd96948c45f7dc0ce38cdd9e6c0c609eee6fb57a9ead4fcf4c99fab0de"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_card.v",
+      "tests/phone/mmc_card/README.md",
+      "tests/phone/mmc_card/equivalence.v",
+      "tests/phone/mmc_card/run-donor.sh",
+      "tests/phone/mmc_card/run-stream-tags.sh",
+      "tests/phone/mmc_card/run.sh",
+      "tests/phone/mmc_card/stream_lookup_tb.sv",
+      "tests/phone/mmc_hps/run.sh"
+    ]
+  },
+  {
+    "id": "posted-store-queue",
+    "kind": "design",
+    "base": "341a45421019398c2a44bf6f9ce79d312e0cdbac",
+    "target": "5700837df3721fbaf0c6b57077b02d4c2360e407",
+    "patches": [
+      "patches/posted-store-queue.patch"
+    ],
+    "sha256": [
+      "531db9193dfcf6e1d67e9086bc37fc69fd915f277f4da95069da9b46bbd377db"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_store_queue/ordering.patch",
+      "tests/cpu/arm9v2_store_queue/run-ordering.sh",
+      "tests/cpu/arm9v2_store_queue/run.sh",
+      "tests/cpu/arm9v2_store_queue/tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "fetch-queue",
+    "kind": "design",
+    "base": "341a45421019398c2a44bf6f9ce79d312e0cdbac",
+    "target": "d127eb3d40a7b29303d4284e98c47203a42fe049",
+    "patches": [
+      "patches/fetch-queue.patch"
+    ],
+    "sha256": [
+      "705ec07e568a7f6eb45b6da0bb194fbcc33008adf45984f2b59287d495963e47"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/fetch_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-fetch-ram.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "all-four",
+    "kind": "design",
+    "base": "29479fecc32fe8a787378222f1ac2010a0eaf8a7",
+    "target": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/all-four.patch"
+    ],
+    "sha256": [
+      "236a8393a934656ce31e5f3bf5b628a36357e8fd478fa767f78623baaffd66f8"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_mmc_card.v",
+      "tests/cpu/arm9v2_board/fetch_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-fetch-ram.sh",
+      "tests/cpu/arm9v2_ras/run.sh",
+      "tests/cpu/arm9v2_ras/tb.sv",
+      "tests/cpu/arm9v2_store_queue/ordering.patch",
+      "tests/cpu/arm9v2_store_queue/run-ordering.sh",
+      "tests/cpu/arm9v2_store_queue/run.sh",
+      "tests/cpu/arm9v2_store_queue/tb.v",
+      "tests/phone/mmc_card/README.md",
+      "tests/phone/mmc_card/equivalence.v",
+      "tests/phone/mmc_card/run-donor.sh",
+      "tests/phone/mmc_card/run-stream-tags.sh",
+      "tests/phone/mmc_card/run.sh",
+      "tests/phone/mmc_card/stream_lookup_tb.sv",
+      "tests/phone/mmc_hps/run.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "refill-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "13a471b684c6730c37d9890c057c95e966a50ec0",
+    "patches": [
+      "patches/refill-m10k.patch"
+    ],
+    "sha256": [
+      "0ae22a6f55b7cb7cbabebd17d3ca75403efb8790433c9697a853dbb0412578c9"
+    ],
+    "affected_paths": [
+      "rtl/ngage_cpu.sv",
+      "tests/cpu/arm9v2_board/refill_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-refill-ram.sh"
+    ]
+  },
+  {
+    "id": "icu-probe-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+    "patches": [
+      "patches/icu-probe-m10k.patch"
+    ],
+    "sha256": [
+      "202b5966199a8436a5455ee27983b16bad4104509f28914c98d6faacda0a9d05"
+    ],
+    "affected_paths": [
+      "rtl/ngage_icu_extra.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/register_ram/probe_tb.sv",
+      "tests/phone/register_ram/run-probe.sh"
+    ]
+  },
+  {
+    "id": "mmc-host-fifo-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "d790e966390a2fa2af10a836ec0d4543037c509a",
+    "patches": [
+      "patches/mmc-host-fifo-m10k.patch"
+    ],
+    "sha256": [
+      "2363c6b282083a7a3f52934b585485157741e9521c40fbfbeccd7e79181158cd"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_host.v",
+      "tests/phone/direct_sdram/run-route.sh",
+      "tests/phone/mmc_host/README.md",
+      "tests/phone/mmc_host/fifo_banks_tb.sv",
+      "tests/phone/mmc_host/fifo_reference.vh",
+      "tests/phone/mmc_host/run-fifo.sh",
+      "tests/phone/mmc_host/run-pinned.sh",
+      "tests/phone/mmc_host/run.sh",
+      "tests/phone/upp_bus_bridge/run.sh"
+    ]
+  },
+  {
+    "id": "tlb-victims-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+    "patches": [
+      "patches/tlb-victims-m10k.patch"
+    ],
+    "sha256": [
+      "32136bfde35c34aa43123c5e98d0ae4d11297196b335fbb3201c0528cc987282"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/run-tlb-victim.sh",
+      "tests/cpu/arm9v2_board/tlb_victim_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "thumb-parallel-valid",
+    "kind": "design",
+    "base": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+    "target": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+    "patches": [
+      "patches/thumb-parallel-valid.patch"
+    ],
+    "sha256": [
+      "edc00225c8ec355e90102171ad358baec17f19178bc93836111390554038e96e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/predictor_recovery_tb.sv",
+      "tests/cpu/arm9v2_board/run-predictor-recovery.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "paired-load-address",
+    "kind": "historical",
+    "base": "237117d4654d4b64ff631818d07652a19726b3e8",
+    "target": "b378969dedf8cf9e0987023efd67965c48c2d7c0",
+    "patches": [
+      "historical/paired-load-address.patch"
+    ],
+    "sha256": [
+      "ad2c10270e194c4443f8a46f2e09e9306cc1e8147659662410e2c9572ed064ae"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/paired_match_tb.v",
+      "tools/arm9v2_issue_ldm.py"
+    ]
+  },
+  {
+    "id": "wishbone-refill-classification",
+    "kind": "historical",
+    "base": "b378969dedf8cf9e0987023efd67965c48c2d7c0",
+    "target": "2cf19f085073cb3fb5fa67d78f0236b82a58b882",
+    "patches": [
+      "historical/wishbone-refill-classification.patch"
+    ],
+    "sha256": [
+      "135860915d14aa92d3d8e3c554850ace10ec887ddb109d3e7d286207402d20e3"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_cpu.sv",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "pair-hint-clocked-base",
+    "kind": "historical",
+    "base": "2cf19f085073cb3fb5fa67d78f0236b82a58b882",
+    "target": "9637fca2bfcbe631284e15f88e670c3a1ef9cd5c",
+    "patches": [
+      "historical/pair-hint-clocked-base.patch"
+    ],
+    "sha256": [
+      "ecce7a4038239476fb2865decee4611ed4676489d1d3589262d4955eaf8fe033"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/arm9v2_issue_ldm.py"
+    ]
+  },
+  {
+    "id": "dma-command-flops",
+    "kind": "historical",
+    "base": "9637fca2bfcbe631284e15f88e670c3a1ef9cd5c",
+    "target": "11d468fe78050e711c1431b34b7bf98afc6cd81a",
+    "patches": [
+      "historical/dma-command-flops.patch"
+    ],
+    "sha256": [
+      "45a8aab01819bea20ea0d1c8d9a0ba7e9ea75b23c477163f94372d3e324f48d2"
+    ],
+    "affected_paths": [
+      "rtl/ngage_dma_engine.v"
+    ]
+  },
+  {
+    "id": "scalar-reply-ownership",
+    "kind": "historical",
+    "base": "11d468fe78050e711c1431b34b7bf98afc6cd81a",
+    "target": "f2d9c04a10a8f6b4458568b6cb37b55c6865f506",
+    "patches": [
+      "historical/scalar-reply-ownership.patch"
+    ],
+    "sha256": [
+      "fb2de9175296b4541c8f14c94215df0b84eecae5592880f0f93a344f4255866f"
+    ],
+    "affected_paths": [
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_dma_engine.v",
+      "rtl/ngage_upp.v",
+      "tests/cpu/arm9v2_board/scalar_reply_tb.v"
+    ]
+  },
+  {
+    "id": "sdram-packet-lock",
+    "kind": "historical",
+    "base": "f2d9c04a10a8f6b4458568b6cb37b55c6865f506",
+    "target": "581f8e68216b0640f25fc5205541f2b44b4e96de",
+    "patches": [
+      "historical/sdram-packet-lock.patch"
+    ],
+    "sha256": [
+      "0724fc78a0d2c20191d8fadf51932a56a6f766b3944274940a733f692d567d2a"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "tests/cpu/arm9v2_board/frame_gap_donor_sdram.py",
+      "tests/phone/lcd_stream/physical_tb.sv",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "sdram-physical-command-slot",
+    "kind": "historical",
+    "base": "581f8e68216b0640f25fc5205541f2b44b4e96de",
+    "target": "6c195402d3854dceed9a5ff9024d2fb76ee49cee",
+    "patches": [
+      "historical/sdram-physical-command-slot.patch"
+    ],
+    "sha256": [
+      "7d8f5b6a85ce452cdfd25f5941dc09f5cfdd6836ef3b60542e7ea168d3d2f1f9"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/sdram/ngage_sdram_scheduler.v",
+      "tests/cpu/arm9v2_board/frame_gap_donor_sdram.py",
+      "tests/phone/lcd_stream/physical_tb.sv",
+      "tests/phone/lcd_stream/run-physical.sh",
+      "tests/phone/sdram/run-stream.sh",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "serial-arm-ldm",
+    "kind": "historical",
+    "base": "6c195402d3854dceed9a5ff9024d2fb76ee49cee",
+    "target": "a5a73496458e4c6219257232080bd100d87f8808",
+    "patches": [
+      "historical/serial-arm-ldm.patch"
+    ],
+    "sha256": [
+      "2457958406343f93527251927dd17311748330bff6dc51095b58f713b974a2f8"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "first-line-classification",
+    "kind": "historical",
+    "base": "a5a73496458e4c6219257232080bd100d87f8808",
+    "target": "7b1075492bfb33b0ab3165ce4280e3a41cb23270",
+    "patches": [
+      "historical/first-line-classification.patch"
+    ],
+    "sha256": [
+      "84fc95541425da7e25b1e12aee9356f9cf99c917608234b717e7b40c50e2897e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "physical-104mhz-clock",
+    "kind": "historical",
+    "base": "7b1075492bfb33b0ab3165ce4280e3a41cb23270",
+    "target": "295b7ef43c06a4a9ab41cd7ba2692209584cd382",
+    "patches": [
+      "historical/physical-104mhz-clock.patch"
+    ],
+    "sha256": [
+      "20b0c1d1a74a55cf97b615d76dd7e54eeb2723b8abc2d02e402a0993d6e67379"
+    ],
+    "affected_paths": [
+      ".github/workflows/ci_build.yml",
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_mmc_card.v",
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "rtl/pll/pll_0002.v",
+      "tests/cpu/arm9v2_board/payload_clocks.py",
+      "tests/phone/clock_rates/run.sh",
+      "tests/phone/hardware_boot/tb.v",
+      "tests/phone/mmc_host/frac_clock_tb.v",
+      "tools/check_quartus_timing.py",
+      "tools/probe_retime_fit/report.tcl",
+      "tools/record_fit_inputs.py"
+    ]
+  },
+  {
+    "id": "mmc-and-analog-clock-dividers",
+    "kind": "historical",
+    "base": "295b7ef43c06a4a9ab41cd7ba2692209584cd382",
+    "target": "2bc545b2ee7382894cb82626ba1a8b2a4560ad37",
+    "patches": [
+      "historical/mmc-and-analog-clock-dividers.patch"
+    ],
+    "sha256": [
+      "a410ca23517d8d48da9694fe19973c667cbc659243b19c883e36428f9b4bf666"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_lcd_display.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/cpu/arm9v2_board/payload_clocks.py",
+      "tests/phone/clock_rates/run.sh",
+      "tests/phone/clock_rates/tb.sv",
+      "tests/phone/hardware_boot/tb.v",
+      "tests/phone/lcd_display/native_tb.v",
+      "tests/phone/mmc_host/data_tb.v",
+      "tests/phone/mmc_host/integer_clock_tb.v",
+      "tests/phone/mmc_host/run.sh"
+    ]
+  },
+  {
+    "id": "original-analog-raster",
+    "kind": "historical",
+    "base": "2bc545b2ee7382894cb82626ba1a8b2a4560ad37",
+    "target": "9405da98459552d3d240d2ebd29c80d82da72a2b",
+    "patches": [
+      "historical/original-analog-raster.patch"
+    ],
+    "sha256": [
+      "88b707b645a81a24804f4c1f0ae8f1977bf9300ec8f22bc28e61cfa025856288"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_lcd_display.v",
+      "rtl/ngage_mister.v",
+      "tests/cpu/arm9v2_board/payload_clocks.py",
+      "tests/phone/clock_rates/run.sh",
+      "tests/phone/clock_rates/tb.sv",
+      "tests/phone/hardware_boot/tb.v",
+      "tests/phone/lcd_display/native_tb.v"
+    ]
+  },
+  {
+    "id": "lcd-dma-eligibility",
+    "kind": "historical",
+    "base": "9405da98459552d3d240d2ebd29c80d82da72a2b",
+    "target": "993eb2b1aa7f729784b09f7ef36f167094f54ef1",
+    "patches": [
+      "historical/lcd-dma-eligibility.patch"
+    ],
+    "sha256": [
+      "03399363d7c19cd4743f9b4f7166aa6751207c5045af55fa2dbb4c1cdbd14dc0"
+    ],
+    "affected_paths": [
+      "rtl/ngage_lcd_stream.v",
+      "tests/phone/lcd_stream/README.md"
+    ]
+  },
+  {
+    "id": "sdram-scalar-read-completion",
+    "kind": "historical",
+    "base": "993eb2b1aa7f729784b09f7ef36f167094f54ef1",
+    "target": "ae3ff842d227f970547db278b976e714b23460c0",
+    "patches": [
+      "historical/sdram-scalar-read-completion.patch"
+    ],
+    "sha256": [
+      "cb5113e03915014869464fd64b2de4c688fa02d55f29415e3eac0423c8f1e142"
+    ],
+    "affected_paths": [
+      "rtl/ngage_sdram_stream.v",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "captured-upp-owner",
+    "kind": "historical",
+    "base": "ae3ff842d227f970547db278b976e714b23460c0",
+    "target": "06a7aadcf06ba506a79e9489f707b7393d3a65ff",
+    "patches": [
+      "historical/captured-upp-owner.patch"
+    ],
+    "sha256": [
+      "ca382a509c3aaf2f9c58007910cb2ccfc4ac1f41cddd26f6998fb913b6129e6d"
+    ],
+    "affected_paths": [
+      "rtl/ngage_upp.v",
+      "tests/phone/upp_request_stage/run.sh",
+      "tests/phone/upp_request_stage/tb.v"
+    ]
+  },
+  {
+    "id": "packed-d-cache-write-enables",
+    "kind": "historical",
+    "base": "06a7aadcf06ba506a79e9489f707b7393d3a65ff",
+    "target": "69773affa4e020fc6dc463e57b060d2cac27f6bc",
+    "patches": [
+      "historical/packed-d-cache-write-enables.patch"
+    ],
+    "sha256": [
+      "733b1c569c90b5da71cb3763fcd5a242a089101cc7f0a1c6c1e39f6867abb2db"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/README.md",
+      "tests/cpu/arm9v2_board/packed_write_enable_tb.v",
+      "tests/cpu/arm9v2_board/run-packed-write-enable.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "cache-feedback-at-issue",
+    "kind": "historical",
+    "base": "69773affa4e020fc6dc463e57b060d2cac27f6bc",
+    "target": "ff8becc79a3680b548e9567a3557aa3928078f42",
+    "patches": [
+      "historical/cache-feedback-at-issue.patch"
+    ],
+    "sha256": [
+      "b92f4e8cae3741233ff973ed98113555731a5ac07a4faf3178ecb592b9ac7791"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/README.md",
+      "tests/cpu/arm9v2_board/background_load_lock_tb.v",
+      "tests/cpu/arm9v2_board/run-background-load-lock.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "sdram-payload-preview",
+    "kind": "historical",
+    "base": "ff8becc79a3680b548e9567a3557aa3928078f42",
+    "target": "c90ea0f93e378c29feaf917e2dce7e6db077b8cc",
+    "patches": [
+      "historical/sdram-payload-preview.patch"
+    ],
+    "sha256": [
+      "1384bd1c887dbf84897d9a3a308da35a7cb9efb5bb19d651b45dc3e3624e3116"
+    ],
+    "affected_paths": [
+      "rtl/ngage_dma_route.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/sdram/ngage_sdram_scheduler.v",
+      "tests/phone/dma_route/ram_admission_tb.v",
+      "tests/phone/dma_route/run.sh"
+    ]
+  },
+  {
+    "id": "execute-forwarding",
+    "kind": "historical",
+    "base": "c90ea0f93e378c29feaf917e2dce7e6db077b8cc",
+    "target": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/execute-forwarding.patch"
+    ],
+    "sha256": [
+      "c1c68e81c4d4f88f0d02156d79079174a9647775fc549a8db6790b5aa4780b4b"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "owned-wishbone-completion",
+    "kind": "historical",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "target": "d4edf9bc10d2c350cccdc717e50994ffe0fcddb2",
+    "patches": [
+      "historical/owned-wishbone-completion.patch"
+    ],
+    "sha256": [
+      "0825f5055731389788cbbdc2f577f46d168feaf5a5d3616b3a2d0715ad6bc32e"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/ngage_upp.v",
+      "tests/cpu/arm9v2_board/frame_gap_donor_sdram.py",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tests/cpu/arm9v2_board/run-wb-completion.sh",
+      "tests/cpu/arm9v2_board/wb_completion_tb.sv",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "register-shift-shape",
+    "kind": "historical",
+    "base": "d567759e0205a98bc4fc40abc2c77a567602d090",
+    "target": "94bcc14200ee8afacf3361b2b4d36601a96ce542",
+    "patches": [
+      "historical/register-shift-shape.patch"
+    ],
+    "sha256": [
+      "d91196423b4ffc7199e3b71af4376bd64e107c447b18d6c2c17605ca81461308"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "fetch-queue-original",
+    "kind": "historical",
+    "base": "74de910c4dda318193a754d0582a5cfe1abe08dd",
+    "target": "dc1903fb5d8a79942fcd008946dd26f001360ae7",
+    "patches": [
+      "historical/fetch-queue-original.patch"
+    ],
+    "sha256": [
+      "adebb8f4c85539398692e389188d8ca405cad2669f0a2157df99ad67fec04a6b"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/fetch_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-fetch-ram.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "registered-cache-authorization",
+    "kind": "historical",
+    "base": "6b66d43dc7029e00324c7737c81a696a037ec1eb",
+    "target": "2e7b7bd41ad280aa8c6cc1658871f42966f2bddc",
+    "patches": [
+      "historical/registered-cache-authorization.patch"
+    ],
+    "sha256": [
+      "724e84615840f220a601b05a2cb4f8800613d29a34e1b92dc101c3c3f17f1593"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/background_load_lock_tb.v",
+      "tests/cpu/arm9v2_board/run-background-load-lock.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "pipelined-register-shift",
+    "kind": "historical",
+    "base": "691ee0f49b1321c6a3446c7d0991f2d43b5b68e9",
+    "target": "e8bc7b44d76c828b1375846025cf759170a566a0",
+    "patches": [
+      "historical/pipelined-register-shift.patch"
+    ],
+    "sha256": [
+      "c35c81d21db64c828dd442605b677821abc4161fe2c7d49a01b7035815706093"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/register_shift_tb.v",
+      "tests/cpu/arm9v2_board/run-register-shift.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "isolated-fit-harness",
+    "kind": "historical",
+    "base": "4c88998dc842881bd6442f5f53a79995629a3fc7",
+    "target": "08f79f8b4d56fdf2d678628107fb3946cd300849",
+    "patches": [
+      "historical/isolated-fit-harness.patch"
+    ],
+    "sha256": [
+      "526f2f5bdab0688f026dadd0698bccf2fca80f91c5b0efae4feeb2c912ae4444"
+    ],
+    "affected_paths": [
+      ".github/workflows/ci_build.yml",
+      ".github/workflows/timing_isolation.yml",
+      "tools/fit_isolation/README.md",
+      "tools/fit_isolation/board_master.vh",
+      "tools/fit_isolation/board_smoke.v",
+      "tools/fit_isolation/cpu_isolation.sdc",
+      "tools/fit_isolation/cpu_isolation.v",
+      "tools/fit_isolation/cpu_smoke.v",
+      "tools/fit_isolation/prepare.py",
+      "tools/fit_isolation/report.tcl",
+      "tools/fit_isolation/run-smoke.sh",
+      "tools/fit_isolation/verify_reports.py"
+    ]
+  },
+  {
+    "id": "lcd-packet-reservation",
+    "kind": "historical",
+    "base": "d5c3d62b9975a9db433fe0f517ab146d56fc4b16",
+    "target": "cd609b29589f0355de5df8d9c0c38d34d51dab96",
+    "patches": [
+      "historical/lcd-packet-reservation.patch"
+    ],
+    "sha256": [
+      "5974be16d6d34ea2d56c1410ceb0377396e89ae7dbe78ba220195ced9ff67aef"
+    ],
+    "affected_paths": [
+      "rtl/ngage_lcd_stream.v",
+      "tests/phone/lcd_stream/README.md"
+    ]
+  },
+  {
+    "id": "repeated-load-interlock",
+    "kind": "historical",
+    "base": "cd609b29589f0355de5df8d9c0c38d34d51dab96",
+    "target": "eb2abbc163a830f419901fe2467999cea2b520b3",
+    "patches": [
+      "historical/repeated-load-interlock.patch"
+    ],
+    "sha256": [
+      "d0fe1639980d43389e7e98fc7fc25f394f47e6bf6d5c23bb4a3559facb2e4931"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "wishbone-payload-banks",
+    "kind": "historical",
+    "base": "75186befcb448047e99336fee7f7ba64a2634b3d",
+    "target": "9d2e76cafe2baa8d47fb901534366b40f4dc12bd",
+    "patches": [
+      "historical/wishbone-payload-banks.patch"
+    ],
+    "sha256": [
+      "01b44cca7d65f63cd3caab6d1a399249f8cec2b2ce1b1feb2a20e88fba7b17e9"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "d-admission-sim",
+    "kind": "simulation",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-d-refill-admission-sim.patch"
+    ],
+    "sha256": [
+      "14cb6756262181b97bdebbcf5cfc92f671a77d1751b8872c2d9ea45be48762c0"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "dafe39a3cfc53a2985be07ccd997cc9ef9d8e9c6e3fbc1adda52d3acf932ad6b"
+    }
+  },
+  {
+    "id": "d-return-buffered",
+    "kind": "simulation",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-d-return-buffered.patch",
+      "../../evidence/v5-104-d-return-tests.patch"
+    ],
+    "sha256": [
+      "6b659b9f87c452d26c96eb4bb4b80ff953e9bca01503acee4050cf09c813918b",
+      "287c809a951b7762f941357806e952e07d24ba852e2ff79331dfdbc864165c8e"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "5e2d1c642db80b3cd4701d3edf7778e8db5021004888adbd16f1d28d91a3eb54"
+    }
+  },
+  {
+    "id": "d-return-same-edge",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-d-return-same-edge.patch",
+      "../../evidence/v5-104-d-return-tests.patch"
+    ],
+    "sha256": [
+      "fdfe1edb53c7f1d77cad2f6bf8a3abd211b326972d6758b88cd9dc9794885f03",
+      "287c809a951b7762f941357806e952e07d24ba852e2ff79331dfdbc864165c8e"
+    ],
+    "target": "25e1208d22364c7f3d10d736f2d0c7debb96a1e9",
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "91822a01447c5efea1ec8e21c5f05d14059b5fce5cfb303f1dd14a7f981b0072"
+    }
+  },
+  {
+    "id": "thumb-fallthrough",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195"
+    ],
+    "target": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a"
+  },
+  {
+    "id": "checked-workload-harness",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/checked-workload-harness.patch"
+    ],
+    "sha256": [
+      "1a9d8e287590c1901adae56d4492ec24c2b0ada4fa830a2156aea456bcc92049"
+    ]
+  },
+  {
+    "id": "store-pair-census-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/store-pair-census-fixture.patch"
+    ],
+    "sha256": [
+      "dc8ee3aa8ec5578a9c8e4b902025ea60c76ee899f687cf3730f16c5d20ef009c"
+    ]
+  },
+  {
+    "id": "refill-pair-and-admission-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/refill-pair-and-admission-fixture.patch"
+    ],
+    "sha256": [
+      "d199d1de05479ee036c8d67711eeaa2492346508ad5ce6c89a5ea39ebe760044"
+    ]
+  },
+  {
+    "id": "sequential-i-line-census-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/sequential-i-line-census-fixture.patch"
+    ],
+    "sha256": [
+      "ad5c14fdcb1e01c387fefcbb114dcaa7f0f09924cb3ff86d1081563ca02b11c0"
+    ]
+  },
+  {
+    "id": "frontend-redirect-census-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/frontend-redirect-census-fixture.patch"
+    ],
+    "sha256": [
+      "7709baebd9d0f4d57cbf9f765e2819cae4417e5d99c68354540676cced412771"
+    ]
+  },
+  {
+    "id": "thumb-and-d-admission-replay-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/thumb-and-d-admission-replay-fixture.patch"
+    ],
+    "sha256": [
+      "04d3e0adb98d201203fe703db168a180ca92c5524fe2f79c99c23910ffb31cdc"
+    ]
+  },
+  {
+    "id": "thumb-fallthrough-original-tests",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "../../evidence/v5-104-thumb-fallthrough-tests.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "d6f46a96995e5b3f435e3fd83b4da8a88d367ce3195d1b6f2ceeb6e434e22147"
+    ]
+  },
+  {
+    "id": "four-ram-stacked",
+    "kind": "composition",
+    "base": "29479fecc32fe8a787378222f1ac2010a0eaf8a7",
+    "patches": [
+      "patches/ras-m10k.patch",
+      "patches/mmc-stream-tags.patch",
+      "patches/fetch-queue.patch",
+      "patches/posted-store-queue.patch"
+    ],
+    "sha256": [
+      "8bda96a3b7c47f5ee0e9e7376ade5283a132c4e621bfac5974470236360a2d3b",
+      "777f6bfd96948c45f7dc0ce38cdd9e6c0c609eee6fb57a9ead4fcf4c99fab0de",
+      "705ec07e568a7f6eb45b6da0bb194fbcc33008adf45984f2b59287d495963e47",
+      "531db9193dfcf6e1d67e9086bc37fc69fd915f277f4da95069da9b46bbd377db"
+    ],
+    "target": "739d3bdb6a10ad975df500576bbde39f7676ff47"
+  },
+  {
+    "id": "thumb-parallel-stacked",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "patches/thumb-parallel-valid.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "edc00225c8ec355e90102171ad358baec17f19178bc93836111390554038e96e"
+    ],
+    "target": "f7d574611c1efd75cad82e90828c13f24d6c84ef"
+  },
+  {
+    "id": "later-bram-stacked",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/refill-m10k.patch",
+      "patches/icu-probe-m10k.patch",
+      "patches/mmc-host-fifo-m10k.patch",
+      "patches/tlb-victims-m10k.patch"
+    ],
+    "sha256": [
+      "0ae22a6f55b7cb7cbabebd17d3ca75403efb8790433c9697a853dbb0412578c9",
+      "202b5966199a8436a5455ee27983b16bad4104509f28914c98d6faacda0a9d05",
+      "2363c6b282083a7a3f52934b585485157741e9521c40fbfbeccd7e79181158cd",
+      "32136bfde35c34aa43123c5e98d0ae4d11297196b335fbb3201c0528cc987282"
+    ]
+  },
+  {
+    "id": "thumb-and-same-edge-d-return",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "../../evidence/v5-104-d-return-same-edge.patch",
+      "../../evidence/v5-104-d-return-tests.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "fdfe1edb53c7f1d77cad2f6bf8a3abd211b326972d6758b88cd9dc9794885f03",
+      "287c809a951b7762f941357806e952e07d24ba852e2ff79331dfdbc864165c8e"
+    ]
+  },
+  {
+    "id": "thumb-and-d-admission-simulation",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "../../evidence/v5-104-d-refill-admission-sim.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "14cb6756262181b97bdebbcf5cfc92f671a77d1751b8872c2d9ea45be48762c0"
+    ]
+  },
+  {
+    "id": "thumb-ordinary-redirect",
+    "kind": "design",
+    "base": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+    "target": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+    "patches": [
+      "patches/thumb-ordinary-redirect.patch"
+    ],
+    "sha256": [
+      "2d1bbb356aba60a3ca0c661e588372a1803115948777703e8b1ad1728a5c6f95"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/thumb_recovery_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "d55c8a3c53cebd9f41d20aa5a406f8d0cd8e858a212dcd621b287dba4f5c4d84"
+    }
+  },
+  {
+    "id": "thumb-ordinary-stacked",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "patches/thumb-ordinary-redirect.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "2d1bbb356aba60a3ca0c661e588372a1803115948777703e8b1ad1728a5c6f95"
+    ]
+  },
+  {
+    "id": "thumb-ordinary-replay-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/thumb-ordinary-redirect-fixture.patch"
+    ],
+    "sha256": [
+      "a199fe229f580e9a4d895a29eecd6183788ae636df3ae445c62c56f2481cfad4"
+    ]
+  },
+  {
+    "id": "all-four-benchmark-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/all-four-benchmark-fixture.patch"
+    ],
+    "sha256": [
+      "9dbca3bbff5a8d1c31b4af5a5c4bc8c918e000db517b98535acb51d038f08025"
+    ]
+  }
+]
