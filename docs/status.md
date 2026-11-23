@@ -1,3 +1,7 @@
+## 2026-11-24 — independent Thumb redirect and experiment archive
+
+Launching the actual redirect target while supplying the saved instruction separately removed the named recovery-to-fetch-PC route in all three hot path exports. Refetching that target spent essentially the entire Sega gain. Median 104 MHz setup reached −2.974 ns, with 705 fewer ALMs than the all-four timing control. Keep this patch for area, original Thumb for Sega speed, and all-four in production. The next timing target is the DDR burst end-address check. [Measured comparison](v5-alm-storage-results.md#independent-thumb-redirect-and-duplicate-cancellation) · [Replayable experiment catalog](experiments/v5-performance/README.md)
+
 ## 2026-11-23 — parallel Thumb predictor lookup
 
 Parallel validity retained the 0.762% Sega Rally gain and relieved the old predictor endpoint. Median whole-core setup was −3.130 ns, versus −3.083 ns for original Thumb recovery and −2.851 ns for the all-four control. Worst paths moved into cache control, decode and the TLB. Keep the candidate for recombination. The branch was restored to the all-four production RTL. [Matched fits and workload results](v5-alm-storage-results.md#parallel-predictor-validity-for-thumb-recovery)

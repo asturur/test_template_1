@@ -1,0 +1,1355 @@
+{
+  "candidate": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+  "functional_parent": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+  "timing_control": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+  "clock_mhz": 104,
+  "debugger_enabled": false,
+  "functional_evidence": "../experiments/v5-performance/thumb-ordinary-redirect-replay.json",
+  "implementation_patch": "../experiments/v5-performance/patches/thumb-ordinary-redirect.patch",
+  "control_fit_source": "v5-104-thumb-parallel-valid.json",
+  "summary": {
+    "all_four": {
+      "worst_setup_ns_by_seed": [
+        -2.851,
+        -2.803,
+        -2.852
+      ],
+      "median_setup_ns": -2.851,
+      "median_core_tns_ns": -5849.103,
+      "median_alms": 37364,
+      "m10ks_by_seed": [
+        321,
+        321,
+        321
+      ]
+    },
+    "thumb": {
+      "worst_setup_ns_by_seed": [
+        -3.083,
+        -3.205,
+        -2.87
+      ],
+      "median_setup_ns": -3.083,
+      "median_core_tns_ns": -6676.151,
+      "median_alms": 37126,
+      "m10ks_by_seed": [
+        321,
+        321,
+        321
+      ]
+    },
+    "parallel_thumb": {
+      "worst_setup_ns_by_seed": [
+        -2.927,
+        -3.13,
+        -3.147
+      ],
+      "median_setup_ns": -3.13,
+      "median_core_tns_ns": -9714.522,
+      "median_alms": 36977,
+      "m10ks_by_seed": [
+        321,
+        321,
+        321
+      ]
+    },
+    "ordinary_thumb": {
+      "worst_setup_ns_by_seed": [
+        -2.9,
+        -2.974,
+        -3.143
+      ],
+      "median_setup_ns": -2.974,
+      "median_core_tns_ns": -7916.123,
+      "median_alms": 36659,
+      "m10ks_by_seed": [
+        321,
+        321,
+        321
+      ]
+    }
+  },
+  "candidate_fits": [
+    {
+      "run": 45282574954,
+      "sha": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+      "seed": 43,
+      "alms": 36659,
+      "m10ks": 321,
+      "registers": 40451,
+      "average_routing_pct": 47.1,
+      "peak_routing_pct": 77.5,
+      "core_setup_tns_sta_summary_ns": -7916.123,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.823,
+          "hold-summary": 0.207,
+          "recovery-summary": 1.839,
+          "removal-summary": 1.171,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.4
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.9,
+          "hold-summary": 0.092,
+          "recovery-summary": 2.229,
+          "removal-summary": 1.068,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.9
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.289,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.6,
+          "removal-summary": 0.582,
+          "min-pulse": 0.961,
+          "fmax_mhz": 136.5
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.474,
+          "hold-summary": 0.08,
+          "recovery-summary": 5.001,
+          "removal-summary": 0.484,
+          "min-pulse": 0.961,
+          "fmax_mhz": 162.84
+        }
+      ],
+      "worst_setup_ns": -2.9,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 4,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 30,
+        "ngage2_zap_tlb:": 62,
+        "ngage2_zap_wb_merger:": 123,
+        "ngage2_arm9v2_execute:": 226
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|write_through_data[1]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[239]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 255.4,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 263.2,
+          "direct_registers": 306,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.3,
+          "direct_registers": 289,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 202.7,
+          "direct_registers": 205,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 813.9,
+          "direct_registers": 950,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45282574801,
+      "sha": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+      "seed": 13,
+      "alms": 36675,
+      "m10ks": 321,
+      "registers": 40590,
+      "average_routing_pct": 45.7,
+      "peak_routing_pct": 76.1,
+      "core_setup_tns_sta_summary_ns": -7882.387,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.952,
+          "hold-summary": 0.183,
+          "recovery-summary": 1.821,
+          "removal-summary": 0.922,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.57
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.974,
+          "hold-summary": 0.066,
+          "recovery-summary": 2.196,
+          "removal-summary": 0.88,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.43
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.513,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.535,
+          "removal-summary": 0.458,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.81
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.639,
+          "hold-summary": 0.073,
+          "recovery-summary": 4.955,
+          "removal-summary": 0.387,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.34
+        }
+      ],
+      "worst_setup_ns": -2.974,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 150,
+        "ngage2_zap_tlb:": 21,
+        "ngage2_zap_wb_merger:": 90,
+        "ngage2_arm9v2_execute:": 184
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|write_through_data[34]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 256.1,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 234.8,
+          "direct_registers": 297,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 207.9,
+          "direct_registers": 207,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 779.7,
+          "direct_registers": 957,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45282574309,
+      "sha": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+      "seed": 31337,
+      "alms": 36583,
+      "m10ks": 321,
+      "registers": 40485,
+      "average_routing_pct": 46.0,
+      "peak_routing_pct": 78.7,
+      "core_setup_tns_sta_summary_ns": -8793.817,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.038,
+          "hold-summary": 0.174,
+          "recovery-summary": 2.18,
+          "removal-summary": 0.919,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.03
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -3.143,
+          "hold-summary": 0.065,
+          "recovery-summary": 2.598,
+          "removal-summary": 0.862,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.38
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.513,
+          "hold-summary": 0.13,
+          "recovery-summary": 5.063,
+          "removal-summary": 0.437,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.81
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.53,
+          "hold-summary": 0.096,
+          "recovery-summary": 5.325,
+          "removal-summary": 0.378,
+          "min-pulse": 0.961,
+          "fmax_mhz": 164.34
+        }
+      ],
+      "worst_setup_ns": -3.143,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 1,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 47,
+        "ngage2_zap_tlb:": 72,
+        "ngage2_zap_wb_merger:": 83,
+        "ngage2_arm9v2_execute:": 146
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+        "to": "emu:emu|ngage_ddr_flash_adapter:ddr_adapter|ngage_ddr_stream:sector_port.engine|cancelled"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 257.0,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 258.7,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.5,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 204.6,
+          "direct_registers": 206,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 785.7,
+          "direct_registers": 954,
+          "inclusive_m10ks": 0
+        }
+      }
+    }
+  ],
+  "hot_100C_named_routes": {
+    "original": [
+      {
+        "run": 45242151063,
+        "seed": 43,
+        "commit": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 1,
+            "worst": {
+              "rank": 422,
+              "slack_ns": -1.99,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[340]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[15]",
+              "named_cells": [
+                "w[340]",
+                "Equal53~8",
+                "Equal53~9",
+                "Equal53~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "launch_pc[15]~63",
+                "launch_pc[15]~10"
+              ]
+            }
+          },
+          "reuse_via_launch_pc": {
+            "count": 14,
+            "worst": {
+              "rank": 92,
+              "slack_ns": -2.414,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[340]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_pc[11]",
+              "named_cells": [
+                "w[340]",
+                "Equal53~8",
+                "Equal53~9",
+                "Equal53~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "repair_fetch_pc[11]~2",
+                "launch_pc[11]~14",
+                "read_pc[11]~feeder"
+              ]
+            }
+          },
+          "reuse_to_predictor": {
+            "count": 7,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.083,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[340]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit",
+              "named_cells": [
+                "w[340]",
+                "Equal53~8",
+                "Equal53~9",
+                "Equal53~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "btb_index~0",
+                "Mux0~3",
+                "Mux0~4",
+                "Mux0~20",
+                "Mux0~84",
+                "read_valid_bit~15_RESYN18461",
+                "read_valid_bit~15"
+              ]
+            }
+          },
+          "reuse_to_queue_head": {
+            "count": 15,
+            "worst": {
+              "rank": 392,
+              "slack_ns": -2.004,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[340]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[0]",
+              "named_cells": [
+                "w[340]",
+                "Equal53~8",
+                "Equal53~9",
+                "Equal53~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "reuse_fall_half",
+                "head_ff[46]~0",
+                "head_next[0]~111"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 52,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.083,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[340]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit",
+              "named_cells": [
+                "w[340]",
+                "Equal53~8",
+                "Equal53~9",
+                "Equal53~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "btb_index~0",
+                "Mux0~3",
+                "Mux0~4",
+                "Mux0~20",
+                "Mux0~84",
+                "read_valid_bit~15_RESYN18461",
+                "read_valid_bit~15"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      {
+        "run": 45242151078,
+        "seed": 13,
+        "commit": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 5,
+            "worst": {
+              "rank": 249,
+              "slack_ns": -1.942,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[47]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[23]",
+              "named_cells": [
+                "w[47]",
+                "Equal54~1",
+                "Equal54~2",
+                "Equal54~12",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "launch_pc[23]~18_RESYN18113",
+                "launch_pc[23]~18"
+              ]
+            }
+          },
+          "reuse_via_launch_pc": {
+            "count": 20,
+            "worst": {
+              "rank": 42,
+              "slack_ns": -2.586,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[47]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_mem_inv_block:u_section_tlb|ngage2_zap_ram_simple:g_short.u_gen|altsyncram:g_short.mem_rtl_0|altsyncram_m0q1:auto_generated|ram_block1a0~portb_address_reg5",
+              "named_cells": [
+                "w[47]",
+                "Equal54~1",
+                "Equal54~2",
+                "Equal54~12",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "launch_pc[31]~51",
+                "launch_pc[31]~26",
+                "o_instr_wb_adr_nxt[25]~2"
+              ]
+            }
+          },
+          "reuse_to_predictor": {
+            "count": 9,
+            "worst": {
+              "rank": 5,
+              "slack_ns": -3.109,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[47]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit",
+              "named_cells": [
+                "w[47]",
+                "Equal54~1",
+                "Equal54~2",
+                "Equal54~12",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "btb_index~0",
+                "Mux0~42",
+                "Mux0~46",
+                "Mux0~62",
+                "Mux0~84",
+                "read_valid_bit~15_RESYN18327",
+                "read_valid_bit~15"
+              ]
+            }
+          },
+          "reuse_to_queue_head": {
+            "count": 7,
+            "worst": {
+              "rank": 720,
+              "slack_ns": -1.591,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[47]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[69]",
+              "named_cells": [
+                "w[47]",
+                "Equal54~1",
+                "Equal54~2",
+                "Equal54~12",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "head_ff[46]~2"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 102,
+            "worst": {
+              "rank": 5,
+              "slack_ns": -3.109,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[47]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit",
+              "named_cells": [
+                "w[47]",
+                "Equal54~1",
+                "Equal54~2",
+                "Equal54~12",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "btb_index~0",
+                "Mux0~42",
+                "Mux0~46",
+                "Mux0~62",
+                "Mux0~84",
+                "read_valid_bit~15_RESYN18327",
+                "read_valid_bit~15"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      {
+        "run": 45242150714,
+        "seed": 31337,
+        "commit": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 2,
+            "worst": {
+              "rank": 723,
+              "slack_ns": -1.515,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[21]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[24]",
+              "named_cells": [
+                "tr_cache_word[21]",
+                "Equal52~12",
+                "Equal52~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "launch_pc[24]~19_RESYN18235",
+                "launch_pc[24]~19"
+              ]
+            }
+          },
+          "reuse_via_launch_pc": {
+            "count": 17,
+            "worst": {
+              "rank": 70,
+              "slack_ns": -2.16,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[21]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_mem_inv_block:u_section_tlb|ngage2_zap_ram_simple:g_short.u_gen|altsyncram:g_short.mem_rtl_0|altsyncram_m0q1:auto_generated|ram_block1a35~portb_address_reg5",
+              "named_cells": [
+                "tr_cache_word[21]",
+                "Equal52~12",
+                "Equal52~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "launch_pc[26]~50",
+                "launch_pc[26]~24",
+                "o_instr_wb_adr_nxt[25]~2_RESYN22261",
+                "o_instr_wb_adr_nxt[25]~2"
+              ]
+            }
+          },
+          "reuse_to_predictor": {
+            "count": 2,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.87,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[21]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit",
+              "named_cells": [
+                "tr_cache_word[21]",
+                "Equal52~12",
+                "Equal52~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "btb_index~2",
+                "Mux0~75",
+                "Mux0~77",
+                "Mux0~83",
+                "Mux0~84",
+                "read_valid_bit~15_RESYN18453",
+                "read_valid_bit~15"
+              ]
+            }
+          },
+          "reuse_to_queue_head": {
+            "count": 7,
+            "worst": {
+              "rank": 970,
+              "slack_ns": -1.422,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[21]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[112]",
+              "named_cells": [
+                "tr_cache_word[21]",
+                "Equal52~12",
+                "Equal52~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "head_ff[46]~2"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 57,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.87,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[21]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit",
+              "named_cells": [
+                "tr_cache_word[21]",
+                "Equal52~12",
+                "Equal52~14",
+                "Mux5~0",
+                "reuse_fall_half~4",
+                "btb_index~2",
+                "Mux0~75",
+                "Mux0~77",
+                "Mux0~83",
+                "Mux0~84",
+                "read_valid_bit~15_RESYN18453",
+                "read_valid_bit~15"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      }
+    ],
+    "parallel": [
+      {
+        "run": 45253654162,
+        "seed": 43,
+        "commit": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 11,
+            "worst": {
+              "rank": 56,
+              "slack_ns": -2.484,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[169]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[18]",
+              "named_cells": [
+                "w[169]",
+                "Equal52~14",
+                "Equal52~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[18]~9"
+              ]
+            }
+          },
+          "reuse_via_launch_pc": {
+            "count": 213,
+            "worst": {
+              "rank": 24,
+              "slack_ns": -2.668,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[169]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_tag_ram:u_zap_cache_tag_ram|ngage2_zap_cache_metadata_lanes:g_metadata[1].g_valid_lanes.valid_rams|altsyncram:u_ram|altsyncram_p352:auto_generated|ram_block1a0~portb_address_reg1",
+              "named_cells": [
+                "w[169]",
+                "Equal52~14",
+                "Equal52~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "rd_set[3]~3"
+              ]
+            }
+          },
+          "reuse_to_predictor": {
+            "count": 13,
+            "worst": {
+              "rank": 114,
+              "slack_ns": -2.338,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[169]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_pc[20]",
+              "named_cells": [
+                "w[169]",
+                "Equal52~14",
+                "Equal52~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[20]~20"
+              ]
+            }
+          },
+          "reuse_to_queue_head": {
+            "count": 83,
+            "worst": {
+              "rank": 117,
+              "slack_ns": -2.315,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[169]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[108]",
+              "named_cells": [
+                "w[169]",
+                "Equal52~14",
+                "Equal52~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "head_ff[58]~2"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 339,
+            "worst": {
+              "rank": 19,
+              "slack_ns": -2.684,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f2[30]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|saved_fall_half[2]",
+              "named_cells": [
+                "f2[30]",
+                "o_instr_wb_adr[29]~2_RESYN22051",
+                "o_instr_wb_adr[29]~2",
+                "Equal9~3",
+                "Equal9~13",
+                "pushed[89]~1",
+                "o_dat[14]~9",
+                "always0~4",
+                "saved_fall_half[0]~0"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      {
+        "run": 45253653661,
+        "seed": 13,
+        "commit": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 3,
+            "worst": {
+              "rank": 566,
+              "slack_ns": -2.053,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|saved_load[25]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[11]",
+              "named_cells": [
+                "saved_load[25]",
+                "Equal51~11_RESYN17516",
+                "Equal51~11",
+                "Equal51~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[11]~2"
+              ]
+            }
+          },
+          "reuse_via_launch_pc": {
+            "count": 35,
+            "worst": {
+              "rank": 419,
+              "slack_ns": -2.137,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|saved_load[25]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_tag_ram:u_zap_cache_tag_ram|g_metadata[1].valid_live_q_OTERM213_OTERM6430",
+              "named_cells": [
+                "saved_load[25]",
+                "Equal51~11_RESYN17516",
+                "Equal51~11",
+                "Equal51~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "rd_set[4]~4",
+                "valid_live_q~22"
+              ]
+            }
+          },
+          "reuse_to_predictor": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_queue_head": {
+            "count": 62,
+            "worst": {
+              "rank": 10,
+              "slack_ns": -2.754,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|saved_load[25]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[107]",
+              "named_cells": [
+                "saved_load[25]",
+                "Equal51~11_RESYN17516",
+                "Equal51~11",
+                "Equal51~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "reuse_fall_half"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 110,
+            "worst": {
+              "rank": 10,
+              "slack_ns": -2.754,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|saved_load[25]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[107]",
+              "named_cells": [
+                "saved_load[25]",
+                "Equal51~11_RESYN17516",
+                "Equal51~11",
+                "Equal51~15",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "reuse_fall_half"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      {
+        "run": 45253653778,
+        "seed": 31337,
+        "commit": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 16,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.091,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[46]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[18]",
+              "named_cells": [
+                "w[46]",
+                "Equal54~9_RESYN17462",
+                "Equal54~9",
+                "Equal54~14",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[18]~9"
+              ]
+            }
+          },
+          "reuse_via_launch_pc": {
+            "count": 251,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.091,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[46]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[18]",
+              "named_cells": [
+                "w[46]",
+                "Equal54~9_RESYN17462",
+                "Equal54~9",
+                "Equal54~14",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[18]~9"
+              ]
+            }
+          },
+          "reuse_to_predictor": {
+            "count": 12,
+            "worst": {
+              "rank": 137,
+              "slack_ns": -2.535,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[46]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_pc[20]",
+              "named_cells": [
+                "w[46]",
+                "Equal54~9_RESYN17462",
+                "Equal54~9",
+                "Equal54~14",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[20]~20"
+              ]
+            }
+          },
+          "reuse_to_queue_head": {
+            "count": 36,
+            "worst": {
+              "rank": 21,
+              "slack_ns": -2.839,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[46]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[105]",
+              "named_cells": [
+                "w[46]",
+                "Equal54~9_RESYN17462",
+                "Equal54~9",
+                "Equal54~14",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "reuse_fall_half"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 306,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.091,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[46]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|f1[18]",
+              "named_cells": [
+                "w[46]",
+                "Equal54~9_RESYN17462",
+                "Equal54~9",
+                "Equal54~14",
+                "Mux5~0",
+                "wb_redirect~8",
+                "reuse_fall_half~4",
+                "launch_pc[8]~0",
+                "launch_pc[18]~9"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      }
+    ],
+    "ordinary": [
+      {
+        "run": 45282574954,
+        "seed": 43,
+        "commit": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_via_launch_pc": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_predictor": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_queue_head": {
+            "count": 105,
+            "worst": {
+              "rank": 141,
+              "slack_ns": -2.201,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[1]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[83]",
+              "named_cells": [
+                "w_cls[1]",
+                "fast_pc_hit~0",
+                "complete_class~4",
+                "complete_class~5",
+                "complete_class[0]",
+                "wb_redirect~7",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "head_ff[57]~1",
+                "head_next[83]~63"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 150,
+            "worst": {
+              "rank": 141,
+              "slack_ns": -2.201,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[1]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[83]",
+              "named_cells": [
+                "w_cls[1]",
+                "fast_pc_hit~0",
+                "complete_class~4",
+                "complete_class~5",
+                "complete_class[0]",
+                "wb_redirect~7",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "head_ff[57]~1",
+                "head_next[83]~63"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 1,
+            "worst": {
+              "rank": 532,
+              "slack_ns": -1.902,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[1]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|duplicate_f1",
+              "named_cells": [
+                "w_cls[1]",
+                "fast_pc_hit~0",
+                "complete_class~4",
+                "complete_class~5",
+                "complete_class[0]",
+                "target_mismatch~1",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "duplicate_f1~0"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "run": 45282574801,
+        "seed": 13,
+        "commit": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_via_launch_pc": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_predictor": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_queue_head": {
+            "count": 45,
+            "worst": {
+              "rank": 214,
+              "slack_ns": -2.268,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|request_live",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[86]",
+              "named_cells": [
+                "request_live",
+                "resp_err~0",
+                "complete_class~4",
+                "complete_class~5",
+                "complete_class[0]",
+                "wb_redirect~7",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "head_ff[57]~1",
+                "head_next[86]~104"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 75,
+            "worst": {
+              "rank": 214,
+              "slack_ns": -2.268,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|request_live",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[86]",
+              "named_cells": [
+                "request_live",
+                "resp_err~0",
+                "complete_class~4",
+                "complete_class~5",
+                "complete_class[0]",
+                "wb_redirect~7",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "head_ff[57]~1",
+                "head_next[86]~104"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      {
+        "run": 45282574309,
+        "seed": 31337,
+        "commit": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+        "hot_top_1000": {
+          "reuse_to_f1": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_via_launch_pc": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_predictor": {
+            "count": 0,
+            "worst": null
+          },
+          "reuse_to_queue_head": {
+            "count": 110,
+            "worst": {
+              "rank": 27,
+              "slack_ns": -2.578,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[479]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[88]",
+              "named_cells": [
+                "w[479]",
+                "Equal0~0",
+                "cp_read~0",
+                "wb_redirect~2",
+                "wb_redirect~7",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "head_ff[57]~0",
+                "head_next[88]~64"
+              ]
+            }
+          },
+          "any_reuse_or_saved": {
+            "count": 151,
+            "worst": {
+              "rank": 27,
+              "slack_ns": -2.578,
+              "source": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[479]",
+              "destination": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|head_ff[88]",
+              "named_cells": [
+                "w[479]",
+                "Equal0~0",
+                "cp_read~0",
+                "wb_redirect~2",
+                "wb_redirect~7",
+                "wb_redirect~8",
+                "reuse_fall_half",
+                "head_ff[57]~0",
+                "head_next[88]~64"
+              ]
+            }
+          },
+          "any_named_duplicate_token": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      }
+    ]
+  },
+  "ddr_bounds_check_hot_paths": [
+    {
+      "run": "45206755388",
+      "seed": 43,
+      "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+      "count": 8,
+      "worst": {
+        "rank": 37,
+        "slack": -2.282,
+        "carries": 10
+      }
+    },
+    {
+      "run": "45206762467",
+      "seed": 13,
+      "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+      "count": 5,
+      "worst": {
+        "rank": 146,
+        "slack": -1.969,
+        "carries": 19
+      }
+    },
+    {
+      "run": "45206768879",
+      "seed": 31337,
+      "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+      "count": 5,
+      "worst": {
+        "rank": 29,
+        "slack": -2.303,
+        "carries": 8
+      }
+    },
+    {
+      "run": "45242151063",
+      "seed": 43,
+      "sha": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+      "count": 3,
+      "worst": {
+        "rank": 498,
+        "slack": -1.931,
+        "carries": 22
+      }
+    },
+    {
+      "run": "45242151078",
+      "seed": 13,
+      "sha": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+      "count": 5,
+      "worst": {
+        "rank": 238,
+        "slack": -1.975,
+        "carries": 9
+      }
+    },
+    {
+      "run": "45242150714",
+      "seed": 31337,
+      "sha": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+      "count": 4,
+      "worst": {
+        "rank": 43,
+        "slack": -2.223,
+        "carries": 19
+      }
+    },
+    {
+      "run": "45253654162",
+      "seed": 43,
+      "sha": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+      "count": 4,
+      "worst": {
+        "rank": 129,
+        "slack": -2.297,
+        "carries": 19
+      }
+    },
+    {
+      "run": "45253653661",
+      "seed": 13,
+      "sha": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+      "count": 4,
+      "worst": {
+        "rank": 721,
+        "slack": -1.957,
+        "carries": 21
+      }
+    },
+    {
+      "run": "45253653778",
+      "seed": 31337,
+      "sha": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+      "count": 2,
+      "worst": {
+        "rank": 927,
+        "slack": -1.808,
+        "carries": 6
+      }
+    },
+    {
+      "run": "45282574954",
+      "seed": 43,
+      "sha": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+      "count": 4,
+      "worst": {
+        "rank": 232,
+        "slack": -2.151,
+        "carries": 16
+      }
+    },
+    {
+      "run": "45282574801",
+      "seed": 13,
+      "sha": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+      "count": 8,
+      "worst": {
+        "rank": 94,
+        "slack": -2.395,
+        "carries": 16
+      }
+    },
+    {
+      "run": "45282574309",
+      "seed": 31337,
+      "sha": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+      "count": 7,
+      "worst": {
+        "rank": 1,
+        "slack": -3.038,
+        "carries": 15
+      }
+    }
+  ],
+  "path_count_scope": "First 1,000 paths from each 100 C detailed setup export. Match exact named data cells containing reuse_fall_half, launch_pc, or duplicate_f1/f2/response. Results omit renamed cells and paths outside the export.",
+  "best_rbf": {
+    "run": 45282574954,
+    "seed": 43,
+    "path": "build/fit/v5-104mhz-e6c352c-seed43/ngage1.rbf",
+    "sha256": "1ad4c7d0d2e3ab6a51ef2613cbdd4f18f127241530f495b8ab2df1d7fbf56e57"
+  }
+}
