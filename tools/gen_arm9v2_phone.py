@@ -928,6 +928,122 @@ def resolve_execute_forward_candidates(phone):
     return ''.join(parts)
 
 
+def move_fetch_payload_to_ram(phone):
+    """Give the fetch queue a synchronous backing store behind its head FF."""
+    start = phone.index('module ngage2_arm9v2_fetch (')
+    end = phone.index('\nendmodule', start)
+    fetch = phone[start:end]
+    fetch = edit(fetch, "\tparameter [0:0] HEAD_FF = 1'b1;",
+                 "\tparameter [0:0] HEAD_FF = 1'b1;\n    parameter [0:0] BRAM_QUEUE = 1'b1;")
+    fetch = edit(fetch, '\treg [113:0] queue [0:7];\n', '')
+    fetch = edit(fetch, '''\treg [113:0] head_select_packet;
+\treg [113:0] next_packet;
+\treg [113:0] pushed;
+\treg [113:0] head_next;
+\t(* dont_retime *) reg [113:0] head_ff;
+\twire [7:0] next_select = {head_select[6:0], head_select[7]};
+\talways @(*) begin
+\t\tif (_sv2v_0)
+\t\t\t;
+\t\thead_select_packet = 114'd0;
+\t\tnext_packet = 114'd0;
+\t\tbegin : sv2v_autoblock_1
+\t\t\treg signed [31:0] q;
+\t\t\tfor (q = 0; q < 8; q = q + 1)
+\t\t\t\tbegin
+\t\t\t\t\thead_select_packet = head_select_packet | (queue[q] & {114 {head_select[q]}});
+\t\t\t\t\tnext_packet = next_packet | (queue[q] & {114 {next_select[q]}});
+\t\t\t\tend
+\t\tend
+\tend''', '''    reg [113:0] pushed;
+    reg [113:0] head_next;
+    (* dont_retime *) reg [113:0] head_ff;
+    wire [113:0] head_select_packet, next_packet, restart_packet;
+    wire push_at_head;
+    genvar slot;
+    generate
+        if (HEAD_FF && BRAM_QUEUE) begin : g_fetch_ram
+            (* dont_retime *) reg [2:0] head;
+            wire [2:0] following_slot = head + 3'd1;
+            wire [2:0] next_head = pop ? following_slot : head;
+            // Read the slot behind the head that will exist after this
+            // edge. A following pop can copy it without waiting for RAM.
+            wire [2:0] prefetch_slot = i_redirect || i_reset ? 3'd1 :
+                                       pop ? head + 3'd2 : following_slot;
+            always @(posedge i_clk)
+                if (i_reset || i_redirect) head <= 0;
+                else head <= next_head;
+
+            (* ramstyle = "M10K, no_rw_check" *) reg [111:0] payload [0:7];
+            reg [111:0] prefetched, bypass_data;
+            (* dont_retime *) reg bypass_prefetch;
+            wire [111:0] write_data = {pushed[113:49], pushed[46:0]};
+            always @(posedge i_clk) begin
+                if (push) begin
+                    payload[tail] <= write_data;
+                    bypass_data <= write_data;
+                end
+                prefetched <= payload[prefetch_slot];
+                bypass_prefetch <= push && tail == prefetch_slot;
+            end
+            // In a read/write collision the registered push supplies the
+            // prefetched entry, regardless of the RAM's collision output.
+            wire [111:0] next_data = bypass_prefetch ? bypass_data : prefetched;
+
+            // A fill can finish for several queued instructions together.
+            // Keep the two broadcast-updated status bits out of block RAM.
+            reg [1:0] fill_status [0:7];
+            for (slot = 0; slot < 8; slot = slot + 1) begin : g_fill_status
+                always @(posedge i_clk)
+                    if (push && tail == slot) fill_status[slot] <= pushed[48:47];
+                    else if (i_fill_done) begin
+                        if (fill_status[slot][0] && i_fill_fault) fill_status[slot][1] <= 1;
+                        fill_status[slot][0] <= 0;
+                    end
+            end
+            assign next_packet = {next_data[111:47], fill_status[following_slot], next_data[46:0]};
+            assign push_at_head = push && tail == next_head;
+            // Redirect/reset clear the count. The first new push supplies
+            // the visible head directly, even if its RAM slot holds old data.
+            assign restart_packet = head_ff;
+            assign head_select_packet = head_ff;
+        end else begin : g_fetch_regs
+            reg [113:0] queue [0:7];
+            reg [113:0] selected, following;
+            wire [7:0] next_select = {head_select[6:0], head_select[7]};
+            integer entry;
+            always @(*) begin
+                selected = 0;
+                following = 0;
+                for (entry = 0; entry < 8; entry = entry + 1) begin
+                    selected = selected | (queue[entry] & {114{head_select[entry]}});
+                    following = following | (queue[entry] & {114{next_select[entry]}});
+                end
+            end
+            for (slot = 0; slot < 8; slot = slot + 1) begin : g_queue
+                always @(posedge i_clk)
+                    if (push && tail == slot) queue[slot] <= pushed;
+                    else if (i_fill_done) begin
+                        if (queue[slot][47] && i_fill_fault) queue[slot][48] <= 1;
+                        queue[slot][47] <= 0;
+                    end
+            end
+            assign head_select_packet = selected;
+            assign next_packet = following;
+            assign restart_packet = queue[0];
+            assign push_at_head = push && (pop ? next_select[tail] : head_select[tail]);
+        end
+    endgenerate''')
+    fetch = edit(fetch, 'i_redirect ? queue[0] : (pop ? next_packet : head_ff)',
+                 'i_redirect ? restart_packet : (pop ? next_packet : head_ff)')
+    fetch = edit(fetch, 'if ((!i_redirect && push) && (pop ? next_select[tail] : head_select[tail]))',
+                 'if (!i_redirect && push_at_head)')
+    queue_start = fetch.index('\tgenvar _gv_q_1;')
+    queue_end = fetch.index('\talways @(posedge i_clk)\n\t\tif (i_reset)', queue_start)
+    fetch = fetch[:queue_start] + fetch[queue_end:]
+    return phone[:start] + fetch + phone[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -959,6 +1075,7 @@ def main():
     generated = predecode_dcache_write_enable(generated)
     generated = register_background_load_tag(generated)
     generated = resolve_execute_forward_candidates(generated)
+    generated = move_fetch_payload_to_ram(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
