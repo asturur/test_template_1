@@ -61,10 +61,13 @@ module ngage_ddr_stream #(
     wire [63:0] buffer_head;
     wire read_active = state == READ_ISSUE || state == READ_WAIT || state == READ_FINISH;
     wire cancel_now = transport_reset || (phone_reset && cancel_on_phone);
-    wire [32:0] request_end = {1'b0, req_addr} + ({26'b0, req_count} << 3);
+    // Only the final 512 bytes can overrun a legal burst. With count <= 64
+    // the offset plus count fits seven bits, including an end exactly at 4 GiB.
+    wire [6:0] window_end = {1'b0, req_addr[8:3]} + req_count;
+    wire in_final_window = &req_addr[31:9];
     wire offer_fill = WRITE_FILL && req_fill;
-    wire valid_request = req_count != 0 && req_count <= 64 && req_addr[2:0] == 0 &&
-        request_end <= 33'h100000000 && (!req_write || req_stream || offer_fill || req_count == 1);
+    wire valid_request = req_count != 0 && req_count <= 7'd64 && req_addr[2:0] == 0 &&
+        (!in_final_window || window_end <= 7'd64) && (!req_write || req_stream || offer_fill || req_count == 1);
     assign idle           = state == IDLE;
     assign req_ready      = idle && !transport_reset;
     assign ddr_addr       = address;
