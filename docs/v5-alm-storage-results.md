@@ -1,0 +1,34 @@
+# V5 fitted area experiments with M10K storage
+
+The reference is the production 104 MHz UPP-DDR build at `61d51fe`, with both 16 KiB CPU caches and DDR debugging off. The experiment uses the same three fitter seeds for each revision. The area measure is whole-design fitted ALMs. Per-instance figures explain local changes and are estimates because Quartus packs logic across instance boundaries.
+
+## What changed and what was checked
+
+1. **Return-address stack.** `0965372` moves eight 32-bit return addresses behind the existing registered top. Calls forward the link, while pops and misprediction repair select the synchronous RAM read. The predictor comparison exercised 129,126 edges in each of two configurations, including every pointer and depth. All 15 fixed workloads and their request traces matched, as did the four native PolyCount frames at 57,514,786 clocks. [Predictor test](../tests/cpu/arm9v2_ras/)
+2. **MMC stream tags.** `341a454` adds three read copies of the 12 sequential-slot tags. The four associative metadata tags stay local. The card keeps its four lookup stages. A pending tag write supplies data on collisions. All slots and 24 forced-unknown RAM collisions passed. Under three host delay profiles, the card matched the reference cycle for cycle through contention, writes, remounts and reads across EOF. The original Sega Rally CMD18 replay returned the same 32 KiB in 830,761 transfer clocks. [MMC regression](../tests/phone/mmc_card/run-stream-tags.sh)
+3. **Posted-store queue.** `5700837` adds two parity banks that prepare the current and following 68-bit packets, and a saved pushed packet covers a simultaneous read/write of the same slot. The production-depth queue matched the reference for 251,347 clocks per directed/random test. Whole-CPU tests exercised byte, halfword and word stores, dependent refills, and a write-buffer drain.
+
+4. **Instruction fetch queue.** `d127eb3` applies the fetch payload implementation from `dc1903f` on top of the return-stack and MMC changes. Forward revert `7b1b425` restored the exact `341a454` tree first. The fetch module matched the earlier version byte for byte and passed its original 8,504-cycle test, all 15 workloads and request traces, four native PolyCount frames with matching digest, four CPU contracts and the 1,201,547-clock mixed replay. [Fetch regression](../tests/cpu/arm9v2_board/run-fetch-ram.sh)
+
+5. **All four together.** `739d3bd` adds the posted-store queue to the fetch, return-stack and MMC build at `d127eb3`. Compiled-source checks verified the fetch and predictor modules and MMC source match that parent, while the store queue matches its separately qualified implementation. The complete combination matched the parent on the 15 fixed workloads and request traces, four native PolyCount frames and digest at 57,514,786 clocks, four ordinary CPU contract configurations, ordered posted writes, and the 1,201,547-clock mixed replay. All four directed storage tests passed.
+
+The mixed ARM9V2/SDRAM-pin replay covers LCD DMA, PCM output and persisted MMC traffic. It is independent of the CPU-only workload timings. Hardware performance on a MiSTer requires a board run.
+
+## Matched production fits
+
+Entries give whole-core fitted ALMs followed by the worst setup slack in ns across all four timing corners. The median column reports ALMs. The return-stack and MMC rows are successive additions. The store-only and fetch-only additions have the same return-stack-plus-MMC parent. The final row includes both queues.
+
+| Configuration | Seed 43 | Seed 13 | Seed 31337 | Median ALMs | M10Ks |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| DDR-backed reference | [38,017 / −2.809](https://github.com/asturur/test_template_1/actions/runs/45072531740) | [37,927 / −3.282](https://github.com/asturur/test_template_1/actions/runs/45072535827) | [37,931 / −2.919](https://github.com/asturur/test_template_1/actions/runs/45072539647) | 37,931 | 310 |
+| Return stack | [37,936 / −2.630](https://github.com/asturur/test_template_1/actions/runs/45194460210) | [37,849 / −3.156](https://github.com/asturur/test_template_1/actions/runs/45194467446) | [37,840 / −2.907](https://github.com/asturur/test_template_1/actions/runs/45194474075) | 37,849 | 311 |
+| Return stack + MMC | [36,978 / −2.853](https://github.com/asturur/test_template_1/actions/runs/45195347941) | [36,150 / −3.350](https://github.com/asturur/test_template_1/actions/runs/45195353698) | [36,961 / −3.868](https://github.com/asturur/test_template_1/actions/runs/45195360053) | 36,961 | 314 |
+| Add posted-store queue | [37,397 / −2.889](https://github.com/asturur/test_template_1/actions/runs/45196614138) | [37,475 / −2.706](https://github.com/asturur/test_template_1/actions/runs/45196621785) | [37,451 / −2.591](https://github.com/asturur/test_template_1/actions/runs/45196629287) | 37,451 | 318 |
+| Add fetch queue | [37,494 / −2.973](https://github.com/asturur/test_template_1/actions/runs/45204899334) | [37,475 / −2.694](https://github.com/asturur/test_template_1/actions/runs/45204906790) | [37,481 / −3.298](https://github.com/asturur/test_template_1/actions/runs/45204914742) | 37,481 | 317 |
+| All four | [37,366 / −2.851](https://github.com/asturur/test_template_1/actions/runs/45206755388) | [37,286 / −2.803](https://github.com/asturur/test_template_1/actions/runs/45206762467) | [37,364 / −2.852](https://github.com/asturur/test_template_1/actions/runs/45206768879) | 37,364 | 321 |
+
+The return stack reduced ALMs and improved setup on all three matched seeds. The return stack plus MMC had the lowest median area at 36,961 ALMs, 970 below the DDR-backed reference. Its median setup was −3.350 ns. Each queue lowered its own fitted ALM count and raised whole-core ALMs on all three seeds when added separately to that configuration.
+
+Adding the posted-store queue to the fetch build saved 117–189 ALMs per matched seed. The all-four median was 37,364 ALMs, 567 fewer than the DDR-backed reference and 403 more than return stack plus MMC. It used 321 of 553 M10Ks, leaving 232 free. Its median setup improved to −2.851 ns from −2.919 ns for the DDR-backed reference and −2.973 ns for the fetch build. Seed 13 improved against the DDR reference and was 0.109 ns slower than the fetch build at the same seed.
+
+All 18 fits passed hold, recovery, removal and minimum pulse width across the four corners. All missed setup at 104 MHz. Seed 13 had the best all-four fit at −2.803 ns and 37,286 ALMs. Its archived image is `build/fit/v5-104mhz-739d3bd-seed13/ngage1.rbf`, SHA-256 `688ab8a44a8342b3973558fe12dcb08af2c75d3822d4d5251474f64085821061`. The best setup in the series was the earlier posted-store image at seed 31337, −2.591 ns, archived at `build/fit/v5-104mhz-5700837-seed31337/ngage1.rbf`. [Per-corner and per-instance evidence](evidence/v5-alm-storage-fits-20261123.json)

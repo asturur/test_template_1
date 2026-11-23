@@ -1,18 +1,28 @@
+## 2026-11-23 — v5 matched RAM storage fits
+
+All four changes at `739d3bd` use 37,364 median ALMs and 321 M10Ks.
+Median setup is −2.851 ns at 104 MHz. Seed 13 is best at −2.803 ns
+and its RBF is archived. Return stack plus MMC has the lowest median
+area. Every fit missed 104 MHz setup.
+[Matched fits and archived images](v5-alm-storage-results.md#matched-production-fits)
+
 ## 2026-11-23 — v5 MMC stream tags backed by M10Ks
 
 Three replicated tag RAMs serve the low, high and prefetch lookups on
 their existing edges. The direct pin and HPS replays match under host stalls.
 Original Sega Rally CMD18 matches all 64 sectors and completes in 852,184
-clocks. The mixed board replay also matches. Fitted area and timing are
-pending. [MMC regression](../tests/phone/mmc_card/README.md#stream-tag-ram)
+clocks. The mixed board replay also matches. Stream tags use three M10Ks.
+[MMC regression](../tests/phone/mmc_card/README.md#stream-tag-ram) ·
+[Matched fits](v5-alm-storage-results.md#matched-production-fits)
 
 ## 2026-11-23 — v5 return-address stack backing RAM
 
 The eight-entry return stack reads synchronous memory on the existing
 prediction edge. The call bypass and repair keep the same behavior.
 All 15 fixed workloads and four native PolyCount frames match the prior CPU.
-The mixed SDRAM-pin and four CPU contract modes match. The fitted RAM count
-and timing are pending. [Implementation and tests](arm9v2-phone.md#return-address-stack-backing-ram)
+The mixed SDRAM-pin and four CPU contract modes match. The stack uses one
+M10K. [Implementation and tests](arm9v2-phone.md#return-address-stack-backing-ram) ·
+[Matched fits](v5-alm-storage-results.md#matched-production-fits)
 
 ## 2026-11-22 — both UPP RAM banks backed by HPS DDR
 
