@@ -1,0 +1,130 @@
+{
+  "cache_completion_stage": {
+    "reference_sha": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "parent_netlist_sha256": "4ee8595eeb9625f713e21ee866fccb779c033e7d5c6ff7a89eb89c6ef12c3c66",
+    "measured_netlist_sha256": "df1890f326803bd735c5dec379ba867d3ca1bde013162dac14a727d2c15127a9",
+    "fixed_work_medians": {
+      "matrix4": 32188,
+      "transpose4": 4701,
+      "triangle_edges": 20144,
+      "fill16_frame": 174989,
+      "fill16_tail": 2890,
+      "fill8_tail": 2954,
+      "monkey-forward": 37312,
+      "monkey-reverse": 37308,
+      "sega-span": 31544,
+      "sega-fill": 5263,
+      "asphalt-table": 36214,
+      "asphalt-double": 18902,
+      "asphalt-single": 13328,
+      "sega-scan": 5427544,
+      "diffuse_m10_8x8_jpeg": 93603
+    },
+    "native_clocks": 105449374,
+    "native_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "native_reference_clocks": 57514786,
+    "native_cost_percent": 83.34306938045461,
+    "contract_failure": "[266165000] %Fatal: contract.v:667: Assertion failed in contract: Capacity check accessed scalar RAM at 0a004280 PC=000009f0"
+  },
+  "first_scalar_reply_stage": {
+    "reference_sha": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "wrapper_source_records": {
+      "fixed": {
+        "bytes": 15957,
+        "verilator_fingerprint": "ioEN6Q7AW5FSz2UyZ7cxCuBXvX4WTIB54nMa3Vjr"
+      },
+      "native": {
+        "bytes": 15957,
+        "verilator_fingerprint": "ioEN6Q7AW5FSz2UyZ7cxCuBXvX4WTIB54nMa3Vjr"
+      },
+      "contract": {
+        "bytes": 15957,
+        "verilator_fingerprint": "ioEN6Q7AW5FSz2UyZ7cxCuBXvX4WTIB54nMa3Vjr"
+      },
+      "production_contract": {
+        "bytes": 15957,
+        "verilator_fingerprint": "ioEN6Q7AW5FSz2UyZ7cxCuBXvX4WTIB54nMa3Vjr"
+      }
+    },
+    "measured_wrapper_sha256": "8a810de90efe5b9152cf653267b7310ae057bd7e164c8079e2731add58eb5388",
+    "fixed_work": {
+      "matrix4": {
+        "reference_clocks": 16946,
+        "prototype_clocks": 17003
+      },
+      "transpose4": {
+        "reference_clocks": 2976,
+        "prototype_clocks": 3216
+      },
+      "triangle_edges": {
+        "reference_clocks": 12226,
+        "prototype_clocks": 12286
+      },
+      "fill16_frame": {
+        "reference_clocks": 122402,
+        "prototype_clocks": 122467
+      },
+      "fill16_tail": {
+        "reference_clocks": 725,
+        "prototype_clocks": 731
+      },
+      "fill8_tail": {
+        "reference_clocks": 753,
+        "prototype_clocks": 759
+      },
+      "monkey-forward": {
+        "reference_clocks": 15940,
+        "prototype_clocks": 15946
+      },
+      "monkey-reverse": {
+        "reference_clocks": 15940,
+        "prototype_clocks": 15946
+      },
+      "sega-span": {
+        "reference_clocks": 15430,
+        "prototype_clocks": 15436
+      },
+      "sega-fill": {
+        "reference_clocks": 2628,
+        "prototype_clocks": 2634
+      },
+      "asphalt-table": {
+        "reference_clocks": 21163,
+        "prototype_clocks": 21160
+      },
+      "asphalt-double": {
+        "reference_clocks": 11974,
+        "prototype_clocks": 11977
+      },
+      "asphalt-single": {
+        "reference_clocks": 7753,
+        "prototype_clocks": 7759
+      },
+      "sega-scan": {
+        "reference_clocks": 2395767,
+        "prototype_clocks": 2397837
+      },
+      "diffuse_m10_8x8_jpeg": {
+        "reference_clocks": 35324,
+        "prototype_clocks": 35324
+      }
+    },
+    "native_clocks": 57523046,
+    "native_reference_clocks": 57514786,
+    "native_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "contract_cycles": {
+      "contract": {
+        "burst-0-wait-0": 27270,
+        "burst-0-wait-5": 53405,
+        "burst-1-wait-0": 21874,
+        "burst-1-wait-5": 26459
+      },
+      "production_contract": {
+        "burst-0-wait-0": 32489,
+        "burst-0-wait-5": 58668,
+        "burst-1-wait-0": 22189,
+        "burst-1-wait-5": 26815
+      }
+    }
+  }
+}

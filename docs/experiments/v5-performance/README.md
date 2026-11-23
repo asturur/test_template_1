@@ -13,8 +13,8 @@ firmware, game captures, pin models and simulator outputs.
 Check an entry with `python3 docs/experiments/v5-performance/verify.py ID`.
 Omit the ID to verify the whole catalog. The verifier uses a private index and
 object directory under `scratch/`, compares affected blobs to the measured
-commit where one exists, and checks measured wrapper hashes for the local
-D-cache A/B variants.
+commit where one exists, and checks recorded RTL hashes for simulation-only
+variants.
 
 For example, from the repository root:
 
@@ -32,8 +32,9 @@ donor netlist> --check` within the staged tree. The pinned donor SHA-256 is
 `087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c`.
 The generator can also build from the imported SystemVerilog with its pinned
 sv2v version. Historical paired-LDM variants use their original generator
-invocation. See [the generator notes](../../arm9v2-phone.md) and
-[the historical catalog](historical.md).
+invocation. See [the generator notes](../../arm9v2-phone.md),
+[the historical catalog](historical.md) and
+[the recovered early backend prototypes](historical.md#early-backend-simulation-variants).
 
 ## Storage and the all-four control
 

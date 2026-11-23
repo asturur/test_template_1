@@ -57,8 +57,56 @@ Unless noted, the matched seeds are 42, 43 and 44, DDR debug off.
 | [Repeated-load interlock](historical/repeated-load-interlock.patch) `eb2abbc` | `cd609b2` | Takes the younger same-destination issue slot early and waits for the older writer to retire. Native cost +0.101% and a directed 32-load chain rose from 104 to 128 clocks. Isolated CPU setup regressed. |
 | [Wishbone payload banks](historical/wishbone-payload-banks.patch) `9d2e76c` | `75186be` | Captures request payloads at their sources and selects by registered owner. Four contracts, 256 arbitration combinations and all workloads matched. Area fell on all seeds, but setup median went from −2.632 to −2.884 ns. |
 
+## Early backend simulation variants
+
+The [cache-completion stage](historical/cache-completion-stage.patch) starts
+at `6c569de`. It disables the D-cache fast acknowledgement for cacheable
+requests, including hits under a miss. The uncacheable completion path still
+drives the fast acknowledgement. The measured trial edited the generated
+Verilog directly, so the patch preserves that one-line change and has no
+generator changes. The patched netlist SHA-256 matches the fixed-work and
+native run receipts. Native PolyCount takes 105,449,374 clocks across four
+frames, up from 57,514,786 (+83.343%). The capacity contract raised an
+assertion when a resident-range access reached scalar RAM. This variant
+received no Quartus fit. [Measured cycles and failure](early-backend-evidence.json)
+
+Apply the [historical benchmark fixture](historical/cache-completion-stage-bench.patch)
+and the RTL patch over a scratch snapshot of the base. Copy the supplied
+local SDRAM model and point the prepared fixed-work inputs and four-frame
+capture at their usual `build/sim/` paths. To rerun the 104 MHz fixed and
+native profiles from the patched snapshot:
+
+```sh
+area=scratch/v5-fit-loop/backend-alt-b
+cp rtl/arm9v2/arm925t_phone.v "$area/reg-cache.v"
+python3 "$area/profile.py" reg-cache payloads
+python3 "$area/profile.py" reg-cache native
+```
+
+For a fresh control run, save the unpatched base netlist as `parent.v` in
+the same directory and use the `parent` profile. The historical contract
+failure is preserved in the evidence receipt. The fixture archives the
+fixed-work and native runners.
+
+The [first scalar-reply stage](historical/first-wishbone-reply.patch) also
+starts at `6c569de`. It captures scalar ACK, error and data in the refill
+adapter and drops the external CYC during delivery to the CPU. The line
+path uses next received and consumed counts to register its ACK on the
+existing response edge. The fitted [owned Wishbone completion](historical/owned-wishbone-completion.patch)
+later preserved the direct SDRAM read reply on the registered-owner path.
+
+The first stage raised transpose from 2,976 to 3,216 clocks (+8.06%). Four
+native frames rose from 57,514,786 to 57,523,046 clocks (+0.0144%) with the
+same output. Both recorded CPU contract runs passed their four burst and
+wait-state configurations. The recovered wrapper's Verilator fingerprint
+matches the fixed-work, native and both contract compilation records.
+[Per-workload cycles and source fingerprints](early-backend-evidence.json)
+
+For replay, apply the scalar stage and the historical benchmark fixture
+over a fresh snapshot of `6c569de`. The fixture's `active` leg uses the
+snapshot's live CPU wrapper and unmodified CPU netlist. Run the two commands
+above with `active` in place of `reg-cache` and skip the netlist copy.
+
 Forward reverts and documentation-only comparison commits serve as
 provenance. The external donor runs remain comparative evidence in the
-timing reports. The historical simulation-only extra stage on every
-cacheable D completion and the first unqualified scalar-reply stage
-have narrative results there; this catalog covers their fitted successors.
+timing reports.

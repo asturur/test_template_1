@@ -1055,5 +1055,50 @@
     "sha256": [
       "9dbca3bbff5a8d1c31b4af5a5c4bc8c918e000db517b98535acb51d038f08025"
     ]
+  },
+  {
+    "id": "cache-completion-stage",
+    "kind": "simulation",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/cache-completion-stage.patch"
+    ],
+    "sha256": [
+      "fa08aca68f2231e715a88c27ee796322519fa5ed7d42d04679decb994d4f2e09"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "df1890f326803bd735c5dec379ba867d3ca1bde013162dac14a727d2c15127a9"
+    }
+  },
+  {
+    "id": "cache-completion-stage-bench",
+    "kind": "fixture",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/cache-completion-stage-bench.patch"
+    ],
+    "sha256": [
+      "8a6aa96a212f2acc8d35bbc6ef5fdc51b1dcdfec94d6f228dd3000f8e7e2107e"
+    ]
+  },
+  {
+    "id": "first-wishbone-reply",
+    "kind": "simulation",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/first-wishbone-reply.patch"
+    ],
+    "sha256": [
+      "df9b473ea191487f566632c95ac85c3fc611a8987c70cc163185568216081979"
+    ],
+    "affected_paths": [
+      "rtl/ngage_cpu.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "8a810de90efe5b9152cf653267b7310ae057bd7e164c8079e2731add58eb5388"
+    }
   }
 ]
