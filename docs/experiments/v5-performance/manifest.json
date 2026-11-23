@@ -1100,5 +1100,37 @@
     "measured_sha256": {
       "rtl/ngage_cpu.sv": "8a810de90efe5b9152cf653267b7310ae057bd7e164c8079e2731add58eb5388"
     }
+  },
+  {
+    "id": "ddr-burst-bounds",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/ddr-burst-bounds.patch"
+    ],
+    "sha256": [
+      "dcc43e6e208ba3cb0fdd1fe8c7546832b49f6b789dc99d7352cedbe7429a3583"
+    ],
+    "target": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "affected_paths": [
+      "rtl/ngage_ddr_stream.v",
+      "tests/phone/ddr_stream/bounds.smt2",
+      "tests/phone/ddr_stream/bounds_tb.sv",
+      "tests/phone/ddr_stream/run-bounds.sh"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_ddr_stream.v": "376b0d805363dcedf72f641a266826c899380fd9add3f22dc8f2d7de4e3dad0c"
+    }
+  },
+  {
+    "id": "ddr-burst-bounds-replay",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/ddr-burst-bounds-replay.patch"
+    ],
+    "sha256": [
+      "e0ed2e361ec2033204f6e68635064d67fce83cbf4865bc442381023534131b90"
+    ]
   }
 ]

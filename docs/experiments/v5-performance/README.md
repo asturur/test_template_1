@@ -98,6 +98,13 @@ Their combined behavior has no measurement. The Thumb and D admission
 combination has its own 15-case and native replay.
 [Four-way replay fixture](patches/thumb-and-d-admission-replay-fixture.patch)
 
+## DDR burst bounds
+
+The [final-window check](ddr-burst-bounds.md) replaces the wide end-address
+adder on the all-four control. All 15 fixed workloads and four native
+PolyCount frames match cycle for cycle. The three 104 MHz fits at
+`b6d8981` will measure the routed effect.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
