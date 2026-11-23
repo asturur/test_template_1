@@ -1,11 +1,3 @@
-## 2026-11-23 — v5 posted-store FIFO backing RAM
-
-Two parity banks prepare the head and successor for the existing ACK edge.
-The poisoned-collision miter and directed refill and CP15 drain checks pass.
-All 15 fixed workloads and four native frames match, as do the mixed board
-and ordinary CPU contract. The physical 104 MHz fits are pending.
-[Implementation and tests](arm9v2-phone.md#posted-store-fifo-backing-ram)
-
 ## 2026-11-23 — v5 MMC stream tags backed by M10Ks
 
 Three replicated tag RAMs serve the low, high and prefetch lookups on

@@ -13166,61 +13166,14 @@ module ngage2_zap_store_queue (
 	output wire [31:0] o_data_nxt;
 	output wire [3:0] o_ben_nxt;
 	localparam integer DEPTH = 1 << AW;
+	reg [67:0] entries [0:DEPTH - 1];
 	reg [AW - 1:0] head;
 	reg [AW - 1:0] tail;
+	wire [AW - 1:0] read_index;
 	reg [AW:0] count;
 	reg [AW:0] count_nxt;
-    localparam integer ROWS = DEPTH / 2;
-    localparam integer ROW_W = AW > 1 ? AW - 1 : 1;
-    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_even [0:ROWS - 1];
-    (* ramstyle = "M10K, no_rw_check" *) reg [67:0] entries_odd [0:ROWS - 1];
-    wire [ROW_W - 1:0] even_row, odd_row, write_row;
-    wire push_even = !i_reset && i_push && !tail[0];
-    wire push_odd = !i_reset && i_push && tail[0];
-    wire [67:0] push_payload = {i_address, i_data, i_ben};
-    reg [67:0] even_payload, odd_payload, bypass_payload;
-    reg bypass_even, bypass_odd;
-
-    // After this edge the head is head + i_take. Its two adjacent slots
-    // always have opposite parity. Their read rows round up for even and
-    // down for odd. Reset instead prepares slots zero and one.
-    generate
-        if (AW > 1) begin : g_rows
-            wire [ROW_W - 1:0] head_row = head[AW - 1:1];
-            assign even_row = i_reset ? {ROW_W{1'b0}} :
-                head_row + {{(ROW_W - 1){1'b0}}, head[0] | i_take};
-            assign odd_row = i_reset ? {ROW_W{1'b0}} :
-                head_row + {{(ROW_W - 1){1'b0}}, head[0] & i_take};
-            assign write_row = tail[AW - 1:1];
-        end else begin : g_one_row
-            assign even_row = 1'b0;
-            assign odd_row = 1'b0;
-            assign write_row = 1'b0;
-        end
-    endgenerate
-
-    always @(posedge i_clk) begin
-        if (push_even)
-            entries_even[write_row] <= push_payload;
-        if (push_odd)
-            entries_odd[write_row] <= push_payload;
-        even_payload <= entries_even[even_row];
-        odd_payload <= entries_odd[odd_row];
-
-        // A push that fills either prepared slot supplies its registered
-        // data independently of the RAM's mixed-port collision output.
-        if (push_even || push_odd)
-            bypass_payload <= push_payload;
-        bypass_even <= push_even && write_row == even_row;
-        bypass_odd <= push_odd && write_row == odd_row;
-    end
-
-    // ACK can still choose the already prepared successor in this cycle.
-    // The unchanged CYC expression below excludes pushes on this edge.
-    wire select_odd = head[0] ^ i_take;
-    wire select_bypass = select_odd ? bypass_odd : bypass_even;
-    assign {o_address_nxt, o_data_nxt, o_ben_nxt} =
-        select_bypass ? bypass_payload : (select_odd ? odd_payload : even_payload);
+	assign read_index = head + {{AW - 1 {1'b0}}, i_take};
+	assign {o_address_nxt, o_data_nxt, o_ben_nxt} = entries[read_index];
 	assign o_cyc_nxt = count > {{AW {1'b0}}, i_take};
 	assign o_busy = count != 0;
 	always @(*) begin
@@ -13245,6 +13198,7 @@ module ngage2_zap_store_queue (
 			count <= count_nxt;
 			o_full <= count_nxt == DEPTH;
 			if (i_push) begin
+				entries[tail] <= {i_address, i_data, i_ben};
 				tail <= tail + 1'b1;
 			end
 			if (i_take)

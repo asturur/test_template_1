@@ -78,23 +78,6 @@ All 15 fixed workloads preserve cycle counts and request traces. The four
 native PolyCount frames match at 57,514,786 clocks and produce the same output.
 [RAS regression](../tests/cpu/arm9v2_ras/)
 
-## Posted-store FIFO backing RAM
-
-The four-entry posted-store queue saves each address, word and byte mask in
-one of two parity banks. Each edge prepares the next head and its successor.
-The live ACK selects the right prepared packet on the original Wishbone edge.
-A registered push bypass handles a same-row read/write collision. Queue depth,
-first-push behavior, reset and drain ordering follow the original design.
-
-The production-depth miter matches 251,347 cycles and 1,256,732 comparisons
-against the original FIFO for both the normal and poisoned-collision memory
-models. The directed ARM9V2 test matches posted-write issue and retirement
-cycles. It checks mixed-width stores, dependent refills, and a CP15 drain with
-line transport on and off and zero or five scalar wait clocks. The ordinary
-CPU contract and mixed SDRAM-pin replay also match. All 15 fixed workloads
-and request traces are identical. Four native PolyCount frames match at
-57,514,786 clocks with identical rendered output. [FIFO tests](../tests/cpu/arm9v2_store_queue/)
-
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.
