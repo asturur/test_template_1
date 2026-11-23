@@ -217,14 +217,19 @@ module ngage_mmc_host #(
     reg [3:0] dstate;
 
     // ------------------------------------------------------------------
-    // FIFO bookkeeping
+    // FIFO, FIFO_DEPTH bytes in registers
     // ------------------------------------------------------------------
-    wire [31:0] fifo_bytes;
+    reg [7:0] fmem[0:FIFO_DEPTH-1];
     reg [FAW-1:0] fwp, frp;
     reg [FAW:0] fcnt;
 
-    // Number of bytes requested in guest lane order.
-    wire [2:0] nbe = {2'b0, be[0]} + {2'b0, be[1]} + {2'b0, be[2]} + {2'b0, be[3]};
+    integer       nbe_index;
+    reg     [2:0] nbe;  // bytes the access moves
+    always @* begin
+        nbe = 3'd0;
+        for (nbe_index = 0; nbe_index < 4; nbe_index = nbe_index + 1)
+        nbe = nbe + {2'd0, be[nbe_index]};
+    end
 
     wire         rx_phase = dstate == D_RWAIT || dstate == D_RX || dstate == D_RDONE;
     wire         rx_coming = dstate == D_RWAIT || dstate == D_RX;
@@ -253,7 +258,7 @@ module ngage_mmc_host #(
         for (fifo_index_lane = 0; fifo_index_lane < 4; fifo_index_lane = fifo_index_lane + 1) begin
             if (be[fifo_index_lane]) begin
                 if (fifo_lane < fifo_take)
-                    fifo_word[8*fifo_index_lane+:8] = fifo_bytes[8*fifo_lane[1:0]+:8];
+                    fifo_word[8*fifo_index_lane+:8] = fmem[fifo_index(frp, fifo_lane)];
                 fifo_lane = fifo_lane + 3'd1;
             end
         end
@@ -331,7 +336,7 @@ module ngage_mmc_host #(
     reg [3:0] dtail;
     reg [1:0] gap;
 
-    wire [7:0] fifo_head = fifo_bytes[7:0];
+    wire [7:0] fifo_head = fmem[frp];
 
     // the start of a transfer at this edge
     wire        start = wr && off == 6'h04 && wdata[0];
@@ -351,98 +356,16 @@ module ngage_mmc_host #(
                    (dstate == D_TX && dbit == 4'd0 && ntx < blen && fcnt == {(FAW+1){1'b0}});
     end
 
-    // Sample the receive byte and the next transmit byte on the same
-    // clock edges as the serial engine below.
-    wire           serial_push = dstate == D_RX && rise && nrx < blen && dbit == 4'd7;
-    wire           serial_pop = dstate == D_TX && fall && ntx < blen && dbit == 4'd0;
-    wire           cpu_push = wr && fifo_wr && tx_phase;
-    wire           cpu_pop = rd && fifo_rd && rx_phase;
-    wire [    2:0] push_count = serial_push ? 3'd1 : cpu_push ? need : 3'd0;
-    wire [    2:0] pop_count = serial_pop ? 3'd1 : cpu_pop ? fifo_take : 3'd0;
-    wire [FAW-1:0] next_frp = reset || start ? {FAW{1'b0}} : fifo_index(frp, pop_count);
-    wire [    7:0] received_byte = {dsr[6:0], dat_i};
-
-    function [31:0] pack_bytes;
-        input [3:0] lanes;
-        input [31:0] data;
-        integer       lane;
-        reg     [1:0] position;
-        begin
-            pack_bytes = 0;
-            position   = 0;
-            for (lane = 0; lane < 4; lane = lane + 1) begin
-                if (lanes[lane]) begin
-                    pack_bytes[8*position+:8] = data[8*lane+:8];
-                    position                  = position + 1'b1;
-                end
-            end
-        end
-    endfunction
-
-    wire [31:0] pushed_bytes = serial_push ? {24'b0, received_byte} : pack_bytes(be, wdata);
-    generate
-        if (FIFO_DEPTH == 16) begin : banked_fifo
-            wire [31:0] bank_bytes;
-            wire [63:0] bank_window = {bank_bytes, bank_bytes};
-            genvar bank;
-            for (bank = 0; bank < 4; bank = bank + 1) begin : byte_bank
-                localparam [1:0] LANE = bank;
-                // The FIFO's four consecutive positions visit each bank
-                // once. Select the row for the new head before updating frp.
-                wire [1:0] read_row = next_frp[3:2] + {1'b0, LANE < next_frp[1:0]};
-                wire [1:0] write_row = fwp[3:2] + {1'b0, LANE < fwp[1:0]};
-                wire [1:0] write_offset = LANE - fwp[1:0];
-                wire       write_byte = {1'b0, write_offset} < push_count;
-                wire [7:0] write_data = pushed_bytes[8*write_offset+:8];
-                wire [7:0] read_data;
-                reg        forward_byte;
-                reg  [7:0] forwarded_data;
-
-                ngage_bram #(
-                    .AW         (2),
-                    .DW         (8),
-                    .READ_ONLY_B(1)
-                ) payload (
-                    .clk   (clk),
-                    .addr_a(write_row),
-                    .data_a(write_data),
-                    .we_a  (write_byte),
-                    .q_a   (),
-                    .addr_b(read_row),
-                    .data_b(8'b0),
-                    .we_b  (1'b0),
-                    .q_b   (read_data)
-                );
-
-                // Mixed-port data is undefined on a write collision. The
-                // write is part of the next head's view on this same edge.
-                always @(posedge clk) begin
-                    forward_byte <= write_byte && write_row == read_row;
-                    if (write_byte) forwarded_data <= write_data;
-                end
-
-                assign bank_bytes[8*bank+:8] = forward_byte ? forwarded_data : read_data;
-            end
-            assign fifo_bytes = bank_window[{frp[1:0], 3'b0}+:32];
-        end else begin : register_fifo
-            reg     [7:0] fmem       [0:FIFO_DEPTH-1];
-            integer       byte_index;
-            always @(posedge clk) begin
-                for (byte_index = 0; byte_index < 4; byte_index = byte_index + 1)
-                if ({29'b0, push_count} > byte_index)
-                    fmem[fifo_index(fwp, byte_index[2:0])] <= pushed_bytes[8*byte_index+:8];
-            end
-            genvar byte_lane;
-            for (byte_lane = 0; byte_lane < 4; byte_lane = byte_lane + 1) begin : fifo_lane_data
-                localparam [2:0] OFFSET = byte_lane;
-                assign fifo_bytes[8*byte_lane+:8] = fmem[fifo_index(frp, OFFSET)];
-            end
-        end
-    endgenerate
-
     // Verilog-2001 named-block locals retain the donor's private temporaries.
     always @(posedge clk) begin : engine_step
-        reg [127:0] f;
+        reg push1, pop1;
+        reg [7:0] pbyte;
+        reg [2:0] npush, npop, k;
+        reg     [127:0] f;
+        integer         write_lane;
+        push1 = 1'b0;
+        pop1  = 1'b0;
+        pbyte = 8'd0;
 
         // ---- the clock ----
         if (run) ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? {PHW{1'b0}} : ph + 1'd1;
@@ -578,6 +501,8 @@ module ngage_mmc_host #(
                     dsr  <= {dsr[6:0], dat_i};
                     dcrc <= crc16_bit(dcrc, dat_i);
                     if (dbit == 4'd7) begin
+                        push1 = 1'b1;
+                        pbyte = {dsr[6:0], dat_i};
                         nrx  <= nrx + 13'd1;
                         dbit <= 4'd0;
                     end else begin
@@ -628,6 +553,7 @@ module ngage_mmc_host #(
                     dbit  <= dbit - 4'd1;
                 end else if (ntx < blen) begin
                     // the next byte (dat_hold stops the clock while there is none)
+                    pop1 = 1'b1;
                     dat_o <= fifo_head[7];
                     dcrc  <= crc16_bit(dcrc, fifo_head[7]);
                     dsr   <= {fifo_head[6:0], 1'b0};
@@ -690,11 +616,31 @@ module ngage_mmc_host #(
         endcase
 
         // ---- the FIFO ----
-        if (cpu_pop) nfifo <= nfifo + {10'd0, fifo_take};
-        if (cpu_push) nfifo <= nfifo + {10'd0, need};
-        fwp  <= fifo_index(fwp, push_count);
-        frp  <= next_frp;
-        fcnt <= fcnt + fifo_count_value(push_count) - fifo_count_value(pop_count);
+        npush = 3'd0;
+        npop  = 3'd0;
+        if (rd && fifo_rd && rx_phase) begin
+            npop = fifo_take;
+            nfifo <= nfifo + {10'd0, fifo_take};
+        end
+        if (wr && fifo_wr && tx_phase) begin
+            k = 3'd0;
+            for (write_lane = 0; write_lane < 4; write_lane = write_lane + 1) begin
+                if (be[write_lane] && {10'd0, k} < rem) begin
+                    fmem[fifo_index(fwp, k)] <= wdata[8*write_lane+:8];
+                    k = k + 3'd1;
+                end
+            end
+            npush = k;
+            nfifo <= nfifo + {10'd0, k};
+        end
+        if (push1) begin
+            fmem[fwp] <= pbyte;
+            npush = 3'd1;
+        end
+        if (pop1) npop = 3'd1;
+        fwp  <= fifo_index(fwp, npush);
+        frp  <= fifo_index(frp, npop);
+        fcnt <= fcnt + fifo_count_value(npush) - fifo_count_value(npop);
 
         // ---- a new transfer ----
         if (start) begin
@@ -709,6 +655,7 @@ module ngage_mmc_host #(
             cmd_oe     <= 1'b0;
             dat_oe     <= 1'b0;
             fwp        <= {FAW{1'b0}};
+            frp        <= {FAW{1'b0}};
             fcnt       <= {(FAW + 1) {1'b0}};
             nfifo      <= 13'd0;
             nrx        <= 13'd0;
@@ -754,6 +701,7 @@ module ngage_mmc_host #(
             dat_oe     <= 1'b0;
             dat_o      <= 1'b1;
             fwp        <= {FAW{1'b0}};
+            frp        <= {FAW{1'b0}};
             fcnt       <= {(FAW + 1) {1'b0}};
             nfifo      <= 13'd0;
             nrx        <= 13'd0;
