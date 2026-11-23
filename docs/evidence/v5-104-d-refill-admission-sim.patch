@@ -1,0 +1,50 @@
+--- a/rtl/ngage_cpu.sv
++++ b/rtl/ngage_cpu.sv
+@@ -56,6 +56,7 @@
+     ) refill (
+         .clk               (clk),
+         .reset             (reset),
++        .study_cpu_code    (wb_code),
+         .cpu_cyc           (donor_cyc),
+         .cpu_lock          (donor_lock),
+         .cpu_line_candidate(donor_line_candidate),
+@@ -189,6 +190,7 @@
+ ) (
+     input  wire        clk,
+     input  wire        reset,
++    input  wire        study_cpu_code,
+     input  wire        cpu_cyc,
+     input  wire        cpu_lock,
+     input  wire        cpu_line_candidate,
+@@ -227,10 +229,27 @@
+     reg [31:0] words    [0:7];
+ 
+     wire burst = cpu_cti == BURST;
+-    assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
+-                       cpu_line_candidate;
+-    assign line_addr = cpu_address;
+-    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
++    wire study_offer = ENABLE && !reset && state == IDLE && cpu_cyc &&
++                       !cpu_lock && cpu_line_candidate;
++    reg study_delay;
++    reg study_pending = 0;
++    reg [31:0] study_address;
++    initial study_delay = $test$plusargs("delay_d_refill");
++    wire study_stage_hold = study_delay && study_offer && !study_cpu_code && !study_pending;
++    always @(posedge clk) begin
++        if (reset) study_pending <= 0;
++        else if (study_stage_hold) begin
++            study_pending <= 1;
++            study_address <= cpu_address;
++        end else if (study_pending) begin
++            if (!study_offer || study_cpu_code || cpu_address != study_address)
++                $fatal(1, "D refill changed while held in the additional admission stage");
++            if (line_req && line_ready) study_pending <= 0;
++        end
++    end
++    assign line_req = study_offer && !study_stage_hold;
++    assign line_addr = study_pending ? study_address : cpu_address;
++    assign wb_cyc = !reset && cpu_cyc && state != LINE && !study_offer;
+     // A younger SWP cannot reach the bus before this older refill retires.
+     // Its lock must not prevent SDRAM from accepting the owned line request.
+     assign wb_lock = !reset && cpu_lock && state != LINE;

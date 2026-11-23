@@ -1,0 +1,3627 @@
+{
+  "base_revision": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+  "system_clock_hz": 104000000,
+  "netlist_sha256": "01088c86f4c9f14ce36b71f2ba1ab0fbf5c491de2b0664ab2121f9a7be370b4f",
+  "base_cpu_wrapper_sha256": "fc1da44e0f5b7f678a51b4e5bb322c38d985a7d868608f8d33a0b86814070b46",
+  "simulation_cpu_wrapper_sha256": "dafe39a3cfc53a2985be07ccd997cc9ef9d8e9c6e3fbc1adda52d3acf932ad6b",
+  "pin_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+  "observer_sha256": "9eb0d58454bb020797d3c065d9f03afde04295c5a1e1f68fe2d5bfced7673057",
+  "metric_note": "Pairs are disjoint aligned even-head ACKs with two buffered words; exposed is the existing CPU wait bucket on the first ACK edge, not an IPC estimate.",
+  "payloads": {
+    "matrix4": {
+      "baseline_cycles": [
+        17981,
+        16937,
+        16937,
+        16937,
+        16949,
+        16946,
+        16952
+      ],
+      "delayed_cycles": [
+        17978,
+        16949,
+        16937,
+        16937,
+        16937,
+        16949,
+        16943
+      ],
+      "elapsed_delta": [
+        -3,
+        12,
+        0,
+        0,
+        -12,
+        3,
+        -9
+      ],
+      "delta_clocks": -9,
+      "delta_pct": -0.007522630580329157,
+      "held_D_offers": 33,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 33,
+          "code": 45,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 33,
+          "code": 45,
+          "held": 33
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 264,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 352,
+          "pairs": 176,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 264,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 352,
+          "pairs": 176,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        16946,
+        16937
+      ],
+      "input_sha256": "354080d4f5bcf315cf8977d425883b311ed9496daa24195ed0f84f6875710173",
+      "sdram_trace_sha256": [
+        "ede85338b14b2360f702c9c92fa1740ab814ff1a273ba5910b1c0d8de4189d00",
+        "ede85338b14b2360f702c9c92fa1740ab814ff1a273ba5910b1c0d8de4189d00"
+      ]
+    },
+    "transpose4": {
+      "baseline_cycles": [
+        3055,
+        2964,
+        2964,
+        2976,
+        2976,
+        2979,
+        2976
+      ],
+      "delayed_cycles": [
+        3058,
+        2982,
+        2976,
+        2979,
+        2976,
+        2988,
+        2976
+      ],
+      "elapsed_delta": [
+        3,
+        18,
+        12,
+        3,
+        0,
+        9,
+        0
+      ],
+      "delta_clocks": 45,
+      "delta_pct": 0.215414073719483,
+      "held_D_offers": 0,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 5,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 5,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 40,
+          "pairs": 20,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 40,
+          "pairs": 20,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        2976,
+        2976
+      ],
+      "input_sha256": "306e31d656d377ba7d0b086d2632924973558eef6eb11769f53a2991579cd6d0",
+      "sdram_trace_sha256": [
+        "16ab8b09af7c0eb19fd35193d16f1a59a34ceb6979303967f44056b8d9c9e108",
+        "08f8c0eb56c26d2546ab34adead2e5aafe337a554ec1d6534a0a04bfccd0f87d"
+      ]
+    },
+    "triangle_edges": {
+      "baseline_cycles": [
+        13136,
+        12220,
+        12226,
+        12262,
+        12253,
+        12220,
+        12220
+      ],
+      "delayed_cycles": [
+        13143,
+        12235,
+        12262,
+        12253,
+        12220,
+        12220,
+        12220
+      ],
+      "elapsed_delta": [
+        7,
+        15,
+        36,
+        -9,
+        -33,
+        0,
+        0
+      ],
+      "delta_clocks": 16,
+      "delta_pct": 0.01848920115095277,
+      "held_D_offers": 7,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 7,
+          "code": 48,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 7,
+          "code": 48,
+          "held": 7
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 16,
+          "pairs": 8,
+          "exposed": 1
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 384,
+          "pairs": 192,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 16,
+          "pairs": 8,
+          "exposed": 1
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 384,
+          "pairs": 192,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        12226,
+        12220
+      ],
+      "input_sha256": "6024e068026166bffc73ae87ebfa2aa0df5799867caaf7975032f0842c737a77",
+      "sdram_trace_sha256": [
+        "3478569a45090a2534345b78803e520f4721b9fd93b233686428481422353e33",
+        "726defdb4b851a3cea243ca832048737a5cdde87860ae7a31d6cc11b3e78ebfd"
+      ]
+    },
+    "fill16_frame": {
+      "baseline_cycles": [
+        122534,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402
+      ],
+      "delayed_cycles": [
+        122720,
+        122578,
+        122578,
+        122578,
+        122578,
+        122578,
+        122578
+      ],
+      "elapsed_delta": [
+        186,
+        176,
+        176,
+        176,
+        176,
+        176,
+        176
+      ],
+      "delta_clocks": 1242,
+      "delta_pct": 0.14493328634476385,
+      "held_D_offers": 16023,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 2289,
+          "code": 7,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 2289,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 2289,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 2289,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 2289,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 2289,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 2289,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 2289,
+          "code": 7,
+          "held": 2289
+        },
+        {
+          "interval": 1,
+          "data": 2289,
+          "code": 0,
+          "held": 2289
+        },
+        {
+          "interval": 2,
+          "data": 2289,
+          "code": 0,
+          "held": 2289
+        },
+        {
+          "interval": 3,
+          "data": 2289,
+          "code": 0,
+          "held": 2289
+        },
+        {
+          "interval": 4,
+          "data": 2289,
+          "code": 0,
+          "held": 2289
+        },
+        {
+          "interval": 5,
+          "data": 2289,
+          "code": 0,
+          "held": 2289
+        },
+        {
+          "interval": 6,
+          "data": 2289,
+          "code": 0,
+          "held": 2289
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 64,
+          "pairs": 32,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 64,
+          "pairs": 32,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 18304,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        122402,
+        122578
+      ],
+      "input_sha256": "2fcebd18fba7afedd25c3c89e3b3c9d59ac79c0d539c995a8e685c41d7083f07",
+      "sdram_trace_sha256": [
+        "56348c45c487a9ea79fef7e2ebe8cd3796fc3be96bf0c3c62ba2f9d5453f680e",
+        "9fa68823b7473671a118ce7aab3252511d6cb4f81c4882f51b167d41763b6b92"
+      ]
+    },
+    "fill16_tail": {
+      "baseline_cycles": [
+        876,
+        725,
+        725,
+        728,
+        725,
+        725,
+        725
+      ],
+      "delayed_cycles": [
+        876,
+        725,
+        725,
+        725,
+        725,
+        725,
+        728
+      ],
+      "elapsed_delta": [
+        0,
+        0,
+        0,
+        -3,
+        0,
+        0,
+        3
+      ],
+      "delta_clocks": 0,
+      "delta_pct": 0.0,
+      "held_D_offers": 0,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 8,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 8,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 64,
+          "pairs": 32,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 64,
+          "pairs": 32,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        725,
+        725
+      ],
+      "input_sha256": "f484693089fb1ebd8c2b54718da8cf96e4609af44110b2c1f138f9ff39b9fbc0",
+      "sdram_trace_sha256": [
+        "2c7ad9c68f780cb95c51d52b02a7c18cf7e0023631e5bb8251282f120cc56743",
+        "2c7ad9c68f780cb95c51d52b02a7c18cf7e0023631e5bb8251282f120cc56743"
+      ]
+    },
+    "fill8_tail": {
+      "baseline_cycles": [
+        903,
+        753,
+        753,
+        753,
+        753,
+        753,
+        753
+      ],
+      "delayed_cycles": [
+        903,
+        753,
+        753,
+        753,
+        753,
+        753,
+        753
+      ],
+      "elapsed_delta": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "delta_clocks": 0,
+      "delta_pct": 0.0,
+      "held_D_offers": 0,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 8,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 8,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 64,
+          "pairs": 32,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 64,
+          "pairs": 32,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        753,
+        753
+      ],
+      "input_sha256": "80a61d8a6ae63360ac281a4c6416025e5dedc0b9b074517c09ca274d2a777b0f",
+      "sdram_trace_sha256": [
+        "fff4fcd7cddd7e11bd13b269823dc011c4489cf1798946a6f6419b8158e9e258",
+        "fff4fcd7cddd7e11bd13b269823dc011c4489cf1798946a6f6419b8158e9e258"
+      ]
+    },
+    "monkey-forward": {
+      "baseline_cycles": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ],
+      "delayed_cycles": [
+        16021,
+        15940,
+        15937,
+        15940,
+        15937,
+        15940,
+        15940
+      ],
+      "elapsed_delta": [
+        0,
+        3,
+        -3,
+        0,
+        -12,
+        3,
+        0
+      ],
+      "delta_clocks": -9,
+      "delta_pct": -0.008059893967617138,
+      "held_D_offers": 0,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 4,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 4,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 40,
+          "pairs": 20,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 40,
+          "pairs": 20,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        15940,
+        15940
+      ],
+      "input_sha256": "e770cc46248fe78135e96ba00f87cd1bc200cefdc73f36eddf0ed8510beddc66",
+      "sdram_trace_sha256": [
+        "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c",
+        "c9a8ec5a690a44a3335ba8a9881a6bfd54d2ca77413e9c6d117eb60515110f14"
+      ]
+    },
+    "monkey-reverse": {
+      "baseline_cycles": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ],
+      "delayed_cycles": [
+        16021,
+        15940,
+        15937,
+        15940,
+        15937,
+        15940,
+        15940
+      ],
+      "elapsed_delta": [
+        0,
+        3,
+        -3,
+        0,
+        -12,
+        3,
+        0
+      ],
+      "delta_clocks": -9,
+      "delta_pct": -0.008059893967617138,
+      "held_D_offers": 0,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 4,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 0,
+          "code": 4,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 40,
+          "pairs": 20,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 40,
+          "pairs": 20,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        15940,
+        15940
+      ],
+      "input_sha256": "b16c6b66cb25c5bdc785ba632b9bfd85b57dbebb6157d9b322cae60318b8312b",
+      "sdram_trace_sha256": [
+        "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c",
+        "c9a8ec5a690a44a3335ba8a9881a6bfd54d2ca77413e9c6d117eb60515110f14"
+      ]
+    },
+    "sega-span": {
+      "baseline_cycles": [
+        15585,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430
+      ],
+      "delayed_cycles": [
+        15586,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430
+      ],
+      "elapsed_delta": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "delta_clocks": 1,
+      "delta_pct": 0.000924513474783895,
+      "held_D_offers": 1,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 1,
+          "code": 7,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 1,
+          "code": 7,
+          "held": 1
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 2
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 56,
+          "pairs": 28,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 2
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 56,
+          "pairs": 28,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        15430,
+        15430
+      ],
+      "input_sha256": "1c641c5740630689cc6fddea173ec0ea11780e4d8fc20c0709448dabcd96cb05",
+      "sdram_trace_sha256": [
+        "5f271f9807c48505ae1911de31fef214422773ec9b3e9184dfc39728669277b2",
+        "5f271f9807c48505ae1911de31fef214422773ec9b3e9184dfc39728669277b2"
+      ]
+    },
+    "sega-fill": {
+      "baseline_cycles": [
+        2757,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628
+      ],
+      "delayed_cycles": [
+        2758,
+        2628,
+        2628,
+        2628,
+        2628,
+        2637,
+        2628
+      ],
+      "elapsed_delta": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        9,
+        0
+      ],
+      "delta_clocks": 10,
+      "delta_pct": 0.05398110661268556,
+      "held_D_offers": 1,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 1,
+          "code": 4,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 1,
+          "code": 4,
+          "held": 1
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 4
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 32,
+          "pairs": 16,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 4
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 32,
+          "pairs": 16,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        2628,
+        2628
+      ],
+      "input_sha256": "fd4ac8dfb3370aa77e3b5084390a6dbd6d883b90a69184f1bc09a3671f22d352",
+      "sdram_trace_sha256": [
+        "cdbef9900ac0231b1c03dca8992e8da8cffea596b1a20c24bece1cd78051232d",
+        "cdbef9900ac0231b1c03dca8992e8da8cffea596b1a20c24bece1cd78051232d"
+      ]
+    },
+    "asphalt-table": {
+      "baseline_cycles": [
+        21328,
+        21155,
+        21160,
+        21152,
+        21168,
+        21163,
+        21171
+      ],
+      "delayed_cycles": [
+        21356,
+        21185,
+        21179,
+        21182,
+        21185,
+        21195,
+        21183
+      ],
+      "elapsed_delta": [
+        28,
+        30,
+        19,
+        30,
+        17,
+        32,
+        12
+      ],
+      "delta_clocks": 168,
+      "delta_pct": 0.11328617571495041,
+      "held_D_offers": 169,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 25,
+          "code": 8,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 24,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 24,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 24,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 24,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 24,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 24,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 25,
+          "code": 8,
+          "held": 25
+        },
+        {
+          "interval": 1,
+          "data": 24,
+          "code": 0,
+          "held": 24
+        },
+        {
+          "interval": 2,
+          "data": 24,
+          "code": 0,
+          "held": 24
+        },
+        {
+          "interval": 3,
+          "data": 24,
+          "code": 0,
+          "held": 24
+        },
+        {
+          "interval": 4,
+          "data": 24,
+          "code": 0,
+          "held": 24
+        },
+        {
+          "interval": 5,
+          "data": 24,
+          "code": 0,
+          "held": 24
+        },
+        {
+          "interval": 6,
+          "data": 24,
+          "code": 0,
+          "held": 24
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 2
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 72,
+          "pairs": 36,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 2
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 72,
+          "pairs": 36,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 192,
+          "pairs": 0,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        21163,
+        21183
+      ],
+      "input_sha256": "b6c7ffc591791b8356cbc77d69d94ec5dbf608486158d6adb5b3bd7d47fb00f9",
+      "sdram_trace_sha256": [
+        "705cda06b5928d07b56d59534062d21cb85e342ce034cfa69cfd0e2d0451d8da",
+        "8e004a82bacd300df8c93099a5e3ab9d57768ee23973ff5187c5abcc2c564405"
+      ]
+    },
+    "asphalt-double": {
+      "baseline_cycles": [
+        12140,
+        11974,
+        11982,
+        11974,
+        11977,
+        11974,
+        11974
+      ],
+      "delayed_cycles": [
+        12141,
+        11985,
+        11977,
+        11987,
+        11977,
+        11980,
+        11977
+      ],
+      "elapsed_delta": [
+        1,
+        11,
+        -5,
+        13,
+        0,
+        6,
+        3
+      ],
+      "delta_clocks": 29,
+      "delta_pct": 0.03452586463479969,
+      "held_D_offers": 36,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 6,
+          "code": 7,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 5,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 5,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 5,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 5,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 5,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 5,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 6,
+          "code": 7,
+          "held": 6
+        },
+        {
+          "interval": 1,
+          "data": 5,
+          "code": 0,
+          "held": 5
+        },
+        {
+          "interval": 2,
+          "data": 5,
+          "code": 0,
+          "held": 5
+        },
+        {
+          "interval": 3,
+          "data": 5,
+          "code": 0,
+          "held": 5
+        },
+        {
+          "interval": 4,
+          "data": 5,
+          "code": 0,
+          "held": 5
+        },
+        {
+          "interval": 5,
+          "data": 5,
+          "code": 0,
+          "held": 5
+        },
+        {
+          "interval": 6,
+          "data": 5,
+          "code": 0,
+          "held": 5
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 3
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 56,
+          "pairs": 28,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 8,
+          "pairs": 4,
+          "exposed": 3
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 56,
+          "pairs": 28,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 40,
+          "pairs": 0,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        11974,
+        11977
+      ],
+      "input_sha256": "95d8a3fbce2a55570568c97bcc26bc95148a23ecdc44fe1b889ac3bc7c8bf4ca",
+      "sdram_trace_sha256": [
+        "78b93fc7b51d28e1038cea9068289541f57fb0d7fb59be462a629131c88ffd2c",
+        "f144155288b28ccff922793a67fef240f29302b7eac5b26b23949e6917be08f9"
+      ]
+    },
+    "asphalt-single": {
+      "baseline_cycles": [
+        7933,
+        7753,
+        7753,
+        7762,
+        7753,
+        7753,
+        7753
+      ],
+      "delayed_cycles": [
+        7944,
+        7753,
+        7753,
+        7753,
+        7753,
+        7753,
+        7753
+      ],
+      "elapsed_delta": [
+        11,
+        0,
+        0,
+        -9,
+        0,
+        0,
+        0
+      ],
+      "delta_clocks": 2,
+      "delta_pct": 0.003672420124862284,
+      "held_D_offers": 2,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 2,
+          "code": 7,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 2,
+          "code": 7,
+          "held": 2
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 16,
+          "pairs": 8,
+          "exposed": 7
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 56,
+          "pairs": 28,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 16,
+          "pairs": 8,
+          "exposed": 7
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 56,
+          "pairs": 28,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        7753,
+        7753
+      ],
+      "input_sha256": "4d8227712679f53ab82e0ec2f866cc900417ebb55936b8a4fb9cedfa022e8cc6",
+      "sdram_trace_sha256": [
+        "278d8a951f7990423e425cd22f6d986c422b1ddb42a7dfec92b6f2b5908034f9",
+        "278d8a951f7990423e425cd22f6d986c422b1ddb42a7dfec92b6f2b5908034f9"
+      ]
+    },
+    "sega-scan": {
+      "baseline_cycles": [
+        2396210,
+        2395853,
+        2395905,
+        2395767,
+        2395767,
+        2395767,
+        2395767
+      ],
+      "delayed_cycles": [
+        2401043,
+        2400835,
+        2400868,
+        2400849,
+        2400868,
+        2400849,
+        2400868
+      ],
+      "elapsed_delta": [
+        4833,
+        4982,
+        4963,
+        5082,
+        5101,
+        5082,
+        5101
+      ],
+      "delta_clocks": 35144,
+      "delta_pct": 0.20955175339197887,
+      "held_D_offers": 32431,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 4633,
+          "code": 18,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 4633,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 4633,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 4633,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 4633,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 4633,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 4633,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 4633,
+          "code": 18,
+          "held": 4633
+        },
+        {
+          "interval": 1,
+          "data": 4633,
+          "code": 0,
+          "held": 4633
+        },
+        {
+          "interval": 2,
+          "data": 4633,
+          "code": 0,
+          "held": 4633
+        },
+        {
+          "interval": 3,
+          "data": 4633,
+          "code": 0,
+          "held": 4633
+        },
+        {
+          "interval": 4,
+          "data": 4633,
+          "code": 0,
+          "held": 4633
+        },
+        {
+          "interval": 5,
+          "data": 4633,
+          "code": 0,
+          "held": 4633
+        },
+        {
+          "interval": 6,
+          "data": 4633,
+          "code": 0,
+          "held": 4633
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 144,
+          "pairs": 72,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 144,
+          "pairs": 72,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 1,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 2,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 3,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 4,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 5,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 37040,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 6,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 5
+        }
+      ],
+      "warm_median": [
+        2395767,
+        2400868
+      ],
+      "input_sha256": "3bc9754e3ee7bfa616a0dad319f503344bca3827b883f44d4fcfe5be80a48e3c",
+      "sdram_trace_sha256": [
+        "321d34225618a83746ad1fbe948ec8ff0d8899bdf284deb29379877c4014f6f1",
+        "33517ca0c416cf43001bdcccd996cb585f1ed0ef1c5479e09d6731bb1eb662ed"
+      ]
+    },
+    "diffuse_m10_8x8_jpeg": {
+      "baseline_cycles": [
+        36331,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324
+      ],
+      "delayed_cycles": [
+        36332,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324
+      ],
+      "elapsed_delta": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "delta_clocks": 1,
+      "delta_pct": 0.0004027791763165844,
+      "held_D_offers": 7,
+      "baseline_admissions": [
+        {
+          "interval": 0,
+          "data": 7,
+          "code": 56,
+          "held": 0
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "delayed_admissions": [
+        {
+          "interval": 0,
+          "data": 7,
+          "code": 56,
+          "held": 7
+        },
+        {
+          "interval": 1,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 2,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 3,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 4,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 5,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        },
+        {
+          "interval": 6,
+          "data": 0,
+          "code": 0,
+          "held": 0
+        }
+      ],
+      "baseline_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 32,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 448,
+          "pairs": 224,
+          "exposed": 0
+        }
+      ],
+      "delayed_delivery": [
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 0,
+          "words": 32,
+          "pairs": 0,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 0,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 24,
+          "pairs": 12,
+          "exposed": 0
+        },
+        {
+          "interval": 0,
+          "code": 1,
+          "guarantee": 1,
+          "wide": 1,
+          "words": 448,
+          "pairs": 224,
+          "exposed": 0
+        }
+      ],
+      "warm_median": [
+        35324,
+        35324
+      ],
+      "input_sha256": "49aec1e06a4a04ea7bf82d40ce8b1ed96b85e497aebd3cc3be301575b04fea55",
+      "sdram_trace_sha256": [
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      ]
+    }
+  },
+  "payload_baseline_delivery": {
+    "D_guaranteed_narrow": {
+      "words": 389368,
+      "pairs": 0,
+      "exposed": 0
+    },
+    "I_guaranteed_wide": {
+      "words": 1912,
+      "pairs": 956,
+      "exposed": 0
+    },
+    "D_guaranteed_wide": {
+      "words": 312,
+      "pairs": 156,
+      "exposed": 54
+    }
+  },
+  "native": {
+    "baseline_cycles": [
+      14391395,
+      14467552,
+      14346201,
+      14303223
+    ],
+    "delayed_cycles": [
+      14398213,
+      14475590,
+      14353712,
+      14310886
+    ],
+    "elapsed_delta": [
+      6818,
+      8038,
+      7511,
+      7663
+    ],
+    "delta_clocks": 30030,
+    "delta_pct": 0.05221848485327466,
+    "held_D_offers": 34502,
+    "baseline_admissions": [
+      {
+        "interval": 0,
+        "data": 8778,
+        "code": 177192,
+        "held": 0
+      },
+      {
+        "interval": 1,
+        "data": 8590,
+        "code": 179072,
+        "held": 0
+      },
+      {
+        "interval": 2,
+        "data": 8508,
+        "code": 176599,
+        "held": 0
+      },
+      {
+        "interval": 3,
+        "data": 8626,
+        "code": 175649,
+        "held": 0
+      }
+    ],
+    "delayed_admissions": [
+      {
+        "interval": 0,
+        "data": 8778,
+        "code": 177192,
+        "held": 8778
+      },
+      {
+        "interval": 1,
+        "data": 8590,
+        "code": 179069,
+        "held": 8590
+      },
+      {
+        "interval": 2,
+        "data": 8508,
+        "code": 176599,
+        "held": 8508
+      },
+      {
+        "interval": 3,
+        "data": 8626,
+        "code": 175649,
+        "held": 8626
+      }
+    ],
+    "baseline_delivery": [
+      {
+        "interval": 0,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 68728,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 0,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1496,
+        "pairs": 748,
+        "exposed": 0
+      },
+      {
+        "interval": 0,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1384432,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 0,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 33104,
+        "pairs": 16552,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 67192,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1528,
+        "pairs": 764,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1399736,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 32840,
+        "pairs": 16420,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 66512,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1552,
+        "pairs": 776,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1379600,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 33192,
+        "pairs": 16596,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 67456,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1552,
+        "pairs": 776,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1371688,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 33504,
+        "pairs": 16752,
+        "exposed": 0
+      }
+    ],
+    "delayed_delivery": [
+      {
+        "interval": 0,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 68728,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 0,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1496,
+        "pairs": 748,
+        "exposed": 0
+      },
+      {
+        "interval": 0,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1384432,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 0,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 33104,
+        "pairs": 16552,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 67192,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1528,
+        "pairs": 764,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1399712,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 1,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 32840,
+        "pairs": 16420,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 66512,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1552,
+        "pairs": 776,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1379600,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 2,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 33192,
+        "pairs": 16596,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 67456,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 0,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 1552,
+        "pairs": 776,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 0,
+        "words": 1371688,
+        "pairs": 0,
+        "exposed": 0
+      },
+      {
+        "interval": 3,
+        "code": 1,
+        "guarantee": 1,
+        "wide": 1,
+        "words": 33504,
+        "pairs": 16752,
+        "exposed": 0
+      }
+    ],
+    "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "baseline_total_cycles": 57514786,
+    "delayed_total_cycles": 57544805,
+    "baseline_delivery_total": {
+      "D_guaranteed_narrow": {
+        "words": 269888,
+        "pairs": 0,
+        "exposed": 0
+      },
+      "D_guaranteed_wide": {
+        "words": 6128,
+        "pairs": 3064,
+        "exposed": 0
+      },
+      "I_guaranteed_narrow": {
+        "words": 5535456,
+        "pairs": 0,
+        "exposed": 0
+      },
+      "I_guaranteed_wide": {
+        "words": 132640,
+        "pairs": 66320,
+        "exposed": 0
+      }
+    },
+    "input_sha256": {
+      "core.bin": "0783f00d96d59b1c2c9a7867a955eb62d83091d83d0f7b04800061df09e5b059",
+      "snapshot.bin": "17345b257e390e4201b949d68b5af75da0260b9f9b4c0cbadbe11758ea5f801c",
+      "cdrive.bin": "bb9f8df61474d25e71fa00722318cd387396ca1736605e1248821cc0de3d3af8"
+    }
+  }
+}

@@ -1,0 +1,137 @@
+--- a/rtl/ngage_cpu.sv
++++ b/rtl/ngage_cpu.sv
+@@ -52,11 +52,13 @@
+ 
+     ngage_arm9v2_refill #(
+         .ENABLE                (LINE_REFILL),
+-        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER)
++        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER),
++        .REGISTER_D_LINE_RETURN(1)
+     ) refill (
+         .clk               (clk),
+         .reset             (reset),
+         .cpu_cyc           (donor_cyc),
++        .cpu_code          (wb_code),
+         .cpu_lock          (donor_lock),
+         .cpu_line_candidate(donor_line_candidate),
+         .cpu_address       (wb_address),
+@@ -185,11 +187,13 @@
+ // Deliver each registered word in order while the rest of the line arrives.
+ module ngage_arm9v2_refill #(
+     parameter ENABLE                 = 0,
+-    parameter REGISTERED_SCALAR_PEER = 0
++    parameter REGISTERED_SCALAR_PEER = 0,
++    parameter REGISTER_D_LINE_RETURN = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+     input  wire        cpu_cyc,
++    input  wire        cpu_code,
+     input  wire        cpu_lock,
+     input  wire        cpu_line_candidate,
+     input  wire [31:0] cpu_address,
+@@ -242,12 +246,74 @@
+     wire scalar_reply = REGISTERED_SCALAR_PEER ? !reset && cpu_cyc && scalar_offered : wb_cyc;
+     always @(posedge clk) scalar_offered <= wb_cyc && !(scalar_offered && (wb_ack || wb_error));
+ 
+-    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : scalar_reply && wb_ack;
+-    assign cpu_error = state == LINE ? cpu_cyc && failed : scalar_reply && wb_error;
++    wire take_input = state == LINE && line_valid && received < 16;
++    wire line_ack, line_fault, line_terminal, line_trust;
++    wire [31:0] line_word_out;
++    wire        available = received[4:1] > {1'b0, consumed};
++    wire        immediate_ack = cpu_cyc && !failed && available;
++    wire        immediate_error = cpu_cyc && failed;
++    generate
++        if (REGISTER_D_LINE_RETURN) begin : g_d_return
++            reg owned;
++            (* preserve, dont_retime *) reg head_valid, head_error, head_last, head_trust;
++            (* preserve, dont_retime *) reg [31:0] head_word;
++            wire head_take = !reset && cpu_cyc && (head_valid || head_error);
++            wire [3:0] load_index = {1'b0, consumed} + {3'b0, head_take};
++            wire load_word = received[4:1] > load_index;
++            wire receive_error = take_input && line_error;
++            wire load_error = failed || receive_error;
++            // Capture a newly completed word directly into the head on
++            // its input edge. CPU ACK and data still come only from Q.
++            wire incoming_head = take_input &&
++                (line_wide ? load_index[3:1] == {1'b0, received[3:2]} :
++                 received[0] && load_index == {1'b0, received[3:1]});
++            wire [31:0] incoming_word = line_wide ?
++                (load_index[0] ? line_data[63:32] : line_data[31:0]) :
++                {line_data[15:0], low_half};
++
++            // Advance from the owned head alone. The next buffered word
++            // may replace it on the same edge that the donor retires it.
++            always @(posedge clk) begin
++                if (reset || line_reject || (head_take && head_last)) begin
++                    owned      <= 0;
++                    head_valid <= 0;
++                    head_error <= 0;
++                end else if (line_req && line_ready) begin
++                    owned      <= !cpu_code;
++                    head_valid <= 0;
++                    head_error <= 0;
++                end else if (owned && (head_take || !(head_valid || head_error) || receive_error)) begin
++                    head_valid <= (load_word || incoming_head) && !load_error;
++                    head_error <= load_error;
++                    head_last  <= load_index == 7;
++                    head_trust <= guaranteed;
++                    if (!load_error) begin
++                        if (load_word) head_word <= words[load_index[2:0]];
++                        else if (incoming_head) head_word <= incoming_word;
++                    end
++                end
++            end
++
++            assign line_ack      = owned ? !reset && cpu_cyc && head_valid : immediate_ack;
++            assign line_fault    = owned ? !reset && cpu_cyc && head_error : immediate_error;
++            assign line_terminal = owned ? head_last : consumed == 7;
++            assign line_trust    = owned ? head_trust : guaranteed;
++            assign line_word_out = owned ? head_word : words[consumed];
++        end else begin : g_immediate_return
++            assign line_ack      = immediate_ack;
++            assign line_fault    = immediate_error;
++            assign line_terminal = consumed == 7;
++            assign line_trust    = guaranteed;
++            assign line_word_out = words[consumed];
++        end
++    endgenerate
++
++    assign cpu_ack           = state == LINE ? line_ack : scalar_reply && wb_ack;
++    assign cpu_error         = state == LINE ? line_fault : scalar_reply && wb_error;
+     // A scalar fallback never grants the promise, including a line rejected
+     // before its first beat. The cache samples this alongside the first ACK.
+-    assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
+-    assign cpu_data = state == LINE ? words[consumed] : wb_data;
++    assign cpu_no_late_error = state == LINE && line_trust && line_ack;
++    assign cpu_data          = state == LINE ? line_word_out : wb_data;
+ 
+     always @(posedge clk) begin
+         if (reset) begin
+@@ -269,13 +335,13 @@
+                 end
+                 LINE: begin
+                     if (line_reject) state <= SCALAR;
+-                    if (line_valid && received < 16) begin
++                    if (take_input) begin
+                         received <= received + (line_wide ? 5'd4 : 5'd1);
+                         if (line_error) failed <= 1;
+                     end
+-                    if (cpu_ack || cpu_error) begin
++                    if (line_ack || line_fault) begin
+                         consumed <= consumed + 1'b1;
+-                        if (consumed == 7) state <= IDLE;
++                        if (line_terminal) state <= IDLE;
+                     end
+                 end
+                 SCALAR:  if (scalar_reply && !burst && (wb_ack || wb_error)) state <= IDLE;
+@@ -292,7 +358,7 @@
+     generate
+         for (slot = 0; slot < 8; slot = slot + 1) begin : line_word
+             always @(posedge clk) begin
+-                if (state == LINE && line_valid && received < 16) begin
++                if (take_input) begin
+                     if (line_wide && received[3:2] == slot >> 1)
+                         words[slot] <= line_data[(slot%2)*32+:32];
+                     else if (!line_wide && received[0] && received[3:1] == slot)

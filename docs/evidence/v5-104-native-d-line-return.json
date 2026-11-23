@@ -1,0 +1,416 @@
+{
+  "control": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+  "physical_mhz": 104,
+  "mmc_divider": 3,
+  "nos_hz": 64,
+  "variants": {
+    "buffered": {
+      "wrapper_sha256": "5e2d1c642db80b3cd4701d3edf7778e8db5021004888adbd16f1d28d91a3eb54",
+      "bench_netlist_sha256": "01088c86f4c9f14ce36b71f2ba1ab0fbf5c491de2b0664ab2121f9a7be370b4f",
+      "patch_sha256": "6b659b9f87c452d26c96eb4bb4b80ff953e9bca01503acee4050cf09c813918b",
+      "directed": "PASS D line return cases=400 D=1370 I=1399 errors=211 gaps=1027 resets=40 adjacent=813",
+      "payload_medians": {
+        "matrix4": {
+          "before": 16946,
+          "after": 16943,
+          "delta_clocks": -3,
+          "delta_pct": -0.01770329281246541
+        },
+        "transpose4": {
+          "before": 2976,
+          "after": 2976,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "triangle_edges": {
+          "before": 12226,
+          "after": 12220,
+          "delta_clocks": -6,
+          "delta_pct": -0.04907574022574579
+        },
+        "fill16_frame": {
+          "before": 122402,
+          "after": 125871,
+          "delta_clocks": 3469,
+          "delta_pct": 2.834104017908201
+        },
+        "fill16_tail": {
+          "before": 725,
+          "after": 725,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "fill8_tail": {
+          "before": 753,
+          "after": 753,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "monkey-forward": {
+          "before": 15940,
+          "after": 15940,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "monkey-reverse": {
+          "before": 15940,
+          "after": 15940,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "sega-span": {
+          "before": 15430,
+          "after": 15430,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "sega-fill": {
+          "before": 2628,
+          "after": 2628,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "asphalt-table": {
+          "before": 21163,
+          "after": 21183,
+          "delta_clocks": 20,
+          "delta_pct": 0.09450455984501005
+        },
+        "asphalt-double": {
+          "before": 11974,
+          "after": 11979,
+          "delta_clocks": 5,
+          "delta_pct": 0.04175714047101042
+        },
+        "asphalt-single": {
+          "before": 7753,
+          "after": 7753,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "sega-scan": {
+          "before": 2395767,
+          "after": 2400934,
+          "delta_clocks": 5167,
+          "delta_pct": 0.2156720582594307
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "before": 35324,
+          "after": 35324,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        }
+      },
+      "request_trace_sha256": {
+        "matrix4": [
+          "ede85338b14b2360f702c9c92fa1740ab814ff1a273ba5910b1c0d8de4189d00",
+          "ede85338b14b2360f702c9c92fa1740ab814ff1a273ba5910b1c0d8de4189d00"
+        ],
+        "transpose4": [
+          "16ab8b09af7c0eb19fd35193d16f1a59a34ceb6979303967f44056b8d9c9e108",
+          "08f8c0eb56c26d2546ab34adead2e5aafe337a554ec1d6534a0a04bfccd0f87d"
+        ],
+        "triangle_edges": [
+          "3478569a45090a2534345b78803e520f4721b9fd93b233686428481422353e33",
+          "726defdb4b851a3cea243ca832048737a5cdde87860ae7a31d6cc11b3e78ebfd"
+        ],
+        "fill16_frame": [
+          "56348c45c487a9ea79fef7e2ebe8cd3796fc3be96bf0c3c62ba2f9d5453f680e",
+          "efca07ab5335042c2e018916c5e8646c601366e1ee6139ae89c63f1f22fad095"
+        ],
+        "fill16_tail": [
+          "2c7ad9c68f780cb95c51d52b02a7c18cf7e0023631e5bb8251282f120cc56743",
+          "2c7ad9c68f780cb95c51d52b02a7c18cf7e0023631e5bb8251282f120cc56743"
+        ],
+        "fill8_tail": [
+          "fff4fcd7cddd7e11bd13b269823dc011c4489cf1798946a6f6419b8158e9e258",
+          "fff4fcd7cddd7e11bd13b269823dc011c4489cf1798946a6f6419b8158e9e258"
+        ],
+        "monkey-forward": [
+          "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c",
+          "c9a8ec5a690a44a3335ba8a9881a6bfd54d2ca77413e9c6d117eb60515110f14"
+        ],
+        "monkey-reverse": [
+          "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c",
+          "c9a8ec5a690a44a3335ba8a9881a6bfd54d2ca77413e9c6d117eb60515110f14"
+        ],
+        "sega-span": [
+          "5f271f9807c48505ae1911de31fef214422773ec9b3e9184dfc39728669277b2",
+          "5f271f9807c48505ae1911de31fef214422773ec9b3e9184dfc39728669277b2"
+        ],
+        "sega-fill": [
+          "cdbef9900ac0231b1c03dca8992e8da8cffea596b1a20c24bece1cd78051232d",
+          "cdbef9900ac0231b1c03dca8992e8da8cffea596b1a20c24bece1cd78051232d"
+        ],
+        "asphalt-table": [
+          "705cda06b5928d07b56d59534062d21cb85e342ce034cfa69cfd0e2d0451d8da",
+          "f766bfa137d6ac1310e35ff4802b2821b24cffe67bc486818340356607d4d253"
+        ],
+        "asphalt-double": [
+          "78b93fc7b51d28e1038cea9068289541f57fb0d7fb59be462a629131c88ffd2c",
+          "b97e9a8042b9f562de5a768be3d674ef2e70d38cae6457c29c9043ae51c48d05"
+        ],
+        "asphalt-single": [
+          "278d8a951f7990423e425cd22f6d986c422b1ddb42a7dfec92b6f2b5908034f9",
+          "278d8a951f7990423e425cd22f6d986c422b1ddb42a7dfec92b6f2b5908034f9"
+        ],
+        "sega-scan": [
+          "321d34225618a83746ad1fbe948ec8ff0d8899bdf284deb29379877c4014f6f1",
+          "46cc228c706c8cabcd6041143b336d177fd7604d07844291af8a9e42800f2e4e"
+        ],
+        "diffuse_m10_8x8_jpeg": [
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ]
+      },
+      "native_frames": [
+        {
+          "frame": 0,
+          "before": 14391395,
+          "after": 14399143
+        },
+        {
+          "frame": 1,
+          "before": 14467552,
+          "after": 14475983
+        },
+        {
+          "frame": 2,
+          "before": 14346201,
+          "after": 14353748
+        },
+        {
+          "frame": 3,
+          "before": 14303223,
+          "after": 14312380
+        }
+      ],
+      "native_before": 57508371,
+      "native_after": 57541254,
+      "native_delta_pct": 0.057179501745929784,
+      "native_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+      "contract_before": [
+        35546,
+        72331,
+        29888,
+        44277
+      ],
+      "contract_after": [
+        35546,
+        72331,
+        30412,
+        44801
+      ],
+      "mixed": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    "capture": {
+      "wrapper_sha256": "91822a01447c5efea1ec8e21c5f05d14059b5fce5cfb303f1dd14a7f981b0072",
+      "bench_netlist_sha256": "01088c86f4c9f14ce36b71f2ba1ab0fbf5c491de2b0664ab2121f9a7be370b4f",
+      "patch_sha256": "fdfe1edb53c7f1d77cad2f6bf8a3abd211b326972d6758b88cd9dc9794885f03",
+      "directed": "PASS D line return cases=400 D=1399 I=1399 errors=202 gaps=1027 resets=40 adjacent=829",
+      "payload_medians": {
+        "matrix4": {
+          "before": 16946,
+          "after": 16946,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "transpose4": {
+          "before": 2976,
+          "after": 2976,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "triangle_edges": {
+          "before": 12226,
+          "after": 12226,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "fill16_frame": {
+          "before": 122402,
+          "after": 122402,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "fill16_tail": {
+          "before": 725,
+          "after": 725,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "fill8_tail": {
+          "before": 753,
+          "after": 753,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "monkey-forward": {
+          "before": 15940,
+          "after": 15940,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "monkey-reverse": {
+          "before": 15940,
+          "after": 15940,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "sega-span": {
+          "before": 15430,
+          "after": 15430,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "sega-fill": {
+          "before": 2628,
+          "after": 2628,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "asphalt-table": {
+          "before": 21163,
+          "after": 21163,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "asphalt-double": {
+          "before": 11974,
+          "after": 11974,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "asphalt-single": {
+          "before": 7753,
+          "after": 7753,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "sega-scan": {
+          "before": 2395767,
+          "after": 2395767,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "before": 35324,
+          "after": 35324,
+          "delta_clocks": 0,
+          "delta_pct": 0.0
+        }
+      },
+      "request_trace_sha256": {
+        "matrix4": [
+          "ede85338b14b2360f702c9c92fa1740ab814ff1a273ba5910b1c0d8de4189d00",
+          "ede85338b14b2360f702c9c92fa1740ab814ff1a273ba5910b1c0d8de4189d00"
+        ],
+        "transpose4": [
+          "16ab8b09af7c0eb19fd35193d16f1a59a34ceb6979303967f44056b8d9c9e108",
+          "16ab8b09af7c0eb19fd35193d16f1a59a34ceb6979303967f44056b8d9c9e108"
+        ],
+        "triangle_edges": [
+          "3478569a45090a2534345b78803e520f4721b9fd93b233686428481422353e33",
+          "3478569a45090a2534345b78803e520f4721b9fd93b233686428481422353e33"
+        ],
+        "fill16_frame": [
+          "56348c45c487a9ea79fef7e2ebe8cd3796fc3be96bf0c3c62ba2f9d5453f680e",
+          "56348c45c487a9ea79fef7e2ebe8cd3796fc3be96bf0c3c62ba2f9d5453f680e"
+        ],
+        "fill16_tail": [
+          "2c7ad9c68f780cb95c51d52b02a7c18cf7e0023631e5bb8251282f120cc56743",
+          "2c7ad9c68f780cb95c51d52b02a7c18cf7e0023631e5bb8251282f120cc56743"
+        ],
+        "fill8_tail": [
+          "fff4fcd7cddd7e11bd13b269823dc011c4489cf1798946a6f6419b8158e9e258",
+          "fff4fcd7cddd7e11bd13b269823dc011c4489cf1798946a6f6419b8158e9e258"
+        ],
+        "monkey-forward": [
+          "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c",
+          "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c"
+        ],
+        "monkey-reverse": [
+          "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c",
+          "82cfbb8c9f09951824bbefe7a3ab36c14a87be022c1d4a1cd0c80aa27847620c"
+        ],
+        "sega-span": [
+          "5f271f9807c48505ae1911de31fef214422773ec9b3e9184dfc39728669277b2",
+          "5f271f9807c48505ae1911de31fef214422773ec9b3e9184dfc39728669277b2"
+        ],
+        "sega-fill": [
+          "cdbef9900ac0231b1c03dca8992e8da8cffea596b1a20c24bece1cd78051232d",
+          "cdbef9900ac0231b1c03dca8992e8da8cffea596b1a20c24bece1cd78051232d"
+        ],
+        "asphalt-table": [
+          "705cda06b5928d07b56d59534062d21cb85e342ce034cfa69cfd0e2d0451d8da",
+          "705cda06b5928d07b56d59534062d21cb85e342ce034cfa69cfd0e2d0451d8da"
+        ],
+        "asphalt-double": [
+          "78b93fc7b51d28e1038cea9068289541f57fb0d7fb59be462a629131c88ffd2c",
+          "78b93fc7b51d28e1038cea9068289541f57fb0d7fb59be462a629131c88ffd2c"
+        ],
+        "asphalt-single": [
+          "278d8a951f7990423e425cd22f6d986c422b1ddb42a7dfec92b6f2b5908034f9",
+          "278d8a951f7990423e425cd22f6d986c422b1ddb42a7dfec92b6f2b5908034f9"
+        ],
+        "sega-scan": [
+          "321d34225618a83746ad1fbe948ec8ff0d8899bdf284deb29379877c4014f6f1",
+          "321d34225618a83746ad1fbe948ec8ff0d8899bdf284deb29379877c4014f6f1"
+        ],
+        "diffuse_m10_8x8_jpeg": [
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        ]
+      },
+      "native_frames": [
+        {
+          "frame": 0,
+          "before": 14391395,
+          "after": 14391395
+        },
+        {
+          "frame": 1,
+          "before": 14467552,
+          "after": 14467552
+        },
+        {
+          "frame": 2,
+          "before": 14346201,
+          "after": 14346201
+        },
+        {
+          "frame": 3,
+          "before": 14303223,
+          "after": 14303223
+        }
+      ],
+      "native_before": 57508371,
+      "native_after": 57508371,
+      "native_delta_pct": 0.0,
+      "native_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+      "contract_before": [
+        35546,
+        72331,
+        29888,
+        44277
+      ],
+      "contract_after": [
+        35546,
+        72331,
+        29888,
+        44277
+      ],
+      "mixed": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    }
+  }
+}

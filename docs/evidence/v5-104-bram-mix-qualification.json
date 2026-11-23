@@ -1,0 +1,409 @@
+{
+  "control": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+  "initial_head": "eb90e33489170036aa9c30c4ba78750c59b8b63a",
+  "exact_restored_tree": "2aae6144e5a6fb8a870f02240b84fad9dd55a23a",
+  "checks": {
+    "fixed": 15,
+    "native_frames": 4,
+    "native_clocks": 57514786,
+    "mixed_clocks": 1201547,
+    "fixed_trace_files_exact": 15,
+    "native_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "mixed_pcm_sha_marker": "175ee178",
+    "mixed_lcd_words": 18304,
+    "physical_cpu_mhz": 104,
+    "debugger": false,
+    "fixed_native_and_mixed_all_exact": true
+  },
+  "experiment_reports": {
+    "refill": {
+      "compiled_source_changes": [
+        "rtl/ngage_cpu.sv"
+      ],
+      "preflight": "scratch/v5-fit-loop/refill-m10k",
+      "inverse": "0efa24ae16bd727752efb473d9bc05db9e1dcacc",
+      "fit_dispatch": {
+        "repository": "asturur/test_template_1",
+        "workflow": "ci_build.yml",
+        "branch": "ngage-v5",
+        "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+        "physical_mhz": 104,
+        "checked_at": "2026-11-23T17:42:16.391396+00:00",
+        "seeds": [
+          {
+            "seed": 43,
+            "enable_debugger": false,
+            "run_id": 45230489919,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45230489919",
+            "status": "in_progress"
+          },
+          {
+            "seed": 13,
+            "enable_debugger": false,
+            "run_id": 45230488647,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45230488647",
+            "status": "queued"
+          },
+          {
+            "seed": 31337,
+            "enable_debugger": false,
+            "run_id": 45230489549,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45230489549",
+            "status": "queued"
+          }
+        ]
+      },
+      "directed_logs": [
+        "build/sim/unit-v5-refill-m10k-final/run-ordinary.log",
+        "build/sim/unit-v5-refill-m10k-final/run-poison.log"
+      ],
+      "expected_added_m10ks": 2,
+      "expected_mapping": "Two 4x32 banks, even and odd words",
+      "directed": {
+        "both_ordinary_and_forced_collision": {
+          "acknowledged_words": 8987,
+          "error_responses": 952,
+          "wide_beats": 1999,
+          "narrow_beats": 10484,
+          "wait_bubbles": 9707,
+          "completed_lines": 1200
+        },
+        "early_reject_scalar_fallback": true,
+        "timed_reset_in_flight": true
+      },
+      "arm9v2_contracts": [
+        35546,
+        72331,
+        29888,
+        44277
+      ],
+      "benchmarks": {
+        "payloads": "build/sim/payload-clocks/v5-104-refill-m10k-q1-candidate/result.json",
+        "native": "build/sim/polycount/v5-104-refill-m10k-q1-candidate/result.json",
+        "mixed": "scratch/v5-fit-loop/refill-m10k/mixed-q1.log"
+      },
+      "preflight_source_checks": [
+        {
+          "seed": 43,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_cpu.sv": "26abcd7dd037e9821769fa740cca3a0ae6f58a41e656180336e4681c36ffc7dd"
+          },
+          "manifest": "scratch/v5-fit-loop/refill-m10k/fit-inputs-43.json"
+        },
+        {
+          "seed": 13,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_cpu.sv": "26abcd7dd037e9821769fa740cca3a0ae6f58a41e656180336e4681c36ffc7dd"
+          },
+          "manifest": "scratch/v5-fit-loop/refill-m10k/fit-inputs-13.json"
+        },
+        {
+          "seed": 31337,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_cpu.sv": "26abcd7dd037e9821769fa740cca3a0ae6f58a41e656180336e4681c36ffc7dd"
+          },
+          "manifest": "scratch/v5-fit-loop/refill-m10k/fit-inputs-31337.json"
+        }
+      ]
+    },
+    "icu_probe": {
+      "compiled_source_changes": [
+        "rtl/ngage_icu_extra.v",
+        "rtl/ngage_upp.v",
+        "rtl/ngage_upp_peripherals.v"
+      ],
+      "preflight": "scratch/v5-fit-loop/icu-probe-m10k",
+      "inverse": "d3dd306a05c283293e6b7e004faa967479f2f203",
+      "fit_dispatch": {
+        "repository": "asturur/test_template_1",
+        "workflow": "ci_build.yml",
+        "branch": "ngage-v5",
+        "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+        "physical_mhz": 104,
+        "checked_at": "2026-11-23T17:46:41.375209+00:00",
+        "seeds": [
+          {
+            "seed": 43,
+            "enable_debugger": false,
+            "run_id": 45231285727,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45231285727",
+            "status": "queued"
+          },
+          {
+            "seed": 13,
+            "enable_debugger": false,
+            "run_id": 45231286010,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45231286010",
+            "status": "queued"
+          },
+          {
+            "seed": 31337,
+            "enable_debugger": false,
+            "run_id": 45231285784,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45231285784",
+            "status": "queued"
+          }
+        ]
+      },
+      "directed_logs": [
+        "build/sim/v5-icu-probe-final/run.log"
+      ],
+      "expected_added_m10ks": 0,
+      "expected_mapping": "Five probe rows in existing low ICU M10K",
+      "directed": {
+        "staged_cycle_comparisons": 8330,
+        "all_byte_masks": true,
+        "probe_rows": 5,
+        "warm_scrub_rounds": 3,
+        "pre_unlock_faults_and_cancellation": true
+      },
+      "benchmarks": {
+        "combined": "build/sim/v5-104-more-ram-icu-comparison.json"
+      },
+      "preflight_source_checks": [
+        {
+          "seed": 43,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_icu_extra.v": "9609f85ed068de925bac1cb3966028942d12a0d92a1c84b25f0e150a24a15fe4",
+            "rtl/ngage_upp.v": "da144a02ba8a17ab3efa463ceb28f14f114ff982acc04c5b78734180f9b5425c",
+            "rtl/ngage_upp_peripherals.v": "617075be9385ff85ee6090675f8c1595510de58692114e6282fe253a564f25da"
+          },
+          "manifest": "scratch/v5-fit-loop/icu-probe-m10k/fit-inputs-43.json"
+        },
+        {
+          "seed": 13,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_icu_extra.v": "9609f85ed068de925bac1cb3966028942d12a0d92a1c84b25f0e150a24a15fe4",
+            "rtl/ngage_upp.v": "da144a02ba8a17ab3efa463ceb28f14f114ff982acc04c5b78734180f9b5425c",
+            "rtl/ngage_upp_peripherals.v": "617075be9385ff85ee6090675f8c1595510de58692114e6282fe253a564f25da"
+          },
+          "manifest": "scratch/v5-fit-loop/icu-probe-m10k/fit-inputs-13.json"
+        },
+        {
+          "seed": 31337,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_icu_extra.v": "9609f85ed068de925bac1cb3966028942d12a0d92a1c84b25f0e150a24a15fe4",
+            "rtl/ngage_upp.v": "da144a02ba8a17ab3efa463ceb28f14f114ff982acc04c5b78734180f9b5425c",
+            "rtl/ngage_upp_peripherals.v": "617075be9385ff85ee6090675f8c1595510de58692114e6282fe253a564f25da"
+          },
+          "manifest": "scratch/v5-fit-loop/icu-probe-m10k/fit-inputs-31337.json"
+        }
+      ]
+    },
+    "mmc_host": {
+      "compiled_source_changes": [
+        "rtl/ngage_mmc_host.v"
+      ],
+      "preflight": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/mmc-host",
+      "inverse": "6b1d8a6f9f4716c87f7bb1f08fcd6c9cd9a0111d",
+      "fit_dispatch": {
+        "repository": "asturur/test_template_1",
+        "workflow": "ci_build.yml",
+        "branch": "ngage-v5",
+        "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "physical_mhz": 104,
+        "checked_at": "2026-11-23T17:50:43.478180+00:00",
+        "seeds": [
+          {
+            "seed": 43,
+            "enable_debugger": false,
+            "run_id": 45231987887,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45231987887",
+            "status": "queued"
+          },
+          {
+            "seed": 13,
+            "enable_debugger": false,
+            "run_id": 45231987701,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45231987701",
+            "status": "queued"
+          },
+          {
+            "seed": 31337,
+            "enable_debugger": false,
+            "run_id": 45231987009,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45231987009",
+            "status": "queued"
+          }
+        ]
+      },
+      "directed_logs": [
+        "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/mmc-host/directed.log"
+      ],
+      "expected_added_m10ks": 4,
+      "expected_mapping": "Four interleaved 4x8 byte banks for production FIFO depth 16",
+      "directed": {
+        "all_byte_masks": true,
+        "wraps": 260,
+        "forwarded_collisions": 939,
+        "simultaneous_tx": 331,
+        "simultaneous_rx": 312,
+        "pin_divider_depth_profiles": [
+          [
+            2,
+            16
+          ],
+          [
+            3,
+            16
+          ],
+          [
+            4,
+            16
+          ],
+          [
+            12,
+            8
+          ]
+        ],
+        "original_cmd18_sectors": 64,
+        "original_cmd18_transfer_clocks": 830761,
+        "original_cmd18_completion_clocks": 852184
+      },
+      "benchmarks": {
+        "combined": "build/sim/v5-104-more-ram-mmc-comparison.json"
+      },
+      "preflight_source_checks": [
+        {
+          "seed": 43,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_mmc_host.v": "6cf5cae2039d19fe6ca4f6d70ff8f514fa3f98097f894429892af38deea13d87"
+          },
+          "manifest": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/mmc-host/fit-inputs-43.json"
+        },
+        {
+          "seed": 13,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_mmc_host.v": "6cf5cae2039d19fe6ca4f6d70ff8f514fa3f98097f894429892af38deea13d87"
+          },
+          "manifest": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/mmc-host/fit-inputs-13.json"
+        },
+        {
+          "seed": 31337,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/ngage_mmc_host.v": "6cf5cae2039d19fe6ca4f6d70ff8f514fa3f98097f894429892af38deea13d87"
+          },
+          "manifest": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/mmc-host/fit-inputs-31337.json"
+        }
+      ]
+    },
+    "tlb_victim": {
+      "compiled_source_changes": [
+        "rtl/arm9v2/arm925t_phone.v"
+      ],
+      "preflight": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/tlb-victim",
+      "inverse": "903efe16921c4be44870a0cc29c6ad474961fa07",
+      "fit_dispatch": {
+        "repository": "asturur/test_template_1",
+        "workflow": "ci_build.yml",
+        "branch": "ngage-v5",
+        "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "physical_mhz": 104,
+        "checked_at": "2026-11-23T17:55:03.661706+00:00",
+        "seeds": [
+          {
+            "seed": 43,
+            "enable_debugger": false,
+            "run_id": 45232753533,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45232753533",
+            "status": "queued"
+          },
+          {
+            "seed": 13,
+            "enable_debugger": false,
+            "run_id": 45232752956,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45232752956",
+            "status": "in_progress"
+          },
+          {
+            "seed": 31337,
+            "enable_debugger": false,
+            "run_id": 45232753430,
+            "url": "https://github.com/asturur/test_template_1/actions/runs/45232753430",
+            "status": "in_progress"
+          }
+        ]
+      },
+      "directed_logs": [
+        "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/tlb-victim/clean-source/build/sim/unit-v5-tlb-victim-final/run.log"
+      ],
+      "expected_added_m10ks": 2,
+      "expected_mapping": "One 16x16 victim-row RAM each in the I-TLB and D-TLB",
+      "directed": {
+        "both_walkers_each": {
+          "matched_clocks": 7765,
+          "translated_lookups": 1132,
+          "l1_reads": 592,
+          "l2_reads": 592,
+          "fills": 592
+        },
+        "victim_differential_clocks": 53523,
+        "victim_updates": 9311,
+        "warm_resets": 826,
+        "pinned_stock_regeneration_exact": true
+      },
+      "arm9v2_contracts": [
+        35546,
+        72331,
+        29888,
+        44277
+      ],
+      "benchmarks": {
+        "combined": "build/sim/v5-104-more-ram-tlb-comparison.json"
+      },
+      "preflight_source_checks": [
+        {
+          "seed": 43,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/arm9v2/arm925t_phone.v": "9a5dfc63c0157c4ff27ab8489762ba5d9d4e7b91e2d0f5a1d67daced460dddfd"
+          },
+          "manifest": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/tlb-victim/fit-inputs-43.json"
+        },
+        {
+          "seed": 13,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/arm9v2/arm925t_phone.v": "9a5dfc63c0157c4ff27ab8489762ba5d9d4e7b91e2d0f5a1d67daced460dddfd"
+          },
+          "manifest": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/tlb-victim/fit-inputs-13.json"
+        },
+        {
+          "seed": 31337,
+          "effective_qsf_matches_control": true,
+          "selected_sources": 133,
+          "changed_rtl_sha256": {
+            "rtl/arm9v2/arm925t_phone.v": "9a5dfc63c0157c4ff27ab8489762ba5d9d4e7b91e2d0f5a1d67daced460dddfd"
+          },
+          "manifest": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/more-ram/tlb-victim/fit-inputs-31337.json"
+        }
+      ]
+    }
+  },
+  "remote": {
+    "repository": "asturur/test_template_1",
+    "branch": "ngage-v5",
+    "head": "903efe16921c4be44870a0cc29c6ad474961fa07",
+    "tree": "2aae6144e5a6fb8a870f02240b84fad9dd55a23a"
+  }
+}

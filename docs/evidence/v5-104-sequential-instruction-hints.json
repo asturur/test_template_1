@@ -1,0 +1,284 @@
+{
+  "commit": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+  "clock_hz": 104000000,
+  "netlist_sha256": "01088c86f4c9f14ce36b71f2ba1ab0fbf5c491de2b0664ab2121f9a7be370b4f",
+  "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+  "rows": {
+    "LOOKAHEAD_DEMAND": [
+      {
+        "frame": 0,
+        "narrow": 173054,
+        "adjacent": 108330,
+        "sequential": 133239,
+        "same_page": 133236,
+        "word0_nonseq": 6814,
+        "nonzero": 33001
+      },
+      {
+        "frame": 1,
+        "narrow": 174967,
+        "adjacent": 109689,
+        "sequential": 134755,
+        "same_page": 134753,
+        "word0_nonseq": 6890,
+        "nonzero": 33322
+      },
+      {
+        "frame": 2,
+        "narrow": 172450,
+        "adjacent": 108070,
+        "sequential": 132781,
+        "same_page": 132778,
+        "word0_nonseq": 6784,
+        "nonzero": 32885
+      },
+      {
+        "frame": 3,
+        "narrow": 171461,
+        "adjacent": 107462,
+        "sequential": 132037,
+        "same_page": 132034,
+        "word0_nonseq": 6737,
+        "nonzero": 32687
+      }
+    ],
+    "LOOKAHEAD_HINT": [
+      {
+        "frame": 0,
+        "created": 921689,
+        "page_boundary": 6330,
+        "cancelled": 116403,
+        "matched": 89839
+      },
+      {
+        "frame": 1,
+        "created": 926288,
+        "page_boundary": 6406,
+        "cancelled": 116843,
+        "matched": 90912
+      },
+      {
+        "frame": 2,
+        "created": 920070,
+        "page_boundary": 6342,
+        "cancelled": 115937,
+        "matched": 89596
+      },
+      {
+        "frame": 3,
+        "created": 917631,
+        "page_boundary": 6372,
+        "cancelled": 115756,
+        "matched": 89058
+      }
+    ],
+    "LOOKAHEAD_BUS": [
+      {
+        "frame": 0,
+        "first_free": 85975,
+        "no_free": 3864,
+        "contiguous": 81188,
+        "first_lead": 259798,
+        "order_lead": 216845,
+        "max_order": 4,
+        "d_interposed": 17952,
+        "lcd_interposed": 0
+      },
+      {
+        "frame": 1,
+        "first_free": 87108,
+        "no_free": 3804,
+        "contiguous": 82225,
+        "first_lead": 262725,
+        "order_lead": 219401,
+        "max_order": 3,
+        "d_interposed": 18299,
+        "lcd_interposed": 0
+      },
+      {
+        "frame": 2,
+        "first_free": 85789,
+        "no_free": 3807,
+        "contiguous": 81000,
+        "first_lead": 258794,
+        "order_lead": 216181,
+        "max_order": 3,
+        "d_interposed": 18009,
+        "lcd_interposed": 0
+      },
+      {
+        "frame": 3,
+        "first_free": 85287,
+        "no_free": 3771,
+        "contiguous": 80494,
+        "first_lead": 257302,
+        "order_lead": 214728,
+        "max_order": 3,
+        "d_interposed": 17946,
+        "lcd_interposed": 0
+      }
+    ],
+    "LOOKAHEAD_STALL": [
+      {
+        "frame": 0,
+        "matching_exposed": 489945,
+        "ideal_exposed_bound": 249167,
+        "order_exposed_bound": 216275
+      },
+      {
+        "frame": 1,
+        "matching_exposed": 496244,
+        "ideal_exposed_bound": 252343,
+        "order_exposed_bound": 218840
+      },
+      {
+        "frame": 2,
+        "matching_exposed": 488503,
+        "ideal_exposed_bound": 248506,
+        "order_exposed_bound": 215606
+      },
+      {
+        "frame": 3,
+        "matching_exposed": 485945,
+        "ideal_exposed_bound": 247024,
+        "order_exposed_bound": 214165
+      }
+    ]
+  },
+  "frames": [
+    {
+      "frame": 0,
+      "clocks": 14391395,
+      "retired": 7338211,
+      "uops": 1040332,
+      "ifills": 177192,
+      "dfills": 8778,
+      "iwalk_words": 119,
+      "dwalk_words": 5,
+      "d_wait": 297524,
+      "d_walk_wait": 154,
+      "execute_wait": 556759,
+      "iwalk_wait": 1281,
+      "exposed_i": 1524860,
+      "frontend": 1491652,
+      "other": 2140622,
+      "draws": 1,
+      "swaps": 1
+    },
+    {
+      "frame": 1,
+      "clocks": 14467552,
+      "retired": 7372623,
+      "uops": 1046017,
+      "ifills": 179072,
+      "dfills": 8590,
+      "iwalk_words": 111,
+      "dwalk_words": 1,
+      "d_wait": 295747,
+      "d_walk_wait": 33,
+      "execute_wait": 556254,
+      "iwalk_wait": 1176,
+      "exposed_i": 1538774,
+      "frontend": 1501064,
+      "other": 2155864,
+      "draws": 1,
+      "swaps": 1
+    },
+    {
+      "frame": 2,
+      "clocks": 14346201,
+      "retired": 7322287,
+      "uops": 1039189,
+      "ifills": 176599,
+      "dfills": 8508,
+      "iwalk_words": 115,
+      "dwalk_words": 2,
+      "d_wait": 293387,
+      "d_walk_wait": 61,
+      "execute_wait": 551454,
+      "iwalk_wait": 1255,
+      "exposed_i": 1518818,
+      "frontend": 1485675,
+      "other": 2134075,
+      "draws": 1,
+      "swaps": 1
+    },
+    {
+      "frame": 3,
+      "clocks": 14303223,
+      "retired": 7301052,
+      "uops": 1038177,
+      "ifills": 175649,
+      "dfills": 8626,
+      "iwalk_words": 117,
+      "dwalk_words": 2,
+      "d_wait": 295271,
+      "d_walk_wait": 61,
+      "execute_wait": 551798,
+      "iwalk_wait": 1183,
+      "exposed_i": 1510829,
+      "frontend": 1479713,
+      "other": 2125139,
+      "draws": 1,
+      "swaps": 1
+    }
+  ],
+  "sum": {
+    "LOOKAHEAD_DEMAND": {
+      "narrow": 691932,
+      "adjacent": 433551,
+      "sequential": 532812,
+      "same_page": 532801,
+      "word0_nonseq": 27225,
+      "nonzero": 131895
+    },
+    "LOOKAHEAD_HINT": {
+      "created": 3685678,
+      "page_boundary": 25450,
+      "cancelled": 464939,
+      "matched": 359405
+    },
+    "LOOKAHEAD_BUS": {
+      "first_free": 344159,
+      "no_free": 15246,
+      "contiguous": 324907,
+      "first_lead": 1038619,
+      "order_lead": 867155,
+      "d_interposed": 72206,
+      "lcd_interposed": 0
+    },
+    "LOOKAHEAD_STALL": {
+      "matching_exposed": 1960637,
+      "ideal_exposed_bound": 997040,
+      "order_exposed_bound": 864886
+    }
+  },
+  "fixed_work_narrow_i_fills": {
+    "matrix4": 0,
+    "transpose4": 0,
+    "triangle_edges": 0,
+    "fill16_frame": 0,
+    "fill16_tail": 0,
+    "fill8_tail": 0,
+    "monkey-forward": 0,
+    "monkey-reverse": 0,
+    "sega-span": 0,
+    "sega-fill": 0,
+    "asphalt-table": 0,
+    "asphalt-double": 0,
+    "asphalt-single": 0,
+    "sega-scan": 0,
+    "diffuse_m10_8x8_jpeg": 0
+  },
+  "one_frame_1k_permission": [
+    {
+      "frame": 0,
+      "safe_1k": 86129,
+      "strict": 205684,
+      "prep": 77353,
+      "issue1": 141533,
+      "issue2": 77374
+    }
+  ],
+  "meaning": "Passive model. Strict lead requires idle SDRAM with no current CPU, DMA or LCD demand until actual checked miss. Future idle slots cannot be known at admission. No measured speedup."
+}
