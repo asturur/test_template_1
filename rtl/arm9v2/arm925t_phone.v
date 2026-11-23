@@ -14970,8 +14970,6 @@ module ngage2_zap_tlb (
 		.o_rdata_pre(lptlb_rdata_pre),
 		.o_rdav_pre(lptlb_ren_pre)
 	);
-	reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;
-	reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;
 	reg [1:0] sp_way;
 	reg sp_again;
 	generate
@@ -14980,37 +14978,81 @@ module ngage2_zap_tlb (
 			reg [1:0] sp_last_way;
 			reg sp_last_valid;
 			(* preserve, dont_retime *) reg [31:12] sp_page;
-			wire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);
+            wire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);
+            wire [1:0] victim_way;
+            localparam integer SET_WIDTH = $clog2(SPAGE_TLB_ENTRIES);
+            wire [SET_WIDTH - 1:0] read_set = sp_page[12+:SET_WIDTH];
+            wire [SET_WIDTH - 1:0] write_set = tlb_address[12+:SET_WIDTH];
+            wire update_victim = sptlb_wen && !sp_again;
+
+            if (SPAGE_TLB_WAYS == 2 && SPAGE_TLB_ENTRIES == 256) begin : g_victim_ram
+                wire [3:0] row = tlb_address[19:16];
+                wire row_write = update_victim && !i_reset;
+                (* ramstyle = "M10K" *) reg [15:0] rows [0:15];
+                reg [15:0] written_rows;
+                reg [15:0] row_read, row_next;
+                wire row_valid = written_rows[sp_page[19:16]];
+
+                // The page walker holds its address through the L2
+                // descriptor write. This row was read with sp_page on the
+                // previous edge, so the write can reuse it immediately.
+                always @(*) begin
+                    row_next = row_valid ? row_read : 16'd0;
+                    row_next[tlb_address[15:12]] = !sp_way[0];
+                end
+
+                // First write to a row after reset zeroes the untouched
+                // bits. The RAM uses same-port new data on a write.
+                always @(posedge i_clk) begin
+                    if (row_write)
+                        rows[row] = row_next;
+                    row_read <= rows[row];
+                end
+                always @(posedge i_clk) begin
+                    if (i_reset)
+                        written_rows <= 16'd0;
+                    else if (row_write)
+                        written_rows[row] <= 1'b1;
+                end
+                assign victim_way = {1'b0, row_valid && row_read[sp_page[15:12]]};
+`ifndef SYNTHESIS
+                always @(posedge i_clk)
+                    if (row_write && sp_page !== tlb_address[31:12])
+                        $fatal(1, "Small-page victim write lost its captured walk address");
+`endif
+            end else begin : g_victim_regs
+                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;
+                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;
+
+                assign victim_way = {sp_victim_hi[read_set], sp_victim_lo[read_set]};
+                always @(posedge i_clk) begin
+                    if (i_reset) begin
+                        sp_victim_lo <= 0;
+                        sp_victim_hi <= 0;
+                    end else if (update_victim) begin
+                        sp_victim_lo[write_set] <= !sp_way[0];
+                        sp_victim_hi[write_set] <= (SPAGE_TLB_WAYS > 2) && (sp_way[1] ^ sp_way[0]);
+                    end
+                end
+            end
 			always @(posedge i_clk) begin
 				sp_page <= tlb_address[31:12];
 				sp_again <= sp_again_nxt;
-				sp_way <= (sp_again_nxt ? sp_last_way : {sp_victim_hi[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]], sp_victim_lo[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]]});
+				sp_way <= (sp_again_nxt ? sp_last_way : victim_way);
 				if (sptlb_wen) begin
 					sp_last_page <= tlb_address[31:12];
 					sp_last_way <= sp_way;
 					sp_last_valid <= 1'd1;
-					if (!sp_again) begin
-						sp_victim_lo[tlb_address[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]] <= !sp_way[0];
-						sp_victim_hi[tlb_address[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]] <= (SPAGE_TLB_WAYS > 2) && (sp_way[1] ^ sp_way[0]);
-					end
 				end
 				if ((i_reset || i_inv) || !i_mmu_en)
 					sp_last_valid <= 1'd0;
 				if (i_reset) begin
-					sp_victim_lo <= 1'sb0;
-					sp_victim_hi <= 1'sb0;
 					sp_way <= 1'sb0;
 					sp_again <= 1'd0;
 				end
 			end
 		end
 		else begin : l_sp_one_way
-			wire [SPAGE_TLB_ENTRIES:1] sv2v_tmp_AFC39;
-			assign sv2v_tmp_AFC39 = 1'sb0;
-			always @(*) sp_victim_lo = sv2v_tmp_AFC39;
-			wire [SPAGE_TLB_ENTRIES:1] sv2v_tmp_F4262;
-			assign sv2v_tmp_F4262 = 1'sb0;
-			always @(*) sp_victim_hi = sv2v_tmp_F4262;
 			wire [2:1] sv2v_tmp_A8694;
 			assign sv2v_tmp_A8694 = 1'sb0;
 			always @(*) sp_way = sv2v_tmp_A8694;
