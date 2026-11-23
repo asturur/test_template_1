@@ -60,6 +60,24 @@ transport. At physical 104 MHz the 15 fixed payloads and four native
 PolyCount frames match the parent cycle for cycle. PolyCount completes
 in 57,514,786 clocks with the same rendered output.
 
+## Return-address stack backing RAM
+
+The production predictor keeps eight 32-bit return addresses. A call writes
+the backing entry and registers the new top through a bypass. A return or
+checkpoint repair reads synchronous M10K storage on the existing top-of-stack
+edge. The pointer and depth still travel with each fetch packet. The predictor
+keeps its original reset, clear, saturation and repair priority.
+
+The directed regression compares both predictor modes against `29479fe`
+for 129,126 edges each. Cases include consecutive ARM and Thumb calls and
+returns, wraparound, empty and full depth, and every repair pointer, depth and
+action with concurrent control inputs. The four CPU contract modes and the
+mixed SDRAM-pin replay match the parent. The mixed test still completes in
+1,201,547 clocks with the same PCM hash, LCD frame and MMC writeback.
+All 15 fixed workloads preserve cycle counts and request traces. The four
+native PolyCount frames match at 57,514,786 clocks and produce the same output.
+[RAS regression](../tests/cpu/arm9v2_ras/)
+
 ## Fixed-work results
 
 Each cell is the median CPU clocks at extra I:D waits `0:0 / 2:9`.

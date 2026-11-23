@@ -454,6 +454,71 @@ def xor_btb(netlist):
     return netlist[:start] + predictor + netlist[end:]
 
 
+def bank_return_stack(phone):
+    """Read the saved return address on the existing top-of-stack edge."""
+    start = phone.index('module ngage2_arm9v2_predict (')
+    end = phone.index('\nendmodule', start)
+    predictor = phone[start:end]
+    predictor = edit(predictor, '\treg [31:0] stack [0:7];\n\t(* dont_retime *) reg [31:0] ras_top;',
+                     '\twire [31:0] ras_top;')
+    predictor = edit(predictor, '(RAS_TOP_FF ? ras_top : stack[pointer - 1\'b1])', 'ras_top')
+    predictor = edit(predictor, '''\tfunction automatic [2:0] sv2v_cast_3;
+\t\tinput reg [2:0] inp;
+\t\tsv2v_cast_3 = inp;
+\tendfunction
+''', '''
+    wire restore = !i_reset && i_repair;
+    wire speculate = !i_reset && !i_repair && !i_clear && i_accept && o_taken;
+    wire push_stack = (restore && i_repair_action == CALL) ||
+                      (speculate && o_kind == CALL);
+    wire repair_pop = i_repair_action == RETURN && i_repair_count != 0;
+    wire read_stack = (restore && i_repair_action != CALL) ||
+                      (speculate && o_kind == RETURN && count != 0);
+    wire [2:0] stack_write_address = i_repair ? i_repair_pointer : pointer;
+    wire [2:0] stack_read_address = i_repair ?
+        i_repair_pointer - (repair_pop ? 3'd2 : 3'd1) : pointer - 3'd2;
+    wire [31:0] stack_link = i_repair ? i_repair_link : call_link;
+
+    generate
+        if (RAS_TOP_FF) begin : g_m10k_ras
+            (* ramstyle = "M10K" *) reg [31:0] stack [0:7];
+            reg [31:0] read_top;
+            (* dont_retime *) reg [31:0] link_top;
+            (* dont_retime *) reg use_link;
+
+            // A push supplies the new top directly. A pop or repair reads
+            // the backing stack on the edge that used to register ras_top.
+            always @(posedge i_clk) begin
+                if (push_stack) begin
+                    stack[stack_write_address] <= stack_link;
+                    link_top <= stack_link;
+                    use_link <= 1'b1;
+                end else if (read_stack) begin
+                    read_top <= stack[stack_read_address];
+                    use_link <= 1'b0;
+                end
+            end
+            assign ras_top = use_link ? link_top : read_top;
+        end else begin : g_async_ras
+            reg [31:0] stack [0:7];
+            always @(posedge i_clk)
+                if (push_stack)
+                    stack[stack_write_address] <= stack_link;
+            assign ras_top = stack[pointer - 1'b1];
+        end
+    endgenerate
+''')
+    for indent, line in ((3, "ras_top <= stack[i_repair_pointer - 1'b1];"),
+                         (5, "stack[i_repair_pointer] <= i_repair_link;"),
+                         (5, "ras_top <= i_repair_link;"),
+                         (6, "ras_top <= stack[sv2v_cast_3(i_repair_pointer - 2'd2)];"),
+                         (5, "stack[pointer] <= call_link;"),
+                         (5, "ras_top <= call_link;"),
+                         (6, "ras_top <= stack[sv2v_cast_3(pointer - 2'd2)];")):
+        predictor = edit(predictor, '\t' * indent + line + '\n', '')
+    return phone[:start] + predictor + phone[end:]
+
+
 def load_waw_overlay(source):
     """Admit a younger scalar load while its older destination is in M."""
     source = edit(source, '\twire unused = &{1\'b0, LOAD_FORMATTED,', '''    wire d_advanced_load_writer;
@@ -887,7 +952,7 @@ def main():
     generated = schedule_early_smull(generated)
     generated = restart_streamed_icache(direct_accumulate(generated))
     generated = resident_during_fill(generated)
-    generated = xor_btb(generated)
+    generated = bank_return_stack(xor_btb(generated))
     generated = load_waw_overlay(generated)
     generated = predicate_block(generated)
     generated = predecode_refill_candidates(half_dirty_writeback(generated))

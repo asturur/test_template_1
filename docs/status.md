@@ -1,3 +1,11 @@
+## 2026-11-23 — v5 return-address stack backing RAM
+
+The eight-entry return stack reads synchronous memory on the existing
+prediction edge. The call bypass and repair keep the same behavior.
+All 15 fixed workloads and four native PolyCount frames match the prior CPU.
+The mixed SDRAM-pin and four CPU contract modes match. The fitted RAM count
+and timing are pending. [Implementation and tests](arm9v2-phone.md#return-address-stack-backing-ram)
+
 ## 2026-11-22 — both UPP RAM banks backed by HPS DDR
 
 The v5 production build maps the DSP upload and generic NOS banks to
