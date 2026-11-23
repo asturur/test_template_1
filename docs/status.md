@@ -1,3 +1,7 @@
+## 2026-11-23 — parallel Thumb predictor lookup
+
+Parallel validity retained the 0.762% Sega Rally gain and relieved the old predictor endpoint. Median whole-core setup was −3.130 ns, versus −3.083 ns for original Thumb recovery and −2.851 ns for the all-four control. Worst paths moved into cache control, decode and the TLB. Keep the candidate for recombination. The branch was restored to the all-four production RTL. [Matched fits and workload results](v5-alm-storage-results.md#parallel-predictor-validity-for-thumb-recovery)
+
 ## 2026-11-23 — routed D-cache return and Thumb recovery trials
 
 All six production 104 MHz fits completed. The all-four baseline remains best on median setup at −2.851 ns. The cycle-neutral D return saved 885–990 ALMs and reached −3.242 ns median. Thumb recovery saved 0.762% in Sega Rally scan and reached −3.083 ns median. The new recovery choice feeds branch predictor validity on two of three worst paths. Preserve both commits for mix-and-match and try preparing the predictor alternatives earlier. [Matched seeds, routed paths and archived images](v5-alm-storage-results.md#routed-d-cache-return-and-thumb-recovery)
