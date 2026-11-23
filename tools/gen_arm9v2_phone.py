@@ -1108,6 +1108,95 @@ def move_fetch_payload_to_ram(phone):
     return phone[:start] + fetch + phone[end:]
 
 
+
+def recover_thumb_fallthrough(phone):
+    """Keep one checked upper Thumb halfword for a registered fall-through repair."""
+    header, *modules = re.split(r'(?=^module )', phone, flags=re.M)
+    indices = {part.split()[1]: index for index, part in enumerate(modules)}
+    core_id, front_id, fetch_id = (indices[f'ngage2_arm9v2_{kind}']
+                                 for kind in ('core', 'front_decode', 'fetch'))
+    core, front, fetch = (modules[index] for index in (core_id, front_id, fetch_id))
+    extra_ports = ['input wire i_thumb_fall_repair', 'input wire i_fetch_cached',
+                   'input wire i_recovery_barrier']
+    extra_conn = """
+        .i_thumb_fall_repair(i_thumb_fall_repair),
+        .i_fetch_cached(i_fetch_cached),
+        .i_recovery_barrier(i_recovery_barrier),
+"""
+    front = ports(front, 'o_dbg_fetch', extra_ports)
+    fetch = ports(fetch, 'o_ras_count', extra_ports)
+    front = edit(front, '\t\t.i_redirect(i_flush || o_redirect),\n',
+                 '\t\t.i_redirect(i_flush || o_redirect),' + extra_conn)
+    core = edit(core, '\t\t.i_flush(wb_flush || a_redirect),\n', """
+        .i_flush(wb_flush || a_redirect),
+        .i_thumb_fall_repair(a_redirect && !wb_flush && a_btb_update &&
+                             !a_btb_taken && a_redirect_thumb),
+        .i_fetch_cached(i_instr_hit),
+        .i_recovery_barrier(!o_mmu_en || !o_icache_en ||
+                            o_itlb_inv || o_icache_inv || o_icache_clean ||
+                            cp_request || wb_redirect || wb_flush || o_dbg_wfi ||
+                            (i_irq && !cpsr[7]) || (i_fiq && !cpsr[6])),
+""".lstrip('\n'))
+    fetch = edit(fetch, '\twire unused;\n', """
+    reg saved_fall_valid;
+    reg [29:0] saved_fall_word;
+    reg [15:0] saved_fall_half;
+    wire [15:0] upper_thumb = i_data[31:16];
+    // Limit reuse to ordinary low-register ALU and memory operations.
+    // Prefix/suffix, control flow and high-register operations take
+    // the normal fetch and decoder path with full prediction metadata.
+    wire simple_upper = upper_thumb[15:13] == 3'b000 || upper_thumb[15:13] == 3'b001 ||
+                        upper_thumb[15:10] == 6'b010000 || upper_thumb[15:11] == 5'b01001 ||
+                        upper_thumb[15:12] == 4'b0101 || upper_thumb[15:13] == 3'b011 ||
+                        upper_thumb[15:12] == 4'h8 || upper_thumb[15:12] == 4'h9 ||
+                        upper_thumb[15:12] == 4'ha || upper_thumb[15:12] == 4'hc ||
+                        upper_thumb[15:9] == 7'b1011010 || upper_thumb[15:8] == 8'hbc;
+    wire recovery_blocked = i_recovery_barrier || i_predictor_clear ||
+                            i_fill_pending || i_fill_done || (f2[35] && !i_ack);
+    wire reuse_fall_half = HEAD_FF && BRAM_QUEUE && THUMB_HALF &&
+                           i_redirect && i_thumb_fall_repair && i_redirect_thumb &&
+                           i_redirect_action == 0 && advance && !killed &&
+                           !i_reset && !recovery_blocked && saved_fall_valid &&
+                           i_redirect_target[1] && i_redirect_target[31:2] == saved_fall_word;
+    wire [31:0] repair_fetch_pc = reuse_fall_half ? redirect_next :
+                                {i_redirect_target[31:1], 1'b0};
+
+    always @(posedge i_clk) begin
+        // Redirect and retry discard the saved candidate explicitly.
+        // Clear on an unresolved request or context/maintenance boundary.
+        if (i_reset || i_redirect || retry || recovery_blocked)
+            saved_fall_valid <= 0;
+        else if (HEAD_FF && BRAM_QUEUE && THUMB_HALF && push && i_fetch_cached &&
+                 f2[34] && !f2[1] && f2_prediction[44] && !i_error &&
+                 i_data[15:12] == 4'hd && i_data[11:8] < 4'he) begin
+            saved_fall_valid <= simple_upper;
+            saved_fall_word <= f2[31:2];
+            saved_fall_half <= upper_thumb;
+        end
+    end
+    wire unused;
+""".lstrip('\n'))
+    fetch = edit(fetch, "assign launch_pc = (i_redirect ? {i_redirect_target[31:1], 1'b0}",
+                 "assign launch_pc = (i_redirect ? repair_fetch_pc")
+    fetch = edit(fetch, '.i_pc_redirect(i_redirect_target),', '.i_pc_redirect(repair_fetch_pc),')
+    fetch = edit(fetch, '\t\tif (!i_redirect && push_at_head)\n', """\
+        if (reuse_fall_half)
+            head_next = {16'd0, saved_fall_half, i_redirect_target[31:1], 1'b0,
+                         1'b1, 2'b00, epoch + 2'd1, 38'd0,
+                         i_redirect_pointer, i_redirect_count};
+        else if (!i_redirect && push_at_head)
+""")
+    fetch = edit(fetch, "f1 <= {1'b1, i_redirect_thumb, epoch + 2'd1, i_redirect_target[31:1], 1'b0};",
+                 "f1 <= {1'b1, i_redirect_thumb, epoch + 2'd1, repair_fetch_pc};")
+    fetch = edit(fetch, 'sequential_pc <= redirect_next;',
+                 "sequential_pc <= reuse_fall_half ? redirect_next + 32'd2 : redirect_next;")
+    fetch = edit(fetch, '\t\t\t\ttail <= 0;\n\t\t\t\tcount <= 0;\n',
+                 "\t\t\t\ttail <= reuse_fall_half ? 3'd1 : 3'd0;\n"
+                 "\t\t\t\tcount <= reuse_fall_half ? 4'd1 : 4'd0;\n")
+    modules[core_id], modules[front_id], modules[fetch_id] = core, front, fetch
+    return header + ''.join(modules)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1141,6 +1230,7 @@ def main():
     generated = register_background_load_tag(generated)
     generated = resolve_execute_forward_candidates(generated)
     generated = move_fetch_payload_to_ram(generated)
+    generated = recover_thumb_fallthrough(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
