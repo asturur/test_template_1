@@ -195,7 +195,8 @@ module ngage_upp #(
     output wire         debug_fetch
 
 );
-    wire peripheral_response_pending;
+    wire        peripheral_response_pending;
+    wire [31:0] bus_lookup_adr;
     wire lcd_route_ready, lcd_waiting;
     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
     generate
@@ -315,23 +316,24 @@ module ngage_upp #(
             ngage_upp_request_stage #(
                 .EXPLICIT_LIVE(1)
             ) request_stage (
-                .clk        (clk),
-                .reset      (rst),
-                .in_cyc     (dma_bus_active || cpu_bus_cyc),
-                .in_stb     (dma_bus_active || cpu_bus_stb),
-                .in_live    (dma_bus_active || cpu_bus_live),
-                .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
-                .in_code    (!dma_bus_active && cpu_bus_code),
-                .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
-                .in_data    (dma_bus_active ? dma_data : cpu_bus_din),
-                .in_sel     (dma_bus_active ? dma_be : cpu_bus_sel),
-                .out_cyc    (bus_cyc),
-                .out_stb    (bus_stb),
-                .out_we     (bus_we),
-                .out_code   (bus_code),
-                .out_address(bus_adr),
-                .out_data   (bus_din),
-                .out_sel    (bus_sel)
+                .clk               (clk),
+                .reset             (rst),
+                .in_cyc            (dma_bus_active || cpu_bus_cyc),
+                .in_stb            (dma_bus_active || cpu_bus_stb),
+                .in_live           (dma_bus_active || cpu_bus_live),
+                .in_we             (dma_bus_active ? dma_write : cpu_bus_we),
+                .in_code           (!dma_bus_active && cpu_bus_code),
+                .in_address        (dma_bus_active ? dma_addr : cpu_bus_adr),
+                .in_data           (dma_bus_active ? dma_data : cpu_bus_din),
+                .in_sel            (dma_bus_active ? dma_be : cpu_bus_sel),
+                .out_cyc           (bus_cyc),
+                .out_stb           (bus_stb),
+                .out_we            (bus_we),
+                .out_code          (bus_code),
+                .out_address       (bus_adr),
+                .out_lookup_address(bus_lookup_adr),
+                .out_data          (bus_din),
+                .out_sel           (bus_sel)
             );
 
             always @(posedge clk) begin
@@ -470,6 +472,7 @@ module ngage_upp #(
             assign bus_stb = ext_stb;
             assign bus_we = ext_we;
             assign bus_adr = ext_adr;
+            assign bus_lookup_adr = ext_adr;
             assign bus_din = ext_din;
             assign bus_sel = ext_sel;
             assign bus_access        = ext_commit &&
@@ -621,6 +624,7 @@ module ngage_upp #(
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
         .NOS_TICK_HZ       (NOS_TICK_HZ),
         .REGISTER_RESPONSES(INTERNAL_CPU),
+        .PROBE_PREFETCH    (INTERNAL_CPU),
         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
         .SIMIF_ENABLE      (SIMIF_ENABLE),
         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
@@ -662,6 +666,7 @@ module ngage_upp #(
         .cyc                 (bus_cyc),
         .stb                 (bus_stb),
         .adr                 (bus_adr),
+        .lookup_adr          (bus_lookup_adr),
         .we                  (bus_we),
         .din                 (bus_din),
         .sel                 (bus_sel),
@@ -939,6 +944,7 @@ module ngage_upp_request_stage #(
     output reg         out_we,
     output reg         out_code,
     output reg  [31:0] out_address,
+    output wire [31:0] out_lookup_address,
     output reg  [31:0] out_data,
     output reg  [ 3:0] out_sel
 );
@@ -947,8 +953,10 @@ module ngage_upp_request_stage #(
     // The admission pulse selects and samples the packet. The owner supplies
     // cancellation and retirement independently once that capture is live.
     wire live = EXPLICIT_LIVE ? in_live : offered;
-    assign out_cyc = !reset && valid && live;
-    assign out_stb = out_cyc;
+    assign out_cyc            = !reset && valid && live;
+    assign out_stb            = out_cyc;
+    // Synchronous device prefetch can use the same edge that owns the request.
+    assign out_lookup_address = !valid && offered ? in_address : out_address;
     always @(posedge clk) begin
         if (reset) begin
             valid       <= 0;
