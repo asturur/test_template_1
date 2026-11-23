@@ -47,7 +47,6 @@ module ngage_upp_peripherals #(
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
               REGISTER_RESPONSES = 0,
-              PROBE_PREFETCH     = 0,
               DDR_UPP_RAM        = 0,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
@@ -71,7 +70,6 @@ module ngage_upp_peripherals #(
     input  wire        cyc,
     input  wire        stb,
     input  wire [31:0] adr,
-    input  wire [31:0] lookup_adr,
     input  wire        we,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
@@ -497,9 +495,7 @@ module ngage_upp_peripherals #(
         .dout  (boot_data),
         .ready (boot_ready)
     );
-    ngage_icu_extra #(
-        .PROBE_PREFETCH(PROBE_PREFETCH)
-    ) extra_regs (
+    ngage_icu_extra extra_regs (
         .clk(clk),
         .reset(rst),
         .req(cyc && stb),
@@ -508,7 +504,6 @@ module ngage_upp_peripherals #(
         .we(we),
         .periodic_active(periodic_active),
         .addr(a),
-        .lookup_addr(lookup_adr),
         .din(din),
         .sel(sel),
         .claim(extra_claim),
