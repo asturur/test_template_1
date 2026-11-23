@@ -284,7 +284,7 @@ module ngage_mmc_card #(
     // buffer: 8 KB (16 x 512-byte sector slots):
     //   slots  0..11: three 2 KB (4-sector) quarters for aligned 4 KB streaming chunks
     //   slots 12..15: four 512-byte slots reserved for CMD17 metadata, writes, and sidecar
-    reg [22:0] tag[0:15];
+    reg [22:0] metadata_tag[12:15];
     reg [15:0] tvalid, tzero;
     reg [1:0] m_repl;  // round-robin index (0..3) for metadata slots 12..15
     reg [1:0] w_m_idx;  // metadata slot (0..3) used by the active write
@@ -375,8 +375,9 @@ module ngage_mmc_card #(
     // pipelined across four lightweight register stages so that no path from a
     // tag or slot register passes through an adder and a compare in one clock:
     //   stage 0 (s0_*): candidate sector numbers (adders only)
-    //   stage 1 (s1_*): modulo-3 slot indices and per-slot tag compares in parallel
-    //   stage 2 (s2_*): 1-bit slot-hit muxes and miss priority selection
+    //   stage 1 (s1_*): stream tag RAM reads at modulo-3 slot indices,
+    //                    in parallel with associative metadata tag compares
+    //   stage 2 (s2_*): selected stream tag compares and miss priority selection
     //   stage 3 (want*): HPS request parameters (chunk quarters and block count)
     // The results are used only once the inputs have stayed the same for all
     // four stages (settle == 0).
@@ -386,8 +387,9 @@ module ngage_mmc_card #(
     reg [22:0] s1_rlo, s1_rhi, s1_pchunk;
     reg [3:0] s1_srlo, s1_srhi, s1_spchunk;
     reg s1_act, s1_multi, s1_pc_win, s1_pc_in;
-    reg [15:0] s1_eq_lo, s1_eq_hi;
-    reg [11:0] s1_eq_pc;
+    reg [15:12] s1_eq_lo, s1_eq_hi;
+    reg [11:0] s1_stream_valid;
+    reg [2:0] s1_forward, s1_forward_match;
 
     reg have_lo, have_hi;
     reg [3:0] slot_lo, slot_hi;
@@ -425,15 +427,56 @@ module ngage_mmc_card #(
     wire [22:0] w_rhi = sec_of(d_addr + {23'd0, bl} - 33'd1);
     wire [22:0] w_pchunk = {w_rlo[22:3] + 20'd1, 3'b000};
 
-    wire s2_slo_ok = s1_eq_lo[s1_srlo];
+    wire [3:0] stream_read_slot[0:2];
+    wire [22:0] stream_read_sector[0:2], stream_read_tag[0:2];
+    wire [2:0] stream_tag_match;
+    assign stream_read_sector[0] = s0_rlo;
+    assign stream_read_sector[1] = s0_rhi;
+    assign stream_read_sector[2] = s0_pchunk;
+
+    // Publish tags logically on the original edge. The physical write is
+    // delayed one clock, so a simultaneous lookup forwards that pending
+    // tag and never depends on the RAM's mixed-port collision data.
+    reg        stream_write_pending = 0;
+    reg [ 3:0] stream_write_slot;
+    reg [22:0] stream_write_tag;
+    wire stream_publish, stream_zero, book_request;
+
+    genvar stream_port;
+    generate
+        for (stream_port = 0; stream_port < 3; stream_port = stream_port + 1) begin : stream_tags
+            assign stream_read_slot[stream_port] = s_slot(stream_read_sector[stream_port]);
+            ngage_bram #(
+                .AW         (4),
+                .DW         (23),
+                .READ_ONLY_B(1)
+            ) tags (
+                .clk   (clk),
+                .addr_a(stream_write_slot),
+                .data_a(stream_write_tag),
+                .we_a  (stream_write_pending),
+                .q_a   (),
+                .addr_b(stream_read_slot[stream_port]),
+                .data_b(23'b0),
+                .we_b  (1'b0),
+                .q_b   (stream_read_tag[stream_port])
+            );
+        end
+    endgenerate
+
+    assign stream_tag_match[0] = s1_forward[0] ? s1_forward_match[0] : stream_read_tag[0] == s1_rlo;
+    assign stream_tag_match[1] = s1_forward[1] ? s1_forward_match[1] : stream_read_tag[1] == s1_rhi;
+    assign stream_tag_match[2] = s1_forward[2] ? s1_forward_match[2] : stream_read_tag[2] == s1_pchunk;
+
+    wire s2_slo_ok = s1_stream_valid[s1_srlo] && stream_tag_match[0];
     wire s2_mlo_ok = |s1_eq_lo[15:12];
     wire s2_has_lo = s1_multi ? s2_slo_ok : (s2_slo_ok || s2_mlo_ok);
 
-    wire s2_shi_ok = s1_eq_hi[s1_srhi];
+    wire s2_shi_ok = s1_stream_valid[s1_srhi] && stream_tag_match[1];
     wire s2_mhi_ok = |s1_eq_hi[15:12];
     wire s2_has_hi = s1_multi ? s2_shi_ok : (s2_shi_ok || s2_mhi_ok);
 
-    wire s2_spc_ok = s1_eq_pc[s1_spchunk];
+    wire s2_spc_ok = s1_stream_valid[s1_spchunk] && stream_tag_match[2];
 
     // From s2_want_slot[3:2] = mod3(s2_want[22:2]) and s2_want[2], derive the
     // two quarters of the aligned 4 KB chunk {s2_want[22:3], 3'b000} without
@@ -453,23 +496,25 @@ module ngage_mmc_card #(
         s0_act    <= d_state != D_IDLE;
         s0_multi  <= d_multi;
 
-        // stage 1: modulo-3 slot indices and per-slot tag compares in parallel
+        // stage 1: clock selected stream tags and compare all metadata tags
         s1_rlo <= s0_rlo;
         s1_rhi <= s0_rhi;
         s1_pchunk <= s0_pchunk;
-        s1_srlo <= s_slot(s0_rlo);
-        s1_srhi <= s_slot(s0_rhi);
-        s1_spchunk <= s_slot(s0_pchunk);
+        s1_srlo <= stream_read_slot[0];
+        s1_srhi <= stream_read_slot[1];
+        s1_spchunk <= stream_read_slot[2];
         s1_act <= s0_act;
         s1_multi <= s0_multi;
         s1_pc_win  <= s0_multi && s0_rlo[2] && (s0_rhi[22:2] == s0_rlo[22:2]) && (s0_rlo[2:0] != 3'd7);
         s1_pc_in <= ({9'd0, s0_pchunk} < nblk);
-        for (pipe_i = 0; pipe_i < 16; pipe_i = pipe_i + 1) begin
-            s1_eq_lo[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_rlo);
-            s1_eq_hi[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_rhi);
+        s1_stream_valid <= tvalid[11:0];
+        for (pipe_i = 0; pipe_i < 3; pipe_i = pipe_i + 1) begin
+            s1_forward[pipe_i] <= stream_write_pending && stream_read_slot[pipe_i] == stream_write_slot;
+            s1_forward_match[pipe_i] <= stream_write_tag == stream_read_sector[pipe_i];
         end
-        for (pipe_i = 0; pipe_i < 12; pipe_i = pipe_i + 1) begin
-            s1_eq_pc[pipe_i] <= tvalid[pipe_i] && (tag[pipe_i] == s0_pchunk);
+        for (pipe_i = 12; pipe_i < 16; pipe_i = pipe_i + 1) begin
+            s1_eq_lo[pipe_i] <= tvalid[pipe_i] && (metadata_tag[pipe_i] == s0_rlo);
+            s1_eq_hi[pipe_i] <= tvalid[pipe_i] && (metadata_tag[pipe_i] == s0_rhi);
         end
 
         // stage 2: 1-bit slot-hit muxes and miss priority selection
@@ -605,6 +650,21 @@ module ngage_mmc_card #(
     wire [22:0] w_sec = sec_of(w_addr);
     wire [40:0] file_bytes = {nblk, 9'd0};
     wire [22:0] h_stream_sec = {h_lba[22:3], sd_buff_addr[10:8]};
+    assign stream_publish = sd_buff_wr && h_state != H_IDLE && !h_wr && !h_meta &&
+                            sd_buff_addr[12:11] == 2'b00 && sd_buff_addr[7:0] == 8'hFF;
+    assign book_request = d_state != D_IDLE && bk_ok && want_v && allow_fetch &&
+                          h_state == H_IDLE && !h_done && l_state == L_READY;
+    assign stream_zero = book_request && want_oor && d_multi;
+    always @(posedge clk) begin
+        stream_write_pending <= stream_publish || stream_zero;
+        if (stream_zero) begin
+            stream_write_slot <= want_slot;
+            stream_write_tag  <= want;
+        end else if (stream_publish) begin
+            stream_write_slot <= h_cur_slot;
+            stream_write_tag  <= h_stream_sec;
+        end
+    end
 
     // Precomputed read byte offsets, write slot/quarter indices, and HPS
     // metadata invalidation matches (all inputs are stable at least several
@@ -624,8 +684,8 @@ module ngage_mmc_card #(
         w_q       <= mod3(w_sec[22:2]);
         w_in_file <= !w_addr[32] && ({8'd0, w_addr} + 41'd512 <= file_bytes);
         for (pre_m = 0; pre_m < 4; pre_m = pre_m + 1) begin
-            w_m_hit[pre_m]   <= tvalid[12+pre_m] && (tag[12+pre_m] == w_sec);
-            h_m_match[pre_m] <= (tag[12+pre_m] == h_stream_sec);
+            w_m_hit[pre_m]   <= tvalid[12+pre_m] && (metadata_tag[12+pre_m] == w_sec);
+            h_m_match[pre_m] <= (metadata_tag[12+pre_m] == h_stream_sec);
         end
     end
 
@@ -697,8 +757,7 @@ module ngage_mmc_card #(
         bk_touch <= 1'b0;
 
         // ---------------- HPS transfers ----------------
-        if (sd_buff_wr && (h_state != H_IDLE) && !h_wr && !h_meta && sd_buff_addr[12:11] == 2'b00 && sd_buff_addr[7:0] == 8'hFF) begin
-            tag[h_cur_slot]    <= h_stream_sec;
+        if (stream_publish) begin
             tvalid[h_cur_slot] <= 1'b1;
             tzero[h_cur_slot]  <= 1'b0;
             for (main_m = 0; main_m < 4; main_m = main_m + 1)
@@ -717,10 +776,10 @@ module ngage_mmc_card #(
                 h_state <= H_IDLE;
                 h_done  <= 1'b1;
                 if (!h_wr && h_meta) begin
-                    tag[{2'b11, h_m_idx}]    <= h_lba[22:0];
-                    tvalid[{2'b11, h_m_idx}] <= 1'b1;
-                    tzero[{2'b11, h_m_idx}]  <= 1'b0;
-                    bk_touch                 <= 1'b1;
+                    metadata_tag[{2'b11, h_m_idx}] <= h_lba[22:0];
+                    tvalid[{2'b11, h_m_idx}]       <= 1'b1;
+                    tzero[{2'b11, h_m_idx}]        <= 1'b0;
+                    bk_touch                       <= 1'b1;
                 end
             end
             default: ;
@@ -865,18 +924,17 @@ module ngage_mmc_card #(
         end
         // aligned 4 KB chunks for CMD18 (clamped to nblk), single sectors in
         // reserved metadata slots 12..15 for CMD17
-        if (d_state != D_IDLE && bk_ok && want_v && allow_fetch && h_state == H_IDLE && !h_done && l_state == L_READY) begin
+        if (book_request) begin
             bk_touch <= 1'b1;
             if (want_oor) begin
                 if (d_multi) begin
-                    tag[want_slot]    <= want;
                     tvalid[want_slot] <= 1'b1;
                     tzero[want_slot]  <= 1'b1;
                 end else begin
-                    tag[{2'b11, m_repl}]    <= want;
-                    tvalid[{2'b11, m_repl}] <= 1'b1;
-                    tzero[{2'b11, m_repl}]  <= 1'b1;
-                    m_repl                  <= m_repl + 2'd1;
+                    metadata_tag[{2'b11, m_repl}] <= want;
+                    tvalid[{2'b11, m_repl}]       <= 1'b1;
+                    tzero[{2'b11, m_repl}]        <= 1'b1;
+                    m_repl                        <= m_repl + 2'd1;
                 end
             end else if (d_multi) begin
                 h_state   <= H_REQ;
@@ -1093,12 +1151,12 @@ module ngage_mmc_card #(
                 end
                 // Never turn a lost payload bound into successful programming.
                 if ((w_issued && h_done) || !w_in_file) begin
-                    w_issued                 <= 1'b0;
-                    dat_oe                   <= 1'b0;
-                    tag[{2'b11, w_m_idx}]    <= w_sec;
-                    tvalid[{2'b11, w_m_idx}] <= w_in_file;
-                    tzero[{2'b11, w_m_idx}]  <= 1'b0;
-                    bk_touch                 <= 1'b1;
+                    w_issued                       <= 1'b0;
+                    dat_oe                         <= 1'b0;
+                    metadata_tag[{2'b11, w_m_idx}] <= w_sec;
+                    tvalid[{2'b11, w_m_idx}]       <= w_in_file;
+                    tzero[{2'b11, w_m_idx}]        <= 1'b0;
+                    bk_touch                       <= 1'b1;
                     if (!w_in_file) err[E_OUT_OF_RANGE] <= 1'b1;
                     if (!w_multi || w_stop12) begin
                         w_state  <= W_OFF;

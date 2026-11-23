@@ -92,3 +92,24 @@ No width, truncation, blocking-sequential or other warning is suppressed.
   limit; the tested write guard prevents rollover writes from aliasing LBA 0.
 - No whole-firmware card mount, boot, UI, physical hardware, synthesis/fit or
   production HPS connection claim is made. No user card/image was modified.
+
+## Stream tag RAM
+
+`tests/phone/mmc_card/run-stream-tags.sh` compares the three selected stream
+hits and public pins against the register-backed card at `29479fe`. It reruns
+the EOF and footer wire fixtures and exercises all twelve stream slots in a
+directed test. Its RAM model returns X on mixed-port collisions. The test
+checks 24 coincident hits across the independent low, high and prefetch
+ports, including replacement of occupied slots.
+
+The card samples three replicated M10K tag stores at its original slot-index
+edge. It compares the returned tags during the existing miss-selection
+stage. The logical tag write remains on its original edge and forwards to
+the physical read when the delayed RAM write collides. The four associative
+metadata tags stay in registers.
+
+At 104 MHz, the actual `hps_io` lockstep replay matched at modeled host
+delays of 13, 256 and 4,096 clocks. The original Sega Rally 64-sector CMD18
+replay matched the 32 KiB output and transfer counters at 830,761 transfer
+clocks and 852,184 total clocks. The mixed ARM9V2, SDRAM-pin, LCD, PCM and
+MMC replay still completed in 1,201,547 clocks.

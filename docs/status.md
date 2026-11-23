@@ -1,3 +1,11 @@
+## 2026-11-23 — v5 MMC stream tags backed by M10Ks
+
+Three replicated tag RAMs serve the low, high and prefetch lookups on
+their existing edges. The direct pin and HPS replays match under host stalls.
+Original Sega Rally CMD18 matches all 64 sectors and completes in 852,184
+clocks. The mixed board replay also matches. Fitted area and timing are
+pending. [MMC regression](../tests/phone/mmc_card/README.md#stream-tag-ram)
+
 ## 2026-11-23 — v5 return-address stack backing RAM
 
 The eight-entry return stack reads synchronous memory on the existing
