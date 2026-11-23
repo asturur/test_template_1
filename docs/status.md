@@ -1,3 +1,7 @@
+## 2026-11-23 — routed D-cache return and Thumb recovery trials
+
+All six production 104 MHz fits completed. The all-four baseline remains best on median setup at −2.851 ns. The cycle-neutral D return saved 885–990 ALMs and reached −3.242 ns median. Thumb recovery saved 0.762% in Sega Rally scan and reached −3.083 ns median. The new recovery choice feeds branch predictor validity on two of three worst paths. Preserve both commits for mix-and-match and try preparing the predictor alternatives earlier. [Matched seeds, routed paths and archived images](v5-alm-storage-results.md#routed-d-cache-return-and-thumb-recovery)
+
 ## 2026-11-23 — independent BRAM fits and measured IPC trade-offs
 
 Four additional BRAM substitutions were isolated on the all-four 104 MHz control. All 12 fits preserved benchmark cycles and missed setup. The refill buffer saved 1,138–1,198 ALMs with a 0.044 ns median slack loss. The TLB victim table saved the most area. The MMC host FIFO had the best single fit at −2.713 ns. Production RTL is back at the all-four control. A separate Thumb register recovered 0.762% on Sega Rally scan in simulation and paid for a registered D-cache admission stage on that workload. The same-edge D return matched every benchmark cycle. The timing and per-workload ledger retains all independent commits and replay patches for recombination. [Results and provenance](v5-alm-storage-results.md#independent-changes-for-a-later-combined-fit)
