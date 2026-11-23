@@ -1197,6 +1197,62 @@ def recover_thumb_fallthrough(phone):
     return header + ''.join(modules)
 
 
+def parallel_thumb_predictor_valid(phone):
+    """Read both redirect valid bits before selecting the recovered lookup."""
+    header, *modules = re.split(r'(?=^module )', phone, flags=re.M)
+    indices = {part.split()[1]: index for index, part in enumerate(modules)}
+    fetch_id, predict_id = (indices[f'ngage2_arm9v2_{kind}'] for kind in ('fetch', 'predict'))
+    fetch, predict = (modules[index] for index in (fetch_id, predict_id))
+    fetch = edit(fetch, '    reg [29:0] saved_fall_word;\n',
+                 '    reg [29:0] saved_fall_word;\n'
+                 '    (* dont_retime *) reg [29:0] saved_fall_next_word;\n')
+    fetch = edit(fetch, '            saved_fall_word <= f2[31:2];\n', """\
+            saved_fall_word <= f2[31:2];
+            // A recovered upper halfword resumes at the next aligned word.
+            saved_fall_next_word <= f2[31:2] + 30'd1;
+""")
+    fetch = edit(fetch, '\t\t\t\t.VALID_BIT(VALID_BIT)\n',
+                 '\t\t\t\t.VALID_BIT(VALID_BIT),\n'
+                 '\t\t\t\t.PARALLEL_RECOVERY(HEAD_FF && BRAM_QUEUE && THUMB_HALF)\n')
+    fetch = edit(fetch, '\t\t\t\t.i_pc_redirect(repair_fetch_pc),\n', """\
+                .i_pc_redirect({i_redirect_target[31:1], 1'b0}),
+                .i_pc_recovered({saved_fall_next_word, 2'b00}),
+                .i_use_recovered(reuse_fall_half),
+""")
+    predict = ports(predict, 'o_count', ['input wire [31:0] i_pc_recovered',
+                                        'input wire i_use_recovered'])
+    predict = edit(predict, "\tparameter [0:0] VALID_BIT = 1'b1;\n",
+                   "\tparameter [0:0] VALID_BIT = 1'b1;\n"
+                   "\tparameter [0:0] PARALLEL_RECOVERY = 1'b0;\n")
+    predict = edit(predict, '\tassign o_hit = ((VALID_BIT ? read_valid_bit :', """\
+    wire selected_valid;
+    generate
+        if (PARALLEL_RECOVERY && VALID_BIT) begin : g_recovery_valid
+            wire [INDEX_W-1:0] recovered_index = btb_index(i_pc_recovered);
+            wire recovered_valid = valid[recovered_index] ||
+                                   (write_enable && wr_index == recovered_index);
+            (* dont_retime *) reg read_recovered_valid, read_use_recovered;
+
+            // Snapshot the live bits, including this edge's write, and the
+            // choice together. Keep the SRAM read and tag comparison alone.
+            always @(posedge i_clk)
+                if (i_reset || i_clear) begin
+                    read_recovered_valid <= 0;
+                    read_use_recovered <= 0;
+                end else if (i_lookup) begin
+                    read_recovered_valid <= recovered_valid;
+                    read_use_recovered <= i_sel_redirect && i_use_recovered;
+                end
+            assign selected_valid = read_use_recovered ? read_recovered_valid : read_valid_bit;
+        end else begin : g_normal_valid
+            assign selected_valid = read_valid_bit;
+        end
+    endgenerate
+\tassign o_hit = ((VALID_BIT ? selected_valid :""")
+    modules[fetch_id], modules[predict_id] = fetch, predict
+    return header + ''.join(modules)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1231,6 +1287,7 @@ def main():
     generated = resolve_execute_forward_candidates(generated)
     generated = move_fetch_payload_to_ram(generated)
     generated = recover_thumb_fallthrough(generated)
+    generated = parallel_thumb_predictor_valid(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)

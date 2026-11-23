@@ -4488,6 +4488,7 @@ module ngage2_arm9v2_fetch (
 	(* keep *) wire [31:0] sequential_next = sequential_pc + (sequential_thumb ? 32'd2 : 32'd4);
     reg saved_fall_valid;
     reg [29:0] saved_fall_word;
+    (* dont_retime *) reg [29:0] saved_fall_next_word;
     reg [15:0] saved_fall_half;
     wire [15:0] upper_thumb = i_data[31:16];
     // Limit reuse to ordinary low-register ALU and memory operations.
@@ -4519,6 +4520,8 @@ module ngage2_arm9v2_fetch (
                  i_data[15:12] == 4'hd && i_data[11:8] < 4'he) begin
             saved_fall_valid <= simple_upper;
             saved_fall_word <= f2[31:2];
+            // A recovered upper halfword resumes at the next aligned word.
+            saved_fall_next_word <= f2[31:2] + 30'd1;
             saved_fall_half <= upper_thumb;
         end
     end
@@ -4661,7 +4664,8 @@ module ngage2_arm9v2_fetch (
 		if (PREDICTOR) begin : g_predictor
 			ngage2_arm9v2_predict #(
 				.RAS_TOP_FF(RAS_TOP_FF),
-				.VALID_BIT(VALID_BIT)
+				.VALID_BIT(VALID_BIT),
+				.PARALLEL_RECOVERY(HEAD_FF && BRAM_QUEUE && THUMB_HALF)
 			) u_predict(
 				.i_clk(i_clk),
 				.i_reset(i_reset),
@@ -4669,7 +4673,9 @@ module ngage2_arm9v2_fetch (
 				.i_lookup(advance),
 				.i_pc(launch_pc),
 				.i_thumb(launch_thumb),
-				.i_pc_redirect(repair_fetch_pc),
+                .i_pc_redirect({i_redirect_target[31:1], 1'b0}),
+                .i_pc_recovered({saved_fall_next_word, 2'b00}),
+                .i_use_recovered(reuse_fall_half),
 				.i_pc_sequential(sequential_pc),
 				.i_sel_redirect(i_redirect),
 				.i_sel_predicted(predicted),
@@ -5278,12 +5284,17 @@ module ngage2_arm9v2_predict (
 	o_state,
 	o_kind,
 	o_pointer,
-	o_count
+	o_count,
+	i_pc_recovered,
+	i_use_recovered
 );
+	input wire [31:0] i_pc_recovered;
+	input wire i_use_recovered;
 	reg _sv2v_0;
 	parameter integer ENTRIES = 256;
 	parameter [0:0] RAS_TOP_FF = 1'b1;
 	parameter [0:0] VALID_BIT = 1'b1;
+	parameter [0:0] PARALLEL_RECOVERY = 1'b0;
 	localparam integer INDEX_W = $clog2(ENTRIES);
 	localparam integer TAG_W = 31 - INDEX_W;
 	input wire i_clk;
@@ -5400,7 +5411,30 @@ module ngage2_arm9v2_predict (
 			read_valid_bit <= 1'b0;
 		else if (i_lookup)
 			read_valid_bit <= valid_launch;
-	assign o_hit = ((VALID_BIT ? read_valid_bit : read_valid[read_pc[INDEX_W:1]]) && (read_entry[TAG_W + 36-:((TAG_W + 36) >= 37 ? TAG_W + 0 : 38 - (TAG_W + 36))] == read_pc[31:INDEX_W + 1])) && (read_entry[36] == read_thumb);
+    wire selected_valid;
+    generate
+        if (PARALLEL_RECOVERY && VALID_BIT) begin : g_recovery_valid
+            wire [INDEX_W-1:0] recovered_index = btb_index(i_pc_recovered);
+            wire recovered_valid = valid[recovered_index] ||
+                                   (write_enable && wr_index == recovered_index);
+            (* dont_retime *) reg read_recovered_valid, read_use_recovered;
+
+            // Snapshot the live bits, including this edge's write, and the
+            // choice together. Keep the SRAM read and tag comparison alone.
+            always @(posedge i_clk)
+                if (i_reset || i_clear) begin
+                    read_recovered_valid <= 0;
+                    read_use_recovered <= 0;
+                end else if (i_lookup) begin
+                    read_recovered_valid <= recovered_valid;
+                    read_use_recovered <= i_sel_redirect && i_use_recovered;
+                end
+            assign selected_valid = read_use_recovered ? read_recovered_valid : read_valid_bit;
+        end else begin : g_normal_valid
+            assign selected_valid = read_valid_bit;
+        end
+    endgenerate
+	assign o_hit = ((VALID_BIT ? selected_valid : read_valid[read_pc[INDEX_W:1]]) && (read_entry[TAG_W + 36-:((TAG_W + 36) >= 37 ? TAG_W + 0 : 38 - (TAG_W + 36))] == read_pc[31:INDEX_W + 1])) && (read_entry[36] == read_thumb);
 	assign o_taken = o_hit && read_entry[3];
 	assign o_target = ((read_entry[1-:2] == RETURN) && (count != 0) ? ras_top : read_entry[35-:32]);
 	assign o_state = (o_hit ? read_entry[3-:2] : 2'b01);
