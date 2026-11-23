@@ -5,6 +5,8 @@ module recovery_tb;
   reg clk, reset, redirect, thumb = 1, fall_repair, ram_hit = 1, barrier;
   reg clear_predictor, ack = 1, err, retry, pending, fill_done, fill_fault;
   reg update, ready = 1;
+  reg [31:0] update_pc = BRANCH, update_target = 32'h0010_01c1;
+  reg [ 1:0] update_kind = 0;
   reg [31:0] target = BRANCH;
   reg [ 1:0] action;
   reg [15:0] high = 16'h2407;
@@ -13,6 +15,7 @@ module recovery_tb;
   wire valid, fault, predicted, hit;
   wire [2:0] pointer;
   wire [3:0] count;
+  wire request;
 
   ngage2_arm9v2_fetch dut (
       .i_clk(clk),
@@ -26,13 +29,13 @@ module recovery_tb;
       .i_redirect_link(32'h7789),
       .i_predictor_clear(clear_predictor),
       .i_update(update),
-      .i_update_pc(BRANCH),
-      .i_update_target(32'h0010_01c1),
+      .i_update_pc(update_pc),
+      .i_update_target(update_target),
       .i_update_thumb(1'b1),
       .i_update_taken(1'b1),
       .i_update_hit(1'b1),
       .i_update_state(2'd3),
-      .i_update_kind(2'd0),
+      .i_update_kind(update_kind),
       .i_data(data),
       .i_ack(ack),
       .i_error(err),
@@ -47,7 +50,7 @@ module recovery_tb;
       .o_address_nxt(next_addr),
       .o_address_check(check_addr),
       .o_address(req_addr),
-      .o_request(),
+      .o_request(request),
       .o_stall(),
       .o_dbg_fetch(),
       .o_valid(valid),
@@ -87,6 +90,9 @@ module recovery_tb;
     fill_done = 0;
     fill_fault = 0;
     update = 0;
+    update_pc = BRANCH;
+    update_target = 32'h0010_01c1;
+    update_kind = 0;
     ready = 1;
     ram_hit = cache;
     action = 0;
@@ -123,15 +129,16 @@ module recovery_tb;
     #1;
     if (dut.reuse_fall_half !== expected)
       $fatal(1, "Fall-through eligibility mismatch at cycle %0d", cycles);
-    if (expected && next_addr != BRANCH + 4)
-      $fatal(1, "Recovery did not launch the instruction after the saved packet");
+    if (next_addr !== {repair_pc[31:1], 1'b0} ||
+        dut.g_predictor.u_predict.i_pc_redirect !== {repair_pc[31:1], 1'b0})
+      $fatal(1, "Recovery changed the ordinary redirect or BTB address");
     tick();
     redirect = 0;
     fall_repair = 0;
     if (expected) begin
       expected_success++;
       if (!valid || fault || pc != BRANCH + 2 || word != {16'd0, high} ||
-                predicted || hit || pointer != 3 || count != 3 || check_addr != BRANCH + 4)
+                predicted || hit || pointer != 3 || count != 3 || check_addr != BRANCH + 2)
         $fatal(1, "Malformed recovered packet");
       tick();
       if (valid && pc == BRANCH + 2) $fatal(1, "Duplicated recovered packet");
@@ -140,6 +147,125 @@ module recovery_tb;
       expected_reject++;
       if (valid) $fatal(1, "Rejected recovery left a live packet");
     end
+  endtask
+
+  task start_recovery_held;
+    ready = 0;
+    target = BRANCH + 2;
+    redirect = 1;
+    fall_repair = 1;
+    #1;
+    if (!dut.reuse_fall_half || next_addr !== BRANCH + 2)
+      $fatal(1, "Expected injection on the ordinary upper-half redirect");
+    tick();
+    redirect = 0;
+    fall_repair = 0;
+    #1;
+    if (!valid || pc != BRANCH + 2 || !dut.duplicate_f1)
+      $fatal(1, "Saved instruction or duplicate identity missing");
+  endtask
+
+  task duplicate_then_real_fault;
+    seed(1, 0, 0, 0, 0, 16'h2407);
+    update = 1;
+    update_pc = BRANCH + 2;
+    update_target = 32'h0010_0901;
+    update_kind = 1;
+    start_recovery_held();
+    update = 0;
+    #1;
+    if (!dut.prediction[44] || dut.predicted || dut.g_predictor.u_predict.i_accept ||
+        next_addr !== BRANCH + 4)
+      $fatal(1, "Stale duplicate BTB call steered fetch or consumed RAS");
+    tick();
+    if (pointer != 3 || count != 3) $fatal(1, "Duplicate changed the RAS");
+    ack = 0;
+    repeat (3) begin
+      tick();
+      if (!request || !dut.duplicate_response || req_addr != BRANCH + 2 ||
+          !valid || pc != BRANCH + 2 || word != 32'h2407 || fault)
+        $fatal(1, "Held identity or checked packet changed");
+    end
+    // This response belongs to the redundant access. Its payload and
+    // status cannot replace the checked entry, even when the I$ retries.
+    ack = 1;
+    err = 1;
+    retry = 1;
+    pending = 1;
+    #1;
+    if (dut.push || dut.retry) $fatal(1, "Redundant response affected fetch");
+    tick();
+    err = 0;
+    pending = 0;
+    ready = 1;
+    #1;
+    if (dut.duplicate_response || !request || req_addr != BRANCH + 4 || !dut.retry)
+      $fatal(1, "Real successor retry did not retain its identity");
+    tick();
+    retry = 0;
+    repeat (2) tick();
+    if (!request || req_addr != BRANCH + 4) $fatal(1, "Wrong retry PC");
+    err = 1;
+    tick();
+    err = 0;
+    if (!valid || pc != BRANCH + 4 || !fault) $fatal(1, "Lost the real prefetch abort");
+    expected_success++;
+  endtask
+
+  task redirect_away_from_duplicate;
+    seed(1, 0, 0, 0, 0, 16'h2407);
+    start_recovery_held();
+    tick();
+    ack = 0;
+    redirect = 1;
+    // A fresh owner at the same address must have no duplicate status.
+    tick();
+    redirect = 0;
+    ack = 1;
+    ready = 1;
+    if (valid || dut.duplicate_f1 || dut.duplicate_f2) $fatal(1, "Killed duplicate leaked epoch");
+    repeat (3) tick();
+    if (!request || req_addr != BRANCH + 2 || dut.duplicate_response)
+      $fatal(1, "New owner inherited duplicate state");
+    err = 1;
+    tick();
+    err = 0;
+    if (!valid || pc != BRANCH + 2 || !fault) $fatal(1, "New owner's abort was suppressed");
+    expected_success++;
+  endtask
+
+  task reset_with_duplicate;
+    seed(1, 0, 0, 0, 0, 16'h2407);
+    start_recovery_held();
+    tick();
+    ack = 0;
+    tick();
+    if (!dut.duplicate_response || !request) $fatal(1, "No duplicate pending at reset");
+    reset = 1;
+    tick();
+    if (valid || request || dut.duplicate_f1 || dut.duplicate_f2)
+      $fatal(1, "Reset did not clear the pending duplicate");
+    expected_success++;
+  endtask
+
+  task full_queue_blocks_recovery;
+    seed(1, 0, 0, 0, 0, 16'h2407);
+    ready = 0;
+    repeat (12) tick();
+    if (dut.count != 8 || !dut.saved_fall_valid)
+      $fatal(1, "Expected full queue and saved halfword");
+    redirect = 1;
+    target = BRANCH + 2;
+    fall_repair = 1;
+    #1;
+    if (dut.reuse_fall_half || next_addr !== BRANCH + 2)
+      $fatal(1, "Full queue changed redirect or admitted recovery");
+    tick();
+    if (valid || dut.duplicate_f1 || dut.duplicate_f2)
+      $fatal(1, "Blocked redirect inserted a packet");
+    redirect = 0;
+    fall_repair = 0;
+    expected_reject++;
   endtask
 
   initial begin
@@ -169,6 +295,10 @@ module recovery_tb;
     tick();
     if (!valid || pc != BRANCH + 4) $fatal(1, "Wrong queued successor after recovery");
     expected_success++;
+    duplicate_then_real_fault();
+    redirect_away_from_duplicate();
+    reset_with_duplicate();
+    full_queue_blocks_recovery();
     seed(0, 0, 0, 0, 0, 16'h2407);
     repair(0);
     seed(1, 1, 0, 0, 0, 16'h2407);

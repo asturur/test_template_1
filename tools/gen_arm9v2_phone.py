@@ -1197,6 +1197,46 @@ def recover_thumb_fallthrough(phone):
     return header + ''.join(modules)
 
 
+def separate_thumb_recovery_redirect(phone):
+    """Launch the normal redirect and discard the tagged duplicate fetch."""
+    start = phone.index('module ngage2_arm9v2_fetch (')
+    end = phone.index('\nendmodule', start)
+    fetch = phone[start:end]
+    fetch = edit(fetch, """\
+    wire [31:0] repair_fetch_pc = reuse_fall_half ? redirect_next :
+                                {i_redirect_target[31:1], 1'b0};
+""", """\
+    wire [31:0] repair_fetch_pc = {i_redirect_target[31:1], 1'b0};
+    (* dont_retime *) reg duplicate_f1, duplicate_f2;
+    wire duplicate_response = duplicate_f2 && f2[35] && f2[33-:2] == epoch;
+
+    // The saved halfword is already checked. The redundant request owns
+    // neither another instruction nor any prediction and retry effects.
+    // Carry ownership with the exact request, including across fetch hold.
+    // An exception or redirect starts a different epoch even at the same PC.
+    always @(posedge i_clk) begin
+        if (i_reset || i_redirect || retry || (advance && killed)) begin
+            duplicate_f1 <= !i_reset && i_redirect && reuse_fall_half;
+            duplicate_f2 <= 0;
+        end else if (advance) begin
+            duplicate_f1 <= 0;
+            duplicate_f2 <= duplicate_f1;
+        end
+    end
+""")
+    fetch = edit(fetch, '&& (f1[33-:2] == epoch)) && !killed;',
+                 '&& (f1[33-:2] == epoch)) && !killed && !duplicate_f1;')
+    fetch = edit(fetch, '&& !killed) && !i_redirect;\n\tassign push',
+                 '&& !killed) && !i_redirect && !duplicate_response;\n\tassign push')
+    fetch = edit(fetch, '&& (f2[33-:2] == epoch);\n    reg [113:0] pushed;',
+                 '&& (f2[33-:2] == epoch) && !duplicate_response;\n    reg [113:0] pushed;')
+    fetch = edit(fetch, '.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed),',
+                 '.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed && !duplicate_f1),')
+    fetch = edit(fetch, "sequential_pc <= reuse_fall_half ? redirect_next + 32'd2 : redirect_next;",
+                 "sequential_pc <= redirect_next;")
+    return phone[:start] + fetch + phone[end:]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1231,6 +1271,7 @@ def main():
     generated = resolve_execute_forward_candidates(generated)
     generated = move_fetch_payload_to_ram(generated)
     generated = recover_thumb_fallthrough(generated)
+    generated = separate_thumb_recovery_redirect(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)

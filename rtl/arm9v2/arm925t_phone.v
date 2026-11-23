@@ -4506,8 +4506,23 @@ module ngage2_arm9v2_fetch (
                            i_redirect_action == 0 && advance && !killed &&
                            !i_reset && !recovery_blocked && saved_fall_valid &&
                            i_redirect_target[1] && i_redirect_target[31:2] == saved_fall_word;
-    wire [31:0] repair_fetch_pc = reuse_fall_half ? redirect_next :
-                                {i_redirect_target[31:1], 1'b0};
+    wire [31:0] repair_fetch_pc = {i_redirect_target[31:1], 1'b0};
+    (* dont_retime *) reg duplicate_f1, duplicate_f2;
+    wire duplicate_response = duplicate_f2 && f2[35] && f2[33-:2] == epoch;
+
+    // The saved halfword is already checked. The redundant request owns
+    // neither another instruction nor any prediction and retry effects.
+    // Carry ownership with the exact request, including across fetch hold.
+    // An exception or redirect starts a different epoch even at the same PC.
+    always @(posedge i_clk) begin
+        if (i_reset || i_redirect || retry || (advance && killed)) begin
+            duplicate_f1 <= !i_reset && i_redirect && reuse_fall_half;
+            duplicate_f2 <= 0;
+        end else if (advance) begin
+            duplicate_f1 <= 0;
+            duplicate_f2 <= duplicate_f1;
+        end
+    end
 
     always @(posedge i_clk) begin
         // Redirect and retry discard the saved candidate explicitly.
@@ -4524,7 +4539,7 @@ module ngage2_arm9v2_fetch (
     end
     wire unused;
 	assign unused = &{1'b0, i_redirect_target[0], i_redirect_pointer, i_redirect_count, i_redirect_action, i_redirect_link, i_predictor_clear, i_update, i_update_pc, i_update_target, i_update_thumb, i_update_taken, i_update_hit, i_update_state, i_update_kind};
-	assign predicted = (((PREDICTOR && prediction[44]) && f1[35]) && (f1[33-:2] == epoch)) && !killed;
+	assign predicted = (((PREDICTOR && prediction[44]) && f1[35]) && (f1[33-:2] == epoch)) && !killed && !duplicate_f1;
 	assign launch_pc = (i_redirect ? repair_fetch_pc : (predicted ? {prediction[42:12], 1'b0} : sequential_pc));
 	assign launch_thumb = (i_redirect ? i_redirect_thumb : (predicted ? prediction[11] : sequential_thumb));
 	assign o_address_nxt = launch_pc;
@@ -4534,8 +4549,8 @@ module ngage2_arm9v2_fetch (
 	assign o_stall = ((count == 8) && !killed) || (f2[35] && !i_ack);
 	assign o_dbg_fetch = {f2[35] && !i_ack, (count == 8) && !killed};
 	assign advance = !o_stall;
-	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect;
-	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch);
+	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect && !duplicate_response;
+	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch) && !duplicate_response;
     reg [113:0] pushed;
     reg [113:0] head_next;
     (* dont_retime *) reg [113:0] head_ff;
@@ -4673,7 +4688,7 @@ module ngage2_arm9v2_fetch (
 				.i_pc_sequential(sequential_pc),
 				.i_sel_redirect(i_redirect),
 				.i_sel_predicted(predicted),
-				.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed),
+				.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed && !duplicate_f1),
 				.i_update(i_update),
 				.i_update_pc(i_update_pc),
 				.i_update_target(i_update_target),
@@ -4742,7 +4757,7 @@ module ngage2_arm9v2_fetch (
 				if (i_redirect) begin
 					f1 <= {1'b1, i_redirect_thumb, epoch + 2'd1, repair_fetch_pc};
 					f2[35] <= 0;
-					sequential_pc <= reuse_fall_half ? redirect_next + 32'd2 : redirect_next;
+					sequential_pc <= redirect_next;
 					sequential_thumb <= i_redirect_thumb;
 				end
 			end
