@@ -1,0 +1,370 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 5faf3d9..4329976 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -2088,7 +2088,7 @@ module ngage2_arm9v2_decode (
+ 	localparam [3:0] K_MULL = 14;
+ 	(* dont_retime *) reg [74:0] redirect_ff;
+ 	(* dont_retime *) reg redirect_in_d2;
+-	(* dont_retime, ramstyle = "logic" *) reg [240:0] d1 [0:1];
++	(* dont_retime, ramstyle = "logic" *) reg [244:0] d1 [0:1];
+ 	(* dont_retime *) reg tail;
+ 	(* dont_retime *) reg [1:0] head_select;
+ 	(* dont_retime *) reg [1:0] count;
+@@ -2390,9 +2390,21 @@ module ngage2_arm9v2_decode (
+ 		incoming[6-:3] = i_ras_pointer;
+ 		incoming[3-:4] = i_ras_count;
+ 	end
+-	(* keep *) wire [3:0] kind0 = classify(d1[0][208-:32], d1[0][80:76], d1[0][18], d1[0][16], d1[0][32-:5] == 5'h10, d1[0][27-:5] == 0);
+-	(* keep *) wire [3:0] kind1 = classify(d1[1][208-:32], d1[1][80:76], d1[1][18], d1[1][16], d1[1][32-:5] == 5'h10, d1[1][27-:5] == 0);
+-	assign front = (d1[0] & {241 {head_select[0]}}) | (d1[1] & {241 {head_select[1]}});
++    // Use the same expanded word and register list as the D1 packet.
++    // Only emptiness is needed here, so the count adder can run in parallel.
++    wire [3:0] incoming_kind = classify(expanded[31:0], raw_word[15:11],
++        i_thumb, thumb_und, i_mode == 5'h10, reg_list == 16'b0);
++    wire [3:0] head_kind = (d1[0][244:241] & {4{head_select[0]}}) |
++                          (d1[1][244:241] & {4{head_select[1]}});
++    assign front = (d1[0][240:0] & {241{head_select[0]}}) |
++                   (d1[1][240:0] & {241{head_select[1]}});
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && count != 0)
++            if (head_kind !== classify(front[208-:32], front[80:76], front[18],
++                                       front[16], front[32-:5] == 5'h10, front[27-:5] == 0))
++                $fatal(1, "D1 opcode class no longer matches packet at %h", front[240-:32]);
++`endif
+ 	(* keep *) wire [31:0] arm_target = front[176-:32] + {{6 {front[200]}}, front[200:177], 2'b00};
+ 	(* keep *) wire [31:0] thumb_target = front[176-:32] + {{7 {front[200]}}, front[200:177], 1'b0};
+ 	(* keep *) wire [31:0] prefix_sum = front[176-:32] + {{9 {front[75]}}, front[75:65], 12'd0};
+@@ -2429,7 +2441,7 @@ module ngage2_arm9v2_decode (
+ 			;
+ 		decoded = 373'd0;
+ 		decoded[372-:241] = front;
+-		decoded[131-:4] = (kind0 & {4 {head_select[0]}}) | (kind1 & {4 {head_select[1]}});
++		decoded[131-:4] = head_kind;
+ 		decoded[127-:4] = front[208:205];
+ 		if ((((decoded[131-:4] == K_BL_PREFIX) || (decoded[131-:4] == K_BL_SUFFIX)) || (front[18] && (decoded[131-:4] == K_UND))) || (!front[18] && (front[208:205] == 4'hf)))
+ 			decoded[127-:4] = 4'he;
+@@ -2933,7 +2945,7 @@ module ngage2_arm9v2_decode (
+ 			if (i_serial_continue)
+ 				fenced <= 0;
+ 			if (d1_load)
+-				d1[tail] <= incoming;
++				d1[tail] <= {incoming_kind, incoming};
+ 			if (push)
+ 				tail <= !tail;
+ 			if (accept) begin
+diff --git a/tests/cpu/arm9v2_board/d1_opcode_tb.sv b/tests/cpu/arm9v2_board/d1_opcode_tb.sv
+new file mode 100644
+index 0000000..757c313
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/d1_opcode_tb.sv
+@@ -0,0 +1,184 @@
++`timescale 1ns / 1ps
++
++module d1_opcode_case #(
++    parameter THUMB_HALF = 0,
++    parameter PAYLOAD_FREE = 0
++) (output bit pass);
++    integer clocks = 0;
++    integer seed = 32'hd150c1a5;
++    integer pushes, pops, fast, simultaneous, full_hold, killed, faults, prefixes, suffixes;
++    integer thumb_checks, list_checks;
++    reg [15:0] seen_kind = 0;
++`include "interface.vh"
++
++    task automatic compare_packet;
++        compare_interface();
++        if ({reference.count, reference.tail, reference.head_select, reference.d2_valid,
++             reference.out_valid, reference.redirect_in_d2, reference.prefix_valid,
++             reference.push, reference.pop, reference.shortcut, reference.d2} !==
++            {candidate.count, candidate.tail, candidate.head_select, candidate.d2_valid,
++             candidate.out_valid, candidate.redirect_in_d2, candidate.prefix_valid,
++             candidate.push, candidate.pop, candidate.shortcut, candidate.d2})
++            $fatal(1, "D1/D2 control or packet differs at %0d", clocks);
++        if (candidate.count != 0 &&
++            {candidate.front, candidate.decoded, candidate.head_kind} !==
++            {reference.front, reference.decoded, reference.decoded[131-:4]})
++            $fatal(1, "Queued class differs from its original packet at %0d", clocks);
++    endtask
++
++    task automatic check_input;
++        reg [3:0] kind;
++        kind = reference.classify(reference.incoming[208-:32], reference.incoming[80:76],
++            reference.incoming[18], reference.incoming[16], reference.incoming[32-:5] == 5'h10,
++            reference.incoming[27-:5] == 0);
++        if (candidate.incoming !== reference.incoming || candidate.incoming_kind !== kind)
++            $fatal(1, "Input class mismatch word=%h PC=%h mode=%h", i_word, i_pc, i_mode);
++    endtask
++
++    task automatic tick;
++        #1;
++        if (clocks != 0) begin
++            compare_packet();
++            check_input();
++            if (candidate.push) begin
++                pushes++;
++                seen_kind[candidate.incoming_kind] = 1;
++                if (i_fault) faults++;
++                if (candidate.incoming_kind == 10) prefixes++;
++                if (candidate.incoming_kind == 11) suffixes++;
++            end
++            if (candidate.pop) pops++;
++            if (candidate.shortcut) fast++;
++            if (candidate.push && candidate.pop) simultaneous++;
++            if (candidate.count == 2 && !candidate.pop && !candidate.kill_younger) full_hold++;
++            if (candidate.kill_younger && candidate.count != 0) killed++;
++        end
++        i_clk = 1;
++        #1;
++        i_clk = 0;
++        #1;
++        clocks++;
++        compare_packet();
++    endtask
++
++    task automatic thumb_word(input [15:0] value, input bit upper);
++        i_thumb = 1;
++        i_pc[1] = upper;
++        // The production interface supplies one selected halfword in the
++        // low half. The alternate interface presents the whole word.
++        i_word = !THUMB_HALF && upper ? {value, 16'h5981} : {16'h5981, value};
++    endtask
++
++    function automatic [31:0] directed_arm(input int n);
++        case (n)
++            0: directed_arm = 32'he3a01023; // DP
++            1: directed_arm = 32'he10f2000; // MRS
++            2: directed_arm = 32'he129f000; // MSR
++            3: directed_arm = 32'hea000040; // direct branch
++            4: directed_arm = 32'he12fff12; // BX
++            5: directed_arm = 32'he5932100; // LDR
++            6: directed_arm = 32'he893000c; // LDM
++            7: directed_arm = 32'hee010f10; // CP15
++            8: directed_arm = 32'hffffffff; // undefined
++            9: directed_arm = 32'hef000016; // SWI
++            10: directed_arm = 32'he1032091; // SWP
++            11: directed_arm = 32'he0020391; // MUL
++            12: directed_arm = 32'he0832491; // MULL
++            13: directed_arm = 32'he8930000; // empty LDM
++            14: directed_arm = 32'he1c120d0; // unsupported halfword store
++            default: directed_arm = 32'hf0000000;
++        endcase
++    endfunction
++
++    initial begin
++        i_reset = 1;
++        tick();
++        i_reset = 0;
++        // Prove that testing empty directly agrees with the old popcount
++        // for every list. Compare every Thumb encoding in both halves and
++        // exercise an ARM block with that exact same list.
++        i_mode = 5'h13;
++        for (int bits = 0; bits < 65536; bits++) begin
++            if ((reference.popcount16(bits[15:0]) == 0) !== (bits == 0))
++                $fatal(1, "zero test differs for register list %h", bits[15:0]);
++            i_thumb = 0;
++            i_word = {16'he893, bits[15:0]};
++            #1;
++            check_input();
++            list_checks++;
++            for (int upper = 0; upper < 2; upper++) begin
++                thumb_word(bits[15:0], upper[0]);
++                #1;
++                check_input();
++                thumb_checks++;
++            end
++        end
++        // Fill both slots on real enqueue edges before enabling issue.
++        i_thumb = 0;
++        i_pc = 0;
++        i_valid = 1;
++        i_word = 32'he3a00001;
++        repeat (5) tick();
++        i_ready = 1;
++        i_ready_payload = 1;
++        i_serial_continue = 1;
++        repeat (8) tick();
++        // Directed classes, wrap and backpressure, ARM/Thumb switches,
++        // fetch faults, permission modes, flushes and direct shortcuts.
++        for (int n = 0; n < 30000; n++) begin
++            i_valid = n % 23 != 0;
++            i_pc = i_pc + 4;
++            i_ready = n % 7 < 4;
++            i_ready_payload = i_ready || n % 47 == 0;
++            i_fault = n % 59 == 0;
++            i_flush = n % 37 == 0;
++            i_reset = n % 1283 == 0;
++            i_serial_continue = n % 5 == 0;
++            i_mode = n % 13 == 0 ? 5'h10 : (n % 17 == 0 ? 5'h12 : 5'h13);
++            i_lock_valid = n % 19 == 0;
++            i_lock_tag = 6'($random(seed));
++            i_predicted = n % 11 == 0;
++            i_pred_target = i_pc + 20;
++            i_predicate_stable = n % 31 == 0;
++            i_predicate_flags = 4'($random(seed));
++            i_thumb = 0;
++            if (n % 23 < 16) begin
++                i_word = directed_arm(n % 23);
++            end else if (n % 23 == 16) begin
++                thumb_word(16'hf000, 0);
++            end else if (n % 23 == 17) begin
++                i_pc = i_pc - 2;
++                thumb_word(16'hf801, 1);
++            end else if (n % 23 == 18) begin
++                thumb_word(16'he012, n[0]);
++            end else if (n[0]) begin
++                thumb_word(16'($random(seed)), n[1]);
++            end else begin
++                i_word = 32'($random(seed));
++            end
++            tick();
++        end
++        if (!(pushes && pops && fast && simultaneous && full_hold && killed && faults && prefixes && suffixes) ||
++            seen_kind != 16'h7fff)
++            $fatal(1, "Incomplete coverage class=%h fast=%0d simultaneous=%0d prefixes=%0d suffixes=%0d",
++                   seen_kind, fast, simultaneous, prefixes, suffixes);
++        $display("PASS D1 opcode half=%0d free=%0d lists=%0d thumb=%0d clocks=%0d pushes=%0d pops=%0d fast=%0d simultaneous=%0d full=%0d kills=%0d faults=%0d class=%h",
++                 THUMB_HALF, PAYLOAD_FREE, list_checks, thumb_checks, clocks, pushes, pops, fast,
++                 simultaneous, full_hold, killed, faults, seen_kind);
++        pass = 1;
++    end
++endmodule
++
++module d1_opcode_tb;
++    wire [3:0] pass;
++    for (genvar n = 0; n < 4; n++)
++        d1_opcode_case #(.THUMB_HALF(n % 2), .PAYLOAD_FREE(n / 2)) sim(pass[n]);
++    initial begin
++        wait (&pass);
++        $finish;
++    end
++    initial begin
++        #500000;
++        $fatal(1, "D1 opcode differential timed out");
++    end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/prepare_d1_opcode_test.py b/tests/cpu/arm9v2_board/prepare_d1_opcode_test.py
+new file mode 100644
+index 0000000..65a7953
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/prepare_d1_opcode_test.py
+@@ -0,0 +1,50 @@
++#!/usr/bin/env python3
++"""Expose the exact decoder ports for an old/new D1 opcode-class bench."""
++import argparse
++from pathlib import Path
++
++from prepare_execute_ready_test import ports
++
++
++DECODER = 'ngage2_arm9v2_decode'
++
++
++def module(path):
++    start = f'module {DECODER} ('
++    source = path.read_text()
++    assert source.count(start) == 1, path
++    return start + source.split(start, 1)[1].split('\nendmodule', 1)[0] + '\nendmodule\n'
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('reference', type=Path)
++    parser.add_argument('candidate', type=Path)
++    parser.add_argument('output', type=Path)
++    args = parser.parse_args()
++    args.output.mkdir(parents=True, exist_ok=True)
++    old = module(args.reference)
++    interface = ports(old)
++    assert interface == ports(module(args.candidate))
++    (args.output / 'reference.v').write_text(old.replace(DECODER, 'reference_decode', 1))
++    lines = []
++    for name, (direction, width) in interface.items():
++        decl = f"reg {width}{name} = '0;" if direction == 'input' else f'wire {width}old_{name}, new_{name};'
++        lines.append('    ' + decl)
++    for instance, typ, prefix in [('reference', 'reference_decode', 'old'), ('candidate', DECODER, 'new')]:
++        lines.append(f'    {typ} #(.THUMB_HALF(THUMB_HALF), .PAYLOAD_FREE(PAYLOAD_FREE)) {instance} (')
++        lines.append(',\n'.join(
++            f'        .{pin}({pin if direction == "input" else f"{prefix}_{pin}"})'
++            for pin, (direction, _) in interface.items()
++        ))
++        lines.append('    );')
++    lines.extend(['    task compare_interface;', '        begin'])
++    for name, (direction, _) in interface.items():
++        if direction == 'output':
++            lines.append(f'            if (old_{name} !== new_{name}) $fatal(1, "changed {name} at %0d", clocks);')
++    lines.extend(['        end', '    endtask'])
++    (args.output / 'interface.vh').write_text('\n'.join(lines) + '\n')
++
++
++if __name__ == '__main__':
++    main()
+diff --git a/tests/cpu/arm9v2_board/run-d1-opcode.sh b/tests/cpu/arm9v2_board/run-d1-opcode.sh
+new file mode 100644
+index 0000000..e9e282d
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-d1-opcode.sh
+@@ -0,0 +1,13 @@
++#!/bin/sh
++# Run inside the installed jotego/simulator:arm64 image.
++set -eu
++reference=${1:?provide the c492853 reference netlist}
++candidate=rtl/arm9v2/arm925t_phone.v
++out=build/sim/unit-d1-opcode
++python3 -B tests/cpu/arm9v2_board/prepare_d1_opcode_test.py "$reference" "$candidate" "$out"
++verilator --binary --timing --assert -j 2 -Wno-fatal --top-module d1_opcode_tb \
++    -I"$out" --Mdir "$out/obj" "$candidate" "$out/reference.v" \
++    tests/cpu/arm9v2_board/d1_opcode_tb.sv > "$out/build.log" 2>&1
++"$out/obj/Vd1_opcode_tb" > "$out/run.log"
++cat "$out/run.log"
++test "$(grep -c '^PASS D1 opcode .*lists=65536 thumb=131072 ' "$out/run.log")" = 4
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 2807de8..26dca5c 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1129,6 +1129,36 @@ def split_execute_readiness(phone):
+     return ''.join(parts)
+ 
+ 
++def carry_d1_opcode_class(phone):
++    """Capture the opcode class with the whole D1 slot on its existing write edge."""
++    start = phone.index('module ngage2_arm9v2_decode (')
++    end = phone.index('\nendmodule', start)
++    decode = phone[start:end]
++    decode = edit(decode, 'reg [240:0] d1 [0:1];', 'reg [244:0] d1 [0:1];')
++    start_class = decode.index('\t(* keep *) wire [3:0] kind0 = classify(')
++    end_class = decode.index('\t(* keep *) wire [31:0] arm_target', start_class)
++    decode = decode[:start_class] + '''    // Use the same expanded word and register list as the D1 packet.
++    // Only emptiness is needed here, so the count adder can run in parallel.
++    wire [3:0] incoming_kind = classify(expanded[31:0], raw_word[15:11],
++        i_thumb, thumb_und, i_mode == 5'h10, reg_list == 16'b0);
++    wire [3:0] head_kind = (d1[0][244:241] & {4{head_select[0]}}) |
++                          (d1[1][244:241] & {4{head_select[1]}});
++    assign front = (d1[0][240:0] & {241{head_select[0]}}) |
++                   (d1[1][240:0] & {241{head_select[1]}});
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && count != 0)
++            if (head_kind !== classify(front[208-:32], front[80:76], front[18],
++                                       front[16], front[32-:5] == 5'h10, front[27-:5] == 0))
++                $fatal(1, "D1 opcode class no longer matches packet at %h", front[240-:32]);
++`endif
++''' + decode[end_class:]
++    decode = edit(decode, '\t\tdecoded[131-:4] = (kind0 & {4 {head_select[0]}}) | (kind1 & {4 {head_select[1]}});',
++        '\t\tdecoded[131-:4] = head_kind;')
++    decode = edit(decode, 'd1[tail] <= incoming;', 'd1[tail] <= {incoming_kind, incoming};')
++    return phone[:start] + decode + phone[end:]
++
++
+ def move_fetch_payload_to_ram(phone):
+     """Give the fetch queue a synchronous backing store behind its head FF."""
+     start = phone.index('module ngage2_arm9v2_fetch (')
+@@ -1278,6 +1308,7 @@ def main():
+     generated = register_background_load_tag(generated)
+     generated = resolve_execute_forward_candidates(generated)
+     generated = split_execute_readiness(generated)
++    generated = carry_d1_opcode_class(generated)
+     generated = move_fetch_payload_to_ram(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)

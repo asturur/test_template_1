@@ -133,6 +133,15 @@ and all seeds saved ALMs. Median whole-core setup worsened 0.251 ns.
 Park the patch for a later combination.
 [Routed evidence](../../evidence/v5-104-cp15-permission-fits.json)
 
+## D1 opcode class
+
+The [D1 class trial](d1-opcode-class.md) captures the opcode class in
+the same queue slot as its instruction. The direct test exhausts
+Thumb halfwords and register lists and checks four queue configurations.
+All 15 fixed workloads, four native PolyCount frames, four board
+profiles and mixed LCD/PCM/MMC replay matched `c492853`.
+Three matched 104 MHz fits are running on `4b2c114`.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

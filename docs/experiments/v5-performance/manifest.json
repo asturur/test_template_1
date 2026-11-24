@@ -1224,5 +1224,42 @@
     "sha256": [
       "d7fb723ef0c9190ebfcb00036ab03b6ae4c5c88abd829bcb6f2b7936a9a9637a"
     ]
+  },
+  {
+    "id": "d1-opcode-class",
+    "kind": "design",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/d1-opcode-class.patch"
+    ],
+    "sha256": [
+      "1d5e2012f113d9465090fd6d75b56c0cfff970f190c547078d5987bfc50fe7b0"
+    ],
+    "target": "4b2c1144f337eb907bac124a7d96321d0a73db61",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/d1_opcode_tb.sv",
+      "tests/cpu/arm9v2_board/prepare_d1_opcode_test.py",
+      "tests/cpu/arm9v2_board/run-d1-opcode.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "8ef443ae004096a2274e071ad1e940746e4e3f0ea0917d29860b87c08cef426b",
+      "tests/cpu/arm9v2_board/d1_opcode_tb.sv": "abcc9867efc7a0d05228f21573343ab7010815b8294fd660edba9480586d63de",
+      "tests/cpu/arm9v2_board/prepare_d1_opcode_test.py": "51121b86e353ce98cf361f375471503d0e350cc794c611f8c093b8d811090380",
+      "tests/cpu/arm9v2_board/run-d1-opcode.sh": "cbbac419302cc03c1014d53f4ec691a18018a644d56f62e549fa2ae0a15bb70d",
+      "tools/gen_arm9v2_phone.py": "be040e2d3528de3e1074277fcf27f747741e41301fd4839dca0ea55c2165f859"
+    }
+  },
+  {
+    "id": "d1-opcode-class-replay",
+    "kind": "fixture",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/d1-opcode-class-replay.patch"
+    ],
+    "sha256": [
+      "ece706322fb641b711438f82845799b43d51fa34bfbb8231008557aba0d07b6a"
+    ]
   }
 ]
