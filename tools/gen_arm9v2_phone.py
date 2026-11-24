@@ -1129,100 +1129,6 @@ def split_execute_readiness(phone):
     return ''.join(parts)
 
 
-def predecode_ap0_permissions(phone):
-    """Decode CP15's AP=0 permission modes on the existing S/R update edge."""
-    parts = re.split(r'(?=^module )', phone, flags=re.M)
-    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
-
-    cp15 = index['ngage2_zap_cp15_cb']
-    parts[cp15] = edit(parts[cp15], '\to_sr,\n', '\to_sr,\n\to_ap0_mode,\n')
-    parts[cp15] = edit(parts[cp15], '\toutput reg [1:0] o_sr;',
-        '''    output reg [1:0] o_sr;
-    (* dont_retime *) output reg [1:0] o_ap0_mode;''')
-    parts[cp15] = edit(parts[cp15], '\t\to_sr <= {r[1][8], r[1][9]};',
-        '''        // AP=0: S alone permits privileged reads. R alone permits
-        // read-only access in both modes. 00 and the reserved 11 deny.
-        o_sr <= {r[1][8], r[1][9]};
-        o_ap0_mode <= {r[1][8] && !r[1][9], !r[1][8] && r[1][9]};''')
-
-    core = index['ngage2_arm9v2_core']
-    parts[core] = edit(parts[core], '\to_sr,\n', '\to_sr,\n\to_ap0_mode,\n')
-    parts[core] = edit(parts[core], '\toutput wire [1:0] o_sr;',
-        '\toutput wire [1:0] o_sr;\n\toutput wire [1:0] o_ap0_mode;')
-    parts[core] = edit(parts[core], '\t\t.o_sr(o_sr),', '\t\t.o_sr(o_sr),\n\t\t.o_ap0_mode(o_ap0_mode),')
-
-    top = index['ngage2_zap_top']
-    parts[top] = edit(parts[top], '\twire [1:0] cpu_sr;', '\twire [1:0] cpu_sr, cpu_ap0_mode;')
-    parts[top] = edit(parts[top], '.o_sr(cpu_sr),', '.o_sr(cpu_sr),\n\t\t\t\t.o_ap0_mode(cpu_ap0_mode),')
-    assert parts[top].count('.i_sr(cpu_sr),') == 2
-    parts[top] = parts[top].replace('.i_sr(cpu_sr),', '.i_sr(cpu_sr),\n\t\t\t\t.i_ap0_mode(cpu_ap0_mode),')
-    for cache in ('cache', 'dcache'):
-        anchor = f'\t\t\tngage2_zap_{cache} #(\n'
-        parts[top] = edit(parts[top], anchor, anchor + "\t\t\t\t.AP0_PREDECODED(1'b1),\n")
-
-    for name in ('cache', 'dcache', 'tlb', 'tlb_check'):
-        part = index[f'ngage2_zap_{name}']
-        source = edit(parts[part], '\ti_sr,\n', '\ti_sr,\n\ti_ap0_mode,\n')
-        source = edit(source, '\tinput wire [1:0] i_sr;', '''    parameter [0:0] AP0_PREDECODED = 1'b0;
-    input wire [1:0] i_sr;
-    input wire [1:0] i_ap0_mode;''')
-        if name != 'tlb_check':
-            anchor = '\tngage2_zap_tlb_check #(\n' if name == 'tlb' else '\tngage2_zap_tlb #(\n'
-            source = edit(source, anchor, anchor + '\t\t.AP0_PREDECODED(AP0_PREDECODED),\n')
-            source = edit(source, '\t\t.i_sr(i_sr),', '\t\t.i_sr(i_sr),\n\t\t.i_ap0_mode(i_ap0_mode),')
-        parts[part] = source
-
-    check = index['ngage2_zap_tlb_check']
-    source = parts[check]
-    start = source.index('\tfunction automatic is_apsr_ok;')
-    end = source.index('\tfunction automatic [7:0] get_fsr_spage;', start)
-    source = source[:start] + '''    function automatic [1:0] decode_ap0;
-        input [1:0] sr;
-        decode_ap0 = {sr == 2'b10, sr == 2'b01};
-    endfunction
-    function automatic [3:0] ap_permissions;
-        input user;
-        input rd;
-        input wr;
-        input [1:0] ap0_mode;
-        // Preserve the distinct read/write tests, even if both are set.
-        ap_permissions = {1'b1, !user || (user && rd), !user,
-            (ap0_mode[0] && !wr) || (ap0_mode[1] && !user && rd)};
-    endfunction
-    wire [1:0] ap0_mode = AP0_PREDECODED ? i_ap0_mode : decode_ap0(i_sr);
-    wire [3:0] permitted_ap = ap_permissions(i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, ap0_mode);
-''' + source[end:]
-    old_inputs = '\t\tinput user;\n\t\tinput rd;\n\t\tinput wr;\n\t\tinput [1:0] sr;'
-    assert source.count(old_inputs) == 4
-    source = source.replace(old_inputs, '\t\tinput [3:0] ap_allowed;')
-    replacements = {
-        'reg [3:0] apsr;': 'reg [1:0] ap;',
-        'apsr[3:2]': 'ap',
-        '\t\t\tapsr[1:0] = sr[1:0];\n': '',
-        'is_apsr_ok(user, rd, wr, apsr) == APSR_OK': 'ap_allowed[ap]',
-        'i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, i_sr, i_dac_reg': 'permitted_ap, i_dac_reg',
-    }
-    for old, new in replacements.items():
-        assert source.count(old) == 4, old
-        source = source.replace(old, new)
-    source = source.replace('get_fsr_section', 'get_fsr_section_decoded')
-    source = edit(source, '\talways @(*) begin : tlb_match_logic', '''`ifndef SYNTHESIS
-    // Preserve the raw-S/R helper used by the I-cache observation fixture.
-    function automatic [7:0] get_fsr_section;
-        input user;
-        input rd;
-        input wr;
-        input [1:0] sr;
-        input [31:0] dac_reg;
-        input [19:0] tlb;
-        get_fsr_section = get_fsr_section_decoded(ap_permissions(user, rd, wr, decode_ap0(sr)), dac_reg, tlb);
-    endfunction
-`endif
-\talways @(*) begin : tlb_match_logic''')
-    parts[check] = source
-    return ''.join(parts)
-
-
 def move_fetch_payload_to_ram(phone):
     """Give the fetch queue a synchronous backing store behind its head FF."""
     start = phone.index('module ngage2_arm9v2_fetch (')
@@ -1375,7 +1281,6 @@ def main():
     generated = move_fetch_payload_to_ram(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
-    generated = predecode_ap0_permissions(generated)
     generated = keep_wishbone_request_boundary(generated)
     if args.check:
         if output.read_text() != generated:
