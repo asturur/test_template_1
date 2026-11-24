@@ -1,22 +1,19 @@
 // UPP EUART1 transaction model derived from the original NEM-4 ADSPComm driver.
 // Byte streams stand in for serial pins; baud/electrical timing is unverified.
 // No DSP response or diagnostic success is manufactured by this controller.
-module ngage_upp_euart #(
-    parameter PREDECODE = 0
-) (
+module ngage_upp_euart (
     input  wire        clk,
     input  wire        reset,
     input  wire        req,
     input  wire        commit,
     input  wire        we,
     input  wire [31:0] addr,
-    input  wire [ 6:0] register_select,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
     output wire        claim,
     output wire        bad,
     output wire        ready,
-    output wire [31:0] dout,
+    output reg  [31:0] dout,
     output wire        irq_pending,
     output wire        tx_valid,
     input  wire        tx_ready,
@@ -31,21 +28,10 @@ module ngage_upp_euart #(
     wire high_lane = |sel[3:2];
     wire [31:0] mask = {{8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}}};
     wire lanes_ok = sel==1 || sel==2 || sel==4 || sel==8 || sel==3 || sel==12 || sel==15;
-    wire [6:0] hits;
-    generate
-        if (PREDECODE) begin : held_register_select
-            assign hits = register_select;
-        end else begin : live_register_select
-            ngage_upp_euart_decode decode (
-                .addr(addr),
-                .hits(hits)
-            );
-        end
-    endgenerate
-    wire        data_word = hits[2];
-    wire        tx_write = data_word && we && low_lane;
-    wire        rx_read = data_word && !we && high_lane;
-    wire        status_word = hits[6] && high_lane;
+    wire data_word = a == 32'h0c150554;
+    wire tx_write = data_word && we && low_lane;
+    wire rx_read = data_word && !we && high_lane;
+    wire status_word = a == 32'h0c1500b8 && high_lane;
     wire [15:0] status;
     reg [31:0] uart_config, line_control, batch_control, rx_control;
     reg [15:0] enables;
@@ -97,7 +83,9 @@ module ngage_upp_euart #(
         .q_a   (),
         .q_b   (rx_q)
     );
-    assign claim = req && (|hits[5:0] || status_word);
+    assign claim = req && (a == 32'h0c150510 || a == 32'h0c150514 ||
+        data_word || a == 32'h0c150558 || a == 32'h0c15055c ||
+        a == 32'h0c150560 || status_word);
     assign bad = claim && (!lanes_ok || (rx_read && rx_count == 0));
     assign ready = !claim || (!tx_write || tx_count < 16) &&
         (!rx_read || rx_count == 0 || rx_sample == 2);
@@ -108,17 +96,20 @@ module ngage_upp_euart #(
     assign rx_ready = !reset && !rx_flush && rx_count != 15;
     assign status = (rx_count != 0 ? 16'h0008 : 0) | (tx_done ? 16'h0010 : 0);
     assign irq_pending = !reset && |(status & enables & 16'h0018);
-    wire [31:0] line_status = (line_control & ~32'h4) |
-                             (tx_count == 0 && batch_left == 0 ? 32'h4 : 0);
-    assign dout = mask & (
-        (uart_config & {32{hits[0]}}) |
-        (line_status & {32{hits[1]}}) |
-        ({rx_q, 24'b0} & {32{hits[2]}}) |
-        (batch_control & {32{hits[3]}}) |
-        ({24'b0, tx_producer, tx_consumer} & {32{hits[4]}}) |
-        ({8'b0, rx_producer, rx_consumer, rx_control[15:0]} & {32{hits[5]}}) |
-        ({status, 16'b0} & {32{hits[6]}})
-    );
+    always @* begin
+        dout = 0;
+        case (a)
+            32'h0c150510: dout = uart_config;
+            32'h0c150514:
+            dout = (line_control & ~32'h4) | (tx_count == 0 && batch_left == 0 ? 32'h4 : 0);
+            32'h0c150554: dout = {rx_q, 8'b0, 16'b0};
+            32'h0c150558: dout = batch_control;
+            32'h0c15055c: dout = {24'b0, tx_producer, tx_consumer};
+            32'h0c150560: dout = {8'b0, rx_producer, rx_consumer, rx_control[15:0]};
+            32'h0c1500b8: dout = {status, 16'b0};
+        endcase
+        dout = dout & mask;
+    end
     always @(posedge clk) begin
         if (reset) begin
             uart_config   <= 0;
@@ -188,22 +179,4 @@ module ngage_upp_euart #(
             end
         end
     end
-endmodule
-
-// Static word identity only. The live access still checks request, direction,
-// lanes, FIFO readiness and errors after the packet has been captured.
-module ngage_upp_euart_decode (
-    input  wire [31:0] addr,
-    output wire [ 6:0] hits
-);
-    wire [31:0] a = {addr[31:2], 2'b00};
-    assign hits = {
-        a == 32'h0c1500b8,
-        a == 32'h0c150560,
-        a == 32'h0c15055c,
-        a == 32'h0c150558,
-        a == 32'h0c150554,
-        a == 32'h0c150514,
-        a == 32'h0c150510
-    };
 endmodule
