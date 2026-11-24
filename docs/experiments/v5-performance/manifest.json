@@ -1261,5 +1261,40 @@
     "sha256": [
       "ece706322fb641b711438f82845799b43d51fa34bfbb8231008557aba0d07b6a"
     ]
+  },
+  {
+    "id": "dma-command-predecode",
+    "kind": "design",
+    "base": "fc7b51349ed5a95baba0f8396185ab9d2efebce4",
+    "patches": [
+      "patches/dma-command-predecode.patch"
+    ],
+    "sha256": [
+      "3f3efc870891835f485f01c65917cbe30a7166901607cec8528ee2e40edef3cb"
+    ],
+    "target": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+    "affected_paths": [
+      "rtl/ngage_dma_channels.v",
+      "rtl/ngage_upp.v",
+      "tests/phone/dma_channels/program_predecode_tb.sv",
+      "tests/phone/dma_channels/run-predecode.sh"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_dma_channels.v": "71ee9850f2dbffe8553c3862d1e79a9f73784bd8f37c2c308bcbb1a4bd6ccc35",
+      "rtl/ngage_upp.v": "5864a6ddc4163193d028f5c31aa5fbda9f09d27b1bed455b3e327c742f64b4f1",
+      "tests/phone/dma_channels/program_predecode_tb.sv": "4a4466bf49460d66a5ba73593b05979b8cbc0b05f8acbd1012dd4d9b2e87ee4b",
+      "tests/phone/dma_channels/run-predecode.sh": "dddca1c1ccb17105870a419df9208682db6bf8371e806c5fcf7856bdbdfb8e4e"
+    }
+  },
+  {
+    "id": "dma-command-predecode-replay",
+    "kind": "fixture",
+    "base": "fc7b51349ed5a95baba0f8396185ab9d2efebce4",
+    "patches": [
+      "patches/dma-command-predecode-replay.patch"
+    ],
+    "sha256": [
+      "94515a9aca446c056727a2488e0b9b43444b5cc95f9e951cac4ba991fe7e20df"
+    ]
   }
 ]

@@ -145,6 +145,12 @@ setup regressed 0.504 ns. Seed 31337 saved 983 ALMs at a 0.100 ns setup
 cost. Park `4b2c114` for area-constrained combinations.
 [Routed evidence](../../evidence/v5-104-decode-class-fits.json)
 
+The [DMA command predecode trial](dma-command-predecode.md) moves
+immutable UPP programming checks to the existing packet capture edge,
+ahead of the DMA offer and SDRAM address selection. The retained timing
+control and trial matched 171,496 events in the physical-pin model,
+15 fixed workloads and four native frames. The three fits are pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
