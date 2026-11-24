@@ -992,6 +992,143 @@ def resolve_execute_forward_candidates(phone):
     return ''.join(parts)
 
 
+def split_execute_readiness(phone):
+    """Resolve the two complete admission decisions before selecting on W hit."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    core = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_arm9v2_core ('))
+    execute = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_arm9v2_execute ('))
+    core_source = edit(parts[core], '''    wire s_held_load_writer = d_valid && d_advanced_load_writer &&
+        (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag) ||
+         (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));''',
+        '''    wire s_order_load = d_valid && d_advanced_load_writer;
+    wire s_wait_older = s_order_load &&
+        (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag));
+    wire s_wait_w_nohit = s_order_load && w_same_writer;
+    wire s_wait_w_hit = s_wait_w_nohit &&
+        !(load_trust && wb_valid && request_done && !retry && !resp_err);
+`ifndef SYNTHESIS
+    wire s_waw_ref = d_valid && d_advanced_load_writer &&
+        (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag) ||
+         (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
+    always @(posedge i_clk)
+        if (!i_reset &&
+            (s_wait_older || ((w_hit && i_data_short_hit) ? s_wait_w_hit : s_wait_w_nohit)) !== s_waw_ref)
+            $fatal(1, "Execute WAW ordering changed at %h", d_pc);
+`endif''')
+    core_source = edit(core_source, '\t\t.i_load_wait(d_load_wait || s_held_load_writer),',
+        '''        .i_load_wait(d_load_wait || s_wait_older),
+        .i_load_wait_hit(s_wait_w_hit),
+        .i_load_wait_nohit(s_wait_w_nohit),''')
+    parts[core] = core_source
+
+    source = edit(parts[execute], '\ti_load_wait,\n', '\ti_load_wait,\n\ti_load_wait_hit,\n\ti_load_wait_nohit,\n')
+    source = edit(source, '\tinput wire i_load_wait;',
+        '''    input wire i_load_wait;
+    input wire i_load_wait_hit;
+    input wire i_load_wait_nohit;''')
+    source = edit(source, '\treg [3:0] s_wait;\n\treg [3:0] a_wait;',
+        '''    wire [3:0] s_pending_now = holding ? s_pending : i_pending;
+    wire [3:0] s_wait_always, s_wait_for_w, a_wait_always, a_wait_for_w;
+    wire [3:0] s_wait = s_wait_always | (s_wait_for_w & {4{!s_load_hit}});
+    wire [3:0] a_wait = a_wait_always | (a_wait_for_w & {4{!a_load_hit}});
+    wire [3:0] a_wait_nohit = a_wait_always | a_wait_for_w;''')
+    start = source.index('\talways @(*) begin\n\t\tif (_sv2v_0)\n\t\t\t;\n\t\ts_wait =')
+    end = source.index('\treg [31:0] shift_input;', start)
+    source = source[:start] + '''    // The younger M producer, on either lane, masks any W match.
+    // Only a winning W load-value lane can be released by the live hit.
+    function automatic [7:0] classify_operand_waits;
+        input [3:0] pending;
+        input [15:0] producer_match;
+        input [1:0] load_owner;
+        integer src;
+        begin
+            classify_operand_waits = {4'b0000, pending};
+            for (src = 0; src < 4; src = src + 1) begin
+                if (|producer_match[4*src+:2])
+                    classify_operand_waits[src] = producer_match[4*src] && load_owner[0];
+                else if (|producer_match[4*src+2+:2]) begin
+                    classify_operand_waits[src] = 1'b0;
+                    classify_operand_waits[4+src] = producer_match[4*src+2] && load_owner[1];
+                end
+            end
+        end
+    endfunction
+    assign {s_wait_for_w, s_wait_always} = classify_operand_waits(s_pending_now, i_forward_match, i_load_owner);
+    assign {a_wait_for_w, a_wait_always} = classify_operand_waits(a[100-:4], a[144:129], i_load_owner);
+''' + source[end:]
+    source = edit(source, '''    wire direct_reg_shift = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                            && i_early[2] && !s_wait[2] && !tag_pc[2] && !tag_psr[2];''',
+        '''    wire direct_reg_eligible = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                              && i_early[2] && !tag_pc[2] && !tag_psr[2];
+    wire direct_reg_shift = direct_reg_eligible && !s_wait[2];''')
+    source = edit(source, '''\tassign o_ready_payload = (((i_admit && space) && !i_load_wait) && !(|(s_wait & i_early))) && !o_shift_wait;
+\tassign o_ready = (o_ready_payload && !i_flush) && !o_redirect;
+\tassign accept = i_valid && o_ready;
+\tassign o_valid = ((((a_valid && !(|a_wait)) && !product_phase)) && !i_flush) && !o_redirect;
+\tassign finish = o_valid && i_ready;
+\tassign o_a_valid = a_valid;
+\tassign o_a_can_finish = finish;
+\tassign o_a_can_finish_nohit = (((((a_valid && !(|a_wait_nohit)) && !product_phase)) && !i_flush) && !o_redirect) && i_ready;''',
+        '''    // The hit arm checks the original trust condition separately for S and A.
+    wire s_clear = !(|(s_wait_always & i_early));
+    wire s_needs_w = |(s_wait_for_w & i_early);
+    wire a_ready_hit = !(|a_wait_always) && (!(|a_wait_for_w) || !a[96] || i_load_trust);
+    wire a_ready_nohit = !(|a_wait_nohit);
+    wire a_valid_common = a_valid && !product_phase && !i_flush && !o_redirect;
+    wire a_finish_hit = a_valid_common && a_ready_hit && i_ready;
+    wire a_finish_nohit = a_valid_common && a_ready_nohit && i_ready;
+    // The early-operand check already includes Rs whenever the direct shift
+    // is eligible. Shift mode can settle independently for admission.
+    wire s_shift_ready = !(i_valid && ((i_reg_shift && !direct_reg_eligible) || agu_scaled) && !prepared);
+    wire s_admit_common = i_admit && !i_load_wait && s_clear && s_shift_ready;
+    (* keep *) wire ready_if_hit = s_admit_common && (!a_valid || a_finish_hit) &&
+        (!s_needs_w || !i_self_dep || i_load_trust) && !i_load_wait_hit;
+    (* keep *) wire ready_if_nohit = s_admit_common && (!a_valid || a_finish_nohit) &&
+        !s_needs_w && !i_load_wait_nohit;
+    wire s_load_wait = i_load_wait || (i_load_hit ? i_load_wait_hit : i_load_wait_nohit);
+    assign o_ready_payload = i_load_hit ? ready_if_hit : ready_if_nohit;
+    assign o_ready = (o_ready_payload && !i_flush) && !o_redirect;
+    assign accept = i_valid && o_ready;
+    assign o_valid = a_valid_common && (i_load_hit ? a_ready_hit : a_ready_nohit);
+    assign finish = o_valid && i_ready;
+    assign o_a_valid = a_valid;
+    assign o_a_can_finish = finish;
+    assign o_a_can_finish_nohit = a_finish_nohit;
+
+`ifndef SYNTHESIS
+    function automatic [3:0] old_operand_waits;
+        input [3:0] pending;
+        input [15:0] producer_match;
+        input [1:0] load_owner;
+        input hit;
+        integer src, prod;
+        begin
+            old_operand_waits = pending;
+            for (src = 0; src < 4; src = src + 1)
+                for (prod = 1; prod >= 0; prod = prod - 1)
+                    if (|producer_match[4*src+2*prod+:2])
+                        old_operand_waits[src] = producer_match[4*src+2*prod] && load_owner[prod] && (prod == 0 || !hit);
+        end
+    endfunction
+    wire [3:0] s_wait_ref = old_operand_waits(s_pending_now, i_forward_match, i_load_owner, s_load_hit);
+    wire [3:0] a_wait_ref = old_operand_waits(a[100-:4], a[144:129], i_load_owner, a_load_hit);
+    wire [3:0] a_nohit_ref = old_operand_waits(a[100-:4], a[144:129], i_load_owner, 1'b0);
+    wire a_finish_ref = a_valid_common && !(|a_wait_ref) && i_ready;
+    wire ready_ref = i_admit && (!a_valid || a_finish_ref) && !s_load_wait &&
+        !(|(s_wait_ref & i_early)) && !o_shift_wait;
+    always @(posedge i_clk) begin
+        if (!i_reset && (s_wait !== s_wait_ref || a_wait !== a_wait_ref || a_wait_nohit !== a_nohit_ref ||
+                         finish !== a_finish_ref || o_ready_payload !== ready_ref))
+            $fatal(1, "Parallel execute readiness changed at %h", i_pc);
+    end
+`endif''')
+    prep_gate = '&& !i_load_wait) && !(|(s_wait & i_early)))'
+    assert source.count(prep_gate) == 2
+    source = source.replace(prep_gate, prep_gate.replace('!i_load_wait', '!s_load_wait'))
+    parts[execute] = source
+    return ''.join(parts)
+
+
 def move_fetch_payload_to_ram(phone):
     """Give the fetch queue a synchronous backing store behind its head FF."""
     start = phone.index('module ngage2_arm9v2_fetch (')
@@ -1140,6 +1277,7 @@ def main():
     generated = predecode_dcache_write_enable(generated)
     generated = register_background_load_tag(generated)
     generated = resolve_execute_forward_candidates(generated)
+    generated = split_execute_readiness(generated)
     generated = move_fetch_payload_to_ram(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
