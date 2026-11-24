@@ -881,6 +881,29 @@
     ]
   },
   {
+    "id": "physical-next-line-census-fixture",
+    "kind": "fixture",
+    "base": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "patches": [
+      "patches/physical-next-line-census-fixture.patch"
+    ],
+    "sha256": [
+      "199c8996c7a912ae081efbee6f40baf852de094092cb3b50685042017866d889"
+    ],
+    "affected_paths": [
+      "scratch/v5-donor-next-line/observe.vh",
+      "scratch/v5-donor-next-line/run.py",
+      "scratch/v5-donor-next-line/run_payload.py",
+      "scratch/v5-donor-next-line/summarize.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-donor-next-line/observe.vh": "419584826526cdb26d209239b572808bfe3104cd4c30d47e17eee4413c188dbe",
+      "scratch/v5-donor-next-line/run.py": "8c92afbe813f7bdd6121e94d75c19931829bdb55d7bb0db18b43ecaacd88e23d",
+      "scratch/v5-donor-next-line/run_payload.py": "e46fdbca3ac8580a72b37aca80589367d25c9ae7c7dd82404e4668b386cbcfbf",
+      "scratch/v5-donor-next-line/summarize.py": "1eacc64d88cb8fb33f2ff736c79e0bfd1b72c9a04c68da9b75fb9d10e2d76bbe"
+    }
+  },
+  {
     "id": "frontend-redirect-census-fixture",
     "kind": "fixture",
     "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",

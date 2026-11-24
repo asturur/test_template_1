@@ -1,0 +1,320 @@
+--- /dev/null
++++ b/scratch/v5-donor-next-line/observe.vh
+@@ -0,0 +1,122 @@
++`define NEXT_CPU dut.board.upp.cpu_inside.cpu
++reg next_board_i;
++wire next_board_take = dut.line_req && dut.line_ready;
++always @(posedge clk)
++    if (next_board_take) next_board_i <= `NEXT_CPU.wb_code;
++wire next_take = ram_line_req && ram_line_ready && !lock;
++wire next_done = ram_line_valid && ram_line_last;
++wire next_i = next_board_take ? `NEXT_CPU.wb_code : next_board_i;
++wire [24:0] next_pa = {ram_line_addr[24:5], 5'b0};
++wire [25:0] next_successor = {1'b0, next_pa} + 26'd32;
++wire next_legal = next_pa[9:5] != 5'h1f && next_successor < 26'h1000000;
++// Compare canonical physical line offsets at logical capture and again at
++// the scheduler, covering pending posted writes as well as accepted commands.
++wire next_post = sadapter.scalar_accept && swe && (mem_write_block || |sb);
++wire next_write = sdr_req && sdr_cmd_ready && sdr_we && |sdr_wbe;
++wire next_free = !sdr_busy && sdr_cmd_ready && ram_line_ready && !ram_line_req &&
++                 !sreq && !csreq && !shared_dma_req && !lcd_fast_req &&
++                 !dut.pcm_sdram_req && !lock;
++reg next_valid [0:3], next_invalid [0:3], next_refresh [0:3], next_foreign [0:3];
++reg next_seed_i [0:3], next_replace [0:3];
++reg [24:0] next_candidate [0:3], next_saved;
++reg last_full = 0, last_legal, last_i, next_inflight = 0, next_saved_i, next_saved_legal;
++reg [24:0] last_pa;
++integer next_idle [0:3], next_best [0:3];
++integer next_demand [0:1], next_seed [0:1], next_rowend [0:1], next_aperture [0:1],
++        next_adjacency [0:3], next_adj_rowend [0:3];
++integer next_hits [0:3][0:3], next_reject_write [0:3], next_short [0:3],
++        next_refresh_hits [0:3], next_other_hits [0:3], next_killed [0:3];
++
++function integer next_threshold(input integer mode);
++    case (mode)
++        0: next_threshold = 0;
++        1: next_threshold = 16;
++        2: next_threshold = 20;
++        default: next_threshold = 24;
++    endcase
++endfunction
++
++task automatic reset_next;
++    last_full = 0; next_inflight = 0;
++    for (integer n = 0; n < 2; n++) begin
++        next_demand[n] = 0; next_seed[n] = 0; next_rowend[n] = 0; next_aperture[n] = 0;
++    end
++    for (integer mode = 0; mode < 4; mode++) begin
++        next_valid[mode] = 0;
++        next_adjacency[mode] = 0; next_adj_rowend[mode] = 0;
++        next_short[mode] = 0; next_reject_write[mode] = 0; next_killed[mode] = 0;
++        next_refresh_hits[mode] = 0; next_other_hits[mode] = 0;
++        for (integer direction = 0; direction < 4; direction++) next_hits[mode][direction] = 0;
++    end
++endtask
++
++task automatic observe_next;
++    reg coherent_hit;
++    for (integer mode = 0; mode < 4; mode++)
++        if (next_valid[mode]) begin
++            if (!next_invalid[mode] && ((next_post && sa[24:5] == next_candidate[mode][24:5]) ||
++                                       (next_write && sdr_addr[24:5] == next_candidate[mode][24:5]))) begin
++                next_invalid[mode] = 1;
++                next_killed[mode]++;
++            end
++            next_refresh[mode] |= ctrl.ref_due;
++            next_foreign[mode] |= csreq || shared_dma_req || lcd_fast_req || dut.pcm_sdram_req;
++            next_idle[mode] = next_free ? next_idle[mode] + 1 : 0;
++            if (next_idle[mode] > next_best[mode]) next_best[mode] = next_idle[mode];
++        end
++
++    if (next_take) begin
++        if (ram_line_addr[4:0] != 0 || next_inflight || next_pa >= 25'h1000000)
++            $fatal(1, "unexpected next-line census admission");
++        next_inflight = 1;
++        next_demand[next_i]++;
++        next_seed[next_i] += next_legal;
++        next_rowend[next_i] += next_pa[9:5] == 5'h1f;
++        next_aperture[next_i] += next_successor >= 26'h1000000;
++        if (last_full && {1'b0, last_pa} + 26'd32 == {1'b0, next_pa})
++            if (last_legal) next_adjacency[{last_i, next_i}]++;
++            else next_adj_rowend[{last_i, next_i}]++;
++        next_saved = next_pa; next_saved_i = next_i; next_saved_legal = next_legal;
++        for (integer mode = 0; mode < 4; mode++) begin
++            coherent_hit = 0;
++            if (next_valid[mode] && next_candidate[mode] == next_pa) begin
++                if (next_invalid[mode]) next_reject_write[mode]++;
++                else if (next_best[mode] < next_threshold(mode)) next_short[mode]++;
++                else begin
++                    coherent_hit = 1;
++                    next_hits[mode][{next_seed_i[mode], next_i}]++;
++                    next_refresh_hits[mode] += next_refresh[mode];
++                    next_other_hits[mode] += next_foreign[mode];
++                end
++            end
++            next_replace[mode] = !coherent_hit;
++            if (!coherent_hit) next_valid[mode] = 0;
++        end
++    end
++    if (next_done && next_inflight) begin
++        next_inflight = 0;
++        last_full = 1; last_pa = next_saved; last_legal = next_saved_legal; last_i = next_saved_i;
++        for (integer mode = 0; mode < 4; mode++)
++            if (next_replace[mode] && next_saved_legal) begin
++                next_valid[mode] = 1; next_invalid[mode] = 0;
++                next_refresh[mode] = 0; next_foreign[mode] = 0;
++                next_idle[mode] = 0; next_best[mode] = 0;
++                next_candidate[mode] = next_saved + 25'd32;
++                next_seed_i[mode] = next_saved_i;
++            end
++    end
++endtask
++
++task automatic report_next(input integer interval);
++    $display("NEXT_DEMAND interval=%0d d=%0d i=%0d eligible_d=%0d eligible_i=%0d rowend_d=%0d rowend_i=%0d aperture_d=%0d aperture_i=%0d",
++        interval, next_demand[0], next_demand[1], next_seed[0], next_seed[1],
++        next_rowend[0], next_rowend[1], next_aperture[0], next_aperture[1]);
++    $display("NEXT_ADJ interval=%0d dd=%0d di=%0d id=%0d ii=%0d cross_row_dd=%0d cross_row_di=%0d cross_row_id=%0d cross_row_ii=%0d",
++        interval, next_adjacency[0], next_adjacency[1], next_adjacency[2], next_adjacency[3],
++        next_adj_rowend[0], next_adj_rowend[1], next_adj_rowend[2], next_adj_rowend[3]);
++    for (integer mode = 0; mode < 4; mode++)
++        $display("NEXT_SLOT interval=%0d idle=%0d dd=%0d di=%0d id=%0d ii=%0d write_invalidations=%0d stale_matches=%0d cold_matches=%0d refresh_hits=%0d other_hits=%0d",
++            interval, next_threshold(mode), next_hits[mode][0], next_hits[mode][1],
++            next_hits[mode][2], next_hits[mode][3], next_killed[mode], next_reject_write[mode],
++            next_short[mode], next_refresh_hits[mode], next_other_hits[mode]);
++endtask
+--- /dev/null
++++ b/scratch/v5-donor-next-line/run.py
+@@ -0,0 +1,65 @@
++from pathlib import Path
++import hashlib
++import json
++import re
++import shlex
++import subprocess
++
++area = Path(__file__).resolve().parent
++repo = area.parents[1]
++workspace = area / "leg"
++frozen = repo / "build/sim/polycount/v5-104-all-four-ram-candidate"
++assert (frozen / "arm925t-i16.v").read_bytes() == (workspace / "rtl/arm9v2/arm925t_phone.v").read_bytes()
++compiler = frozen / "i16/mmc3-nos64/Vtb__verFiles.dat"
++options = next(line for line in compiler.read_text().splitlines() if line.startswith("C "))
++argv = shlex.split(options.removeprefix('C "').removesuffix('"'))
++observer = (area / "observe.vh").read_text()
++raw = (frozen / "i16/tb.v").read_text()
++for old, new in (
++    ("        start_clock = cycles;", "        start_clock = cycles;\n        reset_next();"),
++    ("    end else if (start_clock >= 0) begin", "    end else if (start_clock >= 0) begin\n        observe_next();"),
++    ('            $display("POLY_FRAME', '            report_next(frame);\n            $display("POLY_FRAME'),
++):
++    assert raw.count(old) == 1
++    raw = raw.replace(old, new)
++(workspace / "bench.sv").write_text(raw.rsplit("endmodule", 1)[0] + observer + "\nendmodule\n")
++for index, option in enumerate(argv):
++    if option.startswith("/work/") and option.endswith("/tb.v"):
++        argv[index] = "bench.sv"
++    elif option.startswith("/work/") and option.endswith((".sv", ".v")):
++        argv[index] = option.replace("/work/", "/frozen/", 1)
++argv[argv.index("--Mdir") + 1] = "obj"
++driver = ["docker", "run", "--rm", "--pull=never", "--network", "none", "--platform", "linux/arm64",
++          "-v", f"{workspace}:/work", "-v", f"{repo}:/frozen:ro", "-w", "/work", "--entrypoint"]
++image = "jotego/simulator:arm64"
++with (area / "build.log").open("w") as handle:
++    subprocess.run(driver + ["verilator", image] + argv, stdout=handle, stderr=subprocess.STDOUT, check=True)
++for path in (workspace / "obj").glob("*.gch"):
++    path.unlink()
++inputs = {key: "/frozen/" + str((frozen / filename).relative_to(repo))
++          for key, filename in (("core", "core.bin"), ("cdrive", "cdrive.bin"), ("snapshot", "snapshot.bin"))}
++with (area / "run.log").open("w") as handle:
++    subprocess.run(driver + ["/work/obj/Vtb", image, "+ngage-compact-trace", "+no-board-log",
++        "+extension=/frozen/build/firmware/nem4-factory/extension.bin",
++        "+results=/work/polycount", "+begin_pc=68", "+end_pc=6c", "+done_pc=80", "+fail_pc=84"] +
++        [f"+{key}={path}" for key, path in inputs.items()],
++        stdout=handle, stderr=subprocess.STDOUT, check=True)
++
++lines = (area / "run.log").read_text().splitlines()
++def stats(prefix):
++    return [dict((k, int(v)) for k, v in re.findall(r"(\w+)=(-?\d+)", line))
++            for line in lines if line.startswith(prefix + " ")]
++ref = json.loads((frozen / "result.json").read_text())["results"]["i16"]
++digest = hashlib.sha256((workspace / "polycount.bin").read_bytes()).hexdigest()
++assert digest == ref["output_sha"]
++assert stats("POLY_FRAME") == ref["frames"]
++assert stats("PASS_POLYCOUNT") == [ref["completion"]]
++kinds = ("NEXT_DEMAND", "NEXT_ADJ", "NEXT_SLOT")
++rows = {kind: stats(kind) for kind in kinds}
++assert len(rows["NEXT_DEMAND"]) == len(rows["NEXT_ADJ"]) == 4 and len(rows["NEXT_SLOT"]) == 16
++netlist = hashlib.sha256((workspace/"rtl/arm9v2/arm925t_phone.v").read_bytes()).hexdigest()
++assert netlist == ref["netlist_sha"]
++results = dict(commit="b6d8981", clock_hz=104_000_000,
++               netlist_sha256=netlist, output_sha256=digest, rows=rows, frames=stats("POLY_FRAME"))
++(area / "result.json").write_text(json.dumps(results, indent=2) + "\n")
++print("PASS all four native frames, completion counters and output buffer")
+--- /dev/null
++++ b/scratch/v5-donor-next-line/run_payload.py
+@@ -0,0 +1,75 @@
++from concurrent.futures import ThreadPoolExecutor
++import hashlib
++import json
++from pathlib import Path
++import re
++import shlex
++import subprocess
++import sys
++
++area = Path(__file__).resolve().parent
++repo = area.parents[1]
++workspace = area / "leg"
++frozen = repo / "build/sim/payload-clocks/v5-104-all-four-ram-candidate"
++assert (frozen / "arm925t_phone.v").read_bytes() == (workspace / "rtl/arm9v2/arm925t_phone.v").read_bytes()
++compiler = frozen / "mmc3-nos64/Vtb__verFiles.dat"
++command = next(line for line in compiler.read_text().splitlines() if line.startswith("C "))
++argv = shlex.split(command.removeprefix('C "').removesuffix('"'))
++observer = (area / "observe.vh").read_text()
++raw = (frozen / "tb.v").read_text()
++for old, new in (
++    ("        first_clock = cycles;", "        first_clock = cycles;\n        reset_next();"),
++    ("    if (first_clock >= 0) begin", "    if (first_clock >= 0 && first_clock != cycles) observe_next();\n    if (first_clock >= 0) begin"),
++    ('            $display("PAYLOAD_RESULT', '            report_next(window);\n            $display("PAYLOAD_RESULT'),
++):
++    assert raw.count(old) == 1
++    raw = raw.replace(old, new)
++(workspace / "payload.sv").write_text(raw.rsplit("endmodule", 1)[0] + observer + "\nendmodule\n")
++for index, option in enumerate(argv):
++    if option.startswith("/work/") and option.endswith("/tb.v"):
++        argv[index] = "payload.sv"
++    elif option.startswith("/work/") and option.endswith((".sv", ".v")):
++        argv[index] = option.replace("/work/", "/frozen/", 1)
++argv[argv.index("--Mdir") + 1] = "obj-payload"
++driver = ["docker", "run", "--rm", "--pull=never", "--network", "none", "--platform", "linux/arm64",
++          "-v", f"{workspace}:/work", "-v", f"{repo}:/frozen:ro", "-w", "/work", "--entrypoint"]
++image = "jotego/simulator:arm64"
++with (area / "build-payload.log").open("w") as handle:
++    subprocess.run(driver + ["verilator", image] + argv, stdout=handle, stderr=subprocess.STDOUT, check=True)
++for path in (workspace / "obj-payload").glob("*.gch"):
++    path.unlink()
++sys.path.insert(0, str(repo / "tests/cpu/arm9v2_board"))
++from payload_clocks import qualified_inputs
++ref = {r["case"]: r for r in json.loads((frozen / "result.json").read_text())["rows"]}
++kinds = ("NEXT_DEMAND", "NEXT_ADJ", "NEXT_SLOT")
++def simulate(case):
++    name = case["name"]
++    trace = f"requests-{name}.txt"
++    log = area / f"payload-{name}.log"
++    common = "+core=/frozen/" + str((frozen / f"{name}-False.bin").relative_to(repo))
++    with log.open("w") as handle:
++        subprocess.run(driver + ["/work/obj-payload/Vtb", image, "+ngage-compact-trace", "+no-board-log", common,
++            "+extension=/frozen/build/firmware/nem4-factory/extension.bin",
++            "+cdrive=/frozen/" + str((frozen / "cdrive.bin").relative_to(repo)),
++            f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++            f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}',
++            "+sdram-trace=/work/" + trace], stdout=handle, stderr=subprocess.STDOUT, check=True)
++    def stats(prefix):
++        return [dict((k, int(v)) for k, v in re.findall(r"(\w+)=(-?\d+)", line))
++                for line in log.read_text().splitlines() if line.startswith(prefix + " ")]
++    assert stats("PAYLOAD_RESULT") == ref[name]["windows"] and len(stats("PAYLOAD_PASS")) == 1
++    assert (workspace / trace).read_bytes() == (frozen / f"{name}-3-64-requests.txt").read_bytes()
++    rows = {kind: stats(kind) for kind in kinds}
++    assert len(rows["NEXT_DEMAND"]) == len(rows["NEXT_ADJ"]) == 7 and len(rows["NEXT_SLOT"]) == 28
++    return name, rows
++
++with ThreadPoolExecutor(max_workers=4) as pool:
++    result = dict(pool.map(simulate, qualified_inputs()))
++assert result.keys() == ref.keys() and len(result) == 15
++(area / "payload.json").write_text(json.dumps(result, indent=2) + "\n")
++print("PASS all 15 fixed-work traces and their 105 timed windows")
++for kind in kinds:
++    if kind == 'NEXT_SLOT':
++        continue
++    print(kind, {k: sum(w[k] for record in result.values() for w in record[kind])
++                 for k in next(iter(result.values()))[kind][0] if k not in ("interval", "idle")})
+--- /dev/null
++++ b/scratch/v5-donor-next-line/summarize.py
+@@ -0,0 +1,46 @@
++from pathlib import Path
++import json
++
++area = Path(__file__).resolve().parent
++native = json.loads((area / "result.json").read_text())
++fixed = json.loads((area / "payload.json").read_text())
++modes = (0, 16, 20, 24)
++
++
++def aggregate(records):
++    totals = {}
++    for kind in ("NEXT_DEMAND", "NEXT_ADJ"):
++        rows = [row for record in records for row in record[kind]]
++        totals[kind] = {key: sum(row[key] for row in rows) for key in rows[0] if key != "interval"}
++    totals["NEXT_SLOT"] = {}
++    for mode in modes:
++        rows = [row for record in records for row in record["NEXT_SLOT"] if row["idle"] == mode]
++        totals["NEXT_SLOT"][str(mode)] = {
++            key: sum(row[key] for row in rows) for key in rows[0] if key not in ("interval", "idle")
++        }
++    return totals
++
++
++evidence = {
++    "commit": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
++    "donor": "ngage2/5473d46",
++    "clock_hz": native["clock_hz"],
++    "cpu_netlist_sha256": native["netlist_sha256"],
++    "slot_idle_clocks": list(modes),
++    "native": {
++        "baseline_frame_and_completion_counters_match": True,
++        "output_sha256": native["output_sha256"],
++        "frames": native["frames"],
++        "rows": native["rows"],
++        "aggregate": aggregate([native["rows"]]),
++    },
++    "fixed": {
++        "baseline_timed_windows_and_third_window_sdram_request_traces_match": True,
++        "window_count": 7 * len(fixed),
++        "per_workload": {name: aggregate([rows]) for name, rows in sorted(fixed.items())},
++        "aggregate": aggregate(list(fixed.values())),
++    },
++}
++(area / "evidence.json").write_text(json.dumps(evidence, indent=2) + "\n")
++for scope in ("native", "fixed"):
++    print(scope, json.dumps(evidence[scope]["aggregate"], sort_keys=True))

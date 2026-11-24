@@ -1,3 +1,7 @@
+## 2026-11-24 — execute readiness and donor read-ahead study
+
+The execute readiness candidate `c492853` matched the DDR control in the direct differential, four board profiles, 15 fixed workloads, four native frames and the mixed replay. Its three 104 MHz fits await explicit publication approval. Active RTL remains DDR bounds `b6d8981`. The donor-inspired physical next-line census matched 1.57% of native line demands at a 24-clock idle threshold. Sega Rally scan accounted for 3,192 of 3,210 fixed-work matches. The census measured eligible demand, with no speculative traffic or time savings measured. [Execute qualification](experiments/v5-performance/execute-ready.md) · [Read-ahead census](experiments/v5-performance/physical-next-line.md) · [Donor comparison](v5-timing-isolation.md#execute-readiness-and-sdram-read-ahead-in-the-current-donor)
+
 ## 2026-11-24 — DDR burst bounds retained for the next combination
 
 The final-window check removed the sector carry chain from the reported result paths. All six paired slow corners improved there, with identical cycles and outputs in 15 fixed workloads and four native frames. Median whole-core setup changed from −2.851 to −2.978 ns. Seed 13 reached −2.742 ns. Keep `b6d8981` active and use `739d3bd` as the matched timing control. Next, isolate execute operand readiness while preserving load forwarding, holds and flush. [Matched runs, patch and qualification](v5-alm-storage-results.md#ddr-burst-bounds)
