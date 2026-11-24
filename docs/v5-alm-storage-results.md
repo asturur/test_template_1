@@ -182,3 +182,23 @@ The worst reported sector result endpoint (`done`, `error` or `cancelled`) impro
 Keep `b6d8981` active for the next combination because it removes the targeted carry chain with no measured cycle cost. Keep `739d3bd` as the matched timing control. Seed 13 gained 0.061 ns for the whole core, with the worst path from the D-side TLB's `o_fsr[1]` to the D-cache FSM's `o_lock_any`. Seed 31337 was limited by Wishbone `o_wb_cyc` to SDRAM scheduler `cmd_addr[12]`.
 
 The next timing target is execute operand packet readiness. Paths through the routed `o_ready_payload` cell to an execute `a` register appeared 44, 111 and 7 times in the hot top 1,000 for seeds 43, 13 and 31337. Their worst slack was −3.277, −2.094 and −2.072 ns, respectively. Try registering independent readiness conditions ahead of operand delivery while keeping same-cycle load forwarding, packet holds and flush behavior.
+
+## Execute operand readiness
+
+Commit `c492853` computes complete execute admission decisions for the two W-load outcomes and selects with the live hit. The 20,000-cycle execute differential compared all stage outputs and held state. It covered same-cycle load release and A-packet replacement, register-shift preparation, priority, stalls and redirects. Four board profiles, all 15 fixed workloads, four native PolyCount frames and the mixed LCD, PCM and MMC replay matched the DDR control. The four measured frame windows totalled 57,508,371 clocks. [Exact patch, differential and replay receipt](experiments/v5-performance/execute-ready.md)
+
+| 104 MHz production fit | DDR bounds `b6d8981` | Execute readiness `c492853` | Setup change |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −3.277 ns | [−2.668 ns](https://github.com/asturur/test_template_1/actions/runs/45301331404) | +0.609 ns |
+| Seed 13 setup | −2.742 ns | [−2.954 ns](https://github.com/asturur/test_template_1/actions/runs/45301335032) | −0.212 ns |
+| Seed 31337 setup | −2.978 ns | [−2.666 ns](https://github.com/asturur/test_template_1/actions/runs/45301339080) | +0.312 ns |
+| Median setup | −2.978 ns | −2.668 ns | +0.310 ns |
+| Median core setup TNS | −7,256.958 ns | −5,760.244 ns | |
+| Median ALMs | 37,334 | 37,297 | |
+| M10Ks on every seed | 321 | 321 | |
+
+Of the 1,000 detailed hot setup paths per seed, paths that cross named readiness logic and end at an execute packet register fell from 44, 111 and 7 to 13, 18 and zero. The worst remaining listed paths were −2.300 and −1.949 ns on seeds 43 and 13. In the exported paths at all four corners, none launched from a named W hit, short hit or short trust register and ended at an execute packet register. A path outside the export has no measured slack in this comparison. [Matched path and source evidence](evidence/v5-104-execute-ready-fits.json)
+
+The largest remaining setup delay on seed 43 went from the D-cache data RAM read through forwarded shift amount and barrel shifter into the execute packet. Seed 13's worst path ran from the UPP bridge response through I-cache beat acceptance to the Wishbone merger's next native-line flag. Seed 31337 reached −2.666 ns on a path from CP15 `o_sr[0]` to the D-side TLB fault status `o_fsr[3]`. All three fits missed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. Keep `c492853` active. The best bitstream, seed 31337, is archived at `build/fit/v5-104mhz-c492853-seed31337/ngage1.rbf`. Its SHA-256 is `892fd9e84eafcca5818a6173fc413a2b01b5ac0c01a9d4e55c88bfec6b91ca5a`. It has no board validation. [Per-corner fits and bitstream hash](evidence/v5-104-execute-ready-fits.json)
+
+The next standalone timing experiment is to precompute CP15 S/R-dependent access permissions on the same edge that updates CP15 state. Let those bits settle in parallel with descriptor and domain checks. Keep fault codes, fault ordering and cache-hit latency precise. Seed 31337 is the direct timing target. Repeat the other seeds to detect shifts into the other limiting paths.

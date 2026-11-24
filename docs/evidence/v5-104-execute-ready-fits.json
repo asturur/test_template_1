@@ -1,0 +1,2028 @@
+{
+  "ddr_bounds": [
+    {
+      "run": 45291134648,
+      "sha": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+      "seed": 43,
+      "alms": 37293,
+      "m10ks": 321,
+      "registers": 40967,
+      "average_routing_pct": 46.7,
+      "peak_routing_pct": 75.6,
+      "core_setup_tns_sta_summary_ns": -7256.958,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.277,
+          "hold-summary": 0.195,
+          "recovery-summary": 2.033,
+          "removal-summary": 1.191,
+          "min-pulse": 0.961,
+          "fmax_mhz": 77.57
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -3.073,
+          "hold-summary": 0.073,
+          "recovery-summary": 2.124,
+          "removal-summary": 1.115,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.81
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.325,
+          "hold-summary": 0.098,
+          "recovery-summary": 5.35,
+          "removal-summary": 0.574,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.17
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.426,
+          "hold-summary": 0.078,
+          "recovery-summary": 5.556,
+          "removal-summary": 0.496,
+          "min-pulse": 0.961,
+          "fmax_mhz": 161.58
+        }
+      ],
+      "worst_setup_ns": -3.277,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 52,
+        "ngage_icu_extra:extra_regs|": 38,
+        "ngage_mmc_host:": 0,
+        "ngage2_zap_tlb:": 63,
+        "ngage2_zap_wb_merger:": 96,
+        "ngage2_arm9v2_execute:": 120
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 256.4,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 268.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.5,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 265.3,
+          "direct_registers": 227,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 817.8,
+          "direct_registers": 1024,
+          "inclusive_m10ks": 0
+        }
+      },
+      "execute_ready_paths": {
+        "run": "45291134648",
+        "seed": 43,
+        "sha": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+        "hot_top_1000": {
+          "any_to_execute_packet": {
+            "count": 66,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.277,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w_hit_candidate"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[1]~1"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[2]~4"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~9"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~248_RESYN19823"
+                ],
+                [
+                  "u_execute",
+                  "a~248"
+                ]
+              ]
+            }
+          },
+          "ready_to_execute_packet": {
+            "count": 44,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.277,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w_hit_candidate"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[1]~1"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[2]~4"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~9"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~248_RESYN19823"
+                ],
+                [
+                  "u_execute",
+                  "a~248"
+                ]
+              ]
+            }
+          },
+          "new_rail_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "any_named_ready_to_execute_packet": {
+            "count": 44,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.277,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w_hit_candidate"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[1]~1"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[2]~4"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~9"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~248_RESYN19823"
+                ],
+                [
+                  "u_execute",
+                  "a~248"
+                ]
+              ]
+            }
+          },
+          "hit_reg_to_execute_packet": {
+            "count": 56,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.277,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w_hit_candidate"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[1]~1"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[2]~4"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~9"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~248_RESYN19823"
+                ],
+                [
+                  "u_execute",
+                  "a~248"
+                ]
+              ]
+            }
+          },
+          "hit_reg_through_ready_to_execute_packet": {
+            "count": 44,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -3.277,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w_hit_candidate"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[1]~1"
+                ],
+                [
+                  "u_execute",
+                  "s_wait[2]~4"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~9"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~248_RESYN19823"
+                ],
+                [
+                  "u_execute",
+                  "a~248"
+                ]
+              ]
+            }
+          },
+          "decode_write_through_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          }
+        },
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "execute_packet_count": 66,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "-3.277",
+              "data_delay_ns": "12.066",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            },
+            "hit_to_packet_count": 56,
+            "worst_hit_to_packet": {
+              "rank": "1",
+              "slack_ns": "-3.277",
+              "data_delay_ns": "12.066",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "execute_packet_count": 49,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "-3.073",
+              "data_delay_ns": "11.861",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[248]"
+            },
+            "hit_to_packet_count": 43,
+            "worst_hit_to_packet": {
+              "rank": "1",
+              "slack_ns": "-3.073",
+              "data_delay_ns": "11.861",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[248]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "execute_packet_count": 94,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "2.325",
+              "data_delay_ns": "6.753",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            },
+            "hit_to_packet_count": 28,
+            "worst_hit_to_packet": {
+              "rank": "1",
+              "slack_ns": "2.325",
+              "data_delay_ns": "6.753",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "execute_packet_count": 48,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "3.426",
+              "data_delay_ns": "5.656",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            },
+            "hit_to_packet_count": 25,
+            "worst_hit_to_packet": {
+              "rank": "1",
+              "slack_ns": "3.426",
+              "data_delay_ns": "5.656",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_hit_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "run": 45291139958,
+      "sha": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+      "seed": 13,
+      "alms": 37423,
+      "m10ks": 321,
+      "registers": 41200,
+      "average_routing_pct": 47.0,
+      "peak_routing_pct": 80.6,
+      "core_setup_tns_sta_summary_ns": -6081.099,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.742,
+          "hold-summary": 0.186,
+          "recovery-summary": 1.839,
+          "removal-summary": 1.294,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.93
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.575,
+          "hold-summary": 0.072,
+          "recovery-summary": 2.199,
+          "removal-summary": 1.207,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.03
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.6,
+          "hold-summary": 0.135,
+          "recovery-summary": 4.891,
+          "removal-summary": 0.618,
+          "min-pulse": 0.961,
+          "fmax_mhz": 142.55
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.641,
+          "hold-summary": 0.097,
+          "recovery-summary": 5.146,
+          "removal-summary": 0.517,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.39
+        }
+      ],
+      "worst_setup_ns": -2.742,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 14,
+        "ngage_icu_extra:extra_regs|": 5,
+        "ngage_mmc_host:": 60,
+        "ngage2_zap_tlb:": 225,
+        "ngage2_zap_wb_merger:": 240,
+        "ngage2_arm9v2_execute:": 239
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_fsr[1]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 256.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 268.9,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 235.3,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 248.9,
+          "direct_registers": 228,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 819.7,
+          "direct_registers": 1020,
+          "inclusive_m10ks": 0
+        }
+      },
+      "execute_ready_paths": {
+        "run": "45291139958",
+        "seed": 13,
+        "sha": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+        "hot_top_1000": {
+          "any_to_execute_packet": {
+            "count": 132,
+            "worst": {
+              "rank": 20,
+              "slack_ns": -2.094,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w[527]"
+                ],
+                [
+                  "u_execute",
+                  "a_wait_nohit[0]~6"
+                ],
+                [
+                  "u_execute",
+                  "a_wait[0]~3"
+                ],
+                [
+                  "u_execute",
+                  "o_a_can_finish"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "always3~0"
+                ],
+                [
+                  "u_execute",
+                  "a~141"
+                ],
+                [
+                  "u_execute",
+                  "a~145"
+                ],
+                [
+                  "u_execute",
+                  "a~149"
+                ]
+              ]
+            }
+          },
+          "ready_to_execute_packet": {
+            "count": 111,
+            "worst": {
+              "rank": 20,
+              "slack_ns": -2.094,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w[527]"
+                ],
+                [
+                  "u_execute",
+                  "a_wait_nohit[0]~6"
+                ],
+                [
+                  "u_execute",
+                  "a_wait[0]~3"
+                ],
+                [
+                  "u_execute",
+                  "o_a_can_finish"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "always3~0"
+                ],
+                [
+                  "u_execute",
+                  "a~141"
+                ],
+                [
+                  "u_execute",
+                  "a~145"
+                ],
+                [
+                  "u_execute",
+                  "a~149"
+                ]
+              ]
+            }
+          },
+          "new_rail_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "any_named_ready_to_execute_packet": {
+            "count": 111,
+            "worst": {
+              "rank": 20,
+              "slack_ns": -2.094,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "w[527]"
+                ],
+                [
+                  "u_execute",
+                  "a_wait_nohit[0]~6"
+                ],
+                [
+                  "u_execute",
+                  "a_wait[0]~3"
+                ],
+                [
+                  "u_execute",
+                  "o_a_can_finish"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~10"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "always3~0"
+                ],
+                [
+                  "u_execute",
+                  "a~141"
+                ],
+                [
+                  "u_execute",
+                  "a~145"
+                ],
+                [
+                  "u_execute",
+                  "a~149"
+                ]
+              ]
+            }
+          },
+          "hit_reg_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "hit_reg_through_ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "decode_write_through_to_execute_packet": {
+            "count": 3,
+            "worst": {
+              "rank": 189,
+              "slack_ns": -1.724,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|write_through_match[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[235]",
+              "named_cells": [
+                [
+                  "u_decode",
+                  "write_through_match[7]"
+                ],
+                [
+                  "u_execute",
+                  "operand[65]~49_RESYN19585"
+                ],
+                [
+                  "u_execute",
+                  "operand[65]~49"
+                ],
+                [
+                  "u_execute",
+                  "operand[65]~54"
+                ],
+                [
+                  "u_execute",
+                  "shift_rot[3]~6_RESYN22139"
+                ],
+                [
+                  "u_execute",
+                  "shift_rot[3]~6"
+                ],
+                [
+                  "u_rotate_w",
+                  "stage[4][1]~65"
+                ],
+                [
+                  "u_rotate_w",
+                  "o_value~51_RESYN23097"
+                ],
+                [
+                  "u_execute",
+                  "a~241_RESYN24101"
+                ],
+                [
+                  "u_execute",
+                  "a~241"
+                ]
+              ]
+            }
+          }
+        },
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "execute_packet_count": 132,
+            "worst_execute_packet": {
+              "rank": "20",
+              "slack_ns": "-2.094",
+              "data_delay_ns": "10.876",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "execute_packet_count": 89,
+            "worst_execute_packet": {
+              "rank": "38",
+              "slack_ns": "-1.845",
+              "data_delay_ns": "10.632",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_writeback:u_zap_writeback|cpsr_ff[1]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[246]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "execute_packet_count": 139,
+            "worst_execute_packet": {
+              "rank": "12",
+              "slack_ns": "2.788",
+              "data_delay_ns": "6.283",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "execute_packet_count": 48,
+            "worst_execute_packet": {
+              "rank": "45",
+              "slack_ns": "3.874",
+              "data_delay_ns": "5.201",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          }
+        ]
+      }
+    },
+    {
+      "run": 45291143845,
+      "sha": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+      "seed": 31337,
+      "alms": 37334,
+      "m10ks": 321,
+      "registers": 41182,
+      "average_routing_pct": 46.7,
+      "peak_routing_pct": 80.0,
+      "core_setup_tns_sta_summary_ns": -7726.932,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.833,
+          "hold-summary": 0.203,
+          "recovery-summary": 1.603,
+          "removal-summary": 0.974,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.33
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.978,
+          "hold-summary": 0.085,
+          "recovery-summary": 2.041,
+          "removal-summary": 0.908,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.41
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.486,
+          "hold-summary": 0.134,
+          "recovery-summary": 4.707,
+          "removal-summary": 0.462,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.27
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.567,
+          "hold-summary": 0.117,
+          "recovery-summary": 5.054,
+          "removal-summary": 0.396,
+          "min-pulse": 0.961,
+          "fmax_mhz": 168.21
+        }
+      ],
+      "worst_setup_ns": -2.978,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 2,
+        "ngage_icu_extra:extra_regs|": 126,
+        "ngage_mmc_host:": 121,
+        "ngage2_zap_tlb:": 171,
+        "ngage2_zap_wb_merger:": 500,
+        "ngage2_arm9v2_execute:": 154
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+        "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[12]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 255.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 264.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 235.7,
+          "direct_registers": 297,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 254.4,
+          "direct_registers": 230,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 810.2,
+          "direct_registers": 1036,
+          "inclusive_m10ks": 0
+        }
+      },
+      "execute_ready_paths": {
+        "run": "45291143845",
+        "seed": 31337,
+        "sha": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+        "hot_top_1000": {
+          "any_to_execute_packet": {
+            "count": 50,
+            "worst": {
+              "rank": 44,
+              "slack_ns": -2.308,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_live_trust",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[22]",
+              "named_cells": [
+                [
+                  "u_zap_cache_fsm",
+                  "o_live_trust"
+                ],
+                [
+                  "u_execute",
+                  "a_load_hit~0"
+                ],
+                [
+                  "u_execute",
+                  "a_wait[0]~3"
+                ],
+                [
+                  "u_execute",
+                  "o_a_can_finish"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "comb~5"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "advance_write[0]~0"
+                ],
+                [
+                  "u_execute",
+                  "g_late_forward[3].s_advance[0]"
+                ],
+                [
+                  "u_execute",
+                  "take_of~47"
+                ],
+                [
+                  "u_execute",
+                  "g_late_forward[3].s_take_advance[4]"
+                ],
+                [
+                  "u_execute",
+                  "a~435"
+                ]
+              ]
+            }
+          },
+          "ready_to_execute_packet": {
+            "count": 7,
+            "worst": {
+              "rank": 110,
+              "slack_ns": -2.072,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[246]",
+              "named_cells": [
+                [
+                  "u_zap_tlb_check",
+                  "o_hit_ok"
+                ],
+                [
+                  "u_zap_cache_fsm",
+                  "o_ack_fast~0"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "request_done"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class~4"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class[0]"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~82_RESYN19667"
+                ],
+                [
+                  "u_execute",
+                  "a~82"
+                ]
+              ]
+            }
+          },
+          "new_rail_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "any_named_ready_to_execute_packet": {
+            "count": 7,
+            "worst": {
+              "rank": 110,
+              "slack_ns": -2.072,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[246]",
+              "named_cells": [
+                [
+                  "u_zap_tlb_check",
+                  "o_hit_ok"
+                ],
+                [
+                  "u_zap_cache_fsm",
+                  "o_ack_fast~0"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "request_done"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class~4"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class[0]"
+                ],
+                [
+                  "u_execute",
+                  "o_ready_payload~11"
+                ],
+                [
+                  "u_execute",
+                  "a~66"
+                ],
+                [
+                  "u_execute",
+                  "a~70"
+                ],
+                [
+                  "u_execute",
+                  "a~82_RESYN19667"
+                ],
+                [
+                  "u_execute",
+                  "a~82"
+                ]
+              ]
+            }
+          },
+          "hit_reg_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "hit_reg_through_ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "decode_write_through_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          }
+        },
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "execute_packet_count": 50,
+            "worst_execute_packet": {
+              "rank": "44",
+              "slack_ns": "-2.308",
+              "data_delay_ns": "11.086",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_live_trust",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[22]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "execute_packet_count": 44,
+            "worst_execute_packet": {
+              "rank": "81",
+              "slack_ns": "-2.032",
+              "data_delay_ns": "10.842",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[244]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "execute_packet_count": 110,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "2.486",
+              "data_delay_ns": "6.625",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[324]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[0]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "execute_packet_count": 44,
+            "worst_execute_packet": {
+              "rank": "3",
+              "slack_ns": "3.670",
+              "data_delay_ns": "5.450",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[324]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[0]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          }
+        ]
+      }
+    }
+  ],
+  "execute_ready": [
+    {
+      "run": 45301331404,
+      "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+      "seed": 43,
+      "alms": 37318,
+      "m10ks": 321,
+      "registers": 40452,
+      "average_routing_pct": 46.0,
+      "peak_routing_pct": 72.4,
+      "core_setup_tns_sta_summary_ns": -6354.377,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.668,
+          "hold-summary": 0.189,
+          "recovery-summary": 1.169,
+          "removal-summary": 1.101,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.41
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.657,
+          "hold-summary": 0.08,
+          "recovery-summary": 1.563,
+          "removal-summary": 1.054,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.49
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.453,
+          "hold-summary": 0.097,
+          "recovery-summary": 4.992,
+          "removal-summary": 0.526,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.63
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.477,
+          "hold-summary": 0.067,
+          "recovery-summary": 5.307,
+          "removal-summary": 0.467,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.2
+        }
+      ],
+      "worst_setup_ns": -2.668,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 26,
+        "ngage_icu_extra:extra_regs|": 121,
+        "ngage_mmc_host:": 73,
+        "ngage2_zap_tlb:": 131,
+        "ngage2_zap_wb_merger:": 77,
+        "ngage2_arm9v2_execute:": 145
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[0]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[239]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.8,
+          "direct_registers": 287,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 202.3,
+          "direct_registers": 211,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 847.7,
+          "direct_registers": 973,
+          "inclusive_m10ks": 0
+        }
+      },
+      "execute_ready_paths": {
+        "run": "45301331404",
+        "seed": 43,
+        "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+        "hot_top_1000": {
+          "any_to_execute_packet": {
+            "count": 53,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.668,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[0]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[239]",
+              "named_cells": [
+                [
+                  "l_generate_with_cache_mmu.u_data_cache",
+                  "tr_cache_word[0]"
+                ],
+                [
+                  "u_execute",
+                  "operand[64]~52_RESYN20181"
+                ],
+                [
+                  "u_execute",
+                  "operand[64]~52"
+                ],
+                [
+                  "u_execute",
+                  "shift_rot[0]~3"
+                ],
+                [
+                  "u_rotate_w",
+                  "stage[2][1]~16"
+                ],
+                [
+                  "u_rotate_w",
+                  "stage[4][21]~36"
+                ],
+                [
+                  "u_rotate_w",
+                  "Mux10~0"
+                ],
+                [
+                  "u_execute",
+                  "a~151_RESYN15005"
+                ],
+                [
+                  "u_execute",
+                  "a~151"
+                ]
+              ]
+            }
+          },
+          "ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "new_rail_to_execute_packet": {
+            "count": 13,
+            "worst": {
+              "rank": 18,
+              "slack_ns": -2.3,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok_short",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[241]",
+              "named_cells": [
+                [
+                  "u_zap_tlb_check",
+                  "o_hit_ok_short"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "fast_pc_hit~0"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class~4"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class[0]"
+                ],
+                [
+                  "u_execute",
+                  "ready_if_hit"
+                ],
+                [
+                  "u_execute",
+                  "a~77"
+                ],
+                [
+                  "u_execute",
+                  "a~206_RESYN20245"
+                ],
+                [
+                  "u_execute",
+                  "a~206_RESYN20247"
+                ],
+                [
+                  "u_execute",
+                  "a~206"
+                ]
+              ]
+            }
+          },
+          "any_named_ready_to_execute_packet": {
+            "count": 13,
+            "worst": {
+              "rank": 18,
+              "slack_ns": -2.3,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok_short",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[241]",
+              "named_cells": [
+                [
+                  "u_zap_tlb_check",
+                  "o_hit_ok_short"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "fast_pc_hit~0"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class~4"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class[0]"
+                ],
+                [
+                  "u_execute",
+                  "ready_if_hit"
+                ],
+                [
+                  "u_execute",
+                  "a~77"
+                ],
+                [
+                  "u_execute",
+                  "a~206_RESYN20245"
+                ],
+                [
+                  "u_execute",
+                  "a~206_RESYN20247"
+                ],
+                [
+                  "u_execute",
+                  "a~206"
+                ]
+              ]
+            }
+          },
+          "hit_reg_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "hit_reg_through_ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "decode_write_through_to_execute_packet": {
+            "count": 4,
+            "worst": {
+              "rank": 7,
+              "slack_ns": -2.488,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|write_through_match[8]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[243]",
+              "named_cells": [
+                [
+                  "u_decode",
+                  "write_through_match[8]"
+                ],
+                [
+                  "u_execute",
+                  "operand[64]~46"
+                ],
+                [
+                  "u_execute",
+                  "operand[64]~52_RESYN20181"
+                ],
+                [
+                  "u_execute",
+                  "operand[64]~52"
+                ],
+                [
+                  "u_execute",
+                  "shift_rot[0]~3"
+                ],
+                [
+                  "u_rotate_w",
+                  "stage[2][29]~14"
+                ],
+                [
+                  "u_rotate_w",
+                  "stage[4][25]~38"
+                ],
+                [
+                  "u_rotate_w",
+                  "o_value~43"
+                ],
+                [
+                  "u_execute",
+                  "a~199_RESYN17755"
+                ],
+                [
+                  "u_execute",
+                  "a~199"
+                ]
+              ]
+            }
+          }
+        },
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "execute_packet_count": 53,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "-2.668",
+              "data_delay_ns": "11.448",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[0]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[239]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "execute_packet_count": 40,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "-2.657",
+              "data_delay_ns": "11.439",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[0]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[239]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "execute_packet_count": 115,
+            "worst_execute_packet": {
+              "rank": "1",
+              "slack_ns": "2.453",
+              "data_delay_ns": "6.626",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok_short",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "execute_packet_count": 50,
+            "worst_execute_packet": {
+              "rank": "2",
+              "slack_ns": "3.634",
+              "data_delay_ns": "5.451",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok_short",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[234]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          }
+        ]
+      },
+      "verified_source_count": 132
+    },
+    {
+      "run": 45301335032,
+      "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+      "seed": 13,
+      "alms": 37225,
+      "m10ks": 321,
+      "registers": 40632,
+      "average_routing_pct": 47.2,
+      "peak_routing_pct": 82.5,
+      "core_setup_tns_sta_summary_ns": -5760.244,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.935,
+          "hold-summary": 0.17,
+          "recovery-summary": 2.458,
+          "removal-summary": 0.874,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.68
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.954,
+          "hold-summary": 0.079,
+          "recovery-summary": 2.598,
+          "removal-summary": 0.838,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.56
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.333,
+          "hold-summary": 0.102,
+          "recovery-summary": 5.027,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.32
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.381,
+          "hold-summary": 0.065,
+          "recovery-summary": 5.279,
+          "removal-summary": 0.376,
+          "min-pulse": 0.961,
+          "fmax_mhz": 168.07
+        }
+      ],
+      "worst_setup_ns": -2.954,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 45,
+        "ngage_mmc_host:": 126,
+        "ngage2_zap_tlb:": 105,
+        "ngage2_zap_wb_merger:": 73,
+        "ngage2_arm9v2_execute:": 146
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_bus_bridge:cpu_inside.bridge|state.RESPONSE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 247.6,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.8,
+          "direct_registers": 306,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 194.1,
+          "direct_registers": 211,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 856.7,
+          "direct_registers": 979,
+          "inclusive_m10ks": 0
+        }
+      },
+      "execute_ready_paths": {
+        "run": "45301335032",
+        "seed": 13,
+        "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+        "hot_top_1000": {
+          "any_to_execute_packet": {
+            "count": 58,
+            "worst": {
+              "rank": 53,
+              "slack_ns": -2.264,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|issued[282]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[219]",
+              "named_cells": [
+                [
+                  "u_decode",
+                  "issued[282]"
+                ],
+                [
+                  "u_execute",
+                  "operand1_nw~151"
+                ],
+                [
+                  "u_execute",
+                  "shift_input_nw[5]~59"
+                ],
+                [
+                  "u_rotate",
+                  "stage[2][5]~17"
+                ],
+                [
+                  "u_rotate",
+                  "stage[4][1]~20"
+                ],
+                [
+                  "u_rotate",
+                  "stage[5][1]~21"
+                ],
+                [
+                  "u_rotate",
+                  "o_value~113"
+                ],
+                [
+                  "u_execute",
+                  "a~99"
+                ]
+              ]
+            }
+          },
+          "ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "new_rail_to_execute_packet": {
+            "count": 18,
+            "worst": {
+              "rank": 167,
+              "slack_ns": -1.949,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[97]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[200]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "m[97]"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "comb~12"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "comb~6"
+                ],
+                [
+                  "u_execute",
+                  "s_admit_common~1"
+                ],
+                [
+                  "u_execute",
+                  "comb~25"
+                ],
+                [
+                  "u_execute",
+                  "ready_if_hit"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "always3~0"
+                ],
+                [
+                  "u_execute",
+                  "a[195]~297"
+                ],
+                [
+                  "u_execute",
+                  "a~327"
+                ]
+              ]
+            }
+          },
+          "any_named_ready_to_execute_packet": {
+            "count": 18,
+            "worst": {
+              "rank": 167,
+              "slack_ns": -1.949,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[97]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[200]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "m[97]"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "comb~12"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "comb~6"
+                ],
+                [
+                  "u_execute",
+                  "s_admit_common~1"
+                ],
+                [
+                  "u_execute",
+                  "comb~25"
+                ],
+                [
+                  "u_execute",
+                  "ready_if_hit"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "always3~0"
+                ],
+                [
+                  "u_execute",
+                  "a[195]~297"
+                ],
+                [
+                  "u_execute",
+                  "a~327"
+                ]
+              ]
+            }
+          },
+          "hit_reg_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "hit_reg_through_ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "decode_write_through_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          }
+        },
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "execute_packet_count": 58,
+            "worst_execute_packet": {
+              "rank": "53",
+              "slack_ns": "-2.264",
+              "data_delay_ns": "11.069",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|issued[282]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[219]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "execute_packet_count": 70,
+            "worst_execute_packet": {
+              "rank": "42",
+              "slack_ns": "-2.361",
+              "data_delay_ns": "11.180",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|o_forward_grant[30]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[219]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "execute_packet_count": 65,
+            "worst_execute_packet": {
+              "rank": "32",
+              "slack_ns": "2.789",
+              "data_delay_ns": "6.302",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|issued[282]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[249]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "execute_packet_count": 19,
+            "worst_execute_packet": {
+              "rank": "105",
+              "slack_ns": "3.901",
+              "data_delay_ns": "5.193",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|issued[282]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[249]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          }
+        ]
+      },
+      "verified_source_count": 132
+    },
+    {
+      "run": 45301339080,
+      "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+      "seed": 31337,
+      "alms": 37297,
+      "m10ks": 321,
+      "registers": 40450,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 73.5,
+      "core_setup_tns_sta_summary_ns": -5289.965,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.666,
+          "hold-summary": 0.16,
+          "recovery-summary": 0.622,
+          "removal-summary": 1.035,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.43
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.574,
+          "hold-summary": 0.042,
+          "recovery-summary": 1.039,
+          "removal-summary": 0.969,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.476,
+          "hold-summary": 0.1,
+          "recovery-summary": 4.592,
+          "removal-summary": 0.517,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.08
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.599,
+          "hold-summary": 0.08,
+          "recovery-summary": 5.283,
+          "removal-summary": 0.442,
+          "min-pulse": 0.961,
+          "fmax_mhz": 168.49
+        }
+      ],
+      "worst_setup_ns": -2.666,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 14,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 19,
+        "ngage2_zap_tlb:": 106,
+        "ngage2_zap_wb_merger:": 141,
+        "ngage2_arm9v2_execute:": 109
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_cp15_cb:u_zap_cp15_cb|o_sr[0]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_fsr[3]~DUPLICATE"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.0,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 262.1,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.5,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 200.2,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 845.4,
+          "direct_registers": 994,
+          "inclusive_m10ks": 0
+        }
+      },
+      "execute_ready_paths": {
+        "run": "45301339080",
+        "seed": 31337,
+        "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+        "hot_top_1000": {
+          "any_to_execute_packet": {
+            "count": 57,
+            "worst": {
+              "rank": 53,
+              "slack_ns": -2.409,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|late_done",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[9]",
+              "named_cells": [
+                [
+                  "g_arm9.u_arm9_core",
+                  "late_done"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "resp_err~0"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class~4"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "complete_class[2]"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "done_forward"
+                ],
+                [
+                  "g_arm9.u_arm9_core",
+                  "forward_advance~SynDup_1"
+                ],
+                [
+                  "u_execute",
+                  "a~94"
+                ],
+                [
+                  "u_execute",
+                  "a~95"
+                ]
+              ]
+            }
+          },
+          "ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "new_rail_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "any_named_ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "hit_reg_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "hit_reg_through_ready_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          },
+          "decode_write_through_to_execute_packet": {
+            "count": 0,
+            "worst": null
+          }
+        },
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "execute_packet_count": 57,
+            "worst_execute_packet": {
+              "rank": "53",
+              "slack_ns": "-2.409",
+              "data_delay_ns": "11.187",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|late_done",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[9]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "execute_packet_count": 55,
+            "worst_execute_packet": {
+              "rank": "9",
+              "slack_ns": "-2.324",
+              "data_delay_ns": "11.122",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|o_forward_grant[34]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[245]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "execute_packet_count": 70,
+            "worst_execute_packet": {
+              "rank": "4",
+              "slack_ns": "2.587",
+              "data_delay_ns": "6.489",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|late_done",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[9]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "execute_packet_count": 27,
+            "worst_execute_packet": {
+              "rank": "8",
+              "slack_ns": "3.725",
+              "data_delay_ns": "5.358",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|late_done",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[9]"
+            },
+            "hit_to_packet_count": 0,
+            "worst_hit_to_packet": null
+          }
+        ]
+      },
+      "verified_source_count": 132
+    }
+  ],
+  "best_bitstream": {
+    "seed": 31337,
+    "run": 45301339080,
+    "path": "build/fit/v5-104mhz-c492853-seed31337/ngage1.rbf",
+    "sha256": "892fd9e84eafcca5818a6173fc413a2b01b5ac0c01a9d4e55c88bfec6b91ca5a"
+  },
+  "scope": "104 MHz production, DDR debugger disabled. Four corners. Combinational path names and counts from detailed 100 C export (worst 1,000). Execute packet endpoints tracked independently by u_execute|a[...]. No slack inferred for unlisted or renamed paths."
+}

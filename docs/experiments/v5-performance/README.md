@@ -117,7 +117,10 @@ complete execute admission decisions and selects once with the live W
 load hit. It preserves the finish and admit edge on a same-cycle hit.
 The 20,000-cycle direct comparison, four board profiles, all 15 fixed
 workloads, four native PolyCount frames and mixed LCD/PCM/MMC replay
-match the retained DDR control. Routed timing is pending.
+match the DDR control. Median setup improved 0.310 ns to −2.668 ns.
+Paths through named readiness logic into execute packets fell from 44,
+111 and 7 to 13, 18 and zero across the hot exports. Keep `c492853`
+active. [Routed evidence](../../evidence/v5-104-execute-ready-fits.json)
 
 ## Passive opportunity studies
 

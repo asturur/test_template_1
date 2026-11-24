@@ -1,3 +1,7 @@
+## 2026-11-24 — execute readiness retained
+
+Keep `c492853` active. The three physical 104 MHz fits improved median setup from −2.978 to −2.668 ns. Seed 31337 reached −2.666 ns. Named readiness paths into execute packets fell from 44, 111 and 7 to 13, 18 and zero in the matched hot exports. Guest workload, native frame and mixed replay cycles matched the DDR control. Next, precompute CP15 S/R permissions on the existing update edge and keep precise faults and cache-hit latency. [Matched fits and qualification](v5-alm-storage-results.md#execute-operand-readiness)
+
 ## 2026-11-24 — execute readiness and donor read-ahead study
 
 The execute readiness candidate `c492853` matched the DDR control in the direct differential, four board profiles, 15 fixed workloads, four native frames and the mixed replay. Its three 104 MHz fits await explicit publication approval. Active RTL remains DDR bounds `b6d8981`. The donor-inspired physical next-line census matched 1.57% of native line demands at a 24-clock idle threshold. Sega Rally scan accounted for 3,192 of 3,210 fixed-work matches. The census measured eligible demand, with no speculative traffic or time savings measured. [Execute qualification](experiments/v5-performance/execute-ready.md) · [Read-ahead census](experiments/v5-performance/physical-next-line.md) · [Donor comparison](v5-timing-isolation.md#execute-readiness-and-sdram-read-ahead-in-the-current-donor)

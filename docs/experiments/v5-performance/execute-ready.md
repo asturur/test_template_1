@@ -79,4 +79,16 @@ python3 -B "$area/replay.py" fixed
 python3 -B "$area/replay.py" native
 ```
 
-Routed timing remains open.
+## Routed results
+
+At physical 104 MHz with the DDR debugger disabled, seed 43 improved
+from −3.277 to −2.668 ns and seed 31337 from −2.978 to −2.666 ns.
+Seed 13 moved from −2.742 to −2.954 ns. Median setup improved
+0.310 ns. The hot export counts for named readiness paths into
+execute packets went from 44, 111 and 7 to 13, 18 and zero.
+The exported direct W-hit, short-hit and short-trust paths to those
+packets fell to zero at all four corners.
+
+All three fits missed setup and passed the other four-corner checks.
+Keep the trial active as `c492853`. Seed 31337 produced the best
+archived bitstream. [Matched fits and bitstream hash](../../evidence/v5-104-execute-ready-fits.json)
