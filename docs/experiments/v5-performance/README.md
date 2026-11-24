@@ -185,6 +185,12 @@ matched. The named lane 13 paths shortened, while median setup
 worsened by 0.052 ns and area grew by 459 ALMs. Park the trial.
 Forward revert `e7f1e31` restores `e9552bd`.
 
+The [two-edge UPP register trial](upp-two-edge.md) extends the held
+packet-to-data setup budget to two 104 MHz clocks and keeps live
+and control paths single-cycle. Stock keypad replay added 36 clocks.
+The mixed run added 609 clocks and changed one PCM startup sample.
+The routed coverage and slack results are pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

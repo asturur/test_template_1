@@ -1,0 +1,1067 @@
+diff --git a/Template.sdc b/Template.sdc
+index 2344ccac0412392afcb6e6321b29716453cc89e3..e75213ec246fa89439eb411669eeba8fa5c6902c 100644
+--- a/Template.sdc
++++ b/Template.sdc
+@@ -2,3 +2,58 @@ derive_pll_clocks
+ derive_clock_uncertainty
+ 
+ # core specific constraints
++#
++# The production UPP request stage holds one immutable packet. Peripherals
++# wait for its maturity token before sampling the protected data bank. The
++# earliest destination edge is E2 after launch E0. Keep all packet-to-control,
++# live-to-data, fast RAM, and response-to-bridge paths at their ordinary timing.
++namespace eval upp_mmio {
++    variable upp {emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp}
++    variable packet $upp|ngage_upp_request_stage:cpu_inside.request_stage
++    variable peripheral $upp|ngage_upp_peripherals:peripherals
++}
++
++proc upp_mmio::endpoints {} {
++    variable packet
++    variable peripheral
++    # Match the exact owning instances first, then verify the physical names
++    # returned by TimeQuest. Replicas of these held/sample regs are permitted.
++    set launch [get_registers -nowarn [list $packet|held_address* $packet|held_sel* $packet|held_we*]]
++    set sample [get_registers -nowarn $peripheral|registered_response.local_results*.two_edge_payload.data*]
++    set launches 0
++    set samples 0
++    set lanes {}
++    foreach_in_collection reg $launch {
++        set name [get_node_info -name $reg]
++        set prefix "$packet|"
++        set tail [string range $name [string length $prefix] end]
++        if {[string first $prefix $name] != 0 ||
++            ![regexp {^(held_address\[(?:[0-9]|[12][0-9]|3[01])\]|held_sel\[[0-3]\]|held_we)(~DUPLICATE[0-9]*)?$} $tail]} {
++            error "Unexpected UPP packet launch register $name"
++        }
++        incr launches
++    }
++    foreach_in_collection reg $sample {
++        set name [get_node_info -name $reg]
++        set prefix "$peripheral|registered_response.local_results"
++        set tail [string range $name [string length $prefix] end]
++        if {[string first $prefix $name] != 0 ||
++            ![regexp {^\[([0-9]|1[1-5])\]\.two_edge_payload\.data\[(?:[0-9]|[12][0-9]|3[01])\](~DUPLICATE[0-9]*)?$} $tail -> lane]} {
++            error "Unexpected UPP response sample register $name"
++        }
++        dict set lanes $lane 1
++        incr samples
++    }
++    return [list $launch $sample $launches $samples [lsort -integer [dict keys $lanes]]]
++}
++
++lassign [upp_mmio::endpoints] upp_launch upp_sample upp_launches upp_samples upp_lanes
++if {$upp_launches && $upp_samples} {
++    set_multicycle_path -end -setup -from $upp_launch -to $upp_sample 2
++    set_multicycle_path -end -hold -from $upp_launch -to $upp_sample 1
++} else {
++    # No exception on a partially elaborated netlist or a diagnostic
++    # configuration without these registers. Production postfit requires
++    # connected, nonempty collections and checks the effective relationships.
++    post_message -type warning "UPP two-edge endpoints not both present ($upp_launches launches, $upp_samples samples)"
++}
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 12305f1857b2a03e62bb46bf2ac26cd395ab7232..1b6c9dd5d43d90e0a74aaf952a4a0ad527240374 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -195,7 +195,11 @@ module ngage_upp #(
+     output wire         debug_fetch
+ 
+ );
+-    wire peripheral_response_pending;
++    wire peripheral_response_pending, peripheral_early_access;
++    wire peripheral_packet_mature;
++    // Only the internal registered bus can supply the two-edge packet.
++    // Keep the immediate BRAM configurations used by older boards intact.
++    localparam TWO_EDGE_MMIO = INTERNAL_CPU && DDR_UPP_RAM;
+     wire lcd_route_ready, lcd_waiting;
+     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
+     wire [4:0] dma_packet_decode;
+@@ -335,6 +339,7 @@ module ngage_upp #(
+                 .out_address(bus_adr),
+                 .out_data   (bus_din),
+                 .out_sel    (bus_sel),
++                .out_mature (peripheral_packet_mature),
+                 .out_dma_ctl(dma_packet_decode),
+                 .out_dma_ch (dma_packet_targets)
+             );
+@@ -445,6 +450,8 @@ module ngage_upp #(
+             // Side effects are qualified by the selected device's own checks.
+             // CPU completion/error remains a response, never a shared write enable.
+             assign bus_access = bus_cyc && bus_stb && !rst && init_done && !cpu_err &&
++                                (!TWO_EDGE_MMIO || peripheral_packet_mature ||
++                                 peripheral_early_access || lcd_dma_claim) &&
+                                 (!claim || lcd_dma_claim || !peripheral_response_pending);
+         end else begin : external_master
+             assign debug_pc = 0;
+@@ -472,6 +479,7 @@ module ngage_upp #(
+             assign ram_response = 0;
+             assign dma_packet_decode = 0;
+             assign dma_packet_targets = 0;
++            assign peripheral_packet_mature = 0;
+             assign bus_code = 1'b0;
+             assign bus_cyc = ext_cyc;
+             assign bus_stb = ext_stb;
+@@ -631,6 +639,7 @@ module ngage_upp #(
+         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+         .NOS_TICK_HZ       (NOS_TICK_HZ),
+         .REGISTER_RESPONSES(INTERNAL_CPU),
++        .TWO_EDGE_MMIO     (TWO_EDGE_MMIO),
+         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
+         .SIMIF_ENABLE      (SIMIF_ENABLE),
+         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
+@@ -676,6 +685,8 @@ module ngage_upp #(
+         .din                 (bus_din),
+         .sel                 (bus_sel),
+         .commit              (bus_access),
++        .packet_mature       (peripheral_packet_mature),
++        .early_access        (peripheral_early_access),
+         .dma_shadow_claim    (lcd_dma_claim),
+         .lcd_direct_collision(lcd_dma_valid && bus_we && bus_adr == 32'h0c121208),
+         .response_pending    (peripheral_response_pending),
+@@ -947,21 +958,33 @@ module ngage_upp_request_stage #(
+     input  wire [ 3:0] in_sel,
+     output wire        out_cyc,
+     output wire        out_stb,
+-    output reg         out_we,
++    output wire        out_we,
+     output reg         out_code,
+-    output reg  [31:0] out_address,
++    output wire [31:0] out_address,
+     output reg  [31:0] out_data,
+-    output reg  [ 3:0] out_sel,
++    output wire [ 3:0] out_sel,
++    output wire        out_mature,
+     output wire [ 4:0] out_dma_ctl,
+     output wire [ 7:0] out_dma_ch
+ );
+-    (* dont_retime *)reg  valid = 0;
+-    wire offered = in_cyc && in_stb;
++    (* dont_retime *)reg         valid = 0;
++    (* dont_retime *)reg         mature = 0;
++    (* dont_retime *)reg  [31:0] held_address;
++    (* dont_retime *)reg  [ 3:0] held_sel;
++    (* dont_retime *)reg         held_we;
++    wire        offered = in_cyc && in_stb;
+     // The admission pulse selects and samples the packet. The owner supplies
+     // cancellation and retirement independently once that capture is live.
+-    wire live = EXPLICIT_LIVE ? in_live : offered;
+-    assign out_cyc = !reset && valid && live;
+-    assign out_stb = out_cyc;
++    wire        live = EXPLICIT_LIVE ? in_live : offered;
++    assign out_cyc     = !reset && valid && live;
++    assign out_stb     = out_cyc;
++    assign out_mature  = out_cyc && mature;
++    assign out_address = held_address;
++    assign out_sel     = held_sel;
++    assign out_we      = held_we;
++    // Capture at E0. The first held edge E1 matures that packet; even
++    // a speculatively sampled payload can first see the token at E2.
++    always @(posedge clk) mature <= out_cyc;
+     generate
+         if (DMA_PREDECODE) begin : dma_packet
+             wire [4:0] fields;
+@@ -998,21 +1021,21 @@ module ngage_upp_request_stage #(
+     endgenerate
+     always @(posedge clk) begin
+         if (reset) begin
+-            valid       <= 0;
+-            out_we      <= 0;
+-            out_code    <= 0;
+-            out_address <= 0;
+-            out_data    <= 0;
+-            out_sel     <= 0;
++            valid        <= 0;
++            held_we      <= 0;
++            out_code     <= 0;
++            held_address <= 0;
++            out_data     <= 0;
++            held_sel     <= 0;
+         end else if (valid) begin
+             if (!live) valid <= 0;
+         end else if (offered) begin
+-            valid       <= 1;
+-            out_we      <= in_we;
+-            out_code    <= in_code;
+-            out_address <= in_address;
+-            out_data    <= in_data;
+-            out_sel     <= in_sel;
++            valid        <= 1;
++            held_we      <= in_we;
++            out_code     <= in_code;
++            held_address <= in_address;
++            out_data     <= in_data;
++            held_sel     <= in_sel;
+         end
+     end
+ endmodule
+diff --git a/rtl/ngage_upp_peripherals.v b/rtl/ngage_upp_peripherals.v
+index 101f51b1afa8d41011c1dcee2c03a5e9a7112809..316e421f7288f0f232d09bea41a584657ea6d1f8 100644
+--- a/rtl/ngage_upp_peripherals.v
++++ b/rtl/ngage_upp_peripherals.v
+@@ -47,6 +47,7 @@ module ngage_upp_peripherals #(
+               KEYPAD_ENABLE      = 0,
+               LCD_QUEUE_ENABLE   = 0,
+               REGISTER_RESPONSES = 0,
++              TWO_EDGE_MMIO      = 0,
+               DDR_UPP_RAM        = 0,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+@@ -74,6 +75,8 @@ module ngage_upp_peripherals #(
+     input  wire [31:0] din,
+     input  wire [ 3:0] sel,
+     input  wire        commit,                // authorize local access checks this cycle
++    input  wire        packet_mature,         // immutable packet held across the previous edge
++    output wire        early_access,          // independent raw DDR or scratch RAM access
+     // configuration (from the harness command line)
+     input  wire        cfg_lcd,               // lcd-probe option
+     input  wire        cfg_keypad,            // keypad-gpio option
+@@ -910,6 +913,11 @@ module ngage_upp_peripherals #(
+     // direction and device state; an address-only owner cache is not valid.
+     reg [15:0] selected_owner;
+     wire [15:0] result_owner, result_bad;
++    // Lane 10 serves the fast 4 KiB comm RAM and ASIC ROM stub. Its
++    // response data stays single-cycle. Raw DDR launch stays fast too,
++    // but its physical handshake can only return after packet maturity.
++    wire fast_lane = selected_owner[10];
++    assign early_access = ddr_access || fast_lane;
+     always @* begin
+         selected_owner = 0;
+         if (mmc_claim) selected_owner[15] = 1;
+@@ -972,18 +980,30 @@ module ngage_upp_peripherals #(
+             reg valid;
+             genvar local_lane;
+             for (local_lane = 0; local_lane < 16; local_lane = local_lane + 1) begin : local_results
+-                reg [31:0] data;
+                 reg owner, error;
+                 always @(posedge clk) begin
+                     if (!rst && req && !valid) begin
+-                        data  <= local_data[local_lane*32+:32];
+                         owner <= selected_owner[local_lane];
+                         error <= local_bad[local_lane];
+                     end
+                 end
+-                assign result_data[local_lane*32+:32] = data;
+-                assign result_owner[local_lane]       = owner;
+-                assign result_bad[local_lane]         = error;
++                if (TWO_EDGE_MMIO && local_lane != 10) begin : two_edge_payload
++                    (* dont_retime *) reg [31:0] data;
++                    // No address, owner or early-access bypass allows
++                    // these flops to capture on the first held edge.
++                    always @(posedge clk)
++                        if (!rst && req && !valid && packet_mature)
++                            data <= local_data[local_lane*32+:32];
++                    assign result_data[local_lane*32+:32] = data;
++                end else begin : ordinary_payload
++                    reg [31:0] data;
++                    always @(posedge clk)
++                        if (!rst && req && !valid)
++                            data <= local_data[local_lane*32+:32];
++                    assign result_data[local_lane*32+:32] = data;
++                end
++                assign result_owner[local_lane] = owner;
++                assign result_bad[local_lane]   = error;
+             end
+             // The UPP request record is already stable across this edge.
+             // Each device's data/error and ownership cross the same edge as
+@@ -993,7 +1013,9 @@ module ngage_upp_peripherals #(
+                 else if (!valid) begin
+                     // Payload registers are local, never enabled by aggregate
+                     // ready/error. Only the completion bit uses readiness.
+-                    if (claim && local_ready && commit) valid <= 1;
++                    if (claim && local_ready && commit &&
++                        (!TWO_EDGE_MMIO || packet_mature || fast_lane))
++                        valid <= 1;
+                 end
+             end
+             assign response_pending = valid;
+@@ -1006,6 +1028,21 @@ module ngage_upp_peripherals #(
+             assign result_data      = local_data;
+         end
+     endgenerate
++    // synthesis translate_off
++    reg        previous_request;
++    reg [36:0] previous_static_packet;
++    always @(posedge clk) begin
++        previous_request       <= !rst && req;
++        previous_static_packet <= {adr, we, sel};
++        if (TWO_EDGE_MMIO && !rst && req) begin
++            if (packet_mature !== previous_request ||
++                (packet_mature && previous_static_packet !== {adr, we, sel}))
++                $fatal(1, "UPP timed packet changed inside its capture aperture");
++            if (!packet_mature && ddr_access && ddr_response)
++                $fatal(1, "UPP raw DDR returned before its protected sample edge");
++        end
++    end
++    // synthesis translate_on
+     // Constant slices and a balanced return tree keep each registered local
+     // result separate through elaboration and avoid a procedural mux chain.
+     wire [31:0] response_tree[0:30];
+diff --git a/tests/phone/upp_two_edge/README.md b/tests/phone/upp_two_edge/README.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..ebe68576617cdc603850f8f79868797f76952b67
+--- /dev/null
++++ b/tests/phone/upp_two_edge/README.md
+@@ -0,0 +1,33 @@
++# Two-edge UPP register responses
++
++From the snapshot root, pass the unmodified `e7f1e31` source directory
++to the comparison. Both runs use the production bus bridge and
++request-stage modules. The test replaces only the upstream CPU master
++and the board fault register.
++
++```sh
++sh tests/phone/upp_two_edge/run.sh /path/to/control
++tclsh tests/phone/upp_two_edge/endpoints.tcl
++```
++
++The directed test compares ordered completions and owner/effect
++samples with keypad enabled and disabled. It observes every bit of
++the protected bank over E1. Both launch phases, repeated addresses
++and narrow/invalid byte lanes are exercised. It checks cancellation,
++a held response, warm reset, UART backpressure and coincident receive,
++SIMIF overlap, unclaimed traffic, Timer0 expiry/acknowledgment,
++MMC register access, and the unchanged fast comm-RAM path.
++
++For an immediate peripheral register access, E0 captures the held
++request, E1 matures it, E2 samples the live result and authorizes the
++effect, E3 registers the CPU response and E4 consumes it. Another
++immediate request can issue on E5. The original immediate sequence
++was E0 through E3 with the next request on E4. GPIO RAM and passive
++registers can prepare their synchronous data during E1. The separate
++comm-RAM data lane may capture at E1 and keeps single-cycle timing.
++
++The Tcl test exercises the endpoint selector with Quartus-style
++register names and known excluded cells. The production CI timing
++report enumerates the actual connected held-to-data setup/hold pairs
++and checks ordinary-cycle witnesses. The offline test covers the
++selector rules and protocol. It does not contain a routed netlist.
+diff --git a/tests/phone/upp_two_edge/endpoints.tcl b/tests/phone/upp_two_edge/endpoints.tcl
+new file mode 100644
+index 0000000000000000000000000000000000000000..d785d96ae3d1cf4c4f7867bd6cdcc9564cc6175d
+--- /dev/null
++++ b/tests/phone/upp_two_edge/endpoints.tcl
+@@ -0,0 +1,47 @@
++# Check the SDC selector against Quartus-style register and replica names.
++# Timing path connectivity and clock relationships are audited post-fit.
++set prefix {emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp}
++set stage $prefix|ngage_upp_request_stage:cpu_inside.request_stage
++set response $prefix|ngage_upp_peripherals:peripherals
++set held [list "$stage|held_address\[17\]" "$stage|held_sel\[3\]~DUPLICATE263" "$stage|held_we"]
++set late [list "$response|registered_response.local_results\[13\].two_edge_payload.data\[14\]" \
++               "$response|registered_response.local_results\[15\].two_edge_payload.data\[31\]"]
++set excluded [list "$response|registered_response.local_results\[10\].ordinary_payload.data\[14\]" \
++                   "$response|registered_response.local_results\[13\].owner" \
++                   "$response|registered_response.valid" "$stage|mature" \
++                   "other|ngage_upp_request_stage:cpu_inside.request_stage|held_address\[17\]"]
++set registers [concat $held $late $excluded]
++set constraints {}
++proc derive_pll_clocks {} {}
++proc derive_clock_uncertainty {} {}
++proc foreach_in_collection {var collection body} {uplevel 1 [list foreach $var $collection $body]}
++proc get_node_info {option name} {return $name}
++proc get_registers {option patterns} {
++    global registers
++    set result {}
++    foreach reg $registers {
++        foreach pattern $patterns {
++            if {[string match $pattern $reg]} {lappend result $reg; break}
++        }
++    }
++    return $result
++}
++proc set_multicycle_path {args} {
++    global constraints
++    lappend constraints $args
++}
++proc post_message {args} {}
++source Template.sdc
++if {$constraints ne [list [list -end -setup -from $held -to $late 2] \
++                         [list -end -hold -from $held -to $late 1]]} {
++    error "Wrong UPP exception scope $constraints"
++}
++lappend registers "$response|registered_response.local_results\[10\].two_edge_payload.data\[2\]"
++if {![catch {upp_mmio::endpoints} message] || ![string match {Unexpected UPP response sample register *} $message]} {
++    error "Wrong-lane named result was not rejected"
++}
++set registers $excluded
++set constraints {}
++source Template.sdc
++if {$constraints ne {}} {error "Empty selector emitted an exception"}
++puts "PASS exact held-packet SDC collection scope, fast-path exclusion and empty guard"
+diff --git a/tests/phone/upp_two_edge/run.sh b/tests/phone/upp_two_edge/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..1dd6013f736409f2f00fcfb9130b3a7043ecca0b
+--- /dev/null
++++ b/tests/phone/upp_two_edge/run.sh
+@@ -0,0 +1,28 @@
++#!/bin/sh
++set -eu
++reference=$(realpath "$1")
++out=${UPP_TWO_EDGE_TEST_OUT:-build/sim/upp-two-edge}
++mkdir -p "$out"
++for keypad in 0 1; do
++    for leg in reference candidate; do
++        set --
++        source=.
++        if [ "$leg" = reference ]; then
++            source=$reference
++            set -- -DREFERENCE
++        fi
++        prefix="$out/$leg-$keypad"
++        iverilog -g2012 -s tb -Ptb.KEYPAD_ENABLE="$keypad" "$@" \
++            -y "$source/rtl" -I "$source/rtl" -o "$prefix" \
++            "$source/rtl/ngage_upp.v" "$source/rtl/ngage_upp_euart.v" \
++            tests/phone/upp_two_edge/tb.sv
++        if ! vvp "$prefix" > "$prefix.log"; then
++            tail -20 "$prefix.log"
++            exit 1
++        fi
++        sed -n 's/^DONE [0-9]* duration=[0-9]* //p; s/^SAMPLE [0-9]* //p' \
++            "$prefix.log" > "$prefix.sequence"
++        grep -E '^(APERTURE|PASS) ' "$prefix.log"
++    done
++    cmp "$out/reference-$keypad.sequence" "$out/candidate-$keypad.sequence"
++done
+diff --git a/tests/phone/upp_two_edge/tb.sv b/tests/phone/upp_two_edge/tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..b6531c9f631fb7cbdef7607aaedf6d2f0833205d
+--- /dev/null
++++ b/tests/phone/upp_two_edge/tb.sv
+@@ -0,0 +1,512 @@
++`timescale 1ns / 1ps
++module tb;
++    parameter KEYPAD_ENABLE = 1;
++    reg clk = 0;
++    always #4.807692 clk = ~clk;
++    reg reset = 1, cold_reset = 1, cyc = 0, we = 0, allow = 1, hold_reply = 0;
++    reg tx_ready = 1, rx_valid = 0, card_busy = 0, cfg_keypad = 1;
++    reg [ 7:0] rx_data = 0;
++    reg [25:0] keys = 0;
++    reg [31:0] address = 0, data = 0;
++    reg [3:0] sel = 0;
++    wire offered, live, cpu_ack, cpu_error, packet, wr;
++    wire packet_mature, early_access;
++`ifdef REFERENCE
++    localparam TWO_EDGE = 0;
++    assign packet_mature = 1;
++    assign early_access  = 0;
++`else
++    localparam TWO_EDGE = 1;
++`endif
++    wire [31:0] cpu_data, addr, wdata, rdata;
++    wire [3:0] lanes;
++    wire claim, ready, error, init_done, pending, irq, fiq, tx_valid, rx_ready;
++    wire [7:0] tx_data;
++    reg invalid_response = 0;
++    wire       commit = packet && !reset && init_done && !invalid_response &&
++                         !pending && allow && (packet_mature || early_access);
++    wire peripheral_ack = claim && ready && !error && !hold_reply;
++    integer cycle = 0, replies = 0, samples = 0, writes = 0, tx_pushes = 0, rx_pops = 0;
++    integer gpio_count = 0, uart_count = 0, overlap_count = 0, nos_count = 0, loop_count = 0;
++    integer k, mask, old_samples, old_pushes;
++    reg [31:0] observed;
++
++    ngage_upp_bus_bridge #(
++        .REGISTERED_MASTER(1)
++    ) bridge (
++        .clk             (clk),
++        .reset           (reset),
++        .master_cyc      (cyc),
++        .master_stb      (cyc),
++        .master_we       (we),
++        .master_code     (1'b0),
++        .master_address  (address),
++        .master_data     (data),
++        .master_sel      (sel),
++        .master_ack      (cpu_ack),
++        .master_error    (cpu_error),
++        .master_read_data(cpu_data),
++        .bus_cyc         (offered),
++        .bus_stb         (),
++        .bus_live        (live),
++        .bus_we          (),
++        .bus_code        (),
++        .bus_address     (),
++        .bus_data        (),
++        .bus_sel         (),
++        .bus_ack         (peripheral_ack),
++        .bus_error       (invalid_response),
++        .bus_read_data   (rdata)
++    );
++    ngage_upp_request_stage #(
++        .EXPLICIT_LIVE(1)
++    ) request_stage (
++        .clk        (clk),
++        .reset      (reset),
++        .in_cyc     (offered),
++        .in_stb     (offered),
++        .in_live    (live),
++        .in_we      (we),
++        .in_code    (1'b0),
++        .in_address (address),
++        .in_data    (data),
++        .in_sel     (sel),
++        .out_cyc    (packet),
++        .out_stb    (),
++        .out_we     (wr),
++        .out_code   (),
++        .out_address(addr),
++        .out_data   (wdata),
++`ifndef REFERENCE
++        .out_mature (packet_mature),
++`endif
++        .out_sel    (lanes)
++    );
++    ngage_upp_peripherals #(
++`ifndef REFERENCE
++        .TWO_EDGE_MMIO     (1),
++`endif
++        .MMC_ENABLE        (1),
++        .MMC_CLK_DIV       (3),
++        .REGISTER_RESPONSES(1),
++        .KEYPAD_ENABLE     (KEYPAD_ENABLE),
++        .SIMIF_ENABLE      (1),
++        .SYS_CLK_HZ        (104000000),
++        .TIMER_CLK_DIV     (4),
++        .NOS_TICK_HZ       (64)
++    ) dut (
++        .clk                 (clk),
++        .rst                 (reset),
++        .init_rst            (cold_reset),
++        .cyc                 (packet),
++        .stb                 (packet),
++        .adr                 (addr),
++        .din                 (wdata),
++        .we                  (wr),
++        .sel                 (lanes),
++        .commit              (commit),
++`ifndef REFERENCE
++        .packet_mature       (packet_mature),
++        .early_access        (early_access),
++`endif
++        .upp_ddr_ack         (1'b0),
++        .upp_ddr_rdata       (32'b0),
++        .upp_ddr_clear_done  (1'b0),
++        .cfg_lcd             (1'b0),
++        .cfg_keypad          (cfg_keypad),
++        .cfg_clocks          (1'b0),
++        .dma_irq_pending     (1'b0),
++        .pcm_irq             (1'b0),
++        .general_dma_irq     (8'b0),
++        .sim_fiq_pending     (1'b0),
++        .keys                (keys),
++        .sim_present         (1'b1),
++        .card_rx_valid       (1'b0),
++        .card_tx_will_emit   (1'b0),
++        .card_overflow       (1'b0),
++        .card_rx_data        (8'b0),
++        .card_available      (7'b0),
++        .card_busy           (card_busy),
++        .claim               (claim),
++        .ready               (ready),
++        .dout                (rdata),
++        .unmodeled           (error),
++        .irq                 (irq),
++        .fiq                 (fiq),
++        .init_done           (init_done),
++        .cbus_claim          (1'b0),
++        .cbus_bad            (1'b0),
++        .cbus_irq            (1'b0),
++        .cbus_data           (32'b0),
++        .route2a             (16'h0008),
++        .route2c             (16'b0),
++        .route3b             (16'b0),
++        .cbus8d_written      (1'b0),
++        .adsp_tx_valid       (tx_valid),
++        .adsp_tx_ready       (tx_ready),
++        .adsp_tx_data        (tx_data),
++        .adsp_rx_valid       (rx_valid),
++        .adsp_rx_ready       (rx_ready),
++        .adsp_rx_data        (rx_data),
++        .mdi_claim           (1'b0),
++        .mdi_bad             (1'b0),
++        .mdi_ready           (1'b1),
++        .mdi_data            (32'b0),
++        .mdi_events          (16'b0),
++        .lcd_sink_ready      (1'b1),
++        .lcd_dma_access      (1'b0),
++        .lcd_pixel_mode      (1'b0),
++        .dma_shadow_claim    (1'b0),
++        .lcd_direct_collision(1'b0),
++        .mmc_cmd_i           (1'b1),
++        .mmc_dat_i           (1'b1),
++        .response_pending    (pending)
++    );
++    always @(posedge clk) begin
++        cycle <= cycle + 1;
++        if (reset) invalid_response <= 0;
++        else begin
++            // Board-register the selected peripheral error, as in ngage_mister.
++            invalid_response <= !invalid_response && packet && claim && ready && error;
++            if (init_done && (packet || offered || cpu_ack || cpu_error))
++                $display(
++                    "TRACE %0d %b%b%b%b%b%b %h %h %h %b%b%b%b %h",
++                    cycle,
++                    offered,
++                    packet,
++                    commit,
++                    pending,
++                    cpu_ack,
++                    cpu_error,
++                    packet ? addr : address,
++                    packet ? lanes : sel,
++                    pending && packet ? rdata : 32'd0,
++                    irq,
++                    fiq,
++                    tx_valid,
++                    rx_ready,
++                    tx_valid ? tx_data : 8'd0
++                );
++            if (commit && claim && dut.local_ready) begin
++                samples       <= samples + 1;
++                writes        <= writes + wr;
++                gpio_count    <= gpio_count + (dut.selected_owner[13] && !dut.uart_claim);
++                uart_count    <= uart_count + (dut.selected_owner[13] && dut.uart_claim);
++                overlap_count <= overlap_count + (dut.selected_owner[0] && dut.uart_claim);
++                nos_count     <= nos_count + dut.selected_owner[8];
++                loop_count    <= loop_count + dut.selected_owner[2];
++                $display("SAMPLE %0d addr=%h owner=%h wr=%b lanes=%h", cycle, addr,
++                         dut.selected_owner, wr, lanes);
++            end
++            if (dut.euart1.tx_push) tx_pushes <= tx_pushes + 1;
++            if (dut.euart1.rx_pop) rx_pops <= rx_pops + 1;
++            if (cpu_ack && cpu_error) $fatal(1, "Duplicate status");
++        end
++        if (cycle > 25000) $fatal(1, "Peripheral trace timeout");
++    end
++
++    // Observe the complete data bank, including unselected speculations.
++    // Lane 10 is the ordinary comm RAM/ASIC ROM bank and may capture at E1.
++    reg  [479:0] previous_payload;
++    wire [479:0] protected_payload = {dut.result_data[511:352], dut.result_data[319:0]};
++    integer even_packets = 0, odd_packets = 0, fast_packets = 0;
++    integer prior_offer = -1;
++    integer minimum_issue_spacing = 0;
++    integer maximum_issue_spacing = 0;
++    always @(posedge clk) begin
++        if (!reset && offered && !packet) begin
++            if (prior_offer >= 0) begin
++                if (minimum_issue_spacing == 0 || cycle - prior_offer < minimum_issue_spacing)
++                    minimum_issue_spacing = cycle - prior_offer;
++                if (cycle - prior_offer > maximum_issue_spacing)
++                    maximum_issue_spacing = cycle - prior_offer;
++            end
++            prior_offer = cycle;
++        end
++        if (TWO_EDGE && !reset && packet && !packet_mature) begin
++            previous_payload = protected_payload;
++            if (cycle % 2) odd_packets = odd_packets + 1;
++            else even_packets = even_packets + 1;
++            if (early_access) fast_packets = fast_packets + 1;
++            if (pending || (commit && !early_access))
++                $fatal(1, "Early peripheral completion or effect");
++            #1;
++            if (previous_payload !== protected_payload) $fatal(1, "Protected data changed on E1");
++        end
++    end
++
++    task tick;
++        @(negedge clk);
++    endtask
++
++    task offer;
++        input write_op;
++        input [31:0] dest, value;
++        input [3:0] lane_mask;
++        begin
++            cyc     = 1;
++            we      = write_op;
++            address = dest;
++            data    = value;
++            sel     = lane_mask;
++        end
++    endtask
++
++    task finish;
++        input expect_error;
++        input [31:0] compare_mask, expected;
++        input integer start, expected_edges;
++        begin
++            while (!cpu_ack && !cpu_error) tick;
++            if (cpu_error !== expect_error || cpu_ack === expect_error)
++                $fatal(1, "Unexpected completion addr=%h error=%b", address, cpu_error);
++            if (!we && ((cpu_data & compare_mask) !== expected))
++                $fatal(
++                    1,
++                    "Read %h mask %h got %h expected %h",
++                    address,
++                    compare_mask,
++                    cpu_data,
++                    expected
++                );
++            if (expected_edges != 0 && cycle - start != expected_edges)
++                $fatal(
++                    1,
++                    "Response edge moved for %h, expected %0d clocks got %0d",
++                    address,
++                    expected_edges,
++                    cycle - start
++                );
++            observed = cpu_data;
++            replies  = replies + 1;
++            $display("DONE %0d duration=%0d addr=%h result=%h err=%b", cycle, cycle - start,
++                     address, cpu_data, cpu_error);
++            tick;  // The CPU consumes the response on this edge.
++        end
++    endtask
++
++    task access;
++        input write_op, expect_error;
++        input [31:0] dest, value;
++        input [3:0] lanes;
++        input [31:0] compare_mask, expected;
++        input integer expected_edges;
++        integer start;
++        begin
++            start = cycle;
++            offer(write_op, dest, value, lanes);
++            if (TWO_EDGE && dest[31:12] != 20'h0c004 &&
++                (expected_edges == 3 || (expected_edges != 0 && expect_error)))
++                finish(expect_error, compare_mask, expected, start, expected_edges + 1);
++            else finish(expect_error, compare_mask, expected, start, expected_edges);
++            // The next access can follow with no extra idle edge, retaining CYC.
++        end
++    endtask
++
++    task push_rx;
++        input [7:0] value;
++        begin
++            cyc      = 0;
++            rx_data  = value;
++            rx_valid = 1;
++            if (!rx_ready) $fatal(1, "Unexpected RX backpressure");
++            tick;
++            rx_valid = 0;
++        end
++    endtask
++
++    function [31:0] euart_address;
++        input integer index;
++        begin
++            case (index)
++                0: euart_address = 32'h0c150510;
++                1: euart_address = 32'h0c150514;
++                2: euart_address = 32'h0c150554;
++                3: euart_address = 32'h0c150558;
++                4: euart_address = 32'h0c15055c;
++                5: euart_address = 32'h0c150560;
++                6: euart_address = 32'h0c1500b8;
++                7: euart_address = 32'h0c150508;  // Neighbor is plain GPIO RAM.
++            endcase
++        end
++    endfunction
++    function valid_lanes;
++        input [3:0] lanes;
++        begin
++            valid_lanes = lanes == 1 || lanes == 2 || lanes == 4 || lanes == 8 ||
++                lanes == 3 || lanes == 12 || lanes == 15;
++        end
++    endfunction
++
++    initial begin
++        repeat (3) tick;
++        cold_reset = 0;
++        wait (init_done);
++        tick;
++        reset = 0;
++        access (1, 0, 'h0c150510, 'h01234567, 15, 0, 0, 3);
++        access (0, 0, 'h0c150511, 0, 15, 'hffffffff, 'h01234567, 3);
++        access (1, 0, 'h0c150511, 'h0000aa00, 2, 0, 0, 3);
++        access (0, 0, 'h0c150510, 0, 15, 'hffffffff, 'h0123aa67, 3);
++        access (0, 1, 'h0c150510, 0, 5, 0, 0, 4);
++        access (1, 0, 'h0c150508, 'h76543210, 15, 0, 0, 3);
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'h76543210, 4);
++        access (1, 0, 'h0c150508, 'h0000bb00, 2, 0, 0, 3);
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'h7654bb10, 4);
++
++        // SIMIF owns the full-word status read while EUART supplies high bits.
++        access (1, 0, 'h0c150808, 1, 3, 0, 0, 3);
++        push_rx(8'ha5);
++        access (0, 0, 'h0c1500b8, 0, 3, 'hffffffff, 4, 3);
++        access (0, 0, 'h0c1500b8, 0, 12, 'hffffffff, 'h00080000, 3);
++        access (0, 0, 'h0c1500b8, 0, 15, 'hffffffff, 'h00080004, 3);
++        access (0, 0, 'h0c150554, 0, 12, 'hffffffff, 'ha5000000, 3);
++        access (0, 1, 'h0c150554, 0, 12, 0, 0, 4);
++        // A byte arriving just before presentation still waits for RX RAM.
++        push_rx(8'h39);
++        access (0, 0, 'h0c150555, 0, 12, 'hffffffff, 'h39000000, 0);
++
++        // An incoming byte on the status sample edge changes the next
++        // read, not the just-captured result. Card busy on the shared
++        // SIMIF read delays both sources until the common sample.
++        offer(0, 'h0c1500b8, 0, 12);
++        repeat (1 + TWO_EDGE) tick;
++        rx_valid = 1;
++        rx_data  = 8'h7e;
++        tick;
++        rx_valid = 0;
++        finish(0, 'hffffffff, 0, cycle, 1);
++        card_busy = 1;
++        offer(0, 'h0c1500b8, 0, 15);
++        repeat (4) tick;
++        if (!packet || pending || cpu_ack) $fatal(1, "SIMIF ignored card busy");
++        card_busy = 0;
++        finish(0, 'hffffffff, 'h00080004, cycle, 2);
++        cfg_keypad = 0;
++        access (0, 0, 'h0c1500b8, 0, 15, 'hffffffff, 4, 3);
++        cfg_keypad = 1;
++        access (0, 0, 'h0c150554, 0, 12, 'hffffffff, 'h7e000000, 3);
++
++        access (1, 0, 'h0c150010, 'h10000000, 15, 0, 0, 3);
++        access (1, 0, 'h0c150200, 'h00010000, 12, 0, 0, 3);
++        access (0, 0, 'h0c150208, 0, 12, 'h00020000, 'h00020000, 3);
++        keys[0] = 1;
++        access (0, 0, 'h0c150208, 0, 12, 'h00020000, KEYPAD_ENABLE ? 0 : 'h00020000, 3);
++        keys[0] = 0;
++        access (0, 0, 'h0c150100, 0, 15, 'h00001000, 'h00001000, 3);
++        access (1, 0, 'h0c150100, 'h1000, 3, 0, 0, 3);
++        access (0, 0, 'h0c150100, 0, 15, 'h00001000, 0, 3);
++
++        // Read live keyboard pins only on authorized completion, then hold data.
++        access (1, 0, 'h0c15040c, 0, 3, 0, 0, 3);
++        access (1, 0, 'h0c15040c, 'h00010000, 4, 0, 0, 3);
++        access (1, 0, 'h0c150400, 'h1f000000, 8, 0, 0, 3);
++        allow      = 0;
++        hold_reply = 1;
++        offer(0, 'h0c150400, 0, 3);
++        repeat (3) tick;
++        if (pending || cpu_ack || !packet) $fatal(1, "Commit guard failed");
++        keys[5] = 1;
++        tick;
++        allow = 1;
++        tick;
++        if (!pending || (KEYPAD_ENABLE && (rdata & 31) != 30))
++            $fatal(1, "Key wasn't sampled on the live response edge");
++        observed    = rdata;
++        old_samples = samples;
++        keys[5]     = 0;
++        repeat (4) begin
++            tick;
++            if (!pending || rdata !== observed || samples != old_samples || cpu_ack)
++                $fatal(1, "Held response recomputed or committed twice");
++        end
++        hold_reply = 0;
++        finish(0, 'hffffffff, observed, cycle, 1);
++
++        // A stalled TX write must commit once, even if the result is held.
++        tx_ready = 0;
++        for (k = 0; k < 16; k = k + 1) access (1, 0, 'h0c150554, k << 8, 3, 0, 0, 3);
++        old_pushes = tx_pushes;
++        offer(1, 'h0c150554, 'h00009900, 3);
++        repeat (6) tick;
++        if (pending || cpu_ack || tx_pushes != old_pushes) $fatal(1, "Full TX accepted");
++        cyc      = 0;
++        tx_ready = 1;
++        repeat (6) tick;
++        if (tx_pushes != old_pushes || cpu_ack) $fatal(1, "Cancelled TX accepted");
++        access (1, 0, 'h0c150554, 'h00009900, 3, 0, 0, 3);
++        if (tx_pushes != old_pushes + 1) $fatal(1, "Lost TX write");
++
++        // Every mask/direction and aligned word, including invalid lanes,
++        // across the status overlap and a GPIO address next to EUART.
++        for (k = 0; k < 8; k = k + 1) begin
++            for (mask = 0; mask < 16; mask = mask + 1) begin
++                access (1, !valid_lanes(mask[3:0]), euart_address(k) + (mask & 3), 'ha5b6c7d8 | k,
++                        mask[3:0], 0, 0, 0);
++                access (0, !valid_lanes(mask[3:0]) || (k == 2 && (mask & 12) != 0), euart_address(k
++                        ) + (mask & 3), 0, mask[3:0], 0, 0, 0);
++            end
++        end
++
++        // Cancel a GPIO write before authorization. A queued response and
++        // stale valid address must also clear across warm reset.
++        allow       = 0;
++        old_samples = samples;
++        offer(1, 'h0c150508, 'hfeedface, 15);
++        tick;
++        cyc = 0;
++        tick;
++        allow = 1;
++        if (samples != old_samples || cpu_ack) $fatal(1, "Cancelled GPIO wrote");
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);
++        hold_reply = 1;
++        offer(0, 'h0c150510, 0, 15);
++        repeat (2 + TWO_EDGE) tick;
++        if (!pending) $fatal(1, "Warm-reset fixture missed response");
++        reset = 1;
++        cyc   = 0;
++        tick;
++        reset      = 0;
++        hold_reply = 0;
++        if (pending || cpu_ack || cpu_error) $fatal(1, "Warm-reset stale response");
++        access (0, 0, 'h0c150510, 0, 15, 'hffffffff, 0, 3);
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);
++        access (1, 0, 'h0c0047fc, 'h01234567, 15, 0, 0, 3);
++        access (0, 0, 'h0c0047fc, 0, 15, 'hffffffff, 'h01234567, 4);
++        access (1, 0, 'h0c0047fc, 'h0000aa00, 2, 0, 0, 3);
++        access (0, 0, 'h0c0047fc, 0, 15, 'hffffffff, 'h0123aa67, 4);
++        access (1, 0, 'h0c120608, 5, 15, 0, 0, 0);
++        access (0, 0, 'h0c120608, 0, 15, 'hffffffff, 5, 0);
++        // The free-running timer still expires and raises its level while
++        // the register bridge is idle, then clears on the authorized write.
++        access (1, 0, 'h0c120a10, 3, 15, 0, 0, 0);
++        access (1, 0, 'h0c120a04, 1, 15, 0, 0, 0);
++        cyc = 0;
++        repeat (14) tick;
++        if (!dut.timer_pending[0]) $fatal(1, "Timer stopped outside bus admission");
++        access (0, 0, 'h0c120a08, 0, 15, 1, 1, 0);
++        access (1, 0, 'h0c120a08, 0, 15, 0, 0, 0);
++        if (dut.timer_pending[0]) $fatal(1, "Timer status acknowledge was lost");
++        access (0, 0, 'h0c120a08, 0, 15, 1, 0, 0);
++        // Unclaimed packets must not acquire a response or update the bank
++        // at E1. The board normally registers their decode error.
++        offer(0, 'h0e000000, 0, 15);
++        repeat (3) tick;
++        if (claim || ready || pending) $fatal(1, "Unclaimed request escaped");
++        cyc = 0;
++        tick;
++        if (TWO_EDGE && (even_packets == 0 || odd_packets == 0 || fast_packets < 4))
++            $fatal(1, "Missing packet phase or fast SRAM coverage");
++        $display("APERTURE two_edge=%d even=%d odd=%d fast=%d min_issue=%d max_issue=%d", TWO_EDGE,
++                 even_packets, odd_packets, fast_packets, minimum_issue_spacing,
++                 maximum_issue_spacing);
++        if (gpio_count == 0 || uart_count == 0 || overlap_count == 0 ||
++            nos_count == 0 || loop_count == 0 || rx_pops != 3)
++            $fatal(1, "Missing owner or FIFO coverage");
++        $display(
++            "PASS two-edge UPP keypad=%0d replies=%0d samples=%0d writes=%0d gpio=%0d uart=%0d overlap=%0d nos=%0d loop=%0d tx=%0d rx=%0d",
++            KEYPAD_ENABLE, replies, samples, writes, gpio_count, uart_count, overlap_count,
++            nos_count, loop_count, tx_pushes, rx_pops);
++        $finish;
++    end
++endmodule
+diff --git a/tools/probe_retime_fit/report.tcl b/tools/probe_retime_fit/report.tcl
+index d70365a6b4b0a63851d1a17565f77f98dd5ac1d8..ed0a8642475aae0dea7856b61f3f03854f9727d7 100644
+--- a/tools/probe_retime_fit/report.tcl
++++ b/tools/probe_retime_fit/report.tcl
+@@ -159,6 +159,7 @@ create_timing_netlist -model slow
+ read_sdc
+ update_timing_netlist
+ lassign [measure_native_core] native_mhz native_period native_vco_period
++source tools/upp_mmio_timing.tcl
+ delete_timing_netlist
+ if {[llength $argv] > 1 || ([llength $argv] && [lindex $argv 0] ne $native_mhz)} {
+     error "Declared core clock $argv disagrees with the fitted $native_mhz MHz PLL"
+@@ -172,6 +173,7 @@ puts "Fitted core clock: $native_mhz MHz (period $native_period ns, VCO period $
+ # one native scenario and never calls the diagnostic clock override.
+ set scenarios [list $native_mhz]
+ if {$native_mhz == 78} {lappend scenarios 104}
++set upp_audit_failed 0
+ foreach scenario $scenarios {
+     create_timing_netlist -model slow
+     read_sdc
+@@ -207,10 +209,14 @@ foreach scenario $scenarios {
+             error "Fitted core clock changed at corner $index"
+         }
+         emit $od
++        if {[string match {ERROR:*} [checked [list upp_mmio::audit $od/upp-mmio $native_period]]]} {
++            set upp_audit_failed 1
++        }
+     }
+     if {$index != 4} {error "Expected four operating corners, found $index"}
+     delete_timing_netlist
+ }
+ close $errors
+ project_close
++if {$upp_audit_failed} {error "UPP two-edge audit failed; see per-corner artifacts"}
+ puts "DONE isolated resident-store post-fit scenarios; inspect errors/coverage explicitly"
+diff --git a/tools/upp_mmio_timing.tcl b/tools/upp_mmio_timing.tcl
+new file mode 100644
+index 0000000000000000000000000000000000000000..7226438ee48f44efc60a791bc1c26fb047c8d591
+--- /dev/null
++++ b/tools/upp_mmio_timing.tcl
+@@ -0,0 +1,82 @@
++# Used from the existing production post-fit report after read_sdc.
++proc upp_mmio::audit_paths {directory tag type options expected steps period {maximum 0}} {
++    set paths [get_timing_paths -$type {*}$options -pairs_only -npaths $maximum -less_than_slack 100]
++    set f [open [file join $directory $tag.tsv] w]
++    puts $f "slack_ns	relationship_ns	setup_end	hold_end	from	to"
++    set count 0
++    set endpoints {}
++    set code [catch {
++        foreach_in_collection path $paths {
++            set from [get_node_info -name [get_path_info -from $path]]
++            set to [get_node_info -name [get_path_info -to $path]]
++            set srcclk [get_path_info -from_clock $path]
++            set dstclk [get_path_info -to_clock $path]
++            set slack [get_path_info -slack $path]
++            set relationship [get_path_info -clock_relationship $path]
++            set setup [get_path_info -setup_end_multicycle $path]
++            set hold [get_path_info -hold_end_multicycle $path]
++            puts $f "$slack	$relationship	$setup	$hold	$from	$to"
++            incr count
++            dict set endpoints $to 1
++            if {$srcclk ne $dstclk || abs([get_clock_info -period $dstclk]-$period) > 0.002 ||
++                abs($relationship-$expected) > 0.005 ||
++                ($type eq "setup" && $steps == 2 && $setup != 2) ||
++                ($type eq "setup" && $steps == 1 && $setup > 1) ||
++                ($type eq "hold" && $hold != $steps)} {
++                error "$tag unexpected relationship $relationship, setup $setup, hold $hold ($from -> $to)"
++            }
++        }
++    } reason failure]
++    close $f
++    if {$code} {return -options $failure $reason}
++    if {$count == 0} {error "$tag has no connected paths"}
++    report_timing -$type {*}$options -npaths 20 -nworst 1 -less_than_slack 100 \
++        -detail full_path -show_routing -file [file join $directory $tag.rpt]
++    return [list $tag $count [dict size $endpoints]]
++}
++
++proc upp_mmio::audit {directory period} {
++    variable packet
++    variable peripheral
++    variable upp
++    lassign [endpoints] launch sample launches samples lanes
++    file mkdir $directory
++    if {$launches < 20 || $samples < 100 || 13 ni $lanes || 15 ni $lanes} {
++        error "Incomplete UPP two-edge registers ($launches launches, $samples samples, lanes $lanes)"
++    }
++    set f [open [file join $directory inventory.txt] w]
++    puts $f "launches=$launches samples=$samples lanes=$lanes period_ns=$period"
++    foreach group {launch sample} {
++        foreach_in_collection reg [set $group] {
++            puts $f "$group [get_node_info -name $reg]"
++        }
++    }
++    close $f
++    set pair [list -from $launch -to $sample]
++    set control [get_registers -nowarn [list \
++        $peripheral|registered_response.valid* \
++        $peripheral|registered_response.local_results*.owner* \
++        $peripheral|registered_response.local_results*.error*]]
++    set fast [get_registers -nowarn $peripheral|registered_response.local_results*.ordinary_payload.data*]
++    set returned [get_registers -nowarn $upp|ngage_upp_bus_bridge:cpu_inside.bridge|master_read_data*]
++    set result [open [file join $directory coverage.txt] w]
++    set code [catch {
++        puts $result [audit_paths $directory held_setup setup $pair [expr {2*$period}] 2 $period]
++        puts $result [audit_paths $directory held_hold hold $pair 0 1 $period]
++        puts $result [audit_paths $directory held_to_controls setup [list -from $launch -to $control] $period 1 $period 32]
++        puts $result [audit_paths $directory held_to_fast setup [list -from $launch -to $fast] $period 1 $period 32]
++        puts $result [audit_paths $directory response_to_bridge setup [list -from $sample -to $returned] $period 1 $period 32]
++        foreach {tag pattern} {
++            uart {*|ngage_upp_euart:euart1|*}
++            keypad {*|ngage_keypad:keypad_enabled.keypad|*}
++            timer {*|ngage_timers:timers|*}
++            mmc {*|ngage_mmc_host:mmc_enabled.host|*}
++        } {
++            set live [get_registers -nowarn $peripheral$pattern]
++            puts $result [audit_paths $directory live_$tag setup [list -from $live -to $sample] $period 1 $period 32]
++        }
++        puts $result "PASS protected setup/hold and single-cycle witnesses"
++    } reason failure]
++    close $result
++    if {$code} {return -options $failure $reason}
++}

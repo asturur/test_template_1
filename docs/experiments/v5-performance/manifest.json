@@ -1475,5 +1475,50 @@
     "sha256": [
       "ad145b1549252d414267f74fa2bb7b13b8b2df51cf0ccfc779f420834cbc289a"
     ]
+  },
+  {
+    "id": "upp-two-edge",
+    "kind": "design",
+    "base": "e7f1e31ea4f6d51e9e59463a7f13168b9a8f4530",
+    "patches": [
+      "patches/upp-two-edge.patch"
+    ],
+    "sha256": [
+      "29562b4cef60615c9e4a33879af602d9a80b374d52f6f270925798b86523705a"
+    ],
+    "target": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+    "affected_paths": [
+      "Template.sdc",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/upp_two_edge/README.md",
+      "tests/phone/upp_two_edge/endpoints.tcl",
+      "tests/phone/upp_two_edge/run.sh",
+      "tests/phone/upp_two_edge/tb.sv",
+      "tools/probe_retime_fit/report.tcl",
+      "tools/upp_mmio_timing.tcl"
+    ],
+    "measured_sha256": {
+      "Template.sdc": "f2ab4d38ee7c9d0ced195597ff93bd75ce452d1cc0aadf2c171c2808113dd459",
+      "rtl/ngage_upp.v": "cf71dc7b30a09124f418cec6ef024e6f59483284e470c84d5531daa81282e837",
+      "rtl/ngage_upp_peripherals.v": "97f34b94ae79c1afb6426b33611bba21ba8521f52e68a8310ce264e1a3ef121b",
+      "tests/phone/upp_two_edge/README.md": "7c3587b4824d99f4abd6a2289a60cce58212b76ef40a7c7ebe2c735a41eaf39a",
+      "tests/phone/upp_two_edge/endpoints.tcl": "578c71e5520571c403c94b8f2458c05f15c7683affa3639b8ab49022add52b16",
+      "tests/phone/upp_two_edge/run.sh": "ef9bf5703274c8e2f223853d6461380cb4b7a54c16eea318b8519c1ce3b085b6",
+      "tests/phone/upp_two_edge/tb.sv": "e4dc3afbd334c096380419d989de2c69966ee4c9461a1edaa98cb24f7055aec8",
+      "tools/probe_retime_fit/report.tcl": "d85610b59bfd240043d6eb83ec2004aa60482b2b0ad6ea7075147a8a71c2514c",
+      "tools/upp_mmio_timing.tcl": "fad908ad3e48c9128777b01774f7f605009c9e7496807ab4adb0afb1eabf4ce9"
+    }
+  },
+  {
+    "id": "upp-two-edge-replay",
+    "kind": "fixture",
+    "base": "e7f1e31ea4f6d51e9e59463a7f13168b9a8f4530",
+    "patches": [
+      "patches/upp-two-edge-replay.patch"
+    ],
+    "sha256": [
+      "9265d092da5d8d8af30c1b758544ba86b89b96af678193f2bd300af2436512aa"
+    ]
   }
 ]

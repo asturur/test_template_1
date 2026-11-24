@@ -1,3 +1,7 @@
+## 2026-11-24 — two-edge UPP register trial
+
+Public `4c02fda` gives held UPP packet data two 104 MHz edges to reach the response register. The stock keypad replay added 36 clocks. The mixed run added 609 clocks, matched every DMA command and response tuple, and changed one PCM startup sample. All 15 fixed workloads and four native frames matched. The three production fits will verify the scoped setup and hold relationships. [Protocol, replay and runs](experiments/v5-performance/upp-two-edge.md)
+
 ## 2026-11-24 — peripheral lane 13 timing trial parked
 
 Public `e7f1e31` restores `e9552bd`. Lane 13 paths shortened and median core setup TNS improved by 319.078 ns, while median setup moved from −2.471 to −2.523 ns and the fit used 459 more ALMs. All measured MMIO and workload cycles matched. The next target is the Wishbone merger address selection. [Clock trace, replay and routed fits](v5-alm-storage-results.md#peripheral-gpio-and-euart-read-response)
