@@ -1,3 +1,7 @@
+## 2026-11-24 — peripheral lane 13 timing trial
+
+Public `e02c236` separates GPIO/keypad data from NOS and loopback and captures EUART word selects at the existing request edge. All 614 directed replies, 15 fixed workloads, four native frames, four CPU contract profiles and the mixed pin trace matched `e9552bd`. The three production 104 MHz routed results are pending. [Clock trace, patch and runs](experiments/v5-performance/peripheral-lane13.md)
+
 ## 2026-11-24 — prepared Wishbone write data retained
 
 Keep `e9552bd`. At physical 104 MHz, median worst setup improved from −2.565 to −2.471 ns and seed 13 reached −2.061 ns. Median core setup TNS worsened by 993.367 ns. The sampled ACK paths into the old merger data register fell from 32, 7 and 30 to zero. Write and workload cycles matched. The next timing trial would evaluate GPIO/keypad and EUART read-data selection for the registered peripheral response. [Routed fits and replay](v5-alm-storage-results.md#prepared-wishbone-write-data)

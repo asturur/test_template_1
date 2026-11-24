@@ -177,6 +177,12 @@ covered 330,252 successful writes. The named ACK-to-write-data paths
 disappeared from the hot exports. Median setup improved 0.094 ns and
 median core setup TNS worsened 993.367 ns. Keep `e9552bd`.
 
+The [peripheral lane 13 trial](peripheral-lane13.md) keeps the existing
+104 MHz MMIO response edges, separates GPIO/keypad read data from
+NOS and loopback data, and carries static EUART word selects in the
+request packet. All checked workload cycles and mixed pin events
+matched. Routed results are pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

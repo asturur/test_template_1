@@ -1432,5 +1432,48 @@
     "sha256": [
       "a441bd41c4781319613878560309f19678eaaa42f0a11c189694085e3408126d"
     ]
+  },
+  {
+    "id": "peripheral-lane13",
+    "kind": "design",
+    "base": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+    "patches": [
+      "patches/peripheral-lane13.patch"
+    ],
+    "sha256": [
+      "843a889ab595869264e69fcfeded47a1c4af0b03722426a8d11091a8f3cb2ce7"
+    ],
+    "target": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+    "affected_paths": [
+      "rtl/ngage_keypad.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_euart.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/upp_euart/tb.v",
+      "tests/phone/upp_lane13/README.md",
+      "tests/phone/upp_lane13/run.sh",
+      "tests/phone/upp_lane13/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_keypad.v": "066a428209a5719aac7b08799a3453a952c8a6a3313d2c28fa6575fef91f6d74",
+      "rtl/ngage_upp.v": "0720d5d42fa0964e68fbe9ab8630e2dbf98e9bb963244e6d9a2920bd115a65ae",
+      "rtl/ngage_upp_euart.v": "af9fe9666aefe9cbff9870bed160d6b10c8b699f42c0a5dfde7c7e6c541c59b7",
+      "rtl/ngage_upp_peripherals.v": "dc0ba8747e6c6bc85efb1f2c6dfd8711cd99c646e1a28ee2d716aec2a69729c9",
+      "tests/phone/upp_euart/tb.v": "4696d8855c706a4475bb902b289fdff8de52295f46d6c9b096c53ec160b3e87f",
+      "tests/phone/upp_lane13/README.md": "52ca5307bf456a376763d35e4c0e093ceafda896233c993edae83ca66d7876d4",
+      "tests/phone/upp_lane13/run.sh": "cf83e7e9c69171be99346fd20ad982dc20f1eaa7135f10ff77eb9e338497dfb3",
+      "tests/phone/upp_lane13/tb.sv": "d19825d4139cb5289d7a89cba88facfb491f854488b1d2d3bfc780907e365c3d"
+    }
+  },
+  {
+    "id": "peripheral-lane13-replay",
+    "kind": "fixture",
+    "base": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+    "patches": [
+      "patches/peripheral-lane13-replay.patch"
+    ],
+    "sha256": [
+      "ad145b1549252d414267f74fa2bb7b13b8b2df51cf0ccfc779f420834cbc289a"
+    ]
   }
 ]

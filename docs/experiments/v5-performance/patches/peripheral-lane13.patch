@@ -1,0 +1,1017 @@
+diff --git a/rtl/ngage_keypad.v b/rtl/ngage_keypad.v
+index 14ae44caffec8d5f4fc220beef1d42b1d37000a3..34cf7ac58b018c1aa86f896aabd2a9923c3172a1 100644
+--- a/rtl/ngage_keypad.v
++++ b/rtl/ngage_keypad.v
+@@ -13,7 +13,9 @@ module ngage_keypad (
+     input  wire [31:0] base,
+     input  wire        genio1_driven,
+     input  wire        genio1_level,
+-    output reg  [31:0] value,
++    output wire [31:0] value,
++    output reg  [31:0] replace_mask,
++    output reg  [31:0] replacement,
+     output wire        irq
+ );
+     // Logical row/column names follow the reference's GPIO drive banks;
+@@ -44,7 +46,8 @@ module ngage_keypad (
+     wire           status_write = req && commit && we && a == 32'h0c150100;
+     wire    [31:0] lane_mask = {{8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}}};
+     wire    [31:0] clear_mask = status_write ? din & lane_mask : 32'b0;
+-    assign irq = |pending;
++    assign irq   = |pending;
++    assign value = (base & ~replace_mask) | replacement;
+     always @* begin
+         press_events     = 0;
+         press_events[2]  = |col_falls;
+@@ -121,10 +124,11 @@ module ngage_keypad (
+         end
+     end
+     always @* begin
+-        value      = base;
+-        cols       = ~row_low;
+-        row_inputs = ~col_low;
+-        stick      = 16'h3c06;
++        replace_mask = 0;
++        replacement  = 0;
++        cols         = ~row_low;
++        row_inputs   = ~col_low;
++        stick        = 16'h3c06;
+         if (keys[0]) stick[1] = 0;
+         if (keys[1]) stick[10] = 0;
+         if (keys[2]) stick[13] = 0;
+@@ -153,35 +157,49 @@ module ngage_keypad (
+         row_inputs = (row_inputs & ~col_drive) | (col_data & col_drive);
+         if (req && !we)
+             case (a)
+-                32'h0c150100: value = (base & ~32'h00ee0004) | (pending & lane_mask);
+-                32'h0c150208:
+-                value = (value & ~32'h2c060000) |
+-                        (({16'b0, genio_inputs} << 16) & 32'h2c060000 & lane_mask);
++                32'h0c150100: begin
++                    replace_mask = 32'h00ee0004;
++                    replacement  = pending & lane_mask;
++                end
++                32'h0c150208: begin
++                    replace_mask = 32'h2c060000;
++                    replacement  = {genio_inputs, 16'b0} & replace_mask & lane_mask;
++                end
+                 32'h0c150400: begin
+-                    value = (value & ~32'h001f001f) |
+-                            (({11'b0, row_drive[4:0], 11'b0, cols}) & lane_mask);
++                    replace_mask = 32'h001f001f;
++                    replacement  = {11'b0, row_drive[4:0], 11'b0, cols} & lane_mask;
+                 end
+                 32'h0c15040c: begin
+-                    value = (value & ~32'h003f003f) |
+-                            (({10'b0, col_drive, 10'b0, row_inputs}) & lane_mask);
++                    replace_mask = 32'h003f003f;
++                    replacement  = {10'b0, col_drive, 10'b0, row_inputs} & lane_mask;
++                end
++                32'h0c150404: begin
++                    replace_mask = 32'h1f;
++                    replacement  = {27'b0, row_ien} & lane_mask;
++                end
++                32'h0c150410: begin
++                    replace_mask = 32'h3f;
++                    replacement  = {26'b0, col_ien} & lane_mask;
++                end
++                32'h0c150210: begin
++                    replace_mask = 32'h1000;
++                    replacement  = music_dir ? 32'h1000 & lane_mask : 32'b0;
++                end
++                32'h0c150014: begin
++                    replace_mask = 32'h00ee00ee;
++                    replacement  = {8'b0, genio_ien, 8'b0, genio_ien} & replace_mask & lane_mask;
+                 end
+-                32'h0c150404: value = (value & ~32'h1f) | ({27'b0, row_ien} & lane_mask);
+-                32'h0c150410: value = (value & ~32'h3f) | ({26'b0, col_ien} & lane_mask);
+-                32'h0c150210:
+-                value = (value & ~32'h1000) | (music_dir ? (32'h1000 & lane_mask) : 32'b0);
+-                32'h0c150014:
+-                value = (value & ~32'h00ee00ee) |
+-                                      ({8'b0, genio_ien, 8'b0, genio_ien} &
+-                                       32'h00ee00ee & lane_mask);
+                 32'h0c120c04: begin
+-                    value[19] = sel[2] && (row_drive[5] ? gpio30_data :
+-                                !((keys[21] && col_low[2]) ||
+-                                  (keys[22] && col_low[3]) || (keys[23] && col_low[4]) ||
+-                                  (keys[24] && col_low[5])));
++                    replace_mask[19] = 1;
++                    replacement[19]  = sel[2] && (row_drive[5] ? gpio30_data :
++                                      !((keys[21] && col_low[2]) ||
++                                        (keys[22] && col_low[3]) || (keys[23] && col_low[4]) ||
++                                        (keys[24] && col_low[5])));
+                 end
+                 32'h0c15020c: begin
+-                    value = (value & ~32'h2c061000) | ({genio_dir & 16'h2c06, 16'b0} & lane_mask);
+-                    if (sel[1]) value[12] = genio_inputs[12];
++                    replace_mask = 32'h2c061000;
++                    replacement  = {genio_dir & 16'h2c06, 16'b0} & lane_mask;
++                    if (sel[1]) replacement[12] = genio_inputs[12];
+                 end
+             endcase
+     end
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 12305f1857b2a03e62bb46bf2ac26cd395ab7232..818078ae39799357a303715370cfa167cf4305a7 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -200,6 +200,7 @@ module ngage_upp #(
+     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
+     wire [4:0] dma_packet_decode;
+     wire [7:0] dma_packet_targets;
++    wire [6:0] euart_packet_select;
+     generate
+         if (INTERNAL_CPU) begin : cpu_inside
+             wire master_cyc, master_stb, master_we, master_code;
+@@ -315,28 +316,30 @@ module ngage_upp #(
+             // selection nor its wide address/lane mux crosses device command
+             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
+             ngage_upp_request_stage #(
+-                .EXPLICIT_LIVE(1),
+-                .DMA_PREDECODE(GENERAL_DMA)
++                .EXPLICIT_LIVE  (1),
++                .DMA_PREDECODE  (GENERAL_DMA),
++                .EUART_PREDECODE(1)
+             ) request_stage (
+-                .clk        (clk),
+-                .reset      (rst),
+-                .in_cyc     (dma_bus_active || cpu_bus_cyc),
+-                .in_stb     (dma_bus_active || cpu_bus_stb),
+-                .in_live    (dma_bus_active || cpu_bus_live),
+-                .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
+-                .in_code    (!dma_bus_active && cpu_bus_code),
+-                .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
+-                .in_data    (dma_bus_active ? dma_data : cpu_bus_din),
+-                .in_sel     (dma_bus_active ? dma_be : cpu_bus_sel),
+-                .out_cyc    (bus_cyc),
+-                .out_stb    (bus_stb),
+-                .out_we     (bus_we),
+-                .out_code   (bus_code),
+-                .out_address(bus_adr),
+-                .out_data   (bus_din),
+-                .out_sel    (bus_sel),
+-                .out_dma_ctl(dma_packet_decode),
+-                .out_dma_ch (dma_packet_targets)
++                .clk             (clk),
++                .reset           (rst),
++                .in_cyc          (dma_bus_active || cpu_bus_cyc),
++                .in_stb          (dma_bus_active || cpu_bus_stb),
++                .in_live         (dma_bus_active || cpu_bus_live),
++                .in_we           (dma_bus_active ? dma_write : cpu_bus_we),
++                .in_code         (!dma_bus_active && cpu_bus_code),
++                .in_address      (dma_bus_active ? dma_addr : cpu_bus_adr),
++                .in_data         (dma_bus_active ? dma_data : cpu_bus_din),
++                .in_sel          (dma_bus_active ? dma_be : cpu_bus_sel),
++                .out_cyc         (bus_cyc),
++                .out_stb         (bus_stb),
++                .out_we          (bus_we),
++                .out_code        (bus_code),
++                .out_address     (bus_adr),
++                .out_data        (bus_din),
++                .out_sel         (bus_sel),
++                .out_dma_ctl     (dma_packet_decode),
++                .out_dma_ch      (dma_packet_targets),
++                .out_euart_select(euart_packet_select)
+             );
+ 
+             always @(posedge clk) begin
+@@ -472,6 +475,7 @@ module ngage_upp #(
+             assign ram_response = 0;
+             assign dma_packet_decode = 0;
+             assign dma_packet_targets = 0;
++            assign euart_packet_select = 0;
+             assign bus_code = 1'b0;
+             assign bus_cyc = ext_cyc;
+             assign bus_stb = ext_stb;
+@@ -631,6 +635,7 @@ module ngage_upp #(
+         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+         .NOS_TICK_HZ       (NOS_TICK_HZ),
+         .REGISTER_RESPONSES(INTERNAL_CPU),
++        .EUART_PREDECODE   (INTERNAL_CPU),
+         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
+         .SIMIF_ENABLE      (SIMIF_ENABLE),
+         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
+@@ -672,6 +677,7 @@ module ngage_upp #(
+         .cyc                 (bus_cyc),
+         .stb                 (bus_stb),
+         .adr                 (bus_adr),
++        .euart_select        (euart_packet_select),
+         .we                  (bus_we),
+         .din                 (bus_din),
+         .sel                 (bus_sel),
+@@ -932,8 +938,9 @@ endmodule
+ // DMA gap provide the request-low edge. Cancellation immediately suppresses
+ // side effects, while an already captured downstream transaction may drain.
+ module ngage_upp_request_stage #(
+-    parameter EXPLICIT_LIVE = 0,
+-              DMA_PREDECODE = 0
++    parameter EXPLICIT_LIVE   = 0,
++              DMA_PREDECODE   = 0,
++              EUART_PREDECODE = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -953,7 +960,8 @@ module ngage_upp_request_stage #(
+     output reg  [31:0] out_data,
+     output reg  [ 3:0] out_sel,
+     output wire [ 4:0] out_dma_ctl,
+-    output wire [ 7:0] out_dma_ch
++    output wire [ 7:0] out_dma_ch,
++    output wire [ 6:0] out_euart_select
+ );
+     (* dont_retime *)reg  valid = 0;
+     wire offered = in_cyc && in_stb;
+@@ -963,6 +971,22 @@ module ngage_upp_request_stage #(
+     assign out_cyc = !reset && valid && live;
+     assign out_stb = out_cyc;
+     generate
++        if (EUART_PREDECODE) begin : euart_packet
++            wire [6:0] hits;
++            (* dont_retime *)reg  [6:0] held_hits;
++            ngage_upp_euart_decode decode (
++                .addr(in_address),
++                .hits(hits)
++            );
++            assign out_euart_select = held_hits;
++            // Sample the selected CPU or local-DMA address on the packet edge.
++            always @(posedge clk) begin
++                if (reset) held_hits <= 0;
++                else if (!valid && offered) held_hits <= hits;
++            end
++        end else begin : no_euart_packet
++            assign out_euart_select = 0;
++        end
+         if (DMA_PREDECODE) begin : dma_packet
+             wire [4:0] fields;
+             wire [7:0] control_channel;
+diff --git a/rtl/ngage_upp_euart.v b/rtl/ngage_upp_euart.v
+index 25d6de0701a5a7b71f8f6ef6f62b5b94612b1948..f4b19cb4942d9439f0f67d023c768dd226906ced 100644
+--- a/rtl/ngage_upp_euart.v
++++ b/rtl/ngage_upp_euart.v
+@@ -1,19 +1,22 @@
+ // UPP EUART1 transaction model derived from the original NEM-4 ADSPComm driver.
+ // Byte streams stand in for serial pins; baud/electrical timing is unverified.
+ // No DSP response or diagnostic success is manufactured by this controller.
+-module ngage_upp_euart (
++module ngage_upp_euart #(
++    parameter PREDECODE = 0
++) (
+     input  wire        clk,
+     input  wire        reset,
+     input  wire        req,
+     input  wire        commit,
+     input  wire        we,
+     input  wire [31:0] addr,
++    input  wire [ 6:0] register_select,
+     input  wire [31:0] din,
+     input  wire [ 3:0] sel,
+     output wire        claim,
+     output wire        bad,
+     output wire        ready,
+-    output reg  [31:0] dout,
++    output wire [31:0] dout,
+     output wire        irq_pending,
+     output wire        tx_valid,
+     input  wire        tx_ready,
+@@ -28,10 +31,21 @@ module ngage_upp_euart (
+     wire high_lane = |sel[3:2];
+     wire [31:0] mask = {{8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}}};
+     wire lanes_ok = sel==1 || sel==2 || sel==4 || sel==8 || sel==3 || sel==12 || sel==15;
+-    wire data_word = a == 32'h0c150554;
+-    wire tx_write = data_word && we && low_lane;
+-    wire rx_read = data_word && !we && high_lane;
+-    wire status_word = a == 32'h0c1500b8 && high_lane;
++    wire [6:0] hits;
++    generate
++        if (PREDECODE) begin : held_register_select
++            assign hits = register_select;
++        end else begin : live_register_select
++            ngage_upp_euart_decode decode (
++                .addr(addr),
++                .hits(hits)
++            );
++        end
++    endgenerate
++    wire        data_word = hits[2];
++    wire        tx_write = data_word && we && low_lane;
++    wire        rx_read = data_word && !we && high_lane;
++    wire        status_word = hits[6] && high_lane;
+     wire [15:0] status;
+     reg [31:0] uart_config, line_control, batch_control, rx_control;
+     reg [15:0] enables;
+@@ -83,9 +97,7 @@ module ngage_upp_euart (
+         .q_a   (),
+         .q_b   (rx_q)
+     );
+-    assign claim = req && (a == 32'h0c150510 || a == 32'h0c150514 ||
+-        data_word || a == 32'h0c150558 || a == 32'h0c15055c ||
+-        a == 32'h0c150560 || status_word);
++    assign claim = req && (|hits[5:0] || status_word);
+     assign bad = claim && (!lanes_ok || (rx_read && rx_count == 0));
+     assign ready = !claim || (!tx_write || tx_count < 16) &&
+         (!rx_read || rx_count == 0 || rx_sample == 2);
+@@ -96,20 +108,17 @@ module ngage_upp_euart (
+     assign rx_ready = !reset && !rx_flush && rx_count != 15;
+     assign status = (rx_count != 0 ? 16'h0008 : 0) | (tx_done ? 16'h0010 : 0);
+     assign irq_pending = !reset && |(status & enables & 16'h0018);
+-    always @* begin
+-        dout = 0;
+-        case (a)
+-            32'h0c150510: dout = uart_config;
+-            32'h0c150514:
+-            dout = (line_control & ~32'h4) | (tx_count == 0 && batch_left == 0 ? 32'h4 : 0);
+-            32'h0c150554: dout = {rx_q, 8'b0, 16'b0};
+-            32'h0c150558: dout = batch_control;
+-            32'h0c15055c: dout = {24'b0, tx_producer, tx_consumer};
+-            32'h0c150560: dout = {8'b0, rx_producer, rx_consumer, rx_control[15:0]};
+-            32'h0c1500b8: dout = {status, 16'b0};
+-        endcase
+-        dout = dout & mask;
+-    end
++    wire [31:0] line_status = (line_control & ~32'h4) |
++                             (tx_count == 0 && batch_left == 0 ? 32'h4 : 0);
++    assign dout = mask & (
++        (uart_config & {32{hits[0]}}) |
++        (line_status & {32{hits[1]}}) |
++        ({rx_q, 24'b0} & {32{hits[2]}}) |
++        (batch_control & {32{hits[3]}}) |
++        ({24'b0, tx_producer, tx_consumer} & {32{hits[4]}}) |
++        ({8'b0, rx_producer, rx_consumer, rx_control[15:0]} & {32{hits[5]}}) |
++        ({status, 16'b0} & {32{hits[6]}})
++    );
+     always @(posedge clk) begin
+         if (reset) begin
+             uart_config   <= 0;
+@@ -180,3 +189,21 @@ module ngage_upp_euart (
+         end
+     end
+ endmodule
++
++// Static word identity only. The live access still checks request, direction,
++// lanes, FIFO readiness and errors after the packet has been captured.
++module ngage_upp_euart_decode (
++    input  wire [31:0] addr,
++    output wire [ 6:0] hits
++);
++    wire [31:0] a = {addr[31:2], 2'b00};
++    assign hits = {
++        a == 32'h0c1500b8,
++        a == 32'h0c150560,
++        a == 32'h0c15055c,
++        a == 32'h0c150558,
++        a == 32'h0c150554,
++        a == 32'h0c150514,
++        a == 32'h0c150510
++    };
++endmodule
+diff --git a/rtl/ngage_upp_peripherals.v b/rtl/ngage_upp_peripherals.v
+index 101f51b1afa8d41011c1dcee2c03a5e9a7112809..9797344c147ca5cd7846997d25fb05125676951a 100644
+--- a/rtl/ngage_upp_peripherals.v
++++ b/rtl/ngage_upp_peripherals.v
+@@ -47,6 +47,7 @@ module ngage_upp_peripherals #(
+               KEYPAD_ENABLE      = 0,
+               LCD_QUEUE_ENABLE   = 0,
+               REGISTER_RESPONSES = 0,
++              EUART_PREDECODE    = 0,
+               DDR_UPP_RAM        = 0,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+@@ -70,6 +71,7 @@ module ngage_upp_peripherals #(
+     input  wire        cyc,
+     input  wire        stb,
+     input  wire [31:0] adr,
++    input  wire [ 6:0] euart_select,
+     input  wire        we,
+     input  wire [31:0] din,
+     input  wire [ 3:0] sel,
+@@ -158,13 +160,16 @@ module ngage_upp_peripherals #(
+     wire local_access = commit && init_done && cyc && stb && !response_pending;
+     wire uart_claim, uart_bad, uart_ready, uart_fiq;
+     wire [31:0] uart_data;
+-    ngage_upp_euart euart1 (
++    ngage_upp_euart #(
++        .PREDECODE(EUART_PREDECODE)
++    ) euart1 (
+         .clk            (clk),
+         .reset          (rst),
+         .req            (cyc && stb && cfg_keypad),
+         .commit         (local_access),
+         .we             (we),
+         .addr           (adr),
++        .register_select(euart_select),
+         .din            (din),
+         .sel            (sel),
+         .claim          (uart_claim),
+@@ -812,12 +817,13 @@ module ngage_upp_peripherals #(
+                           we && a == 32'h0c150100) ||
+                          (local_access && valid_lanes && gpio_loop_claim &&
+                           !gpio_loop_bad && we);
+-    wire [31:0] keypad_dout;
++    wire [31:0] keypad_dout, gpio_keypad_data;
+     reg [31:0] gpio_data, clock_data;
+     reg gpio_bad, clock_bad;
+     wire [31:0] dout_unkeyed = gpio_loop_claim ? gpio_loop_data : nos_claim ? nos_data : gpio_data;
+     generate
+         if (KEYPAD_ENABLE) begin : keypad_enabled
++            wire [31:0] replace_mask, replacement;
+             ngage_keypad keypad (
+                 .clk          (clk),
+                 .reset        (rst),
+@@ -832,11 +838,15 @@ module ngage_upp_peripherals #(
+                 .genio1_driven(route2a[3]),
+                 .genio1_level (genio1_level),
+                 .value        (keypad_dout),
++                .replace_mask (replace_mask),
++                .replacement  (replacement),
+                 .irq          (keypad_irq)
+             );
++            assign gpio_keypad_data = (gpio_data & ~replace_mask) | replacement;
+         end else begin : keypad_disabled
+-            assign keypad_dout = dout_unkeyed;
+-            assign keypad_irq  = 1'b0;
++            assign keypad_dout      = dout_unkeyed;
++            assign gpio_keypad_data = gpio_data;
++            assign keypad_irq       = 1'b0;
+         end
+     endgenerate
+ 
+@@ -933,7 +943,8 @@ module ngage_upp_peripherals #(
+     wire [511:0] local_data = {
+         (mmc_data & mmc_mask) | (extra_data & ~mmc_mask),
+         lcd_read_data,
+-        uart_claim ? uart_data : keypad_dout,
++        // Lane 13 can only win after the shared overlay's NOS/loopback owners.
++        uart_claim ? uart_data : gpio_keypad_data,
+         clock_data,
+         d_q & wmask,
+         (a[31:12] == 20'h0c000 ? (we ? 32'b0 : 32'h47704770) : nos4k_q & wmask),
+diff --git a/tests/phone/upp_euart/tb.v b/tests/phone/upp_euart/tb.v
+index a8a43644bbb359320e33fca02101832b64eb3ffa..684484b0c5b9920fcf8be40f93a63e432754a43b 100644
+--- a/tests/phone/upp_euart/tb.v
++++ b/tests/phone/upp_euart/tb.v
+@@ -11,25 +11,25 @@ module tb;
+     reg [ 7:0] sent   [0:63];
+     reg [31:0] result;
+     ngage_upp_euart dut (
+-        clk,
+-        reset,
+-        req,
+-        commit,
+-        we,
+-        addr,
+-        din,
+-        sel,
+-        claim,
+-        bad,
+-        ready,
+-        dout,
+-        irq,
+-        tv,
+-        tr,
+-        td,
+-        rv,
+-        rr,
+-        rd,
++        .clk        (clk),
++        .reset      (reset),
++        .req        (req),
++        .commit     (commit),
++        .we         (we),
++        .addr       (addr),
++        .din        (din),
++        .sel        (sel),
++        .claim      (claim),
++        .bad        (bad),
++        .ready      (ready),
++        .dout       (dout),
++        .irq_pending(irq),
++        .tx_valid   (tv),
++        .tx_ready   (tr),
++        .tx_data    (td),
++        .rx_valid   (rv),
++        .rx_ready   (rr),
++        .rx_data    (rd)
+     );
+     always #5 clk = ~clk;
+     always @(posedge clk) begin
+diff --git a/tests/phone/upp_lane13/README.md b/tests/phone/upp_lane13/README.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..e8470ca657352831464d0ee1a4823989a5634abc
+--- /dev/null
++++ b/tests/phone/upp_lane13/README.md
+@@ -0,0 +1,34 @@
++# UPP GPIO and EUART response edges
++
++Run from the trial source root with Icarus Verilog from the offline
++Jotego toolchain. Give the runner a source directory for the exact
++unmodified control (`e9552bd` for the original timing comparison).
++
++```sh
++sh tests/phone/upp_lane13/run.sh /path/to/control
++```
++
++The bench connects the production registered bus bridge and request
++stage to the registered peripheral responder. Its stimulus represents a
++held CPU request and uses the board's registered peripheral-error rule.
++It can independently hold commit or the bridge acknowledgment to
++exercise the distinction between sampling a response and returning it.
++The full-board mixed test covers the real CPU, local DMA and other bus
++masters.
++
++The runner compares cycle-stamped launch, authorization, response,
++ownership and visible FIFO/IRQ events with and without the keypad
++model. It also checks expected values and earliest cycles. At nominal
++104 MHz, let E0 be the edge that captures the request. An immediate
++access samples register data and performs authorized effects at E1,
++raises the registered CPU response at E2 and consumes that response at E3.
++A GPIO RAM read uses E1 for the synchronous RAM and samples at E2.
++The bench offers the next request with CYC still asserted and no
++extra idle clock after CPU consumption.
++
++Cases include all EUART word/mask/direction combinations, byte
++aliases, a neighboring GPIO address, GPIO BRAM writes and reads,
++coincident RX and status sampling, SIMIF/EUART overlap and card
++backpressure, NOS-owned status and GPIO loopback overlays, key changes
++near authorization, a full and cancelled TX, and a held reply across
++warm reset. Trace logs are written to `build/sim/unit-upp-lane13`.
+diff --git a/tests/phone/upp_lane13/run.sh b/tests/phone/upp_lane13/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..5507f2b0df8fc3bd5992a0395eacc749b6fcf0f0
+--- /dev/null
++++ b/tests/phone/upp_lane13/run.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++set -eu
++reference=${1:?source directory containing the unmodified RTL}
++out=${UPP_LANE13_OUT:-build/sim/unit-upp-lane13}
++mkdir -p "$out"
++for keypad in 0 1; do
++    for leg in reference trial; do
++        if [ "$leg" = reference ]; then
++            source=$reference
++            set -- -DREFERENCE
++        else
++            source=.
++            set --
++        fi
++        binary="$out/$leg-$keypad"
++        iverilog -g2012 -s tb -Ptb.KEYPAD_ENABLE="$keypad" "$@" \
++            -y "$source/rtl" -I "$source/rtl" -o "$binary" \
++            "$source/rtl/ngage_upp.v" "$source/rtl/ngage_upp_euart.v" \
++            tests/phone/upp_lane13/tb.sv
++        vvp "$binary" > "$binary.log"
++        grep -E '^(TRACE|SAMPLE|DONE|PASS) ' "$binary.log" > "$binary.trace"
++    done
++    cmp "$out/reference-$keypad.trace" "$out/trial-$keypad.trace"
++    grep '^PASS ' "$out/trial-$keypad.trace"
++done
+diff --git a/tests/phone/upp_lane13/tb.sv b/tests/phone/upp_lane13/tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..31fb16778102940470bf110a237961e2f4044a91
+--- /dev/null
++++ b/tests/phone/upp_lane13/tb.sv
+@@ -0,0 +1,444 @@
++`timescale 1ns / 1ps
++module tb;
++    parameter KEYPAD_ENABLE = 1;
++    reg clk = 0;
++    always #4.807692 clk = ~clk;
++    reg reset = 1, cold_reset = 1, cyc = 0, we = 0, allow = 1, hold_reply = 0;
++    reg tx_ready = 1, rx_valid = 0, card_busy = 0, cfg_keypad = 1;
++    reg [ 7:0] rx_data = 0;
++    reg [25:0] keys = 0;
++    reg [31:0] address = 0, data = 0;
++    reg [3:0] sel = 0;
++    wire offered, live, cpu_ack, cpu_error, packet, wr;
++    wire [31:0] cpu_data, addr, wdata, rdata;
++    wire [3:0] lanes;
++    wire claim, ready, error, init_done, pending, irq, fiq, tx_valid, rx_ready;
++    wire [7:0] tx_data;
++    reg        invalid_response = 0;
++    wire       commit = packet && !reset && init_done && !invalid_response && !pending && allow;
++    wire       peripheral_ack = claim && ready && !error && !hold_reply;
++    integer cycle = 0, replies = 0, samples = 0, writes = 0, tx_pushes = 0, rx_pops = 0;
++    integer gpio_count = 0, uart_count = 0, overlap_count = 0, nos_count = 0, loop_count = 0;
++    integer k, mask, old_samples, old_pushes;
++    reg [31:0] observed;
++
++    ngage_upp_bus_bridge #(
++        .REGISTERED_MASTER(1)
++    ) bridge (
++        .clk             (clk),
++        .reset           (reset),
++        .master_cyc      (cyc),
++        .master_stb      (cyc),
++        .master_we       (we),
++        .master_code     (1'b0),
++        .master_address  (address),
++        .master_data     (data),
++        .master_sel      (sel),
++        .master_ack      (cpu_ack),
++        .master_error    (cpu_error),
++        .master_read_data(cpu_data),
++        .bus_cyc         (offered),
++        .bus_stb         (),
++        .bus_live        (live),
++        .bus_we          (),
++        .bus_code        (),
++        .bus_address     (),
++        .bus_data        (),
++        .bus_sel         (),
++        .bus_ack         (peripheral_ack),
++        .bus_error       (invalid_response),
++        .bus_read_data   (rdata)
++    );
++    wire [6:0] select_word;
++    ngage_upp_request_stage #(
++`ifndef REFERENCE
++        .EUART_PREDECODE(1),
++`endif
++        .EXPLICIT_LIVE  (1)
++    ) request_stage (
++        .clk             (clk),
++        .reset           (reset),
++        .in_cyc          (offered),
++        .in_stb          (offered),
++        .in_live         (live),
++        .in_we           (we),
++        .in_code         (1'b0),
++        .in_address      (address),
++        .in_data         (data),
++        .in_sel          (sel),
++        .out_cyc         (packet),
++        .out_stb         (),
++        .out_we          (wr),
++        .out_code        (),
++        .out_address     (addr),
++        .out_data        (wdata),
++`ifndef REFERENCE
++        .out_euart_select(select_word),
++`endif
++        .out_sel         (lanes)
++    );
++    ngage_upp_peripherals #(
++        .REGISTER_RESPONSES(1),
++        .KEYPAD_ENABLE     (KEYPAD_ENABLE),
++        .SIMIF_ENABLE      (1),
++        .SYS_CLK_HZ        (104000000),
++        .TIMER_CLK_DIV     (4),
++`ifndef REFERENCE
++        .EUART_PREDECODE   (1),
++`endif
++        .NOS_TICK_HZ       (64)
++    ) dut (
++        .clk                 (clk),
++        .rst                 (reset),
++        .init_rst            (cold_reset),
++        .cyc                 (packet),
++        .stb                 (packet),
++        .adr                 (addr),
++        .din                 (wdata),
++        .we                  (wr),
++        .sel                 (lanes),
++        .commit              (commit),
++`ifndef REFERENCE
++        .euart_select        (select_word),
++`endif
++        .upp_ddr_ack         (1'b0),
++        .upp_ddr_rdata       (32'b0),
++        .upp_ddr_clear_done  (1'b0),
++        .cfg_lcd             (1'b0),
++        .cfg_keypad          (cfg_keypad),
++        .cfg_clocks          (1'b0),
++        .dma_irq_pending     (1'b0),
++        .pcm_irq             (1'b0),
++        .general_dma_irq     (8'b0),
++        .sim_fiq_pending     (1'b0),
++        .keys                (keys),
++        .sim_present         (1'b1),
++        .card_rx_valid       (1'b0),
++        .card_tx_will_emit   (1'b0),
++        .card_overflow       (1'b0),
++        .card_rx_data        (8'b0),
++        .card_available      (7'b0),
++        .card_busy           (card_busy),
++        .claim               (claim),
++        .ready               (ready),
++        .dout                (rdata),
++        .unmodeled           (error),
++        .irq                 (irq),
++        .fiq                 (fiq),
++        .init_done           (init_done),
++        .cbus_claim          (1'b0),
++        .cbus_bad            (1'b0),
++        .cbus_irq            (1'b0),
++        .cbus_data           (32'b0),
++        .route2a             (16'h0008),
++        .route2c             (16'b0),
++        .route3b             (16'b0),
++        .cbus8d_written      (1'b0),
++        .adsp_tx_valid       (tx_valid),
++        .adsp_tx_ready       (tx_ready),
++        .adsp_tx_data        (tx_data),
++        .adsp_rx_valid       (rx_valid),
++        .adsp_rx_ready       (rx_ready),
++        .adsp_rx_data        (rx_data),
++        .mdi_claim           (1'b0),
++        .mdi_bad             (1'b0),
++        .mdi_ready           (1'b1),
++        .mdi_data            (32'b0),
++        .mdi_events          (16'b0),
++        .lcd_sink_ready      (1'b1),
++        .lcd_dma_access      (1'b0),
++        .lcd_pixel_mode      (1'b0),
++        .dma_shadow_claim    (1'b0),
++        .lcd_direct_collision(1'b0),
++        .mmc_cmd_i           (1'b1),
++        .mmc_dat_i           (1'b1),
++        .response_pending    (pending)
++    );
++    always @(posedge clk) begin
++        cycle <= cycle + 1;
++        if (reset) invalid_response <= 0;
++        else begin
++            // Board-register the selected peripheral error, as in ngage_mister.
++            invalid_response <= !invalid_response && packet && claim && ready && error;
++            if (init_done && (packet || offered || cpu_ack || cpu_error))
++                $display(
++                    "TRACE %0d %b%b%b%b%b%b %h %h %h %b%b%b%b %h",
++                    cycle,
++                    offered,
++                    packet,
++                    commit,
++                    pending,
++                    cpu_ack,
++                    cpu_error,
++                    packet ? addr : address,
++                    packet ? lanes : sel,
++                    pending && packet ? rdata : 32'd0,
++                    irq,
++                    fiq,
++                    tx_valid,
++                    rx_ready,
++                    tx_valid ? tx_data : 8'd0
++                );
++            if (commit && claim && dut.local_ready) begin
++                samples       <= samples + 1;
++                writes        <= writes + wr;
++                gpio_count    <= gpio_count + (dut.selected_owner[13] && !dut.uart_claim);
++                uart_count    <= uart_count + (dut.selected_owner[13] && dut.uart_claim);
++                overlap_count <= overlap_count + (dut.selected_owner[0] && dut.uart_claim);
++                nos_count     <= nos_count + dut.selected_owner[8];
++                loop_count    <= loop_count + dut.selected_owner[2];
++                $display("SAMPLE %0d addr=%h owner=%h wr=%b lanes=%h", cycle, addr,
++                         dut.selected_owner, wr, lanes);
++            end
++            if (dut.euart1.tx_push) tx_pushes <= tx_pushes + 1;
++            if (dut.euart1.rx_pop) rx_pops <= rx_pops + 1;
++            if (cpu_ack && cpu_error) $fatal(1, "Duplicate status");
++        end
++        if (cycle > 25000) $fatal(1, "Peripheral trace timeout");
++    end
++
++    task tick;
++        @(negedge clk);
++    endtask
++
++    task offer;
++        input write_op;
++        input [31:0] dest, value;
++        input [3:0] lane_mask;
++        begin
++            cyc     = 1;
++            we      = write_op;
++            address = dest;
++            data    = value;
++            sel     = lane_mask;
++        end
++    endtask
++
++    task finish;
++        input expect_error;
++        input [31:0] compare_mask, expected;
++        input integer start, expected_edges;
++        begin
++            while (!cpu_ack && !cpu_error) tick;
++            if (cpu_error !== expect_error || cpu_ack === expect_error)
++                $fatal(1, "Unexpected completion addr=%h error=%b", address, cpu_error);
++            if (!we && ((cpu_data & compare_mask) !== expected))
++                $fatal(
++                    1,
++                    "Read %h mask %h got %h expected %h",
++                    address,
++                    compare_mask,
++                    cpu_data,
++                    expected
++                );
++            if (expected_edges != 0 && cycle - start != expected_edges)
++                $fatal(
++                    1,
++                    "Response edge moved for %h, expected %0d clocks got %0d",
++                    address,
++                    expected_edges,
++                    cycle - start
++                );
++            observed = cpu_data;
++            replies  = replies + 1;
++            $display("DONE %0d duration=%0d addr=%h result=%h err=%b", cycle, cycle - start,
++                     address, cpu_data, cpu_error);
++            tick;  // The CPU consumes the response on this edge.
++        end
++    endtask
++
++    task access;
++        input write_op, expect_error;
++        input [31:0] dest, value;
++        input [3:0] lanes;
++        input [31:0] compare_mask, expected;
++        input integer expected_edges;
++        integer start;
++        begin
++            start = cycle;
++            offer(write_op, dest, value, lanes);
++            finish(expect_error, compare_mask, expected, start, expected_edges);
++            // The next access can follow with no extra idle edge, retaining CYC.
++        end
++    endtask
++
++    task push_rx;
++        input [7:0] value;
++        begin
++            cyc      = 0;
++            rx_data  = value;
++            rx_valid = 1;
++            if (!rx_ready) $fatal(1, "Unexpected RX backpressure");
++            tick;
++            rx_valid = 0;
++        end
++    endtask
++
++    function [31:0] euart_address;
++        input integer index;
++        begin
++            case (index)
++                0: euart_address = 32'h0c150510;
++                1: euart_address = 32'h0c150514;
++                2: euart_address = 32'h0c150554;
++                3: euart_address = 32'h0c150558;
++                4: euart_address = 32'h0c15055c;
++                5: euart_address = 32'h0c150560;
++                6: euart_address = 32'h0c1500b8;
++                7: euart_address = 32'h0c150508;  // Neighbor is plain GPIO RAM.
++            endcase
++        end
++    endfunction
++    function valid_lanes;
++        input [3:0] lanes;
++        begin
++            valid_lanes = lanes == 1 || lanes == 2 || lanes == 4 || lanes == 8 ||
++                lanes == 3 || lanes == 12 || lanes == 15;
++        end
++    endfunction
++
++    initial begin
++        repeat (3) tick;
++        cold_reset = 0;
++        wait (init_done);
++        tick;
++        reset = 0;
++        access (1, 0, 'h0c150510, 'h01234567, 15, 0, 0, 3);
++        access (0, 0, 'h0c150511, 0, 15, 'hffffffff, 'h01234567, 3);
++        access (1, 0, 'h0c150511, 'h0000aa00, 2, 0, 0, 3);
++        access (0, 0, 'h0c150510, 0, 15, 'hffffffff, 'h0123aa67, 3);
++        access (0, 1, 'h0c150510, 0, 5, 0, 0, 4);
++        access (1, 0, 'h0c150508, 'h76543210, 15, 0, 0, 3);
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'h76543210, 4);
++        access (1, 0, 'h0c150508, 'h0000bb00, 2, 0, 0, 3);
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'h7654bb10, 4);
++
++        // SIMIF owns the full-word status read while EUART supplies high bits.
++        access (1, 0, 'h0c150808, 1, 3, 0, 0, 3);
++        push_rx(8'ha5);
++        access (0, 0, 'h0c1500b8, 0, 3, 'hffffffff, 4, 3);
++        access (0, 0, 'h0c1500b8, 0, 12, 'hffffffff, 'h00080000, 3);
++        access (0, 0, 'h0c1500b8, 0, 15, 'hffffffff, 'h00080004, 3);
++        access (0, 0, 'h0c150554, 0, 12, 'hffffffff, 'ha5000000, 3);
++        access (0, 1, 'h0c150554, 0, 12, 0, 0, 4);
++        // A byte arriving just before presentation still waits for RX RAM.
++        push_rx(8'h39);
++        access (0, 0, 'h0c150555, 0, 12, 'hffffffff, 'h39000000, 0);
++
++        // An incoming byte on the status sample edge changes the next
++        // read, not the just-captured result. Card busy on the shared
++        // SIMIF read delays both sources until the common sample.
++        offer(0, 'h0c1500b8, 0, 12);
++        tick;
++        rx_valid = 1;
++        rx_data  = 8'h7e;
++        tick;
++        rx_valid = 0;
++        finish(0, 'hffffffff, 0, cycle, 1);
++        card_busy = 1;
++        offer(0, 'h0c1500b8, 0, 15);
++        repeat (4) tick;
++        if (!packet || pending || cpu_ack) $fatal(1, "SIMIF ignored card busy");
++        card_busy = 0;
++        finish(0, 'hffffffff, 'h00080004, cycle, 2);
++        cfg_keypad = 0;
++        access (0, 0, 'h0c1500b8, 0, 15, 'hffffffff, 4, 3);
++        cfg_keypad = 1;
++        access (0, 0, 'h0c150554, 0, 12, 'hffffffff, 'h7e000000, 3);
++
++        access (1, 0, 'h0c150010, 'h10000000, 15, 0, 0, 3);
++        access (1, 0, 'h0c150200, 'h00010000, 12, 0, 0, 3);
++        access (0, 0, 'h0c150208, 0, 12, 'h00020000, 'h00020000, 3);
++        keys[0] = 1;
++        access (0, 0, 'h0c150208, 0, 12, 'h00020000, KEYPAD_ENABLE ? 0 : 'h00020000, 3);
++        keys[0] = 0;
++        access (0, 0, 'h0c150100, 0, 15, 'h00001000, 'h00001000, 3);
++        access (1, 0, 'h0c150100, 'h1000, 3, 0, 0, 3);
++        access (0, 0, 'h0c150100, 0, 15, 'h00001000, 0, 3);
++
++        // Read live keyboard pins only on authorized completion, then hold data.
++        access (1, 0, 'h0c15040c, 0, 3, 0, 0, 3);
++        access (1, 0, 'h0c15040c, 'h00010000, 4, 0, 0, 3);
++        access (1, 0, 'h0c150400, 'h1f000000, 8, 0, 0, 3);
++        allow      = 0;
++        hold_reply = 1;
++        offer(0, 'h0c150400, 0, 3);
++        repeat (3) tick;
++        if (pending || cpu_ack || !packet) $fatal(1, "Commit guard failed");
++        keys[5] = 1;
++        tick;
++        allow = 1;
++        tick;
++        if (!pending || (KEYPAD_ENABLE && (rdata & 31) != 30))
++            $fatal(1, "Key wasn't sampled on the live response edge");
++        observed    = rdata;
++        old_samples = samples;
++        keys[5]     = 0;
++        repeat (4) begin
++            tick;
++            if (!pending || rdata !== observed || samples != old_samples || cpu_ack)
++                $fatal(1, "Held response recomputed or committed twice");
++        end
++        hold_reply = 0;
++        finish(0, 'hffffffff, observed, cycle, 1);
++
++        // A stalled TX write must commit once, even if the result is held.
++        tx_ready = 0;
++        for (k = 0; k < 16; k = k + 1) access (1, 0, 'h0c150554, k << 8, 3, 0, 0, 3);
++        old_pushes = tx_pushes;
++        offer(1, 'h0c150554, 'h00009900, 3);
++        repeat (6) tick;
++        if (pending || cpu_ack || tx_pushes != old_pushes) $fatal(1, "Full TX accepted");
++        cyc      = 0;
++        tx_ready = 1;
++        repeat (6) tick;
++        if (tx_pushes != old_pushes || cpu_ack) $fatal(1, "Cancelled TX accepted");
++        access (1, 0, 'h0c150554, 'h00009900, 3, 0, 0, 3);
++        if (tx_pushes != old_pushes + 1) $fatal(1, "Lost TX write");
++
++        // Every mask/direction and aligned word, including invalid lanes,
++        // across the status overlap and a GPIO address next to EUART.
++        for (k = 0; k < 8; k = k + 1) begin
++            for (mask = 0; mask < 16; mask = mask + 1) begin
++                access (1, !valid_lanes(mask[3:0]), euart_address(k) + (mask & 3), 'ha5b6c7d8 | k,
++                        mask[3:0], 0, 0, 0);
++                access (0, !valid_lanes(mask[3:0]) || (k == 2 && (mask & 12) != 0), euart_address(k
++                        ) + (mask & 3), 0, mask[3:0], 0, 0, 0);
++            end
++        end
++
++        // Cancel a GPIO write before authorization. A queued response and
++        // stale valid address must also clear across warm reset.
++        allow       = 0;
++        old_samples = samples;
++        offer(1, 'h0c150508, 'hfeedface, 15);
++        tick;
++        cyc = 0;
++        tick;
++        allow = 1;
++        if (samples != old_samples || cpu_ack) $fatal(1, "Cancelled GPIO wrote");
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);
++        hold_reply = 1;
++        offer(0, 'h0c150510, 0, 15);
++        repeat (2) tick;
++        if (!pending) $fatal(1, "Warm-reset fixture missed response");
++        reset = 1;
++        cyc   = 0;
++        tick;
++        reset      = 0;
++        hold_reply = 0;
++        if (pending || cpu_ack || cpu_error) $fatal(1, "Warm-reset stale response");
++        access (0, 0, 'h0c150510, 0, 15, 'hffffffff, 0, 3);
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);
++        cyc = 0;
++        tick;
++        if (gpio_count == 0 || uart_count == 0 || overlap_count == 0 ||
++            nos_count == 0 || loop_count == 0 || rx_pops != 3)
++            $fatal(1, "Missing owner or FIFO coverage");
++        $display(
++            "PASS lane13 keypad=%0d replies=%0d samples=%0d writes=%0d gpio=%0d uart=%0d overlap=%0d nos=%0d loop=%0d tx=%0d rx=%0d",
++            KEYPAD_ENABLE, replies, samples, writes, gpio_count, uart_count, overlap_count,
++            nos_count, loop_count, tx_pushes, rx_pops);
++        $finish;
++    end
++endmodule
