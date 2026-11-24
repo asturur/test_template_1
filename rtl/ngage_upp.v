@@ -200,6 +200,7 @@ module ngage_upp #(
     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
     wire [4:0] dma_packet_decode;
     wire [7:0] dma_packet_targets;
+    wire [6:0] euart_packet_select;
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
@@ -315,28 +316,30 @@ module ngage_upp #(
             // selection nor its wide address/lane mux crosses device command
             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
             ngage_upp_request_stage #(
-                .EXPLICIT_LIVE(1),
-                .DMA_PREDECODE(GENERAL_DMA)
+                .EXPLICIT_LIVE  (1),
+                .DMA_PREDECODE  (GENERAL_DMA),
+                .EUART_PREDECODE(1)
             ) request_stage (
-                .clk        (clk),
-                .reset      (rst),
-                .in_cyc     (dma_bus_active || cpu_bus_cyc),
-                .in_stb     (dma_bus_active || cpu_bus_stb),
-                .in_live    (dma_bus_active || cpu_bus_live),
-                .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
-                .in_code    (!dma_bus_active && cpu_bus_code),
-                .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
-                .in_data    (dma_bus_active ? dma_data : cpu_bus_din),
-                .in_sel     (dma_bus_active ? dma_be : cpu_bus_sel),
-                .out_cyc    (bus_cyc),
-                .out_stb    (bus_stb),
-                .out_we     (bus_we),
-                .out_code   (bus_code),
-                .out_address(bus_adr),
-                .out_data   (bus_din),
-                .out_sel    (bus_sel),
-                .out_dma_ctl(dma_packet_decode),
-                .out_dma_ch (dma_packet_targets)
+                .clk             (clk),
+                .reset           (rst),
+                .in_cyc          (dma_bus_active || cpu_bus_cyc),
+                .in_stb          (dma_bus_active || cpu_bus_stb),
+                .in_live         (dma_bus_active || cpu_bus_live),
+                .in_we           (dma_bus_active ? dma_write : cpu_bus_we),
+                .in_code         (!dma_bus_active && cpu_bus_code),
+                .in_address      (dma_bus_active ? dma_addr : cpu_bus_adr),
+                .in_data         (dma_bus_active ? dma_data : cpu_bus_din),
+                .in_sel          (dma_bus_active ? dma_be : cpu_bus_sel),
+                .out_cyc         (bus_cyc),
+                .out_stb         (bus_stb),
+                .out_we          (bus_we),
+                .out_code        (bus_code),
+                .out_address     (bus_adr),
+                .out_data        (bus_din),
+                .out_sel         (bus_sel),
+                .out_dma_ctl     (dma_packet_decode),
+                .out_dma_ch      (dma_packet_targets),
+                .out_euart_select(euart_packet_select)
             );
 
             always @(posedge clk) begin
@@ -472,6 +475,7 @@ module ngage_upp #(
             assign ram_response = 0;
             assign dma_packet_decode = 0;
             assign dma_packet_targets = 0;
+            assign euart_packet_select = 0;
             assign bus_code = 1'b0;
             assign bus_cyc = ext_cyc;
             assign bus_stb = ext_stb;
@@ -631,6 +635,7 @@ module ngage_upp #(
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
         .NOS_TICK_HZ       (NOS_TICK_HZ),
         .REGISTER_RESPONSES(INTERNAL_CPU),
+        .EUART_PREDECODE   (INTERNAL_CPU),
         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
         .SIMIF_ENABLE      (SIMIF_ENABLE),
         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
@@ -672,6 +677,7 @@ module ngage_upp #(
         .cyc                 (bus_cyc),
         .stb                 (bus_stb),
         .adr                 (bus_adr),
+        .euart_select        (euart_packet_select),
         .we                  (bus_we),
         .din                 (bus_din),
         .sel                 (bus_sel),
@@ -932,8 +938,9 @@ endmodule
 // DMA gap provide the request-low edge. Cancellation immediately suppresses
 // side effects, while an already captured downstream transaction may drain.
 module ngage_upp_request_stage #(
-    parameter EXPLICIT_LIVE = 0,
-              DMA_PREDECODE = 0
+    parameter EXPLICIT_LIVE   = 0,
+              DMA_PREDECODE   = 0,
+              EUART_PREDECODE = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -953,7 +960,8 @@ module ngage_upp_request_stage #(
     output reg  [31:0] out_data,
     output reg  [ 3:0] out_sel,
     output wire [ 4:0] out_dma_ctl,
-    output wire [ 7:0] out_dma_ch
+    output wire [ 7:0] out_dma_ch,
+    output wire [ 6:0] out_euart_select
 );
     (* dont_retime *)reg  valid = 0;
     wire offered = in_cyc && in_stb;
@@ -963,6 +971,22 @@ module ngage_upp_request_stage #(
     assign out_cyc = !reset && valid && live;
     assign out_stb = out_cyc;
     generate
+        if (EUART_PREDECODE) begin : euart_packet
+            wire [6:0] hits;
+            (* dont_retime *)reg  [6:0] held_hits;
+            ngage_upp_euart_decode decode (
+                .addr(in_address),
+                .hits(hits)
+            );
+            assign out_euart_select = held_hits;
+            // Sample the selected CPU or local-DMA address on the packet edge.
+            always @(posedge clk) begin
+                if (reset) held_hits <= 0;
+                else if (!valid && offered) held_hits <= hits;
+            end
+        end else begin : no_euart_packet
+            assign out_euart_select = 0;
+        end
         if (DMA_PREDECODE) begin : dma_packet
             wire [4:0] fields;
             wire [7:0] control_channel;

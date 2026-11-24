@@ -13,7 +13,9 @@ module ngage_keypad (
     input  wire [31:0] base,
     input  wire        genio1_driven,
     input  wire        genio1_level,
-    output reg  [31:0] value,
+    output wire [31:0] value,
+    output reg  [31:0] replace_mask,
+    output reg  [31:0] replacement,
     output wire        irq
 );
     // Logical row/column names follow the reference's GPIO drive banks;
@@ -44,7 +46,8 @@ module ngage_keypad (
     wire           status_write = req && commit && we && a == 32'h0c150100;
     wire    [31:0] lane_mask = {{8{sel[3]}}, {8{sel[2]}}, {8{sel[1]}}, {8{sel[0]}}};
     wire    [31:0] clear_mask = status_write ? din & lane_mask : 32'b0;
-    assign irq = |pending;
+    assign irq   = |pending;
+    assign value = (base & ~replace_mask) | replacement;
     always @* begin
         press_events     = 0;
         press_events[2]  = |col_falls;
@@ -121,10 +124,11 @@ module ngage_keypad (
         end
     end
     always @* begin
-        value      = base;
-        cols       = ~row_low;
-        row_inputs = ~col_low;
-        stick      = 16'h3c06;
+        replace_mask = 0;
+        replacement  = 0;
+        cols         = ~row_low;
+        row_inputs   = ~col_low;
+        stick        = 16'h3c06;
         if (keys[0]) stick[1] = 0;
         if (keys[1]) stick[10] = 0;
         if (keys[2]) stick[13] = 0;
@@ -153,35 +157,49 @@ module ngage_keypad (
         row_inputs = (row_inputs & ~col_drive) | (col_data & col_drive);
         if (req && !we)
             case (a)
-                32'h0c150100: value = (base & ~32'h00ee0004) | (pending & lane_mask);
-                32'h0c150208:
-                value = (value & ~32'h2c060000) |
-                        (({16'b0, genio_inputs} << 16) & 32'h2c060000 & lane_mask);
+                32'h0c150100: begin
+                    replace_mask = 32'h00ee0004;
+                    replacement  = pending & lane_mask;
+                end
+                32'h0c150208: begin
+                    replace_mask = 32'h2c060000;
+                    replacement  = {genio_inputs, 16'b0} & replace_mask & lane_mask;
+                end
                 32'h0c150400: begin
-                    value = (value & ~32'h001f001f) |
-                            (({11'b0, row_drive[4:0], 11'b0, cols}) & lane_mask);
+                    replace_mask = 32'h001f001f;
+                    replacement  = {11'b0, row_drive[4:0], 11'b0, cols} & lane_mask;
                 end
                 32'h0c15040c: begin
-                    value = (value & ~32'h003f003f) |
-                            (({10'b0, col_drive, 10'b0, row_inputs}) & lane_mask);
+                    replace_mask = 32'h003f003f;
+                    replacement  = {10'b0, col_drive, 10'b0, row_inputs} & lane_mask;
                 end
-                32'h0c150404: value = (value & ~32'h1f) | ({27'b0, row_ien} & lane_mask);
-                32'h0c150410: value = (value & ~32'h3f) | ({26'b0, col_ien} & lane_mask);
-                32'h0c150210:
-                value = (value & ~32'h1000) | (music_dir ? (32'h1000 & lane_mask) : 32'b0);
-                32'h0c150014:
-                value = (value & ~32'h00ee00ee) |
-                                      ({8'b0, genio_ien, 8'b0, genio_ien} &
-                                       32'h00ee00ee & lane_mask);
+                32'h0c150404: begin
+                    replace_mask = 32'h1f;
+                    replacement  = {27'b0, row_ien} & lane_mask;
+                end
+                32'h0c150410: begin
+                    replace_mask = 32'h3f;
+                    replacement  = {26'b0, col_ien} & lane_mask;
+                end
+                32'h0c150210: begin
+                    replace_mask = 32'h1000;
+                    replacement  = music_dir ? 32'h1000 & lane_mask : 32'b0;
+                end
+                32'h0c150014: begin
+                    replace_mask = 32'h00ee00ee;
+                    replacement  = {8'b0, genio_ien, 8'b0, genio_ien} & replace_mask & lane_mask;
+                end
                 32'h0c120c04: begin
-                    value[19] = sel[2] && (row_drive[5] ? gpio30_data :
-                                !((keys[21] && col_low[2]) ||
-                                  (keys[22] && col_low[3]) || (keys[23] && col_low[4]) ||
-                                  (keys[24] && col_low[5])));
+                    replace_mask[19] = 1;
+                    replacement[19]  = sel[2] && (row_drive[5] ? gpio30_data :
+                                      !((keys[21] && col_low[2]) ||
+                                        (keys[22] && col_low[3]) || (keys[23] && col_low[4]) ||
+                                        (keys[24] && col_low[5])));
                 end
                 32'h0c15020c: begin
-                    value = (value & ~32'h2c061000) | ({genio_dir & 16'h2c06, 16'b0} & lane_mask);
-                    if (sel[1]) value[12] = genio_inputs[12];
+                    replace_mask = 32'h2c061000;
+                    replacement  = {genio_dir & 16'h2c06, 16'b0} & lane_mask;
+                    if (sel[1]) replacement[12] = genio_inputs[12];
                 end
             endcase
     end

@@ -47,6 +47,7 @@ module ngage_upp_peripherals #(
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
               REGISTER_RESPONSES = 0,
+              EUART_PREDECODE    = 0,
               DDR_UPP_RAM        = 0,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
@@ -70,6 +71,7 @@ module ngage_upp_peripherals #(
     input  wire        cyc,
     input  wire        stb,
     input  wire [31:0] adr,
+    input  wire [ 6:0] euart_select,
     input  wire        we,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
@@ -158,13 +160,16 @@ module ngage_upp_peripherals #(
     wire local_access = commit && init_done && cyc && stb && !response_pending;
     wire uart_claim, uart_bad, uart_ready, uart_fiq;
     wire [31:0] uart_data;
-    ngage_upp_euart euart1 (
+    ngage_upp_euart #(
+        .PREDECODE(EUART_PREDECODE)
+    ) euart1 (
         .clk            (clk),
         .reset          (rst),
         .req            (cyc && stb && cfg_keypad),
         .commit         (local_access),
         .we             (we),
         .addr           (adr),
+        .register_select(euart_select),
         .din            (din),
         .sel            (sel),
         .claim          (uart_claim),
@@ -812,12 +817,13 @@ module ngage_upp_peripherals #(
                           we && a == 32'h0c150100) ||
                          (local_access && valid_lanes && gpio_loop_claim &&
                           !gpio_loop_bad && we);
-    wire [31:0] keypad_dout;
+    wire [31:0] keypad_dout, gpio_keypad_data;
     reg [31:0] gpio_data, clock_data;
     reg gpio_bad, clock_bad;
     wire [31:0] dout_unkeyed = gpio_loop_claim ? gpio_loop_data : nos_claim ? nos_data : gpio_data;
     generate
         if (KEYPAD_ENABLE) begin : keypad_enabled
+            wire [31:0] replace_mask, replacement;
             ngage_keypad keypad (
                 .clk          (clk),
                 .reset        (rst),
@@ -832,11 +838,15 @@ module ngage_upp_peripherals #(
                 .genio1_driven(route2a[3]),
                 .genio1_level (genio1_level),
                 .value        (keypad_dout),
+                .replace_mask (replace_mask),
+                .replacement  (replacement),
                 .irq          (keypad_irq)
             );
+            assign gpio_keypad_data = (gpio_data & ~replace_mask) | replacement;
         end else begin : keypad_disabled
-            assign keypad_dout = dout_unkeyed;
-            assign keypad_irq  = 1'b0;
+            assign keypad_dout      = dout_unkeyed;
+            assign gpio_keypad_data = gpio_data;
+            assign keypad_irq       = 1'b0;
         end
     endgenerate
 
@@ -933,7 +943,8 @@ module ngage_upp_peripherals #(
     wire [511:0] local_data = {
         (mmc_data & mmc_mask) | (extra_data & ~mmc_mask),
         lcd_read_data,
-        uart_claim ? uart_data : keypad_dout,
+        // Lane 13 can only win after the shared overlay's NOS/loopback owners.
+        uart_claim ? uart_data : gpio_keypad_data,
         clock_data,
         d_q & wmask,
         (a[31:12] == 20'h0c000 ? (we ? 32'b0 : 32'h47704770) : nos4k_q & wmask),
