@@ -154,6 +154,11 @@ two targeted paths from the three 100 °C top-1,000 exports. Median
 setup moved from −2.668 to −2.724 ns, and median core setup TNS
 improved by 1,277.025 ns. Retain it for board integration.
 
+The [speculative register-shift trial](early-shift-select.md) removes
+the Rs wait from shift-amount selection and preserves the issue interlock.
+An independent shift oracle, the 15 payloads, four native frames and
+104 MHz mixed pin replay all matched the control. Routed fits are pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

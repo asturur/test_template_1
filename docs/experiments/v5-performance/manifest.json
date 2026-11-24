@@ -1296,5 +1296,42 @@
     "sha256": [
       "94515a9aca446c056727a2488e0b9b43444b5cc95f9e951cac4ba991fe7e20df"
     ]
+  },
+  {
+    "id": "early-shift-select",
+    "kind": "design",
+    "base": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+    "patches": [
+      "patches/early-shift-select.patch"
+    ],
+    "sha256": [
+      "641f85c2fa32068788457c7a45d041593411b9dabd41e90e1c55edc9833b3485"
+    ],
+    "target": "7158a76cfe1bd32fe40b26b7a35c19590ad146c9",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/early_shift_tb.sv",
+      "tests/cpu/arm9v2_board/prepare_early_shift_test.py",
+      "tests/cpu/arm9v2_board/run-early-shift.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "4996ae034a6b9450ff293f20d93fbfb5378dfbb9ed48775c0525b86b3e54f13b",
+      "tests/cpu/arm9v2_board/early_shift_tb.sv": "5ca58b2f9166829ecee5c37c648503632df5af81b82ad1f7d9e02da16f2fb1e5",
+      "tests/cpu/arm9v2_board/prepare_early_shift_test.py": "fea04f24de658e59785abea0700ad380bd92d554eb4746aae83bc95034e5d192",
+      "tests/cpu/arm9v2_board/run-early-shift.sh": "089f6b658c037113f4999a16b6a2685554f55960dcea432d758881972ece640e",
+      "tools/gen_arm9v2_phone.py": "858f484c5b58788f786a2925e0a60819d1a1edc591777c9adcfa15e776f8f044"
+    }
+  },
+  {
+    "id": "early-shift-select-replay",
+    "kind": "fixture",
+    "base": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+    "patches": [
+      "patches/early-shift-select-replay.patch"
+    ],
+    "sha256": [
+      "cddccf4f9b072e47a19e8168be0b57cf15491ec14699b852b60393d6fd64aa1b"
+    ]
   }
 ]
