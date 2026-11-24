@@ -1122,6 +1122,36 @@ def split_execute_readiness(phone):
             $fatal(1, "Parallel execute readiness changed at %h", i_pc);
     end
 `endif''')
+    source = edit(source,
+        '\tngage2_arm9v2_forward u_forward(\n',
+        '''
+    wire [19:0] s_grant = i_forward_grant[5 * (s_grant_hit * 4)+:20];
+    wire [4:0] rs_grant = s_grant[14:10];
+    // A younger M dependency still wins if its unavailable data temporarily
+    // leaves an older W value in the data mux. The ordinary wait check then
+    // holds the instruction until the younger value can actually be used.
+    wire rs_m_match = |i_forward_match[9:8];
+    wire late_w_aux_rs = !rs_m_match && rs_grant[2];
+    // The fast count excludes the W auxiliary lane. Other consumers still
+    // see the full forwarded operand, including the existing held-count
+    // capture and the independently forwarded value being shifted.
+    wire [7:0] fast_rs = (i_mw_value[39:32] & {8{rs_grant[0]}})
+                      | (i_mw_value[7:0] & {8{rs_grant[1]}})
+                      | (i_mw_value[71:64] & {8{rs_grant[3]}})
+                      | ((holding ? held[71:64] : i_value[71:64]) & {8{rs_grant[4]}});
+	ngage2_arm9v2_forward u_forward(
+''')
+    source = edit(source, '\t\t.i_grant(i_forward_grant[5 * (s_grant_hit * 4)+:20]),',
+                  '\t\t.i_grant(s_grant),')
+    source = edit(source,
+        '    wire direct_reg_shift = direct_reg_eligible && !s_wait[2];',
+        '''    wire fast_reg_eligible = direct_reg_eligible && !late_w_aux_rs;
+    wire direct_reg_shift = fast_reg_eligible && !s_wait[2];''')
+    source = edit(source, '(i_reg_shift && !direct_reg_eligible)', '(i_reg_shift && !fast_reg_eligible)')
+    source = edit(source, '''            shift_amount = operand[71:64];
+            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);''',
+        '''            shift_amount = fast_rs;
+            shift_rot = (shift_type == 0 ? -fast_rs[4:0] : fast_rs[4:0]);''')
     prep_gate = '&& !i_load_wait) && !(|(s_wait & i_early)))'
     assert source.count(prep_gate) == 2
     source = source.replace(prep_gate, prep_gate.replace('!i_load_wait', '!s_load_wait'))

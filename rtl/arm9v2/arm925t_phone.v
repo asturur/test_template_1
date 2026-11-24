@@ -3501,9 +3501,24 @@ module ngage2_arm9v2_execute (
 	reg wrong_prediction;
 	wire unused = &{1'b0, i_cpsr[27:0], i_used[2], i_mw_tag, i_mw_valid, CP, UND, SWI, actual_target[0], lh[33:32], hl[33:32], hh[33:32]};
 	wire s_grant_hit = FREE_SELECT || s_load_hit;
+
+    wire [19:0] s_grant = i_forward_grant[5 * (s_grant_hit * 4)+:20];
+    wire [4:0] rs_grant = s_grant[14:10];
+    // A younger M dependency still wins if its unavailable data temporarily
+    // leaves an older W value in the data mux. The ordinary wait check then
+    // holds the instruction until the younger value can actually be used.
+    wire rs_m_match = |i_forward_match[9:8];
+    wire late_w_aux_rs = !rs_m_match && rs_grant[2];
+    // The fast count excludes the W auxiliary lane. Other consumers still
+    // see the full forwarded operand, including the existing held-count
+    // capture and the independently forwarded value being shifted.
+    wire [7:0] fast_rs = (i_mw_value[39:32] & {8{rs_grant[0]}})
+                      | (i_mw_value[7:0] & {8{rs_grant[1]}})
+                      | (i_mw_value[71:64] & {8{rs_grant[3]}})
+                      | ((holding ? held[71:64] : i_value[71:64]) & {8{rs_grant[4]}});
 	ngage2_arm9v2_forward u_forward(
 		.i_value((holding ? held : i_value)),
-		.i_grant(i_forward_grant[5 * (s_grant_hit * 4)+:20]),
+		.i_grant(s_grant),
 		.i_producer_value(i_mw_value),
 		.o_value(forwarded)
 	);
@@ -3572,8 +3587,8 @@ module ngage2_arm9v2_execute (
 		end
 
         if (direct_reg_shift) begin
-            shift_amount = operand[71:64];
-            shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
+            shift_amount = fast_rs;
+            shift_rot = (shift_type == 0 ? -fast_rs[4:0] : fast_rs[4:0]);
         end
 		planned_writes_ref = 0;
 		case (i_kind)
@@ -3827,7 +3842,8 @@ module ngage2_arm9v2_execute (
 
     wire direct_reg_eligible = i_reg_shift && i_kind == DP && !i_thumb && !prepared
                               && i_early[2] && !tag_pc[2] && !tag_psr[2];
-    wire direct_reg_shift = direct_reg_eligible && !s_wait[2];
+    wire fast_reg_eligible = direct_reg_eligible && !late_w_aux_rs;
+    wire direct_reg_shift = fast_reg_eligible && !s_wait[2];
 
     assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
 	assign o_multiply_wait = product_phase;
@@ -3841,7 +3857,7 @@ module ngage2_arm9v2_execute (
     wire a_finish_nohit = a_valid_common && a_ready_nohit && i_ready;
     // The early-operand check already includes Rs whenever the direct shift
     // is eligible. Shift mode can settle independently for admission.
-    wire s_shift_ready = !(i_valid && ((i_reg_shift && !direct_reg_eligible) || agu_scaled) && !prepared);
+    wire s_shift_ready = !(i_valid && ((i_reg_shift && !fast_reg_eligible) || agu_scaled) && !prepared);
     wire s_admit_common = i_admit && !i_load_wait && s_clear && s_shift_ready;
     (* keep *) wire ready_if_hit = s_admit_common && (!a_valid || a_finish_hit) &&
         (!s_needs_w || !i_self_dep || i_load_trust) && !i_load_wait_hit;
