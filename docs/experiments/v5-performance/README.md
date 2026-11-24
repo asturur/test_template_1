@@ -128,7 +128,10 @@ The [CP15 predecode trial](cp15-ap0.md) registers the two AP=0 permission
 modes on the existing CP15 S/R update edge. The I-side and D-side
 differential checked 786,554 lookups. All 15 fixed workloads, four
 native frames, four board profiles and the mixed replay matched
-`c492853`. Three matched 104 MHz fits are running on `85f65c8`.
+`c492853`. Seed 31337 gained 0.980 ns on the hot FSR endpoint family,
+and all seeds saved ALMs. Median whole-core setup worsened 0.251 ns.
+Park the patch for a later combination.
+[Routed evidence](../../evidence/v5-104-cp15-permission-fits.json)
 
 ## Passive opportunity studies
 

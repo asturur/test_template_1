@@ -75,3 +75,14 @@ is the generated CPU netlist. Each run is pinned to `85f65c8`.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45350186792) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45350190478) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45350194113)
+
+## Routed results
+
+The targeted seed 31337 CP15-to-FSR family dropped from four named
+paths to zero in the detailed hot top 1,000. The worst listed FSR
+endpoint improved 0.980 ns at 100 °C and 0.628 ns at −40 °C.
+Median ALMs fell from 37,297 to 37,011, with 321 M10Ks on every seed.
+Whole-core setup regressed on all three seeds and the median moved
+from −2.668 to −2.919 ns. Park the patch as an area option for
+recombination. The public forward revert `2c9d1ff` restores `c492853`.
+[Per-seed fits, paths and bitstream SHA-256](../../evidence/v5-104-cp15-permission-fits.json)

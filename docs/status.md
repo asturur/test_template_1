@@ -1,3 +1,7 @@
+## 2026-11-24 — CP15 permission predecode parked
+
+The CP15 trial `85f65c8` matched all checked cycles and saved 286 median ALMs. The hot FSR endpoint gained 0.980 ns on seed 31337, while median 104 MHz setup moved from −2.668 to −2.919 ns. Forward revert `2c9d1ff` restores the exact `c492853` tree. Keep the CP15 patch for an area-constrained combination. [Routed evidence and qualification](v5-alm-storage-results.md#cp15-ap0-permission-predecode)
+
 ## 2026-11-24 — execute readiness retained
 
 Keep `c492853` active. The three physical 104 MHz fits improved median setup from −2.978 to −2.668 ns. Seed 31337 reached −2.666 ns. Named readiness paths into execute packets fell from 44, 111 and 7 to 13, 18 and zero in the matched hot exports. Guest workload, native frame and mixed replay cycles matched the DDR control. Next, precompute CP15 S/R permissions on the existing update edge and keep precise faults and cache-hit latency. [Matched fits and qualification](v5-alm-storage-results.md#execute-operand-readiness)

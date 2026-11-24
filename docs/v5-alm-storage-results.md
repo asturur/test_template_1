@@ -202,3 +202,21 @@ Of the 1,000 detailed hot setup paths per seed, paths that cross named readiness
 The largest remaining setup delay on seed 43 went from the D-cache data RAM read through forwarded shift amount and barrel shifter into the execute packet. Seed 13's worst path ran from the UPP bridge response through I-cache beat acceptance to the Wishbone merger's next native-line flag. Seed 31337 reached −2.666 ns on a path from CP15 `o_sr[0]` to the D-side TLB fault status `o_fsr[3]`. All three fits missed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. Keep `c492853` active. The best bitstream, seed 31337, is archived at `build/fit/v5-104mhz-c492853-seed31337/ngage1.rbf`. Its SHA-256 is `892fd9e84eafcca5818a6173fc413a2b01b5ac0c01a9d4e55c88bfec6b91ca5a`. It has no board validation. [Per-corner fits and bitstream hash](evidence/v5-104-execute-ready-fits.json)
 
 The next standalone timing experiment is to precompute CP15 S/R-dependent access permissions on the same edge that updates CP15 state. Let those bits settle in parallel with descriptor and domain checks. Keep fault codes, fault ordering and cache-hit latency precise. Seed 31337 is the direct timing target. Repeat the other seeds to detect shifts into the other limiting paths.
+
+## CP15 AP=0 permission predecode
+
+Commit `85f65c8` registers the two AP=0 permission modes on the existing CP15 S/R update edge. The I-side and D-side TLB checks share the resulting AP decode with their descriptor and domain checks. The differential matched 786,554 lookups, including all AP, S/R and domain modes, precise fault priority, and accesses before and after MCR writes. Board and mixed replay, all 15 fixed workloads and all four native frames matched `c492853` cycle for cycle. [Replayable patch and qualification](experiments/v5-performance/cp15-ap0.md)
+
+| 104 MHz production fit | Execute control `c492853` | CP15 predecode `85f65c8` | Setup change |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −2.668 ns | [−2.895 ns](https://github.com/asturur/test_template_1/actions/runs/45350186792) | −0.227 ns |
+| Seed 13 setup | −2.954 ns | [−3.026 ns](https://github.com/asturur/test_template_1/actions/runs/45350190478) | −0.072 ns |
+| Seed 31337 setup | −2.666 ns | [−2.919 ns](https://github.com/asturur/test_template_1/actions/runs/45350194113) | −0.253 ns |
+| Median setup | −2.668 ns | −2.919 ns | −0.251 ns |
+| Median core setup TNS | −5,760.244 ns | −7,746.483 ns | |
+| Median ALMs | 37,297 | 37,011 | |
+| M10Ks on every seed | 321 | 321 | |
+
+On seed 31337, named CP15-to-FSR paths fell from four to zero in the 100 °C top 1,000. The worst reported FSR endpoint improved from −2.666 to −1.686 ns at 100 °C and from −2.333 to −1.705 ns at −40 °C. The CP15 predecode saved 165–307 ALMs across the three matched seeds. Each seed missed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. [Matched local and whole-core timing](evidence/v5-104-cp15-permission-fits.json)
+
+Park the CP15 patch as an area option for a later combination. Public forward revert `2c9d1ff` restores the exact `c492853` tree. The best CP15 trial bitstream is seed 43 at `build/fit/v5-104mhz-85f65c8-seed43/ngage1.rbf`. Its SHA-256 is `dfdf9cc41ba58a0d65ab2c5ba7a4998cb2108fe764b3192ec3c4a54436e0ab64`. Board behavior remains unverified.
