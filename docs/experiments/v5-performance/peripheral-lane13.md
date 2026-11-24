@@ -126,3 +126,20 @@ the effective QSF and seed.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45444020154) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45444025138) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45444030096)
+
+## Routed results
+
+Park `e02c236` as a standalone timing change. The 100 °C lane 13
+endpoint counts fell from 15, seven and zero to three, zero and zero.
+The worst listed lane 13 path on seed 43 gained 0.850 ns. Seed 13's
+lane 13 is outside the candidate export. Median whole-core setup
+worsened by 0.052 ns. Median core setup TNS improved by 319.078 ns,
+and the median fit used 459 more ALMs. Every candidate missed setup
+and passed the other checks at all four corners. The best candidate
+reached −2.404 ns, compared with the best control's −2.061 ns.
+
+The four checked ARM9v2 contract profiles use the half-writeback
+fixture. Both initial default runs hit the same dirty-clean assertion
+before that fixture was enabled. Forward revert `e7f1e31` restores the
+exact `e9552bd` tree. [Matched fits and archived bitstream](../../v5-alm-storage-results.md#peripheral-gpio-and-euart-read-response) ·
+[Routed evidence](../../evidence/v5-104-peripheral-read-fits.json)

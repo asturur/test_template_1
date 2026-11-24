@@ -318,3 +318,23 @@ Paths through named refill `cpu_ack` cells into the old merger `data_data_ff` fe
 Keep `e9552bd`. Seed 13 reached −2.061 ns, 0.166 ns better than the best control seed. Its hardware-untested bitstream is archived at `build/fit/v5-104mhz-e9552bd-seed13/ngage1.rbf`, SHA-256 `775b663ce1d8cc8fa6c6ba992ab75c2f6946b50550f45d66fb75571a795ac5f2`.
 
 The limiting 100 °C routes on seeds 43 and 13 now go from UPP request address bits into peripheral response lane 13, through the NOS/GPIO/keypad data mux and the EUART 1 register decode respectively. On seed 31337, the limiting 100 °C route goes from SDRAM readiness through the refill acknowledgment and I-cache next request to the Wishbone address register. The candidate next cut is to give lane 13 a GPIO-specific keypad value, since selection of that lane already excludes higher-priority NOS and GPIO loopback claims. Evaluate EUART decode independently. Preserve sampled register values, the keypad overlay, owner priority, errors and the original commit edge.
+
+## Peripheral GPIO and EUART read response
+
+Trial `e02c236` separated GPIO/keypad response data from higher-priority NOS and loopback data and registered EUART's static word selection alongside the request. The 104 MHz trace sampled immediate peripheral data and effects one system clock after request capture and GPIO RAM data one clock later. It covered every phase of a divide-by-two and a divide-by-three clock. All 614 directed replies, 105 fixed windows, four native frames, four ARM9v2 contract profiles and 171,496 mixed pin-model records matched the control. The board contract used the existing half-writeback fixture after both default legs hit the same dirty-clean count assertion. [Clock-edge trace, exact patch and replay](experiments/v5-performance/peripheral-lane13.md)
+
+| 104 MHz production fit | Control `e9552bd` | Peripheral read `e02c236` | Change |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −2.508 ns | [−3.087 ns](https://github.com/asturur/test_template_1/actions/runs/45444020154) | −0.579 ns |
+| Seed 13 setup | −2.061 ns | [−2.523 ns](https://github.com/asturur/test_template_1/actions/runs/45444025138) | −0.462 ns |
+| Seed 31337 setup | −2.471 ns | [−2.404 ns](https://github.com/asturur/test_template_1/actions/runs/45444030096) | +0.067 ns |
+| Median setup | −2.471 ns | −2.523 ns | −0.052 ns |
+| Median core setup TNS | −5,143.651 ns | −4,824.573 ns | +319.078 ns |
+| Median ALMs | 36,446 | 36,905 | +459 |
+| M10Ks on every seed | 321 | 321 | 0 |
+
+Named peripheral lane 13 setup paths in the 100 °C top 1,000 fell from 15, seven and zero to three, zero and zero in seed order. Seed 43's worst listed lane 13 path moved from −2.508 to −1.658 ns. Seed 13's lane 13 fell outside the candidate export. The counts follow routed cell names and the export cutoff. They give no exact slack for unlisted or renamed paths. All three candidate builds missed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. [Exact routed evidence](evidence/v5-104-peripheral-read-fits.json)
+
+Park the trial for standalone timing. The best candidate is seed 31337 at −2.404 ns, compared with −2.061 ns for the best control. Its hardware-untested bitstream is archived at `build/fit/v5-104mhz-e02c236-seed31337/ngage1.rbf`, SHA-256 `300dca1160549047187da7ebce80f56963b8053a0b0e619f87448b56fe8f1dea`. Public commit `e7f1e31` restores the exact `e9552bd` tree.
+
+All three candidate fits are limited by a Wishbone merger `o_wb_adr` endpoint in their worst setup corner. On the retained `e9552bd`, the first such path ranks second, second and first at 100 °C and first on all three builds at −40 °C. The next timing target is the merger's address selection. The [earlier source-bank experiment](experiments/v5-performance/historical/wishbone-payload-banks.patch) also changed that selection and regressed median setup.

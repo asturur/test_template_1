@@ -49,6 +49,27 @@ competing LCD/DMA requests and refresh at 104 MHz. Fifteen fixed CPU
 payloads and all four native PolyCount frames matched the preceding
 104 MHz baseline. These observations use simulation and modeled media.
 
+### GPIO and EUART MMIO timing
+
+Production GPIO and keypad logic and EUART1 use the same 104 MHz system
+clock as the UPP request and response registers. The keypad tracks input
+edges each system clock. EUART models a byte-stream interface with
+synchronous FIFO read settling. A clock divider does not participate in
+its software-facing response. The timer and SIMIF enables govern their
+device events. Their UPP reads still use the system-clock handshake.
+
+In the directed trace, an immediate request sampled its register state
+and performed authorized effects on the first edge after packet capture.
+The bridge raised the CPU response on the following edge. A GPIO storage
+read spent one additional edge on BRAM. With the keypad enabled, the
+trace recorded 121 and 187 sample edges in the two phases of a divide-by-two
+clock and 104, 104 and 100 across the three phases of a divide-by-three
+clock. A divided interface would need a different handshake to handle
+those sample edges. The lane 13 trial preserved guest and peripheral
+cycles. Its routed result is archived, and the production clocking
+remains at 104 MHz.
+[Clock-edge trace and fitted comparison](experiments/v5-performance/peripheral-lane13.md#why-the-timing-paths-run-at-104-mhz)
+
 ## Requested26MHz/64Hz spin (2026-11-09)
 
 Implemented parameterized general-timer enables, divider3 at78MHz and4 at104MHz,

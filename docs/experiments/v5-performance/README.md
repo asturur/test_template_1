@@ -181,7 +181,9 @@ The [peripheral lane 13 trial](peripheral-lane13.md) keeps the existing
 104 MHz MMIO response edges, separates GPIO/keypad read data from
 NOS and loopback data, and carries static EUART word selects in the
 request packet. All checked workload cycles and mixed pin events
-matched. Routed results are pending.
+matched. The named lane 13 paths shortened, while median setup
+worsened by 0.052 ns and area grew by 459 ALMs. Park the trial.
+Forward revert `e7f1e31` restores `e9552bd`.
 
 ## Passive opportunity studies
 
