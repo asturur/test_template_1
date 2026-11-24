@@ -1189,5 +1189,40 @@
     "sha256": [
       "2abd0ae95645cca4d5aa5addb16432c4ba735c03c4c0da4ef30e2c9d804f7da6"
     ]
+  },
+  {
+    "id": "cp15-ap0",
+    "kind": "design",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/cp15-ap0.patch"
+    ],
+    "sha256": [
+      "42962e66c2bfe3b84c900465a9d298411680e29b1c29d1cb57762d166cc1b0bc"
+    ],
+    "target": "85f65c8e8ba392f12f11ff68236c386e01b9566d",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/cp15_ap0_tb.sv",
+      "tests/cpu/arm9v2_board/run-cp15-ap0.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "565ecd53a1d70b032a4d03d85c13ba25c9794e988caf6d34b139f152bb478f78",
+      "tests/cpu/arm9v2_board/cp15_ap0_tb.sv": "808783c5e3480c4ed3b78161ce83cda76379b09a86d138a78a3d5a7caaa2b560",
+      "tests/cpu/arm9v2_board/run-cp15-ap0.sh": "36693a0792475c042bbf7f162b6f4ffa64c4a0eb2039f26a0f30d9a7b5c0e2ae",
+      "tools/gen_arm9v2_phone.py": "58ece1a5c8692da5a64d2e36a443181c42f7d8653f82fad32a292a45bba095b6"
+    }
+  },
+  {
+    "id": "cp15-ap0-replay",
+    "kind": "fixture",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/cp15-ap0-replay.patch"
+    ],
+    "sha256": [
+      "d7fb723ef0c9190ebfcb00036ab03b6ae4c5c88abd829bcb6f2b7936a9a9637a"
+    ]
   }
 ]

@@ -122,6 +122,14 @@ Paths through named readiness logic into execute packets fell from 44,
 111 and 7 to 13, 18 and zero across the hot exports. Keep `c492853`
 active. [Routed evidence](../../evidence/v5-104-execute-ready-fits.json)
 
+## CP15 AP=0 permissions
+
+The [CP15 predecode trial](cp15-ap0.md) registers the two AP=0 permission
+modes on the existing CP15 S/R update edge. The I-side and D-side
+differential checked 786,554 lookups. All 15 fixed workloads, four
+native frames, four board profiles and the mixed replay matched
+`c492853`. Three matched 104 MHz fits are running on `85f65c8`.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
