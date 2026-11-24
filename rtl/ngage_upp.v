@@ -195,7 +195,11 @@ module ngage_upp #(
     output wire         debug_fetch
 
 );
-    wire peripheral_response_pending;
+    wire peripheral_response_pending, peripheral_early_access;
+    wire peripheral_packet_mature;
+    // Only the internal registered bus can supply the two-edge packet.
+    // Keep the immediate BRAM configurations used by older boards intact.
+    localparam TWO_EDGE_MMIO = INTERNAL_CPU && DDR_UPP_RAM;
     wire lcd_route_ready, lcd_waiting;
     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
     wire [4:0] dma_packet_decode;
@@ -335,6 +339,7 @@ module ngage_upp #(
                 .out_address(bus_adr),
                 .out_data   (bus_din),
                 .out_sel    (bus_sel),
+                .out_mature (peripheral_packet_mature),
                 .out_dma_ctl(dma_packet_decode),
                 .out_dma_ch (dma_packet_targets)
             );
@@ -445,6 +450,8 @@ module ngage_upp #(
             // Side effects are qualified by the selected device's own checks.
             // CPU completion/error remains a response, never a shared write enable.
             assign bus_access = bus_cyc && bus_stb && !rst && init_done && !cpu_err &&
+                                (!TWO_EDGE_MMIO || peripheral_packet_mature ||
+                                 peripheral_early_access || lcd_dma_claim) &&
                                 (!claim || lcd_dma_claim || !peripheral_response_pending);
         end else begin : external_master
             assign debug_pc = 0;
@@ -472,6 +479,7 @@ module ngage_upp #(
             assign ram_response = 0;
             assign dma_packet_decode = 0;
             assign dma_packet_targets = 0;
+            assign peripheral_packet_mature = 0;
             assign bus_code = 1'b0;
             assign bus_cyc = ext_cyc;
             assign bus_stb = ext_stb;
@@ -631,6 +639,7 @@ module ngage_upp #(
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
         .NOS_TICK_HZ       (NOS_TICK_HZ),
         .REGISTER_RESPONSES(INTERNAL_CPU),
+        .TWO_EDGE_MMIO     (TWO_EDGE_MMIO),
         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
         .SIMIF_ENABLE      (SIMIF_ENABLE),
         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
@@ -676,6 +685,8 @@ module ngage_upp #(
         .din                 (bus_din),
         .sel                 (bus_sel),
         .commit              (bus_access),
+        .packet_mature       (peripheral_packet_mature),
+        .early_access        (peripheral_early_access),
         .dma_shadow_claim    (lcd_dma_claim),
         .lcd_direct_collision(lcd_dma_valid && bus_we && bus_adr == 32'h0c121208),
         .response_pending    (peripheral_response_pending),
@@ -947,21 +958,33 @@ module ngage_upp_request_stage #(
     input  wire [ 3:0] in_sel,
     output wire        out_cyc,
     output wire        out_stb,
-    output reg         out_we,
+    output wire        out_we,
     output reg         out_code,
-    output reg  [31:0] out_address,
+    output wire [31:0] out_address,
     output reg  [31:0] out_data,
-    output reg  [ 3:0] out_sel,
+    output wire [ 3:0] out_sel,
+    output wire        out_mature,
     output wire [ 4:0] out_dma_ctl,
     output wire [ 7:0] out_dma_ch
 );
-    (* dont_retime *)reg  valid = 0;
-    wire offered = in_cyc && in_stb;
+    (* dont_retime *)reg         valid = 0;
+    (* dont_retime *)reg         mature = 0;
+    (* dont_retime *)reg  [31:0] held_address;
+    (* dont_retime *)reg  [ 3:0] held_sel;
+    (* dont_retime *)reg         held_we;
+    wire        offered = in_cyc && in_stb;
     // The admission pulse selects and samples the packet. The owner supplies
     // cancellation and retirement independently once that capture is live.
-    wire live = EXPLICIT_LIVE ? in_live : offered;
-    assign out_cyc = !reset && valid && live;
-    assign out_stb = out_cyc;
+    wire        live = EXPLICIT_LIVE ? in_live : offered;
+    assign out_cyc     = !reset && valid && live;
+    assign out_stb     = out_cyc;
+    assign out_mature  = out_cyc && mature;
+    assign out_address = held_address;
+    assign out_sel     = held_sel;
+    assign out_we      = held_we;
+    // Capture at E0. The first held edge E1 matures that packet; even
+    // a speculatively sampled payload can first see the token at E2.
+    always @(posedge clk) mature <= out_cyc;
     generate
         if (DMA_PREDECODE) begin : dma_packet
             wire [4:0] fields;
@@ -998,21 +1021,21 @@ module ngage_upp_request_stage #(
     endgenerate
     always @(posedge clk) begin
         if (reset) begin
-            valid       <= 0;
-            out_we      <= 0;
-            out_code    <= 0;
-            out_address <= 0;
-            out_data    <= 0;
-            out_sel     <= 0;
+            valid        <= 0;
+            held_we      <= 0;
+            out_code     <= 0;
+            held_address <= 0;
+            out_data     <= 0;
+            held_sel     <= 0;
         end else if (valid) begin
             if (!live) valid <= 0;
         end else if (offered) begin
-            valid       <= 1;
-            out_we      <= in_we;
-            out_code    <= in_code;
-            out_address <= in_address;
-            out_data    <= in_data;
-            out_sel     <= in_sel;
+            valid        <= 1;
+            held_we      <= in_we;
+            out_code     <= in_code;
+            held_address <= in_address;
+            out_data     <= in_data;
+            held_sel     <= in_sel;
         end
     end
 endmodule
