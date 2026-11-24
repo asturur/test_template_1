@@ -64,7 +64,20 @@ native frames to the prepared `4c02fda` results.
 Preflight compares all 132 selected sources against the original
 two-edge routed manifests. Only `rtl/ngage_upp.v` changes.
 The QSF, physical 104 MHz PLL, SDC and debugger-off setting match.
-Corrected routed results are pending.
+The corrected routed results are below.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45476439302) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45476444009) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45476448187)
+
+## Corrected routed results
+
+The correction improved all three seeds over the first bridge trial.
+Median setup moved from −3.664 to −2.645 ns. The retained control
+reached −2.471 ns median and used 598 fewer median ALMs. The
+two-edge constraint audit passed in every corner. All corrected
+builds missed whole-core setup and the best reached −2.509 ns.
+
+Park the bridge and correction. Public restore `e7beaf2` matches
+the retained `e9552bd` production tree.
+[Matched results and archived bitstreams](../../v5-alm-storage-results.md#two-edge-upp-register-bridge) ·
+[Corrected fit evidence](../../evidence/v5-104-half-rate-dma-fits.json)

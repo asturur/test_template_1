@@ -338,3 +338,57 @@ Named peripheral lane 13 setup paths in the 100 °C top 1,000 fell from 15, seve
 Park the trial for standalone timing. The best candidate is seed 31337 at −2.404 ns, compared with −2.061 ns for the best control. Its hardware-untested bitstream is archived at `build/fit/v5-104mhz-e02c236-seed31337/ngage1.rbf`, SHA-256 `300dca1160549047187da7ebce80f56963b8053a0b0e619f87448b56fe8f1dea`. Public commit `e7f1e31` restores the exact `e9552bd` tree.
 
 All three candidate fits are limited by a Wishbone merger `o_wb_adr` endpoint in their worst setup corner. On the retained `e9552bd`, the first such path ranks second, second and first at 100 °C and first on all three builds at −40 °C. The next timing target is the merger's address selection. The [earlier source-bank experiment](experiments/v5-performance/historical/wishbone-payload-banks.patch) also changed that selection and regressed median setup.
+
+## Two-edge UPP register bridge
+
+The first trial, `4c02fda`, held UPP packets across two 104 MHz
+edges before sampling the protected register response bank. An
+immediate UART reply took one additional clock, and stock keypad replay
+took 36 additional clocks. The 104 MHz mixed pin-model workload added 609 clocks
+and changed one of 128 PCM startup samples, with identical DMA
+command and response tuples, card data and persistence. The corrected
+`174ed5e` isolated DMA programming commit from the unrelated UPP
+fast-access decode. It matched the original bridge cycle for cycle
+across all checked work. [Bridge protocol and replay](experiments/v5-performance/upp-two-edge.md) ·
+[Correction and replay](experiments/v5-performance/upp-two-edge-dma.md)
+
+| 104 MHz production fit | Retained `e9552bd` | Two-edge `4c02fda` | DMA correction `174ed5e` |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −2.508 ns | −3.374 ns | −2.651 ns |
+| Seed 13 setup | −2.061 ns | −3.666 ns | −2.509 ns |
+| Seed 31337 setup | −2.471 ns | −3.664 ns | −2.645 ns |
+| Median setup | −2.471 ns | −3.664 ns | −2.645 ns |
+| Median core setup TNS | −5,143.651 ns | −10,063.770 ns | −6,108.624 ns |
+| Median ALMs | 36,446 | 36,725 | 37,044 |
+| M10Ks on every seed | 321 | 321 | 321 |
+
+Both bridge versions verified 13,378 held-packet setup and hold
+pairs to 402 fitted response flops at each of the four native
+corners. TimeQuest measured a 19.230 ns setup relationship and a
+0.000 ns hold relationship at report precision. The audited live,
+control, fast RAM and bridge-return witnesses kept 9.615 ns
+setup. The corrected minimum held-data setup slacks were +5.326,
++2.525 and +4.465 ns in seed order. Corrected held-data hold
+was at least +0.380 ns. All six builds failed whole-core setup
+and passed hold, recovery, removal and minimum pulse checks at all
+four corners. [Original routed evidence](evidence/v5-104-half-rate-peripheral-fits.json) ·
+[Corrected routed evidence](evidence/v5-104-half-rate-dma-fits.json)
+
+The correction moved the limiting route away from DMA programming
+on all three seeds. The corrected worst endpoints were the D-cache
+lock, Wishbone merger address and Timer0 count. In the hot top-1,000
+exports, named held-address paths through the fast-lane logic fell
+from 470, 280 and 473 to 278, 131 and 64. Those counts depend on
+routed names and the export cutoff. Whole-core median setup improved
+1.019 ns over the first trial and remained 0.174 ns below the retained
+control, while median ALM use rose by 598 versus the retained control.
+
+Park both versions. Public forward restore `e7beaf2` matches the
+`e7f1e31` and `e9552bd` trees exactly. The best corrected bitstream
+reached −2.509 ns on seed 13 and is archived at
+`build/fit/v5-104mhz-174ed5e-seed13/ngage1.rbf`, SHA-256
+`8ea626d7d6c5a5887ddd91dd2fc256536bd58136c336620e0ec1b6be5d0c6666`.
+The best original bridge image is under
+`build/fit/v5-104mhz-4c02fda-seed43/ngage1.rbf`, SHA-256
+`d9010ec17562801937c51587f03b4381c77019f1ed0f05e1cba7da30651f3bdf`.
+Both images are hardware-untested.

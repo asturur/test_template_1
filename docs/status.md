@@ -1,6 +1,6 @@
-## 2026-11-24 — two-edge UPP DMA correction
+## 2026-11-24 — two-edge UPP bridge trials parked
 
-The three initial `4c02fda` fits verified all 13,378 protected path pairs at each corner. Their limiting routes passed through unrelated UPP fast access into DMA control. Public `174ed5e` isolates the DMA programming commit, preserving the two-edge aperture and every measured cycle. The matched corrected fits are pending. [Initial timing](experiments/v5-performance/upp-two-edge.md#initial-routed-coverage) · [Correction and replay](experiments/v5-performance/upp-two-edge-dma.md)
+Public `e7beaf2` restores the exact `e9552bd` tree. Both bridge versions passed the held-data timing checks at all corners. The DMA correction improved median whole-core setup from −3.664 to −2.645 ns, compared with −2.471 ns on the retained control, and used 598 more median ALMs than the control. The patches and bitstreams are archived. [Matched results and replay](v5-alm-storage-results.md#two-edge-upp-register-bridge)
 
 ## 2026-11-24 — peripheral lane 13 timing trial parked
 

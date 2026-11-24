@@ -192,7 +192,9 @@ The mixed run added 609 clocks and changed one PCM startup sample.
 The initial fits verified the held relationships at all corners.
 The [DMA commit correction](upp-two-edge-dma.md) takes the fast
 UPP ownership tree out of unrelated DMA programming control and
-matches every checked cycle. Corrected fits are pending.
+matches every checked cycle. The corrected median setup reached
+−2.645 ns against −2.471 ns for the retained control. Park both.
+Public restore `e7beaf2` matches `e9552bd`.
 
 ## Passive opportunity studies
 

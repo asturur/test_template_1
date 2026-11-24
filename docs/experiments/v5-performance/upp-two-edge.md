@@ -138,3 +138,6 @@ relationship.
 The unrelated slow-bypass authorization reached DMA programming
 control in each limiting route. The [corrected trial](upp-two-edge-dma.md)
 isolates that port while preserving the validated two-edge bank.
+
+Both versions are parked. [Matched results and archived bitstreams](../../v5-alm-storage-results.md#two-edge-upp-register-bridge) ·
+[Initial fit evidence](../../evidence/v5-104-half-rate-peripheral-fits.json)
