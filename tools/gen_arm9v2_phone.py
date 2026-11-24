@@ -1275,6 +1275,79 @@ def move_fetch_payload_to_ram(phone):
     return phone[:start] + fetch + phone[end:]
 
 
+def prepare_wishbone_write_data(phone):
+    """Capture D-cache write payloads in parallel with their registered owners."""
+    modules = re.split(r'(?=^module )', phone, flags=re.M)
+    slots = {name: next(i for i, module in enumerate(modules)
+                        if module.startswith(f'module ngage2_{name} ('))
+             for name in ('zap_top', 'zap_wb_merger', 'zap_dcache', 'zap_dcache_half_tag_ram')}
+
+    tags = ports(modules[slots['zap_dcache_half_tag_ram']], 'i_wb_ack',
+                 ['output wire [31:0] o_prepared_write_data'])
+    tags = edit(tags, '\twire [31:0] wb_word_inc;', '''
+\twire [31:0] wb_word_inc;
+    (* dont_retime *) reg [31:0] clean_current_ff, clean_successor_ff;
+    (* dont_retime *) reg clean_take_ff;
+    // Sample both words while the bus decides whether to advance. The
+    // registered control picks the word at the same edge as address/CTI.
+    always @(posedge i_clk) begin
+        clean_current_ff <= wb_word_cur;
+        clean_successor_ff <= wb_word_inc;
+        clean_take_ff <= !i_reset && take;
+    end
+    assign o_prepared_write_data = clean_take_ff ? clean_successor_ff : clean_current_ff;'''.lstrip('\n'))
+    modules[slots['zap_dcache_half_tag_ram']] = tags
+
+    cache = ports(modules[slots['zap_dcache']], 'o_block_address',
+                  ['output wire [31:0] o_prepared_write_data'])
+    cache = edit(cache, '\twire [31:0] wb_dat [3:0];', '''
+\twire [31:0] wb_dat [3:0];
+    wire [31:0] cache_write_data, tag_write_data;
+    (* dont_retime *) reg [31:0] post_write_data;
+    // CCH already registers its next beat. Capture the posted successor
+    // on that same edge, independently of the D-cache arbiter's choice.
+    always @(posedge i_clk)
+        post_write_data <= wb_dat[3];
+    // The TLB walker is read-only. The registered one-hot owner selects
+    // an exact prepared beat whenever the matching CYC/STB/WE is live.
+    assign o_prepared_write_data = (cache_write_data & {32{state_ff[0]}})
+                                 | (tag_write_data & {32{state_ff[1]}})
+                                 | (post_write_data & {32{state_ff[3]}});
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && o_wb_cyc && o_wb_stb && o_wb_wen &&
+            o_prepared_write_data !== o_wb_dat)
+            $fatal(1, "Prepared D-cache write differs at %h", o_wb_adr);
+`endif'''.lstrip('\n'))
+    controller, marker, remainder = cache.partition('\twire post_busy;')
+    if not marker:
+        raise ValueError('Expected the D-cache controller before its posted queue')
+    cache = edit(controller, '\t\t.o_wb_dat_ff(),',
+                 '\t\t.o_wb_dat_ff(cache_write_data),') + marker + remainder
+    cache = edit(cache, '\t\t.o_wb_dat_nxt(wb_dat[1]),',
+                 '\t\t.o_prepared_write_data(tag_write_data),\n\t\t.o_wb_dat_nxt(wb_dat[1]),')
+    modules[slots['zap_dcache']] = cache
+
+    top = modules[slots['zap_top']]
+    top = edit(top, '\t\t\tngage2_zap_wb_merger u_zap_wb_merger(',
+               "\t\t\tngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1)) u_zap_wb_merger(")
+    top = edit(top, '\t\t\t\t.o_wb_dat_nxt(d_wb_dat),',
+               '\t\t\t\t.o_prepared_write_data(d_wb_dat),\n\t\t\t\t.o_wb_dat_nxt(),')
+    modules[slots['zap_top']] = top
+
+    merger = modules[slots['zap_wb_merger']]
+    merger = edit(merger, '\treg _sv2v_0;',
+                  "\treg _sv2v_0;\n    parameter D_DATA_PREPARED = 1'b0;")
+    merger = edit(merger,
+        "\t\t\tassign o_wb_dat = (data_owner_ff == 1'd0 ? code_data_ff : data_data_ff);",
+        '''            // The production D-cache data is already captured at this
+            // edge. Standalone users may still provide combinational next data.
+            assign o_wb_dat = data_owner_ff == 1'd0 ? code_data_ff :
+                (D_DATA_PREPARED ? i_d_wb_dat : data_data_ff);''')
+    modules[slots['zap_wb_merger']] = merger
+    return ''.join(modules)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1312,6 +1385,7 @@ def main():
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
+    generated = prepare_wishbone_write_data(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
