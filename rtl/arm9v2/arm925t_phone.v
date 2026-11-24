@@ -335,6 +335,7 @@ module ngage2_arm9v2_core (
 	o_baddr,
 	o_mmu_en,
 	o_sr,
+	o_ap0_mode,
 	o_pid,
 	o_dcache_inv,
 	o_icache_inv,
@@ -496,6 +497,7 @@ module ngage2_arm9v2_core (
 	output wire [31:0] o_baddr;
 	output wire o_mmu_en;
 	output wire [1:0] o_sr;
+	output wire [1:0] o_ap0_mode;
 	output wire [7:0] o_pid;
 	output wire o_dcache_inv;
 	output wire o_icache_inv;
@@ -1816,6 +1818,7 @@ module ngage2_arm9v2_core (
 		.o_mmu_en(o_mmu_en),
 		.o_wfi(o_dbg_wfi),
 		.o_sr(o_sr),
+		.o_ap0_mode(o_ap0_mode),
 		.o_pid(o_pid),
 		.o_l4_enable(l4_enable),
 		.o_dcache_inv(o_dcache_inv),
@@ -7852,6 +7855,7 @@ module ngage2_zap_cache (
 	o_cache_clean_done,
 	i_cpsr,
 	i_sr,
+	i_ap0_mode,
 	i_baddr,
 	i_dac_reg,
 	i_tlb_inv,
@@ -7918,7 +7922,9 @@ module ngage2_zap_cache (
 	output wire o_cache_inv_done;
 	output wire o_cache_clean_done;
 	input wire [CPSR_MODE:0] i_cpsr;
-	input wire [1:0] i_sr;
+    parameter [0:0] AP0_PREDECODED = 1'b0;
+    input wire [1:0] i_sr;
+    input wire [1:0] i_ap0_mode;
 	input wire [31:0] i_baddr;
 	input wire [31:0] i_dac_reg;
 	input wire i_tlb_inv;
@@ -8447,6 +8453,7 @@ module ngage2_zap_cache (
 		end
 	endgenerate
 	ngage2_zap_tlb #(
+		.AP0_PREDECODED(AP0_PREDECODED),
 		.LPAGE_TLB_ENTRIES(LPAGE_TLB_ENTRIES),
 		.SPAGE_TLB_ENTRIES(SPAGE_TLB_ENTRIES),
 		.SPAGE_TLB_WAYS(SPAGE_TLB_WAYS),
@@ -8468,6 +8475,7 @@ module ngage2_zap_cache (
 		.i_hold(hold || i_stall),
 		.i_cpsr(i_cpsr),
 		.i_sr(i_sr),
+		.i_ap0_mode(i_ap0_mode),
 		.i_dac_reg(i_dac_reg),
 		.i_baddr(i_baddr),
 		.i_mmu_en(i_mmu_en),
@@ -8608,6 +8616,7 @@ module ngage2_zap_cp15_cb (
 	o_mmu_en,
 	o_wfi,
 	o_sr,
+	o_ap0_mode,
 	o_pid,
 	o_l4_enable,
 	o_dcache_inv,
@@ -8664,7 +8673,8 @@ module ngage2_zap_cp15_cb (
 	output reg [31:0] o_baddr;
 	output reg o_mmu_en;
 	output wire o_wfi;
-	output reg [1:0] o_sr;
+    output reg [1:0] o_sr;
+    (* dont_retime *) output reg [1:0] o_ap0_mode;
 	output reg [7:0] o_pid;
 	output reg o_l4_enable;
 	output reg o_dcache_inv;
@@ -9281,7 +9291,10 @@ module ngage2_zap_cp15_cb (
 	always @(posedge i_clk) begin
 		o_dac <= r[3];
 		o_baddr <= r[2];
-		o_sr <= {r[1][8], r[1][9]};
+        // AP=0: S alone permits privileged reads. R alone permits
+        // read-only access in both modes. 00 and the reserved 11 deny.
+        o_sr <= {r[1][8], r[1][9]};
+        o_ap0_mode <= {r[1][8] && !r[1][9], !r[1][8] && r[1][9]};
 	end
 	always @(posedge i_clk)
 		if (i_reset) begin
@@ -11065,6 +11078,7 @@ module ngage2_zap_dcache (
 	o_line_done,
 	i_cpsr,
 	i_sr,
+	i_ap0_mode,
 	i_baddr,
 	i_dac_reg,
 	i_tlb_inv,
@@ -11177,7 +11191,9 @@ module ngage2_zap_dcache (
 	input wire [(WAYS > 1 ? $clog2(WAYS) : 1) - 1:0] i_line_way;
 	output wire o_line_done;
 	input wire [CPSR_MODE:0] i_cpsr;
-	input wire [1:0] i_sr;
+    parameter [0:0] AP0_PREDECODED = 1'b0;
+    input wire [1:0] i_sr;
+    input wire [1:0] i_ap0_mode;
 	input wire [31:0] i_baddr;
 	input wire [31:0] i_dac_reg;
 	input wire i_tlb_inv;
@@ -11922,6 +11938,7 @@ module ngage2_zap_dcache (
 		end
 	endgenerate
 	ngage2_zap_tlb #(
+		.AP0_PREDECODED(AP0_PREDECODED),
 		.CHECK_WALK(1'b1),
 		.SECTION_INDEX_XOR(1'b1),
 		.LPAGE_TLB_ENTRIES(LPAGE_TLB_ENTRIES),
@@ -11943,6 +11960,7 @@ module ngage2_zap_dcache (
 		.i_hold((hold || i_stall) || ((fill_busy && (i_rd || i_wr)) && !o_ack)),
 		.i_cpsr(i_cpsr),
 		.i_sr(i_sr),
+		.i_ap0_mode(i_ap0_mode),
 		.i_dac_reg(i_dac_reg),
 		.i_baddr(i_baddr),
 		.i_mmu_en(i_mmu_en),
@@ -13358,6 +13376,7 @@ module ngage2_zap_tlb_check (
 	i_wr,
 	i_cpsr,
 	i_sr,
+	i_ap0_mode,
 	i_dac_reg,
 	i_sptlb_rdata,
 	i_sptlb_rdav,
@@ -13393,7 +13412,9 @@ module ngage2_zap_tlb_check (
 	input wire i_rd;
 	input wire i_wr;
 	input wire [CPSR_MODE:0] i_cpsr;
-	input wire [1:0] i_sr;
+    parameter [0:0] AP0_PREDECODED = 1'b0;
+    input wire [1:0] i_sr;
+    input wire [1:0] i_ap0_mode;
 	input wire [31:0] i_dac_reg;
 	input wire [(SPAGE_TLB_WAYS * (56 - $clog2(SPAGE_TLB_ENTRIES))) - 1:0] i_sptlb_rdata;
 	input wire [SPAGE_TLB_WAYS - 1:0] i_sptlb_rdav;
@@ -13698,36 +13719,32 @@ module ngage2_zap_tlb_check (
 	wire [SPAGE_TLB_WAYS - 1:0] wt_sp;
 	wire [SPAGE_TLB_WAYS - 1:0] bufferable_sp;
 	genvar _gv_w_3;
-	function automatic is_apsr_ok;
-		input user;
-		input rd;
-		input wr;
-		input [3:0] apsr;
-		casez (apsr)
-			APSR_NA_NA: is_apsr_ok = APSR_BAD;
-			APSR_RO_RO: is_apsr_ok = !wr;
-			APSR_RO_NA: is_apsr_ok = !user && rd;
-			APSR_RW_NA: is_apsr_ok = !user;
-			APSR_RW_RO: is_apsr_ok = !user | (user && rd);
-			APSR_RW_RW: is_apsr_ok = APSR_OK;
-			default: is_apsr_ok = APSR_BAD;
-		endcase
-	endfunction
+    function automatic [1:0] decode_ap0;
+        input [1:0] sr;
+        decode_ap0 = {sr == 2'b10, sr == 2'b01};
+    endfunction
+    function automatic [3:0] ap_permissions;
+        input user;
+        input rd;
+        input wr;
+        input [1:0] ap0_mode;
+        // Preserve the distinct read/write tests, even if both are set.
+        ap_permissions = {1'b1, !user || (user && rd), !user,
+            (ap0_mode[0] && !wr) || (ap0_mode[1] && !user && rd)};
+    endfunction
+    wire [1:0] ap0_mode = AP0_PREDECODED ? i_ap0_mode : decode_ap0(i_sr);
+    wire [3:0] permitted_ap = ap_permissions(i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, ap0_mode);
 	function automatic [7:0] get_fsr_spage;
 		input [1:0] ap_sel;
-		input user;
-		input rd;
-		input wr;
-		input [1:0] sr;
+		input [3:0] ap_allowed;
 		input [31:0] dac_reg;
 		input [15:0] tlb;
-		reg [3:0] apsr;
+		reg [1:0] ap;
 		reg [1:0] dac;
 		reg [5:0] unused;
 		begin
-			{unused, apsr[3:2]} = tlb[11:4] >> ({30'd0, ap_sel} << 32'd1);
+			{unused, ap} = tlb[11:4] >> ({30'd0, ap_sel} << 32'd1);
 			dac[1:0] = dac_reg[tlb[15:12] * 2+:2];
-			apsr[1:0] = sr[1:0];
 			unused[1:0] = unused[1:0] | tlb[3:2];
 			if (tlb[1:0] == 2'b00)
 				get_fsr_spage = {tlb[15:12], FSR_PAGE_TRANSLATION_FAULT};
@@ -13737,7 +13754,7 @@ module ngage2_zap_tlb_check (
 				case (dac)
 					DAC_MANAGER: get_fsr_spage = 1'sb0;
 					DAC_CLIENT:
-						if (is_apsr_ok(user, rd, wr, apsr) == APSR_OK)
+						if (ap_allowed[ap])
 							get_fsr_spage = 1'sb0;
 						else
 							get_fsr_spage = {tlb[15:12], FSR_PAGE_PERMISSION_FAULT};
@@ -13749,7 +13766,7 @@ module ngage2_zap_tlb_check (
 		for (_gv_w_3 = 0; _gv_w_3 < SPAGE_TLB_WAYS; _gv_w_3 = _gv_w_3 + 1) begin : g_sp_way
 			localparam w = _gv_w_3;
 			assign match_sp[w] = (i_sptlb_rdata[(w * (56 - $clog2(SPAGE_TLB_ENTRIES))) + (((56 - $clog2(SPAGE_TLB_ENTRIES)) - 1) >= 36 ? (56 - $clog2(SPAGE_TLB_ENTRIES)) - 1 : (((56 - $clog2(SPAGE_TLB_ENTRIES)) - 1) + (((56 - $clog2(SPAGE_TLB_ENTRIES)) - 1) >= 36 ? (56 - $clog2(SPAGE_TLB_ENTRIES)) - 36 : $clog2(SPAGE_TLB_ENTRIES) - 18)) - 1)-:(((56 - $clog2(SPAGE_TLB_ENTRIES)) - 1) >= 36 ? (56 - $clog2(SPAGE_TLB_ENTRIES)) - 36 : $clog2(SPAGE_TLB_ENTRIES) - 18)] == i_va[31:12 + $clog2(SPAGE_TLB_ENTRIES)]) && i_sptlb_rdav[w];
-			assign fsr_sp[w * 8+:8] = get_fsr_spage(i_va[11:10], i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, i_sr, i_dac_reg, i_sptlb_rdata[(w * (56 - $clog2(SPAGE_TLB_ENTRIES))) + 15-:16]);
+			assign fsr_sp[w * 8+:8] = get_fsr_spage(i_va[11:10], permitted_ap, i_dac_reg, i_sptlb_rdata[(w * (56 - $clog2(SPAGE_TLB_ENTRIES))) + 15-:16]);
 			assign phy_sp[w * 32+:32] = {i_sptlb_rdata[(w * (56 - $clog2(SPAGE_TLB_ENTRIES))) + 35-:20], i_va[11:0]};
 			assign cacheable_sp[w] = i_sptlb_rdata[(w * (56 - $clog2(SPAGE_TLB_ENTRIES))) + 3];
 			assign wt_sp[w] = i_sptlb_rdata[(w * (56 - $clog2(SPAGE_TLB_ENTRIES))) + 3-:2] == 2'b10;
@@ -13782,24 +13799,20 @@ module ngage2_zap_tlb_check (
 			o_hit_ok_short <= ((!walk_nxt && !(|fsr_nxt[3:0])) && cacheable_nxt) && !(i_wr && wt_nxt);
 		end
 	function automatic [7:0] get_fsr_fpage;
-		input user;
-		input rd;
-		input wr;
-		input [1:0] sr;
+		input [3:0] ap_allowed;
 		input [31:0] dac_reg;
 		input [9:0] tlb;
-		reg [3:0] apsr;
+		reg [1:0] ap;
 		reg [1:0] dac;
 		reg unused;
 		begin
 			unused = |{tlb[1:0], tlb[3:2]};
-			apsr[3:2] = tlb[5:4];
+			ap = tlb[5:4];
 			dac[1:0] = dac_reg[tlb[9:6] * 2+:2];
-			apsr[1:0] = sr[1:0];
 			case (dac)
 				DAC_MANAGER: get_fsr_fpage = 1'sb0;
 				DAC_CLIENT:
-					if (is_apsr_ok(user, rd, wr, apsr) == APSR_OK)
+					if (ap_allowed[ap])
 						get_fsr_fpage = 1'sb0;
 					else
 						get_fsr_fpage = {tlb[9:6], FSR_PAGE_PERMISSION_FAULT};
@@ -13809,25 +13822,21 @@ module ngage2_zap_tlb_check (
 	endfunction
 	function automatic [7:0] get_fsr_lpage;
 		input [1:0] ap_sel;
-		input user;
-		input rd;
-		input wr;
-		input [1:0] sr;
+		input [3:0] ap_allowed;
 		input [31:0] dac_reg;
 		input [15:0] tlb;
-		reg [3:0] apsr;
+		reg [1:0] ap;
 		reg [1:0] dac;
 		reg [5:0] dummy;
 		reg unused;
 		begin
 			unused = |{dummy, tlb[1:0], tlb[3:2]};
-			{dummy, apsr[3:2]} = tlb[11:4] >> ({30'd0, ap_sel} << 32'd1);
+			{dummy, ap} = tlb[11:4] >> ({30'd0, ap_sel} << 32'd1);
 			dac[1:0] = dac_reg[tlb[15:12] * 2+:2];
-			apsr[1:0] = sr[1:0];
 			case (dac)
 				DAC_MANAGER: get_fsr_lpage = 1'sb0;
 				DAC_CLIENT:
-					if (is_apsr_ok(user, rd, wr, apsr) == APSR_OK)
+					if (ap_allowed[ap])
 						get_fsr_lpage = 1'sb0;
 					else
 						get_fsr_lpage = {tlb[15:12], FSR_PAGE_PERMISSION_FAULT};
@@ -13835,37 +13844,45 @@ module ngage2_zap_tlb_check (
 			endcase
 		end
 	endfunction
-	function automatic [7:0] get_fsr_section;
-		input user;
-		input rd;
-		input wr;
-		input [1:0] sr;
+	function automatic [7:0] get_fsr_section_decoded;
+		input [3:0] ap_allowed;
 		input [31:0] dac_reg;
 		input [19:0] tlb;
-		reg [3:0] apsr;
+		reg [1:0] ap;
 		reg [1:0] dac;
 		reg unused;
 		begin
 			unused = |{tlb[19:12], tlb[9], tlb[4], tlb[3:2]};
-			apsr[3:2] = tlb[11:10];
+			ap = tlb[11:10];
 			dac[1:0] = dac_reg[tlb[8:5] * 2+:2];
-			apsr[1:0] = sr[1:0];
 			if (tlb[1:0] == 2'b00)
-				get_fsr_section = {tlb[8:5], FSR_SECTION_TRANSLATION_FAULT};
+				get_fsr_section_decoded = {tlb[8:5], FSR_SECTION_TRANSLATION_FAULT};
 			else if (tlb[1:0] == 2'b11)
-				get_fsr_section = {tlb[8:5], FSR_L1_EXTERNAL_ABORT};
+				get_fsr_section_decoded = {tlb[8:5], FSR_L1_EXTERNAL_ABORT};
 			else
 				case (dac)
-					DAC_MANAGER: get_fsr_section = 1'sb0;
+					DAC_MANAGER: get_fsr_section_decoded = 1'sb0;
 					DAC_CLIENT:
-						if (is_apsr_ok(user, rd, wr, apsr) == APSR_OK)
-							get_fsr_section = 1'sb0;
+						if (ap_allowed[ap])
+							get_fsr_section_decoded = 1'sb0;
 						else
-							get_fsr_section = {tlb[8:5], FSR_SECTION_PERMISSION_FAULT};
-					default: get_fsr_section = {tlb[8:5], FSR_SECTION_DOMAIN_FAULT};
+							get_fsr_section_decoded = {tlb[8:5], FSR_SECTION_PERMISSION_FAULT};
+					default: get_fsr_section_decoded = {tlb[8:5], FSR_SECTION_DOMAIN_FAULT};
 				endcase
 		end
 	endfunction
+`ifndef SYNTHESIS
+    // Preserve the raw-S/R helper used by the I-cache observation fixture.
+    function automatic [7:0] get_fsr_section;
+        input user;
+        input rd;
+        input wr;
+        input [1:0] sr;
+        input [31:0] dac_reg;
+        input [19:0] tlb;
+        get_fsr_section = get_fsr_section_decoded(ap_permissions(user, rd, wr, decode_ap0(sr)), dac_reg, tlb);
+    endfunction
+`endif
 	always @(*) begin : tlb_match_logic
 		if (_sv2v_0)
 			;
@@ -13898,21 +13915,21 @@ module ngage2_zap_tlb_check (
 						end
 				end
 				if (match[1]) begin
-					fsr_nxt = fsr_nxt | get_fsr_lpage(i_va[15:14], i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, i_sr, i_dac_reg, i_lptlb_rdata[15:0]);
+					fsr_nxt = fsr_nxt | get_fsr_lpage(i_va[15:14], permitted_ap, i_dac_reg, i_lptlb_rdata[15:0]);
 					phy_addr_nxt = phy_addr_nxt | {i_lptlb_rdata[31:16], i_va[15:0]};
 					cacheable_nxt = cacheable_nxt | i_lptlb_rdata[3];
 					wt_nxt = wt_nxt | (i_lptlb_rdata[3:2] == 2'b10);
 					bufferable_nxt = bufferable_nxt | i_lptlb_rdata[2];
 				end
 				if (match[2]) begin
-					fsr_nxt = fsr_nxt | get_fsr_section(i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, i_sr, i_dac_reg, i_setlb_rdata[19:0]);
+					fsr_nxt = fsr_nxt | get_fsr_section_decoded(permitted_ap, i_dac_reg, i_setlb_rdata[19:0]);
 					phy_addr_nxt = phy_addr_nxt | {i_setlb_rdata[31:20], i_va[19:0]};
 					cacheable_nxt = cacheable_nxt | i_setlb_rdata[3];
 					wt_nxt = wt_nxt | (i_setlb_rdata[3:2] == 2'b10);
 					bufferable_nxt = bufferable_nxt | i_setlb_rdata[2];
 				end
 				if (match[3]) begin
-					fsr_nxt = fsr_nxt | get_fsr_fpage(i_cpsr[ZAP_CPSR_MODE:0] == USR, i_rd, i_wr, i_sr, i_dac_reg, i_fptlb_rdata[9:0]);
+					fsr_nxt = fsr_nxt | get_fsr_fpage(permitted_ap, i_dac_reg, i_fptlb_rdata[9:0]);
 					phy_addr_nxt = phy_addr_nxt | {i_fptlb_rdata[31:10], i_va[9:0]};
 					cacheable_nxt = cacheable_nxt | i_fptlb_rdata[3];
 					wt_nxt = wt_nxt | (i_fptlb_rdata[3:2] == 2'b10);
@@ -14504,6 +14521,7 @@ module ngage2_zap_tlb (
 	i_hold,
 	i_cpsr,
 	i_sr,
+	i_ap0_mode,
 	i_dac_reg,
 	i_baddr,
 	i_mmu_en,
@@ -14550,7 +14568,9 @@ module ngage2_zap_tlb (
 	input wire [31:0] i_address_nxt;
 	input wire i_hold;
 	input wire [CPSR_MODE:0] i_cpsr;
-	input wire [1:0] i_sr;
+    parameter [0:0] AP0_PREDECODED = 1'b0;
+    input wire [1:0] i_sr;
+    input wire [1:0] i_ap0_mode;
 	input wire [31:0] i_dac_reg;
 	input wire [31:0] i_baddr;
 	input wire i_mmu_en;
@@ -15115,6 +15135,7 @@ module ngage2_zap_tlb (
 		.o_rdav_pre(fptlb_ren_pre)
 	);
 	ngage2_zap_tlb_check #(
+		.AP0_PREDECODED(AP0_PREDECODED),
 		.LPAGE_TLB_ENTRIES(LPAGE_TLB_ENTRIES),
 		.SPAGE_TLB_ENTRIES(SPAGE_TLB_ENTRIES),
 		.SECTION_TLB_ENTRIES(SECTION_TLB_ENTRIES),
@@ -15131,6 +15152,7 @@ module ngage2_zap_tlb (
 		.i_wr(i_wr_check),
 		.i_cpsr(i_cpsr),
 		.i_sr(i_sr),
+		.i_ap0_mode(i_ap0_mode),
 		.i_dac_reg(i_dac_reg),
 		.i_sptlb_rdata(sptlb_rdata_pre),
 		.i_sptlb_rdav(sptlb_ren_pre),
@@ -15796,7 +15818,7 @@ module ngage2_zap_top (
 	wire cpu_dc_en;
 	wire cpu_ic_en;
 	wire cpu_writebuffer_en;
-	wire [1:0] cpu_sr;
+	wire [1:0] cpu_sr, cpu_ap0_mode;
 	wire [31:0] cpu_baddr;
 	wire [31:0] cpu_dac_reg;
 	wire cpu_dc_inv;
@@ -15989,6 +16011,7 @@ module ngage2_zap_top (
 				.o_baddr(cpu_baddr),
 				.o_mmu_en(cpu_mmu_en),
 				.o_sr(cpu_sr),
+				.o_ap0_mode(cpu_ap0_mode),
 				.o_dcache_inv(cpu_dc_inv),
 				.o_icache_inv(cpu_ic_inv),
 				.o_dcache_clean(cpu_dc_clean),
@@ -16077,6 +16100,7 @@ module ngage2_zap_top (
 		end
 		if (1) begin : l_generate_with_cache_mmu
 			ngage2_zap_dcache #(
+				.AP0_PREDECODED(1'b1),
 				.CACHE_SIZE(DATA_CACHE_SIZE),
 				.SPAGE_TLB_ENTRIES(DATA_SPAGE_TLB_ENTRIES),
 				.SPAGE_TLB_WAYS(DATA_SPAGE_TLB_WAYS),
@@ -16159,6 +16183,7 @@ module ngage2_zap_top (
 				.i_cache_clean_req(cpu_dc_clean),
 				.i_cpsr((cpu_mem_translate ? USR : cpu_mem_cpsr)),
 				.i_sr(cpu_sr),
+				.i_ap0_mode(cpu_ap0_mode),
 				.i_baddr(cpu_baddr),
 				.i_dac_reg(cpu_dac_reg),
 				.i_tlb_inv(cpu_dtlb_inv),
@@ -16185,6 +16210,7 @@ module ngage2_zap_top (
 				.o_wb_cti_nxt(d_wb_cti)
 			);
 			ngage2_zap_cache #(
+				.AP0_PREDECODED(1'b1),
 				.CACHE_SIZE(CODE_CACHE_SIZE),
 				.SPAGE_TLB_ENTRIES(CODE_SPAGE_TLB_ENTRIES),
 				.SPAGE_TLB_WAYS(CODE_SPAGE_TLB_WAYS),
@@ -16221,6 +16247,7 @@ module ngage2_zap_top (
 				.o_cache_clean_done(ic_clean_done),
 				.i_cpsr(cpu_cpsr[ZAP_CPSR_MODE:0]),
 				.i_sr(cpu_sr),
+				.i_ap0_mode(cpu_ap0_mode),
 				.i_baddr(cpu_baddr),
 				.i_dac_reg(cpu_dac_reg),
 				.i_tlb_inv(cpu_itlb_inv),
