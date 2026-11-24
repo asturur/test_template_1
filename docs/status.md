@@ -1,3 +1,7 @@
+## 2026-11-24 — prepared Wishbone write data retained
+
+Keep `e9552bd`. At physical 104 MHz, median worst setup improved from −2.565 to −2.471 ns and seed 13 reached −2.061 ns. Median core setup TNS worsened by 993.367 ns. The sampled ACK paths into the old merger data register fell from 32, 7 and 30 to zero. Write and workload cycles matched. The next timing trial would evaluate GPIO/keypad and EUART read-data selection for the registered peripheral response. [Routed fits and replay](v5-alm-storage-results.md#prepared-wishbone-write-data)
+
 ## 2026-11-24 — auxiliary writeback shift-count preparation retained
 
 Keep `a846b87`. Physical 104 MHz median worst setup improved from −2.724 to −2.565 ns and seed 43 reached −2.227 ns. Median core setup TNS improved by 332.935 ns, although seed 31337's TNS worsened. The median fit saved 602 ALMs. Guest and mixed replay cycles matched. The next timing target is the refill ACK through cache write data into the Wishbone merger. [Routed fits and replay](v5-alm-storage-results.md#auxiliary-writeback-shift-count-preparation)

@@ -173,7 +173,9 @@ The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
 captures both tag-maintenance words and registers the existing advance
 decision. It keeps address and request timing on the original path.
 Ten directed profiles matched the control, and workload write traces
-covered 330,252 successful writes. Routed fits are pending.
+covered 330,252 successful writes. The named ACK-to-write-data paths
+disappeared from the hot exports. Median setup improved 0.094 ns and
+median core setup TNS worsened 993.367 ns. Keep `e9552bd`.
 
 ## Passive opportunity studies
 

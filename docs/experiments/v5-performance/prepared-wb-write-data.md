@@ -110,3 +110,15 @@ CPU netlist is the only changed fit input.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45414696142) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45414703565) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45414709004)
+
+## Routed results
+
+Retained `e9552bd`. Median setup improved by 0.094 ns and median
+area fell by 196 ALMs. The fit kept 321 M10Ks. Median core setup
+TNS worsened by 993.367 ns, and seed 43's setup regressed. Seed 13
+reached −2.061 ns. Counts into the old write-data register from the
+named refill ACK path fell from 32, 7 and 30 to zero in the three
+100 °C top-1,000 exports. These counts follow routed names and the
+report cutoff. All three fits failed setup and passed all other
+four-corner checks. [Matched fits and archived bitstream](../../v5-alm-storage-results.md#prepared-wishbone-write-data) ·
+[Fit evidence](../../evidence/v5-104-ack-write-data-fits.json)
