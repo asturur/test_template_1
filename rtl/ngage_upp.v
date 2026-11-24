@@ -198,6 +198,8 @@ module ngage_upp #(
     wire peripheral_response_pending;
     wire lcd_route_ready, lcd_waiting;
     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
+    wire [4:0] dma_packet_decode;
+    wire [7:0] dma_packet_targets;
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
@@ -313,7 +315,8 @@ module ngage_upp #(
             // selection nor its wide address/lane mux crosses device command
             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
             ngage_upp_request_stage #(
-                .EXPLICIT_LIVE(1)
+                .EXPLICIT_LIVE(1),
+                .DMA_PREDECODE(GENERAL_DMA)
             ) request_stage (
                 .clk        (clk),
                 .reset      (rst),
@@ -331,7 +334,9 @@ module ngage_upp #(
                 .out_code   (bus_code),
                 .out_address(bus_adr),
                 .out_data   (bus_din),
-                .out_sel    (bus_sel)
+                .out_sel    (bus_sel),
+                .out_dma_ctl(dma_packet_decode),
+                .out_dma_ch (dma_packet_targets)
             );
 
             always @(posedge clk) begin
@@ -465,6 +470,8 @@ module ngage_upp #(
             assign ram_be = 0;
             assign ram_pending = 0;
             assign ram_response = 0;
+            assign dma_packet_decode = 0;
+            assign dma_packet_targets = 0;
             assign bus_code = 1'b0;
             assign bus_cyc = ext_cyc;
             assign bus_stb = ext_stb;
@@ -487,7 +494,8 @@ module ngage_upp #(
                 // its own native stream; a third worker measured no benefit.
                 .ENGINES       (2),
                 .PRODUCTION    (1),
-                .LCD_LINE_BYTES(LCD_LINE_BYTES)
+                .LCD_LINE_BYTES(LCD_LINE_BYTES),
+                .PREDECODED    (INTERNAL_CPU)
             ) channels (
                 .clk              (clk),
                 .reset            (rst),
@@ -497,6 +505,8 @@ module ngage_upp #(
                 .addr             (bus_adr),
                 .din              (bus_din),
                 .sel              (bus_sel),
+                .dma_decode       (dma_packet_decode),
+                .dma_targets      (dma_packet_targets),
                 .claim            (lcd_dma_claim),
                 .bad              (lcd_dma_bad),
                 .dout             (lcd_dma_reg_data),
@@ -922,7 +932,8 @@ endmodule
 // DMA gap provide the request-low edge. Cancellation immediately suppresses
 // side effects, while an already captured downstream transaction may drain.
 module ngage_upp_request_stage #(
-    parameter EXPLICIT_LIVE = 0
+    parameter EXPLICIT_LIVE = 0,
+              DMA_PREDECODE = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -940,7 +951,9 @@ module ngage_upp_request_stage #(
     output reg         out_code,
     output reg  [31:0] out_address,
     output reg  [31:0] out_data,
-    output reg  [ 3:0] out_sel
+    output reg  [ 3:0] out_sel,
+    output wire [ 4:0] out_dma_ctl,
+    output wire [ 7:0] out_dma_ch
 );
     (* dont_retime *)reg  valid = 0;
     wire offered = in_cyc && in_stb;
@@ -949,6 +962,40 @@ module ngage_upp_request_stage #(
     wire live = EXPLICIT_LIVE ? in_live : offered;
     assign out_cyc = !reset && valid && live;
     assign out_stb = out_cyc;
+    generate
+        if (DMA_PREDECODE) begin : dma_packet
+            wire [4:0] fields;
+            wire [7:0] control_channel;
+            (* dont_retime *)reg  [4:0] held_fields;
+            (* dont_retime *)reg  [7:0] held_control_channel;
+            ngage_dma_program_decode #(
+                .PRODUCTION(1)
+            ) decode (
+                .addr           (in_address),
+                .din            (in_data),
+                .sel            (in_sel),
+                .we             (in_we),
+                .fields         (fields),
+                .control_channel(control_channel)
+            );
+            assign out_dma_ctl = held_fields;
+            assign out_dma_ch  = held_control_channel;
+            // Match the selected CPU/local-DMA packet's capture and hold.
+            // Neutral reset packet has an empty lane mask and claims no DMA.
+            always @(posedge clk) begin
+                if (reset) begin
+                    held_fields          <= 5'b01000;
+                    held_control_channel <= 0;
+                end else if (!valid && offered) begin
+                    held_fields          <= fields;
+                    held_control_channel <= control_channel;
+                end
+            end
+        end else begin : no_dma_packet
+            assign out_dma_ctl = 0;
+            assign out_dma_ch  = 0;
+        end
+    endgenerate
     always @(posedge clk) begin
         if (reset) begin
             valid       <= 0;
