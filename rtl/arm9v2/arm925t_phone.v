@@ -3571,7 +3571,10 @@ module ngage2_arm9v2_execute (
 			shift_rot = (ref_type == 0 ? -ref_amount[4:0] : ref_amount[4:0]);
 		end
 
-        if (direct_reg_shift) begin
+        // Compute the shift speculatively. Rs readiness still gates acceptance
+        // and preparation. Only a scaled memory operation saves shifted data
+        // outside acceptance, and the direct register shift applies to DP.
+        if (direct_reg_eligible) begin
             shift_amount = operand[71:64];
             shift_rot = (shift_type == 0 ? -operand[68:64] : operand[68:64]);
         end
