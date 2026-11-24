@@ -169,6 +169,12 @@ both-lane prototype removed the primary W fast path too and added
 0.133% to the native frame clocks in simulation. The fitted auxiliary-only
 trial improved every seed and saved 602 median ALMs. Keep `a846b87`.
 
+The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
+captures both tag-maintenance words and registers the existing advance
+decision. It keeps address and request timing on the original path.
+Ten directed profiles matched the control, and workload write traces
+covered 330,252 successful writes. Routed fits are pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

@@ -1395,5 +1395,42 @@
     "sha256": [
       "264264d68cf9932eb3a5aeea208e45682a0d693a463d1555c8495e8bfe59e873"
     ]
+  },
+  {
+    "id": "prepared-wb-write-data",
+    "kind": "design",
+    "base": "a846b872f0760816029da97caa4ee54a0f45cf67",
+    "patches": [
+      "patches/prepared-wb-write-data.patch"
+    ],
+    "sha256": [
+      "9d5b26b62a4f2ba50b99a102657b484e3e042279b29f463df17fe7cbfe597be8"
+    ],
+    "target": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_wb_data_contract.py",
+      "tests/cpu/arm9v2_board/run-wb-data-contract.sh",
+      "tests/cpu/arm9v2_board/wb_data_contract_observe.vh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+      "tests/cpu/arm9v2_board/prepare_wb_data_contract.py": "46404bc653e312f77d58693793b11b5d18c8064b2676ec0eb42e90a14524b4a3",
+      "tests/cpu/arm9v2_board/run-wb-data-contract.sh": "bcc50c88b0bb613eb39b1f2171440923dd8904ed233169dcd34d9451eec93751",
+      "tests/cpu/arm9v2_board/wb_data_contract_observe.vh": "c42464525dd902fd669767ba02b4e79058ac8d6e1e72f20973bf858bc272c801",
+      "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
+    }
+  },
+  {
+    "id": "prepared-wb-write-data-replay",
+    "kind": "fixture",
+    "base": "a846b872f0760816029da97caa4ee54a0f45cf67",
+    "patches": [
+      "patches/prepared-wb-write-data-replay.patch"
+    ],
+    "sha256": [
+      "a441bd41c4781319613878560309f19678eaaa42f0a11c189694085e3408126d"
+    ]
   }
 ]
