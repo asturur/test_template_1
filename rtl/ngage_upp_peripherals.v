@@ -47,7 +47,6 @@ module ngage_upp_peripherals #(
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
               REGISTER_RESPONSES = 0,
-              TWO_EDGE_MMIO      = 0,
               DDR_UPP_RAM        = 0,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
@@ -75,8 +74,6 @@ module ngage_upp_peripherals #(
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
     input  wire        commit,                // authorize local access checks this cycle
-    input  wire        packet_mature,         // immutable packet held across the previous edge
-    output wire        early_access,          // independent raw DDR or scratch RAM access
     // configuration (from the harness command line)
     input  wire        cfg_lcd,               // lcd-probe option
     input  wire        cfg_keypad,            // keypad-gpio option
@@ -913,11 +910,6 @@ module ngage_upp_peripherals #(
     // direction and device state; an address-only owner cache is not valid.
     reg [15:0] selected_owner;
     wire [15:0] result_owner, result_bad;
-    // Lane 10 serves the fast 4 KiB comm RAM and ASIC ROM stub. Its
-    // response data stays single-cycle. Raw DDR launch stays fast too,
-    // but its physical handshake can only return after packet maturity.
-    wire fast_lane = selected_owner[10];
-    assign early_access = ddr_access || fast_lane;
     always @* begin
         selected_owner = 0;
         if (mmc_claim) selected_owner[15] = 1;
@@ -980,30 +972,18 @@ module ngage_upp_peripherals #(
             reg valid;
             genvar local_lane;
             for (local_lane = 0; local_lane < 16; local_lane = local_lane + 1) begin : local_results
+                reg [31:0] data;
                 reg owner, error;
                 always @(posedge clk) begin
                     if (!rst && req && !valid) begin
+                        data  <= local_data[local_lane*32+:32];
                         owner <= selected_owner[local_lane];
                         error <= local_bad[local_lane];
                     end
                 end
-                if (TWO_EDGE_MMIO && local_lane != 10) begin : two_edge_payload
-                    (* dont_retime *) reg [31:0] data;
-                    // No address, owner or early-access bypass allows
-                    // these flops to capture on the first held edge.
-                    always @(posedge clk)
-                        if (!rst && req && !valid && packet_mature)
-                            data <= local_data[local_lane*32+:32];
-                    assign result_data[local_lane*32+:32] = data;
-                end else begin : ordinary_payload
-                    reg [31:0] data;
-                    always @(posedge clk)
-                        if (!rst && req && !valid)
-                            data <= local_data[local_lane*32+:32];
-                    assign result_data[local_lane*32+:32] = data;
-                end
-                assign result_owner[local_lane] = owner;
-                assign result_bad[local_lane]   = error;
+                assign result_data[local_lane*32+:32] = data;
+                assign result_owner[local_lane]       = owner;
+                assign result_bad[local_lane]         = error;
             end
             // The UPP request record is already stable across this edge.
             // Each device's data/error and ownership cross the same edge as
@@ -1013,9 +993,7 @@ module ngage_upp_peripherals #(
                 else if (!valid) begin
                     // Payload registers are local, never enabled by aggregate
                     // ready/error. Only the completion bit uses readiness.
-                    if (claim && local_ready && commit &&
-                        (!TWO_EDGE_MMIO || packet_mature || fast_lane))
-                        valid <= 1;
+                    if (claim && local_ready && commit) valid <= 1;
                 end
             end
             assign response_pending = valid;
@@ -1028,21 +1006,6 @@ module ngage_upp_peripherals #(
             assign result_data      = local_data;
         end
     endgenerate
-    // synthesis translate_off
-    reg        previous_request;
-    reg [36:0] previous_static_packet;
-    always @(posedge clk) begin
-        previous_request       <= !rst && req;
-        previous_static_packet <= {adr, we, sel};
-        if (TWO_EDGE_MMIO && !rst && req) begin
-            if (packet_mature !== previous_request ||
-                (packet_mature && previous_static_packet !== {adr, we, sel}))
-                $fatal(1, "UPP timed packet changed inside its capture aperture");
-            if (!packet_mature && ddr_access && ddr_response)
-                $fatal(1, "UPP raw DDR returned before its protected sample edge");
-        end
-    end
-    // synthesis translate_on
     // Constant slices and a balanced return tree keep each registered local
     // result separate through elaboration and avoid a procedural mux chain.
     wire [31:0] response_tree[0:30];

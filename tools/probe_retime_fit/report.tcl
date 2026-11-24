@@ -159,7 +159,6 @@ create_timing_netlist -model slow
 read_sdc
 update_timing_netlist
 lassign [measure_native_core] native_mhz native_period native_vco_period
-source tools/upp_mmio_timing.tcl
 delete_timing_netlist
 if {[llength $argv] > 1 || ([llength $argv] && [lindex $argv 0] ne $native_mhz)} {
     error "Declared core clock $argv disagrees with the fitted $native_mhz MHz PLL"
@@ -173,7 +172,6 @@ puts "Fitted core clock: $native_mhz MHz (period $native_period ns, VCO period $
 # one native scenario and never calls the diagnostic clock override.
 set scenarios [list $native_mhz]
 if {$native_mhz == 78} {lappend scenarios 104}
-set upp_audit_failed 0
 foreach scenario $scenarios {
     create_timing_netlist -model slow
     read_sdc
@@ -209,14 +207,10 @@ foreach scenario $scenarios {
             error "Fitted core clock changed at corner $index"
         }
         emit $od
-        if {[string match {ERROR:*} [checked [list upp_mmio::audit $od/upp-mmio $native_period]]]} {
-            set upp_audit_failed 1
-        }
     }
     if {$index != 4} {error "Expected four operating corners, found $index"}
     delete_timing_netlist
 }
 close $errors
 project_close
-if {$upp_audit_failed} {error "UPP two-edge audit failed; see per-corner artifacts"}
 puts "DONE isolated resident-store post-fit scenarios; inspect errors/coverage explicitly"
