@@ -80,3 +80,24 @@ synthesis input.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45358057788) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45358062079) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45358066185)
+
+## Routed results
+
+The hot top 1,000 counts through the original D1-to-D2 classifier fell
+from 3, 11 and 11 to zero. The table reports the new class-register
+input and the whole-core fits.
+
+| Seed | Class input at 100 °C | Class input at −40 °C | Whole-core setup | Full-chip ALMs saved |
+| --- | ---: | ---: | ---: | ---: |
+| 43 | −2.850 ns | −2.965 ns | −3.327 ns | 940 |
+| 13 | −2.420 ns | −2.614 ns | −3.172 ns | 853 |
+| 31337 | −1.986 ns | −2.258 ns | −2.766 ns | 983 |
+
+The inclusive Quartus decoder estimates each fell by 21.4–55.3 ALMs.
+Whole-chip fit savings include packing and placement. Median area fell
+925 ALMs and median setup regressed 0.504 ns. All three builds missed
+setup and passed the other four-corner timing checks. The public
+forward revert `fc7b513` restores the exact `c492853` timing tree.
+Keep this patch as an area option, particularly the seed 31337 result
+with 983 fewer ALMs and a 0.100 ns setup cost.
+[Matched fits, paths and archived bitstream hash](../../evidence/v5-104-decode-class-fits.json)

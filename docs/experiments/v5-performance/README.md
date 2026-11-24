@@ -140,7 +140,10 @@ the same queue slot as its instruction. The direct test exhausts
 Thumb halfwords and register lists and checks four queue configurations.
 All 15 fixed workloads, four native PolyCount frames, four board
 profiles and mixed LCD/PCM/MMC replay matched `c492853`.
-Three matched 104 MHz fits are running on `4b2c114`.
+All three fits saved area, with 925 fewer median ALMs, and median
+setup regressed 0.504 ns. Seed 31337 saved 983 ALMs at a 0.100 ns setup
+cost. Park `4b2c114` for area-constrained combinations.
+[Routed evidence](../../evidence/v5-104-decode-class-fits.json)
 
 ## Passive opportunity studies
 

@@ -1,3 +1,7 @@
+## 2026-11-24 — D1 opcode class parked for area
+
+The D1 class trial `4b2c114` matched all checked cycles and saved 925 median ALMs. Median 104 MHz setup moved from −2.668 to −3.172 ns. Seed 31337 saved 983 ALMs at a 0.100 ns setup cost. Forward revert `fc7b513` restores the exact `c492853` timing tree. Keep the patch for area-constrained combinations. The next timing target is board request and address selection toward SDRAM or DMA. [Matched fits and qualification](v5-alm-storage-results.md#d1-opcode-class-in-the-queue)
+
 ## 2026-11-24 — CP15 permission predecode parked
 
 The CP15 trial `85f65c8` matched all checked cycles and saved 286 median ALMs. The hot FSR endpoint gained 0.980 ns on seed 31337, while median 104 MHz setup moved from −2.668 to −2.919 ns. Forward revert `2c9d1ff` restores the exact `c492853` tree. Keep the CP15 patch for an area-constrained combination. [Routed evidence and qualification](v5-alm-storage-results.md#cp15-ap0-permission-predecode)

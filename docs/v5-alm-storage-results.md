@@ -220,3 +220,23 @@ Commit `85f65c8` registers the two AP=0 permission modes on the existing CP15 S/
 On seed 31337, named CP15-to-FSR paths fell from four to zero in the 100 °C top 1,000. The worst reported FSR endpoint improved from −2.666 to −1.686 ns at 100 °C and from −2.333 to −1.705 ns at −40 °C. The CP15 predecode saved 165–307 ALMs across the three matched seeds. Each seed missed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. [Matched local and whole-core timing](evidence/v5-104-cp15-permission-fits.json)
 
 Park the CP15 patch as an area option for a later combination. Public forward revert `2c9d1ff` restores the exact `c492853` tree. The best CP15 trial bitstream is seed 43 at `build/fit/v5-104mhz-85f65c8-seed43/ngage1.rbf`. Its SHA-256 is `dfdf9cc41ba58a0d65ab2c5ba7a4998cb2108fe764b3192ec3c4a54436e0ab64`. Board behavior remains unverified.
+
+## D1 opcode class in the queue
+
+Commit `4b2c114` captures the four-bit class on the original D1 slot write and uses the original one-hot head for D2. In four decoder configurations, the old and new RTL matched every register list, every Thumb encoding in both halfword positions, and 30,014 queue clocks per configuration. All 15 fixed workloads, four native frames, four board profiles and the mixed LCD, PCM and MMC replay matched `c492853`. [Exact patch and replay](experiments/v5-performance/d1-opcode-class.md)
+
+| 104 MHz production fit | Execute control `c492853` | D1 class `4b2c114` | Setup change | Full-chip ALMs saved |
+| --- | ---: | ---: | ---: | ---: |
+| Seed 43 setup | −2.668 ns | [−3.327 ns](https://github.com/asturur/test_template_1/actions/runs/45358057788) | −0.659 ns | 940 |
+| Seed 13 setup | −2.954 ns | [−3.172 ns](https://github.com/asturur/test_template_1/actions/runs/45358062079) | −0.218 ns | 853 |
+| Seed 31337 setup | −2.666 ns | [−2.766 ns](https://github.com/asturur/test_template_1/actions/runs/45358066185) | −0.100 ns | 983 |
+| Median setup | −2.668 ns | −3.172 ns | −0.504 ns | |
+| Median core setup TNS | −5,760.244 ns | −7,958.358 ns | | |
+| Median ALMs | 37,297 | 36,372 | | 925 |
+| M10Ks on every seed | 321 | 321 | | |
+
+The old named classification path from D1 into D2 fell from 3, 11 and 11 instances to zero across the three 100 °C top 1,000 reports. At the new queued class input, worst listed setup was −2.850, −2.420 and −1.986 ns at 100 °C and −2.965, −2.614 and −2.258 ns at −40 °C, in seed order. Quartus's inclusive decoder estimate fell by 50.4, 21.4 and 55.3 ALMs. The much larger full-chip area savings include placement and packing effects. All three builds missed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. [Matched reports and compiled inputs](evidence/v5-104-decode-class-fits.json)
+
+Park the patch for area-constrained combinations. On seed 31337 the trial saved 983 fitted ALMs at a 0.100 ns setup cost. Forward revert `fc7b513` restores the exact `c492853` timing tree. The best D1 trial bitstream is `build/fit/v5-104mhz-4b2c114-seed31337/ngage1.rbf`, SHA-256 `947eb6f4513c0bfd61d8f4f1e3adf25e4cd46e63581c86c1683e9330e17966b0`. Board behavior remains unverified.
+
+The next timing target is board request arbitration and address selection toward SDRAM or DMA. The combined slow-corner exports contain a request-stage path into the SDRAM scheduler for every seed across the execute control, CP15 and D1 fits. Consider decoding the target beside the existing request registers and selecting the owner on the same edge, with no extra request or response cycle.
