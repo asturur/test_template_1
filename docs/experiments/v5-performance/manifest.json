@@ -1333,5 +1333,67 @@
     "sha256": [
       "cddccf4f9b072e47a19e8168be0b57cf15491ec14699b852b60393d6fd64aa1b"
     ]
+  },
+  {
+    "id": "wb-rs-prep-aux",
+    "kind": "design",
+    "base": "3363c87903b85b18c73fe065cc46a6698c078e94",
+    "patches": [
+      "patches/wb-rs-prep-aux.patch"
+    ],
+    "sha256": [
+      "d40cb12562bd001b3e949204bfed24c5e7c5bbf8be205dccf1f42ef52d26bd1b"
+    ],
+    "target": "a846b872f0760816029da97caa4ee54a0f45cf67",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "ec8b09bcd0cd3886af9102e80c417ee1864d4f5f667c860884241dfaaaa50992",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py": "607fb2c7a50703bb7b16f67ce87b7dfedf0d79d05682f65a6fd1a0df0d6c2a09",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh": "5f4140c6ecf859b5c34243dc90f4f5743bcc9ec5cef612e3d4deab4557e14ba1",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv": "da3f2a114c73e60bf07e3dc1ee834f977530f8acf4da43a1a3043027d03543f2",
+      "tools/gen_arm9v2_phone.py": "39956c1afa25c0df76820379eb381ec278dde39db086dddeb1c792bea0bf78dc"
+    }
+  },
+  {
+    "id": "wb-rs-prep-both",
+    "kind": "prototype",
+    "base": "3363c87903b85b18c73fe065cc46a6698c078e94",
+    "patches": [
+      "patches/wb-rs-prep-both.patch"
+    ],
+    "sha256": [
+      "2833ec76e71f98f3fa378a4fed42c16e8ddacb526546e7ae64340a3affb65404"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "a42dd2a4711ea4374bdefde07516e6c3b2cc0a93ff2ea3c453104418a089b6ff",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py": "607fb2c7a50703bb7b16f67ce87b7dfedf0d79d05682f65a6fd1a0df0d6c2a09",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh": "f70f04326e6a8367adc08506832ed173fa45dc9baf8e847deeab9baa9daba53e",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv": "8f8fe5f1b5f65c82fb141a5c1b5186eebf9c6e6846419782a1f857f187f02763",
+      "tools/gen_arm9v2_phone.py": "4b8bc9036a0ec51113c9d9f3effb48b0fb73e473d704c3ae3e33fcac80cf5d79"
+    }
+  },
+  {
+    "id": "wb-rs-prep-replay",
+    "kind": "fixture",
+    "base": "3363c87903b85b18c73fe065cc46a6698c078e94",
+    "patches": [
+      "patches/wb-rs-prep-replay.patch"
+    ],
+    "sha256": [
+      "264264d68cf9932eb3a5aeea208e45682a0d693a463d1555c8495e8bfe59e873"
+    ]
   }
 ]

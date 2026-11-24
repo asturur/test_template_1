@@ -161,6 +161,13 @@ An independent shift oracle, the 15 payloads, four native frames and
 paths disappeared, and median setup moved from −2.724 to −2.836 ns.
 The standalone patch was parked and `fe145b0` restored.
 
+The [W auxiliary count trial](wb-rs-prep-aux.md) prepares ARM Rs
+from the W auxiliary lane before issue. Across 105 fixed-work windows
+and four native frames the retained control accepted zero auxiliary
+counts. The auxiliary-only trial matched every measured cycle. The
+both-lane prototype removed the primary W fast path too and added
+0.133% to the native frame clocks. Only the auxiliary variant was fitted.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
