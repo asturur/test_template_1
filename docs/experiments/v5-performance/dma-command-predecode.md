@@ -90,3 +90,18 @@ with DDR debugging disabled.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45378535187) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45378617074) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45378624476)
+
+## Routed results
+
+Retained `fe145b0` for board integration. Across the three seeds, the
+request-stage-to-scheduler count fell from 24, 22 and 24 to zero, zero
+and two in the 100 °C top 1,000. It fell to zero on all three −40 °C
+exports. The worst listed hot path in this group on seed 31337
+improved 1.047 ns to −1.406 ns.
+
+Median whole-core setup moved from −2.668 to −2.724 ns. Median core
+setup TNS improved by 1,277.025 ns and the median fit used 53 fewer
+ALMs. All three builds missed setup. All other four-corner checks
+passed. The seed 31337 image reached −2.664 ns and remains untested on
+hardware. [Matched results and bitstream](../../v5-alm-storage-results.md#dma-command-predecode-for-the-sdram-request-path) ·
+[Fit evidence](../../evidence/v5-104-sdram-scheduler-fits.json)

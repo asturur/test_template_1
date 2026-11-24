@@ -1,3 +1,7 @@
+## 2026-11-24 — DMA command predecode retained
+
+Keep `fe145b0` for board integration and `c492853` for the matched timing reference. At physical 104 MHz, the sampled hot request-stage-to-SDRAM scheduler paths fell from 24, 22 and 24 to zero, zero and two. Median core setup TNS improved by 1,277.025 ns, while median worst setup moved from −2.668 to −2.724 ns. Guest cycles and mixed pin-model events matched. The next timing trial will test separating speculative register-shift data selection from the existing issue interlock. [Routed timing and replay](v5-alm-storage-results.md#dma-command-predecode-for-the-sdram-request-path)
+
 ## 2026-11-24 — D1 opcode class parked for area
 
 The D1 class trial `4b2c114` matched all checked cycles and saved 925 median ALMs. Median 104 MHz setup moved from −2.668 to −3.172 ns. Seed 31337 saved 983 ALMs at a 0.100 ns setup cost. Forward revert `fc7b513` restores the exact `c492853` timing tree. Keep the patch for area-constrained combinations. The next timing target is board request and address selection toward SDRAM or DMA. [Matched fits and qualification](v5-alm-storage-results.md#d1-opcode-class-in-the-queue)

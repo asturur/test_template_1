@@ -149,7 +149,10 @@ The [DMA command predecode trial](dma-command-predecode.md) moves
 immutable UPP programming checks to the existing packet capture edge,
 ahead of the DMA offer and SDRAM address selection. The retained timing
 control and trial matched 171,496 events in the physical-pin model,
-15 fixed workloads and four native frames. The three fits are pending.
+15 fixed workloads and four native frames. The trial removed all but
+two targeted paths from the three 100 °C top-1,000 exports. Median
+setup moved from −2.668 to −2.724 ns, and median core setup TNS
+improved by 1,277.025 ns. Retain it for board integration.
 
 ## Passive opportunity studies
 

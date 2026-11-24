@@ -240,3 +240,23 @@ The old named classification path from D1 into D2 fell from 3, 11 and 11 instanc
 Park the patch for area-constrained combinations. On seed 31337 the trial saved 983 fitted ALMs at a 0.100 ns setup cost. Forward revert `fc7b513` restores the exact `c492853` timing tree. The best D1 trial bitstream is `build/fit/v5-104mhz-4b2c114-seed31337/ngage1.rbf`, SHA-256 `947eb6f4513c0bfd61d8f4f1e3adf25e4cd46e63581c86c1683e9330e17966b0`. Board behavior remains unverified.
 
 The next timing target is board request arbitration and address selection toward SDRAM or DMA. The combined slow-corner exports contain a request-stage path into the SDRAM scheduler for every seed across the execute control, CP15 and D1 fits. Consider decoding the target beside the existing request registers and selecting the owner on the same edge, with no extra request or response cycle.
+
+## DMA command predecode for the SDRAM request path
+
+Commit `fe145b0` moves DMA programming legality, start/stop and channel selection to the existing UPP request capture edge. Live commit and descriptor readiness still qualify cancellation on the original edge. The directed tests, four board profiles, 15 fixed payloads and four native frames matched `c492853` cycle for cycle. The physical SDRAM model matched all 171,496 recorded events in the mixed ARM, LCD, PCM and MMC replay. [Exact patch and qualification](experiments/v5-performance/dma-command-predecode.md)
+
+| 104 MHz production fit | Execute control `c492853` | DMA predecode `fe145b0` | Change |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −2.668 ns | [−2.724 ns](https://github.com/asturur/test_template_1/actions/runs/45378535187) | −0.056 ns |
+| Seed 13 setup | −2.954 ns | [−3.028 ns](https://github.com/asturur/test_template_1/actions/runs/45378617074) | −0.074 ns |
+| Seed 31337 setup | −2.666 ns | [−2.664 ns](https://github.com/asturur/test_template_1/actions/runs/45378624476) | +0.002 ns |
+| Median setup | −2.668 ns | −2.724 ns | −0.056 ns |
+| Median core setup TNS | −5,760.244 ns | −4,483.219 ns | +1,277.025 ns |
+| Median ALMs | 37,297 | 37,244 | −53 |
+| M10Ks on every seed | 321 | 321 | 0 |
+
+In seed order, request-stage paths into the SDRAM scheduler fell from 24, 22 and 24 to zero, zero and two in the 100 °C top 1,000. At −40 °C they fell from 11, 23 and 23 to zero in all three exports. Seed 31337's worst listed 100 °C path in the group improved from −2.453 to −1.406 ns. Each seed failed setup and passed hold, recovery, removal and minimum pulse checks at all four corners. [Routed paths and fitted inputs](evidence/v5-104-sdram-scheduler-fits.json)
+
+Keep `fe145b0` as the board integration baseline and `c492853` as the matched three-seed timing reference. The best candidate bitstream is seed 31337 at `build/fit/v5-104mhz-fe145b0-seed31337/ngage1.rbf`, SHA-256 `dda03c5bd59cc6bf3f75dc3ebd6396dbd699b4ca0332354086efb10a1bae17d6`. Hardware testing remains pending.
+
+For the next standalone timing experiment, seed 43's 100 °C path runs from execute `holding` through `s_wait[2]`, `shift_rot` and the barrel shifter to the execute packet. Evaluate whether `direct_reg_eligible` can select the speculative shifter operand and rotate amount while retaining `!s_wait[2]` on issue and acceptance. Compare visible data, carry and flags across dependencies, held instructions and replay. The prior register-shift select predecode and extra shift cycle targeted different dependencies.
