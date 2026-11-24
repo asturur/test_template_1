@@ -260,3 +260,21 @@ In seed order, request-stage paths into the SDRAM scheduler fell from 24, 22 and
 Keep `fe145b0` as the board integration baseline and `c492853` as the matched three-seed timing reference. The best candidate bitstream is seed 31337 at `build/fit/v5-104mhz-fe145b0-seed31337/ngage1.rbf`, SHA-256 `dda03c5bd59cc6bf3f75dc3ebd6396dbd699b4ca0332354086efb10a1bae17d6`. Hardware testing remains pending.
 
 For the next standalone timing experiment, seed 43's 100 °C path runs from execute `holding` through `s_wait[2]`, `shift_rot` and the barrel shifter to the execute packet. Evaluate whether `direct_reg_eligible` can select the speculative shifter operand and rotate amount while retaining `!s_wait[2]` on issue and acceptance. Compare visible data, carry and flags across dependencies, held instructions and replay. The prior register-shift select predecode and extra shift cycle targeted different dependencies.
+
+## Speculative ARM shifter selection
+
+Commit `7158a76` selects the forwarded Rs amount with `direct_reg_eligible` while retaining the existing issue and preparation interlocks. The directed comparison exercised 8,198 blocked clocks with different speculative counts and 4,097 trusted forwarding releases. All 15 fixed workloads, four native PolyCount frames, four board profiles and the 104 MHz mixed pin-model replay matched `fe145b0`. [Exact patch and qualification](experiments/v5-performance/early-shift-select.md)
+
+| 104 MHz production fit | Board control `fe145b0` | Speculative shift `7158a76` | Change |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −2.724 ns | [−3.024 ns](https://github.com/asturur/test_template_1/actions/runs/45392744698) | −0.300 ns |
+| Seed 13 setup | −3.028 ns | [−2.628 ns](https://github.com/asturur/test_template_1/actions/runs/45392752108) | +0.400 ns |
+| Seed 31337 setup | −2.664 ns | [−2.836 ns](https://github.com/asturur/test_template_1/actions/runs/45392904798) | −0.172 ns |
+| Median setup | −2.724 ns | −2.836 ns | −0.112 ns |
+| Median core setup TNS | −4,483.219 ns | −5,020.147 ns | −536.928 ns |
+| Median ALMs | 37,244 | 37,173 | −71 |
+| M10Ks on every seed | 321 | 321 | 0 |
+
+In seeds 43, 13 and 31337, named `s_wait[2]` paths through the shifter into A fell from 8, 7 and 0 to zero in the 100 °C top 1,000. Worst listed setup through either named rotator into A moved from −2.621, −2.802 and −2.448 ns to −3.024, −2.211 and −2.357 ns. Seed 43's new limiting path runs from W packet bit `w[60]` through forwarded Rs and the rotation stages into A. Seed 31337's limiting route starts at the MMC host `blen[4]` and goes via TX readiness and DMA arbitration into the SDRAM command address. All three failed setup and passed hold, recovery, removal and minimum pulse at all four corners. [Routed paths and verified inputs](evidence/v5-104-early-shift-fits.json)
+
+Park the standalone shifter patch. Public forward revert `3363c87` restores the exact `fe145b0` board control. Seed 13's candidate image reached −2.628 ns, 0.036 ns better than seed 31337's best control image. The untested candidate RBF is archived at `build/fit/v5-104mhz-7158a76-seed13/ngage1.rbf`, SHA-256 `541652a0b05a85dd3f94482177f863ab25906c41aff72a287f853dc77670da67`.

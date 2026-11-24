@@ -97,3 +97,16 @@ pin `7158a76` at physical 104 MHz with DDR debugging disabled.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45392744698) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45392752108) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45392904798)
+
+## Routed results
+
+Parked the standalone patch. The sampled 100 °C wait-to-rotate-to-A
+paths went from 8, 7 and 0 to zero on all three seeds. A forwarded
+Rs-to-rotate path became the limiting setup route on seed 43.
+Median setup moved from −2.724 to −2.836 ns, and median core setup
+TNS moved from −4,483.219 to −5,020.147 ns. The median fit used
+71 fewer ALMs. Seed 13 reached −2.628 ns, the best candidate fit.
+All three failed setup and passed the other four-corner checks.
+Public forward revert `3363c87` restores the exact `fe145b0` board
+control. [Matched fits and archived RBF](../../v5-alm-storage-results.md#speculative-arm-shifter-selection) ·
+[Fit evidence](../../evidence/v5-104-early-shift-fits.json)

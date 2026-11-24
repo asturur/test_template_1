@@ -157,7 +157,9 @@ improved by 1,277.025 ns. Retain it for board integration.
 The [speculative register-shift trial](early-shift-select.md) removes
 the Rs wait from shift-amount selection and preserves the issue interlock.
 An independent shift oracle, the 15 payloads, four native frames and
-104 MHz mixed pin replay all matched the control. Routed fits are pending.
+104 MHz mixed pin replay all matched the control. The sampled wait-to-rotate
+paths disappeared, and median setup moved from −2.724 to −2.836 ns.
+The standalone patch was parked and `fe145b0` restored.
 
 ## Passive opportunity studies
 

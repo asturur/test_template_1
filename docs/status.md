@@ -1,3 +1,7 @@
+## 2026-11-24 — speculative ARM shifter parked
+
+The `7158a76` trial removed all sampled Rs-wait-to-rotate paths and matched every guest cycle and mixed pin-model event. Median 104 MHz setup moved from −2.724 to −2.836 ns. Candidate seed 13 reached −2.628 ns. Forward revert `3363c87` restores the exact `fe145b0` board control. [Routed fits and replay](v5-alm-storage-results.md#speculative-arm-shifter-selection)
+
 ## 2026-11-24 — DMA command predecode retained
 
 Keep `fe145b0` for board integration and `c492853` for the matched timing reference. At physical 104 MHz, the sampled hot request-stage-to-SDRAM scheduler paths fell from 24, 22 and 24 to zero, zero and two. Median core setup TNS improved by 1,277.025 ns, while median worst setup moved from −2.668 to −2.724 ns. Guest cycles and mixed pin-model events matched. The next timing trial will test separating speculative register-shift data selection from the existing issue interlock. [Routed timing and replay](v5-alm-storage-results.md#dma-command-predecode-for-the-sdram-request-path)
