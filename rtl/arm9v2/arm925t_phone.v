@@ -11107,8 +11107,10 @@ module ngage2_zap_dcache (
 	i_block_enable,
 	o_write_block,
 	o_block_data,
-	o_block_address
+	o_block_address,
+	o_prepared_write_data
 );
+	output wire [31:0] o_prepared_write_data;
 	input wire i_block_enable;
 	output wire o_write_block;
 	output wire [127:0] o_block_data;
@@ -11499,6 +11501,23 @@ module ngage2_zap_dcache (
 	wire [3:0] wb_wen;
 	wire [3:0] wb_sel [3:0];
 	wire [31:0] wb_dat [3:0];
+    wire [31:0] cache_write_data, tag_write_data;
+    (* dont_retime *) reg [31:0] post_write_data;
+    // CCH already registers its next beat. Capture the posted successor
+    // on that same edge, independently of the D-cache arbiter's choice.
+    always @(posedge i_clk)
+        post_write_data <= wb_dat[3];
+    // The TLB walker is read-only. The registered one-hot owner selects
+    // an exact prepared beat whenever the matching CYC/STB/WE is live.
+    assign o_prepared_write_data = (cache_write_data & {32{state_ff[0]}})
+                                 | (tag_write_data & {32{state_ff[1]}})
+                                 | (post_write_data & {32{state_ff[3]}});
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && o_wb_cyc && o_wb_stb && o_wb_wen &&
+            o_prepared_write_data !== o_wb_dat)
+            $fatal(1, "Prepared D-cache write differs at %h", o_wb_adr);
+`endif
     wire cache_line_candidate;
 	wire [31:0] wb_adr [3:0];
 	wire [2:0] wb_cti [3:0];
@@ -11702,7 +11721,7 @@ module ngage2_zap_dcache (
 		.o_wb_cyc_ff(),
 		.o_wb_stb_ff(),
 		.o_wb_adr_ff(),
-		.o_wb_dat_ff(),
+		.o_wb_dat_ff(cache_write_data),
 		.o_wb_sel_ff(),
 		.o_wb_wen_ff(),
 		.o_wb_cti_ff(),
@@ -11804,6 +11823,7 @@ module ngage2_zap_dcache (
 		.o_wb_cyc_nxt(wb_cyc[1]),
 		.o_wb_stb_nxt(wb_stb[1]),
 		.o_wb_adr_nxt(wb_adr[1]),
+		.o_prepared_write_data(tag_write_data),
 		.o_wb_dat_nxt(wb_dat[1]),
 		.o_wb_sel_nxt(wb_sel[1]),
 		.o_wb_wen_nxt(wb_wen[1]),
@@ -16050,7 +16070,7 @@ module ngage2_zap_top (
 			);
 		end
 		if (1) begin : l_merger_for_core_with_cache_mmu
-			ngage2_zap_wb_merger u_zap_wb_merger(
+			ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1)) u_zap_wb_merger(
 				.i_clk(i_clk),
 				.i_reset(s_reset),
 				.i_c_wb_stb(c_wb_stb),
@@ -16194,7 +16214,8 @@ module ngage2_zap_top (
 				.o_wb_cyc_nxt(d_wb_cyc),
 				.o_wb_wen_nxt(d_wb_wen),
 				.o_wb_sel_nxt(d_wb_sel),
-				.o_wb_dat_nxt(d_wb_dat),
+				.o_prepared_write_data(d_wb_dat),
+				.o_wb_dat_nxt(),
 				.o_wb_adr_nxt(d_wb_adr),
                 .o_wb_line_candidate_nxt(d_line_candidate),
 				.o_wb_bte_nxt(d_wb_bte),
@@ -16322,6 +16343,7 @@ module ngage2_zap_wb_merger (
 	i_wb_no_late_error
 );
 	reg _sv2v_0;
+    parameter D_DATA_PREPARED = 1'b0;
 	input wire i_clk;
 	input wire i_reset;
 	input wire i_c_wb_stb;
@@ -16684,7 +16706,10 @@ module ngage2_zap_wb_merger (
 					data_data_ff <= i_d_wb_dat;
 					data_owner_ff <= state_nxt;
 				end
-			assign o_wb_dat = (data_owner_ff == 1'd0 ? code_data_ff : data_data_ff);
+            // The production D-cache data is already captured at this
+            // edge. Standalone users may still provide combinational next data.
+            assign o_wb_dat = data_owner_ff == 1'd0 ? code_data_ff :
+                (D_DATA_PREPARED ? i_d_wb_dat : data_data_ff);
 			always @(posedge i_clk)
 				if (i_reset) begin
 					o_wb_cyc <= 0;
@@ -17341,8 +17366,10 @@ module ngage2_zap_dcache_half_tag_ram (
 	o_wb_cti_ff,
 	o_wb_cti_nxt,
 	i_wb_dat,
-	i_wb_ack
+	i_wb_ack,
+	o_prepared_write_data
 );
+	output wire [31:0] o_prepared_write_data;
 	reg _sv2v_0;
 	parameter [0:0] ACCEPTED_HIT_UPDATE = 1'b0;
 	parameter [0:0] REG_COLLISION = 1'b0;
@@ -17753,6 +17780,16 @@ module ngage2_zap_dcache_half_tag_ram (
 	wire [31:0] wb_adr_inc;
 	wire [31:0] wb_word_cur;
 	wire [31:0] wb_word_inc;
+    (* dont_retime *) reg [31:0] clean_current_ff, clean_successor_ff;
+    (* dont_retime *) reg clean_take_ff;
+    // Sample both words while the bus decides whether to advance. The
+    // registered control picks the word at the same edge as address/CTI.
+    always @(posedge i_clk) begin
+        clean_current_ff <= wb_word_cur;
+        clean_successor_ff <= wb_word_inc;
+        clean_take_ff <= !i_reset && take;
+    end
+    assign o_prepared_write_data = clean_take_ff ? clean_successor_ff : clean_current_ff;
 	reg tag_ram_clear;
 	reg tag_ram_clean;
 	reg [12:0] state_ff;
