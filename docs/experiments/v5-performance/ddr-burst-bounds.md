@@ -76,3 +76,13 @@ the all-four control, with only the DDR stream source changed. The
 [seed 13](https://github.com/asturur/test_template_1/actions/runs/45291139958)
 and [seed 31337](https://github.com/asturur/test_template_1/actions/runs/45291143845)
 dispatches pin `b6d8981` at 104 MHz with the debugger off.
+
+The worst reported sector result slack improved in all six paired slow
+corners. The hot result paths had no local carry cells, down from 10,
+19 and 8 across the three control seeds. Whole-core seed 13 improved by
+0.061 ns to −2.742 ns. Median whole-core setup moved from −2.851 to
+−2.978 ns, with 30 fewer median ALMs and 321 M10Ks on every seed.
+All three builds pass the four-corner non-setup checks and miss setup.
+Seed 13 is the best DDR bitstream. Keep this change active for the next
+combination and retain `739d3bd` as the matched timing control.
+[Per-corner fits and bitstream SHA-256](../../evidence/v5-104-ddr-burst-bounds-fits.json)

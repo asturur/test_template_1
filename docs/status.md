@@ -1,3 +1,7 @@
+## 2026-11-24 — DDR burst bounds retained for the next combination
+
+The final-window check removed the sector carry chain from the reported result paths. All six paired slow corners improved there, with identical cycles and outputs in 15 fixed workloads and four native frames. Median whole-core setup changed from −2.851 to −2.978 ns. Seed 13 reached −2.742 ns. Keep `b6d8981` active and use `739d3bd` as the matched timing control. Next, isolate execute operand readiness while preserving load forwarding, holds and flush. [Matched runs, patch and qualification](v5-alm-storage-results.md#ddr-burst-bounds)
+
 ## 2026-11-24 — independent Thumb redirect and experiment archive
 
 Launching the actual redirect target while supplying the saved instruction separately removed the named recovery-to-fetch-PC route in all three hot path exports. Refetching that target spent essentially the entire Sega gain. Median 104 MHz setup reached −2.974 ns, with 705 fewer ALMs than the all-four timing control. Keep this patch for area, original Thumb for Sega speed, and all-four in production. The next timing target is the DDR burst end-address check. [Measured comparison](v5-alm-storage-results.md#independent-thumb-redirect-and-duplicate-cancellation) · [Replayable experiment catalog](experiments/v5-performance/README.md)

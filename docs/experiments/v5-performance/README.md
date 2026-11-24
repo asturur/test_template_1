@@ -103,7 +103,12 @@ combination has its own 15-case and native replay.
 The [final-window check](ddr-burst-bounds.md) replaces the wide end-address
 adder on the all-four control. All 15 fixed workloads and four native
 PolyCount frames match cycle for cycle. The three 104 MHz fits at
-`b6d8981` will measure the routed effect.
+`b6d8981` removed the sector carry chain from the reported result paths
+and improved those endpoints at both slow corners on all three seeds.
+Whole-core median setup moved from −2.851 to −2.978 ns. Seed 13 reached
+−2.742 ns. Keep the DDR change for the next combination and `739d3bd`
+as the matched timing control.
+[Routed evidence](../../evidence/v5-104-ddr-burst-bounds-fits.json)
 
 ## Passive opportunity studies
 
