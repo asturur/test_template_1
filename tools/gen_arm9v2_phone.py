@@ -1122,11 +1122,6 @@ def split_execute_readiness(phone):
             $fatal(1, "Parallel execute readiness changed at %h", i_pc);
     end
 `endif''')
-    source = edit(source, '        if (direct_reg_shift) begin', """
-        // Compute the shift speculatively. Rs readiness still gates acceptance
-        // and preparation. Only a scaled memory operation saves shifted data
-        // outside acceptance, and the direct register shift applies to DP.
-        if (direct_reg_eligible) begin""".lstrip('\n'))
     prep_gate = '&& !i_load_wait) && !(|(s_wait & i_early)))'
     assert source.count(prep_gate) == 2
     source = source.replace(prep_gate, prep_gate.replace('!i_load_wait', '!s_load_wait'))
