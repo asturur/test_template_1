@@ -1132,5 +1132,39 @@
     "sha256": [
       "e0ed2e361ec2033204f6e68635064d67fce83cbf4865bc442381023534131b90"
     ]
+  },
+  {
+    "id": "execute-ready",
+    "kind": "design",
+    "base": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "patches": [
+      "patches/execute-ready.patch"
+    ],
+    "sha256": [
+      "59dd629d0f527d2033ac2821c10f2fe106343953499b55871a3367faf9fa143e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_execute_ready_test.py",
+      "tests/cpu/arm9v2_board/run-execute-ready.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "6ed724fa643e3093fe159ca161682f99a3bf213a5109639a4a9adc10d7c94a03",
+      "tools/gen_arm9v2_phone.py": "5733d0cf7c99065090d896739eb175a6e3261403a3cf21d3ee8da275d961d9e0",
+      "tests/cpu/arm9v2_board/prepare_execute_ready_test.py": "d96f274a99c3b0e762529a46b362d64b4e37a20d0001dad1c7cab29e7c94e6a2",
+      "tests/cpu/arm9v2_board/run-execute-ready.sh": "859f1e9f027a4bedb3ffcddfaaae6063347a9d2ab3673756f7c4209ea191a6f7"
+    }
+  },
+  {
+    "id": "execute-ready-replay",
+    "kind": "fixture",
+    "base": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "patches": [
+      "patches/execute-ready-replay.patch"
+    ],
+    "sha256": [
+      "2abd0ae95645cca4d5aa5addb16432c4ba735c03c4c0da4ef30e2c9d804f7da6"
+    ]
   }
 ]

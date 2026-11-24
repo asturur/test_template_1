@@ -110,6 +110,15 @@ Whole-core median setup moved from −2.851 to −2.978 ns. Seed 13 reached
 as the matched timing control.
 [Routed evidence](../../evidence/v5-104-ddr-burst-bounds-fits.json)
 
+## Execute operand readiness
+
+The [parallel readiness experiment](execute-ready.md) computes two
+complete execute admission decisions and selects once with the live W
+load hit. It preserves the finish and admit edge on a same-cycle hit.
+The 20,000-cycle direct comparison, four board profiles, all 15 fixed
+workloads, four native PolyCount frames and mixed LCD/PCM/MMC replay
+match the retained DDR control. Routed timing is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
