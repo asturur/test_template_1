@@ -116,7 +116,25 @@ The main mixed test enables the actual production path.
 The 104 MHz debugger-off fits are pinned to `4c02fda`. Preflight
 checked 132 selected source hashes per seed and matched the effective
 QSF. The changed fit inputs are the two UPP RTL files and `Template.sdc`.
-Routed relationship and slack verification is pending.
+The initial routed relationship and slack checks are below.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45468211620) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45468217182) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45468222028)
+
+## Initial routed coverage
+
+All three builds verified 13,378 connected held-to-data pairs at
+every corner. The reports use 19.230 ns of setup relationship and
+0.000 ns for hold at TimeQuest's precision. Live data, control,
+fast RAM and bridge returns each retained their single-clock
+relationship.
+
+| Seed | Lowest held-data setup | Lowest held-data hold | Worst whole-core setup |
+| --- | ---: | ---: | ---: |
+| 43 | +3.458 ns | +0.265 ns | −3.374 ns |
+| 13 | +2.003 ns | +0.418 ns | −3.666 ns |
+| 31337 | +3.103 ns | +0.470 ns | −3.664 ns |
+
+The unrelated slow-bypass authorization reached DMA programming
+control in each limiting route. The [corrected trial](upp-two-edge-dma.md)
+isolates that port while preserving the validated two-edge bank.

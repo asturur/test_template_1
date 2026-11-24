@@ -1,6 +1,6 @@
-## 2026-11-24 — two-edge UPP register trial
+## 2026-11-24 — two-edge UPP DMA correction
 
-Public `4c02fda` gives held UPP packet data two 104 MHz edges to reach the response register. The stock keypad replay added 36 clocks. The mixed run added 609 clocks, matched every DMA command and response tuple, and changed one PCM startup sample. All 15 fixed workloads and four native frames matched. The three production fits will verify the scoped setup and hold relationships. [Protocol, replay and runs](experiments/v5-performance/upp-two-edge.md)
+The three initial `4c02fda` fits verified all 13,378 protected path pairs at each corner. Their limiting routes passed through unrelated UPP fast access into DMA control. Public `174ed5e` isolates the DMA programming commit, preserving the two-edge aperture and every measured cycle. The matched corrected fits are pending. [Initial timing](experiments/v5-performance/upp-two-edge.md#initial-routed-coverage) · [Correction and replay](experiments/v5-performance/upp-two-edge-dma.md)
 
 ## 2026-11-24 — peripheral lane 13 timing trial parked
 

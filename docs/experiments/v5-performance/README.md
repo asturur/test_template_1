@@ -189,7 +189,10 @@ The [two-edge UPP register trial](upp-two-edge.md) extends the held
 packet-to-data setup budget to two 104 MHz clocks and keeps live
 and control paths single-cycle. Stock keypad replay added 36 clocks.
 The mixed run added 609 clocks and changed one PCM startup sample.
-The routed coverage and slack results are pending.
+The initial fits verified the held relationships at all corners.
+The [DMA commit correction](upp-two-edge-dma.md) takes the fast
+UPP ownership tree out of unrelated DMA programming control and
+matches every checked cycle. Corrected fits are pending.
 
 ## Passive opportunity studies
 

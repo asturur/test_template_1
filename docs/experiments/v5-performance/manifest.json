@@ -1520,5 +1520,34 @@
     "sha256": [
       "9265d092da5d8d8af30c1b758544ba86b89b96af678193f2bd300af2436512aa"
     ]
+  },
+  {
+    "id": "upp-two-edge-dma",
+    "kind": "design",
+    "base": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+    "patches": [
+      "patches/upp-two-edge-dma.patch"
+    ],
+    "sha256": [
+      "0ec1c3c33abd4758b2452ce5e676535e60d5bf1f672870c5a22417b7f6c410cd"
+    ],
+    "target": "174ed5e05ba1080d55d914f9e500dc2c1f566ceb",
+    "affected_paths": [
+      "rtl/ngage_upp.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_upp.v": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597"
+    }
+  },
+  {
+    "id": "upp-two-edge-dma-replay",
+    "kind": "fixture",
+    "base": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+    "patches": [
+      "patches/upp-two-edge-dma-replay.patch"
+    ],
+    "sha256": [
+      "335fe31fb6a7439b7110a7d9f2e73b31efc9b41b708b5951928fdc05f6da3dcc"
+    ]
   }
 ]
