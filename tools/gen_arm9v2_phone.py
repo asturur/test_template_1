@@ -1129,6 +1129,36 @@ def split_execute_readiness(phone):
     return ''.join(parts)
 
 
+def carry_d1_opcode_class(phone):
+    """Capture the opcode class with the whole D1 slot on its existing write edge."""
+    start = phone.index('module ngage2_arm9v2_decode (')
+    end = phone.index('\nendmodule', start)
+    decode = phone[start:end]
+    decode = edit(decode, 'reg [240:0] d1 [0:1];', 'reg [244:0] d1 [0:1];')
+    start_class = decode.index('\t(* keep *) wire [3:0] kind0 = classify(')
+    end_class = decode.index('\t(* keep *) wire [31:0] arm_target', start_class)
+    decode = decode[:start_class] + '''    // Use the same expanded word and register list as the D1 packet.
+    // Only emptiness is needed here, so the count adder can run in parallel.
+    wire [3:0] incoming_kind = classify(expanded[31:0], raw_word[15:11],
+        i_thumb, thumb_und, i_mode == 5'h10, reg_list == 16'b0);
+    wire [3:0] head_kind = (d1[0][244:241] & {4{head_select[0]}}) |
+                          (d1[1][244:241] & {4{head_select[1]}});
+    assign front = (d1[0][240:0] & {241{head_select[0]}}) |
+                   (d1[1][240:0] & {241{head_select[1]}});
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && count != 0)
+            if (head_kind !== classify(front[208-:32], front[80:76], front[18],
+                                       front[16], front[32-:5] == 5'h10, front[27-:5] == 0))
+                $fatal(1, "D1 opcode class no longer matches packet at %h", front[240-:32]);
+`endif
+''' + decode[end_class:]
+    decode = edit(decode, '\t\tdecoded[131-:4] = (kind0 & {4 {head_select[0]}}) | (kind1 & {4 {head_select[1]}});',
+        '\t\tdecoded[131-:4] = head_kind;')
+    decode = edit(decode, 'd1[tail] <= incoming;', 'd1[tail] <= {incoming_kind, incoming};')
+    return phone[:start] + decode + phone[end:]
+
+
 def move_fetch_payload_to_ram(phone):
     """Give the fetch queue a synchronous backing store behind its head FF."""
     start = phone.index('module ngage2_arm9v2_fetch (')
@@ -1278,6 +1308,7 @@ def main():
     generated = register_background_load_tag(generated)
     generated = resolve_execute_forward_candidates(generated)
     generated = split_execute_readiness(generated)
+    generated = carry_d1_opcode_class(generated)
     generated = move_fetch_payload_to_ram(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)

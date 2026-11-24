@@ -2088,7 +2088,7 @@ module ngage2_arm9v2_decode (
 	localparam [3:0] K_MULL = 14;
 	(* dont_retime *) reg [74:0] redirect_ff;
 	(* dont_retime *) reg redirect_in_d2;
-	(* dont_retime, ramstyle = "logic" *) reg [240:0] d1 [0:1];
+	(* dont_retime, ramstyle = "logic" *) reg [244:0] d1 [0:1];
 	(* dont_retime *) reg tail;
 	(* dont_retime *) reg [1:0] head_select;
 	(* dont_retime *) reg [1:0] count;
@@ -2390,9 +2390,21 @@ module ngage2_arm9v2_decode (
 		incoming[6-:3] = i_ras_pointer;
 		incoming[3-:4] = i_ras_count;
 	end
-	(* keep *) wire [3:0] kind0 = classify(d1[0][208-:32], d1[0][80:76], d1[0][18], d1[0][16], d1[0][32-:5] == 5'h10, d1[0][27-:5] == 0);
-	(* keep *) wire [3:0] kind1 = classify(d1[1][208-:32], d1[1][80:76], d1[1][18], d1[1][16], d1[1][32-:5] == 5'h10, d1[1][27-:5] == 0);
-	assign front = (d1[0] & {241 {head_select[0]}}) | (d1[1] & {241 {head_select[1]}});
+    // Use the same expanded word and register list as the D1 packet.
+    // Only emptiness is needed here, so the count adder can run in parallel.
+    wire [3:0] incoming_kind = classify(expanded[31:0], raw_word[15:11],
+        i_thumb, thumb_und, i_mode == 5'h10, reg_list == 16'b0);
+    wire [3:0] head_kind = (d1[0][244:241] & {4{head_select[0]}}) |
+                          (d1[1][244:241] & {4{head_select[1]}});
+    assign front = (d1[0][240:0] & {241{head_select[0]}}) |
+                   (d1[1][240:0] & {241{head_select[1]}});
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && count != 0)
+            if (head_kind !== classify(front[208-:32], front[80:76], front[18],
+                                       front[16], front[32-:5] == 5'h10, front[27-:5] == 0))
+                $fatal(1, "D1 opcode class no longer matches packet at %h", front[240-:32]);
+`endif
 	(* keep *) wire [31:0] arm_target = front[176-:32] + {{6 {front[200]}}, front[200:177], 2'b00};
 	(* keep *) wire [31:0] thumb_target = front[176-:32] + {{7 {front[200]}}, front[200:177], 1'b0};
 	(* keep *) wire [31:0] prefix_sum = front[176-:32] + {{9 {front[75]}}, front[75:65], 12'd0};
@@ -2429,7 +2441,7 @@ module ngage2_arm9v2_decode (
 			;
 		decoded = 373'd0;
 		decoded[372-:241] = front;
-		decoded[131-:4] = (kind0 & {4 {head_select[0]}}) | (kind1 & {4 {head_select[1]}});
+		decoded[131-:4] = head_kind;
 		decoded[127-:4] = front[208:205];
 		if ((((decoded[131-:4] == K_BL_PREFIX) || (decoded[131-:4] == K_BL_SUFFIX)) || (front[18] && (decoded[131-:4] == K_UND))) || (!front[18] && (front[208:205] == 4'hf)))
 			decoded[127-:4] = 4'he;
@@ -2933,7 +2945,7 @@ module ngage2_arm9v2_decode (
 			if (i_serial_continue)
 				fenced <= 0;
 			if (d1_load)
-				d1[tail] <= incoming;
+				d1[tail] <= {incoming_kind, incoming};
 			if (push)
 				tail <= !tail;
 			if (accept) begin
