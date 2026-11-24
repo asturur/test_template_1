@@ -278,3 +278,23 @@ Commit `7158a76` selects the forwarded Rs amount with `direct_reg_eligible` whil
 In seeds 43, 13 and 31337, named `s_wait[2]` paths through the shifter into A fell from 8, 7 and 0 to zero in the 100 °C top 1,000. Worst listed setup through either named rotator into A moved from −2.621, −2.802 and −2.448 ns to −3.024, −2.211 and −2.357 ns. Seed 43's new limiting path runs from W packet bit `w[60]` through forwarded Rs and the rotation stages into A. Seed 31337's limiting route starts at the MMC host `blen[4]` and goes via TX readiness and DMA arbitration into the SDRAM command address. All three failed setup and passed hold, recovery, removal and minimum pulse at all four corners. [Routed paths and verified inputs](evidence/v5-104-early-shift-fits.json)
 
 Park the standalone shifter patch. Public forward revert `3363c87` restores the exact `fe145b0` board control. Seed 13's candidate image reached −2.628 ns, 0.036 ns better than seed 31337's best control image. The untested candidate RBF is archived at `build/fit/v5-104mhz-7158a76-seed13/ngage1.rbf`, SHA-256 `541652a0b05a85dd3f94482177f863ab25906c41aff72a287f853dc77670da67`.
+
+## Auxiliary writeback shift-count preparation
+
+Commit `a846b87` prepares a winning W auxiliary count through the existing held-count registers. The fast Rs mux continues to take register, M and primary W values. Rm retains its original forwarding, including W auxiliary data. The retained control had no accepted W auxiliary count across 105 fixed-work windows and four native PolyCount frames. The auxiliary-only trial matched those clocks and ordered architectural digests, all four board profiles and all 171,496 mixed pin-model events. The separately archived both-lane simulation added 76,406 native frame clocks, or 0.13286%, with the same checked output and ordered digests. [Exact patches, census and replay](experiments/v5-performance/wb-rs-prep-aux.md)
+
+| 104 MHz production fit | Board control `fe145b0` | Auxiliary preparation `a846b87` | Change |
+| --- | ---: | ---: | ---: |
+| Seed 43 setup | −2.724 ns | [−2.227 ns](https://github.com/asturur/test_template_1/actions/runs/45402621937) | +0.497 ns |
+| Seed 13 setup | −3.028 ns | [−2.653 ns](https://github.com/asturur/test_template_1/actions/runs/45402627650) | +0.375 ns |
+| Seed 31337 setup | −2.664 ns | [−2.565 ns](https://github.com/asturur/test_template_1/actions/runs/45402633203) | +0.099 ns |
+| Median setup | −2.724 ns | −2.565 ns | +0.159 ns |
+| Median core setup TNS | −4,483.219 ns | −4,150.284 ns | +332.935 ns |
+| Median ALMs | 37,244 | 36,642 | −602 |
+| M10Ks on every seed | 321 | 321 | 0 |
+
+Worst listed 100 °C setup through a named barrel shifter into the execute packet improved from −2.621, −2.802 and −2.448 ns to −1.882, −1.911 and −2.246 ns in seed order. Seed 31337's core setup TNS worsened from −4,153.515 to −5,660.635 ns even as its worst setup improved. All three builds failed setup and passed hold, recovery, removal and minimum pulse at all four corners. [Routed paths and fitted inputs](evidence/v5-104-writeback-shift-fits.json)
+
+Retain `a846b87` for board integration. Seed 43 reached −2.227 ns and its untested bitstream is archived at `build/fit/v5-104mhz-a846b87-seed43/ngage1.rbf`, SHA-256 `0baaa40e545a332a8e171ed30c768e24600f8e3f797d1348fdf869377d028ede`.
+
+The 100 °C reports still show refill acknowledgment through cache next-data selection into the Wishbone merger's `data_data_ff`. The path ranks third, first and third at −2.189, −2.476 and −2.342 ns in seed order. Trace which acknowledgments can change a valid outgoing write's data before considering whether that payload can be selected earlier on the existing transaction schedule.

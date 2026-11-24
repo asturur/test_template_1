@@ -1,3 +1,7 @@
+## 2026-11-24 — auxiliary writeback shift-count preparation retained
+
+Keep `a846b87`. Physical 104 MHz median worst setup improved from −2.724 to −2.565 ns and seed 43 reached −2.227 ns. Median core setup TNS improved by 332.935 ns, although seed 31337's TNS worsened. The median fit saved 602 ALMs. Guest and mixed replay cycles matched. The next timing target is the refill ACK through cache write data into the Wishbone merger. [Routed fits and replay](v5-alm-storage-results.md#auxiliary-writeback-shift-count-preparation)
+
 ## 2026-11-24 — speculative ARM shifter parked
 
 The `7158a76` trial removed all sampled Rs-wait-to-rotate paths and matched every guest cycle and mixed pin-model event. Median 104 MHz setup moved from −2.724 to −2.836 ns. Candidate seed 13 reached −2.628 ns. Forward revert `3363c87` restores the exact `fe145b0` board control. [Routed fits and replay](v5-alm-storage-results.md#speculative-arm-shifter-selection)

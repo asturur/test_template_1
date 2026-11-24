@@ -112,3 +112,16 @@ the only changed fit input. The three dispatched production fits pin
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45402621937) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45402627650) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45402633203)
+
+## Routed results
+
+Retained `a846b87`. All three matched setups improved. Median setup
+moved from −2.724 to −2.565 ns, median core setup TNS improved
+332.935 ns, and the median fit used 602 fewer ALMs. Seed 31337's
+TNS worsened to −5,660.635 ns. The worst listed hot barrel-to-A
+path improved on every seed. All three builds failed setup and
+passed the other four-corner checks. Seed 43 reached −2.227 ns.
+The archived image remains untested on hardware. The both-lane
+patch has simulation evidence, including the 0.13286% native cost.
+[Matched fits and bitstream](../../v5-alm-storage-results.md#auxiliary-writeback-shift-count-preparation) ·
+[Fit evidence](../../evidence/v5-104-writeback-shift-fits.json)

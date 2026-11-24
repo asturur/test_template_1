@@ -166,7 +166,8 @@ from the W auxiliary lane before issue. Across 105 fixed-work windows
 and four native frames the retained control accepted zero auxiliary
 counts. The auxiliary-only trial matched every measured cycle. The
 both-lane prototype removed the primary W fast path too and added
-0.133% to the native frame clocks. Only the auxiliary variant was fitted.
+0.133% to the native frame clocks in simulation. The fitted auxiliary-only
+trial improved every seed and saved 602 median ALMs. Keep `a846b87`.
 
 ## Passive opportunity studies
 
