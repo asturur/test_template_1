@@ -69,8 +69,7 @@ module ngage_sdram_stream #(
     wire idle = state == IDLE && owner_ready;
     wire scalar = idle && req && !seen;
     wire take_pending = pending && mem_cmd_ready;
-    // Once the slot is full, wait for its registered release before posting.
-    wire post = scalar && we && !lock && !pending;
+    wire post = scalar && we && !lock && (!pending || take_pending);
     wire direct_post = post && !pending && mem_cmd_ready;
     wire scalar_read = scalar && !we && !pending && mem_cmd_ready;
     wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
