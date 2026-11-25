@@ -2,8 +2,7 @@
 // across the SWP read/write gap. The MiSTer top connects LCD DMA.
 module ngage_sdram_arbiter #(
     parameter integer AW               = 25,
-    parameter integer CPU_BLOCK_WRITES = 0,
-    parameter integer CPU_POST_REPLY_REG = 0
+    parameter integer CPU_BLOCK_WRITES = 0
 ) (
     input  wire          clk,
     input  wire          reset,
@@ -35,8 +34,7 @@ module ngage_sdram_arbiter #(
     input  wire [  31:0] mem_rdata,
     output wire          cpu_accept,
     output wire          dma_accept,
-    output wire          mem_lock,
-    input  wire          mem_nonposted_ack
+    output wire          mem_lock
 );
     localparam FREE = 0, ACTIVE = 1;
     reg [1:0] state = FREE;
@@ -50,20 +48,7 @@ module ngage_sdram_arbiter #(
     assign cpu_accept = !reset && state == FREE && choose_cpu;
     assign dma_accept = !reset && state == FREE && choose_dma;
     assign mem_req    = (state == ACTIVE);
-    wire cpu_owns_transfer = mem_req && !owner && !reset;
-    generate
-        if (CPU_POST_REPLY_REG) begin : g_cpu_post_reply
-            (* dont_retime *) reg posted_reply = 0;
-            // The raw completion releases the physical owner at this edge.
-            // The CPU route keeps its token until the captured reply arrives.
-            always @(posedge clk)
-                posted_reply <= cpu_owns_transfer && mem_ack && mem_we && !packet_lock;
-            assign cpu_ack = (cpu_owns_transfer && mem_nonposted_ack) ||
-                             (!reset && posted_reply);
-        end else begin : g_cpu_direct_reply
-            assign cpu_ack = cpu_owns_transfer && mem_ack;
-        end
-    endgenerate
+    assign cpu_ack    = mem_req && !owner && mem_ack && !reset;
     assign dma_ack    = mem_req && owner && mem_ack && !reset;
     assign cpu_rdata  = mem_rdata;
     assign dma_rdata  = mem_rdata;

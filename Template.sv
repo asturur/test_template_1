@@ -336,12 +336,11 @@ module emu (
         .mem_rdata (shared_dma_rdata)
     );
 
-    wire sdram_owner_ready, hold_sdram_scalar, mem_nonposted_ack;
+    wire sdram_owner_ready, hold_sdram_scalar;
     // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
     // Keep the arbiter payload intact until a canceled physical transfer drains.
     ngage_sdram_arbiter #(
-        .CPU_BLOCK_WRITES   (1),
-        .CPU_POST_REPLY_REG (1)
+        .CPU_BLOCK_WRITES(1)
     ) ram_arbiter (
         .clk            (clk_sys),
         .reset          (dma_reset || transport_reset),
@@ -373,7 +372,6 @@ module emu (
         .mem_block_data (mem_block_data),
         .mem_be         (mem_be),
         .mem_ack        (mem_ack),
-        .mem_nonposted_ack(mem_nonposted_ack),
         .mem_rdata      (mem_rdata)
     );
     wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
@@ -438,7 +436,6 @@ module emu (
         .din          (mem_wdata),
         .be           (mem_be),
         .ack          (mem_ack),
-        .nonposted_ack(mem_nonposted_ack),
         .dout         (mem_rdata),
         .line_req     (shared_line_req),
         .line_short   (shared_line_short),
