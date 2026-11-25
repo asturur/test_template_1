@@ -1,3 +1,7 @@
+## 2026-11-25 — combined I/D cache strobe trial parked
+
+Public `606ff0d` restores the exact `e9552bd` production tree. The D-cache addition improved six of ten I-cache-only seeds and moved their median setup from −2.8015 to −2.554 ns. The three matched production seeds lost 0.073 ns of median setup and added 422 ALMs. All measured guest cycles and mixed events matched. [Results and replayable patches](experiments/v5-performance/idcache-strobe.md)
+
 ## 2026-11-25 — I-cache strobe trial parked
 
 Public `a58c77b` restores the exact `e9552bd` production tree. The I-cache strobe cut matched all measured cycles and saved 355 median ALMs. Median setup moved from −2.471 to −2.942 ns on the three matched seeds. Across ten candidates, setup ranged from −3.542 to −2.435 ns. Seed 3 also missed hold. Keep the replayable patch for later combinations. [Fit results and replay](experiments/v5-performance/icache-strobe.md)

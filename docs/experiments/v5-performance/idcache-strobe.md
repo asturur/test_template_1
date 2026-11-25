@@ -43,6 +43,41 @@ production fit seeds.
 [Seed 6](https://github.com/asturur/test_template_1/actions/runs/45623044481) ·
 [Seed 7](https://github.com/asturur/test_template_1/actions/runs/45623039354)
 
+## Fitted results
+
+| Seed | Retained setup slack (ns) | I-cache only (ns) | I/D cache (ns) | Combined ALMs |
+| ---: | ---: | ---: | ---: | ---: |
+| 43 | −2.508 | −2.612 | −2.569 | 36,834 |
+| 13 | −2.061 | −3.437 | −2.544 | 36,868 |
+| 31337 | −2.471 | −2.942 | −2.432 | 36,913 |
+| 1 | — | −2.435 | −2.512 | 36,940 |
+| 2 | — | −3.542 | −2.494 | 36,890 |
+| 3 | — | −2.731 | −3.031 | 36,947 |
+| 4 | — | −2.822 | −3.749 | 36,933 |
+| 5 | — | −3.208 | −2.410 | 36,909 |
+| 6 | — | −2.632 | −2.564 | 36,903 |
+| 7 | — | −2.781 | −2.855 | 36,912 |
+
+Six of ten seeds improved over I-cache alone. Median setup moved from
+−2.8015 to −2.554 ns, median core setup TNS from −6,794.090 to
+−5,360.7045 ns, and median area from 36,086.5 to 36,910.5 ALMs.
+Against retained production, the three matched fits moved the median
+from −2.471 to −2.544 ns. Median TNS improved by 9.567 ns and area
+increased by 422 ALMs. Each fit used 321 M10Ks.
+
+The hot top-1,000 exports contain 101 named RAM ACK paths through the
+D-cache request into the merger in the I-cache-only fits, versus 17
+in the combined ones. Seed 13 fell from 34 to eight and its worst
+named D-cache request path gained 1.710 ns. Its worst whole-core path
+moved to the branch predictor valid-bit read. Seed 5 has the best
+candidate setup at −2.410 ns. All ten still missed setup and passed hold,
+recovery, removal and minimum pulse checks.
+
+Park the combination. Public `606ff0d` restores the exact retained
+production tree. The seed 5 bitstream is archived at
+`build/fit/v5-104mhz-6c605ce-seed5/ngage1.rbf`. Board validation is pending.
+[Verified per-seed timing evidence](../../evidence/v5-104-idcache-strobe-fits.json)
+
 ## Replay
 
 Prepare the frozen [write-data workloads](prepared-wb-write-data.md).

@@ -212,7 +212,10 @@ for area. Public `a58c77b` restores the retained source.
 
 The [combined I/D cache strobe trial](idcache-strobe.md) builds on that
 I-cache trial by checking the D-cache hold and advance results before
-ACK/ERR, including the native writeback block limit.
+ACK/ERR, including the native writeback block limit. Six of ten seeds
+beat I-cache alone, and the matched comparison against retained
+production lost 0.073 ns of median setup and added 422 ALMs. Park the
+combination. Public `606ff0d` restores the retained source.
 
 ## Passive opportunity studies
 
