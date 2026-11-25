@@ -5727,9 +5727,9 @@ module ngage2_zap_cache_fsm (
 	output reg o_hold;
 	output reg o_idle;
 	output reg o_wb_cyc_ff;
-	output reg o_wb_cyc_nxt;
+	output wire o_wb_cyc_nxt;
 	output reg o_wb_stb_ff;
-	output reg o_wb_stb_nxt;
+	output wire o_wb_stb_nxt;
 	output reg [31:0] o_wb_adr_ff;
 	output reg [31:0] o_wb_adr_nxt;
 	output reg [31:0] o_wb_dat_ff;
@@ -6063,7 +6063,27 @@ module ngage2_zap_cache_fsm (
         (state_ff == FETCH_SINGLE) && saved_fill_region && adr_ctr_ff == 0 && !take;
 	wire [$clog2(CACHE_LINE / 4):0] adr_ctr_inc;
 	wire beat_cur_ok;
-	wire beat_inc_ok;
+    wire beat_inc_ok;
+    reg request_hold, request_advance;
+    wire uncached_offer = (i_rd || i_wr) && !i_cache_inv && !i_cache_clean &&
+                          !i_fault && !i_busy && !i_cache_en;
+    // Most states provide the same request for either response. Only the
+    // accepted beat or uncached completion needs the late ACK/ERR choice.
+    always @* begin
+        case (state_ff)
+            IDLE:                 {request_hold, request_advance} = {2{uncached_offer}};
+            UNCACHEABLE_PREPARE:  {request_hold, request_advance} = 2'b11;
+            UNCACHEABLE:          {request_hold, request_advance} = {o_wb_stb_ff, 1'b0};
+            CLEAN_SINGLE, FETCH_SINGLE:
+                {request_hold, request_advance} =
+                    {beat_cur_ok, o_wb_stb_ff ? beat_inc_ok : beat_cur_ok};
+            INVALIDATE, CLEAN, UNC_DONE, FILL_COMPLETE:
+                {request_hold, request_advance} = {2{o_wb_stb_ff}};
+            default:              {request_hold, request_advance} = 2'bxx;
+        endcase
+    end
+    assign o_wb_stb_nxt = (i_wb_ack || i_wb_err) ? request_advance : request_hold;
+    assign o_wb_cyc_nxt = o_wb_stb_nxt;
 	wire [2:0] cti_cur;
 	wire [2:0] cti_inc;
 	wire [31:0] wb_adr_cur;
@@ -6257,8 +6277,6 @@ module ngage2_zap_cache_fsm (
 		adr_ctr_nxt = adr_ctr_ff;
 		fetch_start_nxt = fetch_start_ff;
 		fetch_wrap_nxt = fetch_wrap_ff;
-		o_wb_cyc_nxt = o_wb_cyc_ff;
-		o_wb_stb_nxt = o_wb_stb_ff;
 		o_wb_adr_nxt = o_wb_adr_ff;
 		o_wb_dat_nxt = o_wb_dat_ff;
 		o_wb_cti_nxt = o_wb_cti_ff;
@@ -6289,8 +6307,6 @@ module ngage2_zap_cache_fsm (
 		whit = 0;
 		case (state_ff)
 			IDLE: begin
-				o_wb_cyc_nxt = 0;
-				o_wb_stb_nxt = 0;
 				o_wb_wen_nxt = 0;
 				o_wb_adr_nxt = 0;
 				o_wb_dat_nxt = 0;
@@ -6312,8 +6328,6 @@ module ngage2_zap_cache_fsm (
 				else if (i_rd || i_wr) begin
 					if (!i_cache_en) begin
 						state_nxt = UNCACHEABLE;
-						o_wb_stb_nxt = 1'd1;
-						o_wb_cyc_nxt = 1'd1;
 						o_wb_adr_nxt = i_phy_addr;
 						o_wb_dat_nxt = i_din;
 						o_wb_wen_nxt = i_wr;
@@ -6357,8 +6371,6 @@ module ngage2_zap_cache_fsm (
 			UNCACHEABLE_PREPARE: begin
 				o_hold = 1'd1;
 				state_nxt = UNCACHEABLE;
-				o_wb_stb_nxt = 1'd1;
-				o_wb_cyc_nxt = 1'd1;
 				o_wb_adr_nxt = i_phy_addr;
 				o_wb_dat_nxt = i_din;
 				o_wb_wen_nxt = i_wr;
@@ -6369,8 +6381,6 @@ module ngage2_zap_cache_fsm (
 				o_hold = 1'd1;
 				if (i_wb_ack | i_wb_err) begin
 					state_nxt = UNC_DONE;
-					o_wb_cyc_nxt = 0;
-					o_wb_stb_nxt = 0;
 					o_wb_wen_nxt = 0;
 					o_wb_adr_nxt = 0;
 					o_wb_dat_nxt = 0;
@@ -6388,8 +6398,6 @@ module ngage2_zap_cache_fsm (
 				o_err2 = (i_rd || i_wr ? 1'd1 : 1'd0);
 				adr_ctr_nxt = (take ? adr_ctr_inc : adr_ctr_ff);
 				if ((take ? beat_inc_ok : beat_cur_ok)) begin
-					o_wb_cyc_nxt = 1'd1;
-					o_wb_stb_nxt = 1'd1;
 					o_wb_wen_nxt = 1'd1;
 					o_wb_dat_nxt = (take ? clean_single_d(cache_line, adr_ctr_inc) : clean_single_d(cache_line, adr_ctr_ff));
 					o_wb_adr_nxt = (take ? wb_adr_inc : wb_adr_cur);
@@ -6397,8 +6405,6 @@ module ngage2_zap_cache_fsm (
 					o_wb_sel_nxt = 4'b1111;
 				end
 				else begin
-					o_wb_cyc_nxt = 0;
-					o_wb_stb_nxt = 0;
 					o_wb_wen_nxt = 0;
 					o_wb_adr_nxt = 0;
 					o_wb_dat_nxt = 0;
@@ -6426,8 +6432,6 @@ module ngage2_zap_cache_fsm (
 					buf_nxt[tmp][31:24] = (ben[3] ? din[31:24] : buf_nxt[tmp][31:24]);
 				end
 				if ((take ? beat_inc_ok : beat_cur_ok)) begin
-					o_wb_cyc_nxt = 1'd1;
-					o_wb_stb_nxt = 1'd1;
 					o_wb_wen_nxt = 1'd0;
 					o_wb_sel_nxt = 4'b1111;
 					o_wb_adr_nxt = (take ? fetch_adr_inc : fetch_adr_cur);
@@ -6435,8 +6439,6 @@ module ngage2_zap_cache_fsm (
 					o_wb_dat_nxt = 0;
 				end
 				else begin
-					o_wb_cyc_nxt = 0;
-					o_wb_stb_nxt = 0;
 					o_wb_wen_nxt = 0;
 					o_wb_adr_nxt = 0;
 					o_wb_dat_nxt = 0;
@@ -6490,8 +6492,6 @@ module ngage2_zap_cache_fsm (
 				tmp = 1'sbx;
 				state_nxt = 1'sbx;
 				adr_ctr_nxt = 1'sbx;
-				o_wb_cyc_nxt = 1'sbx;
-				o_wb_stb_nxt = 1'sbx;
 				o_wb_adr_nxt = 1'sbx;
 				o_wb_dat_nxt = 1'sbx;
 				o_wb_cti_nxt = 1'sbx;
@@ -8566,8 +8566,18 @@ module ngage2_zap_cache (
                 o_wb_cti_nxt == CTI_BURST && o_wb_bte_nxt == 0;
         end
     endgenerate
-	assign o_wb_cyc_nxt = (!o_wb_stb || ((o_wb_stb && (i_wb_ack || i_wb_err)) && (o_wb_cti == CTI_EOB)) ? |wb_cyc : |(state_ff & wb_cyc));
-	assign o_wb_stb_nxt = ((!o_wb_stb || (o_wb_stb && i_wb_ack)) && |wb_cyc ? ((wb_cyc[2] && wb_stb[2]) || ((!wb_cyc[2] && wb_cyc[1]) && wb_stb[1])) || (((!wb_cyc[2] && !wb_cyc[1]) && wb_cyc[0]) && wb_stb[0]) : |(state_ff & wb_stb));
+    // Each producer drives CYC and STB together. Priority still selects
+    // the payload, but request validity only needs to know if one is live.
+    wire any_request = |wb_cyc;
+    wire owner_request = |(state_ff & wb_cyc);
+    assign o_wb_cyc_nxt = owner_request ||
+        ((!o_wb_stb || ((i_wb_ack || i_wb_err) && o_wb_cti == CTI_EOB)) && any_request);
+    assign o_wb_stb_nxt = owner_request || ((!o_wb_stb || i_wb_ack) && any_request);
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && wb_cyc !== wb_stb)
+            $fatal(1, "I-cache Wishbone producer drives different CYC and STB");
+`endif
 	assign o_wb_bte_nxt = (state_nxt == SELECT_CCH ? cache_bte : 2'b00);
 	always @(*) begin
 		if (_sv2v_0)
@@ -10684,8 +10694,24 @@ module ngage2_zap_dcache_fsm (
 	localparam integer EVICT_INDEX_BITS = $clog2(CACHE_LINE / 4) + 1;
 	wire [EVICT_INDEX_BITS-1:0] last_block_word = last_evict_word - 4'd3;
 	wire [EVICT_INDEX_BITS-1:0] last_writeback_word = block_target ? last_block_word : last_evict_word;
-	wire writeback_next_valid = (take ? adr_ctr_inc : adr_ctr_ff) <= last_writeback_word;
-	assign o_wb_stb_nxt = ((((((((((state_ff[IDLE] && (i_rd || i_wr)) && !i_align_fault) && !i_fault) && !i_busy) && !i_cache_en) && !(i_wr && post_stream)) || state_ff[UNCACHEABLE_PREPARE]) || (state_ff[UNLOCK_REG] && o_writeback_busy)) || ((state_ff[UNCACHEABLE] && o_wb_stb_ff) && !(i_wb_ack || i_wb_err))) || (state_ff[CLEAN_SINGLE] && writeback_next_valid)) || (state_ff[FETCH_SINGLE] && (take ? beat_inc_ok : beat_cur_ok));
+    wire writeback_hold_valid = adr_ctr_ff <= last_writeback_word;
+    wire writeback_advance_valid = adr_ctr_inc <= last_writeback_word;
+    wire writeback_hold_last = adr_ctr_ff == last_writeback_word;
+    wire writeback_advance_last = adr_ctr_inc == last_writeback_word;
+    wire writeback_next_valid = take ? writeback_advance_valid : writeback_hold_valid;
+    wire writeback_next_last = take ? writeback_advance_last : writeback_hold_last;
+
+    // Determine which beat exists before the response chooses whether to advance.
+    wire burst_hold = (state_ff[CLEAN_SINGLE] && writeback_hold_valid) ||
+                      (state_ff[FETCH_SINGLE] && beat_cur_ok);
+    wire burst_advance = (state_ff[CLEAN_SINGLE] && writeback_advance_valid) ||
+                         (state_ff[FETCH_SINGLE] && beat_inc_ok);
+    wire uncached_offer = state_ff[IDLE] && (i_rd || i_wr) && !i_align_fault &&
+                          !i_fault && !i_busy && !i_cache_en && !(i_wr && post_stream);
+    wire uncached_hold = state_ff[UNCACHEABLE] && o_wb_stb_ff && !(i_wb_ack || i_wb_err);
+    assign o_wb_stb_nxt = uncached_offer || uncached_hold || state_ff[UNCACHEABLE_PREPARE] ||
+                         (state_ff[UNLOCK_REG] && o_writeback_busy) ||
+                         (take ? burst_advance : burst_hold);
 	assign o_wb_cyc_nxt = o_wb_stb_nxt;
 	task automatic kill_bus_payload;
 		begin
@@ -10889,7 +10915,7 @@ module ngage2_zap_dcache_fsm (
 					o_wb_wen_nxt = 1'd1;
 					o_wb_dat_nxt = (take ? clean_single_d(cache_line, adr_ctr_inc) : clean_single_d(cache_line, adr_ctr_ff));
 					o_wb_adr_nxt = (take ? wb_adr_inc : wb_adr_cur);
-					o_wb_cti_nxt = ((take ? adr_ctr_inc : adr_ctr_ff) == last_writeback_word ? CTI_EOB : CTI_BURST);
+					o_wb_cti_nxt = (writeback_next_last ? CTI_EOB : CTI_BURST);
 					o_wb_sel_nxt = 4'b1111;
 				end
 				else begin
@@ -12070,8 +12096,16 @@ module ngage2_zap_dcache (
                 o_wb_cti_nxt == CTI_BURST && o_wb_bte_nxt == 0;
         end
     endgenerate
-	assign o_wb_cyc_nxt = (!o_wb_stb || (o_wb_stb && (i_wb_ack || i_wb_err)) ? |eligible_cyc : |(state_ff & wb_cyc));
-	assign o_wb_stb_nxt = ((!o_wb_stb || i_wb_ack) || i_wb_err ? (((eligible_cyc[3] && wb_stb[3]) || ((!eligible_cyc[3] && eligible_cyc[2]) && wb_stb[2])) || (((!eligible_cyc[3] && !eligible_cyc[2]) && eligible_cyc[1]) && wb_stb[1])) || ((((!eligible_cyc[3] && !eligible_cyc[2]) && !eligible_cyc[1]) && eligible_cyc[0]) && wb_stb[0]) : |(state_ff & wb_stb));
+    // The eligible mask already includes posted-store priority. The
+    // payload still comes from the original arbiter's selected owner.
+    assign o_wb_stb_nxt = (!o_wb_stb || i_wb_ack || i_wb_err) ?
+                         (|eligible_cyc) : (|(state_ff & wb_cyc));
+    assign o_wb_cyc_nxt = o_wb_stb_nxt;
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && wb_cyc !== wb_stb)
+            $fatal(1, "D-cache Wishbone producer drives different CYC and STB");
+`endif
 	always @(*) begin
 		if (_sv2v_0)
 			;

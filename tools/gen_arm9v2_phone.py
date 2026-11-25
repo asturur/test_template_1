@@ -1348,6 +1348,118 @@ def prepare_wishbone_write_data(phone):
     return ''.join(modules)
 
 
+def prepare_icache_request_strobe(phone):
+    """Calculate I-cache request validity independently of the payload muxes."""
+    modules = re.split(r'(?=^module )', phone, flags=re.M)
+    fsm_slot, cache_slot = (
+        next(i for i, module in enumerate(modules) if module.startswith(f'module ngage2_{name} ('))
+        for name in ('zap_cache_fsm', 'zap_cache')
+    )
+    fsm = modules[fsm_slot]
+    for signal in ('cyc', 'stb'):
+        fsm = edit(fsm, f'\toutput reg o_wb_{signal}_nxt;', f'\toutput wire o_wb_{signal}_nxt;')
+        fsm, removed = re.subn(rf'^\t+o_wb_{signal}_nxt = [^;]+;\n', '', fsm, flags=re.M)
+        if removed != 10:
+            raise ValueError(f'Unexpected I-cache {signal} assignments: {removed}')
+    fsm = edit(fsm, '\twire beat_inc_ok;', '''
+    wire beat_inc_ok;
+    reg request_hold, request_advance;
+    wire uncached_offer = (i_rd || i_wr) && !i_cache_inv && !i_cache_clean &&
+                          !i_fault && !i_busy && !i_cache_en;
+    // Most states provide the same request for either response. Only the
+    // accepted beat or uncached completion needs the late ACK/ERR choice.
+    always @* begin
+        case (state_ff)
+            IDLE:                 {request_hold, request_advance} = {2{uncached_offer}};
+            UNCACHEABLE_PREPARE:  {request_hold, request_advance} = 2'b11;
+            UNCACHEABLE:          {request_hold, request_advance} = {o_wb_stb_ff, 1'b0};
+            CLEAN_SINGLE, FETCH_SINGLE:
+                {request_hold, request_advance} =
+                    {beat_cur_ok, o_wb_stb_ff ? beat_inc_ok : beat_cur_ok};
+            INVALIDATE, CLEAN, UNC_DONE, FILL_COMPLETE:
+                {request_hold, request_advance} = {2{o_wb_stb_ff}};
+            default:              {request_hold, request_advance} = 2'bxx;
+        endcase
+    end
+    assign o_wb_stb_nxt = (i_wb_ack || i_wb_err) ? request_advance : request_hold;
+    assign o_wb_cyc_nxt = o_wb_stb_nxt;'''.lstrip('\n'))
+    modules[fsm_slot] = fsm
+
+    cache = modules[cache_slot]
+    old = '\n'.join(next(line for line in cache.splitlines()
+                         if line.startswith(f'\tassign o_wb_{signal}_nxt ='))
+                    for signal in ('cyc', 'stb'))
+    cache = edit(cache, old, '''
+    // Each producer drives CYC and STB together. Priority still selects
+    // the payload, but request validity only needs to know if one is live.
+    wire any_request = |wb_cyc;
+    wire owner_request = |(state_ff & wb_cyc);
+    assign o_wb_cyc_nxt = owner_request ||
+        ((!o_wb_stb || ((i_wb_ack || i_wb_err) && o_wb_cti == CTI_EOB)) && any_request);
+    assign o_wb_stb_nxt = owner_request || ((!o_wb_stb || i_wb_ack) && any_request);
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && wb_cyc !== wb_stb)
+            $fatal(1, "I-cache Wishbone producer drives different CYC and STB");
+`endif'''.lstrip('\n'))
+    modules[cache_slot] = cache
+    return ''.join(modules)
+
+
+def prepare_dcache_request_strobe(phone):
+    """Select precomputed D-cache beat validity and termination on completion."""
+    modules = re.split(r'(?=^module )', phone, flags=re.M)
+    fsm_slot, cache_slot = (
+        next(i for i, module in enumerate(modules) if module.startswith(f'module ngage2_{name} ('))
+        for name in ('zap_dcache_fsm', 'zap_dcache')
+    )
+    fsm = modules[fsm_slot]
+    old = '\n'.join(next(line for line in fsm.splitlines()
+                         if line.startswith(prefix))
+                    for prefix in ('\twire writeback_next_valid =', '\tassign o_wb_stb_nxt ='))
+    fsm = edit(fsm, old, '''
+    wire writeback_hold_valid = adr_ctr_ff <= last_writeback_word;
+    wire writeback_advance_valid = adr_ctr_inc <= last_writeback_word;
+    wire writeback_hold_last = adr_ctr_ff == last_writeback_word;
+    wire writeback_advance_last = adr_ctr_inc == last_writeback_word;
+    wire writeback_next_valid = take ? writeback_advance_valid : writeback_hold_valid;
+    wire writeback_next_last = take ? writeback_advance_last : writeback_hold_last;
+
+    // Determine which beat exists before the response chooses whether to advance.
+    wire burst_hold = (state_ff[CLEAN_SINGLE] && writeback_hold_valid) ||
+                      (state_ff[FETCH_SINGLE] && beat_cur_ok);
+    wire burst_advance = (state_ff[CLEAN_SINGLE] && writeback_advance_valid) ||
+                         (state_ff[FETCH_SINGLE] && beat_inc_ok);
+    wire uncached_offer = state_ff[IDLE] && (i_rd || i_wr) && !i_align_fault &&
+                          !i_fault && !i_busy && !i_cache_en && !(i_wr && post_stream);
+    wire uncached_hold = state_ff[UNCACHEABLE] && o_wb_stb_ff && !(i_wb_ack || i_wb_err);
+    assign o_wb_stb_nxt = uncached_offer || uncached_hold || state_ff[UNCACHEABLE_PREPARE] ||
+                         (state_ff[UNLOCK_REG] && o_writeback_busy) ||
+                         (take ? burst_advance : burst_hold);'''.lstrip('\n'))
+    fsm = edit(fsm,
+        '(take ? adr_ctr_inc : adr_ctr_ff) == last_writeback_word ? CTI_EOB : CTI_BURST',
+        'writeback_next_last ? CTI_EOB : CTI_BURST')
+    modules[fsm_slot] = fsm
+
+    cache = modules[cache_slot]
+    old = '\n'.join(next(line for line in cache.splitlines()
+                         if line.startswith(f'\tassign o_wb_{signal}_nxt ='))
+                    for signal in ('cyc', 'stb'))
+    cache = edit(cache, old, '''
+    // The eligible mask already includes posted-store priority. The
+    // payload still comes from the original arbiter's selected owner.
+    assign o_wb_stb_nxt = (!o_wb_stb || i_wb_ack || i_wb_err) ?
+                         (|eligible_cyc) : (|(state_ff & wb_cyc));
+    assign o_wb_cyc_nxt = o_wb_stb_nxt;
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && wb_cyc !== wb_stb)
+            $fatal(1, "D-cache Wishbone producer drives different CYC and STB");
+`endif'''.lstrip('\n'))
+    modules[cache_slot] = cache
+    return ''.join(modules)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1386,6 +1498,8 @@ def main():
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
     generated = prepare_wishbone_write_data(generated)
+    generated = prepare_icache_request_strobe(generated)
+    generated = prepare_dcache_request_strobe(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')
