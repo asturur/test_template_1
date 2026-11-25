@@ -1348,6 +1348,60 @@ def prepare_wishbone_write_data(phone):
     return ''.join(modules)
 
 
+def select_wishbone_address_after_capture(phone):
+    """Use the cache address registers and the registered I/D bus owner."""
+    modules = re.split(r'(?=^module )', phone, flags=re.M)
+    slots = {name: next(i for i, module in enumerate(modules)
+                        if module.startswith(f'module ngage2_{name} ('))
+             for name in ('zap_top', 'zap_wb_merger', 'zap_cache', 'zap_dcache')}
+
+    for name in ('zap_cache', 'zap_dcache'):
+        cache = modules[slots[name]]
+        cache = edit(cache, '\toutput reg [31:0] o_wb_adr;',
+                     '\t(* dont_retime *) output reg [31:0] o_wb_adr;')
+        modules[slots[name]] = edit(cache, "\t\t\to_wb_adr <= 1'sbx;",
+                                    "\t\t\to_wb_adr <= 32'd0;")
+
+    top = modules[slots['zap_top']]
+    for side in ('c', 'd'):
+        before, marker, after = top.partition(f'\t\t\t\t.o_wb_adr_nxt({side}_wb_adr),')
+        if not marker:
+            raise ValueError(f'Expected the {side} cache address connection')
+        prefix, address, suffix = before.rpartition('\t\t\t\t.o_wb_adr(),')
+        if not address:
+            raise ValueError(f'Expected the {side} cache registered address port')
+        top = prefix + f'\t\t\t\t.o_wb_adr({side}_wb_adr),' + suffix + '\t\t\t\t.o_wb_adr_nxt(),' + after
+    top = edit(top, "ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1)) u_zap_wb_merger(",
+               "ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1), .ADDRESS_PREPARED(1'b1)) u_zap_wb_merger(")
+    modules[slots['zap_top']] = top
+
+    merger = modules[slots['zap_wb_merger']]
+    merger = edit(merger, "    parameter D_DATA_PREPARED = 1'b0;",
+                  "    parameter D_DATA_PREPARED = 1'b0;\n    parameter ADDRESS_PREPARED = 1'b0;")
+    merger = edit(merger, '\t(* dont_retime *) output reg [31:0] o_wb_adr;',
+                  '\toutput wire [31:0] o_wb_adr;')
+    for source in ('0', 'i_c_wb_adr', 'i_d_wb_adr'):
+        merger = edit(merger, f'\n\t\t\t\t\to_wb_adr <= {source};', '')
+    merger = edit(merger, '\tinitial _sv2v_0 = 0;', '''
+    generate
+        if (ADDRESS_PREPARED) begin : g_prepared_address
+            // Both cache addresses and the bus owner advance on the request edge.
+            assign o_wb_adr = state_ff ? i_d_wb_adr : i_c_wb_adr;
+        end else begin : g_capture_address
+            (* dont_retime *) reg [31:0] address_ff;
+            always @(posedge i_clk)
+                if (i_reset)
+                    address_ff <= 32'd0;
+                else
+                    address_ff <= state_nxt ? i_d_wb_adr : i_c_wb_adr;
+            assign o_wb_adr = address_ff;
+        end
+    endgenerate
+\tinitial _sv2v_0 = 0;'''.lstrip('\n'))
+    modules[slots['zap_wb_merger']] = merger
+    return ''.join(modules)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1386,6 +1440,7 @@ def main():
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
     generated = prepare_wishbone_write_data(generated)
+    generated = select_wishbone_address_after_capture(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

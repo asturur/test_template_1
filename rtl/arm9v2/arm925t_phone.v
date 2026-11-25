@@ -7948,7 +7948,7 @@ module ngage2_zap_cache (
 	output reg [3:0] o_wb_sel_nxt;
 	output reg [31:0] o_wb_dat;
 	output reg [31:0] o_wb_dat_nxt;
-	output reg [31:0] o_wb_adr;
+	(* dont_retime *) output reg [31:0] o_wb_adr;
 	output reg [31:0] o_wb_adr_nxt;
 	output reg [2:0] o_wb_cti;
 	output reg [2:0] o_wb_cti_nxt;
@@ -8514,7 +8514,7 @@ module ngage2_zap_cache (
 			state_ff <= SELECT_CCH;
 			o_wb_stb <= 1'd0;
 			o_wb_cyc <= 1'd0;
-			o_wb_adr <= 1'sbx;
+			o_wb_adr <= 32'd0;
 			o_wb_cti <= CTI_EOB;
 			o_wb_bte <= 2'b00;
 			o_wb_sel <= 1'sbx;
@@ -11209,7 +11209,7 @@ module ngage2_zap_dcache (
 	output reg [3:0] o_wb_sel_nxt;
 	output reg [31:0] o_wb_dat;
 	output reg [31:0] o_wb_dat_nxt;
-	output reg [31:0] o_wb_adr;
+	(* dont_retime *) output reg [31:0] o_wb_adr;
 	output reg [31:0] o_wb_adr_nxt;
 	output reg [2:0] o_wb_cti;
 	output reg [2:0] o_wb_cti_nxt;
@@ -12016,7 +12016,7 @@ module ngage2_zap_dcache (
 			state_ff <= SELECT_CCH;
 			o_wb_stb <= 1'd0;
 			o_wb_cyc <= 1'd0;
-			o_wb_adr <= 1'sbx;
+			o_wb_adr <= 32'd0;
 			o_wb_cti <= CTI_EOB;
 			o_wb_bte <= 2'b00;
 			o_wb_sel <= 1'sbx;
@@ -16070,7 +16070,7 @@ module ngage2_zap_top (
 			);
 		end
 		if (1) begin : l_merger_for_core_with_cache_mmu
-			ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1)) u_zap_wb_merger(
+			ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1), .ADDRESS_PREPARED(1'b1)) u_zap_wb_merger(
 				.i_clk(i_clk),
 				.i_reset(s_reset),
 				.i_c_wb_stb(c_wb_stb),
@@ -16204,7 +16204,7 @@ module ngage2_zap_top (
 				.o_wb_wen(),
 				.o_wb_sel(),
 				.o_wb_dat(),
-				.o_wb_adr(),
+				.o_wb_adr(d_wb_adr),
 				.o_wb_cti(),
 				.o_wb_bte(),
 				.i_wb_dat(wb_dat),
@@ -16216,7 +16216,7 @@ module ngage2_zap_top (
 				.o_wb_sel_nxt(d_wb_sel),
 				.o_prepared_write_data(d_wb_dat),
 				.o_wb_dat_nxt(),
-				.o_wb_adr_nxt(d_wb_adr),
+				.o_wb_adr_nxt(),
                 .o_wb_line_candidate_nxt(d_line_candidate),
 				.o_wb_bte_nxt(d_wb_bte),
 				.o_wb_cti_nxt(d_wb_cti)
@@ -16271,7 +16271,7 @@ module ngage2_zap_top (
 				.o_wb_wen(),
 				.o_wb_sel(),
 				.o_wb_dat(),
-				.o_wb_adr(),
+				.o_wb_adr(c_wb_adr),
 				.o_wb_cti(),
 				.i_wb_dat(wb_dat),
 				.i_wb_ack(c_wb_ack),
@@ -16284,7 +16284,7 @@ module ngage2_zap_top (
 				.o_wb_wen_nxt(c_wb_wen),
 				.o_wb_sel_nxt(c_wb_sel),
 				.o_wb_dat_nxt(c_wb_dat),
-				.o_wb_adr_nxt(c_wb_adr),
+				.o_wb_adr_nxt(),
                 .o_wb_line_candidate_nxt(c_line_candidate),
 				.o_wb_cti_nxt(c_wb_cti)
 			);
@@ -16344,6 +16344,7 @@ module ngage2_zap_wb_merger (
 );
 	reg _sv2v_0;
     parameter D_DATA_PREPARED = 1'b0;
+    parameter ADDRESS_PREPARED = 1'b0;
 	input wire i_clk;
 	input wire i_reset;
 	input wire i_c_wb_stb;
@@ -16375,7 +16376,7 @@ module ngage2_zap_wb_merger (
 	output reg o_wb_wen;
 	output reg [3:0] o_wb_sel;
 	output wire [31:0] o_wb_dat;
-	(* dont_retime *) output reg [31:0] o_wb_adr;
+	output wire [31:0] o_wb_adr;
 	(* dont_retime *) output reg o_wb_line_candidate;
 	output reg [2:0] o_wb_cti;
 	output reg [1:0] o_wb_bte;
@@ -16716,7 +16717,6 @@ module ngage2_zap_wb_merger (
 					o_wb_stb <= 0;
 					o_wb_wen <= 0;
 					o_wb_sel <= 0;
-					o_wb_adr <= 0;
 					o_wb_line_candidate <= 1'b0;
 					o_wb_cti <= CTI_EOB;
 					o_wb_bte <= 2'b00;
@@ -16726,7 +16726,6 @@ module ngage2_zap_wb_merger (
 					o_wb_stb <= i_c_wb_stb;
 					o_wb_wen <= i_c_wb_wen;
 					o_wb_sel <= i_c_wb_sel;
-					o_wb_adr <= i_c_wb_adr;
 					o_wb_line_candidate <= i_c_line_candidate;
 					o_wb_cti <= i_c_wb_cti;
 					o_wb_bte <= i_c_wb_bte;
@@ -16736,13 +16735,26 @@ module ngage2_zap_wb_merger (
 					o_wb_stb <= i_d_wb_stb;
 					o_wb_wen <= i_d_wb_wen;
 					o_wb_sel <= i_d_wb_sel;
-					o_wb_adr <= i_d_wb_adr;
 					o_wb_line_candidate <= i_d_line_candidate;
 					o_wb_cti <= i_d_wb_cti;
 					o_wb_bte <= i_d_wb_bte;
 				end
 		end
 	endgenerate
+    generate
+        if (ADDRESS_PREPARED) begin : g_prepared_address
+            // Both cache addresses and the bus owner advance on the request edge.
+            assign o_wb_adr = state_ff ? i_d_wb_adr : i_c_wb_adr;
+        end else begin : g_capture_address
+            (* dont_retime *) reg [31:0] address_ff;
+            always @(posedge i_clk)
+                if (i_reset)
+                    address_ff <= 32'd0;
+                else
+                    address_ff <= state_nxt ? i_d_wb_adr : i_c_wb_adr;
+            assign o_wb_adr = address_ff;
+        end
+    endgenerate
 	initial _sv2v_0 = 0;
 endmodule
 module ngage2_zap_writeback (
