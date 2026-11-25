@@ -41,10 +41,33 @@ write-offer clocks. [Replay counts](../../evidence/v5-104-sdram-post-capacity.js
 
 ## Routed comparison
 
-Use production seeds 43, 13 and 31337 at 104 MHz with DDR debugging
-disabled. Count the named `cmd_ready` to posted ACK to cache strobe
-paths and compare whole-core WNS, TNS, hold and ALMs against the
-retained fits. A timing result is still pending.
+The production fits use `ff66e03`, 104 MHz and DDR debugging disabled.
+The fit manifests match the retained QSF and change only the SDRAM
+stream among the 133 compiled inputs.
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45688763667) ·
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45688761432) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45688759230)
+
+| Seed | Retained setup slack (ns) | Capacity setup slack (ns) | Retained ALMs | Capacity ALMs |
+| ---: | ---: | ---: | ---: | ---: |
+| 43 | −2.508 | −2.588 | 36,446 | 37,123 |
+| 13 | −2.061 | −2.708 | 36,420 | 37,217 |
+| 31337 | −2.471 | −2.310 | 36,461 | 37,069 |
+
+In the 100 °C top-1,000 lists, named `cmd_ready` paths through the
+posted decision fall from 0, 52 and 103 to zero. Named posted ACK
+paths into the merger fall from 26, 34 and 54 to zero. Median core
+setup TNS improves by 822.484 ns to −4,321.167 ns. Median worst setup
+moves from −2.471 to −2.588 ns and median area rises 677 ALMs. Each
+fit uses 321 M10Ks. All three pass hold, recovery, removal and minimum
+pulse width and miss setup.
+
+The new limiting paths include the D-cache return into the CPU M
+packet, refill state into the Wishbone address, and TLB physical
+address into the D-cache lock decision. Seed 31337 produced the best
+candidate bitstream at `build/fit/v5-104mhz-ff66e03-seed31337/ngage1.rbf`.
+Hardware behavior remains unverified. The build branch still points to
+`ff66e03` for testing. [Matched fit evidence](../../evidence/v5-104-sdram-post-capacity-fits.json)
 
 ## Reproduce
 

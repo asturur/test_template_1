@@ -235,7 +235,10 @@ The [posted SDRAM capacity trial](sdram-post-capacity.md) drives the
 posted ACK from the existing slot's registered occupancy. A full slot
 waits for the dequeue edge before accepting its successor. The 104 MHz
 physical stream test and the 171,496-event mixed trace match the retained
-control. The patch introduces no storage. Routed timing remains open.
+control. The sampled posted ACK paths into the merger disappear. Median
+setup moves from −2.471 to −2.588 ns while median core setup TNS improves
+822.484 ns. The candidate adds 677 median ALMs and no M10Ks. Seed 31337
+reaches −2.310 ns. All three RBFs are saved.
 
 ## Passive opportunity studies
 

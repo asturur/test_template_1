@@ -1,0 +1,1005 @@
+{
+  "control": [
+    {
+      "run": 45414696142,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 43,
+      "alms": 36446,
+      "m10ks": 321,
+      "registers": 40425,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 77.3,
+      "core_setup_tns_sta_summary_ns": -5288.569,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.508,
+          "hold-summary": 0.216,
+          "recovery-summary": 1.738,
+          "removal-summary": 0.946,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.49
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.428,
+          "hold-summary": 0.102,
+          "recovery-summary": 1.829,
+          "removal-summary": 0.914,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.468,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.595,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.92
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.63,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.946,
+          "removal-summary": 0.377,
+          "min-pulse": 0.961,
+          "fmax_mhz": 169.35
+        }
+      ],
+      "worst_setup_ns": -2.508,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 85,
+        "ngage2_zap_tlb:": 28,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 153
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 851.2,
+          "direct_registers": 916,
+          "inclusive_m10ks": 0
+        }
+      },
+      "named_hot_paths": {
+        "cmd_ready_via_post": {
+          "count": 0
+        },
+        "posted_ack_to_merger": {
+          "count": 26,
+          "worst": {
+            "rank": 3,
+            "slack_ns": -2.421,
+            "source": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]",
+            "cells": [
+              "ram_arbiter|mem_we|q",
+              "phone_sdram|comb~0|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take|combout",
+              "u_zap_cache_fsm|LessThan2~1_RESYN13119|combout",
+              "u_zap_cache_fsm|LessThan2~1|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~1|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~42_RESYN13295|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~42|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~43|combout"
+            ]
+          }
+        },
+        "init_ready_to_merger": {
+          "count": 0
+        },
+        "peripheral_lane13": {
+          "count": 15,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.508,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+            "cells": [
+              "cpu_inside.request_stage|out_address[4]~DUPLICATE|q",
+              "nos_timer|Equal11~0|combout",
+              "nos_timer|Equal11~1|combout",
+              "nos_timer|Equal12~1|combout",
+              "peripherals|always5~9_RESYN12905|combout",
+              "peripherals|always5~9|combout",
+              "peripherals|dout_unkeyed[15]~30|combout",
+              "peripherals|dout_unkeyed[14]~55|combout",
+              "peripherals|registered_response.local_results[13].data[14]~feeder|combout"
+            ]
+          }
+        },
+        "execute_load_return": {
+          "count": 46,
+          "worst": {
+            "rank": 19,
+            "slack_ns": -2.112,
+            "source": "ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+            "destination": "ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]",
+            "cells": [
+              "g_arm9.u_arm9_core|w[527]|q",
+              "u_execute|right_a[13]~55|combout",
+              "u_execute|right_a[13]|combout",
+              "u_alu|Mux50~0|combout",
+              "u_execute|Mux35~12|combout",
+              "u_execute|Mux35~13|combout",
+              "u_execute|Mux35~14|combout",
+              "u_execute|Mux35~35|combout",
+              "u_execute|Mux35~94|combout",
+              "u_execute|o_cpsr_next[30]~4|combout",
+              "g_arm9.u_arm9_core|m[429]~feeder|combout"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "run": 45414703565,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 13,
+      "alms": 36420,
+      "m10ks": 321,
+      "registers": 40529,
+      "average_routing_pct": 45.0,
+      "peak_routing_pct": 73.7,
+      "core_setup_tns_sta_summary_ns": -4606.649,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.061,
+          "hold-summary": 0.218,
+          "recovery-summary": 2.47,
+          "removal-summary": 1.116,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.65
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -1.95,
+          "hold-summary": 0.144,
+          "recovery-summary": 2.766,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 86.47
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.623,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.758,
+          "removal-summary": 0.569,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.702,
+          "hold-summary": 0.052,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.49,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.61
+        }
+      ],
+      "worst_setup_ns": -2.061,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 67,
+        "ngage_icu_extra:extra_regs|": 52,
+        "ngage_mmc_host:": 17,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 35
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.9,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 191.8,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 825.3,
+          "direct_registers": 912,
+          "inclusive_m10ks": 0
+        }
+      },
+      "named_hot_paths": {
+        "cmd_ready_via_post": {
+          "count": 52,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.055,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "cells": [
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux106~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~98|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~7|combout"
+            ]
+          }
+        },
+        "posted_ack_to_merger": {
+          "count": 34,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.055,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "cells": [
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux106~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~98|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~7|combout"
+            ]
+          }
+        },
+        "init_ready_to_merger": {
+          "count": 34,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.055,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "cells": [
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux106~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~98|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~7|combout"
+            ]
+          }
+        },
+        "peripheral_lane13": {
+          "count": 7,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.061,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+            "cells": [
+              "cpu_inside.request_stage|out_address[5]~DUPLICATE|q",
+              "peripherals|Equal37~1|combout",
+              "euart1|Equal27~1|combout",
+              "euart1|Equal27~2|combout",
+              "euart1|Selector13~1|combout",
+              "euart1|Selector13~2|combout",
+              "euart1|Selector13~3|combout",
+              "euart1|dout[22]~22|combout",
+              "euart1|dout[22]~24|combout"
+            ]
+          }
+        },
+        "execute_load_return": {
+          "count": 40,
+          "worst": {
+            "rank": 24,
+            "slack_ns": -1.9,
+            "source": "ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+            "destination": "ngage2_zap_mem_inv_block:l_spage_way[1].u_spage_tlb|ngage2_zap_ram_simple:g_short.u_ram|g_short.forward_write",
+            "cells": [
+              "g_arm9.u_arm9_core|w[527]|q",
+              "u_execute|left_a[3]~22|combout",
+              "u_execute|left_a[3]|combout",
+              "u_alu|_~121|cout",
+              "u_alu|_~29|cout",
+              "u_alu|_~21|cout",
+              "u_alu|_~25|cout",
+              "u_alu|_~17|cout",
+              "u_alu|_~13|cout",
+              "u_alu|_~33|cout",
+              "u_alu|_~37|cout",
+              "u_alu|_~9|cout",
+              "u_alu|_~109|cout",
+              "u_alu|_~101|sumout",
+              "g_arm9.u_arm9_core|o_data_wb_adr_nxt[14]~9|combout",
+              "l_spage_way[1].u_spage_tlb|Equal0~2|combout",
+              "l_spage_way[1].u_spage_tlb|fwd~0|combout"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "run": 45414709004,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 31337,
+      "alms": 36461,
+      "m10ks": 321,
+      "registers": 40532,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.4,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.278,
+          "hold-summary": 0.219,
+          "recovery-summary": 2.077,
+          "removal-summary": 0.934,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.08
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.471,
+          "hold-summary": 0.082,
+          "recovery-summary": 2.26,
+          "removal-summary": 0.909,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.622,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.9,
+          "removal-summary": 0.427,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.88
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.339,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.19,
+          "removal-summary": 0.363,
+          "min-pulse": 0.961,
+          "fmax_mhz": 173.55
+        }
+      ],
+      "worst_setup_ns": -2.471,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 27,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 40,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 72,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.6,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 197.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 834.5,
+          "direct_registers": 908,
+          "inclusive_m10ks": 0
+        }
+      },
+      "named_hot_paths": {
+        "cmd_ready_via_post": {
+          "count": 103,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.278,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "cells": [
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux107~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~90|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~14|combout"
+            ]
+          }
+        },
+        "posted_ack_to_merger": {
+          "count": 54,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.278,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "cells": [
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux107~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~90|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~14|combout"
+            ]
+          }
+        },
+        "init_ready_to_merger": {
+          "count": 54,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.278,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "cells": [
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux107~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~90|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~14|combout"
+            ]
+          }
+        },
+        "peripheral_lane13": {
+          "count": 0
+        },
+        "execute_load_return": {
+          "count": 30,
+          "worst": {
+            "rank": 155,
+            "slack_ns": -1.579,
+            "source": "ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[10]",
+            "destination": "ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[196]",
+            "cells": [
+              "l_generate_with_cache_mmu.u_data_cache|tr_cache_word[10]|q",
+              "g_arm9.u_arm9_core|mw_value[74]~7|combout",
+              "u_forward|o_value[106]~254|combout",
+              "u_forward|o_value[106]~281|combout",
+              "u_execute|operand[106]~127|combout",
+              "u_execute|a~315|combout"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "run": 45688763667,
+      "sha": "ff66e03824cb617b462c239d9c020a6473ec4f0d",
+      "seed": 43,
+      "alms": 37123,
+      "m10ks": 321,
+      "registers": 40562,
+      "average_routing_pct": 45.7,
+      "peak_routing_pct": 79.2,
+      "core_setup_tns_sta_summary_ns": -4321.167,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.588,
+          "hold-summary": 0.249,
+          "recovery-summary": 1.644,
+          "removal-summary": 0.725,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.95
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.335,
+          "hold-summary": 0.155,
+          "recovery-summary": 1.923,
+          "removal-summary": 0.703,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.68
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.503,
+          "hold-summary": 0.133,
+          "recovery-summary": 4.924,
+          "removal-summary": 0.383,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.61
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.617,
+          "hold-summary": 0.116,
+          "recovery-summary": 5.255,
+          "removal-summary": 0.336,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.06
+        }
+      ],
+      "worst_setup_ns": -2.588,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 16,
+        "ngage_icu_extra:extra_regs|": 118,
+        "ngage_mmc_host:": 55,
+        "ngage2_zap_tlb:": 84,
+        "ngage2_zap_wb_merger:": 70,
+        "ngage2_arm9v2_execute:": 187
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[13]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 265.6,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 266.4,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 235.3,
+          "direct_registers": 294,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 212.9,
+          "direct_registers": 223,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 831.2,
+          "direct_registers": 966,
+          "inclusive_m10ks": 0
+        }
+      },
+      "named_hot_paths": {
+        "cmd_ready_via_post": {
+          "count": 0
+        },
+        "posted_ack_to_merger": {
+          "count": 0
+        },
+        "init_ready_to_merger": {
+          "count": 0
+        },
+        "peripheral_lane13": {
+          "count": 5,
+          "worst": {
+            "rank": 245,
+            "slack_ns": -1.634,
+            "source": "ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[6]",
+            "cells": [
+              "g_arm9.u_arm9_core|w[541]|q",
+              "upp|cpu_inside.cpu_suspended~1|combout",
+              "cpu_inside.bridge|bus_live~3|combout",
+              "gpio_loop|claim|combout",
+              "peripherals|dout_unkeyed[12]~1|combout",
+              "keypad_enabled.keypad|value[6]~86|combout",
+              "keypad_enabled.keypad|value[6]~87|combout",
+              "peripherals|registered_response.local_results[13].data[6]~feeder|combout"
+            ]
+          }
+        },
+        "execute_load_return": {
+          "count": 27,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.588,
+            "source": "ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[13]",
+            "destination": "ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]",
+            "cells": [
+              "l_generate_with_cache_mmu.u_data_cache|tr_cache_word[13]|q",
+              "u_execute|right_a[13]~57|combout",
+              "u_execute|right_a[13]|combout",
+              "u_alu|Mux50~0|combout",
+              "u_execute|Mux35~31|combout",
+              "u_execute|Mux35~33|combout",
+              "u_execute|Mux35~35|combout",
+              "u_execute|Mux35~89|combout",
+              "u_execute|o_cpsr_next[30]~4|combout",
+              "g_arm9.u_arm9_core|m[429]~feeder|combout"
+            ]
+          }
+        }
+      },
+      "verified_changed_source": {
+        "rtl/ngage_sdram_stream.v": "67a401dcbe3eaa7f48bb766a3d5be8c647238b83c001deaa1a587b2b409da02f"
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-ff66e03-seed43/ngage1.rbf",
+        "sha256": "9efbb6e59c0be5add85922b0f66ade64d71c46f4f9cbcade99993194d87dcb99"
+      }
+    },
+    {
+      "run": 45688761432,
+      "sha": "ff66e03824cb617b462c239d9c020a6473ec4f0d",
+      "seed": 13,
+      "alms": 37217,
+      "m10ks": 321,
+      "registers": 40524,
+      "average_routing_pct": 46.6,
+      "peak_routing_pct": 79.2,
+      "core_setup_tns_sta_summary_ns": -5499.054,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.708,
+          "hold-summary": 0.249,
+          "recovery-summary": 1.817,
+          "removal-summary": 1.195,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.15
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.671,
+          "hold-summary": 0.121,
+          "recovery-summary": 1.989,
+          "removal-summary": 1.121,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.39
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.369,
+          "hold-summary": 0.133,
+          "recovery-summary": 4.382,
+          "removal-summary": 0.588,
+          "min-pulse": 0.961,
+          "fmax_mhz": 138.01
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.499,
+          "hold-summary": 0.111,
+          "recovery-summary": 4.799,
+          "removal-summary": 0.496,
+          "min-pulse": 0.961,
+          "fmax_mhz": 166.17
+        }
+      ],
+      "worst_setup_ns": -2.708,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 16,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 91,
+        "ngage2_zap_tlb:": 29,
+        "ngage2_zap_wb_merger:": 101,
+        "ngage2_arm9v2_execute:": 174
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|received[4]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[5]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 264.8,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 264.1,
+          "direct_registers": 307,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 234.0,
+          "direct_registers": 294,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 221.0,
+          "direct_registers": 225,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 814.3,
+          "direct_registers": 972,
+          "inclusive_m10ks": 0
+        }
+      },
+      "named_hot_paths": {
+        "cmd_ready_via_post": {
+          "count": 0
+        },
+        "posted_ack_to_merger": {
+          "count": 0
+        },
+        "init_ready_to_merger": {
+          "count": 0
+        },
+        "peripheral_lane13": {
+          "count": 2,
+          "worst": {
+            "rank": 201,
+            "slack_ns": -1.83,
+            "source": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[12]",
+            "cells": [
+              "core|reset_drain~SynDup_54|q",
+              "refill|wb_cyc~0|combout",
+              "cpu_inside.bridge|bus_live~3|combout",
+              "gpio_loop|claim|combout",
+              "peripherals|dout_unkeyed[12]~1|combout",
+              "peripherals|dout_unkeyed[12]~30_RESYN16226|combout",
+              "peripherals|dout_unkeyed[12]~30|combout",
+              "keypad_enabled.keypad|value[12]~75|combout",
+              "keypad_enabled.keypad|value[12]~77|combout",
+              "peripherals|registered_response.local_results[13].data[12]~feeder|combout"
+            ]
+          }
+        },
+        "execute_load_return": {
+          "count": 62,
+          "worst": {
+            "rank": 41,
+            "slack_ns": -2.184,
+            "source": "ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[527]",
+            "destination": "ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|g_metadata[0].valid_live_q",
+            "cells": [
+              "g_arm9.u_arm9_core|w[527]|q",
+              "u_execute|right_a[0]~13|combout",
+              "u_execute|right_a[0]|combout",
+              "u_alu|_~113|cout",
+              "u_alu|_~85|cout",
+              "u_alu|_~81|cout",
+              "u_alu|_~77|cout",
+              "u_alu|_~73|cout",
+              "u_alu|_~121|cout",
+              "u_alu|_~117|cout",
+              "u_alu|_~129|cout",
+              "u_alu|_~125|cout",
+              "u_alu|_~37|sumout",
+              "u_execute|Selector21~1|combout",
+              "u_zap_cache_tag_ram|rd_set[5]~2|combout",
+              "u_zap_cache_tag_ram|valid_live_q~6|combout",
+              "u_zap_cache_tag_ram|valid_live_q~9|combout",
+              "u_zap_cache_tag_ram|valid_live_q~20|combout"
+            ]
+          }
+        }
+      },
+      "verified_changed_source": {
+        "rtl/ngage_sdram_stream.v": "67a401dcbe3eaa7f48bb766a3d5be8c647238b83c001deaa1a587b2b409da02f"
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-ff66e03-seed13/ngage1.rbf",
+        "sha256": "678598e6ffa74e58ac3171dd8cc3d3abbf31f56631ec228220a42d85163f05be"
+      }
+    },
+    {
+      "run": 45688759230,
+      "sha": "ff66e03824cb617b462c239d9c020a6473ec4f0d",
+      "seed": 31337,
+      "alms": 37069,
+      "m10ks": 321,
+      "registers": 40530,
+      "average_routing_pct": 46.1,
+      "peak_routing_pct": 76.2,
+      "core_setup_tns_sta_summary_ns": -3131.174,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.117,
+          "hold-summary": 0.165,
+          "recovery-summary": 2.587,
+          "removal-summary": 1.292,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.24
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.31,
+          "hold-summary": 0.057,
+          "recovery-summary": 2.704,
+          "removal-summary": 1.186,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.86
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.818,
+          "hold-summary": 0.131,
+          "recovery-summary": 4.921,
+          "removal-summary": 0.638,
+          "min-pulse": 0.961,
+          "fmax_mhz": 147.12
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.632,
+          "hold-summary": 0.093,
+          "recovery-summary": 5.193,
+          "removal-summary": 0.53,
+          "min-pulse": 0.961,
+          "fmax_mhz": 175.1
+        }
+      ],
+      "worst_setup_ns": -2.31,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 56,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 91,
+        "ngage2_zap_tlb:": 86,
+        "ngage2_zap_wb_merger:": 185,
+        "ngage2_arm9v2_execute:": 177
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[28]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 264.7,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 265.2,
+          "direct_registers": 307,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.0,
+          "direct_registers": 291,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 211.9,
+          "direct_registers": 225,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 823.2,
+          "direct_registers": 984,
+          "inclusive_m10ks": 0
+        }
+      },
+      "named_hot_paths": {
+        "cmd_ready_via_post": {
+          "count": 0
+        },
+        "posted_ack_to_merger": {
+          "count": 0
+        },
+        "init_ready_to_merger": {
+          "count": 0
+        },
+        "peripheral_lane13": {
+          "count": 0
+        },
+        "execute_load_return": {
+          "count": 74,
+          "worst": {
+            "rank": 19,
+            "slack_ns": -1.736,
+            "source": "ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[1]",
+            "destination": "ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[247]",
+            "cells": [
+              "l_generate_with_cache_mmu.u_data_cache|tr_cache_word[1]|q",
+              "u_execute|fast_rs[1]~20_RESYN17085|combout",
+              "u_execute|fast_rs[1]~20|combout",
+              "u_execute|Add0~0|combout",
+              "u_execute|shift_rot[3]~4|combout",
+              "u_rotate_w|stage[4][29]~45|combout",
+              "u_rotate_w|stage[5][29]~46|combout",
+              "u_rotate_w|o_value~124|combout",
+              "u_execute|a~104|combout"
+            ]
+          }
+        }
+      },
+      "verified_changed_source": {
+        "rtl/ngage_sdram_stream.v": "67a401dcbe3eaa7f48bb766a3d5be8c647238b83c001deaa1a587b2b409da02f"
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-ff66e03-seed31337/ngage1.rbf",
+        "sha256": "b425108c76eee4a7a987d3e4e4a43e775623903c8fe81935f7392669915d99ab"
+      }
+    }
+  ],
+  "medians": {
+    "control": {
+      "worst_setup_ns": -2.471,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "alms": 36446,
+      "m10ks": 321
+    },
+    "candidate": {
+      "worst_setup_ns": -2.588,
+      "core_setup_tns_sta_summary_ns": -4321.167,
+      "alms": 37123,
+      "m10ks": 321
+    }
+  },
+  "scope": "Matched 104 MHz production fits. Path counts are named routes in the 100 \u00b0C top 1,000."
+}

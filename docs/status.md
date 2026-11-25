@@ -1,6 +1,6 @@
 ## 2026-11-25 — SDRAM posted acceptance from registered capacity
 
-The one-slot trial separates the posted ACK from the scheduler's command-ready signal and adds no storage. All 105 fixed windows and the mixed board replay match. Four native frames add 130 clocks (+0.00023%) with matching guest digests and output. The affected SDRAM-to-Wishbone path appears at hot ranks 2 and 1 on retained seeds 13 and 31337. Fit this candidate on the three matched 104 MHz seeds. [Patch and qualification](experiments/v5-performance/sdram-post-capacity.md)
+Public `ff66e03` removes the sampled posted ACK paths into the Wishbone merger on all three 104 MHz seeds. Median setup moves from −2.471 to −2.588 ns, core setup TNS improves 822.484 ns and median area rises 677 ALMs. Every fit produces an RBF and misses setup. Seed 31337 is best at −2.310 ns. All 105 fixed windows and the mixed board replay match. Four native frames add 130 clocks (+0.00023%) with matching guest digests and output. [Patch, qualification and fits](experiments/v5-performance/sdram-post-capacity.md)
 
 ## 2026-11-25 — live shift-count trial qualified in simulation
 

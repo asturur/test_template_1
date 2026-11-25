@@ -1732,6 +1732,7 @@
     "id": "sdram-post-capacity",
     "kind": "design",
     "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "target": "ff66e03824cb617b462c239d9c020a6473ec4f0d",
     "patches": [
       "patches/sdram-post-capacity.patch"
     ],
