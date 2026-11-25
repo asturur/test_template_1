@@ -1662,5 +1662,38 @@
     "sha256": [
       "7ddd891983a926d0fe34d5dd516ea40e2f5b176096e66de985e38787c7e7038b"
     ]
+  },
+  {
+    "id": "cpu-posted-sdram-ack",
+    "kind": "design",
+    "base": "606ff0d05fc1019d87745c5065eed3b462fc81dd",
+    "patches": [
+      "patches/cpu-posted-sdram-ack.patch"
+    ],
+    "sha256": [
+      "cecb4a231ff62bb9a73e982397380c7eae0278a9aceea365105005ab8a76dd72"
+    ],
+    "target": "654217dc6959efbfc4ada18a6db5f21b36433ff9",
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v"
+    ],
+    "measured_sha256": {
+      "Template.sv": "e96bfa9e7d3211855d8f953f25a7449786c7fea011541aeefc870f87908005cd",
+      "rtl/ngage_sdram_arbiter.v": "ffe40dafd8eeac570df2027c07147ced36778f0b5f7f9712bf60cc1a926f3e71",
+      "rtl/ngage_sdram_stream.v": "2d0fa68c72499bd364ba9ce7d2f941682a0bd527308b579203d6b585296898e8"
+    }
+  },
+  {
+    "id": "cpu-posted-sdram-ack-replay",
+    "kind": "fixture",
+    "base": "606ff0d05fc1019d87745c5065eed3b462fc81dd",
+    "patches": [
+      "patches/cpu-posted-sdram-ack-replay.patch"
+    ],
+    "sha256": [
+      "ed5f739fc093a4b5445d1a532555f6215eb7a007057520629dcac67ab3938019"
+    ]
   }
 ]

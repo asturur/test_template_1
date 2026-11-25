@@ -217,6 +217,10 @@ beat I-cache alone, and the matched comparison against retained
 production lost 0.073 ns of median setup and added 422 ALMs. Park the
 combination. Public `606ff0d` restores the retained source.
 
+The [posted SDRAM write reply trial](cpu-posted-sdram-ack.md) captures
+the CPU's posted-write completion after physical acceptance. The mixed
+replay measures the latency cost and records a startup PCM difference.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

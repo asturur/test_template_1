@@ -1,0 +1,103 @@
+diff --git a/Template.sv b/Template.sv
+index 7958c01..6a34c50 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -336,11 +336,12 @@ module emu (
+         .mem_rdata (shared_dma_rdata)
+     );
+ 
+-    wire sdram_owner_ready, hold_sdram_scalar;
++    wire sdram_owner_ready, hold_sdram_scalar, mem_nonposted_ack;
+     // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
+     // Keep the arbiter payload intact until a canceled physical transfer drains.
+     ngage_sdram_arbiter #(
+-        .CPU_BLOCK_WRITES(1)
++        .CPU_BLOCK_WRITES   (1),
++        .CPU_POST_REPLY_REG (1)
+     ) ram_arbiter (
+         .clk            (clk_sys),
+         .reset          (dma_reset || transport_reset),
+@@ -372,6 +373,7 @@ module emu (
+         .mem_block_data (mem_block_data),
+         .mem_be         (mem_be),
+         .mem_ack        (mem_ack),
++        .mem_nonposted_ack(mem_nonposted_ack),
+         .mem_rdata      (mem_rdata)
+     );
+     wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
+@@ -436,6 +438,7 @@ module emu (
+         .din          (mem_wdata),
+         .be           (mem_be),
+         .ack          (mem_ack),
++        .nonposted_ack(mem_nonposted_ack),
+         .dout         (mem_rdata),
+         .line_req     (shared_line_req),
+         .line_short   (shared_line_short),
+diff --git a/rtl/ngage_sdram_arbiter.v b/rtl/ngage_sdram_arbiter.v
+index ec2fd0f..cb76fdb 100644
+--- a/rtl/ngage_sdram_arbiter.v
++++ b/rtl/ngage_sdram_arbiter.v
+@@ -2,7 +2,8 @@
+ // across the SWP read/write gap. The MiSTer top connects LCD DMA.
+ module ngage_sdram_arbiter #(
+     parameter integer AW               = 25,
+-    parameter integer CPU_BLOCK_WRITES = 0
++    parameter integer CPU_BLOCK_WRITES = 0,
++    parameter integer CPU_POST_REPLY_REG = 0
+ ) (
+     input  wire          clk,
+     input  wire          reset,
+@@ -34,7 +35,8 @@ module ngage_sdram_arbiter #(
+     input  wire [  31:0] mem_rdata,
+     output wire          cpu_accept,
+     output wire          dma_accept,
+-    output wire          mem_lock
++    output wire          mem_lock,
++    input  wire          mem_nonposted_ack
+ );
+     localparam FREE = 0, ACTIVE = 1;
+     reg [1:0] state = FREE;
+@@ -48,7 +50,20 @@ module ngage_sdram_arbiter #(
+     assign cpu_accept = !reset && state == FREE && choose_cpu;
+     assign dma_accept = !reset && state == FREE && choose_dma;
+     assign mem_req    = (state == ACTIVE);
+-    assign cpu_ack    = mem_req && !owner && mem_ack && !reset;
++    wire cpu_owns_transfer = mem_req && !owner && !reset;
++    generate
++        if (CPU_POST_REPLY_REG) begin : g_cpu_post_reply
++            (* dont_retime *) reg posted_reply = 0;
++            // The raw completion releases the physical owner at this edge.
++            // The CPU route keeps its token until the captured reply arrives.
++            always @(posedge clk)
++                posted_reply <= cpu_owns_transfer && mem_ack && mem_we && !packet_lock;
++            assign cpu_ack = (cpu_owns_transfer && mem_nonposted_ack) ||
++                             (!reset && posted_reply);
++        end else begin : g_cpu_direct_reply
++            assign cpu_ack = cpu_owns_transfer && mem_ack;
++        end
++    endgenerate
+     assign dma_ack    = mem_req && owner && mem_ack && !reset;
+     assign cpu_rdata  = mem_rdata;
+     assign dma_rdata  = mem_rdata;
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index 9e7c339..06cbccf 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -41,7 +41,8 @@ module ngage_sdram_stream #(
+     input  wire         mem_cmd_ready,
+     input  wire         mem_busy,
+     input  wire         mem_valid,
+-    input  wire [ 31:0] mem_rdata
++    input  wire [ 31:0] mem_rdata,
++    output wire         nonposted_ack
+ );
+     localparam IDLE = 0, READ_WORD = 1, WRITE_LOCKED = 2, LINE = 3;
+     reg [1:0] state = IDLE;
+@@ -109,6 +110,7 @@ module ngage_sdram_stream #(
+     wire word_done = state == READ_WORD && mem_valid;
+     wire locked_done = state == WRITE_LOCKED && !mem_busy;
+     assign ack = owner_ready && (post || read_reply || locked_done);
++    assign nonposted_ack = owner_ready && (read_reply || locked_done);
+ 
+     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
+     assign line_data  = high_word ? high_data : mem_rdata[15:0];
