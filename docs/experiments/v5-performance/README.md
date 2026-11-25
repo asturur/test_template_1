@@ -203,6 +203,10 @@ setup regressed on the three matched seeds, from −2.471 to −3.057 ns.
 The ten-seed median was −2.819 ns. Park the trial. Public `d87216a`
 restores the retained source.
 
+The [I-cache strobe trial](icache-strobe.md) prepares the hold and
+advance cases before ACK/ERR and simplifies request qualification
+using the cache producers' shared CYC/STB invariant.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

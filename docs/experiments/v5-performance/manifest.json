@@ -1580,5 +1580,36 @@
     "sha256": [
       "f3171b4702f3c8722423a53b92eb7cb072ed8afce8ae279f096abb198dcf492d"
     ]
+  },
+  {
+    "id": "icache-strobe",
+    "kind": "design",
+    "base": "d87216ac1152cd8b5d66c31fcca913cd29c014ca",
+    "patches": [
+      "patches/icache-strobe.patch"
+    ],
+    "sha256": [
+      "0481c67232f9fbbd27313e1ed1e1f10501c92726fb2397bbb8ef434fc14bafb1"
+    ],
+    "target": "561a5cbe12ab758ac03daaa6cb8eadee351f946e",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "cc3de1d6eb5b5a84575e5272b4637cd24ae893dbd6efc6ad5feada139d8c420c",
+      "tools/gen_arm9v2_phone.py": "f7b3785c4e22dd6647b6f47653e6e06058517a2cbdd2bfdd188bafc24f5d9344"
+    }
+  },
+  {
+    "id": "icache-strobe-replay",
+    "kind": "fixture",
+    "base": "d87216ac1152cd8b5d66c31fcca913cd29c014ca",
+    "patches": [
+      "patches/icache-strobe-replay.patch"
+    ],
+    "sha256": [
+      "8a0325a5f01c8e329020a611401442a614ac9b0474d1051de46b52d86f281624"
+    ]
   }
 ]
