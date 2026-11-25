@@ -28,8 +28,13 @@ matches the bitmap for every transition with at most one live owner.
 The four directed board profiles have the same cycle counts and
 cache, fault, SWP and line results as the exact retained netlist. The
 mixed replay matches all 171,496 events, including LCD, PCM, MMC and
-SDRAM pins. Timing and the 15 fixed workloads and four native frames
-remain to be measured on this prototype.
+SDRAM pins. All 15 fixed workloads match over 105 windows, and all
+four native PolyCount frames match at 57,508,371 total clocks. The
+guest outputs, ordered architectural events and cycle-stamped
+Wishbone write traces also match. For the routed comparison, fit this
+patch alone at 104 MHz with DDR debug off on seeds 43, 13 and 31337.
+Compare the TLB-to-lock path, whole-core worst setup, total negative
+setup slack, hold and ALMs against the retained fits at `e9552bd`.
 [Local verification receipt](../../evidence/v5-104-dcache-lock-valid.json)
 
 ## Another CPU path to try
@@ -64,3 +69,22 @@ with the retained and candidate netlists. For the mixed pin replay,
 prepare the [write-data reference](prepared-wb-write-data.md#reapply-and-verify),
 run `python3 -B "$area/mixed.py"` and repeat its build and trace commands
 in `build/sim/v5-104-dcache-lock-valid-pin-mixed/mixed`.
+
+For the complete workload replay, prepare the frozen decks and the
+helpers from the [live shift-count replay](live-rs-prep.md#reproduce).
+The same runner checks completed work, wrong-output controls, repeated
+fixed windows, native output, ordered architectural events and the
+cycle-stamped Wishbone write digests.
+
+```sh
+fit=scratch/v5-fit-loop
+area=$fit/dcache-lock-valid
+cp "$area/source/rtl/ngage_cpu.sv" "$area/"
+cp "$fit/live-rs-prep/architectural_trace.vh" "$area/"
+cp "$fit/live-rs-prep/wb-write-trace.vh" "$area/"
+sed 's|/live-rs-prep/source/|/dcache-lock-valid/source/|g' \
+  "$fit/live-rs-prep/replay.py" > "$area/replay.py"
+for measure in fixed native; do
+  python3 -B "$area/replay.py" "$measure" --output qualification
+done
+```

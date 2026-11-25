@@ -178,9 +178,10 @@ simulation evidence and awaits a routed fit.
 
 The [scalar D-cache lock trial](dcache-lock-valid.md) updates the pending
 load's valid bit directly from miss admission and the tagged return.
-Four directed board profiles and the 171,496-event mixed trace match
-the retained design. This targets the TLB-to-lock path without adding
-a clock. Workload replay and a routed comparison remain open.
+All 105 fixed windows, four native PolyCount frames, four directed board
+profiles and the 171,496-event mixed trace match the retained design.
+This targets the TLB-to-lock path without adding a clock. Routed timing
+remains open.
 
 The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
 captures both tag-maintenance words and registers the existing advance

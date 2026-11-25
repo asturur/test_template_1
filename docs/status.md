@@ -1,6 +1,6 @@
-## 2026-11-25 — scalar D-cache lock update staged locally
+## 2026-11-25 — scalar D-cache lock update qualified in simulation
 
-The scalar valid bit uses the existing pending-load tag and clears on the same registered return edge. The local prototype matches the retained tree in all four directed ARM board profiles and the 171,496-event mixed replay. The shift and load flag paths remain separate timing candidates. [Patch and verification](experiments/v5-performance/dcache-lock-valid.md)
+The scalar valid bit uses the existing pending-load tag and clears on the same registered return edge. The prototype matches all 105 fixed windows, four native PolyCount frames, four directed board profiles and the 171,496-event mixed replay. Fit the lock update alone at 104 MHz on the three matched seeds. [Patch and verification](experiments/v5-performance/dcache-lock-valid.md)
 
 ## 2026-11-25 — SDRAM posted acceptance parked
 
