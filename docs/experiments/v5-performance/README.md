@@ -210,6 +210,10 @@ median ALMs and moves matched median setup from −2.471 to −2.942 ns.
 The ten-seed median was −2.802 ns to three decimals. Park the trial
 for area. Public `a58c77b` restores the retained source.
 
+The [combined I/D cache strobe trial](idcache-strobe.md) builds on that
+I-cache trial by checking the D-cache hold and advance results before
+ACK/ERR, including the native writeback block limit.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

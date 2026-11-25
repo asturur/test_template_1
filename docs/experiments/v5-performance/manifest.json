@@ -1611,5 +1611,56 @@
     "sha256": [
       "8a0325a5f01c8e329020a611401442a614ac9b0474d1051de46b52d86f281624"
     ]
+  },
+  {
+    "id": "idcache-strobe",
+    "kind": "design",
+    "base": "a58c77b78e9496347dac0a37cae26cae37f0145f",
+    "patches": [
+      "patches/idcache-strobe.patch"
+    ],
+    "sha256": [
+      "21f824bc7ebc3e17d2b972b881cba6c9de4f2136b6763a67ce87ed3624f99058"
+    ],
+    "target": "6c605ce4de2a81da6e965fca06c21f11d638e2ff",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "39a9cefede1ab3fd19de7e864763b535c122ded4bd6daf4331097583de4c576f",
+      "tools/gen_arm9v2_phone.py": "c2d7c0e5099404763e0704db891626ee97d41d74a59b132ca4e12d32a11bbf0d"
+    }
+  },
+  {
+    "id": "idcache-strobe-delta",
+    "kind": "design",
+    "base": "561a5cbe12ab758ac03daaa6cb8eadee351f946e",
+    "patches": [
+      "patches/idcache-strobe-delta.patch"
+    ],
+    "sha256": [
+      "e87ce44f6eb3b620cb4c3fdfc58a9430054df7a4f171fdedee1ef404ba048794"
+    ],
+    "target": "6c605ce4de2a81da6e965fca06c21f11d638e2ff",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "39a9cefede1ab3fd19de7e864763b535c122ded4bd6daf4331097583de4c576f",
+      "tools/gen_arm9v2_phone.py": "c2d7c0e5099404763e0704db891626ee97d41d74a59b132ca4e12d32a11bbf0d"
+    }
+  },
+  {
+    "id": "idcache-strobe-replay",
+    "kind": "fixture",
+    "base": "a58c77b78e9496347dac0a37cae26cae37f0145f",
+    "patches": [
+      "patches/idcache-strobe-replay.patch"
+    ],
+    "sha256": [
+      "7ddd891983a926d0fe34d5dd516ea40e2f5b176096e66de985e38787c7e7038b"
+    ]
   }
 ]
