@@ -1549,5 +1549,36 @@
     "sha256": [
       "335fe31fb6a7439b7110a7d9f2e73b31efc9b41b708b5951928fdc05f6da3dcc"
     ]
+  },
+  {
+    "id": "wb-id-address",
+    "kind": "design",
+    "base": "e7beaf2e289b12ded13473113d0570d21882d813",
+    "patches": [
+      "patches/wb-id-address.patch"
+    ],
+    "sha256": [
+      "1086c85c1d85bd52e4f95334e4a10a5ef077bc1df56f6aad03074799c50fb089"
+    ],
+    "target": "f628271f2129d12e3119544241c5c73401fb22e1",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "6c1aea4c9b427950af3e022adc76de17fd5f99bb9102f086d5a0b452a126cefd",
+      "tools/gen_arm9v2_phone.py": "554b614cdac85b99e9d49d00980969b15f80a0883ddd25fc1e5fee270d1897f1"
+    }
+  },
+  {
+    "id": "wb-id-address-replay",
+    "kind": "fixture",
+    "base": "e7beaf2e289b12ded13473113d0570d21882d813",
+    "patches": [
+      "patches/wb-id-address-replay.patch"
+    ],
+    "sha256": [
+      "f3171b4702f3c8722423a53b92eb7cb072ed8afce8ae279f096abb198dcf492d"
+    ]
   }
 ]

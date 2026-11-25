@@ -196,6 +196,10 @@ matches every checked cycle. The corrected median setup reached
 −2.645 ns against −2.471 ns for the retained control. Park both.
 Public restore `e7beaf2` matches `e9552bd`.
 
+The [Wishbone address trial](wb-id-address.md) uses the cache address
+registers and selects the address with the registered I/D owner. All
+checked workload cycles and the physical pin replay matched.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
