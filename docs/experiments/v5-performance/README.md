@@ -205,7 +205,10 @@ restores the retained source.
 
 The [I-cache strobe trial](icache-strobe.md) prepares the hold and
 advance cases before ACK/ERR and simplifies request qualification
-using the cache producers' shared CYC/STB invariant.
+using the cache producers' shared CYC/STB invariant. It saves 355
+median ALMs and moves matched median setup from −2.471 to −2.942 ns.
+The ten-seed median was −2.802 ns to three decimals. Park the trial
+for area. Public `a58c77b` restores the retained source.
 
 ## Passive opportunity studies
 

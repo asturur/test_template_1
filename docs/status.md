@@ -1,3 +1,7 @@
+## 2026-11-25 — I-cache strobe trial parked
+
+Public `a58c77b` restores the exact `e9552bd` production tree. The I-cache strobe cut matched all measured cycles and saved 355 median ALMs. Median setup moved from −2.471 to −2.942 ns on the three matched seeds. Across ten candidates, setup ranged from −3.542 to −2.435 ns. Seed 3 also missed hold. Keep the replayable patch for later combinations. [Fit results and replay](experiments/v5-performance/icache-strobe.md)
+
 ## 2026-11-25 — Wishbone address selection parked
 
 Public `d87216a` restores the exact `e9552bd` production tree. The trial removed the sampled I-cache strobe paths into the merger address and matched every checked simulation cycle. Median setup on the three matched seeds went from −2.471 to −3.057 ns. Ten candidate fits ranged from −3.138 to −2.497 ns, with a −2.819 ns median. Use the same seed set on the next experiment. [Fit results and replay](experiments/v5-performance/wb-id-address.md)

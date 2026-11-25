@@ -42,6 +42,42 @@ match the retained build.
 [Seed 6](https://github.com/asturur/test_template_1/actions/runs/45608405948) ·
 [Seed 7](https://github.com/asturur/test_template_1/actions/runs/45608406349)
 
+## Fitted results
+
+| Seed | Retained setup slack (ns) | Strobe trial setup slack (ns) | Strobe trial ALMs |
+| ---: | ---: | ---: | ---: |
+| 43 | −2.508 | −2.612 | 36,093 |
+| 13 | −2.061 | −3.437 | 36,091 |
+| 31337 | −2.471 | −2.942 | 36,064 |
+| 1 | — | −2.435 | 36,070 |
+| 2 | — | −3.542 | 36,082 |
+| 3 | — | −2.731 | 36,113 |
+| 4 | — | −2.822 | 36,061 |
+| 5 | — | −3.208 | 36,126 |
+| 6 | — | −2.632 | 36,145 |
+| 7 | — | −2.781 | 36,035 |
+
+On the three matched seeds, median worst setup moved from −2.471 to
+−2.942 ns and median core setup TNS from −5,143.651 to −6,553.825 ns.
+Median area fell by 355 ALMs to 36,091. Across all ten candidate seeds,
+worst setup ranged from −3.542 to −2.435 ns, with a median of −2.8015 ns.
+The ten-seed median area was 36,086.5 ALMs compared with 37,038 for the
+parked address trial. M10K use was 321 on every fit.
+
+All ten missed setup. Seed 3 missed hold at the slow and fast −40 °C
+corners by 0.027 and 0.013 ns respectively. Other hold checks and all
+recovery, removal and minimum pulse checks passed. The named I-cache
+strobe paths into the address register fell from 22, 23 and 23 to zero
+in the three matched 100 °C lists. Seed 13's new limiting path runs
+from SDRAM completion through the **data** cache's request strobe
+into the merger address. DMA engine control limited seeds 43 and 31337.
+
+Park this version for a possible area-saving combination. Public
+`a58c77b` restores the exact retained production tree. The best
+candidate bitstream, seed 1, is archived at
+`build/fit/v5-104mhz-561a5cb-seed1/ngage1.rbf` and awaits board testing.
+[Verified per-seed timing evidence](../../evidence/v5-104-icache-strobe-fits.json)
+
 ## Replay
 
 Prepare the frozen inputs from [the prepared write-data experiment](prepared-wb-write-data.md)
