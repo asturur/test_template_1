@@ -219,7 +219,10 @@ combination. Public `606ff0d` restores the retained source.
 
 The [posted SDRAM write reply trial](cpu-posted-sdram-ack.md) captures
 the CPU's posted-write completion after physical acceptance. The mixed
-replay measures the latency cost and records a startup PCM difference.
+replay took 1.577% more clocks and changed one startup PCM sample.
+The named posted paths disappeared, while median whole-core setup
+moved from −2.471 to −2.823 ns. Public `e11a637` restores the retained
+source.
 
 ## Passive opportunity studies
 

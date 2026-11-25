@@ -47,6 +47,27 @@ production seeds. [Seed 43](https://github.com/asturur/test_template_1/actions/r
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45674066398) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45674071399)
 
+## Fitted results
+
+| Seed | Retained setup slack (ns) | Registered ACK setup slack (ns) | Candidate ALMs |
+| ---: | ---: | ---: | ---: |
+| 43 | −2.508 | −2.734 | 36,247 |
+| 13 | −2.061 | −3.062 | 36,269 |
+| 31337 | −2.471 | −2.823 | 36,209 |
+
+Named paths through the posted-write decision into the Wishbone
+merger fell from 26, 34 and 54 to zero in the matched hot top-1,000
+reports. Whole-core median setup slack moved from −2.471 to −2.823 ns,
+median core setup TNS from −5,143.651 to −7,366.732 ns, and median
+area from 36,446 to 36,247 ALMs. All fits used 321 M10Ks. They missed
+setup and passed hold, recovery, removal and minimum pulse checks.
+Execute and the TLB-to-D-cache tag path set the remaining limits.
+
+Park the trial. Public `e11a637` restores the exact retained source
+tree. The best candidate fit was seed 43, archived at
+`build/fit/v5-104mhz-654217d-seed43/ngage1.rbf`. Hardware status is unverified.
+[Verified per-corner evidence](../../evidence/v5-104-cpu-posted-sdram-ack-fits.json)
+
 ## Replay
 
 Prepare the frozen [write-data workloads](prepared-wb-write-data.md).

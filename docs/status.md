@@ -1,3 +1,7 @@
+## 2026-11-25 — posted SDRAM write acknowledgment parked
+
+Public `e11a637` restores the exact `e9552bd` production tree. A register removes the sampled CPU posted-write path through the Wishbone merger. All three matched fits lose setup slack and the median moves from −2.471 to −2.823 ns. Four native frames add 0.0115% cycles. The mixed replay adds 1.577% and changes one startup PCM sample. Preserve the exact patch and replay. [Results](experiments/v5-performance/cpu-posted-sdram-ack.md)
+
 ## 2026-11-25 — combined I/D cache strobe trial parked
 
 Public `606ff0d` restores the exact `e9552bd` production tree. The D-cache addition improved six of ten I-cache-only seeds and moved their median setup from −2.8015 to −2.554 ns. The three matched production seeds lost 0.073 ns of median setup and added 422 ALMs. All measured guest cycles and mixed events matched. [Results and replayable patches](experiments/v5-performance/idcache-strobe.md)
